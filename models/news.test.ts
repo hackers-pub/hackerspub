@@ -521,6 +521,43 @@ Deno.test({
 });
 
 Deno.test({
+  name: "recomputeNewsScores activeSince picks up a federated count update",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const sharer = await insertAccountWithActor(tx, {
+        username: "sweepupdate",
+        name: "Sweep Update",
+        email: "sweepupdate@example.com",
+      });
+      const link = await insertPostLink(tx, { url: "https://example.com/swu" });
+      const { post } = await insertNotePost(tx, {
+        account: sharer.account,
+        published: new Date("2025-06-01T00:00:00.000Z"),
+        link: { id: link.id, url: link.url },
+      });
+      await recomputeNewsScores(tx);
+      const before = await readLink(tx, link.id);
+
+      // A federated Update bumps `updated` and revises the engagement count
+      // without creating any local reply/quote/reaction row.
+      await tx.execute(
+        sql`update post set updated = '2026-05-29T00:00:00Z', quotes_count = 5
+            where id = ${post.id}`,
+      );
+      const result = await recomputeNewsScores(tx, {
+        activeSince: new Date("2026-01-01T00:00:00.000Z"),
+      });
+
+      assertEquals(result.linksUpdated, 1);
+      const after = await readLink(tx, link.id);
+      assert(after.weightedMass > before.weightedMass);
+    });
+  },
+});
+
+Deno.test({
   name:
     "recomputeNewsScores activeSince still drops a link that lost its share",
   sanitizeOps: false,

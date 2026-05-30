@@ -6,7 +6,6 @@ import {
   eq,
   isNotNull,
   lt,
-  max,
   or,
   type SQL,
   sql,
@@ -251,6 +250,10 @@ function activeLinkIdsSubquery(activeSince: Date): SQL {
       and s.shared_post_id is null
       and (
         s.published >= ${since}
+        -- A federated Update to a share (e.g. its replies/likes totals) bumps
+        -- the updated column, so this catches remote engagement-count changes
+        -- that create no local reaction/reply/quote row.
+        or s.updated >= ${since}
         or exists (
           select 1 from reaction r
           where r.post_id = s.id and r.created >= ${since}
@@ -464,16 +467,22 @@ export interface NewsScoreStatus {
 export async function getNewsScoreStatus(
   db: Database,
 ): Promise<NewsScoreStatus> {
-  const [row] = await db
-    .select({
-      scoredLinkCount: count(),
-      lastRecomputedAt: max(postLinkTable.scoreUpdated),
-    })
+  const [counts] = await db
+    .select({ scoredLinkCount: count() })
     .from(postLinkTable)
     .where(isNotNull(postLinkTable.latestActivityAt));
+  // Read the column directly (ordered, not aggregated) so drizzle applies the
+  // timestamptz -> Date mapping; `max()` would hand back a raw Postgres string
+  // the GraphQL `DateTime` scalar then refuses to serialize.
+  const [latest] = await db
+    .select({ scoreUpdated: postLinkTable.scoreUpdated })
+    .from(postLinkTable)
+    .where(isNotNull(postLinkTable.scoreUpdated))
+    .orderBy(desc(postLinkTable.scoreUpdated))
+    .limit(1);
   return {
-    scoredLinkCount: Number(row?.scoredLinkCount ?? 0),
-    lastRecomputedAt: row?.lastRecomputedAt ?? null,
+    scoredLinkCount: Number(counts?.scoredLinkCount ?? 0),
+    lastRecomputedAt: latest?.scoreUpdated ?? null,
   };
 }
 

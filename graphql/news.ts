@@ -1,15 +1,19 @@
 import {
+  getNewsScoreStatus,
   getNewsSourceBreakdowns,
   getNewsStories,
   type NewsOrder as NewsOrderValue,
   type NewsStoriesCursor,
+  recomputeNewsScores,
 } from "@hackerspub/models/news";
 import { getPostVisibilityFilter } from "@hackerspub/models/post";
 import type { PostLink as PostLinkRow } from "@hackerspub/models/schema";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { createGraphQLError } from "graphql-yoga";
 import { builder } from "./builder.ts";
+import { NotAuthorizedError } from "./error.ts";
 import { Post, PostLink } from "./post.ts";
+import { NotAuthenticatedError } from "./session.ts";
 
 const MAX_NEWS_WINDOW = 100;
 
@@ -231,6 +235,90 @@ builder.queryField("newsStories", (t) =>
           node: link,
           cursor: formatNewsCursor(link, order),
         })),
+      };
+    },
+  }));
+
+// ---------------------------------------------------------------------------
+// Admin: status + manual recompute
+// ---------------------------------------------------------------------------
+
+const NewsScoreStatus = builder.simpleObject("NewsScoreStatus", {
+  description:
+    "A snapshot of news scoring state, for the moderator admin page.",
+  fields: (t) => ({
+    scoredLinkCount: t.int({
+      description:
+        "Number of links currently in the feed (with at least one public " +
+        "share).",
+    }),
+    lastRecomputedAt: t.field({
+      type: "DateTime",
+      nullable: true,
+      description: "When scores were last recomputed, or `null` if never.",
+    }),
+  }),
+});
+
+builder.queryField("newsScoreStatus", (t) =>
+  t.field({
+    type: NewsScoreStatus,
+    nullable: true,
+    description:
+      "Moderator-only news scoring snapshot.  Returns `null` when the viewer " +
+      "is not a moderator; routes should guard with `viewer.moderator`.",
+    async resolve(_root, _args, ctx) {
+      if (ctx.session == null) return null;
+      if (!ctx.account?.moderator) return null;
+      return await getNewsScoreStatus(ctx.db);
+    },
+  }));
+
+const RecomputeNewsScoresPayload = builder.simpleObject(
+  "RecomputeNewsScoresPayload",
+  {
+    description: "The result of a full news score recompute.",
+    fields: (t) => ({
+      linksUpdated: t.int({
+        description:
+          "Number of links with at least one qualifying public share that " +
+          "were (re)scored by this run.  Stale links dropped from the feed " +
+          "(they lost their last public share) are reset to zero but not " +
+          "counted here.",
+      }),
+      recomputedAt: t.field({
+        type: "DateTime",
+        description: "When the recompute ran.",
+      }),
+      status: t.field({
+        type: NewsScoreStatus,
+        description: "The scoring status after the run.",
+      }),
+    }),
+  },
+);
+
+builder.mutationField("recomputeNewsScores", (t) =>
+  t.field({
+    type: RecomputeNewsScoresPayload,
+    description:
+      "Recompute popularity scores for every news link.  Requires a " +
+      "moderator account.  Idempotent: safe to trigger at any time, and " +
+      "running it twice on unchanged data yields identical scores.  Normally " +
+      "scores stay fresh on their own (incrementally on share, plus a " +
+      "periodic sweep); this is the manual full rebuild and dev backstop.",
+    errors: {
+      types: [NotAuthenticatedError, NotAuthorizedError],
+    },
+    async resolve(_root, _args, ctx) {
+      if (ctx.session == null) throw new NotAuthenticatedError();
+      if (!ctx.account?.moderator) throw new NotAuthorizedError();
+      const result = await recomputeNewsScores(ctx.db);
+      const status = await getNewsScoreStatus(ctx.db);
+      return {
+        linksUpdated: result.linksUpdated,
+        recomputedAt: result.recomputedAt,
+        status,
       };
     },
   }));

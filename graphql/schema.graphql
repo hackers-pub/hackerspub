@@ -1502,6 +1502,11 @@ type Mutation {
   pinHashtag(input: PinHashtagInput!): PinHashtagResult!
   pinPost(input: PinPostInput!): PinPostResult!
   publishArticleDraft(input: PublishArticleDraftInput!): PublishArticleDraftResult!
+
+  """
+  Recompute popularity scores for every news link.  Requires a moderator account.  Idempotent: safe to trigger at any time, and running it twice on unchanged data yields identical scores.  Normally scores stay fresh on their own (incrementally on share, plus a periodic sweep); this is the manual full rebuild and dev backstop.
+  """
+  recomputeNewsScores: RecomputeNewsScoresResult!
   redeemInvitationLink(email: Email!, id: UUID!, locale: Locale!, verifyUrl: URITemplate!): RedeemInvitationLinkResult!
 
   """
@@ -1611,6 +1616,17 @@ enum NewsOrder {
   Hacker-News-style score combining weighted engagement mass with recency.  The default; what most readers want.
   """
   POPULAR
+}
+
+"""A snapshot of news scoring state, for the moderator admin page."""
+type NewsScoreStatus {
+  """When scores were last recomputed, or `null` if never."""
+  lastRecomputedAt: DateTime
+
+  """
+  Number of links currently in the feed (with at least one public share).
+  """
+  scoredLinkCount: Int!
 }
 
 """
@@ -2492,6 +2508,11 @@ type Query {
   ): Document!
 
   """
+  Moderator-only news scoring snapshot.  Returns `null` when the viewer is not a moderator; routes should guard with `viewer.moderator`.
+  """
+  newsScoreStatus: NewsScoreStatus
+
+  """
   Links shared across the fediverse, ranked as a news feed.  Forward pagination only (`first`/`after`); `last`/`before` raise a `PAGINATION_ERROR`.  Pages are capped at 100 stories.  No authentication required.
   """
   newsStories(
@@ -2921,6 +2942,22 @@ type ReactionGroupReactorsConnectionEdge {
   cursor: String!
   node: Actor!
 }
+
+"""The result of a full news score recompute."""
+type RecomputeNewsScoresPayload {
+  """
+  Number of links with at least one qualifying public share that were (re)scored by this run.  Stale links dropped from the feed (they lost their last public share) are reset to zero but not counted here.
+  """
+  linksUpdated: Int!
+
+  """When the recompute ran."""
+  recomputedAt: DateTime!
+
+  """The scoring status after the run."""
+  status: NewsScoreStatus!
+}
+
+union RecomputeNewsScoresResult = NotAuthenticatedError | NotAuthorizedError | RecomputeNewsScoresPayload
 
 enum RedeemEmailError {
   EMAIL_ALREADY_TAKEN

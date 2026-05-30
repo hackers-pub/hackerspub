@@ -1,6 +1,8 @@
 // Must be the first import — see instrument.ts for the rationale.
 import "./instrument.ts";
 
+import { getLogger } from "@logtape/logtape";
+import { recomputeNewsScores } from "@hackerspub/models/news";
 import { getXForwardedRequest } from "@hongminhee/x-forwarded-fetch";
 import * as models from "./ai.ts";
 import { db } from "./db.ts";
@@ -18,6 +20,29 @@ const appleAppSiteAssociationJson = Deno.readTextFileSync(
 );
 
 const yogaServer = createYogaServer();
+
+// Periodic news-score sweep.  The write hook re-scores a link only when the
+// link itself is (un)shared, so engagement-driven re-ranking (a new reply,
+// quote, or reaction on an existing story) relies on this sweep.  It recomputes
+// links with any activity since the window, derived from source timestamps.
+// The moderator "recompute" mutation is the authoritative full rebuild and
+// reconciles anything the incremental/sweep paths miss.  Scoped to
+// `activeSince` to bound cost; idempotent, so a multi-replica double-fire is
+// wasteful but harmless.  Lives here in the server entry point (not in
+// `mod.ts`) so codegen and tests never register it.
+const newsLogger = getLogger(["hackerspub", "graphql", "news"]);
+const NEWS_SWEEP_ACTIVE_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+Deno.cron("recompute-news-scores", "*/5 * * * *", async () => {
+  try {
+    const activeSince = new Date(Date.now() - NEWS_SWEEP_ACTIVE_WINDOW_MS);
+    const result = await recomputeNewsScores(db, { activeSince });
+    newsLogger.debug("News score sweep updated {linksUpdated} link(s).", {
+      linksUpdated: result.linksUpdated,
+    });
+  } catch (error) {
+    newsLogger.error("News score sweep failed: {error}", { error });
+  }
+});
 
 Deno.serve({ port: 8080 }, async (req, info) => {
   try {

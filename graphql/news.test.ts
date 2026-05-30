@@ -1,16 +1,32 @@
 import { assert } from "@std/assert/assert";
 import { assertEquals } from "@std/assert/equals";
 import { recomputeNewsScores } from "@hackerspub/models/news";
+import { accountTable } from "@hackerspub/models/schema";
+import { eq } from "drizzle-orm";
 import { execute, parse } from "graphql";
+import type { Transaction } from "@hackerspub/models/db";
 import { schema } from "./mod.ts";
 import {
+  type AuthenticatedAccount,
   insertAccountWithActor,
   insertNotePost,
   insertPostLink,
   insertRemoteActor,
   makeGuestContext,
+  makeUserContext,
   withRollback,
 } from "../test/postgres.ts";
+
+async function makeModerator(
+  tx: Transaction,
+  values: { username: string; name: string; email: string },
+): Promise<AuthenticatedAccount> {
+  const { account } = await insertAccountWithActor(tx, values);
+  await tx.update(accountTable).set({ moderator: true }).where(
+    eq(accountTable.id, account.id),
+  );
+  return { ...account, moderator: true };
+}
 
 const newsStoriesQuery = parse(`
   query NewsStories($order: NewsOrder, $first: Int, $after: String) {
@@ -326,6 +342,161 @@ Deno.test({
       });
       assert(result.errors != null && result.errors.length > 0);
       assertEquals(result.errors[0].extensions?.code, "PAGINATION_ERROR");
+    });
+  },
+});
+
+const statusQuery = parse(`
+  query NewsScoreStatus {
+    newsScoreStatus {
+      scoredLinkCount
+      lastRecomputedAt
+    }
+  }
+`);
+
+Deno.test({
+  name: "newsScoreStatus is null for guests and non-moderators",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const guest = await execute({
+        schema,
+        document: statusQuery,
+        contextValue: makeGuestContext(tx),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(guest.errors, undefined);
+      assertEquals(
+        (guest.data as { newsScoreStatus: unknown }).newsScoreStatus,
+        null,
+      );
+
+      const { account } = await insertAccountWithActor(tx, {
+        username: "plainviewer",
+        name: "Plain Viewer",
+        email: "plainviewer@example.com",
+      });
+      const nonMod = await execute({
+        schema,
+        document: statusQuery,
+        contextValue: makeUserContext(tx, account),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(nonMod.errors, undefined);
+      assertEquals(
+        (nonMod.data as { newsScoreStatus: unknown }).newsScoreStatus,
+        null,
+      );
+    });
+  },
+});
+
+const recomputeMutation = parse(`
+  mutation Recompute {
+    recomputeNewsScores {
+      __typename
+      ... on RecomputeNewsScoresPayload {
+        linksUpdated
+        status { scoredLinkCount lastRecomputedAt }
+      }
+    }
+  }
+`);
+
+Deno.test({
+  name: "recomputeNewsScores rejects guests and non-moderators",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const guest = await execute({
+        schema,
+        document: recomputeMutation,
+        contextValue: makeGuestContext(tx),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(guest.errors, undefined);
+      assertEquals(
+        (guest.data as { recomputeNewsScores: { __typename: string } })
+          .recomputeNewsScores.__typename,
+        "NotAuthenticatedError",
+      );
+
+      const { account } = await insertAccountWithActor(tx, {
+        username: "nonmod",
+        name: "Non Mod",
+        email: "nonmod@example.com",
+      });
+      const nonMod = await execute({
+        schema,
+        document: recomputeMutation,
+        contextValue: makeUserContext(tx, account),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(nonMod.errors, undefined);
+      assertEquals(
+        (nonMod.data as { recomputeNewsScores: { __typename: string } })
+          .recomputeNewsScores.__typename,
+        "NotAuthorizedError",
+      );
+    });
+  },
+});
+
+Deno.test({
+  name: "recomputeNewsScores rebuilds scores for a moderator",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const moderator = await makeModerator(tx, {
+        username: "newsmod",
+        name: "News Mod",
+        email: "newsmod@example.com",
+      });
+      const link = await insertPostLink(tx, { url: "https://example.com/mod" });
+      await insertNotePost(tx, {
+        account: moderator,
+        link: { id: link.id, url: link.url },
+      });
+      // Note: the incremental write hook already scored the link, but the
+      // mutation must still report a consistent post-run status.
+
+      const result = await execute({
+        schema,
+        document: recomputeMutation,
+        contextValue: makeUserContext(tx, moderator),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(result.errors, undefined);
+      const payload = (result.data as {
+        recomputeNewsScores: {
+          __typename: string;
+          linksUpdated: number;
+          status: { scoredLinkCount: number; lastRecomputedAt: string | null };
+        };
+      }).recomputeNewsScores;
+      assertEquals(payload.__typename, "RecomputeNewsScoresPayload");
+      assertEquals(payload.linksUpdated, 1);
+      assertEquals(payload.status.scoredLinkCount, 1);
+      assert(payload.status.lastRecomputedAt != null);
+
+      // The feed now lists the recomputed story.
+      const feed = await execute({
+        schema,
+        document: newsStoriesQuery,
+        variableValues: { first: 10 },
+        contextValue: makeGuestContext(tx),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(feed.errors, undefined);
+      assertEquals(
+        (feed.data as unknown as NewsStoriesResult).newsStories.edges[0].node
+          .url,
+        link.url,
+      );
     });
   },
 });
