@@ -219,10 +219,16 @@ export async function recomputeNewsScores(
     const linksUpdated = await recomputeAggregate(tx, scope);
     await zeroStaleLinks(tx, scope);
     // Flag newly-scored (or rescored) links that match an exclusion pattern.
-    await applyNewsExclusions(
-      tx,
-      scope.kind === "links" ? scope.ids : undefined,
-    );
+    // Scope the pass to the links this recompute touched so the periodic
+    // `activeSince` sweep stays O(active links) instead of re-testing every
+    // scored link on each run; a full (`all`) recompute re-evaluates all of
+    // them, which is what it is for.
+    const exclusionScope = scope.kind === "links"
+      ? scope.ids
+      : scope.kind === "activeSince"
+      ? await activeLinkIds(tx, scope.since)
+      : undefined;
+    await applyNewsExclusions(tx, exclusionScope);
     return linksUpdated;
   };
 
@@ -435,6 +441,18 @@ function activeLinkIdsSubquery(activeSince: Date): SQL {
         )
       )
   `;
+}
+
+/**
+ * Materialize the `activeSince` link set so the exclusion pass can be scoped to
+ * the same links the recompute touched, rather than re-testing every scored
+ * link.  Deduped, since the subquery yields one row per qualifying share.
+ */
+async function activeLinkIds(db: Database, activeSince: Date): Promise<Uuid[]> {
+  const rows = await db.execute(
+    activeLinkIdsSubquery(activeSince),
+  ) as unknown as { link_id: Uuid }[];
+  return [...new Set(rows.map((row) => row.link_id))];
 }
 
 /**
