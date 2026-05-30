@@ -1,4 +1,5 @@
 import {
+  getNewsDiscussionCounts,
   getNewsScoreStatus,
   getNewsSourceBreakdowns,
   getNewsStories,
@@ -156,6 +157,22 @@ builder.drizzleObjectFields(PostLink, (t) => ({
       return linkIds.map((id) =>
         breakdowns.get(id) ?? { local: 0, remote: 0, bluesky: 0 }
       );
+    },
+  }),
+  discussionCount: t.loadable({
+    type: "Int",
+    description:
+      "Size of this link's federated discussion: its non-bot public sharing " +
+      "posts plus their direct public (`public`/`unlisted`) replies and " +
+      "quotes.  Use this as the count of posts to read in the discussion " +
+      "(the `/news/{uuid}` page); unlike `postCount` it includes the replies " +
+      "and quotes, not just the shares.  Counts direct children only (deeper " +
+      "nesting is not traversed) and is viewer-independent (public posts " +
+      "only).",
+    resolve: (link) => link.id,
+    load: async (linkIds: Uuid[], ctx) => {
+      const counts = await getNewsDiscussionCounts(ctx.db, linkIds);
+      return linkIds.map((id) => counts.get(id) ?? 0);
     },
   }),
 }));

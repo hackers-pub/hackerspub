@@ -728,3 +728,60 @@ export async function getNewsSourceBreakdowns(
   }
   return result;
 }
+
+// ---------------------------------------------------------------------------
+// Discussion count
+// ---------------------------------------------------------------------------
+
+/**
+ * Count, per link, the size of its federated discussion: the non-bot public
+ * sharing posts plus their direct public (`public`/`unlisted`) replies and
+ * quotes.  Batched for the GraphQL `PostLink.discussionCount` loader; links
+ * with no qualifying share are absent from the returned map.  Counts direct
+ * children only (deeper nesting is not traversed); replies/quotes are not
+ * author-filtered, matching the discussion the link's page renders.
+ */
+export async function getNewsDiscussionCounts(
+  db: Database,
+  linkIds: readonly Uuid[],
+): Promise<Map<Uuid, number>> {
+  const result = new Map<Uuid, number>();
+  const ids = [...new Set(linkIds)];
+  if (ids.length < 1) return result;
+  const literal = `{${ids.join(",")}}`;
+  // Collect each link's distinct posts as `(link_id, post_id)` pairs (the
+  // sharing posts plus their direct public replies and quotes), then count per
+  // link.  `union` (not `union all`) deduplicates, so a single post that is
+  // both a reply and a quote of the link's shares (or replies to one share and
+  // quotes another) is counted once, matching the deduplicated discussion tree.
+  const rows = await db.execute<{ link_id: Uuid; cnt: string | number }>(sql`
+    with shares as (
+      select p.id as post_id, p.link_id as link_id
+      from post p
+      join actor a on a.id = p.actor_id
+      where p.link_id = any(${literal}::uuid[])
+        and p.visibility in ('public', 'unlisted')
+        and p.shared_post_id is null
+        and ${nonBotSharerCondition}
+    )
+    select link_id, count(*) as cnt
+    from (
+      select link_id, post_id from shares
+      union
+      select s.link_id, c.id as post_id
+        from shares s
+        join post c on c.reply_target_id = s.post_id
+          and c.visibility in ('public', 'unlisted')
+      union
+      select s.link_id, c.id as post_id
+        from shares s
+        join post c on c.quoted_post_id = s.post_id
+          and c.visibility in ('public', 'unlisted')
+    ) posts
+    group by link_id
+  `);
+  for (const row of rows) {
+    result.set(row.link_id, Number(row.cnt));
+  }
+  return result;
+}

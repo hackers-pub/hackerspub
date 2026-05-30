@@ -451,6 +451,61 @@ Deno.test({
 });
 
 Deno.test({
+  name: "PostLink discussionCount counts shares plus public replies and quotes",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const human = await insertAccountWithActor(tx, {
+        username: "gqldisc",
+        name: "GQL Disc",
+        email: "gqldisc@example.com",
+      });
+      const link = await insertPostLink(tx, {
+        url: "https://example.com/gqldisc",
+      });
+      const { post: share } = await insertNotePost(tx, {
+        account: human.account,
+        link: { id: link.id, url: link.url },
+      });
+      await insertNotePost(tx, {
+        account: human.account,
+        replyTargetId: share.id,
+      });
+      await insertNotePost(tx, {
+        account: human.account,
+        quotedPostId: share.id,
+      });
+      // A followers-only reply must not inflate the public count.
+      await insertNotePost(tx, {
+        account: human.account,
+        visibility: "followers",
+        replyTargetId: share.id,
+      });
+      await recomputeNewsScores(tx);
+
+      const result = await execute({
+        schema,
+        document: parse(`
+          query Q($id: UUID!) {
+            newsStory(id: $id) { discussionCount }
+          }
+        `),
+        variableValues: { id: link.id },
+        contextValue: makeGuestContext(tx),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(result.errors, undefined);
+      assertEquals(
+        (result.data as { newsStory: { discussionCount: number } | null })
+          .newsStory?.discussionCount,
+        3,
+      );
+    });
+  },
+});
+
+Deno.test({
   name: "newsStories rejects backward pagination",
   sanitizeOps: false,
   sanitizeResources: false,

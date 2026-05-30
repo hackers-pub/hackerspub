@@ -2201,6 +2201,11 @@ type PostLink implements Node {
   description: String
 
   """
+  Size of this link's federated discussion: its non-bot public sharing posts plus their direct public (`public`/`unlisted`) replies and quotes.  Use this as the count of posts to read in the discussion (the `/news/{uuid}` page); unlike `postCount` it includes the replies and quotes, not just the shares.  Counts direct children only (deeper nesting is not traversed) and is viewer-independent (public posts only).
+  """
+  discussionCount: Int!
+
+  """
   When this link was first shared publicly by a non-bot account, or `null` if it has never been.  Drives the `NEWEST` order.
   """
   firstSharedAt: DateTime

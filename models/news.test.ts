@@ -4,6 +4,7 @@ import { assertEquals } from "@std/assert/equals";
 import { eq, sql } from "drizzle-orm";
 import type { Transaction } from "./db.ts";
 import {
+  getNewsDiscussionCounts,
   getNewsScoreStatus,
   getNewsSourceBreakdowns,
   getNewsStories,
@@ -1419,6 +1420,142 @@ Deno.test({
         remote: 0,
         bluesky: 0,
       });
+    });
+  },
+});
+
+// ---------------------------------------------------------------------------
+// Discussion count: the size of a link's federated conversation = its non-bot
+// public sharing posts plus their direct public replies and quotes.
+// ---------------------------------------------------------------------------
+
+Deno.test({
+  name: "getNewsDiscussionCounts counts shares plus public replies and quotes",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const human = await insertAccountWithActor(tx, {
+        username: "disc",
+        name: "Disc",
+        email: "disc@example.com",
+      });
+      const bot = await insertRemoteActor(tx, {
+        username: "discbot",
+        name: "Disc Bot",
+        host: "bots.example",
+        type: "Service",
+      });
+      const link = await insertPostLink(tx, {
+        url: "https://example.com/disc",
+      });
+      const { post: share } = await insertNotePost(tx, {
+        account: human.account,
+        link: { id: link.id, url: link.url },
+      });
+      // A bot's share of the same link must not count (excluded root).
+      await insertNotePost(tx, {
+        account: human.account,
+        actorId: bot.id,
+        link: { id: link.id, url: link.url },
+      });
+      // A public reply and a public quote of the human share count…
+      await insertNotePost(tx, {
+        account: human.account,
+        replyTargetId: share.id,
+      });
+      await insertNotePost(tx, {
+        account: human.account,
+        quotedPostId: share.id,
+      });
+      // …but a followers-only reply does not.
+      await insertNotePost(tx, {
+        account: human.account,
+        visibility: "followers",
+        replyTargetId: share.id,
+      });
+
+      const counts = await getNewsDiscussionCounts(tx, [link.id]);
+      // 1 human share + 1 public reply + 1 public quote = 3.
+      assertEquals(counts.get(link.id), 3);
+    });
+  },
+});
+
+Deno.test({
+  name: "getNewsDiscussionCounts counts a share-only link and ignores unknowns",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const a = await insertAccountWithActor(tx, {
+        username: "disca",
+        name: "Disc A",
+        email: "disca@example.com",
+      });
+      const b = await insertAccountWithActor(tx, {
+        username: "discb",
+        name: "Disc B",
+        email: "discb@example.com",
+      });
+      const link = await insertPostLink(tx, {
+        url: "https://example.com/disc2",
+      });
+      await insertNotePost(tx, {
+        account: a.account,
+        link: { id: link.id, url: link.url },
+      });
+      await insertNotePost(tx, {
+        account: b.account,
+        link: { id: link.id, url: link.url },
+      });
+
+      const counts = await getNewsDiscussionCounts(tx, [link.id]);
+      // Two shares, no replies/quotes.
+      assertEquals(counts.get(link.id), 2);
+
+      // An unknown link id is simply absent from the map.
+      const empty = await getNewsDiscussionCounts(tx, [
+        "00000000-0000-7000-8000-000000000000" as Uuid,
+      ]);
+      assertEquals(empty.size, 0);
+    });
+  },
+});
+
+Deno.test({
+  name: "getNewsDiscussionCounts counts a reply-and-quote post once",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const a = await insertAccountWithActor(tx, {
+        username: "dedup",
+        name: "Dedup",
+        email: "dedup@example.com",
+      });
+      const link = await insertPostLink(tx, {
+        url: "https://example.com/dedup",
+      });
+      const { post: share1 } = await insertNotePost(tx, {
+        account: a.account,
+        link: { id: link.id, url: link.url },
+      });
+      const { post: share2 } = await insertNotePost(tx, {
+        account: a.account,
+        link: { id: link.id, url: link.url },
+      });
+      // One post that both replies to share1 and quotes share2 must count once,
+      // not twice, matching the deduplicated discussion tree.
+      await insertNotePost(tx, {
+        account: a.account,
+        replyTargetId: share1.id,
+        quotedPostId: share2.id,
+      });
+
+      const counts = await getNewsDiscussionCounts(tx, [link.id]);
+      // 2 shares + 1 distinct child = 3 (not 4).
+      assertEquals(counts.get(link.id), 3);
     });
   },
 });
