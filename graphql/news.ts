@@ -247,6 +247,12 @@ function invalidNewsCursor(): never {
 
 function newsWindow(first: number | null | undefined): number {
   const window = first ?? 25;
+  if (window < 1) {
+    throw createGraphQLError(
+      "Page size must be at least 1.",
+      { extensions: { code: "PAGINATION_ERROR" } },
+    );
+  }
   if (window > MAX_NEWS_WINDOW) {
     throw createGraphQLError(
       `News pages are limited to ${MAX_NEWS_WINDOW} stories.`,
