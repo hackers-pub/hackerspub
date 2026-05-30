@@ -1,9 +1,9 @@
 // Must be the first import — see instrument.ts for the rationale.
 import "./instrument.ts";
 
+import { getXForwardedRequest } from "@hongminhee/x-forwarded-fetch";
 import { getLogger } from "@logtape/logtape";
 import { recomputeNewsScores } from "@hackerspub/models/news";
-import { getXForwardedRequest } from "@hongminhee/x-forwarded-fetch";
 import * as models from "./ai.ts";
 import { db } from "./db.ts";
 import { drive } from "./drive.ts";
