@@ -1123,6 +1123,13 @@ export const postLinkTable = pgTable(
     firstSharedAt: timestamp("first_shared_at", { withTimezone: true }),
     latestActivityAt: timestamp("latest_activity_at", { withTimezone: true }),
     scoreUpdated: timestamp("score_updated", { withTimezone: true }),
+    // Moderator-applied penalty subtracted from `score` to demote a link in the
+    // feed.  Persisted across recomputes (the recompute reads and re-applies it).
+    scorePenalty: doublePrecision("score_penalty").notNull().default(0),
+    // Set when the link's URL matches a `news_excluded_pattern`; excludes it
+    // from the feed list (every sort order) while leaving its discussion page
+    // reachable.  Recomputed from the patterns, not edited directly.
+    excludedFromNews: boolean("excluded_from_news").notNull().default(false),
     created: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),
@@ -1192,6 +1199,31 @@ export const postLinkTable = pgTable(
 
 export type PostLink = typeof postLinkTable.$inferSelect;
 export type NewPostLink = typeof postLinkTable.$inferInsert;
+
+// Moderator-managed URL patterns; a link whose URL matches any of these is
+// excluded from the News feed list.  Patterns are Web-standard `URLPattern`
+// strings (e.g. `https://example.com/*`, `https://*.example.com/*`).
+export const newsExcludedPatternTable = pgTable(
+  "news_excluded_pattern",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    pattern: text().notNull().unique(),
+    note: text(),
+    creatorId: uuid("creator_id")
+      .$type<Uuid>()
+      .references((): AnyPgColumn => accountTable.id, { onDelete: "set null" }),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    index().on(table.creatorId),
+  ],
+);
+
+export type NewsExcludedPattern = typeof newsExcludedPatternTable.$inferSelect;
+export type NewNewsExcludedPattern =
+  typeof newsExcludedPatternTable.$inferInsert;
 
 export const pollTable = pgTable(
   "poll",
