@@ -1152,7 +1152,7 @@ msgstr "無法載入內容"
 msgid "Failed to load quoted post"
 msgstr "無法載入引用內容"
 
-#: src/components/NewsDiscussionThread.tsx:339
+#: src/components/NewsDiscussionThread.tsx:408
 msgid "Failed to load replies; click to retry"
 msgstr "載入回覆失敗，點擊重試"
 
@@ -1730,6 +1730,7 @@ msgstr "載入更多通行金鑰"
 msgid "Load more posts"
 msgstr "載入更多內容"
 
+#: src/components/NewsDiscussionThread.tsx:378
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/quotes.tsx:198
 #: src/routes/(root)/[handle]/[noteId]/quotes.tsx:205
 msgid "Load more quotes"
@@ -1739,7 +1740,7 @@ msgstr "載入更多引用"
 #~ msgid "Load more reactors (+{0})"
 #~ msgstr "載入更多反應者 (+{0})"
 
-#: src/components/NewsDiscussionThread.tsx:330
+#: src/components/NewsDiscussionThread.tsx:399
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:674
 msgid "Load more replies"
 msgstr "載入更多回覆"
@@ -2728,7 +2729,7 @@ msgid "Show"
 msgstr "顯示"
 
 #. placeholder {0}: childCount()
-#: src/components/NewsDiscussionThread.tsx:308
+#: src/components/NewsDiscussionThread.tsx:356
 msgid "Show {0} more in this thread"
 msgstr "顯示此討論串中的另外 {0} 則"
 

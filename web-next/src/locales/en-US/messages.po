@@ -1156,7 +1156,7 @@ msgstr "Failed to load post"
 msgid "Failed to load quoted post"
 msgstr "Failed to load quoted post"
 
-#: src/components/NewsDiscussionThread.tsx:339
+#: src/components/NewsDiscussionThread.tsx:408
 msgid "Failed to load replies; click to retry"
 msgstr "Failed to load replies; click to retry"
 
@@ -1734,6 +1734,7 @@ msgstr "Load more passkeys"
 msgid "Load more posts"
 msgstr "Load more posts"
 
+#: src/components/NewsDiscussionThread.tsx:378
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/quotes.tsx:198
 #: src/routes/(root)/[handle]/[noteId]/quotes.tsx:205
 msgid "Load more quotes"
@@ -1743,7 +1744,7 @@ msgstr "Load more quotes"
 #~ msgid "Load more reactors (+{0})"
 #~ msgstr "Load more reactors (+{0})"
 
-#: src/components/NewsDiscussionThread.tsx:330
+#: src/components/NewsDiscussionThread.tsx:399
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:674
 msgid "Load more replies"
 msgstr "Load more replies"
@@ -2732,7 +2733,7 @@ msgid "Show"
 msgstr "Show"
 
 #. placeholder {0}: childCount()
-#: src/components/NewsDiscussionThread.tsx:308
+#: src/components/NewsDiscussionThread.tsx:356
 msgid "Show {0} more in this thread"
 msgstr "Show {0} more in this thread"
 

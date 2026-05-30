@@ -1152,7 +1152,7 @@ msgstr "コンテンツの読み込みに失敗しました"
 msgid "Failed to load quoted post"
 msgstr "引用コンテンツの読み込みに失敗しました"
 
-#: src/components/NewsDiscussionThread.tsx:339
+#: src/components/NewsDiscussionThread.tsx:408
 msgid "Failed to load replies; click to retry"
 msgstr "返信の読み込みに失敗しました。クリックして再試行してください"
 
@@ -1730,6 +1730,7 @@ msgstr "パスキーを読み込む"
 msgid "Load more posts"
 msgstr "コンテンツをもっと読み込む"
 
+#: src/components/NewsDiscussionThread.tsx:378
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/quotes.tsx:198
 #: src/routes/(root)/[handle]/[noteId]/quotes.tsx:205
 msgid "Load more quotes"
@@ -1739,7 +1740,7 @@ msgstr "引用をもっと読み込む"
 #~ msgid "Load more reactors (+{0})"
 #~ msgstr "リアクターをもっと読み込む (+{0})"
 
-#: src/components/NewsDiscussionThread.tsx:330
+#: src/components/NewsDiscussionThread.tsx:399
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:674
 msgid "Load more replies"
 msgstr "返信をもっと読み込む"
@@ -2728,7 +2729,7 @@ msgid "Show"
 msgstr "表示"
 
 #. placeholder {0}: childCount()
-#: src/components/NewsDiscussionThread.tsx:308
+#: src/components/NewsDiscussionThread.tsx:356
 msgid "Show {0} more in this thread"
 msgstr "このスレッドであと{0}件を表示"
 

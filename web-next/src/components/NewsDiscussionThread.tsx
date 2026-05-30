@@ -28,17 +28,28 @@ import type { NewsDiscussionThreadChildrenQuery } from "./__generated__/NewsDisc
 // Auto-expand replies/quotes down to this depth; deeper levels load only when
 // the reader asks (so a busy thread does not fetch everything up front).
 export const NEWS_DISCUSSION_AUTO_DEPTH = 3;
+// Following a deep link auto-expands the target's ancestors past
+// NEWS_DISCUSSION_AUTO_DEPTH, but only down to this depth and only this many
+// reply pages per node, so a hash link cannot fan out into fetching the entire
+// tree at once.
+const NEWS_DISCUSSION_TARGET_MAX_DEPTH = 8;
+const NEWS_DISCUSSION_TARGET_MAX_PAGES = 5;
 
 const childrenQuery = graphql`
-  query NewsDiscussionThreadChildrenQuery($id: ID!, $cursor: String) {
+  query NewsDiscussionThreadChildrenQuery(
+    $id: ID!
+    $cursor: String
+    $quoteCursor: String
+  ) {
     node(id: $id) {
       ... on Post {
         replies(after: $cursor, first: 10) {
           edges { node { id ...NewsDiscussionThread_post } }
           pageInfo { hasNextPage endCursor }
         }
-        quotes(first: 20) {
+        quotes(after: $quoteCursor, first: 20) {
           edges { node { id ...NewsDiscussionThread_post } }
+          pageInfo { hasNextPage endCursor }
         }
       }
     }
@@ -49,6 +60,8 @@ interface Child {
   readonly id: string;
   readonly key: NewsDiscussionThread_post$key;
 }
+
+type LoadMode = "initial" | "replies" | "quotes";
 
 export interface NewsDiscussionThreadProps {
   $post: NewsDiscussionThread_post$key;
@@ -111,13 +124,16 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
     onCleanup(() => props.rendered.delete(ownId));
   }
 
-  const [children, setChildren] = createSignal<Child[]>([]);
+  const [replyChildren, setReplyChildren] = createSignal<Child[]>([]);
+  const [quoteChildren, setQuoteChildren] = createSignal<Child[]>([]);
   const [expanded, setExpanded] = createSignal(false);
   const [loadState, setLoadState] = createSignal<
     "idle" | "loading" | "errored"
   >("idle");
-  const [cursor, setCursor] = createSignal<string | null>(null);
-  const [hasMore, setHasMore] = createSignal(false);
+  const [replyCursor, setReplyCursor] = createSignal<string | null>(null);
+  const [replyHasMore, setReplyHasMore] = createSignal(false);
+  const [quoteCursor, setQuoteCursor] = createSignal<string | null>(null);
+  const [quoteHasMore, setQuoteHasMore] = createSignal(false);
   // Dedup across pages and against replies that are also quotes of this post.
   const seen = new Set<string>();
   // `fetchQuery` is one-shot (next then complete), and the `loadState` guard
@@ -125,6 +141,10 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
   // unsubscribe (unsubscribing an in-flight request throws `AbortError`).  This
   // flag just stops late callbacks from touching state after unmount.
   let disposed = false;
+  // Bounds the deep-link reply auto-pagination; reset on each fresh load.
+  let autoPages = 0;
+  // The last load kind, so the error-retry button repeats it.
+  let lastMode: LoadMode = "initial";
   onCleanup(() => disposed = true);
 
   const childCount = () => {
@@ -132,20 +152,28 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
     return p == null ? 0 : p.engagementStats.replies + p.engagementStats.quotes;
   };
 
-  function loadChildren(more = false) {
+  function loadChildren(mode: LoadMode = "initial") {
     const p = post();
     if (p == null || loadState() === "loading") return;
-    if (!more) {
+    lastMode = mode;
+    if (mode === "initial") {
       seen.clear();
-      setChildren([]);
-      setCursor(null);
+      autoPages = 0;
+      setReplyChildren([]);
+      setQuoteChildren([]);
+      setReplyCursor(null);
+      setQuoteCursor(null);
     }
     setExpanded(true);
     setLoadState("loading");
     fetchQuery<NewsDiscussionThreadChildrenQuery>(
       environment(),
       childrenQuery,
-      { id: p.id, cursor: more ? cursor() : null },
+      {
+        id: p.id,
+        cursor: mode === "replies" ? replyCursor() : null,
+        quoteCursor: mode === "quotes" ? quoteCursor() : null,
+      },
     ).subscribe({
       next(data) {
         if (disposed) return;
@@ -169,19 +197,37 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
             }
             return out;
           };
-          const replies = collect(node?.replies?.edges);
-          // Quotes are unpaginated (first 20); only collect them once.
-          const quotes = more ? [] : collect(node?.quotes?.edges);
-          setChildren((prev) =>
-            more ? [...prev, ...replies] : [...quotes, ...replies]
-          );
-          const nextHasMore = node?.replies?.pageInfo?.hasNextPage ?? false;
-          setCursor(node?.replies?.pageInfo?.endCursor ?? null);
-          setHasMore(nextHasMore);
+          // A reply that also quotes this post is collected as a reply (below,
+          // first) and deduped out of the quotes, so it renders exactly once.
+          let autoPaginate = false;
+          if (mode !== "quotes") {
+            const replies = collect(node?.replies?.edges);
+            setReplyChildren((prev) =>
+              mode === "replies" ? [...prev, ...replies] : replies
+            );
+            const nextHasMore = node?.replies?.pageInfo?.hasNextPage ?? false;
+            setReplyCursor(node?.replies?.pageInfo?.endCursor ?? null);
+            setReplyHasMore(nextHasMore);
+            // When following a deep link, keep paginating replies so a target
+            // buried on a later page is reached, but cap the depth and page
+            // count so a hash link cannot fan out into the entire tree.
+            autoPaginate = nextHasMore && props.targetUuid != null &&
+              props.depth < NEWS_DISCUSSION_TARGET_MAX_DEPTH &&
+              autoPages < NEWS_DISCUSSION_TARGET_MAX_PAGES;
+          }
+          if (mode !== "replies") {
+            const quotes = collect(node?.quotes?.edges);
+            setQuoteChildren((prev) =>
+              mode === "quotes" ? [...prev, ...quotes] : quotes
+            );
+            setQuoteCursor(node?.quotes?.pageInfo?.endCursor ?? null);
+            setQuoteHasMore(node?.quotes?.pageInfo?.hasNextPage ?? false);
+          }
           setLoadState("idle");
-          // When following a deep link, keep paginating so a target buried on a
-          // later reply page is reached and can be scrolled to.
-          if (nextHasMore && props.targetUuid != null) loadChildren(true);
+          if (autoPaginate) {
+            autoPages++;
+            loadChildren("replies");
+          }
         });
       },
       error() {
@@ -198,7 +244,9 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
     }));
     if (
       childCount() > 0 &&
-      (props.depth < NEWS_DISCUSSION_AUTO_DEPTH || props.targetUuid != null)
+      (props.depth < NEWS_DISCUSSION_AUTO_DEPTH ||
+        (props.targetUuid != null &&
+          props.depth < NEWS_DISCUSSION_TARGET_MAX_DEPTH))
     ) {
       loadChildren();
     }
@@ -309,7 +357,7 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
                   </button>
                 }
               >
-                <For each={children()}>
+                <For each={quoteChildren()}>
                   {(child) => (
                     <NewsDiscussionThread
                       $post={child.key}
@@ -320,10 +368,31 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
                     />
                   )}
                 </For>
-                <Show when={hasMore()}>
+                <Show when={quoteHasMore()}>
                   <button
                     type="button"
-                    onClick={() => loadChildren(true)}
+                    onClick={() => loadChildren("quotes")}
+                    disabled={loadState() === "loading"}
+                    class="block w-full cursor-pointer px-4 py-2 text-left text-sm text-muted-foreground transition-colors hover:text-primary disabled:opacity-60"
+                  >
+                    {t`Load more quotes`}
+                  </button>
+                </Show>
+                <For each={replyChildren()}>
+                  {(child) => (
+                    <NewsDiscussionThread
+                      $post={child.key}
+                      depth={props.depth + 1}
+                      targetUuid={props.targetUuid}
+                      visited={childVisited()}
+                      rendered={props.rendered}
+                    />
+                  )}
+                </For>
+                <Show when={replyHasMore()}>
+                  <button
+                    type="button"
+                    onClick={() => loadChildren("replies")}
                     disabled={loadState() === "loading"}
                     class="block w-full cursor-pointer px-4 py-2 text-left text-sm text-muted-foreground transition-colors hover:text-primary disabled:opacity-60"
                   >
@@ -333,7 +402,7 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
                 <Show when={loadState() === "errored"}>
                   <button
                     type="button"
-                    onClick={() => loadChildren(cursor() != null)}
+                    onClick={() => loadChildren(lastMode)}
                     class="block w-full cursor-pointer px-4 py-2 text-left text-sm text-error transition-colors hover:underline"
                   >
                     {t`Failed to load replies; click to retry`}
