@@ -1960,6 +1960,12 @@ export async function deletePersistedPost(
     });
     if (replyTarget != null) await updateRepliesCount(db, replyTarget, -1);
   }
+  if (deletedPost.quotedPostId != null) {
+    const quotedPost = await db.query.postTable.findFirst({
+      where: { id: deletedPost.quotedPostId },
+    });
+    if (quotedPost != null) await updateQuotesCount(db, quotedPost, -1);
+  }
   // Re-score the link this post shared and the links of the posts it replied
   // to / quoted (their public reply/quote count dropped).
   await refreshNewsScoresForPostLinks(db, deletedPost);
