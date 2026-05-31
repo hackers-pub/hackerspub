@@ -205,6 +205,7 @@ Deno.test({
       const remotePost = await insertRemotePost(tx, {
         actorId: remoteActor.id,
         contentHtml: "<p>Remote timeline post</p>",
+        published: new Date("2026-04-15T00:00:01.000Z"),
       });
 
       await follow(fedCtx, viewer.account, sharer.actor);
@@ -212,13 +213,22 @@ Deno.test({
         ...remotePost,
         actor: remoteActor,
       });
+      const sharePublished = new Date("2026-04-15T00:00:04.000Z");
 
       await tx.update(postTable)
         .set({
-          published: new Date("2026-04-15T00:00:04.000Z"),
-          updated: new Date("2026-04-15T00:00:04.000Z"),
+          published: sharePublished,
+          updated: sharePublished,
         })
         .where(eq(postTable.id, share.id));
+      await tx.update(timelineItemTable)
+        .set({ appended: sharePublished })
+        .where(
+          and(
+            eq(timelineItemTable.accountId, viewer.account.id),
+            eq(timelineItemTable.postId, remotePost.id),
+          ),
+        );
 
       const timeline = await getPersonalTimeline(tx, {
         currentAccount: viewer.account,
@@ -228,6 +238,8 @@ Deno.test({
       assertEquals(timeline[0].post.id, remotePost.id);
       assertEquals(timeline[0].lastSharer?.id, sharer.actor.id);
       assertEquals(timeline[0].sharersCount, 1);
+      assertEquals(timeline[0].added, sharePublished);
+      assertEquals(timeline[0].cursor, sharePublished);
 
       const withoutShares = await getPersonalTimeline(tx, {
         currentAccount: viewer.account,

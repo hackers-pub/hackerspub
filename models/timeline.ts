@@ -1298,12 +1298,14 @@ export async function getPersonalTimeline(
             actor: enrichActor(item.post!.quotedPost.actor, socialGraph),
           },
       };
+      const timelineTimestamp = withoutShares ? item.added : item.appended;
       result.push({
         ...item,
         post: sanitizePostActors(
           enrichedPost as unknown as typeof item.post,
         ) as unknown as TimelineEntry["post"],
-        cursor: withoutShares ? item.added : item.appended,
+        added: timelineTimestamp,
+        cursor: timelineTimestamp,
         lastSharer: withoutShares ? null : item.lastSharer,
       });
     }
