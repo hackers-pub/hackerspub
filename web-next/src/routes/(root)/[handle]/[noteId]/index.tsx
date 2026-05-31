@@ -10,6 +10,7 @@ import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { HttpHeader } from "@solidjs/start";
 import { graphql } from "relay-runtime";
 import {
+  createMemo,
   createSignal,
   ErrorBoundary,
   For,
@@ -603,6 +604,10 @@ function PermalinkThreadLoaded(props: PermalinkThreadProps) {
           count: { type: "Int", defaultValue: 20 }
         )
       {
+        uuid
+        ... on Note {
+          sourceId
+        }
         replyTarget {
           ...NoteId_contextPost
         }
@@ -622,8 +627,27 @@ function PermalinkThreadLoaded(props: PermalinkThreadProps) {
     `,
     () => data()?.actorByHandle?.postByUuid as NoteIdThread_post$key,
   );
-  const replyTarget = () => thread()?.replyTarget;
-  const replies = () => thread()?.replies.edges ?? [];
+  // Relay can briefly republish this fragment as `null` when another update
+  // touches the same `Post` record. Keep the permalink thread mounted across
+  // that gap so opening action popovers does not drop the reply list.
+  const stableThread = createMemo<
+    {
+      routeKey: string;
+      value: NonNullable<ReturnType<typeof thread>>;
+    } | null
+  >((previous) => {
+    const routeKey = `${props.username}/${props.noteId}`;
+    const value = thread();
+    if (
+      value != null &&
+      (value.uuid === props.noteId || value.sourceId === props.noteId)
+    ) {
+      return { routeKey, value };
+    }
+    return previous?.routeKey === routeKey ? previous : null;
+  });
+  const replyTarget = () => stableThread()?.value.replyTarget;
+  const replies = () => stableThread()?.value.replies.edges ?? [];
 
   function onLoadMore() {
     setLoadingState("loading");
@@ -635,7 +659,7 @@ function PermalinkThreadLoaded(props: PermalinkThreadProps) {
   }
 
   return (
-    <Show when={thread() != null} fallback={props.children}>
+    <Show when={stableThread() != null} fallback={props.children}>
       <div class="contents">
         <Show keyed when={replyTarget()}>
           {(parent) => (
