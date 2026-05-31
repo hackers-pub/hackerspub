@@ -646,7 +646,20 @@ function PermalinkThreadLoaded(props: PermalinkThreadProps) {
     }
     return previous?.routeKey === routeKey ? previous : null;
   });
-  const replyTarget = () => stableThread()?.value.replyTarget;
+  const stableReplyTarget = createMemo<
+    {
+      routeKey: string;
+      value: NonNullable<
+        NonNullable<ReturnType<typeof stableThread>>["value"]["replyTarget"]
+      >;
+    } | null
+  >((previous) => {
+    const routeKey = `${props.username}/${props.noteId}`;
+    const value = stableThread()?.value.replyTarget;
+    if (value != null) return { routeKey, value };
+    return previous?.routeKey === routeKey ? previous : null;
+  });
+  const replyTarget = () => stableReplyTarget()?.value;
   const replies = () => stableThread()?.value.replies.edges ?? [];
 
   function onLoadMore() {

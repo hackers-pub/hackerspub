@@ -1,8 +1,15 @@
 import { sortReactionGroups } from "@hackerspub/models/emoji";
 import { A, useNavigate } from "@solidjs/router";
 import { graphql } from "relay-runtime";
-import * as PopoverPrimitive from "@kobalte/core/popover";
-import { createSignal, type JSX, onMount, Show } from "solid-js";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  type JSX,
+  onCleanup,
+  onMount,
+  Show,
+} from "solid-js";
 import { createFragment, createMutation } from "solid-relay";
 import { Button } from "~/components/ui/button.tsx";
 import {
@@ -103,7 +110,7 @@ const unsharePostMutation = graphql`
 export function PostEngagementBar(props: PostEngagementBarProps) {
   const { t } = useLingui();
   const { openWithQuote, openWithReply } = useNoteCompose();
-  const note = createFragment(
+  const liveNote = createFragment(
     graphql`
       fragment PostEngagementBar_post on Post {
         __id
@@ -144,10 +151,84 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
     `,
     () => props.$post,
   );
+  const fragmentKey = () => {
+    const post = props.$post as
+      | {
+        readonly __id?: string;
+        readonly id?: string;
+      }
+      | null
+      | undefined;
+    return post?.id ?? post?.__id ?? null;
+  };
+  const stableNote = createMemo<
+    {
+      key: string;
+      value: NonNullable<ReturnType<typeof liveNote>>;
+    } | null
+  >((previous) => {
+    const value = liveNote();
+    const key = value?.id ?? value?.__id ?? fragmentKey();
+    if (value != null && key != null) return { key, value };
+    return previous?.key === key ? previous : null;
+  });
+  const note = () => stableNote()?.value ?? null;
 
   const [showEmojiPopover, setShowEmojiPopover] = createSignal(false);
   const [emojiPickerMounted, setEmojiPickerMounted] = createSignal(false);
+  const [emojiTrigger, setEmojiTrigger] = createSignal<HTMLButtonElement>();
+  const [emojiPopover, setEmojiPopover] = createSignal<HTMLDivElement>();
+  const [emojiPopoverPosition, setEmojiPopoverPosition] = createSignal<
+    { left: number; top: number } | null
+  >(null);
   onMount(() => setEmojiPickerMounted(true));
+
+  const updateEmojiPopoverPosition = (target?: HTMLElement) => {
+    const trigger = target ?? emojiTrigger();
+    if (trigger == null || !trigger.isConnected) return false;
+
+    const rect = trigger.getBoundingClientRect();
+    const width = 320;
+    const margin = 8;
+    const maxLeft = Math.max(margin, window.innerWidth - width - margin);
+    setEmojiPopoverPosition({
+      left: Math.min(Math.max(margin, rect.left), maxLeft),
+      top: rect.bottom + 4,
+    });
+    return true;
+  };
+
+  createEffect(() => {
+    if (!showEmojiPopover()) return;
+
+    updateEmojiPopoverPosition();
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (
+        emojiTrigger()?.contains(target) || emojiPopover()?.contains(target)
+      ) {
+        return;
+      }
+      setShowEmojiPopover(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setShowEmojiPopover(false);
+    };
+    const updateFromCurrentTrigger = () => {
+      if (!updateEmojiPopoverPosition()) setShowEmojiPopover(false);
+    };
+    window.addEventListener("resize", updateFromCurrentTrigger);
+    window.addEventListener("scroll", updateFromCurrentTrigger, true);
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    onCleanup(() => {
+      window.removeEventListener("resize", updateFromCurrentTrigger);
+      window.removeEventListener("scroll", updateFromCurrentTrigger, true);
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    });
+  });
 
   const [sharePost, sharePending] = createMutation<
     PostEngagementBar_sharePost_Mutation
@@ -329,50 +410,65 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
 
           {/* Reactions — icon opens emoji popover, count links to /reactions. */}
           <div class="inline-flex items-stretch">
-            <Show when={emojiPickerMounted()}>
-              <PopoverPrimitive.Root
-                open={showEmojiPopover()}
-                onOpenChange={setShowEmojiPopover}
-                gutter={4}
+            <button
+              ref={setEmojiTrigger}
+              type="button"
+              class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 px-2 cursor-pointer"
+              classList={{
+                "text-muted-foreground hover:text-foreground":
+                  !userHasReacted(),
+                "text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300":
+                  userHasReacted(),
+              }}
+              aria-label={t`React`}
+              title={t`React`}
+              onClick={(event) => {
+                if (showEmojiPopover()) {
+                  setShowEmojiPopover(false);
+                  return;
+                }
+                setEmojiTrigger(event.currentTarget);
+                if (updateEmojiPopoverPosition(event.currentTarget)) {
+                  setShowEmojiPopover(true);
+                }
+              }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill={userHasReacted() ? "currentColor" : "none"}
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="size-4"
+                aria-hidden="true"
               >
-                <PopoverPrimitive.Trigger
-                  class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 px-2 cursor-pointer"
-                  classList={{
-                    "text-muted-foreground hover:text-foreground":
-                      !userHasReacted(),
-                    "text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300":
-                      userHasReacted(),
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"
+                />
+              </svg>
+            </button>
+            <Show
+              when={emojiPickerMounted() && showEmojiPopover() &&
+                emojiPopoverPosition() != null && reactionPopoverData()}
+            >
+              {(popoverData) => (
+                <div
+                  ref={setEmojiPopover}
+                  class="z-50 w-80 overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md outline-none"
+                  style={{
+                    position: "fixed",
+                    left: `${emojiPopoverPosition()!.left}px`,
+                    top: `${emojiPopoverPosition()!.top}px`,
                   }}
-                  aria-label={t`React`}
-                  title={t`React`}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill={userHasReacted() ? "currentColor" : "none"}
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    class="size-4"
-                    aria-hidden="true"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"
-                    />
-                  </svg>
-                </PopoverPrimitive.Trigger>
-                <PopoverPrimitive.Portal>
-                  <PopoverPrimitive.Content class="z-50 w-80 origin-[var(--kb-popover-content-transform-origin)] animate-content-hide overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md outline-none data-[expanded]:animate-content-show">
-                    <Show when={reactionPopoverData()}>
-                      <EmojiReactionPopover
-                        noteData={reactionPopoverData()!}
-                        onClose={() => setShowEmojiPopover(false)}
-                      />
-                    </Show>
-                  </PopoverPrimitive.Content>
-                </PopoverPrimitive.Portal>
-              </PopoverPrimitive.Root>
+                  <EmojiReactionPopover
+                    noteData={popoverData()}
+                    onClose={() => setShowEmojiPopover(false)}
+                  />
+                </div>
+              )}
             </Show>
             <CountAffordance
               count={note.engagementStats.reactions}

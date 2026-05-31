@@ -1,5 +1,5 @@
 import { graphql } from "relay-runtime";
-import { createSignal, Show } from "solid-js";
+import { createMemo, createSignal, Show } from "solid-js";
 import { createFragment } from "solid-relay";
 import { useContentLinkInterceptor } from "~/lib/contentLinkInterceptor.ts";
 import { createDeferredRender } from "~/lib/deferredRender.ts";
@@ -30,7 +30,7 @@ export interface NoteCardInternalProps {
 
 export function NoteCardInternal(props: NoteCardInternalProps) {
   const { t } = useLingui();
-  const note = createFragment(
+  const liveNote = createFragment(
     graphql`
       fragment NoteCardInternal_note on Note {
         __id
@@ -60,6 +60,28 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
     `,
     () => props.$note,
   );
+  const fragmentKey = () => {
+    const note = props.$note as
+      | {
+        readonly __id?: string;
+        readonly id?: string;
+      }
+      | null
+      | undefined;
+    return note?.id ?? note?.__id ?? null;
+  };
+  const stableNote = createMemo<
+    {
+      key: string;
+      value: NonNullable<ReturnType<typeof liveNote>>;
+    } | null
+  >((previous) => {
+    const value = liveNote();
+    const key = value?.id ?? value?.__id ?? fragmentKey();
+    if (value != null && key != null) return { key, value };
+    return previous?.key === key ? previous : null;
+  });
+  const note = () => stableNote()?.value ?? null;
 
   // Local permalink base for the engagement bar.  Local notes use the
   // source row's UUID (matching the URL embedded in `Post.url`);
