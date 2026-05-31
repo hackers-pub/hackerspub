@@ -29,6 +29,7 @@ export function NoteComposeModal() {
     replyDefaultVisibility,
     editingNoteId,
     editInitialData,
+    initialContent,
     close,
     clearQuote,
     notifyNoteCreated,
@@ -108,7 +109,7 @@ export function NoteComposeModal() {
               defaultVisibility={replyDefaultVisibility() ?? undefined}
               placeholder={replyTargetId() ? t`Write a reply…` : undefined}
               editingNoteId={editingNoteId()}
-              initialContent={editInitialData()?.content}
+              initialContent={editInitialData()?.content ?? initialContent()}
               initialLanguage={editInitialData()?.language}
               initialQuotePolicy={editInitialData()?.quotePolicy}
               editingVisibility={editInitialData()?.visibility}

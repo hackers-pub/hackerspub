@@ -11,6 +11,7 @@ import {
   Show,
 } from "solid-js";
 import { createMutation, useRelayEnvironment } from "solid-relay";
+import { ensureLinkInContent } from "~/lib/composerLink.ts";
 import { detectLanguage } from "~/lib/langdet.ts";
 import {
   UploadAbortedError,
@@ -254,6 +255,10 @@ export interface NoteComposerProps {
   replyTargetId?: string | null;
   defaultVisibility?: PostVisibility | null;
   showReplyTarget?: boolean;
+  // When set (new notes only), the URL is appended to the bottom of the
+  // submitted content unless the author already included it, so the note links
+  // to (and joins the discussion of) this URL.
+  ensureLinkUrl?: string | null;
   // Edit mode: when set, the composer updates an existing note instead of
   // creating a new one.
   editingNoteId?: string | null;
@@ -266,11 +271,11 @@ export interface NoteComposerProps {
 export function NoteComposer(props: NoteComposerProps) {
   const { t, i18n } = useLingui();
   const environment = useRelayEnvironment();
-  // In edit mode, initialize signals directly from props so the form is
-  // pre-filled on the first render (avoids an async createEffect lag).
-  const initialEditContent = props.editingNoteId
-    ? (props.initialContent ?? "")
-    : "";
+  // Initialize content directly from props so a deliberate pre-fill — an edit's
+  // body, or a "share this link" URL passed via `initialContent` — is present
+  // on the first render (avoids an async createEffect lag).  Empty for a plain
+  // compose / reply / quote, where `initialContent` is null.
+  const initialEditContent = props.initialContent ?? "";
   const [content, setContent] = createSignal(initialEditContent);
   const [visibility, setVisibility] = createSignal<PostVisibility>(
     props.defaultVisibility ?? "PUBLIC",
@@ -496,8 +501,9 @@ export function NoteComposer(props: NoteComposerProps) {
     if (!id) {
       setReplyTargetPost(null);
       setReplyTargetFetchError(false);
-      // In edit mode, keep the existing content; don't clear the pre-fill.
-      if (!props.editingNoteId) {
+      // Keep a deliberate pre-fill (an edit body, or a "share this link" URL
+      // via `initialContent`); only clear an auto-filled reply mention.
+      if (!props.editingNoteId && !props.initialContent) {
         if (content() === prefillRef) setContent("");
         prefillRef = "";
       }
@@ -862,10 +868,15 @@ export function NoteComposer(props: NoteComposerProps) {
         },
       });
     } else {
+      // Append the discussed link to the bottom unless the author already
+      // included it, so an inline opinion joins this link's discussion.
+      const finalContent = props.ensureLinkUrl
+        ? ensureLinkInContent(noteContent, props.ensureLinkUrl)
+        : noteContent;
       createNote({
         variables: {
           input: {
-            content: noteContent,
+            content: finalContent,
             language: language()?.baseName ?? i18n.locale,
             visibility: visibility(),
             quotePolicy: effectiveQuotePolicy(),

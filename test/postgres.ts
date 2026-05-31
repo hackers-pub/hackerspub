@@ -9,11 +9,15 @@ import {
   accountEmailTable,
   accountTable,
   actorTable,
+  type ActorType,
   instanceTable,
   mentionTable,
   type NewPost,
   noteSourceTable,
+  type PostLink,
+  postLinkTable,
   postTable,
+  reactionTable,
 } from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
 import type { Uuid } from "@hackerspub/models/uuid";
@@ -61,6 +65,26 @@ export async function seedLocalInstance(
   }).onConflictDoNothing();
 }
 
+/**
+ * Seed (or override) an instance row with a specific `software` value, e.g.
+ * `"mastodon"` or `"bsky.brid.gy"`, so news source-weight tests can control
+ * how a remote actor's instance is classified.
+ */
+export async function seedInstance(
+  tx: Transaction,
+  host: string,
+  software: string,
+): Promise<void> {
+  await tx.insert(instanceTable).values({
+    host,
+    software,
+    softwareVersion: "test",
+  }).onConflictDoUpdate({
+    target: instanceTable.host,
+    set: { software, softwareVersion: "test" },
+  });
+}
+
 export async function insertAccountWithActor(
   tx: Transaction,
   values: {
@@ -70,6 +94,9 @@ export async function insertAccountWithActor(
     iri?: string;
     inboxUrl?: string;
     host?: string;
+    type?: ActorType;
+    followersCount?: number;
+    followeesCount?: number;
   },
 ): Promise<{
   account: AuthenticatedAccount;
@@ -103,12 +130,14 @@ export async function insertAccountWithActor(
   await tx.insert(actorTable).values({
     id: actorId,
     iri: values.iri ?? `http://${host}/@${values.username}`,
-    type: "Person",
+    type: values.type ?? "Person",
     username: values.username,
     instanceHost: host,
     handleHost: host,
     accountId,
     name: values.name,
+    followersCount: values.followersCount ?? 0,
+    followeesCount: values.followeesCount ?? 0,
     inboxUrl: values.inboxUrl ?? `http://${host}/@${values.username}/inbox`,
     sharedInboxUrl: `http://${host}/inbox`,
     created: timestamp,
@@ -143,6 +172,10 @@ export async function insertRemoteActor(
     iri?: string;
     inboxUrl?: string;
     url?: string;
+    handleHost?: string;
+    type?: ActorType;
+    followersCount?: number;
+    followeesCount?: number;
   },
 ) {
   const actorId = generateUuidV7();
@@ -153,11 +186,13 @@ export async function insertRemoteActor(
   await tx.insert(actorTable).values({
     id: actorId,
     iri: values.iri ?? `https://${values.host}/users/${values.username}`,
-    type: "Person",
+    type: values.type ?? "Person",
     username: values.username,
     instanceHost: values.host,
-    handleHost: values.host,
+    handleHost: values.handleHost ?? values.host,
     name: values.name,
+    followersCount: values.followersCount ?? 0,
+    followeesCount: values.followeesCount ?? 0,
     inboxUrl: values.inboxUrl ??
       `https://${values.host}/users/${values.username}/inbox`,
     sharedInboxUrl: `https://${values.host}/inbox`,
@@ -184,9 +219,13 @@ export async function insertNotePost(
     quotePolicy?: "everyone" | "followers" | "self";
     quoteRequestPolicy?: "everyone" | "followers" | "self";
     reactionsCounts?: Record<string, number>;
+    repliesCount?: number;
+    quotesCount?: number;
+    sharesCount?: number;
     replyTargetId?: Uuid;
     quotedPostId?: Uuid;
     sharedPostId?: Uuid;
+    link?: { id: Uuid; url: string };
     published?: Date;
     updated?: Date;
   },
@@ -227,10 +266,15 @@ export async function insertNotePost(
     sharedPostId: values.sharedPostId,
     replyTargetId: values.replyTargetId,
     quotedPostId: values.quotedPostId,
+    linkId: values.link?.id,
+    linkUrl: values.link?.url,
     contentHtml: values.contentHtml ??
       `<p>${values.content ?? "Hello world"}</p>`,
     language: values.language ?? "en",
     reactionsCounts: values.reactionsCounts ?? {},
+    repliesCount: values.repliesCount,
+    quotesCount: values.quotesCount,
+    sharesCount: values.sharesCount,
     url: `http://localhost/@${values.account.username}/${noteSourceId}`,
     published: timestamp,
     updated,
@@ -255,11 +299,16 @@ export async function insertRemotePost(
     visibility?: "public" | "unlisted" | "followers" | "direct" | "none";
     quotePolicy?: "everyone" | "followers" | "self";
     quoteRequestPolicy?: "everyone" | "followers" | "self";
+    reactionsCounts?: Record<string, number>;
+    repliesCount?: number;
+    quotesCount?: number;
+    sharesCount?: number;
     published?: Date;
     updated?: Date;
     replyTargetId?: Uuid;
     quotedPostId?: Uuid;
     sharedPostId?: Uuid;
+    link?: { id: Uuid; url: string };
   },
 ) {
   const timestamp = values.published ?? new Date("2026-04-15T00:00:00.000Z");
@@ -281,9 +330,14 @@ export async function insertRemotePost(
     sharedPostId: values.sharedPostId,
     replyTargetId: values.replyTargetId,
     quotedPostId: values.quotedPostId,
+    linkId: values.link?.id,
+    linkUrl: values.link?.url,
     contentHtml: values.contentHtml ?? "<p>Remote post</p>",
     language: values.language ?? "en",
-    reactionsCounts: {},
+    reactionsCounts: values.reactionsCounts ?? {},
+    repliesCount: values.repliesCount,
+    quotesCount: values.quotesCount,
+    sharesCount: values.sharesCount,
     published: timestamp,
     updated,
   };
@@ -300,6 +354,35 @@ export async function insertMention(
   values: { postId: Uuid; actorId: Uuid },
 ) {
   await tx.insert(mentionTable).values(values);
+}
+
+export async function insertPostLink(
+  tx: Transaction,
+  values: { url: string; title?: string; creatorId?: Uuid },
+): Promise<PostLink> {
+  const id = generateUuidV7();
+  await tx.insert(postLinkTable).values({
+    id,
+    url: values.url,
+    title: values.title,
+    creatorId: values.creatorId,
+  });
+  const link = await tx.query.postLinkTable.findFirst({ where: { id } });
+  assert(link != null);
+  return link;
+}
+
+export async function insertReaction(
+  tx: Transaction,
+  values: { postId: Uuid; actorId: Uuid; emoji?: string; created?: Date },
+) {
+  await tx.insert(reactionTable).values({
+    iri: `http://localhost/reactions/${generateUuidV7()}`,
+    postId: values.postId,
+    actorId: values.actorId,
+    emoji: values.emoji ?? "❤️",
+    created: values.created ?? new Date("2026-04-15T00:00:00.000Z"),
+  });
 }
 
 export function createTestKv(): TestKv {

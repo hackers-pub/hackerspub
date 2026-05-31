@@ -50,6 +50,7 @@ import type { Database, RelationsFilter, Transaction } from "./db.ts";
 import { extractExternalLinks } from "./html.ts";
 import { getMissingArticleMediumLabel, renderMarkup } from "./markup.ts";
 import { persistPostMedium } from "./medium.ts";
+import { refreshNewsScores, refreshNewsScoresForPostLinks } from "./news.ts";
 import {
   createQuotedPostUpdatedNotification,
   createSharedPostUpdatedNotification,
@@ -585,6 +586,7 @@ export async function syncPostFromNoteSource(
       quotedPostId: true,
       quoteAuthorizationIri: true,
       quoteTargetState: true,
+      linkId: true,
     },
     where: { noteSourceId: noteSource.id },
   });
@@ -642,9 +644,13 @@ export async function syncPostFromNoteSource(
         }`,
       ]),
     ),
-    linkId: link?.id,
+    // Use explicit `null` (not `undefined`) so editing a note to remove its
+    // link actually clears `link_id` on update: drizzle drops `undefined` from
+    // the update set, which would otherwise leave the old link attached (and
+    // keep a dropped story in the news feed).  Matches `persistPost`.
+    linkId: link?.id ?? null,
     linkUrl: link == null
-      ? undefined
+      ? null
       : externalLinks[0].hash === ""
       ? link.url
       : new URL(externalLinks[0].hash, link.url).href,
@@ -742,6 +748,9 @@ export async function syncPostFromNoteSource(
       with: { actor: true },
     }) ?? null;
   const quoteRequestTarget = quoteRequestRequired ? quotedPost ?? null : null;
+  // Score the link this note now shares; also refresh the previous link when
+  // an edit changed or removed it, so the old story can drop out.
+  await refreshNewsScores(db, [post.linkId, existingPost?.linkId]);
   return {
     ...post,
     actor,
@@ -964,7 +973,13 @@ export async function persistPost(
     );
   let quoteAuthorizationIri = post.quoteAuthorizationId?.href;
   const existingPost = await db.query.postTable.findFirst({
-    columns: { id: true, name: true, contentHtml: true, quotedPostId: true },
+    columns: {
+      id: true,
+      name: true,
+      contentHtml: true,
+      quotedPostId: true,
+      linkId: true,
+    },
     where: { iri: post.id.href },
   });
   if (quoteAuthorizationIri != null && quotedPost != null) {
@@ -1285,6 +1300,11 @@ export async function persistPost(
   let poll: Poll | undefined;
   if (post instanceof vocab.Question) {
     poll = await persistPoll(db, post, persistedPost.id);
+  }
+  // Only refresh at the top level: recursive reply backfill (depth > 0) would
+  // re-score the same story once per reply; the periodic sweep covers those.
+  if (depth === 0) {
+    await refreshNewsScores(db, [persistedPost.linkId, existingPost?.linkId]);
   }
   return {
     ...persistedPost,
@@ -1934,12 +1954,21 @@ export async function deletePersistedPost(
   ).returning();
   if (deletedPosts.length < 1) return false;
   const [deletedPost] = deletedPosts;
-  if (deletedPost.replyTargetId == null) return true;
-  const replyTarget = await db.query.postTable.findFirst({
-    where: { id: deletedPost.replyTargetId },
-  });
-  if (replyTarget == null) return true;
-  await updateRepliesCount(db, replyTarget, -1);
+  if (deletedPost.replyTargetId != null) {
+    const replyTarget = await db.query.postTable.findFirst({
+      where: { id: deletedPost.replyTargetId },
+    });
+    if (replyTarget != null) await updateRepliesCount(db, replyTarget, -1);
+  }
+  if (deletedPost.quotedPostId != null) {
+    const quotedPost = await db.query.postTable.findFirst({
+      where: { id: deletedPost.quotedPostId },
+    });
+    if (quotedPost != null) await updateQuotesCount(db, quotedPost, -1);
+  }
+  // Re-score the link this post shared and the links of the posts it replied
+  // to / quoted (their public reply/quote count dropped).
+  await refreshNewsScoresForPostLinks(db, deletedPost);
   return true;
 }
 
@@ -2360,6 +2389,8 @@ export async function revokeQuote(
     }
   }
   await updateQuotesCount(db, quotedPost, -1);
+  // The quoted post lost a public quote, so re-score its link.
+  await refreshNewsScores(db, [quotedPost.linkId]);
   return updatedPost;
 }
 
@@ -2579,6 +2610,33 @@ export async function deletePost(
       }
     }
   }
+  // Re-score every link affected by this cascade: the link each deleted post
+  // shared (this post plus its bulk-deleted replies/quotes/boosts, any of which
+  // may itself be a sharing post), and the links of the posts this post replied
+  // to / quoted (whose public reply/quote count dropped).
+  const affectedLinkIds = new Set<Uuid>();
+  const parentIds = new Set<Uuid>();
+  for (const deleted of interactions) {
+    if (deleted.linkId != null) affectedLinkIds.add(deleted.linkId);
+    // A bulk-deleted interaction may reply to or quote a story other than this
+    // post (e.g. a post that quoted this one while also replying to a different
+    // story); that story's public reply/quote count just dropped too.
+    if (deleted.replyTargetId != null) parentIds.add(deleted.replyTargetId);
+    if (deleted.quotedPostId != null) parentIds.add(deleted.quotedPostId);
+  }
+  for (const original of originalPosts) {
+    if (original.linkId != null) affectedLinkIds.add(original.linkId);
+  }
+  if (parentIds.size > 0) {
+    const parents = await db.query.postTable.findMany({
+      where: { id: { in: [...parentIds] } },
+      columns: { linkId: true },
+    });
+    for (const parent of parents) {
+      if (parent.linkId != null) affectedLinkIds.add(parent.linkId);
+    }
+  }
+  await refreshNewsScores(db, [...affectedLinkIds]);
   const noteSourceIds = interactions
     .filter((i) => i.noteSourceId != null)
     .map((i) => i.noteSourceId!);

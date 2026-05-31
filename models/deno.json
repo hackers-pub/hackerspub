@@ -25,6 +25,7 @@
     "./markup": "./markup.ts",
     "./medium": "./medium.ts",
     "./muting": "./muting.ts",
+    "./news": "./news.ts",
     "./note": "./note.ts",
     "./notification": "./notification.ts",
     "./passkey": "./passkey.ts",

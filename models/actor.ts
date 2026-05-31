@@ -33,6 +33,7 @@ import { toDate } from "./date.ts";
 import metadata from "./deno.json" with { type: "json" };
 import { persistInstance } from "./instance.ts";
 import { renderMarkup } from "./markup.ts";
+import { isNewsBotActorType, refreshNewsScoresForActor } from "./news.ts";
 import { isPostObject, persistPost, persistSharedPost } from "./post.ts";
 import {
   type Account,
@@ -252,6 +253,13 @@ export async function persistActor(
     updated: toDate(actor.updated) ?? undefined,
     published: toDate(actor.published),
   };
+  // Capture the prior type to detect a bot/non-bot transition below.  The
+  // upsert already touches this row by iri, so the extra indexed read is
+  // negligible against this function's network I/O.
+  const priorActor = await db.query.actorTable.findFirst({
+    where: { iri: actor.id.href },
+    columns: { type: true },
+  });
   const rows = await db.insert(actorTable)
     .values({ ...values, id: generateUuidV7() })
     .onConflictDoUpdate({
@@ -261,6 +269,15 @@ export async function persistActor(
     })
     .returning();
   const result = { ...rows[0], instance };
+  // If this actor just crossed the bot/non-bot boundary, which of its shares
+  // count toward News changed; re-score the links it shares.  Best-effort
+  // (swallows its own errors) so it never blocks actor persistence.
+  if (
+    priorActor != null &&
+    isNewsBotActorType(priorActor.type) !== isNewsBotActorType(rows[0].type)
+  ) {
+    await refreshNewsScoresForActor(db, rows[0].id);
+  }
   const featured = await actor.getFeatured(getterOpts);
   if (featured != null) {
     const featuredPosts: Post[] = [];

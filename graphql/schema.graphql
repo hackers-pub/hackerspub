@@ -563,6 +563,8 @@ enum ActorType {
   SERVICE
 }
 
+union AddNewsExcludedPatternResult = InvalidInputError | NewsExcludedPattern | NotAuthenticatedError | NotAuthorizedError
+
 """
 Add an emoji reaction to a post. Sends an ActivityPub `Like` or `EmojiReact` activity. Idempotent: adding the same emoji twice has no effect. Exactly one of `emoji` or `customEmojiId` must be provided. Requires authentication.
 """
@@ -1367,6 +1369,16 @@ type MentionNotification implements Node & Notification {
 }
 
 type Mutation {
+  """
+  Add a news feed exclusion pattern (a `URLPattern` string) and hide matching links from the feed list.  Idempotent on the pattern string.  Requires a moderator account.  An invalid pattern raises `InvalidInputError`.
+  """
+  addNewsExcludedPattern(
+    """An optional note explaining the exclusion."""
+    note: String
+
+    """The `URLPattern` string to exclude, e.g. `https://example.com/*`."""
+    pattern: String!
+  ): AddNewsExcludedPatternResult!
   addReactionToPost(input: AddReactionToPostInput!): AddReactionToPostResult!
   attachArticleDraftMedium(input: AttachArticleDraftMediumInput!): AttachArticleDraftMediumResult!
   attachArticleSourceMedium(input: AttachArticleSourceMediumInput!): AttachArticleSourceMediumResult!
@@ -1502,6 +1514,11 @@ type Mutation {
   pinHashtag(input: PinHashtagInput!): PinHashtagResult!
   pinPost(input: PinPostInput!): PinPostResult!
   publishArticleDraft(input: PublishArticleDraftInput!): PublishArticleDraftResult!
+
+  """
+  Recompute popularity scores for every news link.  Requires a moderator account.  Idempotent: safe to trigger at any time, and running it twice on unchanged data yields identical scores.  Normally scores stay fresh on their own (incrementally on share, plus a periodic sweep); this is the manual full rebuild and dev backstop.
+  """
+  recomputeNewsScores: RecomputeNewsScoresResult!
   redeemInvitationLink(email: Email!, id: UUID!, locale: Locale!, verifyUrl: URITemplate!): RedeemInvitationLinkResult!
 
   """
@@ -1524,6 +1541,14 @@ type Mutation {
   """
   registerPushNotificationTarget(input: RegisterPushNotificationTargetInput!): RegisterPushNotificationTargetResult!
   removeFollower(input: RemoveFollowerInput!): RemoveFollowerResult!
+
+  """
+  Remove a news feed exclusion pattern by id, un-hiding links it no longer matches.  Requires a moderator account.
+  """
+  removeNewsExcludedPattern(
+    """The pattern's row UUID."""
+    id: UUID!
+  ): RemoveNewsExcludedPatternResult!
   removeReactionFromPost(input: RemoveReactionFromPostInput!): RemoveReactionFromPostResult!
   requestArticleTranslation(input: RequestArticleTranslationInput!): RequestArticleTranslationResult!
 
@@ -1539,6 +1564,17 @@ type Mutation {
     sessionId: UUID!
   ): Session
   saveArticleDraft(input: SaveArticleDraftInput!): SaveArticleDraftResult!
+
+  """
+  Set (or clear with `NONE`) a moderator score penalty on a news link, demoting it in the `POPULAR` feed.  Requires a moderator account.  Returns the updated link, or `null` if no link has that id.
+  """
+  setNewsScorePenalty(
+    """The link's row UUID (`PostLink.uuid`)."""
+    id: UUID!
+
+    """The penalty level to apply (`NONE` clears it)."""
+    penalty: NewsPenalty!
+  ): SetNewsScorePenaltyResult
   sharePost(input: SharePostInput!): SharePostResult!
   startMediumUpload(input: StartMediumUploadInput!): StartMediumUploadResult!
   unblockActor(input: UnblockActorInput!): UnblockActorResult!
@@ -1596,6 +1632,82 @@ type MuteActorPayload {
 }
 
 union MuteActorResult = InvalidInputError | MuteActorPayload | NotAuthenticatedError
+
+"""
+A moderator-managed `URLPattern` string; links whose URL matches it are hidden from the news feed list (every sort order).  Their discussion page stays reachable by direct link.
+"""
+type NewsExcludedPattern {
+  """When the pattern was added."""
+  created: DateTime!
+
+  """The pattern's row UUID."""
+  id: UUID!
+
+  """An optional moderator note explaining the exclusion."""
+  note: String
+
+  """
+  The `URLPattern` string, e.g. `https://example.com/*` or `https://*.example.com/*`.
+  """
+  pattern: String!
+}
+
+"""Ordering for the `newsStories` feed of shared links."""
+enum NewsOrder {
+  """
+  Highest total weighted engagement mass first, ignoring recency: an all-time-best view rather than what is hot right now.
+  """
+  ALL_TIME
+
+  """Most recently first-shared links first, ignoring engagement."""
+  NEWEST
+
+  """
+  Hacker-News-style score combining weighted engagement mass with recency.  The default; what most readers want.
+  """
+  POPULAR
+}
+
+"""
+A moderator's score penalty on a news link, demoting it in the `POPULAR` feed.  Set via `setNewsScorePenalty`; only moderators can read or change it.  To remove a link from every order instead, exclude its URL with a pattern (`addNewsExcludedPattern`).
+"""
+enum NewsPenalty {
+  """Sink the link to the bottom of the popular feed."""
+  BURY
+
+  """Push the link well down the popular feed."""
+  DEMOTE
+
+  """No penalty."""
+  NONE
+}
+
+"""A snapshot of news scoring state, for the moderator admin page."""
+type NewsScoreStatus {
+  """When scores were last recomputed, or `null` if never."""
+  lastRecomputedAt: DateTime
+
+  """
+  Number of links currently in the feed (with at least one public share).
+  """
+  scoredLinkCount: Int!
+}
+
+"""
+How a link's public shares break down by origin.  Hackers' Pub posts carry the most weight, generic remote instances less, and Bluesky-bridged accounts (`@…@bsky.brid.gy`) the least.  Shares authored by bot accounts (`Service`/`Application` actors) are excluded throughout.
+"""
+type NewsSourceBreakdown {
+  """Public shares bridged from Bluesky (`@…@bsky.brid.gy`)."""
+  bluesky: Int!
+
+  """Public shares authored by local Hackers' Pub accounts."""
+  local: Int!
+
+  """
+  Public shares from generic remote fediverse instances (Mastodon, Pleroma, etc.).
+  """
+  remote: Int!
+}
 
 interface Node {
   id: ID!
@@ -2151,12 +2263,62 @@ type PostLink implements Node {
   author: String
   creator: Actor
   description: String
+
+  """
+  Size of this link's federated discussion: its non-bot public sharing posts plus their direct public (`public`/`unlisted`) replies and quotes.  Use this as the count of posts to read in the discussion (the `/news/{uuid}` page); unlike `postCount` it includes the replies and quotes, not just the shares.  Counts direct children only (deeper nesting is not traversed) and is viewer-independent (public posts only).
+  """
+  discussionCount: Int!
+
+  """
+  When this link was first shared publicly by a non-bot account, or `null` if it has never been.  Drives the `NEWEST` order.
+  """
+  firstSharedAt: DateTime
   id: ID!
   image: PostLinkImage
+
+  """
+  Timestamp of the freshest activity on this link's qualifying shares (the share itself, a reply, a quote, or a reaction); shares are public and authored by non-bot accounts.  A rapid repeat share by the same account does not refresh this (only a first share, a sufficiently-gapped re-share, or genuine replies/quotes/reactions do), so re-posting cannot keep a link pinned at the top.  `null` means the link is not a news story (no qualifying public share); such links are excluded from the feed.
+  """
+  latestActivityAt: DateTime
+
+  """
+  The moderator score penalty on this link (demoting it in the `POPULAR` feed).  `null` for non-moderators; moderators see `NONE` when the link is unpenalized.  Set it with `setNewsScorePenalty`.
+  """
+  penalty: NewsPenalty
+
+  """
+  Number of public, non-boost posts across the fediverse that share this link, excluding shares from bot (`Service`/`Application`) accounts.  Counts every such post, including an account's repeated shares of the same link (a high count with a modest `score` is expected, since repeats contribute diminishing weight).
+  """
+  postCount: Int!
+
+  """
+  Popularity-over-time rank used by the `POPULAR` feed order: `log10(max(1, weightedMass)) + recency`.  Computed by a batch job and refreshed incrementally; recompute is idempotent and the value is time-stable (it changes only when the underlying posts or engagement change, not as the clock advances).  Shares from bot accounts (`Service`/`Application` actors) never count, so a link shared only by bots stays at `0`, as do links never shared publicly.  When one account shares the same link repeatedly, each share after the first adds only a small, gap-dependent fraction of the base weight (and a rapid repeat does not refresh recency), so re-posting cannot inflate the rank.
+  """
+  score: Float!
+
+  """
+  The posts that share this link, most recently published first, filtered to those visible to the viewer.  Shares authored by bot accounts (`Service`/`Application` actors) are excluded, matching the scoring.  These are the roots of the link's discussion tree.
+  """
+  sharingPosts(after: String, before: String, first: Int, last: Int): PostLinkSharingPostsConnection!
   siteName: String
+
+  """
+  Counts of this link's public shares by origin (local / remote / Bluesky bridge), excluding shares from bot (`Service`/`Application`) accounts.
+  """
+  sourceBreakdown: NewsSourceBreakdown!
   title: String
   type: String
   url: URL!
+
+  """
+  The link's row UUID.  Use this for the stable discussion permalink `/news/{uuid}`; the opaque Relay `id` is for `node(id:)` lookups.
+  """
+  uuid: UUID!
+
+  """
+  Recency-independent engagement mass: the weighted sum over this link's public shares (excluding bot `Service`/`Application` accounts) of source weight times account reputation times (quotes, replies, reactions).  Repeated shares of the same link by the same account add diminishing base weight (recovering with the gap but always below a first share).  Drives the `ALL_TIME` order.
+  """
+  weightedMass: Float!
 }
 
 type PostLinkImage {
@@ -2166,6 +2328,16 @@ type PostLinkImage {
   type: MediaType
   url: URL!
   width: Int
+}
+
+type PostLinkSharingPostsConnection {
+  edges: [PostLinkSharingPostsConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type PostLinkSharingPostsConnectionEdge {
+  cursor: String!
+  node: Post!
 }
 
 """
@@ -2413,6 +2585,44 @@ type Query {
     """The locale for the Markdown guide."""
     locale: Locale!
   ): Document!
+
+  """
+  Moderator-only list of news feed exclusion patterns, newest first.  `null` for non-moderators.
+  """
+  newsExcludedPatterns: [NewsExcludedPattern!]
+
+  """
+  Moderator-only list of news links currently carrying a score penalty, heaviest first, for reviewing/clearing demotions (a buried link is no longer near the top of the feed).  `null` for non-moderators.
+  """
+  newsPenalizedStories: [PostLink!]
+
+  """
+  Moderator-only news scoring snapshot.  Returns `null` when the viewer is not a moderator; routes should guard with `viewer.moderator`.
+  """
+  newsScoreStatus: NewsScoreStatus
+
+  """
+  Links shared across the fediverse, ranked as a news feed.  Forward pagination only (`first`/`after`); `last`/`before` raise a `PAGINATION_ERROR`.  Pages are capped at 100 stories.  No authentication required.
+  """
+  newsStories(
+    after: String
+    before: String
+    first: Int
+    last: Int
+
+    """How to rank the feed.  Defaults to `POPULAR`."""
+    order: NewsOrder = POPULAR
+  ): QueryNewsStoriesConnection!
+
+  """
+  Look up a news story (a shared link) by its row UUID, for the discussion permalink `/news/{uuid}`.  Returns `null` for a malformed id, or for a link that is not a public news story: only links with a qualifying public share (`latestActivityAt` is not `null`) resolve, so a link seen only in followers-only or direct posts stays private.  A link hidden from the feed by an exclusion pattern (`excludedFromNews`) is still reachable here.
+  """
+  newsStory(
+    """
+    The link's row UUID (`PostLink.uuid`), as embedded in the `/news/{uuid}` permalink.
+    """
+    id: UUID!
+  ): PostLink
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
 
@@ -2538,6 +2748,16 @@ type QueryBookmarksConnection {
 type QueryBookmarksConnectionEdge {
   cursor: String!
   node: Post!
+}
+
+type QueryNewsStoriesConnection {
+  edges: [QueryNewsStoriesConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type QueryNewsStoriesConnectionEdge {
+  cursor: String!
+  node: PostLink!
 }
 
 type QueryPersonalTimelineConnection {
@@ -2822,6 +3042,22 @@ type ReactionGroupReactorsConnectionEdge {
   node: Actor!
 }
 
+"""The result of a full news score recompute."""
+type RecomputeNewsScoresPayload {
+  """
+  Number of links with at least one qualifying public share that were (re)scored by this run.  Stale links dropped from the feed (they lost their last public share) are reset to zero but not counted here.
+  """
+  linksUpdated: Int!
+
+  """When the recompute ran."""
+  recomputedAt: DateTime!
+
+  """The scoring status after the run."""
+  status: NewsScoreStatus!
+}
+
+union RecomputeNewsScoresResult = NotAuthenticatedError | NotAuthorizedError | RecomputeNewsScoresPayload
+
 enum RedeemEmailError {
   EMAIL_ALREADY_TAKEN
   EMAIL_INVALID
@@ -3017,6 +3253,14 @@ type RemoveFollowerPayload {
 
 union RemoveFollowerResult = InvalidInputError | NotAuthenticatedError | RemoveFollowerPayload
 
+"""The result of removing a news feed exclusion pattern."""
+type RemoveNewsExcludedPatternPayload {
+  """The removed pattern's id, or `null` if no pattern had that id."""
+  removedId: UUID
+}
+
+union RemoveNewsExcludedPatternResult = NotAuthenticatedError | NotAuthorizedError | RemoveNewsExcludedPatternPayload
+
 """
 Remove an emoji reaction from a post. Sends an ActivityPub `Undo Like` activity. Idempotent: removing a reaction that doesn't exist returns `success: true`. Exactly one of `emoji` or `customEmojiId` must be provided. Requires authentication.
 """
@@ -3122,6 +3366,8 @@ type Session {
   """The user agent of the session."""
   userAgent: String
 }
+
+union SetNewsScorePenaltyResult = NotAuthenticatedError | NotAuthorizedError | PostLink
 
 """A lowercase hex-encoded SHA-256 digest."""
 scalar Sha256

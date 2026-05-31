@@ -7,6 +7,7 @@ import { getPersistedActor, persistActor } from "./actor.ts";
 import type { ContextData } from "./context.ts";
 import type { Database } from "./db.ts";
 import { DEFAULT_REACTION_EMOJI, type ReactionEmoji } from "./emoji.ts";
+import { refreshNewsScores } from "./news.ts";
 import {
   createReactNotification,
   deleteReactNotification,
@@ -305,6 +306,9 @@ export async function undoReaction(
     .returning();
   if (rows.length < 1) return undefined;
   await updateReactionsCounts(db, post.id);
+  // If the reacted post shares a link, its reaction total just dropped; the
+  // periodic sweep can't see a removed reaction, so re-score the link here.
+  await refreshNewsScores(db, [post.linkId]);
   if (post.actor.accountId != null && post.actorId !== account.actor.id) {
     let notifEmoji: string | CustomEmoji = emoji ?? DEFAULT_REACTION_EMOJI;
     if (emoji == null && customEmojiId != null) {
