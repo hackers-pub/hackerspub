@@ -23,6 +23,7 @@ import { readSessionCookie } from "~/lib/sessionCookie.ts";
 // type does not model `extensions`, but Yoga emits them per the
 // GraphQL spec, so we read it through a structural narrowing.
 const AUTH_REQUIRED_CODE = "AUTHENTICATION_REQUIRED";
+const UPSTREAM_BODY_PREVIEW_LENGTH = 2048;
 
 function isExpectedAuthError(errors: ReadonlyArray<unknown>): boolean {
   if (errors.length === 0) return false;
@@ -32,6 +33,54 @@ function isExpectedAuthError(errors: ReadonlyArray<unknown>): boolean {
     if (extensions == null || typeof extensions !== "object") return false;
     return (extensions as { code?: unknown }).code === AUTH_REQUIRED_CODE;
   });
+}
+
+function isSensitiveResponseHeader(name: string): boolean {
+  const headerName = name.toLowerCase();
+  return headerName.includes("cookie") ||
+    headerName.includes("authorization") ||
+    headerName.includes("token") ||
+    headerName.includes("secret") ||
+    headerName.includes("key");
+}
+
+function getSafeResponseHeaders(headers: Headers): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const [name, value] of headers) {
+    result[name] = isSensitiveResponseHeader(name) ? "[redacted]" : value;
+  }
+  return result;
+}
+
+function isJsonLikeBody(body: string): boolean {
+  const firstNonWhitespace = body.trimStart().at(0);
+  return firstNonWhitespace === "{" || firstNonWhitespace === "[";
+}
+
+function getBodyPreview(body: string): string {
+  if (isJsonLikeBody(body)) {
+    return "[omitted: JSON-like response body]";
+  }
+  if (body.length <= UPSTREAM_BODY_PREVIEW_LENGTH) return body;
+  return `${body.slice(0, UPSTREAM_BODY_PREVIEW_LENGTH)}... [truncated ${
+    body.length - UPSTREAM_BODY_PREVIEW_LENGTH
+  } chars]`;
+}
+
+function getUpstreamResponseDiagnostics(
+  response: Response,
+  body?: string,
+): Record<string, unknown> {
+  return {
+    status: response.status,
+    statusText: response.statusText,
+    ok: response.ok,
+    url: response.url,
+    redirected: response.redirected,
+    headers: getSafeResponseHeaders(response.headers),
+    bodyLength: body?.length,
+    bodyPreview: body == null ? undefined : getBodyPreview(body),
+  };
 }
 
 // The session cookie doubles as the GraphQL bearer token (see the
@@ -79,6 +128,7 @@ const fetchFn: FetchFunction = async (
     : { id: await fingerprintSessionId(sessionId) };
 
   let response: Response;
+  let responseText: string;
   let body: GraphQLResponse;
   try {
     response = await fetch(getApiUrl(), {
@@ -94,7 +144,6 @@ const fetchFn: FetchFunction = async (
       body: JSON.stringify({ query: params.text, variables }),
       signal: upstreamSignal,
     });
-    body = await response.json();
   } catch (cause) {
     // The client unsubscribed (e.g. the user clicked Cancel on alt-text
     // generation) and that closed our inbound request, which in turn
@@ -104,28 +153,60 @@ const fetchFn: FetchFunction = async (
     // JSON-parse failure that happens to land while an unrelated abort
     // is in flight still gets captured.
     if (cause instanceof Error && cause.name === "AbortError") throw cause;
-    // When the signal fires after response headers arrive but while the
-    // body is still being read, undici may raise SyntaxError("Unexpected
-    // end of JSON input") instead of AbortError because it truncates the
-    // in-flight stream mid-parse. That is still a normal cancellation.
-    // We check the exact error shape (SyntaxError + the specific truncation
-    // message + the signal being aborted) so that a genuinely malformed
-    // upstream response racing with a client disconnect still reaches Sentry.
-    if (
-      cause instanceof SyntaxError &&
-      cause.message === "Unexpected end of JSON input" &&
-      upstreamSignal?.aborted
-    ) throw cause;
-    // Upstream unreachable / connection reset / non-JSON body. Relay
-    // catches network errors internally and only logs them to the
-    // console (see comment below), so without an explicit capture here
-    // they wouldn't reach Sentry at all.
+    // Upstream unreachable / connection reset. Relay catches network errors
+    // internally and only logs them to the console (see comment below), so
+    // without an explicit capture here they wouldn't reach Sentry at all.
     Sentry.captureException(cause, {
       extra: {
         operation: params.name,
         operationKind: params.operationKind,
         query: params.text,
         variables,
+      },
+      ...(userIdentity == null ? {} : { user: userIdentity }),
+    });
+    throw cause;
+  }
+
+  try {
+    responseText = await response.text();
+  } catch (cause) {
+    if (cause instanceof Error && cause.name === "AbortError") throw cause;
+    Sentry.captureException(cause, {
+      extra: {
+        operation: params.name,
+        operationKind: params.operationKind,
+        query: params.text,
+        variables,
+        upstreamResponse: getUpstreamResponseDiagnostics(response),
+      },
+      ...(userIdentity == null ? {} : { user: userIdentity }),
+    });
+    throw cause;
+  }
+
+  try {
+    body = JSON.parse(responseText) as GraphQLResponse;
+  } catch (cause) {
+    // When the signal fires after response headers arrive but while the
+    // body is still being read, undici may leave us with a truncated body
+    // that fails JSON.parse. That is still a normal cancellation when the
+    // inbound request signal is aborted.
+    if (
+      cause instanceof SyntaxError &&
+      cause.message === "Unexpected end of JSON input" &&
+      upstreamSignal?.aborted
+    ) throw cause;
+    Sentry.captureException(cause, {
+      extra: {
+        operation: params.name,
+        operationKind: params.operationKind,
+        query: params.text,
+        variables,
+        upstreamResponse: getUpstreamResponseDiagnostics(
+          response,
+          responseText,
+        ),
       },
       ...(userIdentity == null ? {} : { user: userIdentity }),
     });
@@ -156,6 +237,7 @@ const fetchFn: FetchFunction = async (
       query: params.text,
       variables,
       status: response.status,
+      statusText: response.statusText,
       errors,
     });
     Sentry.captureException(new Error(summary), {
@@ -165,6 +247,8 @@ const fetchFn: FetchFunction = async (
         query: params.text,
         variables,
         status: response.status,
+        statusText: response.statusText,
+        upstreamResponse: getUpstreamResponseDiagnostics(response),
         errors,
       },
       ...(userIdentity == null ? {} : { user: userIdentity }),
