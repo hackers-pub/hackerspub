@@ -1,11 +1,14 @@
+import { assert } from "@std/assert/assert";
 import { assertEquals } from "@std/assert/equals";
 import {
   addExternalLinkTargets,
   extractExternalLinks,
   removeQuoteInlineFallback,
   stripHtml,
+  transformMentions,
   truncateHtml,
 } from "./html.ts";
+import type { Actor } from "./schema.ts";
 
 Deno.test("extractExternalLinks()", async (t) => {
   await t.step("extracts http(s) links, ignoring mentions and hashtags", () => {
@@ -30,6 +33,44 @@ Deno.test("extractExternalLinks()", async (t) => {
       [new URL("https://example.com/foo")],
     );
   });
+
+  await t.step("skips explicitly excluded hrefs", () => {
+    assertEquals(
+      extractExternalLinks(
+        '<p><a href="https://forum.example/user/alice">@alice</a> <a href="https://example.com/story">story</a></p>',
+        { excludeHrefs: ["https://forum.example/user/alice"] },
+      ),
+      [new URL("https://example.com/story")],
+    );
+  });
+});
+
+Deno.test("transformMentions() rewrites anchors matching persisted mention actors", () => {
+  const actor = {
+    iri: "https://forum.example/actor/alice",
+    url: "https://forum.example/user/alice",
+    aliases: [],
+    name: "Alice Example",
+    username: "alice",
+    handle: "@alice@forum.example",
+    accountId: null,
+    avatarUrl: null,
+    emojis: {},
+  } as unknown as Actor;
+
+  const html = transformMentions(
+    '<p>Hello <a href="https://forum.example/user/alice">@alice</a></p>',
+    [{ actor }],
+    {},
+  );
+
+  assert(html.includes('class="mention"'));
+  assert(html.includes('data-internal-href="/@alice@forum.example"'));
+  assert(
+    html.includes(
+      'onclick="location.href = this.dataset.internalHref; return false;"',
+    ),
+  );
 });
 
 Deno.test("addExternalLinkTargets()", async (t) => {

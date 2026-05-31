@@ -18,6 +18,7 @@ import { getLogger } from "@logtape/logtape";
 import { assertNever } from "@std/assert/unstable-never";
 import {
   and,
+  arrayOverlaps,
   count,
   eq,
   inArray,
@@ -137,6 +138,63 @@ function hasNotifiablePostContentChange(
   return previousPost != null &&
     (previousPost.name !== updatedPost.name ||
       previousPost.contentHtml !== updatedPost.contentHtml);
+}
+
+function getActorMentionHrefs(actor: Actor): string[] {
+  return [
+    actor.iri,
+    ...(actor.url == null ? [] : [actor.url]),
+    ...actor.aliases,
+  ];
+}
+
+function deleteActorMentionHrefs(
+  mentionHrefs: Set<string>,
+  actor: Actor,
+): void {
+  for (const href of getActorMentionHrefs(actor)) mentionHrefs.delete(href);
+}
+
+async function resolveMentionedActors(
+  ctx: Context<ContextData>,
+  mentionHrefs: ReadonlySet<string>,
+  options: {
+    contextLoader?: DocumentLoader;
+    documentLoader?: DocumentLoader;
+  },
+): Promise<Actor[]> {
+  if (mentionHrefs.size < 1) return [];
+  const { db } = ctx.data;
+  const unresolvedHrefs = new Set(mentionHrefs);
+  const actorsById = new Map<Uuid, Actor>();
+  const actorRows = await db.query.actorTable.findMany({
+    where: {
+      OR: [
+        { iri: { in: [...mentionHrefs] } },
+        { url: { in: [...mentionHrefs] } },
+        { RAW: (table) => arrayOverlaps(table.aliases, [...mentionHrefs]) },
+      ],
+    },
+  });
+  for (const actor of actorRows) {
+    actorsById.set(actor.id, actor);
+    deleteActorMentionHrefs(unresolvedHrefs, actor);
+  }
+  for (const href of unresolvedHrefs) {
+    const apActor = await lookupObject(href, options);
+    if (!isActor(apActor)) continue;
+    let actor = await persistActor(ctx, apActor, options);
+    if (actor == null) continue;
+    if (actor.iri !== href && !actor.aliases.includes(href)) {
+      const aliases = [...actor.aliases, href];
+      await db.update(actorTable)
+        .set({ aliases })
+        .where(eq(actorTable.id, actor.id));
+      actor = { ...actor, aliases };
+    }
+    actorsById.set(actor.id, actor);
+  }
+  return [...actorsById.values()];
 }
 
 async function createTargetPostUpdatedNotifications(
@@ -1050,10 +1108,15 @@ export async function persistPost(
       existingPost.id,
       unauthorizedQuoteTarget.id,
     );
+  const mentionedActors = await resolveMentionedActors(ctx, mentions, options);
+  const mentionLinkHrefs = new Set(mentions);
+  for (const actor of mentionedActors) {
+    for (const href of getActorMentionHrefs(actor)) mentionLinkHrefs.add(href);
+  }
   const contentHtml = post.content?.toString();
   let externalLinks = contentHtml == null
     ? []
-    : extractExternalLinks(contentHtml);
+    : extractExternalLinks(contentHtml, { excludeHrefs: mentionLinkHrefs });
   if (quotedPost != null) {
     externalLinks = externalLinks.filter((l) =>
       quotedPost.iri !== l.href &&
@@ -1163,39 +1226,22 @@ export async function persistPost(
     await updateQuotesCount(db, quotedPost, 1);
   }
   let mentionList: (Mention & { actor: Actor })[] = [];
-  if (mentions.size > 0) {
-    const mentionedActors = await db.query.actorTable.findMany({
-      where: { iri: { in: [...mentions] } },
-    });
-    for (const mentionedActor of mentionedActors) {
-      mentions.delete(mentionedActor.iri);
-    }
-    if (mentions.size > 0) {
-      for (const iri of mentions) {
-        const apActor = await lookupObject(iri, options);
-        if (!isActor(apActor)) continue;
-        const actor = await persistActor(ctx, apActor, options);
-        if (actor == null) continue;
-        mentionedActors.push(actor);
-      }
-    }
-    const mentionsResult = mentionedActors.length > 0
-      ? await db.insert(mentionTable)
-        .values(
-          mentionedActors.map((actor) => ({
-            postId: persistedPost.id,
-            actorId: actor.id,
-          })),
-        )
-        .onConflictDoNothing()
-        .returning()
-        .execute()
-      : [];
-    mentionList = mentionsResult.map((m) => ({
-      ...m,
-      actor: mentionedActors.find((a) => a.id === m.actorId)!,
-    }));
-  }
+  const mentionsResult = mentionedActors.length > 0
+    ? await db.insert(mentionTable)
+      .values(
+        mentionedActors.map((actor) => ({
+          postId: persistedPost.id,
+          actorId: actor.id,
+        })),
+      )
+      .onConflictDoNothing()
+      .returning()
+      .execute()
+    : [];
+  mentionList = mentionsResult.map((m) => ({
+    ...m,
+    actor: mentionedActors.find((a) => a.id === m.actorId)!,
+  }));
   await db.delete(postMediumTable).where(
     eq(postMediumTable.postId, persistedPost.id),
   );

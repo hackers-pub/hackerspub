@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   InteractionPolicy,
   InteractionRule,
+  Mention,
   Note,
   PUBLIC_COLLECTION,
   QuoteAuthorization,
@@ -26,6 +27,7 @@ import {
   createFedCtx,
   insertAccountWithActor,
   insertNotePost,
+  insertPostLink,
   insertRemoteActor,
   insertRemotePost,
   withRollback,
@@ -181,6 +183,47 @@ test("persistPost() stores manual quote request policies separately", async () =
     assert.ok(persisted != null);
     assert.equal(persisted.quotePolicy, "self");
     assert.equal(persisted.quoteRequestPolicy, "everyone");
+  });
+});
+
+test("persistPost() ignores ActivityPub mention hrefs when selecting link previews", async () => {
+  await withRollback(async (tx) => {
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "nodebbauthor",
+      name: "NodeBB Author",
+      host: "forum.example",
+    });
+    const mentionedActor = await insertRemoteActor(tx, {
+      username: "nodebbmention",
+      name: "NodeBB Mention",
+      host: "forum.example",
+      url: "https://forum.example/user/nodebbmention",
+    });
+    const storyLink = await insertPostLink(tx, {
+      url: "https://example.com/story",
+      title: "Example story",
+    });
+    const post = new Note({
+      id: new URL("https://forum.example/post/mention-link-preview"),
+      attribution: new URL(remoteActor.iri),
+      to: PUBLIC_COLLECTION,
+      content:
+        '<p><a href="https://forum.example/user/nodebbmention">@nodebbmention</a> <a href="https://example.com/story">story</a></p>',
+      tags: [
+        new Mention({
+          href: new URL(mentionedActor.iri),
+          name: "@nodebbmention@forum.example",
+        }),
+      ],
+    });
+
+    const persisted = await persistPost(createFedCtx(tx), post);
+
+    assert.ok(persisted != null);
+    assert.equal(persisted.linkId, storyLink.id);
+    assert.equal(persisted.linkUrl, storyLink.url);
+    assert.equal(persisted.mentions.length, 1);
+    assert.equal(persisted.mentions[0].actor.id, mentionedActor.id);
   });
 });
 

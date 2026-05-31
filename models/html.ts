@@ -426,14 +426,17 @@ export function transformMentions(
   tags: Record<string, string>,
 ): string {
   const $ = load(html, null, false);
-  $("a.mention[href]:not(.hashtag)").each((_, el) => {
+  $("a[href]:not(.hashtag)").each((_, el) => {
     const $el = $(el);
     const href = $el.attr("href");
     if (href == null) return;
+    const rel = $el.attr("rel")?.split(/\s+/g) ?? [];
+    if (rel.includes("tag")) return;
     for (const { actor } of mentions) {
       if (
         href === actor.iri || href === actor.url || actor.aliases.includes(href)
       ) {
+        $el.addClass("mention");
         $el.attr(
           "title",
           `${actor.name ?? actor.username}\n${actor.handle}`,
@@ -587,10 +590,22 @@ export function preprocessContentHtml(
 
 const HTML_HAS_ANCHOR = /<a\b/i;
 
-// deno-lint-ignore no-explicit-any
-function parseContentAnchorUrl($el: any): URL | null {
+interface ParseContentAnchorUrlOptions {
+  excludedHrefs?: ReadonlySet<string>;
+}
+
+interface ContentAnchorElement {
+  attr(name: string): string | undefined;
+  hasClass(name: string): boolean;
+}
+
+function parseContentAnchorUrl(
+  $el: ContentAnchorElement,
+  options: ParseContentAnchorUrlOptions = {},
+): URL | null {
   const href = $el.attr("href");
   if (href == null) return null;
+  if (options.excludedHrefs?.has(href)) return null;
   if ($el.hasClass("mention") || $el.hasClass("hashtag")) return null;
   const rel = $el.attr("rel")?.split(/\s+/g) ?? [];
   if (rel.includes("tag")) return null;
@@ -603,15 +618,26 @@ function parseContentAnchorUrl($el: any): URL | null {
   if (url == null || (url.protocol !== "http:" && url.protocol !== "https:")) {
     return null;
   }
+  if (options.excludedHrefs?.has(url.href)) return null;
   return url;
 }
 
-export function extractExternalLinks(html: string): URL[] {
+export interface ExtractExternalLinksOptions {
+  excludeHrefs?: Iterable<string>;
+}
+
+export function extractExternalLinks(
+  html: string,
+  options: ExtractExternalLinksOptions = {},
+): URL[] {
   if (!HTML_HAS_ANCHOR.test(html)) return [];
   const $ = load(html, null, false);
+  const excludedHrefs = options.excludeHrefs == null
+    ? undefined
+    : new Set(options.excludeHrefs);
   const links: URL[] = [];
   $("a[href]").each((_, el) => {
-    const url = parseContentAnchorUrl($(el));
+    const url = parseContentAnchorUrl($(el), { excludedHrefs });
     if (url != null) links.push(url);
   });
   return links;
