@@ -32,6 +32,7 @@ export function PostAvatar(props: PostAvatarProps) {
         <ActorHoverCard handle={a.handle} class="shrink-0">
           <Avatar>
             <InternalLink
+              class="block size-full"
               href={a.url ?? a.iri}
               internalHref={a.local ? `/@${a.username}` : `/${a.handle}`}
             >
