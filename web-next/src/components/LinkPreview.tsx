@@ -66,8 +66,9 @@ export function LinkPreview(props: LinkPreviewProps) {
     <Show keyed when={shouldShowLink()}>
       {(link) => {
         const image = link.image;
-        const layoutMode = image?.width != null && image?.height != null &&
-            image.width / image.height > 1.5
+        const layoutMode = image == null ||
+            (image.width != null && image.height != null &&
+              image.width / image.height > 1.5)
           ? "wide"
           : "compact";
         const author = link.author;
