@@ -143,8 +143,10 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
   // unsubscribe (unsubscribing an in-flight request throws `AbortError`).  This
   // flag just stops late callbacks from touching state after unmount.
   let disposed = false;
-  // Bounds the deep-link reply auto-pagination; reset on each fresh load.
-  let autoPages = 0;
+  // Bounds the deep-link auto-pagination per connection; reset on each fresh
+  // load.
+  let autoReplyPages = 0;
+  let autoQuotePages = 0;
   // The last load kind, so the error-retry button repeats it.
   let lastMode: LoadMode = "initial";
   onCleanup(() => disposed = true);
@@ -160,7 +162,8 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
     lastMode = mode;
     if (mode === "initial") {
       seen.clear();
-      autoPages = 0;
+      autoReplyPages = 0;
+      autoQuotePages = 0;
       setReplyChildren([]);
       setQuoteChildren([]);
       setReplyCursor(null);
@@ -207,21 +210,13 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
           };
           // A reply that also quotes this post is collected as a reply (below,
           // first) and deduped out of the quotes, so it renders exactly once.
-          let autoPaginate = false;
           if (mode !== "quotes") {
             const replies = collect(node?.replies?.edges);
             setReplyChildren((prev) =>
               mode === "replies" ? [...prev, ...replies] : replies
             );
-            const nextHasMore = node?.replies?.pageInfo?.hasNextPage ?? false;
             setReplyCursor(node?.replies?.pageInfo?.endCursor ?? null);
-            setReplyHasMore(nextHasMore);
-            // When following a deep link, keep paginating replies so a target
-            // buried on a later page is reached, but cap the depth and page
-            // count so a hash link cannot fan out into the entire tree.
-            autoPaginate = nextHasMore && props.targetUuid != null &&
-              props.depth < NEWS_DISCUSSION_TARGET_MAX_DEPTH &&
-              autoPages < NEWS_DISCUSSION_TARGET_MAX_PAGES;
+            setReplyHasMore(node?.replies?.pageInfo?.hasNextPage ?? false);
           }
           if (mode !== "replies") {
             const quotes = collect(node?.quotes?.edges);
@@ -232,10 +227,7 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
             setQuoteHasMore(node?.quotes?.pageInfo?.hasNextPage ?? false);
           }
           setLoadState("idle");
-          if (autoPaginate) {
-            autoPages++;
-            loadChildren("replies");
-          }
+          maybeAutoPaginate();
         });
       },
       error() {
@@ -243,6 +235,28 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
         runWithOwner(owner, () => setLoadState("errored"));
       },
     });
+  }
+
+  // While following a deep link, keep paginating toward the buried target one
+  // connection at a time (replies first, then quotes), each capped by page
+  // count and by depth so the expansion stays bounded.  A deep-linked quote
+  // past the first page is reached this way, not just a deep-linked reply.
+  function maybeAutoPaginate() {
+    if (
+      props.targetUuid == null ||
+      props.depth >= NEWS_DISCUSSION_TARGET_MAX_DEPTH
+    ) {
+      return;
+    }
+    if (replyHasMore() && autoReplyPages < NEWS_DISCUSSION_TARGET_MAX_PAGES) {
+      autoReplyPages++;
+      loadChildren("replies");
+    } else if (
+      quoteHasMore() && autoQuotePages < NEWS_DISCUSSION_TARGET_MAX_PAGES
+    ) {
+      autoQuotePages++;
+      loadChildren("quotes");
+    }
   }
 
   onMount(() => {
