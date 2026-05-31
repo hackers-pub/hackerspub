@@ -6,6 +6,7 @@ import { followingTable } from "@hackerspub/models/schema";
 import { encodeGlobalID } from "@pothos/plugin-relay";
 import { execute, parse } from "graphql";
 import { schema } from "./mod.ts";
+import { hidePostRelationWithoutActor } from "./post.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
@@ -17,6 +18,18 @@ import {
   makeUserContext,
   withRollback,
 } from "../test/postgres.ts";
+
+Deno.test("hidePostRelationWithoutActor hides incomplete nullable post relations", () => {
+  const post = { id: "post-id", actor: { id: "actor-id" } };
+
+  assertEquals(hidePostRelationWithoutActor(null), null);
+  assertEquals(hidePostRelationWithoutActor({ id: "post-id" }), null);
+  assertEquals(
+    hidePostRelationWithoutActor({ id: "post-id", actor: null }),
+    null,
+  );
+  assertEquals(hidePostRelationWithoutActor(post), post);
+});
 
 const addReactionMutation = parse(`
   mutation AddReactionToPost($postId: ID!, $emoji: String!) {

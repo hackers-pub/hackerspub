@@ -595,26 +595,79 @@ async function loadViewerActionPolicies(
   return new Map(entries);
 }
 
+function selectPostRelationWithActor(
+  nestedSelection: () => unknown,
+): Record<string, unknown> {
+  const selection = nestedSelection();
+  if (selection == null || typeof selection !== "object") {
+    return { with: { actor: true } };
+  }
+  const withSelection = "with" in selection &&
+      selection.with != null &&
+      typeof selection.with === "object"
+    ? selection.with as Record<string, unknown>
+    : {};
+  return {
+    ...selection,
+    with: {
+      ...withSelection,
+      actor: withSelection.actor ?? true,
+    },
+  };
+}
+
+export function hidePostRelationWithoutActor<T>(
+  post: T | null | undefined,
+): T | null {
+  if (post == null || typeof post !== "object") return null;
+  if (!("actor" in post) || post.actor == null) return null;
+  return post;
+}
+
 builder.drizzleInterfaceFields(Post, (t) => ({
-  sharedPost: t.relation("sharedPost", {
+  sharedPost: t.field({
     type: Post,
     nullable: true,
     description:
       "The post being boosted. Non-null only for boost wrapper rows. " +
       "When this is non-null, `content` is empty and `url` mirrors the " +
       "shared post's URL.",
+    select: (_, __, nestedSelection) => ({
+      with: {
+        sharedPost: selectPostRelationWithActor(nestedSelection),
+      },
+    }),
+    // Timeline model helpers already sanitize nullable post relations whose
+    // actor disappeared during Drizzle's multi-SELECT hydration, but Pothos
+    // Drizzle can re-fetch these relations later while resolving nested
+    // GraphQL fields.  If the related post row survives that re-fetch without
+    // its required actor, hide the nullable relation instead of letting the
+    // non-null `Post.actor` field fail the whole query.
+    resolve: (post) => hidePostRelationWithoutActor(post.sharedPost),
   }),
-  replyTarget: t.relation("replyTarget", {
+  replyTarget: t.field({
     type: Post,
     nullable: true,
     description:
       "The post this post is a reply to, or `null` for top-level posts.",
+    select: (_, __, nestedSelection) => ({
+      with: {
+        replyTarget: selectPostRelationWithActor(nestedSelection),
+      },
+    }),
+    resolve: (post) => hidePostRelationWithoutActor(post.replyTarget),
   }),
-  quotedPost: t.relation("quotedPost", {
+  quotedPost: t.field({
     type: Post,
     nullable: true,
     description:
       "The post being quoted inline. `null` for posts that are not quotes.",
+    select: (_, __, nestedSelection) => ({
+      with: {
+        quotedPost: selectPostRelationWithActor(nestedSelection),
+      },
+    }),
+    resolve: (post) => hidePostRelationWithoutActor(post.quotedPost),
   }),
   replies: t.relatedConnection("replies", {
     type: Post,
