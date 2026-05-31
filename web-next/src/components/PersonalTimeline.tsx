@@ -1,6 +1,7 @@
 import { fetchQuery, graphql } from "relay-runtime";
 import {
   createEffect,
+  createMemo,
   createSignal,
   For,
   Match,
@@ -15,7 +16,10 @@ import { LazyMount } from "~/components/LazyMount.tsx";
 import { PostCard } from "~/components/PostCard.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import type { PersonalTimeline_posts$key } from "./__generated__/PersonalTimeline_posts.graphql.ts";
+import type {
+  PersonalTimeline_posts$data,
+  PersonalTimeline_posts$key,
+} from "./__generated__/PersonalTimeline_posts.graphql.ts";
 import type { PersonalTimelinePollQuery } from "./__generated__/PersonalTimelinePollQuery.graphql.ts";
 
 // Fetches only the newest edge's cursor to detect new content without
@@ -109,6 +113,14 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
     string | null | undefined
   >(undefined);
   const [hasNewPosts, setHasNewPosts] = createSignal(false);
+  // Keep the rendered list mounted while pagination/refetch publishes a
+  // transient empty fragment snapshot. If the list unmounts near the bottom of
+  // the page, the browser can clamp scrollTop to the top before the next
+  // snapshot restores the rows.
+  const stableData = createMemo<PersonalTimeline_posts$data | undefined>(
+    (prev) => posts.latest ?? prev,
+    undefined,
+  );
 
   // Keep the baseline cursor in sync with whatever is currently displayed.
   // Distinguishes "data not loaded yet" (undefined) from "loaded but empty"
@@ -116,7 +128,7 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
   // Clears the "new posts" banner whenever the timeline refreshes.
   createEffect(on(
     () => {
-      const data = posts();
+      const data = stableData();
       if (data == null) return undefined;
       return data.personalTimeline.edges[0]?.cursor ?? null;
     },
@@ -249,48 +261,53 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
           {t`New posts available — click to load`}
         </button>
       </Show>
-      <Show keyed when={posts()}>
-        {(data) => (
-          <>
-            <For each={data.personalTimeline.edges}>
-              {(edge, i) => (
-                <LazyMount eager={i() < 5}>
-                  <PostCard
-                    $post={edge.node}
-                    sharerActor={edge.lastSharer}
-                    sharerTimestamp={edge.added}
-                    connections={[data.personalTimeline.__id]}
-                  />
-                </LazyMount>
-              )}
-            </For>
-            <Show when={posts.hasNext}>
-              <button
-                type="button"
-                on:click={loadingState() === "loading" ? undefined : onLoadMore}
-                disabled={posts.pending || loadingState() === "loading"}
-                class="block w-full cursor-pointer px-4 py-8 text-center text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <Switch>
-                  <Match when={posts.pending || loadingState() === "loading"}>
-                    {t`Loading more posts…`}
-                  </Match>
-                  <Match when={loadingState() === "errored"}>
-                    {t`Failed to load more posts; click to retry`}
-                  </Match>
-                  <Match when={loadingState() === "loaded"}>
-                    {t`Load more posts`}
-                  </Match>
-                </Switch>
-              </button>
-            </Show>
-            <Show when={data.personalTimeline.edges.length < 1}>
-              <div class="px-4 py-8 text-center text-muted-foreground">
-                {t`No posts found`}
-              </div>
-            </Show>
-          </>
-        )}
+      <Show when={stableData()}>
+        {(data) => {
+          const timeline = () => data().personalTimeline;
+          return (
+            <>
+              <For each={timeline().edges}>
+                {(edge, i) => (
+                  <LazyMount eager={i() < 5}>
+                    <PostCard
+                      $post={edge.node}
+                      sharerActor={edge.lastSharer}
+                      sharerTimestamp={edge.added}
+                      connections={[timeline().__id]}
+                    />
+                  </LazyMount>
+                )}
+              </For>
+              <Show when={posts.hasNext}>
+                <button
+                  type="button"
+                  on:click={loadingState() === "loading"
+                    ? undefined
+                    : onLoadMore}
+                  disabled={posts.pending || loadingState() === "loading"}
+                  class="block w-full cursor-pointer px-4 py-8 text-center text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <Switch>
+                    <Match when={posts.pending || loadingState() === "loading"}>
+                      {t`Loading more posts…`}
+                    </Match>
+                    <Match when={loadingState() === "errored"}>
+                      {t`Failed to load more posts; click to retry`}
+                    </Match>
+                    <Match when={loadingState() === "loaded"}>
+                      {t`Load more posts`}
+                    </Match>
+                  </Switch>
+                </button>
+              </Show>
+              <Show when={timeline().edges.length < 1}>
+                <div class="px-4 py-8 text-center text-muted-foreground">
+                  {t`No posts found`}
+                </div>
+              </Show>
+            </>
+          );
+        }}
       </Show>
     </div>
   );
