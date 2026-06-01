@@ -98,6 +98,54 @@ async function fingerprintSessionId(sessionId: string): Promise<string> {
   return "session:" + hex.slice(0, 32);
 }
 
+// Report an upstream GraphQL failure to the console and Sentry with the HTTP
+// status, operation, and a (redacted) response diagnostic, returning the
+// `Error` the caller should throw or attach. Used both for non-OK JSON
+// responses (where Relay still receives the `errors` payload, so we report
+// but don't throw) and for non-OK responses whose body isn't even JSON (e.g.
+// a Caddy 504 Gateway Timeout with an empty body), where there's nothing to
+// return and the caller throws this instead of a raw `SyntaxError`.
+function reportUpstreamError(args: {
+  params: Parameters<FetchFunction>[0];
+  variables: Parameters<FetchFunction>[1];
+  response: Response;
+  responseText?: string;
+  errors?: ReadonlyArray<unknown>;
+  userIdentity?: { id: string };
+}): Error {
+  const { params, variables, response, responseText, errors, userIdentity } =
+    args;
+  const summary = `GraphQL upstream error: ${params.name ?? "<unnamed>"}`;
+  // Keep request `variables` out of stdout: for auth mutations they can carry
+  // replayable sign-in tokens / codes, and server logs are routinely shipped
+  // to aggregators. The operation, status, and any GraphQL `errors` are enough
+  // to triage from logs; the full variables still go to Sentry below, which is
+  // access-controlled.
+  console.error("[RelayNetwork upstream error]", {
+    operation: params.name,
+    operationKind: params.operationKind,
+    query: params.text,
+    status: response.status,
+    statusText: response.statusText,
+    errors,
+  });
+  const error = new Error(summary);
+  Sentry.captureException(error, {
+    extra: {
+      operation: params.name,
+      operationKind: params.operationKind,
+      query: params.text,
+      variables,
+      status: response.status,
+      statusText: response.statusText,
+      upstreamResponse: getUpstreamResponseDiagnostics(response, responseText),
+      errors,
+    },
+    ...(userIdentity == null ? {} : { user: userIdentity }),
+  });
+  return error;
+}
+
 const fetchFn: FetchFunction = async (
   params,
   variables,
@@ -197,6 +245,25 @@ const fetchFn: FetchFunction = async (
       cause.message === "Unexpected end of JSON input" &&
       upstreamSignal?.aborted
     ) throw cause;
+    // A non-OK status whose body isn't JSON is an upstream HTTP failure, not
+    // a parsing defect on our side: e.g. Caddy returns a 504 Gateway Timeout
+    // with an empty body when the GraphQL server doesn't respond in time, and
+    // `JSON.parse("")` then throws `Unexpected end of JSON input`. Capturing
+    // that raw `SyntaxError` buries the real cause (the status code) and lumps
+    // every gateway timeout into one misleading issue, so route it through the
+    // same upstream-error path as a non-OK JSON response instead, carrying the
+    // status and the (non-JSON) body preview.
+    if (!response.ok) {
+      throw reportUpstreamError({
+        params,
+        variables,
+        response,
+        responseText,
+        userIdentity,
+      });
+    }
+    // A 2xx response whose body isn't valid JSON is a genuine defect; keep
+    // capturing it verbatim.
     Sentry.captureException(cause, {
       extra: {
         operation: params.name,
@@ -230,29 +297,7 @@ const fetchFn: FetchFunction = async (
       // so they're not bugs and should not page anyone via Sentry.
       return body;
     }
-    const summary = `GraphQL upstream error: ${params.name ?? "<unnamed>"}`;
-    console.error("[RelayNetwork upstream error]", {
-      operation: params.name,
-      operationKind: params.operationKind,
-      query: params.text,
-      variables,
-      status: response.status,
-      statusText: response.statusText,
-      errors,
-    });
-    Sentry.captureException(new Error(summary), {
-      extra: {
-        operation: params.name,
-        operationKind: params.operationKind,
-        query: params.text,
-        variables,
-        status: response.status,
-        statusText: response.statusText,
-        upstreamResponse: getUpstreamResponseDiagnostics(response),
-        errors,
-      },
-      ...(userIdentity == null ? {} : { user: userIdentity }),
-    });
+    reportUpstreamError({ params, variables, response, errors, userIdentity });
   }
   return body;
 };
