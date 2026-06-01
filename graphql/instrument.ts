@@ -4,6 +4,7 @@
 // reach Sentry. Stays a no-op when SENTRY_DSN is unset (local dev,
 // PR builds, forks without an account), matching the pattern used by
 // web-next's instrument.server.mjs.
+import { getLogger } from "@logtape/logtape";
 import * as Sentry from "@sentry/deno";
 import metadata from "./deno.json" with { type: "json" };
 
@@ -25,15 +26,30 @@ if (dsn) {
     // AI-call spans to actually be captured. 1.0 = every request
     // traced; tune downward (e.g. 0.1) once we know the volume.
     tracesSampleRate: 1.0,
-    integrations: [
+    // Function form so we can drop one default integration while keeping the
+    // rest. The default `GlobalHandlers` integration's `unhandledrejection`
+    // handler captures, flushes, then *rethrows* to replicate Deno's
+    // exit-on-unhandled-rejection (see @sentry/deno's globalhandlers.js) —
+    // which would defeat the `unhandledrejection` listener below that
+    // deliberately keeps the process alive. Disable just that half (keep its
+    // `error` handler so uncaught *sync* exceptions still crash + report as
+    // before); the listener below reports the rejection itself, capturing
+    // directly via this @sentry/deno client (see the note there).
+    integrations: (defaultIntegrations) => [
+      ...defaultIntegrations.filter((i) => i.name !== "GlobalHandlers"),
+      Sentry.globalHandlersIntegration({
+        error: true,
+        unhandledrejection: false,
+      }),
       // Wraps the Vercel AI SDK so each `generateText` / `streamText` /
       // similar call shows up as a span with model, prompt tokens,
       // latency, etc. Inputs/outputs default to recorded because
-      // sendDefaultPii is on.
+      // sendDefaultPii is on. Not a default integration, so it must be
+      // listed explicitly here (the function form replaces the default list).
       Sentry.vercelAIIntegration(),
-      // `Sentry.denoContextIntegration` is included automatically by
-      // the SDK's default integrations, so we don't list it here —
-      // it tags every event with Deno runtime / OS / V8 / TS context.
+      // `Sentry.denoContextIntegration` is included automatically by the SDK's
+      // default integrations (preserved by the spread above), so we don't list
+      // it here — it tags every event with Deno runtime / OS / V8 / TS context.
       //
       // `Sentry.denoRuntimeMetricsIntegration()` was here too but crashes
       // at startup with `TypeError: expected f64` from
@@ -44,3 +60,37 @@ if (dsn) {
     ],
   });
 }
+
+// Last-resort safety net for *detached* promise rejections. Deno terminates
+// the process on an unhandled rejection, so a single fire-and-forget promise
+// that rejects — e.g. an outbound `fetch`/`node:http` request whose body
+// stream errors with "resource closed" when a peer connection is torn down
+// mid-flight — would take down a whole GraphQL replica. Such a rejection
+// escapes the request-handler try/catch and the Envelop Sentry plugin, so it
+// never reached Sentry either; the only visible symptom was a burst of
+// downstream gateway timeouts (Caddy 504s) while the replica restarted.
+// Suppress the default termination so the server keeps serving, and report
+// the rejection so it stays visible. This is a backstop, NOT a license to leak
+// promises: every event it catches is a real bug whose source still needs an
+// explicit `.catch`.
+//
+// We capture to Sentry directly rather than via the LogTape -> Sentry sink:
+// @logtape/sentry bundles @sentry/core v9 while @sentry/deno here initializes
+// v10, and Sentry keeps each SDK's client under a separate
+// `globalThis.__SENTRY__[SDK_VERSION]` carrier, so the sink's v9
+// `captureException` can't see the v10 client and would silently drop the
+// event. The LogTape `.error()` still drives the console/file sinks.
+//
+// Registered unconditionally (even without SENTRY_DSN): keeping a replica
+// alive through a stray rejection is the right behavior in dev too, and
+// `Sentry.captureException` is a no-op until `Sentry.init` runs.
+globalThis.addEventListener("unhandledrejection", (event) => {
+  event.preventDefault();
+  getLogger(["hackerspub", "graphql"]).error(
+    "Unhandled promise rejection suppressed to keep the server alive: {error}",
+    { error: event.reason },
+  );
+  Sentry.captureException(event.reason, {
+    mechanism: { type: "onunhandledrejection", handled: false },
+  });
+});
