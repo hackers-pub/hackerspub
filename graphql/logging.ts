@@ -6,13 +6,24 @@ import {
   jsonLinesFormatter,
   type Sink,
 } from "@logtape/logtape";
-import { redactByField } from "@logtape/redaction";
+import {
+  createHmacPseudonymizer,
+  redactByField,
+  redactByFieldAsync,
+} from "@logtape/redaction";
 import { getSentrySink } from "@logtape/sentry";
+import * as Sentry from "@sentry/deno";
 import { AsyncLocalStorage } from "node:async_hooks";
 
 const LOG_QUERY = Deno.env.get("LOG_QUERY")?.toLowerCase() === "true";
 const LOG_FEDIFY = Deno.env.get("LOG_FEDIFY")?.toLowerCase() === "true";
 const LOG_FILE = Deno.env.get("LOG_FILE") ?? null;
+// HMAC key for pseudonymizing sensitive fields on the Sentry sink (see below).
+// Reuses the app's master secret; only its one-way HMAC pseudonyms ever leave
+// the box, never the secret itself. `|| null` folds a blank value (e.g. Docker
+// Compose substituting an unset variable as `""`) into the missing case, since
+// `createHmacPseudonymizer` throws on a zero-length key.
+const SECRET_KEY = Deno.env.get("SECRET_KEY") || null;
 
 function redactDeviceToken(value: unknown): unknown {
   if (typeof value !== "string") return "[REDACTED]";
@@ -40,16 +51,61 @@ const sinks: Record<string, Sink> = {
     },
   ),
 };
+// Field patterns whose values must never reach Sentry in the clear: the
+// sign-in / sign-up `tokenData` (token + OTP code), session/bearer tokens, web
+// push keys (`p256dh`), and FCM/APNS device tokens (matched by `/token/i`).
+const SENTRY_REDACT_FIELDS = [
+  /token/i,
+  /code/i,
+  /secret/i,
+  /key/i,
+  /password/i,
+  /authorization/i,
+  /p256dh/i,
+  /auth/i,
+];
+
 if (sentryEnabled) {
-  sinks.sentry = getSentrySink({
+  // This sink used to be a no-op (see the version note below), so activating it
+  // newly exposes whatever we log to a third party: most importantly the
+  // sign-in / sign-up `tokenData` (token + OTP code) logged at debug, which
+  // `enableBreadcrumbs` forwards as breadcrumbs. We redact the sensitive fields
+  // before anything leaves; redaction is recursive and also rewrites matching
+  // message placeholders, so a nested `{ token: { token, code } }` and the
+  // `{token}` in its message both get masked.
+  const sentrySink = getSentrySink({
+    // Use the Sentry SDK namespace this server actually initialized
+    // (@sentry/deno, backed by @sentry/core v10). Without this the sink falls
+    // back to @logtape/sentry's own bundled @sentry/core (v9) globals, and
+    // since Sentry stores the active client under a per-SDK-version carrier
+    // (`globalThis.__SENTRY__[SDK_VERSION]`) the v9 lookup never finds the v10
+    // client, so every capture is a silent no-op. (The `sentry` option landed
+    // in @logtape/sentry 2.2.0; pinned to a 2.2.0-dev prerelease until it ships
+    // stable.)
+    sentry: Sentry,
     // Surface lower-level records as Sentry breadcrumbs so they show up
     // alongside captured events for context.
     enableBreadcrumbs: true,
-    // (Logs API forwarding — `enableLogs: true` — is documented on the
-    // LogTape site but not yet shipped in the latest stable
-    // @logtape/sentry 2.0.6; only 2.1.0-dev.* prereleases include it.
-    // Add it here once 2.1.0 lands as a stable release.)
   });
+  // Pseudonymize rather than blank out: a keyed HMAC keeps the raw secret out
+  // of Sentry while mapping equal inputs to equal pseudonyms, so the same
+  // device token / sign-in token still correlates across events. HMAC is
+  // one-way and keyed on the app's SECRET_KEY, so a pseudonym can't be reversed
+  // (or brute-forced for small-input-space values like OTP codes) without that
+  // secret. If SECRET_KEY is unset or blank we fall back to a hard `[REDACTED]`
+  // so a missing key can never cause a leak (only lose cross-event correlation).
+  if (SECRET_KEY == null) {
+    sinks.sentry = redactByField(sentrySink, {
+      fieldPatterns: SENTRY_REDACT_FIELDS,
+      action: () => "[REDACTED]",
+    });
+  } else {
+    const pseudonymize = await createHmacPseudonymizer({ key: SECRET_KEY });
+    sinks.sentry = redactByFieldAsync(sentrySink, {
+      fieldPatterns: SENTRY_REDACT_FIELDS,
+      action: pseudonymize,
+    });
+  }
 }
 if (LOG_FILE != null) {
   sinks.file = redactByField(
