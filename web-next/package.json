@@ -31,6 +31,7 @@
     "@plausible-analytics/tracker": "^0.4.4",
     "@sentry/solidstart": "^10.51.0",
     "@simplewebauthn/browser": "catalog:",
+    "@solid-primitives/keyed": "^1.5.3",
     "@solidjs/meta": "^0.29.4",
     "@solidjs/router": "^0.15.4",
     "@solidjs/start": "2.0.0-alpha.2",

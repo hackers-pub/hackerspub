@@ -429,6 +429,9 @@ importers:
       '@simplewebauthn/browser':
         specifier: 'catalog:'
         version: '@jsr/simplewebauthn__browser@13.3.0'
+      '@solid-primitives/keyed':
+        specifier: ^1.5.3
+        version: 1.5.3(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
       '@solidjs/meta':
         specifier: ^0.29.4
         version: 0.29.4(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
@@ -9278,8 +9281,8 @@ snapshots:
     dependencies:
       '@mdx-js/react': 3.1.1(@types/react@19.2.14)(react@19.2.5)
       '@storybook/csf-plugin': 10.3.5(esbuild@0.27.7)(rollup@4.60.1)(storybook@10.3.5(@testing-library/dom@10.4.1)(react-dom@19.2.5(react@0.14.10))(react@0.14.10))(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1))
-      '@storybook/icons': 2.0.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      '@storybook/react-dom-shim': 10.3.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(storybook@10.3.5(@testing-library/dom@10.4.1)(react-dom@19.2.5(react@0.14.10))(react@0.14.10))
+      '@storybook/icons': 2.0.1(react-dom@19.2.5(react@0.14.10))(react@19.2.5)
+      '@storybook/react-dom-shim': 10.3.5(react-dom@19.2.5(react@0.14.10))(react@19.2.5)(storybook@10.3.5(@testing-library/dom@10.4.1)(react-dom@19.2.5(react@0.14.10))(react@0.14.10))
       react: 19.2.5
       react-dom: 19.2.5(react@19.2.5)
       storybook: 10.3.5(@testing-library/dom@10.4.1)(react-dom@19.2.5(react@0.14.10))(react@0.14.10)
@@ -9318,12 +9321,12 @@ snapshots:
       react: 0.14.10
       react-dom: 19.2.5(react@19.2.5)
 
-  '@storybook/icons@2.0.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5)':
+  '@storybook/icons@2.0.1(react-dom@19.2.5(react@0.14.10))(react@19.2.5)':
     dependencies:
       react: 19.2.5
       react-dom: 19.2.5(react@19.2.5)
 
-  '@storybook/react-dom-shim@10.3.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(storybook@10.3.5(@testing-library/dom@10.4.1)(react-dom@19.2.5(react@0.14.10))(react@0.14.10))':
+  '@storybook/react-dom-shim@10.3.5(react-dom@19.2.5(react@0.14.10))(react@19.2.5)(storybook@10.3.5(@testing-library/dom@10.4.1)(react-dom@19.2.5(react@0.14.10))(react@0.14.10))':
     dependencies:
       react: 19.2.5
       react-dom: 19.2.5(react@19.2.5)

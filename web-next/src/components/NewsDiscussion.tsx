@@ -1,5 +1,6 @@
+import { Key } from "@solid-primitives/keyed";
 import { graphql } from "relay-runtime";
-import { For, Match, Show, Switch } from "solid-js";
+import { Match, Show, Switch } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import { NewsDiscussionComposer } from "~/components/NewsDiscussionComposer.tsx";
 import { NewsDiscussionThread } from "~/components/NewsDiscussionThread.tsx";
@@ -55,18 +56,28 @@ export function NewsDiscussion(props: NewsDiscussionProps) {
             onPosted={() => story.refetch({}, { fetchPolicy: "network-only" })}
           />
           <div class="mt-4 mb-10 overflow-hidden border bg-card md:mb-12 md:rounded-lg md:shadow-sm">
-            <For each={data.sharingPosts.edges}>
+            {
+              /* Key by post id (not list position): a `refetch` after posting
+                 prepends a new opinion, and an unkeyed `<For>` would reuse each
+                 row for the shifted post.  The row's own fields update in place,
+                 but a child `PostEngagementBar` opens its own fragment
+                 subscription off the reference-stable proxy and stays pinned to
+                 the post that first occupied the row, showing its engagement
+                 counts.  Keying remounts a row only when its post id changes, so
+                 each post keeps its own subscription. */
+            }
+            <Key each={data.sharingPosts.edges} by={(edge) => edge.node.id}>
               {(edge) => (
                 <div class="border-b last:border-none">
                   <NewsDiscussionThread
-                    $post={edge.node}
+                    $post={edge().node}
                     depth={0}
                     targetUuid={props.targetUuid}
                     rendered={rendered}
                   />
                 </div>
               )}
-            </For>
+            </Key>
             <Show when={story.hasNext}>
               <button
                 type="button"

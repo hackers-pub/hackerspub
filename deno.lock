@@ -159,6 +159,7 @@
     "npm:@sentry/vite-plugin@^5.2.1": "5.2.1",
     "npm:@shikijs/markdown-it@^3.8.1": "3.11.0_markdown-it-async@2.2.0",
     "npm:@shikijs/transformers@^3.8.1": "3.11.0",
+    "npm:@solid-primitives/keyed@^1.5.3": "1.5.3_solid-js@1.9.10__seroval@1.3.2",
     "npm:@solidjs/meta@~0.29.4": "0.29.4_solid-js@1.9.10__seroval@1.3.2",
     "npm:@solidjs/router@~0.15.4": "0.15.4_solid-js@1.9.10__seroval@1.3.2",
     "npm:@solidjs/start@2.0.0-alpha.2": "2.0.0-alpha.2_vite@7.3.2__@types+node@24.2.0__picomatch@4.0.3_solid-js@1.9.10__seroval@1.3.2_seroval@1.5.2_@types+node@24.2.0",
@@ -5600,8 +5601,8 @@
         "solid-js"
       ]
     },
-    "@solid-primitives/keyed@1.5.2_solid-js@1.9.10__seroval@1.3.2": {
-      "integrity": "sha512-BgoEdqPw48URnI+L5sZIHdF4ua4Las1eWEBBPaoSFs42kkhnHue+rwCBPL2Z9ebOyQ75sUhUfOETdJfmv0D6Kg==",
+    "@solid-primitives/keyed@1.5.3_solid-js@1.9.10__seroval@1.3.2": {
+      "integrity": "sha512-zNadtyYBhJSOjXtogkGHmRxjGdz9KHc8sGGVAGlUABkE8BED2tbIZoxkwSqzOwde8OcUEH0bb5DLZUWIMvyBSA==",
       "dependencies": [
         "solid-js"
       ]
@@ -13233,6 +13234,7 @@
             "npm:@plausible-analytics/tracker@~0.4.4",
             "npm:@sentry/solidstart@^10.51.0",
             "npm:@sentry/vite-plugin@^5.2.1",
+            "npm:@solid-primitives/keyed@^1.5.3",
             "npm:@solidjs/meta@~0.29.4",
             "npm:@solidjs/router@~0.15.4",
             "npm:@solidjs/start@2.0.0-alpha.2",
