@@ -33,6 +33,7 @@ export function NoteComposeModal() {
     close,
     clearQuote,
     notifyNoteCreated,
+    notifyNoteUpdated,
   } = useNoteCompose();
 
   const [isDirty, setIsDirty] = createSignal(false);
@@ -48,6 +49,10 @@ export function NoteComposeModal() {
 
   const handleSuccess = () => {
     notifyNoteCreated();
+    // An edit can change a news-discussion sharing post's link membership, so
+    // also broadcast an update event (read `editingNoteId` before `close()`
+    // resets it).
+    if (editingNoteId() != null) notifyNoteUpdated();
     close();
   };
 

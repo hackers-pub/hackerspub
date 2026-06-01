@@ -12,8 +12,11 @@ import {
 import { createFragment, useRelayEnvironment } from "solid-relay";
 import { ActorHoverCard } from "~/components/ActorHoverCard.tsx";
 import { InternalLink } from "~/components/InternalLink.tsx";
+import { PostActionMenu } from "~/components/PostActionMenu.tsx";
 import { PostAvatar } from "~/components/PostAvatar.tsx";
 import { PostEngagementBar } from "~/components/PostEngagementBar.tsx";
+import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
+import type { QuotePolicy } from "~/components/QuotePolicySelect.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useContentLinkInterceptor } from "~/lib/contentLinkInterceptor.ts";
@@ -80,11 +83,27 @@ export interface NewsDiscussionThreadProps {
    * first node to claim an id wins; it releases the claim on unmount.
    */
   rendered: Set<string>;
+  /**
+   * The discussion's root connection (`NewsDiscussion__sharingPosts`), so
+   * deleting a post that is an edge of it removes that edge via `@deleteEdge`.
+   * Forwarded unchanged to children: reply/quote children are normally removed
+   * from local signals via `onDeleted`, but a post can be both a root sharing
+   * post and a reply/quote (rendered in whichever place claims it first), so a
+   * child delete must also prune the root edge or the post would resurface as a
+   * root.  `@deleteEdge` is a no-op for a child that has no root edge.
+   */
+  connections?: string[];
+  /**
+   * Called after this post is deleted, so the parent can drop it from its
+   * locally fetched reply/quote signals (children are not Relay connections,
+   * so `@deleteEdge` cannot reach them).
+   */
+  onDeleted?: () => void;
 }
 
 export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
   const { t } = useLingui();
-  const { onNoteCreated } = useNoteCompose();
+  const { onNoteCreated, openForEdit } = useNoteCompose();
   const environment = useRelayEnvironment();
   const owner = getOwner();
   const post = createFragment(
@@ -97,6 +116,11 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
         url
         iri
         published
+        visibility
+        ... on Note {
+          rawContent
+          quotePolicy
+        }
         engagementStats {
           replies
           quotes
@@ -108,9 +132,11 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
           local
           url
           iri
+          isViewer
           ...PostAvatar_actor
         }
         ...PostEngagementBar_post
+        ...PostActionMenu_post
       }
     `,
     () => props.$post,
@@ -154,6 +180,14 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
   const childCount = () => {
     const p = post();
     return p == null ? 0 : p.engagementStats.replies + p.engagementStats.quotes;
+  };
+
+  // Drop a deleted child from the locally fetched reply/quote signals; its
+  // subtree unmounts and releases its `rendered` claim.
+  const removeChild = (id: string) => {
+    seen.delete(id);
+    setReplyChildren((prev) => prev.filter((c) => c.id !== id));
+    setQuoteChildren((prev) => prev.filter((c) => c.id !== id));
   };
 
   function loadChildren(mode: LoadMode = "initial") {
@@ -368,6 +402,20 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
                   class="mt-1"
                 />
               </div>
+              <PostActionMenu
+                $post={p}
+                connections={props.connections ?? []}
+                onDeleted={props.onDeleted}
+                onEdit={p.rawContent != null && p.visibility !== "NONE"
+                  ? () =>
+                    openForEdit(p.id, {
+                      content: p.rawContent!,
+                      language: p.language,
+                      quotePolicy: (p.quotePolicy as QuotePolicy) ?? "EVERYONE",
+                      visibility: (p.visibility as PostVisibility) ?? "PUBLIC",
+                    })
+                  : undefined}
+              />
             </div>
           </article>
 
@@ -393,6 +441,8 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
                       targetUuid={props.targetUuid}
                       visited={childVisited()}
                       rendered={props.rendered}
+                      connections={props.connections}
+                      onDeleted={() => removeChild(child.id)}
                     />
                   )}
                 </For>
@@ -414,6 +464,8 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
                       targetUuid={props.targetUuid}
                       visited={childVisited()}
                       rendered={props.rendered}
+                      connections={props.connections}
+                      onDeleted={() => removeChild(child.id)}
                     />
                   )}
                 </For>

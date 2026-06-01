@@ -1,9 +1,10 @@
 import { Key } from "@solid-primitives/keyed";
 import { graphql } from "relay-runtime";
-import { Match, Show, Switch } from "solid-js";
+import { Match, onCleanup, onMount, Show, Switch } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import { NewsDiscussionComposer } from "~/components/NewsDiscussionComposer.tsx";
 import { NewsDiscussionThread } from "~/components/NewsDiscussionThread.tsx";
+import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { NewsDiscussion_story$key } from "./__generated__/NewsDiscussion_story.graphql.ts";
 
@@ -14,6 +15,7 @@ export interface NewsDiscussionProps {
 
 export function NewsDiscussion(props: NewsDiscussionProps) {
   const { t } = useLingui();
+  const { onNoteUpdated } = useNoteCompose();
   // Shared across the whole tree so each post renders in exactly one place,
   // even if it is both a root sharing post and a reply/quote elsewhere.
   const rendered = new Set<string>();
@@ -30,6 +32,7 @@ export function NewsDiscussion(props: NewsDiscussionProps) {
         sharingPosts(after: $cursor, first: $count)
           @connection(key: "NewsDiscussion__sharingPosts")
         {
+          __id
           edges {
             node {
               id
@@ -44,6 +47,17 @@ export function NewsDiscussion(props: NewsDiscussionProps) {
     `,
     () => props.$story,
   );
+
+  // Editing an opinion can change or clear the link it shares (the server
+  // re-derives `link_id` from the edited content), so a post that no longer
+  // shares this link must drop out of the roots.  The edit lands via the
+  // shared compose modal, decoupled from this list, so refetch the roots from
+  // the network when any note is updated.
+  onMount(() => {
+    onCleanup(
+      onNoteUpdated(() => story.refetch({}, { fetchPolicy: "network-only" })),
+    );
+  });
 
   return (
     <Show keyed when={story()}>
@@ -74,6 +88,7 @@ export function NewsDiscussion(props: NewsDiscussionProps) {
                     depth={0}
                     targetUuid={props.targetUuid}
                     rendered={rendered}
+                    connections={[data.sharingPosts.__id]}
                   />
                 </div>
               )}

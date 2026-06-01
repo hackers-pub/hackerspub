@@ -36,6 +36,8 @@ interface NoteComposeContextValue {
   clearQuote: () => void;
   onNoteCreated: (callback: NoteCreatedCallback) => () => void;
   notifyNoteCreated: () => void;
+  onNoteUpdated: (callback: NoteCreatedCallback) => () => void;
+  notifyNoteUpdated: () => void;
 }
 
 const NoteComposeContext = createContext<NoteComposeContextValue>();
@@ -55,6 +57,9 @@ export const NoteComposeProvider: ParentComponent = (props) => {
   const [callbacks, setCallbacks] = createSignal<Set<NoteCreatedCallback>>(
     new Set(),
   );
+  const [updateCallbacks, setUpdateCallbacks] = createSignal<
+    Set<NoteCreatedCallback>
+  >(new Set());
 
   const open = () => {
     setQuotedPostId(null);
@@ -133,6 +138,26 @@ export const NoteComposeProvider: ParentComponent = (props) => {
     callbacks().forEach((callback) => callback());
   };
 
+  // Separate from `onNoteCreated` so subscribers can react to edits without
+  // also reacting to every new note: editing a news-discussion sharing post
+  // can change or clear the link it shares (the server re-derives `link_id`
+  // from the edited content), so the discussion roots must be refetched, but a
+  // reply/quote should not reset the roots' pagination.
+  const onNoteUpdated = (callback: NoteCreatedCallback) => {
+    setUpdateCallbacks((prev) => new Set(prev).add(callback));
+    return () => {
+      setUpdateCallbacks((prev) => {
+        const next = new Set(prev);
+        next.delete(callback);
+        return next;
+      });
+    };
+  };
+
+  const notifyNoteUpdated = () => {
+    updateCallbacks().forEach((callback) => callback());
+  };
+
   return (
     <NoteComposeContext.Provider
       value={{
@@ -152,6 +177,8 @@ export const NoteComposeProvider: ParentComponent = (props) => {
         clearQuote,
         onNoteCreated,
         notifyNoteCreated,
+        onNoteUpdated,
+        notifyNoteUpdated,
       }}
     >
       {props.children}
