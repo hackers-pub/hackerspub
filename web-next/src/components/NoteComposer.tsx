@@ -42,13 +42,24 @@ import type { NoteComposerQuotedPostQuery } from "./__generated__/NoteComposerQu
 import type { NoteComposerReplyTargetQuery } from "./__generated__/NoteComposerReplyTargetQuery.graphql.ts";
 
 const NoteComposerMutation = graphql`
-  mutation NoteComposerMutation($input: CreateNoteInput!) {
+  mutation NoteComposerMutation(
+    $input: CreateNoteInput!
+    $connections: [ID!]!
+    $includeDiscussionThreadFields: Boolean!
+  ) {
     createNote(input: $input) {
       __typename
       ... on CreateNotePayload {
-        note {
+        note
+          @prependNode(
+            connections: $connections
+            edgeTypeName: "PostLinkSharingPostsConnectionEdge"
+          ) {
           id
-          content
+          # Only news-discussion posts prepend into a connection and need the
+          # row fields; skip them for every other compose/reply/quote path.
+          ...NewsDiscussionThread_post
+            @include(if: $includeDiscussionThreadFields)
         }
       }
       ... on InvalidInputError {
@@ -259,6 +270,9 @@ export interface NoteComposerProps {
   // submitted content unless the author already included it, so the note links
   // to (and joins the discussion of) this URL.
   ensureLinkUrl?: string | null;
+  // New notes only: Relay connection record ids to prepend the created note's
+  // edge into, so the new note appears in those lists without a refetch.
+  prependToConnections?: string[];
   // Edit mode: when set, the composer updates an existing note instead of
   // creating a new one.
   editingNoteId?: string | null;
@@ -888,6 +902,9 @@ export function NoteComposer(props: NoteComposerProps) {
               alt: m.alt.trim(),
             })),
           },
+          connections: props.prependToConnections ?? [],
+          includeDiscussionThreadFields:
+            (props.prependToConnections?.length ?? 0) > 0,
         },
         onCompleted(response) {
           if (response.createNote.__typename === "CreateNotePayload") {

@@ -9,8 +9,12 @@ import { useLingui } from "~/lib/i18n/macro.d.ts";
 export interface NewsDiscussionComposerProps {
   /** The discussed link's URL; appended to a posted opinion if absent. */
   url: string;
-  /** Called after a note is posted, to refresh the discussion roots. */
-  onPosted: () => void;
+  /**
+   * The `NewsDiscussion__sharingPosts` connection record id.  A posted opinion
+   * is prepended into this connection (`@prependNode`) so it appears at the top
+   * of the list without refetching and redrawing the whole discussion.
+   */
+  connectionId: string;
 }
 
 export function NewsDiscussionComposer(props: NewsDiscussionComposerProps) {
@@ -28,7 +32,7 @@ export function NewsDiscussionComposer(props: NewsDiscussionComposerProps) {
             ensureLinkUrl={props.url}
             defaultVisibility="PUBLIC"
             placeholder={t`Share your opinion on this story…`}
-            onSuccess={props.onPosted}
+            prependToConnections={[props.connectionId]}
           />
           <p class="mt-2 text-xs text-muted-foreground/70">
             {t`The link to this story is added to your post automatically.`}

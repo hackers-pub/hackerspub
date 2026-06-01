@@ -65,9 +65,10 @@ export function NewsDiscussion(props: NewsDiscussionProps) {
         <>
           <NewsDiscussionComposer
             url={data.url}
-            // Force the network: an unchanged-variables refetch would otherwise
-            // resolve from the store and miss the just-posted opinion.
-            onPosted={() => story.refetch({}, { fetchPolicy: "network-only" })}
+            // Prepend the posted opinion into the connection (`@prependNode`)
+            // instead of refetching, so only the new row is inserted rather
+            // than the whole list being redrawn.
+            connectionId={data.sharingPosts.__id}
           />
           <div class="mt-4 mb-10 overflow-hidden border bg-card md:mb-12 md:rounded-lg md:shadow-sm">
             {
