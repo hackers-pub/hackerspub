@@ -2772,14 +2772,19 @@ export async function scrapePostLink<TContextData>(
       redirect: "follow",
     });
   } catch (error) {
-    lg.error("Failed to fetch {url}: {error}", { url: url.href, error });
+    // Best-effort link-preview scrape: a remote being unreachable (DNS, TLS,
+    // connection errors) is expected and not actionable, so log at `warn` to
+    // keep it out of error tracking. The post still persists without a preview.
+    lg.warn("Failed to fetch {url}: {error}", { url: url.href, error });
     return undefined;
   }
   const responseUrl = response.url == null || response.url === ""
     ? url.href
     : response.url;
   if (!response.ok) {
-    lg.error("Failed to scrape {url}: {status} {statusText}", {
+    // Best-effort: many sites refuse scrapers (403) or are briefly down (5xx).
+    // Not actionable, so `warn` rather than `error`.
+    lg.warn("Failed to scrape {url}: {status} {statusText}", {
       url: responseUrl,
       status: response.status,
       statusText: response.statusText,
@@ -2841,7 +2846,9 @@ export async function scrapePostLink<TContextData>(
     ],
   });
   if (error) {
-    lg.error("Failed to scrape {url}: {error}", { url: responseUrl, result });
+    // Best-effort: the page loaded but Open Graph parsing failed. Not
+    // actionable, so `warn` rather than `error`.
+    lg.warn("Failed to scrape {url}: {error}", { url: responseUrl, result });
     return undefined;
   }
   lg.debug("Scraped {url}: {result}", { url: responseUrl, result });
