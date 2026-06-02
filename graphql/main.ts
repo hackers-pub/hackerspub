@@ -31,7 +31,11 @@ const yogaServer = createYogaServer();
 // `activeSince` to bound cost.  Lives here in the server entry point (not in
 // `mod.ts`) so codegen and tests never register it.
 const newsLogger = getLogger(["hackerspub", "graphql", "news"]);
-const NEWS_SWEEP_ACTIVE_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+// 24 hours. The sweep runs every 5 minutes and only needs to catch activity
+// since the previous run, so a day is already a generous safety margin; a wider
+// window just inflates the recompute's working set. (At 30 days it exceeded the
+// 30s statement timeout under production load: GRAPHQL-1B.)
+const NEWS_SWEEP_ACTIVE_WINDOW_MS = 24 * 60 * 60 * 1000;
 // Arbitrary fixed id for the advisory lock that serializes the sweep across
 // replicas ("news" read as a 32-bit int).
 const NEWS_SWEEP_LOCK_KEY = 0x6e657773;
