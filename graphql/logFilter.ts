@@ -44,8 +44,9 @@ export function isRemoteTransportError(error: unknown): boolean {
  * peer logs the same error many times). These are inherent to federation, not
  * actionable hackers.pub bugs, so they should not be forwarded to Sentry as
  * issues (GRAPHQL-18 came from a remote 404; GRAPHQL-27 from 217 retries to a
- * dead inbox). We match the known-routine ones narrowly and let genuinely
- * actionable fedify errors through.
+ * dead inbox; GRAPHQL-19 from a 403 on a remote followers collection). We match
+ * the known-routine ones narrowly and let genuinely actionable fedify errors
+ * through.
  *
  * The matched fields (`status`, `category`, `rawMessage`, and the `error`
  * object, which `@logtape/redaction` passes through untouched as a built-in
@@ -55,6 +56,9 @@ export function isRemoteTransportError(error: unknown): boolean {
 export function isRoutineFederationError(record: LogRecord): boolean {
   const { category, properties, rawMessage } = record;
   if (category[0] !== "fedify") return false;
+  const message = typeof rawMessage === "string"
+    ? rawMessage
+    : rawMessage[0] ?? "";
 
   // docloader: a remote returned an HTTP error status while we dereferenced a
   // document (a deleted note 404/410, a peer 5xx, ...). docloader's status-less
@@ -66,10 +70,19 @@ export function isRoutineFederationError(record: LogRecord): boolean {
     return typeof status === "number" && status >= 400;
   }
 
+  // vocab: a getter called with `suppressError: true` caught a dereference
+  // failure, logged it here at `error`, and returned `null`, so the caller
+  // (e.g. persistActor reading a remote `followers` count) already handled it.
+  // Every `["fedify", "vocab"]` error log lives in a `suppressError` branch, so
+  // none can hide a hackers.pub bug. Drop the fetch failures whose wrapped
+  // error is a remote fetch/transport failure; "Failed to parse ..." (malformed
+  // remote JSON-LD) is kept as a thinner signal.
+  if (category[1] === "vocab") {
+    return message.startsWith("Failed to fetch") &&
+      isRemoteTransportError(properties.error);
+  }
+
   if (category[1] === "federation") {
-    const message = typeof rawMessage === "string"
-      ? rawMessage
-      : rawMessage[0] ?? "";
     // outbox: every send is just a `fetch` to a remote inbox, so a delivery
     // failure is always remote/transport-caused (DNS gone, TLS fatal alert,
     // connection refused, ...). The other outbox `error` logs ("An unexpected

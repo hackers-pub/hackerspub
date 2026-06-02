@@ -147,6 +147,50 @@ test("inbox: keeps an unsupported activity type", () => {
   assert.equal(isRoutineFederationError(r), false);
 });
 
+test("vocab: drops a suppressed fetch failure (HTTP 403 followers)", () => {
+  const error = new Error(
+    "https://yodangang.express/users/x/followers: HTTP 403: " +
+      "https://yodangang.express/users/x/followers",
+  );
+  error.name = "FetchError";
+  const r = record(
+    ["fedify", "vocab"],
+    "Failed to fetch {url}: {error}",
+    { url: "https://yodangang.express/users/x/followers", error },
+  );
+  assert.equal(isRoutineFederationError(r), true);
+});
+
+test("vocab: drops a suppressed fetch failure caused by transport error", () => {
+  const r = record(
+    ["fedify", "vocab"],
+    "Failed to fetch {url}: {error}",
+    {
+      url: "https://dead.example/users/x/followers",
+      error: denoFetchError("dns error"),
+    },
+  );
+  assert.equal(isRoutineFederationError(r), true);
+});
+
+test("vocab: keeps a suppressed parse failure (malformed remote JSON-LD)", () => {
+  const r = record(
+    ["fedify", "vocab"],
+    "Failed to parse {url}: {error}",
+    { url: "https://example/x", error: new SyntaxError("Unexpected token") },
+  );
+  assert.equal(isRoutineFederationError(r), false);
+});
+
+test("vocab: keeps a fetch failure whose error is not remote/transport", () => {
+  const r = record(
+    ["fedify", "vocab"],
+    "Failed to fetch {url}: {error}",
+    { url: "https://example/x", error: new TypeError("ordinary bug") },
+  );
+  assert.equal(isRoutineFederationError(r), false);
+});
+
 test("keeps non-fedify error records", () => {
   const r = record(
     ["hackerspub", "graphql"],
