@@ -1,0 +1,96 @@
+// Must be the first import — see instrument.ts for the rationale.
+import "./instrument.ts";
+
+import { recomputeNewsScores } from "@hackerspub/models/news";
+import { getLogger } from "@logtape/logtape";
+import { sql } from "drizzle-orm";
+import * as models from "./ai.ts";
+import { db } from "./db.ts";
+import { drive } from "./drive.ts";
+import { federation } from "./federation.ts";
+import { kv } from "./kv.ts";
+
+const logger = getLogger(["hackerspub", "graphql", "worker"]);
+
+// One controller coordinates graceful shutdown of BOTH long-lived tasks below
+// (the news cron and the queue consumer).  Registering signal listeners
+// overrides Deno's default termination, so every long-lived task must observe
+// this signal; otherwise the process would hang on shutdown (or run another
+// sweep mid-shutdown) instead of draining and exiting.
+const controller = new AbortController();
+for (const signalName of ["SIGINT", "SIGTERM"] as const) {
+  Deno.addSignalListener(signalName, () => {
+    logger.info(
+      "Received {signal}; shutting down the queue worker gracefully.",
+      { signal: signalName },
+    );
+    controller.abort();
+  });
+}
+
+// Periodic news-score sweep.  The write hook re-scores a link only when the
+// link itself is (un)shared, so engagement-driven re-ranking (a new reply,
+// quote, or reaction on an existing story) relies on this sweep.  It recomputes
+// links with any activity since the window, derived from source timestamps.
+// The moderator "recompute" mutation is the authoritative full rebuild and
+// reconciles anything the incremental/sweep paths miss.  Scoped to
+// `activeSince` to bound cost.  Runs in this worker process (not the API
+// process and not `mod.ts`) so the API event loop carries no background work
+// and codegen/tests never register it.
+const newsLogger = getLogger(["hackerspub", "graphql", "news"]);
+// 24 hours. The sweep runs every 5 minutes and only needs to catch activity
+// since the previous run, so a day is already a generous safety margin; a wider
+// window just inflates the recompute's working set. (At 30 days it exceeded the
+// 30s statement timeout under production load: GRAPHQL-1B.)
+const NEWS_SWEEP_ACTIVE_WINDOW_MS = 24 * 60 * 60 * 1000;
+// Arbitrary fixed id for the advisory lock that serializes the sweep across
+// replicas ("news" read as a 32-bit int).
+const NEWS_SWEEP_LOCK_KEY = 0x6e657773;
+Deno.cron("recompute-news-scores", "*/5 * * * *", {
+  // Unschedule on shutdown so the worker can drain and exit instead of being
+  // kept alive (or firing another sweep) by the still-scheduled cron.
+  signal: controller.signal,
+}, async () => {
+  try {
+    const activeSince = new Date(Date.now() - NEWS_SWEEP_ACTIVE_WINDOW_MS);
+    // Every worker replica fires this cron at the same instant. Run by itself
+    // the recompute finishes well within the statement timeout, but several of
+    // them at once queue behind one another's `post_link` row locks and the
+    // waiters time out. Gate the sweep on a transaction-scoped advisory lock so
+    // exactly one replica runs it per tick and the rest skip immediately; the
+    // lock is released when the transaction ends.
+    const linksUpdated = await db.transaction(async (tx) => {
+      const rows = await tx.execute(
+        sql`select pg_try_advisory_xact_lock(${NEWS_SWEEP_LOCK_KEY}::bigint) as locked`,
+      ) as unknown as { locked: boolean }[];
+      if (rows[0]?.locked !== true) return null;
+      const result = await recomputeNewsScores(tx, { activeSince });
+      return result.linksUpdated;
+    });
+    if (linksUpdated == null) {
+      newsLogger.debug("News score sweep skipped; another replica holds it.");
+    } else {
+      newsLogger.debug("News score sweep updated {linksUpdated} link(s).", {
+        linksUpdated,
+      });
+    }
+  } catch (error) {
+    newsLogger.error("News score sweep failed: {error}", { error });
+  }
+});
+
+// Drain the federation inbox/outbox queue.  The API process (`main.ts`) builds
+// the same federation with `manuallyStartQueue: true` and only enqueues, so
+// this dedicated process is the sole consumer on the new (graphql) stack side.
+// Running it apart from the API gives the heavy, bursty federation work its own
+// event loop and DB pool, so a slow/zombie inbox handler can no longer starve
+// user-facing GraphQL requests into Caddy 504s (WEB-NEXT-1W).  This worker must
+// NOT be placed behind a load balancer (Fedify: each worker takes the queue
+// independently).
+const disk = drive.use();
+logger.info("Starting the federation message queue worker.");
+await federation.startQueue(
+  { db, kv, disk, models },
+  { signal: controller.signal },
+);
+logger.info("The federation message queue worker has stopped.");

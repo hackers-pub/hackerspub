@@ -40,6 +40,13 @@ logger.debug("Message queue initialized: {queue}", { queue });
 export const federation = await builder.build({
   kv,
   queue,
+  // Do NOT auto-consume the queue here.  This federation is imported by both
+  // the public API process (`main.ts`, which serves HTTP and enqueues) and the
+  // dedicated worker process (`worker.ts`, which calls `startQueue`).  Draining
+  // the inbox/outbox in the API process put queue load (slow remote fetches,
+  // handler-timeout zombies) on the same event loop and DB pool as user-facing
+  // GraphQL requests, which is what tipped them into Caddy 504s (WEB-NEXT-1W).
+  manuallyStartQueue: true,
   origin: ORIGIN,
   userAgent: {
     software: `HackersPub/${metadata.version}`,

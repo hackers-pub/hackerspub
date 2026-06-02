@@ -23,6 +23,10 @@ run = "cd web && deno task dev"
 description = "Run the GraphQL server in development mode"
 run = "cd graphql && deno task dev"
 
+[tasks."dev:graphql-worker"]
+description = "Run the GraphQL federation queue worker in development mode"
+run = "cd graphql && deno task dev:worker"
+
 [tasks."dev:web-next"]
 description = "Run the web-next stack in development mode"
 run = "cd web-next && pnpm dev"
@@ -42,6 +46,10 @@ run = "cd web && deno task start"
 [tasks."prod:graphql"]
 description = "Start the GraphQL server in production"
 run = "cd graphql && deno task start"
+
+[tasks."prod:graphql-worker"]
+description = "Start the GraphQL federation queue worker in production (no HTTP; do not put behind a load balancer)"
+run = "cd graphql && deno task worker"
 
 [tasks."prod:web-next"]
 description = "Start the web-next stack in production"

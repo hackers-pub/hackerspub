@@ -2,9 +2,6 @@
 import "./instrument.ts";
 
 import { getXForwardedRequest } from "@hongminhee/x-forwarded-fetch";
-import { getLogger } from "@logtape/logtape";
-import { recomputeNewsScores } from "@hackerspub/models/news";
-import { sql } from "drizzle-orm";
 import * as models from "./ai.ts";
 import { db } from "./db.ts";
 import { drive } from "./drive.ts";
@@ -22,52 +19,10 @@ const appleAppSiteAssociationJson = Deno.readTextFileSync(
 
 const yogaServer = createYogaServer();
 
-// Periodic news-score sweep.  The write hook re-scores a link only when the
-// link itself is (un)shared, so engagement-driven re-ranking (a new reply,
-// quote, or reaction on an existing story) relies on this sweep.  It recomputes
-// links with any activity since the window, derived from source timestamps.
-// The moderator "recompute" mutation is the authoritative full rebuild and
-// reconciles anything the incremental/sweep paths miss.  Scoped to
-// `activeSince` to bound cost.  Lives here in the server entry point (not in
-// `mod.ts`) so codegen and tests never register it.
-const newsLogger = getLogger(["hackerspub", "graphql", "news"]);
-// 24 hours. The sweep runs every 5 minutes and only needs to catch activity
-// since the previous run, so a day is already a generous safety margin; a wider
-// window just inflates the recompute's working set. (At 30 days it exceeded the
-// 30s statement timeout under production load: GRAPHQL-1B.)
-const NEWS_SWEEP_ACTIVE_WINDOW_MS = 24 * 60 * 60 * 1000;
-// Arbitrary fixed id for the advisory lock that serializes the sweep across
-// replicas ("news" read as a 32-bit int).
-const NEWS_SWEEP_LOCK_KEY = 0x6e657773;
-Deno.cron("recompute-news-scores", "*/5 * * * *", async () => {
-  try {
-    const activeSince = new Date(Date.now() - NEWS_SWEEP_ACTIVE_WINDOW_MS);
-    // Every graphql replica fires this cron at the same instant. Run by itself
-    // the recompute finishes well within the statement timeout, but three of
-    // them at once queue behind one another's `post_link` row locks and the
-    // waiters time out. Gate the sweep on a transaction-scoped advisory lock so
-    // exactly one replica runs it per tick and the rest skip immediately; the
-    // lock is released when the transaction ends.
-    const linksUpdated = await db.transaction(async (tx) => {
-      const rows = await tx.execute(
-        sql`select pg_try_advisory_xact_lock(${NEWS_SWEEP_LOCK_KEY}::bigint) as locked`,
-      ) as unknown as { locked: boolean }[];
-      if (rows[0]?.locked !== true) return null;
-      const result = await recomputeNewsScores(tx, { activeSince });
-      return result.linksUpdated;
-    });
-    if (linksUpdated == null) {
-      newsLogger.debug("News score sweep skipped; another replica holds it.");
-    } else {
-      newsLogger.debug("News score sweep updated {linksUpdated} link(s).", {
-        linksUpdated,
-      });
-    }
-  } catch (error) {
-    newsLogger.error("News score sweep failed: {error}", { error });
-  }
-});
-
+// The federation inbox/outbox queue worker and the periodic news-score sweep
+// run in a separate process (`worker.ts`), not here: keeping that background
+// work off this event loop and DB pool is what stops it from starving
+// user-facing GraphQL requests into Caddy 504s (WEB-NEXT-1W).
 Deno.serve({ port: 8080 }, async (req, info) => {
   try {
     req = await getXForwardedRequest(req);
