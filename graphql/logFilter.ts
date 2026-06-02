@@ -61,13 +61,15 @@ export function isRoutineFederationError(record: LogRecord): boolean {
     : rawMessage[0] ?? "";
 
   // docloader: a remote returned an HTTP error status while we dereferenced a
-  // document (a deleted note 404/410, a peer 5xx, ...). docloader's status-less
-  // `error` logs (SSRF-blocked "Disallowed private URL", redirect loops, too
-  // many redirections) have no numeric `status` and still reach Sentry, since
-  // those can signal a real problem.
-  if (category[1] === "runtime" && category[2] === "docloader") {
+  // document (a deleted note 404/410, a peer 5xx, ...), or pointed us at a
+  // private/invalid address that the loader refused to fetch (SSRF protection).
+  // Both the vocab-runtime ("runtime") and fedify ("utils") document loaders log
+  // under a `*.docloader` category. Other status-less docloader errors (redirect
+  // loops, too many redirections) still reach Sentry.
+  if (category[2] === "docloader") {
     const status = properties.status;
-    return typeof status === "number" && status >= 400;
+    if (typeof status === "number" && status >= 400) return true;
+    return message.startsWith("Disallowed private URL");
   }
 
   // vocab: a getter called with `suppressError: true` caught a dereference
@@ -82,6 +84,13 @@ export function isRoutineFederationError(record: LogRecord): boolean {
       isRemoteTransportError(properties.error);
   }
 
+  // webfinger: lookups for actors that do not exist here (bots and servers
+  // probing common handles like "relay" or "peertube"). Correct 404s, not our
+  // bug.
+  if (category[1] === "webfinger") {
+    return message.startsWith("Actor ") && message.includes("not found");
+  }
+
   if (category[1] === "federation") {
     // outbox: every send is just a `fetch` to a remote inbox, so a delivery
     // failure is always remote/transport-caused (DNS gone, TLS fatal alert,
@@ -91,12 +100,23 @@ export function isRoutineFederationError(record: LogRecord): boolean {
     if (category[2] === "outbox") {
       return message.startsWith("Failed to send activity");
     }
-    // inbox: "Failed to process the incoming activity" wraps whatever the
-    // application inbox listener threw, which may be a remote-peer failure
-    // (drop) OR a hackers.pub bug (keep). Only drop when the wrapped error is
-    // demonstrably a remote fetch/transport failure; anything else (including
-    // unknown errors) is kept so genuine listener bugs still reach Sentry.
     if (category[2] === "inbox") {
+      // Remote-driven request failures: an HTTP signature we could not verify
+      // (unfetchable or invalid key), an LD-signature whose key does not match
+      // the actor, or an activity we could not even parse (bad remote JSON-LD or
+      // an unreachable @context). None of these are our code.
+      if (
+        message.startsWith("Failed to verify the request's HTTP Signatures") ||
+        message.startsWith("The signer (") ||
+        message.startsWith("Failed to parse activity")
+      ) {
+        return true;
+      }
+      // "Failed to process the incoming activity" wraps whatever our inbox
+      // listener threw, which may be a remote-peer failure (drop) OR a
+      // hackers.pub bug (keep). Only drop a demonstrably remote fetch/transport
+      // failure; anything else (including unknown errors) is kept so genuine
+      // listener bugs still reach Sentry.
       return message.startsWith("Failed to process the incoming activity") &&
         isRemoteTransportError(properties.error);
     }

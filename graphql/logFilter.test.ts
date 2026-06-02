@@ -46,11 +46,22 @@ test("docloader: drops a remote HTTP error status (>= 400)", () => {
   assert.equal(isRoutineFederationError(r), true);
 });
 
-test("docloader: keeps status-less errors (e.g. disallowed private URL)", () => {
+test("docloader: drops SSRF-blocked private URL (any docloader category)", () => {
+  for (const mid of ["runtime", "utils"]) {
+    const r = record(
+      ["fedify", mid, "docloader"],
+      "Disallowed private URL: {url}",
+      { url: "https://teh.entar.net/users/x/statuses/1" },
+    );
+    assert.equal(isRoutineFederationError(r), true);
+  }
+});
+
+test("docloader: keeps a status-less redirect-loop error", () => {
   const r = record(
     ["fedify", "runtime", "docloader"],
-    "Disallowed private URL: {url}",
-    { url: "http://169.254.169.254/" },
+    "Detected a redirect loop while fetching document: {url} -> {redirectUrl}",
+    { url: "https://a/", redirectUrl: "https://b/" },
   );
   assert.equal(isRoutineFederationError(r), false);
 });
@@ -143,6 +154,63 @@ test("inbox: keeps an unsupported activity type", () => {
     ["fedify", "federation", "inbox"],
     "Unsupported activity type:\n{activity}",
     { error: fetchError() },
+  );
+  assert.equal(isRoutineFederationError(r), false);
+});
+
+test("inbox: drops an HTTP-signature verification failure", () => {
+  const r = record(
+    ["fedify", "federation", "inbox"],
+    "Failed to verify the request's HTTP Signatures.",
+    { reason: "keyFetchError" },
+  );
+  assert.equal(isRoutineFederationError(r), true);
+});
+
+test("inbox: drops an LD-signature signer/actor mismatch", () => {
+  const r = record(
+    ["fedify", "federation", "inbox"],
+    'The signer ("{keyId}") and the actor ("{actorId}") do not match.',
+    { keyId: "hmac-sha256:x", actorId: "https://example/users/x" },
+  );
+  assert.equal(isRoutineFederationError(r), true);
+});
+
+test("inbox: drops an unparseable incoming activity", () => {
+  const r = record(
+    ["fedify", "federation", "inbox"],
+    "Failed to parse activity:\n{error}",
+    { error: new Error("jsonld.InvalidUrl: loading remote context failed") },
+  );
+  assert.equal(isRoutineFederationError(r), true);
+});
+
+test("inbox: keeps 'Failed to process' with a non-transport vocab error", () => {
+  // GRAPHQL-20: a remote Announce whose actor is not a valid actor type; our
+  // listener gives up. Not a transport failure, so it must still reach Sentry.
+  const r = record(
+    ["fedify", "federation", "inbox"],
+    "Failed to process the incoming activity {activityId} after {trial} " +
+      "attempts; giving up:\n{error}",
+    { error: new TypeError("Expected an object of any type of: ...#Person") },
+  );
+  assert.equal(isRoutineFederationError(r), false);
+});
+
+test("webfinger: drops a lookup for a non-existent actor", () => {
+  const r = record(
+    ["fedify", "webfinger", "server"],
+    'Actor "{username}" not found.',
+    { username: "relay" },
+  );
+  assert.equal(isRoutineFederationError(r), true);
+});
+
+test("webfinger: keeps a non-'not found' error", () => {
+  const r = record(
+    ["fedify", "webfinger", "server"],
+    "Invalid resource parameter: {resource}",
+    { resource: "acct:bad" },
   );
   assert.equal(isRoutineFederationError(r), false);
 });
