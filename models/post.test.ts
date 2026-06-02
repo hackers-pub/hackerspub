@@ -4,11 +4,15 @@ import {
   resetFetch,
   resetGlobalFetch,
 } from "@c4spar/mock-fetch";
-import { createFederation, MemoryKvStore } from "@fedify/fedify";
+import {
+  createFederation,
+  type DocumentLoader,
+  MemoryKvStore,
+} from "@fedify/fedify";
 import { assert } from "@std/assert/assert";
 import { assertEquals } from "@std/assert/equals";
 import { validate } from "@std/uuid/v7";
-import { scrapePostLink } from "./post.ts";
+import { scrapePostLink, withDocumentLoaderTimeout } from "./post.ts";
 
 Deno.test("scrapePostLink()", async (t) => {
   mockGlobalFetch();
@@ -117,4 +121,50 @@ Deno.test("scrapePostLink()", async (t) => {
   });
 
   resetGlobalFetch();
+});
+
+Deno.test("withDocumentLoaderTimeout()", async (t) => {
+  // Capture the signal the wrapped loader forwards to the underlying loader so
+  // we can assert how the per-fetch timeout, caller signal, and overall
+  // deadline are combined.
+  const makeLoader = () => {
+    let captured: AbortSignal | undefined;
+    const loader: DocumentLoader = (url, options) => {
+      captured = options?.signal ?? undefined;
+      return Promise.resolve({
+        contextUrl: null,
+        document: {},
+        documentUrl: url,
+      });
+    };
+    return { loader, captured: () => captured };
+  };
+
+  await t.step("forwards a live per-fetch timeout signal", async () => {
+    const { loader, captured } = makeLoader();
+    await withDocumentLoaderTimeout(loader, 10_000)("https://example.com/");
+    const signal = captured();
+    assert(signal != null);
+    assertEquals(signal.aborted, false);
+  });
+
+  await t.step("propagates an already-aborted overall deadline", async () => {
+    const { loader, captured } = makeLoader();
+    await withDocumentLoaderTimeout(loader, 10_000, AbortSignal.abort())(
+      "https://example.com/",
+    );
+    const signal = captured();
+    assert(signal != null);
+    assertEquals(signal.aborted, true);
+  });
+
+  await t.step("propagates an already-aborted caller signal", async () => {
+    const { loader, captured } = makeLoader();
+    await withDocumentLoaderTimeout(loader, 10_000)("https://example.com/", {
+      signal: AbortSignal.abort(),
+    });
+    const signal = captured();
+    assert(signal != null);
+    assertEquals(signal.aborted, true);
+  });
 });

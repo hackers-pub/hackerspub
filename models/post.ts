@@ -112,25 +112,45 @@ const REMOTE_FETCH_TIMEOUT_MS = 10_000;
 // single handler toward the queue timeout, so we stop early and leave the rest
 // to the deferred backfill / future federation.
 const INLINE_REPLIES_TRAVERSAL_BUDGET_MS = 15_000;
+// Overall wall-clock budget for a single synchronous `persistPost` subtree (one
+// inbox message).  The per-fetch (REMOTE_FETCH_TIMEOUT_MS) and inline-replies
+// (INLINE_REPLIES_TRAVERSAL_BUDGET_MS) bounds do NOT cap the AGGREGATE of the
+// many sequential fetches spread across the reply/quote/reply-target recursion,
+// so a handler could still run past `PostgresMessageQueue`'s handlerTimeout.
+// That timeout is a `Promise.race` that does not abort the handler, so the
+// handler then keeps running detached and pins a DB connection (Sentry
+// GRAPHQL-1H).  This shared deadline is threaded through the synchronous
+// recursion so that once it elapses every remaining remote fetch aborts at
+// once, the handler unwinds (degrading to partial persistence; large reply sets
+// already fall to the deferred backfill), and the connection is released well
+// before the 180s queue timeout.  Kept comfortably under that timeout.
+const PERSIST_POST_OVERALL_BUDGET_MS = 120_000;
 const SCRAPE_IMAGE_METADATA_BYTES_LIMIT = 128 * 1024;
 
 /**
  * Wraps a Fedify {@link DocumentLoader} so every remote document fetch is
  * bounded by an {@link AbortSignal.timeout}.  Without this, a single
  * unresponsive remote host can stall an inbox message handler long enough to
- * trip `PostgresMessageQueue`'s 60-second handler timeout.  Any caller-supplied
- * signal is preserved by combining it with the timeout via
- * {@link AbortSignal.any}.
+ * trip `PostgresMessageQueue`'s handler timeout.  Any caller-supplied signal is
+ * preserved by combining it with the timeout via {@link AbortSignal.any}.
+ *
+ * `overallSignal` is the shared per-subtree deadline
+ * ({@link PERSIST_POST_OVERALL_BUDGET_MS}); combining it here is what makes the
+ * aggregate of many sequential fetches abortable, not just each fetch on its
+ * own.  Exported for unit testing of the signal-combination behavior.
  */
-function withDocumentLoaderTimeout(
+export function withDocumentLoaderTimeout(
   loader: DocumentLoader,
   timeoutMs: number = REMOTE_FETCH_TIMEOUT_MS,
+  overallSignal?: AbortSignal,
 ): DocumentLoader {
   return (url, options) => {
-    const timeoutSignal = AbortSignal.timeout(timeoutMs);
-    const signal = options?.signal == null
-      ? timeoutSignal
-      : AbortSignal.any([options.signal, timeoutSignal]);
+    const signals = [
+      options?.signal,
+      AbortSignal.timeout(timeoutMs),
+      overallSignal,
+    ].filter((s): s is AbortSignal => s != null);
+    const signal = signals.length === 1 ? signals[0] : AbortSignal.any(signals);
     return loader(url, { ...options, signal });
   };
 }
@@ -868,6 +888,15 @@ export async function persistPost(
     deferLargeReplies?: boolean;
     contextLoader?: DocumentLoader;
     documentLoader?: DocumentLoader;
+    /**
+     * Shared overall deadline for the whole synchronous persist subtree.  Left
+     * unset by top-level callers (an inbox handler): the first call mints one
+     * from {@link PERSIST_POST_OVERALL_BUDGET_MS} and threads it through the
+     * synchronous recursion so every level shares one budget.  The deferred
+     * reply backfill deliberately does NOT inherit it (each backfilled reply
+     * gets its own fresh budget instead of being cut off by the handler's).
+     */
+    signal?: AbortSignal;
   } = {},
 ): Promise<
   | Post & {
@@ -901,17 +930,27 @@ export async function persistPost(
     options.actor == null || options.actor.iri !== post.attributionId.href
       ? await getPersistedActor(db, post.attributionId)
       : options.actor;
+  // One deadline for the entire synchronous subtree: reuse the parent's when
+  // recursing, otherwise mint a fresh one at the top-level (handler) call.
+  const overallSignal = options.signal ??
+    AbortSignal.timeout(PERSIST_POST_OVERALL_BUDGET_MS);
   const opts = {
     contextLoader: options.contextLoader,
     documentLoader: withDocumentLoaderTimeout(
       options.documentLoader ?? ctx.documentLoader,
+      REMOTE_FETCH_TIMEOUT_MS,
+      overallSignal,
     ),
     suppressError: true,
   };
   if (actor == null) {
     const apActor = await post.getAttribution(opts);
     if (apActor == null) return;
-    actor = await persistActor(ctx, apActor, options);
+    // Use `opts`, not `options`: `opts.documentLoader` is bounded by the
+    // per-fetch timeout and the shared `overallSignal`, so persistActor's own
+    // dereferencing (icon/image/attachments/featured/tags) cannot stall this
+    // handler past the queue timeout.
+    actor = await persistActor(ctx, apActor, opts);
     if (actor == null) {
       logger.debug("Failed to persist actor: {actor}", { actor: apActor });
       return;
@@ -1007,6 +1046,7 @@ export async function persistPost(
           deferLargeReplies: false,
           contextLoader: options.contextLoader,
           documentLoader: options.documentLoader,
+          signal: overallSignal,
         });
         if (quotedPost != null) {
           quotedPostIri = iri;
@@ -1033,6 +1073,7 @@ export async function persistPost(
         ...options,
         replies: false,
         depth: depth + 1,
+        signal: overallSignal,
       });
       if (replyTarget == null) return;
     }
@@ -1313,6 +1354,7 @@ export async function persistPost(
           replyTarget: persistedPost,
           replies: false,
           depth: depth + 1,
+          signal: overallSignal,
         });
         repliesCount++;
       }
@@ -1336,12 +1378,27 @@ export async function persistPost(
         // the same post during bursty inbox traffic.
         await ctx.data.kv.set(lockKey, "1", REPLIES_BACKFILL_LOCK_TTL_SECONDS);
         void (async () => {
+          // This runs in the background after the handler returns, so it must
+          // NOT inherit the handler's overall deadline (`opts` is bound to
+          // `overallSignal`).  Give it a loader with only the per-fetch timeout
+          // so a long backfill is not truncated at the synchronous handler's
+          // budget; each backfilled reply still gets its own fresh overall
+          // budget via the `persistPost` call below (which omits `signal`).
+          const backfillOpts = {
+            contextLoader: options.contextLoader,
+            documentLoader: withDocumentLoaderTimeout(
+              options.documentLoader ?? ctx.documentLoader,
+            ),
+            suppressError: true,
+          };
           const persistReply = async (
             attempt: number,
           ): Promise<void> => {
             try {
               let count = 0;
-              for await (const reply of traverseCollection(replies, opts)) {
+              for await (
+                const reply of traverseCollection(replies, backfillOpts)
+              ) {
                 if (count >= maxReplies) break;
                 if (!isPostObject(reply)) continue;
                 await persistPost(ctx, reply, {
@@ -1350,6 +1407,11 @@ export async function persistPost(
                   replyTarget: persistedPost,
                   replies: false,
                   depth: depth + 1,
+                  // Don't inherit a caller's top-level deadline (`...options`
+                  // may carry one); each backfilled reply mints its own fresh
+                  // budget so the background batch isn't cut off by the
+                  // originating handler's deadline.
+                  signal: undefined,
                 });
                 count++;
               }
