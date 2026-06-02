@@ -65,7 +65,9 @@ builder.queryFields((t) => ({
           new Intl.Locale("en");
       const path = availableLocales[locale.baseName];
       const markdown = await Deno.readTextFile(path);
-      const rendered = await renderMarkup(ctx.fedCtx, markdown);
+      const rendered = await renderMarkup(ctx.fedCtx, markdown, {
+        kv: ctx.kv,
+      });
       return {
         locale: locale,
         markdown,
@@ -101,7 +103,9 @@ builder.queryFields((t) => ({
           new Intl.Locale("en");
       const path = availableLocales[locale.baseName];
       const markdown = await Deno.readTextFile(path);
-      const rendered = await renderMarkup(ctx.fedCtx, markdown);
+      const rendered = await renderMarkup(ctx.fedCtx, markdown, {
+        kv: ctx.kv,
+      });
       return {
         locale: locale,
         markdown,
@@ -137,7 +141,9 @@ builder.queryFields((t) => ({
           new Intl.Locale("en");
       const path = availableLocales[locale.baseName];
       const markdown = await Deno.readTextFile(path);
-      const rendered = await renderMarkup(ctx.fedCtx, markdown);
+      const rendered = await renderMarkup(ctx.fedCtx, markdown, {
+        kv: ctx.kv,
+      });
       return {
         locale: locale,
         markdown,
@@ -174,7 +180,9 @@ builder.queryFields((t) => ({
           new Intl.Locale("en");
       const path = availableLocales[locale.baseName];
       const markdown = await Deno.readTextFile(path);
-      const rendered = await renderMarkup(ctx.fedCtx, markdown);
+      const rendered = await renderMarkup(ctx.fedCtx, markdown, {
+        kv: ctx.kv,
+      });
       return {
         locale: locale,
         markdown,
