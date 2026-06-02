@@ -26,7 +26,15 @@ const kv = kvUrl.protocol === "redis:"
   : new PostgresKvStore(postgres);
 logger.debug("KV store initialized: {kv}", { kv });
 
-const queue = new PostgresMessageQueue(postgres);
+// Raise the message handler timeout above the 60-second default: inbox
+// handlers may legitimately need several bounded remote fetches, and the
+// default tripped on slow federation peers (see GRAPHQL-1H).  The real fix is
+// bounding each remote fetch (see `withDocumentLoaderTimeout` in
+// `@hackerspub/models/post`); this is headroom so transient slowness no longer
+// surfaces as a handler timeout.
+const queue = new PostgresMessageQueue(postgres, {
+  handlerTimeout: { seconds: 180 },
+});
 logger.debug("Message queue initialized: {queue}", { queue });
 
 export const federation = await builder.build({

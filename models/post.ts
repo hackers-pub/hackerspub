@@ -98,10 +98,42 @@ import { generateUuidV7, type Uuid } from "./uuid.ts";
 const logger = getLogger(["hackerspub", "models", "post"]);
 const DEFAULT_MAX_PERSIST_POST_DEPTH = 3;
 const DEFAULT_MAX_INLINE_REPLIES = 50;
-const DEFAULT_INLINE_REPLIES_THRESHOLD = 50;
+const DEFAULT_INLINE_REPLIES_THRESHOLD = 10;
 const REPLIES_BACKFILL_LOCK_TTL_SECONDS = 300;
 const REPLIES_BACKFILL_RETRY_DELAY_MS = 30_000;
+// Per-fetch ceiling for remote ActivityPub dereferencing during post
+// persistence.  Deno's `fetch` has no default timeout, so an unresponsive
+// remote host could otherwise hang an inbox handler past the message queue's
+// 60-second handler timeout (and pin a DB connection while it hangs).
+const REMOTE_FETCH_TIMEOUT_MS = 10_000;
+// Wall-clock budget for the synchronous (inline) replies traversal.  Even when
+// every individual fetch stays under REMOTE_FETCH_TIMEOUT_MS, a long reply
+// collection could otherwise accumulate enough sequential fetches to drag a
+// single handler toward the queue timeout, so we stop early and leave the rest
+// to the deferred backfill / future federation.
+const INLINE_REPLIES_TRAVERSAL_BUDGET_MS = 15_000;
 const SCRAPE_IMAGE_METADATA_BYTES_LIMIT = 128 * 1024;
+
+/**
+ * Wraps a Fedify {@link DocumentLoader} so every remote document fetch is
+ * bounded by an {@link AbortSignal.timeout}.  Without this, a single
+ * unresponsive remote host can stall an inbox message handler long enough to
+ * trip `PostgresMessageQueue`'s 60-second handler timeout.  Any caller-supplied
+ * signal is preserved by combining it with the timeout via
+ * {@link AbortSignal.any}.
+ */
+function withDocumentLoaderTimeout(
+  loader: DocumentLoader,
+  timeoutMs: number = REMOTE_FETCH_TIMEOUT_MS,
+): DocumentLoader {
+  return (url, options) => {
+    const timeoutSignal = AbortSignal.timeout(timeoutMs);
+    const signal = options?.signal == null
+      ? timeoutSignal
+      : AbortSignal.any([options.signal, timeoutSignal]);
+    return loader(url, { ...options, signal });
+  };
+}
 
 export type PostObject = vocab.Article | vocab.Note | vocab.Question;
 
@@ -871,7 +903,9 @@ export async function persistPost(
       : options.actor;
   const opts = {
     contextLoader: options.contextLoader,
-    documentLoader: options.documentLoader,
+    documentLoader: withDocumentLoaderTimeout(
+      options.documentLoader ?? ctx.documentLoader,
+    ),
     suppressError: true,
   };
   if (actor == null) {
@@ -959,7 +993,7 @@ export async function persistPost(
       for (const iri of quotedPostIris) {
         let obj: vocab.Object | null;
         try {
-          obj = await ctx.lookupObject(iri, options);
+          obj = await ctx.lookupObject(iri, opts);
         } catch {
           continue;
         }
@@ -1108,7 +1142,7 @@ export async function persistPost(
       existingPost.id,
       unauthorizedQuoteTarget.id,
     );
-  const mentionedActors = await resolveMentionedActors(ctx, mentions, options);
+  const mentionedActors = await resolveMentionedActors(ctx, mentions, opts);
   const mentionLinkHrefs = new Set(mentions);
   for (const actor of mentionedActors) {
     for (const href of getActorMentionHrefs(actor)) mentionLinkHrefs.add(href);
@@ -1256,8 +1290,22 @@ export async function persistPost(
       totalItems <= inlineRepliesThreshold;
     if (canInlineReplies) {
       let repliesCount = 0;
+      const traversalDeadline = Date.now() + INLINE_REPLIES_TRAVERSAL_BUDGET_MS;
       for await (const reply of traverseCollection(replies, opts)) {
         if (repliesCount >= maxReplies) break;
+        if (Date.now() >= traversalDeadline) {
+          logger.debug(
+            "Inline replies traversal for {postIri} hit the {budgetMs}ms " +
+              "budget after {repliesCount} replies; stopping early to stay " +
+              "under the message handler timeout.",
+            {
+              postIri: persistedPost.iri,
+              budgetMs: INLINE_REPLIES_TRAVERSAL_BUDGET_MS,
+              repliesCount,
+            },
+          );
+          break;
+        }
         if (!isPostObject(reply)) continue;
         await persistPost(ctx, reply, {
           ...options,
