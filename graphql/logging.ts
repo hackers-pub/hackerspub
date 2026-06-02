@@ -4,7 +4,6 @@ import {
   configure,
   getStreamSink,
   jsonLinesFormatter,
-  type LogRecord,
   type Sink,
   withFilter,
 } from "@logtape/logtape";
@@ -16,6 +15,7 @@ import {
 import { getSentrySink } from "@logtape/sentry";
 import * as Sentry from "@sentry/deno";
 import { AsyncLocalStorage } from "node:async_hooks";
+import { isRoutineFederationError } from "./logFilter.ts";
 
 const LOG_QUERY = Deno.env.get("LOG_QUERY")?.toLowerCase() === "true";
 const LOG_FEDIFY = Deno.env.get("LOG_FEDIFY")?.toLowerCase() === "true";
@@ -67,31 +67,6 @@ const SENTRY_REDACT_FIELDS = [
   /auth/i,
 ];
 
-// Fedify's document loader logs every non-OK HTTP response from a remote peer
-// (a deleted note returns `404`/`410`, a peer is briefly `5xx`, a relay `429`s
-// us, ...) at `error` level under `["fedify", "runtime", "docloader"]`, then
-// throws. These fetch failures are inherent to federation, not actionable bugs,
-// so routing them to Sentry just produces escalating noise (an inbound 404
-// produced the GRAPHQL-18 issue). We drop only the records that carry an HTTP
-// error `status` (>= 400); docloader's other `error` logs (the SSRF-blocked
-// "Disallowed private URL", redirect loops, too many redirections) have no
-// numeric `status` and still reach Sentry, since those can signal a real
-// problem. `status` is not a redacted field, so this predicate reads the same
-// value whether it runs before or after redaction.
-function isRoutineFederationFetchFailure(record: LogRecord): boolean {
-  const { category, properties } = record;
-  if (
-    category.length < 3 ||
-    category[0] !== "fedify" ||
-    category[1] !== "runtime" ||
-    category[2] !== "docloader"
-  ) {
-    return false;
-  }
-  const status = properties.status;
-  return typeof status === "number" && status >= 400;
-}
-
 if (sentryEnabled) {
   // This sink used to be a no-op (see the version note below), so activating it
   // newly exposes whatever we log to a third party: most importantly the
@@ -114,15 +89,15 @@ if (sentryEnabled) {
     // alongside captured events for context.
     enableBreadcrumbs: true,
   });
-  // Drop routine remote-fetch failures (see `isRoutineFederationFetchFailure`)
-  // before they reach Sentry, as captured events and as breadcrumbs alike. We
-  // filter the raw sink here, then let redaction wrap the result below, so the
+  // Drop routine federation failures (see `isRoutineFederationError`) before
+  // they reach Sentry, as captured events and as breadcrumbs alike. We filter
+  // the raw sink here, then let redaction wrap the result below, so the
   // outermost sink stays the redaction wrapper and its `Symbol.asyncDispose`
   // (which flushes the async pseudonymizer queue on shutdown) is preserved;
   // `withFilter` returns a bare function that would otherwise drop it.
   const filteredSentrySink = withFilter(
     sentrySink,
-    (record) => !isRoutineFederationFetchFailure(record),
+    (record) => !isRoutineFederationError(record),
   );
   // Pseudonymize rather than blank out: a keyed HMAC keeps the raw secret out
   // of Sentry while mapping equal inputs to equal pseudonyms, so the same
