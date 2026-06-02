@@ -895,6 +895,31 @@ export const postTable = pgTable(
     // statement timeouts on large datasets.
     index("idx_post_tags_gin")
       .using("gin", table.tags),
+    // Support the news-score recompute (models/news.ts) with partial indexes
+    // over just the "sharing" posts (carry a link, publicly visible, an
+    // original post rather than a boost). `*_link` drives the per-link
+    // aggregation (look up a link's shares by id); `*_published` / `*_updated`
+    // let the periodic active-link sweep range by recency instead of scanning
+    // every sharing post. Created in production via CREATE INDEX CONCURRENTLY
+    // ahead of the migration, whose CREATE INDEX IF NOT EXISTS is then a no-op.
+    index("idx_post_news_share_link")
+      .on(table.linkId, table.published)
+      .where(sql`
+        ${table.linkId} IS NOT NULL AND ${table.sharedPostId} IS NULL
+          AND ${table.visibility} IN ('public', 'unlisted')
+      `),
+    index("idx_post_news_share_published")
+      .on(table.published)
+      .where(sql`
+        ${table.linkId} IS NOT NULL AND ${table.sharedPostId} IS NULL
+          AND ${table.visibility} IN ('public', 'unlisted')
+      `),
+    index("idx_post_news_share_updated")
+      .on(table.updated)
+      .where(sql`
+        ${table.linkId} IS NOT NULL AND ${table.sharedPostId} IS NULL
+          AND ${table.visibility} IN ('public', 'unlisted')
+      `),
   ],
 );
 
@@ -1325,6 +1350,9 @@ export const reactionTable = pgTable(
       .on(table.postId, table.actorId, table.customEmojiId)
       .where(isNull(table.emoji)),
     index().on(table.postId),
+    // Lets the news-score sweep (models/news.ts) find reactions created since a
+    // cutoff by an index range instead of scanning the whole table.
+    index("idx_reaction_created").on(table.created),
     check(
       "reaction_emoji_check",
       sql`

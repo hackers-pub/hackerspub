@@ -364,6 +364,12 @@ function resolveScope(options: RecomputeNewsScoresOptions): RecomputeScope {
  * (an explicit id list is bound as one `uuid[]` array; the `activeSince` set is
  * a subquery) so a large sweep never expands into thousands of bind
  * parameters.
+ *
+ * The `activeSince` set is materialized with `= any(array(…))` rather than
+ * `in (…)`: against the millions-of-rows `post` table the planner otherwise
+ * hash-semi-joins by scanning every sharing post, whereas the array form drives
+ * a nested loop that looks the (few thousand) active links up through
+ * `idx_post_news_share_link`, reading only their shares.
  */
 function scopeFilter(scope: RecomputeScope, linkIdColumn: SQL): SQL {
   switch (scope.kind) {
@@ -376,9 +382,9 @@ function scopeFilter(scope: RecomputeScope, linkIdColumn: SQL): SQL {
       return sql` and ${linkIdColumn} = any(${literal}::uuid[])`;
     }
     case "activeSince":
-      return sql` and ${linkIdColumn} in (${
+      return sql` and ${linkIdColumn} = any(array(${
         activeLinkIdsSubquery(scope.since)
-      })`;
+      }))`;
   }
 }
 
@@ -415,31 +421,53 @@ function activeLinkIdsSubquery(activeSince: Date): SQL {
   // Raw `sql` does not bind a JS `Date`; pass an ISO string cast to
   // `timestamptz`.
   const since = sql`${activeSince.toISOString()}::timestamptz`;
-  return sql`
-    select s.link_id
-    from post s
-    join actor a on a.id = s.actor_id
-    where s.link_id is not null
+  // `s` is a qualifying share: carries a link, publicly visible, an original
+  // post (not a boost).
+  const share = sql`
+    s.link_id is not null
       and s.visibility in ('public', 'unlisted')
       and s.shared_post_id is null
-      and ${nonBotSharerCondition}
-      and (
-        s.published >= ${since}
-        -- A federated Update to a share (e.g. its replies/likes totals) bumps
-        -- the updated column, so this catches remote engagement-count changes
-        -- that create no local reaction/reply/quote row.
-        or s.updated >= ${since}
-        or exists (
-          select 1 from reaction r
-          where r.post_id = s.id and r.created >= ${since}
-        )
-        or exists (
-          select 1 from post c
-          where (c.reply_target_id = s.id or c.quoted_post_id = s.id)
-            and c.visibility in ('public', 'unlisted')
-            and c.published >= ${since}
-        )
-      )
+  `;
+  // A `union` of one lookup per kind of activity, each bounded by `activeSince`
+  // so the planner ranges a recency index (post.published / post.updated /
+  // reaction.created, plus idx_post_visibility_published for replies/quotes)
+  // instead of scanning every sharing post and testing it row by row. This is
+  // equivalent to the former "any sharing post with activity since" single
+  // scan, but its cost is O(activity in the window) rather than O(all sharing
+  // posts ever). Each branch yields the `link_id` of a share that saw that kind
+  // of recent activity.
+  return sql`
+    select s.link_id
+      from post s join actor a on a.id = s.actor_id
+      where ${share} and ${nonBotSharerCondition} and s.published >= ${since}
+    union
+    select s.link_id
+      from post s join actor a on a.id = s.actor_id
+      -- A federated Update to a share (e.g. its replies/likes totals) bumps
+      -- the updated column, catching remote engagement changes with no row.
+      where ${share} and ${nonBotSharerCondition} and s.updated >= ${since}
+    union
+    select s.link_id
+      from reaction r
+      join post s on s.id = r.post_id
+      join actor a on a.id = s.actor_id
+      where r.created >= ${since} and ${share} and ${nonBotSharerCondition}
+    union
+    select s.link_id
+      from post c
+      join post s on s.id = c.reply_target_id
+      join actor a on a.id = s.actor_id
+      where c.reply_target_id is not null
+        and c.visibility in ('public', 'unlisted') and c.published >= ${since}
+        and ${share} and ${nonBotSharerCondition}
+    union
+    select s.link_id
+      from post c
+      join post s on s.id = c.quoted_post_id
+      join actor a on a.id = s.actor_id
+      where c.quoted_post_id is not null
+        and c.visibility in ('public', 'unlisted') and c.published >= ${since}
+        and ${share} and ${nonBotSharerCondition}
   `;
 }
 
