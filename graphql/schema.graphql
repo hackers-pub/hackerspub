@@ -277,6 +277,10 @@ type Actor implements Node {
   """
   fields: [ActorField!]!
   followees(after: String, before: String, first: Int, last: Int): ActorFolloweesConnection!
+
+  """
+  This actor's followers (accepted follows only). Ordered so that the followers the authenticated viewer also follows ("followers you know") come first, then the rest most recently followed first; for an unauthenticated viewer there are no mutual followers, so it is simply most recent first. `totalCount` counts every accepted follower regardless of viewer.
+  """
   followers(after: String, before: String, first: Int, last: Int): ActorFollowersConnection!
 
   """

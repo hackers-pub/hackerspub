@@ -538,6 +538,17 @@ const mutualFollowersQuery = parse(`
   }
 `);
 
+const followersOrderQuery = parse(`
+  query FollowersOrder($uuid: UUID!) {
+    actorByUuid(uuid: $uuid) {
+      followers(first: 10) {
+        totalCount
+        edges { accepted node { username } }
+      }
+    }
+  }
+`);
+
 const followRelationshipBatchQuery = parse(`
   query FollowRelationshipBatch($a: UUID!, $b: UUID!, $c: UUID!) {
     a: actorByUuid(uuid: $a) { id viewerFollows followsViewer }
@@ -714,6 +725,113 @@ Deno.test({
           mutualFollowers: { totalCount: 0, edges: [] },
         },
       });
+    });
+  },
+});
+
+Deno.test({
+  name: "Actor.followers lists mutual followers (followers you know) first",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const viewer = await insertAccountWithActor(tx, {
+        username: "foviewer",
+        name: "FO Viewer",
+        email: "foviewer@example.com",
+      });
+      const profile = await insertAccountWithActor(tx, {
+        username: "foprofile",
+        name: "FO Profile",
+        email: "foprofile@example.com",
+      });
+      const mutualA = await insertAccountWithActor(tx, {
+        username: "fomutuala",
+        name: "FO Mutual A",
+        email: "fomutuala@example.com",
+      });
+      const mutualB = await insertAccountWithActor(tx, {
+        username: "fomutualb",
+        name: "FO Mutual B",
+        email: "fomutualb@example.com",
+      });
+      const plainC = await insertAccountWithActor(tx, {
+        username: "foplainc",
+        name: "FO Plain C",
+        email: "foplainc@example.com",
+      });
+      const plainD = await insertAccountWithActor(tx, {
+        username: "foplaind",
+        name: "FO Plain D",
+        email: "foplaind@example.com",
+      });
+
+      const fedCtx = createFedCtx(tx);
+      // All four follow the profile.
+      await follow(fedCtx, mutualA.account, profile.actor);
+      await follow(fedCtx, mutualB.account, profile.actor);
+      await follow(fedCtx, plainC.account, profile.actor);
+      await follow(fedCtx, plainD.account, profile.actor);
+      // The viewer follows only the two "mutual" followers.
+      await follow(fedCtx, viewer.account, mutualA.actor);
+      await follow(fedCtx, viewer.account, mutualB.actor);
+
+      const result = await execute({
+        schema,
+        document: followersOrderQuery,
+        variableValues: { uuid: profile.actor.id },
+        contextValue: makeUserContext(tx, viewer.account),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(result.errors, undefined);
+      const conn = (result.data as {
+        actorByUuid: {
+          followers: {
+            totalCount: number;
+            edges: { accepted: string | null; node: { username: string } }[];
+          };
+        };
+      }).actorByUuid.followers;
+
+      assertEquals(conn.totalCount, 4);
+      const usernames = conn.edges.map((edge) => edge.node.username);
+      assertEquals(usernames.length, 4);
+      // The two mutual followers come first (order within the group is not
+      // asserted), then the two the viewer does not follow.
+      assertEquals(
+        new Set(usernames.slice(0, 2)),
+        new Set(["fomutuala", "fomutualb"]),
+      );
+      assertEquals(
+        new Set(usernames.slice(2)),
+        new Set(["foplainc", "foplaind"]),
+      );
+      // The follow-row edge fields still resolve after the custom re-shaping.
+      assertEquals(conn.edges.every((edge) => edge.accepted != null), true);
+
+      // A guest takes the no-viewer ordering branch: it must run without error
+      // and still return every accepted follower.
+      const guestResult = await execute({
+        schema,
+        document: followersOrderQuery,
+        variableValues: { uuid: profile.actor.id },
+        contextValue: makeGuestContext(tx),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(guestResult.errors, undefined);
+      const guestConn = (guestResult.data as {
+        actorByUuid: {
+          followers: {
+            totalCount: number;
+            edges: { node: { username: string } }[];
+          };
+        };
+      }).actorByUuid.followers;
+      assertEquals(guestConn.totalCount, 4);
+      assertEquals(
+        new Set(guestConn.edges.map((edge) => edge.node.username)),
+        new Set(["fomutuala", "fomutualb", "foplainc", "foplaind"]),
+      );
     });
   },
 });

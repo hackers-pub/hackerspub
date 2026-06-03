@@ -19,6 +19,7 @@ import {
   getFollowedActorIds,
   getFollowerActorIds,
   getMutualFollowerActorIds,
+  getRankedFollowerPage,
   removeFollower as removeFollowerModel,
   unfollow,
 } from "@hackerspub/models/following";
@@ -540,16 +541,35 @@ builder.drizzleObjectFields(Actor, (t) => ({
   followers: t.connection(
     {
       type: Actor,
-      select: (args, ctx, select) => ({
-        columns: { followersCount: true },
-        with: {
-          followers: followerConnectionHelpers.getQuery(args, ctx, select),
-        },
-      }),
-      resolve: (actor, args, ctx) => ({
-        ...followerConnectionHelpers.resolve(actor.followers, args, ctx),
-        totalCount: actor.followersCount,
-      }),
+      description:
+        "This actor's followers (accepted follows only). Ordered so that the " +
+        'followers the authenticated viewer also follows ("followers you ' +
+        'know") come first, then the rest most recently followed first; for ' +
+        "an unauthenticated viewer there are no mutual followers, so it is " +
+        "simply most recent first. `totalCount` counts every accepted " +
+        "follower regardless of viewer.",
+      select: { columns: { id: true, followersCount: true } },
+      resolve: async (actor, args, ctx) => {
+        const viewerId = ctx.account?.actor?.id ?? null;
+        const connection = await resolveOffsetConnection(
+          { args, totalCount: actor.followersCount },
+          ({ offset, limit }) =>
+            getRankedFollowerPage(ctx.db, viewerId, actor.id, limit, offset),
+        );
+        // Re-shape each edge so the node is the follower actor while the
+        // follow row's `iri`/`accepted`/`created` stay available as edge
+        // fields (matching the connection's original schema).
+        return {
+          ...connection,
+          edges: connection.edges.map((edge) => ({
+            cursor: edge.cursor,
+            node: edge.node.follower,
+            iri: edge.node.iri,
+            accepted: edge.node.accepted,
+            created: edge.node.created,
+          })),
+        };
+      },
     },
     {
       fields: (t) => ({
@@ -810,19 +830,6 @@ ActorFieldRef.implement({
     value: t.expose("value", { type: "HTML" }),
   }),
 });
-
-const followerConnectionHelpers = drizzleConnectionHelpers(
-  builder,
-  "followingTable",
-  {
-    select: (nodeSelection) => ({
-      with: {
-        follower: nodeSelection({}),
-      },
-    }),
-    resolveNode: (following) => following.follower,
-  },
-);
 
 const followeeConnectionHelpers = drizzleConnectionHelpers(
   builder,
