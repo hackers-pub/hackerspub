@@ -494,21 +494,32 @@ async function readResponseBytesAtMost(
   const reader = response.body.getReader();
   const chunks: Uint8Array[] = [];
   let total = 0;
-  // Stop reading once we have enough bytes for lightweight metadata probing.
-  while (total < maxBytes) {
-    const { done, value } = await reader.read();
-    if (done || value == null) break;
-    if (total + value.length <= maxBytes) {
-      chunks.push(value);
-      total += value.length;
-      continue;
+  try {
+    // Stop reading once we have enough bytes for lightweight metadata probing.
+    while (total < maxBytes) {
+      const { done, value } = await reader.read();
+      if (done || value == null) break;
+      if (total + value.length <= maxBytes) {
+        chunks.push(value);
+        total += value.length;
+        continue;
+      }
+      const remaining = maxBytes - total;
+      if (remaining > 0) {
+        chunks.push(value.slice(0, remaining));
+        total += remaining;
+      }
+      break;
     }
-    const remaining = maxBytes - total;
-    if (remaining > 0) {
-      chunks.push(value.slice(0, remaining));
-      total += remaining;
-    }
-    break;
+  } finally {
+    // Cancel the unread remainder so Deno closes the underlying HTTP body
+    // resource here, with the cancellation awaited (and any rejection
+    // swallowed).  Without this, a partially-read body is abandoned with its
+    // reader still locked; when the peer tears the keep-alive connection down
+    // mid-flight, the dangling read rejects with "resource closed" as a
+    // *detached* unhandled rejection that escapes the caller's try/catch and
+    // is only caught by the instrument.ts backstop (GRAPHQL-1N).
+    await reader.cancel().catch(() => {});
   }
   const result = new Uint8Array(total);
   let offset = 0;
