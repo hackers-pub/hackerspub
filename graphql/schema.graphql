@@ -63,7 +63,7 @@ type Account implements Node {
   invitees(after: String, before: String, first: Int, last: Int): AccountInviteesConnection!
 
   """
-  `null` for accounts created before the invitation system was introduced, or for the instance's founding accounts.
+  The account that invited this account to sign up. `null` for accounts created before the invitation system was introduced and for the instance's founding accounts. Honors the `hideFromInvitationTree` privacy setting: returns `null` when either this account or its inviter has opted out of the invitation tree, unless the viewer is the account itself, that account's inviter, or a moderator (all of whom always see the real inviter).
   """
   inviter: Account
 
@@ -346,6 +346,11 @@ type Actor implements Node {
   mutedActors(after: String, before: String, first: Int, last: Int): ActorMutedActorsConnection!
 
   """
+  The "followers you know": actors the authenticated viewer follows who also follow this actor (both follows accepted). Returns an empty connection for unauthenticated viewers and when this actor is the viewer themselves. Ordered by the profile-side follow, newest first. Use this for a "followed by people you know" hint on profiles; for the complete follower list use `followers` instead.
+  """
+  mutualFollowers(after: String, before: String, first: Int, last: Int): ActorMutualFollowersConnection!
+
+  """
   The actor's display name rendered as HTML, with custom emoji shortcodes replaced by inline `<img>` elements. `null` when the actor has no display name set.
   """
   name: HTML
@@ -489,6 +494,17 @@ type ActorMutedActorsConnection {
 }
 
 type ActorMutedActorsConnectionEdge {
+  cursor: String!
+  node: Actor!
+}
+
+type ActorMutualFollowersConnection {
+  edges: [ActorMutualFollowersConnectionEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ActorMutualFollowersConnectionEdge {
   cursor: String!
   node: Actor!
 }

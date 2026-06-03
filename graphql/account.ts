@@ -42,6 +42,31 @@ import {
 
 const profileOgImageComplexity = 2_000;
 
+// Merge the GraphQL-derived selection for a related `Account` with the extra
+// `hideFromInvitationTree` column so the inviter-gating resolver can read it
+// regardless of which fields the caller requested.  Mirrors
+// `selectPostRelationWithActor` in post.ts.  When no explicit column projection
+// is present, all columns are already selected (which includes the flag), so
+// the selection is left as-is.
+function selectAccountWithHideFlag(
+  nestedSelection: () => unknown,
+): Record<string, unknown> {
+  const selection = nestedSelection();
+  if (selection == null || typeof selection !== "object") {
+    return { columns: { hideFromInvitationTree: true } };
+  }
+  if (!("columns" in selection) || selection.columns == null) {
+    return selection as Record<string, unknown>;
+  }
+  return {
+    ...selection,
+    columns: {
+      ...(selection.columns as Record<string, unknown>),
+      hideFromInvitationTree: true,
+    },
+  };
+}
+
 export const Account = builder.drizzleNode("accountTable", {
   name: "Account",
   description:
@@ -268,12 +293,6 @@ export const Account = builder.drizzleNode("accountTable", {
         orderBy: { index: "asc" },
       },
     }),
-    inviter: t.relation("inviter", {
-      nullable: true,
-      description:
-        "`null` for accounts created before the invitation system was " +
-        "introduced, or for the instance's founding accounts.",
-    }),
     notifications: t.connection({
       type: Notification,
       description:
@@ -427,6 +446,44 @@ function getInviteeCount(ctx: UserContext, accountId: string): Promise<number> {
   if (!validateUuid(accountId)) return Promise.resolve(0);
   return ctx.inviteeCountLoader.load(accountId);
 }
+
+// Defined via `drizzleObjectField` rather than inline in the `Account`
+// `fields` block because the field's type (`Account`) is the very node being
+// defined; referencing it inside its own initializer would make TypeScript
+// infer `Account` as `any`.
+builder.drizzleObjectField(Account, "inviter", (t) =>
+  t.field({
+    type: Account,
+    nullable: true,
+    description:
+      "The account that invited this account to sign up. `null` for " +
+      "accounts created before the invitation system was introduced and " +
+      "for the instance's founding accounts. Honors the " +
+      "`hideFromInvitationTree` privacy setting: returns `null` when either " +
+      "this account or its inviter has opted out of the invitation tree, " +
+      "unless the viewer is the account itself, that account's inviter, or " +
+      "a moderator (all of whom always see the real inviter).",
+    select: (_args, _ctx, nestedSelection) => ({
+      columns: { inviterId: true, hideFromInvitationTree: true },
+      with: { inviter: selectAccountWithHideFlag(nestedSelection) },
+    }),
+    resolve(account, _args, ctx) {
+      const inviter = account.inviter;
+      if (inviter == null) return null;
+      const viewer = ctx.account;
+      const bypass = viewer != null &&
+        (viewer.id === account.id ||
+          viewer.id === account.inviterId ||
+          viewer.moderator);
+      if (
+        !bypass &&
+        (account.hideFromInvitationTree || inviter.hideFromInvitationTree)
+      ) {
+        return null;
+      }
+      return inviter;
+    },
+  }));
 
 builder.drizzleObjectField(Account, "invitees", (t) =>
   t.connection(

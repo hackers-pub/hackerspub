@@ -5,6 +5,7 @@ import * as vocab from "@fedify/vocab";
 import { execute, parse } from "graphql";
 import sharp from "sharp";
 import { updateAccountData } from "@hackerspub/models/account";
+import type { Transaction } from "@hackerspub/models/db";
 import { createMediumFromBytes } from "@hackerspub/models/medium";
 import { mediumTable } from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
@@ -67,6 +68,17 @@ const invitationTreeQuery = parse(`
       avatarUrl
       inviterId
       hidden
+    }
+  }
+`);
+
+const accountInviterQuery = parse(`
+  query AccountInviter($username: String!) {
+    accountByUsername(username: $username) {
+      username
+      inviter {
+        username
+      }
     }
   }
 `);
@@ -332,6 +344,126 @@ test("invitationTree redacts hidden accounts", async () => {
       hiddenNode.avatarUrl,
       "https://gravatar.com/avatar/?d=mp&s=128",
     );
+  });
+});
+
+async function seedInviterAndInvitee(tx: Transaction) {
+  const inviter = await insertAccountWithActor(tx, {
+    username: "theinviter",
+    name: "The Inviter",
+    email: "theinviter@example.com",
+  });
+  const invitee = await insertAccountWithActor(tx, {
+    username: "theinvitee",
+    name: "The Invitee",
+    email: "theinvitee@example.com",
+  });
+  await updateAccountData(tx, {
+    id: invitee.account.id,
+    inviterId: inviter.account.id,
+  });
+  return { inviter, invitee };
+}
+
+async function resolveInviterUsername(
+  contextValue: UserContext,
+): Promise<string | null | undefined> {
+  const result = await execute({
+    schema,
+    document: accountInviterQuery,
+    variableValues: { username: "theinvitee" },
+    contextValue,
+    onError: "NO_PROPAGATE",
+  });
+  assert.equal(result.errors, undefined);
+  const data = result.data as {
+    accountByUsername: { inviter: { username: string } | null } | null;
+  };
+  return data.accountByUsername?.inviter?.username ?? null;
+}
+
+test("Account.inviter is visible to guests when neither party is hidden", async () => {
+  await withRollback(async (tx) => {
+    await seedInviterAndInvitee(tx);
+    const username = await resolveInviterUsername(
+      makeGuestContext(tx),
+    );
+    assert.equal(username, "theinviter");
+  });
+});
+
+test("Account.inviter is hidden from guests when the profile owner opts out", async () => {
+  await withRollback(async (tx) => {
+    const { invitee } = await seedInviterAndInvitee(tx);
+    await updateAccountData(tx, {
+      id: invitee.account.id,
+      hideFromInvitationTree: true,
+    });
+    const username = await resolveInviterUsername(
+      makeGuestContext(tx),
+    );
+    assert.equal(username, null);
+  });
+});
+
+test("Account.inviter is hidden from guests when the inviter opts out", async () => {
+  await withRollback(async (tx) => {
+    const { inviter } = await seedInviterAndInvitee(tx);
+    await updateAccountData(tx, {
+      id: inviter.account.id,
+      hideFromInvitationTree: true,
+    });
+    const username = await resolveInviterUsername(
+      makeGuestContext(tx),
+    );
+    assert.equal(username, null);
+  });
+});
+
+test("Account.inviter ignores the hide setting for the account itself", async () => {
+  await withRollback(async (tx) => {
+    const { invitee } = await seedInviterAndInvitee(tx);
+    await updateAccountData(tx, {
+      id: invitee.account.id,
+      hideFromInvitationTree: true,
+    });
+    const username = await resolveInviterUsername(
+      makeUserContext(tx, invitee.account),
+    );
+    assert.equal(username, "theinviter");
+  });
+});
+
+test("Account.inviter ignores the hide setting for the inviter", async () => {
+  await withRollback(async (tx) => {
+    const { inviter, invitee } = await seedInviterAndInvitee(tx);
+    await updateAccountData(tx, {
+      id: invitee.account.id,
+      hideFromInvitationTree: true,
+    });
+    const username = await resolveInviterUsername(
+      makeUserContext(tx, inviter.account),
+    );
+    assert.equal(username, "theinviter");
+  });
+});
+
+test("Account.inviter ignores the hide setting for moderators", async () => {
+  await withRollback(async (tx) => {
+    const { invitee } = await seedInviterAndInvitee(tx);
+    await updateAccountData(tx, {
+      id: invitee.account.id,
+      hideFromInvitationTree: true,
+    });
+    const moderator = await insertAccountWithActor(tx, {
+      username: "themoderator",
+      name: "The Moderator",
+      email: "themoderator@example.com",
+    });
+    const username = await resolveInviterUsername(
+      makeUserContext(tx, { ...moderator.account, moderator: true }),
+    );
+    assert.equal(username, "theinviter");
   });
 });
 

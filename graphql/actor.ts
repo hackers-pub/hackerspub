@@ -18,6 +18,7 @@ import {
   follow,
   getFollowedActorIds,
   getFollowerActorIds,
+  getMutualFollowerActorIds,
   removeFollower as removeFollowerModel,
   unfollow,
 } from "@hackerspub/models/following";
@@ -26,6 +27,7 @@ import { getPostVisibilityFilter } from "@hackerspub/models/post";
 import { type Actor as ActorRow, actorTable } from "@hackerspub/models/schema";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
+import { resolveOffsetConnection } from "@pothos/plugin-relay";
 import { assertNever } from "@std/assert/unstable-never";
 import { escape } from "@std/html/entities";
 import xss from "xss";
@@ -562,6 +564,44 @@ builder.drizzleObjectFields(Actor, (t) => ({
         }),
         accepted: t.expose("accepted", { type: "DateTime", nullable: true }),
         created: t.expose("created", { type: "DateTime" }),
+      }),
+    },
+  ),
+  mutualFollowers: t.connection(
+    {
+      type: Actor,
+      description:
+        'The "followers you know": actors the authenticated viewer follows ' +
+        "who also follow this actor (both follows accepted). Returns an empty " +
+        "connection for unauthenticated viewers and when this actor is the " +
+        "viewer themselves. Ordered by the profile-side follow, newest first. " +
+        'Use this for a "followed by people you know" hint on profiles; for ' +
+        "the complete follower list use `followers` instead.",
+      resolve: async (actor, args, ctx) => {
+        if (ctx.account?.actor == null || ctx.account.actor.id === actor.id) {
+          return resolveOffsetConnection({ args, totalCount: 0 }, () => []);
+        }
+        const ids = await getMutualFollowerActorIds(
+          ctx.db,
+          ctx.account.actor.id,
+          actor.id,
+        );
+        return resolveOffsetConnection(
+          { args, totalCount: ids.length },
+          async ({ offset, limit }) => {
+            const rows = await Promise.all(
+              ids.slice(offset, offset + limit).map((id) =>
+                getActorById(ctx, id)
+              ),
+            );
+            return rows.filter((row) => row != null);
+          },
+        );
+      },
+    },
+    {
+      fields: (t) => ({
+        totalCount: t.exposeInt("totalCount"),
       }),
     },
   ),

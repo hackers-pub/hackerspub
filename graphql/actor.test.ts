@@ -527,6 +527,17 @@ const viewerFollowsBatchQuery = parse(`
   }
 `);
 
+const mutualFollowersQuery = parse(`
+  query MutualFollowers($uuid: UUID!) {
+    actorByUuid(uuid: $uuid) {
+      mutualFollowers(first: 10) {
+        totalCount
+        edges { node { username } }
+      }
+    }
+  }
+`);
+
 const followRelationshipBatchQuery = parse(`
   query FollowRelationshipBatch($a: UUID!, $b: UUID!, $c: UUID!) {
     a: actorByUuid(uuid: $a) { id viewerFollows followsViewer }
@@ -606,6 +617,101 @@ Deno.test({
         c: {
           id: encodeGlobalID("Actor", stranger.actor.id),
           viewerFollows: false,
+        },
+      });
+    });
+  },
+});
+
+Deno.test({
+  name:
+    "Actor.mutualFollowers returns followers the viewer also follows, and is " +
+    "empty for guests and for the viewer's own profile",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const viewer = await insertAccountWithActor(tx, {
+        username: "mfviewer",
+        name: "MF Viewer",
+        email: "mfviewer@example.com",
+      });
+      const profile = await insertAccountWithActor(tx, {
+        username: "mfprofile",
+        name: "MF Profile",
+        email: "mfprofile@example.com",
+      });
+      const mutual = await insertAccountWithActor(tx, {
+        username: "mfmutual",
+        name: "MF Mutual",
+        email: "mfmutual@example.com",
+      });
+      const strangerFollower = await insertAccountWithActor(tx, {
+        username: "mfstrangerfollower",
+        name: "MF Stranger Follower",
+        email: "mfstrangerfollower@example.com",
+      });
+      const followeeOnly = await insertAccountWithActor(tx, {
+        username: "mffolloweeonly",
+        name: "MF Followee Only",
+        email: "mffolloweeonly@example.com",
+      });
+
+      const fedCtx = createFedCtx(tx);
+      // `mutual` is the only "follower you know": the viewer follows them and
+      // they follow the profile.
+      await follow(fedCtx, viewer.account, mutual.actor);
+      await follow(fedCtx, mutual.account, profile.actor);
+      // `strangerFollower` follows the profile but the viewer does not follow
+      // them, so they are excluded.
+      await follow(fedCtx, strangerFollower.account, profile.actor);
+      // The viewer follows `followeeOnly`, but they do not follow the profile,
+      // so they are excluded too.
+      await follow(fedCtx, viewer.account, followeeOnly.actor);
+
+      const viewerResult = await execute({
+        schema,
+        document: mutualFollowersQuery,
+        variableValues: { uuid: profile.actor.id },
+        contextValue: makeUserContext(tx, viewer.account),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(viewerResult.errors, undefined);
+      assertEquals(viewerResult.data, {
+        actorByUuid: {
+          mutualFollowers: {
+            totalCount: 1,
+            edges: [{ node: { username: "mfmutual" } }],
+          },
+        },
+      });
+
+      const guestResult = await execute({
+        schema,
+        document: mutualFollowersQuery,
+        variableValues: { uuid: profile.actor.id },
+        contextValue: makeGuestContext(tx),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(guestResult.errors, undefined);
+      assertEquals(guestResult.data, {
+        actorByUuid: {
+          mutualFollowers: { totalCount: 0, edges: [] },
+        },
+      });
+
+      // Viewing one's own profile yields no "followers you know".
+      const ownResult = await execute({
+        schema,
+        document: mutualFollowersQuery,
+        variableValues: { uuid: viewer.actor.id },
+        contextValue: makeUserContext(tx, viewer.account),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(ownResult.errors, undefined);
+      assertEquals(ownResult.data, {
+        actorByUuid: {
+          mutualFollowers: { totalCount: 0, edges: [] },
         },
       });
     });
