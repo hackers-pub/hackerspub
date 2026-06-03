@@ -2,6 +2,7 @@ import { assert } from "@std/assert/assert";
 import { assertEquals } from "@std/assert/equals";
 import { Follow } from "@fedify/vocab";
 import type { RequestContext } from "@fedify/fedify";
+import { eq } from "drizzle-orm";
 import {
   createFedCtx,
   insertRemoteActor,
@@ -92,7 +93,7 @@ Deno.test({
 });
 
 Deno.test({
-  name: "subscribeRelay is idempotent for an already-subscribed relay",
+  name: "subscribeRelay re-sends a pending Follow without duplicating the row",
   sanitizeOps: false,
   sanitizeResources: false,
   async fn() {
@@ -105,14 +106,29 @@ Deno.test({
         type: "Application",
       });
 
-      const { fedCtx } = withCapturingFedCtx(tx);
+      const { fedCtx, sent } = withCapturingFedCtx(tx);
       const first = await subscribeRelay(fedCtx, relay);
       assert(first != null);
-      const second = await subscribeRelay(fedCtx, relay);
-      assertEquals(second, undefined);
 
-      const rows = await tx.select().from(relaySubscriptionTable);
+      // Re-subscribing while still pending re-sends the same Follow and returns
+      // the existing subscription instead of leaving it stuck pending.
+      const second = await subscribeRelay(fedCtx, relay);
+      assert(second != null);
+      assertEquals(second.id, first.id);
+      assertEquals(second.followIri, first.followIri);
+      assertEquals(sent.length, 2);
+
+      const rows = await tx.select().from(relaySubscriptionTable).where(
+        eq(relaySubscriptionTable.actorId, relay.id),
+      );
       assertEquals(rows.length, 1);
+
+      // Once the relay has accepted, re-subscribing is a no-op: no extra row
+      // and no extra Follow.
+      await markRelaySubscriptionAccepted(tx, first.followIri, relay.iri);
+      const third = await subscribeRelay(fedCtx, relay);
+      assertEquals(third, undefined);
+      assertEquals(sent.length, 2);
     });
   },
 });
@@ -152,7 +168,12 @@ Deno.test({
         created: new Date("2026-02-01T00:00:00Z"),
       });
 
-      const subscriptions = await getRelaySubscriptions(tx);
+      // Filter to this test's own relays so the assertion is independent of
+      // any other relay subscriptions already in the database; the relative
+      // order (newest first) is preserved by the filter.
+      const subscriptions = (await getRelaySubscriptions(tx)).filter(
+        (s) => s.actor.iri === newer.iri || s.actor.iri === older.iri,
+      );
       assertEquals(subscriptions.length, 2);
       assertEquals(subscriptions[0].actor.iri, newer.iri);
       assertEquals(subscriptions[1].actor.iri, older.iri);

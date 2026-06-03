@@ -70,9 +70,11 @@ export function getRelaySubscription(
 /**
  * Subscribes the instance actor to a relay by sending it a `Follow` whose
  * `object` is the relay actor itself (the LitePub/Pleroma relay convention),
- * and records a pending subscription row.  Returns `undefined` (and sends
- * nothing) when the relay is already subscribed, so callers can treat the
- * operation as idempotent.
+ * and records a pending subscription row.  When the relay is already
+ * subscribed: a still-pending subscription re-sends the stored `Follow` (so a
+ * `Follow` that never reached the relay can be retried) and returns the
+ * existing row, while an already-accepted subscription is a no-op that returns
+ * `undefined`.
  */
 export async function subscribeRelay(
   fedCtx: Context<ContextData>,
@@ -87,18 +89,29 @@ export async function subscribeRelay(
     followIri: followIri.href,
   }).onConflictDoNothing({ target: relaySubscriptionTable.actorId })
     .returning();
-  if (rows.length < 1) return undefined;
+  let subscription = rows[0];
+  if (subscription == null) {
+    // Already subscribed.  Re-send the `Follow` only while the relay has not
+    // yet accepted, so a subscription whose `Follow` never reached the relay
+    // (e.g. the send failed) can be retried instead of staying pending
+    // forever.  An already-accepted relay is a no-op.
+    const existing = await db.query.relaySubscriptionTable.findFirst({
+      where: { actorId: relayActor.id },
+    });
+    if (existing == null || existing.accepted != null) return undefined;
+    subscription = existing;
+  }
   const identifier = getInstanceActorIdentifier(fedCtx);
   await fedCtx.sendActivity(
     { identifier },
     toRecipient(relayActor),
     new Follow({
-      id: followIri,
+      id: new URL(subscription.followIri),
       actor: fedCtx.getActorUri(identifier),
       object: new URL(relayActor.iri),
     }),
     {
-      orderingKey: followIri.href,
+      orderingKey: subscription.followIri,
       excludeBaseUris: [
         new URL(fedCtx.canonicalOrigin),
         new URL(fedCtx.origin),
@@ -106,7 +119,7 @@ export async function subscribeRelay(
       preferSharedInbox: false,
     },
   );
-  return rows[0];
+  return subscription;
 }
 
 /**
