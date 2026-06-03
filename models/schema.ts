@@ -499,6 +499,26 @@ export const mutingTable = pgTable(
 export type Muting = typeof mutingTable.$inferSelect;
 export type NewMuting = typeof mutingTable.$inferInsert;
 
+export const relaySubscriptionTable = pgTable(
+  "relay_subscription",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    actorId: uuid("actor_id")
+      .$type<Uuid>()
+      .notNull()
+      .unique()
+      .references(() => actorTable.id, { onDelete: "cascade" }),
+    followIri: text("follow_iri").notNull().unique(),
+    accepted: timestamp({ withTimezone: true }),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+);
+
+export type RelaySubscription = typeof relaySubscriptionTable.$inferSelect;
+export type NewRelaySubscription = typeof relaySubscriptionTable.$inferInsert;
+
 export const instanceTable = pgTable(
   "instance",
   {
