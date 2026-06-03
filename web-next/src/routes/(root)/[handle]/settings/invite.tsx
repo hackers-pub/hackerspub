@@ -27,6 +27,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card.tsx";
+import { Checkbox } from "~/components/ui/checkbox.tsx";
 import { Label } from "~/components/ui/label.tsx";
 import {
   TextField,
@@ -40,6 +41,7 @@ import { showToast } from "~/components/ui/toast.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import type { inviteCreateLinkMutation } from "./__generated__/inviteCreateLinkMutation.graphql.ts";
 import type { inviteDeleteLinkMutation } from "./__generated__/inviteDeleteLinkMutation.graphql.ts";
+import type { inviteHideFromTreeMutation } from "./__generated__/inviteHideFromTreeMutation.graphql.ts";
 import type { inviteInviteeList_invitees$key } from "./__generated__/inviteInviteeList_invitees.graphql.ts";
 import type {
   InviteEmailError,
@@ -67,6 +69,7 @@ const invitePageQuery = graphql`
       id
       username
       invitationsLeft
+      hideFromInvitationTree
       inviteesCount: invitees {
         totalCount
       }
@@ -126,6 +129,17 @@ const inviteMutation = graphql`
           handle
           username
         }
+      }
+    }
+  }
+`;
+
+const hideFromInvitationTreeMutation = graphql`
+  mutation inviteHideFromTreeMutation($id: ID!, $hide: Boolean!) {
+    updateAccount(input: { id: $id, hideFromInvitationTree: $hide }) {
+      account {
+        id
+        hideFromInvitationTree
       }
     }
   }
@@ -429,6 +443,10 @@ export default function InvitePage() {
                     username={account.username}
                     invitationLinks={account.invitationLinks}
                     invitationsLeft={account.invitationsLeft}
+                  />
+                  <InvitationTreeCard
+                    accountId={account.id}
+                    hidden={account.hideFromInvitationTree}
                   />
                   <Show when={account.inviteesCount.totalCount > 0}>
                     <Card class="mt-4">
@@ -835,6 +853,79 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
               : t`Create invitation link`}
           </Button>
         </form>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface InvitationTreeCardProps {
+  readonly accountId: string;
+  readonly hidden: boolean;
+}
+
+function InvitationTreeCard(props: InvitationTreeCardProps) {
+  const { t } = useLingui();
+  const [hidden, setHidden] = createSignal(props.hidden);
+  const [save] = createMutation<inviteHideFromTreeMutation>(
+    hideFromInvitationTreeMutation,
+  );
+  const [saving, setSaving] = createSignal(false);
+
+  function onChange(value: boolean) {
+    // Reflect the change immediately, then persist; revert if the save fails.
+    setHidden(value);
+    setSaving(true);
+    save({
+      variables: { id: props.accountId, hide: value },
+      onCompleted() {
+        setSaving(false);
+        showToast({
+          title: t`Settings saved`,
+          description: value
+            ? t`You are now hidden from the invitation tree.`
+            : t`You are now shown in the invitation tree.`,
+        });
+      },
+      onError(error) {
+        console.error(error);
+        setSaving(false);
+        setHidden(!value);
+        showToast({
+          variant: "error",
+          title: t`Failed to save settings`,
+          description:
+            t`An unexpected error occurred. Please try again later.` +
+            (import.meta.env.DEV ? `\n\n${error.message}` : ""),
+        });
+      },
+    });
+  }
+
+  return (
+    <Card class="mt-4">
+      <CardHeader>
+        <CardTitle>{t`Invitation tree`}</CardTitle>
+        <CardDescription>
+          {t`Control how you appear in the public invitation tree that shows who invited whom.`}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div class="flex items-start space-x-2">
+          <Checkbox
+            id="hide-from-invitation-tree"
+            checked={hidden()}
+            disabled={saving()}
+            onChange={onChange}
+          />
+          <div class="grid gap-1.5 leading-none">
+            <Label for="hide-from-invitation-tree">
+              {t`Hide me from the invitation tree`}
+            </Label>
+            <p class="text-sm text-muted-foreground">
+              {t`When enabled, your account appears anonymously in the invitation tree, and the invitation relationships involving you are hidden on profiles.`}
+            </p>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

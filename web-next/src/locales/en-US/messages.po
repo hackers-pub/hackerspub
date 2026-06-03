@@ -32,20 +32,20 @@ msgstr "{0, plural, one {# eligible account} other {# eligible accounts}}; {1, p
 #. placeholder {0}: a.followersCount.totalCount
 #. placeholder {0}: actor.followersCount?.totalCount ?? 0
 #: src/components/ActorPreviewCard.tsx:63
-#: src/components/ProfileCard.tsx:278
+#: src/components/ProfileCard.tsx:281
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, one {# follower} other {# followers}}"
 
 #. placeholder {0}: a.followeesCount.totalCount
 #. placeholder {0}: actor.followeesCount?.totalCount ?? 0
 #: src/components/ActorPreviewCard.tsx:54
-#: src/components/ProfileCard.tsx:265
+#: src/components/ProfileCard.tsx:268
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, one {# following} other {# following}}"
 
 #. placeholder {0}: link.invitationsLeft
 #: src/routes/(root)/[handle]/invite/[id].tsx:326
-#: src/routes/(root)/[handle]/settings/invite.tsx:743
+#: src/routes/(root)/[handle]/settings/invite.tsx:761
 msgid "{0, plural, one {# invitation left} other {# invitations left}}"
 msgstr "{0, plural, one {# invitation left} other {# invitations left}}"
 
@@ -92,12 +92,12 @@ msgid "{0, plural, one {Deleted # orphan medium.} other {Deleted # orphan media.
 msgstr "{0, plural, one {Deleted # orphan medium.} other {Deleted # orphan media.}}"
 
 #. placeholder {0}: actor.mutualFollowers?.totalCount ?? 0
-#: src/components/ProfileCard.tsx:318
+#: src/components/ProfileCard.tsx:322
 msgid "{0, plural, one {Followed by # person you follow} other {Followed by # people you follow}}"
 msgstr "{0, plural, one {Followed by # person you follow} other {Followed by # people you follow}}"
 
 #. placeholder {0}: account.invitationsLeft
-#: src/routes/(root)/[handle]/settings/invite.tsx:312
+#: src/routes/(root)/[handle]/settings/invite.tsx:326
 msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up to # person.} other {Invite your friends to Hackers' Pub. You can invite up to # people.}}"
 msgstr "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up to # person.} other {Invite your friends to Hackers' Pub. You can invite up to # people.}}"
 
@@ -117,7 +117,7 @@ msgid "{0, plural, one {Regenerated invitations for # account.} other {Regenerat
 msgstr "{0, plural, one {Regenerated invitations for # account.} other {Regenerated invitations for # accounts.}}"
 
 #. placeholder {0}: account.inviteesCount.totalCount
-#: src/routes/(root)/[handle]/settings/invite.tsx:439
+#: src/routes/(root)/[handle]/settings/invite.tsx:457
 msgid "{0, plural, one {You have invited total # person so far.} other {You have invited total # people so far.}}"
 msgstr "{0, plural, one {You have invited total # person so far.} other {You have invited total # people so far.}}"
 
@@ -203,7 +203,7 @@ msgid "{0} from the fediverse"
 msgstr "{0} from the fediverse"
 
 #. placeholder {0}: "USER"
-#: src/routes/(root)/[handle]/settings/invite.tsx:362
+#: src/routes/(root)/[handle]/settings/invite.tsx:376
 msgid "{0} is already a member of Hackers' Pub."
 msgstr "{0} is already a member of Hackers' Pub."
 
@@ -418,9 +418,10 @@ msgid "An error occurred while saving your settings. Please try again, or contac
 msgstr "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:203
-#: src/routes/(root)/[handle]/settings/invite.tsx:271
-#: src/routes/(root)/[handle]/settings/invite.tsx:552
-#: src/routes/(root)/[handle]/settings/invite.tsx:602
+#: src/routes/(root)/[handle]/settings/invite.tsx:285
+#: src/routes/(root)/[handle]/settings/invite.tsx:570
+#: src/routes/(root)/[handle]/settings/invite.tsx:620
+#: src/routes/(root)/[handle]/settings/invite.tsx:897
 msgid "An unexpected error occurred. Please try again later."
 msgstr "An unexpected error occurred. Please try again later."
 
@@ -619,7 +620,7 @@ msgstr "Check your email to complete sign-up. We've sent a verification link to 
 msgid "Checking…"
 msgstr "Checking…"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:387
+#: src/routes/(root)/[handle]/settings/invite.tsx:401
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "Choose the language your friend prefers. This language will only be used for the invitation."
 
@@ -645,7 +646,7 @@ msgid "Clicking a notification opens your notifications page."
 msgstr "Clicking a notification opens your notifications page."
 
 #: src/components/ImageLightbox.tsx:74
-#: src/routes/(root)/[handle]/settings/invite.tsx:664
+#: src/routes/(root)/[handle]/settings/invite.tsx:682
 msgid "Close"
 msgstr "Close"
 
@@ -686,19 +687,23 @@ msgstr "Content cannot be empty"
 msgid "Continue in browser"
 msgstr "Continue in browser"
 
+#: src/routes/(root)/[handle]/settings/invite.tsx:909
+msgid "Control how you appear in the public invitation tree that shows who invited whom."
+msgstr "Control how you appear in the public invitation tree that shows who invited whom."
+
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:73
 msgid "Controls who can quote this article on their timeline."
 msgstr "Controls who can quote this article on their timeline."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:612
+#: src/routes/(root)/[handle]/settings/invite.tsx:630
 msgid "Copied"
 msgstr "Copied"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:706
+#: src/routes/(root)/[handle]/settings/invite.tsx:724
 msgid "Copy"
 msgstr "Copy"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:619
+#: src/routes/(root)/[handle]/settings/invite.tsx:637
 msgid "Could not copy the link to the clipboard."
 msgstr "Could not copy the link to the clipboard."
 
@@ -723,7 +728,7 @@ msgstr "Could not vote on this poll"
 msgid "Create article"
 msgstr "Create article"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:835
+#: src/routes/(root)/[handle]/settings/invite.tsx:853
 msgid "Create invitation link"
 msgstr "Create invitation link"
 
@@ -734,7 +739,7 @@ msgstr "Create invitation link"
 msgid "Create note"
 msgstr "Create note"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:629
+#: src/routes/(root)/[handle]/settings/invite.tsx:647
 msgid "Create shareable invitation links. Each link can be used multiple times until the invitation count runs out or the link expires."
 msgstr "Create shareable invitation links. Each link can be used multiple times until the invitation count runs out or the link expires."
 
@@ -752,7 +757,7 @@ msgid "Creating account…"
 msgstr "Creating account…"
 
 #: src/components/NoteComposer.tsx:1436
-#: src/routes/(root)/[handle]/settings/invite.tsx:834
+#: src/routes/(root)/[handle]/settings/invite.tsx:852
 msgid "Creating…"
 msgstr "Creating…"
 
@@ -789,7 +794,7 @@ msgstr "Default share privacy"
 #: src/components/PostActionMenu.tsx:353
 #: src/components/PostActionMenu.tsx:373
 #: src/routes/(root)/[handle]/drafts/index.tsx:322
-#: src/routes/(root)/[handle]/settings/invite.tsx:724
+#: src/routes/(root)/[handle]/settings/invite.tsx:742
 msgid "Delete"
 msgstr "Delete"
 
@@ -807,7 +812,7 @@ msgid "Delete post?"
 msgstr "Delete post?"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:21
-#: src/routes/(root)/[handle]/settings/invite.tsx:724
+#: src/routes/(root)/[handle]/settings/invite.tsx:742
 #: src/routes/(root)/admin/media.tsx:187
 msgid "Deleting…"
 msgstr "Deleting…"
@@ -906,7 +911,7 @@ msgid "Edit note"
 msgstr "Edit note"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:371
-#: src/routes/(root)/[handle]/settings/invite.tsx:335
+#: src/routes/(root)/[handle]/settings/invite.tsx:349
 #: src/routes/(root)/sign/up/[token].tsx:311
 msgid "Email address"
 msgstr "Email address"
@@ -999,16 +1004,16 @@ msgstr "Exclusion pattern removed."
 
 #. placeholder {0}: "DATE"
 #: src/routes/(root)/[handle]/invite/[id].tsx:339
-#: src/routes/(root)/[handle]/settings/invite.tsx:760
+#: src/routes/(root)/[handle]/settings/invite.tsx:778
 msgid "Expires {0}"
 msgstr "Expires {0}"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:807
+#: src/routes/(root)/[handle]/settings/invite.tsx:825
 msgid "Expiry"
 msgstr "Expiry"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:392
-#: src/routes/(root)/[handle]/settings/invite.tsx:797
+#: src/routes/(root)/[handle]/settings/invite.tsx:406
+#: src/routes/(root)/[handle]/settings/invite.tsx:815
 msgid "Extra message"
 msgstr "Extra message"
 
@@ -1035,17 +1040,17 @@ msgstr "Failed to bookmark"
 msgid "Failed to clear penalty."
 msgstr "Failed to clear penalty."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:618
+#: src/routes/(root)/[handle]/settings/invite.tsx:636
 msgid "Failed to copy"
 msgstr "Failed to copy"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:540
-#: src/routes/(root)/[handle]/settings/invite.tsx:550
+#: src/routes/(root)/[handle]/settings/invite.tsx:558
+#: src/routes/(root)/[handle]/settings/invite.tsx:568
 msgid "Failed to create invitation link"
 msgstr "Failed to create invitation link"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:589
-#: src/routes/(root)/[handle]/settings/invite.tsx:600
+#: src/routes/(root)/[handle]/settings/invite.tsx:607
+#: src/routes/(root)/[handle]/settings/invite.tsx:618
 msgid "Failed to delete invitation link"
 msgstr "Failed to delete invitation link"
 
@@ -1107,7 +1112,7 @@ msgstr "Failed to load more followers; click to retry"
 msgid "Failed to load more following; click to retry"
 msgstr "Failed to load more following; click to retry"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:948
+#: src/routes/(root)/[handle]/settings/invite.tsx:1039
 msgid "Failed to load more invitees; click to retry"
 msgstr "Failed to load more invitees; click to retry"
 
@@ -1236,6 +1241,7 @@ msgstr "Failed to save preferences"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:294
 #: src/routes/(root)/[handle]/settings/index.tsx:336
+#: src/routes/(root)/[handle]/settings/invite.tsx:895
 msgid "Failed to save settings"
 msgstr "Failed to save settings"
 
@@ -1243,8 +1249,8 @@ msgstr "Failed to save settings"
 msgid "Failed to send email"
 msgstr "Failed to send email"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:249
-#: src/routes/(root)/[handle]/settings/invite.tsx:269
+#: src/routes/(root)/[handle]/settings/invite.tsx:263
+#: src/routes/(root)/[handle]/settings/invite.tsx:283
 msgid "Failed to send invitation"
 msgstr "Failed to send invitation"
 
@@ -1365,7 +1371,7 @@ msgid "Following"
 msgstr "Following"
 
 #: src/components/ActorPreviewCard.tsx:149
-#: src/components/ProfileCard.tsx:288
+#: src/components/ProfileCard.tsx:291
 msgid "Following you"
 msgstr "Following you"
 
@@ -1483,6 +1489,10 @@ msgstr "Hide"
 msgid "Hide links matching a URL pattern from the news feed list (every sort order). Their discussion pages stay reachable by direct link. Patterns use the URLPattern syntax, e.g. https://example.com/* or https://*.example.com/*."
 msgstr "Hide links matching a URL pattern from the news feed list (every sort order). Their discussion pages stay reachable by direct link. Patterns use the URLPattern syntax, e.g. https://example.com/* or https://*.example.com/*."
 
+#: src/routes/(root)/[handle]/settings/invite.tsx:922
+msgid "Hide me from the invitation tree"
+msgstr "Hide me from the invitation tree"
+
 #: src/components/article-composer/ArticleComposerForm.tsx:73
 #~ msgid "Hide preview"
 #~ msgstr "Hide preview"
@@ -1549,25 +1559,29 @@ msgstr "Invalid input: {inputPath}"
 msgid "Invitation from {0}"
 msgstr "Invitation from {0}"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:380
+#: src/routes/(root)/[handle]/settings/invite.tsx:394
 msgid "Invitation language"
 msgstr "Invitation language"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:532
+#: src/routes/(root)/[handle]/settings/invite.tsx:550
 msgid "Invitation link created"
 msgstr "Invitation link created"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:583
+#: src/routes/(root)/[handle]/settings/invite.tsx:601
 msgid "Invitation link deleted"
 msgstr "Invitation link deleted"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:627
+#: src/routes/(root)/[handle]/settings/invite.tsx:645
 msgid "Invitation links"
 msgstr "Invitation links"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:259
+#: src/routes/(root)/[handle]/settings/invite.tsx:273
 msgid "Invitation sent"
 msgstr "Invitation sent"
+
+#: src/routes/(root)/[handle]/settings/invite.tsx:907
+msgid "Invitation tree"
+msgstr "Invitation tree"
 
 #: src/components/AppSidebar.tsx:796
 #: src/routes/(root)/admin/invitations.tsx:148
@@ -1580,11 +1594,11 @@ msgstr "Invitations left"
 
 #: src/components/AppSidebar.tsx:665
 #: src/components/SettingsTabs.tsx:69
-#: src/routes/(root)/[handle]/settings/invite.tsx:296
+#: src/routes/(root)/[handle]/settings/invite.tsx:310
 msgid "Invite"
 msgstr "Invite"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:305
+#: src/routes/(root)/[handle]/settings/invite.tsx:319
 msgid "Invite a friend"
 msgstr "Invite a friend"
 
@@ -1597,7 +1611,7 @@ msgid "Invited by"
 msgstr "Invited by"
 
 #. placeholder {0}: "INVITER"
-#: src/components/ProfileCard.tsx:352
+#: src/components/ProfileCard.tsx:357
 msgid "Invited by {0}"
 msgstr "Invited by {0}"
 
@@ -1614,12 +1628,12 @@ msgid "Join the discussion about this story."
 msgstr "Join the discussion about this story."
 
 #. placeholder {0}: new Date(created).toLocaleDateString(i18n.locale, { year: "numeric", month: "long", })
-#: src/components/ProfileCard.tsx:387
+#: src/components/ProfileCard.tsx:392
 msgid "Joined {0}"
 msgstr "Joined {0}"
 
 #. placeholder {0}: "DATE"
-#: src/routes/(root)/[handle]/settings/invite.tsx:922
+#: src/routes/(root)/[handle]/settings/invite.tsx:1013
 msgid "Joined on {0}"
 msgstr "Joined on {0}"
 
@@ -1725,7 +1739,7 @@ msgstr "Load more followers"
 msgid "Load more following"
 msgstr "Load more following"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:951
+#: src/routes/(root)/[handle]/settings/invite.tsx:1042
 msgid "Load more invitees"
 msgstr "Load more invitees"
 
@@ -1797,7 +1811,7 @@ msgstr "Loading more followers…"
 msgid "Loading more following…"
 msgstr "Loading more following…"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:945
+#: src/routes/(root)/[handle]/settings/invite.tsx:1036
 msgid "Loading more invitees…"
 msgstr "Loading more invitees…"
 
@@ -1976,8 +1990,8 @@ msgstr "never"
 msgid "Never"
 msgstr "Never"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:756
-#: src/routes/(root)/[handle]/settings/invite.tsx:822
+#: src/routes/(root)/[handle]/settings/invite.tsx:774
+#: src/routes/(root)/[handle]/settings/invite.tsx:840
 msgid "Never expires"
 msgstr "Never expires"
 
@@ -2044,8 +2058,8 @@ msgid "No following found"
 msgstr "No following found"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:270
-#: src/routes/(root)/[handle]/settings/invite.tsx:411
-#: src/routes/(root)/[handle]/settings/invite.tsx:832
+#: src/routes/(root)/[handle]/settings/invite.tsx:425
+#: src/routes/(root)/[handle]/settings/invite.tsx:850
 msgid "No invitations left"
 msgstr "No invitations left"
 
@@ -2195,7 +2209,7 @@ msgstr "Notifications are blocked for this site."
 msgid "Notifications are blocked in your browser settings."
 msgstr "Notifications are blocked in your browser settings."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:783
+#: src/routes/(root)/[handle]/settings/invite.tsx:801
 msgid "Number of invitations"
 msgstr "Number of invitations"
 
@@ -2280,8 +2294,8 @@ msgstr "Pinned posts"
 msgid "Please choose an image file smaller than 5 MiB."
 msgstr "Please choose an image file smaller than 5 MiB."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:250
-#: src/routes/(root)/[handle]/settings/invite.tsx:541
+#: src/routes/(root)/[handle]/settings/invite.tsx:264
+#: src/routes/(root)/[handle]/settings/invite.tsx:559
 msgid "Please correct the errors and try again."
 msgstr "Please correct the errors and try again."
 
@@ -2405,8 +2419,8 @@ msgstr "Publishing…"
 msgid "Push notification privacy updated"
 msgstr "Push notification privacy updated"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:648
-#: src/routes/(root)/[handle]/settings/invite.tsx:714
+#: src/routes/(root)/[handle]/settings/invite.tsx:666
+#: src/routes/(root)/[handle]/settings/invite.tsx:732
 msgid "QR code"
 msgstr "QR code"
 
@@ -2691,12 +2705,12 @@ msgstr "Select options"
 msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."
 msgstr "Select your preferred languages in order of preference. This will help tailor content to your preferences."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:414
+#: src/routes/(root)/[handle]/settings/invite.tsx:428
 msgid "Send"
 msgstr "Send"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:409
-#: src/routes/(root)/[handle]/settings/invite.tsx:413
+#: src/routes/(root)/[handle]/settings/invite.tsx:427
 msgid "Sending…"
 msgstr "Sending…"
 
@@ -2715,6 +2729,10 @@ msgstr "Set your personal preferences."
 #: src/components/AppSidebar.tsx:697
 msgid "Settings"
 msgstr "Settings"
+
+#: src/routes/(root)/[handle]/settings/invite.tsx:883
+msgid "Settings saved"
+msgstr "Settings saved"
 
 #: src/components/PostEngagementBar.tsx:385
 msgid "Share"
@@ -2903,11 +2921,11 @@ msgid "The default quote permission for your notes."
 msgstr "The default quote permission for your notes."
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:174
-#: src/routes/(root)/[handle]/settings/invite.tsx:353
+#: src/routes/(root)/[handle]/settings/invite.tsx:367
 msgid "The email address is invalid."
 msgstr "The email address is invalid."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:348
+#: src/routes/(root)/[handle]/settings/invite.tsx:362
 msgid "The email address is not only used for receiving the invitation, but also for signing in to the account."
 msgstr "The email address is not only used for receiving the invitation, but also for signing in to the account."
 
@@ -2919,23 +2937,23 @@ msgstr "The following passkeys are registered to your account. You can use them 
 msgid "The invitation email could not be sent. Please try again later."
 msgstr "The invitation email could not be sent. Please try again later."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:260
+#: src/routes/(root)/[handle]/settings/invite.tsx:274
 msgid "The invitation has been sent successfully."
 msgstr "The invitation has been sent successfully."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:591
+#: src/routes/(root)/[handle]/settings/invite.tsx:609
 msgid "The invitation link could not be found or you are not authorized to delete it."
 msgstr "The invitation link could not be found or you are not authorized to delete it."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:613
+#: src/routes/(root)/[handle]/settings/invite.tsx:631
 msgid "The invitation link has been copied to the clipboard."
 msgstr "The invitation link has been copied to the clipboard."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:533
+#: src/routes/(root)/[handle]/settings/invite.tsx:551
 msgid "The invitation link has been created successfully."
 msgstr "The invitation link has been created successfully."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:584
+#: src/routes/(root)/[handle]/settings/invite.tsx:602
 msgid "The invitation link has been deleted successfully."
 msgstr "The invitation link has been deleted successfully."
 
@@ -3231,13 +3249,13 @@ msgstr "Username is required."
 msgid "Username is too long. Maximum length is 15 characters."
 msgstr "Username is too long. Maximum length is 15 characters."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:436
+#: src/routes/(root)/[handle]/settings/invite.tsx:454
 msgid "Users you have invited"
 msgstr "Users you have invited"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:237
+#: src/components/ProfileCard.tsx:240
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "Verified that this link is owned by {0} {1}"
 
@@ -3345,6 +3363,10 @@ msgstr "What's on your mind?"
 msgid "When enabled, AI may automatically translate this article into other languages."
 msgstr "When enabled, AI may automatically translate this article into other languages."
 
+#: src/routes/(root)/[handle]/settings/invite.tsx:925
+msgid "When enabled, your account appears anonymously in the invitation tree, and the invitation relationships involving you are hidden on profiles."
+msgstr "When enabled, your account appears anonymously in the invitation tree, and the invitation relationships involving you are hidden on profiles."
+
 #: src/routes/(root)/[handle]/[noteId]/edit.tsx:304
 #~ msgid "Who can quote this note"
 #~ msgstr "Who can quote this note"
@@ -3384,13 +3406,21 @@ msgstr "Write your article here. You can use Markdown. Your article will be auto
 msgid "You are about to follow {0}."
 msgstr "You are about to follow {0}."
 
-#: src/components/ProfileCard.tsx:157
+#: src/components/ProfileCard.tsx:160
 msgid "You are blocked by this user. You can't follow them or see their posts."
 msgstr "You are blocked by this user. You can't follow them or see their posts."
 
-#: src/components/ProfileCard.tsx:150
+#: src/components/ProfileCard.tsx:153
 msgid "You are blocking this user. They can't follow you or see your posts."
 msgstr "You are blocking this user. They can't follow you or see your posts."
+
+#: src/routes/(root)/[handle]/settings/invite.tsx:885
+msgid "You are now hidden from the invitation tree."
+msgstr "You are now hidden from the invitation tree."
+
+#: src/routes/(root)/[handle]/settings/invite.tsx:886
+msgid "You are now shown in the invitation tree."
+msgstr "You are now shown in the invitation tree."
 
 #: src/components/NoteComposer.tsx:622
 msgid "You can attach up to {MAX_MEDIA} images"
@@ -3404,8 +3434,8 @@ msgstr "You can change it only once, and the old username will become available 
 msgid "You can leave this empty to remove the link."
 msgstr "You can leave this empty to remove the link."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:398
-#: src/routes/(root)/[handle]/settings/invite.tsx:803
+#: src/routes/(root)/[handle]/settings/invite.tsx:412
+#: src/routes/(root)/[handle]/settings/invite.tsx:821
 msgid "You can leave this field empty."
 msgstr "You can leave this field empty."
 
@@ -3429,8 +3459,8 @@ msgstr "You can only view your own drafts"
 msgid "You don't have any passkeys registered yet."
 msgstr "You don't have any passkeys registered yet."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:310
-#: src/routes/(root)/[handle]/settings/invite.tsx:421
+#: src/routes/(root)/[handle]/settings/invite.tsx:324
+#: src/routes/(root)/[handle]/settings/invite.tsx:435
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "You have no invitations left. Please wait until you receive more."
 
@@ -3507,7 +3537,7 @@ msgstr "Your connection looks unstable. Check your network and try again."
 msgid "Your email address will be used to sign in to your account."
 msgstr "Your email address will be used to sign in to your account."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:401
+#: src/routes/(root)/[handle]/settings/invite.tsx:415
 msgid "Your friend will see this message in the invitation email."
 msgstr "Your friend will see this message in the invitation email."
 
