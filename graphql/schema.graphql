@@ -45,6 +45,11 @@ type Account implements Node {
   Full fediverse handle including the instance host, e.g., @alice@hackers.pub. Suitable for display and for cross-instance @-mention targeting.
   """
   handle: String!
+
+  """
+  Whether this account has opted out of the public invitation tree. When `true`, the account appears anonymously in the invitation tree and its invitation relationships are hidden on profiles (see `Account.inviter`). Only visible to the account holder and moderators; change it with the `hideFromInvitationTree` input of the `updateAccount` mutation.
+  """
+  hideFromInvitationTree: Boolean!
   id: ID!
 
   """

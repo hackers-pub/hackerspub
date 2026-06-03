@@ -220,6 +220,19 @@ export const Account = builder.drizzleNode("accountTable", {
         "Whether to show LLM-generated article summaries by default. " +
         "Only visible to the account holder and moderators.",
     }),
+    hideFromInvitationTree: t.exposeBoolean("hideFromInvitationTree", {
+      authScopes: (parent) => ({
+        moderator: true,
+        selfAccount: parent.id,
+      }),
+      description:
+        "Whether this account has opted out of the public invitation tree. " +
+        "When `true`, the account appears anonymously in the invitation tree " +
+        "and its invitation relationships are hidden on profiles (see " +
+        "`Account.inviter`). Only visible to the account holder and " +
+        "moderators; change it with the `hideFromInvitationTree` input of " +
+        "the `updateAccount` mutation.",
+    }),
     defaultNoteVisibility: t.field({
       type: PostVisibility,
       description:

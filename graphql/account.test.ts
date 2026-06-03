@@ -83,6 +83,14 @@ const accountInviterQuery = parse(`
   }
 `);
 
+const accountHideFromTreeQuery = parse(`
+  query AccountHideFromTree($username: String!) {
+    accountByUsername(username: $username) {
+      hideFromInvitationTree
+    }
+  }
+`);
+
 const updateAccountMutation = parse(`
   mutation UpdateAccount($input: UpdateAccountInput!) {
     updateAccount(input: $input) {
@@ -464,6 +472,48 @@ test("Account.inviter ignores the hide setting for moderators", async () => {
       makeUserContext(tx, { ...moderator.account, moderator: true }),
     );
     assert.equal(username, "theinviter");
+  });
+});
+
+test("Account.hideFromInvitationTree is readable by the holder but gated for others", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "hidetreeowner",
+      name: "Hide Tree Owner",
+      email: "hidetreeowner@example.com",
+    });
+    await updateAccountData(tx, {
+      id: account.account.id,
+      hideFromInvitationTree: true,
+    });
+
+    const ownerResult = await execute({
+      schema,
+      document: accountHideFromTreeQuery,
+      variableValues: { username: "hidetreeowner" },
+      contextValue: makeUserContext(tx, account.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(ownerResult.errors, undefined);
+    assert.deepEqual(toPlainJson(ownerResult.data), {
+      accountByUsername: { hideFromInvitationTree: true },
+    });
+
+    // A guest is not the account holder or a moderator, so the field is gated.
+    const guestResult = await execute({
+      schema,
+      document: accountHideFromTreeQuery,
+      variableValues: { username: "hidetreeowner" },
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+    assert.notEqual(guestResult.errors, undefined);
+    assert.equal(
+      (guestResult.data as {
+        accountByUsername: { hideFromInvitationTree: boolean | null } | null;
+      }).accountByUsername?.hideFromInvitationTree ?? null,
+      null,
+    );
   });
 });
 
