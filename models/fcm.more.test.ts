@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import process from "node:process";
 import test from "node:test";
 import { and, eq } from "drizzle-orm";
+import type { Database } from "./db.ts";
 import { resetFcmStateForTesting, sendFcmNotification } from "./fcm.ts";
 import { pushNotificationTargetTable } from "./schema.ts";
 import { generateUuidV7 } from "./uuid.ts";
@@ -184,6 +185,64 @@ test("sendFcmNotification dispatches per-token requests concurrently and prunes 
         );
       }
     });
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalKey === undefined) {
+      delete process.env.GOOGLE_SERVICES_JSON_BASE64;
+    } else {
+      process.env.GOOGLE_SERVICES_JSON_BASE64 = originalKey;
+    }
+    resetFcmStateForTesting();
+  }
+});
+
+test("sendFcmNotification is a no-op when GOOGLE_SERVICES_JSON_BASE64 lacks a private key", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalKey = process.env.GOOGLE_SERVICES_JSON_BASE64;
+
+  // An Android `google-services.json` client config: it parses as valid JSON
+  // but has no `private_key`/`client_email`. Feeding it to the env var is the
+  // misconfiguration that caused `TypeError: Cannot read properties of
+  // undefined (reading 'replace')` (Sentry GRAPHQL-1E). It must now be
+  // rejected without throwing and without any network or database access.
+  const googleServicesJson = JSON.stringify({
+    project_info: {
+      project_number: "123456789000",
+      project_id: "test-project",
+      storage_bucket: "test-project.appspot.com",
+    },
+    client: [
+      {
+        client_info: { mobilesdk_app_id: "1:123456789000:android:abcdef" },
+        api_key: [{ current_key: "AIzaTESTKEY" }],
+      },
+    ],
+    configuration_version: "1",
+  });
+  process.env.GOOGLE_SERVICES_JSON_BASE64 = btoa(googleServicesJson);
+  resetFcmStateForTesting();
+
+  let fetchCalled = false;
+  globalThis.fetch = ((): Promise<Response> => {
+    fetchCalled = true;
+    throw new Error("fetch must not be called when FCM is misconfigured");
+  }) as typeof fetch;
+  const db = new Proxy({}, {
+    get() {
+      throw new Error("db must not be accessed when FCM is misconfigured");
+    },
+  }) as unknown as Database;
+
+  try {
+    await sendFcmNotification(db, {
+      accountId: generateUuidV7(),
+      notificationId: generateUuidV7(),
+      type: "react",
+      actorId: generateUuidV7(),
+      postId: generateUuidV7(),
+      emoji: "👍",
+    });
+    assert.equal(fetchCalled, false, "expected no network call");
   } finally {
     globalThis.fetch = originalFetch;
     if (originalKey === undefined) {

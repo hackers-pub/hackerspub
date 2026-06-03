@@ -77,14 +77,9 @@ function getServiceAccount(): FcmServiceAccount | null {
     cachedServiceAccount = null;
     return null;
   }
+  let parsed: unknown;
   try {
-    const parsed = JSON.parse(keyJson);
-    cachedServiceAccount = {
-      projectId: parsed.project_id,
-      clientEmail: parsed.client_email,
-      privateKey: parsed.private_key,
-    };
-    return cachedServiceAccount;
+    parsed = JSON.parse(keyJson);
   } catch (error) {
     logger.error("Failed to parse GOOGLE_SERVICES_JSON_BASE64: {error}", {
       error,
@@ -92,6 +87,39 @@ function getServiceAccount(): FcmServiceAccount | null {
     cachedServiceAccount = null;
     return null;
   }
+
+  const fields = (parsed ?? {}) as Record<string, unknown>;
+  const projectId = fields.project_id;
+  const clientEmail = fields.client_email;
+  const privateKey = fields.private_key;
+  const missing = (
+    [
+      ["project_id", projectId],
+      ["client_email", clientEmail],
+      ["private_key", privateKey],
+    ] as const
+  )
+    .filter(([, value]) => typeof value !== "string" || value.trim() === "")
+    .map(([name]) => name);
+  if (missing.length > 0) {
+    logger.error(
+      "GOOGLE_SERVICES_JSON_BASE64 is missing required service account " +
+        "field(s): {missing}. It must be a Firebase Admin SDK service account " +
+        "key (containing `private_key`, `client_email`, and `project_id`), " +
+        "not an Android `google-services.json` client config. FCM push " +
+        "notifications are disabled.",
+      { missing },
+    );
+    cachedServiceAccount = null;
+    return null;
+  }
+
+  cachedServiceAccount = {
+    projectId: projectId as string,
+    clientEmail: clientEmail as string,
+    privateKey: privateKey as string,
+  };
+  return cachedServiceAccount;
 }
 
 async function getAccessToken(): Promise<string | null> {
