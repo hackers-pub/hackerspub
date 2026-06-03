@@ -1,6 +1,7 @@
 import { assert } from "@std/assert/assert";
 import { assertEquals } from "@std/assert/equals";
-import { Follow } from "@fedify/vocab";
+import { assertRejects } from "@std/assert/rejects";
+import { Follow, Undo } from "@fedify/vocab";
 import type { RequestContext } from "@fedify/fedify";
 import { eq } from "drizzle-orm";
 import {
@@ -288,7 +289,7 @@ Deno.test({
         inboxUrl: "https://relay.example/inbox",
         type: "Application",
       });
-      const { fedCtx } = withCapturingFedCtx(tx);
+      const { fedCtx, sent } = withCapturingFedCtx(tx);
       const subscription = await subscribeRelay(fedCtx, relay);
       assert(subscription != null);
 
@@ -296,7 +297,41 @@ Deno.test({
       assert(loaded != null);
       const removed = await unsubscribeRelay(fedCtx, loaded);
       assert(removed != null);
+      // The Undo is dispatched (after the subscribe Follow, before the delete).
+      assertEquals(sent.length, 2);
+      assert(sent[1].activity instanceof Undo);
       assertEquals(await getRelaySubscription(tx, subscription.id), undefined);
+    });
+  },
+});
+
+Deno.test({
+  name: "unsubscribeRelay keeps the row when the Undo fails to send",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const relay = await insertRemoteActor(tx, {
+        username: "relay",
+        name: "Example Relay",
+        host: "relay.example",
+        iri: "https://relay.example/actor",
+        inboxUrl: "https://relay.example/inbox",
+        type: "Application",
+      });
+      const { fedCtx } = withCapturingFedCtx(tx);
+      const subscription = await subscribeRelay(fedCtx, relay);
+      assert(subscription != null);
+      const loaded = await getRelaySubscription(tx, subscription.id);
+      assert(loaded != null);
+
+      // Mutations run in autocommit, so a failed Undo send must leave the row
+      // in place to be retried rather than dropping it.
+      // deno-lint-ignore no-explicit-any
+      (fedCtx as any).sendActivity = () =>
+        Promise.reject(new Error("queue unavailable"));
+      await assertRejects(() => unsubscribeRelay(fedCtx, loaded));
+      assert(await getRelaySubscription(tx, subscription.id) != null);
     });
   },
 });

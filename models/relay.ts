@@ -124,18 +124,18 @@ export async function subscribeRelay(
 
 /**
  * Unsubscribes the instance actor from a relay by sending an `Undo` of the
- * original `Follow` and deleting the subscription row.  Returns the deleted
- * row, or `undefined` when the subscription was already gone.
+ * original `Follow` and then deleting the subscription row.  The `Undo` is
+ * queued *before* the row is deleted: GraphQL mutations here run in autocommit
+ * (no rolling-back transaction), so deleting first would drop the local record
+ * even if the send failed, leaving the relay forwarding with nothing left to
+ * retry from.  Returns the deleted row, or `undefined` when the subscription
+ * was already gone.
  */
 export async function unsubscribeRelay(
   fedCtx: Context<ContextData>,
   subscription: RelaySubscription & { actor: Actor },
 ): Promise<RelaySubscription | undefined> {
   const { db } = fedCtx.data;
-  const rows = await db.delete(relaySubscriptionTable)
-    .where(eq(relaySubscriptionTable.id, subscription.id))
-    .returning();
-  if (rows.length < 1) return undefined;
   const identifier = getInstanceActorIdentifier(fedCtx);
   const followIri = new URL(subscription.followIri);
   await fedCtx.sendActivity(
@@ -162,6 +162,10 @@ export async function unsubscribeRelay(
       preferSharedInbox: false,
     },
   );
+  const rows = await db.delete(relaySubscriptionTable)
+    .where(eq(relaySubscriptionTable.id, subscription.id))
+    .returning();
+  if (rows.length < 1) return undefined;
   return rows[0];
 }
 
