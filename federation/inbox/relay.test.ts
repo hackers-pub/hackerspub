@@ -51,6 +51,81 @@ Deno.test({
 });
 
 Deno.test({
+  name: "onRelayFollowAccepted handles an Accept with an embedded Follow",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const relay = await insertRemoteActor(tx, {
+        username: "relay",
+        name: "Example Relay",
+        host: "relay.example",
+        iri: "https://relay.example/actor",
+        type: "Application",
+      });
+      const fedCtx = createFedCtx(tx);
+      const subscription = await subscribeRelay(fedCtx, relay);
+      assert(subscription != null);
+
+      // Many relays echo the whole Follow activity inside the Accept rather
+      // than just its IRI; Fedify still exposes the embedded Follow's id
+      // through `accept.objectId`, so the handler matches it.
+      const accept = new Accept({
+        actor: new URL(relay.iri),
+        object: new Follow({
+          id: new URL(subscription.followIri),
+          actor: fedCtx.getActorUri("localhost"),
+          object: new URL(relay.iri),
+        }),
+      });
+      const handled = await onRelayFollowAccepted(
+        asInboxContext(fedCtx),
+        accept,
+      );
+      assertEquals(handled, true);
+
+      const reloaded = await getRelaySubscription(tx, subscription.id);
+      assert(reloaded?.accepted != null);
+    });
+  },
+});
+
+Deno.test({
+  name: "onRelayFollowRejected handles a Reject with an embedded Follow",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const relay = await insertRemoteActor(tx, {
+        username: "relay",
+        name: "Example Relay",
+        host: "relay.example",
+        iri: "https://relay.example/actor",
+        type: "Application",
+      });
+      const fedCtx = createFedCtx(tx);
+      const subscription = await subscribeRelay(fedCtx, relay);
+      assert(subscription != null);
+
+      const reject = new Reject({
+        actor: new URL(relay.iri),
+        object: new Follow({
+          id: new URL(subscription.followIri),
+          actor: fedCtx.getActorUri("localhost"),
+          object: new URL(relay.iri),
+        }),
+      });
+      const handled = await onRelayFollowRejected(
+        asInboxContext(fedCtx),
+        reject,
+      );
+      assertEquals(handled, true);
+      assertEquals(await getRelaySubscription(tx, subscription.id), undefined);
+    });
+  },
+});
+
+Deno.test({
   name: "onRelayFollowAccepted ignores a forged Accept from another actor",
   sanitizeOps: false,
   sanitizeResources: false,
