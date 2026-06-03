@@ -50,6 +50,22 @@ export function ProfileCard(props: ProfileCardProps) {
         followersCount: followers {
           totalCount
         }
+        mutualFollowers(first: 3) {
+          totalCount
+          edges {
+            node {
+              id
+              username
+              rawName
+              handle
+              avatarUrl
+              avatarInitials
+              local
+              url
+              iri
+            }
+          }
+        }
         viewerBlocks
         blocksViewer
         followsViewer
@@ -58,6 +74,17 @@ export function ProfileCard(props: ProfileCardProps) {
           value
         }
         account {
+          created
+          inviter {
+            id
+            username
+            name
+            actor {
+              id
+              avatarUrl
+              avatarInitials
+            }
+          }
           links {
             name
             handle
@@ -231,7 +258,7 @@ export function ProfileCard(props: ProfileCardProps) {
               </Show>
             )}
           </Show>
-          <div class="p-4 pt-0 border-b">
+          <div class="p-4 pt-0 border-b space-y-3">
             {/* TODO: remove ?. once https://github.com/XiNiHa/solid-relay/issues/59 is resolved */}
             <div class="text-muted-foreground">
               <a
@@ -264,6 +291,117 @@ export function ProfileCard(props: ProfileCardProps) {
                 &middot; {t`Following you`}
               </Show>
             </div>
+            <Show when={(actor.mutualFollowers?.totalCount ?? 0) > 0}>
+              <div class="flex items-center gap-2">
+                <div class="flex -space-x-2">
+                  <For each={actor.mutualFollowers?.edges ?? []}>
+                    {(edge) => (
+                      <a
+                        href={edge.node.local
+                          ? `/@${edge.node.username}`
+                          : edge.node.url ?? edge.node.iri}
+                        target={edge.node.local ? undefined : "_blank"}
+                        title={edge.node.handle}
+                        aria-label={edge.node.handle}
+                      >
+                        <Avatar class="size-6 ring-2 ring-background">
+                          <AvatarImage
+                            src={edge.node.avatarUrl}
+                            class="size-6"
+                          />
+                          <AvatarFallback class="size-6 text-xs">
+                            {edge.node.avatarInitials}
+                          </AvatarFallback>
+                        </Avatar>
+                      </a>
+                    )}
+                  </For>
+                </div>
+                <span class="text-sm text-muted-foreground">
+                  {i18n._(
+                    msg`${
+                      plural(actor.mutualFollowers?.totalCount ?? 0, {
+                        one: "Followed by # person you follow",
+                        other: "Followed by # people you follow",
+                      })
+                    }`,
+                  )}
+                </span>
+              </div>
+            </Show>
+            <Show
+              when={actor.account?.inviter != null ||
+                actor.account?.created != null}
+            >
+              <div class="space-y-1 text-sm text-muted-foreground">
+                <Show keyed when={actor.account?.inviter}>
+                  {(inviter) => (
+                    <div class="flex items-center">
+                      <a
+                        href={`/@${inviter.username}`}
+                        class="mr-1.5 shrink-0"
+                        aria-label={inviter.name ?? inviter.username}
+                      >
+                        <Avatar class="size-5">
+                          <AvatarImage
+                            src={inviter.actor?.avatarUrl}
+                            class="size-5"
+                          />
+                          <AvatarFallback class="size-5 text-[0.625rem]">
+                            {inviter.actor?.avatarInitials}
+                          </AvatarFallback>
+                        </Avatar>
+                      </a>
+                      <span>
+                        <Trans
+                          message={t`Invited by ${"INVITER"}`}
+                          values={{
+                            INVITER: () => (
+                              <a
+                                href={`/@${inviter.username}`}
+                                class="text-foreground hover:underline"
+                              >
+                                {inviter.name ?? inviter.username}
+                              </a>
+                            ),
+                          }}
+                        />
+                      </span>
+                    </div>
+                  )}
+                </Show>
+                <Show keyed when={actor.account?.created}>
+                  {(created) => (
+                    <div class="flex items-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="size-3.5 mr-1.5 shrink-0"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"
+                        />
+                      </svg>
+                      <span>
+                        {i18n._(
+                          msg`Joined ${
+                            new Date(created).toLocaleDateString(i18n.locale, {
+                              year: "numeric",
+                              month: "long",
+                            })
+                          }`,
+                        )}
+                      </span>
+                    </div>
+                  )}
+                </Show>
+              </div>
+            </Show>
           </div>
         </>
       )}
