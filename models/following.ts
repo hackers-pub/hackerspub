@@ -265,6 +265,76 @@ export async function getMutualFollowerActorIds(
   return rows.map((row) => row.followerId);
 }
 
+export interface RankedFollowerRow {
+  iri: string;
+  accepted: Date | null;
+  created: Date;
+  follower: Actor;
+}
+
+/**
+ * Fetches one page of an actor's accepted followers, ordered so that the
+ * followers the viewer also follows ("followers you know") come first, then the
+ * rest by most recent follow.  When `viewerId` is `null` (a guest), there are no
+ * mutual followers, so this degrades to plain newest-first order.  Pagination is
+ * by `limit`/`offset`; `iri` is the final tiebreaker so the order is stable
+ * across pages.
+ */
+export async function getRankedFollowerPage(
+  db: Database,
+  viewerId: Uuid | null,
+  followeeId: Uuid,
+  limit: number,
+  offset: number,
+): Promise<RankedFollowerRow[]> {
+  if (limit <= 0) return [];
+  const base = db
+    .select({
+      iri: followingTable.iri,
+      accepted: followingTable.accepted,
+      created: followingTable.created,
+      follower: actorTable,
+    })
+    .from(followingTable)
+    .innerJoin(actorTable, eq(actorTable.id, followingTable.followerId))
+    .where(
+      and(
+        eq(followingTable.followeeId, followeeId),
+        isNotNull(followingTable.accepted),
+      ),
+    );
+  // Newest follow first, with `iri` (the primary key) as a stable tiebreaker.
+  // For a guest there are no mutual followers, so this is the whole order.
+  // (A constant rank like `sql`1`` must NOT be added here: a bare integer in
+  // `ORDER BY` is a positional column reference in Postgres, not a constant.)
+  if (viewerId == null) {
+    return await base
+      .orderBy(desc(followingTable.created), followingTable.iri)
+      .limit(limit)
+      .offset(offset);
+  }
+  // 0 for followers the viewer also follows (so they sort first), 1 otherwise.
+  // The correlated subquery is embedded as a Drizzle query builder so the
+  // aliased `following` table renders its `FROM` declaration correctly.
+  const viewerFollows = aliasedTable(followingTable, "viewer_follows");
+  const mutualRank = sql<number>`CASE WHEN EXISTS (${
+    db
+      .select({ one: sql`1` })
+      .from(viewerFollows)
+      .where(
+        and(
+          eq(viewerFollows.followerId, viewerId),
+          eq(viewerFollows.followeeId, followingTable.followerId),
+          isNotNull(viewerFollows.accepted),
+        ),
+      )
+  }) THEN 0 ELSE 1 END`;
+  return await base
+    .orderBy(mutualRank, desc(followingTable.created), followingTable.iri)
+    .limit(limit)
+    .offset(offset);
+}
+
 export async function updateFolloweesCount(
   db: Database,
   followerId: Uuid,
