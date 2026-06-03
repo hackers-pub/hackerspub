@@ -1,6 +1,15 @@
 import type { Context } from "@fedify/fedify";
 import { Follow, Reject, Undo } from "@fedify/vocab";
-import { and, eq, inArray, isNull, sql } from "drizzle-orm";
+import {
+  aliasedTable,
+  and,
+  desc,
+  eq,
+  inArray,
+  isNotNull,
+  isNull,
+  sql,
+} from "drizzle-orm";
 import { toRecipient } from "./actor.ts";
 import type { ContextData } from "./context.ts";
 import type { Database } from "./db.ts";
@@ -226,6 +235,34 @@ export async function getFollowerActorIds(
       ),
     );
   return new Set(rows.map((row) => row.followerId));
+}
+
+export async function getMutualFollowerActorIds(
+  db: Database,
+  viewerId: Uuid,
+  profileActorId: Uuid,
+): Promise<Uuid[]> {
+  // The "followers you know" intersection: actors that follow `profileActorId`
+  // and that the viewer also follows (both follows accepted).  `f` is the
+  // profile's followers; `g` is the viewer's followees, joined on the shared
+  // actor so only the mutual ones survive.  Ordered by the profile-side follow,
+  // newest first.
+  const f = aliasedTable(followingTable, "f");
+  const g = aliasedTable(followingTable, "g");
+  const rows = await db
+    .select({ followerId: f.followerId })
+    .from(f)
+    .innerJoin(g, eq(g.followeeId, f.followerId))
+    .where(
+      and(
+        eq(f.followeeId, profileActorId),
+        isNotNull(f.accepted),
+        eq(g.followerId, viewerId),
+        isNotNull(g.accepted),
+      ),
+    )
+    .orderBy(desc(f.created));
+  return rows.map((row) => row.followerId);
 }
 
 export async function updateFolloweesCount(
