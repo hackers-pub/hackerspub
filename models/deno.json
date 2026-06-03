@@ -36,6 +36,7 @@
     "./push-notification": "./push-notification.ts",
     "./reaction": "./reaction.ts",
     "./relations": "./relations.ts",
+    "./relay": "./relay.ts",
     "./robots": "./robots.ts",
     "./schema": "./schema.ts",
     "./search": "./search.ts",
