@@ -6,6 +6,7 @@ draft → 초고
 react → 반응
 reply → 댓글
 comment → 댓글
+relay → 릴레이
 share → 공유
 quote → 인용
 bookmark → 북마크

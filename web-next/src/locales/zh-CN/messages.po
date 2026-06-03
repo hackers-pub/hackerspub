@@ -313,6 +313,10 @@ msgstr "{count, plural, other {# 条意见}}"
 msgid "A name for the link that will be displayed on your profile, e.g., GitHub."
 msgstr "为显示在你个人资料页面的链接命名，例如 GitHub。"
 
+#: src/routes/(root)/admin/relay.tsx:242
+msgid "A relay only starts forwarding posts once it has accepted the follow. Until then the subscription stays pending."
+msgstr "中继只有在接受关注后才会开始转发内容。在此之前，订阅将保持待处理状态。"
+
 #: src/routes/(root)/sign/index.tsx:218
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "登录链接已发送至您的邮箱。请检查收件箱。（或垃圾邮件文件夹）"
@@ -331,6 +335,10 @@ msgstr "账号"
 #: src/components/LanguageList.tsx:198
 msgid "Actions"
 msgstr "操作"
+
+#: src/routes/(root)/admin/relay.tsx:290
+msgid "Active since"
+msgstr "激活于"
 
 #: src/routes/(root)/[handle]/settings/language.tsx:196
 #: src/routes/(root)/admin/news.tsx:421
@@ -658,7 +666,7 @@ msgstr "已结束"
 msgid "Code"
 msgstr "代码"
 
-#: src/components/AppSidebar.tsx:1023
+#: src/components/AppSidebar.tsx:1046
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/sign/up/[token].tsx:458
 msgid "Code of conduct"
@@ -668,7 +676,7 @@ msgstr "行为准则"
 #~ msgid "Comments ({0})"
 #~ msgstr "评论（{0}）"
 
-#: src/components/AppSidebar.tsx:865
+#: src/components/AppSidebar.tsx:888
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "写作"
@@ -723,7 +731,7 @@ msgstr "无法撤销引用"
 msgid "Could not vote on this poll"
 msgstr "无法提交此投票"
 
-#: src/components/AppSidebar.tsx:911
+#: src/components/AppSidebar.tsx:934
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create article"
 msgstr "创建文章"
@@ -732,7 +740,7 @@ msgstr "创建文章"
 msgid "Create invitation link"
 msgstr "创建邀请链接"
 
-#: src/components/AppSidebar.tsx:887
+#: src/components/AppSidebar.tsx:910
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:78
 #: src/components/NoteComposer.tsx:1435
@@ -1260,6 +1268,10 @@ msgstr "转帖失败"
 msgid "Failed to sign out: {0}"
 msgstr "登出失败：{0}"
 
+#: src/routes/(root)/admin/relay.tsx:148
+msgid "Failed to subscribe to the relay."
+msgstr "订阅中继失败。"
+
 #: src/components/BlockedAccountsList.tsx:96
 #: src/components/BlockedAccountsList.tsx:102
 #: src/components/ProfileActionMenu.tsx:258
@@ -1289,6 +1301,10 @@ msgstr "无法取消置顶内容"
 #: src/components/PostEngagementBar.tsx:261
 msgid "Failed to unshare post"
 msgstr "取消转帖失败"
+
+#: src/routes/(root)/admin/relay.tsx:175
+msgid "Failed to unsubscribe from the relay."
+msgstr "取消订阅中继失败。"
 
 #: src/components/NewsStoryCard.tsx:87
 #: src/components/NewsStoryCard.tsx:91
@@ -1383,7 +1399,7 @@ msgstr "生成中…"
 msgid "Get browser notifications"
 msgstr "接收浏览器通知"
 
-#: src/components/AppSidebar.tsx:1061
+#: src/components/AppSidebar.tsx:1084
 msgid "GitHub repository"
 msgstr "GitHub 仓库"
 
@@ -1453,6 +1469,10 @@ msgstr "Hackers' Pub：管理 · 新闻"
 #: src/routes/(root)/admin/news.tsx:124
 #~ msgid "Hackers' Pub: Admin · News scores"
 #~ msgstr "Hackers' Pub：管理 · 新闻评分"
+
+#: src/routes/(root)/admin/relay.tsx:185
+msgid "Hackers' Pub: Admin · Relays"
+msgstr "Hackers' Pub：管理 · 中继"
 
 #: src/routes/(root)/news/[link_id]/index.tsx:56
 #: src/routes/(root)/news/index.tsx:37
@@ -1887,6 +1907,10 @@ msgstr "查找用户"
 msgid "Looking up user…"
 msgstr "正在查找用户信息…"
 
+#: src/routes/(root)/admin/relay.tsx:207
+msgid "Make this instance's instance actor follow an ActivityPub relay, so the relay forwards public posts from across the fediverse to this instance. Enter the relay actor's URL, e.g. https://relay.example/actor."
+msgstr "让此实例的实例 actor 关注一个 ActivityPub 中继，使中继将联邦宇宙各处的公开内容转发到此实例。请输入中继 actor 的 URL（例如 https://relay.example/actor）。"
+
 #: src/routes/(root)/markdown.tsx:40
 msgid "Markdown guide"
 msgstr "Markdown 指南"
@@ -2135,6 +2159,11 @@ msgstr "无权删除孤立媒体。"
 msgid "Not authorized to manage exclusions."
 msgstr "无权管理排除模式。"
 
+#: src/routes/(root)/admin/relay.tsx:140
+#: src/routes/(root)/admin/relay.tsx:168
+msgid "Not authorized to manage relays."
+msgstr "无权管理中继。"
+
 #: src/routes/(root)/admin/news.tsx:203
 msgid "Not authorized to recompute news scores."
 msgstr "无权重新计算新闻评分。"
@@ -2151,6 +2180,10 @@ msgstr "未找到"
 #: src/routes/(root)/search.tsx:258
 #~ msgid "Not found."
 #~ msgstr "未找到。"
+
+#: src/routes/(root)/admin/relay.tsx:250
+msgid "Not subscribed to any relays yet."
+msgstr "尚未订阅任何中继。"
 
 #: src/routes/(root)/[handle]/[noteId].tsx:247
 #~ msgid "Note"
@@ -2267,6 +2300,10 @@ msgstr "受罚链接"
 msgid "Penalty cleared."
 msgstr "已清除处罚。"
 
+#: src/routes/(root)/admin/relay.tsx:286
+msgid "Pending"
+msgstr "待处理"
+
 #: src/routes/(root)/[handle]/bookmarks.tsx:99
 #: src/routes/(root)/[handle]/bookmarks.tsx:102
 #: src/routes/(root)/[handle]/drafts/[id].tsx:52
@@ -2371,7 +2408,7 @@ msgstr "上一张图片"
 msgid "Priority"
 msgstr "优先级"
 
-#: src/components/AppSidebar.tsx:1028
+#: src/components/AppSidebar.tsx:1051
 #: src/routes/(root)/privacy.tsx:40
 msgid "Privacy policy"
 msgstr "隐私政策"
@@ -2504,7 +2541,7 @@ msgstr "即使此标签页已关闭，也能立即收到新通知。"
 msgid "Receive notifications immediately through this browser, even when this tab is closed."
 msgstr "通过此浏览器立即接收通知，即使此标签页已关闭。"
 
-#: src/components/AppSidebar.tsx:947
+#: src/components/AppSidebar.tsx:970
 msgid "Recent drafts"
 msgstr "最近的草稿"
 
@@ -2552,6 +2589,15 @@ msgstr "已注册的通行密钥"
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:387
 msgid "Registering…"
 msgstr "正在注册…"
+
+#: src/routes/(root)/admin/relay.tsx:217
+msgid "Relay actor URL"
+msgstr "中继 actor 的 URL"
+
+#: src/components/AppSidebar.tsx:865
+#: src/routes/(root)/admin/relay.tsx:200
+msgid "Relays"
+msgstr "中继"
 
 #: src/components/RemoteFollowButton.tsx:174
 #: src/components/RemoteFollowButton.tsx:180
@@ -2799,7 +2845,7 @@ msgstr "登录后投票"
 msgid "Sign in with passkey"
 msgstr "使用通行密钥登录"
 
-#: src/components/AppSidebar.tsx:1010
+#: src/components/AppSidebar.tsx:1033
 msgid "Sign out"
 msgstr "登出"
 
@@ -2848,6 +2894,26 @@ msgstr "出现错误"
 msgid "Something went wrong—please try again."
 msgstr "出现错误，请重试。"
 
+#: src/routes/(root)/admin/relay.tsx:232
+msgid "Subscribe"
+msgstr "订阅"
+
+#: src/routes/(root)/admin/relay.tsx:205
+msgid "Subscribe to a relay"
+msgstr "订阅中继"
+
+#: src/routes/(root)/admin/relay.tsx:240
+msgid "Subscribed relays"
+msgstr "已订阅的中继"
+
+#: src/routes/(root)/admin/relay.tsx:129
+msgid "Subscribed to the relay."
+msgstr "已订阅该中继。"
+
+#: src/routes/(root)/admin/relay.tsx:232
+msgid "Subscribing…"
+msgstr "正在订阅…"
+
 #: src/components/article-composer/ArticleComposerContext.tsx:309
 #: src/components/article-composer/ArticleComposerContext.tsx:384
 #: src/components/article-composer/ArticleComposerContext.tsx:449
@@ -2894,6 +2960,10 @@ msgstr "标签"
 #: src/routes/(root)/sign/up/[token].tsx:414
 msgid "Tell us about yourself…"
 msgstr "请告诉我们关于您自己的信息…"
+
+#: src/routes/(root)/admin/relay.tsx:133
+msgid "That is not a valid relay actor URL."
+msgstr "这不是有效的中继 actor URL。"
 
 #: src/routes/(root)/admin/news.tsx:237
 msgid "That is not a valid URL pattern."
@@ -2979,7 +3049,7 @@ msgstr "注册链接无效。请确保你使用的是你收到的正确邮件链
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:1052
+#: src/components/AppSidebar.tsx:1075
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "可在 {0} 上以 {1} 许可获取该网站的源代码。"
 
@@ -3181,6 +3251,14 @@ msgstr "从个人资料取消置顶"
 msgid "Unshare"
 msgstr "取消转帖"
 
+#: src/routes/(root)/admin/relay.tsx:303
+msgid "Unsubscribe"
+msgstr "取消订阅"
+
+#: src/routes/(root)/admin/relay.tsx:162
+msgid "Unsubscribed from the relay."
+msgstr "已取消订阅该中继。"
+
 #: src/routes/(root)/[handle]/settings/index.tsx:127
 msgid "Update your profile information, including your avatar, username, display name, bio, and links."
 msgstr "更新您的个人资料信息，包括头像、用户名、昵称、个人简介和链接。"
@@ -3259,7 +3337,7 @@ msgstr "已于{1}验证此链接归{0}所有"
 msgid "Verifying your invitation…"
 msgstr "正在验证您的邀请…"
 
-#: src/components/AppSidebar.tsx:973
+#: src/components/AppSidebar.tsx:996
 msgid "View all drafts →"
 msgstr "查看所有草稿 →"
 
