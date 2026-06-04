@@ -78,6 +78,10 @@ export const relations = defineRelations(schema, (r) => ({
     blockees: r.many.blockingTable({ alias: "blocker" }),
     muters: r.many.mutingTable({ alias: "mutee" }),
     mutees: r.many.mutingTable({ alias: "muter" }),
+    relaySubscription: r.one.relaySubscriptionTable({
+      from: r.actorTable.id,
+      to: r.relaySubscriptionTable.actorId,
+    }),
     mentions: r.many.mentionTable(),
     posts: r.many.postTable(),
     pins: r.many.pinTable(),
@@ -128,6 +132,13 @@ export const relations = defineRelations(schema, (r) => ({
     mutee: r.one.actorTable({
       alias: "mutee",
       from: r.mutingTable.muteeId,
+      to: r.actorTable.id,
+      optional: false,
+    }),
+  },
+  relaySubscriptionTable: {
+    actor: r.one.actorTable({
+      from: r.relaySubscriptionTable.actorId,
       to: r.actorTable.id,
       optional: false,
     }),

@@ -6,6 +6,7 @@ draft → 下書き
 react → リアクション
 reply → 返信
 comment → コメント
+relay → リレー
 share → 共有
 quote → 引用
 bookmark → ブックマーク

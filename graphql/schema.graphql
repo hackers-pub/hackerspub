@@ -1602,6 +1602,14 @@ type Mutation {
   ): SetNewsScorePenaltyResult
   sharePost(input: SharePostInput!): SharePostResult!
   startMediumUpload(input: StartMediumUploadInput!): StartMediumUploadResult!
+
+  """
+  Subscribe this instance's instance actor to an ActivityPub relay by its actor URL (the `Follow`'s `object` is the relay actor itself). Requires a moderator account. The relay actor is resolved (and persisted) via ActivityPub if not already known. Idempotent: subscribing to an already-subscribed relay returns the existing subscription. Raises `InvalidInputError` (`actorUrl`) when the URL does not resolve to a remote actor (a local actor cannot be a relay).
+  """
+  subscribeRelay(
+    """The relay actor's URL, e.g. `https://relay.example/actor`."""
+    actorUrl: URL!
+  ): SubscribeRelayResult!
   unblockActor(input: UnblockActorInput!): UnblockActorResult!
   unbookmarkPost(input: UnbookmarkPostInput!): UnbookmarkPostResult!
   unfollowActor(input: UnfollowActorInput!): UnfollowActorResult!
@@ -1629,6 +1637,14 @@ type Mutation {
   """
   unregisterPushNotificationTarget(input: UnregisterPushNotificationTargetInput!): UnregisterPushNotificationTargetResult!
   unsharePost(input: UnsharePostInput!): UnsharePostResult!
+
+  """
+  Unsubscribe this instance's instance actor from a relay (sends an `Undo` of the original `Follow` and removes the subscription). Requires a moderator account. Returns the removed subscription's global id, or `null` when no subscription has that id.
+  """
+  unsubscribeRelay(
+    """The `RelaySubscription`'s global id."""
+    id: ID!
+  ): UnsubscribeRelayResult
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
   updateArticle(input: UpdateArticleInput!): UpdateArticleResult!
   updateNote(input: UpdateNoteInput!): UpdateNoteResult!
@@ -2707,6 +2723,11 @@ type Query {
   recommendedActors(limit: Int = 10, locale: Locale): [Actor!]!
 
   """
+  Moderator-only list of ActivityPub relays this instance is subscribed to, newest first. Returns `null` when the viewer is not a moderator; routes should guard with `viewer.moderator`.
+  """
+  relaySubscriptions: [RelaySubscription!]
+
+  """
   Renders a Markdown string to HTML. When `articleSourceId` is provided, `hp-medium:KEY` references in the markdown are resolved against that article source's attached media (e.g. for previewing edits to an existing article). Only the article's author may pass their own `articleSourceId`; otherwise the call is rejected.
   """
   renderMarkdown(
@@ -3265,6 +3286,28 @@ Result of registering a push notification target. Successful responses return th
 """
 union RegisterPushNotificationTargetResult = InvalidInputError | NotAuthenticatedError | RegisterPushNotificationTargetPayload
 
+"""
+A subscription that makes this instance's instance actor follow an ActivityPub relay, so the relay forwards public posts to this instance. Created via `subscribeRelay` and removed via `unsubscribeRelay`. Only moderators can read `RelaySubscription` values; it is purely server (instance) state and is not tied to any user account.
+"""
+type RelaySubscription implements Node {
+  """
+  When the relay accepted this instance's `Follow` (its `Accept` arrived), or `null` while the subscription is still pending. A relay only forwards posts once it has accepted.
+  """
+  accepted: DateTime
+
+  """
+  The relay `Actor` this instance is subscribed to (always a remote actor, never a local account).
+  """
+  actor: Actor!
+
+  """When this subscription was created (the `Follow` sent)."""
+  created: DateTime!
+  id: ID!
+
+  """The subscription's row UUID."""
+  uuid: UUID!
+}
+
 input RemoveFollowerInput {
   actorId: ID!
   clientMutationId: ID
@@ -3513,6 +3556,8 @@ type StartMediumUploadPayload {
 
 union StartMediumUploadResult = InvalidInputError | NotAuthenticatedError | StartMediumUploadPayload
 
+union SubscribeRelayResult = InvalidInputError | NotAuthenticatedError | NotAuthorizedError | RelaySubscription
+
 scalar URITemplate
 
 """
@@ -3755,6 +3800,16 @@ type UnsharePostPayload {
 }
 
 union UnsharePostResult = InvalidInputError | NotAuthenticatedError | UnsharePostPayload
+
+"""The result of removing a relay subscription."""
+type UnsubscribeRelayPayload {
+  """
+  The global id of the removed `RelaySubscription`, so clients can evict it from their cache.
+  """
+  relaySubscriptionId: ID!
+}
+
+union UnsubscribeRelayResult = NotAuthenticatedError | NotAuthorizedError | UnsubscribeRelayPayload
 
 """
 Update the authenticated viewer's account settings. Only the account holder may update their own account.

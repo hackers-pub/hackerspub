@@ -313,6 +313,10 @@ msgstr "{count, plural, other {#件の意見}}"
 msgid "A name for the link that will be displayed on your profile, e.g., GitHub."
 msgstr "プロフィールに表示されるリンクの名前。（例：GitHub）"
 
+#: src/routes/(root)/admin/relay.tsx:242
+msgid "A relay only starts forwarding posts once it has accepted the follow. Until then the subscription stays pending."
+msgstr "リレーはフォローを承認して初めてコンテンツの転送を開始します。それまで購読は保留中のままです。"
+
 #: src/routes/(root)/sign/index.tsx:218
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "ログインリンクがメールに送信されました。受信トレイ（または迷惑メールフォルダ）を確認してください。"
@@ -331,6 +335,10 @@ msgstr "アカウント"
 #: src/components/LanguageList.tsx:198
 msgid "Actions"
 msgstr "操作"
+
+#: src/routes/(root)/admin/relay.tsx:290
+msgid "Active since"
+msgstr "有効化日時:"
 
 #: src/routes/(root)/[handle]/settings/language.tsx:196
 #: src/routes/(root)/admin/news.tsx:421
@@ -658,7 +666,7 @@ msgstr "終了"
 msgid "Code"
 msgstr "コード"
 
-#: src/components/AppSidebar.tsx:1023
+#: src/components/AppSidebar.tsx:1046
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/sign/up/[token].tsx:458
 msgid "Code of conduct"
@@ -668,7 +676,7 @@ msgstr "行動規範"
 #~ msgid "Comments ({0})"
 #~ msgstr "コメント（{0}）"
 
-#: src/components/AppSidebar.tsx:865
+#: src/components/AppSidebar.tsx:888
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "作成"
@@ -723,7 +731,7 @@ msgstr "引用を取り消せませんでした"
 msgid "Could not vote on this poll"
 msgstr "このアンケートに投票できませんでした"
 
-#: src/components/AppSidebar.tsx:911
+#: src/components/AppSidebar.tsx:934
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create article"
 msgstr "記事を作成"
@@ -732,7 +740,7 @@ msgstr "記事を作成"
 msgid "Create invitation link"
 msgstr "招待リンクを作成"
 
-#: src/components/AppSidebar.tsx:887
+#: src/components/AppSidebar.tsx:910
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:78
 #: src/components/NoteComposer.tsx:1435
@@ -1260,6 +1268,10 @@ msgstr "コンテンツの共有に失敗しました"
 msgid "Failed to sign out: {0}"
 msgstr "ログアウトに失敗：{0}"
 
+#: src/routes/(root)/admin/relay.tsx:148
+msgid "Failed to subscribe to the relay."
+msgstr "リレーの購読に失敗しました。"
+
 #: src/components/BlockedAccountsList.tsx:96
 #: src/components/BlockedAccountsList.tsx:102
 #: src/components/ProfileActionMenu.tsx:258
@@ -1289,6 +1301,10 @@ msgstr "コンテンツの固定を解除できませんでした"
 #: src/components/PostEngagementBar.tsx:261
 msgid "Failed to unshare post"
 msgstr "共有の取り消しに失敗しました"
+
+#: src/routes/(root)/admin/relay.tsx:175
+msgid "Failed to unsubscribe from the relay."
+msgstr "リレーの購読解除に失敗しました。"
 
 #: src/components/NewsStoryCard.tsx:87
 #: src/components/NewsStoryCard.tsx:91
@@ -1383,7 +1399,7 @@ msgstr "生成中…"
 msgid "Get browser notifications"
 msgstr "ブラウザー通知を受け取る"
 
-#: src/components/AppSidebar.tsx:1061
+#: src/components/AppSidebar.tsx:1084
 msgid "GitHub repository"
 msgstr "GitHubリポジトリ"
 
@@ -1453,6 +1469,10 @@ msgstr "Hackers' Pub：管理 · ニュース"
 #: src/routes/(root)/admin/news.tsx:124
 #~ msgid "Hackers' Pub: Admin · News scores"
 #~ msgstr "Hackers' Pub：管理 · ニュースのスコア"
+
+#: src/routes/(root)/admin/relay.tsx:185
+msgid "Hackers' Pub: Admin · Relays"
+msgstr "Hackers' Pub：管理 · リレー"
 
 #: src/routes/(root)/news/[link_id]/index.tsx:56
 #: src/routes/(root)/news/index.tsx:37
@@ -1887,6 +1907,10 @@ msgstr "ユーザーを検索"
 msgid "Looking up user…"
 msgstr "ユーザー情報を取得中…"
 
+#: src/routes/(root)/admin/relay.tsx:207
+msgid "Make this instance's instance actor follow an ActivityPub relay, so the relay forwards public posts from across the fediverse to this instance. Enter the relay actor's URL, e.g. https://relay.example/actor."
+msgstr "このインスタンスのインスタンスアクターがActivityPubリレーをフォローし、リレーがフェディバース全体の公開コンテンツをこのインスタンスに転送するようにします。リレーアクターのURL（例: https://relay.example/actor）を入力してください。"
+
 #: src/routes/(root)/markdown.tsx:40
 msgid "Markdown guide"
 msgstr "Markdown ガイド"
@@ -2135,6 +2159,11 @@ msgstr "孤立したメディアを削除する権限がありません。"
 msgid "Not authorized to manage exclusions."
 msgstr "除外パターンを管理する権限がありません。"
 
+#: src/routes/(root)/admin/relay.tsx:140
+#: src/routes/(root)/admin/relay.tsx:168
+msgid "Not authorized to manage relays."
+msgstr "リレーを管理する権限がありません。"
+
 #: src/routes/(root)/admin/news.tsx:203
 msgid "Not authorized to recompute news scores."
 msgstr "ニュースのスコアを再計算する権限がありません。"
@@ -2151,6 +2180,10 @@ msgstr "見つかりません"
 #: src/routes/(root)/search.tsx:258
 #~ msgid "Not found."
 #~ msgstr "見つかりませんでした。"
+
+#: src/routes/(root)/admin/relay.tsx:250
+msgid "Not subscribed to any relays yet."
+msgstr "まだどのリレーも購読していません。"
 
 #: src/routes/(root)/[handle]/[noteId].tsx:247
 #~ msgid "Note"
@@ -2267,6 +2300,10 @@ msgstr "ペナルティ付きのリンク"
 msgid "Penalty cleared."
 msgstr "ペナルティを解除しました。"
 
+#: src/routes/(root)/admin/relay.tsx:286
+msgid "Pending"
+msgstr "保留中"
+
 #: src/routes/(root)/[handle]/bookmarks.tsx:99
 #: src/routes/(root)/[handle]/bookmarks.tsx:102
 #: src/routes/(root)/[handle]/drafts/[id].tsx:52
@@ -2371,7 +2408,7 @@ msgstr "前の画像"
 msgid "Priority"
 msgstr "優先度"
 
-#: src/components/AppSidebar.tsx:1028
+#: src/components/AppSidebar.tsx:1051
 #: src/routes/(root)/privacy.tsx:40
 msgid "Privacy policy"
 msgstr "プライバシーポリシー"
@@ -2504,7 +2541,7 @@ msgstr "このタブを閉じていても新しい通知をすぐに受け取れ
 msgid "Receive notifications immediately through this browser, even when this tab is closed."
 msgstr "このブラウザーで通知をすぐに受け取ります。このタブを閉じていても通知されます。"
 
-#: src/components/AppSidebar.tsx:947
+#: src/components/AppSidebar.tsx:970
 msgid "Recent drafts"
 msgstr "最近の下書き"
 
@@ -2552,6 +2589,15 @@ msgstr "登録済みパスキー"
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:387
 msgid "Registering…"
 msgstr "登録中…"
+
+#: src/routes/(root)/admin/relay.tsx:217
+msgid "Relay actor URL"
+msgstr "リレーアクターのURL"
+
+#: src/components/AppSidebar.tsx:865
+#: src/routes/(root)/admin/relay.tsx:200
+msgid "Relays"
+msgstr "リレー"
 
 #: src/components/RemoteFollowButton.tsx:174
 #: src/components/RemoteFollowButton.tsx:180
@@ -2799,7 +2845,7 @@ msgstr "ログインして投票"
 msgid "Sign in with passkey"
 msgstr "パスキーでサインイン"
 
-#: src/components/AppSidebar.tsx:1010
+#: src/components/AppSidebar.tsx:1033
 msgid "Sign out"
 msgstr "ログアウト"
 
@@ -2848,6 +2894,26 @@ msgstr "問題が発生しました"
 msgid "Something went wrong—please try again."
 msgstr "問題が発生しました。再度お試しください。"
 
+#: src/routes/(root)/admin/relay.tsx:232
+msgid "Subscribe"
+msgstr "購読"
+
+#: src/routes/(root)/admin/relay.tsx:205
+msgid "Subscribe to a relay"
+msgstr "リレーを購読"
+
+#: src/routes/(root)/admin/relay.tsx:240
+msgid "Subscribed relays"
+msgstr "購読中のリレー"
+
+#: src/routes/(root)/admin/relay.tsx:129
+msgid "Subscribed to the relay."
+msgstr "リレーを購読しました。"
+
+#: src/routes/(root)/admin/relay.tsx:232
+msgid "Subscribing…"
+msgstr "購読中…"
+
 #: src/components/article-composer/ArticleComposerContext.tsx:309
 #: src/components/article-composer/ArticleComposerContext.tsx:384
 #: src/components/article-composer/ArticleComposerContext.tsx:449
@@ -2894,6 +2960,10 @@ msgstr "タグ"
 #: src/routes/(root)/sign/up/[token].tsx:414
 msgid "Tell us about yourself…"
 msgstr "自己紹介をお聞かせください…"
+
+#: src/routes/(root)/admin/relay.tsx:133
+msgid "That is not a valid relay actor URL."
+msgstr "有効なリレーアクターのURLではありません。"
 
 #: src/routes/(root)/admin/news.tsx:237
 msgid "That is not a valid URL pattern."
@@ -2979,7 +3049,7 @@ msgstr "登録リンクが無効です。受信したメールのリンクを正
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:1052
+#: src/components/AppSidebar.tsx:1075
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "このウェブサイトのソースコードは{1}ライセンスで{0}で公開されています。"
 
@@ -3181,6 +3251,14 @@ msgstr "プロフィールから固定解除"
 msgid "Unshare"
 msgstr "共有を取り消す"
 
+#: src/routes/(root)/admin/relay.tsx:303
+msgid "Unsubscribe"
+msgstr "購読解除"
+
+#: src/routes/(root)/admin/relay.tsx:162
+msgid "Unsubscribed from the relay."
+msgstr "リレーの購読を解除しました。"
+
 #: src/routes/(root)/[handle]/settings/index.tsx:127
 msgid "Update your profile information, including your avatar, username, display name, bio, and links."
 msgstr "アイコン、ユーザー名、名前、自己紹介、リンクなどのプロフィール情報を更新してください。"
@@ -3259,7 +3337,7 @@ msgstr "{1}に{0}さんがこのリンクの所有者であることを確認済
 msgid "Verifying your invitation…"
 msgstr "招待を確認中…"
 
-#: src/components/AppSidebar.tsx:973
+#: src/components/AppSidebar.tsx:996
 msgid "View all drafts →"
 msgstr "すべての下書きを表示 →"
 

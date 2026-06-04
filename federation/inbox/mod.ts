@@ -34,6 +34,7 @@ import {
   onQuoteRequested,
   onQuoteRequestRejected,
 } from "./quote.ts";
+import { onRelayFollowAccepted, onRelayFollowRejected } from "./relay.ts";
 import {
   onPostCreated,
   onPostDeleted,
@@ -57,10 +58,12 @@ builder
   .onUnverifiedActivity(onUnverifiedActivity)
   .on(Accept, async (fedCtx, accept) => {
     if (await onQuoteRequestAccepted(fedCtx, accept)) return;
+    if (await onRelayFollowAccepted(fedCtx, accept)) return;
     await onFollowAccepted(fedCtx, accept);
   })
   .on(Reject, async (fedCtx, reject) => {
     if (await onQuoteRequestRejected(fedCtx, reject)) return;
+    if (await onRelayFollowRejected(fedCtx, reject)) return;
     await onFollowRejected(fedCtx, reject);
   })
   .on(QuoteRequest, onQuoteRequested)

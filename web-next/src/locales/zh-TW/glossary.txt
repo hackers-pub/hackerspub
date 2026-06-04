@@ -6,6 +6,7 @@ draft → 草稿
 react → 反應
 reply → 回覆
 comment → 評論
+relay → 中繼
 share → 轉貼
 quote → 引用
 bookmark → 收藏

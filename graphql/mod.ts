@@ -21,6 +21,7 @@ import "./poll.ts";
 import "./post.ts";
 import "./push.ts";
 import "./reactable.ts";
+import "./relay.ts";
 import "./search.ts";
 import "./signup.ts";
 import "./timeline.ts";

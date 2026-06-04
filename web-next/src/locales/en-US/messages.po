@@ -313,6 +313,10 @@ msgstr "{count, plural, one {# opinion} other {# opinions}}"
 msgid "A name for the link that will be displayed on your profile, e.g., GitHub."
 msgstr "A name for the link that will be displayed on your profile, e.g., GitHub."
 
+#: src/routes/(root)/admin/relay.tsx:242
+msgid "A relay only starts forwarding posts once it has accepted the follow. Until then the subscription stays pending."
+msgstr "A relay only starts forwarding posts once it has accepted the follow. Until then the subscription stays pending."
+
 #: src/routes/(root)/sign/index.tsx:218
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
@@ -331,6 +335,10 @@ msgstr "Accounts"
 #: src/components/LanguageList.tsx:198
 msgid "Actions"
 msgstr "Actions"
+
+#: src/routes/(root)/admin/relay.tsx:290
+msgid "Active since"
+msgstr "Active since"
 
 #: src/routes/(root)/[handle]/settings/language.tsx:196
 #: src/routes/(root)/admin/news.tsx:421
@@ -658,7 +666,7 @@ msgstr "Closed"
 msgid "Code"
 msgstr "Code"
 
-#: src/components/AppSidebar.tsx:1023
+#: src/components/AppSidebar.tsx:1046
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/sign/up/[token].tsx:458
 msgid "Code of conduct"
@@ -668,7 +676,7 @@ msgstr "Code of conduct"
 #~ msgid "Comments ({0})"
 #~ msgstr "Comments ({0})"
 
-#: src/components/AppSidebar.tsx:865
+#: src/components/AppSidebar.tsx:888
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "Compose"
@@ -723,7 +731,7 @@ msgstr "Could not revoke quote"
 msgid "Could not vote on this poll"
 msgstr "Could not vote on this poll"
 
-#: src/components/AppSidebar.tsx:911
+#: src/components/AppSidebar.tsx:934
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create article"
 msgstr "Create article"
@@ -732,7 +740,7 @@ msgstr "Create article"
 msgid "Create invitation link"
 msgstr "Create invitation link"
 
-#: src/components/AppSidebar.tsx:887
+#: src/components/AppSidebar.tsx:910
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:78
 #: src/components/NoteComposer.tsx:1435
@@ -1264,6 +1272,10 @@ msgstr "Failed to share post"
 msgid "Failed to sign out: {0}"
 msgstr "Failed to sign out: {0}"
 
+#: src/routes/(root)/admin/relay.tsx:148
+msgid "Failed to subscribe to the relay."
+msgstr "Failed to subscribe to the relay."
+
 #: src/components/BlockedAccountsList.tsx:96
 #: src/components/BlockedAccountsList.tsx:102
 #: src/components/ProfileActionMenu.tsx:258
@@ -1293,6 +1305,10 @@ msgstr "Failed to unpin post"
 #: src/components/PostEngagementBar.tsx:261
 msgid "Failed to unshare post"
 msgstr "Failed to unshare post"
+
+#: src/routes/(root)/admin/relay.tsx:175
+msgid "Failed to unsubscribe from the relay."
+msgstr "Failed to unsubscribe from the relay."
 
 #: src/components/NewsStoryCard.tsx:87
 #: src/components/NewsStoryCard.tsx:91
@@ -1387,7 +1403,7 @@ msgstr "Generating…"
 msgid "Get browser notifications"
 msgstr "Get browser notifications"
 
-#: src/components/AppSidebar.tsx:1061
+#: src/components/AppSidebar.tsx:1084
 msgid "GitHub repository"
 msgstr "GitHub repository"
 
@@ -1457,6 +1473,10 @@ msgstr "Hackers' Pub: Admin · News"
 #: src/routes/(root)/admin/news.tsx:124
 #~ msgid "Hackers' Pub: Admin · News scores"
 #~ msgstr "Hackers' Pub: Admin · News scores"
+
+#: src/routes/(root)/admin/relay.tsx:185
+msgid "Hackers' Pub: Admin · Relays"
+msgstr "Hackers' Pub: Admin · Relays"
 
 #: src/routes/(root)/news/[link_id]/index.tsx:56
 #: src/routes/(root)/news/index.tsx:37
@@ -1891,6 +1911,10 @@ msgstr "Look up user"
 msgid "Looking up user…"
 msgstr "Looking up user…"
 
+#: src/routes/(root)/admin/relay.tsx:207
+msgid "Make this instance's instance actor follow an ActivityPub relay, so the relay forwards public posts from across the fediverse to this instance. Enter the relay actor's URL, e.g. https://relay.example/actor."
+msgstr "Make this instance's instance actor follow an ActivityPub relay, so the relay forwards public posts from across the fediverse to this instance. Enter the relay actor's URL, e.g. https://relay.example/actor."
+
 #: src/routes/(root)/markdown.tsx:40
 msgid "Markdown guide"
 msgstr "Markdown guide"
@@ -2139,6 +2163,11 @@ msgstr "Not authorized to delete orphan media."
 msgid "Not authorized to manage exclusions."
 msgstr "Not authorized to manage exclusions."
 
+#: src/routes/(root)/admin/relay.tsx:140
+#: src/routes/(root)/admin/relay.tsx:168
+msgid "Not authorized to manage relays."
+msgstr "Not authorized to manage relays."
+
 #: src/routes/(root)/admin/news.tsx:203
 msgid "Not authorized to recompute news scores."
 msgstr "Not authorized to recompute news scores."
@@ -2155,6 +2184,10 @@ msgstr "Not found"
 #: src/routes/(root)/search.tsx:258
 #~ msgid "Not found."
 #~ msgstr "Not found."
+
+#: src/routes/(root)/admin/relay.tsx:250
+msgid "Not subscribed to any relays yet."
+msgstr "Not subscribed to any relays yet."
 
 #: src/routes/(root)/[handle]/[noteId].tsx:247
 #~ msgid "Note"
@@ -2271,6 +2304,10 @@ msgstr "Penalized links"
 msgid "Penalty cleared."
 msgstr "Penalty cleared."
 
+#: src/routes/(root)/admin/relay.tsx:286
+msgid "Pending"
+msgstr "Pending"
+
 #: src/routes/(root)/[handle]/bookmarks.tsx:99
 #: src/routes/(root)/[handle]/bookmarks.tsx:102
 #: src/routes/(root)/[handle]/drafts/[id].tsx:52
@@ -2375,7 +2412,7 @@ msgstr "Previous image"
 msgid "Priority"
 msgstr "Priority"
 
-#: src/components/AppSidebar.tsx:1028
+#: src/components/AppSidebar.tsx:1051
 #: src/routes/(root)/privacy.tsx:40
 msgid "Privacy policy"
 msgstr "Privacy policy"
@@ -2508,7 +2545,7 @@ msgstr "Receive new notifications immediately, even when this tab is closed."
 msgid "Receive notifications immediately through this browser, even when this tab is closed."
 msgstr "Receive notifications immediately through this browser, even when this tab is closed."
 
-#: src/components/AppSidebar.tsx:947
+#: src/components/AppSidebar.tsx:970
 msgid "Recent drafts"
 msgstr "Recent drafts"
 
@@ -2556,6 +2593,15 @@ msgstr "Registered passkeys"
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:387
 msgid "Registering…"
 msgstr "Registering…"
+
+#: src/routes/(root)/admin/relay.tsx:217
+msgid "Relay actor URL"
+msgstr "Relay actor URL"
+
+#: src/components/AppSidebar.tsx:865
+#: src/routes/(root)/admin/relay.tsx:200
+msgid "Relays"
+msgstr "Relays"
 
 #: src/components/RemoteFollowButton.tsx:174
 #: src/components/RemoteFollowButton.tsx:180
@@ -2803,7 +2849,7 @@ msgstr "Sign in to vote"
 msgid "Sign in with passkey"
 msgstr "Sign in with passkey"
 
-#: src/components/AppSidebar.tsx:1010
+#: src/components/AppSidebar.tsx:1033
 msgid "Sign out"
 msgstr "Sign out"
 
@@ -2852,6 +2898,26 @@ msgstr "Something went wrong"
 msgid "Something went wrong—please try again."
 msgstr "Something went wrong—please try again."
 
+#: src/routes/(root)/admin/relay.tsx:232
+msgid "Subscribe"
+msgstr "Subscribe"
+
+#: src/routes/(root)/admin/relay.tsx:205
+msgid "Subscribe to a relay"
+msgstr "Subscribe to a relay"
+
+#: src/routes/(root)/admin/relay.tsx:240
+msgid "Subscribed relays"
+msgstr "Subscribed relays"
+
+#: src/routes/(root)/admin/relay.tsx:129
+msgid "Subscribed to the relay."
+msgstr "Subscribed to the relay."
+
+#: src/routes/(root)/admin/relay.tsx:232
+msgid "Subscribing…"
+msgstr "Subscribing…"
+
 #: src/components/article-composer/ArticleComposerContext.tsx:309
 #: src/components/article-composer/ArticleComposerContext.tsx:384
 #: src/components/article-composer/ArticleComposerContext.tsx:449
@@ -2898,6 +2964,10 @@ msgstr "Tags"
 #: src/routes/(root)/sign/up/[token].tsx:414
 msgid "Tell us about yourself…"
 msgstr "Tell us about yourself…"
+
+#: src/routes/(root)/admin/relay.tsx:133
+msgid "That is not a valid relay actor URL."
+msgstr "That is not a valid relay actor URL."
 
 #: src/routes/(root)/admin/news.tsx:237
 msgid "That is not a valid URL pattern."
@@ -2983,7 +3053,7 @@ msgstr "The sign-up link is invalid. Please make sure you're using the correct l
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:1052
+#: src/components/AppSidebar.tsx:1075
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "The source code of this website is available on {0} under the {1} license."
 
@@ -3185,6 +3255,14 @@ msgstr "Unpin from profile"
 msgid "Unshare"
 msgstr "Unshare"
 
+#: src/routes/(root)/admin/relay.tsx:303
+msgid "Unsubscribe"
+msgstr "Unsubscribe"
+
+#: src/routes/(root)/admin/relay.tsx:162
+msgid "Unsubscribed from the relay."
+msgstr "Unsubscribed from the relay."
+
 #: src/routes/(root)/[handle]/settings/index.tsx:127
 msgid "Update your profile information, including your avatar, username, display name, bio, and links."
 msgstr "Update your profile information, including your avatar, username, display name, bio, and links."
@@ -3263,7 +3341,7 @@ msgstr "Verified that this link is owned by {0} {1}"
 msgid "Verifying your invitation…"
 msgstr "Verifying your invitation…"
 
-#: src/components/AppSidebar.tsx:973
+#: src/components/AppSidebar.tsx:996
 msgid "View all drafts →"
 msgstr "View all drafts →"
 
