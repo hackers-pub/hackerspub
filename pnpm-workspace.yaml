@@ -7,10 +7,10 @@ packages:
 
 catalog:
   '@c4spar/mock-fetch': jsr:^1.0.0
-  '@fedify/fedify': jsr:2.2.1
+  '@fedify/fedify': jsr:2.2.4
   '@fedify/markdown-it-hashtag': jsr:^0.3.0
   '@fedify/markdown-it-mention': jsr:^0.3.0
-  '@fedify/vocab': jsr:2.2.1
+  '@fedify/vocab': jsr:2.2.4
   '@hackerspub/markdown-it-texmath': ^1.0.1
   '@logtape/logtape': jsr:2.0.6
   '@mdit-vue/plugin-title': ^2.1.4

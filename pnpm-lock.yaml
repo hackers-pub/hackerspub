@@ -10,8 +10,8 @@ catalogs:
       specifier: jsr:^1.0.0
       version: 1.0.0
     '@fedify/fedify':
-      specifier: jsr:2.2.1
-      version: 2.2.1
+      specifier: jsr:2.2.4
+      version: 2.2.4
     '@fedify/markdown-it-hashtag':
       specifier: jsr:^0.3.0
       version: 0.3.0
@@ -19,8 +19,8 @@ catalogs:
       specifier: jsr:^0.3.0
       version: 0.3.0
     '@fedify/vocab':
-      specifier: jsr:2.2.1
-      version: 2.2.1
+      specifier: jsr:2.2.4
+      version: 2.2.4
     '@hackerspub/markdown-it-texmath':
       specifier: ^1.0.1
       version: 1.0.1
@@ -215,10 +215,10 @@ importers:
     dependencies:
       '@fedify/fedify':
         specifier: 'catalog:'
-        version: '@jsr/fedify__fedify@2.2.1'
+        version: '@jsr/fedify__fedify@2.2.4'
       '@fedify/vocab':
         specifier: 'catalog:'
-        version: '@jsr/fedify__vocab@2.2.1'
+        version: '@jsr/fedify__vocab@2.2.4'
       '@hackerspub/models':
         specifier: workspace:*
         version: link:../models
@@ -242,7 +242,7 @@ importers:
         version: '@jsr/c4spar__mock-fetch@1.0.0'
       '@fedify/fedify':
         specifier: 'catalog:'
-        version: '@jsr/fedify__fedify@2.2.1'
+        version: '@jsr/fedify__fedify@2.2.4'
       '@fedify/markdown-it-hashtag':
         specifier: 'catalog:'
         version: '@jsr/fedify__markdown-it-hashtag@0.3.0'
@@ -251,7 +251,7 @@ importers:
         version: '@jsr/fedify__markdown-it-mention@0.3.0'
       '@fedify/vocab':
         specifier: 'catalog:'
-        version: '@jsr/fedify__vocab@2.2.1'
+        version: '@jsr/fedify__vocab@2.2.4'
       '@hackerspub/ai':
         specifier: workspace:*
         version: link:../ai
@@ -1587,8 +1587,8 @@ packages:
   '@jsr/c4spar__mock-fetch@1.0.0':
     resolution: {integrity: sha512-vDuyEcmIdknJRuh9DMlFlEWfeXoBdQOrNeQ8cVPDQ4e2zxlZezEO8zKPpe2JvP9UvC3XkCrIIzSKkHShzb04dQ==, tarball: https://npm.jsr.io/~/11/@jsr/c4spar__mock-fetch/1.0.0.tgz}
 
-  '@jsr/fedify__fedify@2.2.1':
-    resolution: {integrity: sha512-SjptHIdj0I1q791cLHKuI2mS+LLpojmr7IijjFvJ5q4kQDfS0nTUCkrO7RYsq2Bdsi9hU4dGNYXzTvEtue4D+Q==, tarball: https://npm.jsr.io/~/11/@jsr/fedify__fedify/2.2.1.tgz}
+  '@jsr/fedify__fedify@2.2.4':
+    resolution: {integrity: sha512-gJ36O9rg+7yRLmk8ye9jBNq2XBeDEYiqB3hH2DLgmj86Gg+bIgyGWDoUMPIf6e/TpTvec9FJ4zMP53h6QmVwTQ==, tarball: https://npm.jsr.io/~/11/@jsr/fedify__fedify/2.2.4.tgz}
 
   '@jsr/fedify__markdown-it-hashtag@0.3.0':
     resolution: {integrity: sha512-bBDar2DMcjI7VXsuc5aRU3vjsD8t9bxwD1pFYbxD6rr+P2ZR2hnVnQauO6LV3gcI8at1IxDYHTGhE6Lay3QopQ==, tarball: https://npm.jsr.io/~/11/@jsr/fedify__markdown-it-hashtag/0.3.0.tgz}
@@ -1596,14 +1596,14 @@ packages:
   '@jsr/fedify__markdown-it-mention@0.3.0':
     resolution: {integrity: sha512-bxAgJuhq95rg6jFUAgtkZU5QrYOX7jqUHGBZm3ynW7ju3Hyv/AebB4TV7pQ0WKwP/ODVPtD5MsmaLs0ReIQs5Q==, tarball: https://npm.jsr.io/~/11/@jsr/fedify__markdown-it-mention/0.3.0.tgz}
 
-  '@jsr/fedify__vocab-runtime@2.2.1':
-    resolution: {integrity: sha512-58d/oJvLI6+0i+vXmuVoDCEad/b9D3wlmFF32A189UjgjG3sO6AhzaDJSIHnznnYzU24O1dPMtcOtXoJFIb+5Q==, tarball: https://npm.jsr.io/~/11/@jsr/fedify__vocab-runtime/2.2.1.tgz}
+  '@jsr/fedify__vocab-runtime@2.2.4':
+    resolution: {integrity: sha512-j1UfrdjfKRkpXtG6U1EnXxuKF3yWslmDXUN7dXLpI15k1XTy/zF8f8S17Qlk6rcXSMIKf2TYmh1THlzogEdbaA==, tarball: https://npm.jsr.io/~/11/@jsr/fedify__vocab-runtime/2.2.4.tgz}
 
-  '@jsr/fedify__vocab@2.2.1':
-    resolution: {integrity: sha512-KeQvJrBDeiVXQgMWjLPCx4hIoDxsp5x3tzlqR2AhMQNaX0Yt0+0CImUsyiDQKbxUJHPBh5QfuSuLH39ZTCd4HQ==, tarball: https://npm.jsr.io/~/11/@jsr/fedify__vocab/2.2.1.tgz}
+  '@jsr/fedify__vocab@2.2.4':
+    resolution: {integrity: sha512-twZTKp7uQamC3FGXqBMrqMKmn19+IlYPv1mhShu4iFrMBTZ9r9nlfCisbqa2fQiHpH7FIcB9KM4QAFPymWHtNg==, tarball: https://npm.jsr.io/~/11/@jsr/fedify__vocab/2.2.4.tgz}
 
-  '@jsr/fedify__webfinger@2.2.1':
-    resolution: {integrity: sha512-NqQtxkQFJTLf1JiKvH/akOmVKSgkIBcrn7MOfKUFErlxyAxe21t+ofSgvddn0KFWPdPpTEt0gq9QbUAjFt/s5w==, tarball: https://npm.jsr.io/~/11/@jsr/fedify__webfinger/2.2.1.tgz}
+  '@jsr/fedify__webfinger@2.2.4':
+    resolution: {integrity: sha512-IDy5KGQX2KyFOMGPt3VLOmugkaXvI8UOZsSmhezwbe+rzxsAnvR4fjDVUoRMh9oKS4kPHotgE8gbOdtyT++Ktg==, tarball: https://npm.jsr.io/~/11/@jsr/fedify__webfinger/2.2.4.tgz}
 
   '@jsr/logtape__logtape@2.0.6':
     resolution: {integrity: sha512-Lw0+sFlpD9U+WzE/77diiDzEoYkhTuhrE53Fl5sXcNqWnlOJNi2x3K2elF+EhqdrZub2mHGSYznPRttlf/ah7Q==, tarball: https://npm.jsr.io/~/11/@jsr/logtape__logtape/2.0.6.tgz}
@@ -7702,11 +7702,11 @@ snapshots:
     dependencies:
       '@jsr/std__assert': 0.225.3
 
-  '@jsr/fedify__fedify@2.2.1':
+  '@jsr/fedify__fedify@2.2.4':
     dependencies:
-      '@jsr/fedify__vocab': 2.2.1
-      '@jsr/fedify__vocab-runtime': 2.2.1
-      '@jsr/fedify__webfinger': 2.2.1
+      '@jsr/fedify__vocab': 2.2.4
+      '@jsr/fedify__vocab-runtime': 2.2.4
+      '@jsr/fedify__webfinger': 2.2.4
       '@jsr/logtape__logtape': 2.0.7
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/core': 2.6.1(@opentelemetry/api@1.9.1)
@@ -7729,7 +7729,7 @@ snapshots:
       '@jsr/std__html': 0.224.2
       '@types/markdown-it': 14.1.2
 
-  '@jsr/fedify__vocab-runtime@2.2.1':
+  '@jsr/fedify__vocab-runtime@2.2.4':
     dependencies:
       '@jsr/logtape__logtape': 2.0.7
       '@multiformats/base-x': 4.0.1
@@ -7739,17 +7739,17 @@ snapshots:
       jsonld: 9.0.0
       pkijs: 3.4.0
 
-  '@jsr/fedify__vocab@2.2.1':
+  '@jsr/fedify__vocab@2.2.4':
     dependencies:
-      '@jsr/fedify__vocab-runtime': 2.2.1
-      '@jsr/fedify__webfinger': 2.2.1
+      '@jsr/fedify__vocab-runtime': 2.2.4
+      '@jsr/fedify__webfinger': 2.2.4
       '@jsr/logtape__logtape': 2.0.7
       '@opentelemetry/api': 1.9.1
       es-toolkit: 1.45.1
 
-  '@jsr/fedify__webfinger@2.2.1':
+  '@jsr/fedify__webfinger@2.2.4':
     dependencies:
-      '@jsr/fedify__vocab-runtime': 2.2.1
+      '@jsr/fedify__vocab-runtime': 2.2.4
       '@jsr/logtape__logtape': 2.0.7
       '@opentelemetry/api': 1.9.1
 
@@ -9281,8 +9281,8 @@ snapshots:
     dependencies:
       '@mdx-js/react': 3.1.1(@types/react@19.2.14)(react@19.2.5)
       '@storybook/csf-plugin': 10.3.5(esbuild@0.27.7)(rollup@4.60.1)(storybook@10.3.5(@testing-library/dom@10.4.1)(react-dom@19.2.5(react@0.14.10))(react@0.14.10))(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1))
-      '@storybook/icons': 2.0.1(react-dom@19.2.5(react@0.14.10))(react@19.2.5)
-      '@storybook/react-dom-shim': 10.3.5(react-dom@19.2.5(react@0.14.10))(react@19.2.5)(storybook@10.3.5(@testing-library/dom@10.4.1)(react-dom@19.2.5(react@0.14.10))(react@0.14.10))
+      '@storybook/icons': 2.0.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      '@storybook/react-dom-shim': 10.3.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(storybook@10.3.5(@testing-library/dom@10.4.1)(react-dom@19.2.5(react@0.14.10))(react@0.14.10))
       react: 19.2.5
       react-dom: 19.2.5(react@19.2.5)
       storybook: 10.3.5(@testing-library/dom@10.4.1)(react-dom@19.2.5(react@0.14.10))(react@0.14.10)
@@ -9321,12 +9321,12 @@ snapshots:
       react: 0.14.10
       react-dom: 19.2.5(react@19.2.5)
 
-  '@storybook/icons@2.0.1(react-dom@19.2.5(react@0.14.10))(react@19.2.5)':
+  '@storybook/icons@2.0.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5)':
     dependencies:
       react: 19.2.5
       react-dom: 19.2.5(react@19.2.5)
 
-  '@storybook/react-dom-shim@10.3.5(react-dom@19.2.5(react@0.14.10))(react@19.2.5)(storybook@10.3.5(@testing-library/dom@10.4.1)(react-dom@19.2.5(react@0.14.10))(react@0.14.10))':
+  '@storybook/react-dom-shim@10.3.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(storybook@10.3.5(@testing-library/dom@10.4.1)(react-dom@19.2.5(react@0.14.10))(react@0.14.10))':
     dependencies:
       react: 19.2.5
       react-dom: 19.2.5(react@19.2.5)
