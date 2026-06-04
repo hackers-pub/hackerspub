@@ -682,69 +682,70 @@ export default function AdminNewsPage() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent class="space-y-4">
-                      <form
-                        class="flex flex-col gap-3 sm:flex-row sm:items-end"
-                        on:submit={onAddPreferred}
-                      >
-                        <ActorHandleAutocomplete
-                          class="flex-1"
-                          inputId="news-sharer-handle"
-                          label={t`Account handle`}
-                          placeholder="@feed@example.com"
-                          value={handleInput()}
-                          disabled={addingPreferred()}
-                          onInput={(value) => {
-                            setHandleInput(value);
-                            setSelectedActorUuid(null);
-                          }}
-                          onSelect={(actor) => {
-                            setHandleInput(actor.handle);
-                            setSelectedActorUuid(actor.uuid);
-                          }}
-                        />
-                        <Select
-                          class="grid gap-1.5"
-                          value={promotionInput()}
-                          onChange={(v) => v && setPromotionInput(v)}
-                          options={PROMOTION_OPTIONS}
-                          itemComponent={(props) => (
-                            <SelectItem item={props.item}>
-                              {props.item.rawValue === "STRONG"
-                                ? t`Strong`
-                                : t`Normal`}
-                            </SelectItem>
-                          )}
-                        >
-                          <SelectLabel>{t`Promotion`}</SelectLabel>
-                          <SelectTrigger class="w-[140px]">
-                            <SelectValue<NewsPromotion>>
-                              {(state) =>
-                                state.selectedOption() === "STRONG"
+                      <form class="space-y-3" on:submit={onAddPreferred}>
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
+                          <ActorHandleAutocomplete
+                            class="flex-1"
+                            inputId="news-sharer-handle"
+                            label={t`Account handle`}
+                            placeholder="@feed@example.com"
+                            value={handleInput()}
+                            disabled={addingPreferred()}
+                            onInput={(value) => {
+                              setHandleInput(value);
+                              setSelectedActorUuid(null);
+                            }}
+                            onSelect={(actor) => {
+                              setHandleInput(actor.handle);
+                              setSelectedActorUuid(actor.uuid);
+                            }}
+                          />
+                          <Select
+                            class="grid gap-1.5"
+                            value={promotionInput()}
+                            onChange={(v) => v && setPromotionInput(v)}
+                            options={PROMOTION_OPTIONS}
+                            itemComponent={(props) => (
+                              <SelectItem item={props.item}>
+                                {props.item.rawValue === "STRONG"
                                   ? t`Strong`
                                   : t`Normal`}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent />
-                        </Select>
-                        <TextField class="grid flex-1 gap-1.5">
-                          <TextFieldLabel for="news-sharer-note">
-                            {t`Note (optional)`}
-                          </TextFieldLabel>
-                          <TextFieldInput
-                            id="news-sharer-note"
-                            type="text"
-                            value={preferredNoteInput()}
-                            onInput={(e) =>
-                              setPreferredNoteInput(e.currentTarget.value)}
-                          />
-                        </TextField>
-                        <Button
-                          type="submit"
-                          disabled={addingPreferred() ||
-                            handleInput().trim().length < 1}
-                        >
-                          {addingPreferred() ? t`Adding…` : t`Add`}
-                        </Button>
+                              </SelectItem>
+                            )}
+                          >
+                            <SelectLabel>{t`Promotion`}</SelectLabel>
+                            <SelectTrigger class="w-[140px]">
+                              <SelectValue<NewsPromotion>>
+                                {(state) =>
+                                  state.selectedOption() === "STRONG"
+                                    ? t`Strong`
+                                    : t`Normal`}
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent />
+                          </Select>
+                        </div>
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
+                          <TextField class="grid flex-1 gap-1.5">
+                            <TextFieldLabel for="news-sharer-note">
+                              {t`Note (optional)`}
+                            </TextFieldLabel>
+                            <TextFieldInput
+                              id="news-sharer-note"
+                              type="text"
+                              value={preferredNoteInput()}
+                              onInput={(e) =>
+                                setPreferredNoteInput(e.currentTarget.value)}
+                            />
+                          </TextField>
+                          <Button
+                            type="submit"
+                            disabled={addingPreferred() ||
+                              handleInput().trim().length < 1}
+                          >
+                            {addingPreferred() ? t`Adding…` : t`Add`}
+                          </Button>
+                        </div>
                       </form>
                       <Show
                         when={preferredSharers().length > 0}
