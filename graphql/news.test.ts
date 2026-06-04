@@ -981,3 +981,203 @@ Deno.test({
     });
   },
 });
+
+const addPreferredMutation = parse(`
+  mutation AddPreferred($actorId: UUID!, $promotion: NewsPromotion, $note: String) {
+    addNewsPreferredSharer(actorId: $actorId, promotion: $promotion, note: $note) {
+      __typename
+      ... on NewsPreferredSharer { id promotion note actor { uuid } }
+      ... on NotAuthenticatedError { notAuthenticated }
+      ... on NotAuthorizedError { notAuthorized }
+      ... on InvalidInputError { inputPath }
+    }
+  }
+`);
+const preferredQuery = parse(
+  `query { newsPreferredSharers { id promotion actor { uuid } } }`,
+);
+const removePreferredMutation = parse(`
+  mutation RemovePreferred($id: UUID!) {
+    removeNewsPreferredSharer(id: $id) {
+      __typename
+      ... on RemoveNewsPreferredSharerPayload { removedId }
+      ... on NotAuthenticatedError { notAuthenticated }
+      ... on NotAuthorizedError { notAuthorized }
+    }
+  }
+`);
+
+Deno.test({
+  name: "preferred sharers whitelist a bot's link and are moderator-only",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const moderator = await makeModerator(tx, {
+        username: "prefmod",
+        name: "Pref Mod",
+        email: "prefmod@example.com",
+      });
+      const bot = await insertRemoteActor(tx, {
+        username: "hnfeed",
+        name: "HN Feed",
+        host: "bots.example",
+        type: "Service",
+      });
+      const link = await insertPostLink(tx, { url: "https://example.com/hn" });
+      await insertNotePost(tx, {
+        account: moderator,
+        actorId: bot.id,
+        link: { id: link.id, url: link.url },
+      });
+      await recomputeNewsScores(tx);
+
+      // The bot's share is excluded from the feed before any curation.
+      const before = await execute({
+        schema,
+        document: newsStoriesQuery,
+        variableValues: { first: 10 },
+        contextValue: makeGuestContext(tx),
+        onError: "NO_PROPAGATE",
+      });
+      assert(
+        !(before.data as unknown as NewsStoriesResult).newsStories.edges
+          .some((e) => e.node.url === link.url),
+      );
+
+      // Guests cannot curate or read the list.
+      const guestAdd = await execute({
+        schema,
+        document: addPreferredMutation,
+        variableValues: { actorId: bot.id, promotion: "STRONG", note: null },
+        contextValue: makeGuestContext(tx),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(
+        (guestAdd.data as { addNewsPreferredSharer: { __typename: string } })
+          .addNewsPreferredSharer.__typename,
+        "NotAuthenticatedError",
+      );
+      const guestList = await execute({
+        schema,
+        document: preferredQuery,
+        contextValue: makeGuestContext(tx),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(
+        (guestList.data as { newsPreferredSharers: unknown })
+          .newsPreferredSharers,
+        null,
+      );
+
+      // A non-moderator is rejected too.
+      const { account: plain } = await insertAccountWithActor(tx, {
+        username: "prefplain",
+        name: "Pref Plain",
+        email: "prefplain@example.com",
+      });
+      const nonMod = await execute({
+        schema,
+        document: addPreferredMutation,
+        variableValues: { actorId: bot.id, promotion: "STRONG", note: null },
+        contextValue: makeUserContext(tx, plain),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(
+        (nonMod.data as { addNewsPreferredSharer: { __typename: string } })
+          .addNewsPreferredSharer.__typename,
+        "NotAuthorizedError",
+      );
+
+      // An unknown actor id is an InvalidInputError.
+      const bogus = await execute({
+        schema,
+        document: addPreferredMutation,
+        variableValues: {
+          actorId: "00000000-0000-7000-8000-000000000000",
+          promotion: "STRONG",
+          note: null,
+        },
+        contextValue: makeUserContext(tx, moderator),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(
+        (bogus.data as { addNewsPreferredSharer: { __typename: string } })
+          .addNewsPreferredSharer.__typename,
+        "InvalidInputError",
+      );
+
+      // A moderator curates the bot; its link enters the feed.
+      const add = await execute({
+        schema,
+        document: addPreferredMutation,
+        variableValues: { actorId: bot.id, promotion: "STRONG", note: "HN" },
+        contextValue: makeUserContext(tx, moderator),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(add.errors, undefined);
+      const added = (add.data as {
+        addNewsPreferredSharer: {
+          __typename: string;
+          id: string;
+          promotion: string;
+          actor: { uuid: string };
+        };
+      }).addNewsPreferredSharer;
+      assertEquals(added.__typename, "NewsPreferredSharer");
+      assertEquals(added.promotion, "STRONG");
+      assertEquals(added.actor.uuid, bot.id);
+
+      const feed = await execute({
+        schema,
+        document: newsStoriesQuery,
+        variableValues: { first: 10 },
+        contextValue: makeGuestContext(tx),
+        onError: "NO_PROPAGATE",
+      });
+      assert(
+        (feed.data as unknown as NewsStoriesResult).newsStories.edges
+          .some((e) => e.node.url === link.url),
+      );
+
+      // The moderator can read the curated list.
+      const list = await execute({
+        schema,
+        document: preferredQuery,
+        contextValue: makeUserContext(tx, moderator),
+        onError: "NO_PROPAGATE",
+      });
+      const sharers = (list.data as {
+        newsPreferredSharers: { id: string; promotion: string }[];
+      }).newsPreferredSharers;
+      assertEquals(sharers.length, 1);
+      assertEquals(sharers[0].promotion, "STRONG");
+
+      // Removing the curation drops the bot-only link back out.
+      const remove = await execute({
+        schema,
+        document: removePreferredMutation,
+        variableValues: { id: added.id },
+        contextValue: makeUserContext(tx, moderator),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(
+        (remove.data as {
+          removeNewsPreferredSharer: { removedId: string };
+        }).removeNewsPreferredSharer.removedId,
+        added.id,
+      );
+      const feed2 = await execute({
+        schema,
+        document: newsStoriesQuery,
+        variableValues: { first: 10 },
+        contextValue: makeGuestContext(tx),
+        onError: "NO_PROPAGATE",
+      });
+      assert(
+        !(feed2.data as unknown as NewsStoriesResult).newsStories.edges
+          .some((e) => e.node.url === link.url),
+      );
+    });
+  },
+});

@@ -590,6 +590,8 @@ enum ActorType {
 
 union AddNewsExcludedPatternResult = InvalidInputError | NewsExcludedPattern | NotAuthenticatedError | NotAuthorizedError
 
+union AddNewsPreferredSharerResult = InvalidInputError | NewsPreferredSharer | NotAuthenticatedError | NotAuthorizedError
+
 """
 Add an emoji reaction to a post. Sends an ActivityPub `Like` or `EmojiReact` activity. Idempotent: adding the same emoji twice has no effect. Exactly one of `emoji` or `customEmojiId` must be provided. Requires authentication.
 """
@@ -1404,6 +1406,22 @@ type Mutation {
     """The `URLPattern` string to exclude, e.g. `https://example.com/*`."""
     pattern: String!
   ): AddNewsExcludedPatternResult!
+
+  """
+  Curate an actor as a preferred sharer (idempotent on the actor: re-adding updates its promotion and note) and rescore every link it has shared, whitelisting its shares into News and applying the promotion at once.  Requires a moderator account.  Raises `InvalidInputError` if no actor has that id.
+  """
+  addNewsPreferredSharer(
+    """
+    The curated actor's row UUID (`Actor.uuid`), e.g. resolved from a handle via `actorByHandle`.
+    """
+    actorId: UUID!
+
+    """An optional note explaining the curation."""
+    note: String
+
+    """How strongly to lift the sharer's links.  Defaults to `NORMAL`."""
+    promotion: NewsPromotion = NORMAL
+  ): AddNewsPreferredSharerResult!
   addReactionToPost(input: AddReactionToPostInput!): AddReactionToPostResult!
   attachArticleDraftMedium(input: AttachArticleDraftMediumInput!): AttachArticleDraftMediumResult!
   attachArticleSourceMedium(input: AttachArticleSourceMediumInput!): AttachArticleSourceMediumResult!
@@ -1574,6 +1592,14 @@ type Mutation {
     """The pattern's row UUID."""
     id: UUID!
   ): RemoveNewsExcludedPatternResult!
+
+  """
+  Remove a preferred sharer by id and rescore every link it had shared, so a link kept in News only by its whitelist drops out and its promotion is cleared.  Requires a moderator account.
+  """
+  removeNewsPreferredSharer(
+    """The curation row's UUID (`NewsPreferredSharer.id`)."""
+    id: UUID!
+  ): RemoveNewsPreferredSharerResult!
   removeReactionFromPost(input: RemoveReactionFromPostInput!): RemoveReactionFromPostResult!
   requestArticleTranslation(input: RequestArticleTranslationInput!): RequestArticleTranslationResult!
 
@@ -1723,6 +1749,41 @@ enum NewsPenalty {
   NONE
 }
 
+"""
+A moderator-curated actor whose shares are favored in the News feed: its shares count even when it is a bot (`Service`/`Application`) actor that would otherwise be excluded, and the links it shares get a flat `promotion` bonus in the `POPULAR` order.  Managed via `addNewsPreferredSharer`/`removeNewsPreferredSharer`; only moderators can read or change it.
+"""
+type NewsPreferredSharer {
+  """The curated actor whose shares are favored."""
+  actor: Actor!
+
+  """When the sharer was curated."""
+  created: DateTime!
+
+  """The curation row's UUID; pass it to `removeNewsPreferredSharer`."""
+  id: UUID!
+
+  """An optional moderator note explaining the curation."""
+  note: String
+
+  """How strongly this sharer's links are lifted."""
+  promotion: NewsPromotion!
+}
+
+"""
+How strongly a `news_preferred_sharer` lifts the links it shares in the `POPULAR` feed: a flat bonus added to the score, the mirror image of a `NewsPenalty`.  A penalty on a link overrides the promotion.  Only moderators set or read it.
+"""
+enum NewsPromotion {
+  """
+  Reliably surface the sharer's links (roughly a month of recency worth of score) without pinning them.
+  """
+  NORMAL
+
+  """
+  A larger lift for a high-signal curated feed (e.g. a Hacker News reposter).
+  """
+  STRONG
+}
+
 """A snapshot of news scoring state, for the moderator admin page."""
 type NewsScoreStatus {
   """When scores were last recomputed, or `null` if never."""
@@ -1735,7 +1796,7 @@ type NewsScoreStatus {
 }
 
 """
-How a link's public shares break down by origin.  Hackers' Pub posts carry the most weight, generic remote instances less, and Bluesky-bridged accounts (`@…@bsky.brid.gy`) the least.  Shares authored by bot accounts (`Service`/`Application` actors) are excluded throughout.
+How a link's public shares break down by origin.  Hackers' Pub posts carry the most weight, generic remote instances less, and Bluesky-bridged accounts (`@…@bsky.brid.gy`) the least.  Shares authored by bot accounts (`Service`/`Application` actors) are excluded throughout, unless the account is a curated preferred sharer.
 """
 type NewsSourceBreakdown {
   """Public shares bridged from Bluesky (`@…@bsky.brid.gy`)."""
@@ -2306,19 +2367,19 @@ type PostLink implements Node {
   description: String
 
   """
-  Size of this link's federated discussion: its non-bot public sharing posts plus their direct public (`public`/`unlisted`) replies and quotes.  Use this as the count of posts to read in the discussion (the `/news/{uuid}` page); unlike `postCount` it includes the replies and quotes, not just the shares.  Counts direct children only (deeper nesting is not traversed) and is viewer-independent (public posts only).
+  Size of this link's federated discussion: its qualifying public sharing posts (non-bot accounts, or curated preferred sharers) plus their direct public (`public`/`unlisted`) replies and quotes.  Use this as the count of posts to read in the discussion (the `/news/{uuid}` page); unlike `postCount` it includes the replies and quotes, not just the shares.  Counts direct children only (deeper nesting is not traversed) and is viewer-independent (public posts only).
   """
   discussionCount: Int!
 
   """
-  When this link was first shared publicly by a non-bot account, or `null` if it has never been.  Drives the `NEWEST` order.
+  When this link was first shared publicly by a qualifying account (a non-bot account, or a curated preferred sharer), or `null` if it has never been.  Drives the `NEWEST` order.
   """
   firstSharedAt: DateTime
   id: ID!
   image: PostLinkImage
 
   """
-  Timestamp of the freshest activity on this link's qualifying shares (the share itself, a reply, a quote, or a reaction); shares are public and authored by non-bot accounts.  A rapid repeat share by the same account does not refresh this (only a first share, a sufficiently-gapped re-share, or genuine replies/quotes/reactions do), so re-posting cannot keep a link pinned at the top.  `null` means the link is not a news story (no qualifying public share); such links are excluded from the feed.
+  Timestamp of the freshest activity on this link's qualifying shares (the share itself, a reply, a quote, or a reaction); shares are public and authored by non-bot accounts (or curated preferred sharers).  A rapid repeat share by the same account does not refresh this (only a first share, a sufficiently-gapped re-share, or genuine replies/quotes/reactions do), so re-posting cannot keep a link pinned at the top.  `null` means the link is not a news story (no qualifying public share); such links are excluded from the feed.
   """
   latestActivityAt: DateTime
 
@@ -2328,23 +2389,28 @@ type PostLink implements Node {
   penalty: NewsPenalty
 
   """
-  Number of public, non-boost posts across the fediverse that share this link, excluding shares from bot (`Service`/`Application`) accounts.  Counts every such post, including an account's repeated shares of the same link (a high count with a modest `score` is expected, since repeats contribute diminishing weight).
+  Number of public, non-boost posts across the fediverse that share this link, excluding shares from bot (`Service`/`Application`) accounts that are not curated preferred sharers.  Counts every such post, including an account's repeated shares of the same link (a high count with a modest `score` is expected, since repeats contribute diminishing weight).
   """
   postCount: Int!
 
   """
-  Popularity-over-time rank used by the `POPULAR` feed order: `log10(max(1, weightedMass)) + recency`.  Computed by a batch job and refreshed incrementally; recompute is idempotent and the value is time-stable (it changes only when the underlying posts or engagement change, not as the clock advances).  Shares from bot accounts (`Service`/`Application` actors) never count, so a link shared only by bots stays at `0`, as do links never shared publicly.  When one account shares the same link repeatedly, each share after the first adds only a small, gap-dependent fraction of the base weight (and a rapid repeat does not refresh recency), so re-posting cannot inflate the rank.
+  The preferred-sharer promotion lifting this link in the `POPULAR` feed, or `null` when it has none (and for non-moderators).  A link is promoted when a curated `news_preferred_sharer` shared it; a moderator penalty suppresses the promotion, so this reads `null` while the link is penalized.  Derived from the stored bonus.
+  """
+  promotion: NewsPromotion
+
+  """
+  Popularity-over-time rank used by the `POPULAR` feed order: `log10(max(1, weightedMass)) + recency + promotion - penalty`.  Computed by a batch job and refreshed incrementally; recompute is idempotent and the value is time-stable (it changes only when the underlying posts, engagement, or moderator curation change, not as the clock advances).  Shares from bot accounts (`Service`/`Application` actors) normally never count, so a link shared only by bots stays at `0`, as do links never shared publicly; the exception is a moderator-curated preferred sharer, whose shares count even when it is a bot and add a flat `promotion` bonus to the score (a moderator penalty on the link overrides that bonus).  When one account shares the same link repeatedly, each share after the first adds only a small, gap-dependent fraction of the base weight (and a rapid repeat does not refresh recency), so re-posting cannot inflate the rank.
   """
   score: Float!
 
   """
-  The posts that share this link, most recently published first, filtered to those visible to the viewer.  Shares authored by bot accounts (`Service`/`Application` actors) are excluded, matching the scoring.  These are the roots of the link's discussion tree.
+  The posts that share this link, most recently published first, filtered to those visible to the viewer.  Shares authored by bot accounts (`Service`/`Application` actors) are excluded unless the account is a curated preferred sharer, matching the scoring.  These are the roots of the link's discussion tree.
   """
   sharingPosts(after: String, before: String, first: Int, last: Int): PostLinkSharingPostsConnection!
   siteName: String
 
   """
-  Counts of this link's public shares by origin (local / remote / Bluesky bridge), excluding shares from bot (`Service`/`Application`) accounts.
+  Counts of this link's public shares by origin (local / remote / Bluesky bridge), excluding shares from bot (`Service`/`Application`) accounts that are not curated preferred sharers.
   """
   sourceBreakdown: NewsSourceBreakdown!
   title: String
@@ -2357,7 +2423,7 @@ type PostLink implements Node {
   uuid: UUID!
 
   """
-  Recency-independent engagement mass: the weighted sum over this link's public shares (excluding bot `Service`/`Application` accounts) of source weight times account reputation times (quotes, replies, reactions).  Repeated shares of the same link by the same account add diminishing base weight (recovering with the gap but always below a first share).  Drives the `ALL_TIME` order.
+  Recency-independent engagement mass: the weighted sum over this link's public shares (excluding bot `Service`/`Application` accounts unless curated as preferred sharers) of source weight times account reputation times (quotes, replies, reactions).  Repeated shares of the same link by the same account add diminishing base weight (recovering with the gap but always below a first share).  Drives the `ALL_TIME` order.
   """
   weightedMass: Float!
 }
@@ -2636,6 +2702,11 @@ type Query {
   Moderator-only list of news links currently carrying a score penalty, heaviest first, for reviewing/clearing demotions (a buried link is no longer near the top of the feed).  `null` for non-moderators.
   """
   newsPenalizedStories: [PostLink!]
+
+  """
+  Moderator-only list of curated preferred sharers, newest first.  `null` for non-moderators.
+  """
+  newsPreferredSharers: [NewsPreferredSharer!]
 
   """
   Moderator-only news scoring snapshot.  Returns `null` when the viewer is not a moderator; routes should guard with `viewer.moderator`.
@@ -3328,6 +3399,14 @@ type RemoveNewsExcludedPatternPayload {
 }
 
 union RemoveNewsExcludedPatternResult = NotAuthenticatedError | NotAuthorizedError | RemoveNewsExcludedPatternPayload
+
+"""The result of removing a preferred sharer."""
+type RemoveNewsPreferredSharerPayload {
+  """The removed curation row's id, or `null` if none had that id."""
+  removedId: UUID
+}
+
+union RemoveNewsPreferredSharerResult = NotAuthenticatedError | NotAuthorizedError | RemoveNewsPreferredSharerPayload
 
 """
 Remove an emoji reaction from a post. Sends an ActivityPub `Undo Like` activity. Idempotent: removing a reaction that doesn't exist returns `success: true`. Exactly one of `emoji` or `customEmojiId` must be provided. Requires authentication.

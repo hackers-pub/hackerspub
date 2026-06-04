@@ -1,6 +1,7 @@
 import { createGraphQLError } from "graphql-yoga";
 import {
   addNewsExcludedPattern,
+  addNewsPreferredSharer,
   getNewsDiscussionCounts,
   getNewsExcludedPatterns,
   getNewsPenalizedStories,
@@ -8,13 +9,16 @@ import {
   getNewsSourceBreakdowns,
   getNewsStories,
   InvalidNewsPatternError,
-  NEWS_BOT_ACTOR_TYPES,
   NEWS_PENALTY_BURY,
   NEWS_PENALTY_DEMOTE,
+  NEWS_PROMOTE_NORMAL,
+  NEWS_PROMOTE_STRONG,
   type NewsOrder as NewsOrderValue,
+  newsSharerPostFilter,
   type NewsStoriesCursor,
   recomputeNewsScores,
   removeNewsExcludedPattern,
+  removeNewsPreferredSharer,
   setNewsScorePenalty,
 } from "@hackerspub/models/news";
 import { getPostVisibilityFilter } from "@hackerspub/models/post";
@@ -92,6 +96,46 @@ function penaltyLevel(scorePenalty: number): NewsPenaltyValue {
 }
 
 // ---------------------------------------------------------------------------
+// Preferred-sharer promotion
+// ---------------------------------------------------------------------------
+
+type NewsPromotionValue = "normal" | "strong";
+
+export const NewsPromotion = builder.enumType("NewsPromotion", {
+  description:
+    "How strongly a `news_preferred_sharer` lifts the links it shares in the " +
+    "`POPULAR` feed: a flat bonus added to the score, the mirror image of a " +
+    "`NewsPenalty`.  A penalty on a link overrides the promotion.  Only " +
+    "moderators set or read it.",
+  values: {
+    NORMAL: {
+      value: "normal",
+      description:
+        "Reliably surface the sharer's links (roughly a month of recency " +
+        "worth of score) without pinning them.",
+    },
+    STRONG: {
+      value: "strong",
+      description:
+        "A larger lift for a high-signal curated feed (e.g. a Hacker News " +
+        "reposter).",
+    },
+  } as const,
+});
+
+const PROMOTION_VALUE: Record<NewsPromotionValue, number> = {
+  normal: NEWS_PROMOTE_NORMAL,
+  strong: NEWS_PROMOTE_STRONG,
+};
+
+// Map a stored bonus back to the coarser level the API exposes.  Bonuses are
+// only ever set from the presets above, but a threshold keeps the mapping total
+// if the constants are retuned.
+function promotionLevel(bonus: number): NewsPromotionValue {
+  return bonus >= NEWS_PROMOTE_STRONG ? "strong" : "normal";
+}
+
+// ---------------------------------------------------------------------------
 // PostLink scoring fields
 // ---------------------------------------------------------------------------
 
@@ -100,7 +144,8 @@ const NewsSourceBreakdown = builder.simpleObject("NewsSourceBreakdown", {
     "How a link's public shares break down by origin.  Hackers' Pub posts " +
     "carry the most weight, generic remote instances less, and Bluesky-" +
     "bridged accounts (`@…@bsky.brid.gy`) the least.  Shares authored by bot " +
-    "accounts (`Service`/`Application` actors) are excluded throughout.",
+    "accounts (`Service`/`Application` actors) are excluded throughout, unless " +
+    "the account is a curated preferred sharer.",
   fields: (t) => ({
     local: t.int({
       description: "Public shares authored by local Hackers' Pub accounts.",
@@ -126,39 +171,46 @@ builder.drizzleObjectFields(PostLink, (t) => ({
   score: t.exposeFloat("score", {
     description:
       "Popularity-over-time rank used by the `POPULAR` feed order: " +
-      "`log10(max(1, weightedMass)) + recency`.  Computed by a batch job and " +
-      "refreshed incrementally; recompute is idempotent and the value is " +
-      "time-stable (it changes only when the underlying posts or engagement " +
-      "change, not as the clock advances).  Shares from bot accounts " +
-      "(`Service`/`Application` actors) never count, so a link shared only by " +
-      "bots stays at `0`, as do links never shared publicly.  When one account " +
-      "shares the same link repeatedly, each share after the first adds only a " +
-      "small, gap-dependent fraction of the base weight (and a rapid repeat " +
-      "does not refresh recency), so re-posting cannot inflate the rank.",
+      "`log10(max(1, weightedMass)) + recency + promotion - penalty`.  " +
+      "Computed by a batch job and refreshed incrementally; recompute is " +
+      "idempotent and the value is time-stable (it changes only when the " +
+      "underlying posts, engagement, or moderator curation change, not as the " +
+      "clock advances).  Shares from bot accounts (`Service`/`Application` " +
+      "actors) normally never count, so a link shared only by bots stays at " +
+      "`0`, as do links never shared publicly; the exception is a moderator-" +
+      "curated preferred sharer, whose shares count even when it is a bot and " +
+      "add a flat `promotion` bonus to the score (a moderator penalty on the " +
+      "link overrides that bonus).  When one account shares the same link " +
+      "repeatedly, each share after the first adds only a small, gap-dependent " +
+      "fraction of the base weight (and a rapid repeat does not refresh " +
+      "recency), so re-posting cannot inflate the rank.",
   }),
   weightedMass: t.exposeFloat("weightedMass", {
     description:
       "Recency-independent engagement mass: the weighted sum over this " +
-      "link's public shares (excluding bot `Service`/`Application` accounts) " +
-      "of source weight times account reputation times (quotes, replies, " +
-      "reactions).  Repeated shares of the same link by the same account add " +
-      "diminishing base weight (recovering with the gap but always below a " +
-      "first share).  Drives the `ALL_TIME` order.",
+      "link's public shares (excluding bot `Service`/`Application` accounts " +
+      "unless curated as preferred sharers) of source weight times account " +
+      "reputation times (quotes, replies, reactions).  Repeated shares of the " +
+      "same link by the same account add diminishing base weight (recovering " +
+      "with the gap but always below a first share).  Drives the `ALL_TIME` " +
+      "order.",
   }),
   postCount: t.exposeInt("postCount", {
     description:
       "Number of public, non-boost posts across the fediverse that share " +
-      "this link, excluding shares from bot (`Service`/`Application`) " +
-      "accounts.  Counts every such post, including an account's repeated " +
-      "shares of the same link (a high count with a modest `score` is " +
-      "expected, since repeats contribute diminishing weight).",
+      "this link, excluding shares from bot (`Service`/`Application`) accounts " +
+      "that are not curated preferred sharers.  Counts every such post, " +
+      "including an account's repeated shares of the same link (a high count " +
+      "with a modest `score` is expected, since repeats contribute " +
+      "diminishing weight).",
   }),
   firstSharedAt: t.expose("firstSharedAt", {
     type: "DateTime",
     nullable: true,
     description:
-      "When this link was first shared publicly by a non-bot account, or " +
-      "`null` if it has never been.  Drives the `NEWEST` order.",
+      "When this link was first shared publicly by a qualifying account (a " +
+      "non-bot account, or a curated preferred sharer), or `null` if it has " +
+      "never been.  Drives the `NEWEST` order.",
   }),
   latestActivityAt: t.expose("latestActivityAt", {
     type: "DateTime",
@@ -166,7 +218,8 @@ builder.drizzleObjectFields(PostLink, (t) => ({
     description:
       "Timestamp of the freshest activity on this link's qualifying shares " +
       "(the share itself, a reply, a quote, or a reaction); shares are public " +
-      "and authored by non-bot accounts.  A rapid repeat share by the same " +
+      "and authored by non-bot accounts (or curated preferred sharers).  A " +
+      "rapid repeat share by the same " +
       "account does not refresh this (only a first share, a sufficiently-" +
       "gapped re-share, or genuine replies/quotes/reactions do), so re-posting " +
       "cannot keep a link pinned at the top.  `null` means the link is not a " +
@@ -178,13 +231,14 @@ builder.drizzleObjectFields(PostLink, (t) => ({
     description:
       "The posts that share this link, most recently published first, " +
       "filtered to those visible to the viewer.  Shares authored by bot " +
-      "accounts (`Service`/`Application` actors) are excluded, matching the " +
-      "scoring.  These are the roots of the link's discussion tree.",
+      "accounts (`Service`/`Application` actors) are excluded unless the " +
+      "account is a curated preferred sharer, matching the scoring.  These are " +
+      "the roots of the link's discussion tree.",
     query: (_args, ctx) => ({
       where: {
         AND: [
           getPostVisibilityFilter(ctx.account?.actor ?? null),
-          { actor: { type: { notIn: [...NEWS_BOT_ACTOR_TYPES] } } },
+          newsSharerPostFilter(),
         ],
       },
       orderBy: { published: "desc" },
@@ -195,7 +249,7 @@ builder.drizzleObjectFields(PostLink, (t) => ({
     description:
       "Counts of this link's public shares by origin (local / remote / " +
       "Bluesky bridge), excluding shares from bot (`Service`/`Application`) " +
-      "accounts.",
+      "accounts that are not curated preferred sharers.",
     resolve: (link) => link.id,
     load: async (linkIds: Uuid[], ctx) => {
       const breakdowns = await getNewsSourceBreakdowns(ctx.db, linkIds);
@@ -207,8 +261,9 @@ builder.drizzleObjectFields(PostLink, (t) => ({
   discussionCount: t.loadable({
     type: "Int",
     description:
-      "Size of this link's federated discussion: its non-bot public sharing " +
-      "posts plus their direct public (`public`/`unlisted`) replies and " +
+      "Size of this link's federated discussion: its qualifying public " +
+      "sharing posts (non-bot accounts, or curated preferred sharers) plus " +
+      "their direct public (`public`/`unlisted`) replies and " +
       "quotes.  Use this as the count of posts to read in the discussion " +
       "(the `/news/{uuid}` page); unlike `postCount` it includes the replies " +
       "and quotes, not just the shares.  Counts direct children only (deeper " +
@@ -231,6 +286,22 @@ builder.drizzleObjectFields(PostLink, (t) => ({
     resolve(link, _args, ctx) {
       if (ctx.session == null || !ctx.account?.moderator) return null;
       return penaltyLevel(link.scorePenalty);
+    },
+  }),
+  promotion: t.field({
+    type: NewsPromotion,
+    nullable: true,
+    description:
+      "The preferred-sharer promotion lifting this link in the `POPULAR` " +
+      "feed, or `null` when it has none (and for non-moderators).  A link is " +
+      "promoted when a curated `news_preferred_sharer` shared it; a moderator " +
+      "penalty suppresses the promotion, so this reads `null` while the link " +
+      "is penalized.  Derived from the stored bonus.",
+    select: { columns: { promotionBonus: true } },
+    resolve(link, _args, ctx) {
+      if (ctx.session == null || !ctx.account?.moderator) return null;
+      if (link.promotionBonus <= 0) return null;
+      return promotionLevel(link.promotionBonus);
     },
   }),
 }));
@@ -642,6 +713,150 @@ builder.mutationField("removeNewsExcludedPattern", (t) =>
       if (ctx.session == null) throw new NotAuthenticatedError();
       if (!ctx.account?.moderator) throw new NotAuthorizedError();
       const removed = await removeNewsExcludedPattern(ctx.db, args.id);
+      return { removedId: removed ? args.id : null };
+    },
+  }));
+
+// ---------------------------------------------------------------------------
+// Admin: preferred sharers
+// ---------------------------------------------------------------------------
+
+const NewsPreferredSharer = builder.drizzleObject("newsPreferredSharerTable", {
+  name: "NewsPreferredSharer",
+  description:
+    "A moderator-curated actor whose shares are favored in the News feed: its " +
+    "shares count even when it is a bot (`Service`/`Application`) actor that " +
+    "would otherwise be excluded, and the links it shares get a flat " +
+    "`promotion` bonus in the `POPULAR` order.  Managed via " +
+    "`addNewsPreferredSharer`/`removeNewsPreferredSharer`; only moderators can " +
+    "read or change it.",
+  fields: (t) => ({
+    id: t.expose("id", {
+      type: "UUID",
+      description:
+        "The curation row's UUID; pass it to `removeNewsPreferredSharer`.",
+    }),
+    actor: t.relation("actor", {
+      description: "The curated actor whose shares are favored.",
+    }),
+    promotion: t.field({
+      type: NewsPromotion,
+      description: "How strongly this sharer's links are lifted.",
+      select: { columns: { bonus: true } },
+      resolve: (sharer) => promotionLevel(sharer.bonus),
+    }),
+    note: t.exposeString("note", {
+      nullable: true,
+      description: "An optional moderator note explaining the curation.",
+    }),
+    created: t.expose("created", {
+      type: "DateTime",
+      description: "When the sharer was curated.",
+    }),
+  }),
+});
+
+builder.queryField("newsPreferredSharers", (t) =>
+  t.drizzleField({
+    type: [NewsPreferredSharer],
+    nullable: true,
+    description:
+      "Moderator-only list of curated preferred sharers, newest first.  " +
+      "`null` for non-moderators.",
+    async resolve(query, _root, _args, ctx) {
+      if (ctx.session == null) return null;
+      if (!ctx.account?.moderator) return null;
+      return await ctx.db.query.newsPreferredSharerTable.findMany(
+        query({ orderBy: { created: "desc" } }),
+      );
+    },
+  }));
+
+builder.mutationField("addNewsPreferredSharer", (t) =>
+  t.field({
+    type: NewsPreferredSharer,
+    description:
+      "Curate an actor as a preferred sharer (idempotent on the actor: " +
+      "re-adding updates its promotion and note) and rescore every link it " +
+      "has shared, whitelisting its shares into News and applying the " +
+      "promotion at once.  Requires a moderator account.  Raises " +
+      "`InvalidInputError` if no actor has that id.",
+    errors: {
+      types: [NotAuthenticatedError, NotAuthorizedError, InvalidInputError],
+    },
+    args: {
+      actorId: t.arg({
+        type: "UUID",
+        required: true,
+        description:
+          "The curated actor's row UUID (`Actor.uuid`), e.g. resolved from a " +
+          "handle via `actorByHandle`.",
+      }),
+      promotion: t.arg({
+        type: NewsPromotion,
+        defaultValue: "normal",
+        description:
+          "How strongly to lift the sharer's links.  Defaults to `NORMAL`.",
+      }),
+      note: t.arg.string({
+        description: "An optional note explaining the curation.",
+      }),
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.session == null) throw new NotAuthenticatedError();
+      if (!ctx.account?.moderator) throw new NotAuthorizedError();
+      const actor = await ctx.db.query.actorTable.findFirst({
+        where: { id: args.actorId },
+        columns: { id: true },
+      });
+      if (actor == null) throw new InvalidInputError("actorId");
+      // `promotion` carries a default but is still nullable, so an explicit
+      // `null` reaches here; fall back to the default rather than indexing
+      // `PROMOTION_VALUE` with `null` (which would throw a bare `RangeError`).
+      const promotion = (args.promotion ?? "normal") as NewsPromotionValue;
+      return await addNewsPreferredSharer(ctx.db, {
+        actorId: args.actorId,
+        bonus: PROMOTION_VALUE[promotion],
+        note: args.note ?? null,
+        creatorId: ctx.account.id,
+      });
+    },
+  }));
+
+const RemoveNewsPreferredSharerPayload = builder.simpleObject(
+  "RemoveNewsPreferredSharerPayload",
+  {
+    description: "The result of removing a preferred sharer.",
+    fields: (t) => ({
+      removedId: t.field({
+        type: "UUID",
+        nullable: true,
+        description:
+          "The removed curation row's id, or `null` if none had that id.",
+      }),
+    }),
+  },
+);
+
+builder.mutationField("removeNewsPreferredSharer", (t) =>
+  t.field({
+    type: RemoveNewsPreferredSharerPayload,
+    description:
+      "Remove a preferred sharer by id and rescore every link it had shared, " +
+      "so a link kept in News only by its whitelist drops out and its " +
+      "promotion is cleared.  Requires a moderator account.",
+    errors: { types: [NotAuthenticatedError, NotAuthorizedError] },
+    args: {
+      id: t.arg({
+        type: "UUID",
+        required: true,
+        description: "The curation row's UUID (`NewsPreferredSharer.id`).",
+      }),
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.session == null) throw new NotAuthenticatedError();
+      if (!ctx.account?.moderator) throw new NotAuthorizedError();
+      const removed = await removeNewsPreferredSharer(ctx.db, args.id);
       return { removedId: removed ? args.id : null };
     },
   }));
