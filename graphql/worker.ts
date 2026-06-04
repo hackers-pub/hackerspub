@@ -1,7 +1,10 @@
 // Must be the first import — see instrument.ts for the rationale.
 import "./instrument.ts";
 
-import { recomputeNewsScores } from "@hackerspub/models/news";
+import {
+  drainNewsRescoreQueue,
+  recomputeNewsScores,
+} from "@hackerspub/models/news";
 import { getLogger } from "@logtape/logtape";
 import { sql } from "drizzle-orm";
 import * as models from "./ai.ts";
@@ -76,6 +79,33 @@ Deno.cron("recompute-news-scores", "*/5 * * * *", {
     }
   } catch (error) {
     newsLogger.error("News score sweep failed: {error}", { error });
+  }
+});
+
+// Drain the News rescore queue.  Curating or un-curating a preferred sharer
+// enqueues the actor (in the API process) instead of rescoring its links inline,
+// which would blow past the request statement timeout for a high-volume feed
+// bot.  This drains that backlog off the request path, in chunks.  It fires
+// every minute (not on the 5-minute sweep) so a moderator's change surfaces
+// quickly.  `drainNewsRescoreQueue` leases each actor with `for update skip
+// locked`, so running it on every replica's cron is safe (replicas claim
+// disjoint actors); no advisory lock like the sweep above.
+Deno.cron("drain-news-rescore-queue", "* * * * *", {
+  signal: controller.signal,
+}, async () => {
+  try {
+    const { actorsProcessed, linksRecomputed } = await drainNewsRescoreQueue(
+      db,
+    );
+    if (actorsProcessed > 0) {
+      newsLogger.debug(
+        "Drained {actorsProcessed} news rescore(s); recomputed " +
+          "{linksRecomputed} link(s).",
+        { actorsProcessed, linksRecomputed },
+      );
+    }
+  } catch (error) {
+    newsLogger.error("News rescore drain failed: {error}", { error });
   }
 });
 
