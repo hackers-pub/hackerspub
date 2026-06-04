@@ -1565,6 +1565,11 @@ type Mutation {
   redeemInvitationLink(email: Email!, id: UUID!, locale: Locale!, verifyUrl: URITemplate!): RedeemInvitationLinkResult!
 
   """
+  Re-fetch a remote actor or post and overwrite its cached row. Moderator-only; raises `NotAuthenticatedError` for guests, `NotAuthorizedError` for non-moderators, and `InvalidInputError` when the URI cannot be resolved, resolves to neither an actor nor a post, or points at a local object.
+  """
+  refreshRemoteObject(input: RefreshRemoteObjectInput!): RefreshRemoteObjectResult!
+
+  """
   Grant +1 invitation to the top third of accounts with at least one post since the last regeneration cutoff, and persist the new last-regen timestamp.
   """
   regenerateInvitations: RegenerateInvitationsResult!
@@ -3206,6 +3211,37 @@ enum RedeemVerifyUrlError {
   VERIFY_URL_NO_CODE
   VERIFY_URL_NO_TOKEN
 }
+
+"""
+Force a re-fetch of a remote actor or post from its origin server and overwrite the cached copy, for when the local copy is stale or broken (a renamed profile, an edited post, a missing avatar). Requires a moderator account. The fetched object only: it does not pull the actor's outbox or the post's reply tree.
+"""
+input RefreshRemoteObjectInput {
+  clientMutationId: ID
+
+  """
+  The object to refresh, given as its ActivityPub IRI, an HTTP URL, or a `@user@host` handle. Resolved via the same federation lookup as `searchObject`. Must point to a remote object: refreshing a local actor or post raises `InvalidInputError`.
+  """
+  uri: String!
+}
+
+"""
+The refreshed object. Exactly one of `actor` or `post` is non-`null`, matching whichever kind the URI resolved to.
+"""
+type RefreshRemoteObjectPayload {
+  """The refreshed remote actor, or `null` when the URI resolved to a post."""
+  actor: Actor
+  clientMutationId: ID
+
+  """
+  The refreshed remote post, or `null` when the URI resolved to an actor.
+  """
+  post: Post
+}
+
+"""
+Result of refreshing a remote object: the refreshed actor or post on success, or a typed error.
+"""
+union RefreshRemoteObjectResult = InvalidInputError | NotAuthenticatedError | NotAuthorizedError | RefreshRemoteObjectPayload
 
 """The result of a successful invitations regeneration."""
 type RegenerateInvitationsPayload {
