@@ -7,6 +7,8 @@ import type { Transaction } from "./db.ts";
 import {
   addNewsExcludedPattern,
   addNewsPreferredSharer,
+  drainNewsRescoreQueue,
+  enqueueNewsRescore,
   getNewsDiscussionCounts,
   getNewsExcludedPatterns,
   getNewsPenalizedStories,
@@ -40,7 +42,12 @@ import {
   setNewsScorePenalty,
 } from "./news.ts";
 import { syncPostFromNoteSource } from "./post.ts";
-import { actorTable, instanceTable, postTable } from "./schema.ts";
+import {
+  actorTable,
+  instanceTable,
+  newsRescoreQueueTable,
+  postTable,
+} from "./schema.ts";
 import type { Uuid } from "./uuid.ts";
 import {
   createFedCtx,
@@ -2095,6 +2102,7 @@ Deno.test({
         actorId: pref.actor.id,
         bonus: NEWS_PROMOTE_NORMAL,
       });
+      await drainNewsRescoreQueue(tx);
 
       const promoted = await readLink(tx, a.id);
       assertEquals(promoted.promotionBonus, NEWS_PROMOTE_NORMAL);
@@ -2138,6 +2146,7 @@ Deno.test({
         actorId: pref.actor.id,
         bonus: NEWS_PROMOTE_NORMAL,
       });
+      await drainNewsRescoreQueue(tx);
       assertAlmostEquals(
         (await readLink(tx, link.id)).score,
         base + NEWS_PROMOTE_NORMAL,
@@ -2194,6 +2203,7 @@ Deno.test({
         actorId: bot.id,
         bonus: NEWS_PROMOTE_NORMAL,
       });
+      await drainNewsRescoreQueue(tx);
       const promoted = await readLink(tx, link.id);
       assertEquals(promoted.postCount, 1);
       assert(promoted.latestActivityAt != null);
@@ -2219,6 +2229,7 @@ Deno.test({
       // Removing the preferred sharer drops the bot-only link back out.
       const [sharer] = await getNewsPreferredSharers(tx);
       assertEquals(await removeNewsPreferredSharer(tx, sharer.id), true);
+      await drainNewsRescoreQueue(tx);
       const dropped = await readLink(tx, link.id);
       assertEquals(dropped.latestActivityAt, null);
       assertEquals(dropped.score, 0);
@@ -2269,6 +2280,7 @@ Deno.test({
         actorId: strong.actor.id,
         bonus: NEWS_PROMOTE_STRONG,
       });
+      await drainNewsRescoreQueue(tx);
 
       // The link carries the larger bonus, not the sum of the two.
       assertEquals(
@@ -2302,6 +2314,7 @@ Deno.test({
         actorId: pref.actor.id,
         bonus: NEWS_PROMOTE_NORMAL,
       });
+      await drainNewsRescoreQueue(tx);
       assertEquals(
         (await readLink(tx, link.id)).promotionBonus,
         NEWS_PROMOTE_NORMAL,
@@ -2312,6 +2325,7 @@ Deno.test({
         bonus: NEWS_PROMOTE_STRONG,
         note: "bumped",
       });
+      await drainNewsRescoreQueue(tx);
       // One row per actor, with the updated bonus reflected in the score.
       const sharers = await getNewsPreferredSharers(tx);
       assertEquals(sharers.length, 1);
@@ -2340,6 +2354,144 @@ Deno.test({
         () => addNewsPreferredSharer(tx, { actorId: pref.actor.id, bonus: 0 }),
         RangeError,
       );
+    });
+  },
+});
+
+Deno.test({
+  name: "addNewsPreferredSharer defers the rescore to drainNewsRescoreQueue",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const host = await insertAccountWithActor(tx, {
+        username: "deferhost",
+        name: "Defer Host",
+        email: "deferhost@example.com",
+      });
+      const bot = await insertRemoteActor(tx, {
+        username: "deferbot",
+        name: "Defer Bot",
+        host: "bots.example",
+        type: "Service",
+      });
+      const link = await insertPostLink(tx, { url: "https://example.com/df" });
+      await insertNotePost(tx, {
+        account: host.account,
+        actorId: bot.id,
+        link: { id: link.id, url: link.url },
+      });
+      await recomputeNewsScores(tx);
+      assertEquals((await readLink(tx, link.id)).latestActivityAt, null);
+
+      // Adding the sharer enqueues the actor but does NOT score the link yet.
+      await addNewsPreferredSharer(tx, {
+        actorId: bot.id,
+        bonus: NEWS_PROMOTE_NORMAL,
+      });
+      assertEquals((await readLink(tx, link.id)).latestActivityAt, null);
+      const queued = await tx.select().from(newsRescoreQueueTable);
+      assertEquals(queued.length, 1);
+      assertEquals(queued[0].actorId, bot.id);
+
+      // Draining performs the deferred rescore and clears the queue.
+      const result = await drainNewsRescoreQueue(tx);
+      assertEquals(result.actorsProcessed, 1);
+      assert(result.linksRecomputed >= 1);
+      assert((await readLink(tx, link.id)).latestActivityAt != null);
+      assertEquals(
+        (await tx.select().from(newsRescoreQueueTable)).length,
+        0,
+      );
+
+      // A second drain with an empty queue is a no-op.
+      assertEquals(
+        (await drainNewsRescoreQueue(tx)).actorsProcessed,
+        0,
+      );
+    });
+  },
+});
+
+Deno.test({
+  name: "drainNewsRescoreQueue skips a leased actor until the lease expires",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const host = await insertAccountWithActor(tx, {
+        username: "leasehost",
+        name: "Lease Host",
+        email: "leasehost@example.com",
+      });
+      const bot = await insertRemoteActor(tx, {
+        username: "leasebot",
+        name: "Lease Bot",
+        host: "bots.example",
+        type: "Service",
+      });
+      const link = await insertPostLink(tx, { url: "https://example.com/ls" });
+      await insertNotePost(tx, {
+        account: host.account,
+        actorId: bot.id,
+        link: { id: link.id, url: link.url },
+      });
+      await recomputeNewsScores(tx);
+      await addNewsPreferredSharer(tx, {
+        actorId: bot.id,
+        bonus: NEWS_PROMOTE_NORMAL,
+      });
+
+      // Simulate another replica holding a fresh lease on this actor: a drain
+      // must leave it alone (no double processing) and the link stays unscored.
+      await tx
+        .update(newsRescoreQueueTable)
+        .set({ claimedAt: new Date() })
+        .where(eq(newsRescoreQueueTable.actorId, bot.id));
+      assertEquals((await drainNewsRescoreQueue(tx)).actorsProcessed, 0);
+      assertEquals((await readLink(tx, link.id)).latestActivityAt, null);
+      assertEquals((await tx.select().from(newsRescoreQueueTable)).length, 1);
+
+      // Once the lease is stale (the holder crashed), a drain reclaims it.
+      await tx
+        .update(newsRescoreQueueTable)
+        .set({ claimedAt: new Date("2020-01-01T00:00:00.000Z") })
+        .where(eq(newsRescoreQueueTable.actorId, bot.id));
+      assertEquals((await drainNewsRescoreQueue(tx)).actorsProcessed, 1);
+      assert((await readLink(tx, link.id)).latestActivityAt != null);
+      assertEquals((await tx.select().from(newsRescoreQueueTable)).length, 0);
+    });
+  },
+});
+
+Deno.test({
+  name: "enqueueNewsRescore marks an already-queued actor dirty",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const actor = await insertAccountWithActor(tx, {
+        username: "dirtyq",
+        name: "Dirty Q",
+        email: "dirtyq@example.com",
+      });
+      // First enqueue creates a clean pending row.
+      await enqueueNewsRescore(tx, actor.actor.id);
+      const [first] = await tx
+        .select()
+        .from(newsRescoreQueueTable)
+        .where(eq(newsRescoreQueueTable.actorId, actor.actor.id));
+      assertEquals(first.dirty, false);
+
+      // A second enqueue (a re-add/remove) marks the existing row dirty, so a
+      // worker already processing it will reopen and rescore again.
+      await enqueueNewsRescore(tx, actor.actor.id);
+      const rows = await tx
+        .select()
+        .from(newsRescoreQueueTable)
+        .where(eq(newsRescoreQueueTable.actorId, actor.actor.id));
+      assertEquals(rows.length, 1);
+      assertEquals(rows[0].dirty, true);
     });
   },
 });

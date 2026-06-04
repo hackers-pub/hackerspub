@@ -1317,6 +1317,39 @@ export type NewsPreferredSharer = typeof newsPreferredSharerTable.$inferSelect;
 export type NewNewsPreferredSharer =
   typeof newsPreferredSharerTable.$inferInsert;
 
+// A durable backlog of actors whose News links need rescoring, drained by the
+// background worker.  Curating or un-curating a `news_preferred_sharer` can
+// affect every link the actor has ever shared; recomputing them inline would
+// blow past the request's statement timeout for a high-volume feed bot, so the
+// add/remove mutations only enqueue here (one row per actor: the PK is the
+// de-dup) and the worker drains it in chunks off the request path.  This is a
+// thin interim queue; it can be replaced by Fedify's general task queue once
+// that lands (fedify-dev/fedify#206).
+export const newsRescoreQueueTable = pgTable("news_rescore_queue", {
+  actorId: uuid("actor_id")
+    .$type<Uuid>()
+    .primaryKey()
+    .references((): AnyPgColumn => actorTable.id, { onDelete: "cascade" }),
+  enqueued: timestamp({ withTimezone: true })
+    .notNull()
+    .default(currentTimestamp),
+  // Lease timestamp: set when a worker claims this actor, refreshed while it
+  // processes, and cleared (the row deleted) on success.  `null` means
+  // unclaimed; a claim older than the lease window is treated as abandoned (the
+  // worker crashed) and may be reclaimed.  This is what serializes processing of
+  // a given actor across the per-process `Deno.cron` drains.
+  claimedAt: timestamp("claimed_at", { withTimezone: true }),
+  // Set by an enqueue that lands while a worker is already processing this actor
+  // (the actor was re-added/removed mid-rescore).  The claim clears it; if it is
+  // set again by the time processing finishes, the worker reopens the row for
+  // another pass instead of deleting it, so links rescored before the change are
+  // not left with stale state.
+  dirty: boolean("dirty").notNull().default(false),
+});
+
+export type NewsRescoreQueueItem = typeof newsRescoreQueueTable.$inferSelect;
+export type NewNewsRescoreQueueItem = typeof newsRescoreQueueTable.$inferInsert;
+
 export const pollTable = pgTable(
   "poll",
   {

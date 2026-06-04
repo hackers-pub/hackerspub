@@ -19,6 +19,7 @@ import {
   newsExcludedPatternTable,
   type NewsPreferredSharer,
   newsPreferredSharerTable,
+  newsRescoreQueueTable,
   type PostLink,
   postLinkTable,
 } from "./schema.ts";
@@ -1147,9 +1148,12 @@ export function getNewsPreferredSharers(
 
 /**
  * Curate an actor as a preferred sharer (idempotent on the actor: re-adding
- * updates its `bonus`/`note`) and rescore every link it has shared, so its
- * shares are whitelisted into News and its promotion bonus is applied at once.
- * The actor must already exist locally; the foreign key enforces it.
+ * updates its `bonus`/`note`) and enqueue a background rescore of every link it
+ * has shared, so its shares are whitelisted into News and its promotion bonus is
+ * applied once the worker drains the queue.  The rescore is deferred (not run
+ * inline) because a high-volume feed bot can have shared far more links than fit
+ * the request's statement timeout; see `drainNewsRescoreQueue`.  The actor must
+ * already exist locally; the foreign key enforces it.
  */
 export async function addNewsPreferredSharer(
   db: Database,
@@ -1183,18 +1187,17 @@ export async function addNewsPreferredSharer(
       })
       .returning();
     if (row == null) throw new Error("Failed to persist preferred sharer.");
-    await recomputeNewsScores(tx, {
-      linkIds: await actorSharedLinkIds(tx, values.actorId),
-    });
+    await enqueueNewsRescore(tx, values.actorId);
     return row;
   };
   return isTransaction(db) ? await run(db) : await db.transaction(run);
 }
 
 /**
- * Remove a preferred sharer and rescore every link it had shared, so a link kept
- * in News only by its whitelist drops out and its promotion bonus is cleared.
- * Returns `false` if no preferred sharer had that id.
+ * Remove a preferred sharer and enqueue a background rescore of every link it
+ * had shared, so a link kept in News only by its whitelist drops out and its
+ * promotion bonus is cleared once the worker drains the queue.  Returns `false`
+ * if no preferred sharer had that id.
  */
 export async function removeNewsPreferredSharer(
   db: Database,
@@ -1206,10 +1209,162 @@ export async function removeNewsPreferredSharer(
       .where(eq(newsPreferredSharerTable.id, id))
       .returning({ actorId: newsPreferredSharerTable.actorId });
     if (removed == null) return false;
-    await recomputeNewsScores(tx, {
-      linkIds: await actorSharedLinkIds(tx, removed.actorId),
-    });
+    await enqueueNewsRescore(tx, removed.actorId);
     return true;
   };
   return isTransaction(db) ? await run(db) : await db.transaction(run);
+}
+
+// ---------------------------------------------------------------------------
+// Background rescore queue
+//
+// Curating or un-curating a preferred sharer can change the score of every link
+// that actor has ever shared.  Recomputing them inline would exceed the request
+// statement timeout for a high-volume feed bot, so add/remove only enqueue the
+// actor here and the worker drains it off the request path, in chunks.
+// Replaceable by Fedify's general task queue (fedify-dev/fedify#206).
+// ---------------------------------------------------------------------------
+
+/**
+ * Links rescored per recompute statement, kept small enough that each statement
+ * stays under the production statement timeout (the periodic sweep already
+ * recomputes more than this in one statement within the budget).
+ */
+export const NEWS_RESCORE_CHUNK_SIZE = 200;
+/** Actors a single drain pass claims before yielding to the next tick. */
+export const NEWS_RESCORE_MAX_ACTORS_PER_DRAIN = 50;
+/**
+ * Lease window (seconds): a claimed actor whose lease is older than this is
+ * treated as abandoned (the worker crashed) and may be reclaimed.  A worker
+ * refreshes its lease after every chunk, so this only needs to exceed one
+ * chunk's recompute time (well under the statement timeout), not the whole
+ * backlog's; it also bounds the retry delay after a failure or crash.
+ */
+export const NEWS_RESCORE_LEASE_SECONDS = 120;
+
+/**
+ * Enqueue an actor for a background News rescore (idempotent: the `actor_id` PK
+ * keeps at most one row per actor).  Called when the actor is added or removed
+ * as a preferred sharer.  If a row already exists, marks it `dirty` so that a
+ * change landing while a worker is mid-rescore forces another pass instead of
+ * being lost (the in-flight pass may have already rescored some links under the
+ * old state).
+ */
+export async function enqueueNewsRescore(
+  db: Database,
+  actorId: Uuid,
+): Promise<void> {
+  await db
+    .insert(newsRescoreQueueTable)
+    .values({ actorId })
+    .onConflictDoUpdate({
+      target: newsRescoreQueueTable.actorId,
+      set: { dirty: true },
+    });
+}
+
+export interface DrainNewsRescoreQueueResult {
+  /** Number of queued actors fully rescored this pass. */
+  readonly actorsProcessed: number;
+  /** Total links written across those actors. */
+  readonly linksRecomputed: number;
+}
+
+/**
+ * Drain the News rescore queue: for each claimed actor, recompute every link it
+ * has shared, in chunks, off the request path.
+ *
+ * Concurrency: `Deno.cron` fires per worker process, so several replicas run
+ * this at once.  Each claim *leases* one actor (sets `claimed_at`) with
+ * `for update skip locked`, so a given actor is processed by exactly one replica
+ * at a time; the worker refreshes the lease after every chunk so a long backlog
+ * cannot expire mid-flight and let another replica race it on the same links.
+ * Replicas claim disjoint actors and make progress in parallel, so (unlike the
+ * whole-table sweep) no advisory lock is needed.
+ *
+ * Durability: the row is deleted only after the actor is fully rescored.  A
+ * failure or crash leaves the lease in place; once it expires another pass
+ * reclaims and retries the actor (the recompute is idempotent).  The catch path
+ * therefore writes nothing, so it is safe even when `db` is a transaction whose
+ * failing statement aborted it.  In production the worker passes the connection
+ * pool; tests pass a rollback transaction, where the claim and the inline
+ * recompute behave like an immediate rescore.
+ *
+ * Consistency under re-curation: the claim clears the `dirty` flag, so if an
+ * add/remove of the same actor lands while we are processing (which only marks
+ * the existing row `dirty`), the completion sees `dirty` again and reopens the
+ * row for another full pass rather than deleting it, so links rescored before
+ * the change are not left with stale promotion state.
+ */
+export async function drainNewsRescoreQueue(
+  db: Database,
+  options: { maxActors?: number; chunkSize?: number; leaseSeconds?: number } =
+    {},
+): Promise<DrainNewsRescoreQueueResult> {
+  const maxActors = options.maxActors ?? NEWS_RESCORE_MAX_ACTORS_PER_DRAIN;
+  const chunkSize = options.chunkSize ?? NEWS_RESCORE_CHUNK_SIZE;
+  const leaseSeconds = options.leaseSeconds ?? NEWS_RESCORE_LEASE_SECONDS;
+  let actorsProcessed = 0;
+  let linksRecomputed = 0;
+  for (let pass = 0; pass < maxActors; pass++) {
+    // Lease the oldest claimable actor in one statement: unclaimed, or whose
+    // lease has expired.  `for update skip locked` makes a concurrent drain skip
+    // this row instead of blocking, so two replicas never lease the same actor.
+    const claimed = await db.execute(sql`
+      update news_rescore_queue
+      set claimed_at = now(), dirty = false
+      where actor_id in (
+        select actor_id from news_rescore_queue
+        where claimed_at is null
+          or claimed_at < now() - ${leaseSeconds} * interval '1 second'
+        order by enqueued
+        for update skip locked
+        limit 1
+      )
+      returning actor_id
+    `) as unknown as { actor_id: Uuid }[];
+    const actorId = claimed[0]?.actor_id;
+    if (actorId == null) break;
+    try {
+      const linkIds = await actorSharedLinkIds(db, actorId);
+      for (let i = 0; i < linkIds.length; i += chunkSize) {
+        const { linksUpdated } = await recomputeNewsScores(db, {
+          linkIds: linkIds.slice(i, i + chunkSize),
+        });
+        linksRecomputed += linksUpdated;
+        // Refresh the lease so a long backlog cannot expire and be reclaimed by
+        // another replica mid-flight.
+        await db.execute(sql`
+          update news_rescore_queue set claimed_at = now()
+          where actor_id = ${actorId}
+        `);
+      }
+      // Done, unless an add/remove of this actor landed mid-pass (which set
+      // `dirty`): then reopen the row (clear the lease) for another full pass so
+      // links rescored before the change pick up the new state; otherwise drop
+      // it.
+      const deleted = await db.execute(sql`
+        delete from news_rescore_queue
+        where actor_id = ${actorId} and dirty = false
+        returning actor_id
+      `) as unknown as { actor_id: Uuid }[];
+      if (deleted.length < 1) {
+        await db.execute(sql`
+          update news_rescore_queue set claimed_at = null
+          where actor_id = ${actorId}
+        `);
+      }
+      actorsProcessed++;
+    } catch (error) {
+      // Leave the lease in place and stop; it expires and a later pass retries.
+      // Writing nothing here keeps the catch safe for a transactional caller
+      // whose failing statement aborted the transaction.
+      logger.error(
+        "News rescore for actor {actorId} failed; lease will retry: {error}",
+        { actorId, error },
+      );
+      break;
+    }
+  }
+  return { actorsProcessed, linksRecomputed };
 }
