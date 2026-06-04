@@ -50,7 +50,7 @@ msgid "{0, plural, one {# invitation left} other {# invitations left}}"
 msgstr "{0, plural, one {# invitation left} other {# invitations left}}"
 
 #. placeholder {0}: status()?.scoredLinkCount ?? 0
-#: src/routes/(root)/admin/news.tsx:350
+#: src/routes/(root)/admin/news.tsx:544
 msgid "{0, plural, one {# link is currently in the news feed.} other {# links are currently in the news feed.}}"
 msgstr "{0, plural, one {# link is currently in the news feed.} other {# links are currently in the news feed.}}"
 
@@ -107,7 +107,7 @@ msgid "{0, plural, one {Load # more reactor} other {Load # more reactors}}"
 msgstr "{0, plural, one {Load # more reactor} other {Load # more reactors}}"
 
 #. placeholder {0}: result.linksUpdated!
-#: src/routes/(root)/admin/news.tsx:190
+#: src/routes/(root)/admin/news.tsx:281
 msgid "{0, plural, one {Recomputed # link.} other {Recomputed # links.}}"
 msgstr "{0, plural, one {Recomputed # link.} other {Recomputed # links.}}"
 
@@ -313,7 +313,7 @@ msgstr "{count, plural, one {# opinion} other {# opinions}}"
 msgid "A name for the link that will be displayed on your profile, e.g., GitHub."
 msgstr "A name for the link that will be displayed on your profile, e.g., GitHub."
 
-#: src/routes/(root)/admin/relay.tsx:242
+#: src/routes/(root)/admin/relay.tsx:258
 msgid "A relay only starts forwarding posts once it has accepted the follow. Until then the subscription stays pending."
 msgstr "A relay only starts forwarding posts once it has accepted the follow. Until then the subscription stays pending."
 
@@ -326,6 +326,10 @@ msgstr "A sign-in link has been sent to your email. Please check your inbox (or 
 msgid "Account"
 msgstr "Account"
 
+#: src/routes/(root)/admin/news.tsx:669
+msgid "Account handle"
+msgstr "Account handle"
+
 #: src/components/AppSidebar.tsx:773
 #: src/routes/(root)/admin/index.tsx:95
 msgid "Accounts"
@@ -336,12 +340,13 @@ msgstr "Accounts"
 msgid "Actions"
 msgstr "Actions"
 
-#: src/routes/(root)/admin/relay.tsx:290
+#: src/routes/(root)/admin/relay.tsx:306
 msgid "Active since"
 msgstr "Active since"
 
 #: src/routes/(root)/[handle]/settings/language.tsx:196
-#: src/routes/(root)/admin/news.tsx:421
+#: src/routes/(root)/admin/news.tsx:615
+#: src/routes/(root)/admin/news.tsx:724
 msgid "Add"
 msgstr "Add"
 
@@ -354,7 +359,8 @@ msgstr "Add {0}"
 msgid "Add to sidebar"
 msgstr "Add to sidebar"
 
-#: src/routes/(root)/admin/news.tsx:421
+#: src/routes/(root)/admin/news.tsx:615
+#: src/routes/(root)/admin/news.tsx:724
 msgid "Adding…"
 msgstr "Adding…"
 
@@ -583,7 +589,7 @@ msgid "Browser notifications enabled"
 msgstr "Browser notifications enabled"
 
 #: src/components/NewsStoryCard.tsx:215
-#: src/routes/(root)/admin/news.tsx:492
+#: src/routes/(root)/admin/news.tsx:803
 msgid "Buried"
 msgstr "Buried"
 
@@ -641,7 +647,7 @@ msgid "Choose your preferred language for the verification email."
 msgstr "Choose your preferred language for the verification email."
 
 #: src/components/admin/AdminAccountsTable.tsx:213
-#: src/routes/(root)/admin/news.tsx:501
+#: src/routes/(root)/admin/news.tsx:812
 msgid "Clear"
 msgstr "Clear"
 
@@ -830,7 +836,7 @@ msgid "Demote"
 msgstr "Demote"
 
 #: src/components/NewsStoryCard.tsx:215
-#: src/routes/(root)/admin/news.tsx:493
+#: src/routes/(root)/admin/news.tsx:804
 msgid "Demoted"
 msgstr "Demoted"
 
@@ -998,15 +1004,15 @@ msgstr "Enter your email or username below to sign in."
 msgid "Error"
 msgstr "Error"
 
-#: src/routes/(root)/admin/news.tsx:382
+#: src/routes/(root)/admin/news.tsx:576
 msgid "Excluded URL patterns"
 msgstr "Excluded URL patterns"
 
-#: src/routes/(root)/admin/news.tsx:233
+#: src/routes/(root)/admin/news.tsx:324
 msgid "Exclusion pattern added."
 msgstr "Exclusion pattern added."
 
-#: src/routes/(root)/admin/news.tsx:268
+#: src/routes/(root)/admin/news.tsx:359
 msgid "Exclusion pattern removed."
 msgstr "Exclusion pattern removed."
 
@@ -1025,9 +1031,13 @@ msgstr "Expiry"
 msgid "Extra message"
 msgstr "Extra message"
 
-#: src/routes/(root)/admin/news.tsx:252
+#: src/routes/(root)/admin/news.tsx:343
 msgid "Failed to add exclusion pattern."
 msgstr "Failed to add exclusion pattern."
+
+#: src/routes/(root)/admin/news.tsx:474
+msgid "Failed to add preferred sharer."
+msgstr "Failed to add preferred sharer."
 
 #: src/components/HashtagActionBar.tsx:192
 #: src/components/HashtagActionBar.tsx:199
@@ -1044,7 +1054,7 @@ msgstr "Failed to block this user"
 msgid "Failed to bookmark"
 msgstr "Failed to bookmark"
 
-#: src/routes/(root)/admin/news.tsx:310
+#: src/routes/(root)/admin/news.tsx:401
 msgid "Failed to clear penalty."
 msgstr "Failed to clear penalty."
 
@@ -1178,6 +1188,10 @@ msgstr "Failed to load quoted post"
 msgid "Failed to load replies; click to retry"
 msgstr "Failed to load replies; click to retry"
 
+#: src/routes/(root)/admin/news.tsx:427
+msgid "Failed to look up the actor."
+msgstr "Failed to look up the actor."
+
 #: src/components/RemoteFollowButton.tsx:126
 msgid "Failed to look up user."
 msgstr "Failed to look up user."
@@ -1203,7 +1217,7 @@ msgstr "Failed to pin post"
 msgid "Failed to react"
 msgstr "Failed to react"
 
-#: src/routes/(root)/admin/news.tsx:212
+#: src/routes/(root)/admin/news.tsx:303
 msgid "Failed to recompute news scores."
 msgstr "Failed to recompute news scores."
 
@@ -1220,7 +1234,7 @@ msgstr "Failed to register passkey"
 msgid "Failed to remove bookmark"
 msgstr "Failed to remove bookmark"
 
-#: src/routes/(root)/admin/news.tsx:281
+#: src/routes/(root)/admin/news.tsx:372
 msgid "Failed to remove exclusion pattern."
 msgstr "Failed to remove exclusion pattern."
 
@@ -1228,6 +1242,10 @@ msgstr "Failed to remove exclusion pattern."
 #: src/components/HashtagActionBar.tsx:219
 msgid "Failed to remove from sidebar"
 msgstr "Failed to remove from sidebar"
+
+#: src/routes/(root)/admin/news.tsx:503
+msgid "Failed to remove preferred sharer."
+msgstr "Failed to remove preferred sharer."
 
 #: src/components/MarkdownEditor.tsx:192
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:462
@@ -1272,7 +1290,7 @@ msgstr "Failed to share post"
 msgid "Failed to sign out: {0}"
 msgstr "Failed to sign out: {0}"
 
-#: src/routes/(root)/admin/relay.tsx:148
+#: src/routes/(root)/admin/relay.tsx:157
 msgid "Failed to subscribe to the relay."
 msgstr "Failed to subscribe to the relay."
 
@@ -1306,7 +1324,7 @@ msgstr "Failed to unpin post"
 msgid "Failed to unshare post"
 msgstr "Failed to unshare post"
 
-#: src/routes/(root)/admin/relay.tsx:175
+#: src/routes/(root)/admin/relay.tsx:191
 msgid "Failed to unsubscribe from the relay."
 msgstr "Failed to unsubscribe from the relay."
 
@@ -1336,6 +1354,10 @@ msgstr "Failed to upload image"
 #: src/components/QuestionCard.tsx:431
 msgid "Failed to vote"
 msgstr "Failed to vote"
+
+#: src/routes/(root)/admin/news.tsx:659
+msgid "Favor links shared by specific accounts. A preferred sharer's posts count toward the news feed even when the account is a bot (for example a feed that reposts Hacker News links), and the links it shares get a flat promotion bonus in the popular ranking. A penalty on a link overrides the promotion."
+msgstr "Favor links shared by specific accounts. A preferred sharer's posts count toward the news feed even when the account is a bot (for example a feed that reposts Hacker News links), and the links it shares get a flat promotion bonus in the popular ranking. A penalty on a link overrides the promotion."
 
 #: src/components/AppSidebar.tsx:377
 msgid "Fediverse"
@@ -1466,7 +1488,7 @@ msgstr "Hackers' Pub: Admin · Invitations"
 msgid "Hackers' Pub: Admin · Media"
 msgstr "Hackers' Pub: Admin · Media"
 
-#: src/routes/(root)/admin/news.tsx:320
+#: src/routes/(root)/admin/news.tsx:513
 msgid "Hackers' Pub: Admin · News"
 msgstr "Hackers' Pub: Admin · News"
 
@@ -1474,7 +1496,7 @@ msgstr "Hackers' Pub: Admin · News"
 #~ msgid "Hackers' Pub: Admin · News scores"
 #~ msgstr "Hackers' Pub: Admin · News scores"
 
-#: src/routes/(root)/admin/relay.tsx:185
+#: src/routes/(root)/admin/relay.tsx:201
 msgid "Hackers' Pub: Admin · Relays"
 msgstr "Hackers' Pub: Admin · Relays"
 
@@ -1505,7 +1527,7 @@ msgstr "Heading 3"
 msgid "Hide"
 msgstr "Hide"
 
-#: src/routes/(root)/admin/news.tsx:384
+#: src/routes/(root)/admin/news.tsx:578
 msgid "Hide links matching a URL pattern from the news feed list (every sort order). Their discussion pages stay reachable by direct link. Patterns use the URLPattern syntax, e.g. https://example.com/* or https://*.example.com/*."
 msgstr "Hide links matching a URL pattern from the news feed list (every sort order). Their discussion pages stay reachable by direct link. Patterns use the URLPattern syntax, e.g. https://example.com/* or https://*.example.com/*."
 
@@ -1689,7 +1711,7 @@ msgstr "Last active"
 msgid "Last activity"
 msgstr "Last activity"
 
-#: src/routes/(root)/admin/news.tsx:360
+#: src/routes/(root)/admin/news.tsx:554
 msgid "Last recomputed:"
 msgstr "Last recomputed:"
 
@@ -1722,7 +1744,7 @@ msgstr "Link expired"
 msgid "Link name"
 msgstr "Link name"
 
-#: src/routes/(root)/admin/news.tsx:465
+#: src/routes/(root)/admin/news.tsx:776
 msgid "Links a moderator has demoted in the popular feed. Clear a penalty to restore a link's normal ranking."
 msgstr "Links a moderator has demoted in the popular feed. Clear a penalty to restore a link's normal ranking."
 
@@ -1911,7 +1933,7 @@ msgstr "Look up user"
 msgid "Looking up user…"
 msgstr "Looking up user…"
 
-#: src/routes/(root)/admin/relay.tsx:207
+#: src/routes/(root)/admin/relay.tsx:223
 msgid "Make this instance's instance actor follow an ActivityPub relay, so the relay forwards public posts from across the fediverse to this instance. Enter the relay actor's URL, e.g. https://relay.example/actor."
 msgstr "Make this instance's instance actor follow an ActivityPub relay, so the relay forwards public posts from across the fediverse to this instance. Enter the relay actor's URL, e.g. https://relay.example/actor."
 
@@ -2006,7 +2028,7 @@ msgstr "Name is too long. Maximum length is 50 characters."
 msgid "Native name"
 msgstr "Native name"
 
-#: src/routes/(root)/admin/news.tsx:365
+#: src/routes/(root)/admin/news.tsx:559
 msgid "never"
 msgstr "never"
 
@@ -2043,7 +2065,7 @@ msgstr "Newest"
 
 #: src/components/AppSidebar.tsx:244
 #: src/components/AppSidebar.tsx:842
-#: src/routes/(root)/admin/news.tsx:337
+#: src/routes/(root)/admin/news.tsx:531
 #: src/routes/(root)/news/index.tsx:39
 msgid "News"
 msgstr "News"
@@ -2057,6 +2079,10 @@ msgstr "News"
 msgid "Next image"
 msgstr "Next image"
 
+#: src/routes/(root)/admin/news.tsx:438
+msgid "No actor found for that handle."
+msgstr "No actor found for that handle."
+
 #: src/components/Bookmarks.tsx:131
 msgid "No bookmarks yet"
 msgstr "No bookmarks yet"
@@ -2069,7 +2095,7 @@ msgstr "No draft to delete"
 msgid "No drafts yet. Create your first article!"
 msgstr "No drafts yet. Create your first article!"
 
-#: src/routes/(root)/admin/news.tsx:428
+#: src/routes/(root)/admin/news.tsx:622
 msgid "No exclusion patterns yet."
 msgstr "No exclusion patterns yet."
 
@@ -2113,7 +2139,7 @@ msgstr "No one has shared this link in a public post yet."
 msgid "No one has shared this yet."
 msgstr "No one has shared this yet."
 
-#: src/routes/(root)/admin/news.tsx:473
+#: src/routes/(root)/admin/news.tsx:784
 msgid "No penalized links."
 msgstr "No penalized links."
 
@@ -2124,6 +2150,10 @@ msgstr "No penalized links."
 #: src/components/SearchResults.tsx:109
 msgid "No posts found"
 msgstr "No posts found"
+
+#: src/routes/(root)/admin/news.tsx:731
+msgid "No preferred sharers yet."
+msgstr "No preferred sharers yet."
 
 #: src/components/PushNotificationPreviewPolicySelect.tsx:39
 msgid "No previews"
@@ -2150,7 +2180,13 @@ msgstr "No such account in Hackers' Pub—please try again."
 msgid "No user URI provided."
 msgstr "No user URI provided."
 
-#: src/routes/(root)/admin/news.tsx:303
+#: src/routes/(root)/admin/news.tsx:692
+#: src/routes/(root)/admin/news.tsx:701
+#: src/routes/(root)/admin/news.tsx:750
+msgid "Normal"
+msgstr "Normal"
+
+#: src/routes/(root)/admin/news.tsx:394
 msgid "Not authorized to clear penalties."
 msgstr "Not authorized to clear penalties."
 
@@ -2158,17 +2194,22 @@ msgstr "Not authorized to clear penalties."
 msgid "Not authorized to delete orphan media."
 msgstr "Not authorized to delete orphan media."
 
-#: src/routes/(root)/admin/news.tsx:244
-#: src/routes/(root)/admin/news.tsx:274
+#: src/routes/(root)/admin/news.tsx:335
+#: src/routes/(root)/admin/news.tsx:365
 msgid "Not authorized to manage exclusions."
 msgstr "Not authorized to manage exclusions."
 
-#: src/routes/(root)/admin/relay.tsx:140
-#: src/routes/(root)/admin/relay.tsx:168
+#: src/routes/(root)/admin/news.tsx:466
+#: src/routes/(root)/admin/news.tsx:496
+msgid "Not authorized to manage preferred sharers."
+msgstr "Not authorized to manage preferred sharers."
+
+#: src/routes/(root)/admin/relay.tsx:149
+#: src/routes/(root)/admin/relay.tsx:183
 msgid "Not authorized to manage relays."
 msgstr "Not authorized to manage relays."
 
-#: src/routes/(root)/admin/news.tsx:203
+#: src/routes/(root)/admin/news.tsx:294
 msgid "Not authorized to recompute news scores."
 msgstr "Not authorized to recompute news scores."
 
@@ -2185,7 +2226,7 @@ msgstr "Not found"
 #~ msgid "Not found."
 #~ msgstr "Not found."
 
-#: src/routes/(root)/admin/relay.tsx:250
+#: src/routes/(root)/admin/relay.tsx:266
 msgid "Not subscribed to any relays yet."
 msgstr "Not subscribed to any relays yet."
 
@@ -2193,7 +2234,8 @@ msgstr "Not subscribed to any relays yet."
 #~ msgid "Note"
 #~ msgstr "Note"
 
-#: src/routes/(root)/admin/news.tsx:407
+#: src/routes/(root)/admin/news.tsx:601
+#: src/routes/(root)/admin/news.tsx:709
 msgid "Note (optional)"
 msgstr "Note (optional)"
 
@@ -2296,15 +2338,15 @@ msgstr "Passkey revoked"
 msgid "Passkeys"
 msgstr "Passkeys"
 
-#: src/routes/(root)/admin/news.tsx:463
+#: src/routes/(root)/admin/news.tsx:774
 msgid "Penalized links"
 msgstr "Penalized links"
 
-#: src/routes/(root)/admin/news.tsx:297
+#: src/routes/(root)/admin/news.tsx:388
 msgid "Penalty cleared."
 msgstr "Penalty cleared."
 
-#: src/routes/(root)/admin/relay.tsx:286
+#: src/routes/(root)/admin/relay.tsx:302
 msgid "Pending"
 msgstr "Pending"
 
@@ -2398,6 +2440,18 @@ msgstr "Preferred language"
 msgid "Preferred languages"
 msgstr "Preferred languages"
 
+#: src/routes/(root)/admin/news.tsx:455
+msgid "Preferred sharer added."
+msgstr "Preferred sharer added."
+
+#: src/routes/(root)/admin/news.tsx:490
+msgid "Preferred sharer removed."
+msgstr "Preferred sharer removed."
+
+#: src/routes/(root)/admin/news.tsx:657
+msgid "Preferred sharers"
+msgstr "Preferred sharers"
+
 #: src/components/article-composer/ArticleComposerForm.tsx:111
 #: src/components/MarkdownEditor.tsx:164
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:427
@@ -2429,6 +2483,10 @@ msgstr "Profile actions"
 #: src/routes/(root)/[handle]/settings/index.tsx:126
 msgid "Profile settings"
 msgstr "Profile settings"
+
+#: src/routes/(root)/admin/news.tsx:682
+msgid "Promotion"
+msgstr "Promotion"
 
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:40
 #: src/components/PostVisibilitySelect.tsx:23
@@ -2533,7 +2591,7 @@ msgstr "Read full article"
 #~ msgid "Read the full Code of conduct"
 #~ msgstr "Read the full Code of conduct"
 
-#: src/routes/(root)/admin/news.tsx:344
+#: src/routes/(root)/admin/news.tsx:538
 msgid "Rebuilds the popularity score of every shared link from scratch. The operation is idempotent and safe to run at any time; scores normally stay fresh on their own, so this is mainly a manual backstop and a development tool."
 msgstr "Rebuilds the popularity score of every shared link from scratch. The operation is idempotent and safe to run at any time; scores normally stay fresh on their own, so this is mainly a manual backstop and a development tool."
 
@@ -2549,12 +2607,12 @@ msgstr "Receive notifications immediately through this browser, even when this t
 msgid "Recent drafts"
 msgstr "Recent drafts"
 
-#: src/routes/(root)/admin/news.tsx:342
-#: src/routes/(root)/admin/news.tsx:375
+#: src/routes/(root)/admin/news.tsx:536
+#: src/routes/(root)/admin/news.tsx:569
 msgid "Recompute news scores"
 msgstr "Recompute news scores"
 
-#: src/routes/(root)/admin/news.tsx:374
+#: src/routes/(root)/admin/news.tsx:568
 msgid "Recomputing…"
 msgstr "Recomputing…"
 
@@ -2594,12 +2652,12 @@ msgstr "Registered passkeys"
 msgid "Registering…"
 msgstr "Registering…"
 
-#: src/routes/(root)/admin/relay.tsx:217
+#: src/routes/(root)/admin/relay.tsx:233
 msgid "Relay actor URL"
 msgstr "Relay actor URL"
 
 #: src/components/AppSidebar.tsx:865
-#: src/routes/(root)/admin/relay.tsx:200
+#: src/routes/(root)/admin/relay.tsx:216
 msgid "Relays"
 msgstr "Relays"
 
@@ -2610,7 +2668,8 @@ msgid "Remote follow"
 msgstr "Remote follow"
 
 #: src/components/LanguageList.tsx:225
-#: src/routes/(root)/admin/news.tsx:451
+#: src/routes/(root)/admin/news.tsx:645
+#: src/routes/(root)/admin/news.tsx:762
 msgid "Remove"
 msgstr "Remove"
 
@@ -2898,23 +2957,29 @@ msgstr "Something went wrong"
 msgid "Something went wrong—please try again."
 msgstr "Something went wrong—please try again."
 
-#: src/routes/(root)/admin/relay.tsx:232
+#: src/routes/(root)/admin/news.tsx:691
+#: src/routes/(root)/admin/news.tsx:700
+#: src/routes/(root)/admin/news.tsx:749
+msgid "Strong"
+msgstr "Strong"
+
+#: src/routes/(root)/admin/relay.tsx:248
 msgid "Subscribe"
 msgstr "Subscribe"
 
-#: src/routes/(root)/admin/relay.tsx:205
+#: src/routes/(root)/admin/relay.tsx:221
 msgid "Subscribe to a relay"
 msgstr "Subscribe to a relay"
 
-#: src/routes/(root)/admin/relay.tsx:240
+#: src/routes/(root)/admin/relay.tsx:256
 msgid "Subscribed relays"
 msgstr "Subscribed relays"
 
-#: src/routes/(root)/admin/relay.tsx:129
+#: src/routes/(root)/admin/relay.tsx:138
 msgid "Subscribed to the relay."
 msgstr "Subscribed to the relay."
 
-#: src/routes/(root)/admin/relay.tsx:232
+#: src/routes/(root)/admin/relay.tsx:248
 msgid "Subscribing…"
 msgstr "Subscribing…"
 
@@ -2965,11 +3030,15 @@ msgstr "Tags"
 msgid "Tell us about yourself…"
 msgstr "Tell us about yourself…"
 
-#: src/routes/(root)/admin/relay.tsx:133
+#: src/routes/(root)/admin/news.tsx:459
+msgid "That actor could not be added."
+msgstr "That actor could not be added."
+
+#: src/routes/(root)/admin/relay.tsx:142
 msgid "That is not a valid relay actor URL."
 msgstr "That is not a valid relay actor URL."
 
-#: src/routes/(root)/admin/news.tsx:237
+#: src/routes/(root)/admin/news.tsx:328
 msgid "That is not a valid URL pattern."
 msgstr "That is not a valid URL pattern."
 
@@ -3255,11 +3324,11 @@ msgstr "Unpin from profile"
 msgid "Unshare"
 msgstr "Unshare"
 
-#: src/routes/(root)/admin/relay.tsx:303
+#: src/routes/(root)/admin/relay.tsx:322
 msgid "Unsubscribe"
 msgstr "Unsubscribe"
 
-#: src/routes/(root)/admin/relay.tsx:162
+#: src/routes/(root)/admin/relay.tsx:177
 msgid "Unsubscribed from the relay."
 msgstr "Unsubscribed from the relay."
 
@@ -3280,7 +3349,7 @@ msgstr "Upload progress"
 msgid "URL"
 msgstr "URL"
 
-#: src/routes/(root)/admin/news.tsx:394
+#: src/routes/(root)/admin/news.tsx:588
 msgid "URL pattern"
 msgstr "URL pattern"
 

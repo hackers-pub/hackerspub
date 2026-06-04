@@ -1,5 +1,5 @@
 import { A, Navigate, revalidate, useNavigate } from "@solidjs/router";
-import { graphql } from "relay-runtime";
+import { fetchQuery, graphql } from "relay-runtime";
 import { createSignal, For, Show } from "solid-js";
 import { createMutation, loadQuery, useRelayEnvironment } from "solid-relay";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
@@ -14,6 +14,14 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card.tsx";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select.tsx";
 import {
   TextField,
   TextFieldInput,
@@ -30,6 +38,9 @@ import type { newsAdminRecomputeMutation } from "./__generated__/newsAdminRecomp
 import type { newsAdminAddPatternMutation } from "./__generated__/newsAdminAddPatternMutation.graphql.ts";
 import type { newsAdminRemovePatternMutation } from "./__generated__/newsAdminRemovePatternMutation.graphql.ts";
 import type { newsAdminClearPenaltyMutation } from "./__generated__/newsAdminClearPenaltyMutation.graphql.ts";
+import type { newsAdminActorByHandleQuery } from "./__generated__/newsAdminActorByHandleQuery.graphql.ts";
+import type { newsAdminAddPreferredMutation } from "./__generated__/newsAdminAddPreferredMutation.graphql.ts";
+import type { newsAdminRemovePreferredMutation } from "./__generated__/newsAdminRemovePreferredMutation.graphql.ts";
 
 const newsAdminPageQuery = graphql`
   query newsAdminPageQuery {
@@ -51,6 +62,16 @@ const newsAdminPageQuery = graphql`
       url
       title
       penalty
+    }
+    newsPreferredSharers {
+      id
+      promotion
+      note
+      actor {
+        uuid
+        handle
+        name
+      }
     }
   }
 `;
@@ -141,6 +162,64 @@ const newsAdminClearPenaltyMutation = graphql`
   }
 `;
 
+const newsAdminActorByHandleQuery = graphql`
+  query newsAdminActorByHandleQuery($handle: String!) {
+    actorByHandle(handle: $handle, allowLocalHandle: true) {
+      uuid
+      handle
+    }
+  }
+`;
+
+const newsAdminAddPreferredMutation = graphql`
+  mutation newsAdminAddPreferredMutation(
+    $actorId: UUID!
+    $promotion: NewsPromotion!
+    $note: String
+  ) {
+    addNewsPreferredSharer(
+      actorId: $actorId
+      promotion: $promotion
+      note: $note
+    ) {
+      __typename
+      ... on NewsPreferredSharer {
+        id
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+      ... on NotAuthenticatedError {
+        notAuthenticated
+      }
+      ... on NotAuthorizedError {
+        notAuthorized
+      }
+    }
+  }
+`;
+
+const newsAdminRemovePreferredMutation = graphql`
+  mutation newsAdminRemovePreferredMutation($id: UUID!) {
+    removeNewsPreferredSharer(id: $id) {
+      __typename
+      ... on RemoveNewsPreferredSharerPayload {
+        removedId
+      }
+      ... on NotAuthenticatedError {
+        notAuthenticated
+      }
+      ... on NotAuthorizedError {
+        notAuthorized
+      }
+    }
+  }
+`;
+
+type NewsPromotion = "NORMAL" | "STRONG";
+
+const PROMOTION_OPTIONS: NewsPromotion[] = ["NORMAL", "STRONG"];
+
 function host(url: string): string {
   try {
     return new URL(url).host.replace(/^www\./, "");
@@ -168,10 +247,23 @@ export default function AdminNewsPage() {
   const [clearPenalty] = createMutation<newsAdminClearPenaltyMutation>(
     newsAdminClearPenaltyMutation,
   );
+  const [addPreferred] = createMutation<newsAdminAddPreferredMutation>(
+    newsAdminAddPreferredMutation,
+  );
+  const [removePreferred] = createMutation<newsAdminRemovePreferredMutation>(
+    newsAdminRemovePreferredMutation,
+  );
+  const environment = useRelayEnvironment();
   const [submitting, setSubmitting] = createSignal(false);
   const [patternInput, setPatternInput] = createSignal("");
   const [noteInput, setNoteInput] = createSignal("");
   const [adding, setAdding] = createSignal(false);
+  const [handleInput, setHandleInput] = createSignal("");
+  const [preferredNoteInput, setPreferredNoteInput] = createSignal("");
+  const [promotionInput, setPromotionInput] = createSignal<NewsPromotion>(
+    "NORMAL",
+  );
+  const [addingPreferred, setAddingPreferred] = createSignal(false);
 
   const refresh = () => void revalidate("loadNewsAdminPageQuery");
   const onNotAuthenticated = () =>
@@ -315,6 +407,108 @@ export default function AdminNewsPage() {
     });
   }
 
+  async function onAddPreferred(event: Event) {
+    event.preventDefault();
+    const handle = handleInput().trim();
+    if (handle.length < 1) return;
+    // Snapshot the whole form up front: the actor lookup below is async, so
+    // reading these after the await could pick up edits made mid-flight.
+    const promotion = promotionInput();
+    const note = preferredNoteInput().trim() || null;
+    setAddingPreferred(true);
+    // Resolve the handle to an actor first (this may trigger a federation
+    // lookup for a not-yet-seen remote actor), then curate it by its UUID.
+    let actor;
+    try {
+      const result = await fetchQuery<newsAdminActorByHandleQuery>(
+        environment(),
+        newsAdminActorByHandleQuery,
+        { handle },
+      ).toPromise();
+      actor = result?.actorByHandle ?? null;
+    } catch (error) {
+      setAddingPreferred(false);
+      showToast({
+        title: t`Failed to look up the actor.`,
+        description: import.meta.env.DEV && error instanceof Error
+          ? error.message
+          : undefined,
+        variant: "error",
+      });
+      return;
+    }
+    if (actor == null) {
+      setAddingPreferred(false);
+      showToast({
+        title: t`No actor found for that handle.`,
+        variant: "error",
+      });
+      return;
+    }
+    addPreferred({
+      variables: { actorId: actor.uuid, promotion, note },
+      onCompleted(response) {
+        setAddingPreferred(false);
+        const result = response.addNewsPreferredSharer;
+        if (result.__typename === "NewsPreferredSharer") {
+          setHandleInput("");
+          setPreferredNoteInput("");
+          showToast({ title: t`Preferred sharer added.` });
+          refresh();
+        } else if (result.__typename === "InvalidInputError") {
+          showToast({
+            title: t`That actor could not be added.`,
+            variant: "error",
+          });
+        } else if (result.__typename === "NotAuthenticatedError") {
+          onNotAuthenticated();
+        } else {
+          showToast({
+            title: t`Not authorized to manage preferred sharers.`,
+            variant: "error",
+          });
+        }
+      },
+      onError(error) {
+        setAddingPreferred(false);
+        showToast({
+          title: t`Failed to add preferred sharer.`,
+          description: import.meta.env.DEV ? error.message : undefined,
+          variant: "error",
+        });
+      },
+    });
+  }
+
+  function onRemovePreferred(
+    id: `${string}-${string}-${string}-${string}-${string}`,
+  ) {
+    removePreferred({
+      variables: { id },
+      onCompleted(response) {
+        const result = response.removeNewsPreferredSharer;
+        if (result?.__typename === "RemoveNewsPreferredSharerPayload") {
+          showToast({ title: t`Preferred sharer removed.` });
+          refresh();
+        } else if (result?.__typename === "NotAuthenticatedError") {
+          onNotAuthenticated();
+        } else {
+          showToast({
+            title: t`Not authorized to manage preferred sharers.`,
+            variant: "error",
+          });
+        }
+      },
+      onError(error) {
+        showToast({
+          title: t`Failed to remove preferred sharer.`,
+          description: import.meta.env.DEV ? error.message : undefined,
+          variant: "error",
+        });
+      },
+    });
+  }
+
   return (
     <NarrowContainer class="p-4">
       <Title>{t`Hackers' Pub: Admin · News`}</Title>
@@ -331,6 +525,7 @@ export default function AdminNewsPage() {
               const status = () => data.newsScoreStatus;
               const patterns = () => data.newsExcludedPatterns ?? [];
               const penalized = () => data.newsPenalizedStories ?? [];
+              const preferredSharers = () => data.newsPreferredSharers ?? [];
               return (
                 <div class="space-y-6">
                   <h1 class="text-2xl font-semibold tracking-tight">
@@ -447,6 +642,120 @@ export default function AdminNewsPage() {
                                   variant="outline"
                                   size="sm"
                                   on:click={() => onRemovePattern(p.id)}
+                                >
+                                  {t`Remove`}
+                                </Button>
+                              </li>
+                            )}
+                          </For>
+                        </ul>
+                      </Show>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{t`Preferred sharers`}</CardTitle>
+                      <CardDescription>
+                        {t`Favor links shared by specific accounts. A preferred sharer's posts count toward the news feed even when the account is a bot (for example a feed that reposts Hacker News links), and the links it shares get a flat promotion bonus in the popular ranking. A penalty on a link overrides the promotion.`}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent class="space-y-4">
+                      <form
+                        class="flex flex-col gap-3 sm:flex-row sm:items-end"
+                        on:submit={onAddPreferred}
+                      >
+                        <TextField class="grid flex-1 gap-1.5">
+                          <TextFieldLabel for="news-sharer-handle">
+                            {t`Account handle`}
+                          </TextFieldLabel>
+                          <TextFieldInput
+                            id="news-sharer-handle"
+                            type="text"
+                            placeholder="@feed@example.com"
+                            value={handleInput()}
+                            onInput={(e) =>
+                              setHandleInput(e.currentTarget.value)}
+                          />
+                        </TextField>
+                        <Select
+                          class="grid gap-1.5"
+                          value={promotionInput()}
+                          onChange={(v) => v && setPromotionInput(v)}
+                          options={PROMOTION_OPTIONS}
+                          itemComponent={(props) => (
+                            <SelectItem item={props.item}>
+                              {props.item.rawValue === "STRONG"
+                                ? t`Strong`
+                                : t`Normal`}
+                            </SelectItem>
+                          )}
+                        >
+                          <SelectLabel>{t`Promotion`}</SelectLabel>
+                          <SelectTrigger class="w-[140px]">
+                            <SelectValue<NewsPromotion>>
+                              {(state) =>
+                                state.selectedOption() === "STRONG"
+                                  ? t`Strong`
+                                  : t`Normal`}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent />
+                        </Select>
+                        <TextField class="grid flex-1 gap-1.5">
+                          <TextFieldLabel for="news-sharer-note">
+                            {t`Note (optional)`}
+                          </TextFieldLabel>
+                          <TextFieldInput
+                            id="news-sharer-note"
+                            type="text"
+                            value={preferredNoteInput()}
+                            onInput={(e) =>
+                              setPreferredNoteInput(e.currentTarget.value)}
+                          />
+                        </TextField>
+                        <Button
+                          type="submit"
+                          disabled={addingPreferred() ||
+                            handleInput().trim().length < 1}
+                        >
+                          {addingPreferred() ? t`Adding…` : t`Add`}
+                        </Button>
+                      </form>
+                      <Show
+                        when={preferredSharers().length > 0}
+                        fallback={
+                          <p class="text-sm text-muted-foreground">
+                            {t`No preferred sharers yet.`}
+                          </p>
+                        }
+                      >
+                        <ul class="divide-y rounded-md border">
+                          <For each={preferredSharers()}>
+                            {(s) => (
+                              <li class="flex items-center gap-3 px-3 py-2">
+                                <div class="min-w-0 flex-1">
+                                  <p class="truncate text-sm font-medium">
+                                    {s.actor.name || s.actor.handle}
+                                  </p>
+                                  <p class="truncate text-xs text-muted-foreground">
+                                    <span class="font-mono">
+                                      {s.actor.handle}
+                                    </span>
+                                    {" · "}
+                                    {s.promotion === "STRONG"
+                                      ? t`Strong`
+                                      : t`Normal`}
+                                    <Show when={s.note}>
+                                      {" · "}
+                                      {s.note}
+                                    </Show>
+                                  </p>
+                                </div>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  on:click={() => onRemovePreferred(s.id)}
                                 >
                                   {t`Remove`}
                                 </Button>

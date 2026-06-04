@@ -50,7 +50,7 @@ msgid "{0, plural, one {# invitation left} other {# invitations left}}"
 msgstr "{0, plural, other {剩余 # 次邀请}}"
 
 #. placeholder {0}: status()?.scoredLinkCount ?? 0
-#: src/routes/(root)/admin/news.tsx:350
+#: src/routes/(root)/admin/news.tsx:544
 msgid "{0, plural, one {# link is currently in the news feed.} other {# links are currently in the news feed.}}"
 msgstr "{0, plural, one {当前新闻订阅流中有 # 个链接。} other {当前新闻订阅流中有 # 个链接。}}"
 
@@ -107,7 +107,7 @@ msgid "{0, plural, one {Load # more reactor} other {Load # more reactors}}"
 msgstr "{0, plural, one {加载更多反应者 (#)} other {加载更多反应者 (#)}}"
 
 #. placeholder {0}: result.linksUpdated!
-#: src/routes/(root)/admin/news.tsx:190
+#: src/routes/(root)/admin/news.tsx:281
 msgid "{0, plural, one {Recomputed # link.} other {Recomputed # links.}}"
 msgstr "{0, plural, one {已重新计算 # 个链接的评分。} other {已重新计算 # 个链接的评分。}}"
 
@@ -313,7 +313,7 @@ msgstr "{count, plural, other {# 条意见}}"
 msgid "A name for the link that will be displayed on your profile, e.g., GitHub."
 msgstr "为显示在你个人资料页面的链接命名，例如 GitHub。"
 
-#: src/routes/(root)/admin/relay.tsx:242
+#: src/routes/(root)/admin/relay.tsx:258
 msgid "A relay only starts forwarding posts once it has accepted the follow. Until then the subscription stays pending."
 msgstr "中继只有在接受关注后才会开始转发内容。在此之前，订阅将保持待处理状态。"
 
@@ -326,6 +326,10 @@ msgstr "登录链接已发送至您的邮箱。请检查收件箱。（或垃圾
 msgid "Account"
 msgstr "账户"
 
+#: src/routes/(root)/admin/news.tsx:669
+msgid "Account handle"
+msgstr "账户用户名"
+
 #: src/components/AppSidebar.tsx:773
 #: src/routes/(root)/admin/index.tsx:95
 msgid "Accounts"
@@ -336,12 +340,13 @@ msgstr "账号"
 msgid "Actions"
 msgstr "操作"
 
-#: src/routes/(root)/admin/relay.tsx:290
+#: src/routes/(root)/admin/relay.tsx:306
 msgid "Active since"
 msgstr "激活于"
 
 #: src/routes/(root)/[handle]/settings/language.tsx:196
-#: src/routes/(root)/admin/news.tsx:421
+#: src/routes/(root)/admin/news.tsx:615
+#: src/routes/(root)/admin/news.tsx:724
 msgid "Add"
 msgstr "添加"
 
@@ -354,7 +359,8 @@ msgstr "添加{0}"
 msgid "Add to sidebar"
 msgstr "添加到侧边栏"
 
-#: src/routes/(root)/admin/news.tsx:421
+#: src/routes/(root)/admin/news.tsx:615
+#: src/routes/(root)/admin/news.tsx:724
 msgid "Adding…"
 msgstr "添加中…"
 
@@ -583,7 +589,7 @@ msgid "Browser notifications enabled"
 msgstr "已开启浏览器通知"
 
 #: src/components/NewsStoryCard.tsx:215
-#: src/routes/(root)/admin/news.tsx:492
+#: src/routes/(root)/admin/news.tsx:803
 msgid "Buried"
 msgstr "已沉底"
 
@@ -641,7 +647,7 @@ msgid "Choose your preferred language for the verification email."
 msgstr "请选择验证邮件的语言。"
 
 #: src/components/admin/AdminAccountsTable.tsx:213
-#: src/routes/(root)/admin/news.tsx:501
+#: src/routes/(root)/admin/news.tsx:812
 msgid "Clear"
 msgstr "清除"
 
@@ -830,7 +836,7 @@ msgid "Demote"
 msgstr "降级"
 
 #: src/components/NewsStoryCard.tsx:215
-#: src/routes/(root)/admin/news.tsx:493
+#: src/routes/(root)/admin/news.tsx:804
 msgid "Demoted"
 msgstr "已降级"
 
@@ -994,15 +1000,15 @@ msgstr "请在下方输入您的邮箱或用户名以登录。"
 msgid "Error"
 msgstr "错误"
 
-#: src/routes/(root)/admin/news.tsx:382
+#: src/routes/(root)/admin/news.tsx:576
 msgid "Excluded URL patterns"
 msgstr "排除的 URL 模式"
 
-#: src/routes/(root)/admin/news.tsx:233
+#: src/routes/(root)/admin/news.tsx:324
 msgid "Exclusion pattern added."
 msgstr "已添加排除模式。"
 
-#: src/routes/(root)/admin/news.tsx:268
+#: src/routes/(root)/admin/news.tsx:359
 msgid "Exclusion pattern removed."
 msgstr "已移除排除模式。"
 
@@ -1021,9 +1027,13 @@ msgstr "到期时间"
 msgid "Extra message"
 msgstr "额外消息"
 
-#: src/routes/(root)/admin/news.tsx:252
+#: src/routes/(root)/admin/news.tsx:343
 msgid "Failed to add exclusion pattern."
 msgstr "添加排除模式失败。"
+
+#: src/routes/(root)/admin/news.tsx:474
+msgid "Failed to add preferred sharer."
+msgstr "添加优先转帖者失败。"
 
 #: src/components/HashtagActionBar.tsx:192
 #: src/components/HashtagActionBar.tsx:199
@@ -1040,7 +1050,7 @@ msgstr "未能屏蔽此用户"
 msgid "Failed to bookmark"
 msgstr "收藏失败"
 
-#: src/routes/(root)/admin/news.tsx:310
+#: src/routes/(root)/admin/news.tsx:401
 msgid "Failed to clear penalty."
 msgstr "清除处罚失败。"
 
@@ -1174,6 +1184,10 @@ msgstr "无法加载引用内容"
 msgid "Failed to load replies; click to retry"
 msgstr "加载回复失败，点击重试"
 
+#: src/routes/(root)/admin/news.tsx:427
+msgid "Failed to look up the actor."
+msgstr "查找账户失败。"
+
 #: src/components/RemoteFollowButton.tsx:126
 msgid "Failed to look up user."
 msgstr "查找用户失败。"
@@ -1199,7 +1213,7 @@ msgstr "无法置顶内容"
 msgid "Failed to react"
 msgstr "反应失败"
 
-#: src/routes/(root)/admin/news.tsx:212
+#: src/routes/(root)/admin/news.tsx:303
 msgid "Failed to recompute news scores."
 msgstr "无法重新计算新闻评分。"
 
@@ -1216,7 +1230,7 @@ msgstr "注册通行密钥失败"
 msgid "Failed to remove bookmark"
 msgstr "取消收藏失败"
 
-#: src/routes/(root)/admin/news.tsx:281
+#: src/routes/(root)/admin/news.tsx:372
 msgid "Failed to remove exclusion pattern."
 msgstr "移除排除模式失败。"
 
@@ -1224,6 +1238,10 @@ msgstr "移除排除模式失败。"
 #: src/components/HashtagActionBar.tsx:219
 msgid "Failed to remove from sidebar"
 msgstr "从侧边栏移除失败"
+
+#: src/routes/(root)/admin/news.tsx:503
+msgid "Failed to remove preferred sharer."
+msgstr "移除优先转帖者失败。"
 
 #: src/components/MarkdownEditor.tsx:192
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:462
@@ -1268,7 +1286,7 @@ msgstr "转帖失败"
 msgid "Failed to sign out: {0}"
 msgstr "登出失败：{0}"
 
-#: src/routes/(root)/admin/relay.tsx:148
+#: src/routes/(root)/admin/relay.tsx:157
 msgid "Failed to subscribe to the relay."
 msgstr "订阅中继失败。"
 
@@ -1302,7 +1320,7 @@ msgstr "无法取消置顶内容"
 msgid "Failed to unshare post"
 msgstr "取消转帖失败"
 
-#: src/routes/(root)/admin/relay.tsx:175
+#: src/routes/(root)/admin/relay.tsx:191
 msgid "Failed to unsubscribe from the relay."
 msgstr "取消订阅中继失败。"
 
@@ -1332,6 +1350,10 @@ msgstr "图片上传失败"
 #: src/components/QuestionCard.tsx:431
 msgid "Failed to vote"
 msgstr "投票失败"
+
+#: src/routes/(root)/admin/news.tsx:659
+msgid "Favor links shared by specific accounts. A preferred sharer's posts count toward the news feed even when the account is a bot (for example a feed that reposts Hacker News links), and the links it shares get a flat promotion bonus in the popular ranking. A penalty on a link overrides the promotion."
+msgstr "优先展示特定账户转帖的链接。即使账户是机器人（例如转发 Hacker News 链接的订阅源），优先转帖者的内容也会计入新闻订阅流，且其转帖的链接会在热门排名中获得固定的优先加分。对链接的处罚会覆盖该优先。"
 
 #: src/components/AppSidebar.tsx:377
 msgid "Fediverse"
@@ -1462,7 +1484,7 @@ msgstr "Hackers' Pub：管理 · 邀请"
 msgid "Hackers' Pub: Admin · Media"
 msgstr "Hackers' Pub：管理 · 媒体"
 
-#: src/routes/(root)/admin/news.tsx:320
+#: src/routes/(root)/admin/news.tsx:513
 msgid "Hackers' Pub: Admin · News"
 msgstr "Hackers' Pub：管理 · 新闻"
 
@@ -1470,7 +1492,7 @@ msgstr "Hackers' Pub：管理 · 新闻"
 #~ msgid "Hackers' Pub: Admin · News scores"
 #~ msgstr "Hackers' Pub：管理 · 新闻评分"
 
-#: src/routes/(root)/admin/relay.tsx:185
+#: src/routes/(root)/admin/relay.tsx:201
 msgid "Hackers' Pub: Admin · Relays"
 msgstr "Hackers' Pub：管理 · 中继"
 
@@ -1501,7 +1523,7 @@ msgstr "标题 3"
 msgid "Hide"
 msgstr "隐藏"
 
-#: src/routes/(root)/admin/news.tsx:384
+#: src/routes/(root)/admin/news.tsx:578
 msgid "Hide links matching a URL pattern from the news feed list (every sort order). Their discussion pages stay reachable by direct link. Patterns use the URLPattern syntax, e.g. https://example.com/* or https://*.example.com/*."
 msgstr "将匹配某个 URL 模式的链接从新闻信息流列表（所有排序）中隐藏。这些链接的讨论页仍可通过直接 URL 访问。模式使用 URLPattern 语法，例如 https://example.com/* 或 https://*.example.com/*。"
 
@@ -1685,7 +1707,7 @@ msgstr "最近活动"
 msgid "Last activity"
 msgstr "最近活动"
 
-#: src/routes/(root)/admin/news.tsx:360
+#: src/routes/(root)/admin/news.tsx:554
 msgid "Last recomputed:"
 msgstr "上次重新计算："
 
@@ -1718,7 +1740,7 @@ msgstr "链接已过期"
 msgid "Link name"
 msgstr "链接名"
 
-#: src/routes/(root)/admin/news.tsx:465
+#: src/routes/(root)/admin/news.tsx:776
 msgid "Links a moderator has demoted in the popular feed. Clear a penalty to restore a link's normal ranking."
 msgstr "版主在热门信息流中降级的链接。清除处罚可恢复链接的正常排名。"
 
@@ -1907,7 +1929,7 @@ msgstr "查找用户"
 msgid "Looking up user…"
 msgstr "正在查找用户信息…"
 
-#: src/routes/(root)/admin/relay.tsx:207
+#: src/routes/(root)/admin/relay.tsx:223
 msgid "Make this instance's instance actor follow an ActivityPub relay, so the relay forwards public posts from across the fediverse to this instance. Enter the relay actor's URL, e.g. https://relay.example/actor."
 msgstr "让此实例的实例 actor 关注一个 ActivityPub 中继，使中继将联邦宇宙各处的公开内容转发到此实例。请输入中继 actor 的 URL（例如 https://relay.example/actor）。"
 
@@ -2002,7 +2024,7 @@ msgstr "用户名太长。不能长于 50 字符。"
 msgid "Native name"
 msgstr "本地名称"
 
-#: src/routes/(root)/admin/news.tsx:365
+#: src/routes/(root)/admin/news.tsx:559
 msgid "never"
 msgstr "从未"
 
@@ -2039,7 +2061,7 @@ msgstr "最新"
 
 #: src/components/AppSidebar.tsx:244
 #: src/components/AppSidebar.tsx:842
-#: src/routes/(root)/admin/news.tsx:337
+#: src/routes/(root)/admin/news.tsx:531
 #: src/routes/(root)/news/index.tsx:39
 msgid "News"
 msgstr "新闻"
@@ -2053,6 +2075,10 @@ msgstr "新闻"
 msgid "Next image"
 msgstr "下一张图片"
 
+#: src/routes/(root)/admin/news.tsx:438
+msgid "No actor found for that handle."
+msgstr "找不到该用户名对应的账户。"
+
 #: src/components/Bookmarks.tsx:131
 msgid "No bookmarks yet"
 msgstr "暂无收藏"
@@ -2065,7 +2091,7 @@ msgstr "没有要删除的草稿"
 msgid "No drafts yet. Create your first article!"
 msgstr "还没有草稿。创建您的第一篇文章！"
 
-#: src/routes/(root)/admin/news.tsx:428
+#: src/routes/(root)/admin/news.tsx:622
 msgid "No exclusion patterns yet."
 msgstr "暂无排除模式。"
 
@@ -2109,7 +2135,7 @@ msgstr "还没有人在公开帖子中转帖这个链接。"
 msgid "No one has shared this yet."
 msgstr "暂无转帖。"
 
-#: src/routes/(root)/admin/news.tsx:473
+#: src/routes/(root)/admin/news.tsx:784
 msgid "No penalized links."
 msgstr "没有受罚链接。"
 
@@ -2120,6 +2146,10 @@ msgstr "没有受罚链接。"
 #: src/components/SearchResults.tsx:109
 msgid "No posts found"
 msgstr "未找到内容"
+
+#: src/routes/(root)/admin/news.tsx:731
+msgid "No preferred sharers yet."
+msgstr "暂无优先转帖者。"
 
 #: src/components/PushNotificationPreviewPolicySelect.tsx:39
 msgid "No previews"
@@ -2146,7 +2176,13 @@ msgstr "Hackers' Pub 中无此账户，请重试。"
 msgid "No user URI provided."
 msgstr "未提供用户 URI。"
 
-#: src/routes/(root)/admin/news.tsx:303
+#: src/routes/(root)/admin/news.tsx:692
+#: src/routes/(root)/admin/news.tsx:701
+#: src/routes/(root)/admin/news.tsx:750
+msgid "Normal"
+msgstr "普通"
+
+#: src/routes/(root)/admin/news.tsx:394
 msgid "Not authorized to clear penalties."
 msgstr "无权清除处罚。"
 
@@ -2154,17 +2190,22 @@ msgstr "无权清除处罚。"
 msgid "Not authorized to delete orphan media."
 msgstr "无权删除孤立媒体。"
 
-#: src/routes/(root)/admin/news.tsx:244
-#: src/routes/(root)/admin/news.tsx:274
+#: src/routes/(root)/admin/news.tsx:335
+#: src/routes/(root)/admin/news.tsx:365
 msgid "Not authorized to manage exclusions."
 msgstr "无权管理排除模式。"
 
-#: src/routes/(root)/admin/relay.tsx:140
-#: src/routes/(root)/admin/relay.tsx:168
+#: src/routes/(root)/admin/news.tsx:466
+#: src/routes/(root)/admin/news.tsx:496
+msgid "Not authorized to manage preferred sharers."
+msgstr "无权管理优先转帖者。"
+
+#: src/routes/(root)/admin/relay.tsx:149
+#: src/routes/(root)/admin/relay.tsx:183
 msgid "Not authorized to manage relays."
 msgstr "无权管理中继。"
 
-#: src/routes/(root)/admin/news.tsx:203
+#: src/routes/(root)/admin/news.tsx:294
 msgid "Not authorized to recompute news scores."
 msgstr "无权重新计算新闻评分。"
 
@@ -2181,7 +2222,7 @@ msgstr "未找到"
 #~ msgid "Not found."
 #~ msgstr "未找到。"
 
-#: src/routes/(root)/admin/relay.tsx:250
+#: src/routes/(root)/admin/relay.tsx:266
 msgid "Not subscribed to any relays yet."
 msgstr "尚未订阅任何中继。"
 
@@ -2189,7 +2230,8 @@ msgstr "尚未订阅任何中继。"
 #~ msgid "Note"
 #~ msgstr "帖子"
 
-#: src/routes/(root)/admin/news.tsx:407
+#: src/routes/(root)/admin/news.tsx:601
+#: src/routes/(root)/admin/news.tsx:709
 msgid "Note (optional)"
 msgstr "备注（可选）"
 
@@ -2292,15 +2334,15 @@ msgstr "通行密钥已撤销"
 msgid "Passkeys"
 msgstr "通行密钥"
 
-#: src/routes/(root)/admin/news.tsx:463
+#: src/routes/(root)/admin/news.tsx:774
 msgid "Penalized links"
 msgstr "受罚链接"
 
-#: src/routes/(root)/admin/news.tsx:297
+#: src/routes/(root)/admin/news.tsx:388
 msgid "Penalty cleared."
 msgstr "已清除处罚。"
 
-#: src/routes/(root)/admin/relay.tsx:286
+#: src/routes/(root)/admin/relay.tsx:302
 msgid "Pending"
 msgstr "待处理"
 
@@ -2394,6 +2436,18 @@ msgstr "首选语言"
 msgid "Preferred languages"
 msgstr "偏好语言"
 
+#: src/routes/(root)/admin/news.tsx:455
+msgid "Preferred sharer added."
+msgstr "已添加优先转帖者。"
+
+#: src/routes/(root)/admin/news.tsx:490
+msgid "Preferred sharer removed."
+msgstr "已移除优先转帖者。"
+
+#: src/routes/(root)/admin/news.tsx:657
+msgid "Preferred sharers"
+msgstr "优先转帖者"
+
 #: src/components/article-composer/ArticleComposerForm.tsx:111
 #: src/components/MarkdownEditor.tsx:164
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:427
@@ -2425,6 +2479,10 @@ msgstr "个人资料操作"
 #: src/routes/(root)/[handle]/settings/index.tsx:126
 msgid "Profile settings"
 msgstr "个人资料设置"
+
+#: src/routes/(root)/admin/news.tsx:682
+msgid "Promotion"
+msgstr "优先程度"
 
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:40
 #: src/components/PostVisibilitySelect.tsx:23
@@ -2529,7 +2587,7 @@ msgstr "阅读完整文章"
 #~ msgid "Read the full Code of conduct"
 #~ msgstr "阅读完整的行为准则"
 
-#: src/routes/(root)/admin/news.tsx:344
+#: src/routes/(root)/admin/news.tsx:538
 msgid "Rebuilds the popularity score of every shared link from scratch. The operation is idempotent and safe to run at any time; scores normally stay fresh on their own, so this is mainly a manual backstop and a development tool."
 msgstr "从头重新计算每个被转帖链接的热度评分。该操作是幂等的，随时运行都安全。评分通常会自动保持最新，因此这主要是一个手动备用手段和开发工具。"
 
@@ -2545,12 +2603,12 @@ msgstr "通过此浏览器立即接收通知，即使此标签页已关闭。"
 msgid "Recent drafts"
 msgstr "最近的草稿"
 
-#: src/routes/(root)/admin/news.tsx:342
-#: src/routes/(root)/admin/news.tsx:375
+#: src/routes/(root)/admin/news.tsx:536
+#: src/routes/(root)/admin/news.tsx:569
 msgid "Recompute news scores"
 msgstr "重新计算新闻评分"
 
-#: src/routes/(root)/admin/news.tsx:374
+#: src/routes/(root)/admin/news.tsx:568
 msgid "Recomputing…"
 msgstr "正在重新计算…"
 
@@ -2590,12 +2648,12 @@ msgstr "已注册的通行密钥"
 msgid "Registering…"
 msgstr "正在注册…"
 
-#: src/routes/(root)/admin/relay.tsx:217
+#: src/routes/(root)/admin/relay.tsx:233
 msgid "Relay actor URL"
 msgstr "中继 actor 的 URL"
 
 #: src/components/AppSidebar.tsx:865
-#: src/routes/(root)/admin/relay.tsx:200
+#: src/routes/(root)/admin/relay.tsx:216
 msgid "Relays"
 msgstr "中继"
 
@@ -2606,7 +2664,8 @@ msgid "Remote follow"
 msgstr "远程关注"
 
 #: src/components/LanguageList.tsx:225
-#: src/routes/(root)/admin/news.tsx:451
+#: src/routes/(root)/admin/news.tsx:645
+#: src/routes/(root)/admin/news.tsx:762
 msgid "Remove"
 msgstr "移除"
 
@@ -2894,23 +2953,29 @@ msgstr "出现错误"
 msgid "Something went wrong—please try again."
 msgstr "出现错误，请重试。"
 
-#: src/routes/(root)/admin/relay.tsx:232
+#: src/routes/(root)/admin/news.tsx:691
+#: src/routes/(root)/admin/news.tsx:700
+#: src/routes/(root)/admin/news.tsx:749
+msgid "Strong"
+msgstr "强"
+
+#: src/routes/(root)/admin/relay.tsx:248
 msgid "Subscribe"
 msgstr "订阅"
 
-#: src/routes/(root)/admin/relay.tsx:205
+#: src/routes/(root)/admin/relay.tsx:221
 msgid "Subscribe to a relay"
 msgstr "订阅中继"
 
-#: src/routes/(root)/admin/relay.tsx:240
+#: src/routes/(root)/admin/relay.tsx:256
 msgid "Subscribed relays"
 msgstr "已订阅的中继"
 
-#: src/routes/(root)/admin/relay.tsx:129
+#: src/routes/(root)/admin/relay.tsx:138
 msgid "Subscribed to the relay."
 msgstr "已订阅该中继。"
 
-#: src/routes/(root)/admin/relay.tsx:232
+#: src/routes/(root)/admin/relay.tsx:248
 msgid "Subscribing…"
 msgstr "正在订阅…"
 
@@ -2961,11 +3026,15 @@ msgstr "标签"
 msgid "Tell us about yourself…"
 msgstr "请告诉我们关于您自己的信息…"
 
-#: src/routes/(root)/admin/relay.tsx:133
+#: src/routes/(root)/admin/news.tsx:459
+msgid "That actor could not be added."
+msgstr "无法添加该账户。"
+
+#: src/routes/(root)/admin/relay.tsx:142
 msgid "That is not a valid relay actor URL."
 msgstr "这不是有效的中继 actor URL。"
 
-#: src/routes/(root)/admin/news.tsx:237
+#: src/routes/(root)/admin/news.tsx:328
 msgid "That is not a valid URL pattern."
 msgstr "这不是有效的 URL 模式。"
 
@@ -3251,11 +3320,11 @@ msgstr "从个人资料取消置顶"
 msgid "Unshare"
 msgstr "取消转帖"
 
-#: src/routes/(root)/admin/relay.tsx:303
+#: src/routes/(root)/admin/relay.tsx:322
 msgid "Unsubscribe"
 msgstr "取消订阅"
 
-#: src/routes/(root)/admin/relay.tsx:162
+#: src/routes/(root)/admin/relay.tsx:177
 msgid "Unsubscribed from the relay."
 msgstr "已取消订阅该中继。"
 
@@ -3276,7 +3345,7 @@ msgstr "上传进度"
 msgid "URL"
 msgstr "URL"
 
-#: src/routes/(root)/admin/news.tsx:394
+#: src/routes/(root)/admin/news.tsx:588
 msgid "URL pattern"
 msgstr "URL 模式"
 
