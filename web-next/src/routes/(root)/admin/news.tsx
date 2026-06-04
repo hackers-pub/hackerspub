@@ -736,7 +736,17 @@ export default function AdminNewsPage() {
                               <li class="flex items-center gap-3 px-3 py-2">
                                 <div class="min-w-0 flex-1">
                                   <p class="truncate text-sm font-medium">
-                                    {s.actor.name || s.actor.handle}
+                                    {
+                                      /* `name` is server-rendered HTML (custom
+                                      emoji as <img>), so render it as markup
+                                      like the actor cards do, not escaped text. */
+                                    }
+                                    <Show
+                                      when={s.actor.name}
+                                      fallback={s.actor.handle}
+                                    >
+                                      {(name) => <span innerHTML={name()} />}
+                                    </Show>
                                   </p>
                                   <p class="truncate text-xs text-muted-foreground">
                                     <span class="font-mono">
