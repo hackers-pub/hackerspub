@@ -672,7 +672,7 @@ msgstr "已结束"
 msgid "Code"
 msgstr "代码"
 
-#: src/components/AppSidebar.tsx:1046
+#: src/components/AppSidebar.tsx:1069
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/sign/up/[token].tsx:458
 msgid "Code of conduct"
@@ -682,7 +682,7 @@ msgstr "行为准则"
 #~ msgid "Comments ({0})"
 #~ msgstr "评论（{0}）"
 
-#: src/components/AppSidebar.tsx:888
+#: src/components/AppSidebar.tsx:911
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "写作"
@@ -729,9 +729,13 @@ msgstr "无法将链接复制到剪贴板。"
 msgid "Could not load profile."
 msgstr "无法加载个人资料。"
 
-#: src/components/RefreshFromOriginItem.tsx:73
+#: src/components/RefreshFromOriginItem.tsx:69
 msgid "Could not refresh this from its origin."
 msgstr "无法从来源刷新此对象。"
+
+#: src/routes/(root)/admin/refresh.tsx:128
+msgid "Could not resolve that as a remote object."
+msgstr "无法将其解析为远程对象。"
 
 #: src/components/QuotedNoteCard.tsx:271
 msgid "Could not revoke quote"
@@ -741,7 +745,7 @@ msgstr "无法撤销引用"
 msgid "Could not vote on this poll"
 msgstr "无法提交此投票"
 
-#: src/components/AppSidebar.tsx:934
+#: src/components/AppSidebar.tsx:957
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create article"
 msgstr "创建文章"
@@ -750,7 +754,7 @@ msgstr "创建文章"
 msgid "Create invitation link"
 msgstr "创建邀请链接"
 
-#: src/components/AppSidebar.tsx:910
+#: src/components/AppSidebar.tsx:933
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:78
 #: src/components/NoteComposer.tsx:1435
@@ -1221,8 +1225,9 @@ msgstr "反应失败"
 msgid "Failed to recompute news scores."
 msgstr "无法重新计算新闻评分。"
 
-#: src/components/RefreshFromOriginItem.tsx:85
-#: src/components/RefreshFromOriginItem.tsx:92
+#: src/components/RefreshFromOriginItem.tsx:84
+#: src/components/RefreshFromOriginItem.tsx:91
+#: src/routes/(root)/admin/refresh.tsx:143
 msgid "Failed to refresh from origin."
 msgstr "从来源刷新失败。"
 
@@ -1430,7 +1435,7 @@ msgstr "生成中…"
 msgid "Get browser notifications"
 msgstr "接收浏览器通知"
 
-#: src/components/AppSidebar.tsx:1084
+#: src/components/AppSidebar.tsx:1107
 msgid "GitHub repository"
 msgstr "GitHub 仓库"
 
@@ -1501,6 +1506,10 @@ msgstr "Hackers' Pub：管理 · 新闻"
 #~ msgid "Hackers' Pub: Admin · News scores"
 #~ msgstr "Hackers' Pub：管理 · 新闻评分"
 
+#: src/routes/(root)/admin/refresh.tsx:153
+msgid "Hackers' Pub: Admin · Refresh remote object"
+msgstr "Hackers' Pub：管理 · 刷新远程对象"
+
 #: src/routes/(root)/admin/relay.tsx:201
 msgid "Hackers' Pub: Admin · Relays"
 msgstr "Hackers' Pub：管理 · 中继"
@@ -1513,6 +1522,10 @@ msgstr "Hackers' Pub：新闻"
 #: src/routes/(root)/notifications.tsx:47
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub：通知"
+
+#: src/routes/(root)/admin/refresh.tsx:182
+msgid "Handle, URL, or IRI"
+msgstr "用户名、URL 或 IRI"
 
 #: src/components/ui/markdown-editor.tsx:283
 msgid "Heading 1"
@@ -1719,6 +1732,11 @@ msgstr "最近活动"
 #: src/routes/(root)/admin/news.tsx:576
 msgid "Last recomputed:"
 msgstr "上次重新计算："
+
+#: src/routes/(root)/admin/refresh.tsx:203
+#: src/routes/(root)/admin/refresh.tsx:218
+msgid "Last refreshed:"
+msgstr "上次刷新："
 
 #: src/routes/(root)/admin/invitations.tsx:160
 msgid "Last regenerated:"
@@ -2293,7 +2311,8 @@ msgstr "浏览器设置已屏蔽通知。"
 msgid "Number of invitations"
 msgstr "邀请次数"
 
-#: src/components/RefreshFromOriginItem.tsx:80
+#: src/components/RefreshFromOriginItem.tsx:79
+#: src/routes/(root)/admin/refresh.tsx:135
 msgid "Only moderators can refresh remote objects."
 msgstr "只有版主可以刷新远程对象。"
 
@@ -2414,6 +2433,11 @@ msgstr "投票已结束"
 msgid "Popular"
 msgstr "热门"
 
+#. placeholder {0}: post().actor.name ?? post().actor.handle
+#: src/routes/(root)/admin/refresh.tsx:224
+msgid "Post by {0}"
+msgstr "{0} 的内容"
+
 #: src/components/PostActionMenu.tsx:308
 msgid "Post deleted"
 msgstr "内容已删除"
@@ -2475,7 +2499,7 @@ msgstr "上一张图片"
 msgid "Priority"
 msgstr "优先级"
 
-#: src/components/AppSidebar.tsx:1051
+#: src/components/AppSidebar.tsx:1074
 #: src/routes/(root)/privacy.tsx:40
 msgid "Privacy policy"
 msgstr "隐私政策"
@@ -2571,6 +2595,10 @@ msgstr "引用"
 msgid "Quoting is not available for this post"
 msgstr "无法引用此内容。"
 
+#: src/routes/(root)/admin/refresh.tsx:172
+msgid "Re-fetch a remote actor or post from its origin server and overwrite the cached copy. Enter a fediverse handle, profile URL, or ActivityPub IRI."
+msgstr "从来源服务器重新获取远程账户或内容，并覆盖缓存的副本。请输入联邦宇宙用户名、个人资料 URL 或 ActivityPub IRI。"
+
 #: src/components/PostEngagementBar.tsx:423
 #: src/components/PostEngagementBar.tsx:424
 msgid "React"
@@ -2612,7 +2640,7 @@ msgstr "即使此标签页已关闭，也能立即收到新通知。"
 msgid "Receive notifications immediately through this browser, even when this tab is closed."
 msgstr "通过此浏览器立即接收通知，即使此标签页已关闭。"
 
-#: src/components/AppSidebar.tsx:970
+#: src/components/AppSidebar.tsx:993
 msgid "Recent drafts"
 msgstr "最近的草稿"
 
@@ -2625,13 +2653,31 @@ msgstr "重新计算新闻评分"
 msgid "Recomputing…"
 msgstr "正在重新计算…"
 
-#: src/components/RefreshFromOriginItem.tsx:107
+#: src/components/AppSidebar.tsx:865
+#: src/routes/(root)/admin/refresh.tsx:196
+msgid "Refresh"
+msgstr "刷新"
+
+#: src/routes/(root)/admin/refresh.tsx:170
+msgid "Refresh a remote actor or post"
+msgstr "刷新远程账户或内容"
+
+#: src/components/RefreshFromOriginItem.tsx:106
 msgid "Refresh from origin"
 msgstr "从来源刷新"
 
-#: src/components/RefreshFromOriginItem.tsx:70
+#: src/routes/(root)/admin/refresh.tsx:166
+msgid "Refresh remote object"
+msgstr "刷新远程对象"
+
+#: src/components/RefreshFromOriginItem.tsx:66
+#: src/routes/(root)/admin/refresh.tsx:125
 msgid "Refreshed from origin."
 msgstr "已从来源刷新。"
+
+#: src/routes/(root)/admin/refresh.tsx:196
+msgid "Refreshing…"
+msgstr "正在刷新…"
 
 #: src/routes/(root)/admin/invitations.tsx:203
 msgid "Regenerate"
@@ -2673,7 +2719,7 @@ msgstr "正在注册…"
 msgid "Relay actor URL"
 msgstr "中继 actor 的 URL"
 
-#: src/components/AppSidebar.tsx:865
+#: src/components/AppSidebar.tsx:888
 #: src/routes/(root)/admin/relay.tsx:216
 msgid "Relays"
 msgstr "中继"
@@ -2925,7 +2971,7 @@ msgstr "登录后投票"
 msgid "Sign in with passkey"
 msgstr "使用通行密钥登录"
 
-#: src/components/AppSidebar.tsx:1033
+#: src/components/AppSidebar.tsx:1056
 msgid "Sign out"
 msgstr "登出"
 
@@ -3139,7 +3185,7 @@ msgstr "注册链接无效。请确保你使用的是你收到的正确邮件链
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:1075
+#: src/components/AppSidebar.tsx:1098
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "可在 {0} 上以 {1} 许可获取该网站的源代码。"
 
@@ -3427,7 +3473,7 @@ msgstr "已于{1}验证此链接归{0}所有"
 msgid "Verifying your invitation…"
 msgstr "正在验证您的邀请…"
 
-#: src/components/AppSidebar.tsx:996
+#: src/components/AppSidebar.tsx:1019
 msgid "View all drafts →"
 msgstr "查看所有草稿 →"
 
@@ -3669,7 +3715,7 @@ msgstr "您必须登录才能发布文章"
 msgid "You must be signed in to save a draft"
 msgstr "您必须登录才能保存草稿"
 
-#: src/components/RefreshFromOriginItem.tsx:77
+#: src/components/RefreshFromOriginItem.tsx:74
 msgid "You must be signed in."
 msgstr "请先登录。"
 

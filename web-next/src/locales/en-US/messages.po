@@ -672,7 +672,7 @@ msgstr "Closed"
 msgid "Code"
 msgstr "Code"
 
-#: src/components/AppSidebar.tsx:1046
+#: src/components/AppSidebar.tsx:1069
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/sign/up/[token].tsx:458
 msgid "Code of conduct"
@@ -682,7 +682,7 @@ msgstr "Code of conduct"
 #~ msgid "Comments ({0})"
 #~ msgstr "Comments ({0})"
 
-#: src/components/AppSidebar.tsx:888
+#: src/components/AppSidebar.tsx:911
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "Compose"
@@ -729,9 +729,13 @@ msgstr "Could not copy the link to the clipboard."
 msgid "Could not load profile."
 msgstr "Could not load profile."
 
-#: src/components/RefreshFromOriginItem.tsx:73
+#: src/components/RefreshFromOriginItem.tsx:69
 msgid "Could not refresh this from its origin."
 msgstr "Could not refresh this from its origin."
+
+#: src/routes/(root)/admin/refresh.tsx:128
+msgid "Could not resolve that as a remote object."
+msgstr "Could not resolve that as a remote object."
 
 #: src/components/QuotedNoteCard.tsx:271
 msgid "Could not revoke quote"
@@ -741,7 +745,7 @@ msgstr "Could not revoke quote"
 msgid "Could not vote on this poll"
 msgstr "Could not vote on this poll"
 
-#: src/components/AppSidebar.tsx:934
+#: src/components/AppSidebar.tsx:957
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create article"
 msgstr "Create article"
@@ -750,7 +754,7 @@ msgstr "Create article"
 msgid "Create invitation link"
 msgstr "Create invitation link"
 
-#: src/components/AppSidebar.tsx:910
+#: src/components/AppSidebar.tsx:933
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:78
 #: src/components/NoteComposer.tsx:1435
@@ -1225,8 +1229,9 @@ msgstr "Failed to react"
 msgid "Failed to recompute news scores."
 msgstr "Failed to recompute news scores."
 
-#: src/components/RefreshFromOriginItem.tsx:85
-#: src/components/RefreshFromOriginItem.tsx:92
+#: src/components/RefreshFromOriginItem.tsx:84
+#: src/components/RefreshFromOriginItem.tsx:91
+#: src/routes/(root)/admin/refresh.tsx:143
 msgid "Failed to refresh from origin."
 msgstr "Failed to refresh from origin."
 
@@ -1434,7 +1439,7 @@ msgstr "Generating…"
 msgid "Get browser notifications"
 msgstr "Get browser notifications"
 
-#: src/components/AppSidebar.tsx:1084
+#: src/components/AppSidebar.tsx:1107
 msgid "GitHub repository"
 msgstr "GitHub repository"
 
@@ -1505,6 +1510,10 @@ msgstr "Hackers' Pub: Admin · News"
 #~ msgid "Hackers' Pub: Admin · News scores"
 #~ msgstr "Hackers' Pub: Admin · News scores"
 
+#: src/routes/(root)/admin/refresh.tsx:153
+msgid "Hackers' Pub: Admin · Refresh remote object"
+msgstr "Hackers' Pub: Admin · Refresh remote object"
+
 #: src/routes/(root)/admin/relay.tsx:201
 msgid "Hackers' Pub: Admin · Relays"
 msgstr "Hackers' Pub: Admin · Relays"
@@ -1517,6 +1526,10 @@ msgstr "Hackers' Pub: News"
 #: src/routes/(root)/notifications.tsx:47
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub: Notifications"
+
+#: src/routes/(root)/admin/refresh.tsx:182
+msgid "Handle, URL, or IRI"
+msgstr "Handle, URL, or IRI"
 
 #: src/components/ui/markdown-editor.tsx:283
 msgid "Heading 1"
@@ -1723,6 +1736,11 @@ msgstr "Last activity"
 #: src/routes/(root)/admin/news.tsx:576
 msgid "Last recomputed:"
 msgstr "Last recomputed:"
+
+#: src/routes/(root)/admin/refresh.tsx:203
+#: src/routes/(root)/admin/refresh.tsx:218
+msgid "Last refreshed:"
+msgstr "Last refreshed:"
 
 #: src/routes/(root)/admin/invitations.tsx:160
 msgid "Last regenerated:"
@@ -2297,7 +2315,8 @@ msgstr "Notifications are blocked in your browser settings."
 msgid "Number of invitations"
 msgstr "Number of invitations"
 
-#: src/components/RefreshFromOriginItem.tsx:80
+#: src/components/RefreshFromOriginItem.tsx:79
+#: src/routes/(root)/admin/refresh.tsx:135
 msgid "Only moderators can refresh remote objects."
 msgstr "Only moderators can refresh remote objects."
 
@@ -2418,6 +2437,11 @@ msgstr "Poll closed"
 msgid "Popular"
 msgstr "Popular"
 
+#. placeholder {0}: post().actor.name ?? post().actor.handle
+#: src/routes/(root)/admin/refresh.tsx:224
+msgid "Post by {0}"
+msgstr "Post by {0}"
+
 #: src/components/PostActionMenu.tsx:308
 msgid "Post deleted"
 msgstr "Post deleted"
@@ -2479,7 +2503,7 @@ msgstr "Previous image"
 msgid "Priority"
 msgstr "Priority"
 
-#: src/components/AppSidebar.tsx:1051
+#: src/components/AppSidebar.tsx:1074
 #: src/routes/(root)/privacy.tsx:40
 msgid "Privacy policy"
 msgstr "Privacy policy"
@@ -2575,6 +2599,10 @@ msgstr "Quotes"
 msgid "Quoting is not available for this post"
 msgstr "Quoting is not available for this post"
 
+#: src/routes/(root)/admin/refresh.tsx:172
+msgid "Re-fetch a remote actor or post from its origin server and overwrite the cached copy. Enter a fediverse handle, profile URL, or ActivityPub IRI."
+msgstr "Re-fetch a remote actor or post from its origin server and overwrite the cached copy. Enter a fediverse handle, profile URL, or ActivityPub IRI."
+
 #: src/components/PostEngagementBar.tsx:423
 #: src/components/PostEngagementBar.tsx:424
 msgid "React"
@@ -2616,7 +2644,7 @@ msgstr "Receive new notifications immediately, even when this tab is closed."
 msgid "Receive notifications immediately through this browser, even when this tab is closed."
 msgstr "Receive notifications immediately through this browser, even when this tab is closed."
 
-#: src/components/AppSidebar.tsx:970
+#: src/components/AppSidebar.tsx:993
 msgid "Recent drafts"
 msgstr "Recent drafts"
 
@@ -2629,13 +2657,31 @@ msgstr "Recompute news scores"
 msgid "Recomputing…"
 msgstr "Recomputing…"
 
-#: src/components/RefreshFromOriginItem.tsx:107
+#: src/components/AppSidebar.tsx:865
+#: src/routes/(root)/admin/refresh.tsx:196
+msgid "Refresh"
+msgstr "Refresh"
+
+#: src/routes/(root)/admin/refresh.tsx:170
+msgid "Refresh a remote actor or post"
+msgstr "Refresh a remote actor or post"
+
+#: src/components/RefreshFromOriginItem.tsx:106
 msgid "Refresh from origin"
 msgstr "Refresh from origin"
 
-#: src/components/RefreshFromOriginItem.tsx:70
+#: src/routes/(root)/admin/refresh.tsx:166
+msgid "Refresh remote object"
+msgstr "Refresh remote object"
+
+#: src/components/RefreshFromOriginItem.tsx:66
+#: src/routes/(root)/admin/refresh.tsx:125
 msgid "Refreshed from origin."
 msgstr "Refreshed from origin."
+
+#: src/routes/(root)/admin/refresh.tsx:196
+msgid "Refreshing…"
+msgstr "Refreshing…"
 
 #: src/routes/(root)/admin/invitations.tsx:203
 msgid "Regenerate"
@@ -2677,7 +2723,7 @@ msgstr "Registering…"
 msgid "Relay actor URL"
 msgstr "Relay actor URL"
 
-#: src/components/AppSidebar.tsx:865
+#: src/components/AppSidebar.tsx:888
 #: src/routes/(root)/admin/relay.tsx:216
 msgid "Relays"
 msgstr "Relays"
@@ -2929,7 +2975,7 @@ msgstr "Sign in to vote"
 msgid "Sign in with passkey"
 msgstr "Sign in with passkey"
 
-#: src/components/AppSidebar.tsx:1033
+#: src/components/AppSidebar.tsx:1056
 msgid "Sign out"
 msgstr "Sign out"
 
@@ -3143,7 +3189,7 @@ msgstr "The sign-up link is invalid. Please make sure you're using the correct l
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:1075
+#: src/components/AppSidebar.tsx:1098
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "The source code of this website is available on {0} under the {1} license."
 
@@ -3431,7 +3477,7 @@ msgstr "Verified that this link is owned by {0} {1}"
 msgid "Verifying your invitation…"
 msgstr "Verifying your invitation…"
 
-#: src/components/AppSidebar.tsx:996
+#: src/components/AppSidebar.tsx:1019
 msgid "View all drafts →"
 msgstr "View all drafts →"
 
@@ -3673,7 +3719,7 @@ msgstr "You must be signed in to publish an article"
 msgid "You must be signed in to save a draft"
 msgstr "You must be signed in to save a draft"
 
-#: src/components/RefreshFromOriginItem.tsx:77
+#: src/components/RefreshFromOriginItem.tsx:74
 msgid "You must be signed in."
 msgstr "You must be signed in."
 

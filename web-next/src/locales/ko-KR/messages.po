@@ -672,7 +672,7 @@ msgstr "닫힘"
 msgid "Code"
 msgstr "코드"
 
-#: src/components/AppSidebar.tsx:1046
+#: src/components/AppSidebar.tsx:1069
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/sign/up/[token].tsx:458
 msgid "Code of conduct"
@@ -682,7 +682,7 @@ msgstr "행동 강령"
 #~ msgid "Comments ({0})"
 #~ msgstr "댓글 ({0})"
 
-#: src/components/AppSidebar.tsx:888
+#: src/components/AppSidebar.tsx:911
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "작성"
@@ -729,9 +729,13 @@ msgstr "클립보드에 링크를 복사할 수 없습니다."
 msgid "Could not load profile."
 msgstr "프로필을 불러올 수 없습니다."
 
-#: src/components/RefreshFromOriginItem.tsx:73
+#: src/components/RefreshFromOriginItem.tsx:69
 msgid "Could not refresh this from its origin."
 msgstr "이 항목을 원본에서 새로 고치지 못했습니다."
+
+#: src/routes/(root)/admin/refresh.tsx:128
+msgid "Could not resolve that as a remote object."
+msgstr "원격 객체로 확인할 수 없습니다."
 
 #: src/components/QuotedNoteCard.tsx:271
 msgid "Could not revoke quote"
@@ -741,7 +745,7 @@ msgstr "인용을 취소하지 못했습니다"
 msgid "Could not vote on this poll"
 msgstr "이 투표에 참여할 수 없습니다"
 
-#: src/components/AppSidebar.tsx:934
+#: src/components/AppSidebar.tsx:957
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create article"
 msgstr "게시글 작성"
@@ -750,7 +754,7 @@ msgstr "게시글 작성"
 msgid "Create invitation link"
 msgstr "초대 링크 생성"
 
-#: src/components/AppSidebar.tsx:910
+#: src/components/AppSidebar.tsx:933
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:78
 #: src/components/NoteComposer.tsx:1435
@@ -1221,8 +1225,9 @@ msgstr "반응 실패"
 msgid "Failed to recompute news scores."
 msgstr "뉴스 점수를 다시 계산하지 못했습니다."
 
-#: src/components/RefreshFromOriginItem.tsx:85
-#: src/components/RefreshFromOriginItem.tsx:92
+#: src/components/RefreshFromOriginItem.tsx:84
+#: src/components/RefreshFromOriginItem.tsx:91
+#: src/routes/(root)/admin/refresh.tsx:143
 msgid "Failed to refresh from origin."
 msgstr "원본에서 새로 고침에 실패했습니다."
 
@@ -1430,7 +1435,7 @@ msgstr "생성 중…"
 msgid "Get browser notifications"
 msgstr "브라우저 알림 받기"
 
-#: src/components/AppSidebar.tsx:1084
+#: src/components/AppSidebar.tsx:1107
 msgid "GitHub repository"
 msgstr "GitHub 저장소"
 
@@ -1501,6 +1506,10 @@ msgstr "Hackers' Pub: 관리 · 뉴스"
 #~ msgid "Hackers' Pub: Admin · News scores"
 #~ msgstr "Hackers' Pub: 관리 · 뉴스 점수"
 
+#: src/routes/(root)/admin/refresh.tsx:153
+msgid "Hackers' Pub: Admin · Refresh remote object"
+msgstr "Hackers' Pub: 관리 · 원격 객체 새로 고침"
+
 #: src/routes/(root)/admin/relay.tsx:201
 msgid "Hackers' Pub: Admin · Relays"
 msgstr "Hackers' Pub: 관리 · 릴레이"
@@ -1513,6 +1522,10 @@ msgstr "Hackers' Pub: 뉴스"
 #: src/routes/(root)/notifications.tsx:47
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub: 알림"
+
+#: src/routes/(root)/admin/refresh.tsx:182
+msgid "Handle, URL, or IRI"
+msgstr "핸들, URL, 또는 IRI"
 
 #: src/components/ui/markdown-editor.tsx:283
 msgid "Heading 1"
@@ -1719,6 +1732,11 @@ msgstr "마지막 활동"
 #: src/routes/(root)/admin/news.tsx:576
 msgid "Last recomputed:"
 msgstr "마지막 계산:"
+
+#: src/routes/(root)/admin/refresh.tsx:203
+#: src/routes/(root)/admin/refresh.tsx:218
+msgid "Last refreshed:"
+msgstr "마지막으로 새로 고침:"
 
 #: src/routes/(root)/admin/invitations.tsx:160
 msgid "Last regenerated:"
@@ -2293,7 +2311,8 @@ msgstr "브라우저 설정에서 알림이 차단되어 있습니다."
 msgid "Number of invitations"
 msgstr "초대 횟수"
 
-#: src/components/RefreshFromOriginItem.tsx:80
+#: src/components/RefreshFromOriginItem.tsx:79
+#: src/routes/(root)/admin/refresh.tsx:135
 msgid "Only moderators can refresh remote objects."
 msgstr "모더레이터만 원격 객체를 새로 고칠 수 있습니다."
 
@@ -2414,6 +2433,11 @@ msgstr "투표가 마감되었습니다"
 msgid "Popular"
 msgstr "인기"
 
+#. placeholder {0}: post().actor.name ?? post().actor.handle
+#: src/routes/(root)/admin/refresh.tsx:224
+msgid "Post by {0}"
+msgstr "{0}님의 콘텐츠"
+
 #: src/components/PostActionMenu.tsx:308
 msgid "Post deleted"
 msgstr "콘텐츠가 삭제되었습니다"
@@ -2475,7 +2499,7 @@ msgstr "이전 이미지"
 msgid "Priority"
 msgstr "우선순위"
 
-#: src/components/AppSidebar.tsx:1051
+#: src/components/AppSidebar.tsx:1074
 #: src/routes/(root)/privacy.tsx:40
 msgid "Privacy policy"
 msgstr "개인정보 처리방침"
@@ -2571,6 +2595,10 @@ msgstr "인용"
 msgid "Quoting is not available for this post"
 msgstr "이 콘텐츠는 인용할 수 없습니다."
 
+#: src/routes/(root)/admin/refresh.tsx:172
+msgid "Re-fetch a remote actor or post from its origin server and overwrite the cached copy. Enter a fediverse handle, profile URL, or ActivityPub IRI."
+msgstr "원격 계정 또는 콘텐츠를 원본 서버에서 다시 가져와 캐시된 사본을 덮어씁니다. 연합우주 핸들, 프로필 URL, 또는 ActivityPub IRI를 입력하세요."
+
 #: src/components/PostEngagementBar.tsx:423
 #: src/components/PostEngagementBar.tsx:424
 msgid "React"
@@ -2612,7 +2640,7 @@ msgstr "이 탭을 닫아도 새 알림을 즉시 받습니다."
 msgid "Receive notifications immediately through this browser, even when this tab is closed."
 msgstr "이 브라우저로 알림을 즉시 받습니다. 이 탭을 닫아도 알림을 받을 수 있습니다."
 
-#: src/components/AppSidebar.tsx:970
+#: src/components/AppSidebar.tsx:993
 msgid "Recent drafts"
 msgstr "최근 초고"
 
@@ -2625,13 +2653,31 @@ msgstr "뉴스 점수 다시 계산"
 msgid "Recomputing…"
 msgstr "다시 계산하는 중…"
 
-#: src/components/RefreshFromOriginItem.tsx:107
+#: src/components/AppSidebar.tsx:865
+#: src/routes/(root)/admin/refresh.tsx:196
+msgid "Refresh"
+msgstr "새로 고침"
+
+#: src/routes/(root)/admin/refresh.tsx:170
+msgid "Refresh a remote actor or post"
+msgstr "원격 계정 또는 콘텐츠 새로 고침"
+
+#: src/components/RefreshFromOriginItem.tsx:106
 msgid "Refresh from origin"
 msgstr "원본에서 새로 고침"
 
-#: src/components/RefreshFromOriginItem.tsx:70
+#: src/routes/(root)/admin/refresh.tsx:166
+msgid "Refresh remote object"
+msgstr "원격 객체 새로 고침"
+
+#: src/components/RefreshFromOriginItem.tsx:66
+#: src/routes/(root)/admin/refresh.tsx:125
 msgid "Refreshed from origin."
 msgstr "원본에서 새로 고쳤습니다."
+
+#: src/routes/(root)/admin/refresh.tsx:196
+msgid "Refreshing…"
+msgstr "새로 고치는 중…"
 
 #: src/routes/(root)/admin/invitations.tsx:203
 msgid "Regenerate"
@@ -2673,7 +2719,7 @@ msgstr "등록중…"
 msgid "Relay actor URL"
 msgstr "릴레이 액터 URL"
 
-#: src/components/AppSidebar.tsx:865
+#: src/components/AppSidebar.tsx:888
 #: src/routes/(root)/admin/relay.tsx:216
 msgid "Relays"
 msgstr "릴레이"
@@ -2925,7 +2971,7 @@ msgstr "로그인 후 투표"
 msgid "Sign in with passkey"
 msgstr "패스키를 사용하여 로그인"
 
-#: src/components/AppSidebar.tsx:1033
+#: src/components/AppSidebar.tsx:1056
 msgid "Sign out"
 msgstr "로그아웃"
 
@@ -3139,7 +3185,7 @@ msgstr "가입 링크가 유효하지 않습니다. 이메일로 받은 링크�
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:1075
+#: src/components/AppSidebar.tsx:1098
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "이 웹사이트의 소스 코드는 {1} 라이선스로 {0}에서 배포됩니다."
 
@@ -3427,7 +3473,7 @@ msgstr "{1}에 {0} 님이 이 링크의 소유자임이 확인됨"
 msgid "Verifying your invitation…"
 msgstr "초대장을 확인하고 있습니다…"
 
-#: src/components/AppSidebar.tsx:996
+#: src/components/AppSidebar.tsx:1019
 msgid "View all drafts →"
 msgstr "모든 초고 보기 →"
 
@@ -3669,7 +3715,7 @@ msgstr "게시글을 공개하려면 로그인해야 합니다"
 msgid "You must be signed in to save a draft"
 msgstr "초고로 저장하려면 로그인해야 합니다"
 
-#: src/components/RefreshFromOriginItem.tsx:77
+#: src/components/RefreshFromOriginItem.tsx:74
 msgid "You must be signed in."
 msgstr "로그인이 필요합니다."
 

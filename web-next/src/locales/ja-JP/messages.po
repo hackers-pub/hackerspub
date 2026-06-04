@@ -672,7 +672,7 @@ msgstr "終了"
 msgid "Code"
 msgstr "コード"
 
-#: src/components/AppSidebar.tsx:1046
+#: src/components/AppSidebar.tsx:1069
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/sign/up/[token].tsx:458
 msgid "Code of conduct"
@@ -682,7 +682,7 @@ msgstr "行動規範"
 #~ msgid "Comments ({0})"
 #~ msgstr "コメント（{0}）"
 
-#: src/components/AppSidebar.tsx:888
+#: src/components/AppSidebar.tsx:911
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "作成"
@@ -729,9 +729,13 @@ msgstr "クリップボードにリンクをコピーできませんでした。
 msgid "Could not load profile."
 msgstr "プロフィールを読み込めませんでした。"
 
-#: src/components/RefreshFromOriginItem.tsx:73
+#: src/components/RefreshFromOriginItem.tsx:69
 msgid "Could not refresh this from its origin."
 msgstr "この項目を配信元から再取得できませんでした。"
+
+#: src/routes/(root)/admin/refresh.tsx:128
+msgid "Could not resolve that as a remote object."
+msgstr "リモートオブジェクトとして解決できませんでした。"
 
 #: src/components/QuotedNoteCard.tsx:271
 msgid "Could not revoke quote"
@@ -741,7 +745,7 @@ msgstr "引用を取り消せませんでした"
 msgid "Could not vote on this poll"
 msgstr "このアンケートに投票できませんでした"
 
-#: src/components/AppSidebar.tsx:934
+#: src/components/AppSidebar.tsx:957
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create article"
 msgstr "記事を作成"
@@ -750,7 +754,7 @@ msgstr "記事を作成"
 msgid "Create invitation link"
 msgstr "招待リンクを作成"
 
-#: src/components/AppSidebar.tsx:910
+#: src/components/AppSidebar.tsx:933
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:78
 #: src/components/NoteComposer.tsx:1435
@@ -1221,8 +1225,9 @@ msgstr "リアクションに失敗しました"
 msgid "Failed to recompute news scores."
 msgstr "ニュースのスコアを再計算できませんでした。"
 
-#: src/components/RefreshFromOriginItem.tsx:85
-#: src/components/RefreshFromOriginItem.tsx:92
+#: src/components/RefreshFromOriginItem.tsx:84
+#: src/components/RefreshFromOriginItem.tsx:91
+#: src/routes/(root)/admin/refresh.tsx:143
 msgid "Failed to refresh from origin."
 msgstr "配信元からの再取得に失敗しました。"
 
@@ -1430,7 +1435,7 @@ msgstr "生成中…"
 msgid "Get browser notifications"
 msgstr "ブラウザー通知を受け取る"
 
-#: src/components/AppSidebar.tsx:1084
+#: src/components/AppSidebar.tsx:1107
 msgid "GitHub repository"
 msgstr "GitHubリポジトリ"
 
@@ -1501,6 +1506,10 @@ msgstr "Hackers' Pub：管理 · ニュース"
 #~ msgid "Hackers' Pub: Admin · News scores"
 #~ msgstr "Hackers' Pub：管理 · ニュースのスコア"
 
+#: src/routes/(root)/admin/refresh.tsx:153
+msgid "Hackers' Pub: Admin · Refresh remote object"
+msgstr "Hackers' Pub：管理 · リモートオブジェクトの再取得"
+
 #: src/routes/(root)/admin/relay.tsx:201
 msgid "Hackers' Pub: Admin · Relays"
 msgstr "Hackers' Pub：管理 · リレー"
@@ -1513,6 +1522,10 @@ msgstr "Hackers' Pub：ニュース"
 #: src/routes/(root)/notifications.tsx:47
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub：通知"
+
+#: src/routes/(root)/admin/refresh.tsx:182
+msgid "Handle, URL, or IRI"
+msgstr "ハンドル、URL、またはIRI"
 
 #: src/components/ui/markdown-editor.tsx:283
 msgid "Heading 1"
@@ -1719,6 +1732,11 @@ msgstr "最終アクティビティ"
 #: src/routes/(root)/admin/news.tsx:576
 msgid "Last recomputed:"
 msgstr "最終再計算："
+
+#: src/routes/(root)/admin/refresh.tsx:203
+#: src/routes/(root)/admin/refresh.tsx:218
+msgid "Last refreshed:"
+msgstr "最後に再取得："
 
 #: src/routes/(root)/admin/invitations.tsx:160
 msgid "Last regenerated:"
@@ -2293,7 +2311,8 @@ msgstr "ブラウザー設定で通知がブロックされています。"
 msgid "Number of invitations"
 msgstr "招待数"
 
-#: src/components/RefreshFromOriginItem.tsx:80
+#: src/components/RefreshFromOriginItem.tsx:79
+#: src/routes/(root)/admin/refresh.tsx:135
 msgid "Only moderators can refresh remote objects."
 msgstr "モデレーターのみがリモートオブジェクトを再取得できます。"
 
@@ -2414,6 +2433,11 @@ msgstr "アンケートは終了しました"
 msgid "Popular"
 msgstr "人気"
 
+#. placeholder {0}: post().actor.name ?? post().actor.handle
+#: src/routes/(root)/admin/refresh.tsx:224
+msgid "Post by {0}"
+msgstr "{0}さんのコンテンツ"
+
 #: src/components/PostActionMenu.tsx:308
 msgid "Post deleted"
 msgstr "コンテンツを削除しました"
@@ -2475,7 +2499,7 @@ msgstr "前の画像"
 msgid "Priority"
 msgstr "優先度"
 
-#: src/components/AppSidebar.tsx:1051
+#: src/components/AppSidebar.tsx:1074
 #: src/routes/(root)/privacy.tsx:40
 msgid "Privacy policy"
 msgstr "プライバシーポリシー"
@@ -2571,6 +2595,10 @@ msgstr "引用"
 msgid "Quoting is not available for this post"
 msgstr "このコンテンツは引用できません。"
 
+#: src/routes/(root)/admin/refresh.tsx:172
+msgid "Re-fetch a remote actor or post from its origin server and overwrite the cached copy. Enter a fediverse handle, profile URL, or ActivityPub IRI."
+msgstr "リモートのアカウントまたはコンテンツを配信元サーバーから再取得し、キャッシュされたコピーを上書きします。フェディバースのハンドル、プロフィールURL、またはActivityPub IRIを入力してください。"
+
 #: src/components/PostEngagementBar.tsx:423
 #: src/components/PostEngagementBar.tsx:424
 msgid "React"
@@ -2612,7 +2640,7 @@ msgstr "このタブを閉じていても新しい通知をすぐに受け取れ
 msgid "Receive notifications immediately through this browser, even when this tab is closed."
 msgstr "このブラウザーで通知をすぐに受け取ります。このタブを閉じていても通知されます。"
 
-#: src/components/AppSidebar.tsx:970
+#: src/components/AppSidebar.tsx:993
 msgid "Recent drafts"
 msgstr "最近の下書き"
 
@@ -2625,13 +2653,31 @@ msgstr "ニュースのスコアを再計算"
 msgid "Recomputing…"
 msgstr "再計算中…"
 
-#: src/components/RefreshFromOriginItem.tsx:107
+#: src/components/AppSidebar.tsx:865
+#: src/routes/(root)/admin/refresh.tsx:196
+msgid "Refresh"
+msgstr "再取得"
+
+#: src/routes/(root)/admin/refresh.tsx:170
+msgid "Refresh a remote actor or post"
+msgstr "リモートのアカウントまたはコンテンツを再取得"
+
+#: src/components/RefreshFromOriginItem.tsx:106
 msgid "Refresh from origin"
 msgstr "配信元から再取得"
 
-#: src/components/RefreshFromOriginItem.tsx:70
+#: src/routes/(root)/admin/refresh.tsx:166
+msgid "Refresh remote object"
+msgstr "リモートオブジェクトの再取得"
+
+#: src/components/RefreshFromOriginItem.tsx:66
+#: src/routes/(root)/admin/refresh.tsx:125
 msgid "Refreshed from origin."
 msgstr "配信元から再取得しました。"
+
+#: src/routes/(root)/admin/refresh.tsx:196
+msgid "Refreshing…"
+msgstr "再取得中…"
 
 #: src/routes/(root)/admin/invitations.tsx:203
 msgid "Regenerate"
@@ -2673,7 +2719,7 @@ msgstr "登録中…"
 msgid "Relay actor URL"
 msgstr "リレーアクターのURL"
 
-#: src/components/AppSidebar.tsx:865
+#: src/components/AppSidebar.tsx:888
 #: src/routes/(root)/admin/relay.tsx:216
 msgid "Relays"
 msgstr "リレー"
@@ -2925,7 +2971,7 @@ msgstr "ログインして投票"
 msgid "Sign in with passkey"
 msgstr "パスキーでサインイン"
 
-#: src/components/AppSidebar.tsx:1033
+#: src/components/AppSidebar.tsx:1056
 msgid "Sign out"
 msgstr "ログアウト"
 
@@ -3139,7 +3185,7 @@ msgstr "登録リンクが無効です。受信したメールのリンクを正
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:1075
+#: src/components/AppSidebar.tsx:1098
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "このウェブサイトのソースコードは{1}ライセンスで{0}で公開されています。"
 
@@ -3427,7 +3473,7 @@ msgstr "{1}に{0}さんがこのリンクの所有者であることを確認済
 msgid "Verifying your invitation…"
 msgstr "招待を確認中…"
 
-#: src/components/AppSidebar.tsx:996
+#: src/components/AppSidebar.tsx:1019
 msgid "View all drafts →"
 msgstr "すべての下書きを表示 →"
 
@@ -3669,7 +3715,7 @@ msgstr "記事を公開するにはログインする必要があります"
 msgid "You must be signed in to save a draft"
 msgstr "下書きを保存するにはログインする必要があります"
 
-#: src/components/RefreshFromOriginItem.tsx:77
+#: src/components/RefreshFromOriginItem.tsx:74
 msgid "You must be signed in."
 msgstr "ログインが必要です。"
 
