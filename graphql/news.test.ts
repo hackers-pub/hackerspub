@@ -1,6 +1,9 @@
 import { assert } from "@std/assert/assert";
 import { assertEquals } from "@std/assert/equals";
-import { recomputeNewsScores } from "@hackerspub/models/news";
+import {
+  drainNewsRescoreQueue,
+  recomputeNewsScores,
+} from "@hackerspub/models/news";
 import { accountTable } from "@hackerspub/models/schema";
 import { eq } from "drizzle-orm";
 import { execute, parse } from "graphql";
@@ -1128,6 +1131,9 @@ Deno.test({
       assertEquals(added.promotion, "STRONG");
       assertEquals(added.actor.uuid, bot.id);
 
+      // The mutation only enqueues the rescore; the worker's drain (run inline
+      // here) is what whitelists the bot's link into the feed.
+      await drainNewsRescoreQueue(tx);
       const feed = await execute({
         schema,
         document: newsStoriesQuery,
@@ -1167,6 +1173,7 @@ Deno.test({
         }).removeNewsPreferredSharer.removedId,
         added.id,
       );
+      await drainNewsRescoreQueue(tx);
       const feed2 = await execute({
         schema,
         document: newsStoriesQuery,
