@@ -348,6 +348,13 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.actorTable.id,
     }),
   },
+  newsPreferredSharerTable: {
+    actor: r.one.actorTable({
+      from: r.newsPreferredSharerTable.actorId,
+      to: r.actorTable.id,
+      optional: false,
+    }),
+  },
   pollTable: {
     post: r.one.postTable({
       from: r.pollTable.postId,

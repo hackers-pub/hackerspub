@@ -6,9 +6,11 @@ import { eq, sql } from "drizzle-orm";
 import type { Transaction } from "./db.ts";
 import {
   addNewsExcludedPattern,
+  addNewsPreferredSharer,
   getNewsDiscussionCounts,
   getNewsExcludedPatterns,
   getNewsPenalizedStories,
+  getNewsPreferredSharers,
   getNewsScoreStatus,
   getNewsSourceBreakdowns,
   getNewsStories,
@@ -16,6 +18,8 @@ import {
   NEWS_EPOCH_SECONDS,
   NEWS_PENALTY_BURY,
   NEWS_PENALTY_DEMOTE,
+  NEWS_PROMOTE_NORMAL,
+  NEWS_PROMOTE_STRONG,
   NEWS_REPEAT_CAP,
   NEWS_REPEAT_FRESH_MIN_SECONDS,
   NEWS_REPEAT_RECOVERY_TAU_SECONDS,
@@ -32,6 +36,7 @@ import {
   refreshNewsScoresForActor,
   refreshNewsScoresForPostLinks,
   removeNewsExcludedPattern,
+  removeNewsPreferredSharer,
   setNewsScorePenalty,
 } from "./news.ts";
 import { syncPostFromNoteSource } from "./post.ts";
@@ -2043,6 +2048,298 @@ Deno.test({
 
       await setNewsScorePenalty(tx, link.id, 0);
       assertEquals((await getNewsPenalizedStories(tx)).length, 0);
+    });
+  },
+});
+
+Deno.test({
+  name: "addNewsPreferredSharer adds a flat promotion bonus to a link's score",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const pref = await insertAccountWithActor(tx, {
+        username: "preferred",
+        name: "Preferred",
+        email: "preferred@example.com",
+      });
+      const plain = await insertAccountWithActor(tx, {
+        username: "plain",
+        name: "Plain",
+        email: "plain@example.com",
+      });
+      const a = await insertPostLink(tx, {
+        url: "https://example.com/promo-a",
+      });
+      const b = await insertPostLink(tx, {
+        url: "https://example.com/promo-b",
+      });
+      const at = new Date("2026-05-20T00:00:00.000Z");
+      await insertNotePost(tx, {
+        account: pref.account,
+        published: at,
+        link: { id: a.id, url: a.url },
+      });
+      await insertNotePost(tx, {
+        account: plain.account,
+        published: at,
+        link: { id: b.id, url: b.url },
+      });
+      await recomputeNewsScores(tx);
+
+      const baseA = (await readLink(tx, a.id)).score;
+      const baseB = (await readLink(tx, b.id)).score;
+      assertAlmostEquals(baseA, baseB, 1e-9); // identical base scores
+
+      await addNewsPreferredSharer(tx, {
+        actorId: pref.actor.id,
+        bonus: NEWS_PROMOTE_NORMAL,
+      });
+
+      const promoted = await readLink(tx, a.id);
+      assertEquals(promoted.promotionBonus, NEWS_PROMOTE_NORMAL);
+      assertAlmostEquals(promoted.score, baseA + NEWS_PROMOTE_NORMAL, 1e-6);
+      // The peer the preferred sharer did not touch is unchanged.
+      const peer = await readLink(tx, b.id);
+      assertEquals(peer.promotionBonus, 0);
+      assertAlmostEquals(peer.score, baseB, 1e-9);
+
+      // The promoted link now ranks above its (otherwise identical) peer.
+      const popular = await getNewsStories(tx, { order: "popular", limit: 10 });
+      const ai = popular.findIndex((l) => l.id === a.id);
+      const bi = popular.findIndex((l) => l.id === b.id);
+      assert(ai >= 0 && bi >= 0 && ai < bi);
+    });
+  },
+});
+
+Deno.test({
+  name: "a moderator penalty overrides a preferred-sharer promotion",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const pref = await insertAccountWithActor(tx, {
+        username: "prefpen",
+        name: "Pref Pen",
+        email: "prefpen@example.com",
+      });
+      const link = await insertPostLink(tx, { url: "https://example.com/pp" });
+      const at = new Date("2026-05-20T00:00:00.000Z");
+      await insertNotePost(tx, {
+        account: pref.account,
+        published: at,
+        link: { id: link.id, url: link.url },
+      });
+      await recomputeNewsScores(tx);
+      const base = (await readLink(tx, link.id)).score;
+
+      await addNewsPreferredSharer(tx, {
+        actorId: pref.actor.id,
+        bonus: NEWS_PROMOTE_NORMAL,
+      });
+      assertAlmostEquals(
+        (await readLink(tx, link.id)).score,
+        base + NEWS_PROMOTE_NORMAL,
+        1e-6,
+      );
+
+      // A penalty suppresses the promotion entirely (bonus zeroed, not netted).
+      await setNewsScorePenalty(tx, link.id, NEWS_PENALTY_DEMOTE);
+      const penalized = await readLink(tx, link.id);
+      assertEquals(penalized.promotionBonus, 0);
+      assertAlmostEquals(penalized.score, base - NEWS_PENALTY_DEMOTE, 1e-6);
+
+      // Clearing the penalty restores the promotion.
+      await setNewsScorePenalty(tx, link.id, 0);
+      const restored = await readLink(tx, link.id);
+      assertEquals(restored.promotionBonus, NEWS_PROMOTE_NORMAL);
+      assertAlmostEquals(restored.score, base + NEWS_PROMOTE_NORMAL, 1e-6);
+    });
+  },
+});
+
+Deno.test({
+  name: "a preferred sharer whitelists an otherwise-excluded bot's shares",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const host = await insertAccountWithActor(tx, {
+        username: "prefbothost",
+        name: "Pref Bot Host",
+        email: "prefbothost@example.com",
+      });
+      const bot = await insertRemoteActor(tx, {
+        username: "hnbot",
+        name: "HN Bot",
+        host: "bots.example",
+        type: "Service",
+      });
+      const link = await insertPostLink(tx, { url: "https://example.com/hn" });
+      const at = new Date("2026-05-20T00:00:00.000Z");
+      await insertNotePost(tx, {
+        account: host.account,
+        actorId: bot.id,
+        published: at,
+        link: { id: link.id, url: link.url },
+      });
+
+      // Without curation the bot's share is excluded from News entirely.
+      await recomputeNewsScores(tx);
+      assertEquals((await readLink(tx, link.id)).latestActivityAt, null);
+
+      // Curating the bot whitelists its share and promotes the link at once.
+      await addNewsPreferredSharer(tx, {
+        actorId: bot.id,
+        bonus: NEWS_PROMOTE_NORMAL,
+      });
+      const promoted = await readLink(tx, link.id);
+      assertEquals(promoted.postCount, 1);
+      assert(promoted.latestActivityAt != null);
+      assertAlmostEquals(
+        promoted.weightedMass,
+        NEWS_SOURCE_WEIGHT_REMOTE,
+        1e-9,
+      );
+      assertEquals(promoted.promotionBonus, NEWS_PROMOTE_NORMAL);
+      assertAlmostEquals(
+        promoted.score,
+        score(NEWS_SOURCE_WEIGHT_REMOTE, at) + NEWS_PROMOTE_NORMAL,
+        1e-6,
+      );
+      // The whitelisted bot share counts toward the source breakdown too.
+      const breakdowns = await getNewsSourceBreakdowns(tx, [link.id]);
+      assertEquals(breakdowns.get(link.id)?.remote, 1);
+      assert(
+        (await getNewsStories(tx, { order: "popular", limit: 10 }))
+          .some((l) => l.id === link.id),
+      );
+
+      // Removing the preferred sharer drops the bot-only link back out.
+      const [sharer] = await getNewsPreferredSharers(tx);
+      assertEquals(await removeNewsPreferredSharer(tx, sharer.id), true);
+      const dropped = await readLink(tx, link.id);
+      assertEquals(dropped.latestActivityAt, null);
+      assertEquals(dropped.score, 0);
+      assertEquals(dropped.promotionBonus, 0);
+      assertEquals(dropped.postCount, 0);
+      assertEquals(
+        (await getNewsStories(tx, { order: "popular", limit: 10 }))
+          .find((l) => l.id === link.id),
+        undefined,
+      );
+    });
+  },
+});
+
+Deno.test({
+  name: "the strongest preferred-sharer bonus wins (max, not sum)",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const weak = await insertAccountWithActor(tx, {
+        username: "weakpref",
+        name: "Weak Pref",
+        email: "weakpref@example.com",
+      });
+      const strong = await insertAccountWithActor(tx, {
+        username: "strongpref",
+        name: "Strong Pref",
+        email: "strongpref@example.com",
+      });
+      const link = await insertPostLink(tx, { url: "https://example.com/max" });
+      const at = new Date("2026-05-20T00:00:00.000Z");
+      await insertNotePost(tx, {
+        account: weak.account,
+        published: at,
+        link: { id: link.id, url: link.url },
+      });
+      await insertNotePost(tx, {
+        account: strong.account,
+        published: at,
+        link: { id: link.id, url: link.url },
+      });
+      await addNewsPreferredSharer(tx, {
+        actorId: weak.actor.id,
+        bonus: NEWS_PROMOTE_NORMAL,
+      });
+      await addNewsPreferredSharer(tx, {
+        actorId: strong.actor.id,
+        bonus: NEWS_PROMOTE_STRONG,
+      });
+
+      // The link carries the larger bonus, not the sum of the two.
+      assertEquals(
+        (await readLink(tx, link.id)).promotionBonus,
+        NEWS_PROMOTE_STRONG,
+      );
+    });
+  },
+});
+
+Deno.test({
+  name: "re-adding a preferred sharer updates its bonus in place",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const pref = await insertAccountWithActor(tx, {
+        username: "readdpref",
+        name: "Re-add Pref",
+        email: "readdpref@example.com",
+      });
+      const link = await insertPostLink(tx, { url: "https://example.com/re" });
+      const at = new Date("2026-05-20T00:00:00.000Z");
+      await insertNotePost(tx, {
+        account: pref.account,
+        published: at,
+        link: { id: link.id, url: link.url },
+      });
+
+      await addNewsPreferredSharer(tx, {
+        actorId: pref.actor.id,
+        bonus: NEWS_PROMOTE_NORMAL,
+      });
+      assertEquals(
+        (await readLink(tx, link.id)).promotionBonus,
+        NEWS_PROMOTE_NORMAL,
+      );
+
+      await addNewsPreferredSharer(tx, {
+        actorId: pref.actor.id,
+        bonus: NEWS_PROMOTE_STRONG,
+        note: "bumped",
+      });
+      // One row per actor, with the updated bonus reflected in the score.
+      const sharers = await getNewsPreferredSharers(tx);
+      assertEquals(sharers.length, 1);
+      assertEquals(sharers[0].bonus, NEWS_PROMOTE_STRONG);
+      assertEquals(sharers[0].note, "bumped");
+      assertEquals(
+        (await readLink(tx, link.id)).promotionBonus,
+        NEWS_PROMOTE_STRONG,
+      );
+    });
+  },
+});
+
+Deno.test({
+  name: "addNewsPreferredSharer rejects a non-positive bonus",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const pref = await insertAccountWithActor(tx, {
+        username: "badbonus",
+        name: "Bad Bonus",
+        email: "badbonus@example.com",
+      });
+      await assertRejects(
+        () => addNewsPreferredSharer(tx, { actorId: pref.actor.id, bonus: 0 }),
+        RangeError,
+      );
     });
   },
 });

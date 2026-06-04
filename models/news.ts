@@ -12,11 +12,13 @@ import {
   type SQL,
   sql,
 } from "drizzle-orm";
-import type { Database, Transaction } from "./db.ts";
+import type { Database, RelationsFilter, Transaction } from "./db.ts";
 import {
   type ActorType,
   type NewsExcludedPattern,
   newsExcludedPatternTable,
+  type NewsPreferredSharer,
+  newsPreferredSharerTable,
   type PostLink,
   postLinkTable,
 } from "./schema.ts";
@@ -119,6 +121,23 @@ export const NEWS_PENALTY_DEMOTE = 50;
  */
 export const NEWS_PENALTY_BURY = 100_000;
 
+// ---------------------------------------------------------------------------
+// Moderator promotion bonuses
+//
+// A `news_preferred_sharer` lifts the links it shares by *adding* a flat bonus
+// to their `score` (the mirror image of a penalty).  Because the score is
+// recency-dominated and unintuitive these are coarse presets, not free numbers:
+// one point of score is `NEWS_TAU_SECONDS` (~14h) of recency, so `NORMAL` is
+// worth roughly a month of freshness (matching `NEWS_PENALTY_DEMOTE`'s scale)
+// and `STRONG` several months.  A penalty on the link overrides the bonus (the
+// recompute zeroes the promotion while `scorePenalty > 0`).
+// ---------------------------------------------------------------------------
+
+/** Default promotion: reliably surfaces a curated sharer's links without pinning. */
+export const NEWS_PROMOTE_NORMAL = 50;
+/** Stronger promotion for a high-signal curated feed (e.g. a Hacker News reposter). */
+export const NEWS_PROMOTE_STRONG = 200;
+
 // Detects a Bluesky-bridged actor (`@…@bsky.brid.gy`).  References the actor
 // alias `a` and instance alias `i`, which both source queries below join under
 // those names, so the classification stays identical wherever it is reused.
@@ -152,14 +171,47 @@ export function isNewsBotActorType(type: ActorType): boolean {
   return NEWS_BOT_ACTOR_TYPES.includes(type);
 }
 
-// A qualifying sharing post must be authored by a non-bot actor.  References the
-// actor alias `a`, which every source query below joins under that name.  Cast
-// `a.type` to text so the bound type list compares cleanly (an enum column has
-// no implicit operator against a bound text parameter), keeping a single source
-// of truth with `NEWS_BOT_ACTOR_TYPES`.
-const nonBotSharerCondition: SQL = sql`a.type::text not in (${
+// A qualifying sharing post is authored by an actor whose shares count toward
+// News: a non-bot actor (`Person`/`Group`/`Organization`), or *any* actor a
+// moderator has curated as a `news_preferred_sharer`.  The latter is what
+// whitelists an otherwise-excluded bot feed (e.g. a Hacker News reposter) so its
+// shares surface at all.  References the actor alias `a`, which every source
+// query below joins under that name.  Cast `a.type` to text so the bound type
+// list compares cleanly (an enum column has no implicit operator against a bound
+// text parameter), keeping a single source of truth with `NEWS_BOT_ACTOR_TYPES`
+// (and with `newsSharerActorFilter`, the relational-query mirror GraphQL uses).
+const qualifyingSharerCondition: SQL = sql`(
+  a.type::text not in (${
   sql.join(NEWS_BOT_ACTOR_TYPES.map((t) => sql`${t}`), sql`, `)
-})`;
+})
+  or exists (
+    select 1 from news_preferred_sharer ps where ps.actor_id = a.id
+  )
+)`;
+
+/**
+ * The relational-query mirror of `qualifyingSharerCondition`, for the GraphQL
+ * `PostLink.sharingPosts` filter: a sharing post counts toward News when its
+ * author is a non-bot actor, or a curated `news_preferred_sharer` (which
+ * whitelists a bot feed).  Kept in lockstep with the SQL so the discussion page
+ * shows exactly the shares the score counts.
+ *
+ * Expressed as a `postTable` filter (not an `actorTable` one) so the preferred-
+ * sharer branch can use a top-level `RAW`: Drizzle hands a *nested* relation
+ * filter's `RAW` callback the outer table, so the correlated EXISTS must be
+ * anchored on `post.actorId` here rather than reached through `actor: { … }`.
+ */
+export function newsSharerPostFilter(): RelationsFilter<"postTable"> {
+  return {
+    OR: [
+      { actor: { type: { notIn: [...NEWS_BOT_ACTOR_TYPES] } } },
+      {
+        RAW: (post) =>
+          sql`exists (select 1 from ${newsPreferredSharerTable} ps where ps.actor_id = ${post.actorId})`,
+      },
+    ],
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Recompute
@@ -439,19 +491,19 @@ function activeLinkIdsSubquery(activeSince: Date): SQL {
   return sql`
     select s.link_id
       from post s join actor a on a.id = s.actor_id
-      where ${share} and ${nonBotSharerCondition} and s.published >= ${since}
+      where ${share} and ${qualifyingSharerCondition} and s.published >= ${since}
     union
     select s.link_id
       from post s join actor a on a.id = s.actor_id
       -- A federated Update to a share (e.g. its replies/likes totals) bumps
       -- the updated column, catching remote engagement changes with no row.
-      where ${share} and ${nonBotSharerCondition} and s.updated >= ${since}
+      where ${share} and ${qualifyingSharerCondition} and s.updated >= ${since}
     union
     select s.link_id
       from reaction r
       join post s on s.id = r.post_id
       join actor a on a.id = s.actor_id
-      where r.created >= ${since} and ${share} and ${nonBotSharerCondition}
+      where r.created >= ${since} and ${share} and ${qualifyingSharerCondition}
     union
     select s.link_id
       from post c
@@ -459,7 +511,7 @@ function activeLinkIdsSubquery(activeSince: Date): SQL {
       join actor a on a.id = s.actor_id
       where c.reply_target_id is not null
         and c.visibility in ('public', 'unlisted') and c.published >= ${since}
-        and ${share} and ${nonBotSharerCondition}
+        and ${share} and ${qualifyingSharerCondition}
     union
     select s.link_id
       from post c
@@ -467,7 +519,7 @@ function activeLinkIdsSubquery(activeSince: Date): SQL {
       join actor a on a.id = s.actor_id
       where c.quoted_post_id is not null
         and c.visibility in ('public', 'unlisted') and c.published >= ${since}
-        and ${share} and ${nonBotSharerCondition}
+        and ${share} and ${qualifyingSharerCondition}
   `;
 }
 
@@ -518,14 +570,20 @@ async function recomputeAggregate(
           p.published - lag(p.published) over (
             partition by p.actor_id, p.link_id order by p.published, p.id
           )
-        )) as gap_seconds
+        )) as gap_seconds,
+        -- The promotion bonus this share's author carries as a curated preferred
+        -- sharer (0 when none): folded into the link's score below.  A left join
+        -- (rather than the EXISTS inside qualifyingSharerCondition) because here
+        -- we need the bonus value, not just membership.
+        coalesce(ps.bonus, 0::double precision) as preferred_bonus
       from post p
       join actor a on a.id = p.actor_id
       join instance i on i.host = a.instance_host
+      left join news_preferred_sharer ps on ps.actor_id = p.actor_id
       where p.link_id is not null
         and p.visibility in ('public', 'unlisted')
         and p.shared_post_id is null
-        and ${nonBotSharerCondition}${scopeFilter(scope, sql`p.link_id`)}
+        and ${qualifyingSharerCondition}${scopeFilter(scope, sql`p.link_id`)}
     ),
     -- Count only public/unlisted replies and quotes: the denormalized
     -- replies_count/quotes_count include followers-only and direct posts,
@@ -593,7 +651,10 @@ async function recomputeAggregate(
             + ${NEWS_W_REPLY}::double precision * coalesce(rc.cnt, 0)
             + ${NEWS_W_REACT}::double precision * s.reactions_count
           )
-        ) as weighted_mass
+        ) as weighted_mass,
+        -- The strongest preferred-sharer bonus across this link's shares (0 when
+        -- none).  Max, not sum: several curated sharers should not stack.
+        max(s.preferred_bonus) as promotion_bonus
       from shares s
       left join reply_counts rc on rc.post_id = s.post_id
       left join quote_counts qc on qc.post_id = s.post_id
@@ -605,7 +666,8 @@ async function recomputeAggregate(
         agg.post_count as post_count,
         agg.first_shared_at as first_shared_at,
         greatest(agg.latest_share, ca.latest, ra.latest) as latest_activity_at,
-        agg.weighted_mass as weighted_mass
+        agg.weighted_mass as weighted_mass,
+        agg.promotion_bonus as promotion_bonus
       from agg
       left join child_activity ca on ca.link_id = agg.link_id
       left join reaction_activity ra on ra.link_id = agg.link_id
@@ -618,6 +680,12 @@ async function recomputeAggregate(
       first_shared_at = date_trunc('milliseconds', final.first_shared_at),
       latest_activity_at = final.latest_activity_at,
       weighted_mass = final.weighted_mass,
+      -- A moderator penalty overrides the preferred-sharer promotion: while
+      -- score_penalty > 0 the stored bonus (and its term in score) is zeroed, so
+      -- a deliberate demote/bury always wins.
+      promotion_bonus =
+        case when pl.score_penalty > 0 then 0::double precision
+             else final.promotion_bonus end,
       recency_component =
         (extract(epoch from final.latest_activity_at) - ${NEWS_EPOCH_SECONDS}::double precision)
           / ${NEWS_TAU_SECONDS}::double precision,
@@ -625,6 +693,8 @@ async function recomputeAggregate(
         log(greatest(1::double precision, final.weighted_mass))
         + (extract(epoch from final.latest_activity_at) - ${NEWS_EPOCH_SECONDS}::double precision)
             / ${NEWS_TAU_SECONDS}::double precision
+        + case when pl.score_penalty > 0 then 0::double precision
+               else final.promotion_bonus end
         - pl.score_penalty,
       score_updated = now()
     from final
@@ -647,6 +717,7 @@ async function zeroStaleLinks(
       score = 0,
       weighted_mass = 0,
       recency_component = 0,
+      promotion_bonus = 0,
       post_count = 0,
       first_shared_at = null,
       latest_activity_at = null,
@@ -658,7 +729,7 @@ async function zeroStaleLinks(
         where p.link_id = pl.id
           and p.visibility in ('public', 'unlisted')
           and p.shared_post_id is null
-          and ${nonBotSharerCondition}
+          and ${qualifyingSharerCondition}
       )
   `);
 }
@@ -799,7 +870,7 @@ export async function getNewsSourceBreakdowns(
     where p.link_id = any(${literal}::uuid[])
       and p.visibility in ('public', 'unlisted')
       and p.shared_post_id is null
-      and ${nonBotSharerCondition}
+      and ${qualifyingSharerCondition}
     group by p.link_id
   `);
   for (const row of rows) {
@@ -845,7 +916,7 @@ export async function getNewsDiscussionCounts(
       where p.link_id = any(${literal}::uuid[])
         and p.visibility in ('public', 'unlisted')
         and p.shared_post_id is null
-        and ${nonBotSharerCondition}
+        and ${qualifyingSharerCondition}
     )
     select link_id, count(*) as cnt
     from (
@@ -1034,4 +1105,111 @@ export function getNewsPenalizedStories(db: Database): Promise<PostLink[]> {
     .where(gt(postLinkTable.scorePenalty, 0))
     .orderBy(desc(postLinkTable.scorePenalty), desc(postLinkTable.id))
     .limit(100);
+}
+
+// ---------------------------------------------------------------------------
+// Moderation: preferred sharers
+// ---------------------------------------------------------------------------
+
+/**
+ * Every link a given actor has shared (any non-boost post carrying a link,
+ * regardless of the actor's bot status), so adding or removing it as a preferred
+ * sharer can rescore exactly the links its whitelist and promotion affect.
+ */
+async function actorSharedLinkIds(
+  db: Database,
+  actorId: Uuid,
+): Promise<Uuid[]> {
+  const shares = await db.query.postTable.findMany({
+    where: {
+      actorId,
+      linkId: { isNotNull: true },
+      sharedPostId: { isNull: true },
+    },
+    columns: { linkId: true },
+  });
+  return [
+    ...new Set(
+      shares.map((s) => s.linkId).filter((id): id is Uuid => id != null),
+    ),
+  ];
+}
+
+/** All preferred sharers, newest first (for the admin page). */
+export function getNewsPreferredSharers(
+  db: Database,
+): Promise<NewsPreferredSharer[]> {
+  return db
+    .select()
+    .from(newsPreferredSharerTable)
+    .orderBy(desc(newsPreferredSharerTable.created));
+}
+
+/**
+ * Curate an actor as a preferred sharer (idempotent on the actor: re-adding
+ * updates its `bonus`/`note`) and rescore every link it has shared, so its
+ * shares are whitelisted into News and its promotion bonus is applied at once.
+ * The actor must already exist locally; the foreign key enforces it.
+ */
+export async function addNewsPreferredSharer(
+  db: Database,
+  values: {
+    actorId: Uuid;
+    bonus: number;
+    note?: string | null;
+    creatorId?: Uuid | null;
+  },
+): Promise<NewsPreferredSharer> {
+  // A non-positive or non-finite bonus is meaningless and would poison the
+  // ranking column; mirror setNewsScorePenalty's guard.
+  if (!Number.isFinite(values.bonus) || values.bonus <= 0) {
+    throw new RangeError(`Invalid news promotion bonus: ${values.bonus}`);
+  }
+  const note = values.note?.trim() || null;
+  const creatorId = values.creatorId ?? null;
+  const run = async (tx: Database): Promise<NewsPreferredSharer> => {
+    const [row] = await tx
+      .insert(newsPreferredSharerTable)
+      .values({
+        id: generateUuidV7(),
+        actorId: values.actorId,
+        bonus: values.bonus,
+        note,
+        creatorId,
+      })
+      .onConflictDoUpdate({
+        target: newsPreferredSharerTable.actorId,
+        set: { bonus: values.bonus, note, creatorId },
+      })
+      .returning();
+    if (row == null) throw new Error("Failed to persist preferred sharer.");
+    await recomputeNewsScores(tx, {
+      linkIds: await actorSharedLinkIds(tx, values.actorId),
+    });
+    return row;
+  };
+  return isTransaction(db) ? await run(db) : await db.transaction(run);
+}
+
+/**
+ * Remove a preferred sharer and rescore every link it had shared, so a link kept
+ * in News only by its whitelist drops out and its promotion bonus is cleared.
+ * Returns `false` if no preferred sharer had that id.
+ */
+export async function removeNewsPreferredSharer(
+  db: Database,
+  id: Uuid,
+): Promise<boolean> {
+  const run = async (tx: Database): Promise<boolean> => {
+    const [removed] = await tx
+      .delete(newsPreferredSharerTable)
+      .where(eq(newsPreferredSharerTable.id, id))
+      .returning({ actorId: newsPreferredSharerTable.actorId });
+    if (removed == null) return false;
+    await recomputeNewsScores(tx, {
+      linkIds: await actorSharedLinkIds(tx, removed.actorId),
+    });
+    return true;
+  };
+  return isTransaction(db) ? await run(db) : await db.transaction(run);
 }

@@ -1171,6 +1171,13 @@ export const postLinkTable = pgTable(
     // Moderator-applied penalty subtracted from `score` to demote a link in the
     // feed.  Persisted across recomputes (the recompute reads and re-applies it).
     scorePenalty: doublePrecision("score_penalty").notNull().default(0),
+    // Flat promotion bonus added to `score` because a moderator-curated
+    // `news_preferred_sharer` shared this link (the largest such sharer's bonus).
+    // Recomputed, not edited directly; suppressed to 0 while `scorePenalty > 0`
+    // (an explicit demotion/bury overrides the promotion), so the popular score
+    // always reconstructs as `log10(max(1, weightedMass)) + recencyComponent +
+    // promotionBonus - scorePenalty`.
+    promotionBonus: doublePrecision("promotion_bonus").notNull().default(0),
     // Set when the link's URL matches a `news_excluded_pattern`; excludes it
     // from the feed list (every sort order) while leaving its discussion page
     // reachable.  Recomputed from the patterns, not edited directly.
@@ -1269,6 +1276,46 @@ export const newsExcludedPatternTable = pgTable(
 export type NewsExcludedPattern = typeof newsExcludedPatternTable.$inferSelect;
 export type NewNewsExcludedPattern =
   typeof newsExcludedPatternTable.$inferInsert;
+
+// Moderator-curated actors whose shares are favored in the News feed.  A
+// preferred sharer does two things, applied when scores are recomputed:
+//
+//  1.  Whitelist: its shares qualify as news shares even when it is a bot
+//      (`Service`/`Application`) actor, which are otherwise excluded.  This is
+//      what lets a curated automated feed (e.g. a Hacker News reposter) surface
+//      at all.
+//  2.  Promotion: the link it shares gets a flat `bonus` added to its popular
+//      score (the largest bonus wins when several preferred sharers share the
+//      same link), unless a moderator penalty on the link overrides it.
+export const newsPreferredSharerTable = pgTable(
+  "news_preferred_sharer",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    actorId: uuid("actor_id")
+      .$type<Uuid>()
+      .notNull()
+      .unique()
+      .references((): AnyPgColumn => actorTable.id, { onDelete: "cascade" }),
+    // Flat amount added to the shared link's popular `score`.  In the score's
+    // units one point is `NEWS_TAU_SECONDS` (~14h) of recency, so the presets in
+    // `news.ts` are deliberately coarse; not a free-form dial.
+    bonus: doublePrecision().notNull(),
+    note: text(),
+    creatorId: uuid("creator_id")
+      .$type<Uuid>()
+      .references((): AnyPgColumn => accountTable.id, { onDelete: "set null" }),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    index().on(table.creatorId),
+  ],
+);
+
+export type NewsPreferredSharer = typeof newsPreferredSharerTable.$inferSelect;
+export type NewNewsPreferredSharer =
+  typeof newsPreferredSharerTable.$inferInsert;
 
 export const pollTable = pgTable(
   "poll",
