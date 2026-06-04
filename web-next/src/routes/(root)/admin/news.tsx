@@ -2,9 +2,18 @@ import { A, Navigate, revalidate, useNavigate } from "@solidjs/router";
 import { fetchQuery, graphql } from "relay-runtime";
 import { createSignal, For, Show } from "solid-js";
 import { createMutation, loadQuery, useRelayEnvironment } from "solid-relay";
+import {
+  ActorHandleAutocomplete,
+  type Uuid,
+} from "~/components/ActorHandleAutocomplete.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { Title } from "~/components/Title.tsx";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "~/components/ui/avatar.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import {
   Card,
@@ -71,6 +80,8 @@ const newsAdminPageQuery = graphql`
         uuid
         handle
         name
+        avatarUrl
+        avatarInitials
       }
     }
   }
@@ -259,6 +270,11 @@ export default function AdminNewsPage() {
   const [noteInput, setNoteInput] = createSignal("");
   const [adding, setAdding] = createSignal(false);
   const [handleInput, setHandleInput] = createSignal("");
+  // Set when a handle is chosen from autocomplete, so adding can skip the
+  // server-side handle lookup; cleared on any manual edit of the field.
+  const [selectedActorUuid, setSelectedActorUuid] = createSignal<Uuid | null>(
+    null,
+  );
   const [preferredNoteInput, setPreferredNoteInput] = createSignal("");
   const [promotionInput, setPromotionInput] = createSignal<NewsPromotion>(
     "NORMAL",
@@ -415,29 +431,33 @@ export default function AdminNewsPage() {
     // reading these after the await could pick up edits made mid-flight.
     const promotion = promotionInput();
     const note = preferredNoteInput().trim() || null;
+    // A handle picked from autocomplete is already resolved, so skip the lookup.
+    const preselected = selectedActorUuid();
     setAddingPreferred(true);
-    // Resolve the handle to an actor first (this may trigger a federation
-    // lookup for a not-yet-seen remote actor), then curate it by its UUID.
-    let actor;
-    try {
-      const result = await fetchQuery<newsAdminActorByHandleQuery>(
-        environment(),
-        newsAdminActorByHandleQuery,
-        { handle },
-      ).toPromise();
-      actor = result?.actorByHandle ?? null;
-    } catch (error) {
-      setAddingPreferred(false);
-      showToast({
-        title: t`Failed to look up the actor.`,
-        description: import.meta.env.DEV && error instanceof Error
-          ? error.message
-          : undefined,
-        variant: "error",
-      });
-      return;
+    let actorId = preselected;
+    if (actorId == null) {
+      // Typed handle (no pick): resolve it to an actor, which may trigger a
+      // federation lookup for a not-yet-seen remote actor.
+      try {
+        const result = await fetchQuery<newsAdminActorByHandleQuery>(
+          environment(),
+          newsAdminActorByHandleQuery,
+          { handle },
+        ).toPromise();
+        actorId = result?.actorByHandle?.uuid ?? null;
+      } catch (error) {
+        setAddingPreferred(false);
+        showToast({
+          title: t`Failed to look up the actor.`,
+          description: import.meta.env.DEV && error instanceof Error
+            ? error.message
+            : undefined,
+          variant: "error",
+        });
+        return;
+      }
     }
-    if (actor == null) {
+    if (actorId == null) {
       setAddingPreferred(false);
       showToast({
         title: t`No actor found for that handle.`,
@@ -446,12 +466,13 @@ export default function AdminNewsPage() {
       return;
     }
     addPreferred({
-      variables: { actorId: actor.uuid, promotion, note },
+      variables: { actorId, promotion, note },
       onCompleted(response) {
         setAddingPreferred(false);
         const result = response.addNewsPreferredSharer;
         if (result.__typename === "NewsPreferredSharer") {
           setHandleInput("");
+          setSelectedActorUuid(null);
           setPreferredNoteInput("");
           showToast({ title: t`Preferred sharer added.` });
           refresh();
@@ -665,19 +686,22 @@ export default function AdminNewsPage() {
                         class="flex flex-col gap-3 sm:flex-row sm:items-end"
                         on:submit={onAddPreferred}
                       >
-                        <TextField class="grid flex-1 gap-1.5">
-                          <TextFieldLabel for="news-sharer-handle">
-                            {t`Account handle`}
-                          </TextFieldLabel>
-                          <TextFieldInput
-                            id="news-sharer-handle"
-                            type="text"
-                            placeholder="@feed@example.com"
-                            value={handleInput()}
-                            onInput={(e) =>
-                              setHandleInput(e.currentTarget.value)}
-                          />
-                        </TextField>
+                        <ActorHandleAutocomplete
+                          class="flex-1"
+                          inputId="news-sharer-handle"
+                          label={t`Account handle`}
+                          placeholder="@feed@example.com"
+                          value={handleInput()}
+                          disabled={addingPreferred()}
+                          onInput={(value) => {
+                            setHandleInput(value);
+                            setSelectedActorUuid(null);
+                          }}
+                          onSelect={(actor) => {
+                            setHandleInput(actor.handle);
+                            setSelectedActorUuid(actor.uuid);
+                          }}
+                        />
                         <Select
                           class="grid gap-1.5"
                           value={promotionInput()}
@@ -734,6 +758,14 @@ export default function AdminNewsPage() {
                           <For each={preferredSharers()}>
                             {(s) => (
                               <li class="flex items-center gap-3 px-3 py-2">
+                                <Avatar class="size-9">
+                                  <AvatarImage
+                                    src={s.actor.avatarUrl ?? undefined}
+                                  />
+                                  <AvatarFallback class="text-xs">
+                                    {s.actor.avatarInitials}
+                                  </AvatarFallback>
+                                </Avatar>
                                 <div class="min-w-0 flex-1">
                                   <p class="truncate text-sm font-medium">
                                     {
