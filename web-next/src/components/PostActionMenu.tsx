@@ -19,6 +19,8 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
+import { RefreshFromOriginItem } from "~/components/RefreshFromOriginItem.tsx";
+import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import IconEllipsis from "~icons/lucide/ellipsis";
 import IconPencil from "~icons/lucide/pencil";
@@ -113,11 +115,13 @@ export interface PostActionMenuProps {
 
 interface PostActionMenuData {
   readonly id: string;
+  readonly iri: string;
   readonly visibility: string;
   readonly viewerHasPinned: boolean;
   readonly sharedPost: { readonly id: string } | null | undefined;
   readonly actor: {
     readonly isViewer: boolean;
+    readonly local: boolean;
   };
 }
 
@@ -126,6 +130,7 @@ export function PostActionMenu(props: PostActionMenuProps) {
     graphql`
       fragment PostActionMenu_post on Post {
         id
+        iri
         visibility
         viewerHasPinned
         sharedPost {
@@ -133,6 +138,7 @@ export function PostActionMenu(props: PostActionMenuProps) {
         }
         actor {
           isViewer
+          local
         }
       }
     `,
@@ -163,6 +169,7 @@ export function QuestionActionMenu(props: QuestionActionMenuProps) {
     graphql`
       fragment PostActionMenu_question on Question {
         id
+        iri
         visibility
         viewerHasPinned
         sharedPost {
@@ -170,6 +177,7 @@ export function QuestionActionMenu(props: QuestionActionMenuProps) {
         }
         actor {
           isViewer
+          local
         }
       }
     `,
@@ -197,8 +205,17 @@ interface PostActionMenuContentProps {
 
 function PostActionMenuContent(props: PostActionMenuContentProps) {
   const { i18n, t } = useLingui();
+  const viewer = useViewer();
   const post = props.post;
   const [showConfirm, setShowConfirm] = createSignal(false);
+
+  // The author manages their own post (edit/pin/delete); a moderator may
+  // additionally force-refresh a remote post they did not author.
+  const isAuthor = () => post()?.actor.isViewer ?? false;
+  const canModerate = () => {
+    const p = post();
+    return viewer.moderator() && p != null && !p.actor.local;
+  };
 
   const [commitDeletePost, isDeleting] = createMutation<
     PostActionMenu_deletePost_Mutation
@@ -307,7 +324,7 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
   };
 
   return (
-    <Show when={post()?.actor.isViewer}>
+    <Show when={isAuthor() || canModerate()}>
       <DropdownMenu>
         <DropdownMenuTrigger
           as={(triggerProps: Record<string, unknown>) => (
@@ -322,7 +339,10 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
           )}
         />
         <DropdownMenuContent>
-          <Show when={props.onEdit != null}>
+          <Show when={canModerate()}>
+            <RefreshFromOriginItem uri={post()!.iri} />
+          </Show>
+          <Show when={props.onEdit != null && isAuthor()}>
             <DropdownMenuItem class="cursor-pointer" onSelect={props.onEdit}>
               <IconPencil class="size-4" />
               {t`Edit`}
@@ -345,13 +365,15 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
               </Show>
             </DropdownMenuItem>
           </Show>
-          <DropdownMenuItem
-            class="text-destructive focus:text-destructive cursor-pointer"
-            onSelect={() => setShowConfirm(true)}
-          >
-            <IconTrash2 class="size-4" />
-            {t`Delete`}
-          </DropdownMenuItem>
+          <Show when={isAuthor()}>
+            <DropdownMenuItem
+              class="text-destructive focus:text-destructive cursor-pointer"
+              onSelect={() => setShowConfirm(true)}
+            >
+              <IconTrash2 class="size-4" />
+              {t`Delete`}
+            </DropdownMenuItem>
+          </Show>
         </DropdownMenuContent>
       </DropdownMenu>
 

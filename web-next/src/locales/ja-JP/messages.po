@@ -50,7 +50,7 @@ msgid "{0, plural, one {# invitation left} other {# invitations left}}"
 msgstr "{0, plural, other {残り#件の招待}}"
 
 #. placeholder {0}: status()?.scoredLinkCount ?? 0
-#: src/routes/(root)/admin/news.tsx:544
+#: src/routes/(root)/admin/news.tsx:566
 msgid "{0, plural, one {# link is currently in the news feed.} other {# links are currently in the news feed.}}"
 msgstr "{0, plural, one {現在ニュースフィードに#件のリンクがあります。} other {現在ニュースフィードに#件のリンクがあります。}}"
 
@@ -107,7 +107,7 @@ msgid "{0, plural, one {Load # more reactor} other {Load # more reactors}}"
 msgstr "{0, plural, one {リアクター #件をもっと読み込む} other {リアクター #件をもっと読み込む}}"
 
 #. placeholder {0}: result.linksUpdated!
-#: src/routes/(root)/admin/news.tsx:281
+#: src/routes/(root)/admin/news.tsx:298
 msgid "{0, plural, one {Recomputed # link.} other {Recomputed # links.}}"
 msgstr "{0, plural, one {#件のリンクのスコアを再計算しました。} other {#件のリンクのスコアを再計算しました。}}"
 
@@ -326,7 +326,7 @@ msgstr "ログインリンクがメールに送信されました。受信トレ
 msgid "Account"
 msgstr "アカウント"
 
-#: src/routes/(root)/admin/news.tsx:669
+#: src/routes/(root)/admin/news.tsx:690
 msgid "Account handle"
 msgstr "アカウントのハンドル"
 
@@ -345,8 +345,8 @@ msgid "Active since"
 msgstr "有効化日時:"
 
 #: src/routes/(root)/[handle]/settings/language.tsx:196
-#: src/routes/(root)/admin/news.tsx:615
-#: src/routes/(root)/admin/news.tsx:724
+#: src/routes/(root)/admin/news.tsx:637
+#: src/routes/(root)/admin/news.tsx:746
 msgid "Add"
 msgstr "追加"
 
@@ -359,8 +359,8 @@ msgstr "{0}を追加"
 msgid "Add to sidebar"
 msgstr "サイドバーに追加"
 
-#: src/routes/(root)/admin/news.tsx:615
-#: src/routes/(root)/admin/news.tsx:724
+#: src/routes/(root)/admin/news.tsx:637
+#: src/routes/(root)/admin/news.tsx:746
 msgid "Adding…"
 msgstr "追加中…"
 
@@ -446,7 +446,7 @@ msgstr "誰でも引用できます"
 
 #. placeholder {0}: displayName()
 #. placeholder {1}: actor()?.handle
-#: src/components/ProfileActionMenu.tsx:394
+#: src/components/ProfileActionMenu.tsx:401
 msgid "Are you sure you want to block {0} ({1})? They won't be able to follow you or see your posts."
 msgstr "{0}さん（{1}）をブロックしますか？このユーザーはあなたをフォローしたり、あなたのコンテンツを見たりできなくなります。"
 
@@ -465,7 +465,7 @@ msgstr "パスキー{0}を取り消しますか？このパスキーを使用し
 
 #. placeholder {0}: displayName()
 #. placeholder {1}: actor()?.handle
-#: src/components/ProfileActionMenu.tsx:396
+#: src/components/ProfileActionMenu.tsx:403
 msgid "Are you sure you want to unblock {0} ({1})? They will be able to follow you and see your posts."
 msgstr "{0}さん（{1}）のブロックを解除しますか？このユーザーはあなたをフォローしたり、あなたのコンテンツを見たりできるようになります。"
 
@@ -531,13 +531,13 @@ msgstr "自己紹介"
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "自己紹介が長すぎます。最大512文字です。"
 
-#: src/components/ProfileActionMenu.tsx:376
-#: src/components/ProfileActionMenu.tsx:405
+#: src/components/ProfileActionMenu.tsx:383
 #: src/components/ProfileActionMenu.tsx:412
+#: src/components/ProfileActionMenu.tsx:419
 msgid "Block"
 msgstr "ブロック"
 
-#: src/components/ProfileActionMenu.tsx:387
+#: src/components/ProfileActionMenu.tsx:394
 msgid "Block user?"
 msgstr "ユーザーをブロックしますか？"
 
@@ -589,7 +589,7 @@ msgid "Browser notifications enabled"
 msgstr "ブラウザー通知を有効にしました"
 
 #: src/components/NewsStoryCard.tsx:215
-#: src/routes/(root)/admin/news.tsx:803
+#: src/routes/(root)/admin/news.tsx:844
 msgid "Buried"
 msgstr "埋没済み"
 
@@ -601,9 +601,9 @@ msgstr "埋没"
 #: src/components/NoteComposer.tsx:1374
 #: src/components/NoteComposer.tsx:1375
 #: src/components/NoteComposer.tsx:1418
-#: src/components/PostActionMenu.tsx:367
-#: src/components/ProfileActionMenu.tsx:401
-#: src/components/ProfileActionMenu.tsx:402
+#: src/components/PostActionMenu.tsx:389
+#: src/components/ProfileActionMenu.tsx:408
+#: src/components/ProfileActionMenu.tsx:409
 #: src/components/QuotedNoteCard.tsx:248
 #: src/components/RemoteFollowButton.tsx:218
 #: src/components/RemoteFollowButton.tsx:280
@@ -647,7 +647,7 @@ msgid "Choose your preferred language for the verification email."
 msgstr "確認メールの言語を選択してください。"
 
 #: src/components/admin/AdminAccountsTable.tsx:213
-#: src/routes/(root)/admin/news.tsx:812
+#: src/routes/(root)/admin/news.tsx:853
 msgid "Clear"
 msgstr "クリア"
 
@@ -729,6 +729,10 @@ msgstr "クリップボードにリンクをコピーできませんでした。
 msgid "Could not load profile."
 msgstr "プロフィールを読み込めませんでした。"
 
+#: src/components/RefreshFromOriginItem.tsx:73
+msgid "Could not refresh this from its origin."
+msgstr "この項目を配信元から再取得できませんでした。"
+
 #: src/components/QuotedNoteCard.tsx:271
 msgid "Could not revoke quote"
 msgstr "引用を取り消せませんでした"
@@ -805,8 +809,8 @@ msgstr "引用のデフォルト許可設定"
 msgid "Default share privacy"
 msgstr "共有のデフォルト公開範囲"
 
-#: src/components/PostActionMenu.tsx:353
-#: src/components/PostActionMenu.tsx:373
+#: src/components/PostActionMenu.tsx:374
+#: src/components/PostActionMenu.tsx:395
 #: src/routes/(root)/[handle]/drafts/index.tsx:322
 #: src/routes/(root)/[handle]/settings/invite.tsx:742
 msgid "Delete"
@@ -821,7 +825,7 @@ msgstr "下書きを削除"
 msgid "Delete orphan media"
 msgstr "孤立したメディアを削除"
 
-#: src/components/PostActionMenu.tsx:361
+#: src/components/PostActionMenu.tsx:383
 msgid "Delete post?"
 msgstr "コンテンツを削除しますか？"
 
@@ -836,7 +840,7 @@ msgid "Demote"
 msgstr "降格"
 
 #: src/components/NewsStoryCard.tsx:215
-#: src/routes/(root)/admin/news.tsx:804
+#: src/routes/(root)/admin/news.tsx:845
 msgid "Demoted"
 msgstr "降格済み"
 
@@ -906,7 +910,7 @@ msgstr "保持したい領域をドラッグして選択し、「切り抜き」
 msgid "e.g., @user@mastodon.social"
 msgstr "例: @user@mastodon.social"
 
-#: src/components/PostActionMenu.tsx:328
+#: src/components/PostActionMenu.tsx:348
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:696
 msgid "Edit"
 msgstr "編集"
@@ -1000,15 +1004,15 @@ msgstr "以下にメールアドレスまたはユーザー名を入力してロ
 msgid "Error"
 msgstr "エラー"
 
-#: src/routes/(root)/admin/news.tsx:576
+#: src/routes/(root)/admin/news.tsx:598
 msgid "Excluded URL patterns"
 msgstr "除外URLパターン"
 
-#: src/routes/(root)/admin/news.tsx:324
+#: src/routes/(root)/admin/news.tsx:341
 msgid "Exclusion pattern added."
 msgstr "除外パターンを追加しました。"
 
-#: src/routes/(root)/admin/news.tsx:359
+#: src/routes/(root)/admin/news.tsx:376
 msgid "Exclusion pattern removed."
 msgstr "除外パターンを削除しました。"
 
@@ -1027,11 +1031,11 @@ msgstr "有効期限"
 msgid "Extra message"
 msgstr "追加メッセージ"
 
-#: src/routes/(root)/admin/news.tsx:343
+#: src/routes/(root)/admin/news.tsx:360
 msgid "Failed to add exclusion pattern."
 msgstr "除外パターンの追加に失敗しました。"
 
-#: src/routes/(root)/admin/news.tsx:474
+#: src/routes/(root)/admin/news.tsx:496
 msgid "Failed to add preferred sharer."
 msgstr "優先共有者の追加に失敗しました。"
 
@@ -1040,8 +1044,8 @@ msgstr "優先共有者の追加に失敗しました。"
 msgid "Failed to add to sidebar"
 msgstr "サイドバーへの追加に失敗しました"
 
-#: src/components/ProfileActionMenu.tsx:276
-#: src/components/ProfileActionMenu.tsx:282
+#: src/components/ProfileActionMenu.tsx:278
+#: src/components/ProfileActionMenu.tsx:284
 msgid "Failed to block this user"
 msgstr "このユーザーをブロックできませんでした"
 
@@ -1050,7 +1054,7 @@ msgstr "このユーザーをブロックできませんでした"
 msgid "Failed to bookmark"
 msgstr "ブックマークに失敗しました"
 
-#: src/routes/(root)/admin/news.tsx:401
+#: src/routes/(root)/admin/news.tsx:418
 msgid "Failed to clear penalty."
 msgstr "ペナルティの解除に失敗しました。"
 
@@ -1072,8 +1076,8 @@ msgstr "招待リンクの削除に失敗しました"
 msgid "Failed to delete orphan media."
 msgstr "孤立したメディアの削除に失敗しました。"
 
-#: src/components/PostActionMenu.tsx:295
-#: src/components/PostActionMenu.tsx:302
+#: src/components/PostActionMenu.tsx:312
+#: src/components/PostActionMenu.tsx:319
 msgid "Failed to delete post"
 msgstr "コンテンツの削除に失敗しました"
 
@@ -1184,7 +1188,7 @@ msgstr "引用コンテンツの読み込みに失敗しました"
 msgid "Failed to load replies; click to retry"
 msgstr "返信の読み込みに失敗しました。クリックして再試行してください"
 
-#: src/routes/(root)/admin/news.tsx:427
+#: src/routes/(root)/admin/news.tsx:451
 msgid "Failed to look up the actor."
 msgstr "アカウントの照会に失敗しました。"
 
@@ -1192,13 +1196,13 @@ msgstr "アカウントの照会に失敗しました。"
 msgid "Failed to look up user."
 msgstr "ユーザーの検索に失敗しました。"
 
-#: src/components/ProfileActionMenu.tsx:318
-#: src/components/ProfileActionMenu.tsx:326
+#: src/components/ProfileActionMenu.tsx:320
+#: src/components/ProfileActionMenu.tsx:328
 msgid "Failed to mute this user"
 msgstr "このユーザーをミュートできませんでした"
 
-#: src/components/PostActionMenu.tsx:260
-#: src/components/PostActionMenu.tsx:267
+#: src/components/PostActionMenu.tsx:277
+#: src/components/PostActionMenu.tsx:284
 msgid "Failed to pin post"
 msgstr "コンテンツを固定できませんでした"
 
@@ -1213,9 +1217,14 @@ msgstr "コンテンツを固定できませんでした"
 msgid "Failed to react"
 msgstr "リアクションに失敗しました"
 
-#: src/routes/(root)/admin/news.tsx:303
+#: src/routes/(root)/admin/news.tsx:320
 msgid "Failed to recompute news scores."
 msgstr "ニュースのスコアを再計算できませんでした。"
+
+#: src/components/RefreshFromOriginItem.tsx:85
+#: src/components/RefreshFromOriginItem.tsx:92
+msgid "Failed to refresh from origin."
+msgstr "配信元からの再取得に失敗しました。"
 
 #: src/routes/(root)/admin/invitations.tsx:125
 msgid "Failed to regenerate invitations."
@@ -1230,7 +1239,7 @@ msgstr "パスキーの登録に失敗しました"
 msgid "Failed to remove bookmark"
 msgstr "ブックマークの削除に失敗しました"
 
-#: src/routes/(root)/admin/news.tsx:372
+#: src/routes/(root)/admin/news.tsx:389
 msgid "Failed to remove exclusion pattern."
 msgstr "除外パターンの削除に失敗しました。"
 
@@ -1239,7 +1248,7 @@ msgstr "除外パターンの削除に失敗しました。"
 msgid "Failed to remove from sidebar"
 msgstr "サイドバーからの削除に失敗しました"
 
-#: src/routes/(root)/admin/news.tsx:503
+#: src/routes/(root)/admin/news.tsx:525
 msgid "Failed to remove preferred sharer."
 msgstr "優先共有者の削除に失敗しました。"
 
@@ -1292,8 +1301,8 @@ msgstr "リレーの購読に失敗しました。"
 
 #: src/components/BlockedAccountsList.tsx:96
 #: src/components/BlockedAccountsList.tsx:102
-#: src/components/ProfileActionMenu.tsx:258
-#: src/components/ProfileActionMenu.tsx:264
+#: src/components/ProfileActionMenu.tsx:260
+#: src/components/ProfileActionMenu.tsx:266
 msgid "Failed to unblock this user"
 msgstr "このユーザーのブロックを解除できませんでした"
 
@@ -1305,13 +1314,13 @@ msgstr "フォロー解除に失敗しました"
 
 #: src/components/MutedAccountsList.tsx:95
 #: src/components/MutedAccountsList.tsx:99
-#: src/components/ProfileActionMenu.tsx:300
-#: src/components/ProfileActionMenu.tsx:308
+#: src/components/ProfileActionMenu.tsx:302
+#: src/components/ProfileActionMenu.tsx:310
 msgid "Failed to unmute this user"
 msgstr "このユーザーのミュートを解除できませんでした"
 
-#: src/components/PostActionMenu.tsx:236
-#: src/components/PostActionMenu.tsx:243
+#: src/components/PostActionMenu.tsx:253
+#: src/components/PostActionMenu.tsx:260
 msgid "Failed to unpin post"
 msgstr "コンテンツの固定を解除できませんでした"
 
@@ -1351,7 +1360,7 @@ msgstr "画像のアップロードに失敗しました"
 msgid "Failed to vote"
 msgstr "投票に失敗しました"
 
-#: src/routes/(root)/admin/news.tsx:659
+#: src/routes/(root)/admin/news.tsx:681
 msgid "Favor links shared by specific accounts. A preferred sharer's posts count toward the news feed even when the account is a bot (for example a feed that reposts Hacker News links), and the links it shares get a flat promotion bonus in the popular ranking. A penalty on a link overrides the promotion."
 msgstr "特定のアカウントが共有したリンクを優先します。優先共有者のコンテンツは、そのアカウントがボットであっても（例: Hacker Newsのリンクを再共有するフィード）ニュースフィードに集計され、そのアカウントが共有したリンクは人気ランキングで一定の加点を得ます。リンクにペナルティが付くと、優先よりもペナルティが優先されます。"
 
@@ -1456,7 +1465,7 @@ msgstr "前回の再付与カットオフ以降、最も活発なアカウント
 
 #: src/components/AppSidebar.tsx:346
 #: src/components/AppSidebar.tsx:469
-#: src/routes/(root).tsx:134
+#: src/routes/(root).tsx:136
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/markdown.tsx:40
 #: src/routes/(root)/privacy.tsx:40
@@ -1464,7 +1473,7 @@ msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
 #: src/components/NotFoundPage.tsx:19
-#: src/routes/(root).tsx:126
+#: src/routes/(root).tsx:128
 msgid "Hackers' Pub home"
 msgstr "Hackers' Pubホーム"
 
@@ -1484,7 +1493,7 @@ msgstr "Hackers' Pub：管理 · 招待"
 msgid "Hackers' Pub: Admin · Media"
 msgstr "Hackers' Pub：管理 · メディア"
 
-#: src/routes/(root)/admin/news.tsx:513
+#: src/routes/(root)/admin/news.tsx:535
 msgid "Hackers' Pub: Admin · News"
 msgstr "Hackers' Pub：管理 · ニュース"
 
@@ -1523,7 +1532,7 @@ msgstr "見出し3"
 msgid "Hide"
 msgstr "隠す"
 
-#: src/routes/(root)/admin/news.tsx:578
+#: src/routes/(root)/admin/news.tsx:600
 msgid "Hide links matching a URL pattern from the news feed list (every sort order). Their discussion pages stay reachable by direct link. Patterns use the URLPattern syntax, e.g. https://example.com/* or https://*.example.com/*."
 msgstr "URLパターンに一致するリンクをニュースフィードの一覧（すべての並び順）から隠します。該当リンクの議論ページは直接URLでアクセスできます。パターンはURLPatternの構文を使います。例: https://example.com/* または https://*.example.com/*。"
 
@@ -1707,7 +1716,7 @@ msgstr "最後の活動"
 msgid "Last activity"
 msgstr "最終アクティビティ"
 
-#: src/routes/(root)/admin/news.tsx:554
+#: src/routes/(root)/admin/news.tsx:576
 msgid "Last recomputed:"
 msgstr "最終再計算："
 
@@ -1740,7 +1749,7 @@ msgstr "リンクの有効期限が切れています"
 msgid "Link name"
 msgstr "リンク名"
 
-#: src/routes/(root)/admin/news.tsx:776
+#: src/routes/(root)/admin/news.tsx:817
 msgid "Links a moderator has demoted in the popular feed. Clear a penalty to restore a link's normal ranking."
 msgstr "モデレーターが人気フィードで降格させたリンクです。ペナルティを解除すると、リンクの順位が元に戻ります。"
 
@@ -1984,7 +1993,7 @@ msgstr "上へ移動"
 msgid "Multiple choice"
 msgstr "複数選択"
 
-#: src/components/ProfileActionMenu.tsx:360
+#: src/components/ProfileActionMenu.tsx:367
 msgid "Mute"
 msgstr "ミュート"
 
@@ -2024,7 +2033,7 @@ msgstr "名前が長すぎます。最大50文字です。"
 msgid "Native name"
 msgstr "現地名"
 
-#: src/routes/(root)/admin/news.tsx:559
+#: src/routes/(root)/admin/news.tsx:581
 msgid "never"
 msgstr "なし"
 
@@ -2061,7 +2070,7 @@ msgstr "最新"
 
 #: src/components/AppSidebar.tsx:244
 #: src/components/AppSidebar.tsx:842
-#: src/routes/(root)/admin/news.tsx:531
+#: src/routes/(root)/admin/news.tsx:553
 #: src/routes/(root)/news/index.tsx:39
 msgid "News"
 msgstr "ニュース"
@@ -2075,7 +2084,7 @@ msgstr "ニュース"
 msgid "Next image"
 msgstr "次の画像"
 
-#: src/routes/(root)/admin/news.tsx:438
+#: src/routes/(root)/admin/news.tsx:463
 msgid "No actor found for that handle."
 msgstr "そのハンドルのアカウントが見つかりません。"
 
@@ -2091,7 +2100,7 @@ msgstr "削除する下書きがありません"
 msgid "No drafts yet. Create your first article!"
 msgstr "まだ下書きがありません。最初の記事を作成しましょう！"
 
-#: src/routes/(root)/admin/news.tsx:622
+#: src/routes/(root)/admin/news.tsx:644
 msgid "No exclusion patterns yet."
 msgstr "除外パターンはまだありません。"
 
@@ -2135,7 +2144,7 @@ msgstr "このリンクを公開投稿で共有した人はまだいません。
 msgid "No one has shared this yet."
 msgstr "まだ誰も共有していません。"
 
-#: src/routes/(root)/admin/news.tsx:784
+#: src/routes/(root)/admin/news.tsx:825
 msgid "No penalized links."
 msgstr "ペナルティ付きのリンクはありません。"
 
@@ -2147,7 +2156,7 @@ msgstr "ペナルティ付きのリンクはありません。"
 msgid "No posts found"
 msgstr "コンテンツはありません"
 
-#: src/routes/(root)/admin/news.tsx:731
+#: src/routes/(root)/admin/news.tsx:754
 msgid "No preferred sharers yet."
 msgstr "まだ優先共有者がありません。"
 
@@ -2176,13 +2185,13 @@ msgstr "Hackers' Pubにそのようなアカウントはありません。もう
 msgid "No user URI provided."
 msgstr "ユーザーURIが提供されていません。"
 
-#: src/routes/(root)/admin/news.tsx:692
-#: src/routes/(root)/admin/news.tsx:701
-#: src/routes/(root)/admin/news.tsx:750
+#: src/routes/(root)/admin/news.tsx:712
+#: src/routes/(root)/admin/news.tsx:722
+#: src/routes/(root)/admin/news.tsx:791
 msgid "Normal"
 msgstr "通常"
 
-#: src/routes/(root)/admin/news.tsx:394
+#: src/routes/(root)/admin/news.tsx:411
 msgid "Not authorized to clear penalties."
 msgstr "ペナルティを解除する権限がありません。"
 
@@ -2190,13 +2199,13 @@ msgstr "ペナルティを解除する権限がありません。"
 msgid "Not authorized to delete orphan media."
 msgstr "孤立したメディアを削除する権限がありません。"
 
-#: src/routes/(root)/admin/news.tsx:335
-#: src/routes/(root)/admin/news.tsx:365
+#: src/routes/(root)/admin/news.tsx:352
+#: src/routes/(root)/admin/news.tsx:382
 msgid "Not authorized to manage exclusions."
 msgstr "除外パターンを管理する権限がありません。"
 
-#: src/routes/(root)/admin/news.tsx:466
-#: src/routes/(root)/admin/news.tsx:496
+#: src/routes/(root)/admin/news.tsx:488
+#: src/routes/(root)/admin/news.tsx:518
 msgid "Not authorized to manage preferred sharers."
 msgstr "優先共有者を管理する権限がありません。"
 
@@ -2205,7 +2214,7 @@ msgstr "優先共有者を管理する権限がありません。"
 msgid "Not authorized to manage relays."
 msgstr "リレーを管理する権限がありません。"
 
-#: src/routes/(root)/admin/news.tsx:294
+#: src/routes/(root)/admin/news.tsx:311
 msgid "Not authorized to recompute news scores."
 msgstr "ニュースのスコアを再計算する権限がありません。"
 
@@ -2230,8 +2239,8 @@ msgstr "まだどのリレーも購読していません。"
 #~ msgid "Note"
 #~ msgstr "投稿"
 
-#: src/routes/(root)/admin/news.tsx:601
-#: src/routes/(root)/admin/news.tsx:709
+#: src/routes/(root)/admin/news.tsx:623
+#: src/routes/(root)/admin/news.tsx:731
 msgid "Note (optional)"
 msgstr "メモ（任意）"
 
@@ -2284,6 +2293,10 @@ msgstr "ブラウザー設定で通知がブロックされています。"
 msgid "Number of invitations"
 msgstr "招待数"
 
+#: src/components/RefreshFromOriginItem.tsx:80
+msgid "Only moderators can refresh remote objects."
+msgstr "モデレーターのみがリモートオブジェクトを再取得できます。"
+
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:72
 #: src/components/QuotePolicySelect.tsx:39
 msgid "Only you can quote"
@@ -2334,11 +2347,11 @@ msgstr "パスキーを取り消しました"
 msgid "Passkeys"
 msgstr "パスキー"
 
-#: src/routes/(root)/admin/news.tsx:774
+#: src/routes/(root)/admin/news.tsx:815
 msgid "Penalized links"
 msgstr "ペナルティ付きのリンク"
 
-#: src/routes/(root)/admin/news.tsx:388
+#: src/routes/(root)/admin/news.tsx:405
 msgid "Penalty cleared."
 msgstr "ペナルティを解除しました。"
 
@@ -2357,7 +2370,7 @@ msgstr "保留中"
 msgid "Permission denied"
 msgstr "アクセスが拒否されました"
 
-#: src/components/PostActionMenu.tsx:343
+#: src/components/PostActionMenu.tsx:363
 msgid "Pin to profile"
 msgstr "プロフィールに固定"
 
@@ -2401,15 +2414,15 @@ msgstr "アンケートは終了しました"
 msgid "Popular"
 msgstr "人気"
 
-#: src/components/PostActionMenu.tsx:291
+#: src/components/PostActionMenu.tsx:308
 msgid "Post deleted"
 msgstr "コンテンツを削除しました"
 
-#: src/components/PostActionMenu.tsx:257
+#: src/components/PostActionMenu.tsx:274
 msgid "Post pinned"
 msgstr "コンテンツを固定しました"
 
-#: src/components/PostActionMenu.tsx:233
+#: src/components/PostActionMenu.tsx:250
 msgid "Post unpinned"
 msgstr "コンテンツの固定を解除しました"
 
@@ -2436,15 +2449,15 @@ msgstr "優先言語"
 msgid "Preferred languages"
 msgstr "優先言語"
 
-#: src/routes/(root)/admin/news.tsx:455
+#: src/routes/(root)/admin/news.tsx:477
 msgid "Preferred sharer added."
 msgstr "優先共有者を追加しました。"
 
-#: src/routes/(root)/admin/news.tsx:490
+#: src/routes/(root)/admin/news.tsx:512
 msgid "Preferred sharer removed."
 msgstr "優先共有者を削除しました。"
 
-#: src/routes/(root)/admin/news.tsx:657
+#: src/routes/(root)/admin/news.tsx:679
 msgid "Preferred sharers"
 msgstr "優先共有者"
 
@@ -2471,7 +2484,7 @@ msgstr "プライバシーポリシー"
 msgid "Profile"
 msgstr "プロフィール"
 
-#: src/components/ProfileActionMenu.tsx:344
+#: src/components/ProfileActionMenu.tsx:346
 msgid "Profile actions"
 msgstr "プロフィール操作"
 
@@ -2480,7 +2493,7 @@ msgstr "プロフィール操作"
 msgid "Profile settings"
 msgstr "プロフィール設定"
 
-#: src/routes/(root)/admin/news.tsx:682
+#: src/routes/(root)/admin/news.tsx:716
 msgid "Promotion"
 msgstr "優先度"
 
@@ -2587,7 +2600,7 @@ msgstr "記事全文を読む"
 #~ msgid "Read the full Code of conduct"
 #~ msgstr "行動規範の全文を読む"
 
-#: src/routes/(root)/admin/news.tsx:538
+#: src/routes/(root)/admin/news.tsx:560
 msgid "Rebuilds the popularity score of every shared link from scratch. The operation is idempotent and safe to run at any time; scores normally stay fresh on their own, so this is mainly a manual backstop and a development tool."
 msgstr "共有されたすべてのリンクの人気スコアを一から再構築します。この操作は冪等で、いつ実行しても安全です。スコアは通常自動的に最新の状態に保たれるため、これは主に手動の予備手段および開発ツールです。"
 
@@ -2603,14 +2616,22 @@ msgstr "このブラウザーで通知をすぐに受け取ります。このタ
 msgid "Recent drafts"
 msgstr "最近の下書き"
 
-#: src/routes/(root)/admin/news.tsx:536
-#: src/routes/(root)/admin/news.tsx:569
+#: src/routes/(root)/admin/news.tsx:558
+#: src/routes/(root)/admin/news.tsx:591
 msgid "Recompute news scores"
 msgstr "ニュースのスコアを再計算"
 
-#: src/routes/(root)/admin/news.tsx:568
+#: src/routes/(root)/admin/news.tsx:590
 msgid "Recomputing…"
 msgstr "再計算中…"
+
+#: src/components/RefreshFromOriginItem.tsx:107
+msgid "Refresh from origin"
+msgstr "配信元から再取得"
+
+#: src/components/RefreshFromOriginItem.tsx:70
+msgid "Refreshed from origin."
+msgstr "配信元から再取得しました。"
 
 #: src/routes/(root)/admin/invitations.tsx:203
 msgid "Regenerate"
@@ -2664,8 +2685,8 @@ msgid "Remote follow"
 msgstr "リモートフォロー"
 
 #: src/components/LanguageList.tsx:225
-#: src/routes/(root)/admin/news.tsx:645
-#: src/routes/(root)/admin/news.tsx:762
+#: src/routes/(root)/admin/news.tsx:667
+#: src/routes/(root)/admin/news.tsx:803
 msgid "Remove"
 msgstr "削除"
 
@@ -2953,9 +2974,9 @@ msgstr "問題が発生しました"
 msgid "Something went wrong—please try again."
 msgstr "問題が発生しました。再度お試しください。"
 
-#: src/routes/(root)/admin/news.tsx:691
-#: src/routes/(root)/admin/news.tsx:700
-#: src/routes/(root)/admin/news.tsx:749
+#: src/routes/(root)/admin/news.tsx:711
+#: src/routes/(root)/admin/news.tsx:721
+#: src/routes/(root)/admin/news.tsx:790
 msgid "Strong"
 msgstr "強"
 
@@ -3026,7 +3047,7 @@ msgstr "タグ"
 msgid "Tell us about yourself…"
 msgstr "自己紹介をお聞かせください…"
 
-#: src/routes/(root)/admin/news.tsx:459
+#: src/routes/(root)/admin/news.tsx:481
 msgid "That actor could not be added."
 msgstr "そのアカウントを追加できませんでした。"
 
@@ -3034,7 +3055,7 @@ msgstr "そのアカウントを追加できませんでした。"
 msgid "That is not a valid relay actor URL."
 msgstr "有効なリレーアクターのURLではありません。"
 
-#: src/routes/(root)/admin/news.tsx:328
+#: src/routes/(root)/admin/news.tsx:345
 msgid "That is not a valid URL pattern."
 msgstr "有効なURLパターンではありません。"
 
@@ -3135,7 +3156,7 @@ msgstr "リンクのURL。（例：https://github.com/yourhandle）"
 msgid "The Web Push public key is invalid."
 msgstr "Web Push の公開鍵が無効です。"
 
-#: src/components/PostActionMenu.tsx:363
+#: src/components/PostActionMenu.tsx:385
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "この操作は取り消せません。このコンテンツは完全に削除されます。"
 
@@ -3225,7 +3246,7 @@ msgstr "タイトルは空にできません"
 msgid "To follow {0}, enter your Fediverse handle."
 msgstr "{0}さんをフォローするには、フェディバースのハンドルを入力してください。"
 
-#: src/routes/(root).tsx:124
+#: src/routes/(root).tsx:126
 msgid "Toggle sidebar"
 msgstr "サイドバーを切り替える"
 
@@ -3292,13 +3313,13 @@ msgid "Unable to remove reaction. Please try again."
 msgstr "リアクションを削除できませんでした。もう一度お試しください。"
 
 #: src/components/BlockedAccountsList.tsx:117
-#: src/components/ProfileActionMenu.tsx:377
-#: src/components/ProfileActionMenu.tsx:405
-#: src/components/ProfileActionMenu.tsx:413
+#: src/components/ProfileActionMenu.tsx:384
+#: src/components/ProfileActionMenu.tsx:412
+#: src/components/ProfileActionMenu.tsx:420
 msgid "Unblock"
 msgstr "ブロック解除"
 
-#: src/components/ProfileActionMenu.tsx:388
+#: src/components/ProfileActionMenu.tsx:395
 msgid "Unblock user?"
 msgstr "ユーザーのブロックを解除しますか？"
 
@@ -3308,11 +3329,11 @@ msgid "Unfollow"
 msgstr "フォロー解除"
 
 #: src/components/MutedAccountsList.tsx:114
-#: src/components/ProfileActionMenu.tsx:361
+#: src/components/ProfileActionMenu.tsx:368
 msgid "Unmute"
 msgstr "ミュート解除"
 
-#: src/components/PostActionMenu.tsx:344
+#: src/components/PostActionMenu.tsx:364
 msgid "Unpin from profile"
 msgstr "プロフィールから固定解除"
 
@@ -3345,15 +3366,15 @@ msgstr "アップロードの進捗"
 msgid "URL"
 msgstr "URL"
 
-#: src/routes/(root)/admin/news.tsx:588
+#: src/routes/(root)/admin/news.tsx:610
 msgid "URL pattern"
 msgstr "URLパターン"
 
-#: src/components/ProfileActionMenu.tsx:277
+#: src/components/ProfileActionMenu.tsx:279
 msgid "User blocked"
 msgstr "ユーザーをブロックしました"
 
-#: src/components/ProfileActionMenu.tsx:322
+#: src/components/ProfileActionMenu.tsx:324
 msgid "User muted"
 msgstr "ユーザーをミュートしました"
 
@@ -3362,12 +3383,12 @@ msgid "User not found."
 msgstr "ユーザー情報が見つかりません。"
 
 #: src/components/BlockedAccountsList.tsx:93
-#: src/components/ProfileActionMenu.tsx:259
+#: src/components/ProfileActionMenu.tsx:261
 msgid "User unblocked"
 msgstr "ユーザーのブロックを解除しました"
 
 #: src/components/MutedAccountsList.tsx:93
-#: src/components/ProfileActionMenu.tsx:304
+#: src/components/ProfileActionMenu.tsx:306
 msgid "User unmuted"
 msgstr "ユーザーのミュートを解除しました"
 
@@ -3619,7 +3640,7 @@ msgstr "ミュートしているアカウントはありません。"
 #: src/components/FollowButton.tsx:149
 #: src/components/HashtagActionBar.tsx:148
 #: src/components/HashtagActionBar.tsx:171
-#: src/components/ProfileActionMenu.tsx:216
+#: src/components/ProfileActionMenu.tsx:218
 msgid "You must be signed in"
 msgstr "ログインが必要です"
 
@@ -3647,6 +3668,10 @@ msgstr "記事を公開するにはログインする必要があります"
 #: src/components/article-composer/ArticleComposerContext.tsx:329
 msgid "You must be signed in to save a draft"
 msgstr "下書きを保存するにはログインする必要があります"
+
+#: src/components/RefreshFromOriginItem.tsx:77
+msgid "You must be signed in."
+msgstr "ログインが必要です。"
 
 #: src/routes/(root)/sign/up/[token].tsx:433
 msgid "You were invited by"

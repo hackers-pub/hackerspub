@@ -4,12 +4,14 @@ interface ViewerContextValue {
   isAuthenticated: () => boolean;
   isLoaded: () => boolean;
   username: () => string | undefined;
+  moderator: () => boolean;
 }
 
 export interface ViewerProviderProps {
   isAuthenticated: () => boolean;
   isLoaded: () => boolean;
   username?: () => string | undefined;
+  moderator?: () => boolean;
 }
 
 const ViewerContext = createContext<ViewerContextValue>();
@@ -21,6 +23,7 @@ export const ViewerProvider: ParentComponent<ViewerProviderProps> = (props) => {
         isAuthenticated: props.isAuthenticated,
         isLoaded: props.isLoaded,
         username: props.username ?? (() => undefined),
+        moderator: props.moderator ?? (() => false),
       }}
     >
       {props.children}

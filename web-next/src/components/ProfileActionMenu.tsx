@@ -24,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
+import { RefreshFromOriginItem } from "~/components/RefreshFromOriginItem.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { isViewerActor } from "~/lib/actorUtils.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -180,6 +181,7 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
         handle
         rawName
         local
+        iri
         isViewer
         viewerBlocks
         blocksViewer
@@ -349,6 +351,11 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
           )}
         />
         <DropdownMenuContent class="min-w-40">
+          <Show
+            when={viewer.moderator() && actor() != null && !actor()!.local}
+          >
+            <RefreshFromOriginItem uri={actor()!.iri} />
+          </Show>
           <DropdownMenuItem
             class="cursor-pointer"
             disabled={isMutePending()}

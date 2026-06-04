@@ -50,7 +50,7 @@ msgid "{0, plural, one {# invitation left} other {# invitations left}}"
 msgstr "{0, plural, other {剩餘 # 次邀請}}"
 
 #. placeholder {0}: status()?.scoredLinkCount ?? 0
-#: src/routes/(root)/admin/news.tsx:544
+#: src/routes/(root)/admin/news.tsx:566
 msgid "{0, plural, one {# link is currently in the news feed.} other {# links are currently in the news feed.}}"
 msgstr "{0, plural, one {目前新聞訂閱流中有 # 個連結。} other {目前新聞訂閱流中有 # 個連結。}}"
 
@@ -107,7 +107,7 @@ msgid "{0, plural, one {Load # more reactor} other {Load # more reactors}}"
 msgstr "{0, plural, one {載入更多反應者 (#)} other {載入更多反應者 (#)}}"
 
 #. placeholder {0}: result.linksUpdated!
-#: src/routes/(root)/admin/news.tsx:281
+#: src/routes/(root)/admin/news.tsx:298
 msgid "{0, plural, one {Recomputed # link.} other {Recomputed # links.}}"
 msgstr "{0, plural, one {已重新計算 # 個連結的評分。} other {已重新計算 # 個連結的評分。}}"
 
@@ -326,7 +326,7 @@ msgstr "登入連結已傳送至您的郵箱。請檢查收件匣。（或垃圾
 msgid "Account"
 msgstr "帳戶"
 
-#: src/routes/(root)/admin/news.tsx:669
+#: src/routes/(root)/admin/news.tsx:690
 msgid "Account handle"
 msgstr "帳號使用者名稱"
 
@@ -345,8 +345,8 @@ msgid "Active since"
 msgstr "啟用於"
 
 #: src/routes/(root)/[handle]/settings/language.tsx:196
-#: src/routes/(root)/admin/news.tsx:615
-#: src/routes/(root)/admin/news.tsx:724
+#: src/routes/(root)/admin/news.tsx:637
+#: src/routes/(root)/admin/news.tsx:746
 msgid "Add"
 msgstr "新增"
 
@@ -359,8 +359,8 @@ msgstr "新增{0}"
 msgid "Add to sidebar"
 msgstr "新增至側邊欄"
 
-#: src/routes/(root)/admin/news.tsx:615
-#: src/routes/(root)/admin/news.tsx:724
+#: src/routes/(root)/admin/news.tsx:637
+#: src/routes/(root)/admin/news.tsx:746
 msgid "Adding…"
 msgstr "新增中…"
 
@@ -446,7 +446,7 @@ msgstr "任何人都可以引用"
 
 #. placeholder {0}: displayName()
 #. placeholder {1}: actor()?.handle
-#: src/components/ProfileActionMenu.tsx:394
+#: src/components/ProfileActionMenu.tsx:401
 msgid "Are you sure you want to block {0} ({1})? They won't be able to follow you or see your posts."
 msgstr "確定要封鎖 {0}（{1}）嗎？該使用者將無法關注你或查看你的內容。"
 
@@ -465,7 +465,7 @@ msgstr "您確定要取消密碼{0}嗎？您將無法再使用它登入您的帳
 
 #. placeholder {0}: displayName()
 #. placeholder {1}: actor()?.handle
-#: src/components/ProfileActionMenu.tsx:396
+#: src/components/ProfileActionMenu.tsx:403
 msgid "Are you sure you want to unblock {0} ({1})? They will be able to follow you and see your posts."
 msgstr "確定要解除封鎖 {0}（{1}）嗎？該使用者將能夠關注你並查看你的內容。"
 
@@ -531,13 +531,13 @@ msgstr "個人簡介"
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "個人簡介太長。不能長於 512 字元。"
 
-#: src/components/ProfileActionMenu.tsx:376
-#: src/components/ProfileActionMenu.tsx:405
+#: src/components/ProfileActionMenu.tsx:383
 #: src/components/ProfileActionMenu.tsx:412
+#: src/components/ProfileActionMenu.tsx:419
 msgid "Block"
 msgstr "封鎖"
 
-#: src/components/ProfileActionMenu.tsx:387
+#: src/components/ProfileActionMenu.tsx:394
 msgid "Block user?"
 msgstr "封鎖使用者？"
 
@@ -589,7 +589,7 @@ msgid "Browser notifications enabled"
 msgstr "已啟用瀏覽器通知"
 
 #: src/components/NewsStoryCard.tsx:215
-#: src/routes/(root)/admin/news.tsx:803
+#: src/routes/(root)/admin/news.tsx:844
 msgid "Buried"
 msgstr "已沉底"
 
@@ -601,9 +601,9 @@ msgstr "沉底"
 #: src/components/NoteComposer.tsx:1374
 #: src/components/NoteComposer.tsx:1375
 #: src/components/NoteComposer.tsx:1418
-#: src/components/PostActionMenu.tsx:367
-#: src/components/ProfileActionMenu.tsx:401
-#: src/components/ProfileActionMenu.tsx:402
+#: src/components/PostActionMenu.tsx:389
+#: src/components/ProfileActionMenu.tsx:408
+#: src/components/ProfileActionMenu.tsx:409
 #: src/components/QuotedNoteCard.tsx:248
 #: src/components/RemoteFollowButton.tsx:218
 #: src/components/RemoteFollowButton.tsx:280
@@ -647,7 +647,7 @@ msgid "Choose your preferred language for the verification email."
 msgstr "請選擇驗證信件的語言。"
 
 #: src/components/admin/AdminAccountsTable.tsx:213
-#: src/routes/(root)/admin/news.tsx:812
+#: src/routes/(root)/admin/news.tsx:853
 msgid "Clear"
 msgstr "清除"
 
@@ -729,6 +729,10 @@ msgstr "無法將連結複製到剪貼簿。"
 msgid "Could not load profile."
 msgstr "無法載入個人資料。"
 
+#: src/components/RefreshFromOriginItem.tsx:73
+msgid "Could not refresh this from its origin."
+msgstr "無法從來源重新整理此物件。"
+
 #: src/components/QuotedNoteCard.tsx:271
 msgid "Could not revoke quote"
 msgstr "無法撤銷引用"
@@ -805,8 +809,8 @@ msgstr "預設引用權限"
 msgid "Default share privacy"
 msgstr "預設轉貼隱私設定"
 
-#: src/components/PostActionMenu.tsx:353
-#: src/components/PostActionMenu.tsx:373
+#: src/components/PostActionMenu.tsx:374
+#: src/components/PostActionMenu.tsx:395
 #: src/routes/(root)/[handle]/drafts/index.tsx:322
 #: src/routes/(root)/[handle]/settings/invite.tsx:742
 msgid "Delete"
@@ -821,7 +825,7 @@ msgstr "刪除草稿"
 msgid "Delete orphan media"
 msgstr "刪除孤立媒體"
 
-#: src/components/PostActionMenu.tsx:361
+#: src/components/PostActionMenu.tsx:383
 msgid "Delete post?"
 msgstr "刪除內容？"
 
@@ -836,7 +840,7 @@ msgid "Demote"
 msgstr "降級"
 
 #: src/components/NewsStoryCard.tsx:215
-#: src/routes/(root)/admin/news.tsx:804
+#: src/routes/(root)/admin/news.tsx:845
 msgid "Demoted"
 msgstr "已降級"
 
@@ -906,7 +910,7 @@ msgstr "拖動選擇要保留的區域，然後點擊「裁剪」來更新你的
 msgid "e.g., @user@mastodon.social"
 msgstr "例如：@user@mastodon.social"
 
-#: src/components/PostActionMenu.tsx:328
+#: src/components/PostActionMenu.tsx:348
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:696
 msgid "Edit"
 msgstr "編輯"
@@ -1000,15 +1004,15 @@ msgstr "請在下方輸入您的電子郵件或使用者名稱以登入。"
 msgid "Error"
 msgstr "錯誤"
 
-#: src/routes/(root)/admin/news.tsx:576
+#: src/routes/(root)/admin/news.tsx:598
 msgid "Excluded URL patterns"
 msgstr "排除的 URL 模式"
 
-#: src/routes/(root)/admin/news.tsx:324
+#: src/routes/(root)/admin/news.tsx:341
 msgid "Exclusion pattern added."
 msgstr "已新增排除模式。"
 
-#: src/routes/(root)/admin/news.tsx:359
+#: src/routes/(root)/admin/news.tsx:376
 msgid "Exclusion pattern removed."
 msgstr "已移除排除模式。"
 
@@ -1027,11 +1031,11 @@ msgstr "到期時間"
 msgid "Extra message"
 msgstr "額外訊息"
 
-#: src/routes/(root)/admin/news.tsx:343
+#: src/routes/(root)/admin/news.tsx:360
 msgid "Failed to add exclusion pattern."
 msgstr "新增排除模式失敗。"
 
-#: src/routes/(root)/admin/news.tsx:474
+#: src/routes/(root)/admin/news.tsx:496
 msgid "Failed to add preferred sharer."
 msgstr "新增優先轉貼者失敗。"
 
@@ -1040,8 +1044,8 @@ msgstr "新增優先轉貼者失敗。"
 msgid "Failed to add to sidebar"
 msgstr "新增至側邊欄失敗"
 
-#: src/components/ProfileActionMenu.tsx:276
-#: src/components/ProfileActionMenu.tsx:282
+#: src/components/ProfileActionMenu.tsx:278
+#: src/components/ProfileActionMenu.tsx:284
 msgid "Failed to block this user"
 msgstr "無法封鎖此使用者"
 
@@ -1050,7 +1054,7 @@ msgstr "無法封鎖此使用者"
 msgid "Failed to bookmark"
 msgstr "收藏失敗"
 
-#: src/routes/(root)/admin/news.tsx:401
+#: src/routes/(root)/admin/news.tsx:418
 msgid "Failed to clear penalty."
 msgstr "清除處罰失敗。"
 
@@ -1072,8 +1076,8 @@ msgstr "刪除邀請連結失敗"
 msgid "Failed to delete orphan media."
 msgstr "刪除孤立媒體失敗。"
 
-#: src/components/PostActionMenu.tsx:295
-#: src/components/PostActionMenu.tsx:302
+#: src/components/PostActionMenu.tsx:312
+#: src/components/PostActionMenu.tsx:319
 msgid "Failed to delete post"
 msgstr "刪除內容失敗"
 
@@ -1184,7 +1188,7 @@ msgstr "無法載入引用內容"
 msgid "Failed to load replies; click to retry"
 msgstr "載入回覆失敗，點擊重試"
 
-#: src/routes/(root)/admin/news.tsx:427
+#: src/routes/(root)/admin/news.tsx:451
 msgid "Failed to look up the actor."
 msgstr "查詢帳號失敗。"
 
@@ -1192,13 +1196,13 @@ msgstr "查詢帳號失敗。"
 msgid "Failed to look up user."
 msgstr "查找使用者失敗。"
 
-#: src/components/ProfileActionMenu.tsx:318
-#: src/components/ProfileActionMenu.tsx:326
+#: src/components/ProfileActionMenu.tsx:320
+#: src/components/ProfileActionMenu.tsx:328
 msgid "Failed to mute this user"
 msgstr "無法靜音此使用者"
 
-#: src/components/PostActionMenu.tsx:260
-#: src/components/PostActionMenu.tsx:267
+#: src/components/PostActionMenu.tsx:277
+#: src/components/PostActionMenu.tsx:284
 msgid "Failed to pin post"
 msgstr "無法釘選內容"
 
@@ -1213,9 +1217,14 @@ msgstr "無法釘選內容"
 msgid "Failed to react"
 msgstr "反應失敗"
 
-#: src/routes/(root)/admin/news.tsx:303
+#: src/routes/(root)/admin/news.tsx:320
 msgid "Failed to recompute news scores."
 msgstr "無法重新計算新聞評分。"
+
+#: src/components/RefreshFromOriginItem.tsx:85
+#: src/components/RefreshFromOriginItem.tsx:92
+msgid "Failed to refresh from origin."
+msgstr "從來源重新整理失敗。"
 
 #: src/routes/(root)/admin/invitations.tsx:125
 msgid "Failed to regenerate invitations."
@@ -1230,7 +1239,7 @@ msgstr "註冊通行金鑰失敗"
 msgid "Failed to remove bookmark"
 msgstr "取消收藏失敗"
 
-#: src/routes/(root)/admin/news.tsx:372
+#: src/routes/(root)/admin/news.tsx:389
 msgid "Failed to remove exclusion pattern."
 msgstr "移除排除模式失敗。"
 
@@ -1239,7 +1248,7 @@ msgstr "移除排除模式失敗。"
 msgid "Failed to remove from sidebar"
 msgstr "從側邊欄移除失敗"
 
-#: src/routes/(root)/admin/news.tsx:503
+#: src/routes/(root)/admin/news.tsx:525
 msgid "Failed to remove preferred sharer."
 msgstr "移除優先轉貼者失敗。"
 
@@ -1292,8 +1301,8 @@ msgstr "訂閱中繼失敗。"
 
 #: src/components/BlockedAccountsList.tsx:96
 #: src/components/BlockedAccountsList.tsx:102
-#: src/components/ProfileActionMenu.tsx:258
-#: src/components/ProfileActionMenu.tsx:264
+#: src/components/ProfileActionMenu.tsx:260
+#: src/components/ProfileActionMenu.tsx:266
 msgid "Failed to unblock this user"
 msgstr "無法解除封鎖此使用者"
 
@@ -1305,13 +1314,13 @@ msgstr "取消關注失敗"
 
 #: src/components/MutedAccountsList.tsx:95
 #: src/components/MutedAccountsList.tsx:99
-#: src/components/ProfileActionMenu.tsx:300
-#: src/components/ProfileActionMenu.tsx:308
+#: src/components/ProfileActionMenu.tsx:302
+#: src/components/ProfileActionMenu.tsx:310
 msgid "Failed to unmute this user"
 msgstr "無法解除靜音此使用者"
 
-#: src/components/PostActionMenu.tsx:236
-#: src/components/PostActionMenu.tsx:243
+#: src/components/PostActionMenu.tsx:253
+#: src/components/PostActionMenu.tsx:260
 msgid "Failed to unpin post"
 msgstr "無法取消釘選內容"
 
@@ -1351,7 +1360,7 @@ msgstr "圖片上傳失敗"
 msgid "Failed to vote"
 msgstr "投票失敗"
 
-#: src/routes/(root)/admin/news.tsx:659
+#: src/routes/(root)/admin/news.tsx:681
 msgid "Favor links shared by specific accounts. A preferred sharer's posts count toward the news feed even when the account is a bot (for example a feed that reposts Hacker News links), and the links it shares get a flat promotion bonus in the popular ranking. A penalty on a link overrides the promotion."
 msgstr "優先顯示特定帳號轉貼的連結。即使帳號是機器人（例如轉發 Hacker News 連結的訂閱源），優先轉貼者的內容也會計入新聞訂閱流，且其轉貼的連結會在熱門排名中獲得固定的優先加分。對連結的處罰會覆蓋該優先。"
 
@@ -1456,7 +1465,7 @@ msgstr "向自上次重新發放截止時間以來最活躍的帳號（按內容
 
 #: src/components/AppSidebar.tsx:346
 #: src/components/AppSidebar.tsx:469
-#: src/routes/(root).tsx:134
+#: src/routes/(root).tsx:136
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/markdown.tsx:40
 #: src/routes/(root)/privacy.tsx:40
@@ -1464,7 +1473,7 @@ msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
 #: src/components/NotFoundPage.tsx:19
-#: src/routes/(root).tsx:126
+#: src/routes/(root).tsx:128
 msgid "Hackers' Pub home"
 msgstr "Hackers' Pub 首頁"
 
@@ -1484,7 +1493,7 @@ msgstr "Hackers' Pub：管理 · 邀請"
 msgid "Hackers' Pub: Admin · Media"
 msgstr "Hackers' Pub：管理 · 媒體"
 
-#: src/routes/(root)/admin/news.tsx:513
+#: src/routes/(root)/admin/news.tsx:535
 msgid "Hackers' Pub: Admin · News"
 msgstr "Hackers' Pub：管理 · 新聞"
 
@@ -1523,7 +1532,7 @@ msgstr "標題 3"
 msgid "Hide"
 msgstr "隱藏"
 
-#: src/routes/(root)/admin/news.tsx:578
+#: src/routes/(root)/admin/news.tsx:600
 msgid "Hide links matching a URL pattern from the news feed list (every sort order). Their discussion pages stay reachable by direct link. Patterns use the URLPattern syntax, e.g. https://example.com/* or https://*.example.com/*."
 msgstr "將符合某個 URL 模式的連結從新聞資訊流列表（所有排序）中隱藏。這些連結的討論頁仍可透過直接 URL 存取。模式使用 URLPattern 語法，例如 https://example.com/* 或 https://*.example.com/*。"
 
@@ -1707,7 +1716,7 @@ msgstr "最近活動"
 msgid "Last activity"
 msgstr "最近活動"
 
-#: src/routes/(root)/admin/news.tsx:554
+#: src/routes/(root)/admin/news.tsx:576
 msgid "Last recomputed:"
 msgstr "上次重新計算："
 
@@ -1740,7 +1749,7 @@ msgstr "連結已過期"
 msgid "Link name"
 msgstr "連結名"
 
-#: src/routes/(root)/admin/news.tsx:776
+#: src/routes/(root)/admin/news.tsx:817
 msgid "Links a moderator has demoted in the popular feed. Clear a penalty to restore a link's normal ranking."
 msgstr "版主在熱門資訊流中降級的連結。清除處罰可恢復連結的正常排名。"
 
@@ -1984,7 +1993,7 @@ msgstr "向上移動"
 msgid "Multiple choice"
 msgstr "多選"
 
-#: src/components/ProfileActionMenu.tsx:360
+#: src/components/ProfileActionMenu.tsx:367
 msgid "Mute"
 msgstr "靜音"
 
@@ -2024,7 +2033,7 @@ msgstr "使用者名稱太長。不能長於 50 字元。"
 msgid "Native name"
 msgstr "本地名稱"
 
-#: src/routes/(root)/admin/news.tsx:559
+#: src/routes/(root)/admin/news.tsx:581
 msgid "never"
 msgstr "從未"
 
@@ -2061,7 +2070,7 @@ msgstr "最新"
 
 #: src/components/AppSidebar.tsx:244
 #: src/components/AppSidebar.tsx:842
-#: src/routes/(root)/admin/news.tsx:531
+#: src/routes/(root)/admin/news.tsx:553
 #: src/routes/(root)/news/index.tsx:39
 msgid "News"
 msgstr "新聞"
@@ -2075,7 +2084,7 @@ msgstr "新聞"
 msgid "Next image"
 msgstr "下一張圖片"
 
-#: src/routes/(root)/admin/news.tsx:438
+#: src/routes/(root)/admin/news.tsx:463
 msgid "No actor found for that handle."
 msgstr "找不到該使用者名稱對應的帳號。"
 
@@ -2091,7 +2100,7 @@ msgstr "沒有要刪除的草稿"
 msgid "No drafts yet. Create your first article!"
 msgstr "還沒有草稿。建立您的第一篇文章！"
 
-#: src/routes/(root)/admin/news.tsx:622
+#: src/routes/(root)/admin/news.tsx:644
 msgid "No exclusion patterns yet."
 msgstr "尚無排除模式。"
 
@@ -2135,7 +2144,7 @@ msgstr "還沒有人在公開貼文中轉貼這個連結。"
 msgid "No one has shared this yet."
 msgstr "尚無轉貼。"
 
-#: src/routes/(root)/admin/news.tsx:784
+#: src/routes/(root)/admin/news.tsx:825
 msgid "No penalized links."
 msgstr "沒有受罰連結。"
 
@@ -2147,7 +2156,7 @@ msgstr "沒有受罰連結。"
 msgid "No posts found"
 msgstr "未找到內容"
 
-#: src/routes/(root)/admin/news.tsx:731
+#: src/routes/(root)/admin/news.tsx:754
 msgid "No preferred sharers yet."
 msgstr "尚無優先轉貼者。"
 
@@ -2176,13 +2185,13 @@ msgstr "Hackers' Pub 中無此帳戶，請重試。"
 msgid "No user URI provided."
 msgstr "未提供使用者 URI。"
 
-#: src/routes/(root)/admin/news.tsx:692
-#: src/routes/(root)/admin/news.tsx:701
-#: src/routes/(root)/admin/news.tsx:750
+#: src/routes/(root)/admin/news.tsx:712
+#: src/routes/(root)/admin/news.tsx:722
+#: src/routes/(root)/admin/news.tsx:791
 msgid "Normal"
 msgstr "普通"
 
-#: src/routes/(root)/admin/news.tsx:394
+#: src/routes/(root)/admin/news.tsx:411
 msgid "Not authorized to clear penalties."
 msgstr "無權清除處罰。"
 
@@ -2190,13 +2199,13 @@ msgstr "無權清除處罰。"
 msgid "Not authorized to delete orphan media."
 msgstr "無權刪除孤立媒體。"
 
-#: src/routes/(root)/admin/news.tsx:335
-#: src/routes/(root)/admin/news.tsx:365
+#: src/routes/(root)/admin/news.tsx:352
+#: src/routes/(root)/admin/news.tsx:382
 msgid "Not authorized to manage exclusions."
 msgstr "無權管理排除模式。"
 
-#: src/routes/(root)/admin/news.tsx:466
-#: src/routes/(root)/admin/news.tsx:496
+#: src/routes/(root)/admin/news.tsx:488
+#: src/routes/(root)/admin/news.tsx:518
 msgid "Not authorized to manage preferred sharers."
 msgstr "無權管理優先轉貼者。"
 
@@ -2205,7 +2214,7 @@ msgstr "無權管理優先轉貼者。"
 msgid "Not authorized to manage relays."
 msgstr "無權管理中繼。"
 
-#: src/routes/(root)/admin/news.tsx:294
+#: src/routes/(root)/admin/news.tsx:311
 msgid "Not authorized to recompute news scores."
 msgstr "無權重新計算新聞評分。"
 
@@ -2230,8 +2239,8 @@ msgstr "尚未訂閱任何中繼。"
 #~ msgid "Note"
 #~ msgstr "貼文"
 
-#: src/routes/(root)/admin/news.tsx:601
-#: src/routes/(root)/admin/news.tsx:709
+#: src/routes/(root)/admin/news.tsx:623
+#: src/routes/(root)/admin/news.tsx:731
 msgid "Note (optional)"
 msgstr "備註（可選）"
 
@@ -2284,6 +2293,10 @@ msgstr "瀏覽器設定已封鎖通知。"
 msgid "Number of invitations"
 msgstr "邀請次數"
 
+#: src/components/RefreshFromOriginItem.tsx:80
+msgid "Only moderators can refresh remote objects."
+msgstr "只有版主可以重新整理遠端物件。"
+
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:72
 #: src/components/QuotePolicySelect.tsx:39
 msgid "Only you can quote"
@@ -2334,11 +2347,11 @@ msgstr "通行金鑰已撤銷"
 msgid "Passkeys"
 msgstr "通行金鑰"
 
-#: src/routes/(root)/admin/news.tsx:774
+#: src/routes/(root)/admin/news.tsx:815
 msgid "Penalized links"
 msgstr "受罰連結"
 
-#: src/routes/(root)/admin/news.tsx:388
+#: src/routes/(root)/admin/news.tsx:405
 msgid "Penalty cleared."
 msgstr "已清除處罰。"
 
@@ -2357,7 +2370,7 @@ msgstr "待處理"
 msgid "Permission denied"
 msgstr "權限被拒絕"
 
-#: src/components/PostActionMenu.tsx:343
+#: src/components/PostActionMenu.tsx:363
 msgid "Pin to profile"
 msgstr "釘選到個人資料"
 
@@ -2401,15 +2414,15 @@ msgstr "投票已結束"
 msgid "Popular"
 msgstr "熱門"
 
-#: src/components/PostActionMenu.tsx:291
+#: src/components/PostActionMenu.tsx:308
 msgid "Post deleted"
 msgstr "內容已刪除"
 
-#: src/components/PostActionMenu.tsx:257
+#: src/components/PostActionMenu.tsx:274
 msgid "Post pinned"
 msgstr "內容已釘選"
 
-#: src/components/PostActionMenu.tsx:233
+#: src/components/PostActionMenu.tsx:250
 msgid "Post unpinned"
 msgstr "已取消釘選內容"
 
@@ -2436,15 +2449,15 @@ msgstr "偏好語言"
 msgid "Preferred languages"
 msgstr "偏好語言"
 
-#: src/routes/(root)/admin/news.tsx:455
+#: src/routes/(root)/admin/news.tsx:477
 msgid "Preferred sharer added."
 msgstr "已新增優先轉貼者。"
 
-#: src/routes/(root)/admin/news.tsx:490
+#: src/routes/(root)/admin/news.tsx:512
 msgid "Preferred sharer removed."
 msgstr "已移除優先轉貼者。"
 
-#: src/routes/(root)/admin/news.tsx:657
+#: src/routes/(root)/admin/news.tsx:679
 msgid "Preferred sharers"
 msgstr "優先轉貼者"
 
@@ -2471,7 +2484,7 @@ msgstr "隱私權政策"
 msgid "Profile"
 msgstr "個人資料"
 
-#: src/components/ProfileActionMenu.tsx:344
+#: src/components/ProfileActionMenu.tsx:346
 msgid "Profile actions"
 msgstr "個人檔案操作"
 
@@ -2480,7 +2493,7 @@ msgstr "個人檔案操作"
 msgid "Profile settings"
 msgstr "個人資料設定"
 
-#: src/routes/(root)/admin/news.tsx:682
+#: src/routes/(root)/admin/news.tsx:716
 msgid "Promotion"
 msgstr "優先程度"
 
@@ -2587,7 +2600,7 @@ msgstr "閱讀完整文章"
 #~ msgid "Read the full Code of conduct"
 #~ msgstr "閱讀完整的行為守則"
 
-#: src/routes/(root)/admin/news.tsx:538
+#: src/routes/(root)/admin/news.tsx:560
 msgid "Rebuilds the popularity score of every shared link from scratch. The operation is idempotent and safe to run at any time; scores normally stay fresh on their own, so this is mainly a manual backstop and a development tool."
 msgstr "從頭重新計算每個被轉貼連結的熱度評分。此操作是冪等的，隨時執行都安全。評分通常會自動保持最新，因此這主要是手動備用手段與開發工具。"
 
@@ -2603,14 +2616,22 @@ msgstr "透過此瀏覽器立即接收通知，即使此分頁已關閉。"
 msgid "Recent drafts"
 msgstr "最近的草稿"
 
-#: src/routes/(root)/admin/news.tsx:536
-#: src/routes/(root)/admin/news.tsx:569
+#: src/routes/(root)/admin/news.tsx:558
+#: src/routes/(root)/admin/news.tsx:591
 msgid "Recompute news scores"
 msgstr "重新計算新聞評分"
 
-#: src/routes/(root)/admin/news.tsx:568
+#: src/routes/(root)/admin/news.tsx:590
 msgid "Recomputing…"
 msgstr "正在重新計算…"
+
+#: src/components/RefreshFromOriginItem.tsx:107
+msgid "Refresh from origin"
+msgstr "從來源重新整理"
+
+#: src/components/RefreshFromOriginItem.tsx:70
+msgid "Refreshed from origin."
+msgstr "已從來源重新整理。"
 
 #: src/routes/(root)/admin/invitations.tsx:203
 msgid "Regenerate"
@@ -2664,8 +2685,8 @@ msgid "Remote follow"
 msgstr "遠端關注"
 
 #: src/components/LanguageList.tsx:225
-#: src/routes/(root)/admin/news.tsx:645
-#: src/routes/(root)/admin/news.tsx:762
+#: src/routes/(root)/admin/news.tsx:667
+#: src/routes/(root)/admin/news.tsx:803
 msgid "Remove"
 msgstr "移除"
 
@@ -2953,9 +2974,9 @@ msgstr "發生錯誤"
 msgid "Something went wrong—please try again."
 msgstr "發生錯誤，請重試。"
 
-#: src/routes/(root)/admin/news.tsx:691
-#: src/routes/(root)/admin/news.tsx:700
-#: src/routes/(root)/admin/news.tsx:749
+#: src/routes/(root)/admin/news.tsx:711
+#: src/routes/(root)/admin/news.tsx:721
+#: src/routes/(root)/admin/news.tsx:790
 msgid "Strong"
 msgstr "強"
 
@@ -3026,7 +3047,7 @@ msgstr "標籤"
 msgid "Tell us about yourself…"
 msgstr "介紹您自己…"
 
-#: src/routes/(root)/admin/news.tsx:459
+#: src/routes/(root)/admin/news.tsx:481
 msgid "That actor could not be added."
 msgstr "無法新增該帳號。"
 
@@ -3034,7 +3055,7 @@ msgstr "無法新增該帳號。"
 msgid "That is not a valid relay actor URL."
 msgstr "這不是有效的中繼 actor URL。"
 
-#: src/routes/(root)/admin/news.tsx:328
+#: src/routes/(root)/admin/news.tsx:345
 msgid "That is not a valid URL pattern."
 msgstr "這不是有效的 URL 模式。"
 
@@ -3135,7 +3156,7 @@ msgstr "該連結的 URL，例如 https://github.com/你的使用者名稱。"
 msgid "The Web Push public key is invalid."
 msgstr "Web Push 公開金鑰無效。"
 
-#: src/components/PostActionMenu.tsx:363
+#: src/components/PostActionMenu.tsx:385
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "此操作無法復原。這將永久刪除該內容。"
 
@@ -3225,7 +3246,7 @@ msgstr "標題不能為空"
 msgid "To follow {0}, enter your Fediverse handle."
 msgstr "要關注{0}，請輸入你的聯邦宇宙使用者名稱。"
 
-#: src/routes/(root).tsx:124
+#: src/routes/(root).tsx:126
 msgid "Toggle sidebar"
 msgstr "切換側邊欄"
 
@@ -3292,13 +3313,13 @@ msgid "Unable to remove reaction. Please try again."
 msgstr "無法移除反應。請重試。"
 
 #: src/components/BlockedAccountsList.tsx:117
-#: src/components/ProfileActionMenu.tsx:377
-#: src/components/ProfileActionMenu.tsx:405
-#: src/components/ProfileActionMenu.tsx:413
+#: src/components/ProfileActionMenu.tsx:384
+#: src/components/ProfileActionMenu.tsx:412
+#: src/components/ProfileActionMenu.tsx:420
 msgid "Unblock"
 msgstr "解除封鎖"
 
-#: src/components/ProfileActionMenu.tsx:388
+#: src/components/ProfileActionMenu.tsx:395
 msgid "Unblock user?"
 msgstr "解除封鎖使用者？"
 
@@ -3308,11 +3329,11 @@ msgid "Unfollow"
 msgstr "取消關注"
 
 #: src/components/MutedAccountsList.tsx:114
-#: src/components/ProfileActionMenu.tsx:361
+#: src/components/ProfileActionMenu.tsx:368
 msgid "Unmute"
 msgstr "解除靜音"
 
-#: src/components/PostActionMenu.tsx:344
+#: src/components/PostActionMenu.tsx:364
 msgid "Unpin from profile"
 msgstr "從個人資料取消釘選"
 
@@ -3345,15 +3366,15 @@ msgstr "上傳進度"
 msgid "URL"
 msgstr "URL"
 
-#: src/routes/(root)/admin/news.tsx:588
+#: src/routes/(root)/admin/news.tsx:610
 msgid "URL pattern"
 msgstr "URL 模式"
 
-#: src/components/ProfileActionMenu.tsx:277
+#: src/components/ProfileActionMenu.tsx:279
 msgid "User blocked"
 msgstr "已封鎖使用者"
 
-#: src/components/ProfileActionMenu.tsx:322
+#: src/components/ProfileActionMenu.tsx:324
 msgid "User muted"
 msgstr "已靜音使用者"
 
@@ -3362,12 +3383,12 @@ msgid "User not found."
 msgstr "未找到使用者資訊。"
 
 #: src/components/BlockedAccountsList.tsx:93
-#: src/components/ProfileActionMenu.tsx:259
+#: src/components/ProfileActionMenu.tsx:261
 msgid "User unblocked"
 msgstr "已解除封鎖使用者"
 
 #: src/components/MutedAccountsList.tsx:93
-#: src/components/ProfileActionMenu.tsx:304
+#: src/components/ProfileActionMenu.tsx:306
 msgid "User unmuted"
 msgstr "已解除靜音使用者"
 
@@ -3619,7 +3640,7 @@ msgstr "你還沒有靜音任何帳號。"
 #: src/components/FollowButton.tsx:149
 #: src/components/HashtagActionBar.tsx:148
 #: src/components/HashtagActionBar.tsx:171
-#: src/components/ProfileActionMenu.tsx:216
+#: src/components/ProfileActionMenu.tsx:218
 msgid "You must be signed in"
 msgstr "請先登入"
 
@@ -3647,6 +3668,10 @@ msgstr "您必須登入才能發布文章"
 #: src/components/article-composer/ArticleComposerContext.tsx:329
 msgid "You must be signed in to save a draft"
 msgstr "您必須登入才能儲存草稿"
+
+#: src/components/RefreshFromOriginItem.tsx:77
+msgid "You must be signed in."
+msgstr "請先登入。"
 
 #: src/routes/(root)/sign/up/[token].tsx:433
 msgid "You were invited by"
