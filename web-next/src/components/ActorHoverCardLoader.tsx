@@ -47,7 +47,16 @@ export interface ActorHoverCardLoaderProps {
   handle: string;
 }
 
-export function ActorHoverCardLoader(props: ActorHoverCardLoaderProps) {
+// Create the preloaded query inside a child component so it runs *under* the
+// `<Suspense>` from `withFallbacks`, not above it. `createStablePreloadedQuery`
+// reads `store()` in an eager `createMemo` during the component body; if that
+// body executed in `ActorHoverCardLoader` itself, the read would happen before
+// the local `<Suspense>` exists and the first-hover suspension would escape to
+// the route-level boundary, blanking the whole timeline (the regression of
+// commit 19148e2c "Keep profile hover loading local"). Rendering this child as
+// `<Suspense>`'s child defers its body until Solid evaluates the children
+// getter under the Suspense owner, so the suspension is caught locally.
+function ActorHoverCardByHandle(props: ActorHoverCardLoaderProps) {
   const env = useRelayEnvironment();
   const data = createStablePreloadedQuery<ActorHoverCardLoaderByHandleQuery>(
     actorHoverCardLoaderByHandleQuery,
@@ -57,7 +66,7 @@ export function ActorHoverCardLoader(props: ActorHoverCardLoaderProps) {
       }),
   );
 
-  return withFallbacks(() => (
+  return (
     <Show keyed when={data()} fallback={<ActorPreviewSkeleton />}>
       {(loaded) => (
         <>
@@ -78,23 +87,26 @@ export function ActorHoverCardLoader(props: ActorHoverCardLoaderProps) {
         </>
       )}
     </Show>
-  ));
+  );
+}
+
+export function ActorHoverCardLoader(props: ActorHoverCardLoaderProps) {
+  return withFallbacks(() => <ActorHoverCardByHandle handle={props.handle} />);
 }
 
 export interface ActorHoverCardLoaderByUrlProps {
   url: string;
 }
 
-export function ActorHoverCardLoaderByUrl(
-  props: ActorHoverCardLoaderByUrlProps,
-) {
+// See `ActorHoverCardByHandle` for why the query lives in a child component.
+function ActorHoverCardByUrl(props: ActorHoverCardLoaderByUrlProps) {
   const env = useRelayEnvironment();
   const data = createStablePreloadedQuery<ActorHoverCardLoaderByUrlQuery>(
     actorHoverCardLoaderByUrlQuery,
     () => loadQuery(env(), actorHoverCardLoaderByUrlQuery, { url: props.url }),
   );
 
-  return withFallbacks(() => (
+  return (
     <Show keyed when={data()} fallback={<ActorPreviewSkeleton />}>
       {(loaded) => (
         <>
@@ -115,5 +127,11 @@ export function ActorHoverCardLoaderByUrl(
         </>
       )}
     </Show>
-  ));
+  );
+}
+
+export function ActorHoverCardLoaderByUrl(
+  props: ActorHoverCardLoaderByUrlProps,
+) {
+  return withFallbacks(() => <ActorHoverCardByUrl url={props.url} />);
 }
