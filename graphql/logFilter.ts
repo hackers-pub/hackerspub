@@ -39,6 +39,11 @@ export function isRemoteTransportError(error: unknown): boolean {
   // `AbortSignal.timeout()` fires before the remote server responds (GRAPHQL-2N).
   // This is routine network-level slowness, not an application bug.
   if (name === "TimeoutError") return true;
+  // The jsonld library throws `jsonld.InvalidUrl` when a remote @context URL
+  // either can't be fetched or returns a document that is not valid JSON-LD
+  // (GRAPHQL-1J). Both outcomes are entirely driven by the remote server
+  // (bad context URL, CORS misconfiguration, non-JSON response, etc.).
+  if (name === "jsonld.InvalidUrl") return true;
   return false;
 }
 

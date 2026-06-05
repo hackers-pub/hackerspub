@@ -7,6 +7,7 @@
 import { getLogger } from "@logtape/logtape";
 import * as Sentry from "@sentry/deno";
 import metadata from "./deno.json" with { type: "json" };
+import { isRemoteTransportError } from "./logFilter.ts";
 
 const dsn = Deno.env.get("SENTRY_DSN");
 if (dsn) {
@@ -86,11 +87,23 @@ if (dsn) {
 // `Sentry.captureException` is a no-op until `Sentry.init` runs.
 globalThis.addEventListener("unhandledrejection", (event) => {
   event.preventDefault();
+  const { reason } = event;
+  // Remote-peer failures (transport errors, jsonld.InvalidUrl from a bad
+  // @context URL, etc.) can escape Fedify's inbox try-catch as unhandled
+  // rejections. They are not application bugs, so log at warning level and
+  // skip Sentry rather than filing false-positive issues (GRAPHQL-1J).
+  if (isRemoteTransportError(reason)) {
+    getLogger(["hackerspub", "graphql"]).warning(
+      "Remote peer error escaped as unhandled rejection: {error}",
+      { error: reason },
+    );
+    return;
+  }
   getLogger(["hackerspub", "graphql"]).error(
     "Unhandled promise rejection suppressed to keep the server alive: {error}",
-    { error: event.reason },
+    { error: reason },
   );
-  Sentry.captureException(event.reason, {
+  Sentry.captureException(reason, {
     mechanism: { type: "onunhandledrejection", handled: false },
   });
 });

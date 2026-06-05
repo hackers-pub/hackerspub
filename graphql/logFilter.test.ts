@@ -42,6 +42,14 @@ function timeoutError(): DOMException {
   return new DOMException("Signal timed out.", "TimeoutError");
 }
 
+// The jsonld library throws this when a remote @context URL returns an
+// invalid document (GRAPHQL-1J).
+function jsonldInvalidUrlError(message: string): Error {
+  const error = new Error(message);
+  error.name = "jsonld.InvalidUrl";
+  return error;
+}
+
 test("docloader: drops a remote HTTP error status (>= 400)", () => {
   const r = record(
     ["fedify", "runtime", "docloader"],
@@ -299,6 +307,24 @@ test("isRemoteTransportError: positive signals", () => {
   assert.equal(isRemoteTransportError(fetchError()), true);
   assert.equal(isRemoteTransportError(denoFetchError("dns error")), true);
   assert.equal(isRemoteTransportError(timeoutError()), true);
+  // jsonld.InvalidUrl: remote @context URL returned invalid JSON-LD (GRAPHQL-1J)
+  assert.equal(
+    isRemoteTransportError(
+      jsonldInvalidUrlError(
+        "Dereferencing a URL did not result in a valid JSON-LD object. " +
+          'URL: "https://pl.fediverse.pl/schemas/litepub-0.1.jsonld".',
+      ),
+    ),
+    true,
+  );
+  // jsonld.InvalidUrl: remote context fetch failed (already handled in LogTape
+  // path via "Failed to parse activity", but can also escape as unhandled rejection)
+  assert.equal(
+    isRemoteTransportError(
+      jsonldInvalidUrlError("loading remote context failed"),
+    ),
+    true,
+  );
 });
 
 test("isRemoteTransportError: negative signals", () => {
