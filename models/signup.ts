@@ -56,10 +56,13 @@ export async function createSignupToken(
     tokenData,
     expiration.total("millisecond"),
   );
-  logger.debug("Created sign-up token (expires in {expires}): {token}", {
-    expires: EXPIRATION,
-    token: tokenData,
-  });
+  logger.debug(
+    "Created sign-up token (expires in {expires}, invited: {invited})",
+    {
+      expires: expiration,
+      invited: tokenData.inviterId != null,
+    },
+  );
   return tokenData;
 }
 
