@@ -37,6 +37,7 @@ const RootLayoutQuery = graphql`
       uuid
       username
       moderator
+      preferAiSummary
       ...AppSidebar_signedAccount
       ...FloatingComposeButton_signedAccount
     }
@@ -112,6 +113,7 @@ export default function RootLayout(props: RouteSectionProps) {
       isLoaded={() => !signedAccount.pending}
       username={() => signedAccount()?.viewer?.username}
       moderator={() => signedAccount()?.viewer?.moderator ?? false}
+      preferAiSummary={() => signedAccount()?.viewer?.preferAiSummary ?? true}
     >
       <NoteComposeProvider>
         <SidebarProvider>

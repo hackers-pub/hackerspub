@@ -11,6 +11,7 @@ import {
 import { createDeferredRender } from "~/lib/deferredRender.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { useMentionHoverCards } from "~/lib/mentionHoverCards.tsx";
+import { useViewer } from "~/contexts/ViewerContext.tsx";
 import {
   ArticleCard_article$key,
 } from "./__generated__/ArticleCard_article.graphql.ts";
@@ -216,6 +217,7 @@ interface ArticleCardInternalProps {
 function ArticleCardInternal(props: ArticleCardInternalProps) {
   const { t, i18n } = useLingui();
   const navigate = useNavigate();
+  const { preferAiSummary } = useViewer();
   const article = createFragment(
     graphql`
       fragment ArticleCardInternal_article on Article
@@ -412,7 +414,7 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
           </Show>
           <Show
             keyed
-            when={article.actor.local
+            when={article.actor.local && preferAiSummary()
               ? (article.contents?.[0]?.summary ?? article.summary)
               : null}
             fallback={

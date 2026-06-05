@@ -5,6 +5,7 @@ interface ViewerContextValue {
   isLoaded: () => boolean;
   username: () => string | undefined;
   moderator: () => boolean;
+  preferAiSummary: () => boolean;
 }
 
 export interface ViewerProviderProps {
@@ -12,6 +13,7 @@ export interface ViewerProviderProps {
   isLoaded: () => boolean;
   username?: () => string | undefined;
   moderator?: () => boolean;
+  preferAiSummary?: () => boolean;
 }
 
 const ViewerContext = createContext<ViewerContextValue>();
@@ -24,6 +26,7 @@ export const ViewerProvider: ParentComponent<ViewerProviderProps> = (props) => {
         isLoaded: props.isLoaded,
         username: props.username ?? (() => undefined),
         moderator: props.moderator ?? (() => false),
+        preferAiSummary: props.preferAiSummary ?? (() => true),
       }}
     >
       {props.children}
