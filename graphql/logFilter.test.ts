@@ -303,6 +303,14 @@ test("keeps an unknown fedify federation subcategory", () => {
   assert.equal(isRoutineFederationError(r), false);
 });
 
+// Fedify throws this when a URL resolves to a private/link-local address
+// (SSRF protection).  GRAPHQL-1S: fe80::/10 link-local IPv6 address.
+function urlError(address: string): Error {
+  const error = new Error(`Invalid or private address: ${address}`);
+  error.name = "UrlError";
+  return error;
+}
+
 test("isRemoteTransportError: positive signals", () => {
   assert.equal(isRemoteTransportError(fetchError()), true);
   assert.equal(isRemoteTransportError(denoFetchError("dns error")), true);
@@ -325,6 +333,18 @@ test("isRemoteTransportError: positive signals", () => {
     ),
     true,
   );
+  // UrlError: fedify SSRF protection rejects link-local/private addresses (GRAPHQL-1S)
+  assert.equal(
+    isRemoteTransportError(
+      urlError("fe80::e186:525b:f68:f126"),
+    ),
+    true,
+  );
+  // SyntaxError: remote server returned empty/truncated JSON body (GRAPHQL-1R)
+  assert.equal(
+    isRemoteTransportError(new SyntaxError("Unexpected end of JSON input")),
+    true,
+  );
 });
 
 test("isRemoteTransportError: negative signals", () => {
@@ -339,6 +359,11 @@ test("isRemoteTransportError: negative signals", () => {
     isRemoteTransportError(
       new Error("error sending request for url (x): nope"),
     ),
+    false,
+  );
+  // A SyntaxError with a different message is not a remote JSON truncation.
+  assert.equal(
+    isRemoteTransportError(new SyntaxError("Unexpected token 'x'")),
     false,
   );
 });

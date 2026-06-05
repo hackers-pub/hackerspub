@@ -44,6 +44,20 @@ export function isRemoteTransportError(error: unknown): boolean {
   // (GRAPHQL-1J). Both outcomes are entirely driven by the remote server
   // (bad context URL, CORS misconfiguration, non-JSON response, etc.).
   if (name === "jsonld.InvalidUrl") return true;
+  // Fedify's document loader throws `UrlError` when it resolves a URL to a
+  // private or link-local address (SSRF protection).  The remote server's DNS
+  // record pointing to a non-public IP is entirely out of our control
+  // (GRAPHQL-1S).
+  if (name === "UrlError") return true;
+  // A remote server that returns an empty or truncated JSON body causes
+  // `SyntaxError: Unexpected end of JSON input` inside the document loader's
+  // `response.json()` call.  This is a remote-peer failure, not a bug in our
+  // code (GRAPHQL-1R).
+  if (
+    name === "SyntaxError" && message === "Unexpected end of JSON input"
+  ) {
+    return true;
+  }
   return false;
 }
 
