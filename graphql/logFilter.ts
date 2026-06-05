@@ -35,6 +35,10 @@ export function isRemoteTransportError(error: unknown): boolean {
   ) {
     return true;
   }
+  // Deno (and the standard Web API) raises `TimeoutError` when an
+  // `AbortSignal.timeout()` fires before the remote server responds (GRAPHQL-2N).
+  // This is routine network-level slowness, not an application bug.
+  if (name === "TimeoutError") return true;
   return false;
 }
 

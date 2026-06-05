@@ -37,6 +37,11 @@ function fetchError(): Error {
   return error;
 }
 
+// Deno raises this when an `AbortSignal.timeout()` fires (GRAPHQL-2N).
+function timeoutError(): DOMException {
+  return new DOMException("Signal timed out.", "TimeoutError");
+}
+
 test("docloader: drops a remote HTTP error status (>= 400)", () => {
   const r = record(
     ["fedify", "runtime", "docloader"],
@@ -241,6 +246,18 @@ test("vocab: drops a suppressed fetch failure caused by transport error", () => 
   assert.equal(isRoutineFederationError(r), true);
 });
 
+test("vocab: drops a suppressed fetch failure caused by AbortSignal timeout (GRAPHQL-2N)", () => {
+  const r = record(
+    ["fedify", "vocab"],
+    "Failed to fetch {url}: {error}",
+    {
+      url: "https://tech.lgbt/users/kirtai/statuses/116693977687562519",
+      error: timeoutError(),
+    },
+  );
+  assert.equal(isRoutineFederationError(r), true);
+});
+
 test("vocab: keeps a suppressed parse failure (malformed remote JSON-LD)", () => {
   const r = record(
     ["fedify", "vocab"],
@@ -281,6 +298,7 @@ test("keeps an unknown fedify federation subcategory", () => {
 test("isRemoteTransportError: positive signals", () => {
   assert.equal(isRemoteTransportError(fetchError()), true);
   assert.equal(isRemoteTransportError(denoFetchError("dns error")), true);
+  assert.equal(isRemoteTransportError(timeoutError()), true);
 });
 
 test("isRemoteTransportError: negative signals", () => {
