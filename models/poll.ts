@@ -52,6 +52,41 @@ export async function persistPoll(
     })
     .returning();
   if (rows.length < 1) return undefined;
+
+  // Collect new option titles mapped to their target indices so we can detect
+  // options that were removed or whose index shifted (reordered).
+  const newOptionTitles = new Map<string, number>();
+  let i = 0;
+  for (const option of options) {
+    const title = option.name?.toString();
+    if (title != null) newOptionTitles.set(title, i);
+    i++;
+  }
+
+  // Remove options that no longer exist or that moved to a different index.
+  // Votes must be deleted first because the FK from poll_vote to poll_option
+  // has no ON DELETE CASCADE.
+  const existingOptions = await db.query.pollOptionTable.findMany({
+    where: { postId },
+  });
+  for (const existing of existingOptions) {
+    const newIndex = newOptionTitles.get(existing.title);
+    if (newIndex == null || newIndex !== existing.index) {
+      await db.delete(pollVoteTable).where(
+        and(
+          eq(pollVoteTable.postId, postId),
+          eq(pollVoteTable.optionIndex, existing.index),
+        ),
+      );
+      await db.delete(pollOptionTable).where(
+        and(
+          eq(pollOptionTable.postId, postId),
+          eq(pollOptionTable.index, existing.index),
+        ),
+      );
+    }
+  }
+
   let index = 0;
   for (const option of options) {
     await persistPollOption(db, option, postId, index);
