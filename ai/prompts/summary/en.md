@@ -54,6 +54,19 @@ Summary Guidelines
  -  Focus on the value of the post and the insights readers can gain.
 
 
+Faithfulness to Source
+----------------------
+
+ -  Your summary must be based solely on information explicitly stated in the
+    provided source text. Do not add facts, explanations, or conclusions drawn
+    from your background knowledge about the topic.
+ -  If the author's claims, conclusions, or approach differ from what is
+    generally accepted or expected, reflect the author's actual perspective
+    faithfully. Do not “correct” or normalize what the author wrote.
+ -  Do not fill in gaps in the author's reasoning or add information you believe
+    is implied. Summarize only what is actually present in the text.
+
+
 Output Format
 -------------
 
