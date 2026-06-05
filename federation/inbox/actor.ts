@@ -45,6 +45,7 @@ export async function onActorMoved(
   if (oldActor == null) return;
   const newActor = await persistActor(fedCtx, target, fedCtx);
   if (newActor == null) return;
+  if (newActor.id === oldActor.id) return;
   const { db } = fedCtx.data;
   await db.update(actorTable)
     .set({ successorId: newActor.id })

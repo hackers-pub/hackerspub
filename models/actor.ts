@@ -260,6 +260,27 @@ export async function persistActor(
     where: { iri: actor.id.href },
     columns: { type: true },
   });
+  // Guard against actor_username_instance_host_unique violations before the
+  // upsert.  A different actor row can already own the same (username,
+  // instance_host) pair when a server migrates an actor to a new IRI while
+  // keeping the same handle.  Catching after the fact would leave the
+  // transaction aborted (PostgreSQL aborts the entire txn on a constraint
+  // error), so we detect the conflict upfront and return the existing actor.
+  const handleConflict = await db.query.actorTable.findFirst({
+    with: { account: true, successor: true },
+    where: {
+      username: values.username,
+      instanceHost: values.instanceHost,
+    },
+  });
+  if (handleConflict != null && handleConflict.iri !== actor.id.href) {
+    logger.warn(
+      "Actor {iri} conflicts with existing actor {existingIri} on" +
+        " (username, instance_host); returning existing actor without updating.",
+      { iri: actor.id.href, existingIri: handleConflict.iri },
+    );
+    return { ...handleConflict, instance };
+  }
   const rows = await db.insert(actorTable)
     .values({ ...values, id: generateUuidV7() })
     .onConflictDoUpdate({
