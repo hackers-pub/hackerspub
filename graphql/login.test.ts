@@ -1,5 +1,5 @@
-import { assert } from "@std/assert/assert";
-import { assertEquals } from "@std/assert/equals";
+import assert from "node:assert/strict";
+import test from "node:test";
 import { createSession, getSession } from "@hackerspub/models/session";
 import { getSigninToken } from "@hackerspub/models/signin";
 import { schema } from "./mod.ts";
@@ -78,12 +78,9 @@ const revokeSessionMutation = parse(`
   }
 `);
 
-Deno.test({
-  name:
-    "loginByUsername creates a challenge and completeLoginChallenge issues a session",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test(
+  "loginByUsername creates a challenge and completeLoginChallenge issues a session",
+  async () => {
     await withRollback(async (tx) => {
       const { kv } = createTestKv();
       const email = createTestEmailTransport();
@@ -105,7 +102,7 @@ Deno.test({
         onError: "NO_PROPAGATE",
       });
 
-      assertEquals(challengeResult.errors, undefined);
+      assert.deepEqual(challengeResult.errors, undefined);
 
       const challenge = (challengeResult.data as {
         loginByUsername: {
@@ -114,16 +111,16 @@ Deno.test({
           account?: { username: string };
         };
       }).loginByUsername;
-      assertEquals(challenge.__typename, "LoginChallenge");
-      assertEquals(challenge.account?.username, "loginuser");
-      assert(challenge.token != null);
-      assertEquals(email.messages.length, 1);
+      assert.deepEqual(challenge.__typename, "LoginChallenge");
+      assert.deepEqual(challenge.account?.username, "loginuser");
+      assert.ok(challenge.token != null);
+      assert.deepEqual(email.messages.length, 1);
 
       const signinToken = await getSigninToken(
         kv,
         challenge.token as `${string}-${string}-${string}-${string}-${string}`,
       );
-      assert(signinToken != null);
+      assert.ok(signinToken != null);
 
       const sessionResult = await execute({
         schema,
@@ -141,7 +138,7 @@ Deno.test({
         onError: "NO_PROPAGATE",
       });
 
-      assertEquals(sessionResult.errors, undefined);
+      assert.deepEqual(sessionResult.errors, undefined);
 
       const session = (sessionResult.data as {
         completeLoginChallenge: {
@@ -149,15 +146,15 @@ Deno.test({
           account: { username: string };
         } | null;
       }).completeLoginChallenge;
-      assert(session != null);
-      assertEquals(session.account.username, "loginuser");
+      assert.ok(session != null);
+      assert.deepEqual(session.account.username, "loginuser");
 
       const storedSession = await getSession(
         kv,
         session.id as `${string}-${string}-${string}-${string}-${string}`,
       );
-      assertEquals(storedSession?.userAgent, "login-test");
-      assertEquals(
+      assert.deepEqual(storedSession?.userAgent, "login-test");
+      assert.deepEqual(
         await getSigninToken(
           kv,
           challenge
@@ -167,99 +164,89 @@ Deno.test({
       );
     });
   },
+);
+
+test("loginByEmail matches email case-insensitively", async () => {
+  await withRollback(async (tx) => {
+    const { kv } = createTestKv();
+    const email = createTestEmailTransport();
+    await insertAccountWithActor(tx, {
+      username: "emailloginuser",
+      name: "Email Login User",
+      email: "EmailLogin@Example.com",
+    });
+
+    const result = await execute({
+      schema,
+      document: loginByEmailMutation,
+      variableValues: {
+        email: "emaillogin@example.com",
+        locale: "en-US",
+        verifyUrl: "http://localhost/sign/in/{token}?code={code}",
+      },
+      contextValue: makeGuestContext(tx, { kv, email: email.transport }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(result.errors, undefined);
+    const challenge = (result.data as {
+      loginByEmail: {
+        __typename: string;
+        account?: { username: string };
+        token?: string;
+      };
+    }).loginByEmail;
+    assert.deepEqual(challenge.__typename, "LoginChallenge");
+    assert.deepEqual(challenge.account?.username, "emailloginuser");
+    assert.ok(challenge.token != null);
+    assert.deepEqual(email.messages.length, 1);
+  });
 });
 
-Deno.test({
-  name: "loginByEmail matches email case-insensitively",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
-    await withRollback(async (tx) => {
-      const { kv } = createTestKv();
-      const email = createTestEmailTransport();
-      await insertAccountWithActor(tx, {
-        username: "emailloginuser",
-        name: "Email Login User",
-        email: "EmailLogin@Example.com",
-      });
-
-      const result = await execute({
-        schema,
-        document: loginByEmailMutation,
-        variableValues: {
-          email: "emaillogin@example.com",
-          locale: "en-US",
-          verifyUrl: "http://localhost/sign/in/{token}?code={code}",
-        },
-        contextValue: makeGuestContext(tx, { kv, email: email.transport }),
-        onError: "NO_PROPAGATE",
-      });
-
-      assertEquals(result.errors, undefined);
-      const challenge = (result.data as {
-        loginByEmail: {
-          __typename: string;
-          account?: { username: string };
-          token?: string;
-        };
-      }).loginByEmail;
-      assertEquals(challenge.__typename, "LoginChallenge");
-      assertEquals(challenge.account?.username, "emailloginuser");
-      assert(challenge.token != null);
-      assertEquals(email.messages.length, 1);
+test("revokeSession only revokes sessions for the current account", async () => {
+  await withRollback(async (tx) => {
+    const { kv } = createTestKv();
+    const account = await insertAccountWithActor(tx, {
+      username: "revokeowner",
+      name: "Revoke Owner",
+      email: "revokeowner@example.com",
     });
-  },
-});
-
-Deno.test({
-  name: "revokeSession only revokes sessions for the current account",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
-    await withRollback(async (tx) => {
-      const { kv } = createTestKv();
-      const account = await insertAccountWithActor(tx, {
-        username: "revokeowner",
-        name: "Revoke Owner",
-        email: "revokeowner@example.com",
-      });
-      const other = await insertAccountWithActor(tx, {
-        username: "revokeother",
-        name: "Revoke Other",
-        email: "revokeother@example.com",
-      });
-
-      const currentContext = makeUserContext(tx, account.account, { kv });
-      const extraSession = await createSession(kv, {
-        accountId: account.account.id,
-        userAgent: "extra-session",
-      });
-      const otherContext = makeUserContext(tx, other.account, { kv });
-
-      const foreignResult = await execute({
-        schema,
-        document: revokeSessionMutation,
-        variableValues: { sessionId: extraSession.id },
-        contextValue: otherContext,
-        onError: "NO_PROPAGATE",
-      });
-
-      assertEquals(foreignResult.errors, undefined);
-      assertEquals(
-        (foreignResult.data as { revokeSession: null }).revokeSession,
-        null,
-      );
-      assert((await getSession(kv, extraSession.id)) != null);
-
-      await execute({
-        schema,
-        document: revokeSessionMutation,
-        variableValues: { sessionId: extraSession.id },
-        contextValue: currentContext,
-        onError: "NO_PROPAGATE",
-      });
-
-      assertEquals(await getSession(kv, extraSession.id), undefined);
+    const other = await insertAccountWithActor(tx, {
+      username: "revokeother",
+      name: "Revoke Other",
+      email: "revokeother@example.com",
     });
-  },
+
+    const currentContext = makeUserContext(tx, account.account, { kv });
+    const extraSession = await createSession(kv, {
+      accountId: account.account.id,
+      userAgent: "extra-session",
+    });
+    const otherContext = makeUserContext(tx, other.account, { kv });
+
+    const foreignResult = await execute({
+      schema,
+      document: revokeSessionMutation,
+      variableValues: { sessionId: extraSession.id },
+      contextValue: otherContext,
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(foreignResult.errors, undefined);
+    assert.deepEqual(
+      (foreignResult.data as { revokeSession: null }).revokeSession,
+      null,
+    );
+    assert.ok((await getSession(kv, extraSession.id)) != null);
+
+    await execute({
+      schema,
+      document: revokeSessionMutation,
+      variableValues: { sessionId: extraSession.id },
+      contextValue: currentContext,
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(await getSession(kv, extraSession.id), undefined);
+  });
 });

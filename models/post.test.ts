@@ -9,12 +9,12 @@ import {
   type DocumentLoader,
   MemoryKvStore,
 } from "@fedify/fedify";
-import { assert } from "@std/assert/assert";
-import { assertEquals } from "@std/assert/equals";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 import { validate } from "@std/uuid/v7";
 import { scrapePostLink, withDocumentLoaderTimeout } from "./post.ts";
 
-Deno.test("scrapePostLink()", async (t) => {
+describe("scrapePostLink()", () => {
   mockGlobalFetch();
 
   const federation = createFederation<void>({
@@ -25,7 +25,7 @@ Deno.test("scrapePostLink()", async (t) => {
     undefined,
   );
 
-  await t.step("", async () => {
+  it("", async () => {
     mockFetch("https://example.internal/index.html", {
       headers: {
         "Content-Type": "text/html; charset=utf-8",
@@ -56,7 +56,7 @@ Deno.test("scrapePostLink()", async (t) => {
             : undefined,
         ),
     );
-    assertEquals(link, {
+    assert.deepEqual(link, {
       id: link?.id ?? "00000000-0000-0000-0000-000000000000",
       url: "https://example.internal/",
       title: "Example title",
@@ -71,11 +71,11 @@ Deno.test("scrapePostLink()", async (t) => {
       imageAlt: undefined,
       creatorId: "00000000-0000-0000-0000-000000000000",
     });
-    assert(link != null && validate(link.id));
+    assert.ok(link != null && validate(link.id));
     resetFetch();
   });
 
-  await t.step("keeps image URL when metadata probing fails", async () => {
+  it("keeps image URL when metadata probing fails", async () => {
     mockFetch("https://example.internal/no-dimensions.html", {
       headers: {
         "Content-Type": "text/html; charset=utf-8",
@@ -101,7 +101,7 @@ Deno.test("scrapePostLink()", async (t) => {
       "https://example.internal/no-dimensions.html",
       () => Promise.resolve(undefined),
     );
-    assertEquals(link, {
+    assert.deepEqual(link, {
       id: link?.id ?? "00000000-0000-0000-0000-000000000000",
       url: "https://example.internal/no-dimensions",
       title: "No dimensions",
@@ -116,14 +116,14 @@ Deno.test("scrapePostLink()", async (t) => {
       imageAlt: undefined,
       creatorId: undefined,
     });
-    assert(link != null && validate(link.id));
+    assert.ok(link != null && validate(link.id));
     resetFetch();
   });
 
   resetGlobalFetch();
 });
 
-Deno.test("withDocumentLoaderTimeout()", async (t) => {
+describe("withDocumentLoaderTimeout()", () => {
   // Capture the signal the wrapped loader forwards to the underlying loader so
   // we can assert how the per-fetch timeout, caller signal, and overall
   // deadline are combined.
@@ -140,31 +140,31 @@ Deno.test("withDocumentLoaderTimeout()", async (t) => {
     return { loader, captured: () => captured };
   };
 
-  await t.step("forwards a live per-fetch timeout signal", async () => {
+  it("forwards a live per-fetch timeout signal", async () => {
     const { loader, captured } = makeLoader();
     await withDocumentLoaderTimeout(loader, 10_000)("https://example.com/");
     const signal = captured();
-    assert(signal != null);
-    assertEquals(signal.aborted, false);
+    assert.ok(signal != null);
+    assert.deepEqual(signal.aborted, false);
   });
 
-  await t.step("propagates an already-aborted overall deadline", async () => {
+  it("propagates an already-aborted overall deadline", async () => {
     const { loader, captured } = makeLoader();
     await withDocumentLoaderTimeout(loader, 10_000, AbortSignal.abort())(
       "https://example.com/",
     );
     const signal = captured();
-    assert(signal != null);
-    assertEquals(signal.aborted, true);
+    assert.ok(signal != null);
+    assert.deepEqual(signal.aborted, true);
   });
 
-  await t.step("propagates an already-aborted caller signal", async () => {
+  it("propagates an already-aborted caller signal", async () => {
     const { loader, captured } = makeLoader();
     await withDocumentLoaderTimeout(loader, 10_000)("https://example.com/", {
       signal: AbortSignal.abort(),
     });
     const signal = captured();
-    assert(signal != null);
-    assertEquals(signal.aborted, true);
+    assert.ok(signal != null);
+    assert.deepEqual(signal.aborted, true);
   });
 });

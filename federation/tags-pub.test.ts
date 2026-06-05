@@ -1,4 +1,6 @@
-import { assertEquals } from "@std/assert/equals";
+import assert from "node:assert/strict";
+import test from "node:test";
+import { describe, it } from "node:test";
 import * as vocab from "@fedify/vocab";
 import {
   DEFAULT_TAGS_PUB_RELAY_ACTOR_ID,
@@ -10,21 +12,21 @@ import {
   shouldSendToTagsPubRelay,
 } from "./tags-pub.ts";
 
-Deno.test("getTagsPubRelayConfig()", async (t) => {
-  await t.step("is disabled unless explicitly enabled", () => {
-    assertEquals(getTagsPubRelayConfig({}), { enabled: false });
+describe("getTagsPubRelayConfig()", () => {
+  it("is disabled unless explicitly enabled", () => {
+    assert.deepEqual(getTagsPubRelayConfig({}), { enabled: false });
   });
 
-  await t.step("uses the documented tags.pub relay endpoint by default", () => {
-    assertEquals(getTagsPubRelayConfig({ TAGS_PUB_RELAY: "true" }), {
+  it("uses the documented tags.pub relay endpoint by default", () => {
+    assert.deepEqual(getTagsPubRelayConfig({ TAGS_PUB_RELAY: "true" }), {
       enabled: true,
       actorId: DEFAULT_TAGS_PUB_RELAY_ACTOR_ID,
       inboxId: DEFAULT_TAGS_PUB_RELAY_INBOX_ID,
     });
   });
 
-  await t.step("accepts a custom relay inbox URL", () => {
-    assertEquals(
+  it("accepts a custom relay inbox URL", () => {
+    assert.deepEqual(
       getTagsPubRelayConfig({
         TAGS_PUB_RELAY: "1",
         TAGS_PUB_RELAY_INBOX_URL: "https://relay.example/inbox",
@@ -38,8 +40,8 @@ Deno.test("getTagsPubRelayConfig()", async (t) => {
   });
 });
 
-Deno.test("getTagsPubRelayRecipient()", () => {
-  assertEquals(
+test("getTagsPubRelayRecipient()", () => {
+  assert.deepEqual(
     getTagsPubRelayRecipient({
       enabled: true,
       actorId: DEFAULT_TAGS_PUB_RELAY_ACTOR_ID,
@@ -53,15 +55,15 @@ Deno.test("getTagsPubRelayRecipient()", () => {
   );
 });
 
-Deno.test("hasTagsPubOptOut()", () => {
-  assertEquals(hasTagsPubOptOut("Please respect #NoTagsPub"), true);
-  assertEquals(hasTagsPubOptOut("I use #NoBots in my profile"), true);
-  assertEquals(hasTagsPubOptOut("I use #NoBot in my profile"), true);
-  assertEquals(hasTagsPubOptOut("Regular profile #ActivityPub"), false);
-  assertEquals(hasTagsPubOptOut(null), false);
+test("hasTagsPubOptOut()", () => {
+  assert.deepEqual(hasTagsPubOptOut("Please respect #NoTagsPub"), true);
+  assert.deepEqual(hasTagsPubOptOut("I use #NoBots in my profile"), true);
+  assert.deepEqual(hasTagsPubOptOut("I use #NoBot in my profile"), true);
+  assert.deepEqual(hasTagsPubOptOut("Regular profile #ActivityPub"), false);
+  assert.deepEqual(hasTagsPubOptOut(null), false);
 });
 
-Deno.test("shouldSendToTagsPubRelay()", async (t) => {
+describe("shouldSendToTagsPubRelay()", () => {
   const note = new vocab.Note({
     id: new URL("https://example.com/notes/1"),
     to: vocab.PUBLIC_COLLECTION,
@@ -79,8 +81,8 @@ Deno.test("shouldSendToTagsPubRelay()", async (t) => {
     object: note,
   });
 
-  await t.step("sends public hashtagged creates", async () => {
-    assertEquals(
+  it("sends public hashtagged creates", async () => {
+    assert.deepEqual(
       await shouldSendToTagsPubRelay(create, {
         config: { enabled: true },
         visibility: "public",
@@ -90,10 +92,10 @@ Deno.test("shouldSendToTagsPubRelay()", async (t) => {
     );
   });
 
-  await t.step(
+  it(
     "returns the tags that should be persisted as relayed",
     async () => {
-      assertEquals(
+      assert.deepEqual(
         await getTagsPubRelayDecision(create, {
           config: { enabled: true },
           visibility: "public",
@@ -107,8 +109,8 @@ Deno.test("shouldSendToTagsPubRelay()", async (t) => {
     },
   );
 
-  await t.step("does not send when relay integration is disabled", async () => {
-    assertEquals(
+  it("does not send when relay integration is disabled", async () => {
+    assert.deepEqual(
       await shouldSendToTagsPubRelay(create, {
         config: { enabled: false },
         visibility: "public",
@@ -118,8 +120,8 @@ Deno.test("shouldSendToTagsPubRelay()", async (t) => {
     );
   });
 
-  await t.step("does not send non-public posts", async () => {
-    assertEquals(
+  it("does not send non-public posts", async () => {
+    assert.deepEqual(
       await shouldSendToTagsPubRelay(create, {
         config: { enabled: true },
         visibility: "unlisted",
@@ -129,7 +131,7 @@ Deno.test("shouldSendToTagsPubRelay()", async (t) => {
     );
   });
 
-  await t.step(
+  it(
     "does not clean up non-public posts that were never relayed",
     async () => {
       const update = new vocab.Update({
@@ -138,7 +140,7 @@ Deno.test("shouldSendToTagsPubRelay()", async (t) => {
         object: note,
       });
 
-      assertEquals(
+      assert.deepEqual(
         await shouldSendToTagsPubRelay(update, {
           config: { enabled: true },
           visibility: "followers",
@@ -150,7 +152,7 @@ Deno.test("shouldSendToTagsPubRelay()", async (t) => {
     },
   );
 
-  await t.step("allows cleanup updates after visibility changes", async () => {
+  it("allows cleanup updates after visibility changes", async () => {
     const update = new vocab.Update({
       id: new URL("https://example.com/notes/1#update-private"),
       actor: new URL("https://example.com/users/alice"),
@@ -159,7 +161,7 @@ Deno.test("shouldSendToTagsPubRelay()", async (t) => {
       }),
     });
 
-    assertEquals(
+    assert.deepEqual(
       await shouldSendToTagsPubRelay(update, {
         config: { enabled: true },
         visibility: "unlisted",
@@ -170,8 +172,8 @@ Deno.test("shouldSendToTagsPubRelay()", async (t) => {
     );
   });
 
-  await t.step("respects account-level opt-out tags", async () => {
-    assertEquals(
+  it("respects account-level opt-out tags", async () => {
+    assert.deepEqual(
       await shouldSendToTagsPubRelay(create, {
         config: { enabled: true },
         visibility: "public",
@@ -181,7 +183,7 @@ Deno.test("shouldSendToTagsPubRelay()", async (t) => {
     );
   });
 
-  await t.step(
+  it(
     "allows cleanup updates after account-level opt-out",
     async () => {
       const update = new vocab.Update({
@@ -194,7 +196,7 @@ Deno.test("shouldSendToTagsPubRelay()", async (t) => {
         }),
       });
 
-      assertEquals(
+      assert.deepEqual(
         await shouldSendToTagsPubRelay(update, {
           config: { enabled: true },
           visibility: "public",
@@ -206,7 +208,7 @@ Deno.test("shouldSendToTagsPubRelay()", async (t) => {
     },
   );
 
-  await t.step(
+  it(
     "blocks newly added hashtags after account-level opt-out",
     async () => {
       const update = new vocab.Update({
@@ -229,7 +231,7 @@ Deno.test("shouldSendToTagsPubRelay()", async (t) => {
         }),
       });
 
-      assertEquals(
+      assert.deepEqual(
         await shouldSendToTagsPubRelay(update, {
           config: { enabled: true },
           visibility: "public",
@@ -241,7 +243,7 @@ Deno.test("shouldSendToTagsPubRelay()", async (t) => {
     },
   );
 
-  await t.step("does not send creates without hashtags", async () => {
+  it("does not send creates without hashtags", async () => {
     const plainCreate = new vocab.Create({
       id: new URL("https://example.com/notes/2#create"),
       actor: new URL("https://example.com/users/alice"),
@@ -252,7 +254,7 @@ Deno.test("shouldSendToTagsPubRelay()", async (t) => {
       }),
     });
 
-    assertEquals(
+    assert.deepEqual(
       await shouldSendToTagsPubRelay(plainCreate, {
         config: { enabled: true },
         visibility: "public",
@@ -262,7 +264,7 @@ Deno.test("shouldSendToTagsPubRelay()", async (t) => {
     );
   });
 
-  await t.step(
+  it(
     "sends updates when previous hashtags need reconciliation",
     async () => {
       const update = new vocab.Update({
@@ -275,7 +277,7 @@ Deno.test("shouldSendToTagsPubRelay()", async (t) => {
         }),
       });
 
-      assertEquals(
+      assert.deepEqual(
         await shouldSendToTagsPubRelay(update, {
           config: { enabled: true },
           visibility: "public",
@@ -287,7 +289,7 @@ Deno.test("shouldSendToTagsPubRelay()", async (t) => {
     },
   );
 
-  await t.step(
+  it(
     "sends deletes only for previously tagged public posts",
     async () => {
       const activity = new vocab.Delete({
@@ -299,7 +301,7 @@ Deno.test("shouldSendToTagsPubRelay()", async (t) => {
         }),
       });
 
-      assertEquals(
+      assert.deepEqual(
         await shouldSendToTagsPubRelay(activity, {
           config: { enabled: true },
           visibility: "public",
@@ -308,7 +310,7 @@ Deno.test("shouldSendToTagsPubRelay()", async (t) => {
         }),
         true,
       );
-      assertEquals(
+      assert.deepEqual(
         await shouldSendToTagsPubRelay(activity, {
           config: { enabled: true },
           visibility: "public",
@@ -320,7 +322,7 @@ Deno.test("shouldSendToTagsPubRelay()", async (t) => {
     },
   );
 
-  await t.step(
+  it(
     "allows cleanup deletes after account-level opt-out",
     async () => {
       const activity = new vocab.Delete({
@@ -332,7 +334,7 @@ Deno.test("shouldSendToTagsPubRelay()", async (t) => {
         }),
       });
 
-      assertEquals(
+      assert.deepEqual(
         await shouldSendToTagsPubRelay(activity, {
           config: { enabled: true },
           visibility: "public",

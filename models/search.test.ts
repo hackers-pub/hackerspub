@@ -1,21 +1,23 @@
-import { assertEquals } from "@std/assert/equals";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import test from "node:test";
 import { expr, parseQuery, term } from "./search.ts";
 
-Deno.test("term", async (t) => {
-  await t.step("quoted keyword", () => {
-    assertEquals(term.run('"quoted keyword"'), {
+describe("term", () => {
+  it("quoted keyword", () => {
+    assert.deepEqual(term.run('"quoted keyword"'), {
       isError: false,
       index: 16,
       data: null,
       result: { type: "keyword", keyword: "quoted keyword" },
     });
-    assertEquals(term.run('"escape\\" sequence\\\\ test"'), {
+    assert.deepEqual(term.run('"escape\\" sequence\\\\ test"'), {
       isError: false,
       index: 26,
       data: null,
       result: { type: "keyword", keyword: 'escape" sequence\\ test' },
     });
-    assertEquals(term.run('"lang:ko"'), {
+    assert.deepEqual(term.run('"lang:ko"'), {
       isError: false,
       index: 9,
       data: null,
@@ -23,8 +25,8 @@ Deno.test("term", async (t) => {
     });
   });
 
-  await t.step("bare keyword", () => {
-    assertEquals(term.run("keyword"), {
+  it("bare keyword", () => {
+    assert.deepEqual(term.run("keyword"), {
       isError: false,
       index: 7,
       data: null,
@@ -32,26 +34,26 @@ Deno.test("term", async (t) => {
     });
   });
 
-  await t.step("language", () => {
-    assertEquals(term.run("lang:ko"), {
+  it("language", () => {
+    assert.deepEqual(term.run("lang:ko"), {
       isError: false,
       index: 7,
       data: null,
       result: { type: "language", language: "ko" },
     });
-    assertEquals(term.run("lang:kor"), {
+    assert.deepEqual(term.run("lang:kor"), {
       isError: false,
       index: 8,
       data: null,
       result: { type: "language", language: "kor" },
     });
-    assertEquals(term.run("language:en"), {
+    assert.deepEqual(term.run("language:en"), {
       isError: false,
       index: 11,
       data: null,
       result: { type: "language", language: "en" },
     });
-    assertEquals(term.run("language:eng"), {
+    assert.deepEqual(term.run("language:eng"), {
       isError: false,
       index: 12,
       data: null,
@@ -59,26 +61,26 @@ Deno.test("term", async (t) => {
     });
   });
 
-  await t.step("actor", () => {
-    assertEquals(term.run("from:hongminhee"), {
+  it("actor", () => {
+    assert.deepEqual(term.run("from:hongminhee"), {
       isError: false,
       index: 15,
       data: null,
       result: { type: "actor", username: "hongminhee", host: undefined },
     });
-    assertEquals(term.run("from:@hongminhee"), {
+    assert.deepEqual(term.run("from:@hongminhee"), {
       isError: false,
       index: 16,
       data: null,
       result: { type: "actor", username: "hongminhee", host: undefined },
     });
-    assertEquals(term.run("from:hongminhee@hollo.social"), {
+    assert.deepEqual(term.run("from:hongminhee@hollo.social"), {
       isError: false,
       index: 28,
       data: null,
       result: { type: "actor", username: "hongminhee", host: "hollo.social" },
     });
-    assertEquals(term.run("from:@hongminhee@hollo.social"), {
+    assert.deepEqual(term.run("from:@hongminhee@hollo.social"), {
       isError: false,
       index: 29,
       data: null,
@@ -87,9 +89,9 @@ Deno.test("term", async (t) => {
   });
 });
 
-Deno.test("expr", async (t) => {
-  await t.step("not", () => {
-    assertEquals(expr.run("-keyword"), {
+describe("expr", () => {
+  it("not", () => {
+    assert.deepEqual(expr.run("-keyword"), {
       isError: false,
       index: 8,
       data: null,
@@ -98,7 +100,7 @@ Deno.test("expr", async (t) => {
         expr: { type: "keyword", keyword: "keyword" },
       },
     });
-    assertEquals(expr.run("-lang:ko"), {
+    assert.deepEqual(expr.run("-lang:ko"), {
       isError: false,
       index: 8,
       data: null,
@@ -107,7 +109,7 @@ Deno.test("expr", async (t) => {
         expr: { type: "language", language: "ko" },
       },
     });
-    assertEquals(expr.run("-from:hongminhee"), {
+    assert.deepEqual(expr.run("-from:hongminhee"), {
       isError: false,
       index: 16,
       data: null,
@@ -118,14 +120,14 @@ Deno.test("expr", async (t) => {
     });
   });
 
-  await t.step("parentheses", () => {
-    assertEquals(expr.run("(keyword)"), {
+  it("parentheses", () => {
+    assert.deepEqual(expr.run("(keyword)"), {
       isError: false,
       index: 9,
       data: null,
       result: { type: "keyword", keyword: "keyword" },
     });
-    assertEquals(expr.run("-(keyword)"), {
+    assert.deepEqual(expr.run("-(keyword)"), {
       isError: false,
       index: 10,
       data: null,
@@ -134,7 +136,7 @@ Deno.test("expr", async (t) => {
         expr: { type: "keyword", keyword: "keyword" },
       },
     });
-    assertEquals(expr.run("( from:hongminhee lang:ko )"), {
+    assert.deepEqual(expr.run("( from:hongminhee lang:ko )"), {
       isError: false,
       index: 27,
       data: null,
@@ -144,7 +146,7 @@ Deno.test("expr", async (t) => {
         right: { type: "language", language: "ko" },
       },
     });
-    assertEquals(expr.run("( from:hongminhee OR lang:ko ) keyword"), {
+    assert.deepEqual(expr.run("( from:hongminhee OR lang:ko ) keyword"), {
       isError: false,
       index: 38,
       data: null,
@@ -160,14 +162,14 @@ Deno.test("expr", async (t) => {
     });
   });
 
-  await t.step("and", () => {
-    assertEquals(expr.run("keyword"), {
+  it("and", () => {
+    assert.deepEqual(expr.run("keyword"), {
       isError: false,
       index: 7,
       data: null,
       result: { type: "keyword", keyword: "keyword" },
     });
-    assertEquals(expr.run("keyword keyword"), {
+    assert.deepEqual(expr.run("keyword keyword"), {
       isError: false,
       index: 15,
       data: null,
@@ -177,7 +179,7 @@ Deno.test("expr", async (t) => {
         right: { type: "keyword", keyword: "keyword" },
       },
     });
-    assertEquals(expr.run("keyword keyword keyword"), {
+    assert.deepEqual(expr.run("keyword keyword keyword"), {
       isError: false,
       index: 23,
       data: null,
@@ -193,8 +195,8 @@ Deno.test("expr", async (t) => {
     });
   });
 
-  await t.step("or", () => {
-    assertEquals(expr.run("keyword OR keyword"), {
+  it("or", () => {
+    assert.deepEqual(expr.run("keyword OR keyword"), {
       isError: false,
       index: 18,
       data: null,
@@ -204,7 +206,7 @@ Deno.test("expr", async (t) => {
         right: { type: "keyword", keyword: "keyword" },
       },
     });
-    assertEquals(expr.run("keyword OR keyword or keyword"), {
+    assert.deepEqual(expr.run("keyword OR keyword or keyword"), {
       isError: false,
       index: 29,
       data: null,
@@ -218,7 +220,7 @@ Deno.test("expr", async (t) => {
         },
       },
     });
-    assertEquals(expr.run("keyword OR keyword keyword"), {
+    assert.deepEqual(expr.run("keyword OR keyword keyword"), {
       isError: false,
       index: 26,
       data: null,
@@ -232,7 +234,7 @@ Deno.test("expr", async (t) => {
         },
       },
     });
-    assertEquals(expr.run("keyword keyword OR keyword"), {
+    assert.deepEqual(expr.run("keyword keyword OR keyword"), {
       isError: false,
       index: 26,
       data: null,
@@ -249,12 +251,12 @@ Deno.test("expr", async (t) => {
   });
 });
 
-Deno.test("parseQuery()", () => {
-  assertEquals(parseQuery("keyword"), {
+test("parseQuery()", () => {
+  assert.deepEqual(parseQuery("keyword"), {
     type: "keyword",
     keyword: "keyword",
   });
-  assertEquals(parseQuery(" foo -bar "), {
+  assert.deepEqual(parseQuery(" foo -bar "), {
     type: "and",
     left: { type: "keyword", keyword: "foo" },
     right: {

@@ -1,6 +1,5 @@
-import { assert } from "@std/assert/assert";
-import { assertEquals } from "@std/assert/equals";
-import { assertRejects } from "@std/assert/rejects";
+import assert from "node:assert/strict";
+import test from "node:test";
 import { Buffer } from "node:buffer";
 import {
   getAuthenticationOptions,
@@ -15,16 +14,16 @@ import {
   withRollback,
 } from "../test/postgres.ts";
 
-Deno.test("resolvePasskeyOrigins() prefers platform-specific origins", () => {
-  assertEquals(
+test("resolvePasskeyOrigins() prefers platform-specific origins", () => {
+  assert.deepEqual(
     resolvePasskeyOrigins("https://pub.hackers.pub/sign/in", "web"),
     ["https://pub.hackers.pub"],
   );
-  assertEquals(
+  assert.deepEqual(
     resolvePasskeyOrigins("https://pub.hackers.pub/sign/in", "ios"),
     ["ios:pub.hackers.HackersPub"],
   );
-  assertEquals(
+  assert.deepEqual(
     resolvePasskeyOrigins("https://pub.hackers.pub/sign/in", "android"),
     [
       "android:apk-key-hash:UqAUIQLNMP2LKaPtgCsKvq-rNyl5OYQat545Ba9k1Ro",
@@ -33,12 +32,9 @@ Deno.test("resolvePasskeyOrigins() prefers platform-specific origins", () => {
   );
 });
 
-Deno.test({
-  name:
-    "getRegistrationOptions() stores a challenge and excludes existing credentials",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test(
+  "getRegistrationOptions() stores a challenge and excludes existing credentials",
+  async () => {
     await withRollback(async (tx) => {
       const { kv, store } = createTestKv();
       const account = await insertAccountWithActor(tx, {
@@ -70,76 +66,66 @@ Deno.test({
         },
       );
 
-      assert(options.challenge.length > 0);
-      assertEquals(options.rp.id, "pub.hackers.pub");
-      assertEquals(options.user.name, "passkeymodelowner");
-      assertEquals(options.excludeCredentials, [{
+      assert.ok(options.challenge.length > 0);
+      assert.deepEqual(options.rp.id, "pub.hackers.pub");
+      assert.deepEqual(options.user.name, "passkeymodelowner");
+      assert.deepEqual(options.excludeCredentials, [{
         id: "credential-id",
         type: "public-key",
         transports: ["internal"],
       }]);
-      assert(store.has(`passkey/registration/${account.account.id}`));
+      assert.ok(store.has(`passkey/registration/${account.account.id}`));
     });
   },
-});
+);
 
-Deno.test({
-  name: "verifyRegistration() fails when registration options are missing",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
-    await withRollback(async (tx) => {
-      const { kv } = createTestKv();
-      const account = await insertAccountWithActor(tx, {
-        username: "missingregistration",
-        name: "Missing Registration",
-        email: "missingregistration@example.com",
-      });
-
-      await assertRejects(
-        () =>
-          verifyRegistration(
-            tx,
-            kv,
-            ["https://pub.hackers.pub"],
-            "pub.hackers.pub",
-            account.account,
-            "Laptop",
-            { id: "credential-id" } as never,
-          ),
-        Error,
-        `Missing registration options for account ${account.account.id}.`,
-      );
+test("verifyRegistration() fails when registration options are missing", async () => {
+  await withRollback(async (tx) => {
+    const { kv } = createTestKv();
+    const account = await insertAccountWithActor(tx, {
+      username: "missingregistration",
+      name: "Missing Registration",
+      email: "missingregistration@example.com",
     });
-  },
-});
 
-Deno.test({
-  name: "getAuthenticationOptions() stores a challenge for the session",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
-    const { kv, store } = createTestKv();
-    const sessionId = "019d9162-ffff-7fff-8fff-ffffffffffff";
-
-    const options = await getAuthenticationOptions(
-      kv,
-      "https://pub.hackers.pub/sign/in",
-      sessionId,
+    await assert.rejects(
+      () =>
+        verifyRegistration(
+          tx,
+          kv,
+          ["https://pub.hackers.pub"],
+          "pub.hackers.pub",
+          account.account,
+          "Laptop",
+          { id: "credential-id" } as never,
+        ),
+      (e: unknown) =>
+        e instanceof Error &&
+        e.message.includes(
+          `Missing registration options for account ${account.account.id}.`,
+        ),
     );
-
-    assert(options.challenge.length > 0);
-    assertEquals(options.rpId, "pub.hackers.pub");
-    assert(store.has(`passkey/authentication/${sessionId}`));
-  },
+  });
 });
 
-Deno.test({
-  name:
-    "verifyAuthentication() returns undefined for missing options or credentials",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test("getAuthenticationOptions() stores a challenge for the session", async () => {
+  const { kv, store } = createTestKv();
+  const sessionId = "019d9162-ffff-7fff-8fff-ffffffffffff";
+
+  const options = await getAuthenticationOptions(
+    kv,
+    "https://pub.hackers.pub/sign/in",
+    sessionId,
+  );
+
+  assert.ok(options.challenge.length > 0);
+  assert.deepEqual(options.rpId, "pub.hackers.pub");
+  assert.ok(store.has(`passkey/authentication/${sessionId}`));
+});
+
+test(
+  "verifyAuthentication() returns undefined for missing options or credentials",
+  async () => {
     await withRollback(async (tx) => {
       const { kv } = createTestKv();
       const sessionId = "019d9162-eeee-7eee-8eee-eeeeeeeeeeee";
@@ -152,7 +138,7 @@ Deno.test({
         sessionId,
         { id: "missing-passkey" } as never,
       );
-      assertEquals(missingOptions, undefined);
+      assert.deepEqual(missingOptions, undefined);
 
       await getAuthenticationOptions(
         kv,
@@ -168,7 +154,7 @@ Deno.test({
         sessionId,
         { id: "missing-passkey" } as never,
       );
-      assertEquals(missingPasskey, undefined);
+      assert.deepEqual(missingPasskey, undefined);
     });
   },
-});
+);

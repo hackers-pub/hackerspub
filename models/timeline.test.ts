@@ -1,5 +1,5 @@
-import { assert } from "@std/assert/assert";
-import { assertEquals } from "@std/assert/equals";
+import assert from "node:assert/strict";
+import test from "node:test";
 import { eq } from "drizzle-orm";
 import { follow } from "./following.ts";
 import { mute } from "./muting.ts";
@@ -20,27 +20,27 @@ import {
   withRollback,
 } from "../test/postgres.ts";
 
-Deno.test("expandLocales() returns the locale unchanged when no region", () => {
-  assertEquals(expandLocales(["ko"]), ["ko"]);
-  assertEquals(expandLocales(["en"]), ["en"]);
-  assertEquals(expandLocales(["zh"]), ["zh"]);
+test("expandLocales() returns the locale unchanged when no region", () => {
+  assert.deepEqual(expandLocales(["ko"]), ["ko"]);
+  assert.deepEqual(expandLocales(["en"]), ["en"]);
+  assert.deepEqual(expandLocales(["zh"]), ["zh"]);
 });
 
-Deno.test(
+test(
   "expandLocales() adds base language when region-specific locale is given",
   () => {
-    assertEquals(expandLocales(["ko-KR"]), ["ko-KR", "ko"]);
-    assertEquals(expandLocales(["en-US"]), ["en-US", "en"]);
-    assertEquals(expandLocales(["zh-TW"]), ["zh-TW", "zh"]);
+    assert.deepEqual(expandLocales(["ko-KR"]), ["ko-KR", "ko"]);
+    assert.deepEqual(expandLocales(["en-US"]), ["en-US", "en"]);
+    assert.deepEqual(expandLocales(["zh-TW"]), ["zh-TW", "zh"]);
   },
 );
 
-Deno.test("expandLocales() deduplicates when base locale is also listed", () => {
-  assertEquals(expandLocales(["ko-KR", "ko"]), ["ko-KR", "ko"]);
+test("expandLocales() deduplicates when base locale is also listed", () => {
+  assert.deepEqual(expandLocales(["ko-KR", "ko"]), ["ko-KR", "ko"]);
 });
 
-Deno.test("expandLocales() expands multiple region-specific locales", () => {
-  assertEquals(expandLocales(["ko-KR", "en-US"]), [
+test("expandLocales() expands multiple region-specific locales", () => {
+  assert.deepEqual(expandLocales(["ko-KR", "en-US"]), [
     "ko-KR",
     "ko",
     "en-US",
@@ -48,12 +48,9 @@ Deno.test("expandLocales() expands multiple region-specific locales", () => {
   ]);
 });
 
-Deno.test({
-  name:
-    "addPostToTimeline() delivers direct posts only to the author and mentions",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test(
+  "addPostToTimeline() delivers direct posts only to the author and mentions",
+  async () => {
     await withRollback(async (tx) => {
       const fedCtx = createFedCtx(tx);
       const author = await insertAccountWithActor(tx, {
@@ -87,108 +84,103 @@ Deno.test({
         orderBy: { accountId: "asc" },
       });
 
-      assertEquals(
+      assert.deepEqual(
         timelineItems.map((item) => item.accountId).sort(),
         [author.account.id, mentioned.account.id].sort(),
       );
-      assert(
+      assert.ok(
         !timelineItems.some((item) => item.accountId === follower.account.id),
       );
     });
   },
-});
+);
 
-Deno.test({
-  name: "removeFromTimeline() falls back to the previous sharer",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
-    await withRollback(async (tx) => {
-      const fedCtx = createFedCtx(tx);
-      const remoteAuthorSuffix = crypto.randomUUID().replaceAll("-", "").slice(
-        0,
-        8,
-      );
-      const viewer = await insertAccountWithActor(tx, {
-        username: "timelineviewer",
-        name: "Timeline Viewer",
-        email: "timelineviewer@example.com",
-      });
-      const firstSharer = await insertAccountWithActor(tx, {
-        username: "timelinefirstsharer",
-        name: "Timeline First Sharer",
-        email: "timelinefirstsharer@example.com",
-      });
-      const secondSharer = await insertAccountWithActor(tx, {
-        username: "timelinesecondsharer",
-        name: "Timeline Second Sharer",
-        email: "timelinesecondsharer@example.com",
-      });
-      const remoteActor = await insertRemoteActor(tx, {
-        username: `remoteauthor${remoteAuthorSuffix}`,
-        name: "Remote Author",
-        host: "remote.example",
-      });
-      const originalPost = await insertRemotePost(tx, {
-        actorId: remoteActor.id,
-        contentHtml: "<p>Shared timeline post</p>",
-      });
-
-      await follow(fedCtx, viewer.account, firstSharer.actor);
-      await follow(fedCtx, viewer.account, secondSharer.actor);
-
-      const firstShare = await sharePost(fedCtx, firstSharer.account, {
-        ...originalPost,
-        actor: remoteActor,
-      });
-      const secondShare = await sharePost(fedCtx, secondSharer.account, {
-        ...originalPost,
-        actor: remoteActor,
-      });
-
-      const firstPublished = new Date("2026-04-15T00:00:01.000Z");
-      const secondPublished = new Date("2026-04-15T00:00:02.000Z");
-
-      await tx.update(postTable)
-        .set({ published: firstPublished, updated: firstPublished })
-        .where(eq(postTable.id, firstShare.id));
-      await tx.update(postTable)
-        .set({ published: secondPublished, updated: secondPublished })
-        .where(eq(postTable.id, secondShare.id));
-
-      const before = await tx.query.timelineItemTable.findFirst({
-        where: {
-          accountId: viewer.account.id,
-          postId: originalPost.id,
-        },
-      });
-      assert(before != null);
-      assertEquals(before.lastSharerId, secondSharer.actor.id);
-      assertEquals(before.sharersCount, 2);
-
-      await tx.delete(postTable).where(eq(postTable.id, secondShare.id));
-      await removeFromTimeline(tx, secondShare);
-
-      const after = await tx.query.timelineItemTable.findFirst({
-        where: {
-          accountId: viewer.account.id,
-          postId: originalPost.id,
-        },
-      });
-      assert(after != null);
-      assertEquals(after.lastSharerId, firstSharer.actor.id);
-      assertEquals(after.sharersCount, 1);
-      assertEquals(after.appended.toISOString(), firstPublished.toISOString());
+test("removeFromTimeline() falls back to the previous sharer", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const remoteAuthorSuffix = crypto.randomUUID().replaceAll("-", "").slice(
+      0,
+      8,
+    );
+    const viewer = await insertAccountWithActor(tx, {
+      username: "timelineviewer",
+      name: "Timeline Viewer",
+      email: "timelineviewer@example.com",
     });
-  },
+    const firstSharer = await insertAccountWithActor(tx, {
+      username: "timelinefirstsharer",
+      name: "Timeline First Sharer",
+      email: "timelinefirstsharer@example.com",
+    });
+    const secondSharer = await insertAccountWithActor(tx, {
+      username: "timelinesecondsharer",
+      name: "Timeline Second Sharer",
+      email: "timelinesecondsharer@example.com",
+    });
+    const remoteActor = await insertRemoteActor(tx, {
+      username: `remoteauthor${remoteAuthorSuffix}`,
+      name: "Remote Author",
+      host: "remote.example",
+    });
+    const originalPost = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>Shared timeline post</p>",
+    });
+
+    await follow(fedCtx, viewer.account, firstSharer.actor);
+    await follow(fedCtx, viewer.account, secondSharer.actor);
+
+    const firstShare = await sharePost(fedCtx, firstSharer.account, {
+      ...originalPost,
+      actor: remoteActor,
+    });
+    const secondShare = await sharePost(fedCtx, secondSharer.account, {
+      ...originalPost,
+      actor: remoteActor,
+    });
+
+    const firstPublished = new Date("2026-04-15T00:00:01.000Z");
+    const secondPublished = new Date("2026-04-15T00:00:02.000Z");
+
+    await tx.update(postTable)
+      .set({ published: firstPublished, updated: firstPublished })
+      .where(eq(postTable.id, firstShare.id));
+    await tx.update(postTable)
+      .set({ published: secondPublished, updated: secondPublished })
+      .where(eq(postTable.id, secondShare.id));
+
+    const before = await tx.query.timelineItemTable.findFirst({
+      where: {
+        accountId: viewer.account.id,
+        postId: originalPost.id,
+      },
+    });
+    assert.ok(before != null);
+    assert.deepEqual(before.lastSharerId, secondSharer.actor.id);
+    assert.deepEqual(before.sharersCount, 2);
+
+    await tx.delete(postTable).where(eq(postTable.id, secondShare.id));
+    await removeFromTimeline(tx, secondShare);
+
+    const after = await tx.query.timelineItemTable.findFirst({
+      where: {
+        accountId: viewer.account.id,
+        postId: originalPost.id,
+      },
+    });
+    assert.ok(after != null);
+    assert.deepEqual(after.lastSharerId, firstSharer.actor.id);
+    assert.deepEqual(after.sharersCount, 1);
+    assert.deepEqual(
+      after.appended.toISOString(),
+      firstPublished.toISOString(),
+    );
+  });
 });
 
-Deno.test({
-  name:
-    "removeFromTimeline() does not fall back to a sharer the viewer has muted",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test(
+  "removeFromTimeline() does not fall back to a sharer the viewer has muted",
+  async () => {
     await withRollback(async (tx) => {
       const fedCtx = createFedCtx(tx);
       const suffix = crypto.randomUUID().replaceAll("-", "").slice(0, 8);
@@ -250,17 +242,14 @@ Deno.test({
           postId: originalPost.id,
         },
       });
-      assertEquals(after, undefined);
+      assert.deepEqual(after, undefined);
     });
   },
-});
+);
 
-Deno.test({
-  name:
-    "removeFromTimeline() does not fall back to a sharer whose boost is not visible to the viewer",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test(
+  "removeFromTimeline() does not fall back to a sharer whose boost is not visible to the viewer",
+  async () => {
     await withRollback(async (tx) => {
       const fedCtx = createFedCtx(tx);
       const suffix = crypto.randomUUID().replaceAll("-", "").slice(0, 8);
@@ -317,7 +306,7 @@ Deno.test({
           postId: originalPost.id,
         },
       });
-      assertEquals(after, undefined);
+      assert.deepEqual(after, undefined);
     });
   },
-});
+);

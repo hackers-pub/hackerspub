@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert/equals";
+import assert from "node:assert/strict";
+import test from "node:test";
 import { arePostsBookmarkedBy, createBookmark } from "./bookmark.ts";
 import {
   insertAccountWithActor,
@@ -6,12 +7,9 @@ import {
   withRollback,
 } from "../test/postgres.ts";
 
-Deno.test({
-  name:
-    "arePostsBookmarkedBy() returns the subset of posts the account bookmarked",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test(
+  "arePostsBookmarkedBy() returns the subset of posts the account bookmarked",
+  async () => {
     await withRollback(async (tx) => {
       const author = await insertAccountWithActor(tx, {
         username: "arebookmarkedauthor",
@@ -46,16 +44,14 @@ Deno.test({
         viewer.account,
       );
 
-      assertEquals(result, new Set([postA.id, postC.id]));
+      assert.deepEqual(result, new Set([postA.id, postC.id]));
     });
   },
-});
+);
 
-Deno.test({
-  name: "arePostsBookmarkedBy() returns an empty set when no bookmarks match",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test(
+  "arePostsBookmarkedBy() returns an empty set when no bookmarks match",
+  async () => {
     await withRollback(async (tx) => {
       const author = await insertAccountWithActor(tx, {
         username: "arebookmarkednoneauthor",
@@ -78,16 +74,14 @@ Deno.test({
         viewer.account,
       );
 
-      assertEquals(result, new Set());
+      assert.deepEqual(result, new Set());
     });
   },
-});
+);
 
-Deno.test({
-  name: "arePostsBookmarkedBy() returns an empty set for an empty input list",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test(
+  "arePostsBookmarkedBy() returns an empty set for an empty input list",
+  async () => {
     await withRollback(async (tx) => {
       const viewer = await insertAccountWithActor(tx, {
         username: "arebookmarkedemptyviewer",
@@ -97,7 +91,7 @@ Deno.test({
 
       const result = await arePostsBookmarkedBy(tx, [], viewer.account);
 
-      assertEquals(result, new Set());
+      assert.deepEqual(result, new Set());
     });
   },
-});
+);

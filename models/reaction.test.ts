@@ -1,5 +1,5 @@
-import { assert } from "@std/assert/assert";
-import { assertEquals } from "@std/assert/equals";
+import assert from "node:assert/strict";
+import test from "node:test";
 import { customEmojiTable, reactionTable } from "./schema.ts";
 import { generateUuidV7 } from "./uuid.ts";
 import { getViewerReactionsForPosts, react, undoReaction } from "./reaction.ts";
@@ -10,12 +10,9 @@ import {
   withRollback,
 } from "../test/postgres.ts";
 
-Deno.test({
-  name:
-    "react() stores a reaction, updates counts, and notifies the post author",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test(
+  "react() stores a reaction, updates counts, and notifies the post author",
+  async () => {
     await withRollback(async (tx) => {
       const fedCtx = createFedCtx(tx);
       const author = await insertAccountWithActor(tx, {
@@ -38,20 +35,20 @@ Deno.test({
         actor: author.actor,
       }, "🎉");
 
-      assert(created != null);
+      assert.ok(created != null);
 
       const storedPost = await tx.query.postTable.findFirst({
         where: { id: post.id },
       });
-      assert(storedPost != null);
-      assertEquals(storedPost.reactionsCounts, { "🎉": 1 });
+      assert.ok(storedPost != null);
+      assert.deepEqual(storedPost.reactionsCounts, { "🎉": 1 });
 
       const reactions = await tx.query.reactionTable.findMany({
         where: { postId: post.id },
       });
-      assertEquals(reactions.length, 1);
-      assertEquals(reactions[0].actorId, reactor.actor.id);
-      assertEquals(reactions[0].emoji, "🎉");
+      assert.deepEqual(reactions.length, 1);
+      assert.deepEqual(reactions[0].actorId, reactor.actor.id);
+      assert.deepEqual(reactions[0].emoji, "🎉");
 
       const notification = await tx.query.notificationTable.findFirst({
         where: {
@@ -60,130 +57,118 @@ Deno.test({
           postId: post.id,
         },
       });
-      assert(notification != null);
-      assertEquals(notification.actorIds, [reactor.actor.id]);
-      assertEquals(notification.emoji, "🎉");
+      assert.ok(notification != null);
+      assert.deepEqual(notification.actorIds, [reactor.actor.id]);
+      assert.deepEqual(notification.emoji, "🎉");
     });
   },
-});
+);
 
-Deno.test({
-  name: "react() ignores duplicate standard emoji reactions",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
-    await withRollback(async (tx) => {
-      const fedCtx = createFedCtx(tx);
-      const author = await insertAccountWithActor(tx, {
-        username: "dupauthor",
-        name: "Dup Author",
-        email: "dupauthor@example.com",
-      });
-      const reactor = await insertAccountWithActor(tx, {
-        username: "dupreactor",
-        name: "Dup Reactor",
-        email: "dupreactor@example.com",
-      });
-      const { post } = await insertNotePost(tx, {
-        account: author.account,
-        content: "Duplicate reaction target",
-      });
-
-      await react(
-        fedCtx,
-        reactor.account,
-        { ...post, actor: author.actor },
-        "❤️",
-      );
-      const duplicate = await react(
-        fedCtx,
-        reactor.account,
-        { ...post, actor: author.actor },
-        "❤️",
-      );
-
-      assertEquals(duplicate, undefined);
-
-      const reactions = await tx.query.reactionTable.findMany({
-        where: { postId: post.id },
-      });
-      assertEquals(reactions.length, 1);
-
-      const storedPost = await tx.query.postTable.findFirst({
-        where: { id: post.id },
-      });
-      assert(storedPost != null);
-      assertEquals(storedPost.reactionsCounts, { "❤️": 1 });
+test("react() ignores duplicate standard emoji reactions", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const author = await insertAccountWithActor(tx, {
+      username: "dupauthor",
+      name: "Dup Author",
+      email: "dupauthor@example.com",
     });
-  },
-});
-
-Deno.test({
-  name: "undoReaction() removes the reaction counts and notification",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
-    await withRollback(async (tx) => {
-      const fedCtx = createFedCtx(tx);
-      const author = await insertAccountWithActor(tx, {
-        username: "undoauthor",
-        name: "Undo Author",
-        email: "undoauthor@example.com",
-      });
-      const reactor = await insertAccountWithActor(tx, {
-        username: "undoreactor",
-        name: "Undo Reactor",
-        email: "undoreactor@example.com",
-      });
-      const { post } = await insertNotePost(tx, {
-        account: author.account,
-        content: "Undo reaction target",
-      });
-
-      await react(
-        fedCtx,
-        reactor.account,
-        { ...post, actor: author.actor },
-        "👀",
-      );
-
-      const removed = await undoReaction(
-        fedCtx,
-        reactor.account,
-        { ...post, actor: author.actor },
-        "👀",
-      );
-
-      assert(removed != null);
-
-      const reactions = await tx.query.reactionTable.findMany({
-        where: { postId: post.id },
-      });
-      assertEquals(reactions, []);
-
-      const storedPost = await tx.query.postTable.findFirst({
-        where: { id: post.id },
-      });
-      assert(storedPost != null);
-      assertEquals(storedPost.reactionsCounts, {});
-
-      const notification = await tx.query.notificationTable.findFirst({
-        where: {
-          accountId: author.account.id,
-          type: "react",
-          postId: post.id,
-        },
-      });
-      assertEquals(notification, undefined);
+    const reactor = await insertAccountWithActor(tx, {
+      username: "dupreactor",
+      name: "Dup Reactor",
+      email: "dupreactor@example.com",
     });
-  },
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Duplicate reaction target",
+    });
+
+    await react(
+      fedCtx,
+      reactor.account,
+      { ...post, actor: author.actor },
+      "❤️",
+    );
+    const duplicate = await react(
+      fedCtx,
+      reactor.account,
+      { ...post, actor: author.actor },
+      "❤️",
+    );
+
+    assert.deepEqual(duplicate, undefined);
+
+    const reactions = await tx.query.reactionTable.findMany({
+      where: { postId: post.id },
+    });
+    assert.deepEqual(reactions.length, 1);
+
+    const storedPost = await tx.query.postTable.findFirst({
+      where: { id: post.id },
+    });
+    assert.ok(storedPost != null);
+    assert.deepEqual(storedPost.reactionsCounts, { "❤️": 1 });
+  });
 });
 
-Deno.test({
-  name: "getViewerReactionsForPosts() returns viewer reactions across post IDs",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test("undoReaction() removes the reaction counts and notification", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const author = await insertAccountWithActor(tx, {
+      username: "undoauthor",
+      name: "Undo Author",
+      email: "undoauthor@example.com",
+    });
+    const reactor = await insertAccountWithActor(tx, {
+      username: "undoreactor",
+      name: "Undo Reactor",
+      email: "undoreactor@example.com",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Undo reaction target",
+    });
+
+    await react(
+      fedCtx,
+      reactor.account,
+      { ...post, actor: author.actor },
+      "👀",
+    );
+
+    const removed = await undoReaction(
+      fedCtx,
+      reactor.account,
+      { ...post, actor: author.actor },
+      "👀",
+    );
+
+    assert.ok(removed != null);
+
+    const reactions = await tx.query.reactionTable.findMany({
+      where: { postId: post.id },
+    });
+    assert.deepEqual(reactions, []);
+
+    const storedPost = await tx.query.postTable.findFirst({
+      where: { id: post.id },
+    });
+    assert.ok(storedPost != null);
+    assert.deepEqual(storedPost.reactionsCounts, {});
+
+    const notification = await tx.query.notificationTable.findFirst({
+      where: {
+        accountId: author.account.id,
+        type: "react",
+        postId: post.id,
+      },
+    });
+    assert.deepEqual(notification, undefined);
+  });
+});
+
+test(
+  "getViewerReactionsForPosts() returns viewer reactions across post IDs",
+  async () => {
     await withRollback(async (tx) => {
       const author = await insertAccountWithActor(tx, {
         username: "viewerreactionsauthor",
@@ -275,16 +260,14 @@ Deno.test({
         `${a.postId}|${a.emoji}|${a.customEmojiId}`
           .localeCompare(`${b.postId}|${b.emoji}|${b.customEmojiId}`)
       );
-      assertEquals(summary, expected);
+      assert.deepEqual(summary, expected);
     });
   },
-});
+);
 
-Deno.test({
-  name: "getViewerReactionsForPosts() returns an empty array for no input",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test(
+  "getViewerReactionsForPosts() returns an empty array for no input",
+  async () => {
     await withRollback(async (tx) => {
       const viewer = await insertAccountWithActor(tx, {
         username: "viewerreactionsemptyviewer",
@@ -294,7 +277,7 @@ Deno.test({
 
       const rows = await getViewerReactionsForPosts(tx, [], viewer.actor);
 
-      assertEquals(rows, []);
+      assert.deepEqual(rows, []);
     });
   },
-});
+);

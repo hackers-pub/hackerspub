@@ -1,5 +1,5 @@
-import { assert } from "@std/assert/assert";
-import { assertEquals } from "@std/assert/equals";
+import assert from "node:assert/strict";
+import test from "node:test";
 import {
   createSigninToken,
   deleteSigninToken,
@@ -7,27 +7,22 @@ import {
 } from "./signin.ts";
 import { createTestKv } from "../test/postgres.ts";
 
-Deno.test({
-  name: "signin tokens round-trip through Keyv",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
-    const { kv } = createTestKv();
-    const accountId = "019d9162-ffff-7fff-8fff-ffffffffffff";
+test("signin tokens round-trip through Keyv", async () => {
+  const { kv } = createTestKv();
+  const accountId = "019d9162-ffff-7fff-8fff-ffffffffffff";
 
-    const token = await createSigninToken(kv, accountId);
-    const stored = await getSigninToken(kv, token.token);
+  const token = await createSigninToken(kv, accountId);
+  const stored = await getSigninToken(kv, token.token);
 
-    assert(stored != null);
-    assertEquals(stored.accountId, accountId);
-    assertEquals(stored.token, token.token);
-    assertEquals(stored.code, token.code);
-    assert(stored.created instanceof Date);
-    assertEquals(/^[0-9A-Z]{6}$/.test(stored.code), true);
+  assert.ok(stored != null);
+  assert.deepEqual(stored.accountId, accountId);
+  assert.deepEqual(stored.token, token.token);
+  assert.deepEqual(stored.code, token.code);
+  assert.ok(stored.created instanceof Date);
+  assert.deepEqual(/^[0-9A-Z]{6}$/.test(stored.code), true);
 
-    await deleteSigninToken(kv, token.token);
+  await deleteSigninToken(kv, token.token);
 
-    const deleted = await getSigninToken(kv, token.token);
-    assertEquals(deleted, undefined);
-  },
+  const deleted = await getSigninToken(kv, token.token);
+  assert.deepEqual(deleted, undefined);
 });

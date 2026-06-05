@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert/equals";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 import type { Actor, Following } from "@hackerspub/models/schema";
 import type { Uuid } from "@hackerspub/models/uuid";
 import {
@@ -131,8 +132,8 @@ const REMOTE_ACTOR_2_ID = "00000000-0000-0000-0000-000000000005" as Uuid;
 // Tests
 // ---------------------------------------------------------------------------
 
-Deno.test("handlePermanentFailure()", async (t) => {
-  await t.step("does nothing when actorIds is empty", async () => {
+describe("handlePermanentFailure()", () => {
+  it("does nothing when actorIds is empty", async () => {
     const { repo, calls } = createMockRepo([], [], []);
     const values: PermanentFailureValues = {
       inbox: new URL("https://remote.example/inbox"),
@@ -140,12 +141,12 @@ Deno.test("handlePermanentFailure()", async (t) => {
       actorIds: [],
     };
     await handlePermanentFailure(repo, values);
-    assertEquals(calls.deleteFollowingsByFollowerIds.length, 0);
-    assertEquals(calls.deleteFollowingsByFolloweeIds.length, 0);
-    assertEquals(calls.deleteActors.length, 0);
+    assert.deepEqual(calls.deleteFollowingsByFollowerIds.length, 0);
+    assert.deepEqual(calls.deleteFollowingsByFolloweeIds.length, 0);
+    assert.deepEqual(calls.deleteActors.length, 0);
   });
 
-  await t.step(
+  it(
     "does nothing when actor IRI is not found in DB",
     async () => {
       const { repo, calls } = createMockRepo([], [], []);
@@ -155,13 +156,13 @@ Deno.test("handlePermanentFailure()", async (t) => {
         actorIds: [new URL("https://remote.example/users/ghost")],
       };
       await handlePermanentFailure(repo, values);
-      assertEquals(calls.deleteFollowingsByFollowerIds.length, 0);
-      assertEquals(calls.deleteFollowingsByFolloweeIds.length, 0);
-      assertEquals(calls.deleteActors.length, 0);
+      assert.deepEqual(calls.deleteFollowingsByFollowerIds.length, 0);
+      assert.deepEqual(calls.deleteFollowingsByFolloweeIds.length, 0);
+      assert.deepEqual(calls.deleteActors.length, 0);
     },
   );
 
-  await t.step("skips local actors (accountId is not null)", async () => {
+  it("skips local actors (accountId is not null)", async () => {
     const localActor = makeActor({
       id: LOCAL_ACTOR_ID,
       iri: "https://hackers.pub/users/alice",
@@ -174,12 +175,12 @@ Deno.test("handlePermanentFailure()", async (t) => {
       actorIds: [new URL("https://hackers.pub/users/alice")],
     };
     await handlePermanentFailure(repo, values);
-    assertEquals(calls.deleteFollowingsByFollowerIds.length, 0);
-    assertEquals(calls.deleteFollowingsByFolloweeIds.length, 0);
-    assertEquals(calls.deleteActors.length, 0);
+    assert.deepEqual(calls.deleteFollowingsByFollowerIds.length, 0);
+    assert.deepEqual(calls.deleteFollowingsByFolloweeIds.length, 0);
+    assert.deepEqual(calls.deleteActors.length, 0);
   });
 
-  await t.step(
+  it(
     "on 404: deletes followings but does NOT delete actor record",
     async () => {
       const remoteActor = makeActor({
@@ -208,23 +209,27 @@ Deno.test("handlePermanentFailure()", async (t) => {
       await handlePermanentFailure(repo, values);
 
       // Following relationships deleted:
-      assertEquals(calls.deleteFollowingsByFollowerIds, [[REMOTE_ACTOR_ID]]);
-      assertEquals(calls.deleteFollowingsByFolloweeIds, [[REMOTE_ACTOR_ID]]);
+      assert.deepEqual(calls.deleteFollowingsByFollowerIds, [[
+        REMOTE_ACTOR_ID,
+      ]]);
+      assert.deepEqual(calls.deleteFollowingsByFolloweeIds, [[
+        REMOTE_ACTOR_ID,
+      ]]);
 
       // Counts updated:
-      assertEquals(calls.updateFollowersCount, [
+      assert.deepEqual(calls.updateFollowersCount, [
         { followeeId: LOCAL_FOLLOWEE_ID, delta: -1 },
       ]);
-      assertEquals(calls.updateFolloweesCount, [
+      assert.deepEqual(calls.updateFolloweesCount, [
         { followerId: LOCAL_FOLLOWER_ID, delta: -1 },
       ]);
 
       // Actor record NOT deleted on 404:
-      assertEquals(calls.deleteActors.length, 0);
+      assert.deepEqual(calls.deleteActors.length, 0);
     },
   );
 
-  await t.step(
+  it(
     "on 410: deletes followings AND deletes actor record",
     async () => {
       const remoteActor = makeActor({
@@ -249,21 +254,25 @@ Deno.test("handlePermanentFailure()", async (t) => {
       await handlePermanentFailure(repo, values);
 
       // Following relationships deleted:
-      assertEquals(calls.deleteFollowingsByFollowerIds, [[REMOTE_ACTOR_ID]]);
-      assertEquals(calls.deleteFollowingsByFolloweeIds, [[REMOTE_ACTOR_ID]]);
+      assert.deepEqual(calls.deleteFollowingsByFollowerIds, [[
+        REMOTE_ACTOR_ID,
+      ]]);
+      assert.deepEqual(calls.deleteFollowingsByFolloweeIds, [[
+        REMOTE_ACTOR_ID,
+      ]]);
 
       // Counts updated for the follower relationship only:
-      assertEquals(calls.updateFollowersCount, [
+      assert.deepEqual(calls.updateFollowersCount, [
         { followeeId: LOCAL_FOLLOWEE_ID, delta: -1 },
       ]);
-      assertEquals(calls.updateFolloweesCount, []);
+      assert.deepEqual(calls.updateFolloweesCount, []);
 
       // Actor record IS deleted on 410:
-      assertEquals(calls.deleteActors, [[REMOTE_ACTOR_ID]]);
+      assert.deepEqual(calls.deleteActors, [[REMOTE_ACTOR_ID]]);
     },
   );
 
-  await t.step("handles multiple remote actors at once", async () => {
+  it("handles multiple remote actors at once", async () => {
     const actor1 = makeActor({
       id: REMOTE_ACTOR_ID,
       iri: "https://remote.example/users/bob",
@@ -298,23 +307,23 @@ Deno.test("handlePermanentFailure()", async (t) => {
     };
     await handlePermanentFailure(repo, values);
 
-    assertEquals(calls.deleteFollowingsByFollowerIds, [
+    assert.deepEqual(calls.deleteFollowingsByFollowerIds, [
       [REMOTE_ACTOR_ID, REMOTE_ACTOR_2_ID],
     ]);
-    assertEquals(calls.deleteFollowingsByFolloweeIds, [
+    assert.deepEqual(calls.deleteFollowingsByFolloweeIds, [
       [REMOTE_ACTOR_ID, REMOTE_ACTOR_2_ID],
     ]);
     // Both followers pointed to the same local followee:
-    assertEquals(calls.updateFollowersCount, [
+    assert.deepEqual(calls.updateFollowersCount, [
       { followeeId: LOCAL_FOLLOWEE_ID, delta: -1 },
       { followeeId: LOCAL_FOLLOWEE_ID, delta: -1 },
     ]);
-    assertEquals(calls.deleteActors, [
+    assert.deepEqual(calls.deleteActors, [
       [REMOTE_ACTOR_ID, REMOTE_ACTOR_2_ID],
     ]);
   });
 
-  await t.step(
+  it(
     "filters out local actors when mixed with remote actors",
     async () => {
       const remoteActor = makeActor({
@@ -347,17 +356,21 @@ Deno.test("handlePermanentFailure()", async (t) => {
       await handlePermanentFailure(repo, values);
 
       // Only remote actor processed:
-      assertEquals(calls.deleteFollowingsByFollowerIds, [[REMOTE_ACTOR_ID]]);
-      assertEquals(calls.deleteFollowingsByFolloweeIds, [[REMOTE_ACTOR_ID]]);
-      assertEquals(calls.updateFollowersCount, [
+      assert.deepEqual(calls.deleteFollowingsByFollowerIds, [[
+        REMOTE_ACTOR_ID,
+      ]]);
+      assert.deepEqual(calls.deleteFollowingsByFolloweeIds, [[
+        REMOTE_ACTOR_ID,
+      ]]);
+      assert.deepEqual(calls.updateFollowersCount, [
         { followeeId: LOCAL_FOLLOWEE_ID, delta: -1 },
       ]);
       // No actor deletion on 404:
-      assertEquals(calls.deleteActors.length, 0);
+      assert.deepEqual(calls.deleteActors.length, 0);
     },
   );
 
-  await t.step(
+  it(
     "no following relationships to delete still completes without error",
     async () => {
       const remoteActor = makeActor({
@@ -374,13 +387,17 @@ Deno.test("handlePermanentFailure()", async (t) => {
       await handlePermanentFailure(repo, values);
 
       // Delete was called but returned nothing:
-      assertEquals(calls.deleteFollowingsByFollowerIds, [[REMOTE_ACTOR_ID]]);
-      assertEquals(calls.deleteFollowingsByFolloweeIds, [[REMOTE_ACTOR_ID]]);
+      assert.deepEqual(calls.deleteFollowingsByFollowerIds, [[
+        REMOTE_ACTOR_ID,
+      ]]);
+      assert.deepEqual(calls.deleteFollowingsByFolloweeIds, [[
+        REMOTE_ACTOR_ID,
+      ]]);
       // No counts to update:
-      assertEquals(calls.updateFollowersCount, []);
-      assertEquals(calls.updateFolloweesCount, []);
+      assert.deepEqual(calls.updateFollowersCount, []);
+      assert.deepEqual(calls.updateFolloweesCount, []);
       // No actor deletion on 404:
-      assertEquals(calls.deleteActors.length, 0);
+      assert.deepEqual(calls.deleteActors.length, 0);
     },
   );
 });

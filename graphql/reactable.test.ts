@@ -1,5 +1,5 @@
-import { assert } from "@std/assert/assert";
-import { assertEquals } from "@std/assert/equals";
+import assert from "node:assert/strict";
+import test from "node:test";
 import { eq } from "drizzle-orm";
 import type { Transaction } from "@hackerspub/models/db";
 import {
@@ -61,78 +61,75 @@ const reactorsQuery = parse(`
   }
 `);
 
-Deno.test({
-  name: "ReactionGroup.reactors returns edges for first-page queries",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
-    await withRollback(async (tx) => {
-      const { noteId, viewerAccount, reactors } = await seedReactedNote(tx);
+test("ReactionGroup.reactors returns edges for first-page queries", async () => {
+  await withRollback(async (tx) => {
+    const { noteId, viewerAccount, reactors } = await seedReactedNote(tx);
 
-      const result = await execute({
-        schema,
-        document: reactorsQuery,
-        variableValues: {
-          id: encodeGlobalID("Note", noteId),
-        },
-        contextValue: makeUserContext(tx, viewerAccount),
-        onError: "NO_PROPAGATE",
-      });
+    const result = await execute({
+      schema,
+      document: reactorsQuery,
+      variableValues: {
+        id: encodeGlobalID("Note", noteId),
+      },
+      contextValue: makeUserContext(tx, viewerAccount),
+      onError: "NO_PROPAGATE",
+    });
 
-      assertEquals(result.errors, undefined);
+    assert.deepEqual(result.errors, undefined);
 
-      const data = result.data as {
-        node: {
-          reactionGroups: {
-            emoji?: string;
-            reactors?: {
-              totalCount?: number;
-              viewerHasReacted?: boolean;
-              edges: {
-                node: { id?: string; handle: string; avatarUrl: string };
-              }[];
-            };
-          }[];
-        } | null;
-      };
+    const data = result.data as {
+      node: {
+        reactionGroups: {
+          emoji?: string;
+          reactors?: {
+            totalCount?: number;
+            viewerHasReacted?: boolean;
+            edges: {
+              node: { id?: string; handle: string; avatarUrl: string };
+            }[];
+          };
+        }[];
+      } | null;
+    };
 
-      const reactionGroup = data.node?.reactionGroups.find((group) =>
-        group.emoji === "❤️"
-      );
-      assert(reactionGroup != null);
-      const reactorsConnection = reactionGroup.reactors;
-      assert(reactorsConnection != null);
-      assertEquals(reactorsConnection.totalCount, 2);
-      assertEquals(reactorsConnection.viewerHasReacted, true);
-      assertEquals(reactorsConnection.edges.length, 2);
-      assertEquals(
-        reactorsConnection.edges.map((edge) => edge.node.id).sort(),
-        reactors.map((reactor) => encodeGlobalID("Actor", reactor.id)).sort(),
-      );
-      for (const reactor of reactors) {
-        const node = reactorsConnection.edges.find((edge) =>
+    const reactionGroup = data.node?.reactionGroups.find((group) =>
+      group.emoji === "❤️"
+    );
+    assert.ok(reactionGroup != null);
+    const reactorsConnection = reactionGroup.reactors;
+    assert.ok(reactorsConnection != null);
+    assert.deepEqual(reactorsConnection.totalCount, 2);
+    assert.deepEqual(reactorsConnection.viewerHasReacted, true);
+    assert.deepEqual(reactorsConnection.edges.length, 2);
+    assert.deepEqual(
+      reactorsConnection.edges.map((edge) => edge.node.id).sort(),
+      reactors.map((reactor) => encodeGlobalID("Actor", reactor.id)).sort(),
+    );
+    for (const reactor of reactors) {
+      const edgeNode:
+        | { id?: string; handle: string; avatarUrl: string }
+        | undefined = reactorsConnection.edges.find((edge) =>
           edge.node.handle === reactor.handle
         )?.node;
-        assert(node != null);
-        assertEquals(node.avatarUrl, reactor.avatarUrl);
-      }
+      assert.ok(edgeNode != null);
+      assert.deepEqual(edgeNode.avatarUrl, reactor.avatarUrl);
+    }
 
-      const customReactionGroup = data.node?.reactionGroups.find((group) =>
-        group.emoji == null && group.reactors != null
-      );
-      assert(customReactionGroup != null);
-      assert(customReactionGroup.reactors != null);
-      assertEquals(customReactionGroup.reactors.edges.length, 1);
-      assertEquals(
-        customReactionGroup.reactors.edges[0].node.handle,
-        reactors[0].handle,
-      );
-      assertEquals(
-        customReactionGroup.reactors.edges[0].node.avatarUrl,
-        reactors[0].avatarUrl,
-      );
-    });
-  },
+    const customReactionGroup = data.node?.reactionGroups.find((group) =>
+      group.emoji == null && group.reactors != null
+    );
+    assert.ok(customReactionGroup != null);
+    assert.ok(customReactionGroup.reactors != null);
+    assert.deepEqual(customReactionGroup.reactors.edges.length, 1);
+    assert.deepEqual(
+      customReactionGroup.reactors.edges[0].node.handle,
+      reactors[0].handle,
+    );
+    assert.deepEqual(
+      customReactionGroup.reactors.edges[0].node.avatarUrl,
+      reactors[0].avatarUrl,
+    );
+  });
 });
 
 const customEmojiBatchQuery = parse(`
@@ -166,12 +163,9 @@ const customEmojiBatchQuery = parse(`
   }
 `);
 
-Deno.test({
-  name:
-    "CustomEmojiReactionGroup.customEmoji resolves the right emoji per post when batched",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test(
+  "CustomEmojiReactionGroup.customEmoji resolves the right emoji per post when batched",
+  async () => {
     await withRollback(async (tx) => {
       const timestamp = new Date("2026-04-15T00:00:00.000Z");
       const suffix = crypto.randomUUID().replaceAll("-", "").slice(0, 8);
@@ -251,7 +245,7 @@ Deno.test({
         onError: "NO_PROPAGATE",
       });
 
-      assertEquals(result.errors, undefined);
+      assert.deepEqual(result.errors, undefined);
 
       const data = result.data as {
         a: {
@@ -273,15 +267,21 @@ Deno.test({
         .map((group) => group.customEmoji)
         .find((emoji) => emoji != null);
 
-      assert(aEmoji != null);
-      assert(bEmoji != null);
-      assertEquals(aEmoji.name, ":party:");
-      assertEquals(aEmoji.imageUrl, `https://cdn.example/emoji/${partyId}.png`);
-      assertEquals(bEmoji.name, ":cake:");
-      assertEquals(bEmoji.imageUrl, `https://cdn.example/emoji/${cakeId}.png`);
+      assert.ok(aEmoji != null);
+      assert.ok(bEmoji != null);
+      assert.deepEqual(aEmoji.name, ":party:");
+      assert.deepEqual(
+        aEmoji.imageUrl,
+        `https://cdn.example/emoji/${partyId}.png`,
+      );
+      assert.deepEqual(bEmoji.name, ":cake:");
+      assert.deepEqual(
+        bEmoji.imageUrl,
+        `https://cdn.example/emoji/${cakeId}.png`,
+      );
     });
   },
-});
+);
 
 const reactionGroupQuery = parse(`
   query ReactionGroupQuery(
@@ -319,12 +319,9 @@ const reactionGroupQuery = parse(`
   }
 `);
 
-Deno.test({
-  name:
-    "Post.reactionGroup returns a single emoji group when matched, null otherwise",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test(
+  "Post.reactionGroup returns a single emoji group when matched, null otherwise",
+  async () => {
     await withRollback(async (tx) => {
       const { noteId, viewerAccount, reactors } = await seedReactedNote(tx);
       const id = encodeGlobalID("Note", noteId);
@@ -337,7 +334,7 @@ Deno.test({
         contextValue: makeUserContext(tx, viewerAccount),
         onError: "NO_PROPAGATE",
       });
-      assertEquals(heartResult.errors, undefined);
+      assert.deepEqual(heartResult.errors, undefined);
       const heartGroup = (heartResult.data as {
         node: {
           reactionGroup: {
@@ -350,11 +347,11 @@ Deno.test({
           } | null;
         };
       }).node.reactionGroup;
-      assert(heartGroup != null);
-      assertEquals(heartGroup.__typename, "EmojiReactionGroup");
-      assertEquals(heartGroup.emoji, "❤️");
-      assertEquals(heartGroup.reactors?.totalCount, 2);
-      assertEquals(
+      assert.ok(heartGroup != null);
+      assert.deepEqual(heartGroup.__typename, "EmojiReactionGroup");
+      assert.deepEqual(heartGroup.emoji, "❤️");
+      assert.deepEqual(heartGroup.reactors?.totalCount, 2);
+      assert.deepEqual(
         heartGroup.reactors?.edges.map((e) => e.node.handle).sort(),
         reactors.map((r) => r.handle).sort(),
       );
@@ -367,8 +364,8 @@ Deno.test({
         contextValue: makeUserContext(tx, viewerAccount),
         onError: "NO_PROPAGATE",
       });
-      assertEquals(rocketResult.errors, undefined);
-      assertEquals(
+      assert.deepEqual(rocketResult.errors, undefined);
+      assert.deepEqual(
         (rocketResult.data as { node: { reactionGroup: unknown } })
           .node.reactionGroup,
         null,
@@ -382,8 +379,8 @@ Deno.test({
         contextValue: makeUserContext(tx, viewerAccount),
         onError: "NO_PROPAGATE",
       });
-      assertEquals(emptyResult.errors, undefined);
-      assertEquals(
+      assert.deepEqual(emptyResult.errors, undefined);
+      assert.deepEqual(
         (emptyResult.data as { node: { reactionGroup: unknown } })
           .node.reactionGroup,
         null,
@@ -405,57 +402,52 @@ Deno.test({
         contextValue: makeUserContext(tx, viewerAccount),
         onError: "NO_PROPAGATE",
       });
-      assertEquals(bothResult.errors, undefined);
-      assertEquals(
+      assert.deepEqual(bothResult.errors, undefined);
+      assert.deepEqual(
         (bothResult.data as { node: { reactionGroup: unknown } })
           .node.reactionGroup,
         null,
       );
     });
   },
-});
+);
 
-Deno.test({
-  name: "Post.reactionGroup returns a custom-emoji group when matched by id",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
-    await withRollback(async (tx) => {
-      const {
-        noteId,
-        viewerAccount,
-        customEmojiId: customEmojiUuid,
-      } = await seedReactedNote(tx);
-      const id = encodeGlobalID("Note", noteId);
-      const customEmojiId = encodeGlobalID("CustomEmoji", customEmojiUuid);
+test("Post.reactionGroup returns a custom-emoji group when matched by id", async () => {
+  await withRollback(async (tx) => {
+    const {
+      noteId,
+      viewerAccount,
+      customEmojiId: customEmojiUuid,
+    } = await seedReactedNote(tx);
+    const id = encodeGlobalID("Note", noteId);
+    const customEmojiId = encodeGlobalID("CustomEmoji", customEmojiUuid);
 
-      const customResult = await execute({
-        schema,
-        document: reactionGroupQuery,
-        variableValues: { id, emoji: null, customEmojiId },
-        contextValue: makeUserContext(tx, viewerAccount),
-        onError: "NO_PROPAGATE",
-      });
-      assertEquals(customResult.errors, undefined);
-      const group = (customResult.data as {
-        node: {
-          reactionGroup: {
-            __typename: string;
-            customEmoji?: { name: string };
-            reactors?: {
-              totalCount: number;
-              edges: { node: { handle: string } }[];
-            };
-          } | null;
-        };
-      }).node.reactionGroup;
-      assert(group != null);
-      assertEquals(group.__typename, "CustomEmojiReactionGroup");
-      assertEquals(group.customEmoji?.name, ":party:");
-      assertEquals(group.reactors?.totalCount, 1);
-      assertEquals(group.reactors?.edges.length, 1);
+    const customResult = await execute({
+      schema,
+      document: reactionGroupQuery,
+      variableValues: { id, emoji: null, customEmojiId },
+      contextValue: makeUserContext(tx, viewerAccount),
+      onError: "NO_PROPAGATE",
     });
-  },
+    assert.deepEqual(customResult.errors, undefined);
+    const group = (customResult.data as {
+      node: {
+        reactionGroup: {
+          __typename: string;
+          customEmoji?: { name: string };
+          reactors?: {
+            totalCount: number;
+            edges: { node: { handle: string } }[];
+          };
+        } | null;
+      };
+    }).node.reactionGroup;
+    assert.ok(group != null);
+    assert.deepEqual(group.__typename, "CustomEmojiReactionGroup");
+    assert.deepEqual(group.customEmoji?.name, ":party:");
+    assert.deepEqual(group.reactors?.totalCount, 1);
+    assert.deepEqual(group.reactors?.edges.length, 1);
+  });
 });
 
 async function seedReactedNote(

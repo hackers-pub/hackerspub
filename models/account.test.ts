@@ -1,5 +1,6 @@
-import { assertEquals } from "@std/assert/equals";
-import { assertThrows } from "@std/assert/throws";
+import assert from "node:assert/strict";
+import test from "node:test";
+import { describe, it } from "node:test";
 import {
   fetchAccountLinkMetadata,
   type LinkMetadata,
@@ -128,54 +129,53 @@ const linkMetadata: Record<string, LinkMetadata> = {
 
 for (const url in linkMetadata) {
   const metadata = linkMetadata[url];
-  Deno.test({
-    name: `fetchAccountLinkMetadata(${JSON.stringify(url)})`,
-    sanitizeResources: false,
-    async fn() {
-      assertEquals(
-        await fetchAccountLinkMetadata(url),
-        metadata,
-      );
-    },
+  test(`fetchAccountLinkMetadata(${JSON.stringify(url)})`, async () => {
+    assert.deepEqual(
+      await fetchAccountLinkMetadata(url),
+      metadata,
+    );
   });
 }
 
-Deno.test("normalizeEmail()", async (t) => {
-  await t.step("with valid email", () => {
-    assertEquals(normalizeEmail("test@example.com"), "test@example.com");
-    assertEquals(normalizeEmail("  test@example.com  "), "test@example.com");
-    assertEquals(normalizeEmail("Test@EXAMPLE.COM"), "Test@example.com");
-    assertEquals(
+describe("normalizeEmail()", () => {
+  it("with valid email", () => {
+    assert.deepEqual(normalizeEmail("test@example.com"), "test@example.com");
+    assert.deepEqual(
+      normalizeEmail("  test@example.com  "),
+      "test@example.com",
+    );
+    assert.deepEqual(normalizeEmail("Test@EXAMPLE.COM"), "Test@example.com");
+    assert.deepEqual(
       normalizeEmail("user@中文.example"),
       "user@xn--fiq228c.example",
     );
   });
 
-  await t.step("with null and undefined", () => {
-    assertEquals(normalizeEmail(null), null);
-    assertEquals(normalizeEmail(undefined), undefined);
+  it("with null and undefined", () => {
+    assert.deepEqual(normalizeEmail(null), null);
+    assert.deepEqual(normalizeEmail(undefined), undefined);
   });
 
-  await t.step("with invalid email", () => {
-    assertThrows(
+  it("with invalid email", () => {
+    assert.throws(
       () => normalizeEmail("invalid"),
-      TypeError,
-      "Invalid email format.",
+      (e) =>
+        e instanceof TypeError && e.message.includes("Invalid email format."),
     );
-    assertThrows(
+    assert.throws(
       () => normalizeEmail("@example.com"),
-      TypeError,
-      "Invalid email format.",
+      (e) =>
+        e instanceof TypeError && e.message.includes("Invalid email format."),
     );
-    assertThrows(
+    assert.throws(
       () => normalizeEmail("test@"),
-      TypeError,
-      "Invalid email format.",
+      (e) =>
+        e instanceof TypeError && e.message.includes("Invalid email format."),
     );
-    assertThrows(
+    assert.throws(
       () => normalizeEmail("test@example@com"),
-      TypeError,
-      "Invalid email format.",
+      (e) =>
+        e instanceof TypeError && e.message.includes("Invalid email format."),
     );
   });
 });

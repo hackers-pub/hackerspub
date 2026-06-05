@@ -1,5 +1,5 @@
-import { assert } from "@std/assert/assert";
-import { assertEquals } from "@std/assert/equals";
+import assert from "node:assert/strict";
+import test, { describe, it } from "node:test";
 import {
   addExternalLinkTargets,
   extractExternalLinks,
@@ -10,9 +10,9 @@ import {
 } from "./html.ts";
 import type { Actor } from "./schema.ts";
 
-Deno.test("extractExternalLinks()", async (t) => {
-  await t.step("extracts http(s) links, ignoring mentions and hashtags", () => {
-    assertEquals(
+describe("extractExternalLinks()", () => {
+  it("extracts http(s) links, ignoring mentions and hashtags", () => {
+    assert.deepEqual(
       extractExternalLinks(
         '<p><a href="https://activitypub.academy/tags/%ED%95%B4%EC%8B%9C%ED%83%9C%EA%B7%B8" class="mention hashtag" rel="tag">#<span>해시태그</span></a> 테스트</p><p><span class="h-card"><a href="https://dorikom.squirrel-crocodile.ts.net/@h2t4" class="u-url mention">@<span>h2t4</span></a></span> 멘션 테스트</p><p><a href="https://hongminhee.org/" target="_blank" rel="nofollow noopener noreferrer"><span class="invisible">https://</span><span class="">hongminhee.org/</span><span class="invisible"></span></a> 링크 테스트</p>',
       ),
@@ -20,22 +20,22 @@ Deno.test("extractExternalLinks()", async (t) => {
     );
   });
 
-  await t.step("handles uppercase anchor tags and attributes", () => {
-    assertEquals(
+  it("handles uppercase anchor tags and attributes", () => {
+    assert.deepEqual(
       extractExternalLinks('<P><A HREF="https://example.com">link</A></P>'),
       [new URL("https://example.com")],
     );
   });
 
-  await t.step("resolves protocol-relative URLs as external links", () => {
-    assertEquals(
+  it("resolves protocol-relative URLs as external links", () => {
+    assert.deepEqual(
       extractExternalLinks('<p><a href="//example.com/foo">x</a></p>'),
       [new URL("https://example.com/foo")],
     );
   });
 
-  await t.step("skips explicitly excluded hrefs", () => {
-    assertEquals(
+  it("skips explicitly excluded hrefs", () => {
+    assert.deepEqual(
       extractExternalLinks(
         '<p><a href="https://forum.example/user/alice">@alice</a> <a href="https://example.com/story">story</a></p>',
         { excludeHrefs: ["https://forum.example/user/alice"] },
@@ -45,7 +45,7 @@ Deno.test("extractExternalLinks()", async (t) => {
   });
 });
 
-Deno.test("transformMentions() rewrites anchors matching persisted mention actors", () => {
+test("transformMentions() rewrites anchors matching persisted mention actors", () => {
   const actor = {
     iri: "https://forum.example/actor/alice",
     url: "https://forum.example/user/alice",
@@ -64,18 +64,18 @@ Deno.test("transformMentions() rewrites anchors matching persisted mention actor
     {},
   );
 
-  assert(html.includes('class="mention"'));
-  assert(html.includes('data-internal-href="/@alice@forum.example"'));
-  assert(
+  assert.ok(html.includes('class="mention"'));
+  assert.ok(html.includes('data-internal-href="/@alice@forum.example"'));
+  assert.ok(
     html.includes(
       'onclick="location.href = this.dataset.internalHref; return false;"',
     ),
   );
 });
 
-Deno.test("addExternalLinkTargets()", async (t) => {
-  await t.step("adds target and rel to external http(s) links", () => {
-    assertEquals(
+describe("addExternalLinkTargets()", () => {
+  it("adds target and rel to external http(s) links", () => {
+    assert.deepEqual(
       addExternalLinkTargets(
         '<p><a href="https://example.com">link</a></p>',
         new URL("https://hackers.pub"),
@@ -84,8 +84,8 @@ Deno.test("addExternalLinkTargets()", async (t) => {
     );
   });
 
-  await t.step("leaves same-origin absolute URLs untouched", () => {
-    assertEquals(
+  it("leaves same-origin absolute URLs untouched", () => {
+    assert.deepEqual(
       addExternalLinkTargets(
         '<p><a href="https://hackers.pub/@user">user</a></p>',
         new URL("https://hackers.pub"),
@@ -94,8 +94,8 @@ Deno.test("addExternalLinkTargets()", async (t) => {
     );
   });
 
-  await t.step("skips mentions and hashtags", () => {
-    assertEquals(
+  it("skips mentions and hashtags", () => {
+    assert.deepEqual(
       addExternalLinkTargets(
         '<p><a href="https://mastodon.social/@user" class="u-url mention">@user</a> <a href="https://example.com/tags/foo" class="mention hashtag" rel="tag">#foo</a></p>',
         new URL("https://hackers.pub"),
@@ -104,8 +104,8 @@ Deno.test("addExternalLinkTargets()", async (t) => {
     );
   });
 
-  await t.step("skips data-internal-href anchors", () => {
-    assertEquals(
+  it("skips data-internal-href anchors", () => {
+    assert.deepEqual(
       addExternalLinkTargets(
         '<p><a href="https://remote/@u" data-internal-href="/@u">@u</a></p>',
         new URL("https://hackers.pub"),
@@ -114,8 +114,8 @@ Deno.test("addExternalLinkTargets()", async (t) => {
     );
   });
 
-  await t.step("skips relative and fragment links", () => {
-    assertEquals(
+  it("skips relative and fragment links", () => {
+    assert.deepEqual(
       addExternalLinkTargets(
         '<p><a href="/path">relative</a> <a href="#section">fragment</a></p>',
         new URL("https://hackers.pub"),
@@ -124,8 +124,8 @@ Deno.test("addExternalLinkTargets()", async (t) => {
     );
   });
 
-  await t.step("skips non-http(s) protocols", () => {
-    assertEquals(
+  it("skips non-http(s) protocols", () => {
+    assert.deepEqual(
       addExternalLinkTargets(
         '<p><a href="mailto:user@example.com">mail</a></p>',
         new URL("https://hackers.pub"),
@@ -134,10 +134,10 @@ Deno.test("addExternalLinkTargets()", async (t) => {
     );
   });
 
-  await t.step(
+  it(
     "leaves anchors with an existing non-blank target untouched",
     () => {
-      assertEquals(
+      assert.deepEqual(
         addExternalLinkTargets(
           '<p><a href="https://example.com" target="_self">link</a></p>',
           new URL("https://hackers.pub"),
@@ -147,10 +147,10 @@ Deno.test("addExternalLinkTargets()", async (t) => {
     },
   );
 
-  await t.step(
+  it(
     "hardens rel on pre-existing target=_blank external links",
     () => {
-      assertEquals(
+      assert.deepEqual(
         addExternalLinkTargets(
           '<p><a href="https://evil.example" target="_blank">link</a></p>',
           new URL("https://hackers.pub"),
@@ -160,8 +160,8 @@ Deno.test("addExternalLinkTargets()", async (t) => {
     },
   );
 
-  await t.step("merges rel tokens on pre-existing target=_blank links", () => {
-    assertEquals(
+  it("merges rel tokens on pre-existing target=_blank links", () => {
+    assert.deepEqual(
       addExternalLinkTargets(
         '<p><a href="https://evil.example" target="_blank" rel="nofollow">link</a></p>',
         new URL("https://hackers.pub"),
@@ -170,8 +170,8 @@ Deno.test("addExternalLinkTargets()", async (t) => {
     );
   });
 
-  await t.step("treats target value case-insensitively", () => {
-    assertEquals(
+  it("treats target value case-insensitively", () => {
+    assert.deepEqual(
       addExternalLinkTargets(
         '<p><a href="https://evil.example" target=" _BLANK ">link</a></p>',
         new URL("https://hackers.pub"),
@@ -180,8 +180,8 @@ Deno.test("addExternalLinkTargets()", async (t) => {
     );
   });
 
-  await t.step("merges rel tokens instead of overwriting", () => {
-    assertEquals(
+  it("merges rel tokens instead of overwriting", () => {
+    assert.deepEqual(
       addExternalLinkTargets(
         '<p><a href="https://example.com" rel="nofollow">link</a></p>',
         new URL("https://hackers.pub"),
@@ -190,10 +190,10 @@ Deno.test("addExternalLinkTargets()", async (t) => {
     );
   });
 
-  await t.step(
+  it(
     "treats all http(s) links as external when no localDomain",
     () => {
-      assertEquals(
+      assert.deepEqual(
         addExternalLinkTargets(
           '<p><a href="https://hackers.pub/x">x</a></p>',
         ),
@@ -202,8 +202,8 @@ Deno.test("addExternalLinkTargets()", async (t) => {
     },
   );
 
-  await t.step("accepts URL for localDomain", () => {
-    assertEquals(
+  it("accepts URL for localDomain", () => {
+    assert.deepEqual(
       addExternalLinkTargets(
         '<p><a href="https://hackers.pub/@user">user</a></p>',
         new URL("https://hackers.pub"),
@@ -212,16 +212,16 @@ Deno.test("addExternalLinkTargets()", async (t) => {
     );
   });
 
-  await t.step("returns input unchanged when no anchors present", () => {
+  it("returns input unchanged when no anchors present", () => {
     const html = "<p>no links here</p>";
-    assertEquals(
+    assert.deepEqual(
       addExternalLinkTargets(html, new URL("https://hackers.pub")),
       html,
     );
   });
 
-  await t.step("processes uppercase anchor tags", () => {
-    assertEquals(
+  it("processes uppercase anchor tags", () => {
+    assert.deepEqual(
       addExternalLinkTargets(
         '<P><A HREF="https://example.com">link</A></P>',
         new URL("https://hackers.pub"),
@@ -230,8 +230,8 @@ Deno.test("addExternalLinkTargets()", async (t) => {
     );
   });
 
-  await t.step("marks cross-origin protocol-relative URLs as external", () => {
-    assertEquals(
+  it("marks cross-origin protocol-relative URLs as external", () => {
+    assert.deepEqual(
       addExternalLinkTargets(
         '<p><a href="//example.com/foo">x</a></p>',
         new URL("https://hackers.pub"),
@@ -240,8 +240,8 @@ Deno.test("addExternalLinkTargets()", async (t) => {
     );
   });
 
-  await t.step("leaves same-origin protocol-relative URLs untouched", () => {
-    assertEquals(
+  it("leaves same-origin protocol-relative URLs untouched", () => {
+    assert.deepEqual(
       addExternalLinkTargets(
         '<p><a href="//hackers.pub/@user">user</a></p>',
         new URL("https://hackers.pub"),
@@ -251,42 +251,42 @@ Deno.test("addExternalLinkTargets()", async (t) => {
   });
 });
 
-Deno.test("stripHtml()", async (t) => {
-  await t.step("removes all HTML tags", () => {
-    assertEquals(
+describe("stripHtml()", () => {
+  it("removes all HTML tags", () => {
+    assert.deepEqual(
       stripHtml("<p>Hello <strong>world</strong></p>"),
       "Hello world",
     );
   });
 
-  await t.step("converts line breaks", () => {
-    assertEquals(
+  it("converts line breaks", () => {
+    assert.deepEqual(
       stripHtml("<p>First paragraph</p><p>Second paragraph</p>"),
       "First paragraph\n\nSecond paragraph",
     );
-    assertEquals(
+    assert.deepEqual(
       stripHtml("<p>First paragraph</p>\n<p>Second paragraph</p>"),
       "First paragraph\n\nSecond paragraph",
     );
-    assertEquals(
+    assert.deepEqual(
       stripHtml("<p>First paragraph</p>\n\n<p>Second paragraph</p>"),
       "First paragraph\n\nSecond paragraph",
     );
-    assertEquals(
+    assert.deepEqual(
       stripHtml("<p>First paragraph</p>\r\n\r\n\r\n<p>Second paragraph</p>"),
       "First paragraph\n\nSecond paragraph",
     );
   });
 
-  await t.step("handles br tags", () => {
-    assertEquals(
+  it("handles br tags", () => {
+    assert.deepEqual(
       stripHtml("Line 1<br>Line 2"),
       "Line 1\nLine 2",
     );
   });
 
-  await t.step("handles complex nested HTML", () => {
-    assertEquals(
+  it("handles complex nested HTML", () => {
+    assert.deepEqual(
       stripHtml(
         '<div class="post"><h1>Title</h1><p>Hello <em>world</em> with <a href="https://example.com">link</a></p><ul><li>Item 1</li><li>Item <strong>2</strong></li></ul></div>',
       ),
@@ -294,19 +294,19 @@ Deno.test("stripHtml()", async (t) => {
     );
   });
 
-  await t.step("handles HTML entities", () => {
-    assertEquals(
+  it("handles HTML entities", () => {
+    assert.deepEqual(
       stripHtml("<p>&lt;script&gt;alert('xss')&lt;/script&gt;</p>"),
       "<script>alert('xss')</script>",
     );
-    assertEquals(
+    assert.deepEqual(
       stripHtml("<p>&amp; &quot;quotes&quot; &apos;apostrophe&apos;</p>"),
       "& \"quotes\" 'apostrophe'",
     );
   });
 
-  await t.step("handles ActivityPub content", () => {
-    assertEquals(
+  it("handles ActivityPub content", () => {
+    assert.deepEqual(
       stripHtml(
         '<p><a href="https://activitypub.academy/tags/%ED%95%B4%EC%8B%9C%ED%83%9C%EA%B7%B8" class="mention hashtag" rel="tag">#<span>해시태그</span></a> 테스트</p><p><span class="h-card"><a href="https://dorikom.squirrel-crocodile.ts.net/@h2t4" class="u-url mention">@<span>h2t4</span></a></span> 멘션 테스트</p>',
       ),
@@ -314,101 +314,104 @@ Deno.test("stripHtml()", async (t) => {
     );
   });
 
-  await t.step("preserves Unicode and special characters", () => {
-    assertEquals(
+  it("preserves Unicode and special characters", () => {
+    assert.deepEqual(
       stripHtml("<p>🚀 Unicode emoji & 한글 text with <code>code</code></p>"),
       "🚀 Unicode emoji & 한글 text with code",
     );
   });
 
-  await t.step("handles malformed HTML", () => {
-    assertEquals(
+  it("handles malformed HTML", () => {
+    assert.deepEqual(
       stripHtml("<p>Unclosed tag <span>content</p>more text"),
       "Unclosed tag content\n\nmore text",
     );
-    assertEquals(
+    assert.deepEqual(
       stripHtml("<>empty tags</>"),
       "empty tags",
     );
   });
 
-  await t.step("handles self-closing tags", () => {
-    assertEquals(
+  it("handles self-closing tags", () => {
+    assert.deepEqual(
       stripHtml("Image: <img src='test.jpg' alt='Test' /> End"),
       "Image:  End",
     );
-    assertEquals(
+    assert.deepEqual(
       stripHtml("Break<br/>here<hr/>and<p>here"),
       "Break\nhere\nand\n\nhere",
     );
   });
 
-  await t.step("handles empty content", () => {
-    assertEquals(stripHtml(""), "");
-    assertEquals(stripHtml("<p></p>"), "");
-    assertEquals(stripHtml("<div><span></span></div>"), "");
+  it("handles empty content", () => {
+    assert.deepEqual(stripHtml(""), "");
+    assert.deepEqual(stripHtml("<p></p>"), "");
+    assert.deepEqual(stripHtml("<div><span></span></div>"), "");
   });
 });
 
-Deno.test("truncateHtml()", async (t) => {
-  await t.step("returns input unchanged when within budget", () => {
-    assertEquals(truncateHtml("<p>Hello world</p>", 100), "<p>Hello world</p>");
-    assertEquals(truncateHtml("", 100), "");
+describe("truncateHtml()", () => {
+  it("returns input unchanged when within budget", () => {
+    assert.deepEqual(
+      truncateHtml("<p>Hello world</p>", 100),
+      "<p>Hello world</p>",
+    );
+    assert.deepEqual(truncateHtml("", 100), "");
   });
 
-  await t.step("returns empty string when maxChars is 0 or negative", () => {
-    assertEquals(truncateHtml("<p>Hello</p>", 0), "");
-    assertEquals(truncateHtml("<p>Hello</p>", -5), "");
+  it("returns empty string when maxChars is 0 or negative", () => {
+    assert.deepEqual(truncateHtml("<p>Hello</p>", 0), "");
+    assert.deepEqual(truncateHtml("<p>Hello</p>", -5), "");
   });
 
-  await t.step("truncates long text and appends ellipsis", () => {
-    assertEquals(
+  it("truncates long text and appends ellipsis", () => {
+    assert.deepEqual(
       truncateHtml("<p>Hello world from here</p>", 5),
       "<p>Hello…</p>",
     );
   });
 
-  await t.step("preserves wrapping tags around the cutoff", () => {
+  it("preserves wrapping tags around the cutoff", () => {
     // Cutoff falls inside the <strong>; the <strong> stays open until the
     // ellipsis, but everything after it is dropped.
-    assertEquals(
+    assert.deepEqual(
       truncateHtml("<p>Hello <strong>brave</strong> world</p>", 8),
       "<p>Hello <strong>br…</strong></p>",
     );
   });
 
-  await t.step("drops following siblings after the cutoff", () => {
-    assertEquals(
+  it("drops following siblings after the cutoff", () => {
+    assert.deepEqual(
       truncateHtml("<p>First paragraph</p><p>Second paragraph</p>", 5),
       "<p>First…</p>",
     );
   });
 
-  await t.step("keeps non-text descendants that fit before the cutoff", () => {
+  it("keeps non-text descendants that fit before the cutoff", () => {
     // The <img> is inside the kept paragraph; it doesn't consume any
     // characters and shouldn't be removed.
     const out = truncateHtml(
       `<p>Hi<img src="x.png" alt=""></p><p>more</p>`,
       10,
     );
-    assertEquals(out, `<p>Hi<img src="x.png" alt=""></p><p>more</p>`);
+    assert.deepEqual(out, `<p>Hi<img src="x.png" alt=""></p><p>more</p>`);
   });
 
-  await t.step("trims trailing whitespace before the ellipsis", () => {
-    assertEquals(
+  it("trims trailing whitespace before the ellipsis", () => {
+    assert.deepEqual(
       truncateHtml("<p>Hello   world</p>", 8),
       "<p>Hello…</p>",
     );
   });
 
-  await t.step(
+  it(
     "treats exact-fill text as the cutoff when more content follows",
     () => {
       // The first <p> is exactly 5 chars and there's more content after it,
       // so the ellipsis must land in the first paragraph and the <img> + the
       // second <p> must be dropped. The first paragraph keeps all 5 chars
       // (the budget is the visible-text cap, the ellipsis is overhead).
-      assertEquals(
+      assert.deepEqual(
         truncateHtml(
           `<p>Hello</p><img src="x.png" alt=""><p>World</p>`,
           5,
@@ -418,38 +421,38 @@ Deno.test("truncateHtml()", async (t) => {
     },
   );
 
-  await t.step(
+  it(
     "counts and slices by grapheme clusters, not UTF-16 code units",
     () => {
       // Each emoji here is a multi-code-unit grapheme cluster. With a budget
       // of 3 we should keep the first three emoji intact (no half surrogates),
       // then append the ellipsis.
-      assertEquals(
+      assert.deepEqual(
         truncateHtml("<p>😀😁😂😃😄</p>", 3),
         "<p>😀😁😂…</p>",
       );
       // ZWJ-joined family emoji is one grapheme cluster.
-      assertEquals(
+      assert.deepEqual(
         truncateHtml("<p>👨‍👩‍👧‍👦 hello world</p>", 4),
         "<p>👨‍👩‍👧‍👦 he…</p>",
       );
     },
   );
 
-  await t.step("returns input unchanged when graphemes fit the budget", () => {
+  it("returns input unchanged when graphemes fit the budget", () => {
     // 5 emoji in input, budget 5 → fits, no truncation.
-    assertEquals(
+    assert.deepEqual(
       truncateHtml("<p>😀😁😂😃😄</p>", 5),
       "<p>😀😁😂😃😄</p>",
     );
   });
 });
 
-Deno.test("removeQuoteInlineFallback()", async (t) => {
-  await t.step(
+describe("removeQuoteInlineFallback()", () => {
+  it(
     "removes Mastodon-style <p class=quote-inline> at beginning",
     () => {
-      assertEquals(
+      assert.deepEqual(
         removeQuoteInlineFallback(
           '<p class="quote-inline">RE: <a href="https://example.com">https://example.com</a></p><p>Normal text</p>',
         ),
@@ -458,8 +461,8 @@ Deno.test("removeQuoteInlineFallback()", async (t) => {
     },
   );
 
-  await t.step("removes standalone <p class=quote-inline>", () => {
-    assertEquals(
+  it("removes standalone <p class=quote-inline>", () => {
+    assert.deepEqual(
       removeQuoteInlineFallback(
         '<p class="quote-inline">RE: <a href="https://example.com">https://example.com</a></p>',
       ),
@@ -467,10 +470,10 @@ Deno.test("removeQuoteInlineFallback()", async (t) => {
     );
   });
 
-  await t.step(
+  it(
     "removes inline span and preceding <br> elements (newer Misskey format)",
     () => {
-      assertEquals(
+      assert.deepEqual(
         removeQuoteInlineFallback(
           '<p>Some text<br/><br/><span class="quote-inline">RE: <a href="https://example.com">https://example.com</a></span></p>',
         ),
@@ -479,10 +482,10 @@ Deno.test("removeQuoteInlineFallback()", async (t) => {
     },
   );
 
-  await t.step(
+  it(
     "removes inline span with internal <br> elements (Bluesky format)",
     () => {
-      assertEquals(
+      assert.deepEqual(
         removeQuoteInlineFallback(
           '<p>그럴리가없는데<span class="quote-inline"><br><br>RE: <a href="https://example.com">https://example.com</a></span></p>',
         ),
@@ -491,10 +494,10 @@ Deno.test("removeQuoteInlineFallback()", async (t) => {
     },
   );
 
-  await t.step(
+  it(
     "removes inline span with QT text (Fedibird format)",
     () => {
-      assertEquals(
+      assert.deepEqual(
         removeQuoteInlineFallback(
           '<p>일부 텍스트<span class="quote-inline"><br/>QT: <a href="https://example.com">https://example.com</a></span></p>',
         ),
@@ -503,10 +506,10 @@ Deno.test("removeQuoteInlineFallback()", async (t) => {
     },
   );
 
-  await t.step(
+  it(
     "removes Misskey-transformed quote-inline pattern",
     () => {
-      assertEquals(
+      assert.deepEqual(
         removeQuoteInlineFallback(
           '<p><span>text<span class="quote-inline"><br><br>RE: </span></span><a class="quote-inline" href="https://example.com">https://example.com</a></p>',
         ),
@@ -515,17 +518,17 @@ Deno.test("removeQuoteInlineFallback()", async (t) => {
     },
   );
 
-  await t.step("leaves content without quote-inline unchanged", () => {
-    assertEquals(
+  it("leaves content without quote-inline unchanged", () => {
+    assert.deepEqual(
       removeQuoteInlineFallback("<p>Normal post without quotes</p>"),
       "<p>Normal post without quotes</p>",
     );
   });
 
-  await t.step(
+  it(
     "removes paragraphs that become empty after span removal",
     () => {
-      assertEquals(
+      assert.deepEqual(
         removeQuoteInlineFallback(
           '<p><span class="quote-inline">RE: <a href="https://example.com">https://example.com</a></span></p>',
         ),

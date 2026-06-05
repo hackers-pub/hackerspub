@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "@std/assert";
+import assert from "node:assert/strict";
+import test from "node:test";
 import {
   buildMemoryAlertDiagnostics,
   detectMemoryAlert,
@@ -69,7 +70,7 @@ function makeSample(overrides: Partial<MemorySample> = {}): MemorySample {
   };
 }
 
-Deno.test("detectMemoryAlert includes the sample trail for heap growth reports", () => {
+test("detectMemoryAlert includes the sample trail for heap growth reports", () => {
   const baseline = makeSample({
     uptimeMs: 300_000,
     usedBytes: 700_000_000,
@@ -100,12 +101,12 @@ Deno.test("detectMemoryAlert includes the sample trail for heap growth reports",
     sampleCount: samples.length,
   });
 
-  assert(alert != null);
-  assertEquals(alert.reason, "heap_growth");
-  assertEquals(alert.samples, samples);
+  assert.ok(alert != null);
+  assert.deepEqual(alert.reason, "heap_growth");
+  assert.deepEqual(alert.samples, samples);
 });
 
-Deno.test("buildMemoryAlertDiagnostics reports deltas and route trail", () => {
+test("buildMemoryAlertDiagnostics reports deltas and route trail", () => {
   const baseline = makeSample({
     uptimeMs: 300_000,
     usedBytes: 700_000_000,
@@ -148,22 +149,25 @@ Deno.test("buildMemoryAlertDiagnostics reports deltas and route trail", () => {
     sampleCount: samples.length,
   });
 
-  assert(alert != null);
+  assert.ok(alert != null);
   const diagnostics = buildMemoryAlertDiagnostics(alert);
 
-  assertEquals(diagnostics.deltas.fromBaseline.usedBytes, 350_000_000);
-  assertEquals(diagnostics.deltas.fromPrevious.usedBytes, 150_000_000);
-  assertEquals(diagnostics.deltas.fromPrevious.domNodes, 150);
-  assertEquals(diagnostics.deltas.fromPrevious.resourceCount, 15);
-  assertEquals(diagnostics.deltas.fromBaseline.storageUsageBytes, 1_500_000);
-  assertEquals(diagnostics.deltas.bytesPerMinuteFromBaseline, 70_000_000);
-  assertEquals(diagnostics.distinctRoutesInTrail, [
+  assert.deepEqual(diagnostics.deltas.fromBaseline.usedBytes, 350_000_000);
+  assert.deepEqual(diagnostics.deltas.fromPrevious.usedBytes, 150_000_000);
+  assert.deepEqual(diagnostics.deltas.fromPrevious.domNodes, 150);
+  assert.deepEqual(diagnostics.deltas.fromPrevious.resourceCount, 15);
+  assert.deepEqual(
+    diagnostics.deltas.fromBaseline.storageUsageBytes,
+    1_500_000,
+  );
+  assert.deepEqual(diagnostics.deltas.bytesPerMinuteFromBaseline, 70_000_000);
+  assert.deepEqual(diagnostics.distinctRoutesInTrail, [
     "/fediverse",
     "/search",
     "/notifications",
     "/feed",
   ]);
-  assertEquals(diagnostics.sampleTrail.map((entry) => entry.route), [
+  assert.deepEqual(diagnostics.sampleTrail.map((entry) => entry.route), [
     "/fediverse",
     "/search",
     "/notifications",

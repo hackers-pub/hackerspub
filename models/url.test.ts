@@ -1,24 +1,25 @@
-import { assertEquals } from "@std/assert/equals";
+import assert from "node:assert/strict";
+import test from "node:test";
 import { compactUrl } from "./url.ts";
 
-Deno.test("compactUrl()", () => {
-  assertEquals(
+test("compactUrl()", () => {
+  assert.deepEqual(
     compactUrl("https://example.com/"),
     "example.com",
   );
-  assertEquals(
+  assert.deepEqual(
     compactUrl("https://example.com/test/"),
     "example.com/test",
   );
-  assertEquals(
+  assert.deepEqual(
     compactUrl("https://example.com/test/?"),
     "example.com/test",
   );
-  assertEquals(
+  assert.deepEqual(
     compactUrl("https://example.com/test/?#"),
     "example.com/test",
   );
-  assertEquals(
+  assert.deepEqual(
     compactUrl("https://example.com/test/?#asdf"),
     "example.com/test/#asdf",
   );

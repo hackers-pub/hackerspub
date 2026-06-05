@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { assertEquals } from "@std/assert/equals";
 import { execute, parse } from "graphql";
 import { eq } from "drizzle-orm";
 import type { Locale } from "@hackerspub/models/i18n";
@@ -26,12 +25,9 @@ const suggestedFilterLanguagesQuery = parse(`
   }
 `);
 
-Deno.test({
-  name:
-    "suggestedFilterLanguages returns base codes from account locales when signed in",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test(
+  "suggestedFilterLanguages returns base codes from account locales when signed in",
+  async () => {
     await withRollback(async (tx) => {
       const { account: rawAccount } = await insertAccountWithActor(tx, {
         username: "suggestedlangsuser",
@@ -49,21 +45,19 @@ Deno.test({
         document: suggestedFilterLanguagesQuery,
         contextValue: ctx,
       });
-      assertEquals(result.errors, undefined);
-      assertEquals(
+      assert.deepEqual(result.errors, undefined);
+      assert.deepEqual(
         (result.data as { suggestedFilterLanguages: string[] })
           .suggestedFilterLanguages,
         ["ko", "en"],
       );
     });
   },
-});
+);
 
-Deno.test({
-  name: "suggestedFilterLanguages parses Accept-Language header for guests",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test(
+  "suggestedFilterLanguages parses Accept-Language header for guests",
+  async () => {
     await withRollback(async (tx) => {
       const ctx = makeGuestContext(tx, {
         request: new Request("http://localhost/graphql", {
@@ -75,21 +69,19 @@ Deno.test({
         document: suggestedFilterLanguagesQuery,
         contextValue: ctx,
       });
-      assertEquals(result.errors, undefined);
-      assertEquals(
+      assert.deepEqual(result.errors, undefined);
+      assert.deepEqual(
         (result.data as { suggestedFilterLanguages: string[] })
           .suggestedFilterLanguages,
         ["fr", "en", "ja"],
       );
     });
   },
-});
+);
 
-Deno.test({
-  name: "suggestedFilterLanguages returns empty list when no language info",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test(
+  "suggestedFilterLanguages returns empty list when no language info",
+  async () => {
     await withRollback(async (tx) => {
       const ctx = makeGuestContext(tx);
       const result = await execute({
@@ -97,15 +89,15 @@ Deno.test({
         document: suggestedFilterLanguagesQuery,
         contextValue: ctx,
       });
-      assertEquals(result.errors, undefined);
-      assertEquals(
+      assert.deepEqual(result.errors, undefined);
+      assert.deepEqual(
         (result.data as { suggestedFilterLanguages: string[] })
           .suggestedFilterLanguages,
         [],
       );
     });
   },
-});
+);
 
 test("availableLocales returns the locale files exposed by the GraphQL layer", async () => {
   await withRollback(async (tx) => {

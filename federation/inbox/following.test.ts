@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert/equals";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 import type { Uuid } from "@hackerspub/models/uuid";
 import {
   type FollowAcceptanceRepository,
@@ -13,8 +14,8 @@ import {
 const FOLLOWER_ACTOR_ID = "00000000-0000-0000-0000-000000000001" as Uuid;
 const FOLLOWEE_ACTOR_ID = "00000000-0000-0000-0000-000000000002" as Uuid;
 
-Deno.test("reconcileFollowAcceptance()", async (t) => {
-  await t.step(
+describe("reconcileFollowAcceptance()", () => {
+  it(
     "uses IRI path first and skips fallback when it succeeds",
     async () => {
       const calls = { byIri: 0, byActorIds: 0 };
@@ -36,12 +37,12 @@ Deno.test("reconcileFollowAcceptance()", async (t) => {
           followeeActorId: FOLLOWEE_ACTOR_ID,
         },
       );
-      assertEquals(accepted, true);
-      assertEquals(calls, { byIri: 1, byActorIds: 0 });
+      assert.deepEqual(accepted, true);
+      assert.deepEqual(calls, { byIri: 1, byActorIds: 0 });
     },
   );
 
-  await t.step(
+  it(
     "falls back to actor IDs when IRI path does not match",
     async () => {
       const calls = { byIri: 0, byActorIds: 0 };
@@ -63,14 +64,14 @@ Deno.test("reconcileFollowAcceptance()", async (t) => {
           followeeActorId: FOLLOWEE_ACTOR_ID,
         },
       );
-      assertEquals(accepted, true);
-      assertEquals(calls, { byIri: 1, byActorIds: 1 });
+      assert.deepEqual(accepted, true);
+      assert.deepEqual(calls, { byIri: 1, byActorIds: 1 });
     },
   );
 });
 
-Deno.test("reconcileFollowRejection()", async (t) => {
-  await t.step(
+describe("reconcileFollowRejection()", () => {
+  it(
     "uses IRI path first and skips fallback when it succeeds",
     async () => {
       const calls = { byIri: 0, byActorIds: 0 };
@@ -92,12 +93,12 @@ Deno.test("reconcileFollowRejection()", async (t) => {
           followeeActorId: FOLLOWEE_ACTOR_ID,
         },
       );
-      assertEquals(rejected, true);
-      assertEquals(calls, { byIri: 1, byActorIds: 0 });
+      assert.deepEqual(rejected, true);
+      assert.deepEqual(calls, { byIri: 1, byActorIds: 0 });
     },
   );
 
-  await t.step(
+  it(
     "falls back to actor IDs when IRI path does not match",
     async () => {
       const calls = { byIri: 0, byActorIds: 0 };
@@ -119,14 +120,14 @@ Deno.test("reconcileFollowRejection()", async (t) => {
           followeeActorId: FOLLOWEE_ACTOR_ID,
         },
       );
-      assertEquals(rejected, true);
-      assertEquals(calls, { byIri: 1, byActorIds: 1 });
+      assert.deepEqual(rejected, true);
+      assert.deepEqual(calls, { byIri: 1, byActorIds: 1 });
     },
   );
 });
 
-Deno.test("reconcileFollowAcceptanceFromObjectId()", async (t) => {
-  await t.step(
+describe("reconcileFollowAcceptanceFromObjectId()", () => {
+  it(
     "accepts a pending outgoing follow using object IRI metadata",
     async () => {
       const calls = { findPending: 0, byIri: 0, byActorIds: 0 };
@@ -156,12 +157,12 @@ Deno.test("reconcileFollowAcceptanceFromObjectId()", async (t) => {
           followeeIri: "https://remote.example/users/followee",
         },
       );
-      assertEquals(accepted, true);
-      assertEquals(calls, { findPending: 1, byIri: 1, byActorIds: 0 });
+      assert.deepEqual(accepted, true);
+      assert.deepEqual(calls, { findPending: 1, byIri: 1, byActorIds: 0 });
     },
   );
 
-  await t.step(
+  it(
     "ignores unmatched object IRIs",
     async () => {
       const calls = { findPending: 0, byIri: 0, byActorIds: 0 };
@@ -187,14 +188,14 @@ Deno.test("reconcileFollowAcceptanceFromObjectId()", async (t) => {
           followeeIri: "https://remote.example/users/followee",
         },
       );
-      assertEquals(accepted, false);
-      assertEquals(calls, { findPending: 1, byIri: 0, byActorIds: 0 });
+      assert.deepEqual(accepted, false);
+      assert.deepEqual(calls, { findPending: 1, byIri: 0, byActorIds: 0 });
     },
   );
 });
 
-Deno.test("reconcileFollowRejectionFromObjectId()", async (t) => {
-  await t.step(
+describe("reconcileFollowRejectionFromObjectId()", () => {
+  it(
     "rejects a pending outgoing follow using object IRI metadata",
     async () => {
       const calls = { findPending: 0, byIri: 0, byActorIds: 0 };
@@ -224,12 +225,12 @@ Deno.test("reconcileFollowRejectionFromObjectId()", async (t) => {
           followeeIri: "https://remote.example/users/followee",
         },
       );
-      assertEquals(rejected, true);
-      assertEquals(calls, { findPending: 1, byIri: 1, byActorIds: 0 });
+      assert.deepEqual(rejected, true);
+      assert.deepEqual(calls, { findPending: 1, byIri: 1, byActorIds: 0 });
     },
   );
 
-  await t.step(
+  it(
     "ignores unmatched reject object IRIs",
     async () => {
       const calls = { findPending: 0, byIri: 0, byActorIds: 0 };
@@ -255,8 +256,8 @@ Deno.test("reconcileFollowRejectionFromObjectId()", async (t) => {
           followeeIri: "https://remote.example/users/followee",
         },
       );
-      assertEquals(rejected, false);
-      assertEquals(calls, { findPending: 1, byIri: 0, byActorIds: 0 });
+      assert.deepEqual(rejected, false);
+      assert.deepEqual(calls, { findPending: 1, byIri: 0, byActorIds: 0 });
     },
   );
 });

@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import assert from "node:assert/strict";
+import test from "node:test";
 import plugin from "./no-load-query-in-router-query.ts";
 
 const RULE = "hackerspub-solid-relay/no-load-query-in-router-query";
@@ -7,7 +8,7 @@ function lint(source: string) {
   return Deno.lint.runPlugin(plugin, "test.tsx", source);
 }
 
-Deno.test("flags loadQuery returned from router query fetcher", () => {
+test("flags loadQuery returned from router query fetcher", () => {
   const diagnostics = lint(`
     import { query } from "@solidjs/router";
     import { loadQuery } from "solid-relay";
@@ -17,11 +18,11 @@ Deno.test("flags loadQuery returned from router query fetcher", () => {
       "loadPageQuery",
     );
   `);
-  assertEquals(diagnostics.length, 1);
-  assertEquals(diagnostics[0].id, RULE);
+  assert.deepEqual(diagnostics.length, 1);
+  assert.deepEqual(diagnostics[0].id, RULE);
 });
 
-Deno.test("flags aliased imports", () => {
+test("flags aliased imports", () => {
   const diagnostics = lint(`
     import { query as routerQuery } from "@solidjs/router";
     import { loadQuery as relayLoadQuery } from "solid-relay";
@@ -31,11 +32,11 @@ Deno.test("flags aliased imports", () => {
       "loadPageQuery",
     );
   `);
-  assertEquals(diagnostics.length, 1);
-  assertEquals(diagnostics[0].id, RULE);
+  assert.deepEqual(diagnostics.length, 1);
+  assert.deepEqual(diagnostics[0].id, RULE);
 });
 
-Deno.test("flags namespace imports", () => {
+test("flags namespace imports", () => {
   const diagnostics = lint(`
     import * as router from "@solidjs/router";
     import * as relay from "solid-relay";
@@ -45,11 +46,11 @@ Deno.test("flags namespace imports", () => {
       "loadPageQuery",
     );
   `);
-  assertEquals(diagnostics.length, 1);
-  assertEquals(diagnostics[0].id, RULE);
+  assert.deepEqual(diagnostics.length, 1);
+  assert.deepEqual(diagnostics[0].id, RULE);
 });
 
-Deno.test("flags object spread of loadQuery result", () => {
+test("flags object spread of loadQuery result", () => {
   const diagnostics = lint(`
     import { query } from "@solidjs/router";
     import { loadQuery } from "solid-relay";
@@ -62,11 +63,11 @@ Deno.test("flags object spread of loadQuery result", () => {
       "loadPageQuery",
     );
   `);
-  assertEquals(diagnostics.length, 1);
-  assertEquals(diagnostics[0].id, RULE);
+  assert.deepEqual(diagnostics.length, 1);
+  assert.deepEqual(diagnostics[0].id, RULE);
 });
 
-Deno.test("flags named router query fetchers", () => {
+test("flags named router query fetchers", () => {
   const diagnostics = lint(`
     import { query } from "@solidjs/router";
     import { loadQuery } from "solid-relay";
@@ -77,11 +78,11 @@ Deno.test("flags named router query fetchers", () => {
 
     const loadPageQuery = query(fetcher, "loadPageQuery");
   `);
-  assertEquals(diagnostics.length, 1);
-  assertEquals(diagnostics[0].id, RULE);
+  assert.deepEqual(diagnostics.length, 1);
+  assert.deepEqual(diagnostics[0].id, RULE);
 });
 
-Deno.test("flags named router query fetchers declared later", () => {
+test("flags named router query fetchers declared later", () => {
   const diagnostics = lint(`
     import { query } from "@solidjs/router";
     import { loadQuery } from "solid-relay";
@@ -92,11 +93,11 @@ Deno.test("flags named router query fetchers declared later", () => {
       return loadQuery(env, PageQuery, {});
     }
   `);
-  assertEquals(diagnostics.length, 1);
-  assertEquals(diagnostics[0].id, RULE);
+  assert.deepEqual(diagnostics.length, 1);
+  assert.deepEqual(diagnostics[0].id, RULE);
 });
 
-Deno.test("flags indirect loadQuery calls inside router query fetchers", () => {
+test("flags indirect loadQuery calls inside router query fetchers", () => {
   const diagnostics = lint(`
     import { query } from "@solidjs/router";
     import { loadQuery } from "solid-relay";
@@ -108,11 +109,11 @@ Deno.test("flags indirect loadQuery calls inside router query fetchers", () => {
       "loadPageQuery",
     );
   `);
-  assertEquals(diagnostics.length, 1);
-  assertEquals(diagnostics[0].id, RULE);
+  assert.deepEqual(diagnostics.length, 1);
+  assert.deepEqual(diagnostics[0].id, RULE);
 });
 
-Deno.test("flags indirect loadQuery calls through nested fetcher helpers", () => {
+test("flags indirect loadQuery calls through nested fetcher helpers", () => {
   const diagnostics = lint(`
     import { query } from "@solidjs/router";
     import { loadQuery } from "solid-relay";
@@ -127,11 +128,11 @@ Deno.test("flags indirect loadQuery calls through nested fetcher helpers", () =>
       "loadPageQuery",
     );
   `);
-  assertEquals(diagnostics.length, 1);
-  assertEquals(diagnostics[0].id, RULE);
+  assert.deepEqual(diagnostics.length, 1);
+  assert.deepEqual(diagnostics[0].id, RULE);
 });
 
-Deno.test("does not flag plain router query fetchers", () => {
+test("does not flag plain router query fetchers", () => {
   const diagnostics = lint(`
     import { query } from "@solidjs/router";
 
@@ -140,10 +141,10 @@ Deno.test("does not flag plain router query fetchers", () => {
       "loadPageData",
     );
   `);
-  assertEquals(diagnostics.length, 0);
+  assert.deepEqual(diagnostics.length, 0);
 });
 
-Deno.test("does not flag createPreloadedQuery direct loadQuery source", () => {
+test("does not flag createPreloadedQuery direct loadQuery source", () => {
   const diagnostics = lint(`
     import { loadQuery, createPreloadedQuery } from "solid-relay";
 
@@ -152,10 +153,10 @@ Deno.test("does not flag createPreloadedQuery direct loadQuery source", () => {
       () => loadQuery(env, PageQuery, {}),
     );
   `);
-  assertEquals(diagnostics.length, 0);
+  assert.deepEqual(diagnostics.length, 0);
 });
 
-Deno.test("does not flag fetchQuery in router query fetcher", () => {
+test("does not flag fetchQuery in router query fetcher", () => {
   const diagnostics = lint(`
     import { query } from "@solidjs/router";
     import { fetchQuery } from "relay-runtime";
@@ -165,10 +166,10 @@ Deno.test("does not flag fetchQuery in router query fetcher", () => {
       "loadPageData",
     );
   `);
-  assertEquals(diagnostics.length, 0);
+  assert.deepEqual(diagnostics.length, 0);
 });
 
-Deno.test("respects shadowed query binding", () => {
+test("respects shadowed query binding", () => {
   const diagnostics = lint(`
     import { query } from "@solidjs/router";
     import { loadQuery } from "solid-relay";
@@ -180,10 +181,10 @@ Deno.test("respects shadowed query binding", () => {
       );
     }
   `);
-  assertEquals(diagnostics.length, 0);
+  assert.deepEqual(diagnostics.length, 0);
 });
 
-Deno.test("respects later shadowed query binding", () => {
+test("respects later shadowed query binding", () => {
   const diagnostics = lint(`
     import { query } from "@solidjs/router";
     import { loadQuery } from "solid-relay";
@@ -197,10 +198,10 @@ Deno.test("respects later shadowed query binding", () => {
       return loadPageQuery;
     }
   `);
-  assertEquals(diagnostics.length, 0);
+  assert.deepEqual(diagnostics.length, 0);
 });
 
-Deno.test("respects shadowed loadQuery binding inside fetcher", () => {
+test("respects shadowed loadQuery binding inside fetcher", () => {
   const diagnostics = lint(`
     import { query } from "@solidjs/router";
     import { loadQuery } from "solid-relay";
@@ -213,10 +214,10 @@ Deno.test("respects shadowed loadQuery binding inside fetcher", () => {
       "loadPageQuery",
     );
   `);
-  assertEquals(diagnostics.length, 0);
+  assert.deepEqual(diagnostics.length, 0);
 });
 
-Deno.test("respects later shadowed loadQuery binding inside fetcher", () => {
+test("respects later shadowed loadQuery binding inside fetcher", () => {
   const diagnostics = lint(`
     import { query } from "@solidjs/router";
     import { loadQuery } from "solid-relay";
@@ -230,10 +231,10 @@ Deno.test("respects later shadowed loadQuery binding inside fetcher", () => {
       "loadPageQuery",
     );
   `);
-  assertEquals(diagnostics.length, 0);
+  assert.deepEqual(diagnostics.length, 0);
 });
 
-Deno.test("respects shadowed indirect loadQuery helpers inside fetcher", () => {
+test("respects shadowed indirect loadQuery helpers inside fetcher", () => {
   const diagnostics = lint(`
     import { query } from "@solidjs/router";
     import { loadQuery } from "solid-relay";
@@ -248,5 +249,5 @@ Deno.test("respects shadowed indirect loadQuery helpers inside fetcher", () => {
       "loadPageQuery",
     );
   `);
-  assertEquals(diagnostics.length, 0);
+  assert.deepEqual(diagnostics.length, 0);
 });

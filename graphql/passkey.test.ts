@@ -1,5 +1,5 @@
-import { assert } from "@std/assert/assert";
-import { assertEquals } from "@std/assert/equals";
+import assert from "node:assert/strict";
+import test from "node:test";
 import { encodeGlobalID } from "@pothos/plugin-relay";
 import { execute, parse } from "graphql";
 import { Buffer } from "node:buffer";
@@ -43,12 +43,9 @@ const revokePasskeyMutation = parse(`
   }
 `);
 
-Deno.test({
-  name:
-    "getPasskeyRegistrationOptions stores a challenge for the signed-in account",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test(
+  "getPasskeyRegistrationOptions stores a challenge for the signed-in account",
+  async () => {
     await withRollback(async (tx) => {
       const { kv, store } = createTestKv();
       const account = await insertAccountWithActor(tx, {
@@ -67,7 +64,7 @@ Deno.test({
         onError: "NO_PROPAGATE",
       });
 
-      assertEquals(result.errors, undefined);
+      assert.deepEqual(result.errors, undefined);
 
       const options = (result.data as {
         getPasskeyRegistrationOptions: {
@@ -75,19 +72,16 @@ Deno.test({
           user: { name: string };
         };
       }).getPasskeyRegistrationOptions;
-      assert(options.challenge.length > 0);
-      assertEquals(options.user.name, "passkeyowner");
-      assert(store.has(`passkey/registration/${account.account.id}`));
+      assert.ok(options.challenge.length > 0);
+      assert.deepEqual(options.user.name, "passkeyowner");
+      assert.ok(store.has(`passkey/registration/${account.account.id}`));
     });
   },
-});
+);
 
-Deno.test({
-  name:
-    "getPasskeyAuthenticationOptions and loginByPasskey return null for unknown credentials",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test(
+  "getPasskeyAuthenticationOptions and loginByPasskey return null for unknown credentials",
+  async () => {
     await withRollback(async (tx) => {
       const { kv, store } = createTestKv();
       const sessionId = generateUuidV7();
@@ -100,12 +94,12 @@ Deno.test({
         onError: "NO_PROPAGATE",
       });
 
-      assertEquals(optionsResult.errors, undefined);
+      assert.deepEqual(optionsResult.errors, undefined);
       const options = (optionsResult.data as {
         getPasskeyAuthenticationOptions: { challenge: string };
       }).getPasskeyAuthenticationOptions;
-      assert(options.challenge.length > 0);
-      assert(store.has(`passkey/authentication/${sessionId}`));
+      assert.ok(options.challenge.length > 0);
+      assert.ok(store.has(`passkey/authentication/${sessionId}`));
 
       const loginResult = await execute({
         schema,
@@ -118,20 +112,18 @@ Deno.test({
         onError: "NO_PROPAGATE",
       });
 
-      assertEquals(loginResult.errors, undefined);
-      assertEquals(
+      assert.deepEqual(loginResult.errors, undefined);
+      assert.deepEqual(
         (loginResult.data as { loginByPasskey: null }).loginByPasskey,
         null,
       );
     });
   },
-});
+);
 
-Deno.test({
-  name: "revokePasskey deletes an existing passkey and returns its global ID",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test(
+  "revokePasskey deletes an existing passkey and returns its global ID",
+  async () => {
     await withRollback(async (tx) => {
       const { kv } = createTestKv();
       const account = await insertAccountWithActor(tx, {
@@ -162,8 +154,8 @@ Deno.test({
         onError: "NO_PROPAGATE",
       });
 
-      assertEquals(result.errors, undefined);
-      assertEquals(
+      assert.deepEqual(result.errors, undefined);
+      assert.deepEqual(
         (result.data as { revokePasskey: string | null }).revokePasskey,
         encodeGlobalID("Passkey", "credential-id"),
       );
@@ -171,7 +163,7 @@ Deno.test({
       const stored = await tx.query.passkeyTable.findFirst({
         where: { id: "credential-id" },
       });
-      assertEquals(stored, undefined);
+      assert.deepEqual(stored, undefined);
     });
   },
-});
+);

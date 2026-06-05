@@ -1,5 +1,5 @@
-import { assert } from "@std/assert/assert";
-import { assertEquals } from "@std/assert/equals";
+import assert from "node:assert/strict";
+import test from "node:test";
 import {
   accountTable,
   type Actor as ActorRow,
@@ -79,12 +79,9 @@ const markNotificationsAsReadMutation = parse(`
   }
 `);
 
-Deno.test({
-  name:
-    "Account.unreadNotificationsCount counts notifications newer than notificationRead",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test(
+  "Account.unreadNotificationsCount counts notifications newer than notificationRead",
+  async () => {
     await withRollback(async (tx) => {
       const recipient = await insertAccountWithActor(tx, {
         username: "notifycountme",
@@ -129,22 +126,19 @@ Deno.test({
         onError: "NO_PROPAGATE",
       });
 
-      assertEquals(result.errors, undefined);
-      assertEquals(result.data, {
+      assert.deepEqual(result.errors, undefined);
+      assert.deepEqual(result.data, {
         viewer: {
           unreadNotificationsCount: 1,
         },
       });
     });
   },
-});
+);
 
-Deno.test({
-  name:
-    "Account.unreadNotificationsCount counts all notifications when never read",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test(
+  "Account.unreadNotificationsCount counts all notifications when never read",
+  async () => {
     await withRollback(async (tx) => {
       const recipient = await insertAccountWithActor(tx, {
         username: "notifyallme",
@@ -186,97 +180,90 @@ Deno.test({
         onError: "NO_PROPAGATE",
       });
 
-      assertEquals(result.errors, undefined);
-      assertEquals(result.data, {
+      assert.deepEqual(result.errors, undefined);
+      assert.deepEqual(result.data, {
         viewer: {
           unreadNotificationsCount: 2,
         },
       });
     });
   },
-});
+);
 
-Deno.test({
-  name: "Notification exposes post-update notification concrete types",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
-    await withRollback(async (tx) => {
-      const recipient = await insertAccountWithActor(tx, {
-        username: "notifypostupdatedme",
-        name: "Notify Post Updated Me",
-        email: "notifypostupdatedme@example.com",
-      });
-      const actor = await insertAccountWithActor(tx, {
-        username: "notifypostupdatedactor",
-        name: "Notify Post Updated Actor",
-        email: "notifypostupdatedactor@example.com",
-      });
-      const { post: sharedPost } = await insertNotePost(tx, {
-        account: actor.account,
-        content: "Shared post that later changed",
-      });
-      const { post: quotedPost } = await insertNotePost(tx, {
-        account: actor.account,
-        content: "Quoted post that later changed",
-      });
-
-      await tx.insert(notificationTable).values([
-        {
-          id: generateUuidV7(),
-          accountId: recipient.account.id,
-          type: "shared_post_updated",
-          postId: sharedPost.id,
-          actorIds: [actor.actor.id],
-          created: new Date("2026-04-15T00:00:01.000Z"),
-        },
-        {
-          id: generateUuidV7(),
-          accountId: recipient.account.id,
-          type: "quoted_post_updated",
-          postId: quotedPost.id,
-          actorIds: [actor.actor.id],
-          created: new Date("2026-04-15T00:00:00.000Z"),
-        },
-      ]);
-
-      const result = await execute({
-        schema,
-        document: postUpdatedNotificationTypesQuery,
-        contextValue: makeUserContext(tx, recipient.account),
-        onError: "NO_PROPAGATE",
-      });
-
-      assertEquals(result.errors, undefined);
-      assertEquals(result.data, {
-        viewer: {
-          notifications: {
-            edges: [
-              {
-                node: {
-                  __typename: "SharedPostUpdatedNotification",
-                  post: { uuid: sharedPost.id },
-                },
-              },
-              {
-                node: {
-                  __typename: "QuotedPostUpdatedNotification",
-                  post: { uuid: quotedPost.id },
-                },
-              },
-            ],
-          },
-        },
-      });
+test("Notification exposes post-update notification concrete types", async () => {
+  await withRollback(async (tx) => {
+    const recipient = await insertAccountWithActor(tx, {
+      username: "notifypostupdatedme",
+      name: "Notify Post Updated Me",
+      email: "notifypostupdatedme@example.com",
     });
-  },
+    const actor = await insertAccountWithActor(tx, {
+      username: "notifypostupdatedactor",
+      name: "Notify Post Updated Actor",
+      email: "notifypostupdatedactor@example.com",
+    });
+    const { post: sharedPost } = await insertNotePost(tx, {
+      account: actor.account,
+      content: "Shared post that later changed",
+    });
+    const { post: quotedPost } = await insertNotePost(tx, {
+      account: actor.account,
+      content: "Quoted post that later changed",
+    });
+
+    await tx.insert(notificationTable).values([
+      {
+        id: generateUuidV7(),
+        accountId: recipient.account.id,
+        type: "shared_post_updated",
+        postId: sharedPost.id,
+        actorIds: [actor.actor.id],
+        created: new Date("2026-04-15T00:00:01.000Z"),
+      },
+      {
+        id: generateUuidV7(),
+        accountId: recipient.account.id,
+        type: "quoted_post_updated",
+        postId: quotedPost.id,
+        actorIds: [actor.actor.id],
+        created: new Date("2026-04-15T00:00:00.000Z"),
+      },
+    ]);
+
+    const result = await execute({
+      schema,
+      document: postUpdatedNotificationTypesQuery,
+      contextValue: makeUserContext(tx, recipient.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(result.errors, undefined);
+    assert.deepEqual(result.data, {
+      viewer: {
+        notifications: {
+          edges: [
+            {
+              node: {
+                __typename: "SharedPostUpdatedNotification",
+                post: { uuid: sharedPost.id },
+              },
+            },
+            {
+              node: {
+                __typename: "QuotedPostUpdatedNotification",
+                post: { uuid: quotedPost.id },
+              },
+            },
+          ],
+        },
+      },
+    });
+  });
 });
 
-Deno.test({
-  name: "markNotificationsAsRead respects the optional upTo notification",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test(
+  "markNotificationsAsRead respects the optional upTo notification",
+  async () => {
     await withRollback(async (tx) => {
       const recipient = await insertAccountWithActor(tx, {
         username: "notifymarkme",
@@ -321,7 +308,7 @@ Deno.test({
         onError: "NO_PROPAGATE",
       });
 
-      assertEquals(markResult.errors, undefined);
+      assert.deepEqual(markResult.errors, undefined);
 
       const countResult = await execute({
         schema,
@@ -330,21 +317,19 @@ Deno.test({
         onError: "NO_PROPAGATE",
       });
 
-      assertEquals(countResult.errors, undefined);
-      assertEquals(countResult.data, {
+      assert.deepEqual(countResult.errors, undefined);
+      assert.deepEqual(countResult.data, {
         viewer: {
           unreadNotificationsCount: 1,
         },
       });
     });
   },
-});
+);
 
-Deno.test({
-  name: "markNotificationsAsRead preserves database timestamp precision",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test(
+  "markNotificationsAsRead preserves database timestamp precision",
+  async () => {
     await withRollback(async (tx) => {
       const recipient = await insertAccountWithActor(tx, {
         username: "notifyprecisionme",
@@ -379,7 +364,7 @@ Deno.test({
         onError: "NO_PROPAGATE",
       });
 
-      assertEquals(markResult.errors, undefined);
+      assert.deepEqual(markResult.errors, undefined);
 
       const countResult = await execute({
         schema,
@@ -388,87 +373,80 @@ Deno.test({
         onError: "NO_PROPAGATE",
       });
 
-      assertEquals(countResult.errors, undefined);
-      assertEquals(countResult.data, {
+      assert.deepEqual(countResult.errors, undefined);
+      assert.deepEqual(countResult.data, {
         viewer: {
           unreadNotificationsCount: 0,
         },
       });
     });
   },
-});
+);
 
-Deno.test({
-  name: "Notification.actors returns actors newest-first",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
-    await withRollback(async (tx) => {
-      const recipient = await insertAccountWithActor(tx, {
-        username: "notifyme",
-        name: "Notify Me",
-        email: "notifyme@example.com",
-      });
-      const olderActor = await insertAccountWithActor(tx, {
-        username: "olderactor",
-        name: "Older Actor",
-        email: "olderactor@example.com",
-      });
-      const newerActor = await insertAccountWithActor(tx, {
-        username: "neweractor",
-        name: "Newer Actor",
-        email: "neweractor@example.com",
-      });
-
-      await tx.insert(notificationTable).values({
-        id: crypto.randomUUID(),
-        accountId: recipient.account.id,
-        type: "follow",
-        actorIds: [olderActor.actor.id, newerActor.actor.id],
-        created: new Date("2026-04-15T00:00:00.000Z"),
-      });
-
-      const result = await execute({
-        schema,
-        document: notificationActorsQuery,
-        contextValue: makeUserContext(tx, recipient.account),
-        onError: "NO_PROPAGATE",
-      });
-
-      assertEquals(result.errors, undefined);
-
-      const data = result.data as {
-        viewer: {
-          notifications: {
-            edges: {
-              node: {
-                actors: {
-                  edges: { node: { id: string } }[];
-                };
-              };
-            }[];
-          };
-        } | null;
-      };
-
-      const edges = data.viewer?.notifications.edges;
-      assert(edges != null && edges.length > 0);
-      assertEquals(
-        edges[0].node.actors.edges.map((edge) => edge.node.id),
-        [
-          encodeGlobalID("Actor", newerActor.actor.id),
-          encodeGlobalID("Actor", olderActor.actor.id),
-        ],
-      );
+test("Notification.actors returns actors newest-first", async () => {
+  await withRollback(async (tx) => {
+    const recipient = await insertAccountWithActor(tx, {
+      username: "notifyme",
+      name: "Notify Me",
+      email: "notifyme@example.com",
     });
-  },
+    const olderActor = await insertAccountWithActor(tx, {
+      username: "olderactor",
+      name: "Older Actor",
+      email: "olderactor@example.com",
+    });
+    const newerActor = await insertAccountWithActor(tx, {
+      username: "neweractor",
+      name: "Newer Actor",
+      email: "neweractor@example.com",
+    });
+
+    await tx.insert(notificationTable).values({
+      id: crypto.randomUUID(),
+      accountId: recipient.account.id,
+      type: "follow",
+      actorIds: [olderActor.actor.id, newerActor.actor.id],
+      created: new Date("2026-04-15T00:00:00.000Z"),
+    });
+
+    const result = await execute({
+      schema,
+      document: notificationActorsQuery,
+      contextValue: makeUserContext(tx, recipient.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(result.errors, undefined);
+
+    const data = result.data as {
+      viewer: {
+        notifications: {
+          edges: {
+            node: {
+              actors: {
+                edges: { node: { id: string } }[];
+              };
+            };
+          }[];
+        };
+      } | null;
+    };
+
+    const edges = data.viewer?.notifications.edges;
+    assert.ok(edges != null && edges.length > 0);
+    assert.deepEqual(
+      edges[0].node.actors.edges.map((edge) => edge.node.id),
+      [
+        encodeGlobalID("Actor", newerActor.actor.id),
+        encodeGlobalID("Actor", olderActor.actor.id),
+      ],
+    );
+  });
 });
 
-Deno.test({
-  name: "Notification.actors batches across multiple notifications",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test(
+  "Notification.actors batches across multiple notifications",
+  async () => {
     await withRollback(async (tx) => {
       const recipient = await insertAccountWithActor(tx, {
         username: "notifybatchme",
@@ -519,7 +497,7 @@ Deno.test({
         onError: "NO_PROPAGATE",
       });
 
-      assertEquals(result.errors, undefined);
+      assert.deepEqual(result.errors, undefined);
 
       const data = result.data as {
         viewer: {
@@ -536,19 +514,19 @@ Deno.test({
       };
 
       const edges = data.viewer?.notifications.edges;
-      assert(edges != null);
-      assertEquals(edges.length, 2);
+      assert.ok(edges != null);
+      assert.deepEqual(edges.length, 2);
 
       // Each notification still resolves to its own ordered actor list,
       // newest-position-first (the resolver's existing semantics).
-      assertEquals(
+      assert.deepEqual(
         edges[0].node.actors.edges.map((edge) => edge.node.id),
         [
           encodeGlobalID("Actor", actorB.actor.id),
           encodeGlobalID("Actor", actorA.actor.id),
         ],
       );
-      assertEquals(
+      assert.deepEqual(
         edges[1].node.actors.edges.map((edge) => edge.node.id),
         [
           encodeGlobalID("Actor", actorC.actor.id),
@@ -557,14 +535,11 @@ Deno.test({
       );
     });
   },
-});
+);
 
-Deno.test({
-  name:
-    "Notification.actors filters out missing actor ids without breaking the batch",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test(
+  "Notification.actors filters out missing actor ids without breaking the batch",
+  async () => {
     await withRollback(async (tx) => {
       const recipient = await insertAccountWithActor(tx, {
         username: "notifymissingme",
@@ -593,7 +568,7 @@ Deno.test({
         onError: "NO_PROPAGATE",
       });
 
-      assertEquals(result.errors, undefined);
+      assert.deepEqual(result.errors, undefined);
       const data = result.data as {
         viewer: {
           notifications: {
@@ -605,21 +580,18 @@ Deno.test({
       };
 
       const edges = data.viewer?.notifications.edges;
-      assert(edges != null && edges.length === 1);
-      assertEquals(
+      assert.ok(edges != null && edges.length === 1);
+      assert.deepEqual(
         edges[0].node.actors.edges.map((edge) => edge.node.id),
         [encodeGlobalID("Actor", realActor.actor.id)],
       );
     });
   },
-});
+);
 
-Deno.test({
-  name:
-    "Notification.actors fires one DataLoader batch for the deduped actor id union",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test(
+  "Notification.actors fires one DataLoader batch for the deduped actor id union",
+  async () => {
     await withRollback(async (tx) => {
       const recipient = await insertAccountWithActor(tx, {
         username: "notifyspyme",
@@ -685,18 +657,18 @@ Deno.test({
         onError: "NO_PROPAGATE",
       });
 
-      assertEquals(result.errors, undefined);
+      assert.deepEqual(result.errors, undefined);
 
       // Exactly one batch — the loader collapsed both notifications'
       // actor lookups into one SQL query.
-      assertEquals(batches.length, 1);
+      assert.deepEqual(batches.length, 1);
 
       // The batch contains exactly the deduped union (3 ids) of every
       // actor id requested across both notifications, in some order.
       // The length check rules out an undeduped payload that happens
       // to contain the right Set.
-      assertEquals(batches[0].length, 3);
-      assertEquals(
+      assert.deepEqual(batches[0].length, 3);
+      assert.deepEqual(
         new Set(batches[0]),
         new Set([
           actorA.actor.id,
@@ -706,14 +678,11 @@ Deno.test({
       );
     });
   },
-});
+);
 
-Deno.test({
-  name:
-    "Notification.actors deduplicates repeated actor ids within a notification",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  async fn() {
+test(
+  "Notification.actors deduplicates repeated actor ids within a notification",
+  async () => {
     await withRollback(async (tx) => {
       const recipient = await insertAccountWithActor(tx, {
         username: "notifydedupeme",
@@ -745,7 +714,7 @@ Deno.test({
         onError: "NO_PROPAGATE",
       });
 
-      assertEquals(result.errors, undefined);
+      assert.deepEqual(result.errors, undefined);
       const data = result.data as {
         viewer: {
           notifications: {
@@ -757,13 +726,13 @@ Deno.test({
       };
 
       const edges = data.viewer?.notifications.edges;
-      assert(edges != null && edges.length === 1);
+      assert.ok(edges != null && edges.length === 1);
       // Duplicate id in actorIds yields a single edge in the
       // connection, matching the prior findMany IN (…) semantics.
-      assertEquals(
+      assert.deepEqual(
         edges[0].node.actors.edges.map((edge) => edge.node.id),
         [encodeGlobalID("Actor", actor.actor.id)],
       );
     });
   },
-});
+);

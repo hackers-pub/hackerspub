@@ -1,4 +1,5 @@
-import { assertEquals } from "@std/assert";
+import assert from "node:assert/strict";
+import test from "node:test";
 import plugin from "./keyed-show.ts";
 
 const RULE = "hackerspub-solid/show-keyed-on-fn-child";
@@ -17,7 +18,7 @@ const RELAY_PRELUDE = `
   declare function loadQuery(...args: unknown[]): unknown;
 `;
 
-Deno.test("flags non-keyed Show on Relay-backed value", () => {
+test("flags non-keyed Show on Relay-backed value", () => {
   const diagnostics = lint(`${RELAY_PRELUDE}
     function App(props: { $x: unknown }) {
       const data = createPreloadedQuery(env, () => loadQuery());
@@ -28,11 +29,11 @@ Deno.test("flags non-keyed Show on Relay-backed value", () => {
       );
     }
   `);
-  assertEquals(diagnostics.length, 1);
-  assertEquals(diagnostics[0].id, RULE);
+  assert.deepEqual(diagnostics.length, 1);
+  assert.deepEqual(diagnostics[0].id, RULE);
 });
 
-Deno.test("does NOT flag non-keyed Show on a plain Solid signal", () => {
+test("does NOT flag non-keyed Show on a plain Solid signal", () => {
   const diagnostics = lint(`
     import { createSignal } from "solid-js";
     function App() {
@@ -44,10 +45,10 @@ Deno.test("does NOT flag non-keyed Show on a plain Solid signal", () => {
       );
     }
   `);
-  assertEquals(diagnostics.length, 0);
+  assert.deepEqual(diagnostics.length, 0);
 });
 
-Deno.test("does NOT flag non-keyed Show on a plain identifier", () => {
+test("does NOT flag non-keyed Show on a plain identifier", () => {
   const diagnostics = lint(`
     function App(props: { cond: () => unknown }) {
       return (
@@ -57,10 +58,10 @@ Deno.test("does NOT flag non-keyed Show on a plain identifier", () => {
       );
     }
   `);
-  assertEquals(diagnostics.length, 0);
+  assert.deepEqual(diagnostics.length, 0);
 });
 
-Deno.test("does not flag already-keyed Relay-backed Show", () => {
+test("does not flag already-keyed Relay-backed Show", () => {
   const diagnostics = lint(`${RELAY_PRELUDE}
     function App() {
       const data = createPreloadedQuery(env, () => loadQuery());
@@ -71,10 +72,10 @@ Deno.test("does not flag already-keyed Relay-backed Show", () => {
       );
     }
   `);
-  assertEquals(diagnostics.length, 0);
+  assert.deepEqual(diagnostics.length, 0);
 });
 
-Deno.test("does not flag Show whose child is not a function", () => {
+test("does not flag Show whose child is not a function", () => {
   const diagnostics = lint(`${RELAY_PRELUDE}
     function App() {
       const data = createPreloadedQuery(env, () => loadQuery());
@@ -85,10 +86,10 @@ Deno.test("does not flag Show whose child is not a function", () => {
       );
     }
   `);
-  assertEquals(diagnostics.length, 0);
+  assert.deepEqual(diagnostics.length, 0);
 });
 
-Deno.test("does not flag Show with zero-arity function child", () => {
+test("does not flag Show with zero-arity function child", () => {
   const diagnostics = lint(`${RELAY_PRELUDE}
     function App() {
       const data = createPreloadedQuery(env, () => loadQuery());
@@ -99,10 +100,10 @@ Deno.test("does not flag Show with zero-arity function child", () => {
       );
     }
   `);
-  assertEquals(diagnostics.length, 0);
+  assert.deepEqual(diagnostics.length, 0);
 });
 
-Deno.test("flags non-keyed Match with function child on Relay value", () => {
+test("flags non-keyed Match with function child on Relay value", () => {
   const diagnostics = lint(`${RELAY_PRELUDE}
     function App() {
       const data = createPreloadedQuery(env, () => loadQuery());
@@ -115,11 +116,11 @@ Deno.test("flags non-keyed Match with function child on Relay value", () => {
       );
     }
   `);
-  assertEquals(diagnostics.length, 1);
-  assertEquals(diagnostics[0].id, RULE);
+  assert.deepEqual(diagnostics.length, 1);
+  assert.deepEqual(diagnostics[0].id, RULE);
 });
 
-Deno.test("autofix adds keyed and rewrites bare param() calls", () => {
+test("autofix adds keyed and rewrites bare param() calls", () => {
   const diagnostics = lint(`${RELAY_PRELUDE}
     function App() {
       const data = createPreloadedQuery(env, () => loadQuery());
@@ -134,11 +135,11 @@ Deno.test("autofix adds keyed and rewrites bare param() calls", () => {
       );
     }
   `);
-  assertEquals(diagnostics.length, 1);
-  assertEquals(diagnostics[0].fix!.length, 3);
+  assert.deepEqual(diagnostics.length, 1);
+  assert.deepEqual(diagnostics[0].fix!.length, 3);
 });
 
-Deno.test(
+test(
   "suppresses autofix when a nested fn rebinds the param name",
   () => {
     // The outer `actor` param has no calls outside the shadowed inner
@@ -160,12 +161,12 @@ Deno.test(
       );
     }
   `);
-    assertEquals(diagnostics.length, 1);
-    assertEquals(diagnostics[0].fix, []);
+    assert.deepEqual(diagnostics.length, 1);
+    assert.deepEqual(diagnostics[0].fix, []);
   },
 );
 
-Deno.test(
+test(
   "autofix rewrites optional bare param?.() calls too",
   () => {
     // Without rewriting `value?.()`, the post-fix body would try to
@@ -181,13 +182,13 @@ Deno.test(
       );
     }
   `);
-    assertEquals(diagnostics.length, 1);
+    assert.deepEqual(diagnostics.length, 1);
     // 1 keyed insertion + 1 rewrite of value?.() to value.
-    assertEquals(diagnostics[0].fix!.length, 2);
+    assert.deepEqual(diagnostics[0].fix!.length, 2);
   },
 );
 
-Deno.test(
+test(
   "suppresses autofix when body calls the param with arguments",
   () => {
     // value(arg) cannot be safely rewritten under the keyed flip,
@@ -202,12 +203,12 @@ Deno.test(
       );
     }
   `);
-    assertEquals(diagnostics.length, 1);
-    assertEquals(diagnostics[0].fix, []);
+    assert.deepEqual(diagnostics.length, 1);
+    assert.deepEqual(diagnostics[0].fix, []);
   },
 );
 
-Deno.test(
+test(
   "flags but does not rewrite calls when param is destructured",
   () => {
     const diagnostics = lint(`${RELAY_PRELUDE}
@@ -220,12 +221,12 @@ Deno.test(
       );
     }
   `);
-    assertEquals(diagnostics.length, 1);
-    assertEquals(diagnostics[0].fix!.length, 1);
+    assert.deepEqual(diagnostics.length, 1);
+    assert.deepEqual(diagnostics[0].fix!.length, 1);
   },
 );
 
-Deno.test(
+test(
   "flags but suppresses autofix entirely on const-shadow body",
   () => {
     // Inserting `keyed` while leaving the outer `value()` calls would
@@ -244,12 +245,12 @@ Deno.test(
       );
     }
   `);
-    assertEquals(diagnostics.length, 1);
-    assertEquals(diagnostics[0].fix, []);
+    assert.deepEqual(diagnostics.length, 1);
+    assert.deepEqual(diagnostics[0].fix, []);
   },
 );
 
-Deno.test(
+test(
   "flags but suppresses autofix on assignment to the param",
   () => {
     // Reassigning `value` is unusual but valid; after the assignment the
@@ -269,12 +270,12 @@ Deno.test(
       );
     }
   `);
-    assertEquals(diagnostics.length, 1);
-    assertEquals(diagnostics[0].fix, []);
+    assert.deepEqual(diagnostics.length, 1);
+    assert.deepEqual(diagnostics[0].fix, []);
   },
 );
 
-Deno.test(
+test(
   "flags but suppresses autofix on destructuring assignment to the param",
   () => {
     const diagnostics = lint(`${RELAY_PRELUDE}
@@ -291,12 +292,12 @@ Deno.test(
       );
     }
   `);
-    assertEquals(diagnostics.length, 1);
-    assertEquals(diagnostics[0].fix, []);
+    assert.deepEqual(diagnostics.length, 1);
+    assert.deepEqual(diagnostics[0].fix, []);
   },
 );
 
-Deno.test(
+test(
   "flags but suppresses autofix on update-expression on the param",
   () => {
     const diagnostics = lint(`${RELAY_PRELUDE}
@@ -312,12 +313,12 @@ Deno.test(
       );
     }
   `);
-    assertEquals(diagnostics.length, 1);
-    assertEquals(diagnostics[0].fix, []);
+    assert.deepEqual(diagnostics.length, 1);
+    assert.deepEqual(diagnostics[0].fix, []);
   },
 );
 
-Deno.test(
+test(
   "flags but suppresses autofix entirely on static-block shadow",
   () => {
     const diagnostics = lint(`${RELAY_PRELUDE}
@@ -333,12 +334,12 @@ Deno.test(
       );
     }
   `);
-    assertEquals(diagnostics.length, 1);
-    assertEquals(diagnostics[0].fix, []);
+    assert.deepEqual(diagnostics.length, 1);
+    assert.deepEqual(diagnostics[0].fix, []);
   },
 );
 
-Deno.test(
+test(
   "flags Show with keyed={false} but does not autofix",
   () => {
     const diagnostics = lint(`${RELAY_PRELUDE}
@@ -351,12 +352,12 @@ Deno.test(
       );
     }
   `);
-    assertEquals(diagnostics.length, 1);
-    assertEquals(diagnostics[0].fix, []);
+    assert.deepEqual(diagnostics.length, 1);
+    assert.deepEqual(diagnostics[0].fix, []);
   },
 );
 
-Deno.test(
+test(
   "flags Show with keyed={someVar} but does not autofix",
   () => {
     const diagnostics = lint(`${RELAY_PRELUDE}
@@ -369,12 +370,12 @@ Deno.test(
       );
     }
   `);
-    assertEquals(diagnostics.length, 1);
-    assertEquals(diagnostics[0].fix, []);
+    assert.deepEqual(diagnostics.length, 1);
+    assert.deepEqual(diagnostics[0].fix, []);
   },
 );
 
-Deno.test("does not flag Show with keyed={true}", () => {
+test("does not flag Show with keyed={true}", () => {
   const diagnostics = lint(`${RELAY_PRELUDE}
     function App() {
       const data = createPreloadedQuery(env, () => loadQuery());
@@ -385,10 +386,10 @@ Deno.test("does not flag Show with keyed={true}", () => {
       );
     }
   `);
-  assertEquals(diagnostics.length, 0);
+  assert.deepEqual(diagnostics.length, 0);
 });
 
-Deno.test(
+test(
   "propagates Relay-backed-ness through outer keyed Show callback param",
   () => {
     const diagnostics = lint(`${RELAY_PRELUDE}
@@ -406,12 +407,12 @@ Deno.test(
     }
   `);
     // Inner Show should be flagged: \`d\` is Relay-backed by propagation.
-    assertEquals(diagnostics.length, 1);
-    assertEquals(diagnostics[0].id, RULE);
+    assert.deepEqual(diagnostics.length, 1);
+    assert.deepEqual(diagnostics[0].id, RULE);
   },
 );
 
-Deno.test(
+test(
   "does not propagate when outer Show is not Relay-backed",
   () => {
     const diagnostics = lint(`
@@ -429,11 +430,11 @@ Deno.test(
       );
     }
   `);
-    assertEquals(diagnostics.length, 0);
+    assert.deepEqual(diagnostics.length, 0);
   },
 );
 
-Deno.test("recognises namespace imports of Relay primitives", () => {
+test("recognises namespace imports of Relay primitives", () => {
   const diagnostics = lint(`
     import * as relay from "solid-relay";
     declare const env: unknown;
@@ -448,10 +449,10 @@ Deno.test("recognises namespace imports of Relay primitives", () => {
       );
     }
   `);
-  assertEquals(diagnostics.length, 1);
+  assert.deepEqual(diagnostics.length, 1);
 });
 
-Deno.test(
+test(
   "recognises every tracked solid-relay primitive as Relay-backed",
   () => {
     const source = `
@@ -490,11 +491,11 @@ Deno.test(
   `;
     const diagnostics = lint(source);
     // One diagnostic per non-keyed Show on a Relay-backed value (7 total).
-    assertEquals(diagnostics.length, 7);
+    assert.deepEqual(diagnostics.length, 7);
   },
 );
 
-Deno.test(
+test(
   "recognises aliased solid-relay imports",
   () => {
     // `import { createFragment as frag } from "solid-relay"` should still
@@ -511,12 +512,12 @@ Deno.test(
       );
     }
   `);
-    assertEquals(diagnostics.length, 1);
-    assertEquals(diagnostics[0].id, RULE);
+    assert.deepEqual(diagnostics.length, 1);
+    assert.deepEqual(diagnostics[0].id, RULE);
   },
 );
 
-Deno.test(
+test(
   "does not flag when a same-named local binding shadows the import",
   () => {
     // The import binding is shadowed by an enclosing function-local
@@ -534,11 +535,11 @@ Deno.test(
       );
     }
   `);
-    assertEquals(diagnostics.length, 0);
+    assert.deepEqual(diagnostics.length, 0);
   },
 );
 
-Deno.test(
+test(
   "does not flag when an inner block shadows an outer Relay binding",
   () => {
     // The if-block declares a same-named non-Relay `data`; inside that
@@ -559,11 +560,11 @@ Deno.test(
       return null;
     }
   `);
-    assertEquals(diagnostics.length, 0);
+    assert.deepEqual(diagnostics.length, 0);
   },
 );
 
-Deno.test(
+test(
   "still flags after a sibling block re-declares the Relay name",
   () => {
     // Sibling block ends; the original Relay binding is still in scope
@@ -583,12 +584,12 @@ Deno.test(
       );
     }
   `);
-    assertEquals(diagnostics.length, 1);
-    assertEquals(diagnostics[0].id, RULE);
+    assert.deepEqual(diagnostics.length, 1);
+    assert.deepEqual(diagnostics[0].id, RULE);
   },
 );
 
-Deno.test(
+test(
   "does not flag when an inner scope shadows an outer Relay binding",
   () => {
     // Outer App has a Relay-backed `data`; inner Inner shadows `data`
@@ -608,11 +609,11 @@ Deno.test(
       return <Inner />;
     }
   `);
-    assertEquals(diagnostics.length, 0);
+    assert.deepEqual(diagnostics.length, 0);
   },
 );
 
-Deno.test(
+test(
   "still flags inner Show when outer Relay binding is not shadowed",
   () => {
     // Same shape as above but the inner function does NOT redeclare
@@ -630,12 +631,12 @@ Deno.test(
       return <Inner />;
     }
   `);
-    assertEquals(diagnostics.length, 1);
-    assertEquals(diagnostics[0].id, RULE);
+    assert.deepEqual(diagnostics.length, 1);
+    assert.deepEqual(diagnostics[0].id, RULE);
   },
 );
 
-Deno.test(
+test(
   "does not flag when an enclosing function param shadows the import",
   () => {
     const diagnostics = lint(`${RELAY_PRELUDE}
@@ -649,11 +650,11 @@ Deno.test(
       );
     }
   `);
-    assertEquals(diagnostics.length, 0);
+    assert.deepEqual(diagnostics.length, 0);
   },
 );
 
-Deno.test(
+test(
   "still flags when a sibling block (not the call's scope) shadows the import",
   () => {
     // The if-block declares its own \`createFragment\`, but it is
@@ -674,12 +675,12 @@ Deno.test(
       );
     }
   `);
-    assertEquals(diagnostics.length, 1);
-    assertEquals(diagnostics[0].id, RULE);
+    assert.deepEqual(diagnostics.length, 1);
+    assert.deepEqual(diagnostics[0].id, RULE);
   },
 );
 
-Deno.test(
+test(
   "still flags when only a nested sibling function shadows the import",
   () => {
     // `App` does not rebind createPreloadedQuery; the inner Helper
@@ -702,12 +703,12 @@ Deno.test(
       );
     }
   `);
-    assertEquals(diagnostics.length, 1);
-    assertEquals(diagnostics[0].id, RULE);
+    assert.deepEqual(diagnostics.length, 1);
+    assert.deepEqual(diagnostics[0].id, RULE);
   },
 );
 
-Deno.test(
+test(
   "does not flag when a named function expression self-binding shadows the import",
   () => {
     // The named function expression \`createFragment\` introduces its
@@ -727,11 +728,11 @@ Deno.test(
       return helper;
     }
   `);
-    assertEquals(diagnostics.length, 0);
+    assert.deepEqual(diagnostics.length, 0);
   },
 );
 
-Deno.test(
+test(
   "does not flag a same-named primitive imported from another module",
   () => {
     // A local module exports something named `createFragment`; the rule
@@ -747,11 +748,11 @@ Deno.test(
       );
     }
   `);
-    assertEquals(diagnostics.length, 0);
+    assert.deepEqual(diagnostics.length, 0);
   },
 );
 
-Deno.test(
+test(
   "flags FunctionExpression children of Relay-backed Show",
   () => {
     const diagnostics = lint(`${RELAY_PRELUDE}
@@ -764,12 +765,12 @@ Deno.test(
       );
     }
   `);
-    assertEquals(diagnostics.length, 1);
-    assertEquals(diagnostics[0].id, RULE);
+    assert.deepEqual(diagnostics.length, 1);
+    assert.deepEqual(diagnostics[0].id, RULE);
   },
 );
 
-Deno.test(
+test(
   "flags when a leading zero-arity child precedes the real callback",
   () => {
     // Show has two function children: the first has arity 0 and would
@@ -788,12 +789,12 @@ Deno.test(
       );
     }
   `);
-    assertEquals(diagnostics.length, 1);
-    assertEquals(diagnostics[0].id, RULE);
+    assert.deepEqual(diagnostics.length, 1);
+    assert.deepEqual(diagnostics[0].id, RULE);
   },
 );
 
-Deno.test("scopes Relay binding to its declaring function", () => {
+test("scopes Relay binding to its declaring function", () => {
   // \`data\` declared inside FunctionA must NOT be considered Relay-backed
   // inside FunctionB (separate scope).
   const diagnostics = lint(`${RELAY_PRELUDE}
@@ -810,5 +811,5 @@ Deno.test("scopes Relay binding to its declaring function", () => {
       );
     }
   `);
-  assertEquals(diagnostics.length, 0);
+  assert.deepEqual(diagnostics.length, 0);
 });
