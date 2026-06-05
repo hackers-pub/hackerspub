@@ -102,7 +102,7 @@ msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up t
 msgstr "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up to # person.} other {Invite your friends to Hackers' Pub. You can invite up to # people.}}"
 
 #. placeholder {0}: props.count
-#: src/routes/(root)/tree/index.tsx:173
+#: src/routes/(root)/tree/index.tsx:167
 msgid "{0, plural, one {Invited # person} other {Invited # people}}"
 msgstr "{0, plural, one {Invited # person} other {Invited # people}}"
 
@@ -684,7 +684,7 @@ msgstr "Closed"
 msgid "Code"
 msgstr "Code"
 
-#: src/components/AppSidebar.tsx:1069
+#: src/components/AppSidebar.tsx:1078
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/sign/up/[token].tsx:458
 msgid "Code of conduct"
@@ -1451,7 +1451,7 @@ msgstr "Generating…"
 msgid "Get browser notifications"
 msgstr "Get browser notifications"
 
-#: src/components/AppSidebar.tsx:1107
+#: src/components/AppSidebar.tsx:1119
 msgid "GitHub repository"
 msgstr "GitHub repository"
 
@@ -1484,8 +1484,8 @@ msgstr "Go to my drafts"
 msgid "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 msgstr "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 
-#: src/routes/(root)/tree/graph.tsx:91
-#: src/routes/(root)/tree/index.tsx:216
+#: src/routes/(root)/tree/graph.tsx:90
+#: src/routes/(root)/tree/index.tsx:210
 msgid "Graph"
 msgstr "Graph"
 
@@ -1560,7 +1560,7 @@ msgstr "Heading 2"
 msgid "Heading 3"
 msgstr "Heading 3"
 
-#: src/routes/(root)/tree/index.tsx:125
+#: src/routes/(root)/tree/index.tsx:119
 msgid "Hidden account"
 msgstr "Hidden account"
 
@@ -1664,9 +1664,10 @@ msgstr "Invitation links"
 msgid "Invitation sent"
 msgstr "Invitation sent"
 
+#: src/components/AppSidebar.tsx:1069
 #: src/routes/(root)/[handle]/settings/invite.tsx:907
-#: src/routes/(root)/tree/graph.tsx:78
-#: src/routes/(root)/tree/index.tsx:203
+#: src/routes/(root)/tree/graph.tsx:77
+#: src/routes/(root)/tree/index.tsx:197
 msgid "Invitation tree"
 msgstr "Invitation tree"
 
@@ -2157,7 +2158,7 @@ msgstr "No followers found"
 msgid "No following found"
 msgstr "No following found"
 
-#: src/routes/(root)/tree/index.tsx:224
+#: src/routes/(root)/tree/index.tsx:218
 msgid "No invitation tree data yet."
 msgstr "No invitation tree data yet."
 
@@ -2530,7 +2531,7 @@ msgstr "Previous image"
 msgid "Priority"
 msgstr "Priority"
 
-#: src/components/AppSidebar.tsx:1074
+#: src/components/AppSidebar.tsx:1086
 #: src/routes/(root)/privacy.tsx:40
 msgid "Privacy policy"
 msgstr "Privacy policy"
@@ -3220,7 +3221,7 @@ msgstr "The sign-up link is invalid. Please make sure you're using the correct l
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:1098
+#: src/components/AppSidebar.tsx:1110
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "The source code of this website is available on {0} under the {1} license."
 
@@ -3237,7 +3238,7 @@ msgstr "The URL of the link, e.g., https://github.com/yourhandle."
 msgid "The Web Push public key is invalid."
 msgstr "The Web Push public key is invalid."
 
-#: src/routes/(root)/tree/index.tsx:127
+#: src/routes/(root)/tree/index.tsx:121
 msgid "This account is hidden because they want to keep their identity private."
 msgstr "This account is hidden because they want to keep their identity private."
 
@@ -3373,8 +3374,8 @@ msgstr "Translation request failed"
 msgid "Translation request failed for {name}"
 msgstr "Translation request failed for {name}"
 
-#: src/routes/(root)/tree/graph.tsx:85
-#: src/routes/(root)/tree/index.tsx:210
+#: src/routes/(root)/tree/graph.tsx:84
+#: src/routes/(root)/tree/index.tsx:204
 msgid "Tree"
 msgstr "Tree"
 

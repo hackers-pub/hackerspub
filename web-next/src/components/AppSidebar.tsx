@@ -1064,13 +1064,25 @@ function AppSidebarFooter() {
 
   return (
     <SidebarFooter>
-      <p class="m-2 mb-0 text-sm underline">
-        <A href="/coc" {...sidebarNavigationLinkProps}>
-          {t`Code of conduct`}
+      <p class="m-2 mb-0 text-sm">
+        <A href="/tree" class="underline" {...sidebarNavigationLinkProps}>
+          {t`Invitation tree`}
         </A>
       </p>
-      <p class="m-2 mb-0 text-sm underline">
-        <A href="/privacy" {...sidebarNavigationLinkProps}>
+      <p class="m-2 mb-0 text-sm">
+        <A
+          href="/coc"
+          class="underline"
+          {...sidebarNavigationLinkProps}
+        >
+          {t`Code of conduct`}
+        </A>{" "}
+        &middot;{" "}
+        <A
+          href="/privacy"
+          class="underline"
+          {...sidebarNavigationLinkProps}
+        >
           {t`Privacy policy`}
         </A>
       </p>

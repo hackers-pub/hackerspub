@@ -102,7 +102,7 @@ msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up t
 msgstr "{0, plural, other {邀請你的朋友加入 Hackers' Pub。你可以邀請最多 # 個人。}}"
 
 #. placeholder {0}: props.count
-#: src/routes/(root)/tree/index.tsx:173
+#: src/routes/(root)/tree/index.tsx:167
 msgid "{0, plural, one {Invited # person} other {Invited # people}}"
 msgstr "{0, plural, one {邀請了 # 人} other {邀請了 # 人}}"
 
@@ -684,7 +684,7 @@ msgstr "已結束"
 msgid "Code"
 msgstr "程式碼"
 
-#: src/components/AppSidebar.tsx:1069
+#: src/components/AppSidebar.tsx:1078
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/sign/up/[token].tsx:458
 msgid "Code of conduct"
@@ -1447,7 +1447,7 @@ msgstr "生成中…"
 msgid "Get browser notifications"
 msgstr "接收瀏覽器通知"
 
-#: src/components/AppSidebar.tsx:1107
+#: src/components/AppSidebar.tsx:1119
 msgid "GitHub repository"
 msgstr "GitHub 儲存庫"
 
@@ -1480,8 +1480,8 @@ msgstr "前往我的草稿"
 msgid "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 msgstr "向自上次重新發放截止時間以來最活躍的帳號（按內容數排名前三分之一）額外發放一份邀請。"
 
-#: src/routes/(root)/tree/graph.tsx:91
-#: src/routes/(root)/tree/index.tsx:216
+#: src/routes/(root)/tree/graph.tsx:90
+#: src/routes/(root)/tree/index.tsx:210
 msgid "Graph"
 msgstr "關係圖"
 
@@ -1556,7 +1556,7 @@ msgstr "標題 2"
 msgid "Heading 3"
 msgstr "標題 3"
 
-#: src/routes/(root)/tree/index.tsx:125
+#: src/routes/(root)/tree/index.tsx:119
 msgid "Hidden account"
 msgstr "隱藏帳戶"
 
@@ -1660,9 +1660,10 @@ msgstr "邀請連結"
 msgid "Invitation sent"
 msgstr "邀請已發送"
 
+#: src/components/AppSidebar.tsx:1069
 #: src/routes/(root)/[handle]/settings/invite.tsx:907
-#: src/routes/(root)/tree/graph.tsx:78
-#: src/routes/(root)/tree/index.tsx:203
+#: src/routes/(root)/tree/graph.tsx:77
+#: src/routes/(root)/tree/index.tsx:197
 msgid "Invitation tree"
 msgstr "邀請樹"
 
@@ -2153,7 +2154,7 @@ msgstr "未找到粉絲"
 msgid "No following found"
 msgstr "沒有找到關注的使用者"
 
-#: src/routes/(root)/tree/index.tsx:224
+#: src/routes/(root)/tree/index.tsx:218
 msgid "No invitation tree data yet."
 msgstr "還沒有邀請樹資料。"
 
@@ -2526,7 +2527,7 @@ msgstr "上一張圖片"
 msgid "Priority"
 msgstr "優先級"
 
-#: src/components/AppSidebar.tsx:1074
+#: src/components/AppSidebar.tsx:1086
 #: src/routes/(root)/privacy.tsx:40
 msgid "Privacy policy"
 msgstr "隱私權政策"
@@ -3216,7 +3217,7 @@ msgstr "註冊連結無效。請確保你使用的是你收到的正確郵件連
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:1098
+#: src/components/AppSidebar.tsx:1110
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "可在 {0} 上以 {1} 授權取得該網站的原始碼。"
 
@@ -3233,7 +3234,7 @@ msgstr "該連結的 URL，例如 https://github.com/你的使用者名稱。"
 msgid "The Web Push public key is invalid."
 msgstr "Web Push 公開金鑰無效。"
 
-#: src/routes/(root)/tree/index.tsx:127
+#: src/routes/(root)/tree/index.tsx:121
 msgid "This account is hidden because they want to keep their identity private."
 msgstr "此帳戶已隱藏，因為使用者希望保持身分私密。"
 
@@ -3369,8 +3370,8 @@ msgstr "翻譯請求失敗"
 msgid "Translation request failed for {name}"
 msgstr "向{name}的翻譯請求失敗"
 
-#: src/routes/(root)/tree/graph.tsx:85
-#: src/routes/(root)/tree/index.tsx:210
+#: src/routes/(root)/tree/graph.tsx:84
+#: src/routes/(root)/tree/index.tsx:204
 msgid "Tree"
 msgstr "樹狀圖"
 

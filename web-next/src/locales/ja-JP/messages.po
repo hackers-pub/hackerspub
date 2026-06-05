@@ -102,7 +102,7 @@ msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up t
 msgstr "{0, plural, one {友達をHackers' Pubに招待しましょう。最大#人まで招待できます。} other {友達をHackers' Pubに招待しましょう。最大#人まで招待できます。}}"
 
 #. placeholder {0}: props.count
-#: src/routes/(root)/tree/index.tsx:173
+#: src/routes/(root)/tree/index.tsx:167
 msgid "{0, plural, one {Invited # person} other {Invited # people}}"
 msgstr "{0, plural, one {#人を招待} other {#人を招待}}"
 
@@ -684,7 +684,7 @@ msgstr "終了"
 msgid "Code"
 msgstr "コード"
 
-#: src/components/AppSidebar.tsx:1069
+#: src/components/AppSidebar.tsx:1078
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/sign/up/[token].tsx:458
 msgid "Code of conduct"
@@ -1447,7 +1447,7 @@ msgstr "生成中…"
 msgid "Get browser notifications"
 msgstr "ブラウザー通知を受け取る"
 
-#: src/components/AppSidebar.tsx:1107
+#: src/components/AppSidebar.tsx:1119
 msgid "GitHub repository"
 msgstr "GitHubリポジトリ"
 
@@ -1480,8 +1480,8 @@ msgstr "マイ下書きへ"
 msgid "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 msgstr "前回の再付与カットオフ以降、最も活発なアカウント（投稿数上位3分の1）に招待状を1通追加で付与します。"
 
-#: src/routes/(root)/tree/graph.tsx:91
-#: src/routes/(root)/tree/index.tsx:216
+#: src/routes/(root)/tree/graph.tsx:90
+#: src/routes/(root)/tree/index.tsx:210
 msgid "Graph"
 msgstr "グラフ"
 
@@ -1556,7 +1556,7 @@ msgstr "見出し2"
 msgid "Heading 3"
 msgstr "見出し3"
 
-#: src/routes/(root)/tree/index.tsx:125
+#: src/routes/(root)/tree/index.tsx:119
 msgid "Hidden account"
 msgstr "非表示のアカウント"
 
@@ -1660,9 +1660,10 @@ msgstr "招待リンク"
 msgid "Invitation sent"
 msgstr "招待状を送信しました"
 
+#: src/components/AppSidebar.tsx:1069
 #: src/routes/(root)/[handle]/settings/invite.tsx:907
-#: src/routes/(root)/tree/graph.tsx:78
-#: src/routes/(root)/tree/index.tsx:203
+#: src/routes/(root)/tree/graph.tsx:77
+#: src/routes/(root)/tree/index.tsx:197
 msgid "Invitation tree"
 msgstr "招待ツリー"
 
@@ -2153,7 +2154,7 @@ msgstr "フォロワーはいません"
 msgid "No following found"
 msgstr "フォロー中のユーザーはいません"
 
-#: src/routes/(root)/tree/index.tsx:224
+#: src/routes/(root)/tree/index.tsx:218
 msgid "No invitation tree data yet."
 msgstr "まだ招待ツリーのデータがありません。"
 
@@ -2526,7 +2527,7 @@ msgstr "前の画像"
 msgid "Priority"
 msgstr "優先度"
 
-#: src/components/AppSidebar.tsx:1074
+#: src/components/AppSidebar.tsx:1086
 #: src/routes/(root)/privacy.tsx:40
 msgid "Privacy policy"
 msgstr "プライバシーポリシー"
@@ -3216,7 +3217,7 @@ msgstr "登録リンクが無効です。受信したメールのリンクを正
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:1098
+#: src/components/AppSidebar.tsx:1110
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "このウェブサイトのソースコードは{1}ライセンスで{0}で公開されています。"
 
@@ -3233,7 +3234,7 @@ msgstr "リンクのURL。（例：https://github.com/yourhandle）"
 msgid "The Web Push public key is invalid."
 msgstr "Web Push の公開鍵が無効です。"
 
-#: src/routes/(root)/tree/index.tsx:127
+#: src/routes/(root)/tree/index.tsx:121
 msgid "This account is hidden because they want to keep their identity private."
 msgstr "このアカウントは、プライバシー保護のために非表示になっています。"
 
@@ -3369,8 +3370,8 @@ msgstr "翻訳のリクエストに失敗しました"
 msgid "Translation request failed for {name}"
 msgstr "{name}への翻訳リクエストに失敗しました"
 
-#: src/routes/(root)/tree/graph.tsx:85
-#: src/routes/(root)/tree/index.tsx:210
+#: src/routes/(root)/tree/graph.tsx:84
+#: src/routes/(root)/tree/index.tsx:204
 msgid "Tree"
 msgstr "ツリー"
 
