@@ -1599,7 +1599,8 @@ export async function persistSharedPost(
             eq(postTable.actorId, actor.id),
             eq(postTable.sharedPostId, post.id),
           ),
-        );
+        )
+        .returning({ id: postTable.id });
       await updateSharesCount(db, post, -deleted.length);
       rows = await db.insert(postTable)
         .values({ id, ...values })
@@ -1609,8 +1610,9 @@ export async function persistSharedPost(
           setWhere: eq(postTable.iri, announce.id.href),
         })
         .returning();
+    } else {
+      throw error;
     }
-    throw error;
   }
   if (rows.length < 1) return undefined;
   if (rows[0].id === id) await updateSharesCount(db, post, 1);
