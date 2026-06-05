@@ -2941,6 +2941,7 @@ export async function scrapePostLink<TContextData>(
       status: response.status,
       statusText: response.statusText,
     });
+    await response.body?.cancel().catch(() => {});
     return undefined;
   }
   const fullContentType = response.headers.get("Content-Type");
@@ -2964,6 +2965,7 @@ export async function scrapePostLink<TContextData>(
       url: responseUrl,
       contentType,
     });
+    await response.body?.cancel().catch(() => {});
     return undefined;
   }
   const contentTypeParams = Object.fromEntries(

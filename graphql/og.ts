@@ -172,18 +172,25 @@ export async function loadImageDataUri(
     const response = await fetch(url, {
       signal: AbortSignal.timeout(timeoutMs),
     });
-    if (!response.ok) return FALLBACK_IMAGE_DATA_URI;
+    if (!response.ok) {
+      await response.body?.cancel().catch(() => {});
+      return FALLBACK_IMAGE_DATA_URI;
+    }
     const contentLength = response.headers.get("content-length");
     if (
       contentLength != null &&
       Number.parseInt(contentLength, 10) > maxBytes
     ) {
+      await response.body?.cancel().catch(() => {});
       return FALLBACK_IMAGE_DATA_URI;
     }
     let contentType =
       response.headers.get("content-type")?.split(";")[0]?.trim()
         .toLowerCase() ?? "application/octet-stream";
-    if (!contentType.startsWith("image/")) return FALLBACK_IMAGE_DATA_URI;
+    if (!contentType.startsWith("image/")) {
+      await response.body?.cancel().catch(() => {});
+      return FALLBACK_IMAGE_DATA_URI;
+    }
     let bytes = await readResponseBytes(response, maxBytes);
     if (bytes == null) return FALLBACK_IMAGE_DATA_URI;
     if (!SATORI_SUPPORTED_IMAGE_TYPES.has(contentType)) {
@@ -224,14 +231,11 @@ async function readResponseBytes(
       const { done, value } = await reader.read();
       if (done) break;
       total += value.byteLength;
-      if (total > maxBytes) {
-        await reader.cancel();
-        return null;
-      }
+      if (total > maxBytes) return null;
       chunks.push(value);
     }
   } finally {
-    reader.releaseLock();
+    await reader.cancel().catch(() => {});
   }
   if (total === 0) return null;
   const bytes = new Uint8Array(total);

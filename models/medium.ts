@@ -150,15 +150,16 @@ async function readResponseBytes(
   if (reader == null) return undefined;
   const chunks: Uint8Array[] = [];
   let total = 0;
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    total += value.byteLength;
-    if (total > maxSize) {
-      await reader.cancel();
-      return undefined;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxSize) return undefined;
+      chunks.push(value);
     }
-    chunks.push(value);
+  } finally {
+    await reader.cancel().catch(() => {});
   }
   const bytes = new Uint8Array(total);
   let offset = 0;
@@ -276,12 +277,19 @@ export async function createMediumFromUrl(
   const response = url.protocol === "data:"
     ? await fetch(url)
     : await fetchMediumUrl(url, options.userAgentUrl);
-  if (!response.ok) return undefined;
+  if (!response.ok) {
+    await response.body?.cancel().catch(() => {});
+    return undefined;
+  }
   const contentType = response.headers.get("Content-Type");
-  if (!isSupportedMediumImageType(contentType)) return undefined;
+  if (!isSupportedMediumImageType(contentType)) {
+    await response.body?.cancel().catch(() => {});
+    return undefined;
+  }
   const contentLength = response.headers.get("Content-Length");
   const maxSize = options.maxSize ?? MAX_MEDIUM_IMAGE_SIZE;
   if (contentLength != null && Number(contentLength) > maxSize) {
+    await response.body?.cancel().catch(() => {});
     return undefined;
   }
   const bytes = await readResponseBytes(response, maxSize);
