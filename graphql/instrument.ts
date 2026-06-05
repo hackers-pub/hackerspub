@@ -75,12 +75,14 @@ if (dsn) {
 // promises: every event it catches is a real bug whose source still needs an
 // explicit `.catch`.
 //
-// We capture to Sentry directly rather than via the LogTape -> Sentry sink:
-// @logtape/sentry bundles @sentry/core v9 while @sentry/deno here initializes
-// v10, and Sentry keeps each SDK's client under a separate
-// `globalThis.__SENTRY__[SDK_VERSION]` carrier, so the sink's v9
-// `captureException` can't see the v10 client and would silently drop the
-// event. The LogTape `.error()` still drives the console/file sinks.
+// We capture to Sentry directly via `Sentry.captureException` (not via the
+// LogTape -> Sentry sink) so the rejection lands as a proper *exception* event
+// with a stacktrace and `onunhandledrejection` mechanism, rather than as a
+// structured log event.  The LogTape call below uses `.warning()` (below the
+// sink's `error`-level threshold) so it reaches the console/file sinks for
+// structured logging but does NOT generate a second, duplicate Sentry event.
+// Logging at `.error()` would cause both paths to fire simultaneously now that
+// the sink is wired to the same v10 Sentry client (fixed in 62ccf80a).
 //
 // Registered unconditionally (even without SENTRY_DSN): keeping a replica
 // alive through a stray rejection is the right behavior in dev too, and
@@ -99,7 +101,7 @@ globalThis.addEventListener("unhandledrejection", (event) => {
     );
     return;
   }
-  getLogger(["hackerspub", "graphql"]).error(
+  getLogger(["hackerspub", "graphql"]).warning(
     "Unhandled promise rejection suppressed to keep the server alive: {error}",
     { error: reason },
   );
