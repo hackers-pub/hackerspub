@@ -105,26 +105,34 @@ const REPLIES_BACKFILL_RETRY_DELAY_MS = 30_000;
 // persistence.  Deno's `fetch` has no default timeout, so an unresponsive
 // remote host could otherwise hang an inbox handler past the message queue's
 // 60-second handler timeout (and pin a DB connection while it hangs).
-const REMOTE_FETCH_TIMEOUT_MS = 10_000;
+// Exported so inbox handlers can apply the same ceiling to pre-persistPost
+// fetches (e.g. the initial getObject() type check in onPostShared).
+export const REMOTE_FETCH_TIMEOUT_MS = 10_000;
 // Wall-clock budget for the synchronous (inline) replies traversal.  Even when
 // every individual fetch stays under REMOTE_FETCH_TIMEOUT_MS, a long reply
 // collection could otherwise accumulate enough sequential fetches to drag a
 // single handler toward the queue timeout, so we stop early and leave the rest
 // to the deferred backfill / future federation.
 const INLINE_REPLIES_TRAVERSAL_BUDGET_MS = 15_000;
-// Overall wall-clock budget for a single synchronous `persistPost` subtree (one
+// Overall wall-clock budget for a single synchronous persistPost subtree (one
 // inbox message).  The per-fetch (REMOTE_FETCH_TIMEOUT_MS) and inline-replies
 // (INLINE_REPLIES_TRAVERSAL_BUDGET_MS) bounds do NOT cap the AGGREGATE of the
 // many sequential fetches spread across the reply/quote/reply-target recursion,
-// so a handler could still run past `PostgresMessageQueue`'s handlerTimeout.
-// That timeout is a `Promise.race` that does not abort the handler, so the
+// so a handler could still run past PostgresMessageQueue's handlerTimeout.
+// That timeout is a Promise.race that does not abort the handler, so the
 // handler then keeps running detached and pins a DB connection (Sentry
 // GRAPHQL-1H).  This shared deadline is threaded through the synchronous
 // recursion so that once it elapses every remaining remote fetch aborts at
 // once, the handler unwinds (degrading to partial persistence; large reply sets
 // already fall to the deferred backfill), and the connection is released well
-// before the 180s queue timeout.  Kept comfortably under that timeout.
-const PERSIST_POST_OVERALL_BUDGET_MS = 120_000;
+// before the 180s queue timeout.
+//
+// Set to 90s (not 120s) so that operations outside persistPost — the pre-check
+// getObject() in onPostShared, DB writes, notification creation, news score
+// refresh — have 90s of headroom before the 180s MQ limit.  Exported so
+// callers can mint a handler-level AbortSignal that covers both pre-persistPost
+// work and the persistPost subtree under one shared deadline.
+export const PERSIST_POST_OVERALL_BUDGET_MS = 90_000;
 const SCRAPE_IMAGE_METADATA_BYTES_LIMIT = 128 * 1024;
 
 /**
@@ -1489,6 +1497,14 @@ export async function persistSharedPost(
     actor?: Actor & { instance: Instance };
     contextLoader?: DocumentLoader;
     documentLoader?: DocumentLoader;
+    /**
+     * Shared overall deadline for the whole operation.  When provided by the
+     * caller (e.g. an inbox handler that already minted one), getActor(),
+     * getObject(), and the internal persistPost() all share this signal so
+     * their aggregate cannot exceed the message-queue handler timeout.  When
+     * omitted, a fresh budget of PERSIST_POST_OVERALL_BUDGET_MS is minted.
+     */
+    signal?: AbortSignal;
   } = {},
 ): Promise<
   Post & {
@@ -1504,21 +1520,36 @@ export async function persistSharedPost(
     return;
   }
   const { db } = ctx.data;
+  // One deadline for this entire operation.  Reuse the caller's signal when
+  // available so pre-persistPost fetches (getActor, getObject) and the
+  // persistPost subtree are all capped by the same wall-clock budget.
+  const overallSignal = options.signal ??
+    AbortSignal.timeout(PERSIST_POST_OVERALL_BUDGET_MS);
+  const boundedOpts = {
+    contextLoader: options.contextLoader,
+    documentLoader: withDocumentLoaderTimeout(
+      options.documentLoader ?? ctx.documentLoader,
+      REMOTE_FETCH_TIMEOUT_MS,
+      overallSignal,
+    ),
+    suppressError: true,
+  };
   let actor: Actor & { instance: Instance } | undefined =
     options.actor == null || options.actor.iri !== announce.actorId.href
       ? await getPersistedActor(db, announce.actorId)
       : options.actor;
   if (actor == null) {
-    const apActor = await announce.getActor(options);
+    const apActor = await announce.getActor(boundedOpts);
     if (apActor == null) return;
-    actor = await persistActor(ctx, apActor, options);
+    actor = await persistActor(ctx, apActor, boundedOpts);
     if (actor == null) return;
   }
-  const object = await announce.getObject(options);
+  const object = await announce.getObject(boundedOpts);
   if (!isPostObject(object)) return;
   const post = await persistPost(ctx, object, {
     ...options,
     replies: true,
+    signal: overallSignal,
   });
   if (post == null) return;
   const to = new Set(announce.toIds.map((u) => u.href));

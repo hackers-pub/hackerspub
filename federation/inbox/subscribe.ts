@@ -25,9 +25,12 @@ import {
   deletePersistedPost,
   deleteSharedPost,
   isPostObject,
+  PERSIST_POST_OVERALL_BUDGET_MS,
   persistPost,
   persistSharedPost,
+  REMOTE_FETCH_TIMEOUT_MS,
   updateRepliesCount,
+  withDocumentLoaderTimeout,
 } from "@hackerspub/models/post";
 import {
   deleteReaction,
@@ -134,9 +137,27 @@ export async function onPostShared(
 ): Promise<void> {
   logger.debug("On post shared: {announce}", { announce });
   if (announce.id?.origin !== announce.actorId?.origin) return;
-  const object = await announce.getObject({ ...fedCtx, suppressError: true });
+  // One shared budget for the entire handler: the pre-check getObject() below,
+  // plus all of persistSharedPost (getActor, getObject, persistPost subtree),
+  // plus the post-persist DB writes all count against the same 90s deadline so
+  // their aggregate cannot reach the 180s MQ handlerTimeout (GRAPHQL-1H).
+  const overallSignal = AbortSignal.timeout(PERSIST_POST_OVERALL_BUDGET_MS);
+  const boundedLoader = withDocumentLoaderTimeout(
+    fedCtx.documentLoader,
+    REMOTE_FETCH_TIMEOUT_MS,
+    overallSignal,
+  );
+  const object = await announce.getObject({
+    ...fedCtx,
+    documentLoader: boundedLoader,
+    suppressError: true,
+  });
   if (!isPostObject(object)) return;
-  const post = await persistSharedPost(fedCtx, announce, fedCtx);
+  const post = await persistSharedPost(fedCtx, announce, {
+    ...fedCtx,
+    documentLoader: boundedLoader,
+    signal: overallSignal,
+  });
   if (post != null) {
     const { db } = fedCtx.data;
     await addPostToTimeline(db, post);
