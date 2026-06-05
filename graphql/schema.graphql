@@ -2678,7 +2678,9 @@ type Query {
   """
   invitationRegenerationStatus: InvitationRegenerationStatus
 
-  """Returns all accounts as a flat array for building the invitation tree."""
+  """
+  Returns all accounts as a flat array for building the invitation tree. Nodes are ordered oldest-to-newest by account creation time so that sibling ordering is stable across views.
+  """
   invitationTree: [InvitationTreeNode!]!
 
   """

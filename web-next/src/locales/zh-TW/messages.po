@@ -32,14 +32,14 @@ msgstr "{0, plural, other {符合條件的帳號 # 個}}；若現在重新發放
 #. placeholder {0}: a.followersCount.totalCount
 #. placeholder {0}: actor.followersCount?.totalCount ?? 0
 #: src/components/ActorPreviewCard.tsx:63
-#: src/components/ProfileCard.tsx:338
+#: src/components/ProfileCard.tsx:335
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {被 # 人關注}}"
 
 #. placeholder {0}: a.followeesCount.totalCount
 #. placeholder {0}: actor.followeesCount?.totalCount ?? 0
 #: src/components/ActorPreviewCard.tsx:54
-#: src/components/ProfileCard.tsx:325
+#: src/components/ProfileCard.tsx:322
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {關注 # 人}}"
 
@@ -92,7 +92,7 @@ msgid "{0, plural, one {Deleted # orphan medium.} other {Deleted # orphan media.
 msgstr "{0, plural, other {已刪除 # 個孤立媒體。}}"
 
 #. placeholder {0}: actor.mutualFollowers?.totalCount ?? 0
-#: src/components/ProfileCard.tsx:379
+#: src/components/ProfileCard.tsx:376
 msgid "{0, plural, one {Followed by # person you follow} other {Followed by # people you follow}}"
 msgstr "{0, plural, other {你關注的 # 人也關注了}}"
 
@@ -100,6 +100,11 @@ msgstr "{0, plural, other {你關注的 # 人也關注了}}"
 #: src/routes/(root)/[handle]/settings/invite.tsx:326
 msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up to # person.} other {Invite your friends to Hackers' Pub. You can invite up to # people.}}"
 msgstr "{0, plural, other {邀請你的朋友加入 Hackers' Pub。你可以邀請最多 # 個人。}}"
+
+#. placeholder {0}: props.count
+#: src/routes/(root)/tree/index.tsx:173
+msgid "{0, plural, one {Invited # person} other {Invited # people}}"
+msgstr "{0, plural, one {邀請了 # 人} other {邀請了 # 人}}"
 
 #. placeholder {0}: Math.max(0, props.totalCount - allReactors().length)
 #: src/components/ReactionGroupSection.tsx:218
@@ -390,7 +395,7 @@ msgstr "所有語言"
 msgid "All notifications"
 msgstr "所有通知"
 
-#: src/components/ProfileCard.tsx:189
+#: src/components/ProfileCard.tsx:188
 msgid "All posts"
 msgstr "全部內容"
 
@@ -498,7 +503,7 @@ msgid "Articles"
 msgstr "文章"
 
 #: src/components/AppSidebar.tsx:331
-#: src/components/ProfileCard.tsx:198
+#: src/components/ProfileCard.tsx:195
 msgid "Articles only"
 msgstr "僅文章"
 
@@ -1426,7 +1431,7 @@ msgid "Following"
 msgstr "關注"
 
 #: src/components/ActorPreviewCard.tsx:149
-#: src/components/ProfileCard.tsx:348
+#: src/components/ProfileCard.tsx:345
 msgid "Following you"
 msgstr "關注了你"
 
@@ -1474,6 +1479,11 @@ msgstr "前往我的草稿"
 #: src/routes/(root)/admin/invitations.tsx:154
 msgid "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 msgstr "向自上次重新發放截止時間以來最活躍的帳號（按內容數排名前三分之一）額外發放一份邀請。"
+
+#: src/routes/(root)/tree/graph.tsx:91
+#: src/routes/(root)/tree/index.tsx:216
+msgid "Graph"
+msgstr "關係圖"
 
 #: src/components/AppSidebar.tsx:346
 #: src/components/AppSidebar.tsx:469
@@ -1545,6 +1555,10 @@ msgstr "標題 2"
 #: src/components/ui/markdown-editor.tsx:287
 msgid "Heading 3"
 msgstr "標題 3"
+
+#: src/routes/(root)/tree/index.tsx:125
+msgid "Hidden account"
+msgstr "隱藏帳戶"
 
 #: src/components/NoteCardInternal.tsx:141
 #: src/components/NoteMedia.tsx:270
@@ -1647,6 +1661,8 @@ msgid "Invitation sent"
 msgstr "邀請已發送"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:907
+#: src/routes/(root)/tree/graph.tsx:78
+#: src/routes/(root)/tree/index.tsx:203
 msgid "Invitation tree"
 msgstr "邀請樹"
 
@@ -1678,7 +1694,7 @@ msgid "Invited by"
 msgstr "邀請人"
 
 #. placeholder {0}: "INVITER"
-#: src/components/ProfileCard.tsx:414
+#: src/components/ProfileCard.tsx:411
 msgid "Invited by {0}"
 msgstr "由 {0} 邀請"
 
@@ -1695,7 +1711,7 @@ msgid "Join the discussion about this story."
 msgstr "參與關於這個話題的討論。"
 
 #. placeholder {0}: new Date(created).toLocaleDateString(i18n.locale, { year: "numeric", month: "long", })
-#: src/components/ProfileCard.tsx:449
+#: src/components/ProfileCard.tsx:446
 msgid "Joined {0}"
 msgstr "加入於 {0}"
 
@@ -2136,6 +2152,10 @@ msgstr "未找到粉絲"
 #: src/components/ActorFollowingList.tsx:92
 msgid "No following found"
 msgstr "沒有找到關注的使用者"
+
+#: src/routes/(root)/tree/index.tsx:224
+msgid "No invitation tree data yet."
+msgstr "還沒有邀請樹資料。"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:270
 #: src/routes/(root)/[handle]/settings/invite.tsx:425
@@ -3213,6 +3233,10 @@ msgstr "該連結的 URL，例如 https://github.com/你的使用者名稱。"
 msgid "The Web Push public key is invalid."
 msgstr "Web Push 公開金鑰無效。"
 
+#: src/routes/(root)/tree/index.tsx:127
+msgid "This account is hidden because they want to keep their identity private."
+msgstr "此帳戶已隱藏，因為使用者希望保持身分私密。"
+
 #: src/components/PostActionMenu.tsx:385
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "此操作無法復原。這將永久刪除該內容。"
@@ -3345,6 +3369,11 @@ msgstr "翻譯請求失敗"
 msgid "Translation request failed for {name}"
 msgstr "向{name}的翻譯請求失敗"
 
+#: src/routes/(root)/tree/graph.tsx:85
+#: src/routes/(root)/tree/index.tsx:210
+msgid "Tree"
+msgstr "樹狀圖"
+
 #: src/app.tsx:125
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:602
 msgid "Try again"
@@ -3476,7 +3505,7 @@ msgstr "您邀請的使用者"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:297
+#: src/components/ProfileCard.tsx:294
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "已於{1}驗證此連結歸{0}所有"
 
@@ -3627,11 +3656,11 @@ msgstr "在此撰寫文章。您可以使用 Markdown。在您撰寫時，文章
 msgid "You are about to follow {0}."
 msgstr "你即將關注{0}。"
 
-#: src/components/ProfileCard.tsx:217
+#: src/components/ProfileCard.tsx:214
 msgid "You are blocked by this user. You can't follow them or see their posts."
 msgstr "你已被此使用者封鎖。你無法關注該使用者或查看該使用者的內容。"
 
-#: src/components/ProfileCard.tsx:210
+#: src/components/ProfileCard.tsx:207
 msgid "You are blocking this user. They can't follow you or see your posts."
 msgstr "你正在封鎖此使用者。該使用者無法關注你或查看你的內容。"
 

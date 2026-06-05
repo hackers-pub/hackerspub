@@ -752,7 +752,8 @@ builder.queryField("invitationTree", (t) =>
   t.field({
     type: [InvitationTreeNodeRef],
     description:
-      "Returns all accounts as a flat array for building the invitation tree.",
+      "Returns all accounts as a flat array for building the invitation tree. " +
+      "Nodes are ordered oldest-to-newest by account creation time so that sibling ordering is stable across views.",
     async resolve(_, __, ctx) {
       const accounts = await ctx.db.query.accountTable.findMany({
         with: {
@@ -762,8 +763,12 @@ builder.queryField("invitationTree", (t) =>
         },
       });
 
+      const sorted = [...accounts].sort(
+        (a, b) => +a.created - +b.created || a.id.localeCompare(b.id),
+      );
+
       return await Promise.all(
-        accounts.map(async (account) => ({
+        sorted.map(async (account) => ({
           id: account.id,
           username: account.hideFromInvitationTree ? null : account.username,
           name: account.hideFromInvitationTree ? null : account.name,

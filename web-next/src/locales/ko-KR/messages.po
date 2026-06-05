@@ -32,14 +32,14 @@ msgstr "{0, plural, other {대상 계정 #명}} 중, 지금 재발급하면 {1, 
 #. placeholder {0}: a.followersCount.totalCount
 #. placeholder {0}: actor.followersCount?.totalCount ?? 0
 #: src/components/ActorPreviewCard.tsx:63
-#: src/components/ProfileCard.tsx:338
+#: src/components/ProfileCard.tsx:335
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {# 팔로워}}"
 
 #. placeholder {0}: a.followeesCount.totalCount
 #. placeholder {0}: actor.followeesCount?.totalCount ?? 0
 #: src/components/ActorPreviewCard.tsx:54
-#: src/components/ProfileCard.tsx:325
+#: src/components/ProfileCard.tsx:322
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {# 팔로잉}}"
 
@@ -92,7 +92,7 @@ msgid "{0, plural, one {Deleted # orphan medium.} other {Deleted # orphan media.
 msgstr "{0, plural, other {연결되지 않은 미디어 #개를 삭제했습니다.}}"
 
 #. placeholder {0}: actor.mutualFollowers?.totalCount ?? 0
-#: src/components/ProfileCard.tsx:379
+#: src/components/ProfileCard.tsx:376
 msgid "{0, plural, one {Followed by # person you follow} other {Followed by # people you follow}}"
 msgstr "{0, plural, other {당신이 팔로하는 # 명이 팔로합니다}}"
 
@@ -100,6 +100,11 @@ msgstr "{0, plural, other {당신이 팔로하는 # 명이 팔로합니다}}"
 #: src/routes/(root)/[handle]/settings/invite.tsx:326
 msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up to # person.} other {Invite your friends to Hackers' Pub. You can invite up to # people.}}"
 msgstr "{0, plural, other {Hackers' Pub에 친구를 초대하세요. 최대 #명까지 초대할 수 있습니다.}}"
+
+#. placeholder {0}: props.count
+#: src/routes/(root)/tree/index.tsx:173
+msgid "{0, plural, one {Invited # person} other {Invited # people}}"
+msgstr "{0, plural, one {#명 초대} other {#명 초대}}"
 
 #. placeholder {0}: Math.max(0, props.totalCount - allReactors().length)
 #: src/components/ReactionGroupSection.tsx:218
@@ -390,7 +395,7 @@ msgstr "모든 언어"
 msgid "All notifications"
 msgstr "모든 알림"
 
-#: src/components/ProfileCard.tsx:189
+#: src/components/ProfileCard.tsx:188
 msgid "All posts"
 msgstr "전체 콘텐츠"
 
@@ -498,7 +503,7 @@ msgid "Articles"
 msgstr "게시글"
 
 #: src/components/AppSidebar.tsx:331
-#: src/components/ProfileCard.tsx:198
+#: src/components/ProfileCard.tsx:195
 msgid "Articles only"
 msgstr "게시글만"
 
@@ -1426,7 +1431,7 @@ msgid "Following"
 msgstr "팔로잉"
 
 #: src/components/ActorPreviewCard.tsx:149
-#: src/components/ProfileCard.tsx:348
+#: src/components/ProfileCard.tsx:345
 msgid "Following you"
 msgstr "당신을 팔로합니다"
 
@@ -1474,6 +1479,11 @@ msgstr "내 초고로"
 #: src/routes/(root)/admin/invitations.tsx:154
 msgid "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 msgstr "마지막 재발급 시점 이후 가장 활발한 계정(콘텐츠 수 상위 3분의 1)에게 초대장 1장을 추가로 부여합니다."
+
+#: src/routes/(root)/tree/graph.tsx:91
+#: src/routes/(root)/tree/index.tsx:216
+msgid "Graph"
+msgstr "그래프"
 
 #: src/components/AppSidebar.tsx:346
 #: src/components/AppSidebar.tsx:469
@@ -1545,6 +1555,10 @@ msgstr "제목 2"
 #: src/components/ui/markdown-editor.tsx:287
 msgid "Heading 3"
 msgstr "제목 3"
+
+#: src/routes/(root)/tree/index.tsx:125
+msgid "Hidden account"
+msgstr "숨겨진 계정"
 
 #: src/components/NoteCardInternal.tsx:141
 #: src/components/NoteMedia.tsx:270
@@ -1647,6 +1661,8 @@ msgid "Invitation sent"
 msgstr "초대장이 발송되었습니다"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:907
+#: src/routes/(root)/tree/graph.tsx:78
+#: src/routes/(root)/tree/index.tsx:203
 msgid "Invitation tree"
 msgstr "초대 족보"
 
@@ -1678,7 +1694,7 @@ msgid "Invited by"
 msgstr "초대한 사람"
 
 #. placeholder {0}: "INVITER"
-#: src/components/ProfileCard.tsx:414
+#: src/components/ProfileCard.tsx:411
 msgid "Invited by {0}"
 msgstr "{0} 님이 초대했습니다"
 
@@ -1695,7 +1711,7 @@ msgid "Join the discussion about this story."
 msgstr "이 이야기에 대한 토론에 참여해 보세요."
 
 #. placeholder {0}: new Date(created).toLocaleDateString(i18n.locale, { year: "numeric", month: "long", })
-#: src/components/ProfileCard.tsx:449
+#: src/components/ProfileCard.tsx:446
 msgid "Joined {0}"
 msgstr "{0}에 가입"
 
@@ -2136,6 +2152,10 @@ msgstr "팔로워가 없습니다"
 #: src/components/ActorFollowingList.tsx:92
 msgid "No following found"
 msgstr "팔로잉하는 사용자가 없습니다"
+
+#: src/routes/(root)/tree/index.tsx:224
+msgid "No invitation tree data yet."
+msgstr "아직 초대 족보 데이터가 없습니다."
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:270
 #: src/routes/(root)/[handle]/settings/invite.tsx:425
@@ -3213,6 +3233,10 @@ msgstr "링크의 URL. 예: https://github.com/yourhandle."
 msgid "The Web Push public key is invalid."
 msgstr "Web Push 공개 키가 올바르지 않습니다."
 
+#: src/routes/(root)/tree/index.tsx:127
+msgid "This account is hidden because they want to keep their identity private."
+msgstr "이 계정은 본인이 신원 공개를 원치 않았기에 숨겨져 있습니다."
+
 #: src/components/PostActionMenu.tsx:385
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "이 작업은 되돌릴 수 없습니다. 이 콘텐츠는 영구적으로 삭제됩니다."
@@ -3345,6 +3369,11 @@ msgstr "번역 요청 실패"
 msgid "Translation request failed for {name}"
 msgstr "{name}로의 번역 요청에 실패했습니다"
 
+#: src/routes/(root)/tree/graph.tsx:85
+#: src/routes/(root)/tree/index.tsx:210
+msgid "Tree"
+msgstr "트리"
+
 #: src/app.tsx:125
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:602
 msgid "Try again"
@@ -3476,7 +3505,7 @@ msgstr "초대한 사용자"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:297
+#: src/components/ProfileCard.tsx:294
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "{1}에 {0} 님이 이 링크의 소유자임이 확인됨"
 
@@ -3627,11 +3656,11 @@ msgstr "여기에 게시글을 작성하세요. Markdown을 사용할 수 있습
 msgid "You are about to follow {0}."
 msgstr "{0}를 회원님의 계정으로 팔로하려고 합니다."
 
-#: src/components/ProfileCard.tsx:217
+#: src/components/ProfileCard.tsx:214
 msgid "You are blocked by this user. You can't follow them or see their posts."
 msgstr "이 사용자에게서 차단당했습니다. 이 사용자를 팔로하거나 콘텐츠를 볼 수 없습니다."
 
-#: src/components/ProfileCard.tsx:210
+#: src/components/ProfileCard.tsx:207
 msgid "You are blocking this user. They can't follow you or see your posts."
 msgstr "이 사용자를 차단했습니다. 이 사용자는 회원님을 팔로하거나 콘텐츠를 볼 수 없습니다."
 

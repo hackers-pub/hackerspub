@@ -32,14 +32,14 @@ msgstr "{0, plural, one {# eligible account} other {# eligible accounts}}; {1, p
 #. placeholder {0}: a.followersCount.totalCount
 #. placeholder {0}: actor.followersCount?.totalCount ?? 0
 #: src/components/ActorPreviewCard.tsx:63
-#: src/components/ProfileCard.tsx:338
+#: src/components/ProfileCard.tsx:335
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, one {# follower} other {# followers}}"
 
 #. placeholder {0}: a.followeesCount.totalCount
 #. placeholder {0}: actor.followeesCount?.totalCount ?? 0
 #: src/components/ActorPreviewCard.tsx:54
-#: src/components/ProfileCard.tsx:325
+#: src/components/ProfileCard.tsx:322
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, one {# following} other {# following}}"
 
@@ -92,7 +92,7 @@ msgid "{0, plural, one {Deleted # orphan medium.} other {Deleted # orphan media.
 msgstr "{0, plural, one {Deleted # orphan medium.} other {Deleted # orphan media.}}"
 
 #. placeholder {0}: actor.mutualFollowers?.totalCount ?? 0
-#: src/components/ProfileCard.tsx:379
+#: src/components/ProfileCard.tsx:376
 msgid "{0, plural, one {Followed by # person you follow} other {Followed by # people you follow}}"
 msgstr "{0, plural, one {Followed by # person you follow} other {Followed by # people you follow}}"
 
@@ -100,6 +100,11 @@ msgstr "{0, plural, one {Followed by # person you follow} other {Followed by # p
 #: src/routes/(root)/[handle]/settings/invite.tsx:326
 msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up to # person.} other {Invite your friends to Hackers' Pub. You can invite up to # people.}}"
 msgstr "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up to # person.} other {Invite your friends to Hackers' Pub. You can invite up to # people.}}"
+
+#. placeholder {0}: props.count
+#: src/routes/(root)/tree/index.tsx:173
+msgid "{0, plural, one {Invited # person} other {Invited # people}}"
+msgstr "{0, plural, one {Invited # person} other {Invited # people}}"
 
 #. placeholder {0}: Math.max(0, props.totalCount - allReactors().length)
 #: src/components/ReactionGroupSection.tsx:218
@@ -390,7 +395,7 @@ msgstr "All languages"
 msgid "All notifications"
 msgstr "All notifications"
 
-#: src/components/ProfileCard.tsx:189
+#: src/components/ProfileCard.tsx:188
 msgid "All posts"
 msgstr "All posts"
 
@@ -498,7 +503,7 @@ msgid "Articles"
 msgstr "Articles"
 
 #: src/components/AppSidebar.tsx:331
-#: src/components/ProfileCard.tsx:198
+#: src/components/ProfileCard.tsx:195
 msgid "Articles only"
 msgstr "Articles only"
 
@@ -1430,7 +1435,7 @@ msgid "Following"
 msgstr "Following"
 
 #: src/components/ActorPreviewCard.tsx:149
-#: src/components/ProfileCard.tsx:348
+#: src/components/ProfileCard.tsx:345
 msgid "Following you"
 msgstr "Following you"
 
@@ -1478,6 +1483,11 @@ msgstr "Go to my drafts"
 #: src/routes/(root)/admin/invitations.tsx:154
 msgid "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 msgstr "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
+
+#: src/routes/(root)/tree/graph.tsx:91
+#: src/routes/(root)/tree/index.tsx:216
+msgid "Graph"
+msgstr "Graph"
 
 #: src/components/AppSidebar.tsx:346
 #: src/components/AppSidebar.tsx:469
@@ -1549,6 +1559,10 @@ msgstr "Heading 2"
 #: src/components/ui/markdown-editor.tsx:287
 msgid "Heading 3"
 msgstr "Heading 3"
+
+#: src/routes/(root)/tree/index.tsx:125
+msgid "Hidden account"
+msgstr "Hidden account"
 
 #: src/components/NoteCardInternal.tsx:141
 #: src/components/NoteMedia.tsx:270
@@ -1651,6 +1665,8 @@ msgid "Invitation sent"
 msgstr "Invitation sent"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:907
+#: src/routes/(root)/tree/graph.tsx:78
+#: src/routes/(root)/tree/index.tsx:203
 msgid "Invitation tree"
 msgstr "Invitation tree"
 
@@ -1682,7 +1698,7 @@ msgid "Invited by"
 msgstr "Invited by"
 
 #. placeholder {0}: "INVITER"
-#: src/components/ProfileCard.tsx:414
+#: src/components/ProfileCard.tsx:411
 msgid "Invited by {0}"
 msgstr "Invited by {0}"
 
@@ -1699,7 +1715,7 @@ msgid "Join the discussion about this story."
 msgstr "Join the discussion about this story."
 
 #. placeholder {0}: new Date(created).toLocaleDateString(i18n.locale, { year: "numeric", month: "long", })
-#: src/components/ProfileCard.tsx:449
+#: src/components/ProfileCard.tsx:446
 msgid "Joined {0}"
 msgstr "Joined {0}"
 
@@ -2140,6 +2156,10 @@ msgstr "No followers found"
 #: src/components/ActorFollowingList.tsx:92
 msgid "No following found"
 msgstr "No following found"
+
+#: src/routes/(root)/tree/index.tsx:224
+msgid "No invitation tree data yet."
+msgstr "No invitation tree data yet."
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:270
 #: src/routes/(root)/[handle]/settings/invite.tsx:425
@@ -3217,6 +3237,10 @@ msgstr "The URL of the link, e.g., https://github.com/yourhandle."
 msgid "The Web Push public key is invalid."
 msgstr "The Web Push public key is invalid."
 
+#: src/routes/(root)/tree/index.tsx:127
+msgid "This account is hidden because they want to keep their identity private."
+msgstr "This account is hidden because they want to keep their identity private."
+
 #: src/components/PostActionMenu.tsx:385
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "This action cannot be undone. This will permanently delete this post."
@@ -3349,6 +3373,11 @@ msgstr "Translation request failed"
 msgid "Translation request failed for {name}"
 msgstr "Translation request failed for {name}"
 
+#: src/routes/(root)/tree/graph.tsx:85
+#: src/routes/(root)/tree/index.tsx:210
+msgid "Tree"
+msgstr "Tree"
+
 #: src/app.tsx:125
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:602
 msgid "Try again"
@@ -3480,7 +3509,7 @@ msgstr "Users you have invited"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:297
+#: src/components/ProfileCard.tsx:294
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "Verified that this link is owned by {0} {1}"
 
@@ -3631,11 +3660,11 @@ msgstr "Write your article here. You can use Markdown. Your article will be auto
 msgid "You are about to follow {0}."
 msgstr "You are about to follow {0}."
 
-#: src/components/ProfileCard.tsx:217
+#: src/components/ProfileCard.tsx:214
 msgid "You are blocked by this user. You can't follow them or see their posts."
 msgstr "You are blocked by this user. You can't follow them or see their posts."
 
-#: src/components/ProfileCard.tsx:210
+#: src/components/ProfileCard.tsx:207
 msgid "You are blocking this user. They can't follow you or see your posts."
 msgstr "You are blocking this user. They can't follow you or see your posts."
 
