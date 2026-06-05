@@ -2951,16 +2951,24 @@ export async function scrapePostLink<TContextData>(
   if (
     contentType === "application/pdf" || contentType === "application/x-pdf"
   ) {
-    const pdf = await PDFDocument.load(await response.bytes(), {
-      updateMetadata: false,
-    });
-    return {
-      id: generateUuidV7(),
-      url: responseUrl,
-      title: pdf.getTitle(),
-      description: pdf.getSubject(),
-      author: pdf.getAuthor(),
-    };
+    try {
+      const pdf = await PDFDocument.load(await response.bytes(), {
+        updateMetadata: false,
+      });
+      return {
+        id: generateUuidV7(),
+        url: responseUrl,
+        title: pdf.getTitle(),
+        description: pdf.getSubject(),
+        author: pdf.getAuthor(),
+      };
+    } catch (error) {
+      lg.warn("Failed to read or parse PDF from {url}: {error}", {
+        url: responseUrl,
+        error,
+      });
+      return undefined;
+    }
   }
   if (contentType !== "text/html" && contentType !== "application/xhtml+xml") {
     lg.warn("Not an HTML page: {url} ({contentType})", {
@@ -2979,7 +2987,16 @@ export async function scrapePostLink<TContextData>(
       ),
   );
   let charset = contentTypeParams.charset?.toLowerCase();
-  const bytes = await response.bytes();
+  let bytes: Uint8Array;
+  try {
+    bytes = await response.bytes();
+  } catch (error) {
+    lg.warn("Failed to read body from {url}: {error}", {
+      url: responseUrl,
+      error,
+    });
+    return undefined;
+  }
   if (!charset) {
     // Try to find charset in meta tags if not specified in Content-Type
     const decoder = new TextDecoder();
