@@ -32,14 +32,14 @@ msgstr "{0, plural, one {# eligible account} other {# eligible accounts}}; {1, p
 #. placeholder {0}: a.followersCount.totalCount
 #. placeholder {0}: actor.followersCount?.totalCount ?? 0
 #: src/components/ActorPreviewCard.tsx:63
-#: src/components/ProfileCard.tsx:281
+#: src/components/ProfileCard.tsx:338
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, one {# follower} other {# followers}}"
 
 #. placeholder {0}: a.followeesCount.totalCount
 #. placeholder {0}: actor.followeesCount?.totalCount ?? 0
 #: src/components/ActorPreviewCard.tsx:54
-#: src/components/ProfileCard.tsx:268
+#: src/components/ProfileCard.tsx:325
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, one {# following} other {# following}}"
 
@@ -92,7 +92,7 @@ msgid "{0, plural, one {Deleted # orphan medium.} other {Deleted # orphan media.
 msgstr "{0, plural, one {Deleted # orphan medium.} other {Deleted # orphan media.}}"
 
 #. placeholder {0}: actor.mutualFollowers?.totalCount ?? 0
-#: src/components/ProfileCard.tsx:322
+#: src/components/ProfileCard.tsx:379
 msgid "{0, plural, one {Followed by # person you follow} other {Followed by # people you follow}}"
 msgstr "{0, plural, one {Followed by # person you follow} other {Followed by # people you follow}}"
 
@@ -265,8 +265,10 @@ msgid "{0}: {1}"
 msgstr "{0}: {1}"
 
 #. placeholder {0}: actor.rawName ?? actor.username
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:87
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:91
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:88
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:92
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:99
+#: src/routes/(root)/[handle]/(profile)/index.tsx:236
 msgid "{0}'s articles"
 msgstr "{0}'s articles"
 
@@ -388,6 +390,10 @@ msgstr "All languages"
 msgid "All notifications"
 msgstr "All notifications"
 
+#: src/components/ProfileCard.tsx:189
+msgid "All posts"
+msgstr "All posts"
+
 #: src/components/NewsList.tsx:90
 msgid "All-time"
 msgstr "All-time"
@@ -492,6 +498,7 @@ msgid "Articles"
 msgstr "Articles"
 
 #: src/components/AppSidebar.tsx:331
+#: src/components/ProfileCard.tsx:198
 msgid "Articles only"
 msgstr "Articles only"
 
@@ -1423,7 +1430,7 @@ msgid "Following"
 msgstr "Following"
 
 #: src/components/ActorPreviewCard.tsx:149
-#: src/components/ProfileCard.tsx:291
+#: src/components/ProfileCard.tsx:348
 msgid "Following you"
 msgstr "Following you"
 
@@ -1675,7 +1682,7 @@ msgid "Invited by"
 msgstr "Invited by"
 
 #. placeholder {0}: "INVITER"
-#: src/components/ProfileCard.tsx:357
+#: src/components/ProfileCard.tsx:414
 msgid "Invited by {0}"
 msgstr "Invited by {0}"
 
@@ -1692,7 +1699,7 @@ msgid "Join the discussion about this story."
 msgstr "Join the discussion about this story."
 
 #. placeholder {0}: new Date(created).toLocaleDateString(i18n.locale, { year: "numeric", month: "long", })
-#: src/components/ProfileCard.tsx:392
+#: src/components/ProfileCard.tsx:449
 msgid "Joined {0}"
 msgstr "Joined {0}"
 
@@ -2397,7 +2404,7 @@ msgstr "Permission denied"
 msgid "Pin to profile"
 msgstr "Pin to profile"
 
-#: src/routes/(root)/[handle]/(profile)/index.tsx:305
+#: src/routes/(root)/[handle]/(profile)/index.tsx:319
 msgid "Pinned posts"
 msgstr "Pinned posts"
 
@@ -2437,7 +2444,7 @@ msgstr "Poll closed"
 msgid "Popular"
 msgstr "Popular"
 
-#. placeholder {0}: post().actor.name ?? post().actor.handle
+#. placeholder {0}: post().actor.rawName ?? post().actor.handle
 #: src/routes/(root)/admin/refresh.tsx:224
 msgid "Post by {0}"
 msgstr "Post by {0}"
@@ -3038,6 +3045,10 @@ msgstr "Subscribe"
 msgid "Subscribe to a relay"
 msgstr "Subscribe to a relay"
 
+#: src/components/ProfileCard.tsx:161
+msgid "Subscribe via RSS"
+msgstr "Subscribe via RSS"
+
 #: src/routes/(root)/admin/relay.tsx:256
 msgid "Subscribed relays"
 msgstr "Subscribed relays"
@@ -3469,7 +3480,7 @@ msgstr "Users you have invited"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:240
+#: src/components/ProfileCard.tsx:297
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "Verified that this link is owned by {0} {1}"
 
@@ -3620,11 +3631,11 @@ msgstr "Write your article here. You can use Markdown. Your article will be auto
 msgid "You are about to follow {0}."
 msgstr "You are about to follow {0}."
 
-#: src/components/ProfileCard.tsx:160
+#: src/components/ProfileCard.tsx:217
 msgid "You are blocked by this user. You can't follow them or see their posts."
 msgstr "You are blocked by this user. You can't follow them or see their posts."
 
-#: src/components/ProfileCard.tsx:153
+#: src/components/ProfileCard.tsx:210
 msgid "You are blocking this user. They can't follow you or see your posts."
 msgstr "You are blocking this user. They can't follow you or see your posts."
 

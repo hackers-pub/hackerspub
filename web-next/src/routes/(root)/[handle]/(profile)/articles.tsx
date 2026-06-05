@@ -1,4 +1,4 @@
-import { Meta } from "@solidjs/meta";
+import { Link, Meta } from "@solidjs/meta";
 import { type RouteDefinition, useParams } from "@solidjs/router";
 import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { graphql } from "relay-runtime";
@@ -33,6 +33,7 @@ const articlesPageQuery = graphql`
     actorByHandle(handle: $handle, allowLocalHandle: true) {
       rawName
       username
+      local
       viewerBlocks
       blocksViewer
       ...NavigateIfHandleIsNotCanonical_actor
@@ -90,6 +91,14 @@ export default function ProfileArticlesPage() {
                   property="og:title"
                   content={t`${actor.rawName ?? actor.username}'s articles`}
                 />
+                <Show when={actor.local}>
+                  <Link
+                    rel="alternate"
+                    type="application/atom+xml"
+                    href={`/@${actor.username}/feed.xml?articles`}
+                    title={t`${actor.rawName ?? actor.username}'s articles`}
+                  />
+                </Show>
                 <NavigateIfHandleIsNotCanonical $actor={actor} />
                 <div>
                   <ProfileCard $actor={actor} />

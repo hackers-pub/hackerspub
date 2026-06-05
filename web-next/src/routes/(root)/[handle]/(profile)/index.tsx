@@ -222,6 +222,20 @@ export default function ProfilePage() {
                   type="application/activity+json"
                   href={actor.iri}
                 />
+                <Show when={actor.local}>
+                  <Link
+                    rel="alternate"
+                    type="application/atom+xml"
+                    href={`/@${actor.username}/feed.xml`}
+                    title={actor.rawName ?? actor.username}
+                  />
+                  <Link
+                    rel="alternate"
+                    type="application/atom+xml"
+                    href={`/@${actor.username}/feed.xml?articles`}
+                    title={t`${actor.rawName ?? actor.username}'s articles`}
+                  />
+                </Show>
                 <Title>{actor.rawName ?? actor.username}</Title>
                 <Meta property="og:type" content="profile" />
                 <Meta property="og:url" content={actor.url ?? actor.iri} />

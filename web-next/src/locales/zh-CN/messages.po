@@ -32,14 +32,14 @@ msgstr "{0, plural, other {符合条件的账号 # 个}}；若现在重新发放
 #. placeholder {0}: a.followersCount.totalCount
 #. placeholder {0}: actor.followersCount?.totalCount ?? 0
 #: src/components/ActorPreviewCard.tsx:63
-#: src/components/ProfileCard.tsx:281
+#: src/components/ProfileCard.tsx:338
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {被 # 人关注}}"
 
 #. placeholder {0}: a.followeesCount.totalCount
 #. placeholder {0}: actor.followeesCount?.totalCount ?? 0
 #: src/components/ActorPreviewCard.tsx:54
-#: src/components/ProfileCard.tsx:268
+#: src/components/ProfileCard.tsx:325
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {关注 # 人}}"
 
@@ -92,7 +92,7 @@ msgid "{0, plural, one {Deleted # orphan medium.} other {Deleted # orphan media.
 msgstr "{0, plural, other {已删除 # 个孤立媒体。}}"
 
 #. placeholder {0}: actor.mutualFollowers?.totalCount ?? 0
-#: src/components/ProfileCard.tsx:322
+#: src/components/ProfileCard.tsx:379
 msgid "{0, plural, one {Followed by # person you follow} other {Followed by # people you follow}}"
 msgstr "{0, plural, other {你关注的 # 人也关注了}}"
 
@@ -265,8 +265,10 @@ msgid "{0}: {1}"
 msgstr "{0}：{1}"
 
 #. placeholder {0}: actor.rawName ?? actor.username
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:87
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:91
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:88
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:92
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:99
+#: src/routes/(root)/[handle]/(profile)/index.tsx:236
 msgid "{0}'s articles"
 msgstr "{0}的文章"
 
@@ -388,6 +390,10 @@ msgstr "所有语言"
 msgid "All notifications"
 msgstr "所有通知"
 
+#: src/components/ProfileCard.tsx:189
+msgid "All posts"
+msgstr "全部内容"
+
 #: src/components/NewsList.tsx:90
 msgid "All-time"
 msgstr "全部时间"
@@ -492,6 +498,7 @@ msgid "Articles"
 msgstr "文章"
 
 #: src/components/AppSidebar.tsx:331
+#: src/components/ProfileCard.tsx:198
 msgid "Articles only"
 msgstr "仅文章"
 
@@ -1419,7 +1426,7 @@ msgid "Following"
 msgstr "关注"
 
 #: src/components/ActorPreviewCard.tsx:149
-#: src/components/ProfileCard.tsx:291
+#: src/components/ProfileCard.tsx:348
 msgid "Following you"
 msgstr "关注了你"
 
@@ -1671,7 +1678,7 @@ msgid "Invited by"
 msgstr "邀请人"
 
 #. placeholder {0}: "INVITER"
-#: src/components/ProfileCard.tsx:357
+#: src/components/ProfileCard.tsx:414
 msgid "Invited by {0}"
 msgstr "由 {0} 邀请"
 
@@ -1688,7 +1695,7 @@ msgid "Join the discussion about this story."
 msgstr "参与关于这个话题的讨论。"
 
 #. placeholder {0}: new Date(created).toLocaleDateString(i18n.locale, { year: "numeric", month: "long", })
-#: src/components/ProfileCard.tsx:392
+#: src/components/ProfileCard.tsx:449
 msgid "Joined {0}"
 msgstr "加入于 {0}"
 
@@ -2393,7 +2400,7 @@ msgstr "权限被拒绝"
 msgid "Pin to profile"
 msgstr "置顶到个人资料"
 
-#: src/routes/(root)/[handle]/(profile)/index.tsx:305
+#: src/routes/(root)/[handle]/(profile)/index.tsx:319
 msgid "Pinned posts"
 msgstr "已置顶内容"
 
@@ -2433,7 +2440,7 @@ msgstr "投票已结束"
 msgid "Popular"
 msgstr "热门"
 
-#. placeholder {0}: post().actor.name ?? post().actor.handle
+#. placeholder {0}: post().actor.rawName ?? post().actor.handle
 #: src/routes/(root)/admin/refresh.tsx:224
 msgid "Post by {0}"
 msgstr "{0} 的内容"
@@ -3034,6 +3041,10 @@ msgstr "订阅"
 msgid "Subscribe to a relay"
 msgstr "订阅中继"
 
+#: src/components/ProfileCard.tsx:161
+msgid "Subscribe via RSS"
+msgstr "通过 RSS 订阅"
+
 #: src/routes/(root)/admin/relay.tsx:256
 msgid "Subscribed relays"
 msgstr "已订阅的中继"
@@ -3465,7 +3476,7 @@ msgstr "您邀请的用户"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:240
+#: src/components/ProfileCard.tsx:297
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "已于{1}验证此链接归{0}所有"
 
@@ -3616,11 +3627,11 @@ msgstr "在此撰写文章。您可以使用 Markdown。在您撰写时，文章
 msgid "You are about to follow {0}."
 msgstr "你即将从你的账户关注{0}。"
 
-#: src/components/ProfileCard.tsx:160
+#: src/components/ProfileCard.tsx:217
 msgid "You are blocked by this user. You can't follow them or see their posts."
 msgstr "你已被此用户屏蔽。你无法关注该用户或查看该用户的内容。"
 
-#: src/components/ProfileCard.tsx:153
+#: src/components/ProfileCard.tsx:210
 msgid "You are blocking this user. They can't follow you or see your posts."
 msgstr "你正在屏蔽此用户。该用户无法关注你或查看你的内容。"
 

@@ -32,14 +32,14 @@ msgstr "{0, plural, other {대상 계정 #명}} 중, 지금 재발급하면 {1, 
 #. placeholder {0}: a.followersCount.totalCount
 #. placeholder {0}: actor.followersCount?.totalCount ?? 0
 #: src/components/ActorPreviewCard.tsx:63
-#: src/components/ProfileCard.tsx:281
+#: src/components/ProfileCard.tsx:338
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {# 팔로워}}"
 
 #. placeholder {0}: a.followeesCount.totalCount
 #. placeholder {0}: actor.followeesCount?.totalCount ?? 0
 #: src/components/ActorPreviewCard.tsx:54
-#: src/components/ProfileCard.tsx:268
+#: src/components/ProfileCard.tsx:325
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {# 팔로잉}}"
 
@@ -92,7 +92,7 @@ msgid "{0, plural, one {Deleted # orphan medium.} other {Deleted # orphan media.
 msgstr "{0, plural, other {연결되지 않은 미디어 #개를 삭제했습니다.}}"
 
 #. placeholder {0}: actor.mutualFollowers?.totalCount ?? 0
-#: src/components/ProfileCard.tsx:322
+#: src/components/ProfileCard.tsx:379
 msgid "{0, plural, one {Followed by # person you follow} other {Followed by # people you follow}}"
 msgstr "{0, plural, other {당신이 팔로하는 # 명이 팔로합니다}}"
 
@@ -265,8 +265,10 @@ msgid "{0}: {1}"
 msgstr "{0}: {1}"
 
 #. placeholder {0}: actor.rawName ?? actor.username
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:87
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:91
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:88
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:92
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:99
+#: src/routes/(root)/[handle]/(profile)/index.tsx:236
 msgid "{0}'s articles"
 msgstr "{0} 님의 게시글"
 
@@ -388,6 +390,10 @@ msgstr "모든 언어"
 msgid "All notifications"
 msgstr "모든 알림"
 
+#: src/components/ProfileCard.tsx:189
+msgid "All posts"
+msgstr "전체 콘텐츠"
+
 #: src/components/NewsList.tsx:90
 msgid "All-time"
 msgstr "전체 기간"
@@ -492,6 +498,7 @@ msgid "Articles"
 msgstr "게시글"
 
 #: src/components/AppSidebar.tsx:331
+#: src/components/ProfileCard.tsx:198
 msgid "Articles only"
 msgstr "게시글만"
 
@@ -1419,7 +1426,7 @@ msgid "Following"
 msgstr "팔로잉"
 
 #: src/components/ActorPreviewCard.tsx:149
-#: src/components/ProfileCard.tsx:291
+#: src/components/ProfileCard.tsx:348
 msgid "Following you"
 msgstr "당신을 팔로합니다"
 
@@ -1671,7 +1678,7 @@ msgid "Invited by"
 msgstr "초대한 사람"
 
 #. placeholder {0}: "INVITER"
-#: src/components/ProfileCard.tsx:357
+#: src/components/ProfileCard.tsx:414
 msgid "Invited by {0}"
 msgstr "{0} 님이 초대했습니다"
 
@@ -1688,7 +1695,7 @@ msgid "Join the discussion about this story."
 msgstr "이 이야기에 대한 토론에 참여해 보세요."
 
 #. placeholder {0}: new Date(created).toLocaleDateString(i18n.locale, { year: "numeric", month: "long", })
-#: src/components/ProfileCard.tsx:392
+#: src/components/ProfileCard.tsx:449
 msgid "Joined {0}"
 msgstr "{0}에 가입"
 
@@ -2393,7 +2400,7 @@ msgstr "권한이 거부되었습니다"
 msgid "Pin to profile"
 msgstr "프로필에 고정"
 
-#: src/routes/(root)/[handle]/(profile)/index.tsx:305
+#: src/routes/(root)/[handle]/(profile)/index.tsx:319
 msgid "Pinned posts"
 msgstr "고정된 콘텐츠"
 
@@ -2433,7 +2440,7 @@ msgstr "투표가 마감되었습니다"
 msgid "Popular"
 msgstr "인기"
 
-#. placeholder {0}: post().actor.name ?? post().actor.handle
+#. placeholder {0}: post().actor.rawName ?? post().actor.handle
 #: src/routes/(root)/admin/refresh.tsx:224
 msgid "Post by {0}"
 msgstr "{0}님의 콘텐츠"
@@ -3034,6 +3041,10 @@ msgstr "구독"
 msgid "Subscribe to a relay"
 msgstr "릴레이 구독"
 
+#: src/components/ProfileCard.tsx:161
+msgid "Subscribe via RSS"
+msgstr "RSS로 구독"
+
 #: src/routes/(root)/admin/relay.tsx:256
 msgid "Subscribed relays"
 msgstr "구독 중인 릴레이"
@@ -3465,7 +3476,7 @@ msgstr "초대한 사용자"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:240
+#: src/components/ProfileCard.tsx:297
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "{1}에 {0} 님이 이 링크의 소유자임이 확인됨"
 
@@ -3616,11 +3627,11 @@ msgstr "여기에 게시글을 작성하세요. Markdown을 사용할 수 있습
 msgid "You are about to follow {0}."
 msgstr "{0}를 회원님의 계정으로 팔로하려고 합니다."
 
-#: src/components/ProfileCard.tsx:160
+#: src/components/ProfileCard.tsx:217
 msgid "You are blocked by this user. You can't follow them or see their posts."
 msgstr "이 사용자에게서 차단당했습니다. 이 사용자를 팔로하거나 콘텐츠를 볼 수 없습니다."
 
-#: src/components/ProfileCard.tsx:153
+#: src/components/ProfileCard.tsx:210
 msgid "You are blocking this user. They can't follow you or see your posts."
 msgstr "이 사용자를 차단했습니다. 이 사용자는 회원님을 팔로하거나 콘텐츠를 볼 수 없습니다."
 
