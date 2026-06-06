@@ -167,6 +167,64 @@ test("persistPostMedium() stores image attachments and infers media type from co
   });
 });
 
+test("persistPostMedium() updates an existing attachment index", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const account = await insertAccountWithActor(tx, {
+      username: "updatemediaowner",
+      name: "Update Media Owner",
+      email: "updatemediaowner@example.com",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: account.account,
+      content: "Post with updated media",
+    });
+
+    await withMockFetch(async () => {
+      return new Response(new Uint8Array([1, 2, 3]), {
+        status: 200,
+        headers: { "Content-Type": "image/png" },
+      });
+    }, async () => {
+      await persistPostMedium(
+        fedCtx,
+        new vocab.Image({
+          url: new URL("https://remote.example/media/original.png"),
+          name: "Original alt",
+          width: 640,
+          height: 480,
+        }),
+        post.id,
+        0,
+      );
+      const updated = await persistPostMedium(
+        fedCtx,
+        new vocab.Image({
+          url: new URL("https://remote.example/media/updated.png"),
+          name: "Updated alt",
+          width: 800,
+          height: 600,
+        }),
+        post.id,
+        0,
+      );
+
+      assert.ok(updated != null);
+      assert.equal(updated.postId, post.id);
+      assert.equal(updated.index, 0);
+      assert.equal(updated.url, "https://remote.example/media/updated.png");
+      assert.equal(updated.alt, "Updated alt");
+      assert.equal(updated.width, 800);
+      assert.equal(updated.height, 600);
+
+      const media = await tx.query.postMediumTable.findMany({
+        where: { postId: post.id },
+      });
+      assert.equal(media.length, 1);
+    });
+  });
+});
+
 test("persistPostMedium() ignores failed remote video responses", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);

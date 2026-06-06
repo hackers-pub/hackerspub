@@ -438,18 +438,23 @@ export async function persistPostMedium(
       await rm(tmpDir, { recursive: true, force: true });
     }
   }
-  const result = await fedCtx.data.db.insert(postMediumTable).values(
-    {
-      postId,
-      index,
-      type: mediumType,
-      url: url.href,
-      alt: document.name?.toString(),
-      width,
-      height,
-      thumbnailKey,
-      sensitive: document.sensitive ?? false,
-    } satisfies NewPostMedium,
-  ).returning();
+  const values = {
+    postId,
+    index,
+    type: mediumType,
+    url: url.href,
+    alt: document.name?.toString(),
+    width,
+    height,
+    thumbnailKey,
+    sensitive: document.sensitive ?? false,
+  } satisfies NewPostMedium;
+  const result = await fedCtx.data.db.insert(postMediumTable)
+    .values(values)
+    .onConflictDoUpdate({
+      target: [postMediumTable.postId, postMediumTable.index],
+      set: values,
+    })
+    .returning();
   return result.length > 0 ? result[0] : undefined;
 }
