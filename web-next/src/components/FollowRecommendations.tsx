@@ -15,6 +15,7 @@ import { createStablePreloadedQuery } from "~/lib/relayPreload.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { FollowRecommendationsQuery } from "./__generated__/FollowRecommendationsQuery.graphql.ts";
 import { FollowButton } from "./FollowButton.tsx";
+import { ActorHoverCard } from "./ActorHoverCard.tsx";
 
 const STORAGE_KEY_PREFIX = "followRecommendationsDismissed";
 const BATCH_SIZE = 50;
@@ -128,7 +129,7 @@ function FollowRecommendationsInner(props: { storageKey: string }) {
   return (
     <Show when={visibleActors()} keyed>
       {(actors) => (
-        <div class="overflow-hidden border bg-card md:rounded-lg md:shadow-sm">
+        <div class="mt-4 overflow-hidden border bg-card md:rounded-lg md:shadow-sm">
           <div class="flex items-center justify-between border-b px-4 py-3">
             <h2 class="text-sm font-semibold">
               {t`People you might want to follow`}
@@ -155,35 +156,39 @@ function FollowRecommendationsInner(props: { storageKey: string }) {
                     "hover:bg-muted/30 transition-colors",
                   )}
                 >
-                  <A
-                    href={profilePath}
-                    class="size-10 shrink-0 overflow-hidden rounded-full"
-                  >
-                    <img
-                      src={actor.avatarUrl}
-                      alt={actor.rawName ?? actor.username}
-                      class="size-full object-cover"
-                      loading="lazy"
-                    />
-                  </A>
-                  <A
-                    href={profilePath}
-                    class="min-w-0 flex-1 text-sm no-underline"
-                  >
-                    <div class="truncate font-medium text-foreground">
-                      {actor.name != null
-                        ? (
-                          <span
-                            innerHTML={actor.name}
-                            class="[&_.Mention\_actorName]:font-normal [&_.Mention\_actorName]:text-muted-foreground/50"
-                          />
-                        )
-                        : actor.username}
-                    </div>
-                    <div class="truncate text-muted-foreground">
-                      {actor.handle}
-                    </div>
-                  </A>
+                  <ActorHoverCard handle={actor.handle} class="shrink-0">
+                    <A
+                      href={profilePath}
+                      class="size-10 shrink-0 overflow-hidden rounded-full"
+                    >
+                      <img
+                        src={actor.avatarUrl}
+                        alt={actor.rawName ?? actor.username}
+                        class="size-full object-cover"
+                        loading="lazy"
+                      />
+                    </A>
+                  </ActorHoverCard>
+                  <ActorHoverCard handle={actor.handle} class="min-w-0 flex-1">
+                    <A
+                      href={profilePath}
+                      class="min-w-0 flex-1 text-sm no-underline"
+                    >
+                      <div class="truncate font-medium text-foreground">
+                        {actor.name != null
+                          ? (
+                            <span
+                              innerHTML={actor.name}
+                              class="[&_.Mention\_actorName]:font-normal [&_.Mention\_actorName]:text-muted-foreground/50"
+                            />
+                          )
+                          : actor.username}
+                      </div>
+                      <div class="truncate text-muted-foreground">
+                        {actor.handle}
+                      </div>
+                    </A>
+                  </ActorHoverCard>
                   <FollowButton
                     $actor={actor}
                     onFollowed={() => hideActor(actor.id)}

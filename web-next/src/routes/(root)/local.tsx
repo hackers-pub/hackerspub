@@ -56,6 +56,7 @@ export default function LocalTimeline() {
           <Show when={data.viewer == null}>
             <AboutHackersPub />
           </Show>
+          <FollowRecommendations />
           <Show
             when={data.suggestedFilterLanguages.length > 0 ||
               !!activeLanguage()}
@@ -66,7 +67,6 @@ export default function LocalTimeline() {
               buildHref={buildHref}
             />
           </Show>
-          <FollowRecommendations />
           <PublicTimeline
             $posts={data}
             activeLanguage={activeLanguage}

@@ -66,6 +66,7 @@ function AuthenticatedFeedTimeline() {
     <Show keyed when={data()}>
       {(d) => (
         <NarrowContainer>
+          <FollowRecommendations />
           <Show
             when={d.suggestedFilterLanguages.length > 0 || !!activeLanguage()}
           >
@@ -75,7 +76,6 @@ function AuthenticatedFeedTimeline() {
               buildHref={buildHref}
             />
           </Show>
-          <FollowRecommendations />
           <PersonalTimeline $posts={d} activeLanguage={activeLanguage} />
         </NarrowContainer>
       )}
