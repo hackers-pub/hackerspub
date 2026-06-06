@@ -22,11 +22,14 @@ import { NoteComposeProvider } from "~/contexts/NoteComposeContext.tsx";
 import { ViewerProvider } from "~/contexts/ViewerContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { RootLayoutQuery } from "./__generated__/RootLayoutQuery.graphql.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import { preloadRouteQuery, routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 export const route = {
-  preload() {
-    void loadRootLayoutQuery();
+  preload(args) {
+    // The root layout query is `network-only` and backs the currently mounted
+    // app chrome. Hover preloads should not refresh that live root resource.
+    if (args.intent === "preload") return;
+    preloadRouteQuery(args, loadRootLayoutQuery);
   },
 } satisfies RouteDefinition;
 

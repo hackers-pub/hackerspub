@@ -1,4 +1,4 @@
-import { query } from "@solidjs/router";
+import { query, type RoutePreloadFuncArgs } from "@solidjs/router";
 import {
   type CacheConfig,
   type FetchPolicy,
@@ -35,6 +35,7 @@ export interface RoutePreloadedQuery<
   TLoader extends (...args: never[]) => PreloadedQuery<OperationType>,
 > {
   (...args: Parameters<TLoader>): MaybePromise<ReturnType<TLoader>>;
+  preload: (...args: Parameters<TLoader>) => void;
   key: string;
   keyFor: (...args: Parameters<TLoader>) => string;
 }
@@ -142,9 +143,58 @@ export function routePreloadedQuery<
     query.delete(key);
     return runCached(owner, cached, args);
   }) as RoutePreloadedQuery<TLoader>;
+  wrapped.preload = (...args: Parameters<TLoader>) => {
+    const owner = getOwner();
+    try {
+      const preloaded = runCached(owner, loader, args);
+      if (isPromiseLike(preloaded)) {
+        preloaded.then(releaseWhenPreloadSettles).catch((error: unknown) => {
+          console.error("Relay query route preload failed:", error);
+        });
+        return;
+      }
+      releaseWhenPreloadSettles(preloaded);
+    } catch (error) {
+      console.error("Relay query route preload failed:", error);
+    }
+  };
   wrapped.key = cached.key;
   wrapped.keyFor = cached.keyFor;
   return wrapped;
+}
+
+export function preloadRouteQuery<
+  TLoader extends (...args: never[]) => PreloadedQuery<OperationType>,
+>(
+  routeArgs: Pick<RoutePreloadFuncArgs, "intent">,
+  loader: RoutePreloadedQuery<TLoader>,
+  ...args: Parameters<TLoader>
+): void {
+  if (routeArgs.intent === "preload") {
+    loader.preload(...args);
+    return;
+  }
+  void loader(...args);
+}
+
+function releaseWhenPreloadSettles(
+  preloaded: PreloadedQuery<OperationType> | null | undefined,
+): void {
+  const controls = preloaded?.controls?.value;
+  if (controls == null) return;
+  if (controls.source == null) {
+    controls.releaseQuery();
+    return;
+  }
+  controls.source.subscribe({
+    complete() {
+      controls.releaseQuery();
+    },
+    error(error: unknown) {
+      console.error("Relay query route preload failed:", error);
+      controls.releaseQuery();
+    },
+  });
 }
 
 function isStalePreloadedQuery(
@@ -216,6 +266,39 @@ export function createStablePreloadedQuery<TQuery extends OperationType>(
     latest: { get: () => latest(), enumerable: true },
     error: { get: () => store.error, enumerable: true },
     pending: { get: () => store.pending, enumerable: true },
+  });
+  return accessor;
+}
+
+// For app-level resources whose subtree should keep rendering while a fresh
+// preload is in flight. Unlike `createStablePreloadedQuery`, this keeps the
+// last resolved value beyond hydration; use it only for stable chrome providers
+// where showing the previous value briefly is better than replacing the whole
+// app with the root `<Suspense>` fallback.
+export function createPersistentPreloadedQuery<TQuery extends OperationType>(
+  query: GraphQLTaggedNode,
+  preloadedQuery: () => MaybePromise<PreloadedQuery<TQuery> | null | undefined>,
+): DataStore<TQuery["response"] | null | undefined> {
+  const store = createPreloadedQuery<TQuery>(query, preloadedQuery);
+  const latest = createMemo<TQuery["response"] | null | undefined>(
+    (prev) => store.latest ?? prev,
+  );
+  const current = createMemo<TQuery["response"] | null | undefined>((prev) => {
+    const previous = latest() ?? prev;
+    if (store.pending && previous != null) return previous;
+    const value = store();
+    return value ?? previous;
+  });
+  const accessor = (() => current()) as unknown as DataStore<
+    TQuery["response"] | null | undefined
+  >;
+  Object.defineProperties(accessor, {
+    latest: { get: () => latest(), enumerable: true },
+    error: { get: () => store.error, enumerable: true },
+    pending: {
+      get: () => store.pending && latest() == null,
+      enumerable: true,
+    },
   });
   return accessor;
 }

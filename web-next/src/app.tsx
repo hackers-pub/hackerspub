@@ -32,7 +32,7 @@ const SentryErrorBoundary = withSentryErrorBoundary(ErrorBoundary);
 import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 import "~/app.css";
 import {
-  createStablePreloadedQuery,
+  createPersistentPreloadedQuery,
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
 
@@ -53,7 +53,7 @@ const loadAppQuery = routePreloadedQuery(
 );
 
 function I18nProviderWrapper(props: ParentProps) {
-  const data = createStablePreloadedQuery<appQuery>(
+  const data = createPersistentPreloadedQuery<appQuery>(
     appQuery,
     () => loadAppQuery(),
   );
