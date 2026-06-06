@@ -257,6 +257,7 @@ export async function onPostPinned(
   if (add.actorId == null || add.targetId == null || add.objectId == null) {
     return;
   }
+  if (isTagsPubHashtagActor(add.actorId.href)) return;
   let actor = await getPersistedActor(fedCtx.data.db, add.actorId);
   if (actor?.featuredUrl == null) {
     const actorObject = await add.getActor({ ...fedCtx, suppressError: true });
@@ -293,6 +294,7 @@ export async function onPostUnpinned(
   ) {
     return;
   }
+  if (isTagsPubHashtagActor(remove.actorId.href)) return;
   let actor = await getPersistedActor(fedCtx.data.db, remove.actorId);
   if (actor?.featuredUrl == null) {
     const actorObject = await remove.getActor({
