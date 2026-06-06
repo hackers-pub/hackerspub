@@ -141,6 +141,31 @@ test("scrapePostLink() treats an empty HTML response as no preview", async () =>
   resetGlobalFetch();
 });
 
+test("scrapePostLink() passes caller abort signals to fetch", async () => {
+  const originalFetch = globalThis.fetch;
+  const controller = new AbortController();
+  controller.abort();
+  let calls = 0;
+  globalThis.fetch = ((_input, init) => {
+    calls++;
+    assert.equal(init?.signal?.aborted, true);
+    return Promise.reject(new DOMException("Aborted", "AbortError"));
+  }) as typeof fetch;
+  try {
+    const link = await scrapePostLink(
+      ctx,
+      "https://example.internal/slow.html",
+      () => Promise.resolve(undefined),
+      { signal: controller.signal },
+    );
+
+    assert.equal(link, undefined);
+    assert.equal(calls, 1);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 describe("withDocumentLoaderTimeout()", () => {
   // Capture the signal the wrapped loader forwards to the underlying loader so
   // we can assert how the per-fetch timeout, caller signal, and overall

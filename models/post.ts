@@ -135,6 +135,12 @@ const INLINE_REPLIES_TRAVERSAL_BUDGET_MS = 15_000;
 export const PERSIST_POST_OVERALL_BUDGET_MS = 90_000;
 const SCRAPE_IMAGE_METADATA_BYTES_LIMIT = 128 * 1024;
 
+function getRemoteFetchSignal(signal?: AbortSignal): AbortSignal {
+  const signals = [AbortSignal.timeout(REMOTE_FETCH_TIMEOUT_MS), signal]
+    .filter((s): s is AbortSignal => s != null);
+  return AbortSignal.any(signals);
+}
+
 /**
  * Wraps a Fedify {@link DocumentLoader} so every remote document fetch is
  * bounded by an {@link AbortSignal.timeout}.  Without this, a single
@@ -1219,7 +1225,7 @@ export async function persistPost(
     );
   }
   const link = externalLinks.length > 0
-    ? await persistPostLink(ctx, externalLinks[0])
+    ? await persistPostLink(ctx, externalLinks[0], { signal: overallSignal })
     : undefined;
   const values: Omit<NewPost, "id"> = {
     iri: post.id.href,
@@ -2907,6 +2913,7 @@ export async function scrapePostLink<TContextData>(
   fedCtx: Context<TContextData>,
   url: string | URL,
   handleToActorId: (handle: string) => Promise<Uuid | undefined>,
+  options: { signal?: AbortSignal } = {},
 ): Promise<NewPostLink | undefined> {
   const lg = logger.getChild("scrapePostLink");
   url = typeof url === "string" ? new URL(url) : url;
@@ -2924,6 +2931,7 @@ export async function scrapePostLink<TContextData>(
         }),
       },
       redirect: "follow",
+      signal: getRemoteFetchSignal(options.signal),
     });
   } catch (error) {
     // Best-effort link-preview scrape: a remote being unreachable (DNS, TLS,
@@ -3090,6 +3098,7 @@ export async function scrapePostLink<TContextData>(
           "Referer": responseUrl,
         },
         redirect: "follow",
+        signal: getRemoteFetchSignal(options.signal),
       });
       logger.debug("Fetched image {url}: {status} {statusText}", {
         url: response.url,
@@ -3164,6 +3173,7 @@ const POST_LINK_CACHE_TTL = Temporal.Duration.from({ hours: 24 });
 export async function persistPostLink(
   ctx: Context<ContextData>,
   url: string | URL,
+  options: { signal?: AbortSignal } = {},
 ): Promise<PostLink | undefined> {
   if (typeof url === "string") url = new URL(url);
   if (!isSSRFSafeURL(url.href)) {
@@ -3190,6 +3200,8 @@ export async function persistPostLink(
     if (!handle.startsWith("@")) handle = `@${handle}`;
     const actors = await persistActorsByHandles(ctx, [handle]);
     return actors[handle]?.id;
+  }, {
+    signal: options.signal,
   });
   logger.debug("Scraped link {url}: {link}", {
     url: url.href,
