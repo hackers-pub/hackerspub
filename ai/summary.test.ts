@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+import assert from "node:assert";
 import test from "node:test";
 import { MockLanguageModelV3 } from "ai/test";
 import { removeDetailsFromSummaryInput, summarize } from "./summary.ts";

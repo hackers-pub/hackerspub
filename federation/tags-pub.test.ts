@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+import assert from "node:assert";
 import test from "node:test";
 import { describe, it } from "node:test";
 import * as vocab from "@fedify/vocab";

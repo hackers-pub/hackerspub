@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+import assert from "node:assert";
 import test from "node:test";
 import { accountTable, invitationLinkTable } from "@hackerspub/models/schema";
 import { eq } from "drizzle-orm";

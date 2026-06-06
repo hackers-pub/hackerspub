@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+import assert from "node:assert";
 import test from "node:test";
 import { updateAccountData } from "./account.ts";
 import { createNoteSource, getNoteSource, updateNoteSource } from "./note.ts";

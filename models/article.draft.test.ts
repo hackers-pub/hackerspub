@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+import assert from "node:assert";
 import test from "node:test";
 import { deleteArticleDraft, updateArticleDraft } from "./article.ts";
 import { generateUuidV7 } from "./uuid.ts";

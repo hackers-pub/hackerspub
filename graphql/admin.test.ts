@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+import assert from "node:assert";
 import test from "node:test";
 import { INVITATIONS_LAST_REGEN_KEY } from "@hackerspub/models/admin";
 import { accountTable, mediumTable } from "@hackerspub/models/schema";

@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+import assert from "node:assert";
 import test from "node:test";
 import { and, eq } from "drizzle-orm";
 import { encodeGlobalID } from "@pothos/plugin-relay";

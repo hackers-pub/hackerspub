@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+import assert from "node:assert";
 import test from "node:test";
 import { execute, parse } from "graphql";
 import { schema } from "./mod.ts";

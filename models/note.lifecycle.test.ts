@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+import assert from "node:assert";
 import process from "node:process";
 import test from "node:test";
 import type { Context } from "@fedify/fedify";

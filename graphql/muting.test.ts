@@ -2,7 +2,7 @@ import { follow } from "@hackerspub/models/following";
 import { mute } from "@hackerspub/models/muting";
 import { followingTable, mutingTable } from "@hackerspub/models/schema";
 import { encodeGlobalID } from "@pothos/plugin-relay";
-import assert from "node:assert/strict";
+import assert from "node:assert";
 import test from "node:test";
 import { and, eq, or } from "drizzle-orm";
 import { execute, parse } from "graphql";

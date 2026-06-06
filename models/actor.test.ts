@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+import assert from "node:assert";
 import test from "node:test";
 import { getActorStats, getPersistedActor } from "./actor.ts";
 import { articleSourceTable, type NewPost, postTable } from "./schema.ts";

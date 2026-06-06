@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+import assert from "node:assert";
 import test from "node:test";
 import { FULL_HANDLE_REGEXP, HANDLE_REGEXP } from "./searchPatterns.ts";
 

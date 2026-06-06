@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+import assert from "node:assert";
 import { describe, it } from "node:test";
 import type { Actor, Following } from "@hackerspub/models/schema";
 import type { Uuid } from "@hackerspub/models/uuid";

@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+import assert from "node:assert";
 import { describe, it } from "node:test";
 import { findNearestLocale, type Locale, negotiateLocale } from "./i18n.ts";
 

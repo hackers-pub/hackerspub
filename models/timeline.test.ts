@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+import assert from "node:assert";
 import test from "node:test";
 import { eq } from "drizzle-orm";
 import { follow } from "./following.ts";

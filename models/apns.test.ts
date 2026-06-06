@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+import assert from "node:assert";
 import { describe, it } from "node:test";
 import { normalizeApnsDeviceToken } from "./apns.ts";
 

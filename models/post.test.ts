@@ -9,14 +9,12 @@ import {
   type DocumentLoader,
   MemoryKvStore,
 } from "@fedify/fedify";
-import assert from "node:assert/strict";
+import assert from "node:assert";
 import { describe, it } from "node:test";
 import { validate } from "@std/uuid/v7";
 import { scrapePostLink, withDocumentLoaderTimeout } from "./post.ts";
 
 describe("scrapePostLink()", () => {
-  mockGlobalFetch();
-
   const federation = createFederation<void>({
     kv: new MemoryKvStore(),
   });
@@ -26,6 +24,7 @@ describe("scrapePostLink()", () => {
   );
 
   it("", async () => {
+    mockGlobalFetch();
     mockFetch("https://example.internal/index.html", {
       headers: {
         "Content-Type": "text/html; charset=utf-8",
@@ -73,9 +72,11 @@ describe("scrapePostLink()", () => {
     });
     assert.ok(link != null && validate(link.id));
     resetFetch();
+    resetGlobalFetch();
   });
 
   it("keeps image URL when metadata probing fails", async () => {
+    mockGlobalFetch();
     mockFetch("https://example.internal/no-dimensions.html", {
       headers: {
         "Content-Type": "text/html; charset=utf-8",
@@ -118,9 +119,8 @@ describe("scrapePostLink()", () => {
     });
     assert.ok(link != null && validate(link.id));
     resetFetch();
+    resetGlobalFetch();
   });
-
-  resetGlobalFetch();
 });
 
 describe("withDocumentLoaderTimeout()", () => {

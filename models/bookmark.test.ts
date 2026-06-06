@@ -1,4 +1,4 @@
-import assert from "node:assert/strict";
+import assert from "node:assert";
 import test from "node:test";
 import { arePostsBookmarkedBy, createBookmark } from "./bookmark.ts";
 import {
