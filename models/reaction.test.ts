@@ -1,12 +1,19 @@
 import assert from "node:assert";
 import test from "node:test";
+import * as vocab from "@fedify/vocab";
 import { customEmojiTable, reactionTable } from "./schema.ts";
 import { generateUuidV7 } from "./uuid.ts";
-import { getViewerReactionsForPosts, react, undoReaction } from "./reaction.ts";
+import {
+  getViewerReactionsForPosts,
+  persistReaction,
+  react,
+  undoReaction,
+} from "./reaction.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
   insertNotePost,
+  insertRemoteActor,
   withRollback,
 } from "../test/postgres.ts";
 
@@ -163,6 +170,43 @@ test("undoReaction() removes the reaction counts and notification", async () => 
       },
     });
     assert.deepEqual(notification, undefined);
+  });
+});
+
+test("persistReaction() ignores unresolved custom emoji shortcodes", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const author = await insertAccountWithActor(tx, {
+      username: "customemojiunknownauthor",
+      name: "Custom Emoji Unknown Author",
+      email: "customemojiunknownauthor@example.com",
+    });
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "customemojiunknownreactor",
+      name: "Custom Emoji Unknown Reactor",
+      host: "remote.example",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "React with unresolved custom emoji",
+    });
+
+    const reaction = await persistReaction(
+      fedCtx,
+      new vocab.EmojiReact({
+        id: new URL("https://remote.example/reactions/unknown-custom-emoji"),
+        actor: new URL(remoteActor.iri),
+        object: new URL(post.iri),
+        content: ":blobcatmeltthumbsup:",
+      }),
+      fedCtx,
+    );
+
+    assert.equal(reaction, undefined);
+    const reactions = await tx.query.reactionTable.findMany({
+      where: { postId: post.id },
+    });
+    assert.deepEqual(reactions, []);
   });
 });
 

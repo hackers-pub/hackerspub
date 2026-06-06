@@ -25,6 +25,10 @@ import {
 } from "./schema.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 
+function isCustomEmojiShortcode(value: string): boolean {
+  return /^:[^:\s]+:$/.test(value);
+}
+
 export async function persistCustomEmoji(
   db: Database,
   emoji: vocab.Emoji,
@@ -99,13 +103,15 @@ export async function persistReaction(
     }
   }
   const emoji = reaction.content?.toString()?.trim() ?? DEFAULT_REACTION_EMOJI;
+  const customEmoji = customEmojis[emoji];
+  if (customEmoji == null && isCustomEmojiShortcode(emoji)) return undefined;
   const rows = await db.insert(reactionTable)
     .values({
       iri: reaction.id.href,
       postId: post.id,
       actorId: actor.id,
-      emoji: emoji in customEmojis ? null : emoji,
-      customEmojiId: emoji in customEmojis ? customEmojis[emoji].id : null,
+      emoji: customEmoji == null ? emoji : null,
+      customEmojiId: customEmoji?.id ?? null,
       created: reaction.published == null
         ? sql`CURRENT_TIMESTAMP`
         : new Date(reaction.published.epochMilliseconds),
@@ -119,7 +125,7 @@ export async function persistReaction(
       post.actor.accountId,
       post,
       actor,
-      emoji in customEmojis ? customEmojis[emoji] : emoji,
+      customEmoji ?? emoji,
     );
   }
   return rows[0];
