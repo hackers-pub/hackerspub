@@ -32,6 +32,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "~/components/ui/sidebar.tsx";
+import { UnreadNotificationsFaviconBadge } from "~/components/UnreadNotificationsFaviconBadge.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { Trans } from "./Trans.tsx";
@@ -205,6 +206,9 @@ export function AppSidebar(props: AppSidebarProps) {
 
   return (
     <Sidebar>
+      <UnreadNotificationsFaviconBadge
+        unread={(unreadNotificationsCount() ?? 0) > 0}
+      />
       <SidebarHeader>
         <AppSidebarLogo />
       </SidebarHeader>
