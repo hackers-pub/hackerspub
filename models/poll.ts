@@ -35,6 +35,14 @@ export async function persistPoll(
     options = await Array.fromAsync(question.getExclusiveOptions());
     multiple = false;
   }
+  const seenOptionTitles = new Set<string>();
+  options = options.filter((option) => {
+    const title = option.name?.toString();
+    if (title == null) return true;
+    if (seenOptionTitles.has(title)) return false;
+    seenOptionTitles.add(title);
+    return true;
+  });
   if (options.length < 1) return undefined;
   const ends = toDate(endTime);
   if (ends == null) return undefined;

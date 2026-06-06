@@ -297,3 +297,61 @@ test("persistPoll() uses closed timestamp as an end time fallback", async () => 
     assert.deepEqual(options.map((option) => option.title), ["Yes", "No"]);
   });
 });
+
+test("persistPoll() ignores duplicate remote option titles", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "duplicatepollauthor",
+      name: "Duplicate Poll Author",
+      email: "duplicatepollauthor@example.com",
+    });
+    const postId = generateUuidV7();
+    const published = new Date("2026-04-15T00:00:00.000Z");
+
+    await tx.insert(postTable).values(
+      {
+        id: postId,
+        iri: `http://localhost/objects/${postId}`,
+        type: "Question",
+        visibility: "public",
+        actorId: author.actor.id,
+        name: "Duplicate poll",
+        contentHtml: "<p>Duplicate poll</p>",
+        language: "en",
+        tags: {},
+        emojis: {},
+        url: `http://localhost/@${author.account.username}/polls/${postId}`,
+        published,
+        updated: published,
+      } satisfies NewPost,
+    );
+
+    const poll = await persistPoll(
+      tx,
+      new vocab.Question({
+        id: new URL(`http://localhost/objects/${postId}`),
+        endTime: Temporal.Instant.from("2026-04-16T00:00:00.000Z"),
+        inclusiveOptions: [
+          new vocab.Note({ name: "idk" }),
+          new vocab.Note({ name: "idk" }),
+          new vocab.Note({ name: "yes" }),
+        ],
+      }),
+      postId,
+    );
+
+    assert.ok(poll != null);
+
+    const options = await tx.query.pollOptionTable.findMany({
+      where: { postId },
+      orderBy: { index: "asc" },
+    });
+    assert.deepEqual(
+      options.map((option) => ({ index: option.index, title: option.title })),
+      [
+        { index: 0, title: "idk" },
+        { index: 1, title: "yes" },
+      ],
+    );
+  });
+});
