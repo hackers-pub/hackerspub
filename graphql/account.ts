@@ -818,6 +818,7 @@ interface InvitationTreeNode {
   id: string;
   username: string | null;
   name: string | null;
+  handle: string | null;
   avatarUrl: string;
   inviterId: string | null;
   hidden: boolean;
@@ -835,6 +836,12 @@ InvitationTreeNodeRef.implement({
     id: t.exposeID("id"),
     username: t.exposeString("username", { nullable: true }),
     name: t.exposeString("name", { nullable: true }),
+    handle: t.exposeString("handle", {
+      description:
+        "Full fediverse handle in `@username@host` format, or `null` when " +
+        "the account has opted out of the invitation tree.",
+      nullable: true,
+    }),
     avatarUrl: t.field({
       type: "URL",
       resolve: (node) => new URL(node.avatarUrl),
@@ -868,6 +875,7 @@ builder.queryField("invitationTree", (t) =>
           id: account.id,
           username: account.hideFromInvitationTree ? null : account.username,
           name: account.hideFromInvitationTree ? null : account.name,
+          handle: account.hideFromInvitationTree ? null : account.actor.handle,
           avatarUrl: account.hideFromInvitationTree
             ? DEFAULT_AVATAR_URL
             : await getAvatarUrl(ctx.disk, account),

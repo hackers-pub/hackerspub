@@ -16,6 +16,7 @@ const TreeGraphQueryDocument = graphql`
       id
       username
       name
+      handle
       avatarUrl
       inviterId
       hidden
@@ -37,6 +38,7 @@ interface TreeNode {
   id: string;
   username: string | null | undefined;
   name: string | null | undefined;
+  handle: string | null | undefined;
   avatarUrl: string;
   inviterId: string | null | undefined;
   hidden: boolean;

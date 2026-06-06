@@ -8,6 +8,7 @@ import {
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
+import { ActorHoverCard } from "~/components/ActorHoverCard.tsx";
 
 const TreeIndexQueryDocument = graphql`
   query treeQuery {
@@ -15,6 +16,7 @@ const TreeIndexQueryDocument = graphql`
       id
       username
       name
+      handle
       avatarUrl
       inviterId
       hidden
@@ -36,6 +38,7 @@ interface TreeNode {
   id: string;
   username: string | null | undefined;
   name: string | null | undefined;
+  handle: string | null | undefined;
   avatarUrl: string;
   inviterId: string | null | undefined;
   hidden: boolean;
@@ -128,30 +131,36 @@ function HiddenNode(_props: { username?: string | null }) {
 function VisibleNode(props: { user: TreeNode; inviteCount: number }) {
   return (
     <>
-      <A
-        href={`/@${props.user.username}`}
-        class="shrink-0 size-12 rounded-full overflow-hidden border border-border"
-      >
-        <img
-          src={props.user.avatarUrl}
-          class="size-full object-cover"
-          alt=""
-        />
-      </A>
-      <div class="flex flex-col min-w-0">
+      <ActorHoverCard handle={props.user.handle!} class="shrink-0">
         <A
           href={`/@${props.user.username}`}
-          class="font-semibold text-sm leading-tight"
+          class="size-12 rounded-full overflow-hidden border border-border"
         >
-          {props.user.name ?? props.user.username}
+          <img
+            src={props.user.avatarUrl}
+            class="size-full object-cover"
+            alt=""
+          />
         </A>
-        <span class="text-sm text-muted-foreground">
+      </ActorHoverCard>
+      <div class="flex flex-col min-w-0">
+        <ActorHoverCard handle={props.user.handle!} class="min-w-0">
           <A
             href={`/@${props.user.username}`}
-            class="hover:underline"
+            class="font-semibold text-sm leading-tight"
           >
-            @{props.user.username}
-          </A>{" "}
+            {props.user.name ?? props.user.username}
+          </A>
+        </ActorHoverCard>
+        <span class="text-sm text-muted-foreground">
+          <ActorHoverCard handle={props.user.handle!} class="min-w-0">
+            <A
+              href={`/@${props.user.username}`}
+              class="hover:underline"
+            >
+              @{props.user.username}
+            </A>
+          </ActorHoverCard>{" "}
           &middot; <InvitedCount count={props.inviteCount} />
         </span>
       </div>
