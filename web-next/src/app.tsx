@@ -12,7 +12,7 @@ import {
 import { Title } from "~/components/Title.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { isNetworkError } from "~/lib/networkError.ts";
+import { isNetworkError, shouldReloadOnError } from "~/lib/networkError.ts";
 import { createEnvironment } from "./RelayEnvironment.tsx";
 import type { appQuery } from "./__generated__/appQuery.graphql.ts";
 import { I18nProvider } from "./lib/i18n/index.tsx";
@@ -74,6 +74,8 @@ function I18nProviderWrapper(props: ParentProps) {
 // level, it must not call useLingui() — all strings are hard-coded in English.
 function PreI18nErrorFallback(props: { error: unknown; reset: () => void }) {
   const networkError = () => isNetworkError(props.error);
+  const handleRetry = () =>
+    shouldReloadOnError(props.error) ? window.location.reload() : props.reset();
   return (
     <div class="p-6 space-y-4">
       <h1 class="text-xl font-bold">
@@ -91,7 +93,7 @@ function PreI18nErrorFallback(props: { error: unknown; reset: () => void }) {
       <button
         type="button"
         class="px-4 py-2 text-sm font-medium rounded-md border"
-        onClick={() => props.reset()}
+        onClick={handleRetry}
       >
         Try again
       </button>
@@ -108,6 +110,8 @@ function PreI18nErrorFallback(props: { error: unknown; reset: () => void }) {
 function AppErrorFallback(props: { error: unknown; reset: () => void }) {
   const { t } = useLingui();
   const networkError = () => isNetworkError(props.error);
+  const handleRetry = () =>
+    shouldReloadOnError(props.error) ? window.location.reload() : props.reset();
   return (
     <div class="p-6 space-y-4">
       <h1 class="text-xl font-bold">
@@ -122,7 +126,7 @@ function AppErrorFallback(props: { error: unknown; reset: () => void }) {
           ? props.error.message
           : String(props.error)}
       </p>
-      <Button onClick={() => props.reset()}>{t`Try again`}</Button>
+      <Button onClick={handleRetry}>{t`Try again`}</Button>
     </div>
   );
 }
