@@ -884,7 +884,7 @@ msgstr "放弃未保存的更改 - 您确定吗？"
 #~ msgid "Discussion"
 #~ msgstr "讨论"
 
-#: src/components/FollowRecommendations.tsx:97
+#: src/components/FollowRecommendations.tsx:140
 #: src/components/WebPushPromptBanner.tsx:269
 msgid "Dismiss"
 msgstr "关闭"
@@ -2407,7 +2407,7 @@ msgstr "已清除处罚。"
 msgid "Pending"
 msgstr "待处理"
 
-#: src/components/FollowRecommendations.tsx:91
+#: src/components/FollowRecommendations.tsx:134
 msgid "People you might want to follow"
 msgstr "推荐关注"
 
@@ -3032,6 +3032,10 @@ msgstr "注册 Hackers' Pub"
 #: src/components/QuestionCard.tsx:467
 msgid "Single choice"
 msgstr "单选"
+
+#: src/components/FollowRecommendations.tsx:195
+msgid "Skip"
+msgstr "跳过"
 
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:32
 msgid "Slug (URL)"

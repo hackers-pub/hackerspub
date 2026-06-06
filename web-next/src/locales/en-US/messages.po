@@ -884,7 +884,7 @@ msgstr "Discard unsaved changes - are you sure?"
 #~ msgid "Discussion"
 #~ msgstr "Discussion"
 
-#: src/components/FollowRecommendations.tsx:97
+#: src/components/FollowRecommendations.tsx:140
 #: src/components/WebPushPromptBanner.tsx:269
 msgid "Dismiss"
 msgstr "Dismiss"
@@ -2411,7 +2411,7 @@ msgstr "Penalty cleared."
 msgid "Pending"
 msgstr "Pending"
 
-#: src/components/FollowRecommendations.tsx:91
+#: src/components/FollowRecommendations.tsx:134
 msgid "People you might want to follow"
 msgstr "People you might want to follow"
 
@@ -3036,6 +3036,10 @@ msgstr "Signing up for Hackers' Pub"
 #: src/components/QuestionCard.tsx:467
 msgid "Single choice"
 msgstr "Single choice"
+
+#: src/components/FollowRecommendations.tsx:195
+msgid "Skip"
+msgstr "Skip"
 
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:32
 msgid "Slug (URL)"

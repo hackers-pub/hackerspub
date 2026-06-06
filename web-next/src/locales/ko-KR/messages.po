@@ -884,7 +884,7 @@ msgstr "저장하지 않은 변경 사항을 삭제하시겠습니까?"
 #~ msgid "Discussion"
 #~ msgstr "토론"
 
-#: src/components/FollowRecommendations.tsx:97
+#: src/components/FollowRecommendations.tsx:140
 #: src/components/WebPushPromptBanner.tsx:269
 msgid "Dismiss"
 msgstr "닫기"
@@ -2407,7 +2407,7 @@ msgstr "패널티를 해제했습니다."
 msgid "Pending"
 msgstr "대기 중"
 
-#: src/components/FollowRecommendations.tsx:91
+#: src/components/FollowRecommendations.tsx:134
 msgid "People you might want to follow"
 msgstr "팔로 추천"
 
@@ -3032,6 +3032,10 @@ msgstr "Hackers' Pub 가입"
 #: src/components/QuestionCard.tsx:467
 msgid "Single choice"
 msgstr "단일 선택"
+
+#: src/components/FollowRecommendations.tsx:195
+msgid "Skip"
+msgstr "건너뛰기"
 
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:32
 msgid "Slug (URL)"

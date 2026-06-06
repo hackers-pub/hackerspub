@@ -1,6 +1,13 @@
 import { A } from "@solidjs/router";
 import { graphql } from "relay-runtime";
-import { createEffect, createSignal, For, Show, Suspense } from "solid-js";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  Show,
+  Suspense,
+} from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { cn } from "~/lib/utils.ts";
@@ -10,6 +17,8 @@ import type { FollowRecommendationsQuery } from "./__generated__/FollowRecommend
 import { FollowButton } from "./FollowButton.tsx";
 
 const STORAGE_KEY_PREFIX = "followRecommendationsDismissed";
+const BATCH_SIZE = 50;
+const MAX_VISIBLE = 5;
 
 function getStorageKey(username: string): string {
   return `${STORAGE_KEY_PREFIX}:${username}`;
@@ -38,6 +47,24 @@ const followRecommendationsQuery = graphql`
   }
 `;
 
+function skipIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="size-4"
+    >
+      <path d="M18 6 6 18" />
+      <path d="m6 6 12 12" />
+    </svg>
+  );
+}
+
 function FollowRecommendationsInner(props: { storageKey: string }) {
   const { t, i18n } = useLingui();
   const env = useRelayEnvironment();
@@ -50,7 +77,7 @@ function FollowRecommendationsInner(props: { storageKey: string }) {
       loadQuery<FollowRecommendationsQuery>(
         env(),
         followRecommendationsQuery,
-        { limit: 5, locale: i18n.locale.toString() },
+        { limit: BATCH_SIZE, locale: i18n.locale.toString() },
       ),
   );
 
@@ -63,111 +90,118 @@ function FollowRecommendationsInner(props: { storageKey: string }) {
     setDismissed(true);
   };
 
+  const hideActor = (id: string) => {
+    setHiddenActorIds((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+  };
+
+  const visibleActors = createMemo(() => {
+    const d = data();
+    if (!d || dismissed() || !d.viewer) return null;
+
+    const followeesCount = d.viewer.actor.followees.totalCount;
+    const postCount = d.viewer.postCount ?? 0;
+
+    // Show when following <= 5, OR (following <= 10 AND posts <= 10)
+    if (
+      followeesCount > 10 ||
+      (followeesCount > 5 && postCount > 10)
+    ) {
+      return null;
+    }
+
+    const allActors = d.recommendedActors;
+    if (allActors.length === 0) return null;
+
+    const hidden = hiddenActorIds();
+    const filtered = allActors
+      .filter((a) => !hidden.has(a.id))
+      .slice(0, MAX_VISIBLE);
+    if (filtered.length === 0) return null;
+
+    return filtered;
+  });
+
   return (
-    <Show keyed when={data()}>
-      {(d) => {
-        if (dismissed()) return null;
-        if (d.viewer == null) return null;
-
-        const followeesCount = d.viewer.actor.followees.totalCount;
-        const postCount = d.viewer.postCount ?? 0;
-
-        // Show when following <= 5, OR (following <= 10 AND posts <= 10)
-        if (
-          followeesCount > 10 ||
-          (followeesCount > 5 && postCount > 10)
-        ) {
-          return null;
-        }
-
-        const actors = d.recommendedActors
-          .filter((a) => !hiddenActorIds().has(a.id));
-        if (actors.length === 0) return null;
-
-        return (
-          <div class="overflow-hidden border bg-card md:rounded-lg md:shadow-sm">
-            <div class="flex items-center justify-between border-b px-4 py-3">
-              <h2 class="text-sm font-semibold">
-                {t`People you might want to follow`}
-              </h2>
-              <button
-                type="button"
-                class="flex size-6 shrink-0 items-center justify-center rounded-sm text-muted-foreground hover:text-foreground transition-colors"
-                onClick={handleDismiss}
-                aria-label={t`Dismiss`}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  class="size-4"
-                >
-                  <path d="M18 6 6 18" />
-                  <path d="m6 6 12 12" />
-                </svg>
-              </button>
-            </div>
-            <For each={actors}>
-              {(actor) => {
-                const profilePath = actor.local
-                  ? "/@" + actor.username
-                  : "/" + actor.handle;
-
-                return (
-                  <div
-                    class={cn(
-                      "flex items-center gap-3 px-4 py-3 border-b last:border-none",
-                      "hover:bg-muted/30 transition-colors",
-                    )}
-                  >
-                    <A
-                      href={profilePath}
-                      class="size-10 shrink-0 overflow-hidden rounded-full"
-                    >
-                      <img
-                        src={actor.avatarUrl}
-                        alt={actor.rawName ?? actor.username}
-                        class="size-full object-cover"
-                        loading="lazy"
-                      />
-                    </A>
-                    <A
-                      href={profilePath}
-                      class="min-w-0 flex-1 text-sm no-underline"
-                    >
-                      <div class="truncate font-medium text-foreground">
-                        {actor.name != null
-                          ? (
-                            <span
-                              innerHTML={actor.name}
-                              class="[&_.Mention\_actorName]:font-normal [&_.Mention\_actorName]:text-muted-foreground/50"
-                            />
-                          )
-                          : actor.username}
-                      </div>
-                      <div class="truncate text-muted-foreground">
-                        {actor.handle}
-                      </div>
-                    </A>
-                    <FollowButton
-                      $actor={actor}
-                      onFollowed={() => {
-                        const next = new Set(hiddenActorIds());
-                        next.add(actor.id);
-                        setHiddenActorIds(next);
-                      }}
-                    />
-                  </div>
-                );
-              }}
-            </For>
+    <Show when={visibleActors()} keyed>
+      {(actors) => (
+        <div class="overflow-hidden border bg-card md:rounded-lg md:shadow-sm">
+          <div class="flex items-center justify-between border-b px-4 py-3">
+            <h2 class="text-sm font-semibold">
+              {t`People you might want to follow`}
+            </h2>
+            <button
+              type="button"
+              class="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm text-muted-foreground hover:text-foreground transition-colors"
+              onClick={handleDismiss}
+              aria-label={t`Dismiss`}
+            >
+              {skipIcon()}
+            </button>
           </div>
-        );
-      }}
+          <For each={actors}>
+            {(actor) => {
+              const profilePath = actor.local
+                ? "/@" + actor.username
+                : "/" + actor.handle;
+
+              return (
+                <div
+                  class={cn(
+                    "flex items-center gap-3 px-4 py-3 border-b last:border-none",
+                    "hover:bg-muted/30 transition-colors",
+                  )}
+                >
+                  <A
+                    href={profilePath}
+                    class="size-10 shrink-0 overflow-hidden rounded-full"
+                  >
+                    <img
+                      src={actor.avatarUrl}
+                      alt={actor.rawName ?? actor.username}
+                      class="size-full object-cover"
+                      loading="lazy"
+                    />
+                  </A>
+                  <A
+                    href={profilePath}
+                    class="min-w-0 flex-1 text-sm no-underline"
+                  >
+                    <div class="truncate font-medium text-foreground">
+                      {actor.name != null
+                        ? (
+                          <span
+                            innerHTML={actor.name}
+                            class="[&_.Mention\_actorName]:font-normal [&_.Mention\_actorName]:text-muted-foreground/50"
+                          />
+                        )
+                        : actor.username}
+                    </div>
+                    <div class="truncate text-muted-foreground">
+                      {actor.handle}
+                    </div>
+                  </A>
+                  <FollowButton
+                    $actor={actor}
+                    onFollowed={() => hideActor(actor.id)}
+                  />
+                  <button
+                    type="button"
+                    class="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-sm text-muted-foreground hover:text-foreground transition-colors"
+                    onClick={() => hideActor(actor.id)}
+                    aria-label={t`Skip`}
+                  >
+                    {skipIcon()}
+                  </button>
+                </div>
+              );
+            }}
+          </For>
+        </div>
+      )}
     </Show>
   );
 }

@@ -884,7 +884,7 @@ msgstr "未保存の変更を破棄してもよろしいですか？"
 #~ msgid "Discussion"
 #~ msgstr "議論"
 
-#: src/components/FollowRecommendations.tsx:97
+#: src/components/FollowRecommendations.tsx:140
 #: src/components/WebPushPromptBanner.tsx:269
 msgid "Dismiss"
 msgstr "閉じる"
@@ -2407,7 +2407,7 @@ msgstr "ペナルティを解除しました。"
 msgid "Pending"
 msgstr "保留中"
 
-#: src/components/FollowRecommendations.tsx:91
+#: src/components/FollowRecommendations.tsx:134
 msgid "People you might want to follow"
 msgstr "フォローのおすすめ"
 
@@ -3032,6 +3032,10 @@ msgstr "Hackers' Pubに登録"
 #: src/components/QuestionCard.tsx:467
 msgid "Single choice"
 msgstr "単一選択"
+
+#: src/components/FollowRecommendations.tsx:195
+msgid "Skip"
+msgstr "スキップ"
 
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:32
 msgid "Slug (URL)"
