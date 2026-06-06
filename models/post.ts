@@ -3008,20 +3008,36 @@ export async function scrapePostLink<TContextData>(
   const html = !charset || charset === "utf-8" || charset === "utf8"
     ? new TextDecoder().decode(bytes)
     : iconv.decode(Buffer.from(bytes), charset);
-  const { error, result } = await ogs({
-    html,
-    customMetaTags: [
-      {
-        multiple: false,
-        property: "fediverse:creator",
-        fieldName: "fediverseCreator",
-      },
-    ],
-  });
-  if (error) {
-    // Best-effort: the page loaded but Open Graph parsing failed. Not
-    // actionable, so `warn` rather than `error`.
-    lg.warn("Failed to scrape {url}: {error}", { url: responseUrl, result });
+  if (html.trim().length < 1) {
+    lg.warn("Empty HTML page: {url}", { url: responseUrl });
+    return undefined;
+  }
+  let result: Awaited<ReturnType<typeof ogs>>["result"];
+  try {
+    const scraped = await ogs({
+      html,
+      customMetaTags: [
+        {
+          multiple: false,
+          property: "fediverse:creator",
+          fieldName: "fediverseCreator",
+        },
+      ],
+    });
+    if (scraped.error) {
+      // Best-effort: the page loaded but Open Graph parsing failed. Not
+      // actionable, so `warn` rather than `error`.
+      lg.warn("Failed to scrape {url}: {error}", {
+        url: responseUrl,
+        result: scraped.result,
+      });
+      return undefined;
+    }
+    result = scraped.result;
+  } catch (error) {
+    // `open-graph-scraper` throws plain objects for parser setup failures.
+    // Link previews are best-effort, so do not fail ActivityPub ingestion.
+    lg.warn("Failed to scrape {url}: {error}", { url: responseUrl, error });
     return undefined;
   }
   lg.debug("Scraped {url}: {result}", { url: responseUrl, result });

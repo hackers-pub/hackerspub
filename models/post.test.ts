@@ -10,26 +10,25 @@ import {
   MemoryKvStore,
 } from "@fedify/fedify";
 import assert from "node:assert";
-import { describe, it } from "node:test";
+import test, { describe, it } from "node:test";
 import { validate } from "@std/uuid/v7";
 import { scrapePostLink, withDocumentLoaderTimeout } from "./post.ts";
 
-describe("scrapePostLink()", () => {
-  const federation = createFederation<void>({
-    kv: new MemoryKvStore(),
-  });
-  const ctx = federation.createContext(
-    new URL("https://hackers.pub/"),
-    undefined,
-  );
+const federation = createFederation<void>({
+  kv: new MemoryKvStore(),
+});
+const ctx = federation.createContext(
+  new URL("https://hackers.pub/"),
+  undefined,
+);
 
-  it("", async () => {
-    mockGlobalFetch();
-    mockFetch("https://example.internal/index.html", {
-      headers: {
-        "Content-Type": "text/html; charset=utf-8",
-      },
-      body: `<html>
+test("scrapePostLink() scrapes Open Graph metadata", async () => {
+  mockGlobalFetch();
+  mockFetch("https://example.internal/index.html", {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+    },
+    body: `<html>
         <head>
           <meta property="og:type" content="website">
           <meta property="og:site_name" content="Example Site">
@@ -44,44 +43,44 @@ describe("scrapePostLink()", () => {
           <meta name="fediverse:creator" content="@hongminhee@hollo.social">
         </head>
       </html>`,
-    });
-    const link = await scrapePostLink(
-      ctx,
-      "https://example.internal/index.html",
-      (handle) =>
-        Promise.resolve(
-          handle === "@hongminhee@hollo.social"
-            ? "00000000-0000-0000-0000-000000000000"
-            : undefined,
-        ),
-    );
-    assert.deepEqual(link, {
-      id: link?.id ?? "00000000-0000-0000-0000-000000000000",
-      url: "https://example.internal/",
-      title: "Example title",
-      description: "Example og description",
-      siteName: "Example Site",
-      type: "website",
-      author: "John Doe",
-      imageUrl: "https://example.internal/image.jpg",
-      imageWidth: 1200,
-      imageHeight: 630,
-      imageType: "image/jpeg",
-      imageAlt: undefined,
-      creatorId: "00000000-0000-0000-0000-000000000000",
-    });
-    assert.ok(link != null && validate(link.id));
-    resetFetch();
-    resetGlobalFetch();
   });
+  const link = await scrapePostLink(
+    ctx,
+    "https://example.internal/index.html",
+    (handle) =>
+      Promise.resolve(
+        handle === "@hongminhee@hollo.social"
+          ? "00000000-0000-0000-0000-000000000000"
+          : undefined,
+      ),
+  );
+  assert.deepEqual(link, {
+    id: link?.id ?? "00000000-0000-0000-0000-000000000000",
+    url: "https://example.internal/",
+    title: "Example title",
+    description: "Example og description",
+    siteName: "Example Site",
+    type: "website",
+    author: "John Doe",
+    imageUrl: "https://example.internal/image.jpg",
+    imageWidth: 1200,
+    imageHeight: 630,
+    imageType: "image/jpeg",
+    imageAlt: undefined,
+    creatorId: "00000000-0000-0000-0000-000000000000",
+  });
+  assert.ok(link != null && validate(link.id));
+  resetFetch();
+  resetGlobalFetch();
+});
 
-  it("keeps image URL when metadata probing fails", async () => {
-    mockGlobalFetch();
-    mockFetch("https://example.internal/no-dimensions.html", {
-      headers: {
-        "Content-Type": "text/html; charset=utf-8",
-      },
-      body: `<html>
+test("scrapePostLink() keeps image URL when metadata probing fails", async () => {
+  mockGlobalFetch();
+  mockFetch("https://example.internal/no-dimensions.html", {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+    },
+    body: `<html>
         <head>
           <meta property="og:type" content="website">
           <meta property="og:site_name" content="Example Site">
@@ -90,37 +89,56 @@ describe("scrapePostLink()", () => {
           <meta property="og:image" content="https://example.internal/image-without-metadata.bin">
         </head>
       </html>`,
-    });
-    mockFetch("https://example.internal/image-without-metadata.bin", {
-      headers: {
-        "Content-Type": "application/octet-stream",
-      },
-      body: "not-an-image",
-    });
-    const link = await scrapePostLink(
-      ctx,
-      "https://example.internal/no-dimensions.html",
-      () => Promise.resolve(undefined),
-    );
-    assert.deepEqual(link, {
-      id: link?.id ?? "00000000-0000-0000-0000-000000000000",
-      url: "https://example.internal/no-dimensions",
-      title: "No dimensions",
-      description: undefined,
-      siteName: "Example Site",
-      type: "website",
-      author: undefined,
-      imageUrl: "https://example.internal/image-without-metadata.bin",
-      imageWidth: undefined,
-      imageHeight: undefined,
-      imageType: undefined,
-      imageAlt: undefined,
-      creatorId: undefined,
-    });
-    assert.ok(link != null && validate(link.id));
-    resetFetch();
-    resetGlobalFetch();
   });
+  mockFetch("https://example.internal/image-without-metadata.bin", {
+    headers: {
+      "Content-Type": "application/octet-stream",
+    },
+    body: "not-an-image",
+  });
+  const link = await scrapePostLink(
+    ctx,
+    "https://example.internal/no-dimensions.html",
+    () => Promise.resolve(undefined),
+  );
+  assert.deepEqual(link, {
+    id: link?.id ?? "00000000-0000-0000-0000-000000000000",
+    url: "https://example.internal/no-dimensions",
+    title: "No dimensions",
+    description: undefined,
+    siteName: "Example Site",
+    type: "website",
+    author: undefined,
+    imageUrl: "https://example.internal/image-without-metadata.bin",
+    imageWidth: undefined,
+    imageHeight: undefined,
+    imageType: undefined,
+    imageAlt: undefined,
+    creatorId: undefined,
+  });
+  assert.ok(link != null && validate(link.id));
+  resetFetch();
+  resetGlobalFetch();
+});
+
+test("scrapePostLink() treats an empty HTML response as no preview", async () => {
+  mockGlobalFetch();
+  mockFetch("https://example.internal/empty.html", {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+    },
+    body: "",
+  });
+
+  const link = await scrapePostLink(
+    ctx,
+    "https://example.internal/empty.html",
+    () => Promise.resolve(undefined),
+  );
+
+  assert.equal(link, undefined);
+  resetFetch();
+  resetGlobalFetch();
 });
 
 describe("withDocumentLoaderTimeout()", () => {
