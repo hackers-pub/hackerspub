@@ -16,111 +16,11 @@ import {
   resolveCursorConnection,
   type ResolveCursorConnectionArgs,
 } from "@pothos/plugin-relay";
-import DataLoader from "dataloader";
-import {
-  and,
-  asc,
-  desc,
-  eq,
-  inArray,
-  isNotNull,
-  or,
-  type SQL,
-  sql,
-} from "drizzle-orm";
+import { and, asc, desc, eq, isNotNull, or, type SQL, sql } from "drizzle-orm";
 import { Account } from "./account.ts";
-import {
-  type AdminAccountStats,
-  builder,
-  type UserContext,
-} from "./builder.ts";
+import { builder } from "./builder.ts";
 import { NotAuthorizedError } from "./error.ts";
 import { NotAuthenticatedError } from "./session.ts";
-
-// Per-request batching loader for the moderator-only `Account.postCount`
-// and `Account.lastPostPublished` aggregates.  Without this, requesting
-// these fields on a 50-row connection would fan out to 100 separate
-// aggregate queries.
-export function getAdminAccountStats(
-  ctx: UserContext,
-  accountId: Uuid,
-): Promise<AdminAccountStats> {
-  ctx.adminAccountStatsLoader ??= new DataLoader<Uuid, AdminAccountStats>(
-    async (ids) => {
-      const idList = ids as Uuid[];
-      const rows = await ctx.db
-        .select({
-          accountId: actorTable.accountId,
-          postCount: sql<number>`COUNT(*)::int`,
-          lastPublished: sql<Date | null>`MAX(${postTable.published})`,
-        })
-        .from(postTable)
-        .innerJoin(actorTable, eq(actorTable.id, postTable.actorId))
-        .where(
-          and(
-            isNotNull(actorTable.accountId),
-            inArray(actorTable.accountId, idList),
-          ),
-        )
-        .groupBy(actorTable.accountId);
-      const map = new Map<string, AdminAccountStats>();
-      for (const row of rows) {
-        if (row.accountId == null) continue;
-        const raw = row.lastPublished;
-        const lastPostPublished = raw == null
-          ? null
-          : raw instanceof Date
-          ? raw
-          : new Date(raw as unknown as string);
-        map.set(row.accountId, {
-          postCount: Number(row.postCount),
-          lastPostPublished,
-        });
-      }
-      return idList.map((id) =>
-        map.get(id) ?? { postCount: 0, lastPostPublished: null }
-      );
-    },
-    // Per-request memoisation is on (the loader instance lives on
-    // UserContext, so its cache only spans one request).  None of the
-    // mutations exposed by this stack mutate postTable, so two reads
-    // of the same account.id within one request never observe a
-    // changed value; if a post-mutating mutation is added later this
-    // loader will need its cache cleared after the mutation runs.
-    { cache: true },
-  );
-  return ctx.adminAccountStatsLoader.load(accountId);
-}
-
-// Attach the moderator-only post aggregates to the Account type from
-// here, where the loader lives.  Defining these as drizzleObjectField
-// calls in admin.ts (rather than as fields on the Account.drizzleNode
-// definition in account.ts) keeps the import graph one-way:
-// admin.ts → account.ts only, never the reverse.
-builder.drizzleObjectField(Account, "postCount", (t) =>
-  t.int({
-    nullable: true,
-    description:
-      "The total number of posts authored by this account.  Visible only to moderators; null otherwise.",
-    authScopes: { moderator: true },
-    async resolve(account, _, ctx) {
-      const stats = await getAdminAccountStats(ctx, account.id);
-      return stats.postCount;
-    },
-  }));
-
-builder.drizzleObjectField(Account, "lastPostPublished", (t) =>
-  t.field({
-    type: "DateTime",
-    nullable: true,
-    description:
-      "The latest `published` timestamp across all posts authored by this account, or null when there are no posts.  Visible only to moderators.",
-    authScopes: { moderator: true },
-    async resolve(account, _, ctx) {
-      const stats = await getAdminAccountStats(ctx, account.id);
-      return stats.lastPostPublished;
-    },
-  }));
 
 const ADMIN_SORT_FIELDS = [
   "FOLLOWING",

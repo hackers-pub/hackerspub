@@ -2,6 +2,7 @@ import { Navigate, type RouteDefinition, useLocation } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
+import { FollowRecommendations } from "~/components/FollowRecommendations.tsx";
 import { LanguageFilter } from "~/components/LanguageFilter.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PersonalTimeline } from "~/components/PersonalTimeline.tsx";
@@ -76,6 +77,7 @@ function AuthenticatedArticlesFeedTimeline() {
               buildHref={buildHref}
             />
           </Show>
+          <FollowRecommendations />
           <PersonalTimeline
             $posts={d}
             activeLanguage={activeLanguage}

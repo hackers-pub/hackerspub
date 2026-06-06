@@ -5,7 +5,7 @@ import {
 } from "@pothos/plugin-relay";
 import { assertNever } from "@std/assert/unstable-never";
 import DataLoader from "dataloader";
-import { and, desc, eq, gt, inArray, lt, sql } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, isNotNull, lt, sql } from "drizzle-orm";
 import {
   createAvatarMediumFromMedium,
   createAvatarMediumFromUrl,
@@ -19,11 +19,16 @@ import {
   accountTable,
   actorTable,
   notificationTable,
+  postTable,
 } from "@hackerspub/models/schema";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { createGraphQLError } from "graphql-yoga";
 import { Actor } from "./actor.ts";
-import { builder, type UserContext } from "./builder.ts";
+import {
+  type AdminAccountStats,
+  builder,
+  type UserContext,
+} from "./builder.ts";
 import { InvitationLink } from "./invitation-link.ts";
 import { Notification } from "./notification.ts";
 import { putProfileOgImage } from "./og.ts";
@@ -197,10 +202,10 @@ export const Account = builder.drizzleNode("accountTable", {
     }),
     moderator: t.exposeBoolean("moderator", {
       description:
-        "Whether this account has moderator privileges. Moderators can " +
-        "view all accounts, see moderation-only fields such as " +
-        "`postCount` and `lastPostPublished`, and perform administrative " +
-        "mutations such as `deleteOrphanMedia` and `regenerateInvitations`.",
+        "Whether this account has moderator privileges. Moderators can view " +
+        "`postCount` and `lastPostPublished` for any account, and perform " +
+        "administrative mutations such as `deleteOrphanMedia` and " +
+        "`regenerateInvitations`.",
     }),
     invitationsLeft: t.exposeInt("leftInvitations", {
       description:
@@ -546,6 +551,97 @@ builder.drizzleObjectField(
       }),
     }),
 );
+
+// Per-request batching loader for Account.postCount and
+// Account.lastPostPublished.  Without this, requesting these fields on a
+// 50-row connection would fan out to 100 separate aggregate queries.
+export function getAdminAccountStats(
+  ctx: UserContext,
+  accountId: Uuid,
+): Promise<AdminAccountStats> {
+  ctx.adminAccountStatsLoader ??= new DataLoader<Uuid, AdminAccountStats>(
+    async (ids) => {
+      const idList = ids as Uuid[];
+      const rows = await ctx.db
+        .select({
+          accountId: actorTable.accountId,
+          postCount: sql<number>`COUNT(*)::int`,
+          lastPublished: sql<Date | null>`MAX(${postTable.published})`,
+        })
+        .from(postTable)
+        .innerJoin(actorTable, eq(actorTable.id, postTable.actorId))
+        .where(
+          and(
+            isNotNull(actorTable.accountId),
+            inArray(actorTable.accountId, idList),
+          ),
+        )
+        .groupBy(actorTable.accountId);
+      const map = new Map<string, AdminAccountStats>();
+      for (const row of rows) {
+        if (row.accountId == null) continue;
+        const raw = row.lastPublished;
+        const lastPostPublished = raw == null
+          ? null
+          : raw instanceof Date
+          ? raw
+          : new Date(raw as unknown as string);
+        map.set(row.accountId, {
+          postCount: Number(row.postCount),
+          lastPostPublished,
+        });
+      }
+      return idList.map((id) =>
+        map.get(id) ?? { postCount: 0, lastPostPublished: null }
+      );
+    },
+    // Per-request memoisation is on (the loader instance lives on
+    // UserContext, so its cache only spans one request).  None of the
+    // mutations exposed by this stack mutate postTable, so two reads
+    // of the same account.id within one request never observe a
+    // changed value; if a post-mutating mutation is added later this
+    // loader will need its cache cleared after the mutation runs.
+    { cache: true },
+  );
+  return ctx.adminAccountStatsLoader.load(accountId);
+}
+
+// TODO: Move postCount/lastPostPublished to a proper connection-based
+// field like `Account.posts.totalCount` so that these aggregates follow
+// the same pagination pattern as other counts on the `Actor` type.
+builder.drizzleObjectField(Account, "postCount", (t) =>
+  t.int({
+    nullable: true,
+    description:
+      "The total number of posts authored by this account.  Visible to " +
+      "the account holder and moderators; `null` otherwise.",
+    authScopes: (parent) => ({
+      moderator: true,
+      selfAccount: parent.id,
+    }),
+    async resolve(account, _, ctx) {
+      const stats = await getAdminAccountStats(ctx, account.id);
+      return stats.postCount;
+    },
+  }));
+
+builder.drizzleObjectField(Account, "lastPostPublished", (t) =>
+  t.field({
+    type: "DateTime",
+    nullable: true,
+    description:
+      "The latest `published` timestamp across all posts authored by " +
+      "this account, or `null` when there are no posts.  Visible to the " +
+      "account holder and moderators.",
+    authScopes: (parent) => ({
+      moderator: true,
+      selfAccount: parent.id,
+    }),
+    async resolve(account, _, ctx) {
+      const stats = await getAdminAccountStats(ctx, account.id);
+      return stats.lastPostPublished;
+    },
+  }));
 
 const AccountLinkIcon = builder.enumType("AccountLinkIcon", {
   values: [

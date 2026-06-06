@@ -549,22 +549,28 @@ const nonModeratorAccountByUsernameQuery = parse(`
   }
 `);
 
-test("Account.postCount returns null for non-moderators without null-bubbling", async () => {
+test("Account.postCount returns null for non-moderator viewing a different account, without null-bubbling", async () => {
   await withRollback(async (tx) => {
-    const normal = await insertAccountWithActor(tx, {
-      username: "statsguard",
-      name: "Stats Guard",
-      email: "statsguard@example.com",
+    const viewer = await insertAccountWithActor(tx, {
+      username: "vieweronly",
+      name: "Viewer Only",
+      email: "vieweronly@example.com",
+    });
+    await insertAccountWithActor(tx, {
+      username: "otherguy",
+      name: "Other Guy",
+      email: "otherguy@example.com",
     });
     const result = await execute({
       schema,
       document: nonModeratorAccountByUsernameQuery,
-      variableValues: { username: "statsguard" },
-      contextValue: makeUserContext(tx, normal.account),
+      variableValues: { username: "otherguy" },
+      contextValue: makeUserContext(tx, viewer.account),
       onError: "NO_PROPAGATE",
     });
     // The whole `accountByUsername` payload must still be present even
-    // though the moderator-only fields evaluate to null for non-mods.
+    // though the private fields evaluate to null when viewing someone
+    // else's account as a non-moderator.
     const data = result.data as {
       accountByUsername: {
         username: string;
@@ -573,7 +579,7 @@ test("Account.postCount returns null for non-moderators without null-bubbling", 
       } | null;
     };
     assert.ok(data.accountByUsername != null);
-    assert.deepEqual(data.accountByUsername.username, "statsguard");
+    assert.deepEqual(data.accountByUsername.username, "otherguy");
     assert.deepEqual(data.accountByUsername.postCount, null);
     assert.deepEqual(data.accountByUsername.lastPostPublished, null);
   });

@@ -884,6 +884,7 @@ msgstr "저장하지 않은 변경 사항을 삭제하시겠습니까?"
 #~ msgid "Discussion"
 #~ msgstr "토론"
 
+#: src/components/FollowRecommendations.tsx:97
 #: src/components/WebPushPromptBanner.tsx:269
 msgid "Dismiss"
 msgstr "닫기"
@@ -1487,7 +1488,7 @@ msgstr "그래프"
 
 #: src/components/AppSidebar.tsx:346
 #: src/components/AppSidebar.tsx:469
-#: src/routes/(root).tsx:136
+#: src/routes/(root).tsx:138
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/markdown.tsx:40
 #: src/routes/(root)/privacy.tsx:40
@@ -1495,7 +1496,7 @@ msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
 #: src/components/NotFoundPage.tsx:19
-#: src/routes/(root).tsx:128
+#: src/routes/(root).tsx:130
 msgid "Hackers' Pub home"
 msgstr "Hackers' Pub 홈"
 
@@ -2406,6 +2407,10 @@ msgstr "패널티를 해제했습니다."
 msgid "Pending"
 msgstr "대기 중"
 
+#: src/components/FollowRecommendations.tsx:91
+msgid "People you might want to follow"
+msgstr "팔로 추천"
+
 #: src/routes/(root)/[handle]/bookmarks.tsx:99
 #: src/routes/(root)/[handle]/bookmarks.tsx:102
 #: src/routes/(root)/[handle]/drafts/[id].tsx:52
@@ -2647,8 +2652,8 @@ msgstr "반응"
 msgid "Reactions"
 msgstr "반응"
 
-#: src/components/ArticleCard.tsx:513
-#: src/components/ArticleCard.tsx:533
+#: src/components/ArticleCard.tsx:515
+#: src/components/ArticleCard.tsx:535
 msgid "Read full article"
 msgstr "게시글 전체 읽기"
 
@@ -3040,7 +3045,7 @@ msgstr "슬러그는 비워둘 수 없습니다"
 msgid "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 msgstr "이미지 {MAX_MEDIA}개 제한에 도달하여 일부 이미지가 건너뛰어졌습니다"
 
-#: src/app.tsx:116
+#: src/app.tsx:120
 msgid "Something went wrong"
 msgstr "문제가 발생했습니다"
 
@@ -3100,7 +3105,7 @@ msgstr "환경 설정이 성공적으로 저장되었습니다"
 msgid "Successfully saved settings"
 msgstr "설정이 성공적으로 저장되었습니다"
 
-#: src/components/ArticleCard.tsx:486
+#: src/components/ArticleCard.tsx:488
 msgid "Summarized by LLM"
 msgstr "LLM 요약"
 
@@ -3328,7 +3333,7 @@ msgstr "제목은 비워둘 수 없습니다"
 msgid "To follow {0}, enter your Fediverse handle."
 msgstr "{0}님을 팔로하려면 연합우주 핸들을 입력해 주세요."
 
-#: src/routes/(root).tsx:126
+#: src/routes/(root).tsx:128
 msgid "Toggle sidebar"
 msgstr "사이드바 전환"
 
@@ -3338,7 +3343,7 @@ msgid "Total: {0}"
 msgstr "전체: {0}"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:350
+#: src/components/ArticleCard.tsx:352
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:862
 msgid "Translated from {0}"
 msgstr "{0}에서 번역됨"
@@ -3375,7 +3380,7 @@ msgstr "{name}로의 번역 요청에 실패했습니다"
 msgid "Tree"
 msgstr "트리"
 
-#: src/app.tsx:125
+#: src/app.tsx:129
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:602
 msgid "Try again"
 msgstr "다시 시도"
@@ -3586,7 +3591,7 @@ msgstr "투표 중…"
 msgid "Warning"
 msgstr "경고"
 
-#: src/app.tsx:115
+#: src/app.tsx:119
 msgid "We couldn't reach the server"
 msgstr "서버에 연결하지 못했습니다"
 
@@ -3784,7 +3789,7 @@ msgstr "약력은 프로필에 표시됩니다. Markdown을 사용할 수 있습
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
 msgstr "약력은 프로필에 표시됩니다. Markdown을 사용할 수 있습니다. 최대 512자입니다."
 
-#: src/app.tsx:120
+#: src/app.tsx:124
 msgid "Your connection looks unstable. Check your network and try again."
 msgstr "연결이 불안정한 것 같습니다. 네트워크를 확인하고 다시 시도해 주세요."
 

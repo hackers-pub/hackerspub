@@ -2,6 +2,7 @@ import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { AboutHackersPub } from "~/components/AboutHackersPub.tsx";
+import { FollowRecommendations } from "~/components/FollowRecommendations.tsx";
 import { LanguageFilter } from "~/components/LanguageFilter.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PublicTimeline } from "~/components/PublicTimeline.tsx";
@@ -73,6 +74,7 @@ export default function FediverseTimeline() {
               buildHref={buildHref}
             />
           </Show>
+          <FollowRecommendations />
           <PublicTimeline
             $posts={data}
             activeLanguage={activeLanguage}

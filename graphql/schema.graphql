@@ -73,7 +73,7 @@ type Account implements Node {
   inviter: Account
 
   """
-  The latest `published` timestamp across all posts authored by this account, or null when there are no posts.  Visible only to moderators.
+  The latest `published` timestamp across all posts authored by this account, or `null` when there are no posts.  Visible to the account holder and moderators.
   """
   lastPostPublished: DateTime
 
@@ -88,7 +88,7 @@ type Account implements Node {
   locales: [Locale!]
 
   """
-  Whether this account has moderator privileges. Moderators can view all accounts, see moderation-only fields such as `postCount` and `lastPostPublished`, and perform administrative mutations such as `deleteOrphanMedia` and `regenerateInvitations`.
+  Whether this account has moderator privileges. Moderators can view `postCount` and `lastPostPublished` for any account, and perform administrative mutations such as `deleteOrphanMedia` and `regenerateInvitations`.
   """
   moderator: Boolean!
   name: String!
@@ -110,7 +110,7 @@ type Account implements Node {
   pinnedHashtags: [String!]!
 
   """
-  The total number of posts authored by this account.  Visible only to moderators; null otherwise.
+  The total number of posts authored by this account.  Visible to the account holder and moderators; `null` otherwise.
   """
   postCount: Int
 

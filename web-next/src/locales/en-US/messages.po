@@ -884,6 +884,7 @@ msgstr "Discard unsaved changes - are you sure?"
 #~ msgid "Discussion"
 #~ msgstr "Discussion"
 
+#: src/components/FollowRecommendations.tsx:97
 #: src/components/WebPushPromptBanner.tsx:269
 msgid "Dismiss"
 msgstr "Dismiss"
@@ -1491,7 +1492,7 @@ msgstr "Graph"
 
 #: src/components/AppSidebar.tsx:346
 #: src/components/AppSidebar.tsx:469
-#: src/routes/(root).tsx:136
+#: src/routes/(root).tsx:138
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/markdown.tsx:40
 #: src/routes/(root)/privacy.tsx:40
@@ -1499,7 +1500,7 @@ msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
 #: src/components/NotFoundPage.tsx:19
-#: src/routes/(root).tsx:128
+#: src/routes/(root).tsx:130
 msgid "Hackers' Pub home"
 msgstr "Hackers' Pub home"
 
@@ -2410,6 +2411,10 @@ msgstr "Penalty cleared."
 msgid "Pending"
 msgstr "Pending"
 
+#: src/components/FollowRecommendations.tsx:91
+msgid "People you might want to follow"
+msgstr "People you might want to follow"
+
 #: src/routes/(root)/[handle]/bookmarks.tsx:99
 #: src/routes/(root)/[handle]/bookmarks.tsx:102
 #: src/routes/(root)/[handle]/drafts/[id].tsx:52
@@ -2651,8 +2656,8 @@ msgstr "reaction"
 msgid "Reactions"
 msgstr "Reactions"
 
-#: src/components/ArticleCard.tsx:513
-#: src/components/ArticleCard.tsx:533
+#: src/components/ArticleCard.tsx:515
+#: src/components/ArticleCard.tsx:535
 msgid "Read full article"
 msgstr "Read full article"
 
@@ -3044,7 +3049,7 @@ msgstr "Slug cannot be empty"
 msgid "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 msgstr "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 
-#: src/app.tsx:116
+#: src/app.tsx:120
 msgid "Something went wrong"
 msgstr "Something went wrong"
 
@@ -3104,7 +3109,7 @@ msgstr "Successfully saved preferences"
 msgid "Successfully saved settings"
 msgstr "Successfully saved settings"
 
-#: src/components/ArticleCard.tsx:486
+#: src/components/ArticleCard.tsx:488
 msgid "Summarized by LLM"
 msgstr "Summarized by LLM"
 
@@ -3332,7 +3337,7 @@ msgstr "Title cannot be empty"
 msgid "To follow {0}, enter your Fediverse handle."
 msgstr "To follow {0}, enter your Fediverse handle."
 
-#: src/routes/(root).tsx:126
+#: src/routes/(root).tsx:128
 msgid "Toggle sidebar"
 msgstr "Toggle sidebar"
 
@@ -3342,7 +3347,7 @@ msgid "Total: {0}"
 msgstr "Total: {0}"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:350
+#: src/components/ArticleCard.tsx:352
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:862
 msgid "Translated from {0}"
 msgstr "Translated from {0}"
@@ -3379,7 +3384,7 @@ msgstr "Translation request failed for {name}"
 msgid "Tree"
 msgstr "Tree"
 
-#: src/app.tsx:125
+#: src/app.tsx:129
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:602
 msgid "Try again"
 msgstr "Try again"
@@ -3590,7 +3595,7 @@ msgstr "Voting…"
 msgid "Warning"
 msgstr "Warning"
 
-#: src/app.tsx:115
+#: src/app.tsx:119
 msgid "We couldn't reach the server"
 msgstr "We couldn't reach the server"
 
@@ -3788,7 +3793,7 @@ msgstr "Your bio will be displayed on your profile. You can use Markdown to form
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
 msgstr "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
 
-#: src/app.tsx:120
+#: src/app.tsx:124
 msgid "Your connection looks unstable. Check your network and try again."
 msgstr "Your connection looks unstable. Check your network and try again."
 

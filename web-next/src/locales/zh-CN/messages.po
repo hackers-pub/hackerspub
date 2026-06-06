@@ -884,6 +884,7 @@ msgstr "放弃未保存的更改 - 您确定吗？"
 #~ msgid "Discussion"
 #~ msgstr "讨论"
 
+#: src/components/FollowRecommendations.tsx:97
 #: src/components/WebPushPromptBanner.tsx:269
 msgid "Dismiss"
 msgstr "关闭"
@@ -1487,7 +1488,7 @@ msgstr "关系图"
 
 #: src/components/AppSidebar.tsx:346
 #: src/components/AppSidebar.tsx:469
-#: src/routes/(root).tsx:136
+#: src/routes/(root).tsx:138
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/markdown.tsx:40
 #: src/routes/(root)/privacy.tsx:40
@@ -1495,7 +1496,7 @@ msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
 #: src/components/NotFoundPage.tsx:19
-#: src/routes/(root).tsx:128
+#: src/routes/(root).tsx:130
 msgid "Hackers' Pub home"
 msgstr "Hackers' Pub 首页"
 
@@ -2406,6 +2407,10 @@ msgstr "已清除处罚。"
 msgid "Pending"
 msgstr "待处理"
 
+#: src/components/FollowRecommendations.tsx:91
+msgid "People you might want to follow"
+msgstr "推荐关注"
+
 #: src/routes/(root)/[handle]/bookmarks.tsx:99
 #: src/routes/(root)/[handle]/bookmarks.tsx:102
 #: src/routes/(root)/[handle]/drafts/[id].tsx:52
@@ -2647,8 +2652,8 @@ msgstr "反应"
 msgid "Reactions"
 msgstr "反应"
 
-#: src/components/ArticleCard.tsx:513
-#: src/components/ArticleCard.tsx:533
+#: src/components/ArticleCard.tsx:515
+#: src/components/ArticleCard.tsx:535
 msgid "Read full article"
 msgstr "阅读完整文章"
 
@@ -3040,7 +3045,7 @@ msgstr "URL 别名不能为空"
 msgid "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 msgstr "已达到 {MAX_MEDIA} 张图片上限，部分图片已被跳过"
 
-#: src/app.tsx:116
+#: src/app.tsx:120
 msgid "Something went wrong"
 msgstr "出现错误"
 
@@ -3100,7 +3105,7 @@ msgstr "设置已成功保存"
 msgid "Successfully saved settings"
 msgstr "设置保存成功"
 
-#: src/components/ArticleCard.tsx:486
+#: src/components/ArticleCard.tsx:488
 msgid "Summarized by LLM"
 msgstr "由 AI 生成的摘要"
 
@@ -3328,7 +3333,7 @@ msgstr "标题不能为空"
 msgid "To follow {0}, enter your Fediverse handle."
 msgstr "要关注{0}，请输入你的联邦宇宙用户名。"
 
-#: src/routes/(root).tsx:126
+#: src/routes/(root).tsx:128
 msgid "Toggle sidebar"
 msgstr "切换侧边栏"
 
@@ -3338,7 +3343,7 @@ msgid "Total: {0}"
 msgstr "共 {0} 个"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:350
+#: src/components/ArticleCard.tsx:352
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:862
 msgid "Translated from {0}"
 msgstr "翻译自{0}"
@@ -3375,7 +3380,7 @@ msgstr "向{name}的翻译请求失败"
 msgid "Tree"
 msgstr "树状图"
 
-#: src/app.tsx:125
+#: src/app.tsx:129
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:602
 msgid "Try again"
 msgstr "重试"
@@ -3586,7 +3591,7 @@ msgstr "正在投票…"
 msgid "Warning"
 msgstr "警告"
 
-#: src/app.tsx:115
+#: src/app.tsx:119
 msgid "We couldn't reach the server"
 msgstr "无法连接到服务器"
 
@@ -3784,7 +3789,7 @@ msgstr "你的个人简介将在你的个人资料页面显示。你可以用 Ma
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
 msgstr "你的个人简介将在你的个人资料页面显示。你可以用 Markdown 文档格式化。最大 512 字符。"
 
-#: src/app.tsx:120
+#: src/app.tsx:124
 msgid "Your connection looks unstable. Check your network and try again."
 msgstr "您的网络似乎不稳定。请检查网络后重试。"
 
