@@ -1,6 +1,7 @@
 import { graphql } from "relay-runtime";
 import { createMemo, Show } from "solid-js";
 import { createFragment } from "solid-relay";
+import { LinkCreatorAttribution } from "~/components/LinkCreatorAttribution.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
@@ -24,6 +25,9 @@ export function NewsStoryHeader(props: NewsStoryHeaderProps) {
         discussionCount
         firstSharedAt
         latestActivityAt
+        creator {
+          ...LinkCreatorAttribution_creator
+        }
         image {
           url
           alt
@@ -97,6 +101,15 @@ export function NewsStoryHeader(props: NewsStoryHeaderProps) {
             </div>
           </a>
           <div class="flex flex-wrap items-center gap-x-4 gap-y-2 border-t bg-muted/40 px-5 py-3 text-sm text-muted-foreground">
+            <Show keyed when={s.creator}>
+              {(creator) => (
+                <LinkCreatorAttribution
+                  $creator={creator}
+                  class="me-2"
+                  labelClass="text-muted-foreground/70"
+                />
+              )}
+            </Show>
             <span class="font-medium text-foreground">
               {opinionsText(s.discussionCount)}
             </span>

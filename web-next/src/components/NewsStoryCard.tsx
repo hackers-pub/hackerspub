@@ -2,6 +2,7 @@ import { A } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { createMemo, Show } from "solid-js";
 import { createFragment, createMutation } from "solid-relay";
+import { LinkCreatorAttribution } from "~/components/LinkCreatorAttribution.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import {
   DropdownMenu,
@@ -59,6 +60,9 @@ export function NewsStoryCard(props: NewsStoryCardProps) {
         discussionCount
         latestActivityAt
         penalty
+        creator {
+          ...LinkCreatorAttribution_creator
+        }
         image {
           url
           alt
@@ -169,6 +173,15 @@ export function NewsStoryCard(props: NewsStoryCardProps) {
                 <span>· {s.siteName}</span>
               </Show>
             </p>
+            <Show keyed when={s.creator}>
+              {(creator) => (
+                <LinkCreatorAttribution
+                  $creator={creator}
+                  class="mt-1 text-xs text-muted-foreground"
+                  labelClass="text-muted-foreground/70"
+                />
+              )}
+            </Show>
             <Show when={s.description}>
               <p class="mt-1 line-clamp-2 text-sm text-muted-foreground">
                 {s.description}

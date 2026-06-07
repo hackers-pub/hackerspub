@@ -1,13 +1,7 @@
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
-import { InternalLink } from "~/components/InternalLink.tsx";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "~/components/ui/avatar.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { LinkCreatorAttribution } from "~/components/LinkCreatorAttribution.tsx";
 import { LinkPreview_note$key } from "./__generated__/LinkPreview_note.graphql.ts";
 
 export interface LinkPreviewProps {
@@ -15,7 +9,6 @@ export interface LinkPreviewProps {
 }
 
 export function LinkPreview(props: LinkPreviewProps) {
-  const { t } = useLingui();
   const note = createFragment(
     graphql`
       fragment LinkPreview_note on Note {
@@ -39,14 +32,7 @@ export function LinkPreview(props: LinkPreviewProps) {
             alt
           }
           creator {
-            name
-            local
-            username
-            handle
-            avatarInitials
-            avatarUrl
-            url
-            iri
+            ...LinkCreatorAttribution_creator
           }
         }
       }
@@ -143,41 +129,10 @@ export function LinkPreview(props: LinkPreviewProps) {
             {/* `keyed`: same race shape; creator can flip to null. */}
             <Show keyed when={link.creator}>
               {(creator) => (
-                <div class="flex gap-1.5 border-t bg-muted/40 p-4">
-                  <span>{t`Link author:`}</span>
-                  <Avatar class="size-6">
-                    <InternalLink
-                      href={creator.url ?? creator.iri}
-                      internalHref={creator.local
-                        ? `/@${creator.username}`
-                        : `/${creator.handle}`}
-                    >
-                      <AvatarImage
-                        src={creator.avatarUrl}
-                        class="size-6"
-                      />
-                      <AvatarFallback class="size-6">
-                        {creator.avatarInitials}
-                      </AvatarFallback>
-                    </InternalLink>
-                  </Avatar>
-                  <div>
-                    <Show when={(creator.name ?? "").trim() !== ""}>
-                      <InternalLink
-                        href={creator.url ?? creator.iri}
-                        internalHref={creator.local
-                          ? `/@${creator.username}`
-                          : `/${creator.handle}`}
-                        innerHTML={creator.name ?? ""}
-                        class="font-semibold"
-                      />
-                      {" "}
-                    </Show>
-                    <span class="select-all text-muted-foreground">
-                      {creator.handle}
-                    </span>
-                  </div>
-                </div>
+                <LinkCreatorAttribution
+                  $creator={creator}
+                  class="border-t bg-muted/40 p-4"
+                />
               )}
             </Show>
           </div>
