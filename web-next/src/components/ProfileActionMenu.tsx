@@ -4,6 +4,7 @@ import { createFragment, createMutation } from "solid-relay";
 import IconBan from "~icons/lucide/ban";
 import IconEllipsis from "~icons/lucide/ellipsis";
 import IconUndo2 from "~icons/lucide/undo-2";
+import IconUserMinus from "~icons/lucide/user-minus";
 import IconVolume2 from "~icons/lucide/volume-2";
 import IconVolumeX from "~icons/lucide/volume-x";
 import {
@@ -36,6 +37,7 @@ import {
 import type { ProfileActionMenu_actor$key } from "./__generated__/ProfileActionMenu_actor.graphql.ts";
 import type { ProfileActionMenu_blockActor_Mutation } from "./__generated__/ProfileActionMenu_blockActor_Mutation.graphql.ts";
 import type { ProfileActionMenu_muteActor_Mutation } from "./__generated__/ProfileActionMenu_muteActor_Mutation.graphql.ts";
+import type { ProfileActionMenu_removeFollower_Mutation } from "./__generated__/ProfileActionMenu_removeFollower_Mutation.graphql.ts";
 import type { ProfileActionMenu_unblockActor_Mutation } from "./__generated__/ProfileActionMenu_unblockActor_Mutation.graphql.ts";
 import type { ProfileActionMenu_unmuteActor_Mutation } from "./__generated__/ProfileActionMenu_unmuteActor_Mutation.graphql.ts";
 
@@ -169,10 +171,39 @@ const unmuteActorMutation = graphql`
   }
 `;
 
+const removeFollowerMutation = graphql`
+  mutation ProfileActionMenu_removeFollower_Mutation(
+    $input: RemoveFollowerInput!
+  ) {
+    removeFollower(input: $input) {
+      __typename
+      ... on RemoveFollowerPayload {
+        followee {
+          id
+          followers { totalCount }
+        }
+        follower {
+          id
+          followsViewer
+          followees { totalCount }
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+      ... on NotAuthenticatedError {
+        notAuthenticated
+      }
+    }
+  }
+`;
+
 export function ProfileActionMenu(props: ProfileActionMenuProps) {
   const { t } = useLingui();
   const viewer = useViewer();
   const [showConfirm, setShowConfirm] = createSignal(false);
+  const [showRemoveFollowerConfirm, setShowRemoveFollowerConfirm] =
+    createSignal(false);
   const actor = createFragment(
     graphql`
       fragment ProfileActionMenu_actor on Actor {
@@ -186,6 +217,7 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
         viewerBlocks
         blocksViewer
         viewerMutes
+        followsViewer
       }
     `,
     () => props.$actor,
@@ -203,6 +235,9 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
   const [unmuteActor, isUnmuting] = createMutation<
     ProfileActionMenu_unmuteActor_Mutation
   >(unmuteActorMutation);
+  const [removeFollower, isRemovingFollower] = createMutation<
+    ProfileActionMenu_removeFollower_Mutation
+  >(removeFollowerMutation);
 
   const displayName = () => actor()?.rawName ?? actor()?.username ?? "";
   const isPending = () => isBlocking() || isUnblocking();
@@ -288,6 +323,29 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
   };
 
   const isMutePending = () => isMuting() || isUnmuting();
+  const handleRemoveFollower = () => {
+    const actorData = actor();
+    if (!actorData) return;
+
+    removeFollower({
+      variables: {
+        input: { actorId: actorData.id },
+      },
+      onCompleted(response) {
+        const typename = response.removeFollower.__typename;
+        if (handleMutationError(typename, t`Failed to remove follower`)) {
+          return;
+        }
+        if (typename === "RemoveFollowerPayload") {
+          showToast({ title: t`Follower removed`, variant: "success" });
+        }
+      },
+      onError() {
+        showErrorToast(t`Failed to remove follower`);
+      },
+    });
+  };
+
   const handleMuteToggle = () => {
     const actorData = actor();
     if (!actorData) return;
@@ -368,6 +426,16 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
               {t`Unmute`}
             </Show>
           </DropdownMenuItem>
+          <Show when={actor()?.followsViewer}>
+            <DropdownMenuItem
+              class="text-destructive focus:text-destructive cursor-pointer"
+              disabled={isRemovingFollower()}
+              onSelect={() => setShowRemoveFollowerConfirm(true)}
+            >
+              <IconUserMinus />
+              {t`Remove from followers`}
+            </DropdownMenuItem>
+          </Show>
           <DropdownMenuItem
             classList={{
               "cursor-pointer": true,
@@ -419,6 +487,33 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
               <Show when={actor()?.viewerBlocks} fallback={t`Block`}>
                 {t`Unblock`}
               </Show>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={showRemoveFollowerConfirm()}
+        onOpenChange={setShowRemoveFollowerConfirm}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t`Remove follower?`}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t`Are you sure you want to remove ${displayName()} (${actor()?.handle}) from your followers?`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogClose aria-label={t`Cancel`}>
+              {t`Cancel`}
+            </AlertDialogClose>
+            <AlertDialogAction
+              aria-label={t`Remove from followers`}
+              class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleRemoveFollower}
+              disabled={isRemovingFollower()}
+            >
+              {t`Remove from followers`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
