@@ -1593,6 +1593,10 @@ type Mutation {
   Register or refresh a push notification target for the authenticated viewer. `APNS` and `FCM` require `token`; `WEB_PUSH` requires `endpoint`, `p256dh`, and `auth` from the browser `PushSubscription`.
   """
   registerPushNotificationTarget(input: RegisterPushNotificationTargetInput!): RegisterPushNotificationTargetResult!
+
+  """
+  Remove an `Actor` from the authenticated viewer's followers. This deletes the follower relationship without blocking the actor; remote followers receive an ActivityPub `Reject` for the original `Follow`.
+  """
   removeFollower(input: RemoveFollowerInput!): RemoveFollowerResult!
 
   """
@@ -3422,17 +3426,32 @@ type RelaySubscription implements Node {
   uuid: UUID!
 }
 
+"""
+Remove an `Actor` from the authenticated viewer's followers. This deletes the follower relationship without blocking the actor; remote followers receive an ActivityPub `Reject` for the original `Follow`.
+"""
 input RemoveFollowerInput {
+  """
+  `Actor` global ID for the follower to remove from the authenticated viewer's followers. Passing the viewer's own actor or an unknown actor returns `InvalidInputError`.
+  """
   actorId: ID!
   clientMutationId: ID
 }
 
 type RemoveFollowerPayload {
   clientMutationId: ID
+
+  """The authenticated viewer's `Actor` whose follower list changed."""
   followee: Actor!
+
+  """
+  The removed follower `Actor`. The actor may follow the viewer again later unless separately blocked.
+  """
   follower: Actor!
 }
 
+"""
+Result of removing a follower: the updated actors on success, or a typed authentication or input error.
+"""
 union RemoveFollowerResult = InvalidInputError | NotAuthenticatedError | RemoveFollowerPayload
 
 """The result of removing a news feed exclusion pattern."""
