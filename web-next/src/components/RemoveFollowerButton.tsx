@@ -87,7 +87,7 @@ export function RemoveFollowerButton(props: RemoveFollowerButtonProps) {
         connections: [props.connectionId],
       },
       onCompleted(response) {
-        switch (response.removeFollower.__typename) {
+        switch (response.removeFollower?.__typename) {
           case "RemoveFollowerPayload":
             showToast({ title: t`Follower removed`, variant: "success" });
             break;

@@ -248,7 +248,10 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
       variant: "destructive",
     });
   };
-  const handleMutationError = (typename: string, invalidInputTitle: string) => {
+  const handleMutationError = (
+    typename: string | undefined,
+    invalidInputTitle: string,
+  ) => {
     if (typename === "NotAuthenticatedError") {
       showErrorToast(t`You must be signed in`);
       return true;
@@ -332,13 +335,15 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
         input: { actorId: actorData.id },
       },
       onCompleted(response) {
-        const typename = response.removeFollower.__typename;
+        const typename = response.removeFollower?.__typename;
         if (handleMutationError(typename, t`Failed to remove follower`)) {
           return;
         }
         if (typename === "RemoveFollowerPayload") {
           showToast({ title: t`Follower removed`, variant: "success" });
+          return;
         }
+        showErrorToast(t`Failed to remove follower`);
       },
       onError() {
         showErrorToast(t`Failed to remove follower`);
