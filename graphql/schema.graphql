@@ -438,6 +438,11 @@ type Actor implements Node {
   viewerFollows: Boolean!
 
   """
+  Posts authored by either this `Actor` or the authenticated viewer that directly involve the other actor through a reply, quote, or explicit mention. Returns an empty connection for the viewer's own `Actor`; unauthenticated requests raise `AUTHENTICATION_REQUIRED`. `first` and `last` are capped at 250 posts.
+  """
+  viewerInteractions(after: String, before: String, first: Int, last: Int): ActorViewerInteractionsConnection!
+
+  """
   True if the authenticated viewer has muted this actor. Always `false` for unauthenticated requests. Muting is local-only and one-directional: it hides the actor from the viewer's feeds and suppresses notifications from them (except replies and mentions when the viewer also follows them), but unlike `viewerBlocks` it does not federate and the actor remains visible on their profile and in threads.
   """
   viewerMutes: Boolean!
@@ -586,6 +591,16 @@ enum ActorType {
 
   """An automated service or bot account."""
   SERVICE
+}
+
+type ActorViewerInteractionsConnection {
+  edges: [ActorViewerInteractionsConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type ActorViewerInteractionsConnectionEdge {
+  cursor: String!
+  node: Post!
 }
 
 union AddNewsExcludedPatternResult = InvalidInputError | NewsExcludedPattern | NotAuthenticatedError | NotAuthorizedError

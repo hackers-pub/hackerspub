@@ -25,18 +25,29 @@ import {
 } from "@hackerspub/models/following";
 import { getMutedActorIds, mute, unmute } from "@hackerspub/models/muting";
 import { getPostVisibilityFilter } from "@hackerspub/models/post";
+import {
+  formatTimelineCursor,
+  getProfileInteractions,
+} from "@hackerspub/models/profile-interactions";
 import { type Actor as ActorRow, actorTable } from "@hackerspub/models/schema";
+import {
+  parseTimelineCursor,
+  type TimelineCursor,
+} from "@hackerspub/models/timeline";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { resolveOffsetConnection } from "@pothos/plugin-relay";
 import { assertNever } from "@std/assert/unstable-never";
 import { escape } from "@std/html/entities";
+import { createGraphQLError } from "graphql-yoga";
 import xss from "xss";
 import { builder, type UserContext } from "./builder.ts";
 import { InvalidInputError } from "./error.ts";
 import { lookupActorByUrl, parseHttpUrl } from "./lookup.ts";
 import { Article, Note, Post, Question } from "./post.ts";
 import { NotAuthenticatedError } from "./session.ts";
+
+const MAX_VIEWER_INTERACTIONS_WINDOW = 250;
 
 // Per-request loader keyed by actor id.  Several resolvers (e.g.,
 // `Notification.actors`) need to fetch actor rows by id one-by-one
@@ -88,6 +99,46 @@ function createRelationshipBooleanLoader(
     );
     return actorIds.map((id) => matched.has(id));
   };
+}
+
+function authenticationRequired(): never {
+  throw createGraphQLError("Authentication required.", {
+    extensions: { code: "AUTHENTICATION_REQUIRED" },
+  });
+}
+
+function conflictingCursors(): never {
+  throw createGraphQLError("Cannot paginate with both after and before.", {
+    extensions: { code: "PAGINATION_ERROR" },
+  });
+}
+
+function getConnectionWindow(
+  args: { first?: number | null; last?: number | null },
+): number {
+  if (args.first != null && args.last != null) {
+    throw createGraphQLError("Cannot paginate with both first and last.", {
+      extensions: { code: "PAGINATION_ERROR" },
+    });
+  }
+  const window = args.last ?? args.first ?? 25;
+  if (window > MAX_VIEWER_INTERACTIONS_WINDOW) {
+    throw createGraphQLError(
+      `Profile interaction pages are limited to ${MAX_VIEWER_INTERACTIONS_WINDOW} posts.`,
+      { extensions: { code: "PAGINATION_ERROR" } },
+    );
+  }
+  return window;
+}
+
+function parseRequiredTimelineCursor(raw: string): TimelineCursor {
+  const cursor = parseTimelineCursor(raw);
+  if (cursor == null) {
+    throw createGraphQLError("Invalid timeline cursor.", {
+      extensions: { code: "INVALID_CURSOR" },
+    });
+  }
+  return cursor;
 }
 
 export const ActorType = builder.enumType("ActorType", {
@@ -625,6 +676,60 @@ builder.drizzleObjectFields(Actor, (t) => ({
       }),
     },
   ),
+  viewerInteractions: t.connection({
+    type: Post,
+    description:
+      "Posts authored by either this `Actor` or the authenticated viewer " +
+      "that directly involve the other actor through a reply, quote, or " +
+      "explicit mention. Returns an empty connection for the viewer's own " +
+      "`Actor`; unauthenticated requests raise `AUTHENTICATION_REQUIRED`. " +
+      "`first` and `last` are capped at 250 posts.",
+    async resolve(actor, args, ctx) {
+      if (ctx.account == null) {
+        authenticationRequired();
+      } else if (args.after != null && args.before != null) {
+        conflictingCursors();
+      }
+      const backwards = args.last != null;
+      const window = getConnectionWindow(args);
+      const since = args.before == null
+        ? undefined
+        : parseRequiredTimelineCursor(args.before);
+      const until = args.after == null
+        ? undefined
+        : parseRequiredTimelineCursor(args.after);
+      const interactions = await getProfileInteractions(ctx.db, {
+        viewer: ctx.account,
+        profileActorId: actor.id,
+        direction: backwards ? "backward" : "forward",
+        window: window + 1,
+        since,
+        until,
+      });
+      const pageEntries = interactions.slice(0, window);
+      if (backwards) pageEntries.reverse();
+      return {
+        pageInfo: {
+          hasNextPage: backwards
+            ? args.before != null && interactions.length > window
+            : interactions.length > window,
+          hasPreviousPage: backwards
+            ? interactions.length > window
+            : args.after != null,
+          startCursor: pageEntries.length < 1
+            ? null
+            : formatTimelineCursor(pageEntries[0]),
+          endCursor: pageEntries.length < 1
+            ? null
+            : formatTimelineCursor(pageEntries[pageEntries.length - 1]),
+        },
+        edges: pageEntries.map((entry) => ({
+          node: entry.post,
+          cursor: formatTimelineCursor(entry),
+        })),
+      };
+    },
+  }),
   follows: t.field({
     type: "Boolean",
     description: "One-off check: does this actor follow the given actor? " +

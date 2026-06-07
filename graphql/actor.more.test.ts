@@ -4,12 +4,14 @@ import { encodeGlobalID } from "@pothos/plugin-relay";
 import { eq } from "drizzle-orm";
 import { execute, parse } from "graphql";
 import { follow } from "@hackerspub/models/following";
+import { sharePost } from "@hackerspub/models/post";
 import { actorTable, pinTable } from "@hackerspub/models/schema";
 import { schema } from "./mod.ts";
 import {
   createFedCtx,
   type FedCtxLookupObject,
   insertAccountWithActor,
+  insertMention,
   insertNotePost,
   insertRemoteActor,
   insertRemotePost,
@@ -51,6 +53,38 @@ const actorPinsQuery = parse(`
     actorByHandle(handle: $handle, allowLocalHandle: true) {
       pins(first: 10) {
         edges {
+          node {
+            id
+          }
+        }
+      }
+    }
+  }
+`);
+
+const actorViewerInteractionsQuery = parse(`
+  query ActorViewerInteractions(
+    $handle: String!
+    $first: Int
+    $after: String
+    $last: Int
+    $before: String
+  ) {
+    actorByHandle(handle: $handle, allowLocalHandle: true) {
+      viewerInteractions(
+        first: $first
+        after: $after
+        last: $last
+        before: $before
+      ) {
+        pageInfo {
+          hasNextPage
+          hasPreviousPage
+          startCursor
+          endCursor
+        }
+        edges {
+          cursor
           node {
             id
           }
@@ -444,6 +478,339 @@ test("instanceByHost and searchActorsByHandle expose lookup results", async () =
 
     assert.ok(handles.includes("@actorsearchlocal@localhost"));
     assert.ok(handles.includes(`@${remote.username}@${remote.handleHost}`));
+  });
+});
+
+test("Actor.viewerInteractions returns direct interactions newest first", async () => {
+  await withRollback(async (tx) => {
+    const viewer = await insertAccountWithActor(tx, {
+      username: "actorinteractionsviewer",
+      name: "Actor Interactions Viewer",
+      email: "actorinteractionsviewer@example.com",
+    });
+    const profile = await insertAccountWithActor(tx, {
+      username: "actorinteractionsprofile",
+      name: "Actor Interactions Profile",
+      email: "actorinteractionsprofile@example.com",
+    });
+    const thirdParty = await insertAccountWithActor(tx, {
+      username: "actorinteractionsthird",
+      name: "Actor Interactions Third",
+      email: "actorinteractionsthird@example.com",
+    });
+
+    const { post: viewerRoot } = await insertNotePost(tx, {
+      account: viewer.account,
+      content: "Viewer root for GraphQL interactions",
+      published: new Date("2026-04-15T00:00:00.000Z"),
+    });
+    const { post: profileRoot } = await insertNotePost(tx, {
+      account: profile.account,
+      content: "Profile root for GraphQL interactions",
+      published: new Date("2026-04-15T00:00:01.000Z"),
+    });
+    const { post: viewerMention } = await insertNotePost(tx, {
+      account: viewer.account,
+      content: "Viewer mentions profile in GraphQL",
+      published: new Date("2026-04-15T00:00:02.000Z"),
+    });
+    await insertMention(tx, {
+      postId: viewerMention.id,
+      actorId: profile.actor.id,
+    });
+    const { post: profileReply } = await insertNotePost(tx, {
+      account: profile.account,
+      content: "Profile replies to viewer in GraphQL",
+      replyTargetId: viewerRoot.id,
+      published: new Date("2026-04-15T00:00:03.000Z"),
+    });
+    const { post: profileQuote } = await insertNotePost(tx, {
+      account: profile.account,
+      content: "Profile quotes viewer in GraphQL",
+      quotedPostId: viewerRoot.id,
+      published: new Date("2026-04-15T00:00:04.000Z"),
+    });
+    const { post: profileMention } = await insertNotePost(tx, {
+      account: profile.account,
+      content: "Profile mentions viewer in GraphQL",
+      published: new Date("2026-04-15T00:00:05.000Z"),
+    });
+    await insertMention(tx, {
+      postId: profileMention.id,
+      actorId: viewer.actor.id,
+    });
+    const { post: thirdPartyMention } = await insertNotePost(tx, {
+      account: thirdParty.account,
+      content: "Third party mentions both in GraphQL",
+      published: new Date("2026-04-15T00:00:06.000Z"),
+    });
+    await insertMention(tx, {
+      postId: thirdPartyMention.id,
+      actorId: viewer.actor.id,
+    });
+    await insertMention(tx, {
+      postId: thirdPartyMention.id,
+      actorId: profile.actor.id,
+    });
+    await insertNotePost(tx, {
+      account: viewer.account,
+      content: "Viewer quotes third party",
+      quotedPostId: thirdPartyMention.id,
+      published: new Date("2026-04-15T00:00:07.000Z"),
+    });
+    await sharePost(createFedCtx(tx), viewer.account, {
+      ...profileRoot,
+      actor: profile.actor,
+    });
+
+    const result = await execute({
+      schema,
+      document: actorViewerInteractionsQuery,
+      variableValues: {
+        handle: profile.account.username,
+        first: 10,
+      },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(result.errors, undefined);
+    const connection = (toPlainJson(result.data) as {
+      actorByHandle: {
+        viewerInteractions: {
+          pageInfo: {
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
+          };
+          edges: Array<{ node: { id: string } }>;
+        };
+      };
+    }).actorByHandle.viewerInteractions;
+    assert.deepEqual(connection.pageInfo.hasNextPage, false);
+    assert.deepEqual(connection.pageInfo.hasPreviousPage, false);
+    assert.deepEqual(connection.edges.map((edge) => edge.node.id), [
+      encodeGlobalID("Note", profileMention.id),
+      encodeGlobalID("Note", profileQuote.id),
+      encodeGlobalID("Note", profileReply.id),
+      encodeGlobalID("Note", viewerMention.id),
+    ]);
+  });
+});
+
+test("Actor.viewerInteractions requires authentication and is empty for self", async () => {
+  await withRollback(async (tx) => {
+    const viewer = await insertAccountWithActor(tx, {
+      username: "actorinteractionsauthviewer",
+      name: "Actor Interactions Auth Viewer",
+      email: "actorinteractionsauthviewer@example.com",
+    });
+    const profile = await insertAccountWithActor(tx, {
+      username: "actorinteractionsauthprofile",
+      name: "Actor Interactions Auth Profile",
+      email: "actorinteractionsauthprofile@example.com",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: profile.account,
+      content: "Auth profile mentions viewer",
+      published: new Date("2026-04-15T00:00:01.000Z"),
+    });
+    await insertMention(tx, {
+      postId: post.id,
+      actorId: viewer.actor.id,
+    });
+
+    const guestResult = await execute({
+      schema,
+      document: actorViewerInteractionsQuery,
+      variableValues: {
+        handle: profile.account.username,
+        first: 10,
+      },
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(
+      guestResult.errors?.[0]?.extensions?.code,
+      "AUTHENTICATION_REQUIRED",
+    );
+
+    const selfResult = await execute({
+      schema,
+      document: actorViewerInteractionsQuery,
+      variableValues: {
+        handle: viewer.account.username,
+        first: 10,
+      },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(selfResult.errors, undefined);
+    assert.deepEqual(toPlainJson(selfResult.data), {
+      actorByHandle: {
+        viewerInteractions: {
+          pageInfo: {
+            hasNextPage: false,
+            hasPreviousPage: false,
+            startCursor: null,
+            endCursor: null,
+          },
+          edges: [],
+        },
+      },
+    });
+  });
+});
+
+test("Actor.viewerInteractions rejects oversized page windows", async () => {
+  await withRollback(async (tx) => {
+    const viewer = await insertAccountWithActor(tx, {
+      username: "actorinteractionswindowviewer",
+      name: "Actor Interactions Window Viewer",
+      email: "actorinteractionswindowviewer@example.com",
+    });
+    const profile = await insertAccountWithActor(tx, {
+      username: "actorinteractionswindowprofile",
+      name: "Actor Interactions Window Profile",
+      email: "actorinteractionswindowprofile@example.com",
+    });
+
+    const result = await execute({
+      schema,
+      document: actorViewerInteractionsQuery,
+      variableValues: {
+        handle: profile.account.username,
+        first: 251,
+      },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors?.[0]?.extensions?.code, "PAGINATION_ERROR");
+    assert.equal(
+      result.errors?.[0]?.message,
+      "Profile interaction pages are limited to 250 posts.",
+    );
+  });
+});
+
+test("Actor.viewerInteractions supports stable cursor pagination", async () => {
+  await withRollback(async (tx) => {
+    const viewer = await insertAccountWithActor(tx, {
+      username: "actorinteractionspageviewer",
+      name: "Actor Interactions Page Viewer",
+      email: "actorinteractionspageviewer@example.com",
+    });
+    const profile = await insertAccountWithActor(tx, {
+      username: "actorinteractionspageprofile",
+      name: "Actor Interactions Page Profile",
+      email: "actorinteractionspageprofile@example.com",
+    });
+    const timestamp = new Date("2026-04-15T00:00:01.000Z");
+    const posts = [];
+    for (let i = 0; i < 4; i++) {
+      const { post } = await insertNotePost(tx, {
+        account: i % 2 === 0 ? viewer.account : profile.account,
+        content: `GraphQL interaction page ${i}`,
+        published: timestamp,
+      });
+      await insertMention(tx, {
+        postId: post.id,
+        actorId: i % 2 === 0 ? profile.actor.id : viewer.actor.id,
+      });
+      posts.push(post);
+    }
+    const orderedPosts = [...posts].sort((a, b) => b.id.localeCompare(a.id));
+
+    const firstPage = await execute({
+      schema,
+      document: actorViewerInteractionsQuery,
+      variableValues: {
+        handle: profile.account.username,
+        first: 2,
+      },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(firstPage.errors, undefined);
+    const firstConnection = (toPlainJson(firstPage.data) as {
+      actorByHandle: {
+        viewerInteractions: {
+          pageInfo: {
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
+            endCursor: string;
+          };
+          edges: Array<{ node: { id: string } }>;
+        };
+      };
+    }).actorByHandle.viewerInteractions;
+    assert.deepEqual(firstConnection.pageInfo.hasNextPage, true);
+    assert.deepEqual(firstConnection.pageInfo.hasPreviousPage, false);
+    assert.deepEqual(firstConnection.edges.map((edge) => edge.node.id), [
+      encodeGlobalID("Note", orderedPosts[0].id),
+      encodeGlobalID("Note", orderedPosts[1].id),
+    ]);
+
+    const secondPage = await execute({
+      schema,
+      document: actorViewerInteractionsQuery,
+      variableValues: {
+        handle: profile.account.username,
+        first: 2,
+        after: firstConnection.pageInfo.endCursor,
+      },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(secondPage.errors, undefined);
+    const secondConnection = (toPlainJson(secondPage.data) as {
+      actorByHandle: {
+        viewerInteractions: {
+          pageInfo: {
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
+            endCursor: string;
+          };
+          edges: Array<{ node: { id: string } }>;
+        };
+      };
+    }).actorByHandle.viewerInteractions;
+    assert.deepEqual(secondConnection.pageInfo.hasNextPage, false);
+    assert.deepEqual(secondConnection.pageInfo.hasPreviousPage, true);
+    assert.deepEqual(secondConnection.edges.map((edge) => edge.node.id), [
+      encodeGlobalID("Note", orderedPosts[2].id),
+      encodeGlobalID("Note", orderedPosts[3].id),
+    ]);
+
+    const backwardPage = await execute({
+      schema,
+      document: actorViewerInteractionsQuery,
+      variableValues: {
+        handle: profile.account.username,
+        last: 2,
+        before: secondConnection.pageInfo.endCursor,
+      },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(backwardPage.errors, undefined);
+    const backwardConnection = (toPlainJson(backwardPage.data) as {
+      actorByHandle: {
+        viewerInteractions: {
+          pageInfo: {
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
+          };
+          edges: Array<{ node: { id: string } }>;
+        };
+      };
+    }).actorByHandle.viewerInteractions;
+    assert.deepEqual(backwardConnection.pageInfo.hasNextPage, true);
+    assert.deepEqual(backwardConnection.pageInfo.hasPreviousPage, true);
+    assert.deepEqual(backwardConnection.edges.map((edge) => edge.node.id), [
+      encodeGlobalID("Note", orderedPosts[1].id),
+      encodeGlobalID("Note", orderedPosts[2].id),
+    ]);
   });
 });
 
