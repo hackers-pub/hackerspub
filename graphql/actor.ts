@@ -1252,6 +1252,10 @@ builder.relayMutationField(
     },
   },
   {
+    description:
+      "Payload returned after successfully removing a follower. Contains the " +
+      "updated viewer `Actor` and removed follower `Actor` so clients can " +
+      "refresh counts and relationship state.",
     outputFields: (t) => ({
       follower: t.drizzleField({
         type: Actor,
