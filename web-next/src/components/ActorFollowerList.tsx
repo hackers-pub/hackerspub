@@ -3,6 +3,7 @@ import { createSignal, For, Match, Show, Switch } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { ActorFollowerList_followers$key } from "./__generated__/ActorFollowerList_followers.graphql.ts";
+import { RemoveFollowerButton } from "./RemoveFollowerButton.tsx";
 import { SmallProfileCard } from "./SmallProfileCard.tsx";
 
 export interface ActorFollowerListProps {
@@ -21,12 +22,15 @@ export function ActorFollowerList(props: ActorFollowerListProps) {
         )
       {
         __id
+        isViewer
         followers(after: $cursor, first: $count)
           @connection(key: "ActorFollowerList_followers")
         {
+          __id
           edges {
             __id
             node {
+              ...RemoveFollowerButton_actor
               ...SmallProfileCard_actor
             }
           }
@@ -60,7 +64,17 @@ export function ActorFollowerList(props: ActorFollowerListProps) {
               <For each={data.followers.edges}>
                 {(edge) => (
                   <li>
-                    <SmallProfileCard $actor={edge.node} />
+                    <SmallProfileCard
+                      $actor={edge.node}
+                      rightAction={
+                        <Show when={data.isViewer}>
+                          <RemoveFollowerButton
+                            $actor={edge.node}
+                            connectionId={data.followers.__id}
+                          />
+                        </Show>
+                      }
+                    />
                   </li>
                 )}
               </For>

@@ -1,5 +1,5 @@
 import { graphql } from "relay-runtime";
-import { createSignal, Show } from "solid-js";
+import { createSignal, type JSX, Show } from "solid-js";
 import { createFragment } from "solid-relay";
 import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
 import {
@@ -12,6 +12,7 @@ import { FollowButton } from "./FollowButton.tsx";
 
 export interface SmallProfileCardProps {
   $actor: SmallProfileCard_actor$key;
+  rightAction?: JSX.Element;
 }
 
 export function SmallProfileCard(props: SmallProfileCardProps) {
@@ -77,8 +78,9 @@ export function SmallProfileCard(props: SmallProfileCardProps) {
                 {actor.handle}
               </span>
             </div>
-            <div class="shrink-0">
+            <div class="flex shrink-0 items-center gap-1">
               <FollowButton $actor={actor} />
+              {props.rightAction}
             </div>
           </div>
           <Show keyed when={actor.bio}>

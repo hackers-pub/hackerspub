@@ -102,7 +102,7 @@ msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up t
 msgstr "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up to # person.} other {Invite your friends to Hackers' Pub. You can invite up to # people.}}"
 
 #. placeholder {0}: props.count
-#: src/routes/(root)/tree/index.tsx:167
+#: src/routes/(root)/tree/index.tsx:176
 msgid "{0, plural, one {Invited # person} other {Invited # people}}"
 msgstr "{0, plural, one {Invited # person} other {Invited # people}}"
 
@@ -329,7 +329,7 @@ msgid "A sign-in link has been sent to your email. Please check your inbox (or s
 msgstr "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 
 #: src/components/admin/AdminAccountsTable.tsx:224
-#: src/components/AppSidebar.tsx:502
+#: src/components/AppSidebar.tsx:491
 msgid "Account"
 msgstr "Account"
 
@@ -337,7 +337,7 @@ msgstr "Account"
 msgid "Account handle"
 msgstr "Account handle"
 
-#: src/components/AppSidebar.tsx:773
+#: src/components/AppSidebar.tsx:755
 #: src/routes/(root)/admin/index.tsx:95
 msgid "Accounts"
 msgstr "Accounts"
@@ -371,7 +371,7 @@ msgstr "Add to sidebar"
 msgid "Adding…"
 msgstr "Adding…"
 
-#: src/components/AppSidebar.tsx:751
+#: src/components/AppSidebar.tsx:734
 msgid "Admin"
 msgstr "Admin"
 
@@ -469,6 +469,12 @@ msgstr "Are you sure you want to delete \"{draftTitle}\"? This action cannot be 
 msgid "Are you sure you want to delete this draft? This action cannot be undone."
 msgstr "Are you sure you want to delete this draft? This action cannot be undone."
 
+#. placeholder {0}: displayName()
+#. placeholder {1}: actor.handle
+#: src/components/RemoveFollowerButton.tsx:144
+msgid "Are you sure you want to remove {0} ({1}) from your followers?"
+msgstr "Are you sure you want to remove {0} ({1}) from your followers?"
+
 #. placeholder {0}: passkeyToRevoke()?.name
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:518
 msgid "Are you sure you want to revoke passkey {0}? You won't be able to use it to sign in to your account anymore."
@@ -502,7 +508,7 @@ msgstr "article-url-slug"
 msgid "Articles"
 msgstr "Articles"
 
-#: src/components/AppSidebar.tsx:331
+#: src/components/AppSidebar.tsx:324
 #: src/components/ProfileCard.tsx:195
 msgid "Articles only"
 msgstr "Articles only"
@@ -570,7 +576,7 @@ msgstr "Bold"
 msgid "Bookmark"
 msgstr "Bookmark"
 
-#: src/components/AppSidebar.tsx:641
+#: src/components/AppSidebar.tsx:626
 #: src/routes/(root)/[handle]/bookmarks.tsx:126
 msgid "Bookmarks"
 msgstr "Bookmarks"
@@ -619,6 +625,7 @@ msgstr "Bury"
 #: src/components/QuotedNoteCard.tsx:248
 #: src/components/RemoteFollowButton.tsx:218
 #: src/components/RemoteFollowButton.tsx:280
+#: src/components/RemoveFollowerButton.tsx:148
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:523
 #: src/routes/(root)/[handle]/settings/index.tsx:399
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:522
@@ -684,7 +691,7 @@ msgstr "Closed"
 msgid "Code"
 msgstr "Code"
 
-#: src/components/AppSidebar.tsx:1078
+#: src/components/AppSidebar.tsx:1051
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/sign/up/[token].tsx:458
 msgid "Code of conduct"
@@ -694,7 +701,7 @@ msgstr "Code of conduct"
 #~ msgid "Comments ({0})"
 #~ msgstr "Comments ({0})"
 
-#: src/components/AppSidebar.tsx:911
+#: src/components/AppSidebar.tsx:888
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "Compose"
@@ -757,7 +764,7 @@ msgstr "Could not revoke quote"
 msgid "Could not vote on this poll"
 msgstr "Could not vote on this poll"
 
-#: src/components/AppSidebar.tsx:957
+#: src/components/AppSidebar.tsx:933
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create article"
 msgstr "Create article"
@@ -766,7 +773,7 @@ msgstr "Create article"
 msgid "Create invitation link"
 msgstr "Create invitation link"
 
-#: src/components/AppSidebar.tsx:933
+#: src/components/AppSidebar.tsx:910
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:78
 #: src/components/NoteComposer.tsx:1435
@@ -884,7 +891,7 @@ msgstr "Discard unsaved changes - are you sure?"
 #~ msgid "Discussion"
 #~ msgstr "Discussion"
 
-#: src/components/FollowRecommendations.tsx:140
+#: src/components/FollowRecommendations.tsx:141
 #: src/components/WebPushPromptBanner.tsx:269
 msgid "Dismiss"
 msgstr "Dismiss"
@@ -1143,7 +1150,7 @@ msgstr "Failed to load more bookmarks; click to retry"
 msgid "Failed to load more drafts; click to retry"
 msgstr "Failed to load more drafts; click to retry"
 
-#: src/components/ActorFollowerList.tsx:82
+#: src/components/ActorFollowerList.tsx:96
 msgid "Failed to load more followers; click to retry"
 msgstr "Failed to load more followers; click to retry"
 
@@ -1171,7 +1178,7 @@ msgstr "Failed to load more passkeys; click to retry"
 #: src/components/ActorSharedPostList.tsx:83
 #: src/components/PersonalTimeline.tsx:295
 #: src/components/PublicTimeline.tsx:288
-#: src/components/SearchResults.tsx:99
+#: src/components/SearchResults.tsx:150
 msgid "Failed to load more posts; click to retry"
 msgstr "Failed to load more posts; click to retry"
 
@@ -1265,6 +1272,11 @@ msgstr "Failed to remove bookmark"
 msgid "Failed to remove exclusion pattern."
 msgstr "Failed to remove exclusion pattern."
 
+#: src/components/RemoveFollowerButton.tsx:102
+#: src/components/RemoveFollowerButton.tsx:109
+msgid "Failed to remove follower"
+msgstr "Failed to remove follower"
+
 #: src/components/HashtagActionBar.tsx:212
 #: src/components/HashtagActionBar.tsx:219
 msgid "Failed to remove from sidebar"
@@ -1313,7 +1325,7 @@ msgid "Failed to share post"
 msgstr "Failed to share post"
 
 #. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:206
+#: src/components/AppSidebar.tsx:200
 msgid "Failed to sign out: {0}"
 msgstr "Failed to sign out: {0}"
 
@@ -1386,7 +1398,7 @@ msgstr "Failed to vote"
 msgid "Favor links shared by specific accounts. A preferred sharer's posts count toward the news feed even when the account is a bot (for example a feed that reposts Hacker News links), and the links it shares get a flat promotion bonus in the popular ranking. A penalty on a link overrides the promotion."
 msgstr "Favor links shared by specific accounts. A preferred sharer's posts count toward the news feed even when the account is a bot (for example a feed that reposts Hacker News links), and the links it shares get a flat promotion bonus in the popular ranking. A penalty on a link overrides the promotion."
 
-#: src/components/AppSidebar.tsx:377
+#: src/components/AppSidebar.tsx:368
 msgid "Fediverse"
 msgstr "Fediverse"
 
@@ -1394,7 +1406,7 @@ msgstr "Fediverse"
 msgid "Fediverse handle"
 msgstr "Fediverse handle"
 
-#: src/components/AppSidebar.tsx:268
+#: src/components/AppSidebar.tsx:263
 msgid "Feed"
 msgstr "Feed"
 
@@ -1415,6 +1427,10 @@ msgstr "Follow back"
 #: src/routes/(root)/authorize_interaction.tsx:174
 msgid "Follow from your account"
 msgstr "Follow from your account"
+
+#: src/components/RemoveFollowerButton.tsx:92
+msgid "Follower removed"
+msgstr "Follower removed"
 
 #: src/components/admin/AdminAccountsTable.tsx:239
 msgid "Followers"
@@ -1452,7 +1468,7 @@ msgstr "Generating…"
 msgid "Get browser notifications"
 msgstr "Get browser notifications"
 
-#: src/components/AppSidebar.tsx:1119
+#: src/components/AppSidebar.tsx:1091
 msgid "GitHub repository"
 msgstr "GitHub repository"
 
@@ -1485,14 +1501,14 @@ msgstr "Go to my drafts"
 msgid "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 msgstr "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 
-#: src/routes/(root)/tree/graph.tsx:90
-#: src/routes/(root)/tree/index.tsx:210
+#: src/routes/(root)/tree/graph.tsx:92
+#: src/routes/(root)/tree/index.tsx:219
 msgid "Graph"
 msgstr "Graph"
 
-#: src/components/AppSidebar.tsx:346
-#: src/components/AppSidebar.tsx:469
-#: src/routes/(root).tsx:138
+#: src/components/AppSidebar.tsx:338
+#: src/components/AppSidebar.tsx:458
+#: src/routes/(root).tsx:141
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/markdown.tsx:40
 #: src/routes/(root)/privacy.tsx:40
@@ -1500,7 +1516,7 @@ msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
 #: src/components/NotFoundPage.tsx:19
-#: src/routes/(root).tsx:130
+#: src/routes/(root).tsx:133
 msgid "Hackers' Pub home"
 msgstr "Hackers' Pub home"
 
@@ -1561,7 +1577,7 @@ msgstr "Heading 2"
 msgid "Heading 3"
 msgstr "Heading 3"
 
-#: src/routes/(root)/tree/index.tsx:119
+#: src/routes/(root)/tree/index.tsx:122
 msgid "Hidden account"
 msgstr "Hidden account"
 
@@ -1665,14 +1681,14 @@ msgstr "Invitation links"
 msgid "Invitation sent"
 msgstr "Invitation sent"
 
-#: src/components/AppSidebar.tsx:1069
+#: src/components/AppSidebar.tsx:1043
 #: src/routes/(root)/[handle]/settings/invite.tsx:907
-#: src/routes/(root)/tree/graph.tsx:77
-#: src/routes/(root)/tree/index.tsx:197
+#: src/routes/(root)/tree/graph.tsx:79
+#: src/routes/(root)/tree/index.tsx:206
 msgid "Invitation tree"
 msgstr "Invitation tree"
 
-#: src/components/AppSidebar.tsx:796
+#: src/components/AppSidebar.tsx:777
 #: src/routes/(root)/admin/invitations.tsx:148
 msgid "Invitations"
 msgstr "Invitations"
@@ -1681,7 +1697,7 @@ msgstr "Invitations"
 msgid "Invitations left"
 msgstr "Invitations left"
 
-#: src/components/AppSidebar.tsx:665
+#: src/components/AppSidebar.tsx:649
 #: src/components/SettingsTabs.tsx:69
 #: src/routes/(root)/[handle]/settings/invite.tsx:310
 msgid "Invite"
@@ -1825,7 +1841,7 @@ msgstr "Load more articles"
 msgid "Load more bookmarks"
 msgstr "Load more bookmarks"
 
-#: src/components/ActorFollowerList.tsx:85
+#: src/components/ActorFollowerList.tsx:99
 msgid "Load more followers"
 msgstr "Load more followers"
 
@@ -1853,7 +1869,7 @@ msgstr "Load more passkeys"
 #: src/components/ActorSharedPostList.tsx:86
 #: src/components/PersonalTimeline.tsx:298
 #: src/components/PublicTimeline.tsx:291
-#: src/components/SearchResults.tsx:102
+#: src/components/SearchResults.tsx:153
 msgid "Load more posts"
 msgstr "Load more posts"
 
@@ -1897,7 +1913,7 @@ msgstr "Loading more articles…"
 msgid "Loading more bookmarks…"
 msgstr "Loading more bookmarks…"
 
-#: src/components/ActorFollowerList.tsx:79
+#: src/components/ActorFollowerList.tsx:93
 msgid "Loading more followers…"
 msgstr "Loading more followers…"
 
@@ -1925,7 +1941,7 @@ msgstr "Loading more passkeys…"
 #: src/components/ActorSharedPostList.tsx:80
 #: src/components/PersonalTimeline.tsx:292
 #: src/components/PublicTimeline.tsx:285
-#: src/components/SearchResults.tsx:96
+#: src/components/SearchResults.tsx:147
 msgid "Loading more posts…"
 msgstr "Loading more posts…"
 
@@ -1999,7 +2015,7 @@ msgstr "Markdown guide"
 msgid "Markdown supported"
 msgstr "Markdown supported"
 
-#: src/components/AppSidebar.tsx:819
+#: src/components/AppSidebar.tsx:799
 #: src/routes/(root)/admin/media.tsx:152
 msgid "Media"
 msgstr "Media"
@@ -2115,8 +2131,8 @@ msgstr "New posts available — click to load"
 msgid "Newest"
 msgstr "Newest"
 
-#: src/components/AppSidebar.tsx:244
-#: src/components/AppSidebar.tsx:842
+#: src/components/AppSidebar.tsx:240
+#: src/components/AppSidebar.tsx:821
 #: src/routes/(root)/admin/news.tsx:553
 #: src/routes/(root)/news/index.tsx:39
 msgid "News"
@@ -2151,7 +2167,7 @@ msgstr "No drafts yet. Create your first article!"
 msgid "No exclusion patterns yet."
 msgstr "No exclusion patterns yet."
 
-#: src/components/ActorFollowerList.tsx:92
+#: src/components/ActorFollowerList.tsx:106
 msgid "No followers found"
 msgstr "No followers found"
 
@@ -2159,7 +2175,7 @@ msgstr "No followers found"
 msgid "No following found"
 msgstr "No following found"
 
-#: src/routes/(root)/tree/index.tsx:218
+#: src/routes/(root)/tree/index.tsx:227
 msgid "No invitation tree data yet."
 msgstr "No invitation tree data yet."
 
@@ -2203,7 +2219,7 @@ msgstr "No penalized links."
 #: src/components/ActorSharedPostList.tsx:93
 #: src/components/PersonalTimeline.tsx:305
 #: src/components/PublicTimeline.tsx:298
-#: src/components/SearchResults.tsx:109
+#: src/components/SearchResults.tsx:160
 msgid "No posts found"
 msgstr "No posts found"
 
@@ -2327,7 +2343,7 @@ msgstr "Notification permission was not granted."
 msgid "Notification preview privacy"
 msgstr "Notification preview privacy"
 
-#: src/components/AppSidebar.tsx:597
+#: src/components/AppSidebar.tsx:584
 msgid "Notifications"
 msgstr "Notifications"
 
@@ -2411,7 +2427,7 @@ msgstr "Penalty cleared."
 msgid "Pending"
 msgstr "Pending"
 
-#: src/components/FollowRecommendations.tsx:134
+#: src/components/FollowRecommendations.tsx:135
 msgid "People you might want to follow"
 msgstr "People you might want to follow"
 
@@ -2536,7 +2552,7 @@ msgstr "Previous image"
 msgid "Priority"
 msgstr "Priority"
 
-#: src/components/AppSidebar.tsx:1086
+#: src/components/AppSidebar.tsx:1058
 #: src/routes/(root)/privacy.tsx:40
 msgid "Privacy policy"
 msgstr "Privacy policy"
@@ -2677,7 +2693,7 @@ msgstr "Receive new notifications immediately, even when this tab is closed."
 msgid "Receive notifications immediately through this browser, even when this tab is closed."
 msgstr "Receive notifications immediately through this browser, even when this tab is closed."
 
-#: src/components/AppSidebar.tsx:993
+#: src/components/AppSidebar.tsx:969
 msgid "Recent drafts"
 msgstr "Recent drafts"
 
@@ -2690,7 +2706,7 @@ msgstr "Recompute news scores"
 msgid "Recomputing…"
 msgstr "Recomputing…"
 
-#: src/components/AppSidebar.tsx:865
+#: src/components/AppSidebar.tsx:843
 #: src/routes/(root)/admin/refresh.tsx:196
 msgid "Refresh"
 msgstr "Refresh"
@@ -2756,7 +2772,7 @@ msgstr "Registering…"
 msgid "Relay actor URL"
 msgstr "Relay actor URL"
 
-#: src/components/AppSidebar.tsx:888
+#: src/components/AppSidebar.tsx:865
 #: src/routes/(root)/admin/relay.tsx:216
 msgid "Relays"
 msgstr "Relays"
@@ -2782,6 +2798,14 @@ msgstr "Remove {0}"
 #: src/components/BookmarkButton.tsx:151
 msgid "Remove bookmark"
 msgstr "Remove bookmark"
+
+#: src/components/RemoveFollowerButton.tsx:142
+msgid "Remove follower?"
+msgstr "Remove follower?"
+
+#: src/components/RemoveFollowerButton.tsx:78
+msgid "Remove from followers"
+msgstr "Remove from followers"
 
 #: src/components/HashtagActionBar.tsx:268
 msgid "Remove from sidebar"
@@ -2820,7 +2844,7 @@ msgstr "Replying is not available for this post"
 msgid "Replying to"
 msgstr "Replying to"
 
-#: src/components/AppSidebar.tsx:521
+#: src/components/AppSidebar.tsx:510
 msgid "Return to old UI"
 msgstr "Return to old UI"
 
@@ -2871,7 +2895,7 @@ msgid "Saving…"
 msgstr "Saving…"
 
 #: src/components/admin/AdminAccountsTable.tsx:202
-#: src/components/AppSidebar.tsx:400
+#: src/components/AppSidebar.tsx:390
 #: src/components/SearchForm.tsx:65
 #: src/components/SearchForm.tsx:80
 msgid "Search"
@@ -2931,7 +2955,7 @@ msgstr "Separate tags with spaces. Tags help readers discover your article."
 msgid "Set your personal preferences."
 msgstr "Set your personal preferences."
 
-#: src/components/AppSidebar.tsx:697
+#: src/components/AppSidebar.tsx:680
 msgid "Settings"
 msgstr "Settings"
 
@@ -2987,7 +3011,7 @@ msgstr "Show more sharing posts"
 msgid "Show sensitive content"
 msgstr "Show sensitive content"
 
-#: src/components/AppSidebar.tsx:558
+#: src/components/AppSidebar.tsx:546
 #: src/routes/(root)/sign/index.tsx:382
 msgid "Sign in"
 msgstr "Sign in"
@@ -3008,7 +3032,7 @@ msgstr "Sign in to vote"
 msgid "Sign in with passkey"
 msgstr "Sign in with passkey"
 
-#: src/components/AppSidebar.tsx:1056
+#: src/components/AppSidebar.tsx:1030
 msgid "Sign out"
 msgstr "Sign out"
 
@@ -3037,7 +3061,7 @@ msgstr "Signing up for Hackers' Pub"
 msgid "Single choice"
 msgstr "Single choice"
 
-#: src/components/FollowRecommendations.tsx:195
+#: src/components/FollowRecommendations.tsx:200
 msgid "Skip"
 msgstr "Skip"
 
@@ -3230,7 +3254,7 @@ msgstr "The sign-up link is invalid. Please make sure you're using the correct l
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:1110
+#: src/components/AppSidebar.tsx:1082
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "The source code of this website is available on {0} under the {1} license."
 
@@ -3247,7 +3271,7 @@ msgstr "The URL of the link, e.g., https://github.com/yourhandle."
 msgid "The Web Push public key is invalid."
 msgstr "The Web Push public key is invalid."
 
-#: src/routes/(root)/tree/index.tsx:121
+#: src/routes/(root)/tree/index.tsx:124
 msgid "This account is hidden because they want to keep their identity private."
 msgstr "This account is hidden because they want to keep their identity private."
 
@@ -3323,7 +3347,7 @@ msgstr "This usually takes about a minute. The page will update automatically wh
 msgid "This will be part of the article URL."
 msgstr "This will be part of the article URL."
 
-#: src/components/AppSidebar.tsx:221
+#: src/components/AppSidebar.tsx:218
 msgid "Timeline"
 msgstr "Timeline"
 
@@ -3341,7 +3365,7 @@ msgstr "Title cannot be empty"
 msgid "To follow {0}, enter your Fediverse handle."
 msgstr "To follow {0}, enter your Fediverse handle."
 
-#: src/routes/(root).tsx:128
+#: src/routes/(root).tsx:131
 msgid "Toggle sidebar"
 msgstr "Toggle sidebar"
 
@@ -3383,8 +3407,8 @@ msgstr "Translation request failed"
 msgid "Translation request failed for {name}"
 msgstr "Translation request failed for {name}"
 
-#: src/routes/(root)/tree/graph.tsx:84
-#: src/routes/(root)/tree/index.tsx:204
+#: src/routes/(root)/tree/graph.tsx:86
+#: src/routes/(root)/tree/index.tsx:213
 msgid "Tree"
 msgstr "Tree"
 
@@ -3527,7 +3551,7 @@ msgstr "Verified that this link is owned by {0} {1}"
 msgid "Verifying your invitation…"
 msgstr "Verifying your invitation…"
 
-#: src/components/AppSidebar.tsx:1019
+#: src/components/AppSidebar.tsx:993
 msgid "View all drafts →"
 msgstr "View all drafts →"
 
@@ -3635,7 +3659,7 @@ msgstr "When enabled, your account appears anonymously in the invitation tree, a
 #~ msgid "Who can quote this note"
 #~ msgstr "Who can quote this note"
 
-#: src/components/AppSidebar.tsx:308
+#: src/components/AppSidebar.tsx:302
 msgid "Without shares"
 msgstr "Without shares"
 
@@ -3741,6 +3765,7 @@ msgstr "You haven't muted anyone."
 #: src/components/HashtagActionBar.tsx:148
 #: src/components/HashtagActionBar.tsx:171
 #: src/components/ProfileActionMenu.tsx:218
+#: src/components/RemoveFollowerButton.tsx:96
 msgid "You must be signed in"
 msgstr "You must be signed in"
 
