@@ -114,46 +114,44 @@ export function RemoveFollowerButton(props: RemoveFollowerButtonProps) {
   }
 
   return (
-    <Show keyed when={actor()}>
-      {(actorData) => (
-        <>
-          <Tooltip>
-            <TooltipTrigger
-              as={Button}
-              variant="ghost"
-              size="sm"
-              class="h-9 w-9 p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-              aria-label={label()}
-              disabled={isRemoving()}
-              onClick={() => setShowConfirm(true)}
-            >
-              <IconUserMinus class="size-4" />
-            </TooltipTrigger>
-            <TooltipContent>{label()}</TooltipContent>
-          </Tooltip>
+    <Show when={actor()}>
+      <Tooltip>
+        <TooltipTrigger
+          as={Button}
+          variant="ghost"
+          size="sm"
+          class="h-9 w-9 p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+          aria-label={label()}
+          disabled={isRemoving()}
+          onClick={() => setShowConfirm(true)}
+        >
+          <IconUserMinus class="size-4" />
+        </TooltipTrigger>
+        <TooltipContent>{label()}</TooltipContent>
+      </Tooltip>
 
-          <AlertDialog open={showConfirm()} onOpenChange={setShowConfirm}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>{t`Remove follower?`}</AlertDialogTitle>
-                <AlertDialogDescription>
-                  {t`Are you sure you want to remove ${displayName()} (${actorData.handle}) from your followers?`}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogClose>{t`Cancel`}</AlertDialogClose>
-                <AlertDialogAction
-                  class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  disabled={isRemoving()}
-                  onClick={handleRemove}
-                >
-                  {label()}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </>
-      )}
+      <AlertDialog open={showConfirm()} onOpenChange={setShowConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t`Remove follower?`}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t`Are you sure you want to remove ${displayName()} (${
+                actor()?.handle ?? ""
+              }) from your followers?`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogClose>{t`Cancel`}</AlertDialogClose>
+            <AlertDialogAction
+              class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isRemoving()}
+              onClick={handleRemove}
+            >
+              {label()}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Show>
   );
 }

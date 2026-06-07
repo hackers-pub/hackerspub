@@ -471,9 +471,9 @@ msgstr "您确定要删除此草稿吗？此操作无法撤销。"
 
 #. placeholder {0}: displayName()
 #. placeholder {1}: actor()?.handle
-#. placeholder {1}: actorData.handle
+#. placeholder {1}: actor()?.handle ?? ""
 #: src/components/ProfileActionMenu.tsx:509
-#: src/components/RemoveFollowerButton.tsx:140
+#: src/components/RemoveFollowerButton.tsx:138
 msgid "Are you sure you want to remove {0} ({1}) from your followers?"
 msgstr "你确定要从粉丝中移除 {0}（{1}）吗？"
 
@@ -2804,7 +2804,7 @@ msgid "Remove bookmark"
 msgstr "取消收藏"
 
 #: src/components/ProfileActionMenu.tsx:507
-#: src/components/RemoveFollowerButton.tsx:138
+#: src/components/RemoveFollowerButton.tsx:136
 msgid "Remove follower?"
 msgstr "移除粉丝？"
 

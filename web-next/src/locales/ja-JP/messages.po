@@ -471,9 +471,9 @@ msgstr "この下書きを削除してもよろしいですか？この操作は
 
 #. placeholder {0}: displayName()
 #. placeholder {1}: actor()?.handle
-#. placeholder {1}: actorData.handle
+#. placeholder {1}: actor()?.handle ?? ""
 #: src/components/ProfileActionMenu.tsx:509
-#: src/components/RemoveFollowerButton.tsx:140
+#: src/components/RemoveFollowerButton.tsx:138
 msgid "Are you sure you want to remove {0} ({1}) from your followers?"
 msgstr "{0}さん（{1}）をフォロワーから削除してもよろしいですか？"
 
@@ -2804,7 +2804,7 @@ msgid "Remove bookmark"
 msgstr "ブックマークを削除"
 
 #: src/components/ProfileActionMenu.tsx:507
-#: src/components/RemoveFollowerButton.tsx:138
+#: src/components/RemoveFollowerButton.tsx:136
 msgid "Remove follower?"
 msgstr "フォロワーを削除しますか？"
 
