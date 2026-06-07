@@ -2,6 +2,7 @@ import { Navigate, useNavigate } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
 import { createMutation, loadQuery, useRelayEnvironment } from "solid-relay";
+import { AdminTabs } from "~/components/AdminTabs.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { Title } from "~/components/Title.tsx";
 import { Button } from "~/components/ui/button.tsx";
@@ -162,7 +163,8 @@ export default function AdminRefreshPage() {
           >
             {(_) => (
               <>
-                <h1 class="mb-4 text-2xl font-semibold tracking-tight">
+                <AdminTabs selected="refresh" />
+                <h1 class="mb-4 mt-4 text-2xl font-semibold tracking-tight">
                   {t`Refresh remote object`}
                 </h1>
                 <Card>

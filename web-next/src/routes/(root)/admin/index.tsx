@@ -3,6 +3,7 @@ import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { AdminAccountsTable } from "~/components/admin/AdminAccountsTable.tsx";
+import { AdminTabs } from "~/components/AdminTabs.tsx";
 import { Title } from "~/components/Title.tsx";
 import { WideContainer } from "~/components/WideContainer.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -91,7 +92,8 @@ export default function AdminAccountsPage() {
             when={data.viewer?.moderator}
             fallback={<Navigate href="/sign?next=%2Fadmin" />}
           >
-            <h1 class="mb-4 text-2xl font-semibold tracking-tight">
+            <AdminTabs selected="accounts" />
+            <h1 class="mb-4 mt-4 text-2xl font-semibold tracking-tight">
               {t`Accounts`}
             </h1>
             <AdminAccountsTable $query={data} />

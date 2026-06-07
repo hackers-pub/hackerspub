@@ -2,6 +2,7 @@ import { Navigate, revalidate, useNavigate } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { createSignal, For, Show } from "solid-js";
 import { createMutation, loadQuery, useRelayEnvironment } from "solid-relay";
+import { AdminTabs } from "~/components/AdminTabs.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { Title } from "~/components/Title.tsx";
@@ -212,6 +213,7 @@ export default function AdminRelayPage() {
               const subscriptions = () => data.relaySubscriptions ?? [];
               return (
                 <div class="space-y-6">
+                  <AdminTabs selected="relays" />
                   <h1 class="text-2xl font-semibold tracking-tight">
                     {t`Relays`}
                   </h1>

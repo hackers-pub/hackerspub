@@ -2,6 +2,7 @@ import { Navigate, revalidate, useNavigate } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
 import { createMutation, loadQuery, useRelayEnvironment } from "solid-relay";
+import { AdminTabs } from "~/components/AdminTabs.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { Title } from "~/components/Title.tsx";
@@ -148,7 +149,8 @@ export default function AdminMediaPage() {
               const count = () => status()?.orphanMediaCount ?? 0;
               return (
                 <>
-                  <h1 class="mb-4 text-2xl font-semibold tracking-tight">
+                  <AdminTabs selected="media" />
+                  <h1 class="mb-4 mt-4 text-2xl font-semibold tracking-tight">
                     {t`Media`}
                   </h1>
                   <Card>

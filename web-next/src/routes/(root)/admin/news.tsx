@@ -6,6 +6,7 @@ import {
   ActorHandleAutocomplete,
   type Uuid,
 } from "~/components/ActorHandleAutocomplete.tsx";
+import { AdminTabs } from "~/components/AdminTabs.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { Title } from "~/components/Title.tsx";
@@ -549,6 +550,7 @@ export default function AdminNewsPage() {
               const preferredSharers = () => data.newsPreferredSharers ?? [];
               return (
                 <div class="space-y-6">
+                  <AdminTabs selected="news" />
                   <h1 class="text-2xl font-semibold tracking-tight">
                     {t`News`}
                   </h1>
