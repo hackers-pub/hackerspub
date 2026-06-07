@@ -428,7 +428,7 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
           </DropdownMenuItem>
           <Show when={actor()?.followsViewer}>
             <DropdownMenuItem
-              class="text-destructive focus:text-destructive cursor-pointer"
+              class="cursor-pointer text-error-foreground focus:bg-error focus:text-error-foreground"
               disabled={isRemovingFollower()}
               onSelect={() => setShowRemoveFollowerConfirm(true)}
             >
@@ -439,8 +439,9 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
           <DropdownMenuItem
             classList={{
               "cursor-pointer": true,
-              "text-destructive": !actor()?.viewerBlocks,
-              "focus:text-destructive": !actor()?.viewerBlocks,
+              "text-error-foreground": !actor()?.viewerBlocks,
+              "focus:bg-error": !actor()?.viewerBlocks,
+              "focus:text-error-foreground": !actor()?.viewerBlocks,
             }}
             disabled={isPending()}
             onSelect={() => setShowConfirm(true)}
