@@ -471,7 +471,7 @@ msgstr "您確定要刪除此草稿嗎？此操作無法復原。"
 
 #. placeholder {0}: displayName()
 #. placeholder {1}: actor()?.handle
-#. placeholder {1}: actor.handle
+#. placeholder {1}: actorData.handle
 #: src/components/ProfileActionMenu.tsx:509
 #: src/components/RemoveFollowerButton.tsx:140
 msgid "Are you sure you want to remove {0} ({1}) from your followers?"

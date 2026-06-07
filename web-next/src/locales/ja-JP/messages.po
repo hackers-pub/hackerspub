@@ -471,7 +471,7 @@ msgstr "この下書きを削除してもよろしいですか？この操作は
 
 #. placeholder {0}: displayName()
 #. placeholder {1}: actor()?.handle
-#. placeholder {1}: actor.handle
+#. placeholder {1}: actorData.handle
 #: src/components/ProfileActionMenu.tsx:509
 #: src/components/RemoveFollowerButton.tsx:140
 msgid "Are you sure you want to remove {0} ({1}) from your followers?"

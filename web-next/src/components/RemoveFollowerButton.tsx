@@ -115,7 +115,7 @@ export function RemoveFollowerButton(props: RemoveFollowerButtonProps) {
 
   return (
     <Show keyed when={actor()}>
-      {(actor) => (
+      {(actorData) => (
         <>
           <Tooltip>
             <TooltipTrigger
@@ -137,7 +137,7 @@ export function RemoveFollowerButton(props: RemoveFollowerButtonProps) {
               <AlertDialogHeader>
                 <AlertDialogTitle>{t`Remove follower?`}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  {t`Are you sure you want to remove ${displayName()} (${actor.handle}) from your followers?`}
+                  {t`Are you sure you want to remove ${displayName()} (${actorData.handle}) from your followers?`}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
