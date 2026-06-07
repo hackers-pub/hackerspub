@@ -1200,16 +1200,34 @@ builder.relayMutationField(
 builder.relayMutationField(
   "removeFollower",
   {
+    description:
+      "Remove an `Actor` from the authenticated viewer's followers. " +
+      "This deletes the follower relationship without blocking the actor; " +
+      "remote followers receive an ActivityPub `Reject` for the original " +
+      "`Follow`.",
     inputFields: (t) => ({
       actorId: t.globalID({
         for: [Actor],
         required: true,
+        description: "`Actor` global ID for the follower to remove from the " +
+          "authenticated viewer's followers. Passing the viewer's own actor " +
+          "or an unknown actor returns `InvalidInputError`.",
       }),
     }),
   },
   {
+    description:
+      "Remove an `Actor` from the authenticated viewer's followers. " +
+      "This deletes the follower relationship without blocking the actor; " +
+      "remote followers receive an ActivityPub `Reject` for the original " +
+      "`Follow`.",
     errors: {
       types: [NotAuthenticatedError, InvalidInputError],
+      union: {
+        description:
+          "Result of removing a follower: the updated actors on success, " +
+          "or a typed authentication or input error.",
+      },
     },
     async resolve(_root, args, ctx) {
       const session = await ctx.session;
@@ -1234,9 +1252,16 @@ builder.relayMutationField(
     },
   },
   {
+    description:
+      "Payload returned after successfully removing a follower. Contains the " +
+      "updated viewer `Actor` and removed follower `Actor` so clients can " +
+      "refresh counts and relationship state.",
     outputFields: (t) => ({
       follower: t.drizzleField({
         type: Actor,
+        description:
+          "The removed follower `Actor`. The actor may follow the viewer " +
+          "again later unless separately blocked.",
         async resolve(query, result, _args, ctx) {
           const actor = await ctx.db.query.actorTable.findFirst(
             query({ where: { id: result.followerId } }),
@@ -1248,6 +1273,8 @@ builder.relayMutationField(
       }),
       followee: t.drizzleField({
         type: Actor,
+        description:
+          "The authenticated viewer's `Actor` whose follower list changed.",
         async resolve(query, result, _args, ctx) {
           const actor = await ctx.db.query.actorTable.findFirst(
             query({ where: { id: result.followeeId } }),

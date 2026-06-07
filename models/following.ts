@@ -176,8 +176,10 @@ export async function removeFollower(
     ),
   ).returning();
   if (rows.length < 1) return undefined;
-  await updateFolloweesCount(db, rows[0].followerId, -1);
-  await updateFollowersCount(db, rows[0].followeeId, -1);
+  if (rows[0].accepted != null) {
+    await updateFolloweesCount(db, rows[0].followerId, -1);
+    await updateFollowersCount(db, rows[0].followeeId, -1);
+  }
   await deleteFollowNotification(db, followee.id, follower);
   if (follower.accountId == null) {
     await fedCtx.sendActivity(

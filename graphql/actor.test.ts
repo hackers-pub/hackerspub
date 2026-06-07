@@ -12,6 +12,7 @@ import {
   insertAccountWithActor,
   makeGuestContext,
   makeUserContext,
+  toPlainJson,
   withRollback,
 } from "../test/postgres.ts";
 
@@ -53,6 +54,31 @@ const removeFollowerMutation = parse(`
       }
       ... on InvalidInputError { inputPath }
       ... on NotAuthenticatedError { notAuthenticated }
+    }
+  }
+`);
+
+const removeFollowerSchemaQuery = parse(`
+  query RemoveFollowerSchema {
+    __schema {
+      mutationType {
+        fields {
+          name
+          description
+        }
+      }
+    }
+    removeFollowerInput: __type(name: "RemoveFollowerInput") {
+      inputFields {
+        name
+        description
+      }
+    }
+    removeFollowerPayload: __type(name: "RemoveFollowerPayload") {
+      fields {
+        name
+        description
+      }
     }
   }
 `);
@@ -278,6 +304,91 @@ test("removeFollower removes an existing follower relation", async () => {
     ));
     assert.deepEqual(stored, []);
   });
+});
+
+test("removeFollower rejects guests and self-removal", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "graphqlremoveself",
+      name: "GraphQL Remove Self",
+      email: "graphqlremoveself@example.com",
+    });
+    const actorId = encodeGlobalID("Actor", account.actor.id);
+
+    const guestResult = await execute({
+      schema,
+      document: removeFollowerMutation,
+      variableValues: { actorId },
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(guestResult.errors, undefined);
+    assert.deepEqual(toPlainJson(guestResult.data), {
+      removeFollower: {
+        __typename: "NotAuthenticatedError",
+        notAuthenticated: "",
+      },
+    });
+
+    const selfResult = await execute({
+      schema,
+      document: removeFollowerMutation,
+      variableValues: { actorId },
+      contextValue: makeUserContext(tx, account.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(selfResult.errors, undefined);
+    assert.deepEqual(toPlainJson(selfResult.data), {
+      removeFollower: {
+        __typename: "InvalidInputError",
+        inputPath: "actorId",
+      },
+    });
+  });
+});
+
+test("removeFollower is documented in the GraphQL schema", async () => {
+  const result = await execute({
+    schema,
+    document: removeFollowerSchemaQuery,
+    onError: "NO_PROPAGATE",
+  });
+
+  assert.deepEqual(result.errors, undefined);
+  const data = toPlainJson(result.data) as {
+    __schema: {
+      mutationType: {
+        fields: { name: string; description: string | null }[];
+      };
+    };
+    removeFollowerInput: {
+      inputFields: { name: string; description: string | null }[];
+    };
+    removeFollowerPayload: {
+      fields: { name: string; description: string | null }[];
+    };
+  };
+  const mutation = data.__schema.mutationType.fields.find((field) =>
+    field.name === "removeFollower"
+  );
+  assert.match(mutation?.description ?? "", /authenticated viewer/);
+
+  const actorId = data.removeFollowerInput.inputFields.find((field) =>
+    field.name === "actorId"
+  );
+  assert.match(actorId?.description ?? "", /follower/);
+
+  const follower = data.removeFollowerPayload.fields.find((field) =>
+    field.name === "follower"
+  );
+  assert.match(follower?.description ?? "", /removed follower/);
+
+  const followee = data.removeFollowerPayload.fields.find((field) =>
+    field.name === "followee"
+  );
+  assert.match(followee?.description ?? "", /authenticated viewer/);
 });
 
 test("blockActor and unblockActor round-trip through GraphQL", async () => {
