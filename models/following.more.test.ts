@@ -120,3 +120,58 @@ test("removeFollower() sends a Reject activity for remote followers", async () =
     assert.equal(remaining, undefined);
   });
 });
+
+test("removeFollower() does not decrement counts for pending followers", async () => {
+  await withRollback(async (tx) => {
+    const sent: unknown[] = [];
+    const baseFedCtx = createFedCtx(tx);
+    const fedCtx = {
+      ...baseFedCtx,
+      sendActivity(...args: unknown[]) {
+        sent.push(args);
+        return Promise.resolve(undefined);
+      },
+    } as typeof baseFedCtx;
+    const followee = await insertAccountWithActor(tx, {
+      username: "removependingowner",
+      name: "Remove Pending Owner",
+      email: "removependingowner@example.com",
+    });
+    const remoteFollower = await insertRemoteActor(tx, {
+      username: "removependingremote",
+      name: "Remove Pending Remote",
+      host: "remote.example",
+    });
+    await tx.insert(followingTable).values({
+      iri: `https://remote.example/follows/${remoteFollower.id}/pending`,
+      followerId: remoteFollower.id,
+      followeeId: followee.actor.id,
+      accepted: null,
+    });
+
+    const removed = await removeFollower(
+      fedCtx,
+      followee.account,
+      remoteFollower,
+    );
+
+    assert.ok(removed != null);
+    assert.equal(sent.length, 1);
+    const remaining = await tx.query.followingTable.findFirst({
+      where: {
+        followerId: remoteFollower.id,
+        followeeId: followee.actor.id,
+      },
+    });
+    assert.equal(remaining, undefined);
+
+    const storedFollower = await tx.query.actorTable.findFirst({
+      where: { id: remoteFollower.id },
+    });
+    const storedFollowee = await tx.query.actorTable.findFirst({
+      where: { id: followee.actor.id },
+    });
+    assert.equal(storedFollower?.followeesCount, 0);
+    assert.equal(storedFollowee?.followersCount, 0);
+  });
+});
