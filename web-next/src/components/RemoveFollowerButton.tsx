@@ -119,20 +119,16 @@ export function RemoveFollowerButton(props: RemoveFollowerButtonProps) {
         <>
           <Tooltip>
             <TooltipTrigger
-              as={(triggerProps: Record<string, unknown>) => (
-                <Button
-                  {...triggerProps}
-                  variant="ghost"
-                  size="sm"
-                  class="h-9 w-9 p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                  aria-label={label()}
-                  disabled={isRemoving()}
-                  onClick={() => setShowConfirm(true)}
-                >
-                  <IconUserMinus class="size-4" />
-                </Button>
-              )}
-            />
+              as={Button}
+              variant="ghost"
+              size="sm"
+              class="h-9 w-9 p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+              aria-label={label()}
+              disabled={isRemoving()}
+              onClick={() => setShowConfirm(true)}
+            >
+              <IconUserMinus class="size-4" />
+            </TooltipTrigger>
             <TooltipContent>{label()}</TooltipContent>
           </Tooltip>
 

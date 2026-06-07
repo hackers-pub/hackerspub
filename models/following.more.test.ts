@@ -6,6 +6,7 @@ import {
   removeFollower,
   unfollow,
 } from "./following.ts";
+import { createFollowNotification } from "./notification.ts";
 import { followingTable } from "./schema.ts";
 import {
   createFedCtx,
@@ -148,6 +149,7 @@ test("removeFollower() does not decrement counts for pending followers", async (
       followeeId: followee.actor.id,
       accepted: null,
     });
+    await createFollowNotification(tx, followee.account.id, remoteFollower);
 
     const removed = await removeFollower(
       fedCtx,
@@ -171,7 +173,14 @@ test("removeFollower() does not decrement counts for pending followers", async (
     const storedFollowee = await tx.query.actorTable.findFirst({
       where: { id: followee.actor.id },
     });
+    const storedNotification = await tx.query.notificationTable.findFirst({
+      where: {
+        accountId: followee.account.id,
+        type: "follow",
+      },
+    });
     assert.equal(storedFollower?.followeesCount, 0);
     assert.equal(storedFollowee?.followersCount, 0);
+    assert.equal(storedNotification, undefined);
   });
 });
