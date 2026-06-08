@@ -868,7 +868,7 @@ export const postTable = pgTable(
     index("idx_post_actor_id_published_ms")
       .on(
         table.actorId,
-        sql`${table.published}::timestamptz(3) desc`,
+        sql`(${table.published}::timestamptz(3)) desc`,
         desc(table.id),
       )
       .where(isNull(table.sharedPostId)),
