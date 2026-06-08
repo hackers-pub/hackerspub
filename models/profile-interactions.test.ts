@@ -1,10 +1,12 @@
 import assert from "node:assert";
 import test from "node:test";
+import { sql } from "drizzle-orm";
 import { sharePost } from "./post.ts";
 import {
   formatTimelineCursor,
   getProfileInteractions,
 } from "./profile-interactions.ts";
+import { postTable } from "./schema.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
@@ -212,5 +214,72 @@ test("getProfileInteractions() supports stable cursor pagination", async () => {
       formatTimelineCursor(firstPage[0]),
       `${timestamp.toISOString()}|${firstPage[0].post.id}`,
     );
+  });
+});
+
+test("getProfileInteractions() keeps cursor order stable for sub-millisecond timestamps", async () => {
+  await withRollback(async (tx) => {
+    const viewer = await insertAccountWithActor(tx, {
+      username: "interactionmicroviewer",
+      name: "Interaction Micro Viewer",
+      email: "interactionmicroviewer@example.com",
+    });
+    const profile = await insertAccountWithActor(tx, {
+      username: "interactionmicroprofile",
+      name: "Interaction Micro Profile",
+      email: "interactionmicroprofile@example.com",
+    });
+
+    const { post: higherMicrosecond } = await insertNotePost(tx, {
+      account: viewer.account,
+      content: "Higher microsecond",
+    });
+    await insertMention(tx, {
+      postId: higherMicrosecond.id,
+      actorId: profile.actor.id,
+    });
+    const { post: lowerMicrosecond } = await insertNotePost(tx, {
+      account: profile.account,
+      content: "Lower microsecond",
+    });
+    await insertMention(tx, {
+      postId: lowerMicrosecond.id,
+      actorId: viewer.actor.id,
+    });
+
+    await tx.execute(
+      sql`update ${postTable}
+          set published = '2026-04-15T00:00:00.000400Z'
+          where id = ${higherMicrosecond.id}`,
+    );
+    await tx.execute(
+      sql`update ${postTable}
+          set published = '2026-04-15T00:00:00.000300Z'
+          where id = ${lowerMicrosecond.id}`,
+    );
+
+    const orderedPosts = [higherMicrosecond, lowerMicrosecond]
+      .sort((a, b) => b.id.localeCompare(a.id));
+    const firstPage = await getProfileInteractions(tx, {
+      viewer: viewer.account,
+      profileActorId: profile.actor.id,
+      window: 1,
+    });
+    assert.deepEqual(firstPage.map((entry) => entry.post.id), [
+      orderedPosts[0].id,
+    ]);
+
+    const secondPage = await getProfileInteractions(tx, {
+      viewer: viewer.account,
+      profileActorId: profile.actor.id,
+      until: {
+        timestamp: firstPage[0].cursor,
+        postId: firstPage[0].post.id,
+      },
+      window: 1,
+    });
+    assert.deepEqual(secondPage.map((entry) => entry.post.id), [
+      orderedPosts[1].id,
+    ]);
   });
 });

@@ -350,7 +350,7 @@ export async function getProfileInteractions(
     where: {
       AND: [
         { id: { in: candidatePostIds } },
-        filter,
+        getPostVisibilityFilter(viewer.actor),
       ],
     },
   });
