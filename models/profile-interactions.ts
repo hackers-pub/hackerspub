@@ -11,7 +11,7 @@ import {
   type Post,
   type PostLink,
   type PostMedium,
-  type postTable,
+  postTable,
   type Reaction,
 } from "./schema.ts";
 import {
@@ -81,13 +81,13 @@ function getDirectInteractionFilter(
           AND (
             EXISTS (
               SELECT 1
-              FROM "post" "reply_target"
+              FROM ${postTable} "reply_target"
               WHERE "reply_target"."id" = ${post.replyTargetId}
                 AND "reply_target"."actor_id" = ${profileActorId}::uuid
             )
             OR EXISTS (
               SELECT 1
-              FROM "post" "quoted_post"
+              FROM ${postTable} "quoted_post"
               WHERE "quoted_post"."id" = ${post.quotedPostId}
                 AND "quoted_post"."actor_id" = ${profileActorId}::uuid
             )
@@ -104,13 +104,13 @@ function getDirectInteractionFilter(
           AND (
             EXISTS (
               SELECT 1
-              FROM "post" "reply_target"
+              FROM ${postTable} "reply_target"
               WHERE "reply_target"."id" = ${post.replyTargetId}
                 AND "reply_target"."actor_id" = ${viewerActorId}::uuid
             )
             OR EXISTS (
               SELECT 1
-              FROM "post" "quoted_post"
+              FROM ${postTable} "quoted_post"
               WHERE "quoted_post"."id" = ${post.quotedPostId}
                 AND "quoted_post"."actor_id" = ${viewerActorId}::uuid
             )
