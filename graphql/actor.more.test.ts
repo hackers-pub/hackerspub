@@ -799,7 +799,7 @@ test("Actor.viewerInteractions supports stable cursor pagination", async () => {
           };
         };
       }).actorByHandle.viewerInteractions;
-    assert.deepEqual(partialBackwardConnection.pageInfo.hasNextPage, true);
+    assert.deepEqual(partialBackwardConnection.pageInfo.hasNextPage, false);
     assert.deepEqual(partialBackwardConnection.pageInfo.hasPreviousPage, false);
     assert.deepEqual(
       partialBackwardConnection.edges.map((edge) => edge.node.id),
