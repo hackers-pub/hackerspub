@@ -661,7 +661,7 @@ test("Actor.viewerInteractions requires authentication and is empty for self", a
   });
 });
 
-test("Actor.viewerInteractions rejects oversized page windows", async () => {
+test("Actor.viewerInteractions rejects invalid page windows", async () => {
   await withRollback(async (tx) => {
     const viewer = await insertAccountWithActor(tx, {
       username: "actorinteractionswindowviewer",
@@ -690,6 +690,30 @@ test("Actor.viewerInteractions rejects oversized page windows", async () => {
       result.errors?.[0]?.message,
       "Profile interaction pages are limited to 250 posts.",
     );
+
+    for (
+      const variableValues of [
+        { handle: profile.account.username, first: -1 },
+        { handle: profile.account.username, last: -1 },
+      ]
+    ) {
+      const negativeResult = await execute({
+        schema,
+        document: actorViewerInteractionsQuery,
+        variableValues,
+        contextValue: makeUserContext(tx, viewer.account),
+        onError: "NO_PROPAGATE",
+      });
+
+      assert.equal(
+        negativeResult.errors?.[0]?.extensions?.code,
+        "PAGINATION_ERROR",
+      );
+      assert.equal(
+        negativeResult.errors?.[0]?.message,
+        "Pagination limits must be non-negative.",
+      );
+    }
   });
 });
 

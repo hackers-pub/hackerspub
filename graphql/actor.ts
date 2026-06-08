@@ -121,6 +121,14 @@ function getConnectionWindow(
       extensions: { code: "PAGINATION_ERROR" },
     });
   }
+  if (
+    (args.first != null && args.first < 0) ||
+    (args.last != null && args.last < 0)
+  ) {
+    throw createGraphQLError("Pagination limits must be non-negative.", {
+      extensions: { code: "PAGINATION_ERROR" },
+    });
+  }
   const window = args.last ?? args.first ?? 25;
   if (window > MAX_VIEWER_INTERACTIONS_WINDOW) {
     throw createGraphQLError(
