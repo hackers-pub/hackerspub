@@ -1,6 +1,7 @@
 import assert from "node:assert";
 import test from "node:test";
 import { sql } from "drizzle-orm";
+import { block } from "./blocking.ts";
 import { sharePost } from "./post.ts";
 import {
   formatTimelineCursor,
@@ -155,6 +156,62 @@ test("getProfileInteractions() applies viewer visibility and self-profile rules"
       window: 10,
     });
     assert.deepEqual(selfInteractions, []);
+  });
+});
+
+test("getProfileInteractions() excludes blocked profile relationships", async () => {
+  await withRollback(async (tx) => {
+    const viewer = await insertAccountWithActor(tx, {
+      username: "interactionblockviewer",
+      name: "Interaction Block Viewer",
+      email: "interactionblockviewer@example.com",
+    });
+    const blockedProfile = await insertAccountWithActor(tx, {
+      username: "interactionblockedprofile",
+      name: "Interaction Blocked Profile",
+      email: "interactionblockedprofile@example.com",
+    });
+    const blockerProfile = await insertAccountWithActor(tx, {
+      username: "interactionblockerprofile",
+      name: "Interaction Blocker Profile",
+      email: "interactionblockerprofile@example.com",
+    });
+
+    const { post: blockedMention } = await insertNotePost(tx, {
+      account: viewer.account,
+      content: "Viewer mentions a blocked profile",
+      published: new Date("2026-04-15T00:00:01.000Z"),
+    });
+    await insertMention(tx, {
+      postId: blockedMention.id,
+      actorId: blockedProfile.actor.id,
+    });
+    await block(createFedCtx(tx), viewer.account, blockedProfile.actor);
+
+    const { post: blockerMention } = await insertNotePost(tx, {
+      account: viewer.account,
+      content: "Viewer mentions a profile that blocked them",
+      published: new Date("2026-04-15T00:00:02.000Z"),
+    });
+    await insertMention(tx, {
+      postId: blockerMention.id,
+      actorId: blockerProfile.actor.id,
+    });
+    await block(createFedCtx(tx), blockerProfile.account, viewer.actor);
+
+    const blockedInteractions = await getProfileInteractions(tx, {
+      viewer: viewer.account,
+      profileActorId: blockedProfile.actor.id,
+      window: 10,
+    });
+    assert.deepEqual(blockedInteractions, []);
+
+    const blockerInteractions = await getProfileInteractions(tx, {
+      viewer: viewer.account,
+      profileActorId: blockerProfile.actor.id,
+      window: 10,
+    });
+    assert.deepEqual(blockerInteractions, []);
   });
 });
 

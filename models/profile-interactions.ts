@@ -4,6 +4,7 @@ import { getPostVisibilityFilter } from "./post.ts";
 import {
   type Account,
   type Actor,
+  blockingTable,
   type Instance,
   type Mention,
   mentionTable,
@@ -62,6 +63,18 @@ function getDirectInteractionFilter(
     RAW: (post: typeof postTable) =>
       sql`
       ${post.sharedPostId} IS NULL
+      AND NOT EXISTS (
+        SELECT 1
+        FROM ${blockingTable}
+        WHERE (
+          ${blockingTable.blockerId} = ${viewerActorId}::uuid
+          AND ${blockingTable.blockeeId} = ${profileActorId}::uuid
+        )
+        OR (
+          ${blockingTable.blockerId} = ${profileActorId}::uuid
+          AND ${blockingTable.blockeeId} = ${viewerActorId}::uuid
+        )
+      )
       AND (
         (
           ${post.actorId} = ${viewerActorId}::uuid
