@@ -19,6 +19,7 @@ import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { VisibilityTag } from "~/components/VisibilityTag.tsx";
+import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { useContentLinkInterceptor } from "~/lib/contentLinkInterceptor.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import {
@@ -73,6 +74,7 @@ export interface QuotedNoteCardProps {
 
 export function QuotedNoteCard(props: QuotedNoteCardProps) {
   const { t } = useLingui();
+  const { preferAiSummary } = useViewer();
   const [proseRef, setProseRef] = createSignal<HTMLElement>();
   const mentionState = useMentionHoverCards(proseRef);
   useContentLinkInterceptor(proseRef);
@@ -88,6 +90,16 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
         uuid
         ... on Note {
           sourceId
+          content
+          language
+        }
+        ... on Question {
+          content
+          language
+        }
+        ... on Article {
+          name
+          excerptHtml(maxChars: 800)
         }
         actor {
           name
@@ -99,8 +111,6 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
           iri
           viewerMutes
         }
-        content
-        language
         sensitive
         summary
         visibility
@@ -123,6 +133,11 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
     return !!p.summary;
   };
   const contentVisible = () => !hasCW() || cwRevealed();
+  const articleSummary = (post: QuotedNoteCard_post$data) =>
+    post.__typename === "Article" &&
+      (post.actor.local ? preferAiSummary() : true)
+      ? post.summary
+      : null;
 
   return (
     <Show keyed when={post()}>
@@ -215,14 +230,59 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
                 </div>
               </Show>
               <Show when={contentVisible()}>
-                <div
-                  ref={setProseRef}
-                  innerHTML={post.content}
-                  lang={post.language ?? undefined}
-                  class="prose dark:prose-invert break-words overflow-wrap px-4 pt-4"
-                />
+                <Show
+                  when={post.__typename === "Article"}
+                  fallback={
+                    <>
+                      <div
+                        ref={setProseRef}
+                        innerHTML={post.content}
+                        lang={post.language ?? undefined}
+                        class="prose dark:prose-invert break-words overflow-wrap px-4 pt-4"
+                      />
+                      <MentionHoverCardLayer state={mentionState} />
+                    </>
+                  }
+                >
+                  <div class="px-4 pt-4">
+                    <Show when={post.name}>
+                      <InternalLink
+                        href={post.url ?? post.iri}
+                        internalHref={getQuotedPostInternalHref(post)}
+                        class="block text-lg font-semibold leading-snug"
+                      >
+                        {post.name}
+                      </InternalLink>
+                    </Show>
+                    <Show
+                      keyed
+                      when={articleSummary(post)}
+                      fallback={
+                        <InternalLink
+                          href={post.url ?? post.iri}
+                          internalHref={getQuotedPostInternalHref(post)}
+                          class="mt-3 block"
+                        >
+                          <div
+                            innerHTML={post.excerptHtml}
+                            class="line-clamp-4 overflow-hidden"
+                          />
+                        </InternalLink>
+                      }
+                    >
+                      {(summary) => (
+                        <InternalLink
+                          href={post.url ?? post.iri}
+                          internalHref={getQuotedPostInternalHref(post)}
+                          innerHTML={summary}
+                          data-llm-summary-label={t`Summarized by LLM`}
+                          class="prose dark:prose-invert break-words overflow-wrap mt-3 block before:content-[attr(data-llm-summary-label)] before:mr-1 before:rounded-sm before:border before:bg-background before:p-1 before:text-sm before:text-muted-foreground"
+                        />
+                      )}
+                    </Show>
+                  </div>
+                </Show>
               </Show>
-              <MentionHoverCardLayer state={mentionState} />
               <Show when={props.canRevokeQuote && props.quotePostId != null}>
                 <div class="mt-3 flex justify-end border-t border-border/60 pt-3">
                   <AlertDialog>
