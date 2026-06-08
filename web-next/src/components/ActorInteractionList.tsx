@@ -2,7 +2,7 @@ import { graphql } from "relay-runtime";
 import { createSignal, For, Match, Show, Switch } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { ActorInteractionList_interactions$key } from "./__generated__/ActorInteractionList_interactions.graphql.ts";
+import type { ActorInteractionList_interactions$key } from "./__generated__/ActorInteractionList_interactions.graphql.ts";
 import { PostCard } from "./PostCard.tsx";
 
 export interface ActorInteractionListProps {
