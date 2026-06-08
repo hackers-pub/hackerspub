@@ -751,6 +751,37 @@ test("Actor.viewerInteractions supports stable cursor pagination", async () => {
       encodeGlobalID("Note", orderedPosts[1].id),
     ]);
 
+    const partialBackwardPage = await execute({
+      schema,
+      document: actorViewerInteractionsQuery,
+      variableValues: {
+        handle: profile.account.username,
+        last: 2,
+        before: firstConnection.pageInfo.endCursor,
+      },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(partialBackwardPage.errors, undefined);
+    const partialBackwardConnection =
+      (toPlainJson(partialBackwardPage.data) as {
+        actorByHandle: {
+          viewerInteractions: {
+            pageInfo: {
+              hasNextPage: boolean;
+              hasPreviousPage: boolean;
+            };
+            edges: Array<{ node: { id: string } }>;
+          };
+        };
+      }).actorByHandle.viewerInteractions;
+    assert.deepEqual(partialBackwardConnection.pageInfo.hasNextPage, true);
+    assert.deepEqual(partialBackwardConnection.pageInfo.hasPreviousPage, false);
+    assert.deepEqual(
+      partialBackwardConnection.edges.map((edge) => edge.node.id),
+      [encodeGlobalID("Note", orderedPosts[0].id)],
+    );
+
     const secondPage = await execute({
       schema,
       document: actorViewerInteractionsQuery,

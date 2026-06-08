@@ -711,7 +711,7 @@ builder.drizzleObjectFields(Actor, (t) => ({
       return {
         pageInfo: {
           hasNextPage: backwards
-            ? args.before != null && interactions.length > window
+            ? args.before != null
             : interactions.length > window,
           hasPreviousPage: backwards
             ? interactions.length > window
