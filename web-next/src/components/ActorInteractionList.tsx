@@ -67,7 +67,7 @@ export function ActorInteractionList(props: ActorInteractionListProps) {
         <Show when={interactions.hasNext}>
           <button
             type="button"
-            on:click={loadingState() === "loading" ? undefined : onLoadMore}
+            onClick={loadingState() === "loading" ? undefined : onLoadMore}
             disabled={interactions.pending ||
               loadingState() === "loading"}
             class="block w-full cursor-pointer px-4 py-8 text-center text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
