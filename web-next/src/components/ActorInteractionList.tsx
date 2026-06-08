@@ -55,48 +55,44 @@ export function ActorInteractionList(props: ActorInteractionListProps) {
 
   return (
     <div class="my-4 overflow-hidden rounded-lg border bg-card shadow-sm">
-      <Show keyed when={interactions()}>
-        {(data) => (
-          <>
-            <For each={data.viewerInteractions.edges}>
-              {(edge) => (
-                <PostCard
-                  $post={edge.node}
-                  connections={[data.viewerInteractions.__id]}
-                />
-              )}
-            </For>
-            <Show when={interactions.hasNext}>
-              <button
-                type="button"
-                on:click={loadingState() === "loading" ? undefined : onLoadMore}
-                disabled={interactions.pending ||
+      <Show when={interactions()}>
+        <For each={interactions()!.viewerInteractions.edges}>
+          {(edge) => (
+            <PostCard
+              $post={edge.node}
+              connections={[interactions()!.viewerInteractions.__id]}
+            />
+          )}
+        </For>
+        <Show when={interactions.hasNext}>
+          <button
+            type="button"
+            on:click={loadingState() === "loading" ? undefined : onLoadMore}
+            disabled={interactions.pending ||
+              loadingState() === "loading"}
+            class="block w-full cursor-pointer px-4 py-8 text-center text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Switch>
+              <Match
+                when={interactions.pending ||
                   loadingState() === "loading"}
-                class="block w-full cursor-pointer px-4 py-8 text-center text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <Switch>
-                  <Match
-                    when={interactions.pending ||
-                      loadingState() === "loading"}
-                  >
-                    {t`Loading more interactions…`}
-                  </Match>
-                  <Match when={loadingState() === "errored"}>
-                    {t`Failed to load more interactions; click to retry`}
-                  </Match>
-                  <Match when={loadingState() === "loaded"}>
-                    {t`Load more interactions`}
-                  </Match>
-                </Switch>
-              </button>
-            </Show>
-            <Show when={data.viewerInteractions.edges.length < 1}>
-              <div class="px-4 py-8 text-center text-muted-foreground">
-                {t`No interactions found`}
-              </div>
-            </Show>
-          </>
-        )}
+                {t`Loading more interactions…`}
+              </Match>
+              <Match when={loadingState() === "errored"}>
+                {t`Failed to load more interactions; click to retry`}
+              </Match>
+              <Match when={loadingState() === "loaded"}>
+                {t`Load more interactions`}
+              </Match>
+            </Switch>
+          </button>
+        </Show>
+        <Show when={interactions()!.viewerInteractions.edges.length < 1}>
+          <div class="px-4 py-8 text-center text-muted-foreground">
+            {t`No interactions found`}
+          </div>
+        </Show>
       </Show>
     </div>
   );
