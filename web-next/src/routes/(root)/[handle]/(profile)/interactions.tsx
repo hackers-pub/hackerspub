@@ -5,7 +5,6 @@ import {
   useLocation,
   useParams,
 } from "@solidjs/router";
-import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
@@ -27,6 +26,7 @@ import {
   createStablePreloadedQuery,
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
+import { decodeRouteParam } from "~/lib/routeParam.ts";
 import type { interactionsPageQuery } from "./__generated__/interactionsPageQuery.graphql.ts";
 
 export const route = {
