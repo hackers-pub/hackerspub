@@ -52,13 +52,16 @@ export function ActorInteractionList(props: ActorInteractionListProps) {
       },
     });
   }
-  const interactionEdges = () => interactions()?.viewerInteractions.edges ?? [];
+  const interactionEdges = () =>
+    interactions()?.viewerInteractions?.edges ?? [];
   const interactionConnections = () => {
-    const connectionId = interactions()?.viewerInteractions.__id;
+    const connectionId = interactions()?.viewerInteractions?.__id;
     return connectionId == null ? [] : [connectionId];
   };
-  const hasNoInteractions = () =>
-    interactions()?.viewerInteractions.edges.length === 0;
+  const hasNoInteractions = () => {
+    const edges = interactions()?.viewerInteractions?.edges;
+    return edges != null && edges.length === 0;
+  };
 
   return (
     <div class="my-4 overflow-hidden rounded-lg border bg-card shadow-sm">
