@@ -290,6 +290,12 @@ msgid "{0}'s following"
 msgstr "{0}的关注"
 
 #. placeholder {0}: actor.rawName ?? actor.username
+#: src/routes/(root)/[handle]/(profile)/interactions.tsx:103
+#: src/routes/(root)/[handle]/(profile)/interactions.tsx:107
+msgid "{0}'s interactions"
+msgstr "与{0}的互动"
+
+#. placeholder {0}: actor.rawName ?? actor.username
 #: src/routes/(root)/[handle]/(profile)/notes.tsx:87
 #: src/routes/(root)/[handle]/(profile)/notes.tsx:91
 msgid "{0}'s notes"
@@ -505,7 +511,7 @@ msgstr "文章已更新"
 msgid "article-url-slug"
 msgstr "文章网址别名"
 
-#: src/components/ProfileTabs.tsx:51
+#: src/components/ProfileTabs.tsx:70
 #: src/routes/(root)/[handle]/bookmarks.tsx:137
 msgid "Articles"
 msgstr "文章"
@@ -1158,6 +1164,10 @@ msgstr "加载更多粉丝失败，点击重试"
 msgid "Failed to load more following; click to retry"
 msgstr "加载更多关注失败，点击重试"
 
+#: src/components/ActorInteractionList.tsx:85
+msgid "Failed to load more interactions; click to retry"
+msgstr "加载更多互动失败，点击重试"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:1039
 msgid "Failed to load more invitees; click to retry"
 msgstr "加载更多受邀者失败；点击重试"
@@ -1640,6 +1650,10 @@ msgstr "图片"
 msgid "Image preview"
 msgstr "图片预览"
 
+#: src/components/ProfileTabs.tsx:87
+msgid "Interactions"
+msgstr "互动"
+
 #: src/components/RemoteFollowButton.tsx:101
 msgid "Invalid Fediverse handle format."
 msgstr "联邦宇宙用户名格式无效。"
@@ -1853,6 +1867,10 @@ msgstr "加载更多粉丝"
 msgid "Load more following"
 msgstr "加载更多关注"
 
+#: src/components/ActorInteractionList.tsx:88
+msgid "Load more interactions"
+msgstr "加载更多互动"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:1042
 msgid "Load more invitees"
 msgstr "加载更多受邀者"
@@ -1924,6 +1942,10 @@ msgstr "加载更多粉丝中…"
 #: src/components/ActorFollowingList.tsx:79
 msgid "Loading more following…"
 msgstr "正在加载更多关注…"
+
+#: src/components/ActorInteractionList.tsx:82
+msgid "Loading more interactions…"
+msgstr "正在加载更多互动…"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:1036
 msgid "Loading more invitees…"
@@ -2179,6 +2201,10 @@ msgstr "未找到粉丝"
 msgid "No following found"
 msgstr "没有找到关注的用户"
 
+#: src/components/ActorInteractionList.tsx:95
+msgid "No interactions found"
+msgstr "没有找到互动"
+
 #: src/routes/(root)/tree/index.tsx:227
 msgid "No invitation tree data yet."
 msgstr "还没有邀请树数据。"
@@ -2328,7 +2354,7 @@ msgstr "你可以验证这些链接确实属于你。在链接的页面上使用
 msgid "Note updated"
 msgstr "帖子已更新。"
 
-#: src/components/ProfileTabs.tsx:44
+#: src/components/ProfileTabs.tsx:62
 #: src/routes/(root)/[handle]/bookmarks.tsx:138
 msgid "Notes"
 msgstr "帖子"
@@ -2508,7 +2534,7 @@ msgid "Post unpinned"
 msgstr "已取消置顶内容"
 
 #: src/components/admin/AdminAccountsTable.tsx:248
-#: src/components/ProfileTabs.tsx:41
+#: src/components/ProfileTabs.tsx:54
 msgid "Posts"
 msgstr "内容"
 
@@ -2985,7 +3011,7 @@ msgid "Share your opinion on this story…"
 msgstr "分享你对这个话题的看法…"
 
 #: src/components/EngagementTabs.tsx:37
-#: src/components/ProfileTabs.tsx:54
+#: src/components/ProfileTabs.tsx:78
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/shares.tsx:102
 #: src/routes/(root)/[handle]/[noteId]/shares.tsx:115
 msgid "Shares"

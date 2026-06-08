@@ -32,6 +32,7 @@
     "./pin": "./pin.ts",
     "./poll": "./poll.ts",
     "./post": "./post.ts",
+    "./profile-interactions": "./profile-interactions.ts",
     "./push": "./push.ts",
     "./push-notification": "./push-notification.ts",
     "./reaction": "./reaction.ts",

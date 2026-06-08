@@ -865,6 +865,13 @@ export const postTable = pgTable(
       .on(table.visibility, desc(table.published)),
     index("idx_post_actor_id_published")
       .on(table.actorId, desc(table.published)),
+    index("idx_post_actor_id_published_ms")
+      .on(
+        table.actorId,
+        sql`(${table.published}::timestamptz(3)) desc`,
+        desc(table.id),
+      )
+      .where(isNull(table.sharedPostId)),
     index().on(table.replyTargetId),
     index("post_shared_post_id_index")
       .on(table.sharedPostId)
