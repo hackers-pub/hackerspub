@@ -78,13 +78,13 @@ export function ActorInteractionList(props: ActorInteractionListProps) {
           <button
             type="button"
             onClick={loadingState() === "loading" ? undefined : onLoadMore}
-            disabled={interactions.pending ||
+            disabled={interactions.isLoadingNext ||
               loadingState() === "loading"}
             class="block w-full cursor-pointer px-4 py-8 text-center text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Switch>
               <Match
-                when={interactions.pending ||
+                when={interactions.isLoadingNext ||
                   loadingState() === "loading"}
               >
                 {t`Loading more interactions…`}
