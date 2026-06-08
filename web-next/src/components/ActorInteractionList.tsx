@@ -52,15 +52,22 @@ export function ActorInteractionList(props: ActorInteractionListProps) {
       },
     });
   }
+  const interactionEdges = () => interactions()?.viewerInteractions.edges ?? [];
+  const interactionConnections = () => {
+    const connectionId = interactions()?.viewerInteractions.__id;
+    return connectionId == null ? [] : [connectionId];
+  };
+  const hasNoInteractions = () =>
+    interactions()?.viewerInteractions.edges.length === 0;
 
   return (
     <div class="my-4 overflow-hidden rounded-lg border bg-card shadow-sm">
       <Show when={interactions()}>
-        <For each={interactions()!.viewerInteractions.edges}>
+        <For each={interactionEdges()}>
           {(edge) => (
             <PostCard
               $post={edge.node}
-              connections={[interactions()!.viewerInteractions.__id]}
+              connections={interactionConnections()}
             />
           )}
         </For>
@@ -88,7 +95,7 @@ export function ActorInteractionList(props: ActorInteractionListProps) {
             </Switch>
           </button>
         </Show>
-        <Show when={interactions()!.viewerInteractions.edges.length < 1}>
+        <Show when={hasNoInteractions()}>
           <div class="px-4 py-8 text-center text-muted-foreground">
             {t`No interactions found`}
           </div>
