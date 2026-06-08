@@ -794,16 +794,45 @@ test("Actor.viewerInteractions supports stable cursor pagination", async () => {
             pageInfo: {
               hasNextPage: boolean;
               hasPreviousPage: boolean;
+              endCursor: string;
             };
             edges: Array<{ node: { id: string } }>;
           };
         };
       }).actorByHandle.viewerInteractions;
-    assert.deepEqual(partialBackwardConnection.pageInfo.hasNextPage, false);
+    assert.deepEqual(partialBackwardConnection.pageInfo.hasNextPage, true);
     assert.deepEqual(partialBackwardConnection.pageInfo.hasPreviousPage, false);
     assert.deepEqual(
       partialBackwardConnection.edges.map((edge) => edge.node.id),
       [encodeGlobalID("Note", orderedPosts[0].id)],
+    );
+
+    const forwardFromPartialPage = await execute({
+      schema,
+      document: actorViewerInteractionsQuery,
+      variableValues: {
+        handle: profile.account.username,
+        first: 2,
+        after: partialBackwardConnection.pageInfo.endCursor,
+      },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(forwardFromPartialPage.errors, undefined);
+    const forwardFromPartialConnection =
+      (toPlainJson(forwardFromPartialPage.data) as {
+        actorByHandle: {
+          viewerInteractions: {
+            edges: Array<{ node: { id: string } }>;
+          };
+        };
+      }).actorByHandle.viewerInteractions;
+    assert.deepEqual(
+      forwardFromPartialConnection.edges.map((edge) => edge.node.id),
+      [
+        encodeGlobalID("Note", orderedPosts[1].id),
+        encodeGlobalID("Note", orderedPosts[2].id),
+      ],
     );
 
     const secondPage = await execute({
