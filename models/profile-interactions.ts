@@ -55,7 +55,7 @@ function getPostCursorFilter(
   };
 }
 
-function getDirectInteractionFilter(
+export function getDirectInteractionFilter(
   viewerActorId: Uuid,
   profileActorId: Uuid,
 ): RelationsFilter<"postTable"> {
@@ -63,6 +63,7 @@ function getDirectInteractionFilter(
     RAW: (post: typeof postTable) =>
       sql`
       ${post.sharedPostId} IS NULL
+      AND ${post.actorId} IN (${viewerActorId}::uuid, ${profileActorId}::uuid)
       AND NOT EXISTS (
         SELECT 1
         FROM ${blockingTable}

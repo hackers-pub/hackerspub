@@ -1,10 +1,12 @@
 import assert from "node:assert";
 import test from "node:test";
-import { sql } from "drizzle-orm";
+import { type SQL, sql } from "drizzle-orm";
+import { PgDialect } from "drizzle-orm/pg-core";
 import { block } from "./blocking.ts";
 import { sharePost } from "./post.ts";
 import {
   formatTimelineCursor,
+  getDirectInteractionFilter,
   getProfileInteractions,
 } from "./profile-interactions.ts";
 import { postTable } from "./schema.ts";
@@ -105,6 +107,23 @@ test("getProfileInteractions() returns direct bidirectional replies, quotes, and
       viewerMention.id,
     ]);
   });
+});
+
+test("getDirectInteractionFilter() limits candidate posts to the viewer and profile actors", () => {
+  const viewerActorId = "01900000-0000-7000-8000-000000000001";
+  const profileActorId = "01900000-0000-7000-8000-000000000002";
+  const filter = getDirectInteractionFilter(viewerActorId, profileActorId);
+  const raw = filter.RAW as (
+    post: typeof postTable,
+    operators: never,
+  ) => SQL;
+  assert.equal(typeof raw, "function");
+  const query = new PgDialect().sqlToQuery(raw(postTable, {} as never));
+
+  assert.match(
+    query.sql,
+    /"post"\."actor_id" IN \(\$1::uuid, \$2::uuid\)/,
+  );
 });
 
 test("getProfileInteractions() applies viewer visibility and self-profile rules", async () => {
