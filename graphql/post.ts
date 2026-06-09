@@ -1,3 +1,4 @@
+import * as vocab from "@fedify/vocab";
 import { generateAltText } from "@hackerspub/ai/alttext";
 import { getLogger } from "@logtape/logtape";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
@@ -224,9 +225,16 @@ export const Post = builder.drizzleInterface("postTable", {
         "remote posts it is whatever IRI the originating instance assigned. " +
         "Prefer `url` for human-readable links.",
       select: {
-        columns: { iri: true },
+        columns: { iri: true, noteSourceId: true, type: true },
       },
-      resolve: (post) => new URL(post.iri),
+      resolve: (post, _, ctx) => {
+        if (post.type === "Question" && post.noteSourceId != null) {
+          return ctx.fedCtx.getObjectUri(vocab.Question, {
+            id: post.noteSourceId,
+          });
+        }
+        return new URL(post.iri);
+      },
     }),
     visibility: t.field({
       type: PostVisibility,

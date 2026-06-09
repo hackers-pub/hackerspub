@@ -372,10 +372,18 @@ export const handler = define.handlers({
     if (post.language != null) {
       ctx.state.metas.push({ property: "og:locale", content: post.language });
     }
+    const targetPost = post.sharedPost ?? post;
+    const activityPubUri =
+      targetPost.type === "Question" && targetPost.noteSourceId != null
+        ? ctx.state.fedCtx.getObjectUri(vocab.Question, {
+          id: targetPost.noteSourceId,
+        })
+        : new URL(targetPost.iri);
     return page<NotePageProps>(
       {
         post,
         postUrl,
+        activityPubUri,
         replies,
       },
       noteUri == null ? undefined : {
@@ -537,6 +545,7 @@ type NotePageProps = {
     reactions: Reaction[];
   };
   postUrl: string;
+  activityPubUri: URL;
   replies: (Post & {
     actor: Actor;
     link: PostLink & { creator?: Actor | null } | null;
@@ -548,7 +557,7 @@ type NotePageProps = {
 };
 
 export default define.page<typeof handler, NotePageProps>(
-  ({ state, data: { post, postUrl, replies } }) => {
+  ({ state, data: { post, postUrl, activityPubUri, replies } }) => {
     const targetPost = post.sharedPost ?? post;
     const commentTargets = targetPost.mentions
       .filter((m) =>
@@ -586,7 +595,7 @@ export default define.page<typeof handler, NotePageProps>(
                   $key="note.remoteReplyDescription"
                   permalink={
                     <span class="font-bold border-dashed border-b-[1px] select-all text-stone-950 dark:text-stone-50">
-                      {targetPost.iri}
+                      {activityPubUri.href}
                     </span>
                   }
                 />
