@@ -6,6 +6,7 @@ import { Create, Note as ActivityPubNote, QuoteRequest } from "@fedify/vocab";
 import type { ContextData } from "./context.ts";
 import type { Transaction } from "./db.ts";
 import { createNote, QuotePolicyDeniedError, updateNote } from "./note.ts";
+import { createQuestion } from "./question.ts";
 import { followingTable, mediumTable } from "./schema.ts";
 import { generateUuidV7 } from "./uuid.ts";
 import {
@@ -603,6 +604,49 @@ test("updateNote() updates the persisted post for an existing note source", asyn
     assert.equal(storedPost.noteSourceId, original.noteSource.id);
     assert.equal(storedPost.language, "ko");
     assert.match(storedPost.contentHtml, /<em>note<\/em>/);
+  });
+});
+
+test("updateNote() rejects existing Question sources before changing content", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const author = await insertAccountWithActor(tx, {
+      username: "updatequestionauthor",
+      name: "Update Question Author",
+      email: "updatequestionauthor@example.com",
+    });
+    const published = new Date("2026-04-15T00:00:00.000Z");
+    const question = await createQuestion(
+      fedCtx as unknown as Context<ContextData<Transaction>>,
+      {
+        accountId: author.account.id,
+        visibility: "public",
+        quotePolicy: "everyone",
+        content: "Question body should stay immutable",
+        language: "en",
+        media: [],
+        published,
+        updated: published,
+        poll: {
+          title: "Immutable poll",
+          multiple: false,
+          options: ["Yes", "No"],
+          ends: new Date("2026-04-16T00:00:00.000Z"),
+          now: published,
+        },
+      },
+    );
+    assert.ok(question != null);
+
+    const updated = await updateNote(fedCtx, question.noteSource.id, {
+      content: "This should not be written",
+    });
+
+    assert.equal(updated, undefined);
+    const source = await tx.query.noteSourceTable.findFirst({
+      where: { id: question.noteSource.id },
+    });
+    assert.equal(source?.content, "Question body should stay immutable");
   });
 });
 

@@ -771,7 +771,21 @@ export async function syncPostFromNoteSource(
   | undefined
 > {
   const { db, kv, disk } = fedCtx.data;
+  const existingPost = await db.query.postTable.findFirst({
+    columns: {
+      id: true,
+      type: true,
+      name: true,
+      contentHtml: true,
+      quotedPostId: true,
+      quoteAuthorizationIri: true,
+      quoteTargetState: true,
+      linkId: true,
+    },
+    where: { noteSourceId: noteSource.id },
+  });
   const type = relations.question == null ? "Note" : "Question";
+  if (existingPost != null && existingPost.type !== type) return undefined;
   const iri = type === "Question"
     ? fedCtx.getObjectUri(vocab.Question, { id: noteSource.id }).href
     : fedCtx.getObjectUri(vocab.Note, { id: noteSource.id }).href;
@@ -807,18 +821,6 @@ export async function syncPostFromNoteSource(
     `/@${noteSource.account.username}/${noteSource.id}`,
     fedCtx.canonicalOrigin,
   ).href;
-  const existingPost = await db.query.postTable.findFirst({
-    columns: {
-      id: true,
-      name: true,
-      contentHtml: true,
-      quotedPostId: true,
-      quoteAuthorizationIri: true,
-      quoteTargetState: true,
-      linkId: true,
-    },
-    where: { noteSourceId: noteSource.id },
-  });
   const id = existingPost?.id ?? generateUuidV7();
   const quoteTargetId = quotedPost?.id ?? null;
   const existingQuoteAuthorizationIri =

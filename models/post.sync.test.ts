@@ -1,6 +1,9 @@
 import assert from "node:assert";
 import test from "node:test";
+import type { Context } from "@fedify/fedify";
 import { eq } from "drizzle-orm";
+import type { ContextData } from "./context.ts";
+import type { Transaction } from "./db.ts";
 import {
   accountTable,
   articleContentTable,
@@ -9,6 +12,7 @@ import {
   noteSourceTable,
   postTable,
 } from "./schema.ts";
+import { createQuestion } from "./question.ts";
 import { syncPostFromArticleSource, syncPostFromNoteSource } from "./post.ts";
 import { generateUuidV7 } from "./uuid.ts";
 import {
@@ -87,6 +91,67 @@ test("syncPostFromArticleSource() upserts the post when source content changes",
     assert.equal(updated.id, created.id);
     assert.equal(updated.name, "Updated article");
     assert.match(updated.contentHtml, /Updated body/);
+  });
+});
+
+test("syncPostFromNoteSource() does not rewrite existing Questions as Notes", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx) as unknown as Context<
+      ContextData<Transaction>
+    >;
+    const author = await insertAccountWithActor(tx, {
+      username: "syncquestionowner",
+      name: "Sync Question Owner",
+      email: "syncquestionowner@example.com",
+    });
+    const published = new Date("2026-04-15T00:00:00.000Z");
+    const question = await createQuestion(fedCtx, {
+      accountId: author.account.id,
+      visibility: "public",
+      quotePolicy: "everyone",
+      content: "Which source path should stay a Question?",
+      language: "en",
+      media: [],
+      published,
+      updated: published,
+      poll: {
+        title: "Question preservation",
+        multiple: false,
+        options: ["Keep Question", "Rewrite Note"],
+        ends: new Date("2026-04-16T00:00:00.000Z"),
+        now: published,
+      },
+    });
+    assert.ok(question != null);
+
+    await tx.update(noteSourceTable)
+      .set({
+        content: "A note resync should not rewrite this Question",
+        updated: new Date("2026-04-15T01:00:00.000Z"),
+      })
+      .where(eq(noteSourceTable.id, question.noteSourceId!));
+    const source = await tx.query.noteSourceTable.findFirst({
+      where: { id: question.noteSourceId! },
+      with: {
+        account: { with: { avatarMedium: true, emails: true, links: true } },
+        media: { with: { medium: true } },
+      },
+    });
+    assert.ok(source != null);
+
+    const updated = await syncPostFromNoteSource(fedCtx, source);
+
+    assert.equal(updated, undefined);
+    const storedPost = await tx.query.postTable.findFirst({
+      where: { id: question.id },
+    });
+    assert.equal(storedPost?.type, "Question");
+    assert.equal(storedPost?.iri, question.iri);
+    assert.equal(storedPost?.name, "Question preservation");
+    const poll = await tx.query.pollTable.findFirst({
+      where: { postId: question.id },
+    });
+    assert.ok(poll != null);
   });
 });
 

@@ -577,6 +577,7 @@ export async function updateNote(
   const previousPost = await db.query.postTable.findFirst({
     where: { noteSourceId },
   });
+  if (previousPost != null && previousPost.type !== "Note") return undefined;
   // Capture previous mention recipients before the update so that removed
   // mentions still receive the Update activity and can retire their copy.
   const previousMentions = previousPost == null ? [] : (
