@@ -2277,18 +2277,28 @@ type PollOption {
 
   """The poll this option belongs to."""
   poll: Poll!
+
+  """Human-readable option label exactly as stored for the poll."""
   title: String!
 
   """
   Whether the authenticated viewer voted for this specific option. Always `false` for unauthenticated requests.
   """
   viewerHasVoted: Boolean!
+
+  """
+  Votes cast for this option. Use `PollOption.viewerHasVoted` for the current viewer's selected state.
+  """
   votes(after: String, before: String, first: Int, last: Int): PollOptionVotesConnection!
 }
 
 type PollOptionVotesConnection {
   edges: [PollOptionVotesConnectionEdge!]!
   pageInfo: PageInfo!
+
+  """
+  Total number of stored votes for this option, independent of the current page size.
+  """
   totalCount: Int!
 }
 
@@ -2297,16 +2307,30 @@ type PollOptionVotesConnectionEdge {
   node: PollVote!
 }
 
+"""
+A stored vote by an actor for one option in a `Poll`. Multi-choice polls store one `PollVote` per selected option.
+"""
 type PollVote {
+  """The actor who cast this vote."""
   actor: Actor!
+
+  """When this vote was recorded locally."""
   created: DateTime!
+
+  """The selected option for this vote."""
   option: PollOption!
+
+  """The poll that received this vote."""
   poll: Poll!
 }
 
 type PollVotersConnection {
   edges: [PollVotersConnectionEdge!]!
   pageInfo: PageInfo!
+
+  """
+  Total number of distinct actors who have voted in this poll, independent of the current page size.
+  """
   totalCount: Int!
 }
 
@@ -2318,6 +2342,10 @@ type PollVotersConnectionEdge {
 type PollVotesConnection {
   edges: [PollVotesConnectionEdge!]!
   pageInfo: PageInfo!
+
+  """
+  Total number of stored votes across all options, independent of the current page size.
+  """
   totalCount: Int!
 }
 
@@ -3058,7 +3086,12 @@ type QuerySearchPostConnectionEdge {
 An ActivityPub `Question` poll. Local Questions are source-backed short posts with immutable poll settings; remote Questions may have `null` for `sourceId` and should fall back to `Post.uuid` for internal routes.
 """
 type Question implements Node & Post & Reactable {
+  """The actor who authored this `Question`."""
   actor: Actor!
+
+  """
+  The rendered body of the `Question`, excluding poll options. Use `Question.poll` to render the voting UI.
+  """
   content: HTML!
   engagementStats: PostEngagementStats!
 
@@ -3077,7 +3110,15 @@ type Question implements Node & Post & Reactable {
   """
   hashtags: [Hashtag!]!
   id: ID!
+
+  """
+  The ActivityPub object IRI for this `Question`. Source-backed local Questions resolve to the `Question` object route (`/ap/questions/...`), not the legacy note route.
+  """
   iri: URL!
+
+  """
+  BCP 47 language tag for `Question.content`, or `null` when the source did not provide a language.
+  """
   language: String
 
   """
@@ -3099,10 +3140,22 @@ type Question implements Node & Post & Reactable {
   The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.
   """
   name: String
+
+  """
+  Poll data attached to this `Question`, or `null` for shared wrappers and Questions whose remote poll data is unavailable. Authenticated viewers may trigger a remote backfill for missing poll data.
+  """
   poll: Poll
+
+  """
+  When this `Question` was published according to its local source or remote ActivityPub object.
+  """
   published: DateTime!
   quotePolicy: QuotePolicy!
   quoteTargetState: QuoteTargetState
+
+  """
+  The post quoted by this `Question`, if any. Visibility rules still apply to the quoted post.
+  """
   quotedPost: Post
 
   """Posts that quote this post inline."""
@@ -3120,6 +3173,10 @@ type Question implements Node & Post & Reactable {
   Whether the post is marked as sensitive (NSFW). Clients should hide the content behind a content warning when this is `true`.
   """
   sensitive: Boolean!
+
+  """
+  The original post when this row is a local share wrapper. Polls live on the original `Question`, not on the wrapper.
+  """
   sharedPost: Post
 
   """
@@ -3182,6 +3239,10 @@ type Question implements Node & Post & Reactable {
   Whether the authenticated viewer has boosted this post. Always `false` for unauthenticated requests.
   """
   viewerHasShared: Boolean!
+
+  """
+  Who can see this `Question`. Poll votes are accepted only from actors who can see the underlying post.
+  """
   visibility: PostVisibility!
 }
 
@@ -4170,16 +4231,35 @@ type UpdateNotePayload {
 
 union UpdateNoteResult = InvalidInputError | NotAuthenticatedError | UpdateNotePayload
 
+"""
+Vote in a visible poll. Replaces the viewer's previous selections and federates the vote when the poll is local.
+"""
 input VoteOnPollInput {
   clientMutationId: ID
+
+  """
+  Zero-based option indices to select. Single-choice polls require exactly one index; multi-choice polls accept one or more unique indices.
+  """
   optionIndices: [Int!]!
+
+  """
+  Global id of the `Question` whose poll should receive the vote. The viewer must be able to see the question.
+  """
   questionId: ID!
 }
 
 type VoteOnPollPayload {
   clientMutationId: ID
+
+  """The updated poll after replacing the viewer's previous votes."""
   poll: Poll!
+
+  """
+  The voted `Question`, with poll state reflecting the viewer's new selection.
+  """
   question: Question!
+
+  """Vote rows created for this request, ordered by option index."""
   votes: [PollVote!]!
 }
 

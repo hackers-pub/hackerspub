@@ -80,6 +80,7 @@ const actorPostByUuidQuery = parse(`
         iri
         ... on Question {
           sourceId
+          questionIri: iri
         }
       }
     }
@@ -354,6 +355,7 @@ test("Actor.postByUuid resolves visible Question posts", async () => {
           id: encodeGlobalID("Question", questionId),
           iri: `http://localhost/objects/${questionId}`,
           sourceId: null,
+          questionIri: `http://localhost/objects/${questionId}`,
         },
       },
     });
@@ -419,6 +421,7 @@ test("source-backed local Questions expose their Question ActivityPub IRI", asyn
           id: encodeGlobalID("Question", question.id),
           iri: `http://localhost/ap/questions/${question.noteSourceId}`,
           sourceId: question.noteSourceId,
+          questionIri: `http://localhost/ap/questions/${question.noteSourceId}`,
         },
       },
     });

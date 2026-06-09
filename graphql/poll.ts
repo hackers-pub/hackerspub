@@ -1,12 +1,12 @@
 import * as vocab from "@fedify/vocab";
 import { renderCustomEmojis } from "@hackerspub/models/emoji";
 import { addExternalLinkTargets } from "@hackerspub/models/html";
-import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
-import { eq } from "drizzle-orm";
 import { vote } from "@hackerspub/models/poll";
 import { isPostVisibleTo, persistPost } from "@hackerspub/models/post";
 import { pollVoteTable } from "@hackerspub/models/schema";
 import type { Uuid } from "@hackerspub/models/uuid";
+import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
+import { eq } from "drizzle-orm";
 import { Actor } from "./actor.ts";
 import { builder, type UserContext } from "./builder.ts";
 import { InvalidInputError } from "./error.ts";
@@ -34,14 +34,28 @@ builder.drizzleObjectFields(Question, (t) => ({
   iri: t.field({
     type: "URL",
     complexity: questionPollComplexity,
+    description:
+      "The ActivityPub object IRI for this `Question`. Source-backed local " +
+      "Questions resolve to the `Question` object route (`/ap/questions/...`), " +
+      "not the legacy note route.",
     select: {
-      columns: { iri: true },
+      columns: { iri: true, noteSourceId: true },
     },
-    resolve: (post) => new URL(post.iri),
+    resolve: (post, _, ctx) => {
+      if (post.noteSourceId != null) {
+        return ctx.fedCtx.getObjectUri(vocab.Question, {
+          id: post.noteSourceId,
+        });
+      }
+      return new URL(post.iri);
+    },
   }),
   visibility: t.field({
     type: PostVisibility,
     complexity: questionPollComplexity,
+    description:
+      "Who can see this `Question`. Poll votes are accepted only from actors " +
+      "who can see the underlying post.",
     select: {
       columns: { visibility: true },
     },
@@ -52,6 +66,9 @@ builder.drizzleObjectFields(Question, (t) => ({
   content: t.field({
     type: "HTML",
     complexity: questionPollComplexity,
+    description:
+      "The rendered body of the `Question`, excluding poll options. Use " +
+      "`Question.poll` to render the voting UI.",
     select: {
       columns: {
         contentHtml: true,
@@ -67,6 +84,9 @@ builder.drizzleObjectFields(Question, (t) => ({
   language: t.exposeString("language", {
     nullable: true,
     complexity: questionPollComplexity,
+    description:
+      "BCP 47 language tag for `Question.content`, or `null` when the " +
+      "source did not provide a language.",
   }),
   url: t.field({
     type: "URL",
@@ -85,17 +105,29 @@ builder.drizzleObjectFields(Question, (t) => ({
   published: t.expose("published", {
     type: "DateTime",
     complexity: questionPollComplexity,
+    description:
+      "When this `Question` was published according to its local source or " +
+      "remote ActivityPub object.",
   }),
-  actor: t.relation("actor", { complexity: questionPollComplexity }),
+  actor: t.relation("actor", {
+    complexity: questionPollComplexity,
+    description: "The actor who authored this `Question`.",
+  }),
   quotedPost: t.relation("quotedPost", {
     type: Post,
     nullable: true,
     complexity: questionPollComplexity,
+    description:
+      "The post quoted by this `Question`, if any. Visibility rules still " +
+      "apply to the quoted post.",
   }),
   sharedPost: t.relation("sharedPost", {
     type: Post,
     nullable: true,
     complexity: questionPollComplexity,
+    description:
+      "The original post when this row is a local share wrapper. Polls live " +
+      "on the original `Question`, not on the wrapper.",
   }),
 }));
 
@@ -194,7 +226,11 @@ const Poll = builder.drizzleNode("pollTable", {
       },
     }, {
       fields: (t) => ({
-        totalCount: t.exposeInt("totalCount"),
+        totalCount: t.exposeInt("totalCount", {
+          description:
+            "Total number of stored votes across all options, independent " +
+            "of the current page size.",
+        }),
       }),
     }),
     voters: t.connection({
@@ -218,7 +254,11 @@ const Poll = builder.drizzleNode("pollTable", {
       },
     }, {
       fields: (t) => ({
-        totalCount: t.exposeInt("totalCount"),
+        totalCount: t.exposeInt("totalCount", {
+          description:
+            "Total number of distinct actors who have voted in this poll, " +
+            "independent of the current page size.",
+        }),
       }),
     }),
   }),
@@ -231,7 +271,10 @@ const PollOption = builder.drizzleObject("pollOptionTable", {
     index: t.exposeInt("index", {
       description: "Zero-based display order index for this option.",
     }),
-    title: t.exposeString("title"),
+    title: t.exposeString("title", {
+      description:
+        "Human-readable option label exactly as stored for the poll.",
+    }),
     poll: t.relation("poll", {
       description: "The poll this option belongs to.",
     }),
@@ -253,6 +296,9 @@ const PollOption = builder.drizzleObject("pollOptionTable", {
     }),
     votes: t.connection({
       type: PollVote,
+      description:
+        "Votes cast for this option. Use `PollOption.viewerHasVoted` for " +
+        "the current viewer's selected state.",
       complexity: pollBranchComplexity,
       select: (args, ctx, nestedSelect) => ({
         with: {
@@ -270,7 +316,11 @@ const PollOption = builder.drizzleObject("pollOptionTable", {
       },
     }, {
       fields: (t) => ({
-        totalCount: t.exposeInt("totalCount"),
+        totalCount: t.exposeInt("totalCount", {
+          description:
+            "Total number of stored votes for this option, independent of " +
+            "the current page size.",
+        }),
       }),
     }),
   }),
@@ -278,11 +328,23 @@ const PollOption = builder.drizzleObject("pollOptionTable", {
 
 const PollVote = builder.drizzleObject("pollVoteTable", {
   name: "PollVote",
+  description:
+    "A stored vote by an actor for one option in a `Poll`. Multi-choice " +
+    "polls store one `PollVote` per selected option.",
   fields: (t) => ({
-    created: t.expose("created", { type: "DateTime" }),
-    poll: t.relation("poll"),
-    option: t.relation("option"),
-    actor: t.relation("actor"),
+    created: t.expose("created", {
+      type: "DateTime",
+      description: "When this vote was recorded locally.",
+    }),
+    poll: t.relation("poll", {
+      description: "The poll that received this vote.",
+    }),
+    option: t.relation("option", {
+      description: "The selected option for this vote.",
+    }),
+    actor: t.relation("actor", {
+      description: "The actor who cast this vote.",
+    }),
   }),
 });
 
@@ -328,6 +390,10 @@ builder.drizzleObjectField(Question, "poll", (t) =>
     type: Poll,
     nullable: true,
     complexity: questionPollComplexity,
+    description:
+      "Poll data attached to this `Question`, or `null` for shared wrappers " +
+      "and Questions whose remote poll data is unavailable. Authenticated " +
+      "viewers may trigger a remote backfill for missing poll data.",
     select: (_, __, nestedSelect) => ({
       columns: {
         id: true,
@@ -394,12 +460,24 @@ builder.drizzleObjectField(Question, "poll", (t) =>
 builder.relayMutationField(
   "voteOnPoll",
   {
+    description:
+      "Vote in a visible poll. Replaces the viewer's previous selections " +
+      "and federates the vote when the poll is local.",
     inputFields: (t) => ({
       questionId: t.globalID({
         for: [Question],
         required: true,
+        description:
+          "Global id of the `Question` whose poll should receive the vote. " +
+          "The viewer must be able to see the question.",
       }),
-      optionIndices: t.intList({ required: true }),
+      optionIndices: t.intList({
+        required: true,
+        description:
+          "Zero-based option indices to select. Single-choice polls require " +
+          "exactly one index; multi-choice polls accept one or more unique " +
+          "indices.",
+      }),
     }),
   },
   {
@@ -532,18 +610,25 @@ builder.relayMutationField(
     outputFields: (t) => ({
       question: t.field({
         type: Question,
+        description:
+          "The voted `Question`, with poll state reflecting the viewer's " +
+          "new selection.",
         resolve(result) {
           return result.question;
         },
       }),
       poll: t.field({
         type: Poll,
+        description:
+          "The updated poll after replacing the viewer's previous votes.",
         resolve(result) {
           return result.poll;
         },
       }),
       votes: t.field({
         type: [PollVote],
+        description:
+          "Vote rows created for this request, ordered by option index.",
         resolve(result) {
           return result.votes;
         },

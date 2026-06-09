@@ -328,6 +328,9 @@ export interface NoteComposerProps {
   // New notes only: Relay connection record ids to prepend the created note's
   // edge into, so the new note appears in those lists without a refetch.
   prependToConnections?: string[];
+  // New notes only: hide the poll composer in surfaces whose optimistic or
+  // inline render path cannot display a `Question` poll yet.
+  allowPoll?: boolean;
   // Edit mode: when set, the composer updates an existing note instead of
   // creating a new one.
   editingNoteId?: string | null;
@@ -377,6 +380,8 @@ export function NoteComposer(props: NoteComposerProps) {
   const [manualLanguageChange, setManualLanguageChange] = createSignal(
     !!props.editingNoteId,
   );
+  const allowPoll = () => props.allowPoll !== false;
+  const canCreatePoll = () => !props.editingNoteId && allowPoll();
   const [pastedQuoteId, setPastedQuoteId] = createSignal<string | null>(null);
   const effectiveQuotedPostId = () => props.quotedPostId ?? pastedQuoteId();
   const [quotedPost, setQuotedPost] = createSignal<
@@ -461,7 +466,7 @@ export function NoteComposer(props: NoteComposerProps) {
       language()?.baseName !== (props.initialLanguage ?? undefined) ||
       quotePolicy() !== (props.initialQuotePolicy ?? "EVERYONE")
     );
-    const pollDirty = !props.editingNoteId && pollEnabled();
+    const pollDirty = canCreatePoll() && pollEnabled();
     return contentDirty || mediaItems.length > 0 || editMetaDirty || pollDirty;
   });
   createEffect(() => props.onContentChange?.(isDirty()));
@@ -1045,7 +1050,7 @@ export function NoteComposer(props: NoteComposerProps) {
       const finalContent = props.ensureLinkUrl
         ? ensureLinkInContent(noteContent, props.ensureLinkUrl)
         : noteContent;
-      if (pollEnabled()) {
+      if (canCreatePoll() && pollEnabled()) {
         const poll = getValidatedPollInput();
         if (poll == null) return;
         createQuestion({
@@ -1426,19 +1431,21 @@ export function NoteComposer(props: NoteComposerProps) {
                 >
                   <IconImage class="size-5" />
                 </Button>
-                <Button
-                  type="button"
-                  variant={pollEnabled() ? "secondary" : "ghost"}
-                  size="icon"
-                  title={pollEnabled() ? t`Remove poll` : t`Add poll`}
-                  aria-label={pollEnabled() ? t`Remove poll` : t`Add poll`}
-                  onClick={() => {
-                    if (pollEnabled()) resetPoll();
-                    else setPollEnabled(true);
-                  }}
-                >
-                  <IconListChecks class="size-5" />
-                </Button>
+                <Show when={allowPoll()}>
+                  <Button
+                    type="button"
+                    variant={pollEnabled() ? "secondary" : "ghost"}
+                    size="icon"
+                    title={pollEnabled() ? t`Remove poll` : t`Add poll`}
+                    aria-label={pollEnabled() ? t`Remove poll` : t`Add poll`}
+                    onClick={() => {
+                      if (pollEnabled()) resetPoll();
+                      else setPollEnabled(true);
+                    }}
+                  >
+                    <IconListChecks class="size-5" />
+                  </Button>
+                </Show>
               </div>
             </Show>
             <input
@@ -1482,7 +1489,7 @@ export function NoteComposer(props: NoteComposerProps) {
           </div>
         </TextField>
 
-        <Show when={!props.editingNoteId && pollEnabled()}>
+        <Show when={canCreatePoll() && pollEnabled()}>
           <section class="rounded-md border border-input p-3">
             <div class="flex items-start justify-between gap-3">
               <div class="flex min-w-0 items-center gap-2">
@@ -1818,7 +1825,9 @@ export function NoteComposer(props: NoteComposerProps) {
               fallback={
                 <Show
                   when={isCreating() || isCreatingQuestion()}
-                  fallback={pollEnabled() ? t`Create poll` : t`Create note`}
+                  fallback={canCreatePoll() && pollEnabled()
+                    ? t`Create poll`
+                    : t`Create note`}
                 >
                   {t`Creating…`}
                 </Show>
