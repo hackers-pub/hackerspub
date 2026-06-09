@@ -463,7 +463,7 @@ builder.relayMutationField(
     description:
       "Vote in a visible poll. Votes are idempotent: once the viewer has " +
       "voted, later calls return the stored selections instead of replacing " +
-      "them. Federates the vote when the poll is local.",
+      "them. Federates the vote when the poll is remote.",
     inputFields: (t) => ({
       questionId: t.globalID({
         for: [Question],
