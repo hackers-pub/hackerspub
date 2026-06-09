@@ -30,7 +30,6 @@ import {
   type Mention,
   type NewNoteSource,
   type NoteSource,
-  noteSourceTable,
   type Poll,
   type PollOption,
   type Post,
@@ -105,10 +104,7 @@ export async function createQuestion(
       medium,
     );
     if (m == null) {
-      await db.delete(noteSourceTable).where(
-        eq(noteSourceTable.id, noteSource.id),
-      );
-      return undefined;
+      throw new Error("Failed to create note source medium.");
     }
     media.push(m);
     index++;
@@ -235,7 +231,7 @@ export async function createQuestion(
       },
     );
   }
-  if (post.visibility !== "direct") {
+  if (post.visibility !== "direct" && post.visibility !== "none") {
     await fedCtx.sendActivity(
       { identifier: source.accountId },
       "followers",
@@ -265,12 +261,13 @@ export async function createQuestion(
   }
 
   if (
-    post.replyTarget != null && post.replyTarget.actor.accountId != null &&
-    post.replyTarget.actorId !== post.actorId
+    relations.replyTarget != null &&
+    relations.replyTarget.actor.accountId != null &&
+    relations.replyTarget.actorId !== post.actorId
   ) {
     await createReplyNotification(
       db,
-      post.replyTarget.actor.accountId,
+      relations.replyTarget.actor.accountId,
       post,
       post.actor,
     );
@@ -288,7 +285,7 @@ export async function createQuestion(
   }
   for (const mention of post.mentions) {
     if (mention.actor.accountId == null) continue;
-    if (post.replyTarget?.actorId === mention.actorId) continue;
+    if (relations.replyTarget?.actorId === mention.actorId) continue;
     if (post.quotedPost?.actorId === mention.actorId) continue;
     if (mention.actorId === post.actorId) continue;
     await createMentionNotification(
