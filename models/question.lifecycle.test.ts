@@ -178,6 +178,14 @@ test("createQuestion() throws when a requested medium cannot be attached", async
         }),
       { message: "Failed to create note source medium." },
     );
+
+    const source = await tx.query.noteSourceTable.findFirst({
+      where: {
+        accountId: author.account.id,
+        content: "Missing image",
+      },
+    });
+    assert.equal(source, undefined);
   });
 });
 

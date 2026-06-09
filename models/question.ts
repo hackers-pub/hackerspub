@@ -30,6 +30,7 @@ import {
   type Mention,
   type NewNoteSource,
   type NoteSource,
+  noteSourceTable,
   type Poll,
   type PollOption,
   type Post,
@@ -93,40 +94,51 @@ export async function createQuestion(
   const noteSource = await createNoteSource(db, source);
   if (noteSource == null) return undefined;
 
-  let index = 0;
   const media: NoteSourceMediumWithMedium[] = [];
-  for (const medium of source.media) {
-    const m = await createNoteSourceMedium(
-      db,
-      disk,
-      noteSource.id,
-      index,
-      medium,
-    );
-    if (m == null) {
-      throw new Error("Failed to create note source medium.");
+  let post: NonNullable<Awaited<ReturnType<typeof syncPostFromNoteSource>>> & {
+    poll: Poll & { options: PollOption[] };
+  };
+  try {
+    let index = 0;
+    for (const medium of source.media) {
+      const m = await createNoteSourceMedium(
+        db,
+        disk,
+        noteSource.id,
+        index,
+        medium,
+      );
+      if (m == null) {
+        throw new Error("Failed to create note source medium.");
+      }
+      media.push(m);
+      index++;
     }
-    media.push(m);
-    index++;
-  }
 
-  const post = await syncPostFromNoteSource(fedCtx, {
-    ...noteSource,
-    media,
-    account,
-  }, {
-    ...relations,
-    question: {
-      title: normalizedPoll.title,
-      poll: {
-        ...normalizedPoll,
-        now: source.poll.now,
+    const syncedPost = await syncPostFromNoteSource(fedCtx, {
+      ...noteSource,
+      media,
+      account,
+    }, {
+      ...relations,
+      question: {
+        title: normalizedPoll.title,
+        poll: {
+          ...normalizedPoll,
+          now: source.poll.now,
+        },
       },
-    },
-  });
-  if (post == null || post.poll == null) {
-    if (relations.quotedPost != null) throw new QuotePolicyDeniedError();
-    throw new Error("Failed to persist question post.");
+    });
+    if (syncedPost == null || syncedPost.poll == null) {
+      if (relations.quotedPost != null) throw new QuotePolicyDeniedError();
+      throw new Error("Failed to persist question post.");
+    }
+    post = { ...syncedPost, poll: syncedPost.poll };
+  } catch (error) {
+    await db.delete(noteSourceTable).where(
+      eq(noteSourceTable.id, noteSource.id),
+    );
+    throw error;
   }
 
   if (relations.replyTarget != null) {
