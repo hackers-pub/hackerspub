@@ -129,9 +129,6 @@ export async function createQuestion(
     },
   });
   if (post == null || post.poll == null) {
-    await db.delete(noteSourceTable).where(
-      eq(noteSourceTable.id, noteSource.id),
-    );
     if (relations.quotedPost != null) throw new QuotePolicyDeniedError();
     throw new Error("Failed to persist question post.");
   }

@@ -38,13 +38,13 @@ import { MarkdownEditor } from "~/components/MarkdownEditor.tsx";
 import { TextField, TextFieldLabel } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import type { NoteComposerMutation } from "./__generated__/NoteComposerMutation.graphql.ts";
-import type { NoteComposerQuestionMutation } from "./__generated__/NoteComposerQuestionMutation.graphql.ts";
-import type { NoteComposerUpdateMutation } from "./__generated__/NoteComposerUpdateMutation.graphql.ts";
 import type { NoteComposerGeneratedAltTextQuery } from "./__generated__/NoteComposerGeneratedAltTextQuery.graphql.ts";
+import type { NoteComposerMutation } from "./__generated__/NoteComposerMutation.graphql.ts";
 import type { NoteComposerPostByUrlQuery } from "./__generated__/NoteComposerPostByUrlQuery.graphql.ts";
+import type { NoteComposerQuestionMutation } from "./__generated__/NoteComposerQuestionMutation.graphql.ts";
 import type { NoteComposerQuotedPostQuery } from "./__generated__/NoteComposerQuotedPostQuery.graphql.ts";
 import type { NoteComposerReplyTargetQuery } from "./__generated__/NoteComposerReplyTargetQuery.graphql.ts";
+import type { NoteComposerUpdateMutation } from "./__generated__/NoteComposerUpdateMutation.graphql.ts";
 
 const NoteComposerMutation = graphql`
   mutation NoteComposerMutation(
