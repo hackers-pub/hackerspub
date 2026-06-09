@@ -33,7 +33,7 @@ import {
   updateRepliesCount,
   withDocumentLoaderTimeout,
 } from "@hackerspub/models/post";
-import { persistPollVote } from "@hackerspub/models/poll";
+import { persistPollVoteResult } from "@hackerspub/models/poll";
 import {
   deleteReaction,
   persistReaction,
@@ -62,11 +62,11 @@ export async function onPostCreated(
     object instanceof Note &&
     object.attributionId?.href === create.actorId?.href
   ) {
-    const vote = await persistPollVote(fedCtx, object, {
+    const vote = await persistPollVoteResult(fedCtx, object, {
       documentLoader: fedCtx.documentLoader,
       contextLoader: fedCtx.contextLoader,
     });
-    if (vote != null) return;
+    if (vote.attempted) return;
   }
   if (!isPostObject(object)) return;
   if (object.attributionId?.href !== create.actorId?.href) return;

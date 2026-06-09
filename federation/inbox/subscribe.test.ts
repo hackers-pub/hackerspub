@@ -150,3 +150,61 @@ test("onPostCreated stores a remote poll vote", async () => {
     assert.deepEqual(options.map((option) => option.votesCount), [0, 1]);
   });
 });
+
+test("onPostCreated ignores rejected poll vote attempts", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "inboxrejectedpollauthor",
+      name: "Inbox Rejected Poll Author",
+      email: "inboxrejectedpollauthor@example.com",
+    });
+    const voter = await insertRemoteActor(tx, {
+      username: "inboxrejectedpollvoter",
+      name: "Inbox Rejected Poll Voter",
+      host: "remote.example",
+      iri: "https://remote.example/users/inboxrejectedpollvoter",
+    });
+    const post = await insertQuestionPoll(tx, {
+      account: author.account,
+      optionTitles: ["Deno", "Node.js"],
+    });
+    assert.ok(post != null);
+    const create = new Create({
+      id: new URL("https://remote.example/votes/rejected/activity"),
+      actor: new URL(voter.iri),
+      object: new Note({
+        id: new URL("https://remote.example/votes/rejected"),
+        attribution: new URL(voter.iri),
+        name: "Node.js",
+        replyTarget: new URL(post.iri),
+      }),
+    });
+    const fedCtx = createFedCtx(tx) as unknown as InboxContext<ContextData>;
+
+    await onPostCreated(fedCtx, create);
+    await onPostCreated(fedCtx, create);
+    await onPostCreated(
+      fedCtx,
+      new Create({
+        id: new URL("https://remote.example/votes/unknown/activity"),
+        actor: new URL(voter.iri),
+        object: new Note({
+          id: new URL("https://remote.example/votes/unknown"),
+          attribution: new URL(voter.iri),
+          name: "Bun",
+          replyTarget: new URL(post.iri),
+        }),
+      }),
+    );
+
+    const votes = await tx.query.pollVoteTable.findMany({
+      where: { postId: post.id },
+    });
+    assert.equal(votes.length, 1);
+
+    const replies = await tx.query.postTable.findMany({
+      where: { replyTargetId: post.id },
+    });
+    assert.equal(replies.length, 0);
+  });
+});

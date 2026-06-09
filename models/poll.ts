@@ -29,6 +29,7 @@ export const MAX_POLL_OPTION_TITLE_LENGTH = 200;
 export const MIN_POLL_DURATION_MS = 60_000;
 export const MAX_POLL_DURATION_MS = 365 * 24 * 60 * 60 * 1000;
 export const DEFAULT_ENDED_POLL_NOTIFICATION_BATCH_SIZE = 100;
+const STALE_ENDED_POLL_NOTIFICATION_CLAIM_MS = 15 * 60 * 1000;
 
 export interface CreatePollInput {
   multiple: boolean;
@@ -237,6 +238,11 @@ export async function persistPollOption(
   return rows.length < 1 ? undefined : rows[0];
 }
 
+export interface PersistPollVoteResult {
+  attempted: boolean;
+  vote?: PollVote;
+}
+
 export async function persistPollVote(
   ctx: Context<ContextData>,
   note: vocab.Note,
@@ -245,20 +251,33 @@ export async function persistPollVote(
     documentLoader?: DocumentLoader;
   } = {},
 ): Promise<PollVote | undefined> {
+  return (await persistPollVoteResult(ctx, note, options)).vote;
+}
+
+export async function persistPollVoteResult(
+  ctx: Context<ContextData>,
+  note: vocab.Note,
+  options: {
+    contextLoader?: DocumentLoader;
+    documentLoader?: DocumentLoader;
+  } = {},
+): Promise<PersistPollVoteResult> {
   if (
     note.replyTargetId == null || note.attributionId == null ||
     note.name == null
   ) {
-    return undefined;
+    return { attempted: false };
   }
   const voteName = note.name.toString();
   const { db } = ctx.data;
   let post = await getPersistedPost(db, note.replyTargetId);
   let persistedRemotePollWithVotersCount = false;
   let persistedRemotePollWithOptionVotesCount = false;
+  let targetIsQuestion = post?.type === "Question";
   if (post == null) {
     const question = await note.getReplyTarget(options);
-    if (!(question instanceof vocab.Question)) return undefined;
+    if (!(question instanceof vocab.Question)) return { attempted: false };
+    targetIsQuestion = true;
     // A newly fetched remote Question may already include this vote in its
     // aggregate counts, so preserve those counts instead of incrementing them
     // again after inserting the local vote row.
@@ -268,26 +287,22 @@ export async function persistPollVote(
       voteName,
     );
     post = await persistPost(ctx, question, options);
-    if (post == null) return undefined;
+    if (post == null) return { attempted: true };
   }
   let actor = await getPersistedActor(db, note.attributionId);
   if (actor == null) {
     const actorObject = await note.getAttribution(options);
-    if (actorObject == null) return undefined;
+    if (actorObject == null) return { attempted: true };
     actor = await persistActor(ctx, actorObject, options);
-    if (actor == null) return undefined;
+    if (actor == null) return { attempted: true };
   }
   const persistVoteInTransaction = async (tx: Transaction) => {
     const [lockedPoll] = await tx.select()
       .from(pollTable)
-      .where(
-        and(
-          eq(pollTable.postId, post.id),
-          sql`${pollTable.ends} > now()`,
-        ),
-      )
+      .where(eq(pollTable.postId, post.id))
       .for("update");
-    if (lockedPoll == null) return undefined;
+    if (lockedPoll == null) return { attempted: targetIsQuestion };
+    if (lockedPoll.ends <= new Date()) return { attempted: true };
     const visiblePost = await tx.query.postTable.findFirst({
       where: { id: lockedPoll.postId },
       with: {
@@ -302,7 +317,7 @@ export async function persistPollVote(
       },
     });
     if (visiblePost == null || !isPostVisibleTo(visiblePost, actor)) {
-      return undefined;
+      return { attempted: true };
     }
 
     const pollOptions = await tx.query.pollOptionTable.findMany({
@@ -314,10 +329,12 @@ export async function persistPollVote(
         actorId: actor.id,
       },
     });
-    if (!lockedPoll.multiple && existingVotes.length > 0) return undefined;
+    if (!lockedPoll.multiple && existingVotes.length > 0) {
+      return { attempted: true };
+    }
 
     const option = pollOptions.find((o) => o.title === voteName);
-    if (option == null) return undefined;
+    if (option == null) return { attempted: true };
     const rows = await tx.insert(pollVoteTable)
       .values({
         postId: lockedPoll.postId,
@@ -326,7 +343,7 @@ export async function persistPollVote(
       })
       .onConflictDoNothing()
       .returning();
-    if (rows.length < 1) return undefined;
+    if (rows.length < 1) return { attempted: true };
 
     if (
       existingVotes.length < 1 && !persistedRemotePollWithVotersCount
@@ -345,7 +362,7 @@ export async function persistPollVote(
           ),
         );
     }
-    return rows[0];
+    return { attempted: true, vote: rows[0] };
   };
 
   return isTransaction(db)
@@ -414,7 +431,7 @@ export async function notifyEndedPolls(
     ? await claimEndedPolls(db, now, maxPolls)
     : await db.transaction((tx) => claimEndedPolls(tx, now, maxPolls));
   try {
-    return await notifyClaimedEndedPolls(db, postIds, now);
+    return await notifyClaimedEndedPolls(db, postIds);
   } catch (error) {
     if (!inTransaction) {
       await resetEndedPollClaims(db, postIds);
@@ -428,13 +445,51 @@ async function claimEndedPolls(
   now: Date,
   maxPolls: number,
 ): Promise<Uuid[]> {
+  const staleClaimBefore = new Date(
+    now.getTime() - STALE_ENDED_POLL_NOTIFICATION_CLAIM_MS,
+  );
   const result = await tx.execute(sql`
     UPDATE poll
     SET ended_notifications_sent = ${now.toISOString()}::timestamptz
     WHERE post_id IN (
       SELECT poll.post_id
       FROM poll
-      WHERE poll.ended_notifications_sent IS NULL
+      WHERE (
+          poll.ended_notifications_sent IS NULL
+          OR (
+            poll.ended_notifications_sent <= ${staleClaimBefore.toISOString()}::timestamptz
+            AND (
+              EXISTS (
+                SELECT 1
+                FROM post
+                JOIN actor ON actor.id = post.actor_id
+                WHERE post.id = poll.post_id
+                  AND actor.account_id IS NOT NULL
+                  AND NOT EXISTS (
+                    SELECT 1
+                    FROM notification
+                    WHERE notification.account_id = actor.account_id
+                      AND notification.type = 'poll_ended'
+                      AND notification.post_id = poll.post_id
+                  )
+              )
+              OR EXISTS (
+                SELECT 1
+                FROM poll_vote
+                JOIN actor ON actor.id = poll_vote.actor_id
+                WHERE poll_vote.post_id = poll.post_id
+                  AND actor.account_id IS NOT NULL
+                  AND NOT EXISTS (
+                    SELECT 1
+                    FROM notification
+                    WHERE notification.account_id = actor.account_id
+                      AND notification.type = 'poll_ended'
+                      AND notification.post_id = poll.post_id
+                  )
+              )
+            )
+          )
+        )
         AND poll.ends <= ${now.toISOString()}::timestamptz
       ORDER BY poll.ends ASC
       FOR UPDATE SKIP LOCKED
@@ -459,7 +514,6 @@ async function resetEndedPollClaims(
 async function notifyClaimedEndedPolls(
   db: Database,
   postIds: Uuid[],
-  now: Date,
 ): Promise<NotifyEndedPollsResult> {
   if (postIds.length < 1) {
     return { pollsProcessed: 0, notificationsCreated: 0 };
@@ -497,7 +551,7 @@ async function notifyClaimedEndedPolls(
         accountId,
         poll.post,
         author,
-        now,
+        poll.ends,
       );
       if (notification != null) notificationsCreated++;
     }

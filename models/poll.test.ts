@@ -1,6 +1,7 @@
 import assert from "node:assert";
 import test from "node:test";
 import * as vocab from "@fedify/vocab";
+import { eq } from "drizzle-orm";
 import type { Transaction } from "./db.ts";
 import {
   InvalidPollInputError,
@@ -228,6 +229,44 @@ test("notifyEndedPolls() notifies local authors and voters once", async () => {
       where: { postId: post.id },
     });
     assert.equal(remainingNotifications.length, 2);
+  });
+});
+
+test("notifyEndedPolls() retries stale claims with missing notifications", async () => {
+  await withRollback(async (tx) => {
+    await tx.update(pollTable).set({
+      endedNotificationsSent: new Date("2026-04-15T00:29:00.000Z"),
+    });
+    const author = await insertAccountWithActor(tx, {
+      username: "staleclaimpollauthor",
+      name: "Stale Claim Poll Author",
+      email: "staleclaimpollauthor@example.com",
+    });
+    const { post, poll } = await insertQuestionPoll(tx, {
+      account: author.account,
+      multiple: false,
+      optionTitles: ["Deno", "Node.js"],
+      ends: new Date("2026-04-15T00:05:00.000Z"),
+    });
+    await tx.update(pollTable)
+      .set({ endedNotificationsSent: new Date("2026-04-15T00:06:00.000Z") })
+      .where(eq(pollTable.postId, poll.postId));
+
+    const result = await notifyEndedPolls(tx, {
+      now: new Date("2026-04-15T00:30:00.000Z"),
+    });
+
+    assert.deepEqual(result, { pollsProcessed: 1, notificationsCreated: 1 });
+    const notification = await tx.query.notificationTable.findFirst({
+      where: {
+        accountId: author.account.id,
+        postId: post.id,
+        type: "poll_ended",
+      },
+    });
+    assert.ok(notification != null);
+    assert.deepEqual(notification.actorIds, [author.actor.id]);
+    assert.equal(notification.created.toISOString(), poll.ends.toISOString());
   });
 });
 
