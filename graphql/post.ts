@@ -1756,12 +1756,12 @@ builder.relayMutationField(
           with: {
             actor: {
               with: {
-                followers: true,
-                blockees: true,
-                blockers: true,
+                followers: { where: { followerId: ctx.account.actor.id } },
+                blockees: { where: { blockeeId: ctx.account.actor.id } },
+                blockers: { where: { blockerId: ctx.account.actor.id } },
               },
             },
-            mentions: true,
+            mentions: { where: { actorId: ctx.account.actor.id } },
           },
           where: { id: replyTargetId.id },
         });
@@ -1776,22 +1776,24 @@ builder.relayMutationField(
           with: {
             actor: {
               with: {
-                followers: true,
-                blockees: true,
-                blockers: true,
+                followers: { where: { followerId: ctx.account.actor.id } },
+                blockees: { where: { blockeeId: ctx.account.actor.id } },
+                blockers: { where: { blockerId: ctx.account.actor.id } },
               },
             },
-            mentions: true,
+            mentions: { where: { actorId: ctx.account.actor.id } },
             sharedPost: {
               with: {
                 actor: {
                   with: {
-                    followers: true,
-                    blockees: true,
-                    blockers: true,
+                    followers: {
+                      where: { followerId: ctx.account.actor.id },
+                    },
+                    blockees: { where: { blockeeId: ctx.account.actor.id } },
+                    blockers: { where: { blockerId: ctx.account.actor.id } },
                   },
                 },
-                mentions: true,
+                mentions: { where: { actorId: ctx.account.actor.id } },
               },
             },
           },
