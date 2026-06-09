@@ -5,6 +5,7 @@ import {
   drainNewsRescoreQueue,
   recomputeNewsScores,
 } from "@hackerspub/models/news";
+import { notifyEndedPolls } from "@hackerspub/models/poll";
 import { getLogger } from "@logtape/logtape";
 import { sql } from "drizzle-orm";
 import * as models from "./ai.ts";
@@ -106,6 +107,28 @@ Deno.cron("drain-news-rescore-queue", "* * * * *", {
     }
   } catch (error) {
     newsLogger.error("News rescore drain failed: {error}", { error });
+  }
+});
+
+const pollLogger = getLogger(["hackerspub", "graphql", "poll"]);
+Deno.cron("notify-ended-polls", "* * * * *", {
+  signal: controller.signal,
+}, async () => {
+  try {
+    const { pollsProcessed, notificationsCreated } = await notifyEndedPolls(
+      db,
+    );
+    if (pollsProcessed > 0) {
+      pollLogger.debug(
+        "Notified ended poll results for {pollsProcessed} poll(s); " +
+          "created {notificationsCreated} notification(s).",
+        { pollsProcessed, notificationsCreated },
+      );
+    }
+  } catch (error) {
+    pollLogger.error("Ended poll notification drain failed: {error}", {
+      error,
+    });
   }
 });
 

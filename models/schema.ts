@@ -1376,6 +1376,9 @@ export const pollTable = pgTable(
     multiple: boolean().notNull(),
     votersCount: integer("voters_count").notNull().default(0),
     ends: timestamp({ withTimezone: true }).notNull(),
+    endedNotificationsSent: timestamp("ended_notifications_sent", {
+      withTimezone: true,
+    }),
   },
   (table) => [
     check("poll_voters_count_check", sql`${table.votersCount} >= 0`),
@@ -1672,6 +1675,7 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "shared_post_updated",
   "quoted_post_updated",
   "react",
+  "poll_ended",
 ]);
 
 export type NotificationType = (typeof notificationTypeEnum.enumValues)[number];
@@ -1694,6 +1698,7 @@ export const notificationTable = pgTable(
     // - When type is 'shared_post_updated', this is the updated shared post
     // - When type is 'quoted_post_updated', this is the updated quoted post
     // - When type is 'react', this is the ID of the post being reacted to
+    // - When type is 'poll_ended', this is the ended Question post
     postId: uuid("post_id")
       .$type<Uuid>()
       .references((): AnyPgColumn => postTable.id, { onDelete: "cascade" }),

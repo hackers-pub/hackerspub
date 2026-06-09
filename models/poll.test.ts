@@ -5,6 +5,7 @@ import type { Transaction } from "./db.ts";
 import {
   InvalidPollInputError,
   normalizePollInput,
+  notifyEndedPolls,
   persistPoll,
   persistPollVote,
   vote,
@@ -15,6 +16,7 @@ import {
   type PollOption,
   pollOptionTable,
   pollTable,
+  pollVoteTable,
   postTable,
 } from "./schema.ts";
 import { generateUuidV7 } from "./uuid.ts";
@@ -139,6 +141,91 @@ test("vote() stores a single-choice vote and stays idempotent", async () => {
     });
     assert.ok(pollAfterRepeat != null);
     assert.equal(pollAfterRepeat.votersCount, 1);
+  });
+});
+
+test("notifyEndedPolls() notifies local authors and voters once", async () => {
+  await withRollback(async (tx) => {
+    await tx.update(pollTable).set({
+      endedNotificationsSent: new Date("2026-04-15T00:00:00.000Z"),
+    });
+    const author = await insertAccountWithActor(tx, {
+      username: "endedpollauthor",
+      name: "Ended Poll Author",
+      email: "endedpollauthor@example.com",
+    });
+    const voter = await insertAccountWithActor(tx, {
+      username: "endedpollvoter",
+      name: "Ended Poll Voter",
+      email: "endedpollvoter@example.com",
+    });
+    const remoteVoter = await insertRemoteActor(tx, {
+      username: "remoteendedvoter",
+      host: "remote.example",
+      name: "Remote Ended Voter",
+      iri: "https://remote.example/users/ended-voter",
+    });
+    const { post, poll } = await insertQuestionPoll(tx, {
+      account: author.account,
+      multiple: false,
+      optionTitles: ["Deno", "Node.js"],
+      ends: new Date("2026-04-15T00:05:00.000Z"),
+    });
+    await tx.insert(pollVoteTable).values([
+      {
+        postId: poll.postId,
+        optionIndex: 0,
+        actorId: voter.actor.id,
+      },
+      {
+        postId: poll.postId,
+        optionIndex: 1,
+        actorId: remoteVoter.id,
+      },
+    ]);
+
+    const first = await notifyEndedPolls(tx, {
+      now: new Date("2026-04-15T00:06:00.000Z"),
+    });
+
+    assert.deepEqual(first, { pollsProcessed: 1, notificationsCreated: 2 });
+    const notifications = await tx.query.notificationTable.findMany({
+      where: { postId: post.id },
+      orderBy: { accountId: "asc" },
+    });
+    assert.deepEqual(
+      notifications.map((notification) => ({
+        accountId: notification.accountId,
+        type: notification.type,
+        actorIds: notification.actorIds,
+      })),
+      [
+        {
+          accountId: author.account.id,
+          type: "poll_ended",
+          actorIds: [author.actor.id],
+        },
+        {
+          accountId: voter.account.id,
+          type: "poll_ended",
+          actorIds: [author.actor.id],
+        },
+      ].toSorted((a, b) => a.accountId.localeCompare(b.accountId)),
+    );
+    const notifiedPoll = await tx.query.pollTable.findFirst({
+      where: { postId: poll.postId },
+    });
+    assert.ok(notifiedPoll?.endedNotificationsSent != null);
+
+    const second = await notifyEndedPolls(tx, {
+      now: new Date("2026-04-15T00:07:00.000Z"),
+    });
+
+    assert.deepEqual(second, { pollsProcessed: 0, notificationsCreated: 0 });
+    const remainingNotifications = await tx.query.notificationTable.findMany({
+      where: { postId: post.id },
+    });
+    assert.equal(remainingNotifications.length, 2);
   });
 });
 

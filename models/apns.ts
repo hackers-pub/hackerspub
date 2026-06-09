@@ -151,6 +151,8 @@ function getApnsAlert(
       return "A post you shared was updated.";
     case "quoted_post_updated":
       return "A post you quoted was updated.";
+    case "poll_ended":
+      return "A poll ended.";
     case "react": {
       const emojiText = typeof emoji === "string" ? emoji : emoji?.name;
       return emojiText == null

@@ -444,6 +444,23 @@ export function createReactNotification(
   );
 }
 
+export function createPollEndedNotification(
+  db: Database,
+  accountId: Uuid,
+  pollPost: Pick<Post, "id">,
+  pollAuthor: Actor,
+  created?: Date | null,
+): Promise<Notification | undefined> {
+  return createNotification(
+    db,
+    accountId,
+    "poll_ended",
+    pollPost,
+    pollAuthor.id,
+    created,
+  );
+}
+
 export async function deleteNotification(
   db: Database,
   accountId: Uuid,

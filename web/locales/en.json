@@ -52,6 +52,9 @@
     "quotedPostUpdated_zero": "{{actor}} updated a post you quoted",
     "quotedPostUpdated_one": "{{actor}} and 1 other updated a post you quoted",
     "quotedPostUpdated_other": "{{actor}} and {{count}} others updated a post you quoted",
+    "pollEnded_zero": "{{actor}}'s poll ended",
+    "pollEnded_one": "{{actor}} and 1 other's polls ended",
+    "pollEnded_other": "{{actor}} and {{count}} others' polls ended",
     "reactedToYourPost_zero": "{{actor}} reacted to your post with {{emoji}}",
     "reactedToYourPost_one": "{{actor}} and 1 other reacted to your post with {{emoji}}",
     "reactedToYourPost_other": "{{actor}} and {{count}} others reacted to your post with {{emoji}}"

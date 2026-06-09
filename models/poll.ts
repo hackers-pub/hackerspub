@@ -5,6 +5,7 @@ import { getPersistedActor, persistActor, toRecipient } from "./actor.ts";
 import type { ContextData } from "./context.ts";
 import { toDate } from "./date.ts";
 import type { Database, Transaction } from "./db.ts";
+import { createPollEndedNotification } from "./notification.ts";
 import { getPersistedPost, persistPost } from "./post.ts";
 import {
   type Account,
@@ -27,6 +28,7 @@ export const MAX_POLL_TITLE_LENGTH = 200;
 export const MAX_POLL_OPTION_TITLE_LENGTH = 200;
 export const MIN_POLL_DURATION_MS = 60_000;
 export const MAX_POLL_DURATION_MS = 365 * 24 * 60 * 60 * 1000;
+export const DEFAULT_ENDED_POLL_NOTIFICATION_BATCH_SIZE = 100;
 
 export interface CreatePollInput {
   multiple: boolean;
@@ -319,6 +321,95 @@ export async function persistPollVote(
   return isTransaction(db)
     ? await persistVoteInTransaction(db)
     : await db.transaction(persistVoteInTransaction);
+}
+
+export interface NotifyEndedPollsOptions {
+  now?: Date;
+  maxPolls?: number;
+}
+
+export interface NotifyEndedPollsResult {
+  pollsProcessed: number;
+  notificationsCreated: number;
+}
+
+export async function notifyEndedPolls(
+  db: Database,
+  options: NotifyEndedPollsOptions = {},
+): Promise<NotifyEndedPollsResult> {
+  const now = options.now ?? new Date();
+  const maxPolls = options.maxPolls ??
+    DEFAULT_ENDED_POLL_NOTIFICATION_BATCH_SIZE;
+  if (!Number.isInteger(maxPolls) || maxPolls < 1) {
+    return { pollsProcessed: 0, notificationsCreated: 0 };
+  }
+
+  const notifyInTransaction = async (
+    tx: Transaction,
+  ): Promise<NotifyEndedPollsResult> => {
+    const claimed = await tx.execute(sql`
+      UPDATE poll
+      SET ended_notifications_sent = ${now.toISOString()}::timestamptz
+      WHERE post_id IN (
+        SELECT poll.post_id
+        FROM poll
+        WHERE poll.ended_notifications_sent IS NULL
+          AND poll.ends <= ${now.toISOString()}::timestamptz
+        ORDER BY poll.ends ASC
+        FOR UPDATE SKIP LOCKED
+        LIMIT ${maxPolls}
+      )
+      RETURNING post_id
+    `) as unknown as { post_id: Uuid }[];
+    const postIds = claimed.map((row) => row.post_id);
+    if (postIds.length < 1) {
+      return { pollsProcessed: 0, notificationsCreated: 0 };
+    }
+
+    const polls = await tx.query.pollTable.findMany({
+      where: { postId: { in: postIds } },
+      with: {
+        post: {
+          with: {
+            actor: true,
+          },
+        },
+        votes: {
+          with: {
+            actor: true,
+          },
+        },
+      },
+    });
+
+    let notificationsCreated = 0;
+    for (const poll of polls) {
+      const author = poll.post.actor;
+      const recipientAccountIds = new Set<Uuid>();
+      if (author.accountId != null) recipientAccountIds.add(author.accountId);
+      for (const vote of poll.votes) {
+        if (vote.actor.accountId != null) {
+          recipientAccountIds.add(vote.actor.accountId);
+        }
+      }
+      for (const accountId of recipientAccountIds) {
+        const notification = await createPollEndedNotification(
+          tx,
+          accountId,
+          poll.post,
+          author,
+          now,
+        );
+        if (notification != null) notificationsCreated++;
+      }
+    }
+
+    return { pollsProcessed: postIds.length, notificationsCreated };
+  };
+
+  return isTransaction(db)
+    ? await notifyInTransaction(db)
+    : await db.transaction(notifyInTransaction);
 }
 
 export async function vote(

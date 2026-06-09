@@ -49,6 +49,8 @@
     "sharedPostUpdated_other": "{{actor}} 和其他 {{count}} 人更新了你转发过的内容",
     "quotedPostUpdated_zero": "{{actor}} 更新了你引用过的内容",
     "quotedPostUpdated_other": "{{actor}} 和其他 {{count}} 人更新了你引用过的内容",
+    "pollEnded_zero": "{{actor}} 的投票已结束",
+    "pollEnded_other": "{{actor}} 和其他 {{count}} 人的投票已结束",
     "reactedToYourPost_zero": "{{actor}} 用 {{emoji}} 对你的内容做出了反应",
     "reactedToYourPost_other": "{{actor}} 和其他 {{count}} 人用 {{emoji}} 对你的内容做出了反应"
   },

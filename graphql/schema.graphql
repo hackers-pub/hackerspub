@@ -2113,6 +2113,9 @@ enum NotificationType {
   """Someone @-mentioned this account in a post."""
   MENTION
 
+  """A `Question` poll this account authored or voted in has ended."""
+  POLL_ENDED
+
   """Someone quoted one of this account's posts."""
   QUOTE
 
@@ -2249,6 +2252,22 @@ type Poll implements Node {
   All votes cast across all options, with the total vote count exposed on the connection.
   """
   votes(after: String, before: String, first: Int, last: Int): PollVotesConnection!
+}
+
+"""
+Notification that a `Question` poll this account authored or voted in has ended.
+"""
+type PollEndedNotification implements Node & Notification {
+  account: Account!
+  actors(after: String, before: String, first: Int, last: Int): NotificationActorsConnection!
+  created: DateTime!
+  id: ID!
+
+  """
+  The ended `Question` post. This may be `null` if the post was deleted after the notification was created.
+  """
+  post: Post
+  uuid: UUID!
 }
 
 """A single choice in a `Poll`."""
