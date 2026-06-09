@@ -281,18 +281,21 @@ builder.drizzleObjectFields(PostLink, (t) => ({
       return linkIds.map((id) => counts.get(id) ?? 0);
     },
   }),
-  article: t.drizzleField({
+  article: t.loadable({
     type: Article,
     nullable: true,
     description:
       "The `Article` whose own URL backs this news story. `null` for ordinary " +
       "external-link stories.",
-    select: { columns: { id: true } },
-    async resolve(query, link, _args, ctx) {
-      return await ctx.db.query.postTable.findFirst(query({
+    resolve: (link) => link.id,
+    async load(linkIds: Uuid[], ctx) {
+      const uniqueLinkIds = [...new Set(linkIds)];
+      if (uniqueLinkIds.length < 1) return [];
+      const articles = await ctx.db.query.postTable.findMany({
+        with: { actor: true },
         where: {
           AND: [
-            { type: "Article", linkId: link.id },
+            { type: "Article", linkId: { in: uniqueLinkIds } },
             { sharedPostId: { isNull: true } },
             { replyTargetId: { isNull: true } },
             { quotedPostId: { isNull: true } },
@@ -300,7 +303,13 @@ builder.drizzleObjectFields(PostLink, (t) => ({
           ],
         },
         orderBy: { published: "asc" },
-      })) ?? null;
+      });
+      const byLinkId = new Map<Uuid, typeof articles[number]>();
+      for (const article of articles) {
+        if (article.linkId == null || byLinkId.has(article.linkId)) continue;
+        byLinkId.set(article.linkId, article);
+      }
+      return linkIds.map((id) => byLinkId.get(id) ?? null);
     },
   }),
   penalty: t.field({

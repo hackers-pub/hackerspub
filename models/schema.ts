@@ -935,6 +935,14 @@ export const postTable = pgTable(
         ${table.linkId} IS NOT NULL AND ${table.sharedPostId} IS NULL
           AND ${table.visibility} IN ('public', 'unlisted')
       `),
+    index("idx_post_article_link_published")
+      .on(table.linkId, table.published)
+      .where(sql`
+        ${table.type} = 'Article' AND ${table.linkId} IS NOT NULL
+          AND ${table.sharedPostId} IS NULL
+          AND ${table.replyTargetId} IS NULL
+          AND ${table.quotedPostId} IS NULL
+      `),
     index("idx_post_news_share_published")
       .on(table.published)
       .where(sql`

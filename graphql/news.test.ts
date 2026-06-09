@@ -4,7 +4,11 @@ import {
   drainNewsRescoreQueue,
   recomputeNewsScores,
 } from "@hackerspub/models/news";
-import { accountTable, postTable } from "@hackerspub/models/schema";
+import {
+  accountTable,
+  postLinkTable,
+  postTable,
+} from "@hackerspub/models/schema";
 import { eq } from "drizzle-orm";
 import { execute, parse } from "graphql";
 import type { Transaction } from "@hackerspub/models/db";
@@ -65,6 +69,24 @@ const newsStoryWithArticleQuery = parse(`
   }
 `);
 
+const newsStoriesWithArticlesQuery = parse(`
+  query NewsStoriesWithArticles($first: Int) {
+    newsStories(first: $first) {
+      edges {
+        node {
+          url
+          article {
+            name
+            actor {
+              handle
+            }
+          }
+        }
+      }
+    }
+  }
+`);
+
 interface NewsStoriesResult {
   newsStories: {
     pageInfo: {
@@ -74,6 +96,65 @@ interface NewsStoriesResult {
     };
     edges: { cursor: string; node: { url: string } }[];
   };
+}
+
+function countPostTableLookups(tx: Transaction): {
+  db: Transaction;
+  calls: { findFirst: number; findManyArgs: unknown[][] };
+} {
+  const calls = { findFirst: 0, findManyArgs: [] as unknown[][] };
+  const postQuery = new Proxy(tx.query.postTable, {
+    get(target, property, receiver) {
+      if (property === "findFirst") {
+        return (...args: Parameters<typeof target.findFirst>) => {
+          calls.findFirst++;
+          return target.findFirst(...args);
+        };
+      }
+      if (property === "findMany") {
+        return (...args: Parameters<typeof target.findMany>) => {
+          calls.findManyArgs.push(args);
+          return target.findMany(...args);
+        };
+      }
+      const value = Reflect.get(target, property, receiver);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  });
+  const query = new Proxy(tx.query, {
+    get(target, property, receiver) {
+      if (property === "postTable") return postQuery;
+      const value = Reflect.get(target, property, receiver);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  });
+  const db = new Proxy(tx, {
+    get(target, property, receiver) {
+      if (property === "query") return query;
+      const value = Reflect.get(target, property, receiver);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  }) as Transaction;
+  return { db, calls };
+}
+
+function isBatchedArticleLookup(args: unknown[]): boolean {
+  const query = args[0];
+  if (query == null || typeof query !== "object" || !("where" in query)) {
+    return false;
+  }
+  const where = query.where;
+  if (where == null || typeof where !== "object" || !("AND" in where)) {
+    return false;
+  }
+  const clauses = where.AND;
+  if (!Array.isArray(clauses)) return false;
+  return clauses.some((clause) =>
+    clause != null && typeof clause === "object" &&
+    "type" in clause && clause.type === "Article" &&
+    "linkId" in clause && clause.linkId != null &&
+    typeof clause.linkId === "object" && "in" in clause.linkId
+  );
 }
 
 test("newsStories ranks links by score for a guest, popular by default", async () => {
@@ -159,6 +240,81 @@ test("newsStories exposes the Article backing an article news link", async () =>
       __typename: "Article",
       name: "GQL article",
     });
+  });
+});
+
+test("PostLink.article batches article lookups across news stories", async () => {
+  await withRollback(async (tx) => {
+    const actor = await insertRemoteActor(tx, {
+      username: "gqlarticlebatch",
+      name: "GQL Article Batch",
+      host: "batch.example",
+    });
+    const expected: { url: string; name: string }[] = [];
+    const now = new Date("2026-05-30T00:00:00.000Z");
+    for (let i = 0; i < 3; i++) {
+      const link = await insertPostLink(tx, {
+        url: `https://batch.example/articles/${i}`,
+        title: `GQL batch article ${i}`,
+      });
+      const post = await insertRemotePost(tx, {
+        actorId: actor.id,
+        contentHtml: `<p>Article body ${i}</p>`,
+        link: { id: link.id, url: link.url },
+        published: new Date(`2026-05-2${i}T00:00:00.000Z`),
+      });
+      await tx.update(postTable).set({
+        type: "Article",
+        name: `GQL batch article ${i}`,
+        url: link.url,
+      }).where(eq(postTable.id, post.id));
+      await tx.update(postLinkTable).set({
+        score: 1_000_000 + i,
+        weightedMass: 1,
+        postCount: 1,
+        firstSharedAt: now,
+        latestActivityAt: now,
+        scoreUpdated: now,
+      }).where(eq(postLinkTable.id, link.id));
+      expected.push({ url: link.url, name: `GQL batch article ${i}` });
+    }
+
+    const { db, calls } = countPostTableLookups(tx);
+    const result = await execute({
+      schema,
+      document: newsStoriesWithArticlesQuery,
+      variableValues: { first: 3 },
+      contextValue: makeGuestContext(tx, { db }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(result.errors, undefined);
+    const stories = (result.data as {
+      newsStories: {
+        edges: {
+          node: {
+            url: string;
+            article: {
+              name: string;
+              actor: { handle: string };
+            } | null;
+          };
+        }[];
+      };
+    }).newsStories.edges.map((edge) => edge.node);
+    assert.deepEqual(
+      stories.map((story) => ({
+        url: story.url,
+        name: story.article?.name,
+        handle: story.article?.actor.handle,
+      })),
+      expected.toReversed().map((story) => ({
+        ...story,
+        handle: "@gqlarticlebatch@batch.example",
+      })),
+    );
+    assert.equal(calls.findFirst, 0);
+    assert.equal(calls.findManyArgs.filter(isBatchedArticleLookup).length, 1);
   });
 });
 
