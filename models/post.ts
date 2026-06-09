@@ -410,6 +410,7 @@ export function isPostObject(object: unknown): object is PostObject {
 export function isArticleLike(
   post: Post & { actor: Actor & { instance: Instance } },
 ): boolean {
+  if (post.type === "Question") return false;
   return post.type === "Article" ||
     post.name != null && post.actor.instance.software !== "nodebb";
 }
