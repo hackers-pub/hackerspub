@@ -11,7 +11,7 @@ interface PollEndedNotificationCardProps {
 }
 
 export function PollEndedNotificationCard(
-  props: PollEndedNotificationCardProps,
+  { $notification }: PollEndedNotificationCardProps,
 ) {
   const { t } = useLingui();
   const notification = createFragment(
@@ -24,7 +24,7 @@ export function PollEndedNotificationCard(
         }
       }
     `,
-    () => props.$notification,
+    () => $notification,
   );
 
   return (

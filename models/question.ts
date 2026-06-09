@@ -30,7 +30,6 @@ import {
   type Mention,
   type NewNoteSource,
   type NoteSource,
-  noteSourceTable,
   type Poll,
   type PollOption,
   type Post,
@@ -91,18 +90,18 @@ export async function createQuestion(
     if (allowedQuoteTarget == null) throw new QuotePolicyDeniedError();
   }
 
-  const noteSource = await createNoteSource(db, source);
-  if (noteSource == null) return undefined;
+  const result = await db.transaction(async (tx) => {
+    const txCtx = Object.create(fedCtx, {
+      data: { value: { ...fedCtx.data, db: tx } },
+    }) as Context<ContextData<Transaction>>;
+    const noteSource = await createNoteSource(tx, source);
+    if (noteSource == null) return undefined;
 
-  const media: NoteSourceMediumWithMedium[] = [];
-  let post: NonNullable<Awaited<ReturnType<typeof syncPostFromNoteSource>>> & {
-    poll: Poll & { options: PollOption[] };
-  };
-  try {
+    const media: NoteSourceMediumWithMedium[] = [];
     let index = 0;
     for (const medium of source.media) {
       const m = await createNoteSourceMedium(
-        db,
+        tx,
         disk,
         noteSource.id,
         index,
@@ -115,7 +114,7 @@ export async function createQuestion(
       index++;
     }
 
-    const syncedPost = await syncPostFromNoteSource(fedCtx, {
+    const syncedPost = await syncPostFromNoteSource(txCtx, {
       ...noteSource,
       media,
       account,
@@ -132,13 +131,11 @@ export async function createQuestion(
     if (syncedPost == null || syncedPost.poll == null) {
       throw new Error("Failed to persist question post.");
     }
-    post = { ...syncedPost, poll: syncedPost.poll };
-  } catch (error) {
-    await db.delete(noteSourceTable).where(
-      eq(noteSourceTable.id, noteSource.id),
-    );
-    throw error;
-  }
+    const post = { ...syncedPost, poll: syncedPost.poll };
+    return { noteSource, media, post };
+  });
+  if (result == null) return undefined;
+  const { noteSource, media, post } = result;
 
   if (relations.replyTarget != null) {
     await updateRepliesCount(db, relations.replyTarget, 1);
