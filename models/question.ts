@@ -130,7 +130,6 @@ export async function createQuestion(
       },
     });
     if (syncedPost == null || syncedPost.poll == null) {
-      if (relations.quotedPost != null) throw new QuotePolicyDeniedError();
       throw new Error("Failed to persist question post.");
     }
     post = { ...syncedPost, poll: syncedPost.poll };
