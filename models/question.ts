@@ -132,15 +132,14 @@ export async function createQuestion(
       throw new Error("Failed to persist question post.");
     }
     const post = { ...syncedPost, poll: syncedPost.poll };
+    if (relations.replyTarget != null) {
+      await updateRepliesCount(tx, relations.replyTarget, 1);
+    }
+    await addPostToTimeline(tx, post);
     return { noteSource, media, post };
   });
   if (result == null) return undefined;
   const { noteSource, media, post } = result;
-
-  if (relations.replyTarget != null) {
-    await updateRepliesCount(db, relations.replyTarget, 1);
-  }
-  await addPostToTimeline(db, post);
 
   const questionObject = await getQuestion(
     fedCtx,

@@ -409,73 +409,101 @@ export async function notifyEndedPolls(
     return { pollsProcessed: 0, notificationsCreated: 0 };
   }
 
-  const notifyInTransaction = async (
-    tx: Transaction,
-  ): Promise<NotifyEndedPollsResult> => {
-    const result = await tx.execute(sql`
-      UPDATE poll
-      SET ended_notifications_sent = ${now.toISOString()}::timestamptz
-      WHERE post_id IN (
-        SELECT poll.post_id
-        FROM poll
-        WHERE poll.ended_notifications_sent IS NULL
-          AND poll.ends <= ${now.toISOString()}::timestamptz
-        ORDER BY poll.ends ASC
-        FOR UPDATE SKIP LOCKED
-        LIMIT ${maxPolls}
-      )
-      RETURNING post_id
-    `);
-    const claimed = returnedRows<{ post_id: Uuid }>(result);
-    const postIds = claimed.map((row) => row.post_id);
-    if (postIds.length < 1) {
-      return { pollsProcessed: 0, notificationsCreated: 0 };
+  const inTransaction = isTransaction(db);
+  const postIds = inTransaction
+    ? await claimEndedPolls(db, now, maxPolls)
+    : await db.transaction((tx) => claimEndedPolls(tx, now, maxPolls));
+  try {
+    return await notifyClaimedEndedPolls(db, postIds, now);
+  } catch (error) {
+    if (!inTransaction) {
+      await resetEndedPollClaims(db, postIds);
     }
+    throw error;
+  }
+}
 
-    const polls = await tx.query.pollTable.findMany({
-      where: { postId: { in: postIds } },
-      with: {
-        post: {
-          with: {
-            actor: true,
-          },
-        },
-        votes: {
-          with: {
-            actor: true,
-          },
+async function claimEndedPolls(
+  tx: Transaction,
+  now: Date,
+  maxPolls: number,
+): Promise<Uuid[]> {
+  const result = await tx.execute(sql`
+    UPDATE poll
+    SET ended_notifications_sent = ${now.toISOString()}::timestamptz
+    WHERE post_id IN (
+      SELECT poll.post_id
+      FROM poll
+      WHERE poll.ended_notifications_sent IS NULL
+        AND poll.ends <= ${now.toISOString()}::timestamptz
+      ORDER BY poll.ends ASC
+      FOR UPDATE SKIP LOCKED
+      LIMIT ${maxPolls}
+    )
+    RETURNING post_id
+  `);
+  const claimed = returnedRows<{ post_id: Uuid }>(result);
+  return claimed.map((row) => row.post_id);
+}
+
+async function resetEndedPollClaims(
+  db: Database,
+  postIds: Uuid[],
+): Promise<void> {
+  if (postIds.length < 1) return;
+  await db.update(pollTable)
+    .set({ endedNotificationsSent: null })
+    .where(inArray(pollTable.postId, postIds));
+}
+
+async function notifyClaimedEndedPolls(
+  db: Database,
+  postIds: Uuid[],
+  now: Date,
+): Promise<NotifyEndedPollsResult> {
+  if (postIds.length < 1) {
+    return { pollsProcessed: 0, notificationsCreated: 0 };
+  }
+
+  const polls = await db.query.pollTable.findMany({
+    where: { postId: { in: postIds } },
+    with: {
+      post: {
+        with: {
+          actor: true,
         },
       },
-    });
+      votes: {
+        with: {
+          actor: true,
+        },
+      },
+    },
+  });
 
-    let notificationsCreated = 0;
-    for (const poll of polls) {
-      const author = poll.post.actor;
-      const recipientAccountIds = new Set<Uuid>();
-      if (author.accountId != null) recipientAccountIds.add(author.accountId);
-      for (const vote of poll.votes) {
-        if (vote.actor.accountId != null) {
-          recipientAccountIds.add(vote.actor.accountId);
-        }
-      }
-      for (const accountId of recipientAccountIds) {
-        const notification = await createPollEndedNotification(
-          tx,
-          accountId,
-          poll.post,
-          author,
-          now,
-        );
-        if (notification != null) notificationsCreated++;
+  let notificationsCreated = 0;
+  for (const poll of polls) {
+    const author = poll.post.actor;
+    const recipientAccountIds = new Set<Uuid>();
+    if (author.accountId != null) recipientAccountIds.add(author.accountId);
+    for (const vote of poll.votes) {
+      if (vote.actor.accountId != null) {
+        recipientAccountIds.add(vote.actor.accountId);
       }
     }
+    for (const accountId of recipientAccountIds) {
+      const notification = await createPollEndedNotification(
+        db,
+        accountId,
+        poll.post,
+        author,
+        now,
+      );
+      if (notification != null) notificationsCreated++;
+    }
+  }
 
-    return { pollsProcessed: postIds.length, notificationsCreated };
-  };
-
-  return isTransaction(db)
-    ? await notifyInTransaction(db)
-    : await db.transaction(notifyInTransaction);
+  return { pollsProcessed: postIds.length, notificationsCreated };
 }
 
 export async function vote(

@@ -1750,6 +1750,9 @@ builder.relayMutationField(
       if (attachedMedia.length > 20) {
         throw new InvalidInputError("media");
       }
+      if (visibility === "NONE") {
+        throw new InvalidInputError("visibility");
+      }
       let replyTarget: schema.Post & { actor: schema.Actor } | undefined;
       if (replyTargetId != null) {
         const post = await ctx.db.query.postTable.findFirst({

@@ -1506,6 +1506,45 @@ test("createQuestion maps invalid poll input to InvalidInputError", async () => 
   });
 });
 
+test("createQuestion rejects NONE visibility", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "createquestionnonegraphql",
+      name: "Create Question None GraphQL",
+      email: "createquestionnonegraphql@example.com",
+    });
+    const ends = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    const result = await execute({
+      schema,
+      document: createQuestionMutation,
+      variableValues: {
+        input: {
+          visibility: "NONE",
+          content: "Hidden poll",
+          language: "en",
+          poll: {
+            title: "Should not publish",
+            multiple: false,
+            options: ["Yes", "No"],
+            ends: ends.toISOString(),
+          },
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, account.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      createQuestion: {
+        __typename: "InvalidInputError",
+        inputPath: "visibility",
+      },
+    });
+  });
+});
+
 test("createNote rejects invisible reply and quote targets", async () => {
   await withRollback(async (tx) => {
     const author = await insertAccountWithActor(tx, {
