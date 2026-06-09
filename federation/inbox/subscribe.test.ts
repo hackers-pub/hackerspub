@@ -18,8 +18,7 @@ import {
   insertRemoteActor,
   withRollback,
 } from "../../test/postgres.ts";
-import { onPostPinned, onPostUnpinned } from "./subscribe.ts";
-import { onPostCreated } from "./subscribe.ts";
+import { onPostCreated, onPostPinned, onPostUnpinned } from "./subscribe.ts";
 
 async function insertQuestionPoll(
   tx: Transaction,

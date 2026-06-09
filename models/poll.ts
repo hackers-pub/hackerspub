@@ -10,6 +10,7 @@ import { getPersistedPost, isPostVisibleTo, persistPost } from "./post.ts";
 import {
   type Account,
   type Actor,
+  actorTable,
   type NewPoll,
   type NewPollOption,
   type NewPollVote,
@@ -19,6 +20,7 @@ import {
   pollTable,
   type PollVote,
   pollVoteTable,
+  postTable,
 } from "./schema.ts";
 import type { Uuid } from "./uuid.ts";
 
@@ -430,18 +432,13 @@ export async function notifyEndedPolls(
     return { pollsProcessed: 0, notificationsCreated: 0 };
   }
 
-  const inTransaction = isTransaction(db);
-  const postIds = inTransaction
-    ? await claimEndedPolls(db, now, maxPolls)
-    : await db.transaction((tx) => claimEndedPolls(tx, now, maxPolls));
-  try {
-    return await notifyClaimedEndedPolls(db, postIds);
-  } catch (error) {
-    if (!inTransaction) {
-      await resetEndedPollClaims(db, postIds);
-    }
-    throw error;
-  }
+  const notifyInTransaction = async (tx: Transaction) => {
+    const postIds = await claimEndedPolls(tx, now, maxPolls);
+    return await notifyClaimedEndedPolls(tx, postIds);
+  };
+  return isTransaction(db)
+    ? await notifyInTransaction(db)
+    : await db.transaction(notifyInTransaction);
 }
 
 async function claimEndedPolls(
@@ -467,16 +464,6 @@ async function claimEndedPolls(
   return claimed.map((row) => row.post_id);
 }
 
-async function resetEndedPollClaims(
-  db: Database,
-  postIds: Uuid[],
-): Promise<void> {
-  if (postIds.length < 1) return;
-  await db.update(pollTable)
-    .set({ endedNotificationsSent: null })
-    .where(inArray(pollTable.postId, postIds));
-}
-
 async function notifyClaimedEndedPolls(
   db: Database,
   postIds: Uuid[],
@@ -485,38 +472,38 @@ async function notifyClaimedEndedPolls(
     return { pollsProcessed: 0, notificationsCreated: 0 };
   }
 
-  const polls = await db.query.pollTable.findMany({
-    where: { postId: { in: postIds } },
-    with: {
-      post: {
-        with: {
-          actor: true,
-        },
-      },
-    },
-  });
-  const votes = await db.query.pollVoteTable.findMany({
-    where: { postId: { in: postIds } },
-    columns: { postId: true },
-    with: {
-      actor: { columns: { accountId: true } },
-    },
-  });
+  const polls = await db.select({
+    postId: pollTable.postId,
+    ends: pollTable.ends,
+    post: postTable,
+    author: actorTable,
+  })
+    .from(pollTable)
+    .innerJoin(postTable, eq(postTable.id, pollTable.postId))
+    .innerJoin(actorTable, eq(actorTable.id, postTable.actorId))
+    .where(inArray(pollTable.postId, postIds));
+  const votes = await db.select({
+    postId: pollVoteTable.postId,
+    accountId: actorTable.accountId,
+  })
+    .from(pollVoteTable)
+    .innerJoin(actorTable, eq(actorTable.id, pollVoteTable.actorId))
+    .where(inArray(pollVoteTable.postId, postIds));
 
   const votersByPostId = new Map<Uuid, Set<Uuid>>();
   for (const vote of votes) {
-    if (vote.actor.accountId == null) continue;
+    if (vote.accountId == null) continue;
     let voters = votersByPostId.get(vote.postId);
     if (voters == null) {
       voters = new Set();
       votersByPostId.set(vote.postId, voters);
     }
-    voters.add(vote.actor.accountId);
+    voters.add(vote.accountId);
   }
 
   let notificationsCreated = 0;
   for (const poll of polls) {
-    const author = poll.post.actor;
+    const author = poll.author;
     const recipientAccountIds = new Set<Uuid>();
     if (author.accountId != null) recipientAccountIds.add(author.accountId);
     const voterAccountIds = votersByPostId.get(poll.postId);
