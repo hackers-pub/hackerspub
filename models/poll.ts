@@ -254,9 +254,19 @@ export async function persistPollVote(
   const voteName = note.name.toString();
   const { db } = ctx.data;
   let post = await getPersistedPost(db, note.replyTargetId);
+  let persistedRemotePollWithVotersCount = false;
+  let persistedRemotePollWithOptionVotesCount = false;
   if (post == null) {
     const question = await note.getReplyTarget(options);
     if (!(question instanceof vocab.Question)) return undefined;
+    // A newly fetched remote Question may already include this vote in its
+    // aggregate counts, so preserve those counts instead of incrementing them
+    // again after inserting the local vote row.
+    persistedRemotePollWithVotersCount = question.voters != null;
+    persistedRemotePollWithOptionVotesCount = await hasRemoteOptionVotesCount(
+      question,
+      voteName,
+    );
     post = await persistPost(ctx, question, options);
     if (post == null) return undefined;
   }
@@ -318,25 +328,50 @@ export async function persistPollVote(
       .returning();
     if (rows.length < 1) return undefined;
 
-    if (existingVotes.length < 1) {
+    if (
+      existingVotes.length < 1 && !persistedRemotePollWithVotersCount
+    ) {
       await tx.update(pollTable)
         .set({ votersCount: sql`${pollTable.votersCount} + 1` })
         .where(eq(pollTable.postId, lockedPoll.postId));
     }
-    await tx.update(pollOptionTable)
-      .set({ votesCount: sql`${pollOptionTable.votesCount} + 1` })
-      .where(
-        and(
-          eq(pollOptionTable.postId, lockedPoll.postId),
-          eq(pollOptionTable.index, option.index),
-        ),
-      );
+    if (!persistedRemotePollWithOptionVotesCount) {
+      await tx.update(pollOptionTable)
+        .set({ votesCount: sql`${pollOptionTable.votesCount} + 1` })
+        .where(
+          and(
+            eq(pollOptionTable.postId, lockedPoll.postId),
+            eq(pollOptionTable.index, option.index),
+          ),
+        );
+    }
     return rows[0];
   };
 
   return isTransaction(db)
     ? await persistVoteInTransaction(db)
     : await db.transaction(persistVoteInTransaction);
+}
+
+async function hasRemoteOptionVotesCount(
+  question: vocab.Question,
+  voteName: string,
+): Promise<boolean> {
+  let options = await Array.fromAsync(question.getInclusiveOptions());
+  if (options.length < 1) {
+    options = await Array.fromAsync(question.getExclusiveOptions());
+  }
+  const seenOptionTitles = new Set<string>();
+  for (const option of options) {
+    const title = option.name?.toString();
+    if (title == null) continue;
+    if (seenOptionTitles.has(title)) continue;
+    seenOptionTitles.add(title);
+    if (title !== voteName) continue;
+    const replies = await option.getReplies();
+    return replies?.totalItems != null;
+  }
+  return false;
 }
 
 export interface NotifyEndedPollsOptions {
