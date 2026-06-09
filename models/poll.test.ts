@@ -232,7 +232,7 @@ test("notifyEndedPolls() notifies local authors and voters once", async () => {
   });
 });
 
-test("notifyEndedPolls() retries stale claims with missing notifications", async () => {
+test("notifyEndedPolls() does not reclaim already marked polls", async () => {
   await withRollback(async (tx) => {
     await tx.update(pollTable).set({
       endedNotificationsSent: new Date("2026-04-15T00:29:00.000Z"),
@@ -256,7 +256,7 @@ test("notifyEndedPolls() retries stale claims with missing notifications", async
       now: new Date("2026-04-15T00:30:00.000Z"),
     });
 
-    assert.deepEqual(result, { pollsProcessed: 1, notificationsCreated: 1 });
+    assert.deepEqual(result, { pollsProcessed: 0, notificationsCreated: 0 });
     const notification = await tx.query.notificationTable.findFirst({
       where: {
         accountId: author.account.id,
@@ -264,9 +264,7 @@ test("notifyEndedPolls() retries stale claims with missing notifications", async
         type: "poll_ended",
       },
     });
-    assert.ok(notification != null);
-    assert.deepEqual(notification.actorIds, [author.actor.id]);
-    assert.equal(notification.created.toISOString(), poll.ends.toISOString());
+    assert.equal(notification, undefined);
   });
 });
 

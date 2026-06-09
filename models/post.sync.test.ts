@@ -94,7 +94,7 @@ test("syncPostFromArticleSource() upserts the post when source content changes",
   });
 });
 
-test("syncPostFromNoteSource() does not rewrite existing Questions as Notes", async () => {
+test("syncPostFromNoteSource() preserves existing Question type", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx) as unknown as Context<
       ContextData<Transaction>
@@ -141,7 +141,10 @@ test("syncPostFromNoteSource() does not rewrite existing Questions as Notes", as
 
     const updated = await syncPostFromNoteSource(fedCtx, source);
 
-    assert.equal(updated, undefined);
+    assert.ok(updated != null);
+    assert.equal(updated.id, question.id);
+    assert.equal(updated.type, "Question");
+    assert.match(updated.contentHtml, /should not rewrite this Question/);
     const storedPost = await tx.query.postTable.findFirst({
       where: { id: question.id },
     });

@@ -784,7 +784,8 @@ export async function syncPostFromNoteSource(
     },
     where: { noteSourceId: noteSource.id },
   });
-  const type = relations.question == null ? "Note" : "Question";
+  const type = existingPost?.type ??
+    (relations.question == null ? "Note" : "Question");
   if (existingPost != null && existingPost.type !== type) return undefined;
   const iri = type === "Question"
     ? fedCtx.getObjectUri(vocab.Question, { id: noteSource.id }).href

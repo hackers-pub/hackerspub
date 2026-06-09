@@ -208,3 +208,51 @@ test("onPostCreated ignores rejected poll vote attempts", async () => {
     assert.equal(replies.length, 0);
   });
 });
+
+test("onPostCreated stores named replies to questions as posts", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "inboxnamedreplypollauthor",
+      name: "Inbox Named Reply Poll Author",
+      email: "inboxnamedreplypollauthor@example.com",
+    });
+    const replier = await insertRemoteActor(tx, {
+      username: "inboxnamedreplyreplier",
+      name: "Inbox Named Reply Replier",
+      host: "remote.example",
+      iri: "https://remote.example/users/inboxnamedreplyreplier",
+    });
+    const post = await insertQuestionPoll(tx, {
+      account: author.account,
+      optionTitles: ["Deno", "Node.js"],
+    });
+    assert.ok(post != null);
+
+    await onPostCreated(
+      createFedCtx(tx) as unknown as InboxContext<ContextData>,
+      new Create({
+        id: new URL("https://remote.example/replies/named/activity"),
+        actor: new URL(replier.iri),
+        object: new Note({
+          id: new URL("https://remote.example/replies/named"),
+          attribution: new URL(replier.iri),
+          name: "Bun",
+          content: "I prefer Bun, even though it is not an option.",
+          replyTarget: new URL(post.iri),
+        }),
+      }),
+    );
+
+    const votes = await tx.query.pollVoteTable.findMany({
+      where: { postId: post.id },
+    });
+    assert.equal(votes.length, 0);
+
+    const replies = await tx.query.postTable.findMany({
+      where: { replyTargetId: post.id },
+    });
+    assert.equal(replies.length, 1);
+    assert.equal(replies[0].name, "Bun");
+    assert.match(replies[0].contentHtml, /prefer Bun/);
+  });
+});

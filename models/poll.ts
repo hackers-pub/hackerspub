@@ -29,7 +29,6 @@ export const MAX_POLL_OPTION_TITLE_LENGTH = 200;
 export const MIN_POLL_DURATION_MS = 60_000;
 export const MAX_POLL_DURATION_MS = 365 * 24 * 60 * 60 * 1000;
 export const DEFAULT_ENDED_POLL_NOTIFICATION_BATCH_SIZE = 100;
-const STALE_ENDED_POLL_NOTIFICATION_CLAIM_MS = 15 * 60 * 1000;
 
 export interface CreatePollInput {
   multiple: boolean;
@@ -269,6 +268,8 @@ export async function persistPollVoteResult(
     return { attempted: false };
   }
   const voteName = note.name.toString();
+  const hasReplyContent = note.content != null &&
+    note.content.toString().trim() !== "";
   const { db } = ctx.data;
   let post = await getPersistedPost(db, note.replyTargetId);
   let persistedRemotePollWithVotersCount = false;
@@ -301,8 +302,9 @@ export async function persistPollVoteResult(
       .from(pollTable)
       .where(eq(pollTable.postId, post.id))
       .for("update");
-    if (lockedPoll == null) return { attempted: targetIsQuestion };
-    if (lockedPoll.ends <= new Date()) return { attempted: true };
+    if (lockedPoll == null) {
+      return { attempted: targetIsQuestion && !hasReplyContent };
+    }
     const visiblePost = await tx.query.postTable.findFirst({
       where: { id: lockedPoll.postId },
       with: {
@@ -323,6 +325,10 @@ export async function persistPollVoteResult(
     const pollOptions = await tx.query.pollOptionTable.findMany({
       where: { postId: lockedPoll.postId },
     });
+    const option = pollOptions.find((o) => o.title === voteName);
+    if (option == null) return { attempted: !hasReplyContent };
+    if (lockedPoll.ends <= new Date()) return { attempted: true };
+
     const existingVotes = await tx.query.pollVoteTable.findMany({
       where: {
         postId: lockedPoll.postId,
@@ -333,8 +339,6 @@ export async function persistPollVoteResult(
       return { attempted: true };
     }
 
-    const option = pollOptions.find((o) => o.title === voteName);
-    if (option == null) return { attempted: true };
     const rows = await tx.insert(pollVoteTable)
       .values({
         postId: lockedPoll.postId,
@@ -445,51 +449,13 @@ async function claimEndedPolls(
   now: Date,
   maxPolls: number,
 ): Promise<Uuid[]> {
-  const staleClaimBefore = new Date(
-    now.getTime() - STALE_ENDED_POLL_NOTIFICATION_CLAIM_MS,
-  );
   const result = await tx.execute(sql`
     UPDATE poll
     SET ended_notifications_sent = ${now.toISOString()}::timestamptz
     WHERE post_id IN (
       SELECT poll.post_id
       FROM poll
-      WHERE (
-          poll.ended_notifications_sent IS NULL
-          OR (
-            poll.ended_notifications_sent <= ${staleClaimBefore.toISOString()}::timestamptz
-            AND (
-              EXISTS (
-                SELECT 1
-                FROM post
-                JOIN actor ON actor.id = post.actor_id
-                WHERE post.id = poll.post_id
-                  AND actor.account_id IS NOT NULL
-                  AND NOT EXISTS (
-                    SELECT 1
-                    FROM notification
-                    WHERE notification.account_id = actor.account_id
-                      AND notification.type = 'poll_ended'
-                      AND notification.post_id = poll.post_id
-                  )
-              )
-              OR EXISTS (
-                SELECT 1
-                FROM poll_vote
-                JOIN actor ON actor.id = poll_vote.actor_id
-                WHERE poll_vote.post_id = poll.post_id
-                  AND actor.account_id IS NOT NULL
-                  AND NOT EXISTS (
-                    SELECT 1
-                    FROM notification
-                    WHERE notification.account_id = actor.account_id
-                      AND notification.type = 'poll_ended'
-                      AND notification.post_id = poll.post_id
-                  )
-              )
-            )
-          )
-        )
+      WHERE poll.ended_notifications_sent IS NULL
         AND poll.ends <= ${now.toISOString()}::timestamptz
       ORDER BY poll.ends ASC
       FOR UPDATE SKIP LOCKED
@@ -527,22 +493,36 @@ async function notifyClaimedEndedPolls(
           actor: true,
         },
       },
-      votes: {
-        with: {
-          actor: true,
-        },
-      },
     },
   });
+  const votes = await db.query.pollVoteTable.findMany({
+    where: { postId: { in: postIds } },
+    columns: { postId: true },
+    with: {
+      actor: { columns: { accountId: true } },
+    },
+  });
+
+  const votersByPostId = new Map<Uuid, Set<Uuid>>();
+  for (const vote of votes) {
+    if (vote.actor.accountId == null) continue;
+    let voters = votersByPostId.get(vote.postId);
+    if (voters == null) {
+      voters = new Set();
+      votersByPostId.set(vote.postId, voters);
+    }
+    voters.add(vote.actor.accountId);
+  }
 
   let notificationsCreated = 0;
   for (const poll of polls) {
     const author = poll.post.actor;
     const recipientAccountIds = new Set<Uuid>();
     if (author.accountId != null) recipientAccountIds.add(author.accountId);
-    for (const vote of poll.votes) {
-      if (vote.actor.accountId != null) {
-        recipientAccountIds.add(vote.actor.accountId);
+    const voterAccountIds = votersByPostId.get(poll.postId);
+    if (voterAccountIds != null) {
+      for (const accountId of voterAccountIds) {
+        recipientAccountIds.add(accountId);
       }
     }
     for (const accountId of recipientAccountIds) {
