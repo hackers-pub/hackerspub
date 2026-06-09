@@ -6,6 +6,10 @@ draft → 草稿
 react → 反应
 reply → 回复
 comment → 评论
+poll → 投票调查
+option → 选项
+vote → 投票
+voter → 投票者
 relay → 中继
 share → 转帖
 quote → 引用

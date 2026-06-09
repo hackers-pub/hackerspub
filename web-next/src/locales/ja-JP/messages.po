@@ -187,7 +187,7 @@ msgstr "{0}さん他{1}人があなたが共有したコンテンツを更新し
 #. placeholder {1}: "COUNT"
 #: src/components/notification/PollEndedNotificationCard.tsx:36
 msgid "{0} and {1} others' polls ended"
-msgstr "{0}さん他{1}人の投票が終了しました"
+msgstr "{0}さん他{1}人のアンケートが終了しました"
 
 #: src/routes/(root)/admin/invitations.tsx:173
 #~ msgid "{0} eligible account(s); {1} would receive an invitation if regenerated now."
@@ -310,7 +310,7 @@ msgstr "{0}さんの投稿"
 #. placeholder {0}: "ACTOR"
 #: src/components/notification/PollEndedNotificationCard.tsx:35
 msgid "{0}'s poll ended"
-msgstr "{0}さんの投票が終了しました"
+msgstr "{0}さんのアンケートが終了しました"
 
 #. placeholder {0}: actor.rawName ?? actor.username
 #: src/routes/(root)/[handle]/(profile)/shares.tsx:87
@@ -398,7 +398,7 @@ msgstr "{0}を追加"
 
 #: src/components/NoteComposer.tsx:900
 msgid "Add at least {MIN_POLL_OPTIONS} poll options"
-msgstr "投票の選択肢を少なくとも{MIN_POLL_OPTIONS}個追加してください"
+msgstr "アンケートの選択肢を少なくとも{MIN_POLL_OPTIONS}個追加してください"
 
 #: src/components/NoteComposer.tsx:1564
 msgid "Add option"
@@ -407,7 +407,7 @@ msgstr "選択肢を追加"
 #: src/components/NoteComposer.tsx:1433
 #: src/components/NoteComposer.tsx:1434
 msgid "Add poll"
-msgstr "投票を追加"
+msgstr "アンケートを追加"
 
 #: src/components/HashtagActionBar.tsx:258
 msgid "Add to sidebar"
@@ -844,7 +844,7 @@ msgstr "投稿を作成"
 
 #: src/components/NoteComposer.tsx:1821
 msgid "Create poll"
-msgstr "投票を作成"
+msgstr "アンケートを作成"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:647
 msgid "Create shareable invitation links. Each link can be used multiple times until the invitation count runs out or the link expires."
@@ -2594,7 +2594,7 @@ msgstr "投票するにはログインしてください"
 
 #: src/components/NoteComposer.tsx:1490
 msgid "Poll"
-msgstr "投票"
+msgstr "アンケート"
 
 #: src/components/QuestionCard.tsx:392
 msgid "Poll closed"
@@ -2602,35 +2602,35 @@ msgstr "アンケートは終了しました"
 
 #: src/components/NoteComposer.tsx:1077
 msgid "Poll created successfully"
-msgstr "投票を作成しました"
+msgstr "アンケートを作成しました"
 
 #: src/components/NoteComposer.tsx:918
 msgid "Poll deadline is invalid"
-msgstr "投票の締め切りが無効です"
+msgstr "アンケートの締め切りが無効です"
 
 #: src/components/NoteComposer.tsx:926
 msgid "Poll deadline must be at least 1 minute from now"
-msgstr "投票の締め切りは現在から1分以上後にしてください"
+msgstr "アンケートの締め切りは現在から1分以上後にしてください"
 
 #: src/components/NoteComposer.tsx:892
 msgid "Poll options cannot be empty"
-msgstr "投票の選択肢は空にできません"
+msgstr "アンケートの選択肢は空にできません"
 
 #: src/components/NoteComposer.tsx:908
 msgid "Poll options must be unique"
-msgstr "投票の選択肢は重複できません"
+msgstr "アンケートの選択肢は重複できません"
 
 #: src/components/NoteComposer.tsx:1508
 msgid "Poll title"
-msgstr "投票タイトル"
+msgstr "アンケートタイトル"
 
 #: src/components/NoteComposer.tsx:882
 msgid "Poll title cannot be empty"
-msgstr "投票タイトルは空にできません"
+msgstr "アンケートタイトルは空にできません"
 
 #: src/components/NoteComposer.tsx:1643
 msgid "Polls cannot be edited after publishing."
-msgstr "投票は公開後に編集できません。"
+msgstr "アンケートは公開後に編集できません。"
 
 #: src/components/NewsList.tsx:88
 msgid "Popular"
@@ -2981,7 +2981,7 @@ msgstr "選択肢を削除"
 #: src/components/NoteComposer.tsx:1497
 #: src/components/NoteComposer.tsx:1498
 msgid "Remove poll"
-msgstr "投票を削除"
+msgstr "アンケートを削除"
 
 #: src/components/NoteComposer.tsx:1362
 #: src/components/NoteComposer.tsx:1363
@@ -3958,7 +3958,7 @@ msgstr "投稿を作成するにはログインが必要です"
 
 #: src/components/NoteComposer.tsx:1096
 msgid "You must be signed in to create a poll"
-msgstr "投票を作成するにはログインが必要です"
+msgstr "アンケートを作成するにはログインが必要です"
 
 #: src/components/article-composer/ArticleComposerContext.tsx:467
 #: src/routes/(root)/[handle]/drafts/index.tsx:193

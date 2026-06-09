@@ -187,7 +187,7 @@ msgstr "{0} 和其他 {1} 人更新了你转发过的内容"
 #. placeholder {1}: "COUNT"
 #: src/components/notification/PollEndedNotificationCard.tsx:36
 msgid "{0} and {1} others' polls ended"
-msgstr "{0} 和其他 {1} 人的投票已结束"
+msgstr "{0} 和其他 {1} 人的投票调查已结束"
 
 #: src/routes/(root)/admin/invitations.tsx:173
 #~ msgid "{0} eligible account(s); {1} would receive an invitation if regenerated now."
@@ -310,7 +310,7 @@ msgstr "{0}的帖子"
 #. placeholder {0}: "ACTOR"
 #: src/components/notification/PollEndedNotificationCard.tsx:35
 msgid "{0}'s poll ended"
-msgstr "{0} 的投票已结束"
+msgstr "{0} 的投票调查已结束"
 
 #. placeholder {0}: actor.rawName ?? actor.username
 #: src/routes/(root)/[handle]/(profile)/shares.tsx:87
@@ -398,7 +398,7 @@ msgstr "添加{0}"
 
 #: src/components/NoteComposer.tsx:900
 msgid "Add at least {MIN_POLL_OPTIONS} poll options"
-msgstr "请至少添加 {MIN_POLL_OPTIONS} 个投票选项"
+msgstr "请至少添加 {MIN_POLL_OPTIONS} 个投票调查选项"
 
 #: src/components/NoteComposer.tsx:1564
 msgid "Add option"
@@ -407,7 +407,7 @@ msgstr "添加选项"
 #: src/components/NoteComposer.tsx:1433
 #: src/components/NoteComposer.tsx:1434
 msgid "Add poll"
-msgstr "添加投票"
+msgstr "添加投票调查"
 
 #: src/components/HashtagActionBar.tsx:258
 msgid "Add to sidebar"
@@ -824,7 +824,7 @@ msgstr "无法撤销引用"
 
 #: src/components/QuestionCard.tsx:423
 msgid "Could not vote on this poll"
-msgstr "无法提交此投票"
+msgstr "无法在此投票调查中投票"
 
 #: src/components/AppSidebar.tsx:795
 #: src/components/FloatingComposeButton.tsx:123
@@ -844,7 +844,7 @@ msgstr "创建帖子"
 
 #: src/components/NoteComposer.tsx:1821
 msgid "Create poll"
-msgstr "创建投票"
+msgstr "创建投票调查"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:647
 msgid "Create shareable invitation links. Each link can be used multiple times until the invitation count runs out or the link expires."
@@ -2594,43 +2594,43 @@ msgstr "请登录后投票"
 
 #: src/components/NoteComposer.tsx:1490
 msgid "Poll"
-msgstr "投票"
+msgstr "投票调查"
 
 #: src/components/QuestionCard.tsx:392
 msgid "Poll closed"
-msgstr "投票已结束"
+msgstr "投票调查已结束"
 
 #: src/components/NoteComposer.tsx:1077
 msgid "Poll created successfully"
-msgstr "投票已创建"
+msgstr "投票调查已创建"
 
 #: src/components/NoteComposer.tsx:918
 msgid "Poll deadline is invalid"
-msgstr "投票截止时间无效"
+msgstr "投票调查截止时间无效"
 
 #: src/components/NoteComposer.tsx:926
 msgid "Poll deadline must be at least 1 minute from now"
-msgstr "投票截止时间必须至少晚于现在 1 分钟"
+msgstr "投票调查截止时间必须至少晚于现在 1 分钟"
 
 #: src/components/NoteComposer.tsx:892
 msgid "Poll options cannot be empty"
-msgstr "投票选项不能为空"
+msgstr "投票调查选项不能为空"
 
 #: src/components/NoteComposer.tsx:908
 msgid "Poll options must be unique"
-msgstr "投票选项不能重复"
+msgstr "投票调查选项不能重复"
 
 #: src/components/NoteComposer.tsx:1508
 msgid "Poll title"
-msgstr "投票标题"
+msgstr "投票调查标题"
 
 #: src/components/NoteComposer.tsx:882
 msgid "Poll title cannot be empty"
-msgstr "投票标题不能为空"
+msgstr "投票调查标题不能为空"
 
 #: src/components/NoteComposer.tsx:1643
 msgid "Polls cannot be edited after publishing."
-msgstr "投票发布后无法编辑。"
+msgstr "投票调查发布后无法编辑。"
 
 #: src/components/NewsList.tsx:88
 msgid "Popular"
@@ -2981,7 +2981,7 @@ msgstr "移除选项"
 #: src/components/NoteComposer.tsx:1497
 #: src/components/NoteComposer.tsx:1498
 msgid "Remove poll"
-msgstr "移除投票"
+msgstr "移除投票调查"
 
 #: src/components/NoteComposer.tsx:1362
 #: src/components/NoteComposer.tsx:1363
@@ -3958,7 +3958,7 @@ msgstr "你必须登录才能创建帖子"
 
 #: src/components/NoteComposer.tsx:1096
 msgid "You must be signed in to create a poll"
-msgstr "你必须登录才能创建投票"
+msgstr "你必须登录才能创建投票调查"
 
 #: src/components/article-composer/ArticleComposerContext.tsx:467
 #: src/routes/(root)/[handle]/drafts/index.tsx:193
