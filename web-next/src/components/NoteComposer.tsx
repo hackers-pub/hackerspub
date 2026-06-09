@@ -1,5 +1,11 @@
 import { fetchQuery, graphql } from "relay-runtime";
 import { createStore, produce } from "solid-js/store";
+import IconImage from "~icons/lucide/image";
+import IconListChecks from "~icons/lucide/list-checks";
+import IconPlus from "~icons/lucide/plus";
+import IconSquare from "~icons/lucide/square";
+import IconTrash from "~icons/lucide/trash-2";
+import IconX from "~icons/lucide/x";
 import {
   createEffect,
   createMemo,
@@ -32,12 +38,6 @@ import { MarkdownEditor } from "~/components/MarkdownEditor.tsx";
 import { TextField, TextFieldLabel } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import IconImage from "~icons/lucide/image";
-import IconListChecks from "~icons/lucide/list-checks";
-import IconPlus from "~icons/lucide/plus";
-import IconSquare from "~icons/lucide/square";
-import IconTrash from "~icons/lucide/trash-2";
-import IconX from "~icons/lucide/x";
 import type { NoteComposerMutation } from "./__generated__/NoteComposerMutation.graphql.ts";
 import type { NoteComposerQuestionMutation } from "./__generated__/NoteComposerQuestionMutation.graphql.ts";
 import type { NoteComposerUpdateMutation } from "./__generated__/NoteComposerUpdateMutation.graphql.ts";
@@ -271,6 +271,18 @@ interface PollOptionDraft {
   title: string;
 }
 
+interface ValidatedPollInput {
+  title: string;
+  multiple: boolean;
+  options: string[];
+  ends: string;
+}
+
+function createLocalId(): string {
+  return globalThis.crypto?.randomUUID?.() ??
+    Math.random().toString(36).slice(2);
+}
+
 function formatDateTimeLocal(date: Date): string {
   const pad = (value: number) => String(value).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${
@@ -432,8 +444,8 @@ export function NoteComposer(props: NoteComposerProps) {
   );
   const [mediaItems, setMediaItems] = createStore<MediaItem[]>([]);
   const [pollOptions, setPollOptions] = createStore<PollOptionDraft[]>([
-    { localId: crypto.randomUUID(), title: "" },
-    { localId: crypto.randomUUID(), title: "" },
+    { localId: createLocalId(), title: "" },
+    { localId: createLocalId(), title: "" },
   ]);
   const [pollEnabled, setPollEnabled] = createSignal(false);
   const [pollTitle, setPollTitle] = createSignal("");
@@ -714,7 +726,7 @@ export function NoteComposer(props: NoteComposerProps) {
     // Create handles before inserting items so abortUpload is set from the
     // start, avoiding a second setMediaItems pass for each file.
     const newItems: MediaItem[] = toAdd.map((file) => {
-      const localId = crypto.randomUUID();
+      const localId = createLocalId();
       const handle = uploadMediumFile(file, (progress) => {
         setMediaItems(produce((items) => {
           const m = items.find((m) => m.localId === localId);
@@ -863,8 +875,8 @@ export function NoteComposer(props: NoteComposerProps) {
     setPollMultiple(false);
     setPollEnds(defaultPollEnds());
     setPollOptions([
-      { localId: crypto.randomUUID(), title: "" },
-      { localId: crypto.randomUUID(), title: "" },
+      { localId: createLocalId(), title: "" },
+      { localId: createLocalId(), title: "" },
     ]);
   };
 
@@ -879,7 +891,7 @@ export function NoteComposer(props: NoteComposerProps) {
     setPollEnds(formatDateTimeLocal(date));
   };
 
-  const getValidatedPollInput = () => {
+  const getValidatedPollInput = (): ValidatedPollInput | null => {
     const title = pollTitle().trim();
     if (!title) {
       showToast({
@@ -1562,7 +1574,7 @@ export function NoteComposer(props: NoteComposerProps) {
                       setPollOptions(produce((options) => {
                         if (options.length >= MAX_POLL_OPTIONS) return;
                         options.push({
-                          localId: crypto.randomUUID(),
+                          localId: createLocalId(),
                           title: "",
                         });
                       }))}

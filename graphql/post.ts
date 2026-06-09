@@ -946,8 +946,9 @@ export const Question = builder.drizzleNode("postTable", {
   description:
     "An ActivityPub `Question` poll. Local Questions are source-backed " +
     "short posts with immutable poll settings; remote Questions may have " +
-    "`null` for `sourceId` and should fall back to `Post.uuid` for internal " +
-    "routes.",
+    "`null` for `sourceId`. Use `Question.sourceId` for source-backed local " +
+    "Question routes, and fall back to `Post.uuid` for federated remote " +
+    "Questions and local share wrappers.",
   interfaces: [Post, Reactable],
   id: {
     column: (post) => post.id,
@@ -1515,12 +1516,12 @@ builder.relayMutationField(
           with: {
             actor: {
               with: {
-                followers: true,
-                blockees: true,
-                blockers: true,
+                followers: { where: { followerId: ctx.account.actor.id } },
+                blockees: { where: { blockeeId: ctx.account.actor.id } },
+                blockers: { where: { blockerId: ctx.account.actor.id } },
               },
             },
-            mentions: true,
+            mentions: { where: { actorId: ctx.account.actor.id } },
           },
           where: { id: replyTargetId.id },
         });
@@ -1535,22 +1536,24 @@ builder.relayMutationField(
           with: {
             actor: {
               with: {
-                followers: true,
-                blockees: true,
-                blockers: true,
+                followers: { where: { followerId: ctx.account.actor.id } },
+                blockees: { where: { blockeeId: ctx.account.actor.id } },
+                blockers: { where: { blockerId: ctx.account.actor.id } },
               },
             },
-            mentions: true,
+            mentions: { where: { actorId: ctx.account.actor.id } },
             sharedPost: {
               with: {
                 actor: {
                   with: {
-                    followers: true,
-                    blockees: true,
-                    blockers: true,
+                    followers: {
+                      where: { followerId: ctx.account.actor.id },
+                    },
+                    blockees: { where: { blockeeId: ctx.account.actor.id } },
+                    blockers: { where: { blockerId: ctx.account.actor.id } },
                   },
                 },
-                mentions: true,
+                mentions: { where: { actorId: ctx.account.actor.id } },
               },
             },
           },

@@ -125,7 +125,10 @@ test("source-backed Questions do not resolve through the Note dispatcher", async
       { contextData },
     );
 
-    assert.notEqual(noteResponse.status, 200);
+    assert.ok(
+      noteResponse.status >= 400 && noteResponse.status < 500,
+      `expected Note dispatcher miss to return 4xx, got ${noteResponse.status}`,
+    );
   });
 });
 

@@ -357,21 +357,35 @@ async function hasRemoteOptionVotesCount(
   question: vocab.Question,
   voteName: string,
 ): Promise<boolean> {
-  let options = await Array.fromAsync(question.getInclusiveOptions());
-  if (options.length < 1) {
-    options = await Array.fromAsync(question.getExclusiveOptions());
-  }
-  const seenOptionTitles = new Set<string>();
-  for (const option of options) {
+  let hasInclusiveOptions = false;
+  for await (const option of question.getInclusiveOptions()) {
+    hasInclusiveOptions = true;
     const title = option.name?.toString();
-    if (title == null) continue;
-    if (seenOptionTitles.has(title)) continue;
-    seenOptionTitles.add(title);
-    if (title !== voteName) continue;
-    const replies = await option.getReplies();
-    return replies?.totalItems != null;
+    if (title === voteName) {
+      const replies = await option.getReplies();
+      return replies?.totalItems != null;
+    }
+  }
+  if (hasInclusiveOptions) return false;
+  for await (const option of question.getExclusiveOptions()) {
+    const title = option.name?.toString();
+    if (title === voteName) {
+      const replies = await option.getReplies();
+      return replies?.totalItems != null;
+    }
   }
   return false;
+}
+
+function returnedRows<T>(result: unknown): T[] {
+  if (Array.isArray(result)) return result as T[];
+  if (
+    result != null && typeof result === "object" &&
+    Array.isArray((result as { rows?: unknown }).rows)
+  ) {
+    return (result as { rows: T[] }).rows;
+  }
+  throw new TypeError("Unexpected execute result shape.");
 }
 
 export interface NotifyEndedPollsOptions {
@@ -398,7 +412,7 @@ export async function notifyEndedPolls(
   const notifyInTransaction = async (
     tx: Transaction,
   ): Promise<NotifyEndedPollsResult> => {
-    const claimed = await tx.execute(sql`
+    const result = await tx.execute(sql`
       UPDATE poll
       SET ended_notifications_sent = ${now.toISOString()}::timestamptz
       WHERE post_id IN (
@@ -411,7 +425,8 @@ export async function notifyEndedPolls(
         LIMIT ${maxPolls}
       )
       RETURNING post_id
-    `) as unknown as { post_id: Uuid }[];
+    `);
+    const claimed = returnedRows<{ post_id: Uuid }>(result);
     const postIds = claimed.map((row) => row.post_id);
     if (postIds.length < 1) {
       return { pollsProcessed: 0, notificationsCreated: 0 };

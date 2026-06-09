@@ -126,9 +126,10 @@ Deno.cron("notify-ended-polls", "* * * * *", {
       );
     }
   } catch (error) {
-    pollLogger.error("Ended poll notification drain failed: {error}", {
-      error,
-    });
+    pollLogger.error(
+      "Ended poll notification drain failed for {jobName}: {error}",
+      { jobName: "notify-ended-polls", error },
+    );
   }
 });
 

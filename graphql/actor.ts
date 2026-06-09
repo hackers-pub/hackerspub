@@ -489,13 +489,12 @@ export const Actor = builder.drizzleNode("actorTable", {
         "Look up one of this actor's posts by any of its UUIDs. Resolves a " +
         "match against any of the three UUIDs a post can carry: `Post.uuid` " +
         "(the post row's PK), `Note.sourceId` (= `noteSourceTable.id`, set " +
-        "only on source-backed local notes), or the local article source's " +
-        "id. The canonical permalink in `Post.url` uses the source UUID for " +
-        "source-backed local posts; for everything else (federated remote " +
-        "posts, local share wrappers, Questions) the row PK is the only " +
-        "token they can be looked up by, and is what the web-next route " +
-        "uses. The OR-match here keeps both styles working. Returns null if " +
-        "no post matches.",
+        "on source-backed local notes and Questions), or the local article " +
+        "source's id. The canonical permalink in `Post.url` uses the source " +
+        "UUID for source-backed local posts, including local `Question`s. " +
+        "For posts without a local source row (federated remote posts and " +
+        "local share wrappers), the row PK is the lookup token. The OR-match " +
+        "here keeps both styles working. Returns null if no post matches.",
       select: { columns: { id: true } },
       nullable: true,
       args: {
@@ -503,8 +502,8 @@ export const Actor = builder.drizzleNode("actorTable", {
           type: "UUID",
           required: true,
           description:
-            "Any of `Post.uuid`, `Note.sourceId`, or the local article " +
-            "source's id.",
+            "Any of `Post.uuid`, `Note.sourceId` (also used by local " +
+            "`Question`s), or the local article source's id.",
         }),
       },
       async resolve(query, actor, args, ctx) {

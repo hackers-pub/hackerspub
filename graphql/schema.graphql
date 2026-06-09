@@ -376,10 +376,12 @@ type Actor implements Node {
   pins(after: String, before: String, first: Int, last: Int): ActorPinsConnection!
 
   """
-  Look up one of this actor's posts by any of its UUIDs. Resolves a match against any of the three UUIDs a post can carry: `Post.uuid` (the post row's PK), `Note.sourceId` (= `noteSourceTable.id`, set only on source-backed local notes), or the local article source's id. The canonical permalink in `Post.url` uses the source UUID for source-backed local posts; for everything else (federated remote posts, local share wrappers, Questions) the row PK is the only token they can be looked up by, and is what the web-next route uses. The OR-match here keeps both styles working. Returns null if no post matches.
+  Look up one of this actor's posts by any of its UUIDs. Resolves a match against any of the three UUIDs a post can carry: `Post.uuid` (the post row's PK), `Note.sourceId` (= `noteSourceTable.id`, set on source-backed local notes and Questions), or the local article source's id. The canonical permalink in `Post.url` uses the source UUID for source-backed local posts, including local `Question`s. For posts without a local source row (federated remote posts and local share wrappers), the row PK is the lookup token. The OR-match here keeps both styles working. Returns null if no post matches.
   """
   postByUuid(
-    """Any of `Post.uuid`, `Note.sourceId`, or the local article source's id."""
+    """
+    Any of `Post.uuid`, `Note.sourceId` (also used by local `Question`s), or the local article source's id.
+    """
     uuid: UUID!
   ): Post
 
@@ -3083,7 +3085,7 @@ type QuerySearchPostConnectionEdge {
 }
 
 """
-An ActivityPub `Question` poll. Local Questions are source-backed short posts with immutable poll settings; remote Questions may have `null` for `sourceId` and should fall back to `Post.uuid` for internal routes.
+An ActivityPub `Question` poll. Local Questions are source-backed short posts with immutable poll settings; remote Questions may have `null` for `sourceId`. Use `Question.sourceId` for source-backed local Question routes, and fall back to `Post.uuid` for federated remote Questions and local share wrappers.
 """
 type Question implements Node & Post & Reactable {
   """The actor who authored this `Question`."""
