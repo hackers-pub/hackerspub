@@ -300,6 +300,35 @@ const createNoteWithErrorMutation = parse(`
   }
 `);
 
+const createQuestionMutation = parse(`
+  mutation CreateQuestion($input: CreateQuestionInput!) {
+    createQuestion(input: $input) {
+      __typename
+      ... on CreateQuestionPayload {
+        question {
+          id
+          sourceId
+          name
+          excerpt
+          ... on Question {
+            poll {
+              multiple
+              ends
+              options {
+                index
+                title
+              }
+            }
+          }
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+    }
+  }
+`);
+
 const viewerCanRevokeQuoteQuery = parse(`
   query ViewerCanRevokeQuote($id: ID!) {
     node(id: $id) {
@@ -1370,6 +1399,110 @@ test("createNote creates a note for the signed-in account", async () => {
       },
     });
     assert.equal(createdSources.length, 1);
+  });
+});
+
+test("createQuestion creates a local Question with a poll", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "createquestiongraphql",
+      name: "Create Question GraphQL",
+      email: "createquestiongraphql@example.com",
+    });
+    const ends = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    const result = await execute({
+      schema,
+      document: createQuestionMutation,
+      variableValues: {
+        input: {
+          visibility: "PUBLIC",
+          content: "Which runtime should we use?",
+          language: "en",
+          poll: {
+            title: "Runtime choice",
+            multiple: false,
+            options: ["Deno", "Node.js"],
+            ends: ends.toISOString(),
+          },
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, account.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    const question = (toPlainJson(result.data) as {
+      createQuestion: {
+        __typename: string;
+        question: {
+          id: string;
+          sourceId: string;
+          name: string;
+          excerpt: string;
+          poll: {
+            multiple: boolean;
+            options: { index: number; title: string }[];
+          };
+        };
+      };
+    }).createQuestion.question;
+
+    assert.equal(question.name, "Runtime choice");
+    assert.equal(question.excerpt, "Which runtime should we use?");
+    assert.equal(question.poll.multiple, false);
+    assert.deepEqual(question.poll.options, [
+      { index: 0, title: "Deno" },
+      { index: 1, title: "Node.js" },
+    ]);
+
+    const createdSources = await tx.query.noteSourceTable.findMany({
+      where: {
+        accountId: account.account.id,
+        content: "Which runtime should we use?",
+      },
+    });
+    assert.equal(createdSources.length, 1);
+    assert.equal(question.sourceId, createdSources[0].id);
+  });
+});
+
+test("createQuestion maps invalid poll input to InvalidInputError", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "createquestioninvalidgraphql",
+      name: "Create Question Invalid GraphQL",
+      email: "createquestioninvalidgraphql@example.com",
+    });
+    const ends = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    const result = await execute({
+      schema,
+      document: createQuestionMutation,
+      variableValues: {
+        input: {
+          visibility: "PUBLIC",
+          content: "Duplicate options",
+          language: "en",
+          poll: {
+            title: "Pick one",
+            multiple: false,
+            options: ["Deno", "Deno"],
+            ends: ends.toISOString(),
+          },
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, account.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      createQuestion: {
+        __typename: "InvalidInputError",
+        inputPath: "poll.options.1",
+      },
+    });
   });
 });
 

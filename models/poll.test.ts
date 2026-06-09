@@ -2,7 +2,13 @@ import assert from "node:assert";
 import test from "node:test";
 import * as vocab from "@fedify/vocab";
 import type { Transaction } from "./db.ts";
-import { persistPoll, persistPollVote, vote } from "./poll.ts";
+import {
+  InvalidPollInputError,
+  normalizePollInput,
+  persistPoll,
+  persistPollVote,
+  vote,
+} from "./poll.ts";
 import {
   type NewPost,
   type Poll,
@@ -136,6 +142,60 @@ test("vote() stores a single-choice vote and stays idempotent", async () => {
   });
 });
 
+test("normalizePollInput() validates local poll creation limits", () => {
+  const now = new Date("2026-04-15T00:00:00.000Z");
+
+  assert.deepEqual(
+    normalizePollInput({
+      title: " Runtime choice ",
+      multiple: true,
+      options: [" Deno ", " Node.js "],
+      ends: new Date("2026-04-15T00:05:00.000Z"),
+      now,
+    }),
+    {
+      title: "Runtime choice",
+      multiple: true,
+      options: ["Deno", "Node.js"],
+      ends: new Date("2026-04-15T00:05:00.000Z"),
+    },
+  );
+
+  assert.throws(
+    () =>
+      normalizePollInput({
+        title: "Pick one",
+        multiple: false,
+        options: ["Deno", "Deno"],
+        ends: new Date("2026-04-15T00:05:00.000Z"),
+        now,
+      }),
+    InvalidPollInputError,
+  );
+  assert.throws(
+    () =>
+      normalizePollInput({
+        title: "Pick one",
+        multiple: false,
+        options: ["Deno"],
+        ends: new Date("2026-04-15T00:05:00.000Z"),
+        now,
+      }),
+    InvalidPollInputError,
+  );
+  assert.throws(
+    () =>
+      normalizePollInput({
+        title: "Pick one",
+        multiple: false,
+        options: ["Deno", "Node.js"],
+        ends: new Date("2026-04-15T00:00:30.000Z"),
+        now,
+      }),
+    InvalidPollInputError,
+  );
+});
+
 test("vote() rejects multiple choices for single polls and allows them for multi polls", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);
@@ -242,6 +302,16 @@ test("persistPollVote() stores an incoming vote for a persisted poll", async () 
     assert.equal(votes.length, 1);
     assert.equal(votes[0].actorId, remoteVoter.id);
     assert.equal(votes[0].optionIndex, 1);
+
+    const storedPoll = await tx.query.pollTable.findFirst({
+      where: { postId: poll.postId },
+    });
+    assert.equal(storedPoll?.votersCount, 1);
+    const options = await tx.query.pollOptionTable.findMany({
+      where: { postId: poll.postId },
+      orderBy: { index: "asc" },
+    });
+    assert.deepEqual(options.map((option) => option.votesCount), [0, 1]);
   });
 });
 

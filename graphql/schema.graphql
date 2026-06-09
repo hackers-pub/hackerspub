@@ -724,7 +724,7 @@ type Article implements Node & Post & Reactable {
   mentions(after: String, before: String, first: Int, last: Int): PostMentionsConnection!
 
   """
-  The post's title. Non-null for `Article`s; `null` for `Note`s, boost wrappers, and `Question`s.
+  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.
   """
   name: String
   published: DateTime!
@@ -787,12 +787,12 @@ type Article implements Node & Post & Reactable {
   updated: DateTime!
 
   """
-  The canonical, human-readable URL of this post. For source-backed local posts the path encodes the local source identifier — `Note.sourceId` for notes, `Article.publishedYear` + `Article.slug` for articles — **not** `Post.uuid`. For federated remote posts and local share wrappers (boosts) this is whatever URL the originating instance advertised — copied from the shared post in the boost case — and is unrelated to the wrapper's own row PK. Prefer this field over hand-building a path from `Post.uuid`: `uuid` is the row PK and does not match the path here for source-backed local posts.
+  The canonical, human-readable URL of this post. For source-backed local posts the path encodes the local source identifier: `Note.sourceId` for notes, `Article.publishedYear` + `Article.slug` for articles, and `Question.sourceId` for questions. It does not encode `Post.uuid`. For federated remote posts and local share wrappers (boosts) this is whatever URL the originating instance advertised (copied from the shared post in the boost case) and is unrelated to the wrapper's own row PK. Prefer this field over hand-building a path from `Post.uuid`: `uuid` is the row PK and does not match the path here for source-backed local posts.
   """
   url: URL
 
   """
-  The post row's primary key, stable for the lifetime of the post. ⚠️ This is **not** the UUID embedded in `Post.url` for source-backed local posts: local notes that originate here use `Note.sourceId` (= `noteSourceTable.id`) and local articles use `Article.publishedYear` + `Article.slug`. The row PK is the right token whenever there is no local source row — federated remote posts, local share wrappers (boosts, which carry no source and copy the shared post's URL), and Questions (whose originals come only from remote instances and whose local rows exist solely as share wrappers) — and for the internal route that resolves them. `actorByHandle.postByUuid` accepts either the row PK or a source UUID, but resolving by `uuid` for a source-backed local post yields a URL that differs from `Post.url`.
+  The post row's primary key, stable for the lifetime of the post. ⚠️ This is **not** the UUID embedded in `Post.url` for source-backed local posts: local notes that originate here use `Note.sourceId` (= `noteSourceTable.id`), local questions use `Question.sourceId`, and local articles use `Article.publishedYear` + `Article.slug`. The row PK is the right token for posts with no local source row: federated remote posts, local share wrappers (boosts, which carry no source and copy the shared post's URL), and remote `Question`s. `actorByHandle.postByUuid` accepts either the row PK or a source UUID, but resolving by `uuid` for a source-backed local post yields a URL that differs from `Post.url`.
   """
   uuid: UUID!
 
@@ -1037,6 +1037,81 @@ type CreateNotePayload {
 }
 
 union CreateNoteResult = CreateNotePayload | InvalidInputError | NotAuthenticatedError
+
+"""
+Publish a new short-form post with an immutable ActivityPub `Question` poll. Sends an ActivityPub `Create` activity to relevant inboxes based on `visibility`. Requires authentication.
+"""
+input CreateQuestionInput {
+  clientMutationId: ID
+
+  """
+  Markdown body shown above the poll. The body remains editable only through future note-editing support; poll settings are immutable.
+  """
+  content: Markdown!
+
+  """BCP 47 language tag for the Question body."""
+  language: Locale!
+
+  """Media to attach to the Question body, in display order."""
+  media: [CreateNoteMediumInput!] = []
+
+  """
+  Poll title, options, selection mode, and deadline. These values cannot be changed after publishing.
+  """
+  poll: CreateQuestionPollInput!
+
+  """
+  Who may quote this Question. Omit to use the default policy for the selected `visibility`.
+  """
+  quotePolicy: QuotePolicy
+
+  """
+  Optional post to quote. Share wrappers are resolved to their original post before quote policy checks.
+  """
+  quotedPostId: ID
+
+  """
+  Optional post to reply to. The target must be visible to the authenticated account.
+  """
+  replyTargetId: ID
+
+  """Audience for the new Question post."""
+  visibility: PostVisibility!
+}
+
+type CreateQuestionPayload {
+  clientMutationId: ID
+
+  """The newly published `Question` post."""
+  question: Question!
+}
+
+"""
+Immutable poll settings for `createQuestion`. These settings cannot be edited after the Question is published.
+"""
+input CreateQuestionPollInput {
+  """
+  Voting deadline. Must be at least `1` minute and at most `1` year in the future.
+  """
+  ends: DateTime!
+
+  """
+  Whether voters may choose more than one option. `false` creates an ActivityPub Question with exclusive options.
+  """
+  multiple: Boolean!
+
+  """
+  Poll option labels in display order. Must contain between `2` and `20` unique, non-empty entries after trimming.
+  """
+  options: [String!]!
+
+  """
+  Poll title used as the ActivityPub `Question.name`. Must be between `1` and `200` characters after trimming.
+  """
+  title: String!
+}
+
+union CreateQuestionResult = CreateQuestionPayload | InvalidInputError | NotAuthenticatedError
 
 type CustomEmoji implements Node {
   id: ID!
@@ -1477,6 +1552,7 @@ type Mutation {
   createInvitationLink(expires: String, invitationsLeft: Int!, message: Markdown): CreateInvitationLinkResult!
   createMedium(input: CreateMediumInput!): CreateMediumResult!
   createNote(input: CreateNoteInput!): CreateNoteResult!
+  createQuestion(input: CreateQuestionInput!): CreateQuestionResult!
   deleteArticleDraft(input: DeleteArticleDraftInput!): DeleteArticleDraftResult!
 
   """
@@ -1907,7 +1983,7 @@ type Note implements Node & Post & Reactable {
   mentions(after: String, before: String, first: Int, last: Int): PostMentionsConnection!
 
   """
-  The post's title. Non-null for `Article`s; `null` for `Note`s, boost wrappers, and `Question`s.
+  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.
   """
   name: String
   published: DateTime!
@@ -1960,12 +2036,12 @@ type Note implements Node & Post & Reactable {
   updated: DateTime!
 
   """
-  The canonical, human-readable URL of this post. For source-backed local posts the path encodes the local source identifier — `Note.sourceId` for notes, `Article.publishedYear` + `Article.slug` for articles — **not** `Post.uuid`. For federated remote posts and local share wrappers (boosts) this is whatever URL the originating instance advertised — copied from the shared post in the boost case — and is unrelated to the wrapper's own row PK. Prefer this field over hand-building a path from `Post.uuid`: `uuid` is the row PK and does not match the path here for source-backed local posts.
+  The canonical, human-readable URL of this post. For source-backed local posts the path encodes the local source identifier: `Note.sourceId` for notes, `Article.publishedYear` + `Article.slug` for articles, and `Question.sourceId` for questions. It does not encode `Post.uuid`. For federated remote posts and local share wrappers (boosts) this is whatever URL the originating instance advertised (copied from the shared post in the boost case) and is unrelated to the wrapper's own row PK. Prefer this field over hand-building a path from `Post.uuid`: `uuid` is the row PK and does not match the path here for source-backed local posts.
   """
   url: URL
 
   """
-  The post row's primary key, stable for the lifetime of the post. ⚠️ This is **not** the UUID embedded in `Post.url` for source-backed local posts: local notes that originate here use `Note.sourceId` (= `noteSourceTable.id`) and local articles use `Article.publishedYear` + `Article.slug`. The row PK is the right token whenever there is no local source row — federated remote posts, local share wrappers (boosts, which carry no source and copy the shared post's URL), and Questions (whose originals come only from remote instances and whose local rows exist solely as share wrappers) — and for the internal route that resolves them. `actorByHandle.postByUuid` accepts either the row PK or a source UUID, but resolving by `uuid` for a source-backed local post yields a URL that differs from `Post.url`.
+  The post row's primary key, stable for the lifetime of the post. ⚠️ This is **not** the UUID embedded in `Post.url` for source-backed local posts: local notes that originate here use `Note.sourceId` (= `noteSourceTable.id`), local questions use `Question.sourceId`, and local articles use `Article.publishedYear` + `Article.slug`. The row PK is the right token for posts with no local source row: federated remote posts, local share wrappers (boosts, which carry no source and copy the shared post's URL), and remote `Question`s. `actorByHandle.postByUuid` accepts either the row PK or a source UUID, but resolving by `uuid` for a source-backed local post yields a URL that differs from `Post.url`.
   """
   uuid: UUID!
 
@@ -2286,7 +2362,7 @@ interface Post implements Node & Reactable {
   mentions(after: String, before: String, first: Int, last: Int): PostMentionsConnection!
 
   """
-  The post's title. Non-null for `Article`s; `null` for `Note`s, boost wrappers, and `Question`s.
+  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.
   """
   name: String
   published: DateTime!
@@ -2329,12 +2405,12 @@ interface Post implements Node & Reactable {
   updated: DateTime!
 
   """
-  The canonical, human-readable URL of this post. For source-backed local posts the path encodes the local source identifier — `Note.sourceId` for notes, `Article.publishedYear` + `Article.slug` for articles — **not** `Post.uuid`. For federated remote posts and local share wrappers (boosts) this is whatever URL the originating instance advertised — copied from the shared post in the boost case — and is unrelated to the wrapper's own row PK. Prefer this field over hand-building a path from `Post.uuid`: `uuid` is the row PK and does not match the path here for source-backed local posts.
+  The canonical, human-readable URL of this post. For source-backed local posts the path encodes the local source identifier: `Note.sourceId` for notes, `Article.publishedYear` + `Article.slug` for articles, and `Question.sourceId` for questions. It does not encode `Post.uuid`. For federated remote posts and local share wrappers (boosts) this is whatever URL the originating instance advertised (copied from the shared post in the boost case) and is unrelated to the wrapper's own row PK. Prefer this field over hand-building a path from `Post.uuid`: `uuid` is the row PK and does not match the path here for source-backed local posts.
   """
   url: URL
 
   """
-  The post row's primary key, stable for the lifetime of the post. ⚠️ This is **not** the UUID embedded in `Post.url` for source-backed local posts: local notes that originate here use `Note.sourceId` (= `noteSourceTable.id`) and local articles use `Article.publishedYear` + `Article.slug`. The row PK is the right token whenever there is no local source row — federated remote posts, local share wrappers (boosts, which carry no source and copy the shared post's URL), and Questions (whose originals come only from remote instances and whose local rows exist solely as share wrappers) — and for the internal route that resolves them. `actorByHandle.postByUuid` accepts either the row PK or a source UUID, but resolving by `uuid` for a source-backed local post yields a URL that differs from `Post.url`.
+  The post row's primary key, stable for the lifetime of the post. ⚠️ This is **not** the UUID embedded in `Post.url` for source-backed local posts: local notes that originate here use `Note.sourceId` (= `noteSourceTable.id`), local questions use `Question.sourceId`, and local articles use `Article.publishedYear` + `Article.slug`. The row PK is the right token for posts with no local source row: federated remote posts, local share wrappers (boosts, which carry no source and copy the shared post's URL), and remote `Question`s. `actorByHandle.postByUuid` accepts either the row PK or a source UUID, but resolving by `uuid` for a source-backed local post yields a URL that differs from `Post.url`.
   """
   uuid: UUID!
 
@@ -2549,7 +2625,7 @@ enum PostType {
   NOTE
 
   """
-  ActivityPub Question (poll) originating from a federated instance. Creating new Questions locally is not supported.
+  ActivityPub `Question` poll. Questions may originate locally via `createQuestion` or remotely through federation.
   """
   QUESTION
 }
@@ -2960,7 +3036,7 @@ type QuerySearchPostConnectionEdge {
 }
 
 """
-An ActivityPub Question (poll) originating from a federated instance. Hackers' Pub does not support creating `Question`s locally; local users can vote on and boost remote questions only. Always use `Post.uuid` (the row PK) for internal permalinks; there is no local `sourceId`.
+An ActivityPub `Question` poll. Local Questions are source-backed short posts with immutable poll settings; remote Questions may have `null` for `sourceId` and should fall back to `Post.uuid` for internal routes.
 """
 type Question implements Node & Post & Reactable {
   actor: Actor!
@@ -3001,7 +3077,7 @@ type Question implements Node & Post & Reactable {
   mentions(after: String, before: String, first: Int, last: Int): PostMentionsConnection!
 
   """
-  The post's title. Non-null for `Article`s; `null` for `Note`s, boost wrappers, and `Question`s.
+  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.
   """
   name: String
   poll: Poll
@@ -3033,18 +3109,23 @@ type Question implements Node & Post & Reactable {
   shares(after: String, before: String, first: Int, last: Int): PostSharesConnection!
 
   """
+  The local source UUID for this question (`noteSourceTable.id`), embedded in source-backed local Question URLs as `/@username/<sourceId>`. `null` for federated remote questions and local share wrappers; use `Post.uuid` as the fallback route token.
+  """
+  sourceId: UUID
+
+  """
   Author-provided or LLM-generated summary of the post. `null` when no summary has been set. For LLM summaries, check `ArticleContent.summary` and `summaryStarted` instead, as those are tracked per language on articles.
   """
   summary: String
   updated: DateTime!
 
   """
-  The canonical, human-readable URL of this question, as advertised by the originating instance. Question originals are only persisted from federated remote instances, and local share wrappers copy the shared post's URL, so this never encodes a local-source identifier — do not assume any relationship between its path and `Post.uuid`.
+  The canonical, human-readable URL of this question. Source-backed local Questions encode `Question.sourceId`; federated remote Questions and local share wrappers may not share any path token with `Post.uuid`.
   """
   url: URL
 
   """
-  The post row's primary key, stable for the lifetime of the post. Question originals are only persisted from federated remote instances; local Question rows may also exist as share wrappers (boosts) when a local user reshares a remote question. Neither case carries a local source row (a DB check constraint forbids `noteSourceId` on non-Note rows), so this row PK is the right token to use when building internal permalinks for questions — though `Post.url` will still reflect whatever URL the originating instance advertised, which generally won't share this UUID.
+  The post row's primary key, stable for the lifetime of the post. Use `Question.sourceId` for source-backed local Questions when building public permalinks. Fall back to this row PK for federated remote Questions and local share wrappers, whose `sourceId` is `null`.
   """
   uuid: UUID!
 

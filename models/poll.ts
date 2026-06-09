@@ -21,6 +21,113 @@ import {
 } from "./schema.ts";
 import type { Uuid } from "./uuid.ts";
 
+export const MIN_POLL_OPTIONS = 2;
+export const MAX_POLL_OPTIONS = 20;
+export const MAX_POLL_TITLE_LENGTH = 200;
+export const MAX_POLL_OPTION_TITLE_LENGTH = 200;
+export const MIN_POLL_DURATION_MS = 60_000;
+export const MAX_POLL_DURATION_MS = 365 * 24 * 60 * 60 * 1000;
+
+export interface CreatePollInput {
+  multiple: boolean;
+  title: string;
+  options: readonly string[];
+  ends: Date;
+  now?: Date;
+}
+
+export interface NormalizedPollInput {
+  multiple: boolean;
+  title: string;
+  options: string[];
+  ends: Date;
+}
+
+export class InvalidPollInputError extends Error {
+  constructor(readonly inputPath: string) {
+    super(`Invalid poll input: ${inputPath}`);
+    this.name = "InvalidPollInputError";
+  }
+}
+
+export function normalizePollInput(
+  input: CreatePollInput,
+): NormalizedPollInput {
+  const title = input.title.trim();
+  if (title.length < 1 || title.length > MAX_POLL_TITLE_LENGTH) {
+    throw new InvalidPollInputError("poll.title");
+  }
+
+  if (
+    input.options.length < MIN_POLL_OPTIONS ||
+    input.options.length > MAX_POLL_OPTIONS
+  ) {
+    throw new InvalidPollInputError("poll.options");
+  }
+
+  const options = input.options.map((option) => option.trim());
+  const seenOptions = new Set<string>();
+  for (let i = 0; i < options.length; i++) {
+    const option = options[i];
+    if (
+      option.length < 1 ||
+      option.length > MAX_POLL_OPTION_TITLE_LENGTH
+    ) {
+      throw new InvalidPollInputError(`poll.options.${i}`);
+    }
+    if (seenOptions.has(option)) {
+      throw new InvalidPollInputError(`poll.options.${i}`);
+    }
+    seenOptions.add(option);
+  }
+
+  const now = input.now ?? new Date();
+  const duration = input.ends.getTime() - now.getTime();
+  if (
+    !Number.isFinite(input.ends.getTime()) ||
+    duration < MIN_POLL_DURATION_MS ||
+    duration > MAX_POLL_DURATION_MS
+  ) {
+    throw new InvalidPollInputError("poll.ends");
+  }
+
+  return {
+    multiple: input.multiple,
+    title,
+    options,
+    ends: input.ends,
+  };
+}
+
+export async function createPoll(
+  db: Database,
+  postId: Uuid,
+  input: CreatePollInput,
+): Promise<Poll & { options: PollOption[] }> {
+  const poll = normalizePollInput(input);
+  const rows = await db.insert(pollTable).values({
+    postId,
+    multiple: poll.multiple,
+    votersCount: 0,
+    ends: poll.ends,
+  }).returning();
+  if (rows.length < 1) {
+    throw new Error("Failed to create poll.");
+  }
+  const optionRows = await db.insert(pollOptionTable).values(
+    poll.options.map((title, index) => ({
+      postId,
+      index,
+      title,
+      votesCount: 0,
+    })),
+  ).returning();
+  return {
+    ...rows[0],
+    options: optionRows.toSorted((a, b) => a.index - b.index),
+  };
+}
+
 export async function persistPoll(
   db: Database,
   question: vocab.Question,
@@ -142,6 +249,7 @@ export async function persistPollVote(
   ) {
     return undefined;
   }
+  const voteName = note.name.toString();
   const { db } = ctx.data;
   let post = await getPersistedPost(db, note.replyTargetId);
   if (post == null) {
@@ -157,32 +265,60 @@ export async function persistPollVote(
     actor = await persistActor(ctx, actorObject, options);
     if (actor == null) return undefined;
   }
-  const poll = await db.query.pollTable.findFirst({
-    where: { postId: post.id },
-    with: { options: true },
-  });
-  if (poll == null || poll.ends < new Date()) return undefined;
-  if (!poll.multiple) {
-    const existingVote = await db.query.pollVoteTable.findFirst({
+  const persistVoteInTransaction = async (tx: Transaction) => {
+    const [lockedPoll] = await tx.select()
+      .from(pollTable)
+      .where(
+        and(
+          eq(pollTable.postId, post.id),
+          sql`${pollTable.ends} > now()`,
+        ),
+      )
+      .for("update");
+    if (lockedPoll == null) return undefined;
+
+    const pollOptions = await tx.query.pollOptionTable.findMany({
+      where: { postId: lockedPoll.postId },
+    });
+    const existingVotes = await tx.query.pollVoteTable.findMany({
       where: {
-        postId: poll.postId,
+        postId: lockedPoll.postId,
         actorId: actor.id,
       },
     });
-    if (existingVote != null) return undefined;
-  }
-  const name = note.name.toString();
-  const option = poll.options.find((o) => o.title === name);
-  if (option == null) return undefined;
-  const rows = await db.insert(pollVoteTable)
-    .values({
-      postId: poll.postId,
-      actorId: actor.id,
-      optionIndex: option.index,
-    })
-    .onConflictDoNothing()
-    .returning();
-  return rows.length < 1 ? undefined : rows[0];
+    if (!lockedPoll.multiple && existingVotes.length > 0) return undefined;
+
+    const option = pollOptions.find((o) => o.title === voteName);
+    if (option == null) return undefined;
+    const rows = await tx.insert(pollVoteTable)
+      .values({
+        postId: lockedPoll.postId,
+        actorId: actor.id,
+        optionIndex: option.index,
+      })
+      .onConflictDoNothing()
+      .returning();
+    if (rows.length < 1) return undefined;
+
+    if (existingVotes.length < 1) {
+      await tx.update(pollTable)
+        .set({ votersCount: sql`${pollTable.votersCount} + 1` })
+        .where(eq(pollTable.postId, lockedPoll.postId));
+    }
+    await tx.update(pollOptionTable)
+      .set({ votesCount: sql`${pollOptionTable.votesCount} + 1` })
+      .where(
+        and(
+          eq(pollOptionTable.postId, lockedPoll.postId),
+          eq(pollOptionTable.index, option.index),
+        ),
+      );
+    return rows[0];
+  };
+
+  return isTransaction(db)
+    ? await persistVoteInTransaction(db)
+    : await db.transaction(persistVoteInTransaction);
 }
 
 export async function vote(

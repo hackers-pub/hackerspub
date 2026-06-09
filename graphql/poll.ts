@@ -27,14 +27,9 @@ builder.drizzleObjectFields(Question, (t) => ({
     complexity: questionPollComplexity,
     description:
       "The post row's primary key, stable for the lifetime of the post. " +
-      "Question originals are only persisted from federated remote " +
-      "instances; local Question rows may also exist as share wrappers " +
-      "(boosts) when a local user reshares a remote question. Neither case " +
-      "carries a local source row (a DB check constraint forbids " +
-      "`noteSourceId` on non-Note rows), so this row PK is the right token " +
-      "to use when building internal permalinks for questions — though " +
-      "`Post.url` will still reflect whatever URL the originating instance " +
-      "advertised, which generally won't share this UUID.",
+      "Use `Question.sourceId` for source-backed local Questions when " +
+      "building public permalinks. Fall back to this row PK for federated " +
+      "remote Questions and local share wrappers, whose `sourceId` is `null`.",
   }),
   iri: t.field({
     type: "URL",
@@ -78,11 +73,10 @@ builder.drizzleObjectFields(Question, (t) => ({
     nullable: true,
     complexity: questionPollComplexity,
     description:
-      "The canonical, human-readable URL of this question, as advertised by " +
-      "the originating instance. Question originals are only persisted from " +
-      "federated remote instances, and local share wrappers copy the shared " +
-      "post's URL, so this never encodes a local-source identifier — do not " +
-      "assume any relationship between its path and `Post.uuid`.",
+      "The canonical, human-readable URL of this question. Source-backed " +
+      "local Questions encode `Question.sourceId`; federated remote " +
+      "Questions and local share wrappers may not share any path token with " +
+      "`Post.uuid`.",
     select: {
       columns: { url: true },
     },

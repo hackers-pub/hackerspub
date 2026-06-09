@@ -847,7 +847,7 @@ export const postTable = pgTable(
     ),
     check(
       "post_note_source_id_check",
-      sql`${table.type} = 'Note' OR ${table.noteSourceId} IS NULL`,
+      sql`${table.type} IN ('Note', 'Question') OR ${table.noteSourceId} IS NULL`,
     ),
     check(
       "post_shared_post_id_reply_target_id_check",
