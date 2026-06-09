@@ -193,17 +193,17 @@ msgid "{0} followed you"
 msgstr "{0} followed you"
 
 #. placeholder {0}: s.sourceBreakdown.bluesky
-#: src/components/NewsStoryHeader.tsx:137
+#: src/components/NewsStoryHeader.tsx:160
 msgid "{0} from Bluesky"
 msgstr "{0} from Bluesky"
 
 #. placeholder {0}: s.sourceBreakdown.local
-#: src/components/NewsStoryHeader.tsx:131
+#: src/components/NewsStoryHeader.tsx:154
 msgid "{0} from Hackers' Pub"
 msgstr "{0} from Hackers' Pub"
 
 #. placeholder {0}: s.sourceBreakdown.remote
-#: src/components/NewsStoryHeader.tsx:134
+#: src/components/NewsStoryHeader.tsx:157
 msgid "{0} from the fediverse"
 msgstr "{0} from the fediverse"
 
@@ -307,10 +307,15 @@ msgstr "{0}'s notes"
 msgid "{0}'s shares"
 msgstr "{0}'s shares"
 
+#: src/components/NewsStoryCard.tsx:119
+#: src/components/NewsStoryHeader.tsx:66
+msgid "{count, plural, one {# discussion post} other {# discussion posts}}"
+msgstr "{count, plural, one {# discussion post} other {# discussion posts}}"
+
 #: src/components/NewsStoryCard.tsx:111
 #: src/components/NewsStoryHeader.tsx:58
-msgid "{count, plural, one {# opinion} other {# opinions}}"
-msgstr "{count, plural, one {# opinion} other {# opinions}}"
+#~ msgid "{count, plural, one {# opinion} other {# opinions}}"
+#~ msgstr "{count, plural, one {# opinion} other {# opinions}}"
 
 #: src/components/NewsStoryCard.tsx:51
 #: src/components/NewsStoryHeader.tsx:53
@@ -494,6 +499,11 @@ msgstr "Are you sure you want to revoke passkey {0}? You won't be able to use it
 msgid "Are you sure you want to unblock {0} ({1})? They will be able to follow you and see your posts."
 msgstr "Are you sure you want to unblock {0} ({1})? They will be able to follow you and see your posts."
 
+#: src/components/NewsStoryCard.tsx:184
+#: src/components/NewsStoryHeader.tsx:99
+msgid "Article"
+msgstr "Article"
+
 #: src/routes/(root)/[handle]/drafts/index.tsx:245
 #: src/routes/(root)/[handle]/drafts/index.tsx:247
 msgid "Article drafts"
@@ -614,14 +624,20 @@ msgstr "Browser notifications disabled"
 msgid "Browser notifications enabled"
 msgstr "Browser notifications enabled"
 
-#: src/components/NewsStoryCard.tsx:228
+#: src/components/NewsStoryCard.tsx:251
 #: src/routes/(root)/admin/news.tsx:846
 msgid "Buried"
 msgstr "Buried"
 
-#: src/components/NewsStoryCard.tsx:271
+#: src/components/NewsStoryCard.tsx:294
 msgid "Bury"
 msgstr "Bury"
+
+#. placeholder {0}: article.actor.name || article.actor.handle
+#: src/components/NewsStoryCard.tsx:195
+#: src/components/NewsStoryHeader.tsx:120
+msgid "By {0}"
+msgstr "By {0}"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:48
 #: src/components/NoteComposer.tsx:1374
@@ -632,7 +648,7 @@ msgstr "Bury"
 #: src/components/ProfileActionMenu.tsx:483
 #: src/components/ProfileActionMenu.tsx:513
 #: src/components/ProfileActionMenu.tsx:514
-#: src/components/QuotedNoteCard.tsx:248
+#: src/components/QuotedNoteCard.tsx:308
 #: src/components/RemoteFollowButton.tsx:218
 #: src/components/RemoteFollowButton.tsx:280
 #: src/components/RemoveFollowerButton.tsx:144
@@ -680,7 +696,7 @@ msgstr "Choose your preferred language for the verification email."
 msgid "Clear"
 msgstr "Clear"
 
-#: src/components/NewsStoryCard.tsx:277
+#: src/components/NewsStoryCard.tsx:300
 msgid "Clear penalty"
 msgstr "Clear penalty"
 
@@ -766,7 +782,7 @@ msgstr "Could not refresh this from its origin."
 msgid "Could not resolve that as a remote object."
 msgstr "Could not resolve that as a remote object."
 
-#: src/components/QuotedNoteCard.tsx:271
+#: src/components/QuotedNoteCard.tsx:331
 msgid "Could not revoke quote"
 msgstr "Could not revoke quote"
 
@@ -826,7 +842,7 @@ msgid "Cutoff:"
 msgstr "Cutoff:"
 
 #: src/components/NoteCardInternal.tsx:132
-#: src/components/QuotedNoteCard.tsx:202
+#: src/components/QuotedNoteCard.tsx:217
 msgid "CW"
 msgstr "CW"
 
@@ -868,11 +884,11 @@ msgstr "Delete post?"
 msgid "Deleting…"
 msgstr "Deleting…"
 
-#: src/components/NewsStoryCard.tsx:265
+#: src/components/NewsStoryCard.tsx:288
 msgid "Demote"
 msgstr "Demote"
 
-#: src/components/NewsStoryCard.tsx:228
+#: src/components/NewsStoryCard.tsx:251
 #: src/routes/(root)/admin/news.tsx:847
 msgid "Demoted"
 msgstr "Demoted"
@@ -1028,8 +1044,8 @@ msgstr "Enter your email or username below to sign in."
 #: src/components/NoteComposer.tsx:928
 #: src/components/NoteComposer.tsx:936
 #: src/components/NoteComposer.tsx:993
-#: src/components/QuotedNoteCard.tsx:270
-#: src/components/QuotedNoteCard.tsx:278
+#: src/components/QuotedNoteCard.tsx:330
+#: src/components/QuotedNoteCard.tsx:338
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:258
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:346
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:356
@@ -1168,7 +1184,7 @@ msgstr "Failed to load more followers; click to retry"
 msgid "Failed to load more following; click to retry"
 msgstr "Failed to load more following; click to retry"
 
-#: src/components/ActorInteractionList.tsx:85
+#: src/components/ActorInteractionList.tsx:93
 msgid "Failed to load more interactions; click to retry"
 msgstr "Failed to load more interactions; click to retry"
 
@@ -1226,7 +1242,7 @@ msgstr "Failed to load post"
 msgid "Failed to load quoted post"
 msgstr "Failed to load quoted post"
 
-#: src/components/NewsDiscussionThread.tsx:488
+#: src/components/NewsDiscussionThread.tsx:523
 msgid "Failed to load replies; click to retry"
 msgstr "Failed to load replies; click to retry"
 
@@ -1384,8 +1400,8 @@ msgstr "Failed to unshare post"
 msgid "Failed to unsubscribe from the relay."
 msgstr "Failed to unsubscribe from the relay."
 
-#: src/components/NewsStoryCard.tsx:91
-#: src/components/NewsStoryCard.tsx:95
+#: src/components/NewsStoryCard.tsx:98
+#: src/components/NewsStoryCard.tsx:102
 msgid "Failed to update penalty."
 msgstr "Failed to update penalty."
 
@@ -1427,7 +1443,7 @@ msgstr "Fediverse handle"
 msgid "Feed"
 msgstr "Feed"
 
-#: src/components/NewsStoryHeader.tsx:126
+#: src/components/NewsStoryHeader.tsx:149
 msgid "First shared"
 msgstr "First shared"
 
@@ -1601,7 +1617,7 @@ msgstr "Hidden account"
 
 #: src/components/NoteCardInternal.tsx:141
 #: src/components/NoteMedia.tsx:270
-#: src/components/QuotedNoteCard.tsx:213
+#: src/components/QuotedNoteCard.tsx:228
 msgid "Hide"
 msgstr "Hide"
 
@@ -1787,8 +1803,8 @@ msgstr "Language settings"
 msgid "Languages"
 msgstr "Languages"
 
-#: src/components/NewsStoryCard.tsx:218
-#: src/components/NewsStoryHeader.tsx:119
+#: src/components/NewsStoryCard.tsx:241
+#: src/components/NewsStoryHeader.tsx:142
 msgid "Last active"
 msgstr "Last active"
 
@@ -1839,8 +1855,12 @@ msgid "Links a moderator has demoted in the popular feed. Clear a penalty to res
 msgstr "Links a moderator has demoted in the popular feed. Clear a penalty to restore a link's normal ranking."
 
 #: src/routes/(root)/news/index.tsx:41
-msgid "Links circulating across the fediverse, ranked by how much they are being shared and discussed."
-msgstr "Links circulating across the fediverse, ranked by how much they are being shared and discussed."
+msgid "Links and articles circulating across the fediverse, ranked by how much they are being shared and discussed."
+msgstr "Links and articles circulating across the fediverse, ranked by how much they are being shared and discussed."
+
+#: src/routes/(root)/news/index.tsx:41
+#~ msgid "Links circulating across the fediverse, ranked by how much they are being shared and discussed."
+#~ msgstr "Links circulating across the fediverse, ranked by how much they are being shared and discussed."
 
 #: src/components/ui/markdown-editor.tsx:291
 msgid "List"
@@ -1871,7 +1891,7 @@ msgstr "Load more followers"
 msgid "Load more following"
 msgstr "Load more following"
 
-#: src/components/ActorInteractionList.tsx:88
+#: src/components/ActorInteractionList.tsx:96
 msgid "Load more interactions"
 msgstr "Load more interactions"
 
@@ -1899,7 +1919,7 @@ msgstr "Load more passkeys"
 msgid "Load more posts"
 msgstr "Load more posts"
 
-#: src/components/NewsDiscussionThread.tsx:456
+#: src/components/NewsDiscussionThread.tsx:491
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/quotes.tsx:198
 #: src/routes/(root)/[handle]/[noteId]/quotes.tsx:205
 msgid "Load more quotes"
@@ -1909,7 +1929,7 @@ msgstr "Load more quotes"
 #~ msgid "Load more reactors (+{0})"
 #~ msgstr "Load more reactors (+{0})"
 
-#: src/components/NewsDiscussionThread.tsx:479
+#: src/components/NewsDiscussionThread.tsx:514
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:711
 msgid "Load more replies"
 msgstr "Load more replies"
@@ -1947,7 +1967,7 @@ msgstr "Loading more followers…"
 msgid "Loading more following…"
 msgstr "Loading more following…"
 
-#: src/components/ActorInteractionList.tsx:82
+#: src/components/ActorInteractionList.tsx:90
 msgid "Loading more interactions…"
 msgstr "Loading more interactions…"
 
@@ -2056,8 +2076,8 @@ msgstr "Media"
 msgid "Mentioned only"
 msgstr "Mentioned only"
 
-#: src/components/NewsStoryCard.tsx:238
-#: src/components/NewsStoryCard.tsx:256
+#: src/components/NewsStoryCard.tsx:261
+#: src/components/NewsStoryCard.tsx:279
 msgid "Moderate"
 msgstr "Moderate"
 
@@ -2205,7 +2225,7 @@ msgstr "No followers found"
 msgid "No following found"
 msgstr "No following found"
 
-#: src/components/ActorInteractionList.tsx:95
+#: src/components/ActorInteractionList.tsx:103
 msgid "No interactions found"
 msgstr "No interactions found"
 
@@ -2660,7 +2680,7 @@ msgstr "Quote"
 msgid "Quote permission"
 msgstr "Quote permission"
 
-#: src/components/QuotedNoteCard.tsx:265
+#: src/components/QuotedNoteCard.tsx:325
 msgid "Quote revoked"
 msgstr "Quote revoked"
 
@@ -2708,6 +2728,7 @@ msgstr "Reactions"
 
 #: src/components/ArticleCard.tsx:515
 #: src/components/ArticleCard.tsx:535
+#: src/components/NewsDiscussionThread.tsx:428
 msgid "Read full article"
 msgstr "Read full article"
 
@@ -2895,12 +2916,12 @@ msgstr "Revoke"
 msgid "Revoke passkey"
 msgstr "Revoke passkey"
 
-#: src/components/QuotedNoteCard.tsx:236
-#: src/components/QuotedNoteCard.tsx:286
+#: src/components/QuotedNoteCard.tsx:296
+#: src/components/QuotedNoteCard.tsx:346
 msgid "Revoke quote"
 msgstr "Revoke quote"
 
-#: src/components/QuotedNoteCard.tsx:241
+#: src/components/QuotedNoteCard.tsx:301
 msgid "Revoke this quote?"
 msgstr "Revoke this quote?"
 
@@ -2981,7 +3002,7 @@ msgstr "Send"
 msgid "Sending…"
 msgstr "Sending…"
 
-#: src/components/QuotedNoteCard.tsx:206
+#: src/components/QuotedNoteCard.tsx:221
 msgid "Sensitive content"
 msgstr "Sensitive content"
 
@@ -3005,8 +3026,13 @@ msgstr "Settings saved"
 msgid "Share"
 msgstr "Share"
 
-#: src/components/NewsStoryCard.tsx:211
-#: src/components/NewsStoryHeader.tsx:145
+#: src/components/NewsStoryCard.tsx:234
+#: src/components/NewsStoryHeader.tsx:168
+msgid "Share this article"
+msgstr "Share this article"
+
+#: src/components/NewsStoryCard.tsx:234
+#: src/components/NewsStoryHeader.tsx:168
 msgid "Share this link"
 msgstr "Share this link"
 
@@ -3027,13 +3053,13 @@ msgstr "Sharing is not available for this post"
 
 #: src/components/MutedReplyPlaceholder.tsx:32
 #: src/components/NoteCardInternal.tsx:141
-#: src/components/QuotedNoteCard.tsx:146
-#: src/components/QuotedNoteCard.tsx:213
+#: src/components/QuotedNoteCard.tsx:161
+#: src/components/QuotedNoteCard.tsx:228
 msgid "Show"
 msgstr "Show"
 
 #. placeholder {0}: childCount()
-#: src/components/NewsDiscussionThread.tsx:432
+#: src/components/NewsDiscussionThread.tsx:467
 msgid "Show {0} more in this thread"
 msgstr "Show {0} more in this thread"
 
@@ -3176,6 +3202,7 @@ msgid "Successfully saved settings"
 msgstr "Successfully saved settings"
 
 #: src/components/ArticleCard.tsx:488
+#: src/components/QuotedNoteCard.tsx:278
 msgid "Summarized by LLM"
 msgstr "Summarized by LLM"
 
@@ -3282,7 +3309,7 @@ msgstr "The passkey has been successfully revoked."
 msgid "The primary language of your article, used for accessibility and discovery."
 msgstr "The primary language of your article, used for accessibility and discovery."
 
-#: src/components/QuotedNoteCard.tsx:244
+#: src/components/QuotedNoteCard.tsx:304
 msgid "The quoting post will no longer include your post as a quote."
 msgstr "The quoting post will no longer include your post as a quote."
 
@@ -3354,7 +3381,7 @@ msgid "This quote is waiting for approval from the original author."
 msgstr "This quote is waiting for approval from the original author."
 
 #. placeholder {0}: post.actor.handle
-#: src/components/QuotedNoteCard.tsx:138
+#: src/components/QuotedNoteCard.tsx:153
 msgid "This quoted post is hidden because you muted {0}."
 msgstr "This quoted post is hidden because you muted {0}."
 

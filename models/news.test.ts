@@ -722,6 +722,102 @@ test("recomputeNewsScores aggregates postCount and firstSharedAt", async () => {
   });
 });
 
+test("recomputeNewsScores counts boosts of Article news posts", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "articleauthor",
+      name: "Article Author",
+      email: "article-author@example.com",
+    });
+    const booster = await insertAccountWithActor(tx, {
+      username: "articlebooster",
+      name: "Article Booster",
+      email: "article-booster@example.com",
+    });
+    const link = await insertPostLink(tx, {
+      url: "http://localhost/@article-author/article",
+    });
+    const { post: article } = await insertNotePost(tx, {
+      account: author.account,
+      published: new Date("2026-05-10T00:00:00.000Z"),
+      link: { id: link.id, url: link.url },
+    });
+    await tx.update(postTable).set({
+      type: "Article",
+      noteSourceId: null,
+      name: "Article",
+      url: link.url,
+    }).where(eq(postTable.id, article.id));
+    await insertNotePost(tx, {
+      account: booster.account,
+      sharedPostId: article.id,
+      published: new Date("2026-05-11T00:00:00.000Z"),
+    });
+
+    await recomputeNewsScores(tx);
+
+    const row = await readLink(tx, link.id);
+    assert.deepEqual(row.postCount, 2);
+    assertAlmostEquals(row.weightedMass, 2 * NEWS_W_SHARE, 0.000001);
+    assert.deepEqual(
+      row.latestActivityAt?.getTime(),
+      new Date("2026-05-11T00:00:00.000Z").getTime(),
+    );
+
+    const breakdowns = await getNewsSourceBreakdowns(tx, [link.id]);
+    assert.deepEqual(breakdowns.get(link.id), {
+      local: 2,
+      remote: 0,
+      bluesky: 0,
+    });
+  });
+});
+
+test("recomputeNewsScores ignores boosts of ordinary link-sharing notes", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "noteauthor",
+      name: "Note Author",
+      email: "note-author@example.com",
+    });
+    const booster = await insertAccountWithActor(tx, {
+      username: "notebooster",
+      name: "Note Booster",
+      email: "note-booster@example.com",
+    });
+    const link = await insertPostLink(tx, {
+      url: "https://example.com/ordinary-note",
+    });
+    const { post: note } = await insertNotePost(tx, {
+      account: author.account,
+      published: new Date("2026-05-10T00:00:00.000Z"),
+      link: { id: link.id, url: link.url },
+    });
+    await insertNotePost(tx, {
+      account: booster.account,
+      sharedPostId: note.id,
+      published: new Date("2026-05-11T00:00:00.000Z"),
+    });
+
+    await recomputeNewsScores(tx);
+
+    const row = await readLink(tx, link.id);
+    assert.deepEqual(row.postCount, 1);
+    assertAlmostEquals(row.weightedMass, NEWS_W_SHARE, 0.000001);
+    assert.deepEqual(
+      row.latestActivityAt?.getTime(),
+      new Date("2026-05-10T00:00:00.000Z").getTime(),
+    );
+
+    const breakdowns = await getNewsSourceBreakdowns(tx, [link.id]);
+    assert.deepEqual(breakdowns.get(link.id), {
+      local: 1,
+      remote: 0,
+      bluesky: 0,
+    });
+  });
+});
+
 test("getNewsStories paginates by keyset without gaps or overlaps", async () => {
   await withRollback(async (tx) => {
     const sharer = await insertAccountWithActor(tx, {

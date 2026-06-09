@@ -192,10 +192,10 @@ const qualifyingSharerCondition: SQL = sql`(
 
 /**
  * The relational-query mirror of `qualifyingSharerCondition`, for the GraphQL
- * `PostLink.sharingPosts` filter: a sharing post counts toward News when its
- * author is a non-bot actor, or a curated `news_preferred_sharer` (which
- * whitelists a bot feed).  Kept in lockstep with the SQL so the discussion page
- * shows exactly the shares the score counts.
+ * `PostLink.sharingPosts` filter: a direct linked sharing post is authored by a
+ * non-bot actor, or a curated `news_preferred_sharer` (which whitelists a bot
+ * feed).  This mirrors only the actor qualification: `Article` boosts can also
+ * count toward `score`/`postCount`, but they are not direct discussion roots.
  *
  * Expressed as a `postTable` filter (not an `actorTable` one) so the preferred-
  * sharer branch can use a top-level `RAW`: Drizzle hands a *nested* relation
@@ -249,12 +249,13 @@ function isTransaction(db: Database): db is Transaction {
  * identical `score`/`weightedMass`/`firstSharedAt`/`latestActivityAt`
  * (`scoreUpdated` aside).
  *
- * A "sharing post" is a publicly visible (`public`/`unlisted`), non-boost post
- * whose `linkId` points at the link.  `weightedMass` sums each sharing post's
- * source weight times account-reputation weight times its weighted engagement
- * counts; `latestActivityAt` is the freshest of the share, its reactions, and
- * its direct replies/quotes.  Links that have lost their last qualifying share
- * are reset to a zero score and dropped from the feed.
+ * A "sharing post" is either a publicly visible (`public`/`unlisted`),
+ * non-boost post whose `linkId` points at the link, or a public boost of an
+ * `Article` whose own `linkId` points at the link.  `weightedMass` sums each
+ * sharing post's source weight times account-reputation weight times its
+ * weighted engagement counts; `latestActivityAt` is the freshest of the share,
+ * its reactions, and its direct replies/quotes.  Links that have lost their
+ * last qualifying share are reset to a zero score and dropped from the feed.
  */
 export async function recomputeNewsScores(
   db: Database,
@@ -328,7 +329,8 @@ export async function refreshNewsScores(
 /**
  * Refresh the news score for the link a post shares, given only the post's id.
  * For destructive paths (e.g. a federated reaction undo) that hold the post id
- * but not its row, and which the source-derived sweep cannot detect.
+ * but not its row, and which the source-derived sweep cannot detect.  If the
+ * post is an `Article` boost, refresh the original article's backing link.
  */
 export async function refreshNewsScoresForPostId(
   db: Database,
@@ -336,39 +338,83 @@ export async function refreshNewsScoresForPostId(
 ): Promise<void> {
   const post = await db.query.postTable.findFirst({
     where: { id: postId },
+    columns: { linkId: true, sharedPostId: true },
+  });
+  if (post == null) return;
+  const linkIds = new Set<Uuid>();
+  if (post.linkId != null) linkIds.add(post.linkId);
+  for (
+    const linkId of await articleBoostLinkIds(db, [post.sharedPostId])
+  ) {
+    linkIds.add(linkId);
+  }
+  await refreshNewsScores(db, [...linkIds]);
+}
+
+async function articleBoostLinkIds(
+  db: Database,
+  sharedPostIds: ReadonlyArray<Uuid | null | undefined>,
+): Promise<Uuid[]> {
+  const ids = [
+    ...new Set(sharedPostIds.filter((id): id is Uuid => id != null)),
+  ];
+  if (ids.length < 1) return [];
+  const originals = await db.query.postTable.findMany({
+    where: {
+      id: { in: ids },
+      type: "Article",
+      linkId: { isNotNull: true },
+    },
     columns: { linkId: true },
   });
-  if (post?.linkId != null) await refreshNewsScores(db, [post.linkId]);
+  return originals.map((post) => post.linkId).filter((id): id is Uuid =>
+    id != null
+  );
 }
 
 /**
  * Refresh the links a removed or changed post affects: its own shared link,
- * plus the link of any post it replied to or quoted (whose public reply/quote
- * count just changed).  Used by the destructive paths (delete, quote revoke),
- * which the source-derived periodic sweep cannot detect, so without this a
- * deleted share or reply could keep a link in the feed or inflate its mass
- * until a manual full recompute.
+ * the backing link of an `Article` it boosts, plus the corresponding link of
+ * any post it replied to or quoted (whose public reply/quote count just
+ * changed).  Used by the destructive paths (delete, quote revoke), which the
+ * source-derived periodic sweep cannot detect, so without this a deleted share
+ * or reply could keep a link in the feed or inflate its mass until a manual
+ * full recompute.
  */
 export async function refreshNewsScoresForPostLinks(
   db: Database,
   post: {
     readonly linkId: Uuid | null;
+    readonly sharedPostId?: Uuid | null;
     readonly replyTargetId: Uuid | null;
     readonly quotedPostId: Uuid | null;
   },
 ): Promise<void> {
   const linkIds = new Set<Uuid>();
   if (post.linkId != null) linkIds.add(post.linkId);
+  for (
+    const linkId of await articleBoostLinkIds(db, [post.sharedPostId])
+  ) {
+    linkIds.add(linkId);
+  }
   const parentIds = [post.replyTargetId, post.quotedPostId].filter(
     (id): id is Uuid => id != null,
   );
   if (parentIds.length > 0) {
     const parents = await db.query.postTable.findMany({
       where: { id: { in: parentIds } },
-      columns: { linkId: true },
+      columns: { linkId: true, sharedPostId: true },
     });
     for (const parent of parents) {
       if (parent.linkId != null) linkIds.add(parent.linkId);
+    }
+    for (
+      const linkId of await articleBoostLinkIds(
+        db,
+        parents.map((parent) => parent.sharedPostId),
+      )
+    ) {
+      linkIds.add(linkId);
     }
   }
   await refreshNewsScores(db, [...linkIds]);
@@ -386,15 +432,7 @@ export async function refreshNewsScoresForActor(
   db: Database,
   actorId: Uuid,
 ): Promise<void> {
-  const shares = await db.query.postTable.findMany({
-    where: {
-      actorId,
-      linkId: { isNotNull: true },
-      sharedPostId: { isNull: true },
-    },
-    columns: { linkId: true },
-  });
-  await refreshNewsScores(db, shares.map((s) => s.linkId));
+  await refreshNewsScores(db, await actorSharedLinkIds(db, actorId));
 }
 
 /** Which links a recompute targets. */
@@ -474,12 +512,20 @@ function activeLinkIdsSubquery(activeSince: Date): SQL {
   // Raw `sql` does not bind a JS `Date`; pass an ISO string cast to
   // `timestamptz`.
   const since = sql`${activeSince.toISOString()}::timestamptz`;
-  // `s` is a qualifying share: carries a link, publicly visible, an original
-  // post (not a boost).
-  const share = sql`
+  // `s` is a qualifying direct share: carries a link, publicly visible, and is
+  // an original post (not a boost).
+  const directShare = sql`
     s.link_id is not null
       and s.visibility in ('public', 'unlisted')
       and s.shared_post_id is null
+  `;
+  // `s` is a qualifying Article boost: the boost itself is public, and its
+  // public original is an `Article` whose own URL backs the news link.
+  const articleBoost = sql`
+    original.type = 'Article'
+      and original.link_id is not null
+      and original.visibility in ('public', 'unlisted')
+      and s.visibility in ('public', 'unlisted')
   `;
   // A `union` of one lookup per kind of activity, each bounded by `activeSince`
   // so the planner ranges a recency index (post.published / post.updated /
@@ -492,19 +538,40 @@ function activeLinkIdsSubquery(activeSince: Date): SQL {
   return sql`
     select s.link_id
       from post s join actor a on a.id = s.actor_id
-      where ${share} and ${qualifyingSharerCondition} and s.published >= ${since}
+      where ${directShare} and ${qualifyingSharerCondition} and s.published >= ${since}
+    union
+    select original.link_id
+      from post s
+      join post original on original.id = s.shared_post_id
+      join actor a on a.id = s.actor_id
+      where ${articleBoost} and ${qualifyingSharerCondition} and s.published >= ${since}
     union
     select s.link_id
       from post s join actor a on a.id = s.actor_id
       -- A federated Update to a share (e.g. its replies/likes totals) bumps
       -- the updated column, catching remote engagement changes with no row.
-      where ${share} and ${qualifyingSharerCondition} and s.updated >= ${since}
+      where ${directShare} and ${qualifyingSharerCondition} and s.updated >= ${since}
+    union
+    select original.link_id
+      from post s
+      join post original on original.id = s.shared_post_id
+      join actor a on a.id = s.actor_id
+      -- A federated Update to an Article boost can carry remote engagement
+      -- changes with no local child/reaction row.
+      where ${articleBoost} and ${qualifyingSharerCondition} and s.updated >= ${since}
     union
     select s.link_id
       from reaction r
       join post s on s.id = r.post_id
       join actor a on a.id = s.actor_id
-      where r.created >= ${since} and ${share} and ${qualifyingSharerCondition}
+      where r.created >= ${since} and ${directShare} and ${qualifyingSharerCondition}
+    union
+    select original.link_id
+      from reaction r
+      join post s on s.id = r.post_id
+      join post original on original.id = s.shared_post_id
+      join actor a on a.id = s.actor_id
+      where r.created >= ${since} and ${articleBoost} and ${qualifyingSharerCondition}
     union
     select s.link_id
       from post c
@@ -512,7 +579,16 @@ function activeLinkIdsSubquery(activeSince: Date): SQL {
       join actor a on a.id = s.actor_id
       where c.reply_target_id is not null
         and c.visibility in ('public', 'unlisted') and c.published >= ${since}
-        and ${share} and ${qualifyingSharerCondition}
+        and ${directShare} and ${qualifyingSharerCondition}
+    union
+    select original.link_id
+      from post c
+      join post s on s.id = c.reply_target_id
+      join post original on original.id = s.shared_post_id
+      join actor a on a.id = s.actor_id
+      where c.reply_target_id is not null
+        and c.visibility in ('public', 'unlisted') and c.published >= ${since}
+        and ${articleBoost} and ${qualifyingSharerCondition}
     union
     select s.link_id
       from post c
@@ -520,7 +596,16 @@ function activeLinkIdsSubquery(activeSince: Date): SQL {
       join actor a on a.id = s.actor_id
       where c.quoted_post_id is not null
         and c.visibility in ('public', 'unlisted') and c.published >= ${since}
-        and ${share} and ${qualifyingSharerCondition}
+        and ${directShare} and ${qualifyingSharerCondition}
+    union
+    select original.link_id
+      from post c
+      join post s on s.id = c.quoted_post_id
+      join post original on original.id = s.shared_post_id
+      join actor a on a.id = s.actor_id
+      where c.quoted_post_id is not null
+        and c.visibility in ('public', 'unlisted') and c.published >= ${since}
+        and ${articleBoost} and ${qualifyingSharerCondition}
   `;
 }
 
@@ -546,12 +631,39 @@ async function recomputeAggregate(
   scope: RecomputeScope,
 ): Promise<number> {
   const result = await db.execute(sql`
-    with shares as (
+    with share_roots as (
       select
         p.link_id as link_id,
         p.id as post_id,
+        p.actor_id as actor_id,
         p.published as published,
-        p.reactions_count as reactions_count,
+        p.reactions_count as reactions_count
+      from post p
+      where p.link_id is not null
+        and p.visibility in ('public', 'unlisted')
+        and p.shared_post_id is null${scopeFilter(scope, sql`p.link_id`)}
+      union all
+      select
+        original.link_id as link_id,
+        p.id as post_id,
+        p.actor_id as actor_id,
+        p.published as published,
+        p.reactions_count as reactions_count
+      from post p
+      join post original on original.id = p.shared_post_id
+      where original.type = 'Article'
+        and original.link_id is not null
+        and original.visibility in ('public', 'unlisted')
+        and p.visibility in ('public', 'unlisted')${
+    scopeFilter(scope, sql`original.link_id`)
+  }
+    ),
+    shares as (
+      select
+        sr.link_id as link_id,
+        sr.post_id as post_id,
+        sr.published as published,
+        sr.reactions_count as reactions_count,
         case
           when a.account_id is not null then ${NEWS_SOURCE_WEIGHT_LOCAL}::double precision
           when ${blueskyBridgeCondition}
@@ -568,8 +680,8 @@ async function recomputeAggregate(
         -- Seconds since this account's previous share of this same link (NULL
         -- for its first share), to damp repeated re-shares below.
         extract(epoch from (
-          p.published - lag(p.published) over (
-            partition by p.actor_id, p.link_id order by p.published, p.id
+          sr.published - lag(sr.published) over (
+            partition by sr.actor_id, sr.link_id order by sr.published, sr.post_id
           )
         )) as gap_seconds,
         -- The promotion bonus this share's author carries as a curated preferred
@@ -577,14 +689,11 @@ async function recomputeAggregate(
         -- (rather than the EXISTS inside qualifyingSharerCondition) because here
         -- we need the bonus value, not just membership.
         coalesce(ps.bonus, 0::double precision) as preferred_bonus
-      from post p
-      join actor a on a.id = p.actor_id
+      from share_roots sr
+      join actor a on a.id = sr.actor_id
       join instance i on i.host = a.instance_host
-      left join news_preferred_sharer ps on ps.actor_id = p.actor_id
-      where p.link_id is not null
-        and p.visibility in ('public', 'unlisted')
-        and p.shared_post_id is null
-        and ${qualifyingSharerCondition}${scopeFilter(scope, sql`p.link_id`)}
+      left join news_preferred_sharer ps on ps.actor_id = sr.actor_id
+      where ${qualifyingSharerCondition}
     ),
     -- Count only public/unlisted replies and quotes: the denormalized
     -- replies_count/quotes_count include followers-only and direct posts,
@@ -732,6 +841,16 @@ async function zeroStaleLinks(
           and p.shared_post_id is null
           and ${qualifyingSharerCondition}
       )
+      and not exists (
+        select 1 from post p
+        join post original on original.id = p.shared_post_id
+        join actor a on a.id = p.actor_id
+        where original.link_id = pl.id
+          and original.type = 'Article'
+          and original.visibility in ('public', 'unlisted')
+          and p.visibility in ('public', 'unlisted')
+          and ${qualifyingSharerCondition}
+      )
   `);
 }
 
@@ -840,10 +959,11 @@ export interface NewsSourceBreakdown {
 }
 
 /**
- * Count, per link, how many of its public sharing posts come from local,
- * generic-remote, and Bluesky-bridged accounts.  Batched for the GraphQL
- * `PostLink.sourceBreakdown` loader; links with no public share are absent
- * from the returned map.
+ * Count, per link, how many of its public sharing signals come from local,
+ * generic-remote, and Bluesky-bridged accounts.  A signal is a direct linked
+ * post or a boost of an `Article` backed by the link.  Batched for the GraphQL
+ * `PostLink.sourceBreakdown` loader; links with no public share are absent from
+ * the returned map.
  */
 export async function getNewsSourceBreakdowns(
   db: Database,
@@ -856,8 +976,23 @@ export async function getNewsSourceBreakdowns(
   const rows = await db.execute<
     { link_id: Uuid; local: string; remote: string; bluesky: string }
   >(sql`
+    with share_roots as (
+      select p.link_id as link_id, p.actor_id as actor_id
+      from post p
+      where p.link_id = any(${literal}::uuid[])
+        and p.visibility in ('public', 'unlisted')
+        and p.shared_post_id is null
+      union all
+      select original.link_id as link_id, p.actor_id as actor_id
+      from post p
+      join post original on original.id = p.shared_post_id
+      where original.link_id = any(${literal}::uuid[])
+        and original.type = 'Article'
+        and original.visibility in ('public', 'unlisted')
+        and p.visibility in ('public', 'unlisted')
+    )
     select
-      p.link_id as link_id,
+      sr.link_id as link_id,
       count(*) filter (where a.account_id is not null) as local,
       count(*) filter (
         where a.account_id is null and ${blueskyBridgeCondition}
@@ -865,14 +1000,11 @@ export async function getNewsSourceBreakdowns(
       count(*) filter (
         where a.account_id is null and not ${blueskyBridgeCondition}
       ) as remote
-    from post p
-    join actor a on a.id = p.actor_id
+    from share_roots sr
+    join actor a on a.id = sr.actor_id
     join instance i on i.host = a.instance_host
-    where p.link_id = any(${literal}::uuid[])
-      and p.visibility in ('public', 'unlisted')
-      and p.shared_post_id is null
-      and ${qualifyingSharerCondition}
-    group by p.link_id
+    where ${qualifyingSharerCondition}
+    group by sr.link_id
   `);
   for (const row of rows) {
     result.set(row.link_id, {
@@ -1113,25 +1245,32 @@ export function getNewsPenalizedStories(db: Database): Promise<PostLink[]> {
 // ---------------------------------------------------------------------------
 
 /**
- * Every link a given actor has shared (any non-boost post carrying a link,
- * regardless of the actor's bot status), so adding or removing it as a preferred
- * sharer can rescore exactly the links its whitelist and promotion affect.
+ * Every link a given actor has shared (any non-boost post carrying a link, plus
+ * any boost of an `Article` backed by a link, regardless of the actor's bot
+ * status), so adding or removing it as a preferred sharer can rescore exactly
+ * the links its whitelist and promotion affect.
  */
 async function actorSharedLinkIds(
   db: Database,
   actorId: Uuid,
 ): Promise<Uuid[]> {
-  const shares = await db.query.postTable.findMany({
-    where: {
-      actorId,
-      linkId: { isNotNull: true },
-      sharedPostId: { isNull: true },
-    },
-    columns: { linkId: true },
-  });
+  const shares = await db.execute<{ link_id: Uuid }>(sql`
+    select p.link_id as link_id
+    from post p
+    where p.actor_id = ${actorId}
+      and p.link_id is not null
+      and p.shared_post_id is null
+    union
+    select original.link_id as link_id
+    from post p
+    join post original on original.id = p.shared_post_id
+    where p.actor_id = ${actorId}
+      and original.type = 'Article'
+      and original.link_id is not null
+  `);
   return [
     ...new Set(
-      shares.map((s) => s.linkId).filter((id): id is Uuid => id != null),
+      shares.map((s) => s.link_id),
     ),
   ];
 }

@@ -193,17 +193,17 @@ msgid "{0} followed you"
 msgstr "{0} 关注了你"
 
 #. placeholder {0}: s.sourceBreakdown.bluesky
-#: src/components/NewsStoryHeader.tsx:137
+#: src/components/NewsStoryHeader.tsx:160
 msgid "{0} from Bluesky"
 msgstr "来自 Bluesky 的 {0} 次"
 
 #. placeholder {0}: s.sourceBreakdown.local
-#: src/components/NewsStoryHeader.tsx:131
+#: src/components/NewsStoryHeader.tsx:154
 msgid "{0} from Hackers' Pub"
 msgstr "来自 Hackers' Pub 的 {0} 次"
 
 #. placeholder {0}: s.sourceBreakdown.remote
-#: src/components/NewsStoryHeader.tsx:134
+#: src/components/NewsStoryHeader.tsx:157
 msgid "{0} from the fediverse"
 msgstr "来自联邦宇宙的 {0} 次"
 
@@ -307,10 +307,15 @@ msgstr "{0}的帖子"
 msgid "{0}'s shares"
 msgstr "{0}的转帖"
 
+#: src/components/NewsStoryCard.tsx:119
+#: src/components/NewsStoryHeader.tsx:66
+msgid "{count, plural, one {# discussion post} other {# discussion posts}}"
+msgstr "{count, plural, other {# 条讨论内容}}"
+
 #: src/components/NewsStoryCard.tsx:111
 #: src/components/NewsStoryHeader.tsx:58
-msgid "{count, plural, one {# opinion} other {# opinions}}"
-msgstr "{count, plural, other {# 条意见}}"
+#~ msgid "{count, plural, one {# opinion} other {# opinions}}"
+#~ msgstr "{count, plural, other {# 条意见}}"
 
 #: src/components/NewsStoryCard.tsx:51
 #: src/components/NewsStoryHeader.tsx:53
@@ -494,6 +499,11 @@ msgstr "您确定要撤销通行密钥“{0}”吗？您将无法再使用它登
 msgid "Are you sure you want to unblock {0} ({1})? They will be able to follow you and see your posts."
 msgstr "确定要取消屏蔽 {0}（{1}）吗？该用户将能够关注你并查看你的内容。"
 
+#: src/components/NewsStoryCard.tsx:184
+#: src/components/NewsStoryHeader.tsx:99
+msgid "Article"
+msgstr "文章"
+
 #: src/routes/(root)/[handle]/drafts/index.tsx:245
 #: src/routes/(root)/[handle]/drafts/index.tsx:247
 msgid "Article drafts"
@@ -614,14 +624,20 @@ msgstr "已关闭浏览器通知"
 msgid "Browser notifications enabled"
 msgstr "已开启浏览器通知"
 
-#: src/components/NewsStoryCard.tsx:228
+#: src/components/NewsStoryCard.tsx:251
 #: src/routes/(root)/admin/news.tsx:846
 msgid "Buried"
 msgstr "已沉底"
 
-#: src/components/NewsStoryCard.tsx:271
+#: src/components/NewsStoryCard.tsx:294
 msgid "Bury"
 msgstr "沉底"
+
+#. placeholder {0}: article.actor.name || article.actor.handle
+#: src/components/NewsStoryCard.tsx:195
+#: src/components/NewsStoryHeader.tsx:120
+msgid "By {0}"
+msgstr "由 {0} 发布"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:48
 #: src/components/NoteComposer.tsx:1374
@@ -632,7 +648,7 @@ msgstr "沉底"
 #: src/components/ProfileActionMenu.tsx:483
 #: src/components/ProfileActionMenu.tsx:513
 #: src/components/ProfileActionMenu.tsx:514
-#: src/components/QuotedNoteCard.tsx:248
+#: src/components/QuotedNoteCard.tsx:308
 #: src/components/RemoteFollowButton.tsx:218
 #: src/components/RemoteFollowButton.tsx:280
 #: src/components/RemoveFollowerButton.tsx:144
@@ -680,7 +696,7 @@ msgstr "请选择验证邮件的语言。"
 msgid "Clear"
 msgstr "清除"
 
-#: src/components/NewsStoryCard.tsx:277
+#: src/components/NewsStoryCard.tsx:300
 msgid "Clear penalty"
 msgstr "清除处罚"
 
@@ -766,7 +782,7 @@ msgstr "无法从来源刷新此对象。"
 msgid "Could not resolve that as a remote object."
 msgstr "无法将其解析为远程对象。"
 
-#: src/components/QuotedNoteCard.tsx:271
+#: src/components/QuotedNoteCard.tsx:331
 msgid "Could not revoke quote"
 msgstr "无法撤销引用"
 
@@ -826,7 +842,7 @@ msgid "Cutoff:"
 msgstr "截止时间："
 
 #: src/components/NoteCardInternal.tsx:132
-#: src/components/QuotedNoteCard.tsx:202
+#: src/components/QuotedNoteCard.tsx:217
 msgid "CW"
 msgstr "CW"
 
@@ -868,11 +884,11 @@ msgstr "删除内容？"
 msgid "Deleting…"
 msgstr "正在删除…"
 
-#: src/components/NewsStoryCard.tsx:265
+#: src/components/NewsStoryCard.tsx:288
 msgid "Demote"
 msgstr "降级"
 
-#: src/components/NewsStoryCard.tsx:228
+#: src/components/NewsStoryCard.tsx:251
 #: src/routes/(root)/admin/news.tsx:847
 msgid "Demoted"
 msgstr "已降级"
@@ -1024,8 +1040,8 @@ msgstr "请在下方输入您的邮箱或用户名以登录。"
 #: src/components/NoteComposer.tsx:928
 #: src/components/NoteComposer.tsx:936
 #: src/components/NoteComposer.tsx:993
-#: src/components/QuotedNoteCard.tsx:270
-#: src/components/QuotedNoteCard.tsx:278
+#: src/components/QuotedNoteCard.tsx:330
+#: src/components/QuotedNoteCard.tsx:338
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:258
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:346
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:356
@@ -1164,7 +1180,7 @@ msgstr "加载更多粉丝失败，点击重试"
 msgid "Failed to load more following; click to retry"
 msgstr "加载更多关注失败，点击重试"
 
-#: src/components/ActorInteractionList.tsx:85
+#: src/components/ActorInteractionList.tsx:93
 msgid "Failed to load more interactions; click to retry"
 msgstr "加载更多互动失败，点击重试"
 
@@ -1222,7 +1238,7 @@ msgstr "无法加载内容"
 msgid "Failed to load quoted post"
 msgstr "无法加载引用内容"
 
-#: src/components/NewsDiscussionThread.tsx:488
+#: src/components/NewsDiscussionThread.tsx:523
 msgid "Failed to load replies; click to retry"
 msgstr "加载回复失败，点击重试"
 
@@ -1380,8 +1396,8 @@ msgstr "取消转帖失败"
 msgid "Failed to unsubscribe from the relay."
 msgstr "取消订阅中继失败。"
 
-#: src/components/NewsStoryCard.tsx:91
-#: src/components/NewsStoryCard.tsx:95
+#: src/components/NewsStoryCard.tsx:98
+#: src/components/NewsStoryCard.tsx:102
 msgid "Failed to update penalty."
 msgstr "更新处罚失败。"
 
@@ -1423,7 +1439,7 @@ msgstr "联邦宇宙用户名"
 msgid "Feed"
 msgstr "订阅流"
 
-#: src/components/NewsStoryHeader.tsx:126
+#: src/components/NewsStoryHeader.tsx:149
 msgid "First shared"
 msgstr "首次转帖"
 
@@ -1597,7 +1613,7 @@ msgstr "隐藏账户"
 
 #: src/components/NoteCardInternal.tsx:141
 #: src/components/NoteMedia.tsx:270
-#: src/components/QuotedNoteCard.tsx:213
+#: src/components/QuotedNoteCard.tsx:228
 msgid "Hide"
 msgstr "隐藏"
 
@@ -1783,8 +1799,8 @@ msgstr "语言设置"
 msgid "Languages"
 msgstr "语言"
 
-#: src/components/NewsStoryCard.tsx:218
-#: src/components/NewsStoryHeader.tsx:119
+#: src/components/NewsStoryCard.tsx:241
+#: src/components/NewsStoryHeader.tsx:142
 msgid "Last active"
 msgstr "最近活动"
 
@@ -1835,8 +1851,12 @@ msgid "Links a moderator has demoted in the popular feed. Clear a penalty to res
 msgstr "版主在热门信息流中降级的链接。清除处罚可恢复链接的正常排名。"
 
 #: src/routes/(root)/news/index.tsx:41
-msgid "Links circulating across the fediverse, ranked by how much they are being shared and discussed."
-msgstr "联邦宇宙中流传的链接，按照被转帖和讨论的热度排名。"
+msgid "Links and articles circulating across the fediverse, ranked by how much they are being shared and discussed."
+msgstr "联邦宇宙中流传的链接和文章，按照被转帖和讨论的热度排名。"
+
+#: src/routes/(root)/news/index.tsx:41
+#~ msgid "Links circulating across the fediverse, ranked by how much they are being shared and discussed."
+#~ msgstr "联邦宇宙中流传的链接，按照被转帖和讨论的热度排名。"
 
 #: src/components/ui/markdown-editor.tsx:291
 msgid "List"
@@ -1867,7 +1887,7 @@ msgstr "加载更多粉丝"
 msgid "Load more following"
 msgstr "加载更多关注"
 
-#: src/components/ActorInteractionList.tsx:88
+#: src/components/ActorInteractionList.tsx:96
 msgid "Load more interactions"
 msgstr "加载更多互动"
 
@@ -1895,7 +1915,7 @@ msgstr "加载更多通行密钥"
 msgid "Load more posts"
 msgstr "加载更多内容"
 
-#: src/components/NewsDiscussionThread.tsx:456
+#: src/components/NewsDiscussionThread.tsx:491
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/quotes.tsx:198
 #: src/routes/(root)/[handle]/[noteId]/quotes.tsx:205
 msgid "Load more quotes"
@@ -1905,7 +1925,7 @@ msgstr "加载更多引用"
 #~ msgid "Load more reactors (+{0})"
 #~ msgstr "加载更多反应者 (+{0})"
 
-#: src/components/NewsDiscussionThread.tsx:479
+#: src/components/NewsDiscussionThread.tsx:514
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:711
 msgid "Load more replies"
 msgstr "加载更多回复"
@@ -1943,7 +1963,7 @@ msgstr "加载更多粉丝中…"
 msgid "Loading more following…"
 msgstr "正在加载更多关注…"
 
-#: src/components/ActorInteractionList.tsx:82
+#: src/components/ActorInteractionList.tsx:90
 msgid "Loading more interactions…"
 msgstr "正在加载更多互动…"
 
@@ -2052,8 +2072,8 @@ msgstr "媒体"
 msgid "Mentioned only"
 msgstr "只提及用户可见"
 
-#: src/components/NewsStoryCard.tsx:238
-#: src/components/NewsStoryCard.tsx:256
+#: src/components/NewsStoryCard.tsx:261
+#: src/components/NewsStoryCard.tsx:279
 msgid "Moderate"
 msgstr "管理"
 
@@ -2201,7 +2221,7 @@ msgstr "未找到粉丝"
 msgid "No following found"
 msgstr "没有找到关注的用户"
 
-#: src/components/ActorInteractionList.tsx:95
+#: src/components/ActorInteractionList.tsx:103
 msgid "No interactions found"
 msgstr "没有找到互动"
 
@@ -2656,7 +2676,7 @@ msgstr "引用"
 msgid "Quote permission"
 msgstr "引用权限"
 
-#: src/components/QuotedNoteCard.tsx:265
+#: src/components/QuotedNoteCard.tsx:325
 msgid "Quote revoked"
 msgstr "引用已撤销"
 
@@ -2704,6 +2724,7 @@ msgstr "反应"
 
 #: src/components/ArticleCard.tsx:515
 #: src/components/ArticleCard.tsx:535
+#: src/components/NewsDiscussionThread.tsx:428
 msgid "Read full article"
 msgstr "阅读完整文章"
 
@@ -2891,12 +2912,12 @@ msgstr "撤销"
 msgid "Revoke passkey"
 msgstr "撤销通行密钥"
 
-#: src/components/QuotedNoteCard.tsx:236
-#: src/components/QuotedNoteCard.tsx:286
+#: src/components/QuotedNoteCard.tsx:296
+#: src/components/QuotedNoteCard.tsx:346
 msgid "Revoke quote"
 msgstr "撤销引用"
 
-#: src/components/QuotedNoteCard.tsx:241
+#: src/components/QuotedNoteCard.tsx:301
 msgid "Revoke this quote?"
 msgstr "撤销此引用？"
 
@@ -2977,7 +2998,7 @@ msgstr "发送"
 msgid "Sending…"
 msgstr "发送中…"
 
-#: src/components/QuotedNoteCard.tsx:206
+#: src/components/QuotedNoteCard.tsx:221
 msgid "Sensitive content"
 msgstr "敏感内容"
 
@@ -3001,8 +3022,13 @@ msgstr "设置已保存"
 msgid "Share"
 msgstr "分享"
 
-#: src/components/NewsStoryCard.tsx:211
-#: src/components/NewsStoryHeader.tsx:145
+#: src/components/NewsStoryCard.tsx:234
+#: src/components/NewsStoryHeader.tsx:168
+msgid "Share this article"
+msgstr "转帖此文章"
+
+#: src/components/NewsStoryCard.tsx:234
+#: src/components/NewsStoryHeader.tsx:168
 msgid "Share this link"
 msgstr "转帖此链接"
 
@@ -3023,13 +3049,13 @@ msgstr "无法转帖此内容。"
 
 #: src/components/MutedReplyPlaceholder.tsx:32
 #: src/components/NoteCardInternal.tsx:141
-#: src/components/QuotedNoteCard.tsx:146
-#: src/components/QuotedNoteCard.tsx:213
+#: src/components/QuotedNoteCard.tsx:161
+#: src/components/QuotedNoteCard.tsx:228
 msgid "Show"
 msgstr "显示"
 
 #. placeholder {0}: childCount()
-#: src/components/NewsDiscussionThread.tsx:432
+#: src/components/NewsDiscussionThread.tsx:467
 msgid "Show {0} more in this thread"
 msgstr "显示该讨论中的另外 {0} 条"
 
@@ -3172,6 +3198,7 @@ msgid "Successfully saved settings"
 msgstr "设置保存成功"
 
 #: src/components/ArticleCard.tsx:488
+#: src/components/QuotedNoteCard.tsx:278
 msgid "Summarized by LLM"
 msgstr "由 AI 生成的摘要"
 
@@ -3278,7 +3305,7 @@ msgstr "通行密钥已成功撤销。"
 msgid "The primary language of your article, used for accessibility and discovery."
 msgstr "文章的主要语言，用于无障碍功能和内容发现。"
 
-#: src/components/QuotedNoteCard.tsx:244
+#: src/components/QuotedNoteCard.tsx:304
 msgid "The quoting post will no longer include your post as a quote."
 msgstr "引用内容将不再把你的内容作为引用包含在内。"
 
@@ -3350,7 +3377,7 @@ msgid "This quote is waiting for approval from the original author."
 msgstr "此引用正在等待原作者批准。"
 
 #. placeholder {0}: post.actor.handle
-#: src/components/QuotedNoteCard.tsx:138
+#: src/components/QuotedNoteCard.tsx:153
 msgid "This quoted post is hidden because you muted {0}."
 msgstr "因为你隐藏了 {0}，此引用已被隐藏。"
 

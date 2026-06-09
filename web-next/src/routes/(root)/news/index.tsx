@@ -38,7 +38,7 @@ export default function NewsPage() {
       <div class="px-4 pt-6 pb-2">
         <h1 class="text-2xl font-semibold tracking-tight">{t`News`}</h1>
         <p class="mt-1 text-sm text-muted-foreground">
-          {t`Links circulating across the fediverse, ranked by how much they are being shared and discussed.`}
+          {t`Links and articles circulating across the fediverse, ranked by how much they are being shared and discussed.`}
         </p>
       </div>
       <Show keyed when={data()}>

@@ -25,6 +25,13 @@ export function NewsStoryHeader(props: NewsStoryHeaderProps) {
         discussionCount
         firstSharedAt
         latestActivityAt
+        article {
+          id
+          actor {
+            name
+            handle
+          }
+        }
         creator {
           ...LinkCreatorAttribution_creator
         }
@@ -54,8 +61,15 @@ export function NewsStoryHeader(props: NewsStoryHeaderProps) {
     }
   });
 
-  const opinionsText = (count: number) =>
-    i18n._(msg`${plural(count, { one: "# opinion", other: "# opinions" })}`);
+  const discussionText = (count: number) =>
+    i18n._(
+      msg`${
+        plural(count, {
+          one: "# discussion post",
+          other: "# discussion posts",
+        })
+      }`,
+    );
 
   return (
     <Show keyed when={story()}>
@@ -83,6 +97,10 @@ export function NewsStoryHeader(props: NewsStoryHeaderProps) {
             </Show>
             <div class="min-w-0 p-5">
               <p class="text-xs font-medium tracking-wide text-muted-foreground/70 uppercase">
+                <Show when={s.article}>
+                  <span class="text-foreground">{t`Article`}</span>
+                  <span class="mx-1">·</span>
+                </Show>
                 <span>{host()}</span>
                 <Show when={s.siteName && s.siteName !== host()}>
                   <span>· {s.siteName}</span>
@@ -95,6 +113,13 @@ export function NewsStoryHeader(props: NewsStoryHeaderProps) {
                 {(description) => (
                   <p class="mt-2 line-clamp-3 text-sm break-words text-muted-foreground">
                     {description}
+                  </p>
+                )}
+              </Show>
+              <Show keyed when={s.article}>
+                {(article) => (
+                  <p class="mt-2 truncate text-sm text-muted-foreground">
+                    {t`By ${article.actor.name || article.actor.handle}`}
                   </p>
                 )}
               </Show>
@@ -111,7 +136,7 @@ export function NewsStoryHeader(props: NewsStoryHeaderProps) {
               )}
             </Show>
             <span class="font-medium text-foreground">
-              {opinionsText(s.discussionCount)}
+              {discussionText(s.discussionCount)}
             </span>
             <Show keyed when={s.latestActivityAt}>
               {(at) => (
@@ -142,7 +167,7 @@ export function NewsStoryHeader(props: NewsStoryHeaderProps) {
               class="ms-auto"
               onClick={() => openWithContent(`${s.url}\n\n`)}
             >
-              {t`Share this link`}
+              {s.article ? t`Share this article` : t`Share this link`}
             </Button>
           </div>
         </div>

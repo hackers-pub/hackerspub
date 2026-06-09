@@ -4,10 +4,12 @@ import {
   createSignal,
   For,
   getOwner,
+  Match,
   onCleanup,
   onMount,
   runWithOwner,
   Show,
+  Switch,
 } from "solid-js";
 import { createFragment, useRelayEnvironment } from "solid-relay";
 import { ActorHoverCard } from "~/components/ActorHoverCard.tsx";
@@ -110,6 +112,7 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
     graphql`
       fragment NewsDiscussionThread_post on Post {
         id
+        __typename
         uuid
         content
         language
@@ -120,6 +123,10 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
         ... on Note {
           rawContent
           quotePolicy
+        }
+        ... on Article {
+          name
+          excerptHtml(maxChars: 700)
         }
         engagementStats {
           replies
@@ -389,12 +396,42 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
                     <Timestamp value={p.published} />
                   </a>
                 </div>
-                <div
-                  ref={setProseRef}
-                  innerHTML={p.content}
-                  lang={p.language ?? undefined}
-                  class="prose dark:prose-invert mt-1 max-w-none break-words"
-                />
+                <Switch
+                  fallback={
+                    <div
+                      ref={setProseRef}
+                      innerHTML={p.content}
+                      lang={p.language ?? undefined}
+                      class="prose dark:prose-invert mt-1 max-w-none break-words"
+                    />
+                  }
+                >
+                  <Match when={p.__typename === "Article"}>
+                    <div class="mt-1">
+                      <Show keyed when={p.name}>
+                        {(name) => (
+                          <h3 class="text-base font-semibold leading-snug">
+                            <a href={p.url ?? p.iri} class="hover:underline">
+                              {name}
+                            </a>
+                          </h3>
+                        )}
+                      </Show>
+                      <div
+                        ref={setProseRef}
+                        innerHTML={p.excerptHtml}
+                        lang={p.language ?? undefined}
+                        class="prose dark:prose-invert mt-1 line-clamp-4 max-w-none break-words text-sm text-muted-foreground"
+                      />
+                      <a
+                        href={p.url ?? p.iri}
+                        class="mt-2 inline-block text-sm font-medium text-primary hover:underline"
+                      >
+                        {t`Read full article`}
+                      </a>
+                    </div>
+                  </Match>
+                </Switch>
                 <PostEngagementBar
                   $post={p}
                   repliesHref={null}

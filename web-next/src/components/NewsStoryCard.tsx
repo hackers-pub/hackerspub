@@ -60,6 +60,13 @@ export function NewsStoryCard(props: NewsStoryCardProps) {
         discussionCount
         latestActivityAt
         penalty
+        article {
+          id
+          actor {
+            name
+            handle
+          }
+        }
         creator {
           ...LinkCreatorAttribution_creator
         }
@@ -107,8 +114,15 @@ export function NewsStoryCard(props: NewsStoryCardProps) {
     }
   });
 
-  const opinionsText = (count: number) =>
-    i18n._(msg`${plural(count, { one: "# opinion", other: "# opinions" })}`);
+  const discussionText = (count: number) =>
+    i18n._(
+      msg`${
+        plural(count, {
+          one: "# discussion post",
+          other: "# discussion posts",
+        })
+      }`,
+    );
 
   return (
     <Show keyed when={story()}>
@@ -117,8 +131,8 @@ export function NewsStoryCard(props: NewsStoryCardProps) {
           {/* Discussion count, doubling as the link into the conversation. */}
           <A
             href={`/news/${s.uuid}`}
-            aria-label={opinionsText(s.discussionCount)}
-            title={opinionsText(s.discussionCount)}
+            aria-label={discussionText(s.discussionCount)}
+            title={discussionText(s.discussionCount)}
             class="flex w-11 shrink-0 flex-col items-center justify-center gap-0.5 self-stretch rounded-md py-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <svg
@@ -168,11 +182,22 @@ export function NewsStoryCard(props: NewsStoryCardProps) {
               </a>
             </h2>
             <p class="mt-0.5 truncate text-xs text-muted-foreground/70">
+              <Show when={s.article}>
+                <span class="font-medium text-foreground">{t`Article`}</span>
+                <span class="mx-1">·</span>
+              </Show>
               <span class="font-medium">{host()}</span>
               <Show when={s.siteName && s.siteName !== host()}>
                 <span>· {s.siteName}</span>
               </Show>
             </p>
+            <Show keyed when={s.article}>
+              {(article) => (
+                <p class="mt-1 truncate text-xs text-muted-foreground">
+                  {t`By ${article.actor.name || article.actor.handle}`}
+                </p>
+              )}
+            </Show>
             <Show keyed when={s.creator}>
               {(creator) => (
                 <LinkCreatorAttribution
@@ -208,7 +233,7 @@ export function NewsStoryCard(props: NewsStoryCardProps) {
                     d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.862 4.487Zm0 0L19.5 7.125"
                   />
                 </svg>
-                {t`Share this link`}
+                {s.article ? t`Share this article` : t`Share this link`}
               </button>
               <Show keyed when={s.latestActivityAt}>
                 {(at) => (

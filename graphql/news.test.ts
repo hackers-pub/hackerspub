@@ -4,7 +4,7 @@ import {
   drainNewsRescoreQueue,
   recomputeNewsScores,
 } from "@hackerspub/models/news";
-import { accountTable } from "@hackerspub/models/schema";
+import { accountTable, postTable } from "@hackerspub/models/schema";
 import { eq } from "drizzle-orm";
 import { execute, parse } from "graphql";
 import type { Transaction } from "@hackerspub/models/db";
@@ -15,6 +15,7 @@ import {
   insertNotePost,
   insertPostLink,
   insertRemoteActor,
+  insertRemotePost,
   makeGuestContext,
   makeUserContext,
   withRollback,
@@ -47,6 +48,18 @@ const newsStoriesQuery = parse(`
           weightedMass
           postCount
         }
+      }
+    }
+  }
+`);
+
+const newsStoryWithArticleQuery = parse(`
+  query NewsStoryWithArticle($id: UUID!) {
+    newsStory(id: $id) {
+      url
+      article {
+        __typename
+        name
       }
     }
   }
@@ -100,6 +113,52 @@ test("newsStories ranks links by score for a guest, popular by default", async (
       high.url,
       low.url,
     ]);
+  });
+});
+
+test("newsStories exposes the Article backing an article news link", async () => {
+  await withRollback(async (tx) => {
+    const actor = await insertRemoteActor(tx, {
+      username: "gqlarticle",
+      name: "GQL Article",
+      host: "blog.example",
+    });
+    const link = await insertPostLink(tx, {
+      url: "https://blog.example/articles/gql",
+      title: "GQL article",
+    });
+    const post = await insertRemotePost(tx, {
+      actorId: actor.id,
+      contentHtml: "<p>Article body</p>",
+      link: { id: link.id, url: link.url },
+    });
+    await tx.update(postTable).set({
+      type: "Article",
+      name: "GQL article",
+      url: link.url,
+    }).where(eq(postTable.id, post.id));
+    await recomputeNewsScores(tx);
+
+    const result = await execute({
+      schema,
+      document: newsStoryWithArticleQuery,
+      variableValues: { id: link.id },
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(result.errors, undefined);
+    const story = (result.data as {
+      newsStory: {
+        url: string;
+        article: { __typename: string; name: string } | null;
+      };
+    }).newsStory;
+    assert.equal(story.url, link.url);
+    assert.deepEqual(story.article, {
+      __typename: "Article",
+      name: "GQL article",
+    });
   });
 });
 

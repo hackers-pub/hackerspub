@@ -193,17 +193,17 @@ msgid "{0} followed you"
 msgstr "{0}さんがあなたをフォローしました"
 
 #. placeholder {0}: s.sourceBreakdown.bluesky
-#: src/components/NewsStoryHeader.tsx:137
+#: src/components/NewsStoryHeader.tsx:160
 msgid "{0} from Bluesky"
 msgstr "Blueskyから{0}件"
 
 #. placeholder {0}: s.sourceBreakdown.local
-#: src/components/NewsStoryHeader.tsx:131
+#: src/components/NewsStoryHeader.tsx:154
 msgid "{0} from Hackers' Pub"
 msgstr "Hackers' Pubから{0}件"
 
 #. placeholder {0}: s.sourceBreakdown.remote
-#: src/components/NewsStoryHeader.tsx:134
+#: src/components/NewsStoryHeader.tsx:157
 msgid "{0} from the fediverse"
 msgstr "フェディバースから{0}件"
 
@@ -307,10 +307,15 @@ msgstr "{0}さんの投稿"
 msgid "{0}'s shares"
 msgstr "{0}さんの共有"
 
+#: src/components/NewsStoryCard.tsx:119
+#: src/components/NewsStoryHeader.tsx:66
+msgid "{count, plural, one {# discussion post} other {# discussion posts}}"
+msgstr "{count, plural, other {議論のコンテンツ #件}}"
+
 #: src/components/NewsStoryCard.tsx:111
 #: src/components/NewsStoryHeader.tsx:58
-msgid "{count, plural, one {# opinion} other {# opinions}}"
-msgstr "{count, plural, other {#件の意見}}"
+#~ msgid "{count, plural, one {# opinion} other {# opinions}}"
+#~ msgstr "{count, plural, other {#件の意見}}"
 
 #: src/components/NewsStoryCard.tsx:51
 #: src/components/NewsStoryHeader.tsx:53
@@ -494,6 +499,11 @@ msgstr "パスキー{0}を取り消しますか？このパスキーを使用し
 msgid "Are you sure you want to unblock {0} ({1})? They will be able to follow you and see your posts."
 msgstr "{0}さん（{1}）のブロックを解除しますか？このユーザーはあなたをフォローしたり、あなたのコンテンツを見たりできるようになります。"
 
+#: src/components/NewsStoryCard.tsx:184
+#: src/components/NewsStoryHeader.tsx:99
+msgid "Article"
+msgstr "記事"
+
 #: src/routes/(root)/[handle]/drafts/index.tsx:245
 #: src/routes/(root)/[handle]/drafts/index.tsx:247
 msgid "Article drafts"
@@ -614,14 +624,20 @@ msgstr "ブラウザー通知を無効にしました"
 msgid "Browser notifications enabled"
 msgstr "ブラウザー通知を有効にしました"
 
-#: src/components/NewsStoryCard.tsx:228
+#: src/components/NewsStoryCard.tsx:251
 #: src/routes/(root)/admin/news.tsx:846
 msgid "Buried"
 msgstr "埋没済み"
 
-#: src/components/NewsStoryCard.tsx:271
+#: src/components/NewsStoryCard.tsx:294
 msgid "Bury"
 msgstr "埋没"
+
+#. placeholder {0}: article.actor.name || article.actor.handle
+#: src/components/NewsStoryCard.tsx:195
+#: src/components/NewsStoryHeader.tsx:120
+msgid "By {0}"
+msgstr "{0}さんによる記事"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:48
 #: src/components/NoteComposer.tsx:1374
@@ -632,7 +648,7 @@ msgstr "埋没"
 #: src/components/ProfileActionMenu.tsx:483
 #: src/components/ProfileActionMenu.tsx:513
 #: src/components/ProfileActionMenu.tsx:514
-#: src/components/QuotedNoteCard.tsx:248
+#: src/components/QuotedNoteCard.tsx:308
 #: src/components/RemoteFollowButton.tsx:218
 #: src/components/RemoteFollowButton.tsx:280
 #: src/components/RemoveFollowerButton.tsx:144
@@ -680,7 +696,7 @@ msgstr "確認メールの言語を選択してください。"
 msgid "Clear"
 msgstr "クリア"
 
-#: src/components/NewsStoryCard.tsx:277
+#: src/components/NewsStoryCard.tsx:300
 msgid "Clear penalty"
 msgstr "ペナルティを解除"
 
@@ -766,7 +782,7 @@ msgstr "この項目を配信元から再取得できませんでした。"
 msgid "Could not resolve that as a remote object."
 msgstr "リモートオブジェクトとして解決できませんでした。"
 
-#: src/components/QuotedNoteCard.tsx:271
+#: src/components/QuotedNoteCard.tsx:331
 msgid "Could not revoke quote"
 msgstr "引用を取り消せませんでした"
 
@@ -826,7 +842,7 @@ msgid "Cutoff:"
 msgstr "カットオフ："
 
 #: src/components/NoteCardInternal.tsx:132
-#: src/components/QuotedNoteCard.tsx:202
+#: src/components/QuotedNoteCard.tsx:217
 msgid "CW"
 msgstr "CW"
 
@@ -868,11 +884,11 @@ msgstr "コンテンツを削除しますか？"
 msgid "Deleting…"
 msgstr "削除中…"
 
-#: src/components/NewsStoryCard.tsx:265
+#: src/components/NewsStoryCard.tsx:288
 msgid "Demote"
 msgstr "降格"
 
-#: src/components/NewsStoryCard.tsx:228
+#: src/components/NewsStoryCard.tsx:251
 #: src/routes/(root)/admin/news.tsx:847
 msgid "Demoted"
 msgstr "降格済み"
@@ -1024,8 +1040,8 @@ msgstr "以下にメールアドレスまたはユーザー名を入力してロ
 #: src/components/NoteComposer.tsx:928
 #: src/components/NoteComposer.tsx:936
 #: src/components/NoteComposer.tsx:993
-#: src/components/QuotedNoteCard.tsx:270
-#: src/components/QuotedNoteCard.tsx:278
+#: src/components/QuotedNoteCard.tsx:330
+#: src/components/QuotedNoteCard.tsx:338
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:258
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:346
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:356
@@ -1164,7 +1180,7 @@ msgstr "フォロワーの読み込みに失敗しました。クリックして
 msgid "Failed to load more following; click to retry"
 msgstr "フォロー中の読み込みに失敗しました。クリックして再試行してください"
 
-#: src/components/ActorInteractionList.tsx:85
+#: src/components/ActorInteractionList.tsx:93
 msgid "Failed to load more interactions; click to retry"
 msgstr "やり取りの読み込みに失敗しました。クリックして再試行してください"
 
@@ -1222,7 +1238,7 @@ msgstr "コンテンツの読み込みに失敗しました"
 msgid "Failed to load quoted post"
 msgstr "引用コンテンツの読み込みに失敗しました"
 
-#: src/components/NewsDiscussionThread.tsx:488
+#: src/components/NewsDiscussionThread.tsx:523
 msgid "Failed to load replies; click to retry"
 msgstr "返信の読み込みに失敗しました。クリックして再試行してください"
 
@@ -1380,8 +1396,8 @@ msgstr "共有の取り消しに失敗しました"
 msgid "Failed to unsubscribe from the relay."
 msgstr "リレーの購読解除に失敗しました。"
 
-#: src/components/NewsStoryCard.tsx:91
-#: src/components/NewsStoryCard.tsx:95
+#: src/components/NewsStoryCard.tsx:98
+#: src/components/NewsStoryCard.tsx:102
 msgid "Failed to update penalty."
 msgstr "ペナルティの更新に失敗しました。"
 
@@ -1423,7 +1439,7 @@ msgstr "フェディバースのハンドル"
 msgid "Feed"
 msgstr "フィード"
 
-#: src/components/NewsStoryHeader.tsx:126
+#: src/components/NewsStoryHeader.tsx:149
 msgid "First shared"
 msgstr "最初の共有"
 
@@ -1597,7 +1613,7 @@ msgstr "非表示のアカウント"
 
 #: src/components/NoteCardInternal.tsx:141
 #: src/components/NoteMedia.tsx:270
-#: src/components/QuotedNoteCard.tsx:213
+#: src/components/QuotedNoteCard.tsx:228
 msgid "Hide"
 msgstr "隠す"
 
@@ -1783,8 +1799,8 @@ msgstr "言語設定"
 msgid "Languages"
 msgstr "言語"
 
-#: src/components/NewsStoryCard.tsx:218
-#: src/components/NewsStoryHeader.tsx:119
+#: src/components/NewsStoryCard.tsx:241
+#: src/components/NewsStoryHeader.tsx:142
 msgid "Last active"
 msgstr "最後の活動"
 
@@ -1835,8 +1851,12 @@ msgid "Links a moderator has demoted in the popular feed. Clear a penalty to res
 msgstr "モデレーターが人気フィードで降格させたリンクです。ペナルティを解除すると、リンクの順位が元に戻ります。"
 
 #: src/routes/(root)/news/index.tsx:41
-msgid "Links circulating across the fediverse, ranked by how much they are being shared and discussed."
-msgstr "フェディバース全体で広がっているリンクを、共有や議論の多さに応じてランキング表示します。"
+msgid "Links and articles circulating across the fediverse, ranked by how much they are being shared and discussed."
+msgstr "フェディバース全体で広がっているリンクと記事を、共有や議論の多さに応じてランキング表示します。"
+
+#: src/routes/(root)/news/index.tsx:41
+#~ msgid "Links circulating across the fediverse, ranked by how much they are being shared and discussed."
+#~ msgstr "フェディバース全体で広がっているリンクを、共有や議論の多さに応じてランキング表示します。"
 
 #: src/components/ui/markdown-editor.tsx:291
 msgid "List"
@@ -1867,7 +1887,7 @@ msgstr "フォロワーをもっと読み込む"
 msgid "Load more following"
 msgstr "フォロー中をもっと読み込む"
 
-#: src/components/ActorInteractionList.tsx:88
+#: src/components/ActorInteractionList.tsx:96
 msgid "Load more interactions"
 msgstr "やり取りをもっと読み込む"
 
@@ -1895,7 +1915,7 @@ msgstr "パスキーを読み込む"
 msgid "Load more posts"
 msgstr "コンテンツをもっと読み込む"
 
-#: src/components/NewsDiscussionThread.tsx:456
+#: src/components/NewsDiscussionThread.tsx:491
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/quotes.tsx:198
 #: src/routes/(root)/[handle]/[noteId]/quotes.tsx:205
 msgid "Load more quotes"
@@ -1905,7 +1925,7 @@ msgstr "引用をもっと読み込む"
 #~ msgid "Load more reactors (+{0})"
 #~ msgstr "リアクターをもっと読み込む (+{0})"
 
-#: src/components/NewsDiscussionThread.tsx:479
+#: src/components/NewsDiscussionThread.tsx:514
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:711
 msgid "Load more replies"
 msgstr "返信をもっと読み込む"
@@ -1943,7 +1963,7 @@ msgstr "フォロワーを読み込み中…"
 msgid "Loading more following…"
 msgstr "フォロー中を読み込み中…"
 
-#: src/components/ActorInteractionList.tsx:82
+#: src/components/ActorInteractionList.tsx:90
 msgid "Loading more interactions…"
 msgstr "やり取りを読み込み中…"
 
@@ -2052,8 +2072,8 @@ msgstr "メディア"
 msgid "Mentioned only"
 msgstr "メンションされたユーザーのみ"
 
-#: src/components/NewsStoryCard.tsx:238
-#: src/components/NewsStoryCard.tsx:256
+#: src/components/NewsStoryCard.tsx:261
+#: src/components/NewsStoryCard.tsx:279
 msgid "Moderate"
 msgstr "管理"
 
@@ -2201,7 +2221,7 @@ msgstr "フォロワーはいません"
 msgid "No following found"
 msgstr "フォロー中のユーザーはいません"
 
-#: src/components/ActorInteractionList.tsx:95
+#: src/components/ActorInteractionList.tsx:103
 msgid "No interactions found"
 msgstr "やり取りはありません"
 
@@ -2656,7 +2676,7 @@ msgstr "引用"
 msgid "Quote permission"
 msgstr "引用権限"
 
-#: src/components/QuotedNoteCard.tsx:265
+#: src/components/QuotedNoteCard.tsx:325
 msgid "Quote revoked"
 msgstr "引用を取り消しました"
 
@@ -2704,6 +2724,7 @@ msgstr "リアクション"
 
 #: src/components/ArticleCard.tsx:515
 #: src/components/ArticleCard.tsx:535
+#: src/components/NewsDiscussionThread.tsx:428
 msgid "Read full article"
 msgstr "記事全文を読む"
 
@@ -2891,12 +2912,12 @@ msgstr "取り消す"
 msgid "Revoke passkey"
 msgstr "パスキーを取り消す"
 
-#: src/components/QuotedNoteCard.tsx:236
-#: src/components/QuotedNoteCard.tsx:286
+#: src/components/QuotedNoteCard.tsx:296
+#: src/components/QuotedNoteCard.tsx:346
 msgid "Revoke quote"
 msgstr "引用を取り消す"
 
-#: src/components/QuotedNoteCard.tsx:241
+#: src/components/QuotedNoteCard.tsx:301
 msgid "Revoke this quote?"
 msgstr "この引用を取り消しますか？"
 
@@ -2977,7 +2998,7 @@ msgstr "送信"
 msgid "Sending…"
 msgstr "送信中…"
 
-#: src/components/QuotedNoteCard.tsx:206
+#: src/components/QuotedNoteCard.tsx:221
 msgid "Sensitive content"
 msgstr "センシティブなコンテンツ"
 
@@ -3001,8 +3022,13 @@ msgstr "設定を保存しました"
 msgid "Share"
 msgstr "共有"
 
-#: src/components/NewsStoryCard.tsx:211
-#: src/components/NewsStoryHeader.tsx:145
+#: src/components/NewsStoryCard.tsx:234
+#: src/components/NewsStoryHeader.tsx:168
+msgid "Share this article"
+msgstr "この記事を共有"
+
+#: src/components/NewsStoryCard.tsx:234
+#: src/components/NewsStoryHeader.tsx:168
 msgid "Share this link"
 msgstr "このリンクを共有"
 
@@ -3023,13 +3049,13 @@ msgstr "このコンテンツは共有できません。"
 
 #: src/components/MutedReplyPlaceholder.tsx:32
 #: src/components/NoteCardInternal.tsx:141
-#: src/components/QuotedNoteCard.tsx:146
-#: src/components/QuotedNoteCard.tsx:213
+#: src/components/QuotedNoteCard.tsx:161
+#: src/components/QuotedNoteCard.tsx:228
 msgid "Show"
 msgstr "表示"
 
 #. placeholder {0}: childCount()
-#: src/components/NewsDiscussionThread.tsx:432
+#: src/components/NewsDiscussionThread.tsx:467
 msgid "Show {0} more in this thread"
 msgstr "このスレッドであと{0}件を表示"
 
@@ -3172,6 +3198,7 @@ msgid "Successfully saved settings"
 msgstr "設定を正常に保存しました"
 
 #: src/components/ArticleCard.tsx:488
+#: src/components/QuotedNoteCard.tsx:278
 msgid "Summarized by LLM"
 msgstr "LLMによる要約"
 
@@ -3278,7 +3305,7 @@ msgstr "パスキーを正常に取り消しました。"
 msgid "The primary language of your article, used for accessibility and discovery."
 msgstr "記事の主言語です。アクセシビリティや検索に使用されます。"
 
-#: src/components/QuotedNoteCard.tsx:244
+#: src/components/QuotedNoteCard.tsx:304
 msgid "The quoting post will no longer include your post as a quote."
 msgstr "引用しているコンテンツには、あなたのコンテンツが引用として含まれなくなります。"
 
@@ -3350,7 +3377,7 @@ msgid "This quote is waiting for approval from the original author."
 msgstr "この引用は元の作成者からの承認を待っています。"
 
 #. placeholder {0}: post.actor.handle
-#: src/components/QuotedNoteCard.tsx:138
+#: src/components/QuotedNoteCard.tsx:153
 msgid "This quoted post is hidden because you muted {0}."
 msgstr "{0}をミュートしているため、この引用は非表示になっています。"
 

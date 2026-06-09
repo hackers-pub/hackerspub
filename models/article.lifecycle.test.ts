@@ -45,6 +45,20 @@ test("createArticle() creates a post and timeline entry for the author", async (
     assert.equal(article.articleSource.slug, "create-article");
     assert.equal(article.name, "Article title");
     assert.match(article.contentHtml, /<strong>article<\/strong>/);
+    assert.ok(article.linkId != null);
+    assert.equal(article.linkUrl, article.url);
+
+    const link = await tx.query.postLinkTable.findFirst({
+      where: { id: article.linkId },
+    });
+    assert.ok(link != null);
+    assert.equal(link.url, article.url);
+    assert.equal(link.title, "Article title");
+    assert.equal(link.type, "article");
+    assert.equal(link.creatorId, author.actor.id);
+    assert.equal(link.postCount, 1);
+    assert.ok(link.latestActivityAt != null);
+    assert.ok(link.scoreUpdated != null);
 
     const timelineItem = await tx.query.timelineItemTable.findFirst({
       where: {
@@ -170,6 +184,8 @@ test("updateArticle() rewrites the persisted article post", async () => {
       language: "en",
     });
     assert.ok(article != null);
+    const originalLinkId = article.linkId;
+    assert.ok(originalLinkId != null);
 
     const updated = await updateArticle(fedCtx, article.articleSource.id, {
       slug: "updated-article",
@@ -184,6 +200,9 @@ test("updateArticle() rewrites the persisted article post", async () => {
     assert.equal(updated.name, "Updated article");
     assert.match(updated.contentHtml, /<strong>body<\/strong>/);
     assert.match(updated.url ?? "", /updated-article$/);
+    assert.ok(updated.linkId != null);
+    assert.notEqual(updated.linkId, originalLinkId);
+    assert.equal(updated.linkUrl, updated.url);
 
     const storedPost = await tx.query.postTable.findFirst({
       where: { id: article.id },
@@ -192,6 +211,21 @@ test("updateArticle() rewrites the persisted article post", async () => {
     assert.equal(storedPost.articleSourceId, article.articleSource.id);
     assert.equal(storedPost.name, "Updated article");
     assert.match(storedPost.contentHtml, /<strong>body<\/strong>/);
+    assert.equal(storedPost.linkId, updated.linkId);
+
+    const originalLink = await tx.query.postLinkTable.findFirst({
+      where: { id: originalLinkId },
+    });
+    assert.ok(originalLink != null);
+    assert.equal(originalLink.latestActivityAt, null);
+
+    const updatedLink = await tx.query.postLinkTable.findFirst({
+      where: { id: updated.linkId },
+    });
+    assert.ok(updatedLink != null);
+    assert.equal(updatedLink.url, updated.url);
+    assert.equal(updatedLink.title, "Updated article");
+    assert.ok(updatedLink.latestActivityAt != null);
   });
 });
 

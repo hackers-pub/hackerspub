@@ -48,7 +48,7 @@ import {
 import type { ContextData } from "./context.ts";
 import { toDate } from "./date.ts";
 import type { Database, RelationsFilter, Transaction } from "./db.ts";
-import { extractExternalLinks } from "./html.ts";
+import { extractExternalLinks, stripHtml } from "./html.ts";
 import { getMissingArticleMediumLabel, renderMarkup } from "./markup.ts";
 import { persistPostMedium } from "./medium.ts";
 import { refreshNewsScores, refreshNewsScoresForPostLinks } from "./news.ts";
@@ -134,6 +134,7 @@ const INLINE_REPLIES_TRAVERSAL_BUDGET_MS = 15_000;
 // work and the persistPost subtree under one shared deadline.
 export const PERSIST_POST_OVERALL_BUDGET_MS = 90_000;
 const SCRAPE_IMAGE_METADATA_BYTES_LIMIT = 128 * 1024;
+const ARTICLE_LINK_DESCRIPTION_MAX_LENGTH = 500;
 
 function getRemoteFetchSignal(signal?: AbortSignal): AbortSignal {
   const signals = [AbortSignal.timeout(REMOTE_FETCH_TIMEOUT_MS), signal]
@@ -219,6 +220,76 @@ function deleteActorMentionHrefs(
   actor: Actor,
 ): void {
   for (const href of getActorMentionHrefs(actor)) mentionHrefs.delete(href);
+}
+
+function isHttpUrl(value: string | undefined | null): value is string {
+  if (value == null) return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function truncatePlainText(value: string): string {
+  const text = value.replace(/\s+/g, " ").trim();
+  if (text.length <= ARTICLE_LINK_DESCRIPTION_MAX_LENGTH) return text;
+  return `${
+    text.slice(0, ARTICLE_LINK_DESCRIPTION_MAX_LENGTH - 3).trimEnd()
+  }...`;
+}
+
+async function persistArticleNewsLink(
+  fedCtx: Context<ContextData>,
+  article: {
+    readonly url: string | null | undefined;
+    readonly iri: string;
+    readonly name: string | null | undefined;
+    readonly summary: string | null | undefined;
+    readonly contentHtml: string | null | undefined;
+  },
+  actor: Pick<Actor, "id" | "name" | "username">,
+): Promise<PostLink | undefined> {
+  const url = isHttpUrl(article.url) ? article.url : article.iri;
+  if (!isHttpUrl(url)) return undefined;
+  const parsed = new URL(url);
+  const description = article.summary == null || article.summary.trim() === ""
+    ? article.contentHtml == null
+      ? undefined
+      : truncatePlainText(stripHtml(article.contentHtml))
+    : truncatePlainText(stripHtml(article.summary));
+  const author = actor.name == null || actor.name.trim() === ""
+    ? actor.username
+    : actor.name;
+  const values: NewPostLink = {
+    id: generateUuidV7(),
+    url: parsed.href,
+    title: article.name ?? undefined,
+    siteName: parsed.host,
+    type: "article",
+    description,
+    author,
+    creatorId: actor.id,
+  };
+  const rows = await fedCtx.data.db
+    .insert(postLinkTable)
+    .values(values)
+    .onConflictDoUpdate({
+      target: postLinkTable.url,
+      set: {
+        title: values.title,
+        siteName: values.siteName,
+        type: values.type,
+        description: values.description,
+        author: values.author,
+        creatorId: values.creatorId,
+        scraped: sql`CURRENT_TIMESTAMP`,
+      },
+      setWhere: eq(postLinkTable.url, values.url),
+    })
+    .returning();
+  return rows[0];
 }
 
 async function resolveMentionedActors(
@@ -591,6 +662,13 @@ export async function syncPostFromArticleSource(
     `${fedCtx.origin}/@${articleSource.account.username}/${articleSource.publishedYear}/${
       encodeURIComponent(articleSource.slug)
     }`;
+  const link = await persistArticleNewsLink(fedCtx, {
+    url,
+    iri: fedCtx.getObjectUri(vocab.Article, { id: articleSource.id }).href,
+    name: content.title,
+    summary: content.summary,
+    contentHtml: rendered.html,
+  }, actor);
   const values: Omit<NewPost, "id"> = {
     iri: fedCtx.getObjectUri(vocab.Article, { id: articleSource.id }).href,
     type: "Article",
@@ -610,12 +688,14 @@ export async function syncPostFromArticleSource(
         }`,
       ]),
     ),
+    linkId: link?.id ?? null,
+    linkUrl: link?.url ?? null,
     url,
     updated: articleSource.updated,
     published: articleSource.published,
   };
   const existingPost = await db.query.postTable.findFirst({
-    columns: { id: true, name: true, contentHtml: true },
+    columns: { id: true, name: true, contentHtml: true, linkId: true },
     where: { articleSourceId: articleSource.id },
   });
   const rows = await db.insert(postTable)
@@ -638,6 +718,7 @@ export async function syncPostFromArticleSource(
       })),
     ).onConflictDoNothing().returning()
     : [];
+  await refreshNewsScores(db, [post.linkId, existingPost?.linkId]);
   return { ...post, actor, mentions, articleSource };
 }
 
@@ -1214,6 +1295,29 @@ export async function persistPost(
     for (const href of getActorMentionHrefs(actor)) mentionLinkHrefs.add(href);
   }
   const contentHtml = post.content?.toString();
+  const postUrl = post.url instanceof vocab.Link
+    ? post.url.href?.href
+    : post.url?.href;
+  const type = post instanceof vocab.Article
+    ? "Article"
+    : post instanceof vocab.Note
+    ? "Note"
+    : post instanceof vocab.Question
+    ? "Question"
+    : assertNever(post, `Unexpected type of post: ${post}`);
+  const isQualifyingArticleNewsPost = type === "Article" &&
+    (visibility === "public" || visibility === "unlisted") &&
+    replyTarget == null &&
+    quotedPost == null;
+  const articleNewsLink = isQualifyingArticleNewsPost
+    ? await persistArticleNewsLink(ctx, {
+      url: postUrl,
+      iri: post.id.href,
+      name: post.name?.toString(),
+      summary: post.summary?.toString(),
+      contentHtml,
+    }, actor)
+    : undefined;
   let externalLinks = contentHtml == null
     ? []
     : extractExternalLinks(contentHtml, { excludeHrefs: mentionLinkHrefs });
@@ -1224,18 +1328,13 @@ export async function persistPost(
       quotedPostIri !== l.href
     );
   }
-  const link = externalLinks.length > 0
+  const embeddedLink = articleNewsLink == null && externalLinks.length > 0
     ? await persistPostLink(ctx, externalLinks[0], { signal: overallSignal })
     : undefined;
+  const link = articleNewsLink ?? embeddedLink;
   const values: Omit<NewPost, "id"> = {
     iri: post.id.href,
-    type: post instanceof vocab.Article
-      ? "Article"
-      : post instanceof vocab.Note
-      ? "Note"
-      : post instanceof vocab.Question
-      ? "Question"
-      : assertNever(post, `Unexpected type of post: ${post}`),
+    type,
     visibility,
     quotePolicy,
     quoteRequestPolicy,
@@ -1254,10 +1353,12 @@ export async function persistPost(
     linkId: link?.id ?? null,
     linkUrl: link == null
       ? null
+      : articleNewsLink != null
+      ? articleNewsLink.url
       : externalLinks[0].hash === ""
       ? link.url
       : new URL(externalLinks[0].hash, link.url).href,
-    url: post.url instanceof vocab.Link ? post.url.href?.href : post.url?.href,
+    url: postUrl,
     replyTargetId: replyTarget?.id,
     quotedPostId: quotedPost?.id ?? null,
     quoteAuthorizationIri: quoteAuthorizationIri ?? null,
@@ -1622,6 +1723,7 @@ export async function persistSharedPost(
   }
   if (rows.length < 1) return undefined;
   if (rows[0].id === id) await updateSharesCount(db, post, 1);
+  await refreshNewsScores(db, [post.type === "Article" ? post.linkId : null]);
   return { ...rows[0], actor, sharedPost: post };
 }
 
@@ -1774,6 +1876,9 @@ export async function sharePost(
   const share = posts[0];
   sharedPost.sharesCount = await updateSharesCount(db, sharedPost, 1);
   share.sharesCount = sharedPost.sharesCount;
+  await refreshNewsScores(db, [
+    sharedPost.type === "Article" ? sharedPost.linkId : null,
+  ]);
   await addPostToTimeline(db, share);
 
   // Create a share notification for the original post's author
@@ -1839,6 +1944,9 @@ export async function unsharePost(
   ).returning();
   if (unshared.length < 1) return undefined;
   originalPost.sharesCount = await updateSharesCount(db, originalPost, -1);
+  await refreshNewsScores(db, [
+    originalPost.type === "Article" ? originalPost.linkId : null,
+  ]);
   await removeFromTimeline(db, unshared[0]);
   if (originalPost.actor.accountId != null) {
     await deleteShareNotification(
@@ -2202,6 +2310,9 @@ export async function deleteSharedPost(
   });
   if (sharedPost == null) return { ...share, actor };
   await updateSharesCount(db, sharedPost, -1);
+  await refreshNewsScores(db, [
+    sharedPost.type === "Article" ? sharedPost.linkId : null,
+  ]);
   return { ...share, actor };
 }
 

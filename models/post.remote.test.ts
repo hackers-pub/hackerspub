@@ -1,6 +1,7 @@
 import assert from "node:assert";
 import test from "node:test";
 import {
+  Article,
   InteractionPolicy,
   InteractionRule,
   Mention,
@@ -224,6 +225,46 @@ test("persistPost() ignores ActivityPub mention hrefs when selecting link previe
     assert.equal(persisted.linkUrl, storyLink.url);
     assert.equal(persisted.mentions.length, 1);
     assert.equal(persisted.mentions[0].actor.id, mentionedActor.id);
+  });
+});
+
+test("persistPost() uses a public top-level Article URL as the news link", async () => {
+  await withRollback(async (tx) => {
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "remotearticleauthor",
+      name: "Remote Article Author",
+      host: "blog.example",
+    });
+    const article = new Article({
+      id: new URL("https://blog.example/ap/articles/self-news-link"),
+      attribution: new URL(remoteActor.iri),
+      to: PUBLIC_COLLECTION,
+      name: "Remote article title",
+      summary: "Remote article summary",
+      content:
+        '<p>Remote article body with <a href="https://example.com/embedded">an embedded link</a>.</p>',
+      url: new URL("https://blog.example/articles/self-news-link"),
+    });
+
+    const persisted = await persistPost(createFedCtx(tx), article);
+
+    assert.ok(persisted != null);
+    assert.equal(persisted.type, "Article");
+    assert.ok(persisted.linkId != null);
+    assert.equal(
+      persisted.linkUrl,
+      "https://blog.example/articles/self-news-link",
+    );
+
+    const link = await tx.query.postLinkTable.findFirst({
+      where: { id: persisted.linkId },
+    });
+    assert.ok(link != null);
+    assert.equal(link.url, "https://blog.example/articles/self-news-link");
+    assert.equal(link.title, "Remote article title");
+    assert.equal(link.description, "Remote article summary");
+    assert.equal(link.type, "article");
+    assert.equal(link.creatorId, remoteActor.id);
   });
 });
 

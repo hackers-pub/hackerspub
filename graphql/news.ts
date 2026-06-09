@@ -26,7 +26,7 @@ import type { PostLink as PostLinkRow } from "@hackerspub/models/schema";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { builder } from "./builder.ts";
 import { InvalidInputError, NotAuthorizedError } from "./error.ts";
-import { Post, PostLink } from "./post.ts";
+import { Article, Post, PostLink } from "./post.ts";
 import { NotAuthenticatedError } from "./session.ts";
 
 const MAX_NEWS_WINDOW = 100;
@@ -188,21 +188,24 @@ builder.drizzleObjectFields(PostLink, (t) => ({
   weightedMass: t.exposeFloat("weightedMass", {
     description:
       "Recency-independent engagement mass: the weighted sum over this " +
-      "link's public shares (excluding bot `Service`/`Application` accounts " +
-      "unless curated as preferred sharers) of source weight times account " +
-      "reputation times (quotes, replies, reactions).  Repeated shares of the " +
+      "link's public share signals (direct linked posts plus boosts of " +
+      "`Article` posts backed by this link, excluding bot `Service`/" +
+      "`Application` accounts unless curated as preferred sharers) of source " +
+      "weight times account reputation times (quotes, replies, reactions).  " +
+      "Repeated shares of the " +
       "same link by the same account add diminishing base weight (recovering " +
       "with the gap but always below a first share).  Drives the `ALL_TIME` " +
       "order.",
   }),
   postCount: t.exposeInt("postCount", {
     description:
-      "Number of public, non-boost posts across the fediverse that share " +
-      "this link, excluding shares from bot (`Service`/`Application`) accounts " +
-      "that are not curated preferred sharers.  Counts every such post, " +
+      "Number of public share signals across the fediverse for this link: " +
+      "direct linked posts plus boosts of `Article` posts backed by this " +
+      "link.  Excludes shares from bot (`Service`/`Application`) accounts " +
+      "that are not curated preferred sharers.  Counts every such signal, " +
       "including an account's repeated shares of the same link (a high count " +
-      "with a modest `score` is expected, since repeats contribute " +
-      "diminishing weight).",
+      "with a modest `score` is expected, since repeats contribute diminishing " +
+      "weight).",
   }),
   firstSharedAt: t.expose("firstSharedAt", {
     type: "DateTime",
@@ -217,7 +220,8 @@ builder.drizzleObjectFields(PostLink, (t) => ({
     nullable: true,
     description:
       "Timestamp of the freshest activity on this link's qualifying shares " +
-      "(the share itself, a reply, a quote, or a reaction); shares are public " +
+      "(the share itself, a reply, a quote, or a reaction); shares are direct " +
+      "linked posts or boosts of `Article` posts backed by this link, public, " +
       "and authored by non-bot accounts (or curated preferred sharers).  A " +
       "rapid repeat share by the same " +
       "account does not refresh this (only a first share, a sufficiently-" +
@@ -232,8 +236,9 @@ builder.drizzleObjectFields(PostLink, (t) => ({
       "The posts that share this link, most recently published first, " +
       "filtered to those visible to the viewer.  Shares authored by bot " +
       "accounts (`Service`/`Application` actors) are excluded unless the " +
-      "account is a curated preferred sharer, matching the scoring.  These are " +
-      "the roots of the link's discussion tree.",
+      "account is a curated preferred sharer.  These are the direct linked " +
+      "roots of the link's discussion tree; `Article` boosts can also affect " +
+      "`score`/`postCount` but are not returned here as roots.",
     query: (_args, ctx) => ({
       where: {
         AND: [
@@ -248,8 +253,9 @@ builder.drizzleObjectFields(PostLink, (t) => ({
     type: NewsSourceBreakdown,
     description:
       "Counts of this link's public shares by origin (local / remote / " +
-      "Bluesky bridge), excluding shares from bot (`Service`/`Application`) " +
-      "accounts that are not curated preferred sharers.",
+      "Bluesky bridge), including direct linked posts and boosts of `Article` " +
+      "posts backed by this link.  Excludes shares from bot (`Service`/" +
+      "`Application`) accounts that are not curated preferred sharers.",
     resolve: (link) => link.id,
     load: async (linkIds: Uuid[], ctx) => {
       const breakdowns = await getNewsSourceBreakdowns(ctx.db, linkIds);
@@ -262,17 +268,39 @@ builder.drizzleObjectFields(PostLink, (t) => ({
     type: "Int",
     description:
       "Size of this link's federated discussion: its qualifying public " +
-      "sharing posts (non-bot accounts, or curated preferred sharers) plus " +
-      "their direct public (`public`/`unlisted`) replies and " +
+      "direct linked sharing posts (non-bot accounts, or curated preferred " +
+      "sharers) plus their direct public (`public`/`unlisted`) replies and " +
       "quotes.  Use this as the count of posts to read in the discussion " +
-      "(the `/news/{uuid}` page); unlike `postCount` it includes the replies " +
-      "and quotes, not just the shares.  Counts direct children only (deeper " +
-      "nesting is not traversed) and is viewer-independent (public posts " +
-      "only).",
+      "(the `/news/{uuid}` page); unlike `postCount` it includes replies and " +
+      "quotes, but it does not include `Article` boosts that count only toward " +
+      "the score.  Counts direct children only (deeper nesting is not " +
+      "traversed) and is viewer-independent (public posts only).",
     resolve: (link) => link.id,
     load: async (linkIds: Uuid[], ctx) => {
       const counts = await getNewsDiscussionCounts(ctx.db, linkIds);
       return linkIds.map((id) => counts.get(id) ?? 0);
+    },
+  }),
+  article: t.drizzleField({
+    type: Article,
+    nullable: true,
+    description:
+      "The `Article` whose own URL backs this news story. `null` for ordinary " +
+      "external-link stories.",
+    select: { columns: { id: true } },
+    async resolve(query, link, _args, ctx) {
+      return await ctx.db.query.postTable.findFirst(query({
+        where: {
+          AND: [
+            { type: "Article", linkId: link.id },
+            { sharedPostId: { isNull: true } },
+            { replyTargetId: { isNull: true } },
+            { quotedPostId: { isNull: true } },
+            getPostVisibilityFilter(ctx.account?.actor ?? null),
+          ],
+        },
+        orderBy: { published: "asc" },
+      })) ?? null;
     },
   }),
   penalty: t.field({
