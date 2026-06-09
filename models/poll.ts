@@ -6,7 +6,7 @@ import type { ContextData } from "./context.ts";
 import { toDate } from "./date.ts";
 import type { Database, Transaction } from "./db.ts";
 import { createPollEndedNotification } from "./notification.ts";
-import { getPersistedPost, persistPost } from "./post.ts";
+import { getPersistedPost, isPostVisibleTo, persistPost } from "./post.ts";
 import {
   type Account,
   type Actor,
@@ -278,6 +278,22 @@ export async function persistPollVote(
       )
       .for("update");
     if (lockedPoll == null) return undefined;
+    const visiblePost = await tx.query.postTable.findFirst({
+      where: { id: lockedPoll.postId },
+      with: {
+        actor: {
+          with: {
+            followers: { where: { followerId: actor.id } },
+            blockees: { where: { blockeeId: actor.id } },
+            blockers: { where: { blockerId: actor.id } },
+          },
+        },
+        mentions: { where: { actorId: actor.id } },
+      },
+    });
+    if (visiblePost == null || !isPostVisibleTo(visiblePost, actor)) {
+      return undefined;
+    }
 
     const pollOptions = await tx.query.pollOptionTable.findMany({
       where: { postId: lockedPoll.postId },

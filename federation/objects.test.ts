@@ -1,8 +1,16 @@
 import assert from "node:assert";
 import test from "node:test";
+import type { Context } from "@fedify/fedify";
+import { MemoryKvStore } from "@fedify/fedify";
+import type { ContextData } from "@hackerspub/models/context";
+import type { Transaction } from "@hackerspub/models/db";
+import { createQuestion } from "@hackerspub/models/question";
+import { builder } from "./builder.ts";
 import { getCreate, getNote } from "./objects.ts";
 import {
   createFedCtx,
+  createTestDisk,
+  createTestKv,
   insertAccountWithActor,
   insertNotePost,
   withRollback,
@@ -64,6 +72,60 @@ test("getNote() omits quote policy for direct notes", async () => {
     const note = await getNote(createFedCtx(tx), noteSource);
 
     assert.equal(note.interactionPolicy == null, true);
+  });
+});
+
+test("source-backed Questions do not resolve through the Note dispatcher", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "questionnotedispatch",
+      name: "Question Note Dispatch",
+      email: "questionnotedispatch@example.com",
+    });
+    const published = new Date("2026-04-15T00:00:00.000Z");
+    const question = await createQuestion(
+      createFedCtx(tx) as unknown as Context<ContextData<Transaction>>,
+      {
+        accountId: author.account.id,
+        visibility: "public",
+        quotePolicy: "everyone",
+        content: "Should resolve only as a Question",
+        language: "en",
+        media: [],
+        published,
+        updated: published,
+        poll: {
+          title: "Dispatcher type",
+          multiple: false,
+          options: ["Question", "Note"],
+          ends: new Date("2026-04-16T00:00:00.000Z"),
+          now: published,
+        },
+      },
+    );
+    assert.ok(question != null);
+
+    const kv = createTestKv().kv;
+    const federation = await builder.build({
+      kv: new MemoryKvStore(),
+      origin: "http://localhost/",
+    });
+    const contextData = {
+      db: tx,
+      kv,
+      disk: createTestDisk(),
+      models: {} as ContextData["models"],
+    };
+
+    const noteResponse = await federation.fetch(
+      new Request(
+        `http://localhost/ap/notes/${question.noteSource.id}`,
+        { headers: { Accept: "application/activity+json" } },
+      ),
+      { contextData },
+    );
+
+    assert.notEqual(noteResponse.status, 200);
   });
 });
 

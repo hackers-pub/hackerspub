@@ -11,6 +11,7 @@ import {
   vote,
 } from "./poll.ts";
 import {
+  followingTable,
   type NewPost,
   type Poll,
   type PollOption,
@@ -41,6 +42,7 @@ async function insertQuestionPoll(
     multiple: boolean;
     optionTitles: string[];
     ends?: Date;
+    visibility?: NewPost["visibility"];
   },
 ): Promise<InsertQuestionPollResult> {
   const postId = generateUuidV7();
@@ -52,7 +54,7 @@ async function insertQuestionPoll(
       id: postId,
       iri: `http://localhost/objects/${postId}`,
       type: "Question",
-      visibility: "public",
+      visibility: values.visibility ?? "public",
       actorId: values.account.actor.id,
       name: "Poll question",
       contentHtml: "<p>Poll question</p>",
@@ -399,6 +401,69 @@ test("persistPollVote() stores an incoming vote for a persisted poll", async () 
       orderBy: { index: "asc" },
     });
     assert.deepEqual(options.map((option) => option.votesCount), [0, 1]);
+  });
+});
+
+test("persistPollVote() rejects incoming votes from actors that cannot see the poll", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const author = await insertAccountWithActor(tx, {
+      username: "privatepollauthor",
+      name: "Private Poll Author",
+      email: "privatepollauthor@example.com",
+    });
+    const allowedVoter = await insertRemoteActor(tx, {
+      username: "privatepollfollower",
+      name: "Private Poll Follower",
+      host: "remote.example",
+      iri: "https://remote.example/users/privatepollfollower",
+    });
+    const deniedVoter = await insertRemoteActor(tx, {
+      username: "privatepollstranger",
+      name: "Private Poll Stranger",
+      host: "remote.example",
+      iri: "https://remote.example/users/privatepollstranger",
+    });
+    const { poll, post } = await insertQuestionPoll(tx, {
+      account: author.account,
+      multiple: false,
+      optionTitles: ["TypeScript", "Rust"],
+      visibility: "followers",
+    });
+    await tx.insert(followingTable).values({
+      iri: "https://remote.example/follows/private-poll-follower",
+      followerId: allowedVoter.id,
+      followeeId: author.actor.id,
+      accepted: new Date("2026-04-15T00:00:00.000Z"),
+    });
+
+    const rejectedVote = await persistPollVote(
+      fedCtx,
+      new vocab.Note({
+        id: new URL(`http://localhost/objects/${generateUuidV7()}`),
+        attribution: new URL(deniedVoter.iri),
+        name: "Rust",
+        replyTarget: new URL(post.iri),
+      }),
+    );
+    const acceptedVote = await persistPollVote(
+      fedCtx,
+      new vocab.Note({
+        id: new URL(`http://localhost/objects/${generateUuidV7()}`),
+        attribution: new URL(allowedVoter.iri),
+        name: "Rust",
+        replyTarget: new URL(post.iri),
+      }),
+    );
+
+    assert.equal(rejectedVote, undefined);
+    assert.ok(acceptedVote != null);
+    assert.equal(acceptedVote.actorId, allowedVoter.id);
+
+    const votes = await tx.query.pollVoteTable.findMany({
+      where: { postId: poll.postId },
+    });
+    assert.deepEqual(votes.map((vote) => vote.actorId), [allowedVoter.id]);
   });
 });
 

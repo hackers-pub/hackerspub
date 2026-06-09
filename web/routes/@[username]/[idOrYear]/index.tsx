@@ -263,9 +263,9 @@ export const handler = define.handlers({
         ) {
           await updateNote(ctx.state.fedCtx, note.id, {});
         }
-        noteUri = ctx.state.fedCtx.getObjectUri(vocab.Note, {
-          id: note.id,
-        });
+        noteUri = post.type === "Question"
+          ? ctx.state.fedCtx.getObjectUri(vocab.Question, { id: note.id })
+          : ctx.state.fedCtx.getObjectUri(vocab.Note, { id: note.id });
         ctx.state.links.push(
           {
             rel: "canonical",

@@ -472,11 +472,14 @@ builder
         with: {
           account: true,
           media: { with: { medium: true }, orderBy: { index: "asc" } },
-          post: { with: { replyTarget: true, quotedPost: true } },
+          post: {
+            where: { type: "Note" },
+            with: { replyTarget: true, quotedPost: true },
+          },
         },
         where: { id: values.id },
       });
-      if (note == null) return null;
+      if (note?.post == null) return null;
       return await getNote(
         ctx,
         note,
@@ -512,7 +515,7 @@ builder
           with: { actor: true },
         },
       },
-      where: { noteSourceId: values.id },
+      where: { noteSourceId: values.id, type: "Note" },
     });
     if (post == null || post.actor.accountId == null) return false;
     const documentLoader = await ctx.getDocumentLoader({
