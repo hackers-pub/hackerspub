@@ -32,9 +32,14 @@ import { MarkdownEditor } from "~/components/MarkdownEditor.tsx";
 import { TextField, TextFieldLabel } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
+import IconImage from "~icons/lucide/image";
+import IconListChecks from "~icons/lucide/list-checks";
+import IconPlus from "~icons/lucide/plus";
 import IconSquare from "~icons/lucide/square";
+import IconTrash from "~icons/lucide/trash-2";
 import IconX from "~icons/lucide/x";
 import type { NoteComposerMutation } from "./__generated__/NoteComposerMutation.graphql.ts";
+import type { NoteComposerQuestionMutation } from "./__generated__/NoteComposerQuestionMutation.graphql.ts";
 import type { NoteComposerUpdateMutation } from "./__generated__/NoteComposerUpdateMutation.graphql.ts";
 import type { NoteComposerGeneratedAltTextQuery } from "./__generated__/NoteComposerGeneratedAltTextQuery.graphql.ts";
 import type { NoteComposerPostByUrlQuery } from "./__generated__/NoteComposerPostByUrlQuery.graphql.ts";
@@ -58,6 +63,35 @@ const NoteComposerMutation = graphql`
           id
           # Only news-discussion posts prepend into a connection and need the
           # row fields; skip them for every other compose/reply/quote path.
+          ...NewsDiscussionThread_post
+            @include(if: $includeDiscussionThreadFields)
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+      ... on NotAuthenticatedError {
+        notAuthenticated
+      }
+    }
+  }
+`;
+
+const NoteComposerQuestionMutation = graphql`
+  mutation NoteComposerQuestionMutation(
+    $input: CreateQuestionInput!
+    $connections: [ID!]!
+    $includeDiscussionThreadFields: Boolean!
+  ) {
+    createQuestion(input: $input) {
+      __typename
+      ... on CreateQuestionPayload {
+        question
+          @prependNode(
+            connections: $connections
+            edgeTypeName: "PostLinkSharingPostsConnectionEdge"
+          ) {
+          id
           ...NewsDiscussionThread_post
             @include(if: $includeDiscussionThreadFields)
         }
@@ -229,6 +263,27 @@ const SUPPORTED_IMAGE_TYPES = [
 ];
 
 const MAX_MEDIA = 20;
+const MIN_POLL_OPTIONS = 2;
+const MAX_POLL_OPTIONS = 20;
+
+interface PollOptionDraft {
+  localId: string;
+  title: string;
+}
+
+function formatDateTimeLocal(date: Date): string {
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${
+    pad(date.getDate())
+  }T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function defaultPollEnds(): string {
+  const date = new Date();
+  date.setDate(date.getDate() + 1);
+  date.setSeconds(0, 0);
+  return formatDateTimeLocal(date);
+}
 
 interface MediaItem {
   localId: string;
@@ -362,10 +417,23 @@ export function NoteComposer(props: NoteComposerProps) {
   const [createNote, isCreating] = createMutation<NoteComposerMutation>(
     NoteComposerMutation,
   );
+  const [createQuestion, isCreatingQuestion] = createMutation<
+    NoteComposerQuestionMutation
+  >(
+    NoteComposerQuestionMutation,
+  );
   const [updateNote, isUpdating] = createMutation<NoteComposerUpdateMutation>(
     NoteComposerUpdateMutation,
   );
   const [mediaItems, setMediaItems] = createStore<MediaItem[]>([]);
+  const [pollOptions, setPollOptions] = createStore<PollOptionDraft[]>([
+    { localId: crypto.randomUUID(), title: "" },
+    { localId: crypto.randomUUID(), title: "" },
+  ]);
+  const [pollEnabled, setPollEnabled] = createSignal(false);
+  const [pollTitle, setPollTitle] = createSignal("");
+  const [pollMultiple, setPollMultiple] = createSignal(false);
+  const [pollEnds, setPollEnds] = createSignal(defaultPollEnds());
   const [isDraggingOver, setIsDraggingOver] = createSignal(false);
   const [editorResetKey, setEditorResetKey] = createSignal(0);
   let formRef: HTMLFormElement | undefined;
@@ -393,9 +461,13 @@ export function NoteComposer(props: NoteComposerProps) {
       language()?.baseName !== (props.initialLanguage ?? undefined) ||
       quotePolicy() !== (props.initialQuotePolicy ?? "EVERYONE")
     );
-    return contentDirty || mediaItems.length > 0 || editMetaDirty;
+    const pollDirty = !props.editingNoteId && pollEnabled();
+    return contentDirty || mediaItems.length > 0 || editMetaDirty || pollDirty;
   });
   createEffect(() => props.onContentChange?.(isDirty()));
+  const isSubmitting = () =>
+    isCreating() || isCreatingQuestion() ||
+    isUpdating();
 
   // Use capture-phase listeners so Firefox's native textarea drag handling
   // cannot block our handlers.  relatedTarget in dragleave tells us whether
@@ -780,6 +852,91 @@ export function NoteComposer(props: NoteComposerProps) {
     setQuoteFetchError(false);
   };
 
+  const resetPoll = () => {
+    setPollEnabled(false);
+    setPollTitle("");
+    setPollMultiple(false);
+    setPollEnds(defaultPollEnds());
+    setPollOptions([
+      { localId: crypto.randomUUID(), title: "" },
+      { localId: crypto.randomUUID(), title: "" },
+    ]);
+  };
+
+  createEffect(() => {
+    if (props.editingNoteId) resetPoll();
+  });
+
+  const setPollDuration = (days: number) => {
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    date.setSeconds(0, 0);
+    setPollEnds(formatDateTimeLocal(date));
+  };
+
+  const getValidatedPollInput = () => {
+    const title = pollTitle().trim();
+    if (!title) {
+      showToast({
+        title: t`Error`,
+        description: t`Poll title cannot be empty`,
+        variant: "error",
+      });
+      return null;
+    }
+
+    const options = pollOptions.map((option) => option.title.trim());
+    if (options.some((option) => option === "")) {
+      showToast({
+        title: t`Error`,
+        description: t`Poll options cannot be empty`,
+        variant: "error",
+      });
+      return null;
+    }
+    if (options.length < MIN_POLL_OPTIONS) {
+      showToast({
+        title: t`Error`,
+        description: t`Add at least ${MIN_POLL_OPTIONS} poll options`,
+        variant: "error",
+      });
+      return null;
+    }
+    if (new Set(options).size !== options.length) {
+      showToast({
+        title: t`Error`,
+        description: t`Poll options must be unique`,
+        variant: "error",
+      });
+      return null;
+    }
+
+    const ends = new Date(pollEnds());
+    if (!Number.isFinite(ends.getTime())) {
+      showToast({
+        title: t`Error`,
+        description: t`Poll deadline is invalid`,
+        variant: "error",
+      });
+      return null;
+    }
+    if (ends.getTime() - Date.now() < 60_000) {
+      showToast({
+        title: t`Error`,
+        description: t`Poll deadline must be at least 1 minute from now`,
+        variant: "error",
+      });
+      return null;
+    }
+
+    return {
+      title,
+      multiple: pollMultiple(),
+      options,
+      ends: ends.toISOString(),
+    };
+  };
+
   const resetForm = () => {
     for (const item of mediaItems) {
       item.abortUpload?.();
@@ -798,6 +955,7 @@ export function NoteComposer(props: NoteComposerProps) {
     setReplyTargetPost(null);
     setReplyTargetFetchError(false);
     setMediaItems([]);
+    resetPoll();
     setEditorResetKey((k) => k + 1);
   };
 
@@ -887,6 +1045,69 @@ export function NoteComposer(props: NoteComposerProps) {
       const finalContent = props.ensureLinkUrl
         ? ensureLinkInContent(noteContent, props.ensureLinkUrl)
         : noteContent;
+      if (pollEnabled()) {
+        const poll = getValidatedPollInput();
+        if (poll == null) return;
+        createQuestion({
+          variables: {
+            input: {
+              content: finalContent,
+              language: language()?.baseName ?? i18n.locale,
+              visibility: visibility(),
+              quotePolicy: effectiveQuotePolicy(),
+              quotedPostId: effectiveQuotedPostId() ?? null,
+              replyTargetId: props.replyTargetId ?? null,
+              poll,
+              media: items.map((m) => ({
+                mediumId: m
+                  .uuid! as `${string}-${string}-${string}-${string}-${string}`,
+                alt: m.alt.trim(),
+              })),
+            },
+            connections: props.prependToConnections ?? [],
+            includeDiscussionThreadFields:
+              (props.prependToConnections?.length ?? 0) > 0,
+          },
+          onCompleted(response) {
+            if (
+              response.createQuestion.__typename === "CreateQuestionPayload"
+            ) {
+              showToast({
+                title: t`Success`,
+                description: t`Poll created successfully`,
+                variant: "success",
+              });
+              resetForm();
+              props.onSuccess?.();
+            } else if (
+              response.createQuestion.__typename === "InvalidInputError"
+            ) {
+              showToast({
+                title: t`Error`,
+                description:
+                  t`Invalid input: ${response.createQuestion.inputPath}`,
+                variant: "error",
+              });
+            } else if (
+              response.createQuestion.__typename === "NotAuthenticatedError"
+            ) {
+              showToast({
+                title: t`Error`,
+                description: t`You must be signed in to create a poll`,
+                variant: "error",
+              });
+            }
+          },
+          onError(error) {
+            showToast({
+              title: t`Error`,
+              description: error.message,
+              variant: "error",
+            });
+          },
+        });
+        return;
+      }
       createNote({
         variables: {
           input: {
@@ -1157,7 +1378,7 @@ export function NoteComposer(props: NoteComposerProps) {
             onKeyDown={(e) => {
               if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
                 e.preventDefault();
-                const submitting = isCreating() || isUpdating() ||
+                const submitting = isSubmitting() ||
                   mediaItems.some((m) => m.uploading) ||
                   (!!effectiveQuotedPostId() && !quotedPost() &&
                     !quoteFetchError()) ||
@@ -1193,33 +1414,32 @@ export function NoteComposer(props: NoteComposerProps) {
           <div class="flex items-center justify-between mt-1">
             {/* Media attach button — hidden in edit mode */}
             <Show when={!props.editingNoteId} fallback={<span />}>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                disabled={mediaItems.length >= MAX_MEDIA}
-                title={t`Attach image`}
-                aria-label={t`Attach image`}
-                onClick={() => fileInputRef?.click()}
-              >
-                {/* Heroicons outline: photo */}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.5"
-                  stroke="currentColor"
-                  class="size-6"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+              <div class="flex items-center gap-1">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  disabled={mediaItems.length >= MAX_MEDIA}
+                  title={t`Attach image`}
+                  aria-label={t`Attach image`}
+                  onClick={() => fileInputRef?.click()}
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
-                  />
-                </svg>
-              </Button>
+                  <IconImage class="size-5" />
+                </Button>
+                <Button
+                  type="button"
+                  variant={pollEnabled() ? "secondary" : "ghost"}
+                  size="icon"
+                  title={pollEnabled() ? t`Remove poll` : t`Add poll`}
+                  aria-label={pollEnabled() ? t`Remove poll` : t`Add poll`}
+                  onClick={() => {
+                    if (pollEnabled()) resetPoll();
+                    else setPollEnabled(true);
+                  }}
+                >
+                  <IconListChecks class="size-5" />
+                </Button>
+              </div>
             </Show>
             <input
               ref={(el) => (fileInputRef = el)}
@@ -1261,6 +1481,170 @@ export function NoteComposer(props: NoteComposerProps) {
             </a>
           </div>
         </TextField>
+
+        <Show when={!props.editingNoteId && pollEnabled()}>
+          <section class="rounded-md border border-input p-3">
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex min-w-0 items-center gap-2">
+                <IconListChecks class="size-4 shrink-0 text-muted-foreground" />
+                <h3 class="text-sm font-medium">{t`Poll`}</h3>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                class="size-7 shrink-0"
+                title={t`Remove poll`}
+                aria-label={t`Remove poll`}
+                onClick={resetPoll}
+              >
+                <IconX class="size-4" />
+              </Button>
+            </div>
+
+            <div class="mt-3 grid gap-3">
+              <label class="grid gap-1.5">
+                <span class="text-xs font-medium text-muted-foreground">
+                  {t`Poll title`}
+                </span>
+                <input
+                  type="text"
+                  value={pollTitle()}
+                  maxLength={200}
+                  onInput={(e) => setPollTitle(e.currentTarget.value)}
+                  placeholder={t`What should people decide?`}
+                  class="h-9 rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+              </label>
+
+              <div class="grid gap-1.5">
+                <span class="text-xs font-medium text-muted-foreground">
+                  {t`Selection`}
+                </span>
+                <div class="grid grid-cols-2 overflow-hidden rounded-md border border-input">
+                  <Button
+                    type="button"
+                    variant={pollMultiple() ? "ghost" : "secondary"}
+                    class="h-9 rounded-none border-r"
+                    onClick={() => setPollMultiple(false)}
+                  >
+                    {t`Single choice`}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={pollMultiple() ? "secondary" : "ghost"}
+                    class="h-9 rounded-none"
+                    onClick={() => setPollMultiple(true)}
+                  >
+                    {t`Multiple choice`}
+                  </Button>
+                </div>
+              </div>
+
+              <div class="grid gap-2">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-xs font-medium text-muted-foreground">
+                    {t`Options`}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={pollOptions.length >= MAX_POLL_OPTIONS}
+                    onClick={() =>
+                      setPollOptions(produce((options) => {
+                        if (options.length >= MAX_POLL_OPTIONS) return;
+                        options.push({
+                          localId: crypto.randomUUID(),
+                          title: "",
+                        });
+                      }))}
+                  >
+                    <IconPlus class="mr-1 size-3.5" />
+                    {t`Add option`}
+                  </Button>
+                </div>
+                <For each={pollOptions}>
+                  {(option, index) => (
+                    <div class="grid grid-cols-[1fr_auto] gap-2">
+                      <input
+                        type="text"
+                        value={option.title}
+                        maxLength={200}
+                        onInput={(e) =>
+                          setPollOptions(
+                            index(),
+                            "title",
+                            e.currentTarget.value,
+                          )}
+                        placeholder={t`Option ${index() + 1}`}
+                        class="h-9 min-w-0 rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        class="size-9 text-muted-foreground hover:text-foreground"
+                        disabled={pollOptions.length <= MIN_POLL_OPTIONS}
+                        title={t`Remove option`}
+                        aria-label={t`Remove option`}
+                        onClick={() =>
+                          setPollOptions(produce((options) => {
+                            if (options.length <= MIN_POLL_OPTIONS) return;
+                            options.splice(index(), 1);
+                          }))}
+                      >
+                        <IconTrash class="size-4" />
+                      </Button>
+                    </div>
+                  )}
+                </For>
+              </div>
+
+              <div class="grid gap-1.5">
+                <span class="text-xs font-medium text-muted-foreground">
+                  {t`Deadline`}
+                </span>
+                <div class="flex flex-wrap gap-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPollDuration(1)}
+                  >
+                    {t`1 day`}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPollDuration(3)}
+                  >
+                    {t`3 days`}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPollDuration(7)}
+                  >
+                    {t`1 week`}
+                  </Button>
+                </div>
+                <input
+                  type="datetime-local"
+                  value={pollEnds()}
+                  onInput={(e) => setPollEnds(e.currentTarget.value)}
+                  class="h-9 rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+              </div>
+
+              <p class="rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning-foreground">
+                {t`Polls cannot be edited after publishing.`}
+              </p>
+            </div>
+          </section>
+        </Show>
 
         {/* Toolbar: language, visibility, quote policy */}
         <div class="flex flex-wrap items-center gap-2">
@@ -1413,14 +1797,14 @@ export function NoteComposer(props: NoteComposerProps) {
               type="button"
               variant="outline"
               onClick={() => props.onCancel?.()}
-              disabled={isCreating() || isUpdating()}
+              disabled={isSubmitting()}
             >
               {t`Cancel`}
             </Button>
           </Show>
           <Button
             type="submit"
-            disabled={isCreating() || isUpdating() ||
+            disabled={isSubmitting() ||
               (props.editingNoteId ? !isDirty() : (
                 mediaItems.some((m) => m.uploading) ||
                 (!!effectiveQuotedPostId() && !quotedPost() &&
@@ -1432,7 +1816,10 @@ export function NoteComposer(props: NoteComposerProps) {
             <Show
               when={props.editingNoteId}
               fallback={
-                <Show when={isCreating()} fallback={t`Create note`}>
+                <Show
+                  when={isCreating() || isCreatingQuestion()}
+                  fallback={pollEnabled() ? t`Create poll` : t`Create note`}
+                >
                   {t`Creating…`}
                 </Show>
               }

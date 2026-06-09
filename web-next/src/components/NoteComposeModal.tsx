@@ -82,7 +82,7 @@ export function NoteComposeModal() {
     <>
       <Dialog open={isOpen()} onOpenChange={(open) => !open && handleClose()}>
         <DialogContent
-          class="sm:max-w-2xl"
+          class="flex max-h-[calc(100vh-2rem)] flex-col overflow-hidden sm:max-w-2xl"
           onPointerDownOutside={(e) => {
             // Prevent the dialog from closing when the user clicks a
             // mention autocomplete suggestion, which renders in a Portal
@@ -101,7 +101,7 @@ export function NoteComposeModal() {
           <DialogHeader>
             <DialogTitle>{dialogTitle()}</DialogTitle>
           </DialogHeader>
-          <div class="py-4">
+          <div class="max-h-[calc(100vh-9rem)] min-h-0 overflow-y-auto py-4 pr-1">
             <NoteComposer
               onSuccess={handleSuccess}
               onCancel={handleClose}
