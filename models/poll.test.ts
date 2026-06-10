@@ -462,7 +462,7 @@ test("persistPollVote() does not double-count a newly fetched remote poll", asyn
       attribution: new URL(author.iri),
       to: vocab.PUBLIC_COLLECTION,
       content: "<p>Which language?</p>",
-      endTime: Temporal.Instant.from("2026-06-10T00:00:00.000Z"),
+      endTime: Temporal.Instant.from("2099-06-10T00:00:00.000Z"),
       exclusiveOptions: [
         new vocab.Note({
           name: "TypeScript",
@@ -525,7 +525,7 @@ test("persistPollVote() counts a newly fetched remote poll without totals", asyn
       attribution: new URL(author.iri),
       to: vocab.PUBLIC_COLLECTION,
       content: "<p>Which runtime?</p>",
-      endTime: Temporal.Instant.from("2026-06-10T00:00:00.000Z"),
+      endTime: Temporal.Instant.from("2099-06-10T00:00:00.000Z"),
       exclusiveOptions: [
         new vocab.Note({ name: "Deno" }),
         new vocab.Note({ name: "Node.js" }),
