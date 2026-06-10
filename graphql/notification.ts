@@ -44,6 +44,10 @@ export const NotificationType = builder.enumType("NotificationType", {
       description:
         "Someone reacted with an emoji to one of this account's posts.",
     },
+    POLL_ENDED: {
+      description:
+        "A `Question` poll this account authored or voted in has ended.",
+    },
   } as const,
 });
 
@@ -73,6 +77,8 @@ export const Notification = builder.drizzleInterface("notificationTable", {
         return QuotedPostUpdatedNotification.name;
       case "react":
         return ReactNotification.name;
+      case "poll_ended":
+        return PollEndedNotification.name;
     }
   },
   fields: (t) => ({
@@ -236,6 +242,27 @@ export const ReactNotification = builder.drizzleNode("notificationTable", {
     customEmoji: t.relation("customEmoji", { nullable: true }),
   }),
 });
+
+export const PollEndedNotification = builder.drizzleNode(
+  "notificationTable",
+  {
+    variant: "PollEndedNotification",
+    description:
+      "Notification that a `Question` poll this account authored or voted in has ended.",
+    interfaces: [Notification],
+    id: {
+      column: (notification) => notification.id,
+    },
+    fields: (t) => ({
+      post: t.relation("post", {
+        type: Post,
+        nullable: true,
+        description:
+          "The ended `Question` post. This may be `null` if the post was deleted after the notification was created.",
+      }),
+    }),
+  },
+);
 
 builder.mutationField("markNotificationsAsRead", (t) =>
   t.field({

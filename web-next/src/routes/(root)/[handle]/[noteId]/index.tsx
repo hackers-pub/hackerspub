@@ -608,6 +608,9 @@ function PermalinkThreadLoaded(props: PermalinkThreadProps) {
         ... on Note {
           sourceId
         }
+        ... on Question {
+          sourceId
+        }
         replyTarget {
           ...NoteId_contextPost
         }
@@ -740,6 +743,9 @@ function ContextPostCard(props: ContextPostCardProps) {
         ... on Note {
           sourceId
         }
+        ... on Question {
+          sourceId
+        }
         actor {
           name
           handle
@@ -862,12 +868,10 @@ function getContextPostInternalHref(
       const id = post.sourceId ?? post.uuid;
       return `/${actorSegment}/${id}`;
     }
-    case "Question":
-      // Question originals only come from remote instances, and any
-      // local Question rows exist solely as share wrappers (boosts).
-      // Neither case carries a local source row, so the row PK is the
-      // right token for our internal route.
-      return `/${actorSegment}/${post.uuid}`;
+    case "Question": {
+      const id = post.sourceId ?? post.uuid;
+      return `/${actorSegment}/${id}`;
+    }
     default:
       return null;
   }

@@ -5,10 +5,12 @@ import { getPersistedActor, persistActor, toRecipient } from "./actor.ts";
 import type { ContextData } from "./context.ts";
 import { toDate } from "./date.ts";
 import type { Database, Transaction } from "./db.ts";
-import { getPersistedPost, persistPost } from "./post.ts";
+import { createPollEndedNotification } from "./notification.ts";
+import { getPersistedPost, isPostVisibleTo, persistPost } from "./post.ts";
 import {
   type Account,
   type Actor,
+  actorTable,
   type NewPoll,
   type NewPollOption,
   type NewPollVote,
@@ -18,8 +20,117 @@ import {
   pollTable,
   type PollVote,
   pollVoteTable,
+  postTable,
 } from "./schema.ts";
 import type { Uuid } from "./uuid.ts";
+
+export const MIN_POLL_OPTIONS = 2;
+export const MAX_POLL_OPTIONS = 20;
+export const MAX_POLL_TITLE_LENGTH = 200;
+export const MAX_POLL_OPTION_TITLE_LENGTH = 200;
+export const MIN_POLL_DURATION_MS = 60_000;
+export const MAX_POLL_DURATION_MS = 365 * 24 * 60 * 60 * 1000;
+export const DEFAULT_ENDED_POLL_NOTIFICATION_BATCH_SIZE = 100;
+
+export interface CreatePollInput {
+  multiple: boolean;
+  title: string;
+  options: readonly string[];
+  ends: Date;
+  now?: Date;
+}
+
+export interface NormalizedPollInput {
+  multiple: boolean;
+  title: string;
+  options: string[];
+  ends: Date;
+}
+
+export class InvalidPollInputError extends Error {
+  constructor(readonly inputPath: string) {
+    super(`Invalid poll input: ${inputPath}`);
+    this.name = "InvalidPollInputError";
+  }
+}
+
+export function normalizePollInput(
+  input: CreatePollInput,
+): NormalizedPollInput {
+  const title = input.title.trim();
+  if (title.length < 1 || title.length > MAX_POLL_TITLE_LENGTH) {
+    throw new InvalidPollInputError("poll.title");
+  }
+
+  if (
+    input.options.length < MIN_POLL_OPTIONS ||
+    input.options.length > MAX_POLL_OPTIONS
+  ) {
+    throw new InvalidPollInputError("poll.options");
+  }
+
+  const options = input.options.map((option) => option.trim());
+  const seenOptions = new Set<string>();
+  for (let i = 0; i < options.length; i++) {
+    const option = options[i];
+    if (
+      option.length < 1 ||
+      option.length > MAX_POLL_OPTION_TITLE_LENGTH
+    ) {
+      throw new InvalidPollInputError(`poll.options.${i}`);
+    }
+    if (seenOptions.has(option)) {
+      throw new InvalidPollInputError(`poll.options.${i}`);
+    }
+    seenOptions.add(option);
+  }
+
+  const now = input.now ?? new Date();
+  const duration = input.ends.getTime() - now.getTime();
+  if (
+    !Number.isFinite(input.ends.getTime()) ||
+    duration < MIN_POLL_DURATION_MS ||
+    duration > MAX_POLL_DURATION_MS
+  ) {
+    throw new InvalidPollInputError("poll.ends");
+  }
+
+  return {
+    multiple: input.multiple,
+    title,
+    options,
+    ends: input.ends,
+  };
+}
+
+export async function createPoll(
+  db: Database,
+  postId: Uuid,
+  input: CreatePollInput,
+): Promise<Poll & { options: PollOption[] }> {
+  const poll = normalizePollInput(input);
+  const rows = await db.insert(pollTable).values({
+    postId,
+    multiple: poll.multiple,
+    votersCount: 0,
+    ends: poll.ends,
+  }).returning();
+  if (rows.length < 1) {
+    throw new Error("Failed to create poll.");
+  }
+  const optionRows = await db.insert(pollOptionTable).values(
+    poll.options.map((title, index) => ({
+      postId,
+      index,
+      title,
+      votesCount: 0,
+    })),
+  ).returning();
+  return {
+    ...rows[0],
+    options: optionRows.toSorted((a, b) => a.index - b.index),
+  };
+}
 
 export async function persistPoll(
   db: Database,
@@ -128,6 +239,11 @@ export async function persistPollOption(
   return rows.length < 1 ? undefined : rows[0];
 }
 
+export interface PersistPollVoteResult {
+  attempted: boolean;
+  vote?: PollVote;
+}
+
 export async function persistPollVote(
   ctx: Context<ContextData>,
   note: vocab.Note,
@@ -136,53 +252,279 @@ export async function persistPollVote(
     documentLoader?: DocumentLoader;
   } = {},
 ): Promise<PollVote | undefined> {
+  return (await persistPollVoteResult(ctx, note, options)).vote;
+}
+
+export async function persistPollVoteResult(
+  ctx: Context<ContextData>,
+  note: vocab.Note,
+  options: {
+    contextLoader?: DocumentLoader;
+    documentLoader?: DocumentLoader;
+  } = {},
+): Promise<PersistPollVoteResult> {
   if (
     note.replyTargetId == null || note.attributionId == null ||
     note.name == null
   ) {
-    return undefined;
+    return { attempted: false };
   }
+  const voteName = note.name.toString();
+  const hasReplyContent = note.content != null &&
+    note.content.toString().trim() !== "";
   const { db } = ctx.data;
   let post = await getPersistedPost(db, note.replyTargetId);
+  let persistedRemotePollWithVotersCount = false;
+  let persistedRemotePollWithOptionVotesCount = false;
+  let targetIsQuestion = post?.type === "Question";
   if (post == null) {
     const question = await note.getReplyTarget(options);
-    if (!(question instanceof vocab.Question)) return undefined;
+    if (!(question instanceof vocab.Question)) return { attempted: false };
+    targetIsQuestion = true;
+    // A newly fetched remote Question may already include this vote in its
+    // aggregate counts, so preserve those counts instead of incrementing them
+    // again after inserting the local vote row.
+    persistedRemotePollWithVotersCount = question.voters != null;
+    persistedRemotePollWithOptionVotesCount = await hasRemoteOptionVotesCount(
+      question,
+      voteName,
+    );
     post = await persistPost(ctx, question, options);
-    if (post == null) return undefined;
+    if (post == null) return { attempted: true };
   }
   let actor = await getPersistedActor(db, note.attributionId);
   if (actor == null) {
     const actorObject = await note.getAttribution(options);
-    if (actorObject == null) return undefined;
+    if (actorObject == null) return { attempted: true };
     actor = await persistActor(ctx, actorObject, options);
-    if (actor == null) return undefined;
+    if (actor == null) return { attempted: true };
   }
-  const poll = await db.query.pollTable.findFirst({
-    where: { postId: post.id },
-    with: { options: true },
-  });
-  if (poll == null || poll.ends < new Date()) return undefined;
-  if (!poll.multiple) {
-    const existingVote = await db.query.pollVoteTable.findFirst({
+  const persistVoteInTransaction = async (tx: Transaction) => {
+    const [lockedPoll] = await tx.select()
+      .from(pollTable)
+      .where(eq(pollTable.postId, post.id))
+      .for("update");
+    if (lockedPoll == null) {
+      return { attempted: targetIsQuestion && !hasReplyContent };
+    }
+    const visiblePost = await tx.query.postTable.findFirst({
+      where: { id: lockedPoll.postId },
+      with: {
+        actor: {
+          with: {
+            followers: { where: { followerId: actor.id } },
+            blockees: { where: { blockeeId: actor.id } },
+            blockers: { where: { blockerId: actor.id } },
+          },
+        },
+        mentions: { where: { actorId: actor.id } },
+      },
+    });
+    if (visiblePost == null || !isPostVisibleTo(visiblePost, actor)) {
+      return { attempted: true };
+    }
+
+    const pollOptions = await tx.query.pollOptionTable.findMany({
+      where: { postId: lockedPoll.postId },
+    });
+    const option = pollOptions.find((o) => o.title === voteName);
+    if (option == null) return { attempted: !hasReplyContent };
+    if (lockedPoll.ends <= new Date()) return { attempted: true };
+
+    const existingVotes = await tx.query.pollVoteTable.findMany({
       where: {
-        postId: poll.postId,
+        postId: lockedPoll.postId,
         actorId: actor.id,
       },
     });
-    if (existingVote != null) return undefined;
+    if (!lockedPoll.multiple && existingVotes.length > 0) {
+      return { attempted: true };
+    }
+
+    const rows = await tx.insert(pollVoteTable)
+      .values({
+        postId: lockedPoll.postId,
+        actorId: actor.id,
+        optionIndex: option.index,
+      })
+      .onConflictDoNothing()
+      .returning();
+    if (rows.length < 1) return { attempted: true };
+
+    if (
+      existingVotes.length < 1 && !persistedRemotePollWithVotersCount
+    ) {
+      await tx.update(pollTable)
+        .set({ votersCount: sql`${pollTable.votersCount} + 1` })
+        .where(eq(pollTable.postId, lockedPoll.postId));
+    }
+    if (!persistedRemotePollWithOptionVotesCount) {
+      await tx.update(pollOptionTable)
+        .set({ votesCount: sql`${pollOptionTable.votesCount} + 1` })
+        .where(
+          and(
+            eq(pollOptionTable.postId, lockedPoll.postId),
+            eq(pollOptionTable.index, option.index),
+          ),
+        );
+    }
+    return { attempted: true, vote: rows[0] };
+  };
+
+  return isTransaction(db)
+    ? await persistVoteInTransaction(db)
+    : await db.transaction(persistVoteInTransaction);
+}
+
+async function hasRemoteOptionVotesCount(
+  question: vocab.Question,
+  voteName: string,
+): Promise<boolean> {
+  let hasInclusiveOptions = false;
+  for await (const option of question.getInclusiveOptions()) {
+    hasInclusiveOptions = true;
+    const title = option.name?.toString();
+    if (title === voteName) {
+      const replies = await option.getReplies();
+      return replies?.totalItems != null;
+    }
   }
-  const name = note.name.toString();
-  const option = poll.options.find((o) => o.title === name);
-  if (option == null) return undefined;
-  const rows = await db.insert(pollVoteTable)
-    .values({
-      postId: poll.postId,
-      actorId: actor.id,
-      optionIndex: option.index,
-    })
-    .onConflictDoNothing()
-    .returning();
-  return rows.length < 1 ? undefined : rows[0];
+  if (hasInclusiveOptions) return false;
+  for await (const option of question.getExclusiveOptions()) {
+    const title = option.name?.toString();
+    if (title === voteName) {
+      const replies = await option.getReplies();
+      return replies?.totalItems != null;
+    }
+  }
+  return false;
+}
+
+function returnedRows<T>(result: unknown): T[] {
+  if (Array.isArray(result)) return result as T[];
+  if (
+    result != null && typeof result === "object" &&
+    Array.isArray((result as { rows?: unknown }).rows)
+  ) {
+    return (result as { rows: T[] }).rows;
+  }
+  throw new TypeError("Unexpected execute result shape.");
+}
+
+export interface NotifyEndedPollsOptions {
+  now?: Date;
+  maxPolls?: number;
+}
+
+export interface NotifyEndedPollsResult {
+  pollsProcessed: number;
+  notificationsCreated: number;
+}
+
+export async function notifyEndedPolls(
+  db: Database,
+  options: NotifyEndedPollsOptions = {},
+): Promise<NotifyEndedPollsResult> {
+  const now = options.now ?? new Date();
+  const maxPolls = options.maxPolls ??
+    DEFAULT_ENDED_POLL_NOTIFICATION_BATCH_SIZE;
+  if (!Number.isInteger(maxPolls) || maxPolls < 1) {
+    return { pollsProcessed: 0, notificationsCreated: 0 };
+  }
+
+  const notifyInTransaction = async (tx: Transaction) => {
+    const postIds = await claimEndedPolls(tx, now, maxPolls);
+    return await notifyClaimedEndedPolls(tx, postIds);
+  };
+  return isTransaction(db)
+    ? await notifyInTransaction(db)
+    : await db.transaction(notifyInTransaction);
+}
+
+async function claimEndedPolls(
+  tx: Transaction,
+  now: Date,
+  maxPolls: number,
+): Promise<Uuid[]> {
+  const result = await tx.execute(sql`
+    UPDATE poll
+    SET ended_notifications_sent = ${now.toISOString()}::timestamptz
+    WHERE post_id IN (
+      SELECT poll.post_id
+      FROM poll
+      WHERE poll.ended_notifications_sent IS NULL
+        AND poll.ends <= ${now.toISOString()}::timestamptz
+      ORDER BY poll.ends ASC
+      FOR UPDATE SKIP LOCKED
+      LIMIT ${maxPolls}
+    )
+    RETURNING post_id
+  `);
+  const claimed = returnedRows<{ post_id: Uuid }>(result);
+  return claimed.map((row) => row.post_id);
+}
+
+async function notifyClaimedEndedPolls(
+  db: Database,
+  postIds: Uuid[],
+): Promise<NotifyEndedPollsResult> {
+  if (postIds.length < 1) {
+    return { pollsProcessed: 0, notificationsCreated: 0 };
+  }
+
+  const polls = await db.select({
+    postId: pollTable.postId,
+    ends: pollTable.ends,
+    post: postTable,
+    author: actorTable,
+  })
+    .from(pollTable)
+    .innerJoin(postTable, eq(postTable.id, pollTable.postId))
+    .innerJoin(actorTable, eq(actorTable.id, postTable.actorId))
+    .where(inArray(pollTable.postId, postIds));
+  const votes = await db.select({
+    postId: pollVoteTable.postId,
+    accountId: actorTable.accountId,
+  })
+    .from(pollVoteTable)
+    .innerJoin(actorTable, eq(actorTable.id, pollVoteTable.actorId))
+    .where(inArray(pollVoteTable.postId, postIds));
+
+  const votersByPostId = new Map<Uuid, Set<Uuid>>();
+  for (const vote of votes) {
+    if (vote.accountId == null) continue;
+    let voters = votersByPostId.get(vote.postId);
+    if (voters == null) {
+      voters = new Set();
+      votersByPostId.set(vote.postId, voters);
+    }
+    voters.add(vote.accountId);
+  }
+
+  let notificationsCreated = 0;
+  for (const poll of polls) {
+    const author = poll.author;
+    const recipientAccountIds = new Set<Uuid>();
+    if (author.accountId != null) recipientAccountIds.add(author.accountId);
+    const voterAccountIds = votersByPostId.get(poll.postId);
+    if (voterAccountIds != null) {
+      for (const accountId of voterAccountIds) {
+        recipientAccountIds.add(accountId);
+      }
+    }
+    for (const accountId of recipientAccountIds) {
+      const notification = await createPollEndedNotification(
+        db,
+        accountId,
+        poll.post,
+        author,
+        poll.ends,
+      );
+      if (notification != null) notificationsCreated++;
+    }
+  }
+
+  return { pollsProcessed: postIds.length, notificationsCreated };
 }
 
 export async function vote(

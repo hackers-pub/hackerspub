@@ -6,6 +6,10 @@ draft → draft
 react → react
 reply → reply
 comment → comment
+poll → poll
+option → option
+vote → vote
+voter → voter
 share → share
 quote → quote
 bookmark → bookmark

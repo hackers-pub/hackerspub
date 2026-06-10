@@ -25,6 +25,8 @@ import type {
   Mention,
   NoteSource,
   NoteSourceMedium,
+  Poll,
+  PollOption,
   Post,
   PostVisibility,
   QuotePolicy,
@@ -328,6 +330,138 @@ export async function getNote(
   });
 }
 
+export async function getQuestion(
+  ctx: Context<ContextData>,
+  note: NoteSource & {
+    account: Account;
+    media: (NoteSourceMedium & { medium: Medium })[];
+  },
+  poll: Poll & { options: PollOption[]; post: Pick<Post, "name"> },
+  relations: {
+    replyTargetId?: URL;
+    quotedPost?: Post;
+    quoteAuthorizationIri?: string | null;
+    quoteRequestPolicy?: QuotePolicy | null;
+  } = {},
+): Promise<vocab.Question> {
+  const rendered = await renderMarkup(ctx, note.content, {
+    docId: note.id,
+    kv: ctx.data.kv,
+  });
+  const { disk } = ctx.data;
+  const attachments: vocab.Document[] = [];
+  for (const medium of note.media) {
+    attachments.push(
+      new vocab.Document({
+        mediaType: medium.medium.type,
+        url: new URL(await disk.getUrl(medium.medium.key)),
+        name: medium.alt,
+        width: medium.medium.width ?? undefined,
+        height: medium.medium.height ?? undefined,
+      }),
+    );
+  }
+  const tags: vocab.Link[] = Object.entries(rendered.mentions)
+    .map(([handle, actor]) =>
+      new vocab.Mention({
+        href: new URL(actor.iri),
+        name: handle,
+      })
+    );
+  for (const tag of rendered.hashtags) {
+    tags.push(
+      new vocab.Hashtag({
+        name: `#${tag.replace(/^#/, "")}`,
+        href: new URL(
+          `/tags/${encodeURIComponent(tag.replace(/^#/, ""))}`,
+          ctx.canonicalOrigin,
+        ),
+      }),
+    );
+  }
+  let contentHtml = rendered.html;
+  if (relations.quotedPost != null) {
+    const quoteUrl = relations.quotedPost.url ?? relations.quotedPost.iri;
+    tags.push(
+      new vocab.Link({
+        mediaType: "application/activity+json",
+        href: new URL(relations.quotedPost.iri),
+        name: `RE: ${quoteUrl}`,
+      }),
+    );
+    contentHtml =
+      `${contentHtml}<p class="quote-inline"><span class="quote-inline"><br><br>` +
+      `RE: <a href="${escape(quoteUrl)}">${escape(quoteUrl)}</a></span></p>`;
+  }
+  const normalizedQuotePolicy = normalizeQuotePolicyForVisibility(
+    note.visibility,
+    note.quotePolicy,
+  );
+  const options = poll.options
+    .toSorted((a, b) => a.index - b.index)
+    .map((option) =>
+      new vocab.Note({
+        name: option.title,
+        replies: new vocab.Collection({
+          totalItems: option.votesCount,
+        }),
+      })
+    );
+  return new vocab.Question({
+    id: ctx.getObjectUri(vocab.Question, { id: note.id }),
+    attribution: ctx.getActorUri(note.accountId),
+    ...getPostRecipients(
+      ctx,
+      note.accountId,
+      Object.values(rendered.mentions).map((actor) => new URL(actor.iri)),
+      note.visibility,
+    ),
+    replyTarget: relations.replyTargetId,
+    interactionPolicy: note.visibility === "direct" ||
+        note.visibility === "none"
+      ? undefined
+      : getQuoteInteractionPolicy(
+        ctx,
+        note.accountId,
+        normalizedQuotePolicy,
+        relations.quoteRequestPolicy,
+      ),
+    quote: relations.quotedPost == null
+      ? null
+      : new URL(relations.quotedPost.iri),
+    quoteUrl: relations.quotedPost == null
+      ? null
+      : new URL(relations.quotedPost.iri),
+    quoteAuthorization: relations.quoteAuthorizationIri == null
+      ? null
+      : new URL(relations.quoteAuthorizationIri),
+    name: poll.post.name,
+    contents: [
+      contentHtml,
+      new LanguageString(contentHtml, note.language),
+    ],
+    source: new vocab.Source({
+      content: note.content,
+      mediaType: "text/markdown",
+    }),
+    attachments,
+    tags,
+    url: new URL(
+      `/@${note.account.username}/${note.id}`,
+      ctx.canonicalOrigin,
+    ),
+    endTime: poll.ends.toTemporalInstant(),
+    voters: poll.votersCount,
+    ...(poll.multiple
+      ? { inclusiveOptions: options }
+      : { exclusiveOptions: options }),
+    published: note.published.toTemporalInstant(),
+    updated: +note.updated > +note.published
+      ? note.updated.toTemporalInstant()
+      : null,
+  });
+}
+
 builder
   .setObjectDispatcher(
     vocab.Note,
@@ -338,11 +472,14 @@ builder
         with: {
           account: true,
           media: { with: { medium: true }, orderBy: { index: "asc" } },
-          post: { with: { replyTarget: true, quotedPost: true } },
+          post: {
+            where: { type: "Note" },
+            with: { replyTarget: true, quotedPost: true },
+          },
         },
         where: { id: values.id },
       });
-      if (note == null) return null;
+      if (note?.post == null) return null;
       return await getNote(
         ctx,
         note,
@@ -378,7 +515,83 @@ builder
           with: { actor: true },
         },
       },
-      where: { noteSourceId: values.id },
+      where: { noteSourceId: values.id, type: "Note" },
+    });
+    if (post == null || post.actor.accountId == null) return false;
+    const documentLoader = await ctx.getDocumentLoader({
+      identifier: post.actor.accountId,
+    });
+    const signedKeyOwner = await ctx.getSignedKeyOwner({ documentLoader });
+    return isPostVisibleTo(
+      post,
+      signedKeyOwner?.id == null ? undefined : { iri: signedKeyOwner.id.href },
+    );
+  });
+
+builder
+  .setObjectDispatcher(
+    vocab.Question,
+    "/ap/questions/{id}",
+    async (ctx, values) => {
+      if (!validateUuid(values.id)) return null;
+      const note = await ctx.data.db.query.noteSourceTable.findFirst({
+        with: {
+          account: true,
+          media: { with: { medium: true }, orderBy: { index: "asc" } },
+        },
+        where: { id: values.id },
+      });
+      if (note == null) return null;
+      const post = await ctx.data.db.query.postTable.findFirst({
+        with: {
+          replyTarget: true,
+          quotedPost: true,
+          poll: {
+            with: {
+              options: { orderBy: { index: "asc" } },
+            },
+          },
+        },
+        where: { noteSourceId: values.id, type: "Question" },
+      });
+      if (post?.poll == null) return null;
+      return await getQuestion(
+        ctx,
+        note,
+        { ...post.poll, post },
+        {
+          replyTargetId: post.replyTarget == null
+            ? undefined
+            : new URL(post.replyTarget.iri),
+          quotedPost: post.quotedPost ?? undefined,
+          quoteAuthorizationIri: post.quoteAuthorizationIri,
+          quoteRequestPolicy: post.quoteRequestPolicy,
+        },
+      );
+    },
+  )
+  .authorize(async (ctx, values) => {
+    if (!validateUuid(values.id)) return false;
+    const post = await ctx.data.db.query.postTable.findFirst({
+      with: {
+        actor: {
+          with: {
+            followers: {
+              with: { follower: true },
+            },
+            blockees: {
+              with: { blockee: true },
+            },
+            blockers: {
+              with: { blocker: true },
+            },
+          },
+        },
+        mentions: {
+          with: { actor: true },
+        },
+      },
+      where: { noteSourceId: values.id, type: "Question" },
     });
     if (post == null || post.actor.accountId == null) return false;
     const documentLoader = await ctx.getDocumentLoader({

@@ -58,7 +58,7 @@ import {
   createShareNotification,
   deleteShareNotification,
 } from "./notification.ts";
-import { persistPoll } from "./poll.ts";
+import { createPoll, type CreatePollInput, persistPoll } from "./poll.ts";
 import {
   type Account,
   type AccountEmail,
@@ -80,6 +80,7 @@ import {
   type NoteSourceMedium,
   noteSourceTable,
   type Poll,
+  type PollOption,
   type Post,
   type PostLink,
   postLinkTable,
@@ -409,6 +410,7 @@ export function isPostObject(object: unknown): object is PostObject {
 export function isArticleLike(
   post: Post & { actor: Actor & { instance: Instance } },
 ): boolean {
+  if (post.type === "Question") return false;
   return post.type === "Article" ||
     post.name != null && post.actor.instance.software !== "nodebb";
 }
@@ -735,6 +737,10 @@ export async function syncPostFromNoteSource(
   relations: {
     replyTarget?: Post & { actor: Actor };
     quotedPost?: Post & { actor: Actor };
+    question?: {
+      title: string;
+      poll: CreatePollInput;
+    };
   } = {},
 ): Promise<
   | Post & {
@@ -760,10 +766,30 @@ export async function syncPostFromNoteSource(
     quoteRequestTarget: Post & { actor: Actor } | null;
     mentions: (Mention & { actor: Actor })[];
     media: PostMedium[];
+    poll: (Poll & { options: PollOption[] }) | null;
   }
   | undefined
 > {
   const { db, kv, disk } = fedCtx.data;
+  const existingPost = await db.query.postTable.findFirst({
+    columns: {
+      id: true,
+      type: true,
+      name: true,
+      contentHtml: true,
+      quotedPostId: true,
+      quoteAuthorizationIri: true,
+      quoteTargetState: true,
+      linkId: true,
+    },
+    where: { noteSourceId: noteSource.id },
+  });
+  const type = existingPost?.type ??
+    (relations.question == null ? "Note" : "Question");
+  if (existingPost != null && existingPost.type !== type) return undefined;
+  const iri = type === "Question"
+    ? fedCtx.getObjectUri(vocab.Question, { id: noteSource.id }).href
+    : fedCtx.getObjectUri(vocab.Note, { id: noteSource.id }).href;
   const actor = await syncActorFromAccount(fedCtx, noteSource.account);
   const hasQuotedPostRelation = Object.hasOwn(relations, "quotedPost");
   let quotedPost: QuotePolicyPost | undefined;
@@ -792,20 +818,10 @@ export async function syncPostFromNoteSource(
   const link = externalLinks.length > 0
     ? await persistPostLink(fedCtx, externalLinks[0])
     : undefined;
-  const url =
-    `${fedCtx.canonicalOrigin}/@${noteSource.account.username}/${noteSource.id}`;
-  const existingPost = await db.query.postTable.findFirst({
-    columns: {
-      id: true,
-      name: true,
-      contentHtml: true,
-      quotedPostId: true,
-      quoteAuthorizationIri: true,
-      quoteTargetState: true,
-      linkId: true,
-    },
-    where: { noteSourceId: noteSource.id },
-  });
+  const url = new URL(
+    `/@${noteSource.account.username}/${noteSource.id}`,
+    fedCtx.canonicalOrigin,
+  ).href;
   const id = existingPost?.id ?? generateUuidV7();
   const quoteTargetId = quotedPost?.id ?? null;
   const existingQuoteAuthorizationIri =
@@ -837,8 +853,8 @@ export async function syncPostFromNoteSource(
     ? "pending"
     : null;
   const values: Omit<NewPost, "id"> = {
-    iri: fedCtx.getObjectUri(vocab.Note, { id: noteSource.id }).href,
-    type: "Note",
+    iri,
+    type,
     visibility: noteSource.visibility,
     quotePolicy: normalizeQuotePolicyForVisibility(
       noteSource.visibility,
@@ -850,6 +866,7 @@ export async function syncPostFromNoteSource(
     quotedPostId,
     quoteAuthorizationIri,
     quoteTargetState,
+    name: relations.question?.title,
     contentHtml: rendered.html,
     language: noteSource.language,
     tags: Object.fromEntries(
@@ -955,6 +972,9 @@ export async function syncPostFromNoteSource(
       }))),
     ).returning()
     : [];
+  const poll = relations.question == null
+    ? null
+    : await createPoll(db, post.id, relations.question.poll);
   const returnedQuotedPost = hasQuotedPostRelation
     ? quoteRequestRequired ? null : quotedPost ?? null
     : post.quotedPostId == null
@@ -977,6 +997,7 @@ export async function syncPostFromNoteSource(
     quotedPost: returnedQuotedPost,
     quoteRequestRequired,
     quoteRequestTarget,
+    poll,
   };
 }
 

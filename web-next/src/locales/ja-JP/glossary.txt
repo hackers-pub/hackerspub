@@ -6,6 +6,10 @@ draft → 下書き
 react → リアクション
 reply → 返信
 comment → コメント
+poll → アンケート
+option → 選択肢
+vote → 投票
+voter → 投票者
 relay → リレー
 share → 共有
 quote → 引用

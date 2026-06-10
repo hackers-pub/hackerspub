@@ -12,7 +12,12 @@ import {
 import assert from "node:assert";
 import test, { describe, it } from "node:test";
 import { validate } from "@std/uuid/v7";
-import { scrapePostLink, withDocumentLoaderTimeout } from "./post.ts";
+import {
+  isArticleLike,
+  scrapePostLink,
+  withDocumentLoaderTimeout,
+} from "./post.ts";
+import type { Actor, Instance, Post } from "./schema.ts";
 
 const federation = createFederation<void>({
   kv: new MemoryKvStore(),
@@ -21,6 +26,18 @@ const ctx = federation.createContext(
   new URL("https://hackers.pub/"),
   undefined,
 );
+
+test("isArticleLike() does not treat named Questions as articles", () => {
+  const post = {
+    type: "Question",
+    name: "Runtime choice",
+    actor: {
+      instance: { software: "hackerspub" } as Instance,
+    } as Actor & { instance: Instance },
+  } as Post & { actor: Actor & { instance: Instance } };
+
+  assert.equal(isArticleLike(post), false);
+});
 
 test("scrapePostLink() scrapes Open Graph metadata", async () => {
   mockGlobalFetch();

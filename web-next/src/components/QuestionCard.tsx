@@ -153,6 +153,7 @@ function QuestionCardContent(props: QuestionCardContentProps) {
         __id
         id
         uuid
+        sourceId
         content
         language
         visibility
@@ -275,7 +276,7 @@ function QuestionCardContent(props: QuestionCardContentProps) {
                   href={q.url ?? q.iri}
                   internalHref={`/${
                     q.actor.local ? "@" + q.actor.username : q.actor.handle
-                  }/${q.uuid}`}
+                  }/${q.sourceId ?? q.uuid}`}
                 >
                   <Timestamp value={q.published} capitalizeFirstLetter />
                 </InternalLink>
@@ -335,7 +336,7 @@ function QuestionCardContent(props: QuestionCardContentProps) {
                   q.actor.local
                     ? `@${q.actor.username}`
                     : encodeHandleSegment(q.actor.handle)
-                }/${q.uuid}`;
+                }/${q.sourceId ?? q.uuid}`;
                 return (
                   <PostEngagementBar
                     $post={q}

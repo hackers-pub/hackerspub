@@ -6,6 +6,7 @@ import {
   type Delete,
   EmojiReact,
   Like,
+  Note,
   type Remove,
   Tombstone,
   type Undo,
@@ -32,6 +33,7 @@ import {
   updateRepliesCount,
   withDocumentLoaderTimeout,
 } from "@hackerspub/models/post";
+import { persistPollVoteResult } from "@hackerspub/models/poll";
 import {
   deleteReaction,
   persistReaction,
@@ -56,6 +58,16 @@ export async function onPostCreated(
   logger.debug("On post created: {create}", { create });
   if (create.objectId?.origin !== create.actorId?.origin) return;
   const object = await create.getObject({ ...fedCtx, suppressError: true });
+  if (
+    object instanceof Note &&
+    object.attributionId?.href === create.actorId?.href
+  ) {
+    const vote = await persistPollVoteResult(fedCtx, object, {
+      documentLoader: fedCtx.documentLoader,
+      contextLoader: fedCtx.contextLoader,
+    });
+    if (vote.attempted) return;
+  }
   if (!isPostObject(object)) return;
   if (object.attributionId?.href !== create.actorId?.href) return;
   const { db } = fedCtx.data;

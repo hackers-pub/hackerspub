@@ -60,6 +60,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
       react: "New reaction",
       shared_post_updated: "Post updated",
       quoted_post_updated: "Post updated",
+      poll_ended: "Poll ended",
     },
     body: {
       follow: (name: string) => `${name} followed you.`,
@@ -75,6 +76,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
         `${name} updated a post you shared.`,
       quoted_post_updated: (name: string) =>
         `${name} updated a post you quoted.`,
+      poll_ended: (name: string) => `${name}'s poll ended.`,
     },
   },
   "ja-JP": {
@@ -88,6 +90,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
       react: "新しいリアクション",
       shared_post_updated: "コンテンツが更新されました",
       quoted_post_updated: "コンテンツが更新されました",
+      poll_ended: "投票が終了しました",
     },
     body: {
       follow: (name: string) => `${name}さんがあなたをフォローしました`,
@@ -103,6 +106,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
         `${name}さんがあなたが共有したコンテンツを更新しました`,
       quoted_post_updated: (name: string) =>
         `${name}さんがあなたが引用したコンテンツを更新しました`,
+      poll_ended: (name: string) => `${name}さんの投票が終了しました`,
     },
   },
   "ko-KR": {
@@ -116,6 +120,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
       react: "새 반응",
       shared_post_updated: "콘텐츠가 업데이트됨",
       quoted_post_updated: "콘텐츠가 업데이트됨",
+      poll_ended: "투표 종료됨",
     },
     body: {
       follow: (name: string) => `${name} 님이 팔로했습니다`,
@@ -132,6 +137,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
         `${name} 님이 회원님이 공유한 콘텐츠를 업데이트했습니다`,
       quoted_post_updated: (name: string) =>
         `${name} 님이 회원님이 인용한 콘텐츠를 업데이트했습니다`,
+      poll_ended: (name: string) => `${name} 님의 투표가 종료되었습니다`,
     },
   },
   "zh-CN": {
@@ -145,6 +151,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
       react: "新的反应",
       shared_post_updated: "内容已更新",
       quoted_post_updated: "内容已更新",
+      poll_ended: "投票已结束",
     },
     body: {
       follow: (name: string) => `${name} 关注了你`,
@@ -158,6 +165,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
           : `${name} 用 ${emoji} 对你的内容做出了反应`,
       shared_post_updated: (name: string) => `${name} 更新了你转发过的内容`,
       quoted_post_updated: (name: string) => `${name} 更新了你引用过的内容`,
+      poll_ended: (name: string) => `${name} 的投票已结束`,
     },
   },
   "zh-TW": {
@@ -171,6 +179,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
       react: "新的反應",
       shared_post_updated: "內容已更新",
       quoted_post_updated: "內容已更新",
+      poll_ended: "投票已結束",
     },
     body: {
       follow: (name: string) => `${name} 關注了你`,
@@ -184,6 +193,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
           : `${name} 用 ${emoji} 對你的內容做出了反應`,
       shared_post_updated: (name: string) => `${name} 更新了你轉貼過的內容`,
       quoted_post_updated: (name: string) => `${name} 更新了你引用過的內容`,
+      poll_ended: (name: string) => `${name} 的投票已結束`,
     },
   },
 } satisfies Record<

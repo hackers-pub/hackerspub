@@ -1,14 +1,24 @@
 import assert from "node:assert";
 import test from "node:test";
 import * as vocab from "@fedify/vocab";
+import { eq } from "drizzle-orm";
 import type { Transaction } from "./db.ts";
-import { persistPoll, persistPollVote, vote } from "./poll.ts";
 import {
+  InvalidPollInputError,
+  normalizePollInput,
+  notifyEndedPolls,
+  persistPoll,
+  persistPollVote,
+  vote,
+} from "./poll.ts";
+import {
+  followingTable,
   type NewPost,
   type Poll,
   type PollOption,
   pollOptionTable,
   pollTable,
+  pollVoteTable,
   postTable,
 } from "./schema.ts";
 import { generateUuidV7 } from "./uuid.ts";
@@ -33,6 +43,7 @@ async function insertQuestionPoll(
     multiple: boolean;
     optionTitles: string[];
     ends?: Date;
+    visibility?: NewPost["visibility"];
   },
 ): Promise<InsertQuestionPollResult> {
   const postId = generateUuidV7();
@@ -44,7 +55,7 @@ async function insertQuestionPoll(
       id: postId,
       iri: `http://localhost/objects/${postId}`,
       type: "Question",
-      visibility: "public",
+      visibility: values.visibility ?? "public",
       actorId: values.account.actor.id,
       name: "Poll question",
       contentHtml: "<p>Poll question</p>",
@@ -134,6 +145,181 @@ test("vote() stores a single-choice vote and stays idempotent", async () => {
     assert.ok(pollAfterRepeat != null);
     assert.equal(pollAfterRepeat.votersCount, 1);
   });
+});
+
+test("notifyEndedPolls() notifies local authors and voters once", async () => {
+  await withRollback(async (tx) => {
+    await tx.update(pollTable).set({
+      endedNotificationsSent: new Date("2026-04-15T00:00:00.000Z"),
+    });
+    const author = await insertAccountWithActor(tx, {
+      username: "endedpollauthor",
+      name: "Ended Poll Author",
+      email: "endedpollauthor@example.com",
+    });
+    const voter = await insertAccountWithActor(tx, {
+      username: "endedpollvoter",
+      name: "Ended Poll Voter",
+      email: "endedpollvoter@example.com",
+    });
+    const remoteVoter = await insertRemoteActor(tx, {
+      username: "remoteendedvoter",
+      host: "remote.example",
+      name: "Remote Ended Voter",
+      iri: "https://remote.example/users/ended-voter",
+    });
+    const { post, poll } = await insertQuestionPoll(tx, {
+      account: author.account,
+      multiple: false,
+      optionTitles: ["Deno", "Node.js"],
+      ends: new Date("2026-04-15T00:05:00.000Z"),
+    });
+    await tx.insert(pollVoteTable).values([
+      {
+        postId: poll.postId,
+        optionIndex: 0,
+        actorId: voter.actor.id,
+      },
+      {
+        postId: poll.postId,
+        optionIndex: 1,
+        actorId: remoteVoter.id,
+      },
+    ]);
+
+    const first = await notifyEndedPolls(tx, {
+      now: new Date("2026-04-15T00:06:00.000Z"),
+    });
+
+    assert.deepEqual(first, { pollsProcessed: 1, notificationsCreated: 2 });
+    const notifications = await tx.query.notificationTable.findMany({
+      where: { postId: post.id },
+      orderBy: { accountId: "asc" },
+    });
+    assert.deepEqual(
+      notifications.map((notification) => ({
+        accountId: notification.accountId,
+        type: notification.type,
+        actorIds: notification.actorIds,
+      })),
+      [
+        {
+          accountId: author.account.id,
+          type: "poll_ended",
+          actorIds: [author.actor.id],
+        },
+        {
+          accountId: voter.account.id,
+          type: "poll_ended",
+          actorIds: [author.actor.id],
+        },
+      ].toSorted((a, b) => a.accountId.localeCompare(b.accountId)),
+    );
+    const notifiedPoll = await tx.query.pollTable.findFirst({
+      where: { postId: poll.postId },
+    });
+    assert.ok(notifiedPoll?.endedNotificationsSent != null);
+
+    const second = await notifyEndedPolls(tx, {
+      now: new Date("2026-04-15T00:07:00.000Z"),
+    });
+
+    assert.deepEqual(second, { pollsProcessed: 0, notificationsCreated: 0 });
+    const remainingNotifications = await tx.query.notificationTable.findMany({
+      where: { postId: post.id },
+    });
+    assert.equal(remainingNotifications.length, 2);
+  });
+});
+
+test("notifyEndedPolls() does not reclaim already marked polls", async () => {
+  await withRollback(async (tx) => {
+    await tx.update(pollTable).set({
+      endedNotificationsSent: new Date("2026-04-15T00:29:00.000Z"),
+    });
+    const author = await insertAccountWithActor(tx, {
+      username: "staleclaimpollauthor",
+      name: "Stale Claim Poll Author",
+      email: "staleclaimpollauthor@example.com",
+    });
+    const { post, poll } = await insertQuestionPoll(tx, {
+      account: author.account,
+      multiple: false,
+      optionTitles: ["Deno", "Node.js"],
+      ends: new Date("2026-04-15T00:05:00.000Z"),
+    });
+    await tx.update(pollTable)
+      .set({ endedNotificationsSent: new Date("2026-04-15T00:06:00.000Z") })
+      .where(eq(pollTable.postId, poll.postId));
+
+    const result = await notifyEndedPolls(tx, {
+      now: new Date("2026-04-15T00:30:00.000Z"),
+    });
+
+    assert.deepEqual(result, { pollsProcessed: 0, notificationsCreated: 0 });
+    const notification = await tx.query.notificationTable.findFirst({
+      where: {
+        accountId: author.account.id,
+        postId: post.id,
+        type: "poll_ended",
+      },
+    });
+    assert.equal(notification, undefined);
+  });
+});
+
+test("normalizePollInput() validates local poll creation limits", () => {
+  const now = new Date("2026-04-15T00:00:00.000Z");
+
+  assert.deepEqual(
+    normalizePollInput({
+      title: " Runtime choice ",
+      multiple: true,
+      options: [" Deno ", " Node.js "],
+      ends: new Date("2026-04-15T00:05:00.000Z"),
+      now,
+    }),
+    {
+      title: "Runtime choice",
+      multiple: true,
+      options: ["Deno", "Node.js"],
+      ends: new Date("2026-04-15T00:05:00.000Z"),
+    },
+  );
+
+  assert.throws(
+    () =>
+      normalizePollInput({
+        title: "Pick one",
+        multiple: false,
+        options: ["Deno", "Deno"],
+        ends: new Date("2026-04-15T00:05:00.000Z"),
+        now,
+      }),
+    InvalidPollInputError,
+  );
+  assert.throws(
+    () =>
+      normalizePollInput({
+        title: "Pick one",
+        multiple: false,
+        options: ["Deno"],
+        ends: new Date("2026-04-15T00:05:00.000Z"),
+        now,
+      }),
+    InvalidPollInputError,
+  );
+  assert.throws(
+    () =>
+      normalizePollInput({
+        title: "Pick one",
+        multiple: false,
+        options: ["Deno", "Node.js"],
+        ends: new Date("2026-04-15T00:00:30.000Z"),
+        now,
+      }),
+    InvalidPollInputError,
+  );
 });
 
 test("vote() rejects multiple choices for single polls and allows them for multi polls", async () => {
@@ -242,6 +428,198 @@ test("persistPollVote() stores an incoming vote for a persisted poll", async () 
     assert.equal(votes.length, 1);
     assert.equal(votes[0].actorId, remoteVoter.id);
     assert.equal(votes[0].optionIndex, 1);
+
+    const storedPoll = await tx.query.pollTable.findFirst({
+      where: { postId: poll.postId },
+    });
+    assert.equal(storedPoll?.votersCount, 1);
+    const options = await tx.query.pollOptionTable.findMany({
+      where: { postId: poll.postId },
+      orderBy: { index: "asc" },
+    });
+    assert.deepEqual(options.map((option) => option.votesCount), [0, 1]);
+  });
+});
+
+test("persistPollVote() does not double-count a newly fetched remote poll", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const author = await insertRemoteActor(tx, {
+      username: "freshpollauthor",
+      name: "Fresh Poll Author",
+      host: "remote.example",
+      iri: "https://remote.example/users/freshpollauthor",
+    });
+    const voter = await insertRemoteActor(tx, {
+      username: "freshpollvoter",
+      name: "Fresh Poll Voter",
+      host: "remote.example",
+      iri: "https://remote.example/users/freshpollvoter",
+    });
+    const questionIri = "https://remote.example/objects/fresh-poll";
+    const question = new vocab.Question({
+      id: new URL(questionIri),
+      attribution: new URL(author.iri),
+      to: vocab.PUBLIC_COLLECTION,
+      content: "<p>Which language?</p>",
+      endTime: Temporal.Instant.from("2099-06-10T00:00:00.000Z"),
+      exclusiveOptions: [
+        new vocab.Note({
+          name: "TypeScript",
+          replies: new vocab.Collection({ totalItems: 0 }),
+        }),
+        new vocab.Note({
+          name: "Rust",
+          replies: new vocab.Collection({ totalItems: 1 }),
+        }),
+      ],
+      voters: 1,
+    });
+    const voteNote = new vocab.Note({
+      id: new URL("https://remote.example/votes/fresh-poll-vote"),
+      attribution: new URL(voter.iri),
+      name: "Rust",
+      replyTarget: question,
+    });
+
+    const storedVote = await persistPollVote(fedCtx, voteNote);
+
+    assert.ok(storedVote != null);
+    assert.equal(storedVote.actorId, voter.id);
+    assert.equal(storedVote.optionIndex, 1);
+
+    const storedPost = await tx.query.postTable.findFirst({
+      where: { iri: questionIri },
+    });
+    assert.ok(storedPost != null);
+    const storedPoll = await tx.query.pollTable.findFirst({
+      where: { postId: storedPost.id },
+    });
+    assert.equal(storedPoll?.votersCount, 1);
+    const options = await tx.query.pollOptionTable.findMany({
+      where: { postId: storedPost.id },
+      orderBy: { index: "asc" },
+    });
+    assert.deepEqual(options.map((option) => option.votesCount), [0, 1]);
+  });
+});
+
+test("persistPollVote() counts a newly fetched remote poll without totals", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const author = await insertRemoteActor(tx, {
+      username: "freshpollnototalsauthor",
+      name: "Fresh Poll No Totals Author",
+      host: "remote.example",
+      iri: "https://remote.example/users/freshpollnototalsauthor",
+    });
+    const voter = await insertRemoteActor(tx, {
+      username: "freshpollnototalsvoter",
+      name: "Fresh Poll No Totals Voter",
+      host: "remote.example",
+      iri: "https://remote.example/users/freshpollnototalsvoter",
+    });
+    const questionIri = "https://remote.example/objects/fresh-poll-no-totals";
+    const question = new vocab.Question({
+      id: new URL(questionIri),
+      attribution: new URL(author.iri),
+      to: vocab.PUBLIC_COLLECTION,
+      content: "<p>Which runtime?</p>",
+      endTime: Temporal.Instant.from("2099-06-10T00:00:00.000Z"),
+      exclusiveOptions: [
+        new vocab.Note({ name: "Deno" }),
+        new vocab.Note({ name: "Node.js" }),
+      ],
+    });
+    const voteNote = new vocab.Note({
+      id: new URL("https://remote.example/votes/fresh-poll-no-totals-vote"),
+      attribution: new URL(voter.iri),
+      name: "Node.js",
+      replyTarget: question,
+    });
+
+    const storedVote = await persistPollVote(fedCtx, voteNote);
+
+    assert.ok(storedVote != null);
+    assert.equal(storedVote.actorId, voter.id);
+    assert.equal(storedVote.optionIndex, 1);
+
+    const storedPost = await tx.query.postTable.findFirst({
+      where: { iri: questionIri },
+    });
+    assert.ok(storedPost != null);
+    const storedPoll = await tx.query.pollTable.findFirst({
+      where: { postId: storedPost.id },
+    });
+    assert.equal(storedPoll?.votersCount, 1);
+    const options = await tx.query.pollOptionTable.findMany({
+      where: { postId: storedPost.id },
+      orderBy: { index: "asc" },
+    });
+    assert.deepEqual(options.map((option) => option.votesCount), [0, 1]);
+  });
+});
+
+test("persistPollVote() rejects incoming votes from actors that cannot see the poll", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const author = await insertAccountWithActor(tx, {
+      username: "privatepollauthor",
+      name: "Private Poll Author",
+      email: "privatepollauthor@example.com",
+    });
+    const allowedVoter = await insertRemoteActor(tx, {
+      username: "privatepollfollower",
+      name: "Private Poll Follower",
+      host: "remote.example",
+      iri: "https://remote.example/users/privatepollfollower",
+    });
+    const deniedVoter = await insertRemoteActor(tx, {
+      username: "privatepollstranger",
+      name: "Private Poll Stranger",
+      host: "remote.example",
+      iri: "https://remote.example/users/privatepollstranger",
+    });
+    const { poll, post } = await insertQuestionPoll(tx, {
+      account: author.account,
+      multiple: false,
+      optionTitles: ["TypeScript", "Rust"],
+      visibility: "followers",
+    });
+    await tx.insert(followingTable).values({
+      iri: "https://remote.example/follows/private-poll-follower",
+      followerId: allowedVoter.id,
+      followeeId: author.actor.id,
+      accepted: new Date("2026-04-15T00:00:00.000Z"),
+    });
+
+    const rejectedVote = await persistPollVote(
+      fedCtx,
+      new vocab.Note({
+        id: new URL(`http://localhost/objects/${generateUuidV7()}`),
+        attribution: new URL(deniedVoter.iri),
+        name: "Rust",
+        replyTarget: new URL(post.iri),
+      }),
+    );
+    const acceptedVote = await persistPollVote(
+      fedCtx,
+      new vocab.Note({
+        id: new URL(`http://localhost/objects/${generateUuidV7()}`),
+        attribution: new URL(allowedVoter.iri),
+        name: "Rust",
+        replyTarget: new URL(post.iri),
+      }),
+    );
+
+    assert.equal(rejectedVote, undefined);
+    assert.ok(acceptedVote != null);
+    assert.equal(acceptedVote.actorId, allowedVoter.id);
+
+    const votes = await tx.query.pollVoteTable.findMany({
+      where: { postId: poll.postId },
+    });
+    assert.deepEqual(votes.map((vote) => vote.actorId), [allowedVoter.id]);
   });
 });
 

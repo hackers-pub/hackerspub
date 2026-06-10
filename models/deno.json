@@ -35,6 +35,7 @@
     "./profile-interactions": "./profile-interactions.ts",
     "./push": "./push.ts",
     "./push-notification": "./push-notification.ts",
+    "./question": "./question.ts",
     "./reaction": "./reaction.ts",
     "./relations": "./relations.ts",
     "./relay": "./relay.ts",

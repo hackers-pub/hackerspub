@@ -58,6 +58,11 @@ const postUpdatedNotificationTypesQuery = parse(`
                 uuid
               }
             }
+            ... on PollEndedNotification {
+              post {
+                uuid
+              }
+            }
           }
         }
       }
@@ -190,7 +195,7 @@ test(
   },
 );
 
-test("Notification exposes post-update notification concrete types", async () => {
+test("Notification exposes post-backed notification concrete types", async () => {
   await withRollback(async (tx) => {
     const recipient = await insertAccountWithActor(tx, {
       username: "notifypostupdatedme",
@@ -210,8 +215,20 @@ test("Notification exposes post-update notification concrete types", async () =>
       account: actor.account,
       content: "Quoted post that later changed",
     });
+    const { post: endedPollPost } = await insertNotePost(tx, {
+      account: actor.account,
+      content: "Poll that ended",
+    });
 
     await tx.insert(notificationTable).values([
+      {
+        id: generateUuidV7(),
+        accountId: recipient.account.id,
+        type: "poll_ended",
+        postId: endedPollPost.id,
+        actorIds: [actor.actor.id],
+        created: new Date("2026-04-15T00:00:02.000Z"),
+      },
       {
         id: generateUuidV7(),
         accountId: recipient.account.id,
@@ -242,6 +259,12 @@ test("Notification exposes post-update notification concrete types", async () =>
       viewer: {
         notifications: {
           edges: [
+            {
+              node: {
+                __typename: "PollEndedNotification",
+                post: { uuid: endedPollPost.id },
+              },
+            },
             {
               node: {
                 __typename: "SharedPostUpdatedNotification",

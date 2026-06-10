@@ -1,8 +1,12 @@
 import assert from "node:assert";
 import test from "node:test";
+import type { Context } from "@fedify/fedify";
 import * as vocab from "@fedify/vocab";
 import { encodeGlobalID } from "@pothos/plugin-relay";
 import { execute, parse } from "graphql";
+import type { ContextData } from "@hackerspub/models/context";
+import type { Transaction } from "@hackerspub/models/db";
+import { createQuestion } from "@hackerspub/models/question";
 import {
   type NewPost,
   pollOptionTable,
@@ -73,6 +77,11 @@ const actorPostByUuidQuery = parse(`
       postByUuid(uuid: $uuid) {
         __typename
         id
+        iri
+        ... on Question {
+          sourceId
+          questionIri: iri
+        }
       }
     }
   }
@@ -344,6 +353,75 @@ test("Actor.postByUuid resolves visible Question posts", async () => {
         postByUuid: {
           __typename: "Question",
           id: encodeGlobalID("Question", questionId),
+          iri: `http://localhost/objects/${questionId}`,
+          sourceId: null,
+          questionIri: `http://localhost/objects/${questionId}`,
+        },
+      },
+    });
+  });
+});
+
+test("source-backed local Questions expose their Question ActivityPub IRI", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "pollgraphqlquestioniri",
+      name: "Poll GraphQL Question IRI",
+      email: "pollgraphqlquestioniri@example.com",
+    });
+    const fedCtx = {
+      ...createFedCtx(tx),
+      getObjectUri(type: unknown, values: Record<string, string>) {
+        if (type === vocab.Question) {
+          return new URL(`/ap/questions/${values.id}`, "http://localhost/");
+        }
+        return new URL(`/objects/${values.id}`, "http://localhost/");
+      },
+    } as ReturnType<typeof createFedCtx>;
+    const published = new Date("2026-04-15T00:00:00.000Z");
+    const question = await createQuestion(
+      fedCtx as unknown as Context<ContextData<Transaction>>,
+      {
+        accountId: author.account.id,
+        visibility: "public",
+        quotePolicy: "everyone",
+        content: "Which object route should be advertised?",
+        language: "en",
+        media: [],
+        published,
+        updated: published,
+        poll: {
+          title: "Object route",
+          multiple: false,
+          options: ["Question", "Note"],
+          ends: new Date("2026-04-16T00:00:00.000Z"),
+          now: published,
+        },
+      },
+    );
+    assert.ok(question != null);
+    assert.ok(question.noteSourceId != null);
+
+    const result = await execute({
+      schema,
+      document: actorPostByUuidQuery,
+      variableValues: {
+        handle: author.account.username,
+        uuid: question.noteSourceId,
+      },
+      contextValue: makeGuestContext(tx, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      actorByHandle: {
+        postByUuid: {
+          __typename: "Question",
+          id: encodeGlobalID("Question", question.id),
+          iri: `http://localhost/ap/questions/${question.noteSourceId}`,
+          sourceId: question.noteSourceId,
+          questionIri: `http://localhost/ap/questions/${question.noteSourceId}`,
         },
       },
     });

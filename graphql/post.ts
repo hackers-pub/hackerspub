@@ -1,3 +1,4 @@
+import * as vocab from "@fedify/vocab";
 import { generateAltText } from "@hackerspub/ai/alttext";
 import { getLogger } from "@logtape/logtape";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
@@ -70,6 +71,8 @@ import {
   sharePost,
   unsharePost,
 } from "@hackerspub/models/post";
+import { InvalidPollInputError } from "@hackerspub/models/poll";
+import { createQuestion } from "@hackerspub/models/question";
 import { react, undoReaction } from "@hackerspub/models/reaction";
 import {
   articleContentTable,
@@ -140,8 +143,8 @@ export const PostType = builder.enumType("PostType", {
     },
     QUESTION: {
       description:
-        "ActivityPub Question (poll) originating from a federated instance. " +
-        "Creating new Questions locally is not supported.",
+        "ActivityPub `Question` poll. Questions may originate locally via " +
+        "`createQuestion` or remotely through federation.",
     },
   } as const,
 });
@@ -205,13 +208,11 @@ export const Post = builder.drizzleInterface("postTable", {
         "The post row's primary key, stable for the lifetime of the post. " +
         "⚠️ This is **not** the UUID embedded in `Post.url` for source-backed " +
         "local posts: local notes that originate here use `Note.sourceId` " +
-        "(= `noteSourceTable.id`) and local articles use " +
-        "`Article.publishedYear` + `Article.slug`. The row PK is the right " +
-        "token whenever there is no local source row — federated remote " +
-        "posts, local share wrappers (boosts, which carry no source and copy " +
-        "the shared post's URL), and Questions (whose originals come only " +
-        "from remote instances and whose local rows exist solely as share " +
-        "wrappers) — and for the internal route that resolves them. " +
+        "(= `noteSourceTable.id`), local questions use `Question.sourceId`, " +
+        "and local articles use `Article.publishedYear` + `Article.slug`. " +
+        "The row PK is the right token for posts with no local source row: " +
+        "federated remote posts, local share wrappers (boosts, which carry " +
+        "no source and copy the shared post's URL), and remote `Question`s. " +
         "`actorByHandle.postByUuid` accepts either the row PK or a source " +
         "UUID, but resolving by `uuid` for a source-backed local post yields " +
         "a URL that differs from `Post.url`.",
@@ -224,9 +225,16 @@ export const Post = builder.drizzleInterface("postTable", {
         "remote posts it is whatever IRI the originating instance assigned. " +
         "Prefer `url` for human-readable links.",
       select: {
-        columns: { iri: true },
+        columns: { iri: true, noteSourceId: true, type: true },
       },
-      resolve: (post) => new URL(post.iri),
+      resolve: (post, _, ctx) => {
+        if (post.type === "Question" && post.noteSourceId != null) {
+          return ctx.fedCtx.getObjectUri(vocab.Question, {
+            id: post.noteSourceId,
+          });
+        }
+        return new URL(post.iri);
+      },
     }),
     visibility: t.field({
       type: PostVisibility,
@@ -258,9 +266,8 @@ export const Post = builder.drizzleInterface("postTable", {
     }),
     name: t.exposeString("name", {
       nullable: true,
-      description:
-        "The post's title. Non-null for `Article`s; `null` for `Note`s, " +
-        "boost wrappers, and `Question`s.",
+      description: "The post's title. Non-null for `Article`s and local poll " +
+        "`Question`s; `null` for `Note`s and boost wrappers.",
     }),
     summary: t.exposeString("summary", {
       nullable: true,
@@ -394,12 +401,13 @@ export const Post = builder.drizzleInterface("postTable", {
       nullable: true,
       description:
         "The canonical, human-readable URL of this post. For source-backed " +
-        "local posts the path encodes the local source identifier — " +
+        "local posts the path encodes the local source identifier: " +
         "`Note.sourceId` for notes, `Article.publishedYear` + `Article.slug` " +
-        "for articles — **not** `Post.uuid`. For federated remote posts and " +
+        "for articles, and `Question.sourceId` for questions. It does not " +
+        "encode `Post.uuid`. For federated remote posts and " +
         "local share wrappers (boosts) this is whatever URL the originating " +
-        "instance advertised — copied from the shared post in the boost case " +
-        "— and is unrelated to the wrapper's own row PK. Prefer this field " +
+        "instance advertised (copied from the shared post in the boost case) " +
+        "and is unrelated to the wrapper's own row PK. Prefer this field " +
         "over hand-building a path from `Post.uuid`: `uuid` is the row PK and " +
         "does not match the path here for source-backed local posts.",
       select: {
@@ -933,27 +941,29 @@ export const ArticleDraft = builder.drizzleNode("articleDraftTable", {
   }),
 });
 
-// Question originals are only persisted from federated remote instances
-// (see `persistPost` in models/post.ts) — there is no local question
-// creation pipeline. Local Question rows can still exist as share
-// wrappers when a local user boosts a remote question (`sharePost` in
-// models/post.ts copies the shared post's `type`). Neither case carries
-// a local source row, and the `post_note_source_id_check` constraint in
-// models/schema.ts forbids `noteSourceId` on rows whose `type` isn't
-// `'Note'`. So Question intentionally exposes no `sourceId`: callers
-// should always use `Post.uuid` (the row PK) when building internal
-// permalinks for questions.
 export const Question = builder.drizzleNode("postTable", {
   variant: "Question",
   description:
-    "An ActivityPub Question (poll) originating from a federated instance. " +
-    "Hackers' Pub does not support creating `Question`s locally; local users " +
-    "can vote on and boost remote questions only. Always use `Post.uuid` (the " +
-    "row PK) for internal permalinks; there is no local `sourceId`.",
+    "An ActivityPub `Question` poll. Local Questions are source-backed " +
+    "short posts with immutable poll settings; remote Questions may have " +
+    "`null` for `sourceId`. Use `Question.sourceId` for source-backed local " +
+    "Question routes, and fall back to `Post.uuid` for federated remote " +
+    "Questions and local share wrappers.",
   interfaces: [Post, Reactable],
   id: {
     column: (post) => post.id,
   },
+  fields: (t) => ({
+    sourceId: t.expose("noteSourceId", {
+      type: "UUID",
+      nullable: true,
+      description:
+        "The local source UUID for this question (`noteSourceTable.id`), " +
+        "embedded in source-backed local Question URLs as " +
+        "`/@username/<sourceId>`. `null` for federated remote questions and " +
+        "local share wrappers; use `Post.uuid` as the fallback route token.",
+    }),
+  }),
 });
 
 export const ArticleContent = builder.drizzleNode("articleContentTable", {
@@ -1414,6 +1424,39 @@ const CreateNoteMediumInput = builder.inputType("CreateNoteMediumInput", {
   }),
 });
 
+const CreateQuestionPollInput = builder.inputType("CreateQuestionPollInput", {
+  description:
+    "Immutable poll settings for `createQuestion`. These settings cannot " +
+    "be edited after the Question is published.",
+  fields: (t) => ({
+    title: t.string({
+      required: true,
+      description:
+        "Poll title used as the ActivityPub `Question.name`. Must be " +
+        "between `1` and `200` characters after trimming.",
+    }),
+    multiple: t.boolean({
+      required: true,
+      description:
+        "Whether voters may choose more than one option. `false` creates " +
+        "an ActivityPub Question with exclusive options.",
+    }),
+    options: t.stringList({
+      required: true,
+      description:
+        "Poll option labels in display order. Must contain between `2` " +
+        "and `20` unique, non-empty entries after trimming.",
+    }),
+    ends: t.field({
+      type: "DateTime",
+      required: true,
+      description:
+        "Voting deadline. Must be at least `1` minute and at most `1` " +
+        "year in the future.",
+    }),
+  }),
+});
+
 builder.relayMutationField(
   "createNote",
   {
@@ -1473,12 +1516,12 @@ builder.relayMutationField(
           with: {
             actor: {
               with: {
-                followers: true,
-                blockees: true,
-                blockers: true,
+                followers: { where: { followerId: ctx.account.actor.id } },
+                blockees: { where: { blockeeId: ctx.account.actor.id } },
+                blockers: { where: { blockerId: ctx.account.actor.id } },
               },
             },
-            mentions: true,
+            mentions: { where: { actorId: ctx.account.actor.id } },
           },
           where: { id: replyTargetId.id },
         });
@@ -1493,22 +1536,24 @@ builder.relayMutationField(
           with: {
             actor: {
               with: {
-                followers: true,
-                blockees: true,
-                blockers: true,
+                followers: { where: { followerId: ctx.account.actor.id } },
+                blockees: { where: { blockeeId: ctx.account.actor.id } },
+                blockers: { where: { blockerId: ctx.account.actor.id } },
               },
             },
-            mentions: true,
+            mentions: { where: { actorId: ctx.account.actor.id } },
             sharedPost: {
               with: {
                 actor: {
                   with: {
-                    followers: true,
-                    blockees: true,
-                    blockers: true,
+                    followers: {
+                      where: { followerId: ctx.account.actor.id },
+                    },
+                    blockees: { where: { blockeeId: ctx.account.actor.id } },
+                    blockers: { where: { blockerId: ctx.account.actor.id } },
                   },
                 },
-                mentions: true,
+                mentions: { where: { actorId: ctx.account.actor.id } },
               },
             },
           },
@@ -1609,6 +1654,245 @@ builder.relayMutationField(
     outputFields: (t) => ({
       note: t.field({
         type: Note,
+        resolve(result) {
+          return result;
+        },
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "createQuestion",
+  {
+    description:
+      "Publish a new short-form post with an immutable ActivityPub " +
+      "`Question` poll. Sends an ActivityPub `Create` activity to relevant " +
+      "inboxes based on `visibility`. Requires authentication.",
+    inputFields: (t) => ({
+      visibility: t.field({
+        type: PostVisibility,
+        required: true,
+        description: "Audience for the new Question post.",
+      }),
+      content: t.field({
+        type: "Markdown",
+        required: true,
+        description:
+          "Markdown body shown above the poll. The body remains editable " +
+          "only through future note-editing support; poll settings are " +
+          "immutable.",
+      }),
+      language: t.field({
+        type: "Locale",
+        required: true,
+        description: "BCP 47 language tag for the Question body.",
+      }),
+      quotePolicy: t.field({
+        type: QuotePolicy,
+        required: false,
+        description:
+          "Who may quote this Question. Omit to use the default policy for " +
+          "the selected `visibility`.",
+      }),
+      poll: t.field({
+        type: CreateQuestionPollInput,
+        required: true,
+        description:
+          "Poll title, options, selection mode, and deadline. These values " +
+          "cannot be changed after publishing.",
+      }),
+      media: t.field({
+        type: [CreateNoteMediumInput],
+        required: false,
+        defaultValue: [],
+        description: "Media to attach to the Question body, in display order.",
+      }),
+      replyTargetId: t.globalID({
+        for: [Note, Article, Question],
+        required: false,
+        description:
+          "Optional post to reply to. The target must be visible to the " +
+          "authenticated account.",
+      }),
+      quotedPostId: t.globalID({
+        for: [Note, Article, Question],
+        required: false,
+        description:
+          "Optional post to quote. Share wrappers are resolved to their " +
+          "original post before quote policy checks.",
+      }),
+    }),
+  },
+  {
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+      ],
+    },
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null || ctx.account == null) {
+        throw new NotAuthenticatedError();
+      }
+      const {
+        visibility,
+        content,
+        language,
+        quotePolicy,
+        poll,
+        media,
+        replyTargetId,
+        quotedPostId,
+      } = args.input;
+      const attachedMedia = media ?? [];
+      if (attachedMedia.length > 20) {
+        throw new InvalidInputError("media");
+      }
+      if (visibility === "NONE") {
+        throw new InvalidInputError("visibility");
+      }
+      let replyTarget: schema.Post & { actor: schema.Actor } | undefined;
+      if (replyTargetId != null) {
+        const post = await ctx.db.query.postTable.findFirst({
+          with: {
+            actor: {
+              with: {
+                followers: { where: { followerId: ctx.account.actor.id } },
+                blockees: { where: { blockeeId: ctx.account.actor.id } },
+                blockers: { where: { blockerId: ctx.account.actor.id } },
+              },
+            },
+            mentions: { where: { actorId: ctx.account.actor.id } },
+          },
+          where: { id: replyTargetId.id },
+        });
+        if (post == null || !isPostVisibleTo(post, ctx.account.actor)) {
+          throw new InvalidInputError("replyTargetId");
+        }
+        replyTarget = post;
+      }
+      let quotedPost: schema.Post & { actor: schema.Actor } | undefined;
+      if (quotedPostId != null) {
+        const post = await ctx.db.query.postTable.findFirst({
+          with: {
+            actor: {
+              with: {
+                followers: { where: { followerId: ctx.account.actor.id } },
+                blockees: { where: { blockeeId: ctx.account.actor.id } },
+                blockers: { where: { blockerId: ctx.account.actor.id } },
+              },
+            },
+            mentions: { where: { actorId: ctx.account.actor.id } },
+            sharedPost: {
+              with: {
+                actor: {
+                  with: {
+                    followers: {
+                      where: { followerId: ctx.account.actor.id },
+                    },
+                    blockees: { where: { blockeeId: ctx.account.actor.id } },
+                    blockers: { where: { blockerId: ctx.account.actor.id } },
+                  },
+                },
+                mentions: { where: { actorId: ctx.account.actor.id } },
+              },
+            },
+          },
+          where: { id: quotedPostId.id },
+        });
+        if (post == null || !isPostVisibleTo(post, ctx.account.actor)) {
+          throw new InvalidInputError("quotedPostId");
+        }
+        const effectivePost = post.sharedPost ?? post;
+        if (effectivePost.sharedPostId != null) {
+          throw new InvalidInputError("quotedPostId");
+        }
+        if (!isPostVisibleTo(effectivePost, ctx.account.actor)) {
+          throw new InvalidInputError("quotedPostId");
+        }
+        if (!canActorRequestQuotePost(effectivePost, ctx.account.actor)) {
+          throw new InvalidInputError("quotedPostId");
+        }
+        quotedPost = effectivePost;
+      }
+      return await withTransaction(ctx.fedCtx, async (context) => {
+        const noteMedia = await Promise.all(
+          attachedMedia.map(async (medium, i) => {
+            const alt = medium.alt.trim();
+            if (alt === "") throw new InvalidInputError(`media.${i}.alt`);
+            const storedMedium = await context.data.db.query.mediumTable
+              .findFirst({
+                where: { id: medium.mediumId },
+              });
+            if (storedMedium == null) {
+              throw new InvalidInputError(`media.${i}.mediumId`);
+            }
+            return { mediumId: medium.mediumId, alt };
+          }),
+        );
+        const modelVisibility = visibility === "PUBLIC"
+          ? "public"
+          : visibility === "UNLISTED"
+          ? "unlisted"
+          : visibility === "FOLLOWERS"
+          ? "followers"
+          : visibility === "DIRECT"
+          ? "direct"
+          : visibility === "NONE"
+          ? "none"
+          : assertNever(
+            visibility,
+            `Unknown value in Post.visibility: "${visibility}"`,
+          );
+        let question: Awaited<ReturnType<typeof createQuestion>>;
+        try {
+          question = await createQuestion(
+            context,
+            {
+              accountId: session.accountId,
+              visibility: modelVisibility,
+              quotePolicy: normalizeQuotePolicyForVisibility(
+                modelVisibility,
+                quotePolicy == null ? undefined : fromQuotePolicy(quotePolicy),
+              ),
+              content,
+              language: language.baseName,
+              media: noteMedia,
+              poll: {
+                title: poll.title,
+                multiple: poll.multiple,
+                options: poll.options,
+                ends: poll.ends,
+              },
+            },
+            { replyTarget, quotedPost },
+          );
+        } catch (error) {
+          if (error instanceof QuotePolicyDeniedError) {
+            throw new InvalidInputError("quotedPostId");
+          }
+          if (error instanceof InvalidPollInputError) {
+            throw new InvalidInputError(error.inputPath);
+          }
+          throw error;
+        }
+        if (question == null) {
+          throw createGraphQLError("Failed to create question.", {
+            originalError: new Error("Failed to create question."),
+            extensions: { code: "INTERNAL_SERVER_ERROR" },
+          });
+        }
+        return question;
+      });
+    },
+  },
+  {
+    outputFields: (t) => ({
+      question: t.field({
+        type: Question,
+        description: "The newly published `Question` post.",
         resolve(result) {
           return result;
         },

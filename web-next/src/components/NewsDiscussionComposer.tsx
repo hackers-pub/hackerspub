@@ -33,6 +33,7 @@ export function NewsDiscussionComposer(props: NewsDiscussionComposerProps) {
             defaultVisibility="PUBLIC"
             placeholder={t`Share your opinion on this story…`}
             prependToConnections={[props.connectionId]}
+            allowPoll={false}
           />
           <p class="mt-2 text-xs text-muted-foreground/70">
             {t`The link to this story is added to your post automatically.`}
