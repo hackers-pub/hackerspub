@@ -1382,6 +1382,10 @@ export const pollTable = pgTable(
   },
   (table) => [
     check("poll_voters_count_check", sql`${table.votersCount} >= 0`),
+    index("poll_ended_notifications_idx").on(
+      table.endedNotificationsSent,
+      table.ends,
+    ),
   ],
 );
 

@@ -1,0 +1,1 @@
+CREATE INDEX "poll_ended_notifications_idx" ON "poll" ("ended_notifications_sent","ends");
