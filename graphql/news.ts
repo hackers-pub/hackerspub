@@ -242,6 +242,7 @@ builder.drizzleObjectFields(PostLink, (t) => ({
     query: (_args, ctx) => ({
       where: {
         AND: [
+          { sharedPostId: { isNull: true } },
           getPostVisibilityFilter(ctx.account?.actor ?? null),
           newsSharerPostFilter(),
         ],
