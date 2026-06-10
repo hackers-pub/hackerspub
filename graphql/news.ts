@@ -234,15 +234,17 @@ builder.drizzleObjectFields(PostLink, (t) => ({
     type: Post,
     description:
       "The posts that share this link, most recently published first, " +
-      "filtered to those visible to the viewer.  Shares authored by bot " +
-      "accounts (`Service`/`Application` actors) are excluded unless the " +
-      "account is a curated preferred sharer.  These are the direct linked " +
-      "roots of the link's discussion tree; `Article` boosts can also affect " +
-      "`score`/`postCount` but are not returned here as roots.",
+      "limited to public or unlisted posts that are visible to the viewer.  " +
+      "Shares authored by bot accounts (`Service`/`Application` actors) are " +
+      "excluded unless the account is a curated preferred sharer.  These are " +
+      "the direct linked roots of the link's discussion tree; `Article` " +
+      "boosts can also affect `score`/`postCount` but are not returned here " +
+      "as roots.",
     query: (_args, ctx) => ({
       where: {
         AND: [
           { sharedPostId: { isNull: true } },
+          { visibility: { in: ["public", "unlisted"] } },
           getPostVisibilityFilter(ctx.account?.actor ?? null),
           newsSharerPostFilter(),
         ],

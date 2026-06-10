@@ -6,6 +6,7 @@ import {
 } from "@hackerspub/models/news";
 import {
   accountTable,
+  followingTable,
   postLinkTable,
   postTable,
 } from "@hackerspub/models/schema";
@@ -512,6 +513,68 @@ test("PostLink exposes sharingPosts and sourceBreakdown", async () => {
     assert.deepEqual(node.postCount, 3);
     assert.deepEqual(node.sourceBreakdown, { local: 1, remote: 1, bluesky: 1 });
     assert.deepEqual(node.sharingPosts.edges.length, 3);
+  });
+});
+
+test("sharingPosts excludes non-public shares for authenticated viewers", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "gqlprivateauthor",
+      name: "GQL Private Author",
+      email: "gqlprivateauthor@example.com",
+    });
+    const viewer = await insertAccountWithActor(tx, {
+      username: "gqlprivateviewer",
+      name: "GQL Private Viewer",
+      email: "gqlprivateviewer@example.com",
+    });
+    await tx.insert(followingTable).values({
+      iri: "http://localhost/follows/gql-private-viewer-author",
+      followerId: viewer.actor.id,
+      followeeId: author.actor.id,
+      accepted: new Date("2026-04-15T00:00:00.000Z"),
+    });
+    const link = await insertPostLink(tx, {
+      url: "https://example.com/private-mix",
+    });
+    await insertNotePost(tx, {
+      account: author.account,
+      link: { id: link.id, url: link.url },
+    });
+    await insertNotePost(tx, {
+      account: author.account,
+      visibility: "followers",
+      link: { id: link.id, url: link.url },
+    });
+    await recomputeNewsScores(tx);
+
+    const result = await execute({
+      schema,
+      document: parse(`
+          query SharingPostsVisibilityFilter($id: UUID!) {
+            newsStory(id: $id) {
+              postCount
+              sharingPosts(first: 10) {
+                edges { node { visibility } }
+              }
+            }
+          }
+        `),
+      variableValues: { id: link.id },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(result.errors, undefined);
+    const node = (result.data as {
+      newsStory: {
+        postCount: number;
+        sharingPosts: { edges: { node: { visibility: string } }[] };
+      };
+    }).newsStory;
+    assert.deepEqual(node.postCount, 1);
+    assert.deepEqual(node.sharingPosts.edges, [
+      { node: { visibility: "PUBLIC" } },
+    ]);
   });
 });
 
