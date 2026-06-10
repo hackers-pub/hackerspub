@@ -453,7 +453,7 @@ test("PostLink exposes sharingPosts and sourceBreakdown", async () => {
       handleHost: "bsky.brid.gy",
     });
     const link = await insertPostLink(tx, { url: "https://example.com/mix" });
-    await insertNotePost(tx, {
+    const localShare = await insertNotePost(tx, {
       account: local.account,
       link: { id: link.id, url: link.url },
     });
@@ -467,46 +467,47 @@ test("PostLink exposes sharingPosts and sourceBreakdown", async () => {
       actorId: bridged.id,
       link: { id: link.id, url: link.url },
     });
+    // A boost wrapper may carry the same link metadata, but `sharingPosts`
+    // is the direct discussion roots connection.  Keeping it out also lets
+    // PostgreSQL use idx_post_news_share_link.
+    await insertNotePost(tx, {
+      account: local.account,
+      sharedPostId: localShare.post.id,
+      link: { id: link.id, url: link.url },
+    });
     await recomputeNewsScores(tx);
 
     const result = await execute({
       schema,
       document: parse(`
-          query {
-            newsStories(first: 10) {
-              edges {
-                node {
-                  url
-                  postCount
-                  sourceBreakdown { local remote bluesky }
-                  sharingPosts(first: 10) {
-                    edges { node { __typename } }
-                  }
-                }
+          query SharingPosts($id: UUID!) {
+            newsStory(id: $id) {
+              url
+              postCount
+              sourceBreakdown { local remote bluesky }
+              sharingPosts(first: 10) {
+                edges { node { __typename } }
               }
             }
           }
         `),
+      variableValues: { id: link.id },
       contextValue: makeGuestContext(tx),
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
     const node = (result.data as {
-      newsStories: {
-        edges: {
-          node: {
-            url: string;
-            postCount: number;
-            sourceBreakdown: {
-              local: number;
-              remote: number;
-              bluesky: number;
-            };
-            sharingPosts: { edges: unknown[] };
-          };
-        }[];
+      newsStory: {
+        url: string;
+        postCount: number;
+        sourceBreakdown: {
+          local: number;
+          remote: number;
+          bluesky: number;
+        };
+        sharingPosts: { edges: unknown[] };
       };
-    }).newsStories.edges[0].node;
+    }).newsStory;
     assert.deepEqual(node.url, link.url);
     assert.deepEqual(node.postCount, 3);
     assert.deepEqual(node.sourceBreakdown, { local: 1, remote: 1, bluesky: 1 });
@@ -546,41 +547,34 @@ test("sharingPosts and postCount exclude bot-account shares", async () => {
     const result = await execute({
       schema,
       document: parse(`
-          query {
-            newsStories(first: 10) {
-              edges {
-                node {
-                  url
-                  postCount
-                  sourceBreakdown { local remote bluesky }
-                  sharingPosts(first: 10) {
-                    edges { node { __typename } }
-                  }
-                }
+          query SharingPostsBotFilter($id: UUID!) {
+            newsStory(id: $id) {
+              url
+              postCount
+              sourceBreakdown { local remote bluesky }
+              sharingPosts(first: 10) {
+                edges { node { __typename } }
               }
             }
           }
         `),
+      variableValues: { id: link.id },
       contextValue: makeGuestContext(tx),
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
     const node = (result.data as {
-      newsStories: {
-        edges: {
-          node: {
-            url: string;
-            postCount: number;
-            sourceBreakdown: {
-              local: number;
-              remote: number;
-              bluesky: number;
-            };
-            sharingPosts: { edges: unknown[] };
-          };
-        }[];
+      newsStory: {
+        url: string;
+        postCount: number;
+        sourceBreakdown: {
+          local: number;
+          remote: number;
+          bluesky: number;
+        };
+        sharingPosts: { edges: unknown[] };
       };
-    }).newsStories.edges[0].node;
+    }).newsStory;
     assert.deepEqual(node.url, link.url);
     assert.deepEqual(node.postCount, 1);
     assert.deepEqual(node.sourceBreakdown, { local: 1, remote: 0, bluesky: 0 });
