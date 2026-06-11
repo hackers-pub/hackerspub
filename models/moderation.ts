@@ -408,10 +408,11 @@ export interface TakeModerationActionOptions {
   suspensionEnds?: Date;
   /**
    * Moderator-written summary for the outgoing `Flag` activity when the
-   * report is forwarded to the target's remote instance.  Falls back to
-   * `rationale`.  Both are moderator-authored by construction: the
-   * reporter's original reason never enters this function, so it cannot be
-   * leaked to the remote instance even by accident.
+   * report is forwarded to the target's remote instance.  Required
+   * (non-empty) for a non-dismiss action whose case will forward (remote
+   * target with an opted-in report): the action is rejected otherwise, and
+   * the outgoing `Flag` carries this summary verbatim with no fallback, so
+   * the internal `rationale` is never externalized.
    */
   forwardSummary?: string;
 }
@@ -435,7 +436,8 @@ export interface TakeModerationActionOptions {
  *
  * Returns `undefined` when the input is invalid (non-moderator, missing
  * provisions, missing or inverted suspension window, censoring a case
- * without a post) or the case is not open.
+ * without a post, or a non-dismiss action that would forward to a remote
+ * instance without a `forwardSummary`) or the case is not open.
  */
 export async function takeModerationAction(
   fedCtx: Context<ContextData>,
@@ -479,6 +481,25 @@ export async function takeModerationAction(
     if (options.actionType === "censor" && flagCase.targetPostId == null) {
       logger.debug(
         "Cannot censor case {caseId}: no post target.",
+        { caseId: flagCase.id },
+      );
+      return undefined;
+    }
+    // A forwarded `Flag` carries only the moderator-written summary, never
+    // the internal `rationale`.  Decide forwarding here, under the case
+    // lock, so a `forwardToRemote` report joining the case cannot slip a
+    // summary-less action past a caller's pre-check; reject when a summary
+    // is required but missing.
+    const willForward = options.actionType !== "dismiss" &&
+      flagCase.targetActor.accountId == null &&
+      flagCase.flags.some((flag) => flag.forwardToRemote);
+    if (
+      willForward &&
+      (options.forwardSummary == null ||
+        options.forwardSummary.trim() === "")
+    ) {
+      logger.debug(
+        "Cannot forward case {caseId} without a summary.",
         { caseId: flagCase.id },
       );
       return undefined;
@@ -534,6 +555,8 @@ export async function takeModerationAction(
   if (result == null) return undefined;
   const { action, flagCase } = result;
   const targetActor = flagCase.targetActor;
+  // `run` already rejected a forwardable non-dismiss action without a
+  // summary, so `options.forwardSummary` is guaranteed non-empty here.
   if (
     action.actionType !== "dismiss" &&
     targetActor.accountId == null &&
@@ -552,7 +575,7 @@ export async function takeModerationAction(
             ? []
             : [new URL(flagCase.targetPostIri)]),
         ],
-        content: options.forwardSummary ?? options.rationale,
+        content: options.forwardSummary,
       }),
       { excludeBaseUris: [new URL(fedCtx.canonicalOrigin)] },
     );

@@ -463,6 +463,35 @@ describe("takeModerationAction()", () => {
     });
   });
 
+  it("rejects a forwardable sanction without a summary", async () => {
+    await withRollback(async (tx) => {
+      const { fedCtx, sent } = recordingFedCtx(tx);
+      const moderator = await makeModerator(tx);
+      const { flag } = await makeReportedPostCase(tx, {
+        remote: true,
+        forwardToRemote: true,
+      });
+      const action = await takeModerationAction(fedCtx, {
+        caseId: flag.caseId,
+        moderator: moderator.account,
+        actionType: "ban",
+        violatedProvisions: ["2.3"],
+        rationale: "Internal rationale that must never be forwarded.",
+        // No forwardSummary: the internal rationale must not become the
+        // forwarded Flag's content.
+      });
+      assert.equal(action, undefined);
+      assert.equal(sent.length, 0);
+      // The case stays open so it can be retried with a summary:
+      const caseRow = await tx.query.flagCaseTable.findFirst({
+        where: { id: flag.caseId },
+      });
+      assert.ok(
+        caseRow?.status === "pending" || caseRow?.status === "reviewing",
+      );
+    });
+  });
+
   it("does not forward without reporter opt-in or for local targets", async () => {
     await withRollback(async (tx) => {
       const { fedCtx, sent } = recordingFedCtx(tx);
