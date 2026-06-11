@@ -1,14 +1,20 @@
+import { getCocProvisions } from "@hackerspub/models/coc";
 import { analyzeFlag, createFlag } from "@hackerspub/models/flag";
 import {
   APPEAL_WINDOW_MS,
   assignCase,
   createAppeal,
+  getModerationStatistics,
   getViolationHistory,
   listSanctionedActors,
   resolveAppeal as resolveAppealModel,
   takeModerationAction as takeModerationActionModel,
   updateCaseStatus,
 } from "@hackerspub/models/moderation";
+import {
+  countUnreadModerationNotifications,
+  markModerationNotificationsRead,
+} from "@hackerspub/models/moderation-notification";
 import { isPostVisibleTo } from "@hackerspub/models/post";
 import type {
   Account as AccountRow,
@@ -20,6 +26,8 @@ import type {
   FlagAppealStatus as FlagAppealStatusValue,
   FlagCase as FlagCaseRow,
   FlagStatus as FlagStatusValue,
+  ModerationNotification as ModerationNotificationRow,
+  ModerationNotificationType as ModerationNotificationTypeValue,
 } from "@hackerspub/models/schema";
 import { flagTable } from "@hackerspub/models/schema";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
@@ -1638,4 +1646,360 @@ builder.mutationField("resolveFlagAppeal", (t) =>
       if (appeal == null) throw new InvalidInputError("appealId");
       return appeal;
     },
+  }));
+
+export const ModerationNotificationType = builder.enumType(
+  "ModerationNotificationType",
+  {
+    description:
+      "What a moderation notification is about.  These are deliberately " +
+      "separate from regular notifications: their reference shape does " +
+      "not fit the post-centric notification table, and reporter " +
+      "identities must never surface through notification actors.",
+    values: {
+      FLAG_RECEIVED: {
+        description: "A new report was filed (sent to every moderator).",
+      },
+      ACTION_TAKEN: {
+        description:
+          "A moderation action was taken on the recipient (sent under " +
+          "the moderation team's collective identity).",
+      },
+      APPEAL_RECEIVED: {
+        description: "An appeal was filed (sent to every moderator).",
+      },
+      APPEAL_RESOLVED: {
+        description: "The recipient's appeal was reviewed.",
+      },
+      SUSPENSION_ENDING: {
+        description:
+          "The recipient's temporary suspension ends within 24 hours.",
+      },
+    } as const,
+  },
+);
+
+export function toModerationNotificationType(
+  type: ModerationNotificationTypeValue,
+): typeof ModerationNotificationType.$inferType {
+  return type === "flag_received"
+    ? "FLAG_RECEIVED"
+    : type === "action_taken"
+    ? "ACTION_TAKEN"
+    : type === "appeal_received"
+    ? "APPEAL_RECEIVED"
+    : type === "appeal_resolved"
+    ? "APPEAL_RESOLVED"
+    : type === "suspension_ending"
+    ? "SUSPENSION_ENDING"
+    : assertNever(type, `Invalid \`ModerationNotificationType\`: "${type}"`);
+}
+
+export const ModerationNotification = builder.drizzleNode(
+  "moderationNotificationTable",
+  {
+    name: "ModerationNotification",
+    description:
+      "A notification about moderation activity, resolvable only by its " +
+      "recipient.  Everything a sanctioned recipient can reach through " +
+      "it is the sanitized sanction surface, presented under the " +
+      "moderation team's collective identity.",
+    authScopes: (notification) => ({
+      selfAccount: notification.accountId,
+    }),
+    runScopesOnType: true,
+    id: {
+      column: (notification) => notification.id,
+    },
+    fields: (t) => ({
+      uuid: t.expose("id", {
+        type: "UUID",
+        description: "The notification's row UUID.",
+      }),
+      type: t.field({
+        type: ModerationNotificationType,
+        description: "What this notification is about.",
+        select: { columns: { type: true } },
+        resolve: (notification) =>
+          toModerationNotificationType(notification.type),
+      }),
+      read: t.expose("read", {
+        type: "DateTime",
+        nullable: true,
+        description: "When the recipient read the notification; `null` while " +
+          "unread.",
+      }),
+      created: t.expose("created", {
+        type: "DateTime",
+        description: "When the notification was created.",
+      }),
+      sanction: t.field({
+        type: Sanction,
+        nullable: true,
+        description: "The sanitized sanction surface, for `ACTION_TAKEN` and " +
+          "`SUSPENSION_ENDING` notifications; `null` for other types.",
+        select: { columns: { actionId: true } },
+        async resolve(notification, _args, ctx) {
+          if (notification.actionId == null) return null;
+          const action = await ctx.db.query.flagActionTable.findFirst({
+            where: { id: notification.actionId },
+            with: {
+              appeal: true,
+              case: { columns: { targetPostIri: true } },
+            },
+          });
+          if (action == null) return null;
+          return {
+            action,
+            targetPostIri: action.case.targetPostIri,
+            appeal: action.appeal,
+          };
+        },
+      }),
+      case: t.relation("case", {
+        nullable: true,
+        description:
+          "The case a `FLAG_RECEIVED` notification points at; `null` " +
+          "for other types.  Moderator-only (only moderators receive " +
+          "`FLAG_RECEIVED`).",
+        authScopes: { moderator: true },
+      }),
+      appeal: t.relation("appeal", {
+        nullable: true,
+        description: "The appeal an `APPEAL_RECEIVED` or `APPEAL_RESOLVED` " +
+          "notification points at; `null` for other types.  Guarded by " +
+          "`FlagAppeal`'s own scopes (the appellant or moderators).",
+      }),
+    }),
+  },
+);
+
+builder.drizzleObjectFields(Account, (t) => ({
+  moderationNotifications: t.connection({
+    type: ModerationNotification,
+    nullable: true,
+    description: "The account's moderation notifications, newest first.  " +
+      "Resolvable by the account owner only.",
+    authScopes: (account) => ({ selfAccount: account.id }),
+    async resolve(account, args, ctx) {
+      return await resolveCursorConnection(
+        {
+          args,
+          toCursor: (notification: ModerationNotificationRow) =>
+            notification.id,
+        },
+        ({ before, after, limit, inverted }: ResolveCursorConnectionArgs) =>
+          ctx.db.query.moderationNotificationTable.findMany({
+            where: {
+              accountId: account.id,
+              ...(after != null && validateUuid(after)
+                ? { id: { lt: after as Uuid } }
+                : {}),
+              ...(before != null && validateUuid(before)
+                ? { id: { gt: before as Uuid } }
+                : {}),
+            },
+            // Notification ids are UUIDv7: id order is creation order.
+            orderBy: { id: inverted ? "asc" : "desc" },
+            limit,
+          }),
+      );
+    },
+  }),
+  unreadModerationNotificationCount: t.int({
+    nullable: true,
+    description:
+      "How many of the account's moderation notifications are unread, " +
+      "e.g. for the sidebar badge.  Resolvable by the account owner " +
+      "only.",
+    authScopes: (account) => ({ selfAccount: account.id }),
+    resolve: (account, _args, ctx) =>
+      countUnreadModerationNotifications(ctx.db, account.id),
+  }),
+}));
+
+builder.mutationField("markModerationNotificationsRead", (t) =>
+  t.field({
+    type: "Int",
+    description: "Mark the viewer's unread moderation notifications as read " +
+      "(optionally only those up to the notification with the given " +
+      "id) and return how many were affected.  Idempotent.  Requires " +
+      "authentication.",
+    args: {
+      upToId: t.arg.globalID({
+        for: ModerationNotification,
+        required: false,
+        description:
+          "Mark only notifications created up to (and including) this " +
+          "one; omit to mark everything.",
+      }),
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.session == null || ctx.account == null) {
+        throw new NotAuthenticatedError();
+      }
+      if (args.upToId != null && !validateUuid(args.upToId.id)) return 0;
+      return await markModerationNotificationsRead(
+        ctx.db,
+        ctx.account.id,
+        (args.upToId?.id as Uuid | undefined) ?? undefined,
+      );
+    },
+  }));
+
+const ModerationActionCount = builder.simpleObject("ModerationActionCount", {
+  description: "How many actions of one type were taken in the range.",
+  fields: (t) => ({
+    actionType: t.field({
+      type: FlagActionType,
+      description: "The action type.",
+    }),
+    count: t.int({ description: "How many actions of this type." }),
+  }),
+});
+
+const ModerationProvisionCount = builder.simpleObject(
+  "ModerationProvisionCount",
+  {
+    description:
+      "How often one code of conduct provision was confirmed as violated.",
+    fields: (t) => ({
+      provision: t.string({ description: "The provision id." }),
+      count: t.int({ description: "How many confirmed violations." }),
+    }),
+  },
+);
+
+const ModerationLlmDivergence = builder.simpleObject(
+  "ModerationLlmDivergence",
+  {
+    description:
+      "The divergence between LLM-suggested (`Flag.llmAnalysis`) and " +
+      "moderator-confirmed (`FlagAction.violatedProvisions`) provisions. " +
+      "High divergence localized to particular provisions, languages, or " +
+      "user groups signals unreliable or biased matching; near-zero " +
+      "divergence is also a warning sign (automation bias: moderators " +
+      "rubber-stamping LLM output).",
+    fields: (t) => ({
+      compared: t.int({
+        description:
+          "How many analyzed reports on closed cases were compared.  " +
+          "Failed analyses (an `error` in `Flag.llmAnalysis`) are " +
+          "skipped, and the confirmed set counts only standing actions.",
+      }),
+      diverged: t.int({
+        description:
+          "How many had LLM suggestions differing from the confirmed " +
+          "set.",
+      }),
+    }),
+  },
+);
+
+const ModerationStatistics = builder.simpleObject("ModerationStatistics", {
+  description:
+    "Aggregated moderation activity for the statistics screen: queue " +
+    "health, action distribution (a healthy one is mostly dismissals " +
+    "and warnings), the most-violated provisions (guides community " +
+    "education), and the LLM matching divergence.",
+  fields: (t) => ({
+    totalReports: t.int({
+      description: "Reports filed in the range.",
+    }),
+    processedReports: t.int({
+      description: "Reports whose processing finished (resolved or dismissed).",
+    }),
+    averageProcessingHours: t.float({
+      nullable: true,
+      description: "Average hours from a case's creation to its resolution; " +
+        "`null` when no case has been resolved in the range.",
+    }),
+    actionDistribution: t.field({
+      type: [ModerationActionCount],
+      description: "How taken actions distribute over the action types.",
+    }),
+    topViolatedProvisions: t.field({
+      type: [ModerationProvisionCount],
+      description: "The five most-confirmed provisions.",
+    }),
+    llmDivergence: t.field({
+      type: ModerationLlmDivergence,
+      nullable: true,
+      description:
+        "The LLM matching divergence; `null` when no analyzed report " +
+        "has been processed yet.",
+    }),
+  }),
+});
+
+builder.queryField("moderationStatistics", (t) =>
+  t.field({
+    type: ModerationStatistics,
+    nullable: true,
+    description:
+      "Moderator-only aggregated moderation statistics over the given " +
+      "range (all time by default).  Returns `null` for non-moderators.",
+    args: {
+      since: t.arg({
+        type: "DateTime",
+        required: false,
+        description: "Start of the range (inclusive).",
+      }),
+      until: t.arg({
+        type: "DateTime",
+        required: false,
+        description: "End of the range (inclusive).",
+      }),
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.session == null || !ctx.account?.moderator) return null;
+      const stats = await getModerationStatistics(ctx.db, {
+        since: args.since ?? undefined,
+        until: args.until ?? undefined,
+      });
+      return {
+        ...stats,
+        actionDistribution: stats.actionDistribution.map((entry) => ({
+          actionType: toFlagActionType(entry.actionType),
+          count: entry.count,
+        })),
+      };
+    },
+  }));
+
+const CocProvision = builder.simpleObject("CocProvision", {
+  description:
+    "A single provision of the code of conduct (an H3 subsection of the " +
+    "document).  Provision ids are structural (`section.subsection`) and " +
+    "identical across locales, but only stable for a given version of " +
+    "the document; reports record the `cocVersion` they were filed " +
+    "under.",
+  fields: (t) => ({
+    id: t.string({
+      description: 'The structural id, e.g. `"2.3"`.',
+    }),
+    section: t.string({
+      description: "The title of the section the provision belongs to.",
+    }),
+    title: t.string({ description: "The provision's title." }),
+    text: t.string({ description: "The provision's Markdown body." }),
+  }),
+});
+
+builder.queryField("codeOfConductProvisions", (t) =>
+  t.field({
+    type: [CocProvision],
+    description:
+      "The current code of conduct, parsed into provisions, in the " +
+      "given locale (or the nearest available one; English by default). " +
+      "Backs the report form's guidance and the moderation action " +
+      "form's provision picker.",
+    args: {
+      locale: t.arg({
+        type: "Locale",
+        required: false,
+        description: "The preferred locale for titles and text.",
+      }),
+    },
+    resolve: (_root, args) => getCocProvisions(args.locale?.toString()),
   }));

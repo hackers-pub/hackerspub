@@ -876,3 +876,164 @@ export async function resolveAppeal(
   };
   return isTransaction(db) ? await run(db) : await db.transaction(run);
 }
+
+export interface ModerationActionCount {
+  actionType: FlagActionType;
+  count: number;
+}
+
+export interface ModerationProvisionCount {
+  provision: string;
+  count: number;
+}
+
+export interface ModerationLlmDivergence {
+  /** How many analyzed reports on closed cases were compared. */
+  compared: number;
+  /**
+   * How many of them had LLM-suggested provisions that differ from the
+   * moderator-confirmed set.
+   */
+  diverged: number;
+}
+
+export interface ModerationStatistics {
+  /** Reports filed in the range. */
+  totalReports: number;
+  /** Reports whose processing finished (resolved or dismissed). */
+  processedReports: number;
+  /**
+   * Average hours from a case's creation to its resolution, over cases
+   * created in the range; `null` when no case has been resolved.
+   */
+  averageProcessingHours: number | null;
+  /** How taken actions distribute over the action types. */
+  actionDistribution: ModerationActionCount[];
+  /** The five most-confirmed code of conduct provisions. */
+  topViolatedProvisions: ModerationProvisionCount[];
+  /**
+   * The divergence between LLM-suggested and moderator-confirmed
+   * provisions.  High divergence localized to particular provisions or
+   * groups signals unreliable or biased matching; near-zero divergence is
+   * also a warning sign (automation bias: moderators rubber-stamping LLM
+   * output).  `null` when no analyzed report has been processed yet.
+   */
+  llmDivergence: ModerationLlmDivergence | null;
+}
+
+/**
+ * Aggregates the moderation activity in the given range (defaults to all
+ * time) for the moderator statistics screen.
+ */
+export async function getModerationStatistics(
+  db: Database,
+  range: { since?: Date; until?: Date } = {},
+): Promise<ModerationStatistics> {
+  // Raw `sql` does not bind a JS `Date`; pass ISO strings cast to
+  // `timestamptz` (same workaround as models/news.ts).
+  const since = sql`${(range.since ?? new Date(0)).toISOString()}::timestamptz`;
+  const until = sql`${(range.until ?? new Date()).toISOString()}::timestamptz`;
+  const [reportCounts] = await db.execute<
+    { total: string | number; processed: string | number }
+  >(sql`
+    select
+      count(*) as total,
+      count(*) filter (where status in ('resolved', 'dismissed'))
+        as processed
+    from flag
+    where created >= ${since} and created <= ${until}
+  `);
+  const [avgRow] = await db.execute<{ avg_hours: string | number | null }>(
+    sql`
+      select
+        avg(extract(epoch from (resolved - created)) / 3600.0) as avg_hours
+      from flag_case
+      where resolved is not null
+        and created >= ${since} and created <= ${until}
+    `,
+  );
+  const distribution = await db.execute<
+    { action_type: FlagActionType; cnt: string | number }
+  >(sql`
+    select action_type, count(*) as cnt
+    from flag_action
+    where created >= ${since} and created <= ${until}
+    group by action_type
+    order by cnt desc, action_type
+  `);
+  // Actions withdrawn or replaced on appeal no longer stand; they drop
+  // out of the provision counts (mirroring getViolationHistory).
+  const provisions = await db.execute<
+    { provision: string; cnt: string | number }
+  >(sql`
+    select p.provision as provision, count(*) as cnt
+    from flag_action a
+    left join flag_appeal ap
+      on ap.action_id = a.id
+      and ap.status = 'resolved'
+      and ap.result in ('withdrawn', 'reduced', 'increased'),
+      lateral unnest(a.violated_provisions) as p(provision)
+    where a.created >= ${since} and a.created <= ${until}
+      and ap.id is null
+    group by p.provision
+    order by cnt desc, p.provision
+    limit 5
+  `);
+  // LLM divergence: per analyzed report on a closed case, compare the
+  // LLM-suggested provision set with the union of the case's
+  // moderator-confirmed provisions (empty for dismissals).  Computed in
+  // JS: the joined volume is the number of analyzed reports, which stays
+  // modest.
+  const analyzedFlags = await db.query.flagTable.findMany({
+    where: {
+      llmAnalysis: { isNotNull: true },
+      created: {
+        gte: range.since ?? new Date(0),
+        lte: range.until ?? new Date(),
+      },
+      case: { status: { in: ["resolved", "dismissed"] } },
+    },
+    columns: { llmAnalysis: true },
+    with: { case: { with: { actions: { with: { appeal: true } } } } },
+  });
+  let compared = 0;
+  let diverged = 0;
+  for (const flag of analyzedFlags) {
+    // A failed analysis (error set, no matches) says nothing about the
+    // LLM's judgment; counting it would inflate divergence.
+    if (flag.llmAnalysis?.error != null) continue;
+    const confirmed = new Set(
+      flag.case.actions
+        .filter((action) =>
+          action.actionType !== "dismiss" &&
+          (action.appeal == null ||
+            action.appeal.status !== "resolved" ||
+            action.appeal.result === "dismissed")
+        )
+        .flatMap((action) => action.violatedProvisions),
+    );
+    const suggested = new Set(
+      (flag.llmAnalysis?.matches ?? []).map((match) => match.provision),
+    );
+    compared++;
+    const equal = confirmed.size === suggested.size &&
+      [...confirmed].every((provision) => suggested.has(provision));
+    if (!equal) diverged++;
+  }
+  return {
+    totalReports: Number(reportCounts?.total ?? 0),
+    processedReports: Number(reportCounts?.processed ?? 0),
+    averageProcessingHours: avgRow?.avg_hours == null
+      ? null
+      : Number(avgRow.avg_hours),
+    actionDistribution: distribution.map((row) => ({
+      actionType: row.action_type,
+      count: Number(row.cnt),
+    })),
+    topViolatedProvisions: provisions.map((row) => ({
+      provision: row.provision,
+      count: Number(row.cnt),
+    })),
+    llmDivergence: compared === 0 ? null : { compared, diverged },
+  };
+}

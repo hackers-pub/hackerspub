@@ -88,6 +88,11 @@ type Account implements Node {
   locales: [Locale!]
 
   """
+  The account's moderation notifications, newest first.  Resolvable by the account owner only.
+  """
+  moderationNotifications(after: String, before: String, first: Int, last: Int): AccountModerationNotificationsConnection
+
+  """
   Whether this account has moderator privileges. Moderators can view `postCount` and `lastPostPublished` for any account, and perform administrative mutations such as `deleteOrphanMedia` and `regenerateInvitations`.
   """
   moderator: Boolean!
@@ -133,6 +138,11 @@ type Account implements Node {
   The moderation actions taken on this account, newest first, as the sanitized surface the user themselves sees (dismissals appear only when the moderation team wrote an educational message). Resolvable by the account owner and moderators only.
   """
   sanctions: [Sanction!]
+
+  """
+  How many of the account's moderation notifications are unread, e.g. for the sidebar badge.  Resolvable by the account owner only.
+  """
+  unreadModerationNotificationCount: Int
 
   """
   Number of notifications created after the account's last `markNotificationsAsRead` call. Only visible to the account holder.
@@ -216,6 +226,16 @@ enum AccountLinkIcon {
 input AccountLinkInput {
   name: String!
   url: URL!
+}
+
+type AccountModerationNotificationsConnection {
+  edges: [AccountModerationNotificationsConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type AccountModerationNotificationsConnectionEdge {
+  cursor: String!
+  node: ModerationNotification!
 }
 
 type AccountNotFoundError {
@@ -1044,6 +1064,23 @@ type BookmarkPostPayload {
 }
 
 union BookmarkPostResult = BookmarkPostPayload | InvalidInputError | NotAuthenticatedError
+
+"""
+A single provision of the code of conduct (an H3 subsection of the document).  Provision ids are structural (`section.subsection`) and identical across locales, but only stable for a given version of the document; reports record the `cocVersion` they were filed under.
+"""
+type CocProvision {
+  """The structural id, e.g. `"2.3"`."""
+  id: String!
+
+  """The title of the section the provision belongs to."""
+  section: String!
+
+  """The provision's Markdown body."""
+  text: String!
+
+  """The provision's title."""
+  title: String!
+}
 
 """
 The reported content as it looked when the report was filed: evidence that survives even if the reported user edits or deletes the original.  Moderator-only.
@@ -1887,6 +1924,119 @@ type MentionNotification implements Node & Notification {
   uuid: UUID!
 }
 
+"""How many actions of one type were taken in the range."""
+type ModerationActionCount {
+  """The action type."""
+  actionType: FlagActionType!
+
+  """How many actions of this type."""
+  count: Int!
+}
+
+"""
+The divergence between LLM-suggested (`Flag.llmAnalysis`) and moderator-confirmed (`FlagAction.violatedProvisions`) provisions. High divergence localized to particular provisions, languages, or user groups signals unreliable or biased matching; near-zero divergence is also a warning sign (automation bias: moderators rubber-stamping LLM output).
+"""
+type ModerationLlmDivergence {
+  """
+  How many analyzed reports on closed cases were compared.  Failed analyses (an `error` in `Flag.llmAnalysis`) are skipped, and the confirmed set counts only standing actions.
+  """
+  compared: Int!
+
+  """How many had LLM suggestions differing from the confirmed set."""
+  diverged: Int!
+}
+
+"""
+A notification about moderation activity, resolvable only by its recipient.  Everything a sanctioned recipient can reach through it is the sanitized sanction surface, presented under the moderation team's collective identity.
+"""
+type ModerationNotification implements Node {
+  """
+  The appeal an `APPEAL_RECEIVED` or `APPEAL_RESOLVED` notification points at; `null` for other types.  Guarded by `FlagAppeal`'s own scopes (the appellant or moderators).
+  """
+  appeal: FlagAppeal
+
+  """
+  The case a `FLAG_RECEIVED` notification points at; `null` for other types.  Moderator-only (only moderators receive `FLAG_RECEIVED`).
+  """
+  case: FlagCase
+
+  """When the notification was created."""
+  created: DateTime!
+  id: ID!
+
+  """When the recipient read the notification; `null` while unread."""
+  read: DateTime
+
+  """
+  The sanitized sanction surface, for `ACTION_TAKEN` and `SUSPENSION_ENDING` notifications; `null` for other types.
+  """
+  sanction: Sanction
+
+  """What this notification is about."""
+  type: ModerationNotificationType!
+
+  """The notification's row UUID."""
+  uuid: UUID!
+}
+
+"""
+What a moderation notification is about.  These are deliberately separate from regular notifications: their reference shape does not fit the post-centric notification table, and reporter identities must never surface through notification actors.
+"""
+enum ModerationNotificationType {
+  """
+  A moderation action was taken on the recipient (sent under the moderation team's collective identity).
+  """
+  ACTION_TAKEN
+
+  """An appeal was filed (sent to every moderator)."""
+  APPEAL_RECEIVED
+
+  """The recipient's appeal was reviewed."""
+  APPEAL_RESOLVED
+
+  """A new report was filed (sent to every moderator)."""
+  FLAG_RECEIVED
+
+  """The recipient's temporary suspension ends within 24 hours."""
+  SUSPENSION_ENDING
+}
+
+"""How often one code of conduct provision was confirmed as violated."""
+type ModerationProvisionCount {
+  """How many confirmed violations."""
+  count: Int!
+
+  """The provision id."""
+  provision: String!
+}
+
+"""
+Aggregated moderation activity for the statistics screen: queue health, action distribution (a healthy one is mostly dismissals and warnings), the most-violated provisions (guides community education), and the LLM matching divergence.
+"""
+type ModerationStatistics {
+  """How taken actions distribute over the action types."""
+  actionDistribution: [ModerationActionCount!]!
+
+  """
+  Average hours from a case's creation to its resolution; `null` when no case has been resolved in the range.
+  """
+  averageProcessingHours: Float
+
+  """
+  The LLM matching divergence; `null` when no analyzed report has been processed yet.
+  """
+  llmDivergence: ModerationLlmDivergence
+
+  """Reports whose processing finished (resolved or dismissed)."""
+  processedReports: Int!
+
+  """The five most-confirmed provisions."""
+  topViolatedProvisions: [ModerationProvisionCount!]!
+
+  """Reports filed in the range."""
+  totalReports: Int!
+}
+
 type Mutation {
   """
   Add a news feed exclusion pattern (a `URLPattern` string) and hide matching links from the feed list.  Idempotent on the pattern string.  Requires a moderator account.  An invalid pattern raises `InvalidInputError`.
@@ -2066,6 +2216,16 @@ type Mutation {
     """
     verifyUrl: URITemplate!
   ): LoginResult!
+
+  """
+  Mark the viewer's unread moderation notifications as read (optionally only those up to the notification with the given id) and return how many were affected.  Idempotent.  Requires authentication.
+  """
+  markModerationNotificationsRead(
+    """
+    Mark only notifications created up to (and including) this one; omit to mark everything.
+    """
+    upToId: ID
+  ): Int!
 
   """
   Marks notifications as read up to a notification, or the current time when omitted. Returns the timestamp.
@@ -3359,6 +3519,14 @@ type Query {
   ): Document!
 
   """
+  The current code of conduct, parsed into provisions, in the given locale (or the nearest available one; English by default). Backs the report form's guidance and the moderation action form's provision picker.
+  """
+  codeOfConductProvisions(
+    """The preferred locale for titles and text."""
+    locale: Locale
+  ): [CocProvision!]!
+
+  """
   Moderator-only lookup of a single moderation case by its row UUID, for the case detail page.  Returns `null` for unknown UUIDs and for non-moderators.
   """
   flagCaseByUuid(
@@ -3425,6 +3593,17 @@ type Query {
     """Only cases with this status."""
     status: FlagStatus
   ): QueryModerationCasesConnection
+
+  """
+  Moderator-only aggregated moderation statistics over the given range (all time by default).  Returns `null` for non-moderators.
+  """
+  moderationStatistics(
+    """Start of the range (inclusive)."""
+    since: DateTime
+
+    """End of the range (inclusive)."""
+    until: DateTime
+  ): ModerationStatistics
 
   """
   Moderator-only list of news feed exclusion patterns, newest first.  `null` for non-moderators.
