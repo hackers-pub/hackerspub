@@ -10,16 +10,21 @@ import {
 } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
-import { cn } from "~/lib/utils.ts";
-import { createStablePreloadedQuery } from "~/lib/relayPreload.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { createStablePreloadedQuery } from "~/lib/relayPreload.ts";
+import { cn } from "~/lib/utils.ts";
 import type { FollowRecommendationsQuery } from "./__generated__/FollowRecommendationsQuery.graphql.ts";
-import { FollowButton } from "./FollowButton.tsx";
 import { ActorHoverCard } from "./ActorHoverCard.tsx";
+import { FollowButton } from "./FollowButton.tsx";
 
 const STORAGE_KEY_PREFIX = "followRecommendationsDismissed";
 const BATCH_SIZE = 50;
 const MAX_VISIBLE = 5;
+
+export interface FollowRecommendationsProps {
+  followeesCount: number;
+  postCount?: number | null;
+}
 
 function getStorageKey(username: string): string {
   return `${STORAGE_KEY_PREFIX}:${username}`;
@@ -27,14 +32,6 @@ function getStorageKey(username: string): string {
 
 const followRecommendationsQuery = graphql`
   query FollowRecommendationsQuery($limit: Int, $locale: Locale) {
-    viewer {
-      actor {
-        followees(first: 0) {
-          totalCount
-        }
-      }
-      postCount
-    }
     recommendedActors(limit: $limit, locale: $locale) {
       id
       handle
@@ -64,6 +61,13 @@ function skipIcon() {
       <path d="m6 6 12 12" />
     </svg>
   );
+}
+
+function shouldShowFollowRecommendations(
+  followeesCount: number,
+  postCount: number,
+): boolean {
+  return followeesCount <= 5 || (followeesCount <= 10 && postCount <= 10);
 }
 
 function FollowRecommendationsInner(props: { storageKey: string }) {
@@ -101,18 +105,7 @@ function FollowRecommendationsInner(props: { storageKey: string }) {
 
   const visibleActors = createMemo(() => {
     const d = data();
-    if (!d || dismissed() || !d.viewer) return null;
-
-    const followeesCount = d.viewer.actor.followees.totalCount;
-    const postCount = d.viewer.postCount ?? 0;
-
-    // Show when following <= 5, OR (following <= 10 AND posts <= 10)
-    if (
-      followeesCount > 10 ||
-      (followeesCount > 5 && postCount > 10)
-    ) {
-      return null;
-    }
+    if (!d || dismissed()) return null;
 
     const allActors = d.recommendedActors;
     if (allActors.length === 0) return null;
@@ -213,7 +206,7 @@ function FollowRecommendationsInner(props: { storageKey: string }) {
 
 function Skeleton() {
   return (
-    <div class="overflow-hidden border bg-card md:rounded-lg md:shadow-sm">
+    <div class="mt-4 overflow-hidden border bg-card md:rounded-lg md:shadow-sm">
       <div class="flex items-center justify-between border-b px-4 py-3">
         <div class="h-4 w-48 animate-pulse rounded bg-muted" />
       </div>
@@ -231,7 +224,7 @@ function Skeleton() {
   );
 }
 
-export function FollowRecommendations() {
+export function FollowRecommendations(props: FollowRecommendationsProps) {
   const viewer = useViewer();
   const [dismissalLoaded, setDismissalLoaded] = createSignal(false);
   const [dismissed, setDismissed] = createSignal(false);
@@ -250,12 +243,19 @@ export function FollowRecommendations() {
     setDismissalLoaded(true);
   });
 
+  const eligible = () =>
+    shouldShowFollowRecommendations(
+      props.followeesCount,
+      props.postCount ?? 0,
+    );
+
   return (
     <Show
       when={dismissalLoaded() &&
         viewer.isLoaded() &&
         viewer.isAuthenticated() &&
-        !dismissed()}
+        !dismissed() &&
+        eligible()}
     >
       <Suspense fallback={<Skeleton />}>
         <FollowRecommendationsInner

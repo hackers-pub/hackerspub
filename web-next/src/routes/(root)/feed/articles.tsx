@@ -35,6 +35,14 @@ export const route = {
 
 const articlesFeedTimelineQuery = graphql`
   query articlesFeedTimelineQuery($locale: Locale, $languages: [Locale!]) {
+    viewer {
+      actor {
+        followees(first: 0) {
+          totalCount
+        }
+      }
+      postCount
+    }
     suggestedFilterLanguages
     ...PersonalTimeline_posts @arguments(locale: $locale, languages: $languages, postType: ARTICLE)
   }
@@ -68,7 +76,14 @@ function AuthenticatedArticlesFeedTimeline() {
     <Show keyed when={data()}>
       {(d) => (
         <NarrowContainer>
-          <FollowRecommendations />
+          <Show keyed when={d.viewer}>
+            {(viewer) => (
+              <FollowRecommendations
+                followeesCount={viewer.actor.followees.totalCount}
+                postCount={viewer.postCount}
+              />
+            )}
+          </Show>
           <Show
             when={d.suggestedFilterLanguages.length > 0 || !!activeLanguage()}
           >

@@ -17,7 +17,12 @@ import type { fediverseTimelineQuery } from "./__generated__/fediverseTimelineQu
 const fediverseTimelineQuery = graphql`
   query fediverseTimelineQuery($locale: Locale, $languages: [Locale!]) {
     viewer {
-      id
+      actor {
+        followees(first: 0) {
+          totalCount
+        }
+      }
+      postCount
     }
     suggestedFilterLanguages
     ...PublicTimeline_posts @arguments(
@@ -64,7 +69,14 @@ export default function FediverseTimeline() {
           <Show when={data.viewer == null}>
             <AboutHackersPub />
           </Show>
-          <FollowRecommendations />
+          <Show keyed when={data.viewer}>
+            {(viewer) => (
+              <FollowRecommendations
+                followeesCount={viewer.actor.followees.totalCount}
+                postCount={viewer.postCount}
+              />
+            )}
+          </Show>
           <Show
             when={data.suggestedFilterLanguages.length > 0 ||
               !!activeLanguage()}

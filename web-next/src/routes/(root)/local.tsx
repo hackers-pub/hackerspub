@@ -17,7 +17,12 @@ import type { localTimelineQuery } from "./__generated__/localTimelineQuery.grap
 const localTimelineQuery = graphql`
   query localTimelineQuery($locale: Locale, $languages: [Locale!]) {
     viewer {
-      id
+      actor {
+        followees(first: 0) {
+          totalCount
+        }
+      }
+      postCount
     }
     suggestedFilterLanguages
     ...PublicTimeline_posts @arguments(
@@ -56,7 +61,14 @@ export default function LocalTimeline() {
           <Show when={data.viewer == null}>
             <AboutHackersPub />
           </Show>
-          <FollowRecommendations />
+          <Show keyed when={data.viewer}>
+            {(viewer) => (
+              <FollowRecommendations
+                followeesCount={viewer.actor.followees.totalCount}
+                postCount={viewer.postCount}
+              />
+            )}
+          </Show>
           <Show
             when={data.suggestedFilterLanguages.length > 0 ||
               !!activeLanguage()}
