@@ -1,16 +1,23 @@
 import { analyzeFlag, createFlag } from "@hackerspub/models/flag";
 import {
+  APPEAL_WINDOW_MS,
   assignCase,
+  createAppeal,
   getViolationHistory,
   listSanctionedActors,
+  resolveAppeal as resolveAppealModel,
   takeModerationAction as takeModerationActionModel,
   updateCaseStatus,
 } from "@hackerspub/models/moderation";
 import { isPostVisibleTo } from "@hackerspub/models/post";
 import type {
+  Account as AccountRow,
   Flag as FlagRow,
   FlagAction as FlagActionRow,
   FlagActionType as FlagActionTypeValue,
+  FlagAppeal as FlagAppealRow,
+  FlagAppealResult as FlagAppealResultValue,
+  FlagAppealStatus as FlagAppealStatusValue,
   FlagCase as FlagCaseRow,
   FlagStatus as FlagStatusValue,
 } from "@hackerspub/models/schema";
@@ -1094,3 +1101,541 @@ async function sendModerationActionEmail(
     );
   }
 }
+
+export const FlagAppealStatus = builder.enumType("FlagAppealStatus", {
+  description: "The processing status of an appeal.",
+  values: {
+    PENDING: { description: "Filed and awaiting review." },
+    REVIEWING: { description: "A moderator is reviewing the appeal." },
+    RESOLVED: { description: "The review is complete; see `result`." },
+  } as const,
+});
+
+export const FlagAppealResult = builder.enumType("FlagAppealResult", {
+  description: "The outcome of an appeal review.",
+  values: {
+    DISMISSED: {
+      description: "The appeal was dismissed; the original action stands.",
+    },
+    REDUCED: {
+      description:
+        "The action was reduced to a lighter one (e.g. suspension to " +
+        "warning); the replacement is recorded as a new action.",
+    },
+    WITHDRAWN: {
+      description:
+        "The action was withdrawn: its enforcement is reverted and it " +
+        "drops out of the violation history.",
+    },
+    INCREASED: {
+      description:
+        "Rare: review uncovered a more severe violation, and the action " +
+        "was replaced with a heavier one.",
+    },
+  } as const,
+});
+
+export function toFlagAppealStatus(
+  status: FlagAppealStatusValue,
+): typeof FlagAppealStatus.$inferType {
+  return status === "pending"
+    ? "PENDING"
+    : status === "reviewing"
+    ? "REVIEWING"
+    : status === "resolved"
+    ? "RESOLVED"
+    : assertNever(status, `Invalid \`FlagAppealStatus\`: "${status}"`);
+}
+
+export function toFlagAppealResult(
+  result: FlagAppealResultValue,
+): typeof FlagAppealResult.$inferType {
+  return result === "dismissed"
+    ? "DISMISSED"
+    : result === "reduced"
+    ? "REDUCED"
+    : result === "withdrawn"
+    ? "WITHDRAWN"
+    : result === "increased"
+    ? "INCREASED"
+    : assertNever(result, `Invalid \`FlagAppealResult\`: "${result}"`);
+}
+
+export function fromFlagAppealResult(
+  result: typeof FlagAppealResult.$inferType,
+): FlagAppealResultValue {
+  return result === "DISMISSED"
+    ? "dismissed"
+    : result === "REDUCED"
+    ? "reduced"
+    : result === "WITHDRAWN"
+    ? "withdrawn"
+    : result === "INCREASED"
+    ? "increased"
+    : assertNever(result, `Invalid \`FlagAppealResult\`: "${result}"`);
+}
+
+export const FlagAppeal = builder.drizzleNode("flagAppealTable", {
+  name: "FlagAppeal",
+  description:
+    "An appeal a sanctioned user filed against a moderation action. " +
+    "Resolvable by the appellant (their own appeal) and by moderators; " +
+    "moderator-only fields (`action`, `appellant`, `reviewer`) carry an " +
+    "additional scope so the appellant cannot reach the case, the other " +
+    "reports, or the moderators through their appeal.",
+  authScopes: (appeal, ctx) => {
+    if (ctx.account != null && appeal.appellantId === ctx.account.id) {
+      return true;
+    }
+    return { moderator: true };
+  },
+  runScopesOnType: true,
+  id: {
+    column: (appeal) => appeal.id,
+  },
+  fields: (t) => ({
+    uuid: t.expose("id", {
+      type: "UUID",
+      description: "The appeal's row UUID.",
+    }),
+    reason: t.exposeString("reason", {
+      description: "Why the appellant believes the action is unjust.",
+    }),
+    additionalContext: t.exposeString("additionalContext", {
+      nullable: true,
+      description:
+        "Context or evidence the appellant believes was not considered.",
+    }),
+    status: t.field({
+      type: FlagAppealStatus,
+      description: "The appeal's processing status.",
+      select: { columns: { status: true } },
+      resolve: (appeal) => toFlagAppealStatus(appeal.status),
+    }),
+    result: t.field({
+      type: FlagAppealResult,
+      nullable: true,
+      description: "The review outcome; `null` until resolved.",
+      select: { columns: { result: true } },
+      resolve: (appeal) =>
+        appeal.result == null ? null : toFlagAppealResult(appeal.result),
+    }),
+    reviewRationale: t.exposeString("reviewRationale", {
+      nullable: true,
+      description:
+        "The reviewing moderator's rationale, shown to the appellant " +
+        "under the moderation team's collective identity.  `null` until " +
+        "resolved.",
+    }),
+    created: t.expose("created", {
+      type: "DateTime",
+      description: "When the appeal was filed.",
+    }),
+    resolved: t.expose("resolved", {
+      type: "DateTime",
+      nullable: true,
+      description: "When the review completed; `null` while open.",
+    }),
+    action: t.relation("action", {
+      description: "The appealed action, with its full audit context.  " +
+        "Moderator-only.",
+      authScopes: { moderator: true },
+    }),
+    appellant: t.relation("appellant", {
+      description: "The account that filed the appeal.  Moderator-only.",
+      authScopes: { moderator: true },
+    }),
+    reviewer: t.relation("reviewer", {
+      nullable: true,
+      description:
+        "The moderator who reviewed the appeal; `null` until resolved. " +
+        "Moderator-only: preferably a different moderator than the one " +
+        "who took the original action, and never revealed to the " +
+        "appellant.",
+      authScopes: { moderator: true },
+    }),
+  }),
+});
+
+interface SanctionShape {
+  action: FlagActionRow;
+  targetPostIri: string | null;
+  appeal: FlagAppealRow | null;
+}
+
+const Sanction = builder.objectRef<SanctionShape>("Sanction");
+
+Sanction.implement({
+  description:
+    "The sanitized surface a sanctioned (or warned) user sees about a " +
+    "moderation action taken on them: the confirmed violations, the " +
+    "action, the target content reference, and the moderation team's " +
+    "message.  Deliberately absent: the reporters, their reasons, the " +
+    "report count, the internal rationale, and the acting moderator's " +
+    "identity (everything is presented under the moderation team's " +
+    "collective identity).",
+  fields: (t) => ({
+    uuid: t.field({
+      type: "UUID",
+      description: "The underlying action's row UUID; pass it to " +
+        "`appealModerationAction` as `sanctionId`.",
+      resolve: (sanction) => sanction.action.id,
+    }),
+    actionType: t.field({
+      type: FlagActionType,
+      description: "What was decided.  `DISMISS` appears here only when the " +
+        "moderation team opted into the educational dismissal " +
+        "notification by writing a message.",
+      resolve: (sanction) => toFlagActionType(sanction.action.actionType),
+    }),
+    violatedProvisions: t.stringList({
+      description: "The code of conduct provision ids the moderation team " +
+        "confirmed as violated (empty for dismissals).",
+      resolve: (sanction) => sanction.action.violatedProvisions,
+    }),
+    messageToUser: t.string({
+      nullable: true,
+      description: "The moderation team's message.",
+      resolve: (sanction) => sanction.action.messageToUser,
+    }),
+    suspensionStarts: t.field({
+      type: "DateTime",
+      nullable: true,
+      description: "The suspension window's start, for `SUSPEND` actions.",
+      resolve: (sanction) => sanction.action.suspensionStarts,
+    }),
+    suspensionEnds: t.field({
+      type: "DateTime",
+      nullable: true,
+      description: "The suspension window's end, for `SUSPEND` actions.",
+      resolve: (sanction) => sanction.action.suspensionEnds,
+    }),
+    targetPostIri: t.field({
+      type: "URL",
+      nullable: true,
+      description:
+        "The sanctioned post's ActivityPub IRI, when the action targeted " +
+        "a post; `null` for account-level actions.",
+      resolve: (sanction) =>
+        sanction.targetPostIri == null ? null : new URL(sanction.targetPostIri),
+    }),
+    created: t.field({
+      type: "DateTime",
+      description: "When the action was taken.",
+      resolve: (sanction) => sanction.action.created,
+    }),
+    appealableUntil: t.field({
+      type: "DateTime",
+      description:
+        "The appeal deadline: 14 days after the action.  One appeal per " +
+        "action.",
+      resolve: (sanction) =>
+        new Date(sanction.action.created.getTime() + APPEAL_WINDOW_MS),
+    }),
+    appeal: t.field({
+      type: FlagAppeal,
+      nullable: true,
+      description:
+        "The user's appeal against this action, or `null` when none was " +
+        "filed.",
+      resolve: (sanction) => sanction.appeal,
+    }),
+  }),
+});
+
+builder.drizzleObjectFields(Account, (t) => ({
+  sanctions: t.field({
+    type: [Sanction],
+    nullable: true,
+    description:
+      "The moderation actions taken on this account, newest first, as " +
+      "the sanitized surface the user themselves sees (dismissals appear " +
+      "only when the moderation team wrote an educational message). " +
+      "Resolvable by the account owner and moderators only.",
+    authScopes: (account) => ({
+      moderator: true,
+      selfAccount: account.id,
+    }),
+    async resolve(account, _args, ctx) {
+      const actor = await ctx.db.query.actorTable.findFirst({
+        where: { accountId: account.id },
+        columns: { id: true },
+      });
+      if (actor == null) return [];
+      const actions = await ctx.db.query.flagActionTable.findMany({
+        where: { case: { targetActorId: actor.id } },
+        with: { appeal: true, case: { columns: { targetPostIri: true } } },
+        orderBy: { created: "desc" },
+      });
+      return actions
+        .filter((action) =>
+          action.actionType !== "dismiss" || action.messageToUser != null
+        )
+        .map((action) => ({
+          action,
+          targetPostIri: action.case.targetPostIri,
+          appeal: action.appeal,
+        }));
+    },
+  }),
+}));
+
+builder.mutationField("appealModerationAction", (t) =>
+  t.field({
+    type: FlagAppeal,
+    description: "File an appeal against a moderation action taken on you " +
+      "(`Sanction.uuid` is the `sanctionId`).  Only the sanctioned user " +
+      "can appeal, within 14 days of the action, once per action; " +
+      "dismissals cannot be appealed.  The review outcome arrives as a " +
+      "moderation notification.  Requires authentication.  Banned users " +
+      "cannot sign in to appeal, so they appeal by replying to the " +
+      "sanction email; a moderator then files the appeal on their behalf " +
+      "via `onBehalfOf`.",
+    errors: {
+      types: [NotAuthenticatedError, NotAuthorizedError, InvalidInputError],
+    },
+    args: {
+      sanctionId: t.arg({
+        type: "UUID",
+        required: true,
+        description: "The appealed action's row UUID (`Sanction.uuid`).",
+      }),
+      onBehalfOf: t.arg.globalID({
+        for: Account,
+        required: false,
+        description:
+          "Moderator-only: file the appeal on behalf of this sanctioned " +
+          "account.  Used for banned users, who cannot sign in and " +
+          "appeal by replying to the sanction email instead.  The appeal " +
+          "is still subject to the 14-day window and the one-appeal-per-" +
+          "action rule, and the named account must be the sanction's " +
+          "target.",
+      }),
+      reason: t.arg.string({
+        required: true,
+        description:
+          "Why you believe the action is unjust (1–4096 characters).",
+      }),
+      additionalContext: t.arg.string({
+        required: false,
+        description: "Context or evidence you believe was not considered " +
+          "(up to 4096 characters).",
+      }),
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.session == null || ctx.account == null) {
+        throw new NotAuthenticatedError();
+      }
+      const reason = args.reason.trim();
+      if (reason.length < 1 || reason.length > MAX_REPORT_REASON_LENGTH) {
+        throw new InvalidInputError("reason");
+      }
+      if (
+        args.additionalContext != null &&
+        args.additionalContext.length > MAX_REPORT_REASON_LENGTH
+      ) {
+        throw new InvalidInputError("additionalContext");
+      }
+      if (!validateUuid(args.sanctionId)) {
+        throw new InvalidInputError("sanctionId");
+      }
+      let appellant = ctx.account as AccountRow;
+      if (args.onBehalfOf != null) {
+        if (!ctx.account.moderator) throw new NotAuthorizedError();
+        if (!validateUuid(args.onBehalfOf.id)) {
+          throw new InvalidInputError("onBehalfOf");
+        }
+        const target = await ctx.db.query.accountTable.findFirst({
+          where: { id: args.onBehalfOf.id as Uuid },
+        });
+        if (target == null) throw new InvalidInputError("onBehalfOf");
+        appellant = target;
+      }
+      const appeal = await createAppeal(ctx.db, {
+        actionId: args.sanctionId,
+        appellant,
+        reason,
+        additionalContext: args.additionalContext ?? undefined,
+      });
+      if (appeal == null) throw new InvalidInputError("sanctionId");
+      return appeal;
+    },
+  }));
+
+const ReplacementActionInput = builder.inputType("ReplacementActionInput", {
+  description:
+    "The replacement sanction recorded when an appeal review reduces or " +
+    "increases the original action.  Validated like a regular action: " +
+    "`violatedProvisions` must be non-empty, `CENSOR` needs a post " +
+    "target, `SUSPEND` needs a valid window, and `DISMISS` is not a " +
+    "replacement (use the `WITHDRAWN` result instead).",
+  fields: (t) => ({
+    actionType: t.field({
+      type: FlagActionType,
+      required: true,
+      description:
+        "The replacement decision; `DISMISS` is not allowed (use the " +
+        "`WITHDRAWN` appeal result instead).",
+    }),
+    violatedProvisions: t.stringList({
+      required: true,
+      description: "The confirmed code of conduct provision ids.",
+    }),
+    rationale: t.string({
+      required: true,
+      description: "The internal rationale for the replacement.",
+    }),
+    messageToUser: t.string({
+      required: false,
+      description: "The message shown to the sanctioned user.",
+    }),
+    suspensionStarts: t.field({
+      type: "DateTime",
+      required: false,
+      description:
+        "Suspension start; required for (and only for) `SUSPEND`.  Must " +
+        "not be in the future (a few minutes of clock skew are " +
+        "tolerated).",
+    }),
+    suspensionEnds: t.field({
+      type: "DateTime",
+      required: false,
+      description: "Suspension end; required for (and only for) `SUSPEND`.",
+    }),
+  }),
+});
+
+builder.mutationField("resolveFlagAppeal", (t) =>
+  t.field({
+    type: FlagAppeal,
+    description: "Resolve an appeal: `DISMISSED` keeps the original action, " +
+      "`WITHDRAWN` reverts its enforcement, and `REDUCED`/`INCREASED` " +
+      "replace it with the given `replacement` action on the same case. " +
+      "The appellant is notified under the moderation team's collective " +
+      "identity.  Preferably reviewed by a different moderator than the " +
+      "original decision-maker; the UI surfaces a warning via " +
+      "`FlagAppeal.action.moderator`, but this is not enforced.  " +
+      "Requires a moderator account.",
+    errors: {
+      types: [NotAuthenticatedError, NotAuthorizedError, InvalidInputError],
+    },
+    args: {
+      appealId: t.arg.globalID({
+        for: FlagAppeal,
+        required: true,
+        description: "The open appeal to resolve.",
+      }),
+      result: t.arg({
+        type: FlagAppealResult,
+        required: true,
+        description: "The review outcome.",
+      }),
+      reviewRationale: t.arg.string({
+        required: true,
+        description: "The review rationale, shown to the appellant under the " +
+          "moderation team's collective identity.",
+      }),
+      replacement: t.arg({
+        type: ReplacementActionInput,
+        required: false,
+        description: "The replacement action; required for (and only for) " +
+          "`REDUCED` and `INCREASED` results.",
+      }),
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.session == null || ctx.account == null) {
+        throw new NotAuthenticatedError();
+      }
+      if (!ctx.account.moderator) throw new NotAuthorizedError();
+      if (!validateUuid(args.appealId.id)) {
+        throw new InvalidInputError("appealId");
+      }
+      const result = fromFlagAppealResult(args.result);
+      const needsReplacement = result === "reduced" || result === "increased";
+      if (needsReplacement !== (args.replacement != null)) {
+        throw new InvalidInputError("replacement");
+      }
+      const reviewRationale = args.reviewRationale.trim();
+      if (reviewRationale.length < 1) {
+        throw new InvalidInputError("reviewRationale");
+      }
+      let replacement:
+        | NonNullable<
+          Parameters<typeof resolveAppealModel>[1]["replacement"]
+        >
+        | undefined;
+      if (args.replacement != null) {
+        const replacementType = fromFlagActionType(
+          args.replacement.actionType,
+        );
+        if (replacementType === "dismiss") {
+          throw new InvalidInputError("replacement.actionType");
+        }
+        if (args.replacement.violatedProvisions.length < 1) {
+          throw new InvalidInputError("replacement.violatedProvisions");
+        }
+        if (replacementType === "suspend") {
+          const skewAllowanceMs = 5 * 60 * 1000;
+          if (
+            args.replacement.suspensionStarts == null ||
+            args.replacement.suspensionStarts.getTime() >
+              Date.now() + skewAllowanceMs
+          ) {
+            throw new InvalidInputError("replacement.suspensionStarts");
+          }
+          if (
+            args.replacement.suspensionEnds == null ||
+            args.replacement.suspensionEnds <=
+              args.replacement.suspensionStarts ||
+            args.replacement.suspensionEnds <= new Date()
+          ) {
+            throw new InvalidInputError("replacement.suspensionEnds");
+          }
+        } else if (
+          args.replacement.suspensionStarts != null ||
+          args.replacement.suspensionEnds != null
+        ) {
+          throw new InvalidInputError("replacement.suspensionStarts");
+        }
+        const replacementRationale = args.replacement.rationale.trim();
+        if (replacementRationale.length < 1) {
+          throw new InvalidInputError("replacement.rationale");
+        }
+        if (replacementType === "censor") {
+          // Preflight for a precise error; the model revalidates under
+          // lock.  Only open appeals qualify.
+          const appealRow = await ctx.db.query.flagAppealTable.findFirst({
+            where: {
+              id: args.appealId.id as Uuid,
+              status: { in: ["pending", "reviewing"] },
+            },
+            with: {
+              action: { with: { case: { columns: { targetPostId: true } } } },
+            },
+          });
+          if (
+            appealRow != null && appealRow.action.case.targetPostId == null
+          ) {
+            throw new InvalidInputError("replacement.actionType");
+          }
+        }
+        replacement = {
+          actionType: replacementType,
+          violatedProvisions: args.replacement.violatedProvisions,
+          rationale: replacementRationale,
+          messageToUser: args.replacement.messageToUser ?? undefined,
+          suspensionStarts: args.replacement.suspensionStarts ?? undefined,
+          suspensionEnds: args.replacement.suspensionEnds ?? undefined,
+        };
+      }
+      const appeal = await resolveAppealModel(ctx.db, {
+        appealId: args.appealId.id as Uuid,
+        reviewer: ctx.account,
+        result,
+        reviewRationale,
+        replacement,
+      });
+      if (appeal == null) throw new InvalidInputError("appealId");
+      return appeal;
+    },
+  }));

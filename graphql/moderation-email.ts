@@ -11,6 +11,13 @@ interface ModerationTemplates {
   actionNames: Record<string, string>;
   subject: string;
   content: string;
+  /**
+   * Variant for permanent suspensions: a banned account cannot sign in,
+   * so instead of the in-app appeal URL the user is told to appeal by
+   * replying to the email (a moderator then files the appeal on their
+   * behalf).
+   */
+  contentPermanent: string;
 }
 
 let cachedTemplates: Map<string, ModerationTemplates> | null = null;
@@ -32,6 +39,7 @@ async function loadTemplates(): Promise<Map<string, ModerationTemplates>> {
         actionNames: data.moderation.actionNames,
         subject: data.moderation.actionTaken.emailSubject,
         content: data.moderation.actionTaken.emailContent,
+        contentPermanent: data.moderation.actionTaken.emailContentPermanent,
       });
     } catch {
       // A malformed locale file falls back to English below.
@@ -98,6 +106,12 @@ export async function getModerationActionEmail(options: {
     from: EMAIL_FROM,
     to: options.to,
     subject: substitute(template.subject),
-    content: { text: substitute(template.content) },
+    content: {
+      text: substitute(
+        options.action.actionType === "ban"
+          ? template.contentPermanent
+          : template.content,
+      ),
+    },
   });
 }

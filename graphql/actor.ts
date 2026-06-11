@@ -24,6 +24,7 @@ import {
   unfollow,
 } from "@hackerspub/models/following";
 import { getMutedActorIds, mute, unmute } from "@hackerspub/models/muting";
+import { isActorSuspended } from "@hackerspub/models/moderation";
 import {
   getCensoredPostExclusionFilter,
   getPostVisibilityFilter,
@@ -430,6 +431,17 @@ export const Actor = builder.drizzleNode("actorTable", {
         }
         return fields;
       },
+    }),
+    suspended: t.field({
+      type: "Boolean",
+      description:
+        "Whether this actor is currently under an active moderation " +
+        "suspension (temporary or permanent; for remote actors, a " +
+        "federation block).  Evaluated lazily by time comparison, so it " +
+        "turns off on its own when a temporary suspension expires.  " +
+        "Surfaces the suspension notice on profiles.",
+      select: { columns: { suspended: true, suspendedUntil: true } },
+      resolve: (actor) => isActorSuspended(actor),
     }),
     posts: t.relatedConnection("posts", {
       type: Post,

@@ -17,7 +17,8 @@
     },
     "actionTaken": {
       "emailSubject": "Hackers' Pub 계정에 모더레이션 조치가 취해졌습니다",
-      "emailContent": "회원님의 콘텐츠 또는 계정에 대한 신고가 접수되었으며, 검토 결과 행동 강령 위반으로 판단되어 다음과 같은 조치가 취해졌습니다.\n\n위반 조항: {{provisions}}\n대상 콘텐츠: {{target}}\n조치: {{action}}\n\n모더레이션 팀의 메시지:\n{{message}}\n\n이 조치가 부당하다고 생각하신다면, 14일 이내에 이의를 제기하실 수 있습니다:\n\n{{appealUrl}}\n\n— Hackers' Pub 모더레이션 팀\n"
+      "emailContent": "회원님의 콘텐츠 또는 계정에 대한 신고가 접수되었으며, 검토 결과 행동 강령 위반으로 판단되어 다음과 같은 조치가 취해졌습니다.\n\n위반 조항: {{provisions}}\n대상 콘텐츠: {{target}}\n조치: {{action}}\n\n모더레이션 팀의 메시지:\n{{message}}\n\n이 조치가 부당하다고 생각하신다면, 14일 이내에 이의를 제기하실 수 있습니다:\n\n{{appealUrl}}\n\n— Hackers' Pub 모더레이션 팀\n",
+      "emailContentPermanent": "회원님의 콘텐츠 또는 계정에 대한 신고가 접수되었으며, 검토 결과 행동 강령 위반으로 판단되어 다음과 같은 조치가 취해졌습니다.\n\n위반 조항: {{provisions}}\n대상 콘텐츠: {{target}}\n조치: {{action}}\n\n모더레이션 팀의 메시지:\n{{message}}\n\n계정으로 더 이상 로그인할 수 없으므로, 이 결정에 대한 이의는 14일 이내에 이 이메일에 회신하는 방식으로 제기하실 수 있습니다. 모더레이션 팀이 회원님을 대신하여 이의 제기를 접수해 검토합니다.\n\n— Hackers' Pub 모더레이션 팀\n"
     }
   }
 }

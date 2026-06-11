@@ -5,6 +5,7 @@ import {
   resolvePasskeyOrigins,
   verifyAuthentication,
 } from "@hackerspub/models/passkey";
+import { isActorBanned } from "@hackerspub/models/moderation";
 import {
   createSession,
   deleteSession,
@@ -252,6 +253,13 @@ builder.mutationFields((t) => ({
     async resolve(_, args, ctx) {
       const token = await getSigninToken(ctx.kv, args.token);
       if (token == null || token.code !== args.code) return null;
+      // A permanently suspended (banned) account cannot log in at all;
+      // temporary suspension only restricts writing, not signing in.
+      const actor = await ctx.db.query.actorTable.findFirst({
+        where: { accountId: token.accountId },
+        columns: { id: true, suspended: true, suspendedUntil: true },
+      });
+      if (actor != null && isActorBanned(actor)) return null;
       const remoteAddr = ctx.connectionInfo?.remoteAddr;
       await deleteSigninToken(ctx.kv, token.token);
       return await createSession(ctx.kv, {
@@ -345,6 +353,12 @@ builder.mutationFields((t) => ({
       if (result == null) return null;
       const { response, account } = result;
       if (!response.verified) return null;
+      // Banned accounts cannot log in by passkey either.
+      const actor = await ctx.db.query.actorTable.findFirst({
+        where: { accountId: account.id },
+        columns: { id: true, suspended: true, suspendedUntil: true },
+      });
+      if (actor != null && isActorBanned(actor)) return null;
 
       const remoteAddr = ctx.connectionInfo?.remoteAddr;
       return await createSession(ctx.kv, {

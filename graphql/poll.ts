@@ -68,15 +68,18 @@ builder.drizzleObjectFields(Question, (t) => ({
     complexity: questionPollComplexity,
     description:
       "The rendered body of the `Question`, excluding poll options. Use " +
-      "`Question.poll` to render the voting UI.",
+      "`Question.poll` to render the voting UI.  Empty when the post is " +
+      "censored and the viewer is neither its author nor a moderator.",
     select: {
       columns: {
+        actorId: true,
+        censored: true,
         contentHtml: true,
         emojis: true,
       },
     },
     resolve: (post, _, ctx) =>
-      addExternalLinkTargets(
+      isPollCensoredForViewer(post, ctx) ? "" : addExternalLinkTargets(
         renderCustomEmojis(post.contentHtml, post.emojis),
         new URL(ctx.fedCtx.canonicalOrigin),
       ),
@@ -96,11 +99,22 @@ builder.drizzleObjectFields(Question, (t) => ({
       "The canonical, human-readable URL of this question. Source-backed " +
       "local Questions encode `Question.sourceId`; federated remote " +
       "Questions and local share wrappers may not share any path token with " +
-      "`Post.uuid`.",
+      "`Post.uuid`.  `null` for a censored boost wrapper when the viewer " +
+      "is neither its author nor a moderator, since the wrapper's URL " +
+      "mirrors the boosted post's and would disclose what was boosted.",
     select: {
-      columns: { url: true },
+      columns: {
+        url: true,
+        censored: true,
+        actorId: true,
+        sharedPostId: true,
+      },
     },
-    resolve: (post) => post.url ? new URL(post.url) : null,
+    resolve: (post, _, ctx) =>
+      post.url == null ||
+        post.sharedPostId != null && isPollCensoredForViewer(post, ctx)
+        ? null
+        : new URL(post.url),
   }),
   published: t.expose("published", {
     type: "DateTime",
@@ -113,21 +127,37 @@ builder.drizzleObjectFields(Question, (t) => ({
     complexity: questionPollComplexity,
     description: "The actor who authored this `Question`.",
   }),
-  quotedPost: t.relation("quotedPost", {
+  quotedPost: t.field({
     type: Post,
     nullable: true,
     complexity: questionPollComplexity,
     description:
       "The post quoted by this `Question`, if any. Visibility rules still " +
-      "apply to the quoted post.",
+      "apply to the quoted post.  `null` when the quoting `Question` is " +
+      "censored and the viewer is neither its author nor a moderator: " +
+      "the quoted target is part of the censored content.",
+    select: (_, __, nestedSelect) => ({
+      columns: { actorId: true, censored: true },
+      with: { quotedPost: nestedSelect() },
+    }),
+    resolve: (question, _, ctx) =>
+      isPollCensoredForViewer(question, ctx) ? null : question.quotedPost,
   }),
-  sharedPost: t.relation("sharedPost", {
+  sharedPost: t.field({
     type: Post,
     nullable: true,
     complexity: questionPollComplexity,
     description:
       "The original post when this row is a local share wrapper. Polls live " +
-      "on the original `Question`, not on the wrapper.",
+      "on the original `Question`, not on the wrapper.  `null` when the " +
+      "wrapper itself is censored and the viewer is neither its author " +
+      "nor a moderator: what was boosted is the censored content.",
+    select: (_, __, nestedSelect) => ({
+      columns: { actorId: true, censored: true },
+      with: { sharedPost: nestedSelect() },
+    }),
+    resolve: (question, _, ctx) =>
+      isPollCensoredForViewer(question, ctx) ? null : question.sharedPost,
   }),
 }));
 
@@ -135,7 +165,23 @@ const Poll = builder.drizzleNode("pollTable", {
   name: "Poll",
   description:
     "A poll attached to a `Question` post. Contains options, vote counts, " +
-    "and the voting deadline.",
+    "and the voting deadline.  When the owning `Question` is censored, the " +
+    "poll (including its option titles) is part of the censored content " +
+    "and is only resolvable by the author and moderators, even through " +
+    "direct `node(id:)` lookups.",
+  authScopes: async (poll, ctx) => {
+    const post = await ctx.db.query.postTable.findFirst({
+      where: { id: poll.postId },
+      columns: { censored: true, actorId: true },
+    });
+    if (post == null || post.censored == null) return true;
+    if (ctx.account?.actor.id === post.actorId) return true;
+    return { moderator: true };
+  },
+  // Run the scope when the node itself is resolved: the Poll node id is
+  // the Question's post id, so without this a client could bypass the
+  // Question.poll redaction via node(id:).
+  runScopesOnType: true,
   id: {
     column: (poll) => poll.postId,
   },
@@ -385,6 +431,20 @@ async function getViewerPollOptionIndices(
   return await promise;
 }
 
+/**
+ * Whether the Question's poll content must be redacted for the current
+ * viewer: it is censored, and the viewer is neither its author nor a
+ * moderator (mirrors `isCensoredForViewer` in post.ts).
+ */
+function isPollCensoredForViewer(
+  post: { censored: Date | null; actorId: Uuid },
+  ctx: UserContext,
+): boolean {
+  return post.censored != null &&
+    ctx.account?.actor.id !== post.actorId &&
+    !(ctx.account?.moderator ?? false);
+}
+
 builder.drizzleObjectField(Question, "poll", (t) =>
   t.field({
     type: Poll,
@@ -393,9 +453,14 @@ builder.drizzleObjectField(Question, "poll", (t) =>
     description:
       "Poll data attached to this `Question`, or `null` for shared wrappers " +
       "and Questions whose remote poll data is unavailable. Authenticated " +
-      "viewers may trigger a remote backfill for missing poll data.",
+      "viewers may trigger a remote backfill for missing poll data.  Also " +
+      "`null` when the Question is censored and the viewer is neither its " +
+      "author nor a moderator (check `censored` to distinguish the " +
+      "redaction from unavailable poll data).",
     select: (_, __, nestedSelect) => ({
       columns: {
+        actorId: true,
+        censored: true,
         id: true,
         iri: true,
         sharedPostId: true,
@@ -405,6 +470,9 @@ builder.drizzleObjectField(Question, "poll", (t) =>
       },
     }),
     async resolve(question, _, ctx) {
+      // A censored Question's poll (and its option titles) is part of the
+      // censored content.
+      if (isPollCensoredForViewer(question, ctx)) return null;
       if (question.poll != null) return question.poll;
       if (question.sharedPostId != null) return null;
 
@@ -532,7 +600,8 @@ builder.relayMutationField(
 
       if (
         question == null || question.poll == null ||
-        !isPostVisibleTo(question, ctx.account.actor)
+        !isPostVisibleTo(question, ctx.account.actor) ||
+        isPollCensoredForViewer(question, ctx)
       ) {
         throw new InvalidInputError("questionId");
       }

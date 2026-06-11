@@ -130,6 +130,11 @@ type Account implements Node {
   reports(after: String, before: String, first: Int, last: Int): AccountReportsConnection
 
   """
+  The moderation actions taken on this account, newest first, as the sanitized surface the user themselves sees (dismissals appear only when the moderation team wrote an educational message). Resolvable by the account owner and moderators only.
+  """
+  sanctions: [Sanction!]
+
+  """
   Number of notifications created after the account's last `markNotificationsAsRead` call. Only visible to the account holder.
   """
   unreadNotificationsCount: Int!
@@ -437,6 +442,11 @@ type Actor implements Node {
   If this actor has migrated to a new account via the ActivityPub Move activity, points to the new actor. The old actor's posts are not automatically transferred to the new account.
   """
   successor: Actor
+
+  """
+  Whether this actor is currently under an active moderation suspension (temporary or permanent; for remote actors, a federation block).  Evaluated lazily by time comparison, so it turns off on its own when a temporary suspension expires.  Surfaces the suspension notice on profiles.
+  """
+  suspended: Boolean!
   type: ActorType!
   updated: DateTime!
 
@@ -677,6 +687,8 @@ type AdminAccountPageInfo {
   startCursor: String
 }
 
+union AppealModerationActionResult = FlagAppeal | InvalidInputError | NotAuthenticatedError | NotAuthorizedError
+
 """
 A long-form blog article written on this platform. Articles have a title, year-based URL slug, and can have multiple `ArticleContent` translations. Remote articles federated from other instances lack a local `articleSource` and will have `null` for `slug`, `publishedYear`, and `tags`.
 """
@@ -692,28 +704,33 @@ type Article implements Node & Post & Reactable {
   allowLlmTranslation: Boolean
 
   """
-  The post's full HTML content, with custom emoji shortcodes rendered as `<img>` elements and external links annotated with `target="_blank"`. Boost wrappers have empty content; use `sharedPost.content` instead.
+  When a moderator censored this post, or `null` when it is not censored.  Censored posts disappear from timelines, search, and recommendations, but their permalinks stay reachable so a censorship notice can be shown.  For everyone but the author and moderators, all content-bearing fields are redacted: `content`, the excerpt fields, `name`, `summary`, `hashtags`, `media`, `link`, `mentions`, `sharedPost`, `quotedPost`, article contents, and poll data.
+  """
+  censored: DateTime
+
+  """
+  The post's full HTML content, with custom emoji shortcodes rendered as `<img>` elements and external links annotated with `target="_blank"`. Boost wrappers have empty content; use `sharedPost.content` instead.  Empty when the post is censored and the viewer is neither its author nor a moderator.
   """
   content: HTML!
 
   """
-  All available language versions of this article's content. Pass `language` to get only the best-matching locale (BCP 47 negotiation). Pass `includeBeingTranslated: true` to also include language versions whose LLM translation is still in progress.
+  All available language versions of this article's content. Pass `language` to get only the best-matching locale (BCP 47 negotiation). Pass `includeBeingTranslated: true` to also include language versions whose LLM translation is still in progress.  Empty when the article is censored and the viewer is neither its author nor a moderator.
   """
   contents(includeBeingTranslated: Boolean = false, language: Locale): [ArticleContent!]!
   engagementStats: PostEngagementStats!
 
   """
-  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.
+  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.  Empty when the post is censored and the viewer is neither its author nor a moderator.
   """
   excerpt: String!
 
   """
-  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.
+  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.  Empty when the post is censored and the viewer is neither its author nor a moderator.
   """
   excerptHtml(maxChars: Int!): HTML!
 
   """
-  Hashtags mentioned in the post, extracted from the post's tag map. Each entry includes the tag name and its canonical hashtag search URL.
+  Hashtags mentioned in the post, extracted from the post's tag map. Each entry includes the tag name and its canonical hashtag search URL.  Empty when the post is censored and the viewer is neither its author nor a moderator, since hashtags are derived from the censored content.
   """
   hashtags: [Hashtag!]!
   id: ID!
@@ -729,22 +746,22 @@ type Article implements Node & Post & Reactable {
   language: String
 
   """
-  OpenGraph / oEmbed preview for the first link in the post. `null` when the post has no links or the metadata has not been fetched yet.
+  OpenGraph / oEmbed preview for the first link in the post. `null` when the post has no links or the metadata has not been fetched yet, and also when the post is censored and the viewer is neither its author nor a moderator (the linked URL is part of the censored content).
   """
   link: PostLink
 
   """
-  Media attachments on this post, in display order. For federated posts the URLs point to the originating instance.
+  Media attachments on this post, in display order. For federated posts the URLs point to the originating instance.  Empty when the post is censored and the viewer is neither its author nor a moderator: attachments are part of the censored content.
   """
   media: [PostMedium!]!
 
   """
-  Actors explicitly @-mentioned in this post. Does not include implicit mentions (e.g., the author of the post being replied to).
+  Actors explicitly @-mentioned in this post. Does not include implicit mentions (e.g., the author of the post being replied to). Empty when the post is censored and the viewer is neither its author nor a moderator, since the mention targets are part of the censored content.
   """
   mentions(after: String, before: String, first: Int, last: Int): PostMentionsConnection!
 
   """
-  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.
+  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.  `null` when the post is censored and the viewer is neither its author nor a moderator.
   """
   name: String
   published: DateTime!
@@ -756,7 +773,9 @@ type Article implements Node & Post & Reactable {
   quotePolicy: QuotePolicy!
   quoteTargetState: QuoteTargetState
 
-  """The post being quoted inline. `null` for posts that are not quotes."""
+  """
+  The post being quoted inline. `null` for posts that are not quotes, and also when the quoting post is censored and the viewer is neither its author nor a moderator: the quoted target is part of the censored content.
+  """
   quotedPost: Post
 
   """
@@ -780,7 +799,7 @@ type Article implements Node & Post & Reactable {
   sensitive: Boolean!
 
   """
-  The post being boosted. Non-null only for boost wrapper rows. When this is non-null, `content` is empty and `url` mirrors the shared post's URL.
+  The post being boosted. Non-null only for boost wrapper rows. When this is non-null, `content` is empty and `url` mirrors the shared post's URL.  `null` when the boost wrapper itself is censored and the viewer is neither its author nor a moderator: what was boosted is the censored content.
   """
   sharedPost: Post
 
@@ -800,7 +819,7 @@ type Article implements Node & Post & Reactable {
   sourceId: UUID
 
   """
-  Author-provided or LLM-generated summary of the post. `null` when no summary has been set. For LLM summaries, check `ArticleContent.summary` and `summaryStarted` instead, as those are tracked per language on articles.
+  Author-provided or LLM-generated summary of the post. `null` when no summary has been set. For LLM summaries, check `ArticleContent.summary` and `summaryStarted` instead, as those are tracked per language on articles.  `null` when the post is censored and the viewer is neither its author nor a moderator.
   """
   summary: String
 
@@ -811,7 +830,7 @@ type Article implements Node & Post & Reactable {
   updated: DateTime!
 
   """
-  The canonical, human-readable URL of this post. For source-backed local posts the path encodes the local source identifier: `Note.sourceId` for notes, `Article.publishedYear` + `Article.slug` for articles, and `Question.sourceId` for questions. It does not encode `Post.uuid`. For federated remote posts and local share wrappers (boosts) this is whatever URL the originating instance advertised (copied from the shared post in the boost case) and is unrelated to the wrapper's own row PK. Prefer this field over hand-building a path from `Post.uuid`: `uuid` is the row PK and does not match the path here for source-backed local posts.
+  The canonical, human-readable URL of this post. For source-backed local posts the path encodes the local source identifier: `Note.sourceId` for notes, `Article.publishedYear` + `Article.slug` for articles, and `Question.sourceId` for questions. It does not encode `Post.uuid`. For federated remote posts and local share wrappers (boosts) this is whatever URL the originating instance advertised (copied from the shared post in the boost case) and is unrelated to the wrapper's own row PK. Prefer this field over hand-building a path from `Post.uuid`: `uuid` is the row PK and does not match the path here for source-backed local posts.  `null` for a censored boost wrapper when the viewer is neither its author nor a moderator, since the wrapper's URL mirrors the boosted post's and would disclose what was boosted.
   """
   url: URL
 
@@ -867,14 +886,18 @@ type ArticleContent implements Node {
   beingTranslated: Boolean!
 
   """
-  Rendered HTML of this language version, with media URLs resolved and external links annotated.
+  Rendered HTML of this language version, with media URLs resolved and external links annotated.  Empty when the article is censored and the viewer is neither its author nor a moderator.
   """
   content: HTML!
   id: ID!
 
   """BCP 47 language tag identifying this content version."""
   language: Locale!
-  ogImageUrl: URL!
+
+  """
+  The generated Open Graph preview image for this language version.  `null` when the article is censored and the viewer is neither its author nor a moderator: the image is rendered from the title and excerpt and would otherwise leak censored content.
+  """
+  ogImageUrl: URL
 
   """
   The source language this content was translated from. Non-null only for LLM-translated versions; `null` for original content.
@@ -882,11 +905,13 @@ type ArticleContent implements Node {
   originalLanguage: Locale
   published: DateTime!
 
-  """The raw markdown content for editing."""
+  """
+  The raw markdown content for editing.  Empty when the article is censored and the viewer is neither its author nor a moderator.
+  """
   rawContent: Markdown!
 
   """
-  LLM-generated summary for this language version. `null` until generation completes. Check `summaryStarted` to distinguish between "not requested" and "in progress".
+  `null` when the article is censored and the viewer is neither its author nor a moderator.  Otherwise the LLM-generated summary for this language version: `null` until generation completes. Check `summaryStarted` to distinguish between "not requested" and "in progress".
   """
   summary: String
 
@@ -894,9 +919,15 @@ type ArticleContent implements Node {
   When LLM summary generation was started for this content version. `null` if summary generation has not been requested.
   """
   summaryStarted: DateTime
+
+  """
+  The article's title in this language.  Empty when the article is censored and the viewer is neither its author nor a moderator.
+  """
   title: String!
 
-  """Table of contents for the article content."""
+  """
+  Table of contents for the article content.  Empty when the article is censored and the viewer is neither its author nor a moderator.
+  """
   toc: JSON!
 
   """
@@ -1432,6 +1463,82 @@ enum FlagActionType {
 }
 
 """
+An appeal a sanctioned user filed against a moderation action. Resolvable by the appellant (their own appeal) and by moderators; moderator-only fields (`action`, `appellant`, `reviewer`) carry an additional scope so the appellant cannot reach the case, the other reports, or the moderators through their appeal.
+"""
+type FlagAppeal implements Node {
+  """The appealed action, with its full audit context.  Moderator-only."""
+  action: FlagAction!
+
+  """Context or evidence the appellant believes was not considered."""
+  additionalContext: String
+
+  """The account that filed the appeal.  Moderator-only."""
+  appellant: Account!
+
+  """When the appeal was filed."""
+  created: DateTime!
+  id: ID!
+
+  """Why the appellant believes the action is unjust."""
+  reason: String!
+
+  """When the review completed; `null` while open."""
+  resolved: DateTime
+
+  """The review outcome; `null` until resolved."""
+  result: FlagAppealResult
+
+  """
+  The reviewing moderator's rationale, shown to the appellant under the moderation team's collective identity.  `null` until resolved.
+  """
+  reviewRationale: String
+
+  """
+  The moderator who reviewed the appeal; `null` until resolved. Moderator-only: preferably a different moderator than the one who took the original action, and never revealed to the appellant.
+  """
+  reviewer: Account
+
+  """The appeal's processing status."""
+  status: FlagAppealStatus!
+
+  """The appeal's row UUID."""
+  uuid: UUID!
+}
+
+"""The outcome of an appeal review."""
+enum FlagAppealResult {
+  """The appeal was dismissed; the original action stands."""
+  DISMISSED
+
+  """
+  Rare: review uncovered a more severe violation, and the action was replaced with a heavier one.
+  """
+  INCREASED
+
+  """
+  The action was reduced to a lighter one (e.g. suspension to warning); the replacement is recorded as a new action.
+  """
+  REDUCED
+
+  """
+  The action was withdrawn: its enforcement is reverted and it drops out of the violation history.
+  """
+  WITHDRAWN
+}
+
+"""The processing status of an appeal."""
+enum FlagAppealStatus {
+  """Filed and awaiting review."""
+  PENDING
+
+  """The review is complete; see `result`."""
+  RESOLVED
+
+  """A moderator is reviewing the appeal."""
+  REVIEWING
+}
+
+"""
 A moderation case: all reports against the same target (an actor, or one of their posts) grouped into a single unit of moderator work.  Cases are created automatically by the first report and joined by subsequent ones while open.  Moderator-only.
 """
 type FlagCase implements Node {
@@ -1810,6 +1917,27 @@ type Mutation {
   addReactionToPost(input: AddReactionToPostInput!): AddReactionToPostResult!
 
   """
+  File an appeal against a moderation action taken on you (`Sanction.uuid` is the `sanctionId`).  Only the sanctioned user can appeal, within 14 days of the action, once per action; dismissals cannot be appealed.  The review outcome arrives as a moderation notification.  Requires authentication.  Banned users cannot sign in to appeal, so they appeal by replying to the sanction email; a moderator then files the appeal on their behalf via `onBehalfOf`.
+  """
+  appealModerationAction(
+    """
+    Context or evidence you believe was not considered (up to 4096 characters).
+    """
+    additionalContext: String
+
+    """
+    Moderator-only: file the appeal on behalf of this sanctioned account.  Used for banned users, who cannot sign in and appeal by replying to the sanction email instead.  The appeal is still subject to the 14-day window and the one-appeal-per-action rule, and the named account must be the sanction's target.
+    """
+    onBehalfOf: ID
+
+    """Why you believe the action is unjust (1–4096 characters)."""
+    reason: String!
+
+    """The appealed action's row UUID (`Sanction.uuid`)."""
+    sanctionId: UUID!
+  ): AppealModerationActionResult!
+
+  """
   Assign an open moderation case to a moderator for workload distribution (or unassign it by omitting `moderatorId`). Assigning a pending case moves it to `REVIEWING`.  Requires a moderator account.  Returns `null` when the case is not open or the assignee is not a moderator.
   """
   assignFlagCase(
@@ -2030,6 +2158,27 @@ type Mutation {
     targetId: ID!
   ): ReportContentResult!
   requestArticleTranslation(input: RequestArticleTranslationInput!): RequestArticleTranslationResult!
+
+  """
+  Resolve an appeal: `DISMISSED` keeps the original action, `WITHDRAWN` reverts its enforcement, and `REDUCED`/`INCREASED` replace it with the given `replacement` action on the same case. The appellant is notified under the moderation team's collective identity.  Preferably reviewed by a different moderator than the original decision-maker; the UI surfaces a warning via `FlagAppeal.action.moderator`, but this is not enforced.  Requires a moderator account.
+  """
+  resolveFlagAppeal(
+    """The open appeal to resolve."""
+    appealId: ID!
+
+    """
+    The replacement action; required for (and only for) `REDUCED` and `INCREASED` results.
+    """
+    replacement: ReplacementActionInput
+
+    """The review outcome."""
+    result: FlagAppealResult!
+
+    """
+    The review rationale, shown to the appellant under the moderation team's collective identity.
+    """
+    reviewRationale: String!
+  ): ResolveFlagAppealResult!
 
   """
   Delete a passkey from the account. Returns the deleted passkey's global ID, or `null` if the passkey was not found. Requires authentication and ownership of the passkey.
@@ -2309,23 +2458,28 @@ type Note implements Node & Post & Reactable {
   actor: Actor!
 
   """
-  The post's full HTML content, with custom emoji shortcodes rendered as `<img>` elements and external links annotated with `target="_blank"`. Boost wrappers have empty content; use `sharedPost.content` instead.
+  When a moderator censored this post, or `null` when it is not censored.  Censored posts disappear from timelines, search, and recommendations, but their permalinks stay reachable so a censorship notice can be shown.  For everyone but the author and moderators, all content-bearing fields are redacted: `content`, the excerpt fields, `name`, `summary`, `hashtags`, `media`, `link`, `mentions`, `sharedPost`, `quotedPost`, article contents, and poll data.
+  """
+  censored: DateTime
+
+  """
+  The post's full HTML content, with custom emoji shortcodes rendered as `<img>` elements and external links annotated with `target="_blank"`. Boost wrappers have empty content; use `sharedPost.content` instead.  Empty when the post is censored and the viewer is neither its author nor a moderator.
   """
   content: HTML!
   engagementStats: PostEngagementStats!
 
   """
-  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.
+  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.  Empty when the post is censored and the viewer is neither its author nor a moderator.
   """
   excerpt: String!
 
   """
-  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.
+  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.  Empty when the post is censored and the viewer is neither its author nor a moderator.
   """
   excerptHtml(maxChars: Int!): HTML!
 
   """
-  Hashtags mentioned in the post, extracted from the post's tag map. Each entry includes the tag name and its canonical hashtag search URL.
+  Hashtags mentioned in the post, extracted from the post's tag map. Each entry includes the tag name and its canonical hashtag search URL.  Empty when the post is censored and the viewer is neither its author nor a moderator, since hashtags are derived from the censored content.
   """
   hashtags: [Hashtag!]!
   id: ID!
@@ -2341,29 +2495,31 @@ type Note implements Node & Post & Reactable {
   language: String
 
   """
-  OpenGraph / oEmbed preview for the first link in the post. `null` when the post has no links or the metadata has not been fetched yet.
+  OpenGraph / oEmbed preview for the first link in the post. `null` when the post has no links or the metadata has not been fetched yet, and also when the post is censored and the viewer is neither its author nor a moderator (the linked URL is part of the censored content).
   """
   link: PostLink
 
   """
-  Media attachments on this post, in display order. For federated posts the URLs point to the originating instance.
+  Media attachments on this post, in display order. For federated posts the URLs point to the originating instance.  Empty when the post is censored and the viewer is neither its author nor a moderator: attachments are part of the censored content.
   """
   media: [PostMedium!]!
 
   """
-  Actors explicitly @-mentioned in this post. Does not include implicit mentions (e.g., the author of the post being replied to).
+  Actors explicitly @-mentioned in this post. Does not include implicit mentions (e.g., the author of the post being replied to). Empty when the post is censored and the viewer is neither its author nor a moderator, since the mention targets are part of the censored content.
   """
   mentions(after: String, before: String, first: Int, last: Int): PostMentionsConnection!
 
   """
-  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.
+  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.  `null` when the post is censored and the viewer is neither its author nor a moderator.
   """
   name: String
   published: DateTime!
   quotePolicy: QuotePolicy!
   quoteTargetState: QuoteTargetState
 
-  """The post being quoted inline. `null` for posts that are not quotes."""
+  """
+  The post being quoted inline. `null` for posts that are not quotes, and also when the quoting post is censored and the viewer is neither its author nor a moderator: the quoted target is part of the censored content.
+  """
   quotedPost: Post
 
   """
@@ -2392,7 +2548,7 @@ type Note implements Node & Post & Reactable {
   sensitive: Boolean!
 
   """
-  The post being boosted. Non-null only for boost wrapper rows. When this is non-null, `content` is empty and `url` mirrors the shared post's URL.
+  The post being boosted. Non-null only for boost wrapper rows. When this is non-null, `content` is empty and `url` mirrors the shared post's URL.  `null` when the boost wrapper itself is censored and the viewer is neither its author nor a moderator: what was boosted is the censored content.
   """
   sharedPost: Post
 
@@ -2407,13 +2563,13 @@ type Note implements Node & Post & Reactable {
   sourceId: UUID
 
   """
-  Author-provided or LLM-generated summary of the post. `null` when no summary has been set. For LLM summaries, check `ArticleContent.summary` and `summaryStarted` instead, as those are tracked per language on articles.
+  Author-provided or LLM-generated summary of the post. `null` when no summary has been set. For LLM summaries, check `ArticleContent.summary` and `summaryStarted` instead, as those are tracked per language on articles.  `null` when the post is censored and the viewer is neither its author nor a moderator.
   """
   summary: String
   updated: DateTime!
 
   """
-  The canonical, human-readable URL of this post. For source-backed local posts the path encodes the local source identifier: `Note.sourceId` for notes, `Article.publishedYear` + `Article.slug` for articles, and `Question.sourceId` for questions. It does not encode `Post.uuid`. For federated remote posts and local share wrappers (boosts) this is whatever URL the originating instance advertised (copied from the shared post in the boost case) and is unrelated to the wrapper's own row PK. Prefer this field over hand-building a path from `Post.uuid`: `uuid` is the row PK and does not match the path here for source-backed local posts.
+  The canonical, human-readable URL of this post. For source-backed local posts the path encodes the local source identifier: `Note.sourceId` for notes, `Article.publishedYear` + `Article.slug` for articles, and `Question.sourceId` for questions. It does not encode `Post.uuid`. For federated remote posts and local share wrappers (boosts) this is whatever URL the originating instance advertised (copied from the shared post in the boost case) and is unrelated to the wrapper's own row PK. Prefer this field over hand-building a path from `Post.uuid`: `uuid` is the row PK and does not match the path here for source-backed local posts.  `null` for a censored boost wrapper when the viewer is neither its author nor a moderator, since the wrapper's URL mirrors the boosted post's and would disclose what was boosted.
   """
   url: URL
 
@@ -2596,7 +2752,7 @@ type PinPostPayload {
 union PinPostResult = InvalidInputError | NotAuthenticatedError | PinPostPayload
 
 """
-A poll attached to a `Question` post. Contains options, vote counts, and the voting deadline.
+A poll attached to a `Question` post. Contains options, vote counts, and the voting deadline.  When the owning `Question` is censored, the poll (including its option titles) is part of the censored content and is only resolvable by the author and moderators, even through direct `node(id:)` lookups.
 """
 type Poll implements Node {
   """Whether the voting period has ended (`ends <= now()`)."""
@@ -2739,23 +2895,28 @@ interface Post implements Node & Reactable {
   actor: Actor!
 
   """
-  The post's full HTML content, with custom emoji shortcodes rendered as `<img>` elements and external links annotated with `target="_blank"`. Boost wrappers have empty content; use `sharedPost.content` instead.
+  When a moderator censored this post, or `null` when it is not censored.  Censored posts disappear from timelines, search, and recommendations, but their permalinks stay reachable so a censorship notice can be shown.  For everyone but the author and moderators, all content-bearing fields are redacted: `content`, the excerpt fields, `name`, `summary`, `hashtags`, `media`, `link`, `mentions`, `sharedPost`, `quotedPost`, article contents, and poll data.
+  """
+  censored: DateTime
+
+  """
+  The post's full HTML content, with custom emoji shortcodes rendered as `<img>` elements and external links annotated with `target="_blank"`. Boost wrappers have empty content; use `sharedPost.content` instead.  Empty when the post is censored and the viewer is neither its author nor a moderator.
   """
   content: HTML!
   engagementStats: PostEngagementStats!
 
   """
-  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.
+  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.  Empty when the post is censored and the viewer is neither its author nor a moderator.
   """
   excerpt: String!
 
   """
-  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.
+  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.  Empty when the post is censored and the viewer is neither its author nor a moderator.
   """
   excerptHtml(maxChars: Int!): HTML!
 
   """
-  Hashtags mentioned in the post, extracted from the post's tag map. Each entry includes the tag name and its canonical hashtag search URL.
+  Hashtags mentioned in the post, extracted from the post's tag map. Each entry includes the tag name and its canonical hashtag search URL.  Empty when the post is censored and the viewer is neither its author nor a moderator, since hashtags are derived from the censored content.
   """
   hashtags: [Hashtag!]!
   id: ID!
@@ -2771,29 +2932,31 @@ interface Post implements Node & Reactable {
   language: String
 
   """
-  OpenGraph / oEmbed preview for the first link in the post. `null` when the post has no links or the metadata has not been fetched yet.
+  OpenGraph / oEmbed preview for the first link in the post. `null` when the post has no links or the metadata has not been fetched yet, and also when the post is censored and the viewer is neither its author nor a moderator (the linked URL is part of the censored content).
   """
   link: PostLink
 
   """
-  Media attachments on this post, in display order. For federated posts the URLs point to the originating instance.
+  Media attachments on this post, in display order. For federated posts the URLs point to the originating instance.  Empty when the post is censored and the viewer is neither its author nor a moderator: attachments are part of the censored content.
   """
   media: [PostMedium!]!
 
   """
-  Actors explicitly @-mentioned in this post. Does not include implicit mentions (e.g., the author of the post being replied to).
+  Actors explicitly @-mentioned in this post. Does not include implicit mentions (e.g., the author of the post being replied to). Empty when the post is censored and the viewer is neither its author nor a moderator, since the mention targets are part of the censored content.
   """
   mentions(after: String, before: String, first: Int, last: Int): PostMentionsConnection!
 
   """
-  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.
+  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.  `null` when the post is censored and the viewer is neither its author nor a moderator.
   """
   name: String
   published: DateTime!
   quotePolicy: QuotePolicy!
   quoteTargetState: QuoteTargetState
 
-  """The post being quoted inline. `null` for posts that are not quotes."""
+  """
+  The post being quoted inline. `null` for posts that are not quotes, and also when the quoting post is censored and the viewer is neither its author nor a moderator: the quoted target is part of the censored content.
+  """
   quotedPost: Post
 
   """
@@ -2817,7 +2980,7 @@ interface Post implements Node & Reactable {
   sensitive: Boolean!
 
   """
-  The post being boosted. Non-null only for boost wrapper rows. When this is non-null, `content` is empty and `url` mirrors the shared post's URL.
+  The post being boosted. Non-null only for boost wrapper rows. When this is non-null, `content` is empty and `url` mirrors the shared post's URL.  `null` when the boost wrapper itself is censored and the viewer is neither its author nor a moderator: what was boosted is the censored content.
   """
   sharedPost: Post
 
@@ -2827,13 +2990,13 @@ interface Post implements Node & Reactable {
   shares(after: String, before: String, first: Int, last: Int): PostSharesConnection!
 
   """
-  Author-provided or LLM-generated summary of the post. `null` when no summary has been set. For LLM summaries, check `ArticleContent.summary` and `summaryStarted` instead, as those are tracked per language on articles.
+  Author-provided or LLM-generated summary of the post. `null` when no summary has been set. For LLM summaries, check `ArticleContent.summary` and `summaryStarted` instead, as those are tracked per language on articles.  `null` when the post is censored and the viewer is neither its author nor a moderator.
   """
   summary: String
   updated: DateTime!
 
   """
-  The canonical, human-readable URL of this post. For source-backed local posts the path encodes the local source identifier: `Note.sourceId` for notes, `Article.publishedYear` + `Article.slug` for articles, and `Question.sourceId` for questions. It does not encode `Post.uuid`. For federated remote posts and local share wrappers (boosts) this is whatever URL the originating instance advertised (copied from the shared post in the boost case) and is unrelated to the wrapper's own row PK. Prefer this field over hand-building a path from `Post.uuid`: `uuid` is the row PK and does not match the path here for source-backed local posts.
+  The canonical, human-readable URL of this post. For source-backed local posts the path encodes the local source identifier: `Note.sourceId` for notes, `Article.publishedYear` + `Article.slug` for articles, and `Question.sourceId` for questions. It does not encode `Post.uuid`. For federated remote posts and local share wrappers (boosts) this is whatever URL the originating instance advertised (copied from the shared post in the boost case) and is unrelated to the wrapper's own row PK. Prefer this field over hand-building a path from `Post.uuid`: `uuid` is the row PK and does not match the path here for source-backed local posts.  `null` for a censored boost wrapper when the viewer is neither its author nor a moderator, since the wrapper's URL mirrors the boosted post's and would disclose what was boosted.
   """
   url: URL
 
@@ -2985,7 +3148,7 @@ type PostLinkSharingPostsConnectionEdge {
 }
 
 """
-A media attachment on a post. For local posts this refers to an uploaded `Medium` stored on this instance; for federated posts the `url` points to the remote media URL on the originating instance.
+A media attachment on a post. For local posts this refers to an uploaded `Medium` stored on this instance; for federated posts the `url` points to the remote media URL on the originating instance.  Attachments of a censored post are part of the censored content and are only resolvable by the author and moderators, even through direct `node(id:)` lookups.
 """
 type PostMedium implements Node {
   alt: String
@@ -3517,23 +3680,28 @@ type Question implements Node & Post & Reactable {
   actor: Actor!
 
   """
-  The rendered body of the `Question`, excluding poll options. Use `Question.poll` to render the voting UI.
+  When a moderator censored this post, or `null` when it is not censored.  Censored posts disappear from timelines, search, and recommendations, but their permalinks stay reachable so a censorship notice can be shown.  For everyone but the author and moderators, all content-bearing fields are redacted: `content`, the excerpt fields, `name`, `summary`, `hashtags`, `media`, `link`, `mentions`, `sharedPost`, `quotedPost`, article contents, and poll data.
+  """
+  censored: DateTime
+
+  """
+  The rendered body of the `Question`, excluding poll options. Use `Question.poll` to render the voting UI.  Empty when the post is censored and the viewer is neither its author nor a moderator.
   """
   content: HTML!
   engagementStats: PostEngagementStats!
 
   """
-  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.
+  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.  Empty when the post is censored and the viewer is neither its author nor a moderator.
   """
   excerpt: String!
 
   """
-  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.
+  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.  Empty when the post is censored and the viewer is neither its author nor a moderator.
   """
   excerptHtml(maxChars: Int!): HTML!
 
   """
-  Hashtags mentioned in the post, extracted from the post's tag map. Each entry includes the tag name and its canonical hashtag search URL.
+  Hashtags mentioned in the post, extracted from the post's tag map. Each entry includes the tag name and its canonical hashtag search URL.  Empty when the post is censored and the viewer is neither its author nor a moderator, since hashtags are derived from the censored content.
   """
   hashtags: [Hashtag!]!
   id: ID!
@@ -3549,27 +3717,27 @@ type Question implements Node & Post & Reactable {
   language: String
 
   """
-  OpenGraph / oEmbed preview for the first link in the post. `null` when the post has no links or the metadata has not been fetched yet.
+  OpenGraph / oEmbed preview for the first link in the post. `null` when the post has no links or the metadata has not been fetched yet, and also when the post is censored and the viewer is neither its author nor a moderator (the linked URL is part of the censored content).
   """
   link: PostLink
 
   """
-  Media attachments on this post, in display order. For federated posts the URLs point to the originating instance.
+  Media attachments on this post, in display order. For federated posts the URLs point to the originating instance.  Empty when the post is censored and the viewer is neither its author nor a moderator: attachments are part of the censored content.
   """
   media: [PostMedium!]!
 
   """
-  Actors explicitly @-mentioned in this post. Does not include implicit mentions (e.g., the author of the post being replied to).
+  Actors explicitly @-mentioned in this post. Does not include implicit mentions (e.g., the author of the post being replied to). Empty when the post is censored and the viewer is neither its author nor a moderator, since the mention targets are part of the censored content.
   """
   mentions(after: String, before: String, first: Int, last: Int): PostMentionsConnection!
 
   """
-  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.
+  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.  `null` when the post is censored and the viewer is neither its author nor a moderator.
   """
   name: String
 
   """
-  Poll data attached to this `Question`, or `null` for shared wrappers and Questions whose remote poll data is unavailable. Authenticated viewers may trigger a remote backfill for missing poll data.
+  Poll data attached to this `Question`, or `null` for shared wrappers and Questions whose remote poll data is unavailable. Authenticated viewers may trigger a remote backfill for missing poll data.  Also `null` when the Question is censored and the viewer is neither its author nor a moderator (check `censored` to distinguish the redaction from unavailable poll data).
   """
   poll: Poll
 
@@ -3581,7 +3749,7 @@ type Question implements Node & Post & Reactable {
   quoteTargetState: QuoteTargetState
 
   """
-  The post quoted by this `Question`, if any. Visibility rules still apply to the quoted post.
+  The post quoted by this `Question`, if any. Visibility rules still apply to the quoted post.  `null` when the quoting `Question` is censored and the viewer is neither its author nor a moderator: the quoted target is part of the censored content.
   """
   quotedPost: Post
 
@@ -3606,7 +3774,7 @@ type Question implements Node & Post & Reactable {
   sensitive: Boolean!
 
   """
-  The original post when this row is a local share wrapper. Polls live on the original `Question`, not on the wrapper.
+  The original post when this row is a local share wrapper. Polls live on the original `Question`, not on the wrapper.  `null` when the wrapper itself is censored and the viewer is neither its author nor a moderator: what was boosted is the censored content.
   """
   sharedPost: Post
 
@@ -3621,13 +3789,13 @@ type Question implements Node & Post & Reactable {
   sourceId: UUID
 
   """
-  Author-provided or LLM-generated summary of the post. `null` when no summary has been set. For LLM summaries, check `ArticleContent.summary` and `summaryStarted` instead, as those are tracked per language on articles.
+  Author-provided or LLM-generated summary of the post. `null` when no summary has been set. For LLM summaries, check `ArticleContent.summary` and `summaryStarted` instead, as those are tracked per language on articles.  `null` when the post is censored and the viewer is neither its author nor a moderator.
   """
   summary: String
   updated: DateTime!
 
   """
-  The canonical, human-readable URL of this question. Source-backed local Questions encode `Question.sourceId`; federated remote Questions and local share wrappers may not share any path token with `Post.uuid`.
+  The canonical, human-readable URL of this question. Source-backed local Questions encode `Question.sourceId`; federated remote Questions and local share wrappers may not share any path token with `Post.uuid`.  `null` for a censored boost wrapper when the viewer is neither its author nor a moderator, since the wrapper's URL mirrors the boosted post's and would disclose what was boosted.
   """
   url: URL
 
@@ -4101,6 +4269,33 @@ type RemoveReactionFromPostPayload {
 
 union RemoveReactionFromPostResult = InvalidInputError | NotAuthenticatedError | RemoveReactionFromPostPayload
 
+"""
+The replacement sanction recorded when an appeal review reduces or increases the original action.  Validated like a regular action: `violatedProvisions` must be non-empty, `CENSOR` needs a post target, `SUSPEND` needs a valid window, and `DISMISS` is not a replacement (use the `WITHDRAWN` result instead).
+"""
+input ReplacementActionInput {
+  """
+  The replacement decision; `DISMISS` is not allowed (use the `WITHDRAWN` appeal result instead).
+  """
+  actionType: FlagActionType!
+
+  """The message shown to the sanctioned user."""
+  messageToUser: String
+
+  """The internal rationale for the replacement."""
+  rationale: String!
+
+  """Suspension end; required for (and only for) `SUSPEND`."""
+  suspensionEnds: DateTime
+
+  """
+  Suspension start; required for (and only for) `SUSPEND`.  Must not be in the future (a few minutes of clock skew are tolerated).
+  """
+  suspensionStarts: DateTime
+
+  """The confirmed code of conduct provision ids."""
+  violatedProvisions: [String!]!
+}
+
 """Notification that an actor replied to one of this account's posts."""
 type ReplyNotification implements Node & Notification {
   account: Account!
@@ -4129,6 +4324,8 @@ type RequestArticleTranslationPayload {
 
 union RequestArticleTranslationResult = InvalidInputError | LlmTranslationNotAllowedError | NotAuthenticatedError | RequestArticleTranslationPayload
 
+union ResolveFlagAppealResult = FlagAppeal | InvalidInputError | NotAuthenticatedError | NotAuthorizedError
+
 """
 As the quoted post's author, revoke permission for a quote of your post. Sends a revocation activity to the quoting instance. Only the `quotedPost`'s author may call this.
 """
@@ -4144,6 +4341,49 @@ type RevokeQuotePayload {
 }
 
 union RevokeQuoteResult = InvalidInputError | NotAuthenticatedError | RevokeQuotePayload
+
+"""
+The sanitized surface a sanctioned (or warned) user sees about a moderation action taken on them: the confirmed violations, the action, the target content reference, and the moderation team's message.  Deliberately absent: the reporters, their reasons, the report count, the internal rationale, and the acting moderator's identity (everything is presented under the moderation team's collective identity).
+"""
+type Sanction {
+  """
+  What was decided.  `DISMISS` appears here only when the moderation team opted into the educational dismissal notification by writing a message.
+  """
+  actionType: FlagActionType!
+
+  """The user's appeal against this action, or `null` when none was filed."""
+  appeal: FlagAppeal
+
+  """The appeal deadline: 14 days after the action.  One appeal per action."""
+  appealableUntil: DateTime!
+
+  """When the action was taken."""
+  created: DateTime!
+
+  """The moderation team's message."""
+  messageToUser: String
+
+  """The suspension window's end, for `SUSPEND` actions."""
+  suspensionEnds: DateTime
+
+  """The suspension window's start, for `SUSPEND` actions."""
+  suspensionStarts: DateTime
+
+  """
+  The sanctioned post's ActivityPub IRI, when the action targeted a post; `null` for account-level actions.
+  """
+  targetPostIri: URL
+
+  """
+  The underlying action's row UUID; pass it to `appealModerationAction` as `sanctionId`.
+  """
+  uuid: UUID!
+
+  """
+  The code of conduct provision ids the moderation team confirmed as violated (empty for dismissals).
+  """
+  violatedProvisions: [String!]!
+}
 
 """
 Create or update an article draft. Omit `id` to create a new draft. Requires authentication.
