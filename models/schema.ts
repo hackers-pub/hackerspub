@@ -2295,6 +2295,14 @@ export const moderationNotificationTable = pgTable(
     uniqueIndex("moderation_notification_suspension_ending_idx")
       .on(table.accountId, table.actionId)
       .where(sql`${table.type} = 'suspension_ending'`),
+    // At most one *unread* flag_received notification per moderator per
+    // case, so concurrent reports on the same case cannot flood the
+    // moderation queue (inserts race on this index and lose harmlessly).
+    uniqueIndex("moderation_notification_flag_received_idx")
+      .on(table.accountId, table.caseId)
+      .where(sql`
+        ${table.type} = 'flag_received' AND ${table.read} IS NULL
+      `),
   ],
 );
 
