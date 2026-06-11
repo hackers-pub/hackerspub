@@ -35,6 +35,8 @@ function makeActor(
     emojis: {},
     tags: {},
     sensitive: false,
+    suspended: null,
+    suspendedUntil: null,
     successorId: null,
     aliases: [],
     followeesCount: 0,
