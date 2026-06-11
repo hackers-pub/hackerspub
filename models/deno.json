@@ -11,6 +11,7 @@
     "./avatar": "./avatar.ts",
     "./blocking": "./blocking.ts",
     "./bookmark": "./bookmark.ts",
+    "./coc": "./coc.ts",
     "./context": "./context.ts",
     "./date": "./date.ts",
     "./db": "./db.ts",
