@@ -1,0 +1,474 @@
+import assert from "node:assert";
+import test from "node:test";
+import { createFlag } from "@hackerspub/models/flag";
+import type { Transaction } from "@hackerspub/models/db";
+import { accountTable } from "@hackerspub/models/schema";
+import { encodeGlobalID } from "@pothos/plugin-relay";
+import type { Message } from "@upyo/core";
+import { eq } from "drizzle-orm";
+import { execute, parse } from "graphql";
+import { schema } from "./mod.ts";
+import {
+  type AuthenticatedAccount,
+  createTestEmailTransport,
+  insertAccountWithActor,
+  insertNotePost,
+  makeUserContext,
+  withRollback,
+} from "../test/postgres.ts";
+
+const REASON = "This post contains harassment targeting another user.";
+
+async function makeModerator(
+  tx: Transaction,
+  values: { username: string; name: string; email: string },
+): Promise<AuthenticatedAccount> {
+  const { account } = await insertAccountWithActor(tx, values);
+  await tx.update(accountTable).set({ moderator: true }).where(
+    eq(accountTable.id, account.id),
+  );
+  return { ...account, moderator: true };
+}
+
+async function seedCase(tx: Transaction, reporters = 1) {
+  const author = await insertAccountWithActor(tx, {
+    username: "author",
+    name: "Author",
+    email: "author@example.com",
+  });
+  const { post } = await insertNotePost(tx, {
+    account: author.account,
+    content: "Offensive content",
+  });
+  let caseId: string | undefined;
+  for (let i = 0; i < reporters; i++) {
+    const reporter = await insertAccountWithActor(tx, {
+      username: `reporter${i}`,
+      name: `Reporter ${i}`,
+      email: `reporter${i}@example.com`,
+    });
+    const flag = await createFlag(tx, {
+      reporter: reporter.actor,
+      targetActor: author.actor,
+      targetPost: post,
+      reason: `${REASON} (${i})`,
+    });
+    assert.ok(flag != null);
+    caseId = flag.caseId;
+  }
+  assert.ok(caseId != null);
+  return { author, post, caseId };
+}
+
+const casesQuery = parse(`
+  query Cases($status: FlagStatus, $minReportCount: Int, $search: String) {
+    moderationCases(
+      first: 10
+      status: $status
+      minReportCount: $minReportCount
+      search: $search
+    ) {
+      edges {
+        node {
+          uuid
+          status
+          reportCount
+          targetActor { handle }
+          targetPostIri
+          flags(first: 10) {
+            edges { node { reason snapshot { contentHtml } } }
+          }
+        }
+      }
+    }
+  }
+`);
+
+const caseByUuidQuery = parse(`
+  query CaseByUuid($uuid: UUID!) {
+    flagCaseByUuid(uuid: $uuid) {
+      id
+      uuid
+      status
+      reportCount
+      violationHistory { uuid }
+      actions { uuid actionType }
+    }
+  }
+`);
+
+const takeActionMutation = parse(`
+  mutation TakeAction(
+    $caseId: ID!
+    $actionType: FlagActionType!
+    $violatedProvisions: [String!]
+    $rationale: String!
+    $messageToUser: String
+    $suspensionStarts: DateTime
+    $suspensionEnds: DateTime
+  ) {
+    takeModerationAction(
+      caseId: $caseId
+      actionType: $actionType
+      violatedProvisions: $violatedProvisions
+      rationale: $rationale
+      messageToUser: $messageToUser
+      suspensionStarts: $suspensionStarts
+      suspensionEnds: $suspensionEnds
+    ) {
+      __typename
+      ... on FlagAction {
+        uuid
+        actionType
+        violatedProvisions
+        case { uuid status }
+      }
+      ... on NotAuthenticatedError { notAuthenticated }
+      ... on NotAuthorizedError { notAuthorized }
+      ... on InvalidInputError { inputPath }
+    }
+  }
+`);
+
+const assignMutation = parse(`
+  mutation Assign($caseId: ID!, $moderatorId: ID) {
+    assignFlagCase(caseId: $caseId, moderatorId: $moderatorId) {
+      __typename
+      ... on FlagCase {
+        status
+        assignedModerator { username }
+      }
+      ... on NotAuthorizedError { notAuthorized }
+    }
+  }
+`);
+
+test("moderationCases is null for non-moderators and lists for moderators", async () => {
+  await withRollback(async (tx) => {
+    const { caseId } = await seedCase(tx, 2);
+    const moderator = await makeModerator(tx, {
+      username: "mod",
+      name: "Mod",
+      email: "mod@example.com",
+    });
+    const plain = await insertAccountWithActor(tx, {
+      username: "plain",
+      name: "Plain",
+      email: "plain@example.com",
+    });
+
+    const denied = await execute({
+      schema,
+      document: casesQuery,
+      variableValues: {},
+      contextValue: makeUserContext(tx, plain.account),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    assert.equal((denied.data as any)?.moderationCases ?? null, null);
+
+    const result = await execute({
+      schema,
+      document: casesQuery,
+      variableValues: {},
+      contextValue: makeUserContext(tx, moderator),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(result.errors, undefined);
+    // deno-lint-ignore no-explicit-any
+    const edges = (result.data as any)?.moderationCases?.edges;
+    assert.equal(edges?.length, 1);
+    const node = edges[0].node;
+    assert.equal(node.uuid, caseId);
+    assert.equal(node.status, "PENDING");
+    assert.equal(node.reportCount, 2);
+    assert.equal(node.flags.edges.length, 2);
+    assert.match(node.flags.edges[0].node.reason, /harassment/);
+    assert.match(
+      node.flags.edges[0].node.snapshot.contentHtml,
+      /Offensive content/,
+    );
+
+    // Filters:
+    const none = await execute({
+      schema,
+      document: casesQuery,
+      variableValues: { status: "RESOLVED" },
+      contextValue: makeUserContext(tx, moderator),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    assert.equal((none.data as any)?.moderationCases?.edges?.length, 0);
+
+    const priority = await execute({
+      schema,
+      document: casesQuery,
+      variableValues: { minReportCount: 3 },
+      contextValue: makeUserContext(tx, moderator),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    assert.equal((priority.data as any)?.moderationCases?.edges?.length, 0);
+
+    const found = await execute({
+      schema,
+      document: casesQuery,
+      variableValues: { search: "author" },
+      contextValue: makeUserContext(tx, moderator),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    assert.equal((found.data as any)?.moderationCases?.edges?.length, 1);
+
+    const missed = await execute({
+      schema,
+      document: casesQuery,
+      variableValues: { search: "nonexistent" },
+      contextValue: makeUserContext(tx, moderator),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    assert.equal((missed.data as any)?.moderationCases?.edges?.length, 0);
+  });
+});
+
+test("flagCaseByUuid resolves for moderators only", async () => {
+  await withRollback(async (tx) => {
+    const { caseId } = await seedCase(tx);
+    const moderator = await makeModerator(tx, {
+      username: "mod",
+      name: "Mod",
+      email: "mod@example.com",
+    });
+    const plain = await insertAccountWithActor(tx, {
+      username: "plain",
+      name: "Plain",
+      email: "plain@example.com",
+    });
+
+    const result = await execute({
+      schema,
+      document: caseByUuidQuery,
+      variableValues: { uuid: caseId },
+      contextValue: makeUserContext(tx, moderator),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(result.errors, undefined);
+    // deno-lint-ignore no-explicit-any
+    const flagCase = (result.data as any)?.flagCaseByUuid;
+    assert.equal(flagCase?.uuid, caseId);
+    assert.deepEqual(flagCase?.actions, []);
+    assert.deepEqual(flagCase?.violationHistory, []);
+
+    const denied = await execute({
+      schema,
+      document: caseByUuidQuery,
+      variableValues: { uuid: caseId },
+      contextValue: makeUserContext(tx, plain.account),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    assert.equal((denied.data as any)?.flagCaseByUuid ?? null, null);
+  });
+});
+
+test("assignFlagCase assigns and bumps the status", async () => {
+  await withRollback(async (tx) => {
+    const { caseId } = await seedCase(tx);
+    const moderator = await makeModerator(tx, {
+      username: "mod",
+      name: "Mod",
+      email: "mod@example.com",
+    });
+    const caseGid = encodeGlobalID("FlagCase", caseId);
+    const modGid = encodeGlobalID("Account", moderator.id);
+    const result = await execute({
+      schema,
+      document: assignMutation,
+      variableValues: { caseId: caseGid, moderatorId: modGid },
+      contextValue: makeUserContext(tx, moderator),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    const assigned = (result.data as any)?.assignFlagCase;
+    assert.equal(assigned?.__typename, "FlagCase");
+    assert.equal(assigned?.status, "REVIEWING");
+    assert.equal(assigned?.assignedModerator?.username, "mod");
+
+    // Non-moderators are rejected:
+    const plain = await insertAccountWithActor(tx, {
+      username: "plain",
+      name: "Plain",
+      email: "plain@example.com",
+    });
+    const denied = await execute({
+      schema,
+      document: assignMutation,
+      variableValues: { caseId: caseGid, moderatorId: modGid },
+      contextValue: makeUserContext(tx, plain.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(
+      // deno-lint-ignore no-explicit-any
+      (denied.data as any)?.assignFlagCase?.__typename,
+      "NotAuthorizedError",
+    );
+  });
+});
+
+test("takeModerationAction records a warning and emails the user", async () => {
+  await withRollback(async (tx) => {
+    const { caseId } = await seedCase(tx);
+    const moderator = await makeModerator(tx, {
+      username: "mod",
+      name: "Mod",
+      email: "mod@example.com",
+    });
+    const email = createTestEmailTransport();
+    const result = await execute({
+      schema,
+      document: takeActionMutation,
+      variableValues: {
+        caseId: encodeGlobalID("FlagCase", caseId),
+        actionType: "WARNING",
+        violatedProvisions: ["2.3"],
+        rationale: "First offense; education preferred.",
+        messageToUser: "Please review our code of conduct on harassment.",
+      },
+      contextValue: makeUserContext(tx, moderator, {
+        email: email.transport,
+      }),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(result.errors, undefined);
+    // deno-lint-ignore no-explicit-any
+    const action = (result.data as any)?.takeModerationAction;
+    assert.equal(action?.__typename, "FlagAction");
+    assert.equal(action?.actionType, "WARNING");
+    assert.deepEqual(action?.violatedProvisions, ["2.3"]);
+    assert.equal(action?.case?.status, "RESOLVED");
+
+    assert.equal(email.messages.length, 1);
+    const message = email.messages[0] as Message;
+    const recipients = message.recipients.map((r) => r.address);
+    assert.deepEqual(recipients, ["author@example.com"]);
+    const body = message.content.text ?? "";
+    assert.ok(body.length > 0);
+    assert.match(body, /2\.3/);
+    assert.match(body, /Please review our code of conduct on harassment\./);
+    // The reporter's wording must never reach the reported user:
+    assert.ok(!body.includes(REASON));
+  });
+});
+
+test("takeModerationAction validates input and authorization", async () => {
+  await withRollback(async (tx) => {
+    const { caseId } = await seedCase(tx);
+    const moderator = await makeModerator(tx, {
+      username: "mod",
+      name: "Mod",
+      email: "mod@example.com",
+    });
+    const plain = await insertAccountWithActor(tx, {
+      username: "plain",
+      name: "Plain",
+      email: "plain@example.com",
+    });
+    const caseGid = encodeGlobalID("FlagCase", caseId);
+
+    const denied = await execute({
+      schema,
+      document: takeActionMutation,
+      variableValues: {
+        caseId: caseGid,
+        actionType: "WARNING",
+        violatedProvisions: ["2.3"],
+        rationale: "Nope.",
+      },
+      contextValue: makeUserContext(tx, plain.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(
+      // deno-lint-ignore no-explicit-any
+      (denied.data as any)?.takeModerationAction?.__typename,
+      "NotAuthorizedError",
+    );
+
+    const noProvisions = await execute({
+      schema,
+      document: takeActionMutation,
+      variableValues: {
+        caseId: caseGid,
+        actionType: "WARNING",
+        rationale: "Missing provisions.",
+      },
+      contextValue: makeUserContext(tx, moderator),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(
+      // deno-lint-ignore no-explicit-any
+      (noProvisions.data as any)?.takeModerationAction?.inputPath,
+      "violatedProvisions",
+    );
+
+    const badWindow = await execute({
+      schema,
+      document: takeActionMutation,
+      variableValues: {
+        caseId: caseGid,
+        actionType: "SUSPEND",
+        violatedProvisions: ["2.3"],
+        rationale: "Bad window.",
+        suspensionStarts: new Date().toISOString(),
+      },
+      contextValue: makeUserContext(tx, moderator),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(
+      // deno-lint-ignore no-explicit-any
+      (badWindow.data as any)?.takeModerationAction?.inputPath,
+      "suspensionEnds",
+    );
+
+    // A dismissal without a message resolves the case without email:
+    const email = createTestEmailTransport();
+    const dismissed = await execute({
+      schema,
+      document: takeActionMutation,
+      variableValues: {
+        caseId: caseGid,
+        actionType: "DISMISS",
+        rationale: "Not a violation.",
+      },
+      contextValue: makeUserContext(tx, moderator, {
+        email: email.transport,
+      }),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(
+      // deno-lint-ignore no-explicit-any
+      (dismissed.data as any)?.takeModerationAction?.__typename,
+      "FlagAction",
+    );
+    assert.equal(email.messages.length, 0);
+
+    // The case is now closed; acting again fails:
+    const again = await execute({
+      schema,
+      document: takeActionMutation,
+      variableValues: {
+        caseId: caseGid,
+        actionType: "WARNING",
+        violatedProvisions: ["2.3"],
+        rationale: "Too late.",
+      },
+      contextValue: makeUserContext(tx, moderator),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(
+      // deno-lint-ignore no-explicit-any
+      (again.data as any)?.takeModerationAction?.inputPath,
+      "caseId",
+    );
+  });
+});

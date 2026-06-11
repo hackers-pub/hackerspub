@@ -1,7 +1,17 @@
 import { analyzeFlag, createFlag } from "@hackerspub/models/flag";
+import {
+  assignCase,
+  getViolationHistory,
+  listSanctionedActors,
+  takeModerationAction as takeModerationActionModel,
+  updateCaseStatus,
+} from "@hackerspub/models/moderation";
 import { isPostVisibleTo } from "@hackerspub/models/post";
 import type {
   Flag as FlagRow,
+  FlagAction as FlagActionRow,
+  FlagActionType as FlagActionTypeValue,
+  FlagCase as FlagCaseRow,
   FlagStatus as FlagStatusValue,
 } from "@hackerspub/models/schema";
 import { flagTable } from "@hackerspub/models/schema";
@@ -12,11 +22,12 @@ import {
 } from "@pothos/plugin-relay";
 import { assertNever } from "@std/assert/unstable-never";
 import { getLogger } from "@logtape/logtape";
-import { count, eq } from "drizzle-orm";
+import { count, eq, sql } from "drizzle-orm";
 import { Account } from "./account.ts";
 import { Actor } from "./actor.ts";
-import { builder } from "./builder.ts";
-import { InvalidInputError } from "./error.ts";
+import { builder, type UserContext } from "./builder.ts";
+import { InvalidInputError, NotAuthorizedError } from "./error.ts";
+import { getModerationActionEmail } from "./moderation-email.ts";
 import { Article, Note, Post, Question } from "./post.ts";
 import { NotAuthenticatedError } from "./session.ts";
 
@@ -80,6 +91,20 @@ export function toFlagStatus(
     ? "RESOLVED"
     : status === "dismissed"
     ? "DISMISSED"
+    : assertNever(status, `Invalid \`FlagStatus\`: "${status}"`);
+}
+
+export function fromFlagStatus(
+  status: typeof FlagStatus.$inferType,
+): FlagStatusValue {
+  return status === "PENDING"
+    ? "pending"
+    : status === "REVIEWING"
+    ? "reviewing"
+    : status === "RESOLVED"
+    ? "resolved"
+    : status === "DISMISSED"
+    ? "dismissed"
     : assertNever(status, `Invalid \`FlagStatus\`: "${status}"`);
 }
 
@@ -371,3 +396,701 @@ builder.drizzleObjectFields(Account, (t) => ({
     }),
   }),
 }));
+
+export const FlagActionType = builder.enumType("FlagActionType", {
+  description:
+    "The kind of decision a moderator records on a case.  The spirit of " +
+    "the system is graduated response: warning, then content censorship, " +
+    "then temporary suspension, with permanent suspension as the last " +
+    "resort; severe violations may skip stages.",
+  values: {
+    DISMISS: {
+      description: "No code of conduct violation was found.",
+    },
+    WARNING: {
+      description:
+        "A warning message; for minor first offenses without apparent " +
+        "malice.",
+    },
+    CENSOR: {
+      description: "Hide the reported post from timelines, search, and " +
+        "recommendations; its permalink shows a censorship notice and " +
+        "the author keeps access.  Requires a post target.",
+    },
+    SUSPEND: {
+      description:
+        "Temporary suspension: the local user cannot create posts, " +
+        "react, boost, vote, or follow until the window ends (a remote " +
+        "actor is federation-blocked instead).  Requires a suspension " +
+        "window.",
+    },
+    BAN: {
+      description:
+        "Permanent suspension: a local account can no longer log in and " +
+        "its content is hidden; a remote actor is permanently " +
+        "federation-blocked.",
+    },
+  } as const,
+});
+
+export function toFlagActionType(
+  actionType: FlagActionTypeValue,
+): typeof FlagActionType.$inferType {
+  return actionType === "dismiss"
+    ? "DISMISS"
+    : actionType === "warning"
+    ? "WARNING"
+    : actionType === "censor"
+    ? "CENSOR"
+    : actionType === "suspend"
+    ? "SUSPEND"
+    : actionType === "ban"
+    ? "BAN"
+    : assertNever(actionType, `Invalid \`FlagActionType\`: "${actionType}"`);
+}
+
+export function fromFlagActionType(
+  actionType: typeof FlagActionType.$inferType,
+): FlagActionTypeValue {
+  return actionType === "DISMISS"
+    ? "dismiss"
+    : actionType === "WARNING"
+    ? "warning"
+    : actionType === "CENSOR"
+    ? "censor"
+    : actionType === "SUSPEND"
+    ? "suspend"
+    : actionType === "BAN"
+    ? "ban"
+    : assertNever(actionType, `Invalid \`FlagActionType\`: "${actionType}"`);
+}
+
+export const ContentSnapshot = builder.drizzleNode("contentSnapshotTable", {
+  name: "ContentSnapshot",
+  description: "The reported content as it looked when the report was filed: " +
+    "evidence that survives even if the reported user edits or deletes " +
+    "the original.  Moderator-only.",
+  authScopes: { moderator: true },
+  runScopesOnType: true,
+  id: {
+    column: (snapshot) => snapshot.id,
+  },
+  fields: (t) => ({
+    uuid: t.expose("id", {
+      type: "UUID",
+      description: "The snapshot's row UUID.",
+    }),
+    postIri: t.field({
+      type: "URL",
+      nullable: true,
+      description: "The snapshotted post's ActivityPub IRI; survives post " +
+        "deletion.  `null` for profile snapshots.",
+      select: { columns: { postIri: true } },
+      resolve: (snapshot) =>
+        snapshot.postIri == null ? null : new URL(snapshot.postIri),
+    }),
+    contentHtml: t.expose("contentHtml", {
+      type: "HTML",
+      description:
+        "The rendered HTML at snapshot time: the post's content for " +
+        "content reports, or the actor's bio for user (profile) reports.",
+    }),
+    sourceContent: t.exposeString("sourceContent", {
+      nullable: true,
+      description:
+        "The original source markup at snapshot time; only available " +
+        "for local posts (`null` for remote posts and profile " +
+        "snapshots).",
+    }),
+    metadata: t.expose("metadata", {
+      type: "JSON",
+      nullable: true,
+      description:
+        "Contextual metadata captured at snapshot time: the author's " +
+        "handle and display name, the post type, title, language, " +
+        "visibility, sensitivity, media URLs, and publication time.",
+    }),
+    created: t.expose("created", {
+      type: "DateTime",
+      description: "When the snapshot was captured.",
+    }),
+  }),
+});
+
+export const FlagAction = builder.drizzleNode("flagActionTable", {
+  name: "FlagAction",
+  description:
+    "An immutable audit record of a moderator decision on a case.  If a " +
+    "decision changes (e.g. through an appeal), a new action is recorded " +
+    "rather than editing this one.  Moderator-only: the reported user " +
+    "sees the sanitized sanction surface instead, which never names the " +
+    "acting moderator.",
+  authScopes: { moderator: true },
+  runScopesOnType: true,
+  id: {
+    column: (action) => action.id,
+  },
+  fields: (t) => ({
+    uuid: t.expose("id", {
+      type: "UUID",
+      description: "The action's row UUID.",
+    }),
+    case: t.relation("case", {
+      description: "The case this action resolves.",
+    }),
+    moderator: t.relation("moderator", {
+      description:
+        "The moderator who made this decision.  Internal audit trail " +
+        "only: never revealed to the reported user (notifications go " +
+        "out under the moderation team's collective identity), so " +
+        "moderators cannot become individual harassment targets.",
+    }),
+    actionType: t.field({
+      type: FlagActionType,
+      description: "The decision that was made.",
+      select: { columns: { actionType: true } },
+      resolve: (action) => toFlagActionType(action.actionType),
+    }),
+    violatedProvisions: t.exposeStringList("violatedProvisions", {
+      description:
+        "The code of conduct provision ids the moderator confirmed as " +
+        "violated (empty for dismissals).  These are the human-confirmed " +
+        "counterpart of `Flag.llmAnalysis`; their divergence is " +
+        "surfaced in the moderation statistics to monitor LLM bias and " +
+        "automation bias.",
+    }),
+    rationale: t.exposeString("rationale", {
+      description:
+        "The moderator's internal judgment rationale.  May contain " +
+        "details not appropriate to share with the reported user; those " +
+        "go to `messageToUser`.",
+    }),
+    messageToUser: t.exposeString("messageToUser", {
+      nullable: true,
+      description: "The message shown to the reported user, sent under the " +
+        "moderation team's collective identity.",
+    }),
+    suspensionStarts: t.expose("suspensionStarts", {
+      type: "DateTime",
+      nullable: true,
+      description:
+        "The suspension window's start; only set for `SUSPEND` actions.",
+    }),
+    suspensionEnds: t.expose("suspensionEnds", {
+      type: "DateTime",
+      nullable: true,
+      description:
+        "The suspension window's end; only set for `SUSPEND` actions.",
+    }),
+    created: t.expose("created", {
+      type: "DateTime",
+      description: "When the action was taken.",
+    }),
+  }),
+});
+
+export const FlagCase = builder.drizzleNode("flagCaseTable", {
+  name: "FlagCase",
+  description:
+    "A moderation case: all reports against the same target (an actor, " +
+    "or one of their posts) grouped into a single unit of moderator " +
+    "work.  Cases are created automatically by the first report and " +
+    "joined by subsequent ones while open.  Moderator-only.",
+  authScopes: { moderator: true },
+  runScopesOnType: true,
+  id: {
+    column: (flagCase) => flagCase.id,
+  },
+  fields: (t) => ({
+    uuid: t.expose("id", {
+      type: "UUID",
+      description: "The case's row UUID.",
+    }),
+    targetActor: t.relation("targetActor", {
+      description: "The reported actor (local or remote).",
+    }),
+    targetPost: t.relation("targetPost", {
+      type: Post,
+      nullable: true,
+      description: "The reported post, for content reports; `null` for user " +
+        "(profile) reports and for posts deleted after the report (the " +
+        "snapshots on the member reports preserve the evidence).",
+    }),
+    targetPostIri: t.field({
+      type: "URL",
+      nullable: true,
+      description:
+        "The reported post's ActivityPub IRI; keeps the case attached " +
+        "to a stable target reference even after post deletion.  `null` " +
+        "for user (profile) reports.",
+      select: { columns: { targetPostIri: true } },
+      resolve: (flagCase) =>
+        flagCase.targetPostIri == null ? null : new URL(flagCase.targetPostIri),
+    }),
+    status: t.field({
+      type: FlagStatus,
+      description: "The case's processing status.",
+      select: { columns: { status: true } },
+      resolve: (flagCase) => toFlagStatus(flagCase.status),
+    }),
+    assignedModerator: t.relation("assignedModerator", {
+      nullable: true,
+      description: "The moderator the case is assigned to, for workload " +
+        "distribution; `null` when unassigned.",
+    }),
+    created: t.expose("created", {
+      type: "DateTime",
+      description: "When the first report opened this case.",
+    }),
+    resolved: t.expose("resolved", {
+      type: "DateTime",
+      nullable: true,
+      description:
+        "When the case was resolved or dismissed; `null` while open.",
+    }),
+    flags: t.relatedConnection("flags", {
+      description:
+        "The individual reports grouped into this case, oldest first. " +
+        "Each report's reason is preserved individually; combining " +
+        "diverse reasons enables more accurate judgment.",
+      query: () => ({ orderBy: { created: "asc" } }),
+    }),
+    reportCount: t.int({
+      description:
+        "How many reports this case has accumulated.  Higher counts " +
+        "mean higher priority: multiple independent reporters finding " +
+        "the same issue suggests severity.",
+      select: { columns: { id: true } },
+      resolve: async (flagCase, _args, ctx) => {
+        const [{ count: reportCount }] = await ctx.db
+          .select({ count: count() })
+          .from(flagTable)
+          .where(eq(flagTable.caseId, flagCase.id));
+        return reportCount;
+      },
+    }),
+    actions: t.field({
+      type: [FlagAction],
+      description:
+        "The immutable audit trail of decisions on this case, oldest " +
+        "first.  A case usually has one action; appeals that reduce or " +
+        "increase a sanction append replacement actions.",
+      select: { columns: { id: true } },
+      resolve: (flagCase, _args, ctx) =>
+        ctx.db.query.flagActionTable.findMany({
+          where: { caseId: flagCase.id },
+          orderBy: { created: "asc" },
+        }),
+    }),
+    violationHistory: t.field({
+      type: [FlagAction],
+      description:
+        "The target actor's standing moderation history across all " +
+        "cases, newest first: dismissals are excluded, actions " +
+        "withdrawn or replaced on appeal drop out, and warnings expire " +
+        "after a violation-free year.  Accumulated history affects " +
+        "subsequent sanction levels.",
+      select: { columns: { targetActorId: true } },
+      resolve: (flagCase, _args, ctx) =>
+        getViolationHistory(ctx.db, flagCase.targetActorId),
+    }),
+  }),
+});
+
+builder.drizzleObjectFields(Flag, (t) => ({
+  case: t.relation("case", {
+    description:
+      "The case this report is grouped into.  Moderator-only: the case " +
+      "aggregates other reporters' reports.",
+    authScopes: { moderator: true },
+  }),
+  snapshot: t.relation("snapshot", {
+    nullable: true,
+    description: "The content snapshot captured when this report was filed, " +
+      "preserving the evidence even if the original is edited or " +
+      "deleted.  Moderator-only.",
+    authScopes: { moderator: true },
+  }),
+}));
+
+builder.queryField("moderationCases", (t) =>
+  t.connection({
+    type: FlagCase,
+    nullable: true,
+    description:
+      "Moderator-only queue of moderation cases, newest first.  Returns " +
+      "`null` for non-moderators; routes should guard with " +
+      "`viewer.moderator`.  Use `status: PENDING` for the open queue, " +
+      "`minReportCount` for the high-priority section, and `search` to " +
+      "match the target's handle or name.",
+    args: {
+      status: t.arg({
+        type: FlagStatus,
+        required: false,
+        description: "Only cases with this status.",
+      }),
+      minReportCount: t.arg.int({
+        required: false,
+        description:
+          "Only cases with at least this many reports, e.g. `5` for " +
+          "the high-priority section.",
+      }),
+      search: t.arg.string({
+        required: false,
+        description: "Match the target actor's handle or display name " +
+          "(case-insensitive substring).",
+      }),
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.session == null || !ctx.account?.moderator) return null;
+      const search = args.search?.trim();
+      const connection = await resolveCursorConnection(
+        {
+          args,
+          toCursor: (flagCase: FlagCaseRow) => flagCase.id,
+        },
+        ({ before, after, limit, inverted }: ResolveCursorConnectionArgs) =>
+          ctx.db.query.flagCaseTable.findMany({
+            where: {
+              ...(args.status == null
+                ? {}
+                : { status: fromFlagStatus(args.status) }),
+              ...(args.minReportCount == null ? {} : {
+                RAW: (flagCase) =>
+                  sql`(
+                    select count(*) from ${flagTable} f
+                    where f.case_id = ${flagCase.id}
+                  ) >= ${args.minReportCount}`,
+              }),
+              ...(search == null || search === "" ? {} : {
+                targetActor: {
+                  OR: [
+                    { handle: { ilike: `%${search}%` } },
+                    { name: { ilike: `%${search}%` } },
+                  ],
+                },
+              }),
+              ...(after != null && validateUuid(after)
+                ? { id: { lt: after as Uuid } }
+                : {}),
+              ...(before != null && validateUuid(before)
+                ? { id: { gt: before as Uuid } }
+                : {}),
+            },
+            // Case ids are UUIDv7, so id order is creation order.
+            orderBy: { id: inverted ? "asc" : "desc" },
+            limit,
+          }),
+      );
+      return connection;
+    },
+  }));
+
+builder.queryField("flagCaseByUuid", (t) =>
+  t.drizzleField({
+    type: FlagCase,
+    nullable: true,
+    description:
+      "Moderator-only lookup of a single moderation case by its row " +
+      "UUID, for the case detail page.  Returns `null` for unknown " +
+      "UUIDs and for non-moderators.",
+    args: {
+      uuid: t.arg({
+        type: "UUID",
+        required: true,
+        description: "The case's row UUID (`FlagCase.uuid`).",
+      }),
+    },
+    async resolve(query, _root, args, ctx) {
+      if (ctx.session == null || !ctx.account?.moderator) return null;
+      if (!validateUuid(args.uuid)) return null;
+      return await ctx.db.query.flagCaseTable.findFirst(
+        query({ where: { id: args.uuid } }),
+      ) ?? null;
+    },
+  }));
+
+builder.queryField("sanctionedActors", (t) =>
+  t.field({
+    type: [Actor],
+    nullable: true,
+    description:
+      "Moderator-only list of actors currently under an active sanction " +
+      "(temporary suspension, permanent suspension, or federation " +
+      "block), most recently sanctioned first.  Sanction activeness is " +
+      "evaluated lazily by time comparison, so expired suspensions " +
+      "disappear from this list on their own.  Returns `null` for " +
+      "non-moderators.",
+    async resolve(_root, _args, ctx) {
+      if (ctx.session == null || !ctx.account?.moderator) return null;
+      return await listSanctionedActors(ctx.db);
+    },
+  }));
+
+builder.mutationField("assignFlagCase", (t) =>
+  t.field({
+    type: FlagCase,
+    nullable: true,
+    description: "Assign an open moderation case to a moderator for workload " +
+      "distribution (or unassign it by omitting `moderatorId`). " +
+      "Assigning a pending case moves it to `REVIEWING`.  Requires a " +
+      "moderator account.  Returns `null` when the case is not open or " +
+      "the assignee is not a moderator.",
+    errors: {
+      types: [NotAuthenticatedError, NotAuthorizedError],
+    },
+    args: {
+      caseId: t.arg.globalID({
+        for: FlagCase,
+        required: true,
+        description: "The case to (un)assign.",
+      }),
+      moderatorId: t.arg.globalID({
+        for: Account,
+        required: false,
+        description: "The moderator to assign; omit to unassign.  Must be an " +
+          "account with moderator privileges.",
+      }),
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.session == null) throw new NotAuthenticatedError();
+      if (!ctx.account?.moderator) throw new NotAuthorizedError();
+      if (!validateUuid(args.caseId.id)) return null;
+      if (args.moderatorId != null && !validateUuid(args.moderatorId.id)) {
+        return null;
+      }
+      return await assignCase(
+        ctx.db,
+        args.caseId.id as Uuid,
+        (args.moderatorId?.id as Uuid | undefined) ?? null,
+      ) ?? null;
+    },
+  }));
+
+builder.mutationField("updateFlagCaseStatus", (t) =>
+  t.field({
+    type: FlagCase,
+    nullable: true,
+    description:
+      "Move an open moderation case between `PENDING` and `REVIEWING`. " +
+      "Resolution happens exclusively through `takeModerationAction`. " +
+      "Requires a moderator account.  Returns `null` when the case is " +
+      "not open.",
+    errors: {
+      types: [NotAuthenticatedError, NotAuthorizedError, InvalidInputError],
+    },
+    args: {
+      caseId: t.arg.globalID({
+        for: FlagCase,
+        required: true,
+        description: "The case to update.",
+      }),
+      status: t.arg({
+        type: FlagStatus,
+        required: true,
+        description: "The new status; only `PENDING` or `REVIEWING`.",
+      }),
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.session == null) throw new NotAuthenticatedError();
+      if (!ctx.account?.moderator) throw new NotAuthorizedError();
+      if (args.status !== "PENDING" && args.status !== "REVIEWING") {
+        throw new InvalidInputError("status");
+      }
+      if (!validateUuid(args.caseId.id)) return null;
+      return await updateCaseStatus(
+        ctx.db,
+        args.caseId.id as Uuid,
+        args.status === "PENDING" ? "pending" : "reviewing",
+      ) ?? null;
+    },
+  }));
+
+builder.mutationField("takeModerationAction", (t) =>
+  t.field({
+    type: FlagAction,
+    description: "Record a moderation decision on an open case and apply its " +
+      "effects: `DISMISS` dismisses the case; `WARNING` records a " +
+      "warning; `CENSOR` hides the reported post from listings (its " +
+      "permalink keeps a notice); `SUSPEND` suspends the target for the " +
+      "given window; `BAN` suspends permanently.  Every action except " +
+      "`DISMISS` requires `violatedProvisions`.  The reported user is " +
+      "notified in-app and (for sanctions) by email, always under the " +
+      "moderation team's collective identity, and can appeal within 14 " +
+      "days.  When the target is remote and a reporter opted in, a " +
+      "`Flag` activity carrying only `forwardSummary` (falling back to " +
+      "`rationale`) is sent to the remote instance from the instance " +
+      "actor.  Requires a moderator account.",
+    errors: {
+      types: [NotAuthenticatedError, NotAuthorizedError, InvalidInputError],
+    },
+    args: {
+      caseId: t.arg.globalID({
+        for: FlagCase,
+        required: true,
+        description: "The open case to act on.",
+      }),
+      actionType: t.arg({
+        type: FlagActionType,
+        required: true,
+        description: "The decision.",
+      }),
+      violatedProvisions: t.arg.stringList({
+        required: false,
+        description:
+          "The code of conduct provision ids confirmed as violated. " +
+          "Required (non-empty) for every action except `DISMISS`.",
+      }),
+      rationale: t.arg.string({
+        required: true,
+        description:
+          "The internal judgment rationale, recorded for the audit " +
+          "trail and consistency across moderators.  Not shown to the " +
+          "reported user.",
+      }),
+      messageToUser: t.arg.string({
+        required: false,
+        description: "The message shown to the reported user (under the " +
+          "moderation team's collective identity).  For `DISMISS`, " +
+          "providing a message opts into the educational dismissal " +
+          "notification.",
+      }),
+      suspensionStarts: t.arg({
+        type: "DateTime",
+        required: false,
+        description:
+          "Suspension start; required for (and only for) `SUSPEND`. " +
+          "Must not be in the future (a few minutes of clock skew are " +
+          "tolerated and clamped to the server clock).",
+      }),
+      suspensionEnds: t.arg({
+        type: "DateTime",
+        required: false,
+        description: "Suspension end; required for (and only for) `SUSPEND`.",
+      }),
+      forwardSummary: t.arg.string({
+        required: false,
+        description:
+          "Moderator-written summary for the outgoing `Flag` activity " +
+          "when forwarding to the target's remote instance; falls back " +
+          "to `rationale`.  Never include the reporter's wording.",
+      }),
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.session == null || ctx.account == null) {
+        throw new NotAuthenticatedError();
+      }
+      if (!ctx.account.moderator) throw new NotAuthorizedError();
+      if (!validateUuid(args.caseId.id)) {
+        throw new InvalidInputError("caseId");
+      }
+      const actionType = fromFlagActionType(args.actionType);
+      const provisions = args.violatedProvisions ?? [];
+      if (actionType !== "dismiss" && provisions.length < 1) {
+        throw new InvalidInputError("violatedProvisions");
+      }
+      const rationale = args.rationale.trim();
+      if (rationale.length < 1) throw new InvalidInputError("rationale");
+      if (actionType === "suspend") {
+        const skewAllowanceMs = 5 * 60 * 1000;
+        if (
+          args.suspensionStarts == null ||
+          args.suspensionStarts.getTime() > Date.now() + skewAllowanceMs
+        ) {
+          throw new InvalidInputError("suspensionStarts");
+        }
+        if (
+          args.suspensionEnds == null ||
+          args.suspensionEnds <= args.suspensionStarts ||
+          args.suspensionEnds <= new Date()
+        ) {
+          throw new InvalidInputError("suspensionEnds");
+        }
+      } else if (
+        args.suspensionStarts != null || args.suspensionEnds != null
+      ) {
+        throw new InvalidInputError("suspensionStarts");
+      }
+      if (actionType === "censor") {
+        // Preflight for a precise error; the model revalidates under lock.
+        // Only open cases qualify: a closed case keeps the "caseId" error.
+        const flagCase = await ctx.db.query.flagCaseTable.findFirst({
+          where: {
+            id: args.caseId.id as Uuid,
+            status: { in: ["pending", "reviewing"] },
+          },
+          columns: { targetPostId: true },
+        });
+        if (flagCase != null && flagCase.targetPostId == null) {
+          throw new InvalidInputError("actionType");
+        }
+      }
+      const action = await takeModerationActionModel(ctx.fedCtx, {
+        caseId: args.caseId.id as Uuid,
+        moderator: ctx.account,
+        actionType,
+        violatedProvisions: provisions,
+        rationale,
+        messageToUser: args.messageToUser ?? undefined,
+        suspensionStarts: args.suspensionStarts ?? undefined,
+        suspensionEnds: args.suspensionEnds ?? undefined,
+        forwardSummary: args.forwardSummary ?? undefined,
+      });
+      if (action == null) throw new InvalidInputError("caseId");
+      if (actionType !== "dismiss") {
+        await sendModerationActionEmail(ctx, action).catch((error) => {
+          logger.error(
+            "Failed to send the moderation action email for action " +
+              "{actionId}: {error}",
+            { actionId: action.id, error },
+          );
+        });
+      }
+      return action;
+    },
+  }));
+
+/**
+ * Emails the sanctioned local user about the action, in their preferred
+ * locale, at their verified addresses.  Best-effort: failures are logged
+ * by the caller and never roll back the action.  Built exclusively from
+ * moderator-authored fields.
+ */
+async function sendModerationActionEmail(
+  ctx: UserContext,
+  action: FlagActionRow,
+): Promise<void> {
+  const flagCase = await ctx.db.query.flagCaseTable.findFirst({
+    where: { id: action.caseId },
+    with: {
+      targetActor: { with: { account: { with: { emails: true } } } },
+      targetPost: true,
+    },
+  });
+  const account = flagCase?.targetActor.account;
+  if (flagCase == null || account == null) return;
+  const emails = account.emails.filter((email) => email.verified != null);
+  if (emails.length < 1) return;
+  const locale = new Intl.Locale(account.locales?.[0] ?? "en");
+  const appealUrl = new URL(
+    `/@${account.username}/settings/sanctions`,
+    ctx.fedCtx.canonicalOrigin,
+  ).href;
+  const targetUrl = flagCase.targetPost?.url ??
+    flagCase.targetPost?.iri ?? flagCase.targetPostIri;
+  const message = await getModerationActionEmail({
+    locale,
+    to: emails[0].email,
+    action,
+    targetUrl: targetUrl ?? null,
+    appealUrl,
+  });
+  const receipt = await ctx.email.send(message);
+  if (!receipt.successful) {
+    logger.error(
+      "Failed to deliver the moderation action email for action " +
+        "{actionId}: {errors}",
+      { actionId: action.id, errors: receipt.errorMessages },
+    );
+  }
+}

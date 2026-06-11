@@ -933,6 +933,8 @@ type ArticleDraft implements Node {
   uuid: UUID!
 }
 
+union AssignFlagCaseResult = FlagCase | NotAuthenticatedError | NotAuthorizedError
+
 """
 Associate an uploaded `Medium` with an article draft so it can be referenced in the draft's Markdown as `hp-medium:{key}`. Must be called before publishing if the draft's content uses `hp-medium:` references. Requires authentication.
 """
@@ -1011,6 +1013,38 @@ type BookmarkPostPayload {
 }
 
 union BookmarkPostResult = BookmarkPostPayload | InvalidInputError | NotAuthenticatedError
+
+"""
+The reported content as it looked when the report was filed: evidence that survives even if the reported user edits or deletes the original.  Moderator-only.
+"""
+type ContentSnapshot implements Node {
+  """
+  The rendered HTML at snapshot time: the post's content for content reports, or the actor's bio for user (profile) reports.
+  """
+  contentHtml: HTML!
+
+  """When the snapshot was captured."""
+  created: DateTime!
+  id: ID!
+
+  """
+  Contextual metadata captured at snapshot time: the author's handle and display name, the post type, title, language, visibility, sensitivity, media URLs, and publication time.
+  """
+  metadata: JSON
+
+  """
+  The snapshotted post's ActivityPub IRI; survives post deletion.  `null` for profile snapshots.
+  """
+  postIri: URL
+
+  """
+  The original source markup at snapshot time; only available for local posts (`null` for remote posts and profile snapshots).
+  """
+  sourceContent: String
+
+  """The snapshot's row UUID."""
+  uuid: UUID!
+}
 
 union CreateInvitationLinkResult = InvalidInputError | InvitationLinkPayload | NotAuthenticatedError
 
@@ -1261,6 +1295,11 @@ An individual report filed against an actor or one of their posts. Multiple repo
 """
 type Flag implements Node {
   """
+  The case this report is grouped into.  Moderator-only: the case aggregates other reporters' reports.
+  """
+  case: FlagCase!
+
+  """
   The hash of the most recent Git commit that touched the CODE_OF_CONDUCT files when the report was filed, so the report can be interpreted against the code of conduct text it was filed under.  Moderator-only.  `null` when the version could not be determined.
   """
   cocVersion: String
@@ -1294,6 +1333,11 @@ type Flag implements Node {
   """
   reporter: Actor!
 
+  """
+  The content snapshot captured when this report was filed, preserving the evidence even if the original is edited or deleted.  Moderator-only.
+  """
+  snapshot: ContentSnapshot
+
   """The report's processing status."""
   status: FlagStatus!
 
@@ -1315,6 +1359,142 @@ type Flag implements Node {
 
   """The report's row UUID."""
   uuid: UUID!
+}
+
+"""
+An immutable audit record of a moderator decision on a case.  If a decision changes (e.g. through an appeal), a new action is recorded rather than editing this one.  Moderator-only: the reported user sees the sanitized sanction surface instead, which never names the acting moderator.
+"""
+type FlagAction implements Node {
+  """The decision that was made."""
+  actionType: FlagActionType!
+
+  """The case this action resolves."""
+  case: FlagCase!
+
+  """When the action was taken."""
+  created: DateTime!
+  id: ID!
+
+  """
+  The message shown to the reported user, sent under the moderation team's collective identity.
+  """
+  messageToUser: String
+
+  """
+  The moderator who made this decision.  Internal audit trail only: never revealed to the reported user (notifications go out under the moderation team's collective identity), so moderators cannot become individual harassment targets.
+  """
+  moderator: Account!
+
+  """
+  The moderator's internal judgment rationale.  May contain details not appropriate to share with the reported user; those go to `messageToUser`.
+  """
+  rationale: String!
+
+  """The suspension window's end; only set for `SUSPEND` actions."""
+  suspensionEnds: DateTime
+
+  """The suspension window's start; only set for `SUSPEND` actions."""
+  suspensionStarts: DateTime
+
+  """The action's row UUID."""
+  uuid: UUID!
+
+  """
+  The code of conduct provision ids the moderator confirmed as violated (empty for dismissals).  These are the human-confirmed counterpart of `Flag.llmAnalysis`; their divergence is surfaced in the moderation statistics to monitor LLM bias and automation bias.
+  """
+  violatedProvisions: [String!]!
+}
+
+"""
+The kind of decision a moderator records on a case.  The spirit of the system is graduated response: warning, then content censorship, then temporary suspension, with permanent suspension as the last resort; severe violations may skip stages.
+"""
+enum FlagActionType {
+  """
+  Permanent suspension: a local account can no longer log in and its content is hidden; a remote actor is permanently federation-blocked.
+  """
+  BAN
+
+  """
+  Hide the reported post from timelines, search, and recommendations; its permalink shows a censorship notice and the author keeps access.  Requires a post target.
+  """
+  CENSOR
+
+  """No code of conduct violation was found."""
+  DISMISS
+
+  """
+  Temporary suspension: the local user cannot create posts, react, boost, vote, or follow until the window ends (a remote actor is federation-blocked instead).  Requires a suspension window.
+  """
+  SUSPEND
+
+  """A warning message; for minor first offenses without apparent malice."""
+  WARNING
+}
+
+"""
+A moderation case: all reports against the same target (an actor, or one of their posts) grouped into a single unit of moderator work.  Cases are created automatically by the first report and joined by subsequent ones while open.  Moderator-only.
+"""
+type FlagCase implements Node {
+  """
+  The immutable audit trail of decisions on this case, oldest first.  A case usually has one action; appeals that reduce or increase a sanction append replacement actions.
+  """
+  actions: [FlagAction!]!
+
+  """
+  The moderator the case is assigned to, for workload distribution; `null` when unassigned.
+  """
+  assignedModerator: Account
+
+  """When the first report opened this case."""
+  created: DateTime!
+
+  """
+  The individual reports grouped into this case, oldest first. Each report's reason is preserved individually; combining diverse reasons enables more accurate judgment.
+  """
+  flags(after: String, before: String, first: Int, last: Int): FlagCaseFlagsConnection!
+  id: ID!
+
+  """
+  How many reports this case has accumulated.  Higher counts mean higher priority: multiple independent reporters finding the same issue suggests severity.
+  """
+  reportCount: Int!
+
+  """When the case was resolved or dismissed; `null` while open."""
+  resolved: DateTime
+
+  """The case's processing status."""
+  status: FlagStatus!
+
+  """The reported actor (local or remote)."""
+  targetActor: Actor!
+
+  """
+  The reported post, for content reports; `null` for user (profile) reports and for posts deleted after the report (the snapshots on the member reports preserve the evidence).
+  """
+  targetPost: Post
+
+  """
+  The reported post's ActivityPub IRI; keeps the case attached to a stable target reference even after post deletion.  `null` for user (profile) reports.
+  """
+  targetPostIri: URL
+
+  """The case's row UUID."""
+  uuid: UUID!
+
+  """
+  The target actor's standing moderation history across all cases, newest first: dismissals are excluded, actions withdrawn or replaced on appeal drop out, and warnings expire after a violation-free year.  Accumulated history affects subsequent sanction levels.
+  """
+  violationHistory: [FlagAction!]!
+}
+
+type FlagCaseFlagsConnection {
+  edges: [FlagCaseFlagsConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type FlagCaseFlagsConnectionEdge {
+  cursor: String!
+  node: Flag!
 }
 
 """
@@ -1628,6 +1808,19 @@ type Mutation {
     promotion: NewsPromotion = NORMAL
   ): AddNewsPreferredSharerResult!
   addReactionToPost(input: AddReactionToPostInput!): AddReactionToPostResult!
+
+  """
+  Assign an open moderation case to a moderator for workload distribution (or unassign it by omitting `moderatorId`). Assigning a pending case moves it to `REVIEWING`.  Requires a moderator account.  Returns `null` when the case is not open or the assignee is not a moderator.
+  """
+  assignFlagCase(
+    """The case to (un)assign."""
+    caseId: ID!
+
+    """
+    The moderator to assign; omit to unassign.  Must be an account with moderator privileges.
+    """
+    moderatorId: ID
+  ): AssignFlagCaseResult
   attachArticleDraftMedium(input: AttachArticleDraftMediumInput!): AttachArticleDraftMediumResult!
   attachArticleSourceMedium(input: AttachArticleSourceMediumInput!): AttachArticleSourceMediumResult!
   blockActor(input: BlockActorInput!): BlockActorResult!
@@ -1871,6 +2064,45 @@ type Mutation {
     """The relay actor's URL, e.g. `https://relay.example/actor`."""
     actorUrl: URL!
   ): SubscribeRelayResult!
+
+  """
+  Record a moderation decision on an open case and apply its effects: `DISMISS` dismisses the case; `WARNING` records a warning; `CENSOR` hides the reported post from listings (its permalink keeps a notice); `SUSPEND` suspends the target for the given window; `BAN` suspends permanently.  Every action except `DISMISS` requires `violatedProvisions`.  The reported user is notified in-app and (for sanctions) by email, always under the moderation team's collective identity, and can appeal within 14 days.  When the target is remote and a reporter opted in, a `Flag` activity carrying only `forwardSummary` (falling back to `rationale`) is sent to the remote instance from the instance actor.  Requires a moderator account.
+  """
+  takeModerationAction(
+    """The decision."""
+    actionType: FlagActionType!
+
+    """The open case to act on."""
+    caseId: ID!
+
+    """
+    Moderator-written summary for the outgoing `Flag` activity when forwarding to the target's remote instance; falls back to `rationale`.  Never include the reporter's wording.
+    """
+    forwardSummary: String
+
+    """
+    The message shown to the reported user (under the moderation team's collective identity).  For `DISMISS`, providing a message opts into the educational dismissal notification.
+    """
+    messageToUser: String
+
+    """
+    The internal judgment rationale, recorded for the audit trail and consistency across moderators.  Not shown to the reported user.
+    """
+    rationale: String!
+
+    """Suspension end; required for (and only for) `SUSPEND`."""
+    suspensionEnds: DateTime
+
+    """
+    Suspension start; required for (and only for) `SUSPEND`. Must not be in the future (a few minutes of clock skew are tolerated and clamped to the server clock).
+    """
+    suspensionStarts: DateTime
+
+    """
+    The code of conduct provision ids confirmed as violated. Required (non-empty) for every action except `DISMISS`.
+    """
+    violatedProvisions: [String!]
+  ): TakeModerationActionResult!
   unblockActor(input: UnblockActorInput!): UnblockActorResult!
   unbookmarkPost(input: UnbookmarkPostInput!): UnbookmarkPostResult!
   unfollowActor(input: UnfollowActorInput!): UnfollowActorResult!
@@ -1908,6 +2140,17 @@ type Mutation {
   ): UnsubscribeRelayResult
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
   updateArticle(input: UpdateArticleInput!): UpdateArticleResult!
+
+  """
+  Move an open moderation case between `PENDING` and `REVIEWING`. Resolution happens exclusively through `takeModerationAction`. Requires a moderator account.  Returns `null` when the case is not open.
+  """
+  updateFlagCaseStatus(
+    """The case to update."""
+    caseId: ID!
+
+    """The new status; only `PENDING` or `REVIEWING`."""
+    status: FlagStatus!
+  ): UpdateFlagCaseStatusResult
   updateNote(input: UpdateNoteInput!): UpdateNoteResult!
 
   """
@@ -2953,6 +3196,14 @@ type Query {
   ): Document!
 
   """
+  Moderator-only lookup of a single moderation case by its row UUID, for the case detail page.  Returns `null` for unknown UUIDs and for non-moderators.
+  """
+  flagCaseByUuid(
+    """The case's row UUID (`FlagCase.uuid`)."""
+    uuid: UUID!
+  ): FlagCase
+
+  """
   Look up a known fediverse instance by its host name. Returns `null` if this instance has not been discovered yet.
   """
   instanceByHost(host: String!): Instance
@@ -2988,6 +3239,29 @@ type Query {
     """The locale for the Markdown guide."""
     locale: Locale!
   ): Document!
+
+  """
+  Moderator-only queue of moderation cases, newest first.  Returns `null` for non-moderators; routes should guard with `viewer.moderator`.  Use `status: PENDING` for the open queue, `minReportCount` for the high-priority section, and `search` to match the target's handle or name.
+  """
+  moderationCases(
+    after: String
+    before: String
+    first: Int
+    last: Int
+
+    """
+    Only cases with at least this many reports, e.g. `5` for the high-priority section.
+    """
+    minReportCount: Int
+
+    """
+    Match the target actor's handle or display name (case-insensitive substring).
+    """
+    search: String
+
+    """Only cases with this status."""
+    status: FlagStatus
+  ): QueryModerationCasesConnection
 
   """
   Moderator-only list of news feed exclusion patterns, newest first.  `null` for non-moderators.
@@ -3110,6 +3384,11 @@ type Query {
   ): HTML!
 
   """
+  Moderator-only list of actors currently under an active sanction (temporary suspension, permanent suspension, or federation block), most recently sanctioned first.  Sanction activeness is evaluated lazily by time comparison, so expired suspensions disappear from this list on their own.  Returns `null` for non-moderators.
+  """
+  sanctionedActors: [Actor!]
+
+  """
   Prefix search for @mention autocomplete. Matches against both username and host. Requires authentication to prevent unauthenticated callers from triggering outbound federation lookups. Capped at 50 results.
   """
   searchActorsByHandle(limit: Int = 25, prefix: String!): [Actor!]!
@@ -3161,6 +3440,16 @@ type QueryBookmarksConnection {
 type QueryBookmarksConnectionEdge {
   cursor: String!
   node: Post!
+}
+
+type QueryModerationCasesConnection {
+  edges: [QueryModerationCasesConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type QueryModerationCasesConnectionEdge {
+  cursor: String!
+  node: FlagCase!
 }
 
 type QueryNewsStoriesConnection {
@@ -4026,6 +4315,8 @@ union StartMediumUploadResult = InvalidInputError | NotAuthenticatedError | Star
 
 union SubscribeRelayResult = InvalidInputError | NotAuthenticatedError | NotAuthorizedError | RelaySubscription
 
+union TakeModerationActionResult = FlagAction | InvalidInputError | NotAuthenticatedError | NotAuthorizedError
+
 scalar URITemplate
 
 """
@@ -4346,6 +4637,8 @@ type UpdateArticlePayload {
 }
 
 union UpdateArticleResult = InvalidInputError | NotAuthenticatedError | UpdateArticlePayload
+
+union UpdateFlagCaseStatusResult = FlagCase | InvalidInputError | NotAuthenticatedError | NotAuthorizedError
 
 """
 Edit the content, language, or quote policy of an existing local note. Visibility cannot be changed after creation. Only the note's author may call this. Sends an ActivityPub `Update` activity to the appropriate recipients. Requires authentication.

@@ -7,5 +7,17 @@
     "emailSubject": "{{inviterName}} invites you to Hackers' Pub!",
     "emailContent": "{{inviter}} invites you to Hackers' Pub!\n\nHackers' Pub is a place for software engineers to share their knowledge and experience with each other. It's also an ActivityPub-enabled social network, so you can follow your favorite hackers in the fediverse and get their latest posts in your feed.\n\nTo accept the invitation, click the following link:\n\n{{verifyUrl}}\n\nThis link will expire in {{expiration}}.\n",
     "emailContentWithMessage": "{{inviter}} invites you to Hackers' Pub! Here's a message from {{inviterName}}:\n\n{{message}}\n\nTo accept the invitation, click the following link:\n\n{{verifyUrl}}\n\nThis link will expire in {{expiration}}.\n"
+  },
+  "moderation": {
+    "actionNames": {
+      "warning": "Warning",
+      "censor": "Content censorship",
+      "suspend": "Temporary suspension (until {{suspensionEnds}})",
+      "ban": "Permanent suspension"
+    },
+    "actionTaken": {
+      "emailSubject": "A moderation action was taken on your Hackers' Pub account",
+      "emailContent": "A report was received regarding your content or account on Hackers' Pub, and upon review, it was determined to violate the code of conduct. The following action has been taken.\n\nViolated provisions: {{provisions}}\nTarget content: {{target}}\nAction: {{action}}\n\nMessage from the moderation team:\n{{message}}\n\nIf you believe this action is unjust, you can file an appeal within 14 days:\n\n{{appealUrl}}\n\n— The Hackers' Pub moderation team\n"
+    }
   }
 }

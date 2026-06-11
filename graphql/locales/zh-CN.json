@@ -7,5 +7,17 @@
     "emailSubject": "{{inviterName}} 邀请你加入 Hackers' Pub！",
     "emailContent": "{{inviter}} 邀请你加入 Hackers' Pub！\n\nHackers' Pub 是个为软件工程师共同分享知识和经验的地方。它也是启用了 ActivityPub 的社交网络，这样你可以在联邦宇宙里关注你喜爱的黑客，并获取最新的帖子。\n\n要接受邀请，请点击以下链接：\n\n{{verifyUrl}}\n\n该链接将于 {{expiration}} 失效。\n",
     "emailContentWithMessage": "{{inviter}} 邀请你加入 Hackers' Pub！以下是来自 {{inviterName}} 的信息：\n\n{{message}}\n\n要接受邀请，请点击以下链接：\n\n{{verifyUrl}}\n\n该链接将于 {{expiration}} 失效。\n"
+  },
+  "moderation": {
+    "actionNames": {
+      "warning": "警告",
+      "censor": "内容审查",
+      "suspend": "临时停用（至{{suspensionEnds}}）",
+      "ban": "永久停用"
+    },
+    "actionTaken": {
+      "emailSubject": "您的 Hackers' Pub 账号受到管理处理",
+      "emailContent": "我们收到了关于您的内容或账号的举报，经审核确认违反了行为准则，已采取以下处理。\n\n违反条款：{{provisions}}\n目标内容：{{target}}\n处理：{{action}}\n\n管理团队的留言：\n{{message}}\n\n如果您认为该处理不公正，可以在 14 天内提出申诉：\n\n{{appealUrl}}\n\n— Hackers' Pub 管理团队\n"
+    }
   }
 }
