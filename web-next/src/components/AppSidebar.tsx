@@ -58,6 +58,7 @@ const AppSidebarUnreadNotificationsQuery = graphql`
   query AppSidebarUnreadNotificationsQuery {
     viewer {
       unreadNotificationsCount
+      unreadModerationNotificationCount
     }
   }
 `;
@@ -99,6 +100,18 @@ export function AppSidebar(props: AppSidebarProps) {
   const [unreadNotificationsCount, setUnreadNotificationsCount] = createSignal<
     number
   >();
+  const [
+    unreadModerationCount,
+    setUnreadModerationCount,
+  ] = createSignal<number>();
+  // The sidebar badge and favicon dot fold moderation notifications into the
+  // regular notification count, since both surface on the notifications page.
+  const totalUnreadCount = () => {
+    const regular = unreadNotificationsCount();
+    const moderation = unreadModerationCount();
+    if (regular == null && moderation == null) return undefined;
+    return (regular ?? 0) + (moderation ?? 0);
+  };
   const [documentVisible, setDocumentVisible] = createSignal(true);
   const signedAccount = createFragment(
     graphql`
@@ -112,6 +125,7 @@ export function AppSidebar(props: AppSidebarProps) {
         avatarUrl
         invitationsLeft
         unreadNotificationsCount
+        unreadModerationNotificationCount
         moderator
         pinnedHashtags
         articleDrafts(after: $cursor, first: $count)
@@ -136,6 +150,9 @@ export function AppSidebar(props: AppSidebarProps) {
 
   createEffect(() => {
     setUnreadNotificationsCount(signedAccount.latest?.unreadNotificationsCount);
+    setUnreadModerationCount(
+      signedAccount.latest?.unreadModerationNotificationCount ?? undefined,
+    );
   });
 
   onMount(() => {
@@ -165,6 +182,9 @@ export function AppSidebar(props: AppSidebarProps) {
         next(data) {
           setUnreadNotificationsCount(
             data.viewer?.unreadNotificationsCount ?? undefined,
+          );
+          setUnreadModerationCount(
+            data.viewer?.unreadModerationNotificationCount ?? undefined,
           );
         },
         complete() {
@@ -208,7 +228,7 @@ export function AppSidebar(props: AppSidebarProps) {
   return (
     <Sidebar>
       <UnreadNotificationsFaviconBadge
-        unread={(unreadNotificationsCount() ?? 0) > 0}
+        unread={(totalUnreadCount() ?? 0) > 0}
       />
       <SidebarHeader>
         <AppSidebarLogo />
@@ -433,7 +453,7 @@ export function AppSidebar(props: AppSidebarProps) {
         <AccountSection
           signedAccount={signedAccount()}
           signedAccountLoaded={props.signedAccountLoaded}
-          unreadNotificationsCount={unreadNotificationsCount()}
+          unreadNotificationsCount={totalUnreadCount()}
           onSignOut={onSignOut}
         />
       </SidebarContent>

@@ -253,7 +253,7 @@ msgstr "{0} replied to your post"
 #. placeholder {0}: flagCase.reportCount
 #. placeholder {0}: node.reportCount
 #: src/components/admin/ModerationCaseList.tsx:206
-#: src/routes/(root)/admin/moderation/[id].tsx:245
+#: src/routes/(root)/admin/moderation/[id].tsx:256
 msgid "{0} reports"
 msgstr "{0} reports"
 
@@ -372,7 +372,7 @@ msgid "1 day"
 msgstr "1 day"
 
 #: src/components/admin/ModerationCaseList.tsx:208
-#: src/routes/(root)/admin/moderation/[id].tsx:247
+#: src/routes/(root)/admin/moderation/[id].tsx:258
 msgid "1 report"
 msgstr "1 report"
 
@@ -384,13 +384,17 @@ msgstr "1 week"
 msgid "3 days"
 msgstr "3 days"
 
-#: src/routes/(root)/admin/moderation/[id].tsx:255
+#: src/routes/(root)/admin/moderation/[id].tsx:266
 msgid "A content (post) report."
 msgstr "A content (post) report."
 
-#: src/routes/(root)/admin/moderation/[id].tsx:420
+#: src/routes/(root)/admin/moderation/[id].tsx:431
 msgid "A local sanction notifies the reported user under the moderation team's collective identity, and they can appeal within 14 days. A dismissal notifies them only if you add a message."
 msgstr "A local sanction notifies the reported user under the moderation team's collective identity, and they can appeal within 14 days. A dismissal notifies them only if you add a message."
+
+#: src/components/ModerationNotificationList.tsx:101
+msgid "A moderation decision was made about your account."
+msgstr "A moderation decision was made about your account."
 
 #: src/components/ProfileCard.tsx:217
 msgid "A moderator suspended this account for violating the code of conduct."
@@ -399,6 +403,14 @@ msgstr "A moderator suspended this account for violating the code of conduct."
 #: src/routes/(root)/[handle]/settings/index.tsx:580
 msgid "A name for the link that will be displayed on your profile, e.g., GitHub."
 msgstr "A name for the link that will be displayed on your profile, e.g., GitHub."
+
+#: src/components/ModerationNotificationList.tsx:103
+msgid "A new appeal needs review."
+msgstr "A new appeal needs review."
+
+#: src/components/ModerationNotificationList.tsx:99
+msgid "A new report needs review."
+msgstr "A new report needs review."
 
 #: src/components/admin/AppealResolveForm.tsx:318
 #: src/components/admin/ModerationActionForm.tsx:320
@@ -429,12 +441,12 @@ msgstr "A sign-in link has been sent to your email. Please check your inbox (or 
 msgid "A summary is required because this report will be forwarded."
 msgstr "A summary is required because this report will be forwarded."
 
-#: src/routes/(root)/admin/moderation/[id].tsx:253
+#: src/routes/(root)/admin/moderation/[id].tsx:264
 msgid "A user (profile) report."
 msgstr "A user (profile) report."
 
 #: src/components/admin/AdminAccountsTable.tsx:224
-#: src/components/AppSidebar.tsx:491
+#: src/components/AppSidebar.tsx:511
 msgid "Account"
 msgstr "Account"
 
@@ -513,7 +525,7 @@ msgstr "Adding…"
 msgid "Additional context (optional)"
 msgstr "Additional context (optional)"
 
-#: src/components/AppSidebar.tsx:690
+#: src/components/AppSidebar.tsx:710
 msgid "Admin"
 msgstr "Admin"
 
@@ -722,7 +734,7 @@ msgstr "article-url-slug"
 msgid "Articles"
 msgstr "Articles"
 
-#: src/components/AppSidebar.tsx:325
+#: src/components/AppSidebar.tsx:345
 #: src/components/ProfileCard.tsx:197
 msgid "Articles only"
 msgstr "Articles only"
@@ -814,7 +826,7 @@ msgstr "Bold"
 msgid "Bookmark"
 msgstr "Bookmark"
 
-#: src/components/AppSidebar.tsx:626
+#: src/components/AppSidebar.tsx:646
 #: src/routes/(root)/[handle]/bookmarks.tsx:126
 msgid "Bookmarks"
 msgstr "Bookmarks"
@@ -854,7 +866,7 @@ msgid "Bury"
 msgstr "Bury"
 
 #. placeholder {0}: reporter().handle
-#: src/routes/(root)/admin/moderation/[id].tsx:277
+#: src/routes/(root)/admin/moderation/[id].tsx:288
 msgid "by {0}"
 msgstr "by {0}"
 
@@ -969,7 +981,7 @@ msgstr "Closed"
 msgid "Code"
 msgstr "Code"
 
-#: src/components/AppSidebar.tsx:913
+#: src/components/AppSidebar.tsx:933
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/sign/up/[token].tsx:458
 msgid "Code of conduct"
@@ -984,7 +996,7 @@ msgstr "Code of conduct: {0}"
 #~ msgid "Comments ({0})"
 #~ msgstr "Comments ({0})"
 
-#: src/components/AppSidebar.tsx:750
+#: src/components/AppSidebar.tsx:770
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "Compose"
@@ -1064,7 +1076,7 @@ msgstr "Could not submit the appeal"
 msgid "Could not vote on this poll"
 msgstr "Could not vote on this poll"
 
-#: src/components/AppSidebar.tsx:795
+#: src/components/AppSidebar.tsx:815
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create article"
 msgstr "Create article"
@@ -1073,7 +1085,7 @@ msgstr "Create article"
 msgid "Create invitation link"
 msgstr "Create invitation link"
 
-#: src/components/AppSidebar.tsx:772
+#: src/components/AppSidebar.tsx:792
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:78
 #: src/components/NoteComposer.tsx:1859
@@ -1132,7 +1144,7 @@ msgstr "Deadline"
 msgid "Decision"
 msgstr "Decision"
 
-#: src/routes/(root)/admin/moderation/[id].tsx:349
+#: src/routes/(root)/admin/moderation/[id].tsx:360
 msgid "Decisions"
 msgstr "Decisions"
 
@@ -1409,7 +1421,7 @@ msgstr "Explain in your own words."
 msgid "Explain the outcome under the moderation team's identity."
 msgstr "Explain the outcome under the moderation team's identity."
 
-#: src/routes/(root)/admin/moderation/[id].tsx:284
+#: src/routes/(root)/admin/moderation/[id].tsx:295
 msgid "External"
 msgstr "External"
 
@@ -1693,7 +1705,7 @@ msgid "Failed to share post"
 msgstr "Failed to share post"
 
 #. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:201
+#: src/components/AppSidebar.tsx:221
 msgid "Failed to sign out: {0}"
 msgstr "Failed to sign out: {0}"
 
@@ -1771,7 +1783,7 @@ msgstr "Failed to vote"
 msgid "Favor links shared by specific accounts. A preferred sharer's posts count toward the news feed even when the account is a bot (for example a feed that reposts Hacker News links), and the links it shares get a flat promotion bonus in the popular ranking. A penalty on a link overrides the promotion."
 msgstr "Favor links shared by specific accounts. A preferred sharer's posts count toward the news feed even when the account is a bot (for example a feed that reposts Hacker News links), and the links it shares get a flat promotion bonus in the popular ranking. A penalty on a link overrides the promotion."
 
-#: src/components/AppSidebar.tsx:369
+#: src/components/AppSidebar.tsx:389
 msgid "Fediverse"
 msgstr "Fediverse"
 
@@ -1779,7 +1791,7 @@ msgstr "Fediverse"
 msgid "Fediverse handle"
 msgstr "Fediverse handle"
 
-#: src/components/AppSidebar.tsx:264
+#: src/components/AppSidebar.tsx:284
 msgid "Feed"
 msgstr "Feed"
 
@@ -1846,7 +1858,7 @@ msgstr "Generating…"
 msgid "Get browser notifications"
 msgstr "Get browser notifications"
 
-#: src/components/AppSidebar.tsx:953
+#: src/components/AppSidebar.tsx:973
 msgid "GitHub repository"
 msgstr "GitHub repository"
 
@@ -1884,8 +1896,8 @@ msgstr "Grants one extra invitation to the most active accounts (the top third b
 msgid "Graph"
 msgstr "Graph"
 
-#: src/components/AppSidebar.tsx:339
-#: src/components/AppSidebar.tsx:458
+#: src/components/AppSidebar.tsx:359
+#: src/components/AppSidebar.tsx:478
 #: src/routes/(root).tsx:141
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/markdown.tsx:40
@@ -1955,7 +1967,7 @@ msgstr "Hackers' Pub: Admin · Sanctioned actors"
 msgid "Hackers' Pub: News"
 msgstr "Hackers' Pub: News"
 
-#: src/routes/(root)/notifications.tsx:47
+#: src/routes/(root)/notifications.tsx:49
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub: Notifications"
 
@@ -2100,7 +2112,7 @@ msgstr "Invitation links"
 msgid "Invitation sent"
 msgstr "Invitation sent"
 
-#: src/components/AppSidebar.tsx:905
+#: src/components/AppSidebar.tsx:925
 #: src/routes/(root)/[handle]/settings/invite.tsx:907
 #: src/routes/(root)/tree/graph.tsx:79
 #: src/routes/(root)/tree/index.tsx:206
@@ -2116,7 +2128,7 @@ msgstr "Invitations"
 msgid "Invitations left"
 msgstr "Invitations left"
 
-#: src/components/AppSidebar.tsx:649
+#: src/components/AppSidebar.tsx:669
 #: src/components/SettingsTabs.tsx:71
 #: src/routes/(root)/[handle]/settings/invite.tsx:310
 msgid "Invite"
@@ -2247,7 +2259,7 @@ msgstr "Links and articles circulating across the fediverse, ranked by how much 
 msgid "List"
 msgstr "List"
 
-#: src/routes/(root)/admin/moderation/[id].tsx:460
+#: src/routes/(root)/admin/moderation/[id].tsx:471
 msgid "LLM analysis (reference only, not a decision)"
 msgstr "LLM analysis (reference only, not a decision)"
 
@@ -2257,6 +2269,7 @@ msgstr "LLM matching divergence"
 
 #: src/components/AccountListBase.tsx:115
 #: src/components/admin/ModerationCaseList.tsx:236
+#: src/components/ModerationNotificationList.tsx:177
 #: src/components/ReportHistoryList.tsx:203
 #: src/routes/(root)/[handle]/drafts/index.tsx:350
 msgid "Load more"
@@ -2483,6 +2496,7 @@ msgid "Moderate"
 msgstr "Moderate"
 
 #: src/components/AdminTabs.tsx:34
+#: src/components/ModerationNotificationList.tsx:137
 msgid "Moderation"
 msgstr "Moderation"
 
@@ -2600,7 +2614,7 @@ msgid "Newest"
 msgstr "Newest"
 
 #: src/components/AdminTabs.tsx:58
-#: src/components/AppSidebar.tsx:241
+#: src/components/AppSidebar.tsx:261
 #: src/routes/(root)/admin/news.tsx:555
 #: src/routes/(root)/news/index.tsx:39
 msgid "News"
@@ -2839,7 +2853,7 @@ msgstr "Notification permission was not granted."
 msgid "Notification preview privacy"
 msgstr "Notification preview privacy"
 
-#: src/components/AppSidebar.tsx:584
+#: src/components/AppSidebar.tsx:604
 msgid "Notifications"
 msgstr "Notifications"
 
@@ -3120,7 +3134,7 @@ msgstr "Preview"
 msgid "Previous image"
 msgstr "Previous image"
 
-#: src/routes/(root)/admin/moderation/[id].tsx:320
+#: src/routes/(root)/admin/moderation/[id].tsx:331
 msgid "Prior violations"
 msgstr "Prior violations"
 
@@ -3128,7 +3142,7 @@ msgstr "Prior violations"
 msgid "Priority"
 msgstr "Priority"
 
-#: src/components/AppSidebar.tsx:920
+#: src/components/AppSidebar.tsx:940
 #: src/routes/(root)/privacy.tsx:40
 msgid "Privacy policy"
 msgstr "Privacy policy"
@@ -3282,7 +3296,7 @@ msgstr "Receive new notifications immediately, even when this tab is closed."
 msgid "Receive notifications immediately through this browser, even when this tab is closed."
 msgstr "Receive notifications immediately through this browser, even when this tab is closed."
 
-#: src/components/AppSidebar.tsx:831
+#: src/components/AppSidebar.tsx:851
 msgid "Recent drafts"
 msgstr "Recent drafts"
 
@@ -3533,7 +3547,7 @@ msgstr "Resolve appeal"
 msgid "Resolved"
 msgstr "Resolved"
 
-#: src/components/AppSidebar.tsx:510
+#: src/components/AppSidebar.tsx:530
 msgid "Return to old UI"
 msgstr "Return to old UI"
 
@@ -3610,7 +3624,7 @@ msgid "Saving…"
 msgstr "Saving…"
 
 #: src/components/admin/AdminAccountsTable.tsx:202
-#: src/components/AppSidebar.tsx:391
+#: src/components/AppSidebar.tsx:411
 #: src/components/SearchForm.tsx:65
 #: src/components/SearchForm.tsx:80
 #: src/routes/(root)/admin/moderation/index.tsx:192
@@ -3684,7 +3698,7 @@ msgstr "Separate tags with spaces. Tags help readers discover your article."
 msgid "Set your personal preferences."
 msgstr "Set your personal preferences."
 
-#: src/components/AppSidebar.tsx:680
+#: src/components/AppSidebar.tsx:700
 msgid "Settings"
 msgstr "Settings"
 
@@ -3753,11 +3767,11 @@ msgstr "Showing the 50 most recent appeals. Resolve some to see older ones."
 msgid "Shown to the reported user under the moderation team's identity."
 msgstr "Shown to the reported user under the moderation team's identity."
 
-#: src/routes/(root)/admin/moderation/[id].tsx:377
+#: src/routes/(root)/admin/moderation/[id].tsx:388
 msgid "Shown to the user"
 msgstr "Shown to the user"
 
-#: src/components/AppSidebar.tsx:546
+#: src/components/AppSidebar.tsx:566
 #: src/routes/(root)/sign/index.tsx:382
 msgid "Sign in"
 msgstr "Sign in"
@@ -3778,7 +3792,7 @@ msgstr "Sign in to vote"
 msgid "Sign in with passkey"
 msgstr "Sign in with passkey"
 
-#: src/components/AppSidebar.tsx:892
+#: src/components/AppSidebar.tsx:912
 msgid "Sign out"
 msgstr "Sign out"
 
@@ -3820,7 +3834,7 @@ msgstr "Slug (URL)"
 msgid "Slug cannot be empty"
 msgstr "Slug cannot be empty"
 
-#: src/routes/(root)/admin/moderation/[id].tsx:300
+#: src/routes/(root)/admin/moderation/[id].tsx:311
 msgid "Snapshot at report time"
 msgstr "Snapshot at report time"
 
@@ -3917,15 +3931,15 @@ msgid "Suspend"
 msgstr "Suspend"
 
 #: src/routes/(root)/admin/moderation/[id].tsx:143
-#: src/routes/(root)/admin/moderation/[id].tsx:234
+#: src/routes/(root)/admin/moderation/[id].tsx:245
 #: src/routes/(root)/admin/moderation/appeals.tsx:125
-#: src/routes/(root)/admin/moderation/sanctioned.tsx:111
+#: src/routes/(root)/admin/moderation/sanctioned.tsx:123
 #: src/routes/(root)/admin/moderation/statistics.tsx:77
 msgid "Suspended"
 msgstr "Suspended"
 
 #: src/routes/(root)/[handle]/settings/sanctions.tsx:192
-#: src/routes/(root)/admin/moderation/[id].tsx:391
+#: src/routes/(root)/admin/moderation/[id].tsx:402
 msgid "Suspension ends"
 msgstr "Suspension ends"
 
@@ -3951,7 +3965,7 @@ msgstr "Table of contents"
 msgid "Tags"
 msgstr "Tags"
 
-#: src/routes/(root)/admin/moderation/[id].tsx:414
+#: src/routes/(root)/admin/moderation/[id].tsx:425
 msgid "Take action"
 msgstr "Take action"
 
@@ -3995,7 +4009,7 @@ msgstr "The appeal window has closed."
 msgid "The appellant has been notified."
 msgstr "The appellant has been notified."
 
-#: src/routes/(root)/admin/moderation/[id].tsx:466
+#: src/routes/(root)/admin/moderation/[id].tsx:477
 msgid "The automated analysis was unavailable for this report."
 msgstr "The automated analysis was unavailable for this report."
 
@@ -4092,11 +4106,11 @@ msgstr "The sign-up link is invalid. Please make sure you're using the correct l
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:944
+#: src/components/AppSidebar.tsx:964
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "The source code of this website is available on {0} under the {1} license."
 
-#: src/routes/(root)/admin/moderation/[id].tsx:322
+#: src/routes/(root)/admin/moderation/[id].tsx:333
 msgid "The target's standing moderation history; accumulated history affects sanction levels."
 msgstr "The target's standing moderation history; accumulated history affects sanction levels."
 
@@ -4138,7 +4152,7 @@ msgstr "This browser does not support Web Push."
 msgid "This case does not exist."
 msgstr "This case does not exist."
 
-#: src/routes/(root)/admin/moderation/[id].tsx:408
+#: src/routes/(root)/admin/moderation/[id].tsx:419
 msgid "This case is resolved."
 msgstr "This case is resolved."
 
@@ -4165,7 +4179,7 @@ msgstr "This invitation link has no remaining invitations."
 msgid "This invitation link was not found."
 msgstr "This invitation link was not found."
 
-#: src/routes/(root)/admin/moderation/[id].tsx:418
+#: src/routes/(root)/admin/moderation/[id].tsx:429
 msgid "This is a remote actor with no local notification or appeal. A warning is only recorded, censoring hides the locally cached post, and a suspension or ban applies a temporary or permanent federation block. A summary may be forwarded to their instance if a reporter opted in."
 msgstr "This is a remote actor with no local notification or appeal. A warning is only recorded, censoring hides the locally cached post, and a suspension or ban applies a temporary or permanent federation block. A summary may be forwarded to their instance if a reporter opted in."
 
@@ -4217,7 +4231,7 @@ msgstr "This usually takes about a minute. The page will update automatically wh
 msgid "This will be part of the article URL."
 msgstr "This will be part of the article URL."
 
-#: src/components/AppSidebar.tsx:219
+#: src/components/AppSidebar.tsx:239
 msgid "Timeline"
 msgstr "Timeline"
 
@@ -4339,6 +4353,10 @@ msgstr "Unmute"
 msgid "Unpin from profile"
 msgstr "Unpin from profile"
 
+#: src/components/ModerationNotificationList.tsx:155
+msgid "Unread"
+msgstr "Unread"
+
 #: src/components/PostEngagementBar.tsx:383
 msgid "Unshare"
 msgstr "Unshare"
@@ -4429,7 +4447,7 @@ msgstr "Verified that this link is owned by {0} {1}"
 msgid "Verifying your invitation…"
 msgstr "Verifying your invitation…"
 
-#: src/components/AppSidebar.tsx:855
+#: src/components/AppSidebar.tsx:875
 msgid "View all drafts →"
 msgstr "View all drafts →"
 
@@ -4568,7 +4586,7 @@ msgstr "Withdraw decision"
 msgid "Withdrawn"
 msgstr "Withdrawn"
 
-#: src/components/AppSidebar.tsx:303
+#: src/components/AppSidebar.tsx:323
 msgid "Without shares"
 msgstr "Without shares"
 
@@ -4739,6 +4757,10 @@ msgstr "You'll automatically follow each other when you sign up."
 msgid "You've been invited to Hackers' Pub"
 msgstr "You've been invited to Hackers' Pub"
 
+#: src/components/ModerationNotificationList.tsx:105
+msgid "Your appeal was reviewed."
+msgstr "Your appeal was reviewed."
+
 #: src/routes/(root)/[handle]/settings/index.tsx:354
 msgid "Your avatar will be displayed on your profile and in your posts. You can upload a PNG, JPEG, GIF, or WebP image up to 5 MiB in size."
 msgstr "Your avatar will be displayed on your profile and in your posts. You can upload a PNG, JPEG, GIF, or WebP image up to 5 MiB in size."
@@ -4787,6 +4809,10 @@ msgstr "Your preferred languages have been updated."
 #: src/routes/(root)/[handle]/settings/index.tsx:330
 msgid "Your profile settings have been updated successfully."
 msgstr "Your profile settings have been updated successfully."
+
+#: src/components/ModerationNotificationList.tsx:107
+msgid "Your suspension ends soon."
+msgstr "Your suspension ends soon."
 
 #: src/components/NoteComposeModal.tsx:134
 msgid "Your unsaved draft will be lost."

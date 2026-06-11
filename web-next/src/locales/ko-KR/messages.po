@@ -253,7 +253,7 @@ msgstr "{0} 님이 회원님의 콘텐츠에 댓글을 달았습니다"
 #. placeholder {0}: flagCase.reportCount
 #. placeholder {0}: node.reportCount
 #: src/components/admin/ModerationCaseList.tsx:206
-#: src/routes/(root)/admin/moderation/[id].tsx:245
+#: src/routes/(root)/admin/moderation/[id].tsx:256
 msgid "{0} reports"
 msgstr "신고 {0}건"
 
@@ -372,7 +372,7 @@ msgid "1 day"
 msgstr "1일"
 
 #: src/components/admin/ModerationCaseList.tsx:208
-#: src/routes/(root)/admin/moderation/[id].tsx:247
+#: src/routes/(root)/admin/moderation/[id].tsx:258
 msgid "1 report"
 msgstr "신고 1건"
 
@@ -384,13 +384,17 @@ msgstr "1주"
 msgid "3 days"
 msgstr "3일"
 
-#: src/routes/(root)/admin/moderation/[id].tsx:255
+#: src/routes/(root)/admin/moderation/[id].tsx:266
 msgid "A content (post) report."
 msgstr "콘텐츠 신고입니다."
 
-#: src/routes/(root)/admin/moderation/[id].tsx:420
+#: src/routes/(root)/admin/moderation/[id].tsx:431
 msgid "A local sanction notifies the reported user under the moderation team's collective identity, and they can appeal within 14 days. A dismissal notifies them only if you add a message."
 msgstr "로컬 제재는 모더레이션 팀 명의로 신고된 사용자에게 통지되며, 사용자는 14일 이내에 이의를 제기할 수 있습니다. 기각은 메시지를 추가한 경우에만 통지됩니다."
+
+#: src/components/ModerationNotificationList.tsx:101
+msgid "A moderation decision was made about your account."
+msgstr "회원님의 계정에 대한 모더레이션 결정이 내려졌습니다."
 
 #: src/components/ProfileCard.tsx:217
 msgid "A moderator suspended this account for violating the code of conduct."
@@ -399,6 +403,14 @@ msgstr "모더레이터가 행동 강령 위반으로 이 계정을 정지했습
 #: src/routes/(root)/[handle]/settings/index.tsx:580
 msgid "A name for the link that will be displayed on your profile, e.g., GitHub."
 msgstr "프로필에 표시될 링크의 이름. 예: GitHub."
+
+#: src/components/ModerationNotificationList.tsx:103
+msgid "A new appeal needs review."
+msgstr "검토가 필요한 새 이의 제기가 있습니다."
+
+#: src/components/ModerationNotificationList.tsx:99
+msgid "A new report needs review."
+msgstr "검토가 필요한 새 신고가 있습니다."
 
 #: src/components/admin/AppealResolveForm.tsx:318
 #: src/components/admin/ModerationActionForm.tsx:320
@@ -429,12 +441,12 @@ msgstr "로그인 링크가 이메일로 전송되었습니다. 받은 편지함
 msgid "A summary is required because this report will be forwarded."
 msgstr "이 신고는 전달되므로 요약이 필요합니다."
 
-#: src/routes/(root)/admin/moderation/[id].tsx:253
+#: src/routes/(root)/admin/moderation/[id].tsx:264
 msgid "A user (profile) report."
 msgstr "사용자(프로필) 신고입니다."
 
 #: src/components/admin/AdminAccountsTable.tsx:224
-#: src/components/AppSidebar.tsx:491
+#: src/components/AppSidebar.tsx:511
 msgid "Account"
 msgstr "계정"
 
@@ -513,7 +525,7 @@ msgstr "추가 중…"
 msgid "Additional context (optional)"
 msgstr "추가 설명 (선택)"
 
-#: src/components/AppSidebar.tsx:690
+#: src/components/AppSidebar.tsx:710
 msgid "Admin"
 msgstr "관리"
 
@@ -722,7 +734,7 @@ msgstr "게시글-url-슬러그"
 msgid "Articles"
 msgstr "게시글"
 
-#: src/components/AppSidebar.tsx:325
+#: src/components/AppSidebar.tsx:345
 #: src/components/ProfileCard.tsx:197
 msgid "Articles only"
 msgstr "게시글만"
@@ -814,7 +826,7 @@ msgstr "굵게"
 msgid "Bookmark"
 msgstr "북마크"
 
-#: src/components/AppSidebar.tsx:626
+#: src/components/AppSidebar.tsx:646
 #: src/routes/(root)/[handle]/bookmarks.tsx:126
 msgid "Bookmarks"
 msgstr "북마크"
@@ -854,7 +866,7 @@ msgid "Bury"
 msgstr "매장"
 
 #. placeholder {0}: reporter().handle
-#: src/routes/(root)/admin/moderation/[id].tsx:277
+#: src/routes/(root)/admin/moderation/[id].tsx:288
 msgid "by {0}"
 msgstr "신고자 {0}"
 
@@ -969,7 +981,7 @@ msgstr "닫힘"
 msgid "Code"
 msgstr "코드"
 
-#: src/components/AppSidebar.tsx:913
+#: src/components/AppSidebar.tsx:933
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/sign/up/[token].tsx:458
 msgid "Code of conduct"
@@ -984,7 +996,7 @@ msgstr "행동 강령: {0}"
 #~ msgid "Comments ({0})"
 #~ msgstr "댓글 ({0})"
 
-#: src/components/AppSidebar.tsx:750
+#: src/components/AppSidebar.tsx:770
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "작성"
@@ -1064,7 +1076,7 @@ msgstr "이의 제기를 제출하지 못했습니다"
 msgid "Could not vote on this poll"
 msgstr "이 설문에 투표할 수 없습니다"
 
-#: src/components/AppSidebar.tsx:795
+#: src/components/AppSidebar.tsx:815
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create article"
 msgstr "게시글 작성"
@@ -1073,7 +1085,7 @@ msgstr "게시글 작성"
 msgid "Create invitation link"
 msgstr "초대 링크 생성"
 
-#: src/components/AppSidebar.tsx:772
+#: src/components/AppSidebar.tsx:792
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:78
 #: src/components/NoteComposer.tsx:1859
@@ -1132,7 +1144,7 @@ msgstr "마감"
 msgid "Decision"
 msgstr "조치"
 
-#: src/routes/(root)/admin/moderation/[id].tsx:349
+#: src/routes/(root)/admin/moderation/[id].tsx:360
 msgid "Decisions"
 msgstr "조치 내역"
 
@@ -1405,7 +1417,7 @@ msgstr "직접 설명해 주세요."
 msgid "Explain the outcome under the moderation team's identity."
 msgstr "모더레이션 팀 명의로 결과를 설명해 주세요."
 
-#: src/routes/(root)/admin/moderation/[id].tsx:284
+#: src/routes/(root)/admin/moderation/[id].tsx:295
 msgid "External"
 msgstr "외부"
 
@@ -1689,7 +1701,7 @@ msgid "Failed to share post"
 msgstr "콘텐츠 공유 실패"
 
 #. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:201
+#: src/components/AppSidebar.tsx:221
 msgid "Failed to sign out: {0}"
 msgstr "로그아웃 실패: {0}"
 
@@ -1767,7 +1779,7 @@ msgstr "투표에 실패했습니다"
 msgid "Favor links shared by specific accounts. A preferred sharer's posts count toward the news feed even when the account is a bot (for example a feed that reposts Hacker News links), and the links it shares get a flat promotion bonus in the popular ranking. A penalty on a link overrides the promotion."
 msgstr "특정 계정이 공유한 링크를 우대합니다. 우대 공유자의 콘텐츠는 해당 계정이 봇이어도 (예: Hacker News 링크를 다시 공유하는 피드) 뉴스 피드에 집계되며, 그 계정이 공유한 링크는 인기 순위에서 고정 가산점을 받습니다. 링크에 패널티가 걸리면 우대보다 패널티가 우선합니다."
 
-#: src/components/AppSidebar.tsx:369
+#: src/components/AppSidebar.tsx:389
 msgid "Fediverse"
 msgstr "연합우주"
 
@@ -1775,7 +1787,7 @@ msgstr "연합우주"
 msgid "Fediverse handle"
 msgstr "연합우주 핸들"
 
-#: src/components/AppSidebar.tsx:264
+#: src/components/AppSidebar.tsx:284
 msgid "Feed"
 msgstr "피드"
 
@@ -1842,7 +1854,7 @@ msgstr "생성 중…"
 msgid "Get browser notifications"
 msgstr "브라우저 알림 받기"
 
-#: src/components/AppSidebar.tsx:953
+#: src/components/AppSidebar.tsx:973
 msgid "GitHub repository"
 msgstr "GitHub 저장소"
 
@@ -1880,8 +1892,8 @@ msgstr "마지막 재발급 시점 이후 가장 활발한 계정(콘텐츠 수 
 msgid "Graph"
 msgstr "그래프"
 
-#: src/components/AppSidebar.tsx:339
-#: src/components/AppSidebar.tsx:458
+#: src/components/AppSidebar.tsx:359
+#: src/components/AppSidebar.tsx:478
 #: src/routes/(root).tsx:141
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/markdown.tsx:40
@@ -1951,7 +1963,7 @@ msgstr "Hackers' Pub: 관리 · 제재된 액터"
 msgid "Hackers' Pub: News"
 msgstr "Hackers' Pub: 뉴스"
 
-#: src/routes/(root)/notifications.tsx:47
+#: src/routes/(root)/notifications.tsx:49
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub: 알림"
 
@@ -2096,7 +2108,7 @@ msgstr "초대 링크"
 msgid "Invitation sent"
 msgstr "초대장이 발송되었습니다"
 
-#: src/components/AppSidebar.tsx:905
+#: src/components/AppSidebar.tsx:925
 #: src/routes/(root)/[handle]/settings/invite.tsx:907
 #: src/routes/(root)/tree/graph.tsx:79
 #: src/routes/(root)/tree/index.tsx:206
@@ -2112,7 +2124,7 @@ msgstr "초대"
 msgid "Invitations left"
 msgstr "남은 초대장"
 
-#: src/components/AppSidebar.tsx:649
+#: src/components/AppSidebar.tsx:669
 #: src/components/SettingsTabs.tsx:71
 #: src/routes/(root)/[handle]/settings/invite.tsx:310
 msgid "Invite"
@@ -2243,7 +2255,7 @@ msgstr "연합우주 곳곳에서 퍼지는 링크와 게시글을 공유·토�
 msgid "List"
 msgstr "목록"
 
-#: src/routes/(root)/admin/moderation/[id].tsx:460
+#: src/routes/(root)/admin/moderation/[id].tsx:471
 msgid "LLM analysis (reference only, not a decision)"
 msgstr "LLM 분석 (참고용이며 판단 근거 아님)"
 
@@ -2253,6 +2265,7 @@ msgstr "LLM 매칭 괴리율"
 
 #: src/components/AccountListBase.tsx:115
 #: src/components/admin/ModerationCaseList.tsx:236
+#: src/components/ModerationNotificationList.tsx:177
 #: src/components/ReportHistoryList.tsx:203
 #: src/routes/(root)/[handle]/drafts/index.tsx:350
 msgid "Load more"
@@ -2479,6 +2492,7 @@ msgid "Moderate"
 msgstr "관리"
 
 #: src/components/AdminTabs.tsx:34
+#: src/components/ModerationNotificationList.tsx:137
 msgid "Moderation"
 msgstr "모더레이션"
 
@@ -2596,7 +2610,7 @@ msgid "Newest"
 msgstr "최신"
 
 #: src/components/AdminTabs.tsx:58
-#: src/components/AppSidebar.tsx:241
+#: src/components/AppSidebar.tsx:261
 #: src/routes/(root)/admin/news.tsx:555
 #: src/routes/(root)/news/index.tsx:39
 msgid "News"
@@ -2835,7 +2849,7 @@ msgstr "알림 권한이 허용되지 않았습니다."
 msgid "Notification preview privacy"
 msgstr "알림 미리보기 개인정보"
 
-#: src/components/AppSidebar.tsx:584
+#: src/components/AppSidebar.tsx:604
 msgid "Notifications"
 msgstr "알림"
 
@@ -3116,7 +3130,7 @@ msgstr "미리보기"
 msgid "Previous image"
 msgstr "이전 이미지"
 
-#: src/routes/(root)/admin/moderation/[id].tsx:320
+#: src/routes/(root)/admin/moderation/[id].tsx:331
 msgid "Prior violations"
 msgstr "이전 위반 이력"
 
@@ -3124,7 +3138,7 @@ msgstr "이전 위반 이력"
 msgid "Priority"
 msgstr "우선순위"
 
-#: src/components/AppSidebar.tsx:920
+#: src/components/AppSidebar.tsx:940
 #: src/routes/(root)/privacy.tsx:40
 msgid "Privacy policy"
 msgstr "개인정보 처리방침"
@@ -3278,7 +3292,7 @@ msgstr "이 탭을 닫아도 새 알림을 즉시 받습니다."
 msgid "Receive notifications immediately through this browser, even when this tab is closed."
 msgstr "이 브라우저로 알림을 즉시 받습니다. 이 탭을 닫아도 알림을 받을 수 있습니다."
 
-#: src/components/AppSidebar.tsx:831
+#: src/components/AppSidebar.tsx:851
 msgid "Recent drafts"
 msgstr "최근 초고"
 
@@ -3529,7 +3543,7 @@ msgstr "이의 제기 처리"
 msgid "Resolved"
 msgstr "처리됨"
 
-#: src/components/AppSidebar.tsx:510
+#: src/components/AppSidebar.tsx:530
 msgid "Return to old UI"
 msgstr "예전 UI로 돌아가기"
 
@@ -3606,7 +3620,7 @@ msgid "Saving…"
 msgstr "저장 중…"
 
 #: src/components/admin/AdminAccountsTable.tsx:202
-#: src/components/AppSidebar.tsx:391
+#: src/components/AppSidebar.tsx:411
 #: src/components/SearchForm.tsx:65
 #: src/components/SearchForm.tsx:80
 #: src/routes/(root)/admin/moderation/index.tsx:192
@@ -3680,7 +3694,7 @@ msgstr "태그는 공백으로 구분합니다. 태그는 독자가 게시글을
 msgid "Set your personal preferences."
 msgstr "개인의 환경 설정을 설정하세요."
 
-#: src/components/AppSidebar.tsx:680
+#: src/components/AppSidebar.tsx:700
 msgid "Settings"
 msgstr "설정"
 
@@ -3749,11 +3763,11 @@ msgstr "최근 이의 제기 50건을 표시하고 있습니다. 일부를 처�
 msgid "Shown to the reported user under the moderation team's identity."
 msgstr "모더레이션 팀 명의로 신고된 사용자에게 표시됩니다."
 
-#: src/routes/(root)/admin/moderation/[id].tsx:377
+#: src/routes/(root)/admin/moderation/[id].tsx:388
 msgid "Shown to the user"
 msgstr "사용자에게 표시됨"
 
-#: src/components/AppSidebar.tsx:546
+#: src/components/AppSidebar.tsx:566
 #: src/routes/(root)/sign/index.tsx:382
 msgid "Sign in"
 msgstr "로그인"
@@ -3774,7 +3788,7 @@ msgstr "로그인 후 투표"
 msgid "Sign in with passkey"
 msgstr "패스키를 사용하여 로그인"
 
-#: src/components/AppSidebar.tsx:892
+#: src/components/AppSidebar.tsx:912
 msgid "Sign out"
 msgstr "로그아웃"
 
@@ -3816,7 +3830,7 @@ msgstr "슬러그 (URL)"
 msgid "Slug cannot be empty"
 msgstr "슬러그는 비워둘 수 없습니다"
 
-#: src/routes/(root)/admin/moderation/[id].tsx:300
+#: src/routes/(root)/admin/moderation/[id].tsx:311
 msgid "Snapshot at report time"
 msgstr "신고 시점 스냅샷"
 
@@ -3913,15 +3927,15 @@ msgid "Suspend"
 msgstr "정지"
 
 #: src/routes/(root)/admin/moderation/[id].tsx:143
-#: src/routes/(root)/admin/moderation/[id].tsx:234
+#: src/routes/(root)/admin/moderation/[id].tsx:245
 #: src/routes/(root)/admin/moderation/appeals.tsx:125
-#: src/routes/(root)/admin/moderation/sanctioned.tsx:111
+#: src/routes/(root)/admin/moderation/sanctioned.tsx:123
 #: src/routes/(root)/admin/moderation/statistics.tsx:77
 msgid "Suspended"
 msgstr "정지됨"
 
 #: src/routes/(root)/[handle]/settings/sanctions.tsx:192
-#: src/routes/(root)/admin/moderation/[id].tsx:391
+#: src/routes/(root)/admin/moderation/[id].tsx:402
 msgid "Suspension ends"
 msgstr "정지 종료"
 
@@ -3947,7 +3961,7 @@ msgstr "목차"
 msgid "Tags"
 msgstr "태그"
 
-#: src/routes/(root)/admin/moderation/[id].tsx:414
+#: src/routes/(root)/admin/moderation/[id].tsx:425
 msgid "Take action"
 msgstr "조치 취하기"
 
@@ -3991,7 +4005,7 @@ msgstr "이의 제기 기간이 종료되었습니다."
 msgid "The appellant has been notified."
 msgstr "이의 제기자에게 통지되었습니다."
 
-#: src/routes/(root)/admin/moderation/[id].tsx:466
+#: src/routes/(root)/admin/moderation/[id].tsx:477
 msgid "The automated analysis was unavailable for this report."
 msgstr "이 신고에 대한 자동 분석을 사용할 수 없습니다."
 
@@ -4088,11 +4102,11 @@ msgstr "가입 링크가 유효하지 않습니다. 이메일로 받은 링크�
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:944
+#: src/components/AppSidebar.tsx:964
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "이 웹사이트의 소스 코드는 {1} 라이선스로 {0}에서 배포됩니다."
 
-#: src/routes/(root)/admin/moderation/[id].tsx:322
+#: src/routes/(root)/admin/moderation/[id].tsx:333
 msgid "The target's standing moderation history; accumulated history affects sanction levels."
 msgstr "대상의 누적 모더레이션 이력입니다. 누적된 이력은 제재 수위에 영향을 줍니다."
 
@@ -4134,7 +4148,7 @@ msgstr "이 브라우저는 Web Push를 지원하지 않습니다."
 msgid "This case does not exist."
 msgstr "존재하지 않는 케이스입니다."
 
-#: src/routes/(root)/admin/moderation/[id].tsx:408
+#: src/routes/(root)/admin/moderation/[id].tsx:419
 msgid "This case is resolved."
 msgstr "이미 처리된 케이스입니다."
 
@@ -4161,7 +4175,7 @@ msgstr "이 초대 링크에 남은 초대가 없습니다."
 msgid "This invitation link was not found."
 msgstr "이 초대 링크를 찾을 수 없습니다."
 
-#: src/routes/(root)/admin/moderation/[id].tsx:418
+#: src/routes/(root)/admin/moderation/[id].tsx:429
 msgid "This is a remote actor with no local notification or appeal. A warning is only recorded, censoring hides the locally cached post, and a suspension or ban applies a temporary or permanent federation block. A summary may be forwarded to their instance if a reporter opted in."
 msgstr "로컬 통지나 이의 제기가 없는 원격 액터입니다. 경고는 기록만 되고, 검열은 로컬에 캐시된 콘텐츠를 숨기며, 정지나 영구 정지는 일시적 또는 영구적 연합 차단을 적용합니다. 신고자가 동의한 경우 해당 인스턴스로 요약이 전달될 수 있습니다."
 
@@ -4213,7 +4227,7 @@ msgstr "보통 1분 정도 소요됩니다. 번역이 완료되면 페이지가 
 msgid "This will be part of the article URL."
 msgstr "게시글 URL의 일부가 됩니다."
 
-#: src/components/AppSidebar.tsx:219
+#: src/components/AppSidebar.tsx:239
 msgid "Timeline"
 msgstr "타임라인"
 
@@ -4335,6 +4349,10 @@ msgstr "뮤트 해제"
 msgid "Unpin from profile"
 msgstr "프로필에서 고정 해제"
 
+#: src/components/ModerationNotificationList.tsx:155
+msgid "Unread"
+msgstr "읽지 않음"
+
 #: src/components/PostEngagementBar.tsx:383
 msgid "Unshare"
 msgstr "공유 취소"
@@ -4425,7 +4443,7 @@ msgstr "{1}에 {0} 님이 이 링크의 소유자임이 확인됨"
 msgid "Verifying your invitation…"
 msgstr "초대장을 확인하고 있습니다…"
 
-#: src/components/AppSidebar.tsx:855
+#: src/components/AppSidebar.tsx:875
 msgid "View all drafts →"
 msgstr "모든 초고 보기 →"
 
@@ -4564,7 +4582,7 @@ msgstr "결정 철회"
 msgid "Withdrawn"
 msgstr "철회됨"
 
-#: src/components/AppSidebar.tsx:303
+#: src/components/AppSidebar.tsx:323
 msgid "Without shares"
 msgstr "공유 제외"
 
@@ -4735,6 +4753,10 @@ msgstr "가입 시 자동으로 서로 팔로하게 됩니다."
 msgid "You've been invited to Hackers' Pub"
 msgstr "Hackers' Pub에 초대되었습니다"
 
+#: src/components/ModerationNotificationList.tsx:105
+msgid "Your appeal was reviewed."
+msgstr "회원님의 이의 제기가 검토되었습니다."
+
 #: src/routes/(root)/[handle]/settings/index.tsx:354
 msgid "Your avatar will be displayed on your profile and in your posts. You can upload a PNG, JPEG, GIF, or WebP image up to 5 MiB in size."
 msgstr "프로필 사진은 프로필과 콘텐츠에 표시됩니다. PNG, JPEG, GIF, WebP 형식의 이미지를 5MiB 이하로 업로드할 수 있습니다."
@@ -4783,6 +4805,10 @@ msgstr "선호 언어가 업데이트되었습니다."
 #: src/routes/(root)/[handle]/settings/index.tsx:330
 msgid "Your profile settings have been updated successfully."
 msgstr "프로필 설정이 성공적으로 업데이트되었습니다."
+
+#: src/components/ModerationNotificationList.tsx:107
+msgid "Your suspension ends soon."
+msgstr "회원님의 정지가 곧 종료됩니다."
 
 #: src/components/NoteComposeModal.tsx:134
 msgid "Your unsaved draft will be lost."

@@ -2,6 +2,7 @@ import { Navigate } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
+import { ModerationNotificationList } from "~/components/ModerationNotificationList.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NotificationList } from "~/components/NotificationList.tsx";
 import { Title } from "~/components/Title.tsx";
@@ -18,6 +19,7 @@ const notificationsPageQuery = graphql`
     webPushVapidPublicKey
     viewer {
       ...WebPushNotificationSettings_account
+      ...ModerationNotificationList_account
       ...NotificationList_notifications
     }
   }
@@ -59,6 +61,7 @@ export default function NotificationsPage() {
                     $account={viewer}
                     vapidPublicKey={data.webPushVapidPublicKey}
                   />
+                  <ModerationNotificationList $account={viewer} />
                   <NotificationList $account={viewer} />
                 </div>
               )}
