@@ -1,6 +1,9 @@
 import type { InboxContext } from "@fedify/fedify";
 import { Accept, Block, Follow, type Reject, type Undo } from "@fedify/vocab";
-import { persistActor } from "@hackerspub/models/actor";
+import {
+  isCachedActorFederationBlocked,
+  persistActor,
+} from "@hackerspub/models/actor";
 import { persistBlocking } from "@hackerspub/models/blocking";
 import type { ContextData } from "@hackerspub/models/context";
 import {
@@ -341,6 +344,9 @@ export async function onFollowed(
     where: { id: followObject.identifier },
   });
   if (followee == null) return;
+  // Check the cached follower before fetching their actor document, so a
+  // federation-blocked actor cannot make us spend the remote fetch.
+  if (await isCachedActorFederationBlocked(db, follow.actorId)) return;
   const followActor = await follow.getActor(fedCtx);
   if (followActor == null) return;
   const follower = await persistActor(fedCtx, followActor, {
@@ -383,14 +389,14 @@ export async function onUnfollowed(
   const follow = await undo.getObject(fedCtx);
   if (!(follow instanceof Follow)) return;
   if (follow.id == null || follow.actorId?.href !== undo.actorId?.href) return;
-  const actorObject = await undo.getActor(fedCtx);
-  if (actorObject == null) return;
-  const actor = await persistActor(fedCtx, actorObject, {
-    ...fedCtx,
-    outbox: false,
+  // Cleanup path: use the cached actor row instead of persistActor, so a
+  // federation-blocked actor can still remove its own follow leftovers.
+  if (undo.actorId == null) return;
+  const { db } = fedCtx.data;
+  const actor = await db.query.actorTable.findFirst({
+    where: { iri: undo.actorId.href },
   });
   if (actor == null) return;
-  const { db } = fedCtx.data;
   const rows = await db.delete(followingTable)
     .where(
       and(

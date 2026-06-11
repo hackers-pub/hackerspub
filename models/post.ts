@@ -37,6 +37,7 @@ import sharp from "sharp";
 import { isSSRFSafeURL } from "ssrfcheck";
 import {
   getPersistedActor,
+  isFederationBlocked,
   persistActor,
   persistActorsByHandles,
   syncActorFromAccount,
@@ -1071,6 +1072,7 @@ export async function persistPost(
     ),
     suppressError: true,
   };
+  if (actor != null && isFederationBlocked(actor)) return undefined;
   if (actor == null) {
     const apActor = await post.getAttribution(opts);
     if (apActor == null) return;
@@ -1667,6 +1669,7 @@ export async function persistSharedPost(
     options.actor == null || options.actor.iri !== announce.actorId.href
       ? await getPersistedActor(db, announce.actorId)
       : options.actor;
+  if (actor != null && isFederationBlocked(actor)) return;
   if (actor == null) {
     const apActor = await announce.getActor(boundedOpts);
     if (apActor == null) return;

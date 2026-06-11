@@ -1,6 +1,10 @@
 import type { InboxContext } from "@fedify/fedify";
 import type { Flag as FlagActivity } from "@fedify/vocab";
-import { getPersistedActor, persistActor } from "@hackerspub/models/actor";
+import {
+  getPersistedActor,
+  isFederationBlocked,
+  persistActor,
+} from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
 import { analyzeFlag, createFlag, getFlagByIri } from "@hackerspub/models/flag";
 import type { Actor, Post } from "@hackerspub/models/schema";
@@ -37,6 +41,13 @@ export async function onFlagged(
     return;
   }
   let reporter = await getPersistedActor(db, flag.actorId);
+  if (reporter != null && isFederationBlocked(reporter)) {
+    logger.debug(
+      "Dropping Flag activity {iri} from federation-blocked actor.",
+      { iri: flag.id.href },
+    );
+    return;
+  }
   if (reporter == null) {
     const actorObject = await flag.getActor({
       ...fedCtx,

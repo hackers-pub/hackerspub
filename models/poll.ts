@@ -2,7 +2,13 @@ import type { Context, DocumentLoader } from "@fedify/fedify";
 import { assertAccountActorNotSuspended } from "./moderation.ts";
 import * as vocab from "@fedify/vocab";
 import { and, eq, inArray, sql } from "drizzle-orm";
-import { getPersistedActor, persistActor, toRecipient } from "./actor.ts";
+import {
+  getPersistedActor,
+  isCachedActorFederationBlocked,
+  isFederationBlocked,
+  persistActor,
+  toRecipient,
+} from "./actor.ts";
 import type { ContextData } from "./context.ts";
 import { toDate } from "./date.ts";
 import type { Database, Transaction } from "./db.ts";
@@ -274,6 +280,11 @@ export async function persistPollVoteResult(
   const hasReplyContent = note.content != null &&
     note.content.toString().trim() !== "";
   const { db } = ctx.data;
+  // Check the cached voter first, before any remote dereference or
+  // Question persistence a federation-blocked actor could trigger.
+  if (await isCachedActorFederationBlocked(db, note.attributionId)) {
+    return { attempted: true };
+  }
   let post = await getPersistedPost(db, note.replyTargetId);
   let persistedRemotePollWithVotersCount = false;
   let persistedRemotePollWithOptionVotesCount = false;
@@ -300,6 +311,7 @@ export async function persistPollVoteResult(
     actor = await persistActor(ctx, actorObject, options);
     if (actor == null) return { attempted: true };
   }
+  if (isFederationBlocked(actor)) return { attempted: true };
   const persistVoteInTransaction = async (tx: Transaction) => {
     const [lockedPoll] = await tx.select()
       .from(pollTable)

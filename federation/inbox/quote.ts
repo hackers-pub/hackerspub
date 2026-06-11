@@ -10,7 +10,11 @@ import {
 } from "@fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import { eq, inArray, sql } from "drizzle-orm";
-import { getPersistedActor, persistActor } from "@hackerspub/models/actor";
+import {
+  getPersistedActor,
+  isFederationBlocked,
+  persistActor,
+} from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
 import {
   canActorQuotePost,
@@ -70,6 +74,7 @@ export async function onQuoteRequested(
     return;
   }
   let actor = await getPersistedActor(fedCtx.data.db, request.actorId);
+  if (actor != null && isFederationBlocked(actor)) return;
   if (actor == null) {
     const actorObject = await request.getActor({
       ...fedCtx,

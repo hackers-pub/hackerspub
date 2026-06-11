@@ -17,6 +17,7 @@ import {
   Undo,
   Update,
 } from "@fedify/vocab";
+import { isCachedActorFederationBlocked } from "@hackerspub/models/actor";
 import { isPostObject } from "@hackerspub/models/post";
 import { getLogger } from "@logtape/logtape";
 import { builder } from "../builder.ts";
@@ -81,6 +82,11 @@ builder
   .on(Create, onPostCreated)
   .on(Announce, onPostShared)
   .on(Update, async (fedCtx, update) => {
+    if (
+      await isCachedActorFederationBlocked(fedCtx.data.db, update.actorId)
+    ) {
+      return;
+    }
     const object = await update.getObject({ ...fedCtx, suppressError: true });
     if (isActor(object)) await onActorUpdated(fedCtx, update);
     else if (isPostObject(object)) await onPostUpdated(fedCtx, update);

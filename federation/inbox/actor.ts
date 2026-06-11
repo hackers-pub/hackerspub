@@ -1,6 +1,9 @@
 import type { InboxContext } from "@fedify/fedify";
 import { type Delete, isActor, type Move, type Update } from "@fedify/vocab";
-import { persistActor } from "@hackerspub/models/actor";
+import {
+  isCachedActorFederationBlocked,
+  persistActor,
+} from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
 import { follow } from "@hackerspub/models/following";
 import { ActorSuspendedError } from "@hackerspub/models/moderation";
@@ -34,6 +37,13 @@ export async function onActorMoved(
 ): Promise<void> {
   const actorId = move.actorId;
   if (actorId == null) return;
+  // Check the cached actor before dereferencing the Move's object and
+  // target, so a federation-blocked actor cannot force remote fetches.
+  if (
+    await isCachedActorFederationBlocked(fedCtx.data.db, actorId)
+  ) {
+    return;
+  }
   const object = await move.getObject({ ...fedCtx, suppressError: true });
   if (!isActor(object) || object.id?.href !== actorId.href) return;
   const target = await move.getTarget({ ...fedCtx, suppressError: true });

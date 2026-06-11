@@ -12,7 +12,12 @@ import {
   type Undo,
   type Update,
 } from "@fedify/vocab";
-import { getPersistedActor, persistActor } from "@hackerspub/models/actor";
+import {
+  getPersistedActor,
+  isCachedActorFederationBlocked,
+  isFederationBlocked,
+  persistActor,
+} from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
 import { refreshNewsScoresForPostId } from "@hackerspub/models/news";
 import {
@@ -57,6 +62,13 @@ export async function onPostCreated(
 ): Promise<void> {
   logger.debug("On post created: {create}", { create });
   if (create.objectId?.origin !== create.actorId?.origin) return;
+  // Check the cached actor before dereferencing the object, so a
+  // federation-blocked actor cannot make us spend remote fetches.
+  if (
+    await isCachedActorFederationBlocked(fedCtx.data.db, create.actorId)
+  ) {
+    return;
+  }
   const object = await create.getObject({ ...fedCtx, suppressError: true });
   if (
     object instanceof Note &&
@@ -153,6 +165,11 @@ export async function onPostShared(
   // plus all of persistSharedPost (getActor, getObject, persistPost subtree),
   // plus the post-persist DB writes all count against the same 90s deadline so
   // their aggregate cannot reach the 180s MQ handlerTimeout (GRAPHQL-1H).
+  if (
+    await isCachedActorFederationBlocked(fedCtx.data.db, announce.actorId)
+  ) {
+    return;
+  }
   const overallSignal = AbortSignal.timeout(PERSIST_POST_OVERALL_BUDGET_MS);
   const boundedLoader = withDocumentLoaderTimeout(
     fedCtx.documentLoader,
@@ -271,6 +288,7 @@ export async function onPostPinned(
   }
   if (isTagsPubHashtagActor(add.actorId.href)) return;
   let actor = await getPersistedActor(fedCtx.data.db, add.actorId);
+  if (actor != null && isFederationBlocked(actor)) return;
   if (actor?.featuredUrl == null) {
     const actorObject = await add.getActor({ ...fedCtx, suppressError: true });
     if (actorObject == null) return;
