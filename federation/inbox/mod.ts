@@ -6,6 +6,7 @@ import {
   Create,
   Delete,
   EmojiReact,
+  Flag,
   Follow,
   isActor,
   Like,
@@ -20,6 +21,7 @@ import { isPostObject } from "@hackerspub/models/post";
 import { getLogger } from "@logtape/logtape";
 import { builder } from "../builder.ts";
 import { onActorDeleted, onActorMoved, onActorUpdated } from "./actor.ts";
+import { onFlagged } from "./flag.ts";
 import {
   onBlocked,
   onFollowAccepted,
@@ -93,6 +95,7 @@ builder
       logger.warn("Unhandled Delete object: {delete}", { delete: del });
   })
   .on(Move, onActorMoved)
+  .on(Flag, onFlagged)
   .on(Block, onBlocked)
   .on(Add, onPostPinned)
   .on(Remove, onPostUnpinned);
