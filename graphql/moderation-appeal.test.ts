@@ -154,6 +154,14 @@ const resolveAppealMutation = parse(`
   }
 `);
 
+const appealsQuery = parse(`
+  query Appeals($status: FlagAppealStatus) {
+    moderationAppeals(first: 10, status: $status) {
+      edges { node { uuid status reason } }
+    }
+  }
+`);
+
 const loginMutation = parse(`
   mutation Login($token: UUID!, $code: String!) {
     completeLoginChallenge(token: $token, code: $code) { id }
@@ -177,6 +185,55 @@ const postQuery = parse(`
     }
   }
 `);
+
+test("moderationAppeals lists appeals for moderators only", async () => {
+  await withRollback(async (tx) => {
+    const { moderator, reported, action } = await sanction(tx);
+    const filed = await execute({
+      schema,
+      document: appealMutation,
+      variableValues: {
+        sanctionId: action.id,
+        reason: "I did nothing wrong.",
+      },
+      contextValue: makeUserContext(tx, reported.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(
+      // deno-lint-ignore no-explicit-any
+      (filed.data as any)?.appealModerationAction?.__typename,
+      "FlagAppeal",
+    );
+
+    // Moderators see the appeal in the queue:
+    const asMod = await execute({
+      schema,
+      document: appealsQuery,
+      variableValues: { status: "PENDING" },
+      contextValue: makeUserContext(tx, moderator),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    const edges = (asMod.data as any)?.moderationAppeals?.edges;
+    assert.equal(edges?.length, 1);
+    assert.equal(edges[0].node.reason, "I did nothing wrong.");
+    assert.equal(edges[0].node.status, "PENDING");
+
+    // Non-moderators get null, never another user's appeals:
+    const asUser = await execute({
+      schema,
+      document: appealsQuery,
+      variableValues: {},
+      contextValue: makeUserContext(tx, reported.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(
+      // deno-lint-ignore no-explicit-any
+      (asUser.data as any)?.moderationAppeals,
+      null,
+    );
+  });
+});
 
 test("Account.sanctions shows the sanitized surface to the target only", async () => {
   await withRollback(async (tx) => {

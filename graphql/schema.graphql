@@ -3577,6 +3577,19 @@ type Query {
   ): Document!
 
   """
+  Moderator-only queue of appeals against moderation actions, newest first.  Returns `null` for non-moderators; routes should guard with `viewer.moderator`.  Use `status: PENDING` for the open queue.
+  """
+  moderationAppeals(
+    after: String
+    before: String
+    first: Int
+    last: Int
+
+    """Only appeals with this status."""
+    status: FlagAppealStatus
+  ): QueryModerationAppealsConnection
+
+  """
   Moderator-only queue of moderation cases, newest first.  Returns `null` for non-moderators; routes should guard with `viewer.moderator`.  Use `status: PENDING` for the open queue, `minReportCount` for the high-priority section, and `search` to match the target's handle or name.
   """
   moderationCases(
@@ -3787,6 +3800,16 @@ type QueryBookmarksConnection {
 type QueryBookmarksConnectionEdge {
   cursor: String!
   node: Post!
+}
+
+type QueryModerationAppealsConnection {
+  edges: [QueryModerationAppealsConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type QueryModerationAppealsConnectionEdge {
+  cursor: String!
+  node: FlagAppeal!
 }
 
 type QueryModerationCasesConnection {

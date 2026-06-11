@@ -1210,6 +1210,18 @@ export function toFlagAppealStatus(
     : assertNever(status, `Invalid \`FlagAppealStatus\`: "${status}"`);
 }
 
+export function fromFlagAppealStatus(
+  status: typeof FlagAppealStatus.$inferType,
+): FlagAppealStatusValue {
+  return status === "PENDING"
+    ? "pending"
+    : status === "REVIEWING"
+    ? "reviewing"
+    : status === "RESOLVED"
+    ? "resolved"
+    : assertNever(status, `Invalid \`FlagAppealStatus\`: "${status}"`);
+}
+
 export function toFlagAppealResult(
   result: FlagAppealResultValue,
 ): typeof FlagAppealResult.$inferType {
@@ -1319,6 +1331,49 @@ export const FlagAppeal = builder.drizzleNode("flagAppealTable", {
     }),
   }),
 });
+
+builder.queryField("moderationAppeals", (t) =>
+  t.connection({
+    type: FlagAppeal,
+    nullable: true,
+    description:
+      "Moderator-only queue of appeals against moderation actions, newest " +
+      "first.  Returns `null` for non-moderators; routes should guard with " +
+      "`viewer.moderator`.  Use `status: PENDING` for the open queue.",
+    args: {
+      status: t.arg({
+        type: FlagAppealStatus,
+        required: false,
+        description: "Only appeals with this status.",
+      }),
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.session == null || !ctx.account?.moderator) return null;
+      return await resolveCursorConnection(
+        {
+          args,
+          toCursor: (appeal: FlagAppealRow) => appeal.id,
+        },
+        ({ before, after, limit, inverted }: ResolveCursorConnectionArgs) =>
+          ctx.db.query.flagAppealTable.findMany({
+            where: {
+              ...(args.status == null
+                ? {}
+                : { status: fromFlagAppealStatus(args.status) }),
+              ...(after != null && validateUuid(after)
+                ? { id: { lt: after as Uuid } }
+                : {}),
+              ...(before != null && validateUuid(before)
+                ? { id: { gt: before as Uuid } }
+                : {}),
+            },
+            // Appeal ids are UUIDv7, so id order is creation order.
+            orderBy: { id: inverted ? "asc" : "desc" },
+            limit,
+          }),
+      );
+    },
+  }));
 
 interface SanctionShape {
   action: FlagActionRow;
