@@ -340,11 +340,12 @@ msgstr "{count, plural, other {토론 콘텐츠 #개}}"
 #~ msgid "{count, plural, one {# share} other {# shares}}"
 #~ msgstr "{count, plural, one {공유 #번} other {공유 #번}}"
 
+#: src/components/admin/AppealResolveForm.tsx:300
 #: src/components/admin/ModerationActionForm.tsx:302
 msgid "{days} days"
 msgstr "{days}일"
 
-#: src/routes/(root)/admin/moderation/index.tsx:169
+#: src/routes/(root)/admin/moderation/index.tsx:171
 msgid "{HIGH_PRIORITY_REPORT_COUNT}+ reports"
 msgstr "신고 {HIGH_PRIORITY_REPORT_COUNT}건 이상"
 
@@ -353,6 +354,7 @@ msgstr "신고 {HIGH_PRIORITY_REPORT_COUNT}건 이상"
 #~ msgid "+{0} more reactor(s) not shown"
 #~ msgstr "+{0}명 더 (표시되지 않음)"
 
+#: src/components/admin/AppealResolveForm.tsx:301
 #: src/components/admin/ModerationActionForm.tsx:303
 #: src/components/NoteComposer.tsx:1651
 msgid "1 day"
@@ -387,8 +389,13 @@ msgstr "모더레이터가 행동 강령 위반으로 이 계정을 정지했습
 msgid "A name for the link that will be displayed on your profile, e.g., GitHub."
 msgstr "프로필에 표시될 링크의 이름. 예: GitHub."
 
+#: src/components/admin/AppealResolveForm.tsx:318
 #: src/components/admin/ModerationActionForm.tsx:320
 msgid "A rationale is required."
+msgstr "사유를 입력해야 합니다."
+
+#: src/components/AppealDialog.tsx:153
+msgid "A reason is required."
 msgstr "사유를 입력해야 합니다."
 
 #: src/routes/(root)/admin/relay.tsx:260
@@ -398,6 +405,10 @@ msgstr "릴레이는 팔로를 수락한 뒤에야 콘텐츠를 전달하기 시
 #: src/components/admin/ModerationActionForm.tsx:342
 msgid "A reporter opted in to forwarding, so this is sent to the remote instance. Never include the reporter's wording."
 msgstr "신고자가 전달에 동의하여 원격 인스턴스로 전송됩니다. 신고자의 표현을 절대 포함하지 마세요."
+
+#: src/components/admin/AppealResolveForm.tsx:335
+msgid "A review rationale is required."
+msgstr "검토 사유를 입력해야 합니다."
 
 #: src/routes/(root)/sign/index.tsx:218
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
@@ -419,6 +430,14 @@ msgstr "계정"
 #: src/routes/(root)/admin/news.tsx:692
 msgid "Account handle"
 msgstr "계정 핸들"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:97
+msgid "Account permanently suspended"
+msgstr "계정 영구 정지됨"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:95
+msgid "Account suspended"
+msgstr "계정 정지됨"
 
 #: src/components/AdminTabs.tsx:26
 #: src/routes/(root)/admin/index.tsx:97
@@ -471,12 +490,17 @@ msgstr "사이드바에 추가"
 msgid "Adding…"
 msgstr "추가 중…"
 
+#: src/components/AppealDialog.tsx:168
+msgid "Additional context (optional)"
+msgstr "추가 설명 (선택)"
+
 #: src/components/AppSidebar.tsx:690
 msgid "Admin"
 msgstr "관리"
 
 #: src/routes/(root)/[handle]/bookmarks.tsx:136
-#: src/routes/(root)/admin/moderation/index.tsx:122
+#: src/routes/(root)/admin/moderation/appeals.tsx:157
+#: src/routes/(root)/admin/moderation/index.tsx:123
 msgid "All"
 msgstr "전체"
 
@@ -564,6 +588,60 @@ msgstr "예상치 못한 오류가 발생했습니다. 나중에 다시 시도�
 #: src/components/QuotePolicySelect.tsx:29
 msgid "Anyone can quote"
 msgstr "누구나 인용 가능"
+
+#: src/components/AppealDialog.tsx:172
+msgid "Anything you believe was not considered."
+msgstr "고려되지 않았다고 생각하는 점을 적어 주세요."
+
+#: src/routes/(root)/admin/moderation/appeals.tsx:253
+msgid "Appeal"
+msgstr "이의 제기"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:119
+msgid "Appeal denied: the decision stands"
+msgstr "이의 제기 기각: 원결정 유지"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:109
+msgid "Appeal pending"
+msgstr "이의 제기 대기 중"
+
+#: src/components/admin/AppealResolveForm.tsx:173
+msgid "Appeal resolved"
+msgstr "이의 제기 처리됨"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:117
+msgid "Appeal reviewed: the sanction was increased"
+msgstr "이의 제기 검토됨: 제재가 강화되었습니다"
+
+#: src/components/AppealDialog.tsx:101
+msgid "Appeal submitted"
+msgstr "이의 제기가 접수되었습니다"
+
+#: src/components/AppealDialog.tsx:131
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:218
+msgid "Appeal this decision"
+msgstr "이 결정에 이의 제기"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:108
+msgid "Appeal under review"
+msgstr "이의 제기 검토 중"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:113
+msgid "Appeal upheld: the decision was withdrawn"
+msgstr "이의 제기 인용: 결정이 철회되었습니다"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:115
+msgid "Appeal upheld: the sanction was reduced"
+msgstr "이의 제기 인용: 제재가 경감되었습니다"
+
+#: src/routes/(root)/admin/moderation/appeals.tsx:236
+msgid "Appealed decision"
+msgstr "이의 제기된 결정"
+
+#: src/components/admin/ModerationSubTabs.tsx:32
+#: src/routes/(root)/admin/moderation/appeals.tsx:174
+msgid "Appeals"
+msgstr "이의 제기"
 
 #. placeholder {0}: displayName()
 #. placeholder {1}: actor()?.handle
@@ -666,11 +744,13 @@ msgstr "프로필 사진"
 msgid "Back to cases"
 msgstr "케이스 목록으로"
 
+#: src/components/admin/AppealResolveForm.tsx:96
 #: src/components/admin/ModerationActionForm.tsx:116
 msgid "Ban"
 msgstr "영구 정지"
 
 #: src/routes/(root)/admin/moderation/[id].tsx:145
+#: src/routes/(root)/admin/moderation/appeals.tsx:127
 msgid "Banned"
 msgstr "영구 정지됨"
 
@@ -760,6 +840,7 @@ msgstr "신고자 {0}"
 msgid "By {0}"
 msgstr "{0} 작성"
 
+#: src/components/AppealDialog.tsx:187
 #: src/components/article-composer/ArticleComposerActions.tsx:48
 #: src/components/NoteComposer.tsx:1794
 #: src/components/NoteComposer.tsx:1795
@@ -785,6 +866,11 @@ msgstr "취소"
 msgid "Cannot change the language because translations already exist"
 msgstr "번역이 이미 존재하므로 언어를 변경할 수 없습니다"
 
+#: src/components/admin/ModerationSubTabs.tsx:24
+msgid "Cases"
+msgstr "케이스"
+
+#: src/components/admin/AppealResolveForm.tsx:94
 #: src/components/admin/ModerationActionForm.tsx:114
 msgid "Censor post"
 msgstr "콘텐츠 검열"
@@ -813,9 +899,17 @@ msgstr "확인 중…"
 msgid "Choose a decision."
 msgstr "조치를 선택하세요."
 
+#: src/components/admin/AppealResolveForm.tsx:222
+msgid "Choose an outcome."
+msgstr "결과를 선택하세요."
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:401
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "초대장을 받을 친구가 사용하는 언어를 선택하세요. 이 언어는 초대장에만 사용됩니다."
+
+#: src/components/admin/AppealResolveForm.tsx:250
+msgid "Choose the replacement sanction."
+msgstr "대체 제재를 선택하세요."
 
 #: src/components/WebPushNotificationSettings.tsx:444
 msgid "Choose whether push notifications may include post excerpts. Generic notification text is used when previews are hidden."
@@ -856,6 +950,11 @@ msgstr "코드"
 #: src/routes/(root)/sign/up/[token].tsx:458
 msgid "Code of conduct"
 msgstr "행동 강령"
+
+#. placeholder {0}: sanction .violatedProvisions.join(", ")
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:177
+msgid "Code of conduct: {0}"
+msgstr "행동 강령: {0}"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:603
 #~ msgid "Comments ({0})"
@@ -922,9 +1021,20 @@ msgstr "이 항목을 원본에서 새로 고치지 못했습니다."
 msgid "Could not resolve that as a remote object."
 msgstr "원격 객체로 확인할 수 없습니다."
 
+#: src/components/admin/AppealResolveForm.tsx:181
+#: src/components/admin/AppealResolveForm.tsx:188
+#: src/components/admin/AppealResolveForm.tsx:195
+msgid "Could not resolve the appeal"
+msgstr "이의 제기를 처리하지 못했습니다"
+
 #: src/components/QuotedNoteCard.tsx:340
 msgid "Could not revoke quote"
 msgstr "인용을 취소하지 못했습니다"
+
+#: src/components/AppealDialog.tsx:111
+#: src/components/AppealDialog.tsx:120
+msgid "Could not submit the appeal"
+msgstr "이의 제기를 제출하지 못했습니다"
 
 #: src/components/QuestionCard.tsx:433
 msgid "Could not vote on this poll"
@@ -1002,6 +1112,10 @@ msgstr "조치"
 msgid "Decisions"
 msgstr "조치 내역"
 
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:141
+msgid "Decisions the moderation team has made about your account or posts, newest first. You can appeal a decision once, within 14 days."
+msgstr "모더레이션 팀이 회원님의 계정이나 콘텐츠에 대해 내린 결정을 최신순으로 보여 줍니다. 각 결정에 대해 14일 이내에 한 번 이의를 제기할 수 있습니다."
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:193
 msgid "Default note privacy"
 msgstr "기본 단문 공개 범위"
@@ -1049,6 +1163,14 @@ msgstr "강등"
 msgid "Demoted"
 msgstr "강등됨"
 
+#: src/routes/(root)/admin/moderation/appeals.tsx:136
+msgid "Denied"
+msgstr "기각됨"
+
+#: src/components/admin/AppealResolveForm.tsx:82
+msgid "Deny (uphold decision)"
+msgstr "기각 (원결정 유지)"
+
 #: src/components/WebPushNotificationSettings.tsx:431
 msgid "Disable"
 msgstr "끄기"
@@ -1082,7 +1204,8 @@ msgstr "닫기"
 #: src/components/admin/ModerationCaseList.tsx:106
 #: src/components/ReportHistoryList.tsx:96
 #: src/routes/(root)/admin/moderation/[id].tsx:137
-#: src/routes/(root)/admin/moderation/index.tsx:126
+#: src/routes/(root)/admin/moderation/appeals.tsx:119
+#: src/routes/(root)/admin/moderation/index.tsx:127
 msgid "Dismissed"
 msgstr "기각됨"
 
@@ -1248,6 +1371,14 @@ msgstr "{0}에 만료"
 #: src/routes/(root)/[handle]/settings/invite.tsx:825
 msgid "Expiry"
 msgstr "유효기간"
+
+#: src/components/AppealDialog.tsx:148
+msgid "Explain in your own words."
+msgstr "직접 설명해 주세요."
+
+#: src/components/admin/AppealResolveForm.tsx:331
+msgid "Explain the outcome under the moderation team's identity."
+msgstr "모더레이션 팀 명의로 결과를 설명해 주세요."
 
 #: src/routes/(root)/admin/moderation/[id].tsx:284
 msgid "External"
@@ -1746,6 +1877,10 @@ msgstr "Hackers' Pub은 소프트웨어 프로그래머들이 지식과 경험�
 msgid "Hackers' Pub: Admin · Accounts"
 msgstr "Hackers' Pub: 관리 · 계정"
 
+#: src/routes/(root)/admin/moderation/appeals.tsx:164
+msgid "Hackers' Pub: Admin · Appeals"
+msgstr "Hackers' Pub: 관리 · 이의 제기"
+
 #: src/routes/(root)/admin/invitations.tsx:136
 msgid "Hackers' Pub: Admin · Invitations"
 msgstr "Hackers' Pub: 관리 · 초대"
@@ -1754,7 +1889,7 @@ msgstr "Hackers' Pub: 관리 · 초대"
 msgid "Hackers' Pub: Admin · Media"
 msgstr "Hackers' Pub: 관리 · 미디어"
 
-#: src/routes/(root)/admin/moderation/index.tsx:131
+#: src/routes/(root)/admin/moderation/index.tsx:132
 msgid "Hackers' Pub: Admin · Moderation"
 msgstr "Hackers' Pub: 관리 · 모더레이션"
 
@@ -1866,6 +2001,14 @@ msgstr "이미지"
 msgid "Image preview"
 msgstr "이미지 미리 보기"
 
+#: src/components/admin/AppealResolveForm.tsx:85
+msgid "Increase sanction"
+msgstr "제재 강화"
+
+#: src/routes/(root)/admin/moderation/appeals.tsx:142
+msgid "Increased"
+msgstr "강화됨"
+
 #: src/components/ProfileTabs.tsx:87
 msgid "Interactions"
 msgstr "상호작용"
@@ -1937,7 +2080,7 @@ msgid "Invitations left"
 msgstr "남은 초대장"
 
 #: src/components/AppSidebar.tsx:649
-#: src/components/SettingsTabs.tsx:70
+#: src/components/SettingsTabs.tsx:71
 #: src/routes/(root)/[handle]/settings/invite.tsx:310
 msgid "Invite"
 msgstr "초대"
@@ -2000,7 +2143,7 @@ msgstr "언어 코드"
 msgid "Language settings"
 msgstr "언어 설정"
 
-#: src/components/SettingsTabs.tsx:62
+#: src/components/SettingsTabs.tsx:63
 msgid "Languages"
 msgstr "언어"
 
@@ -2302,7 +2445,11 @@ msgstr "관리"
 msgid "Moderation"
 msgstr "모더레이션"
 
-#: src/routes/(root)/admin/moderation/index.tsx:140
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:139
+msgid "Moderation actions"
+msgstr "모더레이션 조치"
+
+#: src/routes/(root)/admin/moderation/index.tsx:142
 msgid "Moderation cases"
 msgstr "모더레이션 케이스"
 
@@ -2348,7 +2495,7 @@ msgstr "뮤트한 계정"
 msgid "Muted accounts are hidden from your feeds and stop notifying you, except for replies and mentions from accounts you follow. You can still visit their profiles, and muting is private and never federated."
 msgstr "뮤트한 계정은 타임라인에 표시되지 않고 알림도 오지 않습니다. 다만 팔로하는 계정의 댓글이나 언급은 알림이 옵니다. 프로필은 계속 방문할 수 있으며, 뮤트는 비공개이고 연합되지 않습니다."
 
-#: src/components/SettingsTabs.tsx:86
+#: src/components/SettingsTabs.tsx:87
 msgid "Mutes & blocks"
 msgstr "뮤트와 차단"
 
@@ -2426,6 +2573,10 @@ msgstr "다음 이미지"
 #: src/routes/(root)/admin/news.tsx:464
 msgid "No actor found for that handle."
 msgstr "해당 핸들의 계정을 찾을 수 없습니다."
+
+#: src/routes/(root)/admin/moderation/appeals.tsx:196
+msgid "No appeals match these filters."
+msgstr "조건에 맞는 이의 제기가 없습니다."
 
 #: src/components/Bookmarks.tsx:131
 msgid "No bookmarks yet"
@@ -2687,6 +2838,10 @@ msgstr "또는 이메일의 코드를 입력하세요"
 msgid "Other languages"
 msgstr "다른 언어"
 
+#: src/components/admin/AppealResolveForm.tsx:205
+msgid "Outcome"
+msgstr "결과"
+
 #: src/components/NotFoundPage.tsx:42
 msgid "Page not found"
 msgstr "페이지를 찾을 수 없습니다"
@@ -2707,7 +2862,7 @@ msgstr "패스키 등록 성공"
 msgid "Passkey revoked"
 msgstr "패스키 취소됨"
 
-#: src/components/SettingsTabs.tsx:78
+#: src/components/SettingsTabs.tsx:79
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:356
 msgid "Passkeys"
 msgstr "패스키"
@@ -2721,7 +2876,9 @@ msgid "Penalty cleared."
 msgstr "패널티를 해제했습니다."
 
 #: src/components/admin/ModerationCaseList.tsx:100
-#: src/routes/(root)/admin/moderation/index.tsx:123
+#: src/routes/(root)/admin/moderation/appeals.tsx:158
+#: src/routes/(root)/admin/moderation/appeals.tsx:224
+#: src/routes/(root)/admin/moderation/index.tsx:124
 #: src/routes/(root)/admin/relay.tsx:304
 msgid "Pending"
 msgstr "대기 중"
@@ -2753,6 +2910,7 @@ msgstr "프로필에 고정"
 msgid "Pinned posts"
 msgstr "고정된 콘텐츠"
 
+#: src/components/admin/AppealResolveForm.tsx:182
 #: src/components/admin/ModerationActionForm.tsx:207
 msgid "Please check the form and try again."
 msgstr "양식을 확인한 후 다시 시도해 주세요."
@@ -2835,12 +2993,17 @@ msgid "Post by {0}"
 msgstr "{0}님의 콘텐츠"
 
 #: src/routes/(root)/admin/moderation/[id].tsx:141
+#: src/routes/(root)/admin/moderation/appeals.tsx:123
 msgid "Post censored"
 msgstr "콘텐츠 검열됨"
 
 #: src/components/PostActionMenu.tsx:321
 msgid "Post deleted"
 msgstr "콘텐츠가 삭제되었습니다"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:93
+msgid "Post hidden"
+msgstr "콘텐츠 숨김"
 
 #: src/components/PostActionMenu.tsx:287
 msgid "Post pinned"
@@ -2859,7 +3022,7 @@ msgstr "콘텐츠"
 msgid "Prefer AI-generated summary"
 msgstr "AI 생성 요약 선호"
 
-#: src/components/SettingsTabs.tsx:54
+#: src/components/SettingsTabs.tsx:55
 #: src/routes/(root)/[handle]/settings/preferences.tsx:170
 #: src/routes/(root)/[handle]/settings/preferences.tsx:171
 msgid "Preferences"
@@ -2908,7 +3071,7 @@ msgstr "우선순위"
 msgid "Privacy policy"
 msgstr "개인정보 처리방침"
 
-#: src/components/SettingsTabs.tsx:46
+#: src/components/SettingsTabs.tsx:47
 msgid "Profile"
 msgstr "프로필"
 
@@ -3070,6 +3233,14 @@ msgstr "조치 기록"
 msgid "Recorded for the audit trail; not shown to the user."
 msgstr "감사 기록용으로 저장되며, 사용자에게는 표시되지 않습니다."
 
+#: src/components/admin/AppealResolveForm.tsx:84
+msgid "Reduce sanction"
+msgstr "제재 경감"
+
+#: src/routes/(root)/admin/moderation/appeals.tsx:140
+msgid "Reduced"
+msgstr "경감됨"
+
 #: src/components/AdminTabs.tsx:66
 #: src/routes/(root)/admin/refresh.tsx:198
 msgid "Refresh"
@@ -3211,6 +3382,14 @@ msgstr "생성된 지 충분히 오래되었고 프로필 사진, 단문, 게시
 msgid "Rendering…"
 msgstr "렌더링 중…"
 
+#: src/components/admin/AppealResolveForm.tsx:314
+msgid "Replacement rationale"
+msgstr "대체 사유"
+
+#: src/components/admin/AppealResolveForm.tsx:230
+msgid "Replacement sanction"
+msgstr "대체 제재"
+
 #: src/components/NoteComposeModal.tsx:76
 #: src/components/PostEngagementBar.tsx:339
 msgid "Reply"
@@ -3232,6 +3411,10 @@ msgstr "신고"
 #: src/components/ReportDialog.tsx:153
 msgid "Report {0}"
 msgstr "{0} 신고"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:99
+msgid "Report dismissed"
+msgstr "신고 기각됨"
 
 #: src/routes/(root)/[handle]/settings/reports.tsx:74
 #: src/routes/(root)/[handle]/settings/reports.tsx:81
@@ -3261,7 +3444,7 @@ msgstr "{0} 신고함"
 msgid "Reported a post by {0}"
 msgstr "{0}님의 콘텐츠 신고함"
 
-#: src/components/SettingsTabs.tsx:94
+#: src/components/SettingsTabs.tsx:95
 msgid "Reports"
 msgstr "신고 내역"
 
@@ -3269,9 +3452,14 @@ msgstr "신고 내역"
 msgid "Reports you have filed, newest first. You can see the target, your reason, and the current status. Detailed outcomes are not shown, and the reported user never learns who reported them."
 msgstr "회원님이 제출한 신고를 최신순으로 보여 줍니다. 신고 대상, 작성한 사유, 현재 상태를 확인할 수 있습니다. 자세한 처리 결과는 표시되지 않으며, 신고당한 사용자는 누가 신고했는지 절대 알 수 없습니다."
 
+#: src/components/admin/AppealResolveForm.tsx:342
+msgid "Resolve appeal"
+msgstr "이의 제기 처리"
+
 #: src/components/admin/ModerationCaseList.tsx:104
 #: src/components/ReportHistoryList.tsx:94
-#: src/routes/(root)/admin/moderation/index.tsx:125
+#: src/routes/(root)/admin/moderation/appeals.tsx:159
+#: src/routes/(root)/admin/moderation/index.tsx:126
 msgid "Resolved"
 msgstr "처리됨"
 
@@ -3279,8 +3467,16 @@ msgstr "처리됨"
 msgid "Return to old UI"
 msgstr "예전 UI로 돌아가기"
 
+#: src/routes/(root)/admin/moderation/appeals.tsx:289
+msgid "Review outcome"
+msgstr "검토 결과"
+
+#: src/components/admin/AppealResolveForm.tsx:327
+msgid "Review rationale (shown to the appellant)"
+msgstr "검토 사유 (이의 제기자에게 표시됨)"
+
 #: src/components/admin/ModerationCaseList.tsx:102
-#: src/routes/(root)/admin/moderation/index.tsx:124
+#: src/routes/(root)/admin/moderation/index.tsx:125
 msgid "Reviewing"
 msgstr "검토 중"
 
@@ -3301,6 +3497,11 @@ msgstr "인용 취소"
 #: src/components/QuotedNoteCard.tsx:310
 msgid "Revoke this quote?"
 msgstr "이 인용을 취소하시겠습니까?"
+
+#: src/components/SettingsTabs.tsx:103
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:133
+msgid "Sanctions"
+msgstr "제재"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:536
 #: src/routes/(root)/[handle]/settings/language.tsx:201
@@ -3334,7 +3535,7 @@ msgstr "저장 중…"
 #: src/components/AppSidebar.tsx:391
 #: src/components/SearchForm.tsx:65
 #: src/components/SearchForm.tsx:80
-#: src/routes/(root)/admin/moderation/index.tsx:190
+#: src/routes/(root)/admin/moderation/index.tsx:192
 msgid "Search"
 msgstr "검색"
 
@@ -3342,7 +3543,7 @@ msgstr "검색"
 msgid "Search a language…"
 msgstr "언어 검색…"
 
-#: src/routes/(root)/admin/moderation/index.tsx:185
+#: src/routes/(root)/admin/moderation/index.tsx:187
 msgid "Search by handle or display name"
 msgstr "핸들 또는 표시 이름으로 검색"
 
@@ -3367,6 +3568,7 @@ msgstr "검색 중…"
 msgid "Select an option"
 msgstr "선택지를 선택하세요"
 
+#: src/components/admin/AppealResolveForm.tsx:281
 #: src/components/admin/ModerationActionForm.tsx:282
 msgid "Select at least one violated provision."
 msgstr "위반한 조항을 하나 이상 선택하세요."
@@ -3465,6 +3667,10 @@ msgstr "공유 콘텐츠 더 보기"
 msgid "Show sensitive content"
 msgstr "민감한 콘텐츠 표시"
 
+#: src/routes/(root)/admin/moderation/appeals.tsx:313
+msgid "Showing the 50 most recent appeals. Resolve some to see older ones."
+msgstr "최근 이의 제기 50건을 표시하고 있습니다. 일부를 처리하면 이전 항목을 볼 수 있습니다."
+
 #: src/components/admin/ModerationActionForm.tsx:330
 msgid "Shown to the reported user under the moderation team's identity."
 msgstr "모더레이션 팀 명의로 신고된 사용자에게 표시됩니다."
@@ -3558,6 +3764,10 @@ msgstr "문제가 발생했습니다. 다시 시도해주세요."
 msgid "Strong"
 msgstr "강함"
 
+#: src/components/AppealDialog.tsx:190
+msgid "Submit appeal"
+msgstr "이의 제기 제출"
+
 #: src/components/ReportDialog.tsx:231
 msgid "Submit report"
 msgstr "신고하기"
@@ -3618,19 +3828,23 @@ msgstr "LLM 요약"
 msgid "Summary for the remote instance"
 msgstr "원격 인스턴스용 요약"
 
+#: src/components/admin/AppealResolveForm.tsx:95
 #: src/components/admin/ModerationActionForm.tsx:115
 msgid "Suspend"
 msgstr "정지"
 
 #: src/routes/(root)/admin/moderation/[id].tsx:143
 #: src/routes/(root)/admin/moderation/[id].tsx:234
+#: src/routes/(root)/admin/moderation/appeals.tsx:125
 msgid "Suspended"
 msgstr "정지됨"
 
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:195
 #: src/routes/(root)/admin/moderation/[id].tsx:391
 msgid "Suspension ends"
 msgstr "정지 종료"
 
+#: src/components/admin/AppealResolveForm.tsx:288
 #: src/components/admin/ModerationActionForm.tsx:291
 msgid "Suspension length"
 msgstr "정지 기간"
@@ -3664,6 +3878,10 @@ msgstr "이 콘텐츠를 신고하는 이유를 모더레이션 팀에게 알려
 msgid "Tell the moderation team why you are reporting this user. You don't need to know the specific code of conduct provisions; describe what felt uncomfortable or problematic in your own words."
 msgstr "이 사용자를 신고하는 이유를 모더레이션 팀에게 알려 주세요. 행동 강령의 구체적인 조항을 알 필요는 없습니다. 불편하거나 문제라고 느낀 점을 자유롭게 적어 주세요."
 
+#: src/components/AppealDialog.tsx:133
+msgid "Tell the moderation team why you believe this decision is unjust. You can appeal once, within 14 days of the decision."
+msgstr "이 결정이 부당하다고 생각하는 이유를 모더레이션 팀에게 알려 주세요. 결정일로부터 14일 이내에 한 번 이의를 제기할 수 있습니다."
+
 #: src/routes/(root)/sign/up/[token].tsx:414
 msgid "Tell us about yourself…"
 msgstr "당신에 대해서 이야기 해주세요…"
@@ -3683,6 +3901,14 @@ msgstr "올바른 릴레이 액터 URL이 아닙니다."
 #: src/routes/(root)/admin/news.tsx:346
 msgid "That is not a valid URL pattern."
 msgstr "올바른 URL 패턴이 아닙니다."
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:208
+msgid "The appeal window has closed."
+msgstr "이의 제기 기간이 종료되었습니다."
+
+#: src/components/admin/AppealResolveForm.tsx:174
+msgid "The appellant has been notified."
+msgstr "이의 제기자에게 통지되었습니다."
 
 #: src/routes/(root)/admin/moderation/[id].tsx:466
 msgid "The automated analysis was unavailable for this report."
@@ -3750,6 +3976,10 @@ msgstr "초대 링크가 성공적으로 삭제되었습니다."
 msgid "The link to this story is added to your post automatically."
 msgstr "이 이야기의 링크가 콘텐츠에 자동으로 추가됩니다."
 
+#: src/components/AppealDialog.tsx:103
+msgid "The moderation team will review your appeal and notify you."
+msgstr "모더레이션 팀이 이의 제기를 검토하고 회원님에게 통지할 예정입니다."
+
 #: src/components/NotFoundPage.tsx:45
 msgid "The page you're looking for doesn't exist or has been moved."
 msgstr "찾으시는 페이지가 존재하지 않거나 이동되었습니다."
@@ -3766,6 +3996,7 @@ msgstr "게시글의 주요 언어로, 접근성 및 검색에 활용됩니다."
 msgid "The quoting post will no longer include your post as a quote."
 msgstr "인용한 콘텐츠에서 회원님의 콘텐츠가 더 이상 인용으로 포함되지 않습니다."
 
+#: src/components/AppealDialog.tsx:158
 #: src/components/ReportDialog.tsx:194
 msgid "The reason is too long (maximum {MAX_REASON_LENGTH} characters)."
 msgstr "신고 사유가 너무 깁니다 (최대 {MAX_REASON_LENGTH}자)."
@@ -3796,6 +4027,10 @@ msgstr "링크의 URL. 예: https://github.com/yourhandle."
 #: src/components/WebPushPromptBanner.tsx:95
 msgid "The Web Push public key is invalid."
 msgstr "Web Push 공개 키가 올바르지 않습니다."
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:149
+msgid "There are no moderation actions on your account."
+msgstr "회원님의 계정에 대한 모더레이션 조치가 없습니다."
 
 #: src/routes/(root)/tree/index.tsx:124
 msgid "This account is hidden because they want to keep their identity private."
@@ -3849,7 +4084,9 @@ msgstr "이 초대 링크를 찾을 수 없습니다."
 msgid "This is a remote actor with no local notification or appeal. A warning is only recorded, censoring hides the locally cached post, and a suspension or ban applies a temporary or permanent federation block. A summary may be forwarded to their instance if a reporter opted in."
 msgstr "로컬 통지나 이의 제기가 없는 원격 액터입니다. 경고는 기록만 되고, 검열은 로컬에 캐시된 콘텐츠를 숨기며, 정지나 영구 정지는 일시적 또는 영구적 연합 차단을 적용합니다. 신고자가 동의한 경우 해당 인스턴스로 요약이 전달될 수 있습니다."
 
-#: src/routes/(root)/admin/moderation/[id].tsx:418
+#: src/components/AppealDialog.tsx:176
+msgid "This is too long (maximum {MAX_REASON_LENGTH} characters)."
+msgstr "너무 깁니다 (최대 {MAX_REASON_LENGTH}자)."
 
 #: src/components/QuoteTargetPlaceholder.tsx:36
 msgid "This post quoted another post, but the quote is not currently authorized."
@@ -4131,6 +4368,7 @@ msgstr "댓글 보기"
 msgid "View shares"
 msgstr "공유 보기"
 
+#: src/components/admin/AppealResolveForm.tsx:255
 #: src/components/admin/ModerationActionForm.tsx:255
 msgid "Violated provisions"
 msgstr "위반 조항"
@@ -4175,9 +4413,12 @@ msgstr "투표함"
 msgid "Voting…"
 msgstr "투표 중…"
 
+#: src/components/admin/AppealResolveForm.tsx:93
 #: src/components/admin/ModerationActionForm.tsx:113
 #: src/components/NoteComposer.tsx:737
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:91
 #: src/routes/(root)/admin/moderation/[id].tsx:139
+#: src/routes/(root)/admin/moderation/appeals.tsx:121
 msgid "Warning"
 msgstr "경고"
 
@@ -4224,6 +4465,18 @@ msgstr "활성화하면 내 계정이 초대 족보에 익명으로 표시되고
 #: src/routes/(root)/[handle]/[noteId]/edit.tsx:304
 #~ msgid "Who can quote this note"
 #~ msgstr "이 단문의 인용 허용 범위"
+
+#: src/components/AppealDialog.tsx:145
+msgid "Why is this decision unjust?"
+msgstr "이 결정이 왜 부당한가요?"
+
+#: src/components/admin/AppealResolveForm.tsx:83
+msgid "Withdraw decision"
+msgstr "결정 철회"
+
+#: src/routes/(root)/admin/moderation/appeals.tsx:138
+msgid "Withdrawn"
+msgstr "철회됨"
 
 #: src/components/AppSidebar.tsx:303
 msgid "Without shares"
@@ -4334,6 +4587,10 @@ msgstr "제출한 신고가 없습니다."
 msgid "You haven't muted anyone."
 msgstr "뮤트한 계정이 없습니다."
 
+#: src/components/AppealDialog.tsx:113
+msgid "You may have already appealed, or the appeal window has closed."
+msgstr "이미 이의를 제기했거나 이의 제기 기간이 종료되었을 수 있습니다."
+
 #: src/components/FollowButton.tsx:131
 #: src/components/FollowButton.tsx:149
 #: src/components/HashtagActionBar.tsx:148
@@ -4375,6 +4632,10 @@ msgstr "초고로 저장하려면 로그인해야 합니다"
 #: src/components/RefreshFromOriginItem.tsx:74
 msgid "You must be signed in."
 msgstr "로그인이 필요합니다."
+
+#: src/routes/(root)/admin/moderation/appeals.tsx:277
+msgid "You took the original action. Consider letting another moderator review this appeal."
+msgstr "회원님이 원래 조치를 취했습니다. 다른 모더레이터가 이 이의 제기를 검토하도록 하는 것을 고려해 주세요."
 
 #: src/routes/(root)/sign/up/[token].tsx:433
 msgid "You were invited by"

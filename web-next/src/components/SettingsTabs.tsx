@@ -13,7 +13,8 @@ export type SettingsTab =
   | "invite"
   | "passkeys"
   | "blocks"
-  | "reports";
+  | "reports"
+  | "sanctions";
 
 export interface SettingsTabsProps {
   selected: SettingsTab;
@@ -92,6 +93,14 @@ export function SettingsTabs(props: SettingsTabsProps) {
                 class="shrink-0"
               >
                 {t`Reports`}
+              </TabsTrigger>
+              <TabsTrigger
+                as={A}
+                value="sanctions"
+                href={`/@${account.username}/settings/sanctions`}
+                class="shrink-0"
+              >
+                {t`Sanctions`}
               </TabsTrigger>
             </TabsList>
           </div>

@@ -340,11 +340,12 @@ msgstr "{count, plural, other {議論のコンテンツ #件}}"
 #~ msgid "{count, plural, one {# share} other {# shares}}"
 #~ msgstr "{count, plural, one {共有 #件} other {共有 #件}}"
 
+#: src/components/admin/AppealResolveForm.tsx:300
 #: src/components/admin/ModerationActionForm.tsx:302
 msgid "{days} days"
 msgstr "{days}日間"
 
-#: src/routes/(root)/admin/moderation/index.tsx:169
+#: src/routes/(root)/admin/moderation/index.tsx:171
 msgid "{HIGH_PRIORITY_REPORT_COUNT}+ reports"
 msgstr "通報 {HIGH_PRIORITY_REPORT_COUNT}件以上"
 
@@ -353,6 +354,7 @@ msgstr "通報 {HIGH_PRIORITY_REPORT_COUNT}件以上"
 #~ msgid "+{0} more reactor(s) not shown"
 #~ msgstr "+{0}件のリアクションは表示されていません"
 
+#: src/components/admin/AppealResolveForm.tsx:301
 #: src/components/admin/ModerationActionForm.tsx:303
 #: src/components/NoteComposer.tsx:1651
 msgid "1 day"
@@ -387,8 +389,13 @@ msgstr "モデレーターが行動規範違反のためこのアカウントを
 msgid "A name for the link that will be displayed on your profile, e.g., GitHub."
 msgstr "プロフィールに表示されるリンクの名前。（例：GitHub）"
 
+#: src/components/admin/AppealResolveForm.tsx:318
 #: src/components/admin/ModerationActionForm.tsx:320
 msgid "A rationale is required."
+msgstr "理由の入力が必要です。"
+
+#: src/components/AppealDialog.tsx:153
+msgid "A reason is required."
 msgstr "理由の入力が必要です。"
 
 #: src/routes/(root)/admin/relay.tsx:260
@@ -398,6 +405,10 @@ msgstr "リレーはフォローを承認して初めてコンテンツの転送
 #: src/components/admin/ModerationActionForm.tsx:342
 msgid "A reporter opted in to forwarding, so this is sent to the remote instance. Never include the reporter's wording."
 msgstr "通報者が転送に同意したため、リモートインスタンスに送信されます。通報者の表現は絶対に含めないでください。"
+
+#: src/components/admin/AppealResolveForm.tsx:335
+msgid "A review rationale is required."
+msgstr "審査理由の入力が必要です。"
 
 #: src/routes/(root)/sign/index.tsx:218
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
@@ -419,6 +430,14 @@ msgstr "アカウント"
 #: src/routes/(root)/admin/news.tsx:692
 msgid "Account handle"
 msgstr "アカウントのハンドル"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:97
+msgid "Account permanently suspended"
+msgstr "アカウントを永久停止"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:95
+msgid "Account suspended"
+msgstr "アカウント停止"
 
 #: src/components/AdminTabs.tsx:26
 #: src/routes/(root)/admin/index.tsx:97
@@ -471,12 +490,17 @@ msgstr "サイドバーに追加"
 msgid "Adding…"
 msgstr "追加中…"
 
+#: src/components/AppealDialog.tsx:168
+msgid "Additional context (optional)"
+msgstr "補足説明（任意）"
+
 #: src/components/AppSidebar.tsx:690
 msgid "Admin"
 msgstr "管理"
 
 #: src/routes/(root)/[handle]/bookmarks.tsx:136
-#: src/routes/(root)/admin/moderation/index.tsx:122
+#: src/routes/(root)/admin/moderation/appeals.tsx:157
+#: src/routes/(root)/admin/moderation/index.tsx:123
 msgid "All"
 msgstr "すべて"
 
@@ -564,6 +588,60 @@ msgstr "予期しないエラーが発生しました。後でもう一度お試
 #: src/components/QuotePolicySelect.tsx:29
 msgid "Anyone can quote"
 msgstr "誰でも引用できます"
+
+#: src/components/AppealDialog.tsx:172
+msgid "Anything you believe was not considered."
+msgstr "考慮されなかったと思う点があれば記入してください。"
+
+#: src/routes/(root)/admin/moderation/appeals.tsx:253
+msgid "Appeal"
+msgstr "異議申し立て"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:119
+msgid "Appeal denied: the decision stands"
+msgstr "異議を却下：元の決定を維持"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:109
+msgid "Appeal pending"
+msgstr "異議申し立て待機中"
+
+#: src/components/admin/AppealResolveForm.tsx:173
+msgid "Appeal resolved"
+msgstr "異議申し立てを処理しました"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:117
+msgid "Appeal reviewed: the sanction was increased"
+msgstr "異議を審査：制裁が強化されました"
+
+#: src/components/AppealDialog.tsx:101
+msgid "Appeal submitted"
+msgstr "異議申し立てを受け付けました"
+
+#: src/components/AppealDialog.tsx:131
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:218
+msgid "Appeal this decision"
+msgstr "この決定に異議を申し立てる"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:108
+msgid "Appeal under review"
+msgstr "異議申し立て審査中"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:113
+msgid "Appeal upheld: the decision was withdrawn"
+msgstr "異議を認容：決定が撤回されました"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:115
+msgid "Appeal upheld: the sanction was reduced"
+msgstr "異議を認容：制裁が軽減されました"
+
+#: src/routes/(root)/admin/moderation/appeals.tsx:236
+msgid "Appealed decision"
+msgstr "異議の対象となった決定"
+
+#: src/components/admin/ModerationSubTabs.tsx:32
+#: src/routes/(root)/admin/moderation/appeals.tsx:174
+msgid "Appeals"
+msgstr "異議申し立て"
 
 #. placeholder {0}: displayName()
 #. placeholder {1}: actor()?.handle
@@ -666,11 +744,13 @@ msgstr "アイコン"
 msgid "Back to cases"
 msgstr "ケース一覧へ戻る"
 
+#: src/components/admin/AppealResolveForm.tsx:96
 #: src/components/admin/ModerationActionForm.tsx:116
 msgid "Ban"
 msgstr "永久停止"
 
 #: src/routes/(root)/admin/moderation/[id].tsx:145
+#: src/routes/(root)/admin/moderation/appeals.tsx:127
 msgid "Banned"
 msgstr "永久停止済み"
 
@@ -760,6 +840,7 @@ msgstr "通報者 {0}"
 msgid "By {0}"
 msgstr "{0}さんによる記事"
 
+#: src/components/AppealDialog.tsx:187
 #: src/components/article-composer/ArticleComposerActions.tsx:48
 #: src/components/NoteComposer.tsx:1794
 #: src/components/NoteComposer.tsx:1795
@@ -785,6 +866,11 @@ msgstr "キャンセル"
 msgid "Cannot change the language because translations already exist"
 msgstr "翻訳が既に存在するため、言語を変更できません"
 
+#: src/components/admin/ModerationSubTabs.tsx:24
+msgid "Cases"
+msgstr "ケース"
+
+#: src/components/admin/AppealResolveForm.tsx:94
 #: src/components/admin/ModerationActionForm.tsx:114
 msgid "Censor post"
 msgstr "コンテンツを検閲"
@@ -813,9 +899,17 @@ msgstr "確認中…"
 msgid "Choose a decision."
 msgstr "対応を選択してください。"
 
+#: src/components/admin/AppealResolveForm.tsx:222
+msgid "Choose an outcome."
+msgstr "結果を選択してください。"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:401
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "招待する友達の使用言語を選択してください。この言語は招待状にのみ使用されます。"
+
+#: src/components/admin/AppealResolveForm.tsx:250
+msgid "Choose the replacement sanction."
+msgstr "代替制裁を選択してください。"
 
 #: src/components/WebPushNotificationSettings.tsx:444
 msgid "Choose whether push notifications may include post excerpts. Generic notification text is used when previews are hidden."
@@ -856,6 +950,11 @@ msgstr "コード"
 #: src/routes/(root)/sign/up/[token].tsx:458
 msgid "Code of conduct"
 msgstr "行動規範"
+
+#. placeholder {0}: sanction .violatedProvisions.join(", ")
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:177
+msgid "Code of conduct: {0}"
+msgstr "行動規範：{0}"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:603
 #~ msgid "Comments ({0})"
@@ -922,9 +1021,20 @@ msgstr "この項目を配信元から再取得できませんでした。"
 msgid "Could not resolve that as a remote object."
 msgstr "リモートオブジェクトとして解決できませんでした。"
 
+#: src/components/admin/AppealResolveForm.tsx:181
+#: src/components/admin/AppealResolveForm.tsx:188
+#: src/components/admin/AppealResolveForm.tsx:195
+msgid "Could not resolve the appeal"
+msgstr "異議申し立てを処理できませんでした"
+
 #: src/components/QuotedNoteCard.tsx:340
 msgid "Could not revoke quote"
 msgstr "引用を取り消せませんでした"
+
+#: src/components/AppealDialog.tsx:111
+#: src/components/AppealDialog.tsx:120
+msgid "Could not submit the appeal"
+msgstr "異議申し立てを送信できませんでした"
 
 #: src/components/QuestionCard.tsx:433
 msgid "Could not vote on this poll"
@@ -1002,6 +1112,10 @@ msgstr "対応"
 msgid "Decisions"
 msgstr "対応履歴"
 
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:141
+msgid "Decisions the moderation team has made about your account or posts, newest first. You can appeal a decision once, within 14 days."
+msgstr "モデレーションチームがあなたのアカウントやコンテンツについて下した決定を新しい順に表示します。各決定には14日以内に1回異議を申し立てることができます。"
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:193
 msgid "Default note privacy"
 msgstr "投稿のデフォルト公開範囲"
@@ -1049,6 +1163,14 @@ msgstr "降格"
 msgid "Demoted"
 msgstr "降格済み"
 
+#: src/routes/(root)/admin/moderation/appeals.tsx:136
+msgid "Denied"
+msgstr "却下"
+
+#: src/components/admin/AppealResolveForm.tsx:82
+msgid "Deny (uphold decision)"
+msgstr "却下（決定を維持）"
+
 #: src/components/WebPushNotificationSettings.tsx:431
 msgid "Disable"
 msgstr "無効化"
@@ -1082,7 +1204,8 @@ msgstr "閉じる"
 #: src/components/admin/ModerationCaseList.tsx:106
 #: src/components/ReportHistoryList.tsx:96
 #: src/routes/(root)/admin/moderation/[id].tsx:137
-#: src/routes/(root)/admin/moderation/index.tsx:126
+#: src/routes/(root)/admin/moderation/appeals.tsx:119
+#: src/routes/(root)/admin/moderation/index.tsx:127
 msgid "Dismissed"
 msgstr "却下"
 
@@ -1248,6 +1371,14 @@ msgstr "{0}に期限切れ"
 #: src/routes/(root)/[handle]/settings/invite.tsx:825
 msgid "Expiry"
 msgstr "有効期限"
+
+#: src/components/AppealDialog.tsx:148
+msgid "Explain in your own words."
+msgstr "あなた自身の言葉で説明してください。"
+
+#: src/components/admin/AppealResolveForm.tsx:331
+msgid "Explain the outcome under the moderation team's identity."
+msgstr "モデレーションチーム名義で結果を説明してください。"
 
 #: src/routes/(root)/admin/moderation/[id].tsx:284
 msgid "External"
@@ -1746,6 +1877,10 @@ msgstr "Hackers' Pubは、ソフトウェアエンジニアが知識と経験を
 msgid "Hackers' Pub: Admin · Accounts"
 msgstr "Hackers' Pub：管理 · アカウント"
 
+#: src/routes/(root)/admin/moderation/appeals.tsx:164
+msgid "Hackers' Pub: Admin · Appeals"
+msgstr "Hackers' Pub: 管理 · 異議申し立て"
+
 #: src/routes/(root)/admin/invitations.tsx:136
 msgid "Hackers' Pub: Admin · Invitations"
 msgstr "Hackers' Pub：管理 · 招待"
@@ -1754,7 +1889,7 @@ msgstr "Hackers' Pub：管理 · 招待"
 msgid "Hackers' Pub: Admin · Media"
 msgstr "Hackers' Pub：管理 · メディア"
 
-#: src/routes/(root)/admin/moderation/index.tsx:131
+#: src/routes/(root)/admin/moderation/index.tsx:132
 msgid "Hackers' Pub: Admin · Moderation"
 msgstr "Hackers' Pub: 管理 · モデレーション"
 
@@ -1866,6 +2001,14 @@ msgstr "画像"
 msgid "Image preview"
 msgstr "画像プレビュー"
 
+#: src/components/admin/AppealResolveForm.tsx:85
+msgid "Increase sanction"
+msgstr "制裁を強化"
+
+#: src/routes/(root)/admin/moderation/appeals.tsx:142
+msgid "Increased"
+msgstr "強化"
+
 #: src/components/ProfileTabs.tsx:87
 msgid "Interactions"
 msgstr "やり取り"
@@ -1937,7 +2080,7 @@ msgid "Invitations left"
 msgstr "残り招待数"
 
 #: src/components/AppSidebar.tsx:649
-#: src/components/SettingsTabs.tsx:70
+#: src/components/SettingsTabs.tsx:71
 #: src/routes/(root)/[handle]/settings/invite.tsx:310
 msgid "Invite"
 msgstr "招待"
@@ -2000,7 +2143,7 @@ msgstr "言語コード"
 msgid "Language settings"
 msgstr "言語設定"
 
-#: src/components/SettingsTabs.tsx:62
+#: src/components/SettingsTabs.tsx:63
 msgid "Languages"
 msgstr "言語"
 
@@ -2302,7 +2445,11 @@ msgstr "管理"
 msgid "Moderation"
 msgstr "モデレーション"
 
-#: src/routes/(root)/admin/moderation/index.tsx:140
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:139
+msgid "Moderation actions"
+msgstr "モデレーション対応"
+
+#: src/routes/(root)/admin/moderation/index.tsx:142
 msgid "Moderation cases"
 msgstr "モデレーションケース"
 
@@ -2348,7 +2495,7 @@ msgstr "ミュートしたアカウント"
 msgid "Muted accounts are hidden from your feeds and stop notifying you, except for replies and mentions from accounts you follow. You can still visit their profiles, and muting is private and never federated."
 msgstr "ミュートしたアカウントはタイムラインに表示されず、通知も届きません。ただし、フォローしているアカウントからの返信やメンションは通知されます。プロフィールは引き続き閲覧でき、ミュートは非公開で連合されることはありません。"
 
-#: src/components/SettingsTabs.tsx:86
+#: src/components/SettingsTabs.tsx:87
 msgid "Mutes & blocks"
 msgstr "ミュートとブロック"
 
@@ -2426,6 +2573,10 @@ msgstr "次の画像"
 #: src/routes/(root)/admin/news.tsx:464
 msgid "No actor found for that handle."
 msgstr "そのハンドルのアカウントが見つかりません。"
+
+#: src/routes/(root)/admin/moderation/appeals.tsx:196
+msgid "No appeals match these filters."
+msgstr "条件に一致する異議申し立てはありません。"
 
 #: src/components/Bookmarks.tsx:131
 msgid "No bookmarks yet"
@@ -2687,6 +2838,10 @@ msgstr "またはメールのコードを入力してください"
 msgid "Other languages"
 msgstr "他の言語"
 
+#: src/components/admin/AppealResolveForm.tsx:205
+msgid "Outcome"
+msgstr "結果"
+
 #: src/components/NotFoundPage.tsx:42
 msgid "Page not found"
 msgstr "ページが見つかりません"
@@ -2707,7 +2862,7 @@ msgstr "パスキーの登録に成功しました"
 msgid "Passkey revoked"
 msgstr "パスキーを取り消しました"
 
-#: src/components/SettingsTabs.tsx:78
+#: src/components/SettingsTabs.tsx:79
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:356
 msgid "Passkeys"
 msgstr "パスキー"
@@ -2721,7 +2876,9 @@ msgid "Penalty cleared."
 msgstr "ペナルティを解除しました。"
 
 #: src/components/admin/ModerationCaseList.tsx:100
-#: src/routes/(root)/admin/moderation/index.tsx:123
+#: src/routes/(root)/admin/moderation/appeals.tsx:158
+#: src/routes/(root)/admin/moderation/appeals.tsx:224
+#: src/routes/(root)/admin/moderation/index.tsx:124
 #: src/routes/(root)/admin/relay.tsx:304
 msgid "Pending"
 msgstr "保留中"
@@ -2753,6 +2910,7 @@ msgstr "プロフィールに固定"
 msgid "Pinned posts"
 msgstr "固定されたコンテンツ"
 
+#: src/components/admin/AppealResolveForm.tsx:182
 #: src/components/admin/ModerationActionForm.tsx:207
 msgid "Please check the form and try again."
 msgstr "フォームを確認してもう一度お試しください。"
@@ -2835,12 +2993,17 @@ msgid "Post by {0}"
 msgstr "{0}さんのコンテンツ"
 
 #: src/routes/(root)/admin/moderation/[id].tsx:141
+#: src/routes/(root)/admin/moderation/appeals.tsx:123
 msgid "Post censored"
 msgstr "コンテンツ検閲済み"
 
 #: src/components/PostActionMenu.tsx:321
 msgid "Post deleted"
 msgstr "コンテンツを削除しました"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:93
+msgid "Post hidden"
+msgstr "コンテンツ非表示"
 
 #: src/components/PostActionMenu.tsx:287
 msgid "Post pinned"
@@ -2859,7 +3022,7 @@ msgstr "コンテンツ"
 msgid "Prefer AI-generated summary"
 msgstr "AI生成の要約を優先"
 
-#: src/components/SettingsTabs.tsx:54
+#: src/components/SettingsTabs.tsx:55
 #: src/routes/(root)/[handle]/settings/preferences.tsx:170
 #: src/routes/(root)/[handle]/settings/preferences.tsx:171
 msgid "Preferences"
@@ -2908,7 +3071,7 @@ msgstr "優先度"
 msgid "Privacy policy"
 msgstr "プライバシーポリシー"
 
-#: src/components/SettingsTabs.tsx:46
+#: src/components/SettingsTabs.tsx:47
 msgid "Profile"
 msgstr "プロフィール"
 
@@ -3070,6 +3233,14 @@ msgstr "対応を記録"
 msgid "Recorded for the audit trail; not shown to the user."
 msgstr "監査記録用に保存され、ユーザーには表示されません。"
 
+#: src/components/admin/AppealResolveForm.tsx:84
+msgid "Reduce sanction"
+msgstr "制裁を軽減"
+
+#: src/routes/(root)/admin/moderation/appeals.tsx:140
+msgid "Reduced"
+msgstr "軽減"
+
 #: src/components/AdminTabs.tsx:66
 #: src/routes/(root)/admin/refresh.tsx:198
 msgid "Refresh"
@@ -3211,6 +3382,14 @@ msgstr "作成から十分な時間が経過し、アイコン、投稿、記事
 msgid "Rendering…"
 msgstr "レンダリング中…"
 
+#: src/components/admin/AppealResolveForm.tsx:314
+msgid "Replacement rationale"
+msgstr "代替理由"
+
+#: src/components/admin/AppealResolveForm.tsx:230
+msgid "Replacement sanction"
+msgstr "代替制裁"
+
 #: src/components/NoteComposeModal.tsx:76
 #: src/components/PostEngagementBar.tsx:339
 msgid "Reply"
@@ -3232,6 +3411,10 @@ msgstr "通報"
 #: src/components/ReportDialog.tsx:153
 msgid "Report {0}"
 msgstr "{0}を通報"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:99
+msgid "Report dismissed"
+msgstr "通報を却下"
 
 #: src/routes/(root)/[handle]/settings/reports.tsx:74
 #: src/routes/(root)/[handle]/settings/reports.tsx:81
@@ -3261,7 +3444,7 @@ msgstr "{0}を通報しました"
 msgid "Reported a post by {0}"
 msgstr "{0}さんのコンテンツを通報しました"
 
-#: src/components/SettingsTabs.tsx:94
+#: src/components/SettingsTabs.tsx:95
 msgid "Reports"
 msgstr "通報履歴"
 
@@ -3269,9 +3452,14 @@ msgstr "通報履歴"
 msgid "Reports you have filed, newest first. You can see the target, your reason, and the current status. Detailed outcomes are not shown, and the reported user never learns who reported them."
 msgstr "あなたが提出した通報を新しい順に表示します。通報の対象、記入した理由、現在の状態を確認できます。詳しい処理結果は表示されず、通報されたユーザーが誰の通報かを知ることは決してありません。"
 
+#: src/components/admin/AppealResolveForm.tsx:342
+msgid "Resolve appeal"
+msgstr "異議を処理"
+
 #: src/components/admin/ModerationCaseList.tsx:104
 #: src/components/ReportHistoryList.tsx:94
-#: src/routes/(root)/admin/moderation/index.tsx:125
+#: src/routes/(root)/admin/moderation/appeals.tsx:159
+#: src/routes/(root)/admin/moderation/index.tsx:126
 msgid "Resolved"
 msgstr "対応済み"
 
@@ -3279,8 +3467,16 @@ msgstr "対応済み"
 msgid "Return to old UI"
 msgstr "旧UIに戻る"
 
+#: src/routes/(root)/admin/moderation/appeals.tsx:289
+msgid "Review outcome"
+msgstr "審査結果"
+
+#: src/components/admin/AppealResolveForm.tsx:327
+msgid "Review rationale (shown to the appellant)"
+msgstr "審査理由（申立人に表示）"
+
 #: src/components/admin/ModerationCaseList.tsx:102
-#: src/routes/(root)/admin/moderation/index.tsx:124
+#: src/routes/(root)/admin/moderation/index.tsx:125
 msgid "Reviewing"
 msgstr "審査中"
 
@@ -3301,6 +3497,11 @@ msgstr "引用を取り消す"
 #: src/components/QuotedNoteCard.tsx:310
 msgid "Revoke this quote?"
 msgstr "この引用を取り消しますか？"
+
+#: src/components/SettingsTabs.tsx:103
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:133
+msgid "Sanctions"
+msgstr "制裁"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:536
 #: src/routes/(root)/[handle]/settings/language.tsx:201
@@ -3334,7 +3535,7 @@ msgstr "保存中…"
 #: src/components/AppSidebar.tsx:391
 #: src/components/SearchForm.tsx:65
 #: src/components/SearchForm.tsx:80
-#: src/routes/(root)/admin/moderation/index.tsx:190
+#: src/routes/(root)/admin/moderation/index.tsx:192
 msgid "Search"
 msgstr "検索"
 
@@ -3342,7 +3543,7 @@ msgstr "検索"
 msgid "Search a language…"
 msgstr "言語を検索…"
 
-#: src/routes/(root)/admin/moderation/index.tsx:185
+#: src/routes/(root)/admin/moderation/index.tsx:187
 msgid "Search by handle or display name"
 msgstr "ハンドルまたは表示名で検索"
 
@@ -3367,6 +3568,7 @@ msgstr "検索中…"
 msgid "Select an option"
 msgstr "選択肢を選んでください"
 
+#: src/components/admin/AppealResolveForm.tsx:281
 #: src/components/admin/ModerationActionForm.tsx:282
 msgid "Select at least one violated provision."
 msgstr "違反した条項を1つ以上選択してください。"
@@ -3465,6 +3667,10 @@ msgstr "共有コンテンツをもっと表示"
 msgid "Show sensitive content"
 msgstr "センシティブなコンテンツを表示"
 
+#: src/routes/(root)/admin/moderation/appeals.tsx:313
+msgid "Showing the 50 most recent appeals. Resolve some to see older ones."
+msgstr "最新の異議申し立て50件を表示しています。いくつか処理すると古いものが表示されます。"
+
 #: src/components/admin/ModerationActionForm.tsx:330
 msgid "Shown to the reported user under the moderation team's identity."
 msgstr "モデレーションチーム名義で通報されたユーザーに表示されます。"
@@ -3558,6 +3764,10 @@ msgstr "問題が発生しました。再度お試しください。"
 msgid "Strong"
 msgstr "強"
 
+#: src/components/AppealDialog.tsx:190
+msgid "Submit appeal"
+msgstr "異議を申し立てる"
+
 #: src/components/ReportDialog.tsx:231
 msgid "Submit report"
 msgstr "通報する"
@@ -3618,19 +3828,23 @@ msgstr "LLMによる要約"
 msgid "Summary for the remote instance"
 msgstr "リモートインスタンス向けの要約"
 
+#: src/components/admin/AppealResolveForm.tsx:95
 #: src/components/admin/ModerationActionForm.tsx:115
 msgid "Suspend"
 msgstr "停止"
 
 #: src/routes/(root)/admin/moderation/[id].tsx:143
 #: src/routes/(root)/admin/moderation/[id].tsx:234
+#: src/routes/(root)/admin/moderation/appeals.tsx:125
 msgid "Suspended"
 msgstr "停止済み"
 
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:195
 #: src/routes/(root)/admin/moderation/[id].tsx:391
 msgid "Suspension ends"
 msgstr "停止終了"
 
+#: src/components/admin/AppealResolveForm.tsx:288
 #: src/components/admin/ModerationActionForm.tsx:291
 msgid "Suspension length"
 msgstr "停止期間"
@@ -3664,6 +3878,10 @@ msgstr "このコンテンツを通報する理由をモデレーションチー
 msgid "Tell the moderation team why you are reporting this user. You don't need to know the specific code of conduct provisions; describe what felt uncomfortable or problematic in your own words."
 msgstr "このユーザーを通報する理由をモデレーションチームにお知らせください。行動規範の具体的な条項を知っている必要はありません。不快または問題だと感じたことを自由にお書きください。"
 
+#: src/components/AppealDialog.tsx:133
+msgid "Tell the moderation team why you believe this decision is unjust. You can appeal once, within 14 days of the decision."
+msgstr "この決定が不当だと思う理由をモデレーションチームに伝えてください。決定から14日以内に1回異議を申し立てることができます。"
+
 #: src/routes/(root)/sign/up/[token].tsx:414
 msgid "Tell us about yourself…"
 msgstr "自己紹介をお聞かせください…"
@@ -3683,6 +3901,14 @@ msgstr "有効なリレーアクターのURLではありません。"
 #: src/routes/(root)/admin/news.tsx:346
 msgid "That is not a valid URL pattern."
 msgstr "有効なURLパターンではありません。"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:208
+msgid "The appeal window has closed."
+msgstr "異議申し立て期間は終了しました。"
+
+#: src/components/admin/AppealResolveForm.tsx:174
+msgid "The appellant has been notified."
+msgstr "申立人に通知しました。"
 
 #: src/routes/(root)/admin/moderation/[id].tsx:466
 msgid "The automated analysis was unavailable for this report."
@@ -3750,6 +3976,10 @@ msgstr "招待リンクが正常に削除されました。"
 msgid "The link to this story is added to your post automatically."
 msgstr "この話題のリンクは自動的にコンテンツに追加されます。"
 
+#: src/components/AppealDialog.tsx:103
+msgid "The moderation team will review your appeal and notify you."
+msgstr "モデレーションチームが異議を審査し、あなたに通知します。"
+
 #: src/components/NotFoundPage.tsx:45
 msgid "The page you're looking for doesn't exist or has been moved."
 msgstr "お探しのページは存在しないか、移動された可能性があります。"
@@ -3766,6 +3996,7 @@ msgstr "記事の主言語です。アクセシビリティや検索に使用さ
 msgid "The quoting post will no longer include your post as a quote."
 msgstr "引用しているコンテンツには、あなたのコンテンツが引用として含まれなくなります。"
 
+#: src/components/AppealDialog.tsx:158
 #: src/components/ReportDialog.tsx:194
 msgid "The reason is too long (maximum {MAX_REASON_LENGTH} characters)."
 msgstr "通報理由が長すぎます（最大{MAX_REASON_LENGTH}文字）。"
@@ -3796,6 +4027,10 @@ msgstr "リンクのURL。（例：https://github.com/yourhandle）"
 #: src/components/WebPushPromptBanner.tsx:95
 msgid "The Web Push public key is invalid."
 msgstr "Web Push の公開鍵が無効です。"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:149
+msgid "There are no moderation actions on your account."
+msgstr "あなたのアカウントに対するモデレーション対応はありません。"
 
 #: src/routes/(root)/tree/index.tsx:124
 msgid "This account is hidden because they want to keep their identity private."
@@ -3849,7 +4084,9 @@ msgstr "この招待リンクが見つかりませんでした。"
 msgid "This is a remote actor with no local notification or appeal. A warning is only recorded, censoring hides the locally cached post, and a suspension or ban applies a temporary or permanent federation block. A summary may be forwarded to their instance if a reporter opted in."
 msgstr "ローカルの通知や異議申し立てがないリモートアクターです。警告は記録のみ、検閲はローカルにキャッシュされたコンテンツを非表示にし、停止または永久停止は一時的または永久的な連合ブロックを適用します。通報者が同意した場合、そのインスタンスに要約が転送されることがあります。"
 
-#: src/routes/(root)/admin/moderation/[id].tsx:418
+#: src/components/AppealDialog.tsx:176
+msgid "This is too long (maximum {MAX_REASON_LENGTH} characters)."
+msgstr "長すぎます（最大{MAX_REASON_LENGTH}文字）。"
 
 #: src/components/QuoteTargetPlaceholder.tsx:36
 msgid "This post quoted another post, but the quote is not currently authorized."
@@ -4131,6 +4368,7 @@ msgstr "返信を見る"
 msgid "View shares"
 msgstr "共有を見る"
 
+#: src/components/admin/AppealResolveForm.tsx:255
 #: src/components/admin/ModerationActionForm.tsx:255
 msgid "Violated provisions"
 msgstr "違反した条項"
@@ -4175,9 +4413,12 @@ msgstr "投票済み"
 msgid "Voting…"
 msgstr "投票中…"
 
+#: src/components/admin/AppealResolveForm.tsx:93
 #: src/components/admin/ModerationActionForm.tsx:113
 #: src/components/NoteComposer.tsx:737
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:91
 #: src/routes/(root)/admin/moderation/[id].tsx:139
+#: src/routes/(root)/admin/moderation/appeals.tsx:121
 msgid "Warning"
 msgstr "警告"
 
@@ -4224,6 +4465,18 @@ msgstr "有効にすると、あなたのアカウントは招待ツリーに匿
 #: src/routes/(root)/[handle]/[noteId]/edit.tsx:304
 #~ msgid "Who can quote this note"
 #~ msgstr "この投稿の引用許可範囲"
+
+#: src/components/AppealDialog.tsx:145
+msgid "Why is this decision unjust?"
+msgstr "この決定はなぜ不当ですか？"
+
+#: src/components/admin/AppealResolveForm.tsx:83
+msgid "Withdraw decision"
+msgstr "決定を撤回"
+
+#: src/routes/(root)/admin/moderation/appeals.tsx:138
+msgid "Withdrawn"
+msgstr "撤回"
 
 #: src/components/AppSidebar.tsx:303
 msgid "Without shares"
@@ -4334,6 +4587,10 @@ msgstr "通報した履歴はありません。"
 msgid "You haven't muted anyone."
 msgstr "ミュートしているアカウントはありません。"
 
+#: src/components/AppealDialog.tsx:113
+msgid "You may have already appealed, or the appeal window has closed."
+msgstr "すでに異議を申し立てたか、異議申し立て期間が終了している可能性があります。"
+
 #: src/components/FollowButton.tsx:131
 #: src/components/FollowButton.tsx:149
 #: src/components/HashtagActionBar.tsx:148
@@ -4375,6 +4632,10 @@ msgstr "下書きを保存するにはログインする必要があります"
 #: src/components/RefreshFromOriginItem.tsx:74
 msgid "You must be signed in."
 msgstr "ログインが必要です。"
+
+#: src/routes/(root)/admin/moderation/appeals.tsx:277
+msgid "You took the original action. Consider letting another moderator review this appeal."
+msgstr "あなたが元の対応を行いました。別のモデレーターにこの異議を審査してもらうことを検討してください。"
 
 #: src/routes/(root)/sign/up/[token].tsx:433
 msgid "You were invited by"

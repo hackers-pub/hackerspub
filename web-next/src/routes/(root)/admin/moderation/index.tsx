@@ -8,6 +8,7 @@ import {
   HIGH_PRIORITY_REPORT_COUNT,
   ModerationCaseList,
 } from "~/components/admin/ModerationCaseList.tsx";
+import { ModerationSubTabs } from "~/components/admin/ModerationSubTabs.tsx";
 import { Title } from "~/components/Title.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { WideContainer } from "~/components/WideContainer.tsx";
@@ -136,6 +137,7 @@ export default function ModerationCasesPage() {
             fallback={<Navigate href="/sign?next=%2Fadmin%2Fmoderation" />}
           >
             <AdminTabs selected="moderation" />
+            <ModerationSubTabs selected="cases" />
             <h1 class="mb-4 mt-4 text-2xl font-semibold tracking-tight">
               {t`Moderation cases`}
             </h1>

@@ -340,11 +340,12 @@ msgstr "{count, plural, other {# 条讨论内容}}"
 #~ msgid "{count, plural, one {# share} other {# shares}}"
 #~ msgstr "{count, plural, one {# 次转帖} other {# 次转帖}}"
 
+#: src/components/admin/AppealResolveForm.tsx:300
 #: src/components/admin/ModerationActionForm.tsx:302
 msgid "{days} days"
 msgstr "{days} 天"
 
-#: src/routes/(root)/admin/moderation/index.tsx:169
+#: src/routes/(root)/admin/moderation/index.tsx:171
 msgid "{HIGH_PRIORITY_REPORT_COUNT}+ reports"
 msgstr "{HIGH_PRIORITY_REPORT_COUNT} 条及以上举报"
 
@@ -353,6 +354,7 @@ msgstr "{HIGH_PRIORITY_REPORT_COUNT} 条及以上举报"
 #~ msgid "+{0} more reactor(s) not shown"
 #~ msgstr "+{0} 个未显示"
 
+#: src/components/admin/AppealResolveForm.tsx:301
 #: src/components/admin/ModerationActionForm.tsx:303
 #: src/components/NoteComposer.tsx:1651
 msgid "1 day"
@@ -387,8 +389,13 @@ msgstr "版主因违反行为准则封停了此账户。"
 msgid "A name for the link that will be displayed on your profile, e.g., GitHub."
 msgstr "为显示在你个人资料页面的链接命名，例如 GitHub。"
 
+#: src/components/admin/AppealResolveForm.tsx:318
 #: src/components/admin/ModerationActionForm.tsx:320
 msgid "A rationale is required."
+msgstr "需要填写理由。"
+
+#: src/components/AppealDialog.tsx:153
+msgid "A reason is required."
 msgstr "需要填写理由。"
 
 #: src/routes/(root)/admin/relay.tsx:260
@@ -398,6 +405,10 @@ msgstr "中继只有在接受关注后才会开始转发内容。在此之前，
 #: src/components/admin/ModerationActionForm.tsx:342
 msgid "A reporter opted in to forwarding, so this is sent to the remote instance. Never include the reporter's wording."
 msgstr "举报人已同意转发，因此会发送给远程实例。切勿包含举报人的原文。"
+
+#: src/components/admin/AppealResolveForm.tsx:335
+msgid "A review rationale is required."
+msgstr "需要填写审核理由。"
 
 #: src/routes/(root)/sign/index.tsx:218
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
@@ -419,6 +430,14 @@ msgstr "账户"
 #: src/routes/(root)/admin/news.tsx:692
 msgid "Account handle"
 msgstr "账户用户名"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:97
+msgid "Account permanently suspended"
+msgstr "账户已永久封停"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:95
+msgid "Account suspended"
+msgstr "账户已封停"
 
 #: src/components/AdminTabs.tsx:26
 #: src/routes/(root)/admin/index.tsx:97
@@ -471,12 +490,17 @@ msgstr "添加到侧边栏"
 msgid "Adding…"
 msgstr "添加中…"
 
+#: src/components/AppealDialog.tsx:168
+msgid "Additional context (optional)"
+msgstr "补充说明（可选）"
+
 #: src/components/AppSidebar.tsx:690
 msgid "Admin"
 msgstr "管理"
 
 #: src/routes/(root)/[handle]/bookmarks.tsx:136
-#: src/routes/(root)/admin/moderation/index.tsx:122
+#: src/routes/(root)/admin/moderation/appeals.tsx:157
+#: src/routes/(root)/admin/moderation/index.tsx:123
 msgid "All"
 msgstr "全部"
 
@@ -564,6 +588,60 @@ msgstr "发生了意外错误。请稍后再试。"
 #: src/components/QuotePolicySelect.tsx:29
 msgid "Anyone can quote"
 msgstr "任何人都可以引用"
+
+#: src/components/AppealDialog.tsx:172
+msgid "Anything you believe was not considered."
+msgstr "你认为未被考虑的任何情况。"
+
+#: src/routes/(root)/admin/moderation/appeals.tsx:253
+msgid "Appeal"
+msgstr "申诉"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:119
+msgid "Appeal denied: the decision stands"
+msgstr "申诉被驳回：维持原决定"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:109
+msgid "Appeal pending"
+msgstr "申诉待处理"
+
+#: src/components/admin/AppealResolveForm.tsx:173
+msgid "Appeal resolved"
+msgstr "申诉已处理"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:117
+msgid "Appeal reviewed: the sanction was increased"
+msgstr "申诉已审核：处罚已加重"
+
+#: src/components/AppealDialog.tsx:101
+msgid "Appeal submitted"
+msgstr "申诉已提交"
+
+#: src/components/AppealDialog.tsx:131
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:218
+msgid "Appeal this decision"
+msgstr "对此决定提出申诉"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:108
+msgid "Appeal under review"
+msgstr "申诉审核中"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:113
+msgid "Appeal upheld: the decision was withdrawn"
+msgstr "申诉成立：决定已撤销"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:115
+msgid "Appeal upheld: the sanction was reduced"
+msgstr "申诉成立：处罚已减轻"
+
+#: src/routes/(root)/admin/moderation/appeals.tsx:236
+msgid "Appealed decision"
+msgstr "被申诉的决定"
+
+#: src/components/admin/ModerationSubTabs.tsx:32
+#: src/routes/(root)/admin/moderation/appeals.tsx:174
+msgid "Appeals"
+msgstr "申诉"
 
 #. placeholder {0}: displayName()
 #. placeholder {1}: actor()?.handle
@@ -666,11 +744,13 @@ msgstr "头像"
 msgid "Back to cases"
 msgstr "返回案例列表"
 
+#: src/components/admin/AppealResolveForm.tsx:96
 #: src/components/admin/ModerationActionForm.tsx:116
 msgid "Ban"
 msgstr "永久封禁"
 
 #: src/routes/(root)/admin/moderation/[id].tsx:145
+#: src/routes/(root)/admin/moderation/appeals.tsx:127
 msgid "Banned"
 msgstr "已永久封禁"
 
@@ -760,6 +840,7 @@ msgstr "举报人 {0}"
 msgid "By {0}"
 msgstr "由 {0} 发布"
 
+#: src/components/AppealDialog.tsx:187
 #: src/components/article-composer/ArticleComposerActions.tsx:48
 #: src/components/NoteComposer.tsx:1794
 #: src/components/NoteComposer.tsx:1795
@@ -785,6 +866,11 @@ msgstr "取消"
 msgid "Cannot change the language because translations already exist"
 msgstr "由于已存在翻译，无法更改语言"
 
+#: src/components/admin/ModerationSubTabs.tsx:24
+msgid "Cases"
+msgstr "案例"
+
+#: src/components/admin/AppealResolveForm.tsx:94
 #: src/components/admin/ModerationActionForm.tsx:114
 msgid "Censor post"
 msgstr "屏蔽内容"
@@ -813,9 +899,17 @@ msgstr "正在检查…"
 msgid "Choose a decision."
 msgstr "请选择处理方式。"
 
+#: src/components/admin/AppealResolveForm.tsx:222
+msgid "Choose an outcome."
+msgstr "请选择处理结果。"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:401
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "选择你的朋友使用的语言。这个语言只会用于邀请。"
+
+#: src/components/admin/AppealResolveForm.tsx:250
+msgid "Choose the replacement sanction."
+msgstr "请选择替代处罚。"
 
 #: src/components/WebPushNotificationSettings.tsx:444
 msgid "Choose whether push notifications may include post excerpts. Generic notification text is used when previews are hidden."
@@ -856,6 +950,11 @@ msgstr "代码"
 #: src/routes/(root)/sign/up/[token].tsx:458
 msgid "Code of conduct"
 msgstr "行为准则"
+
+#. placeholder {0}: sanction .violatedProvisions.join(", ")
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:177
+msgid "Code of conduct: {0}"
+msgstr "行为准则：{0}"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:603
 #~ msgid "Comments ({0})"
@@ -922,9 +1021,20 @@ msgstr "无法从来源刷新此对象。"
 msgid "Could not resolve that as a remote object."
 msgstr "无法将其解析为远程对象。"
 
+#: src/components/admin/AppealResolveForm.tsx:181
+#: src/components/admin/AppealResolveForm.tsx:188
+#: src/components/admin/AppealResolveForm.tsx:195
+msgid "Could not resolve the appeal"
+msgstr "无法处理申诉"
+
 #: src/components/QuotedNoteCard.tsx:340
 msgid "Could not revoke quote"
 msgstr "无法撤销引用"
+
+#: src/components/AppealDialog.tsx:111
+#: src/components/AppealDialog.tsx:120
+msgid "Could not submit the appeal"
+msgstr "无法提交申诉"
 
 #: src/components/QuestionCard.tsx:433
 msgid "Could not vote on this poll"
@@ -1002,6 +1112,10 @@ msgstr "处理方式"
 msgid "Decisions"
 msgstr "处理记录"
 
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:141
+msgid "Decisions the moderation team has made about your account or posts, newest first. You can appeal a decision once, within 14 days."
+msgstr "管理团队对你的账户或内容做出的决定，按时间倒序排列。每个决定可在 14 天内申诉一次。"
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:193
 msgid "Default note privacy"
 msgstr "默认帖子隐私设置"
@@ -1049,6 +1163,14 @@ msgstr "降级"
 msgid "Demoted"
 msgstr "已降级"
 
+#: src/routes/(root)/admin/moderation/appeals.tsx:136
+msgid "Denied"
+msgstr "已驳回"
+
+#: src/components/admin/AppealResolveForm.tsx:82
+msgid "Deny (uphold decision)"
+msgstr "驳回（维持决定）"
+
 #: src/components/WebPushNotificationSettings.tsx:431
 msgid "Disable"
 msgstr "关闭"
@@ -1082,7 +1204,8 @@ msgstr "关闭"
 #: src/components/admin/ModerationCaseList.tsx:106
 #: src/components/ReportHistoryList.tsx:96
 #: src/routes/(root)/admin/moderation/[id].tsx:137
-#: src/routes/(root)/admin/moderation/index.tsx:126
+#: src/routes/(root)/admin/moderation/appeals.tsx:119
+#: src/routes/(root)/admin/moderation/index.tsx:127
 msgid "Dismissed"
 msgstr "已驳回"
 
@@ -1248,6 +1371,14 @@ msgstr "{0}过期"
 #: src/routes/(root)/[handle]/settings/invite.tsx:825
 msgid "Expiry"
 msgstr "到期时间"
+
+#: src/components/AppealDialog.tsx:148
+msgid "Explain in your own words."
+msgstr "用你自己的话说明。"
+
+#: src/components/admin/AppealResolveForm.tsx:331
+msgid "Explain the outcome under the moderation team's identity."
+msgstr "以管理团队名义说明处理结果。"
 
 #: src/routes/(root)/admin/moderation/[id].tsx:284
 msgid "External"
@@ -1746,6 +1877,10 @@ msgstr "Hackers' Pub 是个为软件工程师共同分享知识和经验的地�
 msgid "Hackers' Pub: Admin · Accounts"
 msgstr "Hackers' Pub：管理 · 账号"
 
+#: src/routes/(root)/admin/moderation/appeals.tsx:164
+msgid "Hackers' Pub: Admin · Appeals"
+msgstr "Hackers' Pub: 管理 · 申诉"
+
 #: src/routes/(root)/admin/invitations.tsx:136
 msgid "Hackers' Pub: Admin · Invitations"
 msgstr "Hackers' Pub：管理 · 邀请"
@@ -1754,7 +1889,7 @@ msgstr "Hackers' Pub：管理 · 邀请"
 msgid "Hackers' Pub: Admin · Media"
 msgstr "Hackers' Pub：管理 · 媒体"
 
-#: src/routes/(root)/admin/moderation/index.tsx:131
+#: src/routes/(root)/admin/moderation/index.tsx:132
 msgid "Hackers' Pub: Admin · Moderation"
 msgstr "Hackers' Pub: 管理 · 审核"
 
@@ -1866,6 +2001,14 @@ msgstr "图片"
 msgid "Image preview"
 msgstr "图片预览"
 
+#: src/components/admin/AppealResolveForm.tsx:85
+msgid "Increase sanction"
+msgstr "加重处罚"
+
+#: src/routes/(root)/admin/moderation/appeals.tsx:142
+msgid "Increased"
+msgstr "已加重"
+
 #: src/components/ProfileTabs.tsx:87
 msgid "Interactions"
 msgstr "互动"
@@ -1937,7 +2080,7 @@ msgid "Invitations left"
 msgstr "剩余邀请"
 
 #: src/components/AppSidebar.tsx:649
-#: src/components/SettingsTabs.tsx:70
+#: src/components/SettingsTabs.tsx:71
 #: src/routes/(root)/[handle]/settings/invite.tsx:310
 msgid "Invite"
 msgstr "邀请"
@@ -2000,7 +2143,7 @@ msgstr "语言代码"
 msgid "Language settings"
 msgstr "语言设置"
 
-#: src/components/SettingsTabs.tsx:62
+#: src/components/SettingsTabs.tsx:63
 msgid "Languages"
 msgstr "语言"
 
@@ -2302,7 +2445,11 @@ msgstr "管理"
 msgid "Moderation"
 msgstr "审核"
 
-#: src/routes/(root)/admin/moderation/index.tsx:140
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:139
+msgid "Moderation actions"
+msgstr "审核处理"
+
+#: src/routes/(root)/admin/moderation/index.tsx:142
 msgid "Moderation cases"
 msgstr "审核案例"
 
@@ -2348,7 +2495,7 @@ msgstr "已隐藏的账户"
 msgid "Muted accounts are hidden from your feeds and stop notifying you, except for replies and mentions from accounts you follow. You can still visit their profiles, and muting is private and never federated."
 msgstr "被隐藏的账户不会出现在你的时间线中，也不会通知你，但你关注的账户的回复和提及仍会通知你。你仍可访问其个人资料；隐藏是私密的，且不会进行联邦。"
 
-#: src/components/SettingsTabs.tsx:86
+#: src/components/SettingsTabs.tsx:87
 msgid "Mutes & blocks"
 msgstr "隐藏与屏蔽"
 
@@ -2426,6 +2573,10 @@ msgstr "下一张图片"
 #: src/routes/(root)/admin/news.tsx:464
 msgid "No actor found for that handle."
 msgstr "找不到该用户名对应的账户。"
+
+#: src/routes/(root)/admin/moderation/appeals.tsx:196
+msgid "No appeals match these filters."
+msgstr "没有符合这些筛选条件的申诉。"
 
 #: src/components/Bookmarks.tsx:131
 msgid "No bookmarks yet"
@@ -2687,6 +2838,10 @@ msgstr "或输入邮件中的验证码"
 msgid "Other languages"
 msgstr "其他语言"
 
+#: src/components/admin/AppealResolveForm.tsx:205
+msgid "Outcome"
+msgstr "处理结果"
+
 #: src/components/NotFoundPage.tsx:42
 msgid "Page not found"
 msgstr "页面未找到"
@@ -2707,7 +2862,7 @@ msgstr "通行密钥注册成功"
 msgid "Passkey revoked"
 msgstr "通行密钥已撤销"
 
-#: src/components/SettingsTabs.tsx:78
+#: src/components/SettingsTabs.tsx:79
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:356
 msgid "Passkeys"
 msgstr "通行密钥"
@@ -2721,7 +2876,9 @@ msgid "Penalty cleared."
 msgstr "已清除处罚。"
 
 #: src/components/admin/ModerationCaseList.tsx:100
-#: src/routes/(root)/admin/moderation/index.tsx:123
+#: src/routes/(root)/admin/moderation/appeals.tsx:158
+#: src/routes/(root)/admin/moderation/appeals.tsx:224
+#: src/routes/(root)/admin/moderation/index.tsx:124
 #: src/routes/(root)/admin/relay.tsx:304
 msgid "Pending"
 msgstr "待处理"
@@ -2753,6 +2910,7 @@ msgstr "置顶到个人资料"
 msgid "Pinned posts"
 msgstr "已置顶内容"
 
+#: src/components/admin/AppealResolveForm.tsx:182
 #: src/components/admin/ModerationActionForm.tsx:207
 msgid "Please check the form and try again."
 msgstr "请检查表单后重试。"
@@ -2835,12 +2993,17 @@ msgid "Post by {0}"
 msgstr "{0} 的内容"
 
 #: src/routes/(root)/admin/moderation/[id].tsx:141
+#: src/routes/(root)/admin/moderation/appeals.tsx:123
 msgid "Post censored"
 msgstr "内容已屏蔽"
 
 #: src/components/PostActionMenu.tsx:321
 msgid "Post deleted"
 msgstr "内容已删除"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:93
+msgid "Post hidden"
+msgstr "内容已隐藏"
 
 #: src/components/PostActionMenu.tsx:287
 msgid "Post pinned"
@@ -2859,7 +3022,7 @@ msgstr "内容"
 msgid "Prefer AI-generated summary"
 msgstr "优先使用 AI 生成的摘要"
 
-#: src/components/SettingsTabs.tsx:54
+#: src/components/SettingsTabs.tsx:55
 #: src/routes/(root)/[handle]/settings/preferences.tsx:170
 #: src/routes/(root)/[handle]/settings/preferences.tsx:171
 msgid "Preferences"
@@ -2908,7 +3071,7 @@ msgstr "优先级"
 msgid "Privacy policy"
 msgstr "隐私政策"
 
-#: src/components/SettingsTabs.tsx:46
+#: src/components/SettingsTabs.tsx:47
 msgid "Profile"
 msgstr "个人资料"
 
@@ -3070,6 +3233,14 @@ msgstr "记录处理"
 msgid "Recorded for the audit trail; not shown to the user."
 msgstr "用于审计记录，不会向用户显示。"
 
+#: src/components/admin/AppealResolveForm.tsx:84
+msgid "Reduce sanction"
+msgstr "减轻处罚"
+
+#: src/routes/(root)/admin/moderation/appeals.tsx:140
+msgid "Reduced"
+msgstr "已减轻"
+
 #: src/components/AdminTabs.tsx:66
 #: src/routes/(root)/admin/refresh.tsx:198
 msgid "Refresh"
@@ -3211,6 +3382,14 @@ msgstr "移除已过期且不再附加到头像、帖子、文章草稿或文章
 msgid "Rendering…"
 msgstr "渲染中…"
 
+#: src/components/admin/AppealResolveForm.tsx:314
+msgid "Replacement rationale"
+msgstr "替代理由"
+
+#: src/components/admin/AppealResolveForm.tsx:230
+msgid "Replacement sanction"
+msgstr "替代处罚"
+
 #: src/components/NoteComposeModal.tsx:76
 #: src/components/PostEngagementBar.tsx:339
 msgid "Reply"
@@ -3232,6 +3411,10 @@ msgstr "举报"
 #: src/components/ReportDialog.tsx:153
 msgid "Report {0}"
 msgstr "举报 {0}"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:99
+msgid "Report dismissed"
+msgstr "举报已驳回"
 
 #: src/routes/(root)/[handle]/settings/reports.tsx:74
 #: src/routes/(root)/[handle]/settings/reports.tsx:81
@@ -3261,7 +3444,7 @@ msgstr "已举报 {0}"
 msgid "Reported a post by {0}"
 msgstr "已举报 {0} 的内容"
 
-#: src/components/SettingsTabs.tsx:94
+#: src/components/SettingsTabs.tsx:95
 msgid "Reports"
 msgstr "举报记录"
 
@@ -3269,9 +3452,14 @@ msgstr "举报记录"
 msgid "Reports you have filed, newest first. You can see the target, your reason, and the current status. Detailed outcomes are not shown, and the reported user never learns who reported them."
 msgstr "按时间倒序显示你提交的举报。你可以查看举报对象、填写的理由和当前状态。详细的处理结果不会显示，被举报的用户也永远不会知道是谁举报的。"
 
+#: src/components/admin/AppealResolveForm.tsx:342
+msgid "Resolve appeal"
+msgstr "处理申诉"
+
 #: src/components/admin/ModerationCaseList.tsx:104
 #: src/components/ReportHistoryList.tsx:94
-#: src/routes/(root)/admin/moderation/index.tsx:125
+#: src/routes/(root)/admin/moderation/appeals.tsx:159
+#: src/routes/(root)/admin/moderation/index.tsx:126
 msgid "Resolved"
 msgstr "已处理"
 
@@ -3279,8 +3467,16 @@ msgstr "已处理"
 msgid "Return to old UI"
 msgstr "返回旧界面"
 
+#: src/routes/(root)/admin/moderation/appeals.tsx:289
+msgid "Review outcome"
+msgstr "审核结果"
+
+#: src/components/admin/AppealResolveForm.tsx:327
+msgid "Review rationale (shown to the appellant)"
+msgstr "审核理由（向申诉人显示）"
+
 #: src/components/admin/ModerationCaseList.tsx:102
-#: src/routes/(root)/admin/moderation/index.tsx:124
+#: src/routes/(root)/admin/moderation/index.tsx:125
 msgid "Reviewing"
 msgstr "审核中"
 
@@ -3301,6 +3497,11 @@ msgstr "撤销引用"
 #: src/components/QuotedNoteCard.tsx:310
 msgid "Revoke this quote?"
 msgstr "撤销此引用？"
+
+#: src/components/SettingsTabs.tsx:103
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:133
+msgid "Sanctions"
+msgstr "处罚"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:536
 #: src/routes/(root)/[handle]/settings/language.tsx:201
@@ -3334,7 +3535,7 @@ msgstr "保存中…"
 #: src/components/AppSidebar.tsx:391
 #: src/components/SearchForm.tsx:65
 #: src/components/SearchForm.tsx:80
-#: src/routes/(root)/admin/moderation/index.tsx:190
+#: src/routes/(root)/admin/moderation/index.tsx:192
 msgid "Search"
 msgstr "搜索"
 
@@ -3342,7 +3543,7 @@ msgstr "搜索"
 msgid "Search a language…"
 msgstr "搜索语言…"
 
-#: src/routes/(root)/admin/moderation/index.tsx:185
+#: src/routes/(root)/admin/moderation/index.tsx:187
 msgid "Search by handle or display name"
 msgstr "按账号或显示名称搜索"
 
@@ -3367,6 +3568,7 @@ msgstr "搜索中…"
 msgid "Select an option"
 msgstr "请选择一个选项"
 
+#: src/components/admin/AppealResolveForm.tsx:281
 #: src/components/admin/ModerationActionForm.tsx:282
 msgid "Select at least one violated provision."
 msgstr "请至少选择一条违反的条款。"
@@ -3465,6 +3667,10 @@ msgstr "显示更多转帖内容"
 msgid "Show sensitive content"
 msgstr "显示敏感内容"
 
+#: src/routes/(root)/admin/moderation/appeals.tsx:313
+msgid "Showing the 50 most recent appeals. Resolve some to see older ones."
+msgstr "正在显示最近 50 条申诉。处理一些后可查看更早的申诉。"
+
 #: src/components/admin/ModerationActionForm.tsx:330
 msgid "Shown to the reported user under the moderation team's identity."
 msgstr "以管理团队名义向被举报用户显示。"
@@ -3558,6 +3764,10 @@ msgstr "出现错误，请重试。"
 msgid "Strong"
 msgstr "强"
 
+#: src/components/AppealDialog.tsx:190
+msgid "Submit appeal"
+msgstr "提交申诉"
+
 #: src/components/ReportDialog.tsx:231
 msgid "Submit report"
 msgstr "提交举报"
@@ -3618,19 +3828,23 @@ msgstr "由 AI 生成的摘要"
 msgid "Summary for the remote instance"
 msgstr "给远程实例的摘要"
 
+#: src/components/admin/AppealResolveForm.tsx:95
 #: src/components/admin/ModerationActionForm.tsx:115
 msgid "Suspend"
 msgstr "封停"
 
 #: src/routes/(root)/admin/moderation/[id].tsx:143
 #: src/routes/(root)/admin/moderation/[id].tsx:234
+#: src/routes/(root)/admin/moderation/appeals.tsx:125
 msgid "Suspended"
 msgstr "已封停"
 
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:195
 #: src/routes/(root)/admin/moderation/[id].tsx:391
 msgid "Suspension ends"
 msgstr "封停结束"
 
+#: src/components/admin/AppealResolveForm.tsx:288
 #: src/components/admin/ModerationActionForm.tsx:291
 msgid "Suspension length"
 msgstr "封停时长"
@@ -3664,6 +3878,10 @@ msgstr "请告诉管理团队您举报此内容的原因。您不需要了解行
 msgid "Tell the moderation team why you are reporting this user. You don't need to know the specific code of conduct provisions; describe what felt uncomfortable or problematic in your own words."
 msgstr "请告诉管理团队您举报此用户的原因。您不需要了解行为准则的具体条款，用自己的话描述让您感到不适或有问题的地方即可。"
 
+#: src/components/AppealDialog.tsx:133
+msgid "Tell the moderation team why you believe this decision is unjust. You can appeal once, within 14 days of the decision."
+msgstr "请告诉管理团队你认为此决定不公正的原因。你可以在决定后 14 天内申诉一次。"
+
 #: src/routes/(root)/sign/up/[token].tsx:414
 msgid "Tell us about yourself…"
 msgstr "请告诉我们关于您自己的信息…"
@@ -3683,6 +3901,14 @@ msgstr "这不是有效的中继 actor URL。"
 #: src/routes/(root)/admin/news.tsx:346
 msgid "That is not a valid URL pattern."
 msgstr "这不是有效的 URL 模式。"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:208
+msgid "The appeal window has closed."
+msgstr "申诉期限已结束。"
+
+#: src/components/admin/AppealResolveForm.tsx:174
+msgid "The appellant has been notified."
+msgstr "已通知申诉人。"
 
 #: src/routes/(root)/admin/moderation/[id].tsx:466
 msgid "The automated analysis was unavailable for this report."
@@ -3750,6 +3976,10 @@ msgstr "邀请链接已成功删除。"
 msgid "The link to this story is added to your post automatically."
 msgstr "该话题的链接会自动添加到你的内容中。"
 
+#: src/components/AppealDialog.tsx:103
+msgid "The moderation team will review your appeal and notify you."
+msgstr "管理团队将审核你的申诉并通知你。"
+
 #: src/components/NotFoundPage.tsx:45
 msgid "The page you're looking for doesn't exist or has been moved."
 msgstr "您访问的页面不存在或已被移动。"
@@ -3766,6 +3996,7 @@ msgstr "文章的主要语言，用于无障碍功能和内容发现。"
 msgid "The quoting post will no longer include your post as a quote."
 msgstr "引用内容将不再把你的内容作为引用包含在内。"
 
+#: src/components/AppealDialog.tsx:158
 #: src/components/ReportDialog.tsx:194
 msgid "The reason is too long (maximum {MAX_REASON_LENGTH} characters)."
 msgstr "举报原因过长（最多 {MAX_REASON_LENGTH} 个字符）。"
@@ -3796,6 +4027,10 @@ msgstr "该链接的 URL，例如 https://github.com/nideyonghuming 。"
 #: src/components/WebPushPromptBanner.tsx:95
 msgid "The Web Push public key is invalid."
 msgstr "Web Push 公钥无效。"
+
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:149
+msgid "There are no moderation actions on your account."
+msgstr "你的账户没有任何审核处理。"
 
 #: src/routes/(root)/tree/index.tsx:124
 msgid "This account is hidden because they want to keep their identity private."
@@ -3849,7 +4084,9 @@ msgstr "未找到此邀请链接。"
 msgid "This is a remote actor with no local notification or appeal. A warning is only recorded, censoring hides the locally cached post, and a suspension or ban applies a temporary or permanent federation block. A summary may be forwarded to their instance if a reporter opted in."
 msgstr "这是没有本地通知或申诉的远程行为者。警告仅作记录，屏蔽会隐藏本地缓存的内容，封停或永久封禁会施加临时或永久的联邦屏蔽。若举报人选择同意，可能会向其实例转发一份摘要。"
 
-#: src/routes/(root)/admin/moderation/[id].tsx:418
+#: src/components/AppealDialog.tsx:176
+msgid "This is too long (maximum {MAX_REASON_LENGTH} characters)."
+msgstr "内容过长（最多 {MAX_REASON_LENGTH} 个字符）。"
 
 #: src/components/QuoteTargetPlaceholder.tsx:36
 msgid "This post quoted another post, but the quote is not currently authorized."
@@ -4131,6 +4368,7 @@ msgstr "查看回复"
 msgid "View shares"
 msgstr "查看转帖"
 
+#: src/components/admin/AppealResolveForm.tsx:255
 #: src/components/admin/ModerationActionForm.tsx:255
 msgid "Violated provisions"
 msgstr "违反的条款"
@@ -4175,9 +4413,12 @@ msgstr "已投票"
 msgid "Voting…"
 msgstr "正在投票…"
 
+#: src/components/admin/AppealResolveForm.tsx:93
 #: src/components/admin/ModerationActionForm.tsx:113
 #: src/components/NoteComposer.tsx:737
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:91
 #: src/routes/(root)/admin/moderation/[id].tsx:139
+#: src/routes/(root)/admin/moderation/appeals.tsx:121
 msgid "Warning"
 msgstr "警告"
 
@@ -4224,6 +4465,18 @@ msgstr "启用后，你的账户会在邀请树中匿名显示，与你相关的
 #: src/routes/(root)/[handle]/[noteId]/edit.tsx:304
 #~ msgid "Who can quote this note"
 #~ msgstr "谁可以引用此帖子"
+
+#: src/components/AppealDialog.tsx:145
+msgid "Why is this decision unjust?"
+msgstr "此决定为何不公正？"
+
+#: src/components/admin/AppealResolveForm.tsx:83
+msgid "Withdraw decision"
+msgstr "撤销决定"
+
+#: src/routes/(root)/admin/moderation/appeals.tsx:138
+msgid "Withdrawn"
+msgstr "已撤销"
 
 #: src/components/AppSidebar.tsx:303
 msgid "Without shares"
@@ -4334,6 +4587,10 @@ msgstr "你还没有提交任何举报。"
 msgid "You haven't muted anyone."
 msgstr "你还没有隐藏任何账户。"
 
+#: src/components/AppealDialog.tsx:113
+msgid "You may have already appealed, or the appeal window has closed."
+msgstr "你可能已经申诉过，或申诉期限已结束。"
+
 #: src/components/FollowButton.tsx:131
 #: src/components/FollowButton.tsx:149
 #: src/components/HashtagActionBar.tsx:148
@@ -4375,6 +4632,10 @@ msgstr "您必须登录才能保存草稿"
 #: src/components/RefreshFromOriginItem.tsx:74
 msgid "You must be signed in."
 msgstr "请先登录。"
+
+#: src/routes/(root)/admin/moderation/appeals.tsx:277
+msgid "You took the original action. Consider letting another moderator review this appeal."
+msgstr "原处理是你做出的。建议让另一位版主审核此申诉。"
 
 #: src/routes/(root)/sign/up/[token].tsx:433
 msgid "You were invited by"
