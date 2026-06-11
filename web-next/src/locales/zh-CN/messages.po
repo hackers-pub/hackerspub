@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: article.replies?.edges.length ?? 0
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:992
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1003
 msgid "{0, plural, one {# comment} other {# comments}}"
 msgstr "{0, plural, other {# 条评论}}"
 
@@ -32,14 +32,14 @@ msgstr "{0, plural, other {符合条件的账号 # 个}}；若现在重新发放
 #. placeholder {0}: a.followersCount.totalCount
 #. placeholder {0}: actor.followersCount?.totalCount ?? 0
 #: src/components/ActorPreviewCard.tsx:63
-#: src/components/ProfileCard.tsx:335
+#: src/components/ProfileCard.tsx:353
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {被 # 人关注}}"
 
 #. placeholder {0}: a.followeesCount.totalCount
 #. placeholder {0}: actor.followeesCount?.totalCount ?? 0
 #: src/components/ActorPreviewCard.tsx:54
-#: src/components/ProfileCard.tsx:322
+#: src/components/ProfileCard.tsx:340
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {关注 # 人}}"
 
@@ -72,12 +72,12 @@ msgstr "{0, plural, other {可删除 # 个孤立媒体。}}"
 #~ msgstr "{0, plural, one {# 次转帖} other {# 次转帖}}"
 
 #. placeholder {0}: votes()
-#: src/components/QuestionCard.tsx:533
+#: src/components/QuestionCard.tsx:542
 msgid "{0, plural, one {# vote} other {# votes}}"
 msgstr "{0, plural, other {# 票}}"
 
 #. placeholder {0}: props.poll.voters.totalCount
-#: src/components/QuestionCard.tsx:479
+#: src/components/QuestionCard.tsx:488
 msgid "{0, plural, one {# voter} other {# voters}}"
 msgstr "{0, plural, other {# 位投票者}}"
 
@@ -92,7 +92,7 @@ msgid "{0, plural, one {Deleted # orphan medium.} other {Deleted # orphan media.
 msgstr "{0, plural, other {已删除 # 个孤立媒体。}}"
 
 #. placeholder {0}: actor.mutualFollowers?.totalCount ?? 0
-#: src/components/ProfileCard.tsx:376
+#: src/components/ProfileCard.tsx:394
 msgid "{0, plural, one {Followed by # person you follow} other {Followed by # people you follow}}"
 msgstr "{0, plural, other {你关注的 # 人也关注了}}"
 
@@ -247,7 +247,7 @@ msgstr "{0} 回复了你的内容"
 #. placeholder {1}: "RELATIVE_TIME"
 #: src/components/ActorSharer.tsx:25
 #: src/components/PostSharer.tsx:37
-#: src/components/QuestionCard.tsx:90
+#: src/components/QuestionCard.tsx:91
 msgid "{0} shared {1}"
 msgstr "{0}在{1}转帖了"
 
@@ -270,7 +270,7 @@ msgstr "{0} 更新了你转发过的内容"
 #. placeholder {0}: post.actor.rawName ?? post.actor.username
 #. placeholder {1}: post.excerpt
 #. placeholder {1}: title()
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:238
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:240
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:285
 msgid "{0}: {1}"
 msgstr "{0}：{1}"
@@ -349,6 +349,10 @@ msgstr "1 周"
 #: src/components/NoteComposer.tsx:1659
 msgid "3 days"
 msgstr "3 天"
+
+#: src/components/ProfileCard.tsx:217
+msgid "A moderator suspended this account for violating the code of conduct."
+msgstr "版主因违反行为准则封停了此账户。"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:580
 msgid "A name for the link that will be displayed on your profile, e.g., GitHub."
@@ -442,7 +446,7 @@ msgstr "所有语言"
 msgid "All notifications"
 msgstr "所有通知"
 
-#: src/components/ProfileCard.tsx:188
+#: src/components/ProfileCard.tsx:190
 msgid "All posts"
 msgstr "全部内容"
 
@@ -572,7 +576,7 @@ msgid "Articles"
 msgstr "文章"
 
 #: src/components/AppSidebar.tsx:325
-#: src/components/ProfileCard.tsx:195
+#: src/components/ProfileCard.tsx:197
 msgid "Articles only"
 msgstr "仅文章"
 
@@ -709,6 +713,10 @@ msgstr "取消"
 msgid "Cannot change the language because translations already exist"
 msgstr "由于已存在翻译，无法更改语言"
 
+#: src/components/CensorshipNotice.tsx:32
+msgid "Censored by a moderator."
+msgstr "已被版主屏蔽。"
+
 #: src/components/WebPushNotificationSettings.tsx:408
 msgid "Check again"
 msgstr "重新检查"
@@ -755,7 +763,7 @@ msgstr "点击通知会打开你的通知页面。"
 msgid "Close"
 msgstr "关闭"
 
-#: src/components/QuestionCard.tsx:471
+#: src/components/QuestionCard.tsx:480
 msgid "Closed"
 msgstr "已结束"
 
@@ -832,7 +840,7 @@ msgstr "无法将其解析为远程对象。"
 msgid "Could not revoke quote"
 msgstr "无法撤销引用"
 
-#: src/components/QuestionCard.tsx:424
+#: src/components/QuestionCard.tsx:433
 msgid "Could not vote on this poll"
 msgstr "无法在此投票调查中投票"
 
@@ -891,7 +899,7 @@ msgstr "裁剪你的新头像"
 msgid "Cutoff:"
 msgstr "截止时间："
 
-#: src/components/NoteCardInternal.tsx:132
+#: src/components/NoteCardInternal.tsx:143
 #: src/components/QuotedNoteCard.tsx:217
 msgid "CW"
 msgstr "CW"
@@ -976,7 +984,7 @@ msgstr "放弃未保存的更改 - 您确定吗？"
 msgid "Dismiss"
 msgstr "关闭"
 
-#: src/components/ReportHistoryList.tsx:81
+#: src/components/ReportHistoryList.tsx:96
 msgid "Dismissed"
 msgstr "已驳回"
 
@@ -1019,7 +1027,7 @@ msgid "e.g., @user@mastodon.social"
 msgstr "例如：@user@mastodon.social"
 
 #: src/components/PostActionMenu.tsx:361
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:696
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:707
 msgid "Edit"
 msgstr "编辑"
 
@@ -1056,11 +1064,11 @@ msgstr "开启"
 msgid "Enabling…"
 msgstr "正在开启…"
 
-#: src/components/QuestionCard.tsx:474
+#: src/components/QuestionCard.tsx:483
 msgid "Ended"
 msgstr "已结束"
 
-#: src/components/QuestionCard.tsx:474
+#: src/components/QuestionCard.tsx:483
 msgid "Ends"
 msgstr "截止"
 
@@ -1294,7 +1302,7 @@ msgid "Failed to load more shares; click to retry"
 msgstr "加载更多转帖失败，点击重试"
 
 #: src/components/AccountListBase.tsx:112
-#: src/components/ReportHistoryList.tsx:175
+#: src/components/ReportHistoryList.tsx:200
 msgid "Failed to load more; click to retry"
 msgstr "加载更多失败；点击重试"
 
@@ -1492,7 +1500,7 @@ msgstr "文章更新失败，请重试。"
 msgid "Failed to upload image"
 msgstr "图片上传失败"
 
-#: src/components/QuestionCard.tsx:432
+#: src/components/QuestionCard.tsx:441
 msgid "Failed to vote"
 msgstr "投票失败"
 
@@ -1555,7 +1563,7 @@ msgid "Following"
 msgstr "关注"
 
 #: src/components/ActorPreviewCard.tsx:149
-#: src/components/ProfileCard.tsx:345
+#: src/components/ProfileCard.tsx:363
 msgid "Following you"
 msgstr "关注了你"
 
@@ -1563,7 +1571,7 @@ msgstr "关注了你"
 msgid "Formatting"
 msgstr "格式"
 
-#: src/components/ReportHistoryList.tsx:156
+#: src/components/ReportHistoryList.tsx:180
 msgid "Forwarded to the remote instance"
 msgstr "已转发给远程实例"
 
@@ -1688,7 +1696,7 @@ msgstr "标题 3"
 msgid "Hidden account"
 msgstr "隐藏账户"
 
-#: src/components/NoteCardInternal.tsx:141
+#: src/components/NoteCardInternal.tsx:152
 #: src/components/NoteMedia.tsx:270
 #: src/components/QuotedNoteCard.tsx:228
 msgid "Hide"
@@ -1723,7 +1731,7 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "启用后，AI 将为您生成文章摘要。否则，将使用文章的前几行作为摘要。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1014
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1025
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:549
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你在联邦宇宙有个账户，你可以在你自己的实例里评论此文章。在你的实例搜索 {0} 后回复。"
@@ -1832,7 +1840,7 @@ msgid "Invited by"
 msgstr "邀请人"
 
 #. placeholder {0}: "INVITER"
-#: src/components/ProfileCard.tsx:411
+#: src/components/ProfileCard.tsx:429
 msgid "Invited by {0}"
 msgstr "由 {0} 邀请"
 
@@ -1849,7 +1857,7 @@ msgid "Join the discussion about this story."
 msgstr "参与关于这个话题的讨论。"
 
 #. placeholder {0}: new Date(created).toLocaleDateString(i18n.locale, { year: "numeric", month: "long", })
-#: src/components/ProfileCard.tsx:446
+#: src/components/ProfileCard.tsx:464
 msgid "Joined {0}"
 msgstr "加入于 {0}"
 
@@ -1945,7 +1953,7 @@ msgid "List"
 msgstr "列表"
 
 #: src/components/AccountListBase.tsx:115
-#: src/components/ReportHistoryList.tsx:178
+#: src/components/ReportHistoryList.tsx:203
 #: src/routes/(root)/[handle]/drafts/index.tsx:350
 msgid "Load more"
 msgstr "加载更多"
@@ -2101,7 +2109,7 @@ msgid "Loading more stories…"
 msgstr "正在加载更多新闻…"
 
 #: src/components/AccountListBase.tsx:109
-#: src/components/ReportHistoryList.tsx:172
+#: src/components/ReportHistoryList.tsx:197
 msgid "Loading more…"
 msgstr "正在加载更多…"
 
@@ -2187,7 +2195,7 @@ msgid "Move up"
 msgstr "向上移动"
 
 #: src/components/NoteComposer.tsx:1575
-#: src/components/QuestionCard.tsx:468
+#: src/components/QuestionCard.tsx:477
 msgid "Multiple choice"
 msgstr "多选"
 
@@ -2504,12 +2512,16 @@ msgstr "邀请次数"
 msgid "Only moderators can refresh remote objects."
 msgstr "只有版主可以刷新远程对象。"
 
+#: src/components/CensorshipNotice.tsx:37
+msgid "Only the author and moderators can still see its content."
+msgstr "只有作者和版主仍可查看其内容。"
+
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:72
 #: src/components/QuotePolicySelect.tsx:39
 msgid "Only you can quote"
 msgstr "只有你可以引用"
 
-#: src/components/QuestionCard.tsx:471
+#: src/components/QuestionCard.tsx:480
 msgid "Open"
 msgstr "进行中"
 
@@ -2534,7 +2546,7 @@ msgstr "或"
 msgid "Or enter the code from the email"
 msgstr "或输入邮件中的验证码"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:878
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:889
 msgid "Other languages"
 msgstr "其他语言"
 
@@ -2575,7 +2587,7 @@ msgstr "已清除处罚。"
 msgid "Pending"
 msgstr "待处理"
 
-#: src/components/ReportHistoryList.tsx:75
+#: src/components/ReportHistoryList.tsx:90
 msgid "Pending review"
 msgstr "等待审核"
 
@@ -2626,7 +2638,7 @@ msgstr "请输入你的联邦宇宙用户名。"
 msgid "Please sign in to access this page"
 msgstr "请登录以访问此页面"
 
-#: src/components/QuestionCard.tsx:418
+#: src/components/QuestionCard.tsx:427
 msgid "Please sign in to vote"
 msgstr "请登录后投票"
 
@@ -2634,7 +2646,7 @@ msgstr "请登录后投票"
 msgid "Poll"
 msgstr "投票调查"
 
-#: src/components/QuestionCard.tsx:393
+#: src/components/QuestionCard.tsx:402
 msgid "Poll closed"
 msgstr "投票调查已结束"
 
@@ -2860,8 +2872,8 @@ msgstr "反应"
 msgid "Reactions"
 msgstr "反应"
 
-#: src/components/ArticleCard.tsx:515
-#: src/components/ArticleCard.tsx:535
+#: src/components/ArticleCard.tsx:524
+#: src/components/ArticleCard.tsx:544
 #: src/components/NewsDiscussionThread.tsx:430
 msgid "Read full article"
 msgstr "阅读完整文章"
@@ -3079,13 +3091,14 @@ msgstr "举报此内容"
 msgid "Report user"
 msgstr "举报用户"
 
-#. placeholder {0}: edge.node.targetActor.handle
-#: src/components/ReportHistoryList.tsx:138
+#. placeholder {0}: node.targetActor.handle
+#: src/components/ReportHistoryList.tsx:145
 msgid "Reported {0}"
 msgstr "已举报 {0}"
 
-#. placeholder {0}: edge.node.targetActor.handle
-#: src/components/ReportHistoryList.tsx:127
+#. placeholder {0}: node.targetActor.handle
+#: src/components/ReportHistoryList.tsx:156
+#: src/components/ReportHistoryList.tsx:164
 msgid "Reported a post by {0}"
 msgstr "已举报 {0} 的内容"
 
@@ -3097,7 +3110,7 @@ msgstr "举报记录"
 msgid "Reports you have filed, newest first. You can see the target, your reason, and the current status. Detailed outcomes are not shown, and the reported user never learns who reported them."
 msgstr "按时间倒序显示你提交的举报。你可以查看举报对象、填写的理由和当前状态。详细的处理结果不会显示，被举报的用户也永远不会知道是谁举报的。"
 
-#: src/components/ReportHistoryList.tsx:79
+#: src/components/ReportHistoryList.tsx:94
 msgid "Resolved"
 msgstr "已处理"
 
@@ -3179,11 +3192,11 @@ msgstr "{0}的搜索结果"
 msgid "Searching…"
 msgstr "搜索中…"
 
-#: src/components/QuestionCard.tsx:398
+#: src/components/QuestionCard.tsx:407
 msgid "Select an option"
 msgstr "请选择一个选项"
 
-#: src/components/QuestionCard.tsx:398
+#: src/components/QuestionCard.tsx:407
 msgid "Select options"
 msgstr "请选择选项"
 
@@ -3254,7 +3267,7 @@ msgid "Sharing is not available for this post"
 msgstr "无法转帖此内容。"
 
 #: src/components/MutedReplyPlaceholder.tsx:32
-#: src/components/NoteCardInternal.tsx:141
+#: src/components/NoteCardInternal.tsx:152
 #: src/components/QuotedNoteCard.tsx:161
 #: src/components/QuotedNoteCard.tsx:228
 msgid "Show"
@@ -3290,7 +3303,7 @@ msgstr "登录 Hackers' Pub"
 msgid "Sign in to post"
 msgstr "登录后发表"
 
-#: src/components/QuestionCard.tsx:395
+#: src/components/QuestionCard.tsx:404
 msgid "Sign in to vote"
 msgstr "登录后投票"
 
@@ -3324,7 +3337,7 @@ msgid "Signing up for Hackers' Pub"
 msgstr "注册 Hackers' Pub"
 
 #: src/components/NoteComposer.tsx:1567
-#: src/components/QuestionCard.tsx:468
+#: src/components/QuestionCard.tsx:477
 msgid "Single choice"
 msgstr "单选"
 
@@ -3370,7 +3383,7 @@ msgstr "订阅"
 msgid "Subscribe to a relay"
 msgstr "订阅中继"
 
-#: src/components/ProfileCard.tsx:161
+#: src/components/ProfileCard.tsx:163
 msgid "Subscribe via RSS"
 msgstr "通过 RSS 订阅"
 
@@ -3409,15 +3422,15 @@ msgstr "设置已成功保存"
 msgid "Successfully saved settings"
 msgstr "设置保存成功"
 
-#: src/components/ArticleCard.tsx:488
+#: src/components/ArticleCard.tsx:497
 #: src/components/QuotedNoteCard.tsx:278
 msgid "Summarized by LLM"
 msgstr "由 AI 生成的摘要"
 
 #: src/components/DocumentView.tsx:38
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:722
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:730
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1057
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:733
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:741
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1068
 msgid "Table of contents"
 msgstr "目录"
 
@@ -3427,7 +3440,7 @@ msgstr "目录"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:158
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:479
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1066
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1077
 msgid "Tags"
 msgstr "标签"
 
@@ -3564,6 +3577,10 @@ msgstr "Web Push 公钥无效。"
 msgid "This account is hidden because they want to keep their identity private."
 msgstr "此账户已隐藏，因为用户希望保持身份私密。"
 
+#: src/components/ProfileCard.tsx:215
+msgid "This account is suspended."
+msgstr "此账户已被封停。"
+
 #: src/components/PostActionMenu.tsx:418
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "此操作无法撤销。这将永久删除该内容。"
@@ -3600,6 +3617,10 @@ msgstr "未找到此邀请链接。"
 msgid "This post quoted another post, but the quote is not currently authorized."
 msgstr "此内容引用了另一则内容，但当前未获得引用授权。"
 
+#: src/components/CensorshipNotice.tsx:34
+msgid "This post was hidden from timelines and search for violating the code of conduct."
+msgstr "此内容因违反行为准则，已从时间线和搜索中隐藏。"
+
 #: src/components/QuoteTargetPlaceholder.tsx:35
 msgid "This quote is waiting for approval from the original author."
 msgstr "此引用正在等待原作者批准。"
@@ -3624,7 +3645,7 @@ msgstr "此服务器尚未配置 Web Push。"
 msgid "This service does not support remote follow."
 msgstr "该服务不支持远程关注。"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:553
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:564
 msgid "This usually takes about a minute. The page will update automatically when the translation is ready."
 msgstr "通常需要一分钟左右。翻译完成后页面将自动更新。"
 
@@ -3664,8 +3685,8 @@ msgid "Total: {0}"
 msgstr "共 {0} 个"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:352
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:862
+#: src/components/ArticleCard.tsx:355
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:873
 msgid "Translated from {0}"
 msgstr "翻译自{0}"
 
@@ -3673,18 +3694,18 @@ msgstr "翻译自{0}"
 #~ msgid "Translating to {0}…"
 #~ msgstr "正在翻译为{0}…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:548
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:559
 msgid "Translating to {name}…"
 msgstr "正在翻译为{name}…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:544
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:555
 msgid "Translating…"
 msgstr "正在翻译…"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:379
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:402
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:411
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:589
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:600
 msgid "Translation request failed"
 msgstr "翻译请求失败"
 
@@ -3692,7 +3713,7 @@ msgstr "翻译请求失败"
 #~ msgid "Translation request failed for {0}"
 #~ msgstr "向{0}的翻译请求失败"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:594
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:605
 msgid "Translation request failed for {name}"
 msgstr "向{name}的翻译请求失败"
 
@@ -3702,7 +3723,7 @@ msgid "Tree"
 msgstr "树状图"
 
 #: src/app.tsx:129
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:602
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:613
 msgid "Try again"
 msgstr "重试"
 
@@ -3736,7 +3757,7 @@ msgstr "取消屏蔽"
 msgid "Unblock user?"
 msgstr "取消屏蔽用户？"
 
-#: src/components/ReportHistoryList.tsx:77
+#: src/components/ReportHistoryList.tsx:92
 msgid "Under review"
 msgstr "审核中"
 
@@ -3836,7 +3857,7 @@ msgstr "您邀请的用户"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:294
+#: src/components/ProfileCard.tsx:312
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "已于{1}验证此链接归{0}所有"
 
@@ -3896,19 +3917,19 @@ msgstr "所有人都可以看到，但不会出现在公共时间线中。只有
 msgid "Visible to everyone, including non-registered users. The post will appear in the public timeline as well."
 msgstr "包括未注册用户在内的所有人都可以看到。内容也会出现在公共时间线中。"
 
-#: src/components/QuestionCard.tsx:400
+#: src/components/QuestionCard.tsx:409
 msgid "Vote"
 msgstr "投票"
 
-#: src/components/QuestionCard.tsx:414
+#: src/components/QuestionCard.tsx:423
 msgid "Vote recorded"
 msgstr "已记录投票"
 
-#: src/components/QuestionCard.tsx:394
+#: src/components/QuestionCard.tsx:403
 msgid "Voted"
 msgstr "已投票"
 
-#: src/components/QuestionCard.tsx:396
+#: src/components/QuestionCard.tsx:405
 msgid "Voting…"
 msgstr "正在投票…"
 
@@ -3920,7 +3941,7 @@ msgstr "警告"
 msgid "We couldn't reach the server"
 msgstr "无法连接到服务器"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:599
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:610
 msgid "We couldn't reach the translation service. Try again, or come back in a few minutes."
 msgstr "无法连接到翻译服务。请重试或几分钟后再来。"
 
@@ -3971,7 +3992,7 @@ msgid "Write"
 msgstr "撰写"
 
 #: src/components/NoteComposeModal.tsx:115
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1005
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1016
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:386
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:464
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:540
@@ -3999,11 +4020,11 @@ msgstr "您对该对象已有一条处理中的举报。您可以在举报历史
 msgid "You are about to follow {0}."
 msgstr "你即将从你的账户关注{0}。"
 
-#: src/components/ProfileCard.tsx:214
+#: src/components/ProfileCard.tsx:232
 msgid "You are blocked by this user. You can't follow them or see their posts."
 msgstr "你已被此用户屏蔽。你无法关注该用户或查看该用户的内容。"
 
-#: src/components/ProfileCard.tsx:207
+#: src/components/ProfileCard.tsx:225
 msgid "You are blocking this user. They can't follow you or see your posts."
 msgstr "你正在屏蔽此用户。该用户无法关注你或查看你的内容。"
 
@@ -4061,7 +4082,7 @@ msgstr "你没有剩余邀请名额。请稍后再试。"
 msgid "You haven't blocked anyone."
 msgstr "你还没有屏蔽任何账户。"
 
-#: src/components/ReportHistoryList.tsx:109
+#: src/components/ReportHistoryList.tsx:124
 msgid "You haven't filed any reports."
 msgstr "你还没有提交任何举报。"
 

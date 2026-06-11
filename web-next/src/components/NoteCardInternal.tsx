@@ -2,6 +2,7 @@ import { graphql } from "relay-runtime";
 import { createMemo, createSignal, Show } from "solid-js";
 import { createFragment } from "solid-relay";
 import { useContentLinkInterceptor } from "~/lib/contentLinkInterceptor.ts";
+import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { createDeferredRender } from "~/lib/deferredRender.ts";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -10,6 +11,7 @@ import {
   useMentionHoverCards,
 } from "~/lib/mentionHoverCards.tsx";
 import { NoteCardInternal_note$key } from "./__generated__/NoteCardInternal_note.graphql.ts";
+import { CensorshipNotice } from "./CensorshipNotice.tsx";
 import { LinkPreview } from "./LinkPreview.tsx";
 import { NoteHeader } from "./NoteHeader.tsx";
 import { NoteMedia } from "./NoteMedia.tsx";
@@ -30,6 +32,7 @@ export interface NoteCardInternalProps {
 
 export function NoteCardInternal(props: NoteCardInternalProps) {
   const { t } = useLingui();
+  const viewer = useViewer();
   const liveNote = createFragment(
     graphql`
       fragment NoteCardInternal_note on Note {
@@ -38,6 +41,7 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
         uuid
         sourceId
         viewerCanRevokeQuote
+        censored
         content
         language
         sensitive
@@ -46,6 +50,7 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
           local
           username
           handle
+          isViewer
           ...PostAvatar_actor
         }
         ...PostEngagementBar_post
@@ -125,6 +130,12 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
               pinConnections={props.pinConnections}
               onDeleted={props.onDeleted}
             />
+            <Show when={n.censored}>
+              <CensorshipNotice
+                class="mt-1"
+                privileged={n.actor.isViewer || viewer.moderator()}
+              />
+            </Show>
             <Show when={n.summary}>
               <div class="mt-1 flex items-center gap-2 rounded-md border bg-muted px-3 py-2">
                 <p class="grow text-sm text-muted-foreground">

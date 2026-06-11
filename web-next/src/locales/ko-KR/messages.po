@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: article.replies?.edges.length ?? 0
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:992
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1003
 msgid "{0, plural, one {# comment} other {# comments}}"
 msgstr "{0, plural, other {# 댓글}}"
 
@@ -32,14 +32,14 @@ msgstr "{0, plural, other {대상 계정 #명}} 중, 지금 재발급하면 {1, 
 #. placeholder {0}: a.followersCount.totalCount
 #. placeholder {0}: actor.followersCount?.totalCount ?? 0
 #: src/components/ActorPreviewCard.tsx:63
-#: src/components/ProfileCard.tsx:335
+#: src/components/ProfileCard.tsx:353
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {# 팔로워}}"
 
 #. placeholder {0}: a.followeesCount.totalCount
 #. placeholder {0}: actor.followeesCount?.totalCount ?? 0
 #: src/components/ActorPreviewCard.tsx:54
-#: src/components/ProfileCard.tsx:322
+#: src/components/ProfileCard.tsx:340
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {# 팔로잉}}"
 
@@ -72,12 +72,12 @@ msgstr "{0, plural, other {연결되지 않은 미디어 #개를 삭제할 수 �
 #~ msgstr "{0, plural, one {공유 #번} other {공유 #번}}"
 
 #. placeholder {0}: votes()
-#: src/components/QuestionCard.tsx:533
+#: src/components/QuestionCard.tsx:542
 msgid "{0, plural, one {# vote} other {# votes}}"
 msgstr "{0, plural, other {#표}}"
 
 #. placeholder {0}: props.poll.voters.totalCount
-#: src/components/QuestionCard.tsx:479
+#: src/components/QuestionCard.tsx:488
 msgid "{0, plural, one {# voter} other {# voters}}"
 msgstr "{0, plural, other {투표자 #명}}"
 
@@ -92,7 +92,7 @@ msgid "{0, plural, one {Deleted # orphan medium.} other {Deleted # orphan media.
 msgstr "{0, plural, other {연결되지 않은 미디어 #개를 삭제했습니다.}}"
 
 #. placeholder {0}: actor.mutualFollowers?.totalCount ?? 0
-#: src/components/ProfileCard.tsx:376
+#: src/components/ProfileCard.tsx:394
 msgid "{0, plural, one {Followed by # person you follow} other {Followed by # people you follow}}"
 msgstr "{0, plural, other {당신이 팔로하는 # 명이 팔로합니다}}"
 
@@ -247,7 +247,7 @@ msgstr "{0} 님이 회원님의 콘텐츠에 댓글을 달았습니다"
 #. placeholder {1}: "RELATIVE_TIME"
 #: src/components/ActorSharer.tsx:25
 #: src/components/PostSharer.tsx:37
-#: src/components/QuestionCard.tsx:90
+#: src/components/QuestionCard.tsx:91
 msgid "{0} shared {1}"
 msgstr "{0} 님이 {1}에 공유함"
 
@@ -270,7 +270,7 @@ msgstr "{0} 님이 회원님이 공유한 콘텐츠를 업데이트했습니다"
 #. placeholder {0}: post.actor.rawName ?? post.actor.username
 #. placeholder {1}: post.excerpt
 #. placeholder {1}: title()
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:238
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:240
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:285
 msgid "{0}: {1}"
 msgstr "{0}: {1}"
@@ -349,6 +349,10 @@ msgstr "1주"
 #: src/components/NoteComposer.tsx:1659
 msgid "3 days"
 msgstr "3일"
+
+#: src/components/ProfileCard.tsx:217
+msgid "A moderator suspended this account for violating the code of conduct."
+msgstr "모더레이터가 행동 강령 위반으로 이 계정을 정지했습니다."
 
 #: src/routes/(root)/[handle]/settings/index.tsx:580
 msgid "A name for the link that will be displayed on your profile, e.g., GitHub."
@@ -442,7 +446,7 @@ msgstr "모든 언어"
 msgid "All notifications"
 msgstr "모든 알림"
 
-#: src/components/ProfileCard.tsx:188
+#: src/components/ProfileCard.tsx:190
 msgid "All posts"
 msgstr "전체 콘텐츠"
 
@@ -572,7 +576,7 @@ msgid "Articles"
 msgstr "게시글"
 
 #: src/components/AppSidebar.tsx:325
-#: src/components/ProfileCard.tsx:195
+#: src/components/ProfileCard.tsx:197
 msgid "Articles only"
 msgstr "게시글만"
 
@@ -709,6 +713,10 @@ msgstr "취소"
 msgid "Cannot change the language because translations already exist"
 msgstr "번역이 이미 존재하므로 언어를 변경할 수 없습니다"
 
+#: src/components/CensorshipNotice.tsx:32
+msgid "Censored by a moderator."
+msgstr "모더레이터가 검열했습니다."
+
 #: src/components/WebPushNotificationSettings.tsx:408
 msgid "Check again"
 msgstr "다시 확인"
@@ -755,7 +763,7 @@ msgstr "알림을 누르면 알림 페이지가 열립니다."
 msgid "Close"
 msgstr "닫기"
 
-#: src/components/QuestionCard.tsx:471
+#: src/components/QuestionCard.tsx:480
 msgid "Closed"
 msgstr "닫힘"
 
@@ -832,7 +840,7 @@ msgstr "원격 객체로 확인할 수 없습니다."
 msgid "Could not revoke quote"
 msgstr "인용을 취소하지 못했습니다"
 
-#: src/components/QuestionCard.tsx:424
+#: src/components/QuestionCard.tsx:433
 msgid "Could not vote on this poll"
 msgstr "이 설문에 투표할 수 없습니다"
 
@@ -891,7 +899,7 @@ msgstr "새 프로필 사진 자르기"
 msgid "Cutoff:"
 msgstr "기준 시각:"
 
-#: src/components/NoteCardInternal.tsx:132
+#: src/components/NoteCardInternal.tsx:143
 #: src/components/QuotedNoteCard.tsx:217
 msgid "CW"
 msgstr "CW"
@@ -976,7 +984,7 @@ msgstr "저장하지 않은 변경 사항을 삭제하시겠습니까?"
 msgid "Dismiss"
 msgstr "닫기"
 
-#: src/components/ReportHistoryList.tsx:81
+#: src/components/ReportHistoryList.tsx:96
 msgid "Dismissed"
 msgstr "기각됨"
 
@@ -1019,7 +1027,7 @@ msgid "e.g., @user@mastodon.social"
 msgstr "예: @user@mastodon.social"
 
 #: src/components/PostActionMenu.tsx:361
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:696
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:707
 msgid "Edit"
 msgstr "수정"
 
@@ -1056,11 +1064,11 @@ msgstr "켜기"
 msgid "Enabling…"
 msgstr "켜는 중…"
 
-#: src/components/QuestionCard.tsx:474
+#: src/components/QuestionCard.tsx:483
 msgid "Ended"
 msgstr "종료됨"
 
-#: src/components/QuestionCard.tsx:474
+#: src/components/QuestionCard.tsx:483
 msgid "Ends"
 msgstr "종료까지"
 
@@ -1294,7 +1302,7 @@ msgid "Failed to load more shares; click to retry"
 msgstr "공유를 더 불러오지 못했습니다. 다시 시도하려면 클릭하세요"
 
 #: src/components/AccountListBase.tsx:112
-#: src/components/ReportHistoryList.tsx:175
+#: src/components/ReportHistoryList.tsx:200
 msgid "Failed to load more; click to retry"
 msgstr "더 불러오지 못했습니다. 클릭하여 다시 시도하세요"
 
@@ -1492,7 +1500,7 @@ msgstr "게시글을 수정하지 못했습니다. 다시 시도해 주세요."
 msgid "Failed to upload image"
 msgstr "이미지 업로드에 실패했습니다"
 
-#: src/components/QuestionCard.tsx:432
+#: src/components/QuestionCard.tsx:441
 msgid "Failed to vote"
 msgstr "투표에 실패했습니다"
 
@@ -1555,7 +1563,7 @@ msgid "Following"
 msgstr "팔로잉"
 
 #: src/components/ActorPreviewCard.tsx:149
-#: src/components/ProfileCard.tsx:345
+#: src/components/ProfileCard.tsx:363
 msgid "Following you"
 msgstr "당신을 팔로합니다"
 
@@ -1563,7 +1571,7 @@ msgstr "당신을 팔로합니다"
 msgid "Formatting"
 msgstr "서식"
 
-#: src/components/ReportHistoryList.tsx:156
+#: src/components/ReportHistoryList.tsx:180
 msgid "Forwarded to the remote instance"
 msgstr "원격 인스턴스로 전달됨"
 
@@ -1688,7 +1696,7 @@ msgstr "제목 3"
 msgid "Hidden account"
 msgstr "숨겨진 계정"
 
-#: src/components/NoteCardInternal.tsx:141
+#: src/components/NoteCardInternal.tsx:152
 #: src/components/NoteMedia.tsx:270
 #: src/components/QuotedNoteCard.tsx:228
 msgid "Hide"
@@ -1723,7 +1731,7 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "활성화하면 AI가 글의 요약을 생성합니다. 비활성화 시 글의 처음 몇 줄이 요약으로 사용됩니다."
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1014
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1025
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:549
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "연합우주(fediverse) 계정이 있으시다면, 이 게시글에 댓글을 달 수 있습니다. 사용하시는 인스턴스의 검색창에 {0}로 검색하신 뒤, 해당 게시글에 댓글을 남기시면 됩니다."
@@ -1832,7 +1840,7 @@ msgid "Invited by"
 msgstr "초대한 사람"
 
 #. placeholder {0}: "INVITER"
-#: src/components/ProfileCard.tsx:411
+#: src/components/ProfileCard.tsx:429
 msgid "Invited by {0}"
 msgstr "{0} 님이 초대했습니다"
 
@@ -1849,7 +1857,7 @@ msgid "Join the discussion about this story."
 msgstr "이 이야기에 대한 토론에 참여해 보세요."
 
 #. placeholder {0}: new Date(created).toLocaleDateString(i18n.locale, { year: "numeric", month: "long", })
-#: src/components/ProfileCard.tsx:446
+#: src/components/ProfileCard.tsx:464
 msgid "Joined {0}"
 msgstr "{0}에 가입"
 
@@ -1945,7 +1953,7 @@ msgid "List"
 msgstr "목록"
 
 #: src/components/AccountListBase.tsx:115
-#: src/components/ReportHistoryList.tsx:178
+#: src/components/ReportHistoryList.tsx:203
 #: src/routes/(root)/[handle]/drafts/index.tsx:350
 msgid "Load more"
 msgstr "더 보기"
@@ -2101,7 +2109,7 @@ msgid "Loading more stories…"
 msgstr "뉴스를 더 불러오는 중…"
 
 #: src/components/AccountListBase.tsx:109
-#: src/components/ReportHistoryList.tsx:172
+#: src/components/ReportHistoryList.tsx:197
 msgid "Loading more…"
 msgstr "더 불러오는 중…"
 
@@ -2187,7 +2195,7 @@ msgid "Move up"
 msgstr "위로 이동"
 
 #: src/components/NoteComposer.tsx:1575
-#: src/components/QuestionCard.tsx:468
+#: src/components/QuestionCard.tsx:477
 msgid "Multiple choice"
 msgstr "복수 선택"
 
@@ -2504,12 +2512,16 @@ msgstr "초대 횟수"
 msgid "Only moderators can refresh remote objects."
 msgstr "모더레이터만 원격 객체를 새로 고칠 수 있습니다."
 
+#: src/components/CensorshipNotice.tsx:37
+msgid "Only the author and moderators can still see its content."
+msgstr "작성자와 모더레이터만 내용을 볼 수 있습니다."
+
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:72
 #: src/components/QuotePolicySelect.tsx:39
 msgid "Only you can quote"
 msgstr "나만 인용 가능"
 
-#: src/components/QuestionCard.tsx:471
+#: src/components/QuestionCard.tsx:480
 msgid "Open"
 msgstr "진행 중"
 
@@ -2534,7 +2546,7 @@ msgstr "또는"
 msgid "Or enter the code from the email"
 msgstr "또는 이메일의 코드를 입력하세요"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:878
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:889
 msgid "Other languages"
 msgstr "다른 언어"
 
@@ -2575,7 +2587,7 @@ msgstr "패널티를 해제했습니다."
 msgid "Pending"
 msgstr "대기 중"
 
-#: src/components/ReportHistoryList.tsx:75
+#: src/components/ReportHistoryList.tsx:90
 msgid "Pending review"
 msgstr "검토 대기 중"
 
@@ -2626,7 +2638,7 @@ msgstr "연합우주 핸들을 입력해 주세요."
 msgid "Please sign in to access this page"
 msgstr "이 페이지에 접근하려면 로그인하세요"
 
-#: src/components/QuestionCard.tsx:418
+#: src/components/QuestionCard.tsx:427
 msgid "Please sign in to vote"
 msgstr "투표하려면 로그인하세요"
 
@@ -2634,7 +2646,7 @@ msgstr "투표하려면 로그인하세요"
 msgid "Poll"
 msgstr "설문"
 
-#: src/components/QuestionCard.tsx:393
+#: src/components/QuestionCard.tsx:402
 msgid "Poll closed"
 msgstr "설문이 마감되었습니다"
 
@@ -2860,8 +2872,8 @@ msgstr "반응"
 msgid "Reactions"
 msgstr "반응"
 
-#: src/components/ArticleCard.tsx:515
-#: src/components/ArticleCard.tsx:535
+#: src/components/ArticleCard.tsx:524
+#: src/components/ArticleCard.tsx:544
 #: src/components/NewsDiscussionThread.tsx:430
 msgid "Read full article"
 msgstr "게시글 전체 읽기"
@@ -3079,13 +3091,14 @@ msgstr "이 콘텐츠 신고"
 msgid "Report user"
 msgstr "사용자 신고"
 
-#. placeholder {0}: edge.node.targetActor.handle
-#: src/components/ReportHistoryList.tsx:138
+#. placeholder {0}: node.targetActor.handle
+#: src/components/ReportHistoryList.tsx:145
 msgid "Reported {0}"
 msgstr "{0} 신고함"
 
-#. placeholder {0}: edge.node.targetActor.handle
-#: src/components/ReportHistoryList.tsx:127
+#. placeholder {0}: node.targetActor.handle
+#: src/components/ReportHistoryList.tsx:156
+#: src/components/ReportHistoryList.tsx:164
 msgid "Reported a post by {0}"
 msgstr "{0}님의 콘텐츠 신고함"
 
@@ -3097,7 +3110,7 @@ msgstr "신고 내역"
 msgid "Reports you have filed, newest first. You can see the target, your reason, and the current status. Detailed outcomes are not shown, and the reported user never learns who reported them."
 msgstr "회원님이 제출한 신고를 최신순으로 보여 줍니다. 신고 대상, 작성한 사유, 현재 상태를 확인할 수 있습니다. 자세한 처리 결과는 표시되지 않으며, 신고당한 사용자는 누가 신고했는지 절대 알 수 없습니다."
 
-#: src/components/ReportHistoryList.tsx:79
+#: src/components/ReportHistoryList.tsx:94
 msgid "Resolved"
 msgstr "처리됨"
 
@@ -3179,11 +3192,11 @@ msgstr "{0}의 검색 결과"
 msgid "Searching…"
 msgstr "검색 중…"
 
-#: src/components/QuestionCard.tsx:398
+#: src/components/QuestionCard.tsx:407
 msgid "Select an option"
 msgstr "선택지를 선택하세요"
 
-#: src/components/QuestionCard.tsx:398
+#: src/components/QuestionCard.tsx:407
 msgid "Select options"
 msgstr "선택지를 선택하세요"
 
@@ -3254,7 +3267,7 @@ msgid "Sharing is not available for this post"
 msgstr "이 콘텐츠는 공유할 수 없습니다."
 
 #: src/components/MutedReplyPlaceholder.tsx:32
-#: src/components/NoteCardInternal.tsx:141
+#: src/components/NoteCardInternal.tsx:152
 #: src/components/QuotedNoteCard.tsx:161
 #: src/components/QuotedNoteCard.tsx:228
 msgid "Show"
@@ -3290,7 +3303,7 @@ msgstr "Hackers' Pub 로그인"
 msgid "Sign in to post"
 msgstr "로그인하고 작성"
 
-#: src/components/QuestionCard.tsx:395
+#: src/components/QuestionCard.tsx:404
 msgid "Sign in to vote"
 msgstr "로그인 후 투표"
 
@@ -3324,7 +3337,7 @@ msgid "Signing up for Hackers' Pub"
 msgstr "Hackers' Pub 가입"
 
 #: src/components/NoteComposer.tsx:1567
-#: src/components/QuestionCard.tsx:468
+#: src/components/QuestionCard.tsx:477
 msgid "Single choice"
 msgstr "단일 선택"
 
@@ -3370,7 +3383,7 @@ msgstr "구독"
 msgid "Subscribe to a relay"
 msgstr "릴레이 구독"
 
-#: src/components/ProfileCard.tsx:161
+#: src/components/ProfileCard.tsx:163
 msgid "Subscribe via RSS"
 msgstr "RSS로 구독"
 
@@ -3409,15 +3422,15 @@ msgstr "환경 설정이 성공적으로 저장되었습니다"
 msgid "Successfully saved settings"
 msgstr "설정이 성공적으로 저장되었습니다"
 
-#: src/components/ArticleCard.tsx:488
+#: src/components/ArticleCard.tsx:497
 #: src/components/QuotedNoteCard.tsx:278
 msgid "Summarized by LLM"
 msgstr "LLM 요약"
 
 #: src/components/DocumentView.tsx:38
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:722
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:730
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1057
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:733
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:741
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1068
 msgid "Table of contents"
 msgstr "목차"
 
@@ -3427,7 +3440,7 @@ msgstr "목차"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:158
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:479
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1066
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1077
 msgid "Tags"
 msgstr "태그"
 
@@ -3564,6 +3577,10 @@ msgstr "Web Push 공개 키가 올바르지 않습니다."
 msgid "This account is hidden because they want to keep their identity private."
 msgstr "이 계정은 본인이 신원 공개를 원치 않았기에 숨겨져 있습니다."
 
+#: src/components/ProfileCard.tsx:215
+msgid "This account is suspended."
+msgstr "이 계정은 정지되었습니다."
+
 #: src/components/PostActionMenu.tsx:418
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "이 작업은 되돌릴 수 없습니다. 이 콘텐츠는 영구적으로 삭제됩니다."
@@ -3600,6 +3617,10 @@ msgstr "이 초대 링크를 찾을 수 없습니다."
 msgid "This post quoted another post, but the quote is not currently authorized."
 msgstr "이 콘텐츠는 다른 콘텐츠를 인용했지만, 현재 인용이 허가되지 않았습니다."
 
+#: src/components/CensorshipNotice.tsx:34
+msgid "This post was hidden from timelines and search for violating the code of conduct."
+msgstr "이 콘텐츠는 행동 강령 위반으로 타임라인과 검색에서 숨겨졌습니다."
+
 #: src/components/QuoteTargetPlaceholder.tsx:35
 msgid "This quote is waiting for approval from the original author."
 msgstr "원문 작성자의 승인을 기다리고 있습니다."
@@ -3624,7 +3645,7 @@ msgstr "이 서버에는 아직 Web Push가 설정되어 있지 않습니다."
 msgid "This service does not support remote follow."
 msgstr "이 서비스는 원격 팔로를 지원하지 않습니다."
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:553
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:564
 msgid "This usually takes about a minute. The page will update automatically when the translation is ready."
 msgstr "보통 1분 정도 소요됩니다. 번역이 완료되면 페이지가 자동으로 업데이트됩니다."
 
@@ -3664,8 +3685,8 @@ msgid "Total: {0}"
 msgstr "전체: {0}"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:352
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:862
+#: src/components/ArticleCard.tsx:355
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:873
 msgid "Translated from {0}"
 msgstr "{0}에서 번역됨"
 
@@ -3673,18 +3694,18 @@ msgstr "{0}에서 번역됨"
 #~ msgid "Translating to {0}…"
 #~ msgstr "{0}로 번역 중…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:548
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:559
 msgid "Translating to {name}…"
 msgstr "{name}로 번역 중…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:544
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:555
 msgid "Translating…"
 msgstr "번역 중…"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:379
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:402
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:411
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:589
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:600
 msgid "Translation request failed"
 msgstr "번역 요청 실패"
 
@@ -3692,7 +3713,7 @@ msgstr "번역 요청 실패"
 #~ msgid "Translation request failed for {0}"
 #~ msgstr "{0}로의 번역 요청에 실패했습니다"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:594
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:605
 msgid "Translation request failed for {name}"
 msgstr "{name}로의 번역 요청에 실패했습니다"
 
@@ -3702,7 +3723,7 @@ msgid "Tree"
 msgstr "트리"
 
 #: src/app.tsx:129
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:602
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:613
 msgid "Try again"
 msgstr "다시 시도"
 
@@ -3736,7 +3757,7 @@ msgstr "차단 해제"
 msgid "Unblock user?"
 msgstr "사용자 차단을 해제하시겠습니까?"
 
-#: src/components/ReportHistoryList.tsx:77
+#: src/components/ReportHistoryList.tsx:92
 msgid "Under review"
 msgstr "검토 중"
 
@@ -3836,7 +3857,7 @@ msgstr "초대한 사용자"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:294
+#: src/components/ProfileCard.tsx:312
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "{1}에 {0} 님이 이 링크의 소유자임이 확인됨"
 
@@ -3896,19 +3917,19 @@ msgstr "모든 사람이 볼 수 있지만 공개 타임라인에는 표시되�
 msgid "Visible to everyone, including non-registered users. The post will appear in the public timeline as well."
 msgstr "미가입 사용자를 포함해 모든 사람이 볼 수 있습니다. 공개 타임라인에도 표시됩니다."
 
-#: src/components/QuestionCard.tsx:400
+#: src/components/QuestionCard.tsx:409
 msgid "Vote"
 msgstr "투표"
 
-#: src/components/QuestionCard.tsx:414
+#: src/components/QuestionCard.tsx:423
 msgid "Vote recorded"
 msgstr "투표했습니다"
 
-#: src/components/QuestionCard.tsx:394
+#: src/components/QuestionCard.tsx:403
 msgid "Voted"
 msgstr "투표함"
 
-#: src/components/QuestionCard.tsx:396
+#: src/components/QuestionCard.tsx:405
 msgid "Voting…"
 msgstr "투표 중…"
 
@@ -3920,7 +3941,7 @@ msgstr "경고"
 msgid "We couldn't reach the server"
 msgstr "서버에 연결하지 못했습니다"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:599
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:610
 msgid "We couldn't reach the translation service. Try again, or come back in a few minutes."
 msgstr "번역 서비스에 연결하지 못했습니다. 다시 시도하거나 몇 분 후에 다시 방문해 주세요."
 
@@ -3971,7 +3992,7 @@ msgid "Write"
 msgstr "작성"
 
 #: src/components/NoteComposeModal.tsx:115
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1005
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1016
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:386
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:464
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:540
@@ -3999,11 +4020,11 @@ msgstr "이 대상에 대해 이미 처리 중인 신고가 있습니다. 신고
 msgid "You are about to follow {0}."
 msgstr "{0}를 회원님의 계정으로 팔로하려고 합니다."
 
-#: src/components/ProfileCard.tsx:214
+#: src/components/ProfileCard.tsx:232
 msgid "You are blocked by this user. You can't follow them or see their posts."
 msgstr "이 사용자에게서 차단당했습니다. 이 사용자를 팔로하거나 콘텐츠를 볼 수 없습니다."
 
-#: src/components/ProfileCard.tsx:207
+#: src/components/ProfileCard.tsx:225
 msgid "You are blocking this user. They can't follow you or see your posts."
 msgstr "이 사용자를 차단했습니다. 이 사용자는 회원님을 팔로하거나 콘텐츠를 볼 수 없습니다."
 
@@ -4061,7 +4082,7 @@ msgstr "남은 초대장이 없습니다. 추가로 받을 때까지 기다려�
 msgid "You haven't blocked anyone."
 msgstr "차단한 계정이 없습니다."
 
-#: src/components/ReportHistoryList.tsx:109
+#: src/components/ReportHistoryList.tsx:124
 msgid "You haven't filed any reports."
 msgstr "제출한 신고가 없습니다."
 
