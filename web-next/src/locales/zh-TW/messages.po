@@ -455,12 +455,12 @@ msgstr "全部時間"
 msgid "Allow automatic translation by AI"
 msgstr "允許 AI 自動翻譯"
 
-#: src/components/ReportDialog.tsx:119
+#: src/components/ReportDialog.tsx:123
 msgid "Already reported"
 msgstr "已檢舉"
 
 #. placeholder {0}: props.targetHandle
-#: src/components/ReportDialog.tsx:202
+#: src/components/ReportDialog.tsx:206
 msgid "Also send this report to the remote instance ({0})"
 msgstr "同時將此檢舉傳送給遠端站台（{0}）"
 
@@ -697,7 +697,7 @@ msgstr "由 {0} 發佈"
 #: src/components/RemoteFollowButton.tsx:218
 #: src/components/RemoteFollowButton.tsx:280
 #: src/components/RemoveFollowerButton.tsx:144
-#: src/components/ReportDialog.tsx:219
+#: src/components/ReportDialog.tsx:224
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:523
 #: src/routes/(root)/[handle]/settings/index.tsx:399
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:522
@@ -975,6 +975,10 @@ msgstr "放棄未儲存的變更 - 您確定嗎？"
 #: src/components/WebPushPromptBanner.tsx:269
 msgid "Dismiss"
 msgstr "關閉"
+
+#: src/components/ReportHistoryList.tsx:81
+msgid "Dismissed"
+msgstr "已駁回"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:468
 #: src/routes/(root)/sign/up/[token].tsx:377
@@ -1290,6 +1294,7 @@ msgid "Failed to load more shares; click to retry"
 msgstr "載入更多轉貼失敗，點擊重試"
 
 #: src/components/AccountListBase.tsx:112
+#: src/components/ReportHistoryList.tsx:175
 msgid "Failed to load more; click to retry"
 msgstr "載入更多失敗；點擊重試"
 
@@ -1421,8 +1426,8 @@ msgstr "轉貼失敗"
 msgid "Failed to sign out: {0}"
 msgstr "登出失敗：{0}"
 
-#: src/components/ReportDialog.tsx:127
-#: src/components/ReportDialog.tsx:134
+#: src/components/ReportDialog.tsx:131
+#: src/components/ReportDialog.tsx:138
 msgid "Failed to submit report"
 msgstr "檢舉提交失敗"
 
@@ -1557,6 +1562,10 @@ msgstr "關注了你"
 #: src/components/ui/markdown-editor.tsx:519
 msgid "Formatting"
 msgstr "格式"
+
+#: src/components/ReportHistoryList.tsx:156
+msgid "Forwarded to the remote instance"
+msgstr "已轉送給遠端站台"
 
 #: src/components/NoteComposer.tsx:1785
 msgid "Generating…"
@@ -1705,7 +1714,7 @@ msgstr "在邀請樹中隱藏我"
 msgid "I have read and agree to the Code of conduct."
 msgstr "我同意 Hackers' Pub 的行為準則。"
 
-#: src/components/ReportDialog.tsx:204
+#: src/components/ReportDialog.tsx:209
 msgid "If enabled, a report will be sent to the remote server's moderators after our moderation team acts. Your identity will not be revealed; only a summary written by our moderation team is shared, never your original wording."
 msgstr "啟用後，在我們的管理團隊處置之後，檢舉將傳送給遠端伺服器的版主。您的身分不會被透露；只會分享由我們的管理團隊撰寫的摘要，絕不會分享您的原文。"
 
@@ -1805,7 +1814,7 @@ msgid "Invitations left"
 msgstr "剩餘邀請"
 
 #: src/components/AppSidebar.tsx:649
-#: src/components/SettingsTabs.tsx:69
+#: src/components/SettingsTabs.tsx:70
 #: src/routes/(root)/[handle]/settings/invite.tsx:310
 msgid "Invite"
 msgstr "邀請"
@@ -1868,7 +1877,7 @@ msgstr "語言代碼"
 msgid "Language settings"
 msgstr "語言設定"
 
-#: src/components/SettingsTabs.tsx:61
+#: src/components/SettingsTabs.tsx:62
 msgid "Languages"
 msgstr "語言"
 
@@ -1936,6 +1945,7 @@ msgid "List"
 msgstr "列表"
 
 #: src/components/AccountListBase.tsx:115
+#: src/components/ReportHistoryList.tsx:178
 #: src/routes/(root)/[handle]/drafts/index.tsx:350
 msgid "Load more"
 msgstr "載入更多"
@@ -2091,6 +2101,7 @@ msgid "Loading more stories…"
 msgstr "正在載入更多新聞…"
 
 #: src/components/AccountListBase.tsx:109
+#: src/components/ReportHistoryList.tsx:172
 msgid "Loading more…"
 msgstr "正在載入更多…"
 
@@ -2145,7 +2156,7 @@ msgstr "媒體"
 msgid "Mentioned only"
 msgstr "只提及使用者可見"
 
-#: src/components/ReportDialog.tsx:188
+#: src/components/ReportDialog.tsx:192
 msgid "Minimum {MIN_REASON_LENGTH} characters required."
 msgstr "至少需要輸入 {MIN_REASON_LENGTH} 個字元。"
 
@@ -2196,7 +2207,7 @@ msgstr "已靜音的帳號"
 msgid "Muted accounts are hidden from your feeds and stop notifying you, except for replies and mentions from accounts you follow. You can still visit their profiles, and muting is private and never federated."
 msgstr "被靜音的帳號不會出現在你的時間軸中，也不會通知你，但你關注的帳號的回覆與提及仍會通知你。你仍可造訪其個人檔案；靜音是私密的，且不會進行聯邦。"
 
-#: src/components/SettingsTabs.tsx:85
+#: src/components/SettingsTabs.tsx:86
 msgid "Mutes & blocks"
 msgstr "靜音與封鎖"
 
@@ -2547,7 +2558,7 @@ msgstr "通行金鑰註冊成功"
 msgid "Passkey revoked"
 msgstr "通行金鑰已撤銷"
 
-#: src/components/SettingsTabs.tsx:77
+#: src/components/SettingsTabs.tsx:78
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:356
 msgid "Passkeys"
 msgstr "通行金鑰"
@@ -2563,6 +2574,10 @@ msgstr "已清除處罰。"
 #: src/routes/(root)/admin/relay.tsx:304
 msgid "Pending"
 msgstr "待處理"
+
+#: src/components/ReportHistoryList.tsx:75
+msgid "Pending review"
+msgstr "等待審核"
 
 #: src/components/FollowRecommendations.tsx:128
 msgid "People you might want to follow"
@@ -2685,7 +2700,7 @@ msgstr "內容"
 msgid "Prefer AI-generated summary"
 msgstr "優先使用 AI 生成的摘要"
 
-#: src/components/SettingsTabs.tsx:53
+#: src/components/SettingsTabs.tsx:54
 #: src/routes/(root)/[handle]/settings/preferences.tsx:170
 #: src/routes/(root)/[handle]/settings/preferences.tsx:171
 msgid "Preferences"
@@ -2730,7 +2745,7 @@ msgstr "優先級"
 msgid "Privacy policy"
 msgstr "隱私權政策"
 
-#: src/components/SettingsTabs.tsx:45
+#: src/components/SettingsTabs.tsx:46
 msgid "Profile"
 msgstr "個人資料"
 
@@ -2855,7 +2870,7 @@ msgstr "閱讀完整文章"
 #~ msgid "Read the full Code of conduct"
 #~ msgstr "閱讀完整的行為守則"
 
-#: src/components/ReportDialog.tsx:171
+#: src/components/ReportDialog.tsx:175
 msgid "Reason"
 msgstr "檢舉原因"
 
@@ -3043,21 +3058,48 @@ msgid "Report"
 msgstr "檢舉"
 
 #. placeholder {0}: props.targetHandle
-#: src/components/ReportDialog.tsx:149
+#: src/components/ReportDialog.tsx:153
 msgid "Report {0}"
 msgstr "檢舉 {0}"
 
-#: src/components/ReportDialog.tsx:110
+#: src/routes/(root)/[handle]/settings/reports.tsx:74
+#: src/routes/(root)/[handle]/settings/reports.tsx:81
+msgid "Report history"
+msgstr "檢舉紀錄"
+
+#: src/components/ReportDialog.tsx:114
 msgid "Report submitted"
 msgstr "檢舉已提交"
 
-#: src/components/ReportDialog.tsx:151
+#: src/components/ReportDialog.tsx:155
 msgid "Report this post"
 msgstr "檢舉此內容"
 
 #: src/components/ProfileActionMenu.tsx:469
 msgid "Report user"
 msgstr "檢舉使用者"
+
+#. placeholder {0}: edge.node.targetActor.handle
+#: src/components/ReportHistoryList.tsx:138
+msgid "Reported {0}"
+msgstr "已檢舉 {0}"
+
+#. placeholder {0}: edge.node.targetActor.handle
+#: src/components/ReportHistoryList.tsx:127
+msgid "Reported a post by {0}"
+msgstr "已檢舉 {0} 的內容"
+
+#: src/components/SettingsTabs.tsx:94
+msgid "Reports"
+msgstr "檢舉紀錄"
+
+#: src/routes/(root)/[handle]/settings/reports.tsx:83
+msgid "Reports you have filed, newest first. You can see the target, your reason, and the current status. Detailed outcomes are not shown, and the reported user never learns who reported them."
+msgstr "依時間由新到舊顯示你提交的檢舉。你可以查看檢舉對象、填寫的理由與目前狀態。詳細的處理結果不會顯示，被檢舉的使用者也永遠不會知道是誰檢舉的。"
+
+#: src/components/ReportHistoryList.tsx:79
+msgid "Resolved"
+msgstr "已處理"
 
 #: src/components/AppSidebar.tsx:510
 msgid "Return to old UI"
@@ -3316,7 +3358,7 @@ msgstr "發生錯誤，請重試。"
 msgid "Strong"
 msgstr "強"
 
-#: src/components/ReportDialog.tsx:226
+#: src/components/ReportDialog.tsx:231
 msgid "Submit report"
 msgstr "提交檢舉"
 
@@ -3389,11 +3431,11 @@ msgstr "目錄"
 msgid "Tags"
 msgstr "標籤"
 
-#: src/components/ReportDialog.tsx:159
+#: src/components/ReportDialog.tsx:163
 msgid "Tell the moderation team why you are reporting this post. You don't need to know the specific code of conduct provisions; describe what felt uncomfortable or problematic in your own words."
 msgstr "請告訴管理團隊您檢舉此內容的原因。您不需要瞭解行為準則的具體條款，用自己的話描述讓您感到不適或有問題的地方即可。"
 
-#: src/components/ReportDialog.tsx:157
+#: src/components/ReportDialog.tsx:161
 msgid "Tell the moderation team why you are reporting this user. You don't need to know the specific code of conduct provisions; describe what felt uncomfortable or problematic in your own words."
 msgstr "請告訴管理團隊您檢舉此使用者的原因。您不需要瞭解行為準則的具體條款，用自己的話描述讓您感到不適或有問題的地方即可。"
 
@@ -3401,7 +3443,7 @@ msgstr "請告訴管理團隊您檢舉此使用者的原因。您不需要瞭解
 msgid "Tell us about yourself…"
 msgstr "介紹您自己…"
 
-#: src/components/ReportDialog.tsx:112
+#: src/components/ReportDialog.tsx:116
 msgid "Thank you. The moderation team will review your report."
 msgstr "感謝您。管理團隊將審查您的檢舉。"
 
@@ -3491,7 +3533,7 @@ msgstr "文章的主要語言，用於無障礙功能和內容發現。"
 msgid "The quoting post will no longer include your post as a quote."
 msgstr "引用內容將不再把你的內容作為引用包含在內。"
 
-#: src/components/ReportDialog.tsx:190
+#: src/components/ReportDialog.tsx:194
 msgid "The reason is too long (maximum {MAX_REASON_LENGTH} characters)."
 msgstr "檢舉原因過長（最多 {MAX_REASON_LENGTH} 個字元）。"
 
@@ -3694,6 +3736,10 @@ msgstr "解除封鎖"
 msgid "Unblock user?"
 msgstr "解除封鎖使用者？"
 
+#: src/components/ReportHistoryList.tsx:77
+msgid "Under review"
+msgstr "審核中"
+
 #: src/components/FollowButton.tsx:192
 #: src/components/HashtagActionBar.tsx:247
 msgid "Unfollow"
@@ -3886,7 +3932,7 @@ msgstr "網站"
 msgid "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 msgstr "歡迎來到 Hackers' Pub！請填寫以下表單完成註冊。"
 
-#: src/components/ReportDialog.tsx:174
+#: src/components/ReportDialog.tsx:178
 msgid "What happened?"
 msgstr "發生了什麼事？"
 
@@ -3944,7 +3990,7 @@ msgstr "在此撰寫文章。您可以使用 Markdown。在您撰寫時，文章
 #~ msgid "Write your note here."
 #~ msgstr "在此處撰寫你的貼文。"
 
-#: src/components/ReportDialog.tsx:121
+#: src/components/ReportDialog.tsx:125
 msgid "You already have an open report on this target. You can check its status in your report history."
 msgstr "您對該對象已有一筆處理中的檢舉。您可以在檢舉紀錄中查看其狀態。"
 
@@ -4014,6 +4060,10 @@ msgstr "你沒有剩餘邀請名額。請稍後再試。"
 #: src/components/BlockedAccountsList.tsx:119
 msgid "You haven't blocked anyone."
 msgstr "你還沒有封鎖任何帳號。"
+
+#: src/components/ReportHistoryList.tsx:109
+msgid "You haven't filed any reports."
+msgstr "你還沒有提交任何檢舉。"
 
 #: src/components/MutedAccountsList.tsx:116
 msgid "You haven't muted anyone."
@@ -4097,7 +4147,7 @@ msgstr "你的電子郵件地址將用於登入。"
 msgid "Your friend will see this message in the invitation email."
 msgstr "你的朋友將在邀請郵件中看到此訊息。"
 
-#: src/components/ReportDialog.tsx:210
+#: src/components/ReportDialog.tsx:215
 msgid "Your identity is kept strictly confidential: only the moderation team can see who reported, and the reported user never will."
 msgstr "您的身分將被嚴格保密：只有管理團隊能看到檢舉人是誰，被檢舉的使用者永遠不會知道。"
 

@@ -12,7 +12,8 @@ export type SettingsTab =
   | "language"
   | "invite"
   | "passkeys"
-  | "blocks";
+  | "blocks"
+  | "reports";
 
 export interface SettingsTabsProps {
   selected: SettingsTab;
@@ -83,6 +84,14 @@ export function SettingsTabs(props: SettingsTabsProps) {
                 class="shrink-0"
               >
                 {t`Mutes & blocks`}
+              </TabsTrigger>
+              <TabsTrigger
+                as={A}
+                value="reports"
+                href={`/@${account.username}/settings/reports`}
+                class="shrink-0"
+              >
+                {t`Reports`}
               </TabsTrigger>
             </TabsList>
           </div>

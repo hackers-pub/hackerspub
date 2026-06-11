@@ -455,12 +455,12 @@ msgstr "All-time"
 msgid "Allow automatic translation by AI"
 msgstr "Allow automatic translation by AI"
 
-#: src/components/ReportDialog.tsx:119
+#: src/components/ReportDialog.tsx:123
 msgid "Already reported"
 msgstr "Already reported"
 
 #. placeholder {0}: props.targetHandle
-#: src/components/ReportDialog.tsx:202
+#: src/components/ReportDialog.tsx:206
 msgid "Also send this report to the remote instance ({0})"
 msgstr "Also send this report to the remote instance ({0})"
 
@@ -697,7 +697,7 @@ msgstr "By {0}"
 #: src/components/RemoteFollowButton.tsx:218
 #: src/components/RemoteFollowButton.tsx:280
 #: src/components/RemoveFollowerButton.tsx:144
-#: src/components/ReportDialog.tsx:219
+#: src/components/ReportDialog.tsx:224
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:523
 #: src/routes/(root)/[handle]/settings/index.tsx:399
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:522
@@ -975,6 +975,10 @@ msgstr "Discard unsaved changes - are you sure?"
 #: src/components/WebPushPromptBanner.tsx:269
 msgid "Dismiss"
 msgstr "Dismiss"
+
+#: src/components/ReportHistoryList.tsx:81
+msgid "Dismissed"
+msgstr "Dismissed"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:468
 #: src/routes/(root)/sign/up/[token].tsx:377
@@ -1294,6 +1298,7 @@ msgid "Failed to load more shares; click to retry"
 msgstr "Failed to load more shares; click to retry"
 
 #: src/components/AccountListBase.tsx:112
+#: src/components/ReportHistoryList.tsx:175
 msgid "Failed to load more; click to retry"
 msgstr "Failed to load more; click to retry"
 
@@ -1425,8 +1430,8 @@ msgstr "Failed to share post"
 msgid "Failed to sign out: {0}"
 msgstr "Failed to sign out: {0}"
 
-#: src/components/ReportDialog.tsx:127
-#: src/components/ReportDialog.tsx:134
+#: src/components/ReportDialog.tsx:131
+#: src/components/ReportDialog.tsx:138
 msgid "Failed to submit report"
 msgstr "Failed to submit report"
 
@@ -1561,6 +1566,10 @@ msgstr "Following you"
 #: src/components/ui/markdown-editor.tsx:519
 msgid "Formatting"
 msgstr "Formatting"
+
+#: src/components/ReportHistoryList.tsx:156
+msgid "Forwarded to the remote instance"
+msgstr "Forwarded to the remote instance"
 
 #: src/components/NoteComposer.tsx:1785
 msgid "Generating…"
@@ -1709,7 +1718,7 @@ msgstr "Hide me from the invitation tree"
 msgid "I have read and agree to the Code of conduct."
 msgstr "I have read and agree to the Code of conduct."
 
-#: src/components/ReportDialog.tsx:204
+#: src/components/ReportDialog.tsx:209
 msgid "If enabled, a report will be sent to the remote server's moderators after our moderation team acts. Your identity will not be revealed; only a summary written by our moderation team is shared, never your original wording."
 msgstr "If enabled, a report will be sent to the remote server's moderators after our moderation team acts. Your identity will not be revealed; only a summary written by our moderation team is shared, never your original wording."
 
@@ -1809,7 +1818,7 @@ msgid "Invitations left"
 msgstr "Invitations left"
 
 #: src/components/AppSidebar.tsx:649
-#: src/components/SettingsTabs.tsx:69
+#: src/components/SettingsTabs.tsx:70
 #: src/routes/(root)/[handle]/settings/invite.tsx:310
 msgid "Invite"
 msgstr "Invite"
@@ -1872,7 +1881,7 @@ msgstr "Language code"
 msgid "Language settings"
 msgstr "Language settings"
 
-#: src/components/SettingsTabs.tsx:61
+#: src/components/SettingsTabs.tsx:62
 msgid "Languages"
 msgstr "Languages"
 
@@ -1940,6 +1949,7 @@ msgid "List"
 msgstr "List"
 
 #: src/components/AccountListBase.tsx:115
+#: src/components/ReportHistoryList.tsx:178
 #: src/routes/(root)/[handle]/drafts/index.tsx:350
 msgid "Load more"
 msgstr "Load more"
@@ -2095,6 +2105,7 @@ msgid "Loading more stories…"
 msgstr "Loading more stories…"
 
 #: src/components/AccountListBase.tsx:109
+#: src/components/ReportHistoryList.tsx:172
 msgid "Loading more…"
 msgstr "Loading more…"
 
@@ -2149,7 +2160,7 @@ msgstr "Media"
 msgid "Mentioned only"
 msgstr "Mentioned only"
 
-#: src/components/ReportDialog.tsx:188
+#: src/components/ReportDialog.tsx:192
 msgid "Minimum {MIN_REASON_LENGTH} characters required."
 msgstr "Minimum {MIN_REASON_LENGTH} characters required."
 
@@ -2200,7 +2211,7 @@ msgstr "Muted accounts"
 msgid "Muted accounts are hidden from your feeds and stop notifying you, except for replies and mentions from accounts you follow. You can still visit their profiles, and muting is private and never federated."
 msgstr "Muted accounts are hidden from your feeds and stop notifying you, except for replies and mentions from accounts you follow. You can still visit their profiles, and muting is private and never federated."
 
-#: src/components/SettingsTabs.tsx:85
+#: src/components/SettingsTabs.tsx:86
 msgid "Mutes & blocks"
 msgstr "Mutes & blocks"
 
@@ -2551,7 +2562,7 @@ msgstr "Passkey registered successfully"
 msgid "Passkey revoked"
 msgstr "Passkey revoked"
 
-#: src/components/SettingsTabs.tsx:77
+#: src/components/SettingsTabs.tsx:78
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:356
 msgid "Passkeys"
 msgstr "Passkeys"
@@ -2567,6 +2578,10 @@ msgstr "Penalty cleared."
 #: src/routes/(root)/admin/relay.tsx:304
 msgid "Pending"
 msgstr "Pending"
+
+#: src/components/ReportHistoryList.tsx:75
+msgid "Pending review"
+msgstr "Pending review"
 
 #: src/components/FollowRecommendations.tsx:128
 msgid "People you might want to follow"
@@ -2689,7 +2704,7 @@ msgstr "Posts"
 msgid "Prefer AI-generated summary"
 msgstr "Prefer AI-generated summary"
 
-#: src/components/SettingsTabs.tsx:53
+#: src/components/SettingsTabs.tsx:54
 #: src/routes/(root)/[handle]/settings/preferences.tsx:170
 #: src/routes/(root)/[handle]/settings/preferences.tsx:171
 msgid "Preferences"
@@ -2734,7 +2749,7 @@ msgstr "Priority"
 msgid "Privacy policy"
 msgstr "Privacy policy"
 
-#: src/components/SettingsTabs.tsx:45
+#: src/components/SettingsTabs.tsx:46
 msgid "Profile"
 msgstr "Profile"
 
@@ -2859,7 +2874,7 @@ msgstr "Read full article"
 #~ msgid "Read the full Code of conduct"
 #~ msgstr "Read the full Code of conduct"
 
-#: src/components/ReportDialog.tsx:171
+#: src/components/ReportDialog.tsx:175
 msgid "Reason"
 msgstr "Reason"
 
@@ -3047,21 +3062,48 @@ msgid "Report"
 msgstr "Report"
 
 #. placeholder {0}: props.targetHandle
-#: src/components/ReportDialog.tsx:149
+#: src/components/ReportDialog.tsx:153
 msgid "Report {0}"
 msgstr "Report {0}"
 
-#: src/components/ReportDialog.tsx:110
+#: src/routes/(root)/[handle]/settings/reports.tsx:74
+#: src/routes/(root)/[handle]/settings/reports.tsx:81
+msgid "Report history"
+msgstr "Report history"
+
+#: src/components/ReportDialog.tsx:114
 msgid "Report submitted"
 msgstr "Report submitted"
 
-#: src/components/ReportDialog.tsx:151
+#: src/components/ReportDialog.tsx:155
 msgid "Report this post"
 msgstr "Report this post"
 
 #: src/components/ProfileActionMenu.tsx:469
 msgid "Report user"
 msgstr "Report user"
+
+#. placeholder {0}: edge.node.targetActor.handle
+#: src/components/ReportHistoryList.tsx:138
+msgid "Reported {0}"
+msgstr "Reported {0}"
+
+#. placeholder {0}: edge.node.targetActor.handle
+#: src/components/ReportHistoryList.tsx:127
+msgid "Reported a post by {0}"
+msgstr "Reported a post by {0}"
+
+#: src/components/SettingsTabs.tsx:94
+msgid "Reports"
+msgstr "Reports"
+
+#: src/routes/(root)/[handle]/settings/reports.tsx:83
+msgid "Reports you have filed, newest first. You can see the target, your reason, and the current status. Detailed outcomes are not shown, and the reported user never learns who reported them."
+msgstr "Reports you have filed, newest first. You can see the target, your reason, and the current status. Detailed outcomes are not shown, and the reported user never learns who reported them."
+
+#: src/components/ReportHistoryList.tsx:79
+msgid "Resolved"
+msgstr "Resolved"
 
 #: src/components/AppSidebar.tsx:510
 msgid "Return to old UI"
@@ -3320,7 +3362,7 @@ msgstr "Something went wrong—please try again."
 msgid "Strong"
 msgstr "Strong"
 
-#: src/components/ReportDialog.tsx:226
+#: src/components/ReportDialog.tsx:231
 msgid "Submit report"
 msgstr "Submit report"
 
@@ -3393,11 +3435,11 @@ msgstr "Table of contents"
 msgid "Tags"
 msgstr "Tags"
 
-#: src/components/ReportDialog.tsx:159
+#: src/components/ReportDialog.tsx:163
 msgid "Tell the moderation team why you are reporting this post. You don't need to know the specific code of conduct provisions; describe what felt uncomfortable or problematic in your own words."
 msgstr "Tell the moderation team why you are reporting this post. You don't need to know the specific code of conduct provisions; describe what felt uncomfortable or problematic in your own words."
 
-#: src/components/ReportDialog.tsx:157
+#: src/components/ReportDialog.tsx:161
 msgid "Tell the moderation team why you are reporting this user. You don't need to know the specific code of conduct provisions; describe what felt uncomfortable or problematic in your own words."
 msgstr "Tell the moderation team why you are reporting this user. You don't need to know the specific code of conduct provisions; describe what felt uncomfortable or problematic in your own words."
 
@@ -3405,7 +3447,7 @@ msgstr "Tell the moderation team why you are reporting this user. You don't need
 msgid "Tell us about yourself…"
 msgstr "Tell us about yourself…"
 
-#: src/components/ReportDialog.tsx:112
+#: src/components/ReportDialog.tsx:116
 msgid "Thank you. The moderation team will review your report."
 msgstr "Thank you. The moderation team will review your report."
 
@@ -3495,7 +3537,7 @@ msgstr "The primary language of your article, used for accessibility and discove
 msgid "The quoting post will no longer include your post as a quote."
 msgstr "The quoting post will no longer include your post as a quote."
 
-#: src/components/ReportDialog.tsx:190
+#: src/components/ReportDialog.tsx:194
 msgid "The reason is too long (maximum {MAX_REASON_LENGTH} characters)."
 msgstr "The reason is too long (maximum {MAX_REASON_LENGTH} characters)."
 
@@ -3698,6 +3740,10 @@ msgstr "Unblock"
 msgid "Unblock user?"
 msgstr "Unblock user?"
 
+#: src/components/ReportHistoryList.tsx:77
+msgid "Under review"
+msgstr "Under review"
+
 #: src/components/FollowButton.tsx:192
 #: src/components/HashtagActionBar.tsx:247
 msgid "Unfollow"
@@ -3890,7 +3936,7 @@ msgstr "Website"
 msgid "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 msgstr "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 
-#: src/components/ReportDialog.tsx:174
+#: src/components/ReportDialog.tsx:178
 msgid "What happened?"
 msgstr "What happened?"
 
@@ -3948,7 +3994,7 @@ msgstr "Write your article here. You can use Markdown. Your article will be auto
 #~ msgid "Write your note here."
 #~ msgstr "Write your note here."
 
-#: src/components/ReportDialog.tsx:121
+#: src/components/ReportDialog.tsx:125
 msgid "You already have an open report on this target. You can check its status in your report history."
 msgstr "You already have an open report on this target. You can check its status in your report history."
 
@@ -4018,6 +4064,10 @@ msgstr "You have no invitations left. Please wait until you receive more."
 #: src/components/BlockedAccountsList.tsx:119
 msgid "You haven't blocked anyone."
 msgstr "You haven't blocked anyone."
+
+#: src/components/ReportHistoryList.tsx:109
+msgid "You haven't filed any reports."
+msgstr "You haven't filed any reports."
 
 #: src/components/MutedAccountsList.tsx:116
 msgid "You haven't muted anyone."
@@ -4101,7 +4151,7 @@ msgstr "Your email address will be used to sign in to your account."
 msgid "Your friend will see this message in the invitation email."
 msgstr "Your friend will see this message in the invitation email."
 
-#: src/components/ReportDialog.tsx:210
+#: src/components/ReportDialog.tsx:215
 msgid "Your identity is kept strictly confidential: only the moderation team can see who reported, and the reported user never will."
 msgstr "Your identity is kept strictly confidential: only the moderation team can see who reported, and the reported user never will."
 
