@@ -2,7 +2,11 @@ import { A } from "@solidjs/router";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 
-export type ModerationSubTab = "cases" | "appeals";
+export type ModerationSubTab =
+  | "cases"
+  | "appeals"
+  | "statistics"
+  | "sanctioned";
 
 export interface ModerationSubTabsProps {
   selected: ModerationSubTab;
@@ -30,6 +34,22 @@ export function ModerationSubTabs(props: ModerationSubTabsProps) {
             class="shrink-0"
           >
             {t`Appeals`}
+          </TabsTrigger>
+          <TabsTrigger
+            as={A}
+            value="sanctioned"
+            href="/admin/moderation/sanctioned"
+            class="shrink-0"
+          >
+            {t`Sanctioned`}
+          </TabsTrigger>
+          <TabsTrigger
+            as={A}
+            value="statistics"
+            href="/admin/moderation/statistics"
+            class="shrink-0"
+          >
+            {t`Statistics`}
           </TabsTrigger>
         </TabsList>
       </div>

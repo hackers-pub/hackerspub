@@ -213,6 +213,11 @@ msgstr "{0} from Hackers' Pub"
 msgid "{0} from the fediverse"
 msgstr "{0} from the fediverse"
 
+#. placeholder {0}: Math.round(stats.averageProcessingHours!)
+#: src/routes/(root)/admin/moderation/statistics.tsx:162
+msgid "{0} h"
+msgstr "{0} h"
+
 #. placeholder {0}: "USER"
 #: src/routes/(root)/[handle]/settings/invite.tsx:376
 msgid "{0} is already a member of Hackers' Pub."
@@ -222,6 +227,12 @@ msgstr "{0} is already a member of Hackers' Pub."
 #: src/components/notification/MentionNotificationCard.tsx:35
 msgid "{0} mentioned you"
 msgstr "{0} mentioned you"
+
+#. placeholder {0}: num(divergence.diverged)
+#. placeholder {1}: num(divergence.compared)
+#: src/routes/(root)/admin/moderation/statistics.tsx:276
+msgid "{0} of {1} analyzed reports diverged from the moderators' confirmed provisions. Very high or near-zero divergence both warrant attention."
+msgstr "{0} of {1} analyzed reports diverged from the moderators' confirmed provisions. Very high or near-zero divergence both warrant attention."
 
 #. placeholder {0}: "ACTOR"
 #: src/components/notification/QuoteNotificationCard.tsx:33
@@ -431,11 +442,11 @@ msgstr "Account"
 msgid "Account handle"
 msgstr "Account handle"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:97
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:94
 msgid "Account permanently suspended"
 msgstr "Account permanently suspended"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:95
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:92
 msgid "Account suspended"
 msgstr "Account suspended"
 
@@ -443,6 +454,10 @@ msgstr "Account suspended"
 #: src/routes/(root)/admin/index.tsx:97
 msgid "Accounts"
 msgstr "Accounts"
+
+#: src/routes/(root)/admin/moderation/statistics.tsx:174
+msgid "Action distribution"
+msgstr "Action distribution"
 
 #: src/components/admin/ModerationActionForm.tsx:198
 msgid "Action recorded"
@@ -456,6 +471,10 @@ msgstr "Actions"
 #: src/routes/(root)/admin/relay.tsx:308
 msgid "Active since"
 msgstr "Active since"
+
+#: src/routes/(root)/admin/moderation/sanctioned.tsx:75
+msgid "Actors currently under an active suspension or federation block. Expired suspensions drop off automatically."
+msgstr "Actors currently under an active suspension or federation block. Expired suspensions drop off automatically."
 
 #: src/routes/(root)/[handle]/settings/language.tsx:196
 #: src/routes/(root)/admin/news.tsx:639
@@ -593,15 +612,15 @@ msgstr "Anyone can quote"
 msgid "Anything you believe was not considered."
 msgstr "Anything you believe was not considered."
 
-#: src/routes/(root)/admin/moderation/appeals.tsx:253
+#: src/routes/(root)/admin/moderation/appeals.tsx:254
 msgid "Appeal"
 msgstr "Appeal"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:119
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:116
 msgid "Appeal denied: the decision stands"
 msgstr "Appeal denied: the decision stands"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:109
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:106
 msgid "Appeal pending"
 msgstr "Appeal pending"
 
@@ -609,7 +628,7 @@ msgstr "Appeal pending"
 msgid "Appeal resolved"
 msgstr "Appeal resolved"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:117
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:114
 msgid "Appeal reviewed: the sanction was increased"
 msgstr "Appeal reviewed: the sanction was increased"
 
@@ -618,27 +637,27 @@ msgid "Appeal submitted"
 msgstr "Appeal submitted"
 
 #: src/components/AppealDialog.tsx:131
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:218
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:215
 msgid "Appeal this decision"
 msgstr "Appeal this decision"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:108
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:105
 msgid "Appeal under review"
 msgstr "Appeal under review"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:113
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:110
 msgid "Appeal upheld: the decision was withdrawn"
 msgstr "Appeal upheld: the decision was withdrawn"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:115
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:112
 msgid "Appeal upheld: the sanction was reduced"
 msgstr "Appeal upheld: the sanction was reduced"
 
-#: src/routes/(root)/admin/moderation/appeals.tsx:236
+#: src/routes/(root)/admin/moderation/appeals.tsx:237
 msgid "Appealed decision"
 msgstr "Appealed decision"
 
-#: src/components/admin/ModerationSubTabs.tsx:32
+#: src/components/admin/ModerationSubTabs.tsx:36
 #: src/routes/(root)/admin/moderation/appeals.tsx:174
 msgid "Appeals"
 msgstr "Appeals"
@@ -740,6 +759,10 @@ msgstr "Auto-fill alt text"
 msgid "Avatar"
 msgstr "Avatar"
 
+#: src/routes/(root)/admin/moderation/statistics.tsx:153
+msgid "Avg. processing time"
+msgstr "Avg. processing time"
+
 #: src/routes/(root)/admin/moderation/[id].tsx:175
 msgid "Back to cases"
 msgstr "Back to cases"
@@ -751,6 +774,7 @@ msgstr "Ban"
 
 #: src/routes/(root)/admin/moderation/[id].tsx:145
 #: src/routes/(root)/admin/moderation/appeals.tsx:127
+#: src/routes/(root)/admin/moderation/statistics.tsx:79
 msgid "Banned"
 msgstr "Banned"
 
@@ -866,7 +890,7 @@ msgstr "Cancel"
 msgid "Cannot change the language because translations already exist"
 msgstr "Cannot change the language because translations already exist"
 
-#: src/components/admin/ModerationSubTabs.tsx:24
+#: src/components/admin/ModerationSubTabs.tsx:28
 msgid "Cases"
 msgstr "Cases"
 
@@ -952,7 +976,7 @@ msgid "Code of conduct"
 msgstr "Code of conduct"
 
 #. placeholder {0}: sanction .violatedProvisions.join(", ")
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:177
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:174
 msgid "Code of conduct: {0}"
 msgstr "Code of conduct: {0}"
 
@@ -1112,7 +1136,7 @@ msgstr "Decision"
 msgid "Decisions"
 msgstr "Decisions"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:141
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:138
 msgid "Decisions the moderation team has made about your account or posts, newest first. You can appeal a decision once, within 14 days."
 msgstr "Decisions the moderation team has made about your account or posts, newest first. You can appeal a decision once, within 14 days."
 
@@ -1206,6 +1230,7 @@ msgstr "Dismiss"
 #: src/routes/(root)/admin/moderation/[id].tsx:137
 #: src/routes/(root)/admin/moderation/appeals.tsx:119
 #: src/routes/(root)/admin/moderation/index.tsx:127
+#: src/routes/(root)/admin/moderation/statistics.tsx:71
 msgid "Dismissed"
 msgstr "Dismissed"
 
@@ -1901,6 +1926,10 @@ msgstr "Hackers' Pub: Admin · Moderation"
 msgid "Hackers' Pub: Admin · Moderation case"
 msgstr "Hackers' Pub: Admin · Moderation case"
 
+#: src/routes/(root)/admin/moderation/statistics.tsx:87
+msgid "Hackers' Pub: Admin · Moderation statistics"
+msgstr "Hackers' Pub: Admin · Moderation statistics"
+
 #: src/routes/(root)/admin/news.tsx:536
 msgid "Hackers' Pub: Admin · News"
 msgstr "Hackers' Pub: Admin · News"
@@ -1916,6 +1945,10 @@ msgstr "Hackers' Pub: Admin · Refresh remote object"
 #: src/routes/(root)/admin/relay.tsx:202
 msgid "Hackers' Pub: Admin · Relays"
 msgstr "Hackers' Pub: Admin · Relays"
+
+#: src/routes/(root)/admin/moderation/sanctioned.tsx:62
+msgid "Hackers' Pub: Admin · Sanctioned actors"
+msgstr "Hackers' Pub: Admin · Sanctioned actors"
 
 #: src/routes/(root)/news/[link_id]/index.tsx:56
 #: src/routes/(root)/news/index.tsx:37
@@ -2218,6 +2251,10 @@ msgstr "List"
 msgid "LLM analysis (reference only, not a decision)"
 msgstr "LLM analysis (reference only, not a decision)"
 
+#: src/routes/(root)/admin/moderation/statistics.tsx:258
+msgid "LLM matching divergence"
+msgstr "LLM matching divergence"
+
 #: src/components/AccountListBase.tsx:115
 #: src/components/admin/ModerationCaseList.tsx:236
 #: src/components/ReportHistoryList.tsx:203
@@ -2449,7 +2486,7 @@ msgstr "Moderate"
 msgid "Moderation"
 msgstr "Moderation"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:139
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:136
 msgid "Moderation actions"
 msgstr "Moderation actions"
 
@@ -2461,6 +2498,10 @@ msgstr "Moderation cases"
 #: src/components/PostEngagementBar.tsx:533
 msgid "More engagement views"
 msgstr "More engagement views"
+
+#: src/routes/(root)/admin/moderation/statistics.tsx:216
+msgid "Most-cited provisions"
+msgstr "Most-cited provisions"
 
 #: src/components/LanguageList.tsx:164
 msgid "Move down"
@@ -2574,9 +2615,21 @@ msgstr "News"
 msgid "Next image"
 msgstr "Next image"
 
+#: src/routes/(root)/admin/moderation/statistics.tsx:181
+msgid "No actions have been taken yet."
+msgstr "No actions have been taken yet."
+
 #: src/routes/(root)/admin/news.tsx:464
 msgid "No actor found for that handle."
 msgstr "No actor found for that handle."
+
+#: src/routes/(root)/admin/moderation/sanctioned.tsx:82
+msgid "No actors are currently sanctioned."
+msgstr "No actors are currently sanctioned."
+
+#: src/routes/(root)/admin/moderation/statistics.tsx:266
+msgid "No analyzed reports have been processed yet."
+msgstr "No analyzed reports have been processed yet."
 
 #: src/routes/(root)/admin/moderation/appeals.tsx:196
 msgid "No appeals match these filters."
@@ -2669,6 +2722,10 @@ msgstr "No preferred sharers yet."
 #: src/components/PushNotificationPreviewPolicySelect.tsx:39
 msgid "No previews"
 msgstr "No previews"
+
+#: src/routes/(root)/admin/moderation/statistics.tsx:223
+msgid "No provisions have been cited yet."
+msgstr "No provisions have been cited yet."
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:176
 #: src/routes/(root)/[handle]/[noteId]/reactions.tsx:190
@@ -2881,7 +2938,7 @@ msgstr "Penalty cleared."
 
 #: src/components/admin/ModerationCaseList.tsx:100
 #: src/routes/(root)/admin/moderation/appeals.tsx:158
-#: src/routes/(root)/admin/moderation/appeals.tsx:224
+#: src/routes/(root)/admin/moderation/appeals.tsx:225
 #: src/routes/(root)/admin/moderation/index.tsx:124
 #: src/routes/(root)/admin/relay.tsx:304
 msgid "Pending"
@@ -2998,6 +3055,7 @@ msgstr "Post by {0}"
 
 #: src/routes/(root)/admin/moderation/[id].tsx:141
 #: src/routes/(root)/admin/moderation/appeals.tsx:123
+#: src/routes/(root)/admin/moderation/statistics.tsx:75
 msgid "Post censored"
 msgstr "Post censored"
 
@@ -3005,7 +3063,7 @@ msgstr "Post censored"
 msgid "Post deleted"
 msgstr "Post deleted"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:93
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:90
 msgid "Post hidden"
 msgstr "Post hidden"
 
@@ -3074,6 +3132,14 @@ msgstr "Priority"
 #: src/routes/(root)/privacy.tsx:40
 msgid "Privacy policy"
 msgstr "Privacy policy"
+
+#: src/routes/(root)/admin/moderation/statistics.tsx:129
+msgid "Processed"
+msgstr "Processed"
+
+#: src/routes/(root)/admin/moderation/statistics.tsx:141
+msgid "Processing rate"
+msgstr "Processing rate"
 
 #: src/components/SettingsTabs.tsx:47
 msgid "Profile"
@@ -3416,7 +3482,7 @@ msgstr "Report"
 msgid "Report {0}"
 msgstr "Report {0}"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:99
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:96
 msgid "Report dismissed"
 msgstr "Report dismissed"
 
@@ -3471,7 +3537,7 @@ msgstr "Resolved"
 msgid "Return to old UI"
 msgstr "Return to old UI"
 
-#: src/routes/(root)/admin/moderation/appeals.tsx:289
+#: src/routes/(root)/admin/moderation/appeals.tsx:290
 msgid "Review outcome"
 msgstr "Review outcome"
 
@@ -3502,8 +3568,16 @@ msgstr "Revoke quote"
 msgid "Revoke this quote?"
 msgstr "Revoke this quote?"
 
+#: src/components/admin/ModerationSubTabs.tsx:44
+msgid "Sanctioned"
+msgstr "Sanctioned"
+
+#: src/routes/(root)/admin/moderation/sanctioned.tsx:72
+msgid "Sanctioned actors"
+msgstr "Sanctioned actors"
+
 #: src/components/SettingsTabs.tsx:103
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:133
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:130
 msgid "Sanctions"
 msgstr "Sanctions"
 
@@ -3671,7 +3745,7 @@ msgstr "Show more sharing posts"
 msgid "Show sensitive content"
 msgstr "Show sensitive content"
 
-#: src/routes/(root)/admin/moderation/appeals.tsx:313
+#: src/routes/(root)/admin/moderation/appeals.tsx:314
 msgid "Showing the 50 most recent appeals. Resolve some to see older ones."
 msgstr "Showing the 50 most recent appeals. Resolve some to see older ones."
 
@@ -3762,6 +3836,11 @@ msgstr "Something went wrong"
 msgid "Something went wrong—please try again."
 msgstr "Something went wrong—please try again."
 
+#: src/components/admin/ModerationSubTabs.tsx:52
+#: src/routes/(root)/admin/moderation/statistics.tsx:97
+msgid "Statistics"
+msgstr "Statistics"
+
 #: src/routes/(root)/admin/news.tsx:713
 #: src/routes/(root)/admin/news.tsx:723
 #: src/routes/(root)/admin/news.tsx:792
@@ -3840,10 +3919,12 @@ msgstr "Suspend"
 #: src/routes/(root)/admin/moderation/[id].tsx:143
 #: src/routes/(root)/admin/moderation/[id].tsx:234
 #: src/routes/(root)/admin/moderation/appeals.tsx:125
+#: src/routes/(root)/admin/moderation/sanctioned.tsx:111
+#: src/routes/(root)/admin/moderation/statistics.tsx:77
 msgid "Suspended"
 msgstr "Suspended"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:195
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:192
 #: src/routes/(root)/admin/moderation/[id].tsx:391
 msgid "Suspension ends"
 msgstr "Suspension ends"
@@ -3906,7 +3987,7 @@ msgstr "That is not a valid relay actor URL."
 msgid "That is not a valid URL pattern."
 msgstr "That is not a valid URL pattern."
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:208
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:205
 msgid "The appeal window has closed."
 msgstr "The appeal window has closed."
 
@@ -4032,7 +4113,7 @@ msgstr "The URL of the link, e.g., https://github.com/yourhandle."
 msgid "The Web Push public key is invalid."
 msgstr "The Web Push public key is invalid."
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:149
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:146
 msgid "There are no moderation actions on your account."
 msgstr "There are no moderation actions on your account."
 
@@ -4157,6 +4238,10 @@ msgstr "To follow {0}, enter your Fediverse handle."
 #: src/routes/(root).tsx:131
 msgid "Toggle sidebar"
 msgstr "Toggle sidebar"
+
+#: src/routes/(root)/admin/moderation/statistics.tsx:117
+msgid "Total reports"
+msgstr "Total reports"
 
 #. placeholder {0}: formatNumber(conn.totalCount)
 #: src/components/admin/AdminAccountsTable.tsx:218
@@ -4420,9 +4505,10 @@ msgstr "Voting…"
 #: src/components/admin/AppealResolveForm.tsx:93
 #: src/components/admin/ModerationActionForm.tsx:113
 #: src/components/NoteComposer.tsx:737
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:91
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:88
 #: src/routes/(root)/admin/moderation/[id].tsx:139
 #: src/routes/(root)/admin/moderation/appeals.tsx:121
+#: src/routes/(root)/admin/moderation/statistics.tsx:73
 msgid "Warning"
 msgstr "Warning"
 
@@ -4637,7 +4723,7 @@ msgstr "You must be signed in to save a draft"
 msgid "You must be signed in."
 msgstr "You must be signed in."
 
-#: src/routes/(root)/admin/moderation/appeals.tsx:277
+#: src/routes/(root)/admin/moderation/appeals.tsx:278
 msgid "You took the original action. Consider letting another moderator review this appeal."
 msgstr "You took the original action. Consider letting another moderator review this appeal."
 

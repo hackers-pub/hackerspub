@@ -216,12 +216,23 @@ export default function ModerationCaseDetailPage() {
                         </a>
                       </Avatar>
                       <div class="flex min-w-0 grow flex-col">
-                        <a
-                          href={profileHref(flagCase.targetActor)}
-                          class="truncate text-lg font-semibold hover:underline"
-                          innerHTML={flagCase.targetActor.name ??
-                            flagCase.targetActor.username}
-                        />
+                        <Show
+                          when={(flagCase.targetActor.name ?? "").trim() !== ""}
+                          fallback={
+                            <a
+                              href={profileHref(flagCase.targetActor)}
+                              class="truncate text-lg font-semibold hover:underline"
+                            >
+                              {flagCase.targetActor.username}
+                            </a>
+                          }
+                        >
+                          <a
+                            href={profileHref(flagCase.targetActor)}
+                            class="truncate text-lg font-semibold hover:underline"
+                            innerHTML={flagCase.targetActor.name ?? ""}
+                          />
+                        </Show>
                         <span class="truncate text-sm text-muted-foreground">
                           {flagCase.targetActor.handle}
                         </span>
