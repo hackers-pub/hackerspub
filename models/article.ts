@@ -1,4 +1,5 @@
 import type { Context } from "@fedify/fedify";
+import { assertAccountActorNotSuspended } from "./moderation.ts";
 import * as vocab from "@fedify/vocab";
 import {
   removeDetailsFromSummaryInput,
@@ -412,6 +413,7 @@ export async function createArticle(
     with: { avatarMedium: true, emails: true, links: true },
   });
   if (account == undefined) return undefined;
+  await assertAccountActorNotSuspended(db, account.id);
   const post = await syncPostFromArticleSource(fedCtx, {
     ...articleSource,
     account,

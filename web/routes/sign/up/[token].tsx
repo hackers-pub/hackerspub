@@ -1,6 +1,7 @@
 import { page } from "@fresh/core";
 import { syncActorFromAccount } from "@hackerspub/models/actor";
 import { follow } from "@hackerspub/models/following";
+import { ActorSuspendedError } from "@hackerspub/models/moderation";
 import { renderMarkup } from "@hackerspub/models/markup";
 import { createSession, EXPIRATION } from "@hackerspub/models/session";
 import { USERNAME_REGEXP } from "@hackerspub/models/signin";
@@ -110,8 +111,14 @@ export const handler = define.handlers({
         with: { actor: true },
       });
     if (inviter != null) {
-      await follow(ctx.state.fedCtx, { ...account, actor }, inviter.actor);
-      await follow(ctx.state.fedCtx, inviter, actor);
+      try {
+        await follow(ctx.state.fedCtx, { ...account, actor }, inviter.actor);
+        await follow(ctx.state.fedCtx, inviter, actor);
+      } catch (error) {
+        // A suspended inviter cannot follow or be auto-followed, but that
+        // must not abort the signup itself.
+        if (!(error instanceof ActorSuspendedError)) throw error;
+      }
     }
     const session = await createSession(kv, {
       accountId: account.id,

@@ -26,6 +26,7 @@
     "./langdet": "./langdet.ts",
     "./markup": "./markup.ts",
     "./medium": "./medium.ts",
+    "./moderation": "./moderation.ts",
     "./moderation-notification": "./moderation-notification.ts",
     "./muting": "./muting.ts",
     "./news": "./news.ts",

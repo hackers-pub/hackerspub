@@ -1,4 +1,5 @@
 import type { Context, DocumentLoader } from "@fedify/fedify";
+import { assertAccountActorNotSuspended } from "./moderation.ts";
 import * as vocab from "@fedify/vocab";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { getPersistedActor, persistActor, toRecipient } from "./actor.ts";
@@ -534,6 +535,7 @@ export async function vote(
   optionIndices: Set<number>,
 ): Promise<PollVote[]> {
   const { db } = fedCtx.data;
+  await assertAccountActorNotSuspended(db, voter.id);
   const voteInTransaction = async (tx: Transaction) => {
     if (
       optionIndices.size < 1 ||

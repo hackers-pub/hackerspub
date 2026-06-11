@@ -1,3 +1,4 @@
+import { assertAccountActorNotSuspended } from "./moderation.ts";
 import {
   type Context,
   type DocumentLoader,
@@ -1867,6 +1868,7 @@ export async function sharePost(
   visibility?: PostVisibility,
 ): Promise<Post> {
   const { db } = fedCtx.data;
+  await assertAccountActorNotSuspended(db, account.id);
   const sharedPost = await getOriginalSharedPost(db, post);
   const actor = await syncActorFromAccount(fedCtx, account);
   const id = generateUuidV7();

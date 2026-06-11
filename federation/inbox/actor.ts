@@ -3,6 +3,7 @@ import { type Delete, isActor, type Move, type Update } from "@fedify/vocab";
 import { persistActor } from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
 import { follow } from "@hackerspub/models/following";
+import { ActorSuspendedError } from "@hackerspub/models/moderation";
 import { actorTable } from "@hackerspub/models/schema";
 import { eq } from "drizzle-orm";
 
@@ -59,10 +60,16 @@ export async function onActorMoved(
   });
   for (const follower of followers) {
     if (follower.account == null) continue;
-    await follow(
-      fedCtx,
-      { ...follower.account, actor: follower },
-      newActor,
-    );
+    try {
+      await follow(
+        fedCtx,
+        { ...follower.account, actor: follower },
+        newActor,
+      );
+    } catch (error) {
+      // A suspended follower simply does not re-follow the moved actor;
+      // their other follows must still be migrated.
+      if (!(error instanceof ActorSuspendedError)) throw error;
+    }
   }
 }

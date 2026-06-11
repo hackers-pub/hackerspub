@@ -1,5 +1,6 @@
 import { syncActorFromAccount } from "@hackerspub/models/actor";
 import { follow } from "@hackerspub/models/following";
+import { ActorSuspendedError } from "@hackerspub/models/moderation";
 import { createSession } from "@hackerspub/models/session";
 import {
   createAccount,
@@ -289,8 +290,14 @@ builder.mutationFields((t) => ({
         });
 
         if (inviter) {
-          await follow(ctx.fedCtx, { ...account, actor }, inviter.actor);
-          await follow(ctx.fedCtx, inviter, actor);
+          try {
+            await follow(ctx.fedCtx, { ...account, actor }, inviter.actor);
+            await follow(ctx.fedCtx, inviter, actor);
+          } catch (error) {
+            // A suspended inviter cannot follow or be auto-followed, but
+            // that must not abort the signup itself.
+            if (!(error instanceof ActorSuspendedError)) throw error;
+          }
         }
       }
 

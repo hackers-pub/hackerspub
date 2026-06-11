@@ -1,4 +1,5 @@
 import type { Context, DocumentLoader } from "@fedify/fedify";
+import { assertAccountActorNotSuspended } from "./moderation.ts";
 import { isActor } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
 import { getEmojiReact, getEmojiReactId } from "@hackerspub/federation/objects";
@@ -214,6 +215,7 @@ export async function react(
   customEmojiId?: Uuid,
 ): Promise<Reaction | undefined> {
   const { db } = ctx.data;
+  await assertAccountActorNotSuspended(db, account.id);
   let iri: string;
   if (emoji != null) {
     iri = getEmojiReactId(ctx, account.id, post.id, emoji).href;
