@@ -302,6 +302,59 @@ describe("resolveAppeal()", () => {
     });
   });
 
+  it("withdrawing one sanction keeps another that still stands", async () => {
+    await withRollback(async (tx) => {
+      const fedCtx = recordingFedCtx(tx);
+      // Case A: a suspension on the reported actor.
+      const { moderator, reported, action: suspendAction } =
+        await makeSanctionedCase(tx, fedCtx, "suspend");
+      // Case B: a separate ban on the same actor (a user report).
+      const reporterB = await insertAccountWithActor(tx, {
+        username: "reporterb",
+        name: "Reporter B",
+        email: "reporterb@example.com",
+      });
+      const flagB = await createFlag(tx, {
+        reporter: reporterB.actor,
+        targetActor: reported.actor,
+        reason: REASON,
+      });
+      assert.ok(flagB != null);
+      const banAction = await takeModerationAction(fedCtx, {
+        caseId: flagB.caseId,
+        moderator: moderator.account,
+        actionType: "ban",
+        violatedProvisions: ["2.3"],
+        rationale: "Severe and persistent.",
+      });
+      assert.ok(banAction != null);
+      const banned = await tx.query.actorTable.findFirst({
+        where: { id: reported.actor.id },
+      });
+      assert.ok(banned?.suspended != null);
+      assert.equal(banned?.suspendedUntil, null);
+
+      // Withdraw the suspension (case A); the ban (case B) still stands.
+      const appeal = await createAppeal(tx, {
+        actionId: suspendAction.id,
+        appellant: reported.account,
+        reason: "The suspension was unfair.",
+      });
+      assert.ok(appeal != null);
+      await resolveAppeal(tx, {
+        appealId: appeal.id,
+        reviewer: moderator.account,
+        result: "withdrawn",
+        reviewRationale: "Suspension withdrawn.",
+      });
+      const stillBanned = await tx.query.actorTable.findFirst({
+        where: { id: reported.actor.id },
+      });
+      assert.ok(stillBanned?.suspended != null);
+      assert.equal(stillBanned?.suspendedUntil, null);
+    });
+  });
+
   it("reducing replaces the sanction with a lighter action", async () => {
     await withRollback(async (tx) => {
       const fedCtx = recordingFedCtx(tx);

@@ -284,52 +284,168 @@ async function enqueuePostNewsRescoreTargets(
   return post.linkId != null || post.sharedPostId != null;
 }
 
+/** Whether an action still stands: not overturned by a resolved appeal. */
+function isStandingAction(
+  action: { appeal: { status: string; result: string | null } | null },
+): boolean {
+  return action.appeal == null ||
+    action.appeal.status !== "resolved" ||
+    action.appeal.result === "dismissed";
+}
+
 /**
- * Applies the enforcement state of a moderation action: `censor` sets
- * `post.censored`, `suspend` writes the suspension window onto the target
- * actor (clamped so it is active immediately), `ban` suspends permanently.
- * News scores cache moderation-visible share signals on `post_link`, so
- * whatever this changes is queued for rescoring.
+ * Whether an actor's content is hidden under the given enforcement state:
+ * an active permanent suspension (ban) hides it for everyone, an active
+ * temporary suspension only for remote actors.
+ */
+function isActorContentHidden(
+  suspended: Date | null,
+  suspendedUntil: Date | null,
+  isRemote: boolean,
+  now: Date,
+): boolean {
+  if (suspended == null || suspended > now) return false;
+  if (suspendedUntil != null && suspendedUntil <= now) return false;
+  return suspendedUntil == null || isRemote;
+}
+
+/**
+ * Recomputes an actor's effective suspension from all standing `suspend`
+ * and `ban` actions across the actor's cases, so withdrawing or replacing
+ * one sanction never clears another that still stands (e.g. an active ban
+ * from a different case).  A ban wins; otherwise the effective window spans
+ * the earliest start to the latest end of the still-active suspensions.
+ * Returns whether the actor's content visibility changed (for news rescore).
+ */
+async function recomputeActorEnforcement(
+  tx: Transaction,
+  actorId: Uuid,
+  now: Date,
+): Promise<boolean> {
+  // Lock the actor row so concurrent actions/appeals on different cases for
+  // the same target serialize and each recompute sees a consistent state.
+  const [actor] = await tx.select({
+    suspended: actorTable.suspended,
+    suspendedUntil: actorTable.suspendedUntil,
+    accountId: actorTable.accountId,
+  })
+    .from(actorTable)
+    .where(eq(actorTable.id, actorId))
+    .for("update");
+  if (actor == null) return false;
+  const isRemote = actor.accountId == null;
+  const actions = await tx.query.flagActionTable.findMany({
+    where: {
+      case: { targetActorId: actorId },
+      actionType: { in: ["suspend", "ban"] },
+    },
+    with: { appeal: true },
+  });
+  const standing = actions.filter(isStandingAction);
+  let suspended: Date | null = null;
+  let suspendedUntil: Date | null = null;
+  if (standing.some((a) => a.actionType === "ban")) {
+    suspended = standing
+      .filter((a) => a.actionType === "ban")
+      .map((a) => a.created)
+      .reduce((earliest, d) => (d < earliest ? d : earliest));
+    suspendedUntil = null;
+  } else {
+    const active = standing.filter((a) =>
+      a.actionType === "suspend" && a.suspensionStarts != null &&
+      a.suspensionEnds != null && a.suspensionEnds > now
+    );
+    if (active.length > 0) {
+      // Clamp the earliest start to now so the suspension is active
+      // immediately even if it was filed with a (skew-tolerated) future start.
+      const start = active
+        .map((a) => a.suspensionStarts!)
+        .reduce((earliest, d) => (d < earliest ? d : earliest));
+      suspended = start <= now ? start : now;
+      suspendedUntil = active
+        .map((a) => a.suspensionEnds!)
+        .reduce((latest, d) => (d > latest ? d : latest));
+    }
+  }
+  const hiddenBefore = isActorContentHidden(
+    actor.suspended,
+    actor.suspendedUntil,
+    isRemote,
+    now,
+  );
+  const hiddenAfter = isActorContentHidden(
+    suspended,
+    suspendedUntil,
+    isRemote,
+    now,
+  );
+  const stateChanged =
+    (actor.suspended?.getTime() ?? null) !== (suspended?.getTime() ?? null) ||
+    (actor.suspendedUntil?.getTime() ?? null) !==
+      (suspendedUntil?.getTime() ?? null);
+  if (stateChanged) {
+    await tx.update(actorTable)
+      .set({ suspended, suspendedUntil })
+      .where(eq(actorTable.id, actorId));
+  }
+  return hiddenBefore !== hiddenAfter;
+}
+
+/**
+ * Recomputes a post's censorship from all standing `censor` actions on it,
+ * so withdrawing one censor never un-hides a post another standing censor
+ * still covers.  Returns whether the post's author needs a news rescore.
+ */
+async function recomputePostEnforcement(
+  tx: Transaction,
+  postId: Uuid,
+): Promise<boolean> {
+  // Lock the post row so concurrent censor actions/appeals on it serialize.
+  const [locked] = await tx.select({ censored: postTable.censored })
+    .from(postTable)
+    .where(eq(postTable.id, postId))
+    .for("update");
+  if (locked == null) return false;
+  const actions = await tx.query.flagActionTable.findMany({
+    where: { actionType: "censor", case: { targetPostId: postId } },
+    with: { appeal: true },
+  });
+  const standing = actions.filter(isStandingAction);
+  const censored = standing.length > 0
+    ? standing.map((a) => a.created).reduce((earliest, d) =>
+      d < earliest ? d : earliest
+    )
+    : null;
+  if ((locked.censored?.getTime() ?? null) === (censored?.getTime() ?? null)) {
+    return false;
+  }
+  const postRows = await tx.update(postTable)
+    .set({ censored })
+    .where(eq(postTable.id, postId))
+    .returning();
+  return postRows[0] != null
+    ? await enqueuePostNewsRescoreTargets(tx, postRows[0])
+    : false;
+}
+
+/**
+ * Applies a moderation action's enforcement by recomputing the effective
+ * state of its target from every standing action: `censor` recomputes
+ * `post.censored`, `suspend`/`ban` recompute the target actor's suspension.
+ * News scores cache moderation-visible share signals on `post_link`, so a
+ * visibility change is queued for rescoring.
  */
 async function applyActionEnforcement(
   tx: Transaction,
   flagCase: EnforcementCase,
-  action: Pick<
-    FlagAction,
-    "actionType" | "suspensionStarts" | "suspensionEnds"
-  >,
+  action: Pick<FlagAction, "actionType">,
   now: Date,
 ): Promise<void> {
   let rescore = false;
   if (action.actionType === "censor") {
-    const postRows = await tx.update(postTable)
-      .set({ censored: now })
-      .where(eq(postTable.id, flagCase.targetPostId!))
-      .returning();
-    if (postRows[0] != null) {
-      rescore = await enqueuePostNewsRescoreTargets(tx, postRows[0]);
-    }
-  } else if (action.actionType === "suspend") {
-    // A start within the clock-skew allowance may still be (slightly) in
-    // the future; clamp the enforcement row to the server-side now so the
-    // suspension is active immediately.
-    const effectiveStarts = action.suspensionStarts! <= now
-      ? action.suspensionStarts!
-      : now;
-    await tx.update(actorTable)
-      .set({
-        suspended: effectiveStarts,
-        suspendedUntil: action.suspensionEnds,
-      })
-      .where(eq(actorTable.id, flagCase.targetActorId));
-    // A temporary suspension hides content (and thus news signals) only
-    // for remote actors.
-    rescore = flagCase.targetActor.accountId == null;
-  } else if (action.actionType === "ban") {
-    await tx.update(actorTable)
-      .set({ suspended: now, suspendedUntil: null })
-      .where(eq(actorTable.id, flagCase.targetActorId));
-    rescore = true;
+    rescore = await recomputePostEnforcement(tx, flagCase.targetPostId!);
+  } else if (action.actionType === "suspend" || action.actionType === "ban") {
+    rescore = await recomputeActorEnforcement(tx, flagCase.targetActorId, now);
   }
   if (rescore) {
     await enqueueNewsRescoreInTx(tx, flagCase.targetActorId);
@@ -340,9 +456,11 @@ async function applyActionEnforcement(
 }
 
 /**
- * Reverts the enforcement state of a moderation action (for appeal
- * outcomes that withdraw or replace it), queuing news rescores for
- * whatever becomes visible again.
+ * Reverts a moderation action's enforcement (for appeal outcomes that
+ * withdraw or replace it) by recomputing the target's effective state from
+ * the remaining standing actions, so other still-standing sanctions are
+ * preserved.  The appeal's resolution must already be persisted so the
+ * appealed action is excluded.
  */
 async function revertActionEnforcement(
   tx: Transaction,
@@ -353,29 +471,15 @@ async function revertActionEnforcement(
   let rescore = false;
   if (action.actionType === "censor") {
     if (flagCase.targetPostId != null) {
-      const postRows = await tx.update(postTable)
-        .set({ censored: null })
-        .where(eq(postTable.id, flagCase.targetPostId))
-        .returning();
-      if (postRows[0] != null) {
-        rescore = await enqueuePostNewsRescoreTargets(tx, postRows[0]);
-      }
+      rescore = await recomputePostEnforcement(tx, flagCase.targetPostId);
     }
-  } else if (
-    action.actionType === "suspend" || action.actionType === "ban"
-  ) {
-    await tx.update(actorTable)
-      .set({ suspended: null, suspendedUntil: null })
-      .where(eq(actorTable.id, flagCase.targetActorId));
-    rescore = action.actionType === "ban" ||
-      flagCase.targetActor.accountId == null;
+  } else if (action.actionType === "suspend" || action.actionType === "ban") {
+    rescore = await recomputeActorEnforcement(tx, flagCase.targetActorId, now);
   }
   if (rescore) {
     await enqueueNewsRescoreInTx(tx, flagCase.targetActorId);
     await enqueueNewsRescoreForChildActivity(tx, flagCase.targetActorId);
   }
-  // `now` reserved for future revert semantics (e.g. partial unhide).
-  void now;
 }
 
 export interface TakeModerationActionOptions {
