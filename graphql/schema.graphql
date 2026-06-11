@@ -1596,6 +1596,11 @@ type FlagCase implements Node {
   The individual reports grouped into this case, oldest first. Each report's reason is preserved individually; combining diverse reasons enables more accurate judgment.
   """
   flags(after: String, before: String, first: Int, last: Int): FlagCaseFlagsConnection!
+
+  """
+  Whether a non-dismiss action on this case would be forwarded to the target's remote instance: the target is a remote actor (no local account) and at least one report opted into forwarding. When `true`, `takeModerationAction` requires a `forwardSummary` for non-dismiss actions, so the internal `rationale` (which may carry reporter-identifying wording) is never externalized.  Computed over all of the case's reports, not just a page of them.
+  """
+  forwardingEnabled: Boolean!
   id: ID!
 
   """
@@ -2375,7 +2380,7 @@ type Mutation {
   ): SubscribeRelayResult!
 
   """
-  Record a moderation decision on an open case and apply its effects: `DISMISS` dismisses the case; `WARNING` records a warning; `CENSOR` hides the reported post from listings (its permalink keeps a notice); `SUSPEND` suspends the target for the given window; `BAN` suspends permanently.  Every action except `DISMISS` requires `violatedProvisions`.  The reported user is notified in-app and (for sanctions) by email, always under the moderation team's collective identity, and can appeal within 14 days.  When the target is remote and a reporter opted in, a `Flag` activity carrying only `forwardSummary` (falling back to `rationale`) is sent to the remote instance from the instance actor.  Requires a moderator account.
+  Record a moderation decision on an open case and apply its effects: `DISMISS` dismisses the case; `WARNING` records a warning; `CENSOR` hides the reported post from listings (its permalink keeps a notice); `SUSPEND` suspends the target for the given window; `BAN` suspends permanently.  Every action except `DISMISS` requires `violatedProvisions`.  For a **local** target, the reported user is notified in-app and (for sanctions) by email, always under the moderation team's collective identity, and can appeal within 14 days (a `DISMISS` notifies only when `messageToUser` is set).  A **remote** target has no local notification or appeal: a `WARNING` is only recorded, a `CENSOR` hides the locally cached post, and a `SUSPEND` or `BAN` applies a temporary or permanent federation block.  When a reporter opted in (see `FlagCase.forwardingEnabled`) a `Flag` activity carrying `forwardSummary` is sent to the remote instance from the instance actor; in that case a non-empty `forwardSummary` is required for non-dismiss actions (`InvalidInputError` otherwise) so the internal `rationale` is never externalized.  Requires a moderator account.
   """
   takeModerationAction(
     """The decision."""
@@ -2385,7 +2390,7 @@ type Mutation {
     caseId: ID!
 
     """
-    Moderator-written summary for the outgoing `Flag` activity when forwarding to the target's remote instance; falls back to `rationale`.  Never include the reporter's wording.
+    Moderator-written summary for the outgoing `Flag` activity when forwarding to the target's remote instance.  Required (non-empty) for non-dismiss actions when `FlagCase.forwardingEnabled` is `true`.  Never include the reporter's wording.
     """
     forwardSummary: String
 

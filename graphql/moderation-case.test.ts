@@ -13,6 +13,7 @@ import {
   createTestEmailTransport,
   insertAccountWithActor,
   insertNotePost,
+  insertRemoteActor,
   makeUserContext,
   withRollback,
 } from "../test/postgres.ts";
@@ -358,6 +359,160 @@ test("takeModerationAction records a warning and emails the user", async () => {
     assert.match(body, /Please review our code of conduct on harassment\./);
     // The reporter's wording must never reach the reported user:
     assert.ok(!body.includes(REASON));
+  });
+});
+
+const takeActionWithForwardMutation = parse(`
+  mutation TakeActionFwd(
+    $caseId: ID!
+    $actionType: FlagActionType!
+    $violatedProvisions: [String!]
+    $rationale: String!
+    $forwardSummary: String
+  ) {
+    takeModerationAction(
+      caseId: $caseId
+      actionType: $actionType
+      violatedProvisions: $violatedProvisions
+      rationale: $rationale
+      forwardSummary: $forwardSummary
+    ) {
+      __typename
+      ... on FlagAction { actionType }
+      ... on InvalidInputError { inputPath }
+    }
+  }
+`);
+
+const forwardingEnabledQuery = parse(`
+  query ForwardingEnabled($uuid: UUID!) {
+    flagCaseByUuid(uuid: $uuid) { forwardingEnabled }
+  }
+`);
+
+test("takeModerationAction requires a forward summary for forwarded actions", async () => {
+  await withRollback(async (tx) => {
+    const moderator = await makeModerator(tx, {
+      username: "mod",
+      name: "Mod",
+      email: "mod@example.com",
+    });
+    const reporter = await insertAccountWithActor(tx, {
+      username: "reporter",
+      name: "Reporter",
+      email: "reporter@example.com",
+    });
+    const target = await insertRemoteActor(tx, {
+      username: "bad",
+      name: "Bad Actor",
+      host: "remote.example",
+    });
+    const flag = await createFlag(tx, {
+      reporter: reporter.actor,
+      targetActor: target,
+      reason: "This remote user is harassing people here.",
+      forwardToRemote: true,
+    });
+    assert.ok(flag != null);
+    const caseGid = encodeGlobalID("FlagCase", flag.caseId);
+
+    // The case reports forwarding is enabled (target remote + opt-in):
+    const enabled = await execute({
+      schema,
+      document: forwardingEnabledQuery,
+      variableValues: { uuid: flag.caseId },
+      contextValue: makeUserContext(tx, moderator),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(
+      // deno-lint-ignore no-explicit-any
+      (enabled.data as any)?.flagCaseByUuid?.forwardingEnabled,
+      true,
+    );
+
+    // A non-dismiss action without a summary is rejected, so the internal
+    // rationale can never be forwarded as the Flag's content:
+    const missing = await execute({
+      schema,
+      document: takeActionWithForwardMutation,
+      variableValues: {
+        caseId: caseGid,
+        actionType: "WARNING",
+        violatedProvisions: ["2.3"],
+        rationale: "Internal note that must not be forwarded.",
+      },
+      contextValue: makeUserContext(tx, moderator),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(
+      // deno-lint-ignore no-explicit-any
+      (missing.data as any)?.takeModerationAction?.inputPath,
+      "forwardSummary",
+    );
+
+    // The case stays open, so the action can be retried with a summary:
+    const withSummary = await execute({
+      schema,
+      document: takeActionWithForwardMutation,
+      variableValues: {
+        caseId: caseGid,
+        actionType: "WARNING",
+        violatedProvisions: ["2.3"],
+        rationale: "Internal note that must not be forwarded.",
+        forwardSummary: "Repeated harassment of our members.",
+      },
+      contextValue: makeUserContext(tx, moderator),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(
+      // deno-lint-ignore no-explicit-any
+      (withSummary.data as any)?.takeModerationAction?.__typename,
+      "FlagAction",
+    );
+  });
+});
+
+test("takeModerationAction allows dismissing a forwarded case without a summary", async () => {
+  await withRollback(async (tx) => {
+    const moderator = await makeModerator(tx, {
+      username: "mod",
+      name: "Mod",
+      email: "mod@example.com",
+    });
+    const reporter = await insertAccountWithActor(tx, {
+      username: "reporter",
+      name: "Reporter",
+      email: "reporter@example.com",
+    });
+    const target = await insertRemoteActor(tx, {
+      username: "maybe",
+      name: "Maybe Fine",
+      host: "remote.example",
+    });
+    const flag = await createFlag(tx, {
+      reporter: reporter.actor,
+      targetActor: target,
+      reason: "Possibly a false alarm.",
+      forwardToRemote: true,
+    });
+    assert.ok(flag != null);
+
+    const dismissed = await execute({
+      schema,
+      document: takeActionWithForwardMutation,
+      variableValues: {
+        caseId: encodeGlobalID("FlagCase", flag.caseId),
+        actionType: "DISMISS",
+        rationale: "No violation found.",
+      },
+      contextValue: makeUserContext(tx, moderator),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(
+      // deno-lint-ignore no-explicit-any
+      (dismissed.data as any)?.takeModerationAction?.__typename,
+      "FlagAction",
+    );
   });
 });
 

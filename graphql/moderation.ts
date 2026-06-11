@@ -684,6 +684,29 @@ export const FlagCase = builder.drizzleNode("flagCaseTable", {
         return reportCount;
       },
     }),
+    forwardingEnabled: t.boolean({
+      description:
+        "Whether a non-dismiss action on this case would be forwarded to " +
+        "the target's remote instance: the target is a remote actor (no " +
+        "local account) and at least one report opted into forwarding. " +
+        "When `true`, `takeModerationAction` requires a `forwardSummary` " +
+        "for non-dismiss actions, so the internal `rationale` (which may " +
+        "carry reporter-identifying wording) is never externalized.  " +
+        "Computed over all of the case's reports, not just a page of them.",
+      select: { columns: { id: true, targetActorId: true } },
+      resolve: async (flagCase, _args, ctx) => {
+        const targetActor = await ctx.db.query.actorTable.findFirst({
+          where: { id: flagCase.targetActorId },
+          columns: { accountId: true },
+        });
+        if (targetActor == null || targetActor.accountId != null) return false;
+        const optIn = await ctx.db.query.flagTable.findFirst({
+          where: { caseId: flagCase.id, forwardToRemote: true },
+          columns: { id: true },
+        });
+        return optIn != null;
+      },
+    }),
     actions: t.field({
       type: [FlagAction],
       description:
@@ -929,13 +952,19 @@ builder.mutationField("takeModerationAction", (t) =>
       "warning; `CENSOR` hides the reported post from listings (its " +
       "permalink keeps a notice); `SUSPEND` suspends the target for the " +
       "given window; `BAN` suspends permanently.  Every action except " +
-      "`DISMISS` requires `violatedProvisions`.  The reported user is " +
-      "notified in-app and (for sanctions) by email, always under the " +
-      "moderation team's collective identity, and can appeal within 14 " +
-      "days.  When the target is remote and a reporter opted in, a " +
-      "`Flag` activity carrying only `forwardSummary` (falling back to " +
-      "`rationale`) is sent to the remote instance from the instance " +
-      "actor.  Requires a moderator account.",
+      "`DISMISS` requires `violatedProvisions`.  For a **local** target, " +
+      "the reported user is notified in-app and (for sanctions) by email, " +
+      "always under the moderation team's collective identity, and can " +
+      "appeal within 14 days (a `DISMISS` notifies only when " +
+      "`messageToUser` is set).  A **remote** target has no local " +
+      "notification or appeal: a `WARNING` is only recorded, a `CENSOR` " +
+      "hides the locally cached post, and a `SUSPEND` or `BAN` applies a " +
+      "temporary or permanent federation block.  When a reporter opted in " +
+      "(see `FlagCase.forwardingEnabled`) a `Flag` activity carrying " +
+      "`forwardSummary` is sent to the remote instance from the instance " +
+      "actor; in that case a non-empty `forwardSummary` is required for " +
+      "non-dismiss actions (`InvalidInputError` otherwise) so the internal " +
+      "`rationale` is never externalized.  Requires a moderator account.",
     errors: {
       types: [NotAuthenticatedError, NotAuthorizedError, InvalidInputError],
     },
@@ -987,8 +1016,10 @@ builder.mutationField("takeModerationAction", (t) =>
         required: false,
         description:
           "Moderator-written summary for the outgoing `Flag` activity " +
-          "when forwarding to the target's remote instance; falls back " +
-          "to `rationale`.  Never include the reporter's wording.",
+          "when forwarding to the target's remote instance.  Required " +
+          "(non-empty) for non-dismiss actions when " +
+          "`FlagCase.forwardingEnabled` is `true`.  Never include the " +
+          "reporter's wording.",
       }),
     },
     async resolve(_root, args, ctx) {
@@ -1040,6 +1071,30 @@ builder.mutationField("takeModerationAction", (t) =>
           throw new InvalidInputError("actionType");
         }
       }
+      // A forwarded `Flag` carries `forwardSummary`, never the internal
+      // `rationale`; require a summary when this non-dismiss action will be
+      // forwarded to a remote instance, so reporter-identifying wording in
+      // the rationale cannot leak.
+      if (
+        actionType !== "dismiss" &&
+        (args.forwardSummary == null || args.forwardSummary.trim() === "")
+      ) {
+        const flagCase = await ctx.db.query.flagCaseTable.findFirst({
+          where: {
+            id: args.caseId.id as Uuid,
+            status: { in: ["pending", "reviewing"] },
+          },
+          columns: { id: true },
+          with: { targetActor: { columns: { accountId: true } } },
+        });
+        if (flagCase != null && flagCase.targetActor.accountId == null) {
+          const optIn = await ctx.db.query.flagTable.findFirst({
+            where: { caseId: flagCase.id, forwardToRemote: true },
+            columns: { id: true },
+          });
+          if (optIn != null) throw new InvalidInputError("forwardSummary");
+        }
+      }
       const action = await takeModerationActionModel(ctx.fedCtx, {
         caseId: args.caseId.id as Uuid,
         moderator: ctx.account,
@@ -1049,7 +1104,7 @@ builder.mutationField("takeModerationAction", (t) =>
         messageToUser: args.messageToUser ?? undefined,
         suspensionStarts: args.suspensionStarts ?? undefined,
         suspensionEnds: args.suspensionEnds ?? undefined,
-        forwardSummary: args.forwardSummary ?? undefined,
+        forwardSummary: args.forwardSummary?.trim() || undefined,
       });
       if (action == null) throw new InvalidInputError("caseId");
       if (actionType !== "dismiss") {
