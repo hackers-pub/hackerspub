@@ -125,6 +125,11 @@ type Account implements Node {
   pushNotificationPreviewPolicy: PushNotificationPreviewPolicy!
 
   """
+  The account's own report history, newest first: what they reported, when, their written reason, and the processing status. Detailed outcome information is deliberately not exposed here, so reports cannot be used to probe moderation boundaries.  Resolvable by the account owner and moderators only.
+  """
+  reports(after: String, before: String, first: Int, last: Int): AccountReportsConnection
+
+  """
   Number of notifications created after the account's last `markNotificationsAsRead` call. Only visible to the account holder.
   """
   unreadNotificationsCount: Int!
@@ -230,6 +235,19 @@ type AccountPasskeysConnection {
 type AccountPasskeysConnectionEdge {
   cursor: String!
   node: Passkey!
+}
+
+type AccountReportsConnection {
+  edges: [AccountReportsConnectionEdge!]!
+  pageInfo: PageInfo!
+
+  """Total number of reports this account has filed."""
+  totalCount: Int!
+}
+
+type AccountReportsConnectionEdge {
+  cursor: String!
+  node: Flag!
 }
 
 """
@@ -1203,6 +1221,14 @@ type Document {
   toc: JSON!
 }
 
+"""
+Returned by `reportContent` when the reporter already has an open (pending or reviewing) report on the same target.  A new report can be filed once the previous case is resolved.
+"""
+type DuplicateReportError {
+  """Placeholder field; always an empty string."""
+  duplicateReport: String!
+}
+
 scalar Email
 
 type EmojiReactionGroup implements ReactionGroup {
@@ -1229,6 +1255,84 @@ type FinishMediumUploadPayload {
 }
 
 union FinishMediumUploadResult = FinishMediumUploadPayload | InvalidInputError | NotAuthenticatedError
+
+"""
+An individual report filed against an actor or one of their posts. Multiple reports on the same target are grouped into a single case for moderators.  A `Flag` is only resolvable by its reporter (their own report history) and by moderators; the reported user never sees `Flag` values, only the sanitized sanction surface.  Reporter-identifying fields (`reporter`) are additionally restricted to moderators.
+"""
+type Flag implements Node {
+  """
+  The hash of the most recent Git commit that touched the CODE_OF_CONDUCT files when the report was filed, so the report can be interpreted against the code of conduct text it was filed under.  Moderator-only.  `null` when the version could not be determined.
+  """
+  cocVersion: String
+
+  """When the report was filed."""
+  created: DateTime!
+
+  """
+  Whether this report arrived from another instance via an ActivityPub `Flag` activity (as opposed to being filed in-app by a local user).  External reports provide less context and come from unknown moderation cultures, so moderators should apply additional scrutiny.  Moderator-only.
+  """
+  external: Boolean!
+
+  """
+  Whether the reporter opted in to forwarding this report to the target's remote instance after moderator action.
+  """
+  forwardToRemote: Boolean!
+  id: ID!
+
+  """
+  The LLM's code of conduct matching result (`matches` with provision ids, confidences, and rationales; `summary`; `model`; `analyzedAt`; `error` when the analysis failed).  A reference tool for moderators, never an automated decision: always verify independently.  Moderator-only.  `null` while the analysis is still pending.
+  """
+  llmAnalysis: JSON
+
+  """
+  The reporter's written reason.  Visible to the reporter and moderators only; never shown to the reported user, and never forwarded to remote instances (a moderator-written summary is sent instead), since the wording itself could identify the reporter.
+  """
+  reason: String!
+
+  """
+  The reporting actor: a local user's actor for in-app reports, or the sending remote actor (typically the remote instance actor) for reports received via ActivityPub.  Moderator-only: reporter identity is strictly confidential.
+  """
+  reporter: Actor!
+
+  """The report's processing status."""
+  status: FlagStatus!
+
+  """The reported actor (local or remote)."""
+  targetActor: Actor!
+
+  """
+  The reported post, for content reports; `null` for user (profile) reports, and also when the post row was deleted after the report (the snapshot preserves the evidence; `targetPostIri` remains as a stable reference).
+  """
+  targetPost: Post
+
+  """
+  The reported post's ActivityPub IRI; survives post deletion. `null` for user (profile) reports.
+  """
+  targetPostIri: URL
+
+  """When the report was last updated."""
+  updated: DateTime!
+
+  """The report's row UUID."""
+  uuid: UUID!
+}
+
+"""
+The processing status of an individual report.  Reports are grouped into cases; a report's status follows its case's status when the case is resolved.
+"""
+enum FlagStatus {
+  """Dismissed; the report was judged not a violation."""
+  DISMISSED
+
+  """Received and awaiting moderator review."""
+  PENDING
+
+  """Processing complete; a moderation action was taken."""
+  RESOLVED
+
+  """A moderator is reviewing the case."""
+  REVIEWING
+}
 
 input FollowActorInput {
   actorId: ID!
@@ -1712,6 +1816,26 @@ type Mutation {
     id: UUID!
   ): RemoveNewsPreferredSharerResult!
   removeReactionFromPost(input: RemoveReactionFromPostInput!): RemoveReactionFromPostResult!
+
+  """
+  Report a post (`Note`, `Article`, or `Question`) or a user (`Actor`) for violating the code of conduct.  Requires authentication.  The free-form `reason` needs no knowledge of specific provisions; it must be between 10 and 4096 characters. Reports on the same target are grouped into one case for moderators, but each reporter can have only one open report per target (`DuplicateReportError` otherwise).  The reporter's identity is kept strictly confidential.
+  """
+  reportContent(
+    """
+    Opt in to forwarding this report to the target's remote instance after moderator action (the moderation team's summary is sent, never this `reason` text).  Only meaningful for remote targets; ignored for local ones.
+    """
+    forwardToRemote: Boolean
+
+    """
+    Why this content or user is being reported, in the reporter's own words (10–4096 characters).
+    """
+    reason: String!
+
+    """
+    The reported target: an `Actor` for user reports, or a post for content reports.
+    """
+    targetId: ID!
+  ): ReportContentResult!
   requestArticleTranslation(input: RequestArticleTranslationInput!): RequestArticleTranslationResult!
 
   """
@@ -3697,6 +3821,8 @@ type ReplyNotification implements Node & Notification {
   post: Post
   uuid: UUID!
 }
+
+union ReportContentResult = DuplicateReportError | Flag | InvalidInputError | NotAuthenticatedError
 
 """
 Request an LLM translation of an article into the given target language. Returns immediately; the translated `ArticleContent` appears asynchronously (check `beingTranslated`). Returns `LlmTranslationNotAllowedError` if translation is disabled on the article or the target language matches the source language.
