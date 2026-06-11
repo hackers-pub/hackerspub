@@ -1,10 +1,11 @@
 import type { Database } from "./db.ts";
 import {
+  type FlagAction,
   type FlagCase,
   type ModerationNotification,
   moderationNotificationTable,
 } from "./schema.ts";
-import { generateUuidV7 } from "./uuid.ts";
+import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 /**
  * Notifies every moderator that a new report was filed on the given case.
@@ -33,4 +34,27 @@ export async function createFlagReceivedNotifications(
     })))
     .onConflictDoNothing()
     .returning();
+}
+
+/**
+ * Notifies the reported user that a moderation action was taken on them.
+ * The notification carries only the action reference; the rendering layer
+ * presents it under the moderation team's collective identity and never
+ * reveals the acting moderator, the reporters, or the report count.
+ */
+export async function createActionTakenNotification(
+  db: Database,
+  accountId: Uuid,
+  action: FlagAction,
+): Promise<ModerationNotification | undefined> {
+  const rows = await db.insert(moderationNotificationTable)
+    .values({
+      id: generateUuidV7(),
+      accountId,
+      type: "action_taken",
+      actionId: action.id,
+    })
+    .onConflictDoNothing()
+    .returning();
+  return rows[0];
 }

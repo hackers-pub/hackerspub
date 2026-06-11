@@ -1,6 +1,7 @@
 // Must be the first import — see instrument.ts for the rationale.
 import "./instrument.ts";
 
+import { sweepExpiredSuspensionRescores } from "@hackerspub/models/moderation";
 import {
   drainNewsRescoreQueue,
   recomputeNewsScores,
@@ -95,6 +96,11 @@ Deno.cron("drain-news-rescore-queue", "* * * * *", {
   signal: controller.signal,
 }, async () => {
   try {
+    // Suspension expiry is lazy, so nothing fires at the expiry instant;
+    // sweep for remote suspensions that expired since the last successful
+    // sweep (durable watermark in admin_state) and queue their news
+    // signals for recomputation before draining.
+    await sweepExpiredSuspensionRescores(db);
     const { actorsProcessed, linksRecomputed } = await drainNewsRescoreQueue(
       db,
     );
