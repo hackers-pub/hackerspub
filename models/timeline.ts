@@ -2,6 +2,7 @@ import process from "node:process";
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { Database, RelationsFilter } from "./db.ts";
 import {
+  getCensoredPostExclusionFilter,
   getMutedActorExclusionFilter,
   getPostVisibilityFilter,
   getPublicTimelineVisibilityFilter,
@@ -779,6 +780,7 @@ export async function getPublicTimeline(
     const batchFilter: RelationsFilter<"postTable"> = {
       AND: [
         getPublicTimelineVisibilityFilter(currentAccount?.actor ?? null),
+        getCensoredPostExclusionFilter(currentAccount?.actor.id),
         ...(currentAccount == null
           ? []
           : [getMutedActorExclusionFilter(currentAccount.actor.id)]),
@@ -1189,6 +1191,7 @@ export async function getPersonalTimeline(
           AND: [
             getPostVisibilityFilter(currentAccount.actor),
             getMutedActorExclusionFilter(currentAccount.actor.id),
+            getCensoredPostExclusionFilter(currentAccount.actor.id),
             local
               ? {
                 OR: [

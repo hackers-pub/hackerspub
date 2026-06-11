@@ -62,8 +62,10 @@ import {
   arePostsSharedBy,
   canActorRequestQuotePost,
   deletePost,
+  getCensoredPostExclusionFilter,
   getPostInteractionPolicies,
   getPostVisibilityFilter,
+  getSanctionVisibleActorFilter,
   isPostVisibleTo,
   normalizeQuotePolicyForVisibility,
   type PostInteractionPolicy,
@@ -679,17 +681,43 @@ builder.drizzleInterfaceFields(Post, (t) => ({
   }),
   replies: t.relatedConnection("replies", {
     type: Post,
-    description: "Posts that are direct replies to this post.",
+    description:
+      "Posts that are direct replies to this post. Censored replies and " +
+      "replies by actors whose content is hidden by a moderation sanction " +
+      "are excluded.",
+    query: (_, ctx) => ({
+      where: {
+        AND: [
+          { actor: getSanctionVisibleActorFilter() },
+          getCensoredPostExclusionFilter(ctx.account?.actor.id),
+        ],
+      },
+    }),
   }),
   shares: t.relatedConnection("shares", {
     type: Post,
     description:
       "Boost wrapper posts that reshare this post. Each edge represents " +
-      "a single boost by a specific actor.",
+      "a single boost by a specific actor. Boosts by actors whose content " +
+      "is hidden by a moderation sanction are excluded.",
+    query: () => ({
+      where: { actor: getSanctionVisibleActorFilter() },
+    }),
   }),
   quotes: t.relatedConnection("quotes", {
     type: Post,
-    description: "Posts that quote this post inline.",
+    description:
+      "Posts that quote this post inline. Censored quotes and quotes by " +
+      "actors whose content is hidden by a moderation sanction are " +
+      "excluded.",
+    query: (_, ctx) => ({
+      where: {
+        AND: [
+          { actor: getSanctionVisibleActorFilter() },
+          getCensoredPostExclusionFilter(ctx.account?.actor.id),
+        ],
+      },
+    }),
   }),
   mentions: t.connection({
     type: Actor,

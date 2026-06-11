@@ -1,6 +1,9 @@
 import { sql } from "drizzle-orm";
 import type { Database, RelationsFilter } from "./db.ts";
-import { getPostVisibilityFilter } from "./post.ts";
+import {
+  getCensoredPostExclusionFilter,
+  getPostVisibilityFilter,
+} from "./post.ts";
 import {
   type Account,
   type Actor,
@@ -251,6 +254,7 @@ export async function getProfileInteractions(
   const filter: RelationsFilter<"postTable"> = {
     AND: [
       getPostVisibilityFilter(viewer.actor),
+      getCensoredPostExclusionFilter(viewer.actor.id),
       getDirectInteractionFilter(viewer.actor.id, profileActorId),
       ...cursorFilters,
     ],
@@ -365,6 +369,7 @@ export async function getProfileInteractions(
       AND: [
         { id: { in: candidatePostIds } },
         getPostVisibilityFilter(viewer.actor),
+        getCensoredPostExclusionFilter(viewer.actor.id),
       ],
     },
   });

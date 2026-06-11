@@ -2377,6 +2377,9 @@ export function isPostVisibleTo(
     ) {
       return true;
     }
+  }
+  if (isActorSanctionHidden(post.actor)) return false;
+  if (actor != null) {
     const blocked = "id" in actor
       ? post.actor.blockees.some((b) => b.blockeeId === actor.id) ||
         post.actor.blockers.some((b) => b.blockerId === actor.id)
@@ -2507,16 +2510,121 @@ export function getMutedActorExclusionFilter(
   } satisfies RelationsFilter<"postTable">;
 }
 
+/**
+ * Builds a post filter that excludes censored posts (and boosts of censored
+ * posts) from feed-like surfaces: timelines, search, news, and profile post
+ * lists.  Like {@link getMutedActorExclusionFilter}, this is intentionally
+ * NOT folded into {@link getPostVisibilityFilter}: a censored post's
+ * permalink must remain reachable so it can show a censorship notice
+ * instead of disappearing with a 404.  Apply it explicitly in list queries.
+ *
+ * When `viewerActorId` is given, the viewer's own censored posts stay
+ * visible to them ("author can still view their own content").
+ */
+export function getCensoredPostExclusionFilter(
+  viewerActorId?: Uuid | null,
+): RelationsFilter<"postTable"> {
+  return {
+    ...(viewerActorId == null ? { censored: { isNull: true } } : {
+      OR: [
+        { censored: { isNull: true } },
+        { actorId: viewerActorId },
+      ],
+    }),
+    NOT: { sharedPost: { censored: { isNotNull: true } } },
+  } satisfies RelationsFilter<"postTable">;
+}
+
+/**
+ * Matches actors whose content is currently hidden by a moderation
+ * sanction: banned local actors (permanent suspension) and remote actors
+ * under an active federation block (temporary or permanent).  A
+ * *temporarily* suspended local actor's content stays visible; only their
+ * ability to write is restricted.
+ *
+ * Sanction activeness is always evaluated by time comparison against the
+ * given instant, so expired suspensions need no cleanup writes.
+ *
+ * This is a *positive* matcher; it is only safe to negate at the relation
+ * level (`NOT: { sharedPost: { actor: ... } }` compiles to `NOT EXISTS`).
+ * Negating it directly on an actor row would trip SQL's three-valued
+ * logic: for unsanctioned actors `suspended` is `NULL`, the comparison
+ * evaluates to `NULL`, and `NOT NULL` is still `NULL`, filtering the row
+ * out.  Use {@link getSanctionVisibleActorFilter} for the inclusion form.
+ */
+export function getSanctionHiddenActorFilter(
+  now: Date = new Date(),
+): RelationsFilter<"actorTable"> {
+  return {
+    suspended: { lte: now },
+    OR: [
+      // Remote actor under an active federation block:
+      { accountId: { isNull: true }, suspendedUntil: { isNull: true } },
+      { accountId: { isNull: true }, suspendedUntil: { gt: now } },
+      // Banned local actor:
+      { accountId: { isNotNull: true }, suspendedUntil: { isNull: true } },
+    ],
+  } satisfies RelationsFilter<"actorTable">;
+}
+
+/**
+ * The TypeScript-side counterpart of {@link getSanctionHiddenActorFilter}:
+ * whether the actor's content is currently hidden by a moderation sanction
+ * (banned local actor, or remote actor under an active federation block).
+ */
+export function isActorSanctionHidden(
+  actor: Pick<Actor, "accountId" | "suspended" | "suspendedUntil">,
+  now: Date = new Date(),
+): boolean {
+  if (actor.suspended == null || actor.suspended > now) return false;
+  if (actor.suspendedUntil != null && actor.suspendedUntil <= now) {
+    return false; // Expired.
+  }
+  // An active *temporary* suspension of a local actor only restricts
+  // writing; a permanent one (ban), or any active sanction on a remote
+  // actor (federation block), hides content.
+  return actor.accountId == null || actor.suspendedUntil == null;
+}
+
+/**
+ * The NULL-safe inclusion complement of
+ * {@link getSanctionHiddenActorFilter}: matches actors whose content is
+ * NOT hidden by a moderation sanction, including the common case where
+ * `suspended` is `NULL`.
+ */
+export function getSanctionVisibleActorFilter(
+  now: Date = new Date(),
+): RelationsFilter<"actorTable"> {
+  return {
+    OR: [
+      // Not sanctioned at all:
+      { suspended: { isNull: true } },
+      // Sanction not started yet:
+      { suspended: { gt: now } },
+      // Sanction already expired:
+      { suspendedUntil: { lte: now } },
+      // Active temporary suspension of a *local* actor only restricts
+      // writing; their content stays visible:
+      { accountId: { isNotNull: true }, suspendedUntil: { gt: now } },
+    ],
+  } satisfies RelationsFilter<"actorTable">;
+}
+
 function getActorContentExclusionFilter(
   actorId: Uuid,
 ): RelationsFilter<"actorTable"> {
   return {
-    NOT: {
-      OR: [
-        { blockees: { blockeeId: actorId } },
-        { blockers: { blockerId: actorId } },
-      ],
-    },
+    AND: [
+      {
+        NOT: {
+          OR: [
+            { blockees: { blockeeId: actorId } },
+            { blockers: { blockerId: actorId } },
+          ],
+        },
+      },
+      getSanctionVisibleActorFilter(),
+    ],
   } satisfies RelationsFilter<"actorTable">;
 }
 
@@ -2533,11 +2641,14 @@ export function getPostVisibilityFilter(
   if (actorOrPost == null) {
     return {
       visibility: { in: ["public", "unlisted"] },
+      actor: getSanctionVisibleActorFilter(),
+      NOT: { sharedPost: { actor: getSanctionHiddenActorFilter() } },
     } satisfies RelationsFilter<"postTable">;
   }
   if ("accountId" in actorOrPost) {
     return {
       actor: getActorContentExclusionFilter(actorOrPost.id),
+      NOT: { sharedPost: { actor: getSanctionHiddenActorFilter() } },
       OR: [
         { actorId: actorOrPost.id },
         { visibility: { in: ["public", "unlisted"] } },
@@ -2588,10 +2699,13 @@ export function getPublicTimelineVisibilityFilter(
   if (actor == null) {
     return {
       visibility: "public",
+      actor: getSanctionVisibleActorFilter(),
+      NOT: { sharedPost: { actor: getSanctionHiddenActorFilter() } },
     } satisfies RelationsFilter<"postTable">;
   }
   return {
     actor: getActorContentExclusionFilter(actor.id),
+    NOT: { sharedPost: { actor: getSanctionHiddenActorFilter() } },
     visibility: "public",
   } satisfies RelationsFilter<"postTable">;
 }

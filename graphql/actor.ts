@@ -24,7 +24,10 @@ import {
   unfollow,
 } from "@hackerspub/models/following";
 import { getMutedActorIds, mute, unmute } from "@hackerspub/models/muting";
-import { getPostVisibilityFilter } from "@hackerspub/models/post";
+import {
+  getCensoredPostExclusionFilter,
+  getPostVisibilityFilter,
+} from "@hackerspub/models/post";
 import {
   formatTimelineCursor,
   getProfileInteractions,
@@ -435,7 +438,12 @@ export const Actor = builder.drizzleNode("actorTable", {
         "boost wrappers), newest published first. Filtered to posts " +
         "visible to the current viewer.",
       query: (_, ctx) => ({
-        where: getPostVisibilityFilter(ctx.account?.actor ?? null),
+        where: {
+          AND: [
+            getPostVisibilityFilter(ctx.account?.actor ?? null),
+            getCensoredPostExclusionFilter(ctx.account?.actor.id),
+          ],
+        },
         orderBy: { published: "desc" },
       }),
     }),
@@ -450,6 +458,7 @@ export const Actor = builder.drizzleNode("actorTable", {
           AND: [
             { type: "Note" },
             getPostVisibilityFilter(ctx.account?.actor ?? null),
+            getCensoredPostExclusionFilter(ctx.account?.actor.id),
           ],
         },
         orderBy: { published: "desc" },
@@ -543,6 +552,7 @@ export const Actor = builder.drizzleNode("actorTable", {
               },
             },
             getPostVisibilityFilter(ctx.account?.actor ?? null),
+            getCensoredPostExclusionFilter(ctx.account?.actor.id),
           ],
         },
         orderBy: { published: "desc" },
@@ -558,6 +568,7 @@ export const Actor = builder.drizzleNode("actorTable", {
           AND: [
             { type: "Question" },
             getPostVisibilityFilter(ctx.account?.actor ?? null),
+            getCensoredPostExclusionFilter(ctx.account?.actor.id),
           ],
         },
         orderBy: { published: "desc" },
@@ -572,6 +583,7 @@ export const Actor = builder.drizzleNode("actorTable", {
         where: {
           AND: [
             getPostVisibilityFilter(ctx.account?.actor ?? null),
+            getCensoredPostExclusionFilter(ctx.account?.actor.id),
             { sharedPostId: { isNotNull: true } },
           ],
         },
@@ -991,7 +1003,12 @@ const pinConnectionHelpers = drizzleConnectionHelpers(
     query: (_args, ctx) => ({
       orderBy: { created: "desc" },
       where: {
-        post: getPostVisibilityFilter(ctx.account?.actor ?? null),
+        post: {
+          AND: [
+            getPostVisibilityFilter(ctx.account?.actor ?? null),
+            getCensoredPostExclusionFilter(ctx.account?.actor.id),
+          ],
+        },
       },
     }),
     select: (nodeSelection) => ({

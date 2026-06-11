@@ -2,7 +2,10 @@ import { page } from "@fresh/core";
 import { getRelationship, type Relationship } from "@hackerspub/models/account";
 import { type ActorStats, getActorStats } from "@hackerspub/models/actor";
 import { extractMentionsFromHtml } from "@hackerspub/models/markup";
-import { getPostVisibilityFilter } from "@hackerspub/models/post";
+import {
+  getCensoredPostExclusionFilter,
+  getPostVisibilityFilter,
+} from "@hackerspub/models/post";
 import type {
   Account,
   AccountLink,
@@ -179,6 +182,7 @@ export const handler = define.handlers({
             published: { lte: until },
           },
           getPostVisibilityFilter(ctx.state.account?.actor ?? null),
+          getCensoredPostExclusionFilter(ctx.state.account?.actor.id),
         ],
       },
       orderBy: { published: "desc" },

@@ -12,7 +12,10 @@ import {
   renderMarkup,
 } from "@hackerspub/models/markup";
 import { createNote, QuotePolicyDeniedError } from "@hackerspub/models/note";
-import { getPostVisibilityFilter } from "@hackerspub/models/post";
+import {
+  getCensoredPostExclusionFilter,
+  getPostVisibilityFilter,
+} from "@hackerspub/models/post";
 import {
   type Account,
   type AccountLink,
@@ -293,6 +296,7 @@ export const handler = define.handlers({
         AND: [
           { actorId: actor.id, published: { lte: until } },
           getPostVisibilityFilter(ctx.state.account?.actor ?? null),
+          getCensoredPostExclusionFilter(ctx.state.account?.actor.id),
         ],
       },
       orderBy: { published: "desc" },
@@ -402,7 +406,12 @@ export const handler = define.handlers({
         },
         where: {
           actorId: actor.id,
-          post: getPostVisibilityFilter(ctx.state.account?.actor ?? null),
+          post: {
+            AND: [
+              getPostVisibilityFilter(ctx.state.account?.actor ?? null),
+              getCensoredPostExclusionFilter(ctx.state.account?.actor.id),
+            ],
+          },
         },
         orderBy: { created: "desc" },
       })
