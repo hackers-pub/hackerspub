@@ -1,6 +1,8 @@
+import { analyzeFlaggedContent } from "@hackerspub/ai/moderation";
 import { getLogger } from "@logtape/logtape";
+import type { LanguageModel } from "ai";
 import { and, eq, inArray, isNull } from "drizzle-orm";
-import { getCocVersion } from "./coc.ts";
+import { getCocProvisions, getCocVersion } from "./coc.ts";
 import type { Database, Transaction } from "./db.ts";
 import { createFlagReceivedNotifications } from "./moderation-notification.ts";
 import {
@@ -11,6 +13,7 @@ import {
   type Flag,
   type FlagCase,
   flagCaseTable,
+  type FlagLlmAnalysis,
   flagTable,
   type Post,
 } from "./schema.ts";
@@ -264,4 +267,60 @@ async function getPostSourceContent(
     return (matching ?? contents[0]).content;
   }
   return undefined;
+}
+
+/**
+ * Runs the LLM code of conduct matching for a freshly filed report and
+ * stores the result in `flag.llmAnalysis`.
+ *
+ * This is a fire-and-forget step: callers invoke it *after* the report's
+ * transaction commits (`void analyzeFlag(...).catch(...)`), on the root
+ * database handle, so a slow or failing LLM call can never block or roll
+ * back report creation.  Failures are recorded in the stored analysis
+ * (`error` set, no matches) so the moderation dashboard can distinguish
+ * "analysis failed" from "analysis pending".
+ *
+ * The result is a reference for moderators, never an automated decision.
+ */
+export async function analyzeFlag(
+  db: Database,
+  model: LanguageModel,
+  flag: Flag,
+  snapshot: ContentSnapshot,
+): Promise<void> {
+  const modelId = typeof model === "string" ? model : model.modelId;
+  let analysis: FlagLlmAnalysis;
+  try {
+    const provisions = await getCocProvisions("en");
+    const result = await analyzeFlaggedContent({
+      model,
+      provisions,
+      reason: flag.reason,
+      contentHtml: snapshot.contentHtml,
+      contentKind: snapshot.postId == null && snapshot.postIri == null
+        ? "profile"
+        : "post",
+    });
+    analysis = {
+      matches: result.matches,
+      summary: result.summary,
+      model: modelId,
+      analyzedAt: new Date().toISOString(),
+    };
+  } catch (error) {
+    logger.warn(
+      "Code of conduct analysis for flag {flagId} failed: {error}",
+      { flagId: flag.id, error },
+    );
+    analysis = {
+      matches: [],
+      summary: "",
+      model: modelId,
+      analyzedAt: new Date().toISOString(),
+      error: String(error),
+    };
+  }
+  await db.update(flagTable)
+    .set({ llmAnalysis: analysis, updated: new Date() })
+    .where(eq(flagTable.id, flag.id));
 }

@@ -14,6 +14,7 @@ import { waitFor } from "../test/wait.ts";
 const fakeModels = {
   summarizer: {} as never,
   translator: {} as never,
+  moderationAnalyzer: {} as never,
 };
 
 test("createArticle() creates a post and timeline entry for the author", async () => {
