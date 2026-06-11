@@ -239,6 +239,11 @@ msgstr "{0} reacted to your post with {1}"
 msgid "{0} replied to your post"
 msgstr "{0} replied to your post"
 
+#. placeholder {0}: node.reportCount
+#: src/components/admin/ModerationCaseList.tsx:206
+msgid "{0} reports"
+msgstr "{0} reports"
+
 #: src/routes/(root)/index.tsx:46
 #~ msgid "{0} running {1} {2}"
 #~ msgstr "{0} running {1} {2}"
@@ -333,6 +338,10 @@ msgstr "{count, plural, one {# discussion post} other {# discussion posts}}"
 #~ msgid "{count, plural, one {# share} other {# shares}}"
 #~ msgstr "{count, plural, one {# share} other {# shares}}"
 
+#: src/routes/(root)/admin/moderation/index.tsx:169
+msgid "{HIGH_PRIORITY_REPORT_COUNT}+ reports"
+msgstr "{HIGH_PRIORITY_REPORT_COUNT}+ reports"
+
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:231
 #: src/routes/(root)/[handle]/[noteId]/reactions.tsx:253
 #~ msgid "+{0} more reactor(s) not shown"
@@ -341,6 +350,10 @@ msgstr "{count, plural, one {# discussion post} other {# discussion posts}}"
 #: src/components/NoteComposer.tsx:1651
 msgid "1 day"
 msgstr "1 day"
+
+#: src/components/admin/ModerationCaseList.tsx:208
+msgid "1 report"
+msgstr "1 report"
 
 #: src/components/NoteComposer.tsx:1667
 msgid "1 week"
@@ -375,7 +388,7 @@ msgstr "Account"
 msgid "Account handle"
 msgstr "Account handle"
 
-#: src/components/AdminTabs.tsx:25
+#: src/components/AdminTabs.tsx:26
 #: src/routes/(root)/admin/index.tsx:97
 msgid "Accounts"
 msgstr "Accounts"
@@ -427,6 +440,7 @@ msgid "Admin"
 msgstr "Admin"
 
 #: src/routes/(root)/[handle]/bookmarks.tsx:136
+#: src/routes/(root)/admin/moderation/index.tsx:122
 msgid "All"
 msgstr "All"
 
@@ -585,6 +599,11 @@ msgstr "Articles only"
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "As you have already changed it {0}, you can't change it again."
 
+#. placeholder {0}: moderator().name ?? moderator().username
+#: src/components/admin/ModerationCaseList.tsx:191
+msgid "Assigned to {0}"
+msgstr "Assigned to {0}"
+
 #: src/components/NoteComposer.tsx:1457
 #: src/components/NoteComposer.tsx:1458
 msgid "Attach image"
@@ -697,7 +716,7 @@ msgstr "By {0}"
 #: src/components/ProfileActionMenu.tsx:504
 #: src/components/ProfileActionMenu.tsx:534
 #: src/components/ProfileActionMenu.tsx:535
-#: src/components/QuotedNoteCard.tsx:308
+#: src/components/QuotedNoteCard.tsx:317
 #: src/components/RemoteFollowButton.tsx:218
 #: src/components/RemoteFollowButton.tsx:280
 #: src/components/RemoveFollowerButton.tsx:144
@@ -836,7 +855,7 @@ msgstr "Could not refresh this from its origin."
 msgid "Could not resolve that as a remote object."
 msgstr "Could not resolve that as a remote object."
 
-#: src/components/QuotedNoteCard.tsx:331
+#: src/components/QuotedNoteCard.tsx:340
 msgid "Could not revoke quote"
 msgstr "Could not revoke quote"
 
@@ -900,7 +919,7 @@ msgid "Cutoff:"
 msgstr "Cutoff:"
 
 #: src/components/NoteCardInternal.tsx:143
-#: src/components/QuotedNoteCard.tsx:217
+#: src/components/QuotedNoteCard.tsx:226
 msgid "CW"
 msgstr "CW"
 
@@ -984,7 +1003,9 @@ msgstr "Discard unsaved changes - are you sure?"
 msgid "Dismiss"
 msgstr "Dismiss"
 
+#: src/components/admin/ModerationCaseList.tsx:106
 #: src/components/ReportHistoryList.tsx:96
+#: src/routes/(root)/admin/moderation/index.tsx:126
 msgid "Dismissed"
 msgstr "Dismissed"
 
@@ -1119,8 +1140,8 @@ msgstr "Enter your email or username below to sign in."
 #: src/components/NoteComposer.tsx:1183
 #: src/components/NoteComposer.tsx:1191
 #: src/components/NoteComposer.tsx:1248
-#: src/components/QuotedNoteCard.tsx:330
-#: src/components/QuotedNoteCard.tsx:338
+#: src/components/QuotedNoteCard.tsx:339
+#: src/components/QuotedNoteCard.tsx:347
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:258
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:346
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:356
@@ -1306,6 +1327,7 @@ msgid "Failed to load more shares; click to retry"
 msgstr "Failed to load more shares; click to retry"
 
 #: src/components/AccountListBase.tsx:112
+#: src/components/admin/ModerationCaseList.tsx:233
 #: src/components/ReportHistoryList.tsx:200
 msgid "Failed to load more; click to retry"
 msgstr "Failed to load more; click to retry"
@@ -1655,6 +1677,10 @@ msgstr "Hackers' Pub: Admin · Invitations"
 msgid "Hackers' Pub: Admin · Media"
 msgstr "Hackers' Pub: Admin · Media"
 
+#: src/routes/(root)/admin/moderation/index.tsx:131
+msgid "Hackers' Pub: Admin · Moderation"
+msgstr "Hackers' Pub: Admin · Moderation"
+
 #: src/routes/(root)/admin/news.tsx:536
 msgid "Hackers' Pub: Admin · News"
 msgstr "Hackers' Pub: Admin · News"
@@ -1702,7 +1728,7 @@ msgstr "Hidden account"
 
 #: src/components/NoteCardInternal.tsx:152
 #: src/components/NoteMedia.tsx:270
-#: src/components/QuotedNoteCard.tsx:228
+#: src/components/QuotedNoteCard.tsx:237
 msgid "Hide"
 msgstr "Hide"
 
@@ -1816,7 +1842,7 @@ msgstr "Invitation sent"
 msgid "Invitation tree"
 msgstr "Invitation tree"
 
-#: src/components/AdminTabs.tsx:33
+#: src/components/AdminTabs.tsx:42
 #: src/routes/(root)/admin/invitations.tsx:150
 msgid "Invitations"
 msgstr "Invitations"
@@ -1957,6 +1983,7 @@ msgid "List"
 msgstr "List"
 
 #: src/components/AccountListBase.tsx:115
+#: src/components/admin/ModerationCaseList.tsx:236
 #: src/components/ReportHistoryList.tsx:203
 #: src/routes/(root)/[handle]/drafts/index.tsx:350
 msgid "Load more"
@@ -2113,6 +2140,7 @@ msgid "Loading more stories…"
 msgstr "Loading more stories…"
 
 #: src/components/AccountListBase.tsx:109
+#: src/components/admin/ModerationCaseList.tsx:230
 #: src/components/ReportHistoryList.tsx:197
 msgid "Loading more…"
 msgstr "Loading more…"
@@ -2157,7 +2185,7 @@ msgstr "Markdown guide"
 msgid "Markdown supported"
 msgstr "Markdown supported"
 
-#: src/components/AdminTabs.tsx:41
+#: src/components/AdminTabs.tsx:50
 #: src/routes/(root)/admin/media.tsx:154
 msgid "Media"
 msgstr "Media"
@@ -2176,6 +2204,14 @@ msgstr "Minimum {MIN_REASON_LENGTH} characters required."
 #: src/components/NewsStoryCard.tsx:281
 msgid "Moderate"
 msgstr "Moderate"
+
+#: src/components/AdminTabs.tsx:34
+msgid "Moderation"
+msgstr "Moderation"
+
+#: src/routes/(root)/admin/moderation/index.tsx:140
+msgid "Moderation cases"
+msgstr "Moderation cases"
 
 #: src/components/PostEngagementBar.tsx:532
 #: src/components/PostEngagementBar.tsx:533
@@ -2278,7 +2314,7 @@ msgstr "New posts available — click to load"
 msgid "Newest"
 msgstr "Newest"
 
-#: src/components/AdminTabs.tsx:49
+#: src/components/AdminTabs.tsx:58
 #: src/components/AppSidebar.tsx:241
 #: src/routes/(root)/admin/news.tsx:555
 #: src/routes/(root)/news/index.tsx:39
@@ -2301,6 +2337,10 @@ msgstr "No actor found for that handle."
 #: src/components/Bookmarks.tsx:131
 msgid "No bookmarks yet"
 msgstr "No bookmarks yet"
+
+#: src/components/admin/ModerationCaseList.tsx:134
+msgid "No cases match these filters."
+msgstr "No cases match these filters."
 
 #: src/components/article-composer/ArticleComposerContext.tsx:421
 msgid "No draft to delete"
@@ -2587,6 +2627,8 @@ msgstr "Penalized links"
 msgid "Penalty cleared."
 msgstr "Penalty cleared."
 
+#: src/components/admin/ModerationCaseList.tsx:100
+#: src/routes/(root)/admin/moderation/index.tsx:123
 #: src/routes/(root)/admin/relay.tsx:304
 msgid "Pending"
 msgstr "Pending"
@@ -2830,7 +2872,7 @@ msgstr "Quote"
 msgid "Quote permission"
 msgstr "Quote permission"
 
-#: src/components/QuotedNoteCard.tsx:325
+#: src/components/QuotedNoteCard.tsx:334
 msgid "Quote revoked"
 msgstr "Quote revoked"
 
@@ -2915,7 +2957,7 @@ msgstr "Recompute news scores"
 msgid "Recomputing…"
 msgstr "Recomputing…"
 
-#: src/components/AdminTabs.tsx:57
+#: src/components/AdminTabs.tsx:66
 #: src/routes/(root)/admin/refresh.tsx:198
 msgid "Refresh"
 msgstr "Refresh"
@@ -2981,7 +3023,7 @@ msgstr "Registering…"
 msgid "Relay actor URL"
 msgstr "Relay actor URL"
 
-#: src/components/AdminTabs.tsx:65
+#: src/components/AdminTabs.tsx:74
 #: src/routes/(root)/admin/relay.tsx:218
 msgid "Relays"
 msgstr "Relays"
@@ -3114,13 +3156,20 @@ msgstr "Reports"
 msgid "Reports you have filed, newest first. You can see the target, your reason, and the current status. Detailed outcomes are not shown, and the reported user never learns who reported them."
 msgstr "Reports you have filed, newest first. You can see the target, your reason, and the current status. Detailed outcomes are not shown, and the reported user never learns who reported them."
 
+#: src/components/admin/ModerationCaseList.tsx:104
 #: src/components/ReportHistoryList.tsx:94
+#: src/routes/(root)/admin/moderation/index.tsx:125
 msgid "Resolved"
 msgstr "Resolved"
 
 #: src/components/AppSidebar.tsx:510
 msgid "Return to old UI"
 msgstr "Return to old UI"
+
+#: src/components/admin/ModerationCaseList.tsx:102
+#: src/routes/(root)/admin/moderation/index.tsx:124
+msgid "Reviewing"
+msgstr "Reviewing"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:476
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:527
@@ -3131,12 +3180,12 @@ msgstr "Revoke"
 msgid "Revoke passkey"
 msgstr "Revoke passkey"
 
-#: src/components/QuotedNoteCard.tsx:296
-#: src/components/QuotedNoteCard.tsx:346
+#: src/components/QuotedNoteCard.tsx:305
+#: src/components/QuotedNoteCard.tsx:355
 msgid "Revoke quote"
 msgstr "Revoke quote"
 
-#: src/components/QuotedNoteCard.tsx:301
+#: src/components/QuotedNoteCard.tsx:310
 msgid "Revoke this quote?"
 msgstr "Revoke this quote?"
 
@@ -3172,12 +3221,17 @@ msgstr "Saving…"
 #: src/components/AppSidebar.tsx:391
 #: src/components/SearchForm.tsx:65
 #: src/components/SearchForm.tsx:80
+#: src/routes/(root)/admin/moderation/index.tsx:190
 msgid "Search"
 msgstr "Search"
 
 #: src/components/LanguageSelect.tsx:65
 msgid "Search a language…"
 msgstr "Search a language…"
+
+#: src/routes/(root)/admin/moderation/index.tsx:185
+msgid "Search by handle or display name"
+msgstr "Search by handle or display name"
 
 #: src/components/admin/AdminAccountsTable.tsx:197
 msgid "Search by name or username…"
@@ -3221,7 +3275,7 @@ msgstr "Send"
 msgid "Sending…"
 msgstr "Sending…"
 
-#: src/components/QuotedNoteCard.tsx:221
+#: src/components/QuotedNoteCard.tsx:230
 msgid "Sensitive content"
 msgstr "Sensitive content"
 
@@ -3272,8 +3326,8 @@ msgstr "Sharing is not available for this post"
 
 #: src/components/MutedReplyPlaceholder.tsx:32
 #: src/components/NoteCardInternal.tsx:152
-#: src/components/QuotedNoteCard.tsx:161
-#: src/components/QuotedNoteCard.tsx:228
+#: src/components/QuotedNoteCard.tsx:164
+#: src/components/QuotedNoteCard.tsx:237
 msgid "Show"
 msgstr "Show"
 
@@ -3427,7 +3481,7 @@ msgid "Successfully saved settings"
 msgstr "Successfully saved settings"
 
 #: src/components/ArticleCard.tsx:497
-#: src/components/QuotedNoteCard.tsx:278
+#: src/components/QuotedNoteCard.tsx:287
 msgid "Summarized by LLM"
 msgstr "Summarized by LLM"
 
@@ -3546,7 +3600,7 @@ msgstr "The passkey has been successfully revoked."
 msgid "The primary language of your article, used for accessibility and discovery."
 msgstr "The primary language of your article, used for accessibility and discovery."
 
-#: src/components/QuotedNoteCard.tsx:304
+#: src/components/QuotedNoteCard.tsx:313
 msgid "The quoting post will no longer include your post as a quote."
 msgstr "The quoting post will no longer include your post as a quote."
 
@@ -3630,7 +3684,7 @@ msgid "This quote is waiting for approval from the original author."
 msgstr "This quote is waiting for approval from the original author."
 
 #. placeholder {0}: post.actor.handle
-#: src/components/QuotedNoteCard.tsx:153
+#: src/components/QuotedNoteCard.tsx:156
 msgid "This quoted post is hidden because you muted {0}."
 msgstr "This quoted post is hidden because you muted {0}."
 

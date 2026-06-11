@@ -239,6 +239,11 @@ msgstr "{0} 用 {1} 對你的內容做出了反應"
 msgid "{0} replied to your post"
 msgstr "{0} 回覆了你的內容"
 
+#. placeholder {0}: node.reportCount
+#: src/components/admin/ModerationCaseList.tsx:206
+msgid "{0} reports"
+msgstr "{0} 則檢舉"
+
 #: src/routes/(root)/index.tsx:46
 #~ msgid "{0} running {1} {2}"
 #~ msgstr "{0} 正在執行 {1} {2}"
@@ -333,6 +338,10 @@ msgstr "{count, plural, other {# 則討論內容}}"
 #~ msgid "{count, plural, one {# share} other {# shares}}"
 #~ msgstr "{count, plural, one {# 次轉貼} other {# 次轉貼}}"
 
+#: src/routes/(root)/admin/moderation/index.tsx:169
+msgid "{HIGH_PRIORITY_REPORT_COUNT}+ reports"
+msgstr "{HIGH_PRIORITY_REPORT_COUNT} 則以上檢舉"
+
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:231
 #: src/routes/(root)/[handle]/[noteId]/reactions.tsx:253
 #~ msgid "+{0} more reactor(s) not shown"
@@ -341,6 +350,10 @@ msgstr "{count, plural, other {# 則討論內容}}"
 #: src/components/NoteComposer.tsx:1651
 msgid "1 day"
 msgstr "1 天"
+
+#: src/components/admin/ModerationCaseList.tsx:208
+msgid "1 report"
+msgstr "1 則檢舉"
 
 #: src/components/NoteComposer.tsx:1667
 msgid "1 week"
@@ -375,7 +388,7 @@ msgstr "帳戶"
 msgid "Account handle"
 msgstr "帳號使用者名稱"
 
-#: src/components/AdminTabs.tsx:25
+#: src/components/AdminTabs.tsx:26
 #: src/routes/(root)/admin/index.tsx:97
 msgid "Accounts"
 msgstr "帳號"
@@ -427,6 +440,7 @@ msgid "Admin"
 msgstr "管理"
 
 #: src/routes/(root)/[handle]/bookmarks.tsx:136
+#: src/routes/(root)/admin/moderation/index.tsx:122
 msgid "All"
 msgstr "全部"
 
@@ -585,6 +599,11 @@ msgstr "僅文章"
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "自從你已經把使用者名稱換成 {0} 了，你再也改不了了。"
 
+#. placeholder {0}: moderator().name ?? moderator().username
+#: src/components/admin/ModerationCaseList.tsx:191
+msgid "Assigned to {0}"
+msgstr "已指派給 {0}"
+
 #: src/components/NoteComposer.tsx:1457
 #: src/components/NoteComposer.tsx:1458
 msgid "Attach image"
@@ -697,7 +716,7 @@ msgstr "由 {0} 發佈"
 #: src/components/ProfileActionMenu.tsx:504
 #: src/components/ProfileActionMenu.tsx:534
 #: src/components/ProfileActionMenu.tsx:535
-#: src/components/QuotedNoteCard.tsx:308
+#: src/components/QuotedNoteCard.tsx:317
 #: src/components/RemoteFollowButton.tsx:218
 #: src/components/RemoteFollowButton.tsx:280
 #: src/components/RemoveFollowerButton.tsx:144
@@ -836,7 +855,7 @@ msgstr "無法從來源重新整理此物件。"
 msgid "Could not resolve that as a remote object."
 msgstr "無法將其解析為遠端物件。"
 
-#: src/components/QuotedNoteCard.tsx:331
+#: src/components/QuotedNoteCard.tsx:340
 msgid "Could not revoke quote"
 msgstr "無法撤銷引用"
 
@@ -900,7 +919,7 @@ msgid "Cutoff:"
 msgstr "截止時間："
 
 #: src/components/NoteCardInternal.tsx:143
-#: src/components/QuotedNoteCard.tsx:217
+#: src/components/QuotedNoteCard.tsx:226
 msgid "CW"
 msgstr "CW"
 
@@ -984,7 +1003,9 @@ msgstr "放棄未儲存的變更 - 您確定嗎？"
 msgid "Dismiss"
 msgstr "關閉"
 
+#: src/components/admin/ModerationCaseList.tsx:106
 #: src/components/ReportHistoryList.tsx:96
+#: src/routes/(root)/admin/moderation/index.tsx:126
 msgid "Dismissed"
 msgstr "已駁回"
 
@@ -1115,8 +1136,8 @@ msgstr "請在下方輸入您的電子郵件或使用者名稱以登入。"
 #: src/components/NoteComposer.tsx:1183
 #: src/components/NoteComposer.tsx:1191
 #: src/components/NoteComposer.tsx:1248
-#: src/components/QuotedNoteCard.tsx:330
-#: src/components/QuotedNoteCard.tsx:338
+#: src/components/QuotedNoteCard.tsx:339
+#: src/components/QuotedNoteCard.tsx:347
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:258
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:346
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:356
@@ -1302,6 +1323,7 @@ msgid "Failed to load more shares; click to retry"
 msgstr "載入更多轉貼失敗，點擊重試"
 
 #: src/components/AccountListBase.tsx:112
+#: src/components/admin/ModerationCaseList.tsx:233
 #: src/components/ReportHistoryList.tsx:200
 msgid "Failed to load more; click to retry"
 msgstr "載入更多失敗；點擊重試"
@@ -1651,6 +1673,10 @@ msgstr "Hackers' Pub：管理 · 邀請"
 msgid "Hackers' Pub: Admin · Media"
 msgstr "Hackers' Pub：管理 · 媒體"
 
+#: src/routes/(root)/admin/moderation/index.tsx:131
+msgid "Hackers' Pub: Admin · Moderation"
+msgstr "Hackers' Pub: 管理 · 審核"
+
 #: src/routes/(root)/admin/news.tsx:536
 msgid "Hackers' Pub: Admin · News"
 msgstr "Hackers' Pub：管理 · 新聞"
@@ -1698,7 +1724,7 @@ msgstr "隱藏帳戶"
 
 #: src/components/NoteCardInternal.tsx:152
 #: src/components/NoteMedia.tsx:270
-#: src/components/QuotedNoteCard.tsx:228
+#: src/components/QuotedNoteCard.tsx:237
 msgid "Hide"
 msgstr "隱藏"
 
@@ -1812,7 +1838,7 @@ msgstr "邀請已發送"
 msgid "Invitation tree"
 msgstr "邀請樹"
 
-#: src/components/AdminTabs.tsx:33
+#: src/components/AdminTabs.tsx:42
 #: src/routes/(root)/admin/invitations.tsx:150
 msgid "Invitations"
 msgstr "邀請"
@@ -1953,6 +1979,7 @@ msgid "List"
 msgstr "列表"
 
 #: src/components/AccountListBase.tsx:115
+#: src/components/admin/ModerationCaseList.tsx:236
 #: src/components/ReportHistoryList.tsx:203
 #: src/routes/(root)/[handle]/drafts/index.tsx:350
 msgid "Load more"
@@ -2109,6 +2136,7 @@ msgid "Loading more stories…"
 msgstr "正在載入更多新聞…"
 
 #: src/components/AccountListBase.tsx:109
+#: src/components/admin/ModerationCaseList.tsx:230
 #: src/components/ReportHistoryList.tsx:197
 msgid "Loading more…"
 msgstr "正在載入更多…"
@@ -2153,7 +2181,7 @@ msgstr "Markdown 指南"
 msgid "Markdown supported"
 msgstr "Markdown 可用"
 
-#: src/components/AdminTabs.tsx:41
+#: src/components/AdminTabs.tsx:50
 #: src/routes/(root)/admin/media.tsx:154
 msgid "Media"
 msgstr "媒體"
@@ -2172,6 +2200,14 @@ msgstr "至少需要輸入 {MIN_REASON_LENGTH} 個字元。"
 #: src/components/NewsStoryCard.tsx:281
 msgid "Moderate"
 msgstr "管理"
+
+#: src/components/AdminTabs.tsx:34
+msgid "Moderation"
+msgstr "審核"
+
+#: src/routes/(root)/admin/moderation/index.tsx:140
+msgid "Moderation cases"
+msgstr "審核案件"
 
 #: src/components/PostEngagementBar.tsx:532
 #: src/components/PostEngagementBar.tsx:533
@@ -2274,7 +2310,7 @@ msgstr "有新內容 — 點擊載入"
 msgid "Newest"
 msgstr "最新"
 
-#: src/components/AdminTabs.tsx:49
+#: src/components/AdminTabs.tsx:58
 #: src/components/AppSidebar.tsx:241
 #: src/routes/(root)/admin/news.tsx:555
 #: src/routes/(root)/news/index.tsx:39
@@ -2297,6 +2333,10 @@ msgstr "找不到該使用者名稱對應的帳號。"
 #: src/components/Bookmarks.tsx:131
 msgid "No bookmarks yet"
 msgstr "暫無收藏"
+
+#: src/components/admin/ModerationCaseList.tsx:134
+msgid "No cases match these filters."
+msgstr "沒有符合這些篩選條件的案件。"
 
 #: src/components/article-composer/ArticleComposerContext.tsx:421
 msgid "No draft to delete"
@@ -2583,6 +2623,8 @@ msgstr "受罰連結"
 msgid "Penalty cleared."
 msgstr "已清除處罰。"
 
+#: src/components/admin/ModerationCaseList.tsx:100
+#: src/routes/(root)/admin/moderation/index.tsx:123
 #: src/routes/(root)/admin/relay.tsx:304
 msgid "Pending"
 msgstr "待處理"
@@ -2826,7 +2868,7 @@ msgstr "引用"
 msgid "Quote permission"
 msgstr "引用權限"
 
-#: src/components/QuotedNoteCard.tsx:325
+#: src/components/QuotedNoteCard.tsx:334
 msgid "Quote revoked"
 msgstr "引用已撤銷"
 
@@ -2911,7 +2953,7 @@ msgstr "重新計算新聞評分"
 msgid "Recomputing…"
 msgstr "正在重新計算…"
 
-#: src/components/AdminTabs.tsx:57
+#: src/components/AdminTabs.tsx:66
 #: src/routes/(root)/admin/refresh.tsx:198
 msgid "Refresh"
 msgstr "重新整理"
@@ -2977,7 +3019,7 @@ msgstr "註冊…"
 msgid "Relay actor URL"
 msgstr "中繼 actor 的 URL"
 
-#: src/components/AdminTabs.tsx:65
+#: src/components/AdminTabs.tsx:74
 #: src/routes/(root)/admin/relay.tsx:218
 msgid "Relays"
 msgstr "中繼"
@@ -3110,13 +3152,20 @@ msgstr "檢舉紀錄"
 msgid "Reports you have filed, newest first. You can see the target, your reason, and the current status. Detailed outcomes are not shown, and the reported user never learns who reported them."
 msgstr "依時間由新到舊顯示你提交的檢舉。你可以查看檢舉對象、填寫的理由與目前狀態。詳細的處理結果不會顯示，被檢舉的使用者也永遠不會知道是誰檢舉的。"
 
+#: src/components/admin/ModerationCaseList.tsx:104
 #: src/components/ReportHistoryList.tsx:94
+#: src/routes/(root)/admin/moderation/index.tsx:125
 msgid "Resolved"
 msgstr "已處理"
 
 #: src/components/AppSidebar.tsx:510
 msgid "Return to old UI"
 msgstr "返回舊介面"
+
+#: src/components/admin/ModerationCaseList.tsx:102
+#: src/routes/(root)/admin/moderation/index.tsx:124
+msgid "Reviewing"
+msgstr "審核中"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:476
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:527
@@ -3127,12 +3176,12 @@ msgstr "撤銷"
 msgid "Revoke passkey"
 msgstr "撤銷通行金鑰"
 
-#: src/components/QuotedNoteCard.tsx:296
-#: src/components/QuotedNoteCard.tsx:346
+#: src/components/QuotedNoteCard.tsx:305
+#: src/components/QuotedNoteCard.tsx:355
 msgid "Revoke quote"
 msgstr "撤銷引用"
 
-#: src/components/QuotedNoteCard.tsx:301
+#: src/components/QuotedNoteCard.tsx:310
 msgid "Revoke this quote?"
 msgstr "撤銷此引用？"
 
@@ -3168,12 +3217,17 @@ msgstr "儲存中…"
 #: src/components/AppSidebar.tsx:391
 #: src/components/SearchForm.tsx:65
 #: src/components/SearchForm.tsx:80
+#: src/routes/(root)/admin/moderation/index.tsx:190
 msgid "Search"
 msgstr "搜尋"
 
 #: src/components/LanguageSelect.tsx:65
 msgid "Search a language…"
 msgstr "搜尋語言…"
+
+#: src/routes/(root)/admin/moderation/index.tsx:185
+msgid "Search by handle or display name"
+msgstr "以帳號或顯示名稱搜尋"
 
 #: src/components/admin/AdminAccountsTable.tsx:197
 msgid "Search by name or username…"
@@ -3217,7 +3271,7 @@ msgstr "發送"
 msgid "Sending…"
 msgstr "發送中…"
 
-#: src/components/QuotedNoteCard.tsx:221
+#: src/components/QuotedNoteCard.tsx:230
 msgid "Sensitive content"
 msgstr "敏感內容"
 
@@ -3268,8 +3322,8 @@ msgstr "無法轉貼此內容。"
 
 #: src/components/MutedReplyPlaceholder.tsx:32
 #: src/components/NoteCardInternal.tsx:152
-#: src/components/QuotedNoteCard.tsx:161
-#: src/components/QuotedNoteCard.tsx:228
+#: src/components/QuotedNoteCard.tsx:164
+#: src/components/QuotedNoteCard.tsx:237
 msgid "Show"
 msgstr "顯示"
 
@@ -3423,7 +3477,7 @@ msgid "Successfully saved settings"
 msgstr "設定儲存成功"
 
 #: src/components/ArticleCard.tsx:497
-#: src/components/QuotedNoteCard.tsx:278
+#: src/components/QuotedNoteCard.tsx:287
 msgid "Summarized by LLM"
 msgstr "由 AI 生成的摘要"
 
@@ -3542,7 +3596,7 @@ msgstr "通行金鑰已成功撤銷。"
 msgid "The primary language of your article, used for accessibility and discovery."
 msgstr "文章的主要語言，用於無障礙功能和內容發現。"
 
-#: src/components/QuotedNoteCard.tsx:304
+#: src/components/QuotedNoteCard.tsx:313
 msgid "The quoting post will no longer include your post as a quote."
 msgstr "引用內容將不再把你的內容作為引用包含在內。"
 
@@ -3626,7 +3680,7 @@ msgid "This quote is waiting for approval from the original author."
 msgstr "此引用正在等待原作者核准。"
 
 #. placeholder {0}: post.actor.handle
-#: src/components/QuotedNoteCard.tsx:153
+#: src/components/QuotedNoteCard.tsx:156
 msgid "This quoted post is hidden because you muted {0}."
 msgstr "因為你已靜音 {0}，此引用已被隱藏。"
 
