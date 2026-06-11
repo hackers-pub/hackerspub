@@ -239,8 +239,10 @@ msgstr "{0}さんがあなたのコンテンツに{1}でリアクションしま
 msgid "{0} replied to your post"
 msgstr "{0}さんがあなたのコンテンツに返信しました"
 
+#. placeholder {0}: flagCase.reportCount
 #. placeholder {0}: node.reportCount
 #: src/components/admin/ModerationCaseList.tsx:206
+#: src/routes/(root)/admin/moderation/[id].tsx:245
 msgid "{0} reports"
 msgstr "通報 {0}件"
 
@@ -338,6 +340,10 @@ msgstr "{count, plural, other {議論のコンテンツ #件}}"
 #~ msgid "{count, plural, one {# share} other {# shares}}"
 #~ msgstr "{count, plural, one {共有 #件} other {共有 #件}}"
 
+#: src/components/admin/ModerationActionForm.tsx:302
+msgid "{days} days"
+msgstr "{days}日間"
+
 #: src/routes/(root)/admin/moderation/index.tsx:169
 msgid "{HIGH_PRIORITY_REPORT_COUNT}+ reports"
 msgstr "通報 {HIGH_PRIORITY_REPORT_COUNT}件以上"
@@ -347,11 +353,13 @@ msgstr "通報 {HIGH_PRIORITY_REPORT_COUNT}件以上"
 #~ msgid "+{0} more reactor(s) not shown"
 #~ msgstr "+{0}件のリアクションは表示されていません"
 
+#: src/components/admin/ModerationActionForm.tsx:303
 #: src/components/NoteComposer.tsx:1651
 msgid "1 day"
 msgstr "1日"
 
 #: src/components/admin/ModerationCaseList.tsx:208
+#: src/routes/(root)/admin/moderation/[id].tsx:247
 msgid "1 report"
 msgstr "通報 1件"
 
@@ -363,6 +371,14 @@ msgstr "1週間"
 msgid "3 days"
 msgstr "3日"
 
+#: src/routes/(root)/admin/moderation/[id].tsx:255
+msgid "A content (post) report."
+msgstr "コンテンツの通報です。"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:420
+msgid "A local sanction notifies the reported user under the moderation team's collective identity, and they can appeal within 14 days. A dismissal notifies them only if you add a message."
+msgstr "ローカルの制裁はモデレーションチーム名義で通報されたユーザーに通知され、ユーザーは14日以内に異議を申し立てることができます。却下はメッセージを追加した場合のみ通知されます。"
+
 #: src/components/ProfileCard.tsx:217
 msgid "A moderator suspended this account for violating the code of conduct."
 msgstr "モデレーターが行動規範違反のためこのアカウントを停止しました。"
@@ -371,13 +387,29 @@ msgstr "モデレーターが行動規範違反のためこのアカウントを
 msgid "A name for the link that will be displayed on your profile, e.g., GitHub."
 msgstr "プロフィールに表示されるリンクの名前。（例：GitHub）"
 
+#: src/components/admin/ModerationActionForm.tsx:320
+msgid "A rationale is required."
+msgstr "理由の入力が必要です。"
+
 #: src/routes/(root)/admin/relay.tsx:260
 msgid "A relay only starts forwarding posts once it has accepted the follow. Until then the subscription stays pending."
 msgstr "リレーはフォローを承認して初めてコンテンツの転送を開始します。それまで購読は保留中のままです。"
 
+#: src/components/admin/ModerationActionForm.tsx:342
+msgid "A reporter opted in to forwarding, so this is sent to the remote instance. Never include the reporter's wording."
+msgstr "通報者が転送に同意したため、リモートインスタンスに送信されます。通報者の表現は絶対に含めないでください。"
+
 #: src/routes/(root)/sign/index.tsx:218
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "ログインリンクがメールに送信されました。受信トレイ（または迷惑メールフォルダ）を確認してください。"
+
+#: src/components/admin/ModerationActionForm.tsx:346
+msgid "A summary is required because this report will be forwarded."
+msgstr "この通報は転送されるため、要約が必要です。"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:253
+msgid "A user (profile) report."
+msgstr "ユーザー（プロフィール）の通報です。"
 
 #: src/components/admin/AdminAccountsTable.tsx:224
 #: src/components/AppSidebar.tsx:491
@@ -392,6 +424,10 @@ msgstr "アカウントのハンドル"
 #: src/routes/(root)/admin/index.tsx:97
 msgid "Accounts"
 msgstr "アカウント"
+
+#: src/components/admin/ModerationActionForm.tsx:198
+msgid "Action recorded"
+msgstr "対応を記録しました"
 
 #: src/components/LanguageList.tsx:63
 #: src/components/LanguageList.tsx:198
@@ -626,6 +662,18 @@ msgstr "代替テキストを自動入力"
 msgid "Avatar"
 msgstr "アイコン"
 
+#: src/routes/(root)/admin/moderation/[id].tsx:175
+msgid "Back to cases"
+msgstr "ケース一覧へ戻る"
+
+#: src/components/admin/ModerationActionForm.tsx:116
+msgid "Ban"
+msgstr "永久停止"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:145
+msgid "Banned"
+msgstr "永久停止済み"
+
 #: src/routes/(root)/[handle]/settings/index.tsx:484
 #: src/routes/(root)/sign/up/[token].tsx:403
 msgid "Bio"
@@ -701,6 +749,11 @@ msgstr "埋没済み"
 msgid "Bury"
 msgstr "埋没"
 
+#. placeholder {0}: reporter().handle
+#: src/routes/(root)/admin/moderation/[id].tsx:277
+msgid "by {0}"
+msgstr "通報者 {0}"
+
 #. placeholder {0}: article.actor.name || article.actor.handle
 #: src/components/NewsStoryCard.tsx:197
 #: src/components/NewsStoryHeader.tsx:122
@@ -732,6 +785,10 @@ msgstr "キャンセル"
 msgid "Cannot change the language because translations already exist"
 msgstr "翻訳が既に存在するため、言語を変更できません"
 
+#: src/components/admin/ModerationActionForm.tsx:114
+msgid "Censor post"
+msgstr "コンテンツを検閲"
+
 #: src/components/CensorshipNotice.tsx:32
 msgid "Censored by a moderator."
 msgstr "モデレーターによって検閲されました。"
@@ -751,6 +808,10 @@ msgstr "登録を完了するにはメールを確認してください。確認
 #: src/components/WebPushNotificationSettings.tsx:408
 msgid "Checking…"
 msgstr "確認中…"
+
+#: src/components/admin/ModerationActionForm.tsx:247
+msgid "Choose a decision."
+msgstr "対応を選択してください。"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:401
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
@@ -847,6 +908,12 @@ msgstr "クリップボードにリンクをコピーできませんでした。
 msgid "Could not load profile."
 msgstr "プロフィールを読み込めませんでした。"
 
+#: src/components/admin/ModerationActionForm.tsx:206
+#: src/components/admin/ModerationActionForm.tsx:213
+#: src/components/admin/ModerationActionForm.tsx:220
+msgid "Could not record the action"
+msgstr "対応を記録できませんでした"
+
 #: src/components/RefreshFromOriginItem.tsx:69
 msgid "Could not refresh this from its origin."
 msgstr "この項目を配信元から再取得できませんでした。"
@@ -927,6 +994,14 @@ msgstr "CW"
 msgid "Deadline"
 msgstr "締め切り"
 
+#: src/components/admin/ModerationActionForm.tsx:230
+msgid "Decision"
+msgstr "対応"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:349
+msgid "Decisions"
+msgstr "対応履歴"
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:193
 msgid "Default note privacy"
 msgstr "投稿のデフォルト公開範囲"
@@ -998,6 +1073,7 @@ msgstr "未保存の変更を破棄してもよろしいですか？"
 #~ msgid "Discussion"
 #~ msgstr "議論"
 
+#: src/components/admin/ModerationActionForm.tsx:112
 #: src/components/FollowRecommendations.tsx:134
 #: src/components/WebPushPromptBanner.tsx:269
 msgid "Dismiss"
@@ -1005,6 +1081,7 @@ msgstr "閉じる"
 
 #: src/components/admin/ModerationCaseList.tsx:106
 #: src/components/ReportHistoryList.tsx:96
+#: src/routes/(root)/admin/moderation/[id].tsx:137
 #: src/routes/(root)/admin/moderation/index.tsx:126
 msgid "Dismissed"
 msgstr "却下"
@@ -1171,6 +1248,10 @@ msgstr "{0}に期限切れ"
 #: src/routes/(root)/[handle]/settings/invite.tsx:825
 msgid "Expiry"
 msgstr "有効期限"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:284
+msgid "External"
+msgstr "外部"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:406
 #: src/routes/(root)/[handle]/settings/invite.tsx:815
@@ -1677,6 +1758,10 @@ msgstr "Hackers' Pub：管理 · メディア"
 msgid "Hackers' Pub: Admin · Moderation"
 msgstr "Hackers' Pub: 管理 · モデレーション"
 
+#: src/routes/(root)/admin/moderation/[id].tsx:162
+msgid "Hackers' Pub: Admin · Moderation case"
+msgstr "Hackers' Pub: 管理 · モデレーションケース"
+
 #: src/routes/(root)/admin/news.tsx:536
 msgid "Hackers' Pub: Admin · News"
 msgstr "Hackers' Pub：管理 · ニュース"
@@ -1784,6 +1869,10 @@ msgstr "画像プレビュー"
 #: src/components/ProfileTabs.tsx:87
 msgid "Interactions"
 msgstr "やり取り"
+
+#: src/components/admin/ModerationActionForm.tsx:313
+msgid "Internal rationale"
+msgstr "内部理由"
 
 #: src/components/RemoteFollowButton.tsx:101
 msgid "Invalid Fediverse handle format."
@@ -1977,6 +2066,10 @@ msgstr "フェディバース全体で広がっているリンクと記事を、
 #: src/components/ui/markdown-editor.tsx:291
 msgid "List"
 msgstr "リスト"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:460
+msgid "LLM analysis (reference only, not a decision)"
+msgstr "LLM分析（参考用であり判断材料ではありません）"
 
 #: src/components/AccountListBase.tsx:115
 #: src/components/admin/ModerationCaseList.tsx:236
@@ -2191,6 +2284,10 @@ msgstr "メディア"
 #: src/components/VisibilityTag.tsx:98
 msgid "Mentioned only"
 msgstr "メンションされたユーザーのみ"
+
+#: src/components/admin/ModerationActionForm.tsx:327
+msgid "Message to the user (optional)"
+msgstr "ユーザーへのメッセージ（任意）"
 
 #: src/components/ReportDialog.tsx:192
 msgid "Minimum {MIN_REASON_LENGTH} characters required."
@@ -2656,6 +2753,10 @@ msgstr "プロフィールに固定"
 msgid "Pinned posts"
 msgstr "固定されたコンテンツ"
 
+#: src/components/admin/ModerationActionForm.tsx:207
+msgid "Please check the form and try again."
+msgstr "フォームを確認してもう一度お試しください。"
+
 #: src/routes/(root)/[handle]/settings/index.tsx:188
 msgid "Please choose an image file smaller than 5 MiB."
 msgstr "5 MiB未満の画像ファイルを選択してください。"
@@ -2733,6 +2834,10 @@ msgstr "人気"
 msgid "Post by {0}"
 msgstr "{0}さんのコンテンツ"
 
+#: src/routes/(root)/admin/moderation/[id].tsx:141
+msgid "Post censored"
+msgstr "コンテンツ検閲済み"
+
 #: src/components/PostActionMenu.tsx:321
 msgid "Post deleted"
 msgstr "コンテンツを削除しました"
@@ -2789,6 +2894,10 @@ msgstr "プレビュー"
 #: src/components/ImageLightbox.tsx:80
 msgid "Previous image"
 msgstr "前の画像"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:320
+msgid "Prior violations"
+msgstr "過去の違反履歴"
 
 #: src/components/LanguageList.tsx:73
 msgid "Priority"
@@ -2952,6 +3061,14 @@ msgstr "ニュースのスコアを再計算"
 #: src/routes/(root)/admin/news.tsx:592
 msgid "Recomputing…"
 msgstr "再計算中…"
+
+#: src/components/admin/ModerationActionForm.tsx:354
+msgid "Record decision"
+msgstr "対応を記録"
+
+#: src/components/admin/ModerationActionForm.tsx:316
+msgid "Recorded for the audit trail; not shown to the user."
+msgstr "監査記録用に保存され、ユーザーには表示されません。"
 
 #: src/components/AdminTabs.tsx:66
 #: src/routes/(root)/admin/refresh.tsx:198
@@ -3250,6 +3367,10 @@ msgstr "検索中…"
 msgid "Select an option"
 msgstr "選択肢を選んでください"
 
+#: src/components/admin/ModerationActionForm.tsx:282
+msgid "Select at least one violated provision."
+msgstr "違反した条項を1つ以上選択してください。"
+
 #: src/components/QuestionCard.tsx:407
 msgid "Select options"
 msgstr "選択肢を選んでください"
@@ -3344,6 +3465,14 @@ msgstr "共有コンテンツをもっと表示"
 msgid "Show sensitive content"
 msgstr "センシティブなコンテンツを表示"
 
+#: src/components/admin/ModerationActionForm.tsx:330
+msgid "Shown to the reported user under the moderation team's identity."
+msgstr "モデレーションチーム名義で通報されたユーザーに表示されます。"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:377
+msgid "Shown to the user"
+msgstr "ユーザーに表示"
+
 #: src/components/AppSidebar.tsx:546
 #: src/routes/(root)/sign/index.tsx:382
 msgid "Sign in"
@@ -3406,6 +3535,10 @@ msgstr "スラッグ（URL）"
 #: src/components/article-composer/ArticleComposerContext.tsx:350
 msgid "Slug cannot be empty"
 msgstr "スラッグは空にできません"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:300
+msgid "Snapshot at report time"
+msgstr "通報時点のスナップショット"
 
 #: src/components/NoteComposer.tsx:739
 msgid "Some images were skipped because the limit of {MAX_MEDIA} was reached"
@@ -3481,6 +3614,27 @@ msgstr "設定を正常に保存しました"
 msgid "Summarized by LLM"
 msgstr "LLMによる要約"
 
+#: src/components/admin/ModerationActionForm.tsx:338
+msgid "Summary for the remote instance"
+msgstr "リモートインスタンス向けの要約"
+
+#: src/components/admin/ModerationActionForm.tsx:115
+msgid "Suspend"
+msgstr "停止"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:143
+#: src/routes/(root)/admin/moderation/[id].tsx:234
+msgid "Suspended"
+msgstr "停止済み"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:391
+msgid "Suspension ends"
+msgstr "停止終了"
+
+#: src/components/admin/ModerationActionForm.tsx:291
+msgid "Suspension length"
+msgstr "停止期間"
+
 #: src/components/DocumentView.tsx:38
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:733
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:741
@@ -3497,6 +3651,10 @@ msgstr "目次"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1077
 msgid "Tags"
 msgstr "タグ"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:414
+msgid "Take action"
+msgstr "対応する"
 
 #: src/components/ReportDialog.tsx:163
 msgid "Tell the moderation team why you are reporting this post. You don't need to know the specific code of conduct provisions; describe what felt uncomfortable or problematic in your own words."
@@ -3526,10 +3684,18 @@ msgstr "有効なリレーアクターのURLではありません。"
 msgid "That is not a valid URL pattern."
 msgstr "有効なURLパターンではありません。"
 
+#: src/routes/(root)/admin/moderation/[id].tsx:466
+msgid "The automated analysis was unavailable for this report."
+msgstr "この通報の自動分析は利用できませんでした。"
+
 #: src/components/WebPushNotificationSettings.tsx:158
 #: src/components/WebPushPromptBanner.tsx:93
 msgid "The browser did not provide a complete push subscription."
 msgstr "ブラウザーから完全なプッシュ通知サブスクリプションが提供されませんでした。"
+
+#: src/components/admin/ModerationActionForm.tsx:199
+msgid "The decision has been recorded and applied."
+msgstr "対応が記録され、適用されました。"
 
 #: src/routes/(root)/[handle]/settings/preferences.tsx:201
 msgid "The default privacy setting for your notes."
@@ -3614,6 +3780,10 @@ msgstr "登録リンクが無効です。受信したメールのリンクを正
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "このウェブサイトのソースコードは{1}ライセンスで{0}で公開されています。"
 
+#: src/routes/(root)/admin/moderation/[id].tsx:322
+msgid "The target's standing moderation history; accumulated history affects sanction levels."
+msgstr "対象の累積モデレーション履歴です。累積した履歴は制裁レベルに影響します。"
+
 #: src/components/article-composer/ArticleComposerForm.tsx:58
 msgid "The title will appear at the top of your article and in link previews."
 msgstr "タイトルは記事の先頭とリンクプレビューに表示されます。"
@@ -3644,6 +3814,14 @@ msgstr "この操作は取り消せません。このコンテンツは完全に
 msgid "This browser does not support Web Push."
 msgstr "このブラウザーは Web Push に対応していません。"
 
+#: src/routes/(root)/admin/moderation/[id].tsx:183
+msgid "This case does not exist."
+msgstr "このケースは存在しません。"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:408
+msgid "This case is resolved."
+msgstr "このケースは対応済みです。"
+
 #: src/routes/(root)/[handle]/invite/[id].tsx:178
 #: src/routes/(root)/[handle]/invite/[id].tsx:182
 msgid "This email is already associated with an existing account."
@@ -3666,6 +3844,12 @@ msgstr "この招待リンクには残りの招待がありません。"
 #: src/routes/(root)/[handle]/invite/[id].tsx:164
 msgid "This invitation link was not found."
 msgstr "この招待リンクが見つかりませんでした。"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:418
+msgid "This is a remote actor with no local notification or appeal. A warning is only recorded, censoring hides the locally cached post, and a suspension or ban applies a temporary or permanent federation block. A summary may be forwarded to their instance if a reporter opted in."
+msgstr "ローカルの通知や異議申し立てがないリモートアクターです。警告は記録のみ、検閲はローカルにキャッシュされたコンテンツを非表示にし、停止または永久停止は一時的または永久的な連合ブロックを適用します。通報者が同意した場合、そのインスタンスに要約が転送されることがあります。"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:418
 
 #: src/components/QuoteTargetPlaceholder.tsx:36
 msgid "This post quoted another post, but the quote is not currently authorized."
@@ -3947,6 +4131,10 @@ msgstr "返信を見る"
 msgid "View shares"
 msgstr "共有を見る"
 
+#: src/components/admin/ModerationActionForm.tsx:255
+msgid "Violated provisions"
+msgstr "違反した条項"
+
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:109
 msgid "Visibility"
 msgstr "公開範囲"
@@ -3987,7 +4175,9 @@ msgstr "投票済み"
 msgid "Voting…"
 msgstr "投票中…"
 
+#: src/components/admin/ModerationActionForm.tsx:113
 #: src/components/NoteComposer.tsx:737
+#: src/routes/(root)/admin/moderation/[id].tsx:139
 msgid "Warning"
 msgstr "警告"
 

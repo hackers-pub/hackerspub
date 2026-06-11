@@ -239,8 +239,10 @@ msgstr "{0} 用 {1} 对你的内容做出了反应"
 msgid "{0} replied to your post"
 msgstr "{0} 回复了你的内容"
 
+#. placeholder {0}: flagCase.reportCount
 #. placeholder {0}: node.reportCount
 #: src/components/admin/ModerationCaseList.tsx:206
+#: src/routes/(root)/admin/moderation/[id].tsx:245
 msgid "{0} reports"
 msgstr "{0} 条举报"
 
@@ -338,6 +340,10 @@ msgstr "{count, plural, other {# 条讨论内容}}"
 #~ msgid "{count, plural, one {# share} other {# shares}}"
 #~ msgstr "{count, plural, one {# 次转帖} other {# 次转帖}}"
 
+#: src/components/admin/ModerationActionForm.tsx:302
+msgid "{days} days"
+msgstr "{days} 天"
+
 #: src/routes/(root)/admin/moderation/index.tsx:169
 msgid "{HIGH_PRIORITY_REPORT_COUNT}+ reports"
 msgstr "{HIGH_PRIORITY_REPORT_COUNT} 条及以上举报"
@@ -347,11 +353,13 @@ msgstr "{HIGH_PRIORITY_REPORT_COUNT} 条及以上举报"
 #~ msgid "+{0} more reactor(s) not shown"
 #~ msgstr "+{0} 个未显示"
 
+#: src/components/admin/ModerationActionForm.tsx:303
 #: src/components/NoteComposer.tsx:1651
 msgid "1 day"
 msgstr "1 天"
 
 #: src/components/admin/ModerationCaseList.tsx:208
+#: src/routes/(root)/admin/moderation/[id].tsx:247
 msgid "1 report"
 msgstr "1 条举报"
 
@@ -363,6 +371,14 @@ msgstr "1 周"
 msgid "3 days"
 msgstr "3 天"
 
+#: src/routes/(root)/admin/moderation/[id].tsx:255
+msgid "A content (post) report."
+msgstr "内容举报。"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:420
+msgid "A local sanction notifies the reported user under the moderation team's collective identity, and they can appeal within 14 days. A dismissal notifies them only if you add a message."
+msgstr "本地处罚会以管理团队名义通知被举报用户，用户可在 14 天内提出申诉。驳回仅在你添加留言时才会通知。"
+
 #: src/components/ProfileCard.tsx:217
 msgid "A moderator suspended this account for violating the code of conduct."
 msgstr "版主因违反行为准则封停了此账户。"
@@ -371,13 +387,29 @@ msgstr "版主因违反行为准则封停了此账户。"
 msgid "A name for the link that will be displayed on your profile, e.g., GitHub."
 msgstr "为显示在你个人资料页面的链接命名，例如 GitHub。"
 
+#: src/components/admin/ModerationActionForm.tsx:320
+msgid "A rationale is required."
+msgstr "需要填写理由。"
+
 #: src/routes/(root)/admin/relay.tsx:260
 msgid "A relay only starts forwarding posts once it has accepted the follow. Until then the subscription stays pending."
 msgstr "中继只有在接受关注后才会开始转发内容。在此之前，订阅将保持待处理状态。"
 
+#: src/components/admin/ModerationActionForm.tsx:342
+msgid "A reporter opted in to forwarding, so this is sent to the remote instance. Never include the reporter's wording."
+msgstr "举报人已同意转发，因此会发送给远程实例。切勿包含举报人的原文。"
+
 #: src/routes/(root)/sign/index.tsx:218
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "登录链接已发送至您的邮箱。请检查收件箱。（或垃圾邮件文件夹）"
+
+#: src/components/admin/ModerationActionForm.tsx:346
+msgid "A summary is required because this report will be forwarded."
+msgstr "由于此举报将被转发，因此需要填写摘要。"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:253
+msgid "A user (profile) report."
+msgstr "用户（资料）举报。"
 
 #: src/components/admin/AdminAccountsTable.tsx:224
 #: src/components/AppSidebar.tsx:491
@@ -392,6 +424,10 @@ msgstr "账户用户名"
 #: src/routes/(root)/admin/index.tsx:97
 msgid "Accounts"
 msgstr "账号"
+
+#: src/components/admin/ModerationActionForm.tsx:198
+msgid "Action recorded"
+msgstr "已记录处理"
 
 #: src/components/LanguageList.tsx:63
 #: src/components/LanguageList.tsx:198
@@ -626,6 +662,18 @@ msgstr "自动填写替代文字"
 msgid "Avatar"
 msgstr "头像"
 
+#: src/routes/(root)/admin/moderation/[id].tsx:175
+msgid "Back to cases"
+msgstr "返回案例列表"
+
+#: src/components/admin/ModerationActionForm.tsx:116
+msgid "Ban"
+msgstr "永久封禁"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:145
+msgid "Banned"
+msgstr "已永久封禁"
+
 #: src/routes/(root)/[handle]/settings/index.tsx:484
 #: src/routes/(root)/sign/up/[token].tsx:403
 msgid "Bio"
@@ -701,6 +749,11 @@ msgstr "已沉底"
 msgid "Bury"
 msgstr "沉底"
 
+#. placeholder {0}: reporter().handle
+#: src/routes/(root)/admin/moderation/[id].tsx:277
+msgid "by {0}"
+msgstr "举报人 {0}"
+
 #. placeholder {0}: article.actor.name || article.actor.handle
 #: src/components/NewsStoryCard.tsx:197
 #: src/components/NewsStoryHeader.tsx:122
@@ -732,6 +785,10 @@ msgstr "取消"
 msgid "Cannot change the language because translations already exist"
 msgstr "由于已存在翻译，无法更改语言"
 
+#: src/components/admin/ModerationActionForm.tsx:114
+msgid "Censor post"
+msgstr "屏蔽内容"
+
 #: src/components/CensorshipNotice.tsx:32
 msgid "Censored by a moderator."
 msgstr "已被版主屏蔽。"
@@ -751,6 +808,10 @@ msgstr "请检查你的邮箱以完成注册。我们已向你的邮箱地址发
 #: src/components/WebPushNotificationSettings.tsx:408
 msgid "Checking…"
 msgstr "正在检查…"
+
+#: src/components/admin/ModerationActionForm.tsx:247
+msgid "Choose a decision."
+msgstr "请选择处理方式。"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:401
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
@@ -847,6 +908,12 @@ msgstr "无法将链接复制到剪贴板。"
 msgid "Could not load profile."
 msgstr "无法加载个人资料。"
 
+#: src/components/admin/ModerationActionForm.tsx:206
+#: src/components/admin/ModerationActionForm.tsx:213
+#: src/components/admin/ModerationActionForm.tsx:220
+msgid "Could not record the action"
+msgstr "无法记录处理"
+
 #: src/components/RefreshFromOriginItem.tsx:69
 msgid "Could not refresh this from its origin."
 msgstr "无法从来源刷新此对象。"
@@ -927,6 +994,14 @@ msgstr "CW"
 msgid "Deadline"
 msgstr "截止时间"
 
+#: src/components/admin/ModerationActionForm.tsx:230
+msgid "Decision"
+msgstr "处理方式"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:349
+msgid "Decisions"
+msgstr "处理记录"
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:193
 msgid "Default note privacy"
 msgstr "默认帖子隐私设置"
@@ -998,6 +1073,7 @@ msgstr "放弃未保存的更改 - 您确定吗？"
 #~ msgid "Discussion"
 #~ msgstr "讨论"
 
+#: src/components/admin/ModerationActionForm.tsx:112
 #: src/components/FollowRecommendations.tsx:134
 #: src/components/WebPushPromptBanner.tsx:269
 msgid "Dismiss"
@@ -1005,6 +1081,7 @@ msgstr "关闭"
 
 #: src/components/admin/ModerationCaseList.tsx:106
 #: src/components/ReportHistoryList.tsx:96
+#: src/routes/(root)/admin/moderation/[id].tsx:137
 #: src/routes/(root)/admin/moderation/index.tsx:126
 msgid "Dismissed"
 msgstr "已驳回"
@@ -1171,6 +1248,10 @@ msgstr "{0}过期"
 #: src/routes/(root)/[handle]/settings/invite.tsx:825
 msgid "Expiry"
 msgstr "到期时间"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:284
+msgid "External"
+msgstr "外部"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:406
 #: src/routes/(root)/[handle]/settings/invite.tsx:815
@@ -1677,6 +1758,10 @@ msgstr "Hackers' Pub：管理 · 媒体"
 msgid "Hackers' Pub: Admin · Moderation"
 msgstr "Hackers' Pub: 管理 · 审核"
 
+#: src/routes/(root)/admin/moderation/[id].tsx:162
+msgid "Hackers' Pub: Admin · Moderation case"
+msgstr "Hackers' Pub: 管理 · 审核案例"
+
 #: src/routes/(root)/admin/news.tsx:536
 msgid "Hackers' Pub: Admin · News"
 msgstr "Hackers' Pub：管理 · 新闻"
@@ -1784,6 +1869,10 @@ msgstr "图片预览"
 #: src/components/ProfileTabs.tsx:87
 msgid "Interactions"
 msgstr "互动"
+
+#: src/components/admin/ModerationActionForm.tsx:313
+msgid "Internal rationale"
+msgstr "内部理由"
 
 #: src/components/RemoteFollowButton.tsx:101
 msgid "Invalid Fediverse handle format."
@@ -1977,6 +2066,10 @@ msgstr "联邦宇宙中流传的链接和文章，按照被转帖和讨论的热
 #: src/components/ui/markdown-editor.tsx:291
 msgid "List"
 msgstr "列表"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:460
+msgid "LLM analysis (reference only, not a decision)"
+msgstr "LLM 分析（仅供参考，非判定依据）"
 
 #: src/components/AccountListBase.tsx:115
 #: src/components/admin/ModerationCaseList.tsx:236
@@ -2191,6 +2284,10 @@ msgstr "媒体"
 #: src/components/VisibilityTag.tsx:98
 msgid "Mentioned only"
 msgstr "只提及用户可见"
+
+#: src/components/admin/ModerationActionForm.tsx:327
+msgid "Message to the user (optional)"
+msgstr "给用户的留言（可选）"
 
 #: src/components/ReportDialog.tsx:192
 msgid "Minimum {MIN_REASON_LENGTH} characters required."
@@ -2656,6 +2753,10 @@ msgstr "置顶到个人资料"
 msgid "Pinned posts"
 msgstr "已置顶内容"
 
+#: src/components/admin/ModerationActionForm.tsx:207
+msgid "Please check the form and try again."
+msgstr "请检查表单后重试。"
+
 #: src/routes/(root)/[handle]/settings/index.tsx:188
 msgid "Please choose an image file smaller than 5 MiB."
 msgstr "请选择小于 5 MiB 的图片文件。"
@@ -2733,6 +2834,10 @@ msgstr "热门"
 msgid "Post by {0}"
 msgstr "{0} 的内容"
 
+#: src/routes/(root)/admin/moderation/[id].tsx:141
+msgid "Post censored"
+msgstr "内容已屏蔽"
+
 #: src/components/PostActionMenu.tsx:321
 msgid "Post deleted"
 msgstr "内容已删除"
@@ -2789,6 +2894,10 @@ msgstr "预览"
 #: src/components/ImageLightbox.tsx:80
 msgid "Previous image"
 msgstr "上一张图片"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:320
+msgid "Prior violations"
+msgstr "以往违规记录"
 
 #: src/components/LanguageList.tsx:73
 msgid "Priority"
@@ -2952,6 +3061,14 @@ msgstr "重新计算新闻评分"
 #: src/routes/(root)/admin/news.tsx:592
 msgid "Recomputing…"
 msgstr "正在重新计算…"
+
+#: src/components/admin/ModerationActionForm.tsx:354
+msgid "Record decision"
+msgstr "记录处理"
+
+#: src/components/admin/ModerationActionForm.tsx:316
+msgid "Recorded for the audit trail; not shown to the user."
+msgstr "用于审计记录，不会向用户显示。"
 
 #: src/components/AdminTabs.tsx:66
 #: src/routes/(root)/admin/refresh.tsx:198
@@ -3250,6 +3367,10 @@ msgstr "搜索中…"
 msgid "Select an option"
 msgstr "请选择一个选项"
 
+#: src/components/admin/ModerationActionForm.tsx:282
+msgid "Select at least one violated provision."
+msgstr "请至少选择一条违反的条款。"
+
 #: src/components/QuestionCard.tsx:407
 msgid "Select options"
 msgstr "请选择选项"
@@ -3344,6 +3465,14 @@ msgstr "显示更多转帖内容"
 msgid "Show sensitive content"
 msgstr "显示敏感内容"
 
+#: src/components/admin/ModerationActionForm.tsx:330
+msgid "Shown to the reported user under the moderation team's identity."
+msgstr "以管理团队名义向被举报用户显示。"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:377
+msgid "Shown to the user"
+msgstr "向用户显示"
+
 #: src/components/AppSidebar.tsx:546
 #: src/routes/(root)/sign/index.tsx:382
 msgid "Sign in"
@@ -3406,6 +3535,10 @@ msgstr "URL 别名"
 #: src/components/article-composer/ArticleComposerContext.tsx:350
 msgid "Slug cannot be empty"
 msgstr "URL 别名不能为空"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:300
+msgid "Snapshot at report time"
+msgstr "举报时的快照"
 
 #: src/components/NoteComposer.tsx:739
 msgid "Some images were skipped because the limit of {MAX_MEDIA} was reached"
@@ -3481,6 +3614,27 @@ msgstr "设置保存成功"
 msgid "Summarized by LLM"
 msgstr "由 AI 生成的摘要"
 
+#: src/components/admin/ModerationActionForm.tsx:338
+msgid "Summary for the remote instance"
+msgstr "给远程实例的摘要"
+
+#: src/components/admin/ModerationActionForm.tsx:115
+msgid "Suspend"
+msgstr "封停"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:143
+#: src/routes/(root)/admin/moderation/[id].tsx:234
+msgid "Suspended"
+msgstr "已封停"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:391
+msgid "Suspension ends"
+msgstr "封停结束"
+
+#: src/components/admin/ModerationActionForm.tsx:291
+msgid "Suspension length"
+msgstr "封停时长"
+
 #: src/components/DocumentView.tsx:38
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:733
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:741
@@ -3497,6 +3651,10 @@ msgstr "目录"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1077
 msgid "Tags"
 msgstr "标签"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:414
+msgid "Take action"
+msgstr "采取处理"
 
 #: src/components/ReportDialog.tsx:163
 msgid "Tell the moderation team why you are reporting this post. You don't need to know the specific code of conduct provisions; describe what felt uncomfortable or problematic in your own words."
@@ -3526,10 +3684,18 @@ msgstr "这不是有效的中继 actor URL。"
 msgid "That is not a valid URL pattern."
 msgstr "这不是有效的 URL 模式。"
 
+#: src/routes/(root)/admin/moderation/[id].tsx:466
+msgid "The automated analysis was unavailable for this report."
+msgstr "此举报的自动分析不可用。"
+
 #: src/components/WebPushNotificationSettings.tsx:158
 #: src/components/WebPushPromptBanner.tsx:93
 msgid "The browser did not provide a complete push subscription."
 msgstr "浏览器未提供完整的推送通知订阅。"
+
+#: src/components/admin/ModerationActionForm.tsx:199
+msgid "The decision has been recorded and applied."
+msgstr "处理已记录并生效。"
 
 #: src/routes/(root)/[handle]/settings/preferences.tsx:201
 msgid "The default privacy setting for your notes."
@@ -3614,6 +3780,10 @@ msgstr "注册链接无效。请确保你使用的是你收到的正确邮件链
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "可在 {0} 上以 {1} 许可获取该网站的源代码。"
 
+#: src/routes/(root)/admin/moderation/[id].tsx:322
+msgid "The target's standing moderation history; accumulated history affects sanction levels."
+msgstr "对象的累计审核记录；累计记录会影响处罚等级。"
+
 #: src/components/article-composer/ArticleComposerForm.tsx:58
 msgid "The title will appear at the top of your article and in link previews."
 msgstr "标题将显示在文章顶部和链接预览中。"
@@ -3644,6 +3814,14 @@ msgstr "此操作无法撤销。这将永久删除该内容。"
 msgid "This browser does not support Web Push."
 msgstr "此浏览器不支持 Web Push。"
 
+#: src/routes/(root)/admin/moderation/[id].tsx:183
+msgid "This case does not exist."
+msgstr "此案例不存在。"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:408
+msgid "This case is resolved."
+msgstr "此案例已处理。"
+
 #: src/routes/(root)/[handle]/invite/[id].tsx:178
 #: src/routes/(root)/[handle]/invite/[id].tsx:182
 msgid "This email is already associated with an existing account."
@@ -3666,6 +3844,12 @@ msgstr "此邀请链接已无剩余邀请次数。"
 #: src/routes/(root)/[handle]/invite/[id].tsx:164
 msgid "This invitation link was not found."
 msgstr "未找到此邀请链接。"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:418
+msgid "This is a remote actor with no local notification or appeal. A warning is only recorded, censoring hides the locally cached post, and a suspension or ban applies a temporary or permanent federation block. A summary may be forwarded to their instance if a reporter opted in."
+msgstr "这是没有本地通知或申诉的远程行为者。警告仅作记录，屏蔽会隐藏本地缓存的内容，封停或永久封禁会施加临时或永久的联邦屏蔽。若举报人选择同意，可能会向其实例转发一份摘要。"
+
+#: src/routes/(root)/admin/moderation/[id].tsx:418
 
 #: src/components/QuoteTargetPlaceholder.tsx:36
 msgid "This post quoted another post, but the quote is not currently authorized."
@@ -3947,6 +4131,10 @@ msgstr "查看回复"
 msgid "View shares"
 msgstr "查看转帖"
 
+#: src/components/admin/ModerationActionForm.tsx:255
+msgid "Violated provisions"
+msgstr "违反的条款"
+
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:109
 msgid "Visibility"
 msgstr "内容隐私度"
@@ -3987,7 +4175,9 @@ msgstr "已投票"
 msgid "Voting…"
 msgstr "正在投票…"
 
+#: src/components/admin/ModerationActionForm.tsx:113
 #: src/components/NoteComposer.tsx:737
+#: src/routes/(root)/admin/moderation/[id].tsx:139
 msgid "Warning"
 msgstr "警告"
 
