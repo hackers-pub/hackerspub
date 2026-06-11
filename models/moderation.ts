@@ -5,7 +5,11 @@ import { and, eq, inArray, sql } from "drizzle-orm";
 import { toRecipient } from "./actor.ts";
 import type { ContextData } from "./context.ts";
 import type { Database, Transaction } from "./db.ts";
-import { createActionTakenNotification } from "./moderation-notification.ts";
+import {
+  createActionTakenNotification,
+  createAppealReceivedNotifications,
+  createAppealResolvedNotification,
+} from "./moderation-notification.ts";
 import {
   type Account,
   type Actor,
@@ -15,6 +19,9 @@ import {
   type FlagAction,
   flagActionTable,
   type FlagActionType,
+  type FlagAppeal,
+  type FlagAppealResult,
+  flagAppealTable,
   type FlagCase,
   flagCaseTable,
   flagTable,
@@ -209,6 +216,168 @@ export async function enqueueExpiredSuspensionRescores(
   return expired.length;
 }
 
+interface ActionInputOptions {
+  actionType: FlagActionType;
+  violatedProvisions?: string[];
+  suspensionStarts?: Date;
+  suspensionEnds?: Date;
+}
+
+function validateActionInput(options: ActionInputOptions): boolean {
+  const provisions = options.violatedProvisions ?? [];
+  if (options.actionType !== "dismiss" && provisions.length < 1) {
+    return false;
+  }
+  if (options.actionType === "suspend") {
+    const skewAllowanceMs = 5 * 60 * 1000;
+    if (
+      options.suspensionStarts == null || options.suspensionEnds == null ||
+      options.suspensionEnds <= options.suspensionStarts ||
+      options.suspensionStarts.getTime() > Date.now() + skewAllowanceMs ||
+      options.suspensionEnds.getTime() <= Date.now()
+    ) {
+      return false;
+    }
+  } else if (
+    options.suspensionStarts != null || options.suspensionEnds != null
+  ) {
+    return false;
+  }
+  return true;
+}
+
+interface EnforcementCase {
+  targetActorId: Uuid;
+  targetPostId: Uuid | null;
+  targetActor: Actor;
+}
+
+/**
+ * Queues news rescores for the share roots affected by (un)hiding the
+ * given post: its own author when the post is a direct linked share or a
+ * boost wrapper, and the authors of its reply/quote parents when those are
+ * news share roots.  Returns whether the post's own author needs a
+ * rescore.
+ */
+async function enqueuePostNewsRescoreTargets(
+  tx: Transaction,
+  post: {
+    linkId: Uuid | null;
+    sharedPostId: Uuid | null;
+    replyTargetId: Uuid | null;
+    quotedPostId: Uuid | null;
+  },
+): Promise<boolean> {
+  const parentIds = [post.replyTargetId, post.quotedPostId]
+    .filter((id) => id != null);
+  if (parentIds.length > 0) {
+    const parents = await tx.query.postTable.findMany({
+      where: { id: { in: parentIds } },
+      columns: { actorId: true, linkId: true, sharedPostId: true },
+    });
+    for (const parent of parents) {
+      if (parent.linkId != null || parent.sharedPostId != null) {
+        await enqueueNewsRescoreInTx(tx, parent.actorId);
+      }
+    }
+  }
+  return post.linkId != null || post.sharedPostId != null;
+}
+
+/**
+ * Applies the enforcement state of a moderation action: `censor` sets
+ * `post.censored`, `suspend` writes the suspension window onto the target
+ * actor (clamped so it is active immediately), `ban` suspends permanently.
+ * News scores cache moderation-visible share signals on `post_link`, so
+ * whatever this changes is queued for rescoring.
+ */
+async function applyActionEnforcement(
+  tx: Transaction,
+  flagCase: EnforcementCase,
+  action: Pick<
+    FlagAction,
+    "actionType" | "suspensionStarts" | "suspensionEnds"
+  >,
+  now: Date,
+): Promise<void> {
+  let rescore = false;
+  if (action.actionType === "censor") {
+    const postRows = await tx.update(postTable)
+      .set({ censored: now })
+      .where(eq(postTable.id, flagCase.targetPostId!))
+      .returning();
+    if (postRows[0] != null) {
+      rescore = await enqueuePostNewsRescoreTargets(tx, postRows[0]);
+    }
+  } else if (action.actionType === "suspend") {
+    // A start within the clock-skew allowance may still be (slightly) in
+    // the future; clamp the enforcement row to the server-side now so the
+    // suspension is active immediately.
+    const effectiveStarts = action.suspensionStarts! <= now
+      ? action.suspensionStarts!
+      : now;
+    await tx.update(actorTable)
+      .set({
+        suspended: effectiveStarts,
+        suspendedUntil: action.suspensionEnds,
+      })
+      .where(eq(actorTable.id, flagCase.targetActorId));
+    // A temporary suspension hides content (and thus news signals) only
+    // for remote actors.
+    rescore = flagCase.targetActor.accountId == null;
+  } else if (action.actionType === "ban") {
+    await tx.update(actorTable)
+      .set({ suspended: now, suspendedUntil: null })
+      .where(eq(actorTable.id, flagCase.targetActorId));
+    rescore = true;
+  }
+  if (rescore) {
+    await enqueueNewsRescoreInTx(tx, flagCase.targetActorId);
+    // The sanctioned actor's replies/quotes on other actors' news share
+    // roots also stop counting; rescore those roots' authors too.
+    await enqueueNewsRescoreForChildActivity(tx, flagCase.targetActorId);
+  }
+}
+
+/**
+ * Reverts the enforcement state of a moderation action (for appeal
+ * outcomes that withdraw or replace it), queuing news rescores for
+ * whatever becomes visible again.
+ */
+async function revertActionEnforcement(
+  tx: Transaction,
+  flagCase: EnforcementCase,
+  action: Pick<FlagAction, "actionType">,
+  now: Date,
+): Promise<void> {
+  let rescore = false;
+  if (action.actionType === "censor") {
+    if (flagCase.targetPostId != null) {
+      const postRows = await tx.update(postTable)
+        .set({ censored: null })
+        .where(eq(postTable.id, flagCase.targetPostId))
+        .returning();
+      if (postRows[0] != null) {
+        rescore = await enqueuePostNewsRescoreTargets(tx, postRows[0]);
+      }
+    }
+  } else if (
+    action.actionType === "suspend" || action.actionType === "ban"
+  ) {
+    await tx.update(actorTable)
+      .set({ suspended: null, suspendedUntil: null })
+      .where(eq(actorTable.id, flagCase.targetActorId));
+    rescore = action.actionType === "ban" ||
+      flagCase.targetActor.accountId == null;
+  }
+  if (rescore) {
+    await enqueueNewsRescoreInTx(tx, flagCase.targetActorId);
+    await enqueueNewsRescoreForChildActivity(tx, flagCase.targetActorId);
+  }
+  // `now` reserved for future revert semantics (e.g. partial unhide).
+  void now;
+}
+
 export interface TakeModerationActionOptions {
   /** The case to act on; it must still be open (pending or reviewing). */
   caseId: Uuid;
@@ -281,24 +450,7 @@ export async function takeModerationAction(
     );
     return undefined;
   }
-  if (options.actionType !== "dismiss" && provisions.length < 1) {
-    return undefined;
-  }
-  if (options.actionType === "suspend") {
-    const skewAllowanceMs = 5 * 60 * 1000;
-    if (
-      options.suspensionStarts == null || options.suspensionEnds == null ||
-      options.suspensionEnds <= options.suspensionStarts ||
-      options.suspensionStarts.getTime() > Date.now() + skewAllowanceMs ||
-      options.suspensionEnds.getTime() <= Date.now()
-    ) {
-      return undefined;
-    }
-  } else if (
-    options.suspensionStarts != null || options.suspensionEnds != null
-  ) {
-    return undefined;
-  }
+  if (!validateActionInput(options)) return undefined;
 
   const run = async (
     tx: Transaction,
@@ -367,66 +519,7 @@ export async function takeModerationAction(
         eq(flagTable.caseId, flagCase.id),
         inArray(flagTable.status, [...OPEN_CASE_STATUSES]),
       ));
-    // News scores cache moderation-visible share signals on post_link;
-    // queue the target actor's links for rescoring whenever this action
-    // changes what is visible.  Suspensions always take effect
-    // immediately (future-dated starts are rejected or clamped), so the
-    // rescore sees the new state.
-    let rescore = false;
-    if (options.actionType === "censor") {
-      const postRows = await tx.update(postTable)
-        .set({ censored: now })
-        .where(eq(postTable.id, flagCase.targetPostId!))
-        .returning();
-      // Direct linked shares carry linkId; Article boosts counted by the
-      // news score are wrapper rows with sharedPostId instead.
-      rescore = postRows[0]?.linkId != null ||
-        postRows[0]?.sharedPostId != null;
-      // A censored reply/quote stops counting toward its parent share
-      // root's news mass; rescore that root's author.
-      const parentIds = [
-        postRows[0]?.replyTargetId,
-        postRows[0]?.quotedPostId,
-      ].filter((id) => id != null);
-      if (parentIds.length > 0) {
-        const parents = await tx.query.postTable.findMany({
-          where: { id: { in: parentIds } },
-          columns: { actorId: true, linkId: true, sharedPostId: true },
-        });
-        for (const parent of parents) {
-          if (parent.linkId != null || parent.sharedPostId != null) {
-            await enqueueNewsRescoreInTx(tx, parent.actorId);
-          }
-        }
-      }
-    } else if (options.actionType === "suspend") {
-      // A start within the clock-skew allowance may still be (slightly)
-      // in the future; clamp the enforcement row to the server-side now
-      // so the suspension is active immediately.
-      const effectiveStarts = options.suspensionStarts! <= now
-        ? options.suspensionStarts!
-        : now;
-      await tx.update(actorTable)
-        .set({
-          suspended: effectiveStarts,
-          suspendedUntil: options.suspensionEnds,
-        })
-        .where(eq(actorTable.id, flagCase.targetActorId));
-      // A temporary suspension hides content (and thus news signals) only
-      // for remote actors.
-      rescore = flagCase.targetActor.accountId == null;
-    } else if (options.actionType === "ban") {
-      await tx.update(actorTable)
-        .set({ suspended: now, suspendedUntil: null })
-        .where(eq(actorTable.id, flagCase.targetActorId));
-      rescore = true;
-    }
-    if (rescore) {
-      await enqueueNewsRescoreInTx(tx, flagCase.targetActorId);
-      // The sanctioned actor's replies/quotes on other actors' news share
-      // roots also stop counting; rescore those roots' authors too.
-      await enqueueNewsRescoreForChildActivity(tx, flagCase.targetActorId);
-    }
+    await applyActionEnforcement(tx, flagCase, action, now);
     const targetAccountId = flagCase.targetActor.accountId;
     if (
       targetAccountId != null &&
@@ -524,9 +617,12 @@ const YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 
 /**
  * The target actor's moderation history (actions on cases targeting them),
- * newest first.  Warnings expire from the visible history one year after
- * they were issued, unless another violation (a non-`dismiss` action)
- * followed within that year; heavier sanctions are retained indefinitely.
+ * newest first.  Excluded: dismissals, actions whose appeal withdrew or
+ * replaced them (`withdrawn`, `reduced`, `increased`; the replacement
+ * action appears instead), and warnings older than one year with no
+ * subsequent violation within that year.  Heavier sanctions are retained
+ * indefinitely; an action whose appeal was `dismissed` or is still open
+ * remains in the history.
  */
 export async function getViolationHistory(
   db: Database,
@@ -538,13 +634,18 @@ export async function getViolationHistory(
       case: { targetActorId },
       actionType: { ne: "dismiss" },
     },
-    with: { case: true },
+    with: { case: true, appeal: true },
     orderBy: { created: "desc" },
   });
-  return actions.filter((action) => {
+  const standing = actions.filter((action) =>
+    action.appeal == null ||
+    action.appeal.status !== "resolved" ||
+    action.appeal.result === "dismissed"
+  );
+  return standing.filter((action) => {
     if (action.actionType !== "warning") return true;
     if (now.getTime() - action.created.getTime() < YEAR_MS) return true;
-    return actions.some((other) =>
+    return standing.some((other) =>
       other.id !== action.id &&
       other.actionType !== "dismiss" &&
       other.created > action.created &&
@@ -572,4 +673,206 @@ export function listSanctionedActors(
     with: { account: true },
     orderBy: { suspended: "desc" },
   }) as Promise<(Actor & { account: Account | null })[]>;
+}
+
+/**
+ * How long after an action the sanctioned user can appeal it: 14 days.
+ */
+export const APPEAL_WINDOW_MS = 14 * 24 * 60 * 60 * 1000;
+
+export interface CreateAppealOptions {
+  /** The action being appealed. */
+  actionId: Uuid;
+  /**
+   * The appellant.  Appeals are filed in-app, so only local users can
+   * appeal, and only the sanctioned user themselves.
+   */
+  appellant: Account;
+  /** Why the appellant believes the action is unjust. */
+  reason: string;
+  /** Context or evidence the appellant believes was not considered. */
+  additionalContext?: string;
+}
+
+/**
+ * Files an appeal against a moderation action and notifies moderators.
+ *
+ * Returns `undefined` when the action does not exist or is a dismissal
+ * (there is no sanction to appeal), the appellant is not the sanctioned
+ * user, the 14-day window has passed, the reason is empty, or the action
+ * was already appealed (one appeal per action).
+ */
+export async function createAppeal(
+  db: Database,
+  options: CreateAppealOptions,
+): Promise<FlagAppeal | undefined> {
+  const reason = options.reason.trim();
+  if (reason.length < 1) return undefined;
+  // One transaction so a failed notification fan-out cannot strand a
+  // committed appeal whose retry would then hit the one-appeal-per-action
+  // unique constraint.
+  const run = async (tx: Transaction): Promise<FlagAppeal | undefined> => {
+    const action = await tx.query.flagActionTable.findFirst({
+      where: { id: options.actionId },
+      with: { case: { with: { targetActor: true } } },
+    });
+    if (action == null || action.actionType === "dismiss") return undefined;
+    if (action.case.targetActor.accountId !== options.appellant.id) {
+      return undefined;
+    }
+    if (Date.now() - action.created.getTime() > APPEAL_WINDOW_MS) {
+      logger.debug(
+        "Appeal window for action {actionId} has passed.",
+        { actionId: action.id },
+      );
+      return undefined;
+    }
+    const rows = await tx.insert(flagAppealTable)
+      .values({
+        id: generateUuidV7(),
+        actionId: action.id,
+        appellantId: options.appellant.id,
+        reason,
+        additionalContext: options.additionalContext,
+      })
+      .onConflictDoNothing()
+      .returning();
+    if (rows.length < 1) return undefined;
+    await createAppealReceivedNotifications(tx, rows[0]);
+    return rows[0];
+  };
+  return isTransaction(db) ? await run(db) : await db.transaction(run);
+}
+
+export interface ResolveAppealOptions {
+  appealId: Uuid;
+  /**
+   * The reviewing moderator.  Preferably different from the moderator who
+   * took the original action; the caller surfaces that, this function
+   * does not enforce it.
+   */
+  reviewer: Account;
+  result: FlagAppealResult;
+  /** The reviewer's rationale, shown to the appellant. */
+  reviewRationale: string;
+  /**
+   * The replacement sanction; required for (and only for) `reduced` and
+   * `increased` results, which revert the original enforcement and record
+   * a new immutable action on the same case.
+   */
+  replacement?: {
+    actionType: Exclude<FlagActionType, "dismiss">;
+    violatedProvisions: string[];
+    rationale: string;
+    messageToUser?: string;
+    suspensionStarts?: Date;
+    suspensionEnds?: Date;
+  };
+}
+
+/**
+ * Resolves an appeal, in one transaction:
+ *
+ * - `dismissed` keeps the original action and its enforcement;
+ * - `withdrawn` reverts the original enforcement (un-censors the post or
+ *   lifts the suspension);
+ * - `reduced` and `increased` revert the original enforcement and record
+ *   a *new* immutable `flag_action` (authored by the reviewer) on the
+ *   same case, applying its enforcement instead;
+ *
+ * then notifies the appellant.  Returns `undefined` when the reviewer is
+ * not a moderator, the appeal is not open, or the replacement is missing
+ * or invalid.
+ */
+export async function resolveAppeal(
+  db: Database,
+  options: ResolveAppealOptions,
+): Promise<FlagAppeal | undefined> {
+  if (!options.reviewer.moderator) {
+    logger.warn(
+      "Non-moderator account {accountId} attempted to resolve an appeal.",
+      { accountId: options.reviewer.id },
+    );
+    return undefined;
+  }
+  const needsReplacement = options.result === "reduced" ||
+    options.result === "increased";
+  if (needsReplacement !== (options.replacement != null)) return undefined;
+  if (
+    options.replacement != null && !validateActionInput(options.replacement)
+  ) {
+    return undefined;
+  }
+
+  const run = async (tx: Transaction): Promise<FlagAppeal | undefined> => {
+    const [locked] = await tx.select()
+      .from(flagAppealTable)
+      .where(and(
+        eq(flagAppealTable.id, options.appealId),
+        inArray(flagAppealTable.status, ["pending", "reviewing"]),
+      ))
+      .for("update");
+    if (locked == null) return undefined;
+    const appeal = await tx.query.flagAppealTable.findFirst({
+      where: { id: options.appealId },
+      with: {
+        action: { with: { case: { with: { targetActor: true } } } },
+      },
+    });
+    if (appeal == null) return undefined;
+    const flagCase = appeal.action.case;
+    const now = new Date();
+    if (
+      options.replacement?.actionType === "censor" &&
+      flagCase.targetPostId == null
+    ) {
+      return undefined;
+    }
+    // Re-validate a replacement suspension window against the post-lock
+    // clock, mirroring takeModerationAction: the FOR UPDATE wait can
+    // outlast a near-term window.
+    if (
+      options.replacement?.actionType === "suspend" &&
+      options.replacement.suspensionEnds! <= now
+    ) {
+      return undefined;
+    }
+    const appealRows = await tx.update(flagAppealTable)
+      .set({
+        status: "resolved",
+        result: options.result,
+        reviewerId: options.reviewer.id,
+        reviewRationale: options.reviewRationale,
+        resolved: now,
+      })
+      .where(eq(flagAppealTable.id, appeal.id))
+      .returning();
+    if (options.result === "withdrawn") {
+      await revertActionEnforcement(tx, flagCase, appeal.action, now);
+    } else if (options.replacement != null) {
+      await revertActionEnforcement(tx, flagCase, appeal.action, now);
+      const replacementRows = await tx.insert(flagActionTable)
+        .values({
+          id: generateUuidV7(),
+          caseId: flagCase.id,
+          moderatorId: options.reviewer.id,
+          actionType: options.replacement.actionType,
+          violatedProvisions: options.replacement.violatedProvisions,
+          rationale: options.replacement.rationale,
+          messageToUser: options.replacement.messageToUser,
+          suspensionStarts: options.replacement.suspensionStarts,
+          suspensionEnds: options.replacement.suspensionEnds,
+          created: now,
+        })
+        .returning();
+      await applyActionEnforcement(tx, flagCase, replacementRows[0], now);
+    }
+    await createAppealResolvedNotification(
+      tx,
+      appeal.appellantId,
+      appealRows[0],
+    );
+    return appealRows[0];
+  };
+  return isTransaction(db) ? await run(db) : await db.transaction(run);
 }
