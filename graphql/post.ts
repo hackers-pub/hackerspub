@@ -291,8 +291,8 @@ export const Post = builder.drizzleInterface("postTable", {
         "censorship notice can be shown.  For everyone but the author " +
         "and moderators, all content-bearing fields are redacted: " +
         "`content`, the excerpt fields, `name`, `summary`, `hashtags`, " +
-        "`media`, `link`, `mentions`, `sharedPost`, `quotedPost`, " +
-        "article contents, and poll data.",
+        "`Article.tags`, `media`, `link`, `mentions`, `sharedPost`, " +
+        "`quotedPost`, article contents, and poll data.",
     }),
     name: t.field({
       type: "String",
@@ -943,15 +943,21 @@ export const Article = builder.drizzleNode("postTable", {
       nullable: true,
       description:
         "Author-assigned tags for this article. `null` for articles " +
-        "federated in from remote instances.",
+        "federated in from remote instances.  Empty when the post is " +
+        "censored and the viewer is neither its author nor a moderator, " +
+        "since the tags are part of the censored content.",
       select: {
+        columns: { censored: true, actorId: true },
         with: {
           articleSource: {
             columns: { tags: true },
           },
         },
       },
-      resolve: (post) => post.articleSource?.tags ?? null,
+      resolve: (post, _, ctx) => {
+        if (isCensoredForViewer(post, ctx)) return [];
+        return post.articleSource?.tags ?? null;
+      },
     }),
     allowLlmTranslation: t.boolean({
       nullable: true,

@@ -557,7 +557,7 @@ test("censored articles redact their content versions", async () => {
       title: "Offensive article",
       content: "Original article markdown",
       language: "en",
-      tags: [],
+      tags: ["secret-tag"],
       allowLlmTranslation: false,
     });
     assert.ok(article != null);
@@ -583,6 +583,7 @@ test("censored articles redact their content versions", async () => {
             censored
             name
             summary
+            tags
             contents { title rawContent content }
           }
         }
@@ -607,9 +608,11 @@ test("censored articles redact their content versions", async () => {
     assert.deepEqual(viewerNode?.contents, []);
     assert.equal(viewerNode?.name, null);
     assert.equal(viewerNode?.summary, null);
+    assert.deepEqual(viewerNode?.tags, []);
     const raw = JSON.stringify(viewerResult.data);
     assert.ok(!raw.includes("Original article markdown"));
     assert.ok(!raw.includes("Offensive article"));
+    assert.ok(!raw.includes("secret-tag"));
 
     // The author keeps access:
     const authorResult = await execute({
@@ -626,6 +629,7 @@ test("censored articles redact their content versions", async () => {
       authorNode?.contents[0]?.rawContent,
       "Original article markdown",
     );
+    assert.deepEqual(authorNode?.tags, ["secret-tag"]);
   });
 });
 
