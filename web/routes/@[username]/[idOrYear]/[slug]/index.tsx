@@ -250,7 +250,26 @@ export async function handleArticle(
   );
   const comments = await db.query.postTable.findMany({
     with: {
-      actor: { with: { instance: true } },
+      actor: {
+        with: {
+          instance: true,
+          followers: {
+            where: ctx.state.account == null
+              ? { RAW: sql`false` }
+              : { followerId: ctx.state.account.actor.id },
+          },
+          blockees: {
+            where: ctx.state.account == null
+              ? { RAW: sql`false` }
+              : { blockeeId: ctx.state.account.actor.id },
+          },
+          blockers: {
+            where: ctx.state.account == null
+              ? { RAW: sql`false` }
+              : { blockerId: ctx.state.account.actor.id },
+          },
+        },
+      },
       link: { with: { creator: true } },
       mentions: {
         with: { actor: true },
@@ -270,11 +289,16 @@ export async function handleArticle(
     where: { replyTargetId: article.post.id },
     orderBy: { published: "asc" },
   });
-  const redactedComments = comments.map((comment) =>
-    isPostCensoredFor(comment, ctx.state.account)
-      ? redactCensoredPost(comment, ctx.state.t)
-      : comment
-  );
+  // isPostVisibleTo also drops replies whose author is hidden by a
+  // moderation sanction (ban / federation block), like the other
+  // thread and list paths.
+  const redactedComments = comments
+    .filter((comment) => isPostVisibleTo(comment, ctx.state.account?.actor))
+    .map((comment) =>
+      isPostCensoredFor(comment, ctx.state.account)
+        ? redactCensoredPost(comment, ctx.state.t)
+        : comment
+    );
   return {
     article,
     content,
