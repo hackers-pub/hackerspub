@@ -73,8 +73,18 @@ export async function onFlagged(
   for (const objectId of flag.objectIds) {
     const href = objectId.href;
     if (targetPost == null) {
+      // Share wrappers copy the boosted post's `url`, so URL matching is
+      // restricted to non-share rows: a report citing a remote post's URL
+      // must not attach to a local booster's wrapper (and make the
+      // booster the reported user).  A report citing the wrapper's own
+      // IRI still matches it.
       const post = await db.query.postTable.findFirst({
-        where: { OR: [{ iri: href }, { url: href }] },
+        where: {
+          OR: [
+            { iri: href },
+            { AND: [{ url: href }, { sharedPostId: { isNull: true } }] },
+          ],
+        },
         with: { actor: true },
       });
       if (post != null) {

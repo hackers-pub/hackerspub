@@ -4,6 +4,8 @@ import type { InboxContext } from "@fedify/fedify";
 import { Flag } from "@fedify/vocab";
 import type { ContextData } from "@hackerspub/models/context";
 import type { Transaction } from "@hackerspub/models/db";
+import { postTable } from "@hackerspub/models/schema";
+import { generateUuidV7 } from "@hackerspub/models/uuid";
 import {
   createFedCtx,
   insertAccountWithActor,
@@ -120,6 +122,61 @@ describe("onFlagged()", () => {
       await onFlagged(fedCtx, activity);
       const flag = await tx.query.flagTable.findFirst({
         where: { iri: "https://remote.example/flags/3" },
+      });
+      assert.equal(flag, undefined);
+    });
+  });
+
+  it("does not attach a remote post's URL to a local boost wrapper", async () => {
+    await withRollback(async (tx) => {
+      const fedCtx = inboxCtx(tx);
+      const remoteModerator = await insertRemoteActor(tx, {
+        username: "remotemod",
+        name: "Remote moderation team",
+        host: "remote.example",
+      });
+      const remoteTarget = await insertRemoteActor(tx, {
+        username: "troll",
+        name: "Troll",
+        host: "elsewhere.example",
+      });
+      const remotePost = await insertRemotePost(tx, {
+        actorId: remoteTarget.id,
+      });
+      // The remote post row itself carries no `url` (common for posts
+      // whose IRI doubles as the URL); the wrapper denormalizes the
+      // public URL, so only the wrapper row matches it.
+      const remoteUrl = "https://elsewhere.example/@troll/123";
+      // A local user boosted the remote post; the wrapper copies its URL.
+      const booster = await insertAccountWithActor(tx, {
+        username: "booster",
+        name: "Booster",
+        email: "booster@example.com",
+      });
+      const wrapperId = generateUuidV7();
+      await tx.insert(postTable).values({
+        id: wrapperId,
+        iri: `http://localhost/ap/announces/${wrapperId}`,
+        type: remotePost.type,
+        visibility: "public",
+        actorId: booster.actor.id,
+        sharedPostId: remotePost.id,
+        contentHtml: remotePost.contentHtml,
+        tags: {},
+        emojis: {},
+        url: remoteUrl,
+      });
+      // The report cites the remote post's URL: its target is not local,
+      // so it must be dropped, not attributed to the local booster.
+      const activity = new Flag({
+        id: new URL("https://remote.example/flags/9"),
+        actor: new URL(remoteModerator.iri),
+        objects: [new URL(remoteUrl)],
+        content: "Reported via its public URL.",
+      });
+      await onFlagged(fedCtx, activity);
+      const flag = await tx.query.flagTable.findFirst({
+        where: { iri: "https://remote.example/flags/9" },
       });
       assert.equal(flag, undefined);
     });
