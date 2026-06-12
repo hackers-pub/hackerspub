@@ -539,6 +539,9 @@ export function createFedCtx(
         ? new URL("/inbox", "http://localhost/")
         : new URL(`/actors/${identifier}/inbox`, "http://localhost/");
     },
+    getOutboxUri(identifier: string) {
+      return new URL(`/actors/${identifier}/outbox`, "http://localhost/");
+    },
     getFollowersUri(identifier: string) {
       return new URL(`/actors/${identifier}/followers`, "http://localhost/");
     },
