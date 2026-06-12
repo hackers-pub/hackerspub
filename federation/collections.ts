@@ -3,6 +3,7 @@ import { LanguageString } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
 import { toRecipient } from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
+import { isActorSanctionHidden } from "@hackerspub/models/post";
 import {
   actorTable,
   followingTable,
@@ -241,6 +242,9 @@ builder
         where: { id: identifier },
       });
       if (account == null) return null;
+      // The featured items embed full post content, so a sanction-hidden
+      // actor's pins are not served at all.
+      if (isActorSanctionHidden(account.actor)) return { items: [] };
       const pins = await ctx.data.db.query.pinTable.findMany({
         with: {
           post: {
@@ -268,6 +272,12 @@ builder
   )
   .setCounter(async (ctx, identifier) => {
     if (!validateUuid(identifier)) return null;
+    const account = await ctx.data.db.query.accountTable.findFirst({
+      with: { actor: true },
+      where: { id: identifier },
+    });
+    if (account == null) return null;
+    if (isActorSanctionHidden(account.actor)) return 0;
     const [{ cnt }] = await ctx.data.db.select({ cnt: count() })
       .from(pinTable)
       .innerJoin(actorTable, eq(pinTable.actorId, actorTable.id))

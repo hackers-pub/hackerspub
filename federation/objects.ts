@@ -13,6 +13,7 @@ import {
   resolveMediumUrls,
 } from "@hackerspub/models/markup";
 import {
+  isActorSanctionHidden,
   isPostVisibleTo,
   normalizeQuotePolicyForVisibility,
 } from "@hackerspub/models/post";
@@ -183,13 +184,16 @@ builder.setObjectDispatcher(
       where: { id: values.id },
     });
     if (articleSource == null) return null;
-    // A censored article's original content must not be served over
-    // ActivityPub either; the HTML permalink shows a notice instead.
+    // Neither a censored article nor one whose author is hidden by a
+    // moderation sanction (ban / federation block) is served over
+    // ActivityPub; the HTML permalink shows a notice instead.
     const post = await ctx.data.db.query.postTable.findFirst({
       columns: { censored: true },
+      with: { actor: true },
       where: { articleSourceId: values.id },
     });
     if (post?.censored != null) return null;
+    if (post != null && isActorSanctionHidden(post.actor)) return null;
     return await getArticle(ctx, articleSource);
   },
 );
