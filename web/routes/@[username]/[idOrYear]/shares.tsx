@@ -24,10 +24,14 @@ export const handler = define.handlers(async (ctx) => {
     ctx.state.account,
   );
   if (note == null) return ctx.next();
-  if (isPostCensoredFor(note.post, ctx.state.account)) {
+  const censored = isPostCensoredFor(note.post, ctx.state.account);
+  if (censored) {
     note = { ...note, post: redactCensoredPost(note.post, ctx.state.t) };
   }
-  const shares = await db.query.postTable.findMany({
+  // Boosts of a censored post are moderation-hidden everywhere else
+  // (getCensoredPostExclusionFilter), so the sharer list is suppressed
+  // too: it would reveal who amplified the hidden content.
+  const shares = censored ? [] : await db.query.postTable.findMany({
     with: { actor: { with: { account: true } } },
     where: {
       AND: [
