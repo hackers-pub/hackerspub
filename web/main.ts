@@ -8,7 +8,10 @@ import {
 } from "@fresh/core";
 import { type Context, createYogaServer } from "@hackerspub/graphql";
 import { handleMediumUploadProxy } from "@hackerspub/graphql/medium-upload";
-import { isActorBanned } from "@hackerspub/models/moderation";
+import {
+  ActorSuspendedError,
+  isActorBanned,
+} from "@hackerspub/models/moderation";
 import { deleteSession, getSession } from "@hackerspub/models/session";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { getXForwardedRequest } from "@hongminhee/x-forwarded-fetch";
@@ -136,6 +139,22 @@ app.use(async (ctx) => {
       span.end();
     }
   });
+});
+
+app.use(async (ctx) => {
+  try {
+    return await ctx.next();
+  } catch (error) {
+    // A suspended account hitting a guarded write path is an expected
+    // moderation rejection, not a server error.
+    if (error instanceof ActorSuspendedError) {
+      return new Response("The account is suspended.", {
+        status: 403,
+        headers: { "Content-Type": "text/plain" },
+      });
+    }
+    throw error;
+  }
 });
 
 app.use((ctx) => {
