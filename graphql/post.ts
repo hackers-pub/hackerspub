@@ -4,7 +4,7 @@ import { getLogger } from "@logtape/logtape";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { unreachable } from "@std/assert";
 import { assertNever } from "@std/assert/unstable-never";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray, isNull, or } from "drizzle-orm";
 import { getAvatarUrl } from "@hackerspub/models/account";
 import {
   createArticle,
@@ -81,8 +81,10 @@ import {
   articleDraftMediumTable,
   articleDraftTable,
   articleSourceMediumTable,
+  postTable,
 } from "@hackerspub/models/schema";
 import type * as schema from "@hackerspub/models/schema";
+import DataLoader from "dataloader";
 import { withTransaction } from "@hackerspub/models/tx";
 import { generateUuidV7, type Uuid } from "@hackerspub/models/uuid";
 import {
@@ -1649,7 +1651,45 @@ export const PostLink = builder.drizzleNode("postLinkTable", {
   description: "OpenGraph / oEmbed metadata for a link embedded in a post. " +
     "Populated asynchronously after the post is created; individual " +
     "fields may be `null` until the metadata fetch completes or if the " +
-    "linked page does not expose the corresponding tag.",
+    "linked page does not expose the corresponding tag.  Not resolvable " +
+    "via `node(id:)` when every post referencing the link is censored " +
+    "for the viewer: the linked URL is part of the censored content.",
+  authScopes: (link, ctx) => {
+    if (ctx.account?.moderator) return true;
+    // Link rows are shared across posts referencing the same URL, so the
+    // link counts as censored only when no referencing post still shows
+    // it to this viewer.  Orphan rows with no referencing post (e.g.
+    // news-only links) pass.  Batched through a request-scoped loader so
+    // link-heavy pages (the news list) stay free of per-link lookups.
+    ctx.postLinkVisibleLoader ??= new DataLoader<Uuid, boolean>(
+      async (linkIds) => {
+        const ids = [...linkIds];
+        const viewerActorId = ctx.account?.actor.id;
+        const visible = await ctx.db
+          .selectDistinct({ linkId: postTable.linkId })
+          .from(postTable)
+          .where(and(
+            inArray(postTable.linkId, ids),
+            viewerActorId == null ? isNull(postTable.censored) : or(
+              isNull(postTable.censored),
+              eq(postTable.actorId, viewerActorId),
+            ),
+          ));
+        const visibleSet = new Set(visible.map((row) => row.linkId));
+        if (visibleSet.size === ids.length) return ids.map(() => true);
+        const referenced = await ctx.db
+          .selectDistinct({ linkId: postTable.linkId })
+          .from(postTable)
+          .where(inArray(postTable.linkId, ids));
+        const referencedSet = new Set(referenced.map((row) => row.linkId));
+        return ids.map((id) => visibleSet.has(id) || !referencedSet.has(id));
+      },
+    );
+    return ctx.postLinkVisibleLoader.load(link.id);
+  },
+  // Run the scope when the node itself is resolved, so a cached link
+  // node id cannot bypass the Post.link redaction via node(id:).
+  runScopesOnType: true,
   id: {
     column: (link) => link.id,
   },
@@ -1851,6 +1891,12 @@ builder.relayMutationField(
           throw new InvalidInputError("quotedPostId");
         }
         if (!isPostVisibleTo(effectivePost, ctx.account.actor)) {
+          throw new InvalidInputError("quotedPostId");
+        }
+        // Neither a censored post nor a censored share wrapper can be
+        // quoted; the model revalidates, but the submitted row is
+        // unwrapped here, so the wrapper must be checked here too.
+        if (post.censored != null || effectivePost.censored != null) {
           throw new InvalidInputError("quotedPostId");
         }
         if (!canActorRequestQuotePost(effectivePost, ctx.account.actor)) {
@@ -2093,6 +2139,12 @@ builder.relayMutationField(
           throw new InvalidInputError("quotedPostId");
         }
         if (!isPostVisibleTo(effectivePost, ctx.account.actor)) {
+          throw new InvalidInputError("quotedPostId");
+        }
+        // Neither a censored post nor a censored share wrapper can be
+        // quoted; the model revalidates, but the submitted row is
+        // unwrapped here, so the wrapper must be checked here too.
+        if (post.censored != null || effectivePost.censored != null) {
           throw new InvalidInputError("quotedPostId");
         }
         if (!canActorRequestQuotePost(effectivePost, ctx.account.actor)) {

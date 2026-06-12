@@ -28,6 +28,7 @@ import {
   createTestKv,
   insertAccountWithActor,
   insertNotePost,
+  insertPostLink,
   makeUserContext,
   withRollback,
 } from "../test/postgres.ts";
@@ -967,6 +968,85 @@ test("a still-banned appellant gets the appeal outcome by email", async () => {
     const body = message.content.text ?? "";
     assert.match(body, /The permanent suspension stands\./);
     assert.match(body, /Appeal denied/);
+  });
+});
+
+test("PostLink nodes of censored posts are not resolvable", async () => {
+  await withRollback(async (tx) => {
+    const { reported, post } = await sanction(tx, "censor");
+    const link = await insertPostLink(tx, {
+      url: "https://example.com/secret-page",
+      title: "Secret page",
+    });
+    await tx.update(postTable)
+      .set({ linkId: link.id, linkUrl: link.url })
+      .where(eq(postTable.id, post.id));
+    const linkNodeQuery = parse(`
+      query LinkNode($id: ID!) {
+        node(id: $id) {
+          __typename
+          ... on PostLink { url title }
+        }
+      }
+    `);
+    const gid = encodeGlobalID("PostLink", link.id);
+    const viewer = await insertAccountWithActor(tx, {
+      username: "linkviewer",
+      name: "Link Viewer",
+      email: "linkviewer@example.com",
+    });
+
+    // The only referencing post is censored, so the node is hidden:
+    const denied = await execute({
+      schema,
+      document: linkNodeQuery,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    assert.equal((denied.data as any)?.node ?? null, null);
+
+    // The censored post's author keeps access:
+    const asAuthor = await execute({
+      schema,
+      document: linkNodeQuery,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, reported.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(
+      // deno-lint-ignore no-explicit-any
+      (asAuthor.data as any)?.node?.url,
+      "https://example.com/secret-page",
+    );
+
+    // Once an uncensored post references the same link, it is public
+    // again (the link is no longer exclusively censored content):
+    const other = await insertAccountWithActor(tx, {
+      username: "linkother",
+      name: "Link Other",
+      email: "linkother@example.com",
+    });
+    const { post: otherPost } = await insertNotePost(tx, {
+      account: other.account,
+      content: "Same link, not censored",
+    });
+    await tx.update(postTable)
+      .set({ linkId: link.id, linkUrl: link.url })
+      .where(eq(postTable.id, otherPost.id));
+    const allowed = await execute({
+      schema,
+      document: linkNodeQuery,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(
+      // deno-lint-ignore no-explicit-any
+      (allowed.data as any)?.node?.url,
+      "https://example.com/secret-page",
+    );
   });
 });
 

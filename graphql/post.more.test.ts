@@ -450,6 +450,126 @@ function makeTransactionalUserContext(
   return makeUserContext(tx, account, { fedCtx });
 }
 
+test("createNote rejects quoting a censored post", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "quotedauthor",
+      name: "Quoted Author",
+      email: "quotedauthor@example.com",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "To be censored",
+    });
+    await tx.update(postTable)
+      .set({ censored: new Date() })
+      .where(eq(postTable.id, post.id));
+    const quoter = await insertAccountWithActor(tx, {
+      username: "quoter",
+      name: "Quoter",
+      email: "quoter@example.com",
+    });
+    const result = await execute({
+      schema,
+      document: parse(`
+        mutation QuoteCensored($input: CreateNoteInput!) {
+          createNote(input: $input) {
+            __typename
+            ... on InvalidInputError {
+              inputPath
+            }
+          }
+        }
+      `),
+      variableValues: {
+        input: {
+          visibility: "PUBLIC",
+          content: "Trying to quote a censored post",
+          language: "en",
+          quotedPostId: encodeGlobalID("Note", post.id),
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, quoter.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(result.errors, undefined);
+    const data = (result.data as {
+      createNote: { __typename: string; inputPath?: string };
+    }).createNote;
+    assert.equal(data.__typename, "InvalidInputError");
+    assert.equal(data.inputPath, "quotedPostId");
+  });
+});
+
+test("createNote rejects quoting through a censored share wrapper", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "wrappedauthor",
+      name: "Wrapped Author",
+      email: "wrappedauthor@example.com",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Not censored itself",
+    });
+    const sharer = await insertAccountWithActor(tx, {
+      username: "wrapsharer",
+      name: "Wrap Sharer",
+      email: "wrapsharer@example.com",
+    });
+    // A censored share wrapper of an uncensored original must not be
+    // usable as a quote handle.
+    const wrapperId = generateUuidV7();
+    await tx.insert(postTable).values({
+      id: wrapperId,
+      iri: `http://localhost/ap/announces/${wrapperId}`,
+      type: post.type,
+      visibility: "public",
+      actorId: sharer.actor.id,
+      sharedPostId: post.id,
+      contentHtml: post.contentHtml,
+      tags: {},
+      emojis: post.emojis,
+      sensitive: post.sensitive,
+      censored: new Date(),
+    });
+    const quoter = await insertAccountWithActor(tx, {
+      username: "wrapquoter",
+      name: "Wrap Quoter",
+      email: "wrapquoter@example.com",
+    });
+    const result = await execute({
+      schema,
+      document: parse(`
+        mutation QuoteCensoredWrapper($input: CreateNoteInput!) {
+          createNote(input: $input) {
+            __typename
+            ... on InvalidInputError {
+              inputPath
+            }
+          }
+        }
+      `),
+      variableValues: {
+        input: {
+          visibility: "PUBLIC",
+          content: "Trying to quote through a censored wrapper",
+          language: "en",
+          quotedPostId: encodeGlobalID("Note", wrapperId),
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, quoter.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(result.errors, undefined);
+    const data = (result.data as {
+      createNote: { __typename: string; inputPath?: string };
+    }).createNote;
+    assert.equal(data.__typename, "InvalidInputError");
+    assert.equal(data.inputPath, "quotedPostId");
+  });
+});
+
 test("createNote returns ActorSuspendedError for suspended accounts", async () => {
   await withRollback(async (tx) => {
     const account = await insertAccountWithActor(tx, {

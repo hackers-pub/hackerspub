@@ -547,6 +547,13 @@ export async function getAllowedQuoteTargetForActor(
       where: { id: targetPostId },
     });
   if (quotedPost == null) return undefined;
+  // A censored post cannot be quoted (by anyone, including its author):
+  // quoting re-amplifies moderation-hidden content.  The submitted row
+  // is checked too, so a censored share wrapper cannot be used as a
+  // quote handle either.
+  if (post.censored != null || quotedPost.censored != null) {
+    return undefined;
+  }
   const allowed = canActorRequestQuotePost(quotedPost, actor);
   return allowed ? quotedPost : undefined;
 }
