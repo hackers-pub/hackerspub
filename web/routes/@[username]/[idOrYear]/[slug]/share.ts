@@ -24,6 +24,11 @@ export const handler = define.handlers({
     if (ctx.state.account == null) {
       return new Response("Forbidden", { status: 403 });
     }
+    // A censored article cannot be boosted: the wrapper would copy the
+    // censored content and federate an Announce re-amplifying it.
+    if (post.censored != null) {
+      return new Response("Forbidden", { status: 403 });
+    }
     const share = await sharePost(
       ctx.state.fedCtx,
       ctx.state.account,

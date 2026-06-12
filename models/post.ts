@@ -1873,6 +1873,12 @@ export async function sharePost(
   const { db } = fedCtx.data;
   await assertAccountActorNotSuspended(db, account.id);
   const sharedPost = await getOriginalSharedPost(db, post);
+  // Callers reject censored targets with a proper response; this is a
+  // backstop so no future caller can boost (and thus re-amplify and
+  // copy into the wrapper) moderation-hidden content.
+  if (post.censored != null || sharedPost.censored != null) {
+    throw new TypeError("A censored post cannot be shared.");
+  }
   const actor = await syncActorFromAccount(fedCtx, account);
   const id = generateUuidV7();
   const posts = await db.insert(postTable).values({

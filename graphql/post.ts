@@ -2889,6 +2889,12 @@ builder.relayMutationField(
       if (!isPostVisibleTo(effectivePost, ctx.account.actor)) {
         throw new InvalidInputError("postId");
       }
+      // A censored post cannot be boosted (by anyone, including its
+      // author): the wrapper would copy the censored content and
+      // federate an `Announce` re-amplifying moderation-hidden content.
+      if (post.censored != null || effectivePost.censored != null) {
+        throw new InvalidInputError("postId");
+      }
       if (
         effectivePost.visibility !== "public" &&
         effectivePost.visibility !== "unlisted" &&

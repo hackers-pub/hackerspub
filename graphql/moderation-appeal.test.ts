@@ -898,6 +898,37 @@ test("censored questions hide their polls, even via node lookups", async () => {
   });
 });
 
+test("censored posts cannot be boosted", async () => {
+  await withRollback(async (tx) => {
+    const { post } = await sanction(tx, "censor");
+    const booster = await insertAccountWithActor(tx, {
+      username: "booster",
+      name: "Booster",
+      email: "booster@example.com",
+    });
+    const shareMutation = parse(`
+      mutation ShareCensored($postId: ID!) {
+        sharePost(input: { postId: $postId }) {
+          __typename
+          ... on InvalidInputError { inputPath }
+        }
+      }
+    `);
+    const result = await execute({
+      schema,
+      document: shareMutation,
+      variableValues: { postId: encodeGlobalID("Note", post.id) },
+      contextValue: makeUserContext(tx, booster.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(result.errors, undefined);
+    // deno-lint-ignore no-explicit-any
+    const data = (result.data as any)?.sharePost;
+    assert.equal(data?.__typename, "InvalidInputError");
+    assert.equal(data?.inputPath, "postId");
+  });
+});
+
 test("share wrappers of censored questions are redacted too", async () => {
   await withRollback(async (tx) => {
     const fedCtx = quietFedCtx(tx);

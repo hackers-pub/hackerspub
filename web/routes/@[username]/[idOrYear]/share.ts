@@ -39,6 +39,11 @@ export const handler = define.handlers({
         ctx.state.account,
       );
       if (result == null) return ctx.next();
+      // Neither a censored wrapper nor a wrapper of a censored post can
+      // be boosted; check before unwrapping to the original.
+      if (result.censored != null || result.sharedPost?.censored != null) {
+        return new Response("Forbidden", { status: 403 });
+      }
       post = result.sharedPost ?? result;
     } else {
       const note = await getNoteSource(
@@ -54,6 +59,11 @@ export const handler = define.handlers({
       return ctx.next();
     }
     if (ctx.state.account == null) {
+      return new Response("Forbidden", { status: 403 });
+    }
+    // A censored post cannot be boosted: the wrapper would copy the
+    // censored content and federate an Announce re-amplifying it.
+    if (post.censored != null) {
       return new Response("Forbidden", { status: 403 });
     }
     const share = await sharePost(
