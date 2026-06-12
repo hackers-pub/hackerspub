@@ -3,7 +3,10 @@ import { LanguageString } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
 import { toRecipient } from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
-import { isActorSanctionHidden } from "@hackerspub/models/post";
+import {
+  getSanctionHiddenActorFilter,
+  isActorSanctionHidden,
+} from "@hackerspub/models/post";
 import {
   actorTable,
   followingTable,
@@ -22,6 +25,7 @@ import {
   isNull,
   like,
   or,
+  sql,
 } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { builder } from "./builder.ts";
@@ -306,6 +310,11 @@ builder
         where: { id: identifier },
       });
       if (account == null) return null;
+      // A sanction-hidden actor's outbox is empty: remote servers polling
+      // it must not receive content the sanction hides.
+      if (isActorSanctionHidden(account.actor)) {
+        return { items: [], nextCursor: null };
+      }
       const posts = await db.query.postTable.findMany({
         with: {
           actor: { with: { account: true } },
@@ -315,10 +324,17 @@ builder
         where: {
           actorId: account.actor.id,
           visibility: { in: ["public", "unlisted"] }, // FIXME
-          // Censored posts (and boosts of censored posts) are not served
-          // over ActivityPub.
+          // Censored posts, boosts of censored posts, and boosts of
+          // sanction-hidden actors' posts are not served over ActivityPub.
           censored: { isNull: true },
-          NOT: { sharedPost: { censored: { isNotNull: true } } },
+          NOT: {
+            sharedPost: {
+              OR: [
+                { censored: { isNotNull: true } },
+                { actor: getSanctionHiddenActorFilter() },
+              ],
+            },
+          },
           ...(
             validateUuid(cursor) ? { id: { lte: cursor } } : undefined
           ),
@@ -367,10 +383,13 @@ builder
       where: { id: identifier },
     });
     if (account == null) return null;
+    if (isActorSanctionHidden(account.actor)) return 0;
     const sharedPost = alias(postTable, "shared_post");
+    const sharedActor = alias(actorTable, "shared_actor");
     const [{ cnt }] = await db.select({ cnt: count() })
       .from(postTable)
       .leftJoin(sharedPost, eq(postTable.sharedPostId, sharedPost.id))
+      .leftJoin(sharedActor, eq(sharedPost.actorId, sharedActor.id))
       .where(and(
         eq(postTable.actorId, account.actor.id),
         or( // FIXME
@@ -379,6 +398,17 @@ builder
         ),
         isNull(postTable.censored),
         isNull(sharedPost.censored),
+        // Boosts of sanction-hidden actors' posts are excluded; the raw
+        // SQL mirrors isActorSanctionHidden (NULL-safe: non-boost rows
+        // and unsanctioned actors match).
+        sql`(
+          ${sharedActor.id} is null
+          or ${sharedActor.suspended} is null
+          or ${sharedActor.suspended} > now()
+          or ${sharedActor.suspendedUntil} <= now()
+          or (${sharedActor.accountId} is not null
+            and ${sharedActor.suspendedUntil} > now())
+        )`,
       ));
     return cnt;
   });

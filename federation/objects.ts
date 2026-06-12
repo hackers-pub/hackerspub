@@ -729,7 +729,7 @@ builder.setObjectDispatcher(
     const share = await ctx.data.db.query.postTable.findFirst({
       with: {
         actor: { with: { account: true } },
-        sharedPost: true,
+        sharedPost: { with: { actor: true } },
         mentions: { with: { actor: true } },
       },
       where: {
@@ -745,6 +745,14 @@ builder.setObjectDispatcher(
     // Neither a censored boost nor a boost of a censored post is served
     // over ActivityPub.
     if (share.censored != null || share.sharedPost.censored != null) {
+      return null;
+    }
+    // The same goes when the booster or the boosted post's author is
+    // hidden by a moderation sanction (ban / federation block).
+    if (
+      isActorSanctionHidden(share.actor) ||
+      isActorSanctionHidden(share.sharedPost.actor)
+    ) {
       return null;
     }
     return getAnnounce(ctx, {
