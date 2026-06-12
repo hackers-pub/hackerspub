@@ -6,6 +6,7 @@ import {
   createAppeal,
   getModerationStatistics,
   getViolationHistory,
+  isActorBanned,
   listSanctionedActors,
   resolveAppeal as resolveAppealModel,
   takeModerationAction as takeModerationActionModel,
@@ -42,7 +43,10 @@ import { Account } from "./account.ts";
 import { Actor } from "./actor.ts";
 import { builder, type UserContext } from "./builder.ts";
 import { InvalidInputError, NotAuthorizedError } from "./error.ts";
-import { getModerationActionEmail } from "./moderation-email.ts";
+import {
+  getAppealResolvedEmail,
+  getModerationActionEmail,
+} from "./moderation-email.ts";
 import { Article, Note, Post, Question } from "./post.ts";
 import { NotAuthenticatedError } from "./session.ts";
 
@@ -1843,6 +1847,40 @@ builder.mutationField("resolveFlagAppeal", (t) =>
         replacement,
       });
       if (appeal == null) throw new InvalidInputError("appealId");
+      // An appellant who remains permanently suspended after the
+      // resolution cannot sign in, so the in-app appeal_resolved
+      // notification is unreachable for them; the outcome is emailed to
+      // every verified address instead.  A failed send must not fail
+      // the resolution itself.
+      try {
+        const appellant = await ctx.db.query.accountTable.findFirst({
+          where: { id: appeal.appellantId },
+          with: { actor: true, emails: true },
+        });
+        if (appellant != null && isActorBanned(appellant.actor)) {
+          const emails = appellant.emails
+            .filter((email) => email.verified != null);
+          const locale = new Intl.Locale(appellant.locales?.[0] ?? "en");
+          const messages = await Promise.all(emails.map(({ email }) =>
+            getAppealResolvedEmail({ locale, to: email, appeal })
+          ));
+          for await (const receipt of ctx.email.sendMany(messages)) {
+            if (!receipt.successful) {
+              logger.error(
+                "Failed to deliver the appeal resolution email for " +
+                  "appeal {appealId}: {errors}",
+                { appealId: appeal.id, errors: receipt.errorMessages },
+              );
+            }
+          }
+        }
+      } catch (error) {
+        logger.error(
+          "Failed to email the appeal resolution for appeal {appealId}: " +
+            "{error}",
+          { appealId: appeal.id, error },
+        );
+      }
       return appeal;
     },
   }));

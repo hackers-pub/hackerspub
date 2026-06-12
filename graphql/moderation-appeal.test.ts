@@ -16,6 +16,7 @@ import {
 import { createSigninToken } from "@hackerspub/models/signin";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
 import { getModerationActionEmail } from "./moderation-email.ts";
+import type { Message } from "@upyo/core";
 import { encodeGlobalID } from "@pothos/plugin-relay";
 import { eq } from "drizzle-orm";
 import { execute, parse } from "graphql";
@@ -23,6 +24,7 @@ import { schema } from "./mod.ts";
 import {
   type AuthenticatedAccount,
   createFedCtx,
+  createTestEmailTransport,
   createTestKv,
   insertAccountWithActor,
   insertNotePost,
@@ -895,6 +897,76 @@ test("censored questions hide their polls, even via node lookups", async () => {
       (authorResult.data as any)?.node?.poll?.options?.length,
       2,
     );
+  });
+});
+
+test("a still-banned appellant gets the appeal outcome by email", async () => {
+  await withRollback(async (tx) => {
+    const { moderator, reported, action } = await sanction(tx, "ban");
+    const onBehalfMutation = parse(`
+      mutation AppealOnBehalfForEmail(
+        $sanctionId: UUID!
+        $reason: String!
+        $onBehalfOf: ID!
+      ) {
+        appealModerationAction(
+          sanctionId: $sanctionId
+          reason: $reason
+          onBehalfOf: $onBehalfOf
+        ) {
+          __typename
+          ... on FlagAppeal { uuid }
+        }
+      }
+    `);
+    const filed = await execute({
+      schema,
+      document: onBehalfMutation,
+      variableValues: {
+        sanctionId: action.id,
+        reason: "Filed by email on the banned user's behalf.",
+        onBehalfOf: encodeGlobalID("Account", reported.account.id),
+      },
+      contextValue: makeUserContext(tx, moderator),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    const appealUuid = (filed.data as any)?.appealModerationAction?.uuid;
+    assert.ok(appealUuid != null);
+
+    // A different moderator denies the appeal; the appellant remains
+    // banned, so the outcome must go out by email.
+    const reviewer = await makeModerator(tx, {
+      username: "reviewer",
+      name: "Reviewer",
+      email: "reviewer@example.com",
+    });
+    const email = createTestEmailTransport();
+    const resolved = await execute({
+      schema,
+      document: resolveAppealMutation,
+      variableValues: {
+        appealId: encodeGlobalID("FlagAppeal", appealUuid),
+        result: "DISMISSED",
+        rationale: "The permanent suspension stands.",
+      },
+      contextValue: makeUserContext(tx, reviewer, { email: email.transport }),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(
+      // deno-lint-ignore no-explicit-any
+      (resolved.data as any)?.resolveFlagAppeal?.__typename,
+      "FlagAppeal",
+    );
+    assert.equal(email.messages.length, 1);
+    const message = email.messages[0] as Message;
+    assert.deepEqual(
+      message.recipients.map((r) => r.address),
+      ["reported@example.com"],
+    );
+    const body = message.content.text ?? "";
+    assert.match(body, /The permanent suspension stands\./);
+    assert.match(body, /Appeal denied/);
   });
 });
 

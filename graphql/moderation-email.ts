@@ -1,5 +1,5 @@
 import { negotiateLocale } from "@hackerspub/models/i18n";
-import type { FlagAction } from "@hackerspub/models/schema";
+import type { FlagAction, FlagAppeal } from "@hackerspub/models/schema";
 import { expandGlob } from "@std/fs";
 import { join } from "@std/path";
 import { createMessage, type Message } from "@upyo/core";
@@ -18,6 +18,9 @@ interface ModerationTemplates {
    * behalf).
    */
   contentPermanent: string;
+  appealResultNames: Record<string, string>;
+  appealSubject: string;
+  appealContent: string;
 }
 
 let cachedTemplates: Map<string, ModerationTemplates> | null = null;
@@ -40,6 +43,9 @@ async function loadTemplates(): Promise<Map<string, ModerationTemplates>> {
         subject: data.moderation.actionTaken.emailSubject,
         content: data.moderation.actionTaken.emailContent,
         contentPermanent: data.moderation.actionTaken.emailContentPermanent,
+        appealResultNames: data.moderation.appealResolved.resultNames,
+        appealSubject: data.moderation.appealResolved.emailSubject,
+        appealContent: data.moderation.appealResolved.emailContent,
       });
     } catch {
       // A malformed locale file falls back to English below.
@@ -112,6 +118,47 @@ export async function getModerationActionEmail(options: {
           ? template.contentPermanent
           : template.content,
       ),
+    },
+  });
+}
+
+/**
+ * Builds the email notifying an appellant of their appeal's outcome.
+ * Sent when the appellant remains permanently suspended after the
+ * resolution (they cannot sign in, so the in-app notification is
+ * unreachable for them).  Built exclusively from the moderator-authored
+ * review rationale; the sender is the moderation team's collective
+ * identity.
+ */
+export async function getAppealResolvedEmail(options: {
+  locale: Intl.Locale;
+  to: string;
+  appeal: FlagAppeal;
+}): Promise<Message> {
+  const templates = await loadTemplates();
+  const negotiated = negotiateLocale(options.locale, [...templates.keys()]);
+  const template = templates.get(negotiated?.baseName ?? "en") ??
+    templates.get("en");
+  if (template == null) {
+    throw new Error("No moderation email template available.");
+  }
+  const resultName = options.appeal.result == null
+    ? ""
+    : template.appealResultNames[options.appeal.result] ??
+      options.appeal.result;
+  function substitute(text: string): string {
+    return text.replaceAll(
+      /\{\{(result|rationale)\}\}/g,
+      (m) =>
+        m === "{{result}}" ? resultName : options.appeal.reviewRationale ?? "",
+    );
+  }
+  return createMessage({
+    from: EMAIL_FROM,
+    to: options.to,
+    subject: substitute(template.appealSubject),
+    content: {
+      text: substitute(template.appealContent),
     },
   });
 }

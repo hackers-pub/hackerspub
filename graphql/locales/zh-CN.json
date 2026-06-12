@@ -19,6 +19,16 @@
       "emailSubject": "您的 Hackers' Pub 账号受到管理处理",
       "emailContent": "我们收到了关于您的内容或账号的举报，经审核确认违反了行为准则，已采取以下处理。\n\n违反条款：{{provisions}}\n目标内容：{{target}}\n处理：{{action}}\n\n管理团队的留言：\n{{message}}\n\n如果您认为该处理不公正，可以在 14 天内提出申诉：\n\n{{appealUrl}}\n\n— Hackers' Pub 管理团队\n",
       "emailContentPermanent": "我们收到了关于您的内容或账号的举报，经审核确认违反了行为准则，已采取以下处理。\n\n违反条款：{{provisions}}\n目标内容：{{target}}\n处理：{{action}}\n\n管理团队的留言：\n{{message}}\n\n由于您的账号已无法登录，您可以在 14 天内回复本邮件提出申诉，管理团队将代您受理并审核。\n\n— Hackers' Pub 管理团队\n"
+    },
+    "appealResolved": {
+      "resultNames": {
+        "dismissed": "申诉被驳回：维持原决定",
+        "withdrawn": "申诉成立：决定已撤销",
+        "reduced": "申诉成立：处罚已减轻",
+        "increased": "申诉已审核：处罚已加重"
+      },
+      "emailSubject": "您在 Hackers' Pub 的申诉已审核",
+      "emailContent": "您针对 Hackers' Pub 管理处理提出的申诉已经过审核。\n\n结果：{{result}}\n\n来自管理团队的留言：\n{{rationale}}\n\n— Hackers' Pub 管理团队\n"
     }
   }
 }

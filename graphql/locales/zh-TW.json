@@ -19,6 +19,16 @@
       "emailSubject": "您的 Hackers' Pub 帳號受到管理處置",
       "emailContent": "我們收到了關於您的內容或帳號的檢舉，經審核確認違反了行為準則，已採取以下處置。\n\n違反條款：{{provisions}}\n目標內容：{{target}}\n處置：{{action}}\n\n管理團隊的訊息：\n{{message}}\n\n如果您認為該處置不公正，可以在 14 天內提出申訴：\n\n{{appealUrl}}\n\n— Hackers' Pub 管理團隊\n",
       "emailContentPermanent": "我們收到了關於您的內容或帳號的檢舉，經審核確認違反了行為準則，已採取以下處置。\n\n違反條款：{{provisions}}\n目標內容：{{target}}\n處置：{{action}}\n\n管理團隊的訊息：\n{{message}}\n\n由於您的帳號已無法登入，您可以在 14 天內回覆本郵件提出申訴，管理團隊將代您受理並審查。\n\n— Hackers' Pub 管理團隊\n"
+    },
+    "appealResolved": {
+      "resultNames": {
+        "dismissed": "申訴遭駁回：維持原決定",
+        "withdrawn": "申訴成立：決定已撤銷",
+        "reduced": "申訴成立：處置已減輕",
+        "increased": "申訴已審核：處置已加重"
+      },
+      "emailSubject": "您在 Hackers' Pub 的申訴已審核",
+      "emailContent": "您針對 Hackers' Pub 管理處置提出的申訴已經過審核。\n\n結果：{{result}}\n\n來自管理團隊的訊息：\n{{rationale}}\n\n— Hackers' Pub 管理團隊\n"
     }
   }
 }
