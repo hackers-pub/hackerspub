@@ -8,7 +8,8 @@ import {
 } from "@fresh/core";
 import { type Context, createYogaServer } from "@hackerspub/graphql";
 import { handleMediumUploadProxy } from "@hackerspub/graphql/medium-upload";
-import { getSession } from "@hackerspub/models/session";
+import { isActorBanned } from "@hackerspub/models/moderation";
+import { deleteSession, getSession } from "@hackerspub/models/session";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { getXForwardedRequest } from "@hongminhee/x-forwarded-fetch";
 import { SpanKind, SpanStatusCode, trace } from "@opentelemetry/api";
@@ -156,6 +157,12 @@ app.use((ctx) => {
           where: { id: session.accountId },
           with: { actor: true, avatarMedium: true, emails: true, links: true },
         });
+        if (account != null && isActorBanned(account.actor)) {
+          // A ban invalidates existing sessions, not just new logins
+          // (mirrors the GraphQL server's context build).
+          await deleteSession(kv, session.id);
+          return { account: undefined, session: undefined };
+        }
         return {
           account,
           session: account == null ? undefined : session,

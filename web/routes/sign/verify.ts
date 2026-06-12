@@ -1,3 +1,4 @@
+import { isActorBanned } from "@hackerspub/models/moderation";
 import {
   resolvePasskeyOrigins,
   verifyAuthentication,
@@ -28,6 +29,20 @@ export const handler = define.handlers({
     );
     if (result == null) return new Response("null", { status: 404 });
     const { response, account } = result;
+    // A permanently suspended (banned) account cannot sign in by passkey
+    // either; report it as a failed verification to the sign-in island.
+    if (response.verified) {
+      const actor = await db.query.actorTable.findFirst({
+        where: { accountId: account.id },
+        columns: { id: true, suspended: true, suspendedUntil: true },
+      });
+      if (actor != null && isActorBanned(actor)) {
+        return new Response(
+          JSON.stringify({ ...response, verified: false }),
+          { headers: { "Content-Type": "application/json" } },
+        );
+      }
+    }
     const headers = new Headers();
     if (response.verified) {
       const session = await createSession(kv, {
