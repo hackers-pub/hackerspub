@@ -383,6 +383,11 @@ export async function createArticle(
   } | undefined
 > {
   const { db } = fedCtx.data;
+  // Check the suspension before any insert: when this function runs
+  // without an enclosing transaction (the legacy draft-publish route),
+  // a guard placed after createArticleSource would leave already-
+  // committed source/content rows behind on rejection.
+  await assertAccountActorNotSuspended(db, source.accountId);
   const { media: sourceMedia, ...articleSourceInput } = source;
   const referencedMediumKeys = extractArticleMediumKeys(source.content);
   const sourceMediaByKey = new Map(
@@ -413,7 +418,6 @@ export async function createArticle(
     with: { avatarMedium: true, emails: true, links: true },
   });
   if (account == undefined) return undefined;
-  await assertAccountActorNotSuspended(db, account.id);
   const post = await syncPostFromArticleSource(fedCtx, {
     ...articleSource,
     account,
