@@ -11,8 +11,10 @@ import {
   accountTable,
   actorTable,
   type FlagActionType,
+  postTable,
 } from "@hackerspub/models/schema";
 import { createSigninToken } from "@hackerspub/models/signin";
+import { generateUuidV7 } from "@hackerspub/models/uuid";
 import { getModerationActionEmail } from "./moderation-email.ts";
 import { encodeGlobalID } from "@pothos/plugin-relay";
 import { eq } from "drizzle-orm";
@@ -516,6 +518,83 @@ test("censored posts expose the flag and redact content", async () => {
     // deno-lint-ignore no-explicit-any
     const authorNode = (authorResult.data as any)?.node;
     assert.ok(authorNode?.censored != null);
+    assert.match(authorNode?.content ?? "", /Hello world/);
+  });
+});
+
+test("share wrappers of censored posts are redacted too", async () => {
+  await withRollback(async (tx) => {
+    const { reported, post } = await sanction(tx, "censor");
+    const sharer = await insertAccountWithActor(tx, {
+      username: "sharer",
+      name: "Sharer",
+      email: "sharer@example.com",
+    });
+    // Share wrappers denormalize the boosted post's title/content/URL
+    // (see sharePost in models/post.ts), so the wrapper row carries the
+    // censored content verbatim.
+    const wrapperId = generateUuidV7();
+    await tx.insert(postTable).values({
+      id: wrapperId,
+      iri: `http://localhost/ap/announces/${wrapperId}`,
+      type: post.type,
+      visibility: "public",
+      actorId: sharer.actor.id,
+      sharedPostId: post.id,
+      name: post.name,
+      contentHtml: post.contentHtml,
+      language: post.language,
+      tags: {},
+      emojis: post.emojis,
+      sensitive: post.sensitive,
+      url: post.url,
+    });
+    const wrapperQuery = parse(`
+      query Wrapper($id: ID!) {
+        node(id: $id) {
+          ... on Note {
+            name
+            content
+            excerpt
+            url
+            sharedPost { content }
+          }
+        }
+      }
+    `);
+    const gid = encodeGlobalID("Note", wrapperId);
+    const viewer = await insertAccountWithActor(tx, {
+      username: "wrapperviewer",
+      name: "Wrapper Viewer",
+      email: "wrapperviewer@example.com",
+    });
+
+    const viewerResult = await execute({
+      schema,
+      document: wrapperQuery,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    const viewerNode = (viewerResult.data as any)?.node;
+    assert.ok(viewerNode != null);
+    assert.equal(viewerNode.name, null);
+    assert.equal(viewerNode.content, "");
+    assert.equal(viewerNode.excerpt, "");
+    assert.equal(viewerNode.url, null);
+    assert.equal(viewerNode.sharedPost?.content, "");
+
+    // The boosted post's author still sees the copied content:
+    const authorResult = await execute({
+      schema,
+      document: wrapperQuery,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, reported.account),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    const authorNode = (authorResult.data as any)?.node;
     assert.match(authorNode?.content ?? "", /Hello world/);
   });
 });

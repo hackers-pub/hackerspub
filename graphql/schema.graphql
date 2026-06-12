@@ -739,7 +739,7 @@ type Article implements Node & Post & Reactable {
   censored: DateTime
 
   """
-  The post's full HTML content, with custom emoji shortcodes rendered as `<img>` elements and external links annotated with `target="_blank"`. Boost wrappers have empty content; use `sharedPost.content` instead.  Empty when the post is censored and the viewer is neither its author nor a moderator.
+  The post's full HTML content, with custom emoji shortcodes rendered as `<img>` elements and external links annotated with `target="_blank"`. Boost wrappers copy the boosted post's content; prefer `sharedPost.content`.  Empty when the post is censored (or it boosts a censored post) and the viewer is neither the content's author nor a moderator.
   """
   content: HTML!
 
@@ -750,17 +750,17 @@ type Article implements Node & Post & Reactable {
   engagementStats: PostEngagementStats!
 
   """
-  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.  Empty when the post is censored and the viewer is neither its author nor a moderator.
+  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.  Empty when the post is censored (or it boosts a censored post) and the viewer is neither the content's author nor a moderator.
   """
   excerpt: String!
 
   """
-  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.  Empty when the post is censored and the viewer is neither its author nor a moderator.
+  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.  Empty when the post is censored (or it boosts a censored post) and the viewer is neither the content's author nor a moderator.
   """
   excerptHtml(maxChars: Int!): HTML!
 
   """
-  Hashtags mentioned in the post, extracted from the post's tag map. Each entry includes the tag name and its canonical hashtag search URL.  Empty when the post is censored and the viewer is neither its author nor a moderator, since hashtags are derived from the censored content.
+  Hashtags mentioned in the post, extracted from the post's tag map. Each entry includes the tag name and its canonical hashtag search URL.  Empty when the post is censored (or it boosts a censored post) and the viewer is neither the content's author nor a moderator, since hashtags are derived from the censored content.
   """
   hashtags: [Hashtag!]!
   id: ID!
@@ -791,7 +791,7 @@ type Article implements Node & Post & Reactable {
   mentions(after: String, before: String, first: Int, last: Int): PostMentionsConnection!
 
   """
-  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.  `null` when the post is censored and the viewer is neither its author nor a moderator.
+  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.  `null` when the post is censored (or it is a boost wrapper of a censored post, whose title it copies) and the viewer is neither the content's author nor a moderator.
   """
   name: String
   published: DateTime!
@@ -849,7 +849,7 @@ type Article implements Node & Post & Reactable {
   sourceId: UUID
 
   """
-  Author-provided or LLM-generated summary of the post. `null` when no summary has been set. For LLM summaries, check `ArticleContent.summary` and `summaryStarted` instead, as those are tracked per language on articles.  `null` when the post is censored and the viewer is neither its author nor a moderator.
+  Author-provided or LLM-generated summary of the post. `null` when no summary has been set. For LLM summaries, check `ArticleContent.summary` and `summaryStarted` instead, as those are tracked per language on articles.  `null` when the post is censored (or it boosts a censored post) and the viewer is neither the content's author nor a moderator.
   """
   summary: String
 
@@ -860,7 +860,7 @@ type Article implements Node & Post & Reactable {
   updated: DateTime!
 
   """
-  The canonical, human-readable URL of this post. For source-backed local posts the path encodes the local source identifier: `Note.sourceId` for notes, `Article.publishedYear` + `Article.slug` for articles, and `Question.sourceId` for questions. It does not encode `Post.uuid`. For federated remote posts and local share wrappers (boosts) this is whatever URL the originating instance advertised (copied from the shared post in the boost case) and is unrelated to the wrapper's own row PK. Prefer this field over hand-building a path from `Post.uuid`: `uuid` is the row PK and does not match the path here for source-backed local posts.  `null` for a censored boost wrapper when the viewer is neither its author nor a moderator, since the wrapper's URL mirrors the boosted post's and would disclose what was boosted.
+  The canonical, human-readable URL of this post. For source-backed local posts the path encodes the local source identifier: `Note.sourceId` for notes, `Article.publishedYear` + `Article.slug` for articles, and `Question.sourceId` for questions. It does not encode `Post.uuid`. For federated remote posts and local share wrappers (boosts) this is whatever URL the originating instance advertised (copied from the shared post in the boost case) and is unrelated to the wrapper's own row PK. Prefer this field over hand-building a path from `Post.uuid`: `uuid` is the row PK and does not match the path here for source-backed local posts.  `null` for a boost wrapper that is censored or boosts a censored post, when the viewer is neither the content's author nor a moderator: the wrapper's URL mirrors the boosted post's and would disclose what was boosted.
   """
   url: URL
 
@@ -2648,23 +2648,23 @@ type Note implements Node & Post & Reactable {
   censored: DateTime
 
   """
-  The post's full HTML content, with custom emoji shortcodes rendered as `<img>` elements and external links annotated with `target="_blank"`. Boost wrappers have empty content; use `sharedPost.content` instead.  Empty when the post is censored and the viewer is neither its author nor a moderator.
+  The post's full HTML content, with custom emoji shortcodes rendered as `<img>` elements and external links annotated with `target="_blank"`. Boost wrappers copy the boosted post's content; prefer `sharedPost.content`.  Empty when the post is censored (or it boosts a censored post) and the viewer is neither the content's author nor a moderator.
   """
   content: HTML!
   engagementStats: PostEngagementStats!
 
   """
-  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.  Empty when the post is censored and the viewer is neither its author nor a moderator.
+  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.  Empty when the post is censored (or it boosts a censored post) and the viewer is neither the content's author nor a moderator.
   """
   excerpt: String!
 
   """
-  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.  Empty when the post is censored and the viewer is neither its author nor a moderator.
+  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.  Empty when the post is censored (or it boosts a censored post) and the viewer is neither the content's author nor a moderator.
   """
   excerptHtml(maxChars: Int!): HTML!
 
   """
-  Hashtags mentioned in the post, extracted from the post's tag map. Each entry includes the tag name and its canonical hashtag search URL.  Empty when the post is censored and the viewer is neither its author nor a moderator, since hashtags are derived from the censored content.
+  Hashtags mentioned in the post, extracted from the post's tag map. Each entry includes the tag name and its canonical hashtag search URL.  Empty when the post is censored (or it boosts a censored post) and the viewer is neither the content's author nor a moderator, since hashtags are derived from the censored content.
   """
   hashtags: [Hashtag!]!
   id: ID!
@@ -2695,7 +2695,7 @@ type Note implements Node & Post & Reactable {
   mentions(after: String, before: String, first: Int, last: Int): PostMentionsConnection!
 
   """
-  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.  `null` when the post is censored and the viewer is neither its author nor a moderator.
+  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.  `null` when the post is censored (or it is a boost wrapper of a censored post, whose title it copies) and the viewer is neither the content's author nor a moderator.
   """
   name: String
   published: DateTime!
@@ -2748,13 +2748,13 @@ type Note implements Node & Post & Reactable {
   sourceId: UUID
 
   """
-  Author-provided or LLM-generated summary of the post. `null` when no summary has been set. For LLM summaries, check `ArticleContent.summary` and `summaryStarted` instead, as those are tracked per language on articles.  `null` when the post is censored and the viewer is neither its author nor a moderator.
+  Author-provided or LLM-generated summary of the post. `null` when no summary has been set. For LLM summaries, check `ArticleContent.summary` and `summaryStarted` instead, as those are tracked per language on articles.  `null` when the post is censored (or it boosts a censored post) and the viewer is neither the content's author nor a moderator.
   """
   summary: String
   updated: DateTime!
 
   """
-  The canonical, human-readable URL of this post. For source-backed local posts the path encodes the local source identifier: `Note.sourceId` for notes, `Article.publishedYear` + `Article.slug` for articles, and `Question.sourceId` for questions. It does not encode `Post.uuid`. For federated remote posts and local share wrappers (boosts) this is whatever URL the originating instance advertised (copied from the shared post in the boost case) and is unrelated to the wrapper's own row PK. Prefer this field over hand-building a path from `Post.uuid`: `uuid` is the row PK and does not match the path here for source-backed local posts.  `null` for a censored boost wrapper when the viewer is neither its author nor a moderator, since the wrapper's URL mirrors the boosted post's and would disclose what was boosted.
+  The canonical, human-readable URL of this post. For source-backed local posts the path encodes the local source identifier: `Note.sourceId` for notes, `Article.publishedYear` + `Article.slug` for articles, and `Question.sourceId` for questions. It does not encode `Post.uuid`. For federated remote posts and local share wrappers (boosts) this is whatever URL the originating instance advertised (copied from the shared post in the boost case) and is unrelated to the wrapper's own row PK. Prefer this field over hand-building a path from `Post.uuid`: `uuid` is the row PK and does not match the path here for source-backed local posts.  `null` for a boost wrapper that is censored or boosts a censored post, when the viewer is neither the content's author nor a moderator: the wrapper's URL mirrors the boosted post's and would disclose what was boosted.
   """
   url: URL
 
@@ -3085,23 +3085,23 @@ interface Post implements Node & Reactable {
   censored: DateTime
 
   """
-  The post's full HTML content, with custom emoji shortcodes rendered as `<img>` elements and external links annotated with `target="_blank"`. Boost wrappers have empty content; use `sharedPost.content` instead.  Empty when the post is censored and the viewer is neither its author nor a moderator.
+  The post's full HTML content, with custom emoji shortcodes rendered as `<img>` elements and external links annotated with `target="_blank"`. Boost wrappers copy the boosted post's content; prefer `sharedPost.content`.  Empty when the post is censored (or it boosts a censored post) and the viewer is neither the content's author nor a moderator.
   """
   content: HTML!
   engagementStats: PostEngagementStats!
 
   """
-  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.  Empty when the post is censored and the viewer is neither its author nor a moderator.
+  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.  Empty when the post is censored (or it boosts a censored post) and the viewer is neither the content's author nor a moderator.
   """
   excerpt: String!
 
   """
-  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.  Empty when the post is censored and the viewer is neither its author nor a moderator.
+  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.  Empty when the post is censored (or it boosts a censored post) and the viewer is neither the content's author nor a moderator.
   """
   excerptHtml(maxChars: Int!): HTML!
 
   """
-  Hashtags mentioned in the post, extracted from the post's tag map. Each entry includes the tag name and its canonical hashtag search URL.  Empty when the post is censored and the viewer is neither its author nor a moderator, since hashtags are derived from the censored content.
+  Hashtags mentioned in the post, extracted from the post's tag map. Each entry includes the tag name and its canonical hashtag search URL.  Empty when the post is censored (or it boosts a censored post) and the viewer is neither the content's author nor a moderator, since hashtags are derived from the censored content.
   """
   hashtags: [Hashtag!]!
   id: ID!
@@ -3132,7 +3132,7 @@ interface Post implements Node & Reactable {
   mentions(after: String, before: String, first: Int, last: Int): PostMentionsConnection!
 
   """
-  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.  `null` when the post is censored and the viewer is neither its author nor a moderator.
+  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.  `null` when the post is censored (or it is a boost wrapper of a censored post, whose title it copies) and the viewer is neither the content's author nor a moderator.
   """
   name: String
   published: DateTime!
@@ -3175,13 +3175,13 @@ interface Post implements Node & Reactable {
   shares(after: String, before: String, first: Int, last: Int): PostSharesConnection!
 
   """
-  Author-provided or LLM-generated summary of the post. `null` when no summary has been set. For LLM summaries, check `ArticleContent.summary` and `summaryStarted` instead, as those are tracked per language on articles.  `null` when the post is censored and the viewer is neither its author nor a moderator.
+  Author-provided or LLM-generated summary of the post. `null` when no summary has been set. For LLM summaries, check `ArticleContent.summary` and `summaryStarted` instead, as those are tracked per language on articles.  `null` when the post is censored (or it boosts a censored post) and the viewer is neither the content's author nor a moderator.
   """
   summary: String
   updated: DateTime!
 
   """
-  The canonical, human-readable URL of this post. For source-backed local posts the path encodes the local source identifier: `Note.sourceId` for notes, `Article.publishedYear` + `Article.slug` for articles, and `Question.sourceId` for questions. It does not encode `Post.uuid`. For federated remote posts and local share wrappers (boosts) this is whatever URL the originating instance advertised (copied from the shared post in the boost case) and is unrelated to the wrapper's own row PK. Prefer this field over hand-building a path from `Post.uuid`: `uuid` is the row PK and does not match the path here for source-backed local posts.  `null` for a censored boost wrapper when the viewer is neither its author nor a moderator, since the wrapper's URL mirrors the boosted post's and would disclose what was boosted.
+  The canonical, human-readable URL of this post. For source-backed local posts the path encodes the local source identifier: `Note.sourceId` for notes, `Article.publishedYear` + `Article.slug` for articles, and `Question.sourceId` for questions. It does not encode `Post.uuid`. For federated remote posts and local share wrappers (boosts) this is whatever URL the originating instance advertised (copied from the shared post in the boost case) and is unrelated to the wrapper's own row PK. Prefer this field over hand-building a path from `Post.uuid`: `uuid` is the row PK and does not match the path here for source-backed local posts.  `null` for a boost wrapper that is censored or boosts a censored post, when the viewer is neither the content's author nor a moderator: the wrapper's URL mirrors the boosted post's and would disclose what was boosted.
   """
   url: URL
 
@@ -3918,17 +3918,17 @@ type Question implements Node & Post & Reactable {
   engagementStats: PostEngagementStats!
 
   """
-  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.  Empty when the post is censored and the viewer is neither its author nor a moderator.
+  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.  Empty when the post is censored (or it boosts a censored post) and the viewer is neither the content's author nor a moderator.
   """
   excerpt: String!
 
   """
-  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.  Empty when the post is censored and the viewer is neither its author nor a moderator.
+  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.  Empty when the post is censored (or it boosts a censored post) and the viewer is neither the content's author nor a moderator.
   """
   excerptHtml(maxChars: Int!): HTML!
 
   """
-  Hashtags mentioned in the post, extracted from the post's tag map. Each entry includes the tag name and its canonical hashtag search URL.  Empty when the post is censored and the viewer is neither its author nor a moderator, since hashtags are derived from the censored content.
+  Hashtags mentioned in the post, extracted from the post's tag map. Each entry includes the tag name and its canonical hashtag search URL.  Empty when the post is censored (or it boosts a censored post) and the viewer is neither the content's author nor a moderator, since hashtags are derived from the censored content.
   """
   hashtags: [Hashtag!]!
   id: ID!
@@ -3959,7 +3959,7 @@ type Question implements Node & Post & Reactable {
   mentions(after: String, before: String, first: Int, last: Int): PostMentionsConnection!
 
   """
-  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.  `null` when the post is censored and the viewer is neither its author nor a moderator.
+  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.  `null` when the post is censored (or it is a boost wrapper of a censored post, whose title it copies) and the viewer is neither the content's author nor a moderator.
   """
   name: String
 
@@ -4016,7 +4016,7 @@ type Question implements Node & Post & Reactable {
   sourceId: UUID
 
   """
-  Author-provided or LLM-generated summary of the post. `null` when no summary has been set. For LLM summaries, check `ArticleContent.summary` and `summaryStarted` instead, as those are tracked per language on articles.  `null` when the post is censored and the viewer is neither its author nor a moderator.
+  Author-provided or LLM-generated summary of the post. `null` when no summary has been set. For LLM summaries, check `ArticleContent.summary` and `summaryStarted` instead, as those are tracked per language on articles.  `null` when the post is censored (or it boosts a censored post) and the viewer is neither the content's author nor a moderator.
   """
   summary: String
   updated: DateTime!
