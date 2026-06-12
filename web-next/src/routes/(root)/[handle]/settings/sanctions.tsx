@@ -150,7 +150,12 @@ export default function SanctionsPage() {
                           <ul class="divide-y divide-solid">
                             <For each={account.sanctions ?? []}>
                               {(sanction) => {
+                                // A dismissal carries no sanction to appeal
+                                // (it may still appear here when the
+                                // moderator left a message); the server
+                                // rejects appeals on it.
                                 const canAppeal = sanction.appeal == null &&
+                                  sanction.actionType !== "DISMISS" &&
                                   new Date(sanction.appealableUntil) >
                                     new Date();
                                 return (
