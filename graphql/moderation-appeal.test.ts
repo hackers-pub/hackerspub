@@ -898,6 +898,133 @@ test("censored questions hide their polls, even via node lookups", async () => {
   });
 });
 
+test("share wrappers of censored questions are redacted too", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = quietFedCtx(tx);
+    const moderator = await makeModerator(tx, {
+      username: "mod",
+      name: "Mod",
+      email: "mod@example.com",
+    });
+    const reporter = await insertAccountWithActor(tx, {
+      username: "reporter",
+      name: "Reporter",
+      email: "reporter@example.com",
+    });
+    const reported = await insertAccountWithActor(tx, {
+      username: "reported",
+      name: "Reported",
+      email: "reported@example.com",
+    });
+    const question = await createQuestion(
+      fedCtx as unknown as Parameters<typeof createQuestion>[0],
+      {
+        accountId: reported.account.id,
+        visibility: "public",
+        content: "Which option is offensive?",
+        language: "en",
+        media: [],
+        poll: {
+          multiple: false,
+          title: "Which option is offensive?",
+          options: ["Secret option A", "Secret option B"],
+          ends: new Date(Date.now() + 24 * HOUR),
+        },
+      },
+    );
+    assert.ok(question != null);
+    const flag = await createFlag(tx, {
+      reporter: reporter.actor,
+      targetActor: reported.actor,
+      targetPost: question,
+      reason: REASON,
+    });
+    assert.ok(flag != null);
+    const action = await takeModerationAction(fedCtx, {
+      caseId: flag.caseId,
+      moderator,
+      actionType: "censor",
+      violatedProvisions: ["2.3"],
+      rationale: "Censored.",
+    });
+    assert.ok(action != null);
+    // The wrapper denormalizes the Question's content and URL, and the
+    // Question variant has its own content/url field overrides, so the
+    // wrapper-aware redaction must cover them too.
+    const sharer = await insertAccountWithActor(tx, {
+      username: "sharer",
+      name: "Sharer",
+      email: "sharer@example.com",
+    });
+    const wrapperId = generateUuidV7();
+    await tx.insert(postTable).values({
+      id: wrapperId,
+      iri: `http://localhost/ap/announces/${wrapperId}`,
+      type: question.type,
+      visibility: "public",
+      actorId: sharer.actor.id,
+      sharedPostId: question.id,
+      name: question.name,
+      contentHtml: question.contentHtml,
+      language: question.language,
+      tags: {},
+      emojis: question.emojis,
+      sensitive: question.sensitive,
+      url: question.url,
+    });
+    const wrapperQuery = parse(`
+      query WrapperQuestion($id: ID!) {
+        node(id: $id) {
+          ... on Question {
+            content
+            url
+            sharedPost {
+              ... on Question {
+                content
+                poll { options { title } }
+              }
+            }
+          }
+        }
+      }
+    `);
+    const gid = encodeGlobalID("Question", wrapperId);
+    const viewer = await insertAccountWithActor(tx, {
+      username: "viewer",
+      name: "Viewer",
+      email: "viewer@example.com",
+    });
+    const viewerResult = await execute({
+      schema,
+      document: wrapperQuery,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    const viewerNode = (viewerResult.data as any)?.node;
+    assert.ok(viewerNode != null);
+    assert.equal(viewerNode.content, "");
+    assert.equal(viewerNode.url, null);
+    assert.equal(viewerNode.sharedPost?.content, "");
+    assert.equal(viewerNode.sharedPost?.poll ?? null, null);
+    assert.ok(!JSON.stringify(viewerResult.data).includes("offensive"));
+    assert.ok(!JSON.stringify(viewerResult.data).includes("Secret option"));
+
+    // The boosted Question's author still sees the copied content:
+    const authorResult = await execute({
+      schema,
+      document: wrapperQuery,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, reported.account),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    const authorNode = (authorResult.data as any)?.node;
+    assert.match(authorNode?.content ?? "", /offensive/);
+  });
+});
+
 test("suspended actors are flagged on the Actor type", async () => {
   await withRollback(async (tx) => {
     const { reported } = await sanction(tx, "suspend");

@@ -69,7 +69,8 @@ builder.drizzleObjectFields(Question, (t) => ({
     description:
       "The rendered body of the `Question`, excluding poll options. Use " +
       "`Question.poll` to render the voting UI.  Empty when the post is " +
-      "censored and the viewer is neither its author nor a moderator.",
+      "censored (or it boosts a censored post) and the viewer is neither " +
+      "the content's author nor a moderator.",
     select: {
       columns: {
         actorId: true,
@@ -77,6 +78,7 @@ builder.drizzleObjectFields(Question, (t) => ({
         contentHtml: true,
         emojis: true,
       },
+      with: { sharedPost: { columns: { censored: true, actorId: true } } },
     },
     resolve: (post, _, ctx) =>
       isPollCensoredForViewer(post, ctx) ? "" : addExternalLinkTargets(
@@ -99,9 +101,10 @@ builder.drizzleObjectFields(Question, (t) => ({
       "The canonical, human-readable URL of this question. Source-backed " +
       "local Questions encode `Question.sourceId`; federated remote " +
       "Questions and local share wrappers may not share any path token with " +
-      "`Post.uuid`.  `null` for a censored boost wrapper when the viewer " +
-      "is neither its author nor a moderator, since the wrapper's URL " +
-      "mirrors the boosted post's and would disclose what was boosted.",
+      "`Post.uuid`.  `null` for a boost wrapper that is censored or boosts " +
+      "a censored post, when the viewer is neither the content's author " +
+      "nor a moderator: the wrapper's URL mirrors the boosted post's and " +
+      "would disclose what was boosted.",
     select: {
       columns: {
         url: true,
@@ -109,6 +112,7 @@ builder.drizzleObjectFields(Question, (t) => ({
         actorId: true,
         sharedPostId: true,
       },
+      with: { sharedPost: { columns: { censored: true, actorId: true } } },
     },
     resolve: (post, _, ctx) =>
       post.url == null ||
@@ -156,8 +160,10 @@ builder.drizzleObjectFields(Question, (t) => ({
       columns: { actorId: true, censored: true },
       with: { sharedPost: nestedSelect() },
     }),
+    // Row-only check: a wrapper of a censored Question keeps the relation
+    // so the boosted Question redacts itself and exposes `censored`.
     resolve: (question, _, ctx) =>
-      isPollCensoredForViewer(question, ctx) ? null : question.sharedPost,
+      isPollRowCensoredForViewer(question, ctx) ? null : question.sharedPost,
   }),
 }));
 
@@ -434,14 +440,36 @@ async function getViewerPollOptionIndices(
 /**
  * Whether the Question's poll content must be redacted for the current
  * viewer: it is censored, and the viewer is neither its author nor a
- * moderator (mirrors `isCensoredForViewer` in post.ts).
+ * moderator (mirrors `isCensoredForViewer` in post.ts).  Share wrappers
+ * carry denormalized copies of the boosted Question's content and URL,
+ * so a loaded `sharedPost` is checked too, with the exemption following
+ * the boosted post's author.
  */
 function isPollCensoredForViewer(
-  post: { censored: Date | null; actorId: Uuid },
+  post: {
+    censored: Date | null;
+    actorId: Uuid;
+    sharedPost?: { censored: Date | null; actorId: Uuid } | null;
+  },
   ctx: UserContext,
 ): boolean {
-  return post.censored != null &&
-    ctx.account?.actor.id !== post.actorId &&
+  return isPollRowCensoredForViewer(post, ctx) ||
+    post.sharedPost != null &&
+      isPollRowCensoredForViewer(post.sharedPost, ctx);
+}
+
+/**
+ * Like {@link isPollCensoredForViewer}, but considers only the row itself,
+ * ignoring any loaded `sharedPost` (mirrors `isRowCensoredForViewer` in
+ * post.ts); for the `sharedPost` relation, which a wrapper of a censored
+ * Question keeps so the boosted Question redacts itself.
+ */
+function isPollRowCensoredForViewer(
+  row: { censored: Date | null; actorId: Uuid },
+  ctx: UserContext,
+): boolean {
+  return row.censored != null &&
+    ctx.account?.actor.id !== row.actorId &&
     !(ctx.account?.moderator ?? false);
 }
 

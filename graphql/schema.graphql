@@ -3912,7 +3912,7 @@ type Question implements Node & Post & Reactable {
   censored: DateTime
 
   """
-  The rendered body of the `Question`, excluding poll options. Use `Question.poll` to render the voting UI.  Empty when the post is censored and the viewer is neither its author nor a moderator.
+  The rendered body of the `Question`, excluding poll options. Use `Question.poll` to render the voting UI.  Empty when the post is censored (or it boosts a censored post) and the viewer is neither the content's author nor a moderator.
   """
   content: HTML!
   engagementStats: PostEngagementStats!
@@ -4022,7 +4022,7 @@ type Question implements Node & Post & Reactable {
   updated: DateTime!
 
   """
-  The canonical, human-readable URL of this question. Source-backed local Questions encode `Question.sourceId`; federated remote Questions and local share wrappers may not share any path token with `Post.uuid`.  `null` for a censored boost wrapper when the viewer is neither its author nor a moderator, since the wrapper's URL mirrors the boosted post's and would disclose what was boosted.
+  The canonical, human-readable URL of this question. Source-backed local Questions encode `Question.sourceId`; federated remote Questions and local share wrappers may not share any path token with `Post.uuid`.  `null` for a boost wrapper that is censored or boosts a censored post, when the viewer is neither the content's author nor a moderator: the wrapper's URL mirrors the boosted post's and would disclose what was boosted.
   """
   url: URL
 
