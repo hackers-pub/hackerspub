@@ -1106,7 +1106,7 @@ The result of `completeLoginChallenge`: a `Session` on success, or `AccountBanne
 union CompleteLoginChallengeResult = AccountBannedError | Session
 
 """
-The reported content as it looked when the report was filed: evidence that survives even if the reported user edits or deletes the original.  Moderator-only.
+The reported content as it looked when the report was filed: evidence that survives even if the reported user edits or deletes the original.  Moderator-only; a reported moderator cannot access snapshots of their own case.
 """
 type ContentSnapshot implements Node {
   """
@@ -1453,7 +1453,7 @@ type Flag implements Node {
 }
 
 """
-An immutable audit record of a moderator decision on a case.  If a decision changes (e.g. through an appeal), a new action is recorded rather than editing this one.  Moderator-only: the reported user sees the sanitized sanction surface instead, which never names the acting moderator.
+An immutable audit record of a moderator decision on a case.  If a decision changes (e.g. through an appeal), a new action is recorded rather than editing this one.  Moderator-only: the reported user sees the sanitized sanction surface instead, which never names the acting moderator; a reported moderator likewise cannot access actions on their own case through this type.
 """
 type FlagAction implements Node {
   """The decision that was made."""
@@ -1599,7 +1599,7 @@ enum FlagAppealStatus {
 }
 
 """
-A moderation case: all reports against the same target (an actor, or one of their posts) grouped into a single unit of moderator work.  Cases are created automatically by the first report and joined by subsequent ones while open.  Moderator-only.
+A moderation case: all reports against the same target (an actor, or one of their posts) grouped into a single unit of moderator work.  Cases are created automatically by the first report and joined by subsequent ones while open.  Moderator-only; a reported moderator cannot access their own case (reporter anonymity would be broken otherwise).
 """
 type FlagCase implements Node {
   """

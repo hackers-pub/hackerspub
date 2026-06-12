@@ -139,6 +139,15 @@ export const Flag = builder.drizzleNode("flagTable", {
     ) {
       return true;
     }
+    // A reported moderator must not read reports against themselves:
+    // the moderator scope alone would expose the reporters' identities
+    // and wording on their own case.
+    if (
+      ctx.account?.actor != null &&
+      flag.targetActorId === ctx.account.actor.id
+    ) {
+      return false;
+    }
     return { moderator: true };
   },
   // Run the scope when the node itself is resolved, so a third party
@@ -484,8 +493,18 @@ export const ContentSnapshot = builder.drizzleNode("contentSnapshotTable", {
   name: "ContentSnapshot",
   description: "The reported content as it looked when the report was filed: " +
     "evidence that survives even if the reported user edits or deletes " +
-    "the original.  Moderator-only.",
-  authScopes: { moderator: true },
+    "the original.  Moderator-only; a reported moderator cannot access " +
+    "snapshots of their own case.",
+  authScopes: async (snapshot, ctx) => {
+    if (ctx.account?.actor != null) {
+      const flag = await ctx.db.query.flagTable.findFirst({
+        where: { id: snapshot.flagId },
+        columns: { targetActorId: true },
+      });
+      if (flag?.targetActorId === ctx.account.actor.id) return false;
+    }
+    return { moderator: true };
+  },
   runScopesOnType: true,
   id: {
     column: (snapshot) => snapshot.id,
@@ -539,8 +558,18 @@ export const FlagAction = builder.drizzleNode("flagActionTable", {
     "decision changes (e.g. through an appeal), a new action is recorded " +
     "rather than editing this one.  Moderator-only: the reported user " +
     "sees the sanitized sanction surface instead, which never names the " +
-    "acting moderator.",
-  authScopes: { moderator: true },
+    "acting moderator; a reported moderator likewise cannot access " +
+    "actions on their own case through this type.",
+  authScopes: async (action, ctx) => {
+    if (ctx.account?.actor != null) {
+      const flagCase = await ctx.db.query.flagCaseTable.findFirst({
+        where: { id: action.caseId },
+        columns: { targetActorId: true },
+      });
+      if (flagCase?.targetActorId === ctx.account.actor.id) return false;
+    }
+    return { moderator: true };
+  },
   runScopesOnType: true,
   id: {
     column: (action) => action.id,
@@ -610,8 +639,18 @@ export const FlagCase = builder.drizzleNode("flagCaseTable", {
     "A moderation case: all reports against the same target (an actor, " +
     "or one of their posts) grouped into a single unit of moderator " +
     "work.  Cases are created automatically by the first report and " +
-    "joined by subsequent ones while open.  Moderator-only.",
-  authScopes: { moderator: true },
+    "joined by subsequent ones while open.  Moderator-only; a reported " +
+    "moderator cannot access their own case (reporter anonymity would " +
+    "be broken otherwise).",
+  authScopes: (flagCase, ctx) => {
+    if (
+      ctx.account?.actor != null &&
+      flagCase.targetActorId === ctx.account.actor.id
+    ) {
+      return false;
+    }
+    return { moderator: true };
+  },
   runScopesOnType: true,
   id: {
     column: (flagCase) => flagCase.id,
@@ -782,6 +821,8 @@ builder.queryField("moderationCases", (t) =>
     async resolve(_root, args, ctx) {
       if (ctx.session == null || !ctx.account?.moderator) return null;
       const search = args.search?.trim();
+      // A reported moderator must not see their own case in the queue.
+      const viewerActorId = ctx.account.actor.id;
       const connection = await resolveCursorConnection(
         {
           args,
@@ -790,6 +831,7 @@ builder.queryField("moderationCases", (t) =>
         ({ before, after, limit, inverted }: ResolveCursorConnectionArgs) =>
           ctx.db.query.flagCaseTable.findMany({
             where: {
+              targetActorId: { ne: viewerActorId },
               ...(args.status == null
                 ? {}
                 : { status: fromFlagStatus(args.status) }),
@@ -842,8 +884,14 @@ builder.queryField("flagCaseByUuid", (t) =>
     async resolve(query, _root, args, ctx) {
       if (ctx.session == null || !ctx.account?.moderator) return null;
       if (!validateUuid(args.uuid)) return null;
+      // A reported moderator must not look up their own case.
       return await ctx.db.query.flagCaseTable.findFirst(
-        query({ where: { id: args.uuid } }),
+        query({
+          where: {
+            id: args.uuid,
+            targetActorId: { ne: ctx.account.actor.id },
+          },
+        }),
       ) ?? null;
     },
   }));
@@ -897,6 +945,13 @@ builder.mutationField("assignFlagCase", (t) =>
       if (args.moderatorId != null && !validateUuid(args.moderatorId.id)) {
         return null;
       }
+      // A reported moderator cannot act on their own case; behave as if
+      // it does not exist.
+      const flagCase = await ctx.db.query.flagCaseTable.findFirst({
+        where: { id: args.caseId.id as Uuid },
+        columns: { targetActorId: true },
+      });
+      if (flagCase?.targetActorId === ctx.account.actor.id) return null;
       return await assignCase(
         ctx.db,
         args.caseId.id as Uuid,
@@ -936,6 +991,13 @@ builder.mutationField("updateFlagCaseStatus", (t) =>
         throw new InvalidInputError("status");
       }
       if (!validateUuid(args.caseId.id)) return null;
+      // A reported moderator cannot act on their own case; behave as if
+      // it does not exist.
+      const flagCase = await ctx.db.query.flagCaseTable.findFirst({
+        where: { id: args.caseId.id as Uuid },
+        columns: { targetActorId: true },
+      });
+      if (flagCase?.targetActorId === ctx.account.actor.id) return null;
       return await updateCaseStatus(
         ctx.db,
         args.caseId.id as Uuid,
@@ -1028,6 +1090,15 @@ builder.mutationField("takeModerationAction", (t) =>
       }
       if (!ctx.account.moderator) throw new NotAuthorizedError();
       if (!validateUuid(args.caseId.id)) {
+        throw new InvalidInputError("caseId");
+      }
+      // A reported moderator cannot act on their own case; behave as if
+      // it does not exist.
+      const targetCheck = await ctx.db.query.flagCaseTable.findFirst({
+        where: { id: args.caseId.id as Uuid },
+        columns: { targetActorId: true },
+      });
+      if (targetCheck?.targetActorId === ctx.account.actor.id) {
         throw new InvalidInputError("caseId");
       }
       const actionType = fromFlagActionType(args.actionType);
@@ -1148,20 +1219,28 @@ async function sendModerationActionEmail(
   ).href;
   const targetUrl = flagCase.targetPost?.url ??
     flagCase.targetPost?.iri ?? flagCase.targetPostIri;
-  const message = await getModerationActionEmail({
-    locale,
-    to: emails[0].email,
-    action,
-    targetUrl: targetUrl ?? null,
-    appealUrl,
-  });
-  const receipt = await ctx.email.send(message);
-  if (!receipt.successful) {
-    logger.error(
-      "Failed to deliver the moderation action email for action " +
-        "{actionId}: {errors}",
-      { actionId: action.id, errors: receipt.errorMessages },
-    );
+  // Send to every verified address: for a BAN the user cannot sign in,
+  // so this email is the documented appeal channel and must reach
+  // whichever address the user still has access to.
+  const messages = await Promise.all(
+    emails.map(({ email }) =>
+      getModerationActionEmail({
+        locale,
+        to: email,
+        action,
+        targetUrl: targetUrl ?? null,
+        appealUrl,
+      })
+    ),
+  );
+  for await (const receipt of ctx.email.sendMany(messages)) {
+    if (!receipt.successful) {
+      logger.error(
+        "Failed to deliver the moderation action email for action " +
+          "{actionId}: {errors}",
+        { actionId: action.id, errors: receipt.errorMessages },
+      );
+    }
   }
 }
 
@@ -1666,6 +1745,16 @@ builder.mutationField("resolveFlagAppeal", (t) =>
       }
       if (!ctx.account.moderator) throw new NotAuthorizedError();
       if (!validateUuid(args.appealId.id)) {
+        throw new InvalidInputError("appealId");
+      }
+      // A moderator cannot review the appeal of their own sanction
+      // (the appellant is the reported user, so this would be
+      // self-judging); behave as if the appeal does not exist.
+      const appealRow = await ctx.db.query.flagAppealTable.findFirst({
+        where: { id: args.appealId.id as Uuid },
+        columns: { appellantId: true },
+      });
+      if (appealRow?.appellantId === ctx.account.id) {
         throw new InvalidInputError("appealId");
       }
       const result = fromFlagAppealResult(args.result);

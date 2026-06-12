@@ -34,8 +34,14 @@ export async function createFlagReceivedNotifications(
   db: Database,
   flagCase: FlagCase,
 ): Promise<ModerationNotification[]> {
+  // A reported moderator must not learn about reports against
+  // themselves: they are excluded from their own case's notifications
+  // (and from accessing the case, in the GraphQL layer).
   const moderators = await db.query.accountTable.findMany({
-    where: { moderator: true },
+    where: {
+      moderator: true,
+      NOT: { actor: { id: flagCase.targetActorId } },
+    },
     columns: { id: true },
   });
   if (moderators.length < 1) return [];

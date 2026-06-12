@@ -2,7 +2,8 @@ import assert from "node:assert";
 import test from "node:test";
 import { createFlag } from "@hackerspub/models/flag";
 import type { Transaction } from "@hackerspub/models/db";
-import { accountTable } from "@hackerspub/models/schema";
+import { getModerationNotifications } from "@hackerspub/models/moderation-notification";
+import { accountEmailTable, accountTable } from "@hackerspub/models/schema";
 import { encodeGlobalID } from "@pothos/plugin-relay";
 import type { Message } from "@upyo/core";
 import { eq } from "drizzle-orm";
@@ -359,6 +360,180 @@ test("takeModerationAction records a warning and emails the user", async () => {
     assert.match(body, /Please review our code of conduct on harassment\./);
     // The reporter's wording must never reach the reported user:
     assert.ok(!body.includes(REASON));
+  });
+});
+
+test("a reported moderator cannot access or act on their own case", async () => {
+  await withRollback(async (tx) => {
+    const targetMod = await makeModerator(tx, {
+      username: "targetmod",
+      name: "Target Mod",
+      email: "targetmod@example.com",
+    });
+    const otherMod = await makeModerator(tx, {
+      username: "othermod",
+      name: "Other Mod",
+      email: "othermod@example.com",
+    });
+    const reporter = await insertAccountWithActor(tx, {
+      username: "modreporter",
+      name: "Mod Reporter",
+      email: "modreporter@example.com",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: targetMod,
+      content: "A moderator's offensive post",
+    });
+    const flag = await createFlag(tx, {
+      reporter: reporter.actor,
+      targetActor: targetMod.actor,
+      targetPost: post,
+      reason: REASON,
+    });
+    assert.ok(flag != null);
+
+    // The reported moderator's queue excludes their own case:
+    const queue = await execute({
+      schema,
+      document: casesQuery,
+      variableValues: {},
+      contextValue: makeUserContext(tx, targetMod),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    const edges = (queue.data as any)?.moderationCases?.edges ?? [];
+    assert.ok(
+      // deno-lint-ignore no-explicit-any
+      edges.every((edge: any) => edge.node.uuid !== flag.caseId),
+    );
+
+    // Direct lookups behave as if the case does not exist:
+    const byUuid = await execute({
+      schema,
+      document: caseByUuidQuery,
+      variableValues: { uuid: flag.caseId },
+      contextValue: makeUserContext(tx, targetMod),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    assert.equal((byUuid.data as any)?.flagCaseByUuid ?? null, null);
+    const nodeQuery = parse(`
+      query CaseNode($id: ID!) {
+        node(id: $id) { __typename }
+      }
+    `);
+    const byNode = await execute({
+      schema,
+      document: nodeQuery,
+      variableValues: { id: encodeGlobalID("FlagCase", flag.caseId) },
+      contextValue: makeUserContext(tx, targetMod),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    assert.equal((byNode.data as any)?.node ?? null, null);
+
+    // Acting on the own case is rejected like an unknown case:
+    const acted = await execute({
+      schema,
+      document: takeActionMutation,
+      variableValues: {
+        caseId: encodeGlobalID("FlagCase", flag.caseId),
+        actionType: "DISMISS",
+        rationale: "Trying to dismiss the report against myself.",
+      },
+      contextValue: makeUserContext(tx, targetMod),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(
+      // deno-lint-ignore no-explicit-any
+      (acted.data as any)?.takeModerationAction?.__typename,
+      "InvalidInputError",
+    );
+
+    // The reported moderator got no flag_received notification; the
+    // other moderator did:
+    const targetNotifications = await getModerationNotifications(
+      tx,
+      targetMod.id,
+    );
+    assert.ok(
+      targetNotifications.every((n) => n.type !== "flag_received"),
+    );
+    const otherNotifications = await getModerationNotifications(
+      tx,
+      otherMod.id,
+    );
+    assert.ok(
+      otherNotifications.some(
+        (n) => n.type === "flag_received" && n.caseId === flag.caseId,
+      ),
+    );
+
+    // Another moderator still has full access:
+    const otherView = await execute({
+      schema,
+      document: caseByUuidQuery,
+      variableValues: { uuid: flag.caseId },
+      contextValue: makeUserContext(tx, otherMod),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    assert.equal((otherView.data as any)?.flagCaseByUuid?.uuid, flag.caseId);
+  });
+});
+
+test("sanction emails go to every verified address", async () => {
+  await withRollback(async (tx) => {
+    const { caseId, author } = await seedCase(tx);
+    const now = new Date();
+    await tx.insert(accountEmailTable).values([
+      {
+        email: "author-backup@example.com",
+        accountId: author.account.id,
+        public: false,
+        verified: now,
+        created: now,
+      },
+      // Unverified addresses must not receive moderation mail:
+      {
+        email: "author-unverified@example.com",
+        accountId: author.account.id,
+        public: false,
+        verified: null,
+        created: now,
+      },
+    ]);
+    const moderator = await makeModerator(tx, {
+      username: "mod",
+      name: "Mod",
+      email: "mod@example.com",
+    });
+    const email = createTestEmailTransport();
+    const result = await execute({
+      schema,
+      document: takeActionMutation,
+      variableValues: {
+        caseId: encodeGlobalID("FlagCase", caseId),
+        actionType: "WARNING",
+        violatedProvisions: ["2.3"],
+        rationale: "First offense; education preferred.",
+        messageToUser: "Please review our code of conduct on harassment.",
+      },
+      contextValue: makeUserContext(tx, moderator, {
+        email: email.transport,
+      }),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(result.errors, undefined);
+    const recipients = email.messages
+      .flatMap((message) =>
+        (message as Message).recipients.map((r) => r.address)
+      )
+      .sort();
+    assert.deepEqual(recipients, [
+      "author-backup@example.com",
+      "author@example.com",
+    ]);
   });
 });
 
