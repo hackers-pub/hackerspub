@@ -36,6 +36,7 @@ function censoredNoticeText(t: State["t"]): string {
  */
 export function redactCensoredPost<
   T extends Post & {
+    actor?: Pick<Actor, "accountId" | "handle">;
     mentions?: unknown[];
     media?: unknown[];
     link?: unknown;
@@ -56,6 +57,14 @@ export function redactCensoredPost<
     quotedPostId: null,
     quoteAuthorizationIri: null,
     quoteTargetState: null,
+    // A remote post's `url`/`iri` point at the remote origin, where the
+    // content lives uncensored; components fall back from `url` to `iri`
+    // for display links, so both are replaced with the local permalink
+    // path (which renders this notice).  A local post's own links already
+    // lead to local pages showing the notice.
+    ...(post.actor != null && post.actor.accountId == null
+      ? { url: null, iri: `/${post.actor.handle}/${post.id}` }
+      : {}),
     // A censored share wrapper must not point at the boosted post (the
     // share itself is the censored content); mirrors the GraphQL layer's
     // `Post.url` rule.

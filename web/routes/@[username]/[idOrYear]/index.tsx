@@ -104,7 +104,12 @@ export const handler = define.handlers({
       if (result == null) return ctx.next();
       if (ctx.state.account == null) {
         const original = result.sharedPost ?? result;
-        return ctx.redirect(original.url ?? original.iri, 301);
+        // A censored post (or a boost of one) must not disclose its
+        // target via the redirect; fall through to the local rendering,
+        // which replaces the content with a censorship notice.
+        if (result.censored == null && original.censored == null) {
+          return ctx.redirect(original.url ?? original.iri, 301);
+        }
       }
       post = result;
       if (ctx.url.searchParams.has("refresh") && ctx.state.account?.moderator) {
@@ -433,7 +438,10 @@ export const handler = define.handlers({
         ? ctx.state.fedCtx.getObjectUri(vocab.Question, {
           id: targetPost.noteSourceId,
         })
-        : new URL(targetPost.iri);
+        // The base matters for redacted remote posts, whose `iri` is
+        // replaced with a local permalink path (the URI is not shown for
+        // them; see the censored guard around the remote-reply text).
+        : new URL(targetPost.iri, ctx.state.canonicalOrigin);
     return page<NotePageProps>(
       {
         post,
@@ -642,21 +650,25 @@ export default define.page<typeof handler, NotePageProps>(
           signedAccount={state.account}
         />
         {state.account == null
-          ? (
-            <>
-              <hr class="my-4 ml-14 opacity-50 dark:opacity-25" />
-              <p class="mt-4 leading-7 ml-14 text-stone-500 dark:text-stone-400 break-words">
-                <Msg
-                  $key="note.remoteReplyDescription"
-                  permalink={
-                    <span class="font-bold border-dashed border-b-[1px] select-all text-stone-950 dark:text-stone-50">
-                      {activityPubUri.href}
-                    </span>
-                  }
-                />
-              </p>
-            </>
-          )
+          ? targetPost.censored != null
+            // The remote-reply instruction would disclose the censored
+            // post's ActivityPub URI; guests get no reply affordance here.
+            ? null
+            : (
+              <>
+                <hr class="my-4 ml-14 opacity-50 dark:opacity-25" />
+                <p class="mt-4 leading-7 ml-14 text-stone-500 dark:text-stone-400 break-words">
+                  <Msg
+                    $key="note.remoteReplyDescription"
+                    permalink={
+                      <span class="font-bold border-dashed border-b-[1px] select-all text-stone-950 dark:text-stone-50">
+                        {activityPubUri.href}
+                      </span>
+                    }
+                  />
+                </p>
+              </>
+            )
           : (
             <Composer
               canonicalOrigin={state.canonicalOrigin}
