@@ -1526,13 +1526,17 @@ enum FlagActionType {
 An appeal a sanctioned user filed against a moderation action. Resolvable by the appellant (their own appeal) and by moderators; moderator-only fields (`action`, `appellant`, `reviewer`) carry an additional scope so the appellant cannot reach the case, the other reports, or the moderators through their appeal.
 """
 type FlagAppeal implements Node {
-  """The appealed action, with its full audit context.  Moderator-only."""
+  """
+  The appealed action, with its full audit context.  Moderator-only; a moderator who is themselves the appellant is excluded, like everywhere else on their own case.
+  """
   action: FlagAction!
 
   """Context or evidence the appellant believes was not considered."""
   additionalContext: String
 
-  """The account that filed the appeal.  Moderator-only."""
+  """
+  The account that filed the appeal.  Moderator-only; a moderator who is themselves the appellant is excluded.
+  """
   appellant: Account!
 
   """When the appeal was filed."""
@@ -1554,7 +1558,7 @@ type FlagAppeal implements Node {
   reviewRationale: String
 
   """
-  The moderator who reviewed the appeal; `null` until resolved. Moderator-only: preferably a different moderator than the one who took the original action, and never revealed to the appellant.
+  The moderator who reviewed the appeal; `null` until resolved. Moderator-only: preferably a different moderator than the one who took the original action, and never revealed to the appellant, including an appellant who is themselves a moderator.
   """
   reviewer: Account
 
@@ -3248,7 +3252,7 @@ type PostEngagementStats {
 }
 
 """
-OpenGraph / oEmbed metadata for a link embedded in a post. Populated asynchronously after the post is created; individual fields may be `null` until the metadata fetch completes or if the linked page does not expose the corresponding tag.  Not resolvable via `node(id:)` when every post referencing the link is censored for the viewer: the linked URL is part of the censored content.
+OpenGraph / oEmbed metadata for a link embedded in a post. Populated asynchronously after the post is created; individual fields may be `null` until the metadata fetch completes or if the linked page does not expose the corresponding tag.  Not resolvable via `node(id:)` when every post referencing the link is censored or authored by a sanction-hidden actor, for this viewer: the linked URL is part of the moderation-hidden content.
 """
 type PostLink implements Node {
   """
@@ -3605,7 +3609,7 @@ type Query {
   ): Document!
 
   """
-  Moderator-only queue of appeals against moderation actions, newest first.  Returns `null` for non-moderators; routes should guard with `viewer.moderator`.  Use `status: PENDING` for the open queue.
+  Moderator-only queue of appeals against moderation actions, newest first.  Returns `null` for non-moderators; routes should guard with `viewer.moderator`.  Use `status: PENDING` for the open queue.  A moderator's own appeals are excluded: an appellant cannot review their own appeal, and sees it through `Account.sanctions` instead.
   """
   moderationAppeals(
     after: String

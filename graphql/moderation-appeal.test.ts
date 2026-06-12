@@ -6,7 +6,11 @@ import type { Transaction } from "@hackerspub/models/db";
 import { createArticle } from "@hackerspub/models/article";
 import { createFlag } from "@hackerspub/models/flag";
 import { createQuestion } from "@hackerspub/models/question";
-import { takeModerationAction } from "@hackerspub/models/moderation";
+import {
+  createAppeal,
+  resolveAppeal,
+  takeModerationAction,
+} from "@hackerspub/models/moderation";
 import {
   accountTable,
   actorTable,
@@ -1046,6 +1050,212 @@ test("PostLink nodes of censored posts are not resolvable", async () => {
       // deno-lint-ignore no-explicit-any
       (allowed.data as any)?.node?.url,
       "https://example.com/secret-page",
+    );
+  });
+});
+
+test("PostLink nodes of sanction-hidden actors' posts are not resolvable", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "linkbanned",
+      name: "Link Banned",
+      email: "linkbanned@example.com",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Sharing a link",
+    });
+    const link = await insertPostLink(tx, {
+      url: "https://example.com/hidden-page",
+      title: "Hidden page",
+    });
+    await tx.update(postTable)
+      .set({ linkId: link.id, linkUrl: link.url })
+      .where(eq(postTable.id, post.id));
+    // The only referencing post's author gets banned:
+    await tx.update(actorTable)
+      .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: null })
+      .where(eq(actorTable.accountId, author.account.id));
+    const linkNodeQuery = parse(`
+      query BannedLinkNode($id: ID!) {
+        node(id: $id) {
+          ... on PostLink { url }
+        }
+      }
+    `);
+    const gid = encodeGlobalID("PostLink", link.id);
+    const viewer = await insertAccountWithActor(tx, {
+      username: "banlinkviewer",
+      name: "Ban Link Viewer",
+      email: "banlinkviewer@example.com",
+    });
+    const denied = await execute({
+      schema,
+      document: linkNodeQuery,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    assert.equal((denied.data as any)?.node ?? null, null);
+    // The banned author keeps access to their own post's link:
+    const asAuthor = await execute({
+      schema,
+      document: linkNodeQuery,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, author.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(
+      // deno-lint-ignore no-explicit-any
+      (asAuthor.data as any)?.node?.url,
+      "https://example.com/hidden-page",
+    );
+    // A visible post referencing the same link re-exposes it:
+    const other = await insertAccountWithActor(tx, {
+      username: "banlinkother",
+      name: "Ban Link Other",
+      email: "banlinkother@example.com",
+    });
+    const { post: otherPost } = await insertNotePost(tx, {
+      account: other.account,
+      content: "Same link, visible author",
+    });
+    await tx.update(postTable)
+      .set({ linkId: link.id, linkUrl: link.url })
+      .where(eq(postTable.id, otherPost.id));
+    const allowed = await execute({
+      schema,
+      document: linkNodeQuery,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(
+      // deno-lint-ignore no-explicit-any
+      (allowed.data as any)?.node?.url,
+      "https://example.com/hidden-page",
+    );
+  });
+});
+
+test("a moderator-appellant cannot see their appeal's moderator-only fields", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = quietFedCtx(tx);
+    const actingMod = await makeModerator(tx, {
+      username: "actingmod",
+      name: "Acting Mod",
+      email: "actingmod@example.com",
+    });
+    const targetMod = await makeModerator(tx, {
+      username: "targetmod",
+      name: "Target Mod",
+      email: "targetmod@example.com",
+    });
+    const reporter = await insertAccountWithActor(tx, {
+      username: "appealreporter",
+      name: "Appeal Reporter",
+      email: "appealreporter@example.com",
+    });
+    const { post } = await insertNotePost(tx, { account: targetMod });
+    const flag = await createFlag(tx, {
+      reporter: reporter.actor,
+      targetActor: targetMod.actor,
+      targetPost: post,
+      reason: REASON,
+    });
+    assert.ok(flag != null);
+    const action = await takeModerationAction(fedCtx, {
+      caseId: flag.caseId,
+      moderator: actingMod,
+      actionType: "warning",
+      violatedProvisions: ["2.3"],
+      rationale: "Internal rationale.",
+    });
+    assert.ok(action != null);
+    const appeal = await createAppeal(tx, {
+      actionId: action.id,
+      appellant: targetMod,
+      reason: "I believe this warning is unjust.",
+    });
+    assert.ok(appeal != null);
+    const resolved = await resolveAppeal(tx, {
+      appealId: appeal.id,
+      reviewer: actingMod,
+      result: "dismissed",
+      reviewRationale: "The warning stands.",
+    });
+    assert.ok(resolved != null);
+
+    const reviewerQuery = parse(`
+      query AppealReviewer($id: ID!) {
+        node(id: $id) {
+          ... on FlagAppeal {
+            reviewRationale
+            reviewer { username }
+          }
+        }
+      }
+    `);
+    const gid = encodeGlobalID("FlagAppeal", appeal.id);
+    // The moderator-appellant sees their own appeal and its rationale,
+    // but not the reviewing moderator:
+    const asAppellant = await execute({
+      schema,
+      document: reviewerQuery,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, targetMod),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    const appellantNode = (asAppellant.data as any)?.node;
+    assert.ok(appellantNode != null);
+    assert.equal(appellantNode.reviewRationale, "The warning stands.");
+    assert.equal(appellantNode.reviewer ?? null, null);
+    // Another moderator still sees the reviewer:
+    const asMod = await execute({
+      schema,
+      document: reviewerQuery,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, actingMod),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(
+      // deno-lint-ignore no-explicit-any
+      (asMod.data as any)?.node?.reviewer?.username,
+      "actingmod",
+    );
+
+    // The moderation queue excludes the moderator-appellant's own appeal
+    // (its moderator-only fields would error there), while another
+    // moderator still sees it:
+    const ownQueue = await execute({
+      schema,
+      document: appealsQuery,
+      variableValues: {},
+      contextValue: makeUserContext(tx, targetMod),
+      onError: "NO_PROPAGATE",
+    });
+    assert.ok(
+      // deno-lint-ignore no-explicit-any
+      ((ownQueue.data as any)?.moderationAppeals?.edges ?? []).every(
+        // deno-lint-ignore no-explicit-any
+        (edge: any) => edge.node.uuid !== appeal.id,
+      ),
+    );
+    const otherQueue = await execute({
+      schema,
+      document: appealsQuery,
+      variableValues: {},
+      contextValue: makeUserContext(tx, actingMod),
+      onError: "NO_PROPAGATE",
+    });
+    assert.ok(
+      // deno-lint-ignore no-explicit-any
+      ((otherQueue.data as any)?.moderationAppeals?.edges ?? []).some(
+        // deno-lint-ignore no-explicit-any
+        (edge: any) => edge.node.uuid === appeal.id,
+      ),
     );
   });
 });

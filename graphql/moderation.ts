@@ -1396,12 +1396,20 @@ export const FlagAppeal = builder.drizzleNode("flagAppealTable", {
     }),
     action: t.relation("action", {
       description: "The appealed action, with its full audit context.  " +
-        "Moderator-only.",
-      authScopes: { moderator: true },
+        "Moderator-only; a moderator who is themselves the appellant is " +
+        "excluded, like everywhere else on their own case.",
+      authScopes: (appeal, _args, ctx) =>
+        ctx.account != null && appeal.appellantId === ctx.account.id
+          ? false
+          : { moderator: true },
     }),
     appellant: t.relation("appellant", {
-      description: "The account that filed the appeal.  Moderator-only.",
-      authScopes: { moderator: true },
+      description: "The account that filed the appeal.  Moderator-only; " +
+        "a moderator who is themselves the appellant is excluded.",
+      authScopes: (appeal, _args, ctx) =>
+        ctx.account != null && appeal.appellantId === ctx.account.id
+          ? false
+          : { moderator: true },
     }),
     reviewer: t.relation("reviewer", {
       nullable: true,
@@ -1409,8 +1417,11 @@ export const FlagAppeal = builder.drizzleNode("flagAppealTable", {
         "The moderator who reviewed the appeal; `null` until resolved. " +
         "Moderator-only: preferably a different moderator than the one " +
         "who took the original action, and never revealed to the " +
-        "appellant.",
-      authScopes: { moderator: true },
+        "appellant, including an appellant who is themselves a moderator.",
+      authScopes: (appeal, _args, ctx) =>
+        ctx.account != null && appeal.appellantId === ctx.account.id
+          ? false
+          : { moderator: true },
     }),
   }),
 });
@@ -1422,7 +1433,9 @@ builder.queryField("moderationAppeals", (t) =>
     description:
       "Moderator-only queue of appeals against moderation actions, newest " +
       "first.  Returns `null` for non-moderators; routes should guard with " +
-      "`viewer.moderator`.  Use `status: PENDING` for the open queue.",
+      "`viewer.moderator`.  Use `status: PENDING` for the open queue.  A " +
+      "moderator's own appeals are excluded: an appellant cannot review " +
+      "their own appeal, and sees it through `Account.sanctions` instead.",
     args: {
       status: t.arg({
         type: FlagAppealStatus,
@@ -1432,6 +1445,10 @@ builder.queryField("moderationAppeals", (t) =>
     },
     async resolve(_root, args, ctx) {
       if (ctx.session == null || !ctx.account?.moderator) return null;
+      // A moderator-appellant must not review (nor break on the
+      // moderator-only fields of) their own appeal in the queue; they
+      // see it through Account.sanctions like any sanctioned user.
+      const viewerAccountId = ctx.account.id;
       return await resolveCursorConnection(
         {
           args,
@@ -1440,6 +1457,7 @@ builder.queryField("moderationAppeals", (t) =>
         ({ before, after, limit, inverted }: ResolveCursorConnectionArgs) =>
           ctx.db.query.flagAppealTable.findMany({
             where: {
+              appellantId: { ne: viewerAccountId },
               ...(args.status == null
                 ? {}
                 : { status: fromFlagAppealStatus(args.status) }),

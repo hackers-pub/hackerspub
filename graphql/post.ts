@@ -4,7 +4,7 @@ import { getLogger } from "@logtape/logtape";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { unreachable } from "@std/assert";
 import { assertNever } from "@std/assert/unstable-never";
-import { and, eq, inArray, isNull, or } from "drizzle-orm";
+import { and, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import { getAvatarUrl } from "@hackerspub/models/account";
 import {
   createArticle,
@@ -77,6 +77,7 @@ import { InvalidPollInputError } from "@hackerspub/models/poll";
 import { createQuestion } from "@hackerspub/models/question";
 import { react, undoReaction } from "@hackerspub/models/reaction";
 import {
+  actorTable,
   articleContentTable,
   articleDraftMediumTable,
   articleDraftTable,
@@ -1652,28 +1653,43 @@ export const PostLink = builder.drizzleNode("postLinkTable", {
     "Populated asynchronously after the post is created; individual " +
     "fields may be `null` until the metadata fetch completes or if the " +
     "linked page does not expose the corresponding tag.  Not resolvable " +
-    "via `node(id:)` when every post referencing the link is censored " +
-    "for the viewer: the linked URL is part of the censored content.",
+    "via `node(id:)` when every post referencing the link is censored or " +
+    "authored by a sanction-hidden actor, for this viewer: the linked " +
+    "URL is part of the moderation-hidden content.",
   authScopes: (link, ctx) => {
     if (ctx.account?.moderator) return true;
     // Link rows are shared across posts referencing the same URL, so the
-    // link counts as censored only when no referencing post still shows
-    // it to this viewer.  Orphan rows with no referencing post (e.g.
-    // news-only links) pass.  Batched through a request-scoped loader so
-    // link-heavy pages (the news list) stay free of per-link lookups.
+    // link counts as hidden only when no referencing post still shows it
+    // to this viewer: a referencing post must be uncensored AND have a
+    // sanction-visible author (the same rule post visibility applies),
+    // or be the viewer's own.  Orphan rows with no referencing post
+    // (e.g. news-only links) pass.  Batched through a request-scoped
+    // loader so link-heavy pages (the news list) stay free of per-link
+    // lookups.
     ctx.postLinkVisibleLoader ??= new DataLoader<Uuid, boolean>(
       async (linkIds) => {
         const ids = [...linkIds];
         const viewerActorId = ctx.account?.actor.id;
+        // NULL-safe raw SQL mirror of isActorSanctionHidden's complement.
+        const shows = and(
+          isNull(postTable.censored),
+          sql`(
+            ${actorTable.suspended} is null
+            or ${actorTable.suspended} > now()
+            or ${actorTable.suspendedUntil} <= now()
+            or (${actorTable.accountId} is not null
+              and ${actorTable.suspendedUntil} > now())
+          )`,
+        )!;
         const visible = await ctx.db
           .selectDistinct({ linkId: postTable.linkId })
           .from(postTable)
+          .innerJoin(actorTable, eq(postTable.actorId, actorTable.id))
           .where(and(
             inArray(postTable.linkId, ids),
-            viewerActorId == null ? isNull(postTable.censored) : or(
-              isNull(postTable.censored),
-              eq(postTable.actorId, viewerActorId),
-            ),
+            viewerActorId == null
+              ? shows
+              : or(eq(postTable.actorId, viewerActorId), shows),
           ));
         const visibleSet = new Set(visible.map((row) => row.linkId));
         if (visibleSet.size === ids.length) return ids.map(() => true);
