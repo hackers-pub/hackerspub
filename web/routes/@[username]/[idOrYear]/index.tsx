@@ -245,9 +245,11 @@ export const handler = define.handlers({
         });
         if (share == null || share.sharedPost == null) return ctx.next();
         post = share;
-        // A censored share wrapper must not disclose what it boosted, so
-        // its own path is kept instead of the boosted post's permalink.
-        postUrl = isPostCensoredFor(share, ctx.state.account)
+        // A censored share wrapper (or a wrapper of a censored post) must
+        // not disclose what it boosted, so its own path is kept instead of
+        // the boosted post's permalink.
+        postUrl = isPostCensoredFor(share, ctx.state.account) ||
+            isPostCensoredFor(share.sharedPost, ctx.state.account)
           ? `/@${ctx.params.username}/${share.id}`
           : share.sharedPost.actor.accountId == null
           ? `/${share.sharedPost.actor.handle}/${share.sharedPostId}`
@@ -301,8 +303,13 @@ export const handler = define.handlers({
       post.sharedPost != null &&
       isPostCensoredFor(post.sharedPost, ctx.state.account)
     ) {
+      // A share wrapper carries denormalized copies of the boosted post's
+      // title/content/URL, so the wrapper is redacted along with the
+      // boosted post; the wrapper→post link is kept so the boosted post's
+      // own notice renders in place of the boost.
       post = {
-        ...post,
+        ...redactCensoredPost(post, ctx.state.t),
+        sharedPostId: post.sharedPostId,
         sharedPost: redactCensoredPost(post.sharedPost, ctx.state.t),
       };
     }

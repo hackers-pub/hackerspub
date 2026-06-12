@@ -126,8 +126,11 @@ export const handler = define.handlers({
       post.sharedPost != null &&
       isPostCensoredFor(post.sharedPost, ctx.state.account)
     ) {
+      // The wrapper carries denormalized copies of the boosted post's
+      // content, so it is redacted along with the boosted post.
       post = {
-        ...post,
+        ...redactCensoredPost(post, ctx.state.t),
+        sharedPostId: post.sharedPostId,
         sharedPost: redactCensoredPost(post.sharedPost, ctx.state.t),
       };
     }
