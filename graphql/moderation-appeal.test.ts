@@ -15,6 +15,7 @@ import {
   accountTable,
   actorTable,
   type FlagActionType,
+  postMediumTable,
   postTable,
 } from "@hackerspub/models/schema";
 import { createSigninToken } from "@hackerspub/models/signin";
@@ -526,6 +527,191 @@ test("censored posts expose the flag and redact content", async () => {
     const authorNode = (authorResult.data as any)?.node;
     assert.ok(authorNode?.censored != null);
     assert.match(authorNode?.content ?? "", /Hello world/);
+  });
+});
+
+test("sanction-hidden authors' posts are redacted via node lookups", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "bannedauthor",
+      name: "Banned Author",
+      email: "bannedauthor@example.com",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Hidden by a ban",
+    });
+    // A visible reply pointing at the post, to exercise the nested
+    // relation path:
+    const replier = await insertAccountWithActor(tx, {
+      username: "bannedreplier",
+      name: "Banned Replier",
+      email: "bannedreplier@example.com",
+    });
+    const { post: reply } = await insertNotePost(tx, {
+      account: replier.account,
+      content: "A visible reply",
+      replyTargetId: post.id,
+    });
+    await tx.update(actorTable)
+      .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: null })
+      .where(eq(actorTable.accountId, author.account.id));
+    const viewer = await insertAccountWithActor(tx, {
+      username: "banpostviewer",
+      name: "Ban Post Viewer",
+      email: "banpostviewer@example.com",
+    });
+
+    // Direct node lookup is redacted:
+    const direct = await execute({
+      schema,
+      document: postQuery,
+      variableValues: { id: encodeGlobalID("Note", post.id) },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    const directNode = (direct.data as any)?.node;
+    assert.ok(directNode != null);
+    assert.equal(directNode.content, "");
+    assert.equal(directNode.excerpt, "");
+    assert.ok(!JSON.stringify(direct.data).includes("Hidden by a ban"));
+
+    // The nested replyTarget relation is redacted too:
+    const nestedQuery = parse(`
+      query ReplyTargetContent($id: ID!) {
+        node(id: $id) {
+          ... on Note {
+            content
+            replyTarget {
+              ... on Note { content excerpt }
+            }
+          }
+        }
+      }
+    `);
+    const nested = await execute({
+      schema,
+      document: nestedQuery,
+      variableValues: { id: encodeGlobalID("Note", reply.id) },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    const nestedNode = (nested.data as any)?.node;
+    assert.match(nestedNode?.content ?? "", /A visible reply/);
+    assert.equal(nestedNode?.replyTarget?.content ?? "", "");
+    assert.ok(!JSON.stringify(nested.data).includes("Hidden by a ban"));
+
+    // A media attachment node of the hidden post is unresolvable too:
+    await tx.insert(postMediumTable).values({
+      postId: post.id,
+      index: 0,
+      type: "image/png",
+      url: "https://example.com/hidden-attachment.png",
+    });
+    const mediumQuery = parse(`
+      query HiddenMedium($id: ID!) {
+        node(id: $id) {
+          ... on PostMedium { url }
+        }
+      }
+    `);
+    const mediumDenied = await execute({
+      schema,
+      document: mediumQuery,
+      variableValues: {
+        id: encodeGlobalID("PostMedium", JSON.stringify([post.id, 0])),
+      },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    assert.equal((mediumDenied.data as any)?.node ?? null, null);
+
+    // The banned author still sees their own content:
+    const own = await execute({
+      schema,
+      document: postQuery,
+      variableValues: { id: encodeGlobalID("Note", post.id) },
+      contextValue: makeUserContext(tx, author.account),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    assert.match((own.data as any)?.node?.content ?? "", /Hidden by a ban/);
+  });
+});
+
+test("sanction-hidden authors' article contents are redacted", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = quietFedCtx(tx);
+    const author = await insertAccountWithActor(tx, {
+      username: "bannedwriter",
+      name: "Banned Writer",
+      email: "bannedwriter@example.com",
+    });
+    const article = await createArticle(fedCtx, {
+      accountId: author.account.id,
+      slug: "soon-hidden-article",
+      title: "Soon hidden article",
+      content: "Original hidden markdown",
+      language: "en",
+      tags: [],
+      allowLlmTranslation: false,
+    });
+    assert.ok(article != null);
+    await tx.update(actorTable)
+      .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: null })
+      .where(eq(actorTable.accountId, author.account.id));
+    const viewer = await insertAccountWithActor(tx, {
+      username: "articleviewer",
+      name: "Article Viewer",
+      email: "articleviewer@example.com",
+    });
+    const articleQuery = parse(`
+      query HiddenArticle($id: ID!) {
+        node(id: $id) {
+          ... on Article {
+            name
+            contents {
+              title
+              content
+              ogImageUrl
+            }
+          }
+        }
+      }
+    `);
+    const gid = encodeGlobalID("Article", article.id);
+    const denied = await execute({
+      schema,
+      document: articleQuery,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    const deniedNode = (denied.data as any)?.node;
+    assert.deepEqual(deniedNode?.contents, []);
+    assert.equal(deniedNode?.name, null);
+    const raw = JSON.stringify(denied.data);
+    assert.ok(!raw.includes("Original hidden markdown"));
+    assert.ok(!raw.includes("Soon hidden article"));
+    // The banned author keeps access:
+    const own = await execute({
+      schema,
+      document: articleQuery,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, author.account),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    const ownNode = (own.data as any)?.node;
+    assert.equal(ownNode?.contents?.length, 1);
+    assert.match(
+      ownNode?.contents?.[0]?.content ?? "",
+      /Original hidden markdown/,
+    );
   });
 });
 

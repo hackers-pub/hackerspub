@@ -66,6 +66,7 @@ import {
   getPostInteractionPolicies,
   getPostVisibilityFilter,
   getSanctionVisibleActorFilter,
+  isActorSanctionHidden,
   isPostVisibleTo,
   normalizeQuotePolicyForVisibility,
   type PostInteractionPolicy,
@@ -192,26 +193,52 @@ builder.objectType(LlmTranslationNotAllowedError, {
 
 /**
  * Whether the post's content must be redacted for the current viewer: it
- * is censored, and the viewer is neither its author nor a moderator.  The
- * permalink itself stays reachable (so a censorship notice can render);
- * only the content-bearing fields are emptied.
+ * is censored, or its author is hidden by a moderation sanction (a banned
+ * local actor, or a remote actor under an active federation block), and
+ * the viewer is neither its author nor a moderator.  The permalink itself
+ * stays reachable (so a censorship notice can render); only the
+ * content-bearing fields are emptied.  List queries exclude such posts
+ * entirely; this redaction covers direct `node(id:)` lookups and nested
+ * relations.
  *
  * Share wrappers carry denormalized copies of the boosted post's title,
- * content, and URL, so when the (loaded) `sharedPost` is censored the
- * wrapper's content is redacted too; there the exemption follows the
- * boosted post's author, not the booster.
+ * content, and URL, so when the (loaded) `sharedPost` is censored or its
+ * author is sanction-hidden the wrapper's content is redacted too; there
+ * the exemption follows the boosted post's author, not the booster.
  */
 function isCensoredForViewer(
   post: {
     censored: Date | null;
     actorId: Uuid;
-    sharedPost?: { censored: Date | null; actorId: Uuid } | null;
+    actor?: SanctionActorColumns | null;
+    sharedPost?: {
+      censored: Date | null;
+      actorId: Uuid;
+      actor?: SanctionActorColumns | null;
+    } | null;
   },
   ctx: UserContext,
 ): boolean {
   return isRowCensoredForViewer(post, ctx) ||
     post.sharedPost != null && isRowCensoredForViewer(post.sharedPost, ctx);
 }
+
+type SanctionActorColumns = Pick<
+  schema.Actor,
+  "accountId" | "suspended" | "suspendedUntil"
+>;
+
+/**
+ * The actor columns the redaction helpers need to evaluate the author's
+ * sanction state; merged into the field selections that call them.
+ */
+const sanctionActorSelection = {
+  columns: {
+    accountId: true,
+    suspended: true,
+    suspendedUntil: true,
+  },
+} as const;
 
 /**
  * Like {@link isCensoredForViewer}, but considers only the row itself,
@@ -221,12 +248,17 @@ function isCensoredForViewer(
  * censored wrapper hides it entirely.
  */
 function isRowCensoredForViewer(
-  row: { censored: Date | null; actorId: Uuid },
+  row: {
+    censored: Date | null;
+    actorId: Uuid;
+    actor?: SanctionActorColumns | null;
+  },
   ctx: UserContext,
 ): boolean {
-  return row.censored != null &&
-    ctx.account?.actor.id !== row.actorId &&
-    !(ctx.account?.moderator ?? false);
+  if (ctx.account?.moderator) return false;
+  if (ctx.account?.actor.id === row.actorId) return false;
+  if (row.censored != null) return true;
+  return row.actor != null && isActorSanctionHidden(row.actor);
 }
 
 export const Post = builder.drizzleInterface("postTable", {
@@ -235,7 +267,13 @@ export const Post = builder.drizzleInterface("postTable", {
     "Abstract base for all content types: `Note` (short microblog posts), " +
     "`Article` (long-form blog posts), and `Question` (polls from federated " +
     "instances). Most timeline and feed queries return this interface; " +
-    "use `__typename` or inline fragments to access type-specific fields.",
+    "use `__typename` or inline fragments to access type-specific fields.  " +
+    "Content-bearing fields are redacted (empty or `null`) when the post " +
+    "is censored or its author is hidden by a moderation sanction (a " +
+    "banned local actor, or a remote actor under an active federation " +
+    "block), unless the viewer is the author or a moderator; list queries " +
+    "exclude such posts entirely, so this matters for direct `node(id:)` " +
+    "lookups and nested relations.",
   interfaces: [Reactable, Node],
   resolveType(post): string {
     switch (post.type) {
@@ -330,12 +368,19 @@ export const Post = builder.drizzleInterface("postTable", {
       nullable: true,
       description: "The post's title. Non-null for `Article`s and local poll " +
         "`Question`s; `null` for `Note`s and boost wrappers.  `null` when " +
-        "the post is censored (or it is a boost wrapper of a censored " +
-        "post, whose title it copies) and the viewer is neither the " +
-        "content's author nor a moderator.",
+        "the post is censored or its author is hidden by a moderation " +
+        "sanction (or it is a boost wrapper of such a post, whose title " +
+        "it copies) and the viewer is neither the content's author nor " +
+        "a moderator.",
       select: {
         columns: { name: true, censored: true, actorId: true },
-        with: { sharedPost: { columns: { censored: true, actorId: true } } },
+        with: {
+          actor: sanctionActorSelection,
+          sharedPost: {
+            columns: { censored: true, actorId: true },
+            with: { actor: sanctionActorSelection },
+          },
+        },
       },
       resolve: (post, _, ctx) =>
         isCensoredForViewer(post, ctx) ? null : post.name,
@@ -348,11 +393,17 @@ export const Post = builder.drizzleInterface("postTable", {
         "when no summary has been set. For LLM summaries, check " +
         "`ArticleContent.summary` and `summaryStarted` instead, as those " +
         "are tracked per language on articles.  `null` when the post is " +
-        "censored (or it boosts a censored post) and the viewer is " +
+        "censored or its author is hidden by a moderation sanction (or it boosts such a post), and the viewer is " +
         "neither the content's author nor a moderator.",
       select: {
         columns: { summary: true, censored: true, actorId: true },
-        with: { sharedPost: { columns: { censored: true, actorId: true } } },
+        with: {
+          actor: sanctionActorSelection,
+          sharedPost: {
+            columns: { censored: true, actorId: true },
+            with: { actor: sanctionActorSelection },
+          },
+        },
       },
       resolve: (post, _, ctx) =>
         isCensoredForViewer(post, ctx) ? null : post.summary,
@@ -364,7 +415,7 @@ export const Post = builder.drizzleInterface("postTable", {
         "rendered as `<img>` elements and external links annotated with " +
         '`target="_blank"`. Boost wrappers copy the boosted post\'s ' +
         "content; prefer `sharedPost.content`.  Empty when the post is " +
-        "censored (or it boosts a censored post) and the viewer is " +
+        "censored or its author is hidden by a moderation sanction (or it boosts such a post), and the viewer is " +
         "neither the content's author nor a moderator.",
       select: {
         columns: {
@@ -376,10 +427,14 @@ export const Post = builder.drizzleInterface("postTable", {
           tags: true,
         },
         with: {
+          actor: sanctionActorSelection,
           mentions: {
             with: { actor: true },
           },
-          sharedPost: { columns: { censored: true, actorId: true } },
+          sharedPost: {
+            columns: { censored: true, actorId: true },
+            with: { actor: sanctionActorSelection },
+          },
         },
       },
       resolve: (post, _, ctx) => {
@@ -399,7 +454,8 @@ export const Post = builder.drizzleInterface("postTable", {
         "Plain-text excerpt of the post. Returns `summary` when set; " +
         "otherwise falls back to the HTML content stripped of tags. " +
         "For a truncated HTML preview, use `excerptHtml` instead.  " +
-        "Empty when the post is censored (or it boosts a censored post) " +
+        "Empty when the post is censored or its author is hidden by a " +
+        "moderation sanction (or it boosts such a post) " +
         "and the viewer is neither the content's author nor a moderator.",
       select: {
         columns: {
@@ -409,7 +465,13 @@ export const Post = builder.drizzleInterface("postTable", {
           contentHtml: true,
           quotedPostId: true,
         },
-        with: { sharedPost: { columns: { censored: true, actorId: true } } },
+        with: {
+          actor: sanctionActorSelection,
+          sharedPost: {
+            columns: { censored: true, actorId: true },
+            with: { actor: sanctionActorSelection },
+          },
+        },
       },
       resolve(post, _, ctx) {
         if (isCensoredForViewer(post, ctx)) return "";
@@ -429,8 +491,9 @@ export const Post = builder.drizzleInterface("postTable", {
         "surrounding card is expected to be the link to the full post. " +
         "This does NOT fall back to `summary`; query `summary` separately " +
         "when you want to display a real (e.g. LLM-generated) summary " +
-        "with its own affordances.  Empty when the post is censored (or " +
-        "it boosts a censored post) and the viewer is neither the " +
+        "with its own affordances.  Empty when the post is censored or " +
+        "its author is hidden by a moderation sanction (or it boosts " +
+        "such a post) and the viewer is neither the " +
         "content's author nor a moderator.",
       args: {
         maxChars: t.arg.int({ required: true }),
@@ -443,7 +506,13 @@ export const Post = builder.drizzleInterface("postTable", {
           emojis: true,
           quotedPostId: true,
         },
-        with: { sharedPost: { columns: { censored: true, actorId: true } } },
+        with: {
+          actor: sanctionActorSelection,
+          sharedPost: {
+            columns: { censored: true, actorId: true },
+            with: { actor: sanctionActorSelection },
+          },
+        },
       },
       resolve(post, args, ctx) {
         if (isCensoredForViewer(post, ctx)) return "";
@@ -477,13 +546,20 @@ export const Post = builder.drizzleInterface("postTable", {
       description:
         "Hashtags mentioned in the post, extracted from the post's tag " +
         "map. Each entry includes the tag name and its canonical hashtag " +
-        "search URL.  Empty when the post is censored (or it boosts a " +
-        "censored post) and the viewer is neither the content's author " +
-        "nor a moderator, since hashtags are derived from the censored " +
+        "search URL.  Empty when the post is censored or its author is " +
+        "hidden by a moderation sanction (or it boosts such a post) and " +
+        "the viewer is neither the content's author nor a moderator, " +
+        "since hashtags are derived from the hidden " +
         "content.",
       select: {
         columns: { tags: true, censored: true, actorId: true },
-        with: { sharedPost: { columns: { censored: true, actorId: true } } },
+        with: {
+          actor: sanctionActorSelection,
+          sharedPost: {
+            columns: { censored: true, actorId: true },
+            with: { actor: sanctionActorSelection },
+          },
+        },
       },
       resolve(post, _, ctx) {
         if (isCensoredForViewer(post, ctx)) return [];
@@ -513,7 +589,8 @@ export const Post = builder.drizzleInterface("postTable", {
         "and is unrelated to the wrapper's own row PK. Prefer this field " +
         "over hand-building a path from `Post.uuid`: `uuid` is the row PK and " +
         "does not match the path here for source-backed local posts.  " +
-        "`null` for a boost wrapper that is censored or boosts a censored " +
+        "`null` for a boost wrapper that is censored or moderation-hidden, " +
+        "or boosts a censored or moderation-hidden " +
         "post, when the viewer is neither the content's author nor a " +
         "moderator: the wrapper's URL mirrors the boosted post's and " +
         "would disclose what was boosted.",
@@ -524,7 +601,13 @@ export const Post = builder.drizzleInterface("postTable", {
           actorId: true,
           sharedPostId: true,
         },
-        with: { sharedPost: { columns: { censored: true, actorId: true } } },
+        with: {
+          actor: sanctionActorSelection,
+          sharedPost: {
+            columns: { censored: true, actorId: true },
+            with: { actor: sanctionActorSelection },
+          },
+        },
       },
       resolve: (post, _, ctx) =>
         post.url == null ||
@@ -542,11 +625,12 @@ export const Post = builder.drizzleInterface("postTable", {
       description:
         "Media attachments on this post, in display order. For federated " +
         "posts the URLs point to the originating instance.  Empty when " +
-        "the post is censored and the viewer is neither its author nor a " +
-        "moderator: attachments are part of the censored content.",
+        "the post is censored or its author is hidden by a moderation " +
+        "sanction, and the viewer is neither the author nor a " +
+        "moderator: attachments are part of the hidden content.",
       select: {
         columns: { censored: true, actorId: true },
-        with: { media: true },
+        with: { actor: sanctionActorSelection, media: true },
       },
       resolve: (post, _, ctx) =>
         isCensoredForViewer(post, ctx) ? [] : post.media,
@@ -557,12 +641,13 @@ export const Post = builder.drizzleInterface("postTable", {
       description:
         "OpenGraph / oEmbed preview for the first link in the post. " +
         "`null` when the post has no links or the metadata has not been " +
-        "fetched yet, and also when the post is censored and the viewer " +
+        "fetched yet, and also when the post is censored or its author " +
+        "is hidden by a moderation sanction, and the viewer " +
         "is neither its author nor a moderator (the linked URL is part " +
         "of the censored content).",
       select: {
         columns: { censored: true, actorId: true },
-        with: { link: true },
+        with: { actor: sanctionActorSelection, link: true },
       },
       resolve: (post, _, ctx) =>
         isCensoredForViewer(post, ctx) ? null : post.link,
@@ -774,11 +859,12 @@ builder.drizzleInterfaceFields(Post, (t) => ({
       "The post being boosted. Non-null only for boost wrapper rows. " +
       "When this is non-null, `content` is empty and `url` mirrors the " +
       "shared post's URL.  `null` when the boost wrapper itself is " +
-      "censored and the viewer is neither its author nor a moderator: " +
+      "censored, or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator: " +
       "what was boosted is the censored content.",
     select: (_, __, nestedSelection) => ({
       columns: { censored: true, actorId: true },
       with: {
+        actor: sanctionActorSelection,
         sharedPost: selectPostRelationWithActor(nestedSelection),
       },
     }),
@@ -810,12 +896,14 @@ builder.drizzleInterfaceFields(Post, (t) => ({
     nullable: true,
     description:
       "The post being quoted inline. `null` for posts that are not " +
-      "quotes, and also when the quoting post is censored and the viewer " +
+      "quotes, and also when the quoting post is censored or its author " +
+      "is hidden by a moderation sanction, and the viewer " +
       "is neither its author nor a moderator: the quoted target is part " +
       "of the censored content.",
     select: (_, __, nestedSelection) => ({
       columns: { censored: true, actorId: true },
       with: {
+        actor: sanctionActorSelection,
         quotedPost: selectPostRelationWithActor(nestedSelection),
       },
     }),
@@ -875,12 +963,14 @@ builder.drizzleInterfaceFields(Post, (t) => ({
     description:
       "Actors explicitly @-mentioned in this post. Does not include " +
       "implicit mentions (e.g., the author of the post being replied to). " +
-      "Empty when the post is censored and the viewer is neither its " +
+      "Empty when the post is censored or its author is hidden by a " +
+      "moderation sanction, and the viewer is neither the " +
       "author nor a moderator, since the mention targets are part of the " +
       "censored content.",
     select: (args, ctx, nestedSelection) => ({
       columns: { censored: true, actorId: true },
       with: {
+        actor: sanctionActorSelection,
         mentions: mentionConnectionHelpers.getQuery(args, ctx, nestedSelection),
       },
     }),
@@ -998,11 +1088,12 @@ export const Article = builder.drizzleNode("postTable", {
       description:
         "Author-assigned tags for this article. `null` for articles " +
         "federated in from remote instances.  Empty when the post is " +
-        "censored and the viewer is neither its author nor a moderator, " +
+        "censored, or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator, " +
         "since the tags are part of the censored content.",
       select: {
         columns: { censored: true, actorId: true },
         with: {
+          actor: sanctionActorSelection,
           articleSource: {
             columns: { tags: true },
           },
@@ -1034,7 +1125,8 @@ export const Article = builder.drizzleNode("postTable", {
         "Pass `language` to get only the best-matching locale (BCP 47 " +
         "negotiation). Pass `includeBeingTranslated: true` to also include " +
         "language versions whose LLM translation is still in progress.  " +
-        "Empty when the article is censored and the viewer is neither " +
+        "Empty when the article is censored or its author is hidden by " +
+        "a moderation sanction, and the viewer is neither " +
         "its author nor a moderator.",
       args: {
         language: t.arg({ type: "Locale", required: false }),
@@ -1051,6 +1143,7 @@ export const Article = builder.drizzleNode("postTable", {
       select: (args) => ({
         columns: { actorId: true, censored: true },
         with: {
+          actor: sanctionActorSelection,
           articleSource: {
             with: {
               contents: args.includeBeingTranslated
@@ -1194,13 +1287,19 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
       type: "String",
       description:
         "The article's title in this language.  Empty when the article " +
-        "is censored and the viewer is neither its author nor a " +
+        "is censored, or its author is hidden by a moderation sanction, " +
+        "and the viewer is neither the author nor a " +
         "moderator.",
       select: {
         columns: { title: true },
         with: {
           source: {
-            with: { post: { columns: { censored: true, actorId: true } } },
+            with: {
+              post: {
+                columns: { censored: true, actorId: true },
+                with: { actor: sanctionActorSelection },
+              },
+            },
           },
         },
       },
@@ -1214,7 +1313,12 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
         columns: { summary: true },
         with: {
           source: {
-            with: { post: { columns: { censored: true, actorId: true } } },
+            with: {
+              post: {
+                columns: { censored: true, actorId: true },
+                with: { actor: sanctionActorSelection },
+              },
+            },
           },
         },
       },
@@ -1223,7 +1327,8 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
           ? null
           : content.summary,
       description:
-        "`null` when the article is censored and the viewer is neither " +
+        "`null` when the article is censored, or its author is hidden by " +
+        "a moderation sanction, and the viewer is neither " +
         "its author nor a moderator.  Otherwise the " +
         "LLM-generated summary for this language version: `null` until " +
         "generation completes. Check `summaryStarted` to distinguish " +
@@ -1241,7 +1346,7 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
       description:
         "Rendered HTML of this language version, with media URLs resolved " +
         "and external links annotated.  Empty when the article is " +
-        "censored and the viewer is neither its author nor a moderator.",
+        "censored, or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator.",
       select: {
         columns: {
           content: true,
@@ -1258,6 +1363,7 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
                   tags: true,
                 },
                 with: {
+                  actor: sanctionActorSelection,
                   mentions: {
                     with: { actor: true },
                   },
@@ -1291,13 +1397,19 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
       type: "Markdown",
       description:
         "The raw markdown content for editing.  Empty when the article " +
-        "is censored and the viewer is neither its author nor a " +
+        "is censored, or its author is hidden by a moderation sanction, " +
+        "and the viewer is neither the author nor a " +
         "moderator.",
       select: {
         columns: { content: true },
         with: {
           source: {
-            with: { post: { columns: { censored: true, actorId: true } } },
+            with: {
+              post: {
+                columns: { censored: true, actorId: true },
+                with: { actor: sanctionActorSelection },
+              },
+            },
           },
         },
       },
@@ -1310,13 +1422,19 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
       type: "JSON",
       description:
         "Table of contents for the article content.  Empty when the " +
-        "article is censored and the viewer is neither its author nor a " +
+        "article is censored, or its author is hidden by a moderation " +
+        "sanction, and the viewer is neither the author nor a " +
         "moderator.",
       select: {
         columns: { content: true, language: true, sourceId: true },
         with: {
           source: {
-            with: { post: { columns: { censored: true, actorId: true } } },
+            with: {
+              post: {
+                columns: { censored: true, actorId: true },
+                with: { actor: sanctionActorSelection },
+              },
+            },
           },
         },
       },
@@ -1364,7 +1482,8 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
       type: "URL",
       nullable: true,
       description: "The generated Open Graph preview image for this language " +
-        "version.  `null` when the article is censored and the viewer " +
+        "version.  `null` when the article is censored, or its author is " +
+        "hidden by a moderation sanction, and the viewer " +
         "is neither its author nor a moderator: the image is rendered " +
         "from the title and excerpt and would otherwise leak censored " +
         "content.",
@@ -1392,7 +1511,10 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
                   emails: true,
                 },
               },
-              post: { columns: { censored: true, actorId: true } },
+              post: {
+                columns: { censored: true, actorId: true },
+                with: { actor: sanctionActorSelection },
+              },
             },
           },
         },
@@ -1534,15 +1656,22 @@ const PostMediumRef = builder.drizzleNode("postMediumTable", {
     "A media attachment on a post. For local posts this refers to an " +
     "uploaded `Medium` stored on this instance; for federated posts the " +
     "`url` points to the remote media URL on the originating instance.  " +
-    "Attachments of a censored post are part of the censored content and " +
-    "are only resolvable by the author and moderators, even through " +
+    "Attachments of a censored post, or of a post whose author is hidden " +
+    "by a moderation sanction, are part of the moderation-hidden content " +
+    "and are only resolvable by the author and moderators, even through " +
     "direct `node(id:)` lookups.",
   authScopes: async (medium, ctx) => {
     const post = await ctx.db.query.postTable.findFirst({
       where: { id: medium.postId },
       columns: { censored: true, actorId: true },
+      with: { actor: sanctionActorSelection },
     });
-    if (post == null || post.censored == null) return true;
+    if (
+      post == null ||
+      post.censored == null && !isActorSanctionHidden(post.actor)
+    ) {
+      return true;
+    }
     if (ctx.account?.actor.id === post.actorId) return true;
     return { moderator: true };
   },

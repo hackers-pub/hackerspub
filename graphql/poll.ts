@@ -2,8 +2,15 @@ import * as vocab from "@fedify/vocab";
 import { renderCustomEmojis } from "@hackerspub/models/emoji";
 import { addExternalLinkTargets } from "@hackerspub/models/html";
 import { vote } from "@hackerspub/models/poll";
-import { isPostVisibleTo, persistPost } from "@hackerspub/models/post";
-import { pollVoteTable } from "@hackerspub/models/schema";
+import {
+  isActorSanctionHidden,
+  isPostVisibleTo,
+  persistPost,
+} from "@hackerspub/models/post";
+import {
+  type Actor as ActorRow,
+  pollVoteTable,
+} from "@hackerspub/models/schema";
 import type { Uuid } from "@hackerspub/models/uuid";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { eq } from "drizzle-orm";
@@ -69,7 +76,7 @@ builder.drizzleObjectFields(Question, (t) => ({
     description:
       "The rendered body of the `Question`, excluding poll options. Use " +
       "`Question.poll` to render the voting UI.  Empty when the post is " +
-      "censored (or it boosts a censored post) and the viewer is neither " +
+      "censored or its author is hidden by a moderation sanction (or it boosts such a post), and the viewer is neither " +
       "the content's author nor a moderator.",
     select: {
       columns: {
@@ -78,7 +85,13 @@ builder.drizzleObjectFields(Question, (t) => ({
         contentHtml: true,
         emojis: true,
       },
-      with: { sharedPost: { columns: { censored: true, actorId: true } } },
+      with: {
+        actor: sanctionActorSelection,
+        sharedPost: {
+          columns: { censored: true, actorId: true },
+          with: { actor: sanctionActorSelection },
+        },
+      },
     },
     resolve: (post, _, ctx) =>
       isPollCensoredForViewer(post, ctx) ? "" : addExternalLinkTargets(
@@ -101,8 +114,9 @@ builder.drizzleObjectFields(Question, (t) => ({
       "The canonical, human-readable URL of this question. Source-backed " +
       "local Questions encode `Question.sourceId`; federated remote " +
       "Questions and local share wrappers may not share any path token with " +
-      "`Post.uuid`.  `null` for a boost wrapper that is censored or boosts " +
-      "a censored post, when the viewer is neither the content's author " +
+      "`Post.uuid`.  `null` for a boost wrapper that is censored or " +
+      "moderation-hidden, or boosts such a post, when the viewer is " +
+      "neither the content's author " +
       "nor a moderator: the wrapper's URL mirrors the boosted post's and " +
       "would disclose what was boosted.",
     select: {
@@ -112,7 +126,13 @@ builder.drizzleObjectFields(Question, (t) => ({
         actorId: true,
         sharedPostId: true,
       },
-      with: { sharedPost: { columns: { censored: true, actorId: true } } },
+      with: {
+        actor: sanctionActorSelection,
+        sharedPost: {
+          columns: { censored: true, actorId: true },
+          with: { actor: sanctionActorSelection },
+        },
+      },
     },
     resolve: (post, _, ctx) =>
       post.url == null ||
@@ -138,11 +158,11 @@ builder.drizzleObjectFields(Question, (t) => ({
     description:
       "The post quoted by this `Question`, if any. Visibility rules still " +
       "apply to the quoted post.  `null` when the quoting `Question` is " +
-      "censored and the viewer is neither its author nor a moderator: " +
+      "censored, or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator: " +
       "the quoted target is part of the censored content.",
     select: (_, __, nestedSelect) => ({
       columns: { actorId: true, censored: true },
-      with: { quotedPost: nestedSelect() },
+      with: { actor: sanctionActorSelection, quotedPost: nestedSelect() },
     }),
     resolve: (question, _, ctx) =>
       isPollCensoredForViewer(question, ctx) ? null : question.quotedPost,
@@ -154,11 +174,12 @@ builder.drizzleObjectFields(Question, (t) => ({
     description:
       "The original post when this row is a local share wrapper. Polls live " +
       "on the original `Question`, not on the wrapper.  `null` when the " +
-      "wrapper itself is censored and the viewer is neither its author " +
-      "nor a moderator: what was boosted is the censored content.",
+      "wrapper itself is censored, or the booster is hidden by a " +
+      "moderation sanction, and the viewer is neither the author nor a " +
+      "moderator: what was boosted is the hidden content.",
     select: (_, __, nestedSelect) => ({
       columns: { actorId: true, censored: true },
-      with: { sharedPost: nestedSelect() },
+      with: { actor: sanctionActorSelection, sharedPost: nestedSelect() },
     }),
     // Row-only check: a wrapper of a censored Question keeps the relation
     // so the boosted Question redacts itself and exposes `censored`.
@@ -171,16 +192,23 @@ const Poll = builder.drizzleNode("pollTable", {
   name: "Poll",
   description:
     "A poll attached to a `Question` post. Contains options, vote counts, " +
-    "and the voting deadline.  When the owning `Question` is censored, the " +
-    "poll (including its option titles) is part of the censored content " +
+    "and the voting deadline.  When the owning `Question` is censored " +
+    "or its author is hidden by a moderation sanction, the poll " +
+    "(including its option titles) is part of the hidden content " +
     "and is only resolvable by the author and moderators, even through " +
     "direct `node(id:)` lookups.",
   authScopes: async (poll, ctx) => {
     const post = await ctx.db.query.postTable.findFirst({
       where: { id: poll.postId },
       columns: { censored: true, actorId: true },
+      with: { actor: sanctionActorSelection },
     });
-    if (post == null || post.censored == null) return true;
+    if (
+      post == null ||
+      post.censored == null && !isActorSanctionHidden(post.actor)
+    ) {
+      return true;
+    }
     if (ctx.account?.actor.id === post.actorId) return true;
     return { moderator: true };
   },
@@ -449,7 +477,12 @@ function isPollCensoredForViewer(
   post: {
     censored: Date | null;
     actorId: Uuid;
-    sharedPost?: { censored: Date | null; actorId: Uuid } | null;
+    actor?: SanctionActorColumns | null;
+    sharedPost?: {
+      censored: Date | null;
+      actorId: Uuid;
+      actor?: SanctionActorColumns | null;
+    } | null;
   },
   ctx: UserContext,
 ): boolean {
@@ -458,6 +491,24 @@ function isPollCensoredForViewer(
       isPollRowCensoredForViewer(post.sharedPost, ctx);
 }
 
+type SanctionActorColumns = Pick<
+  ActorRow,
+  "accountId" | "suspended" | "suspendedUntil"
+>;
+
+/**
+ * The actor columns the redaction helpers need to evaluate the author's
+ * sanction state; merged into the field selections that call them
+ * (mirrors sanctionActorSelection in post.ts).
+ */
+const sanctionActorSelection = {
+  columns: {
+    accountId: true,
+    suspended: true,
+    suspendedUntil: true,
+  },
+} as const;
+
 /**
  * Like {@link isPollCensoredForViewer}, but considers only the row itself,
  * ignoring any loaded `sharedPost` (mirrors `isRowCensoredForViewer` in
@@ -465,12 +516,17 @@ function isPollCensoredForViewer(
  * Question keeps so the boosted Question redacts itself.
  */
 function isPollRowCensoredForViewer(
-  row: { censored: Date | null; actorId: Uuid },
+  row: {
+    censored: Date | null;
+    actorId: Uuid;
+    actor?: SanctionActorColumns | null;
+  },
   ctx: UserContext,
 ): boolean {
-  return row.censored != null &&
-    ctx.account?.actor.id !== row.actorId &&
-    !(ctx.account?.moderator ?? false);
+  if (ctx.account?.moderator) return false;
+  if (ctx.account?.actor.id === row.actorId) return false;
+  if (row.censored != null) return true;
+  return row.actor != null && isActorSanctionHidden(row.actor);
 }
 
 builder.drizzleObjectField(Question, "poll", (t) =>
@@ -482,8 +538,9 @@ builder.drizzleObjectField(Question, "poll", (t) =>
       "Poll data attached to this `Question`, or `null` for shared wrappers " +
       "and Questions whose remote poll data is unavailable. Authenticated " +
       "viewers may trigger a remote backfill for missing poll data.  Also " +
-      "`null` when the Question is censored and the viewer is neither its " +
-      "author nor a moderator (check `censored` to distinguish the " +
+      "`null` when the Question is censored or its author is hidden by " +
+      "a moderation sanction, and the viewer is neither the author nor " +
+      "a moderator (check `censored` to distinguish the " +
       "redaction from unavailable poll data).",
     select: (_, __, nestedSelect) => ({
       columns: {
@@ -494,6 +551,7 @@ builder.drizzleObjectField(Question, "poll", (t) =>
         sharedPostId: true,
       },
       with: {
+        actor: sanctionActorSelection,
         poll: nestedSelect(),
       },
     }),
