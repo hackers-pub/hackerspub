@@ -2385,9 +2385,25 @@ export function isPostVisibleTo(
       blockers: (Blocking & { blocker?: Actor })[];
     };
     mentions: (Mention & { actor?: Actor })[];
+    sharedPost?: (Post & { actor: Actor }) | null;
   },
   actor?: Actor | { iri: string },
 ): boolean {
+  // A share wrapper denormalizes the boosted post's content, so a boost
+  // of a sanction-hidden actor's post is hidden too (when the relation
+  // is loaded).  Checked before the wrapper-author fast path: only the
+  // boosted post's author keeps access, not the booster.
+  if (post.sharedPost?.actor != null) {
+    const sharedAuthor = post.sharedPost.actor;
+    const viewerIsSharedAuthor = actor != null && (
+      "id" in actor
+        ? sharedAuthor.id === actor.id
+        : sharedAuthor.iri === actor.iri
+    );
+    if (!viewerIsSharedAuthor && isActorSanctionHidden(sharedAuthor)) {
+      return false;
+    }
+  }
   if (actor != null) {
     if (
       "id" in actor && post.actor.id === actor.id ||
