@@ -228,6 +228,12 @@ function validateActionInput(options: ActionInputOptions): boolean {
   if (options.actionType !== "dismiss" && provisions.length < 1) {
     return false;
   }
+  // A dismissal confirms no violation; recording provisions on it would
+  // count the dismissed report as a confirmed violation in the
+  // statistics (which unnest violated_provisions across all actions).
+  if (options.actionType === "dismiss" && provisions.length > 0) {
+    return false;
+  }
   if (options.actionType === "suspend") {
     const skewAllowanceMs = 5 * 60 * 1000;
     if (

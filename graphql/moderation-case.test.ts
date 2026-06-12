@@ -363,6 +363,40 @@ test("takeModerationAction records a warning and emails the user", async () => {
   });
 });
 
+test("dismissals reject violated provisions", async () => {
+  await withRollback(async (tx) => {
+    const { caseId } = await seedCase(tx);
+    const moderator = await makeModerator(tx, {
+      username: "mod",
+      name: "Mod",
+      email: "mod@example.com",
+    });
+    const result = await execute({
+      schema,
+      document: takeActionMutation,
+      variableValues: {
+        caseId: encodeGlobalID("FlagCase", caseId),
+        actionType: "DISMISS",
+        violatedProvisions: ["2.3"],
+        rationale: "Dismissing, but with stray provisions ticked.",
+      },
+      contextValue: makeUserContext(tx, moderator),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    const data = (result.data as any)?.takeModerationAction;
+    assert.equal(data?.__typename, "InvalidInputError");
+    assert.equal(data?.inputPath, "violatedProvisions");
+    // The case stays open:
+    const flagCase = await tx.query.flagCaseTable.findFirst({
+      where: {
+        id: caseId as `${string}-${string}-${string}-${string}-${string}`,
+      },
+    });
+    assert.equal(flagCase?.status, "pending");
+  });
+});
+
 test("a reported moderator cannot access or act on their own case", async () => {
   await withRollback(async (tx) => {
     const targetMod = await makeModerator(tx, {

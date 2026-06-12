@@ -323,6 +323,18 @@ describe("takeModerationAction()", () => {
         }),
         undefined,
       );
+      // Provisions on a dismissal: a dismissal confirms no violation, and
+      // recorded provisions would skew the statistics.
+      assert.equal(
+        await takeModerationAction(fedCtx, {
+          caseId: flag.caseId,
+          moderator: moderator.account,
+          actionType: "dismiss",
+          violatedProvisions: ["2.3"],
+          rationale: "Dismissing with stray provisions.",
+        }),
+        undefined,
+      );
       // Suspension without a window, and with an inverted window:
       assert.equal(
         await takeModerationAction(fedCtx, {

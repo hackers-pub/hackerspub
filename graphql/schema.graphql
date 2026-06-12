@@ -2445,7 +2445,7 @@ type Mutation {
     suspensionStarts: DateTime
 
     """
-    The code of conduct provision ids confirmed as violated. Required (non-empty) for every action except `DISMISS`.
+    The code of conduct provision ids confirmed as violated. Required (non-empty) for every action except `DISMISS`, and rejected for `DISMISS` (a dismissal confirms no violation; recorded provisions would skew the statistics).
     """
     violatedProvisions: [String!]
   ): TakeModerationActionResult!

@@ -1049,7 +1049,9 @@ builder.mutationField("takeModerationAction", (t) =>
         required: false,
         description:
           "The code of conduct provision ids confirmed as violated. " +
-          "Required (non-empty) for every action except `DISMISS`.",
+          "Required (non-empty) for every action except `DISMISS`, and " +
+          "rejected for `DISMISS` (a dismissal confirms no violation; " +
+          "recorded provisions would skew the statistics).",
       }),
       rationale: t.arg.string({
         required: true,
@@ -1108,6 +1110,12 @@ builder.mutationField("takeModerationAction", (t) =>
       const actionType = fromFlagActionType(args.actionType);
       const provisions = args.violatedProvisions ?? [];
       if (actionType !== "dismiss" && provisions.length < 1) {
+        throw new InvalidInputError("violatedProvisions");
+      }
+      // A dismissal confirms no violation, so provisions are rejected:
+      // they would skew the statistics, which count provisions across
+      // all recorded actions.
+      if (actionType === "dismiss" && provisions.length > 0) {
         throw new InvalidInputError("violatedProvisions");
       }
       const rationale = args.rationale.trim();
