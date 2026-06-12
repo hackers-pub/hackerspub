@@ -367,7 +367,7 @@ msgstr "通報 {HIGH_PRIORITY_REPORT_COUNT}件以上"
 
 #: src/components/admin/AppealResolveForm.tsx:301
 #: src/components/admin/ModerationActionForm.tsx:303
-#: src/components/NoteComposer.tsx:1662
+#: src/components/NoteComposer.tsx:1664
 msgid "1 day"
 msgstr "1日"
 
@@ -376,11 +376,11 @@ msgstr "1日"
 msgid "1 report"
 msgstr "通報 1件"
 
-#: src/components/NoteComposer.tsx:1678
+#: src/components/NoteComposer.tsx:1680
 msgid "1 week"
 msgstr "1週間"
 
-#: src/components/NoteComposer.tsx:1670
+#: src/components/NoteComposer.tsx:1672
 msgid "3 days"
 msgstr "3日"
 
@@ -433,7 +433,7 @@ msgstr "通報者が転送に同意したため、リモートインスタンス
 msgid "A review rationale is required."
 msgstr "審査理由の入力が必要です。"
 
-#: src/routes/(root)/sign/index.tsx:218
+#: src/routes/(root)/sign/index.tsx:240
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "ログインリンクがメールに送信されました。受信トレイ（または迷惑メールフォルダ）を確認してください。"
 
@@ -503,12 +503,12 @@ msgstr "{0}を追加"
 msgid "Add at least {MIN_POLL_OPTIONS} poll options"
 msgstr "アンケートの選択肢を少なくとも{MIN_POLL_OPTIONS}個追加してください"
 
-#: src/components/NoteComposer.tsx:1611
+#: src/components/NoteComposer.tsx:1613
 msgid "Add option"
 msgstr "選択肢を追加"
 
-#: src/components/NoteComposer.tsx:1479
-#: src/components/NoteComposer.tsx:1480
+#: src/components/NoteComposer.tsx:1481
+#: src/components/NoteComposer.tsx:1482
 msgid "Add poll"
 msgstr "アンケートを追加"
 
@@ -574,11 +574,11 @@ msgid "Also send this report to the remote instance ({0})"
 msgstr "この通報をリモートインスタンス（{0}）にも送信"
 
 #. placeholder {0}: index() + 1
-#: src/components/NoteComposer.tsx:1746
+#: src/components/NoteComposer.tsx:1748
 msgid "Alt text for image {0}"
 msgstr "画像 {0} の代替テキスト"
 
-#: src/components/NoteComposer.tsx:1758
+#: src/components/NoteComposer.tsx:1760
 msgid "Alt text for visually impaired people (required)"
 msgstr "視覚障碍者向けの代替テキスト（必須）"
 
@@ -749,21 +749,21 @@ msgstr "すでに{0}に変更済みのため、再度変更することはでき
 msgid "Assigned to {0}"
 msgstr "{0}に割り当て済み"
 
-#: src/components/NoteComposer.tsx:1468
-#: src/components/NoteComposer.tsx:1469
+#: src/components/NoteComposer.tsx:1470
+#: src/components/NoteComposer.tsx:1471
 msgid "Attach image"
 msgstr "画像を添付"
 
-#: src/routes/(root)/sign/index.tsx:405
+#: src/routes/(root)/sign/index.tsx:442
 msgid "Authenticating…"
 msgstr "認証中…"
 
-#: src/components/NoteComposer.tsx:1777
+#: src/components/NoteComposer.tsx:1779
 msgid "Auto-fill"
 msgstr "自動入力"
 
-#: src/components/NoteComposer.tsx:1770
-#: src/components/NoteComposer.tsx:1771
+#: src/components/NoteComposer.tsx:1772
+#: src/components/NoteComposer.tsx:1773
 msgid "Auto-fill alt text"
 msgstr "代替テキストを自動入力"
 
@@ -878,9 +878,9 @@ msgstr "{0}さんによる記事"
 
 #: src/components/AppealDialog.tsx:187
 #: src/components/article-composer/ArticleComposerActions.tsx:48
-#: src/components/NoteComposer.tsx:1805
-#: src/components/NoteComposer.tsx:1806
-#: src/components/NoteComposer.tsx:1849
+#: src/components/NoteComposer.tsx:1807
+#: src/components/NoteComposer.tsx:1808
+#: src/components/NoteComposer.tsx:1851
 #: src/components/PostActionMenu.tsx:422
 #: src/components/ProfileActionMenu.tsx:503
 #: src/components/ProfileActionMenu.tsx:504
@@ -1002,7 +1002,7 @@ msgid "Compose"
 msgstr "作成"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:65
-#: src/components/NoteComposer.tsx:1416
+#: src/components/NoteComposer.tsx:1417
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:393
 msgid "Content"
 msgstr "内容"
@@ -1088,11 +1088,11 @@ msgstr "招待リンクを作成"
 #: src/components/AppSidebar.tsx:792
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:78
-#: src/components/NoteComposer.tsx:1870
+#: src/components/NoteComposer.tsx:1873
 msgid "Create note"
 msgstr "投稿を作成"
 
-#: src/components/NoteComposer.tsx:1869
+#: src/components/NoteComposer.tsx:1872
 msgid "Create poll"
 msgstr "アンケートを作成"
 
@@ -1113,7 +1113,7 @@ msgstr "{0}に作成"
 msgid "Creating account…"
 msgstr "アカウントを作成中…"
 
-#: src/components/NoteComposer.tsx:1872
+#: src/components/NoteComposer.tsx:1875
 #: src/routes/(root)/[handle]/settings/invite.tsx:852
 msgid "Creating…"
 msgstr "作成中…"
@@ -1136,7 +1136,7 @@ msgstr "カットオフ："
 msgid "CW"
 msgstr "CW"
 
-#: src/components/NoteComposer.tsx:1653
+#: src/components/NoteComposer.tsx:1655
 msgid "Deadline"
 msgstr "締め切り"
 
@@ -1251,7 +1251,7 @@ msgstr "却下"
 msgid "Display name"
 msgstr "名前"
 
-#: src/routes/(root)/sign/index.tsx:411
+#: src/routes/(root)/sign/index.tsx:448
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "アカウントが必要ですか？Hackers' Pubは招待制ですので、友人に招待をお願いしてください。"
 
@@ -1308,7 +1308,7 @@ msgstr "投稿を編集"
 msgid "Email address"
 msgstr "メールアドレス"
 
-#: src/routes/(root)/sign/index.tsx:366
+#: src/routes/(root)/sign/index.tsx:403
 msgid "Email or username"
 msgstr "メールアドレスまたはユーザー名"
 
@@ -1334,7 +1334,7 @@ msgstr "終了予定"
 msgid "Enter your email address below to get started."
 msgstr "以下にメールアドレスを入力して始めましょう。"
 
-#: src/routes/(root)/sign/index.tsx:226
+#: src/routes/(root)/sign/index.tsx:250
 msgid "Enter your email or username below to sign in."
 msgstr "以下にメールアドレスまたはユーザー名を入力してログインしてください。"
 
@@ -1577,11 +1577,11 @@ msgstr "共有の追加読み込みに失敗しました。再試行するには
 msgid "Failed to load more; click to retry"
 msgstr "読み込みに失敗しました。クリックして再試行してください"
 
-#: src/components/NoteComposer.tsx:1308
+#: src/components/NoteComposer.tsx:1309
 msgid "Failed to load post"
 msgstr "コンテンツの読み込みに失敗しました"
 
-#: src/components/NoteComposer.tsx:1359
+#: src/components/NoteComposer.tsx:1360
 msgid "Failed to load quoted post"
 msgstr "引用コンテンツの読み込みに失敗しました"
 
@@ -1846,7 +1846,7 @@ msgstr "書式設定"
 msgid "Forwarded to the remote instance"
 msgstr "リモートインスタンスに転送済み"
 
-#: src/components/NoteComposer.tsx:1796
+#: src/components/NoteComposer.tsx:1798
 msgid "Generating…"
 msgstr "生成中…"
 
@@ -2427,7 +2427,7 @@ msgstr "ニュースを読み込み中…"
 msgid "Loading more…"
 msgstr "さらに読み込んでいます…"
 
-#: src/components/NoteComposer.tsx:1360
+#: src/components/NoteComposer.tsx:1361
 msgid "Loading quoted post…"
 msgstr "引用コンテンツを読み込み中…"
 
@@ -2435,7 +2435,7 @@ msgstr "引用コンテンツを読み込み中…"
 msgid "Loading search results…"
 msgstr "検索結果を読み込み中…"
 
-#: src/components/NoteComposer.tsx:1309
+#: src/components/NoteComposer.tsx:1310
 #: src/routes/(root)/[handle]/drafts/index.tsx:344
 #: src/routes/(root)/sign/up/[token].tsx:465
 msgid "Loading…"
@@ -2462,7 +2462,7 @@ msgid "Markdown guide"
 msgstr "Markdown ガイド"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:90
-#: src/components/NoteComposer.tsx:1527
+#: src/components/NoteComposer.tsx:1529
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:418
 msgid "Markdown supported"
 msgstr "Markdown対応"
@@ -2529,7 +2529,7 @@ msgstr "一番上へ移動"
 msgid "Move up"
 msgstr "上へ移動"
 
-#: src/components/NoteComposer.tsx:1586
+#: src/components/NoteComposer.tsx:1588
 #: src/components/QuestionCard.tsx:477
 msgid "Multiple choice"
 msgstr "複数選択"
@@ -2750,7 +2750,7 @@ msgstr "読み込まれたリアクターはありません。"
 msgid "No shared links yet. Once links start circulating across the fediverse, they will appear here."
 msgstr "共有されたリンクはまだありません。フェディバースでリンクが広がり始めると、ここに表示されます。"
 
-#: src/routes/(root)/sign/index.tsx:223
+#: src/routes/(root)/sign/index.tsx:245
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pubにそのようなアカウントはありません。もう一度お試しください。"
 
@@ -2889,19 +2889,19 @@ msgid "Open in app"
 msgstr "アプリで開く"
 
 #. placeholder {0}: index() + 1
-#: src/components/NoteComposer.tsx:1627
+#: src/components/NoteComposer.tsx:1629
 msgid "Option {0}"
 msgstr "選択肢 {0}"
 
-#: src/components/NoteComposer.tsx:1594
+#: src/components/NoteComposer.tsx:1596
 msgid "Options"
 msgstr "選択肢"
 
-#: src/routes/(root)/sign/index.tsx:392
+#: src/routes/(root)/sign/index.tsx:429
 msgid "Or"
 msgstr "または"
 
-#: src/routes/(root)/sign/index.tsx:422
+#: src/routes/(root)/sign/index.tsx:459
 msgid "Or enter the code from the email"
 msgstr "またはメールのコードを入力してください"
 
@@ -2917,7 +2917,7 @@ msgstr "結果"
 msgid "Page not found"
 msgstr "ページが見つかりません"
 
-#: src/routes/(root)/sign/index.tsx:332
+#: src/routes/(root)/sign/index.tsx:369
 msgid "Passkey authentication failed"
 msgstr "パスキー認証に失敗しました"
 
@@ -3014,7 +3014,7 @@ msgstr "このページにアクセスするにはログインしてください
 msgid "Please sign in to vote"
 msgstr "投票するにはログインしてください"
 
-#: src/components/NoteComposer.tsx:1537
+#: src/components/NoteComposer.tsx:1539
 msgid "Poll"
 msgstr "アンケート"
 
@@ -3042,7 +3042,7 @@ msgstr "アンケートの選択肢は空にできません"
 msgid "Poll options must be unique"
 msgstr "アンケートの選択肢は重複できません"
 
-#: src/components/NoteComposer.tsx:1555
+#: src/components/NoteComposer.tsx:1557
 msgid "Poll title"
 msgstr "アンケートタイトル"
 
@@ -3050,7 +3050,7 @@ msgstr "アンケートタイトル"
 msgid "Poll title cannot be empty"
 msgstr "アンケートタイトルは空にできません"
 
-#: src/components/NoteComposer.tsx:1690
+#: src/components/NoteComposer.tsx:1692
 msgid "Polls cannot be edited after publishing."
 msgstr "アンケートは公開後に編集できません。"
 
@@ -3430,25 +3430,25 @@ msgstr "フォロワーから削除"
 msgid "Remove from sidebar"
 msgstr "サイドバーから削除"
 
-#: src/components/NoteComposer.tsx:1817
-#: src/components/NoteComposer.tsx:1818
+#: src/components/NoteComposer.tsx:1819
+#: src/components/NoteComposer.tsx:1820
 msgid "Remove image"
 msgstr "画像を削除"
 
-#: src/components/NoteComposer.tsx:1636
-#: src/components/NoteComposer.tsx:1637
+#: src/components/NoteComposer.tsx:1638
+#: src/components/NoteComposer.tsx:1639
 msgid "Remove option"
 msgstr "選択肢を削除"
 
-#: src/components/NoteComposer.tsx:1479
-#: src/components/NoteComposer.tsx:1480
-#: src/components/NoteComposer.tsx:1544
-#: src/components/NoteComposer.tsx:1545
+#: src/components/NoteComposer.tsx:1481
+#: src/components/NoteComposer.tsx:1482
+#: src/components/NoteComposer.tsx:1546
+#: src/components/NoteComposer.tsx:1547
 msgid "Remove poll"
 msgstr "アンケートを削除"
 
-#: src/components/NoteComposer.tsx:1407
 #: src/components/NoteComposer.tsx:1408
+#: src/components/NoteComposer.tsx:1409
 msgid "Remove quote"
 msgstr "引用を削除"
 
@@ -3479,7 +3479,7 @@ msgstr "返信"
 msgid "Replying is not available for this post"
 msgstr "このコンテンツには返信できません"
 
-#: src/components/NoteComposer.tsx:1301
+#: src/components/NoteComposer.tsx:1302
 msgid "Replying to"
 msgstr "返信先"
 
@@ -3597,7 +3597,7 @@ msgstr "制裁"
 msgid "Save"
 msgstr "保存"
 
-#: src/components/NoteComposer.tsx:1876
+#: src/components/NoteComposer.tsx:1879
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:529
 msgid "Save changes"
 msgstr "変更を保存"
@@ -3611,7 +3611,7 @@ msgid "Save draft to see preview"
 msgstr "下書きを保存するとプレビューが表示されます"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:36
-#: src/components/NoteComposer.tsx:1877
+#: src/components/NoteComposer.tsx:1880
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:529
 #: src/routes/(root)/[handle]/settings/index.tsx:536
 #: src/routes/(root)/[handle]/settings/language.tsx:201
@@ -3669,7 +3669,7 @@ msgstr "選択肢を選んでください"
 msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."
 msgstr "優先度の高い順に言語を選択してください。コンテンツをあなたの好みに合わせて調整するのに役立ちます。"
 
-#: src/components/NoteComposer.tsx:1569
+#: src/components/NoteComposer.tsx:1571
 msgid "Selection"
 msgstr "選択方式"
 
@@ -3768,7 +3768,7 @@ msgid "Shown to the user"
 msgstr "ユーザーに表示"
 
 #: src/components/AppSidebar.tsx:566
-#: src/routes/(root)/sign/index.tsx:382
+#: src/routes/(root)/sign/index.tsx:419
 msgid "Sign in"
 msgstr "ログイン"
 
@@ -3784,7 +3784,7 @@ msgstr "ログインして投稿"
 msgid "Sign in to vote"
 msgstr "ログインして投票"
 
-#: src/routes/(root)/sign/index.tsx:406
+#: src/routes/(root)/sign/index.tsx:443
 msgid "Sign in with passkey"
 msgstr "パスキーでサインイン"
 
@@ -3801,11 +3801,11 @@ msgstr "登録"
 msgid "Signed in as"
 msgstr "ログイン中："
 
-#: src/routes/(root)/sign/index.tsx:349
+#: src/routes/(root)/sign/index.tsx:386
 msgid "Signing in Hackers' Pub"
 msgstr "Hackers' Pubにログイン"
 
-#: src/routes/(root)/sign/index.tsx:382
+#: src/routes/(root)/sign/index.tsx:419
 msgid "Signing in…"
 msgstr "ログイン中…"
 
@@ -3813,7 +3813,7 @@ msgstr "ログイン中…"
 msgid "Signing up for Hackers' Pub"
 msgstr "Hackers' Pubに登録"
 
-#: src/components/NoteComposer.tsx:1578
+#: src/components/NoteComposer.tsx:1580
 #: src/components/QuestionCard.tsx:477
 msgid "Single choice"
 msgstr "単一選択"
@@ -3842,7 +3842,7 @@ msgstr "{MAX_MEDIA} 枚の上限に達したため、一部の画像をスキッ
 msgid "Something went wrong"
 msgstr "問題が発生しました"
 
-#: src/routes/(root)/sign/index.tsx:228
+#: src/routes/(root)/sign/index.tsx:252
 msgid "Something went wrong—please try again."
 msgstr "問題が発生しました。再度お試しください。"
 
@@ -4127,6 +4127,10 @@ msgstr "Web Push の公開鍵が無効です。"
 msgid "There are no moderation actions on your account."
 msgstr "あなたのアカウントに対するモデレーション対応はありません。"
 
+#: src/routes/(root)/sign/index.tsx:247
+msgid "This account has been permanently suspended and can no longer sign in."
+msgstr "このアカウントは永久停止されており、ログインできません。"
+
 #: src/routes/(root)/tree/index.tsx:124
 msgid "This account is hidden because they want to keep their identity private."
 msgstr "このアカウントは、プライバシー保護のために非表示になっています。"
@@ -4374,7 +4378,7 @@ msgstr "アイコン、ユーザー名、名前、自己紹介、リンクなど
 msgid "Updated {0}"
 msgstr "{0}に更新"
 
-#: src/components/NoteComposer.tsx:1733
+#: src/components/NoteComposer.tsx:1735
 msgid "Upload progress"
 msgstr "アップロードの進捗"
 
@@ -4550,11 +4554,11 @@ msgstr "何がありましたか？"
 msgid "What is Hackers' Pub?"
 msgstr "Hackers' Pubとは？"
 
-#: src/components/NoteComposer.tsx:1562
+#: src/components/NoteComposer.tsx:1564
 msgid "What should people decide?"
 msgstr "何を決めてもらいますか？"
 
-#: src/components/NoteComposer.tsx:1447
+#: src/components/NoteComposer.tsx:1449
 msgid "What's on your mind?"
 msgstr "今何してる？"
 
@@ -4753,7 +4757,7 @@ msgstr "登録したら自動的にお互いをフォローします。"
 msgid "You've been invited to Hackers' Pub"
 msgstr "Hackers' Pubに招待されました"
 
-#: src/components/NoteComposer.tsx:1292
+#: src/components/NoteComposer.tsx:1293
 msgid "Your account is suspended, so you can't post right now. See your sanctions for details and how to appeal."
 msgstr "あなたのアカウントは停止されているため、現在投稿できません。詳細と異議申し立ての方法は制裁履歴をご確認ください。"
 

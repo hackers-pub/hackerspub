@@ -28,7 +28,13 @@ export async function GET({ params, nativeEvent }: APIEvent) {
       mutation: graphql`
       mutation TokenCompleteMutation($token: UUID!, $code: String!) {
         completeLoginChallenge(token: $token, code: $code) {
-          id
+          __typename
+          ... on Session {
+            id
+          }
+          ... on AccountBannedError {
+            since
+          }
         }
       }
     `,
@@ -39,10 +45,19 @@ export async function GET({ params, nativeEvent }: APIEvent) {
       },
     })
   );
-  if (response.completeLoginChallenge == null) {
+  const result = response.completeLoginChallenge;
+  if (result == null) {
     throw new Error("Invalid token or code"); // FIXME
   }
-  const sessionId = response.completeLoginChallenge.id;
+  if (result.__typename === "AccountBannedError") {
+    // A permanently suspended (banned) account cannot sign in; bounce back
+    // to the sign-in page, which surfaces a ban-specific notice.
+    return redirect("/sign?error=banned");
+  }
+  if (result.__typename !== "Session") {
+    throw new Error("Invalid token or code"); // FIXME
+  }
+  const sessionId = result.id;
   setCookie(nativeEvent, "session", sessionId, {
     httpOnly: true,
     path: "/",

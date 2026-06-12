@@ -168,6 +168,16 @@ type AccountArticleDraftsConnectionEdge {
   node: ArticleDraft!
 }
 
+"""
+Returned by `completeLoginChallenge` and `loginByPasskey` when the credential is valid but the account is permanently suspended (banned). It is deliberately distinct from a `null` result (which means the credential itself was wrong) so the client can show a ban-specific message rather than a generic failure. Temporary suspension only restricts writing, not signing in, so it never produces this error.
+"""
+type AccountBannedError {
+  """
+  When the permanent suspension took effect (the banned actor's `suspended` timestamp).
+  """
+  since: DateTime!
+}
+
 type AccountInviteesConnection {
   edges: [AccountInviteesConnectionEdge!]!
   pageInfo: PageInfo!
@@ -1083,6 +1093,11 @@ type CocProvision {
 }
 
 """
+The result of `completeLoginChallenge`: a `Session` on success, or `AccountBannedError` when the credential is valid but the account is permanently suspended (banned). The field itself is `null` when the token does not exist or the code does not match.
+"""
+union CompleteLoginChallengeResult = AccountBannedError | Session
+
+"""
 The reported content as it looked when the report was filed: evidence that survives even if the reported user edits or deletes the original.  Moderator-only.
 """
 type ContentSnapshot implements Node {
@@ -1876,6 +1891,11 @@ enum LlmTranslationNotAllowedReason {
 """A BCP 47-compliant language tag."""
 scalar Locale
 
+"""
+The result of `loginByPasskey`: a `Session` on success, or `AccountBannedError` when the passkey is valid but the account is permanently suspended (banned). The field itself is `null` when passkey verification failed.
+"""
+union LoginByPasskeyResult = AccountBannedError | Session
+
 """A login challenge for an account."""
 type LoginChallenge {
   account: Account!
@@ -2110,7 +2130,7 @@ type Mutation {
   bookmarkPost(input: BookmarkPostInput!): BookmarkPostResult!
 
   """
-  Exchange the `(token, code)` pair from a magic link email for a session. Returns `null` when the challenge does not exist or the code does not match. The returned `Session.id` is the bearer token to include in the `Authorization` header for subsequent authenticated requests.
+  Exchange the `(token, code)` pair from a magic link email for a session. Returns `null` when the challenge does not exist or the code does not match, and `AccountBannedError` when the credential is valid but the account is permanently suspended (banned). The returned `Session.id` is the bearer token to include in the `Authorization` header for subsequent authenticated requests.
   """
   completeLoginChallenge(
     """The code of the login challenge."""
@@ -2118,7 +2138,7 @@ type Mutation {
 
     """The token of the login challenge."""
     token: UUID!
-  ): Session
+  ): CompleteLoginChallengeResult
 
   """Complete the signup process by creating a new account and session."""
   completeSignup(
@@ -2195,7 +2215,7 @@ type Mutation {
   ): LoginResult!
 
   """
-  Authenticate using a WebAuthn passkey. First call `getPasskeyAuthenticationOptions` with a fresh `sessionId` UUID, then pass the authenticator's response back here as `authenticationResponse`. Returns `null` when verification fails.
+  Authenticate using a WebAuthn passkey. First call `getPasskeyAuthenticationOptions` with a fresh `sessionId` UUID, then pass the authenticator's response back here as `authenticationResponse`. Returns `null` when verification fails, and `AccountBannedError` when the passkey is valid but the account is permanently suspended (banned).
   """
   loginByPasskey(
     """WebAuthn authentication response from the client."""
@@ -2204,7 +2224,7 @@ type Mutation {
 
     """Temporary session ID used for authentication options."""
     sessionId: UUID!
-  ): Session
+  ): LoginByPasskeyResult
 
   """
   Initiate passwordless sign-in by username. Sends a magic link to all email addresses on the account. The link embeds `{token}` and `{code}` as URI Template variables in `verifyUrl`. Complete the flow by calling `completeLoginChallenge` with those values.

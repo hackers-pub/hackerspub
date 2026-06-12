@@ -76,7 +76,13 @@ const signByUsernameMutation = graphql`
 const signCompleteMutation = graphql`
   mutation signCompleteMutation($token: UUID!, $code: String!) {
     completeLoginChallenge(token: $token, code: $code) {
-      id
+      __typename
+      ... on Session {
+        id
+      }
+      ... on AccountBannedError {
+        since
+      }
     }
   }
 `;
@@ -90,13 +96,20 @@ const signGetPasskeyAuthenticationOptionsMutation = graphql`
 const signByPasskeyMutation = graphql`
   mutation signByPasskeyMutation($sessionId: UUID!, $authenticationResponse: JSON!) {
     loginByPasskey(sessionId: $sessionId, authenticationResponse: $authenticationResponse) {
-      id
+      __typename
+      ... on Session {
+        id
+      }
+      ... on AccountBannedError {
+        since
+      }
     }
   }
 `;
 
 const enum LoginError {
   ACCOUNT_NOT_FOUND,
+  ACCOUNT_BANNED,
   UNKNOWN,
 }
 
@@ -135,6 +148,15 @@ export default function SignPage() {
   const [autoPasskeyAttempted, setAutoPasskeyAttempted] = createSignal(false);
 
   onMount(() => {
+    // The magic-link route bounces a banned account back here with
+    // `?error=banned`; surface the notice and skip the passkey auto-attempt.
+    const searchParams = location == null
+      ? new URLSearchParams()
+      : new URL(location.href).searchParams;
+    if (searchParams.get("error") === "banned") {
+      setErrorCode(LoginError.ACCOUNT_BANNED);
+      return;
+    }
     // Automatically attempt passkey authentication when page loads
     if (!autoPasskeyAttempted()) {
       setAutoPasskeyAttempted(true);
@@ -221,6 +243,8 @@ export default function SignPage() {
     switch (currentErrorCode) {
       case LoginError.ACCOUNT_NOT_FOUND:
         return t`No such account in Hackers' Pub—please try again.`;
+      case LoginError.ACCOUNT_BANNED:
+        return t`This account has been permanently suspended and can no longer sign in.`;
       case undefined:
       case null:
         return t`Enter your email or username below to sign in.`;
@@ -241,9 +265,12 @@ export default function SignPage() {
             token: token()!,
           },
           async onCompleted(response) {
-            if (response.completeLoginChallenge == null) {
+            const result = response.completeLoginChallenge;
+            if (result?.__typename === "AccountBannedError") {
               setCompleting(false);
-            } else {
+              setToken(undefined);
+              setErrorCode(LoginError.ACCOUNT_BANNED);
+            } else if (result?.__typename === "Session") {
               const searchParams = location == null
                 ? new URLSearchParams()
                 : new URL(location.href).searchParams;
@@ -252,10 +279,13 @@ export default function SignPage() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                  id: response.completeLoginChallenge.id,
+                  id: result.id,
                 }),
               });
               window.location.href = next;
+            } else {
+              // `null` result: the code did not match or the token expired.
+              setCompleting(false);
             }
           },
         });
@@ -312,7 +342,14 @@ export default function SignPage() {
         });
       });
 
-      if (loginResponse.loginByPasskey?.id) {
+      const result = loginResponse.loginByPasskey;
+      if (result?.__typename === "AccountBannedError") {
+        // A valid passkey for a banned account: surface a persistent notice
+        // rather than a generic failure toast, even on the auto-attempt.
+        setErrorCode(LoginError.ACCOUNT_BANNED);
+        return;
+      }
+      if (result?.__typename === "Session" && result.id) {
         const searchParams = location == null
           ? new URLSearchParams()
           : new URL(location.href).searchParams;
@@ -320,7 +357,7 @@ export default function SignPage() {
         await fetch("/sign/session", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: loginResponse.loginByPasskey.id }),
+          body: JSON.stringify({ id: result.id }),
         });
         window.location.href = next;
       } else {

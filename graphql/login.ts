@@ -48,6 +48,31 @@ builder.objectType(AccountNotFoundError, {
   }),
 });
 
+class AccountBannedError extends Error {
+  public constructor(public readonly since: Date) {
+    super(`Account is permanently suspended`);
+  }
+}
+
+builder.objectType(AccountBannedError, {
+  name: "AccountBannedError",
+  description:
+    "Returned by `completeLoginChallenge` and `loginByPasskey` when the " +
+    "credential is valid but the account is permanently suspended (banned). " +
+    "It is deliberately distinct from a `null` result (which means the " +
+    "credential itself was wrong) so the client can show a ban-specific " +
+    "message rather than a generic failure. Temporary suspension only " +
+    "restricts writing, not signing in, so it never produces this error.",
+  fields: (t) => ({
+    since: t.expose("since", {
+      type: "DateTime",
+      description:
+        "When the permanent suspension took effect (the banned actor's " +
+        "`suspended` timestamp).",
+    }),
+  }),
+});
+
 interface LoginChallenge {
   accountId: Uuid;
   token: Uuid;
@@ -237,8 +262,20 @@ builder.mutationFields((t) => ({
     description:
       "Exchange the `(token, code)` pair from a magic link email for a " +
       "session. Returns `null` when the challenge does not exist or the " +
-      "code does not match. The returned `Session.id` is the bearer token " +
-      "to include in the `Authorization` header for subsequent authenticated requests.",
+      "code does not match, and `AccountBannedError` when the credential is " +
+      "valid but the account is permanently suspended (banned). The returned " +
+      "`Session.id` is the bearer token to include in the `Authorization` " +
+      "header for subsequent authenticated requests.",
+    errors: {
+      types: [AccountBannedError],
+      union: {
+        description:
+          "The result of `completeLoginChallenge`: a `Session` on success, " +
+          "or `AccountBannedError` when the credential is valid but the " +
+          "account is permanently suspended (banned). The field itself is " +
+          "`null` when the token does not exist or the code does not match.",
+      },
+    },
     args: {
       token: t.arg({
         type: "UUID",
@@ -259,7 +296,9 @@ builder.mutationFields((t) => ({
         where: { accountId: token.accountId },
         columns: { id: true, suspended: true, suspendedUntil: true },
       });
-      if (actor != null && isActorBanned(actor)) return null;
+      if (actor != null && isActorBanned(actor)) {
+        throw new AccountBannedError(actor.suspended!);
+      }
       const remoteAddr = ctx.connectionInfo?.remoteAddr;
       await deleteSigninToken(ctx.kv, token.token);
       return await createSession(ctx.kv, {
@@ -322,7 +361,19 @@ builder.mutationFields((t) => ({
     description: "Authenticate using a WebAuthn passkey. First call " +
       "`getPasskeyAuthenticationOptions` with a fresh `sessionId` UUID, " +
       "then pass the authenticator's response back here as " +
-      "`authenticationResponse`. Returns `null` when verification fails.",
+      "`authenticationResponse`. Returns `null` when verification fails, and " +
+      "`AccountBannedError` when the passkey is valid but the account is " +
+      "permanently suspended (banned).",
+    errors: {
+      types: [AccountBannedError],
+      union: {
+        description:
+          "The result of `loginByPasskey`: a `Session` on success, or " +
+          "`AccountBannedError` when the passkey is valid but the account " +
+          "is permanently suspended (banned). The field itself is `null` " +
+          "when passkey verification failed.",
+      },
+    },
     args: {
       sessionId: t.arg({
         type: "UUID",
@@ -358,7 +409,9 @@ builder.mutationFields((t) => ({
         where: { accountId: account.id },
         columns: { id: true, suspended: true, suspendedUntil: true },
       });
-      if (actor != null && isActorBanned(actor)) return null;
+      if (actor != null && isActorBanned(actor)) {
+        throw new AccountBannedError(actor.suspended!);
+      }
 
       const remoteAddr = ctx.connectionInfo?.remoteAddr;
       return await createSession(ctx.kv, {

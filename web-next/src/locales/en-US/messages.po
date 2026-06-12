@@ -367,7 +367,7 @@ msgstr "{HIGH_PRIORITY_REPORT_COUNT}+ reports"
 
 #: src/components/admin/AppealResolveForm.tsx:301
 #: src/components/admin/ModerationActionForm.tsx:303
-#: src/components/NoteComposer.tsx:1662
+#: src/components/NoteComposer.tsx:1664
 msgid "1 day"
 msgstr "1 day"
 
@@ -376,11 +376,11 @@ msgstr "1 day"
 msgid "1 report"
 msgstr "1 report"
 
-#: src/components/NoteComposer.tsx:1678
+#: src/components/NoteComposer.tsx:1680
 msgid "1 week"
 msgstr "1 week"
 
-#: src/components/NoteComposer.tsx:1670
+#: src/components/NoteComposer.tsx:1672
 msgid "3 days"
 msgstr "3 days"
 
@@ -433,7 +433,7 @@ msgstr "A reporter opted in to forwarding, so this is sent to the remote instanc
 msgid "A review rationale is required."
 msgstr "A review rationale is required."
 
-#: src/routes/(root)/sign/index.tsx:218
+#: src/routes/(root)/sign/index.tsx:240
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 
@@ -503,12 +503,12 @@ msgstr "Add {0}"
 msgid "Add at least {MIN_POLL_OPTIONS} poll options"
 msgstr "Add at least {MIN_POLL_OPTIONS} poll options"
 
-#: src/components/NoteComposer.tsx:1611
+#: src/components/NoteComposer.tsx:1613
 msgid "Add option"
 msgstr "Add option"
 
-#: src/components/NoteComposer.tsx:1479
-#: src/components/NoteComposer.tsx:1480
+#: src/components/NoteComposer.tsx:1481
+#: src/components/NoteComposer.tsx:1482
 msgid "Add poll"
 msgstr "Add poll"
 
@@ -574,11 +574,11 @@ msgid "Also send this report to the remote instance ({0})"
 msgstr "Also send this report to the remote instance ({0})"
 
 #. placeholder {0}: index() + 1
-#: src/components/NoteComposer.tsx:1746
+#: src/components/NoteComposer.tsx:1748
 msgid "Alt text for image {0}"
 msgstr "Alt text for image {0}"
 
-#: src/components/NoteComposer.tsx:1758
+#: src/components/NoteComposer.tsx:1760
 msgid "Alt text for visually impaired people (required)"
 msgstr "Alt text for visually impaired people (required)"
 
@@ -749,21 +749,21 @@ msgstr "As you have already changed it {0}, you can't change it again."
 msgid "Assigned to {0}"
 msgstr "Assigned to {0}"
 
-#: src/components/NoteComposer.tsx:1468
-#: src/components/NoteComposer.tsx:1469
+#: src/components/NoteComposer.tsx:1470
+#: src/components/NoteComposer.tsx:1471
 msgid "Attach image"
 msgstr "Attach image"
 
-#: src/routes/(root)/sign/index.tsx:405
+#: src/routes/(root)/sign/index.tsx:442
 msgid "Authenticating…"
 msgstr "Authenticating…"
 
-#: src/components/NoteComposer.tsx:1777
+#: src/components/NoteComposer.tsx:1779
 msgid "Auto-fill"
 msgstr "Auto-fill"
 
-#: src/components/NoteComposer.tsx:1770
-#: src/components/NoteComposer.tsx:1771
+#: src/components/NoteComposer.tsx:1772
+#: src/components/NoteComposer.tsx:1773
 msgid "Auto-fill alt text"
 msgstr "Auto-fill alt text"
 
@@ -878,9 +878,9 @@ msgstr "By {0}"
 
 #: src/components/AppealDialog.tsx:187
 #: src/components/article-composer/ArticleComposerActions.tsx:48
-#: src/components/NoteComposer.tsx:1805
-#: src/components/NoteComposer.tsx:1806
-#: src/components/NoteComposer.tsx:1849
+#: src/components/NoteComposer.tsx:1807
+#: src/components/NoteComposer.tsx:1808
+#: src/components/NoteComposer.tsx:1851
 #: src/components/PostActionMenu.tsx:422
 #: src/components/ProfileActionMenu.tsx:503
 #: src/components/ProfileActionMenu.tsx:504
@@ -1002,7 +1002,7 @@ msgid "Compose"
 msgstr "Compose"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:65
-#: src/components/NoteComposer.tsx:1416
+#: src/components/NoteComposer.tsx:1417
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:393
 msgid "Content"
 msgstr "Content"
@@ -1088,11 +1088,11 @@ msgstr "Create invitation link"
 #: src/components/AppSidebar.tsx:792
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:78
-#: src/components/NoteComposer.tsx:1870
+#: src/components/NoteComposer.tsx:1873
 msgid "Create note"
 msgstr "Create note"
 
-#: src/components/NoteComposer.tsx:1869
+#: src/components/NoteComposer.tsx:1872
 msgid "Create poll"
 msgstr "Create poll"
 
@@ -1113,7 +1113,7 @@ msgstr "Created {0}"
 msgid "Creating account…"
 msgstr "Creating account…"
 
-#: src/components/NoteComposer.tsx:1872
+#: src/components/NoteComposer.tsx:1875
 #: src/routes/(root)/[handle]/settings/invite.tsx:852
 msgid "Creating…"
 msgstr "Creating…"
@@ -1136,7 +1136,7 @@ msgstr "Cutoff:"
 msgid "CW"
 msgstr "CW"
 
-#: src/components/NoteComposer.tsx:1653
+#: src/components/NoteComposer.tsx:1655
 msgid "Deadline"
 msgstr "Deadline"
 
@@ -1251,7 +1251,7 @@ msgstr "Dismissed"
 msgid "Display name"
 msgstr "Display name"
 
-#: src/routes/(root)/sign/index.tsx:411
+#: src/routes/(root)/sign/index.tsx:448
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 
@@ -1308,7 +1308,7 @@ msgstr "Edit note"
 msgid "Email address"
 msgstr "Email address"
 
-#: src/routes/(root)/sign/index.tsx:366
+#: src/routes/(root)/sign/index.tsx:403
 msgid "Email or username"
 msgstr "Email or username"
 
@@ -1338,7 +1338,7 @@ msgstr "Ends"
 msgid "Enter your email address below to get started."
 msgstr "Enter your email address below to get started."
 
-#: src/routes/(root)/sign/index.tsx:226
+#: src/routes/(root)/sign/index.tsx:250
 msgid "Enter your email or username below to sign in."
 msgstr "Enter your email or username below to sign in."
 
@@ -1581,11 +1581,11 @@ msgstr "Failed to load more shares; click to retry"
 msgid "Failed to load more; click to retry"
 msgstr "Failed to load more; click to retry"
 
-#: src/components/NoteComposer.tsx:1308
+#: src/components/NoteComposer.tsx:1309
 msgid "Failed to load post"
 msgstr "Failed to load post"
 
-#: src/components/NoteComposer.tsx:1359
+#: src/components/NoteComposer.tsx:1360
 msgid "Failed to load quoted post"
 msgstr "Failed to load quoted post"
 
@@ -1850,7 +1850,7 @@ msgstr "Formatting"
 msgid "Forwarded to the remote instance"
 msgstr "Forwarded to the remote instance"
 
-#: src/components/NoteComposer.tsx:1796
+#: src/components/NoteComposer.tsx:1798
 msgid "Generating…"
 msgstr "Generating…"
 
@@ -2431,7 +2431,7 @@ msgstr "Loading more stories…"
 msgid "Loading more…"
 msgstr "Loading more…"
 
-#: src/components/NoteComposer.tsx:1360
+#: src/components/NoteComposer.tsx:1361
 msgid "Loading quoted post…"
 msgstr "Loading quoted post…"
 
@@ -2439,7 +2439,7 @@ msgstr "Loading quoted post…"
 msgid "Loading search results…"
 msgstr "Loading search results…"
 
-#: src/components/NoteComposer.tsx:1309
+#: src/components/NoteComposer.tsx:1310
 #: src/routes/(root)/[handle]/drafts/index.tsx:344
 #: src/routes/(root)/sign/up/[token].tsx:465
 msgid "Loading…"
@@ -2466,7 +2466,7 @@ msgid "Markdown guide"
 msgstr "Markdown guide"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:90
-#: src/components/NoteComposer.tsx:1527
+#: src/components/NoteComposer.tsx:1529
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:418
 msgid "Markdown supported"
 msgstr "Markdown supported"
@@ -2533,7 +2533,7 @@ msgstr "Move to the top"
 msgid "Move up"
 msgstr "Move up"
 
-#: src/components/NoteComposer.tsx:1586
+#: src/components/NoteComposer.tsx:1588
 #: src/components/QuestionCard.tsx:477
 msgid "Multiple choice"
 msgstr "Multiple choice"
@@ -2754,7 +2754,7 @@ msgstr "No reactors loaded."
 msgid "No shared links yet. Once links start circulating across the fediverse, they will appear here."
 msgstr "No shared links yet. Once links start circulating across the fediverse, they will appear here."
 
-#: src/routes/(root)/sign/index.tsx:223
+#: src/routes/(root)/sign/index.tsx:245
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "No such account in Hackers' Pub—please try again."
 
@@ -2893,19 +2893,19 @@ msgid "Open in app"
 msgstr "Open in app"
 
 #. placeholder {0}: index() + 1
-#: src/components/NoteComposer.tsx:1627
+#: src/components/NoteComposer.tsx:1629
 msgid "Option {0}"
 msgstr "Option {0}"
 
-#: src/components/NoteComposer.tsx:1594
+#: src/components/NoteComposer.tsx:1596
 msgid "Options"
 msgstr "Options"
 
-#: src/routes/(root)/sign/index.tsx:392
+#: src/routes/(root)/sign/index.tsx:429
 msgid "Or"
 msgstr "Or"
 
-#: src/routes/(root)/sign/index.tsx:422
+#: src/routes/(root)/sign/index.tsx:459
 msgid "Or enter the code from the email"
 msgstr "Or enter the code from the email"
 
@@ -2921,7 +2921,7 @@ msgstr "Outcome"
 msgid "Page not found"
 msgstr "Page not found"
 
-#: src/routes/(root)/sign/index.tsx:332
+#: src/routes/(root)/sign/index.tsx:369
 msgid "Passkey authentication failed"
 msgstr "Passkey authentication failed"
 
@@ -3018,7 +3018,7 @@ msgstr "Please sign in to access this page"
 msgid "Please sign in to vote"
 msgstr "Please sign in to vote"
 
-#: src/components/NoteComposer.tsx:1537
+#: src/components/NoteComposer.tsx:1539
 msgid "Poll"
 msgstr "Poll"
 
@@ -3046,7 +3046,7 @@ msgstr "Poll options cannot be empty"
 msgid "Poll options must be unique"
 msgstr "Poll options must be unique"
 
-#: src/components/NoteComposer.tsx:1555
+#: src/components/NoteComposer.tsx:1557
 msgid "Poll title"
 msgstr "Poll title"
 
@@ -3054,7 +3054,7 @@ msgstr "Poll title"
 msgid "Poll title cannot be empty"
 msgstr "Poll title cannot be empty"
 
-#: src/components/NoteComposer.tsx:1690
+#: src/components/NoteComposer.tsx:1692
 msgid "Polls cannot be edited after publishing."
 msgstr "Polls cannot be edited after publishing."
 
@@ -3434,25 +3434,25 @@ msgstr "Remove from followers"
 msgid "Remove from sidebar"
 msgstr "Remove from sidebar"
 
-#: src/components/NoteComposer.tsx:1817
-#: src/components/NoteComposer.tsx:1818
+#: src/components/NoteComposer.tsx:1819
+#: src/components/NoteComposer.tsx:1820
 msgid "Remove image"
 msgstr "Remove image"
 
-#: src/components/NoteComposer.tsx:1636
-#: src/components/NoteComposer.tsx:1637
+#: src/components/NoteComposer.tsx:1638
+#: src/components/NoteComposer.tsx:1639
 msgid "Remove option"
 msgstr "Remove option"
 
-#: src/components/NoteComposer.tsx:1479
-#: src/components/NoteComposer.tsx:1480
-#: src/components/NoteComposer.tsx:1544
-#: src/components/NoteComposer.tsx:1545
+#: src/components/NoteComposer.tsx:1481
+#: src/components/NoteComposer.tsx:1482
+#: src/components/NoteComposer.tsx:1546
+#: src/components/NoteComposer.tsx:1547
 msgid "Remove poll"
 msgstr "Remove poll"
 
-#: src/components/NoteComposer.tsx:1407
 #: src/components/NoteComposer.tsx:1408
+#: src/components/NoteComposer.tsx:1409
 msgid "Remove quote"
 msgstr "Remove quote"
 
@@ -3483,7 +3483,7 @@ msgstr "Reply"
 msgid "Replying is not available for this post"
 msgstr "Replying is not available for this post"
 
-#: src/components/NoteComposer.tsx:1301
+#: src/components/NoteComposer.tsx:1302
 msgid "Replying to"
 msgstr "Replying to"
 
@@ -3601,7 +3601,7 @@ msgstr "Sanctions"
 msgid "Save"
 msgstr "Save"
 
-#: src/components/NoteComposer.tsx:1876
+#: src/components/NoteComposer.tsx:1879
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:529
 msgid "Save changes"
 msgstr "Save changes"
@@ -3615,7 +3615,7 @@ msgid "Save draft to see preview"
 msgstr "Save draft to see preview"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:36
-#: src/components/NoteComposer.tsx:1877
+#: src/components/NoteComposer.tsx:1880
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:529
 #: src/routes/(root)/[handle]/settings/index.tsx:536
 #: src/routes/(root)/[handle]/settings/language.tsx:201
@@ -3673,7 +3673,7 @@ msgstr "Select options"
 msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."
 msgstr "Select your preferred languages in order of preference. This will help tailor content to your preferences."
 
-#: src/components/NoteComposer.tsx:1569
+#: src/components/NoteComposer.tsx:1571
 msgid "Selection"
 msgstr "Selection"
 
@@ -3772,7 +3772,7 @@ msgid "Shown to the user"
 msgstr "Shown to the user"
 
 #: src/components/AppSidebar.tsx:566
-#: src/routes/(root)/sign/index.tsx:382
+#: src/routes/(root)/sign/index.tsx:419
 msgid "Sign in"
 msgstr "Sign in"
 
@@ -3788,7 +3788,7 @@ msgstr "Sign in to post"
 msgid "Sign in to vote"
 msgstr "Sign in to vote"
 
-#: src/routes/(root)/sign/index.tsx:406
+#: src/routes/(root)/sign/index.tsx:443
 msgid "Sign in with passkey"
 msgstr "Sign in with passkey"
 
@@ -3805,11 +3805,11 @@ msgstr "Sign up"
 msgid "Signed in as"
 msgstr "Signed in as"
 
-#: src/routes/(root)/sign/index.tsx:349
+#: src/routes/(root)/sign/index.tsx:386
 msgid "Signing in Hackers' Pub"
 msgstr "Signing in Hackers' Pub"
 
-#: src/routes/(root)/sign/index.tsx:382
+#: src/routes/(root)/sign/index.tsx:419
 msgid "Signing in…"
 msgstr "Signing in…"
 
@@ -3817,7 +3817,7 @@ msgstr "Signing in…"
 msgid "Signing up for Hackers' Pub"
 msgstr "Signing up for Hackers' Pub"
 
-#: src/components/NoteComposer.tsx:1578
+#: src/components/NoteComposer.tsx:1580
 #: src/components/QuestionCard.tsx:477
 msgid "Single choice"
 msgstr "Single choice"
@@ -3846,7 +3846,7 @@ msgstr "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 msgid "Something went wrong"
 msgstr "Something went wrong"
 
-#: src/routes/(root)/sign/index.tsx:228
+#: src/routes/(root)/sign/index.tsx:252
 msgid "Something went wrong—please try again."
 msgstr "Something went wrong—please try again."
 
@@ -4131,6 +4131,10 @@ msgstr "The Web Push public key is invalid."
 msgid "There are no moderation actions on your account."
 msgstr "There are no moderation actions on your account."
 
+#: src/routes/(root)/sign/index.tsx:247
+msgid "This account has been permanently suspended and can no longer sign in."
+msgstr "This account has been permanently suspended and can no longer sign in."
+
 #: src/routes/(root)/tree/index.tsx:124
 msgid "This account is hidden because they want to keep their identity private."
 msgstr "This account is hidden because they want to keep their identity private."
@@ -4378,7 +4382,7 @@ msgstr "Update your profile information, including your avatar, username, displa
 msgid "Updated {0}"
 msgstr "Updated {0}"
 
-#: src/components/NoteComposer.tsx:1733
+#: src/components/NoteComposer.tsx:1735
 msgid "Upload progress"
 msgstr "Upload progress"
 
@@ -4554,11 +4558,11 @@ msgstr "What happened?"
 msgid "What is Hackers' Pub?"
 msgstr "What is Hackers' Pub?"
 
-#: src/components/NoteComposer.tsx:1562
+#: src/components/NoteComposer.tsx:1564
 msgid "What should people decide?"
 msgstr "What should people decide?"
 
-#: src/components/NoteComposer.tsx:1447
+#: src/components/NoteComposer.tsx:1449
 msgid "What's on your mind?"
 msgstr "What's on your mind?"
 
@@ -4757,7 +4761,7 @@ msgstr "You'll automatically follow each other when you sign up."
 msgid "You've been invited to Hackers' Pub"
 msgstr "You've been invited to Hackers' Pub"
 
-#: src/components/NoteComposer.tsx:1292
+#: src/components/NoteComposer.tsx:1293
 msgid "Your account is suspended, so you can't post right now. See your sanctions for details and how to appeal."
 msgstr "Your account is suspended, so you can't post right now. See your sanctions for details and how to appeal."
 

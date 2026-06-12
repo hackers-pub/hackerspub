@@ -164,7 +164,15 @@ const appealsQuery = parse(`
 
 const loginMutation = parse(`
   mutation Login($token: UUID!, $code: String!) {
-    completeLoginChallenge(token: $token, code: $code) { id }
+    completeLoginChallenge(token: $token, code: $code) {
+      __typename
+      ... on Session {
+        id
+      }
+      ... on AccountBannedError {
+        since
+      }
+    }
   }
 `);
 
@@ -445,7 +453,9 @@ test("completeLoginChallenge rejects banned accounts", async () => {
       onError: "NO_PROPAGATE",
     });
     // deno-lint-ignore no-explicit-any
-    assert.equal((result.data as any)?.completeLoginChallenge ?? null, null);
+    const banned = (result.data as any)?.completeLoginChallenge;
+    assert.equal(banned?.__typename, "AccountBannedError");
+    assert.equal(banned?.id ?? null, null);
 
     // An unsanctioned account still logs in:
     const fine = await insertAccountWithActor(tx, {
