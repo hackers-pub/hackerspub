@@ -98,7 +98,11 @@ import { createGraphQLError } from "graphql-yoga";
 import { Account } from "./account.ts";
 import { Actor } from "./actor.ts";
 import { builder, Node, type UserContext } from "./builder.ts";
-import { InvalidInputError, NotAuthorizedError } from "./error.ts";
+import {
+  ActorSuspendedError,
+  InvalidInputError,
+  NotAuthorizedError,
+} from "./error.ts";
 import { lookupPostByUrl, parseHttpUrl } from "./lookup.ts";
 import { putArticleOgImage } from "./og.ts";
 import { PostVisibility, toPostVisibility } from "./postvisibility.ts";
@@ -836,10 +840,16 @@ builder.drizzleInterfaceFields(Post, (t) => ({
     type: Post,
     description:
       "Boost wrapper posts that reshare this post. Each edge represents " +
-      "a single boost by a specific actor. Boosts by actors whose content " +
-      "is hidden by a moderation sanction are excluded.",
-    query: () => ({
-      where: { actor: getSanctionVisibleActorFilter() },
+      "a single boost by a specific actor. Censored boosts (including " +
+      "boosts of a censored post) and boosts by actors whose content is " +
+      "hidden by a moderation sanction are excluded.",
+    query: (_, ctx) => ({
+      where: {
+        AND: [
+          { actor: getSanctionVisibleActorFilter() },
+          getCensoredPostExclusionFilter(ctx.account?.actor.id),
+        ],
+      },
     }),
   }),
   quotes: t.relatedConnection("quotes", {
@@ -1761,6 +1771,7 @@ builder.relayMutationField(
       types: [
         NotAuthenticatedError,
         InvalidInputError,
+        ActorSuspendedError,
       ],
     },
     async resolve(_root, args, ctx) {
@@ -2000,6 +2011,7 @@ builder.relayMutationField(
       types: [
         NotAuthenticatedError,
         InvalidInputError,
+        ActorSuspendedError,
       ],
     },
     async resolve(_root, args, ctx) {
@@ -2512,6 +2524,7 @@ builder.relayMutationField(
       types: [
         NotAuthenticatedError,
         InvalidInputError,
+        ActorSuspendedError,
       ],
     },
     async resolve(_root, args, ctx) {
@@ -2619,6 +2632,7 @@ builder.relayMutationField(
       types: [
         NotAuthenticatedError,
         InvalidInputError,
+        ActorSuspendedError,
       ],
     },
     async resolve(_root, args, ctx) {
@@ -2816,6 +2830,7 @@ builder.relayMutationField(
       types: [
         NotAuthenticatedError,
         InvalidInputError,
+        ActorSuspendedError,
       ],
     },
     async resolve(_root, args, ctx) {

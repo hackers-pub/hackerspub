@@ -46,7 +46,7 @@ import { escape } from "@std/html/entities";
 import { createGraphQLError } from "graphql-yoga";
 import xss from "xss";
 import { builder, type UserContext } from "./builder.ts";
-import { InvalidInputError } from "./error.ts";
+import { ActorSuspendedError, InvalidInputError } from "./error.ts";
 import { lookupActorByUrl, parseHttpUrl } from "./lookup.ts";
 import { Article, Note, Post, Question } from "./post.ts";
 import { NotAuthenticatedError } from "./session.ts";
@@ -1228,7 +1228,7 @@ builder.relayMutationField(
   },
   {
     errors: {
-      types: [NotAuthenticatedError, InvalidInputError],
+      types: [NotAuthenticatedError, InvalidInputError, ActorSuspendedError],
     },
     async resolve(_root, args, ctx) {
       const session = await ctx.session;

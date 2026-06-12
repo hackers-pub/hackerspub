@@ -9,7 +9,7 @@ import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { eq } from "drizzle-orm";
 import { Actor } from "./actor.ts";
 import { builder, type UserContext } from "./builder.ts";
-import { InvalidInputError } from "./error.ts";
+import { ActorSuspendedError, InvalidInputError } from "./error.ts";
 import { Post, Question } from "./post.ts";
 import { PostVisibility, toPostVisibility } from "./postvisibility.ts";
 import { NotAuthenticatedError } from "./session.ts";
@@ -582,6 +582,7 @@ builder.relayMutationField(
       types: [
         NotAuthenticatedError,
         InvalidInputError,
+        ActorSuspendedError,
       ],
     },
     async resolve(_root, args, ctx) {

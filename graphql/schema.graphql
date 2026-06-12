@@ -634,6 +634,14 @@ type ActorSharedPostsConnectionEdge {
 }
 
 """
+Returned by write mutations (posting, reacting, sharing, following, voting) when the authenticated account is under an active moderation suspension.  Suspension only restricts writing; reading still works. Check `suspendedUntil` to tell a temporary suspension (a timestamp) from a permanent one (`null`).
+"""
+type ActorSuspendedError {
+  """When the suspension ends, or `null` for a permanent suspension."""
+  suspendedUntil: DateTime
+}
+
+"""
 ActivityPub actor type as defined by the ActivityStreams 2.0 vocabulary. Most human accounts are `PERSON` actors.
 """
 enum ActorType {
@@ -682,7 +690,7 @@ type AddReactionToPostPayload {
   reaction: Reaction
 }
 
-union AddReactionToPostResult = AddReactionToPostPayload | InvalidInputError | NotAuthenticatedError
+union AddReactionToPostResult = ActorSuspendedError | AddReactionToPostPayload | InvalidInputError | NotAuthenticatedError
 
 type AdminAccountConnection {
   edges: [AdminAccountEdge!]!
@@ -834,7 +842,7 @@ type Article implements Node & Post & Reactable {
   sharedPost: Post
 
   """
-  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor. Boosts by actors whose content is hidden by a moderation sanction are excluded.
+  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor. Censored boosts (including boosts of a censored post) and boosts by actors whose content is hidden by a moderation sanction are excluded.
   """
   shares(after: String, before: String, first: Int, last: Int): PostSharesConnection!
 
@@ -1177,7 +1185,7 @@ type CreateNotePayload {
   note: Note!
 }
 
-union CreateNoteResult = CreateNotePayload | InvalidInputError | NotAuthenticatedError
+union CreateNoteResult = ActorSuspendedError | CreateNotePayload | InvalidInputError | NotAuthenticatedError
 
 """
 Publish a new short-form post with an immutable ActivityPub `Question` poll. Sends an ActivityPub `Create` activity to relevant inboxes based on `visibility`. Requires authentication.
@@ -1252,7 +1260,7 @@ input CreateQuestionPollInput {
   title: String!
 }
 
-union CreateQuestionResult = CreateQuestionPayload | InvalidInputError | NotAuthenticatedError
+union CreateQuestionResult = ActorSuspendedError | CreateQuestionPayload | InvalidInputError | NotAuthenticatedError
 
 type CustomEmoji implements Node {
   id: ID!
@@ -1689,7 +1697,7 @@ type FollowActorPayload {
   follower: Actor!
 }
 
-union FollowActorResult = FollowActorPayload | InvalidInputError | NotAuthenticatedError
+union FollowActorResult = ActorSuspendedError | FollowActorPayload | InvalidInputError | NotAuthenticatedError
 
 """Follow a hashtag. Requires authentication."""
 input FollowHashtagInput {
@@ -2738,7 +2746,7 @@ type Note implements Node & Post & Reactable {
   sharedPost: Post
 
   """
-  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor. Boosts by actors whose content is hidden by a moderation sanction are excluded.
+  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor. Censored boosts (including boosts of a censored post) and boosts by actors whose content is hidden by a moderation sanction are excluded.
   """
   shares(after: String, before: String, first: Int, last: Int): PostSharesConnection!
 
@@ -3170,7 +3178,7 @@ interface Post implements Node & Reactable {
   sharedPost: Post
 
   """
-  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor. Boosts by actors whose content is hidden by a moderation sanction are excluded.
+  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor. Censored boosts (including boosts of a censored post) and boosts by actors whose content is hidden by a moderation sanction are excluded.
   """
   shares(after: String, before: String, first: Int, last: Int): PostSharesConnection!
 
@@ -3454,7 +3462,7 @@ type PublishArticleDraftPayload {
   deletedDraftId: ID!
 }
 
-union PublishArticleDraftResult = InvalidInputError | NotAuthenticatedError | PublishArticleDraftPayload
+union PublishArticleDraftResult = ActorSuspendedError | InvalidInputError | NotAuthenticatedError | PublishArticleDraftPayload
 
 """
 Controls how much post content may be included in push notification payloads. Payloads can be displayed on a lock screen and pass through third-party push services.
@@ -4006,7 +4014,7 @@ type Question implements Node & Post & Reactable {
   sharedPost: Post
 
   """
-  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor. Boosts by actors whose content is hidden by a moderation sanction are excluded.
+  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor. Censored boosts (including boosts of a censored post) and boosts by actors whose content is hidden by a moderation sanction are excluded.
   """
   shares(after: String, before: String, first: Int, last: Int): PostSharesConnection!
 
@@ -4690,7 +4698,7 @@ type SharePostPayload {
   share: Post!
 }
 
-union SharePostResult = InvalidInputError | NotAuthenticatedError | SharePostPayload
+union SharePostResult = ActorSuspendedError | InvalidInputError | NotAuthenticatedError | SharePostPayload
 
 type SharedPostDeletionNotAllowedError {
   inputPath: String!
@@ -5167,7 +5175,7 @@ type VoteOnPollPayload {
   votes: [PollVote!]!
 }
 
-union VoteOnPollResult = InvalidInputError | NotAuthenticatedError | VoteOnPollPayload
+union VoteOnPollResult = ActorSuspendedError | InvalidInputError | NotAuthenticatedError | VoteOnPollPayload
 
 """
 Result of looking up a remote follower via WebFinger, including their ActivityPub profile and remote follow URL.

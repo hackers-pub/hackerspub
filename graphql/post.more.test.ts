@@ -8,6 +8,7 @@ import type { UserContext } from "./builder.ts";
 import { createArticle, updateArticleDraft } from "@hackerspub/models/article";
 import {
   accountTable,
+  actorTable,
   articleContentTable,
   articleDraftTable,
   articleSourceTable,
@@ -448,6 +449,48 @@ function makeTransactionalUserContext(
   } as UserContext["fedCtx"];
   return makeUserContext(tx, account, { fedCtx });
 }
+
+test("createNote returns ActorSuspendedError for suspended accounts", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "suspendedwriter",
+      name: "Suspended Writer",
+      email: "suspendedwriter@example.com",
+    });
+    const until = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await tx.update(actorTable)
+      .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: until })
+      .where(eq(actorTable.accountId, account.account.id));
+    const result = await execute({
+      schema,
+      document: parse(`
+        mutation CreateNoteSuspended($input: CreateNoteInput!) {
+          createNote(input: $input) {
+            __typename
+            ... on ActorSuspendedError {
+              suspendedUntil
+            }
+          }
+        }
+      `),
+      variableValues: {
+        input: {
+          visibility: "PUBLIC",
+          content: "Trying to post while suspended",
+          language: "en",
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, account.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(result.errors, undefined);
+    const data = (result.data as {
+      createNote: { __typename: string; suspendedUntil: string | null };
+    }).createNote;
+    assert.equal(data.__typename, "ActorSuspendedError");
+    assert.ok(data.suspendedUntil != null);
+  });
+});
 
 test("saveArticleDraft, articleDraft, and deleteArticleDraft round-trip a draft", async () => {
   await withRollback(async (tx) => {
