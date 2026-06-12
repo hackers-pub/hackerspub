@@ -12,7 +12,17 @@ import {
   postTable,
 } from "@hackerspub/models/schema";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
-import { and, count, eq, inArray, isNotNull, like, or } from "drizzle-orm";
+import {
+  and,
+  count,
+  eq,
+  inArray,
+  isNotNull,
+  isNull,
+  like,
+  or,
+} from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { builder } from "./builder.ts";
 import { getCreate, getPostRecipients } from "./objects.ts";
 
@@ -243,7 +253,11 @@ builder
         },
         where: {
           actorId: account.actor.id,
-          post: { visibility: { in: ["public", "unlisted"] } },
+          post: {
+            visibility: { in: ["public", "unlisted"] },
+            // Censored content is not served over ActivityPub.
+            censored: { isNull: true },
+          },
         },
         orderBy: { created: "desc" },
       });
@@ -261,6 +275,7 @@ builder
       .where(and(
         eq(actorTable.accountId, identifier),
         inArray(postTable.visibility, ["public", "unlisted"]),
+        isNull(postTable.censored),
       ));
     return cnt;
   });
@@ -290,6 +305,10 @@ builder
         where: {
           actorId: account.actor.id,
           visibility: { in: ["public", "unlisted"] }, // FIXME
+          // Censored posts (and boosts of censored posts) are not served
+          // over ActivityPub.
+          censored: { isNull: true },
+          NOT: { sharedPost: { censored: { isNotNull: true } } },
           ...(
             validateUuid(cursor) ? { id: { lte: cursor } } : undefined
           ),
@@ -338,14 +357,18 @@ builder
       where: { id: identifier },
     });
     if (account == null) return null;
+    const sharedPost = alias(postTable, "shared_post");
     const [{ cnt }] = await db.select({ cnt: count() })
       .from(postTable)
+      .leftJoin(sharedPost, eq(postTable.sharedPostId, sharedPost.id))
       .where(and(
         eq(postTable.actorId, account.actor.id),
         or( // FIXME
           eq(postTable.visibility, "public"),
           eq(postTable.visibility, "unlisted"),
         ),
+        isNull(postTable.censored),
+        isNull(sharedPost.censored),
       ));
     return cnt;
   });

@@ -183,6 +183,13 @@ builder.setObjectDispatcher(
       where: { id: values.id },
     });
     if (articleSource == null) return null;
+    // A censored article's original content must not be served over
+    // ActivityPub either; the HTML permalink shows a notice instead.
+    const post = await ctx.data.db.query.postTable.findFirst({
+      columns: { censored: true },
+      where: { articleSourceId: values.id },
+    });
+    if (post?.censored != null) return null;
     return await getArticle(ctx, articleSource);
   },
 );
@@ -480,6 +487,8 @@ builder
         where: { id: values.id },
       });
       if (note?.post == null) return null;
+      // Censored content is not served over ActivityPub.
+      if (note.post.censored != null) return null;
       return await getNote(
         ctx,
         note,
@@ -555,6 +564,8 @@ builder
         where: { noteSourceId: values.id, type: "Question" },
       });
       if (post?.poll == null) return null;
+      // Censored content is not served over ActivityPub.
+      if (post.censored != null) return null;
       return await getQuestion(
         ctx,
         note,
@@ -727,6 +738,11 @@ builder.setObjectDispatcher(
     ) {
       return null;
     }
+    // Neither a censored boost nor a boost of a censored post is served
+    // over ActivityPub.
+    if (share.censored != null || share.sharedPost.censored != null) {
+      return null;
+    }
     return getAnnounce(ctx, {
       ...share,
       sharedPost: share.sharedPost,
@@ -752,6 +768,8 @@ builder
         },
       });
       if (post == null || post.actor.account == null) return null;
+      // Censored content is not served over ActivityPub.
+      if (post.censored != null) return null;
       return getCreate(ctx, {
         ...post,
         actor: { ...post.actor, account: post.actor.account },
