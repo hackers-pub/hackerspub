@@ -6,6 +6,7 @@ import {
   persistPost,
 } from "@hackerspub/models/post";
 import { sql } from "drizzle-orm";
+import { isPostCensoredFor } from "../../../censorship.ts";
 import { db } from "../../../db.ts";
 import { define } from "../../../utils.ts";
 
@@ -15,8 +16,16 @@ export const handler = define.handlers(async (ctx) => {
     return ctx.next();
   }
   const { account, fedCtx } = ctx.state;
+  // Share wrappers copy the boosted post's `url`, so matching by URL must
+  // skip them: otherwise a pasted original-post URL could resolve to a
+  // wrapper row (e.g. a censored one) instead of the original post.
   let requestedPost = await db.query.postTable.findFirst({
-    where: { OR: [{ iri }, { url: iri }] },
+    where: {
+      OR: [
+        { iri },
+        { AND: [{ url: iri }, { sharedPostId: { isNull: true } }] },
+      ],
+    },
   });
   if (requestedPost == null) {
     const documentLoader = account == null
@@ -28,6 +37,8 @@ export const handler = define.handlers(async (ctx) => {
     if (persistedPost == null) return ctx.next();
     requestedPost = persistedPost;
   }
+  // A censored post (or share wrapper) cannot be looked up for quoting.
+  if (isPostCensoredFor(requestedPost, account)) return ctx.next();
   const postId = await getOriginalPostId(db, requestedPost);
   if (postId == null) return ctx.next();
   const post = await db.query.postTable.findFirst({
@@ -57,6 +68,9 @@ export const handler = define.handlers(async (ctx) => {
   });
   if (post == null) return ctx.next();
   if (!isPostVisibleTo(post, account?.actor)) return ctx.next();
+  // A censored post cannot be looked up for quoting; behaving as
+  // not-found keeps its content out of the composer preview.
+  if (isPostCensoredFor(post, account)) return ctx.next();
   const viewerCanQuote = account != null &&
     canActorRequestQuotePost(post, account.actor);
   return new Response(JSON.stringify({ ...post, viewerCanQuote }), {

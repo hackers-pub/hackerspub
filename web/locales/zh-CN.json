@@ -294,6 +294,8 @@
     "remoteQuoteDescription": "如果你在联邦宇宙有个账户，你可以在你自己的实例里引用此帖子。在你的实例搜索 {{permalink}} 后进行引用。（请注意，Mastodon不支持引用功能）"
   },
   "post": {
+    "censoredTitle": "已被版主屏蔽。",
+    "censoredDescription": "此内容因违反行为准则，已从时间线和搜索中隐藏。",
     "reacting": "正在反应……",
     "undoingReaction": "正在撤销……",
     "reacted": "已反应",

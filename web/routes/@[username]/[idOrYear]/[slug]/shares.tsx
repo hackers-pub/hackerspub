@@ -3,6 +3,10 @@ import { getArticleSource } from "@hackerspub/models/article";
 import { extractMentionsFromHtml } from "@hackerspub/models/markup";
 import { isPostVisibleTo } from "@hackerspub/models/post";
 import type { Account, Actor } from "@hackerspub/models/schema";
+import {
+  isPostCensoredFor,
+  redactCensoredPost,
+} from "../../../../censorship.ts";
 import { ActorList } from "../../../../components/ActorList.tsx";
 import { PostReactionsNav } from "../../../../components/PostReactionsNav.tsx";
 import { db } from "../../../../db.ts";
@@ -16,7 +20,7 @@ export const handler = define.handlers(async (ctx) => {
   const username = ctx.params.username;
   const year = parseInt(ctx.params.idOrYear);
   const slug = ctx.params.slug;
-  const article = await getArticleSource(
+  let article = await getArticleSource(
     db,
     username,
     year,
@@ -24,10 +28,16 @@ export const handler = define.handlers(async (ctx) => {
     ctx.state.account,
   );
   if (article == null) return ctx.next();
-  const post = article.post;
-  if (!isPostVisibleTo(post, ctx.state.account?.actor)) {
+  if (!isPostVisibleTo(article.post, ctx.state.account?.actor)) {
     return ctx.next();
   }
+  if (isPostCensoredFor(article.post, ctx.state.account)) {
+    article = {
+      ...article,
+      post: redactCensoredPost(article.post, ctx.state.t),
+    };
+  }
+  const post = article.post;
   const shares = await db.query.postTable.findMany({
     with: {
       actor: {

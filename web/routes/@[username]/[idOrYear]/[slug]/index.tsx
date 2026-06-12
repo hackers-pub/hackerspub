@@ -31,6 +31,11 @@ import type { Uuid } from "@hackerspub/models/uuid";
 import * as v from "@valibot/valibot";
 import { sql } from "drizzle-orm";
 import { summarizer } from "../../../../ai.ts";
+import {
+  isPostCensoredFor,
+  redactCensoredArticleContent,
+  redactCensoredPost,
+} from "../../../../censorship.ts";
 import { Msg } from "../../../../components/Msg.tsx";
 import { PageTitle } from "../../../../components/PageTitle.tsx";
 import { PostExcerpt } from "../../../../components/PostExcerpt.tsx";
@@ -145,6 +150,21 @@ export async function handleArticle(
   content: ArticleContent,
   permalink: URL,
 ): Promise<ArticlePageProps> {
+  // The permalink stays reachable for censored articles, but the title,
+  // body, summary, and the OpenGraph metadata derived from them are
+  // replaced with a notice for everyone except the author and moderators.
+  // (redactCensoredArticleContent sets `summary`, so the summarizer below
+  // never runs over the notice text.)  The post row carries denormalized
+  // copies of the title and content, and it is serialized into the page
+  // as island props, so it must be redacted as well.
+  const censored = isPostCensoredFor(article.post, ctx.state.account);
+  if (censored) {
+    content = redactCensoredArticleContent(content, ctx.state.t);
+    article = {
+      ...article,
+      post: redactCensoredPost(article.post, ctx.state.t),
+    };
+  }
   const disk = drive.use();
   const rendered = await renderMarkup(
     ctx.state.fedCtx,
@@ -189,18 +209,22 @@ export async function handleArticle(
         content: c.language.replace("-", "_"),
       }),
     )),
-    {
-      property: "og:image",
-      content: new URL(
-        `/@${article.account.username}/${article.publishedYear}/${article.slug}/ogimage?l=${
-          encodeURIComponent(content.language)
-        }`,
-        ctx.state.canonicalOrigin,
-      ),
-    },
-    { property: "og:image:width", content: 1200 },
-    { property: "og:image:height", content: 630 },
-    { name: "twitter:card", content: "summary_large_image" },
+    // The OpenGraph image renders the original title, so it is omitted for
+    // censored articles (its route is gated the same way).
+    ...(censored ? [] : [
+      {
+        property: "og:image",
+        content: new URL(
+          `/@${article.account.username}/${article.publishedYear}/${article.slug}/ogimage?l=${
+            encodeURIComponent(content.language)
+          }`,
+          ctx.state.canonicalOrigin,
+        ),
+      },
+      { property: "og:image:width", content: 1200 },
+      { property: "og:image:height", content: 630 },
+      { name: "twitter:card", content: "summary_large_image" },
+    ]),
     {
       property: "article:published_time",
       content: article.published.toISOString(),
@@ -214,7 +238,9 @@ export async function handleArticle(
       property: "article:author.username",
       content: article.account.username,
     },
-    ...article.tags.map((tag) => ({ property: "article:tag", content: tag })),
+    ...(censored
+      ? []
+      : article.tags.map((tag) => ({ property: "article:tag", content: tag }))),
     {
       name: "fediverse:creator",
       content: `${article.account.username}@${
@@ -244,11 +270,16 @@ export async function handleArticle(
     where: { replyTargetId: article.post.id },
     orderBy: { published: "asc" },
   });
+  const redactedComments = comments.map((comment) =>
+    isPostCensoredFor(comment, ctx.state.account)
+      ? redactCensoredPost(comment, ctx.state.t)
+      : comment
+  );
   return {
     article,
     content,
     articleIri: articleUri.href,
-    comments,
+    comments: redactedComments,
     avatarUrl: await getAvatarUrl(disk, article.account),
     contentHtml: preprocessContentHtml(
       rendered.html,

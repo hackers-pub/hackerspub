@@ -23,6 +23,7 @@ import { withTransaction } from "@hackerspub/models/tx";
 import { validateUuid } from "@hackerspub/models/uuid";
 import * as v from "@valibot/valibot";
 import { sql } from "drizzle-orm";
+import { isPostCensoredFor, redactCensoredPost } from "../../../censorship.ts";
 import { Msg } from "../../../components/Msg.tsx";
 import { PostExcerpt } from "../../../components/PostExcerpt.tsx";
 import { db } from "../../../db.ts";
@@ -113,10 +114,45 @@ export const handler = define.handlers({
     if (!isPostVisibleTo(post, ctx.state.account?.actor)) {
       return ctx.next();
     }
-    const targetPost = post.sharedPost ?? post;
+    // A censored share wrapper must not disclose what it boosted; its
+    // quotes are listed for the wrapper itself (i.e. none).
+    const targetPost = isPostCensoredFor(post, ctx.state.account)
+      ? post
+      : post.sharedPost ?? post;
+    if (isPostCensoredFor(post, ctx.state.account)) {
+      post = redactCensoredPost(post, ctx.state.t);
+    }
+    if (
+      post.sharedPost != null &&
+      isPostCensoredFor(post.sharedPost, ctx.state.account)
+    ) {
+      post = {
+        ...post,
+        sharedPost: redactCensoredPost(post.sharedPost, ctx.state.t),
+      };
+    }
     const quotes = await db.query.postTable.findMany({
       with: {
-        actor: { with: { instance: true } },
+        actor: {
+          with: {
+            instance: true,
+            followers: {
+              where: ctx.state.account == null
+                ? { RAW: sql`false` }
+                : { followerId: ctx.state.account.actor.id },
+            },
+            blockees: {
+              where: ctx.state.account == null
+                ? { RAW: sql`false` }
+                : { blockeeId: ctx.state.account.actor.id },
+            },
+            blockers: {
+              where: ctx.state.account == null
+                ? { RAW: sql`false` }
+                : { blockerId: ctx.state.account.actor.id },
+            },
+          },
+        },
         link: {
           with: { creator: true },
         },
@@ -143,7 +179,13 @@ export const handler = define.handlers({
     });
     return page<NoteQuotesProps>({
       post,
-      quotes,
+      quotes: quotes
+        .filter((quote) => isPostVisibleTo(quote, ctx.state.account?.actor))
+        .map((quote) =>
+          isPostCensoredFor(quote, ctx.state.account)
+            ? redactCensoredPost(quote, ctx.state.t)
+            : quote
+        ),
     });
   },
 
@@ -172,6 +214,14 @@ export const handler = define.handlers({
     }
     if (!isPostVisibleTo(post, ctx.state.account?.actor)) {
       return ctx.next();
+    }
+    // Neither a censored post nor a censored share wrapper can be quoted.
+    if (
+      isPostCensoredFor(post, ctx.state.account) ||
+      post.sharedPost != null &&
+        isPostCensoredFor(post.sharedPost, ctx.state.account)
+    ) {
+      return new Response("Invalid quotedPostId", { status: 400 });
     }
     const targetPost = post.sharedPost ?? post;
     const account = ctx.state.account;

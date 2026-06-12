@@ -30,6 +30,7 @@ import { withTransaction } from "@hackerspub/models/tx";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import * as v from "@valibot/valibot";
 import { sql } from "drizzle-orm";
+import { isPostCensoredFor, redactCensoredPost } from "../../../censorship.ts";
 import { Msg } from "../../../components/Msg.tsx";
 import { NoteExcerpt } from "../../../components/NoteExcerpt.tsx";
 import { PostExcerpt } from "../../../components/PostExcerpt.tsx";
@@ -244,7 +245,11 @@ export const handler = define.handlers({
         });
         if (share == null || share.sharedPost == null) return ctx.next();
         post = share;
-        postUrl = share.sharedPost.actor.accountId == null
+        // A censored share wrapper must not disclose what it boosted, so
+        // its own path is kept instead of the boosted post's permalink.
+        postUrl = isPostCensoredFor(share, ctx.state.account)
+          ? `/@${ctx.params.username}/${share.id}`
+          : share.sharedPost.actor.accountId == null
           ? `/${share.sharedPost.actor.handle}/${share.sharedPostId}`
           : `/@${share.sharedPost.actor.username}/${
             share.sharedPost.articleSourceId ?? share.sharedPost.noteSourceId
@@ -285,6 +290,45 @@ export const handler = define.handlers({
     }
     if (!isPostVisibleTo(post, ctx.state.account?.actor)) {
       return ctx.next();
+    }
+    // The permalink stays reachable for censored posts, but the content is
+    // replaced with a notice for everyone except the author and moderators
+    // (including the OpenGraph metadata derived from it below).
+    if (isPostCensoredFor(post, ctx.state.account)) {
+      post = redactCensoredPost(post, ctx.state.t);
+    }
+    if (
+      post.sharedPost != null &&
+      isPostCensoredFor(post.sharedPost, ctx.state.account)
+    ) {
+      post = {
+        ...post,
+        sharedPost: redactCensoredPost(post.sharedPost, ctx.state.t),
+      };
+    }
+    if (
+      post.replyTarget != null &&
+      isPostCensoredFor(post.replyTarget, ctx.state.account)
+    ) {
+      post = {
+        ...post,
+        replyTarget: redactCensoredPost(post.replyTarget, ctx.state.t),
+      };
+    }
+    if (
+      post.sharedPost?.replyTarget != null &&
+      isPostCensoredFor(post.sharedPost.replyTarget, ctx.state.account)
+    ) {
+      post = {
+        ...post,
+        sharedPost: {
+          ...post.sharedPost,
+          replyTarget: redactCensoredPost(
+            post.sharedPost.replyTarget,
+            ctx.state.t,
+          ),
+        },
+      };
     }
     if (post.noteSourceId != null) {
       post.sharesCount = await updateSharesCount(db, post, 0);
@@ -331,6 +375,10 @@ export const handler = define.handlers({
     });
     replies = replies.filter((reply) =>
       isPostVisibleTo(reply, ctx.state.account?.actor)
+    ).map((reply) =>
+      isPostCensoredFor(reply, ctx.state.account)
+        ? redactCensoredPost(reply, ctx.state.t)
+        : reply
     );
     const content = await renderMarkup(
       ctx.state.fedCtx,

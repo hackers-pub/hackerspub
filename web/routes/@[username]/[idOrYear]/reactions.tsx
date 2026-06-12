@@ -3,6 +3,7 @@ import { extractMentionsFromHtml } from "@hackerspub/models/markup";
 import { getNoteSource } from "@hackerspub/models/note";
 import type { Account, Actor, CustomEmoji } from "@hackerspub/models/schema";
 import { validateUuid } from "@hackerspub/models/uuid";
+import { isPostCensoredFor, redactCensoredPost } from "../../../censorship.ts";
 import { ActorList } from "../../../components/ActorList.tsx";
 import { Msg } from "../../../components/Msg.tsx";
 import { PageTitle } from "../../../components/PageTitle.tsx";
@@ -17,13 +18,16 @@ export const handler = define.handlers(async (ctx) => {
   if (!validateUuid(ctx.params.idOrYear)) return ctx.next();
   const id = ctx.params.idOrYear;
   if (ctx.params.username.includes("@")) return ctx.next();
-  const note = await getNoteSource(
+  let note = await getNoteSource(
     db,
     ctx.params.username,
     id,
     ctx.state.account,
   );
   if (note == null) return ctx.next();
+  if (isPostCensoredFor(note.post, ctx.state.account)) {
+    note = { ...note, post: redactCensoredPost(note.post, ctx.state.t) };
+  }
   const reactions = await db.query.reactionTable.findMany({
     with: {
       actor: {

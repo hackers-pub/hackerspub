@@ -1,6 +1,10 @@
 import { isPostVisibleTo } from "@hackerspub/models/post";
 import { validateUuid } from "@hackerspub/models/uuid";
 import { sql } from "drizzle-orm";
+import {
+  isPostCensoredFor,
+  redactCensoredPost,
+} from "../../../../censorship.ts";
 import { db } from "../../../../db.ts";
 import { define } from "../../../../utils.ts";
 
@@ -66,8 +70,17 @@ export const handler = define.handlers(async (ctx) => {
     where: { id: postId },
   });
   if (post == null) return ctx.next();
-  if (post.sharedPost != null) post = { ...post.sharedPost, sharedPost: null };
+  // A censored share wrapper must not be unwrapped to the boosted post's
+  // content; the redaction below clears the wrapper's `sharedPost` instead.
+  if (post.sharedPost != null && !isPostCensoredFor(post, account)) {
+    post = { ...post.sharedPost, sharedPost: null };
+  }
   if (!isPostVisibleTo(post, account?.actor)) return ctx.next();
+  // Censored posts stay reachable, but their content is replaced with a
+  // notice for everyone except the author and moderators.
+  if (isPostCensoredFor(post, account)) {
+    post = redactCensoredPost(post, ctx.state.t);
+  }
   return new Response(JSON.stringify(post), {
     headers: {
       "Content-Type": "application/json; charset=utf-8",
