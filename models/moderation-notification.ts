@@ -221,13 +221,26 @@ export async function ensureSuspensionEndingNotification(
   if (suspendedUntil.getTime() - now.getTime() > SUSPENSION_ENDING_WINDOW_MS) {
     return undefined;
   }
-  const action = await db.query.flagActionTable.findFirst({
+  // The actor's effective suspendedUntil is recomputed as the latest end of
+  // the still-standing suspensions (see recomputeActorEnforcement in
+  // moderation.ts), so the action that actually ends then is the one whose
+  // suspensionEnds matches it; a newer, shorter or overturned suspension
+  // must not be referenced.
+  const candidates = await db.query.flagActionTable.findMany({
     where: {
       actionType: "suspend",
       case: { targetActorId: account.actor.id },
+      suspensionEnds: { eq: suspendedUntil },
     },
+    with: { appeal: true },
     orderBy: { created: "desc" },
   });
+  // Same standing test as isStandingAction in moderation.ts (not imported:
+  // moderation.ts already imports this module).
+  const action = candidates.find((a) =>
+    a.appeal == null || a.appeal.status !== "resolved" ||
+    a.appeal.result === "dismissed"
+  );
   if (action == null) return undefined;
   const rows = await db.insert(moderationNotificationTable)
     .values({

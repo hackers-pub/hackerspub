@@ -4,7 +4,11 @@ import type { RequestContext } from "@fedify/fedify";
 import type { ContextData } from "@hackerspub/models/context";
 import type { Transaction } from "@hackerspub/models/db";
 import { createFlag } from "@hackerspub/models/flag";
-import { takeModerationAction } from "@hackerspub/models/moderation";
+import {
+  createAppeal,
+  resolveAppeal,
+  takeModerationAction,
+} from "@hackerspub/models/moderation";
 import {
   countUnreadModerationNotifications,
   ensureSuspensionEndingNotification,
@@ -236,6 +240,112 @@ describe("ensureSuspensionEndingNotification()", () => {
         await ensureSuspensionEndingNotification(tx, refreshed),
         undefined,
       );
+    });
+  });
+
+  it("references the suspension that actually ends, not the newest", async () => {
+    await withRollback(async (tx) => {
+      const fedCtx = quietFedCtx(tx);
+      const endsLong = new Date(
+        Date.now() + SUSPENSION_ENDING_WINDOW_MS - HOUR,
+      );
+      const { account, action: longAction, moderator } =
+        await suspendedAccountWithAction(tx, fedCtx, endsLong);
+      // A second, shorter suspension filed later on a new case.  The
+      // effective suspendedUntil stays at the longer end, so the
+      // notification must reference the longer (older) action even though
+      // the shorter one was created more recently.
+      const reporter2 = await insertAccountWithActor(tx, {
+        username: "reporter2",
+        name: "Reporter 2",
+        email: "reporter2@example.com",
+      });
+      const flag2 = await createFlag(tx, {
+        reporter: reporter2.actor,
+        targetActor: account.actor,
+        reason: REASON,
+      });
+      assert.ok(flag2 != null);
+      const shortAction = await takeModerationAction(fedCtx, {
+        caseId: flag2.caseId,
+        moderator: moderator.account,
+        actionType: "suspend",
+        violatedProvisions: ["2.3"],
+        rationale: "Second, shorter suspension.",
+        suspensionStarts: new Date(Date.now() - HOUR),
+        suspensionEnds: new Date(Date.now() + HOUR),
+      });
+      assert.ok(shortAction != null);
+      const refreshed = await tx.query.accountTable.findFirst({
+        where: { id: account.id },
+        with: { actor: true },
+      });
+      assert.ok(refreshed != null);
+      assert.equal(
+        refreshed.actor.suspendedUntil?.getTime(),
+        endsLong.getTime(),
+      );
+      const created = await ensureSuspensionEndingNotification(tx, refreshed);
+      assert.ok(created != null);
+      assert.equal(created.actionId, longAction.id);
+    });
+  });
+
+  it("skips suspensions overturned by a resolved appeal", async () => {
+    await withRollback(async (tx) => {
+      const fedCtx = quietFedCtx(tx);
+      const ends = new Date(Date.now() + SUSPENSION_ENDING_WINDOW_MS - HOUR);
+      const { account, action: standingAction, moderator } =
+        await suspendedAccountWithAction(tx, fedCtx, ends);
+      // A second suspension with the *same* end, filed later, then
+      // overturned on appeal: the notification must reference the older
+      // action that still stands, not the newest one.
+      const reporter2 = await insertAccountWithActor(tx, {
+        username: "reporter2",
+        name: "Reporter 2",
+        email: "reporter2@example.com",
+      });
+      const flag2 = await createFlag(tx, {
+        reporter: reporter2.actor,
+        targetActor: account.actor,
+        reason: REASON,
+      });
+      assert.ok(flag2 != null);
+      const overturnedAction = await takeModerationAction(fedCtx, {
+        caseId: flag2.caseId,
+        moderator: moderator.account,
+        actionType: "suspend",
+        violatedProvisions: ["2.3"],
+        rationale: "Second suspension, later overturned.",
+        suspensionStarts: new Date(Date.now() - HOUR),
+        suspensionEnds: ends,
+      });
+      assert.ok(overturnedAction != null);
+      const appeal = await createAppeal(tx, {
+        actionId: overturnedAction.id,
+        appellant: account,
+        reason: "This duplicate sanction is unjust.",
+      });
+      assert.ok(appeal != null);
+      const resolved = await resolveAppeal(tx, {
+        appealId: appeal.id,
+        reviewer: moderator.account,
+        result: "withdrawn",
+        reviewRationale: "Duplicate of an existing sanction.",
+      });
+      assert.ok(resolved != null);
+      const refreshed = await tx.query.accountTable.findFirst({
+        where: { id: account.id },
+        with: { actor: true },
+      });
+      assert.ok(refreshed != null);
+      assert.equal(
+        refreshed.actor.suspendedUntil?.getTime(),
+        ends.getTime(),
+      );
+      const created = await ensureSuspensionEndingNotification(tx, refreshed);
+      assert.ok(created != null);
+      assert.equal(created.actionId, standingAction.id);
     });
   });
 
