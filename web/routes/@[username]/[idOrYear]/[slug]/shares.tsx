@@ -1,7 +1,10 @@
 import { page } from "@fresh/core";
 import { getArticleSource } from "@hackerspub/models/article";
 import { extractMentionsFromHtml } from "@hackerspub/models/markup";
-import { isPostVisibleTo } from "@hackerspub/models/post";
+import {
+  getCensoredPostExclusionFilter,
+  isPostVisibleTo,
+} from "@hackerspub/models/post";
 import type { Account, Actor } from "@hackerspub/models/schema";
 import {
   isPostCensoredFor,
@@ -40,8 +43,12 @@ export const handler = define.handlers(async (ctx) => {
   }
   const post = article.post;
   // Boosts of a censored post are moderation-hidden everywhere else
-  // (getCensoredPostExclusionFilter), so the sharer list is suppressed
-  // too: it would reveal who amplified the hidden content.
+  // (getCensoredPostExclusionFilter), so when the original is censored the
+  // whole sharer list is suppressed: it would reveal who amplified the
+  // hidden content.  When the original is not censored, an individual boost
+  // wrapper may still be censored on its own, so the same exclusion filter
+  // drops those wrappers (keeping a booster's own censored boost visible to
+  // them, like the timeline and search lists).
   const shares = censored ? [] : await db.query.postTable.findMany({
     with: {
       actor: {
@@ -54,7 +61,12 @@ export const handler = define.handlers(async (ctx) => {
       },
       mentions: true,
     },
-    where: { sharedPostId: post.id },
+    where: {
+      AND: [
+        { sharedPostId: post.id },
+        getCensoredPostExclusionFilter(ctx.state.account?.actor.id),
+      ],
+    },
     orderBy: { published: "desc" },
   });
   const sharers = shares
