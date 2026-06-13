@@ -4,7 +4,7 @@ import { getLogger } from "@logtape/logtape";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { unreachable } from "@std/assert";
 import { assertNever } from "@std/assert/unstable-never";
-import { and, eq, inArray, isNull, or, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, isNotNull, isNull, lte, or } from "drizzle-orm";
 import { getAvatarUrl } from "@hackerspub/models/account";
 import {
   createArticle,
@@ -1946,16 +1946,29 @@ export const PostLink = builder.drizzleNode("postLinkTable", {
       async (linkIds) => {
         const ids = [...linkIds];
         const viewerActorId = ctx.account?.actor.id;
-        // NULL-safe raw SQL mirror of isActorSanctionHidden's complement.
+        // Bind the sanction-activeness comparison to a request-time `Date`,
+        // the same application clock the write path and `isActorSanctionHidden`
+        // use, NOT SQL `now()`: inside a transaction `now()` is frozen at the
+        // transaction start, so a ban recorded later (with `new Date()`) would
+        // read as not-yet-active and leak the hidden link.
+        const now = new Date();
+        // NULL-safe mirror of isActorSanctionHidden's complement, built with
+        // drizzle operators so the `now` Date binds as a parameter (a remote
+        // actor's content is hidden by an active federation block; a local
+        // actor's only by a permanent ban).  `lte`/`gt` on a `null`
+        // `suspendedUntil` yield `null` (not matched), which is the intended
+        // NULL-safe behavior.
         const shows = and(
           isNull(postTable.censored),
-          sql`(
-            ${actorTable.suspended} is null
-            or ${actorTable.suspended} > now()
-            or ${actorTable.suspendedUntil} <= now()
-            or (${actorTable.accountId} is not null
-              and ${actorTable.suspendedUntil} > now())
-          )`,
+          or(
+            isNull(actorTable.suspended),
+            gt(actorTable.suspended, now),
+            lte(actorTable.suspendedUntil, now),
+            and(
+              isNotNull(actorTable.accountId),
+              gt(actorTable.suspendedUntil, now),
+            ),
+          ),
         )!;
         const visible = await ctx.db
           .selectDistinct({ linkId: postTable.linkId })
