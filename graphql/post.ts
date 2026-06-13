@@ -309,11 +309,56 @@ export const Post = builder.drizzleInterface("postTable", {
         "The post's ActivityPub IRI, used as its canonical identifier in " +
         "federation. For local posts this is an `/ap/…` endpoint; for " +
         "remote posts it is whatever IRI the originating instance assigned. " +
-        "Prefer `url` for human-readable links.",
+        "Prefer `url` for human-readable links.  When the post is censored " +
+        "or its author is hidden by a moderation sanction, and the viewer " +
+        "is neither the author nor a moderator, a remote IRI (or a boost " +
+        "wrapper's, whose `url` is also nulled) is replaced with the local " +
+        "permalink that renders the notice, so a `url ?? iri` fallback never " +
+        "leaks the uncensored origin. A local non-wrapper post keeps its " +
+        "own `/ap/…` IRI (it does not point outside this instance).",
       select: {
-        columns: { iri: true, noteSourceId: true, type: true },
+        columns: {
+          id: true,
+          iri: true,
+          noteSourceId: true,
+          type: true,
+          censored: true,
+          actorId: true,
+          sharedPostId: true,
+        },
+        with: {
+          actor: {
+            columns: {
+              accountId: true,
+              suspended: true,
+              suspendedUntil: true,
+              handle: true,
+            },
+          },
+          sharedPost: {
+            columns: { censored: true, actorId: true },
+            with: { actor: sanctionActorSelection },
+          },
+        },
       },
       resolve: (post, _, ctx) => {
+        // A hidden post's own IRI (when remote) points at the uncensored
+        // copy on its origin instance; a boost wrapper's `url` is already
+        // nulled, so the `url ?? iri` fallback web-next uses for links would
+        // leak through `iri`.  Mirror the `url` field: return the local
+        // permalink, which renders the notice, for the same hidden
+        // remote-or-wrapper case.  (A local non-wrapper post keeps its own
+        // local `/ap/…` IRI, which never leaves this instance.)
+        if (
+          isCensoredForViewer(post, ctx) &&
+          post.actor != null &&
+          (post.sharedPostId != null || post.actor.accountId == null)
+        ) {
+          return new URL(
+            `/${post.actor.handle}/${post.id}`,
+            ctx.fedCtx.canonicalOrigin,
+          );
+        }
         if (post.type === "Question" && post.noteSourceId != null) {
           return ctx.fedCtx.getObjectUri(vocab.Question, {
             id: post.noteSourceId,

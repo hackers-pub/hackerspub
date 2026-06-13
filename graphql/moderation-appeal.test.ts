@@ -535,7 +535,15 @@ test("censored posts expose the flag and redact content", async () => {
 const urlQuery = parse(`
   query PostUrl($id: ID!) {
     node(id: $id) {
-      ... on Note { url censored }
+      ... on Note { url iri censored }
+    }
+  }
+`);
+
+const questionUrlQuery = parse(`
+  query QuestionUrl($id: ID!) {
+    node(id: $id) {
+      ... on Question { url iri censored }
     }
   }
 `);
@@ -582,8 +590,12 @@ test("hidden direct remote posts do not expose their remote URL", async () => {
     const viewerNode = (viewerResult.data as any)?.node;
     assert.ok(viewerNode?.censored != null);
     assert.equal(viewerNode?.url, null);
+    // The IRI also points at the uncensored remote copy, and web-next links
+    // via `url ?? iri`, so it is replaced with the local notice permalink:
+    assert.notEqual(viewerNode?.iri, remotePost.iri);
+    assert.match(viewerNode?.iri ?? "", /^http:\/\/localhost\//);
 
-    // A moderator still gets the remote URL:
+    // A moderator still gets the remote URL and IRI:
     const modResult = await execute({
       schema,
       document: urlQuery,
@@ -593,6 +605,8 @@ test("hidden direct remote posts do not expose their remote URL", async () => {
     });
     // deno-lint-ignore no-explicit-any
     assert.equal((modResult.data as any)?.node?.url, remoteUrl);
+    // deno-lint-ignore no-explicit-any
+    assert.equal((modResult.data as any)?.node?.iri, remotePost.iri);
 
     // A federation-blocked remote author (not individually censored) is
     // hidden the same way:
@@ -610,7 +624,10 @@ test("hidden direct remote posts do not expose their remote URL", async () => {
       onError: "NO_PROPAGATE",
     });
     // deno-lint-ignore no-explicit-any
-    assert.equal((blockedResult.data as any)?.node?.url, null);
+    const blockedNode = (blockedResult.data as any)?.node;
+    assert.equal(blockedNode?.url, null);
+    assert.notEqual(blockedNode?.iri, remotePost.iri);
+    assert.match(blockedNode?.iri ?? "", /^http:\/\/localhost\//);
   });
 });
 
@@ -636,6 +653,76 @@ test("censored local posts keep their local permalink URL", async () => {
     // The local permalink renders the censorship notice, so it is kept
     // (and is local, not a remote origin):
     assert.match(node?.url ?? "", /^http:\/\/localhost\//);
+    // A local non-wrapper post keeps its own `/ap/…` IRI (never a remote
+    // origin), so it is not rewritten:
+    assert.match(node?.iri ?? "", /^http:\/\/localhost\//);
+  });
+});
+
+test("hidden remote Questions do not expose their remote IRI", async () => {
+  await withRollback(async (tx) => {
+    // The `Question` variant overrides `Post.iri`/`Post.url` in poll.ts, so
+    // the redaction must be reproduced there too (not just on the base Post).
+    const moderator = await makeModerator(tx, {
+      username: "qmod",
+      name: "Q Mod",
+      email: "qmod@example.com",
+    });
+    const remoteAuthor = await insertRemoteActor(tx, {
+      username: "qremoteauthor",
+      name: "Q Remote Author",
+      host: "remote.example",
+    });
+    const questionId = generateUuidV7();
+    const remoteIri = `https://remote.example/objects/${questionId}`;
+    const remoteUrl = "https://remote.example/@qremoteauthor/poll/1";
+    await tx.insert(postTable).values({
+      id: questionId,
+      iri: remoteIri,
+      type: "Question",
+      visibility: "public",
+      actorId: remoteAuthor.id,
+      contentHtml: "<p>Remote poll</p>",
+      language: "en",
+      tags: {},
+      emojis: {},
+      sensitive: false,
+      url: remoteUrl,
+      censored: new Date(),
+    });
+    const gid = encodeGlobalID("Question", questionId);
+    const viewer = await insertAccountWithActor(tx, {
+      username: "qurlviewer",
+      name: "Q URL Viewer",
+      email: "qurlviewer@example.com",
+    });
+
+    const viewerResult = await execute({
+      schema,
+      document: questionUrlQuery,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    const viewerNode = (viewerResult.data as any)?.node;
+    assert.ok(viewerNode?.censored != null);
+    assert.equal(viewerNode?.url, null);
+    assert.notEqual(viewerNode?.iri, remoteIri);
+    assert.match(viewerNode?.iri ?? "", /^http:\/\/localhost\//);
+
+    // A moderator still gets the remote URL and IRI:
+    const modResult = await execute({
+      schema,
+      document: questionUrlQuery,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, moderator),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    assert.equal((modResult.data as any)?.node?.url, remoteUrl);
+    // deno-lint-ignore no-explicit-any
+    assert.equal((modResult.data as any)?.node?.iri, remoteIri);
   });
 });
 

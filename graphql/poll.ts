@@ -44,11 +44,52 @@ builder.drizzleObjectFields(Question, (t) => ({
     description:
       "The ActivityPub object IRI for this `Question`. Source-backed local " +
       "Questions resolve to the `Question` object route (`/ap/questions/...`), " +
-      "not the legacy note route.",
+      "not the legacy note route.  When the question is censored or its " +
+      "author is hidden by a moderation sanction, and the viewer is neither " +
+      "the author nor a moderator, a remote IRI (or a boost wrapper's, whose " +
+      "`url` is also nulled) is replaced with the local permalink that " +
+      "renders the notice, so a `url ?? iri` fallback never leaks the " +
+      "uncensored origin.",
     select: {
-      columns: { iri: true, noteSourceId: true },
+      columns: {
+        id: true,
+        iri: true,
+        noteSourceId: true,
+        censored: true,
+        actorId: true,
+        sharedPostId: true,
+      },
+      with: {
+        actor: {
+          columns: {
+            accountId: true,
+            suspended: true,
+            suspendedUntil: true,
+            handle: true,
+          },
+        },
+        sharedPost: {
+          columns: { censored: true, actorId: true },
+          with: { actor: sanctionActorSelection },
+        },
+      },
     },
     resolve: (post, _, ctx) => {
+      // A hidden question's own remote IRI (or a boost wrapper's, whose
+      // `url` is already nulled) would leak the uncensored origin through
+      // the `url ?? iri` fallback; mirror the `url` field and return the
+      // local permalink, which renders the notice.  A local non-wrapper
+      // question keeps its own `/ap/…` IRI.
+      if (
+        isPollCensoredForViewer(post, ctx) &&
+        post.actor != null &&
+        (post.sharedPostId != null || post.actor.accountId == null)
+      ) {
+        return new URL(
+          `/${post.actor.handle}/${post.id}`,
+          ctx.fedCtx.canonicalOrigin,
+        );
+      }
       if (post.noteSourceId != null) {
         return ctx.fedCtx.getObjectUri(vocab.Question, {
           id: post.noteSourceId,

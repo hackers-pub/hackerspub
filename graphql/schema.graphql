@@ -787,7 +787,7 @@ type Article implements Node & Post & Reactable {
   id: ID!
 
   """
-  The post's ActivityPub IRI, used as its canonical identifier in federation. For local posts this is an `/ap/…` endpoint; for remote posts it is whatever IRI the originating instance assigned. Prefer `url` for human-readable links.
+  The post's ActivityPub IRI, used as its canonical identifier in federation. For local posts this is an `/ap/…` endpoint; for remote posts it is whatever IRI the originating instance assigned. Prefer `url` for human-readable links.  When the post is censored or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator, a remote IRI (or a boost wrapper's, whose `url` is also nulled) is replaced with the local permalink that renders the notice, so a `url ?? iri` fallback never leaks the uncensored origin. A local non-wrapper post keeps its own `/ap/…` IRI (it does not point outside this instance).
   """
   iri: URL!
 
@@ -2695,7 +2695,7 @@ type Note implements Node & Post & Reactable {
   id: ID!
 
   """
-  The post's ActivityPub IRI, used as its canonical identifier in federation. For local posts this is an `/ap/…` endpoint; for remote posts it is whatever IRI the originating instance assigned. Prefer `url` for human-readable links.
+  The post's ActivityPub IRI, used as its canonical identifier in federation. For local posts this is an `/ap/…` endpoint; for remote posts it is whatever IRI the originating instance assigned. Prefer `url` for human-readable links.  When the post is censored or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator, a remote IRI (or a boost wrapper's, whose `url` is also nulled) is replaced with the local permalink that renders the notice, so a `url ?? iri` fallback never leaks the uncensored origin. A local non-wrapper post keeps its own `/ap/…` IRI (it does not point outside this instance).
   """
   iri: URL!
 
@@ -3132,7 +3132,7 @@ interface Post implements Node & Reactable {
   id: ID!
 
   """
-  The post's ActivityPub IRI, used as its canonical identifier in federation. For local posts this is an `/ap/…` endpoint; for remote posts it is whatever IRI the originating instance assigned. Prefer `url` for human-readable links.
+  The post's ActivityPub IRI, used as its canonical identifier in federation. For local posts this is an `/ap/…` endpoint; for remote posts it is whatever IRI the originating instance assigned. Prefer `url` for human-readable links.  When the post is censored or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator, a remote IRI (or a boost wrapper's, whose `url` is also nulled) is replaced with the local permalink that renders the notice, so a `url ?? iri` fallback never leaks the uncensored origin. A local non-wrapper post keeps its own `/ap/…` IRI (it does not point outside this instance).
   """
   iri: URL!
 
@@ -3959,7 +3959,7 @@ type Question implements Node & Post & Reactable {
   id: ID!
 
   """
-  The ActivityPub object IRI for this `Question`. Source-backed local Questions resolve to the `Question` object route (`/ap/questions/...`), not the legacy note route.
+  The ActivityPub object IRI for this `Question`. Source-backed local Questions resolve to the `Question` object route (`/ap/questions/...`), not the legacy note route.  When the question is censored or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator, a remote IRI (or a boost wrapper's, whose `url` is also nulled) is replaced with the local permalink that renders the notice, so a `url ?? iri` fallback never leaks the uncensored origin.
   """
   iri: URL!
 
