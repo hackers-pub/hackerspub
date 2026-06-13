@@ -22,6 +22,10 @@ import type {
 import { sql } from "drizzle-orm";
 import { PostExcerpt } from "../../components/PostExcerpt.tsx";
 import { PostPagination } from "../../components/PostPagination.tsx";
+import {
+  isProfileHiddenFor,
+  redactHiddenProfileActor,
+} from "../../censorship.ts";
 import { Profile } from "../../components/Profile.tsx";
 import { ProfileNav } from "../../components/ProfileNav.tsx";
 import { db } from "../../db.ts";
@@ -74,6 +78,12 @@ export const handler = define.handlers({
       account = acct;
       actor = acct.actor;
       links = acct.links;
+    }
+    // A banned actor's profile content is redacted before rendering,
+    // mirroring the GraphQL redaction and the ActivityPub `Person` stub.
+    if (isProfileHiddenFor(actor, ctx.state.account)) {
+      actor = redactHiddenProfileActor(actor);
+      links = [];
     }
     const stats = await getActorStats(db, actor.id);
     const posts = await db.query.postTable.findMany({

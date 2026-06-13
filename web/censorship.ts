@@ -1,3 +1,5 @@
+import { getAvatarUrl } from "@hackerspub/models/avatar";
+import { isActorBanned } from "@hackerspub/models/moderation";
 import type {
   Account,
   Actor,
@@ -6,6 +8,50 @@ import type {
 } from "@hackerspub/models/schema";
 import { escape } from "@std/html/entities";
 import type { State } from "./utils.ts";
+
+/** The anonymous placeholder avatar served for hidden profiles. */
+const ANONYMOUS_AVATAR_URL = getAvatarUrl({ avatarUrl: null });
+
+/**
+ * Whether the legacy web UI must hide an actor's profile content from this
+ * viewer: the actor is permanently suspended (banned), and the viewer is
+ * neither the actor nor a moderator.  Mirrors the GraphQL layer's
+ * `isActorProfileHidden` and the content-less ActivityPub `Person` stub
+ * served for banned accounts.  A temporary suspension only restricts
+ * writing, so it does NOT hide the profile.
+ */
+export function isProfileHiddenFor(
+  actor: Pick<Actor, "id" | "suspended" | "suspendedUntil">,
+  account?:
+    | (Pick<Account, "moderator"> & { actor: Pick<Actor, "id"> })
+    | undefined,
+): boolean {
+  return isActorBanned(actor) &&
+    account?.actor.id !== actor.id &&
+    !(account?.moderator ?? false);
+}
+
+/**
+ * Returns a copy of the actor with its profile content emptied (display
+ * name, bio, profile fields, header) and the avatar replaced with the
+ * anonymous placeholder, for rendering a banned actor's profile to
+ * viewers who must not see it.  Identity (username, handle) stays.
+ */
+export function redactHiddenProfileActor<
+  T extends Pick<
+    Actor,
+    "name" | "bioHtml" | "avatarUrl" | "headerUrl" | "fieldHtmls"
+  >,
+>(actor: T): T {
+  return {
+    ...actor,
+    name: null,
+    bioHtml: null,
+    avatarUrl: ANONYMOUS_AVATAR_URL,
+    headerUrl: null,
+    fieldHtmls: {},
+  };
+}
 
 /**
  * Whether the legacy web UI must hide a censored post's content from this
