@@ -542,7 +542,14 @@ export interface TakeModerationActionOptions {
  * After the transaction, when the target is remote, at least one reporter
  * opted in to forwarding, and the action is not a dismissal, a `Flag`
  * activity is sent to the remote instance from the *instance actor* (never
- * a personal actor), carrying only the moderator-written summary.
+ * a personal actor), carrying only the moderator-written summary.  This
+ * forwarding is best-effort: a send failure is logged and swallowed rather
+ * than failing the action, which would otherwise leave a resolved case that
+ * a retry could neither re-act on nor re-forward.  When this function owns
+ * the transaction (the common path), the decision is already committed by the
+ * time the send runs; when the caller supplies the transaction
+ * (`isTransaction(db)`), the send runs before the outer commit, but the
+ * swallow still keeps a forwarding hiccup from aborting the caller's work.
  *
  * Returns `undefined` when the input is invalid (non-moderator, missing
  * provisions, missing or inverted suspension window, censoring a case
@@ -673,22 +680,50 @@ export async function takeModerationAction(
     flagCase.flags.some((flag) => flag.forwardToRemote)
   ) {
     const identifier = new URL(fedCtx.canonicalOrigin).hostname;
-    await fedCtx.sendActivity(
-      { identifier },
-      toRecipient(targetActor),
-      new vocab.Flag({
-        id: new URL(`/ap/flags/${action.id}`, fedCtx.canonicalOrigin),
-        actor: fedCtx.getActorUri(identifier),
-        objects: [
-          new URL(targetActor.iri),
-          ...(flagCase.targetPostIri == null
-            ? []
-            : [new URL(flagCase.targetPostIri)]),
-        ],
-        content: options.forwardSummary,
-      }),
-      { excludeBaseUris: [new URL(fedCtx.canonicalOrigin)] },
-    );
+    // Build the activity outside the `try` so only the send is best-effort:
+    // a failure to construct it (e.g. a malformed IRI) is a real bug and must
+    // still surface, not be swallowed as a delivery hiccup.
+    const recipient = toRecipient(targetActor);
+    const flagActivity = new vocab.Flag({
+      id: new URL(`/ap/flags/${action.id}`, fedCtx.canonicalOrigin),
+      actor: fedCtx.getActorUri(identifier),
+      objects: [
+        new URL(targetActor.iri),
+        ...(flagCase.targetPostIri == null
+          ? []
+          : [new URL(flagCase.targetPostIri)]),
+      ],
+      content: options.forwardSummary,
+    });
+    const sendOptions = {
+      excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+    };
+    try {
+      await fedCtx.sendActivity(
+        { identifier },
+        recipient,
+        flagActivity,
+        sendOptions,
+      );
+    } catch (error) {
+      // The decision and its enforcement are already recorded (and, on the
+      // path where this function owns the transaction, committed) by the time
+      // the send runs, so a failure to enqueue/deliver the `Flag` must not
+      // fail the action: a retry would hit an already-resolved case and could
+      // no longer re-forward.  Best-effort: log and move on.  Normal delivery
+      // durability comes from Fedify's outbound queue once the activity is
+      // enqueued.
+      logger.warn(
+        "Failed to forward the report for case {caseId} (action {actionId}) " +
+          "to remote actor {actorIri}: {error}",
+        {
+          caseId: flagCase.id,
+          actionId: action.id,
+          actorIri: targetActor.iri,
+          error,
+        },
+      );
+    }
   }
   return action;
 }
