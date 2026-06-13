@@ -1,7 +1,10 @@
 import { page } from "@fresh/core";
 import { extractMentionsFromHtml } from "@hackerspub/models/markup";
 import { getNoteSource } from "@hackerspub/models/note";
-import { getPostVisibilityFilter } from "@hackerspub/models/post";
+import {
+  getPostVisibilityFilter,
+  isPostVisibleTo,
+} from "@hackerspub/models/post";
 import type { Account, Actor } from "@hackerspub/models/schema";
 import { validateUuid } from "@hackerspub/models/uuid";
 import { isPostCensoredFor, redactCensoredPost } from "../../../censorship.ts";
@@ -24,6 +27,13 @@ export const handler = define.handlers(async (ctx) => {
     ctx.state.account,
   );
   if (note == null) return ctx.next();
+  // getNoteSource does not apply visibility filters, so gate the
+  // engagement page the same way the permalink does: a note whose author
+  // is hidden by a moderation sanction (or blocked, or whose visibility
+  // excludes the viewer) is not shown here either.
+  if (!isPostVisibleTo(note.post, ctx.state.account?.actor)) {
+    return ctx.next();
+  }
   const censored = isPostCensoredFor(note.post, ctx.state.account);
   if (censored) {
     note = { ...note, post: redactCensoredPost(note.post, ctx.state.t) };

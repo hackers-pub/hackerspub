@@ -100,7 +100,7 @@ import {
 } from "./medium-upload.ts";
 import { createGraphQLError } from "graphql-yoga";
 import { Account } from "./account.ts";
-import { Actor } from "./actor.ts";
+import { Actor, isActorProfileHidden } from "./actor.ts";
 import { builder, Node, type UserContext } from "./builder.ts";
 import {
   ActorSuspendedError,
@@ -1714,7 +1714,94 @@ export const Medium = builder.drizzleNode("mediumTable", {
     "to that URL, then call `finishMediumUpload` to complete the transaction. " +
     "Alternatively, call `createMedium` with a remote URL to import an " +
     "image directly. Unreferenced media older than the grace period are " +
-    "deleted by the `deleteOrphanMedia` mutation.",
+    "deleted by the `deleteOrphanMedia` mutation.  Resolvable via " +
+    "`node(id:)` when it has at least one reference visible to the viewer: " +
+    "the avatar of an account that is not banned, or a published post that " +
+    "is neither censored nor authored by a sanction-hidden actor (the " +
+    "viewer's own account/posts and moderators always count as visible). " +
+    "Hidden when it has references but every avatar and post reference is " +
+    "moderation-hidden for the viewer; fresh, orphan, and draft-only media " +
+    "(with no such references) remain resolvable.",
+  authScopes: async (medium, ctx) => {
+    if (ctx.account?.moderator) return true;
+    const viewerActorId = ctx.account?.actor.id;
+    // A medium stays resolvable when it has at least one reference visible
+    // to this viewer: the avatar of a non-hidden account, or a published
+    // post that is not censored and whose author is not sanction-hidden
+    // (or that the viewer authored).  A freshly uploaded / orphan /
+    // draft-only medium has no references and passes (preserving the
+    // prior unscoped behavior); it is denied only when it has references
+    // and every one of them is moderation-hidden for the viewer.
+    const postSelection = {
+      columns: { censored: true, actorId: true },
+      with: {
+        actor: {
+          columns: {
+            accountId: true,
+            suspended: true,
+            suspendedUntil: true,
+          },
+        },
+      },
+    } as const;
+    const avatarAccounts = await ctx.db.query.accountTable.findMany({
+      where: { avatarMediumId: medium.id },
+      columns: { id: true },
+      with: {
+        actor: {
+          columns: { id: true, suspended: true, suspendedUntil: true },
+        },
+      },
+    });
+    for (const account of avatarAccounts) {
+      if (account.actor == null || !isActorProfileHidden(account.actor, ctx)) {
+        return true;
+      }
+    }
+    const noteMedia = await ctx.db.query.noteSourceMediumTable.findMany({
+      where: { mediumId: medium.id },
+      columns: { sourceId: true },
+      with: {
+        source: { columns: { id: true }, with: { post: postSelection } },
+      },
+    });
+    for (const { source } of noteMedia) {
+      const post = source?.post;
+      if (
+        post != null &&
+        (post.actorId === viewerActorId ||
+          (post.censored == null && !isActorSanctionHidden(post.actor)))
+      ) {
+        return true;
+      }
+    }
+    const articleMedia = await ctx.db.query.articleSourceMediumTable.findMany({
+      where: { mediumId: medium.id },
+      columns: { articleSourceId: true },
+      with: {
+        articleSource: {
+          columns: { id: true },
+          with: { post: postSelection },
+        },
+      },
+    });
+    for (const { articleSource } of articleMedia) {
+      const post = articleSource?.post;
+      if (
+        post != null &&
+        (post.actorId === viewerActorId ||
+          (post.censored == null && !isActorSanctionHidden(post.actor)))
+      ) {
+        return true;
+      }
+    }
+    const hasReference = avatarAccounts.length > 0 ||
+      noteMedia.length > 0 || articleMedia.length > 0;
+    return !hasReference;
+  },
+  // Run the scope when the node itself is resolved, so a cached avatar
+  // medium id cannot bypass the redacted Account.avatarMediumId.
+  runScopesOnType: true,
   id: {
     column: (medium) => medium.id,
   },

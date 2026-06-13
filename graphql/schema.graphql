@@ -12,9 +12,15 @@ type Account implements Node {
   """
   articleDrafts(after: String, before: String, first: Int, last: Int): AccountArticleDraftsConnection!
 
-  """UUID of the medium used as this account's avatar."""
+  """
+  UUID of the medium used as this account's avatar.  `null` when the account is permanently suspended (banned) and the viewer is neither the account holder nor a moderator, so the real avatar medium cannot be resolved through `node(id:)`.
+  """
   avatarMediumId: UUID
   avatarUrl: URL! @deprecated(reason: "Use avatarMediumId instead.")
+
+  """
+  The account holder's profile bio in Markdown.  Empty when the account is permanently suspended (banned) and the viewer is neither the account holder nor a moderator.
+  """
   bio: Markdown!
   created: DateTime!
 
@@ -78,7 +84,7 @@ type Account implements Node {
   lastPostPublished: DateTime
 
   """
-  Profile links displayed on the account's public page, ordered by their display index. Links with a non-null `verified` timestamp have passed rel-me verification.
+  Profile links displayed on the account's public page, ordered by their display index. Links with a non-null `verified` timestamp have passed rel-me verification.  Empty when the account is permanently suspended (banned) and the viewer is neither the account holder nor a moderator, mirroring the suspended ActivityPub actor stub.
   """
   links: [AccountLink!]!
 
@@ -96,6 +102,10 @@ type Account implements Node {
   Whether this account has moderator privileges. Moderators can view `postCount` and `lastPostPublished` for any account, and perform administrative mutations such as `deleteOrphanMedia` and `regenerateInvitations`.
   """
   moderator: Boolean!
+
+  """
+  The account holder's display name.  Empty when the account is permanently suspended (banned) and the viewer is neither the account holder nor a moderator (mirrors the redacted `Actor`).
+  """
   name: String!
 
   """
@@ -104,7 +114,7 @@ type Account implements Node {
   notifications(after: String, before: String, first: Int, last: Int): AccountNotificationsConnection!
 
   """
-  URL of the generated Open Graph image for this account's profile page. Generated on first request and cached; high-complexity operation (avoid requesting in bulk).
+  URL of the generated Open Graph image for this account's profile page. Generated on first request and cached; high-complexity operation (avoid requesting in bulk).  For a permanently suspended (banned) account, viewers other than the account holder and moderators get an image built from redacted profile content (no display name, bio, or avatar), and the cached key is not overwritten.
   """
   ogImageUrl: URL!
   passkeys(after: String, before: String, first: Int, last: Int): AccountPasskeysConnection!
@@ -189,6 +199,9 @@ type AccountInviteesConnectionEdge {
   node: Account!
 }
 
+"""
+A profile link on a local account's public page.  Not resolvable via `node(id:)` when the owning account is permanently suspended (banned) and the viewer is neither the account holder nor a moderator.
+"""
 type AccountLink implements Node {
   created: DateTime!
   handle: String
@@ -305,17 +318,17 @@ type Actor implements Node {
   automaticallyApprovesFollowers: Boolean!
 
   """
-  One or two initials derived from the actor's display name or username, for use as a text-based avatar placeholder when the avatar image is unavailable.
+  One or two initials derived from the actor's display name or username, for use as a text-based avatar placeholder when the avatar image is unavailable.  Derived from the username (not the display name) when the actor is permanently suspended (banned) and the viewer is neither the actor nor a moderator.
   """
   avatarInitials: String!
 
   """
-  URL of the actor's avatar image. Falls back to a Gravatar URL derived from the account's email for local actors without an uploaded avatar.
+  URL of the actor's avatar image. Falls back to a Gravatar URL derived from the account's email for local actors without an uploaded avatar.  Replaced with the anonymous placeholder avatar when the actor is permanently suspended (banned) and the viewer is neither the actor nor a moderator.
   """
   avatarUrl: URL!
 
   """
-  The actor's biography rendered as HTML, with custom emoji shortcodes replaced by inline `<img>` elements. `null` when the actor has no bio.
+  The actor's biography rendered as HTML, with custom emoji shortcodes replaced by inline `<img>` elements. `null` when the actor has no bio, or is permanently suspended (banned) and the viewer is neither the actor nor a moderator.
   """
   bio: HTML
 
@@ -331,7 +344,7 @@ type Actor implements Node {
   created: DateTime!
 
   """
-  Key-value metadata fields from the actor's ActivityPub profile (the `attachment` property). Commonly used for website links, pronouns, or other structured profile information. Values are rendered as HTML.
+  Key-value metadata fields from the actor's ActivityPub profile (the `attachment` property). Commonly used for website links, pronouns, or other structured profile information. Values are rendered as HTML.  Empty when the actor is permanently suspended (banned) and the viewer is neither the actor nor a moderator.
   """
   fields: [ActorField!]!
   followees(after: String, before: String, first: Int, last: Int): ActorFolloweesConnection!
@@ -362,7 +375,7 @@ type Actor implements Node {
   handleHost: String!
 
   """
-  URL of the actor's profile header (banner) image. `null` when the actor has not set one.
+  URL of the actor's profile header (banner) image. `null` when the actor has not set one, or is permanently suspended (banned) and the viewer is neither the actor nor a moderator.
   """
   headerUrl: URL
   id: ID!
@@ -413,7 +426,7 @@ type Actor implements Node {
   mutualFollowers(after: String, before: String, first: Int, last: Int): ActorMutualFollowersConnection!
 
   """
-  The actor's display name rendered as HTML, with custom emoji shortcodes replaced by inline `<img>` elements. `null` when the actor has no display name set.
+  The actor's display name rendered as HTML, with custom emoji shortcodes replaced by inline `<img>` elements. `null` when the actor has no display name set, or is permanently suspended (banned) and the viewer is neither the actor nor a moderator.
   """
   name: HTML
   noteByUuid(uuid: UUID!): Note
@@ -454,7 +467,7 @@ type Actor implements Node {
   questions(after: String, before: String, first: Int, last: Int): ActorQuestionsConnection!
 
   """
-  The actor's display name as a plain string, before custom emoji shortcodes are replaced with `<img>` tags. Use `name` instead when rendering to HTML.
+  The actor's display name as a plain string, before custom emoji shortcodes are replaced with `<img>` tags. Use `name` instead when rendering to HTML.  `null` when the actor has no display name, or is permanently suspended (banned) and the viewer is neither the actor nor a moderator.
   """
   rawName: String
 
@@ -1923,7 +1936,7 @@ scalar Markdown
 scalar MediaType
 
 """
-A stored media object (image). Two-step upload flow: call `startMediumUpload` to get a pre-signed upload URL, PUT the image to that URL, then call `finishMediumUpload` to complete the transaction. Alternatively, call `createMedium` with a remote URL to import an image directly. Unreferenced media older than the grace period are deleted by the `deleteOrphanMedia` mutation.
+A stored media object (image). Two-step upload flow: call `startMediumUpload` to get a pre-signed upload URL, PUT the image to that URL, then call `finishMediumUpload` to complete the transaction. Alternatively, call `createMedium` with a remote URL to import an image directly. Unreferenced media older than the grace period are deleted by the `deleteOrphanMedia` mutation.  Resolvable via `node(id:)` when it has at least one reference visible to the viewer: the avatar of an account that is not banned, or a published post that is neither censored nor authored by a sanction-hidden actor (the viewer's own account/posts and moderators always count as visible). Hidden when it has references but every avatar and post reference is moderation-hidden for the viewer; fresh, orphan, and draft-only media (with no such references) remain resolvable.
 """
 type Medium implements Node {
   """SHA-256 hash of the normalized stored content, if known."""

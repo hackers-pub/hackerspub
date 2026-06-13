@@ -24,7 +24,7 @@ import {
   unfollow,
 } from "@hackerspub/models/following";
 import { getMutedActorIds, mute, unmute } from "@hackerspub/models/muting";
-import { isActorSuspended } from "@hackerspub/models/moderation";
+import { isActorBanned, isActorSuspended } from "@hackerspub/models/moderation";
 import {
   getCensoredPostExclusionFilter,
   getPostVisibilityFilter,
@@ -178,6 +178,32 @@ export const ActorType = builder.enumType("ActorType", {
   } as const,
 });
 
+/**
+ * Whether this actor's profile content must be hidden from the current
+ * viewer: the actor is permanently suspended (banned), and the viewer is
+ * neither the actor themselves nor a moderator.  Mirrors the suspended
+ * `Person` stub the ActivityPub actor dispatcher serves for banned
+ * accounts, so abusive display names, bios, avatars, and profile fields
+ * stop being exposed after a ban.  A temporary suspension only restricts
+ * writing, so it does NOT hide the profile.
+ */
+export function isActorProfileHidden(
+  actor: Pick<ActorRow, "id" | "suspended" | "suspendedUntil">,
+  ctx: UserContext,
+): boolean {
+  return isActorBanned(actor) &&
+    ctx.account?.actor.id !== actor.id &&
+    !(ctx.account?.moderator ?? false);
+}
+
+const profileHiddenSelection = {
+  columns: {
+    id: true,
+    suspended: true,
+    suspendedUntil: true,
+  },
+} as const;
+
 export const Actor = builder.drizzleNode("actorTable", {
   name: "Actor",
   description:
@@ -262,12 +288,21 @@ export const Actor = builder.drizzleNode("actorTable", {
         "Full fediverse handle in `@username@host` format, ready to use " +
         "in @-mentions across the fediverse.",
     }),
-    rawName: t.exposeString("name", {
+    rawName: t.field({
+      type: "String",
       nullable: true,
       description:
         "The actor's display name as a plain string, before custom emoji " +
         "shortcodes are replaced with `<img>` tags. Use `name` instead " +
-        "when rendering to HTML.",
+        "when rendering to HTML.  `null` when the actor has no display " +
+        "name, or is permanently suspended (banned) and the viewer is " +
+        "neither the actor nor a moderator.",
+      select: {
+        columns: { name: true, ...profileHiddenSelection.columns },
+      },
+      resolve(actor, _, ctx) {
+        return isActorProfileHidden(actor, ctx) ? null : actor.name;
+      },
     }),
     name: t.field({
       type: "HTML",
@@ -275,11 +310,17 @@ export const Actor = builder.drizzleNode("actorTable", {
       description:
         "The actor's display name rendered as HTML, with custom emoji " +
         "shortcodes replaced by inline `<img>` elements. `null` when the " +
-        "actor has no display name set.",
+        "actor has no display name set, or is permanently suspended " +
+        "(banned) and the viewer is neither the actor nor a moderator.",
       select: {
-        columns: { name: true, emojis: true },
+        columns: {
+          name: true,
+          emojis: true,
+          ...profileHiddenSelection.columns,
+        },
       },
-      resolve(actor) {
+      resolve(actor, _, ctx) {
+        if (isActorProfileHidden(actor, ctx)) return null;
         return actor.name
           ? renderCustomEmojis(escape(actor.name), actor.emojis)
           : null;
@@ -291,8 +332,17 @@ export const Actor = builder.drizzleNode("actorTable", {
       description:
         "The actor's biography rendered as HTML, with custom emoji " +
         "shortcodes replaced by inline `<img>` elements. `null` when " +
-        "the actor has no bio.",
-      resolve(actor) {
+        "the actor has no bio, or is permanently suspended (banned) and " +
+        "the viewer is neither the actor nor a moderator.",
+      select: {
+        columns: {
+          bioHtml: true,
+          emojis: true,
+          ...profileHiddenSelection.columns,
+        },
+      },
+      resolve(actor, _, ctx) {
+        if (isActorProfileHidden(actor, ctx)) return null;
         return actor.bioHtml
           ? renderCustomEmojis(actor.bioHtml, actor.emojis)
           : null;
@@ -312,12 +362,16 @@ export const Actor = builder.drizzleNode("actorTable", {
       description:
         "URL of the actor's avatar image. Falls back to a Gravatar URL " +
         "derived from the account's email for local actors without an " +
-        "uploaded avatar.",
+        "uploaded avatar.  Replaced with the anonymous placeholder avatar " +
+        "when the actor is permanently suspended (banned) and the viewer " +
+        "is neither the actor nor a moderator.",
       select: {
-        columns: { avatarUrl: true },
+        columns: { avatarUrl: true, ...profileHiddenSelection.columns },
       },
-      resolve(actor) {
-        const url = getAvatarUrl(actor);
+      resolve(actor, _, ctx) {
+        const url = getAvatarUrl(
+          isActorProfileHidden(actor, ctx) ? { avatarUrl: null } : actor,
+        );
         return new URL(url);
       },
     }),
@@ -326,9 +380,20 @@ export const Actor = builder.drizzleNode("actorTable", {
       description:
         "One or two initials derived from the actor's display name or " +
         "username, for use as a text-based avatar placeholder when the " +
-        "avatar image is unavailable.",
-      resolve(actor) {
-        const name = actor.name ?? actor.username;
+        "avatar image is unavailable.  Derived from the username (not the " +
+        "display name) when the actor is permanently suspended (banned) " +
+        "and the viewer is neither the actor nor a moderator.",
+      select: {
+        columns: {
+          name: true,
+          username: true,
+          ...profileHiddenSelection.columns,
+        },
+      },
+      resolve(actor, _, ctx) {
+        const name = isActorProfileHidden(actor, ctx)
+          ? actor.username
+          : actor.name ?? actor.username;
         const parts = name.trim().split(/[\s_-]+/).filter((p) => p.length > 0);
         if (parts.length === 0) return "?";
         if (parts.length === 1) {
@@ -344,8 +409,13 @@ export const Actor = builder.drizzleNode("actorTable", {
       nullable: true,
       description:
         "URL of the actor's profile header (banner) image. `null` when " +
-        "the actor has not set one.",
-      resolve(actor) {
+        "the actor has not set one, or is permanently suspended (banned) " +
+        "and the viewer is neither the actor nor a moderator.",
+      select: {
+        columns: { headerUrl: true, ...profileHiddenSelection.columns },
+      },
+      resolve(actor, _, ctx) {
+        if (isActorProfileHidden(actor, ctx)) return null;
         return actor.headerUrl ? new URL(actor.headerUrl) : null;
       },
     }),
@@ -422,8 +492,13 @@ export const Actor = builder.drizzleNode("actorTable", {
         "Key-value metadata fields from the actor's ActivityPub profile " +
         "(the `attachment` property). Commonly used for website links, " +
         "pronouns, or other structured profile information. Values are " +
-        "rendered as HTML.",
-      resolve(actor) {
+        "rendered as HTML.  Empty when the actor is permanently suspended " +
+        "(banned) and the viewer is neither the actor nor a moderator.",
+      select: {
+        columns: { fieldHtmls: true, ...profileHiddenSelection.columns },
+      },
+      resolve(actor, _, ctx) {
+        if (isActorProfileHidden(actor, ctx)) return [];
         const fields: ActorField[] = [];
         for (const field in actor.fieldHtmls) {
           const value = actor.fieldHtmls[field];
