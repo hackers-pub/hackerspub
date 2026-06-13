@@ -10,6 +10,7 @@ import {
 import {
   deletePost,
   getPostByUsernameAndId,
+  isActorSanctionHidden,
   isPostObject,
   isPostVisibleTo,
   persistPost,
@@ -104,10 +105,16 @@ export const handler = define.handlers({
       if (result == null) return ctx.next();
       if (ctx.state.account == null) {
         const original = result.sharedPost ?? result;
-        // A censored post (or a boost of one) must not disclose its
-        // target via the redirect; fall through to the local rendering,
-        // which replaces the content with a censorship notice.
-        if (result.censored == null && original.censored == null) {
+        // A post that is moderation-hidden (censored, or whose author is
+        // hidden by a sanction such as a ban or federation block), or a
+        // boost of one, must not disclose its target via the redirect;
+        // fall through to the local rendering, which shows a censorship
+        // notice for censored posts and 404s for sanction-hidden authors.
+        if (
+          result.censored == null && original.censored == null &&
+          !isActorSanctionHidden(result.actor) &&
+          !isActorSanctionHidden(original.actor)
+        ) {
           return ctx.redirect(original.url ?? original.iri, 301);
         }
       }
