@@ -589,11 +589,12 @@ export const Post = builder.drizzleInterface("postTable", {
         "and is unrelated to the wrapper's own row PK. Prefer this field " +
         "over hand-building a path from `Post.uuid`: `uuid` is the row PK and " +
         "does not match the path here for source-backed local posts.  " +
-        "`null` for a boost wrapper that is censored or moderation-hidden, " +
-        "or boosts a censored or moderation-hidden " +
-        "post, when the viewer is neither the content's author nor a " +
-        "moderator: the wrapper's URL mirrors the boosted post's and " +
-        "would disclose what was boosted.",
+        "`null` when the post is censored or its author is hidden by a " +
+        "moderation sanction, and the viewer is neither the content's " +
+        "author nor a moderator, EXCEPT for a local post (whose own " +
+        "permalink renders the notice): a boost wrapper's URL mirrors the " +
+        "boosted post's, and a remote post's URL points at the " +
+        "uncensored copy on its origin instance, so both are hidden.",
       select: {
         columns: {
           url: true,
@@ -609,11 +610,21 @@ export const Post = builder.drizzleInterface("postTable", {
           },
         },
       },
-      resolve: (post, _, ctx) =>
-        post.url == null ||
-          post.sharedPostId != null && isCensoredForViewer(post, ctx)
-          ? null
-          : new URL(post.url),
+      resolve: (post, _, ctx) => {
+        if (post.url == null) return null;
+        // When the content is hidden, a boost wrapper's URL mirrors the
+        // boosted post's, and a remote post's URL points at the
+        // uncensored copy on its origin instance.  Only a local post's
+        // own permalink leads to a page that renders the notice, so it
+        // is the only URL kept.
+        if (
+          isCensoredForViewer(post, ctx) &&
+          (post.sharedPostId != null || post.actor?.accountId == null)
+        ) {
+          return null;
+        }
+        return new URL(post.url);
+      },
     }),
     updated: t.expose("updated", { type: "DateTime" }),
     published: t.expose("published", { type: "DateTime" }),

@@ -34,6 +34,8 @@ import {
   insertAccountWithActor,
   insertNotePost,
   insertPostLink,
+  insertRemoteActor,
+  insertRemotePost,
   makeUserContext,
   withRollback,
 } from "../test/postgres.ts";
@@ -527,6 +529,113 @@ test("censored posts expose the flag and redact content", async () => {
     const authorNode = (authorResult.data as any)?.node;
     assert.ok(authorNode?.censored != null);
     assert.match(authorNode?.content ?? "", /Hello world/);
+  });
+});
+
+const urlQuery = parse(`
+  query PostUrl($id: ID!) {
+    node(id: $id) {
+      ... on Note { url censored }
+    }
+  }
+`);
+
+test("hidden direct remote posts do not expose their remote URL", async () => {
+  await withRollback(async (tx) => {
+    const moderator = await makeModerator(tx, {
+      username: "mod",
+      name: "Mod",
+      email: "mod@example.com",
+    });
+    const remoteAuthor = await insertRemoteActor(tx, {
+      username: "remoteauthor",
+      name: "Remote Author",
+      host: "remote.example",
+    });
+    const remotePost = await insertRemotePost(tx, {
+      actorId: remoteAuthor.id,
+      contentHtml: "<p>Remote content</p>",
+    });
+    const remoteUrl = "https://remote.example/@remoteauthor/123";
+    await tx.update(postTable)
+      .set({ url: remoteUrl, censored: new Date() })
+      .where(eq(postTable.id, remotePost.id));
+    const gid = encodeGlobalID("Note", remotePost.id);
+    const viewer = await insertAccountWithActor(tx, {
+      username: "urlviewer",
+      name: "URL Viewer",
+      email: "urlviewer@example.com",
+    });
+
+    // A censored direct remote post: the URL points at the uncensored
+    // copy on its origin instance, so it is hidden from an unrelated
+    // viewer (this is the `sharedPostId == null` case the boost-only
+    // guard missed).
+    const viewerResult = await execute({
+      schema,
+      document: urlQuery,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    const viewerNode = (viewerResult.data as any)?.node;
+    assert.ok(viewerNode?.censored != null);
+    assert.equal(viewerNode?.url, null);
+
+    // A moderator still gets the remote URL:
+    const modResult = await execute({
+      schema,
+      document: urlQuery,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, moderator),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    assert.equal((modResult.data as any)?.node?.url, remoteUrl);
+
+    // A federation-blocked remote author (not individually censored) is
+    // hidden the same way:
+    await tx.update(postTable)
+      .set({ censored: null })
+      .where(eq(postTable.id, remotePost.id));
+    await tx.update(actorTable)
+      .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: null })
+      .where(eq(actorTable.id, remoteAuthor.id));
+    const blockedResult = await execute({
+      schema,
+      document: urlQuery,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    assert.equal((blockedResult.data as any)?.node?.url, null);
+  });
+});
+
+test("censored local posts keep their local permalink URL", async () => {
+  await withRollback(async (tx) => {
+    const { post } = await sanction(tx, "censor");
+    const gid = encodeGlobalID("Note", post.id);
+    const viewer = await insertAccountWithActor(tx, {
+      username: "localurlviewer",
+      name: "Local URL Viewer",
+      email: "localurlviewer@example.com",
+    });
+    const result = await execute({
+      schema,
+      document: urlQuery,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    const node = (result.data as any)?.node;
+    assert.ok(node?.censored != null);
+    // The local permalink renders the censorship notice, so it is kept
+    // (and is local, not a remote origin):
+    assert.match(node?.url ?? "", /^http:\/\/localhost\//);
   });
 });
 

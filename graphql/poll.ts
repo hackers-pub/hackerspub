@@ -114,11 +114,12 @@ builder.drizzleObjectFields(Question, (t) => ({
       "The canonical, human-readable URL of this question. Source-backed " +
       "local Questions encode `Question.sourceId`; federated remote " +
       "Questions and local share wrappers may not share any path token with " +
-      "`Post.uuid`.  `null` for a boost wrapper that is censored or " +
-      "moderation-hidden, or boosts such a post, when the viewer is " +
-      "neither the content's author " +
-      "nor a moderator: the wrapper's URL mirrors the boosted post's and " +
-      "would disclose what was boosted.",
+      "`Post.uuid`.  `null` when the question is censored or its author is " +
+      "hidden by a moderation sanction, and the viewer is neither the " +
+      "content's author nor a moderator, EXCEPT for a local question " +
+      "(whose own permalink renders the notice): a boost wrapper's URL " +
+      "mirrors the boosted post's, and a remote question's URL points at " +
+      "the uncensored copy on its origin instance, so both are hidden.",
     select: {
       columns: {
         url: true,
@@ -134,11 +135,21 @@ builder.drizzleObjectFields(Question, (t) => ({
         },
       },
     },
-    resolve: (post, _, ctx) =>
-      post.url == null ||
-        post.sharedPostId != null && isPollCensoredForViewer(post, ctx)
-        ? null
-        : new URL(post.url),
+    resolve: (post, _, ctx) => {
+      if (post.url == null) return null;
+      // When the content is hidden, a boost wrapper's URL mirrors the
+      // boosted post's, and a remote question's URL points at the
+      // uncensored copy on its origin instance.  Only a local question's
+      // own permalink leads to a page that renders the notice, so it is
+      // the only URL kept.
+      if (
+        isPollCensoredForViewer(post, ctx) &&
+        (post.sharedPostId != null || post.actor?.accountId == null)
+      ) {
+        return null;
+      }
+      return new URL(post.url);
+    },
   }),
   published: t.expose("published", {
     type: "DateTime",
