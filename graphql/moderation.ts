@@ -1868,6 +1868,16 @@ builder.mutationField("resolveFlagAppeal", (t) =>
           suspensionEnds: args.replacement.suspensionEnds ?? undefined,
         };
       }
+      // Capture the appellant's ban state *before* resolving: a successful
+      // ban appeal lifts the ban, so checking only the post-resolution state
+      // would skip the outcome email for exactly the users who appealed by
+      // email (banned, unable to sign in) and most need to learn the result.
+      const priorAppeal = await ctx.db.query.flagAppealTable.findFirst({
+        where: { id: args.appealId.id as Uuid },
+        with: { appellant: { with: { actor: true } } },
+      });
+      const appellantWasBanned = priorAppeal?.appellant?.actor != null &&
+        isActorBanned(priorAppeal.appellant.actor);
       const appeal = await resolveAppealModel(ctx.db, {
         appealId: args.appealId.id as Uuid,
         reviewer: ctx.account,
@@ -1876,17 +1886,21 @@ builder.mutationField("resolveFlagAppeal", (t) =>
         replacement,
       });
       if (appeal == null) throw new InvalidInputError("appealId");
-      // An appellant who remains permanently suspended after the
-      // resolution cannot sign in, so the in-app appeal_resolved
-      // notification is unreachable for them; the outcome is emailed to
-      // every verified address instead.  A failed send must not fail
-      // the resolution itself.
+      // An appellant banned either before or after the resolution cannot
+      // rely on the in-app appeal_resolved notification: while still banned
+      // they cannot sign in to read it, and a successful ban appeal lifts the
+      // ban but the user (who appealed by email, locked out) has no reason to
+      // know to sign in.  Either way the outcome is emailed to every verified
+      // address.  A failed send must not fail the resolution itself.
       try {
         const appellant = await ctx.db.query.accountTable.findFirst({
           where: { id: appeal.appellantId },
           with: { actor: true, emails: true },
         });
-        if (appellant != null && isActorBanned(appellant.actor)) {
+        if (
+          appellant != null &&
+          (appellantWasBanned || isActorBanned(appellant.actor))
+        ) {
           const emails = appellant.emails
             .filter((email) => email.verified != null);
           const locale = new Intl.Locale(appellant.locales?.[0] ?? "en");

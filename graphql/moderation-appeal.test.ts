@@ -1357,6 +1357,81 @@ test("a still-banned appellant gets the appeal outcome by email", async () => {
   });
 });
 
+test("a successful ban appeal still emails the lifted outcome", async () => {
+  await withRollback(async (tx) => {
+    const { moderator, reported, action } = await sanction(tx, "ban");
+    const onBehalfMutation = parse(`
+      mutation AppealOnBehalfUpheld(
+        $sanctionId: UUID!
+        $reason: String!
+        $onBehalfOf: ID!
+      ) {
+        appealModerationAction(
+          sanctionId: $sanctionId
+          reason: $reason
+          onBehalfOf: $onBehalfOf
+        ) {
+          __typename
+          ... on FlagAppeal { uuid }
+        }
+      }
+    `);
+    const filed = await execute({
+      schema,
+      document: onBehalfMutation,
+      variableValues: {
+        sanctionId: action.id,
+        reason: "Filed by email on the banned user's behalf.",
+        onBehalfOf: encodeGlobalID("Account", reported.account.id),
+      },
+      contextValue: makeUserContext(tx, moderator),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    const appealUuid = (filed.data as any)?.appealModerationAction?.uuid;
+    assert.ok(appealUuid != null);
+
+    // A different moderator upholds the appeal and withdraws the ban.  The
+    // appellant can now sign in, but having appealed by email while locked
+    // out, they have no reason to know unless the outcome is emailed.
+    const reviewer = await makeModerator(tx, {
+      username: "reviewer",
+      name: "Reviewer",
+      email: "reviewer@example.com",
+    });
+    const email = createTestEmailTransport();
+    const resolved = await execute({
+      schema,
+      document: resolveAppealMutation,
+      variableValues: {
+        appealId: encodeGlobalID("FlagAppeal", appealUuid),
+        result: "WITHDRAWN",
+        rationale: "The ban was a mistake; lifting it.",
+      },
+      contextValue: makeUserContext(tx, reviewer, { email: email.transport }),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(
+      // deno-lint-ignore no-explicit-any
+      (resolved.data as any)?.resolveFlagAppeal?.__typename,
+      "FlagAppeal",
+    );
+    // The ban was lifted (the appeal succeeded)...
+    const actorRow = await tx.query.actorTable.findFirst({
+      where: { id: reported.actor.id },
+    });
+    assert.equal(actorRow?.suspended, null);
+    // ...yet the outcome email still went out, since the appellant was
+    // banned before the resolution and could not have read it in-app.
+    assert.equal(email.messages.length, 1);
+    const message = email.messages[0] as Message;
+    assert.deepEqual(
+      message.recipients.map((r) => r.address),
+      ["reported@example.com"],
+    );
+  });
+});
+
 test("PostLink nodes of censored posts are not resolvable", async () => {
   await withRollback(async (tx) => {
     const { reported, post } = await sanction(tx, "censor");
