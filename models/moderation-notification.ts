@@ -87,8 +87,11 @@ export async function createAppealReceivedNotifications(
   db: Database,
   appeal: FlagAppeal,
 ): Promise<ModerationNotification[]> {
+  // A moderator who is themselves the appellant cannot review their own
+  // appeal (the queue and resolver exclude it), so they must not get an
+  // `appeal_received` notification pointing at a case they cannot open.
   const moderators = await db.query.accountTable.findMany({
-    where: { moderator: true },
+    where: { moderator: true, id: { ne: appeal.appellantId } },
     columns: { id: true },
   });
   if (moderators.length < 1) return [];

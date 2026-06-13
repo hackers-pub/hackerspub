@@ -125,6 +125,37 @@ describe("createAppeal()", () => {
     });
   });
 
+  it("excludes a moderator-appellant from the notification fan-out", async () => {
+    await withRollback(async (tx) => {
+      const fedCtx = recordingFedCtx(tx);
+      const { moderator, reported, action } = await makeSanctionedCase(
+        tx,
+        fedCtx,
+        "warning",
+      );
+      // The sanctioned user is themselves a moderator: they cannot review
+      // their own appeal (the queue and resolver exclude it), so they must
+      // not be notified about a case they cannot open.
+      await tx.update(accountTable)
+        .set({ moderator: true })
+        .where(eq(accountTable.id, reported.account.id));
+      const appeal = await createAppeal(tx, {
+        actionId: action.id,
+        appellant: reported.account,
+        reason: "I believe this decision misread the context.",
+      });
+      assert.ok(appeal != null);
+      const notifications = await tx.query.moderationNotificationTable
+        .findMany({
+          where: { type: "appeal_received", appealId: appeal.id },
+        });
+      // Only the other moderator (who took the action) is notified.
+      assert.equal(notifications.length, 1);
+      assert.equal(notifications[0].accountId, moderator.account.id);
+      assert.notEqual(notifications[0].accountId, reported.account.id);
+    });
+  });
+
   it("rejects appeals outside the 14-day window", async () => {
     await withRollback(async (tx) => {
       const fedCtx = recordingFedCtx(tx);
