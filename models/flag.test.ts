@@ -103,6 +103,50 @@ describe("createFlag()", () => {
     });
   });
 
+  it("starts a report joining a reviewing case as reviewing", async () => {
+    await withRollback(async (tx) => {
+      const reporterA = await insertAccountWithActor(tx, {
+        username: "reportera",
+        name: "Reporter A",
+        email: "reportera@example.com",
+      });
+      const reporterB = await insertAccountWithActor(tx, {
+        username: "reporterb",
+        name: "Reporter B",
+        email: "reporterb@example.com",
+      });
+      const reported = await insertAccountWithActor(tx, {
+        username: "reported",
+        name: "Reported",
+        email: "reported@example.com",
+      });
+      const { post } = await insertNotePost(tx, { account: reported.account });
+      const first = await createFlag(tx, {
+        reporter: reporterA.actor,
+        targetActor: reported.actor,
+        targetPost: post,
+        reason: REASON,
+      });
+      assert.ok(first != null);
+      assert.equal(first.status, "pending");
+      // The case is taken under review before the second report arrives.
+      await tx.update(flagCaseTable)
+        .set({ status: "reviewing" })
+        .where(eq(flagCaseTable.id, first.caseId));
+      const second = await createFlag(tx, {
+        reporter: reporterB.actor,
+        targetActor: reported.actor,
+        targetPost: post,
+        reason: "Another independent report about the same post.",
+      });
+      assert.ok(second != null);
+      assert.equal(second.caseId, first.caseId);
+      // A report joining a case already under review inherits its status
+      // instead of starting at the `pending` column default.
+      assert.equal(second.status, "reviewing");
+    });
+  });
+
   it("opens a new case when the previous one is closed", async () => {
     await withRollback(async (tx) => {
       const reporter = await insertAccountWithActor(tx, {

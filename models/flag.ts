@@ -124,6 +124,9 @@ export async function createFlag(
         reason,
         cocVersion,
         caseId: flagCase.id,
+        // A report follows its case's status: one joining a case already
+        // under review starts as `reviewing`, not the default `pending`.
+        status: flagCase.status,
         forwardToRemote: options.forwardToRemote ?? false,
       })
       .onConflictDoNothing()

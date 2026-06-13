@@ -711,19 +711,35 @@ export async function assignCase(
     });
     if (assignee == null || !assignee.moderator) return undefined;
   }
-  const rows = await db.update(flagCaseTable)
-    .set(
-      moderatorId == null ? { assignedModeratorId: null } : {
-        assignedModeratorId: moderatorId,
-        status: "reviewing",
-      },
-    )
-    .where(and(
-      eq(flagCaseTable.id, caseId),
-      inArray(flagCaseTable.status, [...OPEN_CASE_STATUSES]),
-    ))
-    .returning();
-  return rows[0];
+  const run = async (tx: Transaction): Promise<FlagCase | undefined> => {
+    const rows = await tx.update(flagCaseTable)
+      .set(
+        moderatorId == null ? { assignedModeratorId: null } : {
+          assignedModeratorId: moderatorId,
+          status: "reviewing",
+        },
+      )
+      .where(and(
+        eq(flagCaseTable.id, caseId),
+        inArray(flagCaseTable.status, [...OPEN_CASE_STATUSES]),
+      ))
+      .returning();
+    const flagCase = rows[0];
+    if (flagCase == null) return undefined;
+    // A report's status follows its case's status, so moving the case to
+    // `reviewing` moves its still-pending member reports too (what the
+    // reporter sees via `Account.reports`/`Flag.status`).
+    if (moderatorId != null) {
+      await tx.update(flagTable)
+        .set({ status: "reviewing", updated: new Date() })
+        .where(and(
+          eq(flagTable.caseId, caseId),
+          eq(flagTable.status, "pending"),
+        ));
+    }
+    return flagCase;
+  };
+  return isTransaction(db) ? await run(db) : await db.transaction(run);
 }
 
 /**
@@ -736,14 +752,28 @@ export async function updateCaseStatus(
   caseId: Uuid,
   status: "pending" | "reviewing",
 ): Promise<FlagCase | undefined> {
-  const rows = await db.update(flagCaseTable)
-    .set({ status })
-    .where(and(
-      eq(flagCaseTable.id, caseId),
-      inArray(flagCaseTable.status, [...OPEN_CASE_STATUSES]),
-    ))
-    .returning();
-  return rows[0];
+  const run = async (tx: Transaction): Promise<FlagCase | undefined> => {
+    const rows = await tx.update(flagCaseTable)
+      .set({ status })
+      .where(and(
+        eq(flagCaseTable.id, caseId),
+        inArray(flagCaseTable.status, [...OPEN_CASE_STATUSES]),
+      ))
+      .returning();
+    const flagCase = rows[0];
+    if (flagCase == null) return undefined;
+    // Keep the member reports in step with the case so reporters see the
+    // same `pending`/`reviewing` state via `Account.reports`/`Flag.status`.
+    const otherOpenStatus = status === "reviewing" ? "pending" : "reviewing";
+    await tx.update(flagTable)
+      .set({ status, updated: new Date() })
+      .where(and(
+        eq(flagTable.caseId, caseId),
+        eq(flagTable.status, otherOpenStatus),
+      ));
+    return flagCase;
+  };
+  return isTransaction(db) ? await run(db) : await db.transaction(run);
 }
 
 const YEAR_MS = 365 * 24 * 60 * 60 * 1000;

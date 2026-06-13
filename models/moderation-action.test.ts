@@ -554,6 +554,11 @@ describe("assignCase()", () => {
       );
       assert.equal(updated?.assignedModeratorId, moderator.account.id);
       assert.equal(updated?.status, "reviewing");
+      // The member report follows the case into review.
+      const reviewingFlag = await tx.query.flagTable.findFirst({
+        where: { id: flag.id },
+      });
+      assert.equal(reviewingFlag?.status, "reviewing");
       const unassigned = await assignCase(tx, flag.caseId, null);
       assert.equal(unassigned?.assignedModeratorId, null);
       assert.equal(unassigned?.status, "reviewing");
@@ -584,8 +589,17 @@ describe("updateCaseStatus()", () => {
       const { flag } = await makeReportedPostCase(tx);
       const reviewing = await updateCaseStatus(tx, flag.caseId, "reviewing");
       assert.equal(reviewing?.status, "reviewing");
+      // The member report tracks the case status in both directions.
+      const reviewingFlag = await tx.query.flagTable.findFirst({
+        where: { id: flag.id },
+      });
+      assert.equal(reviewingFlag?.status, "reviewing");
       const pending = await updateCaseStatus(tx, flag.caseId, "pending");
       assert.equal(pending?.status, "pending");
+      const pendingFlag = await tx.query.flagTable.findFirst({
+        where: { id: flag.id },
+      });
+      assert.equal(pendingFlag?.status, "pending");
       await takeModerationAction(fedCtx, {
         caseId: flag.caseId,
         moderator: moderator.account,
