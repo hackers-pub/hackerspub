@@ -125,8 +125,10 @@ export const handler = define.handlers({
     if (!isPostVisibleTo(post, ctx.state.account?.actor)) {
       return ctx.next();
     }
-    // A censored article cannot be quoted.
-    if (isPostCensoredFor(post, ctx.state.account)) {
+    // A censored article cannot be quoted by anyone, including the author and
+    // moderators (exempt from `isPostCensoredFor` redaction but still barred
+    // from quoting), so the guard uses the raw `censored` state.
+    if (post.censored != null) {
       return new Response("Invalid quotedPostId", { status: 400 });
     }
     const account = ctx.state.account;
@@ -195,7 +197,12 @@ export default define.page<typeof handler, ArticleQuotesProps>(
         signedAccount={state.account}
       />
       <div class="mt-8">
-        {state.account == null
+        {
+          /* A censored article cannot be quoted, so neither the remote-quote
+            instruction (which would disclose the ActivityPub URI to guests)
+            nor the quote composer is shown; existing quotes stay listed. */
+        }
+        {article.post.censored != null ? null : state.account == null
           ? (
             <>
               <p class="mb-8 leading-7 text-stone-500 dark:text-stone-400">

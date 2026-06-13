@@ -218,12 +218,11 @@ export const handler = define.handlers({
     if (!isPostVisibleTo(post, ctx.state.account?.actor)) {
       return ctx.next();
     }
-    // Neither a censored post nor a censored share wrapper can be quoted.
-    if (
-      isPostCensoredFor(post, ctx.state.account) ||
-      post.sharedPost != null &&
-        isPostCensoredFor(post.sharedPost, ctx.state.account)
-    ) {
+    // Neither a censored post nor a censored share wrapper can be quoted by
+    // anyone, including the author and moderators (who are exempt from
+    // `isPostCensoredFor` redaction but still cannot quote), so the guard
+    // uses the raw `censored` state.
+    if (post.censored != null || post.sharedPost?.censored != null) {
       return new Response("Invalid quotedPostId", { status: 400 });
     }
     const targetPost = post.sharedPost ?? post;
@@ -280,6 +279,11 @@ interface NoteQuotesProps {
 export default define.page<typeof handler, NoteQuotesProps>(
   ({ data: { post, quotes }, state }) => {
     const targetPost = post.sharedPost ?? post;
+    // A censored post (or a censored boosted original) cannot be quoted by
+    // anyone, so neither the remote-quote instruction (which would disclose
+    // the ActivityPub URI to guests) nor the quote composer is shown; the
+    // existing quotes remain listed.
+    const censored = post.censored != null || post.sharedPost?.censored != null;
     return (
       <>
         <PostExcerpt
@@ -296,7 +300,7 @@ export default define.page<typeof handler, NoteQuotesProps>(
           signedAccount={state.account}
         />
         <div class="mt-8">
-          {state.account == null
+          {censored ? null : state.account == null
             ? (
               <>
                 <hr class="my-4 ml-14 opacity-50 dark:opacity-25" />

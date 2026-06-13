@@ -579,18 +579,23 @@ export function ArticlePage(
           <Msg $key="article.comments" count={comments.length} />
         </PageTitle>
         {state.account == null
-          ? (
-            <p class="mt-4 leading-7">
-              <Msg
-                $key="article.remoteCommentDescription"
-                permalink={
-                  <span class="font-bold border-dashed border-b-[1px] select-all">
-                    {articleIri}
-                  </span>
-                }
-              />
-            </p>
-          )
+          ? article.post.censored != null
+            // The remote-reply instruction would disclose the censored
+            // article's ActivityPub URI; guests get no reply affordance
+            // here, mirroring the note permalink.
+            ? null
+            : (
+              <p class="mt-4 leading-7">
+                <Msg
+                  $key="article.remoteCommentDescription"
+                  permalink={
+                    <span class="font-bold border-dashed border-b-[1px] select-all">
+                      {articleIri}
+                    </span>
+                  }
+                />
+              </p>
+            )
           : (
             <Composer
               canonicalOrigin={state.canonicalOrigin}
