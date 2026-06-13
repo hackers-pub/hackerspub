@@ -2502,14 +2502,20 @@ export async function getPostInteractionPolicies(
   for (const post of posts) {
     if (!isPostVisibleTo(post, viewer)) continue;
     const effective = post.sharedPost ?? post;
-    const canAmplify = effective.sharedPostId == null &&
+    // A censored post (or a wrapper of one) cannot be boosted or quoted by
+    // anyone, including its author or a moderator: both actions re-amplify
+    // moderation-hidden content, and the share/quote mutations reject them
+    // outright.  Deny the policy too so the UI never offers an affordance
+    // that is guaranteed to fail.
+    const censored = post.censored != null || effective.censored != null;
+    const canAmplify = !censored && effective.sharedPostId == null &&
       isPostVisibleTo(effective, viewer) && (
         effective.visibility === "public" ||
         effective.visibility === "unlisted" ||
         (effective.visibility === "followers" &&
           effective.actorId === viewer.id)
       );
-    const canQuote = effective.sharedPostId == null &&
+    const canQuote = !censored && effective.sharedPostId == null &&
       isPostVisibleTo(effective, viewer) &&
       canActorRequestQuotePost(effective, viewer);
     result.set(post.id, {

@@ -891,7 +891,7 @@ type Article implements Node & Post & Reactable {
   uuid: UUID!
 
   """
-  Whether the authenticated viewer is allowed to quote this post, based on `quotePolicy`, visibility, and block state. Always `false` for unauthenticated requests.
+  Whether the authenticated viewer is allowed to quote this post, based on `quotePolicy`, visibility, and block state. A censored post cannot be quoted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests.
   """
   viewerCanQuote: Boolean!
 
@@ -906,7 +906,7 @@ type Article implements Node & Post & Reactable {
   viewerCanRevokeQuote: Boolean!
 
   """
-  Whether the authenticated viewer is allowed to boost this post, based on visibility and block state. Always `false` for unauthenticated requests.
+  Whether the authenticated viewer is allowed to boost this post, based on visibility and block state. A censored post cannot be boosted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests.
   """
   viewerCanShare: Boolean!
 
@@ -2789,7 +2789,7 @@ type Note implements Node & Post & Reactable {
   uuid: UUID!
 
   """
-  Whether the authenticated viewer is allowed to quote this post, based on `quotePolicy`, visibility, and block state. Always `false` for unauthenticated requests.
+  Whether the authenticated viewer is allowed to quote this post, based on `quotePolicy`, visibility, and block state. A censored post cannot be quoted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests.
   """
   viewerCanQuote: Boolean!
 
@@ -2804,7 +2804,7 @@ type Note implements Node & Post & Reactable {
   viewerCanRevokeQuote: Boolean!
 
   """
-  Whether the authenticated viewer is allowed to boost this post, based on visibility and block state. Always `false` for unauthenticated requests.
+  Whether the authenticated viewer is allowed to boost this post, based on visibility and block state. A censored post cannot be boosted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests.
   """
   viewerCanShare: Boolean!
 
@@ -3216,7 +3216,7 @@ interface Post implements Node & Reactable {
   uuid: UUID!
 
   """
-  Whether the authenticated viewer is allowed to quote this post, based on `quotePolicy`, visibility, and block state. Always `false` for unauthenticated requests.
+  Whether the authenticated viewer is allowed to quote this post, based on `quotePolicy`, visibility, and block state. A censored post cannot be quoted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests.
   """
   viewerCanQuote: Boolean!
 
@@ -3231,7 +3231,7 @@ interface Post implements Node & Reactable {
   viewerCanRevokeQuote: Boolean!
 
   """
-  Whether the authenticated viewer is allowed to boost this post, based on visibility and block state. Always `false` for unauthenticated requests.
+  Whether the authenticated viewer is allowed to boost this post, based on visibility and block state. A censored post cannot be boosted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests.
   """
   viewerCanShare: Boolean!
 
@@ -4057,7 +4057,7 @@ type Question implements Node & Post & Reactable {
   uuid: UUID!
 
   """
-  Whether the authenticated viewer is allowed to quote this post, based on `quotePolicy`, visibility, and block state. Always `false` for unauthenticated requests.
+  Whether the authenticated viewer is allowed to quote this post, based on `quotePolicy`, visibility, and block state. A censored post cannot be quoted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests.
   """
   viewerCanQuote: Boolean!
 
@@ -4072,7 +4072,7 @@ type Question implements Node & Post & Reactable {
   viewerCanRevokeQuote: Boolean!
 
   """
-  Whether the authenticated viewer is allowed to boost this post, based on visibility and block state. Always `false` for unauthenticated requests.
+  Whether the authenticated viewer is allowed to boost this post, based on visibility and block state. A censored post cannot be boosted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests.
   """
   viewerCanShare: Boolean!
 

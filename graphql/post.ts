@@ -730,8 +730,10 @@ export const Post = builder.drizzleInterface("postTable", {
       type: "Boolean",
       description:
         "Whether the authenticated viewer is allowed to quote this post, " +
-        "based on `quotePolicy`, visibility, and block state. Always " +
-        "`false` for unauthenticated requests.",
+        "based on `quotePolicy`, visibility, and block state. A censored " +
+        "post cannot be quoted by anyone (including its author or a " +
+        "moderator), so this is `false` for censored posts. Always `false` " +
+        "for unauthenticated requests.",
       loaderOptions: { cache: false },
       load: async (postIds: Uuid[], ctx: UserContext): Promise<boolean[]> => {
         const policies = await loadViewerActionPolicies(ctx, postIds);
@@ -770,8 +772,10 @@ export const Post = builder.drizzleInterface("postTable", {
       type: "Boolean",
       description:
         "Whether the authenticated viewer is allowed to boost this post, " +
-        "based on visibility and block state. Always `false` for " +
-        "unauthenticated requests.",
+        "based on visibility and block state. A censored post cannot be " +
+        "boosted by anyone (including its author or a moderator), so this " +
+        "is `false` for censored posts. Always `false` for unauthenticated " +
+        "requests.",
       loaderOptions: { cache: false },
       load: async (postIds: Uuid[], ctx: UserContext): Promise<boolean[]> => {
         const policies = await loadViewerActionPolicies(ctx, postIds);
