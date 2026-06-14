@@ -317,9 +317,14 @@ export async function getNote(
     quoteUrl: relations.quotedPost == null
       ? null
       : new URL(relations.quotedPost.iri),
-    quoteAuthorization: relations.quoteAuthorizationIri == null
-      ? null
-      : new URL(relations.quoteAuthorizationIri),
+    // No quote authorization without a quote target: when the target is
+    // dropped (e.g. censored or sanction-hidden), its authorization URL must
+    // not be emitted either, or it would stay dereferenceable and reveal or
+    // validate the hidden target.
+    quoteAuthorization:
+      relations.quotedPost == null || relations.quoteAuthorizationIri == null
+        ? null
+        : new URL(relations.quoteAuthorizationIri),
     contents: [
       contentHtml,
       new LanguageString(contentHtml, note.language),
@@ -443,9 +448,13 @@ export async function getQuestion(
     quoteUrl: relations.quotedPost == null
       ? null
       : new URL(relations.quotedPost.iri),
-    quoteAuthorization: relations.quoteAuthorizationIri == null
-      ? null
-      : new URL(relations.quoteAuthorizationIri),
+    // No quote authorization without a quote target (see getNote): a dropped
+    // (censored or sanction-hidden) target must not leave a dereferenceable
+    // authorization URL.
+    quoteAuthorization:
+      relations.quotedPost == null || relations.quoteAuthorizationIri == null
+        ? null
+        : new URL(relations.quoteAuthorizationIri),
     name: poll.post.name,
     contents: [
       contentHtml,

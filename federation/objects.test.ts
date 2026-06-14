@@ -333,3 +333,48 @@ test("the quote-authorization dispatcher hides censored posts", async () => {
     assert.equal(after.status, 404);
   });
 });
+
+test("getNote() drops the quote authorization when the target is absent", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "quoteauthnote",
+      name: "Quote Auth Note",
+      email: "quoteauthnote@example.com",
+    });
+    const { noteSourceId } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Quoting note",
+    });
+    const noteSource = await tx.query.noteSourceTable.findFirst({
+      where: { id: noteSourceId },
+      with: {
+        account: true,
+        media: { with: { medium: true }, orderBy: { index: "asc" } },
+      },
+    });
+    assert.ok(noteSource != null);
+    const { post: target } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Quote target",
+    });
+    const authIri = "http://localhost/ap/quote-authorizations/note-auth";
+
+    // With a visible quote target, both the quote and its authorization are
+    // emitted.
+    const withTarget = await getNote(createFedCtx(tx), noteSource, {
+      quotedPost: target,
+      quoteAuthorizationIri: authIri,
+    });
+    assert.equal(withTarget.quoteId?.href, target.iri);
+    assert.equal(withTarget.quoteAuthorizationId?.href, authIri);
+
+    // When the target is dropped (the dispatcher does this for a censored or
+    // sanction-hidden quote), the authorization URL must not be emitted on
+    // its own, or it would stay dereferenceable for the hidden target.
+    const withoutTarget = await getNote(createFedCtx(tx), noteSource, {
+      quoteAuthorizationIri: authIri,
+    });
+    assert.equal(withoutTarget.quoteId, null);
+    assert.equal(withoutTarget.quoteAuthorizationId, null);
+  });
+});
