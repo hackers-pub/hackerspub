@@ -3,11 +3,12 @@ import process from "node:process";
 import test from "node:test";
 import type { Context } from "@fedify/fedify";
 import { Create, Note as ActivityPubNote, QuoteRequest } from "@fedify/vocab";
+import { eq } from "drizzle-orm";
 import type { ContextData } from "./context.ts";
 import type { Transaction } from "./db.ts";
 import { createNote, QuotePolicyDeniedError, updateNote } from "./note.ts";
 import { createQuestion } from "./question.ts";
-import { followingTable, mediumTable } from "./schema.ts";
+import { followingTable, mediumTable, postTable } from "./schema.ts";
 import { generateUuidV7 } from "./uuid.ts";
 import {
   createFedCtx,
@@ -57,6 +58,41 @@ test("createNote() creates a post and timeline entry for the author", async () =
     assert.equal(timelineItem.originalAuthorId, author.actor.id);
     assert.equal(timelineItem.lastSharerId, null);
     assert.equal(timelineItem.sharersCount, 0);
+  });
+});
+
+test("updateNote() does not federate a censored post", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "censorededitnote",
+      name: "Censored Edit Note",
+      email: "censorededitnote@example.com",
+    });
+    const { noteSourceId, post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Original body",
+    });
+    // Moderators censor the post without suspending the author.
+    await tx.update(postTable)
+      .set({ censored: new Date() })
+      .where(eq(postTable.id, post.id));
+
+    const fedCtx = createFedCtx(tx);
+    const sent: unknown[] = [];
+    // deno-lint-ignore no-explicit-any
+    (fedCtx as any).sendActivity = (...args: unknown[]) => {
+      sent.push(args);
+      return Promise.resolve();
+    };
+    const updated = await updateNote(fedCtx, noteSourceId, {
+      content: "Edited body",
+    });
+
+    // The local edit persists, but a censored post pushes nothing out over
+    // federation (no Update to mentions, followers, or tag relays).
+    assert.ok(updated != null);
+    assert.equal(updated.noteSource.content, "Edited body");
+    assert.equal(sent.length, 0);
   });
 });
 

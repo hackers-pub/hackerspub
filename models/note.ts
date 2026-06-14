@@ -606,6 +606,11 @@ export async function updateNote(
     media,
   });
   if (post == null) return undefined;
+  // A censored post must not federate its (moderation-hidden) content: the
+  // local edit persists so the author can keep working on their hidden post,
+  // but no Update(Note) is delivered to mentions, followers, or tag relays
+  // while it remains censored.
+  if (post.censored != null) return post;
   const noteObject = await getNote(
     fedCtx,
     { ...noteSource, media, account },
