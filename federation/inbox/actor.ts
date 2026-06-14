@@ -34,20 +34,31 @@ export async function onActorDeleted(
     columns: { id: true, suspended: true, suspendedUntil: true },
   });
   if (actor == null) return false;
-  // A moderated actor must not erase its own moderation state by deleting
-  // itself: the actor row holds the suspension/ban, and deleting it cascades
-  // to flag_case and flag_action (the immutable audit), so the same IRI could
-  // re-federate without the federation block or its history.  Keep the row
-  // when the actor is under an active sanction OR is the target of any
-  // moderation case: a standing warning/censor action, or an expired
-  // temporary suspension, leaves a case/action audit but no active
-  // suspension.  The Delete is recognized but deliberately not acted on.
+  // A Delete must not cascade-erase moderation records that the actor row is
+  // referenced by.  Keep the row (recognizing the Delete without acting on
+  // it) when:
+  //   - the actor is under an active sanction (the row holds the
+  //     suspension/ban);
+  //   - it is the target of any moderation case, which holds the immutable
+  //     flag_action audit (a standing warning/censor action, or an expired
+  //     temporary suspension, leaves a case but no active suspension); or
+  //   - it reported any flag, since flag.reporter_id cascades and would erase
+  //     the report and its content_snapshot, letting an external reporter
+  //     destroy pending moderation evidence with a Delete.
+  // Otherwise the same IRI could re-federate without its federation block or
+  // history, or pending evidence could vanish.
   if (isActorSuspended(actor)) return true;
-  const moderationCase = await db.query.flagCaseTable.findFirst({
-    where: { targetActorId: actor.id },
-    columns: { id: true },
-  });
-  if (moderationCase != null) return true;
+  const moderationRefs = await Promise.all([
+    db.query.flagCaseTable.findFirst({
+      where: { targetActorId: actor.id },
+      columns: { id: true },
+    }),
+    db.query.flagTable.findFirst({
+      where: { reporterId: actor.id },
+      columns: { id: true },
+    }),
+  ]);
+  if (moderationRefs.some((row) => row != null)) return true;
   const deletedRows = await db.delete(actorTable)
     .where(eq(actorTable.id, actor.id))
     .returning();

@@ -4,7 +4,11 @@ import type { InboxContext } from "@fedify/fedify";
 import { Delete } from "@fedify/vocab";
 import type { ContextData } from "@hackerspub/models/context";
 import type { Transaction } from "@hackerspub/models/db";
-import { actorTable, flagCaseTable } from "@hackerspub/models/schema";
+import {
+  actorTable,
+  flagCaseTable,
+  flagTable,
+} from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
 import { eq } from "drizzle-orm";
 import {
@@ -97,6 +101,52 @@ describe("onActorDeleted()", () => {
         where: { id: caseId },
       });
       assert.ok(flagCase != null);
+    });
+  });
+
+  it("keeps an actor that reported a flag on self-delete", async () => {
+    await withRollback(async (tx) => {
+      const fedCtx = inboxCtx(tx);
+      const reporter = await insertRemoteActor(tx, {
+        username: "reporterremote",
+        name: "Reporter Remote",
+        host: "remote.example",
+      });
+      const target = await insertRemoteActor(tx, {
+        username: "reportedremote",
+        name: "Reported Remote",
+        host: "remote.example",
+      });
+      // The reporter is not itself a case target, but it filed a flag; the
+      // flag (and its content_snapshot) cascade off reporter_id, so deleting
+      // the reporter would erase pending moderation evidence.
+      const caseId = generateUuidV7();
+      await tx.insert(flagCaseTable).values({
+        id: caseId,
+        targetActorId: target.id,
+      });
+      const flagId = generateUuidV7();
+      await tx.insert(flagTable).values({
+        id: flagId,
+        reporterId: reporter.id,
+        targetActorId: target.id,
+        reason: "Reported content",
+        caseId,
+      });
+
+      const handled = await onActorDeleted(
+        fedCtx,
+        selfDelete(reporter.iri, "https://remote.example/delete/4"),
+      );
+      assert.equal(handled, true);
+      const stillThere = await tx.query.actorTable.findFirst({
+        where: { id: reporter.id },
+      });
+      assert.ok(stillThere != null);
+      const flag = await tx.query.flagTable.findFirst({
+        where: { id: flagId },
+      });
+      assert.ok(flag != null);
     });
   });
 
