@@ -89,14 +89,19 @@ function truncate(text: string, max: number): string {
   return `${text.slice(0, max)}\n\n[… truncated for analysis]`;
 }
 
-let promptCache: Promise<string> | undefined;
+let promptCache: string | undefined;
 
-function getModerationPrompt(): Promise<string> {
-  promptCache ??= readFile(
+async function getModerationPrompt(): Promise<string> {
+  if (promptCache != null) return promptCache;
+  // Cache the resolved text, not the promise: a transient read failure must
+  // not be remembered as a permanently rejected promise that every later
+  // call replays.
+  const prompt = await readFile(
     join(import.meta.dirname!, "prompts", "moderation", "en.md"),
     "utf8",
   );
-  return promptCache;
+  promptCache = prompt;
+  return prompt;
 }
 
 /**
