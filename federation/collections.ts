@@ -13,21 +13,9 @@ import {
   followingTable,
   type Mention,
   type Post,
-  postTable,
 } from "@hackerspub/models/schema";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
-import {
-  and,
-  count,
-  eq,
-  inArray,
-  isNotNull,
-  isNull,
-  like,
-  or,
-  sql,
-} from "drizzle-orm";
-import { alias } from "drizzle-orm/pg-core";
+import { and, count, eq, inArray, isNotNull, like } from "drizzle-orm";
 import { builder } from "./builder.ts";
 import { getCreate, getPostRecipients } from "./objects.ts";
 
@@ -405,35 +393,9 @@ builder
     });
     if (account == null) return null;
     if (isActorSanctionHidden(account.actor)) return 0;
-    // Evaluate the sanction window against a single bound instant so the
-    // boundary matches the JS-side getSanctionHiddenActorFilter() the outbox
-    // items dispatcher uses, instead of SQL now() drifting per row.
-    const now = new Date();
-    const sharedPost = alias(postTable, "shared_post");
-    const sharedActor = alias(actorTable, "shared_actor");
-    const [{ cnt }] = await db.select({ cnt: count() })
-      .from(postTable)
-      .leftJoin(sharedPost, eq(postTable.sharedPostId, sharedPost.id))
-      .leftJoin(sharedActor, eq(sharedPost.actorId, sharedActor.id))
-      .where(and(
-        eq(postTable.actorId, account.actor.id),
-        or( // FIXME
-          eq(postTable.visibility, "public"),
-          eq(postTable.visibility, "unlisted"),
-        ),
-        isNull(postTable.censored),
-        isNull(sharedPost.censored),
-        // Boosts of sanction-hidden actors' posts are excluded; the raw
-        // SQL mirrors isActorSanctionHidden (NULL-safe: non-boost rows
-        // and unsanctioned actors match).
-        sql`(
-          ${sharedActor.id} is null
-          or ${sharedActor.suspended} is null
-          or ${sharedActor.suspended} > ${now}
-          or ${sharedActor.suspendedUntil} <= ${now}
-          or (${sharedActor.accountId} is not null
-            and ${sharedActor.suspendedUntil} > ${now})
-        )`,
-      ));
-    return cnt;
+    // The outbox page itself is bounded to OUTBOX_WINDOW.  Computing an exact
+    // `totalItems` for prolific accounts requires counting and joining every
+    // public post on each root collection request, so omit the optional count
+    // instead of making ActivityPub polling depend on a large aggregate query.
+    return null;
   });
