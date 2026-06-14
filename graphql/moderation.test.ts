@@ -1,7 +1,8 @@
 import assert from "node:assert";
 import test from "node:test";
 import type { Transaction } from "@hackerspub/models/db";
-import { accountTable } from "@hackerspub/models/schema";
+import { accountTable, postTable } from "@hackerspub/models/schema";
+import { generateUuidV7 } from "@hackerspub/models/uuid";
 import { encodeGlobalID } from "@pothos/plugin-relay";
 import { eq } from "drizzle-orm";
 import { execute, parse } from "graphql";
@@ -206,6 +207,66 @@ test("reportContent files a post report and deduplicates", async () => {
       (dup.data as any)?.reportContent?.__typename,
       "DuplicateReportError",
     );
+  });
+});
+
+test("reportContent files a report on a boost wrapper", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "boostreportauthor",
+      name: "Boost Report Author",
+      email: "boostreportauthor@example.com",
+    });
+    const { post: original } = await insertNotePost(tx, {
+      account: author.account,
+    });
+    const booster = await insertAccountWithActor(tx, {
+      username: "boostreportbooster",
+      name: "Boost Report Booster",
+      email: "boostreportbooster@example.com",
+    });
+    // A boost wrapper of the (non-sanctioned) original, denormalizing its
+    // content; the report target is the wrapper id, as shown in a timeline.
+    const wrapperId = generateUuidV7();
+    await tx.insert(postTable).values({
+      id: wrapperId,
+      iri: `http://localhost/ap/announces/${wrapperId}`,
+      type: "Note",
+      visibility: "public",
+      actorId: booster.actor.id,
+      sharedPostId: original.id,
+      contentHtml: "<p>Boosted note</p>",
+      language: "en",
+      tags: {},
+      emojis: {},
+      sensitive: false,
+      url: original.url,
+    });
+    const reporter = await insertAccountWithActor(tx, {
+      username: "boostreportreporter",
+      name: "Boost Report Reporter",
+      email: "boostreportreporter@example.com",
+    });
+
+    // Reporting the boost wrapper must succeed: the boosted author is not
+    // sanctioned, so the wrapper is visible once sharedPost is hydrated (it
+    // previously failed closed with InvalidInputError on the unloaded
+    // wrapper).
+    const result = await execute({
+      schema,
+      document: reportContentMutation,
+      variableValues: {
+        targetId: encodeGlobalID("Note", wrapperId),
+        reason: REASON,
+      },
+      contextValue: makeUserContext(tx, reporter.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(result.errors, undefined);
+    // deno-lint-ignore no-explicit-any
+    const flag = (result.data as any)?.reportContent;
+    assert.equal(flag?.__typename, "Flag");
+    assert.equal(flag?.targetActor?.handle, booster.actor.handle);
   });
 });
 

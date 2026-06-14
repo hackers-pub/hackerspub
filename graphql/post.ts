@@ -3137,6 +3137,10 @@ builder.relayMutationField(
             with: { actor: true },
           },
           mentions: true,
+          // A boost shows the wrapper id, so undoing a reaction on it must
+          // hydrate sharedPost: isPostVisibleTo() fails closed on a wrapper
+          // whose boosted post was not loaded.
+          sharedPost: { with: { actor: true } },
         },
         where: { id: postId.id },
       });
@@ -3339,6 +3343,10 @@ builder.relayMutationField(
             with: { actor: true },
           },
           mentions: true,
+          // Hydrate sharedPost so a boost wrapper passed by id is judged by
+          // isPostVisibleTo() instead of failing closed on the unloaded
+          // boosted post.
+          sharedPost: { with: { actor: true } },
         },
         where: { id: postId.id },
       });
@@ -3416,6 +3424,10 @@ builder.relayMutationField(
             },
           },
           mentions: true,
+          // A boost shows the wrapper id, so bookmarking one must hydrate
+          // sharedPost: isPostVisibleTo() fails closed on a wrapper whose
+          // boosted post was not loaded.
+          sharedPost: { with: { actor: true } },
         },
         where: { id: postId.id },
       });
@@ -3707,6 +3719,11 @@ builder.queryField("postByUrl", (t) =>
           },
         },
         mentions: true,
+        // A boost URL resolves to the wrapper, so hydrate sharedPost:
+        // isPostVisibleTo() fails closed on a wrapper whose boosted post was
+        // not loaded (and this keeps a boost of a sanction-hidden author
+        // hidden here too).
+        sharedPost: { with: { actor: true } },
       } as const;
       const post = await ctx.db.query.postTable.findFirst({
         with: withRelations,

@@ -331,6 +331,11 @@ builder.mutationField("reportContent", (t) =>
               },
             },
             mentions: { where: { actorId: ctx.account.actor.id } },
+            // isPostVisibleTo() fails closed on a share wrapper whose
+            // sharedPost is not loaded, so a boost must hydrate it to be
+            // reportable (and to stay hidden when the boosted author is
+            // sanction-hidden).
+            sharedPost: { with: { actor: true } },
           },
         });
         if (post == null || !isPostVisibleTo(post, ctx.account.actor)) {
