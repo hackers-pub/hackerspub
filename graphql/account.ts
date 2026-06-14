@@ -982,17 +982,25 @@ builder.queryField("invitationTree", (t) =>
       );
 
       return await Promise.all(
-        sorted.map(async (account) => ({
-          id: account.id,
-          username: account.hideFromInvitationTree ? null : account.username,
-          name: account.hideFromInvitationTree ? null : account.name,
-          handle: account.hideFromInvitationTree ? null : account.actor.handle,
-          avatarUrl: account.hideFromInvitationTree
-            ? DEFAULT_AVATAR_URL
-            : await getAvatarUrl(ctx.disk, account),
-          inviterId: account.inviterId,
-          hidden: account.hideFromInvitationTree,
-        })),
+        sorted.map(async (account) => {
+          // Anonymize a node when its holder opted out OR when the account is
+          // profile-hidden (a banned local account), so a ban redacts the
+          // name/handle/avatar here too; the holder and moderators still see
+          // the real values (isActorProfileHidden honors the viewer).
+          const hidden = account.hideFromInvitationTree ||
+            (account.actor != null && isActorProfileHidden(account.actor, ctx));
+          return {
+            id: account.id,
+            username: hidden ? null : account.username,
+            name: hidden ? null : account.name,
+            handle: hidden ? null : account.actor.handle,
+            avatarUrl: hidden
+              ? DEFAULT_AVATAR_URL
+              : await getAvatarUrl(ctx.disk, account),
+            inviterId: account.inviterId,
+            hidden,
+          };
+        }),
       );
     },
   }));
