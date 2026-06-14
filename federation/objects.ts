@@ -659,6 +659,12 @@ builder
           },
         });
       if (authorization == null) return null;
+      // Stop serving an authorization once its quoted post is censored:
+      // isPostVisibleTo (used by authorize) deliberately ignores `censored`
+      // for permalinks, so without this a remote instance could keep
+      // validating an already-issued quote of moderation-hidden content.
+      // Reversible by design: lifting the censorship serves it again.
+      if (authorization.quotedPost.censored != null) return null;
       return new vocab.QuoteAuthorization({
         id: new URL(authorization.iri),
         attribution: new URL(authorization.quotedPost.actor.iri),
@@ -691,6 +697,10 @@ builder
         },
       });
     if (authorization == null) return false;
+    // A censored quoted post makes the authorization unavailable (checked
+    // before any key/document-loader work); isPostVisibleTo below ignores
+    // `censored`, so this is what actually gates the moderation-hidden case.
+    if (authorization.quotedPost.censored != null) return false;
     const documentLoader = await ctx.getDocumentLoader({
       identifier: authorization.quotedPost.actor.accountId ?? values.id,
     });

@@ -5,7 +5,12 @@ import { MemoryKvStore } from "@fedify/fedify";
 import type { ContextData } from "@hackerspub/models/context";
 import type { Transaction } from "@hackerspub/models/db";
 import { createQuestion } from "@hackerspub/models/question";
-import { actorTable, postTable } from "@hackerspub/models/schema";
+import {
+  actorTable,
+  postTable,
+  quoteAuthorizationTable,
+} from "@hackerspub/models/schema";
+import { generateUuidV7 } from "@hackerspub/models/uuid";
 import { eq } from "drizzle-orm";
 import { builder } from "./builder.ts";
 import { getCreate, getNote, isApTargetHidden } from "./objects.ts";
@@ -275,5 +280,56 @@ test("getNote() advertises manual quote approvals", async () => {
       note.interactionPolicy?.canQuote?.manualApprovals[0].href,
       "https://www.w3.org/ns/activitystreams#Public",
     );
+  });
+});
+
+test("the quote-authorization dispatcher hides censored posts", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "quoteauthcensor",
+      name: "Quote Auth Censor",
+      email: "quoteauthcensor@example.com",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Quotable until censored",
+    });
+    const authId = generateUuidV7();
+    await tx.insert(quoteAuthorizationTable).values({
+      id: authId,
+      iri: `http://localhost/ap/quote-authorizations/${authId}`,
+      quotePostIri: "https://remote.example/objects/quote",
+      quotedPostId: post.id,
+      attributedActorId: author.actor.id,
+    });
+
+    const federation = await builder.build({
+      kv: new MemoryKvStore(),
+      origin: "http://localhost/",
+    });
+    const contextData = {
+      db: tx,
+      kv: createTestKv().kv,
+      disk: createTestDisk(),
+      models: {} as ContextData["models"],
+    };
+    const url = `http://localhost/ap/quote-authorizations/${authId}`;
+
+    await tx.update(postTable)
+      .set({ censored: new Date() })
+      .where(eq(postTable.id, post.id));
+
+    // Once censored, the authorize callback denies the request (Fedify
+    // serves 404) before any key/document-loader work, so remote instances
+    // can no longer keep validating the already-issued quote.  (Without the
+    // censorship guard this same request reaches getDocumentLoader instead,
+    // which this unit harness cannot satisfy because it registers no
+    // key-pairs dispatcher, so the visible-post path is not reproducible
+    // here.)
+    const after = await federation.fetch(
+      new Request(url, { headers: { Accept: "application/activity+json" } }),
+      { contextData },
+    );
+    assert.equal(after.status, 404);
   });
 });
