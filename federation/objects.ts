@@ -473,6 +473,20 @@ export async function getQuestion(
   });
 }
 
+/**
+ * Whether a reply or quote target must not be referenced in an outgoing
+ * ActivityPub object.  When its own content is moderation-hidden (censored,
+ * or authored by a sanction-hidden actor), the dispatcher serializes its
+ * `inReplyTo`/quote IRI anyway, and for a remote target that IRI points at
+ * the uncensored copy on its origin instance, so the reference is dropped.
+ */
+export function isApTargetHidden(
+  target: (Post & { actor: Actor }) | null | undefined,
+): boolean {
+  return target != null &&
+    (target.censored != null || isActorSanctionHidden(target.actor));
+}
+
 builder
   .setObjectDispatcher(
     vocab.Note,
@@ -485,7 +499,10 @@ builder
           media: { with: { medium: true }, orderBy: { index: "asc" } },
           post: {
             where: { type: "Note" },
-            with: { replyTarget: true, quotedPost: true },
+            with: {
+              replyTarget: { with: { actor: true } },
+              quotedPost: { with: { actor: true } },
+            },
           },
         },
         where: { id: values.id },
@@ -493,14 +510,17 @@ builder
       if (note?.post == null) return null;
       // Censored content is not served over ActivityPub.
       if (note.post.censored != null) return null;
+      const { replyTarget, quotedPost } = note.post;
       return await getNote(
         ctx,
         note,
         {
-          replyTargetId: note.post.replyTarget == null
+          replyTargetId: replyTarget == null || isApTargetHidden(replyTarget)
             ? undefined
-            : new URL(note.post.replyTarget.iri),
-          quotedPost: note.post.quotedPost ?? undefined,
+            : new URL(replyTarget.iri),
+          quotedPost: isApTargetHidden(quotedPost)
+            ? undefined
+            : quotedPost ?? undefined,
           quoteAuthorizationIri: note.post.quoteAuthorizationIri,
           quoteRequestPolicy: note.post.quoteRequestPolicy,
         },
@@ -557,8 +577,8 @@ builder
       if (note == null) return null;
       const post = await ctx.data.db.query.postTable.findFirst({
         with: {
-          replyTarget: true,
-          quotedPost: true,
+          replyTarget: { with: { actor: true } },
+          quotedPost: { with: { actor: true } },
           poll: {
             with: {
               options: { orderBy: { index: "asc" } },
@@ -570,15 +590,18 @@ builder
       if (post?.poll == null) return null;
       // Censored content is not served over ActivityPub.
       if (post.censored != null) return null;
+      const { replyTarget, quotedPost } = post;
       return await getQuestion(
         ctx,
         note,
         { ...post.poll, post },
         {
-          replyTargetId: post.replyTarget == null
+          replyTargetId: replyTarget == null || isApTargetHidden(replyTarget)
             ? undefined
-            : new URL(post.replyTarget.iri),
-          quotedPost: post.quotedPost ?? undefined,
+            : new URL(replyTarget.iri),
+          quotedPost: isApTargetHidden(quotedPost)
+            ? undefined
+            : quotedPost ?? undefined,
           quoteAuthorizationIri: post.quoteAuthorizationIri,
           quoteRequestPolicy: post.quoteRequestPolicy,
         },

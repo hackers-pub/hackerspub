@@ -5,14 +5,18 @@ import { MemoryKvStore } from "@fedify/fedify";
 import type { ContextData } from "@hackerspub/models/context";
 import type { Transaction } from "@hackerspub/models/db";
 import { createQuestion } from "@hackerspub/models/question";
+import { actorTable, postTable } from "@hackerspub/models/schema";
+import { eq } from "drizzle-orm";
 import { builder } from "./builder.ts";
-import { getCreate, getNote } from "./objects.ts";
+import { getCreate, getNote, isApTargetHidden } from "./objects.ts";
 import {
   createFedCtx,
   createTestDisk,
   createTestKv,
   insertAccountWithActor,
   insertNotePost,
+  insertRemoteActor,
+  insertRemotePost,
   withRollback,
 } from "../test/postgres.ts";
 
@@ -129,6 +133,46 @@ test("source-backed Questions do not resolve through the Note dispatcher", async
       noteResponse.status >= 400 && noteResponse.status < 500,
       `expected Note dispatcher miss to return 4xx, got ${noteResponse.status}`,
     );
+  });
+});
+
+test("isApTargetHidden() hides censored or sanction-hidden reply/quote targets", async () => {
+  await withRollback(async (tx) => {
+    // The Note and Question dispatchers drop a reply/quote target's
+    // `inReplyTo`/quote IRI when this returns `true`, so the ActivityPub
+    // object never points federated readers at moderation-hidden content
+    // (for a remote target, the uncensored copy on its origin).
+    const remoteAuthor = await insertRemoteActor(tx, {
+      username: "aptarget",
+      name: "AP Target",
+      host: "remote.example",
+    });
+    const target = await insertRemotePost(tx, { actorId: remoteAuthor.id });
+    const load = () =>
+      tx.query.postTable.findFirst({
+        where: { id: target.id },
+        with: { actor: true },
+      });
+
+    // A null target and a plain visible one are not hidden.
+    assert.equal(isApTargetHidden(null), false);
+    assert.equal(isApTargetHidden(await load()), false);
+
+    // A censored target is hidden.
+    await tx.update(postTable)
+      .set({ censored: new Date() })
+      .where(eq(postTable.id, target.id));
+    assert.equal(isApTargetHidden(await load()), true);
+
+    // So is a target whose author is hidden by a federation block, even when
+    // the post itself is not individually censored.
+    await tx.update(postTable)
+      .set({ censored: null })
+      .where(eq(postTable.id, target.id));
+    await tx.update(actorTable)
+      .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: null })
+      .where(eq(actorTable.id, remoteAuthor.id));
+    assert.equal(isApTargetHidden(await load()), true);
   });
 });
 
