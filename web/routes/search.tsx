@@ -6,6 +6,7 @@ import { persistActor } from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
 import type { RelationsFilter } from "@hackerspub/models/db";
 import {
+  getCensoredPostExclusionFilter,
   getPostVisibilityFilter,
   isPostObject,
   persistPost,
@@ -172,6 +173,7 @@ export async function search(
       AND: [
         filter,
         getPostVisibilityFilter(signedAccount?.actor ?? null),
+        getCensoredPostExclusionFilter(signedAccount?.actor.id),
         signedAccount == null ? { visibility: "public" } : {
           OR: [
             { visibility: "public" },

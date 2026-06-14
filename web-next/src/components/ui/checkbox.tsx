@@ -1,4 +1,4 @@
-import type { ValidComponent } from "solid-js";
+import type { JSX, ValidComponent } from "solid-js";
 import { Match, splitProps, Switch } from "solid-js";
 
 import * as CheckboxPrimitive from "@kobalte/core/checkbox";
@@ -8,12 +8,15 @@ import { cn } from "~/lib/utils.ts";
 
 type CheckboxRootProps<T extends ValidComponent = "div"> =
   & CheckboxPrimitive.CheckboxRootProps<T>
-  & { class?: string | undefined };
+  & { class?: string | undefined; children?: JSX.Element };
 
 const Checkbox = <T extends ValidComponent = "div">(
   props: PolymorphicProps<T, CheckboxRootProps<T>>,
 ) => {
-  const [local, others] = splitProps(props as CheckboxRootProps, ["class"]);
+  const [local, others] = splitProps(props as CheckboxRootProps, [
+    "class",
+    "children",
+  ]);
   return (
     <CheckboxPrimitive.Root
       class={cn("items-top group relative flex space-x-2", local.class)}
@@ -54,8 +57,46 @@ const Checkbox = <T extends ValidComponent = "div">(
           </Switch>
         </CheckboxPrimitive.Indicator>
       </CheckboxPrimitive.Control>
+      {local.children}
     </CheckboxPrimitive.Root>
   );
 };
 
-export { Checkbox };
+type CheckboxLabelProps<T extends ValidComponent = "label"> =
+  & CheckboxPrimitive.CheckboxLabelProps<T>
+  & { class?: string | undefined };
+
+const CheckboxLabel = <T extends ValidComponent = "label">(
+  props: PolymorphicProps<T, CheckboxLabelProps<T>>,
+) => {
+  const [local, others] = splitProps(props as CheckboxLabelProps, ["class"]);
+  return (
+    <CheckboxPrimitive.Label
+      class={cn(
+        "text-sm font-medium leading-none group-data-[disabled]:cursor-not-allowed group-data-[disabled]:opacity-70",
+        local.class,
+      )}
+      {...others}
+    />
+  );
+};
+
+type CheckboxDescriptionProps<T extends ValidComponent = "div"> =
+  & CheckboxPrimitive.CheckboxDescriptionProps<T>
+  & { class?: string | undefined };
+
+const CheckboxDescription = <T extends ValidComponent = "div">(
+  props: PolymorphicProps<T, CheckboxDescriptionProps<T>>,
+) => {
+  const [local, others] = splitProps(props as CheckboxDescriptionProps, [
+    "class",
+  ]);
+  return (
+    <CheckboxPrimitive.Description
+      class={cn("text-sm text-muted-foreground", local.class)}
+      {...others}
+    />
+  );
+};
+
+export { Checkbox, CheckboxDescription, CheckboxLabel };

@@ -29,6 +29,7 @@ import type { QuestionCardContent_question$key } from "./__generated__/QuestionC
 import type { QuestionCard_voteOnPoll_Mutation } from "./__generated__/QuestionCard_voteOnPoll_Mutation.graphql.ts";
 import { ActorHoverCard } from "./ActorHoverCard.tsx";
 import { ActorSharer, ActorSharerActor } from "./ActorSharer.tsx";
+import { CensorshipNotice } from "./CensorshipNotice.tsx";
 import { InternalLink } from "./InternalLink.tsx";
 import { QuestionActionMenu } from "./PostActionMenu.tsx";
 import { PostAvatar } from "./PostAvatar.tsx";
@@ -154,6 +155,7 @@ function QuestionCardContent(props: QuestionCardContentProps) {
         id
         uuid
         sourceId
+        censored
         content
         language
         visibility
@@ -165,6 +167,7 @@ function QuestionCardContent(props: QuestionCardContentProps) {
           handle
           username
           local
+          isViewer
           url
           iri
           ...PostAvatar_actor
@@ -292,6 +295,12 @@ function QuestionCardContent(props: QuestionCardContentProps) {
                 </Show>
               </span>
             </div>
+            <Show when={q.censored}>
+              <CensorshipNotice
+                class="mt-1"
+                privileged={q.actor.isViewer || viewer.moderator()}
+              />
+            </Show>
             <div
               ref={setProseRef}
               innerHTML={q.content}

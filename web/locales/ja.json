@@ -293,6 +293,8 @@
     "remoteQuoteDescription": "フェディバース（fediverse）アカウントをお持ちの場合、この投稿を引用することができます。ご利用のインスタンスの検索バーに{{permalink}}を検索し、該当投稿を引用してください。（Mastodonでは引用機能がサポートされていません）"
   },
   "post": {
+    "censoredTitle": "モデレーターによって検閲されました。",
+    "censoredDescription": "このコンテンツは行動規範違反のため、タイムラインと検索から非表示にされました。",
     "reacting": "リアクション中…",
     "undoingReaction": "取り消し中…",
     "reacted": "リアクション済み",

@@ -23,7 +23,7 @@ import {
 } from "@hackerspub/models/schema";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { createGraphQLError } from "graphql-yoga";
-import { Actor } from "./actor.ts";
+import { Actor, isActorProfileHidden } from "./actor.ts";
 import {
   type AdminAccountStats,
   builder,
@@ -72,6 +72,16 @@ function selectAccountWithHideFlag(
   };
 }
 
+// The account's actor columns that `isActorProfileHidden` needs, merged
+// into the selections of the public profile fields that a ban redacts.
+const sanctionActorRelation = {
+  columns: {
+    id: true,
+    suspended: true,
+    suspendedUntil: true,
+  },
+} as const;
+
 export const Account = builder.drizzleNode("accountTable", {
   name: "Account",
   description:
@@ -113,12 +123,52 @@ export const Account = builder.drizzleNode("accountTable", {
         return `@${account.username}@${account.actor.handleHost}`;
       },
     }),
-    name: t.exposeString("name"),
-    bio: t.expose("bio", { type: "Markdown" }),
-    avatarMediumId: t.expose("avatarMediumId", {
+    name: t.field({
+      type: "String",
+      description:
+        "The account holder's display name.  Empty when the account is " +
+        "permanently suspended (banned) and the viewer is neither the " +
+        "account holder nor a moderator (mirrors the redacted `Actor`).",
+      select: {
+        columns: { name: true },
+        with: { actor: sanctionActorRelation },
+      },
+      resolve: (account, _, ctx) =>
+        account.actor != null && isActorProfileHidden(account.actor, ctx)
+          ? ""
+          : account.name,
+    }),
+    bio: t.field({
+      type: "Markdown",
+      description:
+        "The account holder's profile bio in Markdown.  Empty when the " +
+        "account is permanently suspended (banned) and the viewer is " +
+        "neither the account holder nor a moderator.",
+      select: {
+        columns: { bio: true },
+        with: { actor: sanctionActorRelation },
+      },
+      resolve: (account, _, ctx) =>
+        account.actor != null && isActorProfileHidden(account.actor, ctx)
+          ? ""
+          : account.bio,
+    }),
+    avatarMediumId: t.field({
       type: "UUID",
       nullable: true,
-      description: "UUID of the medium used as this account's avatar.",
+      description:
+        "UUID of the medium used as this account's avatar.  `null` when " +
+        "the account is permanently suspended (banned) and the viewer is " +
+        "neither the account holder nor a moderator, so the real avatar " +
+        "medium cannot be resolved through `node(id:)`.",
+      select: {
+        columns: { avatarMediumId: true },
+        with: { actor: sanctionActorRelation },
+      },
+      resolve: (account, _, ctx) =>
+        account.actor != null && isActorProfileHidden(account.actor, ctx)
+          ? null
+          : account.avatarMediumId,
     }),
     avatarUrl: t.field({
       type: "URL",
@@ -128,11 +178,17 @@ export const Account = builder.drizzleNode("accountTable", {
           avatarMediumId: true,
         },
         with: {
+          actor: sanctionActorRelation,
           avatarMedium: true,
           emails: true,
         },
       },
       async resolve(account, _, ctx) {
+        if (
+          account.actor != null && isActorProfileHidden(account.actor, ctx)
+        ) {
+          return new URL("https://gravatar.com/avatar/?d=mp&s=128");
+        }
         const url = await getAvatarUrl(ctx.disk, account);
         return new URL(url);
       },
@@ -142,7 +198,11 @@ export const Account = builder.drizzleNode("accountTable", {
       description:
         "URL of the generated Open Graph image for this account's profile " +
         "page. Generated on first request and cached; high-complexity " +
-        "operation (avoid requesting in bulk).",
+        "operation (avoid requesting in bulk).  For a permanently " +
+        "suspended (banned) account, viewers other than the account " +
+        "holder and moderators get an image built from redacted profile " +
+        "content (no display name, bio, or avatar), and the cached key is " +
+        "not overwritten.",
       complexity: profileOgImageComplexity,
       select: {
         columns: {
@@ -158,17 +218,35 @@ export const Account = builder.drizzleNode("accountTable", {
           actor: {
             columns: {
               handleHost: true,
+              id: true,
+              suspended: true,
+              suspendedUntil: true,
             },
           },
           emails: true,
         },
       },
       async resolve(account, _, ctx) {
+        const hidden = account.actor != null &&
+          isActorProfileHidden(account.actor, ctx);
+        const handle = `@${account.username}@${account.actor.handleHost}`;
+        if (hidden) {
+          // Build the OG image from redacted content; do not persist the
+          // redacted key so the real one survives the ban.
+          const placeholder = "https://gravatar.com/avatar/?d=mp&s=128";
+          const key = await putProfileOgImage(ctx.disk, null, {
+            avatarKey: placeholder,
+            avatarUrl: placeholder,
+            bio: "",
+            displayName: "",
+            handle,
+          });
+          return new URL(await ctx.disk.getUrl(key));
+        }
         const avatarUrl = await getAvatarUrl(ctx.disk, account);
         const bio = await renderMarkup(ctx.fedCtx, account.bio, {
           kv: ctx.kv,
         });
-        const handle = `@${account.username}@${account.actor.handleHost}`;
         const key = await putProfileOgImage(ctx.disk, account.ogImageKey, {
           avatarKey: account.avatarMedium?.key ?? avatarUrl,
           avatarUrl,
@@ -301,15 +379,27 @@ export const Account = builder.drizzleNode("accountTable", {
         "data — name, bio, posts, followers — lives on the `Actor`. " +
         "Use this to access fields that are visible to everyone.",
     }),
-    links: t.relation("links", {
-      type: AccountLink,
+    links: t.field({
+      type: [AccountLink],
       description:
         "Profile links displayed on the account's public page, ordered " +
         "by their display index. Links with a non-null `verified` timestamp " +
-        "have passed rel-me verification.",
-      query: {
-        orderBy: { index: "asc" },
+        "have passed rel-me verification.  Empty when the account is " +
+        "permanently suspended (banned) and the viewer is neither the " +
+        "account holder nor a moderator, mirroring the suspended " +
+        "ActivityPub actor stub.",
+      select: {
+        with: {
+          actor: {
+            columns: { id: true, suspended: true, suspendedUntil: true },
+          },
+          links: { orderBy: { index: "asc" } },
+        },
       },
+      resolve: (account, _, ctx) =>
+        account.actor != null && isActorProfileHidden(account.actor, ctx)
+          ? []
+          : account.links,
     }),
     notifications: t.connection({
       type: Notification,
@@ -680,6 +770,27 @@ const AccountLinkIcon = builder.enumType("AccountLinkIcon", {
 
 export const AccountLink = builder.drizzleNode("accountLinkTable", {
   name: "AccountLink",
+  description:
+    "A profile link on a local account's public page.  Not resolvable via " +
+    "`node(id:)` when the owning account is permanently suspended (banned) " +
+    "and the viewer is neither the account holder nor a moderator.",
+  authScopes: async (link, ctx) => {
+    const account = await ctx.db.query.accountTable.findFirst({
+      where: { id: link.accountId },
+      with: {
+        actor: {
+          columns: { id: true, suspended: true, suspendedUntil: true },
+        },
+      },
+    });
+    if (account?.actor != null && isActorProfileHidden(account.actor, ctx)) {
+      return false;
+    }
+    return true;
+  },
+  // Run the scope when the node itself is resolved, so a cached or
+  // constructed link node id cannot bypass the Account.links redaction.
+  runScopesOnType: true,
   id: {
     column: (link) => [link.accountId, link.index],
   },

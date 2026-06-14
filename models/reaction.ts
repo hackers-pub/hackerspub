@@ -1,9 +1,14 @@
 import type { Context, DocumentLoader } from "@fedify/fedify";
+import { assertAccountActorNotSuspended } from "./moderation.ts";
 import { isActor } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
 import { getEmojiReact, getEmojiReactId } from "@hackerspub/federation/objects";
 import { and, eq, inArray, sql } from "drizzle-orm";
-import { getPersistedActor, persistActor } from "./actor.ts";
+import {
+  getPersistedActor,
+  isFederationBlocked,
+  persistActor,
+} from "./actor.ts";
 import type { ContextData } from "./context.ts";
 import type { Database } from "./db.ts";
 import { DEFAULT_REACTION_EMOJI, type ReactionEmoji } from "./emoji.ts";
@@ -86,7 +91,7 @@ export async function persistReaction(
     if (!isActor(actorObject)) return undefined;
     actor = await persistActor(ctx, actorObject, options);
   }
-  if (actor == null) return undefined;
+  if (actor == null || isFederationBlocked(actor)) return undefined;
   let post = await getPersistedPost(db, reaction.objectId);
   if (post == null) {
     const object = await reaction.getObject(opts);
@@ -214,6 +219,7 @@ export async function react(
   customEmojiId?: Uuid,
 ): Promise<Reaction | undefined> {
   const { db } = ctx.data;
+  await assertAccountActorNotSuspended(db, account.id);
   let iri: string;
   if (emoji != null) {
     iri = getEmojiReactId(ctx, account.id, post.id, emoji).href;

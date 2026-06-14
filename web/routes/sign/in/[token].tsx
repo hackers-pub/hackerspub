@@ -1,5 +1,6 @@
 import { page } from "@fresh/core";
 import { syncActorFromAccount } from "@hackerspub/models/actor";
+import { isActorBanned } from "@hackerspub/models/moderation";
 import { createSession, EXPIRATION } from "@hackerspub/models/session";
 import { getSigninToken } from "@hackerspub/models/signin";
 import { validateUuid } from "@hackerspub/models/uuid";
@@ -37,12 +38,16 @@ export const handler = define.handlers(
     const account = await db.query.accountTable.findFirst({
       where: { id: token.accountId },
       with: {
+        actor: true,
         avatarMedium: true,
         emails: true,
         links: { orderBy: { index: "asc" } },
       },
     });
     if (account == null) return page();
+    // A permanently suspended (banned) account cannot sign in at all;
+    // temporary suspension only restricts writing, not signing in.
+    if (isActorBanned(account.actor)) return page({ banned: true });
     await syncActorFromAccount(ctx.state.fedCtx, account);
     const session = await createSession(kv, {
       accountId: token.accountId,
@@ -68,14 +73,23 @@ export const handler = define.handlers(
   },
 );
 
-export default define.page<typeof handler>(function SigninPage() {
+export default define.page<typeof handler>(function SigninPage({ data }) {
   return (
     <div>
       <PageTitle>Sign in</PageTitle>
-      <p>
-        The sign-in link is invalid or expired. Please make sure you're using
-        the correct link from the email you received.
-      </p>
+      {data?.banned
+        ? (
+          <p>
+            This account has been permanently suspended and can no longer sign
+            in.
+          </p>
+        )
+        : (
+          <p>
+            The sign-in link is invalid or expired. Please make sure you're
+            using the correct link from the email you received.
+          </p>
+        )}
     </div>
   );
 });

@@ -1,6 +1,7 @@
 import { isPostVisibleTo } from "@hackerspub/models/post";
 import { validateUuid } from "@hackerspub/models/uuid";
 import { sql } from "drizzle-orm";
+import { isPostCensoredFor } from "../../../../../censorship.ts";
 import { db } from "../../../../../db.ts";
 import { drive } from "../../../../../drive.ts";
 import { define } from "../../../../../utils.ts";
@@ -39,6 +40,8 @@ export const handler = define.handlers(async (ctx) => {
   });
   if (post == null) return ctx.next();
   if (!isPostVisibleTo(post, ctx.state.account?.actor)) return ctx.next();
+  // A censored post's attachments must not leak.
+  if (isPostCensoredFor(post, ctx.state.account)) return ctx.next();
   const medium = post.media[index];
   if (medium == null) return ctx.next();
   const disk = drive.use();

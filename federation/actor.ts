@@ -1,11 +1,10 @@
 import process from "node:process";
 import { exportJwk, generateCryptoKeyPair, importJwk } from "@fedify/fedify";
-import { Application, Endpoints, Image, Person } from "@fedify/vocab";
-import { getAvatarUrl, renderAccountLinks } from "@hackerspub/models/account";
-import { renderMarkup } from "@hackerspub/models/markup";
+import { Application, Endpoints, Image } from "@fedify/vocab";
 import { accountKeyTable, type NewAccountKey } from "@hackerspub/models/schema";
 import { validateUuid } from "@hackerspub/models/uuid";
 import { builder } from "./builder.ts";
+import { getAccountActor } from "./person.ts";
 
 const INSTANCE_ACTOR_KEY = process.env.INSTANCE_ACTOR_KEY;
 if (INSTANCE_ACTOR_KEY == null) {
@@ -59,44 +58,15 @@ builder
       const account = await ctx.data.db.query.accountTable.findFirst({
         where: { id: identifier },
         with: {
+          actor: true,
           avatarMedium: true,
           emails: true,
           links: { orderBy: { index: "asc" } },
         },
       });
       if (account == null) return null;
-      const bio = await renderMarkup(
-        ctx,
-        account.bio,
-        {
-          docId: account.id,
-          kv: ctx.data.kv,
-        },
-      );
       const keys = await ctx.getActorKeyPairs(identifier);
-      return new Person({
-        id: ctx.getActorUri(identifier),
-        preferredUsername: account.username,
-        name: account.name,
-        summary: bio.html,
-        manuallyApprovesFollowers: false,
-        published: account.created.toTemporalInstant(),
-        assertionMethods: keys.map((pair) => pair.multikey),
-        publicKey: keys[0].cryptographicKey,
-        inbox: ctx.getInboxUri(identifier),
-        outbox: ctx.getOutboxUri(identifier),
-        endpoints: new Endpoints({
-          sharedInbox: ctx.getInboxUri(),
-        }),
-        icon: new Image({
-          url: new URL(await getAvatarUrl(ctx.data.disk, account)),
-        }),
-        attachments: renderAccountLinks(account.links),
-        following: ctx.getFollowingUri(identifier),
-        followers: ctx.getFollowersUri(identifier),
-        featured: ctx.getFeaturedUri(identifier),
-        url: new URL(`/@${account.username}`, ctx.canonicalOrigin),
-      });
+      return await getAccountActor(ctx, account, keys);
     },
   )
   .mapHandle(async (ctx, handle) => {

@@ -1,6 +1,7 @@
 import assert from "node:assert";
 import test from "node:test";
 import {
+  Announce,
   Article,
   InteractionPolicy,
   InteractionRule,
@@ -16,6 +17,7 @@ import {
   getAllowedQuoteTargetForActor,
   getPostByUsernameAndId,
   persistPost,
+  persistSharedPost,
 } from "./post.ts";
 import {
   actorTable,
@@ -1149,5 +1151,96 @@ test("persistPost() rejects quotes of excessively deep local share chains", asyn
     });
     assert.ok(storedOriginal != null);
     assert.equal(storedOriginal.quotesCount, 0);
+  });
+});
+
+test("persistPost() drops an incoming federated quote of a censored post", async () => {
+  await withRollback(async (tx) => {
+    const quoter = await insertRemoteActor(tx, {
+      username: "censoredquotequoter",
+      name: "Censored Quote Quoter",
+      host: "remote.example",
+    });
+    const quotedAuthor = await insertRemoteActor(tx, {
+      username: "censoredquoteauthor",
+      name: "Censored Quote Author",
+      host: "remote.example",
+    });
+    const quotedPost = await insertRemotePost(tx, {
+      actorId: quotedAuthor.id,
+      contentHtml: "<p>Censored quoted post</p>",
+    });
+    // The post is publicly quotable by policy ("everyone" for a public post),
+    // so only the moderation censorship can block the incoming quote.
+    await tx.update(postTable)
+      .set({ censored: new Date() })
+      .where(eq(postTable.id, quotedPost.id));
+    const quote = new Note({
+      id: new URL("https://remote.example/objects/censored-quote"),
+      attribution: new URL(quoter.iri),
+      to: PUBLIC_COLLECTION,
+      content: "Quoting a censored post",
+      quote: new URL(quotedPost.iri),
+    });
+
+    const persisted = await persistPost(createFedCtx(tx), quote);
+
+    assert.ok(persisted != null);
+    assert.equal(persisted.quotedPost, null);
+    const storedQuote = await tx.query.postTable.findFirst({
+      where: { id: persisted.id },
+    });
+    assert.ok(storedQuote != null);
+    assert.equal(storedQuote.quotedPostId, null);
+  });
+});
+
+test("persistSharedPost() drops a federated boost of a censored post", async () => {
+  await withRollback(async (tx) => {
+    const booster = await insertRemoteActor(tx, {
+      username: "censoredboostbooster",
+      name: "Censored Boost Booster",
+      host: "remote.example",
+    });
+    const originalAuthor = await insertRemoteActor(tx, {
+      username: "censoredboostauthor",
+      name: "Censored Boost Author",
+      host: "remote.example",
+    });
+    const original = await insertRemotePost(tx, {
+      actorId: originalAuthor.id,
+      contentHtml: "<p>Censored boosted post</p>",
+    });
+    await tx.update(postTable)
+      .set({ censored: new Date() })
+      .where(eq(postTable.id, original.id));
+    // Embed the (already censored) original so getObject() resolves without a
+    // network fetch; persistPost() then returns the existing censored row.
+    const announce = new Announce({
+      id: new URL("https://remote.example/announces/censored-boost"),
+      actor: new URL(booster.iri),
+      to: PUBLIC_COLLECTION,
+      object: new Note({
+        id: new URL(original.iri),
+        attribution: new URL(originalAuthor.iri),
+        to: PUBLIC_COLLECTION,
+        content: "Censored boosted post",
+      }),
+    });
+
+    const shared = await persistSharedPost(createFedCtx(tx), announce);
+
+    assert.equal(shared, undefined);
+    const wrapper = await tx.query.postTable.findFirst({
+      where: { actorId: booster.id, sharedPostId: original.id },
+    });
+    assert.equal(wrapper, undefined);
+    const storedOriginal = await tx.query.postTable.findFirst({
+      where: { id: original.id },
+    });
+    assert.ok(storedOriginal != null);
+    assert.equal(storedOriginal.sharesCount, 0);
+    // The censorship must survive the re-persist the boost triggers.
+    assert.notEqual(storedOriginal.censored, null);
   });
 });

@@ -5,6 +5,8 @@ interface ViewerContextValue {
   isLoaded: () => boolean;
   username: () => string | undefined;
   moderator: () => boolean;
+  /** Whether the signed-in account is under an active moderation suspension. */
+  suspended: () => boolean;
   preferAiSummary: () => boolean;
 }
 
@@ -13,6 +15,7 @@ export interface ViewerProviderProps {
   isLoaded: () => boolean;
   username?: () => string | undefined;
   moderator?: () => boolean;
+  suspended?: () => boolean;
   preferAiSummary?: () => boolean;
 }
 
@@ -26,6 +29,7 @@ export const ViewerProvider: ParentComponent<ViewerProviderProps> = (props) => {
         isLoaded: props.isLoaded,
         username: props.username ?? (() => undefined),
         moderator: props.moderator ?? (() => false),
+        suspended: props.suspended ?? (() => false),
         preferAiSummary: props.preferAiSummary ?? (() => true),
       }}
     >

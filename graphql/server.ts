@@ -6,7 +6,9 @@ import type {
   Actor,
   Medium,
 } from "@hackerspub/models/schema";
-import { getSession } from "@hackerspub/models/session";
+import { isActorBanned } from "@hackerspub/models/moderation";
+import { ensureSuspensionEndingNotification } from "@hackerspub/models/moderation-notification";
+import { deleteSession, getSession } from "@hackerspub/models/session";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import * as Sentry from "@sentry/deno";
 import { getCookies } from "@std/http/cookie";
@@ -64,6 +66,22 @@ export function createYogaServer(): YogaServerInstance<
           },
         });
         if (account == null) session = undefined;
+        else if (isActorBanned(account.actor)) {
+          // A ban invalidates existing sessions, not just new logins.
+          await deleteSession(kv, session.id);
+          session = undefined;
+          account = undefined;
+        } else if (
+          account.actor.suspended != null &&
+          account.actor.suspendedUntil != null
+        ) {
+          // Suspension expiry is lazy, so nothing fires near the end of a
+          // temporary suspension; create the suspension_ending
+          // notification when the suspended user visits during the final
+          // window (deduplicated by a partial unique index).
+          await ensureSuspensionEndingNotification(db, account)
+            .catch(() => {});
+        }
       }
 
       // Tag the per-request Sentry isolation scope with the signed-in user

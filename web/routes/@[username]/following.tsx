@@ -1,6 +1,7 @@
 import { page } from "@fresh/core";
 import { extractMentionsFromHtml } from "@hackerspub/models/markup";
 import type { Account, Actor } from "@hackerspub/models/schema";
+import { isProfileHiddenFor } from "../../censorship.ts";
 import { ActorList } from "../../components/ActorList.tsx";
 import { Msg } from "../../components/Msg.tsx";
 import { PageTitle } from "../../components/PageTitle.tsx";
@@ -52,11 +53,15 @@ export const handler = define.handlers({
         kv,
       },
     );
+    // A banned profile's display name is redacted to the username.
+    const profileName = isProfileHiddenFor(account.actor, ctx.state.account)
+      ? account.username
+      : account.name;
     ctx.state.title = ctx.state.t("profile.followeeList.title", {
-      name: account.name,
+      name: profileName,
     });
     return page<FolloweeListProps>({
-      account,
+      account: { ...account, name: profileName },
       followees: followees.map((f) => f.followee).slice(0, WINDOW),
       followeesMentions,
       nextUrl,

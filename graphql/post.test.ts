@@ -2,8 +2,14 @@ import assert from "node:assert";
 import test from "node:test";
 import { createBookmark, deleteBookmark } from "@hackerspub/models/bookmark";
 import { sharePost } from "@hackerspub/models/post";
-import { followingTable } from "@hackerspub/models/schema";
+import {
+  actorTable,
+  followingTable,
+  postTable,
+} from "@hackerspub/models/schema";
+import { generateUuidV7 } from "@hackerspub/models/uuid";
 import { encodeGlobalID } from "@pothos/plugin-relay";
+import { eq } from "drizzle-orm";
 import { execute, parse } from "graphql";
 import { schema } from "./mod.ts";
 import { hidePostRelationWithoutActor } from "./post.ts";
@@ -170,6 +176,72 @@ test("addReactionToPost rejects posts not visible to the viewer", async () => {
         __typename: "InvalidInputError",
         inputPath: "postId",
       },
+    );
+  });
+});
+
+test("addReactionToPost rejects a boost of a sanction-hidden actor's post", async () => {
+  await withRollback(async (tx) => {
+    const bannedAuthor = await insertRemoteActor(tx, {
+      username: "reactbanned",
+      name: "React Banned",
+      host: "remote.example",
+    });
+    const original = await insertRemotePost(tx, {
+      actorId: bannedAuthor.id,
+      contentHtml: "<p>Boosted before the ban</p>",
+    });
+    const booster = await insertAccountWithActor(tx, {
+      username: "reactbooster",
+      name: "React Booster",
+      email: "reactbooster@example.com",
+    });
+    // A boost wrapper of the original, denormalizing its content.
+    const wrapperId = generateUuidV7();
+    await tx.insert(postTable).values({
+      id: wrapperId,
+      iri: `http://localhost/ap/announces/${wrapperId}`,
+      type: "Note",
+      visibility: "public",
+      actorId: booster.actor.id,
+      sharedPostId: original.id,
+      contentHtml: "<p>Boosted before the ban</p>",
+      language: "en",
+      tags: {},
+      emojis: {},
+      sensitive: false,
+      url: original.url,
+    });
+    // The boosted post's author is then federation-blocked.
+    await tx.update(actorTable)
+      .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: null })
+      .where(eq(actorTable.id, bannedAuthor.id));
+    const viewer = await insertAccountWithActor(tx, {
+      username: "reactwrapviewer",
+      name: "React Wrapper Viewer",
+      email: "reactwrapviewer@example.com",
+    });
+
+    // Reacting via the wrapper id must be rejected: the boosted post's author
+    // is sanction-hidden, so the wrapper is not visible (the resolver loads
+    // sharedPost so isPostVisibleTo can evaluate it, and isPostVisibleTo fails
+    // closed when a wrapper's sharedPost is not loaded).
+    const result = await execute({
+      schema,
+      document: addReactionMutation,
+      variableValues: {
+        postId: encodeGlobalID("Note", wrapperId),
+        emoji: "❤️",
+      },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(result.errors, undefined);
+    assert.deepEqual(
+      (result.data as {
+        addReactionToPost: { __typename: string; inputPath?: string };
+      }).addReactionToPost,
+      { __typename: "InvalidInputError", inputPath: "postId" },
     );
   });
 });
@@ -1004,6 +1076,104 @@ test("viewerCanReply/Quote/Share permit every signed-in viewer on public posts a
       viewerCanQuote: false,
       viewerCanShare: false,
     });
+  });
+});
+
+test("viewerCanQuote/Share deny a censored post even for its author", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "policycensoredauthor",
+      name: "Policy Censored Author",
+      email: "policycensoredauthor@example.com",
+    });
+    const viewer = await insertAccountWithActor(tx, {
+      username: "policycensoredviewer",
+      name: "Policy Censored Viewer",
+      email: "policycensoredviewer@example.com",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Censored",
+      visibility: "public",
+    });
+    await tx.update(postTable)
+      .set({ censored: new Date() })
+      .where(eq(postTable.id, post.id));
+    const id = encodeGlobalID("Note", post.id);
+
+    // The author can still read the content (censorship redaction exempts
+    // them), but boosting or quoting it is rejected by the mutations, so the
+    // policy must not advertise either affordance.  Replying stays allowed.
+    assert.deepEqual(
+      await readPolicy(id, makeUserContext(tx, author.account)),
+      {
+        viewerCanReply: true,
+        viewerCanQuote: false,
+        viewerCanShare: false,
+      },
+    );
+    assert.deepEqual(
+      await readPolicy(id, makeUserContext(tx, viewer.account)),
+      {
+        viewerCanReply: true,
+        viewerCanQuote: false,
+        viewerCanShare: false,
+      },
+    );
+  });
+});
+
+test("viewerCanQuote/Share deny a share wrapper of a censored post", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "policywrapauthor",
+      name: "Policy Wrapper Author",
+      email: "policywrapauthor@example.com",
+    });
+    const sharer = await insertAccountWithActor(tx, {
+      username: "policywrapsharer",
+      name: "Policy Wrapper Sharer",
+      email: "policywrapsharer@example.com",
+    });
+    const viewer = await insertAccountWithActor(tx, {
+      username: "policywrapviewer",
+      name: "Policy Wrapper Viewer",
+      email: "policywrapviewer@example.com",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Wrapped",
+      visibility: "public",
+    });
+    // Boost the original first (the share mutation itself rejects censored
+    // targets), then censor the original.
+    const shareResult = await execute({
+      schema,
+      document: shareMutation,
+      variableValues: { postId: encodeGlobalID("Note", post.id) },
+      contextValue: makeUserContext(tx, sharer.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(shareResult.errors, undefined);
+    const wrapperId =
+      (shareResult.data as { sharePost: { share?: { id: string } } })
+        .sharePost.share?.id;
+    assert.ok(wrapperId != null);
+    await tx.update(postTable)
+      .set({ censored: new Date() })
+      .where(eq(postTable.id, post.id));
+
+    // The wrapper itself is not censored, but its boosted original is, so
+    // boosting or quoting the wrapper (which amplifies the original) is
+    // denied; `getPostInteractionPolicies` checks the effective post too.
+    assert.deepEqual(
+      await readPolicy(wrapperId, makeUserContext(tx, viewer.account)),
+      {
+        viewerCanReply: true,
+        viewerCanQuote: false,
+        viewerCanShare: false,
+      },
+    );
   });
 });
 

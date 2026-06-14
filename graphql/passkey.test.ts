@@ -32,7 +32,13 @@ const loginByPasskeyMutation = parse(`
       sessionId: $sessionId
       authenticationResponse: $authenticationResponse
     ) {
-      id
+      __typename
+      ... on Session {
+        id
+      }
+      ... on AccountBannedError {
+        since
+      }
     }
   }
 `);

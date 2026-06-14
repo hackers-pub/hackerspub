@@ -10,6 +10,7 @@ import {
 import {
   deletePost,
   getPostByUsernameAndId,
+  isActorSanctionHidden,
   isPostObject,
   isPostVisibleTo,
   persistPost,
@@ -30,6 +31,7 @@ import { withTransaction } from "@hackerspub/models/tx";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import * as v from "@valibot/valibot";
 import { sql } from "drizzle-orm";
+import { isPostCensoredFor, redactCensoredPost } from "../../../censorship.ts";
 import { Msg } from "../../../components/Msg.tsx";
 import { NoteExcerpt } from "../../../components/NoteExcerpt.tsx";
 import { PostExcerpt } from "../../../components/PostExcerpt.tsx";
@@ -103,7 +105,18 @@ export const handler = define.handlers({
       if (result == null) return ctx.next();
       if (ctx.state.account == null) {
         const original = result.sharedPost ?? result;
-        return ctx.redirect(original.url ?? original.iri, 301);
+        // A post that is moderation-hidden (censored, or whose author is
+        // hidden by a sanction such as a ban or federation block), or a
+        // boost of one, must not disclose its target via the redirect;
+        // fall through to the local rendering, which shows a censorship
+        // notice for censored posts and 404s for sanction-hidden authors.
+        if (
+          result.censored == null && original.censored == null &&
+          !isActorSanctionHidden(result.actor) &&
+          !isActorSanctionHidden(original.actor)
+        ) {
+          return ctx.redirect(original.url ?? original.iri, 301);
+        }
       }
       post = result;
       if (ctx.url.searchParams.has("refresh") && ctx.state.account?.moderator) {
@@ -244,7 +257,13 @@ export const handler = define.handlers({
         });
         if (share == null || share.sharedPost == null) return ctx.next();
         post = share;
-        postUrl = share.sharedPost.actor.accountId == null
+        // A censored share wrapper (or a wrapper of a censored post) must
+        // not disclose what it boosted, so its own path is kept instead of
+        // the boosted post's permalink.
+        postUrl = isPostCensoredFor(share, ctx.state.account) ||
+            isPostCensoredFor(share.sharedPost, ctx.state.account)
+          ? `/@${ctx.params.username}/${share.id}`
+          : share.sharedPost.actor.accountId == null
           ? `/${share.sharedPost.actor.handle}/${share.sharedPostId}`
           : `/@${share.sharedPost.actor.username}/${
             share.sharedPost.articleSourceId ?? share.sharedPost.noteSourceId
@@ -285,6 +304,50 @@ export const handler = define.handlers({
     }
     if (!isPostVisibleTo(post, ctx.state.account?.actor)) {
       return ctx.next();
+    }
+    // The permalink stays reachable for censored posts, but the content is
+    // replaced with a notice for everyone except the author and moderators
+    // (including the OpenGraph metadata derived from it below).
+    if (isPostCensoredFor(post, ctx.state.account)) {
+      post = redactCensoredPost(post, ctx.state.t);
+    }
+    if (
+      post.sharedPost != null &&
+      isPostCensoredFor(post.sharedPost, ctx.state.account)
+    ) {
+      // A share wrapper carries denormalized copies of the boosted post's
+      // title/content/URL, so the wrapper is redacted along with the
+      // boosted post; the wrapper→post link is kept so the boosted post's
+      // own notice renders in place of the boost.
+      post = {
+        ...redactCensoredPost(post, ctx.state.t),
+        sharedPostId: post.sharedPostId,
+        sharedPost: redactCensoredPost(post.sharedPost, ctx.state.t),
+      };
+    }
+    if (
+      post.replyTarget != null &&
+      isPostCensoredFor(post.replyTarget, ctx.state.account)
+    ) {
+      post = {
+        ...post,
+        replyTarget: redactCensoredPost(post.replyTarget, ctx.state.t),
+      };
+    }
+    if (
+      post.sharedPost?.replyTarget != null &&
+      isPostCensoredFor(post.sharedPost.replyTarget, ctx.state.account)
+    ) {
+      post = {
+        ...post,
+        sharedPost: {
+          ...post.sharedPost,
+          replyTarget: redactCensoredPost(
+            post.sharedPost.replyTarget,
+            ctx.state.t,
+          ),
+        },
+      };
     }
     if (post.noteSourceId != null) {
       post.sharesCount = await updateSharesCount(db, post, 0);
@@ -331,6 +394,10 @@ export const handler = define.handlers({
     });
     replies = replies.filter((reply) =>
       isPostVisibleTo(reply, ctx.state.account?.actor)
+    ).map((reply) =>
+      isPostCensoredFor(reply, ctx.state.account)
+        ? redactCensoredPost(reply, ctx.state.t)
+        : reply
     );
     const content = await renderMarkup(
       ctx.state.fedCtx,
@@ -378,7 +445,10 @@ export const handler = define.handlers({
         ? ctx.state.fedCtx.getObjectUri(vocab.Question, {
           id: targetPost.noteSourceId,
         })
-        : new URL(targetPost.iri);
+        // The base matters for redacted remote posts, whose `iri` is
+        // replaced with a local permalink path (the URI is not shown for
+        // them; see the censored guard around the remote-reply text).
+        : new URL(targetPost.iri, ctx.state.canonicalOrigin);
     return page<NotePageProps>(
       {
         post,
@@ -587,21 +657,25 @@ export default define.page<typeof handler, NotePageProps>(
           signedAccount={state.account}
         />
         {state.account == null
-          ? (
-            <>
-              <hr class="my-4 ml-14 opacity-50 dark:opacity-25" />
-              <p class="mt-4 leading-7 ml-14 text-stone-500 dark:text-stone-400 break-words">
-                <Msg
-                  $key="note.remoteReplyDescription"
-                  permalink={
-                    <span class="font-bold border-dashed border-b-[1px] select-all text-stone-950 dark:text-stone-50">
-                      {activityPubUri.href}
-                    </span>
-                  }
-                />
-              </p>
-            </>
-          )
+          ? targetPost.censored != null
+            // The remote-reply instruction would disclose the censored
+            // post's ActivityPub URI; guests get no reply affordance here.
+            ? null
+            : (
+              <>
+                <hr class="my-4 ml-14 opacity-50 dark:opacity-25" />
+                <p class="mt-4 leading-7 ml-14 text-stone-500 dark:text-stone-400 break-words">
+                  <Msg
+                    $key="note.remoteReplyDescription"
+                    permalink={
+                      <span class="font-bold border-dashed border-b-[1px] select-all text-stone-950 dark:text-stone-50">
+                        {activityPubUri.href}
+                      </span>
+                    }
+                  />
+                </p>
+              </>
+            )
           : (
             <Composer
               canonicalOrigin={state.canonicalOrigin}

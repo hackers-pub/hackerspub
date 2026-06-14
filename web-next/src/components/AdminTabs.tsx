@@ -4,6 +4,7 @@ import { useLingui } from "~/lib/i18n/macro.d.ts";
 
 export type AdminTab =
   | "accounts"
+  | "moderation"
   | "invitations"
   | "media"
   | "news"
@@ -23,6 +24,14 @@ export function AdminTabs(props: AdminTabsProps) {
         <TabsList class="min-w-full justify-start">
           <TabsTrigger as={A} value="accounts" href="/admin" class="shrink-0">
             {t`Accounts`}
+          </TabsTrigger>
+          <TabsTrigger
+            as={A}
+            value="moderation"
+            href="/admin/moderation"
+            class="shrink-0"
+          >
+            {t`Moderation`}
           </TabsTrigger>
           <TabsTrigger
             as={A}

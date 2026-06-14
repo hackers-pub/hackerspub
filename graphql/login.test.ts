@@ -1,7 +1,9 @@
 import assert from "node:assert";
 import test from "node:test";
+import { actorTable } from "@hackerspub/models/schema";
 import { createSession, getSession } from "@hackerspub/models/session";
-import { getSigninToken } from "@hackerspub/models/signin";
+import { createSigninToken, getSigninToken } from "@hackerspub/models/signin";
+import { eq } from "drizzle-orm";
 import { schema } from "./mod.ts";
 import {
   createTestEmailTransport,
@@ -62,9 +64,15 @@ const loginByEmailMutation = parse(`
 const completeLoginChallengeMutation = parse(`
   mutation CompleteLoginChallenge($token: UUID!, $code: String!) {
     completeLoginChallenge(token: $token, code: $code) {
-      id
-      account {
-        username
+      __typename
+      ... on Session {
+        id
+        account {
+          username
+        }
+      }
+      ... on AccountBannedError {
+        since
       }
     }
   }
@@ -162,6 +170,51 @@ test(
         ),
         undefined,
       );
+    });
+  },
+);
+
+test(
+  "completeLoginChallenge rejects a banned account with AccountBannedError",
+  async () => {
+    await withRollback(async (tx) => {
+      const { kv } = createTestKv();
+      const { account } = await insertAccountWithActor(tx, {
+        username: "banneduser",
+        name: "Banned User",
+        email: "banneduser@example.com",
+      });
+      const since = new Date("2026-05-01T00:00:00.000Z");
+      await tx.update(actorTable)
+        .set({ suspended: since, suspendedUntil: null })
+        .where(eq(actorTable.accountId, account.id));
+
+      const signinToken = await createSigninToken(kv, account.id);
+
+      const result = await execute({
+        schema,
+        document: completeLoginChallengeMutation,
+        variableValues: {
+          token: signinToken.token,
+          code: signinToken.code,
+        },
+        contextValue: makeGuestContext(tx, { kv }),
+        onError: "NO_PROPAGATE",
+      });
+
+      assert.deepEqual(result.errors, undefined);
+      const data = (result.data as {
+        completeLoginChallenge:
+          | { __typename: string; since?: string; id?: string }
+          | null;
+      }).completeLoginChallenge;
+      assert.deepEqual(data?.__typename, "AccountBannedError");
+      assert.equal(new Date(data?.since as string).getTime(), since.getTime());
+      assert.deepEqual(data?.id, undefined);
+
+      // The challenge token is left intact (not consumed) so a retry is
+      // still rejected the same way rather than silently succeeding.
+      assert.ok((await getSigninToken(kv, signinToken.token)) != null);
     });
   },
 );

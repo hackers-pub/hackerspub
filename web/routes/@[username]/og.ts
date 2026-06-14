@@ -3,6 +3,7 @@ import { renderMarkup } from "@hackerspub/models/markup";
 import { accountTable } from "@hackerspub/models/schema";
 import { eq } from "drizzle-orm";
 import { html } from "satori-html";
+import { isProfileHiddenFor } from "../../censorship.ts";
 import { db } from "../../db.ts";
 import { drive } from "../../drive.ts";
 import { kv } from "../../kv.ts";
@@ -12,10 +13,15 @@ import { define } from "../../utils.ts";
 export const handler = define.handlers({
   async GET(ctx) {
     const account = await db.query.accountTable.findFirst({
-      with: { avatarMedium: true, emails: true },
+      with: { actor: true, avatarMedium: true, emails: true },
       where: { username: ctx.params.username },
     });
     if (account == null) return ctx.next();
+    // The OG image renders the display name, bio, and avatar, which a ban
+    // hides; serve no image for a hidden profile.
+    if (isProfileHiddenFor(account.actor, ctx.state.account)) {
+      return ctx.next();
+    }
     const disk = drive.use();
     const bio = await renderMarkup(ctx.state.fedCtx, account.bio, {
       kv,

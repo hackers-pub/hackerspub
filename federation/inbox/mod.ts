@@ -6,6 +6,7 @@ import {
   Create,
   Delete,
   EmojiReact,
+  Flag,
   Follow,
   isActor,
   Like,
@@ -16,10 +17,12 @@ import {
   Undo,
   Update,
 } from "@fedify/vocab";
+import { isCachedActorFederationBlocked } from "@hackerspub/models/actor";
 import { isPostObject } from "@hackerspub/models/post";
 import { getLogger } from "@logtape/logtape";
 import { builder } from "../builder.ts";
 import { onActorDeleted, onActorMoved, onActorUpdated } from "./actor.ts";
+import { onFlagged } from "./flag.ts";
 import {
   onBlocked,
   onFollowAccepted,
@@ -79,6 +82,11 @@ builder
   .on(Create, onPostCreated)
   .on(Announce, onPostShared)
   .on(Update, async (fedCtx, update) => {
+    if (
+      await isCachedActorFederationBlocked(fedCtx.data.db, update.actorId)
+    ) {
+      return;
+    }
     const object = await update.getObject({ ...fedCtx, suppressError: true });
     if (isActor(object)) await onActorUpdated(fedCtx, update);
     else if (isPostObject(object)) await onPostUpdated(fedCtx, update);
@@ -93,6 +101,7 @@ builder
       logger.warn("Unhandled Delete object: {delete}", { delete: del });
   })
   .on(Move, onActorMoved)
+  .on(Flag, onFlagged)
   .on(Block, onBlocked)
   .on(Add, onPostPinned)
   .on(Remove, onPostUnpinned);

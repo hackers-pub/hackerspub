@@ -12,7 +12,10 @@ import {
   renderMarkup,
 } from "@hackerspub/models/markup";
 import { createNote, QuotePolicyDeniedError } from "@hackerspub/models/note";
-import { getPostVisibilityFilter } from "@hackerspub/models/post";
+import {
+  getCensoredPostExclusionFilter,
+  getPostVisibilityFilter,
+} from "@hackerspub/models/post";
 import {
   type Account,
   type AccountLink,
@@ -32,6 +35,10 @@ import { withTransaction } from "@hackerspub/models/tx";
 import type { Uuid } from "@hackerspub/models/uuid";
 import * as v from "@valibot/valibot";
 import { sql } from "drizzle-orm";
+import {
+  isProfileHiddenFor,
+  redactHiddenProfileActor,
+} from "../../censorship.ts";
 import { Msg } from "../../components/Msg.tsx";
 import { PostExcerpt } from "../../components/PostExcerpt.tsx";
 import { PostPagination } from "../../components/PostPagination.tsx";
@@ -85,6 +92,7 @@ export const handler = define.handlers({
     let account: Account | undefined;
     let actor: Actor & { successor: Actor | null } | undefined;
     let links: AccountLink[] | undefined;
+    let profileHidden = false;
     if (ctx.params.username.includes("@")) {
       if (ctx.url.searchParams.has("refresh") && ctx.state.account?.moderator) {
         const documentLoader = ctx.state.account == null
@@ -118,7 +126,10 @@ export const handler = define.handlers({
         });
       }
       if (actor == null) return ctx.next();
-      ctx.state.title = actor.name ?? actor.username;
+      profileHidden = isProfileHiddenFor(actor, ctx.state.account);
+      ctx.state.title = profileHidden
+        ? actor.username
+        : actor.name ?? actor.username;
       ctx.state.searchQuery = actor.handle;
     } else {
       const acct = await db.query.accountTable.findFirst({
@@ -129,10 +140,13 @@ export const handler = define.handlers({
       account = acct;
       actor = acct.actor;
       links = acct.links;
-      const bio = await renderMarkup(ctx.state.fedCtx, account.bio, {
-        docId: account.id,
-        kv,
-      });
+      profileHidden = isProfileHiddenFor(actor, ctx.state.account);
+      const bio = profileHidden
+        ? { text: "" }
+        : await renderMarkup(ctx.state.fedCtx, account.bio, {
+          docId: account.id,
+          kv,
+        });
       const permalink = new URL(
         `/@${account.username}`,
         ctx.state.canonicalOrigin,
@@ -142,24 +156,31 @@ export const handler = define.handlers({
           name: "description",
           content: bio.text,
         },
-        { property: "og:title", content: account.name },
+        {
+          property: "og:title",
+          content: profileHidden ? account.username : account.name,
+        },
         {
           property: "og:description",
           content: bio.text,
         },
         { property: "og:url", content: permalink },
         { property: "og:type", content: "profile" },
-        {
-          property: "og:image",
-          content: new URL(
-            `/@${account.username}/og`,
-            ctx.state.canonicalOrigin,
-          ),
-        },
-        { property: "og:image:width", content: 1200 },
-        { property: "og:image:height", content: 630 },
+        // The OG image renders the display name, bio, and avatar, so it is
+        // omitted for a hidden profile (the og route is gated the same way).
+        ...(profileHidden ? [] : [
+          {
+            property: "og:image",
+            content: new URL(
+              `/@${account.username}/og`,
+              ctx.state.canonicalOrigin,
+            ),
+          },
+          { property: "og:image:width", content: 1200 },
+          { property: "og:image:height", content: 630 },
+          { name: "twitter:card", content: "summary_large_image" },
+        ]),
         { property: "profile:username", content: account.username },
-        { name: "twitter:card", content: "summary_large_image" },
       );
       const actorUri = ctx.state.fedCtx.getActorUri(account.id);
       ctx.state.links.push(
@@ -188,8 +209,15 @@ export const handler = define.handlers({
           title: ctx.state.t("profile.articlesFeed"),
         },
       );
-      ctx.state.title = account.name;
+      ctx.state.title = profileHidden ? account.username : account.name;
       ctx.state.searchQuery = `@${account.username}`;
+    }
+    // A banned actor's profile content (name, bio, avatar, fields, links)
+    // is redacted before rendering, mirroring the GraphQL redaction and
+    // the content-less ActivityPub `Person` stub.
+    if (profileHidden) {
+      actor = redactHiddenProfileActor(actor);
+      links = [];
     }
     const stats = await getActorStats(db, actor.id);
     const posts = await db.query.postTable.findMany({
@@ -293,6 +321,7 @@ export const handler = define.handlers({
         AND: [
           { actorId: actor.id, published: { lte: until } },
           getPostVisibilityFilter(ctx.state.account?.actor ?? null),
+          getCensoredPostExclusionFilter(ctx.state.account?.actor.id),
         ],
       },
       orderBy: { published: "desc" },
@@ -402,7 +431,12 @@ export const handler = define.handlers({
         },
         where: {
           actorId: actor.id,
-          post: getPostVisibilityFilter(ctx.state.account?.actor ?? null),
+          post: {
+            AND: [
+              getPostVisibilityFilter(ctx.state.account?.actor ?? null),
+              getCensoredPostExclusionFilter(ctx.state.account?.actor.id),
+            ],
+          },
         },
         orderBy: { created: "desc" },
       })

@@ -1,7 +1,12 @@
 import { findNearestLocale, isLocale } from "@hackerspub/models/i18n";
+import { isActorSanctionHidden } from "@hackerspub/models/post";
 import type { ArticleContent } from "@hackerspub/models/schema";
 import { validateUuid } from "@hackerspub/models/uuid";
 import { minBy } from "@std/collections/min-by";
+import {
+  isPostCensoredFor,
+  redactCensoredArticleContent,
+} from "../../../../censorship.ts";
 import { db } from "../../../../db.ts";
 import { define } from "../../../../utils.ts";
 
@@ -26,10 +31,39 @@ export const handler = define.handlers(async (ctx) => {
     content = minBy(originalContents, (c) => +c.published);
     if (content == null) return ctx.next();
   }
+  // Censored articles stay reachable, but the title, body, and summary
+  // are replaced with a notice for everyone except the author and
+  // moderators.  An article whose author is hidden by a moderation
+  // sanction (ban / federation block) is not served at all, except to
+  // the author themselves, matching isPostVisibleTo.
+  const post = await db.query.postTable.findFirst({
+    where: { articleSourceId: ctx.params.id },
+    columns: { censored: true, actorId: true },
+    with: { actor: true },
+  });
+  if (post != null) {
+    if (
+      ctx.state.account?.actor.id !== post.actorId &&
+      isActorSanctionHidden(post.actor)
+    ) {
+      return ctx.next();
+    }
+    if (isPostCensoredFor(post, ctx.state.account)) {
+      content = redactCensoredArticleContent(content, ctx.state.t);
+    }
+  }
+  // The response depends on the viewer (censorship redaction above), so
+  // it must not be cached or served across viewers.
   return new Response(
     JSON.stringify(content),
     {
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control":
+          "no-store, no-cache, must-revalidate, proxy-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0",
+      },
     },
   );
 });

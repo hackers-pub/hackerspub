@@ -8,7 +8,11 @@ import {
 } from "@fresh/core";
 import { type Context, createYogaServer } from "@hackerspub/graphql";
 import { handleMediumUploadProxy } from "@hackerspub/graphql/medium-upload";
-import { getSession } from "@hackerspub/models/session";
+import {
+  ActorSuspendedError,
+  isActorBanned,
+} from "@hackerspub/models/moderation";
+import { deleteSession, getSession } from "@hackerspub/models/session";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { getXForwardedRequest } from "@hongminhee/x-forwarded-fetch";
 import { SpanKind, SpanStatusCode, trace } from "@opentelemetry/api";
@@ -137,6 +141,22 @@ app.use(async (ctx) => {
   });
 });
 
+app.use(async (ctx) => {
+  try {
+    return await ctx.next();
+  } catch (error) {
+    // A suspended account hitting a guarded write path is an expected
+    // moderation rejection, not a server error.
+    if (error instanceof ActorSuspendedError) {
+      return new Response("The account is suspended.", {
+        status: 403,
+        headers: { "Content-Type": "text/plain" },
+      });
+    }
+    throw error;
+  }
+});
+
 app.use((ctx) => {
   let sessionId: Uuid | undefined = undefined;
   const authorization = ctx.req.headers.get("Authorization");
@@ -156,6 +176,12 @@ app.use((ctx) => {
           where: { id: session.accountId },
           with: { actor: true, avatarMedium: true, emails: true, links: true },
         });
+        if (account != null && isActorBanned(account.actor)) {
+          // A ban invalidates existing sessions, not just new logins
+          // (mirrors the GraphQL server's context build).
+          await deleteSession(kv, session.id);
+          return { account: undefined, session: undefined };
+        }
         return {
           account,
           session: account == null ? undefined : session,

@@ -1,4 +1,5 @@
 import type { Context } from "@fedify/fedify";
+import { assertAccountActorNotSuspended } from "./moderation.ts";
 import { Follow, Reject, Undo } from "@fedify/vocab";
 import {
   aliasedTable,
@@ -42,6 +43,7 @@ export async function follow(
   followee: Actor,
 ): Promise<Following | undefined> {
   const { db } = fedCtx.data;
+  await assertAccountActorNotSuspended(db, follower.id);
   const rows = await db.insert(followingTable).values({
     iri: createFollowingIri(fedCtx, follower).href,
     followerId: follower.actor.id,

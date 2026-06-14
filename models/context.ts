@@ -6,6 +6,11 @@ import type { Database } from "./db.ts";
 export interface Models {
   translator: LanguageModel;
   summarizer: LanguageModel;
+  /**
+   * Matches reports against the code of conduct (a reference tool for
+   * moderators, never an automated decision system).
+   */
+  moderationAnalyzer: LanguageModel;
 }
 
 export interface ContextData<D extends Database = Database> {

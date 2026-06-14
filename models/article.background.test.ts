@@ -70,6 +70,7 @@ test("startArticleContentTranslation() deletes queued rows when translation fail
     fedCtx.data.models = {
       summarizer: {} as never,
       translator: {} as never,
+      moderationAnalyzer: {} as never,
     } as typeof fedCtx.data.models;
     const author = await insertAccountWithActor(tx, {
       username: "translationbackground",
@@ -140,6 +141,7 @@ test(
       fedCtx.data.models = {
         summarizer: {} as never,
         translator: {} as never,
+        moderationAnalyzer: {} as never,
       } as typeof fedCtx.data.models;
       const author = await insertAccountWithActor(tx, {
         username: "restarttranslator",
@@ -231,6 +233,7 @@ test(
       fedCtx.data.models = {
         summarizer: {} as never,
         translator: {} as never,
+        moderationAnalyzer: {} as never,
       } as typeof fedCtx.data.models;
       const author = await insertAccountWithActor(tx, {
         username: "restartnotrans",

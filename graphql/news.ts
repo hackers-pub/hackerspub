@@ -21,7 +21,10 @@ import {
   removeNewsPreferredSharer,
   setNewsScorePenalty,
 } from "@hackerspub/models/news";
-import { getPostVisibilityFilter } from "@hackerspub/models/post";
+import {
+  getCensoredPostExclusionFilter,
+  getPostVisibilityFilter,
+} from "@hackerspub/models/post";
 import type { PostLink as PostLinkRow } from "@hackerspub/models/schema";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { builder } from "./builder.ts";
@@ -143,8 +146,9 @@ const NewsSourceBreakdown = builder.simpleObject("NewsSourceBreakdown", {
   description:
     "How a link's public shares break down by origin.  Hackers' Pub posts " +
     "carry the most weight, generic remote instances less, and Bluesky-" +
-    "bridged accounts (`@…@bsky.brid.gy`) the least.  Shares authored by bot " +
-    "accounts (`Service`/`Application` actors) are excluded throughout, unless " +
+    "bridged accounts (`@…@bsky.brid.gy`) the least.  Censored shares and " +
+    "shares by sanction-hidden actors are excluded, as are shares authored " +
+    "by bot accounts (`Service`/`Application` actors), unless " +
     "the account is a curated preferred sharer.",
   fields: (t) => ({
     local: t.int({
@@ -175,7 +179,9 @@ builder.drizzleObjectFields(PostLink, (t) => ({
       "Computed by a batch job and refreshed incrementally; recompute is " +
       "idempotent and the value is time-stable (it changes only when the " +
       "underlying posts, engagement, or moderator curation change, not as the " +
-      "clock advances).  Shares from bot accounts (`Service`/`Application` " +
+      "clock advances).  Censored posts and posts by sanction-hidden actors " +
+      "never count toward the score.  Shares from bot accounts (`Service`/" +
+      "`Application` " +
       "actors) normally never count, so a link shared only by bots stays at " +
       "`0`, as do links never shared publicly; the exception is a moderator-" +
       "curated preferred sharer, whose shares count even when it is a bot and " +
@@ -188,8 +194,10 @@ builder.drizzleObjectFields(PostLink, (t) => ({
   weightedMass: t.exposeFloat("weightedMass", {
     description:
       "Recency-independent engagement mass: the weighted sum over this " +
-      "link's public share signals (direct linked posts plus boosts of " +
-      "`Article` posts backed by this link, excluding bot `Service`/" +
+      "link's moderation-visible public share signals (direct linked posts " +
+      "plus boosts of " +
+      "`Article` posts backed by this link, excluding censored posts, " +
+      "sanction-hidden actors, and bot `Service`/" +
       "`Application` accounts unless curated as preferred sharers) of source " +
       "weight times account reputation times (quotes, replies, reactions).  " +
       "Repeated shares of the " +
@@ -201,7 +209,8 @@ builder.drizzleObjectFields(PostLink, (t) => ({
     description:
       "Number of public share signals across the fediverse for this link: " +
       "direct linked posts plus boosts of `Article` posts backed by this " +
-      "link.  Excludes shares from bot (`Service`/`Application`) accounts " +
+      "link.  Excludes censored posts, shares by sanction-hidden actors, " +
+      "and shares from bot (`Service`/`Application`) accounts " +
       "that are not curated preferred sharers.  Counts every such signal, " +
       "including an account's repeated shares of the same link (a high count " +
       "with a modest `score` is expected, since repeats contribute diminishing " +
@@ -212,7 +221,8 @@ builder.drizzleObjectFields(PostLink, (t) => ({
     nullable: true,
     description:
       "When this link was first shared publicly by a qualifying account (a " +
-      "non-bot account, or a curated preferred sharer), or `null` if it has " +
+      "non-bot account, or a curated preferred sharer; censored shares and " +
+      "sanction-hidden actors do not qualify), or `null` if it has " +
       "never been.  Drives the `NEWEST` order.",
   }),
   latestActivityAt: t.expose("latestActivityAt", {
@@ -222,7 +232,10 @@ builder.drizzleObjectFields(PostLink, (t) => ({
       "Timestamp of the freshest activity on this link's qualifying shares " +
       "(the share itself, a reply, a quote, or a reaction); shares are direct " +
       "linked posts or boosts of `Article` posts backed by this link, public, " +
-      "and authored by non-bot accounts (or curated preferred sharers).  A " +
+      "uncensored, " +
+      "and authored by non-bot, sanction-visible accounts (or curated " +
+      "preferred sharers).  Censored replies/quotes and child posts by " +
+      "sanction-hidden actors do not refresh this timestamp.  A " +
       "rapid repeat share by the same " +
       "account does not refresh this (only a first share, a sufficiently-" +
       "gapped re-share, or genuine replies/quotes/reactions do), so re-posting " +
@@ -246,6 +259,7 @@ builder.drizzleObjectFields(PostLink, (t) => ({
           { sharedPostId: { isNull: true } },
           { visibility: { in: ["public", "unlisted"] } },
           getPostVisibilityFilter(ctx.account?.actor ?? null),
+          getCensoredPostExclusionFilter(ctx.account?.actor.id),
           newsSharerPostFilter(),
         ],
       },
@@ -255,7 +269,8 @@ builder.drizzleObjectFields(PostLink, (t) => ({
   sourceBreakdown: t.loadable({
     type: NewsSourceBreakdown,
     description:
-      "Counts of this link's public shares by origin (local / remote / " +
+      "Counts of this link's moderation-visible public shares by origin " +
+      "(local / remote / " +
       "Bluesky bridge), including direct linked posts and boosts of `Article` " +
       "posts backed by this link.  Excludes shares from bot (`Service`/" +
       "`Application`) accounts that are not curated preferred sharers.",
@@ -277,7 +292,9 @@ builder.drizzleObjectFields(PostLink, (t) => ({
       "(the `/news/{uuid}` page); unlike `postCount` it includes replies and " +
       "quotes, but it does not include `Article` boosts that count only toward " +
       "the score.  Counts direct children only (deeper nesting is not " +
-      "traversed) and is viewer-independent (public posts only).",
+      "traversed) and is viewer-independent (public posts only).  Censored " +
+      "posts and posts by sanction-hidden actors are excluded, both as " +
+      "shares and as replies/quotes.",
     resolve: (link) => link.id,
     load: async (linkIds: Uuid[], ctx) => {
       const counts = await getNewsDiscussionCounts(ctx.db, linkIds);
@@ -303,6 +320,7 @@ builder.drizzleObjectFields(PostLink, (t) => ({
             { replyTargetId: { isNull: true } },
             { quotedPostId: { isNull: true } },
             getPostVisibilityFilter(ctx.account?.actor ?? null),
+            getCensoredPostExclusionFilter(ctx.account?.actor.id),
           ],
         },
         orderBy: { published: "asc" },

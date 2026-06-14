@@ -102,6 +102,55 @@ test("onQuoteRequested rejects instruments not attributed to the requester", asy
   });
 });
 
+test("onQuoteRequested rejects a censored quote target", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "censoredquoteowner",
+      name: "Censored Quote Owner",
+      email: "censoredquoteowner@example.com",
+    });
+    const requester = await insertRemoteActor(tx, {
+      username: "censoredquoterequester",
+      name: "Censored Quote Requester",
+      host: "remote.example",
+    });
+    // The target would otherwise be quotable by everyone, but it is censored,
+    // so a QuoteRequest for it must be denied rather than authorized.
+    const { post: quotedPost } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Quotable until it was censored",
+      quotePolicy: "everyone",
+    });
+    await tx.update(postTable)
+      .set({ censored: new Date() })
+      .where(eq(postTable.id, quotedPost.id));
+    const instrumentIri = "https://remote.example/objects/censored-quote";
+    const request = new QuoteRequest({
+      id: new URL("https://remote.example/quote-requests/censored"),
+      actor: new URL(requester.iri),
+      object: new URL(quotedPost.iri),
+      instrument: new URL(instrumentIri),
+    });
+    const sent: unknown[][] = [];
+    const fedCtx = {
+      ...createFedCtx(tx),
+      sendActivity(...args: unknown[]) {
+        sent.push(args);
+        return Promise.resolve(undefined);
+      },
+    } as unknown as InboxContext<ContextData>;
+
+    await onQuoteRequested(fedCtx, request);
+
+    // No QuoteAuthorization is granted, and the request is rejected.
+    const authorization = await tx.query.quoteAuthorizationTable.findFirst({
+      where: { quotedPostId: quotedPost.id },
+    });
+    assert.equal(authorization, undefined);
+    assert.equal(sent.some((args) => args[2] instanceof Reject), true);
+  });
+});
+
 test("onQuoteRequested rejects cross-origin instruments before fetching", async () => {
   await withRollback(async (tx) => {
     const author = await insertAccountWithActor(tx, {

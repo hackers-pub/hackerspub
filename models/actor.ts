@@ -29,6 +29,7 @@ import {
   renderAccountLinks,
 } from "./account.ts";
 import type { ContextData } from "./context.ts";
+import { isActorSuspended } from "./moderation.ts";
 import { toDate } from "./date.ts";
 import metadata from "./deno.json" with { type: "json" };
 import { persistInstance } from "./instance.ts";
@@ -171,6 +172,19 @@ export async function persistActor(
     return await getPersistedActor(ctx.data.db, actor.id.href);
   }
   const { db } = ctx.data;
+  // Remote actors under an active moderation suspension are federation-
+  // blocked: their activities are dropped at this single choke point
+  // (nearly every inbox handler bails when the actor fails to persist),
+  // and their cached profile stays frozen for the duration.  Actor
+  // deletion does not go through persistActor, so cleanup is unaffected.
+  const persisted = await getPersistedActor(db, actor.id.href);
+  if (persisted != null && isActorSuspended(persisted)) {
+    logger.debug(
+      "Dropping activity from federation-blocked actor {actorId}.",
+      { actorId: actor.id.href },
+    );
+    return undefined;
+  }
   const instance = await persistInstance(db, actor.id.host);
   let handle: string;
   try {
@@ -355,6 +369,40 @@ export async function persistActor(
     }
   }
   return { ...result, account: null, successor: successorActor ?? null };
+}
+
+/**
+ * Whether the actor is a remote actor under an active moderation
+ * suspension, i.e. federation-blocked.  Inbound write paths check this on
+ * the *cached* actor row too, since `persistActor`'s own guard only fires
+ * when the actor is (re)persisted; cleanup paths (undo, unpin, deletion)
+ * deliberately skip the check so a blocked actor's leftovers can still be
+ * removed.
+ */
+export function isFederationBlocked(
+  actor: Pick<Actor, "accountId" | "suspended" | "suspendedUntil">,
+  now: Date = new Date(),
+): boolean {
+  return actor.accountId == null && isActorSuspended(actor, now);
+}
+
+/**
+ * Whether the actor *cached* under the given IRI is federation-blocked.
+ * Inbox handlers call this before dereferencing an activity's objects, so
+ * a blocked actor cannot make this instance spend remote fetches on
+ * content that would be dropped anyway.  Unknown actors return `false`
+ * (nothing cached to block yet).
+ */
+export async function isCachedActorFederationBlocked(
+  db: Database,
+  actorId: URL | string | null,
+): Promise<boolean> {
+  if (actorId == null) return false;
+  const actor = await db.query.actorTable.findFirst({
+    where: { iri: actorId.toString() },
+    columns: { accountId: true, suspended: true, suspendedUntil: true },
+  });
+  return actor != null && isFederationBlocked(actor);
 }
 
 export function getPersistedActor(

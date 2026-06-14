@@ -14,6 +14,7 @@ import {
 } from "@hackerspub/models/schema";
 import { and, eq } from "drizzle-orm";
 import { html } from "satori-html";
+import { isPostCensoredFor } from "../../../../censorship.ts";
 import { db } from "../../../../db.ts";
 import { drive } from "../../../../drive.ts";
 import { kv } from "../../../../kv.ts";
@@ -33,6 +34,11 @@ export const handler = define.handlers({
     );
     if (article == null) return ctx.next();
     if (!isPostVisibleTo(article.post, ctx.state.account?.actor)) {
+      return ctx.next();
+    }
+    // The OpenGraph image renders the original title, which censorship
+    // must hide from everyone but the author and moderators.
+    if (isPostCensoredFor(article.post, ctx.state.account)) {
       return ctx.next();
     }
     const { account } = article;

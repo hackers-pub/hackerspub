@@ -1,8 +1,15 @@
 import type { InboxContext } from "@fedify/fedify";
 import { type Delete, isActor, type Move, type Update } from "@fedify/vocab";
-import { persistActor } from "@hackerspub/models/actor";
+import {
+  isCachedActorFederationBlocked,
+  persistActor,
+} from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
 import { follow } from "@hackerspub/models/following";
+import {
+  ActorSuspendedError,
+  isActorSuspended,
+} from "@hackerspub/models/moderation";
 import { actorTable } from "@hackerspub/models/schema";
 import { eq } from "drizzle-orm";
 
@@ -21,8 +28,20 @@ export async function onActorDeleted(
 ): Promise<boolean> {
   const actorId = del.actorId;
   if (actorId == null || del.objectId?.href !== actorId.href) return false;
-  const deletedRows = await fedCtx.data.db.delete(actorTable)
-    .where(eq(actorTable.iri, actorId.href))
+  const { db } = fedCtx.data;
+  const actor = await db.query.actorTable.findFirst({
+    where: { iri: actorId.href },
+    columns: { id: true, suspended: true, suspendedUntil: true },
+  });
+  if (actor == null) return false;
+  // A sanctioned actor must not erase its own moderation state by deleting
+  // itself: the actor row holds the suspension/ban, and deleting it cascades
+  // to flag_case and flag_action (the immutable audit), so the same IRI
+  // could re-federate without the federation block.  Keep the row; the
+  // Delete is recognized but deliberately not acted on.
+  if (isActorSuspended(actor)) return true;
+  const deletedRows = await db.delete(actorTable)
+    .where(eq(actorTable.id, actor.id))
     .returning();
   return deletedRows.length > 0;
 }
@@ -33,6 +52,13 @@ export async function onActorMoved(
 ): Promise<void> {
   const actorId = move.actorId;
   if (actorId == null) return;
+  // Check the cached actor before dereferencing the Move's object and
+  // target, so a federation-blocked actor cannot force remote fetches.
+  if (
+    await isCachedActorFederationBlocked(fedCtx.data.db, actorId)
+  ) {
+    return;
+  }
   const object = await move.getObject({ ...fedCtx, suppressError: true });
   if (!isActor(object) || object.id?.href !== actorId.href) return;
   const target = await move.getTarget({ ...fedCtx, suppressError: true });
@@ -59,10 +85,16 @@ export async function onActorMoved(
   });
   for (const follower of followers) {
     if (follower.account == null) continue;
-    await follow(
-      fedCtx,
-      { ...follower.account, actor: follower },
-      newActor,
-    );
+    try {
+      await follow(
+        fedCtx,
+        { ...follower.account, actor: follower },
+        newActor,
+      );
+    } catch (error) {
+      // A suspended follower simply does not re-follow the moved actor;
+      // their other follows must still be migrated.
+      if (!(error instanceof ActorSuspendedError)) throw error;
+    }
   }
 }

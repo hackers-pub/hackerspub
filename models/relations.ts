@@ -31,6 +31,11 @@ export const relations = defineRelations(schema, (r) => ({
     }),
     bookmarks: r.many.bookmarkTable(),
     hashtagFollowings: r.many.hashtagFollowingTable(),
+    assignedFlagCases: r.many.flagCaseTable(),
+    flagActions: r.many.flagActionTable(),
+    flagAppeals: r.many.flagAppealTable({ alias: "appellant" }),
+    reviewedFlagAppeals: r.many.flagAppealTable({ alias: "reviewer" }),
+    moderationNotifications: r.many.moderationNotificationTable(),
   },
   accountEmailTable: {
     account: r.one.accountTable({
@@ -86,6 +91,9 @@ export const relations = defineRelations(schema, (r) => ({
     posts: r.many.postTable(),
     pins: r.many.pinTable(),
     votedPolls: r.many.pollTable(),
+    flagsReported: r.many.flagTable({ alias: "flagReporter" }),
+    flagsReceived: r.many.flagTable({ alias: "flagTarget" }),
+    flagCases: r.many.flagCaseTable(),
   },
   hashtagFollowingTable: {
     account: r.one.accountTable({
@@ -268,6 +276,8 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.postTable.id,
       to: r.pollTable.postId,
     }),
+    flags: r.many.flagTable(),
+    flagCases: r.many.flagCaseTable(),
   },
   quoteAuthorizationTable: {
     quotePost: r.one.postTable({
@@ -481,6 +491,114 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.invitationLinkTable.inviterId,
       to: r.accountTable.id,
       optional: false,
+    }),
+  },
+  flagCaseTable: {
+    targetActor: r.one.actorTable({
+      from: r.flagCaseTable.targetActorId,
+      to: r.actorTable.id,
+      optional: false,
+    }),
+    targetPost: r.one.postTable({
+      from: r.flagCaseTable.targetPostId,
+      to: r.postTable.id,
+    }),
+    assignedModerator: r.one.accountTable({
+      from: r.flagCaseTable.assignedModeratorId,
+      to: r.accountTable.id,
+    }),
+    flags: r.many.flagTable(),
+    actions: r.many.flagActionTable(),
+  },
+  flagTable: {
+    reporter: r.one.actorTable({
+      alias: "flagReporter",
+      from: r.flagTable.reporterId,
+      to: r.actorTable.id,
+      optional: false,
+    }),
+    targetActor: r.one.actorTable({
+      alias: "flagTarget",
+      from: r.flagTable.targetActorId,
+      to: r.actorTable.id,
+      optional: false,
+    }),
+    targetPost: r.one.postTable({
+      from: r.flagTable.targetPostId,
+      to: r.postTable.id,
+    }),
+    case: r.one.flagCaseTable({
+      from: r.flagTable.caseId,
+      to: r.flagCaseTable.id,
+      optional: false,
+    }),
+    snapshot: r.one.contentSnapshotTable({
+      from: r.flagTable.id,
+      to: r.contentSnapshotTable.flagId,
+    }),
+  },
+  contentSnapshotTable: {
+    flag: r.one.flagTable({
+      from: r.contentSnapshotTable.flagId,
+      to: r.flagTable.id,
+      optional: false,
+    }),
+    post: r.one.postTable({
+      from: r.contentSnapshotTable.postId,
+      to: r.postTable.id,
+    }),
+  },
+  flagActionTable: {
+    case: r.one.flagCaseTable({
+      from: r.flagActionTable.caseId,
+      to: r.flagCaseTable.id,
+      optional: false,
+    }),
+    moderator: r.one.accountTable({
+      from: r.flagActionTable.moderatorId,
+      to: r.accountTable.id,
+      optional: false,
+    }),
+    appeal: r.one.flagAppealTable({
+      from: r.flagActionTable.id,
+      to: r.flagAppealTable.actionId,
+    }),
+  },
+  flagAppealTable: {
+    action: r.one.flagActionTable({
+      from: r.flagAppealTable.actionId,
+      to: r.flagActionTable.id,
+      optional: false,
+    }),
+    appellant: r.one.accountTable({
+      alias: "appellant",
+      from: r.flagAppealTable.appellantId,
+      to: r.accountTable.id,
+      optional: false,
+    }),
+    reviewer: r.one.accountTable({
+      alias: "reviewer",
+      from: r.flagAppealTable.reviewerId,
+      to: r.accountTable.id,
+    }),
+  },
+  moderationNotificationTable: {
+    account: r.one.accountTable({
+      from: r.moderationNotificationTable.accountId,
+      to: r.accountTable.id,
+      optional: false,
+    }),
+    case: r.one.flagCaseTable({
+      from: r.moderationNotificationTable.caseId,
+      to: r.flagCaseTable.id,
+    }),
+    action: r.one.flagActionTable({
+      from: r.moderationNotificationTable.actionId,
+      to: r.flagActionTable.id,
+    }),
+    appeal: r.one.flagAppealTable({
+      from: r.moderationNotificationTable.appealId,
+      to: r.flagAppealTable.id,
     }),
   },
 }));

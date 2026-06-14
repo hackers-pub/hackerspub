@@ -10,7 +10,11 @@ import {
 } from "@fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import { eq, inArray, sql } from "drizzle-orm";
-import { getPersistedActor, persistActor } from "@hackerspub/models/actor";
+import {
+  getPersistedActor,
+  isFederationBlocked,
+  persistActor,
+} from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
 import {
   canActorQuotePost,
@@ -70,6 +74,7 @@ export async function onQuoteRequested(
     return;
   }
   let actor = await getPersistedActor(fedCtx.data.db, request.actorId);
+  if (actor != null && isFederationBlocked(actor)) return;
   if (actor == null) {
     const actorObject = await request.getActor({
       ...fedCtx,
@@ -85,7 +90,12 @@ export async function onQuoteRequested(
     actor,
   );
   if (quotedPost?.actor.accountId == null) return;
-  const requestAllowed = canActorRequestQuotePost(quotedPost, actor);
+  // A censored post cannot be quoted (the local create-note path enforces the
+  // same), so a remote QuoteRequest for it is denied: granting a
+  // QuoteAuthorization would let federated users re-amplify content the
+  // moderation action makes unquotable.
+  const requestAllowed = quotedPost.censored == null &&
+    canActorRequestQuotePost(quotedPost, actor);
   const validInstrument = requestAllowed
     ? await getValidQuoteRequestInstrument(fedCtx, request)
     : undefined;

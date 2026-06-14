@@ -2,6 +2,7 @@ import { compactUrl } from "@hackerspub/models/url";
 import { graphql } from "relay-runtime";
 import { createSignal, For, Show } from "solid-js";
 import { createFragment } from "solid-relay";
+import IconShieldAlert from "~icons/lucide/shield-alert";
 import {
   Avatar,
   AvatarFallback,
@@ -51,6 +52,7 @@ export function ProfileCard(props: ProfileCardProps) {
         local
         url
         iri
+        suspended
         followeesCount: followees {
           totalCount
         }
@@ -201,6 +203,22 @@ export function ProfileCard(props: ProfileCardProps) {
               </div>
             </div>
           </div>
+          <Show when={actor.suspended}>
+            <div class="px-4 pb-4">
+              <div class="flex items-start gap-2 rounded-md border border-warning-foreground bg-warning px-3 py-2 text-sm text-warning-foreground">
+                <IconShieldAlert
+                  class="mt-0.5 size-4 shrink-0"
+                  aria-hidden="true"
+                />
+                <p>
+                  <strong class="font-semibold">
+                    {t`This account is suspended.`}
+                  </strong>{" "}
+                  {t`A moderator suspended this account for violating the code of conduct.`}
+                </p>
+              </div>
+            </div>
+          </Show>
           <Show when={actor.viewerBlocks}>
             <div class="px-4 pb-4">
               <div class="rounded-md border border-warning-foreground bg-warning px-3 py-2 text-sm text-warning-foreground">

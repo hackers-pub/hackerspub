@@ -16,6 +16,7 @@ import type {
 } from "@hackerspub/models/schema";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { sql } from "drizzle-orm";
+import { isPostCensoredFor } from "../../../../censorship.ts";
 import { db } from "../../../../db.ts";
 import { define } from "../../../../utils.ts";
 
@@ -82,6 +83,9 @@ export const handler = define.handlers(async (ctx) => {
   let post = await getPost(ctx.params.id, ctx.state.account);
   if (post == null || post.type !== "Question") return ctx.next();
   if (!isPostVisibleTo(post, ctx.state.account?.actor)) return ctx.next();
+  // A censored question's poll options must not leak; PollCard renders
+  // nothing when this endpoint does not respond with a poll.
+  if (isPostCensoredFor(post, ctx.state.account)) return ctx.next();
   if (post.poll == null) {
     const documentLoader = ctx.state.account == null
       ? undefined

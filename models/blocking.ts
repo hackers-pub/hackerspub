@@ -2,7 +2,12 @@ import type { Context, DocumentLoader } from "@fedify/fedify";
 import { isActor } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
 import { and, eq, inArray } from "drizzle-orm";
-import { getPersistedActor, persistActor, toRecipient } from "./actor.ts";
+import {
+  getPersistedActor,
+  isFederationBlocked,
+  persistActor,
+  toRecipient,
+} from "./actor.ts";
 import type { ContextData } from "./context.ts";
 import type { Database } from "./db.ts";
 import { removeFollower, unfollow } from "./following.ts";
@@ -34,6 +39,7 @@ export async function persistBlocking(
     blocker = await persistActor(fedCtx, actor, options);
     if (blocker == null) return undefined;
   }
+  if (isFederationBlocked(blocker)) return undefined;
   let blockee = await getPersistedActor(db, block.objectId);
   if (blockee == null) {
     const object = await block.getObject(getterOpts);

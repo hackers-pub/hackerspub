@@ -1,6 +1,11 @@
 import { getAvatarUrl } from "@hackerspub/models/account";
 import { stripHtml } from "@hackerspub/models/html";
+import {
+  getCensoredPostExclusionFilter,
+  getPostVisibilityFilter,
+} from "@hackerspub/models/post";
 import { Feed } from "feed";
+import { isProfileHiddenFor } from "../../censorship.ts";
 import { db } from "../../db.ts";
 import { drive } from "../../drive.ts";
 import { define } from "../../utils.ts";
@@ -15,6 +20,11 @@ export const handler = define.handlers(async (ctx) => {
     where: { username },
   });
   if (account == null) return ctx.next();
+  // The feed exposes the display name, bio, avatar, and posts, all of
+  // which a ban hides; serve no feed for a hidden profile.
+  if (isProfileHiddenFor(account.actor, ctx.state.account)) {
+    return ctx.next();
+  }
   const articlesOnly = ctx.url.searchParams.has("articles");
   const canonicalUrl =
     `${ctx.state.canonicalOrigin}/@${account.username}/feed.xml${
@@ -30,10 +40,16 @@ export const handler = define.handlers(async (ctx) => {
       media: { orderBy: { index: "asc" }, limit: 1 },
     },
     where: {
-      actorId: account.actor.id,
-      sharedPostId: { isNull: true },
-      visibility: { in: ["public", "unlisted"] },
-      ...(articlesOnly ? { type: "Article" } : undefined),
+      AND: [
+        {
+          actorId: account.actor.id,
+          sharedPostId: { isNull: true },
+          visibility: { in: ["public", "unlisted"] },
+          ...(articlesOnly ? { type: "Article" } : undefined),
+        },
+        getPostVisibilityFilter(null),
+        getCensoredPostExclusionFilter(null),
+      ],
     },
     orderBy: { published: "desc" },
     limit: WINDOW,

@@ -37,6 +37,7 @@ import { Button } from "~/components/ui/button.tsx";
 import { MarkdownEditor } from "~/components/MarkdownEditor.tsx";
 import { TextField, TextFieldLabel } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
+import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { NoteComposerGeneratedAltTextQuery } from "./__generated__/NoteComposerGeneratedAltTextQuery.graphql.ts";
 import type { NoteComposerMutation } from "./__generated__/NoteComposerMutation.graphql.ts";
@@ -371,6 +372,7 @@ export interface NoteComposerProps {
 
 export function NoteComposer(props: NoteComposerProps) {
   const { t, i18n } = useLingui();
+  const viewer = useViewer();
   const environment = useRelayEnvironment();
   // Initialize content directly from props so a deliberate pre-fill — an edit's
   // body, or a "share this link" URL passed via `initialContent` — is present
@@ -1281,6 +1283,16 @@ export function NoteComposer(props: NoteComposerProps) {
             : ""
         }`}
       >
+        {
+          /* Suspended accounts cannot create posts (editing an existing one
+            stays allowed); the write itself is blocked server-side, but
+            surface it here instead of a generic failure. */
+        }
+        <Show when={!props.editingNoteId && viewer.suspended()}>
+          <div class="rounded-md border border-warning-foreground bg-warning px-3 py-2 text-sm text-warning-foreground">
+            {t`Your account is suspended, so you can't post right now. See your sanctions for details and how to appeal.`}
+          </div>
+        </Show>
         {/* Reply target preview — hidden in edit mode */}
         <Show
           when={!props.editingNoteId && props.replyTargetId &&
@@ -1413,6 +1425,7 @@ export function NoteComposer(props: NoteComposerProps) {
               if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
                 e.preventDefault();
                 const submitting = isSubmitting() ||
+                  (!props.editingNoteId && viewer.suspended()) ||
                   mediaItems.some((m) => m.uploading) ||
                   (!!effectiveQuotedPostId() && !quotedPost() &&
                     !quoteFetchError()) ||
@@ -1842,6 +1855,7 @@ export function NoteComposer(props: NoteComposerProps) {
             type="submit"
             disabled={isSubmitting() ||
               (props.editingNoteId ? !isDirty() : (
+                viewer.suspended() ||
                 mediaItems.some((m) => m.uploading) ||
                 (!!effectiveQuotedPostId() && !quotedPost() &&
                   !quoteFetchError()) ||

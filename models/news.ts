@@ -191,6 +191,23 @@ const qualifyingSharerCondition: SQL = sql`(
 )`;
 
 /**
+ * Raw SQL counterpart of `getSanctionVisibleActorFilter` (models/post.ts)
+ * for an actor table aliased as `alias`: the actor's content is not hidden
+ * by a moderation sanction (banned local actor, or remote actor under an
+ * active federation block).  NULL-safe: unsanctioned actors have NULL
+ * `suspended` and match the first branch.
+ */
+function sanctionVisibleActorCondition(alias: string): SQL {
+  const a = sql.raw(alias);
+  return sql`(
+    ${a}.suspended is null
+    or ${a}.suspended > now()
+    or ${a}.suspended_until <= now()
+    or (${a}.account_id is not null and ${a}.suspended_until > now())
+  )`;
+}
+
+/**
  * The relational-query mirror of `qualifyingSharerCondition`, for the GraphQL
  * `PostLink.sharingPosts` filter: a direct linked sharing post is authored by a
  * non-bot actor, or a curated `news_preferred_sharer` (which whitelists a bot
@@ -641,6 +658,7 @@ async function recomputeAggregate(
       from post p
       where p.link_id is not null
         and p.visibility in ('public', 'unlisted')
+        and p.censored is null
         and p.shared_post_id is null${scopeFilter(scope, sql`p.link_id`)}
       union all
       select
@@ -651,12 +669,14 @@ async function recomputeAggregate(
         p.reactions_count as reactions_count
       from post p
       join post original on original.id = p.shared_post_id
+      join actor oa on oa.id = original.actor_id
       where original.type = 'Article'
         and original.link_id is not null
         and original.visibility in ('public', 'unlisted')
-        and p.visibility in ('public', 'unlisted')${
-    scopeFilter(scope, sql`original.link_id`)
-  }
+        and original.censored is null
+        and ${sanctionVisibleActorCondition("oa")}
+        and p.visibility in ('public', 'unlisted')
+        and p.censored is null${scopeFilter(scope, sql`original.link_id`)}
     ),
     shares as (
       select
@@ -694,6 +714,7 @@ async function recomputeAggregate(
       join instance i on i.host = a.instance_host
       left join news_preferred_sharer ps on ps.actor_id = sr.actor_id
       where ${qualifyingSharerCondition}
+        and ${sanctionVisibleActorCondition("a")}
     ),
     -- Count only public/unlisted replies and quotes: the denormalized
     -- replies_count/quotes_count include followers-only and direct posts,
@@ -703,6 +724,9 @@ async function recomputeAggregate(
       from shares s
       join post c on c.reply_target_id = s.post_id
         and c.visibility in ('public', 'unlisted')
+        and c.censored is null
+      join actor ca on ca.id = c.actor_id
+        and ${sanctionVisibleActorCondition("ca")}
       group by s.post_id
     ),
     quote_counts as (
@@ -710,6 +734,9 @@ async function recomputeAggregate(
       from shares s
       join post c on c.quoted_post_id = s.post_id
         and c.visibility in ('public', 'unlisted')
+        and c.censored is null
+      join actor ca on ca.id = c.actor_id
+        and ${sanctionVisibleActorCondition("ca")}
       group by s.post_id
     ),
     child_activity as (
@@ -718,6 +745,9 @@ async function recomputeAggregate(
       join post c
         on (c.reply_target_id = s.post_id or c.quoted_post_id = s.post_id)
         and c.visibility in ('public', 'unlisted')
+        and c.censored is null
+      join actor ca on ca.id = c.actor_id
+        and ${sanctionVisibleActorCondition("ca")}
       group by s.link_id
     ),
     reaction_activity as (
@@ -838,18 +868,25 @@ async function zeroStaleLinks(
         join actor a on a.id = p.actor_id
         where p.link_id = pl.id
           and p.visibility in ('public', 'unlisted')
+          and p.censored is null
           and p.shared_post_id is null
           and ${qualifyingSharerCondition}
+          and ${sanctionVisibleActorCondition("a")}
       )
       and not exists (
         select 1 from post p
         join post original on original.id = p.shared_post_id
+        join actor oa on oa.id = original.actor_id
         join actor a on a.id = p.actor_id
         where original.link_id = pl.id
           and original.type = 'Article'
           and original.visibility in ('public', 'unlisted')
+          and original.censored is null
+          and ${sanctionVisibleActorCondition("oa")}
           and p.visibility in ('public', 'unlisted')
+          and p.censored is null
           and ${qualifyingSharerCondition}
+          and ${sanctionVisibleActorCondition("a")}
       )
   `);
 }
@@ -981,15 +1018,20 @@ export async function getNewsSourceBreakdowns(
       from post p
       where p.link_id = any(${literal}::uuid[])
         and p.visibility in ('public', 'unlisted')
+        and p.censored is null
         and p.shared_post_id is null
       union all
       select original.link_id as link_id, p.actor_id as actor_id
       from post p
       join post original on original.id = p.shared_post_id
+      join actor oa on oa.id = original.actor_id
       where original.link_id = any(${literal}::uuid[])
         and original.type = 'Article'
         and original.visibility in ('public', 'unlisted')
+        and original.censored is null
+        and ${sanctionVisibleActorCondition("oa")}
         and p.visibility in ('public', 'unlisted')
+        and p.censored is null
     )
     select
       sr.link_id as link_id,
@@ -1004,6 +1046,7 @@ export async function getNewsSourceBreakdowns(
     join actor a on a.id = sr.actor_id
     join instance i on i.host = a.instance_host
     where ${qualifyingSharerCondition}
+      and ${sanctionVisibleActorCondition("a")}
     group by sr.link_id
   `);
   for (const row of rows) {
@@ -1025,8 +1068,10 @@ export async function getNewsSourceBreakdowns(
  * sharing posts plus their direct public (`public`/`unlisted`) replies and
  * quotes.  Batched for the GraphQL `PostLink.discussionCount` loader; links
  * with no qualifying share are absent from the returned map.  Counts direct
- * children only (deeper nesting is not traversed); replies/quotes are not
- * author-filtered, matching the discussion the link's page renders.
+ * children only (deeper nesting is not traversed).  Censored posts and
+ * posts by sanction-hidden actors are excluded, both as shares and as
+ * replies/quotes, matching the moderated discussion the link's page
+ * renders.
  */
 export async function getNewsDiscussionCounts(
   db: Database,
@@ -1048,8 +1093,10 @@ export async function getNewsDiscussionCounts(
       join actor a on a.id = p.actor_id
       where p.link_id = any(${literal}::uuid[])
         and p.visibility in ('public', 'unlisted')
+        and p.censored is null
         and p.shared_post_id is null
         and ${qualifyingSharerCondition}
+        and ${sanctionVisibleActorCondition("a")}
     )
     select link_id, count(*) as cnt
     from (
@@ -1059,11 +1106,17 @@ export async function getNewsDiscussionCounts(
         from shares s
         join post c on c.reply_target_id = s.post_id
           and c.visibility in ('public', 'unlisted')
+          and c.censored is null
+        join actor ca on ca.id = c.actor_id
+          and ${sanctionVisibleActorCondition("ca")}
       union
       select s.link_id, c.id as post_id
         from shares s
         join post c on c.quoted_post_id = s.post_id
           and c.visibility in ('public', 'unlisted')
+          and c.censored is null
+        join actor ca on ca.id = c.actor_id
+          and ${sanctionVisibleActorCondition("ca")}
     ) posts
     group by link_id
   `);
