@@ -3,6 +3,7 @@ import { LanguageString } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
 import { toRecipient } from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
+import type { RelationsFilter } from "@hackerspub/models/db";
 import {
   getSanctionHiddenActorFilter,
   isActorSanctionHidden,
@@ -11,7 +12,6 @@ import {
   actorTable,
   followingTable,
   type Mention,
-  pinTable,
   type Post,
   postTable,
 } from "@hackerspub/models/schema";
@@ -233,6 +233,36 @@ export function toFeaturedCollectionItem(
   }
 }
 
+/**
+ * The filter for an account's featured (pinned) posts that may be exposed
+ * over ActivityPub.  Both the featured collection dispatcher and its counter
+ * use this so `totalItems` never exceeds the items actually served: censored
+ * posts, pins whose author is hidden by a moderation sanction, and boosts of
+ * censored or sanction-hidden posts are excluded in both places.
+ */
+function getFeaturedPinFilter(actorId: Uuid): RelationsFilter<"pinTable"> {
+  return {
+    actorId,
+    post: {
+      visibility: { in: ["public", "unlisted"] },
+      censored: { isNull: true },
+      NOT: {
+        OR: [
+          { actor: getSanctionHiddenActorFilter() },
+          {
+            sharedPost: {
+              OR: [
+                { censored: { isNotNull: true } },
+                { actor: getSanctionHiddenActorFilter() },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  } satisfies RelationsFilter<"pinTable">;
+}
+
 builder
   .setFeaturedDispatcher(
     "/ap/actors/{identifier}/featured",
@@ -259,29 +289,7 @@ builder
             },
           },
         },
-        where: {
-          actorId: account.actor.id,
-          post: {
-            visibility: { in: ["public", "unlisted"] },
-            // Censored content, and any post whose author (or boosted
-            // author) is hidden by a moderation sanction, is not served over
-            // ActivityPub, even when an unsanctioned actor pinned it.
-            censored: { isNull: true },
-            NOT: {
-              OR: [
-                { actor: getSanctionHiddenActorFilter() },
-                {
-                  sharedPost: {
-                    OR: [
-                      { censored: { isNotNull: true } },
-                      { actor: getSanctionHiddenActorFilter() },
-                    ],
-                  },
-                },
-              ],
-            },
-          },
-        },
+        where: getFeaturedPinFilter(account.actor.id),
         orderBy: { created: "desc" },
       });
       return {
@@ -297,16 +305,14 @@ builder
     });
     if (account == null) return null;
     if (isActorSanctionHidden(account.actor)) return 0;
-    const [{ cnt }] = await ctx.data.db.select({ cnt: count() })
-      .from(pinTable)
-      .innerJoin(actorTable, eq(pinTable.actorId, actorTable.id))
-      .innerJoin(postTable, eq(pinTable.postId, postTable.id))
-      .where(and(
-        eq(actorTable.accountId, identifier),
-        inArray(postTable.visibility, ["public", "unlisted"]),
-        isNull(postTable.censored),
-      ));
-    return cnt;
+    // Count exactly the pins the dispatcher serves so `totalItems` never
+    // exceeds the items actually exposed; pins are bounded by
+    // MAX_PINNED_POSTS (20), so loading their ids is cheap.
+    const pins = await ctx.data.db.query.pinTable.findMany({
+      columns: { postId: true },
+      where: getFeaturedPinFilter(account.actor.id),
+    });
+    return pins.length;
   });
 
 const OUTBOX_WINDOW = 50;
@@ -399,6 +405,10 @@ builder
     });
     if (account == null) return null;
     if (isActorSanctionHidden(account.actor)) return 0;
+    // Evaluate the sanction window against a single bound instant so the
+    // boundary matches the JS-side getSanctionHiddenActorFilter() the outbox
+    // items dispatcher uses, instead of SQL now() drifting per row.
+    const now = new Date();
     const sharedPost = alias(postTable, "shared_post");
     const sharedActor = alias(actorTable, "shared_actor");
     const [{ cnt }] = await db.select({ cnt: count() })
@@ -419,10 +429,10 @@ builder
         sql`(
           ${sharedActor.id} is null
           or ${sharedActor.suspended} is null
-          or ${sharedActor.suspended} > now()
-          or ${sharedActor.suspendedUntil} <= now()
+          or ${sharedActor.suspended} > ${now}
+          or ${sharedActor.suspendedUntil} <= ${now}
           or (${sharedActor.accountId} is not null
-            and ${sharedActor.suspendedUntil} > now())
+            and ${sharedActor.suspendedUntil} > ${now})
         )`,
       ));
     return cnt;
