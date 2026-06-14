@@ -263,8 +263,23 @@ builder
           actorId: account.actor.id,
           post: {
             visibility: { in: ["public", "unlisted"] },
-            // Censored content is not served over ActivityPub.
+            // Censored content, and any post whose author (or boosted
+            // author) is hidden by a moderation sanction, is not served over
+            // ActivityPub, even when an unsanctioned actor pinned it.
             censored: { isNull: true },
+            NOT: {
+              OR: [
+                { actor: getSanctionHiddenActorFilter() },
+                {
+                  sharedPost: {
+                    OR: [
+                      { censored: { isNotNull: true } },
+                      { actor: getSanctionHiddenActorFilter() },
+                    ],
+                  },
+                },
+              ],
+            },
           },
         },
         orderBy: { created: "desc" },
