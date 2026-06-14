@@ -1,7 +1,10 @@
 import { page } from "@fresh/core";
 import { extractMentionsFromHtml } from "@hackerspub/models/markup";
 import type { Account, Actor } from "@hackerspub/models/schema";
-import { isProfileHiddenFor } from "../../censorship.ts";
+import {
+  isProfileHiddenFor,
+  redactHiddenProfileActor,
+} from "../../censorship.ts";
 import { ActorList } from "../../components/ActorList.tsx";
 import { Msg } from "../../components/Msg.tsx";
 import { PageTitle } from "../../components/PageTitle.tsx";
@@ -45,9 +48,18 @@ export const handler = define.handlers({
     if (followees.length > WINDOW) {
       nextUrl = `?until=${followees[WINDOW - 1].accepted!.getTime()}`;
     }
+    // A banned actor in the list is redacted (name, bio, avatar, header,
+    // fields) for non-moderator viewers before mentions are extracted from
+    // bios and before the list is rendered, so the following list does not
+    // leak banned profiles' content.
+    const visibleFollowees = followees.slice(0, WINDOW).map((f) =>
+      isProfileHiddenFor(f.followee, ctx.state.account)
+        ? redactHiddenProfileActor(f.followee)
+        : f.followee
+    );
     const followeesMentions = await extractMentionsFromHtml(
       ctx.state.fedCtx,
-      followees.slice(0, WINDOW).map((f) => f.followee.bioHtml).join("\n"),
+      visibleFollowees.map((f) => f.bioHtml).join("\n"),
       {
         documentLoader: await ctx.state.fedCtx.getDocumentLoader(account),
         kv,
@@ -62,7 +74,7 @@ export const handler = define.handlers({
     });
     return page<FolloweeListProps>({
       account: { ...account, name: profileName },
-      followees: followees.map((f) => f.followee).slice(0, WINDOW),
+      followees: visibleFollowees,
       followeesMentions,
       nextUrl,
     });
