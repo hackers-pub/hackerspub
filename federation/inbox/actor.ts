@@ -34,12 +34,20 @@ export async function onActorDeleted(
     columns: { id: true, suspended: true, suspendedUntil: true },
   });
   if (actor == null) return false;
-  // A sanctioned actor must not erase its own moderation state by deleting
+  // A moderated actor must not erase its own moderation state by deleting
   // itself: the actor row holds the suspension/ban, and deleting it cascades
-  // to flag_case and flag_action (the immutable audit), so the same IRI
-  // could re-federate without the federation block.  Keep the row; the
-  // Delete is recognized but deliberately not acted on.
+  // to flag_case and flag_action (the immutable audit), so the same IRI could
+  // re-federate without the federation block or its history.  Keep the row
+  // when the actor is under an active sanction OR is the target of any
+  // moderation case: a standing warning/censor action, or an expired
+  // temporary suspension, leaves a case/action audit but no active
+  // suspension.  The Delete is recognized but deliberately not acted on.
   if (isActorSuspended(actor)) return true;
+  const moderationCase = await db.query.flagCaseTable.findFirst({
+    where: { targetActorId: actor.id },
+    columns: { id: true },
+  });
+  if (moderationCase != null) return true;
   const deletedRows = await db.delete(actorTable)
     .where(eq(actorTable.id, actor.id))
     .returning();

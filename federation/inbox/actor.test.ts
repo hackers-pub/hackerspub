@@ -65,6 +65,41 @@ describe("onActorDeleted()", () => {
     });
   });
 
+  it("keeps an actor with a moderation case but no active suspension", async () => {
+    await withRollback(async (tx) => {
+      const fedCtx = inboxCtx(tx);
+      const actor = await insertRemoteActor(tx, {
+        username: "warnedremote",
+        name: "Warned Remote",
+        host: "remote.example",
+      });
+      // A standing warning/censor action, or an expired temporary suspension,
+      // leaves a case audit but no active suspension.
+      const caseId = generateUuidV7();
+      await tx.insert(flagCaseTable).values({
+        id: caseId,
+        targetActorId: actor.id,
+      });
+
+      const handled = await onActorDeleted(
+        fedCtx,
+        selfDelete(actor.iri, "https://remote.example/delete/3"),
+      );
+      // The actor row and its case audit must survive: deleting the actor
+      // would cascade-erase the immutable case/action audit and let the IRI
+      // re-federate without its history.
+      assert.equal(handled, true);
+      const stillThere = await tx.query.actorTable.findFirst({
+        where: { id: actor.id },
+      });
+      assert.ok(stillThere != null);
+      const flagCase = await tx.query.flagCaseTable.findFirst({
+        where: { id: caseId },
+      });
+      assert.ok(flagCase != null);
+    });
+  });
+
   it("deletes an unsanctioned actor on self-delete", async () => {
     await withRollback(async (tx) => {
       const fedCtx = inboxCtx(tx);
