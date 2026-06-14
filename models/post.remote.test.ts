@@ -1244,3 +1244,56 @@ test("persistSharedPost() drops a federated boost of a censored post", async () 
     assert.notEqual(storedOriginal.censored, null);
   });
 });
+
+test("persistPost() drops an authorized quote of a censored post", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "censoredauthquoteauthor",
+      name: "Censored Auth Quote Author",
+      email: "censoredauthquoteauthor@example.com",
+    });
+    const quoter = await insertRemoteActor(tx, {
+      username: "censoredauthquotequoter",
+      name: "Censored Auth Quote Quoter",
+      host: "remote.example",
+    });
+    const { post: quotedPost } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Authorized quote target later censored",
+    });
+    const quoteIri = "https://remote.example/objects/censored-authorized-quote";
+    const authorizationIri =
+      "http://localhost/objects/censored-authorized-quote-auth";
+    await tx.insert(quoteAuthorizationTable).values({
+      id: generateUuidV7(),
+      iri: authorizationIri,
+      quotePostIri: quoteIri,
+      quotedPostId: quotedPost.id,
+      attributedActorId: quotedPost.actorId,
+    });
+    // Moderators censor the target after the authorization was issued.
+    await tx.update(postTable)
+      .set({ censored: new Date() })
+      .where(eq(postTable.id, quotedPost.id));
+    const quote = new Note({
+      id: new URL(quoteIri),
+      attribution: new URL(quoter.iri),
+      to: PUBLIC_COLLECTION,
+      content: "Authorized quote of a censored post",
+      quote: new URL(quotedPost.iri),
+      quoteAuthorization: new QuoteAuthorization({
+        id: new URL(authorizationIri),
+        attribution: new URL(author.actor.iri),
+        interactingObject: new URL(quoteIri),
+        interactionTarget: new URL(quotedPost.iri),
+      }),
+    });
+
+    const persisted = await persistPost(createFedCtx(tx), quote);
+
+    assert.ok(persisted != null);
+    // The valid authorization must not override the censorship.
+    assert.equal(persisted.quotedPost, null);
+    assert.equal(persisted.quoteAuthorizationIri, null);
+  });
+});

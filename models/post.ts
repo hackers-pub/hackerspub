@@ -1294,6 +1294,18 @@ export async function persistPost(
     quotedPost = undefined;
   }
   let unauthorizedQuoteTarget: PersistedQuoteTarget | undefined;
+  // A censored post cannot be quoted, even through a quote authorization
+  // issued before moderators censored it.  This runs before (and independent
+  // of) the policy check below, which the authorization path skips, so
+  // censorship is never overridden by an outstanding authorization.
+  if (quotedPost != null && quotedPost.censored != null) {
+    logger.debug("Ignoring censored quoted post: {iri}", {
+      iri: quotedPost.iri,
+    });
+    unauthorizedQuoteTarget = quotedPost;
+    quotedPost = undefined;
+    quoteAuthorizationIri = undefined;
+  }
   if (
     quotedPost != null &&
     quoteAuthorizationIri == null &&
@@ -1812,11 +1824,10 @@ async function canPersistIncomingQuote(
     },
     where: { id: quotedPostId },
   });
-  // A censored post cannot be quoted from the federated path either, matching
-  // the local getAllowedQuoteTargetForActor() guard: an incoming Create that
-  // quotes moderation-hidden content must not re-amplify it.
-  if (quotedPost == null || quotedPost.censored != null) return false;
-  return canActorQuotePost(quotedPost, actor);
+  // Quote *policy* only; the censored (moderation) gate lives at the caller so
+  // it also applies to the quote-authorization path, which legitimately
+  // overrides policy but must never override censorship.
+  return quotedPost != null && canActorQuotePost(quotedPost, actor);
 }
 
 async function getPersistedQuoteTargetState(
