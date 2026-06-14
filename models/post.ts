@@ -32,7 +32,6 @@ import iconv from "iconv-lite";
 import { Buffer } from "node:buffer";
 import ogs from "open-graph-scraper";
 import { PDFDocument } from "pdf-lib";
-import postgres from "postgres";
 import sharp from "sharp";
 import { isSSRFSafeURL } from "ssrfcheck";
 import {
@@ -1733,42 +1732,17 @@ export async function persistSharedPost(
     published: toDate(announce.published) ?? undefined,
   };
   const id = generateUuidV7();
-  let rows: Post[];
-  try {
-    rows = await db.insert(postTable)
-      .values({ id, ...values })
-      .onConflictDoUpdate({
-        target: postTable.iri,
-        set: values,
-        setWhere: eq(postTable.iri, announce.id.href),
-      })
-      .returning();
-  } catch (error) {
-    if (
-      error instanceof postgres.PostgresError &&
-      error.constraint_name == "post_actor_id_shared_post_id_unique"
-    ) {
-      const deleted = await db.delete(postTable)
-        .where(
-          and(
-            eq(postTable.actorId, actor.id),
-            eq(postTable.sharedPostId, post.id),
-          ),
-        )
-        .returning({ id: postTable.id });
-      await updateSharesCount(db, post, -deleted.length);
-      rows = await db.insert(postTable)
-        .values({ id, ...values })
-        .onConflictDoUpdate({
-          target: postTable.iri,
-          set: values,
-          setWhere: eq(postTable.iri, announce.id.href),
-        })
-        .returning();
-    } else {
-      throw error;
-    }
-  }
+  const rows = await db.insert(postTable)
+    .values({ id, ...values })
+    .onConflictDoUpdate({
+      target: [postTable.actorId, postTable.sharedPostId],
+      set: values,
+      setWhere: and(
+        eq(postTable.actorId, actor.id),
+        eq(postTable.sharedPostId, post.id),
+      ),
+    })
+    .returning();
   if (rows.length < 1) return undefined;
   if (rows[0].id === id) await updateSharesCount(db, post, 1);
   await refreshNewsScores(db, [post.type === "Article" ? post.linkId : null]);

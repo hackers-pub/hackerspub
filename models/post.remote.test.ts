@@ -1245,6 +1245,67 @@ test("persistSharedPost() drops a federated boost of a censored post", async () 
   });
 });
 
+test("persistSharedPost() updates an existing boost of the same post", async () => {
+  await withRollback(async (tx) => {
+    const booster = await insertRemoteActor(tx, {
+      username: "reboostbooster",
+      name: "Reboost Booster",
+      host: "remote.example",
+    });
+    const originalAuthor = await insertRemoteActor(tx, {
+      username: "reboostauthor",
+      name: "Reboost Author",
+      host: "remote.example",
+    });
+    const original = await insertRemotePost(tx, {
+      actorId: originalAuthor.id,
+      contentHtml: "<p>Reboosted post</p>",
+      sharesCount: 1,
+    });
+    const existingShare = await insertRemotePost(tx, {
+      actorId: booster.id,
+      sharedPostId: original.id,
+      contentHtml: "<p>Old boost wrapper</p>",
+    });
+    const announce = new Announce({
+      id: new URL("https://remote.example/announces/reboost-new"),
+      actor: new URL(booster.iri),
+      to: PUBLIC_COLLECTION,
+      object: new Note({
+        id: new URL(original.iri),
+        attribution: new URL(originalAuthor.iri),
+        to: PUBLIC_COLLECTION,
+        content: "Reboosted post",
+      }),
+    });
+
+    const shared = await persistSharedPost(createFedCtx(tx), announce);
+
+    assert.ok(shared != null);
+    assert.equal(shared.id, existingShare.id);
+    assert.equal(shared.iri, "https://remote.example/announces/reboost-new");
+    assert.equal(shared.sharedPostId, original.id);
+    const updatedShare = await tx.query.postTable.findFirst({
+      where: { id: existingShare.id },
+    });
+    assert.ok(updatedShare != null);
+    assert.equal(
+      updatedShare.iri,
+      "https://remote.example/announces/reboost-new",
+    );
+    const shares = await tx.query.postTable.findMany({
+      where: { actorId: booster.id, sharedPostId: original.id },
+    });
+    assert.equal(shares.length, 1);
+    assert.equal(shares[0].id, shared.id);
+    const storedOriginal = await tx.query.postTable.findFirst({
+      where: { id: original.id },
+    });
+    assert.ok(storedOriginal != null);
+    assert.equal(storedOriginal.sharesCount, 1);
+  });
+});
+
 test("persistPost() drops an authorized quote of a censored post", async () => {
   await withRollback(async (tx) => {
     const author = await insertAccountWithActor(tx, {
