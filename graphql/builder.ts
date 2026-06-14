@@ -97,6 +97,10 @@ export interface UserContext extends ServerContext {
   adminAccountStatsLoader?: DataLoader<Uuid, AdminAccountStats>;
   inviteeCountLoader?: DataLoader<Uuid, number>;
   actorByIdLoader?: DataLoader<Uuid, Actor | null>;
+  // Request-scoped visibility of PostLink nodes: a link is hidden when
+  // every post referencing it is censored for the viewer.  Batched so
+  // link-heavy pages (the news list) stay free of per-link lookups.
+  postLinkVisibleLoader?: DataLoader<Uuid, boolean>;
   // Request-scoped cache so that viewerCanReply, viewerCanQuote, and
   // viewerCanShare for the same post only run one relational lookup
   // even though they are exposed as three separate loadable fields.

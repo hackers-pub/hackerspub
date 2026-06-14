@@ -2,6 +2,7 @@ import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
 import { createFragment, createMutation } from "solid-relay";
 import IconBan from "~icons/lucide/ban";
+import IconFlag from "~icons/lucide/flag";
 import IconEllipsis from "~icons/lucide/ellipsis";
 import IconUndo2 from "~icons/lucide/undo-2";
 import IconUserMinus from "~icons/lucide/user-minus";
@@ -26,6 +27,7 @@ import {
 } from "~/components/ui/dropdown-menu.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { RefreshFromOriginItem } from "~/components/RefreshFromOriginItem.tsx";
+import { ReportDialog } from "~/components/ReportDialog.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { isViewerActor } from "~/lib/actorUtils.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -204,6 +206,7 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
   const [showConfirm, setShowConfirm] = createSignal(false);
   const [showRemoveFollowerConfirm, setShowRemoveFollowerConfirm] =
     createSignal(false);
+  const [showReport, setShowReport] = createSignal(false);
   const actor = createFragment(
     graphql`
       fragment ProfileActionMenu_actor on Actor {
@@ -458,8 +461,26 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
               {t`Unblock`}
             </Show>
           </DropdownMenuItem>
+          <DropdownMenuItem
+            class="cursor-pointer text-error-foreground focus:bg-error focus:text-error-foreground"
+            onSelect={() => setShowReport(true)}
+          >
+            <IconFlag />
+            {t`Report user`}
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <Show when={actor()}>
+        <ReportDialog
+          open={showReport()}
+          onOpenChange={setShowReport}
+          targetId={actor()!.id}
+          targetKind="user"
+          targetHandle={actor()!.handle}
+          targetIsRemote={!actor()!.local}
+        />
+      </Show>
 
       <AlertDialog open={showConfirm()} onOpenChange={setShowConfirm}>
         <AlertDialogContent>

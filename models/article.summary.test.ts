@@ -571,7 +571,11 @@ test(
           content: "This article body is now long enough to be worth " +
             "summarizing again, so we expect a fresh claim to be acquired.",
         },
-        { summarizer: hangingModel, translator: hangingModel },
+        {
+          summarizer: hangingModel,
+          translator: hangingModel,
+          moderationAnalyzer: hangingModel,
+        },
       );
       assert.ok(updated != null);
 
@@ -623,7 +627,11 @@ test(
         tx,
         sourceId,
         { title: "Renamed" },
-        { summarizer: {} as never, translator: {} as never },
+        {
+          summarizer: {} as never,
+          translator: {} as never,
+          moderationAnalyzer: {} as never,
+        },
       );
       assert.ok(updated != null);
 

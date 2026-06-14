@@ -20,9 +20,11 @@ import {
 } from "~/components/ui/dropdown-menu.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { RefreshFromOriginItem } from "~/components/RefreshFromOriginItem.tsx";
+import { ReportDialog } from "~/components/ReportDialog.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import IconEllipsis from "~icons/lucide/ellipsis";
+import IconFlag from "~icons/lucide/flag";
 import IconPencil from "~icons/lucide/pencil";
 import IconPin from "~icons/lucide/pin";
 import IconPinOff from "~icons/lucide/pin-off";
@@ -122,6 +124,7 @@ interface PostActionMenuData {
   readonly actor: {
     readonly isViewer: boolean;
     readonly local: boolean;
+    readonly handle: string;
   };
 }
 
@@ -139,6 +142,7 @@ export function PostActionMenu(props: PostActionMenuProps) {
         actor {
           isViewer
           local
+          handle
         }
       }
     `,
@@ -178,6 +182,7 @@ export function QuestionActionMenu(props: QuestionActionMenuProps) {
         actor {
           isViewer
           local
+          handle
         }
       }
     `,
@@ -208,6 +213,7 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
   const viewer = useViewer();
   const post = props.post;
   const [showConfirm, setShowConfirm] = createSignal(false);
+  const [showReport, setShowReport] = createSignal(false);
 
   // The author manages their own post (edit/pin/delete); a moderator may
   // additionally force-refresh a remote post they did not author.
@@ -215,6 +221,13 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
   const canModerate = () => {
     const p = post();
     return viewer.moderator() && p != null && !p.actor.local;
+  };
+  // Anyone signed in can report someone else's post.  Boost wrappers are
+  // not reportable themselves; report the boosted post instead.
+  const canReport = () => {
+    const p = post();
+    return viewer.isLoaded() && viewer.isAuthenticated() && p != null &&
+      !p.actor.isViewer && p.sharedPost == null;
   };
 
   const [commitDeletePost, isDeleting] = createMutation<
@@ -324,7 +337,7 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
   };
 
   return (
-    <Show when={isAuthor() || canModerate()}>
+    <Show when={isAuthor() || canModerate() || canReport()}>
       <DropdownMenu>
         <DropdownMenuTrigger
           as={(triggerProps: Record<string, unknown>) => (
@@ -374,8 +387,28 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
               {t`Delete`}
             </DropdownMenuItem>
           </Show>
+          <Show when={canReport()}>
+            <DropdownMenuItem
+              class="cursor-pointer text-error-foreground focus:bg-error focus:text-error-foreground"
+              onSelect={() => setShowReport(true)}
+            >
+              <IconFlag class="size-4" />
+              {t`Report`}
+            </DropdownMenuItem>
+          </Show>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <Show when={canReport()}>
+        <ReportDialog
+          open={showReport()}
+          onOpenChange={setShowReport}
+          targetId={post()!.id}
+          targetKind="post"
+          targetHandle={post()!.actor.handle}
+          targetIsRemote={!post()!.actor.local}
+        />
+      </Show>
 
       <AlertDialog open={showConfirm()} onOpenChange={setShowConfirm}>
         <AlertDialogContent>

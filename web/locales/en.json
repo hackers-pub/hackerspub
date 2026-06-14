@@ -301,6 +301,8 @@
     "remoteQuoteDescription": "If you have a fediverse account, you can quote this note from your own instance. Search {{permalink}} on your instance and quote it. (Note that quoting is not supported in Mastodon.)"
   },
   "post": {
+    "censoredTitle": "Censored by a moderator.",
+    "censoredDescription": "This post was hidden from timelines and search for violating the code of conduct.",
     "reacting": "Reacting…",
     "undoingReaction": "Undoing…",
     "reacted": "Already reacted",

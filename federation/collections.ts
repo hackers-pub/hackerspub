@@ -3,16 +3,31 @@ import { LanguageString } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
 import { toRecipient } from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
+import type { RelationsFilter } from "@hackerspub/models/db";
+import {
+  getSanctionHiddenActorFilter,
+  isActorSanctionHidden,
+} from "@hackerspub/models/post";
 import {
   actorTable,
   followingTable,
   type Mention,
-  pinTable,
   type Post,
   postTable,
 } from "@hackerspub/models/schema";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
-import { and, count, eq, inArray, isNotNull, like, or } from "drizzle-orm";
+import {
+  and,
+  count,
+  eq,
+  inArray,
+  isNotNull,
+  isNull,
+  like,
+  or,
+  sql,
+} from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { builder } from "./builder.ts";
 import { getCreate, getPostRecipients } from "./objects.ts";
 
@@ -218,6 +233,36 @@ export function toFeaturedCollectionItem(
   }
 }
 
+/**
+ * The filter for an account's featured (pinned) posts that may be exposed
+ * over ActivityPub.  Both the featured collection dispatcher and its counter
+ * use this so `totalItems` never exceeds the items actually served: censored
+ * posts, pins whose author is hidden by a moderation sanction, and boosts of
+ * censored or sanction-hidden posts are excluded in both places.
+ */
+function getFeaturedPinFilter(actorId: Uuid): RelationsFilter<"pinTable"> {
+  return {
+    actorId,
+    post: {
+      visibility: { in: ["public", "unlisted"] },
+      censored: { isNull: true },
+      NOT: {
+        OR: [
+          { actor: getSanctionHiddenActorFilter() },
+          {
+            sharedPost: {
+              OR: [
+                { censored: { isNotNull: true } },
+                { actor: getSanctionHiddenActorFilter() },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  } satisfies RelationsFilter<"pinTable">;
+}
+
 builder
   .setFeaturedDispatcher(
     "/ap/actors/{identifier}/featured",
@@ -231,6 +276,9 @@ builder
         where: { id: identifier },
       });
       if (account == null) return null;
+      // The featured items embed full post content, so a sanction-hidden
+      // actor's pins are not served at all.
+      if (isActorSanctionHidden(account.actor)) return { items: [] };
       const pins = await ctx.data.db.query.pinTable.findMany({
         with: {
           post: {
@@ -241,10 +289,7 @@ builder
             },
           },
         },
-        where: {
-          actorId: account.actor.id,
-          post: { visibility: { in: ["public", "unlisted"] } },
-        },
+        where: getFeaturedPinFilter(account.actor.id),
         orderBy: { created: "desc" },
       });
       return {
@@ -254,15 +299,20 @@ builder
   )
   .setCounter(async (ctx, identifier) => {
     if (!validateUuid(identifier)) return null;
-    const [{ cnt }] = await ctx.data.db.select({ cnt: count() })
-      .from(pinTable)
-      .innerJoin(actorTable, eq(pinTable.actorId, actorTable.id))
-      .innerJoin(postTable, eq(pinTable.postId, postTable.id))
-      .where(and(
-        eq(actorTable.accountId, identifier),
-        inArray(postTable.visibility, ["public", "unlisted"]),
-      ));
-    return cnt;
+    const account = await ctx.data.db.query.accountTable.findFirst({
+      with: { actor: true },
+      where: { id: identifier },
+    });
+    if (account == null) return null;
+    if (isActorSanctionHidden(account.actor)) return 0;
+    // Count exactly the pins the dispatcher serves so `totalItems` never
+    // exceeds the items actually exposed; pins are bounded by
+    // MAX_PINNED_POSTS (20), so loading their ids is cheap.
+    const pins = await ctx.data.db.query.pinTable.findMany({
+      columns: { postId: true },
+      where: getFeaturedPinFilter(account.actor.id),
+    });
+    return pins.length;
   });
 
 const OUTBOX_WINDOW = 50;
@@ -281,6 +331,11 @@ builder
         where: { id: identifier },
       });
       if (account == null) return null;
+      // A sanction-hidden actor's outbox is empty: remote servers polling
+      // it must not receive content the sanction hides.
+      if (isActorSanctionHidden(account.actor)) {
+        return { items: [], nextCursor: null };
+      }
       const posts = await db.query.postTable.findMany({
         with: {
           actor: { with: { account: true } },
@@ -290,6 +345,17 @@ builder
         where: {
           actorId: account.actor.id,
           visibility: { in: ["public", "unlisted"] }, // FIXME
+          // Censored posts, boosts of censored posts, and boosts of
+          // sanction-hidden actors' posts are not served over ActivityPub.
+          censored: { isNull: true },
+          NOT: {
+            sharedPost: {
+              OR: [
+                { censored: { isNotNull: true } },
+                { actor: getSanctionHiddenActorFilter() },
+              ],
+            },
+          },
           ...(
             validateUuid(cursor) ? { id: { lte: cursor } } : undefined
           ),
@@ -338,14 +404,36 @@ builder
       where: { id: identifier },
     });
     if (account == null) return null;
+    if (isActorSanctionHidden(account.actor)) return 0;
+    // Evaluate the sanction window against a single bound instant so the
+    // boundary matches the JS-side getSanctionHiddenActorFilter() the outbox
+    // items dispatcher uses, instead of SQL now() drifting per row.
+    const now = new Date();
+    const sharedPost = alias(postTable, "shared_post");
+    const sharedActor = alias(actorTable, "shared_actor");
     const [{ cnt }] = await db.select({ cnt: count() })
       .from(postTable)
+      .leftJoin(sharedPost, eq(postTable.sharedPostId, sharedPost.id))
+      .leftJoin(sharedActor, eq(sharedPost.actorId, sharedActor.id))
       .where(and(
         eq(postTable.actorId, account.actor.id),
         or( // FIXME
           eq(postTable.visibility, "public"),
           eq(postTable.visibility, "unlisted"),
         ),
+        isNull(postTable.censored),
+        isNull(sharedPost.censored),
+        // Boosts of sanction-hidden actors' posts are excluded; the raw
+        // SQL mirrors isActorSanctionHidden (NULL-safe: non-boost rows
+        // and unsanctioned actors match).
+        sql`(
+          ${sharedActor.id} is null
+          or ${sharedActor.suspended} is null
+          or ${sharedActor.suspended} > ${now}
+          or ${sharedActor.suspendedUntil} <= ${now}
+          or (${sharedActor.accountId} is not null
+            and ${sharedActor.suspendedUntil} > ${now})
+        )`,
       ));
     return cnt;
   });

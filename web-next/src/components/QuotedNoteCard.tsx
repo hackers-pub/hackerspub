@@ -2,6 +2,7 @@ import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
 import { createFragment, createMutation } from "solid-relay";
 import { ActorHoverCard } from "~/components/ActorHoverCard.tsx";
+import { CensorshipNotice } from "~/components/CensorshipNotice.tsx";
 import { InternalLink } from "~/components/InternalLink.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import {
@@ -74,7 +75,7 @@ export interface QuotedNoteCardProps {
 
 export function QuotedNoteCard(props: QuotedNoteCardProps) {
   const { t } = useLingui();
-  const { preferAiSummary } = useViewer();
+  const { preferAiSummary, moderator } = useViewer();
   const [proseRef, setProseRef] = createSignal<HTMLElement>();
   const mentionState = useMentionHoverCards(proseRef);
   useContentLinkInterceptor(proseRef);
@@ -88,6 +89,7 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
         __typename
         __id
         uuid
+        censored
         ... on Note {
           sourceId
           content
@@ -107,6 +109,7 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
           username
           avatarUrl
           local
+          isViewer
           url
           iri
           viewerMutes
@@ -210,6 +213,12 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
                   </div>
                 </div>
               </div>
+              <Show when={post.censored}>
+                <CensorshipNotice
+                  class="mt-3"
+                  privileged={post.actor.isViewer || moderator()}
+                />
+              </Show>
               <Show when={hasCW()}>
                 <div class="mt-3 flex items-center gap-2 rounded-md border bg-background px-3 py-2">
                   <p class="grow text-sm text-muted-foreground">

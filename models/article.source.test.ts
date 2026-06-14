@@ -19,6 +19,7 @@ import { insertAccountWithActor, withRollback } from "../test/postgres.ts";
 const fakeModels = {
   summarizer: {} as never,
   translator: {} as never,
+  moderationAnalyzer: {} as never,
 };
 
 test("createArticleSource() creates a source and initial content", async () => {

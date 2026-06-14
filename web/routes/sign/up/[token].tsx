@@ -1,6 +1,10 @@
 import { page } from "@fresh/core";
 import { syncActorFromAccount } from "@hackerspub/models/actor";
 import { follow } from "@hackerspub/models/following";
+import {
+  ActorSuspendedError,
+  isActorSuspended,
+} from "@hackerspub/models/moderation";
 import { renderMarkup } from "@hackerspub/models/markup";
 import { createSession, EXPIRATION } from "@hackerspub/models/session";
 import { USERNAME_REGEXP } from "@hackerspub/models/signin";
@@ -109,9 +113,18 @@ export const handler = define.handlers({
         where: { id: token.inviterId },
         with: { actor: true },
       });
-    if (inviter != null) {
-      await follow(ctx.state.fedCtx, { ...account, actor }, inviter.actor);
-      await follow(ctx.state.fedCtx, inviter, actor);
+    // A suspended inviter cannot follow or be auto-followed; check before
+    // either follow so a rejection on the second one cannot leave the
+    // first half of the pair behind.
+    if (inviter != null && !isActorSuspended(inviter.actor)) {
+      try {
+        await follow(ctx.state.fedCtx, { ...account, actor }, inviter.actor);
+        await follow(ctx.state.fedCtx, inviter, actor);
+      } catch (error) {
+        // Races (e.g. the inviter gets suspended between the check and
+        // the follow) must not abort the signup itself.
+        if (!(error instanceof ActorSuspendedError)) throw error;
+      }
     }
     const session = await createSession(kv, {
       accountId: account.id,

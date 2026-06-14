@@ -12,9 +12,15 @@ type Account implements Node {
   """
   articleDrafts(after: String, before: String, first: Int, last: Int): AccountArticleDraftsConnection!
 
-  """UUID of the medium used as this account's avatar."""
+  """
+  UUID of the medium used as this account's avatar.  `null` when the account is permanently suspended (banned) and the viewer is neither the account holder nor a moderator, so the real avatar medium cannot be resolved through `node(id:)`.
+  """
   avatarMediumId: UUID
   avatarUrl: URL! @deprecated(reason: "Use avatarMediumId instead.")
+
+  """
+  The account holder's profile bio in Markdown.  Empty when the account is permanently suspended (banned) and the viewer is neither the account holder nor a moderator.
+  """
   bio: Markdown!
   created: DateTime!
 
@@ -78,7 +84,7 @@ type Account implements Node {
   lastPostPublished: DateTime
 
   """
-  Profile links displayed on the account's public page, ordered by their display index. Links with a non-null `verified` timestamp have passed rel-me verification.
+  Profile links displayed on the account's public page, ordered by their display index. Links with a non-null `verified` timestamp have passed rel-me verification.  Empty when the account is permanently suspended (banned) and the viewer is neither the account holder nor a moderator, mirroring the suspended ActivityPub actor stub.
   """
   links: [AccountLink!]!
 
@@ -88,9 +94,18 @@ type Account implements Node {
   locales: [Locale!]
 
   """
+  The account's moderation notifications, newest first.  Resolvable by the account owner only.
+  """
+  moderationNotifications(after: String, before: String, first: Int, last: Int): AccountModerationNotificationsConnection
+
+  """
   Whether this account has moderator privileges. Moderators can view `postCount` and `lastPostPublished` for any account, and perform administrative mutations such as `deleteOrphanMedia` and `regenerateInvitations`.
   """
   moderator: Boolean!
+
+  """
+  The account holder's display name.  Empty when the account is permanently suspended (banned) and the viewer is neither the account holder nor a moderator (mirrors the redacted `Actor`).
+  """
   name: String!
 
   """
@@ -99,7 +114,7 @@ type Account implements Node {
   notifications(after: String, before: String, first: Int, last: Int): AccountNotificationsConnection!
 
   """
-  URL of the generated Open Graph image for this account's profile page. Generated on first request and cached; high-complexity operation (avoid requesting in bulk).
+  URL of the generated Open Graph image for this account's profile page. Generated on first request and cached; high-complexity operation (avoid requesting in bulk).  For a permanently suspended (banned) account, viewers other than the account holder and moderators get an image built from redacted profile content (no display name, bio, or avatar), and the cached key is not overwritten.
   """
   ogImageUrl: URL!
   passkeys(after: String, before: String, first: Int, last: Int): AccountPasskeysConnection!
@@ -125,6 +140,21 @@ type Account implements Node {
   pushNotificationPreviewPolicy: PushNotificationPreviewPolicy!
 
   """
+  The account's own report history, newest first: what they reported, when, their written reason, and the processing status. Detailed outcome information is deliberately not exposed here, so reports cannot be used to probe moderation boundaries.  Resolvable by the account owner and moderators only.
+  """
+  reports(after: String, before: String, first: Int, last: Int): AccountReportsConnection
+
+  """
+  The moderation actions taken on this account, newest first, as the sanitized surface the user themselves sees (dismissals appear only when the moderation team wrote an educational message). Resolvable by the account owner and moderators only.
+  """
+  sanctions: [Sanction!]
+
+  """
+  How many of the account's moderation notifications are unread, e.g. for the sidebar badge.  Resolvable by the account owner only.
+  """
+  unreadModerationNotificationCount: Int
+
+  """
   Number of notifications created after the account's last `markNotificationsAsRead` call. Only visible to the account holder.
   """
   unreadNotificationsCount: Int!
@@ -148,6 +178,16 @@ type AccountArticleDraftsConnectionEdge {
   node: ArticleDraft!
 }
 
+"""
+Returned by `completeLoginChallenge` and `loginByPasskey` when the credential is valid but the account is permanently suspended (banned). It is deliberately distinct from a `null` result (which means the credential itself was wrong) so the client can show a ban-specific message rather than a generic failure. Temporary suspension only restricts writing, not signing in, so it never produces this error.
+"""
+type AccountBannedError {
+  """
+  When the permanent suspension took effect (the banned actor's `suspended` timestamp).
+  """
+  since: DateTime!
+}
+
 type AccountInviteesConnection {
   edges: [AccountInviteesConnectionEdge!]!
   pageInfo: PageInfo!
@@ -159,6 +199,9 @@ type AccountInviteesConnectionEdge {
   node: Account!
 }
 
+"""
+A profile link on a local account's public page.  Not resolvable via `node(id:)` when the owning account is permanently suspended (banned) and the viewer is neither the account holder nor a moderator.
+"""
 type AccountLink implements Node {
   created: DateTime!
   handle: String
@@ -208,6 +251,16 @@ input AccountLinkInput {
   url: URL!
 }
 
+type AccountModerationNotificationsConnection {
+  edges: [AccountModerationNotificationsConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type AccountModerationNotificationsConnectionEdge {
+  cursor: String!
+  node: ModerationNotification!
+}
+
 type AccountNotFoundError {
   query: String!
 }
@@ -232,6 +285,19 @@ type AccountPasskeysConnectionEdge {
   node: Passkey!
 }
 
+type AccountReportsConnection {
+  edges: [AccountReportsConnectionEdge!]!
+  pageInfo: PageInfo!
+
+  """Total number of reports this account has filed."""
+  totalCount: Int!
+}
+
+type AccountReportsConnectionEdge {
+  cursor: String!
+  node: Flag!
+}
+
 """
 An ActivityPub actor: the public identity used for federation. Actors can be local (originating from this instance, `local: true`) or federated (from another instance, `local: false`). Local actors have an associated `Account` that holds login credentials and settings; remote actors do not. When in doubt, use `Actor` for display and `Account` only for settings that belong to the authenticated viewer.
 """
@@ -252,17 +318,17 @@ type Actor implements Node {
   automaticallyApprovesFollowers: Boolean!
 
   """
-  One or two initials derived from the actor's display name or username, for use as a text-based avatar placeholder when the avatar image is unavailable.
+  One or two initials derived from the actor's display name or username, for use as a text-based avatar placeholder when the avatar image is unavailable.  Derived from the username (not the display name) when the actor is permanently suspended (banned) and the viewer is neither the actor nor a moderator.
   """
   avatarInitials: String!
 
   """
-  URL of the actor's avatar image. Falls back to a Gravatar URL derived from the account's email for local actors without an uploaded avatar.
+  URL of the actor's avatar image. Falls back to a Gravatar URL derived from the account's email for local actors without an uploaded avatar.  Replaced with the anonymous placeholder avatar when the actor is permanently suspended (banned) and the viewer is neither the actor nor a moderator.
   """
   avatarUrl: URL!
 
   """
-  The actor's biography rendered as HTML, with custom emoji shortcodes replaced by inline `<img>` elements. `null` when the actor has no bio.
+  The actor's biography rendered as HTML, with custom emoji shortcodes replaced by inline `<img>` elements. `null` when the actor has no bio, or is permanently suspended (banned) and the viewer is neither the actor nor a moderator.
   """
   bio: HTML
 
@@ -278,7 +344,7 @@ type Actor implements Node {
   created: DateTime!
 
   """
-  Key-value metadata fields from the actor's ActivityPub profile (the `attachment` property). Commonly used for website links, pronouns, or other structured profile information. Values are rendered as HTML.
+  Key-value metadata fields from the actor's ActivityPub profile (the `attachment` property). Commonly used for website links, pronouns, or other structured profile information. Values are rendered as HTML.  Empty when the actor is permanently suspended (banned) and the viewer is neither the actor nor a moderator.
   """
   fields: [ActorField!]!
   followees(after: String, before: String, first: Int, last: Int): ActorFolloweesConnection!
@@ -309,7 +375,7 @@ type Actor implements Node {
   handleHost: String!
 
   """
-  URL of the actor's profile header (banner) image. `null` when the actor has not set one.
+  URL of the actor's profile header (banner) image. `null` when the actor has not set one, or is permanently suspended (banned) and the viewer is neither the actor nor a moderator.
   """
   headerUrl: URL
   id: ID!
@@ -360,7 +426,7 @@ type Actor implements Node {
   mutualFollowers(after: String, before: String, first: Int, last: Int): ActorMutualFollowersConnection!
 
   """
-  The actor's display name rendered as HTML, with custom emoji shortcodes replaced by inline `<img>` elements. `null` when the actor has no display name set.
+  The actor's display name rendered as HTML, with custom emoji shortcodes replaced by inline `<img>` elements. `null` when the actor has no display name set, or is permanently suspended (banned) and the viewer is neither the actor nor a moderator.
   """
   name: HTML
   noteByUuid(uuid: UUID!): Note
@@ -401,7 +467,7 @@ type Actor implements Node {
   questions(after: String, before: String, first: Int, last: Int): ActorQuestionsConnection!
 
   """
-  The actor's display name as a plain string, before custom emoji shortcodes are replaced with `<img>` tags. Use `name` instead when rendering to HTML.
+  The actor's display name as a plain string, before custom emoji shortcodes are replaced with `<img>` tags. Use `name` instead when rendering to HTML.  `null` when the actor has no display name, or is permanently suspended (banned) and the viewer is neither the actor nor a moderator.
   """
   rawName: String
 
@@ -419,6 +485,11 @@ type Actor implements Node {
   If this actor has migrated to a new account via the ActivityPub Move activity, points to the new actor. The old actor's posts are not automatically transferred to the new account.
   """
   successor: Actor
+
+  """
+  Whether this actor is currently under an active moderation suspension (temporary or permanent; for remote actors, a federation block).  Evaluated lazily by time comparison, so it turns off on its own when a temporary suspension expires.  Surfaces the suspension notice on profiles.
+  """
+  suspended: Boolean!
   type: ActorType!
   updated: DateTime!
 
@@ -576,6 +647,14 @@ type ActorSharedPostsConnectionEdge {
 }
 
 """
+Returned by write mutations (posting, reacting, sharing, following, voting) when the authenticated account is under an active moderation suspension.  Suspension only restricts writing; reading still works. Check `suspendedUntil` to tell a temporary suspension (a timestamp) from a permanent one (`null`).
+"""
+type ActorSuspendedError {
+  """When the suspension ends, or `null` for a permanent suspension."""
+  suspendedUntil: DateTime
+}
+
+"""
 ActivityPub actor type as defined by the ActivityStreams 2.0 vocabulary. Most human accounts are `PERSON` actors.
 """
 enum ActorType {
@@ -624,7 +703,7 @@ type AddReactionToPostPayload {
   reaction: Reaction
 }
 
-union AddReactionToPostResult = AddReactionToPostPayload | InvalidInputError | NotAuthenticatedError
+union AddReactionToPostResult = ActorSuspendedError | AddReactionToPostPayload | InvalidInputError | NotAuthenticatedError
 
 type AdminAccountConnection {
   edges: [AdminAccountEdge!]!
@@ -659,6 +738,8 @@ type AdminAccountPageInfo {
   startCursor: String
 }
 
+union AppealModerationActionResult = FlagAppeal | InvalidInputError | NotAuthenticatedError | NotAuthorizedError
+
 """
 A long-form blog article written on this platform. Articles have a title, year-based URL slug, and can have multiple `ArticleContent` translations. Remote articles federated from other instances lack a local `articleSource` and will have `null` for `slug`, `publishedYear`, and `tags`.
 """
@@ -674,34 +755,39 @@ type Article implements Node & Post & Reactable {
   allowLlmTranslation: Boolean
 
   """
-  The post's full HTML content, with custom emoji shortcodes rendered as `<img>` elements and external links annotated with `target="_blank"`. Boost wrappers have empty content; use `sharedPost.content` instead.
+  When a moderator censored this post, or `null` when it is not censored.  Censored posts disappear from timelines, search, and recommendations, but their permalinks stay reachable so a censorship notice can be shown.  For everyone but the author and moderators, all content-bearing fields are redacted: `content`, the excerpt fields, `name`, `summary`, `hashtags`, `Article.tags`, `media`, `link`, `mentions`, `sharedPost`, `quotedPost`, article contents, and poll data.
+  """
+  censored: DateTime
+
+  """
+  The post's full HTML content, with custom emoji shortcodes rendered as `<img>` elements and external links annotated with `target="_blank"`. Boost wrappers copy the boosted post's content; prefer `sharedPost.content`.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post), and the viewer is neither the content's author nor a moderator.
   """
   content: HTML!
 
   """
-  All available language versions of this article's content. Pass `language` to get only the best-matching locale (BCP 47 negotiation). Pass `includeBeingTranslated: true` to also include language versions whose LLM translation is still in progress.
+  All available language versions of this article's content. Pass `language` to get only the best-matching locale (BCP 47 negotiation). Pass `includeBeingTranslated: true` to also include language versions whose LLM translation is still in progress.  Empty when the article is censored or its author is hidden by a moderation sanction, and the viewer is neither its author nor a moderator.
   """
   contents(includeBeingTranslated: Boolean = false, language: Locale): [ArticleContent!]!
   engagementStats: PostEngagementStats!
 
   """
-  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.
+  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post) and the viewer is neither the content's author nor a moderator.
   """
   excerpt: String!
 
   """
-  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.
+  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post) and the viewer is neither the content's author nor a moderator.
   """
   excerptHtml(maxChars: Int!): HTML!
 
   """
-  Hashtags mentioned in the post, extracted from the post's tag map. Each entry includes the tag name and its canonical hashtag search URL.
+  Hashtags mentioned in the post, extracted from the post's tag map. Each entry includes the tag name and its canonical hashtag search URL.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post) and the viewer is neither the content's author nor a moderator, since hashtags are derived from the hidden content.
   """
   hashtags: [Hashtag!]!
   id: ID!
 
   """
-  The post's ActivityPub IRI, used as its canonical identifier in federation. For local posts this is an `/ap/…` endpoint; for remote posts it is whatever IRI the originating instance assigned. Prefer `url` for human-readable links.
+  The post's ActivityPub IRI, used as its canonical identifier in federation. For local posts this is an `/ap/…` endpoint; for remote posts it is whatever IRI the originating instance assigned. Prefer `url` for human-readable links.  When the post is censored or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator, a remote IRI (or a boost wrapper's, whose `url` is also nulled) is replaced with the local permalink that renders the notice, so a `url ?? iri` fallback never leaks the uncensored origin. A local non-wrapper post keeps its own `/ap/…` IRI (it does not point outside this instance).
   """
   iri: URL!
 
@@ -711,22 +797,22 @@ type Article implements Node & Post & Reactable {
   language: String
 
   """
-  OpenGraph / oEmbed preview for the first link in the post. `null` when the post has no links or the metadata has not been fetched yet.
+  OpenGraph / oEmbed preview for the first link in the post. `null` when the post has no links or the metadata has not been fetched yet, and also when the post is censored or its author is hidden by a moderation sanction, and the viewer is neither its author nor a moderator (the linked URL is part of the censored content).
   """
   link: PostLink
 
   """
-  Media attachments on this post, in display order. For federated posts the URLs point to the originating instance.
+  Media attachments on this post, in display order. For federated posts the URLs point to the originating instance.  Empty when the post is censored or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator: attachments are part of the hidden content.
   """
   media: [PostMedium!]!
 
   """
-  Actors explicitly @-mentioned in this post. Does not include implicit mentions (e.g., the author of the post being replied to).
+  Actors explicitly @-mentioned in this post. Does not include implicit mentions (e.g., the author of the post being replied to). Empty when the post is censored or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator, since the mention targets are part of the censored content.
   """
   mentions(after: String, before: String, first: Int, last: Int): PostMentionsConnection!
 
   """
-  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.
+  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.  `null` when the post is censored or its author is hidden by a moderation sanction (or it is a boost wrapper of such a post, whose title it copies) and the viewer is neither the content's author nor a moderator.
   """
   name: String
   published: DateTime!
@@ -738,15 +824,21 @@ type Article implements Node & Post & Reactable {
   quotePolicy: QuotePolicy!
   quoteTargetState: QuoteTargetState
 
-  """The post being quoted inline. `null` for posts that are not quotes."""
+  """
+  The post being quoted inline. `null` for posts that are not quotes, and also when the quoting post is censored or its author is hidden by a moderation sanction, and the viewer is neither its author nor a moderator: the quoted target is part of the censored content.
+  """
   quotedPost: Post
 
-  """Posts that quote this post inline."""
+  """
+  Posts that quote this post inline. Censored quotes and quotes by actors whose content is hidden by a moderation sanction are excluded.
+  """
   quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
   reactionGroup(customEmojiId: ID, emoji: String): ReactionGroup
   reactionGroups: [ReactionGroup!]!
 
-  """Posts that are direct replies to this post."""
+  """
+  Posts that are direct replies to this post. Censored replies and replies by actors whose content is hidden by a moderation sanction are excluded.
+  """
   replies(after: String, before: String, first: Int, last: Int): PostRepliesConnection!
 
   """The post this post is a reply to, or `null` for top-level posts."""
@@ -758,12 +850,12 @@ type Article implements Node & Post & Reactable {
   sensitive: Boolean!
 
   """
-  The post being boosted. Non-null only for boost wrapper rows. When this is non-null, `content` is empty and `url` mirrors the shared post's URL.
+  The post being boosted. Non-null only for boost wrapper rows. When this is non-null, `content` is empty and `url` mirrors the shared post's URL.  `null` when the boost wrapper itself is censored, or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator: what was boosted is the censored content.
   """
   sharedPost: Post
 
   """
-  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor.
+  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor. Censored boosts (including boosts of a censored post) and boosts by actors whose content is hidden by a moderation sanction are excluded.
   """
   shares(after: String, before: String, first: Int, last: Int): PostSharesConnection!
 
@@ -778,18 +870,18 @@ type Article implements Node & Post & Reactable {
   sourceId: UUID
 
   """
-  Author-provided or LLM-generated summary of the post. `null` when no summary has been set. For LLM summaries, check `ArticleContent.summary` and `summaryStarted` instead, as those are tracked per language on articles.
+  Author-provided or LLM-generated summary of the post. `null` when no summary has been set. For LLM summaries, check `ArticleContent.summary` and `summaryStarted` instead, as those are tracked per language on articles.  `null` when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post), and the viewer is neither the content's author nor a moderator.
   """
   summary: String
 
   """
-  Author-assigned tags for this article. `null` for articles federated in from remote instances.
+  Author-assigned tags for this article. `null` for articles federated in from remote instances.  Empty when the post is censored, or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator, since the tags are part of the censored content.
   """
   tags: [String!]
   updated: DateTime!
 
   """
-  The canonical, human-readable URL of this post. For source-backed local posts the path encodes the local source identifier: `Note.sourceId` for notes, `Article.publishedYear` + `Article.slug` for articles, and `Question.sourceId` for questions. It does not encode `Post.uuid`. For federated remote posts and local share wrappers (boosts) this is whatever URL the originating instance advertised (copied from the shared post in the boost case) and is unrelated to the wrapper's own row PK. Prefer this field over hand-building a path from `Post.uuid`: `uuid` is the row PK and does not match the path here for source-backed local posts.
+  The canonical, human-readable URL of this post. For source-backed local posts the path encodes the local source identifier: `Note.sourceId` for notes, `Article.publishedYear` + `Article.slug` for articles, and `Question.sourceId` for questions. It does not encode `Post.uuid`. For federated remote posts and local share wrappers (boosts) this is whatever URL the originating instance advertised (copied from the shared post in the boost case) and is unrelated to the wrapper's own row PK. Prefer this field over hand-building a path from `Post.uuid`: `uuid` is the row PK and does not match the path here for source-backed local posts.  `null` when the post is censored or its author is hidden by a moderation sanction, and the viewer is neither the content's author nor a moderator, EXCEPT for a local post (whose own permalink renders the notice): a boost wrapper's URL mirrors the boosted post's, and a remote post's URL points at the uncensored copy on its origin instance, so both are hidden.
   """
   url: URL
 
@@ -799,7 +891,7 @@ type Article implements Node & Post & Reactable {
   uuid: UUID!
 
   """
-  Whether the authenticated viewer is allowed to quote this post, based on `quotePolicy`, visibility, and block state. Always `false` for unauthenticated requests.
+  Whether the authenticated viewer is allowed to quote this post, based on `quotePolicy`, visibility, and block state. A censored post cannot be quoted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests.
   """
   viewerCanQuote: Boolean!
 
@@ -814,7 +906,7 @@ type Article implements Node & Post & Reactable {
   viewerCanRevokeQuote: Boolean!
 
   """
-  Whether the authenticated viewer is allowed to boost this post, based on visibility and block state. Always `false` for unauthenticated requests.
+  Whether the authenticated viewer is allowed to boost this post, based on visibility and block state. A censored post cannot be boosted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests.
   """
   viewerCanShare: Boolean!
 
@@ -845,14 +937,18 @@ type ArticleContent implements Node {
   beingTranslated: Boolean!
 
   """
-  Rendered HTML of this language version, with media URLs resolved and external links annotated.
+  Rendered HTML of this language version, with media URLs resolved and external links annotated.  Empty when the article is censored, or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator.
   """
   content: HTML!
   id: ID!
 
   """BCP 47 language tag identifying this content version."""
   language: Locale!
-  ogImageUrl: URL!
+
+  """
+  The generated Open Graph preview image for this language version.  `null` when the article is censored, or its author is hidden by a moderation sanction, and the viewer is neither its author nor a moderator: the image is rendered from the title and excerpt and would otherwise leak censored content.
+  """
+  ogImageUrl: URL
 
   """
   The source language this content was translated from. Non-null only for LLM-translated versions; `null` for original content.
@@ -860,11 +956,13 @@ type ArticleContent implements Node {
   originalLanguage: Locale
   published: DateTime!
 
-  """The raw markdown content for editing."""
+  """
+  The raw markdown content for editing.  Empty when the article is censored, or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator.
+  """
   rawContent: Markdown!
 
   """
-  LLM-generated summary for this language version. `null` until generation completes. Check `summaryStarted` to distinguish between "not requested" and "in progress".
+  `null` when the article is censored, or its author is hidden by a moderation sanction, and the viewer is neither its author nor a moderator.  Otherwise the LLM-generated summary for this language version: `null` until generation completes. Check `summaryStarted` to distinguish between "not requested" and "in progress".
   """
   summary: String
 
@@ -872,9 +970,15 @@ type ArticleContent implements Node {
   When LLM summary generation was started for this content version. `null` if summary generation has not been requested.
   """
   summaryStarted: DateTime
+
+  """
+  The article's title in this language.  Empty when the article is censored, or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator.
+  """
   title: String!
 
-  """Table of contents for the article content."""
+  """
+  Table of contents for the article content.  Empty when the article is censored, or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator.
+  """
   toc: JSON!
 
   """
@@ -910,6 +1014,8 @@ type ArticleDraft implements Node {
   updated: DateTime!
   uuid: UUID!
 }
+
+union AssignFlagCaseResult = FlagCase | NotAuthenticatedError | NotAuthorizedError
 
 """
 Associate an uploaded `Medium` with an article draft so it can be referenced in the draft's Markdown as `hp-medium:{key}`. Must be called before publishing if the draft's content uses `hp-medium:` references. Requires authentication.
@@ -990,6 +1096,60 @@ type BookmarkPostPayload {
 
 union BookmarkPostResult = BookmarkPostPayload | InvalidInputError | NotAuthenticatedError
 
+"""
+A single provision of the code of conduct (an H3 subsection of the document).  Provision ids are structural (`section.subsection`) and identical across locales, but only stable for a given version of the document; reports record the `cocVersion` they were filed under.
+"""
+type CocProvision {
+  """The structural id, e.g. `"2.3"`."""
+  id: String!
+
+  """The title of the section the provision belongs to."""
+  section: String!
+
+  """The provision's Markdown body."""
+  text: String!
+
+  """The provision's title."""
+  title: String!
+}
+
+"""
+The result of `completeLoginChallenge`: a `Session` on success, or `AccountBannedError` when the credential is valid but the account is permanently suspended (banned). The field itself is `null` when the token does not exist or the code does not match.
+"""
+union CompleteLoginChallengeResult = AccountBannedError | Session
+
+"""
+The reported content as it looked when the report was filed: evidence that survives even if the reported user edits or deletes the original.  Moderator-only; a reported moderator cannot access snapshots of their own case.
+"""
+type ContentSnapshot implements Node {
+  """
+  The rendered HTML at snapshot time: the post's content for content reports, or the actor's bio for user (profile) reports.
+  """
+  contentHtml: HTML!
+
+  """When the snapshot was captured."""
+  created: DateTime!
+  id: ID!
+
+  """
+  Contextual metadata captured at snapshot time: the author's handle and display name, the post type, title, language, visibility, sensitivity, media URLs, and publication time.
+  """
+  metadata: JSON
+
+  """
+  The snapshotted post's ActivityPub IRI; survives post deletion.  `null` for profile snapshots.
+  """
+  postIri: URL
+
+  """
+  The original source markup at snapshot time; only available for local posts (`null` for remote posts and profile snapshots).
+  """
+  sourceContent: String
+
+  """The snapshot's row UUID."""
+  uuid: UUID!
+}
+
 union CreateInvitationLinkResult = InvalidInputError | InvitationLinkPayload | NotAuthenticatedError
 
 """
@@ -1038,7 +1198,7 @@ type CreateNotePayload {
   note: Note!
 }
 
-union CreateNoteResult = CreateNotePayload | InvalidInputError | NotAuthenticatedError
+union CreateNoteResult = ActorSuspendedError | CreateNotePayload | InvalidInputError | NotAuthenticatedError
 
 """
 Publish a new short-form post with an immutable ActivityPub `Question` poll. Sends an ActivityPub `Create` activity to relevant inboxes based on `visibility`. Requires authentication.
@@ -1113,7 +1273,7 @@ input CreateQuestionPollInput {
   title: String!
 }
 
-union CreateQuestionResult = CreateQuestionPayload | InvalidInputError | NotAuthenticatedError
+union CreateQuestionResult = ActorSuspendedError | CreateQuestionPayload | InvalidInputError | NotAuthenticatedError
 
 type CustomEmoji implements Node {
   id: ID!
@@ -1199,6 +1359,14 @@ type Document {
   toc: JSON!
 }
 
+"""
+Returned by `reportContent` when the reporter already has an open (pending or reviewing) report on the same target.  A new report can be filed once the previous case is resolved.
+"""
+type DuplicateReportError {
+  """Placeholder field; always an empty string."""
+  duplicateReport: String!
+}
+
 scalar Email
 
 type EmojiReactionGroup implements ReactionGroup {
@@ -1226,6 +1394,315 @@ type FinishMediumUploadPayload {
 
 union FinishMediumUploadResult = FinishMediumUploadPayload | InvalidInputError | NotAuthenticatedError
 
+"""
+An individual report filed against an actor or one of their posts. Multiple reports on the same target are grouped into a single case for moderators.  A `Flag` is only resolvable by its reporter (their own report history) and by moderators; the reported user never sees `Flag` values, only the sanitized sanction surface.  Reporter-identifying fields (`reporter`) are additionally restricted to moderators.
+"""
+type Flag implements Node {
+  """
+  The case this report is grouped into.  Moderator-only: the case aggregates other reporters' reports.
+  """
+  case: FlagCase!
+
+  """
+  The hash of the most recent Git commit that touched the CODE_OF_CONDUCT files when the report was filed, so the report can be interpreted against the code of conduct text it was filed under.  Moderator-only.  `null` when the version could not be determined.
+  """
+  cocVersion: String
+
+  """When the report was filed."""
+  created: DateTime!
+
+  """
+  Whether this report arrived from another instance via an ActivityPub `Flag` activity (as opposed to being filed in-app by a local user).  External reports provide less context and come from unknown moderation cultures, so moderators should apply additional scrutiny.  Moderator-only.
+  """
+  external: Boolean!
+
+  """
+  Whether the reporter opted in to forwarding this report to the target's remote instance after moderator action.
+  """
+  forwardToRemote: Boolean!
+  id: ID!
+
+  """
+  The LLM's code of conduct matching result (`matches` with provision ids, confidences, and rationales; `summary`; `model`; `analyzedAt`; `error` when the analysis failed).  A reference tool for moderators, never an automated decision: always verify independently.  Moderator-only.  `null` while the analysis is still pending.
+  """
+  llmAnalysis: JSON
+
+  """
+  The reporter's written reason.  Visible to the reporter and moderators only; never shown to the reported user, and never forwarded to remote instances (a moderator-written summary is sent instead), since the wording itself could identify the reporter.
+  """
+  reason: String!
+
+  """
+  The reporting actor: a local user's actor for in-app reports, or the sending remote actor (typically the remote instance actor) for reports received via ActivityPub.  Moderator-only: reporter identity is strictly confidential.
+  """
+  reporter: Actor!
+
+  """
+  The content snapshot captured when this report was filed, preserving the evidence even if the original is edited or deleted.  Moderator-only.
+  """
+  snapshot: ContentSnapshot
+
+  """The report's processing status."""
+  status: FlagStatus!
+
+  """The reported actor (local or remote)."""
+  targetActor: Actor!
+
+  """
+  The reported post, for content reports; `null` for user (profile) reports, and also when the post row was deleted after the report (the snapshot preserves the evidence; `targetPostIri` remains as a stable reference).
+  """
+  targetPost: Post
+
+  """
+  The reported post's ActivityPub IRI; survives post deletion. `null` for user (profile) reports.
+  """
+  targetPostIri: URL
+
+  """When the report was last updated."""
+  updated: DateTime!
+
+  """The report's row UUID."""
+  uuid: UUID!
+}
+
+"""
+An immutable audit record of a moderator decision on a case.  If a decision changes (e.g. through an appeal), a new action is recorded rather than editing this one.  Moderator-only: the reported user sees the sanitized sanction surface instead, which never names the acting moderator; a reported moderator likewise cannot access actions on their own case through this type.
+"""
+type FlagAction implements Node {
+  """The decision that was made."""
+  actionType: FlagActionType!
+
+  """The case this action resolves."""
+  case: FlagCase!
+
+  """When the action was taken."""
+  created: DateTime!
+  id: ID!
+
+  """
+  The message shown to the reported user, sent under the moderation team's collective identity.
+  """
+  messageToUser: String
+
+  """
+  The moderator who made this decision.  Internal audit trail only: never revealed to the reported user (notifications go out under the moderation team's collective identity), so moderators cannot become individual harassment targets.
+  """
+  moderator: Account!
+
+  """
+  The moderator's internal judgment rationale.  May contain details not appropriate to share with the reported user; those go to `messageToUser`.
+  """
+  rationale: String!
+
+  """The suspension window's end; only set for `SUSPEND` actions."""
+  suspensionEnds: DateTime
+
+  """The suspension window's start; only set for `SUSPEND` actions."""
+  suspensionStarts: DateTime
+
+  """The action's row UUID."""
+  uuid: UUID!
+
+  """
+  The code of conduct provision ids the moderator confirmed as violated (empty for dismissals).  These are the human-confirmed counterpart of `Flag.llmAnalysis`; their divergence is surfaced in the moderation statistics to monitor LLM bias and automation bias.
+  """
+  violatedProvisions: [String!]!
+}
+
+"""
+The kind of decision a moderator records on a case.  The spirit of the system is graduated response: warning, then content censorship, then temporary suspension, with permanent suspension as the last resort; severe violations may skip stages.
+"""
+enum FlagActionType {
+  """
+  Permanent suspension: a local account can no longer log in and its content is hidden; a remote actor is permanently federation-blocked.
+  """
+  BAN
+
+  """
+  Hide the reported post from timelines, search, and recommendations; its permalink shows a censorship notice and the author keeps access.  Requires a post target.
+  """
+  CENSOR
+
+  """No code of conduct violation was found."""
+  DISMISS
+
+  """
+  Temporary suspension: the local user cannot create posts, react, boost, vote, or follow until the window ends (a remote actor is federation-blocked instead).  Requires a suspension window.
+  """
+  SUSPEND
+
+  """A warning message; for minor first offenses without apparent malice."""
+  WARNING
+}
+
+"""
+An appeal a sanctioned user filed against a moderation action. Resolvable by the appellant (their own appeal) and by moderators; moderator-only fields (`action`, `appellant`, `reviewer`) carry an additional scope so the appellant cannot reach the case, the other reports, or the moderators through their appeal.
+"""
+type FlagAppeal implements Node {
+  """
+  The appealed action, with its full audit context.  Moderator-only; a moderator who is themselves the appellant is excluded, like everywhere else on their own case.
+  """
+  action: FlagAction!
+
+  """Context or evidence the appellant believes was not considered."""
+  additionalContext: String
+
+  """
+  The account that filed the appeal.  Moderator-only; a moderator who is themselves the appellant is excluded.
+  """
+  appellant: Account!
+
+  """When the appeal was filed."""
+  created: DateTime!
+  id: ID!
+
+  """Why the appellant believes the action is unjust."""
+  reason: String!
+
+  """When the review completed; `null` while open."""
+  resolved: DateTime
+
+  """The review outcome; `null` until resolved."""
+  result: FlagAppealResult
+
+  """
+  The reviewing moderator's rationale, shown to the appellant under the moderation team's collective identity.  `null` until resolved.
+  """
+  reviewRationale: String
+
+  """
+  The moderator who reviewed the appeal; `null` until resolved. Moderator-only: preferably a different moderator than the one who took the original action, and never revealed to the appellant, including an appellant who is themselves a moderator.
+  """
+  reviewer: Account
+
+  """The appeal's processing status."""
+  status: FlagAppealStatus!
+
+  """The appeal's row UUID."""
+  uuid: UUID!
+}
+
+"""The outcome of an appeal review."""
+enum FlagAppealResult {
+  """The appeal was dismissed; the original action stands."""
+  DISMISSED
+
+  """
+  Rare: review uncovered a more severe violation, and the action was replaced with a heavier one.
+  """
+  INCREASED
+
+  """
+  The action was reduced to a lighter one (e.g. suspension to warning); the replacement is recorded as a new action.
+  """
+  REDUCED
+
+  """
+  The action was withdrawn: its enforcement is reverted and it drops out of the violation history.
+  """
+  WITHDRAWN
+}
+
+"""The processing status of an appeal."""
+enum FlagAppealStatus {
+  """Filed and awaiting review."""
+  PENDING
+
+  """The review is complete; see `result`."""
+  RESOLVED
+
+  """A moderator is reviewing the appeal."""
+  REVIEWING
+}
+
+"""
+A moderation case: all reports against the same target (an actor, or one of their posts) grouped into a single unit of moderator work.  Cases are created automatically by the first report and joined by subsequent ones while open.  Moderator-only; a reported moderator cannot access their own case (reporter anonymity would be broken otherwise).
+"""
+type FlagCase implements Node {
+  """
+  The immutable audit trail of decisions on this case, oldest first.  A case usually has one action; appeals that reduce or increase a sanction append replacement actions.
+  """
+  actions: [FlagAction!]!
+
+  """
+  The moderator the case is assigned to, for workload distribution; `null` when unassigned.
+  """
+  assignedModerator: Account
+
+  """When the first report opened this case."""
+  created: DateTime!
+
+  """
+  The individual reports grouped into this case, oldest first. Each report's reason is preserved individually; combining diverse reasons enables more accurate judgment.
+  """
+  flags(after: String, before: String, first: Int, last: Int): FlagCaseFlagsConnection!
+
+  """
+  Whether a non-dismiss action on this case would be forwarded to the target's remote instance: the target is a remote actor (no local account) and at least one report opted into forwarding. When `true`, `takeModerationAction` requires a `forwardSummary` for non-dismiss actions, so the internal `rationale` (which may carry reporter-identifying wording) is never externalized.  Computed over all of the case's reports, not just a page of them.
+  """
+  forwardingEnabled: Boolean!
+  id: ID!
+
+  """
+  How many reports this case has accumulated.  Higher counts mean higher priority: multiple independent reporters finding the same issue suggests severity.
+  """
+  reportCount: Int!
+
+  """When the case was resolved or dismissed; `null` while open."""
+  resolved: DateTime
+
+  """The case's processing status."""
+  status: FlagStatus!
+
+  """The reported actor (local or remote)."""
+  targetActor: Actor!
+
+  """
+  The reported post, for content reports; `null` for user (profile) reports and for posts deleted after the report (the snapshots on the member reports preserve the evidence).
+  """
+  targetPost: Post
+
+  """
+  The reported post's ActivityPub IRI; keeps the case attached to a stable target reference even after post deletion.  `null` for user (profile) reports.
+  """
+  targetPostIri: URL
+
+  """The case's row UUID."""
+  uuid: UUID!
+
+  """
+  The target actor's standing moderation history across all cases, newest first: dismissals are excluded, actions withdrawn or replaced on appeal drop out, and warnings expire after a violation-free year.  Accumulated history affects subsequent sanction levels.
+  """
+  violationHistory: [FlagAction!]!
+}
+
+type FlagCaseFlagsConnection {
+  edges: [FlagCaseFlagsConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type FlagCaseFlagsConnectionEdge {
+  cursor: String!
+  node: Flag!
+}
+
+"""
+The processing status of an individual report.  Reports are grouped into cases; a report's status follows its case's status when the case is resolved.
+"""
+enum FlagStatus {
+  """Dismissed; the report was judged not a violation."""
+  DISMISSED
+
+  """Received and awaiting moderator review."""
+  PENDING
+
+  """Processing complete; a moderation action was taken."""
+  RESOLVED
+
+  """A moderator is reviewing the case."""
+  REVIEWING
+}
+
 input FollowActorInput {
   actorId: ID!
   clientMutationId: ID
@@ -1237,7 +1714,7 @@ type FollowActorPayload {
   follower: Actor!
 }
 
-union FollowActorResult = FollowActorPayload | InvalidInputError | NotAuthenticatedError
+union FollowActorResult = ActorSuspendedError | FollowActorPayload | InvalidInputError | NotAuthenticatedError
 
 """Follow a hashtag. Requires authentication."""
 input FollowHashtagInput {
@@ -1439,6 +1916,11 @@ enum LlmTranslationNotAllowedReason {
 """A BCP 47-compliant language tag."""
 scalar Locale
 
+"""
+The result of `loginByPasskey`: a `Session` on success, or `AccountBannedError` when the passkey is valid but the account is permanently suspended (banned). The field itself is `null` when passkey verification failed.
+"""
+union LoginByPasskeyResult = AccountBannedError | Session
+
 """A login challenge for an account."""
 type LoginChallenge {
   account: Account!
@@ -1454,7 +1936,7 @@ scalar Markdown
 scalar MediaType
 
 """
-A stored media object (image). Two-step upload flow: call `startMediumUpload` to get a pre-signed upload URL, PUT the image to that URL, then call `finishMediumUpload` to complete the transaction. Alternatively, call `createMedium` with a remote URL to import an image directly. Unreferenced media older than the grace period are deleted by the `deleteOrphanMedia` mutation.
+A stored media object (image). Two-step upload flow: call `startMediumUpload` to get a pre-signed upload URL, PUT the image to that URL, then call `finishMediumUpload` to complete the transaction. Alternatively, call `createMedium` with a remote URL to import an image directly. Unreferenced media older than the grace period are deleted by the `deleteOrphanMedia` mutation.  Resolvable via `node(id:)` when it has at least one reference visible to the viewer: the avatar of an account that is not banned, or a published post that is neither censored nor authored by a sanction-hidden actor (the viewer's own account/posts and moderators always count as visible). Hidden when it has references but every avatar and post reference is moderation-hidden for the viewer; fresh, orphan, and draft-only media (with no such references) remain resolvable.
 """
 type Medium implements Node {
   """SHA-256 hash of the normalized stored content, if known."""
@@ -1492,6 +1974,119 @@ type MentionNotification implements Node & Notification {
   uuid: UUID!
 }
 
+"""How many actions of one type were taken in the range."""
+type ModerationActionCount {
+  """The action type."""
+  actionType: FlagActionType!
+
+  """How many actions of this type."""
+  count: Int!
+}
+
+"""
+The divergence between LLM-suggested (`Flag.llmAnalysis`) and moderator-confirmed (`FlagAction.violatedProvisions`) provisions. High divergence localized to particular provisions, languages, or user groups signals unreliable or biased matching; near-zero divergence is also a warning sign (automation bias: moderators rubber-stamping LLM output).
+"""
+type ModerationLlmDivergence {
+  """
+  How many analyzed reports on closed cases were compared.  Failed analyses (an `error` in `Flag.llmAnalysis`) are skipped, and the confirmed set counts only standing actions.
+  """
+  compared: Int!
+
+  """How many had LLM suggestions differing from the confirmed set."""
+  diverged: Int!
+}
+
+"""
+A notification about moderation activity, resolvable only by its recipient.  Everything a sanctioned recipient can reach through it is the sanitized sanction surface, presented under the moderation team's collective identity.
+"""
+type ModerationNotification implements Node {
+  """
+  The appeal an `APPEAL_RECEIVED` or `APPEAL_RESOLVED` notification points at; `null` for other types.  Guarded by `FlagAppeal`'s own scopes (the appellant or moderators).
+  """
+  appeal: FlagAppeal
+
+  """
+  The case a `FLAG_RECEIVED` notification points at; `null` for other types.  Moderator-only (only moderators receive `FLAG_RECEIVED`).
+  """
+  case: FlagCase
+
+  """When the notification was created."""
+  created: DateTime!
+  id: ID!
+
+  """When the recipient read the notification; `null` while unread."""
+  read: DateTime
+
+  """
+  The sanitized sanction surface, for `ACTION_TAKEN` and `SUSPENSION_ENDING` notifications; `null` for other types.
+  """
+  sanction: Sanction
+
+  """What this notification is about."""
+  type: ModerationNotificationType!
+
+  """The notification's row UUID."""
+  uuid: UUID!
+}
+
+"""
+What a moderation notification is about.  These are deliberately separate from regular notifications: their reference shape does not fit the post-centric notification table, and reporter identities must never surface through notification actors.
+"""
+enum ModerationNotificationType {
+  """
+  A moderation action was taken on the recipient (sent under the moderation team's collective identity).
+  """
+  ACTION_TAKEN
+
+  """An appeal was filed (sent to every moderator)."""
+  APPEAL_RECEIVED
+
+  """The recipient's appeal was reviewed."""
+  APPEAL_RESOLVED
+
+  """A new report was filed (sent to every moderator)."""
+  FLAG_RECEIVED
+
+  """The recipient's temporary suspension ends within 24 hours."""
+  SUSPENSION_ENDING
+}
+
+"""How often one code of conduct provision was confirmed as violated."""
+type ModerationProvisionCount {
+  """How many confirmed violations."""
+  count: Int!
+
+  """The provision id."""
+  provision: String!
+}
+
+"""
+Aggregated moderation activity for the statistics screen: queue health, action distribution (a healthy one is mostly dismissals and warnings), the most-violated provisions (guides community education), and the LLM matching divergence.
+"""
+type ModerationStatistics {
+  """How taken actions distribute over the action types."""
+  actionDistribution: [ModerationActionCount!]!
+
+  """
+  Average hours from a case's creation to its resolution; `null` when no case has been resolved in the range.
+  """
+  averageProcessingHours: Float
+
+  """
+  The LLM matching divergence; `null` when no analyzed report has been processed yet.
+  """
+  llmDivergence: ModerationLlmDivergence
+
+  """Reports whose processing finished (resolved or dismissed)."""
+  processedReports: Int!
+
+  """The five most-confirmed provisions."""
+  topViolatedProvisions: [ModerationProvisionCount!]!
+
+  """Reports filed in the range."""
+  totalReports: Int!
+}
+
 type Mutation {
   """
   Add a news feed exclusion pattern (a `URLPattern` string) and hide matching links from the feed list.  Idempotent on the pattern string.  Requires a moderator account.  An invalid pattern raises `InvalidInputError`.
@@ -1520,13 +2115,47 @@ type Mutation {
     promotion: NewsPromotion = NORMAL
   ): AddNewsPreferredSharerResult!
   addReactionToPost(input: AddReactionToPostInput!): AddReactionToPostResult!
+
+  """
+  File an appeal against a moderation action taken on you (`Sanction.uuid` is the `sanctionId`).  Only the sanctioned user can appeal, within 14 days of the action, once per action; dismissals cannot be appealed.  The review outcome arrives as a moderation notification.  Requires authentication.  Banned users cannot sign in to appeal, so they appeal by replying to the sanction email; a moderator then files the appeal on their behalf via `onBehalfOf`.
+  """
+  appealModerationAction(
+    """
+    Context or evidence you believe was not considered (up to 4096 characters).
+    """
+    additionalContext: String
+
+    """
+    Moderator-only: file the appeal on behalf of this sanctioned account.  Used for banned users, who cannot sign in and appeal by replying to the sanction email instead.  The appeal is still subject to the 14-day window and the one-appeal-per-action rule, and the named account must be the sanction's target.
+    """
+    onBehalfOf: ID
+
+    """Why you believe the action is unjust (1–4096 characters)."""
+    reason: String!
+
+    """The appealed action's row UUID (`Sanction.uuid`)."""
+    sanctionId: UUID!
+  ): AppealModerationActionResult!
+
+  """
+  Assign an open moderation case to a moderator for workload distribution (or unassign it by omitting `moderatorId`). Assigning a pending case moves it to `REVIEWING`.  Requires a moderator account.  Returns `null` when the case is not open or the assignee is not a moderator.
+  """
+  assignFlagCase(
+    """The case to (un)assign."""
+    caseId: ID!
+
+    """
+    The moderator to assign; omit to unassign.  Must be an account with moderator privileges.
+    """
+    moderatorId: ID
+  ): AssignFlagCaseResult
   attachArticleDraftMedium(input: AttachArticleDraftMediumInput!): AttachArticleDraftMediumResult!
   attachArticleSourceMedium(input: AttachArticleSourceMediumInput!): AttachArticleSourceMediumResult!
   blockActor(input: BlockActorInput!): BlockActorResult!
   bookmarkPost(input: BookmarkPostInput!): BookmarkPostResult!
 
   """
-  Exchange the `(token, code)` pair from a magic link email for a session. Returns `null` when the challenge does not exist or the code does not match. The returned `Session.id` is the bearer token to include in the `Authorization` header for subsequent authenticated requests.
+  Exchange the `(token, code)` pair from a magic link email for a session. Returns `null` when the challenge does not exist or the code does not match, and `AccountBannedError` when the credential is valid but the account is permanently suspended (banned). The returned `Session.id` is the bearer token to include in the `Authorization` header for subsequent authenticated requests.
   """
   completeLoginChallenge(
     """The code of the login challenge."""
@@ -1534,7 +2163,7 @@ type Mutation {
 
     """The token of the login challenge."""
     token: UUID!
-  ): Session
+  ): CompleteLoginChallengeResult
 
   """Complete the signup process by creating a new account and session."""
   completeSignup(
@@ -1611,7 +2240,7 @@ type Mutation {
   ): LoginResult!
 
   """
-  Authenticate using a WebAuthn passkey. First call `getPasskeyAuthenticationOptions` with a fresh `sessionId` UUID, then pass the authenticator's response back here as `authenticationResponse`. Returns `null` when verification fails.
+  Authenticate using a WebAuthn passkey. First call `getPasskeyAuthenticationOptions` with a fresh `sessionId` UUID, then pass the authenticator's response back here as `authenticationResponse`. Returns `null` when verification fails, and `AccountBannedError` when the passkey is valid but the account is permanently suspended (banned).
   """
   loginByPasskey(
     """WebAuthn authentication response from the client."""
@@ -1620,7 +2249,7 @@ type Mutation {
 
     """Temporary session ID used for authentication options."""
     sessionId: UUID!
-  ): Session
+  ): LoginByPasskeyResult
 
   """
   Initiate passwordless sign-in by username. Sends a magic link to all email addresses on the account. The link embeds `{token}` and `{code}` as URI Template variables in `verifyUrl`. Complete the flow by calling `completeLoginChallenge` with those values.
@@ -1637,6 +2266,16 @@ type Mutation {
     """
     verifyUrl: URITemplate!
   ): LoginResult!
+
+  """
+  Mark the viewer's unread moderation notifications as read (optionally only those up to the notification with the given id) and return how many were affected.  Idempotent.  Requires authentication.
+  """
+  markModerationNotificationsRead(
+    """
+    Mark only notifications created up to (and including) this one; omit to mark everything.
+    """
+    upToId: ID
+  ): Int!
 
   """
   Marks notifications as read up to a notification, or the current time when omitted. Returns the timestamp.
@@ -1708,7 +2347,48 @@ type Mutation {
     id: UUID!
   ): RemoveNewsPreferredSharerResult!
   removeReactionFromPost(input: RemoveReactionFromPostInput!): RemoveReactionFromPostResult!
+
+  """
+  Report a post (`Note`, `Article`, or `Question`) or a user (`Actor`) for violating the code of conduct.  Requires authentication.  The free-form `reason` needs no knowledge of specific provisions; it must be between 10 and 4096 characters. Reports on the same target are grouped into one case for moderators, but each reporter can have only one open report per target (`DuplicateReportError` otherwise).  The reporter's identity is kept strictly confidential.
+  """
+  reportContent(
+    """
+    Opt in to forwarding this report to the target's remote instance after moderator action (the moderation team's summary is sent, never this `reason` text).  Only meaningful for remote targets; ignored for local ones.
+    """
+    forwardToRemote: Boolean
+
+    """
+    Why this content or user is being reported, in the reporter's own words (10–4096 characters).
+    """
+    reason: String!
+
+    """
+    The reported target: an `Actor` for user reports, or a post for content reports.
+    """
+    targetId: ID!
+  ): ReportContentResult!
   requestArticleTranslation(input: RequestArticleTranslationInput!): RequestArticleTranslationResult!
+
+  """
+  Resolve an appeal: `DISMISSED` keeps the original action, `WITHDRAWN` reverts its enforcement, and `REDUCED`/`INCREASED` replace it with the given `replacement` action on the same case. The appellant is notified under the moderation team's collective identity.  Preferably reviewed by a different moderator than the original decision-maker; the UI surfaces a warning via `FlagAppeal.action.moderator`, but this is not enforced.  Requires a moderator account.
+  """
+  resolveFlagAppeal(
+    """The open appeal to resolve."""
+    appealId: ID!
+
+    """
+    The replacement action; required for (and only for) `REDUCED` and `INCREASED` results.
+    """
+    replacement: ReplacementActionInput
+
+    """The review outcome."""
+    result: FlagAppealResult!
+
+    """
+    The review rationale, shown to the appellant under the moderation team's collective identity.
+    """
+    reviewRationale: String!
+  ): ResolveFlagAppealResult!
 
   """
   Delete a passkey from the account. Returns the deleted passkey's global ID, or `null` if the passkey was not found. Requires authentication and ownership of the passkey.
@@ -1743,6 +2423,45 @@ type Mutation {
     """The relay actor's URL, e.g. `https://relay.example/actor`."""
     actorUrl: URL!
   ): SubscribeRelayResult!
+
+  """
+  Record a moderation decision on an open case and apply its effects: `DISMISS` dismisses the case; `WARNING` records a warning; `CENSOR` hides the reported post from listings (its permalink keeps a notice); `SUSPEND` suspends the target for the given window; `BAN` suspends permanently.  Every action except `DISMISS` requires `violatedProvisions`.  For a **local** target, the reported user is notified in-app and (for sanctions) by email, always under the moderation team's collective identity, and can appeal within 14 days (a `DISMISS` notifies only when `messageToUser` is set).  A **remote** target has no local notification or appeal: a `WARNING` is only recorded, a `CENSOR` hides the locally cached post, and a `SUSPEND` or `BAN` applies a temporary or permanent federation block.  When a reporter opted in (see `FlagCase.forwardingEnabled`) a `Flag` activity carrying `forwardSummary` is sent to the remote instance from the instance actor; in that case a non-empty `forwardSummary` is required for non-dismiss actions (`InvalidInputError` otherwise) so the internal `rationale` is never externalized.  That forwarding is best-effort and happens after the decision is committed: a send failure is logged server-side and does not fail this mutation (the action still succeeds).  Requires a moderator account.
+  """
+  takeModerationAction(
+    """The decision."""
+    actionType: FlagActionType!
+
+    """The open case to act on."""
+    caseId: ID!
+
+    """
+    Moderator-written summary for the outgoing `Flag` activity when forwarding to the target's remote instance.  Required (non-empty) for non-dismiss actions when `FlagCase.forwardingEnabled` is `true`.  Never include the reporter's wording.
+    """
+    forwardSummary: String
+
+    """
+    The message shown to the reported user (under the moderation team's collective identity).  For `DISMISS`, providing a message opts into the educational dismissal notification.
+    """
+    messageToUser: String
+
+    """
+    The internal judgment rationale, recorded for the audit trail and consistency across moderators.  Not shown to the reported user.
+    """
+    rationale: String!
+
+    """Suspension end; required for (and only for) `SUSPEND`."""
+    suspensionEnds: DateTime
+
+    """
+    Suspension start; required for (and only for) `SUSPEND`. Must not be in the future (a few minutes of clock skew are tolerated and clamped to the server clock).
+    """
+    suspensionStarts: DateTime
+
+    """
+    The code of conduct provision ids confirmed as violated. Required (non-empty) for every action except `DISMISS`, and rejected for `DISMISS` (a dismissal confirms no violation; recorded provisions would skew the statistics).
+    """
+    violatedProvisions: [String!]
+  ): TakeModerationActionResult!
   unblockActor(input: UnblockActorInput!): UnblockActorResult!
   unbookmarkPost(input: UnbookmarkPostInput!): UnbookmarkPostResult!
   unfollowActor(input: UnfollowActorInput!): UnfollowActorResult!
@@ -1780,6 +2499,17 @@ type Mutation {
   ): UnsubscribeRelayResult
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
   updateArticle(input: UpdateArticleInput!): UpdateArticleResult!
+
+  """
+  Move an open moderation case between `PENDING` and `REVIEWING`. Resolution happens exclusively through `takeModerationAction`. Requires a moderator account.  Returns `null` when the case is not open.
+  """
+  updateFlagCaseStatus(
+    """The case to update."""
+    caseId: ID!
+
+    """The new status; only `PENDING` or `REVIEWING`."""
+    status: FlagStatus!
+  ): UpdateFlagCaseStatusResult
   updateNote(input: UpdateNoteInput!): UpdateNoteResult!
 
   """
@@ -1903,7 +2633,7 @@ type NewsScoreStatus {
 }
 
 """
-How a link's public shares break down by origin.  Hackers' Pub posts carry the most weight, generic remote instances less, and Bluesky-bridged accounts (`@…@bsky.brid.gy`) the least.  Shares authored by bot accounts (`Service`/`Application` actors) are excluded throughout, unless the account is a curated preferred sharer.
+How a link's public shares break down by origin.  Hackers' Pub posts carry the most weight, generic remote instances less, and Bluesky-bridged accounts (`@…@bsky.brid.gy`) the least.  Censored shares and shares by sanction-hidden actors are excluded, as are shares authored by bot accounts (`Service`/`Application` actors), unless the account is a curated preferred sharer.
 """
 type NewsSourceBreakdown {
   """Public shares bridged from Bluesky (`@…@bsky.brid.gy`)."""
@@ -1938,29 +2668,34 @@ type Note implements Node & Post & Reactable {
   actor: Actor!
 
   """
-  The post's full HTML content, with custom emoji shortcodes rendered as `<img>` elements and external links annotated with `target="_blank"`. Boost wrappers have empty content; use `sharedPost.content` instead.
+  When a moderator censored this post, or `null` when it is not censored.  Censored posts disappear from timelines, search, and recommendations, but their permalinks stay reachable so a censorship notice can be shown.  For everyone but the author and moderators, all content-bearing fields are redacted: `content`, the excerpt fields, `name`, `summary`, `hashtags`, `Article.tags`, `media`, `link`, `mentions`, `sharedPost`, `quotedPost`, article contents, and poll data.
+  """
+  censored: DateTime
+
+  """
+  The post's full HTML content, with custom emoji shortcodes rendered as `<img>` elements and external links annotated with `target="_blank"`. Boost wrappers copy the boosted post's content; prefer `sharedPost.content`.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post), and the viewer is neither the content's author nor a moderator.
   """
   content: HTML!
   engagementStats: PostEngagementStats!
 
   """
-  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.
+  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post) and the viewer is neither the content's author nor a moderator.
   """
   excerpt: String!
 
   """
-  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.
+  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post) and the viewer is neither the content's author nor a moderator.
   """
   excerptHtml(maxChars: Int!): HTML!
 
   """
-  Hashtags mentioned in the post, extracted from the post's tag map. Each entry includes the tag name and its canonical hashtag search URL.
+  Hashtags mentioned in the post, extracted from the post's tag map. Each entry includes the tag name and its canonical hashtag search URL.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post) and the viewer is neither the content's author nor a moderator, since hashtags are derived from the hidden content.
   """
   hashtags: [Hashtag!]!
   id: ID!
 
   """
-  The post's ActivityPub IRI, used as its canonical identifier in federation. For local posts this is an `/ap/…` endpoint; for remote posts it is whatever IRI the originating instance assigned. Prefer `url` for human-readable links.
+  The post's ActivityPub IRI, used as its canonical identifier in federation. For local posts this is an `/ap/…` endpoint; for remote posts it is whatever IRI the originating instance assigned. Prefer `url` for human-readable links.  When the post is censored or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator, a remote IRI (or a boost wrapper's, whose `url` is also nulled) is replaced with the local permalink that renders the notice, so a `url ?? iri` fallback never leaks the uncensored origin. A local non-wrapper post keeps its own `/ap/…` IRI (it does not point outside this instance).
   """
   iri: URL!
 
@@ -1970,32 +2705,36 @@ type Note implements Node & Post & Reactable {
   language: String
 
   """
-  OpenGraph / oEmbed preview for the first link in the post. `null` when the post has no links or the metadata has not been fetched yet.
+  OpenGraph / oEmbed preview for the first link in the post. `null` when the post has no links or the metadata has not been fetched yet, and also when the post is censored or its author is hidden by a moderation sanction, and the viewer is neither its author nor a moderator (the linked URL is part of the censored content).
   """
   link: PostLink
 
   """
-  Media attachments on this post, in display order. For federated posts the URLs point to the originating instance.
+  Media attachments on this post, in display order. For federated posts the URLs point to the originating instance.  Empty when the post is censored or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator: attachments are part of the hidden content.
   """
   media: [PostMedium!]!
 
   """
-  Actors explicitly @-mentioned in this post. Does not include implicit mentions (e.g., the author of the post being replied to).
+  Actors explicitly @-mentioned in this post. Does not include implicit mentions (e.g., the author of the post being replied to). Empty when the post is censored or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator, since the mention targets are part of the censored content.
   """
   mentions(after: String, before: String, first: Int, last: Int): PostMentionsConnection!
 
   """
-  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.
+  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.  `null` when the post is censored or its author is hidden by a moderation sanction (or it is a boost wrapper of such a post, whose title it copies) and the viewer is neither the content's author nor a moderator.
   """
   name: String
   published: DateTime!
   quotePolicy: QuotePolicy!
   quoteTargetState: QuoteTargetState
 
-  """The post being quoted inline. `null` for posts that are not quotes."""
+  """
+  The post being quoted inline. `null` for posts that are not quotes, and also when the quoting post is censored or its author is hidden by a moderation sanction, and the viewer is neither its author nor a moderator: the quoted target is part of the censored content.
+  """
   quotedPost: Post
 
-  """Posts that quote this post inline."""
+  """
+  Posts that quote this post inline. Censored quotes and quotes by actors whose content is hidden by a moderation sanction are excluded.
+  """
   quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
 
   """
@@ -2005,7 +2744,9 @@ type Note implements Node & Post & Reactable {
   reactionGroup(customEmojiId: ID, emoji: String): ReactionGroup
   reactionGroups: [ReactionGroup!]!
 
-  """Posts that are direct replies to this post."""
+  """
+  Posts that are direct replies to this post. Censored replies and replies by actors whose content is hidden by a moderation sanction are excluded.
+  """
   replies(after: String, before: String, first: Int, last: Int): PostRepliesConnection!
 
   """The post this post is a reply to, or `null` for top-level posts."""
@@ -2017,12 +2758,12 @@ type Note implements Node & Post & Reactable {
   sensitive: Boolean!
 
   """
-  The post being boosted. Non-null only for boost wrapper rows. When this is non-null, `content` is empty and `url` mirrors the shared post's URL.
+  The post being boosted. Non-null only for boost wrapper rows. When this is non-null, `content` is empty and `url` mirrors the shared post's URL.  `null` when the boost wrapper itself is censored, or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator: what was boosted is the censored content.
   """
   sharedPost: Post
 
   """
-  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor.
+  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor. Censored boosts (including boosts of a censored post) and boosts by actors whose content is hidden by a moderation sanction are excluded.
   """
   shares(after: String, before: String, first: Int, last: Int): PostSharesConnection!
 
@@ -2032,13 +2773,13 @@ type Note implements Node & Post & Reactable {
   sourceId: UUID
 
   """
-  Author-provided or LLM-generated summary of the post. `null` when no summary has been set. For LLM summaries, check `ArticleContent.summary` and `summaryStarted` instead, as those are tracked per language on articles.
+  Author-provided or LLM-generated summary of the post. `null` when no summary has been set. For LLM summaries, check `ArticleContent.summary` and `summaryStarted` instead, as those are tracked per language on articles.  `null` when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post), and the viewer is neither the content's author nor a moderator.
   """
   summary: String
   updated: DateTime!
 
   """
-  The canonical, human-readable URL of this post. For source-backed local posts the path encodes the local source identifier: `Note.sourceId` for notes, `Article.publishedYear` + `Article.slug` for articles, and `Question.sourceId` for questions. It does not encode `Post.uuid`. For federated remote posts and local share wrappers (boosts) this is whatever URL the originating instance advertised (copied from the shared post in the boost case) and is unrelated to the wrapper's own row PK. Prefer this field over hand-building a path from `Post.uuid`: `uuid` is the row PK and does not match the path here for source-backed local posts.
+  The canonical, human-readable URL of this post. For source-backed local posts the path encodes the local source identifier: `Note.sourceId` for notes, `Article.publishedYear` + `Article.slug` for articles, and `Question.sourceId` for questions. It does not encode `Post.uuid`. For federated remote posts and local share wrappers (boosts) this is whatever URL the originating instance advertised (copied from the shared post in the boost case) and is unrelated to the wrapper's own row PK. Prefer this field over hand-building a path from `Post.uuid`: `uuid` is the row PK and does not match the path here for source-backed local posts.  `null` when the post is censored or its author is hidden by a moderation sanction, and the viewer is neither the content's author nor a moderator, EXCEPT for a local post (whose own permalink renders the notice): a boost wrapper's URL mirrors the boosted post's, and a remote post's URL points at the uncensored copy on its origin instance, so both are hidden.
   """
   url: URL
 
@@ -2048,7 +2789,7 @@ type Note implements Node & Post & Reactable {
   uuid: UUID!
 
   """
-  Whether the authenticated viewer is allowed to quote this post, based on `quotePolicy`, visibility, and block state. Always `false` for unauthenticated requests.
+  Whether the authenticated viewer is allowed to quote this post, based on `quotePolicy`, visibility, and block state. A censored post cannot be quoted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests.
   """
   viewerCanQuote: Boolean!
 
@@ -2063,7 +2804,7 @@ type Note implements Node & Post & Reactable {
   viewerCanRevokeQuote: Boolean!
 
   """
-  Whether the authenticated viewer is allowed to boost this post, based on visibility and block state. Always `false` for unauthenticated requests.
+  Whether the authenticated viewer is allowed to boost this post, based on visibility and block state. A censored post cannot be boosted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests.
   """
   viewerCanShare: Boolean!
 
@@ -2221,7 +2962,7 @@ type PinPostPayload {
 union PinPostResult = InvalidInputError | NotAuthenticatedError | PinPostPayload
 
 """
-A poll attached to a `Question` post. Contains options, vote counts, and the voting deadline.
+A poll attached to a `Question` post. Contains options, vote counts, and the voting deadline.  When the owning `Question` is censored or its author is hidden by a moderation sanction, the poll (including its option titles) is part of the hidden content and is only resolvable by the author and moderators, even through direct `node(id:)` lookups.
 """
 type Poll implements Node {
   """Whether the voting period has ended (`ends <= now()`)."""
@@ -2357,36 +3098,41 @@ type PollVotesConnectionEdge {
 }
 
 """
-Abstract base for all content types: `Note` (short microblog posts), `Article` (long-form blog posts), and `Question` (polls from federated instances). Most timeline and feed queries return this interface; use `__typename` or inline fragments to access type-specific fields.
+Abstract base for all content types: `Note` (short microblog posts), `Article` (long-form blog posts), and `Question` (polls from federated instances). Most timeline and feed queries return this interface; use `__typename` or inline fragments to access type-specific fields.  Content-bearing fields are redacted (empty or `null`) when the post is censored or its author is hidden by a moderation sanction (a banned local actor, or a remote actor under an active federation block), unless the viewer is the author or a moderator; list queries exclude such posts entirely, so this matters for direct `node(id:)` lookups and nested relations.
 """
 interface Post implements Node & Reactable {
   """The actor who authored or boosted this post."""
   actor: Actor!
 
   """
-  The post's full HTML content, with custom emoji shortcodes rendered as `<img>` elements and external links annotated with `target="_blank"`. Boost wrappers have empty content; use `sharedPost.content` instead.
+  When a moderator censored this post, or `null` when it is not censored.  Censored posts disappear from timelines, search, and recommendations, but their permalinks stay reachable so a censorship notice can be shown.  For everyone but the author and moderators, all content-bearing fields are redacted: `content`, the excerpt fields, `name`, `summary`, `hashtags`, `Article.tags`, `media`, `link`, `mentions`, `sharedPost`, `quotedPost`, article contents, and poll data.
+  """
+  censored: DateTime
+
+  """
+  The post's full HTML content, with custom emoji shortcodes rendered as `<img>` elements and external links annotated with `target="_blank"`. Boost wrappers copy the boosted post's content; prefer `sharedPost.content`.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post), and the viewer is neither the content's author nor a moderator.
   """
   content: HTML!
   engagementStats: PostEngagementStats!
 
   """
-  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.
+  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post) and the viewer is neither the content's author nor a moderator.
   """
   excerpt: String!
 
   """
-  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.
+  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post) and the viewer is neither the content's author nor a moderator.
   """
   excerptHtml(maxChars: Int!): HTML!
 
   """
-  Hashtags mentioned in the post, extracted from the post's tag map. Each entry includes the tag name and its canonical hashtag search URL.
+  Hashtags mentioned in the post, extracted from the post's tag map. Each entry includes the tag name and its canonical hashtag search URL.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post) and the viewer is neither the content's author nor a moderator, since hashtags are derived from the hidden content.
   """
   hashtags: [Hashtag!]!
   id: ID!
 
   """
-  The post's ActivityPub IRI, used as its canonical identifier in federation. For local posts this is an `/ap/…` endpoint; for remote posts it is whatever IRI the originating instance assigned. Prefer `url` for human-readable links.
+  The post's ActivityPub IRI, used as its canonical identifier in federation. For local posts this is an `/ap/…` endpoint; for remote posts it is whatever IRI the originating instance assigned. Prefer `url` for human-readable links.  When the post is censored or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator, a remote IRI (or a boost wrapper's, whose `url` is also nulled) is replaced with the local permalink that renders the notice, so a `url ?? iri` fallback never leaks the uncensored origin. A local non-wrapper post keeps its own `/ap/…` IRI (it does not point outside this instance).
   """
   iri: URL!
 
@@ -2396,37 +3142,43 @@ interface Post implements Node & Reactable {
   language: String
 
   """
-  OpenGraph / oEmbed preview for the first link in the post. `null` when the post has no links or the metadata has not been fetched yet.
+  OpenGraph / oEmbed preview for the first link in the post. `null` when the post has no links or the metadata has not been fetched yet, and also when the post is censored or its author is hidden by a moderation sanction, and the viewer is neither its author nor a moderator (the linked URL is part of the censored content).
   """
   link: PostLink
 
   """
-  Media attachments on this post, in display order. For federated posts the URLs point to the originating instance.
+  Media attachments on this post, in display order. For federated posts the URLs point to the originating instance.  Empty when the post is censored or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator: attachments are part of the hidden content.
   """
   media: [PostMedium!]!
 
   """
-  Actors explicitly @-mentioned in this post. Does not include implicit mentions (e.g., the author of the post being replied to).
+  Actors explicitly @-mentioned in this post. Does not include implicit mentions (e.g., the author of the post being replied to). Empty when the post is censored or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator, since the mention targets are part of the censored content.
   """
   mentions(after: String, before: String, first: Int, last: Int): PostMentionsConnection!
 
   """
-  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.
+  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.  `null` when the post is censored or its author is hidden by a moderation sanction (or it is a boost wrapper of such a post, whose title it copies) and the viewer is neither the content's author nor a moderator.
   """
   name: String
   published: DateTime!
   quotePolicy: QuotePolicy!
   quoteTargetState: QuoteTargetState
 
-  """The post being quoted inline. `null` for posts that are not quotes."""
+  """
+  The post being quoted inline. `null` for posts that are not quotes, and also when the quoting post is censored or its author is hidden by a moderation sanction, and the viewer is neither its author nor a moderator: the quoted target is part of the censored content.
+  """
   quotedPost: Post
 
-  """Posts that quote this post inline."""
+  """
+  Posts that quote this post inline. Censored quotes and quotes by actors whose content is hidden by a moderation sanction are excluded.
+  """
   quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
   reactionGroup(customEmojiId: ID, emoji: String): ReactionGroup
   reactionGroups: [ReactionGroup!]!
 
-  """Posts that are direct replies to this post."""
+  """
+  Posts that are direct replies to this post. Censored replies and replies by actors whose content is hidden by a moderation sanction are excluded.
+  """
   replies(after: String, before: String, first: Int, last: Int): PostRepliesConnection!
 
   """The post this post is a reply to, or `null` for top-level posts."""
@@ -2438,23 +3190,23 @@ interface Post implements Node & Reactable {
   sensitive: Boolean!
 
   """
-  The post being boosted. Non-null only for boost wrapper rows. When this is non-null, `content` is empty and `url` mirrors the shared post's URL.
+  The post being boosted. Non-null only for boost wrapper rows. When this is non-null, `content` is empty and `url` mirrors the shared post's URL.  `null` when the boost wrapper itself is censored, or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator: what was boosted is the censored content.
   """
   sharedPost: Post
 
   """
-  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor.
+  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor. Censored boosts (including boosts of a censored post) and boosts by actors whose content is hidden by a moderation sanction are excluded.
   """
   shares(after: String, before: String, first: Int, last: Int): PostSharesConnection!
 
   """
-  Author-provided or LLM-generated summary of the post. `null` when no summary has been set. For LLM summaries, check `ArticleContent.summary` and `summaryStarted` instead, as those are tracked per language on articles.
+  Author-provided or LLM-generated summary of the post. `null` when no summary has been set. For LLM summaries, check `ArticleContent.summary` and `summaryStarted` instead, as those are tracked per language on articles.  `null` when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post), and the viewer is neither the content's author nor a moderator.
   """
   summary: String
   updated: DateTime!
 
   """
-  The canonical, human-readable URL of this post. For source-backed local posts the path encodes the local source identifier: `Note.sourceId` for notes, `Article.publishedYear` + `Article.slug` for articles, and `Question.sourceId` for questions. It does not encode `Post.uuid`. For federated remote posts and local share wrappers (boosts) this is whatever URL the originating instance advertised (copied from the shared post in the boost case) and is unrelated to the wrapper's own row PK. Prefer this field over hand-building a path from `Post.uuid`: `uuid` is the row PK and does not match the path here for source-backed local posts.
+  The canonical, human-readable URL of this post. For source-backed local posts the path encodes the local source identifier: `Note.sourceId` for notes, `Article.publishedYear` + `Article.slug` for articles, and `Question.sourceId` for questions. It does not encode `Post.uuid`. For federated remote posts and local share wrappers (boosts) this is whatever URL the originating instance advertised (copied from the shared post in the boost case) and is unrelated to the wrapper's own row PK. Prefer this field over hand-building a path from `Post.uuid`: `uuid` is the row PK and does not match the path here for source-backed local posts.  `null` when the post is censored or its author is hidden by a moderation sanction, and the viewer is neither the content's author nor a moderator, EXCEPT for a local post (whose own permalink renders the notice): a boost wrapper's URL mirrors the boosted post's, and a remote post's URL points at the uncensored copy on its origin instance, so both are hidden.
   """
   url: URL
 
@@ -2464,7 +3216,7 @@ interface Post implements Node & Reactable {
   uuid: UUID!
 
   """
-  Whether the authenticated viewer is allowed to quote this post, based on `quotePolicy`, visibility, and block state. Always `false` for unauthenticated requests.
+  Whether the authenticated viewer is allowed to quote this post, based on `quotePolicy`, visibility, and block state. A censored post cannot be quoted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests.
   """
   viewerCanQuote: Boolean!
 
@@ -2479,7 +3231,7 @@ interface Post implements Node & Reactable {
   viewerCanRevokeQuote: Boolean!
 
   """
-  Whether the authenticated viewer is allowed to boost this post, based on visibility and block state. Always `false` for unauthenticated requests.
+  Whether the authenticated viewer is allowed to boost this post, based on visibility and block state. A censored post cannot be boosted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests.
   """
   viewerCanShare: Boolean!
 
@@ -2513,7 +3265,7 @@ type PostEngagementStats {
 }
 
 """
-OpenGraph / oEmbed metadata for a link embedded in a post. Populated asynchronously after the post is created; individual fields may be `null` until the metadata fetch completes or if the linked page does not expose the corresponding tag.
+OpenGraph / oEmbed metadata for a link embedded in a post. Populated asynchronously after the post is created; individual fields may be `null` until the metadata fetch completes or if the linked page does not expose the corresponding tag.  Not resolvable via `node(id:)` when every post referencing the link is censored or authored by a sanction-hidden actor, for this viewer: the linked URL is part of the moderation-hidden content.
 """
 type PostLink implements Node {
   """
@@ -2525,19 +3277,19 @@ type PostLink implements Node {
   description: String
 
   """
-  Size of this link's federated discussion: its qualifying public direct linked sharing posts (non-bot accounts, or curated preferred sharers) plus their direct public (`public`/`unlisted`) replies and quotes.  Use this as the count of posts to read in the discussion (the `/news/{uuid}` page); unlike `postCount` it includes replies and quotes, but it does not include `Article` boosts that count only toward the score.  Counts direct children only (deeper nesting is not traversed) and is viewer-independent (public posts only).
+  Size of this link's federated discussion: its qualifying public direct linked sharing posts (non-bot accounts, or curated preferred sharers) plus their direct public (`public`/`unlisted`) replies and quotes.  Use this as the count of posts to read in the discussion (the `/news/{uuid}` page); unlike `postCount` it includes replies and quotes, but it does not include `Article` boosts that count only toward the score.  Counts direct children only (deeper nesting is not traversed) and is viewer-independent (public posts only).  Censored posts and posts by sanction-hidden actors are excluded, both as shares and as replies/quotes.
   """
   discussionCount: Int!
 
   """
-  When this link was first shared publicly by a qualifying account (a non-bot account, or a curated preferred sharer), or `null` if it has never been.  Drives the `NEWEST` order.
+  When this link was first shared publicly by a qualifying account (a non-bot account, or a curated preferred sharer; censored shares and sanction-hidden actors do not qualify), or `null` if it has never been.  Drives the `NEWEST` order.
   """
   firstSharedAt: DateTime
   id: ID!
   image: PostLinkImage
 
   """
-  Timestamp of the freshest activity on this link's qualifying shares (the share itself, a reply, a quote, or a reaction); shares are direct linked posts or boosts of `Article` posts backed by this link, public, and authored by non-bot accounts (or curated preferred sharers).  A rapid repeat share by the same account does not refresh this (only a first share, a sufficiently-gapped re-share, or genuine replies/quotes/reactions do), so re-posting cannot keep a link pinned at the top.  `null` means the link is not a news story (no qualifying public share); such links are excluded from the feed.
+  Timestamp of the freshest activity on this link's qualifying shares (the share itself, a reply, a quote, or a reaction); shares are direct linked posts or boosts of `Article` posts backed by this link, public, uncensored, and authored by non-bot, sanction-visible accounts (or curated preferred sharers).  Censored replies/quotes and child posts by sanction-hidden actors do not refresh this timestamp.  A rapid repeat share by the same account does not refresh this (only a first share, a sufficiently-gapped re-share, or genuine replies/quotes/reactions do), so re-posting cannot keep a link pinned at the top.  `null` means the link is not a news story (no qualifying public share); such links are excluded from the feed.
   """
   latestActivityAt: DateTime
 
@@ -2547,7 +3299,7 @@ type PostLink implements Node {
   penalty: NewsPenalty
 
   """
-  Number of public share signals across the fediverse for this link: direct linked posts plus boosts of `Article` posts backed by this link.  Excludes shares from bot (`Service`/`Application`) accounts that are not curated preferred sharers.  Counts every such signal, including an account's repeated shares of the same link (a high count with a modest `score` is expected, since repeats contribute diminishing weight).
+  Number of public share signals across the fediverse for this link: direct linked posts plus boosts of `Article` posts backed by this link.  Excludes censored posts, shares by sanction-hidden actors, and shares from bot (`Service`/`Application`) accounts that are not curated preferred sharers.  Counts every such signal, including an account's repeated shares of the same link (a high count with a modest `score` is expected, since repeats contribute diminishing weight).
   """
   postCount: Int!
 
@@ -2557,7 +3309,7 @@ type PostLink implements Node {
   promotion: NewsPromotion
 
   """
-  Popularity-over-time rank used by the `POPULAR` feed order: `log10(max(1, weightedMass)) + recency + promotion - penalty`.  Computed by a batch job and refreshed incrementally; recompute is idempotent and the value is time-stable (it changes only when the underlying posts, engagement, or moderator curation change, not as the clock advances).  Shares from bot accounts (`Service`/`Application` actors) normally never count, so a link shared only by bots stays at `0`, as do links never shared publicly; the exception is a moderator-curated preferred sharer, whose shares count even when it is a bot and add a flat `promotion` bonus to the score (a moderator penalty on the link overrides that bonus).  When one account shares the same link repeatedly, each share after the first adds only a small, gap-dependent fraction of the base weight (and a rapid repeat does not refresh recency), so re-posting cannot inflate the rank.
+  Popularity-over-time rank used by the `POPULAR` feed order: `log10(max(1, weightedMass)) + recency + promotion - penalty`.  Computed by a batch job and refreshed incrementally; recompute is idempotent and the value is time-stable (it changes only when the underlying posts, engagement, or moderator curation change, not as the clock advances).  Censored posts and posts by sanction-hidden actors never count toward the score.  Shares from bot accounts (`Service`/`Application` actors) normally never count, so a link shared only by bots stays at `0`, as do links never shared publicly; the exception is a moderator-curated preferred sharer, whose shares count even when it is a bot and add a flat `promotion` bonus to the score (a moderator penalty on the link overrides that bonus).  When one account shares the same link repeatedly, each share after the first adds only a small, gap-dependent fraction of the base weight (and a rapid repeat does not refresh recency), so re-posting cannot inflate the rank.
   """
   score: Float!
 
@@ -2568,7 +3320,7 @@ type PostLink implements Node {
   siteName: String
 
   """
-  Counts of this link's public shares by origin (local / remote / Bluesky bridge), including direct linked posts and boosts of `Article` posts backed by this link.  Excludes shares from bot (`Service`/`Application`) accounts that are not curated preferred sharers.
+  Counts of this link's moderation-visible public shares by origin (local / remote / Bluesky bridge), including direct linked posts and boosts of `Article` posts backed by this link.  Excludes shares from bot (`Service`/`Application`) accounts that are not curated preferred sharers.
   """
   sourceBreakdown: NewsSourceBreakdown!
   title: String
@@ -2581,7 +3333,7 @@ type PostLink implements Node {
   uuid: UUID!
 
   """
-  Recency-independent engagement mass: the weighted sum over this link's public share signals (direct linked posts plus boosts of `Article` posts backed by this link, excluding bot `Service`/`Application` accounts unless curated as preferred sharers) of source weight times account reputation times (quotes, replies, reactions).  Repeated shares of the same link by the same account add diminishing base weight (recovering with the gap but always below a first share).  Drives the `ALL_TIME` order.
+  Recency-independent engagement mass: the weighted sum over this link's moderation-visible public share signals (direct linked posts plus boosts of `Article` posts backed by this link, excluding censored posts, sanction-hidden actors, and bot `Service`/`Application` accounts unless curated as preferred sharers) of source weight times account reputation times (quotes, replies, reactions).  Repeated shares of the same link by the same account add diminishing base weight (recovering with the gap but always below a first share).  Drives the `ALL_TIME` order.
   """
   weightedMass: Float!
 }
@@ -2606,7 +3358,7 @@ type PostLinkSharingPostsConnectionEdge {
 }
 
 """
-A media attachment on a post. For local posts this refers to an uploaded `Medium` stored on this instance; for federated posts the `url` points to the remote media URL on the originating instance.
+A media attachment on a post. For local posts this refers to an uploaded `Medium` stored on this instance; for federated posts the `url` points to the remote media URL on the originating instance.  Attachments of a censored post, or of a post whose author is hidden by a moderation sanction, are part of the moderation-hidden content and are only resolvable by the author and moderators, even through direct `node(id:)` lookups.
 """
 type PostMedium implements Node {
   alt: String
@@ -2727,7 +3479,7 @@ type PublishArticleDraftPayload {
   deletedDraftId: ID!
 }
 
-union PublishArticleDraftResult = InvalidInputError | NotAuthenticatedError | PublishArticleDraftPayload
+union PublishArticleDraftResult = ActorSuspendedError | InvalidInputError | NotAuthenticatedError | PublishArticleDraftPayload
 
 """
 Controls how much post content may be included in push notification payloads. Payloads can be displayed on a lock screen and pass through third-party push services.
@@ -2817,6 +3569,22 @@ type Query {
   ): Document!
 
   """
+  The current code of conduct, parsed into provisions, in the given locale (or the nearest available one; English by default). Backs the report form's guidance and the moderation action form's provision picker.
+  """
+  codeOfConductProvisions(
+    """The preferred locale for titles and text."""
+    locale: Locale
+  ): [CocProvision!]!
+
+  """
+  Moderator-only lookup of a single moderation case by its row UUID, for the case detail page.  Returns `null` for unknown UUIDs and for non-moderators.
+  """
+  flagCaseByUuid(
+    """The case's row UUID (`FlagCase.uuid`)."""
+    uuid: UUID!
+  ): FlagCase
+
+  """
   Look up a known fediverse instance by its host name. Returns `null` if this instance has not been discovered yet.
   """
   instanceByHost(host: String!): Instance
@@ -2852,6 +3620,53 @@ type Query {
     """The locale for the Markdown guide."""
     locale: Locale!
   ): Document!
+
+  """
+  Moderator-only queue of appeals against moderation actions, newest first.  Returns `null` for non-moderators; routes should guard with `viewer.moderator`.  Use `status: PENDING` for the open queue.  A moderator's own appeals are excluded: an appellant cannot review their own appeal, and sees it through `Account.sanctions` instead.
+  """
+  moderationAppeals(
+    after: String
+    before: String
+    first: Int
+    last: Int
+
+    """Only appeals with this status."""
+    status: FlagAppealStatus
+  ): QueryModerationAppealsConnection
+
+  """
+  Moderator-only queue of moderation cases, newest first.  Returns `null` for non-moderators; routes should guard with `viewer.moderator`.  Use `status: PENDING` for the open queue, `minReportCount` for the high-priority section, and `search` to match the target's handle or name.
+  """
+  moderationCases(
+    after: String
+    before: String
+    first: Int
+    last: Int
+
+    """
+    Only cases with at least this many reports, e.g. `5` for the high-priority section.
+    """
+    minReportCount: Int
+
+    """
+    Match the target actor's handle or display name (case-insensitive substring).
+    """
+    search: String
+
+    """Only cases with this status."""
+    status: FlagStatus
+  ): QueryModerationCasesConnection
+
+  """
+  Moderator-only aggregated moderation statistics over the given range (all time by default).  Returns `null` for non-moderators.
+  """
+  moderationStatistics(
+    """Start of the range (inclusive)."""
+    since: DateTime
+
+    """End of the range (inclusive)."""
+    until: DateTime
+  ): ModerationStatistics
 
   """
   Moderator-only list of news feed exclusion patterns, newest first.  `null` for non-moderators.
@@ -2974,6 +3789,11 @@ type Query {
   ): HTML!
 
   """
+  Moderator-only list of actors currently under an active sanction (temporary suspension, permanent suspension, or federation block), most recently sanctioned first.  Sanction activeness is evaluated lazily by time comparison, so expired suspensions disappear from this list on their own.  Returns `null` for non-moderators.
+  """
+  sanctionedActors: [Actor!]
+
+  """
   Prefix search for @mention autocomplete. Matches against both username and host. Requires authentication to prevent unauthenticated callers from triggering outbound federation lookups. Capped at 50 results.
   """
   searchActorsByHandle(limit: Int = 25, prefix: String!): [Actor!]!
@@ -3025,6 +3845,26 @@ type QueryBookmarksConnection {
 type QueryBookmarksConnectionEdge {
   cursor: String!
   node: Post!
+}
+
+type QueryModerationAppealsConnection {
+  edges: [QueryModerationAppealsConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type QueryModerationAppealsConnectionEdge {
+  cursor: String!
+  node: FlagAppeal!
+}
+
+type QueryModerationCasesConnection {
+  edges: [QueryModerationCasesConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type QueryModerationCasesConnectionEdge {
+  cursor: String!
+  node: FlagCase!
 }
 
 type QueryNewsStoriesConnection {
@@ -3092,29 +3932,34 @@ type Question implements Node & Post & Reactable {
   actor: Actor!
 
   """
-  The rendered body of the `Question`, excluding poll options. Use `Question.poll` to render the voting UI.
+  When a moderator censored this post, or `null` when it is not censored.  Censored posts disappear from timelines, search, and recommendations, but their permalinks stay reachable so a censorship notice can be shown.  For everyone but the author and moderators, all content-bearing fields are redacted: `content`, the excerpt fields, `name`, `summary`, `hashtags`, `Article.tags`, `media`, `link`, `mentions`, `sharedPost`, `quotedPost`, article contents, and poll data.
+  """
+  censored: DateTime
+
+  """
+  The rendered body of the `Question`, excluding poll options. Use `Question.poll` to render the voting UI.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post), and the viewer is neither the content's author nor a moderator.
   """
   content: HTML!
   engagementStats: PostEngagementStats!
 
   """
-  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.
+  Plain-text excerpt of the post. Returns `summary` when set; otherwise falls back to the HTML content stripped of tags. For a truncated HTML preview, use `excerptHtml` instead.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post) and the viewer is neither the content's author nor a moderator.
   """
   excerpt: String!
 
   """
-  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.
+  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post) and the viewer is neither the content's author nor a moderator.
   """
   excerptHtml(maxChars: Int!): HTML!
 
   """
-  Hashtags mentioned in the post, extracted from the post's tag map. Each entry includes the tag name and its canonical hashtag search URL.
+  Hashtags mentioned in the post, extracted from the post's tag map. Each entry includes the tag name and its canonical hashtag search URL.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post) and the viewer is neither the content's author nor a moderator, since hashtags are derived from the hidden content.
   """
   hashtags: [Hashtag!]!
   id: ID!
 
   """
-  The ActivityPub object IRI for this `Question`. Source-backed local Questions resolve to the `Question` object route (`/ap/questions/...`), not the legacy note route.
+  The ActivityPub object IRI for this `Question`. Source-backed local Questions resolve to the `Question` object route (`/ap/questions/...`), not the legacy note route.  When the question is censored or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator, a remote IRI (or a boost wrapper's, whose `url` is also nulled) is replaced with the local permalink that renders the notice, so a `url ?? iri` fallback never leaks the uncensored origin.
   """
   iri: URL!
 
@@ -3124,27 +3969,27 @@ type Question implements Node & Post & Reactable {
   language: String
 
   """
-  OpenGraph / oEmbed preview for the first link in the post. `null` when the post has no links or the metadata has not been fetched yet.
+  OpenGraph / oEmbed preview for the first link in the post. `null` when the post has no links or the metadata has not been fetched yet, and also when the post is censored or its author is hidden by a moderation sanction, and the viewer is neither its author nor a moderator (the linked URL is part of the censored content).
   """
   link: PostLink
 
   """
-  Media attachments on this post, in display order. For federated posts the URLs point to the originating instance.
+  Media attachments on this post, in display order. For federated posts the URLs point to the originating instance.  Empty when the post is censored or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator: attachments are part of the hidden content.
   """
   media: [PostMedium!]!
 
   """
-  Actors explicitly @-mentioned in this post. Does not include implicit mentions (e.g., the author of the post being replied to).
+  Actors explicitly @-mentioned in this post. Does not include implicit mentions (e.g., the author of the post being replied to). Empty when the post is censored or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator, since the mention targets are part of the censored content.
   """
   mentions(after: String, before: String, first: Int, last: Int): PostMentionsConnection!
 
   """
-  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.
+  The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.  `null` when the post is censored or its author is hidden by a moderation sanction (or it is a boost wrapper of such a post, whose title it copies) and the viewer is neither the content's author nor a moderator.
   """
   name: String
 
   """
-  Poll data attached to this `Question`, or `null` for shared wrappers and Questions whose remote poll data is unavailable. Authenticated viewers may trigger a remote backfill for missing poll data.
+  Poll data attached to this `Question`, or `null` for shared wrappers and Questions whose remote poll data is unavailable. Authenticated viewers may trigger a remote backfill for missing poll data.  Also `null` when the Question is censored or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator (check `censored` to distinguish the redaction from unavailable poll data).
   """
   poll: Poll
 
@@ -3156,16 +4001,20 @@ type Question implements Node & Post & Reactable {
   quoteTargetState: QuoteTargetState
 
   """
-  The post quoted by this `Question`, if any. Visibility rules still apply to the quoted post.
+  The post quoted by this `Question`, if any. Visibility rules still apply to the quoted post.  `null` when the quoting `Question` is censored, or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator: the quoted target is part of the censored content.
   """
   quotedPost: Post
 
-  """Posts that quote this post inline."""
+  """
+  Posts that quote this post inline. Censored quotes and quotes by actors whose content is hidden by a moderation sanction are excluded.
+  """
   quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
   reactionGroup(customEmojiId: ID, emoji: String): ReactionGroup
   reactionGroups: [ReactionGroup!]!
 
-  """Posts that are direct replies to this post."""
+  """
+  Posts that are direct replies to this post. Censored replies and replies by actors whose content is hidden by a moderation sanction are excluded.
+  """
   replies(after: String, before: String, first: Int, last: Int): PostRepliesConnection!
 
   """The post this post is a reply to, or `null` for top-level posts."""
@@ -3177,12 +4026,12 @@ type Question implements Node & Post & Reactable {
   sensitive: Boolean!
 
   """
-  The original post when this row is a local share wrapper. Polls live on the original `Question`, not on the wrapper.
+  The original post when this row is a local share wrapper. Polls live on the original `Question`, not on the wrapper.  `null` when the wrapper itself is censored, or the booster is hidden by a moderation sanction, and the viewer is neither the author nor a moderator: what was boosted is the hidden content.
   """
   sharedPost: Post
 
   """
-  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor.
+  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor. Censored boosts (including boosts of a censored post) and boosts by actors whose content is hidden by a moderation sanction are excluded.
   """
   shares(after: String, before: String, first: Int, last: Int): PostSharesConnection!
 
@@ -3192,13 +4041,13 @@ type Question implements Node & Post & Reactable {
   sourceId: UUID
 
   """
-  Author-provided or LLM-generated summary of the post. `null` when no summary has been set. For LLM summaries, check `ArticleContent.summary` and `summaryStarted` instead, as those are tracked per language on articles.
+  Author-provided or LLM-generated summary of the post. `null` when no summary has been set. For LLM summaries, check `ArticleContent.summary` and `summaryStarted` instead, as those are tracked per language on articles.  `null` when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post), and the viewer is neither the content's author nor a moderator.
   """
   summary: String
   updated: DateTime!
 
   """
-  The canonical, human-readable URL of this question. Source-backed local Questions encode `Question.sourceId`; federated remote Questions and local share wrappers may not share any path token with `Post.uuid`.
+  The canonical, human-readable URL of this question. Source-backed local Questions encode `Question.sourceId`; federated remote Questions and local share wrappers may not share any path token with `Post.uuid`.  `null` when the question is censored or its author is hidden by a moderation sanction, and the viewer is neither the content's author nor a moderator, EXCEPT for a local question (whose own permalink renders the notice): a boost wrapper's URL mirrors the boosted post's, and a remote question's URL points at the uncensored copy on its origin instance, so both are hidden.
   """
   url: URL
 
@@ -3208,7 +4057,7 @@ type Question implements Node & Post & Reactable {
   uuid: UUID!
 
   """
-  Whether the authenticated viewer is allowed to quote this post, based on `quotePolicy`, visibility, and block state. Always `false` for unauthenticated requests.
+  Whether the authenticated viewer is allowed to quote this post, based on `quotePolicy`, visibility, and block state. A censored post cannot be quoted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests.
   """
   viewerCanQuote: Boolean!
 
@@ -3223,7 +4072,7 @@ type Question implements Node & Post & Reactable {
   viewerCanRevokeQuote: Boolean!
 
   """
-  Whether the authenticated viewer is allowed to boost this post, based on visibility and block state. Always `false` for unauthenticated requests.
+  Whether the authenticated viewer is allowed to boost this post, based on visibility and block state. A censored post cannot be boosted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests.
   """
   viewerCanShare: Boolean!
 
@@ -3672,6 +4521,33 @@ type RemoveReactionFromPostPayload {
 
 union RemoveReactionFromPostResult = InvalidInputError | NotAuthenticatedError | RemoveReactionFromPostPayload
 
+"""
+The replacement sanction recorded when an appeal review reduces or increases the original action.  Validated like a regular action: `violatedProvisions` must be non-empty, `CENSOR` needs a post target, `SUSPEND` needs a valid window, and `DISMISS` is not a replacement (use the `WITHDRAWN` result instead).
+"""
+input ReplacementActionInput {
+  """
+  The replacement decision; `DISMISS` is not allowed (use the `WITHDRAWN` appeal result instead).
+  """
+  actionType: FlagActionType!
+
+  """The message shown to the sanctioned user."""
+  messageToUser: String
+
+  """The internal rationale for the replacement."""
+  rationale: String!
+
+  """Suspension end; required for (and only for) `SUSPEND`."""
+  suspensionEnds: DateTime
+
+  """
+  Suspension start; required for (and only for) `SUSPEND`.  Must not be in the future (a few minutes of clock skew are tolerated).
+  """
+  suspensionStarts: DateTime
+
+  """The confirmed code of conduct provision ids."""
+  violatedProvisions: [String!]!
+}
+
 """Notification that an actor replied to one of this account's posts."""
 type ReplyNotification implements Node & Notification {
   account: Account!
@@ -3681,6 +4557,8 @@ type ReplyNotification implements Node & Notification {
   post: Post
   uuid: UUID!
 }
+
+union ReportContentResult = DuplicateReportError | Flag | InvalidInputError | NotAuthenticatedError
 
 """
 Request an LLM translation of an article into the given target language. Returns immediately; the translated `ArticleContent` appears asynchronously (check `beingTranslated`). Returns `LlmTranslationNotAllowedError` if translation is disabled on the article or the target language matches the source language.
@@ -3698,6 +4576,8 @@ type RequestArticleTranslationPayload {
 
 union RequestArticleTranslationResult = InvalidInputError | LlmTranslationNotAllowedError | NotAuthenticatedError | RequestArticleTranslationPayload
 
+union ResolveFlagAppealResult = FlagAppeal | InvalidInputError | NotAuthenticatedError | NotAuthorizedError
+
 """
 As the quoted post's author, revoke permission for a quote of your post. Sends a revocation activity to the quoting instance. Only the `quotedPost`'s author may call this.
 """
@@ -3713,6 +4593,49 @@ type RevokeQuotePayload {
 }
 
 union RevokeQuoteResult = InvalidInputError | NotAuthenticatedError | RevokeQuotePayload
+
+"""
+The sanitized surface a sanctioned (or warned) user sees about a moderation action taken on them: the confirmed violations, the action, the target content reference, and the moderation team's message.  Deliberately absent: the reporters, their reasons, the report count, the internal rationale, and the acting moderator's identity (everything is presented under the moderation team's collective identity).
+"""
+type Sanction {
+  """
+  What was decided.  `DISMISS` appears here only when the moderation team opted into the educational dismissal notification by writing a message.
+  """
+  actionType: FlagActionType!
+
+  """The user's appeal against this action, or `null` when none was filed."""
+  appeal: FlagAppeal
+
+  """The appeal deadline: 14 days after the action.  One appeal per action."""
+  appealableUntil: DateTime!
+
+  """When the action was taken."""
+  created: DateTime!
+
+  """The moderation team's message."""
+  messageToUser: String
+
+  """The suspension window's end, for `SUSPEND` actions."""
+  suspensionEnds: DateTime
+
+  """The suspension window's start, for `SUSPEND` actions."""
+  suspensionStarts: DateTime
+
+  """
+  The sanctioned post's ActivityPub IRI, when the action targeted a post; `null` for account-level actions.
+  """
+  targetPostIri: URL
+
+  """
+  The underlying action's row UUID; pass it to `appealModerationAction` as `sanctionId`.
+  """
+  uuid: UUID!
+
+  """
+  The code of conduct provision ids the moderation team confirmed as violated (empty for dismissals).
+  """
+  violatedProvisions: [String!]!
+}
 
 """
 Create or update an article draft. Omit `id` to create a new draft. Requires authentication.
@@ -3792,7 +4715,7 @@ type SharePostPayload {
   share: Post!
 }
 
-union SharePostResult = InvalidInputError | NotAuthenticatedError | SharePostPayload
+union SharePostResult = ActorSuspendedError | InvalidInputError | NotAuthenticatedError | SharePostPayload
 
 type SharedPostDeletionNotAllowedError {
   inputPath: String!
@@ -3883,6 +4806,8 @@ type StartMediumUploadPayload {
 union StartMediumUploadResult = InvalidInputError | NotAuthenticatedError | StartMediumUploadPayload
 
 union SubscribeRelayResult = InvalidInputError | NotAuthenticatedError | NotAuthorizedError | RelaySubscription
+
+union TakeModerationActionResult = FlagAction | InvalidInputError | NotAuthenticatedError | NotAuthorizedError
 
 scalar URITemplate
 
@@ -4205,6 +5130,8 @@ type UpdateArticlePayload {
 
 union UpdateArticleResult = InvalidInputError | NotAuthenticatedError | UpdateArticlePayload
 
+union UpdateFlagCaseStatusResult = FlagCase | InvalidInputError | NotAuthenticatedError | NotAuthorizedError
+
 """
 Edit the content, language, or quote policy of an existing local note. Visibility cannot be changed after creation. Only the note's author may call this. Sends an ActivityPub `Update` activity to the appropriate recipients. Requires authentication.
 """
@@ -4265,7 +5192,7 @@ type VoteOnPollPayload {
   votes: [PollVote!]!
 }
 
-union VoteOnPollResult = InvalidInputError | NotAuthenticatedError | VoteOnPollPayload
+union VoteOnPollResult = ActorSuspendedError | InvalidInputError | NotAuthenticatedError | VoteOnPollPayload
 
 """
 Result of looking up a remote follower via WebFinger, including their ActivityPub profile and remote follow URL.

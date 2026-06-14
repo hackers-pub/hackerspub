@@ -1,9 +1,14 @@
 import { page } from "@fresh/core";
 import { extractMentionsFromHtml } from "@hackerspub/models/markup";
 import { getNoteSource } from "@hackerspub/models/note";
-import { getPostVisibilityFilter } from "@hackerspub/models/post";
+import {
+  getCensoredPostExclusionFilter,
+  getPostVisibilityFilter,
+  isPostVisibleTo,
+} from "@hackerspub/models/post";
 import type { Account, Actor } from "@hackerspub/models/schema";
 import { validateUuid } from "@hackerspub/models/uuid";
+import { isPostCensoredFor, redactCensoredPost } from "../../../censorship.ts";
 import { ActorList } from "../../../components/ActorList.tsx";
 import { PostExcerpt } from "../../../components/PostExcerpt.tsx";
 import { PostReactionsNav } from "../../../components/PostReactionsNav.tsx";
@@ -16,19 +21,38 @@ export const handler = define.handlers(async (ctx) => {
   if (!validateUuid(ctx.params.idOrYear)) return ctx.next();
   const id = ctx.params.idOrYear;
   if (ctx.params.username.includes("@")) return ctx.next();
-  const note = await getNoteSource(
+  let note = await getNoteSource(
     db,
     ctx.params.username,
     id,
     ctx.state.account,
   );
   if (note == null) return ctx.next();
-  const shares = await db.query.postTable.findMany({
+  // getNoteSource does not apply visibility filters, so gate the
+  // engagement page the same way the permalink does: a note whose author
+  // is hidden by a moderation sanction (or blocked, or whose visibility
+  // excludes the viewer) is not shown here either.
+  if (!isPostVisibleTo(note.post, ctx.state.account?.actor)) {
+    return ctx.next();
+  }
+  const censored = isPostCensoredFor(note.post, ctx.state.account);
+  if (censored) {
+    note = { ...note, post: redactCensoredPost(note.post, ctx.state.t) };
+  }
+  // Boosts of a censored post are moderation-hidden everywhere else
+  // (getCensoredPostExclusionFilter), so when the original is censored the
+  // whole sharer list is suppressed: it would reveal who amplified the
+  // hidden content.  When the original is not censored, an individual boost
+  // wrapper may still be censored on its own, so the same exclusion filter
+  // drops those wrappers (keeping a booster's own censored boost visible to
+  // them, like the timeline and search lists).
+  const shares = censored ? [] : await db.query.postTable.findMany({
     with: { actor: { with: { account: true } } },
     where: {
       AND: [
         { sharedPostId: note.post.id },
         getPostVisibilityFilter(ctx.state.account?.actor ?? null),
+        getCensoredPostExclusionFilter(ctx.state.account?.actor.id),
       ],
     },
     orderBy: { published: "desc" },

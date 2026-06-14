@@ -1,4 +1,5 @@
 import type { Context } from "@fedify/fedify";
+import { assertAccountActorNotSuspended } from "./moderation.ts";
 import type { Recipient } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
 import { getNote } from "@hackerspub/federation/objects";
@@ -340,6 +341,7 @@ export async function createNote(
     with: { avatarMedium: true, emails: true, links: true },
   });
   if (account == undefined) return undefined;
+  await assertAccountActorNotSuspended(db, account.id);
   if (relations.quotedPost != null) {
     const actor = await syncActorFromAccount(fedCtx, account);
     const allowedQuoteTarget = await getAllowedQuoteTargetForActor(
@@ -604,6 +606,11 @@ export async function updateNote(
     media,
   });
   if (post == null) return undefined;
+  // A censored post must not federate its (moderation-hidden) content: the
+  // local edit persists so the author can keep working on their hidden post,
+  // but no Update(Note) is delivered to mentions, followers, or tag relays
+  // while it remains censored.
+  if (post.censored != null) return post;
   const noteObject = await getNote(
     fedCtx,
     { ...noteSource, media, account },

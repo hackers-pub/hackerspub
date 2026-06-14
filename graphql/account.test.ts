@@ -2,12 +2,13 @@ import assert from "node:assert";
 import test from "node:test";
 import { encodeGlobalID } from "@pothos/plugin-relay";
 import * as vocab from "@fedify/vocab";
+import { eq } from "drizzle-orm";
 import { execute, parse } from "graphql";
 import sharp from "sharp";
 import { updateAccountData } from "@hackerspub/models/account";
 import type { Transaction } from "@hackerspub/models/db";
 import { createMediumFromBytes } from "@hackerspub/models/medium";
-import { mediumTable } from "@hackerspub/models/schema";
+import { actorTable, mediumTable } from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
 import type { UserContext } from "./builder.ts";
 import { schema } from "./mod.ts";
@@ -350,6 +351,51 @@ test("invitationTree redacts hidden accounts", async () => {
     assert.equal(hiddenNode.name, null);
     assert.equal(
       hiddenNode.avatarUrl,
+      "https://gravatar.com/avatar/?d=mp&s=128",
+    );
+  });
+});
+
+test("invitationTree redacts banned accounts", async () => {
+  await withRollback(async (tx) => {
+    const banned = await insertAccountWithActor(tx, {
+      username: "bannedtree",
+      name: "Banned Tree",
+      email: "bannedtree@example.com",
+    });
+    // Permanently suspend (ban) the actor; the account did NOT opt out of the
+    // invitation tree, so only the ban should redact it.
+    await tx.update(actorTable)
+      .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: null })
+      .where(eq(actorTable.id, banned.actor.id));
+
+    const result = await execute({
+      schema,
+      document: invitationTreeQuery,
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+
+    const nodes = (result.data as {
+      invitationTree: Array<{
+        id: string;
+        username: string | null;
+        name: string | null;
+        avatarUrl: string;
+        inviterId: string | null;
+        hidden: boolean;
+      }>;
+    }).invitationTree;
+    const bannedNode = nodes.find((node) => node.id === banned.account.id);
+
+    assert.ok(bannedNode != null);
+    assert.equal(bannedNode.hidden, true);
+    assert.equal(bannedNode.username, null);
+    assert.equal(bannedNode.name, null);
+    assert.equal(
+      bannedNode.avatarUrl,
       "https://gravatar.com/avatar/?d=mp&s=128",
     );
   });

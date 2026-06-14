@@ -41,6 +41,13 @@ export function PostControls(props: PostControlsProps) {
   const [deleted, setDeleted] = useState<null | "deleting" | "deleted">(null);
   const nonPrivate = post.visibility === "public" ||
     post.visibility === "unlisted";
+  // A censored post cannot be newly boosted or quoted by anyone (the
+  // share/quote routes reject it, including for the author and moderators
+  // who can still read it), so those affordances are hidden rather than
+  // offered as actions that always fail.  Removing an *existing* boost is
+  // still allowed (it de-amplifies), so the unshare form stays.  `censored`
+  // survives `redactCensoredPost`, so this holds for redacted viewers too.
+  const censored = post.censored != null;
   const remotePost = post.articleSourceId == null && post.noteSourceId == null;
   const localPostUrl = remotePost
     ? `/${post.actor.handle}/${post.id}`
@@ -362,58 +369,60 @@ export function PostControls(props: PostControlsProps) {
               {post.repliesCount.toLocaleString(props.language)}
             </span>
           </a>
-          <form
-            method="post"
-            action={nonPrivate
-              ? shared ? `${localPostUrl}/unshare` : `${localPostUrl}/share`
-              : undefined}
-            onSubmit={onShareSubmit}
-          >
-            <button
-              type="submit"
-              class={`
+          {(shared || !censored) && (
+            <form
+              method="post"
+              action={nonPrivate
+                ? shared ? `${localPostUrl}/unshare` : `${localPostUrl}/share`
+                : undefined}
+              onSubmit={onShareSubmit}
+            >
+              <button
+                type="submit"
+                class={`
                 h-5 flex opacity-50
                 ${deleted != null ? "cursor-default" : "hover:opacity-100"}
               `}
-              onMouseOver={onShareFocus}
-              onFocus={onShareFocus}
-              onMouseOut={onShareFocusOut}
-              onBlur={onShareFocusOut}
-              title={t("note.shares")}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className={`size-5 ${shared ? "stroke-2" : ""}`}
-                aria-label={t("note.shares")}
+                onMouseOver={onShareFocus}
+                onFocus={onShareFocus}
+                onMouseOut={onShareFocusOut}
+                onBlur={onShareFocusOut}
+                title={t("note.shares")}
               >
-                <path d="m19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662m-.092 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662m-11.908 0-3-3-3 3m21-6-3 3-3-3" />
-              </svg>
-              <span
-                class={`ml-1 my-auto text-xs ${shared ? "font-bold" : ""}`}
-              >
-                {(shared ? Math.max(shares, 1) : shares).toLocaleString(
-                  props.language,
-                )}
-                {(shared || shareSubmitting) && (
-                  <>
-                    {" "}&mdash;{" "}
-                    <Msg
-                      $key={shareSubmitting
-                        ? (shared ? "note.unsharing" : "note.sharing")
-                        : shareFocused
-                        ? "note.unshare"
-                        : "note.shared"}
-                    />
-                  </>
-                )}
-              </span>
-            </button>
-          </form>
-          {nonPrivate && (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className={`size-5 ${shared ? "stroke-2" : ""}`}
+                  aria-label={t("note.shares")}
+                >
+                  <path d="m19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662m-.092 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662m-11.908 0-3-3-3 3m21-6-3 3-3-3" />
+                </svg>
+                <span
+                  class={`ml-1 my-auto text-xs ${shared ? "font-bold" : ""}`}
+                >
+                  {(shared ? Math.max(shares, 1) : shares).toLocaleString(
+                    props.language,
+                  )}
+                  {(shared || shareSubmitting) && (
+                    <>
+                      {" "}&mdash;{" "}
+                      <Msg
+                        $key={shareSubmitting
+                          ? (shared ? "note.unsharing" : "note.sharing")
+                          : shareFocused
+                          ? "note.unshare"
+                          : "note.shared"}
+                      />
+                    </>
+                  )}
+                </span>
+              </button>
+            </form>
+          )}
+          {nonPrivate && !censored && (
             <a
               href={`${localPostUrl}/quotes`}
               class={`

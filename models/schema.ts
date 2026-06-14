@@ -367,6 +367,17 @@ export const actorTable = pgTable(
     emojis: jsonb().$type<Record<string, string>>().notNull().default({}),
     tags: jsonb().$type<Record<string, string>>().notNull().default({}),
     sensitive: boolean().notNull().default(false),
+    // Moderation sanction state, denormalized from flag_action records
+    // (which remain the audit source of truth):
+    // - Not sanctioned: suspended IS NULL
+    // - Temporary suspension: suspended = start, suspendedUntil = end
+    // - Permanent suspension (ban) for local actors, or permanent federation
+    //   block for remote actors: suspended set, suspendedUntil IS NULL
+    // Whether a sanction is *currently* active is always determined by
+    // comparing against the current time (lazy expiry; no cron):
+    // suspended <= now AND (suspendedUntil IS NULL OR suspendedUntil > now).
+    suspended: timestamp({ withTimezone: true }),
+    suspendedUntil: timestamp("suspended_until", { withTimezone: true }),
     successorId: uuid("successor_id")
       .$type<Uuid>()
       .references((): AnyPgColumn => actorTable.id, { onDelete: "set null" }),
@@ -386,6 +397,15 @@ export const actorTable = pgTable(
   (table) => [
     unique().on(table.username, table.instanceHost),
     check("actor_username_check", sql`${table.username} NOT LIKE '%@%'`),
+    check(
+      "actor_suspended_check",
+      sql`
+        ${table.suspendedUntil} IS NULL OR (
+          ${table.suspended} IS NOT NULL AND
+          ${table.suspendedUntil} > ${table.suspended}
+        )
+      `,
+    ),
   ],
 );
 
@@ -814,6 +834,11 @@ export const postTable = pgTable(
     ),
     emojis: jsonb().$type<Record<string, string>>().notNull().default({}),
     sensitive: boolean().notNull().default(false),
+    // When a moderator censors the post (flag_action of type 'censor'), this
+    // is set to the censorship time.  Censored posts are excluded from
+    // timelines, search, and news, but their permalinks remain accessible
+    // and show a censorship notice instead of the content.
+    censored: timestamp({ withTimezone: true }),
     repliesCount: integer("replies_count").notNull().default(0),
     sharesCount: integer("shares_count").notNull().default(0),
     quotesCount: integer("quotes_count").notNull().default(0),
@@ -1848,3 +1873,440 @@ export const adminStateTable = pgTable("admin_state", {
 
 export type AdminState = typeof adminStateTable.$inferSelect;
 export type NewAdminState = typeof adminStateTable.$inferInsert;
+
+export const flagStatusEnum = pgEnum("flag_status", [
+  "pending",
+  "reviewing",
+  "resolved",
+  "dismissed",
+]);
+
+export type FlagStatus = (typeof flagStatusEnum.enumValues)[number];
+
+export const flagCaseStatusEnum = pgEnum("flag_case_status", [
+  "pending",
+  "reviewing",
+  "resolved",
+  "dismissed",
+]);
+
+export type FlagCaseStatus = (typeof flagCaseStatusEnum.enumValues)[number];
+
+export const flagActionTypeEnum = pgEnum("flag_action_type", [
+  "dismiss",
+  "warning",
+  "censor",
+  "suspend",
+  "ban",
+]);
+
+export type FlagActionType = (typeof flagActionTypeEnum.enumValues)[number];
+
+export const flagAppealStatusEnum = pgEnum("flag_appeal_status", [
+  "pending",
+  "reviewing",
+  "resolved",
+]);
+
+export type FlagAppealStatus = (typeof flagAppealStatusEnum.enumValues)[number];
+
+export const flagAppealResultEnum = pgEnum("flag_appeal_result", [
+  "dismissed",
+  "reduced",
+  "withdrawn",
+  "increased",
+]);
+
+export type FlagAppealResult = (typeof flagAppealResultEnum.enumValues)[number];
+
+export const moderationNotificationTypeEnum = pgEnum(
+  "moderation_notification_type",
+  [
+    "flag_received",
+    "action_taken",
+    "appeal_received",
+    "appeal_resolved",
+    "suspension_ending",
+  ],
+);
+
+export type ModerationNotificationType =
+  (typeof moderationNotificationTypeEnum.enumValues)[number];
+
+export const flagCaseTable = pgTable(
+  "flag_case",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    targetActorId: uuid("target_actor_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => actorTable.id, { onDelete: "cascade" }),
+    targetPostId: uuid("target_post_id")
+      .$type<Uuid>()
+      .references(() => postTable.id, { onDelete: "set null" }),
+    // Kept even after the post row is deleted so the case stays attached to
+    // a stable target reference (the evidence itself lives in
+    // content_snapshot).
+    targetPostIri: text("target_post_iri"),
+    status: flagCaseStatusEnum().notNull().default("pending"),
+    assignedModeratorId: uuid("assigned_moderator_id")
+      .$type<Uuid>()
+      .references(() => accountTable.id, { onDelete: "set null" }),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    resolved: timestamp({ withTimezone: true }),
+  },
+  (table) => [
+    index().on(table.targetActorId),
+    index("flag_case_status_created_idx").on(table.status, desc(table.created)),
+    // Duplicate reports join the existing open case: at most one open case
+    // per post target (keyed on the IRI so post deletion doesn't split
+    // cases) and one per actor target for profile reports.
+    uniqueIndex("flag_case_open_post_target_idx")
+      .on(table.targetActorId, table.targetPostIri)
+      .where(sql`
+        ${table.status} IN ('pending', 'reviewing')
+        AND ${table.targetPostIri} IS NOT NULL
+      `),
+    uniqueIndex("flag_case_open_actor_target_idx")
+      .on(table.targetActorId)
+      .where(sql`
+        ${table.status} IN ('pending', 'reviewing')
+        AND ${table.targetPostIri} IS NULL
+      `),
+    check(
+      "flag_case_resolved_check",
+      sql`
+        (${table.status} IN ('resolved', 'dismissed')) =
+        (${table.resolved} IS NOT NULL)
+      `,
+    ),
+    check(
+      "flag_case_target_post_iri_check",
+      sql`${table.targetPostId} IS NULL OR ${table.targetPostIri} IS NOT NULL`,
+    ),
+  ],
+);
+
+export type FlagCase = typeof flagCaseTable.$inferSelect;
+export type NewFlagCase = typeof flagCaseTable.$inferInsert;
+
+export interface FlagLlmAnalysisMatch {
+  provision: string;
+  confidence: number;
+  rationale: string;
+}
+
+export interface FlagLlmAnalysis {
+  matches: FlagLlmAnalysisMatch[];
+  summary: string;
+  model: string;
+  analyzedAt: string;
+  error?: string;
+}
+
+export const flagTable = pgTable(
+  "flag",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    // IRI of the incoming ActivityPub Flag activity; NULL for reports
+    // submitted by local users.  Used to deduplicate redelivered activities.
+    iri: text().unique(),
+    // References actor rather than account so that external reports received
+    // via ActivityPub can be attributed to the sending remote actor
+    // (typically the remote instance actor).
+    reporterId: uuid("reporter_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => actorTable.id, { onDelete: "cascade" }),
+    targetActorId: uuid("target_actor_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => actorTable.id, { onDelete: "cascade" }),
+    targetPostId: uuid("target_post_id")
+      .$type<Uuid>()
+      .references(() => postTable.id, { onDelete: "set null" }),
+    targetPostIri: text("target_post_iri"),
+    reason: text().notNull(),
+    // Hash of the most recent Git commit that touched the
+    // CODE_OF_CONDUCT.*.md files at report time, so the report can be
+    // interpreted against the code of conduct text it was filed under.
+    cocVersion: text("coc_version"),
+    llmAnalysis: jsonb("llm_analysis").$type<FlagLlmAnalysis>(),
+    status: flagStatusEnum().notNull().default("pending"),
+    caseId: uuid("case_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => flagCaseTable.id, { onDelete: "cascade" }),
+    // Whether the reporter explicitly opted in to forwarding this report to
+    // the remote instance after moderator action.
+    forwardToRemote: boolean("forward_to_remote").notNull().default(false),
+    updated: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    index().on(table.caseId),
+    index("flag_reporter_id_created_idx").on(
+      table.reporterId,
+      desc(table.created),
+    ),
+    index().on(table.targetActorId),
+    // One open report per reporter per case, so repeated reports of the same
+    // target by the same user are rejected at the database level.
+    uniqueIndex("flag_open_reporter_case_idx")
+      .on(table.caseId, table.reporterId)
+      .where(sql`${table.status} IN ('pending', 'reviewing')`),
+    check(
+      "flag_target_post_iri_check",
+      sql`${table.targetPostId} IS NULL OR ${table.targetPostIri} IS NOT NULL`,
+    ),
+  ],
+);
+
+export type Flag = typeof flagTable.$inferSelect;
+export type NewFlag = typeof flagTable.$inferInsert;
+
+export interface ContentSnapshotMetadata {
+  postType?: PostType;
+  name?: string;
+  summary?: string;
+  language?: string;
+  visibility?: PostVisibility;
+  sensitive?: boolean;
+  mediaUrls?: string[];
+  actorHandle: string;
+  actorName?: string;
+  actorAvatarUrl?: string;
+  published?: string;
+}
+
+export const contentSnapshotTable = pgTable(
+  "content_snapshot",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    flagId: uuid("flag_id")
+      .$type<Uuid>()
+      .notNull()
+      .unique()
+      .references(() => flagTable.id, { onDelete: "cascade" }),
+    postId: uuid("post_id")
+      .$type<Uuid>()
+      .references(() => postTable.id, { onDelete: "set null" }),
+    postIri: text("post_iri"),
+    // Rendered HTML at snapshot time: the post's contentHtml for content
+    // reports, or the actor's bioHtml (possibly empty) for profile reports.
+    // This is the canonical evidence, preserved even if the original is
+    // edited or deleted.
+    contentHtml: text("content_html").notNull(),
+    // Original source markup at snapshot time; only available for local
+    // posts (note sources and article contents), NULL for remote posts.
+    sourceContent: text("source_content"),
+    metadata: jsonb().$type<ContentSnapshotMetadata>(),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    check(
+      "content_snapshot_post_iri_check",
+      sql`${table.postId} IS NULL OR ${table.postIri} IS NOT NULL`,
+    ),
+  ],
+);
+
+export type ContentSnapshot = typeof contentSnapshotTable.$inferSelect;
+export type NewContentSnapshot = typeof contentSnapshotTable.$inferInsert;
+
+// Immutable audit records: if a decision changes (e.g. through an appeal),
+// a new action record is created rather than updating an existing one.
+export const flagActionTable = pgTable(
+  "flag_action",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    caseId: uuid("case_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => flagCaseTable.id, { onDelete: "cascade" }),
+    // Internal audit trail only; never exposed to the reported user.
+    // Notifications are sent under the moderation team's collective
+    // identity.  onDelete: "restrict" so the audit trail cannot be silently
+    // destroyed by deleting a moderator account.
+    moderatorId: uuid("moderator_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => accountTable.id, { onDelete: "restrict" }),
+    actionType: flagActionTypeEnum("action_type").notNull(),
+    violatedProvisions: text("violated_provisions")
+      .array()
+      .notNull()
+      .default(sql`(ARRAY[]::text[])`),
+    // Internal rationale; may contain details not appropriate to share with
+    // the reported user (those go to messageToUser instead).
+    rationale: text().notNull(),
+    messageToUser: text("message_to_user"),
+    suspensionStarts: timestamp("suspension_starts", { withTimezone: true }),
+    suspensionEnds: timestamp("suspension_ends", { withTimezone: true }),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    index().on(table.caseId),
+    check(
+      "flag_action_provisions_check",
+      sql`
+        ${table.actionType} = 'dismiss' OR
+        cardinality(${table.violatedProvisions}) > 0
+      `,
+    ),
+    check(
+      "flag_action_suspension_check",
+      sql`
+        CASE ${table.actionType}
+          WHEN 'suspend' THEN
+            ${table.suspensionStarts} IS NOT NULL AND
+            ${table.suspensionEnds} IS NOT NULL AND
+            ${table.suspensionEnds} > ${table.suspensionStarts}
+          ELSE
+            ${table.suspensionStarts} IS NULL AND
+            ${table.suspensionEnds} IS NULL
+        END
+      `,
+    ),
+  ],
+);
+
+export type FlagAction = typeof flagActionTable.$inferSelect;
+export type NewFlagAction = typeof flagActionTable.$inferInsert;
+
+export const flagAppealTable = pgTable(
+  "flag_appeal",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    // Appeals target a specific action (a case may accumulate several
+    // actions over time), and each action can be appealed at most once.
+    actionId: uuid("action_id")
+      .$type<Uuid>()
+      .notNull()
+      .unique()
+      .references(() => flagActionTable.id, { onDelete: "cascade" }),
+    // References account (not actor): appeals are filed in-app, so only
+    // local users can appeal.  Sanctioned remote users contest through
+    // their own instance's moderation process.
+    appellantId: uuid("appellant_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => accountTable.id, { onDelete: "cascade" }),
+    reason: text().notNull(),
+    additionalContext: text("additional_context"),
+    status: flagAppealStatusEnum().notNull().default("pending"),
+    result: flagAppealResultEnum(),
+    reviewerId: uuid("reviewer_id")
+      .$type<Uuid>()
+      .references(() => accountTable.id, { onDelete: "set null" }),
+    reviewRationale: text("review_rationale"),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    resolved: timestamp({ withTimezone: true }),
+  },
+  (table) => [
+    index().on(table.appellantId),
+    check(
+      "flag_appeal_resolved_check",
+      sql`
+        CASE ${table.status}
+          WHEN 'resolved' THEN
+            ${table.result} IS NOT NULL AND ${table.resolved} IS NOT NULL
+          ELSE
+            ${table.result} IS NULL AND ${table.resolved} IS NULL
+        END
+      `,
+    ),
+  ],
+);
+
+export type FlagAppeal = typeof flagAppealTable.$inferSelect;
+export type NewFlagAppeal = typeof flagAppealTable.$inferInsert;
+
+// Moderation notifications are deliberately separate from the notification
+// table: its notification_post_id_check constraint requires a post for
+// every non-follow type (but e.g. an action on a user report has no post),
+// and its actor_ids column surfaces the actors who triggered the
+// notification, which must never happen for reporter identities.
+export const moderationNotificationTable = pgTable(
+  "moderation_notification",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    accountId: uuid("account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => accountTable.id, { onDelete: "cascade" }),
+    type: moderationNotificationTypeEnum().notNull(),
+    caseId: uuid("case_id")
+      .$type<Uuid>()
+      .references(() => flagCaseTable.id, { onDelete: "cascade" }),
+    actionId: uuid("action_id")
+      .$type<Uuid>()
+      .references(() => flagActionTable.id, { onDelete: "cascade" }),
+    appealId: uuid("appeal_id")
+      .$type<Uuid>()
+      .references(() => flagAppealTable.id, { onDelete: "cascade" }),
+    read: timestamp({ withTimezone: true }),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    index("moderation_notification_account_created_idx").on(
+      table.accountId,
+      desc(table.created),
+    ),
+    check(
+      "moderation_notification_ref_check",
+      sql`
+        CASE ${table.type}
+          WHEN 'flag_received' THEN
+            ${table.caseId} IS NOT NULL AND
+            ${table.actionId} IS NULL AND
+            ${table.appealId} IS NULL
+          WHEN 'action_taken' THEN
+            ${table.actionId} IS NOT NULL AND
+            ${table.caseId} IS NULL AND
+            ${table.appealId} IS NULL
+          WHEN 'suspension_ending' THEN
+            ${table.actionId} IS NOT NULL AND
+            ${table.caseId} IS NULL AND
+            ${table.appealId} IS NULL
+          ELSE
+            ${table.appealId} IS NOT NULL AND
+            ${table.caseId} IS NULL AND
+            ${table.actionId} IS NULL
+        END
+      `,
+    ),
+    // suspension_ending notifications are created lazily; at most one per
+    // action per account.
+    uniqueIndex("moderation_notification_suspension_ending_idx")
+      .on(table.accountId, table.actionId)
+      .where(sql`${table.type} = 'suspension_ending'`),
+    // At most one *unread* flag_received notification per moderator per
+    // case, so concurrent reports on the same case cannot flood the
+    // moderation queue (inserts race on this index and lose harmlessly).
+    uniqueIndex("moderation_notification_flag_received_idx")
+      .on(table.accountId, table.caseId)
+      .where(sql`
+        ${table.type} = 'flag_received' AND ${table.read} IS NULL
+      `),
+  ],
+);
+
+export type ModerationNotification =
+  typeof moderationNotificationTable.$inferSelect;
+export type NewModerationNotification =
+  typeof moderationNotificationTable.$inferInsert;

@@ -295,6 +295,8 @@
     "remoteQuoteDescription": "如果你在聯邦宇宙有個帳戶，你可以在你自己的實例裡引用此貼文。在你的實例搜尋 {{permalink}} 後進行引用。（請注意，Mastodon不支援引用功能）"
   },
   "post": {
+    "censoredTitle": "已被版主封鎖。",
+    "censoredDescription": "此內容因違反行為準則，已從時間軸與搜尋中隱藏。",
     "reacting": "正在反應……",
     "undoingReaction": "正在撤銷……",
     "reacted": "已反應",

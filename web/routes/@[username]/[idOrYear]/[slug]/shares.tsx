@@ -1,8 +1,15 @@
 import { page } from "@fresh/core";
 import { getArticleSource } from "@hackerspub/models/article";
 import { extractMentionsFromHtml } from "@hackerspub/models/markup";
-import { isPostVisibleTo } from "@hackerspub/models/post";
+import {
+  getCensoredPostExclusionFilter,
+  isPostVisibleTo,
+} from "@hackerspub/models/post";
 import type { Account, Actor } from "@hackerspub/models/schema";
+import {
+  isPostCensoredFor,
+  redactCensoredPost,
+} from "../../../../censorship.ts";
 import { ActorList } from "../../../../components/ActorList.tsx";
 import { PostReactionsNav } from "../../../../components/PostReactionsNav.tsx";
 import { db } from "../../../../db.ts";
@@ -16,7 +23,7 @@ export const handler = define.handlers(async (ctx) => {
   const username = ctx.params.username;
   const year = parseInt(ctx.params.idOrYear);
   const slug = ctx.params.slug;
-  const article = await getArticleSource(
+  let article = await getArticleSource(
     db,
     username,
     year,
@@ -24,11 +31,25 @@ export const handler = define.handlers(async (ctx) => {
     ctx.state.account,
   );
   if (article == null) return ctx.next();
-  const post = article.post;
-  if (!isPostVisibleTo(post, ctx.state.account?.actor)) {
+  if (!isPostVisibleTo(article.post, ctx.state.account?.actor)) {
     return ctx.next();
   }
-  const shares = await db.query.postTable.findMany({
+  const censored = isPostCensoredFor(article.post, ctx.state.account);
+  if (censored) {
+    article = {
+      ...article,
+      post: redactCensoredPost(article.post, ctx.state.t),
+    };
+  }
+  const post = article.post;
+  // Boosts of a censored post are moderation-hidden everywhere else
+  // (getCensoredPostExclusionFilter), so when the original is censored the
+  // whole sharer list is suppressed: it would reveal who amplified the
+  // hidden content.  When the original is not censored, an individual boost
+  // wrapper may still be censored on its own, so the same exclusion filter
+  // drops those wrappers (keeping a booster's own censored boost visible to
+  // them, like the timeline and search lists).
+  const shares = censored ? [] : await db.query.postTable.findMany({
     with: {
       actor: {
         with: {
@@ -40,7 +61,12 @@ export const handler = define.handlers(async (ctx) => {
       },
       mentions: true,
     },
-    where: { sharedPostId: post.id },
+    where: {
+      AND: [
+        { sharedPostId: post.id },
+        getCensoredPostExclusionFilter(ctx.state.account?.actor.id),
+      ],
+    },
     orderBy: { published: "desc" },
   });
   const sharers = shares

@@ -5,7 +5,16 @@ import { eq } from "drizzle-orm";
 import { execute, parse } from "graphql";
 import { follow } from "@hackerspub/models/following";
 import { sharePost } from "@hackerspub/models/post";
-import { actorTable, pinTable } from "@hackerspub/models/schema";
+import {
+  accountLinkTable,
+  accountTable,
+  actorTable,
+  mediumTable,
+  noteSourceMediumTable,
+  pinTable,
+  postTable,
+} from "@hackerspub/models/schema";
+import { generateUuidV7 } from "@hackerspub/models/uuid";
 import { schema } from "./mod.ts";
 import {
   createFedCtx,
@@ -984,5 +993,320 @@ test("recommendedActors excludes followed actors and filters by locale", async (
     assert.ok(handles.includes("@actorrecommendlocal@localhost"));
     assert.ok(!handles.includes("@actorrecommendfollowed@localhost"));
     assert.ok(!handles.includes("@actorrecommendremote@remote.example"));
+  });
+});
+
+const bannedProfileQuery = parse(`
+  query BannedProfile($handle: String!) {
+    actorByHandle(handle: $handle, allowLocalHandle: true) {
+      name
+      rawName
+      bio
+      avatarUrl
+      avatarInitials
+      handle
+      username
+      fields {
+        name
+        value
+      }
+      account {
+        name
+        bio
+        avatarUrl
+        avatarMediumId
+        links {
+          name
+          url
+        }
+      }
+    }
+  }
+`);
+
+const linkNodeQuery = parse(`
+  query AccountLinkNode($id: ID!) {
+    node(id: $id) {
+      __typename
+      ... on AccountLink {
+        name
+        url
+      }
+    }
+  }
+`);
+
+test("a banned actor's profile content is hidden from others", async () => {
+  await withRollback(async (tx) => {
+    const banned = await insertAccountWithActor(tx, {
+      username: "bannedprofile",
+      name: "Abusive Name",
+      email: "bannedprofile@example.com",
+    });
+    const avatarMediumId = generateUuidV7();
+    await tx.insert(mediumTable).values({
+      id: avatarMediumId,
+      key: `media/abusive-${avatarMediumId}.png`,
+      type: "image/png",
+    });
+    await tx.update(actorTable)
+      .set({
+        name: "Abusive Name",
+        bioHtml: "<p>Abusive bio</p>",
+        fieldHtmls: { Website: "<a>abusive.example field</a>" },
+        avatarUrl: "https://media.example/abusive-avatar.png",
+      })
+      .where(eq(actorTable.id, banned.actor.id));
+    await tx.update(accountTable)
+      .set({ name: "Abusive Name", bio: "Abusive bio", avatarMediumId })
+      .where(eq(accountTable.id, banned.account.id));
+    await tx.insert(accountLinkTable).values({
+      accountId: banned.account.id,
+      index: 0,
+      name: "Site",
+      url: "https://abusive.example/link",
+      icon: "web",
+    });
+    const linkGid = encodeGlobalID(
+      "AccountLink",
+      JSON.stringify([banned.account.id, 0]),
+    );
+    // Permanent suspension (ban): suspended set, no end.
+    await tx.update(actorTable)
+      .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: null })
+      .where(eq(actorTable.id, banned.actor.id));
+    const handle = banned.actor.handle;
+
+    const viewer = await insertAccountWithActor(tx, {
+      username: "profileviewer",
+      name: "Viewer",
+      email: "profileviewer@example.com",
+    });
+
+    // An unrelated viewer gets the profile content redacted, mirroring the
+    // suspended ActivityPub actor stub:
+    const hidden = await execute({
+      schema,
+      document: bannedProfileQuery,
+      variableValues: { handle },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(hidden.errors, undefined);
+    // deno-lint-ignore no-explicit-any
+    const hiddenActor = (hidden.data as any)?.actorByHandle;
+    assert.equal(hiddenActor?.name, null);
+    assert.equal(hiddenActor?.rawName, null);
+    assert.equal(hiddenActor?.bio, null);
+    assert.equal(
+      hiddenActor?.avatarUrl,
+      "https://gravatar.com/avatar/?d=mp&s=128",
+    );
+    assert.equal(hiddenActor?.avatarInitials, "BA");
+    assert.deepEqual(hiddenActor?.fields, []);
+    assert.deepEqual(hiddenActor?.account?.links, []);
+    // The mirror fields on Account are redacted too:
+    assert.equal(hiddenActor?.account?.name, "");
+    assert.equal(hiddenActor?.account?.bio, "");
+    assert.equal(
+      hiddenActor?.account?.avatarUrl,
+      "https://gravatar.com/avatar/?d=mp&s=128",
+    );
+    // avatarMediumId is hidden so the real avatar medium cannot be
+    // resolved through node(id:):
+    assert.equal(hiddenActor?.account?.avatarMediumId, null);
+
+    // Even with a cached medium id, the Medium node is not resolvable
+    // (it is used only as the banned account's avatar):
+    const mediumNodeQuery = parse(`
+      query MediumNode($id: ID!) {
+        node(id: $id) {
+          __typename
+          ... on Medium { url }
+        }
+      }
+    `);
+    const mediumGid = encodeGlobalID("Medium", avatarMediumId);
+    const deniedMedium = await execute({
+      schema,
+      document: mediumNodeQuery,
+      variableValues: { id: mediumGid },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    assert.equal((deniedMedium.data as any)?.node ?? null, null);
+    // The banned account holder can still resolve it:
+    const ownMedium = await execute({
+      schema,
+      document: mediumNodeQuery,
+      variableValues: { id: mediumGid },
+      contextValue: makeUserContext(tx, banned.account),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    assert.equal((ownMedium.data as any)?.node?.__typename, "Medium");
+
+    // The AccountLink node is not resolvable via node(id:) either:
+    const deniedLink = await execute({
+      schema,
+      document: linkNodeQuery,
+      variableValues: { id: linkGid },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    assert.equal((deniedLink.data as any)?.node ?? null, null);
+    // Identity fields stay:
+    assert.equal(hiddenActor?.username, "bannedprofile");
+    assert.ok(hiddenActor?.handle != null);
+    assert.ok(!JSON.stringify(hidden.data).includes("Abusive"));
+    assert.ok(!JSON.stringify(hidden.data).includes("abusive.example"));
+
+    // The banned actor still sees their own profile:
+    const own = await execute({
+      schema,
+      document: bannedProfileQuery,
+      variableValues: { handle },
+      contextValue: makeUserContext(tx, banned.account),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    const ownActor = (own.data as any)?.actorByHandle;
+    assert.match(ownActor?.name ?? "", /Abusive Name/);
+    assert.match(ownActor?.bio ?? "", /Abusive bio/);
+    assert.equal(
+      ownActor?.avatarUrl,
+      "https://media.example/abusive-avatar.png",
+    );
+    assert.equal(ownActor?.fields?.length, 1);
+    assert.equal(ownActor?.account?.links?.length, 1);
+    assert.match(ownActor?.account?.name ?? "", /Abusive Name/);
+    assert.match(ownActor?.account?.bio ?? "", /Abusive bio/);
+    assert.equal(ownActor?.account?.avatarMediumId, avatarMediumId);
+    // (The AccountLink `node(id:)` denial is defense in depth: composite-key
+    // drizzle nodes are not loadable through `node(id:)` today, so the
+    // reachable path is the redacted `Account.links` field above.)
+
+    // A moderator sees the original content for review:
+    const mod = await insertAccountWithActor(tx, {
+      username: "profilemod",
+      name: "Mod",
+      email: "profilemod@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ moderator: true })
+      .where(eq(accountTable.id, mod.account.id));
+    const asMod = await execute({
+      schema,
+      document: bannedProfileQuery,
+      variableValues: { handle },
+      contextValue: makeUserContext(tx, { ...mod.account, moderator: true }),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    const modActor = (asMod.data as any)?.actorByHandle;
+    assert.match(modActor?.name ?? "", /Abusive Name/);
+    assert.equal(modActor?.account?.links?.length, 1);
+    assert.match(modActor?.account?.name ?? "", /Abusive Name/);
+
+    // A temporary suspension only restricts writing; the profile stays:
+    await tx.update(actorTable)
+      .set({
+        suspended: new Date(Date.now() - 1000),
+        suspendedUntil: new Date(Date.now() + 60 * 60 * 1000),
+      })
+      .where(eq(actorTable.id, banned.actor.id));
+    const temp = await execute({
+      schema,
+      document: bannedProfileQuery,
+      variableValues: { handle },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    const tempActor = (temp.data as any)?.actorByHandle;
+    assert.match(tempActor?.name ?? "", /Abusive Name/);
+    assert.equal(tempActor?.fields?.length, 1);
+  });
+});
+
+test("media of moderation-hidden posts are not resolvable via node(id:)", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "contentmediaauthor",
+      name: "Content Media Author",
+      email: "contentmediaauthor@example.com",
+    });
+    const { post, noteSourceId } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Note with media",
+    });
+    const mediumId = generateUuidV7();
+    await tx.insert(mediumTable).values({
+      id: mediumId,
+      key: `media/content-${mediumId}.png`,
+      type: "image/png",
+    });
+    await tx.insert(noteSourceMediumTable).values({
+      sourceId: noteSourceId,
+      index: 0,
+      mediumId,
+      alt: "",
+    });
+    await tx.update(postTable)
+      .set({ censored: new Date() })
+      .where(eq(postTable.id, post.id));
+
+    const mediumNodeQuery = parse(`
+      query MediumNode($id: ID!) {
+        node(id: $id) {
+          __typename
+          ... on Medium { url }
+        }
+      }
+    `);
+    const gid = encodeGlobalID("Medium", mediumId);
+    const viewer = await insertAccountWithActor(tx, {
+      username: "contentmediaviewer",
+      name: "Content Media Viewer",
+      email: "contentmediaviewer@example.com",
+    });
+
+    // The censored post's media is hidden from an unrelated viewer:
+    const denied = await execute({
+      schema,
+      document: mediumNodeQuery,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    assert.equal((denied.data as any)?.node ?? null, null);
+
+    // The author still resolves their own media:
+    const own = await execute({
+      schema,
+      document: mediumNodeQuery,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, author.account),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    assert.equal((own.data as any)?.node?.__typename, "Medium");
+
+    // Uncensoring re-exposes it:
+    await tx.update(postTable)
+      .set({ censored: null })
+      .where(eq(postTable.id, post.id));
+    const allowed = await execute({
+      schema,
+      document: mediumNodeQuery,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    assert.equal((allowed.data as any)?.node?.__typename, "Medium");
   });
 });

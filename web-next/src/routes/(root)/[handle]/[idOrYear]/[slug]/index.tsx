@@ -8,6 +8,7 @@ import { graphql } from "relay-runtime";
 import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
 import { createFragment, loadQuery, useRelayEnvironment } from "solid-relay";
 import { ActorHoverCard } from "~/components/ActorHoverCard.tsx";
+import { CensorshipNotice } from "~/components/CensorshipNotice.tsx";
 import { NoteCard } from "~/components/NoteCard.tsx";
 import { NoteComposer } from "~/components/NoteComposer.tsx";
 import { PostActionMenu } from "~/components/PostActionMenu.tsx";
@@ -24,6 +25,7 @@ import { Button } from "~/components/ui/button.tsx";
 import { InternalLink } from "~/components/InternalLink.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
+import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import IconLoader2 from "~icons/lucide/loader-2";
 import { useContentLinkInterceptor } from "~/lib/contentLinkInterceptor.ts";
@@ -358,6 +360,7 @@ function ArticleBody(props: ArticleBodyProps) {
   const [proseRef, setProseRef] = createSignal<HTMLElement>();
   const mentionState = useMentionHoverCards(proseRef);
   useContentLinkInterceptor(proseRef);
+  const viewer = useViewer();
   const article = createFragment(
     graphql`
       fragment Slug_body on Article
@@ -379,9 +382,11 @@ function ArticleBody(props: ArticleBodyProps) {
         }
         language
         tags
+        censored
         actor {
           local
           username
+          isViewer
         }
         publishedYear
         slug
@@ -420,6 +425,12 @@ function ArticleBody(props: ArticleBodyProps) {
                   language={content()?.language ?? undefined}
                 />
                 <ArticleHeader $article={article} />
+                <Show when={article.censored}>
+                  <CensorshipNotice
+                    class="mt-4"
+                    privileged={article.actor.isViewer || viewer.moderator()}
+                  />
+                </Show>
                 <ArticleInlineToc
                   items={toc()}
                   hidden={content()?.beingTranslated ?? false}

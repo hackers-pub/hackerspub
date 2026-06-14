@@ -33,7 +33,13 @@ const loginByEmailMutation = parse(`
 const completeLoginChallengeMutation = parse(`
   mutation CompleteLoginChallenge($token: UUID!, $code: String!) {
     completeLoginChallenge(token: $token, code: $code) {
-      id
+      __typename
+      ... on Session {
+        id
+      }
+      ... on AccountBannedError {
+        since
+      }
     }
   }
 `);

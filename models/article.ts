@@ -1,4 +1,5 @@
 import type { Context } from "@fedify/fedify";
+import { assertAccountActorNotSuspended } from "./moderation.ts";
 import * as vocab from "@fedify/vocab";
 import {
   removeDetailsFromSummaryInput,
@@ -382,6 +383,11 @@ export async function createArticle(
   } | undefined
 > {
   const { db } = fedCtx.data;
+  // Check the suspension before any insert: when this function runs
+  // without an enclosing transaction (the legacy draft-publish route),
+  // a guard placed after createArticleSource would leave already-
+  // committed source/content rows behind on rejection.
+  await assertAccountActorNotSuspended(db, source.accountId);
   const { media: sourceMedia, ...articleSourceInput } = source;
   const referencedMediumKeys = extractArticleMediumKeys(source.content);
   const sourceMediaByKey = new Map(
@@ -643,6 +649,11 @@ export async function updateArticle(
     ...articleSource,
     account,
   });
+  // A censored article must not federate its (moderation-hidden) content: the
+  // local edit persists, but no Update(Article) is delivered to followers or
+  // tag relays, and translation restarts (each of which fires its own Update)
+  // are skipped, while it remains censored.
+  if (post.censored != null) return post;
   const articleObject = await getArticle(fedCtx, { ...articleSource, account });
   const activity = new vocab.Update({
     id: new URL(
@@ -1403,6 +1414,12 @@ async function runArticleContentTranslation(
     const post = await db.query.postTable.findFirst({
       where: { articleSourceId: article.id },
     });
+    if (post?.censored != null) {
+      // A censored article must not federate a completed translation's
+      // Update; the translation row and its summary still persist locally.
+      await startArticleContentSummary(db, summarizer, updated[0]);
+      return;
+    }
     const articleObject = await getArticle(fedCtx, article);
     // The id has to be unique across translation completions for
     // this article — multiple locales can complete in close

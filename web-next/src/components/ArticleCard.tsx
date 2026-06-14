@@ -18,6 +18,7 @@ import {
 import { ArticleCardInternal_article$key } from "./__generated__/ArticleCardInternal_article.graphql.ts";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { ActorHoverCard } from "./ActorHoverCard.tsx";
+import { CensorshipNotice } from "./CensorshipNotice.tsx";
 import { ActorSharer, ActorSharerActor } from "./ActorSharer.tsx";
 import { InternalLink } from "./InternalLink.tsx";
 import { PostEngagementBar } from "./PostEngagementBar.tsx";
@@ -217,13 +218,14 @@ interface ArticleCardInternalProps {
 function ArticleCardInternal(props: ArticleCardInternalProps) {
   const { t, i18n } = useLingui();
   const navigate = useNavigate();
-  const { preferAiSummary } = useViewer();
+  const { preferAiSummary, moderator } = useViewer();
   const article = createFragment(
     graphql`
       fragment ArticleCardInternal_article on Article
         @argumentDefinitions(locale: { type: "Locale" })
       {
         __id
+        censored
         ...PostActionMenu_post
         actor {
           name
@@ -232,6 +234,7 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
           avatarInitials
           local
           username
+          isViewer
           url
           iri
         }
@@ -370,6 +373,12 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
               </div>
             </div>
           </div>
+          <Show when={article.censored}>
+            <CensorshipNotice
+              class="mx-4 mb-0 mt-2"
+              privileged={article.actor.isViewer || moderator()}
+            />
+          </Show>
           <Show when={article.contents?.[0]?.title ?? article.name}>
             <h1
               lang={article.contents?.[0]?.language ?? article.language ??

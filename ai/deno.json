@@ -4,6 +4,7 @@
   "exports": {
     ".": "./mod.ts",
     "./alttext": "./alttext.ts",
+    "./moderation": "./moderation.ts",
     "./summary": "./summary.ts",
     "./translate": "./translate.ts"
   }

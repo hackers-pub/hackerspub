@@ -291,6 +291,8 @@
     "remoteQuoteDescription": "연합우주(fediverse) 계정이 있으시다면, 이 단문을 인용할 수 있습니다. 사용하시는 인스턴스의 검색창에 {{permalink}}로 검색하신 뒤, 해당 단문을 인용하시면 됩니다. (Mastodon에서는 인용 기능이 지원되지 않습니다.)"
   },
   "post": {
+    "censoredTitle": "모더레이터가 검열했습니다.",
+    "censoredDescription": "이 콘텐츠는 행동 강령 위반으로 타임라인과 검색에서 숨겨졌습니다.",
     "reacting": "반응하는 중…",
     "undoingReaction": "취소하는 중…",
     "reacted": "이미 반응함",

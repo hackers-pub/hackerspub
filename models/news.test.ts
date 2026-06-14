@@ -314,6 +314,62 @@ test("recomputeNewsScores excludes non-public replies and quotes", async () => {
   });
 });
 
+test("recomputeNewsScores excludes censored and sanction-hidden content", async () => {
+  await withRollback(async (tx) => {
+    const sharer = await insertAccountWithActor(tx, {
+      username: "modsharer",
+      name: "Sharer",
+      email: "modsharer@example.com",
+    });
+    const banned = await insertAccountWithActor(tx, {
+      username: "modbanned",
+      name: "Banned",
+      email: "modbanned@example.com",
+    });
+    const link = await insertPostLink(tx, { url: "https://example.com/mod" });
+    const sharedAt = new Date("2026-04-15T00:00:00.000Z");
+    const { post: share } = await insertNotePost(tx, {
+      account: sharer.account,
+      link: { id: link.id, url: link.url },
+      published: sharedAt,
+    });
+    // A censored reply must not add mass nor refresh the link's freshness…
+    const { post: censoredReply } = await insertNotePost(tx, {
+      account: sharer.account,
+      replyTargetId: share.id,
+      published: new Date("2026-04-16T00:00:00.000Z"),
+    });
+    await tx.update(postTable)
+      .set({ censored: sql`CURRENT_TIMESTAMP` })
+      .where(eq(postTable.id, censoredReply.id));
+    // …nor must a quote by a banned author…
+    await insertNotePost(tx, {
+      account: banned.account,
+      quotedPostId: share.id,
+      published: new Date("2026-04-16T00:00:00.000Z"),
+    });
+    await tx.update(actorTable)
+      .set({ suspended: new Date("2026-04-15T01:00:00.000Z") })
+      .where(eq(actorTable.id, banned.actor.id));
+    // …nor a censored second share of the same link.
+    const { post: censoredShare } = await insertNotePost(tx, {
+      account: banned.account,
+      link: { id: link.id, url: link.url },
+      published: new Date("2026-04-16T00:00:00.000Z"),
+    });
+    await tx.update(postTable)
+      .set({ censored: sql`CURRENT_TIMESTAMP` })
+      .where(eq(postTable.id, censoredShare.id));
+
+    await recomputeNewsScores(tx);
+
+    const row = await readLink(tx, link.id);
+    assertAlmostEquals(row.weightedMass, mass(1, 1), 1e-9);
+    assert.deepEqual(row.latestActivityAt, sharedAt);
+    assert.equal(row.postCount, 1);
+  });
+});
+
 test("recomputeNewsScores adds a recency term anchored to a fixed epoch", async () => {
   await withRollback(async (tx) => {
     const sharer = await insertAccountWithActor(tx, {

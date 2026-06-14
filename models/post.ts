@@ -1,3 +1,4 @@
+import { assertAccountActorNotSuspended } from "./moderation.ts";
 import {
   type Context,
   type DocumentLoader,
@@ -36,6 +37,7 @@ import sharp from "sharp";
 import { isSSRFSafeURL } from "ssrfcheck";
 import {
   getPersistedActor,
+  isFederationBlocked,
   persistActor,
   persistActorsByHandles,
   syncActorFromAccount,
@@ -545,6 +547,13 @@ export async function getAllowedQuoteTargetForActor(
       where: { id: targetPostId },
     });
   if (quotedPost == null) return undefined;
+  // A censored post cannot be quoted (by anyone, including its author):
+  // quoting re-amplifies moderation-hidden content.  The submitted row
+  // is checked too, so a censored share wrapper cannot be used as a
+  // quote handle either.
+  if (post.censored != null || quotedPost.censored != null) {
+    return undefined;
+  }
   const allowed = canActorRequestQuotePost(quotedPost, actor);
   return allowed ? quotedPost : undefined;
 }
@@ -1070,6 +1079,7 @@ export async function persistPost(
     ),
     suppressError: true,
   };
+  if (actor != null && isFederationBlocked(actor)) return undefined;
   if (actor == null) {
     const apActor = await post.getAttribution(opts);
     if (apActor == null) return;
@@ -1284,6 +1294,18 @@ export async function persistPost(
     quotedPost = undefined;
   }
   let unauthorizedQuoteTarget: PersistedQuoteTarget | undefined;
+  // A censored post cannot be quoted, even through a quote authorization
+  // issued before moderators censored it.  This runs before (and independent
+  // of) the policy check below, which the authorization path skips, so
+  // censorship is never overridden by an outstanding authorization.
+  if (quotedPost != null && quotedPost.censored != null) {
+    logger.debug("Ignoring censored quoted post: {iri}", {
+      iri: quotedPost.iri,
+    });
+    unauthorizedQuoteTarget = quotedPost;
+    quotedPost = undefined;
+    quoteAuthorizationIri = undefined;
+  }
   if (
     quotedPost != null &&
     quoteAuthorizationIri == null &&
@@ -1666,6 +1688,7 @@ export async function persistSharedPost(
     options.actor == null || options.actor.iri !== announce.actorId.href
       ? await getPersistedActor(db, announce.actorId)
       : options.actor;
+  if (actor != null && isFederationBlocked(actor)) return;
   if (actor == null) {
     const apActor = await announce.getActor(boundedOpts);
     if (apActor == null) return;
@@ -1680,6 +1703,10 @@ export async function persistSharedPost(
     signal: overallSignal,
   });
   if (post == null) return;
+  // A censored post cannot be re-amplified via a federated boost, mirroring
+  // the local sharePost() guard: drop the Announce instead of inserting a
+  // wrapper that timelines and the share notification would surface.
+  if (post.censored != null) return;
   const to = new Set(announce.toIds.map((u) => u.href));
   const cc = new Set(announce.ccIds.map((u) => u.href));
   const values: Omit<NewPost, "id"> = {
@@ -1797,6 +1824,9 @@ async function canPersistIncomingQuote(
     },
     where: { id: quotedPostId },
   });
+  // Quote *policy* only; the censored (moderation) gate lives at the caller so
+  // it also applies to the quote-authorization path, which legitimately
+  // overrides policy but must never override censorship.
   return quotedPost != null && canActorQuotePost(quotedPost, actor);
 }
 
@@ -1867,7 +1897,14 @@ export async function sharePost(
   visibility?: PostVisibility,
 ): Promise<Post> {
   const { db } = fedCtx.data;
+  await assertAccountActorNotSuspended(db, account.id);
   const sharedPost = await getOriginalSharedPost(db, post);
+  // Callers reject censored targets with a proper response; this is a
+  // backstop so no future caller can boost (and thus re-amplify and
+  // copy into the wrapper) moderation-hidden content.
+  if (post.censored != null || sharedPost.censored != null) {
+    throw new TypeError("A censored post cannot be shared.");
+  }
   const actor = await syncActorFromAccount(fedCtx, account);
   const id = generateUuidV7();
   const posts = await db.insert(postTable).values({
@@ -2367,9 +2404,31 @@ export function isPostVisibleTo(
       blockers: (Blocking & { blocker?: Actor })[];
     };
     mentions: (Mention & { actor?: Actor })[];
+    sharedPost?: (Post & { actor: Actor }) | null;
   },
   actor?: Actor | { iri: string },
 ): boolean {
+  // A share wrapper's visibility depends on the boosted post (its author's
+  // block and sanction state, which the booster's actor does not carry).
+  // When the boosted post was not loaded, that cannot be evaluated, so fail
+  // closed rather than let a wrapper of a hidden post pass on the booster
+  // alone (e.g. an interaction resolver that has only a wrapper id).
+  if (post.sharedPostId != null && post.sharedPost === undefined) return false;
+  // A share wrapper denormalizes the boosted post's content, so a boost
+  // of a sanction-hidden actor's post is hidden too (when the relation
+  // is loaded).  Checked before the wrapper-author fast path: only the
+  // boosted post's author keeps access, not the booster.
+  if (post.sharedPost?.actor != null) {
+    const sharedAuthor = post.sharedPost.actor;
+    const viewerIsSharedAuthor = actor != null && (
+      "id" in actor
+        ? sharedAuthor.id === actor.id
+        : sharedAuthor.iri === actor.iri
+    );
+    if (!viewerIsSharedAuthor && isActorSanctionHidden(sharedAuthor)) {
+      return false;
+    }
+  }
   if (actor != null) {
     if (
       "id" in actor && post.actor.id === actor.id ||
@@ -2377,6 +2436,9 @@ export function isPostVisibleTo(
     ) {
       return true;
     }
+  }
+  if (isActorSanctionHidden(post.actor)) return false;
+  if (actor != null) {
     const blocked = "id" in actor
       ? post.actor.blockees.some((b) => b.blockeeId === actor.id) ||
         post.actor.blockers.some((b) => b.blockerId === actor.id)
@@ -2465,14 +2527,20 @@ export async function getPostInteractionPolicies(
   for (const post of posts) {
     if (!isPostVisibleTo(post, viewer)) continue;
     const effective = post.sharedPost ?? post;
-    const canAmplify = effective.sharedPostId == null &&
+    // A censored post (or a wrapper of one) cannot be boosted or quoted by
+    // anyone, including its author or a moderator: both actions re-amplify
+    // moderation-hidden content, and the share/quote mutations reject them
+    // outright.  Deny the policy too so the UI never offers an affordance
+    // that is guaranteed to fail.
+    const censored = post.censored != null || effective.censored != null;
+    const canAmplify = !censored && effective.sharedPostId == null &&
       isPostVisibleTo(effective, viewer) && (
         effective.visibility === "public" ||
         effective.visibility === "unlisted" ||
         (effective.visibility === "followers" &&
           effective.actorId === viewer.id)
       );
-    const canQuote = effective.sharedPostId == null &&
+    const canQuote = !censored && effective.sharedPostId == null &&
       isPostVisibleTo(effective, viewer) &&
       canActorRequestQuotePost(effective, viewer);
     result.set(post.id, {
@@ -2507,16 +2575,121 @@ export function getMutedActorExclusionFilter(
   } satisfies RelationsFilter<"postTable">;
 }
 
+/**
+ * Builds a post filter that excludes censored posts (and boosts of censored
+ * posts) from feed-like surfaces: timelines, search, news, and profile post
+ * lists.  Like {@link getMutedActorExclusionFilter}, this is intentionally
+ * NOT folded into {@link getPostVisibilityFilter}: a censored post's
+ * permalink must remain reachable so it can show a censorship notice
+ * instead of disappearing with a 404.  Apply it explicitly in list queries.
+ *
+ * When `viewerActorId` is given, the viewer's own censored posts stay
+ * visible to them ("author can still view their own content").
+ */
+export function getCensoredPostExclusionFilter(
+  viewerActorId?: Uuid | null,
+): RelationsFilter<"postTable"> {
+  return {
+    ...(viewerActorId == null ? { censored: { isNull: true } } : {
+      OR: [
+        { censored: { isNull: true } },
+        { actorId: viewerActorId },
+      ],
+    }),
+    NOT: { sharedPost: { censored: { isNotNull: true } } },
+  } satisfies RelationsFilter<"postTable">;
+}
+
+/**
+ * Matches actors whose content is currently hidden by a moderation
+ * sanction: banned local actors (permanent suspension) and remote actors
+ * under an active federation block (temporary or permanent).  A
+ * *temporarily* suspended local actor's content stays visible; only their
+ * ability to write is restricted.
+ *
+ * Sanction activeness is always evaluated by time comparison against the
+ * given instant, so expired suspensions need no cleanup writes.
+ *
+ * This is a *positive* matcher; it is only safe to negate at the relation
+ * level (`NOT: { sharedPost: { actor: ... } }` compiles to `NOT EXISTS`).
+ * Negating it directly on an actor row would trip SQL's three-valued
+ * logic: for unsanctioned actors `suspended` is `NULL`, the comparison
+ * evaluates to `NULL`, and `NOT NULL` is still `NULL`, filtering the row
+ * out.  Use {@link getSanctionVisibleActorFilter} for the inclusion form.
+ */
+export function getSanctionHiddenActorFilter(
+  now: Date = new Date(),
+): RelationsFilter<"actorTable"> {
+  return {
+    suspended: { lte: now },
+    OR: [
+      // Remote actor under an active federation block:
+      { accountId: { isNull: true }, suspendedUntil: { isNull: true } },
+      { accountId: { isNull: true }, suspendedUntil: { gt: now } },
+      // Banned local actor:
+      { accountId: { isNotNull: true }, suspendedUntil: { isNull: true } },
+    ],
+  } satisfies RelationsFilter<"actorTable">;
+}
+
+/**
+ * The TypeScript-side counterpart of {@link getSanctionHiddenActorFilter}:
+ * whether the actor's content is currently hidden by a moderation sanction
+ * (banned local actor, or remote actor under an active federation block).
+ */
+export function isActorSanctionHidden(
+  actor: Pick<Actor, "accountId" | "suspended" | "suspendedUntil">,
+  now: Date = new Date(),
+): boolean {
+  if (actor.suspended == null || actor.suspended > now) return false;
+  if (actor.suspendedUntil != null && actor.suspendedUntil <= now) {
+    return false; // Expired.
+  }
+  // An active *temporary* suspension of a local actor only restricts
+  // writing; a permanent one (ban), or any active sanction on a remote
+  // actor (federation block), hides content.
+  return actor.accountId == null || actor.suspendedUntil == null;
+}
+
+/**
+ * The NULL-safe inclusion complement of
+ * {@link getSanctionHiddenActorFilter}: matches actors whose content is
+ * NOT hidden by a moderation sanction, including the common case where
+ * `suspended` is `NULL`.
+ */
+export function getSanctionVisibleActorFilter(
+  now: Date = new Date(),
+): RelationsFilter<"actorTable"> {
+  return {
+    OR: [
+      // Not sanctioned at all:
+      { suspended: { isNull: true } },
+      // Sanction not started yet:
+      { suspended: { gt: now } },
+      // Sanction already expired:
+      { suspendedUntil: { lte: now } },
+      // Active temporary suspension of a *local* actor only restricts
+      // writing; their content stays visible:
+      { accountId: { isNotNull: true }, suspendedUntil: { gt: now } },
+    ],
+  } satisfies RelationsFilter<"actorTable">;
+}
+
 function getActorContentExclusionFilter(
   actorId: Uuid,
 ): RelationsFilter<"actorTable"> {
   return {
-    NOT: {
-      OR: [
-        { blockees: { blockeeId: actorId } },
-        { blockers: { blockerId: actorId } },
-      ],
-    },
+    AND: [
+      {
+        NOT: {
+          OR: [
+            { blockees: { blockeeId: actorId } },
+            { blockers: { blockerId: actorId } },
+          ],
+        },
+      },
+      getSanctionVisibleActorFilter(),
+    ],
   } satisfies RelationsFilter<"actorTable">;
 }
 
@@ -2533,11 +2706,14 @@ export function getPostVisibilityFilter(
   if (actorOrPost == null) {
     return {
       visibility: { in: ["public", "unlisted"] },
+      actor: getSanctionVisibleActorFilter(),
+      NOT: { sharedPost: { actor: getSanctionHiddenActorFilter() } },
     } satisfies RelationsFilter<"postTable">;
   }
   if ("accountId" in actorOrPost) {
     return {
       actor: getActorContentExclusionFilter(actorOrPost.id),
+      NOT: { sharedPost: { actor: getSanctionHiddenActorFilter() } },
       OR: [
         { actorId: actorOrPost.id },
         { visibility: { in: ["public", "unlisted"] } },
@@ -2588,10 +2764,13 @@ export function getPublicTimelineVisibilityFilter(
   if (actor == null) {
     return {
       visibility: "public",
+      actor: getSanctionVisibleActorFilter(),
+      NOT: { sharedPost: { actor: getSanctionHiddenActorFilter() } },
     } satisfies RelationsFilter<"postTable">;
   }
   return {
     actor: getActorContentExclusionFilter(actor.id),
+    NOT: { sharedPost: { actor: getSanctionHiddenActorFilter() } },
     visibility: "public",
   } satisfies RelationsFilter<"postTable">;
 }

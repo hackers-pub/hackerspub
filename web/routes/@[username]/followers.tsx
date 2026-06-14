@@ -3,6 +3,10 @@ import { removeFollower } from "@hackerspub/models/following";
 import { extractMentionsFromHtml } from "@hackerspub/models/markup";
 import type { Account, Actor } from "@hackerspub/models/schema";
 import { validateUuid } from "@hackerspub/models/uuid";
+import {
+  isProfileHiddenFor,
+  redactHiddenProfileActor,
+} from "../../censorship.ts";
 import { ActorList } from "../../components/ActorList.tsx";
 import { Msg } from "../../components/Msg.tsx";
 import { PageTitle } from "../../components/PageTitle.tsx";
@@ -45,20 +49,33 @@ export const handler = define.handlers({
     if (followers.length > WINDOW) {
       nextUrl = `?until=${followers[WINDOW - 1].accepted!.getTime()}`;
     }
+    // A banned actor in the list is redacted (name, bio, avatar, header,
+    // fields) for non-moderator viewers before mentions are extracted from
+    // bios and before the list is rendered, so the follower list does not
+    // leak banned profiles' content.
+    const visibleFollowers = followers.slice(0, WINDOW).map((f) =>
+      isProfileHiddenFor(f.follower, ctx.state.account)
+        ? redactHiddenProfileActor(f.follower)
+        : f.follower
+    );
     const followersMentions = await extractMentionsFromHtml(
       ctx.state.fedCtx,
-      followers.slice(0, WINDOW).map((f) => f.follower.bioHtml).join("\n"),
+      visibleFollowers.map((f) => f.bioHtml).join("\n"),
       {
         documentLoader: await ctx.state.fedCtx.getDocumentLoader(account),
         kv,
       },
     );
+    // A banned profile's display name is redacted to the username.
+    const profileName = isProfileHiddenFor(account.actor, ctx.state.account)
+      ? account.username
+      : account.name;
     ctx.state.title = ctx.state.t("profile.followerList.title", {
-      name: account.name,
+      name: profileName,
     });
     return page<FollowerListProps>({
-      account,
-      followers: followers.map((f) => f.follower).slice(0, WINDOW),
+      account: { ...account, name: profileName },
+      followers: visibleFollowers,
       followersMentions,
       nextUrl,
     });

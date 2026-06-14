@@ -2,6 +2,7 @@ import { isActor } from "@fedify/vocab";
 import { persistActor } from "@hackerspub/models/actor";
 import type { RelationsFilter } from "@hackerspub/models/db";
 import {
+  getCensoredPostExclusionFilter,
   getPostVisibilityFilter,
   isPostObject,
   persistPost,
@@ -262,9 +263,16 @@ builder.queryFields((t) => ({
       const postFilter: RelationsFilter<"postTable"> = {
         AND: [
           searchFilter,
-          signedAccount
-            ? getPostVisibilityFilter(signedAccount.actor)
-            : { visibility: "public" },
+          getPostVisibilityFilter(signedAccount?.actor ?? null),
+          // Guests only search public posts (not unlisted):
+          ...(signedAccount == null
+            ? [
+              { visibility: "public" } satisfies RelationsFilter<
+                "postTable"
+              >,
+            ]
+            : []),
+          getCensoredPostExclusionFilter(signedAccount?.actor.id),
           { sharedPostId: { isNull: true } },
           languages.length < 1
             ? (signedAccount?.hideForeignLanguages &&

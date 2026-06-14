@@ -14,6 +14,7 @@ import test, { describe, it } from "node:test";
 import { validate } from "@std/uuid/v7";
 import {
   isArticleLike,
+  isPostVisibleTo,
   scrapePostLink,
   withDocumentLoaderTimeout,
 } from "./post.ts";
@@ -226,5 +227,62 @@ describe("withDocumentLoaderTimeout()", () => {
     const signal = captured();
     assert.ok(signal != null);
     assert.deepEqual(signal.aborted, true);
+  });
+});
+
+describe("isPostVisibleTo()", () => {
+  const HOUR = 60 * 60 * 1000;
+
+  function fakeActor(
+    overrides: Partial<Actor>,
+  ): Actor & { followers: never[]; blockees: never[]; blockers: never[] } {
+    return {
+      id: crypto.randomUUID(),
+      iri: `https://example.com/actors/${crypto.randomUUID()}`,
+      accountId: null,
+      suspended: null,
+      suspendedUntil: null,
+      ...overrides,
+      followers: [],
+      blockees: [],
+      blockers: [],
+    } as unknown as Actor & {
+      followers: never[];
+      blockees: never[];
+      blockers: never[];
+    };
+  }
+
+  it("hides boosts of sanction-hidden actors' posts", () => {
+    // The boosted post's local author is banned; the booster is fine.
+    const bannedAuthor = fakeActor({
+      accountId: crypto.randomUUID() as Actor["accountId"],
+      suspended: new Date(Date.now() - HOUR),
+      suspendedUntil: null,
+    });
+    const booster = fakeActor({});
+    const wrapper = {
+      visibility: "public",
+      actor: booster,
+      mentions: [],
+      sharedPost: { visibility: "public", actor: bannedAuthor },
+    } as unknown as Parameters<typeof isPostVisibleTo>[0];
+    // The wrapper denormalizes the banned author's content, so it is
+    // hidden from guests and unrelated viewers:
+    assert.equal(isPostVisibleTo(wrapper), false);
+    assert.equal(isPostVisibleTo(wrapper, fakeActor({})), false);
+    // The boosted post's author keeps access:
+    assert.equal(isPostVisibleTo(wrapper, bannedAuthor), true);
+    // The booster does NOT: the wrapper carries the hidden content.
+    assert.equal(isPostVisibleTo(wrapper, booster), false);
+    // An unsanctioned boosted author stays visible:
+    const fineAuthor = fakeActor({});
+    const fineWrapper = {
+      visibility: "public",
+      actor: booster,
+      mentions: [],
+      sharedPost: { visibility: "public", actor: fineAuthor },
+    } as unknown as Parameters<typeof isPostVisibleTo>[0];
+    assert.equal(isPostVisibleTo(fineWrapper), true);
   });
 });

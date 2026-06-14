@@ -1,5 +1,9 @@
 import { syncActorFromAccount } from "@hackerspub/models/actor";
 import { follow } from "@hackerspub/models/following";
+import {
+  ActorSuspendedError,
+  isActorSuspended,
+} from "@hackerspub/models/moderation";
 import { createSession } from "@hackerspub/models/session";
 import {
   createAccount,
@@ -288,9 +292,18 @@ builder.mutationFields((t) => ({
           with: { actor: true },
         });
 
-        if (inviter) {
-          await follow(ctx.fedCtx, { ...account, actor }, inviter.actor);
-          await follow(ctx.fedCtx, inviter, actor);
+        // A suspended inviter cannot follow or be auto-followed; check
+        // before either follow so a rejection on the second one cannot
+        // leave the first half of the pair behind.
+        if (inviter && !isActorSuspended(inviter.actor)) {
+          try {
+            await follow(ctx.fedCtx, { ...account, actor }, inviter.actor);
+            await follow(ctx.fedCtx, inviter, actor);
+          } catch (error) {
+            // Races (e.g. the inviter gets suspended between the check
+            // and the follow) must not abort the signup itself.
+            if (!(error instanceof ActorSuspendedError)) throw error;
+          }
         }
       }
 

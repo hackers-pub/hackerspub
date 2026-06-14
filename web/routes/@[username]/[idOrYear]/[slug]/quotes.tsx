@@ -14,6 +14,10 @@ import type {
 import { withTransaction } from "@hackerspub/models/tx";
 import * as v from "@valibot/valibot";
 import { sql } from "drizzle-orm";
+import {
+  isPostCensoredFor,
+  redactCensoredPost,
+} from "../../../../censorship.ts";
 import { Msg } from "../../../../components/Msg.tsx";
 import { PostExcerpt } from "../../../../components/PostExcerpt.tsx";
 import { db } from "../../../../db.ts";
@@ -29,7 +33,7 @@ export const handler = define.handlers({
     const username = ctx.params.username;
     const year = parseInt(ctx.params.idOrYear);
     const slug = ctx.params.slug;
-    const article = await getArticleSource(
+    let article = await getArticleSource(
       db,
       username,
       year,
@@ -37,13 +41,37 @@ export const handler = define.handlers({
       ctx.state.account,
     );
     if (article == null) return ctx.next();
-    const post = article.post;
-    if (!isPostVisibleTo(post, ctx.state.account?.actor)) {
+    if (!isPostVisibleTo(article.post, ctx.state.account?.actor)) {
       return ctx.next();
+    }
+    if (isPostCensoredFor(article.post, ctx.state.account)) {
+      article = {
+        ...article,
+        post: redactCensoredPost(article.post, ctx.state.t),
+      };
     }
     const quotes = await db.query.postTable.findMany({
       with: {
-        actor: { with: { instance: true } },
+        actor: {
+          with: {
+            instance: true,
+            followers: {
+              where: ctx.state.account == null
+                ? { RAW: sql`false` }
+                : { followerId: ctx.state.account.actor.id },
+            },
+            blockees: {
+              where: ctx.state.account == null
+                ? { RAW: sql`false` }
+                : { blockeeId: ctx.state.account.actor.id },
+            },
+            blockers: {
+              where: ctx.state.account == null
+                ? { RAW: sql`false` }
+                : { blockerId: ctx.state.account.actor.id },
+            },
+          },
+        },
         link: {
           with: { creator: true },
         },
@@ -70,7 +98,13 @@ export const handler = define.handlers({
     });
     return page<ArticleQuotesProps>({
       article,
-      quotes,
+      quotes: quotes
+        .filter((quote) => isPostVisibleTo(quote, ctx.state.account?.actor))
+        .map((quote) =>
+          isPostCensoredFor(quote, ctx.state.account)
+            ? redactCensoredPost(quote, ctx.state.t)
+            : quote
+        ),
     });
   },
 
@@ -90,6 +124,12 @@ export const handler = define.handlers({
     const post = article.post;
     if (!isPostVisibleTo(post, ctx.state.account?.actor)) {
       return ctx.next();
+    }
+    // A censored article cannot be quoted by anyone, including the author and
+    // moderators (exempt from `isPostCensoredFor` redaction but still barred
+    // from quoting), so the guard uses the raw `censored` state.
+    if (post.censored != null) {
+      return new Response("Invalid quotedPostId", { status: 400 });
     }
     const account = ctx.state.account;
     if (account == null) {
@@ -157,7 +197,12 @@ export default define.page<typeof handler, ArticleQuotesProps>(
         signedAccount={state.account}
       />
       <div class="mt-8">
-        {state.account == null
+        {
+          /* A censored article cannot be quoted, so neither the remote-quote
+            instruction (which would disclose the ActivityPub URI to guests)
+            nor the quote composer is shown; existing quotes stay listed. */
+        }
+        {article.post.censored != null ? null : state.account == null
           ? (
             <>
               <p class="mb-8 leading-7 text-stone-500 dark:text-stone-400">

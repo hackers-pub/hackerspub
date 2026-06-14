@@ -13,6 +13,7 @@ import {
   resolveMediumUrls,
 } from "@hackerspub/models/markup";
 import {
+  isActorSanctionHidden,
   isPostVisibleTo,
   normalizeQuotePolicyForVisibility,
 } from "@hackerspub/models/post";
@@ -183,6 +184,16 @@ builder.setObjectDispatcher(
       where: { id: values.id },
     });
     if (articleSource == null) return null;
+    // Neither a censored article nor one whose author is hidden by a
+    // moderation sanction (ban / federation block) is served over
+    // ActivityPub; the HTML permalink shows a notice instead.
+    const post = await ctx.data.db.query.postTable.findFirst({
+      columns: { censored: true },
+      with: { actor: true },
+      where: { articleSourceId: values.id },
+    });
+    if (post?.censored != null) return null;
+    if (post != null && isActorSanctionHidden(post.actor)) return null;
     return await getArticle(ctx, articleSource);
   },
 );
@@ -306,9 +317,14 @@ export async function getNote(
     quoteUrl: relations.quotedPost == null
       ? null
       : new URL(relations.quotedPost.iri),
-    quoteAuthorization: relations.quoteAuthorizationIri == null
-      ? null
-      : new URL(relations.quoteAuthorizationIri),
+    // No quote authorization without a quote target: when the target is
+    // dropped (e.g. censored or sanction-hidden), its authorization URL must
+    // not be emitted either, or it would stay dereferenceable and reveal or
+    // validate the hidden target.
+    quoteAuthorization:
+      relations.quotedPost == null || relations.quoteAuthorizationIri == null
+        ? null
+        : new URL(relations.quoteAuthorizationIri),
     contents: [
       contentHtml,
       new LanguageString(contentHtml, note.language),
@@ -432,9 +448,13 @@ export async function getQuestion(
     quoteUrl: relations.quotedPost == null
       ? null
       : new URL(relations.quotedPost.iri),
-    quoteAuthorization: relations.quoteAuthorizationIri == null
-      ? null
-      : new URL(relations.quoteAuthorizationIri),
+    // No quote authorization without a quote target (see getNote): a dropped
+    // (censored or sanction-hidden) target must not leave a dereferenceable
+    // authorization URL.
+    quoteAuthorization:
+      relations.quotedPost == null || relations.quoteAuthorizationIri == null
+        ? null
+        : new URL(relations.quoteAuthorizationIri),
     name: poll.post.name,
     contents: [
       contentHtml,
@@ -462,6 +482,20 @@ export async function getQuestion(
   });
 }
 
+/**
+ * Whether a reply or quote target must not be referenced in an outgoing
+ * ActivityPub object.  When its own content is moderation-hidden (censored,
+ * or authored by a sanction-hidden actor), the dispatcher serializes its
+ * `inReplyTo`/quote IRI anyway, and for a remote target that IRI points at
+ * the uncensored copy on its origin instance, so the reference is dropped.
+ */
+export function isApTargetHidden(
+  target: (Post & { actor: Actor }) | null | undefined,
+): boolean {
+  return target != null &&
+    (target.censored != null || isActorSanctionHidden(target.actor));
+}
+
 builder
   .setObjectDispatcher(
     vocab.Note,
@@ -474,20 +508,28 @@ builder
           media: { with: { medium: true }, orderBy: { index: "asc" } },
           post: {
             where: { type: "Note" },
-            with: { replyTarget: true, quotedPost: true },
+            with: {
+              replyTarget: { with: { actor: true } },
+              quotedPost: { with: { actor: true } },
+            },
           },
         },
         where: { id: values.id },
       });
       if (note?.post == null) return null;
+      // Censored content is not served over ActivityPub.
+      if (note.post.censored != null) return null;
+      const { replyTarget, quotedPost } = note.post;
       return await getNote(
         ctx,
         note,
         {
-          replyTargetId: note.post.replyTarget == null
+          replyTargetId: replyTarget == null || isApTargetHidden(replyTarget)
             ? undefined
-            : new URL(note.post.replyTarget.iri),
-          quotedPost: note.post.quotedPost ?? undefined,
+            : new URL(replyTarget.iri),
+          quotedPost: isApTargetHidden(quotedPost)
+            ? undefined
+            : quotedPost ?? undefined,
           quoteAuthorizationIri: note.post.quoteAuthorizationIri,
           quoteRequestPolicy: note.post.quoteRequestPolicy,
         },
@@ -544,8 +586,8 @@ builder
       if (note == null) return null;
       const post = await ctx.data.db.query.postTable.findFirst({
         with: {
-          replyTarget: true,
-          quotedPost: true,
+          replyTarget: { with: { actor: true } },
+          quotedPost: { with: { actor: true } },
           poll: {
             with: {
               options: { orderBy: { index: "asc" } },
@@ -555,15 +597,20 @@ builder
         where: { noteSourceId: values.id, type: "Question" },
       });
       if (post?.poll == null) return null;
+      // Censored content is not served over ActivityPub.
+      if (post.censored != null) return null;
+      const { replyTarget, quotedPost } = post;
       return await getQuestion(
         ctx,
         note,
         { ...post.poll, post },
         {
-          replyTargetId: post.replyTarget == null
+          replyTargetId: replyTarget == null || isApTargetHidden(replyTarget)
             ? undefined
-            : new URL(post.replyTarget.iri),
-          quotedPost: post.quotedPost ?? undefined,
+            : new URL(replyTarget.iri),
+          quotedPost: isApTargetHidden(quotedPost)
+            ? undefined
+            : quotedPost ?? undefined,
           quoteAuthorizationIri: post.quoteAuthorizationIri,
           quoteRequestPolicy: post.quoteRequestPolicy,
         },
@@ -621,6 +668,12 @@ builder
           },
         });
       if (authorization == null) return null;
+      // Stop serving an authorization once its quoted post is censored:
+      // isPostVisibleTo (used by authorize) deliberately ignores `censored`
+      // for permalinks, so without this a remote instance could keep
+      // validating an already-issued quote of moderation-hidden content.
+      // Reversible by design: lifting the censorship serves it again.
+      if (authorization.quotedPost.censored != null) return null;
       return new vocab.QuoteAuthorization({
         id: new URL(authorization.iri),
         attribution: new URL(authorization.quotedPost.actor.iri),
@@ -653,6 +706,10 @@ builder
         },
       });
     if (authorization == null) return false;
+    // A censored quoted post makes the authorization unavailable (checked
+    // before any key/document-loader work); isPostVisibleTo below ignores
+    // `censored`, so this is what actually gates the moderation-hidden case.
+    if (authorization.quotedPost.censored != null) return false;
     const documentLoader = await ctx.getDocumentLoader({
       identifier: authorization.quotedPost.actor.accountId ?? values.id,
     });
@@ -714,7 +771,7 @@ builder.setObjectDispatcher(
     const share = await ctx.data.db.query.postTable.findFirst({
       with: {
         actor: { with: { account: true } },
-        sharedPost: true,
+        sharedPost: { with: { actor: true } },
         mentions: { with: { actor: true } },
       },
       where: {
@@ -724,6 +781,19 @@ builder.setObjectDispatcher(
     });
     if (
       share == null || share.actor.account == null || share.sharedPost == null
+    ) {
+      return null;
+    }
+    // Neither a censored boost nor a boost of a censored post is served
+    // over ActivityPub.
+    if (share.censored != null || share.sharedPost.censored != null) {
+      return null;
+    }
+    // The same goes when the booster or the boosted post's author is
+    // hidden by a moderation sanction (ban / federation block).
+    if (
+      isActorSanctionHidden(share.actor) ||
+      isActorSanctionHidden(share.sharedPost.actor)
     ) {
       return null;
     }
@@ -752,6 +822,8 @@ builder
         },
       });
       if (post == null || post.actor.account == null) return null;
+      // Censored content is not served over ActivityPub.
+      if (post.censored != null) return null;
       return getCreate(ctx, {
         ...post,
         actor: { ...post.actor, account: post.actor.account },
