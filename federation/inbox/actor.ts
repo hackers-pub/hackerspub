@@ -6,7 +6,10 @@ import {
 } from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
 import { follow } from "@hackerspub/models/following";
-import { ActorSuspendedError } from "@hackerspub/models/moderation";
+import {
+  ActorSuspendedError,
+  isActorSuspended,
+} from "@hackerspub/models/moderation";
 import { actorTable } from "@hackerspub/models/schema";
 import { eq } from "drizzle-orm";
 
@@ -25,8 +28,20 @@ export async function onActorDeleted(
 ): Promise<boolean> {
   const actorId = del.actorId;
   if (actorId == null || del.objectId?.href !== actorId.href) return false;
-  const deletedRows = await fedCtx.data.db.delete(actorTable)
-    .where(eq(actorTable.iri, actorId.href))
+  const { db } = fedCtx.data;
+  const actor = await db.query.actorTable.findFirst({
+    where: { iri: actorId.href },
+    columns: { id: true, suspended: true, suspendedUntil: true },
+  });
+  if (actor == null) return false;
+  // A sanctioned actor must not erase its own moderation state by deleting
+  // itself: the actor row holds the suspension/ban, and deleting it cascades
+  // to flag_case and flag_action (the immutable audit), so the same IRI
+  // could re-federate without the federation block.  Keep the row; the
+  // Delete is recognized but deliberately not acted on.
+  if (isActorSuspended(actor)) return true;
+  const deletedRows = await db.delete(actorTable)
+    .where(eq(actorTable.id, actor.id))
     .returning();
   return deletedRows.length > 0;
 }
