@@ -225,8 +225,7 @@ export function ReportDialog(props: ReportDialogProps) {
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={isReporting() || (touched() && (tooShort() ||
-              tooLong()))}
+            disabled={isReporting() || tooShort() || tooLong()}
           >
             {t`Submit report`}
           </Button>
