@@ -2,7 +2,12 @@ import assert from "node:assert";
 import test from "node:test";
 import { createBookmark, deleteBookmark } from "@hackerspub/models/bookmark";
 import { sharePost } from "@hackerspub/models/post";
-import { followingTable, postTable } from "@hackerspub/models/schema";
+import {
+  actorTable,
+  followingTable,
+  postTable,
+} from "@hackerspub/models/schema";
+import { generateUuidV7 } from "@hackerspub/models/uuid";
 import { encodeGlobalID } from "@pothos/plugin-relay";
 import { eq } from "drizzle-orm";
 import { execute, parse } from "graphql";
@@ -171,6 +176,72 @@ test("addReactionToPost rejects posts not visible to the viewer", async () => {
         __typename: "InvalidInputError",
         inputPath: "postId",
       },
+    );
+  });
+});
+
+test("addReactionToPost rejects a boost of a sanction-hidden actor's post", async () => {
+  await withRollback(async (tx) => {
+    const bannedAuthor = await insertRemoteActor(tx, {
+      username: "reactbanned",
+      name: "React Banned",
+      host: "remote.example",
+    });
+    const original = await insertRemotePost(tx, {
+      actorId: bannedAuthor.id,
+      contentHtml: "<p>Boosted before the ban</p>",
+    });
+    const booster = await insertAccountWithActor(tx, {
+      username: "reactbooster",
+      name: "React Booster",
+      email: "reactbooster@example.com",
+    });
+    // A boost wrapper of the original, denormalizing its content.
+    const wrapperId = generateUuidV7();
+    await tx.insert(postTable).values({
+      id: wrapperId,
+      iri: `http://localhost/ap/announces/${wrapperId}`,
+      type: "Note",
+      visibility: "public",
+      actorId: booster.actor.id,
+      sharedPostId: original.id,
+      contentHtml: "<p>Boosted before the ban</p>",
+      language: "en",
+      tags: {},
+      emojis: {},
+      sensitive: false,
+      url: original.url,
+    });
+    // The boosted post's author is then federation-blocked.
+    await tx.update(actorTable)
+      .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: null })
+      .where(eq(actorTable.id, bannedAuthor.id));
+    const viewer = await insertAccountWithActor(tx, {
+      username: "reactwrapviewer",
+      name: "React Wrapper Viewer",
+      email: "reactwrapviewer@example.com",
+    });
+
+    // Reacting via the wrapper id must be rejected: the boosted post's author
+    // is sanction-hidden, so the wrapper is not visible (the resolver loads
+    // sharedPost so isPostVisibleTo can evaluate it, and isPostVisibleTo fails
+    // closed when a wrapper's sharedPost is not loaded).
+    const result = await execute({
+      schema,
+      document: addReactionMutation,
+      variableValues: {
+        postId: encodeGlobalID("Note", wrapperId),
+        emoji: "❤️",
+      },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(result.errors, undefined);
+    assert.deepEqual(
+      (result.data as {
+        addReactionToPost: { __typename: string; inputPath?: string };
+      }).addReactionToPost,
+      { __typename: "InvalidInputError", inputPath: "postId" },
     );
   });
 });

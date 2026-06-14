@@ -3021,6 +3021,10 @@ builder.relayMutationField(
           replyTarget: {
             with: { actor: true },
           },
+          // Load the boosted post's author so a wrapper of a sanction-hidden
+          // actor's post is correctly hidden by isPostVisibleTo (which now
+          // fails closed when a wrapper's sharedPost is not loaded).
+          sharedPost: { with: { actor: true } },
           mentions: true,
         },
         where: { id: postId.id },
