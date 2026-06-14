@@ -73,6 +73,17 @@ test("transformMentions() rewrites anchors matching persisted mention actors", (
   );
 });
 
+test("transformMentions() tolerates missing mention relations", () => {
+  assert.equal(
+    transformMentions(
+      '<p>Hello <a href="https://forum.example/user/alice">@alice</a></p>',
+      undefined,
+      {},
+    ),
+    '<p>Hello <a href="https://forum.example/user/alice">@alice</a></p>',
+  );
+});
+
 describe("addExternalLinkTargets()", () => {
   it("adds target and rel to external http(s) links", () => {
     assert.deepEqual(

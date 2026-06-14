@@ -422,9 +422,10 @@ export function stripHtml(html: string): string {
 
 export function transformMentions(
   html: string,
-  mentions: { actor: Actor }[],
+  mentions: readonly { actor: Actor }[] | null | undefined,
   tags: Record<string, string>,
 ): string {
+  const mentionList = Array.isArray(mentions) ? mentions : [];
   const $ = load(html, null, false);
   $("a[href]:not(.hashtag)").each((_, el) => {
     const $el = $(el);
@@ -432,7 +433,7 @@ export function transformMentions(
     if (href == null) return;
     const rel = $el.attr("rel")?.split(/\s+/g) ?? [];
     if (rel.includes("tag")) return;
-    for (const { actor } of mentions) {
+    for (const { actor } of mentionList) {
       if (
         href === actor.iri || href === actor.url || actor.aliases.includes(href)
       ) {
