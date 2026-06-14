@@ -149,6 +149,8 @@ export function ReportHistoryList(props: ReportHistoryListProps) {
                         <Match when={postHref != null}>
                           <a
                             href={postHref!}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             class="flex min-w-0 items-center gap-1.5 font-medium hover:underline"
                           >
                             <IconFileText class="size-4 shrink-0 text-muted-foreground" />
