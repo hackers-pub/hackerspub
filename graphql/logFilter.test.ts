@@ -50,6 +50,12 @@ function jsonldInvalidUrlError(message: string): Error {
   return error;
 }
 
+function jsonldSyntaxError(message: string): Error {
+  const error = new Error(message);
+  error.name = "jsonld.SyntaxError";
+  return error;
+}
+
 test("docloader: drops a remote HTTP error status (>= 400)", () => {
   const r = record(
     ["fedify", "runtime", "docloader"],
@@ -162,13 +168,22 @@ test("inbox: keeps a processing failure with no error attached", () => {
   assert.equal(isRoutineFederationError(r), false);
 });
 
-test("inbox: keeps an unsupported activity type", () => {
+test("inbox: drops an unsupported activity type", () => {
   const r = record(
     ["fedify", "federation", "inbox"],
     "Unsupported activity type:\n{activity}",
     { error: fetchError() },
   );
-  assert.equal(isRoutineFederationError(r), false);
+  assert.equal(isRoutineFederationError(r), true);
+});
+
+test("inbox: drops an activity with no parseable actor", () => {
+  const r = record(
+    ["fedify", "federation", "inbox"],
+    "Missing actor.",
+    { activity: { type: "Delete", actor: "https://example.com/users/alice" } },
+  );
+  assert.equal(isRoutineFederationError(r), true);
 });
 
 test("inbox: drops an HTTP-signature verification failure", () => {
@@ -266,13 +281,48 @@ test("vocab: drops a suppressed fetch failure caused by AbortSignal timeout (GRA
   assert.equal(isRoutineFederationError(r), true);
 });
 
-test("vocab: keeps a suppressed parse failure (malformed remote JSON-LD)", () => {
+test("vocab: drops a suppressed parse failure from remote JSON-LD syntax", () => {
   const r = record(
     ["fedify", "vocab"],
     "Failed to parse {url}: {error}",
-    { url: "https://example/x", error: new SyntaxError("Unexpected token") },
+    {
+      url: "https://example/x",
+      error: jsonldSyntaxError(
+        "Invalid JSON-LD syntax; tried to redefine a protected term.",
+      ),
+    },
+  );
+  assert.equal(isRoutineFederationError(r), true);
+});
+
+test("vocab: keeps a suppressed parse failure from a parser type error", () => {
+  const r = record(
+    ["fedify", "vocab"],
+    "Failed to parse {url}: {error}",
+    {
+      url: "https://tags.pub/user/rust",
+      error: new TypeError(
+        "Expected an object of any type of: https://www.w3.org/ns/activitystreams#Service",
+      ),
+    },
   );
   assert.equal(isRoutineFederationError(r), false);
+});
+
+test("nodeinfo: drops remote descriptor failures", () => {
+  for (
+    const rawMessage of [
+      'Failed to find a NodeInfo document link from "{url}": {resourceDescriptor}',
+      'Failed to fetch "{url}": {status} "{statusText}"',
+    ]
+  ) {
+    const r = record(
+      ["fedify", "nodeinfo", "client"],
+      rawMessage,
+      { url: "https://example.com/.well-known/nodeinfo" },
+    );
+    assert.equal(isRoutineFederationError(r), true);
+  }
 });
 
 test("vocab: keeps a fetch failure whose error is not remote/transport", () => {

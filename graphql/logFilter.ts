@@ -61,6 +61,12 @@ export function isRemoteTransportError(error: unknown): boolean {
   return false;
 }
 
+function isRemoteJsonLdSyntaxError(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) return false;
+  const name = stringProp(error, "name");
+  return name === "jsonld.SyntaxError";
+}
+
 /**
  * Decides whether a LogTape record is a routine, remote-peer-driven federation
  * failure that Fedify logs at `error` level and then retries (so a single bad
@@ -99,12 +105,26 @@ export function isRoutineFederationError(record: LogRecord): boolean {
   // failure, logged it here at `error`, and returned `null`, so the caller
   // (e.g. persistActor reading a remote `followers` count) already handled it.
   // Every `["fedify", "vocab"]` error log lives in a `suppressError` branch, so
-  // none can hide a hackers.pub bug. Drop the fetch failures whose wrapped
-  // error is a remote fetch/transport failure; "Failed to parse ..." (malformed
-  // remote JSON-LD) is kept as a thinner signal.
+  // none can hide a hackers.pub bug. Drop fetch/parse failures whose wrapped
+  // error is a remote fetch/transport or JSON-LD syntax failure. Keep plain
+  // TypeError parse failures: these can be upstream vocabulary parser bugs,
+  // such as valid actor subclasses being rejected.
   if (category[1] === "vocab") {
-    return message.startsWith("Failed to fetch") &&
-      isRemoteTransportError(properties.error);
+    if (message.startsWith("Failed to fetch")) {
+      return isRemoteTransportError(properties.error);
+    }
+    if (message.startsWith("Failed to parse")) {
+      return isRemoteTransportError(properties.error) ||
+        isRemoteJsonLdSyntaxError(properties.error);
+    }
+    return false;
+  }
+
+  // nodeinfo: remote servers often advertise broken or empty NodeInfo
+  // descriptors, or transiently return 5xx.  NodeInfo only improves instance
+  // metadata, so these remote failures are not actionable app errors.
+  if (category[1] === "nodeinfo" && category[2] === "client") {
+    return true;
   }
 
   // webfinger: lookups for actors that do not exist here (bots and servers
@@ -131,7 +151,9 @@ export function isRoutineFederationError(record: LogRecord): boolean {
       if (
         message.startsWith("Failed to verify the request's HTTP Signatures") ||
         message.startsWith("The signer (") ||
-        message.startsWith("Failed to parse activity")
+        message.startsWith("Failed to parse activity") ||
+        message.startsWith("Unsupported activity type") ||
+        message === "Missing actor."
       ) {
         return true;
       }
