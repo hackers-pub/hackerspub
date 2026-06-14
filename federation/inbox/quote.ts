@@ -90,7 +90,12 @@ export async function onQuoteRequested(
     actor,
   );
   if (quotedPost?.actor.accountId == null) return;
-  const requestAllowed = canActorRequestQuotePost(quotedPost, actor);
+  // A censored post cannot be quoted (the local create-note path enforces the
+  // same), so a remote QuoteRequest for it is denied: granting a
+  // QuoteAuthorization would let federated users re-amplify content the
+  // moderation action makes unquotable.
+  const requestAllowed = quotedPost.censored == null &&
+    canActorRequestQuotePost(quotedPost, actor);
   const validInstrument = requestAllowed
     ? await getValidQuoteRequestInstrument(fedCtx, request)
     : undefined;
