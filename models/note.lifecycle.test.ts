@@ -1,5 +1,4 @@
 import assert from "node:assert";
-import process from "node:process";
 import test from "node:test";
 import type { Context } from "@fedify/fedify";
 import { Create, Note as ActivityPubNote, QuoteRequest } from "@fedify/vocab";
@@ -10,6 +9,7 @@ import { createNote, QuotePolicyDeniedError, updateNote } from "./note.ts";
 import { createQuestion } from "./question.ts";
 import { followingTable, mediumTable, postTable } from "./schema.ts";
 import { generateUuidV7 } from "./uuid.ts";
+import { withTagsPubRelayEnabled } from "../test/env.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
@@ -685,19 +685,3 @@ test("updateNote() rejects existing Question sources before changing content", a
     assert.equal(source?.content, "Question body should stay immutable");
   });
 });
-
-async function withTagsPubRelayEnabled(
-  run: () => Promise<void>,
-): Promise<void> {
-  const previous = process.env.TAGS_PUB_RELAY;
-  process.env.TAGS_PUB_RELAY = "true";
-  try {
-    await run();
-  } finally {
-    if (previous == null) {
-      delete process.env.TAGS_PUB_RELAY;
-    } else {
-      process.env.TAGS_PUB_RELAY = previous;
-    }
-  }
-}

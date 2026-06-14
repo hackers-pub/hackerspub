@@ -2,7 +2,6 @@ import { Delete, Note, Update } from "@fedify/vocab";
 import assert from "node:assert";
 import test from "node:test";
 import { and, eq } from "drizzle-orm";
-import process from "node:process";
 import { follow } from "./following.ts";
 import { revokeQuote, sharePost, unsharePost } from "./post.ts";
 import {
@@ -11,6 +10,7 @@ import {
   postTable,
   quoteAuthorizationTable,
 } from "./schema.ts";
+import { withTagsPubRelayEnabled } from "../test/env.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
@@ -382,19 +382,3 @@ test("revokeQuote() does not double-decrement retried revocations", async () => 
     assert.deepEqual(storedTarget?.quotesCount, 0);
   });
 });
-
-async function withTagsPubRelayEnabled(
-  run: () => Promise<void>,
-): Promise<void> {
-  const previous = process.env.TAGS_PUB_RELAY;
-  process.env.TAGS_PUB_RELAY = "true";
-  try {
-    await run();
-  } finally {
-    if (previous == null) {
-      delete process.env.TAGS_PUB_RELAY;
-    } else {
-      process.env.TAGS_PUB_RELAY = previous;
-    }
-  }
-}

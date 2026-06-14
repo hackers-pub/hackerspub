@@ -9,7 +9,6 @@ import {
   Update,
 } from "@fedify/vocab";
 import assert from "node:assert";
-import process from "node:process";
 import test from "node:test";
 import { eq } from "drizzle-orm";
 import type { ContextData } from "@hackerspub/models/context";
@@ -20,6 +19,7 @@ import {
   quoteRequestTable,
 } from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
+import { withTagsPubRelayEnabled } from "../../test/env.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
@@ -1327,19 +1327,3 @@ test("onQuoteAuthorizationDeleted falls through on actor mismatch", async () => 
     assert.equal(sent.length, 0);
   });
 });
-
-async function withTagsPubRelayEnabled(
-  run: () => Promise<void>,
-): Promise<void> {
-  const previous = process.env.TAGS_PUB_RELAY;
-  process.env.TAGS_PUB_RELAY = "true";
-  try {
-    await run();
-  } finally {
-    if (previous == null) {
-      delete process.env.TAGS_PUB_RELAY;
-    } else {
-      process.env.TAGS_PUB_RELAY = previous;
-    }
-  }
-}
