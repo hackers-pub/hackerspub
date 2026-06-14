@@ -438,3 +438,70 @@ test("Account.reports lists only the account's own reports", async () => {
     );
   });
 });
+
+test("Account.reports hides reports targeting the viewing moderator", async () => {
+  await withRollback(async (tx) => {
+    const moderator = await makeModerator(tx, {
+      username: "selfmod",
+      name: "Self Mod",
+      email: "selfmod@example.com",
+    });
+    const reporter = await insertAccountWithActor(tx, {
+      username: "reporter",
+      name: "Reporter",
+      email: "reporter@example.com",
+    });
+    const victim = await insertAccountWithActor(tx, {
+      username: "victim",
+      name: "Victim",
+      email: "victim@example.com",
+    });
+    // The reporter files one report against the moderator's own post and one
+    // against an unrelated victim's post.
+    const modPost = (await insertNotePost(tx, { account: moderator })).post;
+    const victimPost =
+      (await insertNotePost(tx, { account: victim.account })).post;
+    for (const post of [modPost, victimPost]) {
+      await execute({
+        schema,
+        document: reportContentMutation,
+        variableValues: {
+          targetId: encodeGlobalID("Note", post.id),
+          reason: REASON,
+        },
+        contextValue: makeUserContext(tx, reporter.account),
+        onError: "NO_PROPAGATE",
+      });
+    }
+
+    // A moderator may review the reporter's history, but the report against
+    // the moderator themselves must not surface (neither edges nor count),
+    // or it would reveal that this reporter reported them.
+    const asMod = await execute({
+      schema,
+      document: reportsQuery,
+      variableValues: { username: "reporter" },
+      contextValue: makeUserContext(tx, moderator),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(asMod.errors, undefined);
+    // deno-lint-ignore no-explicit-any
+    const modView = (asMod.data as any)?.accountByUsername?.reports;
+    assert.equal(modView?.totalCount, 1);
+    assert.equal(modView?.edges?.length, 1);
+
+    // The reporter still sees their own full history, including the report
+    // they filed against the moderator.
+    const asSelf = await execute({
+      schema,
+      document: reportsQuery,
+      variableValues: { username: "reporter" },
+      contextValue: makeUserContext(tx, reporter.account),
+      onError: "NO_PROPAGATE",
+    });
+    // deno-lint-ignore no-explicit-any
+    const selfView = (asSelf.data as any)?.accountByUsername?.reports;
+    assert.equal(selfView?.totalCount, 2);
+    assert.equal(selfView?.edges?.length, 2);
+  });
+});

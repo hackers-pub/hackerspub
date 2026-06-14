@@ -38,7 +38,7 @@ import {
 } from "@pothos/plugin-relay";
 import { assertNever } from "@std/assert/unstable-never";
 import { getLogger } from "@logtape/logtape";
-import { count, eq, sql } from "drizzle-orm";
+import { and, count, eq, ne, sql } from "drizzle-orm";
 import { Account } from "./account.ts";
 import { Actor } from "./actor.ts";
 import { builder, type UserContext } from "./builder.ts";
@@ -386,6 +386,13 @@ builder.drizzleObjectFields(Account, (t) => ({
         columns: { id: true },
       });
       if (actor == null) return null;
+      // A moderator may read any account's report history, but must never
+      // learn who reported *them*: exclude reports whose target is the
+      // viewer's own actor.  This is a no-op for the account owner's own
+      // view (self-reports are rejected, so none of their reports target
+      // themselves) and keeps the self-target anonymity guard intact for
+      // both the edges and `totalCount`.
+      const viewerActorId = ctx.account?.actor.id;
       const connection = await resolveCursorConnection(
         {
           args,
@@ -395,6 +402,9 @@ builder.drizzleObjectFields(Account, (t) => ({
           ctx.db.query.flagTable.findMany({
             where: {
               reporterId: actor.id,
+              ...(viewerActorId == null
+                ? {}
+                : { targetActorId: { ne: viewerActorId } }),
               ...(after != null && validateUuid(after)
                 ? { id: { lt: after as Uuid } }
                 : {}),
@@ -410,7 +420,12 @@ builder.drizzleObjectFields(Account, (t) => ({
       const [{ count: totalCount }] = await ctx.db
         .select({ count: count() })
         .from(flagTable)
-        .where(eq(flagTable.reporterId, actor.id));
+        .where(
+          viewerActorId == null ? eq(flagTable.reporterId, actor.id) : and(
+            eq(flagTable.reporterId, actor.id),
+            ne(flagTable.targetActorId, viewerActorId),
+          ),
+        );
       return { ...connection, totalCount };
     },
   }, {
