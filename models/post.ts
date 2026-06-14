@@ -1691,6 +1691,10 @@ export async function persistSharedPost(
     signal: overallSignal,
   });
   if (post == null) return;
+  // A censored post cannot be re-amplified via a federated boost, mirroring
+  // the local sharePost() guard: drop the Announce instead of inserting a
+  // wrapper that timelines and the share notification would surface.
+  if (post.censored != null) return;
   const to = new Set(announce.toIds.map((u) => u.href));
   const cc = new Set(announce.ccIds.map((u) => u.href));
   const values: Omit<NewPost, "id"> = {
@@ -1808,7 +1812,11 @@ async function canPersistIncomingQuote(
     },
     where: { id: quotedPostId },
   });
-  return quotedPost != null && canActorQuotePost(quotedPost, actor);
+  // A censored post cannot be quoted from the federated path either, matching
+  // the local getAllowedQuoteTargetForActor() guard: an incoming Create that
+  // quotes moderation-hidden content must not re-amplify it.
+  if (quotedPost == null || quotedPost.censored != null) return false;
+  return canActorQuotePost(quotedPost, actor);
 }
 
 async function getPersistedQuoteTargetState(
