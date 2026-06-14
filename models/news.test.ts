@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import test from "node:test";
 import { eq, sql } from "drizzle-orm";
-import type { Transaction } from "./db.ts";
+import type { Database, Transaction } from "./db.ts";
 import {
   addNewsExcludedPattern,
   addNewsPreferredSharer,
@@ -86,6 +86,19 @@ function mass(
 function score(weightedMass: number, latestActivity: Date): number {
   return Math.log10(Math.max(1, weightedMass)) + recency(latestActivity);
 }
+
+function sqlText(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (Array.isArray(value)) return value.map(sqlText).join("");
+  if (value != null && typeof value === "object") {
+    if ("queryChunks" in value) {
+      return sqlText((value as { queryChunks: unknown[] }).queryChunks);
+    }
+    if ("value" in value) return sqlText((value as { value: unknown }).value);
+  }
+  return "";
+}
+
 // Base-share multiplier for a repeat share, mirroring the SQL: a first share is
 // 1, a repeat recovers toward NEWS_REPEAT_CAP as the gap grows.
 function repeatFactor(gapSeconds: number): number {
@@ -98,6 +111,59 @@ async function readLink(tx: Transaction, id: Uuid) {
   assert.ok(link != null);
   return link;
 }
+
+test("recomputeNewsScores activeSince reuses one materialized active-link set", async () => {
+  const activeLinkId = "019ec23e-01bf-7e35-a831-bd1b6dd6789e" as Uuid;
+  const calls: string[] = [];
+  const isActiveLinkSweep = (text: string): boolean =>
+    text.includes("s.updated >=") && text.includes("r.created >=");
+  const fakeDb = {
+    transaction: async <T>(fn: (tx: Database) => Promise<T>): Promise<T> =>
+      await fn(fakeDb as unknown as Database),
+    select: () => ({
+      from: () => ({
+        where: async () => [],
+        then: (resolve: (value: unknown[]) => unknown) => resolve([]),
+      }),
+    }),
+    update: () => ({
+      set: () => ({
+        where: async () => [],
+      }),
+    }),
+    execute: async (query: unknown): Promise<unknown[]> => {
+      const text = sqlText(query);
+      calls.push(text);
+      if (
+        isActiveLinkSweep(text) &&
+        !text.includes("with share_roots as")
+      ) {
+        return [{ link_id: activeLinkId }];
+      }
+      if (text.includes("with share_roots as")) return [{ id: activeLinkId }];
+      return [];
+    },
+  } as unknown as Database;
+
+  const result = await recomputeNewsScores(fakeDb, {
+    activeSince: new Date("2026-01-01T00:00:00.000Z"),
+  });
+
+  assert.deepEqual(result.linksUpdated, 1);
+  const aggregate = calls.find((text) => text.includes("with share_roots as"));
+  assert.ok(aggregate != null);
+  assert.deepEqual(
+    isActiveLinkSweep(aggregate),
+    false,
+    "aggregate SQL should consume materialized link ids instead of embedding the active-link sweep",
+  );
+  assert.deepEqual(
+    calls.filter((text) =>
+      isActiveLinkSweep(text) && !text.includes("with share_roots as")
+    ).length,
+    1,
+  );
+});
 
 test("recomputeNewsScores ignores links with no public share", async () => {
   await withRollback(async (tx) => {

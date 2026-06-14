@@ -287,17 +287,21 @@ export async function recomputeNewsScores(
   }
 
   const run = async (tx: Database): Promise<number> => {
-    const linksUpdated = await recomputeAggregate(tx, scope);
+    const aggregateScope: AggregateScope = scope.kind === "activeSince"
+      ? { kind: "links", ids: await activeLinkIds(tx, scope.since) }
+      : scope;
+    const linksUpdated =
+      aggregateScope.kind === "links" && aggregateScope.ids.length < 1
+        ? 0
+        : await recomputeAggregate(tx, aggregateScope);
     await zeroStaleLinks(tx, scope);
     // Flag newly-scored (or rescored) links that match an exclusion pattern.
     // Scope the pass to the links this recompute touched so the periodic
     // `activeSince` sweep stays O(active links) instead of re-testing every
     // scored link on each run; a full (`all`) recompute re-evaluates all of
     // them, which is what it is for.
-    const exclusionScope = scope.kind === "links"
-      ? scope.ids
-      : scope.kind === "activeSince"
-      ? await activeLinkIds(tx, scope.since)
+    const exclusionScope = aggregateScope.kind === "links"
+      ? aggregateScope.ids
       : undefined;
     await applyNewsExclusions(tx, exclusionScope);
     return linksUpdated;
@@ -458,6 +462,8 @@ type RecomputeScope =
   | { readonly kind: "links"; readonly ids: readonly Uuid[] }
   | { readonly kind: "activeSince"; readonly since: Date };
 
+type AggregateScope = Exclude<RecomputeScope, { readonly kind: "activeSince" }>;
+
 function resolveScope(options: RecomputeNewsScoresOptions): RecomputeScope {
   if (options.linkIds != null) return { kind: "links", ids: options.linkIds };
   if (options.activeSince != null) {
@@ -467,19 +473,12 @@ function resolveScope(options: RecomputeNewsScoresOptions): RecomputeScope {
 }
 
 /**
- * A `AND <linkIdColumn> …` predicate that narrows a statement to the scope's
- * links, or empty SQL for a full recompute.  The set always stays inside SQL
- * (an explicit id list is bound as one `uuid[]` array; the `activeSince` set is
- * a subquery) so a large sweep never expands into thousands of bind
- * parameters.
- *
- * The `activeSince` set is materialized with `= any(array(…))` rather than
- * `in (…)`: against the millions-of-rows `post` table the planner otherwise
- * hash-semi-joins by scanning every sharing post, whereas the array form drives
- * a nested loop that looks the (few thousand) active links up through
- * `idx_post_news_share_link`, reading only their shares.
+ * A `AND <linkIdColumn> …` predicate that narrows aggregate statements to the
+ * target links, or empty SQL for a full recompute.  The set always stays inside
+ * SQL as one bound `uuid[]` array so a large sweep never expands into thousands
+ * of bind parameters.
  */
-function scopeFilter(scope: RecomputeScope, linkIdColumn: SQL): SQL {
+function scopeFilter(scope: AggregateScope, linkIdColumn: SQL): SQL {
   switch (scope.kind) {
     case "all":
       return sql``;
@@ -489,31 +488,35 @@ function scopeFilter(scope: RecomputeScope, linkIdColumn: SQL): SQL {
       const literal = `{${scope.ids.join(",")}}`;
       return sql` and ${linkIdColumn} = any(${literal}::uuid[])`;
     }
-    case "activeSince":
-      return sql` and ${linkIdColumn} = any(array(${
-        activeLinkIdsSubquery(scope.since)
-      }))`;
   }
 }
 
 /**
- * The companion of `scopeFilter` for the stale-link reset.  A link that just
- * lost its last public share is, by definition, *absent* from
- * `activeLinkIdsSubquery` (which requires a qualifying share), so the sweep
- * must scope its zeroing by the stored `latest_activity_at` instead: reset
- * recently-scored links that no longer qualify.  `all`/`links` scopes match
- * `scopeFilter`.
+ * Candidate link ids for the stale-link reset.  A link that just lost its last
+ * public share is, by definition, absent from `activeLinkIdsSubquery` (which
+ * requires a qualifying share), so the `activeSince` sweep scopes its zeroing by
+ * the stored `latest_activity_at` instead: reset recently-scored links that no
+ * longer qualify.
  */
-function staleScopeFilter(scope: RecomputeScope): SQL {
+function staleTargetLinks(scope: RecomputeScope): SQL {
   switch (scope.kind) {
     case "all":
-      return sql``;
+      return sql`
+        select pl.id
+        from post_link pl
+        where pl.latest_activity_at is not null
+      `;
     case "links": {
       const literal = `{${scope.ids.join(",")}}`;
-      return sql` and pl.id = any(${literal}::uuid[])`;
+      return sql`select distinct unnest(${literal}::uuid[]) as id`;
     }
     case "activeSince":
-      return sql` and pl.latest_activity_at >= ${scope.since.toISOString()}::timestamptz`;
+      return sql`
+        select pl.id
+        from post_link pl
+        where pl.latest_activity_at is not null
+          and pl.latest_activity_at >= ${scope.since.toISOString()}::timestamptz
+      `;
   }
 }
 
@@ -645,7 +648,7 @@ async function activeLinkIds(db: Database, activeSince: Date): Promise<Uuid[]> {
  */
 async function recomputeAggregate(
   db: Database,
-  scope: RecomputeScope,
+  scope: AggregateScope,
 ): Promise<number> {
   const result = await db.execute(sql`
     with share_roots as (
@@ -853,6 +856,35 @@ async function zeroStaleLinks(
   scope: RecomputeScope,
 ): Promise<void> {
   await db.execute(sql`
+    with target_links as (
+      ${staleTargetLinks(scope)}
+    ),
+    qualifying_links as (
+      select p.link_id as link_id
+      from target_links tl
+      join post p on p.link_id = tl.id
+      join actor a on a.id = p.actor_id
+      where p.visibility in ('public', 'unlisted')
+        and p.censored is null
+        and p.shared_post_id is null
+        and ${qualifyingSharerCondition}
+        and ${sanctionVisibleActorCondition("a")}
+      union
+      select original.link_id as link_id
+      from target_links tl
+      join post original on original.link_id = tl.id
+      join actor oa on oa.id = original.actor_id
+      join post p on p.shared_post_id = original.id
+      join actor a on a.id = p.actor_id
+      where original.type = 'Article'
+        and original.visibility in ('public', 'unlisted')
+        and original.censored is null
+        and ${sanctionVisibleActorCondition("oa")}
+        and p.visibility in ('public', 'unlisted')
+        and p.censored is null
+        and ${qualifyingSharerCondition}
+        and ${sanctionVisibleActorCondition("a")}
+    )
     update post_link pl set
       score = 0,
       weighted_mass = 0,
@@ -862,31 +894,13 @@ async function zeroStaleLinks(
       first_shared_at = null,
       latest_activity_at = null,
       score_updated = now()
-    where pl.latest_activity_at is not null${staleScopeFilter(scope)}
+    from target_links tl
+    where pl.id = tl.id
+      and pl.latest_activity_at is not null
       and not exists (
-        select 1 from post p
-        join actor a on a.id = p.actor_id
-        where p.link_id = pl.id
-          and p.visibility in ('public', 'unlisted')
-          and p.censored is null
-          and p.shared_post_id is null
-          and ${qualifyingSharerCondition}
-          and ${sanctionVisibleActorCondition("a")}
-      )
-      and not exists (
-        select 1 from post p
-        join post original on original.id = p.shared_post_id
-        join actor oa on oa.id = original.actor_id
-        join actor a on a.id = p.actor_id
-        where original.link_id = pl.id
-          and original.type = 'Article'
-          and original.visibility in ('public', 'unlisted')
-          and original.censored is null
-          and ${sanctionVisibleActorCondition("oa")}
-          and p.visibility in ('public', 'unlisted')
-          and p.censored is null
-          and ${qualifyingSharerCondition}
-          and ${sanctionVisibleActorCondition("a")}
+        select 1
+        from qualifying_links q
+        where q.link_id = pl.id
       )
   `);
 }
