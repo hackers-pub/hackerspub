@@ -918,7 +918,7 @@ export const postTable = pgTable(
     index("idx_post_public_local_note_published")
       .on(
         table.visibility,
-        sql`${table.published}::timestamptz(3) desc`,
+        sql`(${table.published}::timestamptz(3)) desc`,
         desc(table.id),
         table.language,
       )
@@ -929,7 +929,7 @@ export const postTable = pgTable(
     index("idx_post_public_local_article_published")
       .on(
         table.visibility,
-        sql`${table.published}::timestamptz(3) desc`,
+        sql`(${table.published}::timestamptz(3)) desc`,
         desc(table.id),
         table.language,
       )
@@ -940,7 +940,7 @@ export const postTable = pgTable(
     index("idx_post_public_local_published")
       .on(
         table.visibility,
-        sql`${table.published}::timestamptz(3) desc`,
+        sql`(${table.published}::timestamptz(3)) desc`,
         desc(table.id),
         table.language,
       )
@@ -955,7 +955,7 @@ export const postTable = pgTable(
     index("idx_post_actor_shared_published_ms")
       .on(
         table.actorId,
-        sql`${table.published}::timestamptz(3) desc`,
+        sql`(${table.published}::timestamptz(3)) desc`,
         desc(table.id),
       )
       .where(sql`
@@ -965,7 +965,7 @@ export const postTable = pgTable(
     index("idx_post_public_top_level_published")
       .on(
         table.visibility,
-        sql`${table.published}::timestamptz(3) desc`,
+        sql`(${table.published}::timestamptz(3)) desc`,
         desc(table.id),
         table.language,
       )
@@ -973,7 +973,7 @@ export const postTable = pgTable(
     index("idx_post_public_top_level_candidate")
       .on(
         table.visibility,
-        sql`${table.published}::timestamptz(3) desc`,
+        sql`(${table.published}::timestamptz(3)) desc`,
         desc(table.id),
         table.published,
         table.censored,
