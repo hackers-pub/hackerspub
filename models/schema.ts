@@ -890,6 +890,8 @@ export const postTable = pgTable(
       .on(table.visibility, desc(table.published)),
     index("idx_post_actor_id_published")
       .on(table.actorId, desc(table.published)),
+    index("idx_post_actor_id_updated")
+      .on(table.actorId, desc(table.updated)),
     index("idx_post_actor_id_published_ms")
       .on(
         table.actorId,

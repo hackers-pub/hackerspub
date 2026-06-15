@@ -703,8 +703,8 @@ function getPostCursorFilter(
   return {
     RAW: (post: typeof postTable) =>
       boundary === "newer"
-        ? sql`(${post.published}::timestamptz(3) > ${timestamp}::timestamptz(3) OR (${post.published}::timestamptz(3) = ${timestamp}::timestamptz(3) AND ${post.id} > ${postId}::uuid))`
-        : sql`(${post.published}::timestamptz(3) < ${timestamp}::timestamptz(3) OR (${post.published}::timestamptz(3) = ${timestamp}::timestamptz(3) AND ${post.id} < ${postId}::uuid))`,
+        ? sql`(${post.published}::timestamptz(3), ${post.id}) > (${timestamp}::timestamptz(3), ${postId}::uuid)`
+        : sql`(${post.published}::timestamptz(3), ${post.id}) < (${timestamp}::timestamptz(3), ${postId}::uuid)`,
   };
 }
 
@@ -734,8 +734,8 @@ function getTimelineItemCursorFilter(
         ? timelineItem.added
         : timelineItem.appended;
       return boundary === "newer"
-        ? sql`(${cursorColumn}::timestamptz(3) > ${timestamp}::timestamptz(3) OR (${cursorColumn}::timestamptz(3) = ${timestamp}::timestamptz(3) AND ${timelineItem.postId} > ${postId}::uuid))`
-        : sql`(${cursorColumn}::timestamptz(3) < ${timestamp}::timestamptz(3) OR (${cursorColumn}::timestamptz(3) = ${timestamp}::timestamptz(3) AND ${timelineItem.postId} < ${postId}::uuid))`;
+        ? sql`(${cursorColumn}::timestamptz(3), ${timelineItem.postId}) > (${timestamp}::timestamptz(3), ${postId}::uuid)`
+        : sql`(${cursorColumn}::timestamptz(3), ${timelineItem.postId}) < (${timestamp}::timestamptz(3), ${postId}::uuid)`;
     },
   };
 }

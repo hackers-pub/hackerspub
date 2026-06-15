@@ -53,8 +53,8 @@ function getPostCursorFilter(
   return {
     RAW: (post: typeof postTable) =>
       boundary === "newer"
-        ? sql`(${post.published}::timestamptz(3) > ${timestamp}::timestamptz(3) OR (${post.published}::timestamptz(3) = ${timestamp}::timestamptz(3) AND ${post.id} > ${postId}::uuid))`
-        : sql`(${post.published}::timestamptz(3) < ${timestamp}::timestamptz(3) OR (${post.published}::timestamptz(3) = ${timestamp}::timestamptz(3) AND ${post.id} < ${postId}::uuid))`,
+        ? sql`(${post.published}::timestamptz(3), ${post.id}) > (${timestamp}::timestamptz(3), ${postId}::uuid)`
+        : sql`(${post.published}::timestamptz(3), ${post.id}) < (${timestamp}::timestamptz(3), ${postId}::uuid)`,
   };
 }
 
