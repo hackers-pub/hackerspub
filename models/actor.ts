@@ -59,6 +59,26 @@ const logger = getLogger(["hackerspub", "models", "actor"]);
 const FEATURED_POST_LIMIT = 20;
 const HANDLE_LOOKUP_CONCURRENCY = 5;
 
+type OptionalActorValue<T> =
+  | { success: true; value: T }
+  | { success: false };
+
+async function getOptionalActorValue<T>(
+  actorId: URL,
+  property: string,
+  getter: () => Promise<T>,
+): Promise<OptionalActorValue<T>> {
+  try {
+    return { success: true, value: await getter() };
+  } catch (error) {
+    logger.debug(
+      "Failed to load optional actor {property} for {actorId}: {error}",
+      { actorId: actorId.href, property, error },
+    );
+    return { success: false };
+  }
+}
+
 async function mapWithConcurrencyLimit<T, TResult>(
   items: T[],
   concurrency: number,
@@ -197,15 +217,27 @@ export async function persistActor(
     return undefined;
   }
   const getterOpts = { ...options, suppressError: true };
-  const [attachments, avatar, header, followees, followers] = await Promise.all(
-    [
-      Array.fromAsync(actor.getAttachments(getterOpts)),
-      actor.getIcon(getterOpts),
-      await actor.getImage(getterOpts),
-      await actor.getFollowing(getterOpts),
-      await actor.getFollowers(getterOpts),
-    ],
-  );
+  const [
+    attachments,
+    avatar,
+    header,
+    followees,
+    followers,
+  ] = await Promise.all([
+    Array.fromAsync(actor.getAttachments(getterOpts)),
+    actor.getIcon(getterOpts),
+    actor.getImage(getterOpts),
+    getOptionalActorValue(
+      actor.id,
+      "following",
+      () => actor.getFollowing(getterOpts),
+    ),
+    getOptionalActorValue(
+      actor.id,
+      "followers",
+      () => actor.getFollowers(getterOpts),
+    ),
+  ]);
   const tags: Record<string, string> = {};
   const emojis: Record<string, string> = {};
   for await (const tag of actor.getTags(getterOpts)) {
@@ -257,8 +289,12 @@ export async function persistActor(
     emojis,
     tags,
     url: actor.url instanceof Link ? actor.url.href?.href : actor.url?.href,
-    followeesCount: followees?.totalItems ?? 0,
-    followersCount: followers?.totalItems ?? 0,
+    followeesCount: followees.success
+      ? followees.value?.totalItems ?? 0
+      : persisted?.followeesCount ?? 0,
+    followersCount: followers.success
+      ? followers.value?.totalItems ?? 0
+      : persisted?.followersCount ?? 0,
     aliases: actor.aliasIds?.map((a) => a.href),
     successorId:
       successorActor == null || !successorActor.aliases.includes(actor.id.href)

@@ -50,6 +50,40 @@ test("persistActor() stores a remote actor and toRecipient() reflects inbox endp
   });
 });
 
+test("persistActor() ignores invalid remote follow collections", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const actorObject = new vocab.Person({
+      id: new URL("https://wordpress.example/users/alice"),
+      preferredUsername: "alice",
+      name: "Alice WordPress",
+      inbox: new URL("https://wordpress.example/users/alice/inbox"),
+      followers: new URL("https://wordpress.example/users/alice/followers"),
+      following: new URL("https://wordpress.example/users/alice/following"),
+      url: new URL("https://wordpress.example/@alice"),
+    });
+    Object.defineProperties(actorObject, {
+      getFollowers: {
+        value: () => {
+          throw new TypeError("Expected followers to be a Collection.");
+        },
+      },
+      getFollowing: {
+        value: () => {
+          throw new TypeError("Expected following to be a Collection.");
+        },
+      },
+    });
+
+    const actor = await persistActor(fedCtx, actorObject, { outbox: false });
+
+    assert.ok(actor != null);
+    assert.equal(actor.iri, "https://wordpress.example/users/alice");
+    assert.equal(actor.followeesCount, 0);
+    assert.equal(actor.followersCount, 0);
+  });
+});
+
 test("persistActorsByHandles() fetches missing handles and returns cached actors on repeat", async () => {
   await withRollback(async (tx) => {
     const { kv, store } = createTestKv();
