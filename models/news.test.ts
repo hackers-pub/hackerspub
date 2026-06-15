@@ -165,6 +165,51 @@ test("recomputeNewsScores activeSince reuses one materialized active-link set", 
   );
 });
 
+test("recomputeNewsScores uses indexable child activity joins", async () => {
+  const linkId = "019ec2b1-53c8-76b5-85f0-e12a39e66973" as Uuid;
+  const calls: string[] = [];
+  const fakeDb = {
+    transaction: async <T>(fn: (tx: Database) => Promise<T>): Promise<T> =>
+      await fn(fakeDb as unknown as Database),
+    select: () => ({
+      from: () => ({
+        where: async () => [],
+        then: (resolve: (value: unknown[]) => unknown) => resolve([]),
+      }),
+    }),
+    update: () => ({
+      set: () => ({
+        where: async () => [],
+      }),
+    }),
+    execute: async (query: unknown): Promise<unknown[]> => {
+      const text = sqlText(query);
+      calls.push(text);
+      if (text.includes("with share_roots as")) return [{ id: linkId }];
+      return [];
+    },
+  } as unknown as Database;
+
+  const result = await recomputeNewsScores(fakeDb, { linkIds: [linkId] });
+
+  assert.deepEqual(result.linksUpdated, 1);
+  const aggregate = calls.find((text) => text.includes("with share_roots as"));
+  assert.ok(aggregate != null);
+  assert.ok(aggregate.includes("join post c on c.reply_target_id = s.post_id"));
+  assert.ok(aggregate.includes("join post c on c.quoted_post_id = s.post_id"));
+  assert.equal(
+    aggregate.match(/max\(c\.published\) as latest/g)?.length,
+    2,
+  );
+  assert.deepEqual(
+    aggregate.includes(
+      "c.reply_target_id = s.post_id or c.quoted_post_id = s.post_id",
+    ),
+    false,
+    "child activity SQL should not merge reply and quote lookups with OR",
+  );
+});
+
 test("recomputeNewsScores ignores links with no public share", async () => {
   await withRollback(async (tx) => {
     const sharer = await insertAccountWithActor(tx, {

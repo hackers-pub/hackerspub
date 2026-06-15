@@ -723,7 +723,7 @@ async function recomputeAggregate(
     -- replies_count/quotes_count include followers-only and direct posts,
     -- which must not influence (or leak through) a public news score.
     reply_counts as (
-      select s.post_id as post_id, count(*) as cnt
+      select s.post_id as post_id, count(*) as cnt, max(c.published) as latest
       from shares s
       join post c on c.reply_target_id = s.post_id
         and c.visibility in ('public', 'unlisted')
@@ -733,7 +733,7 @@ async function recomputeAggregate(
       group by s.post_id
     ),
     quote_counts as (
-      select s.post_id as post_id, count(*) as cnt
+      select s.post_id as post_id, count(*) as cnt, max(c.published) as latest
       from shares s
       join post c on c.quoted_post_id = s.post_id
         and c.visibility in ('public', 'unlisted')
@@ -741,17 +741,6 @@ async function recomputeAggregate(
       join actor ca on ca.id = c.actor_id
         and ${sanctionVisibleActorCondition("ca")}
       group by s.post_id
-    ),
-    child_activity as (
-      select s.link_id as link_id, max(c.published) as latest
-      from shares s
-      join post c
-        on (c.reply_target_id = s.post_id or c.quoted_post_id = s.post_id)
-        and c.visibility in ('public', 'unlisted')
-        and c.censored is null
-      join actor ca on ca.id = c.actor_id
-        and ${sanctionVisibleActorCondition("ca")}
-      group by s.link_id
     ),
     reaction_activity as (
       select s.link_id as link_id, max(r.created) as latest
@@ -797,7 +786,9 @@ async function recomputeAggregate(
         ) as weighted_mass,
         -- The strongest preferred-sharer bonus across this link's shares (0 when
         -- none).  Max, not sum: several curated sharers should not stack.
-        max(s.preferred_bonus) as promotion_bonus
+        max(s.preferred_bonus) as promotion_bonus,
+        max(rc.latest) as latest_reply,
+        max(qc.latest) as latest_quote
       from shares s
       left join reply_counts rc on rc.post_id = s.post_id
       left join quote_counts qc on qc.post_id = s.post_id
@@ -808,11 +799,15 @@ async function recomputeAggregate(
         agg.link_id as link_id,
         agg.post_count as post_count,
         agg.first_shared_at as first_shared_at,
-        greatest(agg.latest_share, ca.latest, ra.latest) as latest_activity_at,
+        greatest(
+          agg.latest_share,
+          agg.latest_reply,
+          agg.latest_quote,
+          ra.latest
+        ) as latest_activity_at,
         agg.weighted_mass as weighted_mass,
         agg.promotion_bonus as promotion_bonus
       from agg
-      left join child_activity ca on ca.link_id = agg.link_id
       left join reaction_activity ra on ra.link_id = agg.link_id
     )
     update post_link pl set
