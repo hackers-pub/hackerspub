@@ -915,6 +915,28 @@ export const postTable = pgTable(
     index("idx_post_article_source_published")
       .on(desc(table.published))
       .where(isNotNull(table.articleSourceId)),
+    index("idx_post_public_local_note_published")
+      .on(
+        table.visibility,
+        sql`${table.published}::timestamptz(3) desc`,
+        desc(table.id),
+        table.language,
+      )
+      .where(sql`
+        ${table.replyTargetId} IS NULL
+        AND ${table.noteSourceId} IS NOT NULL
+      `),
+    index("idx_post_public_local_article_published")
+      .on(
+        table.visibility,
+        sql`${table.published}::timestamptz(3) desc`,
+        desc(table.id),
+        table.language,
+      )
+      .where(sql`
+        ${table.replyTargetId} IS NULL
+        AND ${table.articleSourceId} IS NOT NULL
+      `),
     index("idx_post_public_local_published")
       .on(
         table.visibility,
@@ -930,12 +952,33 @@ export const postTable = pgTable(
           OR ${table.sharedPostId} IS NOT NULL
         )
       `),
+    index("idx_post_actor_shared_published_ms")
+      .on(
+        table.actorId,
+        sql`${table.published}::timestamptz(3) desc`,
+        desc(table.id),
+      )
+      .where(sql`
+        ${table.replyTargetId} IS NULL
+        AND ${table.sharedPostId} IS NOT NULL
+      `),
     index("idx_post_public_top_level_published")
       .on(
         table.visibility,
         sql`${table.published}::timestamptz(3) desc`,
         desc(table.id),
         table.language,
+      )
+      .where(sql`${table.replyTargetId} IS NULL`),
+    index("idx_post_public_top_level_candidate")
+      .on(
+        table.visibility,
+        sql`${table.published}::timestamptz(3) desc`,
+        desc(table.id),
+        table.published,
+        table.censored,
+        table.actorId,
+        table.sharedPostId,
       )
       .where(sql`${table.replyTargetId} IS NULL`),
     // Keyword search in models/search.ts uses `contentHtml ILIKE '%kw%'`,
@@ -949,6 +992,9 @@ export const postTable = pgTable(
     // statement timeouts on large datasets.
     index("idx_post_tags_gin")
       .using("gin", table.tags),
+    index("idx_post_link_id_censored_actor_id")
+      .on(table.linkId, table.censored, table.actorId)
+      .where(isNotNull(table.linkId)),
     // Support the news-score recompute (models/news.ts) with partial indexes
     // over just the "sharing" posts (carry a link, publicly visible, an
     // original post rather than a boost). `*_link` drives the per-link

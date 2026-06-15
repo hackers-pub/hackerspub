@@ -145,11 +145,6 @@ export function PublicTimeline(props: PublicTimelineProps) {
   ));
 
   onMount(() => {
-    // Stale-while-revalidate: show cached content immediately, refresh in
-    // the background so returning to this timeline shows fresh content.
-    const lang = props.activeLanguage?.();
-    posts.refetch({ languages: lang ? [lang] : [] });
-
     onCleanup(onNoteCreated(() => {
       const lang = props.activeLanguage?.();
       posts.refetch({ languages: lang ? [lang] : [] });

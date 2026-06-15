@@ -759,3 +759,46 @@ test("getPublicTimeline() excludes posts authored by a muted actor", async () =>
     assert.deepEqual(after.map((e) => e.post.id).includes(post.id), false);
   });
 });
+
+test("getPublicTimeline() refills past muted candidate batches", async () => {
+  await withRollback(async (tx) => {
+    const viewer = await insertAccountWithActor(tx, {
+      username: "mutepublicrefillviewer",
+      name: "Mute Public Refill Viewer",
+      email: "mutepublicrefillviewer@example.com",
+    });
+    const mutedAuthor = await insertAccountWithActor(tx, {
+      username: "mutepublicrefillmuted",
+      name: "Mute Public Refill Muted",
+      email: "mutepublicrefillmuted@example.com",
+    });
+    const visibleAuthor = await insertAccountWithActor(tx, {
+      username: "mutepublicrefillvisible",
+      name: "Mute Public Refill Visible",
+      email: "mutepublicrefillvisible@example.com",
+    });
+
+    await mute(tx, viewer.account, mutedAuthor.actor);
+
+    for (let i = 0; i < 8; i++) {
+      const seconds = String(10 - i).padStart(2, "0");
+      await insertNotePost(tx, {
+        account: mutedAuthor.account,
+        content: `Muted public refill candidate ${i}`,
+        published: new Date(`2026-04-15T00:00:${seconds}.000Z`),
+      });
+    }
+    const { post: visiblePost } = await insertNotePost(tx, {
+      account: visibleAuthor.account,
+      content: "Visible public refill post",
+      published: new Date("2026-04-15T00:00:01.000Z"),
+    });
+
+    const timeline = await getPublicTimeline(tx, {
+      currentAccount: viewer.account,
+      window: 1,
+    });
+
+    assert.deepEqual(timeline.map((e) => e.post.id), [visiblePost.id]);
+  });
+});

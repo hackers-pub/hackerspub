@@ -777,51 +777,65 @@ export async function getPublicTimeline(
       ? PUBLIC_TIMELINE_HYDRATION_BATCH_SIZE
       : Math.min(needed, PUBLIC_TIMELINE_HYDRATION_BATCH_SIZE);
     const batchLimit = batchNeeded + ACTOR_RACE_BUFFER;
-    const batchFilter: RelationsFilter<"postTable"> = {
+    const feedFilters: RelationsFilter<"postTable">[] = [
+      ...batchCursorFilters,
+      languages.size < 1
+        ? (currentAccount?.hideForeignLanguages &&
+            currentAccount.locales != null
+          ? { language: { in: expandLocales(currentAccount.locales) } }
+          : {})
+        : buildLanguagePrefixFilter(languages),
+      {
+        replyTargetId: { isNull: true },
+        ...(
+          local
+            ? {
+              OR: [
+                { noteSourceId: { isNotNull: true } },
+                { articleSourceId: { isNotNull: true } },
+                {
+                  sharedPostId: { isNotNull: true },
+                  actor: {
+                    accountId: { isNotNull: true },
+                  },
+                },
+              ],
+            }
+            : undefined
+        ),
+        ...(withoutShares ? { sharedPostId: { isNull: true } } : undefined),
+        ...(postType == null ? undefined : { type: postType }),
+        published: { lte: futureTimestampLimit },
+      },
+    ];
+    const displayFilter: RelationsFilter<"postTable"> = {
       AND: [
         getPublicTimelineVisibilityFilter(currentAccount?.actor ?? null),
         getCensoredPostExclusionFilter(currentAccount?.actor.id),
         ...(currentAccount == null
           ? []
           : [getMutedActorExclusionFilter(currentAccount.actor.id)]),
-        ...batchCursorFilters,
-        languages.size < 1
-          ? (currentAccount?.hideForeignLanguages &&
-              currentAccount.locales != null
-            ? { language: { in: expandLocales(currentAccount.locales) } }
-            : {})
-          : buildLanguagePrefixFilter(languages),
-        {
-          replyTargetId: { isNull: true },
-          ...(
-            local
-              ? {
-                OR: [
-                  { noteSourceId: { isNotNull: true } },
-                  { articleSourceId: { isNotNull: true } },
-                  {
-                    sharedPostId: { isNotNull: true },
-                    actor: {
-                      accountId: { isNotNull: true },
-                    },
-                  },
-                ],
-              }
-              : undefined
-          ),
-          ...(withoutShares ? { sharedPostId: { isNull: true } } : undefined),
-          ...(postType == null ? undefined : { type: postType }),
-          published: { lte: futureTimestampLimit },
-        },
+        ...feedFilters,
       ],
     };
+    const candidateFilter: RelationsFilter<"postTable"> = currentAccount == null
+      ? displayFilter
+      : {
+        AND: [
+          // Keep the candidate query aligned with the public timeline index.
+          // Viewer-specific blocks and mutes are applied below to the bounded
+          // candidate id set instead of expanding this top-level scan.
+          getPublicTimelineVisibilityFilter(null),
+          ...feedFilters,
+        ],
+      };
 
     const candidatePosts = await db.query.postTable.findMany({
       columns: {
         id: true,
         published: true,
       },
-      where: batchFilter,
+      where: candidateFilter,
       orderBy: (post, { asc, desc }) => {
         const cursorTimestamp = sql<Date>`${post.published}::timestamptz(3)`;
         return [
@@ -944,7 +958,7 @@ export async function getPublicTimeline(
       where: {
         AND: [
           { id: { in: candidatePostIds } },
-          batchFilter,
+          displayFilter,
         ],
       },
     });
