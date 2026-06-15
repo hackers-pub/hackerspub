@@ -160,13 +160,19 @@ export async function onPostShared(
   announce: Announce,
 ): Promise<void> {
   logger.debug("On post shared: {announce}", { announce });
-  if (announce.id?.origin !== announce.actorId?.origin) return;
+  const actorId = announce.actorId;
+  if (
+    announce.id == null || actorId == null ||
+    announce.id.origin !== actorId.origin
+  ) {
+    return;
+  }
   // One shared budget for the entire handler: the pre-check getObject() below,
   // plus all of persistSharedPost (getActor, getObject, persistPost subtree),
   // plus the post-persist DB writes all count against the same 90s deadline so
   // their aggregate cannot reach the 180s MQ handlerTimeout (GRAPHQL-1H).
   if (
-    await isCachedActorFederationBlocked(fedCtx.data.db, announce.actorId)
+    await isCachedActorFederationBlocked(fedCtx.data.db, actorId)
   ) {
     return;
   }
@@ -182,6 +188,18 @@ export async function onPostShared(
     suppressError: true,
   });
   if (!isPostObject(object)) return;
+  if (isTagsPubHashtagActor(actorId.href)) {
+    const post = await persistPost(fedCtx, object, {
+      replies: true,
+      documentLoader: boundedLoader,
+      contextLoader: fedCtx.contextLoader,
+      signal: overallSignal,
+    });
+    if (post != null) {
+      await addTagsPubPostToTimeline(fedCtx.data.db, post);
+    }
+    return;
+  }
   const post = await persistSharedPost(fedCtx, announce, {
     ...fedCtx,
     documentLoader: boundedLoader,

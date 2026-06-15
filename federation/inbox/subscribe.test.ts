@@ -1,11 +1,18 @@
 import assert from "node:assert";
 import test from "node:test";
 import type { InboxContext } from "@fedify/fedify";
-import { Create, Note } from "@fedify/vocab";
+import {
+  Announce,
+  Create,
+  Hashtag,
+  Note,
+  PUBLIC_COLLECTION,
+} from "@fedify/vocab";
 import type { Add, Remove } from "@fedify/vocab";
 import type { ContextData } from "@hackerspub/models/context";
 import type { Transaction } from "@hackerspub/models/db";
 import {
+  hashtagFollowingTable,
   type NewPost,
   pollOptionTable,
   pollTable,
@@ -18,7 +25,12 @@ import {
   insertRemoteActor,
   withRollback,
 } from "../../test/postgres.ts";
-import { onPostCreated, onPostPinned, onPostUnpinned } from "./subscribe.ts";
+import {
+  onPostCreated,
+  onPostPinned,
+  onPostShared,
+  onPostUnpinned,
+} from "./subscribe.ts";
 
 async function insertQuestionPoll(
   tx: Transaction,
@@ -95,6 +107,72 @@ test("onPostUnpinned ignores tags.pub hashtag actors without fetching them", asy
   await onPostUnpinned({} as InboxContext<ContextData>, remove);
 
   assert.equal(actorFetches, 0);
+});
+
+test("onPostShared relays tags.pub announces without fetching the hashtag actor", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertRemoteActor(tx, {
+      username: "tagspubauthor",
+      name: "Tags Pub Author",
+      host: "remote.example",
+      iri: "https://remote.example/users/tagspubauthor",
+    });
+    const follower = await insertAccountWithActor(tx, {
+      username: "tagspubfollower",
+      name: "Tags Pub Follower",
+      email: "tagspubfollower@example.com",
+    });
+    await tx.insert(hashtagFollowingTable).values({
+      accountId: follower.account.id,
+      tag: "rust",
+    });
+    let actorFetches = 0;
+    const note = new Note({
+      id: new URL("https://remote.example/posts/rust"),
+      attribution: new URL(author.iri),
+      content: "Rust release notes",
+      tags: [
+        new Hashtag({
+          name: "#rust",
+          href: new URL("https://tags.pub/tags/rust"),
+        }),
+      ],
+      to: PUBLIC_COLLECTION,
+    });
+    const announce = new Announce({
+      id: new URL("https://tags.pub/activities/rust/1"),
+      actor: new URL("https://tags.pub/user/rust"),
+      object: note,
+    });
+    announce.getActor = (() => {
+      actorFetches++;
+      throw new Error("unexpected tags.pub actor fetch");
+    }) as Announce["getActor"];
+
+    await onPostShared(
+      createFedCtx(tx) as unknown as InboxContext<ContextData>,
+      announce,
+    );
+
+    assert.equal(actorFetches, 0);
+    const posts = await tx.query.postTable.findMany({
+      where: { iri: "https://remote.example/posts/rust" },
+    });
+    assert.equal(posts.length, 1);
+    const shares = await tx.query.postTable.findMany({
+      where: { sharedPostId: posts[0].id },
+    });
+    assert.equal(shares.length, 0);
+    const timelineItem = await tx.query.timelineItemTable.findFirst({
+      where: {
+        accountId: follower.account.id,
+        postId: posts[0].id,
+      },
+    });
+    assert.ok(timelineItem != null);
+    assert.equal(timelineItem.originalAuthorId, posts[0].actorId);
+    assert.equal(timelineItem.lastSharerId, null);
+  });
 });
 
 test("onPostCreated stores a remote poll vote", async () => {
