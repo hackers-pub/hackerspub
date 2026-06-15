@@ -8,7 +8,6 @@ import {
   EmojiReact,
   Flag,
   Follow,
-  isActor,
   Like,
   Move,
   QuoteRequest,
@@ -17,11 +16,9 @@ import {
   Undo,
   Update,
 } from "@fedify/vocab";
-import { isCachedActorFederationBlocked } from "@hackerspub/models/actor";
-import { isPostObject } from "@hackerspub/models/post";
 import { getLogger } from "@logtape/logtape";
 import { builder } from "../builder.ts";
-import { onActorDeleted, onActorMoved, onActorUpdated } from "./actor.ts";
+import { onActorDeleted, onActorMoved } from "./actor.ts";
 import { onFlagged } from "./flag.ts";
 import {
   onBlocked,
@@ -45,11 +42,11 @@ import {
   onPostShared,
   onPostUnpinned,
   onPostUnshared,
-  onPostUpdated,
   onReactedOnPost,
   onReactionUndoneOnPost,
 } from "./subscribe.ts";
 import { onUnverifiedActivity } from "./unverified.ts";
+import { onUpdated } from "./update.ts";
 
 const logger = getLogger(["hackerspub", "federation", "inbox"]);
 
@@ -81,17 +78,7 @@ builder
   })
   .on(Create, onPostCreated)
   .on(Announce, onPostShared)
-  .on(Update, async (fedCtx, update) => {
-    if (
-      await isCachedActorFederationBlocked(fedCtx.data.db, update.actorId)
-    ) {
-      return;
-    }
-    const object = await update.getObject({ ...fedCtx, suppressError: true });
-    if (isActor(object)) await onActorUpdated(fedCtx, update);
-    else if (isPostObject(object)) await onPostUpdated(fedCtx, update);
-    else logger.warn("Unhandled Update object: {update}", { update });
-  })
+  .on(Update, onUpdated)
   .on(Like, onReactedOnPost)
   .on(EmojiReact, onReactedOnPost)
   .on(Delete, async (fedCtx, del) => {

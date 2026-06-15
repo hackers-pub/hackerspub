@@ -16,8 +16,10 @@ import { eq } from "drizzle-orm";
 export async function onActorUpdated(
   fedCtx: InboxContext<ContextData>,
   update: Update,
+  object?: unknown,
 ): Promise<void> {
-  const actor = await update.getObject(fedCtx);
+  const actor = object ??
+    await update.getObject({ ...fedCtx, suppressError: true });
   if (!isActor(actor) || update.actorId?.href !== actor.id?.href) return;
   await persistActor(fedCtx, actor, { ...fedCtx, outbox: false });
 }

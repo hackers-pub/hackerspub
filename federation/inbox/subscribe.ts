@@ -126,13 +126,15 @@ export async function onPostCreated(
 export async function onPostUpdated(
   fedCtx: InboxContext<ContextData>,
   update: Update,
+  object?: unknown,
 ): Promise<void> {
   logger.debug("On post updated: {update}", { update });
   if (update.objectId?.origin !== update.actorId?.origin) return;
-  const object = await update.getObject({ ...fedCtx, suppressError: true });
-  if (!isPostObject(object)) return;
-  if (object.attributionId?.href !== update.actorId?.href) return;
-  await persistPost(fedCtx, object, {
+  const postObject = object ??
+    await update.getObject({ ...fedCtx, suppressError: true });
+  if (!isPostObject(postObject)) return;
+  if (postObject.attributionId?.href !== update.actorId?.href) return;
+  await persistPost(fedCtx, postObject, {
     replies: true,
     documentLoader: fedCtx.documentLoader,
     contextLoader: fedCtx.contextLoader,
