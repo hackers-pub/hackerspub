@@ -225,6 +225,7 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
         @argumentDefinitions(locale: { type: "Locale" })
       {
         __id
+        uuid
         censored
         ...PostActionMenu_post
         actor {
@@ -328,19 +329,33 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
                     />
                   </InternalLink>
                 </Show>
-                <PostActionMenu
-                  $post={article}
-                  connections={props.connections}
-                  pinConnections={props.pinConnections}
-                  onEdit={article.actor.local && article.slug != null
-                    ? () =>
-                      navigate(
-                        `/@${article.actor.username}/${article.publishedYear}/${
-                          encodeURIComponent(article.slug!)
-                        }/edit`,
-                      )
-                    : undefined}
-                />
+                {(() => {
+                  const prettyBase = article.actor.local &&
+                      article.publishedYear != null && article.slug != null
+                    ? `/@${article.actor.username}/${article.publishedYear}/${article.slug}`
+                    : null;
+                  const engagementBase = prettyBase ??
+                    `/${
+                      encodeHandleSegment(article.actor.handle)
+                    }/${article.uuid}`;
+                  return (
+                    <PostActionMenu
+                      $post={article}
+                      connections={props.connections}
+                      pinConnections={props.pinConnections}
+                      repliesHref={`${engagementBase}/replies`}
+                      engagementBase={engagementBase}
+                      onEdit={article.actor.local && article.slug != null
+                        ? () =>
+                          navigate(
+                            `/@${article.actor.username}/${article.publishedYear}/${
+                              encodeURIComponent(article.slug!)
+                            }/edit`,
+                          )
+                        : undefined}
+                    />
+                  );
+                })()}
                 <Show
                   keyed
                   when={article.contents != null &&

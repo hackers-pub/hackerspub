@@ -1,5 +1,5 @@
 import { sortReactionGroups } from "@hackerspub/models/emoji";
-import { A, useNavigate } from "@solidjs/router";
+import { A } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import {
   createEffect,
@@ -431,134 +431,9 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
             $post={note}
             bookmarkListConnections={props.bookmarkListConnections}
           />
-
-          {
-            /* Overflow menu — explicit, always-visible affordance for
-               jumping to the engagement-detail pages.  The per-icon
-               count links above already navigate, but on touch devices
-               there's no hover-state for the underline cue, so this
-               menu surfaces the same destinations as named menu items.
-               Only rendered when at least one of `repliesHref` /
-               `engagementBase` is set; otherwise the bar has nowhere
-               to navigate. */
-          }
-          <Show
-            when={(props.repliesHref ?? props.engagementBase) != null}
-          >
-            <EngagementOverflowMenu
-              repliesHref={props.repliesHref ?? null}
-              engagementBase={props.engagementBase ?? null}
-              replies={note.engagementStats.replies}
-              quotes={note.engagementStats.quotes}
-              shares={note.engagementStats.shares}
-              reactions={note.engagementStats.reactions}
-            />
-          </Show>
         </div>
       )}
     </Show>
-  );
-}
-
-function EngagementOverflowMenu(props: {
-  repliesHref: string | null;
-  engagementBase: string | null;
-  replies: number;
-  quotes: number;
-  shares: number;
-  reactions: number;
-}) {
-  const { t } = useLingui();
-  const navigate = useNavigate();
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 px-2 cursor-pointer text-muted-foreground hover:text-foreground"
-        aria-label={t`More engagement views`}
-        title={t`More engagement views`}
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke-width="1.5"
-          stroke="currentColor"
-          class="size-4"
-          aria-hidden="true"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"
-          />
-        </svg>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <Show when={props.repliesHref}>
-          <OverflowMenuLink
-            href={props.repliesHref!}
-            label={t`View replies`}
-            count={props.replies}
-            navigate={navigate}
-          />
-        </Show>
-        <Show when={props.engagementBase}>
-          <OverflowMenuLink
-            href={`${props.engagementBase}/shares`}
-            label={t`View shares`}
-            count={props.shares}
-            navigate={navigate}
-          />
-          <OverflowMenuLink
-            href={`${props.engagementBase}/quotes`}
-            label={t`View quotes`}
-            count={props.quotes}
-            navigate={navigate}
-          />
-          <OverflowMenuLink
-            href={`${props.engagementBase}/reactions`}
-            label={t`View reactions`}
-            count={props.reactions}
-            navigate={navigate}
-          />
-        </Show>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
-// Anchor tags activate natively on Enter and pointer click, but the
-// Space key doesn't fire a native anchor click.  Intercept Space at
-// the keydown level to call `navigate(href)` so all keyboard activation
-// paths reach the destination.  `onSelect` is intentionally NOT used:
-// Kobalte fires it on every primary-button pointer activation, which
-// would call `navigate()` synchronously before the anchor's native
-// click resolves — breaking cmd/ctrl-click and middle-click new-tab
-// behaviour by also navigating the current tab.  Letting the anchor's
-// native click semantics handle pointer events keeps modifier clicks,
-// middle-clicks, and "Copy link address" working.
-function OverflowMenuLink(props: {
-  href: string;
-  label: string;
-  count: number;
-  navigate: ReturnType<typeof useNavigate>;
-}) {
-  return (
-    <DropdownMenuItem
-      as={A}
-      href={props.href}
-      onKeyDown={(event: KeyboardEvent) => {
-        if (event.key === " " || event.key === "Spacebar") {
-          event.preventDefault();
-          props.navigate(props.href);
-        }
-      }}
-    >
-      <span class="flex-1">{props.label}</span>
-      <span class="ml-3 text-xs text-muted-foreground tabular-nums">
-        {props.count}
-      </span>
-    </DropdownMenuItem>
   );
 }
 

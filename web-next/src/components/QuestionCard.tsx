@@ -286,12 +286,23 @@ function QuestionCardContent(props: QuestionCardContentProps) {
                 &middot;
                 <VisibilityTag visibility={q.visibility} />
                 <Show when={showDeferredSections()}>
-                  <QuestionActionMenu
-                    $question={q}
-                    connections={props.connections}
-                    pinConnections={props.pinConnections}
-                    onDeleted={props.onDeleted}
-                  />
+                  {(() => {
+                    const base = `/${
+                      q.actor.local
+                        ? `@${q.actor.username}`
+                        : encodeHandleSegment(q.actor.handle)
+                    }/${q.sourceId ?? q.uuid}`;
+                    return (
+                      <QuestionActionMenu
+                        $question={q}
+                        connections={props.connections}
+                        pinConnections={props.pinConnections}
+                        repliesHref={`${base}/replies`}
+                        engagementBase={base}
+                        onDeleted={props.onDeleted}
+                      />
+                    );
+                  })()}
                 </Show>
               </span>
             </div>

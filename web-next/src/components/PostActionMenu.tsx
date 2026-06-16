@@ -1,3 +1,4 @@
+import { A, useNavigate } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
 import { createFragment, createMutation } from "solid-relay";
@@ -16,6 +17,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
@@ -111,6 +113,8 @@ export interface PostActionMenuProps {
   $post: PostActionMenu_post$key;
   connections?: string[];
   pinConnections?: string[];
+  repliesHref?: string | null;
+  engagementBase?: string | null;
   onDeleted?: () => void;
   onEdit?: () => void;
 }
@@ -120,6 +124,12 @@ interface PostActionMenuData {
   readonly iri: string;
   readonly visibility: string;
   readonly viewerHasPinned: boolean;
+  readonly engagementStats: {
+    readonly replies: number;
+    readonly shares: number;
+    readonly quotes: number;
+    readonly reactions: number;
+  };
   readonly sharedPost: { readonly id: string } | null | undefined;
   readonly actor: {
     readonly isViewer: boolean;
@@ -136,6 +146,12 @@ export function PostActionMenu(props: PostActionMenuProps) {
         iri
         visibility
         viewerHasPinned
+        engagementStats {
+          replies
+          shares
+          quotes
+          reactions
+        }
         sharedPost {
           id
         }
@@ -154,6 +170,8 @@ export function PostActionMenu(props: PostActionMenuProps) {
       post={post}
       connections={props.connections}
       pinConnections={props.pinConnections}
+      repliesHref={props.repliesHref}
+      engagementBase={props.engagementBase}
       onDeleted={props.onDeleted}
       onEdit={props.onEdit}
     />
@@ -164,6 +182,8 @@ export interface QuestionActionMenuProps {
   $question: PostActionMenu_question$key;
   connections?: string[];
   pinConnections?: string[];
+  repliesHref?: string | null;
+  engagementBase?: string | null;
   onDeleted?: () => void;
   onEdit?: () => void;
 }
@@ -176,6 +196,12 @@ export function QuestionActionMenu(props: QuestionActionMenuProps) {
         iri
         visibility
         viewerHasPinned
+        engagementStats {
+          replies
+          shares
+          quotes
+          reactions
+        }
         sharedPost {
           id
         }
@@ -194,6 +220,8 @@ export function QuestionActionMenu(props: QuestionActionMenuProps) {
       post={question}
       connections={props.connections}
       pinConnections={props.pinConnections}
+      repliesHref={props.repliesHref}
+      engagementBase={props.engagementBase}
       onDeleted={props.onDeleted}
       onEdit={props.onEdit}
     />
@@ -204,12 +232,15 @@ interface PostActionMenuContentProps {
   post: () => PostActionMenuData | null | undefined;
   connections?: string[];
   pinConnections?: string[];
+  repliesHref?: string | null;
+  engagementBase?: string | null;
   onDeleted?: () => void;
   onEdit?: () => void;
 }
 
 function PostActionMenuContent(props: PostActionMenuContentProps) {
   const { i18n, t } = useLingui();
+  const navigate = useNavigate();
   const viewer = useViewer();
   const post = props.post;
   const [showConfirm, setShowConfirm] = createSignal(false);
@@ -229,6 +260,13 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
     return viewer.isLoaded() && viewer.isAuthenticated() && p != null &&
       !p.actor.isViewer && p.sharedPost == null;
   };
+  const hasPostActions = () =>
+    canModerate() || (props.onEdit != null && isAuthor()) || canPinPost() ||
+    isAuthor() || canReport();
+  const hasEngagementViews = () =>
+    props.repliesHref != null || props.engagementBase != null;
+  const canShowMenu = () =>
+    post() != null && (hasPostActions() || hasEngagementViews());
 
   const [commitDeletePost, isDeleting] = createMutation<
     PostActionMenu_deletePost_Mutation
@@ -337,7 +375,7 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
   };
 
   return (
-    <Show when={isAuthor() || canModerate() || canReport()}>
+    <Show when={canShowMenu()}>
       <DropdownMenu>
         <DropdownMenuTrigger
           as={(triggerProps: Record<string, unknown>) => (
@@ -345,6 +383,8 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
               variant="ghost"
               size="sm"
               class="h-6 w-6 p-0 text-muted-foreground hover:text-foreground cursor-pointer"
+              aria-label={t`Options`}
+              title={t`Options`}
               {...triggerProps}
             >
               <IconEllipsis class="size-4" />
@@ -396,6 +436,37 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
               {t`Report`}
             </DropdownMenuItem>
           </Show>
+          <Show when={hasPostActions() && hasEngagementViews()}>
+            <DropdownMenuSeparator />
+          </Show>
+          <Show when={props.repliesHref}>
+            <PostActionMenuLink
+              href={props.repliesHref!}
+              label={t`View replies`}
+              count={post()!.engagementStats.replies}
+              navigate={navigate}
+            />
+          </Show>
+          <Show when={props.engagementBase}>
+            <PostActionMenuLink
+              href={`${props.engagementBase}/shares`}
+              label={t`View shares`}
+              count={post()!.engagementStats.shares}
+              navigate={navigate}
+            />
+            <PostActionMenuLink
+              href={`${props.engagementBase}/quotes`}
+              label={t`View quotes`}
+              count={post()!.engagementStats.quotes}
+              navigate={navigate}
+            />
+            <PostActionMenuLink
+              href={`${props.engagementBase}/reactions`}
+              label={t`View reactions`}
+              count={post()!.engagementStats.reactions}
+              navigate={navigate}
+            />
+          </Show>
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -431,5 +502,38 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
         </AlertDialogContent>
       </AlertDialog>
     </Show>
+  );
+}
+
+// Anchor tags activate natively on Enter and pointer click, but the
+// Space key doesn't fire a native anchor click.  Intercept Space at
+// the keydown level to call `navigate(href)` so all keyboard activation
+// paths reach the destination.  `onSelect` is intentionally NOT used:
+// Kobalte fires it on every primary-button pointer activation, which
+// would call `navigate()` synchronously before the anchor's native
+// click resolves, breaking modifier-click and middle-click new-tab
+// behaviour.
+function PostActionMenuLink(props: {
+  href: string;
+  label: string;
+  count: number;
+  navigate: ReturnType<typeof useNavigate>;
+}) {
+  return (
+    <DropdownMenuItem
+      as={A}
+      href={props.href}
+      onKeyDown={(event: KeyboardEvent) => {
+        if (event.key === " " || event.key === "Spacebar") {
+          event.preventDefault();
+          props.navigate(props.href);
+        }
+      }}
+    >
+      <span class="flex-1">{props.label}</span>
+      <span class="ml-3 text-xs text-muted-foreground tabular-nums">
+        {props.count}
+      </span>
+    </DropdownMenuItem>
   );
 }

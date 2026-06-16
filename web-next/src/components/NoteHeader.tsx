@@ -15,6 +15,8 @@ export interface NoteHeaderProps {
   $note: NoteHeader_note$key;
   connections?: string[];
   pinConnections?: string[];
+  repliesHref?: string | null;
+  engagementBase?: string | null;
   onDeleted?: () => void;
 }
 
@@ -88,6 +90,8 @@ export function NoteHeader(props: NoteHeaderProps) {
               $post={n}
               connections={props.connections}
               pinConnections={props.pinConnections}
+              repliesHref={props.repliesHref}
+              engagementBase={props.engagementBase}
               onDeleted={props.onDeleted}
               onEdit={n.rawContent != null && n.visibility !== "NONE"
                 ? () =>

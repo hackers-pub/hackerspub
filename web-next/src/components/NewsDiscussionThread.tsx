@@ -442,6 +442,8 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
               <PostActionMenu
                 $post={p}
                 connections={props.connections ?? []}
+                repliesHref={null}
+                engagementBase={engagementBase(p)}
                 onDeleted={props.onDeleted}
                 onEdit={p.rawContent != null && p.visibility !== "NONE"
                   ? () =>

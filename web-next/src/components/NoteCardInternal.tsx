@@ -128,6 +128,8 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
               $note={n}
               connections={props.connections}
               pinConnections={props.pinConnections}
+              repliesHref={repliesHref()}
+              engagementBase={permalinkBase()}
               onDeleted={props.onDeleted}
             />
             <Show when={n.censored}>
