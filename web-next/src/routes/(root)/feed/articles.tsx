@@ -13,6 +13,10 @@ import {
   createStablePreloadedQuery,
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
+import {
+  getTimelinePageQueryLoadOptions,
+  TIMELINE_PAGE_QUERY_CACHE_KEYS,
+} from "~/lib/timelinePageQueryCache.ts";
 import { useLanguageFilter } from "~/lib/useLanguageFilter.ts";
 import type { articlesFeedTimelineQuery } from "./__generated__/articlesFeedTimelineQuery.graphql.ts";
 
@@ -54,8 +58,11 @@ const loadArticlesFeedTimelineQuery = routePreloadedQuery(
       useRelayEnvironment()(),
       articlesFeedTimelineQuery,
       { locale, languages },
+      getTimelinePageQueryLoadOptions(
+        TIMELINE_PAGE_QUERY_CACHE_KEYS.feedArticles,
+      ),
     ),
-  "loadArticlesFeedTimelineQuery",
+  TIMELINE_PAGE_QUERY_CACHE_KEYS.feedArticles,
 );
 
 function AuthenticatedArticlesFeedTimeline() {

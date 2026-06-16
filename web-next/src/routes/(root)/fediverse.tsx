@@ -11,6 +11,10 @@ import {
   createStablePreloadedQuery,
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
+import {
+  getTimelinePageQueryLoadOptions,
+  TIMELINE_PAGE_QUERY_CACHE_KEYS,
+} from "~/lib/timelinePageQueryCache.ts";
 import { useLanguageFilter } from "~/lib/useLanguageFilter.ts";
 import type { fediverseTimelineQuery } from "./__generated__/fediverseTimelineQuery.graphql.ts";
 
@@ -44,8 +48,11 @@ const loadFediverseTimelineQuery = routePreloadedQuery(
         locale,
         languages,
       },
+      getTimelinePageQueryLoadOptions(
+        TIMELINE_PAGE_QUERY_CACHE_KEYS.fediverse,
+      ),
     ),
-  "loadFediverseTimelineQuery",
+  TIMELINE_PAGE_QUERY_CACHE_KEYS.fediverse,
 );
 
 export default function FediverseTimeline() {

@@ -8,6 +8,7 @@ import { NotificationList } from "~/components/NotificationList.tsx";
 import { Title } from "~/components/Title.tsx";
 import { WebPushNotificationSettings } from "~/components/WebPushNotificationSettings.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { NOTIFICATIONS_PAGE_QUERY_CACHE_KEY } from "~/lib/notificationsPageQueryCache.ts";
 import type { notificationsPageQuery } from "./__generated__/notificationsPageQuery.graphql.ts";
 import {
   createStablePreloadedQuery,
@@ -35,7 +36,7 @@ const loadPageQuery = routePreloadedQuery(
       // edge, so it must not run against a stale cached connection snapshot.
       { fetchPolicy: "network-only" },
     ),
-  "loadNotificationsPageQuery",
+  NOTIFICATIONS_PAGE_QUERY_CACHE_KEY,
 );
 
 export default function NotificationsPage() {

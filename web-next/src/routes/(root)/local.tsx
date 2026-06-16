@@ -11,6 +11,10 @@ import {
   createStablePreloadedQuery,
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
+import {
+  getTimelinePageQueryLoadOptions,
+  TIMELINE_PAGE_QUERY_CACHE_KEYS,
+} from "~/lib/timelinePageQueryCache.ts";
 import { useLanguageFilter } from "~/lib/useLanguageFilter.ts";
 import type { localTimelineQuery } from "./__generated__/localTimelineQuery.graphql.ts";
 
@@ -37,11 +41,16 @@ const localTimelineQuery = graphql`
 
 const loadLocalTimelineQuery = routePreloadedQuery(
   (locale: string, languages: readonly string[]) =>
-    loadQuery<localTimelineQuery>(useRelayEnvironment()(), localTimelineQuery, {
-      locale,
-      languages,
-    }),
-  "loadLocalTimelineQuery",
+    loadQuery<localTimelineQuery>(
+      useRelayEnvironment()(),
+      localTimelineQuery,
+      {
+        locale,
+        languages,
+      },
+      getTimelinePageQueryLoadOptions(TIMELINE_PAGE_QUERY_CACHE_KEYS.local),
+    ),
+  TIMELINE_PAGE_QUERY_CACHE_KEYS.local,
 );
 
 export default function LocalTimeline() {

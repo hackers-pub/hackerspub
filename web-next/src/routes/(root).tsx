@@ -29,6 +29,7 @@ import { WebPushPromptBanner } from "~/components/WebPushPromptBanner.tsx";
 import { NoteComposeProvider } from "~/contexts/NoteComposeContext.tsx";
 import { ViewerProvider } from "~/contexts/ViewerContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { invalidateNotificationsPageQueryCache } from "~/lib/notificationsPageQueryCache.ts";
 import { createUnreadNotificationsCount } from "~/lib/unreadNotificationsCount.ts";
 import type { RootLayoutQuery } from "./__generated__/RootLayoutQuery.graphql.ts";
 import { preloadRouteQuery, routePreloadedQuery } from "~/lib/relayPreload.ts";
@@ -171,6 +172,7 @@ export default function RootLayout(props: RouteSectionProps) {
                 <Button
                   as={A}
                   href="/notifications"
+                  onClick={invalidateNotificationsPageQueryCache}
                   variant="ghost"
                   size="icon"
                   class="relative size-9 rounded-full"

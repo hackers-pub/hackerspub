@@ -9,6 +9,10 @@ import {
   createStablePreloadedQuery,
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
+import {
+  getTimelinePageQueryLoadOptions,
+  TIMELINE_PAGE_QUERY_CACHE_KEYS,
+} from "~/lib/timelinePageQueryCache.ts";
 import { type NewsSort, useNewsSort } from "~/lib/useNewsSort.ts";
 import type { newsPageQuery } from "./__generated__/newsPageQuery.graphql.ts";
 
@@ -20,8 +24,13 @@ const newsPageQuery = graphql`
 
 const loadNewsPageQuery = routePreloadedQuery(
   (order: NewsSort) =>
-    loadQuery<newsPageQuery>(useRelayEnvironment()(), newsPageQuery, { order }),
-  "loadNewsPageQuery",
+    loadQuery<newsPageQuery>(
+      useRelayEnvironment()(),
+      newsPageQuery,
+      { order },
+      getTimelinePageQueryLoadOptions(TIMELINE_PAGE_QUERY_CACHE_KEYS.news),
+    ),
+  TIMELINE_PAGE_QUERY_CACHE_KEYS.news,
 );
 
 export default function NewsPage() {

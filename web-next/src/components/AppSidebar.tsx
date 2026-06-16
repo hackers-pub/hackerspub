@@ -26,6 +26,11 @@ import {
 import { UnreadNotificationsFaviconBadge } from "~/components/UnreadNotificationsFaviconBadge.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { invalidateNotificationsPageQueryCache } from "~/lib/notificationsPageQueryCache.ts";
+import {
+  invalidateTimelinePageQueryCache,
+  TIMELINE_PAGE_QUERY_CACHE_KEYS,
+} from "~/lib/timelinePageQueryCache.ts";
 import { Trans } from "./Trans.tsx";
 import type { AppSidebarSignOutMutation } from "./__generated__/AppSidebarSignOutMutation.graphql.ts";
 import type {
@@ -151,6 +156,10 @@ export function AppSidebar(props: AppSidebarProps) {
               <SidebarMenuButton
                 as={A}
                 href="/news"
+                onClick={() =>
+                  invalidateTimelinePageQueryCache(
+                    TIMELINE_PAGE_QUERY_CACHE_KEYS.news,
+                  )}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -174,6 +183,10 @@ export function AppSidebar(props: AppSidebarProps) {
                 <SidebarMenuButton
                   as={A}
                   href="/feed"
+                  onClick={() =>
+                    invalidateTimelinePageQueryCache(
+                      TIMELINE_PAGE_QUERY_CACHE_KEYS.feed,
+                    )}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -196,6 +209,10 @@ export function AppSidebar(props: AppSidebarProps) {
                 <SidebarMenuButton
                   as={A}
                   href="/feed/without-shares"
+                  onClick={() =>
+                    invalidateTimelinePageQueryCache(
+                      TIMELINE_PAGE_QUERY_CACHE_KEYS.feedWithoutShares,
+                    )}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -235,6 +252,10 @@ export function AppSidebar(props: AppSidebarProps) {
                 <SidebarMenuButton
                   as={A}
                   href="/feed/articles"
+                  onClick={() =>
+                    invalidateTimelinePageQueryCache(
+                      TIMELINE_PAGE_QUERY_CACHE_KEYS.feedArticles,
+                    )}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -258,6 +279,10 @@ export function AppSidebar(props: AppSidebarProps) {
               <SidebarMenuButton
                 as={A}
                 href="/local"
+                onClick={() =>
+                  invalidateTimelinePageQueryCache(
+                    TIMELINE_PAGE_QUERY_CACHE_KEYS.local,
+                  )}
               >
                 <img
                   src="/starorbit.svg"
@@ -271,6 +296,10 @@ export function AppSidebar(props: AppSidebarProps) {
               <SidebarMenuButton
                 as={A}
                 href="/fediverse"
+                onClick={() =>
+                  invalidateTimelinePageQueryCache(
+                    TIMELINE_PAGE_QUERY_CACHE_KEYS.fediverse,
+                  )}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -476,6 +505,7 @@ function AccountSection(props: AccountSectionProps) {
                 <SidebarMenuButton
                   as={A}
                   href={`/notifications`}
+                  onClick={invalidateNotificationsPageQueryCache}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"

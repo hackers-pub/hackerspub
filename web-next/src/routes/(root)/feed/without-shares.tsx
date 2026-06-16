@@ -13,6 +13,10 @@ import {
   createStablePreloadedQuery,
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
+import {
+  getTimelinePageQueryLoadOptions,
+  TIMELINE_PAGE_QUERY_CACHE_KEYS,
+} from "~/lib/timelinePageQueryCache.ts";
 import { useLanguageFilter } from "~/lib/useLanguageFilter.ts";
 import type { withoutSharesFeedTimelineQuery } from "./__generated__/withoutSharesFeedTimelineQuery.graphql.ts";
 
@@ -54,8 +58,11 @@ const loadWithoutSharesFeedTimelineQuery = routePreloadedQuery(
       useRelayEnvironment()(),
       withoutSharesFeedTimelineQuery,
       { locale, languages },
+      getTimelinePageQueryLoadOptions(
+        TIMELINE_PAGE_QUERY_CACHE_KEYS.feedWithoutShares,
+      ),
     ),
-  "loadWithoutSharesFeedTimelineQuery",
+  TIMELINE_PAGE_QUERY_CACHE_KEYS.feedWithoutShares,
 );
 
 function AuthenticatedWithoutSharesFeedTimeline() {

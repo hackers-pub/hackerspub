@@ -13,6 +13,10 @@ import {
   createStablePreloadedQuery,
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
+import {
+  getTimelinePageQueryLoadOptions,
+  TIMELINE_PAGE_QUERY_CACHE_KEYS,
+} from "~/lib/timelinePageQueryCache.ts";
 import { useLanguageFilter } from "~/lib/useLanguageFilter.ts";
 import type { feedTimelineQuery } from "./__generated__/feedTimelineQuery.graphql.ts";
 
@@ -54,8 +58,9 @@ const loadFeedTimelineQuery = routePreloadedQuery(
       useRelayEnvironment()(),
       feedTimelineQuery,
       { locale, languages },
+      getTimelinePageQueryLoadOptions(TIMELINE_PAGE_QUERY_CACHE_KEYS.feed),
     ),
-  "loadFeedTimelineQuery",
+  TIMELINE_PAGE_QUERY_CACHE_KEYS.feed,
 );
 
 // Mounted only after the viewer is known to be authenticated. Keeping
