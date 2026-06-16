@@ -4,24 +4,14 @@ import { createFragment } from "solid-relay";
 import { NoteHeader_note$key } from "./__generated__/NoteHeader_note.graphql.ts";
 import { ActorHoverCard } from "./ActorHoverCard.tsx";
 import { InternalLink } from "./InternalLink.tsx";
-import { PostActionMenu } from "./PostActionMenu.tsx";
 import { Timestamp } from "./Timestamp.tsx";
 import { VisibilityTag } from "./VisibilityTag.tsx";
-import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
-import type { QuotePolicy } from "~/components/QuotePolicySelect.tsx";
-import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
 
 export interface NoteHeaderProps {
   $note: NoteHeader_note$key;
-  connections?: string[];
-  pinConnections?: string[];
-  repliesHref?: string | null;
-  engagementBase?: string | null;
-  onDeleted?: () => void;
 }
 
 export function NoteHeader(props: NoteHeaderProps) {
-  const { openForEdit } = useNoteCompose();
   const note = createFragment(
     graphql`
       fragment NoteHeader_note on Note {
@@ -32,9 +22,6 @@ export function NoteHeader(props: NoteHeaderProps) {
         published
         url
         iri
-        rawContent
-        language
-        quotePolicy
         actor {
           name
           handle
@@ -44,7 +31,6 @@ export function NoteHeader(props: NoteHeaderProps) {
           iri
           isViewer
         }
-        ...PostActionMenu_post
       }
     `,
     () => props.$note,
@@ -86,23 +72,6 @@ export function NoteHeader(props: NoteHeaderProps) {
             </InternalLink>
             &middot;
             <VisibilityTag visibility={n.visibility} />
-            <PostActionMenu
-              $post={n}
-              connections={props.connections}
-              pinConnections={props.pinConnections}
-              repliesHref={props.repliesHref}
-              engagementBase={props.engagementBase}
-              onDeleted={props.onDeleted}
-              onEdit={n.rawContent != null && n.visibility !== "NONE"
-                ? () =>
-                  openForEdit(n.id, {
-                    content: n.rawContent!,
-                    language: n.language,
-                    quotePolicy: (n.quotePolicy as QuotePolicy) ?? "EVERYONE",
-                    visibility: (n.visibility as PostVisibility) ?? "PUBLIC",
-                  })
-                : undefined}
-            />
           </span>
         </div>
       )}

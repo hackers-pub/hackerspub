@@ -34,7 +34,6 @@ import IconTrash2 from "~icons/lucide/trash-2";
 import type { PostActionMenu_deletePost_Mutation } from "./__generated__/PostActionMenu_deletePost_Mutation.graphql.ts";
 import type { PostActionMenu_post$key } from "./__generated__/PostActionMenu_post.graphql.ts";
 import type { PostActionMenu_pinPost_Mutation } from "./__generated__/PostActionMenu_pinPost_Mutation.graphql.ts";
-import type { PostActionMenu_question$key } from "./__generated__/PostActionMenu_question.graphql.ts";
 import type { PostActionMenu_unpinPost_Mutation } from "./__generated__/PostActionMenu_unpinPost_Mutation.graphql.ts";
 
 const deletePostMutation = graphql`
@@ -168,56 +167,6 @@ export function PostActionMenu(props: PostActionMenuProps) {
   return (
     <PostActionMenuContent
       post={post}
-      connections={props.connections}
-      pinConnections={props.pinConnections}
-      repliesHref={props.repliesHref}
-      engagementBase={props.engagementBase}
-      onDeleted={props.onDeleted}
-      onEdit={props.onEdit}
-    />
-  );
-}
-
-export interface QuestionActionMenuProps {
-  $question: PostActionMenu_question$key;
-  connections?: string[];
-  pinConnections?: string[];
-  repliesHref?: string | null;
-  engagementBase?: string | null;
-  onDeleted?: () => void;
-  onEdit?: () => void;
-}
-
-export function QuestionActionMenu(props: QuestionActionMenuProps) {
-  const question = createFragment(
-    graphql`
-      fragment PostActionMenu_question on Question {
-        id
-        iri
-        visibility
-        viewerHasPinned
-        engagementStats {
-          replies
-          shares
-          quotes
-          reactions
-        }
-        sharedPost {
-          id
-        }
-        actor {
-          isViewer
-          local
-          handle
-        }
-      }
-    `,
-    () => props.$question,
-  );
-
-  return (
-    <PostActionMenuContent
-      post={question}
       connections={props.connections}
       pinConnections={props.pinConnections}
       repliesHref={props.repliesHref}
@@ -382,7 +331,7 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
             <Button
               variant="ghost"
               size="sm"
-              class="h-6 w-6 p-0 text-muted-foreground hover:text-foreground cursor-pointer"
+              class="h-8 px-2 text-muted-foreground hover:text-foreground cursor-pointer"
               aria-label={t`Options`}
               title={t`Options`}
               {...triggerProps}

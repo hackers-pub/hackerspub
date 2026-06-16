@@ -31,7 +31,6 @@ import { ActorHoverCard } from "./ActorHoverCard.tsx";
 import { ActorSharer, ActorSharerActor } from "./ActorSharer.tsx";
 import { CensorshipNotice } from "./CensorshipNotice.tsx";
 import { InternalLink } from "./InternalLink.tsx";
-import { QuestionActionMenu } from "./PostActionMenu.tsx";
 import { PostAvatar } from "./PostAvatar.tsx";
 import { PostEngagementBar } from "./PostEngagementBar.tsx";
 import { QuoteTargetPlaceholder } from "./QuoteTargetPlaceholder.tsx";
@@ -197,7 +196,6 @@ function QuestionCardContent(props: QuestionCardContentProps) {
         quotedPost {
           ...QuotedPostCard_post
         }
-        ...PostActionMenu_question
         ...PostEngagementBar_post
       }
     `,
@@ -285,25 +283,6 @@ function QuestionCardContent(props: QuestionCardContentProps) {
                 </InternalLink>
                 &middot;
                 <VisibilityTag visibility={q.visibility} />
-                <Show when={showDeferredSections()}>
-                  {(() => {
-                    const base = `/${
-                      q.actor.local
-                        ? `@${q.actor.username}`
-                        : encodeHandleSegment(q.actor.handle)
-                    }/${q.sourceId ?? q.uuid}`;
-                    return (
-                      <QuestionActionMenu
-                        $question={q}
-                        connections={props.connections}
-                        pinConnections={props.pinConnections}
-                        repliesHref={`${base}/replies`}
-                        engagementBase={base}
-                        onDeleted={props.onDeleted}
-                      />
-                    );
-                  })()}
-                </Show>
               </span>
             </div>
             <Show when={q.censored}>
@@ -362,7 +341,10 @@ function QuestionCardContent(props: QuestionCardContentProps) {
                     $post={q}
                     repliesHref={`${base}/replies`}
                     engagementBase={base}
+                    connections={props.connections}
+                    pinConnections={props.pinConnections}
                     bookmarkListConnections={props.bookmarkListConnections}
+                    onDeleted={props.onDeleted}
                   />
                 );
               })()}

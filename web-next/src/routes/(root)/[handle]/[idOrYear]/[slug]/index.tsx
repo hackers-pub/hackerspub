@@ -1,7 +1,12 @@
 import { normalizeLocale } from "@hackerspub/models/i18n";
 import type { Toc } from "@hackerspub/models/markup";
 import { Link, Meta } from "@solidjs/meta";
-import { revalidate, type RouteDefinition, useParams } from "@solidjs/router";
+import {
+  revalidate,
+  type RouteDefinition,
+  useNavigate,
+  useParams,
+} from "@solidjs/router";
 import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { HttpHeader, HttpStatusCode } from "@solidjs/start";
 import { graphql } from "relay-runtime";
@@ -11,7 +16,6 @@ import { ActorHoverCard } from "~/components/ActorHoverCard.tsx";
 import { CensorshipNotice } from "~/components/CensorshipNotice.tsx";
 import { NoteCard } from "~/components/NoteCard.tsx";
 import { NoteComposer } from "~/components/NoteComposer.tsx";
-import { PostActionMenu } from "~/components/PostActionMenu.tsx";
 import { PostEngagementBar } from "~/components/PostEngagementBar.tsx";
 import { Title } from "~/components/Title.tsx";
 import { TocList } from "~/components/TocList.tsx";
@@ -360,6 +364,7 @@ function ArticleBody(props: ArticleBodyProps) {
   const [proseRef, setProseRef] = createSignal<HTMLElement>();
   const mentionState = useMentionHoverCards(proseRef);
   useContentLinkInterceptor(proseRef);
+  const navigate = useNavigate();
   const viewer = useViewer();
   const article = createFragment(
     graphql`
@@ -478,6 +483,16 @@ function ArticleBody(props: ArticleBodyProps) {
                       $post={article}
                       repliesHref={base == null ? null : `${base}/replies`}
                       engagementBase={base}
+                      onEdit={article.actor.local &&
+                          article.publishedYear != null &&
+                          article.slug != null
+                        ? () =>
+                          navigate(
+                            `/@${article.actor.username}/${article.publishedYear}/${
+                              encodeURIComponent(article.slug!)
+                            }/edit`,
+                          )
+                        : undefined}
                       class="mt-8"
                     />
                   );
@@ -621,7 +636,6 @@ interface ArticleHeaderProps {
 }
 
 function ArticleHeader(props: ArticleHeaderProps) {
-  const { t } = useLingui();
   const article = createFragment(
     graphql`
       fragment Slug_articleHeader on Article {
@@ -634,12 +648,8 @@ function ArticleHeader(props: ArticleHeaderProps) {
           username
           url
           iri
-          isViewer
         }
         published
-        publishedYear
-        slug
-        ...PostActionMenu_post
       }
     `,
     () => props.$article,
@@ -653,8 +663,6 @@ function ArticleHeader(props: ArticleHeaderProps) {
           article.actor.local
             ? `/@${article.actor.username}`
             : `/${article.actor.handle}`;
-        const postUrl = () =>
-          `/@${article.actor.username}/${article.publishedYear}/${article.slug}`;
 
         return (
           <div class="flex gap-4 mt-4 items-center">
@@ -698,17 +706,6 @@ function ArticleHeader(props: ArticleHeaderProps) {
                   value={article.published}
                   capitalizeFirstLetter
                 />
-                <Show when={article.actor.isViewer}>
-                  <span>&middot;</span>
-                  <a
-                    href={`${postUrl()}/edit`}
-                    class="text-blue-500 hover:underline text-sm"
-                  >
-                    {t`Edit`}
-                  </a>
-                  <span>&middot;</span>
-                  <PostActionMenu $post={article} />
-                </Show>
               </div>
             </div>
           </div>

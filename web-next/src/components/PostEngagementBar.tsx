@@ -31,6 +31,7 @@ import type { PostEngagementBar_sharePost_Mutation } from "./__generated__/PostE
 import type { PostEngagementBar_unsharePost_Mutation } from "./__generated__/PostEngagementBar_unsharePost_Mutation.graphql.ts";
 import { BookmarkButton } from "./BookmarkButton.tsx";
 import { EmojiReactionPopover } from "./EmojiReactionPopover.tsx";
+import { PostActionMenu } from "./PostActionMenu.tsx";
 
 export interface PostEngagementBarProps {
   $post: PostEngagementBar_post$key;
@@ -51,7 +52,11 @@ export interface PostEngagementBarProps {
    * other sub-routes ship.
    */
   engagementBase?: string | null;
+  connections?: string[];
+  pinConnections?: string[];
   bookmarkListConnections?: string[];
+  onDeleted?: () => void;
+  onEdit?: () => void;
   class?: string;
   classList?: Record<string, boolean>;
 }
@@ -126,6 +131,7 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
         viewerCanQuote
         viewerCanShare
         ...BookmarkButton_post
+        ...PostActionMenu_post
         reactionGroups {
           ... on EmojiReactionGroup {
             emoji
@@ -430,6 +436,16 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
           <BookmarkButton
             $post={note}
             bookmarkListConnections={props.bookmarkListConnections}
+          />
+
+          <PostActionMenu
+            $post={note}
+            connections={props.connections}
+            pinConnections={props.pinConnections}
+            repliesHref={props.repliesHref ?? null}
+            engagementBase={props.engagementBase ?? null}
+            onDeleted={props.onDeleted}
+            onEdit={props.onEdit}
           />
         </div>
       )}

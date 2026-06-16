@@ -14,7 +14,6 @@ import {
 import { createFragment, useRelayEnvironment } from "solid-relay";
 import { ActorHoverCard } from "~/components/ActorHoverCard.tsx";
 import { InternalLink } from "~/components/InternalLink.tsx";
-import { PostActionMenu } from "~/components/PostActionMenu.tsx";
 import { PostAvatar } from "~/components/PostAvatar.tsx";
 import { PostEngagementBar } from "~/components/PostEngagementBar.tsx";
 import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
@@ -143,7 +142,6 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
           ...PostAvatar_actor
         }
         ...PostEngagementBar_post
-        ...PostActionMenu_post
       }
     `,
     () => props.$post,
@@ -436,25 +434,22 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
                   $post={p}
                   repliesHref={null}
                   engagementBase={engagementBase(p)}
+                  connections={props.connections ?? []}
+                  onDeleted={props.onDeleted}
+                  onEdit={p.rawContent != null && p.visibility !== "NONE"
+                    ? () =>
+                      openForEdit(p.id, {
+                        content: p.rawContent!,
+                        language: p.language,
+                        quotePolicy: (p.quotePolicy as QuotePolicy) ??
+                          "EVERYONE",
+                        visibility: (p.visibility as PostVisibility) ??
+                          "PUBLIC",
+                      })
+                    : undefined}
                   class="mt-1"
                 />
               </div>
-              <PostActionMenu
-                $post={p}
-                connections={props.connections ?? []}
-                repliesHref={null}
-                engagementBase={engagementBase(p)}
-                onDeleted={props.onDeleted}
-                onEdit={p.rawContent != null && p.visibility !== "NONE"
-                  ? () =>
-                    openForEdit(p.id, {
-                      content: p.rawContent!,
-                      language: p.language,
-                      quotePolicy: (p.quotePolicy as QuotePolicy) ?? "EVERYONE",
-                      visibility: (p.visibility as PostVisibility) ?? "PUBLIC",
-                    })
-                  : undefined}
-              />
             </div>
           </article>
 

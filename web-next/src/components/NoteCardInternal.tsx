@@ -3,6 +3,7 @@ import { createMemo, createSignal, Show } from "solid-js";
 import { createFragment } from "solid-relay";
 import { useContentLinkInterceptor } from "~/lib/contentLinkInterceptor.ts";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
+import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { createDeferredRender } from "~/lib/deferredRender.ts";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -17,6 +18,8 @@ import { NoteHeader } from "./NoteHeader.tsx";
 import { NoteMedia } from "./NoteMedia.tsx";
 import { PostAvatar } from "./PostAvatar.tsx";
 import { PostEngagementBar } from "./PostEngagementBar.tsx";
+import type { PostVisibility } from "./PostVisibilitySelect.tsx";
+import type { QuotePolicy } from "./QuotePolicySelect.tsx";
 import { QuoteTargetPlaceholder } from "./QuoteTargetPlaceholder.tsx";
 import { QuotedPostCard } from "./QuotedPostCard.tsx";
 import { Button } from "./ui/button.tsx";
@@ -33,6 +36,7 @@ export interface NoteCardInternalProps {
 export function NoteCardInternal(props: NoteCardInternalProps) {
   const { t } = useLingui();
   const viewer = useViewer();
+  const { openForEdit } = useNoteCompose();
   const liveNote = createFragment(
     graphql`
       fragment NoteCardInternal_note on Note {
@@ -44,8 +48,11 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
         censored
         content
         language
+        rawContent
         sensitive
         summary
+        quotePolicy
+        visibility
         actor {
           local
           username
@@ -126,11 +133,6 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
           <div class="min-w-0 grow">
             <NoteHeader
               $note={n}
-              connections={props.connections}
-              pinConnections={props.pinConnections}
-              repliesHref={repliesHref()}
-              engagementBase={permalinkBase()}
-              onDeleted={props.onDeleted}
             />
             <Show when={n.censored}>
               <CensorshipNotice
@@ -192,7 +194,19 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
                 $post={n}
                 repliesHref={repliesHref()}
                 engagementBase={permalinkBase()}
+                connections={props.connections}
+                pinConnections={props.pinConnections}
                 bookmarkListConnections={props.bookmarkListConnections}
+                onDeleted={props.onDeleted}
+                onEdit={n.rawContent != null && n.visibility !== "NONE"
+                  ? () =>
+                    openForEdit(n.id, {
+                      content: n.rawContent!,
+                      language: n.language,
+                      quotePolicy: (n.quotePolicy as QuotePolicy) ?? "EVERYONE",
+                      visibility: (n.visibility as PostVisibility) ?? "PUBLIC",
+                    })
+                  : undefined}
               />
             </Show>
           </div>

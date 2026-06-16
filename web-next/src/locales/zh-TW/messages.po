@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: article.replies?.edges.length ?? 0
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1003
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1000
 msgid "{0, plural, one {# comment} other {# comments}}"
 msgstr "{0, plural, other {# 則評論}}"
 
@@ -72,12 +72,12 @@ msgstr "{0, plural, other {可刪除 # 個孤立媒體。}}"
 #~ msgstr "{0, plural, one {# 次轉貼} other {# 次轉貼}}"
 
 #. placeholder {0}: votes()
-#: src/components/QuestionCard.tsx:553
+#: src/components/QuestionCard.tsx:535
 msgid "{0, plural, one {# vote} other {# votes}}"
 msgstr "{0, plural, other {# 票}}"
 
 #. placeholder {0}: props.poll.voters.totalCount
-#: src/components/QuestionCard.tsx:499
+#: src/components/QuestionCard.tsx:481
 msgid "{0, plural, one {# voter} other {# voters}}"
 msgstr "{0, plural, other {# 位投票者}}"
 
@@ -265,7 +265,7 @@ msgstr "{0} 則檢舉"
 #. placeholder {1}: "RELATIVE_TIME"
 #: src/components/ActorSharer.tsx:25
 #: src/components/PostSharer.tsx:37
-#: src/components/QuestionCard.tsx:91
+#: src/components/QuestionCard.tsx:90
 msgid "{0} shared {1}"
 msgstr "{0}在{1}轉貼了"
 
@@ -288,7 +288,7 @@ msgstr "{0} 更新了你轉貼過的內容"
 #. placeholder {0}: post.actor.rawName ?? post.actor.username
 #. placeholder {1}: post.excerpt
 #. placeholder {1}: title()
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:240
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:244
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:285
 msgid "{0}: {1}"
 msgstr "{0}：{1}"
@@ -881,7 +881,7 @@ msgstr "由 {0} 發佈"
 #: src/components/NoteComposer.tsx:1807
 #: src/components/NoteComposer.tsx:1808
 #: src/components/NoteComposer.tsx:1851
-#: src/components/PostActionMenu.tsx:493
+#: src/components/PostActionMenu.tsx:442
 #: src/components/ProfileActionMenu.tsx:503
 #: src/components/ProfileActionMenu.tsx:504
 #: src/components/ProfileActionMenu.tsx:534
@@ -973,7 +973,7 @@ msgstr "點擊通知會開啟你的通知頁面。"
 msgid "Close"
 msgstr "關閉"
 
-#: src/components/QuestionCard.tsx:491
+#: src/components/QuestionCard.tsx:473
 msgid "Closed"
 msgstr "已結束"
 
@@ -1072,7 +1072,7 @@ msgstr "無法撤銷引用"
 msgid "Could not submit the appeal"
 msgstr "無法提交申訴"
 
-#: src/components/QuestionCard.tsx:444
+#: src/components/QuestionCard.tsx:426
 msgid "Could not vote on this poll"
 msgstr "無法在此投票調查中投票"
 
@@ -1131,7 +1131,7 @@ msgstr "裁剪你的新頭像"
 msgid "Cutoff:"
 msgstr "截止時間："
 
-#: src/components/NoteCardInternal.tsx:145
+#: src/components/NoteCardInternal.tsx:147
 #: src/components/QuotedNoteCard.tsx:226
 msgid "CW"
 msgstr "CW"
@@ -1164,8 +1164,8 @@ msgstr "預設引用權限"
 msgid "Default share privacy"
 msgstr "預設轉貼隱私設定"
 
-#: src/components/PostActionMenu.tsx:427
-#: src/components/PostActionMenu.tsx:499
+#: src/components/PostActionMenu.tsx:376
+#: src/components/PostActionMenu.tsx:448
 #: src/routes/(root)/[handle]/drafts/index.tsx:322
 #: src/routes/(root)/[handle]/settings/invite.tsx:742
 msgid "Delete"
@@ -1180,7 +1180,7 @@ msgstr "刪除草稿"
 msgid "Delete orphan media"
 msgstr "刪除孤立媒體"
 
-#: src/components/PostActionMenu.tsx:487
+#: src/components/PostActionMenu.tsx:436
 msgid "Delete post?"
 msgstr "刪除內容？"
 
@@ -1284,8 +1284,7 @@ msgstr "拖動選擇要保留的區域，然後點擊「裁剪」來更新你的
 msgid "e.g., @user@mastodon.social"
 msgstr "例如：@user@mastodon.social"
 
-#: src/components/PostActionMenu.tsx:401
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:707
+#: src/components/PostActionMenu.tsx:350
 msgid "Edit"
 msgstr "編輯"
 
@@ -1322,11 +1321,11 @@ msgstr "啟用"
 msgid "Enabling…"
 msgstr "啟用中…"
 
-#: src/components/QuestionCard.tsx:494
+#: src/components/QuestionCard.tsx:476
 msgid "Ended"
 msgstr "已結束"
 
-#: src/components/QuestionCard.tsx:494
+#: src/components/QuestionCard.tsx:476
 msgid "Ends"
 msgstr "截止"
 
@@ -1471,8 +1470,8 @@ msgstr "刪除邀請連結失敗"
 msgid "Failed to delete orphan media."
 msgstr "刪除孤立媒體失敗。"
 
-#: src/components/PostActionMenu.tsx:363
-#: src/components/PostActionMenu.tsx:370
+#: src/components/PostActionMenu.tsx:312
+#: src/components/PostActionMenu.tsx:319
 msgid "Failed to delete post"
 msgstr "刪除內容失敗"
 
@@ -1585,7 +1584,7 @@ msgstr "無法載入內容"
 msgid "Failed to load quoted post"
 msgstr "無法載入引用內容"
 
-#: src/components/NewsDiscussionThread.tsx:527
+#: src/components/NewsDiscussionThread.tsx:522
 msgid "Failed to load replies; click to retry"
 msgstr "載入回覆失敗，點擊重試"
 
@@ -1602,8 +1601,8 @@ msgstr "查找使用者失敗。"
 msgid "Failed to mute this user"
 msgstr "無法靜音此使用者"
 
-#: src/components/PostActionMenu.tsx:328
-#: src/components/PostActionMenu.tsx:335
+#: src/components/PostActionMenu.tsx:277
+#: src/components/PostActionMenu.tsx:284
 msgid "Failed to pin post"
 msgstr "無法釘選內容"
 
@@ -1695,8 +1694,8 @@ msgstr "傳送郵件失敗"
 msgid "Failed to send invitation"
 msgstr "發送邀請失敗"
 
-#: src/components/PostEngagementBar.tsx:271
-#: src/components/PostEngagementBar.tsx:278
+#: src/components/PostEngagementBar.tsx:277
+#: src/components/PostEngagementBar.tsx:284
 msgid "Failed to share post"
 msgstr "轉貼失敗"
 
@@ -1734,13 +1733,13 @@ msgstr "取消關注失敗"
 msgid "Failed to unmute this user"
 msgstr "無法解除靜音此使用者"
 
-#: src/components/PostActionMenu.tsx:304
-#: src/components/PostActionMenu.tsx:311
+#: src/components/PostActionMenu.tsx:253
+#: src/components/PostActionMenu.tsx:260
 msgid "Failed to unpin post"
 msgstr "無法取消釘選內容"
 
-#: src/components/PostEngagementBar.tsx:253
-#: src/components/PostEngagementBar.tsx:260
+#: src/components/PostEngagementBar.tsx:259
+#: src/components/PostEngagementBar.tsx:266
 msgid "Failed to unshare post"
 msgstr "取消轉貼失敗"
 
@@ -1771,7 +1770,7 @@ msgstr "文章更新失敗，請重試。"
 msgid "Failed to upload image"
 msgstr "圖片上傳失敗"
 
-#: src/components/QuestionCard.tsx:452
+#: src/components/QuestionCard.tsx:434
 msgid "Failed to vote"
 msgstr "投票失敗"
 
@@ -1987,7 +1986,7 @@ msgstr "標題 3"
 msgid "Hidden account"
 msgstr "隱藏帳戶"
 
-#: src/components/NoteCardInternal.tsx:154
+#: src/components/NoteCardInternal.tsx:156
 #: src/components/NoteMedia.tsx:270
 #: src/components/QuotedNoteCard.tsx:237
 msgid "Hide"
@@ -2022,7 +2021,7 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "啟用後，AI 將為您生成文章摘要。否則，將使用文章的前幾行作為摘要。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1025
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1022
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:549
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你在聯邦宇宙有個帳戶，你可以在你自己的站台裡評論此文章。在你的站台搜尋 {0} 後回覆。"
@@ -2319,7 +2318,7 @@ msgstr "載入更多通行金鑰"
 msgid "Load more posts"
 msgstr "載入更多內容"
 
-#: src/components/NewsDiscussionThread.tsx:495
+#: src/components/NewsDiscussionThread.tsx:490
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/quotes.tsx:198
 #: src/routes/(root)/[handle]/[noteId]/quotes.tsx:205
 msgid "Load more quotes"
@@ -2329,7 +2328,7 @@ msgstr "載入更多引用"
 #~ msgid "Load more reactors (+{0})"
 #~ msgstr "載入更多反應者 (+{0})"
 
-#: src/components/NewsDiscussionThread.tsx:518
+#: src/components/NewsDiscussionThread.tsx:513
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:714
 msgid "Load more replies"
 msgstr "載入更多回覆"
@@ -2530,7 +2529,7 @@ msgid "Move up"
 msgstr "向上移動"
 
 #: src/components/NoteComposer.tsx:1588
-#: src/components/QuestionCard.tsx:488
+#: src/components/QuestionCard.tsx:470
 msgid "Multiple choice"
 msgstr "多選"
 
@@ -2882,7 +2881,7 @@ msgstr "只有作者與版主仍可查看其內容。"
 msgid "Only you can quote"
 msgstr "只有你可以引用"
 
-#: src/components/QuestionCard.tsx:491
+#: src/components/QuestionCard.tsx:473
 msgid "Open"
 msgstr "進行中"
 
@@ -2896,8 +2895,8 @@ msgid "Option {0}"
 msgstr "選項 {0}"
 
 #: src/components/NoteComposer.tsx:1596
-#: src/components/PostActionMenu.tsx:386
-#: src/components/PostActionMenu.tsx:387
+#: src/components/PostActionMenu.tsx:335
+#: src/components/PostActionMenu.tsx:336
 msgid "Options"
 msgstr "選項"
 
@@ -2909,7 +2908,7 @@ msgstr "或"
 msgid "Or enter the code from the email"
 msgstr "或輸入郵件中的驗證碼"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:889
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:886
 msgid "Other languages"
 msgstr "其他語言"
 
@@ -2977,7 +2976,7 @@ msgstr "推薦關注"
 msgid "Permission denied"
 msgstr "權限被拒絕"
 
-#: src/components/PostActionMenu.tsx:416
+#: src/components/PostActionMenu.tsx:365
 msgid "Pin to profile"
 msgstr "釘選到個人資料"
 
@@ -3014,7 +3013,7 @@ msgstr "請輸入你的聯邦宇宙使用者名稱。"
 msgid "Please sign in to access this page"
 msgstr "請登入以存取此頁面"
 
-#: src/components/QuestionCard.tsx:438
+#: src/components/QuestionCard.tsx:420
 msgid "Please sign in to vote"
 msgstr "請登入後投票"
 
@@ -3022,7 +3021,7 @@ msgstr "請登入後投票"
 msgid "Poll"
 msgstr "投票調查"
 
-#: src/components/QuestionCard.tsx:413
+#: src/components/QuestionCard.tsx:395
 msgid "Poll closed"
 msgstr "投票調查已結束"
 
@@ -3073,7 +3072,7 @@ msgstr "{0} 的內容"
 msgid "Post censored"
 msgstr "內容已封鎖"
 
-#: src/components/PostActionMenu.tsx:359
+#: src/components/PostActionMenu.tsx:308
 msgid "Post deleted"
 msgstr "內容已刪除"
 
@@ -3081,11 +3080,11 @@ msgstr "內容已刪除"
 msgid "Post hidden"
 msgstr "內容已隱藏"
 
-#: src/components/PostActionMenu.tsx:325
+#: src/components/PostActionMenu.tsx:274
 msgid "Post pinned"
 msgstr "內容已釘選"
 
-#: src/components/PostActionMenu.tsx:301
+#: src/components/PostActionMenu.tsx:250
 msgid "Post unpinned"
 msgstr "已取消釘選內容"
 
@@ -3214,7 +3213,7 @@ msgid "Quiet public"
 msgstr "悄悄公開"
 
 #: src/components/NoteComposeModal.tsx:77
-#: src/components/PostEngagementBar.tsx:550
+#: src/components/PostEngagementBar.tsx:566
 #: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "引用"
@@ -3242,7 +3241,7 @@ msgstr "引用內容已隱藏"
 msgid "Quotes"
 msgstr "引用"
 
-#: src/components/PostEngagementBar.tsx:550
+#: src/components/PostEngagementBar.tsx:566
 msgid "Quoting is not available for this post"
 msgstr "無法引用此內容。"
 
@@ -3250,8 +3249,8 @@ msgstr "無法引用此內容。"
 msgid "Re-fetch a remote actor or post from its origin server and overwrite the cached copy. Enter a fediverse handle, profile URL, or ActivityPub IRI."
 msgstr "從來源伺服器重新取得遠端帳號或內容，並覆寫快取的副本。請輸入聯邦宇宙使用者名稱、個人檔案 URL 或 ActivityPub IRI。"
 
-#: src/components/PostEngagementBar.tsx:368
-#: src/components/PostEngagementBar.tsx:369
+#: src/components/PostEngagementBar.tsx:374
+#: src/components/PostEngagementBar.tsx:375
 msgid "React"
 msgstr "反應"
 
@@ -3270,9 +3269,9 @@ msgstr "反應"
 msgid "Reactions"
 msgstr "反應"
 
-#: src/components/ArticleCard.tsx:539
-#: src/components/ArticleCard.tsx:559
-#: src/components/NewsDiscussionThread.tsx:430
+#: src/components/ArticleCard.tsx:521
+#: src/components/ArticleCard.tsx:541
+#: src/components/NewsDiscussionThread.tsx:428
 msgid "Read full article"
 msgstr "閱讀完整文章"
 
@@ -3475,11 +3474,11 @@ msgid "Replacement sanction"
 msgstr "替代處置"
 
 #: src/components/NoteComposeModal.tsx:76
-#: src/components/PostEngagementBar.tsx:338
+#: src/components/PostEngagementBar.tsx:344
 msgid "Reply"
 msgstr "回覆"
 
-#: src/components/PostEngagementBar.tsx:339
+#: src/components/PostEngagementBar.tsx:345
 msgid "Replying is not available for this post"
 msgstr "無法回覆此內容"
 
@@ -3487,7 +3486,7 @@ msgstr "無法回覆此內容"
 msgid "Replying to"
 msgstr "回覆給"
 
-#: src/components/PostActionMenu.tsx:436
+#: src/components/PostActionMenu.tsx:385
 msgid "Report"
 msgstr "檢舉"
 
@@ -3656,7 +3655,7 @@ msgstr "{0}的搜尋結果"
 msgid "Searching…"
 msgstr "搜尋中…"
 
-#: src/components/QuestionCard.tsx:418
+#: src/components/QuestionCard.tsx:400
 msgid "Select an option"
 msgstr "請選擇一個選項"
 
@@ -3665,7 +3664,7 @@ msgstr "請選擇一個選項"
 msgid "Select at least one violated provision."
 msgstr "請至少選擇一條違反的條款。"
 
-#: src/components/QuestionCard.tsx:418
+#: src/components/QuestionCard.tsx:400
 msgid "Select options"
 msgstr "請選擇選項"
 
@@ -3706,11 +3705,11 @@ msgstr "設定"
 msgid "Settings saved"
 msgstr "設定已儲存"
 
-#: src/components/PostEngagementBar.tsx:548
+#: src/components/PostEngagementBar.tsx:564
 msgid "Share"
 msgstr "轉貼"
 
-#: src/components/PostEngagementBar.tsx:542
+#: src/components/PostEngagementBar.tsx:558
 msgid "Share or quote"
 msgstr "轉貼或引用"
 
@@ -3735,23 +3734,23 @@ msgstr "分享你對這個話題的看法…"
 msgid "Shares"
 msgstr "轉貼"
 
-#: src/components/PostEngagementBar.tsx:541
+#: src/components/PostEngagementBar.tsx:557
 msgid "Sharing and quoting are not available for this post"
 msgstr "無法轉貼或引用此內容。"
 
-#: src/components/PostEngagementBar.tsx:547
+#: src/components/PostEngagementBar.tsx:563
 msgid "Sharing is not available for this post"
 msgstr "無法轉貼此內容。"
 
 #: src/components/MutedReplyPlaceholder.tsx:32
-#: src/components/NoteCardInternal.tsx:154
+#: src/components/NoteCardInternal.tsx:156
 #: src/components/QuotedNoteCard.tsx:164
 #: src/components/QuotedNoteCard.tsx:237
 msgid "Show"
 msgstr "顯示"
 
 #. placeholder {0}: childCount()
-#: src/components/NewsDiscussionThread.tsx:471
+#: src/components/NewsDiscussionThread.tsx:466
 msgid "Show {0} more in this thread"
 msgstr "顯示此討論串中的另外 {0} 則"
 
@@ -3792,7 +3791,7 @@ msgstr "登入 Hackers' Pub"
 msgid "Sign in to post"
 msgstr "登入後發表"
 
-#: src/components/QuestionCard.tsx:415
+#: src/components/QuestionCard.tsx:397
 msgid "Sign in to vote"
 msgstr "登入後投票"
 
@@ -3826,7 +3825,7 @@ msgid "Signing up for Hackers' Pub"
 msgstr "註冊 Hackers' Pub"
 
 #: src/components/NoteComposer.tsx:1580
-#: src/components/QuestionCard.tsx:488
+#: src/components/QuestionCard.tsx:470
 msgid "Single choice"
 msgstr "單選"
 
@@ -3924,7 +3923,7 @@ msgstr "設定已成功儲存"
 msgid "Successfully saved settings"
 msgstr "設定儲存成功"
 
-#: src/components/ArticleCard.tsx:512
+#: src/components/ArticleCard.tsx:494
 #: src/components/QuotedNoteCard.tsx:287
 msgid "Summarized by LLM"
 msgstr "由 AI 生成的摘要"
@@ -3957,9 +3956,9 @@ msgid "Suspension length"
 msgstr "停權期間"
 
 #: src/components/DocumentView.tsx:38
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:733
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:741
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1068
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:730
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:738
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1065
 msgid "Table of contents"
 msgstr "目錄"
 
@@ -3969,7 +3968,7 @@ msgstr "目錄"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:158
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:479
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1077
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1074
 msgid "Tags"
 msgstr "標籤"
 
@@ -4151,7 +4150,7 @@ msgstr "此帳戶已隱藏，因為使用者希望保持身分私密。"
 msgid "This account is suspended."
 msgstr "此帳戶已被停權。"
 
-#: src/components/PostActionMenu.tsx:489
+#: src/components/PostActionMenu.tsx:438
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "此操作無法復原。這將永久刪除該內容。"
 
@@ -4231,7 +4230,7 @@ msgstr "此伺服器尚未設定 Web Push。"
 msgid "This service does not support remote follow."
 msgstr "該服務不支援遠端關注。"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:564
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:579
 msgid "This usually takes about a minute. The page will update automatically when the translation is ready."
 msgstr "通常需要一分鐘左右。翻譯完成後頁面將自動更新。"
 
@@ -4275,8 +4274,8 @@ msgid "Total: {0}"
 msgstr "共 {0} 個"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:370
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:873
+#: src/components/ArticleCard.tsx:352
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:870
 msgid "Translated from {0}"
 msgstr "翻譯自{0}"
 
@@ -4284,18 +4283,18 @@ msgstr "翻譯自{0}"
 #~ msgid "Translating to {0}…"
 #~ msgstr "正在翻譯為{0}…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:559
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:574
 msgid "Translating to {name}…"
 msgstr "正在翻譯為{name}…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:555
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:570
 msgid "Translating…"
 msgstr "正在翻譯…"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:379
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:402
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:411
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:600
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:615
 msgid "Translation request failed"
 msgstr "翻譯請求失敗"
 
@@ -4303,7 +4302,7 @@ msgstr "翻譯請求失敗"
 #~ msgid "Translation request failed for {0}"
 #~ msgstr "向{0}的翻譯請求失敗"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:605
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:620
 msgid "Translation request failed for {name}"
 msgstr "向{name}的翻譯請求失敗"
 
@@ -4313,7 +4312,7 @@ msgid "Tree"
 msgstr "樹狀圖"
 
 #: src/app.tsx:129
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:613
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:628
 msgid "Try again"
 msgstr "重試"
 
@@ -4361,7 +4360,7 @@ msgstr "取消關注"
 msgid "Unmute"
 msgstr "解除靜音"
 
-#: src/components/PostActionMenu.tsx:417
+#: src/components/PostActionMenu.tsx:366
 msgid "Unpin from profile"
 msgstr "從個人資料取消釘選"
 
@@ -4369,7 +4368,7 @@ msgstr "從個人資料取消釘選"
 msgid "Unread"
 msgstr "未讀"
 
-#: src/components/PostEngagementBar.tsx:545
+#: src/components/PostEngagementBar.tsx:561
 msgid "Unshare"
 msgstr "取消轉貼"
 
@@ -4471,23 +4470,23 @@ msgstr "查看所有草稿 →"
 msgid "View image"
 msgstr "查看圖片"
 
-#: src/components/PostActionMenu.tsx:459
-#: src/components/PostEngagementBar.tsx:593
+#: src/components/PostActionMenu.tsx:408
+#: src/components/PostEngagementBar.tsx:609
 msgid "View quotes"
 msgstr "查看引用"
 
-#: src/components/PostActionMenu.tsx:465
-#: src/components/PostEngagementBar.tsx:422
+#: src/components/PostActionMenu.tsx:414
+#: src/components/PostEngagementBar.tsx:428
 msgid "View reactions"
 msgstr "查看反應"
 
-#: src/components/PostActionMenu.tsx:445
-#: src/components/PostEngagementBar.tsx:340
+#: src/components/PostActionMenu.tsx:394
+#: src/components/PostEngagementBar.tsx:346
 msgid "View replies"
 msgstr "查看回覆"
 
-#: src/components/PostActionMenu.tsx:453
-#: src/components/PostEngagementBar.tsx:592
+#: src/components/PostActionMenu.tsx:402
+#: src/components/PostEngagementBar.tsx:608
 msgid "View shares"
 msgstr "查看轉貼"
 
@@ -4520,19 +4519,19 @@ msgstr "所有人都可以看到，但不會出現在公共時間軸中。只有
 msgid "Visible to everyone, including non-registered users. The post will appear in the public timeline as well."
 msgstr "包括未註冊使用者在內的所有人都可以看到。內容也會出現在公共時間軸中。"
 
-#: src/components/QuestionCard.tsx:420
+#: src/components/QuestionCard.tsx:402
 msgid "Vote"
 msgstr "投票"
 
-#: src/components/QuestionCard.tsx:434
+#: src/components/QuestionCard.tsx:416
 msgid "Vote recorded"
 msgstr "已記錄投票"
 
-#: src/components/QuestionCard.tsx:414
+#: src/components/QuestionCard.tsx:396
 msgid "Voted"
 msgstr "已投票"
 
-#: src/components/QuestionCard.tsx:416
+#: src/components/QuestionCard.tsx:398
 msgid "Voting…"
 msgstr "正在投票…"
 
@@ -4550,7 +4549,7 @@ msgstr "警告"
 msgid "We couldn't reach the server"
 msgstr "無法連接到伺服器"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:610
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:625
 msgid "We couldn't reach the translation service. Try again, or come back in a few minutes."
 msgstr "無法連接到翻譯服務。請重試或幾分鐘後再來。"
 
@@ -4613,7 +4612,7 @@ msgid "Write"
 msgstr "撰寫"
 
 #: src/components/NoteComposeModal.tsx:115
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1016
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1013
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:386
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:464
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:540

@@ -26,19 +26,10 @@ import { PostSharer } from "./PostSharer.tsx";
 import { Timestamp } from "./Timestamp.tsx";
 import { Trans } from "./Trans.tsx";
 
-// Defer the dropdown menu (only meaningful after a click) and the mention
-// hover-card overlay (a portalled popover that stays closed until the user
-// hovers a mention) to client-only mounts. With 25 article cards per feed
-// page each rendering both, eagerly SSRing them adds dozens of Solid
-// suspense markers, three Relay mutations per card, and Kobalte popover
-// wrappers — all hydration cost the user pays for chrome they typically
-// never touch on a feed view. clientOnly keeps the data fetched (the
-// PostActionMenu_post fragment is still spread into the parent query, see
-// ArticleCardInternal_article below) but skips the SSR render and its
-// hydration.
-const PostActionMenu = clientOnly(() =>
-  import("./PostActionMenu.tsx").then((m) => ({ default: m.PostActionMenu }))
-);
+// Defer the mention hover-card overlay (a portalled popover that stays closed
+// until the user hovers a mention) to a client-only mount. With 25 article
+// cards per feed page, eagerly SSRing it adds hydration cost for chrome most
+// users never touch on a feed view.
 const MentionHoverCardLayer = clientOnly(() =>
   import("~/lib/mentionHoverCards.tsx").then((m) => ({
     default: m.MentionHoverCardLayer,
@@ -56,6 +47,7 @@ export interface ArticleCardProps {
 }
 
 export function ArticleCard(props: ArticleCardProps) {
+  const navigate = useNavigate();
   const article = createFragment(
     graphql`
       fragment ArticleCard_article on Article
@@ -120,8 +112,6 @@ export function ArticleCard(props: ArticleCardProps) {
                 <ArticleCardInternal
                   $article={article}
                   setHover={setHover}
-                  connections={props.connections}
-                  pinConnections={props.pinConnections}
                 />
                 <Show when={showDeferredSections()}>
                   {(() => {
@@ -146,7 +136,19 @@ export function ArticleCard(props: ArticleCardProps) {
                         $post={article}
                         repliesHref={`${engagementBase}/replies`}
                         engagementBase={engagementBase}
+                        connections={props.connections}
+                        pinConnections={props.pinConnections}
                         bookmarkListConnections={props.bookmarkListConnections}
+                        onEdit={article.actor.local &&
+                            article.publishedYear != null &&
+                            article.slug != null
+                          ? () =>
+                            navigate(
+                              `/@${article.actor.username}/${article.publishedYear}/${
+                                encodeURIComponent(article.slug!)
+                              }/edit`,
+                            )
+                          : undefined}
                         class="mx-4 mb-2"
                       />
                     );
@@ -161,8 +163,6 @@ export function ArticleCard(props: ArticleCardProps) {
                 <ArticleCardInternal
                   $article={sharedPost}
                   setHover={setHover}
-                  connections={props.connections}
-                  pinConnections={props.pinConnections}
                 />
                 <Show when={showDeferredSections()}>
                   {(() => {
@@ -189,7 +189,21 @@ export function ArticleCard(props: ArticleCardProps) {
                           ? null
                           : `${engagementBase}/replies`}
                         engagementBase={engagementBase}
+                        connections={props.connections}
+                        pinConnections={props.pinConnections}
                         bookmarkListConnections={props.bookmarkListConnections}
+                        onEdit={sharedPost.actor?.local &&
+                            sharedPost.publishedYear != null &&
+                            sharedPost.slug != null
+                          ? () =>
+                            navigate(
+                              `/@${
+                                sharedPost.actor!.username
+                              }/${sharedPost.publishedYear}/${
+                                encodeURIComponent(sharedPost.slug!)
+                              }/edit`,
+                            )
+                          : undefined}
                         class="mx-4 mb-2"
                       />
                     );
@@ -211,13 +225,10 @@ interface ArticleCardInternalProps {
   $article: ArticleCardInternal_article$key;
   hover?: Accessor<boolean>;
   setHover?: Setter<boolean>;
-  connections?: string[];
-  pinConnections?: string[];
 }
 
 function ArticleCardInternal(props: ArticleCardInternalProps) {
   const { t, i18n } = useLingui();
-  const navigate = useNavigate();
   const { preferAiSummary, moderator } = useViewer();
   const article = createFragment(
     graphql`
@@ -225,9 +236,7 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
         @argumentDefinitions(locale: { type: "Locale" })
       {
         __id
-        uuid
         censored
-        ...PostActionMenu_post
         actor {
           name
           handle
@@ -329,33 +338,6 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
                     />
                   </InternalLink>
                 </Show>
-                {(() => {
-                  const prettyBase = article.actor.local &&
-                      article.publishedYear != null && article.slug != null
-                    ? `/@${article.actor.username}/${article.publishedYear}/${article.slug}`
-                    : null;
-                  const engagementBase = prettyBase ??
-                    `/${
-                      encodeHandleSegment(article.actor.handle)
-                    }/${article.uuid}`;
-                  return (
-                    <PostActionMenu
-                      $post={article}
-                      connections={props.connections}
-                      pinConnections={props.pinConnections}
-                      repliesHref={`${engagementBase}/replies`}
-                      engagementBase={engagementBase}
-                      onEdit={article.actor.local && article.slug != null
-                        ? () =>
-                          navigate(
-                            `/@${article.actor.username}/${article.publishedYear}/${
-                              encodeURIComponent(article.slug!)
-                            }/edit`,
-                          )
-                        : undefined}
-                    />
-                  );
-                })()}
                 <Show
                   keyed
                   when={article.contents != null &&
