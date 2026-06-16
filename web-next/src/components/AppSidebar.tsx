@@ -5,21 +5,10 @@ import {
   getCookie,
   getRequestProtocol,
 } from "@solidjs/start/http";
-import { fetchQuery, graphql, type Subscription } from "relay-runtime";
-import {
-  createEffect,
-  createSignal,
-  For,
-  onCleanup,
-  onMount,
-  Show,
-} from "solid-js";
+import { graphql } from "relay-runtime";
+import { For, Show } from "solid-js";
 import { getRequestEvent } from "solid-js/web";
-import {
-  createFragment,
-  createMutation,
-  useRelayEnvironment,
-} from "solid-relay";
+import { createFragment, createMutation } from "solid-relay";
 import IconShieldCheck from "~icons/lucide/shield-check";
 import IconUndo2 from "~icons/lucide/undo-2";
 import {
@@ -39,7 +28,6 @@ import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { Trans } from "./Trans.tsx";
 import type { AppSidebarSignOutMutation } from "./__generated__/AppSidebarSignOutMutation.graphql.ts";
-import type { AppSidebarUnreadNotificationsQuery } from "./__generated__/AppSidebarUnreadNotificationsQuery.graphql.ts";
 import type {
   AppSidebar_signedAccount$data,
   AppSidebar_signedAccount$key,
@@ -51,15 +39,6 @@ const AppSidebarSignOutMutation = graphql`
   mutation AppSidebarSignOutMutation($sessionId: UUID!) {
     revokeSession(sessionId: $sessionId) {
       id
-    }
-  }
-`;
-
-const AppSidebarUnreadNotificationsQuery = graphql`
-  query AppSidebarUnreadNotificationsQuery {
-    viewer {
-      unreadNotificationsCount
-      unreadModerationNotificationCount
     }
   }
 `;
@@ -91,29 +70,13 @@ export interface AppSidebarProps {
   // query finished and the visitor is anonymous; undefined means it has not
   // resolved yet. The sidebar needs that distinction to show the sign-in link.
   signedAccountLoaded?: boolean;
+  totalUnreadNotificationsCount?: number;
 }
 
 export function AppSidebar(props: AppSidebarProps) {
   const { t } = useLingui();
   const { open: openNoteCompose } = useNoteCompose();
   const { isMobile, state } = useSidebar();
-  const environment = useRelayEnvironment();
-  const [unreadNotificationsCount, setUnreadNotificationsCount] = createSignal<
-    number
-  >();
-  const [
-    unreadModerationCount,
-    setUnreadModerationCount,
-  ] = createSignal<number>();
-  // The sidebar badge and favicon dot fold moderation notifications into the
-  // regular notification count, since both surface on the notifications page.
-  const totalUnreadCount = () => {
-    const regular = unreadNotificationsCount();
-    const moderation = unreadModerationCount();
-    if (regular == null && moderation == null) return undefined;
-    return (regular ?? 0) + (moderation ?? 0);
-  };
-  const [documentVisible, setDocumentVisible] = createSignal(true);
   const signedAccount = createFragment(
     graphql`
       fragment AppSidebar_signedAccount on Account
@@ -149,62 +112,6 @@ export function AppSidebar(props: AppSidebarProps) {
     () => props.$signedAccount,
   );
 
-  createEffect(() => {
-    setUnreadNotificationsCount(signedAccount.latest?.unreadNotificationsCount);
-    setUnreadModerationCount(
-      signedAccount.latest?.unreadModerationNotificationCount ?? undefined,
-    );
-  });
-
-  onMount(() => {
-    const onVisibilityChange = () => {
-      setDocumentVisible(document.visibilityState === "visible");
-    };
-    onVisibilityChange();
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    onCleanup(() => {
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-    });
-  });
-
-  createEffect(() => {
-    if (signedAccount.latest?.username == null || !documentVisible()) {
-      return;
-    }
-
-    let pending: Subscription | null = null;
-    const poll = () => {
-      if (pending != null) return;
-      pending = fetchQuery<AppSidebarUnreadNotificationsQuery>(
-        environment(),
-        AppSidebarUnreadNotificationsQuery,
-        {},
-      ).subscribe({
-        next(data) {
-          setUnreadNotificationsCount(
-            data.viewer?.unreadNotificationsCount ?? undefined,
-          );
-          setUnreadModerationCount(
-            data.viewer?.unreadModerationNotificationCount ?? undefined,
-          );
-        },
-        complete() {
-          pending = null;
-        },
-        error(error: unknown) {
-          pending = null;
-          console.error("Notification count polling failed:", error);
-        },
-      });
-    };
-
-    const interval = setInterval(poll, 10_000);
-    onCleanup(() => {
-      clearInterval(interval);
-      pending?.unsubscribe();
-    });
-  });
-
   const [signOut] = createMutation<AppSidebarSignOutMutation>(
     AppSidebarSignOutMutation,
   );
@@ -229,7 +136,7 @@ export function AppSidebar(props: AppSidebarProps) {
   return (
     <Sidebar>
       <UnreadNotificationsFaviconBadge
-        unread={(totalUnreadCount() ?? 0) > 0}
+        unread={(props.totalUnreadNotificationsCount ?? 0) > 0}
       />
       <SidebarHeader>
         <AppSidebarLogo />
@@ -454,7 +361,7 @@ export function AppSidebar(props: AppSidebarProps) {
         <AccountSection
           signedAccount={signedAccount()}
           signedAccountLoaded={props.signedAccountLoaded}
-          unreadNotificationsCount={totalUnreadCount()}
+          unreadNotificationsCount={props.totalUnreadNotificationsCount}
           onSignOut={onSignOut}
         />
       </SidebarContent>
@@ -499,7 +406,10 @@ function AccountSection(props: AccountSectionProps) {
   const location = useLocation();
   const unreadNotificationsCount = () =>
     props.unreadNotificationsCount ??
-      props.signedAccount?.unreadNotificationsCount ?? 0;
+      (props.signedAccount == null
+        ? 0
+        : props.signedAccount.unreadNotificationsCount +
+          (props.signedAccount.unreadModerationNotificationCount ?? 0));
 
   function onUseOldUI() {
     setLegacyUiCookie();
