@@ -8,6 +8,7 @@ import * as Sentry from "@sentry/solidstart";
 import {
   createRenderEffect,
   createSignal,
+  For,
   onMount,
   Show,
   Suspense,
@@ -72,6 +73,40 @@ const loadRootLayoutQuery = routePreloadedQuery(
     ),
   "loadRootLayoutQuery",
 );
+
+function RouteLoadingFallback() {
+  return (
+    <div
+      class="mx-auto w-full max-w-160 px-4 py-4 sm:py-6"
+      aria-hidden="true"
+    >
+      <div class="space-y-4">
+        <div class="h-8 w-48 rounded-md bg-muted animate-pulse" />
+        <div class="overflow-hidden rounded-lg border bg-card shadow-sm">
+          <For each={[0, 1, 2]}>
+            {() => (
+              <div class="border-b p-4 last:border-b-0">
+                <div class="flex gap-3">
+                  <div class="size-10 shrink-0 rounded-full bg-muted animate-pulse" />
+                  <div class="min-w-0 flex-1 space-y-3">
+                    <div class="flex items-center gap-2">
+                      <div class="h-4 w-28 rounded bg-muted animate-pulse" />
+                      <div class="h-3 w-20 rounded bg-muted animate-pulse" />
+                    </div>
+                    <div class="space-y-2">
+                      <div class="h-4 w-full rounded bg-muted animate-pulse" />
+                      <div class="h-4 w-5/6 rounded bg-muted animate-pulse" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </For>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function RootLayout(props: RouteSectionProps) {
   const { i18n, t } = useLingui();
@@ -205,7 +240,9 @@ export default function RootLayout(props: RouteSectionProps) {
               loaded={!signedAccount.pending}
               vapidPublicKey={signedAccount()?.webPushVapidPublicKey}
             />
-            <Suspense>{props.children}</Suspense>
+            <Suspense fallback={<RouteLoadingFallback />}>
+              {props.children}
+            </Suspense>
           </main>
           <FloatingComposeButton
             show={showFloatingCompose()}

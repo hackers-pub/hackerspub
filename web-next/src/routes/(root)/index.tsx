@@ -1,4 +1,4 @@
-import { Navigate } from "@solidjs/router";
+import { Navigate, useLocation } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Match, Show, Switch } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
@@ -23,6 +23,13 @@ const loadRoutesQuery = routePreloadedQuery(
 );
 
 export default function Home() {
+  const location = useLocation();
+  const hrefWithLang = (href: string) => {
+    const value = location.query.lang;
+    const lang = Array.isArray(value) ? value[0] : value;
+    if (!lang) return href;
+    return `${href}?${new URLSearchParams({ lang }).toString()}`;
+  };
   const data = createStablePreloadedQuery<RootRoutesQuery>(
     RootRoutesQuery,
     () => loadRoutesQuery(),
@@ -34,10 +41,10 @@ export default function Home() {
         <>
           <Switch>
             <Match when={data.viewer != null}>
-              <Navigate href="/feed" />
+              <Navigate href={hrefWithLang("/feed")} />
             </Match>
             <Match when={data.viewer == null}>
-              <Navigate href="/news" />
+              <Navigate href={hrefWithLang("/news")} />
             </Match>
           </Switch>
         </>

@@ -446,7 +446,7 @@ msgid "A user (profile) report."
 msgstr "A user (profile) report."
 
 #: src/components/admin/AdminAccountsTable.tsx:224
-#: src/components/AppSidebar.tsx:422
+#: src/components/AppSidebar.tsx:451
 msgid "Account"
 msgstr "Account"
 
@@ -525,7 +525,7 @@ msgstr "Adding…"
 msgid "Additional context (optional)"
 msgstr "Additional context (optional)"
 
-#: src/components/AppSidebar.tsx:608
+#: src/components/AppSidebar.tsx:638
 msgid "Admin"
 msgstr "Admin"
 
@@ -734,7 +734,7 @@ msgstr "article-url-slug"
 msgid "Articles"
 msgstr "Articles"
 
-#: src/components/AppSidebar.tsx:253
+#: src/components/AppSidebar.tsx:274
 #: src/components/ProfileCard.tsx:197
 msgid "Articles only"
 msgstr "Articles only"
@@ -826,7 +826,7 @@ msgstr "Bold"
 msgid "Bookmark"
 msgstr "Bookmark"
 
-#: src/components/AppSidebar.tsx:544
+#: src/components/AppSidebar.tsx:574
 #: src/routes/(root)/[handle]/bookmarks.tsx:126
 msgid "Bookmarks"
 msgstr "Bookmarks"
@@ -981,7 +981,7 @@ msgstr "Closed"
 msgid "Code"
 msgstr "Code"
 
-#: src/components/AppSidebar.tsx:831
+#: src/components/AppSidebar.tsx:861
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/sign/up/[token].tsx:458
 msgid "Code of conduct"
@@ -996,7 +996,7 @@ msgstr "Code of conduct: {0}"
 #~ msgid "Comments ({0})"
 #~ msgstr "Comments ({0})"
 
-#: src/components/AppSidebar.tsx:668
+#: src/components/AppSidebar.tsx:698
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "Compose"
@@ -1076,7 +1076,7 @@ msgstr "Could not submit the appeal"
 msgid "Could not vote on this poll"
 msgstr "Could not vote on this poll"
 
-#: src/components/AppSidebar.tsx:713
+#: src/components/AppSidebar.tsx:743
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create article"
 msgstr "Create article"
@@ -1085,7 +1085,7 @@ msgstr "Create article"
 msgid "Create invitation link"
 msgstr "Create invitation link"
 
-#: src/components/AppSidebar.tsx:690
+#: src/components/AppSidebar.tsx:720
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:78
 #: src/components/NoteComposer.tsx:1873
@@ -1704,7 +1704,7 @@ msgid "Failed to share post"
 msgstr "Failed to share post"
 
 #. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:129
+#: src/components/AppSidebar.tsx:134
 msgid "Failed to sign out: {0}"
 msgstr "Failed to sign out: {0}"
 
@@ -1782,7 +1782,7 @@ msgstr "Failed to vote"
 msgid "Favor links shared by specific accounts. A preferred sharer's posts count toward the news feed even when the account is a bot (for example a feed that reposts Hacker News links), and the links it shares get a flat promotion bonus in the popular ranking. A penalty on a link overrides the promotion."
 msgstr "Favor links shared by specific accounts. A preferred sharer's posts count toward the news feed even when the account is a bot (for example a feed that reposts Hacker News links), and the links it shares get a flat promotion bonus in the popular ranking. A penalty on a link overrides the promotion."
 
-#: src/components/AppSidebar.tsx:297
+#: src/components/AppSidebar.tsx:326
 msgid "Fediverse"
 msgstr "Fediverse"
 
@@ -1790,7 +1790,7 @@ msgstr "Fediverse"
 msgid "Fediverse handle"
 msgstr "Fediverse handle"
 
-#: src/components/AppSidebar.tsx:192
+#: src/components/AppSidebar.tsx:205
 msgid "Feed"
 msgstr "Feed"
 
@@ -1857,7 +1857,7 @@ msgstr "Generating…"
 msgid "Get browser notifications"
 msgstr "Get browser notifications"
 
-#: src/components/AppSidebar.tsx:871
+#: src/components/AppSidebar.tsx:901
 msgid "GitHub repository"
 msgstr "GitHub repository"
 
@@ -1895,9 +1895,9 @@ msgstr "Grants one extra invitation to the most active accounts (the top third b
 msgid "Graph"
 msgstr "Graph"
 
-#: src/components/AppSidebar.tsx:267
-#: src/components/AppSidebar.tsx:386
-#: src/routes/(root).tsx:160
+#: src/components/AppSidebar.tsx:292
+#: src/components/AppSidebar.tsx:415
+#: src/routes/(root).tsx:196
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/markdown.tsx:40
 #: src/routes/(root)/privacy.tsx:40
@@ -1905,7 +1905,7 @@ msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
 #: src/components/NotFoundPage.tsx:19
-#: src/routes/(root).tsx:152
+#: src/routes/(root).tsx:188
 msgid "Hackers' Pub home"
 msgstr "Hackers' Pub home"
 
@@ -1962,11 +1962,11 @@ msgid "Hackers' Pub: Admin · Sanctioned actors"
 msgstr "Hackers' Pub: Admin · Sanctioned actors"
 
 #: src/routes/(root)/news/[link_id]/index.tsx:56
-#: src/routes/(root)/news/index.tsx:37
+#: src/routes/(root)/news/index.tsx:46
 msgid "Hackers' Pub: News"
 msgstr "Hackers' Pub: News"
 
-#: src/routes/(root)/notifications.tsx:49
+#: src/routes/(root)/notifications.tsx:50
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub: Notifications"
 
@@ -2111,7 +2111,7 @@ msgstr "Invitation links"
 msgid "Invitation sent"
 msgstr "Invitation sent"
 
-#: src/components/AppSidebar.tsx:823
+#: src/components/AppSidebar.tsx:853
 #: src/routes/(root)/[handle]/settings/invite.tsx:907
 #: src/routes/(root)/tree/graph.tsx:79
 #: src/routes/(root)/tree/index.tsx:206
@@ -2127,7 +2127,7 @@ msgstr "Invitations"
 msgid "Invitations left"
 msgstr "Invitations left"
 
-#: src/components/AppSidebar.tsx:567
+#: src/components/AppSidebar.tsx:597
 #: src/components/SettingsTabs.tsx:71
 #: src/routes/(root)/[handle]/settings/invite.tsx:310
 msgid "Invite"
@@ -2246,7 +2246,7 @@ msgstr "Link name"
 msgid "Links a moderator has demoted in the popular feed. Clear a penalty to restore a link's normal ranking."
 msgstr "Links a moderator has demoted in the popular feed. Clear a penalty to restore a link's normal ranking."
 
-#: src/routes/(root)/news/index.tsx:41
+#: src/routes/(root)/news/index.tsx:50
 msgid "Links and articles circulating across the fediverse, ranked by how much they are being shared and discussed."
 msgstr "Links and articles circulating across the fediverse, ranked by how much they are being shared and discussed."
 
@@ -2613,9 +2613,9 @@ msgid "Newest"
 msgstr "Newest"
 
 #: src/components/AdminTabs.tsx:58
-#: src/components/AppSidebar.tsx:169
+#: src/components/AppSidebar.tsx:178
 #: src/routes/(root)/admin/news.tsx:555
-#: src/routes/(root)/news/index.tsx:39
+#: src/routes/(root)/news/index.tsx:48
 msgid "News"
 msgstr "News"
 
@@ -2852,9 +2852,9 @@ msgstr "Notification permission was not granted."
 msgid "Notification preview privacy"
 msgstr "Notification preview privacy"
 
-#: src/components/AppSidebar.tsx:502
-#: src/routes/(root).tsx:177
-#: src/routes/(root).tsx:178
+#: src/components/AppSidebar.tsx:532
+#: src/routes/(root).tsx:214
+#: src/routes/(root).tsx:215
 msgid "Notifications"
 msgstr "Notifications"
 
@@ -3145,7 +3145,7 @@ msgstr "Prior violations"
 msgid "Priority"
 msgstr "Priority"
 
-#: src/components/AppSidebar.tsx:838
+#: src/components/AppSidebar.tsx:868
 #: src/routes/(root)/privacy.tsx:40
 msgid "Privacy policy"
 msgstr "Privacy policy"
@@ -3299,7 +3299,7 @@ msgstr "Receive new notifications immediately, even when this tab is closed."
 msgid "Receive notifications immediately through this browser, even when this tab is closed."
 msgstr "Receive notifications immediately through this browser, even when this tab is closed."
 
-#: src/components/AppSidebar.tsx:749
+#: src/components/AppSidebar.tsx:779
 msgid "Recent drafts"
 msgstr "Recent drafts"
 
@@ -3627,7 +3627,7 @@ msgid "Saving…"
 msgstr "Saving…"
 
 #: src/components/admin/AdminAccountsTable.tsx:202
-#: src/components/AppSidebar.tsx:319
+#: src/components/AppSidebar.tsx:348
 #: src/components/SearchForm.tsx:65
 #: src/components/SearchForm.tsx:80
 #: src/routes/(root)/admin/moderation/index.tsx:192
@@ -3701,7 +3701,7 @@ msgstr "Separate tags with spaces. Tags help readers discover your article."
 msgid "Set your personal preferences."
 msgstr "Set your personal preferences."
 
-#: src/components/AppSidebar.tsx:598
+#: src/components/AppSidebar.tsx:628
 msgid "Settings"
 msgstr "Settings"
 
@@ -3782,7 +3782,7 @@ msgstr "Shown to the reported user under the moderation team's identity."
 msgid "Shown to the user"
 msgstr "Shown to the user"
 
-#: src/components/AppSidebar.tsx:464
+#: src/components/AppSidebar.tsx:493
 #: src/routes/(root)/sign/index.tsx:419
 msgid "Sign in"
 msgstr "Sign in"
@@ -3803,7 +3803,7 @@ msgstr "Sign in to vote"
 msgid "Sign in with passkey"
 msgstr "Sign in with passkey"
 
-#: src/components/AppSidebar.tsx:810
+#: src/components/AppSidebar.tsx:840
 msgid "Sign out"
 msgstr "Sign out"
 
@@ -4117,7 +4117,7 @@ msgstr "The sign-up link is invalid. Please make sure you're using the correct l
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:862
+#: src/components/AppSidebar.tsx:892
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "The source code of this website is available on {0} under the {1} license."
 
@@ -4246,7 +4246,7 @@ msgstr "This usually takes about a minute. The page will update automatically wh
 msgid "This will be part of the article URL."
 msgstr "This will be part of the article URL."
 
-#: src/components/AppSidebar.tsx:147
+#: src/components/AppSidebar.tsx:152
 msgid "Timeline"
 msgstr "Timeline"
 
@@ -4264,7 +4264,7 @@ msgstr "Title cannot be empty"
 msgid "To follow {0}, enter your Fediverse handle."
 msgstr "To follow {0}, enter your Fediverse handle."
 
-#: src/routes/(root).tsx:150
+#: src/routes/(root).tsx:186
 msgid "Toggle sidebar"
 msgstr "Toggle sidebar"
 
@@ -4405,7 +4405,7 @@ msgstr "URL"
 msgid "URL pattern"
 msgstr "URL pattern"
 
-#: src/components/AppSidebar.tsx:428
+#: src/components/AppSidebar.tsx:457
 msgid "Use old UI"
 msgstr "Use old UI"
 
@@ -4466,7 +4466,7 @@ msgstr "Verified that this link is owned by {0} {1}"
 msgid "Verifying your invitation…"
 msgstr "Verifying your invitation…"
 
-#: src/components/AppSidebar.tsx:773
+#: src/components/AppSidebar.tsx:803
 msgid "View all drafts →"
 msgstr "View all drafts →"
 
@@ -4605,7 +4605,7 @@ msgstr "Withdraw decision"
 msgid "Withdrawn"
 msgstr "Withdrawn"
 
-#: src/components/AppSidebar.tsx:231
+#: src/components/AppSidebar.tsx:248
 msgid "Without shares"
 msgstr "Without shares"
 
