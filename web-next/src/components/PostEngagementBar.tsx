@@ -5,13 +5,12 @@ import {
   createEffect,
   createMemo,
   createSignal,
-  type JSX,
   onCleanup,
   onMount,
   Show,
 } from "solid-js";
 import { createFragment, createMutation } from "solid-relay";
-import { Button } from "~/components/ui/button.tsx";
+import IconRepeat2 from "~icons/lucide/repeat-2";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -341,71 +340,17 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
             viewLabel={t`View replies`}
           />
 
-          {/* Quote — icon opens composer, count links to /quotes. */}
-          <SplitControl
-            disabled={!note.viewerCanQuote}
+          {/* Share/quote — one icon opens a menu; counts stay separate. */}
+          <ShareQuoteControl
             engagementBase={props.engagementBase ?? null}
-            segment="quotes"
-            count={note.engagementStats.quotes}
-            iconLabel={note.viewerCanQuote
-              ? t`Quote`
-              : t`Quoting is not available for this post`}
-            countLabel={t`View quotes`}
-            onIconClick={() => openWithQuote(note.id)}
-            iconColor="text-muted-foreground hover:text-foreground"
-            icon={
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-                class="size-4"
-                aria-hidden="true"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"
-                />
-              </svg>
-            }
-          />
-
-          {/* Share — icon toggles, count links to /shares. */}
-          <SplitControl
-            disabled={sharePendingAny() ||
+            shares={note.engagementStats.shares}
+            quotes={note.engagementStats.quotes}
+            viewerHasShared={note.viewerHasShared}
+            shareDisabled={sharePendingAny() ||
               (!note.viewerHasShared && !note.viewerCanShare)}
-            engagementBase={props.engagementBase ?? null}
-            segment="shares"
-            count={note.engagementStats.shares}
-            iconLabel={note.viewerHasShared
-              ? t`Unshare`
-              : note.viewerCanShare
-              ? t`Share`
-              : t`Sharing is not available for this post`}
-            countLabel={t`View shares`}
-            onIconClick={handleShareClick}
-            iconColor={note.viewerHasShared
-              ? "text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
-              : "text-muted-foreground hover:text-foreground"}
-            icon={
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-                class="size-4"
-                aria-hidden="true"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3"
-                />
-              </svg>
-            }
+            quoteDisabled={!note.viewerCanQuote}
+            onShareSelect={handleShareClick}
+            onQuoteSelect={() => openWithQuote(note.id)}
           />
 
           {/* Reactions — icon opens emoji popover, count links to /reactions. */}
@@ -559,15 +504,15 @@ function EngagementOverflowMenu(props: {
         </Show>
         <Show when={props.engagementBase}>
           <OverflowMenuLink
-            href={`${props.engagementBase}/quotes`}
-            label={t`View quotes`}
-            count={props.quotes}
-            navigate={navigate}
-          />
-          <OverflowMenuLink
             href={`${props.engagementBase}/shares`}
             label={t`View shares`}
             count={props.shares}
+            navigate={navigate}
+          />
+          <OverflowMenuLink
+            href={`${props.engagementBase}/quotes`}
+            label={t`View quotes`}
+            count={props.quotes}
             navigate={navigate}
           />
           <OverflowMenuLink
@@ -704,41 +649,126 @@ function ReplyControl(props: {
   );
 }
 
-function SplitControl(props: {
-  disabled: boolean;
+function ShareQuoteControl(props: {
   engagementBase: string | null;
-  segment: string;
-  count: number;
-  iconLabel: string;
-  countLabel: string;
-  onIconClick: () => void;
-  iconColor: string;
-  icon: JSX.Element;
+  shares: number;
+  quotes: number;
+  viewerHasShared: boolean;
+  shareDisabled: boolean;
+  quoteDisabled: boolean;
+  onShareSelect: () => void;
+  onQuoteSelect: () => void;
 }) {
+  const { t } = useLingui();
+  const disabled = () => props.shareDisabled && props.quoteDisabled;
+  const triggerLabel = () =>
+    disabled()
+      ? t`Sharing and quoting are not available for this post`
+      : t`Share or quote`;
+  const shareLabel = () =>
+    props.viewerHasShared
+      ? t`Unshare`
+      : props.shareDisabled
+      ? t`Sharing is not available for this post`
+      : t`Share`;
+  const quoteLabel = () =>
+    props.quoteDisabled ? t`Quoting is not available for this post` : t`Quote`;
+
   return (
     <div class="inline-flex items-stretch">
       <Tooltip>
         <TooltipTrigger as="span" class="inline-flex">
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={props.disabled}
-            aria-label={props.iconLabel}
-            class={`h-8 px-2 cursor-pointer ${props.iconColor}`}
-            onClick={props.onIconClick}
-          >
-            {props.icon}
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              disabled={disabled()}
+              class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 px-2 cursor-pointer"
+              classList={{
+                "text-muted-foreground hover:text-foreground": !props
+                  .viewerHasShared,
+                "text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300":
+                  props.viewerHasShared,
+              }}
+              aria-label={triggerLabel()}
+            >
+              <IconRepeat2 class="size-4" aria-hidden="true" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem
+                disabled={props.shareDisabled}
+                onSelect={() => props.onShareSelect()}
+              >
+                {shareLabel()}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={props.quoteDisabled}
+                onSelect={() => props.onQuoteSelect()}
+              >
+                {quoteLabel()}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </TooltipTrigger>
-        <TooltipContent>{props.iconLabel}</TooltipContent>
+        <TooltipContent>{triggerLabel()}</TooltipContent>
       </Tooltip>
-      <CountAffordance
-        count={props.count}
+      <ShareQuoteCountAffordance
+        shares={props.shares}
+        quotes={props.quotes}
         engagementBase={props.engagementBase}
-        segment={props.segment}
-        label={props.countLabel}
+        sharesLabel={t`View shares`}
+        quotesLabel={t`View quotes`}
       />
     </div>
+  );
+}
+
+function ShareQuoteCountAffordance(props: {
+  shares: number;
+  quotes: number;
+  engagementBase: string | null;
+  sharesLabel: string;
+  quotesLabel: string;
+}) {
+  const countClasses =
+    "inline-flex items-center px-1 text-xs rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground hover:underline focus-visible:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  const separator = () => (
+    <span class="px-0.5 text-xs text-muted-foreground/70" aria-hidden="true">
+      {" + "}
+    </span>
+  );
+
+  return (
+    <span class="inline-flex items-center tabular-nums">
+      <Show
+        when={props.engagementBase}
+        fallback={
+          <>
+            <span class="inline-flex items-center px-1 text-xs">
+              {props.shares}
+            </span>
+            {separator()}
+            <span class="inline-flex items-center px-1 text-xs">
+              {props.quotes}
+            </span>
+          </>
+        }
+      >
+        <A
+          href={`${props.engagementBase}/shares`}
+          class={countClasses}
+          aria-label={props.sharesLabel}
+        >
+          {props.shares}
+        </A>
+        {separator()}
+        <A
+          href={`${props.engagementBase}/quotes`}
+          class={countClasses}
+          aria-label={props.quotesLabel}
+        >
+          {props.quotes}
+        </A>
+      </Show>
+    </span>
   );
 }
 

@@ -446,7 +446,7 @@ msgid "A user (profile) report."
 msgstr "使用者（個人檔案）檢舉。"
 
 #: src/components/admin/AdminAccountsTable.tsx:224
-#: src/components/AppSidebar.tsx:512
+#: src/components/AppSidebar.tsx:422
 msgid "Account"
 msgstr "帳戶"
 
@@ -525,7 +525,7 @@ msgstr "新增中…"
 msgid "Additional context (optional)"
 msgstr "補充說明（選填）"
 
-#: src/components/AppSidebar.tsx:698
+#: src/components/AppSidebar.tsx:608
 msgid "Admin"
 msgstr "管理"
 
@@ -734,7 +734,7 @@ msgstr "文章網址別名"
 msgid "Articles"
 msgstr "文章"
 
-#: src/components/AppSidebar.tsx:346
+#: src/components/AppSidebar.tsx:253
 #: src/components/ProfileCard.tsx:197
 msgid "Articles only"
 msgstr "僅文章"
@@ -826,7 +826,7 @@ msgstr "粗體"
 msgid "Bookmark"
 msgstr "收藏"
 
-#: src/components/AppSidebar.tsx:634
+#: src/components/AppSidebar.tsx:544
 #: src/routes/(root)/[handle]/bookmarks.tsx:126
 msgid "Bookmarks"
 msgstr "收藏"
@@ -981,7 +981,7 @@ msgstr "已結束"
 msgid "Code"
 msgstr "程式碼"
 
-#: src/components/AppSidebar.tsx:921
+#: src/components/AppSidebar.tsx:831
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/sign/up/[token].tsx:458
 msgid "Code of conduct"
@@ -996,7 +996,7 @@ msgstr "行為準則：{0}"
 #~ msgid "Comments ({0})"
 #~ msgstr "評論（{0}）"
 
-#: src/components/AppSidebar.tsx:758
+#: src/components/AppSidebar.tsx:668
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "寫作"
@@ -1076,7 +1076,7 @@ msgstr "無法提交申訴"
 msgid "Could not vote on this poll"
 msgstr "無法在此投票調查中投票"
 
-#: src/components/AppSidebar.tsx:803
+#: src/components/AppSidebar.tsx:713
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create article"
 msgstr "建立文章"
@@ -1085,7 +1085,7 @@ msgstr "建立文章"
 msgid "Create invitation link"
 msgstr "建立邀請連結"
 
-#: src/components/AppSidebar.tsx:780
+#: src/components/AppSidebar.tsx:690
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:78
 #: src/components/NoteComposer.tsx:1873
@@ -1695,13 +1695,13 @@ msgstr "傳送郵件失敗"
 msgid "Failed to send invitation"
 msgstr "發送邀請失敗"
 
-#: src/components/PostEngagementBar.tsx:272
-#: src/components/PostEngagementBar.tsx:279
+#: src/components/PostEngagementBar.tsx:271
+#: src/components/PostEngagementBar.tsx:278
 msgid "Failed to share post"
 msgstr "轉貼失敗"
 
 #. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:222
+#: src/components/AppSidebar.tsx:129
 msgid "Failed to sign out: {0}"
 msgstr "登出失敗：{0}"
 
@@ -1739,8 +1739,8 @@ msgstr "無法解除靜音此使用者"
 msgid "Failed to unpin post"
 msgstr "無法取消釘選內容"
 
-#: src/components/PostEngagementBar.tsx:254
-#: src/components/PostEngagementBar.tsx:261
+#: src/components/PostEngagementBar.tsx:253
+#: src/components/PostEngagementBar.tsx:260
 msgid "Failed to unshare post"
 msgstr "取消轉貼失敗"
 
@@ -1779,7 +1779,7 @@ msgstr "投票失敗"
 msgid "Favor links shared by specific accounts. A preferred sharer's posts count toward the news feed even when the account is a bot (for example a feed that reposts Hacker News links), and the links it shares get a flat promotion bonus in the popular ranking. A penalty on a link overrides the promotion."
 msgstr "優先顯示特定帳號轉貼的連結。即使帳號是機器人（例如轉發 Hacker News 連結的訂閱源），優先轉貼者的內容也會計入新聞訂閱流，且其轉貼的連結會在熱門排名中獲得固定的優先加分。對連結的處罰會覆蓋該優先。"
 
-#: src/components/AppSidebar.tsx:390
+#: src/components/AppSidebar.tsx:297
 msgid "Fediverse"
 msgstr "聯邦宇宙"
 
@@ -1787,7 +1787,7 @@ msgstr "聯邦宇宙"
 msgid "Fediverse handle"
 msgstr "聯邦宇宙使用者名稱"
 
-#: src/components/AppSidebar.tsx:285
+#: src/components/AppSidebar.tsx:192
 msgid "Feed"
 msgstr "訂閱流"
 
@@ -1854,7 +1854,7 @@ msgstr "生成中…"
 msgid "Get browser notifications"
 msgstr "接收瀏覽器通知"
 
-#: src/components/AppSidebar.tsx:961
+#: src/components/AppSidebar.tsx:871
 msgid "GitHub repository"
 msgstr "GitHub 儲存庫"
 
@@ -1892,9 +1892,9 @@ msgstr "向自上次重新發放截止時間以來最活躍的帳號（按內容
 msgid "Graph"
 msgstr "關係圖"
 
-#: src/components/AppSidebar.tsx:360
-#: src/components/AppSidebar.tsx:479
-#: src/routes/(root).tsx:145
+#: src/components/AppSidebar.tsx:267
+#: src/components/AppSidebar.tsx:386
+#: src/routes/(root).tsx:160
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/markdown.tsx:40
 #: src/routes/(root)/privacy.tsx:40
@@ -1902,7 +1902,7 @@ msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
 #: src/components/NotFoundPage.tsx:19
-#: src/routes/(root).tsx:137
+#: src/routes/(root).tsx:152
 msgid "Hackers' Pub home"
 msgstr "Hackers' Pub 首頁"
 
@@ -2108,7 +2108,7 @@ msgstr "邀請連結"
 msgid "Invitation sent"
 msgstr "邀請已發送"
 
-#: src/components/AppSidebar.tsx:913
+#: src/components/AppSidebar.tsx:823
 #: src/routes/(root)/[handle]/settings/invite.tsx:907
 #: src/routes/(root)/tree/graph.tsx:79
 #: src/routes/(root)/tree/index.tsx:206
@@ -2124,7 +2124,7 @@ msgstr "邀請"
 msgid "Invitations left"
 msgstr "剩餘邀請"
 
-#: src/components/AppSidebar.tsx:657
+#: src/components/AppSidebar.tsx:567
 #: src/components/SettingsTabs.tsx:71
 #: src/routes/(root)/[handle]/settings/invite.tsx:310
 msgid "Invite"
@@ -2504,8 +2504,8 @@ msgstr "審核處理"
 msgid "Moderation cases"
 msgstr "審核案件"
 
-#: src/components/PostEngagementBar.tsx:532
-#: src/components/PostEngagementBar.tsx:533
+#: src/components/PostEngagementBar.tsx:477
+#: src/components/PostEngagementBar.tsx:478
 msgid "More engagement views"
 msgstr "查看其他反應"
 
@@ -2610,7 +2610,7 @@ msgid "Newest"
 msgstr "最新"
 
 #: src/components/AdminTabs.tsx:58
-#: src/components/AppSidebar.tsx:262
+#: src/components/AppSidebar.tsx:169
 #: src/routes/(root)/admin/news.tsx:555
 #: src/routes/(root)/news/index.tsx:39
 msgid "News"
@@ -2849,7 +2849,9 @@ msgstr "未授予通知權限。"
 msgid "Notification preview privacy"
 msgstr "通知預覽隱私"
 
-#: src/components/AppSidebar.tsx:592
+#: src/components/AppSidebar.tsx:502
+#: src/routes/(root).tsx:177
+#: src/routes/(root).tsx:178
 msgid "Notifications"
 msgstr "通知"
 
@@ -3138,7 +3140,7 @@ msgstr "過往違規紀錄"
 msgid "Priority"
 msgstr "優先級"
 
-#: src/components/AppSidebar.tsx:928
+#: src/components/AppSidebar.tsx:838
 #: src/routes/(root)/privacy.tsx:40
 msgid "Privacy policy"
 msgstr "隱私權政策"
@@ -3210,7 +3212,7 @@ msgid "Quiet public"
 msgstr "悄悄公開"
 
 #: src/components/NoteComposeModal.tsx:77
-#: src/components/PostEngagementBar.tsx:351
+#: src/components/PostEngagementBar.tsx:675
 #: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "引用"
@@ -3238,7 +3240,7 @@ msgstr "引用內容已隱藏"
 msgid "Quotes"
 msgstr "引用"
 
-#: src/components/PostEngagementBar.tsx:352
+#: src/components/PostEngagementBar.tsx:675
 msgid "Quoting is not available for this post"
 msgstr "無法引用此內容。"
 
@@ -3246,8 +3248,8 @@ msgstr "無法引用此內容。"
 msgid "Re-fetch a remote actor or post from its origin server and overwrite the cached copy. Enter a fediverse handle, profile URL, or ActivityPub IRI."
 msgstr "從來源伺服器重新取得遠端帳號或內容，並覆寫快取的副本。請輸入聯邦宇宙使用者名稱、個人檔案 URL 或 ActivityPub IRI。"
 
-#: src/components/PostEngagementBar.tsx:423
-#: src/components/PostEngagementBar.tsx:424
+#: src/components/PostEngagementBar.tsx:368
+#: src/components/PostEngagementBar.tsx:369
 msgid "React"
 msgstr "反應"
 
@@ -3292,7 +3294,7 @@ msgstr "即使此分頁已關閉，也能立即收到新通知。"
 msgid "Receive notifications immediately through this browser, even when this tab is closed."
 msgstr "透過此瀏覽器立即接收通知，即使此分頁已關閉。"
 
-#: src/components/AppSidebar.tsx:839
+#: src/components/AppSidebar.tsx:749
 msgid "Recent drafts"
 msgstr "最近的草稿"
 
@@ -3471,11 +3473,11 @@ msgid "Replacement sanction"
 msgstr "替代處置"
 
 #: src/components/NoteComposeModal.tsx:76
-#: src/components/PostEngagementBar.tsx:339
+#: src/components/PostEngagementBar.tsx:338
 msgid "Reply"
 msgstr "回覆"
 
-#: src/components/PostEngagementBar.tsx:340
+#: src/components/PostEngagementBar.tsx:339
 msgid "Replying is not available for this post"
 msgstr "無法回覆此內容"
 
@@ -3620,7 +3622,7 @@ msgid "Saving…"
 msgstr "儲存中…"
 
 #: src/components/admin/AdminAccountsTable.tsx:202
-#: src/components/AppSidebar.tsx:412
+#: src/components/AppSidebar.tsx:319
 #: src/components/SearchForm.tsx:65
 #: src/components/SearchForm.tsx:80
 #: src/routes/(root)/admin/moderation/index.tsx:192
@@ -3694,7 +3696,7 @@ msgstr "標籤之間用空格分隔。標籤有助於讀者發現您的文章。
 msgid "Set your personal preferences."
 msgstr "設定您的個人偏好設定。"
 
-#: src/components/AppSidebar.tsx:688
+#: src/components/AppSidebar.tsx:598
 msgid "Settings"
 msgstr "設定"
 
@@ -3702,9 +3704,13 @@ msgstr "設定"
 msgid "Settings saved"
 msgstr "設定已儲存"
 
-#: src/components/PostEngagementBar.tsx:385
+#: src/components/PostEngagementBar.tsx:673
 msgid "Share"
-msgstr "分享"
+msgstr "轉貼"
+
+#: src/components/PostEngagementBar.tsx:667
+msgid "Share or quote"
+msgstr "轉貼或引用"
 
 #: src/components/NewsStoryCard.tsx:236
 #: src/components/NewsStoryHeader.tsx:170
@@ -3727,7 +3733,11 @@ msgstr "分享你對這個話題的看法…"
 msgid "Shares"
 msgstr "轉貼"
 
-#: src/components/PostEngagementBar.tsx:386
+#: src/components/PostEngagementBar.tsx:666
+msgid "Sharing and quoting are not available for this post"
+msgstr "無法轉貼或引用此內容。"
+
+#: src/components/PostEngagementBar.tsx:672
 msgid "Sharing is not available for this post"
 msgstr "無法轉貼此內容。"
 
@@ -3767,7 +3777,7 @@ msgstr "以管理團隊名義向被檢舉使用者顯示。"
 msgid "Shown to the user"
 msgstr "向使用者顯示"
 
-#: src/components/AppSidebar.tsx:554
+#: src/components/AppSidebar.tsx:464
 #: src/routes/(root)/sign/index.tsx:419
 msgid "Sign in"
 msgstr "登入"
@@ -3788,7 +3798,7 @@ msgstr "登入後投票"
 msgid "Sign in with passkey"
 msgstr "使用通行金鑰登入"
 
-#: src/components/AppSidebar.tsx:900
+#: src/components/AppSidebar.tsx:810
 msgid "Sign out"
 msgstr "登出"
 
@@ -4102,7 +4112,7 @@ msgstr "註冊連結無效。請確保你使用的是你收到的正確郵件連
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:952
+#: src/components/AppSidebar.tsx:862
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "可在 {0} 上以 {1} 授權取得該網站的原始碼。"
 
@@ -4231,7 +4241,7 @@ msgstr "通常需要一分鐘左右。翻譯完成後頁面將自動更新。"
 msgid "This will be part of the article URL."
 msgstr "這將成為文章網址的一部分。"
 
-#: src/components/AppSidebar.tsx:240
+#: src/components/AppSidebar.tsx:147
 msgid "Timeline"
 msgstr "時間軸"
 
@@ -4249,7 +4259,7 @@ msgstr "標題不能為空"
 msgid "To follow {0}, enter your Fediverse handle."
 msgstr "要關注{0}，請輸入你的聯邦宇宙使用者名稱。"
 
-#: src/routes/(root).tsx:135
+#: src/routes/(root).tsx:150
 msgid "Toggle sidebar"
 msgstr "切換側邊欄"
 
@@ -4357,7 +4367,7 @@ msgstr "從個人資料取消釘選"
 msgid "Unread"
 msgstr "未讀"
 
-#: src/components/PostEngagementBar.tsx:383
+#: src/components/PostEngagementBar.tsx:670
 msgid "Unshare"
 msgstr "取消轉貼"
 
@@ -4390,7 +4400,7 @@ msgstr "URL"
 msgid "URL pattern"
 msgstr "URL 模式"
 
-#: src/components/AppSidebar.tsx:518
+#: src/components/AppSidebar.tsx:428
 msgid "Use old UI"
 msgstr "使用舊版介面"
 
@@ -4451,7 +4461,7 @@ msgstr "已於{1}驗證此連結歸{0}所有"
 msgid "Verifying your invitation…"
 msgstr "驗證您的邀請…"
 
-#: src/components/AppSidebar.tsx:863
+#: src/components/AppSidebar.tsx:773
 msgid "View all drafts →"
 msgstr "查看所有草稿 →"
 
@@ -4459,23 +4469,23 @@ msgstr "查看所有草稿 →"
 msgid "View image"
 msgstr "查看圖片"
 
-#: src/components/PostEngagementBar.tsx:353
-#: src/components/PostEngagementBar.tsx:563
+#: src/components/PostEngagementBar.tsx:514
+#: src/components/PostEngagementBar.tsx:718
 msgid "View quotes"
 msgstr "查看引用"
 
-#: src/components/PostEngagementBar.tsx:477
-#: src/components/PostEngagementBar.tsx:575
+#: src/components/PostEngagementBar.tsx:422
+#: src/components/PostEngagementBar.tsx:520
 msgid "View reactions"
 msgstr "查看反應"
 
-#: src/components/PostEngagementBar.tsx:341
-#: src/components/PostEngagementBar.tsx:555
+#: src/components/PostEngagementBar.tsx:340
+#: src/components/PostEngagementBar.tsx:500
 msgid "View replies"
 msgstr "查看回覆"
 
-#: src/components/PostEngagementBar.tsx:387
-#: src/components/PostEngagementBar.tsx:569
+#: src/components/PostEngagementBar.tsx:508
+#: src/components/PostEngagementBar.tsx:717
 msgid "View shares"
 msgstr "查看轉貼"
 
@@ -4590,7 +4600,7 @@ msgstr "撤銷決定"
 msgid "Withdrawn"
 msgstr "已撤銷"
 
-#: src/components/AppSidebar.tsx:324
+#: src/components/AppSidebar.tsx:231
 msgid "Without shares"
 msgstr "不含轉貼"
 
