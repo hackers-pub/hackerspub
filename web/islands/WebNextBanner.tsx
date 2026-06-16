@@ -9,16 +9,19 @@ export function WebNextBanner({ text, action }: WebNextBannerProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const hasWebNext = document.cookie
+    const prefersWebNext = document.cookie
       .split(";")
-      .some((c) => c.trim() === "web-next=true");
-    if (!hasWebNext) setVisible(true);
+      .some((c) => {
+        const cookie = c.trim();
+        return cookie === "web-next=true" || cookie === "web-next=1";
+      });
+    if (!prefersWebNext) setVisible(true);
   }, []);
 
   if (!visible) return null;
 
   function handleClick() {
-    document.cookie = "web-next=true; path=/; max-age=31536000; SameSite=Lax";
+    document.cookie = "web-next=; path=/; max-age=0; SameSite=Lax";
     location.reload();
   }
 

@@ -487,8 +487,8 @@
     }
   },
   "webNextBanner": {
-    "text": "Try the new Hackers' Pub!",
-    "action": "Try it now"
+    "text": "You're using the old Hackers' Pub UI.",
+    "action": "Use new UI"
   },
   "authorizedInteraction": {
     "title": "Remote Follow",

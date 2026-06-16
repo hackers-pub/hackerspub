@@ -473,8 +473,8 @@
     }
   },
   "webNextBanner": {
-    "text": "리뉴얼된 새 Hackers' Pub 사용해 보기",
-    "action": "사용해 보기"
+    "text": "예전 Hackers' Pub UI를 사용 중입니다.",
+    "action": "새 UI 사용하기"
   },
   "authorizedInteraction": {
     "title": "원격 팔로",

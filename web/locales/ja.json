@@ -475,8 +475,8 @@
     }
   },
   "webNextBanner": {
-    "text": "新しい Hackers' Pub を試してみよう！",
-    "action": "試してみる"
+    "text": "旧UIを使用しています。",
+    "action": "新しいUIを使う"
   },
   "authorizedInteraction": {
     "title": "リモートフォロー",

@@ -446,7 +446,7 @@ msgid "A user (profile) report."
 msgstr "A user (profile) report."
 
 #: src/components/admin/AdminAccountsTable.tsx:224
-#: src/components/AppSidebar.tsx:511
+#: src/components/AppSidebar.tsx:512
 msgid "Account"
 msgstr "Account"
 
@@ -525,7 +525,7 @@ msgstr "Adding…"
 msgid "Additional context (optional)"
 msgstr "Additional context (optional)"
 
-#: src/components/AppSidebar.tsx:710
+#: src/components/AppSidebar.tsx:698
 msgid "Admin"
 msgstr "Admin"
 
@@ -649,7 +649,7 @@ msgid "Appeal submitted"
 msgstr "Appeal submitted"
 
 #: src/components/AppealDialog.tsx:131
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:215
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:220
 msgid "Appeal this decision"
 msgstr "Appeal this decision"
 
@@ -734,7 +734,7 @@ msgstr "article-url-slug"
 msgid "Articles"
 msgstr "Articles"
 
-#: src/components/AppSidebar.tsx:345
+#: src/components/AppSidebar.tsx:346
 #: src/components/ProfileCard.tsx:197
 msgid "Articles only"
 msgstr "Articles only"
@@ -826,7 +826,7 @@ msgstr "Bold"
 msgid "Bookmark"
 msgstr "Bookmark"
 
-#: src/components/AppSidebar.tsx:646
+#: src/components/AppSidebar.tsx:634
 #: src/routes/(root)/[handle]/bookmarks.tsx:126
 msgid "Bookmarks"
 msgstr "Bookmarks"
@@ -981,14 +981,14 @@ msgstr "Closed"
 msgid "Code"
 msgstr "Code"
 
-#: src/components/AppSidebar.tsx:933
+#: src/components/AppSidebar.tsx:921
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/sign/up/[token].tsx:458
 msgid "Code of conduct"
 msgstr "Code of conduct"
 
 #. placeholder {0}: sanction .violatedProvisions.join(", ")
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:174
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:179
 msgid "Code of conduct: {0}"
 msgstr "Code of conduct: {0}"
 
@@ -996,7 +996,7 @@ msgstr "Code of conduct: {0}"
 #~ msgid "Comments ({0})"
 #~ msgstr "Comments ({0})"
 
-#: src/components/AppSidebar.tsx:770
+#: src/components/AppSidebar.tsx:758
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "Compose"
@@ -1076,7 +1076,7 @@ msgstr "Could not submit the appeal"
 msgid "Could not vote on this poll"
 msgstr "Could not vote on this poll"
 
-#: src/components/AppSidebar.tsx:815
+#: src/components/AppSidebar.tsx:803
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create article"
 msgstr "Create article"
@@ -1085,7 +1085,7 @@ msgstr "Create article"
 msgid "Create invitation link"
 msgstr "Create invitation link"
 
-#: src/components/AppSidebar.tsx:792
+#: src/components/AppSidebar.tsx:780
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:78
 #: src/components/NoteComposer.tsx:1873
@@ -1552,7 +1552,7 @@ msgstr "Failed to load more passkeys; click to retry"
 #: src/components/ActorPostList.tsx:130
 #: src/components/ActorSharedPostList.tsx:83
 #: src/components/PersonalTimeline.tsx:295
-#: src/components/PublicTimeline.tsx:288
+#: src/components/PublicTimeline.tsx:283
 #: src/components/SearchResults.tsx:150
 msgid "Failed to load more posts; click to retry"
 msgstr "Failed to load more posts; click to retry"
@@ -1577,7 +1577,7 @@ msgstr "Failed to load more shares; click to retry"
 
 #: src/components/AccountListBase.tsx:112
 #: src/components/admin/ModerationCaseList.tsx:233
-#: src/components/ReportHistoryList.tsx:200
+#: src/components/ReportHistoryList.tsx:202
 msgid "Failed to load more; click to retry"
 msgstr "Failed to load more; click to retry"
 
@@ -1705,7 +1705,7 @@ msgid "Failed to share post"
 msgstr "Failed to share post"
 
 #. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:221
+#: src/components/AppSidebar.tsx:222
 msgid "Failed to sign out: {0}"
 msgstr "Failed to sign out: {0}"
 
@@ -1783,7 +1783,7 @@ msgstr "Failed to vote"
 msgid "Favor links shared by specific accounts. A preferred sharer's posts count toward the news feed even when the account is a bot (for example a feed that reposts Hacker News links), and the links it shares get a flat promotion bonus in the popular ranking. A penalty on a link overrides the promotion."
 msgstr "Favor links shared by specific accounts. A preferred sharer's posts count toward the news feed even when the account is a bot (for example a feed that reposts Hacker News links), and the links it shares get a flat promotion bonus in the popular ranking. A penalty on a link overrides the promotion."
 
-#: src/components/AppSidebar.tsx:389
+#: src/components/AppSidebar.tsx:390
 msgid "Fediverse"
 msgstr "Fediverse"
 
@@ -1791,7 +1791,7 @@ msgstr "Fediverse"
 msgid "Fediverse handle"
 msgstr "Fediverse handle"
 
-#: src/components/AppSidebar.tsx:284
+#: src/components/AppSidebar.tsx:285
 msgid "Feed"
 msgstr "Feed"
 
@@ -1846,7 +1846,7 @@ msgstr "Following you"
 msgid "Formatting"
 msgstr "Formatting"
 
-#: src/components/ReportHistoryList.tsx:180
+#: src/components/ReportHistoryList.tsx:182
 msgid "Forwarded to the remote instance"
 msgstr "Forwarded to the remote instance"
 
@@ -1858,7 +1858,7 @@ msgstr "Generating…"
 msgid "Get browser notifications"
 msgstr "Get browser notifications"
 
-#: src/components/AppSidebar.tsx:973
+#: src/components/AppSidebar.tsx:961
 msgid "GitHub repository"
 msgstr "GitHub repository"
 
@@ -1896,8 +1896,8 @@ msgstr "Grants one extra invitation to the most active accounts (the top third b
 msgid "Graph"
 msgstr "Graph"
 
-#: src/components/AppSidebar.tsx:359
-#: src/components/AppSidebar.tsx:478
+#: src/components/AppSidebar.tsx:360
+#: src/components/AppSidebar.tsx:479
 #: src/routes/(root).tsx:145
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/markdown.tsx:40
@@ -2112,7 +2112,7 @@ msgstr "Invitation links"
 msgid "Invitation sent"
 msgstr "Invitation sent"
 
-#: src/components/AppSidebar.tsx:925
+#: src/components/AppSidebar.tsx:913
 #: src/routes/(root)/[handle]/settings/invite.tsx:907
 #: src/routes/(root)/tree/graph.tsx:79
 #: src/routes/(root)/tree/index.tsx:206
@@ -2128,7 +2128,7 @@ msgstr "Invitations"
 msgid "Invitations left"
 msgstr "Invitations left"
 
-#: src/components/AppSidebar.tsx:669
+#: src/components/AppSidebar.tsx:657
 #: src/components/SettingsTabs.tsx:71
 #: src/routes/(root)/[handle]/settings/invite.tsx:310
 msgid "Invite"
@@ -2270,7 +2270,7 @@ msgstr "LLM matching divergence"
 #: src/components/AccountListBase.tsx:115
 #: src/components/admin/ModerationCaseList.tsx:236
 #: src/components/ModerationNotificationList.tsx:191
-#: src/components/ReportHistoryList.tsx:203
+#: src/components/ReportHistoryList.tsx:205
 #: src/routes/(root)/[handle]/drafts/index.tsx:350
 msgid "Load more"
 msgstr "Load more"
@@ -2318,7 +2318,7 @@ msgstr "Load more passkeys"
 #: src/components/ActorPostList.tsx:133
 #: src/components/ActorSharedPostList.tsx:86
 #: src/components/PersonalTimeline.tsx:298
-#: src/components/PublicTimeline.tsx:291
+#: src/components/PublicTimeline.tsx:286
 #: src/components/SearchResults.tsx:153
 msgid "Load more posts"
 msgstr "Load more posts"
@@ -2394,7 +2394,7 @@ msgstr "Loading more passkeys…"
 #: src/components/ActorPostList.tsx:127
 #: src/components/ActorSharedPostList.tsx:80
 #: src/components/PersonalTimeline.tsx:292
-#: src/components/PublicTimeline.tsx:285
+#: src/components/PublicTimeline.tsx:280
 #: src/components/SearchResults.tsx:147
 msgid "Loading more posts…"
 msgstr "Loading more posts…"
@@ -2427,7 +2427,7 @@ msgstr "Loading more stories…"
 
 #: src/components/AccountListBase.tsx:109
 #: src/components/admin/ModerationCaseList.tsx:230
-#: src/components/ReportHistoryList.tsx:197
+#: src/components/ReportHistoryList.tsx:199
 msgid "Loading more…"
 msgstr "Loading more…"
 
@@ -2605,7 +2605,7 @@ msgid "New notifications can now appear even when Hackers' Pub is not open."
 msgstr "New notifications can now appear even when Hackers' Pub is not open."
 
 #: src/components/PersonalTimeline.tsx:261
-#: src/components/PublicTimeline.tsx:256
+#: src/components/PublicTimeline.tsx:251
 msgid "New posts available — click to load"
 msgstr "New posts available — click to load"
 
@@ -2614,7 +2614,7 @@ msgid "Newest"
 msgstr "Newest"
 
 #: src/components/AdminTabs.tsx:58
-#: src/components/AppSidebar.tsx:261
+#: src/components/AppSidebar.tsx:262
 #: src/routes/(root)/admin/news.tsx:555
 #: src/routes/(root)/news/index.tsx:39
 msgid "News"
@@ -2724,7 +2724,7 @@ msgstr "No penalized links."
 #: src/components/ActorPostList.tsx:140
 #: src/components/ActorSharedPostList.tsx:93
 #: src/components/PersonalTimeline.tsx:305
-#: src/components/PublicTimeline.tsx:298
+#: src/components/PublicTimeline.tsx:293
 #: src/components/SearchResults.tsx:160
 msgid "No posts found"
 msgstr "No posts found"
@@ -2853,7 +2853,7 @@ msgstr "Notification permission was not granted."
 msgid "Notification preview privacy"
 msgstr "Notification preview privacy"
 
-#: src/components/AppSidebar.tsx:604
+#: src/components/AppSidebar.tsx:592
 msgid "Notifications"
 msgstr "Notifications"
 
@@ -3142,7 +3142,7 @@ msgstr "Prior violations"
 msgid "Priority"
 msgstr "Priority"
 
-#: src/components/AppSidebar.tsx:940
+#: src/components/AppSidebar.tsx:928
 #: src/routes/(root)/privacy.tsx:40
 msgid "Privacy policy"
 msgstr "Privacy policy"
@@ -3296,7 +3296,7 @@ msgstr "Receive new notifications immediately, even when this tab is closed."
 msgid "Receive notifications immediately through this browser, even when this tab is closed."
 msgstr "Receive notifications immediately through this browser, even when this tab is closed."
 
-#: src/components/AppSidebar.tsx:851
+#: src/components/AppSidebar.tsx:839
 msgid "Recent drafts"
 msgstr "Recent drafts"
 
@@ -3523,8 +3523,8 @@ msgid "Reported {0}"
 msgstr "Reported {0}"
 
 #. placeholder {0}: node.targetActor.handle
-#: src/components/ReportHistoryList.tsx:156
-#: src/components/ReportHistoryList.tsx:164
+#: src/components/ReportHistoryList.tsx:158
+#: src/components/ReportHistoryList.tsx:166
 msgid "Reported a post by {0}"
 msgstr "Reported a post by {0}"
 
@@ -3548,8 +3548,8 @@ msgid "Resolved"
 msgstr "Resolved"
 
 #: src/components/AppSidebar.tsx:530
-msgid "Return to old UI"
-msgstr "Return to old UI"
+#~ msgid "Return to old UI"
+#~ msgstr "Return to old UI"
 
 #: src/routes/(root)/admin/moderation/appeals.tsx:290
 msgid "Review outcome"
@@ -3624,7 +3624,7 @@ msgid "Saving…"
 msgstr "Saving…"
 
 #: src/components/admin/AdminAccountsTable.tsx:202
-#: src/components/AppSidebar.tsx:411
+#: src/components/AppSidebar.tsx:412
 #: src/components/SearchForm.tsx:65
 #: src/components/SearchForm.tsx:80
 #: src/routes/(root)/admin/moderation/index.tsx:192
@@ -3698,7 +3698,7 @@ msgstr "Separate tags with spaces. Tags help readers discover your article."
 msgid "Set your personal preferences."
 msgstr "Set your personal preferences."
 
-#: src/components/AppSidebar.tsx:700
+#: src/components/AppSidebar.tsx:688
 msgid "Settings"
 msgstr "Settings"
 
@@ -3771,7 +3771,7 @@ msgstr "Shown to the reported user under the moderation team's identity."
 msgid "Shown to the user"
 msgstr "Shown to the user"
 
-#: src/components/AppSidebar.tsx:566
+#: src/components/AppSidebar.tsx:554
 #: src/routes/(root)/sign/index.tsx:419
 msgid "Sign in"
 msgstr "Sign in"
@@ -3792,7 +3792,7 @@ msgstr "Sign in to vote"
 msgid "Sign in with passkey"
 msgstr "Sign in with passkey"
 
-#: src/components/AppSidebar.tsx:912
+#: src/components/AppSidebar.tsx:900
 msgid "Sign out"
 msgstr "Sign out"
 
@@ -3865,7 +3865,7 @@ msgstr "Strong"
 msgid "Submit appeal"
 msgstr "Submit appeal"
 
-#: src/components/ReportDialog.tsx:231
+#: src/components/ReportDialog.tsx:230
 msgid "Submit report"
 msgstr "Submit report"
 
@@ -3938,7 +3938,7 @@ msgstr "Suspend"
 msgid "Suspended"
 msgstr "Suspended"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:192
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:197
 #: src/routes/(root)/admin/moderation/[id].tsx:402
 msgid "Suspension ends"
 msgstr "Suspension ends"
@@ -4001,7 +4001,7 @@ msgstr "That is not a valid relay actor URL."
 msgid "That is not a valid URL pattern."
 msgstr "That is not a valid URL pattern."
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:205
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:210
 msgid "The appeal window has closed."
 msgstr "The appeal window has closed."
 
@@ -4106,7 +4106,7 @@ msgstr "The sign-up link is invalid. Please make sure you're using the correct l
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:964
+#: src/components/AppSidebar.tsx:952
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "The source code of this website is available on {0} under the {1} license."
 
@@ -4235,7 +4235,7 @@ msgstr "This usually takes about a minute. The page will update automatically wh
 msgid "This will be part of the article URL."
 msgstr "This will be part of the article URL."
 
-#: src/components/AppSidebar.tsx:239
+#: src/components/AppSidebar.tsx:240
 msgid "Timeline"
 msgstr "Timeline"
 
@@ -4394,6 +4394,10 @@ msgstr "URL"
 msgid "URL pattern"
 msgstr "URL pattern"
 
+#: src/components/AppSidebar.tsx:518
+msgid "Use old UI"
+msgstr "Use old UI"
+
 #: src/components/ProfileActionMenu.tsx:320
 msgid "User blocked"
 msgstr "User blocked"
@@ -4451,7 +4455,7 @@ msgstr "Verified that this link is owned by {0} {1}"
 msgid "Verifying your invitation…"
 msgstr "Verifying your invitation…"
 
-#: src/components/AppSidebar.tsx:875
+#: src/components/AppSidebar.tsx:863
 msgid "View all drafts →"
 msgstr "View all drafts →"
 
@@ -4590,7 +4594,7 @@ msgstr "Withdraw decision"
 msgid "Withdrawn"
 msgstr "Withdrawn"
 
-#: src/components/AppSidebar.tsx:323
+#: src/components/AppSidebar.tsx:324
 msgid "Without shares"
 msgstr "Without shares"
 

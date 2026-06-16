@@ -446,7 +446,7 @@ msgid "A user (profile) report."
 msgstr "使用者（個人檔案）檢舉。"
 
 #: src/components/admin/AdminAccountsTable.tsx:224
-#: src/components/AppSidebar.tsx:511
+#: src/components/AppSidebar.tsx:512
 msgid "Account"
 msgstr "帳戶"
 
@@ -525,7 +525,7 @@ msgstr "新增中…"
 msgid "Additional context (optional)"
 msgstr "補充說明（選填）"
 
-#: src/components/AppSidebar.tsx:710
+#: src/components/AppSidebar.tsx:698
 msgid "Admin"
 msgstr "管理"
 
@@ -649,7 +649,7 @@ msgid "Appeal submitted"
 msgstr "申訴已提交"
 
 #: src/components/AppealDialog.tsx:131
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:215
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:220
 msgid "Appeal this decision"
 msgstr "對此決定提出申訴"
 
@@ -734,7 +734,7 @@ msgstr "文章網址別名"
 msgid "Articles"
 msgstr "文章"
 
-#: src/components/AppSidebar.tsx:345
+#: src/components/AppSidebar.tsx:346
 #: src/components/ProfileCard.tsx:197
 msgid "Articles only"
 msgstr "僅文章"
@@ -826,7 +826,7 @@ msgstr "粗體"
 msgid "Bookmark"
 msgstr "收藏"
 
-#: src/components/AppSidebar.tsx:646
+#: src/components/AppSidebar.tsx:634
 #: src/routes/(root)/[handle]/bookmarks.tsx:126
 msgid "Bookmarks"
 msgstr "收藏"
@@ -981,14 +981,14 @@ msgstr "已結束"
 msgid "Code"
 msgstr "程式碼"
 
-#: src/components/AppSidebar.tsx:933
+#: src/components/AppSidebar.tsx:921
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/sign/up/[token].tsx:458
 msgid "Code of conduct"
 msgstr "行為準則"
 
 #. placeholder {0}: sanction .violatedProvisions.join(", ")
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:174
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:179
 msgid "Code of conduct: {0}"
 msgstr "行為準則：{0}"
 
@@ -996,7 +996,7 @@ msgstr "行為準則：{0}"
 #~ msgid "Comments ({0})"
 #~ msgstr "評論（{0}）"
 
-#: src/components/AppSidebar.tsx:770
+#: src/components/AppSidebar.tsx:758
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "寫作"
@@ -1076,7 +1076,7 @@ msgstr "無法提交申訴"
 msgid "Could not vote on this poll"
 msgstr "無法在此投票調查中投票"
 
-#: src/components/AppSidebar.tsx:815
+#: src/components/AppSidebar.tsx:803
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create article"
 msgstr "建立文章"
@@ -1085,7 +1085,7 @@ msgstr "建立文章"
 msgid "Create invitation link"
 msgstr "建立邀請連結"
 
-#: src/components/AppSidebar.tsx:792
+#: src/components/AppSidebar.tsx:780
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:78
 #: src/components/NoteComposer.tsx:1873
@@ -1548,7 +1548,7 @@ msgstr "載入更多通行金鑰失敗；點擊重試"
 #: src/components/ActorPostList.tsx:130
 #: src/components/ActorSharedPostList.tsx:83
 #: src/components/PersonalTimeline.tsx:295
-#: src/components/PublicTimeline.tsx:288
+#: src/components/PublicTimeline.tsx:283
 #: src/components/SearchResults.tsx:150
 msgid "Failed to load more posts; click to retry"
 msgstr "載入更多內容失敗，點擊重試"
@@ -1573,7 +1573,7 @@ msgstr "載入更多轉貼失敗，點擊重試"
 
 #: src/components/AccountListBase.tsx:112
 #: src/components/admin/ModerationCaseList.tsx:233
-#: src/components/ReportHistoryList.tsx:200
+#: src/components/ReportHistoryList.tsx:202
 msgid "Failed to load more; click to retry"
 msgstr "載入更多失敗；點擊重試"
 
@@ -1701,7 +1701,7 @@ msgid "Failed to share post"
 msgstr "轉貼失敗"
 
 #. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:221
+#: src/components/AppSidebar.tsx:222
 msgid "Failed to sign out: {0}"
 msgstr "登出失敗：{0}"
 
@@ -1779,7 +1779,7 @@ msgstr "投票失敗"
 msgid "Favor links shared by specific accounts. A preferred sharer's posts count toward the news feed even when the account is a bot (for example a feed that reposts Hacker News links), and the links it shares get a flat promotion bonus in the popular ranking. A penalty on a link overrides the promotion."
 msgstr "優先顯示特定帳號轉貼的連結。即使帳號是機器人（例如轉發 Hacker News 連結的訂閱源），優先轉貼者的內容也會計入新聞訂閱流，且其轉貼的連結會在熱門排名中獲得固定的優先加分。對連結的處罰會覆蓋該優先。"
 
-#: src/components/AppSidebar.tsx:389
+#: src/components/AppSidebar.tsx:390
 msgid "Fediverse"
 msgstr "聯邦宇宙"
 
@@ -1787,7 +1787,7 @@ msgstr "聯邦宇宙"
 msgid "Fediverse handle"
 msgstr "聯邦宇宙使用者名稱"
 
-#: src/components/AppSidebar.tsx:284
+#: src/components/AppSidebar.tsx:285
 msgid "Feed"
 msgstr "訂閱流"
 
@@ -1842,7 +1842,7 @@ msgstr "關注了你"
 msgid "Formatting"
 msgstr "格式"
 
-#: src/components/ReportHistoryList.tsx:180
+#: src/components/ReportHistoryList.tsx:182
 msgid "Forwarded to the remote instance"
 msgstr "已轉送給遠端站台"
 
@@ -1854,7 +1854,7 @@ msgstr "生成中…"
 msgid "Get browser notifications"
 msgstr "接收瀏覽器通知"
 
-#: src/components/AppSidebar.tsx:973
+#: src/components/AppSidebar.tsx:961
 msgid "GitHub repository"
 msgstr "GitHub 儲存庫"
 
@@ -1892,8 +1892,8 @@ msgstr "向自上次重新發放截止時間以來最活躍的帳號（按內容
 msgid "Graph"
 msgstr "關係圖"
 
-#: src/components/AppSidebar.tsx:359
-#: src/components/AppSidebar.tsx:478
+#: src/components/AppSidebar.tsx:360
+#: src/components/AppSidebar.tsx:479
 #: src/routes/(root).tsx:145
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/markdown.tsx:40
@@ -2108,7 +2108,7 @@ msgstr "邀請連結"
 msgid "Invitation sent"
 msgstr "邀請已發送"
 
-#: src/components/AppSidebar.tsx:925
+#: src/components/AppSidebar.tsx:913
 #: src/routes/(root)/[handle]/settings/invite.tsx:907
 #: src/routes/(root)/tree/graph.tsx:79
 #: src/routes/(root)/tree/index.tsx:206
@@ -2124,7 +2124,7 @@ msgstr "邀請"
 msgid "Invitations left"
 msgstr "剩餘邀請"
 
-#: src/components/AppSidebar.tsx:669
+#: src/components/AppSidebar.tsx:657
 #: src/components/SettingsTabs.tsx:71
 #: src/routes/(root)/[handle]/settings/invite.tsx:310
 msgid "Invite"
@@ -2266,7 +2266,7 @@ msgstr "LLM 比對乖離"
 #: src/components/AccountListBase.tsx:115
 #: src/components/admin/ModerationCaseList.tsx:236
 #: src/components/ModerationNotificationList.tsx:191
-#: src/components/ReportHistoryList.tsx:203
+#: src/components/ReportHistoryList.tsx:205
 #: src/routes/(root)/[handle]/drafts/index.tsx:350
 msgid "Load more"
 msgstr "載入更多"
@@ -2314,7 +2314,7 @@ msgstr "載入更多通行金鑰"
 #: src/components/ActorPostList.tsx:133
 #: src/components/ActorSharedPostList.tsx:86
 #: src/components/PersonalTimeline.tsx:298
-#: src/components/PublicTimeline.tsx:291
+#: src/components/PublicTimeline.tsx:286
 #: src/components/SearchResults.tsx:153
 msgid "Load more posts"
 msgstr "載入更多內容"
@@ -2390,7 +2390,7 @@ msgstr "正在載入更多通行金鑰…"
 #: src/components/ActorPostList.tsx:127
 #: src/components/ActorSharedPostList.tsx:80
 #: src/components/PersonalTimeline.tsx:292
-#: src/components/PublicTimeline.tsx:285
+#: src/components/PublicTimeline.tsx:280
 #: src/components/SearchResults.tsx:147
 msgid "Loading more posts…"
 msgstr "載入更多內容中…"
@@ -2423,7 +2423,7 @@ msgstr "正在載入更多新聞…"
 
 #: src/components/AccountListBase.tsx:109
 #: src/components/admin/ModerationCaseList.tsx:230
-#: src/components/ReportHistoryList.tsx:197
+#: src/components/ReportHistoryList.tsx:199
 msgid "Loading more…"
 msgstr "正在載入更多…"
 
@@ -2601,7 +2601,7 @@ msgid "New notifications can now appear even when Hackers' Pub is not open."
 msgstr "現在即使 Hackers' Pub 未開啟，也可以顯示新通知。"
 
 #: src/components/PersonalTimeline.tsx:261
-#: src/components/PublicTimeline.tsx:256
+#: src/components/PublicTimeline.tsx:251
 msgid "New posts available — click to load"
 msgstr "有新內容 — 點擊載入"
 
@@ -2610,7 +2610,7 @@ msgid "Newest"
 msgstr "最新"
 
 #: src/components/AdminTabs.tsx:58
-#: src/components/AppSidebar.tsx:261
+#: src/components/AppSidebar.tsx:262
 #: src/routes/(root)/admin/news.tsx:555
 #: src/routes/(root)/news/index.tsx:39
 msgid "News"
@@ -2720,7 +2720,7 @@ msgstr "沒有受罰連結。"
 #: src/components/ActorPostList.tsx:140
 #: src/components/ActorSharedPostList.tsx:93
 #: src/components/PersonalTimeline.tsx:305
-#: src/components/PublicTimeline.tsx:298
+#: src/components/PublicTimeline.tsx:293
 #: src/components/SearchResults.tsx:160
 msgid "No posts found"
 msgstr "未找到內容"
@@ -2849,7 +2849,7 @@ msgstr "未授予通知權限。"
 msgid "Notification preview privacy"
 msgstr "通知預覽隱私"
 
-#: src/components/AppSidebar.tsx:604
+#: src/components/AppSidebar.tsx:592
 msgid "Notifications"
 msgstr "通知"
 
@@ -3138,7 +3138,7 @@ msgstr "過往違規紀錄"
 msgid "Priority"
 msgstr "優先級"
 
-#: src/components/AppSidebar.tsx:940
+#: src/components/AppSidebar.tsx:928
 #: src/routes/(root)/privacy.tsx:40
 msgid "Privacy policy"
 msgstr "隱私權政策"
@@ -3292,7 +3292,7 @@ msgstr "即使此分頁已關閉，也能立即收到新通知。"
 msgid "Receive notifications immediately through this browser, even when this tab is closed."
 msgstr "透過此瀏覽器立即接收通知，即使此分頁已關閉。"
 
-#: src/components/AppSidebar.tsx:851
+#: src/components/AppSidebar.tsx:839
 msgid "Recent drafts"
 msgstr "最近的草稿"
 
@@ -3519,8 +3519,8 @@ msgid "Reported {0}"
 msgstr "已檢舉 {0}"
 
 #. placeholder {0}: node.targetActor.handle
-#: src/components/ReportHistoryList.tsx:156
-#: src/components/ReportHistoryList.tsx:164
+#: src/components/ReportHistoryList.tsx:158
+#: src/components/ReportHistoryList.tsx:166
 msgid "Reported a post by {0}"
 msgstr "已檢舉 {0} 的內容"
 
@@ -3544,8 +3544,8 @@ msgid "Resolved"
 msgstr "已處理"
 
 #: src/components/AppSidebar.tsx:530
-msgid "Return to old UI"
-msgstr "返回舊介面"
+#~ msgid "Return to old UI"
+#~ msgstr "返回舊介面"
 
 #: src/routes/(root)/admin/moderation/appeals.tsx:290
 msgid "Review outcome"
@@ -3620,7 +3620,7 @@ msgid "Saving…"
 msgstr "儲存中…"
 
 #: src/components/admin/AdminAccountsTable.tsx:202
-#: src/components/AppSidebar.tsx:411
+#: src/components/AppSidebar.tsx:412
 #: src/components/SearchForm.tsx:65
 #: src/components/SearchForm.tsx:80
 #: src/routes/(root)/admin/moderation/index.tsx:192
@@ -3694,7 +3694,7 @@ msgstr "標籤之間用空格分隔。標籤有助於讀者發現您的文章。
 msgid "Set your personal preferences."
 msgstr "設定您的個人偏好設定。"
 
-#: src/components/AppSidebar.tsx:700
+#: src/components/AppSidebar.tsx:688
 msgid "Settings"
 msgstr "設定"
 
@@ -3767,7 +3767,7 @@ msgstr "以管理團隊名義向被檢舉使用者顯示。"
 msgid "Shown to the user"
 msgstr "向使用者顯示"
 
-#: src/components/AppSidebar.tsx:566
+#: src/components/AppSidebar.tsx:554
 #: src/routes/(root)/sign/index.tsx:419
 msgid "Sign in"
 msgstr "登入"
@@ -3788,7 +3788,7 @@ msgstr "登入後投票"
 msgid "Sign in with passkey"
 msgstr "使用通行金鑰登入"
 
-#: src/components/AppSidebar.tsx:912
+#: src/components/AppSidebar.tsx:900
 msgid "Sign out"
 msgstr "登出"
 
@@ -3861,7 +3861,7 @@ msgstr "強"
 msgid "Submit appeal"
 msgstr "提交申訴"
 
-#: src/components/ReportDialog.tsx:231
+#: src/components/ReportDialog.tsx:230
 msgid "Submit report"
 msgstr "提交檢舉"
 
@@ -3934,7 +3934,7 @@ msgstr "停權"
 msgid "Suspended"
 msgstr "已停權"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:192
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:197
 #: src/routes/(root)/admin/moderation/[id].tsx:402
 msgid "Suspension ends"
 msgstr "停權結束"
@@ -3997,7 +3997,7 @@ msgstr "這不是有效的中繼 actor URL。"
 msgid "That is not a valid URL pattern."
 msgstr "這不是有效的 URL 模式。"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:205
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:210
 msgid "The appeal window has closed."
 msgstr "申訴期限已結束。"
 
@@ -4102,7 +4102,7 @@ msgstr "註冊連結無效。請確保你使用的是你收到的正確郵件連
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:964
+#: src/components/AppSidebar.tsx:952
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "可在 {0} 上以 {1} 授權取得該網站的原始碼。"
 
@@ -4231,7 +4231,7 @@ msgstr "通常需要一分鐘左右。翻譯完成後頁面將自動更新。"
 msgid "This will be part of the article URL."
 msgstr "這將成為文章網址的一部分。"
 
-#: src/components/AppSidebar.tsx:239
+#: src/components/AppSidebar.tsx:240
 msgid "Timeline"
 msgstr "時間軸"
 
@@ -4390,6 +4390,10 @@ msgstr "URL"
 msgid "URL pattern"
 msgstr "URL 模式"
 
+#: src/components/AppSidebar.tsx:518
+msgid "Use old UI"
+msgstr "使用舊版介面"
+
 #: src/components/ProfileActionMenu.tsx:320
 msgid "User blocked"
 msgstr "已封鎖使用者"
@@ -4447,7 +4451,7 @@ msgstr "已於{1}驗證此連結歸{0}所有"
 msgid "Verifying your invitation…"
 msgstr "驗證您的邀請…"
 
-#: src/components/AppSidebar.tsx:875
+#: src/components/AppSidebar.tsx:863
 msgid "View all drafts →"
 msgstr "查看所有草稿 →"
 
@@ -4586,7 +4590,7 @@ msgstr "撤銷決定"
 msgid "Withdrawn"
 msgstr "已撤銷"
 
-#: src/components/AppSidebar.tsx:323
+#: src/components/AppSidebar.tsx:324
 msgid "Without shares"
 msgstr "不含轉貼"
 

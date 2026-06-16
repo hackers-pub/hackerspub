@@ -446,7 +446,7 @@ msgid "A user (profile) report."
 msgstr "用户（资料）举报。"
 
 #: src/components/admin/AdminAccountsTable.tsx:224
-#: src/components/AppSidebar.tsx:511
+#: src/components/AppSidebar.tsx:512
 msgid "Account"
 msgstr "账户"
 
@@ -525,7 +525,7 @@ msgstr "添加中…"
 msgid "Additional context (optional)"
 msgstr "补充说明（可选）"
 
-#: src/components/AppSidebar.tsx:710
+#: src/components/AppSidebar.tsx:698
 msgid "Admin"
 msgstr "管理"
 
@@ -649,7 +649,7 @@ msgid "Appeal submitted"
 msgstr "申诉已提交"
 
 #: src/components/AppealDialog.tsx:131
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:215
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:220
 msgid "Appeal this decision"
 msgstr "对此决定提出申诉"
 
@@ -734,7 +734,7 @@ msgstr "文章网址别名"
 msgid "Articles"
 msgstr "文章"
 
-#: src/components/AppSidebar.tsx:345
+#: src/components/AppSidebar.tsx:346
 #: src/components/ProfileCard.tsx:197
 msgid "Articles only"
 msgstr "仅文章"
@@ -826,7 +826,7 @@ msgstr "粗体"
 msgid "Bookmark"
 msgstr "收藏"
 
-#: src/components/AppSidebar.tsx:646
+#: src/components/AppSidebar.tsx:634
 #: src/routes/(root)/[handle]/bookmarks.tsx:126
 msgid "Bookmarks"
 msgstr "收藏"
@@ -981,14 +981,14 @@ msgstr "已结束"
 msgid "Code"
 msgstr "代码"
 
-#: src/components/AppSidebar.tsx:933
+#: src/components/AppSidebar.tsx:921
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/sign/up/[token].tsx:458
 msgid "Code of conduct"
 msgstr "行为准则"
 
 #. placeholder {0}: sanction .violatedProvisions.join(", ")
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:174
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:179
 msgid "Code of conduct: {0}"
 msgstr "行为准则：{0}"
 
@@ -996,7 +996,7 @@ msgstr "行为准则：{0}"
 #~ msgid "Comments ({0})"
 #~ msgstr "评论（{0}）"
 
-#: src/components/AppSidebar.tsx:770
+#: src/components/AppSidebar.tsx:758
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "写作"
@@ -1076,7 +1076,7 @@ msgstr "无法提交申诉"
 msgid "Could not vote on this poll"
 msgstr "无法在此投票调查中投票"
 
-#: src/components/AppSidebar.tsx:815
+#: src/components/AppSidebar.tsx:803
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create article"
 msgstr "创建文章"
@@ -1085,7 +1085,7 @@ msgstr "创建文章"
 msgid "Create invitation link"
 msgstr "创建邀请链接"
 
-#: src/components/AppSidebar.tsx:792
+#: src/components/AppSidebar.tsx:780
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:78
 #: src/components/NoteComposer.tsx:1873
@@ -1548,7 +1548,7 @@ msgstr "加载更多通行密钥失败，点击重试"
 #: src/components/ActorPostList.tsx:130
 #: src/components/ActorSharedPostList.tsx:83
 #: src/components/PersonalTimeline.tsx:295
-#: src/components/PublicTimeline.tsx:288
+#: src/components/PublicTimeline.tsx:283
 #: src/components/SearchResults.tsx:150
 msgid "Failed to load more posts; click to retry"
 msgstr "加载更多内容失败，点击重试"
@@ -1573,7 +1573,7 @@ msgstr "加载更多转帖失败，点击重试"
 
 #: src/components/AccountListBase.tsx:112
 #: src/components/admin/ModerationCaseList.tsx:233
-#: src/components/ReportHistoryList.tsx:200
+#: src/components/ReportHistoryList.tsx:202
 msgid "Failed to load more; click to retry"
 msgstr "加载更多失败；点击重试"
 
@@ -1701,7 +1701,7 @@ msgid "Failed to share post"
 msgstr "转帖失败"
 
 #. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:221
+#: src/components/AppSidebar.tsx:222
 msgid "Failed to sign out: {0}"
 msgstr "登出失败：{0}"
 
@@ -1779,7 +1779,7 @@ msgstr "投票失败"
 msgid "Favor links shared by specific accounts. A preferred sharer's posts count toward the news feed even when the account is a bot (for example a feed that reposts Hacker News links), and the links it shares get a flat promotion bonus in the popular ranking. A penalty on a link overrides the promotion."
 msgstr "优先展示特定账户转帖的链接。即使账户是机器人（例如转发 Hacker News 链接的订阅源），优先转帖者的内容也会计入新闻订阅流，且其转帖的链接会在热门排名中获得固定的优先加分。对链接的处罚会覆盖该优先。"
 
-#: src/components/AppSidebar.tsx:389
+#: src/components/AppSidebar.tsx:390
 msgid "Fediverse"
 msgstr "联邦宇宙"
 
@@ -1787,7 +1787,7 @@ msgstr "联邦宇宙"
 msgid "Fediverse handle"
 msgstr "联邦宇宙用户名"
 
-#: src/components/AppSidebar.tsx:284
+#: src/components/AppSidebar.tsx:285
 msgid "Feed"
 msgstr "订阅流"
 
@@ -1842,7 +1842,7 @@ msgstr "关注了你"
 msgid "Formatting"
 msgstr "格式"
 
-#: src/components/ReportHistoryList.tsx:180
+#: src/components/ReportHistoryList.tsx:182
 msgid "Forwarded to the remote instance"
 msgstr "已转发给远程实例"
 
@@ -1854,7 +1854,7 @@ msgstr "生成中…"
 msgid "Get browser notifications"
 msgstr "接收浏览器通知"
 
-#: src/components/AppSidebar.tsx:973
+#: src/components/AppSidebar.tsx:961
 msgid "GitHub repository"
 msgstr "GitHub 仓库"
 
@@ -1892,8 +1892,8 @@ msgstr "向自上次重新发放截止时间以来最活跃的账号（按内容
 msgid "Graph"
 msgstr "关系图"
 
-#: src/components/AppSidebar.tsx:359
-#: src/components/AppSidebar.tsx:478
+#: src/components/AppSidebar.tsx:360
+#: src/components/AppSidebar.tsx:479
 #: src/routes/(root).tsx:145
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/markdown.tsx:40
@@ -2108,7 +2108,7 @@ msgstr "邀请链接"
 msgid "Invitation sent"
 msgstr "邀请已发送"
 
-#: src/components/AppSidebar.tsx:925
+#: src/components/AppSidebar.tsx:913
 #: src/routes/(root)/[handle]/settings/invite.tsx:907
 #: src/routes/(root)/tree/graph.tsx:79
 #: src/routes/(root)/tree/index.tsx:206
@@ -2124,7 +2124,7 @@ msgstr "邀请"
 msgid "Invitations left"
 msgstr "剩余邀请"
 
-#: src/components/AppSidebar.tsx:669
+#: src/components/AppSidebar.tsx:657
 #: src/components/SettingsTabs.tsx:71
 #: src/routes/(root)/[handle]/settings/invite.tsx:310
 msgid "Invite"
@@ -2266,7 +2266,7 @@ msgstr "LLM 匹配乖离"
 #: src/components/AccountListBase.tsx:115
 #: src/components/admin/ModerationCaseList.tsx:236
 #: src/components/ModerationNotificationList.tsx:191
-#: src/components/ReportHistoryList.tsx:203
+#: src/components/ReportHistoryList.tsx:205
 #: src/routes/(root)/[handle]/drafts/index.tsx:350
 msgid "Load more"
 msgstr "加载更多"
@@ -2314,7 +2314,7 @@ msgstr "加载更多通行密钥"
 #: src/components/ActorPostList.tsx:133
 #: src/components/ActorSharedPostList.tsx:86
 #: src/components/PersonalTimeline.tsx:298
-#: src/components/PublicTimeline.tsx:291
+#: src/components/PublicTimeline.tsx:286
 #: src/components/SearchResults.tsx:153
 msgid "Load more posts"
 msgstr "加载更多内容"
@@ -2390,7 +2390,7 @@ msgstr "正在加载更多通行密钥…"
 #: src/components/ActorPostList.tsx:127
 #: src/components/ActorSharedPostList.tsx:80
 #: src/components/PersonalTimeline.tsx:292
-#: src/components/PublicTimeline.tsx:285
+#: src/components/PublicTimeline.tsx:280
 #: src/components/SearchResults.tsx:147
 msgid "Loading more posts…"
 msgstr "加载更多内容中…"
@@ -2423,7 +2423,7 @@ msgstr "正在加载更多新闻…"
 
 #: src/components/AccountListBase.tsx:109
 #: src/components/admin/ModerationCaseList.tsx:230
-#: src/components/ReportHistoryList.tsx:197
+#: src/components/ReportHistoryList.tsx:199
 msgid "Loading more…"
 msgstr "正在加载更多…"
 
@@ -2601,7 +2601,7 @@ msgid "New notifications can now appear even when Hackers' Pub is not open."
 msgstr "现在即使 Hackers' Pub 未打开，也可以显示新通知。"
 
 #: src/components/PersonalTimeline.tsx:261
-#: src/components/PublicTimeline.tsx:256
+#: src/components/PublicTimeline.tsx:251
 msgid "New posts available — click to load"
 msgstr "有新内容 — 点击加载"
 
@@ -2610,7 +2610,7 @@ msgid "Newest"
 msgstr "最新"
 
 #: src/components/AdminTabs.tsx:58
-#: src/components/AppSidebar.tsx:261
+#: src/components/AppSidebar.tsx:262
 #: src/routes/(root)/admin/news.tsx:555
 #: src/routes/(root)/news/index.tsx:39
 msgid "News"
@@ -2720,7 +2720,7 @@ msgstr "没有受罚链接。"
 #: src/components/ActorPostList.tsx:140
 #: src/components/ActorSharedPostList.tsx:93
 #: src/components/PersonalTimeline.tsx:305
-#: src/components/PublicTimeline.tsx:298
+#: src/components/PublicTimeline.tsx:293
 #: src/components/SearchResults.tsx:160
 msgid "No posts found"
 msgstr "未找到内容"
@@ -2849,7 +2849,7 @@ msgstr "未授予通知权限。"
 msgid "Notification preview privacy"
 msgstr "通知预览隐私"
 
-#: src/components/AppSidebar.tsx:604
+#: src/components/AppSidebar.tsx:592
 msgid "Notifications"
 msgstr "通知"
 
@@ -3138,7 +3138,7 @@ msgstr "以往违规记录"
 msgid "Priority"
 msgstr "优先级"
 
-#: src/components/AppSidebar.tsx:940
+#: src/components/AppSidebar.tsx:928
 #: src/routes/(root)/privacy.tsx:40
 msgid "Privacy policy"
 msgstr "隐私政策"
@@ -3292,7 +3292,7 @@ msgstr "即使此标签页已关闭，也能立即收到新通知。"
 msgid "Receive notifications immediately through this browser, even when this tab is closed."
 msgstr "通过此浏览器立即接收通知，即使此标签页已关闭。"
 
-#: src/components/AppSidebar.tsx:851
+#: src/components/AppSidebar.tsx:839
 msgid "Recent drafts"
 msgstr "最近的草稿"
 
@@ -3519,8 +3519,8 @@ msgid "Reported {0}"
 msgstr "已举报 {0}"
 
 #. placeholder {0}: node.targetActor.handle
-#: src/components/ReportHistoryList.tsx:156
-#: src/components/ReportHistoryList.tsx:164
+#: src/components/ReportHistoryList.tsx:158
+#: src/components/ReportHistoryList.tsx:166
 msgid "Reported a post by {0}"
 msgstr "已举报 {0} 的内容"
 
@@ -3544,8 +3544,8 @@ msgid "Resolved"
 msgstr "已处理"
 
 #: src/components/AppSidebar.tsx:530
-msgid "Return to old UI"
-msgstr "返回旧界面"
+#~ msgid "Return to old UI"
+#~ msgstr "返回旧界面"
 
 #: src/routes/(root)/admin/moderation/appeals.tsx:290
 msgid "Review outcome"
@@ -3620,7 +3620,7 @@ msgid "Saving…"
 msgstr "保存中…"
 
 #: src/components/admin/AdminAccountsTable.tsx:202
-#: src/components/AppSidebar.tsx:411
+#: src/components/AppSidebar.tsx:412
 #: src/components/SearchForm.tsx:65
 #: src/components/SearchForm.tsx:80
 #: src/routes/(root)/admin/moderation/index.tsx:192
@@ -3694,7 +3694,7 @@ msgstr "标签之间用空格分隔。标签有助于读者发现您的文章。
 msgid "Set your personal preferences."
 msgstr "设置您的个人偏好设置。"
 
-#: src/components/AppSidebar.tsx:700
+#: src/components/AppSidebar.tsx:688
 msgid "Settings"
 msgstr "设置"
 
@@ -3767,7 +3767,7 @@ msgstr "以管理团队名义向被举报用户显示。"
 msgid "Shown to the user"
 msgstr "向用户显示"
 
-#: src/components/AppSidebar.tsx:566
+#: src/components/AppSidebar.tsx:554
 #: src/routes/(root)/sign/index.tsx:419
 msgid "Sign in"
 msgstr "登录"
@@ -3788,7 +3788,7 @@ msgstr "登录后投票"
 msgid "Sign in with passkey"
 msgstr "使用通行密钥登录"
 
-#: src/components/AppSidebar.tsx:912
+#: src/components/AppSidebar.tsx:900
 msgid "Sign out"
 msgstr "登出"
 
@@ -3861,7 +3861,7 @@ msgstr "强"
 msgid "Submit appeal"
 msgstr "提交申诉"
 
-#: src/components/ReportDialog.tsx:231
+#: src/components/ReportDialog.tsx:230
 msgid "Submit report"
 msgstr "提交举报"
 
@@ -3934,7 +3934,7 @@ msgstr "封停"
 msgid "Suspended"
 msgstr "已封停"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:192
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:197
 #: src/routes/(root)/admin/moderation/[id].tsx:402
 msgid "Suspension ends"
 msgstr "封停结束"
@@ -3997,7 +3997,7 @@ msgstr "这不是有效的中继 actor URL。"
 msgid "That is not a valid URL pattern."
 msgstr "这不是有效的 URL 模式。"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:205
+#: src/routes/(root)/[handle]/settings/sanctions.tsx:210
 msgid "The appeal window has closed."
 msgstr "申诉期限已结束。"
 
@@ -4102,7 +4102,7 @@ msgstr "注册链接无效。请确保你使用的是你收到的正确邮件链
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:964
+#: src/components/AppSidebar.tsx:952
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "可在 {0} 上以 {1} 许可获取该网站的源代码。"
 
@@ -4231,7 +4231,7 @@ msgstr "通常需要一分钟左右。翻译完成后页面将自动更新。"
 msgid "This will be part of the article URL."
 msgstr "这将成为文章 URL 的一部分。"
 
-#: src/components/AppSidebar.tsx:239
+#: src/components/AppSidebar.tsx:240
 msgid "Timeline"
 msgstr "时间线"
 
@@ -4390,6 +4390,10 @@ msgstr "URL"
 msgid "URL pattern"
 msgstr "URL 模式"
 
+#: src/components/AppSidebar.tsx:518
+msgid "Use old UI"
+msgstr "使用旧版界面"
+
 #: src/components/ProfileActionMenu.tsx:320
 msgid "User blocked"
 msgstr "已屏蔽用户"
@@ -4447,7 +4451,7 @@ msgstr "已于{1}验证此链接归{0}所有"
 msgid "Verifying your invitation…"
 msgstr "正在验证您的邀请…"
 
-#: src/components/AppSidebar.tsx:875
+#: src/components/AppSidebar.tsx:863
 msgid "View all drafts →"
 msgstr "查看所有草稿 →"
 
@@ -4586,7 +4590,7 @@ msgstr "撤销决定"
 msgid "Withdrawn"
 msgstr "已撤销"
 
-#: src/components/AppSidebar.tsx:323
+#: src/components/AppSidebar.tsx:324
 msgid "Without shares"
 msgstr "不含转帖"
 

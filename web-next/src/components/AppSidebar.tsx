@@ -21,6 +21,7 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import IconShieldCheck from "~icons/lucide/shield-check";
+import IconUndo2 from "~icons/lucide/undo-2";
 import {
   Sidebar,
   SidebarContent,
@@ -80,8 +81,8 @@ async function removeSessionCookie(): Promise<Uuid | null> {
   return null;
 }
 
-function removeWebNextCookie(): void {
-  document.cookie = "web-next=; max-age=0; path=/; SameSite=Lax";
+function setLegacyUiCookie(): void {
+  document.cookie = "web-next=false; path=/; max-age=31536000; SameSite=Lax";
 }
 
 export interface AppSidebarProps {
@@ -500,8 +501,8 @@ function AccountSection(props: AccountSectionProps) {
     props.unreadNotificationsCount ??
       props.signedAccount?.unreadNotificationsCount ?? 0;
 
-  function onReturnToOldUI() {
-    removeWebNextCookie();
+  function onUseOldUI() {
+    setLegacyUiCookie();
     window.location.reload();
   }
 
@@ -512,22 +513,9 @@ function AccountSection(props: AccountSectionProps) {
       </SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenuItem class="list-none">
-          <SidebarMenuButton on:click={onReturnToOldUI} class="cursor-pointer">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="1.5"
-              stroke="currentColor"
-              class="size-6"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
-              />
-            </svg>
-            {t`Return to old UI`}
+          <SidebarMenuButton on:click={onUseOldUI} class="cursor-pointer">
+            <IconUndo2 class="size-6" />
+            {t`Use old UI`}
           </SidebarMenuButton>
         </SidebarMenuItem>
         <Show

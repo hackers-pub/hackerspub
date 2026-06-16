@@ -477,8 +477,8 @@
     }
   },
   "webNextBanner": {
-    "text": "試試全新的 Hackers' Pub！",
-    "action": "立即體驗"
+    "text": "你正在使用舊版 Hackers' Pub 介面。",
+    "action": "使用新版介面"
   },
   "authorizedInteraction": {
     "title": "遠端關注",
