@@ -1,4 +1,5 @@
 import { page } from "@fresh/core";
+import { isUsernameReserved } from "@hackerspub/models/account";
 import { syncActorFromAccount } from "@hackerspub/models/actor";
 import { follow } from "@hackerspub/models/following";
 import {
@@ -58,6 +59,12 @@ export const handler = define.handlers({
     const username = form.get("username")?.toString()?.trim()?.toLowerCase();
     const name = form.get("name")?.toString()?.trim();
     const bio = form.get("bio")?.toString() ?? "";
+    const usernameLooksValid = username != null && username !== "" &&
+      username.length <= 50 && USERNAME_REGEXP.test(username);
+    const usernameAlreadyTaken = usernameLooksValid &&
+      (await db.query.accountTable.findFirst({ where: { username } }) !=
+          null ||
+        await isUsernameReserved(db, username));
     const errors = {
       username: username == null || username === ""
         ? t("signUp.usernameRequired")
@@ -65,9 +72,7 @@ export const handler = define.handlers({
         ? t("signUp.usernameTooLong")
         : !username.match(USERNAME_REGEXP)
         ? t("signUp.usernameInvalidChars")
-        : await db.query.accountTable.findFirst({
-            where: { username },
-          }) != null
+        : usernameAlreadyTaken
         ? t("signUp.usernameAlreadyTaken")
         : undefined,
       name: name == null || name === ""

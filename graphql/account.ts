@@ -1,5 +1,6 @@
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import {
+  encodeGlobalID,
   resolveCursorConnection,
   type ResolveCursorConnectionArgs,
 } from "@pothos/plugin-relay";
@@ -7,14 +8,18 @@ import { assertNever } from "@std/assert/unstable-never";
 import DataLoader from "dataloader";
 import { and, desc, eq, gt, inArray, isNotNull, lt, sql } from "drizzle-orm";
 import {
+  AccountDeletionUnavailableError,
   createAvatarMediumFromMedium,
   createAvatarMediumFromUrl,
+  deleteAccount as deleteAccountModel,
   getAvatarUrl,
+  isUsernameReserved,
   updateAccount,
 } from "@hackerspub/models/account";
 import { syncActorFromAccount } from "@hackerspub/models/actor";
 import type { Locale } from "@hackerspub/models/i18n";
 import { renderMarkup } from "@hackerspub/models/markup";
+import { deleteSession } from "@hackerspub/models/session";
 import {
   accountTable,
   actorTable,
@@ -29,6 +34,7 @@ import {
   builder,
   type UserContext,
 } from "./builder.ts";
+import { InvalidInputError, NotAuthorizedError } from "./error.ts";
 import { InvitationLink } from "./invitation-link.ts";
 import { Notification } from "./notification.ts";
 import { putProfileOgImage } from "./og.ts";
@@ -44,8 +50,25 @@ import {
   PushNotificationPreviewPolicy,
   toPushNotificationPreviewPolicy,
 } from "./push.ts";
+import { NotAuthenticatedError } from "./session.ts";
 
 const profileOgImageComplexity = 2_000;
+
+builder.objectType(AccountDeletionUnavailableError, {
+  name: "AccountDeletionUnavailableError",
+  description:
+    "Returned when the account cannot be deleted because it is linked to " +
+    "moderation audit records that must remain intact. The reason is " +
+    "intentionally generic so clients do not expose moderation internals.",
+  fields: (t) => ({
+    unavailable: t.string({
+      description:
+        "Always an empty string. Use the type name for branching and show a " +
+        "generic account-deletion-unavailable message.",
+      resolve: () => "",
+    }),
+  }),
+});
 
 // Merge the GraphQL-derived selection for a related `Account` with the extra
 // `hideFromInvitationTree` column so the inviter-gating resolver can read it
@@ -1083,6 +1106,15 @@ builder.relayMutationField(
           { extensions: { code: "BAD_USER_INPUT" } },
         );
       }
+      if (
+        args.input.username != null &&
+        args.input.username !== account.username &&
+        await isUsernameReserved(ctx.db, args.input.username)
+      ) {
+        throw createGraphQLError("Username is already taken.", {
+          extensions: { code: "BAD_USER_INPUT" },
+        });
+      }
       let avatarMediumId: Uuid | undefined;
       if (args.input.avatarUrl != null) {
         if (args.input.avatarMediumId != null) {
@@ -1195,6 +1227,68 @@ builder.relayMutationField(
         resolve(result) {
           return result;
         },
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "deleteAccount",
+  {
+    description:
+      "Permanently delete the authenticated viewer's account. This " +
+      "hard-deletes the local account data, reserves the account's current " +
+      "`username`, sends one actor-level ActivityPub `Delete` to followers, " +
+      "and revokes the current session after the deletion succeeds.",
+    inputFields: (t) => ({
+      id: t.globalID({
+        for: Account,
+        required: true,
+        description:
+          "The `Account` global id of the authenticated viewer. Passing any " +
+          "other account id returns `NotAuthorizedError`.",
+      }),
+    }),
+  },
+  {
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        NotAuthorizedError,
+        InvalidInputError,
+        AccountDeletionUnavailableError,
+      ],
+    },
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null || ctx.account == null) {
+        throw new NotAuthenticatedError();
+      }
+      if (session.accountId !== args.input.id.id) {
+        throw new NotAuthorizedError();
+      }
+      const result = await deleteAccountModel(ctx.fedCtx, args.input.id.id);
+      if (result == null) throw new InvalidInputError("id");
+      await deleteSession(ctx.kv, session.id);
+      return result;
+    },
+  },
+  {
+    outputFields: (t) => ({
+      deletedAccountId: t.id({
+        description:
+          "The global `Account` id that was deleted. Clients can use this " +
+          "to evict viewer/account records after the mutation succeeds.",
+        resolve: (result) => encodeGlobalID("Account", result.accountId),
+      }),
+      username: t.exposeString("username", {
+        description:
+          "The deleted account's current `username`, which is now reserved " +
+          "and cannot be reused by signup or rename flows.",
+      }),
+      deleted: t.expose("deleted", {
+        type: "DateTime",
+        description: "When the account was deleted.",
       }),
     }),
   },

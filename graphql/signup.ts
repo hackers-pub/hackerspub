@@ -1,3 +1,4 @@
+import { isUsernameReserved } from "@hackerspub/models/account";
 import { syncActorFromAccount } from "@hackerspub/models/actor";
 import { follow } from "@hackerspub/models/following";
 import {
@@ -244,7 +245,7 @@ builder.mutationFields((t) => ({
         const existingUser = await ctx.db.query.accountTable.findFirst({
           where: { username: trimmedUsername },
         });
-        if (existingUser) {
+        if (existingUser || await isUsernameReserved(ctx.db, trimmedUsername)) {
           errors.username = "USERNAME_ALREADY_TAKEN";
         }
       }

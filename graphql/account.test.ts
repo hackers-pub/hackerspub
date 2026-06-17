@@ -8,9 +8,12 @@ import sharp from "sharp";
 import { updateAccountData } from "@hackerspub/models/account";
 import type { Transaction } from "@hackerspub/models/db";
 import { createMediumFromBytes } from "@hackerspub/models/medium";
+import { createSession, getSession } from "@hackerspub/models/session";
 import {
   accountTable,
   actorTable,
+  deletedAccountTable,
+  flagCaseTable,
   mediumTable,
 } from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
@@ -20,6 +23,7 @@ import { putProfileOgImage } from "./og.ts";
 import {
   createFedCtx,
   createTestDisk,
+  createTestKv,
   insertAccountWithActor,
   makeGuestContext,
   makeUserContext,
@@ -127,6 +131,31 @@ const updateAccountMutation = parse(`
         defaultNoteVisibility
         defaultShareVisibility
         defaultQuotePolicy
+      }
+    }
+  }
+`);
+
+const deleteAccountMutation = parse(`
+  mutation DeleteAccount($input: DeleteAccountInput!) {
+    deleteAccount(input: $input) {
+      __typename
+      ... on DeleteAccountPayload {
+        deletedAccountId
+        username
+        deleted
+      }
+      ... on NotAuthenticatedError {
+        notAuthenticated
+      }
+      ... on NotAuthorizedError {
+        notAuthorized
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+      ... on AccountDeletionUnavailableError {
+        unavailable
       }
     }
   }
@@ -1101,6 +1130,213 @@ test("updateAccount rejects a second username change", async () => {
     assert.equal(
       result.errors?.[0].message,
       "Username cannot be changed after it has been changed.",
+    );
+  });
+});
+
+test("updateAccount rejects usernames reserved by deleted accounts", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "renamefree",
+      name: "Rename Free",
+      email: "renamefree@example.com",
+    });
+    await tx.insert(deletedAccountTable).values({
+      accountId: generateUuidV7(),
+      username: "reservedrename",
+      actorIri: "http://localhost/ap/actors/reservedrename",
+      deleted: new Date("2026-06-17T00:00:00.000Z"),
+    });
+
+    const result = await execute({
+      schema,
+      document: updateAccountMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("Account", account.account.id),
+          username: "reservedrename",
+        },
+      },
+      contextValue: makeUserContext(tx, account.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(toPlainJson(result.data), { updateAccount: null });
+    assert.equal(result.errors?.length, 1);
+    assert.equal(result.errors?.[0].message, "Username is already taken.");
+  });
+});
+
+test("deleteAccount deletes the viewer account and session", async () => {
+  await withRollback(async (tx) => {
+    const { kv } = createTestKv();
+    const account = await insertAccountWithActor(tx, {
+      username: "deletegraphql",
+      name: "Delete GraphQL",
+      email: "deletegraphql@example.com",
+    });
+    const session = await createSession(kv, {
+      accountId: account.account.id,
+      userAgent: "delete-account-test",
+    });
+    const fedCtx = createFedCtx(tx, { kv });
+    const sentActivities: unknown[][] = [];
+    fedCtx.sendActivity = ((...args: unknown[]) => {
+      sentActivities.push(args);
+      return Promise.resolve(undefined);
+    }) as typeof fedCtx.sendActivity;
+
+    const result = await execute({
+      schema,
+      document: deleteAccountMutation,
+      variableValues: {
+        input: { id: encodeGlobalID("Account", account.account.id) },
+      },
+      contextValue: makeUserContext(tx, account.account, {
+        kv,
+        fedCtx,
+        session,
+      }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    const payload = (toPlainJson(result.data) as {
+      deleteAccount?: {
+        __typename?: string;
+        deletedAccountId?: string;
+        username?: string;
+        deleted?: string;
+      };
+    }).deleteAccount;
+    assert.deepEqual(
+      {
+        ...payload,
+        deleted: typeof payload?.deleted,
+      },
+      {
+        __typename: "DeleteAccountPayload",
+        deletedAccountId: encodeGlobalID("Account", account.account.id),
+        username: "deletegraphql",
+        deleted: "string",
+      },
+    );
+    assert.equal(sentActivities.length, 1);
+    assert.equal(await getSession(kv, session.id), undefined);
+    assert.equal(
+      await tx.query.accountTable.findFirst({
+        where: { id: account.account.id },
+      }),
+      undefined,
+    );
+    const tombstone = await tx.query.deletedAccountTable.findFirst({
+      where: { accountId: account.account.id },
+    });
+    assert.equal(tombstone?.username, "deletegraphql");
+  });
+});
+
+test("deleteAccount returns typed errors for invalid callers", async () => {
+  await withRollback(async (tx) => {
+    const owner = await insertAccountWithActor(tx, {
+      username: "deleteowner",
+      name: "Delete Owner",
+      email: "deleteowner@example.com",
+    });
+    const other = await insertAccountWithActor(tx, {
+      username: "deleteother",
+      name: "Delete Other",
+      email: "deleteother@example.com",
+    });
+    const missingId = generateUuidV7();
+
+    const guest = await execute({
+      schema,
+      document: deleteAccountMutation,
+      variableValues: {
+        input: { id: encodeGlobalID("Account", owner.account.id) },
+      },
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(guest.errors, undefined);
+    assert.equal(
+      (toPlainJson(guest.data) as {
+        deleteAccount?: { __typename?: string };
+      }).deleteAccount?.__typename,
+      "NotAuthenticatedError",
+    );
+
+    const foreign = await execute({
+      schema,
+      document: deleteAccountMutation,
+      variableValues: {
+        input: { id: encodeGlobalID("Account", other.account.id) },
+      },
+      contextValue: makeUserContext(tx, owner.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(foreign.errors, undefined);
+    assert.equal(
+      (toPlainJson(foreign.data) as {
+        deleteAccount?: { __typename?: string };
+      }).deleteAccount?.__typename,
+      "NotAuthorizedError",
+    );
+
+    const missing = await execute({
+      schema,
+      document: deleteAccountMutation,
+      variableValues: {
+        input: { id: encodeGlobalID("Account", missingId) },
+      },
+      contextValue: makeUserContext(tx, { ...owner.account, id: missingId }),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(missing.errors, undefined);
+    assert.deepEqual(toPlainJson(missing.data), {
+      deleteAccount: {
+        __typename: "InvalidInputError",
+        inputPath: "id",
+      },
+    });
+  });
+});
+
+test("deleteAccount reports moderation audit blockers generically", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "deleteblocked",
+      name: "Delete Blocked",
+      email: "deleteblocked@example.com",
+    });
+    await tx.insert(flagCaseTable).values({
+      id: generateUuidV7(),
+      targetActorId: account.actor.id,
+      status: "pending",
+    });
+
+    const result = await execute({
+      schema,
+      document: deleteAccountMutation,
+      variableValues: {
+        input: { id: encodeGlobalID("Account", account.account.id) },
+      },
+      contextValue: makeUserContext(tx, account.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      deleteAccount: {
+        __typename: "AccountDeletionUnavailableError",
+        unavailable: "",
+      },
+    });
+    assert.ok(
+      await tx.query.accountTable.findFirst({
+        where: { id: account.account.id },
+      }) != null,
     );
   });
 });

@@ -2,6 +2,7 @@ import { page } from "@fresh/core";
 import {
   createAvatarMediumFromBlob,
   getAvatarUrl,
+  isUsernameReserved,
   updateAccount,
 } from "@hackerspub/models/account";
 import { syncActorFromAccount } from "@hackerspub/models/actor";
@@ -79,6 +80,13 @@ export const handler = define.handlers({
     const links = zip(linkNames, linkUrls)
       .filter(([name, url]) => name !== "" && URL.canParse(url))
       .map(([name, url]) => ({ name, url }));
+    const usernameLooksValid = username != null && username !== "" &&
+      username.length <= 50 && /^[a-z0-9_]{1,15}$/.test(username);
+    const usernameAlreadyTaken = usernameLooksValid &&
+      account.username !== username &&
+      (await db.query.accountTable.findFirst({ where: { username } }) !=
+          null ||
+        await isUsernameReserved(db, username));
     const errors = {
       avatar: avatar == null || avatar === ""
         ? undefined
@@ -94,10 +102,7 @@ export const handler = define.handlers({
         ? t("settings.profile.usernameTooLong")
         : !username.match(/^[a-z0-9_]{1,15}$/)
         ? t("settings.profile.usernameInvalidChars")
-        : account.username !== username &&
-            await db.query.accountTable.findFirst({
-                where: { username },
-              }) != null
+        : usernameAlreadyTaken
         ? t("settings.profile.usernameAlreadyTaken")
         : undefined,
       name: name == null || name === ""

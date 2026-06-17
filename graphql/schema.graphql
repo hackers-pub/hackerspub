@@ -188,6 +188,16 @@ type AccountBannedError {
   since: DateTime!
 }
 
+"""
+Returned when the account cannot be deleted because it is linked to moderation audit records that must remain intact. The reason is intentionally generic so clients do not expose moderation internals.
+"""
+type AccountDeletionUnavailableError {
+  """
+  Always an empty string. Use the type name for branching and show a generic account-deletion-unavailable message.
+  """
+  unavailable: String!
+}
+
 type AccountInviteesConnection {
   edges: [AccountInviteesConnectionEdge!]!
   pageInfo: PageInfo!
@@ -1299,6 +1309,37 @@ A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `dat
 scalar DateTime
 
 """
+Permanently delete the authenticated viewer's account. This hard-deletes the local account data, reserves the account's current `username`, sends one actor-level ActivityPub `Delete` to followers, and revokes the current session after the deletion succeeds.
+"""
+input DeleteAccountInput {
+  clientMutationId: ID
+
+  """
+  The `Account` global id of the authenticated viewer. Passing any other account id returns `NotAuthorizedError`.
+  """
+  id: ID!
+}
+
+type DeleteAccountPayload {
+  clientMutationId: ID
+
+  """When the account was deleted."""
+  deleted: DateTime!
+
+  """
+  The global `Account` id that was deleted. Clients can use this to evict viewer/account records after the mutation succeeds.
+  """
+  deletedAccountId: ID!
+
+  """
+  The deleted account's current `username`, which is now reserved and cannot be reused by signup or rename flows.
+  """
+  username: String!
+}
+
+union DeleteAccountResult = AccountDeletionUnavailableError | DeleteAccountPayload | InvalidInputError | NotAuthenticatedError | NotAuthorizedError
+
+"""
 Permanently delete an article draft. Only the draft's owner may delete it. Requires authentication.
 """
 input DeleteArticleDraftInput {
@@ -2184,6 +2225,7 @@ type Mutation {
   createMedium(input: CreateMediumInput!): CreateMediumResult!
   createNote(input: CreateNoteInput!): CreateNoteResult!
   createQuestion(input: CreateQuestionInput!): CreateQuestionResult!
+  deleteAccount(input: DeleteAccountInput!): DeleteAccountResult!
   deleteArticleDraft(input: DeleteArticleDraftInput!): DeleteArticleDraftResult!
 
   """
