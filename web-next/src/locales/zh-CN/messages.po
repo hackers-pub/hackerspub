@@ -455,6 +455,10 @@ msgstr "用户（资料）举报。"
 msgid "Account"
 msgstr "账户"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:170
+msgid "Account deletion is unavailable"
+msgstr "账户删除功能不可用"
+
 #: src/routes/(root)/admin/news.tsx:692
 msgid "Account handle"
 msgstr "账户用户名"
@@ -462,6 +466,10 @@ msgstr "账户用户名"
 #: src/routes/(root)/[handle]/settings/sanctions.tsx:94
 msgid "Account permanently suspended"
 msgstr "账户已永久封停"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:120
+msgid "Account settings"
+msgstr "账户设置"
 
 #: src/routes/(root)/[handle]/settings/sanctions.tsx:92
 msgid "Account suspended"
@@ -907,6 +915,10 @@ msgstr "取消"
 msgid "Cannot change the language because translations already exist"
 msgstr "由于已存在翻译，无法更改语言"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:187
+msgid "Cannot delete this account"
+msgstr "无法删除此账户"
+
 #: src/components/admin/ModerationSubTabs.tsx:28
 msgid "Cases"
 msgstr "案例"
@@ -1175,6 +1187,16 @@ msgstr "默认转帖隐私设置"
 #: src/routes/(root)/[handle]/settings/invite.tsx:742
 msgid "Delete"
 msgstr "删除"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:121
+#: src/routes/(root)/[handle]/settings/account.tsx:249
+#: src/routes/(root)/[handle]/settings/account.tsx:274
+msgid "Delete account"
+msgstr "删除账户"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:257
+msgid "Delete account permanently?"
+msgstr "要永久删除账户吗？"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:21
 msgid "Delete draft"
@@ -1465,6 +1487,11 @@ msgstr "复制失败"
 #: src/routes/(root)/[handle]/settings/invite.tsx:568
 msgid "Failed to create invitation link"
 msgstr "创建邀请链接失败"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:194
+#: src/routes/(root)/[handle]/settings/account.tsx:205
+msgid "Failed to delete account"
+msgstr "删除账户失败"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:607
 #: src/routes/(root)/[handle]/settings/invite.tsx:618
@@ -2971,6 +2998,10 @@ msgstr "等待审核"
 msgid "People you might want to follow"
 msgstr "推荐关注"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:122
+msgid "Permanently delete your account and sign out of this session."
+msgstr "永久删除你的账户，并退出当前会话。"
+
 #: src/routes/(root)/[handle]/bookmarks.tsx:99
 #: src/routes/(root)/[handle]/bookmarks.tsx:102
 #: src/routes/(root)/[handle]/drafts/[id].tsx:52
@@ -3012,6 +3043,10 @@ msgstr "请输入文章标题。"
 #: src/components/RemoteFollowButton.tsx:96
 msgid "Please enter your Fediverse handle."
 msgstr "请输入你的联邦宇宙用户名。"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:180
+msgid "Please sign in again before deleting your account."
+msgstr "删除账户前请重新登录。"
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:57
 #: src/routes/(root)/[handle]/drafts/index.tsx:222
@@ -3789,6 +3824,10 @@ msgstr "向用户显示"
 msgid "Sign in"
 msgstr "登录"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:179
+msgid "Sign in required"
+msgstr "需要登录"
+
 #: src/routes/applink/sign/in/[token].tsx:39
 msgid "Sign in to Hackers' Pub"
 msgstr "登录 Hackers' Pub"
@@ -4047,6 +4086,11 @@ msgstr "您转帖的默认隐私设置。"
 msgid "The default quote permission for your notes."
 msgstr "帖子的默认引用权限设置。"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:196
+#: src/routes/(root)/[handle]/settings/account.tsx:207
+msgid "The deletion request could not be completed. Please try again."
+msgstr "无法完成删除请求。请重试。"
+
 #: src/routes/(root)/[handle]/invite/[id].tsx:174
 #: src/routes/(root)/[handle]/settings/invite.tsx:367
 msgid "The email address is invalid."
@@ -4144,6 +4188,10 @@ msgstr "Web Push 公钥无效。"
 msgid "There are no moderation actions on your account."
 msgstr "你的账户没有任何审核处理。"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:172
+msgid "This account cannot be deleted right now. Please contact the instance administrators."
+msgstr "当前无法删除此账户。请联系实例管理员。"
+
 #: src/routes/(root)/sign/index.tsx:247
 msgid "This account has been permanently suspended and can no longer sign in."
 msgstr "此账户已被永久封停，无法再登录。"
@@ -4160,10 +4208,18 @@ msgstr "此账户已被封停。"
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "此操作无法撤销。这将永久删除该内容。"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:219
+msgid "This action is permanent."
+msgstr "此操作无法撤销。"
+
 #: src/components/WebPushNotificationSettings.tsx:152
 #: src/components/WebPushPromptBanner.tsx:87
 msgid "This browser does not support Web Push."
 msgstr "此浏览器不支持 Web Push。"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:260
+msgid "This cannot be undone. Your account will be deleted and you will be signed out."
+msgstr "此操作无法撤销。你的账户将被删除，并且你会被登出。"
 
 #: src/routes/(root)/admin/moderation/[id].tsx:183
 msgid "This case does not exist."
@@ -4321,6 +4377,11 @@ msgstr "树状图"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:628
 msgid "Try again"
 msgstr "重试"
+
+#. placeholder {0}: props.username
+#: src/routes/(root)/[handle]/settings/account.tsx:237
+msgid "Type {0} to confirm account deletion."
+msgstr "请输入{0}以确认账户删除。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:162
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:483
@@ -4670,6 +4731,10 @@ msgstr "最多可附加 {MAX_MEDIA} 张图片"
 msgid "You can change it only once, and the old username will become available to others."
 msgstr "你只能更改一次用户名，而旧的用户名会公开为别人使用。"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:188
+msgid "You can delete only your own account."
+msgstr "你只能删除自己的账户。"
+
 #: src/routes/(root)/[handle]/settings/index.tsx:624
 msgid "You can leave this empty to remove the link."
 msgstr "您可以将此处留空以删除链接。"
@@ -4834,6 +4899,10 @@ msgstr "您的偏好语言已更新。"
 #: src/routes/(root)/[handle]/settings/index.tsx:339
 msgid "Your profile settings have been updated successfully."
 msgstr "个人资料设置已成功更新。"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:222
+msgid "Your profile, posts, drafts, follows, settings, and login credentials will be removed. Your current username will remain reserved."
+msgstr "你的个人资料、内容、草稿、关注关系、设置和登录凭据将被移除。当前用户名将继续保留。"
 
 #: src/components/ModerationNotificationList.tsx:121
 msgid "Your suspension ends soon."

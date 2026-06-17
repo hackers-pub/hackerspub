@@ -455,6 +455,10 @@ msgstr "A user (profile) report."
 msgid "Account"
 msgstr "Account"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:170
+msgid "Account deletion is unavailable"
+msgstr "Account deletion is unavailable"
+
 #: src/routes/(root)/admin/news.tsx:692
 msgid "Account handle"
 msgstr "Account handle"
@@ -462,6 +466,10 @@ msgstr "Account handle"
 #: src/routes/(root)/[handle]/settings/sanctions.tsx:94
 msgid "Account permanently suspended"
 msgstr "Account permanently suspended"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:120
+msgid "Account settings"
+msgstr "Account settings"
 
 #: src/routes/(root)/[handle]/settings/sanctions.tsx:92
 msgid "Account suspended"
@@ -907,6 +915,10 @@ msgstr "Cancel"
 msgid "Cannot change the language because translations already exist"
 msgstr "Cannot change the language because translations already exist"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:187
+msgid "Cannot delete this account"
+msgstr "Cannot delete this account"
+
 #: src/components/admin/ModerationSubTabs.tsx:28
 msgid "Cases"
 msgstr "Cases"
@@ -1175,6 +1187,16 @@ msgstr "Default share privacy"
 #: src/routes/(root)/[handle]/settings/invite.tsx:742
 msgid "Delete"
 msgstr "Delete"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:121
+#: src/routes/(root)/[handle]/settings/account.tsx:249
+#: src/routes/(root)/[handle]/settings/account.tsx:274
+msgid "Delete account"
+msgstr "Delete account"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:257
+msgid "Delete account permanently?"
+msgstr "Delete account permanently?"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:21
 msgid "Delete draft"
@@ -1469,6 +1491,11 @@ msgstr "Failed to copy"
 #: src/routes/(root)/[handle]/settings/invite.tsx:568
 msgid "Failed to create invitation link"
 msgstr "Failed to create invitation link"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:194
+#: src/routes/(root)/[handle]/settings/account.tsx:205
+msgid "Failed to delete account"
+msgstr "Failed to delete account"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:607
 #: src/routes/(root)/[handle]/settings/invite.tsx:618
@@ -2975,6 +3002,10 @@ msgstr "Pending review"
 msgid "People you might want to follow"
 msgstr "People you might want to follow"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:122
+msgid "Permanently delete your account and sign out of this session."
+msgstr "Permanently delete your account and sign out of this session."
+
 #: src/routes/(root)/[handle]/bookmarks.tsx:99
 #: src/routes/(root)/[handle]/bookmarks.tsx:102
 #: src/routes/(root)/[handle]/drafts/[id].tsx:52
@@ -3016,6 +3047,10 @@ msgstr "Please enter a title for your article."
 #: src/components/RemoteFollowButton.tsx:96
 msgid "Please enter your Fediverse handle."
 msgstr "Please enter your Fediverse handle."
+
+#: src/routes/(root)/[handle]/settings/account.tsx:180
+msgid "Please sign in again before deleting your account."
+msgstr "Please sign in again before deleting your account."
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:57
 #: src/routes/(root)/[handle]/drafts/index.tsx:222
@@ -3793,6 +3828,10 @@ msgstr "Shown to the user"
 msgid "Sign in"
 msgstr "Sign in"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:179
+msgid "Sign in required"
+msgstr "Sign in required"
+
 #: src/routes/applink/sign/in/[token].tsx:39
 msgid "Sign in to Hackers' Pub"
 msgstr "Sign in to Hackers' Pub"
@@ -4051,6 +4090,11 @@ msgstr "The default privacy setting for your shares."
 msgid "The default quote permission for your notes."
 msgstr "The default quote permission for your notes."
 
+#: src/routes/(root)/[handle]/settings/account.tsx:196
+#: src/routes/(root)/[handle]/settings/account.tsx:207
+msgid "The deletion request could not be completed. Please try again."
+msgstr "The deletion request could not be completed. Please try again."
+
 #: src/routes/(root)/[handle]/invite/[id].tsx:174
 #: src/routes/(root)/[handle]/settings/invite.tsx:367
 msgid "The email address is invalid."
@@ -4148,6 +4192,10 @@ msgstr "The Web Push public key is invalid."
 msgid "There are no moderation actions on your account."
 msgstr "There are no moderation actions on your account."
 
+#: src/routes/(root)/[handle]/settings/account.tsx:172
+msgid "This account cannot be deleted right now. Please contact the instance administrators."
+msgstr "This account cannot be deleted right now. Please contact the instance administrators."
+
 #: src/routes/(root)/sign/index.tsx:247
 msgid "This account has been permanently suspended and can no longer sign in."
 msgstr "This account has been permanently suspended and can no longer sign in."
@@ -4164,10 +4212,18 @@ msgstr "This account is suspended."
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "This action cannot be undone. This will permanently delete this post."
 
+#: src/routes/(root)/[handle]/settings/account.tsx:219
+msgid "This action is permanent."
+msgstr "This action is permanent."
+
 #: src/components/WebPushNotificationSettings.tsx:152
 #: src/components/WebPushPromptBanner.tsx:87
 msgid "This browser does not support Web Push."
 msgstr "This browser does not support Web Push."
+
+#: src/routes/(root)/[handle]/settings/account.tsx:260
+msgid "This cannot be undone. Your account will be deleted and you will be signed out."
+msgstr "This cannot be undone. Your account will be deleted and you will be signed out."
 
 #: src/routes/(root)/admin/moderation/[id].tsx:183
 msgid "This case does not exist."
@@ -4325,6 +4381,11 @@ msgstr "Tree"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:628
 msgid "Try again"
 msgstr "Try again"
+
+#. placeholder {0}: props.username
+#: src/routes/(root)/[handle]/settings/account.tsx:237
+msgid "Type {0} to confirm account deletion."
+msgstr "Type {0} to confirm account deletion."
 
 #: src/components/article-composer/ArticleComposerForm.tsx:162
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:483
@@ -4674,6 +4735,10 @@ msgstr "You can attach up to {MAX_MEDIA} images"
 msgid "You can change it only once, and the old username will become available to others."
 msgstr "You can change it only once, and the old username will become available to others."
 
+#: src/routes/(root)/[handle]/settings/account.tsx:188
+msgid "You can delete only your own account."
+msgstr "You can delete only your own account."
+
 #: src/routes/(root)/[handle]/settings/index.tsx:624
 msgid "You can leave this empty to remove the link."
 msgstr "You can leave this empty to remove the link."
@@ -4838,6 +4903,10 @@ msgstr "Your preferred languages have been updated."
 #: src/routes/(root)/[handle]/settings/index.tsx:339
 msgid "Your profile settings have been updated successfully."
 msgstr "Your profile settings have been updated successfully."
+
+#: src/routes/(root)/[handle]/settings/account.tsx:222
+msgid "Your profile, posts, drafts, follows, settings, and login credentials will be removed. Your current username will remain reserved."
+msgstr "Your profile, posts, drafts, follows, settings, and login credentials will be removed. Your current username will remain reserved."
 
 #: src/components/ModerationNotificationList.tsx:121
 msgid "Your suspension ends soon."

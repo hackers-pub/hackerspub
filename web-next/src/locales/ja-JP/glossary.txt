@@ -1,42 +1,48 @@
-post → コンテンツ
-note → 投稿
+account → アカウント
+account deletion → アカウント削除
 article → 記事
-tag → タグ
-draft → 下書き
-react → リアクション
-reply → 返信
-comment → コメント
-poll → アンケート
-option → 選択肢
-vote → 投票
-voter → 投票者
-relay → リレー
-share → 共有
-quote → 引用
-bookmark → ブックマーク
-pin → 固定
-username → ユーザー名
-displayName → 名前
-bio → 自己紹介
 avatar → アイコン
+bio → 自己紹介
+block → ブロック
+bookmark → ブックマーク
+comment → コメント
+delete account → アカウントを削除
+disk object → ディスクオブジェクト
+displayName → 名前
+draft → 下書き
+fediverse → フェディバース
 follow → フォロー
 followee → フォロー中
 follower → フォロワー
-block → ブロック
-mute → ミュート
-fediverse → フェディバース
-timeline → タイムライン
-passkey → パスキー
-postVisibility → 公開範囲
-instance → インスタンス
-mention → メンション
 handle → ハンドル
+instance → インスタンス
 invitation → 招待
 invitationLink → 招待リンク
+login credentials → ログイン認証情報
 medium → メディア
-disk object → ディスクオブジェクト
-orphan media → 孤立したメディア
-preferences → 環境設定
-notification → 通知
+mention → メンション
 moderator → モデレーター
+mute → ミュート
+note → 投稿
+notification → 通知
+option → 選択肢
+orphan media → 孤立したメディア
+passkey → パスキー
+pin → 固定
+poll → アンケート
+post → コンテンツ
+postVisibility → 公開範囲
+preferences → 環境設定
+quote → 引用
+react → リアクション
+relay → リレー
+reply → 返信
+session → セッション
+share → 共有
 sidebar → サイドバー
+sign out → サインアウト
+tag → タグ
+timeline → タイムライン
+username → ユーザー名
+vote → 投票
+voter → 投票者

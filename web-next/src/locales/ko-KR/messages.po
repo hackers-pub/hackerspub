@@ -455,6 +455,10 @@ msgstr "사용자(프로필) 신고입니다."
 msgid "Account"
 msgstr "계정"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:170
+msgid "Account deletion is unavailable"
+msgstr "계정 삭제를 사용할 수 없습니다"
+
 #: src/routes/(root)/admin/news.tsx:692
 msgid "Account handle"
 msgstr "계정 핸들"
@@ -462,6 +466,10 @@ msgstr "계정 핸들"
 #: src/routes/(root)/[handle]/settings/sanctions.tsx:94
 msgid "Account permanently suspended"
 msgstr "계정 영구 정지됨"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:120
+msgid "Account settings"
+msgstr "계정 설정"
 
 #: src/routes/(root)/[handle]/settings/sanctions.tsx:92
 msgid "Account suspended"
@@ -907,6 +915,10 @@ msgstr "취소"
 msgid "Cannot change the language because translations already exist"
 msgstr "번역이 이미 존재하므로 언어를 변경할 수 없습니다"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:187
+msgid "Cannot delete this account"
+msgstr "이 계정을 삭제할 수 없습니다"
+
 #: src/components/admin/ModerationSubTabs.tsx:28
 msgid "Cases"
 msgstr "케이스"
@@ -1175,6 +1187,16 @@ msgstr "기본 공유 공개 범위"
 #: src/routes/(root)/[handle]/settings/invite.tsx:742
 msgid "Delete"
 msgstr "삭제"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:121
+#: src/routes/(root)/[handle]/settings/account.tsx:249
+#: src/routes/(root)/[handle]/settings/account.tsx:274
+msgid "Delete account"
+msgstr "계정 삭제"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:257
+msgid "Delete account permanently?"
+msgstr "계정을 영구적으로 삭제할까요?"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:21
 msgid "Delete draft"
@@ -1465,6 +1487,11 @@ msgstr "복사 실패"
 #: src/routes/(root)/[handle]/settings/invite.tsx:568
 msgid "Failed to create invitation link"
 msgstr "초대 링크 생성에 실패했습니다"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:194
+#: src/routes/(root)/[handle]/settings/account.tsx:205
+msgid "Failed to delete account"
+msgstr "계정 삭제 실패"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:607
 #: src/routes/(root)/[handle]/settings/invite.tsx:618
@@ -2971,6 +2998,10 @@ msgstr "검토 대기 중"
 msgid "People you might want to follow"
 msgstr "팔로 추천"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:122
+msgid "Permanently delete your account and sign out of this session."
+msgstr "계정을 영구적으로 삭제하고 이 세션에서 로그아웃합니다."
+
 #: src/routes/(root)/[handle]/bookmarks.tsx:99
 #: src/routes/(root)/[handle]/bookmarks.tsx:102
 #: src/routes/(root)/[handle]/drafts/[id].tsx:52
@@ -3012,6 +3043,10 @@ msgstr "게시글 제목을 입력해주세요."
 #: src/components/RemoteFollowButton.tsx:96
 msgid "Please enter your Fediverse handle."
 msgstr "연합우주 핸들을 입력해 주세요."
+
+#: src/routes/(root)/[handle]/settings/account.tsx:180
+msgid "Please sign in again before deleting your account."
+msgstr "계정을 삭제하기 전에 다시 로그인해 주세요."
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:57
 #: src/routes/(root)/[handle]/drafts/index.tsx:222
@@ -3789,6 +3824,10 @@ msgstr "사용자에게 표시됨"
 msgid "Sign in"
 msgstr "로그인"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:179
+msgid "Sign in required"
+msgstr "로그인이 필요합니다"
+
 #: src/routes/applink/sign/in/[token].tsx:39
 msgid "Sign in to Hackers' Pub"
 msgstr "Hackers' Pub 로그인"
@@ -4047,6 +4086,11 @@ msgstr "공유의 기본 공개 설정입니다."
 msgid "The default quote permission for your notes."
 msgstr "단문의 기본 인용 권한 설정입니다."
 
+#: src/routes/(root)/[handle]/settings/account.tsx:196
+#: src/routes/(root)/[handle]/settings/account.tsx:207
+msgid "The deletion request could not be completed. Please try again."
+msgstr "삭제 요청을 완료할 수 없습니다. 다시 시도해 주세요."
+
 #: src/routes/(root)/[handle]/invite/[id].tsx:174
 #: src/routes/(root)/[handle]/settings/invite.tsx:367
 msgid "The email address is invalid."
@@ -4144,6 +4188,10 @@ msgstr "Web Push 공개 키가 올바르지 않습니다."
 msgid "There are no moderation actions on your account."
 msgstr "회원님의 계정에 대한 모더레이션 조치가 없습니다."
 
+#: src/routes/(root)/[handle]/settings/account.tsx:172
+msgid "This account cannot be deleted right now. Please contact the instance administrators."
+msgstr "지금은 이 계정을 삭제할 수 없습니다. 인스턴스 관리자에게 문의해 주세요."
+
 #: src/routes/(root)/sign/index.tsx:247
 msgid "This account has been permanently suspended and can no longer sign in."
 msgstr "이 계정은 영구 정지되어 더 이상 로그인할 수 없습니다."
@@ -4160,10 +4208,18 @@ msgstr "이 계정은 정지되었습니다."
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "이 작업은 되돌릴 수 없습니다. 이 콘텐츠는 영구적으로 삭제됩니다."
 
+#: src/routes/(root)/[handle]/settings/account.tsx:219
+msgid "This action is permanent."
+msgstr "이 작업은 되돌릴 수 없습니다."
+
 #: src/components/WebPushNotificationSettings.tsx:152
 #: src/components/WebPushPromptBanner.tsx:87
 msgid "This browser does not support Web Push."
 msgstr "이 브라우저는 Web Push를 지원하지 않습니다."
+
+#: src/routes/(root)/[handle]/settings/account.tsx:260
+msgid "This cannot be undone. Your account will be deleted and you will be signed out."
+msgstr "이 작업은 취소할 수 없습니다. 계정이 삭제되고 로그아웃됩니다."
 
 #: src/routes/(root)/admin/moderation/[id].tsx:183
 msgid "This case does not exist."
@@ -4321,6 +4377,11 @@ msgstr "트리"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:628
 msgid "Try again"
 msgstr "다시 시도"
+
+#. placeholder {0}: props.username
+#: src/routes/(root)/[handle]/settings/account.tsx:237
+msgid "Type {0} to confirm account deletion."
+msgstr "계정 삭제를 확인하려면 {0}을(를) 입력하세요."
 
 #: src/components/article-composer/ArticleComposerForm.tsx:162
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:483
@@ -4670,6 +4731,10 @@ msgstr "이미지는 최대 {MAX_MEDIA}장까지 첨부할 수 있습니다"
 msgid "You can change it only once, and the old username will become available to others."
 msgstr "아이디는 단 한 번만 변경할 수 있으며, 변경하기 전 아이디는 다른 사람이 사용할 수 있게 됩니다."
 
+#: src/routes/(root)/[handle]/settings/account.tsx:188
+msgid "You can delete only your own account."
+msgstr "자신의 계정만 삭제할 수 있습니다."
+
 #: src/routes/(root)/[handle]/settings/index.tsx:624
 msgid "You can leave this empty to remove the link."
 msgstr "링크를 삭제하려면 이곳을 비워두세요."
@@ -4834,6 +4899,10 @@ msgstr "선호 언어가 업데이트되었습니다."
 #: src/routes/(root)/[handle]/settings/index.tsx:339
 msgid "Your profile settings have been updated successfully."
 msgstr "프로필 설정이 성공적으로 업데이트되었습니다."
+
+#: src/routes/(root)/[handle]/settings/account.tsx:222
+msgid "Your profile, posts, drafts, follows, settings, and login credentials will be removed. Your current username will remain reserved."
+msgstr "프로필, 콘텐츠, 초고, 팔로, 설정, 로그인 인증 정보가 삭제됩니다. 현재 아이디는 계속 예약됩니다."
 
 #: src/components/ModerationNotificationList.tsx:121
 msgid "Your suspension ends soon."

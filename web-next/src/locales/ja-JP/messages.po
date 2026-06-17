@@ -455,6 +455,10 @@ msgstr "ユーザー（プロフィール）の通報です。"
 msgid "Account"
 msgstr "アカウント"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:170
+msgid "Account deletion is unavailable"
+msgstr "アカウント削除は利用できません"
+
 #: src/routes/(root)/admin/news.tsx:692
 msgid "Account handle"
 msgstr "アカウントのハンドル"
@@ -462,6 +466,10 @@ msgstr "アカウントのハンドル"
 #: src/routes/(root)/[handle]/settings/sanctions.tsx:94
 msgid "Account permanently suspended"
 msgstr "アカウントを永久停止"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:120
+msgid "Account settings"
+msgstr "アカウント設定"
 
 #: src/routes/(root)/[handle]/settings/sanctions.tsx:92
 msgid "Account suspended"
@@ -907,6 +915,10 @@ msgstr "キャンセル"
 msgid "Cannot change the language because translations already exist"
 msgstr "翻訳が既に存在するため、言語を変更できません"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:187
+msgid "Cannot delete this account"
+msgstr "このアカウントは削除できません"
+
 #: src/components/admin/ModerationSubTabs.tsx:28
 msgid "Cases"
 msgstr "ケース"
@@ -1175,6 +1187,16 @@ msgstr "共有のデフォルト公開範囲"
 #: src/routes/(root)/[handle]/settings/invite.tsx:742
 msgid "Delete"
 msgstr "削除"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:121
+#: src/routes/(root)/[handle]/settings/account.tsx:249
+#: src/routes/(root)/[handle]/settings/account.tsx:274
+msgid "Delete account"
+msgstr "アカウントを削除"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:257
+msgid "Delete account permanently?"
+msgstr "アカウントを完全に削除しますか？"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:21
 msgid "Delete draft"
@@ -1465,6 +1487,11 @@ msgstr "コピーに失敗しました"
 #: src/routes/(root)/[handle]/settings/invite.tsx:568
 msgid "Failed to create invitation link"
 msgstr "招待リンクの作成に失敗しました"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:194
+#: src/routes/(root)/[handle]/settings/account.tsx:205
+msgid "Failed to delete account"
+msgstr "アカウントを削除できませんでした"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:607
 #: src/routes/(root)/[handle]/settings/invite.tsx:618
@@ -2971,6 +2998,10 @@ msgstr "審査待ち"
 msgid "People you might want to follow"
 msgstr "フォローのおすすめ"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:122
+msgid "Permanently delete your account and sign out of this session."
+msgstr "アカウントを完全に削除し、このセッションからサインアウトします。"
+
 #: src/routes/(root)/[handle]/bookmarks.tsx:99
 #: src/routes/(root)/[handle]/bookmarks.tsx:102
 #: src/routes/(root)/[handle]/drafts/[id].tsx:52
@@ -3012,6 +3043,10 @@ msgstr "記事のタイトルを入力してください。"
 #: src/components/RemoteFollowButton.tsx:96
 msgid "Please enter your Fediverse handle."
 msgstr "フェディバースのハンドルを入力してください。"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:180
+msgid "Please sign in again before deleting your account."
+msgstr "アカウントを削除する前に、もう一度サインインしてください。"
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:57
 #: src/routes/(root)/[handle]/drafts/index.tsx:222
@@ -3789,6 +3824,10 @@ msgstr "ユーザーに表示"
 msgid "Sign in"
 msgstr "ログイン"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:179
+msgid "Sign in required"
+msgstr "サインインが必要です"
+
 #: src/routes/applink/sign/in/[token].tsx:39
 msgid "Sign in to Hackers' Pub"
 msgstr "Hackers' Pubにログイン"
@@ -4047,6 +4086,11 @@ msgstr "共有のデフォルト公開設定です。"
 msgid "The default quote permission for your notes."
 msgstr "投稿のデフォルト引用許可設定です。"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:196
+#: src/routes/(root)/[handle]/settings/account.tsx:207
+msgid "The deletion request could not be completed. Please try again."
+msgstr "削除リクエストを完了できませんでした。もう一度お試しください。"
+
 #: src/routes/(root)/[handle]/invite/[id].tsx:174
 #: src/routes/(root)/[handle]/settings/invite.tsx:367
 msgid "The email address is invalid."
@@ -4144,6 +4188,10 @@ msgstr "Web Push の公開鍵が無効です。"
 msgid "There are no moderation actions on your account."
 msgstr "あなたのアカウントに対するモデレーション対応はありません。"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:172
+msgid "This account cannot be deleted right now. Please contact the instance administrators."
+msgstr "現在、このアカウントは削除できません。インスタンス管理者にお問い合わせください。"
+
 #: src/routes/(root)/sign/index.tsx:247
 msgid "This account has been permanently suspended and can no longer sign in."
 msgstr "このアカウントは永久停止されており、ログインできません。"
@@ -4160,10 +4208,18 @@ msgstr "このアカウントは停止されています。"
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "この操作は取り消せません。このコンテンツは完全に削除されます。"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:219
+msgid "This action is permanent."
+msgstr "この操作は取り消せません。"
+
 #: src/components/WebPushNotificationSettings.tsx:152
 #: src/components/WebPushPromptBanner.tsx:87
 msgid "This browser does not support Web Push."
 msgstr "このブラウザーは Web Push に対応していません。"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:260
+msgid "This cannot be undone. Your account will be deleted and you will be signed out."
+msgstr "この操作は元に戻せません。アカウントが削除され、サインアウトされます。"
 
 #: src/routes/(root)/admin/moderation/[id].tsx:183
 msgid "This case does not exist."
@@ -4321,6 +4377,11 @@ msgstr "ツリー"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:628
 msgid "Try again"
 msgstr "再試行"
+
+#. placeholder {0}: props.username
+#: src/routes/(root)/[handle]/settings/account.tsx:237
+msgid "Type {0} to confirm account deletion."
+msgstr "アカウント削除を確認するには{0}と入力してください。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:162
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:483
@@ -4670,6 +4731,10 @@ msgstr "画像は最大{MAX_MEDIA}枚まで添付できます"
 msgid "You can change it only once, and the old username will become available to others."
 msgstr "変更は1回のみ可能で、変更前のユーザー名は他のユーザーが使用できるようになります。"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:188
+msgid "You can delete only your own account."
+msgstr "自分のアカウントのみ削除できます。"
+
 #: src/routes/(root)/[handle]/settings/index.tsx:624
 msgid "You can leave this empty to remove the link."
 msgstr "リンクを削除する場合は空にしてください。"
@@ -4834,6 +4899,10 @@ msgstr "優先言語が更新されました。"
 #: src/routes/(root)/[handle]/settings/index.tsx:339
 msgid "Your profile settings have been updated successfully."
 msgstr "プロフィール設定が正常に更新されました。"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:222
+msgid "Your profile, posts, drafts, follows, settings, and login credentials will be removed. Your current username will remain reserved."
+msgstr "プロフィール、コンテンツ、下書き、フォロー、設定、ログイン認証情報が削除されます。現在のユーザー名は引き続き予約されます。"
 
 #: src/components/ModerationNotificationList.tsx:121
 msgid "Your suspension ends soon."

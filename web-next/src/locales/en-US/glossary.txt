@@ -1,40 +1,46 @@
-post → post
-note → note
+account → account
+account deletion → account deletion
 article → article
-tag → tag
-draft → draft
-react → react
-reply → reply
-comment → comment
-poll → poll
-option → option
-vote → vote
-voter → voter
-share → share
-quote → quote
-bookmark → bookmark
-pin → pin
-username → username
-displayName → name
-bio → bio
 avatar → avatar
+bio → bio
+block → block
+bookmark → bookmark
+comment → comment
+delete account → delete account
+disk object → disk object
+displayName → name
+draft → draft
+fediverse → fediverse
 follow → follow
 followee → following
 follower → follower
-block → block
-mute → mute
-fediverse → fediverse
-timeline → timeline
-passkey → passkey
-postVisibility → post privacy
-instance → instance
-mention → mention
 handle → handle
+instance → instance
 invitation → invitation
 invitationLink → invitation link
+login credentials → login credentials
 medium → medium
-disk object → disk object
-orphan media → orphan media
-preferences → preferences
-notification → notification
+mention → mention
 moderator → moderator
+mute → mute
+note → note
+notification → notification
+option → option
+orphan media → orphan media
+passkey → passkey
+pin → pin
+poll → poll
+post → post
+postVisibility → post privacy
+preferences → preferences
+quote → quote
+react → react
+reply → reply
+session → session
+share → share
+sign out → sign out
+tag → tag
+timeline → timeline
+username → username
+vote → vote
+voter → voter
