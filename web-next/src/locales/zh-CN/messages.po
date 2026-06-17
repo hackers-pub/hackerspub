@@ -111,6 +111,11 @@ msgstr "{0, plural, one {邀请了 # 人} other {邀请了 # 人}}"
 msgid "{0, plural, one {Load # more reactor} other {Load # more reactors}}"
 msgstr "{0, plural, one {加载更多反应者 (#)} other {加载更多反应者 (#)}}"
 
+#. placeholder {0}: props.count
+#: src/components/AppSidebar.tsx:456
+msgid "{0, plural, one {Notifications (# unread)} other {Notifications (# unread)}}"
+msgstr "{0, plural, other {通知（# 条未读）}}"
+
 #. placeholder {0}: result.linksUpdated!
 #: src/routes/(root)/admin/news.tsx:299
 msgid "{0, plural, one {Recomputed # link.} other {Recomputed # links.}}"
@@ -400,7 +405,7 @@ msgstr "已对你的账户做出审核决定。"
 msgid "A moderator suspended this account for violating the code of conduct."
 msgstr "版主因违反行为准则封停了此账户。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:580
+#: src/routes/(root)/[handle]/settings/index.tsx:589
 msgid "A name for the link that will be displayed on your profile, e.g., GitHub."
 msgstr "为显示在你个人资料页面的链接命名，例如 GitHub。"
 
@@ -446,7 +451,7 @@ msgid "A user (profile) report."
 msgstr "用户（资料）举报。"
 
 #: src/components/admin/AdminAccountsTable.tsx:224
-#: src/components/AppSidebar.tsx:451
+#: src/components/AppSidebar.tsx:497
 msgid "Account"
 msgstr "账户"
 
@@ -525,7 +530,7 @@ msgstr "添加中…"
 msgid "Additional context (optional)"
 msgstr "补充说明（可选）"
 
-#: src/components/AppSidebar.tsx:638
+#: src/components/AppSidebar.tsx:648
 msgid "Admin"
 msgstr "管理"
 
@@ -602,8 +607,8 @@ msgstr "保存设置时出现错误。请重试，如果问题持续存在，请
 msgid "An error occurred while saving your preferred languages. Please try again, or contact support if the problem persists."
 msgstr "保存语言偏好时出现错误。请重试，如果问题仍然存在，请联系支持。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:297
-#: src/routes/(root)/[handle]/settings/index.tsx:338
+#: src/routes/(root)/[handle]/settings/index.tsx:306
+#: src/routes/(root)/[handle]/settings/index.tsx:347
 msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 msgstr "保存设置时发生错误。请重试，如果问题仍然存在，请联系支持。"
 
@@ -734,13 +739,13 @@ msgstr "文章网址别名"
 msgid "Articles"
 msgstr "文章"
 
-#: src/components/AppSidebar.tsx:274
+#: src/components/AppSidebar.tsx:288
 #: src/components/ProfileCard.tsx:197
 msgid "Articles only"
 msgstr "仅文章"
 
 #. placeholder {0}: "CHANGED"
-#: src/routes/(root)/[handle]/settings/index.tsx:455
+#: src/routes/(root)/[handle]/settings/index.tsx:464
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "自打你已经把用户名换成 {0} 了，你再也改不了了。"
 
@@ -767,7 +772,7 @@ msgstr "自动填写"
 msgid "Auto-fill alt text"
 msgstr "自动填写替代文字"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:352
+#: src/routes/(root)/[handle]/settings/index.tsx:361
 msgid "Avatar"
 msgstr "头像"
 
@@ -790,7 +795,7 @@ msgstr "永久封禁"
 msgid "Banned"
 msgstr "已永久封禁"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:484
+#: src/routes/(root)/[handle]/settings/index.tsx:493
 #: src/routes/(root)/sign/up/[token].tsx:403
 msgid "Bio"
 msgstr "个人简介"
@@ -826,7 +831,7 @@ msgstr "粗体"
 msgid "Bookmark"
 msgstr "收藏"
 
-#: src/components/AppSidebar.tsx:574
+#: src/components/AppSidebar.tsx:584
 #: src/routes/(root)/[handle]/bookmarks.tsx:126
 msgid "Bookmarks"
 msgstr "收藏"
@@ -892,7 +897,7 @@ msgstr "由 {0} 发布"
 #: src/components/RemoveFollowerButton.tsx:144
 #: src/components/ReportDialog.tsx:224
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:523
-#: src/routes/(root)/[handle]/settings/index.tsx:399
+#: src/routes/(root)/[handle]/settings/index.tsx:408
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:522
 #: src/routes/(root)/authorize_interaction.tsx:273
 msgid "Cancel"
@@ -981,7 +986,7 @@ msgstr "已结束"
 msgid "Code"
 msgstr "代码"
 
-#: src/components/AppSidebar.tsx:861
+#: src/components/AppSidebar.tsx:871
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/sign/up/[token].tsx:458
 msgid "Code of conduct"
@@ -996,7 +1001,7 @@ msgstr "行为准则：{0}"
 #~ msgid "Comments ({0})"
 #~ msgstr "评论（{0}）"
 
-#: src/components/AppSidebar.tsx:698
+#: src/components/AppSidebar.tsx:708
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "写作"
@@ -1076,7 +1081,7 @@ msgstr "无法提交申诉"
 msgid "Could not vote on this poll"
 msgstr "无法在此投票调查中投票"
 
-#: src/components/AppSidebar.tsx:743
+#: src/components/AppSidebar.tsx:753
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create article"
 msgstr "创建文章"
@@ -1085,7 +1090,7 @@ msgstr "创建文章"
 msgid "Create invitation link"
 msgstr "创建邀请链接"
 
-#: src/components/AppSidebar.tsx:720
+#: src/components/AppSidebar.tsx:730
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:78
 #: src/components/NoteComposer.tsx:1873
@@ -1118,11 +1123,11 @@ msgstr "正在创建账户…"
 msgid "Creating…"
 msgstr "正在创建…"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:406
+#: src/routes/(root)/[handle]/settings/index.tsx:415
 msgid "Crop"
 msgstr "裁剪"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:379
+#: src/routes/(root)/[handle]/settings/index.tsx:388
 msgid "Crop your new avatar"
 msgstr "裁剪你的新头像"
 
@@ -1246,7 +1251,7 @@ msgstr "关闭"
 msgid "Dismissed"
 msgstr "已驳回"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:468
+#: src/routes/(root)/[handle]/settings/index.tsx:477
 #: src/routes/(root)/sign/up/[token].tsx:377
 msgid "Display name"
 msgstr "昵称"
@@ -1276,7 +1281,7 @@ msgstr "未找到草稿"
 msgid "Draft saved"
 msgstr "草稿已保存"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:382
+#: src/routes/(root)/[handle]/settings/index.tsx:391
 msgid "Drag to select the area you want to keep, then click “Crop” to update your avatar."
 msgstr "拖动选择要保留的区域，然后点击「裁剪」来更新你的头像。"
 
@@ -1679,8 +1684,8 @@ msgstr "保存语言偏好失败"
 msgid "Failed to save preferences"
 msgstr "保存设置失败"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:294
-#: src/routes/(root)/[handle]/settings/index.tsx:336
+#: src/routes/(root)/[handle]/settings/index.tsx:303
+#: src/routes/(root)/[handle]/settings/index.tsx:345
 #: src/routes/(root)/[handle]/settings/invite.tsx:895
 msgid "Failed to save settings"
 msgstr "保存设置失败"
@@ -1700,7 +1705,7 @@ msgid "Failed to share post"
 msgstr "转帖失败"
 
 #. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:134
+#: src/components/AppSidebar.tsx:143
 msgid "Failed to sign out: {0}"
 msgstr "登出失败：{0}"
 
@@ -1778,7 +1783,7 @@ msgstr "投票失败"
 msgid "Favor links shared by specific accounts. A preferred sharer's posts count toward the news feed even when the account is a bot (for example a feed that reposts Hacker News links), and the links it shares get a flat promotion bonus in the popular ranking. A penalty on a link overrides the promotion."
 msgstr "优先展示特定账户转帖的链接。即使账户是机器人（例如转发 Hacker News 链接的订阅源），优先转帖者的内容也会计入新闻订阅流，且其转帖的链接会在热门排名中获得固定的优先加分。对链接的处罚会覆盖该优先。"
 
-#: src/components/AppSidebar.tsx:326
+#: src/components/AppSidebar.tsx:340
 msgid "Fediverse"
 msgstr "联邦宇宙"
 
@@ -1786,7 +1791,7 @@ msgstr "联邦宇宙"
 msgid "Fediverse handle"
 msgstr "联邦宇宙用户名"
 
-#: src/components/AppSidebar.tsx:205
+#: src/components/AppSidebar.tsx:219
 msgid "Feed"
 msgstr "订阅流"
 
@@ -1853,7 +1858,7 @@ msgstr "生成中…"
 msgid "Get browser notifications"
 msgstr "接收浏览器通知"
 
-#: src/components/AppSidebar.tsx:901
+#: src/components/AppSidebar.tsx:911
 msgid "GitHub repository"
 msgstr "GitHub 仓库"
 
@@ -1891,8 +1896,8 @@ msgstr "向自上次重新发放截止时间以来最活跃的账号（按内容
 msgid "Graph"
 msgstr "关系图"
 
-#: src/components/AppSidebar.tsx:292
-#: src/components/AppSidebar.tsx:415
+#: src/components/AppSidebar.tsx:306
+#: src/components/AppSidebar.tsx:428
 #: src/routes/(root).tsx:196
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/markdown.tsx:40
@@ -2107,7 +2112,7 @@ msgstr "邀请链接"
 msgid "Invitation sent"
 msgstr "邀请已发送"
 
-#: src/components/AppSidebar.tsx:853
+#: src/components/AppSidebar.tsx:863
 #: src/routes/(root)/[handle]/settings/invite.tsx:907
 #: src/routes/(root)/tree/graph.tsx:79
 #: src/routes/(root)/tree/index.tsx:206
@@ -2123,7 +2128,7 @@ msgstr "邀请"
 msgid "Invitations left"
 msgstr "剩余邀请"
 
-#: src/components/AppSidebar.tsx:597
+#: src/components/AppSidebar.tsx:607
 #: src/components/SettingsTabs.tsx:71
 #: src/routes/(root)/[handle]/settings/invite.tsx:310
 msgid "Invite"
@@ -2150,7 +2155,7 @@ msgstr "由 {0} 邀请"
 msgid "Italic"
 msgstr "斜体"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:475
+#: src/routes/(root)/[handle]/settings/index.tsx:484
 msgid "John Doe"
 msgstr "张三"
 
@@ -2234,7 +2239,7 @@ msgstr "链接作者："
 msgid "Link expired"
 msgstr "链接已过期"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:561
+#: src/routes/(root)/[handle]/settings/index.tsx:570
 msgid "Link name"
 msgstr "链接名"
 
@@ -2609,7 +2614,7 @@ msgid "Newest"
 msgstr "最新"
 
 #: src/components/AdminTabs.tsx:58
-#: src/components/AppSidebar.tsx:178
+#: src/components/AppSidebar.tsx:192
 #: src/routes/(root)/admin/news.tsx:555
 #: src/routes/(root)/news/index.tsx:48
 msgid "News"
@@ -2821,7 +2826,7 @@ msgid "Note created successfully"
 msgstr "帖子创建成功"
 
 #. placeholder {0}: "REL_ME_ATTR"
-#: src/routes/(root)/[handle]/settings/index.tsx:524
+#: src/routes/(root)/[handle]/settings/index.tsx:533
 msgid "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
 msgstr "你可以验证这些链接确实属于你。在链接的页面上使用 {0} 属性链接回你的 Hackers' Pub 个人资料页。"
 
@@ -2848,7 +2853,8 @@ msgstr "未授予通知权限。"
 msgid "Notification preview privacy"
 msgstr "通知预览隐私"
 
-#: src/components/AppSidebar.tsx:532
+#: src/components/AppSidebar.tsx:463
+#: src/components/AppSidebar.tsx:464
 #: src/routes/(root).tsx:214
 #: src/routes/(root).tsx:215
 msgid "Notifications"
@@ -2989,7 +2995,7 @@ msgstr "已置顶内容"
 msgid "Please check the form and try again."
 msgstr "请检查表单后重试。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:188
+#: src/routes/(root)/[handle]/settings/index.tsx:196
 msgid "Please choose an image file smaller than 5 MiB."
 msgstr "请选择小于 5 MiB 的图片文件。"
 
@@ -3141,7 +3147,7 @@ msgstr "以往违规记录"
 msgid "Priority"
 msgstr "优先级"
 
-#: src/components/AppSidebar.tsx:868
+#: src/components/AppSidebar.tsx:878
 #: src/routes/(root)/privacy.tsx:40
 msgid "Privacy policy"
 msgstr "隐私政策"
@@ -3162,8 +3168,8 @@ msgstr "个人资料"
 msgid "Profile actions"
 msgstr "个人资料操作"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:125
-#: src/routes/(root)/[handle]/settings/index.tsx:126
+#: src/routes/(root)/[handle]/settings/index.tsx:133
+#: src/routes/(root)/[handle]/settings/index.tsx:134
 msgid "Profile settings"
 msgstr "个人资料设置"
 
@@ -3295,7 +3301,7 @@ msgstr "即使此标签页已关闭，也能立即收到新通知。"
 msgid "Receive notifications immediately through this browser, even when this tab is closed."
 msgstr "通过此浏览器立即接收通知，即使此标签页已关闭。"
 
-#: src/components/AppSidebar.tsx:779
+#: src/components/AppSidebar.tsx:789
 msgid "Recent drafts"
 msgstr "最近的草稿"
 
@@ -3594,7 +3600,7 @@ msgstr "受处罚的行为者"
 msgid "Sanctions"
 msgstr "处罚"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:536
+#: src/routes/(root)/[handle]/settings/index.tsx:545
 #: src/routes/(root)/[handle]/settings/language.tsx:201
 #: src/routes/(root)/[handle]/settings/preferences.tsx:236
 msgid "Save"
@@ -3616,14 +3622,14 @@ msgstr "保存草稿以查看预览"
 #: src/components/article-composer/ArticleComposerActions.tsx:36
 #: src/components/NoteComposer.tsx:1880
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:529
-#: src/routes/(root)/[handle]/settings/index.tsx:536
+#: src/routes/(root)/[handle]/settings/index.tsx:545
 #: src/routes/(root)/[handle]/settings/language.tsx:201
 #: src/routes/(root)/[handle]/settings/preferences.tsx:236
 msgid "Saving…"
 msgstr "保存中…"
 
 #: src/components/admin/AdminAccountsTable.tsx:202
-#: src/components/AppSidebar.tsx:348
+#: src/components/AppSidebar.tsx:362
 #: src/components/SearchForm.tsx:65
 #: src/components/SearchForm.tsx:80
 #: src/routes/(root)/admin/moderation/index.tsx:192
@@ -3697,7 +3703,7 @@ msgstr "标签之间用空格分隔。标签有助于读者发现您的文章。
 msgid "Set your personal preferences."
 msgstr "设置您的个人偏好设置。"
 
-#: src/components/AppSidebar.tsx:628
+#: src/components/AppSidebar.tsx:638
 msgid "Settings"
 msgstr "设置"
 
@@ -3778,7 +3784,7 @@ msgstr "以管理团队名义向被举报用户显示。"
 msgid "Shown to the user"
 msgstr "向用户显示"
 
-#: src/components/AppSidebar.tsx:493
+#: src/components/AppSidebar.tsx:539
 #: src/routes/(root)/sign/index.tsx:419
 msgid "Sign in"
 msgstr "登录"
@@ -3799,7 +3805,7 @@ msgstr "登录后投票"
 msgid "Sign in with passkey"
 msgstr "使用通行密钥登录"
 
-#: src/components/AppSidebar.tsx:840
+#: src/components/AppSidebar.tsx:850
 msgid "Sign out"
 msgstr "登出"
 
@@ -3919,7 +3925,7 @@ msgstr "成功保存语言偏好"
 msgid "Successfully saved preferences"
 msgstr "设置已成功保存"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:329
+#: src/routes/(root)/[handle]/settings/index.tsx:338
 msgid "Successfully saved settings"
 msgstr "设置保存成功"
 
@@ -4113,7 +4119,7 @@ msgstr "注册链接无效。请确保你使用的是你收到的正确邮件链
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:892
+#: src/components/AppSidebar.tsx:902
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "可在 {0} 上以 {1} 许可获取该网站的源代码。"
 
@@ -4125,7 +4131,7 @@ msgstr "对象的累计审核记录；累计记录会影响处罚等级。"
 msgid "The title will appear at the top of your article and in link previews."
 msgstr "标题将显示在文章顶部和链接预览中。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:604
+#: src/routes/(root)/[handle]/settings/index.tsx:613
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "该链接的 URL，例如 https://github.com/nideyonghuming 。"
 
@@ -4242,7 +4248,7 @@ msgstr "通常需要一分钟左右。翻译完成后页面将自动更新。"
 msgid "This will be part of the article URL."
 msgstr "这将成为文章 URL 的一部分。"
 
-#: src/components/AppSidebar.tsx:152
+#: src/components/AppSidebar.tsx:166
 msgid "Timeline"
 msgstr "时间线"
 
@@ -4380,7 +4386,7 @@ msgstr "取消订阅"
 msgid "Unsubscribed from the relay."
 msgstr "已取消订阅该中继。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:127
+#: src/routes/(root)/[handle]/settings/index.tsx:135
 msgid "Update your profile information, including your avatar, username, display name, bio, and links."
 msgstr "更新您的个人资料信息，包括头像、用户名、昵称、个人简介和链接。"
 
@@ -4393,7 +4399,7 @@ msgstr "更新于 {0}"
 msgid "Upload progress"
 msgstr "上传进度"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:586
+#: src/routes/(root)/[handle]/settings/index.tsx:595
 msgid "URL"
 msgstr "URL"
 
@@ -4401,7 +4407,7 @@ msgstr "URL"
 msgid "URL pattern"
 msgstr "URL 模式"
 
-#: src/components/AppSidebar.tsx:457
+#: src/components/AppSidebar.tsx:503
 msgid "Use old UI"
 msgstr "使用旧版界面"
 
@@ -4427,7 +4433,7 @@ msgstr "已取消屏蔽用户"
 msgid "User unmuted"
 msgstr "已取消隐藏用户"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:414
+#: src/routes/(root)/[handle]/settings/index.tsx:423
 #: src/routes/(root)/sign/up/[token].tsx:331
 msgid "Username"
 msgstr "用户名"
@@ -4462,7 +4468,7 @@ msgstr "已于{1}验证此链接归{0}所有"
 msgid "Verifying your invitation…"
 msgstr "正在验证您的邀请…"
 
-#: src/components/AppSidebar.tsx:803
+#: src/components/AppSidebar.tsx:813
 msgid "View all drafts →"
 msgstr "查看所有草稿 →"
 
@@ -4553,7 +4559,7 @@ msgstr "无法连接到服务器"
 msgid "We couldn't reach the translation service. Try again, or come back in a few minutes."
 msgstr "无法连接到翻译服务。请重试或几分钟后再来。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:567
+#: src/routes/(root)/[handle]/settings/index.tsx:576
 msgid "Website"
 msgstr "网站"
 
@@ -4601,7 +4607,7 @@ msgstr "撤销决定"
 msgid "Withdrawn"
 msgstr "已撤销"
 
-#: src/components/AppSidebar.tsx:248
+#: src/components/AppSidebar.tsx:262
 msgid "Without shares"
 msgstr "不含转帖"
 
@@ -4660,11 +4666,11 @@ msgstr "你现在会显示在邀请树中。"
 msgid "You can attach up to {MAX_MEDIA} images"
 msgstr "最多可附加 {MAX_MEDIA} 张图片"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:449
+#: src/routes/(root)/[handle]/settings/index.tsx:458
 msgid "You can change it only once, and the old username will become available to others."
 msgstr "你只能更改一次用户名，而旧的用户名会公开为别人使用。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:615
+#: src/routes/(root)/[handle]/settings/index.tsx:624
 msgid "You can leave this empty to remove the link."
 msgstr "您可以将此处留空以删除链接。"
 
@@ -4780,11 +4786,11 @@ msgstr "你的账户已被封停，目前无法发帖。详情及申诉方法请
 msgid "Your appeal was reviewed."
 msgstr "你的申诉已审核。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:354
+#: src/routes/(root)/[handle]/settings/index.tsx:363
 msgid "Your avatar will be displayed on your profile and in your posts. You can upload a PNG, JPEG, GIF, or WebP image up to 5 MiB in size."
 msgstr "你的头像将在你的个人资料页面和你的帖文中显示。可以上传大小不超过 5 MiB 的 PNG、JPEG、GIF 或 WebP 图片。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:493
+#: src/routes/(root)/[handle]/settings/index.tsx:502
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it."
 msgstr "你的个人简介将在你的个人资料页面显示。你可以用 Markdown 文档格式化。"
 
@@ -4808,7 +4814,7 @@ msgstr "你的朋友将在邀请邮件中看到此信息。"
 msgid "Your identity is kept strictly confidential: only the moderation team can see who reported, and the reported user never will."
 msgstr "您的身份将被严格保密：只有管理团队能看到举报人是谁，被举报的用户永远不会知道。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:479
+#: src/routes/(root)/[handle]/settings/index.tsx:488
 #: src/routes/(root)/sign/up/[token].tsx:393
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "你的昵称将在你的个人资料页面和你的帖文中显示。"
@@ -4825,7 +4831,7 @@ msgstr "您的设置已成功更新。"
 msgid "Your preferred languages have been updated."
 msgstr "您的偏好语言已更新。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:330
+#: src/routes/(root)/[handle]/settings/index.tsx:339
 msgid "Your profile settings have been updated successfully."
 msgstr "个人资料设置已成功更新。"
 
@@ -4837,7 +4843,7 @@ msgstr "你的封停即将结束。"
 msgid "Your unsaved draft will be lost."
 msgstr "未保存的草稿将会丢失。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:446
+#: src/routes/(root)/[handle]/settings/index.tsx:455
 #: src/routes/(root)/sign/up/[token].tsx:367
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "你的用户名将被用来创建你的个人资料 URL 和你的 Fediverse 用户名（handle）。"

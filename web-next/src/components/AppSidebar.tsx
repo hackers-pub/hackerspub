@@ -11,6 +11,7 @@ import { getRequestEvent } from "solid-js/web";
 import { createFragment, createMutation } from "solid-relay";
 import IconShieldCheck from "~icons/lucide/shield-check";
 import IconUndo2 from "~icons/lucide/undo-2";
+import { Button } from "~/components/ui/button.tsx";
 import {
   Sidebar,
   SidebarContent,
@@ -23,9 +24,10 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "~/components/ui/sidebar.tsx";
+import { NotificationsBellIcon } from "~/components/NotificationsBellIcon.tsx";
 import { UnreadNotificationsFaviconBadge } from "~/components/UnreadNotificationsFaviconBadge.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import { invalidateNotificationsPageQueryCache } from "~/lib/notificationsPageQueryCache.ts";
 import {
   invalidateTimelinePageQueryCache,
@@ -121,6 +123,13 @@ export function AppSidebar(props: AppSidebarProps) {
     AppSidebarSignOutMutation,
   );
 
+  const unreadNotificationsCount = () => {
+    const account = signedAccount();
+    return props.totalUnreadNotificationsCount ??
+      (account == null ? 0 : account.unreadNotificationsCount +
+        (account.unreadModerationNotificationCount ?? 0));
+  };
+
   async function onSignOut() {
     const sessionId = await removeSessionCookie();
     if (sessionId != null) {
@@ -144,7 +153,12 @@ export function AppSidebar(props: AppSidebarProps) {
         unread={(props.totalUnreadNotificationsCount ?? 0) > 0}
       />
       <SidebarHeader>
-        <AppSidebarLogo />
+        <div class="flex items-center justify-between">
+          <AppSidebarLogo />
+          <Show when={signedAccount()}>
+            <HeaderNotifications count={unreadNotificationsCount()} />
+          </Show>
+        </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -390,7 +404,6 @@ export function AppSidebar(props: AppSidebarProps) {
         <AccountSection
           signedAccount={signedAccount()}
           signedAccountLoaded={props.signedAccountLoaded}
-          unreadNotificationsCount={props.totalUnreadNotificationsCount}
           onSignOut={onSignOut}
         />
       </SidebarContent>
@@ -423,22 +436,55 @@ function AppSidebarLogo() {
   );
 }
 
+interface HeaderNotificationsProps {
+  count: number;
+}
+
+function HeaderNotifications(props: HeaderNotificationsProps) {
+  const { t, i18n } = useLingui();
+
+  return (
+    <Button
+      as={A}
+      href="/notifications"
+      onClick={invalidateNotificationsPageQueryCache}
+      variant="ghost"
+      size="icon"
+      class="relative size-9 shrink-0 rounded-full"
+      aria-label={props.count > 0
+        ? i18n._(
+          msg`${
+            plural(props.count, {
+              one: "Notifications (# unread)",
+              other: "Notifications (# unread)",
+            })
+          }`,
+        )
+        : t`Notifications`}
+      title={t`Notifications`}
+    >
+      <NotificationsBellIcon class="size-5" />
+      <Show when={props.count > 0}>
+        <span
+          aria-hidden="true"
+          class="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[0.625rem] font-semibold leading-none text-white ring-2 ring-sidebar"
+        >
+          {props.count > 99 ? "99+" : props.count}
+        </span>
+      </Show>
+    </Button>
+  );
+}
+
 interface AccountSectionProps {
   signedAccount?: AppSidebar_signedAccount$data | null;
   signedAccountLoaded?: boolean;
-  unreadNotificationsCount?: number;
   onSignOut: () => void;
 }
 
 function AccountSection(props: AccountSectionProps) {
   const { t } = useLingui();
   const location = useLocation();
-  const unreadNotificationsCount = () =>
-    props.unreadNotificationsCount ??
-      (props.signedAccount == null
-        ? 0
-        : props.signedAccount.unreadNotificationsCount +
-          (props.signedAccount.unreadModerationNotificationCount ?? 0));
 
   function onUseOldUI() {
     setLegacyUiCookie();
@@ -501,42 +547,6 @@ function AccountSection(props: AccountSectionProps) {
         >
           {(signedAccount) => (
             <>
-              <SidebarMenuItem class="list-none">
-                <SidebarMenuButton
-                  as={A}
-                  href={`/notifications`}
-                  onClick={invalidateNotificationsPageQueryCache}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    class="size-6"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M2.25 13.5h3.86a2.25 2.25 0 0 1 2.012 1.244l.256.512a2.25 2.25 0 0 0 2.013 1.244h3.218a2.25 2.25 0 0 0 2.013-1.244l.256-.512a2.25 2.25 0 0 1 2.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 0 0-2.15-1.588H6.911a2.25 2.25 0 0 0-2.15 1.588L2.35 13.177a2.25 2.25 0 0 0-.1.661Z"
-                    />
-                    <Show when={unreadNotificationsCount() > 0}>
-                      <circle
-                        class="fill-red-500 stroke-background stroke-2"
-                        cx="19"
-                        cy="19"
-                        r="3.5"
-                      />
-                    </Show>
-                  </svg>
-                  {t`Notifications`}
-                  <Show when={unreadNotificationsCount() > 0}>
-                    <span class="text-xs text-muted-foreground">
-                      ({unreadNotificationsCount()})
-                    </span>
-                  </Show>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
               <SidebarMenuItem class="list-none">
                 <SidebarMenuButton
                   as={A}

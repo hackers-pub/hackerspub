@@ -19,8 +19,8 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
-import IconBell from "~icons/lucide/bell";
 import { AppSidebar } from "~/components/AppSidebar.tsx";
+import { NotificationsBellIcon } from "~/components/NotificationsBellIcon.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { FloatingComposeButton } from "~/components/FloatingComposeButton.tsx";
 import { NoteComposeModal } from "~/components/NoteComposeModal.tsx";
@@ -214,7 +214,7 @@ export default function RootLayout(props: RouteSectionProps) {
                   aria-label={t`Notifications`}
                   title={t`Notifications`}
                 >
-                  <IconBell class="size-5" />
+                  <NotificationsBellIcon class="size-5" />
                   <Show when={(totalUnreadNotificationsCount() ?? 0) > 0}>
                     <span
                       class="absolute right-2 top-2 size-2.5 rounded-full bg-red-500 ring-2 ring-background"
