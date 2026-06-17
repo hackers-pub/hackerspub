@@ -1238,8 +1238,10 @@ builder.relayMutationField(
     description:
       "Permanently delete the authenticated viewer's account. This " +
       "hard-deletes the local account data, reserves the account's current " +
-      "`username`, sends one actor-level ActivityPub `Delete` to followers, " +
-      "and revokes the current session after the deletion succeeds.",
+      "`username`, commits the deleted actor's tombstone and preserved keys, " +
+      "then attempts to enqueue one actor-level ActivityPub `Delete` to " +
+      "followers. A transient delivery queue failure is logged after commit " +
+      "and does not resurrect the account.",
     inputFields: (t) => ({
       id: t.globalID({
         for: Account,

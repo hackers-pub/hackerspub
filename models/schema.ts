@@ -275,6 +275,36 @@ export const accountKeyTable = pgTable(
 export type AccountKey = typeof accountKeyTable.$inferSelect;
 export type NewAccountKey = typeof accountKeyTable.$inferInsert;
 
+export const deletedAccountKeyTable = pgTable(
+  "deleted_account_key",
+  {
+    accountId: uuid("account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => deletedAccountTable.accountId, { onDelete: "cascade" }),
+    type: accountKeyTypeEnum().notNull(),
+    public: jsonb().$type<JsonWebKey>().notNull(),
+    private: jsonb().$type<JsonWebKey>().notNull(),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    primaryKey({ columns: [table.accountId, table.type] }),
+    check(
+      "deleted_account_key_public_check",
+      sql`${table.public} IS JSON OBJECT`,
+    ),
+    check(
+      "deleted_account_key_private_check",
+      sql`${table.private} IS JSON OBJECT`,
+    ),
+  ],
+);
+
+export type DeletedAccountKey = typeof deletedAccountKeyTable.$inferSelect;
+export type NewDeletedAccountKey = typeof deletedAccountKeyTable.$inferInsert;
+
 export const accountLinkIconEnum = pgEnum("account_link_icon", [
   "activitypub",
   "akkoma",

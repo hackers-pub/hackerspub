@@ -6,7 +6,10 @@ import {
   MemoryKvStore,
 } from "@fedify/fedify";
 import type { ContextData } from "@hackerspub/models/context";
-import { deletedAccountTable } from "@hackerspub/models/schema";
+import {
+  deletedAccountKeyTable,
+  deletedAccountTable,
+} from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
 import {
   createTestDisk,
@@ -66,6 +69,57 @@ test("actor dispatcher returns a Tombstone for a deleted account", async () => {
     const body = await response.json();
     assert.equal(body.type, "Tombstone");
     assert.equal(body.id, `http://localhost/ap/actors/${accountId}`);
+  });
+});
+
+test("actor dispatcher preserves deleted actor public keys", async () => {
+  await withRollback(async (tx) => {
+    const accountId = generateUuidV7();
+    const { publicKey, privateKey } = await generateCryptoKeyPair(
+      "RSASSA-PKCS1-v1_5",
+    );
+    await tx.insert(deletedAccountTable).values({
+      accountId,
+      username: "deletedkeyed",
+      actorIri: `http://localhost/ap/actors/${accountId}`,
+      deleted: new Date("2026-06-17T00:00:00.000Z"),
+    });
+    await tx.insert(deletedAccountKeyTable).values({
+      accountId,
+      type: "RSASSA-PKCS1-v1_5",
+      public: await exportJwk(publicKey),
+      private: await exportJwk(privateKey),
+    });
+    const builder = await getBuilder();
+    const federation = await builder.build({
+      kv: new MemoryKvStore(),
+      origin: "http://localhost/",
+    });
+    const contextData = {
+      db: tx,
+      kv: createTestKv().kv,
+      disk: createTestDisk(),
+      models: {} as ContextData["models"],
+    };
+
+    const response = await federation.fetch(
+      new Request(`http://localhost/ap/actors/${accountId}`, {
+        headers: { Accept: "application/activity+json" },
+      }),
+      { contextData },
+    );
+
+    assert.equal(response.status, 410);
+    const body = await response.json();
+    assert.equal(body.type, "Tombstone");
+    assert.equal(
+      body.publicKey?.owner,
+      `http://localhost/ap/actors/${accountId}`,
+    );
+    assert.equal(
+      body.publicKey?.id,
+      `http://localhost/ap/actors/${accountId}#main-key`,
+    );
   });
 });
 

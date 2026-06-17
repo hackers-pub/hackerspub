@@ -10,6 +10,7 @@ import {
 import { createFollowNotification } from "./notification.ts";
 import { react } from "./reaction.ts";
 import {
+  accountKeyTable,
   actorTable,
   flagCaseTable,
   followingTable,
@@ -30,10 +31,6 @@ test("deleteAccount() hard-deletes an account and reserves the current username"
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);
     const sentActivities: unknown[][] = [];
-    fedCtx.sendActivity = ((...args: unknown[]) => {
-      sentActivities.push(args);
-      return Promise.resolve(undefined);
-    }) as typeof fedCtx.sendActivity;
 
     const survivor = await insertAccountWithActor(tx, {
       username: "deleteparent",
@@ -70,9 +67,43 @@ test("deleteAccount() hard-deletes an account and reserves the current username"
       content: "Quote",
       quotedPostId: parentPost.id,
     });
+    await tx.insert(accountKeyTable).values({
+      accountId: target.account.id,
+      type: "RSASSA-PKCS1-v1_5",
+      public: { kty: "test-public" },
+      private: { kty: "test-private" },
+    });
     await tx.update(postTable)
       .set({ repliesCount: 1, sharesCount: 1, quotesCount: 1 })
       .where(eq(postTable.id, parentPost.id));
+
+    let sendObservedState:
+      | {
+        accountExists: boolean;
+        tombstoneUsername: string | undefined;
+        preservedKeyTypes: string[];
+      }
+      | undefined;
+    fedCtx.sendActivity = (async (...args: unknown[]) => {
+      sentActivities.push(args);
+      const account = await tx.query.accountTable.findFirst({
+        where: { id: target.account.id },
+        columns: { id: true },
+      });
+      const tombstone = await tx.query.deletedAccountTable.findFirst({
+        where: { accountId: target.account.id },
+      });
+      const preservedKeys = await tx.query.deletedAccountKeyTable.findMany({
+        where: { accountId: target.account.id },
+        columns: { type: true },
+        orderBy: { type: "asc" },
+      });
+      sendObservedState = {
+        accountExists: account != null,
+        tombstoneUsername: tombstone?.username,
+        preservedKeyTypes: preservedKeys.map((key) => key.type),
+      };
+    }) as typeof fedCtx.sendActivity;
 
     const result = await deleteAccount(fedCtx, target.account.id);
 
@@ -83,6 +114,11 @@ test("deleteAccount() hard-deletes an account and reserves the current username"
 
     assert.equal(sentActivities.length, 1);
     assert.deepEqual(sentActivities[0][1], "followers");
+    assert.deepEqual(sendObservedState, {
+      accountExists: false,
+      tombstoneUsername: "deleterenamed",
+      preservedKeyTypes: ["RSASSA-PKCS1-v1_5"],
+    });
 
     const account = await tx.query.accountTable.findFirst({
       where: { id: target.account.id },
@@ -112,6 +148,11 @@ test("deleteAccount() hard-deletes an account and reserves the current username"
     assert.equal(tombstone.username, "deleterenamed");
     assert.equal(await isUsernameReserved(tx, "deleterenamed"), true);
     assert.equal(await isUsernameReserved(tx, "deletecurrent"), false);
+    const preservedKeys = await tx.query.deletedAccountKeyTable.findMany({
+      where: { accountId: target.account.id },
+    });
+    assert.equal(preservedKeys.length, 1);
+    assert.equal(preservedKeys[0].type, "RSASSA-PKCS1-v1_5");
   });
 });
 
@@ -244,7 +285,7 @@ test("deleteAccount() refreshes denormalized interaction state", async () => {
   });
 });
 
-test("deleteAccount() aborts when the actor Delete cannot be enqueued", async () => {
+test("deleteAccount() keeps the deletion when actor Delete enqueue fails", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);
     fedCtx.sendActivity = (() =>
@@ -257,19 +298,17 @@ test("deleteAccount() aborts when the actor Delete cannot be enqueued", async ()
       email: "deletequeuefail@example.com",
     });
 
-    await assert.rejects(
-      () => deleteAccount(fedCtx, target.account.id),
-      /queue unavailable/,
-    );
+    const result = await deleteAccount(fedCtx, target.account.id);
 
+    assert.equal(result?.accountId, target.account.id);
     const account = await tx.query.accountTable.findFirst({
       where: { id: target.account.id },
     });
-    assert.ok(account != null);
+    assert.equal(account, undefined);
     const tombstone = await tx.query.deletedAccountTable.findFirst({
       where: { accountId: target.account.id },
     });
-    assert.equal(tombstone, undefined);
+    assert.equal(tombstone?.username, "deletequeuefail");
   });
 });
 
@@ -277,6 +316,13 @@ test("deleteAccount() refuses accounts linked to moderation audit records", asyn
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);
     let sent = false;
+    let keyPairsRequested = false;
+    (fedCtx as unknown as {
+      getActorKeyPairs: (identifier: string) => Promise<unknown[]>;
+    }).getActorKeyPairs = () => {
+      keyPairsRequested = true;
+      return Promise.resolve([]);
+    };
     fedCtx.sendActivity = (() => {
       sent = true;
       return Promise.resolve(undefined);
@@ -298,6 +344,7 @@ test("deleteAccount() refuses accounts linked to moderation audit records", asyn
     );
 
     assert.equal(sent, false);
+    assert.equal(keyPairsRequested, false);
     const account = await tx.query.accountTable.findFirst({
       where: { id: target.account.id },
     });

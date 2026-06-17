@@ -1309,7 +1309,7 @@ A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `dat
 scalar DateTime
 
 """
-Permanently delete the authenticated viewer's account. This hard-deletes the local account data, reserves the account's current `username`, sends one actor-level ActivityPub `Delete` to followers, and revokes the current session after the deletion succeeds.
+Permanently delete the authenticated viewer's account. This hard-deletes the local account data, reserves the account's current `username`, commits the deleted actor's tombstone and preserved keys, then attempts to enqueue one actor-level ActivityPub `Delete` to followers. A transient delivery queue failure is logged after commit and does not resurrect the account.
 """
 input DeleteAccountInput {
   clientMutationId: ID
