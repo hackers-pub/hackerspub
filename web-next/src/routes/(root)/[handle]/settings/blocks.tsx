@@ -6,7 +6,7 @@ import { loadQuery, useRelayEnvironment } from "solid-relay";
 import type { blocksPageQuery } from "./__generated__/blocksPageQuery.graphql.ts";
 import { BlockedAccountsList } from "~/components/BlockedAccountsList.tsx";
 import { MutedAccountsList } from "~/components/MutedAccountsList.tsx";
-import { NarrowContainer } from "~/components/NarrowContainer.tsx";
+import { SettingsContainer } from "~/components/SettingsContainer.tsx";
 import { SettingsOwnerGuard } from "~/components/SettingsOwnerGuard.tsx";
 import { SettingsTabs } from "~/components/SettingsTabs.tsx";
 import { Title } from "~/components/Title.tsx";
@@ -76,7 +76,7 @@ export default function BlocksPage() {
             {(account) => (
               <>
                 <Title>{t`Mutes and blocks`}</Title>
-                <NarrowContainer class="p-4">
+                <SettingsContainer class="p-4">
                   <SettingsTabs selected="blocks" $account={account} />
 
                   <div class="mt-4 space-y-6">
@@ -108,7 +108,7 @@ export default function BlocksPage() {
                       </CardContent>
                     </Card>
                   </div>
-                </NarrowContainer>
+                </SettingsContainer>
               </>
             )}
           </Show>

@@ -3,7 +3,7 @@ import { graphql } from "relay-runtime";
 import { createSignal, For, Show } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { AppealDialog } from "~/components/AppealDialog.tsx";
-import { NarrowContainer } from "~/components/NarrowContainer.tsx";
+import { SettingsContainer } from "~/components/SettingsContainer.tsx";
 import { SettingsOwnerGuard } from "~/components/SettingsOwnerGuard.tsx";
 import { SettingsTabs } from "~/components/SettingsTabs.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
@@ -128,7 +128,7 @@ export default function SanctionsPage() {
             {(account) => (
               <>
                 <Title>{t`Sanctions`}</Title>
-                <NarrowContainer class="p-4">
+                <SettingsContainer class="p-4">
                   <SettingsTabs selected="sanctions" $account={account} />
                   <div class="mt-4 flex flex-col gap-4">
                     <Card>
@@ -258,7 +258,7 @@ export default function SanctionsPage() {
                       </CardContent>
                     </Card>
                   </div>
-                </NarrowContainer>
+                </SettingsContainer>
                 <Show keyed when={appealTarget()}>
                   {(sanctionId) => (
                     <AppealDialog
