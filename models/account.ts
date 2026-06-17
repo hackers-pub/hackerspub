@@ -10,11 +10,12 @@ import { getLogger } from "@logtape/logtape";
 import { zip } from "@std/collections/zip";
 import { encodeHex } from "@std/encoding/hex";
 import { escape, unescape } from "@std/html/entities";
-import { eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import type { Disk } from "flydrive";
 import sharp from "sharp";
 import type { ContextData } from "./context.ts";
 import type { Database } from "./db.ts";
+import { updateFolloweesCount, updateFollowersCount } from "./following.ts";
 import {
   createMediumFromBlob,
   createMediumFromBytes,
@@ -29,9 +30,15 @@ import {
   accountTable,
   type Actor,
   deletedAccountTable,
+  followingTable,
   type Medium,
   type NewAccount,
+  notificationTable,
+  pollOptionTable,
+  pollTable,
+  pollVoteTable,
   postTable,
+  reactionTable,
 } from "./schema.ts";
 import { refreshNewsScores } from "./news.ts";
 import { compactUrl } from "./url.ts";
@@ -140,6 +147,93 @@ async function recomputePostInteractionCounts(
     .where(inArray(postTable.id, ids));
 }
 
+async function recomputePostReactionCounts(
+  db: Database,
+  postIds: Uuid[],
+): Promise<void> {
+  const ids = [...new Set(postIds)];
+  if (ids.length < 1) return;
+  await db.update(postTable)
+    .set({
+      reactionsCounts: sql`
+        (
+          SELECT coalesce(jsonb_object_agg(stats.emoji, stats.count), '{}')
+          FROM (
+            SELECT
+              coalesce(
+                ${reactionTable.emoji},
+                ${reactionTable.customEmojiId}::text
+              ),
+              count(*)
+            FROM ${reactionTable}
+            WHERE ${reactionTable.postId} = ${postTable.id}
+            GROUP BY coalesce(
+              ${reactionTable.emoji},
+              ${reactionTable.customEmojiId}::text
+            )
+          ) AS stats(emoji, count)
+        )
+      `,
+    })
+    .where(inArray(postTable.id, ids));
+}
+
+async function recomputePollVoteCounts(
+  db: Database,
+  postIds: Uuid[],
+): Promise<void> {
+  const ids = [...new Set(postIds)];
+  if (ids.length < 1) return;
+  await db.update(pollTable)
+    .set({
+      votersCount: sql<number>`
+        (
+          SELECT COUNT(DISTINCT ${pollVoteTable.actorId})::int
+          FROM ${pollVoteTable}
+          WHERE ${pollVoteTable.postId} = ${pollTable.postId}
+        )
+      `,
+    })
+    .where(inArray(pollTable.postId, ids));
+  await db.update(pollOptionTable)
+    .set({
+      votesCount: sql<number>`
+        (
+          SELECT COUNT(*)::int
+          FROM ${pollVoteTable}
+          WHERE ${pollVoteTable.postId} = ${pollOptionTable.postId}
+            AND ${pollVoteTable.optionIndex} = ${pollOptionTable.index}
+        )
+      `,
+    })
+    .where(inArray(pollOptionTable.postId, ids));
+}
+
+async function removeActorFromNotifications(
+  db: Database,
+  actorId: Uuid,
+): Promise<void> {
+  const updated = await db.update(notificationTable)
+    .set({
+      actorIds: sql`array_remove(${notificationTable.actorIds}, ${actorId})`,
+    })
+    .where(sql`${actorId} = ANY(${notificationTable.actorIds})`)
+    .returning({ id: notificationTable.id });
+  const updatedIds = updated.map((notification) => notification.id);
+  if (updatedIds.length < 1) return;
+  await db.delete(notificationTable)
+    .where(
+      and(
+        inArray(notificationTable.id, updatedIds),
+        isNotificationActorIdsEmpty(),
+      ),
+    );
+}
+
+function isNotificationActorIdsEmpty() {
+  return sql`array_length(${notificationTable.actorIds}, 1) IS NULL`;
+}
+
 export async function deleteAccount(
   fedCtx: RequestContext<ContextData>,
   accountId: Uuid,
@@ -187,6 +281,30 @@ export async function deleteAccount(
         quotedPostId: true,
       },
     });
+    const affectedFollowings = await tx.select({
+      followerId: followingTable.followerId,
+      followeeId: followingTable.followeeId,
+    })
+      .from(followingTable)
+      .where(sql`
+        ${followingTable.accepted} IS NOT NULL
+        AND (
+          ${followingTable.followerId} = ${account.actor.id}
+          OR ${followingTable.followeeId} = ${account.actor.id}
+        )
+      `);
+    const affectedReactionPosts = await tx.select({
+      id: postTable.id,
+      linkId: postTable.linkId,
+    })
+      .from(reactionTable)
+      .innerJoin(postTable, eq(postTable.id, reactionTable.postId))
+      .where(eq(reactionTable.actorId, account.actor.id));
+    const affectedPollVotePosts = await tx.select({
+      postId: pollVoteTable.postId,
+    })
+      .from(pollVoteTable)
+      .where(eq(pollVoteTable.actorId, account.actor.id));
     const parentIds = [
       ...new Set(
         affectedPosts.flatMap((post) => [
@@ -207,6 +325,7 @@ export async function deleteAccount(
       ...new Set([
         ...affectedPosts.map((post) => post.linkId),
         ...parentPosts.map((post) => post.linkId),
+        ...affectedReactionPosts.map((post) => post.linkId),
       ].filter((id): id is Uuid => id != null)),
     ];
 
@@ -217,7 +336,24 @@ export async function deleteAccount(
       deleted,
     });
     await tx.delete(accountTable).where(eq(accountTable.id, account.id));
+    for (const following of affectedFollowings) {
+      if (following.followerId === account.actor.id) {
+        await updateFollowersCount(tx, following.followeeId, -1);
+      }
+      if (following.followeeId === account.actor.id) {
+        await updateFolloweesCount(tx, following.followerId, -1);
+      }
+    }
+    await removeActorFromNotifications(tx, account.actor.id);
     await recomputePostInteractionCounts(tx, parentIds);
+    await recomputePostReactionCounts(
+      tx,
+      affectedReactionPosts.map((post) => post.id),
+    );
+    await recomputePollVoteCounts(
+      tx,
+      affectedPollVotePosts.map((post) => post.postId),
+    );
     await refreshNewsScores(tx, affectedLinkIds);
   });
 
