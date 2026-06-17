@@ -37,6 +37,14 @@ import {
   TextFieldLabel,
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
+import {
+  clampSquareCropRect,
+  type CropRect,
+  cropRectsAlmostEqual,
+  getOffsetToCoverRect,
+  getScaleToCoverRect,
+  intersectCropRects,
+} from "~/lib/avatarCropBounds.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { createMediumFromDataUrl } from "~/lib/uploadImage.ts";
 import { SettingsCardPage } from "~/components/SettingsCardPage.tsx";
@@ -193,15 +201,15 @@ function SettingsForm(props: SettingsFormProps) {
       const [file] = acceptedFiles;
       const url = URL.createObjectURL(file);
       setCropperOpen(true);
-      const cropperImage = new Image();
-      cropperImage.src = url;
+      const image = new Image();
+      image.src = url;
       const { default: Cropper } = await import("cropperjs");
       // @ts-ignore: ...
-      const cropper = new Cropper(cropperImage, {
+      const cropper = new Cropper(image, {
         container: cropperContainer,
         template: `
 <cropper-canvas background style="width: 460px; height: 460px;">
-  <cropper-image rotatable scalable skewable translatable initial-center-size="cover"></cropper-image>
+  <cropper-image scalable translatable initial-center-size="cover"></cropper-image>
   <cropper-shade hidden></cropper-shade>
   <cropper-handle action="select" plain></cropper-handle>
   <cropper-selection initial-coverage="0.5" movable resizable aspect-ratio="1">
@@ -220,6 +228,7 @@ function SettingsForm(props: SettingsFormProps) {
 </cropper-canvas>
         `,
       });
+      bindAvatarCropperBounds(cropper);
       setCropperSelection(cropper.getCropperSelection() ?? undefined);
     },
   });
@@ -617,6 +626,157 @@ function LinkItemForm(props: LinkItemFormProps) {
       </Show>
     </div>
   );
+}
+
+function bindAvatarCropperBounds(cropper: Cropper): void {
+  const canvas = cropper.getCropperCanvas();
+  const image = cropper.getCropperImage();
+  const selection = cropper.getCropperSelection();
+  if (canvas == null || image == null || selection == null) return;
+
+  let normalizing = false;
+  let frame: number | undefined;
+
+  const normalizeSelection = (rect = selectionToCropRect(selection)) => {
+    const bounds = getVisibleImageBounds(canvas, image);
+    if (bounds == null) return false;
+    const clamped = clampSquareCropRect(rect, bounds);
+    if (
+      clamped == null ||
+      cropRectsAlmostEqual(selectionToCropRect(selection), clamped)
+    ) {
+      return false;
+    }
+
+    normalizing = true;
+    try {
+      selection.$change(
+        clamped.x,
+        clamped.y,
+        clamped.width,
+        clamped.height,
+        1,
+        true,
+      );
+    } finally {
+      normalizing = false;
+    }
+    return true;
+  };
+
+  const normalizeImage = () => {
+    frame = undefined;
+    if (
+      normalizing || !canvas.isConnected || !image.isConnected ||
+      !selection.isConnected
+    ) {
+      return;
+    }
+
+    normalizing = true;
+    try {
+      const target = selectionToCropRect(selection);
+      let imageBounds = getElementCropRect(canvas, image);
+      const scale = getScaleToCoverRect(imageBounds, target);
+      if (scale > 1) {
+        image.$scale(scale);
+        imageBounds = getElementCropRect(canvas, image);
+      }
+      const offset = getOffsetToCoverRect(imageBounds, target);
+      if (offset.x !== 0 || offset.y !== 0) {
+        image.$move(offset.x, offset.y);
+      }
+    } finally {
+      normalizing = false;
+    }
+
+    normalizeSelection();
+  };
+
+  const queueImageNormalization = () => {
+    if (frame != null) return;
+    frame = requestAnimationFrame(normalizeImage);
+  };
+
+  selection.addEventListener("change", (event) => {
+    if (normalizing) return;
+    const detail = getSelectionChangeDetail(event);
+    if (detail == null) {
+      queueImageNormalization();
+      return;
+    }
+    const bounds = getVisibleImageBounds(canvas, image);
+    const clamped = bounds == null
+      ? undefined
+      : clampSquareCropRect(detail, bounds);
+    if (clamped != null && !cropRectsAlmostEqual(detail, clamped)) {
+      event.preventDefault();
+      normalizeSelection(clamped);
+    }
+    queueImageNormalization();
+  });
+
+  image.addEventListener("transform", () => {
+    if (!normalizing) queueImageNormalization();
+  });
+
+  image.$ready(() => {
+    normalizeSelection();
+    queueImageNormalization();
+  }).catch(() => {});
+}
+
+function getSelectionChangeDetail(event: Event): CropRect | undefined {
+  if (!(event instanceof CustomEvent)) return undefined;
+  const detail = event.detail;
+  if (
+    detail == null ||
+    typeof detail.x !== "number" ||
+    typeof detail.y !== "number" ||
+    typeof detail.width !== "number" ||
+    typeof detail.height !== "number"
+  ) {
+    return undefined;
+  }
+  return {
+    x: detail.x,
+    y: detail.y,
+    width: detail.width,
+    height: detail.height,
+  };
+}
+
+function selectionToCropRect(selection: CropperSelection): CropRect {
+  return {
+    x: selection.x,
+    y: selection.y,
+    width: selection.width,
+    height: selection.height,
+  };
+}
+
+function getVisibleImageBounds(
+  canvas: CropperCanvas,
+  image: CropperImage,
+): CropRect | undefined {
+  return intersectCropRects(
+    { x: 0, y: 0, width: canvas.offsetWidth, height: canvas.offsetHeight },
+    getElementCropRect(canvas, image),
+  );
+}
+
+function getElementCropRect(
+  container: Element,
+  element: Element,
+): CropRect {
+  const containerRect = container.getBoundingClientRect();
+  const elementRect = element.getBoundingClientRect();
+  return {
+    x: elementRect.left - containerRect.left,
+    y: elementRect.top - containerRect.top,
+    width: elementRect.width,
+    height: elementRect.height,
+  };
 }
 
 declare class Cropper {
