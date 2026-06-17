@@ -525,6 +525,9 @@ const accountConnectionHelpers = drizzleConnectionHelpers(
   builder,
   "accountTable",
   {
+    query: {
+      orderBy: { created: "desc", id: "desc" },
+    },
     resolveNode: (account) => account,
   },
 );

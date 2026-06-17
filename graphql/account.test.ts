@@ -8,7 +8,11 @@ import sharp from "sharp";
 import { updateAccountData } from "@hackerspub/models/account";
 import type { Transaction } from "@hackerspub/models/db";
 import { createMediumFromBytes } from "@hackerspub/models/medium";
-import { actorTable, mediumTable } from "@hackerspub/models/schema";
+import {
+  accountTable,
+  actorTable,
+  mediumTable,
+} from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
 import type { UserContext } from "./builder.ts";
 import { schema } from "./mod.ts";
@@ -79,6 +83,26 @@ const accountInviterQuery = parse(`
       username
       inviter {
         username
+      }
+    }
+  }
+`);
+
+const accountInviteesQuery = parse(`
+  query AccountInvitees($username: String!, $first: Int!, $after: String) {
+    accountByUsername(username: $username) {
+      invitees(first: $first, after: $after) {
+        totalCount
+        edges {
+          cursor
+          node {
+            username
+            created
+          }
+        }
+        pageInfo {
+          hasNextPage
+        }
       }
     }
   }
@@ -443,6 +467,112 @@ test("Account.inviter is visible to guests when neither party is hidden", async 
       makeGuestContext(tx),
     );
     assert.equal(username, "theinviter");
+  });
+});
+
+test("Account.invitees returns newest invitees first", async () => {
+  await withRollback(async (tx) => {
+    const inviter = await insertAccountWithActor(tx, {
+      username: "sortedinviter",
+      name: "Sorted Inviter",
+      email: "sortedinviter@example.com",
+    });
+    const older = await insertAccountWithActor(tx, {
+      username: "olderinvitee",
+      name: "Older Invitee",
+      email: "olderinvitee@example.com",
+    });
+    const newest = await insertAccountWithActor(tx, {
+      username: "newestinvitee",
+      name: "Newest Invitee",
+      email: "newestinvitee@example.com",
+    });
+    const middle = await insertAccountWithActor(tx, {
+      username: "middleinvitee",
+      name: "Middle Invitee",
+      email: "middleinvitee@example.com",
+    });
+
+    await tx.update(accountTable)
+      .set({
+        inviterId: inviter.account.id,
+        created: new Date("2026-04-15T00:00:01.000Z"),
+      })
+      .where(eq(accountTable.id, older.account.id));
+    await tx.update(accountTable)
+      .set({
+        inviterId: inviter.account.id,
+        created: new Date("2026-04-15T00:00:03.000Z"),
+      })
+      .where(eq(accountTable.id, newest.account.id));
+    await tx.update(accountTable)
+      .set({
+        inviterId: inviter.account.id,
+        created: new Date("2026-04-15T00:00:02.000Z"),
+      })
+      .where(eq(accountTable.id, middle.account.id));
+
+    const firstPage = await execute({
+      schema,
+      document: accountInviteesQuery,
+      variableValues: { username: inviter.account.username, first: 2 },
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(firstPage.errors, undefined);
+    const firstPageData = toPlainJson(firstPage.data) as {
+      accountByUsername: {
+        invitees: {
+          totalCount: number;
+          edges: Array<{ cursor: string; node: { username: string } }>;
+          pageInfo: { hasNextPage: boolean };
+        };
+      };
+    };
+    assert.equal(firstPageData.accountByUsername.invitees.totalCount, 3);
+    assert.deepEqual(
+      firstPageData.accountByUsername.invitees.edges.map((edge) =>
+        edge.node.username
+      ),
+      ["newestinvitee", "middleinvitee"],
+    );
+    assert.equal(
+      firstPageData.accountByUsername.invitees.pageInfo.hasNextPage,
+      true,
+    );
+
+    const secondPage = await execute({
+      schema,
+      document: accountInviteesQuery,
+      variableValues: {
+        username: inviter.account.username,
+        first: 2,
+        after: firstPageData.accountByUsername.invitees.edges[1].cursor,
+      },
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(secondPage.errors, undefined);
+    const secondPageData = toPlainJson(secondPage.data) as {
+      accountByUsername: {
+        invitees: {
+          edges: Array<{ node: { username: string } }>;
+          pageInfo: { hasNextPage: boolean };
+        };
+      };
+    };
+    assert.deepEqual(
+      secondPageData.accountByUsername.invitees.edges.map((edge) =>
+        edge.node.username
+      ),
+      ["olderinvitee"],
+    );
+    assert.equal(
+      secondPageData.accountByUsername.invitees.pageInfo.hasNextPage,
+      false,
+    );
   });
 });
 

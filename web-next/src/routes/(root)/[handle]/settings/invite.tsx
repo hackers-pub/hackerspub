@@ -1,4 +1,5 @@
 import * as DialogPrimitive from "@kobalte/core/dialog";
+import { Key } from "@solid-primitives/keyed";
 import { type RouteDefinition, useParams } from "@solidjs/router";
 import { decodeRouteParam } from "~/lib/routeParam.ts";
 import encodeQR from "qr";
@@ -699,22 +700,23 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
         </DialogPrimitive.Root>
         <Show when={props.invitationLinks.length > 0}>
           <ul class="flex flex-col gap-3 mb-6">
-            <For each={props.invitationLinks}>
+            <Key each={props.invitationLinks} by={(link) => link.id}>
               {(link) => {
                 const linkUrl = () =>
                   `${
                     globalThis.location?.origin ?? ""
-                  }/@${props.username}/invite/${link.uuid}`;
-                const isExpired = link.invitationsLeft < 1 ||
-                  (link.expires != null &&
-                    new Date(link.expires) < new Date());
+                  }/@${props.username}/invite/${link().uuid}`;
+                const isExpired = () =>
+                  link().invitationsLeft < 1 ||
+                  (link().expires != null &&
+                    new Date(link().expires!) < new Date());
                 return (
                   <li class="flex flex-col gap-1.5 rounded-md border p-3">
                     <div class="flex items-center gap-2">
                       <code class="flex-1 truncate text-sm bg-muted px-2 py-1 rounded">
                         {linkUrl()}
                       </code>
-                      <Show when={!isExpired}>
+                      <Show when={!isExpired()}>
                         <Button
                           variant="outline"
                           size="sm"
@@ -736,18 +738,19 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
                         variant="destructive"
                         size="sm"
                         class="cursor-pointer shrink-0"
-                        disabled={deletingId() === link.uuid}
-                        on:click={() => onDeleteLink(link.uuid, link.id)}
+                        disabled={deletingId() === link().uuid}
+                        on:click={() => onDeleteLink(link().uuid, link().id)}
                       >
-                        {deletingId() === link.uuid ? t`Deleting…` : t`Delete`}
+                        {deletingId() === link().uuid
+                          ? t`Deleting…`
+                          : t`Delete`}
                       </Button>
                     </div>
                     {
-                      /* `keyed`: avoid Solid's stale-accessor race when
-                       this Relay field flips to null inside a `batch()`
-                       update. */
+                      /* `keyed`: avoid Solid's stale-accessor race when this
+                       Relay field flips to null inside a `batch()` update. */
                     }
-                    <Show keyed when={link.messageHtml}>
+                    <Show keyed when={link().messageHtml}>
                       {(html) => (
                         <div
                           class="prose dark:prose-invert prose-sm max-w-none truncate text-muted-foreground"
@@ -759,7 +762,7 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
                       <span>
                         {i18n._(
                           msg`${
-                            plural(link.invitationsLeft, {
+                            plural(link().invitationsLeft, {
                               one: "# invitation left",
                               other: "# invitations left",
                             })
@@ -770,7 +773,7 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
                         {/* `keyed`: same race shape; expires can flip to null. */}
                         <Show
                           keyed
-                          when={link.expires}
+                          when={link().expires}
                           fallback={t`Never expires`}
                         >
                           {(expires) => (
@@ -792,7 +795,7 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
                   </li>
                 );
               }}
-            </For>
+            </Key>
           </ul>
         </Show>
         <form on:submit={onCreateLink} class="flex flex-col gap-4">
@@ -990,36 +993,39 @@ function InviteeList(props: InviteeListProps) {
         {(data) => (
           <>
             <ul class="flex flex-col gap-2">
-              <For each={data.invitees.edges}>
-                {({ node }) => (
-                  <li class="flex flex-row gap-1.5">
-                    <Avatar>
-                      <a href={`/@${node.username}`}>
-                        <AvatarImage src={node.avatarUrl} />
-                      </a>
-                    </Avatar>
-                    <div class="flex flex-col">
-                      <a href={`/@${node.username}`}>
-                        <span class="font-semibold">{node.name}</span>
-                        <span class="text-sm text-muted-foreground pl-1.5">
-                          {node.actor.handle}
-                        </span>
-                      </a>
-                      <a
-                        href={`/@${node.username}`}
-                        class="text-sm text-muted-foreground"
-                      >
-                        <Trans
-                          message={t`Joined on ${"DATE"}`}
-                          values={{
-                            DATE: () => <Timestamp value={node.created} />,
-                          }}
-                        />
-                      </a>
-                    </div>
-                  </li>
-                )}
-              </For>
+              <Key each={data.invitees.edges} by={(edge) => edge.node.id}>
+                {(edge) => {
+                  const node = () => edge().node;
+                  return (
+                    <li class="flex flex-row gap-1.5">
+                      <Avatar>
+                        <a href={`/@${node().username}`}>
+                          <AvatarImage src={node().avatarUrl} />
+                        </a>
+                      </Avatar>
+                      <div class="flex flex-col">
+                        <a href={`/@${node().username}`}>
+                          <span class="font-semibold">{node().name}</span>
+                          <span class="text-sm text-muted-foreground pl-1.5">
+                            {node().actor.handle}
+                          </span>
+                        </a>
+                        <a
+                          href={`/@${node().username}`}
+                          class="text-sm text-muted-foreground"
+                        >
+                          <Trans
+                            message={t`Joined on ${"DATE"}`}
+                            values={{
+                              DATE: () => <Timestamp value={node().created} />,
+                            }}
+                          />
+                        </a>
+                      </div>
+                    </li>
+                  );
+                }}
+              </Key>
             </ul>
             <Show when={data.invitees.pageInfo.hasNextPage}>
               <Button
