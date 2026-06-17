@@ -142,6 +142,27 @@ export const accountTable = pgTable(
 export type Account = typeof accountTable.$inferSelect;
 export type NewAccount = typeof accountTable.$inferInsert;
 
+export const deletedAccountTable = pgTable(
+  "deleted_account",
+  {
+    accountId: uuid("account_id").$type<Uuid>().primaryKey(),
+    username: varchar({ length: 50 }).notNull().unique(),
+    actorIri: text("actor_iri").notNull().unique(),
+    deleted: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    check(
+      "deleted_account_username_check",
+      sql`${table.username} ~ '^[a-z0-9_]{1,50}$'`,
+    ),
+  ],
+);
+
+export type DeletedAccount = typeof deletedAccountTable.$inferSelect;
+export type NewDeletedAccount = typeof deletedAccountTable.$inferInsert;
+
 export const accountEmailTable = pgTable(
   "account_email",
   {

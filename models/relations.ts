@@ -37,6 +37,7 @@ export const relations = defineRelations(schema, (r) => ({
     reviewedFlagAppeals: r.many.flagAppealTable({ alias: "reviewer" }),
     moderationNotifications: r.many.moderationNotificationTable(),
   },
+  deletedAccountTable: {},
   accountEmailTable: {
     account: r.one.accountTable({
       from: r.accountEmailTable.accountId,

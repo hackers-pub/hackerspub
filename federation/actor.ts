@@ -1,6 +1,12 @@
 import process from "node:process";
 import { exportJwk, generateCryptoKeyPair, importJwk } from "@fedify/fedify";
-import { Application, Endpoints, Image } from "@fedify/vocab";
+import {
+  Application,
+  Endpoints,
+  Image,
+  Person,
+  Tombstone,
+} from "@fedify/vocab";
 import { accountKeyTable, type NewAccountKey } from "@hackerspub/models/schema";
 import { validateUuid } from "@hackerspub/models/uuid";
 import { builder } from "./builder.ts";
@@ -64,7 +70,19 @@ builder
           links: { orderBy: { index: "asc" } },
         },
       });
-      if (account == null) return null;
+      if (account == null) {
+        const deleted = await ctx.data.db.query.deletedAccountTable.findFirst({
+          where: { accountId: identifier },
+        });
+        if (deleted == null) return null;
+        return new Tombstone({
+          id: ctx.getActorUri(identifier),
+          formerType: Person,
+          deleted: Temporal.Instant.fromEpochMilliseconds(
+            deleted.deleted.getTime(),
+          ),
+        });
+      }
       const keys = await ctx.getActorKeyPairs(identifier);
       return await getAccountActor(ctx, account, keys);
     },
@@ -74,7 +92,11 @@ builder
     const account = await ctx.data.db.query.accountTable.findFirst({
       where: { username: handle },
     });
-    return account == null ? null : account.id;
+    if (account != null) return account.id;
+    const deleted = await ctx.data.db.query.deletedAccountTable.findFirst({
+      where: { username: handle },
+    });
+    return deleted == null ? null : deleted.accountId;
   })
   .setKeyPairsDispatcher(async (ctx, identifier) => {
     if (identifier === new URL(ctx.canonicalOrigin).hostname) {
