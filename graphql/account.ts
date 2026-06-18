@@ -1,3 +1,4 @@
+import { getLogger } from "@logtape/logtape";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import {
   encodeGlobalID,
@@ -53,6 +54,7 @@ import {
 import { NotAuthenticatedError } from "./session.ts";
 
 const profileOgImageComplexity = 2_000;
+const logger = getLogger(["hackerspub", "graphql", "account"]);
 
 builder.objectType(AccountDeletionUnavailableError, {
   name: "AccountDeletionUnavailableError",
@@ -1241,7 +1243,8 @@ builder.relayMutationField(
       "`username`, commits the deleted actor's tombstone and preserved keys, " +
       "then attempts to enqueue one actor-level ActivityPub `Delete` to " +
       "followers. A transient delivery queue failure is logged after commit " +
-      "and does not resurrect the account.",
+      "and does not resurrect the account. Session-store cleanup is also " +
+      "best-effort after the deletion commits.",
     inputFields: (t) => ({
       id: t.globalID({
         for: Account,
@@ -1271,7 +1274,17 @@ builder.relayMutationField(
       }
       const result = await deleteAccountModel(ctx.fedCtx, args.input.id.id);
       if (result == null) throw new InvalidInputError("id");
-      await deleteSession(ctx.kv, session.id);
+      try {
+        await deleteSession(ctx.kv, session.id);
+      } catch (error) {
+        logger.warn(
+          "Failed to delete session after deleting account {accountId}: {error}",
+          {
+            accountId: result.accountId,
+            error,
+          },
+        );
+      }
       return result;
     },
   },

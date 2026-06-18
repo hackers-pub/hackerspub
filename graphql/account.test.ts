@@ -1236,6 +1236,72 @@ test("deleteAccount deletes the viewer account and session", async () => {
   });
 });
 
+test("deleteAccount succeeds when session cleanup fails after deletion", async () => {
+  await withRollback(async (tx) => {
+    const { kv } = createTestKv();
+    const failingKv = {
+      ...kv,
+      delete(_key: string) {
+        return Promise.reject(new Error("session store unavailable"));
+      },
+    } as typeof kv;
+    const account = await insertAccountWithActor(tx, {
+      username: "deletesessionfail",
+      name: "Delete Session Fail",
+      email: "deletesessionfail@example.com",
+    });
+    const session = await createSession(failingKv, {
+      accountId: account.account.id,
+      userAgent: "delete-account-session-fail-test",
+    });
+    const fedCtx = createFedCtx(tx, { kv: failingKv });
+
+    const result = await execute({
+      schema,
+      document: deleteAccountMutation,
+      variableValues: {
+        input: { id: encodeGlobalID("Account", account.account.id) },
+      },
+      contextValue: makeUserContext(tx, account.account, {
+        kv: failingKv,
+        fedCtx,
+        session,
+      }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    const payload = (toPlainJson(result.data) as {
+      deleteAccount?: {
+        __typename?: string;
+        deletedAccountId?: string;
+        username?: string;
+        deleted?: string;
+      };
+    }).deleteAccount;
+    assert.deepEqual({
+      ...payload,
+      deleted: typeof payload?.deleted,
+    }, {
+      __typename: "DeleteAccountPayload",
+      deletedAccountId: encodeGlobalID("Account", account.account.id),
+      username: "deletesessionfail",
+      deleted: "string",
+    });
+    assert.deepEqual(await getSession(failingKv, session.id), session);
+    assert.equal(
+      await tx.query.accountTable.findFirst({
+        where: { id: account.account.id },
+      }),
+      undefined,
+    );
+    const tombstone = await tx.query.deletedAccountTable.findFirst({
+      where: { accountId: account.account.id },
+    });
+    assert.equal(tombstone?.username, "deletesessionfail");
+  });
+});
+
 test("deleteAccount returns typed errors for invalid callers", async () => {
   await withRollback(async (tx) => {
     const owner = await insertAccountWithActor(tx, {
