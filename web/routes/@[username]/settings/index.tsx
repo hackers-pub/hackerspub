@@ -81,7 +81,7 @@ export const handler = define.handlers({
       .filter(([name, url]) => name !== "" && URL.canParse(url))
       .map(([name, url]) => ({ name, url }));
     const usernameLooksValid = username != null && username !== "" &&
-      username.length <= 50 && /^[a-z0-9_]{1,15}$/.test(username);
+      username.length <= 50 && /^[a-z0-9_]{1,50}$/.test(username);
     const usernameAlreadyTaken = usernameLooksValid &&
       account.username !== username &&
       (await db.query.accountTable.findFirst({ where: { username } }) !=
@@ -100,7 +100,7 @@ export const handler = define.handlers({
         ? t("settings.profile.usernameRequired")
         : username.length > 50
         ? t("settings.profile.usernameTooLong")
-        : !username.match(/^[a-z0-9_]{1,15}$/)
+        : !username.match(/^[a-z0-9_]{1,50}$/)
         ? t("settings.profile.usernameInvalidChars")
         : usernameAlreadyTaken
         ? t("settings.profile.usernameAlreadyTaken")
