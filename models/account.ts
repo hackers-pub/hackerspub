@@ -87,8 +87,9 @@ export async function isUsernameReserved(
   db: Database,
   username: string,
 ): Promise<boolean> {
+  const canonicalUsername = username.trim().toLowerCase();
   const deleted = await db.query.deletedAccountTable.findFirst({
-    where: { username },
+    where: { username: canonicalUsername },
     columns: { accountId: true },
   });
   return deleted != null;

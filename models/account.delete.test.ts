@@ -242,6 +242,7 @@ test("deleteAccount() hard-deletes an account and reserves the current username"
     assert.ok(tombstone != null);
     assert.equal(tombstone.username, "deleterenamed");
     assert.equal(await isUsernameReserved(tx, "deleterenamed"), true);
+    assert.equal(await isUsernameReserved(tx, " DeleteRenamed "), true);
     assert.equal(await isUsernameReserved(tx, "deletecurrent"), false);
     const preservedKeys = await tx.query.deletedAccountKeyTable.findMany({
       where: { accountId: target.account.id },
