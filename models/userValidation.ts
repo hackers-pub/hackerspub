@@ -1,4 +1,4 @@
-export const USERNAME_REGEXP = /^[a-z0-9_]{1,15}$/;
+export const USERNAME_REGEXP = /^[a-z0-9_]{1,50}$/;
 
 export enum UsernameValidationError {
   Required = "USERNAME_REQUIRED",
@@ -24,7 +24,7 @@ export function validateUsername(
     return UsernameValidationError.Required;
   }
 
-  if (trimmedUsername.length > 15) {
+  if (trimmedUsername.length > 50) {
     return UsernameValidationError.TooLong;
   }
 
