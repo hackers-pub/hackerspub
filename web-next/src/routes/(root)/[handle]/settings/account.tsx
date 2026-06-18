@@ -1,7 +1,7 @@
 import { type RouteDefinition, useParams } from "@solidjs/router";
-import { deleteCookie, getRequestProtocol } from "@solidjs/start/http";
 import { graphql } from "relay-runtime";
 import { createMemo, createSignal, Show } from "solid-js";
+import { getRequestEvent } from "solid-js/web";
 import { createMutation, loadQuery, useRelayEnvironment } from "solid-relay";
 import IconTrash2 from "~icons/lucide/trash-2";
 import { SettingsCardPage } from "~/components/SettingsCardPage.tsx";
@@ -29,6 +29,7 @@ import {
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
 import { decodeRouteParam } from "~/lib/routeParam.ts";
+import { buildExpiredSessionSetCookieHeader } from "~/lib/sessionCookie.ts";
 import type { accountDeleteMutation } from "./__generated__/accountDeleteMutation.graphql.ts";
 import type { accountPageQuery } from "./__generated__/accountPageQuery.graphql.ts";
 
@@ -88,11 +89,14 @@ const accountDeleteMutation = graphql`
 
 async function removeSessionCookie(): Promise<void> {
   "use server";
-  deleteCookie("session", {
-    httpOnly: true,
-    path: "/",
-    secure: getRequestProtocol() === "https",
-  });
+  const event = getRequestEvent();
+  if (event == null) return;
+  event.response.headers.append(
+    "Set-Cookie",
+    buildExpiredSessionSetCookieHeader({
+      secure: new URL(event.request.url).protocol === "https:",
+    }),
+  );
 }
 
 export default function AccountSettingsPage() {

@@ -1,10 +1,5 @@
-import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
+import type { Uuid } from "@hackerspub/models/uuid";
 import { A, useLocation } from "@solidjs/router";
-import {
-  deleteCookie,
-  getCookie,
-  getRequestProtocol,
-} from "@solidjs/start/http";
 import { graphql } from "relay-runtime";
 import { For, Show } from "solid-js";
 import { getRequestEvent } from "solid-js/web";
@@ -30,6 +25,10 @@ import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import { invalidateNotificationsPageQueryCache } from "~/lib/notificationsPageQueryCache.ts";
 import {
+  buildExpiredSessionSetCookieHeader,
+  readSessionCookie,
+} from "~/lib/sessionCookie.ts";
+import {
   invalidateTimelinePageQueryCache,
   TIMELINE_PAGE_QUERY_CACHE_KEYS,
 } from "~/lib/timelinePageQueryCache.ts";
@@ -54,13 +53,14 @@ async function removeSessionCookie(): Promise<Uuid | null> {
   "use server";
   const event = getRequestEvent();
   if (event != null) {
-    const sessionId = getCookie(event.nativeEvent, "session");
-    deleteCookie(event.nativeEvent, "session", {
-      httpOnly: true,
-      path: "/",
-      secure: getRequestProtocol(event.nativeEvent) === "https",
-    });
-    if (sessionId != null && validateUuid(sessionId)) {
+    const sessionId = readSessionCookie(event.request);
+    event.response.headers.append(
+      "Set-Cookie",
+      buildExpiredSessionSetCookieHeader({
+        secure: new URL(event.request.url).protocol === "https:",
+      }),
+    );
+    if (sessionId != null) {
       return sessionId;
     }
   }

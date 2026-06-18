@@ -1,6 +1,48 @@
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 
 const SESSION_COOKIE = "session";
+const EXPIRED_SESSION_COOKIE_DATE = new Date(0);
+
+interface SessionCookieHeaderOptions {
+  expires?: Date;
+  maxAge?: number;
+  secure: boolean;
+}
+
+function buildSessionCookieHeader(
+  value: string,
+  options: SessionCookieHeaderOptions,
+): string {
+  const attributes = [
+    `${SESSION_COOKIE}=${value}`,
+    "HttpOnly",
+    "Path=/",
+    ...options.expires == null
+      ? []
+      : [`Expires=${options.expires.toUTCString()}`],
+    ...options.maxAge == null ? [] : [`Max-Age=${options.maxAge}`],
+    "SameSite=Lax",
+    ...options.secure ? ["Secure"] : [],
+  ];
+  return attributes.join("; ");
+}
+
+export function buildSessionSetCookieHeader(
+  sessionId: Uuid,
+  options: { expires: Date; secure: boolean },
+): string {
+  return buildSessionCookieHeader(sessionId, options);
+}
+
+export function buildExpiredSessionSetCookieHeader(
+  options: { secure: boolean },
+): string {
+  return buildSessionCookieHeader("", {
+    expires: EXPIRED_SESSION_COOKIE_DATE,
+    maxAge: 0,
+    secure: options.secure,
+  });
+}
 
 // Pulls the `session` cookie out of a Cookie header and returns it only if
 // the value decodes cleanly and matches the UUID shape we expect for session
