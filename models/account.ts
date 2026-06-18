@@ -34,7 +34,6 @@ import {
   articleContentTable,
   deletedAccountKeyTable,
   deletedAccountTable,
-  followingTable,
   type Medium,
   type NewAccount,
   notificationTable,
@@ -333,18 +332,6 @@ export async function deleteAccount(
         quotedPostId: true,
       },
     });
-    const affectedFollowings = await tx.select({
-      followerId: followingTable.followerId,
-      followeeId: followingTable.followeeId,
-    })
-      .from(followingTable)
-      .where(sql`
-        ${followingTable.accepted} IS NOT NULL
-        AND (
-          ${followingTable.followerId} = ${actor.id}
-          OR ${followingTable.followeeId} = ${actor.id}
-        )
-      `);
     const deletionRelationshipRows = await tx.query.followingTable.findMany({
       with: { followee: true, follower: true },
       where: {
@@ -434,7 +421,7 @@ export async function deleteAccount(
         ),
       );
     await tx.delete(accountTable).where(eq(accountTable.id, account.id));
-    for (const following of affectedFollowings) {
+    for (const following of deletionRelationshipRows) {
       if (following.followerId === actor.id) {
         await updateFollowersCount(tx, following.followeeId, -1);
       }
