@@ -14,6 +14,7 @@ import {
   actorTable,
   flagCaseTable,
   followingTable,
+  instanceTable,
   pollOptionTable,
   pollTable,
   pollVoteTable,
@@ -41,6 +42,24 @@ test("deleteAccount() hard-deletes an account and reserves the current username"
       username: "deletecurrent",
       name: "Delete Current",
       email: "deletecurrent@example.com",
+    });
+    const followerId = generateUuidV7();
+    await tx.insert(instanceTable).values({ host: "deletefollower.example" });
+    await tx.insert(actorTable).values({
+      id: followerId,
+      iri: "https://deletefollower.example/users/alice",
+      type: "Person",
+      username: "alice",
+      instanceHost: "deletefollower.example",
+      handleHost: "deletefollower.example",
+      inboxUrl: "https://deletefollower.example/users/alice/inbox",
+      sharedInboxUrl: "https://deletefollower.example/inbox",
+    });
+    await tx.insert(followingTable).values({
+      iri: "https://deletefollower.example/follows/alice-deletecurrent",
+      followerId,
+      followeeId: target.actor.id,
+      accepted: new Date("2026-04-10T00:00:00.000Z"),
     });
     const renamed = await updateAccountData(tx, {
       id: target.account.id,
@@ -113,7 +132,20 @@ test("deleteAccount() hard-deletes an account and reserves the current username"
     assert.ok(result.deleted instanceof Date);
 
     assert.equal(sentActivities.length, 1);
-    assert.deepEqual(sentActivities[0][1], "followers");
+    assert.ok(Array.isArray(sentActivities[0][1]));
+    assert.equal(sentActivities[0][1].length, 1);
+    assert.equal(
+      sentActivities[0][1][0].id.href,
+      "https://deletefollower.example/users/alice",
+    );
+    assert.equal(
+      sentActivities[0][1][0].inboxId.href,
+      "https://deletefollower.example/users/alice/inbox",
+    );
+    assert.equal(
+      sentActivities[0][1][0].endpoints.sharedInbox.href,
+      "https://deletefollower.example/inbox",
+    );
     assert.deepEqual(sendObservedState, {
       accountExists: false,
       tombstoneUsername: "deleterenamed",

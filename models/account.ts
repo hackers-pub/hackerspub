@@ -236,6 +236,16 @@ function isNotificationActorIdsEmpty() {
   return sql`array_length(${notificationTable.actorIds}, 1) IS NULL`;
 }
 
+function toDeletedAccountRecipient(actor: Actor): vocab.Recipient {
+  return {
+    id: new URL(actor.iri),
+    inboxId: new URL(actor.inboxUrl),
+    endpoints: actor.sharedInboxUrl == null ? null : {
+      sharedInbox: new URL(actor.sharedInboxUrl),
+    },
+  };
+}
+
 async function ensureAccountKeys(
   fedCtx: RequestContext<ContextData>,
   accountId: Uuid,
@@ -276,6 +286,7 @@ export async function deleteAccount(
 
   const deleted = new Date();
   let result: DeletedAccountResult | undefined;
+  let deleteRecipients: vocab.Recipient[] = [];
 
   await db.transaction(async (tx) => {
     const [locked] = await tx.select({
@@ -315,6 +326,16 @@ export async function deleteAccount(
           OR ${followingTable.followeeId} = ${actor.id}
         )
       `);
+    const deletionFollowerRows = await tx.query.followingTable.findMany({
+      with: { follower: true },
+      where: {
+        followeeId: actor.id,
+        accepted: { isNotNull: true },
+      },
+    });
+    deleteRecipients = deletionFollowerRows.map((following) =>
+      toDeletedAccountRecipient(following.follower)
+    );
     const affectedReactionPosts = await tx.select({
       id: postTable.id,
       linkId: postTable.linkId,
@@ -400,7 +421,7 @@ export async function deleteAccount(
   try {
     await fedCtx.sendActivity(
       { identifier: result.accountId },
-      "followers",
+      deleteRecipients,
       new vocab.Delete({
         id: new URL(`#delete/${deleted.toISOString()}`, actorUri),
         actor: actorUri,
