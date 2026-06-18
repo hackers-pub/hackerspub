@@ -44,6 +44,23 @@ export function buildExpiredSessionSetCookieHeader(
   });
 }
 
+export function isSecureRequest(request: Request): boolean {
+  const forwardedProto = request.headers.get("x-forwarded-proto")
+    ?.split(",", 1)[0]
+    ?.trim()
+    .toLowerCase();
+  if (forwardedProto) return forwardedProto === "https";
+
+  const forwarded = request.headers.get("forwarded");
+  const forwardedProtocol = forwarded?.match(/(?:^|[;,]\s*)proto=([^;,]+)/i)
+    ?.[1]
+    ?.replace(/^"|"$/g, "")
+    .toLowerCase();
+  if (forwardedProtocol) return forwardedProtocol === "https";
+
+  return new URL(request.url).protocol === "https:";
+}
+
 // Pulls the `session` cookie out of a Cookie header and returns it only if
 // the value decodes cleanly and matches the UUID shape we expect for session
 // IDs. Anything else (missing, empty, percent-decode failure, malformed)

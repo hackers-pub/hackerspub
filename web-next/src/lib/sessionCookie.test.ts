@@ -4,6 +4,7 @@ import type { Uuid } from "@hackerspub/models/uuid";
 import {
   buildExpiredSessionSetCookieHeader,
   buildSessionSetCookieHeader,
+  isSecureRequest,
   parseSessionCookie,
 } from "./sessionCookie.ts";
 
@@ -42,4 +43,25 @@ test("parseSessionCookie reads valid session cookies", () => {
   const sessionId = parseSessionCookie(`theme=dark; session=${SESSION_ID}`);
 
   assert.deepEqual(sessionId, SESSION_ID);
+});
+
+test("isSecureRequest honors forwarded protocol headers", () => {
+  assert.equal(
+    isSecureRequest(
+      new Request("http://internal.example", {
+        headers: { "x-forwarded-proto": "https" },
+      }),
+    ),
+    true,
+  );
+  assert.equal(
+    isSecureRequest(
+      new Request("http://internal.example", {
+        headers: { forwarded: 'for=192.0.2.1;proto="https"' },
+      }),
+    ),
+    true,
+  );
+  assert.equal(isSecureRequest(new Request("https://public.example")), true);
+  assert.equal(isSecureRequest(new Request("http://internal.example")), false);
 });

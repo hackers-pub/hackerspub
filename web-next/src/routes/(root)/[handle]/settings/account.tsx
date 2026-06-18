@@ -29,7 +29,10 @@ import {
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
 import { decodeRouteParam } from "~/lib/routeParam.ts";
-import { buildExpiredSessionSetCookieHeader } from "~/lib/sessionCookie.ts";
+import {
+  buildExpiredSessionSetCookieHeader,
+  isSecureRequest,
+} from "~/lib/sessionCookie.ts";
 import type { accountDeleteMutation } from "./__generated__/accountDeleteMutation.graphql.ts";
 import type { accountPageQuery } from "./__generated__/accountPageQuery.graphql.ts";
 
@@ -94,7 +97,7 @@ async function removeSessionCookie(): Promise<void> {
   event.response.headers.append(
     "Set-Cookie",
     buildExpiredSessionSetCookieHeader({
-      secure: new URL(event.request.url).protocol === "https:",
+      secure: isSecureRequest(event.request),
     }),
   );
 }

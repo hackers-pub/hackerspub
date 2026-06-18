@@ -26,6 +26,7 @@ import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import { invalidateNotificationsPageQueryCache } from "~/lib/notificationsPageQueryCache.ts";
 import {
   buildExpiredSessionSetCookieHeader,
+  isSecureRequest,
   readSessionCookie,
 } from "~/lib/sessionCookie.ts";
 import {
@@ -57,7 +58,7 @@ async function removeSessionCookie(): Promise<Uuid | null> {
     event.response.headers.append(
       "Set-Cookie",
       buildExpiredSessionSetCookieHeader({
-        secure: new URL(event.request.url).protocol === "https:",
+        secure: isSecureRequest(event.request),
       }),
     );
     if (sessionId != null) {
