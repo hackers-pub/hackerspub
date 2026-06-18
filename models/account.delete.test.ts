@@ -518,6 +518,50 @@ test("deleteAccount() removes article translations attributed to the account", a
   });
 });
 
+test("deleteAccount() backfills missing actor keys before tombstoning", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const target = await insertAccountWithActor(tx, {
+      username: "deletepartialkeys",
+      name: "Delete Partial Keys",
+      email: "delete-partial-keys@example.com",
+    });
+    await tx.insert(accountKeyTable).values({
+      accountId: target.account.id,
+      type: "RSASSA-PKCS1-v1_5",
+      public: { kty: "test-rsa-public" },
+      private: { kty: "test-rsa-private" },
+    });
+    let keyPairsRequested = false;
+    (fedCtx as unknown as {
+      getActorKeyPairs: (identifier: string) => Promise<unknown[]>;
+    }).getActorKeyPairs = async (identifier) => {
+      keyPairsRequested = true;
+      assert.equal(identifier, target.account.id);
+      await tx.insert(accountKeyTable).values({
+        accountId: target.account.id,
+        type: "Ed25519",
+        public: { kty: "test-ed25519-public" },
+        private: { kty: "test-ed25519-private" },
+      }).onConflictDoNothing();
+      return [];
+    };
+
+    const result = await deleteAccount(fedCtx, target.account.id);
+
+    assert.equal(result?.accountId, target.account.id);
+    assert.equal(keyPairsRequested, true);
+    const preservedKeys = await tx.query.deletedAccountKeyTable.findMany({
+      where: { accountId: target.account.id },
+      orderBy: { type: "asc" },
+    });
+    assert.deepEqual(
+      preservedKeys.map((key) => key.type),
+      ["Ed25519", "RSASSA-PKCS1-v1_5"],
+    );
+  });
+});
+
 test("deleteAccount() keeps the deletion when actor Delete enqueue fails", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);

@@ -273,12 +273,6 @@ async function ensureAccountKeys(
   fedCtx: RequestContext<ContextData>,
   accountId: Uuid,
 ): Promise<void> {
-  const { db } = fedCtx.data;
-  const existing = await db.query.accountKeyTable.findFirst({
-    where: { accountId },
-    columns: { accountId: true },
-  });
-  if (existing != null) return;
   const context = fedCtx as RequestContext<ContextData> & {
     getActorKeyPairs?: (identifier: string) => Promise<unknown>;
   };
