@@ -4210,7 +4210,7 @@ msgstr "この操作は取り消せません。このコンテンツは完全に
 
 #: src/routes/(root)/[handle]/settings/account.tsx:219
 msgid "This action is permanent."
-msgstr "この操作は取り消せません。"
+msgstr "この操作は永続的です。"
 
 #: src/components/WebPushNotificationSettings.tsx:152
 #: src/components/WebPushPromptBanner.tsx:87
