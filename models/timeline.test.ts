@@ -269,6 +269,99 @@ test(
 );
 
 test(
+  "removeFromTimeline() preserves a surviving share delivered by quote",
+  async () => {
+    await withRollback(async (tx) => {
+      const fedCtx = createFedCtx(tx);
+      const suffix = crypto.randomUUID().replaceAll("-", "").slice(0, 8);
+      const viewer = await insertAccountWithActor(tx, {
+        username: "timequoteviewer",
+        name: "Timeline Quote Viewer",
+        email: "timequoteviewer@example.com",
+      });
+      const followedSharer = await insertAccountWithActor(tx, {
+        username: "timequotefollowed",
+        name: "Timeline Quote Followed",
+        email: "timequotefollowed@example.com",
+      });
+      const quotedSharer = await insertAccountWithActor(tx, {
+        username: "timequotesharer",
+        name: "Timeline Quote Sharer",
+        email: "timequotesharer@example.com",
+      });
+      const remoteActor = await insertRemoteActor(tx, {
+        username: `timequoteremote${suffix}`,
+        name: "Timeline Quote Remote",
+        host: "timeline-quote.example",
+      });
+      const originalPost = await insertRemotePost(tx, {
+        actorId: remoteActor.id,
+        contentHtml: "<p>Shared by follow and quote paths</p>",
+      });
+      const { post: quotedTarget } = await insertNotePost(tx, {
+        account: viewer.account,
+        content: "A post quoted by the surviving share",
+      });
+
+      await follow(fedCtx, viewer.account, followedSharer.actor);
+
+      const followedShare = await sharePost(fedCtx, followedSharer.account, {
+        ...originalPost,
+        actor: remoteActor,
+      });
+      const quotedShare = await sharePost(fedCtx, quotedSharer.account, {
+        ...originalPost,
+        actor: remoteActor,
+      });
+      const followedPublished = new Date("2026-04-15T00:00:01.000Z");
+      const quotedPublished = new Date("2026-04-15T00:00:02.000Z");
+      await tx.update(postTable)
+        .set({ published: followedPublished, updated: followedPublished })
+        .where(eq(postTable.id, followedShare.id));
+      await tx.update(postTable)
+        .set({
+          published: quotedPublished,
+          updated: quotedPublished,
+          quotedPostId: quotedTarget.id,
+        })
+        .where(eq(postTable.id, quotedShare.id));
+
+      const updatedQuotedShare = await tx.query.postTable.findFirst({
+        where: { id: quotedShare.id },
+      });
+      assert.ok(updatedQuotedShare != null);
+      await addPostToTimeline(tx, updatedQuotedShare);
+
+      const before = await tx.query.timelineItemTable.findFirst({
+        where: {
+          accountId: viewer.account.id,
+          postId: originalPost.id,
+        },
+      });
+      assert.ok(before != null);
+      assert.deepEqual(before.lastSharerId, quotedSharer.actor.id);
+      assert.deepEqual(before.sharersCount, 2);
+
+      await removeFromTimeline(tx, followedShare);
+
+      const after = await tx.query.timelineItemTable.findFirst({
+        where: {
+          accountId: viewer.account.id,
+          postId: originalPost.id,
+        },
+      });
+      assert.ok(after != null);
+      assert.deepEqual(after.lastSharerId, quotedSharer.actor.id);
+      assert.deepEqual(after.sharersCount, 1);
+      assert.deepEqual(
+        after.appended.toISOString(),
+        quotedPublished.toISOString(),
+      );
+    });
+  },
+);
+
+test(
   "removeFromTimeline() excludes a share that has not been deleted yet",
   async () => {
     await withRollback(async (tx) => {

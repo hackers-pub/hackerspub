@@ -345,6 +345,12 @@ function getShareRecipientCondition() {
     ${postTable.actorId} = ${actorTable.id}
     OR EXISTS (
       SELECT 1
+      FROM ${postTable} AS quoted_post
+      WHERE quoted_post.id = ${postTable.quotedPostId}
+        AND quoted_post.actor_id = ${actorTable.id}
+    )
+    OR EXISTS (
+      SELECT 1
       FROM ${mentionTable}
       WHERE ${mentionTable.postId} = ${postTable.id}
         AND ${mentionTable.actorId} = ${actorTable.id}
@@ -364,7 +370,7 @@ function getShareRecipientCondition() {
 
 export async function removeFromTimeline(
   db: Database,
-  post: Pick<Post, "id" | "actorId" | "sharedPostId">,
+  post: Pick<Post, "id" | "actorId" | "quotedPostId" | "sharedPostId">,
 ): Promise<void> {
   if (post.sharedPostId == null) return;
   await db.update(timelineItemTable)
@@ -376,6 +382,7 @@ export async function removeFromTimeline(
           ON ${actorTable.accountId} = ${timelineItemTable.accountId}
         WHERE ${postTable.sharedPostId} = ${post.sharedPostId}
           AND ${postTable.id} != ${post.id}
+          AND ${postTable.actorId} != ${post.actorId}
           AND ${getShareRecipientCondition()}
           AND NOT EXISTS (
             SELECT 1 FROM ${mutingTable}
@@ -392,6 +399,7 @@ export async function removeFromTimeline(
           ON ${actorTable.accountId} = ${timelineItemTable.accountId}
         WHERE ${postTable.sharedPostId} = ${post.sharedPostId}
           AND ${postTable.id} != ${post.id}
+          AND ${postTable.actorId} != ${post.actorId}
           AND ${getShareRecipientCondition()}
           AND NOT EXISTS (
             SELECT 1 FROM ${mutingTable}
@@ -406,6 +414,7 @@ export async function removeFromTimeline(
           ON ${actorTable.accountId} = ${timelineItemTable.accountId}
         WHERE ${postTable.sharedPostId} = ${post.sharedPostId}
           AND ${postTable.id} != ${post.id}
+          AND ${postTable.actorId} != ${post.actorId}
           AND ${getShareRecipientCondition()}
           AND NOT EXISTS (
             SELECT 1 FROM ${mutingTable}
@@ -437,6 +446,12 @@ export async function removeFromTimeline(
                   FROM ${mentionTable}
                   WHERE ${mentionTable.postId} = ${post.id}
                     AND ${mentionTable.actorId} = ${actorTable.id}
+                )
+                OR EXISTS (
+                  SELECT 1
+                  FROM ${postTable} AS quoted_post
+                  WHERE quoted_post.id = ${post.quotedPostId}
+                    AND quoted_post.actor_id = ${actorTable.id}
                 )
               )
           )
