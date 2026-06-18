@@ -17,6 +17,7 @@ import {
   hashtagFollowingTable,
   type Instance,
   type Mention,
+  mentionTable,
   mutingTable,
   type NewTimelineItem,
   type Post,
@@ -337,6 +338,30 @@ export async function addTagsPubPostToTimeline(
     .onConflictDoNothing();
 }
 
+function getShareRecipientCondition() {
+  // Mirrors the share-recipient paths in addPostToTimeline for the actor row
+  // joined from the current timeline item owner.
+  return sql`(
+    ${postTable.actorId} = ${actorTable.id}
+    OR EXISTS (
+      SELECT 1
+      FROM ${mentionTable}
+      WHERE ${mentionTable.postId} = ${postTable.id}
+        AND ${mentionTable.actorId} = ${actorTable.id}
+    )
+    OR (
+      ${postTable.visibility} IN ('public', 'unlisted', 'followers')
+      AND EXISTS (
+        SELECT 1
+        FROM ${followingTable}
+        WHERE ${followingTable.followerId} = ${actorTable.id}
+          AND ${followingTable.followeeId} = ${postTable.actorId}
+          AND ${followingTable.accepted} IS NOT NULL
+      )
+    )
+  )`;
+}
+
 export async function removeFromTimeline(
   db: Database,
   post: Pick<Post, "id" | "actorId" | "sharedPostId">,
@@ -349,13 +374,9 @@ export async function removeFromTimeline(
         FROM ${postTable}
         JOIN ${actorTable}
           ON ${actorTable.accountId} = ${timelineItemTable.accountId}
-        JOIN ${followingTable}
-          ON ${followingTable.followerId} = ${actorTable.id}
-          AND ${followingTable.accepted} IS NOT NULL
         WHERE ${postTable.sharedPostId} = ${post.sharedPostId}
           AND ${postTable.id} != ${post.id}
-          AND ${postTable.actorId} = ${followingTable.followeeId}
-          AND ${postTable.visibility} IN ('public', 'unlisted', 'followers')
+          AND ${getShareRecipientCondition()}
           AND NOT EXISTS (
             SELECT 1 FROM ${mutingTable}
             WHERE ${mutingTable.muterId} = ${actorTable.id}
@@ -369,13 +390,9 @@ export async function removeFromTimeline(
         FROM ${postTable}
         JOIN ${actorTable}
           ON ${actorTable.accountId} = ${timelineItemTable.accountId}
-        JOIN ${followingTable}
-          ON ${followingTable.followerId} = ${actorTable.id}
-          AND ${followingTable.accepted} IS NOT NULL
         WHERE ${postTable.sharedPostId} = ${post.sharedPostId}
           AND ${postTable.id} != ${post.id}
-          AND ${postTable.actorId} = ${followingTable.followeeId}
-          AND ${postTable.visibility} IN ('public', 'unlisted', 'followers')
+          AND ${getShareRecipientCondition()}
           AND NOT EXISTS (
             SELECT 1 FROM ${mutingTable}
             WHERE ${mutingTable.muterId} = ${actorTable.id}
@@ -387,13 +404,9 @@ export async function removeFromTimeline(
         FROM ${postTable}
         JOIN ${actorTable}
           ON ${actorTable.accountId} = ${timelineItemTable.accountId}
-        JOIN ${followingTable}
-          ON ${followingTable.followerId} = ${actorTable.id}
-          AND ${followingTable.accepted} IS NOT NULL
         WHERE ${postTable.sharedPostId} = ${post.sharedPostId}
           AND ${postTable.id} != ${post.id}
-          AND ${postTable.actorId} = ${followingTable.followeeId}
-          AND ${postTable.visibility} IN ('public', 'unlisted', 'followers')
+          AND ${getShareRecipientCondition()}
           AND NOT EXISTS (
             SELECT 1 FROM ${mutingTable}
             WHERE ${mutingTable.muterId} = ${actorTable.id}
@@ -409,11 +422,23 @@ export async function removeFromTimeline(
           OR EXISTS (
             SELECT 1
             FROM ${actorTable}
-            JOIN ${followingTable}
-              ON ${followingTable.followerId} = ${actorTable.id}
-              AND ${followingTable.followeeId} = ${post.actorId}
-              AND ${followingTable.accepted} IS NOT NULL
             WHERE ${actorTable.accountId} = ${timelineItemTable.accountId}
+              AND (
+                ${actorTable.id} = ${post.actorId}
+                OR EXISTS (
+                  SELECT 1
+                  FROM ${followingTable}
+                  WHERE ${followingTable.followerId} = ${actorTable.id}
+                    AND ${followingTable.followeeId} = ${post.actorId}
+                    AND ${followingTable.accepted} IS NOT NULL
+                )
+                OR EXISTS (
+                  SELECT 1
+                  FROM ${mentionTable}
+                  WHERE ${mentionTable.postId} = ${post.id}
+                    AND ${mentionTable.actorId} = ${actorTable.id}
+                )
+              )
           )
         )`,
       ),
