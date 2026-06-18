@@ -179,6 +179,88 @@ test("removeFromTimeline() falls back to the previous sharer", async () => {
 });
 
 test(
+  "removeFromTimeline() excludes a share that has not been deleted yet",
+  async () => {
+    await withRollback(async (tx) => {
+      const fedCtx = createFedCtx(tx);
+      const suffix = crypto.randomUUID().replaceAll("-", "").slice(0, 8);
+      const viewer = await insertAccountWithActor(tx, {
+        username: "timeliveviewer",
+        name: "Timeline Live Viewer",
+        email: "timeliveviewer@example.com",
+      });
+      const firstSharer = await insertAccountWithActor(tx, {
+        username: "timelivefirst",
+        name: "Timeline Live First",
+        email: "timelivefirst@example.com",
+      });
+      const secondSharer = await insertAccountWithActor(tx, {
+        username: "timelivesecond",
+        name: "Timeline Live Second",
+        email: "timelivesecond@example.com",
+      });
+      const remoteActor = await insertRemoteActor(tx, {
+        username: `timeliveremote${suffix}`,
+        name: "Timeline Live Remote",
+        host: "timeline-live.example",
+      });
+      const originalPost = await insertRemotePost(tx, {
+        actorId: remoteActor.id,
+        contentHtml: "<p>Shared before its row is deleted</p>",
+      });
+
+      await follow(fedCtx, viewer.account, firstSharer.actor);
+      await follow(fedCtx, viewer.account, secondSharer.actor);
+
+      const firstShare = await sharePost(fedCtx, firstSharer.account, {
+        ...originalPost,
+        actor: remoteActor,
+      });
+      const secondShare = await sharePost(fedCtx, secondSharer.account, {
+        ...originalPost,
+        actor: remoteActor,
+      });
+
+      const firstPublished = new Date("2026-04-15T00:00:01.000Z");
+      const secondPublished = new Date("2026-04-15T00:00:02.000Z");
+
+      await tx.update(postTable)
+        .set({ published: firstPublished, updated: firstPublished })
+        .where(eq(postTable.id, firstShare.id));
+      await tx.update(postTable)
+        .set({ published: secondPublished, updated: secondPublished })
+        .where(eq(postTable.id, secondShare.id));
+
+      const before = await tx.query.timelineItemTable.findFirst({
+        where: {
+          accountId: viewer.account.id,
+          postId: originalPost.id,
+        },
+      });
+      assert.ok(before != null);
+      assert.deepEqual(before.lastSharerId, secondSharer.actor.id);
+      assert.deepEqual(before.sharersCount, 2);
+
+      await removeFromTimeline(tx, secondShare);
+
+      const after = await tx.query.timelineItemTable.findFirst({
+        where: {
+          accountId: viewer.account.id,
+          postId: originalPost.id,
+        },
+      });
+      assert.ok(after != null);
+      assert.deepEqual(after.lastSharerId, firstSharer.actor.id);
+      assert.deepEqual(after.sharersCount, 1);
+      assert.deepEqual(
+        after.appended.toISOString(),
+        firstPublished.toISOString(),
+      );
+    });
+  },
+);
+
+test(
   "removeFromTimeline() does not fall back to a sharer the viewer has muted",
   async () => {
     await withRollback(async (tx) => {

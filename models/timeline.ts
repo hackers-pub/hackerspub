@@ -339,66 +339,83 @@ export async function addTagsPubPostToTimeline(
 
 export async function removeFromTimeline(
   db: Database,
-  post: Post,
+  post: Pick<Post, "id" | "actorId" | "sharedPostId">,
 ): Promise<void> {
   if (post.sharedPostId == null) return;
   await db.update(timelineItemTable)
     .set({
-      lastSharerId: sql`
-        CASE ${timelineItemTable.sharersCount}
-          WHEN 1 THEN NULL
-          ELSE (
-            SELECT ${postTable.actorId}
-            FROM ${postTable}
-            JOIN ${actorTable}
-              ON ${actorTable.accountId} = ${timelineItemTable.accountId}
-            JOIN ${followingTable}
-              ON ${followingTable.followerId} = ${actorTable.id}
-              AND ${followingTable.accepted} IS NOT NULL
-            WHERE ${postTable.sharedPostId} = ${post.sharedPostId}
-              AND ${postTable.actorId} = ${followingTable.followeeId}
-              AND ${postTable.visibility} IN ('public', 'unlisted', 'followers')
-              AND NOT EXISTS (
-                SELECT 1 FROM ${mutingTable}
-                WHERE ${mutingTable.muterId} = ${actorTable.id}
-                  AND ${mutingTable.muteeId} = ${postTable.actorId}
-              )
-            ORDER BY ${postTable.published} DESC
-            LIMIT 1
+      lastSharerId: sql`(
+        SELECT ${postTable.actorId}
+        FROM ${postTable}
+        JOIN ${actorTable}
+          ON ${actorTable.accountId} = ${timelineItemTable.accountId}
+        JOIN ${followingTable}
+          ON ${followingTable.followerId} = ${actorTable.id}
+          AND ${followingTable.accepted} IS NOT NULL
+        WHERE ${postTable.sharedPostId} = ${post.sharedPostId}
+          AND ${postTable.id} != ${post.id}
+          AND ${postTable.actorId} = ${followingTable.followeeId}
+          AND ${postTable.visibility} IN ('public', 'unlisted', 'followers')
+          AND NOT EXISTS (
+            SELECT 1 FROM ${mutingTable}
+            WHERE ${mutingTable.muterId} = ${actorTable.id}
+              AND ${mutingTable.muteeId} = ${postTable.actorId}
           )
-        END
-      `,
-      sharersCount: sql`${timelineItemTable.sharersCount} - 1`,
-      appended: sql`
-        CASE ${timelineItemTable.sharersCount}
-          WHEN 1 THEN ${timelineItemTable.added}
-          ELSE (
-            SELECT coalesce(
-              max(${postTable.published}),
-              ${timelineItemTable.added}
-            )
-            FROM ${postTable}
-            JOIN ${actorTable}
-              ON ${actorTable.accountId} = ${timelineItemTable.accountId}
-            JOIN ${followingTable}
-              ON ${followingTable.followerId} = ${actorTable.id}
-              AND ${followingTable.accepted} IS NOT NULL
-            WHERE ${postTable.sharedPostId} = ${post.sharedPostId}
-              AND ${postTable.actorId} = ${followingTable.followeeId}
-              AND ${postTable.visibility} IN ('public', 'unlisted', 'followers')
-              AND NOT EXISTS (
-                SELECT 1 FROM ${mutingTable}
-                WHERE ${mutingTable.muterId} = ${actorTable.id}
-                  AND ${mutingTable.muteeId} = ${postTable.actorId}
-              )
+        ORDER BY ${postTable.published} DESC
+        LIMIT 1
+      )`,
+      appended: sql`(
+        SELECT coalesce(max(${postTable.published}), ${timelineItemTable.added})
+        FROM ${postTable}
+        JOIN ${actorTable}
+          ON ${actorTable.accountId} = ${timelineItemTable.accountId}
+        JOIN ${followingTable}
+          ON ${followingTable.followerId} = ${actorTable.id}
+          AND ${followingTable.accepted} IS NOT NULL
+        WHERE ${postTable.sharedPostId} = ${post.sharedPostId}
+          AND ${postTable.id} != ${post.id}
+          AND ${postTable.actorId} = ${followingTable.followeeId}
+          AND ${postTable.visibility} IN ('public', 'unlisted', 'followers')
+          AND NOT EXISTS (
+            SELECT 1 FROM ${mutingTable}
+            WHERE ${mutingTable.muterId} = ${actorTable.id}
+              AND ${mutingTable.muteeId} = ${postTable.actorId}
           )
-        END
-      `,
+      )`,
+      sharersCount: sql`(
+        SELECT count(DISTINCT ${postTable.actorId})
+        FROM ${postTable}
+        JOIN ${actorTable}
+          ON ${actorTable.accountId} = ${timelineItemTable.accountId}
+        JOIN ${followingTable}
+          ON ${followingTable.followerId} = ${actorTable.id}
+          AND ${followingTable.accepted} IS NOT NULL
+        WHERE ${postTable.sharedPostId} = ${post.sharedPostId}
+          AND ${postTable.id} != ${post.id}
+          AND ${postTable.actorId} = ${followingTable.followeeId}
+          AND ${postTable.visibility} IN ('public', 'unlisted', 'followers')
+          AND NOT EXISTS (
+            SELECT 1 FROM ${mutingTable}
+            WHERE ${mutingTable.muterId} = ${actorTable.id}
+              AND ${mutingTable.muteeId} = ${postTable.actorId}
+          )
+      )`,
     })
     .where(
       and(
         eq(timelineItemTable.postId, post.sharedPostId),
-        eq(timelineItemTable.lastSharerId, post.actorId),
+        sql`(
+          ${timelineItemTable.lastSharerId} = ${post.actorId}
+          OR EXISTS (
+            SELECT 1
+            FROM ${actorTable}
+            JOIN ${followingTable}
+              ON ${followingTable.followerId} = ${actorTable.id}
+              AND ${followingTable.followeeId} = ${post.actorId}
+              AND ${followingTable.accepted} IS NOT NULL
+            WHERE ${actorTable.accountId} = ${timelineItemTable.accountId}
+          )
+        )`,
       ),
     );
   await db.delete(timelineItemTable)

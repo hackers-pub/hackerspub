@@ -19,6 +19,7 @@ import {
   pollTable,
   pollVoteTable,
   postTable,
+  timelineItemTable,
 } from "./schema.ts";
 import { generateUuidV7 } from "./uuid.ts";
 import {
@@ -37,6 +38,11 @@ test("deleteAccount() hard-deletes an account and reserves the current username"
       username: "deleteparent",
       name: "Delete Parent",
       email: "deleteparent@example.com",
+    });
+    const timelineViewer = await insertAccountWithActor(tx, {
+      username: "deleteviewer",
+      name: "Delete Viewer",
+      email: "deleteviewer@example.com",
     });
     const target = await insertAccountWithActor(tx, {
       username: "deletecurrent",
@@ -113,6 +119,16 @@ test("deleteAccount() hard-deletes an account and reserves the current username"
     await tx.update(postTable)
       .set({ repliesCount: 1, sharesCount: 1, quotesCount: 1 })
       .where(eq(postTable.id, parentPost.id));
+    await tx.insert(timelineItemTable).values({
+      accountId: timelineViewer.account.id,
+      postId: parentPost.id,
+      postType: parentPost.type,
+      originalAuthorId: null,
+      lastSharerId: target.actor.id,
+      sharersCount: 1,
+      added: new Date("2026-04-12T00:00:00.000Z"),
+      appended: new Date("2026-04-12T00:00:00.000Z"),
+    });
 
     let sendObservedState:
       | {
@@ -196,6 +212,14 @@ test("deleteAccount() hard-deletes an account and reserves the current username"
     assert.equal(refreshedParent.repliesCount, 0);
     assert.equal(refreshedParent.sharesCount, 0);
     assert.equal(refreshedParent.quotesCount, 0);
+
+    const timelineItem = await tx.query.timelineItemTable.findFirst({
+      where: {
+        accountId: timelineViewer.account.id,
+        postId: parentPost.id,
+      },
+    });
+    assert.equal(timelineItem, undefined);
 
     const tombstone = await tx.query.deletedAccountTable.findFirst({
       where: { accountId: target.account.id },

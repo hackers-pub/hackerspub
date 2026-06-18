@@ -43,6 +43,7 @@ import {
   reactionTable,
 } from "./schema.ts";
 import { refreshNewsScores } from "./news.ts";
+import { removeFromTimeline } from "./timeline.ts";
 import { compactUrl } from "./url.ts";
 import type { Uuid } from "./uuid.ts";
 
@@ -308,6 +309,7 @@ export async function deleteAccount(
       where: { actorId: actor.id },
       columns: {
         id: true,
+        actorId: true,
         linkId: true,
         replyTargetId: true,
         sharedPostId: true,
@@ -402,6 +404,11 @@ export async function deleteAccount(
           created: key.created,
         })),
       );
+    }
+    for (const post of affectedPosts) {
+      if (post.sharedPostId != null) {
+        await removeFromTimeline(tx, post);
+      }
     }
     await tx.delete(accountTable).where(eq(accountTable.id, account.id));
     for (const following of affectedFollowings) {
