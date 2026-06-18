@@ -21,6 +21,7 @@ import {
   createMediumFromBytes,
   createMediumFromUrl,
 } from "./medium.ts";
+import { articleBoostLinkIds, refreshNewsScores } from "./news.ts";
 import {
   type Account,
   type AccountEmail,
@@ -42,7 +43,6 @@ import {
   postTable,
   reactionTable,
 } from "./schema.ts";
-import { refreshNewsScores } from "./news.ts";
 import { removeFromTimeline } from "./timeline.ts";
 import { compactUrl } from "./url.ts";
 import type { Uuid } from "./uuid.ts";
@@ -59,6 +59,27 @@ export interface DeletedAccountResult {
   accountId: Uuid;
   username: string;
   deleted: Date;
+}
+
+async function collectNewsLinkIdsForPosts(
+  db: Database,
+  posts: ReadonlyArray<{
+    readonly linkId: Uuid | null;
+    readonly sharedPostId?: Uuid | null;
+  }>,
+): Promise<Uuid[]> {
+  const linkIds = new Set(
+    posts.map((post) => post.linkId).filter((id): id is Uuid => id != null),
+  );
+  for (
+    const linkId of await articleBoostLinkIds(
+      db,
+      posts.map((post) => post.sharedPostId),
+    )
+  ) {
+    linkIds.add(linkId);
+  }
+  return [...linkIds];
 }
 
 export async function isUsernameReserved(
@@ -351,6 +372,7 @@ export async function deleteAccount(
     const affectedReactionPosts = await tx.select({
       id: postTable.id,
       linkId: postTable.linkId,
+      sharedPostId: postTable.sharedPostId,
     })
       .from(reactionTable)
       .innerJoin(postTable, eq(postTable.id, reactionTable.postId))
@@ -374,15 +396,13 @@ export async function deleteAccount(
       ? []
       : await tx.query.postTable.findMany({
         where: { id: { in: parentIds } },
-        columns: { id: true, linkId: true },
+        columns: { id: true, linkId: true, sharedPostId: true },
       });
-    const affectedLinkIds = [
-      ...new Set([
-        ...affectedPosts.map((post) => post.linkId),
-        ...parentPosts.map((post) => post.linkId),
-        ...affectedReactionPosts.map((post) => post.linkId),
-      ].filter((id): id is Uuid => id != null)),
-    ];
+    const affectedLinkIds = await collectNewsLinkIdsForPosts(tx, [
+      ...affectedPosts,
+      ...parentPosts,
+      ...affectedReactionPosts,
+    ]);
 
     const actorUri = fedCtx.getActorUri(account.id);
     const accountKeys = await tx.query.accountKeyTable.findMany({

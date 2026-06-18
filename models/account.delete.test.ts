@@ -7,6 +7,7 @@ import {
   isUsernameReserved,
   updateAccountData,
 } from "./account.ts";
+import { NEWS_W_SHARE, recomputeNewsScores } from "./news.ts";
 import { createFollowNotification } from "./notification.ts";
 import { react } from "./reaction.ts";
 import {
@@ -26,8 +27,20 @@ import {
   createFedCtx,
   insertAccountWithActor,
   insertNotePost,
+  insertPostLink,
   withRollback,
 } from "../test/postgres.ts";
+
+function assertAlmostEquals(
+  actual: number,
+  expected: number,
+  delta: number,
+): void {
+  assert.ok(
+    Math.abs(actual - expected) <= delta,
+    `Expected ${actual} to be within ${delta} of ${expected}`,
+  );
+}
 
 test("deleteAccount() hard-deletes an account and reserves the current username", async () => {
   await withRollback(async (tx) => {
@@ -362,6 +375,71 @@ test("deleteAccount() refreshes denormalized interaction state", async () => {
       refreshedOptions.map((option) => option.votesCount),
       [0, 1],
     );
+  });
+});
+
+test("deleteAccount() refreshes news scores for Article boost interactions", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const author = await insertAccountWithActor(tx, {
+      username: "deletearticleauthor",
+      name: "Delete Article Author",
+      email: "delete-article-author@example.com",
+    });
+    const booster = await insertAccountWithActor(tx, {
+      username: "deletearticlebooster",
+      name: "Delete Article Booster",
+      email: "delete-article-booster@example.com",
+    });
+    const target = await insertAccountWithActor(tx, {
+      username: "deletearticleinteractor",
+      name: "Delete Article Interactor",
+      email: "delete-article-interactor@example.com",
+    });
+    const link = await insertPostLink(tx, {
+      url: "http://localhost/@deletearticleauthor/article",
+    });
+    const { post: article } = await insertNotePost(tx, {
+      account: author.account,
+      published: new Date("2026-05-10T00:00:00.000Z"),
+      link: { id: link.id, url: link.url },
+    });
+    await tx.update(postTable).set({
+      type: "Article",
+      noteSourceId: null,
+      name: "Article",
+      url: link.url,
+    }).where(eq(postTable.id, article.id));
+    const { post: boost } = await insertNotePost(tx, {
+      account: booster.account,
+      sharedPostId: article.id,
+      published: new Date("2026-05-11T00:00:00.000Z"),
+    });
+    await insertNotePost(tx, {
+      account: target.account,
+      replyTargetId: boost.id,
+      published: new Date("2026-05-12T00:00:00.000Z"),
+    });
+    await react(
+      fedCtx,
+      target.account,
+      { ...boost, actor: booster.actor },
+      "🎉",
+    );
+    await recomputeNewsScores(tx, { linkIds: [link.id] });
+    const before = await tx.query.postLinkTable.findFirst({
+      where: { id: link.id },
+    });
+    assert.ok(before != null);
+    assert.ok(before.weightedMass > 2 * NEWS_W_SHARE);
+
+    await deleteAccount(fedCtx, target.account.id);
+
+    const after = await tx.query.postLinkTable.findFirst({
+      where: { id: link.id },
+    });
+    assert.ok(after != null);
+    assertAlmostEquals(after.weightedMass, 2 * NEWS_W_SHARE, 1e-9);
   });
 });
 

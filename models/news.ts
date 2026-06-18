@@ -372,7 +372,7 @@ export async function refreshNewsScoresForPostId(
   await refreshNewsScores(db, [...linkIds]);
 }
 
-async function articleBoostLinkIds(
+export async function articleBoostLinkIds(
   db: Database,
   sharedPostIds: ReadonlyArray<Uuid | null | undefined>,
 ): Promise<Uuid[]> {
