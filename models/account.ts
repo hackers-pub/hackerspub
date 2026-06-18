@@ -10,7 +10,7 @@ import { getLogger } from "@logtape/logtape";
 import { zip } from "@std/collections/zip";
 import { encodeHex } from "@std/encoding/hex";
 import { escape, unescape } from "@std/html/entities";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, or, sql } from "drizzle-orm";
 import type { Disk } from "flydrive";
 import sharp from "sharp";
 import type { ContextData } from "./context.ts";
@@ -31,6 +31,7 @@ import {
   accountTable,
   type Actor,
   actorTable,
+  articleContentTable,
   deletedAccountKeyTable,
   deletedAccountTable,
   followingTable,
@@ -430,6 +431,13 @@ export async function deleteAccount(
         await removeFromTimeline(tx, post);
       }
     }
+    await tx.delete(articleContentTable)
+      .where(
+        or(
+          eq(articleContentTable.translatorId, account.id),
+          eq(articleContentTable.translationRequesterId, account.id),
+        ),
+      );
     await tx.delete(accountTable).where(eq(accountTable.id, account.id));
     for (const following of affectedFollowings) {
       if (following.followerId === actor.id) {

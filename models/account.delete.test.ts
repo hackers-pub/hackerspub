@@ -13,6 +13,8 @@ import { react } from "./reaction.ts";
 import {
   accountKeyTable,
   actorTable,
+  articleContentTable,
+  articleSourceTable,
   flagCaseTable,
   followingTable,
   instanceTable,
@@ -440,6 +442,79 @@ test("deleteAccount() refreshes news scores for Article boost interactions", asy
     });
     assert.ok(after != null);
     assertAlmostEquals(after.weightedMass, 2 * NEWS_W_SHARE, 1e-9);
+  });
+});
+
+test("deleteAccount() removes article translations attributed to the account", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const author = await insertAccountWithActor(tx, {
+      username: "deletearticleowner",
+      name: "Delete Article Owner",
+      email: "delete-article-owner@example.com",
+    });
+    const target = await insertAccountWithActor(tx, {
+      username: "deletearticletranslator",
+      name: "Delete Article Translator",
+      email: "delete-article-translator@example.com",
+    });
+    const sourceId = generateUuidV7();
+    const published = new Date("2026-05-20T00:00:00.000Z");
+    await tx.insert(articleSourceTable).values({
+      id: sourceId,
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "delete-translation-attribution",
+      published,
+      updated: published,
+    });
+    await tx.insert(articleContentTable).values([
+      {
+        sourceId,
+        language: "en",
+        title: "Original title",
+        content: "Original content",
+        published,
+        updated: published,
+      },
+      {
+        sourceId,
+        language: "ko",
+        title: "Requested translation",
+        content: "Requested translated content",
+        originalLanguage: "en",
+        translationRequesterId: target.account.id,
+        beingTranslated: false,
+        published,
+        updated: published,
+      },
+      {
+        sourceId,
+        language: "ja",
+        title: "Human translation",
+        content: "Human translated content",
+        originalLanguage: "en",
+        translatorId: target.account.id,
+        beingTranslated: false,
+        published,
+        updated: published,
+      },
+    ]);
+
+    const result = await deleteAccount(fedCtx, target.account.id);
+
+    assert.equal(result?.accountId, target.account.id);
+    const contents = await tx.query.articleContentTable.findMany({
+      where: { sourceId },
+      orderBy: { language: "asc" },
+    });
+    assert.deepEqual(
+      contents.map((content) => ({
+        language: content.language,
+        originalLanguage: content.originalLanguage,
+      })),
+      [{ language: "en", originalLanguage: null }],
+    );
   });
 });
 
