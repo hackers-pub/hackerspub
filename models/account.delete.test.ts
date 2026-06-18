@@ -61,6 +61,24 @@ test("deleteAccount() hard-deletes an account and reserves the current username"
       followeeId: target.actor.id,
       accepted: new Date("2026-04-10T00:00:00.000Z"),
     });
+    const followeeId = generateUuidV7();
+    await tx.insert(instanceTable).values({ host: "deletefollowee.example" });
+    await tx.insert(actorTable).values({
+      id: followeeId,
+      iri: "https://deletefollowee.example/users/bob",
+      type: "Person",
+      username: "bob",
+      instanceHost: "deletefollowee.example",
+      handleHost: "deletefollowee.example",
+      inboxUrl: "https://deletefollowee.example/users/bob/inbox",
+      sharedInboxUrl: "https://deletefollowee.example/inbox",
+    });
+    await tx.insert(followingTable).values({
+      iri: "http://localhost/follows/deletecurrent-bob",
+      followerId: target.actor.id,
+      followeeId,
+      accepted: new Date("2026-04-11T00:00:00.000Z"),
+    });
     const renamed = await updateAccountData(tx, {
       id: target.account.id,
       username: "deleterenamed",
@@ -133,18 +151,24 @@ test("deleteAccount() hard-deletes an account and reserves the current username"
 
     assert.equal(sentActivities.length, 1);
     assert.ok(Array.isArray(sentActivities[0][1]));
-    assert.equal(sentActivities[0][1].length, 1);
-    assert.equal(
-      sentActivities[0][1][0].id.href,
-      "https://deletefollower.example/users/alice",
-    );
-    assert.equal(
-      sentActivities[0][1][0].inboxId.href,
-      "https://deletefollower.example/users/alice/inbox",
-    );
-    assert.equal(
-      sentActivities[0][1][0].endpoints.sharedInbox.href,
-      "https://deletefollower.example/inbox",
+    assert.deepEqual(
+      sentActivities[0][1].map((recipient) => ({
+        id: recipient.id.href,
+        inboxId: recipient.inboxId.href,
+        sharedInbox: recipient.endpoints.sharedInbox.href,
+      })).sort((a, b) => a.id.localeCompare(b.id)),
+      [
+        {
+          id: "https://deletefollowee.example/users/bob",
+          inboxId: "https://deletefollowee.example/users/bob/inbox",
+          sharedInbox: "https://deletefollowee.example/inbox",
+        },
+        {
+          id: "https://deletefollower.example/users/alice",
+          inboxId: "https://deletefollower.example/users/alice/inbox",
+          sharedInbox: "https://deletefollower.example/inbox",
+        },
+      ],
     );
     assert.deepEqual(sendObservedState, {
       accountExists: false,

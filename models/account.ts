@@ -326,16 +326,26 @@ export async function deleteAccount(
           OR ${followingTable.followeeId} = ${actor.id}
         )
       `);
-    const deletionFollowerRows = await tx.query.followingTable.findMany({
-      with: { follower: true },
+    const deletionRelationshipRows = await tx.query.followingTable.findMany({
+      with: { followee: true, follower: true },
       where: {
-        followeeId: actor.id,
         accepted: { isNotNull: true },
+        OR: [
+          { followerId: actor.id },
+          { followeeId: actor.id },
+        ],
       },
     });
-    deleteRecipients = deletionFollowerRows.map((following) =>
-      toDeletedAccountRecipient(following.follower)
-    );
+    const deletionRecipientMap = new Map<string, vocab.Recipient>();
+    for (const following of deletionRelationshipRows) {
+      const recipientActor = following.followerId === actor.id
+        ? following.followee
+        : following.follower;
+      if (recipientActor.id === actor.id) continue;
+      const recipient = toDeletedAccountRecipient(recipientActor);
+      deletionRecipientMap.set(recipientActor.iri, recipient);
+    }
+    deleteRecipients = [...deletionRecipientMap.values()];
     const affectedReactionPosts = await tx.select({
       id: postTable.id,
       linkId: postTable.linkId,
