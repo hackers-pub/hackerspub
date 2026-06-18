@@ -632,3 +632,39 @@ test("deleteAccount() refuses accounts linked to moderation audit records", asyn
     assert.equal(tombstone, undefined);
   });
 });
+
+test("deleteAccount() ignores unrelated moderation audit records", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    fedCtx.sendActivity = (() =>
+      Promise.resolve(undefined)) as typeof fedCtx.sendActivity;
+    const target = await insertAccountWithActor(tx, {
+      username: "deleteauditfree",
+      name: "Delete Audit Free",
+      email: "deleteauditfree@example.com",
+    });
+    const unrelated = await insertAccountWithActor(tx, {
+      username: "deleteauditother",
+      name: "Delete Audit Other",
+      email: "deleteauditother@example.com",
+    });
+    const flagCaseId = generateUuidV7();
+    await tx.insert(flagCaseTable).values({
+      id: flagCaseId,
+      targetActorId: unrelated.actor.id,
+      status: "pending",
+    });
+
+    const result = await deleteAccount(fedCtx, target.account.id);
+
+    assert.equal(result?.accountId, target.account.id);
+    const account = await tx.query.accountTable.findFirst({
+      where: { id: target.account.id },
+    });
+    assert.equal(account, undefined);
+    const flagCase = await tx.query.flagCaseTable.findFirst({
+      where: { id: flagCaseId },
+    });
+    assert.equal(flagCase?.targetActorId, unrelated.actor.id);
+  });
+});
