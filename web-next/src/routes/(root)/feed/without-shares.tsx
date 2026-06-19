@@ -21,19 +21,14 @@ import { useLanguageFilter } from "~/lib/useLanguageFilter.ts";
 import type { withoutSharesFeedTimelineQuery } from "./__generated__/withoutSharesFeedTimelineQuery.graphql.ts";
 
 export const route = {
-  preload({ location }) {
-    // Run the SSR auth gate so anonymous visitors get a 302 to /sign instead
-    // of a hydrated `<Navigate>` flash. We deliberately do NOT pre-fire the
-    // timeline query here: referencing the load function from this route
-    // export forces Vite to bundle the generated GraphQL operation module
-    // into entry-client (because `?pick=route` is statically imported),
-    // which would balloon the boot bundle with one chunk per route. The
-    // component fires the query itself once it mounts under the
-    // authenticated branch.
-    void gateOnAuthentication(
-      useRelayEnvironment()(),
-      location.pathname + location.search + location.hash,
-    );
+  preload() {
+    // Check auth status without pre-firing the protected timeline query:
+    // referencing the load function from this route export forces Vite to
+    // bundle the generated GraphQL operation module into entry-client
+    // (because `?pick=route` is statically imported), which would balloon the
+    // boot bundle with one chunk per route. The component fires the query
+    // itself once it mounts under the authenticated branch.
+    void gateOnAuthentication(useRelayEnvironment()());
   },
 } satisfies RouteDefinition;
 

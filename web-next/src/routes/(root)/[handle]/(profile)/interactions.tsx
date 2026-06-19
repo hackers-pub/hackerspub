@@ -33,11 +33,8 @@ export const route = {
   matchFilters: {
     handle: /^@/,
   },
-  preload({ location }) {
-    void gateOnAuthentication(
-      useRelayEnvironment()(),
-      location.pathname + location.search + location.hash,
-    );
+  preload() {
+    void gateOnAuthentication(useRelayEnvironment()());
   },
 } satisfies RouteDefinition;
 

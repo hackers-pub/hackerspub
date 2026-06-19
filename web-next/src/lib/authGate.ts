@@ -1,4 +1,3 @@
-import { redirect } from "@solidjs/router";
 import {
   createOperationDescriptor,
   getRequest,
@@ -32,10 +31,12 @@ function snapshotViewerStatus(
 
 // Gate a route's preload on whether the visitor looks authenticated:
 //
-// - SSR without a recognizable session cookie → throws `redirect(...)`.
-//   This is safe on the SSR path because preload is part of the request
-//   lifecycle, and short-circuiting here avoids firing the protected
-//   GraphQL query at all.
+// - SSR without a recognizable session cookie → "skip". The protected route
+//   component's render-time `<Navigate>` fallback performs the redirect after
+//   the root viewer query resolves. Throwing `redirect(...)` directly from
+//   route preload is not handled as a routing redirect in the current
+//   SolidStart stack; it reaches the root ErrorBoundary as a non-`Error` value
+//   and renders "Unknown error" instead.
 // - SSR with a session cookie → "preload". A stale/revoked cookie that
 //   still passes the UUID check falls through here; the render-time
 //   `useViewer()` gate catches it.
@@ -47,13 +48,11 @@ function snapshotViewerStatus(
 //   handles redirecting unauthenticated visitors instead.
 export function gateOnAuthentication(
   env: IEnvironment,
-  returnUrl: string,
 ): AuthGateAction {
   if (isServer) {
-    if (readSessionCookie(getRequestEvent()?.request) == null) {
-      throw redirect(buildSignInHref(returnUrl));
-    }
-    return "preload";
+    return readSessionCookie(getRequestEvent()?.request) == null
+      ? "skip"
+      : "preload";
   }
   return snapshotViewerStatus(env) === "authenticated" ? "preload" : "skip";
 }
