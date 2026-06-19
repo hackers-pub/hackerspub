@@ -163,6 +163,17 @@ function AccountDeletionForm(props: AccountDeletionFormProps) {
       variables: { id: props.id },
       onCompleted(response) {
         const result = response.deleteAccount;
+        if (result == null) {
+          setDeleting(false);
+          setConfirmOpen(false);
+          showToast({
+            title: t`Failed to delete account`,
+            description:
+              t`The deletion request could not be completed. Please try again.`,
+            variant: "error",
+          });
+          return;
+        }
         if (result.__typename === "DeleteAccountPayload") {
           void removeSessionCookie().finally(() => location.replace("/local"));
           return;
@@ -234,6 +245,7 @@ function AccountDeletionForm(props: AccountDeletionFormProps) {
         <TextFieldLabel>{t`Username`}</TextFieldLabel>
         <TextFieldInput
           autocomplete="off"
+          autocapitalize="none"
           inputmode="text"
           placeholder={props.username}
         />

@@ -50,22 +50,23 @@ const AppSidebarSignOutMutation = graphql`
   }
 `;
 
-async function removeSessionCookie(): Promise<Uuid | null> {
+async function getCurrentSessionId(): Promise<Uuid | null> {
+  "use server";
+  const event = getRequestEvent();
+  return readSessionCookie(event?.request);
+}
+
+async function removeSessionCookie(): Promise<void> {
   "use server";
   const event = getRequestEvent();
   if (event != null) {
-    const sessionId = readSessionCookie(event.request);
     event.response.headers.append(
       "Set-Cookie",
       buildExpiredSessionSetCookieHeader({
         secure: isSecureRequest(event.request),
       }),
     );
-    if (sessionId != null) {
-      return sessionId;
-    }
   }
-  return null;
 }
 
 function setLegacyUiCookie(): void {
@@ -132,20 +133,23 @@ export function AppSidebar(props: AppSidebarProps) {
   };
 
   async function onSignOut() {
-    const sessionId = await removeSessionCookie();
-    if (sessionId != null) {
-      signOut({
-        variables: { sessionId },
-        onCompleted() {
-          location.replace("/local");
-        },
-        onError(error) {
-          window.alert(
-            t`Failed to sign out: ${error.message}`,
-          );
-        },
-      });
+    const sessionId = await getCurrentSessionId();
+    if (sessionId == null) {
+      await removeSessionCookie();
+      location.replace("/local");
+      return;
     }
+    signOut({
+      variables: { sessionId },
+      onCompleted() {
+        void removeSessionCookie().finally(() => location.replace("/local"));
+      },
+      onError(error) {
+        window.alert(
+          t`Failed to sign out: ${error.message}`,
+        );
+      },
+    });
   }
 
   return (
