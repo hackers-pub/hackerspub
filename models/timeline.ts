@@ -10,14 +10,12 @@ import {
 import {
   type Account,
   type Actor,
-  actorTable,
   type Blocking,
   type Following,
   followingTable,
   hashtagFollowingTable,
   type Instance,
   type Mention,
-  mentionTable,
   mutingTable,
   type NewTimelineItem,
   type Post,
@@ -338,126 +336,103 @@ export async function addTagsPubPostToTimeline(
     .onConflictDoNothing();
 }
 
-function getShareRecipientCondition() {
-  // Mirrors the share-recipient paths in addPostToTimeline for the actor row
-  // joined from the current timeline item owner.
-  return sql`(
-    ${postTable.actorId} = ${actorTable.id}
-    OR EXISTS (
-      SELECT 1
-      FROM ${postTable} AS quoted_post
-      WHERE quoted_post.id = ${postTable.quotedPostId}
-        AND quoted_post.actor_id = ${actorTable.id}
-    )
-    OR EXISTS (
-      SELECT 1
-      FROM ${mentionTable}
-      WHERE ${mentionTable.postId} = ${postTable.id}
-        AND ${mentionTable.actorId} = ${actorTable.id}
-    )
-    OR (
-      ${postTable.visibility} IN ('public', 'unlisted', 'followers')
-      AND EXISTS (
-        SELECT 1
-        FROM ${followingTable}
-        WHERE ${followingTable.followerId} = ${actorTable.id}
-          AND ${followingTable.followeeId} = ${postTable.actorId}
-          AND ${followingTable.accepted} IS NOT NULL
-      )
-    )
-  )`;
-}
-
 export async function removeFromTimeline(
   db: Database,
   post: Pick<Post, "id" | "actorId" | "quotedPostId" | "sharedPostId">,
 ): Promise<void> {
   if (post.sharedPostId == null) return;
-  await db.update(timelineItemTable)
-    .set({
-      lastSharerId: sql`(
-        SELECT ${postTable.actorId}
-        FROM ${postTable}
-        JOIN ${actorTable}
-          ON ${actorTable.accountId} = ${timelineItemTable.accountId}
-        WHERE ${postTable.sharedPostId} = ${post.sharedPostId}
-          AND ${postTable.id} != ${post.id}
-          AND ${postTable.actorId} != ${post.actorId}
-          AND ${getShareRecipientCondition()}
-          AND NOT EXISTS (
-            SELECT 1 FROM ${mutingTable}
-            WHERE ${mutingTable.muterId} = ${actorTable.id}
-              AND ${mutingTable.muteeId} = ${postTable.actorId}
-          )
-        ORDER BY ${postTable.published} DESC
-        LIMIT 1
-      )`,
-      appended: sql`(
-        SELECT coalesce(max(${postTable.published}), ${timelineItemTable.added})
-        FROM ${postTable}
-        JOIN ${actorTable}
-          ON ${actorTable.accountId} = ${timelineItemTable.accountId}
-        WHERE ${postTable.sharedPostId} = ${post.sharedPostId}
-          AND ${postTable.id} != ${post.id}
-          AND ${postTable.actorId} != ${post.actorId}
-          AND ${getShareRecipientCondition()}
-          AND NOT EXISTS (
-            SELECT 1 FROM ${mutingTable}
-            WHERE ${mutingTable.muterId} = ${actorTable.id}
-              AND ${mutingTable.muteeId} = ${postTable.actorId}
-          )
-      )`,
-      sharersCount: sql`(
-        SELECT count(DISTINCT ${postTable.actorId})
-        FROM ${postTable}
-        JOIN ${actorTable}
-          ON ${actorTable.accountId} = ${timelineItemTable.accountId}
-        WHERE ${postTable.sharedPostId} = ${post.sharedPostId}
-          AND ${postTable.id} != ${post.id}
-          AND ${postTable.actorId} != ${post.actorId}
-          AND ${getShareRecipientCondition()}
-          AND NOT EXISTS (
-            SELECT 1 FROM ${mutingTable}
-            WHERE ${mutingTable.muterId} = ${actorTable.id}
-              AND ${mutingTable.muteeId} = ${postTable.actorId}
-          )
-      )`,
-    })
-    .where(
-      and(
-        eq(timelineItemTable.postId, post.sharedPostId),
-        sql`(
-          ${timelineItemTable.lastSharerId} = ${post.actorId}
+  await db.execute(sql`
+    WITH timeline_targets AS (
+      SELECT
+        ti.account_id,
+        ti.post_id,
+        ti.added,
+        viewer_actor.id AS viewer_actor_id
+      FROM timeline_item AS ti
+      JOIN actor AS viewer_actor
+        ON viewer_actor.account_id = ti.account_id
+      WHERE ti.post_id = ${post.sharedPostId}
+        AND (
+          ti.last_sharer_id = ${post.actorId}
+          OR viewer_actor.id = ${post.actorId}
           OR EXISTS (
             SELECT 1
-            FROM ${actorTable}
-            WHERE ${actorTable.accountId} = ${timelineItemTable.accountId}
-              AND (
-                ${actorTable.id} = ${post.actorId}
-                OR EXISTS (
-                  SELECT 1
-                  FROM ${followingTable}
-                  WHERE ${followingTable.followerId} = ${actorTable.id}
-                    AND ${followingTable.followeeId} = ${post.actorId}
-                    AND ${followingTable.accepted} IS NOT NULL
-                )
-                OR EXISTS (
-                  SELECT 1
-                  FROM ${mentionTable}
-                  WHERE ${mentionTable.postId} = ${post.id}
-                    AND ${mentionTable.actorId} = ${actorTable.id}
-                )
-                OR EXISTS (
-                  SELECT 1
-                  FROM ${postTable} AS quoted_post
-                  WHERE quoted_post.id = ${post.quotedPostId}
-                    AND quoted_post.actor_id = ${actorTable.id}
-                )
-              )
+            FROM following AS f
+            WHERE f.follower_id = viewer_actor.id
+              AND f.followee_id = ${post.actorId}
+              AND f.accepted IS NOT NULL
           )
-        )`,
-      ),
-    );
+          OR EXISTS (
+            SELECT 1
+            FROM mention AS m
+            WHERE m.post_id = ${post.id}
+              AND m.actor_id = viewer_actor.id
+          )
+          OR EXISTS (
+            SELECT 1
+            FROM post AS quoted_post
+            WHERE quoted_post.id = ${post.quotedPostId}
+              AND quoted_post.actor_id = viewer_actor.id
+          )
+        )
+    ),
+    share_stats AS (
+      SELECT
+        tt.account_id,
+        tt.post_id,
+        (
+          array_agg(p.actor_id ORDER BY p.published DESC)
+            FILTER (WHERE p.id IS NOT NULL)
+        )[1] AS last_sharer_id,
+        coalesce(max(p.published), tt.added) AS appended,
+        count(DISTINCT p.actor_id)::integer AS sharers_count
+      FROM timeline_targets AS tt
+      LEFT JOIN post AS p
+        ON p.shared_post_id = ${post.sharedPostId}
+       AND p.id != ${post.id}
+       AND p.actor_id != ${post.actorId}
+       AND (
+         p.actor_id = tt.viewer_actor_id
+         OR EXISTS (
+           SELECT 1
+           FROM post AS quoted_post
+           WHERE quoted_post.id = p.quoted_post_id
+             AND quoted_post.actor_id = tt.viewer_actor_id
+         )
+         OR EXISTS (
+           SELECT 1
+           FROM mention AS m
+           WHERE m.post_id = p.id
+             AND m.actor_id = tt.viewer_actor_id
+         )
+         OR (
+           p.visibility IN ('public', 'unlisted', 'followers')
+           AND EXISTS (
+             SELECT 1
+             FROM following AS f
+             WHERE f.follower_id = tt.viewer_actor_id
+               AND f.followee_id = p.actor_id
+               AND f.accepted IS NOT NULL
+           )
+         )
+       )
+       AND NOT EXISTS (
+         SELECT 1
+         FROM muting AS mt
+         WHERE mt.muter_id = tt.viewer_actor_id
+           AND mt.mutee_id = p.actor_id
+       )
+      GROUP BY tt.account_id, tt.post_id, tt.added
+    )
+    UPDATE timeline_item AS ti
+    SET
+      last_sharer_id = share_stats.last_sharer_id,
+      appended = share_stats.appended,
+      sharers_count = share_stats.sharers_count
+    FROM share_stats
+    WHERE ti.account_id = share_stats.account_id
+      AND ti.post_id = share_stats.post_id
+  `);
   await db.delete(timelineItemTable)
     .where(
       and(
