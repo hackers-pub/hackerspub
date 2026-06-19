@@ -15,7 +15,6 @@ import type { Disk } from "flydrive";
 import sharp from "sharp";
 import type { ContextData } from "./context.ts";
 import type { Database } from "./db.ts";
-import { updateFolloweesCount, updateFollowersCount } from "./following.ts";
 import {
   createMediumFromBlob,
   createMediumFromBytes,
@@ -34,6 +33,7 @@ import {
   articleContentTable,
   deletedAccountKeyTable,
   deletedAccountTable,
+  followingTable,
   type Medium,
   type NewAccount,
   notificationTable,
@@ -43,7 +43,7 @@ import {
   postTable,
   reactionTable,
 } from "./schema.ts";
-import { removeFromTimeline } from "./timeline.ts";
+import { removePostsFromTimeline } from "./timeline.ts";
 import { compactUrl } from "./url.ts";
 import type { Uuid } from "./uuid.ts";
 
@@ -255,6 +255,60 @@ async function removeActorFromNotifications(
     );
 }
 
+async function decrementAcceptedRelationshipCounts(
+  db: Database,
+  relationships: ReadonlyArray<{
+    readonly followerId: Uuid;
+    readonly followeeId: Uuid;
+  }>,
+  actorId: Uuid,
+): Promise<void> {
+  const followeeIds = [
+    ...new Set(
+      relationships
+        .filter((following) => following.followerId === actorId)
+        .map((following) => following.followeeId),
+    ),
+  ];
+  const followerIds = [
+    ...new Set(
+      relationships
+        .filter((following) => following.followeeId === actorId)
+        .map((following) => following.followerId),
+    ),
+  ];
+  if (followeeIds.length > 0) {
+    await db.update(actorTable).set({
+      followersCount: sql<number>`
+        CASE WHEN ${actorTable.accountId} IS NULL
+          THEN ${actorTable.followersCount} - 1
+          ELSE (
+            SELECT count(*)
+            FROM ${followingTable}
+            WHERE ${followingTable.followeeId} = ${actorTable.id}
+              AND ${followingTable.accepted} IS NOT NULL
+          )
+        END
+      `,
+    }).where(inArray(actorTable.id, followeeIds));
+  }
+  if (followerIds.length > 0) {
+    await db.update(actorTable).set({
+      followeesCount: sql<number>`
+        CASE WHEN ${actorTable.accountId} IS NULL
+          THEN ${actorTable.followeesCount} - 1
+          ELSE (
+            SELECT count(*)
+            FROM ${followingTable}
+            WHERE ${followingTable.followerId} = ${actorTable.id}
+              AND ${followingTable.accepted} IS NOT NULL
+          )
+        END
+      `,
+    }).where(inArray(actorTable.id, followerIds));
+  }
+}
+
 function isNotificationActorIdsEmpty() {
   return sql`array_length(${notificationTable.actorIds}, 1) IS NULL`;
 }
@@ -410,11 +464,7 @@ export async function deleteAccount(
         })),
       );
     }
-    for (const post of affectedPosts) {
-      if (post.sharedPostId != null) {
-        await removeFromTimeline(tx, post);
-      }
-    }
+    await removePostsFromTimeline(tx, affectedPosts);
     await tx.delete(articleContentTable)
       .where(
         or(
@@ -423,14 +473,11 @@ export async function deleteAccount(
         ),
       );
     await tx.delete(accountTable).where(eq(accountTable.id, account.id));
-    for (const following of acceptedRelationshipRows) {
-      if (following.followerId === actor.id) {
-        await updateFollowersCount(tx, following.followeeId, -1);
-      }
-      if (following.followeeId === actor.id) {
-        await updateFolloweesCount(tx, following.followerId, -1);
-      }
-    }
+    await decrementAcceptedRelationshipCounts(
+      tx,
+      acceptedRelationshipRows,
+      actor.id,
+    );
     await removeActorFromNotifications(tx, actor.id);
     await recomputePostInteractionCounts(tx, parentIds);
     await recomputePostReactionCounts(

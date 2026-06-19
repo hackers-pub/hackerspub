@@ -340,9 +340,28 @@ export async function removeFromTimeline(
   db: Database,
   post: Pick<Post, "id" | "actorId" | "quotedPostId" | "sharedPostId">,
 ): Promise<void> {
-  if (post.sharedPostId == null) return;
+  await removePostsFromTimeline(db, [post]);
+}
+
+export async function removePostsFromTimeline(
+  db: Database,
+  posts: ReadonlyArray<
+    Pick<Post, "id" | "actorId" | "quotedPostId" | "sharedPostId">
+  >,
+): Promise<void> {
+  const sharedPosts = posts.filter((post) => post.sharedPostId != null);
+  if (sharedPosts.length < 1) return;
+  const removedPostValues = sql.join(
+    sharedPosts.map((post) =>
+      sql`(${post.id}::uuid, ${post.actorId}::uuid, ${post.quotedPostId}::uuid, ${post.sharedPostId}::uuid)`
+    ),
+    sql`, `,
+  );
   await db.execute(sql`
-    WITH timeline_targets AS (
+    WITH removed_posts(id, actor_id, quoted_post_id, shared_post_id) AS (
+      VALUES ${removedPostValues}
+    ),
+    timeline_targets AS (
       SELECT
         ti.account_id,
         ti.post_id,
@@ -351,30 +370,32 @@ export async function removeFromTimeline(
       FROM timeline_item AS ti
       JOIN actor AS viewer_actor
         ON viewer_actor.account_id = ti.account_id
-      WHERE ti.post_id = ${post.sharedPostId}
-        AND (
-          ti.last_sharer_id = ${post.actorId}
-          OR viewer_actor.id = ${post.actorId}
+      JOIN removed_posts AS rp
+        ON rp.shared_post_id = ti.post_id
+      WHERE (
+          ti.last_sharer_id = rp.actor_id
+          OR viewer_actor.id = rp.actor_id
           OR EXISTS (
             SELECT 1
             FROM following AS f
             WHERE f.follower_id = viewer_actor.id
-              AND f.followee_id = ${post.actorId}
+              AND f.followee_id = rp.actor_id
               AND f.accepted IS NOT NULL
           )
           OR EXISTS (
             SELECT 1
             FROM mention AS m
-            WHERE m.post_id = ${post.id}
+            WHERE m.post_id = rp.id
               AND m.actor_id = viewer_actor.id
           )
           OR EXISTS (
             SELECT 1
             FROM post AS quoted_post
-            WHERE quoted_post.id = ${post.quotedPostId}
+            WHERE quoted_post.id = rp.quoted_post_id
               AND quoted_post.actor_id = viewer_actor.id
           )
         )
+      GROUP BY ti.account_id, ti.post_id, ti.added, viewer_actor.id
     ),
     share_stats AS (
       SELECT
@@ -388,9 +409,16 @@ export async function removeFromTimeline(
         count(DISTINCT p.actor_id)::integer AS sharers_count
       FROM timeline_targets AS tt
       LEFT JOIN post AS p
-        ON p.shared_post_id = ${post.sharedPostId}
-       AND p.id != ${post.id}
-       AND p.actor_id != ${post.actorId}
+        ON p.shared_post_id = tt.post_id
+       AND NOT EXISTS (
+         SELECT 1
+         FROM removed_posts AS excluded
+         WHERE excluded.shared_post_id = p.shared_post_id
+           AND (
+             excluded.id = p.id
+             OR excluded.actor_id = p.actor_id
+           )
+       )
        AND (
          p.actor_id = tt.viewer_actor_id
          OR EXISTS (

@@ -9,6 +9,7 @@ import {
   addPostToTimeline,
   expandLocales,
   removeFromTimeline,
+  removePostsFromTimeline,
 } from "./timeline.ts";
 import {
   createFedCtx,
@@ -173,6 +174,106 @@ test("removeFromTimeline() falls back to the previous sharer", async () => {
     assert.deepEqual(after.sharersCount, 1);
     assert.deepEqual(
       after.appended.toISOString(),
+      firstPublished.toISOString(),
+    );
+  });
+});
+
+test("removePostsFromTimeline() removes multiple shares in one pass", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const suffix = crypto.randomUUID().replaceAll("-", "").slice(0, 8);
+    const viewer = await insertAccountWithActor(tx, {
+      username: "timelinebulkviewer",
+      name: "Timeline Bulk Viewer",
+      email: "timelinebulkviewer@example.com",
+    });
+    const firstSharer = await insertAccountWithActor(tx, {
+      username: "timelinebulkfirst",
+      name: "Timeline Bulk First",
+      email: "timelinebulkfirst@example.com",
+    });
+    const secondSharer = await insertAccountWithActor(tx, {
+      username: "timelinebulksecond",
+      name: "Timeline Bulk Second",
+      email: "timelinebulksecond@example.com",
+    });
+    const remoteActor = await insertRemoteActor(tx, {
+      username: `timelinebulkremote${suffix}`,
+      name: "Timeline Bulk Remote",
+      host: "timeline-bulk.example",
+    });
+    const firstOriginal = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>First shared timeline post</p>",
+    });
+    const secondOriginal = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>Second shared timeline post</p>",
+    });
+
+    await follow(fedCtx, viewer.account, firstSharer.actor);
+    await follow(fedCtx, viewer.account, secondSharer.actor);
+
+    const firstShareA = await sharePost(fedCtx, firstSharer.account, {
+      ...firstOriginal,
+      actor: remoteActor,
+    });
+    const firstShareB = await sharePost(fedCtx, firstSharer.account, {
+      ...secondOriginal,
+      actor: remoteActor,
+    });
+    const secondShareA = await sharePost(fedCtx, secondSharer.account, {
+      ...firstOriginal,
+      actor: remoteActor,
+    });
+    const secondShareB = await sharePost(fedCtx, secondSharer.account, {
+      ...secondOriginal,
+      actor: remoteActor,
+    });
+
+    const firstPublished = new Date("2026-04-15T00:00:01.000Z");
+    const secondPublished = new Date("2026-04-15T00:00:02.000Z");
+    await tx.update(postTable)
+      .set({ published: firstPublished, updated: firstPublished })
+      .where(eq(postTable.id, firstShareA.id));
+    await tx.update(postTable)
+      .set({ published: firstPublished, updated: firstPublished })
+      .where(eq(postTable.id, firstShareB.id));
+    await tx.update(postTable)
+      .set({ published: secondPublished, updated: secondPublished })
+      .where(eq(postTable.id, secondShareA.id));
+    await tx.update(postTable)
+      .set({ published: secondPublished, updated: secondPublished })
+      .where(eq(postTable.id, secondShareB.id));
+
+    await removePostsFromTimeline(tx, [secondShareA, secondShareB]);
+
+    const afterFirst = await tx.query.timelineItemTable.findFirst({
+      where: {
+        accountId: viewer.account.id,
+        postId: firstOriginal.id,
+      },
+    });
+    assert.ok(afterFirst != null);
+    assert.deepEqual(afterFirst.lastSharerId, firstSharer.actor.id);
+    assert.deepEqual(afterFirst.sharersCount, 1);
+    assert.deepEqual(
+      afterFirst.appended.toISOString(),
+      firstPublished.toISOString(),
+    );
+
+    const afterSecond = await tx.query.timelineItemTable.findFirst({
+      where: {
+        accountId: viewer.account.id,
+        postId: secondOriginal.id,
+      },
+    });
+    assert.ok(afterSecond != null);
+    assert.deepEqual(afterSecond.lastSharerId, firstSharer.actor.id);
+    assert.deepEqual(afterSecond.sharersCount, 1);
+    assert.deepEqual(
+      afterSecond.appended.toISOString(),
       firstPublished.toISOString(),
     );
   });
