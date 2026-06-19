@@ -1,7 +1,23 @@
 import process from "node:process";
-import { exportJwk, generateCryptoKeyPair, importJwk } from "@fedify/fedify";
-import { Application, Endpoints, Image } from "@fedify/vocab";
-import { accountKeyTable, type NewAccountKey } from "@hackerspub/models/schema";
+import {
+  type ActorKeyPair,
+  exportJwk,
+  generateCryptoKeyPair,
+  importJwk,
+} from "@fedify/fedify";
+import {
+  Application,
+  Endpoints,
+  Image,
+  Person,
+  Tombstone,
+} from "@fedify/vocab";
+import {
+  type AccountKey,
+  accountKeyTable,
+  type DeletedAccountKey,
+  type NewAccountKey,
+} from "@hackerspub/models/schema";
 import { validateUuid } from "@hackerspub/models/uuid";
 import { builder } from "./builder.ts";
 import { getAccountActor } from "./person.ts";
@@ -24,6 +40,58 @@ const INSTANCE_ACTOR_KEY_PAIR: CryptoKeyPair = {
     key_ops: ["verify"],
   }, "public"),
 };
+
+type StoredActorKey = Pick<
+  AccountKey | DeletedAccountKey,
+  "type" | "public" | "private"
+>;
+
+function sortStoredActorKeys<T extends StoredActorKey>(keys: T[]): T[] {
+  return [...keys].sort((a, b) =>
+    a.type < b.type ? 1 : a.type > b.type ? -1 : 0
+  );
+}
+
+async function importStoredActorKeys(
+  keyRecords: StoredActorKey[],
+): Promise<CryptoKeyPair[]> {
+  return await Promise.all(
+    sortStoredActorKeys(keyRecords).map(async (key) => ({
+      privateKey: await importJwk(key.private, "private"),
+      publicKey: await importJwk(key.public, "public"),
+    })),
+  );
+}
+
+class KeyedTombstone extends Tombstone {
+  readonly #keys: ActorKeyPair[];
+
+  constructor(
+    values: ConstructorParameters<typeof Tombstone>[0],
+    keys: ActorKeyPair[],
+  ) {
+    super(values);
+    this.#keys = keys;
+  }
+
+  override async toJsonLd(
+    options: Parameters<Tombstone["toJsonLd"]>[0] = {},
+  ): Promise<unknown> {
+    const jsonLd = await super.toJsonLd(options);
+    if (
+      this.#keys.length < 1 || jsonLd == null || typeof jsonLd !== "object" ||
+      Array.isArray(jsonLd)
+    ) {
+      return jsonLd;
+    }
+    const result = jsonLd as Record<string, unknown>;
+    result.publicKey = await this.#keys[0].cryptographicKey.toJsonLd(options);
+    result.assertionMethod = await Promise.all(
+      this.#keys.map((pair) => pair.multikey.toJsonLd(options)),
+    );
+    return result;
+  }
+}
 
 builder
   .setActorDispatcher(
@@ -64,7 +132,23 @@ builder
           links: { orderBy: { index: "asc" } },
         },
       });
-      if (account == null) return null;
+      if (account == null) {
+        const deleted = await ctx.data.db.query.deletedAccountTable.findFirst({
+          where: { accountId: identifier },
+        });
+        if (deleted == null) return null;
+        const keys = await ctx.getActorKeyPairs(identifier);
+        return new KeyedTombstone(
+          {
+            id: ctx.getActorUri(identifier),
+            formerType: Person,
+            deleted: Temporal.Instant.fromEpochMilliseconds(
+              deleted.deleted.getTime(),
+            ),
+          },
+          keys,
+        );
+      }
       const keys = await ctx.getActorKeyPairs(identifier);
       return await getAccountActor(ctx, account, keys);
     },
@@ -74,7 +158,11 @@ builder
     const account = await ctx.data.db.query.accountTable.findFirst({
       where: { username: handle },
     });
-    return account == null ? null : account.id;
+    if (account != null) return account.id;
+    const deleted = await ctx.data.db.query.deletedAccountTable.findFirst({
+      where: { username: handle },
+    });
+    return deleted == null ? null : deleted.accountId;
   })
   .setKeyPairsDispatcher(async (ctx, identifier) => {
     if (identifier === new URL(ctx.canonicalOrigin).hostname) {
@@ -83,9 +171,27 @@ builder
     }
 
     if (!validateUuid(identifier)) return [];
+    const deletedKeyRecords = await ctx.data.db.query.deletedAccountKeyTable
+      .findMany({
+        where: { accountId: identifier },
+      });
+    if (deletedKeyRecords.length > 0) {
+      return await importStoredActorKeys(deletedKeyRecords);
+    }
+    const deleted = await ctx.data.db.query.deletedAccountTable.findFirst({
+      where: { accountId: identifier },
+      columns: { accountId: true },
+    });
+    if (deleted != null) return [];
+
     let keyRecords = await ctx.data.db.query.accountKeyTable.findMany({
       where: { accountId: identifier },
     });
+    const account = await ctx.data.db.query.accountTable.findFirst({
+      where: { id: identifier },
+      columns: { id: true },
+    });
+    if (account == null) return [];
     const existingTypes = new Set(keyRecords.map((r) => r.type));
     const newRecords: NewAccountKey[] = [];
     if (!existingTypes.has("RSASSA-PKCS1-v1_5")) {
@@ -118,11 +224,5 @@ builder
         where: { accountId: identifier },
       });
     }
-    keyRecords.sort((a, b) => a.type < b.type ? 1 : a.type > b.type ? -1 : 0);
-    return Promise.all(
-      keyRecords.map(async (key) => ({
-        privateKey: await importJwk(key.private, "private"),
-        publicKey: await importJwk(key.public, "public"),
-      })),
-    );
+    return await importStoredActorKeys(keyRecords);
   });

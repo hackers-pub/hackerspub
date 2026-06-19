@@ -10,7 +10,7 @@ import { getLogger } from "@logtape/logtape";
 import { zip } from "@std/collections/zip";
 import { encodeHex } from "@std/encoding/hex";
 import { escape, unescape } from "@std/html/entities";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, inArray, or, sql } from "drizzle-orm";
 import type { Disk } from "flydrive";
 import sharp from "sharp";
 import type { ContextData } from "./context.ts";
@@ -20,6 +20,7 @@ import {
   createMediumFromBytes,
   createMediumFromUrl,
 } from "./medium.ts";
+import { articleBoostLinkIds, refreshNewsScores } from "./news.ts";
 import {
   type Account,
   type AccountEmail,
@@ -28,13 +29,514 @@ import {
   accountLinkTable,
   accountTable,
   type Actor,
+  actorTable,
+  articleContentTable,
+  deletedAccountKeyTable,
+  deletedAccountTable,
+  followingTable,
   type Medium,
   type NewAccount,
+  notificationTable,
+  pollOptionTable,
+  pollTable,
+  pollVoteTable,
+  postTable,
+  reactionTable,
 } from "./schema.ts";
+import { removePostsFromTimeline } from "./timeline.ts";
 import { compactUrl } from "./url.ts";
 import type { Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "account"]);
+
+export class AccountDeletionUnavailableError extends Error {
+  public constructor() {
+    super("Account deletion is unavailable for this account.");
+  }
+}
+
+export interface DeletedAccountResult {
+  accountId: Uuid;
+  username: string;
+  deleted: Date;
+}
+
+async function collectNewsLinkIdsForPosts(
+  db: Database,
+  posts: ReadonlyArray<{
+    readonly linkId: Uuid | null;
+    readonly sharedPostId?: Uuid | null;
+  }>,
+): Promise<Uuid[]> {
+  const linkIds = new Set(
+    posts.map((post) => post.linkId).filter((id): id is Uuid => id != null),
+  );
+  for (
+    const linkId of await articleBoostLinkIds(
+      db,
+      posts.map((post) => post.sharedPostId),
+    )
+  ) {
+    linkIds.add(linkId);
+  }
+  return [...linkIds];
+}
+
+export async function isUsernameReserved(
+  db: Database,
+  username: string,
+): Promise<boolean> {
+  const canonicalUsername = username.trim().toLowerCase();
+  const deleted = await db.query.deletedAccountTable.findFirst({
+    where: { username: canonicalUsername },
+    columns: { accountId: true },
+  });
+  return deleted != null;
+}
+
+async function hasModerationAuditLinks(
+  db: Database,
+  accountId: Uuid,
+  actorId: Uuid,
+): Promise<boolean> {
+  const flagCase = await db.query.flagCaseTable.findFirst({
+    where: {
+      OR: [
+        { targetActorId: actorId },
+        { assignedModeratorId: accountId },
+      ],
+    },
+    columns: { id: true },
+  });
+  if (flagCase != null) return true;
+
+  const flag = await db.query.flagTable.findFirst({
+    where: {
+      OR: [
+        { reporterId: actorId },
+        { targetActorId: actorId },
+      ],
+    },
+    columns: { id: true },
+  });
+  if (flag != null) return true;
+
+  const flagAction = await db.query.flagActionTable.findFirst({
+    where: { moderatorId: accountId },
+    columns: { id: true },
+  });
+  if (flagAction != null) return true;
+
+  const flagAppeal = await db.query.flagAppealTable.findFirst({
+    where: {
+      OR: [
+        { appellantId: accountId },
+        { reviewerId: accountId },
+      ],
+    },
+    columns: { id: true },
+  });
+  return flagAppeal != null;
+}
+
+async function recomputePostInteractionCounts(
+  db: Database,
+  postIds: Uuid[],
+): Promise<void> {
+  const ids = [...new Set(postIds)];
+  if (ids.length < 1) return;
+  await db.update(postTable)
+    .set({
+      repliesCount: sql<number>`
+        (
+          SELECT COUNT(*)::int
+          FROM ${postTable} AS child
+          WHERE child.reply_target_id = ${postTable.id}
+        )
+      `,
+      sharesCount: sql<number>`
+        (
+          SELECT COUNT(*)::int
+          FROM ${postTable} AS child
+          WHERE child.shared_post_id = ${postTable.id}
+        )
+      `,
+      quotesCount: sql<number>`
+        (
+          SELECT COUNT(*)::int
+          FROM ${postTable} AS child
+          WHERE child.quoted_post_id = ${postTable.id}
+        )
+      `,
+    })
+    .where(inArray(postTable.id, ids));
+}
+
+async function recomputePostReactionCounts(
+  db: Database,
+  postIds: Uuid[],
+): Promise<void> {
+  const ids = [...new Set(postIds)];
+  if (ids.length < 1) return;
+  await db.update(postTable)
+    .set({
+      reactionsCounts: sql`
+        (
+          SELECT coalesce(jsonb_object_agg(stats.emoji, stats.count), '{}')
+          FROM (
+            SELECT
+              coalesce(
+                ${reactionTable.emoji},
+                ${reactionTable.customEmojiId}::text
+              ),
+              count(*)
+            FROM ${reactionTable}
+            WHERE ${reactionTable.postId} = ${postTable.id}
+            GROUP BY coalesce(
+              ${reactionTable.emoji},
+              ${reactionTable.customEmojiId}::text
+            )
+          ) AS stats(emoji, count)
+        )
+      `,
+    })
+    .where(inArray(postTable.id, ids));
+}
+
+async function recomputePollVoteCounts(
+  db: Database,
+  postIds: Uuid[],
+): Promise<void> {
+  const ids = [...new Set(postIds)];
+  if (ids.length < 1) return;
+  await db.update(pollTable)
+    .set({
+      votersCount: sql<number>`
+        (
+          SELECT COUNT(DISTINCT ${pollVoteTable.actorId})::int
+          FROM ${pollVoteTable}
+          WHERE ${pollVoteTable.postId} = ${pollTable.postId}
+        )
+      `,
+    })
+    .where(inArray(pollTable.postId, ids));
+  await db.update(pollOptionTable)
+    .set({
+      votesCount: sql<number>`
+        (
+          SELECT COUNT(*)::int
+          FROM ${pollVoteTable}
+          WHERE ${pollVoteTable.postId} = ${pollOptionTable.postId}
+            AND ${pollVoteTable.optionIndex} = ${pollOptionTable.index}
+        )
+      `,
+    })
+    .where(inArray(pollOptionTable.postId, ids));
+}
+
+async function removeActorFromNotifications(
+  db: Database,
+  actorId: Uuid,
+): Promise<void> {
+  const updated = await db.update(notificationTable)
+    .set({
+      actorIds: sql`array_remove(${notificationTable.actorIds}, ${actorId})`,
+    })
+    .where(sql`${actorId} = ANY(${notificationTable.actorIds})`)
+    .returning({ id: notificationTable.id });
+  const updatedIds = updated.map((notification) => notification.id);
+  if (updatedIds.length < 1) return;
+  await db.delete(notificationTable)
+    .where(
+      and(
+        inArray(notificationTable.id, updatedIds),
+        isNotificationActorIdsEmpty(),
+      ),
+    );
+}
+
+async function decrementAcceptedRelationshipCounts(
+  db: Database,
+  relationships: ReadonlyArray<{
+    readonly followerId: Uuid;
+    readonly followeeId: Uuid;
+  }>,
+  actorId: Uuid,
+): Promise<void> {
+  const followeeIds = [
+    ...new Set(
+      relationships
+        .filter((following) => following.followerId === actorId)
+        .map((following) => following.followeeId),
+    ),
+  ];
+  const followerIds = [
+    ...new Set(
+      relationships
+        .filter((following) => following.followeeId === actorId)
+        .map((following) => following.followerId),
+    ),
+  ];
+  if (followeeIds.length > 0) {
+    await db.update(actorTable).set({
+      followersCount: sql<number>`
+        CASE WHEN ${actorTable.accountId} IS NULL
+          THEN greatest(0, ${actorTable.followersCount} - 1)
+          ELSE (
+            SELECT count(*)
+            FROM ${followingTable}
+            WHERE ${followingTable.followeeId} = ${actorTable.id}
+              AND ${followingTable.accepted} IS NOT NULL
+          )
+        END
+      `,
+    }).where(inArray(actorTable.id, followeeIds));
+  }
+  if (followerIds.length > 0) {
+    await db.update(actorTable).set({
+      followeesCount: sql<number>`
+        CASE WHEN ${actorTable.accountId} IS NULL
+          THEN greatest(0, ${actorTable.followeesCount} - 1)
+          ELSE (
+            SELECT count(*)
+            FROM ${followingTable}
+            WHERE ${followingTable.followerId} = ${actorTable.id}
+              AND ${followingTable.accepted} IS NOT NULL
+          )
+        END
+      `,
+    }).where(inArray(actorTable.id, followerIds));
+  }
+}
+
+function isNotificationActorIdsEmpty() {
+  return sql`array_length(${notificationTable.actorIds}, 1) IS NULL`;
+}
+
+function toDeletedAccountRecipient(actor: Actor): vocab.Recipient | null {
+  try {
+    return {
+      id: new URL(actor.iri),
+      inboxId: new URL(actor.inboxUrl),
+      endpoints: actor.sharedInboxUrl == null ? null : {
+        sharedInbox: new URL(actor.sharedInboxUrl),
+      },
+    };
+  } catch (error) {
+    logger.warn(
+      "Skipping malformed actor recipient URLs for account deletion: {actorId}: {error}",
+      { actorId: actor.id, error },
+    );
+    return null;
+  }
+}
+
+async function ensureAccountKeys(
+  fedCtx: RequestContext<ContextData>,
+  accountId: Uuid,
+): Promise<void> {
+  const context = fedCtx as RequestContext<ContextData> & {
+    getActorKeyPairs?: (identifier: string) => Promise<unknown>;
+  };
+  if (typeof context.getActorKeyPairs !== "function") return;
+  await context.getActorKeyPairs(accountId);
+}
+
+export async function deleteAccount(
+  fedCtx: RequestContext<ContextData>,
+  accountId: Uuid,
+): Promise<DeletedAccountResult | undefined> {
+  const { db } = fedCtx.data;
+  const accountForKeys = await db.query.accountTable.findFirst({
+    where: { id: accountId },
+    with: { actor: true },
+  });
+  if (accountForKeys == null || accountForKeys.actor == null) {
+    return undefined;
+  }
+  if (
+    await hasModerationAuditLinks(
+      db,
+      accountForKeys.id,
+      accountForKeys.actor.id,
+    )
+  ) {
+    throw new AccountDeletionUnavailableError();
+  }
+  await ensureAccountKeys(fedCtx, accountForKeys.id);
+
+  const deleted = new Date();
+  let result: DeletedAccountResult | undefined;
+  let deleteRecipients: vocab.Recipient[] = [];
+
+  await db.transaction(async (tx) => {
+    const [locked] = await tx.select({
+      account: accountTable,
+      actor: actorTable,
+    })
+      .from(accountTable)
+      .innerJoin(actorTable, eq(actorTable.accountId, accountTable.id))
+      .where(eq(accountTable.id, accountId))
+      .for("update");
+    if (locked == null) return;
+
+    const { account, actor } = locked;
+    if (await hasModerationAuditLinks(tx, account.id, actor.id)) {
+      throw new AccountDeletionUnavailableError();
+    }
+
+    const affectedPosts = await tx.query.postTable.findMany({
+      where: { actorId: actor.id },
+      columns: {
+        id: true,
+        actorId: true,
+        linkId: true,
+        replyTargetId: true,
+        sharedPostId: true,
+        quotedPostId: true,
+      },
+    });
+    const deletionRecipientRows = await tx.query.followingTable.findMany({
+      with: { followee: true, follower: true },
+      where: {
+        OR: [
+          { followerId: actor.id },
+          { followeeId: actor.id },
+        ],
+      },
+    });
+    const acceptedRelationshipRows = deletionRecipientRows.filter((following) =>
+      following.accepted != null
+    );
+    const deletionRecipientMap = new Map<string, vocab.Recipient>();
+    for (const following of deletionRecipientRows) {
+      const recipientActor = following.followerId === actor.id
+        ? following.followee
+        : following.follower;
+      if (recipientActor.id === actor.id) continue;
+      const recipient = toDeletedAccountRecipient(recipientActor);
+      if (recipient == null) continue;
+      deletionRecipientMap.set(recipientActor.iri, recipient);
+    }
+    deleteRecipients = [...deletionRecipientMap.values()];
+    const affectedReactionPosts = await tx.select({
+      id: postTable.id,
+      linkId: postTable.linkId,
+      sharedPostId: postTable.sharedPostId,
+    })
+      .from(reactionTable)
+      .innerJoin(postTable, eq(postTable.id, reactionTable.postId))
+      .where(eq(reactionTable.actorId, actor.id));
+    const affectedPollVotePosts = await tx.select({
+      postId: pollVoteTable.postId,
+    })
+      .from(pollVoteTable)
+      .where(eq(pollVoteTable.actorId, actor.id));
+    const parentIds = [
+      ...new Set(
+        affectedPosts.flatMap((post) => [
+          post.replyTargetId,
+          post.sharedPostId,
+          post.quotedPostId,
+        ]).filter((id): id is Uuid => id != null),
+      ),
+    ];
+
+    const parentPosts = parentIds.length < 1
+      ? []
+      : await tx.query.postTable.findMany({
+        where: { id: { in: parentIds } },
+        columns: { id: true, linkId: true, sharedPostId: true },
+      });
+    const affectedLinkIds = await collectNewsLinkIdsForPosts(tx, [
+      ...affectedPosts,
+      ...parentPosts,
+      ...affectedReactionPosts,
+    ]);
+
+    const actorUri = fedCtx.getActorUri(account.id);
+    const accountKeys = await tx.query.accountKeyTable.findMany({
+      where: { accountId: account.id },
+    });
+    await tx.insert(deletedAccountTable).values({
+      accountId: account.id,
+      username: account.username,
+      actorIri: actorUri.href,
+      deleted,
+    });
+    if (accountKeys.length > 0) {
+      await tx.insert(deletedAccountKeyTable).values(
+        accountKeys.map((key) => ({
+          accountId: key.accountId,
+          type: key.type,
+          public: key.public,
+          private: key.private,
+          created: key.created,
+        })),
+      );
+    }
+    await removePostsFromTimeline(tx, affectedPosts);
+    await tx.update(articleContentTable)
+      .set({
+        translationRequesterId: null,
+        translatorId: null,
+      })
+      .where(
+        or(
+          eq(articleContentTable.translatorId, account.id),
+          eq(articleContentTable.translationRequesterId, account.id),
+        ),
+      );
+    await tx.delete(accountTable).where(eq(accountTable.id, account.id));
+    await decrementAcceptedRelationshipCounts(
+      tx,
+      acceptedRelationshipRows,
+      actor.id,
+    );
+    await removeActorFromNotifications(tx, actor.id);
+    await recomputePostInteractionCounts(tx, parentIds);
+    await recomputePostReactionCounts(
+      tx,
+      affectedReactionPosts.map((post) => post.id),
+    );
+    await recomputePollVoteCounts(
+      tx,
+      affectedPollVotePosts.map((post) => post.postId),
+    );
+    await refreshNewsScores(tx, affectedLinkIds);
+    result = { accountId: account.id, username: account.username, deleted };
+  });
+
+  if (result == null) return undefined;
+  const actorUri = fedCtx.getActorUri(result.accountId);
+  try {
+    await fedCtx.sendActivity(
+      { identifier: result.accountId },
+      deleteRecipients,
+      new vocab.Delete({
+        id: new URL(`#delete/${deleted.toISOString()}`, actorUri),
+        actor: actorUri,
+        to: vocab.PUBLIC_COLLECTION,
+        object: new vocab.Tombstone({
+          id: actorUri,
+          formerType: vocab.Person,
+          deleted: Temporal.Instant.fromEpochMilliseconds(deleted.getTime()),
+        }),
+      }),
+      {
+        orderingKey: actorUri.href,
+        preferSharedInbox: true,
+        excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+      },
+    );
+  } catch (error) {
+    logger.error(
+      "Failed to enqueue actor Delete for deleted account {accountId}: {error}",
+      { accountId: result.accountId, error },
+    );
+  }
+  return result;
+}
 
 export async function getAvatarUrl(
   disk: Disk,

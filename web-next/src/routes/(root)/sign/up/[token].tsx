@@ -119,7 +119,7 @@ export default function SignupPage(props: RouteSectionProps) {
       case "USERNAME_REQUIRED":
         return t`Username is required.`;
       case "USERNAME_TOO_LONG":
-        return t`Username is too long. Maximum length is 15 characters.`;
+        return t`Username is too long. Maximum length is 50 characters.`;
       case "USERNAME_INVALID_CHARACTERS":
         return t`Username can only contain lowercase letters, numbers, and underscores.`;
       case "USERNAME_ALREADY_TAKEN":
@@ -339,7 +339,7 @@ export default function SignupPage(props: RouteSectionProps) {
                       <TextFieldInput
                         ref={usernameInput}
                         type="text"
-                        pattern="^[a-z0-9_]{1,15}$"
+                        pattern="^[a-z0-9_]{1,50}$"
                         required
                         onBlur={handleUsernameBlur}
                         class="h-full w-auto flex-1 min-w-0 rounded-none border-0 bg-transparent px-0 py-0 focus-visible:ring-0 focus-visible:ring-offset-0"

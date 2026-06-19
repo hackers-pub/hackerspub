@@ -432,7 +432,7 @@ function SettingsForm(props: SettingsFormProps) {
             <TextFieldInput
               ref={usernameInput}
               type="text"
-              pattern="^[a-z0-9_]{1,15}$"
+              pattern="^[a-z0-9_]{1,50}$"
               required
               id="username"
               placeholder="username"

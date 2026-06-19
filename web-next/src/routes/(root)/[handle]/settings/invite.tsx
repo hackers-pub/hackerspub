@@ -13,7 +13,7 @@ import {
 } from "solid-relay";
 import { LocaleSelect } from "~/components/LocaleSelect.tsx";
 import { MarkdownEditor } from "~/components/MarkdownEditor.tsx";
-import { NarrowContainer } from "~/components/NarrowContainer.tsx";
+import { SettingsContainer } from "~/components/SettingsContainer.tsx";
 import { SettingsOwnerGuard } from "~/components/SettingsOwnerGuard.tsx";
 import { SettingsTabs } from "~/components/SettingsTabs.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
@@ -309,7 +309,7 @@ export default function InvitePage() {
             {(account) => (
               <>
                 <Title>{t`Invite`}</Title>
-                <NarrowContainer class="p-4">
+                <SettingsContainer class="p-4">
                   <SettingsTabs
                     selected="invite"
                     $account={account}
@@ -470,7 +470,7 @@ export default function InvitePage() {
                       </CardContent>
                     </Card>
                   </Show>
-                </NarrowContainer>
+                </SettingsContainer>
               </>
             )}
           </Show>

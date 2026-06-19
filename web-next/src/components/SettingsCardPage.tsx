@@ -1,5 +1,5 @@
 import type { JSX, ParentComponent } from "solid-js";
-import { NarrowContainer } from "~/components/NarrowContainer.tsx";
+import { SettingsContainer } from "~/components/SettingsContainer.tsx";
 import { type SettingsTab, SettingsTabs } from "~/components/SettingsTabs.tsx";
 import { Title } from "~/components/Title.tsx";
 import {
@@ -24,7 +24,7 @@ export const SettingsCardPage: ParentComponent<SettingsCardPageProps> = (
 ) => (
   <>
     <Title>{props.title}</Title>
-    <NarrowContainer class="p-4">
+    <SettingsContainer class="p-4">
       <SettingsTabs selected={props.selected} $account={props.$account} />
       <Card class="mt-4">
         <CardHeader>
@@ -37,6 +37,6 @@ export const SettingsCardPage: ParentComponent<SettingsCardPageProps> = (
           {props.children}
         </CardContent>
       </Card>
-    </NarrowContainer>
+    </SettingsContainer>
   </>
 );

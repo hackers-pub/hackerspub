@@ -1,42 +1,48 @@
-post → 內容
-note → 貼文
+account → 帳戶
+account deletion → 帳戶刪除
 article → 文章
-tag → 標籤
-draft → 草稿
-react → 反應
-reply → 回覆
-comment → 評論
-poll → 投票調查
-option → 選項
-vote → 投票
-voter → 投票者
-relay → 中繼
-share → 轉貼
-quote → 引用
-bookmark → 收藏
-pin → 釘選
-username → 使用者名稱
-displayName → 暱稱
-bio → 個人簡介
 avatar → 頭像
+bio → 個人簡介
+block → 封鎖
+bookmark → 收藏
+comment → 評論
+delete account → 刪除帳戶
+disk object → 磁碟物件
+displayName → 暱稱
+draft → 草稿
+fediverse → 聯邦宇宙
 follow → 關注
 followee → 關注
 follower → 粉絲
-block → 封鎖
-mute → 靜音
-fediverse → 聯邦宇宙
-timeline → 時間軸
-passkey → 通行金鑰
-postVisibility → 內容隱私度
-instance → 站台
-mention → 提及
 handle → 識別碼
+instance → 站台
 invitation → 邀請
 invitationLink → 邀請連結
+login credentials → 登入憑證
 medium → 媒體
-disk object → 磁碟物件
-orphan media → 孤立媒體
-preferences → 偏好設定
-notification → 通知
+mention → 提及
 moderator → 版主
+mute → 靜音
+note → 貼文
+notification → 通知
+option → 選項
+orphan media → 孤立媒體
+passkey → 通行金鑰
+pin → 釘選
+poll → 投票調查
+post → 內容
+postVisibility → 內容隱私度
+preferences → 偏好設定
+quote → 引用
+react → 反應
+relay → 中繼
+reply → 回覆
+session → 工作階段
+share → 轉貼
 sidebar → 側邊欄
+sign out → 登出
+tag → 標籤
+timeline → 時間軸
+username → 使用者名稱
+vote → 投票
+voter → 投票者

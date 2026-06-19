@@ -142,6 +142,27 @@ export const accountTable = pgTable(
 export type Account = typeof accountTable.$inferSelect;
 export type NewAccount = typeof accountTable.$inferInsert;
 
+export const deletedAccountTable = pgTable(
+  "deleted_account",
+  {
+    accountId: uuid("account_id").$type<Uuid>().primaryKey(),
+    username: varchar({ length: 50 }).notNull().unique(),
+    actorIri: text("actor_iri").notNull().unique(),
+    deleted: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    check(
+      "deleted_account_username_check",
+      sql`${table.username} ~ '^[a-z0-9_]{1,50}$'`,
+    ),
+  ],
+);
+
+export type DeletedAccount = typeof deletedAccountTable.$inferSelect;
+export type NewDeletedAccount = typeof deletedAccountTable.$inferInsert;
+
 export const accountEmailTable = pgTable(
   "account_email",
   {
@@ -253,6 +274,36 @@ export const accountKeyTable = pgTable(
 
 export type AccountKey = typeof accountKeyTable.$inferSelect;
 export type NewAccountKey = typeof accountKeyTable.$inferInsert;
+
+export const deletedAccountKeyTable = pgTable(
+  "deleted_account_key",
+  {
+    accountId: uuid("account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => deletedAccountTable.accountId, { onDelete: "cascade" }),
+    type: accountKeyTypeEnum().notNull(),
+    public: jsonb().$type<JsonWebKey>().notNull(),
+    private: jsonb().$type<JsonWebKey>().notNull(),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    primaryKey({ columns: [table.accountId, table.type] }),
+    check(
+      "deleted_account_key_public_check",
+      sql`jsonb_typeof(${table.public}) = 'object'`,
+    ),
+    check(
+      "deleted_account_key_private_check",
+      sql`jsonb_typeof(${table.private}) = 'object'`,
+    ),
+  ],
+);
+
+export type DeletedAccountKey = typeof deletedAccountKeyTable.$inferSelect;
+export type NewDeletedAccountKey = typeof deletedAccountKeyTable.$inferInsert;
 
 export const accountLinkIconEnum = pgEnum("account_link_icon", [
   "activitypub",
@@ -666,10 +717,10 @@ export const articleContentTable = pgTable(
     }).onDelete("cascade"),
     check(
       "article_content_original_language_check",
-      sql`(
+      sql`${table.originalLanguage} IS NOT NULL OR (
         ${table.translatorId} IS NULL AND
         ${table.translationRequesterId} IS NULL
-      ) = (${table.originalLanguage} IS NULL)`,
+      )`,
     ),
     check(
       "article_content_translator_translation_requester_id_check",

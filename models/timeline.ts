@@ -10,7 +10,6 @@ import {
 import {
   type Account,
   type Actor,
-  actorTable,
   type Blocking,
   type Following,
   followingTable,
@@ -34,6 +33,7 @@ import { type Uuid, validateUuid } from "./uuid.ts";
 // hasNextPage probe row.
 const ACTOR_RACE_BUFFER = 5;
 const PUBLIC_TIMELINE_HYDRATION_BATCH_SIZE = 250;
+const TIMELINE_REMOVAL_BATCH_SIZE = 100;
 
 export const FUTURE_TIMESTAMP_TOLERANCE = (() => {
   const envValue = process.env.FUTURE_TIMESTAMP_TOLERANCE;
@@ -339,68 +339,161 @@ export async function addTagsPubPostToTimeline(
 
 export async function removeFromTimeline(
   db: Database,
-  post: Post,
+  post: Pick<Post, "id" | "actorId" | "quotedPostId" | "sharedPostId">,
 ): Promise<void> {
-  if (post.sharedPostId == null) return;
-  await db.update(timelineItemTable)
-    .set({
-      lastSharerId: sql`
-        CASE ${timelineItemTable.sharersCount}
-          WHEN 1 THEN NULL
-          ELSE (
-            SELECT ${postTable.actorId}
-            FROM ${postTable}
-            JOIN ${actorTable}
-              ON ${actorTable.accountId} = ${timelineItemTable.accountId}
-            JOIN ${followingTable}
-              ON ${followingTable.followerId} = ${actorTable.id}
-              AND ${followingTable.accepted} IS NOT NULL
-            WHERE ${postTable.sharedPostId} = ${post.sharedPostId}
-              AND ${postTable.actorId} = ${followingTable.followeeId}
-              AND ${postTable.visibility} IN ('public', 'unlisted', 'followers')
-              AND NOT EXISTS (
-                SELECT 1 FROM ${mutingTable}
-                WHERE ${mutingTable.muterId} = ${actorTable.id}
-                  AND ${mutingTable.muteeId} = ${postTable.actorId}
-              )
-            ORDER BY ${postTable.published} DESC
-            LIMIT 1
-          )
-        END
-      `,
-      sharersCount: sql`${timelineItemTable.sharersCount} - 1`,
-      appended: sql`
-        CASE ${timelineItemTable.sharersCount}
-          WHEN 1 THEN ${timelineItemTable.added}
-          ELSE (
-            SELECT coalesce(
-              max(${postTable.published}),
-              ${timelineItemTable.added}
-            )
-            FROM ${postTable}
-            JOIN ${actorTable}
-              ON ${actorTable.accountId} = ${timelineItemTable.accountId}
-            JOIN ${followingTable}
-              ON ${followingTable.followerId} = ${actorTable.id}
-              AND ${followingTable.accepted} IS NOT NULL
-            WHERE ${postTable.sharedPostId} = ${post.sharedPostId}
-              AND ${postTable.actorId} = ${followingTable.followeeId}
-              AND ${postTable.visibility} IN ('public', 'unlisted', 'followers')
-              AND NOT EXISTS (
-                SELECT 1 FROM ${mutingTable}
-                WHERE ${mutingTable.muterId} = ${actorTable.id}
-                  AND ${mutingTable.muteeId} = ${postTable.actorId}
-              )
-          )
-        END
-      `,
-    })
-    .where(
-      and(
-        eq(timelineItemTable.postId, post.sharedPostId),
-        eq(timelineItemTable.lastSharerId, post.actorId),
-      ),
+  await removePostsFromTimeline(db, [post]);
+}
+
+export async function removePostsFromTimeline(
+  db: Database,
+  posts: ReadonlyArray<
+    Pick<Post, "id" | "actorId" | "quotedPostId" | "sharedPostId">
+  >,
+): Promise<void> {
+  const sharedPosts = posts.filter((post) => post.sharedPostId != null);
+  if (sharedPosts.length < 1) return;
+  const allRemovedPostsJson = JSON.stringify(
+    sharedPosts.map((post) => ({
+      actor_id: post.actorId,
+      id: post.id,
+      shared_post_id: post.sharedPostId,
+    })),
+  );
+  for (
+    let offset = 0;
+    offset < sharedPosts.length;
+    offset += TIMELINE_REMOVAL_BATCH_SIZE
+  ) {
+    await removeSharedPostsFromTimeline(
+      db,
+      sharedPosts.slice(offset, offset + TIMELINE_REMOVAL_BATCH_SIZE),
+      allRemovedPostsJson,
     );
+  }
+}
+
+async function removeSharedPostsFromTimeline(
+  db: Database,
+  sharedPosts: ReadonlyArray<
+    Pick<Post, "id" | "actorId" | "quotedPostId" | "sharedPostId">
+  >,
+  allRemovedPostsJson: string,
+): Promise<void> {
+  const removedPostValues = sql.join(
+    sharedPosts.map((post) =>
+      sql`(${post.id}::uuid, ${post.actorId}::uuid, ${post.quotedPostId}::uuid, ${post.sharedPostId}::uuid)`
+    ),
+    sql`, `,
+  );
+  await db.execute(sql`
+    WITH removed_posts(id, actor_id, quoted_post_id, shared_post_id) AS (
+      VALUES ${removedPostValues}
+    ),
+    all_removed_posts(id, actor_id, shared_post_id) AS (
+      SELECT id, actor_id, shared_post_id
+      FROM jsonb_to_recordset(${allRemovedPostsJson}::jsonb)
+        AS removed(id uuid, actor_id uuid, shared_post_id uuid)
+    ),
+    timeline_targets AS (
+      SELECT
+        ti.account_id,
+        ti.post_id,
+        ti.added,
+        viewer_actor.id AS viewer_actor_id
+      FROM timeline_item AS ti
+      JOIN actor AS viewer_actor
+        ON viewer_actor.account_id = ti.account_id
+      JOIN removed_posts AS rp
+        ON rp.shared_post_id = ti.post_id
+      WHERE (
+          ti.last_sharer_id = rp.actor_id
+          OR viewer_actor.id = rp.actor_id
+          OR EXISTS (
+            SELECT 1
+            FROM following AS f
+            WHERE f.follower_id = viewer_actor.id
+              AND f.followee_id = rp.actor_id
+              AND f.accepted IS NOT NULL
+          )
+          OR EXISTS (
+            SELECT 1
+            FROM mention AS m
+            WHERE m.post_id = rp.id
+              AND m.actor_id = viewer_actor.id
+          )
+          OR EXISTS (
+            SELECT 1
+            FROM post AS quoted_post
+            WHERE quoted_post.id = rp.quoted_post_id
+              AND quoted_post.actor_id = viewer_actor.id
+          )
+        )
+      GROUP BY ti.account_id, ti.post_id, ti.added, viewer_actor.id
+    ),
+    share_stats AS (
+      SELECT
+        tt.account_id,
+        tt.post_id,
+        (
+          array_agg(p.actor_id ORDER BY p.published DESC)
+            FILTER (WHERE p.id IS NOT NULL)
+        )[1] AS last_sharer_id,
+        coalesce(max(p.published), tt.added) AS appended,
+        count(DISTINCT p.actor_id)::integer AS sharers_count
+      FROM timeline_targets AS tt
+      LEFT JOIN post AS p
+        ON p.shared_post_id = tt.post_id
+       AND NOT EXISTS (
+         SELECT 1
+         FROM all_removed_posts AS excluded
+         WHERE excluded.shared_post_id = p.shared_post_id
+           AND (
+             excluded.id = p.id
+             OR excluded.actor_id = p.actor_id
+           )
+       )
+       AND (
+         p.actor_id = tt.viewer_actor_id
+         OR EXISTS (
+           SELECT 1
+           FROM post AS quoted_post
+           WHERE quoted_post.id = p.quoted_post_id
+             AND quoted_post.actor_id = tt.viewer_actor_id
+         )
+         OR EXISTS (
+           SELECT 1
+           FROM mention AS m
+           WHERE m.post_id = p.id
+             AND m.actor_id = tt.viewer_actor_id
+         )
+         OR (
+           p.visibility IN ('public', 'unlisted', 'followers')
+           AND EXISTS (
+             SELECT 1
+             FROM following AS f
+             WHERE f.follower_id = tt.viewer_actor_id
+               AND f.followee_id = p.actor_id
+               AND f.accepted IS NOT NULL
+           )
+         )
+       )
+       AND NOT EXISTS (
+         SELECT 1
+         FROM muting AS mt
+         WHERE mt.muter_id = tt.viewer_actor_id
+           AND mt.mutee_id = p.actor_id
+       )
+      GROUP BY tt.account_id, tt.post_id, tt.added
+    )
+    UPDATE timeline_item AS ti
+    SET
+      last_sharer_id = share_stats.last_sharer_id,
+      appended = share_stats.appended,
+      sharers_count = share_stats.sharers_count
+    FROM share_stats
+    WHERE ti.account_id = share_stats.account_id
+      AND ti.post_id = share_stats.post_id
+  `);
   await db.delete(timelineItemTable)
     .where(
       and(

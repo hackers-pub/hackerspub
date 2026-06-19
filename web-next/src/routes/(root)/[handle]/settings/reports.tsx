@@ -2,7 +2,7 @@ import { type RouteDefinition, useParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
-import { NarrowContainer } from "~/components/NarrowContainer.tsx";
+import { SettingsContainer } from "~/components/SettingsContainer.tsx";
 import { ReportHistoryList } from "~/components/ReportHistoryList.tsx";
 import { SettingsOwnerGuard } from "~/components/SettingsOwnerGuard.tsx";
 import { SettingsTabs } from "~/components/SettingsTabs.tsx";
@@ -72,7 +72,7 @@ export default function ReportsPage() {
             {(account) => (
               <>
                 <Title>{t`Report history`}</Title>
-                <NarrowContainer class="p-4">
+                <SettingsContainer class="p-4">
                   <SettingsTabs selected="reports" $account={account} />
 
                   <div class="mt-4">
@@ -88,7 +88,7 @@ export default function ReportsPage() {
                       </CardContent>
                     </Card>
                   </div>
-                </NarrowContainer>
+                </SettingsContainer>
               </>
             )}
           </Show>

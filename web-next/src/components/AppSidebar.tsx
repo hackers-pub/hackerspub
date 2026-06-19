@@ -1,13 +1,6 @@
-import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { A, useLocation } from "@solidjs/router";
-import {
-  deleteCookie,
-  getCookie,
-  getRequestProtocol,
-} from "@solidjs/start/http";
 import { graphql } from "relay-runtime";
 import { For, Show } from "solid-js";
-import { getRequestEvent } from "solid-js/web";
 import { createFragment, createMutation } from "solid-relay";
 import IconShieldCheck from "~icons/lucide/shield-check";
 import IconUndo2 from "~icons/lucide/undo-2";
@@ -30,6 +23,10 @@ import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import { invalidateNotificationsPageQueryCache } from "~/lib/notificationsPageQueryCache.ts";
 import {
+  getCurrentSessionId,
+  removeSessionCookie,
+} from "~/lib/sessionActions.ts";
+import {
   invalidateTimelinePageQueryCache,
   TIMELINE_PAGE_QUERY_CACHE_KEYS,
 } from "~/lib/timelinePageQueryCache.ts";
@@ -49,23 +46,6 @@ const AppSidebarSignOutMutation = graphql`
     }
   }
 `;
-
-async function removeSessionCookie(): Promise<Uuid | null> {
-  "use server";
-  const event = getRequestEvent();
-  if (event != null) {
-    const sessionId = getCookie(event.nativeEvent, "session");
-    deleteCookie(event.nativeEvent, "session", {
-      httpOnly: true,
-      path: "/",
-      secure: getRequestProtocol(event.nativeEvent) === "https",
-    });
-    if (sessionId != null && validateUuid(sessionId)) {
-      return sessionId;
-    }
-  }
-  return null;
-}
 
 function setLegacyUiCookie(): void {
   document.cookie = "web-next=false; path=/; max-age=31536000; SameSite=Lax";
@@ -131,20 +111,24 @@ export function AppSidebar(props: AppSidebarProps) {
   };
 
   async function onSignOut() {
-    const sessionId = await removeSessionCookie();
-    if (sessionId != null) {
-      signOut({
-        variables: { sessionId },
-        onCompleted() {
-          location.replace("/local");
-        },
-        onError(error) {
-          window.alert(
-            t`Failed to sign out: ${error.message}`,
-          );
-        },
-      });
+    const sessionId = await getCurrentSessionId();
+    if (sessionId == null) {
+      await removeSessionCookie();
+      location.replace("/local");
+      return;
     }
+    signOut({
+      variables: { sessionId },
+      onCompleted() {
+        void removeSessionCookie().finally(() => location.replace("/local"));
+      },
+      onError(error) {
+        window.alert(
+          t`Failed to sign out: ${error.message}`,
+        );
+        void removeSessionCookie().finally(() => location.replace("/local"));
+      },
+    });
   }
 
   return (

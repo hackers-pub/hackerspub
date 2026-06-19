@@ -3,7 +3,9 @@ import test from "node:test";
 import { encodeGlobalID } from "@pothos/plugin-relay";
 import { execute, parse } from "graphql";
 import { getSession } from "@hackerspub/models/session";
+import { deletedAccountTable } from "@hackerspub/models/schema";
 import { createSignupToken, getSignupToken } from "@hackerspub/models/signup";
+import { generateUuidV7 } from "@hackerspub/models/uuid";
 import { schema } from "./mod.ts";
 import {
   createTestKv,
@@ -105,6 +107,53 @@ test("completeSignup returns validation errors for a taken username", async () =
         input: {
           username: "takenuser",
           name: "Candidate",
+          bio: "Hello",
+        },
+      },
+      contextValue: makeGuestContext(tx, { kv }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(result.errors, undefined);
+    assert.deepEqual(
+      (result.data as {
+        completeSignup: {
+          __typename: string;
+          username?: string | null;
+          name?: string | null;
+          bio?: string | null;
+        };
+      }).completeSignup,
+      {
+        __typename: "SignupValidationErrors",
+        username: "USERNAME_ALREADY_TAKEN",
+        name: null,
+        bio: null,
+      },
+    );
+  });
+});
+
+test("completeSignup rejects usernames reserved by deleted accounts", async () => {
+  await withRollback(async (tx) => {
+    const { kv } = createTestKv();
+    await tx.insert(deletedAccountTable).values({
+      accountId: generateUuidV7(),
+      username: "deletedsignup",
+      actorIri: "http://localhost/ap/actors/deletedsignup",
+      deleted: new Date("2026-06-17T00:00:00.000Z"),
+    });
+    const signupToken = await createSignupToken(kv, "reserved@example.com");
+
+    const result = await execute({
+      schema,
+      document: completeSignupMutation,
+      variableValues: {
+        token: signupToken.token,
+        code: signupToken.code,
+        input: {
+          username: "deletedsignup",
+          name: "Reserved Candidate",
           bio: "Hello",
         },
       },
