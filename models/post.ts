@@ -1500,8 +1500,22 @@ export async function persistPost(
     if (canInlineReplies) {
       let repliesCount = 0;
       const traversalDeadline = Date.now() + INLINE_REPLIES_TRAVERSAL_BUDGET_MS;
-      for await (const reply of traverseCollection(replies, opts)) {
-        if (repliesCount >= maxReplies) break;
+      const repliesIterator = traverseCollection(replies, opts)[
+        Symbol.asyncIterator
+      ]();
+      while (repliesCount < maxReplies) {
+        let result: Awaited<ReturnType<typeof repliesIterator.next>>;
+        try {
+          result = await repliesIterator.next();
+        } catch (error) {
+          logger.debug(
+            "Inline replies traversal for {postIri} failed after " +
+              "{repliesCount} replies; keeping the parent post.",
+            { postIri: persistedPost.iri, repliesCount, error },
+          );
+          break;
+        }
+        if (result.done) break;
         if (Date.now() >= traversalDeadline) {
           logger.debug(
             "Inline replies traversal for {postIri} hit the {budgetMs}ms " +
@@ -1515,6 +1529,7 @@ export async function persistPost(
           );
           break;
         }
+        const reply = result.value;
         if (!isPostObject(reply)) continue;
         await persistPost(ctx, reply, {
           ...options,

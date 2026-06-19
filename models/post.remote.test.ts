@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   Announce,
   Article,
+  Collection,
   InteractionPolicy,
   InteractionRule,
   Mention,
@@ -227,6 +228,54 @@ test("persistPost() ignores ActivityPub mention hrefs when selecting link previe
     assert.equal(persisted.linkUrl, storyLink.url);
     assert.equal(persisted.mentions.length, 1);
     assert.equal(persisted.mentions[0].actor.id, mentionedActor.id);
+  });
+});
+
+test("persistPost() keeps a post when inline replies traversal fails", async () => {
+  await withRollback(async (tx) => {
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "malformedreplyauthor",
+      name: "Malformed Reply Author",
+      host: "remote.example",
+    });
+    const replies = new Collection({ totalItems: 1 });
+    const malformedRepliesError = new TypeError(
+      "Expected an object of any type of: " +
+        "https://www.w3.org/ns/activitystreams#Object, " +
+        "https://www.w3.org/ns/activitystreams#Link",
+    );
+    Object.defineProperty(replies, "getItems", {
+      value() {
+        return {
+          async next(): Promise<IteratorResult<never>> {
+            throw malformedRepliesError;
+          },
+          [Symbol.asyncIterator]() {
+            return this;
+          },
+        };
+      },
+    });
+    const postIri = new URL(
+      "https://remote.example/objects/malformed-inline-replies",
+    );
+    const post = new Note({
+      id: postIri,
+      attribution: new URL(remoteActor.iri),
+      to: PUBLIC_COLLECTION,
+      content: "Parent should survive malformed inline replies",
+      replies,
+    });
+
+    const persisted = await persistPost(createFedCtx(tx), post, {
+      replies: true,
+      inlineRepliesThreshold: 1,
+      deferLargeReplies: false,
+    });
+
+    assert.ok(persisted != null);
+    assert.equal(persisted.iri, postIri.href);
+    assert.equal(persisted.repliesCount, 1);
   });
 });
 
