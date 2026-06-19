@@ -126,6 +126,7 @@ export function AppSidebar(props: AppSidebarProps) {
         window.alert(
           t`Failed to sign out: ${error.message}`,
         );
+        void removeSessionCookie().finally(() => location.replace("/local"));
       },
     });
   }

@@ -134,7 +134,8 @@ function AccountDeletionForm(props: AccountDeletionFormProps) {
   const [confirmOpen, setConfirmOpen] = createSignal(false);
   const [deleting, setDeleting] = createSignal(false);
   const canDelete = createMemo(() =>
-    confirmation() === props.username && !deleting()
+    confirmation().trim().toLowerCase() === props.username.toLowerCase() &&
+    !deleting()
   );
   const [deleteAccount] = createMutation<accountDeleteMutation>(
     accountDeleteMutation,
