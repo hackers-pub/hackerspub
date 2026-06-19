@@ -293,11 +293,11 @@ export const deletedAccountKeyTable = pgTable(
     primaryKey({ columns: [table.accountId, table.type] }),
     check(
       "deleted_account_key_public_check",
-      sql`${table.public} IS JSON OBJECT`,
+      sql`jsonb_typeof(${table.public}) = 'object'`,
     ),
     check(
       "deleted_account_key_private_check",
-      sql`${table.private} IS JSON OBJECT`,
+      sql`jsonb_typeof(${table.private}) = 'object'`,
     ),
   ],
 );
@@ -717,10 +717,10 @@ export const articleContentTable = pgTable(
     }).onDelete("cascade"),
     check(
       "article_content_original_language_check",
-      sql`(
+      sql`${table.originalLanguage} IS NOT NULL OR (
         ${table.translatorId} IS NULL AND
         ${table.translationRequesterId} IS NULL
-      ) = (${table.originalLanguage} IS NULL)`,
+      )`,
     ),
     check(
       "article_content_translator_translation_requester_id_check",

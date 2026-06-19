@@ -476,7 +476,11 @@ export async function deleteAccount(
       );
     }
     await removePostsFromTimeline(tx, affectedPosts);
-    await tx.delete(articleContentTable)
+    await tx.update(articleContentTable)
+      .set({
+        translationRequesterId: null,
+        translatorId: null,
+      })
       .where(
         or(
           eq(articleContentTable.translatorId, account.id),

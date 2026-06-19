@@ -33,6 +33,7 @@ import { type Uuid, validateUuid } from "./uuid.ts";
 // hasNextPage probe row.
 const ACTOR_RACE_BUFFER = 5;
 const PUBLIC_TIMELINE_HYDRATION_BATCH_SIZE = 250;
+const TIMELINE_REMOVAL_BATCH_SIZE = 100;
 
 export const FUTURE_TIMESTAMP_TOLERANCE = (() => {
   const envValue = process.env.FUTURE_TIMESTAMP_TOLERANCE;
@@ -351,6 +352,33 @@ export async function removePostsFromTimeline(
 ): Promise<void> {
   const sharedPosts = posts.filter((post) => post.sharedPostId != null);
   if (sharedPosts.length < 1) return;
+  const allRemovedPostsJson = JSON.stringify(
+    sharedPosts.map((post) => ({
+      actor_id: post.actorId,
+      id: post.id,
+      shared_post_id: post.sharedPostId,
+    })),
+  );
+  for (
+    let offset = 0;
+    offset < sharedPosts.length;
+    offset += TIMELINE_REMOVAL_BATCH_SIZE
+  ) {
+    await removeSharedPostsFromTimeline(
+      db,
+      sharedPosts.slice(offset, offset + TIMELINE_REMOVAL_BATCH_SIZE),
+      allRemovedPostsJson,
+    );
+  }
+}
+
+async function removeSharedPostsFromTimeline(
+  db: Database,
+  sharedPosts: ReadonlyArray<
+    Pick<Post, "id" | "actorId" | "quotedPostId" | "sharedPostId">
+  >,
+  allRemovedPostsJson: string,
+): Promise<void> {
   const removedPostValues = sql.join(
     sharedPosts.map((post) =>
       sql`(${post.id}::uuid, ${post.actorId}::uuid, ${post.quotedPostId}::uuid, ${post.sharedPostId}::uuid)`
@@ -360,6 +388,11 @@ export async function removePostsFromTimeline(
   await db.execute(sql`
     WITH removed_posts(id, actor_id, quoted_post_id, shared_post_id) AS (
       VALUES ${removedPostValues}
+    ),
+    all_removed_posts(id, actor_id, shared_post_id) AS (
+      SELECT id, actor_id, shared_post_id
+      FROM jsonb_to_recordset(${allRemovedPostsJson}::jsonb)
+        AS removed(id uuid, actor_id uuid, shared_post_id uuid)
     ),
     timeline_targets AS (
       SELECT
@@ -412,7 +445,7 @@ export async function removePostsFromTimeline(
         ON p.shared_post_id = tt.post_id
        AND NOT EXISTS (
          SELECT 1
-         FROM removed_posts AS excluded
+         FROM all_removed_posts AS excluded
          WHERE excluded.shared_post_id = p.shared_post_id
            AND (
              excluded.id = p.id

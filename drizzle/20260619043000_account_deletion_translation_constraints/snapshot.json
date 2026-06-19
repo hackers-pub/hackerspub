@@ -1,9 +1,9 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "b83d6d86-f1d2-4f12-aeb5-ef80888f94e7",
+  "id": "6cb9bfa0-3032-418f-b89a-3cb296b1f81f",
   "prevIds": [
-    "57771d7c-77bd-4670-8b3f-a7456f5df8cc"
+    "1af2a448-91cb-4cc3-84b4-ffacf42d1719"
   ],
   "ddl": [
     {
@@ -10468,7 +10468,7 @@
       "table": "actor"
     },
     {
-      "value": "(\n        \"translator_id\" IS NULL AND\n        \"translation_requester_id\" IS NULL\n      ) = (\"original_language\" IS NULL)",
+      "value": "\"original_language\" IS NOT NULL OR (\n        \"translator_id\" IS NULL AND\n        \"translation_requester_id\" IS NULL\n      )",
       "name": "article_content_original_language_check",
       "entityType": "checks",
       "schema": "public",

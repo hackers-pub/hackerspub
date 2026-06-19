@@ -615,7 +615,7 @@ test("deleteAccount() refreshes news scores for Article boost interactions", asy
   });
 });
 
-test("deleteAccount() removes article translations attributed to the account", async () => {
+test("deleteAccount() clears article translation attributions", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);
     const author = await insertAccountWithActor(tx, {
@@ -680,10 +680,35 @@ test("deleteAccount() removes article translations attributed to the account", a
     });
     assert.deepEqual(
       contents.map((content) => ({
+        content: content.content,
         language: content.language,
         originalLanguage: content.originalLanguage,
+        translationRequesterId: content.translationRequesterId,
+        translatorId: content.translatorId,
       })),
-      [{ language: "en", originalLanguage: null }],
+      [
+        {
+          content: "Original content",
+          language: "en",
+          originalLanguage: null,
+          translationRequesterId: null,
+          translatorId: null,
+        },
+        {
+          content: "Human translated content",
+          language: "ja",
+          originalLanguage: "en",
+          translationRequesterId: null,
+          translatorId: null,
+        },
+        {
+          content: "Requested translated content",
+          language: "ko",
+          originalLanguage: "en",
+          translationRequesterId: null,
+          translatorId: null,
+        },
+      ],
     );
   });
 });

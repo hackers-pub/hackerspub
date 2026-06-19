@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { follow } from "./following.ts";
 import { mute } from "./muting.ts";
 import { sharePost } from "./post.ts";
-import { postTable } from "./schema.ts";
+import { postTable, timelineItemTable } from "./schema.ts";
 import {
   addPostToTimeline,
   expandLocales,
@@ -276,6 +276,56 @@ test("removePostsFromTimeline() removes multiple shares in one pass", async () =
       afterSecond.appended.toISOString(),
       firstPublished.toISOString(),
     );
+  });
+});
+
+test("removePostsFromTimeline() removes shares across batches", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const suffix = crypto.randomUUID().replaceAll("-", "").slice(0, 8);
+    const viewer = await insertAccountWithActor(tx, {
+      username: "timelinebatchviewer",
+      name: "Timeline Batch Viewer",
+      email: "timelinebatchviewer@example.com",
+    });
+    const remoteActor = await insertRemoteActor(tx, {
+      username: `timelinebatchremote${suffix}`,
+      name: "Timeline Batch Remote",
+      host: "timeline-batch.example",
+    });
+    const originalPost = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>Shared across removal batches</p>",
+    });
+
+    const shares = [];
+    for (let i = 0; i < 101; i++) {
+      const sharer = await insertAccountWithActor(tx, {
+        username: `timelinebatchsharer${i}`,
+        name: `Timeline Batch Sharer ${i}`,
+        email: `timelinebatchsharer${i}@example.com`,
+      });
+      await follow(fedCtx, viewer.account, sharer.actor);
+      shares.push(
+        await sharePost(fedCtx, sharer.account, {
+          ...originalPost,
+          actor: remoteActor,
+        }),
+      );
+    }
+
+    await removePostsFromTimeline(tx, shares);
+
+    const after = await tx.query.timelineItemTable.findFirst({
+      where: {
+        accountId: viewer.account.id,
+        postId: originalPost.id,
+      },
+    });
+    assert.equal(after, undefined);
+    const remaining = await tx.select().from(timelineItemTable)
+      .where(eq(timelineItemTable.accountId, viewer.account.id));
+    assert.equal(remaining.length, 0);
   });
 });
 

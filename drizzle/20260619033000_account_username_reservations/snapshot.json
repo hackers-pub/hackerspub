@@ -10531,14 +10531,14 @@
       "table": "custom_emoji"
     },
     {
-      "value": "\"public\" IS JSON OBJECT",
+      "value": "jsonb_typeof(\"public\") = 'object'",
       "name": "deleted_account_key_public_check",
       "entityType": "checks",
       "schema": "public",
       "table": "deleted_account_key"
     },
     {
-      "value": "\"private\" IS JSON OBJECT",
+      "value": "jsonb_typeof(\"private\") = 'object'",
       "name": "deleted_account_key_private_check",
       "entityType": "checks",
       "schema": "public",

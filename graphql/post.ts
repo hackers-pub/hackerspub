@@ -1334,7 +1334,8 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
   description:
     "A single language version of an `Article`'s content. Each language is " +
     "stored separately; `Article.contents` lists all available translations. " +
-    "LLM-translated versions have a non-null `translator` and `originalLanguage`.",
+    "Translated versions have a non-null `originalLanguage`; `translator` " +
+    "can be `null` when the translating account was deleted.",
   id: {
     column: (content) => [content.sourceId, content.language],
   },
