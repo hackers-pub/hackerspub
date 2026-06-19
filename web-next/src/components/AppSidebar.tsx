@@ -1,8 +1,6 @@
-import type { Uuid } from "@hackerspub/models/uuid";
 import { A, useLocation } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { For, Show } from "solid-js";
-import { getRequestEvent } from "solid-js/web";
 import { createFragment, createMutation } from "solid-relay";
 import IconShieldCheck from "~icons/lucide/shield-check";
 import IconUndo2 from "~icons/lucide/undo-2";
@@ -25,10 +23,9 @@ import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import { invalidateNotificationsPageQueryCache } from "~/lib/notificationsPageQueryCache.ts";
 import {
-  buildExpiredSessionSetCookieHeader,
-  isSecureRequest,
-  readSessionCookie,
-} from "~/lib/sessionCookie.ts";
+  getCurrentSessionId,
+  removeSessionCookie,
+} from "~/lib/sessionActions.ts";
 import {
   invalidateTimelinePageQueryCache,
   TIMELINE_PAGE_QUERY_CACHE_KEYS,
@@ -49,25 +46,6 @@ const AppSidebarSignOutMutation = graphql`
     }
   }
 `;
-
-async function getCurrentSessionId(): Promise<Uuid | null> {
-  "use server";
-  const event = getRequestEvent();
-  return readSessionCookie(event?.request);
-}
-
-async function removeSessionCookie(): Promise<void> {
-  "use server";
-  const event = getRequestEvent();
-  if (event != null) {
-    event.response.headers.append(
-      "Set-Cookie",
-      buildExpiredSessionSetCookieHeader({
-        secure: isSecureRequest(event.request),
-      }),
-    );
-  }
-}
 
 function setLegacyUiCookie(): void {
   document.cookie = "web-next=false; path=/; max-age=31536000; SameSite=Lax";
