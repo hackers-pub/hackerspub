@@ -192,7 +192,7 @@ export const builder = new SchemaBuilder<PothosTypes>({
     limit: (ctx) => ({
       complexity: ctx.session == null ? 20000 : 25000,
       depth: ctx.session == null ? 10 : 20,
-      breadth: ctx.session == null ? 1500 : 2000,
+      breadth: 2000,
     }),
     complexityError: (errorKind, result, _info) => {
       // https://pothos-graphql.dev/docs/plugins/complexity#options
