@@ -309,6 +309,118 @@ test("database rejects account usernames reserved by deleted accounts", async ()
   });
 });
 
+test("deleteAccount() ignores malformed remote delete recipients and clamps remote counts", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const sentActivities: unknown[][] = [];
+    fedCtx.sendActivity = (async (...args: unknown[]) => {
+      sentActivities.push(args);
+    }) as typeof fedCtx.sendActivity;
+
+    const target = await insertAccountWithActor(tx, {
+      username: "deletemalformed",
+      name: "Delete Malformed",
+      email: "delete-malformed@example.com",
+    });
+    await tx.insert(instanceTable).values([
+      { host: "delete-malformed.example" },
+      { host: "delete-count-followee.example" },
+      { host: "delete-count-follower.example" },
+    ]);
+    const malformedFolloweeId = generateUuidV7();
+    await tx.insert(actorTable).values({
+      id: malformedFolloweeId,
+      iri: "https://delete-malformed.example/users/bad",
+      type: "Person",
+      username: "bad",
+      instanceHost: "delete-malformed.example",
+      handleHost: "delete-malformed.example",
+      inboxUrl: "not a url",
+    });
+    const countedFolloweeId = generateUuidV7();
+    await tx.insert(actorTable).values({
+      id: countedFolloweeId,
+      iri: "https://delete-count-followee.example/users/good",
+      type: "Person",
+      username: "good",
+      instanceHost: "delete-count-followee.example",
+      handleHost: "delete-count-followee.example",
+      inboxUrl: "https://delete-count-followee.example/users/good/inbox",
+      followersCount: 0,
+    });
+    const countedFollowerId = generateUuidV7();
+    await tx.insert(actorTable).values({
+      id: countedFollowerId,
+      iri: "https://delete-count-follower.example/users/fan",
+      type: "Person",
+      username: "fan",
+      instanceHost: "delete-count-follower.example",
+      handleHost: "delete-count-follower.example",
+      inboxUrl: "https://delete-count-follower.example/users/fan/inbox",
+      followeesCount: 0,
+    });
+    await tx.insert(followingTable).values([
+      {
+        iri: "http://localhost/follows/deletemalformed-bad",
+        followerId: target.actor.id,
+        followeeId: malformedFolloweeId,
+        accepted: new Date("2026-06-19T00:00:00.000Z"),
+      },
+      {
+        iri: "http://localhost/follows/deletemalformed-good",
+        followerId: target.actor.id,
+        followeeId: countedFolloweeId,
+        accepted: new Date("2026-06-19T00:00:01.000Z"),
+      },
+      {
+        iri:
+          "https://delete-count-follower.example/follows/fan-deletemalformed",
+        followerId: countedFollowerId,
+        followeeId: target.actor.id,
+        accepted: new Date("2026-06-19T00:00:02.000Z"),
+      },
+    ]);
+
+    await deleteAccount(fedCtx, target.account.id);
+
+    assert.equal(sentActivities.length, 1);
+    const recipients = sentActivities[0][1] as {
+      id: URL;
+    }[];
+    assert.deepEqual(
+      recipients.map((recipient) => recipient.id.href).sort(),
+      [
+        "https://delete-count-followee.example/users/good",
+        "https://delete-count-follower.example/users/fan",
+      ],
+    );
+    const refreshedFollowee = await tx.query.actorTable.findFirst({
+      where: { id: countedFolloweeId },
+    });
+    assert.equal(refreshedFollowee?.followersCount, 0);
+    const refreshedFollower = await tx.query.actorTable.findFirst({
+      where: { id: countedFollowerId },
+    });
+    assert.equal(refreshedFollower?.followeesCount, 0);
+  });
+});
+
+test("deleteAccount() returns undefined when the account actor is missing", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const accountId = generateUuidV7();
+    await tx.insert(accountTable).values({
+      id: accountId,
+      username: "deleteorphan",
+      name: "Delete Orphan",
+      bio: "",
+      leftInvitations: 0,
+    });
+
+    assert.equal(await deleteAccount(fedCtx, accountId), undefined);
+  });
+});
+
 test("deleteAccount() refreshes denormalized interaction state", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);

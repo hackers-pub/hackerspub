@@ -281,7 +281,7 @@ async function decrementAcceptedRelationshipCounts(
     await db.update(actorTable).set({
       followersCount: sql<number>`
         CASE WHEN ${actorTable.accountId} IS NULL
-          THEN ${actorTable.followersCount} - 1
+          THEN greatest(0, ${actorTable.followersCount} - 1)
           ELSE (
             SELECT count(*)
             FROM ${followingTable}
@@ -296,7 +296,7 @@ async function decrementAcceptedRelationshipCounts(
     await db.update(actorTable).set({
       followeesCount: sql<number>`
         CASE WHEN ${actorTable.accountId} IS NULL
-          THEN ${actorTable.followeesCount} - 1
+          THEN greatest(0, ${actorTable.followeesCount} - 1)
           ELSE (
             SELECT count(*)
             FROM ${followingTable}
@@ -313,14 +313,22 @@ function isNotificationActorIdsEmpty() {
   return sql`array_length(${notificationTable.actorIds}, 1) IS NULL`;
 }
 
-function toDeletedAccountRecipient(actor: Actor): vocab.Recipient {
-  return {
-    id: new URL(actor.iri),
-    inboxId: new URL(actor.inboxUrl),
-    endpoints: actor.sharedInboxUrl == null ? null : {
-      sharedInbox: new URL(actor.sharedInboxUrl),
-    },
-  };
+function toDeletedAccountRecipient(actor: Actor): vocab.Recipient | null {
+  try {
+    return {
+      id: new URL(actor.iri),
+      inboxId: new URL(actor.inboxUrl),
+      endpoints: actor.sharedInboxUrl == null ? null : {
+        sharedInbox: new URL(actor.sharedInboxUrl),
+      },
+    };
+  } catch (error) {
+    logger.warn(
+      "Skipping malformed actor recipient URLs for account deletion: {actorId}: {error}",
+      { actorId: actor.id, error },
+    );
+    return null;
+  }
 }
 
 async function ensureAccountKeys(
@@ -343,7 +351,9 @@ export async function deleteAccount(
     where: { id: accountId },
     with: { actor: true },
   });
-  if (accountForKeys == null) return undefined;
+  if (accountForKeys == null || accountForKeys.actor == null) {
+    return undefined;
+  }
   if (
     await hasModerationAuditLinks(
       db,
@@ -405,6 +415,7 @@ export async function deleteAccount(
         : following.follower;
       if (recipientActor.id === actor.id) continue;
       const recipient = toDeletedAccountRecipient(recipientActor);
+      if (recipient == null) continue;
       deletionRecipientMap.set(recipientActor.iri, recipient);
     }
     deleteRecipients = [...deletionRecipientMap.values()];
