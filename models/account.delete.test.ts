@@ -12,9 +12,11 @@ import { createFollowNotification } from "./notification.ts";
 import { react } from "./reaction.ts";
 import {
   accountKeyTable,
+  accountTable,
   actorTable,
   articleContentTable,
   articleSourceTable,
+  deletedAccountTable,
   flagCaseTable,
   followingTable,
   instanceTable,
@@ -274,6 +276,36 @@ test("deleteAccount() hard-deletes an account and reserves the current username"
     });
     assert.equal(preservedKeys.length, 1);
     assert.equal(preservedKeys[0].type, "RSASSA-PKCS1-v1_5");
+  });
+});
+
+test("database rejects account usernames reserved by deleted accounts", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "reserveddbsource",
+      name: "Reserved DB Source",
+      email: "reserved-db-source@example.com",
+    });
+    await tx.insert(deletedAccountTable).values({
+      accountId: generateUuidV7(),
+      username: "reserveddbtarget",
+      actorIri: "http://localhost/ap/actors/reserveddbtarget",
+      deleted: new Date("2026-06-19T00:00:00.000Z"),
+    });
+
+    let error: unknown;
+    try {
+      await tx.update(accountTable)
+        .set({ username: "reserveddbtarget" })
+        .where(eq(accountTable.id, account.account.id));
+    } catch (caught) {
+      error = caught;
+    }
+    assert.ok(error instanceof Error);
+    assert.match(
+      String((error as Error & { cause?: unknown }).cause),
+      /account username is reserved by a deleted account/,
+    );
   });
 });
 
