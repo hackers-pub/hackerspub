@@ -100,6 +100,26 @@ test("deleteAccount() hard-deletes an account and reserves the current username"
       followeeId,
       accepted: new Date("2026-04-11T00:00:00.000Z"),
     });
+    const pendingFolloweeId = generateUuidV7();
+    await tx.insert(instanceTable).values({
+      host: "deletepending.example",
+    });
+    await tx.insert(actorTable).values({
+      id: pendingFolloweeId,
+      iri: "https://deletepending.example/users/charlie",
+      type: "Person",
+      username: "charlie",
+      instanceHost: "deletepending.example",
+      handleHost: "deletepending.example",
+      inboxUrl: "https://deletepending.example/users/charlie/inbox",
+      sharedInboxUrl: "https://deletepending.example/inbox",
+    });
+    await tx.insert(followingTable).values({
+      iri: "http://localhost/follows/deletecurrent-charlie",
+      followerId: target.actor.id,
+      followeeId: pendingFolloweeId,
+      accepted: null,
+    });
     const renamed = await updateAccountData(tx, {
       id: target.account.id,
       username: "deleterenamed",
@@ -198,6 +218,11 @@ test("deleteAccount() hard-deletes an account and reserves the current username"
           id: "https://deletefollower.example/users/alice",
           inboxId: "https://deletefollower.example/users/alice/inbox",
           sharedInbox: "https://deletefollower.example/inbox",
+        },
+        {
+          id: "https://deletepending.example/users/charlie",
+          inboxId: "https://deletepending.example/users/charlie/inbox",
+          sharedInbox: "https://deletepending.example/inbox",
         },
       ],
     );

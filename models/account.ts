@@ -332,18 +332,20 @@ export async function deleteAccount(
         quotedPostId: true,
       },
     });
-    const deletionRelationshipRows = await tx.query.followingTable.findMany({
+    const deletionRecipientRows = await tx.query.followingTable.findMany({
       with: { followee: true, follower: true },
       where: {
-        accepted: { isNotNull: true },
         OR: [
           { followerId: actor.id },
           { followeeId: actor.id },
         ],
       },
     });
+    const acceptedRelationshipRows = deletionRecipientRows.filter((following) =>
+      following.accepted != null
+    );
     const deletionRecipientMap = new Map<string, vocab.Recipient>();
-    for (const following of deletionRelationshipRows) {
+    for (const following of deletionRecipientRows) {
       const recipientActor = following.followerId === actor.id
         ? following.followee
         : following.follower;
@@ -421,7 +423,7 @@ export async function deleteAccount(
         ),
       );
     await tx.delete(accountTable).where(eq(accountTable.id, account.id));
-    for (const following of deletionRelationshipRows) {
+    for (const following of acceptedRelationshipRows) {
       if (following.followerId === actor.id) {
         await updateFollowersCount(tx, following.followeeId, -1);
       }
