@@ -15,6 +15,10 @@ import { getRequestEvent, isServer } from "solid-js/web";
 import { getApiUrl } from "~/lib/env.ts";
 import { isNetworkError } from "~/lib/networkError.ts";
 import { readSessionCookie } from "~/lib/sessionCookie.ts";
+import {
+  shouldCaptureUpstreamError,
+  TransientUpstreamGraphQLError,
+} from "~/lib/upstreamGraphQLError.ts";
 
 // Errors the upstream produces in response to an authentication
 // failure. The GraphQL server tags these with this extension code (see
@@ -129,20 +133,32 @@ function reportUpstreamError(args: {
     statusText: response.statusText,
     errors,
   });
-  const error = new Error(summary);
-  Sentry.captureException(error, {
-    extra: {
-      operation: params.name,
-      operationKind: params.operationKind,
-      query: params.text,
-      variables,
-      status: response.status,
-      statusText: response.statusText,
-      upstreamResponse: getUpstreamResponseDiagnostics(response, responseText),
-      errors,
-    },
-    ...(userIdentity == null ? {} : { user: userIdentity }),
+  const shouldCapture = shouldCaptureUpstreamError({
+    status: response.status,
+    responseText,
+    errors,
   });
+  const error = shouldCapture
+    ? new Error(summary)
+    : new TransientUpstreamGraphQLError(params.name, response.status);
+  if (shouldCapture) {
+    Sentry.captureException(error, {
+      extra: {
+        operation: params.name,
+        operationKind: params.operationKind,
+        query: params.text,
+        variables,
+        status: response.status,
+        statusText: response.statusText,
+        upstreamResponse: getUpstreamResponseDiagnostics(
+          response,
+          responseText,
+        ),
+        errors,
+      },
+      ...(userIdentity == null ? {} : { user: userIdentity }),
+    });
+  }
   return error;
 }
 
