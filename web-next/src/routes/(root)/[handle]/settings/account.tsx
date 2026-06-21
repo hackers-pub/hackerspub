@@ -178,6 +178,7 @@ export default function AccountSettingsPage() {
               <>
                 <Title>{t`Account settings`}</Title>
                 <SettingsContainer class="p-4">
+                  <h1 class="sr-only">{t`Account settings`}</h1>
                   <SettingsTabs selected="account" $account={account} />
                   <div class="mt-4 flex flex-col gap-4">
                     <Card>
@@ -383,7 +384,7 @@ function AccountMigrationAliasesForm(
               type="text"
               autocomplete="off"
               autocapitalize="none"
-              inputmode="url"
+              inputmode="email"
               placeholder={t`@old@example.com or actor URL`}
               disabled={adding()}
             />
