@@ -436,6 +436,20 @@ export const Actor = builder.drizzleNode("actorTable", {
         return actor.url ? new URL(actor.url) : null;
       },
     }),
+    aliases: t.field({
+      type: ["URL"],
+      description:
+        "ActivityPub aliases (`alsoKnownAs`) advertised by this actor. " +
+        "For local accounts, these are previous actor IRIs that remote " +
+        "servers use to validate Mastodon-style account migration `Move` " +
+        "activities.",
+      select: {
+        columns: { aliases: true },
+      },
+      resolve(actor) {
+        return actor.aliases.map((alias) => new URL(alias));
+      },
+    }),
     updated: t.expose("updated", { type: "DateTime" }),
     published: t.expose("published", {
       type: "DateTime",

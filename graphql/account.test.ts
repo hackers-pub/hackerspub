@@ -25,6 +25,7 @@ import {
   createTestDisk,
   createTestKv,
   insertAccountWithActor,
+  insertRemoteActor,
   makeGuestContext,
   makeUserContext,
   toPlainJson,
@@ -48,6 +49,16 @@ const accountByUsernameQuery = parse(`
       username
       name
       handle
+    }
+  }
+`);
+
+const accountMigrationAliasesQuery = parse(`
+  query AccountMigrationAliases($username: String!) {
+    accountByUsername(username: $username) {
+      actor {
+        aliases
+      }
     }
   }
 `);
@@ -156,6 +167,56 @@ const deleteAccountMutation = parse(`
       }
       ... on AccountDeletionUnavailableError {
         unavailable
+      }
+    }
+  }
+`);
+
+const addAccountMigrationAliasMutation = parse(`
+  mutation AddAccountMigrationAlias($input: AddAccountMigrationAliasInput!) {
+    addAccountMigrationAlias(input: $input) {
+      __typename
+      ... on AddAccountMigrationAliasPayload {
+        account {
+          actor {
+            aliases
+          }
+        }
+      }
+      ... on NotAuthenticatedError {
+        notAuthenticated
+      }
+      ... on NotAuthorizedError {
+        notAuthorized
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+    }
+  }
+`);
+
+const removeAccountMigrationAliasMutation = parse(`
+  mutation RemoveAccountMigrationAlias(
+    $input: RemoveAccountMigrationAliasInput!
+  ) {
+    removeAccountMigrationAlias(input: $input) {
+      __typename
+      ... on RemoveAccountMigrationAliasPayload {
+        account {
+          actor {
+            aliases
+          }
+        }
+      }
+      ... on NotAuthenticatedError {
+        notAuthenticated
+      }
+      ... on NotAuthorizedError {
+        notAuthorized
+      }
+      ... on InvalidInputError {
+        inputPath
       }
     }
   }
@@ -1164,6 +1225,414 @@ test("updateAccount rejects usernames reserved by deleted accounts", async () =>
     assert.deepEqual(toPlainJson(result.data), { updateAccount: null });
     assert.equal(result.errors?.length, 1);
     assert.equal(result.errors?.[0].message, "Username is already taken.");
+  });
+});
+
+test("Actor.aliases exposes account migration aliases", async () => {
+  await withRollback(async (tx) => {
+    const { account } = await insertAccountWithActor(tx, {
+      username: "aliasquery",
+      name: "Alias Query",
+      email: "aliasquery@example.com",
+    });
+    await tx.update(actorTable)
+      .set({ aliases: ["https://old.example/users/aliasquery"] })
+      .where(eq(actorTable.accountId, account.id));
+
+    const result = await execute({
+      schema,
+      document: accountMigrationAliasesQuery,
+      variableValues: { username: "aliasquery" },
+      contextValue: makeUserContext(tx, account),
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      accountByUsername: {
+        actor: {
+          aliases: ["https://old.example/users/aliasquery"],
+        },
+      },
+    });
+  });
+});
+
+test("addAccountMigrationAlias appends a resolved old actor once", async () => {
+  await withRollback(async (tx) => {
+    const { account } = await insertAccountWithActor(tx, {
+      username: "aliasowner",
+      name: "Alias Owner",
+      email: "aliasowner@example.com",
+    });
+    await insertRemoteActor(tx, {
+      username: "oldalias",
+      name: "Old Alias",
+      host: "old.example",
+      iri: "https://old.example/users/oldalias",
+      url: "https://old.example/@oldalias",
+    });
+    const fedCtx = createFedCtx(tx);
+    fedCtx.getActor = (identifier: string) =>
+      Promise.resolve(new vocab.Person({ id: fedCtx.getActorUri(identifier) }));
+    const sentActivities: unknown[][] = [];
+    fedCtx.sendActivity = ((...args: unknown[]) => {
+      sentActivities.push(args);
+      return Promise.resolve(undefined);
+    }) as typeof fedCtx.sendActivity;
+
+    for (
+      const actor of [
+        "@oldalias@old.example",
+        "oldalias@old.example",
+        "https://old.example/@oldalias",
+      ]
+    ) {
+      const result = await execute({
+        schema,
+        document: addAccountMigrationAliasMutation,
+        variableValues: {
+          input: {
+            accountId: encodeGlobalID("Account", account.id),
+            actor,
+          },
+        },
+        contextValue: makeUserContext(tx, account, { fedCtx }),
+        onError: "NO_PROPAGATE",
+      });
+
+      assert.equal(result.errors, undefined);
+      assert.deepEqual(toPlainJson(result.data), {
+        addAccountMigrationAlias: {
+          __typename: "AddAccountMigrationAliasPayload",
+          account: {
+            actor: {
+              aliases: ["https://old.example/users/oldalias"],
+            },
+          },
+        },
+      });
+    }
+
+    assert.equal(sentActivities.length, 3);
+    const actor = await tx.query.actorTable.findFirst({
+      where: { accountId: account.id },
+    });
+    assert.deepEqual(actor?.aliases, ["https://old.example/users/oldalias"]);
+  });
+});
+
+test("addAccountMigrationAlias resolves uncached handles by federation lookup", async () => {
+  await withRollback(async (tx) => {
+    const { account } = await insertAccountWithActor(tx, {
+      username: "aliaslookup",
+      name: "Alias Lookup",
+      email: "aliaslookup@example.com",
+    });
+    const fedCtx = createFedCtx(tx);
+    fedCtx.getActor = (identifier: string) =>
+      Promise.resolve(new vocab.Person({ id: fedCtx.getActorUri(identifier) }));
+    let lookedUp: string | undefined;
+    fedCtx.lookupObject = ((resource: string | URL) => {
+      lookedUp = resource.toString();
+      return Promise.resolve(
+        new vocab.Person({
+          id: new URL("https://lookup.example/users/oldlookup"),
+          preferredUsername: "oldlookup",
+          name: "Old Lookup",
+          inbox: new URL("https://lookup.example/users/oldlookup/inbox"),
+          endpoints: new vocab.Endpoints({
+            sharedInbox: new URL("https://lookup.example/inbox"),
+          }),
+          url: new URL("https://lookup.example/@oldlookup"),
+        }),
+      );
+    }) as typeof fedCtx.lookupObject;
+
+    const result = await execute({
+      schema,
+      document: addAccountMigrationAliasMutation,
+      variableValues: {
+        input: {
+          accountId: encodeGlobalID("Account", account.id),
+          actor: "oldlookup@lookup.example",
+        },
+      },
+      contextValue: makeUserContext(tx, account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.equal(lookedUp, "oldlookup@lookup.example");
+    assert.deepEqual(toPlainJson(result.data), {
+      addAccountMigrationAlias: {
+        __typename: "AddAccountMigrationAliasPayload",
+        account: {
+          actor: {
+            aliases: ["https://lookup.example/users/oldlookup"],
+          },
+        },
+      },
+    });
+  });
+});
+
+test("addAccountMigrationAlias matches cached actors with mixed-case hosts", async () => {
+  await withRollback(async (tx) => {
+    const { account } = await insertAccountWithActor(tx, {
+      username: "aliascase",
+      name: "Alias Case",
+      email: "aliascase@example.com",
+    });
+    await insertRemoteActor(tx, {
+      username: "oldcase",
+      name: "Old Case",
+      host: "old.example",
+      iri: "https://old.example/users/oldcase",
+      url: "https://old.example/@oldcase",
+    });
+    const fedCtx = createFedCtx(tx);
+    fedCtx.getActor = (identifier: string) =>
+      Promise.resolve(new vocab.Person({ id: fedCtx.getActorUri(identifier) }));
+    fedCtx.lookupObject = (() => {
+      throw new Error("cached mixed-case handles must not be looked up");
+    }) as typeof fedCtx.lookupObject;
+
+    const result = await execute({
+      schema,
+      document: addAccountMigrationAliasMutation,
+      variableValues: {
+        input: {
+          accountId: encodeGlobalID("Account", account.id),
+          actor: "@oldcase@Old.Example",
+        },
+      },
+      contextValue: makeUserContext(tx, account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      addAccountMigrationAlias: {
+        __typename: "AddAccountMigrationAliasPayload",
+        account: {
+          actor: {
+            aliases: ["https://old.example/users/oldcase"],
+          },
+        },
+      },
+    });
+  });
+});
+
+test("addAccountMigrationAlias does not resurrect aliases removed during lookup", async () => {
+  await withRollback(async (tx) => {
+    const { account } = await insertAccountWithActor(tx, {
+      username: "aliasrace",
+      name: "Alias Race",
+      email: "aliasrace@example.com",
+    });
+    await tx.update(actorTable)
+      .set({ aliases: ["https://old.example/users/removed"] })
+      .where(eq(actorTable.accountId, account.id));
+    const fedCtx = createFedCtx(tx);
+    fedCtx.getActor = (identifier: string) =>
+      Promise.resolve(new vocab.Person({ id: fedCtx.getActorUri(identifier) }));
+    fedCtx.lookupObject = (async (resource: string | URL) => {
+      assert.equal(resource.toString(), "fresh@localhost");
+      await tx.update(actorTable)
+        .set({ aliases: [] })
+        .where(eq(actorTable.accountId, account.id));
+      return new vocab.Person({
+        id: new URL("https://localhost/users/fresh"),
+        preferredUsername: "fresh",
+        name: "Fresh Alias",
+        inbox: new URL("https://localhost/users/fresh/inbox"),
+        endpoints: new vocab.Endpoints({
+          sharedInbox: new URL("https://localhost/inbox"),
+        }),
+        url: new URL("https://localhost/@fresh"),
+      });
+    }) as typeof fedCtx.lookupObject;
+
+    const result = await execute({
+      schema,
+      document: addAccountMigrationAliasMutation,
+      variableValues: {
+        input: {
+          accountId: encodeGlobalID("Account", account.id),
+          actor: "fresh@localhost",
+        },
+      },
+      contextValue: makeUserContext(tx, account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      addAccountMigrationAlias: {
+        __typename: "AddAccountMigrationAliasPayload",
+        account: {
+          actor: {
+            aliases: ["https://localhost/users/fresh"],
+          },
+        },
+      },
+    });
+  });
+});
+
+test("addAccountMigrationAlias returns typed errors", async () => {
+  await withRollback(async (tx) => {
+    const owner = await insertAccountWithActor(tx, {
+      username: "aliasownererrors",
+      name: "Alias Owner Errors",
+      email: "aliasownererrors@example.com",
+    });
+    const other = await insertAccountWithActor(tx, {
+      username: "aliasothererrors",
+      name: "Alias Other Errors",
+      email: "aliasothererrors@example.com",
+    });
+
+    const guest = await execute({
+      schema,
+      document: addAccountMigrationAliasMutation,
+      variableValues: {
+        input: {
+          accountId: encodeGlobalID("Account", owner.account.id),
+          actor: "@old@remote.example",
+        },
+      },
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(guest.errors, undefined);
+    assert.equal(
+      (toPlainJson(guest.data) as {
+        addAccountMigrationAlias?: { __typename?: string };
+      }).addAccountMigrationAlias?.__typename,
+      "NotAuthenticatedError",
+    );
+
+    const foreign = await execute({
+      schema,
+      document: addAccountMigrationAliasMutation,
+      variableValues: {
+        input: {
+          accountId: encodeGlobalID("Account", other.account.id),
+          actor: "@old@remote.example",
+        },
+      },
+      contextValue: makeUserContext(tx, owner.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(foreign.errors, undefined);
+    assert.equal(
+      (toPlainJson(foreign.data) as {
+        addAccountMigrationAlias?: { __typename?: string };
+      }).addAccountMigrationAlias?.__typename,
+      "NotAuthorizedError",
+    );
+
+    const invalid = await execute({
+      schema,
+      document: addAccountMigrationAliasMutation,
+      variableValues: {
+        input: {
+          accountId: encodeGlobalID("Account", owner.account.id),
+          actor: "not a handle",
+        },
+      },
+      contextValue: makeUserContext(tx, owner.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(invalid.errors, undefined);
+    assert.deepEqual(toPlainJson(invalid.data), {
+      addAccountMigrationAlias: {
+        __typename: "InvalidInputError",
+        inputPath: "actor",
+      },
+    });
+
+    const self = await execute({
+      schema,
+      document: addAccountMigrationAliasMutation,
+      variableValues: {
+        input: {
+          accountId: encodeGlobalID("Account", owner.account.id),
+          actor: owner.actor.iri,
+        },
+      },
+      contextValue: makeUserContext(tx, owner.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(self.errors, undefined);
+    assert.deepEqual(toPlainJson(self.data), {
+      addAccountMigrationAlias: {
+        __typename: "InvalidInputError",
+        inputPath: "actor",
+      },
+    });
+  });
+});
+
+test("removeAccountMigrationAlias removes one alias idempotently", async () => {
+  await withRollback(async (tx) => {
+    const { account } = await insertAccountWithActor(tx, {
+      username: "aliasremove",
+      name: "Alias Remove",
+      email: "aliasremove@example.com",
+    });
+    await tx.update(actorTable)
+      .set({
+        aliases: [
+          "https://old.example/users/aliasremove",
+          "https://older.example/users/aliasremove",
+        ],
+      })
+      .where(eq(actorTable.accountId, account.id));
+    const fedCtx = createFedCtx(tx);
+    fedCtx.getActor = (identifier: string) =>
+      Promise.resolve(new vocab.Person({ id: fedCtx.getActorUri(identifier) }));
+    const sentActivities: unknown[][] = [];
+    fedCtx.sendActivity = ((...args: unknown[]) => {
+      sentActivities.push(args);
+      return Promise.resolve(undefined);
+    }) as typeof fedCtx.sendActivity;
+
+    for (
+      const alias of [
+        "https://old.example/users/aliasremove",
+        "https://old.example/users/aliasremove",
+      ]
+    ) {
+      const result = await execute({
+        schema,
+        document: removeAccountMigrationAliasMutation,
+        variableValues: {
+          input: {
+            accountId: encodeGlobalID("Account", account.id),
+            alias,
+          },
+        },
+        contextValue: makeUserContext(tx, account, { fedCtx }),
+        onError: "NO_PROPAGATE",
+      });
+
+      assert.equal(result.errors, undefined);
+      assert.deepEqual(toPlainJson(result.data), {
+        removeAccountMigrationAlias: {
+          __typename: "RemoveAccountMigrationAliasPayload",
+          account: {
+            actor: {
+              aliases: ["https://older.example/users/aliasremove"],
+            },
+          },
+        },
+      });
+    }
+
+    assert.equal(sentActivities.length, 2);
   });
 });
 

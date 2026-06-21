@@ -75,3 +75,38 @@ test("getAccountActor serves a suspended stub for banned accounts", async () => 
     assert.equal(tempActor.name?.toString(), "AP Banned");
   });
 });
+
+test("getAccountActor exposes account migration aliases", async () => {
+  await withRollback(async (tx) => {
+    const { account } = await insertAccountWithActor(tx, {
+      username: "apaliases",
+      name: "AP Aliases",
+      email: "apaliases@example.com",
+    });
+    await tx.update(actorTable)
+      .set({
+        aliases: [
+          "https://old.example/users/apaliases",
+          "https://older.example/users/apaliases",
+        ],
+      })
+      .where(eq(actorTable.accountId, account.id));
+    const refreshed = await tx.query.accountTable.findFirst({
+      where: { id: account.id },
+      with: {
+        actor: true,
+        avatarMedium: true,
+        emails: true,
+        links: { orderBy: { index: "asc" } },
+      },
+    });
+    assert.ok(refreshed != null);
+
+    const actor = await getAccountActor(createFedCtx(tx), refreshed, []);
+
+    assert.deepEqual(actor.aliasIds.map((alias) => alias.href), [
+      "https://old.example/users/apaliases",
+      "https://older.example/users/apaliases",
+    ]);
+  });
+});

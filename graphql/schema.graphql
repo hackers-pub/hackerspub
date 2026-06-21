@@ -318,6 +318,11 @@ type Actor implements Node {
   account: Account
 
   """
+  ActivityPub aliases (`alsoKnownAs`) advertised by this actor. For local accounts, these are previous actor IRIs that remote servers use to validate Mastodon-style account migration `Move` activities.
+  """
+  aliases: [URL!]!
+
+  """
   This actor's locally-authored `Article`-type posts, newest first. Only includes articles that have a local `articleSource` row; remote articles federated in from other instances are excluded.
   """
   articles(after: String, before: String, first: Int, last: Int): ActorArticlesConnection!
@@ -693,6 +698,32 @@ type ActorViewerInteractionsConnectionEdge {
   cursor: String!
   node: Post!
 }
+
+"""
+Add a previous account actor as an ActivityPub migration alias for the authenticated viewer's local account. The stored value is the resolved actor IRI, which is then advertised as `alsoKnownAs` on the local actor document so a later remote `Move` can be validated.
+"""
+input AddAccountMigrationAliasInput {
+  """
+  The `Account` global id owned by the authenticated viewer. Passing another account id returns `NotAuthorizedError`.
+  """
+  accountId: ID!
+
+  """
+  Previous account to import from, written as `@user@host`, `user@host`, or an HTTP(S) actor/profile URL. The value is resolved before storage so aliases always contain actor IRIs.
+  """
+  actor: String!
+  clientMutationId: ID
+}
+
+type AddAccountMigrationAliasPayload {
+  """
+  The updated local account. Read `Account.actor.aliases` for the canonical set of previous actor IRIs now advertised as `alsoKnownAs`.
+  """
+  account: Account!
+  clientMutationId: ID
+}
+
+union AddAccountMigrationAliasResult = AddAccountMigrationAliasPayload | InvalidInputError | NotAuthenticatedError | NotAuthorizedError
 
 union AddNewsExcludedPatternResult = InvalidInputError | NewsExcludedPattern | NotAuthenticatedError | NotAuthorizedError
 
@@ -2129,6 +2160,8 @@ type ModerationStatistics {
 }
 
 type Mutation {
+  addAccountMigrationAlias(input: AddAccountMigrationAliasInput!): AddAccountMigrationAliasResult!
+
   """
   Add a news feed exclusion pattern (a `URLPattern` string) and hide matching links from the feed list.  Idempotent on the pattern string.  Requires a moderator account.  An invalid pattern raises `InvalidInputError`.
   """
@@ -2367,6 +2400,7 @@ type Mutation {
   Register or refresh a push notification target for the authenticated viewer. `APNS` and `FCM` require `token`; `WEB_PUSH` requires `endpoint`, `p256dh`, and `auth` from the browser `PushSubscription`.
   """
   registerPushNotificationTarget(input: RegisterPushNotificationTargetInput!): RegisterPushNotificationTargetResult!
+  removeAccountMigrationAlias(input: RemoveAccountMigrationAliasInput!): RemoveAccountMigrationAliasResult!
 
   """
   Remove an `Actor` from the authenticated viewer's followers. This deletes the follower relationship without blocking the actor; remote followers receive an ActivityPub `Reject` for the original `Follow`.
@@ -4498,6 +4532,32 @@ type RelaySubscription implements Node {
   """The subscription's row UUID."""
   uuid: UUID!
 }
+
+"""
+Remove one ActivityPub migration alias from the authenticated viewer's local account. Removing an alias only changes the new account's `alsoKnownAs` list; it does not send or retract a remote `Move` activity.
+"""
+input RemoveAccountMigrationAliasInput {
+  """
+  The `Account` global id owned by the authenticated viewer. Passing another account id returns `NotAuthorizedError`.
+  """
+  accountId: ID!
+
+  """
+  The exact previous actor IRI to remove from `Account.actor.aliases`. Missing aliases are accepted so clients can retry safely.
+  """
+  alias: URL!
+  clientMutationId: ID
+}
+
+type RemoveAccountMigrationAliasPayload {
+  """
+  The updated local account. Read `Account.actor.aliases` for the canonical set of previous actor IRIs now advertised as `alsoKnownAs`.
+  """
+  account: Account!
+  clientMutationId: ID
+}
+
+union RemoveAccountMigrationAliasResult = InvalidInputError | NotAuthenticatedError | NotAuthorizedError | RemoveAccountMigrationAliasPayload
 
 """
 Remove an `Actor` from the authenticated viewer's followers. This deletes the follower relationship without blocking the actor; remote followers receive an ActivityPub `Reject` for the original `Follow`.
