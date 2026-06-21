@@ -57,7 +57,6 @@ import {
 import {
   OrganizationPermissionError,
   recordOrganizationPostAuthor,
-  resolveActingAccount,
 } from "@hackerspub/models/organization";
 import {
   arePostsPinnedBy,
@@ -94,11 +93,7 @@ import {
 import type * as schema from "@hackerspub/models/schema";
 import DataLoader from "dataloader";
 import { withTransaction } from "@hackerspub/models/tx";
-import {
-  generateUuidV7,
-  type Uuid,
-  validateUuid,
-} from "@hackerspub/models/uuid";
+import { generateUuidV7, type Uuid } from "@hackerspub/models/uuid";
 import {
   createMediumUploadSession,
   deleteMediumUploadSession,
@@ -110,6 +105,7 @@ import {
 } from "./medium-upload.ts";
 import { createGraphQLError } from "graphql-yoga";
 import { Account } from "./account.ts";
+import { resolveActingAccountForMutation } from "./acting-account.ts";
 import { Actor, isActorProfileHidden } from "./actor.ts";
 import { builder, Node, type UserContext } from "./builder.ts";
 import {
@@ -304,15 +300,7 @@ async function resolvePostActingAccount(
   input: PostActingAccountInput,
 ): Promise<ResolvedPostActingAccount> {
   if (ctx.account == null) throw new NotAuthenticatedError();
-  const actingAccountId = input.actingAccountId?.id;
-  if (actingAccountId != null && !validateUuid(actingAccountId)) {
-    throw new InvalidInputError("actingAccountId");
-  }
-  const account = await resolveActingAccount(
-    ctx.db,
-    ctx.account,
-    actingAccountId as Uuid | undefined,
-  );
+  const account = await resolveActingAccountForMutation(ctx, input);
   if (account.kind !== "organization") {
     if (input.attributionMode != null) {
       throw new InvalidInputError("attributionMode");
@@ -3266,6 +3254,15 @@ builder.relayMutationField(
         for: [Note, Article, Question],
         required: true,
       }),
+      actingAccountId: t.globalID({
+        for: Account,
+        required: false,
+        description:
+          "Optional `Account` id to react as. Omit to react as the " +
+          "authenticated personal account; pass an organization account " +
+          "where the viewer is an accepted member to react as that " +
+          "organization.",
+      }),
       emoji: t.string({ required: false }),
       customEmojiId: t.globalID({ for: CustomEmoji, required: false }),
     }),
@@ -3276,12 +3273,14 @@ builder.relayMutationField(
         NotAuthenticatedError,
         InvalidInputError,
         ActorSuspendedError,
+        OrganizationPermissionError,
       ],
     },
     async resolve(_root, args, ctx) {
-      if (ctx.account == null) {
-        throw new NotAuthenticatedError();
-      }
+      const actingAccount = await resolveActingAccountForMutation(
+        ctx,
+        args.input,
+      );
 
       const { postId, emoji, customEmojiId } = args.input;
 
@@ -3320,13 +3319,13 @@ builder.relayMutationField(
         throw new InvalidInputError("postId");
       }
 
-      if (!isPostVisibleTo(post, ctx.account.actor)) {
+      if (!isPostVisibleTo(post, actingAccount.actor)) {
         throw new InvalidInputError("postId");
       }
 
       const reaction = await react(
         ctx.fedCtx,
-        ctx.account,
+        actingAccount,
         post,
         emoji as ReactionEmoji | null ?? null,
         customEmojiId?.id as Uuid | undefined,
@@ -3338,10 +3337,10 @@ builder.relayMutationField(
 
       const existingReaction = await ctx.db.query.reactionTable.findFirst({
         where: emoji != null
-          ? { postId: post.id, actorId: ctx.account.actor.id, emoji }
+          ? { postId: post.id, actorId: actingAccount.actor.id, emoji }
           : {
             postId: post.id,
-            actorId: ctx.account.actor.id,
+            actorId: actingAccount.actor.id,
             customEmojiId: customEmojiId!.id as Uuid,
           },
       });
@@ -3382,6 +3381,15 @@ builder.relayMutationField(
         for: [Note, Article, Question],
         required: true,
       }),
+      actingAccountId: t.globalID({
+        for: Account,
+        required: false,
+        description:
+          "Optional `Account` id to remove the reaction as. Omit to use " +
+          "the authenticated personal account; pass an organization account " +
+          "where the viewer is an accepted member to remove that " +
+          "organization's reaction.",
+      }),
       emoji: t.string({ required: false }),
       customEmojiId: t.globalID({ for: CustomEmoji, required: false }),
     }),
@@ -3391,12 +3399,14 @@ builder.relayMutationField(
       types: [
         NotAuthenticatedError,
         InvalidInputError,
+        OrganizationPermissionError,
       ],
     },
     async resolve(_root, args, ctx) {
-      if (ctx.account == null) {
-        throw new NotAuthenticatedError();
-      }
+      const actingAccount = await resolveActingAccountForMutation(
+        ctx,
+        args.input,
+      );
 
       const { postId, emoji, customEmojiId } = args.input;
 
@@ -3435,13 +3445,13 @@ builder.relayMutationField(
         throw new InvalidInputError("postId");
       }
 
-      if (!isPostVisibleTo(post, ctx.account.actor)) {
+      if (!isPostVisibleTo(post, actingAccount.actor)) {
         throw new InvalidInputError("postId");
       }
 
       await undoReaction(
         ctx.fedCtx,
-        ctx.account,
+        actingAccount,
         post,
         emoji as ReactionEmoji | null ?? null,
         customEmojiId?.id as Uuid | undefined,
@@ -3474,6 +3484,15 @@ builder.relayMutationField(
         for: [Note, Article, Question],
         required: true,
       }),
+      actingAccountId: t.globalID({
+        for: Account,
+        required: false,
+        description:
+          "Optional `Account` id to boost as. Omit to boost as the " +
+          "authenticated personal account; pass an organization account " +
+          "where the viewer is an accepted member to boost as that " +
+          "organization.",
+      }),
     }),
   },
   {
@@ -3482,12 +3501,14 @@ builder.relayMutationField(
         NotAuthenticatedError,
         InvalidInputError,
         ActorSuspendedError,
+        OrganizationPermissionError,
       ],
     },
     async resolve(_root, args, ctx) {
-      if (ctx.account == null) {
-        throw new NotAuthenticatedError();
-      }
+      const actingAccount = await resolveActingAccountForMutation(
+        ctx,
+        args.input,
+      );
 
       const { postId } = args.input;
 
@@ -3524,7 +3545,7 @@ builder.relayMutationField(
         throw new InvalidInputError("postId");
       }
 
-      if (!isPostVisibleTo(post, ctx.account.actor)) {
+      if (!isPostVisibleTo(post, actingAccount.actor)) {
         throw new InvalidInputError("postId");
       }
 
@@ -3537,7 +3558,7 @@ builder.relayMutationField(
       if (effectivePost.sharedPostId != null) {
         throw new InvalidInputError("postId");
       }
-      if (!isPostVisibleTo(effectivePost, ctx.account.actor)) {
+      if (!isPostVisibleTo(effectivePost, actingAccount.actor)) {
         throw new InvalidInputError("postId");
       }
       // A censored post cannot be boosted (by anyone, including its
@@ -3550,14 +3571,14 @@ builder.relayMutationField(
         effectivePost.visibility !== "public" &&
         effectivePost.visibility !== "unlisted" &&
         !(effectivePost.visibility === "followers" &&
-          effectivePost.actorId === ctx.account.actor.id)
+          effectivePost.actorId === actingAccount.actor.id)
       ) {
         throw new InvalidInputError("postId");
       }
 
       const share = await sharePost(
         ctx.fedCtx,
-        ctx.account,
+        actingAccount,
         post,
       );
 
@@ -3600,6 +3621,15 @@ builder.relayMutationField(
         for: [Note, Article, Question],
         required: true,
       }),
+      actingAccountId: t.globalID({
+        for: Account,
+        required: false,
+        description:
+          "Optional `Account` id to undo a boost as. Omit to use the " +
+          "authenticated personal account; pass an organization account " +
+          "where the viewer is an accepted member to remove that " +
+          "organization's boost.",
+      }),
     }),
   },
   {
@@ -3607,12 +3637,14 @@ builder.relayMutationField(
       types: [
         NotAuthenticatedError,
         InvalidInputError,
+        OrganizationPermissionError,
       ],
     },
     async resolve(_root, args, ctx) {
-      if (ctx.account == null) {
-        throw new NotAuthenticatedError();
-      }
+      const actingAccount = await resolveActingAccountForMutation(
+        ctx,
+        args.input,
+      );
 
       const { postId } = args.input;
 
@@ -3641,13 +3673,13 @@ builder.relayMutationField(
         throw new InvalidInputError("postId");
       }
 
-      if (!isPostVisibleTo(post, ctx.account.actor)) {
+      if (!isPostVisibleTo(post, actingAccount.actor)) {
         throw new InvalidInputError("postId");
       }
 
       const unshared = await unsharePost(
         ctx.fedCtx,
-        ctx.account,
+        actingAccount,
         post,
       );
 

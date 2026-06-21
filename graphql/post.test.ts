@@ -1,8 +1,10 @@
 import assert from "node:assert";
 import test from "node:test";
 import { createBookmark, deleteBookmark } from "@hackerspub/models/bookmark";
+import { createOrganization } from "@hackerspub/models/organization";
 import { sharePost } from "@hackerspub/models/post";
 import {
+  accountTable,
   actorTable,
   followingTable,
   postTable,
@@ -56,6 +58,52 @@ const addReactionMutation = parse(`
   }
 `);
 
+const addReactionAsOrganizationMutation = parse(`
+  mutation AddReactionAsOrganization(
+    $postId: ID!,
+    $emoji: String!,
+    $actingAccountId: ID!,
+  ) {
+    addReactionToPost(input: {
+      postId: $postId,
+      emoji: $emoji,
+      actingAccountId: $actingAccountId,
+    }) {
+      __typename
+      ... on AddReactionToPostPayload {
+        reaction {
+          id
+        }
+      }
+      ... on OrganizationPermissionError {
+        message
+      }
+    }
+  }
+`);
+
+const removeReactionAsOrganizationMutation = parse(`
+  mutation RemoveReactionAsOrganization(
+    $postId: ID!,
+    $emoji: String!,
+    $actingAccountId: ID!,
+  ) {
+    removeReactionFromPost(input: {
+      postId: $postId,
+      emoji: $emoji,
+      actingAccountId: $actingAccountId,
+    }) {
+      __typename
+      ... on RemoveReactionFromPostPayload {
+        success
+      }
+      ... on OrganizationPermissionError {
+        message
+      }
+    }
+  }
+`);
+
 const shareMutation = parse(`
   mutation SharePost($postId: ID!) {
     sharePost(input: { postId: $postId }) {
@@ -78,6 +126,28 @@ const shareMutation = parse(`
   }
 `);
 
+const shareAsOrganizationMutation = parse(`
+  mutation ShareAsOrganization($postId: ID!, $actingAccountId: ID!) {
+    sharePost(input: {
+      postId: $postId,
+      actingAccountId: $actingAccountId,
+    }) {
+      __typename
+      ... on SharePostPayload {
+        originalPost {
+          id
+        }
+        share {
+          id
+        }
+      }
+      ... on OrganizationPermissionError {
+        message
+      }
+    }
+  }
+`);
+
 const unshareMutation = parse(`
   mutation UnsharePost($postId: ID!) {
     unsharePost(input: { postId: $postId }) {
@@ -92,6 +162,25 @@ const unshareMutation = parse(`
       }
       ... on NotAuthenticatedError {
         notAuthenticated
+      }
+    }
+  }
+`);
+
+const unshareAsOrganizationMutation = parse(`
+  mutation UnshareAsOrganization($postId: ID!, $actingAccountId: ID!) {
+    unsharePost(input: {
+      postId: $postId,
+      actingAccountId: $actingAccountId,
+    }) {
+      __typename
+      ... on UnsharePostPayload {
+        originalPost {
+          id
+        }
+      }
+      ... on OrganizationPermissionError {
+        message
       }
     }
   }
@@ -487,6 +576,102 @@ test("addReactionToPost returns the created reaction for visible posts", async (
   });
 });
 
+test("addReactionToPost and removeReactionFromPost can act as an organization", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "orgreactionauthor",
+      name: "Organization Reaction Author",
+      email: "orgreactionauthor@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "orgreactionmember",
+      name: "Organization Reaction Member",
+      email: "orgreactionmember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgreactionactor",
+        name: "Organization Reaction Actor",
+        bio: "",
+      },
+    );
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Organization reaction target",
+    });
+    const postId = encodeGlobalID("Note", post.id);
+    const actingAccountId = encodeGlobalID("Account", organization.id);
+
+    const addResult = await execute({
+      schema,
+      document: addReactionAsOrganizationMutation,
+      variableValues: {
+        postId,
+        emoji: "🎉",
+        actingAccountId,
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(addResult.errors, undefined);
+    const addPayload = (addResult.data as {
+      addReactionToPost: {
+        __typename: string;
+        reaction?: { id: string } | null;
+      };
+    }).addReactionToPost;
+    assert.deepEqual(addPayload.__typename, "AddReactionToPostPayload");
+    assert.ok(addPayload.reaction?.id != null);
+
+    const reactionsAfterAdd = await tx.query.reactionTable.findMany({
+      where: {
+        postId: post.id,
+        actorId: organization.actor.id,
+        emoji: "🎉",
+      },
+    });
+    assert.deepEqual(reactionsAfterAdd.length, 1);
+
+    const removeResult = await execute({
+      schema,
+      document: removeReactionAsOrganizationMutation,
+      variableValues: {
+        postId,
+        emoji: "🎉",
+        actingAccountId,
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(removeResult.errors, undefined);
+    assert.deepEqual(
+      (removeResult.data as {
+        removeReactionFromPost: { __typename: string; success?: boolean };
+      }).removeReactionFromPost,
+      {
+        __typename: "RemoveReactionFromPostPayload",
+        success: true,
+      },
+    );
+
+    const reactionsAfterRemove = await tx.query.reactionTable.findMany({
+      where: {
+        postId: post.id,
+        actorId: organization.actor.id,
+        emoji: "🎉",
+      },
+    });
+    assert.deepEqual(reactionsAfterRemove, []);
+  });
+});
+
 test("sharePost and unsharePost round-trip through GraphQL", async () => {
   await withRollback(async (tx) => {
     const author = await insertAccountWithActor(tx, {
@@ -556,6 +741,94 @@ test("sharePost and unsharePost round-trip through GraphQL", async () => {
     const sharesAfterUnshare = await tx.query.postTable.findMany({
       where: {
         actorId: sharer.actor.id,
+        sharedPostId: post.id,
+      },
+    });
+    assert.deepEqual(sharesAfterUnshare, []);
+  });
+});
+
+test("sharePost and unsharePost can act as an organization", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "orgshareauthor",
+      name: "Organization Share Author",
+      email: "orgshareauthor@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "orgsharemember",
+      name: "Organization Share Member",
+      email: "orgsharemember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgshareactor",
+        name: "Organization Share Actor",
+        bio: "",
+      },
+    );
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Organization share target",
+    });
+    const postId = encodeGlobalID("Note", post.id);
+    const actingAccountId = encodeGlobalID("Account", organization.id);
+
+    const shareResult = await execute({
+      schema,
+      document: shareAsOrganizationMutation,
+      variableValues: { postId, actingAccountId },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(shareResult.errors, undefined);
+    const sharePayload = (shareResult.data as {
+      sharePost: {
+        __typename: string;
+        originalPost?: { id: string };
+        share?: { id: string };
+      };
+    }).sharePost;
+    assert.deepEqual(sharePayload.__typename, "SharePostPayload");
+    assert.deepEqual(sharePayload.originalPost?.id, postId);
+    assert.ok(sharePayload.share?.id != null);
+
+    const sharesAfterShare = await tx.query.postTable.findMany({
+      where: {
+        actorId: organization.actor.id,
+        sharedPostId: post.id,
+      },
+    });
+    assert.deepEqual(sharesAfterShare.length, 1);
+
+    const unshareResult = await execute({
+      schema,
+      document: unshareAsOrganizationMutation,
+      variableValues: { postId, actingAccountId },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(unshareResult.errors, undefined);
+    assert.deepEqual(
+      (unshareResult.data as {
+        unsharePost: { __typename: string; originalPost?: { id: string } };
+      }).unsharePost,
+      {
+        __typename: "UnsharePostPayload",
+        originalPost: { id: postId },
+      },
+    );
+
+    const sharesAfterUnshare = await tx.query.postTable.findMany({
+      where: {
+        actorId: organization.actor.id,
         sharedPostId: post.id,
       },
     });

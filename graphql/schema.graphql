@@ -806,6 +806,10 @@ union AddNewsPreferredSharerResult = InvalidInputError | NewsPreferredSharer | N
 Add an emoji reaction to a post. Sends an ActivityPub `Like` or `EmojiReact` activity. Idempotent: adding the same emoji twice has no effect. Exactly one of `emoji` or `customEmojiId` must be provided. Requires authentication.
 """
 input AddReactionToPostInput {
+  """
+  Optional `Account` id to react as. Omit to react as the authenticated personal account; pass an organization account where the viewer is an accepted member to react as that organization.
+  """
+  actingAccountId: ID
   clientMutationId: ID
   customEmojiId: ID
   emoji: String
@@ -817,7 +821,7 @@ type AddReactionToPostPayload {
   reaction: Reaction
 }
 
-union AddReactionToPostResult = ActorSuspendedError | AddReactionToPostPayload | InvalidInputError | NotAuthenticatedError
+union AddReactionToPostResult = ActorSuspendedError | AddReactionToPostPayload | InvalidInputError | NotAuthenticatedError | OrganizationPermissionError
 
 type AdminAccountConnection {
   edges: [AdminAccountEdge!]!
@@ -1903,6 +1907,10 @@ enum FlagStatus {
 }
 
 input FollowActorInput {
+  """
+  Optional `Account` id to follow as. Omit to follow as the authenticated personal account; pass an organization account where the viewer is an accepted member to follow as that organization.
+  """
+  actingAccountId: ID
   actorId: ID!
   clientMutationId: ID
 }
@@ -1913,7 +1921,7 @@ type FollowActorPayload {
   follower: Actor!
 }
 
-union FollowActorResult = ActorSuspendedError | FollowActorPayload | InvalidInputError | NotAuthenticatedError
+union FollowActorResult = ActorSuspendedError | FollowActorPayload | InvalidInputError | NotAuthenticatedError | OrganizationPermissionError
 
 """Follow a hashtag. Requires authentication."""
 input FollowHashtagInput {
@@ -5005,6 +5013,10 @@ union RemoveNewsPreferredSharerResult = NotAuthenticatedError | NotAuthorizedErr
 Remove an emoji reaction from a post. Sends an ActivityPub `Undo Like` activity. Idempotent: removing a reaction that doesn't exist returns `success: true`. Exactly one of `emoji` or `customEmojiId` must be provided. Requires authentication.
 """
 input RemoveReactionFromPostInput {
+  """
+  Optional `Account` id to remove the reaction as. Omit to use the authenticated personal account; pass an organization account where the viewer is an accepted member to remove that organization's reaction.
+  """
+  actingAccountId: ID
   clientMutationId: ID
   customEmojiId: ID
   emoji: String
@@ -5016,7 +5028,7 @@ type RemoveReactionFromPostPayload {
   success: Boolean!
 }
 
-union RemoveReactionFromPostResult = InvalidInputError | NotAuthenticatedError | RemoveReactionFromPostPayload
+union RemoveReactionFromPostResult = InvalidInputError | NotAuthenticatedError | OrganizationPermissionError | RemoveReactionFromPostPayload
 
 """
 The replacement sanction recorded when an appeal review reduces or increases the original action.  Validated like a regular action: `violatedProvisions` must be non-empty, `CENSOR` needs a post target, `SUSPEND` needs a valid window, and `DISMISS` is not a replacement (use the `WITHDRAWN` result instead).
@@ -5232,6 +5244,10 @@ type ShareNotification implements Node & Notification {
 Boost (reshare) a post by creating a share wrapper post and sending an ActivityPub `Announce` activity. Returns the wrapper post as `share` and the original post as `originalPost`. Requires authentication.
 """
 input SharePostInput {
+  """
+  Optional `Account` id to boost as. Omit to boost as the authenticated personal account; pass an organization account where the viewer is an accepted member to boost as that organization.
+  """
+  actingAccountId: ID
   clientMutationId: ID
   postId: ID!
 }
@@ -5242,7 +5258,7 @@ type SharePostPayload {
   share: Post!
 }
 
-union SharePostResult = ActorSuspendedError | InvalidInputError | NotAuthenticatedError | SharePostPayload
+union SharePostResult = ActorSuspendedError | InvalidInputError | NotAuthenticatedError | OrganizationPermissionError | SharePostPayload
 
 type SharedPostDeletionNotAllowedError {
   inputPath: String!
@@ -5378,6 +5394,10 @@ type UnbookmarkPostPayload {
 union UnbookmarkPostResult = InvalidInputError | NotAuthenticatedError | UnbookmarkPostPayload
 
 input UnfollowActorInput {
+  """
+  Optional `Account` id to unfollow as. Omit to unfollow as the authenticated personal account; pass an organization account where the viewer is an accepted member to remove that organization's follow.
+  """
+  actingAccountId: ID
   actorId: ID!
   clientMutationId: ID
 }
@@ -5388,7 +5408,7 @@ type UnfollowActorPayload {
   follower: Actor!
 }
 
-union UnfollowActorResult = InvalidInputError | NotAuthenticatedError | UnfollowActorPayload
+union UnfollowActorResult = InvalidInputError | NotAuthenticatedError | OrganizationPermissionError | UnfollowActorPayload
 
 """
 Unfollow a hashtag. Idempotent: unfollowing a tag not followed succeeds silently. Requires authentication.
@@ -5568,6 +5588,10 @@ union UnregisterPushNotificationTargetResult = InvalidInputError | NotAuthentica
 Undo a boost by deleting the share wrapper post and sending an ActivityPub `Undo Announce` activity. Pass the original post's `id` (not the wrapper's). Requires authentication.
 """
 input UnsharePostInput {
+  """
+  Optional `Account` id to undo a boost as. Omit to use the authenticated personal account; pass an organization account where the viewer is an accepted member to remove that organization's boost.
+  """
+  actingAccountId: ID
   clientMutationId: ID
   postId: ID!
 }
@@ -5577,7 +5601,7 @@ type UnsharePostPayload {
   originalPost: Post!
 }
 
-union UnsharePostResult = InvalidInputError | NotAuthenticatedError | UnsharePostPayload
+union UnsharePostResult = InvalidInputError | NotAuthenticatedError | OrganizationPermissionError | UnsharePostPayload
 
 """The result of removing a relay subscription."""
 type UnsubscribeRelayPayload {

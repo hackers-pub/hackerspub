@@ -25,6 +25,7 @@ import {
 } from "@hackerspub/models/following";
 import { getMutedActorIds, mute, unmute } from "@hackerspub/models/muting";
 import { isActorBanned, isActorSuspended } from "@hackerspub/models/moderation";
+import { OrganizationPermissionError } from "@hackerspub/models/organization";
 import {
   getCensoredPostExclusionFilter,
   getPostVisibilityFilter,
@@ -45,6 +46,8 @@ import { assertNever } from "@std/assert/unstable-never";
 import { escape } from "@std/html/entities";
 import { createGraphQLError } from "graphql-yoga";
 import xss from "xss";
+import { Account } from "./account.ts";
+import { resolveActingAccountForMutation } from "./acting-account.ts";
 import { builder, type UserContext } from "./builder.ts";
 import { ActorSuspendedError, InvalidInputError } from "./error.ts";
 import { lookupActorByUrl, parseHttpUrl } from "./lookup.ts";
@@ -1314,29 +1317,43 @@ builder.relayMutationField(
         for: [Actor],
         required: true,
       }),
+      actingAccountId: t.globalID({
+        for: Account,
+        required: false,
+        description:
+          "Optional `Account` id to follow as. Omit to follow as the " +
+          "authenticated personal account; pass an organization account " +
+          "where the viewer is an accepted member to follow as that " +
+          "organization.",
+      }),
     }),
   },
   {
     errors: {
-      types: [NotAuthenticatedError, InvalidInputError, ActorSuspendedError],
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+        ActorSuspendedError,
+        OrganizationPermissionError,
+      ],
     },
     async resolve(_root, args, ctx) {
-      const session = await ctx.session;
-      if (session == null || ctx.account == null) {
-        throw new NotAuthenticatedError();
-      }
+      const actingAccount = await resolveActingAccountForMutation(
+        ctx,
+        args.input,
+      );
 
       const followee = await ctx.db.query.actorTable.findFirst({
         where: { id: args.input.actorId.id },
       });
 
-      if (followee == null || followee.accountId === session.accountId) {
+      if (followee == null || followee.accountId === actingAccount.id) {
         throw new InvalidInputError("actorId");
       }
 
-      await follow(ctx.fedCtx, ctx.account, followee);
+      await follow(ctx.fedCtx, actingAccount, followee);
 
-      return { followeeId: followee.id, followerId: ctx.account.actor.id };
+      return { followeeId: followee.id, followerId: actingAccount.actor.id };
     },
   },
   {
@@ -1375,29 +1392,42 @@ builder.relayMutationField(
         for: [Actor],
         required: true,
       }),
+      actingAccountId: t.globalID({
+        for: Account,
+        required: false,
+        description:
+          "Optional `Account` id to unfollow as. Omit to unfollow as the " +
+          "authenticated personal account; pass an organization account " +
+          "where the viewer is an accepted member to remove that " +
+          "organization's follow.",
+      }),
     }),
   },
   {
     errors: {
-      types: [NotAuthenticatedError, InvalidInputError],
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+        OrganizationPermissionError,
+      ],
     },
     async resolve(_root, args, ctx) {
-      const session = await ctx.session;
-      if (session == null || ctx.account == null) {
-        throw new NotAuthenticatedError();
-      }
+      const actingAccount = await resolveActingAccountForMutation(
+        ctx,
+        args.input,
+      );
 
       const followee = await ctx.db.query.actorTable.findFirst({
         where: { id: args.input.actorId.id },
       });
 
-      if (followee == null || followee.accountId === session.accountId) {
+      if (followee == null || followee.accountId === actingAccount.id) {
         throw new InvalidInputError("actorId");
       }
 
-      await unfollow(ctx.fedCtx, ctx.account, followee);
+      await unfollow(ctx.fedCtx, actingAccount, followee);
 
-      return { followeeId: followee.id, followerId: ctx.account.actor.id };
+      return { followeeId: followee.id, followerId: actingAccount.actor.id };
     },
   },
   {

@@ -5,7 +5,12 @@ import { encodeGlobalID } from "@pothos/plugin-relay";
 import { execute, parse } from "graphql";
 import { block } from "@hackerspub/models/blocking";
 import { follow } from "@hackerspub/models/following";
-import { blockingTable, followingTable } from "@hackerspub/models/schema";
+import { createOrganization } from "@hackerspub/models/organization";
+import {
+  accountTable,
+  blockingTable,
+  followingTable,
+} from "@hackerspub/models/schema";
 import { schema } from "./mod.ts";
 import {
   createFedCtx,
@@ -40,6 +45,42 @@ const unfollowActorMutation = parse(`
       }
       ... on InvalidInputError { inputPath }
       ... on NotAuthenticatedError { notAuthenticated }
+    }
+  }
+`);
+
+const followActorAsOrganizationMutation = parse(`
+  mutation FollowActorAsOrganization($actorId: ID!, $actingAccountId: ID!) {
+    followActor(input: {
+      actorId: $actorId,
+      actingAccountId: $actingAccountId,
+    }) {
+      __typename
+      ... on FollowActorPayload {
+        followee { id }
+        follower { id }
+      }
+      ... on OrganizationPermissionError {
+        message
+      }
+    }
+  }
+`);
+
+const unfollowActorAsOrganizationMutation = parse(`
+  mutation UnfollowActorAsOrganization($actorId: ID!, $actingAccountId: ID!) {
+    unfollowActor(input: {
+      actorId: $actorId,
+      actingAccountId: $actingAccountId,
+    }) {
+      __typename
+      ... on UnfollowActorPayload {
+        followee { id }
+        follower { id }
+      }
+      ... on OrganizationPermissionError {
+        message
+      }
     }
   }
 `);
@@ -261,6 +302,136 @@ test("followActor and unfollowActor round-trip through GraphQL", async () => {
       },
     });
     assert.deepEqual(storedAfterUnfollow, undefined);
+  });
+});
+
+test("followActor and unfollowActor can act as an organization", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "orgfollowmember",
+      name: "Organization Follow Member",
+      email: "orgfollowmember@example.com",
+    });
+    const followee = await insertAccountWithActor(tx, {
+      username: "orgfollowtarget",
+      name: "Organization Follow Target",
+      email: "orgfollowtarget@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgfollowactor",
+        name: "Organization Follow Actor",
+        bio: "",
+      },
+    );
+
+    const actorId = encodeGlobalID("Actor", followee.actor.id);
+    const actingAccountId = encodeGlobalID("Account", organization.id);
+    const followResult = await execute({
+      schema,
+      document: followActorAsOrganizationMutation,
+      variableValues: { actorId, actingAccountId },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(followResult.errors, undefined);
+    assert.deepEqual(toPlainJson(followResult.data), {
+      followActor: {
+        __typename: "FollowActorPayload",
+        followee: { id: actorId },
+        follower: { id: encodeGlobalID("Actor", organization.actor.id) },
+      },
+    });
+
+    const storedAfterFollow = await tx.query.followingTable.findFirst({
+      where: {
+        followerId: organization.actor.id,
+        followeeId: followee.actor.id,
+      },
+    });
+    assert.deepEqual(storedAfterFollow?.accepted != null, true);
+
+    const unfollowResult = await execute({
+      schema,
+      document: unfollowActorAsOrganizationMutation,
+      variableValues: { actorId, actingAccountId },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(unfollowResult.errors, undefined);
+    assert.deepEqual(toPlainJson(unfollowResult.data), {
+      unfollowActor: {
+        __typename: "UnfollowActorPayload",
+        followee: { id: actorId },
+        follower: { id: encodeGlobalID("Actor", organization.actor.id) },
+      },
+    });
+
+    const storedAfterUnfollow = await tx.query.followingTable.findFirst({
+      where: {
+        followerId: organization.actor.id,
+        followeeId: followee.actor.id,
+      },
+    });
+    assert.deepEqual(storedAfterUnfollow, undefined);
+  });
+});
+
+test("followActor rejects organization acting without membership", async () => {
+  await withRollback(async (tx) => {
+    const admin = await insertAccountWithActor(tx, {
+      username: "orgfollowadmin",
+      name: "Organization Follow Admin",
+      email: "orgfollowadmin@example.com",
+    });
+    const outsider = await insertAccountWithActor(tx, {
+      username: "orgfollowoutsider",
+      name: "Organization Follow Outsider",
+      email: "orgfollowoutsider@example.com",
+    });
+    const followee = await insertAccountWithActor(tx, {
+      username: "orgfollowdeniedtarget",
+      name: "Organization Follow Denied Target",
+      email: "orgfollowdeniedtarget@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, admin.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      admin.account,
+      {
+        username: "orgfollowdenied",
+        name: "Organization Follow Denied",
+        bio: "",
+      },
+    );
+
+    const result = await execute({
+      schema,
+      document: followActorAsOrganizationMutation,
+      variableValues: {
+        actorId: encodeGlobalID("Actor", followee.actor.id),
+        actingAccountId: encodeGlobalID("Account", organization.id),
+      },
+      contextValue: makeUserContext(tx, outsider.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      followActor: {
+        __typename: "OrganizationPermissionError",
+        message: "The account is not allowed to manage this organization.",
+      },
+    });
   });
 });
 
