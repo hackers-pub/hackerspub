@@ -1376,6 +1376,63 @@ test("addAccountMigrationAlias resolves uncached handles by federation lookup", 
   });
 });
 
+test("addAccountMigrationAlias does not resurrect aliases removed during lookup", async () => {
+  await withRollback(async (tx) => {
+    const { account } = await insertAccountWithActor(tx, {
+      username: "aliasrace",
+      name: "Alias Race",
+      email: "aliasrace@example.com",
+    });
+    await tx.update(actorTable)
+      .set({ aliases: ["https://old.example/users/removed"] })
+      .where(eq(actorTable.accountId, account.id));
+    const fedCtx = createFedCtx(tx);
+    fedCtx.getActor = (identifier: string) =>
+      Promise.resolve(new vocab.Person({ id: fedCtx.getActorUri(identifier) }));
+    fedCtx.lookupObject = (async (resource: string | URL) => {
+      assert.equal(resource.toString(), "fresh@localhost");
+      await tx.update(actorTable)
+        .set({ aliases: [] })
+        .where(eq(actorTable.accountId, account.id));
+      return new vocab.Person({
+        id: new URL("https://localhost/users/fresh"),
+        preferredUsername: "fresh",
+        name: "Fresh Alias",
+        inbox: new URL("https://localhost/users/fresh/inbox"),
+        endpoints: new vocab.Endpoints({
+          sharedInbox: new URL("https://localhost/inbox"),
+        }),
+        url: new URL("https://localhost/@fresh"),
+      });
+    }) as typeof fedCtx.lookupObject;
+
+    const result = await execute({
+      schema,
+      document: addAccountMigrationAliasMutation,
+      variableValues: {
+        input: {
+          accountId: encodeGlobalID("Account", account.id),
+          actor: "fresh@localhost",
+        },
+      },
+      contextValue: makeUserContext(tx, account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      addAccountMigrationAlias: {
+        __typename: "AddAccountMigrationAliasPayload",
+        account: {
+          actor: {
+            aliases: ["https://localhost/users/fresh"],
+          },
+        },
+      },
+    });
+  });
+});
+
 test("addAccountMigrationAlias returns typed errors", async () => {
   await withRollback(async (tx) => {
     const owner = await insertAccountWithActor(tx, {

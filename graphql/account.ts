@@ -182,23 +182,57 @@ async function getAuthorizedMigrationAccount(
   return account;
 }
 
-async function setAccountMigrationAliases(
+async function getUpdatedMigrationAccount(
   ctx: UserContext,
   accountId: Uuid,
-  aliases: string[],
+  updated: Date,
 ) {
-  const rows = await ctx.db.update(actorTable)
-    .set({ aliases, updated: sql`CURRENT_TIMESTAMP` })
-    .where(eq(actorTable.accountId, accountId))
-    .returning();
-  const actor = rows[0];
-  if (actor == null) throw new InvalidInputError("accountId");
-  await sendAccountActorUpdate(ctx.fedCtx, accountId, actor.updated);
+  await sendAccountActorUpdate(ctx.fedCtx, accountId, updated);
   const account = await ctx.db.query.accountTable.findFirst({
     where: { id: accountId },
   });
   if (account == null) throw new InvalidInputError("accountId");
   return account;
+}
+
+async function addAccountMigrationAlias(
+  ctx: UserContext,
+  accountId: Uuid,
+  alias: string,
+) {
+  const rows = await ctx.db.update(actorTable)
+    .set({
+      aliases: sql`
+        CASE
+          WHEN ${alias} = ANY(${actorTable.aliases})
+          THEN ${actorTable.aliases}
+          ELSE array_append(${actorTable.aliases}, ${alias})
+        END
+      `,
+      updated: sql`CURRENT_TIMESTAMP`,
+    })
+    .where(eq(actorTable.accountId, accountId))
+    .returning();
+  const actor = rows[0];
+  if (actor == null) throw new InvalidInputError("accountId");
+  return await getUpdatedMigrationAccount(ctx, accountId, actor.updated);
+}
+
+async function removeAccountMigrationAlias(
+  ctx: UserContext,
+  accountId: Uuid,
+  alias: string,
+) {
+  const rows = await ctx.db.update(actorTable)
+    .set({
+      aliases: sql`array_remove(${actorTable.aliases}, ${alias})`,
+      updated: sql`CURRENT_TIMESTAMP`,
+    })
+    .where(eq(actorTable.accountId, accountId))
+    .returning();
+  const actor = rows[0];
+  if (actor == null) throw new InvalidInputError("accountId");
+  return await getUpdatedMigrationAccount(ctx, accountId, actor.updated);
 }
 
 export const Account = builder.drizzleNode("accountTable", {
@@ -1370,10 +1404,7 @@ builder.relayMutationField(
       ) {
         throw new InvalidInputError("actor");
       }
-      const aliases = account.actor.aliases.includes(oldActor.iri)
-        ? account.actor.aliases
-        : [...account.actor.aliases, oldActor.iri];
-      return await setAccountMigrationAliases(ctx, account.id, aliases);
+      return await addAccountMigrationAlias(ctx, account.id, oldActor.iri);
     },
   },
   {
@@ -1426,9 +1457,11 @@ builder.relayMutationField(
         ctx,
         args.input.accountId.id,
       );
-      const alias = args.input.alias.href;
-      const aliases = account.actor.aliases.filter((a) => a !== alias);
-      return await setAccountMigrationAliases(ctx, account.id, aliases);
+      return await removeAccountMigrationAlias(
+        ctx,
+        account.id,
+        args.input.alias.href,
+      );
     },
   },
   {
