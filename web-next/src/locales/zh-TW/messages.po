@@ -195,6 +195,11 @@ msgstr "{0} 和其他 {1} 人更新了你轉貼過的內容"
 msgid "{0} and {1} others' polls ended"
 msgstr "{0} 和其他 {1} 人的投票調查已結束"
 
+#. placeholder {0}: result.membership.member.username
+#: src/routes/(root)/[handle]/settings/account.tsx:1298
+msgid "{0} can now accept the organization invitation."
+msgstr "{0} 現在可以接受組織邀請。"
+
 #: src/routes/(root)/admin/invitations.tsx:173
 #~ msgid "{0} eligible account(s); {1} would receive an invitation if regenerated now."
 #~ msgstr "符合條件的帳號 {0} 個；若現在重新發放，將向其中 {1} 個帳號發放邀請。"
@@ -229,10 +234,21 @@ msgstr "{0} 小時"
 msgid "{0} is already a member of Hackers' Pub."
 msgstr "{0} 已經是 Hackers' Pub 的成員。"
 
+#. placeholder {0}: result.membership.member.username
+#. placeholder {1}: roleLabel(result.membership.role, t)
+#: src/routes/(root)/[handle]/settings/account.tsx:1341
+msgid "{0} is now {1}."
+msgstr "{0} 現在是 {1}。"
+
 #. placeholder {0}: "ACTOR"
 #: src/components/notification/MentionNotificationCard.tsx:35
 msgid "{0} mentioned you"
 msgstr "{0} 提及了你"
+
+#. placeholder {0}: result.membership.member.username
+#: src/routes/(root)/[handle]/settings/account.tsx:1385
+msgid "{0} no longer belongs to this organization."
+msgstr "{0} 已不再屬於此組織。"
 
 #. placeholder {0}: num(divergence.diverged)
 #. placeholder {1}: num(divergence.compared)
@@ -366,7 +382,7 @@ msgstr "{days} 天"
 msgid "{HIGH_PRIORITY_REPORT_COUNT}+ reports"
 msgstr "{HIGH_PRIORITY_REPORT_COUNT} 則以上檢舉"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:388
+#: src/routes/(root)/[handle]/settings/account.tsx:1678
 msgid "@old@example.com or actor URL"
 msgstr "@old@example.com 或 actor URL"
 
@@ -410,7 +426,7 @@ msgstr "已對你的帳戶做出審核決定。"
 msgid "A moderator suspended this account for violating the code of conduct."
 msgstr "版主因違反行為準則停權了此帳戶。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:589
+#: src/routes/(root)/[handle]/settings/index.tsx:591
 msgid "A name for the link that will be displayed on your profile, e.g., GitHub."
 msgstr "為顯示在你個人資料頁面的連結命名，例如 GitHub。"
 
@@ -455,13 +471,38 @@ msgstr "由於此檢舉將被轉送，因此必須填寫摘要。"
 msgid "A user (profile) report."
 msgstr "使用者（個人檔案）檢舉。"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:888
+msgid "Accept"
+msgstr "接受"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1172
+msgid "Accept conversion"
+msgstr "接受轉換"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1159
+msgid "Accept conversion request"
+msgstr "接受轉換請求"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:659
+msgid "Accept pending invitations from organization administrators."
+msgstr "接受組織管理員發出的待處理邀請。"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:887
+#: src/routes/(root)/[handle]/settings/account.tsx:1172
+msgid "Accepting…"
+msgstr "正在接受…"
+
 #: src/components/admin/AdminAccountsTable.tsx:224
 #: src/components/AppSidebar.tsx:619
-#: src/components/SettingsTabs.tsx:112
+#: src/components/SettingsTabs.tsx:115
 msgid "Account"
 msgstr "帳戶"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:493
+#: src/routes/(root)/[handle]/settings/account.tsx:1073
+msgid "Account converted"
+msgstr "帳戶已轉換"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1783
 msgid "Account deletion is unavailable"
 msgstr "帳戶刪除功能無法使用"
 
@@ -469,7 +510,7 @@ msgstr "帳戶刪除功能無法使用"
 msgid "Account handle"
 msgstr "帳號使用者名稱"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:186
+#: src/routes/(root)/[handle]/settings/account.tsx:537
 msgid "Account migration"
 msgstr "帳戶遷移"
 
@@ -477,8 +518,8 @@ msgstr "帳戶遷移"
 msgid "Account permanently suspended"
 msgstr "帳戶已永久停權"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:179
-#: src/routes/(root)/[handle]/settings/account.tsx:181
+#: src/routes/(root)/[handle]/settings/account.tsx:520
+#: src/routes/(root)/[handle]/settings/account.tsx:522
 msgid "Account settings"
 msgstr "帳戶設定"
 
@@ -516,7 +557,7 @@ msgstr "啟用於"
 msgid "Actors currently under an active suspension or federation block. Expired suspensions drop off automatically."
 msgstr "目前處於停權或聯邦封鎖狀態的行為者。已過期的停權會自動移除。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:408
+#: src/routes/(root)/[handle]/settings/account.tsx:1698
 #: src/routes/(root)/[handle]/settings/language.tsx:196
 #: src/routes/(root)/admin/news.tsx:639
 #: src/routes/(root)/admin/news.tsx:748
@@ -541,7 +582,7 @@ msgstr "新增選項"
 msgid "Add poll"
 msgstr "新增投票調查"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:361
+#: src/routes/(root)/[handle]/settings/account.tsx:1651
 msgid "Add the old account here. Hackers' Pub will publish it as another account that belongs to you."
 msgstr "在這裡新增舊帳戶。Hackers' Pub 會將它公開為屬於你的另一個帳戶。"
 
@@ -549,7 +590,7 @@ msgstr "在這裡新增舊帳戶。Hackers' Pub 會將它公開為屬於你的�
 msgid "Add to sidebar"
 msgstr "新增至側邊欄"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:408
+#: src/routes/(root)/[handle]/settings/account.tsx:1698
 #: src/routes/(root)/admin/news.tsx:639
 #: src/routes/(root)/admin/news.tsx:748
 msgid "Adding…"
@@ -567,7 +608,11 @@ msgstr "管理"
 #~ msgid "Advertise previous accounts before starting the move from the old server."
 #~ msgstr "從舊伺服器開始遷移前，先公開以前的帳戶。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:367
+#: src/routes/(root)/[handle]/settings/account.tsx:1109
+msgid "After conversion, this account cannot sign in directly and cannot be converted back to a personal account."
+msgstr "轉換後，此帳戶不能直接登入，也不能轉換回個人帳戶。"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1657
 msgid "After the old server confirms the destination, it sends the Move activity and compatible servers can move followers here."
 msgstr "舊伺服器確認目標帳戶後，會傳送 Move 活動，相容的伺服器可以把粉絲遷移到這裡。"
 
@@ -644,8 +689,8 @@ msgstr "儲存設定時發生錯誤。請重試，如果問題持續存在，請
 msgid "An error occurred while saving your preferred languages. Please try again, or contact support if the problem persists."
 msgstr "儲存語言偏好時出現錯誤。請重試，如果問題仍然存在，請聯繫支援。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:306
-#: src/routes/(root)/[handle]/settings/index.tsx:347
+#: src/routes/(root)/[handle]/settings/index.tsx:308
+#: src/routes/(root)/[handle]/settings/index.tsx:349
 msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 msgstr "儲存設定時發生錯誤。請重試，如果問題仍然存在，請聯繫支援。"
 
@@ -782,7 +827,7 @@ msgid "Articles only"
 msgstr "僅文章"
 
 #. placeholder {0}: "CHANGED"
-#: src/routes/(root)/[handle]/settings/index.tsx:464
+#: src/routes/(root)/[handle]/settings/index.tsx:466
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "自從你已經把使用者名稱換成 {0} 了，你再也改不了了。"
 
@@ -814,7 +859,7 @@ msgstr "自動填寫"
 msgid "Auto-fill alt text"
 msgstr "自動填寫替代文字"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:361
+#: src/routes/(root)/[handle]/settings/index.tsx:363
 msgid "Avatar"
 msgstr "頭像"
 
@@ -837,7 +882,7 @@ msgstr "永久停權"
 msgid "Banned"
 msgstr "已永久停權"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:493
+#: src/routes/(root)/[handle]/settings/index.tsx:495
 #: src/routes/(root)/sign/up/[token].tsx:403
 msgid "Bio"
 msgstr "個人簡介"
@@ -939,8 +984,8 @@ msgstr "由 {0} 發佈"
 #: src/components/RemoveFollowerButton.tsx:144
 #: src/components/ReportDialog.tsx:224
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:523
-#: src/routes/(root)/[handle]/settings/account.tsx:589
-#: src/routes/(root)/[handle]/settings/index.tsx:408
+#: src/routes/(root)/[handle]/settings/account.tsx:1879
+#: src/routes/(root)/[handle]/settings/index.tsx:410
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:522
 #: src/routes/(root)/authorize_interaction.tsx:273
 msgid "Cancel"
@@ -950,12 +995,12 @@ msgstr "取消"
 msgid "Cannot change the language because translations already exist"
 msgstr "由於已存在翻譯，無法變更語言"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:510
+#: src/routes/(root)/[handle]/settings/account.tsx:1800
 msgid "Cannot delete this account"
 msgstr "無法刪除此帳戶"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:280
-#: src/routes/(root)/[handle]/settings/account.tsx:331
+#: src/routes/(root)/[handle]/settings/account.tsx:1570
+#: src/routes/(root)/[handle]/settings/account.tsx:1621
 msgid "Cannot update this account"
 msgstr "無法更新此帳戶"
 
@@ -975,6 +1020,18 @@ msgstr "已被版主封鎖。"
 #: src/components/WebPushNotificationSettings.tsx:408
 msgid "Check again"
 msgstr "重新檢查"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1042
+msgid "Check the admin username and confirmation, then try again."
+msgstr "請檢查管理員使用者名稱和確認內容，然後重試。"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1084
+msgid "Check the request ID, then try again."
+msgstr "請檢查請求 ID，然後重試。"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:741
+msgid "Check the username and your remaining invitations, then try again."
+msgstr "請檢查使用者名稱和剩餘邀請數，然後重試。"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:249
 msgid "Check your email"
@@ -1085,6 +1142,18 @@ msgstr "控制你在顯示誰邀請了誰的公開邀請樹中的顯示方式。
 msgid "Controls who can quote this article on their timeline."
 msgstr "設定誰可以在時間軸上引用這篇文章。"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:1032
+msgid "Conversion request created"
+msgstr "轉換請求已建立"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1148
+msgid "Conversion request ID"
+msgstr "轉換請求 ID"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:685
+msgid "Convert to organization"
+msgstr "轉換為組織"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:631
 msgid "Copied"
 msgstr "已複製"
@@ -1093,13 +1162,23 @@ msgstr "已複製"
 msgid "Copy"
 msgstr "複製"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:1081
+#: src/routes/(root)/[handle]/settings/account.tsx:1092
+msgid "Could not accept conversion"
+msgstr "無法接受轉換"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:836
+#: src/routes/(root)/[handle]/settings/account.tsx:847
+msgid "Could not accept invitation"
+msgstr "無法接受邀請"
+
 #: src/routes/(root)/[handle]/settings/account.tsx:286
 #: src/routes/(root)/[handle]/settings/account.tsx:292
 #~ msgid "Could not add migration alias"
 #~ msgstr "無法新增遷移別名"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:288
-#: src/routes/(root)/[handle]/settings/account.tsx:294
+#: src/routes/(root)/[handle]/settings/account.tsx:1578
+#: src/routes/(root)/[handle]/settings/account.tsx:1584
 msgid "Could not add previous account"
 msgstr "無法新增舊帳戶"
 
@@ -1107,9 +1186,24 @@ msgstr "無法新增舊帳戶"
 msgid "Could not copy the link to the clipboard."
 msgstr "無法將連結複製到剪貼簿。"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:738
+#: src/routes/(root)/[handle]/settings/account.tsx:749
+msgid "Could not create organization"
+msgstr "無法建立組織"
+
 #: src/components/NoteComposer.tsx:628
 #~ msgid "Could not find a post at this URL"
 #~ msgstr "無法在此URL找到內容"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1303
+#: src/routes/(root)/[handle]/settings/account.tsx:1314
+msgid "Could not invite member"
+msgstr "無法邀請成員"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:927
+#: src/routes/(root)/[handle]/settings/account.tsx:938
+msgid "Could not leave organization"
+msgstr "無法離開組織"
 
 #: src/components/ActorHoverCardLoader.tsx:31
 msgid "Could not load profile."
@@ -1125,15 +1219,25 @@ msgstr "無法記錄處置"
 msgid "Could not refresh this from its origin."
 msgstr "無法從來源重新整理此物件。"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:1391
+#: src/routes/(root)/[handle]/settings/account.tsx:1402
+msgid "Could not remove member"
+msgstr "無法移除成員"
+
 #: src/routes/(root)/[handle]/settings/account.tsx:334
 #: src/routes/(root)/[handle]/settings/account.tsx:342
 #~ msgid "Could not remove migration alias"
 #~ msgstr "無法移除遷移別名"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:337
-#: src/routes/(root)/[handle]/settings/account.tsx:345
+#: src/routes/(root)/[handle]/settings/account.tsx:1627
+#: src/routes/(root)/[handle]/settings/account.tsx:1635
 msgid "Could not remove previous account"
 msgstr "無法移除舊帳戶"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1039
+#: src/routes/(root)/[handle]/settings/account.tsx:1050
+msgid "Could not request conversion"
+msgstr "無法請求轉換"
 
 #: src/routes/(root)/admin/refresh.tsx:129
 msgid "Could not resolve that as a remote object."
@@ -1154,9 +1258,18 @@ msgstr "無法撤銷引用"
 msgid "Could not submit the appeal"
 msgstr "無法提交申訴"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:1349
+#: src/routes/(root)/[handle]/settings/account.tsx:1360
+msgid "Could not update role"
+msgstr "無法更新角色"
+
 #: src/components/QuestionCard.tsx:426
 msgid "Could not vote on this poll"
 msgstr "無法在此投票調查中投票"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:645
+msgid "Create an organization account that shares the username namespace and consumes one invitation."
+msgstr "建立共享使用者名稱命名空間並消耗一個邀請的組織帳戶。"
 
 #: src/components/AppSidebar.tsx:875
 #: src/components/FloatingComposeButton.tsx:123
@@ -1173,6 +1286,11 @@ msgstr "建立邀請連結"
 #: src/components/NoteComposer.tsx:1930
 msgid "Create note"
 msgstr "建立貼文"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:643
+#: src/routes/(root)/[handle]/settings/account.tsx:800
+msgid "Create organization"
+msgstr "建立組織"
 
 #: src/components/NoteComposer.tsx:1929
 msgid "Create poll"
@@ -1196,17 +1314,22 @@ msgid "Creating account…"
 msgstr "創建帳戶…"
 
 #: src/components/NoteComposer.tsx:1932
+#: src/routes/(root)/[handle]/settings/account.tsx:800
 #: src/routes/(root)/[handle]/settings/invite.tsx:855
 msgid "Creating…"
 msgstr "正在建立…"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:415
+#: src/routes/(root)/[handle]/settings/index.tsx:417
 msgid "Crop"
 msgstr "裁剪"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:388
+#: src/routes/(root)/[handle]/settings/index.tsx:390
 msgid "Crop your new avatar"
 msgstr "裁剪你的新頭像"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1128
+msgid "Current username"
+msgstr "目前使用者名稱"
 
 #: src/routes/(root)/admin/invitations.tsx:178
 #: src/routes/(root)/admin/media.tsx:166
@@ -1253,13 +1376,13 @@ msgstr "預設轉貼隱私設定"
 msgid "Delete"
 msgstr "刪除"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:200
-#: src/routes/(root)/[handle]/settings/account.tsx:573
-#: src/routes/(root)/[handle]/settings/account.tsx:598
+#: src/routes/(root)/[handle]/settings/account.tsx:552
+#: src/routes/(root)/[handle]/settings/account.tsx:1863
+#: src/routes/(root)/[handle]/settings/account.tsx:1888
 msgid "Delete account"
 msgstr "刪除帳戶"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:581
+#: src/routes/(root)/[handle]/settings/account.tsx:1871
 msgid "Delete account permanently?"
 msgstr "要永久刪除帳戶嗎？"
 
@@ -1277,7 +1400,7 @@ msgid "Delete post?"
 msgstr "刪除內容？"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:21
-#: src/routes/(root)/[handle]/settings/account.tsx:598
+#: src/routes/(root)/[handle]/settings/account.tsx:1888
 #: src/routes/(root)/[handle]/settings/invite.tsx:745
 #: src/routes/(root)/admin/media.tsx:189
 msgid "Deleting…"
@@ -1299,6 +1422,10 @@ msgstr "已駁回"
 #: src/components/admin/AppealResolveForm.tsx:82
 msgid "Deny (uphold decision)"
 msgstr "駁回（維持決定）"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:791
+msgid "Description"
+msgstr "描述"
 
 #: src/components/WebPushNotificationSettings.tsx:431
 msgid "Disable"
@@ -1339,7 +1466,8 @@ msgstr "關閉"
 msgid "Dismissed"
 msgstr "已駁回"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:477
+#: src/routes/(root)/[handle]/settings/account.tsx:782
+#: src/routes/(root)/[handle]/settings/index.tsx:479
 #: src/routes/(root)/sign/up/[token].tsx:377
 msgid "Display name"
 msgstr "暱稱"
@@ -1369,7 +1497,7 @@ msgstr "未找到草稿"
 msgid "Draft saved"
 msgstr "草稿已儲存"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:391
+#: src/routes/(root)/[handle]/settings/index.tsx:393
 msgid "Drag to select the area you want to keep, then click “Crop” to update your avatar."
 msgstr "拖動選擇要保留的區域，然後點擊「裁剪」來更新你的頭像。"
 
@@ -1426,11 +1554,11 @@ msgstr "截止"
 #~ msgid "Enter a valid previous account handle or actor URL."
 #~ msgstr "請輸入有效的以前帳戶識別碼或 actor URL。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:395
+#: src/routes/(root)/[handle]/settings/account.tsx:1685
 msgid "Enter the account you are moving from, for example @old@example.com."
 msgstr "請輸入你要從中遷移的帳戶，例如 @old@example.com。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:286
+#: src/routes/(root)/[handle]/settings/account.tsx:1576
 msgid "Enter the account you are moving from, such as @old@example.com or its actor URL."
 msgstr "請輸入你要從中遷移的帳戶，例如 @old@example.com 或其 actor URL。"
 
@@ -1566,9 +1694,9 @@ msgstr "複製失敗"
 msgid "Failed to create invitation link"
 msgstr "建立邀請連結失敗"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:478
-#: src/routes/(root)/[handle]/settings/account.tsx:517
-#: src/routes/(root)/[handle]/settings/account.tsx:528
+#: src/routes/(root)/[handle]/settings/account.tsx:1768
+#: src/routes/(root)/[handle]/settings/account.tsx:1807
+#: src/routes/(root)/[handle]/settings/account.tsx:1818
 msgid "Failed to delete account"
 msgstr "刪除帳戶失敗"
 
@@ -1790,8 +1918,8 @@ msgstr "儲存語言偏好失敗"
 msgid "Failed to save preferences"
 msgstr "儲存設定失敗"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:303
-#: src/routes/(root)/[handle]/settings/index.tsx:345
+#: src/routes/(root)/[handle]/settings/index.tsx:305
+#: src/routes/(root)/[handle]/settings/index.tsx:347
 #: src/routes/(root)/[handle]/settings/invite.tsx:898
 msgid "Failed to save settings"
 msgstr "儲存設定失敗"
@@ -1968,6 +2096,11 @@ msgstr "接收瀏覽器通知"
 msgid "GitHub repository"
 msgstr "GitHub 儲存庫"
 
+#. placeholder {0}: result.request.admin.username
+#: src/routes/(root)/[handle]/settings/account.tsx:1034
+msgid "Give the request ID to {0}."
+msgstr "請將請求 ID 交給 {0}。"
+
 #: src/routes/(root)/[handle]/bookmarks.tsx:109
 #: src/routes/(root)/[handle]/drafts/[id].tsx:61
 #: src/routes/(root)/[handle]/drafts/index.tsx:227
@@ -2024,11 +2157,11 @@ msgstr "Hackers' Pub 是個為軟體工程師共同分享知識和經驗的地�
 #~ msgid "Hackers' Pub no longer publishes that account as an alias."
 #~ msgstr "Hackers' Pub 不再將該帳戶公開為別名。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:318
+#: src/routes/(root)/[handle]/settings/account.tsx:1608
 msgid "Hackers' Pub no longer publishes that account as another account that belongs to you."
 msgstr "Hackers' Pub 不再將該帳戶公開為屬於你的另一個帳戶。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:267
+#: src/routes/(root)/[handle]/settings/account.tsx:1557
 msgid "Hackers' Pub now publishes the old account as another account that belongs to you."
 msgstr "Hackers' Pub 現在會將舊帳戶公開為屬於你的另一個帳戶。"
 
@@ -2209,6 +2342,10 @@ msgstr "無效輸入：{0}"
 msgid "Invalid input: {inputPath}"
 msgstr "無效輸入：{inputPath}"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:828
+msgid "Invitation accepted"
+msgstr "邀請已接受"
+
 #. placeholder {0}: link.inviter.name ?? link.inviter.username
 #: src/routes/(root)/[handle]/invite/[id].tsx:242
 msgid "Invitation from {0}"
@@ -2230,6 +2367,7 @@ msgstr "邀請連結已刪除"
 msgid "Invitation links"
 msgstr "邀請連結"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:1296
 #: src/routes/(root)/[handle]/settings/invite.tsx:274
 msgid "Invitation sent"
 msgstr "邀請已發送"
@@ -2251,7 +2389,7 @@ msgid "Invitations left"
 msgstr "剩餘邀請"
 
 #: src/components/AppSidebar.tsx:729
-#: src/components/SettingsTabs.tsx:72
+#: src/components/SettingsTabs.tsx:74
 #: src/routes/(root)/[handle]/settings/invite.tsx:311
 msgid "Invite"
 msgstr "邀請"
@@ -2259,6 +2397,18 @@ msgstr "邀請"
 #: src/routes/(root)/[handle]/settings/invite.tsx:320
 msgid "Invite a friend"
 msgstr "邀請朋友"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1432
+msgid "Invite a personal account by its local username."
+msgstr "透過本地使用者名稱邀請個人帳戶。"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1445
+msgid "Invite member"
+msgstr "邀請成員"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1416
+msgid "Invite members and choose who can manage this organization."
+msgstr "邀請成員並選擇誰可以管理此組織。"
 
 #: src/components/admin/AdminAccountsTable.tsx:269
 msgid "Invited"
@@ -2273,11 +2423,15 @@ msgstr "邀請人"
 msgid "Invited by {0}"
 msgstr "由 {0} 邀請"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:1445
+msgid "Inviting…"
+msgstr "正在邀請…"
+
 #: src/components/ui/markdown-editor.tsx:277
 msgid "Italic"
 msgstr "斜體"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:484
+#: src/routes/(root)/[handle]/settings/index.tsx:486
 msgid "John Doe"
 msgstr "張三"
 
@@ -2314,7 +2468,7 @@ msgstr "語言代碼"
 msgid "Language settings"
 msgstr "語言設定"
 
-#: src/components/SettingsTabs.tsx:64
+#: src/components/SettingsTabs.tsx:66
 msgid "Languages"
 msgstr "語言"
 
@@ -2345,6 +2499,22 @@ msgstr "上次重新發放："
 msgid "Last used {0}"
 msgstr "{0}最後使用"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:980
+msgid "Leave"
+msgstr "離開"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:673
+msgid "Leave organizations you no longer work with. The last member or last admin cannot leave."
+msgstr "離開你不再參與的組織。最後一位成員或最後一位管理員不能離開。"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:979
+msgid "Leaving…"
+msgstr "正在離開…"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:920
+msgid "Left organization"
+msgstr "已離開組織"
+
 #: src/components/ui/markdown-editor.tsx:281
 msgid "Link"
 msgstr "連結"
@@ -2361,7 +2531,7 @@ msgstr "連結作者："
 msgid "Link expired"
 msgstr "連結已過期"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:570
+#: src/routes/(root)/[handle]/settings/index.tsx:572
 msgid "Link name"
 msgstr "連結名"
 
@@ -2472,6 +2642,10 @@ msgstr "載入更多新聞"
 #: src/components/article-composer/ArticleComposer.tsx:31
 msgid "Loading draft…"
 msgstr "載入草稿中…"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1454
+msgid "Loading members…"
+msgstr "正在載入成員…"
 
 #: src/components/admin/AdminAccountsTable.tsx:407
 msgid "Loading more accounts…"
@@ -2598,6 +2772,25 @@ msgstr "Markdown 可用"
 msgid "Media"
 msgstr "媒體"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:1429
+msgid "member"
+msgstr "member"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:812
+#: src/routes/(root)/[handle]/settings/account.tsx:904
+#: src/routes/(root)/[handle]/settings/account.tsx:1189
+#: src/routes/(root)/[handle]/settings/account.tsx:1223
+msgid "Member"
+msgstr "成員"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1383
+msgid "Member removed"
+msgstr "成員已移除"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1269
+msgid "Members could not be loaded."
+msgstr "無法載入成員。"
+
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:55
 #: src/components/PostVisibilitySelect.tsx:83
 #: src/components/VisibilityTag.tsx:98
@@ -2684,7 +2877,7 @@ msgstr "已靜音的帳號"
 msgid "Muted accounts are hidden from your feeds and stop notifying you, except for replies and mentions from accounts you follow. You can still visit their profiles, and muting is private and never federated."
 msgstr "被靜音的帳號不會出現在你的時間軸中，也不會通知你，但你關注的帳號的回覆與提及仍會通知你。你仍可造訪其個人檔案；靜音是私密的，且不會進行聯邦。"
 
-#: src/components/SettingsTabs.tsx:88
+#: src/components/SettingsTabs.tsx:90
 msgid "Mutes & blocks"
 msgstr "靜音與封鎖"
 
@@ -2724,6 +2917,10 @@ msgstr "永不過期"
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:447
 msgid "Never used"
 msgstr "從未使用過"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1116
+msgid "New admin username"
+msgstr "新管理員使用者名稱"
 
 #: src/routes/(root)/[handle]/drafts/index.tsx:253
 #: src/routes/(root)/[handle]/drafts/new.tsx:85
@@ -2825,6 +3022,10 @@ msgstr "沒有剩餘邀請名額"
 msgid "No matching object found"
 msgstr "找不到相符的物件"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:1464
+msgid "No members found."
+msgstr "找不到成員。"
+
 #: src/routes/(root)/[handle]/settings/account.tsx:397
 #~ msgid "No migration aliases yet."
 #~ msgstr "暫無遷移別名。"
@@ -2855,6 +3056,10 @@ msgstr "尚無轉貼。"
 msgid "No penalized links."
 msgstr "沒有受罰連結。"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:862
+msgid "No pending organization invitations."
+msgstr "沒有待處理的組織邀請。"
+
 #: src/components/ActorPostList.tsx:140
 #: src/components/ActorSharedPostList.tsx:93
 #: src/components/PersonalTimeline.tsx:305
@@ -2871,7 +3076,7 @@ msgstr "尚無優先轉貼者。"
 msgid "No previews"
 msgstr "不顯示預覽"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:417
+#: src/routes/(root)/[handle]/settings/account.tsx:1707
 msgid "No previous accounts added yet."
 msgstr "暫無已新增的舊帳戶。"
 
@@ -2964,7 +3169,7 @@ msgid "Note created successfully"
 msgstr "貼文建立成功"
 
 #. placeholder {0}: "REL_ME_ATTR"
-#: src/routes/(root)/[handle]/settings/index.tsx:533
+#: src/routes/(root)/[handle]/settings/index.tsx:535
 msgid "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
 msgstr "你可以驗證這些連結確實屬於你。在連結的頁面上使用 {0} 屬性連結回你的 Hackers' Pub 個人資料頁。"
 
@@ -3011,11 +3216,11 @@ msgstr "瀏覽器設定已封鎖通知。"
 msgid "Number of invitations"
 msgstr "邀請次數"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:382
+#: src/routes/(root)/[handle]/settings/account.tsx:1672
 msgid "Old account"
 msgstr "舊帳戶"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:364
+#: src/routes/(root)/[handle]/settings/account.tsx:1654
 msgid "On the old server, open account migration settings and set this Hackers' Pub account as the new account."
 msgstr "在舊伺服器上開啟帳戶遷移設定，並將此 Hackers' Pub 帳戶設為新帳戶。"
 
@@ -3060,6 +3265,25 @@ msgstr "或"
 msgid "Or enter the code from the email"
 msgstr "或輸入郵件中的驗證碼"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:812
+#: src/routes/(root)/[handle]/settings/account.tsx:904
+#: src/routes/(root)/[handle]/settings/account.tsx:1189
+#: src/routes/(root)/[handle]/settings/account.tsx:1223
+msgid "Organization admin"
+msgstr "組織管理員"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:731
+msgid "Organization created"
+msgstr "組織已建立"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:657
+msgid "Organization invitations"
+msgstr "組織邀請"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1414
+msgid "Organization members"
+msgstr "組織成員"
+
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:886
 msgid "Other languages"
 msgstr "其他語言"
@@ -3088,10 +3312,14 @@ msgstr "通行金鑰註冊成功"
 msgid "Passkey revoked"
 msgstr "通行金鑰已撤銷"
 
-#: src/components/SettingsTabs.tsx:80
+#: src/components/SettingsTabs.tsx:82
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:356
 msgid "Passkeys"
 msgstr "通行金鑰"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1166
+msgid "Paste a conversion request ID that names you as the accepting admin."
+msgstr "貼上將你指定為接受管理員的轉換請求 ID。"
 
 #: src/routes/(root)/admin/news.tsx:817
 msgid "Penalized links"
@@ -3117,7 +3345,7 @@ msgstr "等待審核"
 msgid "People you might want to follow"
 msgstr "推薦關注"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:202
+#: src/routes/(root)/[handle]/settings/account.tsx:554
 msgid "Permanently delete your account and sign out of this session."
 msgstr "永久刪除你的帳戶，並登出此工作階段。"
 
@@ -3150,7 +3378,7 @@ msgstr "已釘選內容"
 msgid "Please check the form and try again."
 msgstr "請檢查表單後重試。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:196
+#: src/routes/(root)/[handle]/settings/index.tsx:198
 msgid "Please choose an image file smaller than 5 MiB."
 msgstr "請選擇小於 5 MiB 的圖片檔案。"
 
@@ -3168,8 +3396,8 @@ msgstr "請輸入文章標題。"
 msgid "Please enter your Fediverse handle."
 msgstr "請輸入你的聯邦宇宙使用者名稱。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:274
-#: src/routes/(root)/[handle]/settings/account.tsx:325
+#: src/routes/(root)/[handle]/settings/account.tsx:1564
+#: src/routes/(root)/[handle]/settings/account.tsx:1615
 msgid "Please sign in again before changing account migration settings."
 msgstr "請重新登入後再變更帳戶遷移設定。"
 
@@ -3178,7 +3406,7 @@ msgstr "請重新登入後再變更帳戶遷移設定。"
 #~ msgid "Please sign in again before changing migration aliases."
 #~ msgstr "請重新登入後再變更遷移別名。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:503
+#: src/routes/(root)/[handle]/settings/account.tsx:1793
 msgid "Please sign in again before deleting your account."
 msgstr "刪除帳戶前請重新登入。"
 
@@ -3272,7 +3500,7 @@ msgstr "內容"
 msgid "Prefer AI-generated summary"
 msgstr "優先使用 AI 生成的摘要"
 
-#: src/components/SettingsTabs.tsx:56
+#: src/components/SettingsTabs.tsx:58
 #: src/routes/(root)/[handle]/settings/preferences.tsx:170
 #: src/routes/(root)/[handle]/settings/preferences.tsx:171
 msgid "Preferences"
@@ -3298,7 +3526,7 @@ msgstr "已移除優先轉貼者。"
 msgid "Preferred sharers"
 msgstr "優先轉貼者"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:188
+#: src/routes/(root)/[handle]/settings/account.tsx:540
 msgid "Prepare this account as the destination for a Mastodon-style move."
 msgstr "將此帳戶準備為 Mastodon 式遷移的目標帳戶。"
 
@@ -3312,11 +3540,11 @@ msgstr "預覽"
 #~ msgid "Previous account"
 #~ msgstr "以前的帳戶"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:265
+#: src/routes/(root)/[handle]/settings/account.tsx:1555
 msgid "Previous account added"
 msgstr "舊帳戶已新增"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:316
+#: src/routes/(root)/[handle]/settings/account.tsx:1606
 msgid "Previous account removed"
 msgstr "舊帳戶已移除"
 
@@ -3345,7 +3573,7 @@ msgstr "已處理"
 msgid "Processing rate"
 msgstr "處理率"
 
-#: src/components/SettingsTabs.tsx:48
+#: src/components/SettingsTabs.tsx:49
 msgid "Profile"
 msgstr "個人資料"
 
@@ -3353,8 +3581,8 @@ msgstr "個人資料"
 msgid "Profile actions"
 msgstr "個人檔案操作"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:133
-#: src/routes/(root)/[handle]/settings/index.tsx:134
+#: src/routes/(root)/[handle]/settings/index.tsx:135
+#: src/routes/(root)/[handle]/settings/index.tsx:136
 msgid "Profile settings"
 msgstr "個人資料設定"
 
@@ -3593,7 +3821,8 @@ msgid "Remote follow"
 msgstr "遠端關注"
 
 #: src/components/LanguageList.tsx:225
-#: src/routes/(root)/[handle]/settings/account.tsx:438
+#: src/routes/(root)/[handle]/settings/account.tsx:1497
+#: src/routes/(root)/[handle]/settings/account.tsx:1728
 #: src/routes/(root)/admin/news.tsx:669
 #: src/routes/(root)/admin/news.tsx:805
 msgid "Remove"
@@ -3604,7 +3833,7 @@ msgstr "移除"
 msgid "Remove {0}"
 msgstr "移除{0}"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:434
+#: src/routes/(root)/[handle]/settings/account.tsx:1724
 msgid "Remove {alias}"
 msgstr "移除 {alias}"
 
@@ -3655,7 +3884,8 @@ msgstr "移除引用"
 msgid "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 msgstr "移除已足夠舊且不再附加到頭像、貼文、文章草稿或文章的已儲存媒體。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:438
+#: src/routes/(root)/[handle]/settings/account.tsx:1496
+#: src/routes/(root)/[handle]/settings/account.tsx:1728
 msgid "Removing…"
 msgstr "正在移除…"
 
@@ -3727,13 +3957,25 @@ msgstr "已檢舉 {0}"
 msgid "Reported a post by {0}"
 msgstr "已檢舉 {0} 的內容"
 
-#: src/components/SettingsTabs.tsx:96
+#: src/components/SettingsTabs.tsx:98
 msgid "Reports"
 msgstr "檢舉紀錄"
 
 #: src/routes/(root)/[handle]/settings/reports.tsx:83
 msgid "Reports you have filed, newest first. You can see the target, your reason, and the current status. Detailed outcomes are not shown, and the reported user never learns who reported them."
 msgstr "依時間由新到舊顯示你提交的檢舉。你可以查看檢舉對象、填寫的理由與目前狀態。詳細的處理結果不會顯示，被檢舉的使用者也永遠不會知道是誰檢舉的。"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1143
+msgid "Request conversion"
+msgstr "請求轉換"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1163
+msgid "Request ID"
+msgstr "請求 ID"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1143
+msgid "Requesting…"
+msgstr "正在請求…"
 
 #: src/components/admin/AppealResolveForm.tsx:342
 msgid "Resolve appeal"
@@ -3781,6 +4023,15 @@ msgstr "撤銷引用"
 msgid "Revoke this quote?"
 msgstr "撤銷此引用？"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:1212
+#: src/routes/(root)/[handle]/settings/account.tsx:1439
+msgid "Role"
+msgstr "角色"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1340
+msgid "Role updated"
+msgstr "角色已更新"
+
 #: src/components/admin/ModerationSubTabs.tsx:44
 msgid "Sanctioned"
 msgstr "已處置"
@@ -3789,12 +4040,12 @@ msgstr "已處置"
 msgid "Sanctioned actors"
 msgstr "受處置的行為者"
 
-#: src/components/SettingsTabs.tsx:104
+#: src/components/SettingsTabs.tsx:106
 #: src/routes/(root)/[handle]/settings/sanctions.tsx:130
 msgid "Sanctions"
 msgstr "處置"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:545
+#: src/routes/(root)/[handle]/settings/index.tsx:547
 #: src/routes/(root)/[handle]/settings/language.tsx:201
 #: src/routes/(root)/[handle]/settings/preferences.tsx:236
 msgid "Save"
@@ -3816,7 +4067,7 @@ msgstr "儲存草稿以查看預覽"
 #: src/components/article-composer/ArticleComposerActions.tsx:36
 #: src/components/NoteComposer.tsx:1937
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:529
-#: src/routes/(root)/[handle]/settings/index.tsx:545
+#: src/routes/(root)/[handle]/settings/index.tsx:547
 #: src/routes/(root)/[handle]/settings/language.tsx:201
 #: src/routes/(root)/[handle]/settings/preferences.tsx:236
 msgid "Saving…"
@@ -3983,9 +4234,9 @@ msgstr "向使用者顯示"
 msgid "Sign in"
 msgstr "登入"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:273
-#: src/routes/(root)/[handle]/settings/account.tsx:324
-#: src/routes/(root)/[handle]/settings/account.tsx:502
+#: src/routes/(root)/[handle]/settings/account.tsx:1563
+#: src/routes/(root)/[handle]/settings/account.tsx:1614
+#: src/routes/(root)/[handle]/settings/account.tsx:1792
 msgid "Sign in required"
 msgstr "需要登入"
 
@@ -4125,7 +4376,7 @@ msgstr "成功儲存語言偏好"
 msgid "Successfully saved preferences"
 msgstr "設定已成功儲存"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:338
+#: src/routes/(root)/[handle]/settings/index.tsx:340
 msgid "Successfully saved settings"
 msgstr "設定儲存成功"
 
@@ -4182,6 +4433,14 @@ msgstr "標籤"
 msgid "Take action"
 msgstr "進行處置"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:786
+msgid "Team name"
+msgstr "團隊名稱"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:775
+msgid "team-name"
+msgstr "team-name"
+
 #: src/components/ReportDialog.tsx:163
 msgid "Tell the moderation team why you are reporting this post. You don't need to know the specific code of conduct provisions; describe what felt uncomfortable or problematic in your own words."
 msgstr "請告訴管理團隊您檢舉此內容的原因。您不需要瞭解行為準則的具體條款，用自己的話描述讓您感到不適或有問題的地方即可。"
@@ -4231,6 +4490,14 @@ msgstr "此檢舉的自動分析無法使用。"
 msgid "The browser did not provide a complete push subscription."
 msgstr "瀏覽器未提供完整的推播通知訂閱。"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:1094
+msgid "The conversion request could not be accepted. Please try again."
+msgstr "無法接受轉換請求。請重試。"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1052
+msgid "The conversion request could not be created. Please try again."
+msgstr "無法建立轉換請求。請重試。"
+
 #: src/components/admin/ModerationActionForm.tsx:199
 msgid "The decision has been recorded and applied."
 msgstr "處置已記錄並生效。"
@@ -4247,9 +4514,9 @@ msgstr "您轉貼的預設隱私設定。"
 msgid "The default quote permission for your notes."
 msgstr "貼文的預設引用權限設定。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:480
-#: src/routes/(root)/[handle]/settings/account.tsx:519
-#: src/routes/(root)/[handle]/settings/account.tsx:530
+#: src/routes/(root)/[handle]/settings/account.tsx:1770
+#: src/routes/(root)/[handle]/settings/account.tsx:1809
+#: src/routes/(root)/[handle]/settings/account.tsx:1820
 msgid "The deletion request could not be completed. Please try again."
 msgstr "無法完成刪除請求。請重試。"
 
@@ -4265,6 +4532,11 @@ msgstr "電子郵件地址不僅用於接收邀請，還用於登入帳戶。"
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:396
 msgid "The following passkeys are registered to your account. You can use them to sign in to your account."
 msgstr "以下通行金鑰已註冊到你的帳戶。你可以使用它們登入你的帳戶。"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:839
+#: src/routes/(root)/[handle]/settings/account.tsx:849
+msgid "The invitation could not be accepted. Please try again."
+msgstr "無法接受邀請。請重試。"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:192
 msgid "The invitation email could not be sent. Please try again later."
@@ -4294,6 +4566,21 @@ msgstr "邀請連結已成功刪除。"
 msgid "The link to this story is added to your post automatically."
 msgstr "這個話題的連結會自動加入你的內容中。"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:1306
+#: src/routes/(root)/[handle]/settings/account.tsx:1315
+msgid "The member could not be invited. Please try again."
+msgstr "無法邀請成員。請重試。"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1394
+#: src/routes/(root)/[handle]/settings/account.tsx:1403
+msgid "The member could not be removed. Please try again."
+msgstr "無法移除成員。請重試。"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1352
+#: src/routes/(root)/[handle]/settings/account.tsx:1362
+msgid "The member role could not be updated. Please try again."
+msgstr "無法更新成員角色。請重試。"
+
 #: src/routes/(root)/[handle]/settings/account.tsx:293
 #~ msgid "The migration alias could not be added. Please try again."
 #~ msgstr "無法新增遷移別名。請再試一次。"
@@ -4307,6 +4594,15 @@ msgstr "這個話題的連結會自動加入你的內容中。"
 msgid "The moderation team will review your appeal and notify you."
 msgstr "管理團隊將審核你的申訴並通知你。"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:751
+msgid "The organization could not be created. Please try again."
+msgstr "無法建立組織。請重試。"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:930
+#: src/routes/(root)/[handle]/settings/account.tsx:940
+msgid "The organization could not be left. Please try again."
+msgstr "無法離開組織。請重試。"
+
 #: src/components/NotFoundPage.tsx:45
 msgid "The page you're looking for doesn't exist or has been moved."
 msgstr "您要找的頁面不存在或已移動。"
@@ -4315,12 +4611,12 @@ msgstr "您要找的頁面不存在或已移動。"
 msgid "The passkey has been successfully revoked."
 msgstr "通行金鑰已成功撤銷。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:295
+#: src/routes/(root)/[handle]/settings/account.tsx:1585
 msgid "The previous account could not be added. Please try again."
 msgstr "無法新增舊帳戶。請再試一次。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:338
-#: src/routes/(root)/[handle]/settings/account.tsx:346
+#: src/routes/(root)/[handle]/settings/account.tsx:1628
+#: src/routes/(root)/[handle]/settings/account.tsx:1636
 msgid "The previous account could not be removed. Please try again."
 msgstr "無法移除舊帳戶。請再試一次。"
 
@@ -4355,7 +4651,7 @@ msgstr "對象的累計審核紀錄；累計紀錄會影響處罰等級。"
 msgid "The title will appear at the top of your article and in link previews."
 msgstr "標題將顯示在文章頂部和連結預覽中。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:613
+#: src/routes/(root)/[handle]/settings/index.tsx:615
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "該連結的 URL，例如 https://github.com/你的使用者名稱。"
 
@@ -4368,7 +4664,7 @@ msgstr "Web Push 公開金鑰無效。"
 msgid "There are no moderation actions on your account."
 msgstr "你的帳戶沒有任何審核處理。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:495
+#: src/routes/(root)/[handle]/settings/account.tsx:1785
 msgid "This account cannot be deleted right now. Please contact the instance administrators."
 msgstr "目前無法刪除此帳戶。請聯絡站台管理員。"
 
@@ -4388,7 +4684,8 @@ msgstr "此帳戶已被停權。"
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "此操作無法復原。這將永久刪除該內容。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:542
+#: src/routes/(root)/[handle]/settings/account.tsx:1106
+#: src/routes/(root)/[handle]/settings/account.tsx:1832
 msgid "This action is permanent."
 msgstr "此操作無法復原。"
 
@@ -4397,7 +4694,7 @@ msgstr "此操作無法復原。"
 msgid "This browser does not support Web Push."
 msgstr "此瀏覽器不支援 Web Push。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:584
+#: src/routes/(root)/[handle]/settings/account.tsx:1874
 msgid "This cannot be undone. Your account will be deleted and you will be signed out."
 msgstr "此操作無法復原。你的帳戶將被刪除，並且你會被登出。"
 
@@ -4440,9 +4737,13 @@ msgstr "這是沒有本地通知或申訴的遠端行為者。警告僅作記錄
 msgid "This is too long (maximum {MAX_REASON_LENGTH} characters)."
 msgstr "內容過長（最多 {MAX_REASON_LENGTH} 個字元）。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:357
+#: src/routes/(root)/[handle]/settings/account.tsx:1647
 msgid "This page only prepares the Hackers' Pub side of the move. The move still starts from your old server."
 msgstr "此頁面只準備 Hackers' Pub 這邊的遷移。遷移仍需從舊伺服器開始。"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:1124
+msgid "This personal account will accept the request and become the first organization admin."
+msgstr "此個人帳戶將接受請求並成為第一位組織管理員。"
 
 #: src/components/QuoteTargetPlaceholder.tsx:36
 msgid "This post quoted another post, but the quote is not currently authorized."
@@ -4562,10 +4863,19 @@ msgstr "樹狀圖"
 msgid "Try again"
 msgstr "重試"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:687
+msgid "Turn this personal account into an organization account. This cannot be undone."
+msgstr "將此個人帳戶轉換為組織帳戶。此操作無法復原。"
+
 #. placeholder {0}: props.username
-#: src/routes/(root)/[handle]/settings/account.tsx:561
+#: src/routes/(root)/[handle]/settings/account.tsx:1851
 msgid "Type {0} to confirm account deletion."
 msgstr "請輸入{0}以確認帳戶刪除。"
+
+#. placeholder {0}: props.account.username
+#: src/routes/(root)/[handle]/settings/account.tsx:1136
+msgid "Type {0} to confirm conversion."
+msgstr "輸入 {0} 以確認轉換。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:162
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:483
@@ -4631,7 +4941,7 @@ msgstr "取消訂閱"
 msgid "Unsubscribed from the relay."
 msgstr "已取消訂閱該中繼。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:135
+#: src/routes/(root)/[handle]/settings/index.tsx:137
 msgid "Update your profile information, including your avatar, username, display name, bio, and links."
 msgstr "更新您的個人資料資訊，包括頭像、使用者名稱、暱稱、個人簡介和連結。"
 
@@ -4644,7 +4954,7 @@ msgstr "更新於 {0}"
 msgid "Upload progress"
 msgstr "上傳進度"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:595
+#: src/routes/(root)/[handle]/settings/index.tsx:597
 msgid "URL"
 msgstr "URL"
 
@@ -4659,6 +4969,10 @@ msgstr "使用舊版介面"
 #: src/routes/(root)/[handle]/settings/account.tsx:375
 #~ msgid "Use the old account's handle or actor URL."
 #~ msgstr "使用舊帳戶的識別碼或 actor URL。"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:778
+msgid "Used for the profile URL and WebFinger handle."
+msgstr "用於個人檔案 URL 和 WebFinger 識別碼。"
 
 #: src/components/ProfileActionMenu.tsx:320
 msgid "User blocked"
@@ -4682,8 +4996,14 @@ msgstr "已解除封鎖使用者"
 msgid "User unmuted"
 msgstr "已解除靜音使用者"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:553
-#: src/routes/(root)/[handle]/settings/index.tsx:423
+#: src/routes/(root)/[handle]/settings/account.tsx:1121
+msgid "username"
+msgstr "使用者名稱"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:770
+#: src/routes/(root)/[handle]/settings/account.tsx:1424
+#: src/routes/(root)/[handle]/settings/account.tsx:1843
+#: src/routes/(root)/[handle]/settings/index.tsx:425
 #: src/routes/(root)/sign/up/[token].tsx:331
 msgid "Username"
 msgstr "使用者名稱"
@@ -4813,7 +5133,7 @@ msgstr "無法連接到伺服器"
 msgid "We couldn't reach the translation service. Try again, or come back in a few minutes."
 msgstr "無法連接到翻譯服務。請重試或幾分鐘後再來。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:576
+#: src/routes/(root)/[handle]/settings/index.tsx:578
 msgid "Website"
 msgstr "網站"
 
@@ -4908,6 +5228,15 @@ msgstr "你已被此使用者封鎖。你無法關注該使用者或查看該使
 msgid "You are blocking this user. They can't follow you or see your posts."
 msgstr "你正在封鎖此使用者。該使用者無法關注你或查看你的內容。"
 
+#. placeholder {0}: result.organization.username
+#: src/routes/(root)/[handle]/settings/account.tsx:1075
+msgid "You are now an admin of {0}."
+msgstr "你現在是 {0} 的管理員。"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:732
+msgid "You are now an admin of the new organization."
+msgstr "你現在是新組織的管理員。"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:888
 msgid "You are now hidden from the invitation tree."
 msgstr "你現在已從邀請樹中隱藏。"
@@ -4920,7 +5249,7 @@ msgstr "你現在會顯示在邀請樹中。"
 msgid "You can attach up to {MAX_MEDIA} images"
 msgstr "最多可附加 {MAX_MEDIA} 張圖片"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:458
+#: src/routes/(root)/[handle]/settings/index.tsx:460
 msgid "You can change it only once, and the old username will become available to others."
 msgstr "你只能更改一次使用者名稱，而舊的使用者名稱會公開為別人使用。"
 
@@ -4929,11 +5258,11 @@ msgstr "你只能更改一次使用者名稱，而舊的使用者名稱會公開
 #~ msgid "You can change migration aliases only for your own account."
 #~ msgstr "你只能變更自己帳戶的遷移別名。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:511
+#: src/routes/(root)/[handle]/settings/account.tsx:1801
 msgid "You can delete only your own account."
 msgstr "你只能刪除自己的帳戶。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:624
+#: src/routes/(root)/[handle]/settings/index.tsx:626
 msgid "You can leave this empty to remove the link."
 msgstr "您可以將此處留空以刪除連結。"
 
@@ -4941,6 +5270,11 @@ msgstr "您可以將此處留空以刪除連結。"
 #: src/routes/(root)/[handle]/settings/invite.tsx:824
 msgid "You can leave this field empty."
 msgstr "你可以留空此欄位。"
+
+#. placeholder {0}: result.membership.organization.username
+#: src/routes/(root)/[handle]/settings/account.tsx:830
+msgid "You can now act as {0}."
+msgstr "你現在可以以 {0} 身分活動。"
 
 #: src/routes/(root)/[handle]/drafts/new.tsx:66
 msgid "You can only create drafts for your own account"
@@ -4958,14 +5292,23 @@ msgstr "您只能檢視自己的收藏"
 msgid "You can only view your own drafts"
 msgstr "您只能檢視自己的草稿"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:281
-#: src/routes/(root)/[handle]/settings/account.tsx:332
+#: src/routes/(root)/[handle]/settings/account.tsx:1571
+#: src/routes/(root)/[handle]/settings/account.tsx:1622
 msgid "You can prepare migration only for your own account."
 msgstr "你只能為自己的帳戶準備遷移。"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:953
+msgid "You do not belong to any organizations yet."
+msgstr "你尚未屬於任何組織。"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:405
 msgid "You don't have any passkeys registered yet."
 msgstr "您尚未註冊任何通行金鑰。"
+
+#. placeholder {0}: props.invitationsLeft
+#: src/routes/(root)/[handle]/settings/account.tsx:762
+msgid "You have {0} invitations available."
+msgstr "你有 {0} 個可用邀請。"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:325
 #: src/routes/(root)/[handle]/settings/invite.tsx:436
@@ -5030,6 +5373,10 @@ msgstr "您必須登入才能儲存草稿"
 msgid "You must be signed in."
 msgstr "請先登入。"
 
+#: src/routes/(root)/[handle]/settings/account.tsx:921
+msgid "You no longer belong to that organization."
+msgstr "你已不再屬於該組織。"
+
 #: src/routes/(root)/admin/moderation/appeals.tsx:278
 msgid "You took the original action. Consider letting another moderator review this appeal."
 msgstr "原處理是你做出的。建議讓另一位版主審核此申訴。"
@@ -5062,11 +5409,11 @@ msgstr "你的帳戶已被停權，目前無法發文。詳情及申訴方法請
 msgid "Your appeal was reviewed."
 msgstr "你的申訴已審核。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:363
+#: src/routes/(root)/[handle]/settings/index.tsx:365
 msgid "Your avatar will be displayed on your profile and in your posts. You can upload a PNG, JPEG, GIF, or WebP image up to 5 MiB in size."
 msgstr "你的頭像將在你的個人資料頁面和你的貼文中顯示。可以上傳大小不超過 5 MiB 的 PNG、JPEG、GIF 或 WebP 圖片。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:502
+#: src/routes/(root)/[handle]/settings/index.tsx:504
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it."
 msgstr "你的個人簡介將在你的個人資料頁面顯示。你可以用 Markdown 文件格式化。"
 
@@ -5090,10 +5437,14 @@ msgstr "你的朋友將在邀請郵件中看到此訊息。"
 msgid "Your identity is kept strictly confidential: only the moderation team can see who reported, and the reported user never will."
 msgstr "您的身分將被嚴格保密：只有管理團隊能看到檢舉人是誰，被檢舉的使用者永遠不會知道。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:488
+#: src/routes/(root)/[handle]/settings/index.tsx:490
 #: src/routes/(root)/sign/up/[token].tsx:393
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "你的暱稱將在你的個人資料頁面和你的貼文中顯示。"
+
+#: src/routes/(root)/[handle]/settings/account.tsx:671
+msgid "Your organizations"
+msgstr "你的組織"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:268
 msgid "Your passkey has been registered and can now be used for authentication."
@@ -5107,11 +5458,11 @@ msgstr "您的設定已成功更新。"
 msgid "Your preferred languages have been updated."
 msgstr "您的偏好語言已更新。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:339
+#: src/routes/(root)/[handle]/settings/index.tsx:341
 msgid "Your profile settings have been updated successfully."
 msgstr "個人資料設定已成功更新。"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:545
+#: src/routes/(root)/[handle]/settings/account.tsx:1835
 msgid "Your profile, posts, drafts, follows, settings, and login credentials will be removed. Your current username will remain reserved."
 msgstr "你的個人檔案、內容、草稿、關注關係、設定和登入憑證將被移除。目前的使用者名稱將繼續保留。"
 
@@ -5123,7 +5474,7 @@ msgstr "你的停權即將結束。"
 msgid "Your unsaved draft will be lost."
 msgstr "未儲存的草稿將會遺失。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:455
+#: src/routes/(root)/[handle]/settings/index.tsx:457
 #: src/routes/(root)/sign/up/[token].tsx:367
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "你的使用者名稱將用於建立你的個人資料 URL 和你的聯邦宇宙識別碼。"
