@@ -23,6 +23,7 @@ import {
   deleteBookmark,
   getBookmarkCountsForPosts,
 } from "@hackerspub/models/bookmark";
+import type { Database, Transaction } from "@hackerspub/models/db";
 import {
   isReactionEmoji,
   type ReactionEmoji,
@@ -53,6 +54,11 @@ import {
   QuotePolicyDeniedError,
   updateNote,
 } from "@hackerspub/models/note";
+import {
+  OrganizationPermissionError,
+  recordOrganizationPostAuthor,
+  resolveActingAccount,
+} from "@hackerspub/models/organization";
 import {
   arePostsPinnedBy,
   pinPost as pinPostModel,
@@ -88,7 +94,11 @@ import {
 import type * as schema from "@hackerspub/models/schema";
 import DataLoader from "dataloader";
 import { withTransaction } from "@hackerspub/models/tx";
-import { generateUuidV7, type Uuid } from "@hackerspub/models/uuid";
+import {
+  generateUuidV7,
+  type Uuid,
+  validateUuid,
+} from "@hackerspub/models/uuid";
 import {
   createMediumUploadSession,
   deleteMediumUploadSession,
@@ -159,6 +169,30 @@ export const PostType = builder.enumType("PostType", {
   } as const,
 });
 
+const PostAttributionMode = builder.enumType("PostAttributionMode", {
+  description:
+    "How a post written through an organization account should display " +
+    "the personal member who created it.",
+  values: {
+    ACTING_ACCOUNT_ONLY: {
+      value: "acting_account_only",
+      description: "Show only the acting account as the public author. For " +
+        "organization posts, the member remains recorded for audit and " +
+        "management but is not shown as a co-author.",
+    },
+    ACTING_ACCOUNT_WITH_VIEWER: {
+      value: "acting_account_with_viewer",
+      description:
+        "Show the organization account as the primary author and the " +
+        "personal member as a co-author.",
+    },
+  } as const,
+});
+
+const OrganizationPostAuthor = builder.objectRef<schema.OrganizationPostAuthor>(
+  "OrganizationPostAuthor",
+);
+
 const LlmTranslationNotAllowedReasonRef = builder.enumType(
   "LlmTranslationNotAllowedReason",
   {
@@ -190,6 +224,126 @@ builder.objectType(LlmTranslationNotAllowedError, {
     reason: t.expose("reason", { type: LlmTranslationNotAllowedReasonRef }),
   }),
 });
+
+async function loadOrganizationPostAuthorAccount(
+  ctx: UserContext,
+  id: Uuid,
+) {
+  const account = await ctx.db.query.accountTable.findFirst({
+    where: { id },
+    with: { actor: true },
+  });
+  if (account == null || account.actor == null) {
+    throw createGraphQLError("Organization post attribution is broken.", {
+      extensions: { code: "INTERNAL_SERVER_ERROR" },
+    });
+  }
+  return account;
+}
+
+OrganizationPostAuthor.implement({
+  description:
+    "Attribution metadata for a post written through an organization " +
+    "account. The `Post.actor` remains the organization; this object " +
+    "records which personal member created it and whether that member " +
+    "should be shown as a co-author.",
+  fields: (t) => ({
+    attributionMode: t.field({
+      type: PostAttributionMode,
+      description:
+        "Whether clients should display only the organization or include " +
+        "the member as a co-author.",
+      resolve: (author) => author.attributionMode,
+    }),
+    organization: t.field({
+      type: Account,
+      description: "The organization account that authored the post.",
+      async resolve(author, _, ctx) {
+        return await loadOrganizationPostAuthorAccount(
+          ctx,
+          author.organizationAccountId,
+        );
+      },
+    }),
+    member: t.field({
+      type: Account,
+      nullable: true,
+      description:
+        "The personal member account to show as a co-author. `null` when " +
+        "`attributionMode` is `ACTING_ACCOUNT_ONLY`.",
+      async resolve(author, _, ctx) {
+        if (author.attributionMode !== "acting_account_with_viewer") {
+          return null;
+        }
+        return await loadOrganizationPostAuthorAccount(
+          ctx,
+          author.memberAccountId,
+        );
+      },
+    }),
+    created: t.expose("created", {
+      type: "DateTime",
+      description: "When this organization attribution record was created.",
+    }),
+  }),
+});
+
+interface PostActingAccountInput {
+  actingAccountId?: { id: string } | null;
+  attributionMode?: schema.PostAttributionMode | null;
+}
+
+interface ResolvedPostActingAccount {
+  account: schema.Account & { actor: schema.Actor };
+  memberAccountId: Uuid;
+  attributionMode: schema.PostAttributionMode | null;
+}
+
+async function resolvePostActingAccount(
+  ctx: UserContext,
+  input: PostActingAccountInput,
+): Promise<ResolvedPostActingAccount> {
+  if (ctx.account == null) throw new NotAuthenticatedError();
+  const actingAccountId = input.actingAccountId?.id;
+  if (actingAccountId != null && !validateUuid(actingAccountId)) {
+    throw new InvalidInputError("actingAccountId");
+  }
+  const account = await resolveActingAccount(
+    ctx.db,
+    ctx.account,
+    actingAccountId as Uuid | undefined,
+  );
+  if (account.kind !== "organization") {
+    if (input.attributionMode != null) {
+      throw new InvalidInputError("attributionMode");
+    }
+    return {
+      account,
+      memberAccountId: ctx.account.id,
+      attributionMode: null,
+    };
+  }
+  return {
+    account,
+    memberAccountId: ctx.account.id,
+    attributionMode: input.attributionMode ?? "acting_account_only",
+  };
+}
+
+async function recordPostActingAccount(
+  db: Database | Transaction,
+  postId: Uuid,
+  resolved: ResolvedPostActingAccount,
+): Promise<void> {
+  if (resolved.attributionMode == null) return;
+  await recordOrganizationPostAuthor(
+    db,
+    postId,
+    resolved.account.id,
+    resolved.memberAccountId,
+    resolved.attributionMode,
+  );
+}
 
 /**
  * Whether the post's content must be redacted for the current viewer: it
@@ -675,6 +829,20 @@ export const Post = builder.drizzleInterface("postTable", {
     published: t.expose("published", { type: "DateTime" }),
     actor: t.relation("actor", {
       description: "The actor who authored or boosted this post.",
+    }),
+    organizationAuthor: t.field({
+      type: OrganizationPostAuthor,
+      nullable: true,
+      description:
+        "Organization attribution metadata when this post was created " +
+        "through an organization account. `null` for ordinary personal " +
+        "posts and for federated posts without local organization metadata.",
+      select: {
+        with: { organizationAuthor: true },
+      },
+      resolve(post) {
+        return post.organizationAuthor ?? null;
+      },
     }),
     media: t.field({
       type: [PostMediumRef],
@@ -2096,6 +2264,23 @@ builder.relayMutationField(
       content: t.field({ type: "Markdown", required: true }),
       language: t.field({ type: "Locale", required: true }),
       quotePolicy: t.field({ type: QuotePolicy, required: false }),
+      actingAccountId: t.globalID({
+        for: Account,
+        required: false,
+        description:
+          "Optional `Account` id to publish as. Omit to publish as the " +
+          "authenticated personal account; pass an organization account " +
+          "where the viewer is an accepted member to publish as that " +
+          "organization.",
+      }),
+      attributionMode: t.field({
+        type: PostAttributionMode,
+        required: false,
+        description:
+          "How to display the personal member when `actingAccountId` is " +
+          "an organization. Defaults to `ACTING_ACCOUNT_ONLY`; invalid " +
+          "when publishing as a personal account.",
+      }),
       media: t.field({
         type: [CreateNoteMediumInput],
         required: false,
@@ -2118,6 +2303,7 @@ builder.relayMutationField(
         NotAuthenticatedError,
         InvalidInputError,
         ActorSuspendedError,
+        OrganizationPermissionError,
       ],
     },
     async resolve(_root, args, ctx) {
@@ -2134,6 +2320,7 @@ builder.relayMutationField(
         replyTargetId,
         quotedPostId,
       } = args.input;
+      const actingAccount = await resolvePostActingAccount(ctx, args.input);
       const attachedMedia = media ?? [];
       if (attachedMedia.length > 20) {
         throw new InvalidInputError("media");
@@ -2144,16 +2331,24 @@ builder.relayMutationField(
           with: {
             actor: {
               with: {
-                followers: { where: { followerId: ctx.account.actor.id } },
-                blockees: { where: { blockeeId: ctx.account.actor.id } },
-                blockers: { where: { blockerId: ctx.account.actor.id } },
+                followers: {
+                  where: { followerId: actingAccount.account.actor.id },
+                },
+                blockees: {
+                  where: { blockeeId: actingAccount.account.actor.id },
+                },
+                blockers: {
+                  where: { blockerId: actingAccount.account.actor.id },
+                },
               },
             },
-            mentions: { where: { actorId: ctx.account.actor.id } },
+            mentions: { where: { actorId: actingAccount.account.actor.id } },
           },
           where: { id: replyTargetId.id },
         });
-        if (post == null || !isPostVisibleTo(post, ctx.account.actor)) {
+        if (
+          post == null || !isPostVisibleTo(post, actingAccount.account.actor)
+        ) {
           throw new InvalidInputError("replyTargetId");
         }
         replyTarget = post;
@@ -2164,30 +2359,44 @@ builder.relayMutationField(
           with: {
             actor: {
               with: {
-                followers: { where: { followerId: ctx.account.actor.id } },
-                blockees: { where: { blockeeId: ctx.account.actor.id } },
-                blockers: { where: { blockerId: ctx.account.actor.id } },
+                followers: {
+                  where: { followerId: actingAccount.account.actor.id },
+                },
+                blockees: {
+                  where: { blockeeId: actingAccount.account.actor.id },
+                },
+                blockers: {
+                  where: { blockerId: actingAccount.account.actor.id },
+                },
               },
             },
-            mentions: { where: { actorId: ctx.account.actor.id } },
+            mentions: { where: { actorId: actingAccount.account.actor.id } },
             sharedPost: {
               with: {
                 actor: {
                   with: {
                     followers: {
-                      where: { followerId: ctx.account.actor.id },
+                      where: { followerId: actingAccount.account.actor.id },
                     },
-                    blockees: { where: { blockeeId: ctx.account.actor.id } },
-                    blockers: { where: { blockerId: ctx.account.actor.id } },
+                    blockees: {
+                      where: { blockeeId: actingAccount.account.actor.id },
+                    },
+                    blockers: {
+                      where: { blockerId: actingAccount.account.actor.id },
+                    },
                   },
                 },
-                mentions: { where: { actorId: ctx.account.actor.id } },
+                mentions: {
+                  where: { actorId: actingAccount.account.actor.id },
+                },
               },
             },
           },
           where: { id: quotedPostId.id },
         });
-        if (post == null || !isPostVisibleTo(post, ctx.account.actor)) {
+        if (
+          post == null || !isPostVisibleTo(post, actingAccount.account.actor)
+        ) {
           throw new InvalidInputError("quotedPostId");
         }
         // Validate against the effective original post to prevent bypassing
@@ -2196,7 +2405,7 @@ builder.relayMutationField(
         if (effectivePost.sharedPostId != null) {
           throw new InvalidInputError("quotedPostId");
         }
-        if (!isPostVisibleTo(effectivePost, ctx.account.actor)) {
+        if (!isPostVisibleTo(effectivePost, actingAccount.account.actor)) {
           throw new InvalidInputError("quotedPostId");
         }
         // Neither a censored post nor a censored share wrapper can be
@@ -2205,7 +2414,9 @@ builder.relayMutationField(
         if (post.censored != null || effectivePost.censored != null) {
           throw new InvalidInputError("quotedPostId");
         }
-        if (!canActorRequestQuotePost(effectivePost, ctx.account.actor)) {
+        if (
+          !canActorRequestQuotePost(effectivePost, actingAccount.account.actor)
+        ) {
           throw new InvalidInputError("quotedPostId");
         }
         quotedPost = effectivePost;
@@ -2230,7 +2441,7 @@ builder.relayMutationField(
           note = await createNote(
             context,
             {
-              accountId: session.accountId,
+              accountId: actingAccount.account.id,
               visibility: visibility === "PUBLIC"
                 ? "public"
                 : visibility === "UNLISTED"
@@ -2280,6 +2491,7 @@ builder.relayMutationField(
             extensions: { code: "INTERNAL_SERVER_ERROR" },
           });
         }
+        await recordPostActingAccount(context.data.db, note.id, actingAccount);
         return note;
       });
     },
@@ -2329,6 +2541,23 @@ builder.relayMutationField(
           "Who may quote this Question. Omit to use the default policy for " +
           "the selected `visibility`.",
       }),
+      actingAccountId: t.globalID({
+        for: Account,
+        required: false,
+        description:
+          "Optional `Account` id to publish as. Omit to publish as the " +
+          "authenticated personal account; pass an organization account " +
+          "where the viewer is an accepted member to publish as that " +
+          "organization.",
+      }),
+      attributionMode: t.field({
+        type: PostAttributionMode,
+        required: false,
+        description:
+          "How to display the personal member when `actingAccountId` is " +
+          "an organization. Defaults to `ACTING_ACCOUNT_ONLY`; invalid " +
+          "when publishing as a personal account.",
+      }),
       poll: t.field({
         type: CreateQuestionPollInput,
         required: true,
@@ -2364,6 +2593,7 @@ builder.relayMutationField(
         NotAuthenticatedError,
         InvalidInputError,
         ActorSuspendedError,
+        OrganizationPermissionError,
       ],
     },
     async resolve(_root, args, ctx) {
@@ -2381,6 +2611,7 @@ builder.relayMutationField(
         replyTargetId,
         quotedPostId,
       } = args.input;
+      const actingAccount = await resolvePostActingAccount(ctx, args.input);
       const attachedMedia = media ?? [];
       if (attachedMedia.length > 20) {
         throw new InvalidInputError("media");
@@ -2394,16 +2625,24 @@ builder.relayMutationField(
           with: {
             actor: {
               with: {
-                followers: { where: { followerId: ctx.account.actor.id } },
-                blockees: { where: { blockeeId: ctx.account.actor.id } },
-                blockers: { where: { blockerId: ctx.account.actor.id } },
+                followers: {
+                  where: { followerId: actingAccount.account.actor.id },
+                },
+                blockees: {
+                  where: { blockeeId: actingAccount.account.actor.id },
+                },
+                blockers: {
+                  where: { blockerId: actingAccount.account.actor.id },
+                },
               },
             },
-            mentions: { where: { actorId: ctx.account.actor.id } },
+            mentions: { where: { actorId: actingAccount.account.actor.id } },
           },
           where: { id: replyTargetId.id },
         });
-        if (post == null || !isPostVisibleTo(post, ctx.account.actor)) {
+        if (
+          post == null || !isPostVisibleTo(post, actingAccount.account.actor)
+        ) {
           throw new InvalidInputError("replyTargetId");
         }
         replyTarget = post;
@@ -2414,37 +2653,51 @@ builder.relayMutationField(
           with: {
             actor: {
               with: {
-                followers: { where: { followerId: ctx.account.actor.id } },
-                blockees: { where: { blockeeId: ctx.account.actor.id } },
-                blockers: { where: { blockerId: ctx.account.actor.id } },
+                followers: {
+                  where: { followerId: actingAccount.account.actor.id },
+                },
+                blockees: {
+                  where: { blockeeId: actingAccount.account.actor.id },
+                },
+                blockers: {
+                  where: { blockerId: actingAccount.account.actor.id },
+                },
               },
             },
-            mentions: { where: { actorId: ctx.account.actor.id } },
+            mentions: { where: { actorId: actingAccount.account.actor.id } },
             sharedPost: {
               with: {
                 actor: {
                   with: {
                     followers: {
-                      where: { followerId: ctx.account.actor.id },
+                      where: { followerId: actingAccount.account.actor.id },
                     },
-                    blockees: { where: { blockeeId: ctx.account.actor.id } },
-                    blockers: { where: { blockerId: ctx.account.actor.id } },
+                    blockees: {
+                      where: { blockeeId: actingAccount.account.actor.id },
+                    },
+                    blockers: {
+                      where: { blockerId: actingAccount.account.actor.id },
+                    },
                   },
                 },
-                mentions: { where: { actorId: ctx.account.actor.id } },
+                mentions: {
+                  where: { actorId: actingAccount.account.actor.id },
+                },
               },
             },
           },
           where: { id: quotedPostId.id },
         });
-        if (post == null || !isPostVisibleTo(post, ctx.account.actor)) {
+        if (
+          post == null || !isPostVisibleTo(post, actingAccount.account.actor)
+        ) {
           throw new InvalidInputError("quotedPostId");
         }
         const effectivePost = post.sharedPost ?? post;
         if (effectivePost.sharedPostId != null) {
           throw new InvalidInputError("quotedPostId");
         }
-        if (!isPostVisibleTo(effectivePost, ctx.account.actor)) {
+        if (!isPostVisibleTo(effectivePost, actingAccount.account.actor)) {
           throw new InvalidInputError("quotedPostId");
         }
         // Neither a censored post nor a censored share wrapper can be
@@ -2453,7 +2706,9 @@ builder.relayMutationField(
         if (post.censored != null || effectivePost.censored != null) {
           throw new InvalidInputError("quotedPostId");
         }
-        if (!canActorRequestQuotePost(effectivePost, ctx.account.actor)) {
+        if (
+          !canActorRequestQuotePost(effectivePost, actingAccount.account.actor)
+        ) {
           throw new InvalidInputError("quotedPostId");
         }
         quotedPost = effectivePost;
@@ -2492,7 +2747,7 @@ builder.relayMutationField(
           question = await createQuestion(
             context,
             {
-              accountId: session.accountId,
+              accountId: actingAccount.account.id,
               visibility: modelVisibility,
               quotePolicy: normalizeQuotePolicyForVisibility(
                 modelVisibility,
@@ -2525,6 +2780,11 @@ builder.relayMutationField(
             extensions: { code: "INTERNAL_SERVER_ERROR" },
           });
         }
+        await recordPostActingAccount(
+          context.data.db,
+          question.id,
+          actingAccount,
+        );
         return question;
       });
     },
@@ -2875,6 +3135,22 @@ builder.relayMutationField(
       language: t.field({ type: "Locale", required: true }),
       allowLlmTranslation: t.boolean({ required: false }),
       quotePolicy: t.field({ type: QuotePolicy, required: false }),
+      actingAccountId: t.globalID({
+        for: Account,
+        required: false,
+        description:
+          "Optional `Account` id to publish as. The draft must still be " +
+          "owned by the authenticated personal account; this only changes " +
+          "the published article's author.",
+      }),
+      attributionMode: t.field({
+        type: PostAttributionMode,
+        required: false,
+        description:
+          "How to display the personal member when `actingAccountId` is " +
+          "an organization. Defaults to `ACTING_ACCOUNT_ONLY`; invalid " +
+          "when publishing as a personal account.",
+      }),
     }),
   },
   {
@@ -2883,13 +3159,15 @@ builder.relayMutationField(
         NotAuthenticatedError,
         InvalidInputError,
         ActorSuspendedError,
+        OrganizationPermissionError,
       ],
     },
     async resolve(_root, args, ctx) {
       const session = await ctx.session;
-      if (session == null) {
+      if (session == null || ctx.account == null) {
         throw new NotAuthenticatedError();
       }
+      const actingAccount = await resolvePostActingAccount(ctx, args.input);
 
       // Get draft
       const drafts = await ctx.db
@@ -2916,8 +3194,8 @@ builder.relayMutationField(
           .findMany({
             where: { articleDraftId: draft.id },
           });
-        return await createArticle(context, {
-          accountId: session.accountId,
+        const created = await createArticle(context, {
+          accountId: actingAccount.account.id,
           publishedYear: new Date().getFullYear(),
           slug,
           tags: draft.tags,
@@ -2930,6 +3208,14 @@ builder.relayMutationField(
           language: language.baseName,
           media,
         });
+        if (created != null) {
+          await recordPostActingAccount(
+            context.data.db,
+            created.id,
+            actingAccount,
+          );
+        }
+        return created;
       });
 
       if (!article) {
@@ -2938,7 +3224,6 @@ builder.relayMutationField(
           extensions: { code: "INTERNAL_SERVER_ERROR" },
         });
       }
-
       // Delete draft after successful publish
       await deleteArticleDraft(ctx.db, session.accountId, draft.id);
 

@@ -929,6 +929,11 @@ type Article implements Node & Post & Reactable {
   The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.  `null` when the post is censored or its author is hidden by a moderation sanction (or it is a boost wrapper of such a post, whose title it copies) and the viewer is neither the content's author nor a moderator.
   """
   name: String
+
+  """
+  Organization attribution metadata when this post was created through an organization account. `null` for ordinary personal posts and for federated posts without local organization metadata.
+  """
+  organizationAuthor: OrganizationPostAuthor
   published: DateTime!
 
   """
@@ -1287,6 +1292,15 @@ union CreateMediumResult = CreateMediumPayload | InvalidInputError | NotAuthenti
 Publish a new short-form note. Sends an ActivityPub `Create` activity to relevant inboxes based on `visibility`. Requires authentication.
 """
 input CreateNoteInput {
+  """
+  Optional `Account` id to publish as. Omit to publish as the authenticated personal account; pass an organization account where the viewer is an accepted member to publish as that organization.
+  """
+  actingAccountId: ID
+
+  """
+  How to display the personal member when `actingAccountId` is an organization. Defaults to `ACTING_ACCOUNT_ONLY`; invalid when publishing as a personal account.
+  """
+  attributionMode: PostAttributionMode
   clientMutationId: ID
   content: Markdown!
   language: Locale!
@@ -1312,7 +1326,7 @@ type CreateNotePayload {
   note: Note!
 }
 
-union CreateNoteResult = ActorSuspendedError | CreateNotePayload | InvalidInputError | NotAuthenticatedError
+union CreateNoteResult = ActorSuspendedError | CreateNotePayload | InvalidInputError | NotAuthenticatedError | OrganizationPermissionError
 
 """
 Create a new organization account in the shared username namespace. The authenticated personal account spends one invitation and becomes the first organization administrator.
@@ -1349,6 +1363,15 @@ union CreateOrganizationResult = CreateOrganizationPayload | NotAuthenticatedErr
 Publish a new short-form post with an immutable ActivityPub `Question` poll. Sends an ActivityPub `Create` activity to relevant inboxes based on `visibility`. Requires authentication.
 """
 input CreateQuestionInput {
+  """
+  Optional `Account` id to publish as. Omit to publish as the authenticated personal account; pass an organization account where the viewer is an accepted member to publish as that organization.
+  """
+  actingAccountId: ID
+
+  """
+  How to display the personal member when `actingAccountId` is an organization. Defaults to `ACTING_ACCOUNT_ONLY`; invalid when publishing as a personal account.
+  """
+  attributionMode: PostAttributionMode
   clientMutationId: ID
 
   """
@@ -1418,7 +1441,7 @@ input CreateQuestionPollInput {
   title: String!
 }
 
-union CreateQuestionResult = ActorSuspendedError | CreateQuestionPayload | InvalidInputError | NotAuthenticatedError
+union CreateQuestionResult = ActorSuspendedError | CreateQuestionPayload | InvalidInputError | NotAuthenticatedError | OrganizationPermissionError
 
 type CustomEmoji implements Node {
   id: ID!
@@ -2995,6 +3018,11 @@ type Note implements Node & Post & Reactable {
   The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.  `null` when the post is censored or its author is hidden by a moderation sanction (or it is a boost wrapper of such a post, whose title it copies) and the viewer is neither the content's author nor a moderator.
   """
   name: String
+
+  """
+  Organization attribution metadata when this post was created through an organization account. `null` for ordinary personal posts and for federated posts without local organization metadata.
+  """
+  organizationAuthor: OrganizationPostAuthor
   published: DateTime!
   quotePolicy: QuotePolicy!
   quoteTargetState: QuoteTargetState
@@ -3274,6 +3302,27 @@ type OrganizationPermissionError {
 }
 
 """
+Attribution metadata for a post written through an organization account. The `Post.actor` remains the organization; this object records which personal member created it and whether that member should be shown as a co-author.
+"""
+type OrganizationPostAuthor {
+  """
+  Whether clients should display only the organization or include the member as a co-author.
+  """
+  attributionMode: PostAttributionMode!
+
+  """When this organization attribution record was created."""
+  created: DateTime!
+
+  """
+  The personal member account to show as a co-author. `null` when `attributionMode` is `ACTING_ACCOUNT_ONLY`.
+  """
+  member: Account
+
+  """The organization account that authored the post."""
+  organization: Account!
+}
+
+"""
 A snapshot of media objects old enough to delete and not referenced by accounts, notes, article drafts, or article sources.
 """
 type OrphanMediaStatus {
@@ -3548,6 +3597,11 @@ interface Post implements Node & Reactable {
   The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.  `null` when the post is censored or its author is hidden by a moderation sanction (or it is a boost wrapper of such a post, whose title it copies) and the viewer is neither the content's author nor a moderator.
   """
   name: String
+
+  """
+  Organization attribution metadata when this post was created through an organization account. `null` for ordinary personal posts and for federated posts without local organization metadata.
+  """
+  organizationAuthor: OrganizationPostAuthor
   published: DateTime!
   quotePolicy: QuotePolicy!
   quoteTargetState: QuoteTargetState
@@ -3638,6 +3692,21 @@ interface Post implements Node & Reactable {
   """
   viewerHasShared: Boolean!
   visibility: PostVisibility!
+}
+
+"""
+How a post written through an organization account should display the personal member who created it.
+"""
+enum PostAttributionMode {
+  """
+  Show only the acting account as the public author. For organization posts, the member remains recorded for audit and management but is not shown as a co-author.
+  """
+  ACTING_ACCOUNT_ONLY
+
+  """
+  Show the organization account as the primary author and the personal member as a co-author.
+  """
+  ACTING_ACCOUNT_WITH_VIEWER
 }
 
 """
@@ -3853,7 +3922,16 @@ enum PostVisibility {
 Publish an article draft, converting it to a live `Article` post and deleting the draft. Sends an ActivityPub `Create` activity. Requires authentication.
 """
 input PublishArticleDraftInput {
+  """
+  Optional `Account` id to publish as. The draft must still be owned by the authenticated personal account; this only changes the published article's author.
+  """
+  actingAccountId: ID
   allowLlmTranslation: Boolean
+
+  """
+  How to display the personal member when `actingAccountId` is an organization. Defaults to `ACTING_ACCOUNT_ONLY`; invalid when publishing as a personal account.
+  """
+  attributionMode: PostAttributionMode
   clientMutationId: ID
   id: ID!
   language: Locale!
@@ -3867,7 +3945,7 @@ type PublishArticleDraftPayload {
   deletedDraftId: ID!
 }
 
-union PublishArticleDraftResult = ActorSuspendedError | InvalidInputError | NotAuthenticatedError | PublishArticleDraftPayload
+union PublishArticleDraftResult = ActorSuspendedError | InvalidInputError | NotAuthenticatedError | OrganizationPermissionError | PublishArticleDraftPayload
 
 """
 Controls how much post content may be included in push notification payloads. Payloads can be displayed on a lock screen and pass through third-party push services.
@@ -4375,6 +4453,11 @@ type Question implements Node & Post & Reactable {
   The post's title. Non-null for `Article`s and local poll `Question`s; `null` for `Note`s and boost wrappers.  `null` when the post is censored or its author is hidden by a moderation sanction (or it is a boost wrapper of such a post, whose title it copies) and the viewer is neither the content's author nor a moderator.
   """
   name: String
+
+  """
+  Organization attribution metadata when this post was created through an organization account. `null` for ordinary personal posts and for federated posts without local organization metadata.
+  """
+  organizationAuthor: OrganizationPostAuthor
 
   """
   Poll data attached to this `Question`, or `null` for shared wrappers and Questions whose remote poll data is unavailable. Authenticated viewers may trigger a remote backfill for missing poll data.  Also `null` when the Question is censored or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator (check `censored` to distinguish the redaction from unavailable poll data).
