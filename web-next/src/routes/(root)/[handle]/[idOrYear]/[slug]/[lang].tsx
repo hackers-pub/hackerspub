@@ -66,6 +66,16 @@ function matchesLanguageScript(
   }
 }
 
+function articlePath(
+  username: string,
+  publishedYear: number,
+  slug: string,
+): string {
+  return `/@${encodeURIComponent(username)}/${publishedYear}/${
+    encodeURIComponent(slug)
+  }`;
+}
+
 export const route = {
   matchFilters: {
     handle: /^@/,
@@ -290,9 +300,9 @@ function ArticleLangPageContent(props: ArticleLangPageContentProps) {
   });
   const canonicalBase = createMemo(() => {
     const a = article();
-    return a == null
+    return a == null || a.publishedYear == null || a.slug == null
       ? null
-      : `/@${a.actor.username}/${a.publishedYear}/${a.slug}`;
+      : articlePath(a.actor.username, a.publishedYear, a.slug);
   });
   const redirectHref = createMemo(() => {
     const c = content();
@@ -311,7 +321,9 @@ function ArticleLangPageContent(props: ArticleLangPageContentProps) {
       return null;
     }
     if (c.originalLanguage == null) return base;
-    if (c.language !== props.language) return `${base}/${c.language}`;
+    if (c.language !== props.language) {
+      return `${base}/${encodeURIComponent(c.language)}`;
+    }
     return null;
   });
 
