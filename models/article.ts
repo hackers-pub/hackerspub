@@ -49,6 +49,7 @@ import {
   type Reaction,
 } from "./schema.ts";
 import { addPostToTimeline } from "./timeline.ts";
+import { queueAfterCommit } from "./tx.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "article"]);
@@ -58,6 +59,10 @@ const articleMediumKeyPattern = /^[A-Za-z0-9._:/-]+$/;
 interface ArticleMediumInput {
   key: string;
   mediumId: Uuid;
+}
+
+interface CreateArticleSourceOptions {
+  summarize?: boolean;
 }
 
 class InvalidArticleSourceMediumError extends Error {
@@ -340,6 +345,7 @@ export async function createArticleSource(
     content: string;
     language: string;
   },
+  options: CreateArticleSourceOptions = {},
 ): Promise<ArticleSource & { contents: ArticleContent[] } | undefined> {
   const sources = await db.insert(articleSourceTable)
     .values({ id: generateUuidV7(), ...source })
@@ -354,8 +360,22 @@ export async function createArticleSource(
       content: source.content,
     })
     .returning();
-  await startArticleContentSummary(db, models.summarizer, contents[0]);
+  if (options.summarize ?? true) {
+    await startArticleContentSummary(db, models.summarizer, contents[0]);
+  }
   return { ...sources[0], contents };
+}
+
+async function queueArticleContentSummary(
+  fedCtx: Context<ContextData>,
+  content: ArticleContent,
+): Promise<void> {
+  await queueAfterCommit(fedCtx, () =>
+    startArticleContentSummary(
+      fedCtx.data.rootDb ?? fedCtx.data.db,
+      fedCtx.data.models.summarizer,
+      content,
+    ));
 }
 
 export async function createArticle(
@@ -400,6 +420,7 @@ export async function createArticle(
     db,
     fedCtx.data.models,
     articleSourceInput,
+    { summarize: false },
   );
   if (articleSource == null) return undefined;
   const media = sourceMedia
@@ -458,6 +479,7 @@ export async function createArticle(
     post.relayedTags = [...relayedTags];
   }
   // TODO: send Create(Article) to the mentioned actors too
+  await queueArticleContentSummary(fedCtx, articleSource.contents[0]);
   return post;
 }
 

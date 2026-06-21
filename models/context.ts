@@ -3,6 +3,8 @@ import type { Disk } from "flydrive";
 import type Keyv from "keyv";
 import type { Database } from "./db.ts";
 
+export type AfterCommitTask = () => Promise<void> | void;
+
 export interface Models {
   translator: LanguageModel;
   summarizer: LanguageModel;
@@ -15,6 +17,8 @@ export interface Models {
 
 export interface ContextData<D extends Database = Database> {
   db: D;
+  rootDb?: Database;
+  afterCommit?: AfterCommitTask[];
   kv: Keyv;
   disk: Disk;
   models: Models;
