@@ -567,6 +567,21 @@ export default function AccountSettingsPage() {
                       </Match>
                       <Match when={account.kind === "ORGANIZATION"}>
                         <OrganizationMemberManagementCard account={account} />
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>{t`Delete organization`}</CardTitle>
+                            <CardDescription>
+                              {t`Permanently delete this organization account and its content.`}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <AccountDeletionForm
+                              id={account.id}
+                              kind="organization"
+                              username={account.username}
+                            />
+                          </CardContent>
+                        </Card>
                       </Match>
                     </Switch>
                   </div>
@@ -1738,6 +1753,7 @@ function AccountMigrationAliasesForm(
 
 interface AccountDeletionFormProps {
   id: string;
+  kind?: "personal" | "organization";
   username: string;
 }
 
@@ -1746,6 +1762,7 @@ function AccountDeletionForm(props: AccountDeletionFormProps) {
   const [confirmation, setConfirmation] = createSignal("");
   const [confirmOpen, setConfirmOpen] = createSignal(false);
   const [deleting, setDeleting] = createSignal(false);
+  const isOrganization = () => props.kind === "organization";
   const canDelete = createMemo(() =>
     confirmation().trim().toLowerCase() === props.username.toLowerCase() &&
     !deleting()
@@ -1773,6 +1790,14 @@ function AccountDeletionForm(props: AccountDeletionFormProps) {
           return;
         }
         if (result.__typename === "DeleteAccountPayload") {
+          if (isOrganization()) {
+            showToast({
+              title: t`Organization deleted`,
+              description: t`The organization account was deleted.`,
+            });
+            location.replace("/local");
+            return;
+          }
           void removeSessionCookie().finally(() => location.replace("/local"));
           return;
         }
@@ -1780,9 +1805,12 @@ function AccountDeletionForm(props: AccountDeletionFormProps) {
         setConfirmOpen(false);
         if (result.__typename === "AccountDeletionUnavailableError") {
           showToast({
-            title: t`Account deletion is unavailable`,
-            description:
-              t`This account cannot be deleted right now. Please contact the instance administrators.`,
+            title: isOrganization()
+              ? t`Organization deletion is unavailable`
+              : t`Account deletion is unavailable`,
+            description: isOrganization()
+              ? t`This organization cannot be deleted right now. Please contact the instance administrators.`
+              : t`This account cannot be deleted right now. Please contact the instance administrators.`,
             variant: "error",
           });
           return;
@@ -1797,8 +1825,12 @@ function AccountDeletionForm(props: AccountDeletionFormProps) {
         }
         if (result.__typename === "NotAuthorizedError") {
           showToast({
-            title: t`Cannot delete this account`,
-            description: t`You can delete only your own account.`,
+            title: isOrganization()
+              ? t`Cannot delete this organization`
+              : t`Cannot delete this account`,
+            description: isOrganization()
+              ? t`Only organization admins can delete this organization.`
+              : t`You can delete only your own account.`,
             variant: "error",
           });
           return;
@@ -1832,7 +1864,9 @@ function AccountDeletionForm(props: AccountDeletionFormProps) {
           {t`This action is permanent.`}
         </p>
         <p class="mt-2 text-muted-foreground">
-          {t`Your profile, posts, drafts, follows, settings, and login credentials will be removed. Your current username will remain reserved.`}
+          {isOrganization()
+            ? t`This organization's profile, posts, drafts, follows, settings, and memberships will be removed. Its username will remain reserved.`
+            : t`Your profile, posts, drafts, follows, settings, and login credentials will be removed. Your current username will remain reserved.`}
         </p>
       </div>
 
@@ -1848,7 +1882,9 @@ function AccountDeletionForm(props: AccountDeletionFormProps) {
           placeholder={props.username}
         />
         <TextFieldDescription>
-          {t`Type ${props.username} to confirm account deletion.`}
+          {isOrganization()
+            ? t`Type ${props.username} to confirm organization deletion.`
+            : t`Type ${props.username} to confirm account deletion.`}
         </TextFieldDescription>
       </TextField>
 
@@ -1860,7 +1896,7 @@ function AccountDeletionForm(props: AccountDeletionFormProps) {
           onClick={() => setConfirmOpen(true)}
         >
           <IconTrash2 />
-          {t`Delete account`}
+          {isOrganization() ? t`Delete organization` : t`Delete account`}
         </Button>
       </div>
 
@@ -1868,10 +1904,14 @@ function AccountDeletionForm(props: AccountDeletionFormProps) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {t`Delete account permanently?`}
+              {isOrganization()
+                ? t`Delete organization permanently?`
+                : t`Delete account permanently?`}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {t`This cannot be undone. Your account will be deleted and you will be signed out.`}
+              {isOrganization()
+                ? t`This cannot be undone. The organization account will be deleted, but you will stay signed in.`
+                : t`This cannot be undone. Your account will be deleted and you will be signed out.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1885,7 +1925,11 @@ function AccountDeletionForm(props: AccountDeletionFormProps) {
               onClick={onDelete}
             >
               <IconTrash2 />
-              {deleting() ? t`Deleting…` : t`Delete account`}
+              {deleting()
+                ? t`Deleting…`
+                : isOrganization()
+                ? t`Delete organization`
+                : t`Delete account`}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

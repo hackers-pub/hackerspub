@@ -1,5 +1,5 @@
 import type { ActorKeyPair, Context } from "@fedify/fedify";
-import { Endpoints, Image, Person } from "@fedify/vocab";
+import { Endpoints, Image, Organization, Person } from "@fedify/vocab";
 import { getAvatarUrl, renderAccountLinks } from "@hackerspub/models/account";
 import type { ContextData } from "@hackerspub/models/context";
 import { renderMarkup } from "@hackerspub/models/markup";
@@ -13,7 +13,7 @@ import type {
 } from "@hackerspub/models/schema";
 
 /**
- * Builds the ActivityPub `Person` for a local account.
+ * Builds the ActivityPub actor for a local account.
  *
  * A permanently suspended (banned) account is served as a stub with
  * Mastodon's `suspended` flag set and the profile content (display name,
@@ -31,8 +31,9 @@ export async function getAccountActor(
     links: AccountLink[];
   },
   keys: ActorKeyPair[],
-): Promise<Person> {
+): Promise<Organization | Person> {
   const identifier = account.id;
+  const ActorClass = account.kind === "organization" ? Organization : Person;
   const common = {
     id: ctx.getActorUri(identifier),
     preferredUsername: account.username,
@@ -52,7 +53,7 @@ export async function getAccountActor(
     aliases: account.actor.aliases.map((alias) => new URL(alias)),
   };
   if (isActorBanned(account.actor)) {
-    return new Person({
+    return new ActorClass({
       ...common,
       suspended: true,
     });
@@ -65,7 +66,7 @@ export async function getAccountActor(
       kv: ctx.data.kv,
     },
   );
-  return new Person({
+  return new ActorClass({
     ...common,
     name: account.name,
     summary: bio.html,

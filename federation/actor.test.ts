@@ -1,5 +1,6 @@
 import assert from "node:assert";
 import test from "node:test";
+import { Organization, Person } from "@fedify/vocab";
 import { actorTable } from "@hackerspub/models/schema";
 import { eq } from "drizzle-orm";
 import { getAccountActor } from "./person.ts";
@@ -108,5 +109,24 @@ test("getAccountActor exposes account migration aliases", async () => {
       "https://old.example/users/apaliases",
       "https://older.example/users/apaliases",
     ]);
+  });
+});
+
+test("getAccountActor uses Organization for organization accounts", async () => {
+  await withRollback(async (tx) => {
+    const { account } = await insertAccountWithActor(tx, {
+      username: "aporganization",
+      name: "AP Organization",
+      email: "aporganization@example.com",
+      kind: "organization",
+      type: "Organization",
+    });
+
+    const actor = await getAccountActor(createFedCtx(tx), account, []);
+
+    assert.ok(actor instanceof Organization);
+    assert.ok(!(actor instanceof Person));
+    assert.equal(actor.preferredUsername?.toString(), "aporganization");
+    assert.equal(actor.name?.toString(), "AP Organization");
   });
 });

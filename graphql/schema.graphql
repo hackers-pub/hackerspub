@@ -1481,13 +1481,13 @@ A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `dat
 scalar DateTime
 
 """
-Permanently delete the authenticated viewer's account. This hard-deletes the local account data, reserves the account's current `username`, commits the deleted actor's tombstone and preserved keys, then attempts to enqueue one actor-level ActivityPub `Delete` to followers. A transient delivery queue failure is logged after commit and does not resurrect the account. Session-store cleanup is also best-effort after the deletion commits.
+Permanently delete the authenticated viewer's personal account, or an organization account administered by the viewer. This hard-deletes the local account data, reserves the account's current `username`, commits the deleted actor's tombstone and preserved keys, then attempts to enqueue one actor-level ActivityPub `Delete` to followers. A transient delivery queue failure is logged after commit and does not resurrect the account. Session-store cleanup is best-effort and only applies when the viewer deletes their own personal account.
 """
 input DeleteAccountInput {
   clientMutationId: ID
 
   """
-  The `Account` global id of the authenticated viewer. Passing any other account id returns `NotAuthorizedError`.
+  The `Account` global id to delete. Passing another personal account returns `NotAuthorizedError`; organization accounts can be deleted by accepted organization administrators.
   """
   id: ID!
 }

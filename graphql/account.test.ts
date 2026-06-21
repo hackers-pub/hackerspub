@@ -8,6 +8,7 @@ import sharp from "sharp";
 import { updateAccountData } from "@hackerspub/models/account";
 import type { Transaction } from "@hackerspub/models/db";
 import { createMediumFromBytes } from "@hackerspub/models/medium";
+import { createOrganization } from "@hackerspub/models/organization";
 import { createSession, getSession } from "@hackerspub/models/session";
 import {
   accountTable,
@@ -1837,6 +1838,123 @@ test("deleteAccount deletes the viewer account and session", async () => {
       where: { accountId: account.account.id },
     });
     assert.equal(tombstone?.username, "deletegraphql");
+  });
+});
+
+test("deleteAccount lets organization admins delete organizations", async () => {
+  await withRollback(async (tx) => {
+    const { kv } = createTestKv();
+    const admin = await insertAccountWithActor(tx, {
+      username: "deleteorgadmin",
+      name: "Delete Organization Admin",
+      email: "deleteorgadmin@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "deleteorgmember",
+      name: "Delete Organization Member",
+      email: "deleteorgmember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, admin.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      admin.account,
+      {
+        username: "deleteorg",
+        name: "Delete Organization",
+        bio: "",
+      },
+    );
+    await tx.insert(organizationMembershipTable).values({
+      organizationAccountId: organization.id,
+      memberAccountId: member.account.id,
+      role: "member",
+      invitedById: admin.account.id,
+      accepted: new Date(),
+    });
+
+    const denied = await execute({
+      schema,
+      document: deleteAccountMutation,
+      variableValues: {
+        input: { id: encodeGlobalID("Account", organization.id) },
+      },
+      contextValue: makeUserContext(tx, member.account, { kv }),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(denied.errors, undefined);
+    assert.deepEqual(toPlainJson(denied.data), {
+      deleteAccount: {
+        __typename: "NotAuthorizedError",
+        notAuthorized: "",
+      },
+    });
+
+    const session = await createSession(kv, {
+      accountId: admin.account.id,
+      userAgent: "delete-organization-test",
+    });
+    const fedCtx = createFedCtx(tx, { kv });
+    const sentActivities: unknown[][] = [];
+    fedCtx.sendActivity = ((...args: unknown[]) => {
+      sentActivities.push(args);
+      return Promise.resolve(undefined);
+    }) as typeof fedCtx.sendActivity;
+
+    const result = await execute({
+      schema,
+      document: deleteAccountMutation,
+      variableValues: {
+        input: { id: encodeGlobalID("Account", organization.id) },
+      },
+      contextValue: makeUserContext(tx, admin.account, {
+        kv,
+        fedCtx,
+        session,
+      }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    const payload = (toPlainJson(result.data) as {
+      deleteAccount?: {
+        __typename?: string;
+        deletedAccountId?: string;
+        username?: string;
+        deleted?: string;
+      };
+    }).deleteAccount;
+    assert.deepEqual(
+      {
+        ...payload,
+        deleted: typeof payload?.deleted,
+      },
+      {
+        __typename: "DeleteAccountPayload",
+        deletedAccountId: encodeGlobalID("Account", organization.id),
+        username: "deleteorg",
+        deleted: "string",
+      },
+    );
+    assert.equal(sentActivities.length, 1);
+    assert.deepEqual(await getSession(kv, session.id), session);
+    assert.equal(
+      await tx.query.accountTable.findFirst({
+        where: { id: organization.id },
+      }),
+      undefined,
+    );
+    assert.equal(
+      await tx.query.organizationMembershipTable.findFirst({
+        where: { organizationAccountId: organization.id },
+      }),
+      undefined,
+    );
+    const tombstone = await tx.query.deletedAccountTable.findFirst({
+      where: { accountId: organization.id },
+    });
+    assert.equal(tombstone?.username, "deleteorg");
   });
 });
 

@@ -1531,20 +1531,22 @@ builder.relayMutationField(
   "deleteAccount",
   {
     description:
-      "Permanently delete the authenticated viewer's account. This " +
-      "hard-deletes the local account data, reserves the account's current " +
-      "`username`, commits the deleted actor's tombstone and preserved keys, " +
-      "then attempts to enqueue one actor-level ActivityPub `Delete` to " +
-      "followers. A transient delivery queue failure is logged after commit " +
-      "and does not resurrect the account. Session-store cleanup is also " +
-      "best-effort after the deletion commits.",
+      "Permanently delete the authenticated viewer's personal account, or " +
+      "an organization account administered by the viewer. This hard-deletes " +
+      "the local account data, reserves the account's current `username`, " +
+      "commits the deleted actor's tombstone and preserved keys, then " +
+      "attempts to enqueue one actor-level ActivityPub `Delete` to followers. " +
+      "A transient delivery queue failure is logged after commit and does " +
+      "not resurrect the account. Session-store cleanup is best-effort and " +
+      "only applies when the viewer deletes their own personal account.",
     inputFields: (t) => ({
       id: t.globalID({
         for: Account,
         required: true,
         description:
-          "The `Account` global id of the authenticated viewer. Passing any " +
-          "other account id returns `NotAuthorizedError`.",
+          "The `Account` global id to delete. Passing another personal " +
+          "account returns `NotAuthorizedError`; organization accounts can " +
+          "be deleted by accepted organization administrators.",
       }),
     }),
   },
@@ -1562,21 +1564,40 @@ builder.relayMutationField(
       if (session == null || ctx.account == null) {
         throw new NotAuthenticatedError();
       }
-      if (session.accountId !== args.input.id.id) {
-        throw new NotAuthorizedError();
+      const accountId = args.input.id.id as Uuid;
+      const deletingOwnAccount = session.accountId === accountId;
+      if (!deletingOwnAccount) {
+        const target = await ctx.db.query.accountTable.findFirst({
+          where: { id: accountId },
+          columns: { id: true, kind: true },
+        });
+        if (
+          target == null ||
+          target.kind !== "organization" ||
+          !await viewerCanManageAccountSettings(
+            ctx,
+            target.id,
+            target.kind,
+            session.accountId,
+          )
+        ) {
+          throw new NotAuthorizedError();
+        }
       }
-      const result = await deleteAccountModel(ctx.fedCtx, args.input.id.id);
+      const result = await deleteAccountModel(ctx.fedCtx, accountId);
       if (result == null) throw new InvalidInputError("id");
-      try {
-        await deleteSession(ctx.kv, session.id);
-      } catch (error) {
-        logger.warn(
-          "Failed to delete session after deleting account {accountId}: {error}",
-          {
-            accountId: result.accountId,
-            error,
-          },
-        );
+      if (deletingOwnAccount) {
+        try {
+          await deleteSession(ctx.kv, session.id);
+        } catch (error) {
+          logger.warn(
+            "Failed to delete session after deleting account {accountId}: {error}",
+            {
+              accountId: result.accountId,
+              error,
+            },
+          );
+        }
       }
       return result;
     },
