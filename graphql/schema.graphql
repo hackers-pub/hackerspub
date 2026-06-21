@@ -1,5 +1,48 @@
 """
-A local user account on this Hackers' Pub instance. Every `Account` has exactly one `Actor` (its public ActivityPub identity) and holds login credentials, settings, and moderation state. `Account` is only returned for the authenticated viewer and for moderator-only queries; all public identity data (name, bio, posts, followers) lives on `Actor`.
+Accept a pending organization conversion request. The authenticated personal account must match the admin chosen by the converting account.
+"""
+input AcceptOrganizationConversionInput {
+  clientMutationId: ID
+
+  """UUID of the pending `OrganizationConversionRequest` to accept."""
+  requestId: UUID!
+}
+
+type AcceptOrganizationConversionPayload {
+  clientMutationId: ID
+
+  """The accepting admin's organization membership."""
+  membership: OrganizationMembership!
+
+  """The converted organization account."""
+  organization: Account!
+}
+
+union AcceptOrganizationConversionResult = AcceptOrganizationConversionPayload | NotAuthenticatedError | NotAuthorizedError | OrganizationConversionError
+
+"""
+Accept a pending organization invitation for the authenticated personal account.
+"""
+input AcceptOrganizationInvitationInput {
+  clientMutationId: ID
+
+  """
+  Global `Account` id of the organization whose invitation should be accepted.
+  """
+  organizationId: ID!
+}
+
+type AcceptOrganizationInvitationPayload {
+  clientMutationId: ID
+
+  """The accepted organization membership."""
+  membership: OrganizationMembership!
+}
+
+union AcceptOrganizationInvitationResult = AcceptOrganizationInvitationPayload | NotAuthenticatedError | NotAuthorizedError | OrganizationMembershipError
+
+"""
+A local account on this Hackers' Pub instance. Every `Account` has exactly one `Actor` (its public ActivityPub identity). `PERSONAL` accounts hold login credentials and settings; `ORGANIZATION` accounts are controlled through personal member accounts. `Account` is returned for the authenticated viewer, organization management, and moderator-only queries; public identity data lives on `Actor`.
 """
 type Account implements Node {
   """
@@ -79,6 +122,11 @@ type Account implements Node {
   inviter: Account
 
   """
+  `PERSONAL` for direct login accounts and `ORGANIZATION` for team accounts controlled through organization memberships.
+  """
+  kind: AccountKind!
+
+  """
   The latest `published` timestamp across all posts authored by this account, or `null` when there are no posts.  Visible to the account holder and moderators.
   """
   lastPostPublished: DateTime
@@ -117,6 +165,16 @@ type Account implements Node {
   URL of the generated Open Graph image for this account's profile page. Generated on first request and cached; high-complexity operation (avoid requesting in bulk).  For a permanently suspended (banned) account, viewers other than the account holder and moderators get an image built from redacted profile content (no display name, bio, or avatar), and the cached key is not overwritten.
   """
   ogImageUrl: URL!
+
+  """
+  Accepted members of this organization account, newest first. Readable by accepted organization members and moderators.
+  """
+  organizationMembers: [OrganizationMembership!]!
+
+  """
+  Accepted organization memberships for this personal account, newest first. Only visible to the account holder and moderators.
+  """
+  organizationMemberships: [OrganizationMembership!]!
   passkeys(after: String, before: String, first: Int, last: Int): AccountPasskeysConnection!
 
   """
@@ -207,6 +265,21 @@ type AccountInviteesConnection {
 type AccountInviteesConnectionEdge {
   cursor: String!
   node: Account!
+}
+
+"""
+Distinguishes login-capable personal accounts from organization accounts that share the username and WebFinger namespace.
+"""
+enum AccountKind {
+  """
+  An organization or team account controlled through one or more personal member accounts.
+  """
+  ORGANIZATION
+
+  """
+  A regular account controlled directly by one person. Only personal accounts can sign in.
+  """
+  PERSONAL
 }
 
 """
@@ -309,7 +382,7 @@ type AccountReportsConnectionEdge {
 }
 
 """
-An ActivityPub actor: the public identity used for federation. Actors can be local (originating from this instance, `local: true`) or federated (from another instance, `local: false`). Local actors have an associated `Account` that holds login credentials and settings; remote actors do not. When in doubt, use `Actor` for display and `Account` only for settings that belong to the authenticated viewer.
+An ActivityPub actor: the public identity used for federation. Actors can be local (originating from this instance, `local: true`) or federated (from another instance, `local: false`). Local actors have an associated `Account`; only `PERSONAL` accounts hold direct login credentials, while `ORGANIZATION` accounts are controlled through memberships. When in doubt, use `Actor` for display and `Account` for viewer, organization, or moderation state.
 """
 type Actor implements Node {
   """
@@ -1242,6 +1315,37 @@ type CreateNotePayload {
 union CreateNoteResult = ActorSuspendedError | CreateNotePayload | InvalidInputError | NotAuthenticatedError
 
 """
+Create a new organization account in the shared username namespace. The authenticated personal account spends one invitation and becomes the first organization administrator.
+"""
+input CreateOrganizationInput {
+  """
+  Markdown profile bio for the organization account. Pass an empty string for no bio.
+  """
+  bio: String!
+  clientMutationId: ID
+
+  """Display name for the organization profile."""
+  name: String!
+
+  """
+  Username for the organization account. It must not collide with any personal or organization account.
+  """
+  username: String!
+}
+
+type CreateOrganizationPayload {
+  clientMutationId: ID
+
+  """The creator's accepted administrator membership in the organization."""
+  membership: OrganizationMembership!
+
+  """The organization account that was created."""
+  organization: Account!
+}
+
+union CreateOrganizationResult = CreateOrganizationPayload | NotAuthenticatedError | NotAuthorizedError | OrganizationInvitationRequiredError | OrganizationMembershipError
+
+"""
 Publish a new short-form post with an immutable ActivityPub `Question` poll. Sends an ActivityPub `Create` activity to relevant inboxes based on `visibility`. Requires authentication.
 """
 input CreateQuestionInput {
@@ -1949,6 +2053,31 @@ enum InviteInviterError {
   INVITER_NO_INVITATIONS_LEFT
 }
 
+"""
+Invite a personal account to join an organization. Only accepted organization administrators can invite or re-read a pending invite.
+"""
+input InviteOrganizationMemberInput {
+  clientMutationId: ID
+
+  """Global `Account` id of the organization that will receive the member."""
+  organizationId: ID!
+
+  """Role to grant after acceptance. Defaults to `MEMBER`."""
+  role: OrganizationMemberRole
+
+  """Username of the personal account to invite."""
+  username: String!
+}
+
+type InviteOrganizationMemberPayload {
+  clientMutationId: ID
+
+  """The pending or existing organization membership invitation."""
+  membership: OrganizationMembership!
+}
+
+union InviteOrganizationMemberResult = InviteOrganizationMemberPayload | NotAuthenticatedError | NotAuthorizedError | OrganizationMembershipError | OrganizationPermissionError
+
 union InviteResult = Invitation | InviteValidationErrors
 
 """Validation errors that occurred during the invitation process."""
@@ -1968,6 +2097,41 @@ enum InviteVerifyUrlError {
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
 scalar JSON
+
+"""
+Returned when a leave, remove, or role-change operation would leave the organization with no administrators.
+"""
+type LastOrganizationAdminError {
+  """Human-readable diagnostic. Use `__typename` for stable branching."""
+  message: String!
+}
+
+"""
+Returned when a leave or remove operation would leave the organization with no members. Delete the organization instead.
+"""
+type LastOrganizationMemberError {
+  """Human-readable diagnostic. Use `__typename` for stable branching."""
+  message: String!
+}
+
+"""
+Leave an organization as the authenticated member. The last member or last administrator cannot leave; delete the organization or add another administrator first.
+"""
+input LeaveOrganizationInput {
+  clientMutationId: ID
+
+  """Global `Account` id of the organization to leave."""
+  organizationId: ID!
+}
+
+type LeaveOrganizationPayload {
+  clientMutationId: ID
+
+  """The membership row that was removed."""
+  membership: OrganizationMembership!
+}
+
+union LeaveOrganizationResult = LastOrganizationAdminError | LastOrganizationMemberError | LeaveOrganizationPayload | NotAuthenticatedError | NotAuthorizedError | OrganizationMembershipError
 
 type LlmTranslationNotAllowedError {
   reason: LlmTranslationNotAllowedReason!
@@ -2001,6 +2165,31 @@ type LoginChallenge {
 }
 
 union LoginResult = AccountNotFoundError | LoginChallenge
+
+"""
+Advance this member's read marker for one organization and return the resulting badge state.
+"""
+input MarkOrganizationNotificationsAsReadInput {
+  clientMutationId: ID
+
+  """
+  Global `Account` id of the organization whose notifications should be marked read.
+  """
+  organizationId: ID!
+
+  """
+  Read marker to store. Omit to use the current server time. Future timestamps are clamped to the current server time.
+  """
+  readAt: DateTime
+}
+
+type MarkOrganizationNotificationsAsReadPayload {
+  """Badge state after storing the member read marker."""
+  badge: OrganizationNotificationBadge!
+  clientMutationId: ID
+}
+
+union MarkOrganizationNotificationsAsReadResult = MarkOrganizationNotificationsAsReadPayload | NotAuthenticatedError | NotAuthorizedError | OrganizationPermissionError
 
 """A Hackers' Pub-flavored Markdown text."""
 scalar Markdown
@@ -2160,6 +2349,8 @@ type ModerationStatistics {
 }
 
 type Mutation {
+  acceptOrganizationConversion(input: AcceptOrganizationConversionInput!): AcceptOrganizationConversionResult!
+  acceptOrganizationInvitation(input: AcceptOrganizationInvitationInput!): AcceptOrganizationInvitationResult!
   addAccountMigrationAlias(input: AddAccountMigrationAliasInput!): AddAccountMigrationAliasResult!
 
   """
@@ -2257,6 +2448,7 @@ type Mutation {
   createInvitationLink(expires: String, invitationsLeft: Int!, message: Markdown): CreateInvitationLinkResult!
   createMedium(input: CreateMediumInput!): CreateMediumResult!
   createNote(input: CreateNoteInput!): CreateNoteResult!
+  createOrganization(input: CreateOrganizationInput!): CreateOrganizationResult!
   createQuestion(input: CreateQuestionInput!): CreateQuestionResult!
   deleteAccount(input: DeleteAccountInput!): DeleteAccountResult!
   deleteArticleDraft(input: DeleteArticleDraftInput!): DeleteArticleDraftResult!
@@ -2297,6 +2489,8 @@ type Mutation {
     """
     verifyUrl: URITemplate!
   ): InviteResult!
+  inviteOrganizationMember(input: InviteOrganizationMemberInput!): InviteOrganizationMemberResult!
+  leaveOrganization(input: LeaveOrganizationInput!): LeaveOrganizationResult!
 
   """
   Initiate passwordless email sign-in. Sends a magic link to the matching account's email address. The link embeds `{token}` and `{code}` as URI Template variables in `verifyUrl`. Complete the flow by calling `completeLoginChallenge` with those values.
@@ -2361,6 +2555,7 @@ type Mutation {
     """
     upTo: UUID
   ): DateTime!
+  markOrganizationNotificationsAsRead(input: MarkOrganizationNotificationsAsReadInput!): MarkOrganizationNotificationsAsReadResult!
 
   """
   Mutes an actor on behalf of the authenticated viewer. Muting is local-only and one-directional: it hides the actor from the viewer's feeds and suppresses notifications from them (except replies and mentions when the viewer also follows them), but unlike `blockActor` it does not federate, does not remove follow relationships, and leaves the actor visible on their profile and in threads. Idempotent: muting an already-muted actor succeeds. Rejects muting yourself with `InvalidInputError`.
@@ -2444,6 +2639,7 @@ type Mutation {
     targetId: ID!
   ): ReportContentResult!
   requestArticleTranslation(input: RequestArticleTranslationInput!): RequestArticleTranslationResult!
+  requestOrganizationConversion(input: RequestOrganizationConversionInput!): RequestOrganizationConversionResult!
 
   """
   Resolve an appeal: `DISMISSED` keeps the original action, `WITHDRAWN` reverts its enforcement, and `REDUCED`/`INCREASED` replace it with the given `replacement` action on the same case. The appellant is notified under the moderation team's collective identity.  Preferably reviewed by a different moderator than the original decision-maker; the UI surfaces a warning via `FlagAppeal.action.moderator`, but this is not enforced.  Requires a moderator account.
@@ -2959,6 +3155,122 @@ enum NotificationType {
 enum OrderDirection {
   ASC
   DESC
+}
+
+"""
+Returned when a personal account cannot be converted into an organization, or when an administrator cannot accept that conversion.
+"""
+type OrganizationConversionError {
+  """Human-readable diagnostic. Use `__typename` for stable branching."""
+  message: String!
+}
+
+"""
+Pending or accepted request to convert one personal `Account` into an organization `Account`. The accepting admin becomes the first organization administrator.
+"""
+type OrganizationConversionRequest {
+  """When the request was accepted, or `null` while it is still pending."""
+  accepted: DateTime
+
+  """The account that will become an organization after acceptance."""
+  account: Account!
+
+  """The personal account allowed to accept the conversion request."""
+  admin: Account!
+
+  """When the conversion request was created."""
+  created: DateTime!
+
+  """Stable UUID for accepting this conversion request."""
+  uuid: UUID!
+}
+
+"""
+Returned when a personal account tries to create an organization without an available invitation slot.
+"""
+type OrganizationInvitationRequiredError {
+  """Human-readable diagnostic. Use `__typename` for stable branching."""
+  message: String!
+}
+
+"""Role held by a personal account inside an organization account."""
+enum OrganizationMemberRole {
+  """Can update organization settings and manage organization members."""
+  ADMIN
+
+  """
+  Can act as the organization for posting and social actions, but cannot manage settings or membership.
+  """
+  MEMBER
+}
+
+"""
+Membership of a personal `Account` in an organization `Account`. Rows with `accepted: null` are invitations; viewer-facing membership lists only expose accepted rows.
+"""
+type OrganizationMembership {
+  """When the invitation was accepted, or `null` for a pending invite."""
+  accepted: DateTime
+
+  """When this membership or invitation was created."""
+  created: DateTime!
+
+  """The personal account that belongs to the organization."""
+  member: Account!
+
+  """
+  Unread notification badge for this organization as seen by this member. Pending invitations return `null` because they cannot read organization notifications yet.
+  """
+  notificationBadge: OrganizationNotificationBadge
+
+  """The organization account this membership grants access to."""
+  organization: Account!
+
+  """Role currently held by the member in this organization."""
+  role: OrganizationMemberRole!
+}
+
+"""
+Returned when an organization membership operation cannot be applied, for example because the invitation or member row does not exist.
+"""
+type OrganizationMembershipError {
+  """Human-readable diagnostic. Use `__typename` for stable branching."""
+  message: String!
+}
+
+"""
+Unread notification badge state for one organization as seen by one member. A `null` color with count `0` means no badge should be shown.
+"""
+type OrganizationNotificationBadge {
+  """
+  The badge color to render. `null` means no unread organization notifications for this member.
+  """
+  color: OrganizationNotificationBadgeColor
+
+  """The number to show in the organization notification badge."""
+  count: Int!
+}
+
+"""
+Badge severity for organization notifications. `RED` means no member has read the newest notifications; `GRAY` means some other member has read them but this viewer has not.
+"""
+enum OrganizationNotificationBadgeColor {
+  """
+  All notifications have been read by at least one member, but some are still unread by the current viewer.
+  """
+  GRAY
+
+  """
+  There are notifications newer than the newest read marker from any organization member.
+  """
+  RED
+}
+
+"""
+Returned when the authenticated account is not an accepted member or administrator of the organization required by the operation.
+"""
+type OrganizationPermissionError {
+  """Human-readable diagnostic. Use `__typename` for stable branching."""
+  message: String!
 }
 
 """
@@ -4677,6 +4989,36 @@ type RequestArticleTranslationPayload {
 }
 
 union RequestArticleTranslationResult = InvalidInputError | LlmTranslationNotAllowedError | NotAuthenticatedError | RequestArticleTranslationPayload
+
+"""
+Request irreversible conversion of the authenticated personal account into an organization account. The current username must be typed as confirmation, and a different personal account must be named as the accepting administrator.
+"""
+input RequestOrganizationConversionInput {
+  """Global `Account` id of the authenticated personal account to convert."""
+  accountId: ID!
+
+  """
+  Username of the personal account that may accept the conversion and become the first organization administrator.
+  """
+  adminUsername: String!
+  clientMutationId: ID
+
+  """
+  Exact current username of the account being converted. This mirrors account deletion confirmation because conversion cannot be undone.
+  """
+  confirmationUsername: String!
+}
+
+type RequestOrganizationConversionPayload {
+  clientMutationId: ID
+
+  """
+  The pending conversion request. Give `request.uuid` to the named admin so they can accept it.
+  """
+  request: OrganizationConversionRequest!
+}
+
+union RequestOrganizationConversionResult = InvalidInputError | NotAuthenticatedError | NotAuthorizedError | OrganizationConversionError | RequestOrganizationConversionPayload
 
 union ResolveFlagAppealResult = FlagAppeal | InvalidInputError | NotAuthenticatedError | NotAuthorizedError
 

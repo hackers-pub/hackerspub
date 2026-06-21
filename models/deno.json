@@ -32,6 +32,7 @@
     "./news": "./news.ts",
     "./note": "./note.ts",
     "./notification": "./notification.ts",
+    "./organization": "./organization.ts",
     "./passkey": "./passkey.ts",
     "./pin": "./pin.ts",
     "./poll": "./poll.ts",

@@ -4,7 +4,7 @@ import { actorTable } from "@hackerspub/models/schema";
 import { createSession, getSession } from "@hackerspub/models/session";
 import { createSigninToken, getSigninToken } from "@hackerspub/models/signin";
 import { eq } from "drizzle-orm";
-import { schema } from "./mod.ts";
+import { createYogaServer, schema } from "./mod.ts";
 import {
   createTestEmailTransport,
   createTestKv,
@@ -253,6 +253,123 @@ test("loginByEmail matches email case-insensitively", async () => {
     assert.deepEqual(challenge.account?.username, "emailloginuser");
     assert.ok(challenge.token != null);
     assert.deepEqual(email.messages.length, 1);
+  });
+});
+
+test("organization accounts cannot start or complete direct login flows", async () => {
+  await withRollback(async (tx) => {
+    const { kv } = createTestKv();
+    const email = createTestEmailTransport();
+    const organization = await insertAccountWithActor(tx, {
+      username: "organizationlogin",
+      name: "Organization Login",
+      email: "organizationlogin@example.com",
+      type: "Organization",
+    });
+
+    const usernameResult = await execute({
+      schema,
+      document: loginByUsernameMutation,
+      variableValues: {
+        username: "organizationlogin",
+        locale: "en-US",
+        verifyUrl: "http://localhost/sign/in/{token}?code={code}",
+      },
+      contextValue: makeGuestContext(tx, { kv, email: email.transport }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(usernameResult.errors, undefined);
+    assert.deepEqual(
+      (usernameResult.data as {
+        loginByUsername: { __typename: string; query?: string };
+      }).loginByUsername,
+      {
+        __typename: "AccountNotFoundError",
+        query: "organizationlogin",
+      },
+    );
+
+    const emailResult = await execute({
+      schema,
+      document: loginByEmailMutation,
+      variableValues: {
+        email: "organizationlogin@example.com",
+        locale: "en-US",
+        verifyUrl: "http://localhost/sign/in/{token}?code={code}",
+      },
+      contextValue: makeGuestContext(tx, { kv, email: email.transport }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(emailResult.errors, undefined);
+    assert.deepEqual(
+      (emailResult.data as {
+        loginByEmail: { __typename: string; query?: string };
+      }).loginByEmail,
+      {
+        __typename: "AccountNotFoundError",
+        query: "organizationlogin@example.com",
+      },
+    );
+    assert.deepEqual(email.messages.length, 0);
+
+    const signinToken = await createSigninToken(kv, organization.account.id);
+    const completeResult = await execute({
+      schema,
+      document: completeLoginChallengeMutation,
+      variableValues: {
+        token: signinToken.token,
+        code: signinToken.code,
+      },
+      contextValue: makeGuestContext(tx, { kv }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(completeResult.errors, undefined);
+    assert.deepEqual(
+      (completeResult.data as { completeLoginChallenge: null })
+        .completeLoginChallenge,
+      null,
+    );
+    assert.deepEqual(await getSigninToken(kv, signinToken.token), undefined);
+  });
+});
+
+test("stale organization sessions are invalidated by the GraphQL context", async () => {
+  await withRollback(async (tx) => {
+    const { kv } = createTestKv();
+    const organization = await insertAccountWithActor(tx, {
+      username: "organizationsession",
+      name: "Organization Session",
+      email: "organizationsession@example.com",
+      type: "Organization",
+    });
+    const session = await createSession(kv, {
+      accountId: organization.account.id,
+      userAgent: "stale-organization-session",
+    });
+    const yoga = createYogaServer();
+
+    const response = await yoga.fetch(
+      new Request("http://localhost/graphql?no-propagate=true", {
+        method: "POST",
+        headers: {
+          "authorization": `Bearer ${session.id}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ query: "{ viewer { username } }" }),
+      }),
+      makeGuestContext(tx, { kv }),
+    );
+    const payload = await response.json() as {
+      data?: { viewer: { username: string } | null };
+      errors?: { message: string }[];
+    };
+
+    assert.deepEqual(payload.errors, undefined);
+    assert.deepEqual(payload.data, { viewer: null });
+    assert.equal(await getSession(kv, session.id), undefined);
   });
 });
 

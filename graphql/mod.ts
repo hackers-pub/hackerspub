@@ -17,6 +17,7 @@ import "./misc.ts";
 import "./moderation.ts";
 import "./news.ts";
 import "./notification.ts";
+import "./organization.ts";
 import "./passkey.ts";
 import "./poll.ts";
 import "./post.ts";
