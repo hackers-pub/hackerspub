@@ -94,6 +94,7 @@ export async function insertAccountWithActor(
     iri?: string;
     inboxUrl?: string;
     host?: string;
+    kind?: "personal" | "organization";
     type?: ActorType;
     followersCount?: number;
     followeesCount?: number;
@@ -111,6 +112,8 @@ export async function insertAccountWithActor(
 
   await tx.insert(accountTable).values({
     id: accountId,
+    kind: values.kind ??
+      (values.type === "Organization" ? "organization" : "personal"),
     username: values.username,
     name: values.name,
     bio: "",

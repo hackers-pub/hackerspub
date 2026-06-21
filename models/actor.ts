@@ -134,7 +134,7 @@ export async function syncActorFromAccount(
     .returning();
   const values: Omit<NewActor, "id"> = {
     iri: fedCtx.getActorUri(account.id).href,
-    type: "Person",
+    type: account.kind === "organization" ? "Organization" : "Person",
     username: account.username,
     instanceHost: instance.host,
     handleHost: instance.host,

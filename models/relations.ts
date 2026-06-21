@@ -36,6 +36,64 @@ export const relations = defineRelations(schema, (r) => ({
     flagAppeals: r.many.flagAppealTable({ alias: "appellant" }),
     reviewedFlagAppeals: r.many.flagAppealTable({ alias: "reviewer" }),
     moderationNotifications: r.many.moderationNotificationTable(),
+    organizationMemberships: r.many.organizationMembershipTable({
+      alias: "member",
+    }),
+    organizationMembers: r.many.organizationMembershipTable({
+      alias: "organization",
+    }),
+    organizationInvitationsSent: r.many.organizationMembershipTable({
+      alias: "invitedBy",
+    }),
+    organizationConversionRequests: r.many.organizationConversionRequestTable({
+      alias: "account",
+    }),
+    organizationConversionRequestsToAccept: r.many
+      .organizationConversionRequestTable({
+        alias: "adminAccount",
+      }),
+    authoredOrganizationPosts: r.many.organizationPostAuthorTable({
+      alias: "member",
+    }),
+    organizationPostAuthors: r.many.organizationPostAuthorTable({
+      alias: "organization",
+    }),
+    organizationNotificationReads: r.many.organizationNotificationReadTable({
+      alias: "member",
+    }),
+  },
+  organizationMembershipTable: {
+    organization: r.one.accountTable({
+      alias: "organization",
+      from: r.organizationMembershipTable.organizationAccountId,
+      to: r.accountTable.id,
+      optional: false,
+    }),
+    member: r.one.accountTable({
+      alias: "member",
+      from: r.organizationMembershipTable.memberAccountId,
+      to: r.accountTable.id,
+      optional: false,
+    }),
+    invitedBy: r.one.accountTable({
+      alias: "invitedBy",
+      from: r.organizationMembershipTable.invitedById,
+      to: r.accountTable.id,
+    }),
+  },
+  organizationConversionRequestTable: {
+    account: r.one.accountTable({
+      alias: "account",
+      from: r.organizationConversionRequestTable.accountId,
+      to: r.accountTable.id,
+      optional: false,
+    }),
+    adminAccount: r.one.accountTable({
+      alias: "adminAccount",
+      from: r.organizationConversionRequestTable.adminAccountId,
+      to: r.accountTable.id,
+      optional: false,
+    }),
   },
   deletedAccountTable: {
     keys: r.many.deletedAccountKeyTable(),
@@ -287,6 +345,29 @@ export const relations = defineRelations(schema, (r) => ({
     }),
     flags: r.many.flagTable(),
     flagCases: r.many.flagCaseTable(),
+    organizationAuthor: r.one.organizationPostAuthorTable({
+      from: r.postTable.id,
+      to: r.organizationPostAuthorTable.postId,
+    }),
+  },
+  organizationPostAuthorTable: {
+    post: r.one.postTable({
+      from: r.organizationPostAuthorTable.postId,
+      to: r.postTable.id,
+      optional: false,
+    }),
+    organization: r.one.accountTable({
+      alias: "organization",
+      from: r.organizationPostAuthorTable.organizationAccountId,
+      to: r.accountTable.id,
+      optional: false,
+    }),
+    member: r.one.accountTable({
+      alias: "member",
+      from: r.organizationPostAuthorTable.memberAccountId,
+      to: r.accountTable.id,
+      optional: false,
+    }),
   },
   quoteAuthorizationTable: {
     quotePost: r.one.postTable({
@@ -469,6 +550,20 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.notificationTable.customEmojiId,
       to: r.customEmojiTable.id,
       optional: true,
+    }),
+  },
+  organizationNotificationReadTable: {
+    organization: r.one.accountTable({
+      alias: "organization",
+      from: r.organizationNotificationReadTable.organizationAccountId,
+      to: r.accountTable.id,
+      optional: false,
+    }),
+    member: r.one.accountTable({
+      alias: "member",
+      from: r.organizationNotificationReadTable.memberAccountId,
+      to: r.accountTable.id,
+      optional: false,
     }),
   },
   articleDraftMediumTable: {
