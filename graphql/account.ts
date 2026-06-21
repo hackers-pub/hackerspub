@@ -120,7 +120,7 @@ function parseActorHandle(raw: string): {
   const split = trimmed.split("@");
   if (split.length !== 2) return null;
   const username = split[0].trim();
-  const host = split[1].trim();
+  const host = split[1].trim().toLowerCase();
   if (username === "" || host === "") return null;
   return { handle: `${username}@${host}`, username, host };
 }

@@ -1376,6 +1376,54 @@ test("addAccountMigrationAlias resolves uncached handles by federation lookup", 
   });
 });
 
+test("addAccountMigrationAlias matches cached actors with mixed-case hosts", async () => {
+  await withRollback(async (tx) => {
+    const { account } = await insertAccountWithActor(tx, {
+      username: "aliascase",
+      name: "Alias Case",
+      email: "aliascase@example.com",
+    });
+    await insertRemoteActor(tx, {
+      username: "oldcase",
+      name: "Old Case",
+      host: "old.example",
+      iri: "https://old.example/users/oldcase",
+      url: "https://old.example/@oldcase",
+    });
+    const fedCtx = createFedCtx(tx);
+    fedCtx.getActor = (identifier: string) =>
+      Promise.resolve(new vocab.Person({ id: fedCtx.getActorUri(identifier) }));
+    fedCtx.lookupObject = (() => {
+      throw new Error("cached mixed-case handles must not be looked up");
+    }) as typeof fedCtx.lookupObject;
+
+    const result = await execute({
+      schema,
+      document: addAccountMigrationAliasMutation,
+      variableValues: {
+        input: {
+          accountId: encodeGlobalID("Account", account.id),
+          actor: "@oldcase@Old.Example",
+        },
+      },
+      contextValue: makeUserContext(tx, account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      addAccountMigrationAlias: {
+        __typename: "AddAccountMigrationAliasPayload",
+        account: {
+          actor: {
+            aliases: ["https://old.example/users/oldcase"],
+          },
+        },
+      },
+    });
+  });
+});
+
 test("addAccountMigrationAlias does not resurrect aliases removed during lookup", async () => {
   await withRollback(async (tx) => {
     const { account } = await insertAccountWithActor(tx, {
