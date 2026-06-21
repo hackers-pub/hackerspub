@@ -113,7 +113,7 @@ msgid "{0, plural, one {Load # more reactor} other {Load # more reactors}}"
 msgstr "{0, plural, one {Load # more reactor} other {Load # more reactors}}"
 
 #. placeholder {0}: props.count
-#: src/components/AppSidebar.tsx:440
+#: src/components/AppSidebar.tsx:578
 msgid "{0, plural, one {Notifications (# unread)} other {Notifications (# unread)}}"
 msgstr "{0, plural, one {Notifications (# unread)} other {Notifications (# unread)}}"
 
@@ -366,7 +366,7 @@ msgstr "{days} days"
 msgid "{HIGH_PRIORITY_REPORT_COUNT}+ reports"
 msgstr "{HIGH_PRIORITY_REPORT_COUNT}+ reports"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:387
+#: src/routes/(root)/[handle]/settings/account.tsx:388
 msgid "@old@example.com or actor URL"
 msgstr "@old@example.com or actor URL"
 
@@ -377,7 +377,7 @@ msgstr "@old@example.com or actor URL"
 
 #: src/components/admin/AppealResolveForm.tsx:301
 #: src/components/admin/ModerationActionForm.tsx:303
-#: src/components/NoteComposer.tsx:1664
+#: src/components/NoteComposer.tsx:1721
 msgid "1 day"
 msgstr "1 day"
 
@@ -386,11 +386,11 @@ msgstr "1 day"
 msgid "1 report"
 msgstr "1 report"
 
-#: src/components/NoteComposer.tsx:1680
+#: src/components/NoteComposer.tsx:1737
 msgid "1 week"
 msgstr "1 week"
 
-#: src/components/NoteComposer.tsx:1672
+#: src/components/NoteComposer.tsx:1729
 msgid "3 days"
 msgstr "3 days"
 
@@ -456,12 +456,12 @@ msgid "A user (profile) report."
 msgstr "A user (profile) report."
 
 #: src/components/admin/AdminAccountsTable.tsx:224
-#: src/components/AppSidebar.tsx:481
+#: src/components/AppSidebar.tsx:619
 #: src/components/SettingsTabs.tsx:112
 msgid "Account"
 msgstr "Account"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:492
+#: src/routes/(root)/[handle]/settings/account.tsx:493
 msgid "Account deletion is unavailable"
 msgstr "Account deletion is unavailable"
 
@@ -469,7 +469,7 @@ msgstr "Account deletion is unavailable"
 msgid "Account handle"
 msgstr "Account handle"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:185
+#: src/routes/(root)/[handle]/settings/account.tsx:186
 msgid "Account migration"
 msgstr "Account migration"
 
@@ -478,6 +478,7 @@ msgid "Account permanently suspended"
 msgstr "Account permanently suspended"
 
 #: src/routes/(root)/[handle]/settings/account.tsx:179
+#: src/routes/(root)/[handle]/settings/account.tsx:181
 msgid "Account settings"
 msgstr "Account settings"
 
@@ -489,6 +490,10 @@ msgstr "Account suspended"
 #: src/routes/(root)/admin/index.tsx:97
 msgid "Accounts"
 msgstr "Accounts"
+
+#: src/components/AppSidebar.tsx:489
+msgid "Act as"
+msgstr "Act as"
 
 #: src/routes/(root)/admin/moderation/statistics.tsx:174
 msgid "Action distribution"
@@ -511,7 +516,7 @@ msgstr "Active since"
 msgid "Actors currently under an active suspension or federation block. Expired suspensions drop off automatically."
 msgstr "Actors currently under an active suspension or federation block. Expired suspensions drop off automatically."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:407
+#: src/routes/(root)/[handle]/settings/account.tsx:408
 #: src/routes/(root)/[handle]/settings/language.tsx:196
 #: src/routes/(root)/admin/news.tsx:639
 #: src/routes/(root)/admin/news.tsx:748
@@ -519,24 +524,24 @@ msgid "Add"
 msgstr "Add"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
-#: src/components/EmojiReactionPopover.tsx:452
+#: src/components/EmojiReactionPopover.tsx:470
 msgid "Add {0}"
 msgstr "Add {0}"
 
-#: src/components/NoteComposer.tsx:936
+#: src/components/NoteComposer.tsx:980
 msgid "Add at least {MIN_POLL_OPTIONS} poll options"
 msgstr "Add at least {MIN_POLL_OPTIONS} poll options"
 
-#: src/components/NoteComposer.tsx:1613
+#: src/components/NoteComposer.tsx:1670
 msgid "Add option"
 msgstr "Add option"
 
-#: src/components/NoteComposer.tsx:1481
-#: src/components/NoteComposer.tsx:1482
+#: src/components/NoteComposer.tsx:1538
+#: src/components/NoteComposer.tsx:1539
 msgid "Add poll"
 msgstr "Add poll"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:360
+#: src/routes/(root)/[handle]/settings/account.tsx:361
 msgid "Add the old account here. Hackers' Pub will publish it as another account that belongs to you."
 msgstr "Add the old account here. Hackers' Pub will publish it as another account that belongs to you."
 
@@ -544,7 +549,7 @@ msgstr "Add the old account here. Hackers' Pub will publish it as another accoun
 msgid "Add to sidebar"
 msgstr "Add to sidebar"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:407
+#: src/routes/(root)/[handle]/settings/account.tsx:408
 #: src/routes/(root)/admin/news.tsx:639
 #: src/routes/(root)/admin/news.tsx:748
 msgid "Adding…"
@@ -554,7 +559,7 @@ msgstr "Adding…"
 msgid "Additional context (optional)"
 msgstr "Additional context (optional)"
 
-#: src/components/AppSidebar.tsx:632
+#: src/components/AppSidebar.tsx:770
 msgid "Admin"
 msgstr "Admin"
 
@@ -562,7 +567,7 @@ msgstr "Admin"
 #~ msgid "Advertise previous accounts before starting the move from the old server."
 #~ msgstr "Advertise previous accounts before starting the move from the old server."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:366
+#: src/routes/(root)/[handle]/settings/account.tsx:367
 msgid "After the old server confirms the destination, it sends the Move activity and compatible servers can move followers here."
 msgstr "After the old server confirms the destination, it sends the Move activity and compatible servers can move followers here."
 
@@ -572,11 +577,11 @@ msgstr "After the old server confirms the destination, it sends the Move activit
 msgid "All"
 msgstr "All"
 
-#: src/components/NoteComposer.tsx:1015
+#: src/components/NoteComposer.tsx:1060
 msgid "All images must finish uploading before posting"
 msgstr "All images must finish uploading before posting"
 
-#: src/components/NoteComposer.tsx:1023
+#: src/components/NoteComposer.tsx:1068
 msgid "All images require alt text"
 msgstr "All images require alt text"
 
@@ -596,7 +601,7 @@ msgstr "All posts"
 msgid "All-time"
 msgstr "All-time"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:93
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:109
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:507
 msgid "Allow automatic translation by AI"
 msgstr "Allow automatic translation by AI"
@@ -611,11 +616,11 @@ msgid "Also send this report to the remote instance ({0})"
 msgstr "Also send this report to the remote instance ({0})"
 
 #. placeholder {0}: index() + 1
-#: src/components/NoteComposer.tsx:1748
+#: src/components/NoteComposer.tsx:1805
 msgid "Alt text for image {0}"
 msgstr "Alt text for image {0}"
 
-#: src/components/NoteComposer.tsx:1760
+#: src/components/NoteComposer.tsx:1817
 msgid "Alt text for visually impaired people (required)"
 msgstr "Alt text for visually impaired people (required)"
 
@@ -721,7 +726,7 @@ msgstr "Are you sure you want to block {0} ({1})? They won't be able to follow y
 msgid "Are you sure you want to delete \"{draftTitle}\"? This action cannot be undone."
 msgstr "Are you sure you want to delete \"{draftTitle}\"? This action cannot be undone."
 
-#: src/components/article-composer/ArticleComposerContext.tsx:429
+#: src/components/article-composer/ArticleComposerContext.tsx:441
 msgid "Are you sure you want to delete this draft? This action cannot be undone."
 msgstr "Are you sure you want to delete this draft? This action cannot be undone."
 
@@ -754,7 +759,7 @@ msgstr "Article"
 msgid "Article drafts"
 msgstr "Article drafts"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:385
+#: src/components/article-composer/ArticleComposerContext.tsx:397
 msgid "Article published"
 msgstr "Article published"
 
@@ -762,7 +767,7 @@ msgstr "Article published"
 msgid "Article updated"
 msgstr "Article updated"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:40
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:45
 msgid "article-url-slug"
 msgstr "article-url-slug"
 
@@ -771,7 +776,7 @@ msgstr "article-url-slug"
 msgid "Articles"
 msgstr "Articles"
 
-#: src/components/AppSidebar.tsx:272
+#: src/components/AppSidebar.tsx:320
 #: src/components/ProfileCard.tsx:197
 msgid "Articles only"
 msgstr "Articles only"
@@ -786,8 +791,8 @@ msgstr "As you have already changed it {0}, you can't change it again."
 msgid "Assigned to {0}"
 msgstr "Assigned to {0}"
 
-#: src/components/NoteComposer.tsx:1470
-#: src/components/NoteComposer.tsx:1471
+#: src/components/NoteComposer.tsx:1527
+#: src/components/NoteComposer.tsx:1528
 msgid "Attach image"
 msgstr "Attach image"
 
@@ -795,12 +800,17 @@ msgstr "Attach image"
 msgid "Authenticating…"
 msgstr "Authenticating…"
 
-#: src/components/NoteComposer.tsx:1779
+#: src/components/ActingAccountSelect.tsx:122
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:56
+msgid "Author"
+msgstr "Author"
+
+#: src/components/NoteComposer.tsx:1836
 msgid "Auto-fill"
 msgstr "Auto-fill"
 
-#: src/components/NoteComposer.tsx:1772
-#: src/components/NoteComposer.tsx:1773
+#: src/components/NoteComposer.tsx:1829
+#: src/components/NoteComposer.tsx:1830
 msgid "Auto-fill alt text"
 msgstr "Auto-fill alt text"
 
@@ -863,7 +873,7 @@ msgstr "Bold"
 msgid "Bookmark"
 msgstr "Bookmark"
 
-#: src/components/AppSidebar.tsx:568
+#: src/components/AppSidebar.tsx:706
 #: src/routes/(root)/[handle]/bookmarks.tsx:126
 msgid "Bookmarks"
 msgstr "Bookmarks"
@@ -915,9 +925,9 @@ msgstr "By {0}"
 
 #: src/components/AppealDialog.tsx:187
 #: src/components/article-composer/ArticleComposerActions.tsx:48
-#: src/components/NoteComposer.tsx:1807
-#: src/components/NoteComposer.tsx:1808
-#: src/components/NoteComposer.tsx:1851
+#: src/components/NoteComposer.tsx:1864
+#: src/components/NoteComposer.tsx:1865
+#: src/components/NoteComposer.tsx:1908
 #: src/components/PostActionMenu.tsx:442
 #: src/components/ProfileActionMenu.tsx:503
 #: src/components/ProfileActionMenu.tsx:504
@@ -929,7 +939,7 @@ msgstr "By {0}"
 #: src/components/RemoveFollowerButton.tsx:144
 #: src/components/ReportDialog.tsx:224
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:523
-#: src/routes/(root)/[handle]/settings/account.tsx:588
+#: src/routes/(root)/[handle]/settings/account.tsx:589
 #: src/routes/(root)/[handle]/settings/index.tsx:408
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:522
 #: src/routes/(root)/authorize_interaction.tsx:273
@@ -940,12 +950,12 @@ msgstr "Cancel"
 msgid "Cannot change the language because translations already exist"
 msgstr "Cannot change the language because translations already exist"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:509
+#: src/routes/(root)/[handle]/settings/account.tsx:510
 msgid "Cannot delete this account"
 msgstr "Cannot delete this account"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:279
-#: src/routes/(root)/[handle]/settings/account.tsx:330
+#: src/routes/(root)/[handle]/settings/account.tsx:280
+#: src/routes/(root)/[handle]/settings/account.tsx:331
 msgid "Cannot update this account"
 msgstr "Cannot update this account"
 
@@ -1024,11 +1034,16 @@ msgstr "Close"
 msgid "Closed"
 msgstr "Closed"
 
+#: src/components/ActingAccountSelect.tsx:89
+#: src/components/ActingAccountSelect.tsx:134
+msgid "Co-author"
+msgstr "Co-author"
+
 #: src/components/ui/markdown-editor.tsx:279
 msgid "Code"
 msgstr "Code"
 
-#: src/components/AppSidebar.tsx:855
+#: src/components/AppSidebar.tsx:993
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/sign/up/[token].tsx:458
 msgid "Code of conduct"
@@ -1043,18 +1058,18 @@ msgstr "Code of conduct: {0}"
 #~ msgid "Comments ({0})"
 #~ msgstr "Comments ({0})"
 
-#: src/components/AppSidebar.tsx:692
+#: src/components/AppSidebar.tsx:830
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "Compose"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:65
-#: src/components/NoteComposer.tsx:1417
+#: src/components/NoteComposer.tsx:1474
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:393
 msgid "Content"
 msgstr "Content"
 
-#: src/components/NoteComposer.tsx:1005
+#: src/components/NoteComposer.tsx:1050
 msgid "Content cannot be empty"
 msgstr "Content cannot be empty"
 
@@ -1066,7 +1081,7 @@ msgstr "Continue in browser"
 msgid "Control how you appear in the public invitation tree that shows who invited whom."
 msgstr "Control how you appear in the public invitation tree that shows who invited whom."
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:73
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:89
 msgid "Controls who can quote this article on their timeline."
 msgstr "Controls who can quote this article on their timeline."
 
@@ -1083,8 +1098,8 @@ msgstr "Copy"
 #~ msgid "Could not add migration alias"
 #~ msgstr "Could not add migration alias"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:287
-#: src/routes/(root)/[handle]/settings/account.tsx:293
+#: src/routes/(root)/[handle]/settings/account.tsx:288
+#: src/routes/(root)/[handle]/settings/account.tsx:294
 msgid "Could not add previous account"
 msgstr "Could not add previous account"
 
@@ -1115,8 +1130,8 @@ msgstr "Could not refresh this from its origin."
 #~ msgid "Could not remove migration alias"
 #~ msgstr "Could not remove migration alias"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:336
-#: src/routes/(root)/[handle]/settings/account.tsx:344
+#: src/routes/(root)/[handle]/settings/account.tsx:337
+#: src/routes/(root)/[handle]/settings/account.tsx:345
 msgid "Could not remove previous account"
 msgstr "Could not remove previous account"
 
@@ -1143,7 +1158,7 @@ msgstr "Could not submit the appeal"
 msgid "Could not vote on this poll"
 msgstr "Could not vote on this poll"
 
-#: src/components/AppSidebar.tsx:737
+#: src/components/AppSidebar.tsx:875
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create article"
 msgstr "Create article"
@@ -1152,14 +1167,14 @@ msgstr "Create article"
 msgid "Create invitation link"
 msgstr "Create invitation link"
 
-#: src/components/AppSidebar.tsx:714
+#: src/components/AppSidebar.tsx:852
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:78
-#: src/components/NoteComposer.tsx:1873
+#: src/components/NoteComposer.tsx:1930
 msgid "Create note"
 msgstr "Create note"
 
-#: src/components/NoteComposer.tsx:1872
+#: src/components/NoteComposer.tsx:1929
 msgid "Create poll"
 msgstr "Create poll"
 
@@ -1180,7 +1195,7 @@ msgstr "Created {0}"
 msgid "Creating account…"
 msgstr "Creating account…"
 
-#: src/components/NoteComposer.tsx:1875
+#: src/components/NoteComposer.tsx:1932
 #: src/routes/(root)/[handle]/settings/invite.tsx:855
 msgid "Creating…"
 msgstr "Creating…"
@@ -1203,7 +1218,7 @@ msgstr "Cutoff:"
 msgid "CW"
 msgstr "CW"
 
-#: src/components/NoteComposer.tsx:1655
+#: src/components/NoteComposer.tsx:1712
 msgid "Deadline"
 msgstr "Deadline"
 
@@ -1238,13 +1253,13 @@ msgstr "Default share privacy"
 msgid "Delete"
 msgstr "Delete"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:199
-#: src/routes/(root)/[handle]/settings/account.tsx:572
-#: src/routes/(root)/[handle]/settings/account.tsx:597
+#: src/routes/(root)/[handle]/settings/account.tsx:200
+#: src/routes/(root)/[handle]/settings/account.tsx:573
+#: src/routes/(root)/[handle]/settings/account.tsx:598
 msgid "Delete account"
 msgstr "Delete account"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:580
+#: src/routes/(root)/[handle]/settings/account.tsx:581
 msgid "Delete account permanently?"
 msgstr "Delete account permanently?"
 
@@ -1262,7 +1277,7 @@ msgid "Delete post?"
 msgstr "Delete post?"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:21
-#: src/routes/(root)/[handle]/settings/account.tsx:597
+#: src/routes/(root)/[handle]/settings/account.tsx:598
 #: src/routes/(root)/[handle]/settings/invite.tsx:745
 #: src/routes/(root)/admin/media.tsx:189
 msgid "Deleting…"
@@ -1333,16 +1348,16 @@ msgstr "Display name"
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 
-#: src/components/NoteComposer.tsx:870
+#: src/components/NoteComposer.tsx:914
 msgid "Do you want to quote this link?"
 msgstr "Do you want to quote this link?"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:450
+#: src/components/article-composer/ArticleComposerContext.tsx:462
 #: src/routes/(root)/[handle]/drafts/index.tsx:176
 msgid "Draft deleted"
 msgstr "Draft deleted"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:359
+#: src/components/article-composer/ArticleComposerContext.tsx:370
 msgid "Draft must be saved before publishing"
 msgstr "Draft must be saved before publishing"
 
@@ -1350,7 +1365,7 @@ msgstr "Draft must be saved before publishing"
 msgid "Draft not found"
 msgstr "Draft not found"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:310
+#: src/components/article-composer/ArticleComposerContext.tsx:321
 msgid "Draft saved"
 msgstr "Draft saved"
 
@@ -1415,11 +1430,11 @@ msgstr "Ends"
 #~ msgid "Enter article title..."
 #~ msgstr "Enter article title..."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:394
+#: src/routes/(root)/[handle]/settings/account.tsx:395
 msgid "Enter the account you are moving from, for example @old@example.com."
 msgstr "Enter the account you are moving from, for example @old@example.com."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:285
+#: src/routes/(root)/[handle]/settings/account.tsx:286
 msgid "Enter the account you are moving from, such as @old@example.com or its actor URL."
 msgstr "Enter the account you are moving from, such as @old@example.com or its actor URL."
 
@@ -1431,41 +1446,41 @@ msgstr "Enter your email address below to get started."
 msgid "Enter your email or username below to sign in."
 msgstr "Enter your email or username below to sign in."
 
-#: src/components/article-composer/ArticleComposerContext.tsx:273
-#: src/components/article-composer/ArticleComposerContext.tsx:319
-#: src/components/article-composer/ArticleComposerContext.tsx:328
-#: src/components/article-composer/ArticleComposerContext.tsx:336
-#: src/components/article-composer/ArticleComposerContext.tsx:349
-#: src/components/article-composer/ArticleComposerContext.tsx:358
-#: src/components/article-composer/ArticleComposerContext.tsx:392
-#: src/components/article-composer/ArticleComposerContext.tsx:401
-#: src/components/article-composer/ArticleComposerContext.tsx:409
-#: src/components/article-composer/ArticleComposerContext.tsx:420
-#: src/components/article-composer/ArticleComposerContext.tsx:457
-#: src/components/article-composer/ArticleComposerContext.tsx:466
-#: src/components/article-composer/ArticleComposerContext.tsx:474
+#: src/components/article-composer/ArticleComposerContext.tsx:284
+#: src/components/article-composer/ArticleComposerContext.tsx:330
+#: src/components/article-composer/ArticleComposerContext.tsx:339
+#: src/components/article-composer/ArticleComposerContext.tsx:347
+#: src/components/article-composer/ArticleComposerContext.tsx:360
+#: src/components/article-composer/ArticleComposerContext.tsx:369
+#: src/components/article-composer/ArticleComposerContext.tsx:404
+#: src/components/article-composer/ArticleComposerContext.tsx:413
+#: src/components/article-composer/ArticleComposerContext.tsx:421
+#: src/components/article-composer/ArticleComposerContext.tsx:432
+#: src/components/article-composer/ArticleComposerContext.tsx:469
+#: src/components/article-composer/ArticleComposerContext.tsx:478
+#: src/components/article-composer/ArticleComposerContext.tsx:486
 #: src/components/article-composer/ArticleComposerForm.tsx:35
-#: src/components/NoteComposer.tsx:729
-#: src/components/NoteComposer.tsx:776
-#: src/components/NoteComposer.tsx:917
-#: src/components/NoteComposer.tsx:927
-#: src/components/NoteComposer.tsx:935
-#: src/components/NoteComposer.tsx:943
-#: src/components/NoteComposer.tsx:953
+#: src/components/NoteComposer.tsx:773
+#: src/components/NoteComposer.tsx:820
 #: src/components/NoteComposer.tsx:961
-#: src/components/NoteComposer.tsx:1004
-#: src/components/NoteComposer.tsx:1014
-#: src/components/NoteComposer.tsx:1022
-#: src/components/NoteComposer.tsx:1056
-#: src/components/NoteComposer.tsx:1064
-#: src/components/NoteComposer.tsx:1072
-#: src/components/NoteComposer.tsx:1122
-#: src/components/NoteComposer.tsx:1131
-#: src/components/NoteComposer.tsx:1139
+#: src/components/NoteComposer.tsx:971
+#: src/components/NoteComposer.tsx:979
+#: src/components/NoteComposer.tsx:987
+#: src/components/NoteComposer.tsx:997
+#: src/components/NoteComposer.tsx:1005
+#: src/components/NoteComposer.tsx:1049
+#: src/components/NoteComposer.tsx:1059
+#: src/components/NoteComposer.tsx:1067
+#: src/components/NoteComposer.tsx:1101
+#: src/components/NoteComposer.tsx:1109
+#: src/components/NoteComposer.tsx:1117
+#: src/components/NoteComposer.tsx:1168
 #: src/components/NoteComposer.tsx:1177
 #: src/components/NoteComposer.tsx:1185
-#: src/components/NoteComposer.tsx:1193
-#: src/components/NoteComposer.tsx:1250
+#: src/components/NoteComposer.tsx:1224
+#: src/components/NoteComposer.tsx:1232
+#: src/components/NoteComposer.tsx:1240
+#: src/components/NoteComposer.tsx:1297
 #: src/components/QuotedNoteCard.tsx:339
 #: src/components/QuotedNoteCard.tsx:347
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:258
@@ -1555,9 +1570,9 @@ msgstr "Failed to copy"
 msgid "Failed to create invitation link"
 msgstr "Failed to create invitation link"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:477
-#: src/routes/(root)/[handle]/settings/account.tsx:516
-#: src/routes/(root)/[handle]/settings/account.tsx:527
+#: src/routes/(root)/[handle]/settings/account.tsx:478
+#: src/routes/(root)/[handle]/settings/account.tsx:517
+#: src/routes/(root)/[handle]/settings/account.tsx:528
 msgid "Failed to delete account"
 msgstr "Failed to delete account"
 
@@ -1590,13 +1605,13 @@ msgstr "Failed to disable browser notifications"
 msgid "Failed to enable browser notifications"
 msgstr "Failed to enable browser notifications"
 
-#: src/components/FollowButton.tsx:160
+#: src/components/FollowButton.tsx:166
 #: src/components/HashtagActionBar.tsx:154
 #: src/components/HashtagActionBar.tsx:158
 msgid "Failed to follow"
 msgstr "Failed to follow"
 
-#: src/components/NoteComposer.tsx:1251
+#: src/components/NoteComposer.tsx:1298
 msgid "Failed to generate alt text"
 msgstr "Failed to generate alt text"
 
@@ -1676,11 +1691,11 @@ msgstr "Failed to load more shares; click to retry"
 msgid "Failed to load more; click to retry"
 msgstr "Failed to load more; click to retry"
 
-#: src/components/NoteComposer.tsx:1309
+#: src/components/NoteComposer.tsx:1356
 msgid "Failed to load post"
 msgstr "Failed to load post"
 
-#: src/components/NoteComposer.tsx:1360
+#: src/components/NoteComposer.tsx:1407
 msgid "Failed to load quoted post"
 msgstr "Failed to load quoted post"
 
@@ -1706,14 +1721,14 @@ msgstr "Failed to mute this user"
 msgid "Failed to pin post"
 msgstr "Failed to pin post"
 
-#: src/components/EmojiReactionPopover.tsx:165
-#: src/components/EmojiReactionPopover.tsx:174
-#: src/components/EmojiReactionPopover.tsx:256
-#: src/components/EmojiReactionPopover.tsx:265
-#: src/components/EmojiReactionPopover.tsx:335
-#: src/components/EmojiReactionPopover.tsx:344
-#: src/components/EmojiReactionPopover.tsx:394
-#: src/components/EmojiReactionPopover.tsx:403
+#: src/components/EmojiReactionPopover.tsx:169
+#: src/components/EmojiReactionPopover.tsx:178
+#: src/components/EmojiReactionPopover.tsx:261
+#: src/components/EmojiReactionPopover.tsx:270
+#: src/components/EmojiReactionPopover.tsx:347
+#: src/components/EmojiReactionPopover.tsx:356
+#: src/components/EmojiReactionPopover.tsx:412
+#: src/components/EmojiReactionPopover.tsx:421
 msgid "Failed to react"
 msgstr "Failed to react"
 
@@ -1794,13 +1809,13 @@ msgstr "Failed to send email"
 msgid "Failed to send invitation"
 msgstr "Failed to send invitation"
 
-#: src/components/PostEngagementBar.tsx:277
 #: src/components/PostEngagementBar.tsx:284
+#: src/components/PostEngagementBar.tsx:291
 msgid "Failed to share post"
 msgstr "Failed to share post"
 
 #. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:127
+#: src/components/AppSidebar.tsx:175
 msgid "Failed to sign out: {0}"
 msgstr "Failed to sign out: {0}"
 
@@ -1820,7 +1835,7 @@ msgstr "Failed to subscribe to the relay."
 msgid "Failed to unblock this user"
 msgstr "Failed to unblock this user"
 
-#: src/components/FollowButton.tsx:138
+#: src/components/FollowButton.tsx:144
 #: src/components/HashtagActionBar.tsx:177
 #: src/components/HashtagActionBar.tsx:181
 msgid "Failed to unfollow"
@@ -1838,8 +1853,8 @@ msgstr "Failed to unmute this user"
 msgid "Failed to unpin post"
 msgstr "Failed to unpin post"
 
-#: src/components/PostEngagementBar.tsx:259
 #: src/components/PostEngagementBar.tsx:266
+#: src/components/PostEngagementBar.tsx:273
 msgid "Failed to unshare post"
 msgstr "Failed to unshare post"
 
@@ -1865,7 +1880,7 @@ msgstr "Failed to update the article. Please try again."
 #~ msgstr "Failed to update the note. Please try again."
 
 #: src/components/article-composer/ArticleComposerForm.tsx:38
-#: src/components/NoteComposer.tsx:779
+#: src/components/NoteComposer.tsx:823
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:261
 msgid "Failed to upload image"
 msgstr "Failed to upload image"
@@ -1878,7 +1893,7 @@ msgstr "Failed to vote"
 msgid "Favor links shared by specific accounts. A preferred sharer's posts count toward the news feed even when the account is a bot (for example a feed that reposts Hacker News links), and the links it shares get a flat promotion bonus in the popular ranking. A penalty on a link overrides the promotion."
 msgstr "Favor links shared by specific accounts. A preferred sharer's posts count toward the news feed even when the account is a bot (for example a feed that reposts Hacker News links), and the links it shares get a flat promotion bonus in the popular ranking. A penalty on a link overrides the promotion."
 
-#: src/components/AppSidebar.tsx:324
+#: src/components/AppSidebar.tsx:372
 msgid "Fediverse"
 msgstr "Fediverse"
 
@@ -1886,7 +1901,7 @@ msgstr "Fediverse"
 msgid "Fediverse handle"
 msgstr "Fediverse handle"
 
-#: src/components/AppSidebar.tsx:203
+#: src/components/AppSidebar.tsx:251
 msgid "Feed"
 msgstr "Feed"
 
@@ -1894,12 +1909,12 @@ msgstr "Feed"
 msgid "First shared"
 msgstr "First shared"
 
-#: src/components/FollowButton.tsx:195
+#: src/components/FollowButton.tsx:201
 #: src/components/HashtagActionBar.tsx:237
 msgid "Follow"
 msgstr "Follow"
 
-#: src/components/FollowButton.tsx:194
+#: src/components/FollowButton.tsx:200
 msgid "Follow back"
 msgstr "Follow back"
 
@@ -1945,7 +1960,7 @@ msgstr "Formatting"
 msgid "Forwarded to the remote instance"
 msgstr "Forwarded to the remote instance"
 
-#: src/components/NoteComposer.tsx:1798
+#: src/components/NoteComposer.tsx:1855
 msgid "Generating…"
 msgstr "Generating…"
 
@@ -1953,7 +1968,7 @@ msgstr "Generating…"
 msgid "Get browser notifications"
 msgstr "Get browser notifications"
 
-#: src/components/AppSidebar.tsx:895
+#: src/components/AppSidebar.tsx:1033
 msgid "GitHub repository"
 msgstr "GitHub repository"
 
@@ -1991,9 +2006,9 @@ msgstr "Grants one extra invitation to the most active accounts (the top third b
 msgid "Graph"
 msgstr "Graph"
 
-#: src/components/AppSidebar.tsx:290
-#: src/components/AppSidebar.tsx:412
-#: src/routes/(root).tsx:196
+#: src/components/AppSidebar.tsx:338
+#: src/components/AppSidebar.tsx:461
+#: src/routes/(root).tsx:198
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/markdown.tsx:40
 #: src/routes/(root)/privacy.tsx:40
@@ -2001,7 +2016,7 @@ msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
 #: src/components/NotFoundPage.tsx:19
-#: src/routes/(root).tsx:188
+#: src/routes/(root).tsx:190
 msgid "Hackers' Pub home"
 msgstr "Hackers' Pub home"
 
@@ -2013,11 +2028,11 @@ msgstr "Hackers' Pub is a place for software engineers to share their knowledge 
 #~ msgid "Hackers' Pub no longer publishes that account as an alias."
 #~ msgstr "Hackers' Pub no longer publishes that account as an alias."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:317
+#: src/routes/(root)/[handle]/settings/account.tsx:318
 msgid "Hackers' Pub no longer publishes that account as another account that belongs to you."
 msgstr "Hackers' Pub no longer publishes that account as another account that belongs to you."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:266
+#: src/routes/(root)/[handle]/settings/account.tsx:267
 msgid "Hackers' Pub now publishes the old account as another account that belongs to you."
 msgstr "Hackers' Pub now publishes the old account as another account that belongs to you."
 
@@ -2184,12 +2199,12 @@ msgstr "Invalid Fediverse handle format."
 #. placeholder {0}: response.createNote.inputPath
 #. placeholder {0}: response.createQuestion.inputPath
 #. placeholder {0}: response.deleteArticleDraft.inputPath
-#: src/components/article-composer/ArticleComposerContext.tsx:321
-#: src/components/article-composer/ArticleComposerContext.tsx:394
-#: src/components/article-composer/ArticleComposerContext.tsx:459
-#: src/components/NoteComposer.tsx:1057
-#: src/components/NoteComposer.tsx:1124
-#: src/components/NoteComposer.tsx:1178
+#: src/components/article-composer/ArticleComposerContext.tsx:332
+#: src/components/article-composer/ArticleComposerContext.tsx:406
+#: src/components/article-composer/ArticleComposerContext.tsx:471
+#: src/components/NoteComposer.tsx:1102
+#: src/components/NoteComposer.tsx:1170
+#: src/components/NoteComposer.tsx:1225
 #: src/routes/(root)/[handle]/drafts/index.tsx:185
 msgid "Invalid input: {0}"
 msgstr "Invalid input: {0}"
@@ -2223,7 +2238,7 @@ msgstr "Invitation links"
 msgid "Invitation sent"
 msgstr "Invitation sent"
 
-#: src/components/AppSidebar.tsx:847
+#: src/components/AppSidebar.tsx:985
 #: src/routes/(root)/[handle]/settings/invite.tsx:910
 #: src/routes/(root)/tree/graph.tsx:79
 #: src/routes/(root)/tree/index.tsx:206
@@ -2239,7 +2254,7 @@ msgstr "Invitations"
 msgid "Invitations left"
 msgstr "Invitations left"
 
-#: src/components/AppSidebar.tsx:591
+#: src/components/AppSidebar.tsx:729
 #: src/components/SettingsTabs.tsx:72
 #: src/routes/(root)/[handle]/settings/invite.tsx:311
 msgid "Invite"
@@ -2288,7 +2303,7 @@ msgstr "Joined on {0}"
 msgid "Keep editing"
 msgstr "Keep editing"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:53
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:69
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:490
@@ -2542,7 +2557,7 @@ msgstr "Loading more stories…"
 msgid "Loading more…"
 msgstr "Loading more…"
 
-#: src/components/NoteComposer.tsx:1361
+#: src/components/NoteComposer.tsx:1408
 msgid "Loading quoted post…"
 msgstr "Loading quoted post…"
 
@@ -2550,7 +2565,7 @@ msgstr "Loading quoted post…"
 msgid "Loading search results…"
 msgstr "Loading search results…"
 
-#: src/components/NoteComposer.tsx:1310
+#: src/components/NoteComposer.tsx:1357
 #: src/routes/(root)/[handle]/drafts/index.tsx:344
 #: src/routes/(root)/sign/up/[token].tsx:465
 msgid "Loading…"
@@ -2577,7 +2592,7 @@ msgid "Markdown guide"
 msgstr "Markdown guide"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:90
-#: src/components/NoteComposer.tsx:1529
+#: src/components/NoteComposer.tsx:1586
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:418
 msgid "Markdown supported"
 msgstr "Markdown supported"
@@ -2652,7 +2667,7 @@ msgstr "Move to the top"
 msgid "Move up"
 msgstr "Move up"
 
-#: src/components/NoteComposer.tsx:1588
+#: src/components/NoteComposer.tsx:1645
 #: src/components/QuestionCard.tsx:470
 msgid "Multiple choice"
 msgstr "Multiple choice"
@@ -2733,7 +2748,7 @@ msgid "Newest"
 msgstr "Newest"
 
 #: src/components/AdminTabs.tsx:58
-#: src/components/AppSidebar.tsx:176
+#: src/components/AppSidebar.tsx:224
 #: src/routes/(root)/admin/news.tsx:555
 #: src/routes/(root)/news/index.tsx:48
 msgid "News"
@@ -2776,7 +2791,7 @@ msgstr "No bookmarks yet"
 msgid "No cases match these filters."
 msgstr "No cases match these filters."
 
-#: src/components/article-composer/ArticleComposerContext.tsx:421
+#: src/components/article-composer/ArticleComposerContext.tsx:433
 msgid "No draft to delete"
 msgstr "No draft to delete"
 
@@ -2860,7 +2875,7 @@ msgstr "No preferred sharers yet."
 msgid "No previews"
 msgstr "No previews"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:416
+#: src/routes/(root)/[handle]/settings/account.tsx:417
 msgid "No previous accounts added yet."
 msgstr "No previous accounts added yet."
 
@@ -2948,7 +2963,7 @@ msgstr "Not subscribed to any relays yet."
 msgid "Note (optional)"
 msgstr "Note (optional)"
 
-#: src/components/NoteComposer.tsx:1170
+#: src/components/NoteComposer.tsx:1217
 msgid "Note created successfully"
 msgstr "Note created successfully"
 
@@ -2957,7 +2972,7 @@ msgstr "Note created successfully"
 msgid "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
 msgstr "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
 
-#: src/components/NoteComposer.tsx:1047
+#: src/components/NoteComposer.tsx:1092
 msgid "Note updated"
 msgstr "Note updated"
 
@@ -2980,10 +2995,10 @@ msgstr "Notification permission was not granted."
 msgid "Notification preview privacy"
 msgstr "Notification preview privacy"
 
-#: src/components/AppSidebar.tsx:447
-#: src/components/AppSidebar.tsx:448
-#: src/routes/(root).tsx:214
-#: src/routes/(root).tsx:215
+#: src/components/AppSidebar.tsx:585
+#: src/components/AppSidebar.tsx:586
+#: src/routes/(root).tsx:216
+#: src/routes/(root).tsx:217
 msgid "Notifications"
 msgstr "Notifications"
 
@@ -3000,11 +3015,11 @@ msgstr "Notifications are blocked in your browser settings."
 msgid "Number of invitations"
 msgstr "Number of invitations"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:381
+#: src/routes/(root)/[handle]/settings/account.tsx:382
 msgid "Old account"
 msgstr "Old account"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:363
+#: src/routes/(root)/[handle]/settings/account.tsx:364
 msgid "On the old server, open account migration settings and set this Hackers' Pub account as the new account."
 msgstr "On the old server, open account migration settings and set this Hackers' Pub account as the new account."
 
@@ -3031,11 +3046,11 @@ msgid "Open in app"
 msgstr "Open in app"
 
 #. placeholder {0}: index() + 1
-#: src/components/NoteComposer.tsx:1629
+#: src/components/NoteComposer.tsx:1686
 msgid "Option {0}"
 msgstr "Option {0}"
 
-#: src/components/NoteComposer.tsx:1596
+#: src/components/NoteComposer.tsx:1653
 #: src/components/PostActionMenu.tsx:335
 #: src/components/PostActionMenu.tsx:336
 msgid "Options"
@@ -3106,7 +3121,7 @@ msgstr "Pending review"
 msgid "People you might want to follow"
 msgstr "People you might want to follow"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:201
+#: src/routes/(root)/[handle]/settings/account.tsx:202
 msgid "Permanently delete your account and sign out of this session."
 msgstr "Permanently delete your account and sign out of this session."
 
@@ -3120,6 +3135,11 @@ msgstr "Permanently delete your account and sign out of this session."
 #: src/routes/(root)/[handle]/drafts/new.tsx:63
 msgid "Permission denied"
 msgstr "Permission denied"
+
+#: src/components/ActingAccountSelect.tsx:58
+#: src/components/AppSidebar.tsx:497
+msgid "Personal account"
+msgstr "Personal account"
 
 #: src/components/PostActionMenu.tsx:365
 msgid "Pin to profile"
@@ -3152,8 +3172,8 @@ msgstr "Please enter a title for your article."
 msgid "Please enter your Fediverse handle."
 msgstr "Please enter your Fediverse handle."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:273
-#: src/routes/(root)/[handle]/settings/account.tsx:324
+#: src/routes/(root)/[handle]/settings/account.tsx:274
+#: src/routes/(root)/[handle]/settings/account.tsx:325
 msgid "Please sign in again before changing account migration settings."
 msgstr "Please sign in again before changing account migration settings."
 
@@ -3162,7 +3182,7 @@ msgstr "Please sign in again before changing account migration settings."
 #~ msgid "Please sign in again before changing migration aliases."
 #~ msgstr "Please sign in again before changing migration aliases."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:502
+#: src/routes/(root)/[handle]/settings/account.tsx:503
 msgid "Please sign in again before deleting your account."
 msgstr "Please sign in again before deleting your account."
 
@@ -3176,7 +3196,7 @@ msgstr "Please sign in to access this page"
 msgid "Please sign in to vote"
 msgstr "Please sign in to vote"
 
-#: src/components/NoteComposer.tsx:1539
+#: src/components/NoteComposer.tsx:1596
 msgid "Poll"
 msgstr "Poll"
 
@@ -3184,35 +3204,35 @@ msgstr "Poll"
 msgid "Poll closed"
 msgstr "Poll closed"
 
-#: src/components/NoteComposer.tsx:1113
+#: src/components/NoteComposer.tsx:1159
 msgid "Poll created successfully"
 msgstr "Poll created successfully"
 
-#: src/components/NoteComposer.tsx:954
+#: src/components/NoteComposer.tsx:998
 msgid "Poll deadline is invalid"
 msgstr "Poll deadline is invalid"
 
-#: src/components/NoteComposer.tsx:962
+#: src/components/NoteComposer.tsx:1006
 msgid "Poll deadline must be at least 1 minute from now"
 msgstr "Poll deadline must be at least 1 minute from now"
 
-#: src/components/NoteComposer.tsx:928
+#: src/components/NoteComposer.tsx:972
 msgid "Poll options cannot be empty"
 msgstr "Poll options cannot be empty"
 
-#: src/components/NoteComposer.tsx:944
+#: src/components/NoteComposer.tsx:988
 msgid "Poll options must be unique"
 msgstr "Poll options must be unique"
 
-#: src/components/NoteComposer.tsx:1557
+#: src/components/NoteComposer.tsx:1614
 msgid "Poll title"
 msgstr "Poll title"
 
-#: src/components/NoteComposer.tsx:918
+#: src/components/NoteComposer.tsx:962
 msgid "Poll title cannot be empty"
 msgstr "Poll title cannot be empty"
 
-#: src/components/NoteComposer.tsx:1692
+#: src/components/NoteComposer.tsx:1749
 msgid "Polls cannot be edited after publishing."
 msgstr "Polls cannot be edited after publishing."
 
@@ -3282,7 +3302,7 @@ msgstr "Preferred sharer removed."
 msgid "Preferred sharers"
 msgstr "Preferred sharers"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:187
+#: src/routes/(root)/[handle]/settings/account.tsx:188
 msgid "Prepare this account as the destination for a Mastodon-style move."
 msgstr "Prepare this account as the destination for a Mastodon-style move."
 
@@ -3296,11 +3316,11 @@ msgstr "Preview"
 #~ msgid "Previous account"
 #~ msgstr "Previous account"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:264
+#: src/routes/(root)/[handle]/settings/account.tsx:265
 msgid "Previous account added"
 msgstr "Previous account added"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:315
+#: src/routes/(root)/[handle]/settings/account.tsx:316
 msgid "Previous account removed"
 msgstr "Previous account removed"
 
@@ -3316,7 +3336,7 @@ msgstr "Prior violations"
 msgid "Priority"
 msgstr "Priority"
 
-#: src/components/AppSidebar.tsx:862
+#: src/components/AppSidebar.tsx:1000
 #: src/routes/(root)/privacy.tsx:40
 msgid "Privacy policy"
 msgstr "Privacy policy"
@@ -3388,12 +3408,12 @@ msgid "Quiet public"
 msgstr "Quiet public"
 
 #: src/components/NoteComposeModal.tsx:77
-#: src/components/PostEngagementBar.tsx:566
+#: src/components/PostEngagementBar.tsx:573
 #: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "Quote"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:66
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:82
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:134
 msgid "Quote permission"
 msgstr "Quote permission"
@@ -3416,7 +3436,7 @@ msgstr "Quoted post hidden"
 msgid "Quotes"
 msgstr "Quotes"
 
-#: src/components/PostEngagementBar.tsx:566
+#: src/components/PostEngagementBar.tsx:573
 msgid "Quoting is not available for this post"
 msgstr "Quoting is not available for this post"
 
@@ -3424,17 +3444,17 @@ msgstr "Quoting is not available for this post"
 msgid "Re-fetch a remote actor or post from its origin server and overwrite the cached copy. Enter a fediverse handle, profile URL, or ActivityPub IRI."
 msgstr "Re-fetch a remote actor or post from its origin server and overwrite the cached copy. Enter a fediverse handle, profile URL, or ActivityPub IRI."
 
-#: src/components/PostEngagementBar.tsx:374
-#: src/components/PostEngagementBar.tsx:375
+#: src/components/PostEngagementBar.tsx:381
+#: src/components/PostEngagementBar.tsx:382
 msgid "React"
 msgstr "React"
 
-#: src/components/EmojiReactionPopover.tsx:499
+#: src/components/EmojiReactionPopover.tsx:517
 msgid "React with {emoji}"
 msgstr "React with {emoji}"
 
-#: src/components/EmojiReactionPopover.tsx:450
-#: src/components/EmojiReactionPopover.tsx:453
+#: src/components/EmojiReactionPopover.tsx:468
+#: src/components/EmojiReactionPopover.tsx:471
 msgid "reaction"
 msgstr "reaction"
 
@@ -3470,7 +3490,7 @@ msgstr "Receive new notifications immediately, even when this tab is closed."
 msgid "Receive notifications immediately through this browser, even when this tab is closed."
 msgstr "Receive notifications immediately through this browser, even when this tab is closed."
 
-#: src/components/AppSidebar.tsx:773
+#: src/components/AppSidebar.tsx:911
 msgid "Recent drafts"
 msgstr "Recent drafts"
 
@@ -3577,18 +3597,18 @@ msgid "Remote follow"
 msgstr "Remote follow"
 
 #: src/components/LanguageList.tsx:225
-#: src/routes/(root)/[handle]/settings/account.tsx:437
+#: src/routes/(root)/[handle]/settings/account.tsx:438
 #: src/routes/(root)/admin/news.tsx:669
 #: src/routes/(root)/admin/news.tsx:805
 msgid "Remove"
 msgstr "Remove"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
-#: src/components/EmojiReactionPopover.tsx:449
+#: src/components/EmojiReactionPopover.tsx:467
 msgid "Remove {0}"
 msgstr "Remove {0}"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:433
+#: src/routes/(root)/[handle]/settings/account.tsx:434
 msgid "Remove {alias}"
 msgstr "Remove {alias}"
 
@@ -3613,25 +3633,25 @@ msgstr "Remove from followers"
 msgid "Remove from sidebar"
 msgstr "Remove from sidebar"
 
-#: src/components/NoteComposer.tsx:1819
-#: src/components/NoteComposer.tsx:1820
+#: src/components/NoteComposer.tsx:1876
+#: src/components/NoteComposer.tsx:1877
 msgid "Remove image"
 msgstr "Remove image"
 
-#: src/components/NoteComposer.tsx:1638
-#: src/components/NoteComposer.tsx:1639
+#: src/components/NoteComposer.tsx:1695
+#: src/components/NoteComposer.tsx:1696
 msgid "Remove option"
 msgstr "Remove option"
 
-#: src/components/NoteComposer.tsx:1481
-#: src/components/NoteComposer.tsx:1482
-#: src/components/NoteComposer.tsx:1546
-#: src/components/NoteComposer.tsx:1547
+#: src/components/NoteComposer.tsx:1538
+#: src/components/NoteComposer.tsx:1539
+#: src/components/NoteComposer.tsx:1603
+#: src/components/NoteComposer.tsx:1604
 msgid "Remove poll"
 msgstr "Remove poll"
 
-#: src/components/NoteComposer.tsx:1408
-#: src/components/NoteComposer.tsx:1409
+#: src/components/NoteComposer.tsx:1455
+#: src/components/NoteComposer.tsx:1456
 msgid "Remove quote"
 msgstr "Remove quote"
 
@@ -3639,7 +3659,7 @@ msgstr "Remove quote"
 msgid "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 msgstr "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:437
+#: src/routes/(root)/[handle]/settings/account.tsx:438
 msgid "Removing…"
 msgstr "Removing…"
 
@@ -3658,15 +3678,15 @@ msgid "Replacement sanction"
 msgstr "Replacement sanction"
 
 #: src/components/NoteComposeModal.tsx:76
-#: src/components/PostEngagementBar.tsx:344
+#: src/components/PostEngagementBar.tsx:351
 msgid "Reply"
 msgstr "Reply"
 
-#: src/components/PostEngagementBar.tsx:345
+#: src/components/PostEngagementBar.tsx:352
 msgid "Replying is not available for this post"
 msgstr "Replying is not available for this post"
 
-#: src/components/NoteComposer.tsx:1302
+#: src/components/NoteComposer.tsx:1349
 msgid "Replying to"
 msgstr "Replying to"
 
@@ -3784,7 +3804,7 @@ msgstr "Sanctions"
 msgid "Save"
 msgstr "Save"
 
-#: src/components/NoteComposer.tsx:1879
+#: src/components/NoteComposer.tsx:1936
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:529
 msgid "Save changes"
 msgstr "Save changes"
@@ -3798,7 +3818,7 @@ msgid "Save draft to see preview"
 msgstr "Save draft to see preview"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:36
-#: src/components/NoteComposer.tsx:1880
+#: src/components/NoteComposer.tsx:1937
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:529
 #: src/routes/(root)/[handle]/settings/index.tsx:545
 #: src/routes/(root)/[handle]/settings/language.tsx:201
@@ -3807,7 +3827,7 @@ msgid "Saving…"
 msgstr "Saving…"
 
 #: src/components/admin/AdminAccountsTable.tsx:202
-#: src/components/AppSidebar.tsx:346
+#: src/components/AppSidebar.tsx:394
 #: src/components/SearchForm.tsx:65
 #: src/components/SearchForm.tsx:80
 #: src/routes/(root)/admin/moderation/index.tsx:192
@@ -3856,7 +3876,7 @@ msgstr "Select options"
 msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."
 msgstr "Select your preferred languages in order of preference. This will help tailor content to your preferences."
 
-#: src/components/NoteComposer.tsx:1571
+#: src/components/NoteComposer.tsx:1628
 msgid "Selection"
 msgstr "Selection"
 
@@ -3881,7 +3901,7 @@ msgstr "Separate tags with spaces. Tags help readers discover your article."
 msgid "Set your personal preferences."
 msgstr "Set your personal preferences."
 
-#: src/components/AppSidebar.tsx:622
+#: src/components/AppSidebar.tsx:760
 msgid "Settings"
 msgstr "Settings"
 
@@ -3889,11 +3909,11 @@ msgstr "Settings"
 msgid "Settings saved"
 msgstr "Settings saved"
 
-#: src/components/PostEngagementBar.tsx:564
+#: src/components/PostEngagementBar.tsx:571
 msgid "Share"
 msgstr "Share"
 
-#: src/components/PostEngagementBar.tsx:558
+#: src/components/PostEngagementBar.tsx:565
 msgid "Share or quote"
 msgstr "Share or quote"
 
@@ -3918,11 +3938,11 @@ msgstr "Share your opinion on this story…"
 msgid "Shares"
 msgstr "Shares"
 
-#: src/components/PostEngagementBar.tsx:557
+#: src/components/PostEngagementBar.tsx:564
 msgid "Sharing and quoting are not available for this post"
 msgstr "Sharing and quoting are not available for this post"
 
-#: src/components/PostEngagementBar.tsx:563
+#: src/components/PostEngagementBar.tsx:570
 msgid "Sharing is not available for this post"
 msgstr "Sharing is not available for this post"
 
@@ -3962,14 +3982,14 @@ msgstr "Shown to the reported user under the moderation team's identity."
 msgid "Shown to the user"
 msgstr "Shown to the user"
 
-#: src/components/AppSidebar.tsx:523
+#: src/components/AppSidebar.tsx:661
 #: src/routes/(root)/sign/index.tsx:419
 msgid "Sign in"
 msgstr "Sign in"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:272
-#: src/routes/(root)/[handle]/settings/account.tsx:323
-#: src/routes/(root)/[handle]/settings/account.tsx:501
+#: src/routes/(root)/[handle]/settings/account.tsx:273
+#: src/routes/(root)/[handle]/settings/account.tsx:324
+#: src/routes/(root)/[handle]/settings/account.tsx:502
 msgid "Sign in required"
 msgstr "Sign in required"
 
@@ -3989,7 +4009,7 @@ msgstr "Sign in to vote"
 msgid "Sign in with passkey"
 msgstr "Sign in with passkey"
 
-#: src/components/AppSidebar.tsx:834
+#: src/components/AppSidebar.tsx:972
 msgid "Sign out"
 msgstr "Sign out"
 
@@ -4014,7 +4034,7 @@ msgstr "Signing in…"
 msgid "Signing up for Hackers' Pub"
 msgstr "Signing up for Hackers' Pub"
 
-#: src/components/NoteComposer.tsx:1580
+#: src/components/NoteComposer.tsx:1637
 #: src/components/QuestionCard.tsx:470
 msgid "Single choice"
 msgstr "Single choice"
@@ -4023,11 +4043,11 @@ msgstr "Single choice"
 msgid "Skip"
 msgstr "Skip"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:32
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:37
 msgid "Slug (URL)"
 msgstr "Slug (URL)"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:350
+#: src/components/article-composer/ArticleComposerContext.tsx:361
 msgid "Slug cannot be empty"
 msgstr "Slug cannot be empty"
 
@@ -4035,7 +4055,7 @@ msgstr "Slug cannot be empty"
 msgid "Snapshot at report time"
 msgstr "Snapshot at report time"
 
-#: src/components/NoteComposer.tsx:741
+#: src/components/NoteComposer.tsx:785
 msgid "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 msgstr "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 
@@ -4090,12 +4110,12 @@ msgstr "Subscribed to the relay."
 msgid "Subscribing…"
 msgstr "Subscribing…"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:309
-#: src/components/article-composer/ArticleComposerContext.tsx:384
-#: src/components/article-composer/ArticleComposerContext.tsx:449
-#: src/components/NoteComposer.tsx:1046
-#: src/components/NoteComposer.tsx:1112
-#: src/components/NoteComposer.tsx:1169
+#: src/components/article-composer/ArticleComposerContext.tsx:320
+#: src/components/article-composer/ArticleComposerContext.tsx:396
+#: src/components/article-composer/ArticleComposerContext.tsx:461
+#: src/components/NoteComposer.tsx:1091
+#: src/components/NoteComposer.tsx:1158
+#: src/components/NoteComposer.tsx:1216
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:332
 #: src/routes/(root)/[handle]/drafts/index.tsx:175
 msgid "Success"
@@ -4231,9 +4251,9 @@ msgstr "The default privacy setting for your shares."
 msgid "The default quote permission for your notes."
 msgstr "The default quote permission for your notes."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:479
-#: src/routes/(root)/[handle]/settings/account.tsx:518
-#: src/routes/(root)/[handle]/settings/account.tsx:529
+#: src/routes/(root)/[handle]/settings/account.tsx:480
+#: src/routes/(root)/[handle]/settings/account.tsx:519
+#: src/routes/(root)/[handle]/settings/account.tsx:530
 msgid "The deletion request could not be completed. Please try again."
 msgstr "The deletion request could not be completed. Please try again."
 
@@ -4299,16 +4319,16 @@ msgstr "The page you're looking for doesn't exist or has been moved."
 msgid "The passkey has been successfully revoked."
 msgstr "The passkey has been successfully revoked."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:294
+#: src/routes/(root)/[handle]/settings/account.tsx:295
 msgid "The previous account could not be added. Please try again."
 msgstr "The previous account could not be added. Please try again."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:337
-#: src/routes/(root)/[handle]/settings/account.tsx:345
+#: src/routes/(root)/[handle]/settings/account.tsx:338
+#: src/routes/(root)/[handle]/settings/account.tsx:346
 msgid "The previous account could not be removed. Please try again."
 msgstr "The previous account could not be removed. Please try again."
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:60
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:76
 msgid "The primary language of your article, used for accessibility and discovery."
 msgstr "The primary language of your article, used for accessibility and discovery."
 
@@ -4327,7 +4347,7 @@ msgstr "The sign-up link is invalid. Please make sure you're using the correct l
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:886
+#: src/components/AppSidebar.tsx:1024
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "The source code of this website is available on {0} under the {1} license."
 
@@ -4352,7 +4372,7 @@ msgstr "The Web Push public key is invalid."
 msgid "There are no moderation actions on your account."
 msgstr "There are no moderation actions on your account."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:494
+#: src/routes/(root)/[handle]/settings/account.tsx:495
 msgid "This account cannot be deleted right now. Please contact the instance administrators."
 msgstr "This account cannot be deleted right now. Please contact the instance administrators."
 
@@ -4372,7 +4392,7 @@ msgstr "This account is suspended."
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "This action cannot be undone. This will permanently delete this post."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:541
+#: src/routes/(root)/[handle]/settings/account.tsx:542
 msgid "This action is permanent."
 msgstr "This action is permanent."
 
@@ -4381,7 +4401,7 @@ msgstr "This action is permanent."
 msgid "This browser does not support Web Push."
 msgstr "This browser does not support Web Push."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:583
+#: src/routes/(root)/[handle]/settings/account.tsx:584
 msgid "This cannot be undone. Your account will be deleted and you will be signed out."
 msgstr "This cannot be undone. Your account will be deleted and you will be signed out."
 
@@ -4424,7 +4444,7 @@ msgstr "This is a remote actor with no local notification or appeal. A warning i
 msgid "This is too long (maximum {MAX_REASON_LENGTH} characters)."
 msgstr "This is too long (maximum {MAX_REASON_LENGTH} characters)."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:356
+#: src/routes/(root)/[handle]/settings/account.tsx:357
 msgid "This page only prepares the Hackers' Pub side of the move. The move still starts from your old server."
 msgstr "This page only prepares the Hackers' Pub side of the move. The move still starts from your old server."
 
@@ -4468,11 +4488,11 @@ msgstr "This usually takes about a minute. The page will update automatically wh
 #~ msgid "This will be part of the article URL"
 #~ msgstr "This will be part of the article URL"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:45
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:50
 msgid "This will be part of the article URL."
 msgstr "This will be part of the article URL."
 
-#: src/components/AppSidebar.tsx:150
+#: src/components/AppSidebar.tsx:198
 msgid "Timeline"
 msgstr "Timeline"
 
@@ -4481,7 +4501,7 @@ msgstr "Timeline"
 msgid "Title"
 msgstr "Title"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:274
+#: src/components/article-composer/ArticleComposerContext.tsx:285
 msgid "Title cannot be empty"
 msgstr "Title cannot be empty"
 
@@ -4490,7 +4510,7 @@ msgstr "Title cannot be empty"
 msgid "To follow {0}, enter your Fediverse handle."
 msgstr "To follow {0}, enter your Fediverse handle."
 
-#: src/routes/(root).tsx:186
+#: src/routes/(root).tsx:188
 msgid "Toggle sidebar"
 msgstr "Toggle sidebar"
 
@@ -4547,7 +4567,7 @@ msgid "Try again"
 msgstr "Try again"
 
 #. placeholder {0}: props.username
-#: src/routes/(root)/[handle]/settings/account.tsx:560
+#: src/routes/(root)/[handle]/settings/account.tsx:561
 msgid "Type {0} to confirm account deletion."
 msgstr "Type {0} to confirm account deletion."
 
@@ -4556,17 +4576,17 @@ msgstr "Type {0} to confirm account deletion."
 msgid "Type tags separated by spaces"
 msgstr "Type tags separated by spaces"
 
-#: src/components/EmojiReactionPopover.tsx:257
-#: src/components/EmojiReactionPopover.tsx:266
-#: src/components/EmojiReactionPopover.tsx:395
-#: src/components/EmojiReactionPopover.tsx:404
+#: src/components/EmojiReactionPopover.tsx:262
+#: src/components/EmojiReactionPopover.tsx:271
+#: src/components/EmojiReactionPopover.tsx:413
+#: src/components/EmojiReactionPopover.tsx:422
 msgid "Unable to add reaction. Please try again."
 msgstr "Unable to add reaction. Please try again."
 
-#: src/components/EmojiReactionPopover.tsx:166
-#: src/components/EmojiReactionPopover.tsx:175
-#: src/components/EmojiReactionPopover.tsx:336
-#: src/components/EmojiReactionPopover.tsx:345
+#: src/components/EmojiReactionPopover.tsx:170
+#: src/components/EmojiReactionPopover.tsx:179
+#: src/components/EmojiReactionPopover.tsx:348
+#: src/components/EmojiReactionPopover.tsx:357
 msgid "Unable to remove reaction. Please try again."
 msgstr "Unable to remove reaction. Please try again."
 
@@ -4585,7 +4605,7 @@ msgstr "Unblock user?"
 msgid "Under review"
 msgstr "Under review"
 
-#: src/components/FollowButton.tsx:192
+#: src/components/FollowButton.tsx:198
 #: src/components/HashtagActionBar.tsx:247
 msgid "Unfollow"
 msgstr "Unfollow"
@@ -4603,7 +4623,7 @@ msgstr "Unpin from profile"
 msgid "Unread"
 msgstr "Unread"
 
-#: src/components/PostEngagementBar.tsx:561
+#: src/components/PostEngagementBar.tsx:568
 msgid "Unshare"
 msgstr "Unshare"
 
@@ -4624,7 +4644,7 @@ msgstr "Update your profile information, including your avatar, username, displa
 msgid "Updated {0}"
 msgstr "Updated {0}"
 
-#: src/components/NoteComposer.tsx:1735
+#: src/components/NoteComposer.tsx:1792
 msgid "Upload progress"
 msgstr "Upload progress"
 
@@ -4636,7 +4656,7 @@ msgstr "URL"
 msgid "URL pattern"
 msgstr "URL pattern"
 
-#: src/components/AppSidebar.tsx:487
+#: src/components/AppSidebar.tsx:625
 msgid "Use old UI"
 msgstr "Use old UI"
 
@@ -4666,7 +4686,7 @@ msgstr "User unblocked"
 msgid "User unmuted"
 msgstr "User unmuted"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:552
+#: src/routes/(root)/[handle]/settings/account.tsx:553
 #: src/routes/(root)/[handle]/settings/index.tsx:423
 #: src/routes/(root)/sign/up/[token].tsx:331
 msgid "Username"
@@ -4706,7 +4726,7 @@ msgstr "Verified that this link is owned by {0} {1}"
 msgid "Verifying your invitation…"
 msgstr "Verifying your invitation…"
 
-#: src/components/AppSidebar.tsx:797
+#: src/components/AppSidebar.tsx:935
 msgid "View all drafts →"
 msgstr "View all drafts →"
 
@@ -4715,22 +4735,22 @@ msgid "View image"
 msgstr "View image"
 
 #: src/components/PostActionMenu.tsx:408
-#: src/components/PostEngagementBar.tsx:609
+#: src/components/PostEngagementBar.tsx:616
 msgid "View quotes"
 msgstr "View quotes"
 
 #: src/components/PostActionMenu.tsx:414
-#: src/components/PostEngagementBar.tsx:428
+#: src/components/PostEngagementBar.tsx:435
 msgid "View reactions"
 msgstr "View reactions"
 
 #: src/components/PostActionMenu.tsx:394
-#: src/components/PostEngagementBar.tsx:346
+#: src/components/PostEngagementBar.tsx:353
 msgid "View replies"
 msgstr "View replies"
 
 #: src/components/PostActionMenu.tsx:402
-#: src/components/PostEngagementBar.tsx:608
+#: src/components/PostEngagementBar.tsx:615
 msgid "View shares"
 msgstr "View shares"
 
@@ -4781,7 +4801,7 @@ msgstr "Voting…"
 
 #: src/components/admin/AppealResolveForm.tsx:93
 #: src/components/admin/ModerationActionForm.tsx:113
-#: src/components/NoteComposer.tsx:739
+#: src/components/NoteComposer.tsx:783
 #: src/routes/(root)/[handle]/settings/sanctions.tsx:88
 #: src/routes/(root)/admin/moderation/[id].tsx:139
 #: src/routes/(root)/admin/moderation/appeals.tsx:121
@@ -4813,15 +4833,15 @@ msgstr "What happened?"
 msgid "What is Hackers' Pub?"
 msgstr "What is Hackers' Pub?"
 
-#: src/components/NoteComposer.tsx:1564
+#: src/components/NoteComposer.tsx:1621
 msgid "What should people decide?"
 msgstr "What should people decide?"
 
-#: src/components/NoteComposer.tsx:1449
+#: src/components/NoteComposer.tsx:1506
 msgid "What's on your mind?"
 msgstr "What's on your mind?"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:99
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:115
 msgid "When enabled, AI may automatically translate this article into other languages."
 msgstr "When enabled, AI may automatically translate this article into other languages."
 
@@ -4845,7 +4865,7 @@ msgstr "Withdraw decision"
 msgid "Withdrawn"
 msgstr "Withdrawn"
 
-#: src/components/AppSidebar.tsx:246
+#: src/components/AppSidebar.tsx:294
 msgid "Without shares"
 msgstr "Without shares"
 
@@ -4900,7 +4920,7 @@ msgstr "You are now hidden from the invitation tree."
 msgid "You are now shown in the invitation tree."
 msgstr "You are now shown in the invitation tree."
 
-#: src/components/NoteComposer.tsx:730
+#: src/components/NoteComposer.tsx:774
 msgid "You can attach up to {MAX_MEDIA} images"
 msgstr "You can attach up to {MAX_MEDIA} images"
 
@@ -4913,7 +4933,7 @@ msgstr "You can change it only once, and the old username will become available 
 #~ msgid "You can change migration aliases only for your own account."
 #~ msgstr "You can change migration aliases only for your own account."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:510
+#: src/routes/(root)/[handle]/settings/account.tsx:511
 msgid "You can delete only your own account."
 msgstr "You can delete only your own account."
 
@@ -4942,8 +4962,8 @@ msgstr "You can only view your own bookmarks"
 msgid "You can only view your own drafts"
 msgstr "You can only view your own drafts"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:280
-#: src/routes/(root)/[handle]/settings/account.tsx:331
+#: src/routes/(root)/[handle]/settings/account.tsx:281
+#: src/routes/(root)/[handle]/settings/account.tsx:332
 msgid "You can prepare migration only for your own account."
 msgstr "You can prepare migration only for your own account."
 
@@ -4972,8 +4992,8 @@ msgstr "You haven't muted anyone."
 msgid "You may have already appealed, or the appeal window has closed."
 msgstr "You may have already appealed, or the appeal window has closed."
 
-#: src/components/FollowButton.tsx:131
-#: src/components/FollowButton.tsx:149
+#: src/components/FollowButton.tsx:137
+#: src/components/FollowButton.tsx:155
 #: src/components/HashtagActionBar.tsx:148
 #: src/components/HashtagActionBar.tsx:171
 #: src/components/ProfileActionMenu.tsx:259
@@ -4981,20 +5001,20 @@ msgstr "You may have already appealed, or the appeal window has closed."
 msgid "You must be signed in"
 msgstr "You must be signed in"
 
-#: src/components/NoteComposer.tsx:1186
+#: src/components/NoteComposer.tsx:1233
 msgid "You must be signed in to create a note"
 msgstr "You must be signed in to create a note"
 
-#: src/components/NoteComposer.tsx:1132
+#: src/components/NoteComposer.tsx:1178
 msgid "You must be signed in to create a poll"
 msgstr "You must be signed in to create a poll"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:467
+#: src/components/article-composer/ArticleComposerContext.tsx:479
 #: src/routes/(root)/[handle]/drafts/index.tsx:193
 msgid "You must be signed in to delete a draft"
 msgstr "You must be signed in to delete a draft"
 
-#: src/components/NoteComposer.tsx:1065
+#: src/components/NoteComposer.tsx:1110
 msgid "You must be signed in to edit a note"
 msgstr "You must be signed in to edit a note"
 
@@ -5002,11 +5022,11 @@ msgstr "You must be signed in to edit a note"
 msgid "You must be signed in to edit an article"
 msgstr "You must be signed in to edit an article"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:402
+#: src/components/article-composer/ArticleComposerContext.tsx:414
 msgid "You must be signed in to publish an article"
 msgstr "You must be signed in to publish an article"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:329
+#: src/components/article-composer/ArticleComposerContext.tsx:340
 msgid "You must be signed in to save a draft"
 msgstr "You must be signed in to save a draft"
 
@@ -5030,7 +5050,7 @@ msgstr "You'll automatically follow each other when you sign up."
 msgid "You've been invited to Hackers' Pub"
 msgstr "You've been invited to Hackers' Pub"
 
-#: src/components/NoteComposer.tsx:1293
+#: src/components/NoteComposer.tsx:1340
 msgid "Your account is suspended, so you can't post right now. See your sanctions for details and how to appeal."
 msgstr "Your account is suspended, so you can't post right now. See your sanctions for details and how to appeal."
 
@@ -5095,7 +5115,7 @@ msgstr "Your preferred languages have been updated."
 msgid "Your profile settings have been updated successfully."
 msgstr "Your profile settings have been updated successfully."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:544
+#: src/routes/(root)/[handle]/settings/account.tsx:545
 msgid "Your profile, posts, drafts, follows, settings, and login credentials will be removed. Your current username will remain reserved."
 msgstr "Your profile, posts, drafts, follows, settings, and login credentials will be removed. Your current username will remain reserved."
 

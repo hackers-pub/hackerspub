@@ -3,6 +3,7 @@ import { Show } from "solid-js";
 import { createFragment, createMutation } from "solid-relay";
 import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { isViewerActor } from "~/lib/actorUtils.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -78,6 +79,7 @@ const unfollowActorMutation = graphql`
 export function FollowButton(props: FollowButtonProps) {
   const { t } = useLingui();
   const viewer = useViewer();
+  const actingAccount = useActingAccount();
   const actor = createFragment(
     graphql`
       fragment FollowButton_actor on Actor {
@@ -114,9 +116,13 @@ export function FollowButton(props: FollowButtonProps) {
       actorData.id,
       "ActorFollowerList_followers",
     );
+    const actingAccountId = actingAccount.selectedActingAccountId();
 
     const variables = {
-      input: { actorId: actorData.id },
+      input: {
+        actorId: actorData.id,
+        ...(actingAccountId == null ? {} : { actingAccountId }),
+      },
       connections: [connectionId],
     };
 

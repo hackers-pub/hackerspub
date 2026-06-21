@@ -23,6 +23,10 @@ import {
   UploadAbortedError,
   uploadMediumFile,
 } from "~/lib/uploadMediumWithProgress.ts";
+import {
+  ActingAccountSelect,
+  useComposeActingAccountOptions,
+} from "~/components/ActingAccountSelect.tsx";
 import { LanguageSelect } from "~/components/LanguageSelect.tsx";
 import { MentionAutocomplete } from "~/components/MentionAutocomplete.tsx";
 import { NoteVisibilityQuotePolicySelect } from "~/components/NoteVisibilityQuotePolicySelect.tsx";
@@ -37,6 +41,10 @@ import { Button } from "~/components/ui/button.tsx";
 import { MarkdownEditor } from "~/components/MarkdownEditor.tsx";
 import { TextField, TextFieldLabel } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
+import {
+  PERSONAL_COMPOSE_ACCOUNT_KEY,
+  useActingAccount,
+} from "~/contexts/ActingAccountContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { NoteComposerGeneratedAltTextQuery } from "./__generated__/NoteComposerGeneratedAltTextQuery.graphql.ts";
@@ -373,6 +381,8 @@ export interface NoteComposerProps {
 export function NoteComposer(props: NoteComposerProps) {
   const { t, i18n } = useLingui();
   const viewer = useViewer();
+  const actingAccount = useActingAccount();
+  const composeActingAccountOptions = useComposeActingAccountOptions();
   const environment = useRelayEnvironment();
   // Initialize content directly from props so a deliberate pre-fill — an edit's
   // body, or a "share this link" URL passed via `initialContent` — is present
@@ -411,6 +421,40 @@ export function NoteComposer(props: NoteComposerProps) {
   const [manualLanguageChange, setManualLanguageChange] = createSignal(
     !!props.editingNoteId,
   );
+  const [actingAccountKey, setActingAccountKey] = createSignal(
+    PERSONAL_COMPOSE_ACCOUNT_KEY,
+  );
+  const selectedActingAccountOption = createMemo(() =>
+    composeActingAccountOptions().find((option) =>
+      option.value === actingAccountKey()
+    )
+  );
+
+  createEffect(
+    on(
+      () => actingAccount.defaultComposeAccountKey(),
+      (defaultKey) => {
+        if (!props.editingNoteId) setActingAccountKey(defaultKey);
+      },
+    ),
+  );
+
+  createEffect(() => {
+    if (props.editingNoteId) {
+      setActingAccountKey(PERSONAL_COMPOSE_ACCOUNT_KEY);
+      return;
+    }
+    const options = composeActingAccountOptions();
+    if (options.length === 0) return;
+    if (!options.some((option) => option.value === actingAccountKey())) {
+      setActingAccountKey(actingAccount.defaultComposeAccountKey());
+    }
+  });
+
+  const actingAccountInput = () =>
+    selectedActingAccountOption() == null
+      ? {}
+      : actingAccount.composeInputForKey(actingAccountKey());
   const allowPoll = () => props.allowPoll !== false;
   const canCreatePoll = () => !props.editingNoteId && allowPoll();
   const [pastedQuoteId, setPastedQuoteId] = createSignal<string | null>(null);
@@ -985,6 +1029,7 @@ export function NoteComposer(props: NoteComposerProps) {
     setQuotePolicy("EVERYONE");
     setLanguage(new Intl.Locale(i18n.locale));
     setManualLanguageChange(false);
+    setActingAccountKey(actingAccount.defaultComposeAccountKey());
     setQuotedPost(null);
     setPastedQuoteId(null);
     setQuoteFetchError(false);
@@ -1093,6 +1138,7 @@ export function NoteComposer(props: NoteComposerProps) {
               quotePolicy: effectiveQuotePolicy(),
               quotedPostId: effectiveQuotedPostId() ?? null,
               replyTargetId: props.replyTargetId ?? null,
+              ...actingAccountInput(),
               poll,
               media: items.map((m) => ({
                 mediumId: m
@@ -1153,6 +1199,7 @@ export function NoteComposer(props: NoteComposerProps) {
             quotePolicy: effectiveQuotePolicy(),
             quotedPostId: effectiveQuotedPostId() ?? null,
             replyTargetId: props.replyTargetId ?? null,
+            ...actingAccountInput(),
             media: items.map((m) => ({
               mediumId: m
                 .uuid! as `${string}-${string}-${string}-${string}-${string}`,
@@ -1411,6 +1458,16 @@ export function NoteComposer(props: NoteComposerProps) {
               <IconX class="size-4" />
             </Button>
           </div>
+        </Show>
+
+        <Show
+          when={!props.editingNoteId &&
+            composeActingAccountOptions().length > 1}
+        >
+          <ActingAccountSelect
+            value={actingAccountKey()}
+            onChange={setActingAccountKey}
+          />
         </Show>
 
         <TextField value={content()} onChange={setContent}>

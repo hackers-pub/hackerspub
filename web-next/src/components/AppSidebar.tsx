@@ -1,9 +1,11 @@
 import { A, useLocation } from "@solidjs/router";
 import { graphql } from "relay-runtime";
-import { For, Show } from "solid-js";
+import { createEffect, For, Show } from "solid-js";
 import { createFragment, createMutation } from "solid-relay";
+import IconBuilding2 from "~icons/lucide/building-2";
 import IconShieldCheck from "~icons/lucide/shield-check";
 import IconUndo2 from "~icons/lucide/undo-2";
+import IconUserRound from "~icons/lucide/user-round";
 import { Button } from "~/components/ui/button.tsx";
 import {
   Sidebar,
@@ -19,6 +21,11 @@ import {
 } from "~/components/ui/sidebar.tsx";
 import { NotificationsBellIcon } from "~/components/NotificationsBellIcon.tsx";
 import { UnreadNotificationsFaviconBadge } from "~/components/UnreadNotificationsFaviconBadge.tsx";
+import {
+  organizationActingAccountKey,
+  PERSONAL_ACTING_ACCOUNT_KEY,
+  useActingAccount,
+} from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import { invalidateNotificationsPageQueryCache } from "~/lib/notificationsPageQueryCache.ts";
@@ -72,6 +79,7 @@ export function AppSidebar(props: AppSidebarProps) {
           count: { type: "Int", defaultValue: 3 }
         ) {
         name
+        id
         username
         avatarUrl
         invitationsLeft
@@ -79,6 +87,19 @@ export function AppSidebar(props: AppSidebarProps) {
         unreadModerationNotificationCount
         moderator
         pinnedHashtags
+        organizationMemberships {
+          role
+          notificationBadge {
+            color
+            count
+          }
+          organization {
+            id
+            name
+            username
+            avatarUrl
+          }
+        }
         articleDrafts(after: $cursor, first: $count)
           @connection(key: "SignedAccount_articleDrafts") {
           __id
@@ -102,6 +123,33 @@ export function AppSidebar(props: AppSidebarProps) {
   const [signOut] = createMutation<AppSidebarSignOutMutation>(
     AppSidebarSignOutMutation,
   );
+  const actingAccount = useActingAccount();
+
+  createEffect(() => {
+    const account = signedAccount();
+    if (account == null) {
+      actingAccount.setAccounts(null, []);
+      return;
+    }
+    actingAccount.setAccounts(
+      {
+        id: account.id,
+        name: account.name,
+        username: account.username,
+        avatarUrl: account.avatarUrl,
+      },
+      account.organizationMemberships.map((membership) => ({
+        role: membership.role,
+        notificationBadge: membership.notificationBadge,
+        organization: {
+          id: membership.organization.id,
+          name: membership.organization.name,
+          username: membership.organization.username,
+          avatarUrl: membership.organization.avatarUrl,
+        },
+      })),
+    );
+  });
 
   const unreadNotificationsCount = () => {
     const account = signedAccount();
@@ -385,6 +433,7 @@ export function AppSidebar(props: AppSidebarProps) {
           visible={!!signedAccount() &&
             !isMobile() && state() !== "collapsed"}
         />
+        <ActingAccountSection signedAccount={signedAccount()} />
         <AccountSection
           signedAccount={signedAccount()}
           signedAccountLoaded={props.signedAccountLoaded}
@@ -417,6 +466,95 @@ function AppSidebarLogo() {
         </picture>
       </A>
     </h1>
+  );
+}
+
+interface ActingAccountSectionProps {
+  signedAccount?: AppSidebar_signedAccount$data | null;
+}
+
+function ActingAccountSection(props: ActingAccountSectionProps) {
+  const { t } = useLingui();
+  const actingAccount = useActingAccount();
+  const personalAccount = () => actingAccount.personalAccount();
+  const organizations = () => actingAccount.organizations();
+
+  return (
+    <Show
+      when={props.signedAccount != null && personalAccount() != null &&
+        organizations().length > 0}
+    >
+      <SidebarGroup>
+        <SidebarGroupLabel>
+          {t`Act as`}
+        </SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenuItem class="list-none">
+            <SidebarMenuButton
+              type="button"
+              isActive={actingAccount.selectedKey() ===
+                PERSONAL_ACTING_ACCOUNT_KEY}
+              tooltip={t`Personal account`}
+              onClick={() =>
+                actingAccount.setSelectedKey(PERSONAL_ACTING_ACCOUNT_KEY)}
+              class="cursor-pointer"
+            >
+              <IconUserRound class="size-4" />
+              <span class="min-w-0 truncate">
+                {personalAccount()!.name || personalAccount()!.username}
+              </span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <For each={organizations()}>
+            {(membership) => {
+              const organization = membership.organization;
+              const key = organizationActingAccountKey(organization.id);
+              return (
+                <SidebarMenuItem class="list-none">
+                  <SidebarMenuButton
+                    type="button"
+                    isActive={actingAccount.selectedKey() === key}
+                    tooltip={organization.name || organization.username}
+                    onClick={() => actingAccount.setSelectedKey(key)}
+                    class="cursor-pointer"
+                  >
+                    <IconBuilding2 class="size-4" />
+                    <span class="min-w-0 truncate">
+                      {organization.name || organization.username}
+                    </span>
+                    <OrganizationNotificationBadge
+                      badge={membership.notificationBadge}
+                    />
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            }}
+          </For>
+        </SidebarGroupContent>
+      </SidebarGroup>
+    </Show>
+  );
+}
+
+function OrganizationNotificationBadge(props: {
+  badge?: { color?: string | null; count: number } | null;
+}) {
+  const badge = () => props.badge;
+
+  return (
+    <Show when={badge() != null && badge()!.count > 0}>
+      <span
+        aria-hidden="true"
+        class="ml-auto flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full px-1 text-[0.625rem] font-semibold leading-none"
+        classList={{
+          "bg-red-500 text-white": badge()!.color === "RED",
+          "bg-muted-foreground/25 text-sidebar-foreground":
+            badge()!.color !== "RED",
+        }}
+      >
+        {badge()!.count > 99 ? "99+" : badge()!.count}
+      </span>
+    </Show>
   );
 }
 

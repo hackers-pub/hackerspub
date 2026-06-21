@@ -1,5 +1,9 @@
-import { createSignal, onMount } from "solid-js";
+import { createSignal, onMount, Show } from "solid-js";
 import { useParams } from "@solidjs/router";
+import {
+  ActingAccountSelect,
+  useComposeActingAccountOptions,
+} from "~/components/ActingAccountSelect.tsx";
 import { LanguageSelect } from "~/components/LanguageSelect.tsx";
 import { QuotePolicySelect } from "~/components/QuotePolicySelect.tsx";
 import { Label } from "~/components/ui/label.tsx";
@@ -16,6 +20,7 @@ export function ArticleComposerPublishFields() {
   const { t } = useLingui();
   const ctx = useArticleComposer();
   const params = useParams();
+  const composeActingAccountOptions = useComposeActingAccountOptions();
 
   // Initialise origin after mount so SSR and the first client render agree
   // (both produce "/@handle/year/"), then update to the full URL client-side.
@@ -45,6 +50,17 @@ export function ArticleComposerPublishFields() {
           {t`This will be part of the article URL.`}
         </TextFieldDescription>
       </TextField>
+
+      <Show when={composeActingAccountOptions().length > 1}>
+        <div class="flex flex-col gap-1.5">
+          <Label>{t`Author`}</Label>
+          <ActingAccountSelect
+            class="w-full"
+            value={ctx.publishActingAccountKey()}
+            onChange={ctx.setPublishActingAccountKey}
+          />
+        </div>
+      </Show>
 
       {/* Language + Quote permission — 2 columns */}
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
