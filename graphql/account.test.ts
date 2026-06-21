@@ -15,6 +15,7 @@ import {
   deletedAccountTable,
   flagCaseTable,
   mediumTable,
+  organizationMembershipTable,
 } from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
 import type { UserContext } from "./builder.ts";
@@ -143,6 +144,25 @@ const updateAccountMutation = parse(`
         defaultShareVisibility
         defaultQuotePolicy
       }
+    }
+  }
+`);
+
+const updateAccountProfileMutation = parse(`
+  mutation UpdateAccountProfile($input: UpdateAccountInput!) {
+    updateAccount(input: $input) {
+      account {
+        username
+        bio
+      }
+    }
+  }
+`);
+
+const accountSettingsPermissionQuery = parse(`
+  query AccountSettingsPermission($username: String!) {
+    accountByUsername(username: $username) {
+      viewerCanManageSettings
     }
   }
 `);
@@ -846,6 +866,121 @@ test("updateAccount updates profile preferences for the signed-in account", asyn
     assert.equal(stored.noteVisibility, "followers");
     assert.equal(stored.shareVisibility, "unlisted");
     assert.equal(stored.quotePolicy, "self");
+  });
+});
+
+test("updateAccount allows organization admins to update organization profiles", async () => {
+  await withRollback(async (tx) => {
+    const admin = await insertAccountWithActor(tx, {
+      username: "updateorgadmin",
+      name: "Update Org Admin",
+      email: "updateorgadmin@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "updateorgmember",
+      name: "Update Org Member",
+      email: "updateorgmember@example.com",
+    });
+    const organization = await insertAccountWithActor(tx, {
+      username: "updateorgprofile",
+      name: "Update Org Profile",
+      email: "updateorgprofile@example.com",
+      kind: "organization",
+      type: "Organization",
+    });
+    await tx.insert(organizationMembershipTable).values([
+      {
+        organizationAccountId: organization.account.id,
+        memberAccountId: admin.account.id,
+        role: "admin",
+        invitedById: admin.account.id,
+        accepted: new Date("2026-04-15T00:00:00.000Z"),
+      },
+      {
+        organizationAccountId: organization.account.id,
+        memberAccountId: member.account.id,
+        role: "member",
+        invitedById: admin.account.id,
+        accepted: new Date("2026-04-15T00:00:00.000Z"),
+      },
+    ]);
+
+    const adminPermission = await execute({
+      schema,
+      document: accountSettingsPermissionQuery,
+      variableValues: { username: organization.account.username },
+      contextValue: makeUserContext(tx, admin.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(adminPermission.errors, undefined);
+    assert.deepEqual(toPlainJson(adminPermission.data), {
+      accountByUsername: { viewerCanManageSettings: true },
+    });
+
+    const memberPermission = await execute({
+      schema,
+      document: accountSettingsPermissionQuery,
+      variableValues: { username: organization.account.username },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(memberPermission.errors, undefined);
+    assert.deepEqual(toPlainJson(memberPermission.data), {
+      accountByUsername: { viewerCanManageSettings: false },
+    });
+
+    const fedCtx = createFedCtx(tx);
+    fedCtx.getActor = (identifier: string) =>
+      Promise.resolve(
+        new vocab.Organization({
+          id: fedCtx.getActorUri(identifier),
+        }),
+      );
+
+    const result = await execute({
+      schema,
+      document: updateAccountProfileMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("Account", organization.account.id),
+          name: "Updated Organization Profile",
+          bio: "Updated organization profile bio",
+        },
+      },
+      contextValue: makeUserContext(tx, admin.account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      updateAccount: {
+        account: {
+          username: "updateorgprofile",
+          bio: "Updated organization profile bio",
+        },
+      },
+    });
+
+    const stored = await tx.query.accountTable.findFirst({
+      where: { id: organization.account.id },
+    });
+    assert.equal(stored?.name, "Updated Organization Profile");
+
+    const rejected = await execute({
+      schema,
+      document: updateAccountProfileMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("Account", organization.account.id),
+          bio: "Rejected update",
+        },
+      },
+      contextValue: makeUserContext(tx, member.account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.notEqual(rejected.errors, undefined);
+    assert.equal(rejected.errors?.[0].extensions?.code, "FORBIDDEN");
   });
 });
 

@@ -129,6 +129,54 @@ const inviteOrganizationMemberMutation = parse(`
   }
 `);
 
+const updateOrganizationMemberRoleMutation = parse(`
+  mutation UpdateOrganizationMemberRole(
+    $organizationId: ID!
+    $memberId: ID!
+    $role: OrganizationMemberRole!
+  ) {
+    updateOrganizationMemberRole(input: {
+      organizationId: $organizationId
+      memberId: $memberId
+      role: $role
+    }) {
+      __typename
+      ... on UpdateOrganizationMemberRolePayload {
+        membership {
+          role
+          organization { username }
+          member { username }
+        }
+      }
+      ... on LastOrganizationAdminError { message }
+      ... on OrganizationMembershipError { message }
+      ... on OrganizationPermissionError { message }
+    }
+  }
+`);
+
+const removeOrganizationMemberMutation = parse(`
+  mutation RemoveOrganizationMember($organizationId: ID!, $memberId: ID!) {
+    removeOrganizationMember(input: {
+      organizationId: $organizationId
+      memberId: $memberId
+    }) {
+      __typename
+      ... on RemoveOrganizationMemberPayload {
+        membership {
+          role
+          organization { username }
+          member { username }
+        }
+      }
+      ... on LastOrganizationMemberError { message }
+      ... on LastOrganizationAdminError { message }
+      ... on OrganizationMembershipError { message }
+      ... on OrganizationPermissionError { message }
+    }
+  }
+`);
+
 const markOrganizationNotificationsAsReadMutation = parse(`
   mutation MarkOrganizationNotificationsAsRead(
     $organizationId: ID!
@@ -332,6 +380,110 @@ test("pending organization invitations expose no notification badge", async () =
         },
       },
     });
+  });
+});
+
+test("organization admins can update roles and remove members", async () => {
+  await withRollback(async (tx) => {
+    const admin = await insertAccountWithActor(tx, {
+      username: "graphqlmanageadmin",
+      name: "GraphQL Manage Admin",
+      email: "graphqlmanageadmin@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "graphqlmanagemember",
+      name: "GraphQL Manage Member",
+      email: "graphqlmanagemember@example.com",
+    });
+    const removedMember = await insertAccountWithActor(tx, {
+      username: "graphqlmanageremoved",
+      name: "GraphQL Manage Removed",
+      email: "graphqlmanageremoved@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, admin.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      admin.account,
+      {
+        username: "graphqlmanageorg",
+        name: "GraphQL Manage Org",
+        bio: "",
+      },
+    );
+    const accepted = new Date("2026-04-15T00:00:00.000Z");
+    await tx.insert(organizationMembershipTable).values([
+      {
+        organizationAccountId: organization.id,
+        memberAccountId: member.account.id,
+        role: "member",
+        invitedById: admin.account.id,
+        accepted,
+      },
+      {
+        organizationAccountId: organization.id,
+        memberAccountId: removedMember.account.id,
+        role: "member",
+        invitedById: admin.account.id,
+        accepted,
+      },
+    ]);
+
+    const updateResult = await execute({
+      schema,
+      document: updateOrganizationMemberRoleMutation,
+      variableValues: {
+        organizationId: encodeGlobalID("Account", organization.id),
+        memberId: encodeGlobalID("Account", member.account.id),
+        role: "ADMIN",
+      },
+      contextValue: makeUserContext(tx, admin.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(updateResult.errors, undefined);
+    assert.deepEqual(toPlainJson(updateResult.data), {
+      updateOrganizationMemberRole: {
+        __typename: "UpdateOrganizationMemberRolePayload",
+        membership: {
+          role: "ADMIN",
+          organization: { username: "graphqlmanageorg" },
+          member: { username: "graphqlmanagemember" },
+        },
+      },
+    });
+
+    const removeResult = await execute({
+      schema,
+      document: removeOrganizationMemberMutation,
+      variableValues: {
+        organizationId: encodeGlobalID("Account", organization.id),
+        memberId: encodeGlobalID("Account", removedMember.account.id),
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(removeResult.errors, undefined);
+    assert.deepEqual(toPlainJson(removeResult.data), {
+      removeOrganizationMember: {
+        __typename: "RemoveOrganizationMemberPayload",
+        membership: {
+          role: "MEMBER",
+          organization: { username: "graphqlmanageorg" },
+          member: { username: "graphqlmanageremoved" },
+        },
+      },
+    });
+
+    const removed = await tx.query.organizationMembershipTable.findFirst({
+      where: {
+        organizationAccountId: organization.id,
+        memberAccountId: removedMember.account.id,
+      },
+    });
+    assert.equal(removed, undefined);
   });
 });
 

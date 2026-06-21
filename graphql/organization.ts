@@ -11,7 +11,9 @@ import {
   OrganizationInvitationRequiredError,
   OrganizationMembershipError,
   OrganizationPermissionError,
+  removeOrganizationMember as removeOrganizationMemberModel,
   requestOrganizationConversion as requestOrganizationConversionModel,
+  updateOrganizationMemberRole as updateOrganizationMemberRoleModel,
 } from "@hackerspub/models/organization";
 import type {
   Account as AccountRow,
@@ -627,6 +629,121 @@ builder.relayMutationField(
       membership: t.field({
         type: OrganizationMembershipRef,
         description: "The membership row that was removed.",
+        resolve: (membership) => membership,
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "updateOrganizationMemberRole",
+  {
+    description:
+      "Change the role of an accepted organization member. Only accepted " +
+      "organization administrators can update roles, and the last " +
+      "administrator cannot be demoted.",
+    inputFields: (t) => ({
+      organizationId: t.globalID({
+        for: Account,
+        required: true,
+        description:
+          "Global `Account` id of the organization whose member should be " +
+          "updated.",
+      }),
+      memberId: t.globalID({
+        for: Account,
+        required: true,
+        description:
+          "Global `Account` id of the accepted personal member to update.",
+      }),
+      role: t.field({
+        type: OrganizationMemberRole,
+        required: true,
+        description: "New role to store for the accepted organization member.",
+      }),
+    }),
+  },
+  {
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        NotAuthorizedError,
+        OrganizationPermissionError,
+        OrganizationMembershipError,
+        LastOrganizationAdminError,
+      ],
+    },
+    async resolve(_root, args, ctx): Promise<OrganizationMembership> {
+      const admin = await requirePersonalAccount(ctx);
+      return await updateOrganizationMemberRoleModel(
+        ctx.db,
+        admin,
+        parseAccountId(args.input.organizationId.id, "organizationId"),
+        parseAccountId(args.input.memberId.id, "memberId"),
+        args.input.role as OrganizationMemberRoleValue,
+      );
+    },
+  },
+  {
+    outputFields: (t) => ({
+      membership: t.field({
+        type: OrganizationMembershipRef,
+        description: "The updated organization membership.",
+        resolve: (membership) => membership,
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "removeOrganizationMember",
+  {
+    description:
+      "Remove an accepted member from an organization. Only accepted " +
+      "organization administrators can remove members, and the last member " +
+      "or last administrator cannot be removed.",
+    inputFields: (t) => ({
+      organizationId: t.globalID({
+        for: Account,
+        required: true,
+        description:
+          "Global `Account` id of the organization whose member should be " +
+          "removed.",
+      }),
+      memberId: t.globalID({
+        for: Account,
+        required: true,
+        description:
+          "Global `Account` id of the accepted personal member to remove.",
+      }),
+    }),
+  },
+  {
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        NotAuthorizedError,
+        OrganizationPermissionError,
+        OrganizationMembershipError,
+        LastOrganizationMemberError,
+        LastOrganizationAdminError,
+      ],
+    },
+    async resolve(_root, args, ctx): Promise<OrganizationMembership> {
+      const admin = await requirePersonalAccount(ctx);
+      return await removeOrganizationMemberModel(
+        ctx.db,
+        admin,
+        parseAccountId(args.input.organizationId.id, "organizationId"),
+        parseAccountId(args.input.memberId.id, "memberId"),
+      );
+    },
+  },
+  {
+    outputFields: (t) => ({
+      membership: t.field({
+        type: OrganizationMembershipRef,
+        description: "The organization membership that was removed.",
         resolve: (membership) => membership,
       }),
     }),

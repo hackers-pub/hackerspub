@@ -224,6 +224,11 @@ type Account implements Node {
   """
   usernameChanged: DateTime
   uuid: UUID!
+
+  """
+  Whether the authenticated viewer may open settings for this `Account`. This is `true` for the personal account holder and for accepted administrators of an organization account.
+  """
+  viewerCanManageSettings: Boolean!
 }
 
 type AccountArticleDraftsConnection {
@@ -2648,6 +2653,7 @@ type Mutation {
     """The curation row's UUID (`NewsPreferredSharer.id`)."""
     id: UUID!
   ): RemoveNewsPreferredSharerResult!
+  removeOrganizationMember(input: RemoveOrganizationMemberInput!): RemoveOrganizationMemberResult!
   removeReactionFromPost(input: RemoveReactionFromPostInput!): RemoveReactionFromPostResult!
 
   """
@@ -2814,6 +2820,7 @@ type Mutation {
     status: FlagStatus!
   ): UpdateFlagCaseStatusResult
   updateNote(input: UpdateNoteInput!): UpdateNoteResult!
+  updateOrganizationMemberRole(input: UpdateOrganizationMemberRoleInput!): UpdateOrganizationMemberRoleResult!
 
   """
   Complete passkey registration by verifying the authenticator response from `getPasskeyRegistrationOptions`. On success, the new `Passkey` is returned. Requires authentication.
@@ -5010,6 +5017,30 @@ type RemoveNewsPreferredSharerPayload {
 union RemoveNewsPreferredSharerResult = NotAuthenticatedError | NotAuthorizedError | RemoveNewsPreferredSharerPayload
 
 """
+Remove an accepted member from an organization. Only accepted organization administrators can remove members, and the last member or last administrator cannot be removed.
+"""
+input RemoveOrganizationMemberInput {
+  clientMutationId: ID
+
+  """Global `Account` id of the accepted personal member to remove."""
+  memberId: ID!
+
+  """
+  Global `Account` id of the organization whose member should be removed.
+  """
+  organizationId: ID!
+}
+
+type RemoveOrganizationMemberPayload {
+  clientMutationId: ID
+
+  """The organization membership that was removed."""
+  membership: OrganizationMembership!
+}
+
+union RemoveOrganizationMemberResult = LastOrganizationAdminError | LastOrganizationMemberError | NotAuthenticatedError | NotAuthorizedError | OrganizationMembershipError | OrganizationPermissionError | RemoveOrganizationMemberPayload
+
+"""
 Remove an emoji reaction from a post. Sends an ActivityPub `Undo Like` activity. Idempotent: removing a reaction that doesn't exist returns `success: true`. Exactly one of `emoji` or `customEmojiId` must be provided. Requires authentication.
 """
 input RemoveReactionFromPostInput {
@@ -5614,7 +5645,7 @@ type UnsubscribeRelayPayload {
 union UnsubscribeRelayResult = NotAuthenticatedError | NotAuthorizedError | UnsubscribeRelayPayload
 
 """
-Update the authenticated viewer's account settings. Only the account holder may update their own account.
+Update account settings. Personal accounts may update themselves; organization accounts may be updated by accepted organization administrators.
 """
 input UpdateAccountInput {
   avatarMediumId: UUID
@@ -5710,6 +5741,33 @@ type UpdateNotePayload {
 }
 
 union UpdateNoteResult = InvalidInputError | NotAuthenticatedError | UpdateNotePayload
+
+"""
+Change the role of an accepted organization member. Only accepted organization administrators can update roles, and the last administrator cannot be demoted.
+"""
+input UpdateOrganizationMemberRoleInput {
+  clientMutationId: ID
+
+  """Global `Account` id of the accepted personal member to update."""
+  memberId: ID!
+
+  """
+  Global `Account` id of the organization whose member should be updated.
+  """
+  organizationId: ID!
+
+  """New role to store for the accepted organization member."""
+  role: OrganizationMemberRole!
+}
+
+type UpdateOrganizationMemberRolePayload {
+  clientMutationId: ID
+
+  """The updated organization membership."""
+  membership: OrganizationMembership!
+}
+
+union UpdateOrganizationMemberRoleResult = LastOrganizationAdminError | NotAuthenticatedError | NotAuthorizedError | OrganizationMembershipError | OrganizationPermissionError | UpdateOrganizationMemberRolePayload
 
 """
 Vote in a visible poll. Votes are idempotent: once the viewer has voted, later calls return the stored selections instead of replacing them. Federates the vote when the poll is remote.

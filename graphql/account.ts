@@ -111,6 +111,26 @@ const sanctionActorRelation = {
   },
 } as const;
 
+async function viewerCanManageAccountSettings(
+  ctx: UserContext,
+  accountId: Uuid,
+  accountKind: "personal" | "organization",
+  viewerAccountId: Uuid,
+): Promise<boolean> {
+  if (accountId === viewerAccountId) return true;
+  if (accountKind !== "organization") return false;
+  const membership = await ctx.db.query.organizationMembershipTable.findFirst({
+    where: {
+      organizationAccountId: accountId,
+      memberAccountId: viewerAccountId,
+      role: "admin",
+      accepted: { isNotNull: true },
+    },
+    columns: { organizationAccountId: true },
+  });
+  return membership != null;
+}
+
 function parseActorHandle(raw: string): {
   handle: string;
   username: string;
@@ -447,6 +467,23 @@ export const Account = builder.drizzleNode("accountTable", {
         moderator: true,
         selfAccount: parent.id,
       }),
+    }),
+    viewerCanManageSettings: t.boolean({
+      description:
+        "Whether the authenticated viewer may open settings for this " +
+        "`Account`. This is `true` for the personal account holder and for " +
+        "accepted administrators of an organization account.",
+      select: { columns: { id: true, kind: true } },
+      async resolve(account, _, ctx) {
+        const session = await ctx.session;
+        if (session == null) return false;
+        return await viewerCanManageAccountSettings(
+          ctx,
+          account.id,
+          account.kind,
+          session.accountId,
+        );
+      },
     }),
     preferAiSummary: t.exposeBoolean("preferAiSummary", {
       authScopes: (parent) => ({
@@ -1173,8 +1210,9 @@ builder.relayMutationField(
   "updateAccount",
   {
     description:
-      "Update the authenticated viewer's account settings. Only the " +
-      "account holder may update their own account.",
+      "Update account settings. Personal accounts may update themselves; " +
+      "organization accounts may be updated by accepted organization " +
+      "administrators.",
     inputFields: (t) => ({
       id: t.globalID({ for: Account, required: true }),
       username: t.string(),
@@ -1216,10 +1254,6 @@ builder.relayMutationField(
         throw createGraphQLError("Not authenticated.", {
           extensions: { code: "UNAUTHENTICATED" },
         });
-      } else if (session.accountId !== args.input.id.id) {
-        throw createGraphQLError("Not authorized.", {
-          extensions: { code: "FORBIDDEN" },
-        });
       }
       const account = await ctx.db.query.accountTable.findFirst({
         where: {
@@ -1229,6 +1263,18 @@ builder.relayMutationField(
       if (account == null) {
         throw createGraphQLError("Account not found.", {
           extensions: { code: "NOT_FOUND" },
+        });
+      }
+      if (
+        !await viewerCanManageAccountSettings(
+          ctx,
+          account.id,
+          account.kind,
+          session.accountId,
+        )
+      ) {
+        throw createGraphQLError("Not authorized.", {
+          extensions: { code: "FORBIDDEN" },
         });
       }
       if (args.input.username != null && account.usernameChanged != null) {
