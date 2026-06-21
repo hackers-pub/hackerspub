@@ -49,6 +49,7 @@ export async function getAccountActor(
     followers: ctx.getFollowersUri(identifier),
     featured: ctx.getFeaturedUri(identifier),
     url: new URL(`/@${account.username}`, ctx.canonicalOrigin),
+    aliases: account.actor.aliases.map((alias) => new URL(alias)),
   };
   if (isActorBanned(account.actor)) {
     return new Person({

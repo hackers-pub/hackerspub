@@ -1,3 +1,4 @@
+import { isActor } from "@fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import {
@@ -15,14 +16,16 @@ import {
   deleteAccount as deleteAccountModel,
   getAvatarUrl,
   isUsernameReserved,
+  sendAccountActorUpdate,
   updateAccount,
 } from "@hackerspub/models/account";
-import { syncActorFromAccount } from "@hackerspub/models/actor";
+import { persistActor, syncActorFromAccount } from "@hackerspub/models/actor";
 import type { Locale } from "@hackerspub/models/i18n";
 import { renderMarkup } from "@hackerspub/models/markup";
 import { deleteSession } from "@hackerspub/models/session";
 import {
   accountTable,
+  type Actor as ActorRow,
   actorTable,
   notificationTable,
   postTable,
@@ -37,6 +40,7 @@ import {
 } from "./builder.ts";
 import { InvalidInputError, NotAuthorizedError } from "./error.ts";
 import { InvitationLink } from "./invitation-link.ts";
+import { lookupActorByUrl, parseHttpUrl } from "./lookup.ts";
 import { Notification } from "./notification.ts";
 import { putProfileOgImage } from "./og.ts";
 import { ArticleDraft } from "./post.ts";
@@ -106,6 +110,96 @@ const sanctionActorRelation = {
     suspendedUntil: true,
   },
 } as const;
+
+function parseActorHandle(raw: string): {
+  handle: string;
+  username: string;
+  host: string;
+} | null {
+  const trimmed = raw.trim().replace(/^@/, "");
+  const split = trimmed.split("@");
+  if (split.length !== 2) return null;
+  const username = split[0].trim();
+  const host = split[1].trim();
+  if (username === "" || host === "") return null;
+  return { handle: `${username}@${host}`, username, host };
+}
+
+async function lookupActorByHandle(
+  ctx: UserContext,
+  raw: string,
+): Promise<ActorRow | null> {
+  const parsed = parseActorHandle(raw);
+  if (parsed == null) return null;
+  const existing = await ctx.db.query.actorTable.findFirst({
+    where: {
+      username: parsed.username,
+      OR: [{ instanceHost: parsed.host }, { handleHost: parsed.host }],
+    },
+  });
+  if (existing != null) return existing;
+  if (ctx.account == null) return null;
+
+  const documentLoader = await ctx.fedCtx.getDocumentLoader({
+    identifier: ctx.account.id,
+  });
+  let object;
+  try {
+    object = await ctx.fedCtx.lookupObject(parsed.handle, { documentLoader });
+  } catch {
+    return null;
+  }
+  if (!isActor(object)) return null;
+  return (await persistActor(ctx.fedCtx, object, { documentLoader })) ?? null;
+}
+
+async function lookupMigrationAliasActor(
+  ctx: UserContext,
+  raw: string,
+): Promise<ActorRow | null> {
+  const trimmed = raw.trim();
+  if (trimmed === "") return null;
+  const url = parseHttpUrl(trimmed);
+  if (url != null) return await lookupActorByUrl(ctx, url);
+  return await lookupActorByHandle(ctx, trimmed);
+}
+
+async function getAuthorizedMigrationAccount(
+  ctx: UserContext,
+  accountId: string,
+) {
+  const session = await ctx.session;
+  if (session == null || ctx.account == null) {
+    throw new NotAuthenticatedError();
+  }
+  if (!validateUuid(accountId)) throw new InvalidInputError("accountId");
+  if (session.accountId !== accountId) throw new NotAuthorizedError();
+  const account = await ctx.db.query.accountTable.findFirst({
+    where: { id: accountId },
+    with: { actor: true },
+  });
+  if (account?.actor == null) throw new InvalidInputError("accountId");
+  return account;
+}
+
+async function setAccountMigrationAliases(
+  ctx: UserContext,
+  accountId: Uuid,
+  aliases: string[],
+) {
+  const rows = await ctx.db.update(actorTable)
+    .set({ aliases, updated: sql`CURRENT_TIMESTAMP` })
+    .where(eq(actorTable.accountId, accountId))
+    .returning();
+  const actor = rows[0];
+  if (actor == null) throw new InvalidInputError("accountId");
+  await sendAccountActorUpdate(ctx.fedCtx, accountId, actor.updated);
+  const account = await ctx.db.query.accountTable.findFirst({
+    where: { id: accountId },
+  });
+  if (account == null) throw new InvalidInputError("accountId");
+  return account;
+}
 
 export const Account = builder.drizzleNode("accountTable", {
   name: "Account",
@@ -1226,6 +1320,125 @@ builder.relayMutationField(
     outputFields: (t) => ({
       account: t.field({
         type: Account,
+        resolve(result) {
+          return result;
+        },
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "addAccountMigrationAlias",
+  {
+    description:
+      "Add a previous account actor as an ActivityPub migration alias for " +
+      "the authenticated viewer's local account. The stored value is the " +
+      "resolved actor IRI, which is then advertised as `alsoKnownAs` on " +
+      "the local actor document so a later remote `Move` can be validated.",
+    inputFields: (t) => ({
+      accountId: t.globalID({
+        for: Account,
+        required: true,
+        description:
+          "The `Account` global id owned by the authenticated viewer. " +
+          "Passing another account id returns `NotAuthorizedError`.",
+      }),
+      actor: t.string({
+        required: true,
+        description:
+          "Previous account to import from, written as `@user@host`, " +
+          "`user@host`, or an HTTP(S) actor/profile URL. The value is " +
+          "resolved before storage so aliases always contain actor IRIs.",
+      }),
+    }),
+  },
+  {
+    errors: {
+      types: [NotAuthenticatedError, NotAuthorizedError, InvalidInputError],
+    },
+    async resolve(_root, args, ctx) {
+      const account = await getAuthorizedMigrationAccount(
+        ctx,
+        args.input.accountId.id,
+      );
+      const oldActor = await lookupMigrationAliasActor(ctx, args.input.actor);
+      if (
+        oldActor == null ||
+        oldActor.id === account.actor.id ||
+        oldActor.accountId === account.id
+      ) {
+        throw new InvalidInputError("actor");
+      }
+      const aliases = account.actor.aliases.includes(oldActor.iri)
+        ? account.actor.aliases
+        : [...account.actor.aliases, oldActor.iri];
+      return await setAccountMigrationAliases(ctx, account.id, aliases);
+    },
+  },
+  {
+    outputFields: (t) => ({
+      account: t.field({
+        type: Account,
+        description:
+          "The updated local account. Read `Account.actor.aliases` for " +
+          "the canonical set of previous actor IRIs now advertised as " +
+          "`alsoKnownAs`.",
+        resolve(result) {
+          return result;
+        },
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "removeAccountMigrationAlias",
+  {
+    description:
+      "Remove one ActivityPub migration alias from the authenticated " +
+      "viewer's local account. Removing an alias only changes the new " +
+      "account's `alsoKnownAs` list; it does not send or retract a remote " +
+      "`Move` activity.",
+    inputFields: (t) => ({
+      accountId: t.globalID({
+        for: Account,
+        required: true,
+        description:
+          "The `Account` global id owned by the authenticated viewer. " +
+          "Passing another account id returns `NotAuthorizedError`.",
+      }),
+      alias: t.field({
+        type: "URL",
+        required: true,
+        description: "The exact previous actor IRI to remove from " +
+          "`Account.actor.aliases`. Missing aliases are accepted so " +
+          "clients can retry safely.",
+      }),
+    }),
+  },
+  {
+    errors: {
+      types: [NotAuthenticatedError, NotAuthorizedError, InvalidInputError],
+    },
+    async resolve(_root, args, ctx) {
+      const account = await getAuthorizedMigrationAccount(
+        ctx,
+        args.input.accountId.id,
+      );
+      const alias = args.input.alias.href;
+      const aliases = account.actor.aliases.filter((a) => a !== alias);
+      return await setAccountMigrationAliases(ctx, account.id, aliases);
+    },
+  },
+  {
+    outputFields: (t) => ({
+      account: t.field({
+        type: Account,
+        description:
+          "The updated local account. Read `Account.actor.aliases` for " +
+          "the canonical set of previous actor IRIs now advertised as " +
+          "`alsoKnownAs`.",
         resolve(result) {
           return result;
         },

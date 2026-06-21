@@ -671,24 +671,32 @@ export async function updateAccount(
       account.links,
     );
   }
+  await sendAccountActorUpdate(fedCtx, result.id, result.updated);
+  return { ...result, links };
+}
+
+export async function sendAccountActorUpdate(
+  fedCtx: RequestContext<ContextData>,
+  accountId: Uuid,
+  updated: Date,
+): Promise<void> {
   await fedCtx.sendActivity(
-    { identifier: result.id },
+    { identifier: accountId },
     "followers",
     new vocab.Update({
       id: new URL(
-        `#update/${result.updated.toISOString()}`,
-        fedCtx.getActorUri(result.id),
+        `#update/${updated.toISOString()}`,
+        fedCtx.getActorUri(accountId),
       ),
-      actor: fedCtx.getActorUri(result.id),
+      actor: fedCtx.getActorUri(accountId),
       to: vocab.PUBLIC_COLLECTION,
-      object: await fedCtx.getActor(result.id),
+      object: await fedCtx.getActor(accountId),
     }),
     {
       preferSharedInbox: true,
       excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
     },
   );
-  return { ...result, links };
 }
 
 export async function updateAccountData(
