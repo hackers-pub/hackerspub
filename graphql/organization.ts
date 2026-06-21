@@ -394,6 +394,31 @@ builder.drizzleObjectField(Account, "organizationMemberships", (t) =>
     },
   }));
 
+builder.drizzleObjectField(Account, "organizationInvitations", (t) =>
+  t.field({
+    type: [OrganizationMembershipRef],
+    description:
+      "Pending organization invitations for this personal account, newest " +
+      "first. Only visible to the account holder and moderators; accepted " +
+      "memberships move to `organizationMemberships`.",
+    authScopes: (parent) => ({
+      moderator: true,
+      selfAccount: parent.id,
+    }),
+    select: {
+      columns: { id: true },
+    },
+    async resolve(account, _, ctx) {
+      return await ctx.db.query.organizationMembershipTable.findMany({
+        where: {
+          memberAccountId: account.id,
+          accepted: { isNull: true },
+        },
+        orderBy: { created: "desc" },
+      });
+    },
+  }));
+
 builder.drizzleObjectField(Account, "organizationMembers", (t) =>
   t.field({
     type: [OrganizationMembershipRef],

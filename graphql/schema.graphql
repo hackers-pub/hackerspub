@@ -167,6 +167,11 @@ type Account implements Node {
   ogImageUrl: URL!
 
   """
+  Pending organization invitations for this personal account, newest first. Only visible to the account holder and moderators; accepted memberships move to `organizationMemberships`.
+  """
+  organizationInvitations: [OrganizationMembership!]!
+
+  """
   Accepted members of this organization account, newest first. Readable by accepted organization members and moderators.
   """
   organizationMembers: [OrganizationMembership!]!

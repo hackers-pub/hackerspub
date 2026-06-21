@@ -64,6 +64,24 @@ const viewerOrganizationStateQuery = parse(`
   }
 `);
 
+const viewerOrganizationInvitationStateQuery = parse(`
+  query ViewerOrganizationInvitationState {
+    viewer {
+      organizationInvitations {
+        role
+        accepted
+        organization {
+          username
+          kind
+        }
+        member {
+          username
+        }
+      }
+    }
+  }
+`);
+
 const conversionMutation = parse(`
   mutation ConvertAccount(
     $accountId: ID!
@@ -378,6 +396,28 @@ test("pending organization invitations expose no notification badge", async () =
           organization: { username: "graphqlinviteorg" },
           member: { username: "graphqlinvitemember" },
         },
+      },
+    });
+
+    const invitations = await execute({
+      schema,
+      document: viewerOrganizationInvitationStateQuery,
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(invitations.errors, undefined);
+    assert.deepEqual(toPlainJson(invitations.data), {
+      viewer: {
+        organizationInvitations: [{
+          role: "MEMBER",
+          accepted: null,
+          organization: {
+            username: "graphqlinviteorg",
+            kind: "ORGANIZATION",
+          },
+          member: { username: "graphqlinvitemember" },
+        }],
       },
     });
   });
