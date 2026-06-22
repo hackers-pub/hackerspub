@@ -112,7 +112,9 @@ const SelectItem = <T extends ValidComponent = "li">(
           <path d="M5 12l5 5l10 -10" />
         </svg>
       </SelectPrimitive.ItemIndicator>
-      <SelectPrimitive.ItemLabel>{local.children}</SelectPrimitive.ItemLabel>
+      <SelectPrimitive.ItemLabel class="min-w-0 flex-1 overflow-hidden">
+        {local.children}
+      </SelectPrimitive.ItemLabel>
     </SelectPrimitive.Item>
   );
 };

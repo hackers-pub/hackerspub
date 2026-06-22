@@ -1,8 +1,5 @@
-import type { Accessor, JSX } from "solid-js";
-import { createMemo, Show } from "solid-js";
-import IconBuilding2 from "~icons/lucide/building-2";
-import IconUsers from "~icons/lucide/users";
-import IconUserRound from "~icons/lucide/user-round";
+import type { Accessor } from "solid-js";
+import { createMemo } from "solid-js";
 import {
   Select,
   SelectContent,
@@ -16,6 +13,7 @@ import {
   AvatarImage,
 } from "~/components/ui/avatar.tsx";
 import {
+  type ActingAccountSummary,
   organizationComposeAccountKey,
   PERSONAL_COMPOSE_ACCOUNT_KEY,
   type PostAttributionMode,
@@ -29,10 +27,7 @@ export interface ComposeActingAccountOption {
   accountId?: string;
   attributionMode?: PostAttributionMode;
   label: string;
-  detail: string;
-  avatarUrl?: string | null;
-  coauthored: boolean;
-  icon: () => JSX.Element;
+  accounts: readonly ActingAccountSummary[];
 }
 
 export interface ActingAccountSelectProps {
@@ -45,7 +40,6 @@ export interface ActingAccountSelectProps {
 export function useComposeActingAccountOptions(): Accessor<
   ComposeActingAccountOption[]
 > {
-  const { t } = useLingui();
   const actingAccount = useActingAccount();
 
   return createMemo(() => {
@@ -55,11 +49,8 @@ export function useComposeActingAccountOptions(): Accessor<
     const options: ComposeActingAccountOption[] = [
       {
         value: PERSONAL_COMPOSE_ACCOUNT_KEY,
-        label: t`Personal account`,
-        detail: `@${personalAccount.username}`,
-        avatarUrl: personalAccount.avatarUrl,
-        coauthored: false,
-        icon: () => <IconUserRound class="size-4" />,
+        label: formatAccountsLabel([personalAccount]),
+        accounts: [personalAccount],
       },
     ];
 
@@ -72,11 +63,8 @@ export function useComposeActingAccountOptions(): Accessor<
         ),
         accountId: organization.id,
         attributionMode: "ACTING_ACCOUNT_ONLY",
-        label: organization.name || organization.username,
-        detail: `@${organization.username}`,
-        avatarUrl: organization.avatarUrl,
-        coauthored: false,
-        icon: () => <IconBuilding2 class="size-4" />,
+        label: formatAccountsLabel([organization]),
+        accounts: [organization],
       });
       options.push({
         value: organizationComposeAccountKey(
@@ -85,11 +73,8 @@ export function useComposeActingAccountOptions(): Accessor<
         ),
         accountId: organization.id,
         attributionMode: "ACTING_ACCOUNT_WITH_VIEWER",
-        label: organization.name || organization.username,
-        detail: t`Co-author`,
-        avatarUrl: organization.avatarUrl,
-        coauthored: true,
-        icon: () => <IconUsers class="size-4" />,
+        label: formatAccountsLabel([organization, personalAccount]),
+        accounts: [organization, personalAccount],
       });
     }
 
@@ -113,50 +98,129 @@ export function ActingAccountSelect(props: ActingAccountSelectProps) {
       optionTextValue="label"
       disabled={props.disabled || options().length < 2}
       itemComponent={(props) => (
-        <SelectItem item={props.item}>
+        <SelectItem item={props.item} class="overflow-hidden">
           <AccountOption option={props.item.rawValue} />
         </SelectItem>
       )}
     >
       <SelectTrigger
         aria-label={t`Author`}
-        class={cn("w-full sm:w-[260px]", props.class)}
+        class={cn("w-full sm:w-[340px]", props.class)}
       >
         <SelectValue<ComposeActingAccountOption>>
           {(state) => (
             <div class="flex min-w-0 items-center gap-2">
-              {state.selectedOption().icon()}
-              <span class="min-w-0 truncate">
-                {state.selectedOption().label}
-              </span>
-              <Show when={state.selectedOption().coauthored}>
-                <span class="shrink-0 rounded-sm bg-muted px-1.5 py-0.5 text-[0.625rem] font-medium text-muted-foreground">
-                  {t`Co-author`}
-                </span>
-              </Show>
+              <AccountAvatarStack
+                accounts={state.selectedOption().accounts}
+                size="sm"
+              />
+              <AccountIdentityList
+                accounts={state.selectedOption().accounts}
+                class="flex-1"
+              />
             </div>
           )}
         </SelectValue>
       </SelectTrigger>
-      <SelectContent class="min-w-64" />
+      <SelectContent class="w-[min(28rem,calc(100vw-2rem))]" />
     </Select>
   );
 }
 
 function AccountOption(props: { option: ComposeActingAccountOption }) {
   return (
-    <div class="flex min-w-0 items-center gap-2">
-      <Avatar class="size-6">
-        <AvatarImage src={props.option.avatarUrl ?? undefined} />
-        <AvatarFallback class="text-xs">
-          {props.option.label.charAt(0).toUpperCase()}
-        </AvatarFallback>
-      </Avatar>
-      <div class="min-w-0">
-        <div class="truncate">{props.option.label}</div>
-        <div class="truncate text-xs text-muted-foreground">
-          {props.option.detail}
-        </div>
+    <div class="flex w-full min-w-0 items-center gap-2 overflow-hidden py-0.5">
+      <AccountAvatarStack accounts={props.option.accounts} size="md" />
+      <AccountOptionIdentity accounts={props.option.accounts} />
+    </div>
+  );
+}
+
+function formatAccountLabel(account: ActingAccountSummary): string {
+  return `${formatAccountName(account)} (${formatAccountHandle(account)})`;
+}
+
+function formatAccountsLabel(
+  accounts: readonly ActingAccountSummary[],
+): string {
+  return accounts.map(formatAccountLabel).join(" + ");
+}
+
+function formatAccountName(account: ActingAccountSummary): string {
+  return account.name || account.username;
+}
+
+function formatAccountHandle(account: ActingAccountSummary): string {
+  return `@${account.username}`;
+}
+
+function AccountAvatarStack(props: {
+  accounts: readonly ActingAccountSummary[];
+  size: "sm" | "md";
+}) {
+  const avatarSize = () => props.size === "sm" ? "size-5" : "size-6";
+  return (
+    <div class="flex shrink-0 -space-x-1" aria-hidden="true">
+      {props.accounts.map((account) => (
+        <Avatar class={cn(avatarSize(), "border border-background")}>
+          <AvatarImage
+            src={account.avatarUrl ?? undefined}
+            alt=""
+          />
+          <AvatarFallback class="text-[0.625rem] font-medium">
+            {formatAccountName(account).charAt(0).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+      ))}
+    </div>
+  );
+}
+
+function AccountIdentityList(props: {
+  accounts: readonly ActingAccountSummary[];
+  class?: string;
+}) {
+  return (
+    <span class={cn("block min-w-0 truncate", props.class)}>
+      <span class="sr-only">{formatAccountsLabel(props.accounts)}</span>
+      <span aria-hidden="true">
+        {props.accounts.map((account, index) => (
+          <>
+            {index > 0 && <span class="mx-1 text-muted-foreground">+</span>}
+            <span>{formatAccountName(account)}</span>{" "}
+            <span class="text-muted-foreground">
+              ({formatAccountHandle(account)})
+            </span>
+          </>
+        ))}
+      </span>
+    </span>
+  );
+}
+
+function AccountOptionIdentity(props: {
+  accounts: readonly ActingAccountSummary[];
+}) {
+  return (
+    <div class="min-w-0 flex-1">
+      <div class="truncate">
+        <span class="sr-only">{formatAccountsLabel(props.accounts)}</span>
+        <span aria-hidden="true">
+          {props.accounts.map((account, index) => (
+            <>
+              {index > 0 && <span class="mx-1 text-muted-foreground">+</span>}
+              <span>{formatAccountName(account)}</span>
+            </>
+          ))}
+        </span>
+      </div>
+      <div class="truncate text-xs text-muted-foreground" aria-hidden="true">
+        {props.accounts.map((account, index) => (
+          <>
+            {index > 0 && <span class="mx-1">+</span>}
+            <span>{formatAccountHandle(account)}</span>
+          </>
+        ))}
       </div>
     </div>
   );
