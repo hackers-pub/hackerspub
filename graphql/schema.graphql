@@ -4234,9 +4234,13 @@ type Query {
   orphanMediaStatus: OrphanMediaStatus
 
   """
-  Posts from accounts the authenticated viewer follows, newest first. Throws `AUTHENTICATION_REQUIRED` when called without a session. Pagination window (`first`/`last`) is capped at 250 posts. Use `languages` to filter by language (a base code like `"en"` matches `"en"` and all `"en-*"` variants), `local` to restrict to this instance only, and `withoutShares` to hide boost wrappers.
+  Posts from accounts the authenticated viewer follows, newest first. Throws `AUTHENTICATION_REQUIRED` when called without a session. Pagination window (`first`/`last`) is capped at 250 posts. Use `languages` to filter by language (a base code like `"en"` matches `"en"` and all `"en-*"` variants), `local` to restrict to this instance only, and `withoutShares` to hide boost wrappers. Pass `actingAccountId` to read an organization account's feed when the viewer is an accepted member.
   """
   personalTimeline(
+    """
+    Optional `Account` id whose feed should be read instead of the viewer's personal account. Only accepted organization members can read an organization's feed this way.
+    """
+    actingAccountId: ID
     after: String
     before: String
     first: Int

@@ -5,9 +5,11 @@ import { encodeGlobalID } from "@pothos/plugin-relay";
 import { execute, parse } from "graphql";
 import { createBookmark } from "@hackerspub/models/bookmark";
 import { follow } from "@hackerspub/models/following";
+import { createOrganization } from "@hackerspub/models/organization";
 import { sharePost } from "@hackerspub/models/post";
 import { addPostToTimeline } from "@hackerspub/models/timeline";
 import {
+  accountTable,
   bookmarkTable,
   postTable,
   timelineItemTable,
@@ -64,6 +66,7 @@ const personalTimelineQuery = parse(`
     $last: Int
     $before: String
     $withoutShares: Boolean
+    $actingAccountId: ID
   ) {
     personalTimeline(
       first: $first
@@ -71,6 +74,7 @@ const personalTimelineQuery = parse(`
       last: $last
       before: $before
       withoutShares: $withoutShares
+      actingAccountId: $actingAccountId
     ) {
       pageInfo {
         hasNextPage
@@ -416,6 +420,134 @@ test("publicTimeline and personalTimeline honor share filters", async () => {
       }).personalTimeline.edges,
       [],
     );
+  });
+});
+
+test("personalTimeline can read an organization account feed", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const viewer = await insertAccountWithActor(tx, {
+      username: "graphqlorgfeedviewer",
+      name: "GraphQL Org Feed Viewer",
+      email: "graphqlorgfeedviewer@example.com",
+    });
+    const personalSharer = await insertAccountWithActor(tx, {
+      username: "graphqlorgfeedpersonal",
+      name: "GraphQL Org Feed Personal Sharer",
+      email: "graphqlorgfeedpersonal@example.com",
+    });
+    const organizationSharer = await insertAccountWithActor(tx, {
+      username: "graphqlorgfeedorg",
+      name: "GraphQL Org Feed Organization Sharer",
+      email: "graphqlorgfeedorg@example.com",
+    });
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "graphqlorgfeedremote",
+      name: "GraphQL Org Feed Remote",
+      host: "organization-feed.example",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, viewer.account.id));
+    const organization = await createOrganization(fedCtx, viewer.account, {
+      username: "graphqlorgfeedaccount",
+      name: "GraphQL Org Feed Account",
+      bio: "",
+    });
+
+    await follow(fedCtx, viewer.account, personalSharer.actor);
+    await follow(fedCtx, organization, organizationSharer.actor);
+
+    const personalRemotePost = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>Personal feed post</p>",
+    });
+    const organizationRemotePost = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>Organization feed post</p>",
+    });
+    await sharePost(fedCtx, personalSharer.account, {
+      ...personalRemotePost,
+      actor: remoteActor,
+    });
+    await sharePost(fedCtx, organizationSharer.account, {
+      ...organizationRemotePost,
+      actor: remoteActor,
+    });
+
+    const personalResult = await execute({
+      schema,
+      document: personalTimelineQuery,
+      variableValues: { first: 10 },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(personalResult.errors, undefined);
+    assert.deepEqual(
+      (personalResult.data as {
+        personalTimeline: { edges: { node: { id: string } }[] };
+      }).personalTimeline.edges.map((edge) => edge.node.id),
+      [encodeGlobalID("Note", personalRemotePost.id)],
+    );
+
+    const organizationResult = await execute({
+      schema,
+      document: personalTimelineQuery,
+      variableValues: {
+        first: 10,
+        actingAccountId: encodeGlobalID("Account", organization.id),
+      },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(organizationResult.errors, undefined);
+    assert.deepEqual(
+      (organizationResult.data as {
+        personalTimeline: { edges: { node: { id: string } }[] };
+      }).personalTimeline.edges.map((edge) => edge.node.id),
+      [encodeGlobalID("Note", organizationRemotePost.id)],
+    );
+  });
+});
+
+test("personalTimeline rejects organization accounts outside membership", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const viewer = await insertAccountWithActor(tx, {
+      username: "graphqlorgfeeddeniedviewer",
+      name: "GraphQL Org Feed Denied Viewer",
+      email: "graphqlorgfeeddeniedviewer@example.com",
+    });
+    const owner = await insertAccountWithActor(tx, {
+      username: "graphqlorgfeeddeniedowner",
+      name: "GraphQL Org Feed Denied Owner",
+      email: "graphqlorgfeeddeniedowner@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, owner.account.id));
+    const organization = await createOrganization(fedCtx, owner.account, {
+      username: "graphqlorgfeeddeniedorg",
+      name: "GraphQL Org Feed Denied Org",
+      bio: "",
+    });
+
+    const result = await execute({
+      schema,
+      document: personalTimelineQuery,
+      variableValues: {
+        first: 10,
+        actingAccountId: encodeGlobalID("Account", organization.id),
+      },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(
+      (result.data as { personalTimeline: unknown }).personalTimeline,
+      null,
+    );
+    assert.deepEqual(result.errors?.[0].extensions?.code, "FORBIDDEN");
   });
 });
 

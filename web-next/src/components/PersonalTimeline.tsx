@@ -26,6 +26,7 @@ import type { PersonalTimelinePollQuery } from "./__generated__/PersonalTimeline
 // updating the main connection in the Relay store.
 const pollQuery = graphql`
   query PersonalTimelinePollQuery(
+    $actingAccountId: ID
     $languages: [Locale!]
     $local: Boolean
     $postType: PostType
@@ -33,6 +34,7 @@ const pollQuery = graphql`
   ) {
     personalTimeline(
       first: 1,
+      actingAccountId: $actingAccountId,
       languages: $languages,
       local: $local,
       postType: $postType,
@@ -47,6 +49,7 @@ const pollQuery = graphql`
 
 export interface PersonalTimelineProps {
   $posts: PersonalTimeline_posts$key;
+  actingAccountId?: () => string | undefined;
   activeLanguage?: () => string | undefined;
   local?: boolean;
   withoutShares?: boolean;
@@ -64,6 +67,7 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
         @argumentDefinitions(
           cursor: { type: "String" }
           count: { type: "Int", defaultValue: 25 }
+          actingAccountId: { type: "ID" }
           locale: { type: "Locale" }
           languages: { type: "[Locale!]", defaultValue: [] }
           local: { type: "Boolean", defaultValue: false }
@@ -75,6 +79,7 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
         personalTimeline(
           after: $cursor,
           first: $count,
+          actingAccountId: $actingAccountId,
           languages: $languages,
           local: $local,
           postType: $postType,
@@ -142,9 +147,14 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
   // When the language filter changes after initial mount, refetch at the
   // fragment level so the DOM subtree stays mounted (no flash).
   createEffect(on(
-    () => props.activeLanguage?.(),
-    (lang) => {
-      posts.refetch({ languages: lang ? [lang] : [] });
+    () =>
+      `${props.activeLanguage?.() ?? ""}:${props.actingAccountId?.() ?? ""}`,
+    () => {
+      const lang = props.activeLanguage?.();
+      posts.refetch({
+        actingAccountId: props.actingAccountId?.() ?? null,
+        languages: lang ? [lang] : [],
+      });
     },
     { defer: true },
   ));
@@ -153,11 +163,17 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
     // Stale-while-revalidate: show cached content immediately, refresh in
     // the background so returning to this timeline shows fresh content.
     const lang = props.activeLanguage?.();
-    posts.refetch({ languages: lang ? [lang] : [] });
+    posts.refetch({
+      actingAccountId: props.actingAccountId?.() ?? null,
+      languages: lang ? [lang] : [],
+    });
 
     onCleanup(onNoteCreated(() => {
       const lang = props.activeLanguage?.();
-      posts.refetch({ languages: lang ? [lang] : [] });
+      posts.refetch({
+        actingAccountId: props.actingAccountId?.() ?? null,
+        languages: lang ? [lang] : [],
+      });
     }));
 
     // Poll for new content without disrupting the current view.
@@ -194,6 +210,7 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
         environment(),
         pollQuery,
         {
+          actingAccountId: props.actingAccountId?.() ?? null,
           languages: lang ? [lang] : [],
           local: props.local ?? false,
           postType: props.postType ?? null,
@@ -238,7 +255,10 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
   function onBannerClick() {
     setHasNewPosts(false);
     const lang = props.activeLanguage?.();
-    posts.refetch({ languages: lang ? [lang] : [] });
+    posts.refetch({
+      actingAccountId: props.actingAccountId?.() ?? null,
+      languages: lang ? [lang] : [],
+    });
   }
 
   function onLoadMore() {

@@ -6,6 +6,7 @@ import { FollowRecommendations } from "~/components/FollowRecommendations.tsx";
 import { LanguageFilter } from "~/components/LanguageFilter.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PersonalTimeline } from "~/components/PersonalTimeline.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { buildSignInHref, gateOnAuthentication } from "~/lib/authGate.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -33,7 +34,11 @@ export const route = {
 } satisfies RouteDefinition;
 
 const articlesFeedTimelineQuery = graphql`
-  query articlesFeedTimelineQuery($locale: Locale, $languages: [Locale!]) {
+  query articlesFeedTimelineQuery(
+    $actingAccountId: ID
+    $locale: Locale
+    $languages: [Locale!]
+  ) {
     viewer {
       actor {
         followees(first: 0) {
@@ -43,16 +48,25 @@ const articlesFeedTimelineQuery = graphql`
       postCount
     }
     suggestedFilterLanguages
-    ...PersonalTimeline_posts @arguments(locale: $locale, languages: $languages, postType: ARTICLE)
+    ...PersonalTimeline_posts @arguments(
+      actingAccountId: $actingAccountId,
+      locale: $locale,
+      languages: $languages,
+      postType: ARTICLE
+    )
   }
 `;
 
 const loadArticlesFeedTimelineQuery = routePreloadedQuery(
-  (locale: string, languages: readonly string[]) =>
+  (
+    locale: string,
+    languages: readonly string[],
+    actingAccountId: string | null,
+  ) =>
     loadQuery<articlesFeedTimelineQuery>(
       useRelayEnvironment()(),
       articlesFeedTimelineQuery,
-      { locale, languages },
+      { locale, languages, actingAccountId },
       getTimelinePageQueryLoadOptions(
         TIMELINE_PAGE_QUERY_CACHE_KEYS.feedArticles,
       ),
@@ -62,15 +76,18 @@ const loadArticlesFeedTimelineQuery = routePreloadedQuery(
 
 function AuthenticatedArticlesFeedTimeline() {
   const { i18n } = useLingui();
+  const actingAccount = useActingAccount();
   const { activeLanguage, initialLang, buildHref } = useLanguageFilter(
     "/feed/articles",
   );
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
   const data = createStablePreloadedQuery<articlesFeedTimelineQuery>(
     articlesFeedTimelineQuery,
     () =>
       loadArticlesFeedTimelineQuery(
         i18n.locale,
         initialLang ? [initialLang] : [],
+        actingAccountId() ?? null,
       ),
   );
 
@@ -97,6 +114,7 @@ function AuthenticatedArticlesFeedTimeline() {
           </Show>
           <PersonalTimeline
             $posts={d}
+            actingAccountId={actingAccountId}
             activeLanguage={activeLanguage}
             postType="ARTICLE"
           />
