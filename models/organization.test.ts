@@ -1,5 +1,6 @@
 import assert from "node:assert";
 import test from "node:test";
+import { Organization, Update } from "@fedify/vocab";
 import { eq, sql } from "drizzle-orm";
 import {
   acceptOrganizationConversion,
@@ -21,6 +22,7 @@ import {
   insertAccountWithActor,
   withRollback,
 } from "../test/postgres.ts";
+import type { Uuid } from "./uuid.ts";
 
 test("createOrganization() consumes one invitation and creates an Organization actor", async () => {
   await withRollback(async (tx) => {
@@ -282,6 +284,64 @@ test("acceptOrganizationConversion() preserves inviter and removes direct login 
       .from(accountEmailTable)
       .where(eq(accountEmailTable.accountId, converted.id));
     assert.equal(emails.length, 0);
+  });
+});
+
+test("acceptOrganizationConversion() sends Update(Organization) to followers", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "convertfederate",
+      name: "Convert Federate",
+      email: "convertfederate@example.com",
+    });
+    const admin = await insertAccountWithActor(tx, {
+      username: "convertfederateadmin",
+      name: "Convert Federate Admin",
+      email: "convertfederateadmin@example.com",
+    });
+    const request = await requestOrganizationConversion(
+      tx,
+      account.account,
+      admin.account.username,
+      account.account.username,
+    );
+    const baseFedCtx = createFedCtx(tx);
+    const sent: { recipient: unknown; activity: unknown }[] = [];
+    const fedCtx = {
+      ...baseFedCtx,
+      async getActor(identifier: string) {
+        const stored = await tx.query.accountTable.findFirst({
+          where: { id: identifier as Uuid },
+        });
+        assert.ok(stored != null);
+        assert.equal(stored?.kind, "organization");
+        return new Organization({
+          id: baseFedCtx.getActorUri(identifier),
+          preferredUsername: stored.username,
+        });
+      },
+      sendActivity(_sender: unknown, recipient: unknown, activity: unknown) {
+        sent.push({ recipient, activity });
+        return Promise.resolve(undefined);
+      },
+    } as typeof baseFedCtx;
+
+    await acceptOrganizationConversion(fedCtx, admin.account, request.id);
+
+    assert.equal(sent.length, 1);
+    assert.equal(sent[0].recipient, "followers");
+    const activity = sent[0].activity;
+    assert.ok(activity instanceof Update);
+    assert.equal(
+      activity.actorId?.href,
+      fedCtx.getActorUri(account.account.id).href,
+    );
+    const object = await activity.getObject({
+      ...fedCtx,
+      suppressError: true,
+    });
+    assert.ok(object instanceof Organization);
+    assert.equal(object.id?.href, fedCtx.getActorUri(account.account.id).href);
   });
 });
 

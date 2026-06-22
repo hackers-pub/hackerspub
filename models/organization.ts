@@ -1,5 +1,6 @@
-import type { Context } from "@fedify/fedify";
+import type { Context, RequestContext } from "@fedify/fedify";
 import { and, count, eq, gt, isNotNull, isNull, sql } from "drizzle-orm";
+import { sendAccountActorUpdate } from "./account.ts";
 import { syncActorFromAccount } from "./actor.ts";
 import type { ContextData } from "./context.ts";
 import type { Database, Transaction } from "./db.ts";
@@ -540,7 +541,7 @@ async function createOrganizationConversionRequestNotification(
 }
 
 export async function acceptOrganizationConversion(
-  fedCtx: Context<ContextData>,
+  fedCtx: RequestContext<ContextData>,
   adminAccount: Pick<Account, "id" | "kind">,
   requestId: Uuid,
 ): Promise<
@@ -555,7 +556,7 @@ export async function acceptOrganizationConversion(
     throw new OrganizationConversionError("Only personal accounts can accept.");
   }
   const db = fedCtx.data.db;
-  return await runInTransaction(db, async (tx) => {
+  const organization = await runInTransaction(db, async (tx) => {
     const request = await tx.query.organizationConversionRequestTable.findFirst(
       {
         where: {
@@ -632,6 +633,8 @@ export async function acceptOrganizationConversion(
     const actor = await syncActorFromAccount(txFedCtx, organization);
     return { ...organization, actor };
   });
+  await sendAccountActorUpdate(fedCtx, organization.id, organization.updated);
+  return organization;
 }
 
 export async function resolveActingAccount(

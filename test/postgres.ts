@@ -1,5 +1,6 @@
 import { assert } from "@std/assert/assert";
 import type { RequestContext } from "@fedify/fedify";
+import { Organization, Person } from "@fedify/vocab";
 import { sql } from "drizzle-orm";
 import type { ContextData } from "@hackerspub/models/context";
 import type { Transaction } from "@hackerspub/models/db";
@@ -553,6 +554,20 @@ export function createFedCtx(
     },
     getFeaturedUri(identifier: string) {
       return new URL(`/actors/${identifier}/featured`, "http://localhost/");
+    },
+    async getActor(identifier: string) {
+      const account = await tx.query.accountTable.findFirst({
+        where: { id: identifier as Uuid },
+        columns: { id: true, kind: true, username: true },
+      });
+      if (account == null) return null;
+      const ActorClass = account.kind === "organization"
+        ? Organization
+        : Person;
+      return new ActorClass({
+        id: new URL(`/actors/${identifier}`, "http://localhost/"),
+        preferredUsername: account.username,
+      });
     },
     getObjectUri(_type: unknown, values: Record<string, string>) {
       if ("id" in values) {
