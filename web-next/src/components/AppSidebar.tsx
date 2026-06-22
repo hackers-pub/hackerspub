@@ -535,7 +535,7 @@ function ActingAccountMenu() {
   const menuContentWidth = () => {
     const width = triggerWidth();
     if (width == null) return undefined;
-    return `${Math.max(width, 240)}px`;
+    return `${Math.max(width + 1, 240)}px`;
   };
   const setTriggerElement = (element: HTMLElement) => {
     triggerResizeObserver?.disconnect();
