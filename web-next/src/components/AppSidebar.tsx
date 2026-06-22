@@ -568,6 +568,13 @@ function ActingAccountMenu() {
                       class="gap-2"
                     >
                       <ActingAccountMenuOptionRow option={option} />
+                      <Show
+                        when={option.key !== actingAccount.selectedKey()}
+                      >
+                        <AlignedOrganizationNotificationBadge
+                          badge={option.badge}
+                        />
+                      </Show>
                     </DropdownMenuRadioItem>
                   )}
                 </For>
@@ -613,7 +620,6 @@ function ActingAccountMenuOptionRow(props: {
           {accountHandle(props.option.account)}
         </span>
       </span>
-      <OrganizationNotificationBadge badge={props.option.badge} />
     </span>
   );
 }
@@ -645,6 +651,28 @@ function OrganizationNotificationBadge(props: {
         classList={{
           "bg-red-500 text-white": badge()!.color === "RED",
           "bg-muted-foreground/25 text-sidebar-foreground":
+            badge()!.color !== "RED",
+        }}
+      >
+        {badge()!.count > 99 ? "99+" : badge()!.count}
+      </span>
+    </Show>
+  );
+}
+
+function AlignedOrganizationNotificationBadge(props: {
+  badge?: ActingOrganizationNotificationBadge | null;
+}) {
+  const badge = () => props.badge;
+
+  return (
+    <Show when={badge() != null && badge()!.count > 0}>
+      <span
+        aria-hidden="true"
+        class="pointer-events-none absolute right-2 top-1/2 flex h-4 min-w-4 -translate-y-1/2 items-center justify-center rounded-full px-1 text-[0.625rem] font-semibold leading-none"
+        classList={{
+          "bg-red-500 text-white": badge()!.color === "RED",
+          "bg-muted-foreground/25 text-popover-foreground":
             badge()!.color !== "RED",
         }}
       >
