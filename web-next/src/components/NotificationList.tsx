@@ -113,6 +113,7 @@ export function NotificationList(props: NotificationListProps) {
       environment(),
       NotificationListUnreadNotificationsQuery,
       {},
+      { fetchPolicy: "network-only" },
     ).subscribe({});
   }
 
@@ -127,8 +128,9 @@ export function NotificationList(props: NotificationListProps) {
       markOrganizationNotificationsAsRead({
         variables: {
           organizationId: readScope.organizationId,
-          readAt: readThrough.created,
         },
+        // Organization notification edges can be coalesced, so the edge
+        // timestamp is not a safe upper bound for the underlying rows.
         onCompleted: refreshUnreadNotificationsCount,
       });
     } else {
