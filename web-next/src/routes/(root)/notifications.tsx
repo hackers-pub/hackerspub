@@ -1,7 +1,11 @@
 import { Navigate } from "@solidjs/router";
 import { graphql } from "relay-runtime";
-import { createMemo, Show } from "solid-js";
-import { loadQuery, useRelayEnvironment } from "solid-relay";
+import { createMemo, For, Show } from "solid-js";
+import {
+  createPreloadedQuery,
+  loadQuery,
+  useRelayEnvironment,
+} from "solid-relay";
 import { ModerationNotificationList } from "~/components/ModerationNotificationList.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NotificationList } from "~/components/NotificationList.tsx";
@@ -14,6 +18,7 @@ import type {
   notificationsPageQuery,
   notificationsPageQuery$data,
 } from "./__generated__/notificationsPageQuery.graphql.ts";
+import type { notificationsOrganizationNotificationsQuery } from "./__generated__/notificationsOrganizationNotificationsQuery.graphql.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,
@@ -26,11 +31,17 @@ const notificationsPageQuery = graphql`
       ...WebPushNotificationSettings_account
       ...ModerationNotificationList_account
       ...NotificationList_notifications
-      organizationMemberships {
-        organization {
-          id
-          ...NotificationList_notifications
-        }
+    }
+  }
+`;
+
+const notificationsOrganizationNotificationsQuery = graphql`
+  query notificationsOrganizationNotificationsQuery($organizationId: ID!) {
+    node(id: $organizationId) {
+      __typename
+      ... on Account {
+        id
+        ...NotificationList_notifications
       }
     }
   }
@@ -93,19 +104,39 @@ interface NotificationsPageContentProps {
 
 function NotificationsPageContent(props: NotificationsPageContentProps) {
   const actingAccount = useActingAccount();
-  const selectedOrganizationAccount = createMemo(() => {
-    const selectedOrganizationId = actingAccount.selectedOrganization()
-      ?.organization.id;
-    if (selectedOrganizationId == null) return null;
-    return props.viewer.organizationMemberships.find((membership) =>
-      membership.organization.id === selectedOrganizationId
-    )?.organization ?? null;
+  const environment = useRelayEnvironment();
+  const selectedOrganizationId = createMemo(() =>
+    actingAccount.selectedOrganization()?.organization.id ?? null
+  );
+  const organizationData = createPreloadedQuery<
+    notificationsOrganizationNotificationsQuery
+  >(
+    notificationsOrganizationNotificationsQuery,
+    () => {
+      const organizationId = selectedOrganizationId();
+      if (organizationId == null) return null;
+      return loadQuery<notificationsOrganizationNotificationsQuery>(
+        environment(),
+        notificationsOrganizationNotificationsQuery,
+        { organizationId },
+        // Organization notification lists also mark the visible range as read,
+        // so avoid reusing a stale connection snapshot here.
+        { fetchPolicy: "network-only" },
+      );
+    },
+  );
+  const organizationAccount = createMemo(() => {
+    const node = organizationData()?.node;
+    return node?.__typename === "Account" &&
+        node.id === selectedOrganizationId()
+      ? node
+      : null;
   });
 
   return (
     <Show
       keyed
-      when={selectedOrganizationAccount()}
+      when={selectedOrganizationId()}
       fallback={
         <PersonalNotificationsPanel
           viewer={props.viewer}
@@ -113,16 +144,24 @@ function NotificationsPageContent(props: NotificationsPageContentProps) {
         />
       }
     >
-      {(organization) => (
-        <div class="flex flex-col gap-4">
-          <NotificationList
-            $account={organization}
-            readScope={{
-              kind: "organization",
-              organizationId: organization.id,
-            }}
-          />
-        </div>
+      {(organizationId) => (
+        <Show
+          keyed
+          when={organizationAccount()}
+          fallback={<NotificationListSkeleton />}
+        >
+          {(organization) => (
+            <div class="flex flex-col gap-4">
+              <NotificationList
+                $account={organization}
+                readScope={{
+                  kind: "organization",
+                  organizationId,
+                }}
+              />
+            </div>
+          )}
+        </Show>
       )}
     </Show>
   );
@@ -137,6 +176,35 @@ function PersonalNotificationsPanel(props: NotificationsPageContentProps) {
       />
       <ModerationNotificationList $account={props.viewer} />
       <NotificationList $account={props.viewer} />
+    </div>
+  );
+}
+
+function NotificationListSkeleton() {
+  return (
+    <div
+      class="overflow-hidden rounded-lg border bg-card shadow-sm"
+      aria-busy="true"
+    >
+      <For each={[0, 1, 2]}>
+        {() => (
+          <div class="border-b p-4 last:border-b-0">
+            <div class="flex gap-3">
+              <div class="size-10 shrink-0 rounded-full bg-muted animate-pulse" />
+              <div class="min-w-0 flex-1 space-y-3">
+                <div class="flex items-center gap-2">
+                  <div class="h-4 w-28 rounded bg-muted animate-pulse" />
+                  <div class="h-3 w-20 rounded bg-muted animate-pulse" />
+                </div>
+                <div class="space-y-2">
+                  <div class="h-4 w-full rounded bg-muted animate-pulse" />
+                  <div class="h-4 w-5/6 rounded bg-muted animate-pulse" />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </For>
     </div>
   );
 }
