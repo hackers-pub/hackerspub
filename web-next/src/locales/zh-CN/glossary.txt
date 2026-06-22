@@ -1,11 +1,13 @@
 account → 账户
 account deletion → 账户删除
+admin → 管理员
 article → 文章
 avatar → 头像
 bio → 个人简介
 block → 屏蔽
 bookmark → 收藏
 comment → 评论
+conversion → 转换
 delete account → 删除账户
 disk object → 磁盘对象
 displayName → 昵称
@@ -26,6 +28,9 @@ mute → 隐藏
 note → 帖子
 notification → 通知
 option → 选项
+organization → 组织
+organization account → 组织账号
+organization conversion → 组织转换
 orphan media → 孤立媒体
 passkey → 通行密钥
 pin → 置顶

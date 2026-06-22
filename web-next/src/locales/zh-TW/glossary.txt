@@ -1,11 +1,13 @@
 account → 帳戶
 account deletion → 帳戶刪除
+admin → 管理員
 article → 文章
 avatar → 頭像
 bio → 個人簡介
 block → 封鎖
 bookmark → 收藏
 comment → 評論
+conversion → 轉換
 delete account → 刪除帳戶
 disk object → 磁碟物件
 displayName → 暱稱
@@ -26,6 +28,9 @@ mute → 靜音
 note → 貼文
 notification → 通知
 option → 選項
+organization → 組織
+organization account → 組織帳號
+organization conversion → 組織轉換
 orphan media → 孤立媒體
 passkey → 通行金鑰
 pin → 釘選

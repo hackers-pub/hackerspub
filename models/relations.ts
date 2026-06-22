@@ -551,6 +551,11 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.customEmojiTable.id,
       optional: true,
     }),
+    organizationConversionRequest: r.one.organizationConversionRequestTable({
+      from: r.notificationTable.organizationConversionRequestId,
+      to: r.organizationConversionRequestTable.id,
+      optional: true,
+    }),
   },
   organizationNotificationReadTable: {
     organization: r.one.accountTable({

@@ -61,6 +61,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
       shared_post_updated: "Post updated",
       quoted_post_updated: "Post updated",
       poll_ended: "Poll ended",
+      organization_conversion_request: "Organization conversion request",
     },
     body: {
       follow: (name: string) => `${name} followed you.`,
@@ -77,6 +78,8 @@ const PUSH_NOTIFICATION_MESSAGES = {
       quoted_post_updated: (name: string) =>
         `${name} updated a post you quoted.`,
       poll_ended: (name: string) => `${name}'s poll ended.`,
+      organization_conversion_request: (name: string) =>
+        `${name} asked you to accept an organization conversion.`,
     },
   },
   "ja-JP": {
@@ -91,6 +94,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
       shared_post_updated: "コンテンツが更新されました",
       quoted_post_updated: "コンテンツが更新されました",
       poll_ended: "投票が終了しました",
+      organization_conversion_request: "組織への変換リクエスト",
     },
     body: {
       follow: (name: string) => `${name}さんがあなたをフォローしました`,
@@ -107,6 +111,8 @@ const PUSH_NOTIFICATION_MESSAGES = {
       quoted_post_updated: (name: string) =>
         `${name}さんがあなたが引用したコンテンツを更新しました`,
       poll_ended: (name: string) => `${name}さんの投票が終了しました`,
+      organization_conversion_request: (name: string) =>
+        `${name}さんが組織への変換の承認を依頼しました`,
     },
   },
   "ko-KR": {
@@ -121,6 +127,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
       shared_post_updated: "콘텐츠가 업데이트됨",
       quoted_post_updated: "콘텐츠가 업데이트됨",
       poll_ended: "투표 종료됨",
+      organization_conversion_request: "조직 전환 요청",
     },
     body: {
       follow: (name: string) => `${name} 님이 팔로했습니다`,
@@ -138,6 +145,8 @@ const PUSH_NOTIFICATION_MESSAGES = {
       quoted_post_updated: (name: string) =>
         `${name} 님이 회원님이 인용한 콘텐츠를 업데이트했습니다`,
       poll_ended: (name: string) => `${name} 님의 투표가 종료되었습니다`,
+      organization_conversion_request: (name: string) =>
+        `${name} 님이 조직 전환 수락을 요청했습니다`,
     },
   },
   "zh-CN": {
@@ -152,6 +161,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
       shared_post_updated: "内容已更新",
       quoted_post_updated: "内容已更新",
       poll_ended: "投票已结束",
+      organization_conversion_request: "组织转换请求",
     },
     body: {
       follow: (name: string) => `${name} 关注了你`,
@@ -166,6 +176,8 @@ const PUSH_NOTIFICATION_MESSAGES = {
       shared_post_updated: (name: string) => `${name} 更新了你转发过的内容`,
       quoted_post_updated: (name: string) => `${name} 更新了你引用过的内容`,
       poll_ended: (name: string) => `${name} 的投票已结束`,
+      organization_conversion_request: (name: string) =>
+        `${name} 请求你接受组织转换`,
     },
   },
   "zh-TW": {
@@ -180,6 +192,7 @@ const PUSH_NOTIFICATION_MESSAGES = {
       shared_post_updated: "內容已更新",
       quoted_post_updated: "內容已更新",
       poll_ended: "投票已結束",
+      organization_conversion_request: "組織轉換請求",
     },
     body: {
       follow: (name: string) => `${name} 關注了你`,
@@ -194,6 +207,8 @@ const PUSH_NOTIFICATION_MESSAGES = {
       shared_post_updated: (name: string) => `${name} 更新了你轉貼過的內容`,
       quoted_post_updated: (name: string) => `${name} 更新了你引用過的內容`,
       poll_ended: (name: string) => `${name} 的投票已結束`,
+      organization_conversion_request: (name: string) =>
+        `${name} 請求你接受組織轉換`,
     },
   },
 } satisfies Record<

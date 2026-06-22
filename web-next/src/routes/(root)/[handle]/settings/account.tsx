@@ -1,4 +1,5 @@
 import { type RouteDefinition, useParams } from "@solidjs/router";
+import { debounce } from "es-toolkit";
 import { fetchQuery, graphql } from "relay-runtime";
 import {
   createEffect,
@@ -6,6 +7,7 @@ import {
   createSignal,
   For,
   Match,
+  onCleanup,
   Show,
   Switch,
 } from "solid-js";
@@ -16,6 +18,7 @@ import IconTrash2 from "~icons/lucide/trash-2";
 import IconUserMinus from "~icons/lucide/user-minus";
 import IconUserPlus from "~icons/lucide/user-plus";
 import IconUsers from "~icons/lucide/users";
+import { ActorHandleAutocomplete } from "~/components/ActorHandleAutocomplete.tsx";
 import { SettingsContainer } from "~/components/SettingsContainer.tsx";
 import { SettingsOwnerGuard } from "~/components/SettingsOwnerGuard.tsx";
 import { SettingsTabs } from "~/components/SettingsTabs.tsx";
@@ -69,11 +72,11 @@ import {
 import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { removeSessionCookie } from "~/lib/sessionActions.ts";
 import type { accountAddMigrationAliasMutation } from "./__generated__/accountAddMigrationAliasMutation.graphql.ts";
-import type { accountAcceptOrganizationConversionMutation } from "./__generated__/accountAcceptOrganizationConversionMutation.graphql.ts";
 import type { accountAcceptOrganizationInvitationMutation } from "./__generated__/accountAcceptOrganizationInvitationMutation.graphql.ts";
 import type { accountCreateOrganizationMutation } from "./__generated__/accountCreateOrganizationMutation.graphql.ts";
 import type { accountDeleteMutation } from "./__generated__/accountDeleteMutation.graphql.ts";
 import type { accountInviteOrganizationMemberMutation } from "./__generated__/accountInviteOrganizationMemberMutation.graphql.ts";
+import type { accountOrganizationConversionAdminLookupQuery } from "./__generated__/accountOrganizationConversionAdminLookupQuery.graphql.ts";
 import type { accountLeaveOrganizationMutation } from "./__generated__/accountLeaveOrganizationMutation.graphql.ts";
 import type { accountOrganizationMembersQuery } from "./__generated__/accountOrganizationMembersQuery.graphql.ts";
 import type { accountPageQuery } from "./__generated__/accountPageQuery.graphql.ts";
@@ -369,7 +372,6 @@ const accountRequestOrganizationConversionMutation = graphql`
       __typename
       ... on RequestOrganizationConversionPayload {
         request {
-          uuid
           admin {
             username
           }
@@ -391,24 +393,14 @@ const accountRequestOrganizationConversionMutation = graphql`
   }
 `;
 
-const accountAcceptOrganizationConversionMutation = graphql`
-  mutation accountAcceptOrganizationConversionMutation($requestId: UUID!) {
-    acceptOrganizationConversion(input: { requestId: $requestId }) {
-      __typename
-      ... on AcceptOrganizationConversionPayload {
-        organization {
-          username
-        }
-      }
-      ... on OrganizationConversionError {
-        message
-      }
-      ... on NotAuthenticatedError {
-        notAuthenticated
-      }
-      ... on NotAuthorizedError {
-        notAuthorized
-      }
+const accountOrganizationConversionAdminLookupQuery = graphql`
+  query accountOrganizationConversionAdminLookupQuery($username: String!) {
+    accountByUsername(username: $username) {
+      id
+      username
+      name
+      avatarUrl
+      kind
     }
   }
 `;
@@ -494,6 +486,10 @@ const accountRemoveOrganizationMemberMutation = graphql`
 
 type AccountPageAccount = NonNullable<
   accountPageQuery["response"]["accountByUsername"]
+>;
+
+type OrganizationConversionAdminAccount = NonNullable<
+  accountOrganizationConversionAdminLookupQuery["response"]["accountByUsername"]
 >;
 
 type AccountPageViewer = NonNullable<accountPageQuery["response"]["viewer"]>;
@@ -601,9 +597,6 @@ const ORGANIZATION_ROLE_OPTIONS: OrganizationMemberRole[] = [
   "MEMBER",
   "ADMIN",
 ];
-
-type OrganizationConversionRequestId =
-  accountAcceptOrganizationConversionMutation["variables"]["requestId"];
 
 type OrganizationMembershipSummary =
   AccountPageViewer["organizationMemberships"][number];
@@ -1003,35 +996,92 @@ function OrganizationMembershipList(props: {
   );
 }
 
+function accountAvatarInitials(account: {
+  readonly name: string;
+  readonly username: string;
+}) {
+  const name = (account.name.trim() || account.username).trim();
+  const parts = name.split(/[\s_-]+/).filter((part) => part.length > 0);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 function OrganizationConversionForms(props: { account: AccountPageAccount }) {
   const { t } = useLingui();
+  const environment = useRelayEnvironment();
   const [adminUsername, setAdminUsername] = createSignal("");
+  const [selectedAdmin, setSelectedAdmin] = createSignal<
+    OrganizationConversionAdminAccount | null
+  >(null);
   const [confirmation, setConfirmation] = createSignal("");
-  const [requestUuid, setRequestUuid] = createSignal("");
   const [requesting, setRequesting] = createSignal(false);
-  const [acceptRequestId, setAcceptRequestId] = createSignal("");
-  const [accepting, setAccepting] = createSignal(false);
   const [requestConversion] = createMutation<
     accountRequestOrganizationConversionMutation
   >(accountRequestOrganizationConversionMutation);
-  const [acceptConversion] = createMutation<
-    accountAcceptOrganizationConversionMutation
-  >(accountAcceptOrganizationConversionMutation);
+  let adminLookupRequest = 0;
+  const lookupAdmin = debounce((username: string, requestId: number) => {
+    fetchQuery<accountOrganizationConversionAdminLookupQuery>(
+      environment(),
+      accountOrganizationConversionAdminLookupQuery,
+      { username },
+    ).subscribe({
+      next(data) {
+        if (requestId !== adminLookupRequest) return;
+        const account = data.accountByUsername;
+        setSelectedAdmin(account?.kind === "PERSONAL" ? account : null);
+      },
+      error() {
+        if (requestId !== adminLookupRequest) return;
+        setSelectedAdmin(null);
+      },
+    });
+  }, 150);
   const canRequest = createMemo(() =>
     adminUsername().trim() !== "" &&
     confirmation().trim().toLowerCase() ===
       props.account.username.toLowerCase() &&
     !requesting()
   );
-  const canAccept = createMemo(() =>
-    acceptRequestId().trim() !== "" && !accepting()
-  );
+
+  function onAdminUsernameInput(value: string) {
+    const username = value.trim().replace(/^@/, "");
+    setAdminUsername(username);
+    adminLookupRequest += 1;
+    lookupAdmin.cancel();
+    if (username === "") {
+      setSelectedAdmin(null);
+      return;
+    }
+    lookupAdmin(username, adminLookupRequest);
+  }
+
+  function selectAdminAccount(account: OrganizationConversionAdminAccount) {
+    adminLookupRequest += 1;
+    lookupAdmin.cancel();
+    setAdminUsername(account.username);
+    setSelectedAdmin(account);
+  }
+
+  function selectedAdminAvatar() {
+    const admin = selectedAdmin();
+    if (admin == null) return undefined;
+    return (
+      <Avatar class="size-6">
+        <AvatarImage src={admin.avatarUrl} />
+        <AvatarFallback class="text-[10px]">
+          {accountAvatarInitials(admin)}
+        </AvatarFallback>
+      </Avatar>
+    );
+  }
+
+  onCleanup(() => lookupAdmin.cancel());
 
   function onRequest(event: SubmitEvent) {
     event.preventDefault();
     if (!canRequest()) return;
     setRequesting(true);
-    setRequestUuid("");
     requestConversion({
       variables: {
         accountId: props.account.id,
@@ -1042,11 +1092,10 @@ function OrganizationConversionForms(props: { account: AccountPageAccount }) {
         setRequesting(false);
         const result = response.requestOrganizationConversion;
         if (result?.__typename === "RequestOrganizationConversionPayload") {
-          setRequestUuid(result.request.uuid);
           showToast({
             title: t`Conversion request created`,
             description:
-              t`Give the request ID to ${result.request.admin.username}.`,
+              t`${result.request.admin.username} will receive a notification to review it.`,
           });
           return;
         }
@@ -1072,48 +1121,6 @@ function OrganizationConversionForms(props: { account: AccountPageAccount }) {
     });
   }
 
-  function onAccept(event: SubmitEvent) {
-    event.preventDefault();
-    if (!canAccept()) return;
-    setAccepting(true);
-    acceptConversion({
-      variables: {
-        requestId: acceptRequestId().trim() as OrganizationConversionRequestId,
-      },
-      onCompleted(response) {
-        setAccepting(false);
-        const result = response.acceptOrganizationConversion;
-        if (result?.__typename === "AcceptOrganizationConversionPayload") {
-          showToast({
-            title: t`Account converted`,
-            description:
-              t`You are now an admin of ${result.organization.username}.`,
-          });
-          location.assign(`/@${result.organization.username}/settings/account`);
-          return;
-        }
-        showToast({
-          title: t`Could not accept conversion`,
-          description: result != null && "message" in result
-            ? result.message
-            : t`Check the request ID, then try again.`,
-          variant: "error",
-        });
-      },
-      onError(error) {
-        console.error(error);
-        setAccepting(false);
-        showToast({
-          title: t`Could not accept conversion`,
-          description:
-            t`The conversion request could not be accepted. Please try again.` +
-            (import.meta.env.DEV ? `\n\n${error.message}` : ""),
-          variant: "error",
-        });
-      },
-    });
-  }
-
   return (
     <div class="flex flex-col gap-6">
       <div class="rounded-md border border-destructive/35 bg-destructive/5 p-4 text-sm">
@@ -1127,18 +1134,24 @@ function OrganizationConversionForms(props: { account: AccountPageAccount }) {
 
       <form class="flex flex-col gap-4" onSubmit={onRequest}>
         <div class="grid gap-4 sm:grid-cols-2">
-          <TextField value={adminUsername()} onChange={setAdminUsername}>
-            <TextFieldLabel>{t`New admin username`}</TextFieldLabel>
-            <TextFieldInput
-              autocomplete="off"
-              autocapitalize="none"
-              disabled={requesting()}
-              placeholder={t`username`}
-            />
-            <TextFieldDescription>
-              {t`This personal account will accept the request and become the first organization admin.`}
-            </TextFieldDescription>
-          </TextField>
+          <ActorHandleAutocomplete
+            inputId="organization-conversion-admin-username"
+            label={t`New admin username`}
+            placeholder={t`username`}
+            value={adminUsername()}
+            disabled={requesting()}
+            localAccountsOnly
+            accountKind="PERSONAL"
+            suggestionIdentifier="username"
+            leading={selectedAdminAvatar()}
+            description={t`This personal account will accept the request and become the first organization admin.`}
+            onInput={onAdminUsernameInput}
+            onSelect={(actor) => {
+              const account = actor.account;
+              if (account == null || account.kind !== "PERSONAL") return;
+              selectAdminAccount(account);
+            }}
+          />
           <TextField value={confirmation()} onChange={setConfirmation}>
             <TextFieldLabel>{t`Current username`}</TextFieldLabel>
             <TextFieldInput
@@ -1158,37 +1171,10 @@ function OrganizationConversionForms(props: { account: AccountPageAccount }) {
             {requesting() ? t`Requesting…` : t`Request conversion`}
           </Button>
         </div>
-        <Show when={requestUuid() !== ""}>
-          <div class="rounded-md border bg-muted/40 p-3 text-sm">
-            <p class="font-medium">{t`Conversion request ID`}</p>
-            <code class="mt-2 block break-all rounded bg-background px-2 py-1 text-xs text-muted-foreground">
-              {requestUuid()}
-            </code>
-          </div>
-        </Show>
+        <p class="text-sm text-muted-foreground">
+          {t`The accepting admin will receive a notification with a review link.`}
+        </p>
       </form>
-
-      <div class="border-t pt-5">
-        <form class="flex flex-col gap-4" onSubmit={onAccept}>
-          <TextField value={acceptRequestId()} onChange={setAcceptRequestId}>
-            <TextFieldLabel>{t`Accept conversion request`}</TextFieldLabel>
-            <TextFieldInput
-              autocomplete="off"
-              disabled={accepting()}
-              placeholder={t`Request ID`}
-            />
-            <TextFieldDescription>
-              {t`Paste a conversion request ID that names you as the accepting admin.`}
-            </TextFieldDescription>
-          </TextField>
-          <div>
-            <Button type="submit" disabled={!canAccept()}>
-              <IconCheck />
-              {accepting() ? t`Accepting…` : t`Accept conversion`}
-            </Button>
-          </div>
-        </form>
-      </div>
     </div>
   );
 }

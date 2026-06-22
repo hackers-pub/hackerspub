@@ -285,6 +285,46 @@ test("acceptOrganizationConversion() preserves inviter and removes direct login 
   });
 });
 
+test("requestOrganizationConversion() notifies the accepting admin", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "conversionnotify",
+      name: "Conversion Notify",
+      email: "conversionnotify@example.com",
+    });
+    const admin = await insertAccountWithActor(tx, {
+      username: "conversionnotifyadmin",
+      name: "Conversion Notify Admin",
+      email: "conversionnotifyadmin@example.com",
+    });
+
+    const first = await requestOrganizationConversion(
+      tx,
+      account.account,
+      admin.account.username,
+      account.account.username,
+    );
+    const second = await requestOrganizationConversion(
+      tx,
+      account.account,
+      admin.account.username,
+      account.account.username,
+    );
+
+    assert.equal(second.id, first.id);
+    const notifications = await tx.query.notificationTable.findMany({
+      where: {
+        accountId: admin.account.id,
+        type: "organization_conversion_request",
+      },
+    });
+    assert.equal(notifications.length, 1);
+    assert.equal(notifications[0].organizationConversionRequestId, first.id);
+    assert.deepEqual(notifications[0].actorIds, [account.actor.id]);
+    assert.equal(notifications[0].postId, null);
+  });
+});
+
 test("acceptOrganizationConversion() rejects accounts that still belong to organizations", async () => {
   await withRollback(async (tx) => {
     const admin = await insertAccountWithActor(tx, {

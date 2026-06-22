@@ -1,11 +1,13 @@
 account → 계정
 account deletion → 계정 삭제
+admin → 관리자
 article → 게시글
 avatar → 프로필 사진
 bio → 약력
 block → 차단
 bookmark → 북마크
 comment → 댓글
+conversion → 전환
 delete account → 계정 삭제
 disk object → 디스크 객체
 displayName → 이름
@@ -26,6 +28,9 @@ mute → 뮤트
 note → 단문
 notification → 알림
 option → 선택지
+organization → 조직
+organization account → 조직 계정
+organization conversion → 조직 전환
 orphan media → 연결되지 않은 미디어
 passkey → 패스키
 pin → 고정

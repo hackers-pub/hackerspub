@@ -25,6 +25,7 @@ import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { Account } from "./account.ts";
 import { builder, type UserContext } from "./builder.ts";
 import { InvalidInputError, NotAuthorizedError } from "./error.ts";
+import { OrganizationConversionRequestRef } from "./organization-conversion-request.ts";
 import { NotAuthenticatedError } from "./session.ts";
 
 type AccountForGraphql = AccountRow & {
@@ -269,12 +270,6 @@ OrganizationMembershipRef.implement({
   }),
 });
 
-const OrganizationConversionRequestRef = builder.objectRef<
-  OrganizationConversionRequest
->(
-  "OrganizationConversionRequest",
-);
-
 OrganizationConversionRequestRef.implement({
   description:
     "Pending or accepted request to convert one personal `Account` into an " +
@@ -327,6 +322,41 @@ async function loadAccount(
   }
   return account as AccountRow & { actor: NonNullable<unknown> };
 }
+
+builder.queryField("organizationConversionRequest", (t) =>
+  t.field({
+    type: OrganizationConversionRequestRef,
+    nullable: true,
+    description:
+      "Look up an organization conversion request for the authenticated " +
+      "account. Only the account being converted, the designated accepting " +
+      "admin, and moderators can read it; other viewers receive `null`.",
+    args: {
+      id: t.arg({
+        type: "UUID",
+        required: true,
+        description:
+          "UUID of the `OrganizationConversionRequest` to display or accept.",
+      }),
+    },
+    async resolve(_root, args, ctx) {
+      const viewer = ctx.account;
+      if (viewer == null) return null;
+      const request = await ctx.db.query.organizationConversionRequestTable
+        .findFirst({
+          where: { id: args.id as Uuid },
+        });
+      if (request == null) return null;
+      if (
+        !viewer.moderator &&
+        request.accountId !== viewer.id &&
+        request.adminAccountId !== viewer.id
+      ) {
+        return null;
+      }
+      return request;
+    },
+  }));
 
 async function requirePersonalAccount(ctx: UserContext) {
   const session = await ctx.session;

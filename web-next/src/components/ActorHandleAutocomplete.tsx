@@ -1,6 +1,6 @@
 import { debounce } from "es-toolkit";
 import { fetchQuery, graphql } from "relay-runtime";
-import { createSignal, For, onCleanup, Show } from "solid-js";
+import { createSignal, For, type JSX, onCleanup, Show } from "solid-js";
 import { useRelayEnvironment } from "solid-relay";
 import {
   Avatar,
@@ -9,6 +9,7 @@ import {
 } from "~/components/ui/avatar.tsx";
 import {
   TextField,
+  TextFieldDescription,
   TextFieldInput,
   TextFieldLabel,
 } from "~/components/ui/text-field.tsx";
@@ -19,13 +20,21 @@ import type {
 } from "./__generated__/ActorHandleAutocompleteQuery.graphql.ts";
 
 const actorHandleAutocompleteQuery = graphql`
-  query ActorHandleAutocompleteQuery($prefix: String!) {
-    searchActorsByHandle(prefix: $prefix, limit: 8) {
+  query ActorHandleAutocompleteQuery($prefix: String!, $limit: Int = 8) {
+    searchActorsByHandle(prefix: $prefix, limit: $limit) {
       uuid
       handle
+      username
       rawName
       avatarUrl
       avatarInitials
+      account {
+        id
+        username
+        name
+        avatarUrl
+        kind
+      }
     }
   }
 `;
@@ -33,6 +42,8 @@ const actorHandleAutocompleteQuery = graphql`
 type ActorSuggestion = NonNullable<
   ActorHandleAutocompleteQuery$data["searchActorsByHandle"]
 >[number];
+
+export type ActorHandleAutocompleteActor = ActorSuggestion;
 
 /** The branded UUID type Relay generates for the `UUID` scalar. */
 export type Uuid = ActorSuggestion["uuid"];
@@ -47,10 +58,20 @@ export interface ActorHandleAutocompleteProps {
   readonly placeholder?: string;
   readonly disabled?: boolean;
   readonly class?: string;
+  /** Keep suggestions to actors backed by a local account. */
+  readonly localAccountsOnly?: boolean;
+  /** Keep suggestions to a specific local account kind. */
+  readonly accountKind?: "PERSONAL" | "ORGANIZATION";
+  /** Prefer a local username over a fediverse handle in the suggestion row. */
+  readonly suggestionIdentifier?: "handle" | "username";
+  /** Optional content inside the input, before the typed value. */
+  readonly leading?: JSX.Element;
+  /** Optional helper text rendered under the input. */
+  readonly description?: JSX.Element;
   /** Called as the moderator types (a manual edit, not a suggestion pick). */
   onInput(value: string): void;
   /** Called when a suggestion is chosen; carries the resolved actor. */
-  onSelect(actor: { uuid: Uuid; handle: string }): void;
+  onSelect(actor: ActorHandleAutocompleteActor): void;
 }
 
 /**
@@ -75,14 +96,22 @@ export function ActorHandleAutocomplete(props: ActorHandleAutocompleteProps) {
   let blurTimer: ReturnType<typeof setTimeout> | undefined;
 
   const runSearch = debounce((prefix: string, id: number) => {
+    const limit = props.localAccountsOnly || props.accountKind != null ? 25 : 8;
     fetchQuery<ActorHandleAutocompleteQuery>(
       environment(),
       actorHandleAutocompleteQuery,
-      { prefix },
+      { prefix, limit },
     ).subscribe({
       next(data) {
         if (id !== requestId) return;
-        const actors = data.searchActorsByHandle ?? [];
+        const actors = (data.searchActorsByHandle ?? []).filter((actor) => {
+          if (!props.localAccountsOnly && props.accountKind == null) {
+            return true;
+          }
+          if (actor.account == null) return false;
+          return props.accountKind == null ||
+            actor.account.kind === props.accountKind;
+        });
         setSuggestions(actors);
         setActiveIndex(0);
         setOpen(actors.length > 0);
@@ -113,7 +142,16 @@ export function ActorHandleAutocomplete(props: ActorHandleAutocompleteProps) {
     runSearch.cancel();
     setOpen(false);
     setSuggestions([]);
-    props.onSelect({ uuid: actor.uuid, handle: actor.handle });
+    props.onSelect(actor);
+  }
+
+  function actorIdentifier(actor: ActorSuggestion) {
+    if (
+      props.suggestionIdentifier === "username" && actor.account != null
+    ) {
+      return actor.account.username;
+    }
+    return actor.handle;
   }
 
   function onKeyDown(event: KeyboardEvent) {
@@ -152,9 +190,15 @@ export function ActorHandleAutocomplete(props: ActorHandleAutocompleteProps) {
     <TextField class={cn("grid gap-1.5", props.class)}>
       <TextFieldLabel for={props.inputId}>{props.label}</TextFieldLabel>
       <div class="relative">
+        <Show when={props.leading}>
+          <span class="pointer-events-none absolute left-3 top-1/2 z-10 flex size-6 -translate-y-1/2 items-center justify-center">
+            {props.leading}
+          </span>
+        </Show>
         <TextFieldInput
           id={props.inputId}
           type="text"
+          class={cn(props.leading != null && "pl-11")}
           autocomplete="off"
           role="combobox"
           aria-expanded={open()}
@@ -212,7 +256,7 @@ export function ActorHandleAutocomplete(props: ActorHandleAutocompleteProps) {
                       </span>
                     </Show>
                     <span class="block truncate font-mono text-xs text-muted-foreground">
-                      {actor.handle}
+                      {actorIdentifier(actor)}
                     </span>
                   </span>
                 </li>
@@ -221,6 +265,9 @@ export function ActorHandleAutocomplete(props: ActorHandleAutocompleteProps) {
           </ul>
         </Show>
       </div>
+      <Show when={props.description}>
+        <TextFieldDescription>{props.description}</TextFieldDescription>
+      </Show>
     </TextField>
   );
 }

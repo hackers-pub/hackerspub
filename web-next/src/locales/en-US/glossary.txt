@@ -1,11 +1,13 @@
 account → account
 account deletion → account deletion
+admin → admin
 article → article
 avatar → avatar
 bio → bio
 block → block
 bookmark → bookmark
 comment → comment
+conversion → conversion
 delete account → delete account
 disk object → disk object
 displayName → name
@@ -26,6 +28,9 @@ mute → mute
 note → note
 notification → notification
 option → option
+organization → organization
+organization account → organization account
+organization conversion → organization conversion
 orphan media → orphan media
 passkey → passkey
 pin → pin

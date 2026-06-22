@@ -3176,6 +3176,11 @@ enum NotificationType {
   """Someone @-mentioned this account in a post."""
   MENTION
 
+  """
+  A personal account asked this account to accept its conversion into an organization account.
+  """
+  ORGANIZATION_CONVERSION_REQUEST
+
   """A `Question` poll this account authored or voted in has ended."""
   POLL_ENDED
 
@@ -3230,6 +3235,22 @@ type OrganizationConversionRequest {
   created: DateTime!
 
   """Stable UUID for accepting this conversion request."""
+  uuid: UUID!
+}
+
+"""
+Notification asking the account holder to accept another account's irreversible conversion into an organization account.
+"""
+type OrganizationConversionRequestNotification implements Node & Notification {
+  account: Account!
+  actors(after: String, before: String, first: Int, last: Int): NotificationActorsConnection!
+  created: DateTime!
+  id: ID!
+
+  """
+  The conversion request that can be accepted by this notification's recipient.
+  """
+  request: OrganizationConversionRequest!
   uuid: UUID!
 }
 
@@ -4198,6 +4219,14 @@ type Query {
   ): PostLink
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
+
+  """
+  Look up an organization conversion request for the authenticated account. Only the account being converted, the designated accepting admin, and moderators can read it; other viewers receive `null`.
+  """
+  organizationConversionRequest(
+    """UUID of the `OrganizationConversionRequest` to display or accept."""
+    id: UUID!
+  ): OrganizationConversionRequest
 
   """
   Moderator-only orphan media preview.  Returns null when the viewer is not a moderator.

@@ -493,13 +493,50 @@ export async function requestOrganizationConversion(
       accepted: { isNull: true },
     },
   });
-  if (pending != null) return pending;
+  if (pending != null) {
+    await createOrganizationConversionRequestNotification(
+      db,
+      account.id,
+      pending.adminAccountId,
+      pending.id,
+    );
+    return pending;
+  }
   const rows = await db.insert(organizationConversionRequestTable).values({
     id: generateUuidV7(),
     accountId: account.id,
     adminAccountId: admin.id,
   }).returning();
-  return rows[0];
+  const request = rows[0];
+  await createOrganizationConversionRequestNotification(
+    db,
+    account.id,
+    request.adminAccountId,
+    request.id,
+  );
+  return request;
+}
+
+async function createOrganizationConversionRequestNotification(
+  db: Database | Transaction,
+  accountId: Uuid,
+  adminAccountId: Uuid,
+  requestId: Uuid,
+): Promise<void> {
+  const actor = await db.query.actorTable.findFirst({
+    where: { accountId },
+    columns: { id: true },
+  });
+  if (actor == null) {
+    throw new OrganizationConversionError("The converting account is invalid.");
+  }
+  await db.insert(notificationTable).values({
+    id: generateUuidV7(),
+    accountId: adminAccountId,
+    type: "organization_conversion_request",
+    actorIds: [actor.id],
+    organizationConversionRequestId: requestId,
+  }).onConflictDoNothing();
 }
 
 export async function acceptOrganizationConversion(

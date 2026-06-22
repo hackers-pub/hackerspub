@@ -128,6 +128,39 @@ const acceptConversionMutation = parse(`
   }
 `);
 
+const conversionNotificationQuery = parse(`
+  query ConversionNotification($requestId: UUID!) {
+    organizationConversionRequest(id: $requestId) {
+      uuid
+      account { username }
+      admin { username }
+      accepted
+    }
+    viewer {
+      notifications(first: 10) {
+        edges {
+          node {
+            __typename
+            ... on OrganizationConversionRequestNotification {
+              request {
+                uuid
+                account { username }
+                admin { username }
+                accepted
+              }
+              actors(first: 10) {
+                edges {
+                  node { username }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`);
+
 const inviteOrganizationMemberMutation = parse(`
   mutation InviteOrganizationMember($organizationId: ID!, $username: String!) {
     inviteOrganizationMember(input: {
@@ -574,6 +607,48 @@ test("organization conversion request and acceptance turn a personal account int
     );
 
     const requestId = requestData.requestOrganizationConversion.request.uuid;
+    const notificationResult = await execute({
+      schema,
+      document: conversionNotificationQuery,
+      variableValues: { requestId },
+      contextValue: makeUserContext(tx, admin.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(notificationResult.errors, undefined);
+    assert.deepEqual(toPlainJson(notificationResult.data), {
+      organizationConversionRequest: {
+        uuid: requestId,
+        account: { username: "graphqlconvert" },
+        admin: { username: "graphqlconvertadmin" },
+        accepted: null,
+      },
+      viewer: {
+        notifications: {
+          edges: [
+            {
+              node: {
+                __typename: "OrganizationConversionRequestNotification",
+                request: {
+                  uuid: requestId,
+                  account: { username: "graphqlconvert" },
+                  admin: { username: "graphqlconvertadmin" },
+                  accepted: null,
+                },
+                actors: {
+                  edges: [
+                    {
+                      node: { username: "graphqlconvert" },
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+        },
+      },
+    });
+
     const acceptResult = await execute({
       schema,
       document: acceptConversionMutation,

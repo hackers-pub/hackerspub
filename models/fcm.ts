@@ -246,6 +246,8 @@ function getFcmAlert(
       return "A post you quoted was updated.";
     case "poll_ended":
       return "A poll ended.";
+    case "organization_conversion_request":
+      return "You have an organization conversion request.";
     case "react": {
       const emojiText = typeof emoji === "string" ? emoji : emoji?.name;
       return emojiText == null

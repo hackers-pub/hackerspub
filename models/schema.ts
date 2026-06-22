@@ -1950,6 +1950,7 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "quoted_post_updated",
   "react",
   "poll_ended",
+  "organization_conversion_request",
 ]);
 
 export type NotificationType = (typeof notificationTypeEnum.enumValues)[number];
@@ -1973,6 +1974,7 @@ export const notificationTable = pgTable(
     // - When type is 'quoted_post_updated', this is the updated quoted post
     // - When type is 'react', this is the ID of the post being reacted to
     // - When type is 'poll_ended', this is the ended Question post
+    // - When type is 'organization_conversion_request', this is not used
     postId: uuid("post_id")
       .$type<Uuid>()
       .references((): AnyPgColumn => postTable.id, { onDelete: "cascade" }),
@@ -1985,6 +1987,11 @@ export const notificationTable = pgTable(
     customEmojiId: uuid("custom_emoji_id")
       .$type<Uuid>()
       .references((): AnyPgColumn => customEmojiTable.id, {
+        onDelete: "cascade",
+      }),
+    organizationConversionRequestId: uuid("organization_conversion_request_id")
+      .$type<Uuid>()
+      .references((): AnyPgColumn => organizationConversionRequestTable.id, {
         onDelete: "cascade",
       }),
     created: timestamp({ withTimezone: true })
@@ -2004,6 +2011,8 @@ export const notificationTable = pgTable(
       sql`
         CASE ${table.type}
           WHEN 'follow' THEN ${table.postId} IS NULL
+          WHEN 'organization_conversion_request'
+          THEN ${table.postId} IS NULL
           ELSE ${table.postId} IS NOT NULL
         END
       `,
@@ -2019,12 +2028,24 @@ export const notificationTable = pgTable(
         END
       `,
     ),
+    check(
+      "notification_organization_conversion_request_id_check",
+      sql`
+        CASE ${table.type}
+          WHEN 'organization_conversion_request'
+          THEN ${table.organizationConversionRequestId} IS NOT NULL
+          ELSE ${table.organizationConversionRequestId} IS NULL
+        END
+      `,
+    ),
     uniqueIndex()
       .on(table.accountId, table.actorIds)
       .where(sql`${table.type} = 'follow'`),
     uniqueIndex()
       .on(table.accountId, table.type, table.postId)
       .where(sql`${table.type} NOT IN ('follow', 'react')`),
+    uniqueIndex("notification_organization_conversion_request_idx")
+      .on(table.accountId, table.type, table.organizationConversionRequestId),
     uniqueIndex()
       .on(table.accountId, table.postId, table.emoji)
       .where(sql`${table.type} = 'react' AND ${table.customEmojiId} IS NULL`),
