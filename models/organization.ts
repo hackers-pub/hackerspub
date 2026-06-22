@@ -106,13 +106,10 @@ function asTransactionalFedCtx(
   fedCtx: Context<ContextData>,
   tx: Transaction,
 ): Context<ContextData> {
-  return {
-    ...fedCtx,
-    data: {
-      ...fedCtx.data,
-      db: tx,
-    },
-  };
+  return fedCtx.clone({
+    ...fedCtx.data,
+    db: tx,
+  });
 }
 
 function normalizeUsername(username: string): string {

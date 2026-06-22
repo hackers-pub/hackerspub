@@ -525,7 +525,7 @@ export function createFedCtx(
     );
   });
 
-  return {
+  const fedCtx = {
     host: "localhost",
     origin: "http://localhost/",
     canonicalOrigin: "http://localhost/",
@@ -585,7 +585,14 @@ export function createFedCtx(
     sendActivity() {
       return Promise.resolve(undefined);
     },
+    clone(this: RequestContext<ContextData>, data: ContextData) {
+      return {
+        ...this,
+        data,
+      };
+    },
   } as unknown as RequestContext<ContextData>;
+  return fedCtx;
 }
 
 function createNoopAltTextModel(): MockLanguageModelV3 {

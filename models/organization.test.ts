@@ -1,7 +1,14 @@
 import assert from "node:assert";
 import test from "node:test";
+import {
+  exportJwk,
+  generateCryptoKeyPair,
+  MemoryKvStore,
+  type MessageQueue,
+} from "@fedify/fedify";
 import { Organization, Update } from "@fedify/vocab";
 import { eq, sql } from "drizzle-orm";
+import type { ContextData } from "./context.ts";
 import {
   acceptOrganizationConversion,
   acceptOrganizationInvitation,
@@ -14,15 +21,43 @@ import {
 import {
   accountEmailTable,
   accountTable,
+  followingTable,
   notificationTable,
   organizationMembershipTable,
 } from "./schema.ts";
 import {
   createFedCtx,
+  createTestDisk,
+  createTestKv,
   insertAccountWithActor,
+  insertRemoteActor,
   withRollback,
 } from "../test/postgres.ts";
 import type { Uuid } from "./uuid.ts";
+
+let federationBuilderPromise:
+  | Promise<typeof import("../federation/mod.ts").builder>
+  | undefined;
+
+async function getFederationBuilder() {
+  if (federationBuilderPromise == null) {
+    federationBuilderPromise = (async () => {
+      if (Deno.env.get("INSTANCE_ACTOR_KEY") == null) {
+        const { privateKey } = await generateCryptoKeyPair(
+          "RSASSA-PKCS1-v1_5",
+        );
+        Deno.env.set(
+          "INSTANCE_ACTOR_KEY",
+          JSON.stringify(
+            await exportJwk(privateKey),
+          ),
+        );
+      }
+      return (await import("../federation/mod.ts")).builder;
+    })();
+  }
+  return await federationBuilderPromise;
+}
 
 test("createOrganization() consumes one invitation and creates an Organization actor", async () => {
   await withRollback(async (tx) => {
@@ -342,6 +377,73 @@ test("acceptOrganizationConversion() sends Update(Organization) to followers", a
     });
     assert.ok(object instanceof Organization);
     assert.equal(object.id?.href, fedCtx.getActorUri(account.account.id).href);
+  });
+});
+
+test("acceptOrganizationConversion() enqueues Update(Organization) through Fedify", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "convertfedify",
+      name: "Convert Fedify",
+      email: "convertfedify@example.com",
+    });
+    const admin = await insertAccountWithActor(tx, {
+      username: "convertfedifyadmin",
+      name: "Convert Fedify Admin",
+      email: "convertfedifyadmin@example.com",
+    });
+    const follower = await insertRemoteActor(tx, {
+      username: "convertfedifyfollower",
+      name: "Convert Fedify Follower",
+      host: "remote.example",
+    });
+    await tx.insert(followingTable).values({
+      iri: "https://remote.example/follows/convert-fedify",
+      followerId: follower.id,
+      followeeId: account.actor.id,
+      accepted: new Date("2026-04-15T00:00:00.000Z"),
+    });
+    const request = await requestOrganizationConversion(
+      tx,
+      account.account,
+      admin.account.username,
+      account.account.username,
+    );
+    const queued: unknown[] = [];
+    const queue: MessageQueue = {
+      enqueue(message) {
+        queued.push(message);
+        return Promise.resolve();
+      },
+      enqueueMany(messages) {
+        queued.push(...messages);
+        return Promise.resolve();
+      },
+      listen() {
+        return new Promise(() => {});
+      },
+    };
+    const builder = await getFederationBuilder();
+    const federation = await builder.build({
+      kv: new MemoryKvStore(),
+      queue,
+      manuallyStartQueue: true,
+      origin: "http://localhost/",
+    });
+    const { kv } = createTestKv();
+    const fedCtx = federation.createContext(
+      new Request("http://localhost/graphql"),
+      {
+        db: tx,
+        kv,
+        disk: createTestDisk(),
+        models: {} as ContextData["models"],
+      },
+    );
+
+    await acceptOrganizationConversion(fedCtx, admin.account, request.id);
+
+    assert.equal(queued.length, 1);
   });
 });
 
