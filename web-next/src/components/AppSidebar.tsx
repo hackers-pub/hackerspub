@@ -553,7 +553,12 @@ function ActingAccountMenu() {
       when={options().length > 1 && selectedOption() != null}
     >
       <div class="-mx-2 -mb-2 border-t border-sidebar-border group-data-[collapsible=icon]:mx-0 group-data-[collapsible=icon]:mb-0 group-data-[collapsible=icon]:border-t-0">
-        <DropdownMenu modal={false} placement="top-start" gutter={0}>
+        <DropdownMenu
+          modal={false}
+          placement="top-start"
+          gutter={0}
+          overflowPadding={0}
+        >
           <DropdownMenuTrigger
             ref={setTriggerElement}
             class="flex min-h-14 w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-sm outline-none ring-sidebar-ring transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 data-[expanded]:bg-sidebar data-[expanded]:text-sidebar-foreground group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:min-h-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0"
