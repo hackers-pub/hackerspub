@@ -2,6 +2,7 @@ import { graphql } from "relay-runtime";
 import { createMemo, Show } from "solid-js";
 import { createFragment } from "solid-relay";
 import { LinkCreatorAttribution } from "~/components/LinkCreatorAttribution.tsx";
+import { formatPostAuthorText } from "~/components/PostAuthor.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
@@ -28,8 +29,17 @@ export function NewsStoryHeader(props: NewsStoryHeaderProps) {
         article {
           id
           actor {
-            name
+            rawName
             handle
+          }
+          organizationAuthor {
+            attributionMode
+            member {
+              actor {
+                rawName
+                handle
+              }
+            }
           }
         }
         creator {
@@ -119,7 +129,7 @@ export function NewsStoryHeader(props: NewsStoryHeaderProps) {
               <Show keyed when={s.article}>
                 {(article) => (
                   <p class="mt-2 truncate text-sm text-muted-foreground">
-                    {t`By ${article.actor.name || article.actor.handle}`}
+                    {t`By ${formatPostAuthorText(article)}`}
                   </p>
                 )}
               </Show>

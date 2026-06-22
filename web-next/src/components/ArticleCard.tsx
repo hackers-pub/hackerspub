@@ -3,11 +3,6 @@ import { clientOnly } from "@solidjs/start";
 import { graphql } from "relay-runtime";
 import { Accessor, createSignal, Setter, Show } from "solid-js";
 import { createFragment } from "solid-relay";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "~/components/ui/avatar.tsx";
 import { createDeferredRender } from "~/lib/deferredRender.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { useMentionHoverCards } from "~/lib/mentionHoverCards.tsx";
@@ -17,10 +12,10 @@ import {
 } from "./__generated__/ArticleCard_article.graphql.ts";
 import { ArticleCardInternal_article$key } from "./__generated__/ArticleCardInternal_article.graphql.ts";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
-import { ActorHoverCard } from "./ActorHoverCard.tsx";
 import { CensorshipNotice } from "./CensorshipNotice.tsx";
 import { ActorSharer, ActorSharerActor } from "./ActorSharer.tsx";
 import { InternalLink } from "./InternalLink.tsx";
+import { PostAuthorAvatar, PostAuthorLine } from "./PostAuthor.tsx";
 import { PostEngagementBar } from "./PostEngagementBar.tsx";
 import { PostSharer } from "./PostSharer.tsx";
 import { Timestamp } from "./Timestamp.tsx";
@@ -240,14 +235,14 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
         actor {
           name
           handle
-          avatarUrl
-          avatarInitials
           local
           username
           isViewer
           url
           iri
         }
+        ...PostAuthorAvatar_post
+        ...PostAuthorLine_post
         name
         summary
         excerptHtml(maxChars: 800)
@@ -274,46 +269,9 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
       {(article) => (
         <>
           <div class="m-4 mb-0 flex gap-3 sm:gap-4">
-            <ActorHoverCard handle={article.actor.handle} class="shrink-0">
-              <Avatar class="size-12">
-                <InternalLink
-                  href={article.actor.url ?? article.actor.iri}
-                  internalHref={article.actor.local
-                    ? `/@${article.actor.username}`
-                    : `/${article.actor.handle}`}
-                >
-                  <AvatarImage
-                    src={article.actor.avatarUrl}
-                    class="size-12"
-                  />
-                  <AvatarFallback class="size-12">
-                    {article.actor.avatarInitials}
-                  </AvatarFallback>
-                </InternalLink>
-              </Avatar>
-            </ActorHoverCard>
+            <PostAuthorAvatar $post={article} size="large" />
             <div class="flex min-w-0 flex-col">
-              <ActorHoverCard
-                handle={article.actor.handle}
-                class="flex min-w-0 items-baseline gap-x-1"
-              >
-                <Show when={(article.actor.name ?? "").trim() !== ""}>
-                  <InternalLink
-                    innerHTML={article.actor.name ?? ""}
-                    href={article.actor.url ?? article.actor.iri}
-                    internalHref={article.actor.local
-                      ? `/@${article.actor.username}`
-                      : `/${article.actor.handle}`}
-                    class="shrink-0 font-semibold"
-                  />
-                </Show>
-                <span
-                  class="min-w-0 truncate select-all text-muted-foreground"
-                  title={article.actor.handle}
-                >
-                  {article.actor.handle}
-                </span>
-              </ActorHoverCard>
+              <PostAuthorLine $post={article} />
               <div class="flex flex-row items-center gap-1 text-sm text-muted-foreground/70">
                 <Show
                   when={article.actor.local &&

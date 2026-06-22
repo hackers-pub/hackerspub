@@ -31,7 +31,7 @@ import { ActorHoverCard } from "./ActorHoverCard.tsx";
 import { ActorSharer, ActorSharerActor } from "./ActorSharer.tsx";
 import { CensorshipNotice } from "./CensorshipNotice.tsx";
 import { InternalLink } from "./InternalLink.tsx";
-import { PostAvatar } from "./PostAvatar.tsx";
+import { PostAuthorAvatar, PostAuthorLine } from "./PostAuthor.tsx";
 import { PostEngagementBar } from "./PostEngagementBar.tsx";
 import { QuoteTargetPlaceholder } from "./QuoteTargetPlaceholder.tsx";
 import { QuotedPostCard } from "./QuotedPostCard.tsx";
@@ -169,8 +169,9 @@ function QuestionCardContent(props: QuestionCardContentProps) {
           isViewer
           url
           iri
-          ...PostAvatar_actor
         }
+        ...PostAuthorAvatar_post
+        ...PostAuthorLine_post
         poll {
           multiple
           closed
@@ -248,30 +249,10 @@ function QuestionCardContent(props: QuestionCardContentProps) {
     <Show keyed when={question()}>
       {(q) => (
         <div class="flex gap-4">
-          <PostAvatar $actor={q.actor} />
+          <PostAuthorAvatar $post={q} />
           <div class="min-w-0 grow">
             <div class="flex items-center gap-1 flex-wrap">
-              <ActorHoverCard
-                handle={q.actor.handle}
-                class="min-w-0 grow flex flex-wrap items-baseline gap-x-1"
-              >
-                <Show when={(q.actor.name ?? "").trim() !== ""}>
-                  <InternalLink
-                    href={q.actor.url ?? q.actor.iri}
-                    internalHref={q.actor.local
-                      ? `/@${q.actor.username}`
-                      : `/${q.actor.handle}`}
-                    innerHTML={q.actor.name ?? ""}
-                    class="font-semibold"
-                  />
-                </Show>
-                <span
-                  class="min-w-0 truncate select-all text-muted-foreground"
-                  title={q.actor.handle}
-                >
-                  {q.actor.handle}
-                </span>
-              </ActorHoverCard>
+              <PostAuthorLine $post={q} class="grow" />
               <span class="flex items-center text-sm text-muted-foreground/60 gap-1.5">
                 <InternalLink
                   href={q.url ?? q.iri}

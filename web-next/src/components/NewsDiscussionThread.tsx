@@ -12,9 +12,7 @@ import {
   Switch,
 } from "solid-js";
 import { createFragment, useRelayEnvironment } from "solid-relay";
-import { ActorHoverCard } from "~/components/ActorHoverCard.tsx";
-import { InternalLink } from "~/components/InternalLink.tsx";
-import { PostAvatar } from "~/components/PostAvatar.tsx";
+import { PostAuthorAvatar, PostAuthorLine } from "~/components/PostAuthor.tsx";
 import { PostEngagementBar } from "~/components/PostEngagementBar.tsx";
 import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
 import type { QuotePolicy } from "~/components/QuotePolicySelect.tsx";
@@ -139,8 +137,9 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
           url
           iri
           isViewer
-          ...PostAvatar_actor
         }
+        ...PostAuthorAvatar_post
+        ...PostAuthorLine_post
         ...PostEngagementBar_post
       }
     `,
@@ -363,30 +362,14 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
             }}
           >
             <div class="flex gap-3">
-              <PostAvatar $actor={p.actor} />
+              <PostAuthorAvatar $post={p} />
               <div class="min-w-0 grow">
                 <div class="flex min-w-0 flex-wrap items-baseline gap-x-1">
-                  <ActorHoverCard
-                    handle={p.actor.handle}
-                    class="flex min-w-0 flex-wrap items-baseline gap-x-1"
-                  >
-                    <Show when={(p.actor.name ?? "").trim() !== ""}>
-                      <InternalLink
-                        href={p.actor.url ?? p.actor.iri}
-                        internalHref={p.actor.local
-                          ? `/@${p.actor.username}`
-                          : `/${p.actor.handle}`}
-                        innerHTML={p.actor.name ?? ""}
-                        class="font-semibold"
-                      />
-                    </Show>
-                    <span
-                      class="min-w-0 truncate text-sm select-all text-muted-foreground"
-                      title={p.actor.handle}
-                    >
-                      {p.actor.handle}
-                    </span>
-                  </ActorHoverCard>
+                  <PostAuthorLine
+                    $post={p}
+                    class="grow"
+                    handleClass="text-sm"
+                  />
                   <a
                     href={p.url ?? p.iri}
                     class="text-sm text-muted-foreground/70 hover:underline"

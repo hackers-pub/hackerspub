@@ -16,7 +16,7 @@ import { CensorshipNotice } from "./CensorshipNotice.tsx";
 import { LinkPreview } from "./LinkPreview.tsx";
 import { NoteHeader } from "./NoteHeader.tsx";
 import { NoteMedia } from "./NoteMedia.tsx";
-import { PostAvatar } from "./PostAvatar.tsx";
+import { PostAuthorAvatar } from "./PostAuthor.tsx";
 import { PostEngagementBar } from "./PostEngagementBar.tsx";
 import type { PostVisibility } from "./PostVisibilitySelect.tsx";
 import type { QuotePolicy } from "./QuotePolicySelect.tsx";
@@ -58,8 +58,8 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
           username
           handle
           isViewer
-          ...PostAvatar_actor
         }
+        ...PostAuthorAvatar_post
         ...PostEngagementBar_post
         ...NoteMedia_note
         ...LinkPreview_note
@@ -129,7 +129,7 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
     <Show keyed when={note()}>
       {(n) => (
         <div class="flex gap-3 sm:gap-4">
-          <PostAvatar $actor={n.actor} />
+          <PostAuthorAvatar $post={n} />
           <div class="min-w-0 grow">
             <NoteHeader
               $note={n}

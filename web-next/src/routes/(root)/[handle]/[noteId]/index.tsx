@@ -28,7 +28,6 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
-import { ActorHoverCard } from "~/components/ActorHoverCard.tsx";
 import { ArticleCard } from "~/components/ArticleCard.tsx";
 import { InternalLink } from "~/components/InternalLink.tsx";
 import { MutedReplyPlaceholder } from "~/components/MutedReplyPlaceholder.tsx";
@@ -36,7 +35,7 @@ import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NoteCard } from "~/components/NoteCard.tsx";
 import { NoteComposer } from "~/components/NoteComposer.tsx";
 import { NotFoundPage } from "~/components/NotFoundPage.tsx";
-import { PostAvatar } from "~/components/PostAvatar.tsx";
+import { PostAuthorAvatar, PostAuthorLine } from "~/components/PostAuthor.tsx";
 import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
 import { QuestionCard } from "~/components/QuestionCard.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
@@ -754,8 +753,9 @@ function ContextPostCard(props: ContextPostCardProps) {
           url
           iri
           viewerMutes
-          ...PostAvatar_actor
         }
+        ...PostAuthorAvatar_post
+        ...PostAuthorLine_post
       }
     `,
     () => props.$post,
@@ -781,30 +781,10 @@ function ContextPostCard(props: ContextPostCardProps) {
           >
             <article class="border-b px-4 py-3 transition-colors hover:bg-muted/30 last:border-none">
               <div class="flex gap-3 sm:gap-4">
-                <PostAvatar $actor={post.actor} />
+                <PostAuthorAvatar $post={post} />
                 <div class="min-w-0 grow">
                   <div class="flex min-w-0 flex-wrap items-center gap-x-1 gap-y-0.5">
-                    <ActorHoverCard
-                      handle={post.actor.handle}
-                      class="min-w-0 grow flex flex-wrap items-baseline gap-x-1"
-                    >
-                      <Show when={(post.actor.name ?? "").trim() !== ""}>
-                        <InternalLink
-                          href={post.actor.url ?? post.actor.iri}
-                          internalHref={post.actor.local
-                            ? `/@${post.actor.username}`
-                            : `/${post.actor.handle}`}
-                          innerHTML={post.actor.name ?? ""}
-                          class="font-semibold"
-                        />
-                      </Show>
-                      <span
-                        class="min-w-0 truncate select-all text-muted-foreground"
-                        title={post.actor.handle}
-                      >
-                        {post.actor.handle}
-                      </span>
-                    </ActorHoverCard>
+                    <PostAuthorLine $post={post} class="grow" />
                     <span class="flex items-center gap-1.5 text-sm text-muted-foreground/70">
                       <ContextPostLink
                         href={href()}

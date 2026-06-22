@@ -3,6 +3,7 @@ import { graphql } from "relay-runtime";
 import { createMemo, Show } from "solid-js";
 import { createFragment, createMutation } from "solid-relay";
 import { LinkCreatorAttribution } from "~/components/LinkCreatorAttribution.tsx";
+import { formatPostAuthorText } from "~/components/PostAuthor.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import {
   DropdownMenu,
@@ -63,8 +64,17 @@ export function NewsStoryCard(props: NewsStoryCardProps) {
         article {
           id
           actor {
-            name
+            rawName
             handle
+          }
+          organizationAuthor {
+            attributionMode
+            member {
+              actor {
+                rawName
+                handle
+              }
+            }
           }
         }
         creator {
@@ -194,7 +204,7 @@ export function NewsStoryCard(props: NewsStoryCardProps) {
             <Show keyed when={s.article}>
               {(article) => (
                 <p class="mt-1 truncate text-xs text-muted-foreground">
-                  {t`By ${article.actor.name || article.actor.handle}`}
+                  {t`By ${formatPostAuthorText(article)}`}
                 </p>
               )}
             </Show>
