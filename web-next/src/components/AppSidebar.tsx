@@ -155,7 +155,12 @@ export function AppSidebar(props: AppSidebarProps) {
     const account = signedAccount();
     return props.totalUnreadNotificationsCount ??
       (account == null ? 0 : account.unreadNotificationsCount +
-        (account.unreadModerationNotificationCount ?? 0));
+        (account.unreadModerationNotificationCount ?? 0) +
+        account.organizationMemberships.reduce(
+          (total, membership) =>
+            total + (membership.notificationBadge?.count ?? 0),
+          0,
+        ));
   };
 
   async function onSignOut() {
@@ -182,7 +187,7 @@ export function AppSidebar(props: AppSidebarProps) {
   return (
     <Sidebar>
       <UnreadNotificationsFaviconBadge
-        unread={(props.totalUnreadNotificationsCount ?? 0) > 0}
+        unread={unreadNotificationsCount() > 0}
       />
       <SidebarHeader>
         <div class="flex items-center justify-between">

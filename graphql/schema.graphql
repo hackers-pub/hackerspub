@@ -157,7 +157,7 @@ type Account implements Node {
   name: String!
 
   """
-  This account's notifications, newest first. Only visible to the account holder. Notifications whose actor list is empty (e.g., the actor was deleted) are automatically excluded.
+  This account's notifications, newest first. Only visible to the account holder, or to accepted members when this is an organization account. Notifications whose actor list is empty (e.g., the actor was deleted) are automatically excluded.
   """
   notifications(after: String, before: String, first: Int, last: Int): AccountNotificationsConnection!
 

@@ -131,6 +131,25 @@ async function viewerCanManageAccountSettings(
   return membership != null;
 }
 
+async function viewerCanReadAccountNotifications(
+  ctx: UserContext,
+  accountId: Uuid,
+): Promise<boolean> {
+  const session = await ctx.session;
+  if (session == null) return false;
+  if (session.accountId === accountId) return true;
+  const membership = await ctx.db.query.organizationMembershipTable.findFirst({
+    where: {
+      organizationAccountId: accountId,
+      memberAccountId: session.accountId,
+      accepted: { isNotNull: true },
+    },
+    columns: { organizationAccountId: true },
+    with: { organization: { columns: { kind: true } } },
+  });
+  return membership?.organization.kind === "organization";
+}
+
 function parseActorHandle(raw: string): {
   handle: string;
   username: string;
@@ -596,11 +615,11 @@ export const Account = builder.drizzleNode("accountTable", {
       type: Notification,
       description:
         "This account's notifications, newest first. Only visible to " +
-        "the account holder. Notifications whose actor list is empty " +
+        "the account holder, or to accepted members when this is an " +
+        "organization account. Notifications whose actor list is empty " +
         "(e.g., the actor was deleted) are automatically excluded.",
-      authScopes: (parent) => ({
-        selfAccount: parent.id,
-      }),
+      authScopes: async (parent, _args, ctx) =>
+        await viewerCanReadAccountNotifications(ctx, parent.id),
       async resolve(account, args, ctx) {
         return resolveCursorConnection(
           {

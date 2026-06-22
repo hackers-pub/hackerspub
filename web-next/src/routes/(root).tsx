@@ -55,6 +55,11 @@ const RootLayoutQuery = graphql`
       preferAiSummary
       unreadNotificationsCount
       unreadModerationNotificationCount
+      organizationMemberships {
+        notificationBadge {
+          count
+        }
+      }
       actor {
         suspended
       }

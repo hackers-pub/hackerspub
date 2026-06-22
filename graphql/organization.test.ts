@@ -64,6 +64,41 @@ const viewerOrganizationStateQuery = parse(`
   }
 `);
 
+const viewerOrganizationNotificationsQuery = parse(`
+  query ViewerOrganizationNotifications {
+    viewer {
+      organizationMemberships {
+        organization {
+          username
+          notifications(first: 10) {
+            edges {
+              node {
+                uuid
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`);
+
+const accountNotificationsByNodeQuery = parse(`
+  query AccountNotificationsByNode($id: ID!) {
+    node(id: $id) {
+      ... on Account {
+        notifications(first: 10) {
+          edges {
+            node {
+              uuid
+            }
+          }
+        }
+      }
+    }
+  }
+`);
+
 const viewerOrganizationInvitationStateQuery = parse(`
   query ViewerOrganizationInvitationState {
     viewer {
@@ -738,5 +773,112 @@ test("markOrganizationNotificationsAsRead clamps future read markers", async () 
         },
       },
     });
+  });
+});
+
+test("organization members can read organization notifications", async () => {
+  await withRollback(async (tx) => {
+    const admin = await insertAccountWithActor(tx, {
+      username: "graphqlorgnoticeadmin",
+      name: "GraphQL Org Notice Admin",
+      email: "graphqlorgnoticeadmin@example.com",
+    });
+    const actor = await insertAccountWithActor(tx, {
+      username: "graphqlorgnoticeactor",
+      name: "GraphQL Org Notice Actor",
+      email: "graphqlorgnoticeactor@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, admin.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      admin.account,
+      {
+        username: "graphqlorgnotice",
+        name: "GraphQL Org Notice",
+        bio: "",
+      },
+    );
+    const notificationId = crypto.randomUUID();
+    await tx.insert(notificationTable).values({
+      id: notificationId,
+      accountId: organization.id,
+      type: "follow",
+      actorIds: [actor.actor.id],
+    });
+
+    const result = await execute({
+      schema,
+      document: viewerOrganizationNotificationsQuery,
+      contextValue: makeUserContext(tx, admin.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      viewer: {
+        organizationMemberships: [
+          {
+            organization: {
+              username: "graphqlorgnotice",
+              notifications: {
+                edges: [
+                  {
+                    node: {
+                      uuid: notificationId,
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        ],
+      },
+    });
+  });
+});
+
+test("organization notification access does not trust stray personal memberships", async () => {
+  await withRollback(async (tx) => {
+    const recipient = await insertAccountWithActor(tx, {
+      username: "graphqlpersonalnotice",
+      name: "GraphQL Personal Notice",
+      email: "graphqlpersonalnotice@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "graphqlstraymember",
+      name: "GraphQL Stray Member",
+      email: "graphqlstraymember@example.com",
+    });
+    const actor = await insertAccountWithActor(tx, {
+      username: "graphqlstrayactor",
+      name: "GraphQL Stray Actor",
+      email: "graphqlstrayactor@example.com",
+    });
+    await tx.insert(organizationMembershipTable).values({
+      organizationAccountId: recipient.account.id,
+      memberAccountId: member.account.id,
+      role: "member",
+      accepted: new Date(),
+    });
+    await tx.insert(notificationTable).values({
+      id: crypto.randomUUID(),
+      accountId: recipient.account.id,
+      type: "follow",
+      actorIds: [actor.actor.id],
+    });
+
+    const result = await execute({
+      schema,
+      document: accountNotificationsByNodeQuery,
+      variableValues: {
+        id: encodeGlobalID("Account", recipient.account.id),
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.match(String(result.errors?.[0]?.message), /Not authorized/);
   });
 });
