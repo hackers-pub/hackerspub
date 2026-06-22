@@ -517,6 +517,12 @@ function ActingAccountMenu() {
   const selectedOption = () =>
     options().find((option) => option.key === actingAccount.selectedKey()) ??
       options()[0];
+  const hasUnreadUnselectedOrganizationNotifications = () =>
+    options().some((option) =>
+      option.key !== PERSONAL_ACTING_ACCOUNT_KEY &&
+      option.key !== actingAccount.selectedKey() &&
+      (option.badge?.count ?? 0) > 0
+    );
 
   return (
     <Show
@@ -531,10 +537,18 @@ function ActingAccountMenu() {
             }`}
           >
             <ActingAccountMenuTrigger option={selectedOption()!} />
-            <IconChevronsUpDown
-              class="ml-auto size-4 shrink-0 opacity-50 group-data-[collapsible=icon]:hidden"
-              aria-hidden="true"
-            />
+            <span class="relative ml-auto shrink-0 group-data-[collapsible=icon]:hidden">
+              <IconChevronsUpDown
+                class="size-4 opacity-50"
+                aria-hidden="true"
+              />
+              <Show when={hasUnreadUnselectedOrganizationNotifications()}>
+                <span
+                  aria-hidden="true"
+                  class="absolute -right-1 -top-1 size-2 rounded-full bg-red-500 ring-2 ring-sidebar"
+                />
+              </Show>
+            </span>
           </DropdownMenuTrigger>
           <DropdownMenuContent class="w-60 max-w-[calc(100vw-1rem)]">
             <DropdownMenuRadioGroup<string>
