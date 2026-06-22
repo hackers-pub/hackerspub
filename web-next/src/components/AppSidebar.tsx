@@ -1,12 +1,21 @@
 import { A, useLocation } from "@solidjs/router";
 import { graphql } from "relay-runtime";
-import { createEffect, For, Show } from "solid-js";
+import { createEffect, createMemo, For, Show } from "solid-js";
 import { createFragment, createMutation } from "solid-relay";
-import IconBuilding2 from "~icons/lucide/building-2";
+import IconCheck from "~icons/lucide/check";
+import IconChevronsUpDown from "~icons/lucide/chevrons-up-down";
 import IconShieldCheck from "~icons/lucide/shield-check";
 import IconUndo2 from "~icons/lucide/undo-2";
-import IconUserRound from "~icons/lucide/user-round";
 import { Button } from "~/components/ui/button.tsx";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuGroupLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu.tsx";
 import {
   Sidebar,
   SidebarContent,
@@ -439,7 +448,6 @@ export function AppSidebar(props: AppSidebarProps) {
           visible={!!signedAccount() &&
             !isMobile() && state() !== "collapsed"}
         />
-        <ActingAccountSection signedAccount={signedAccount()} />
         <AccountSection
           signedAccount={signedAccount()}
           signedAccountLoaded={props.signedAccountLoaded}
@@ -475,70 +483,131 @@ function AppSidebarLogo() {
   );
 }
 
-interface ActingAccountSectionProps {
-  signedAccount?: AppSidebar_signedAccount$data | null;
+interface ActingAccountMenuOption {
+  key: string;
+  account: ActingAccountSummary;
+  badge?: { color?: string | null; count: number } | null;
 }
 
-function ActingAccountSection(props: ActingAccountSectionProps) {
+function ActingAccountMenu() {
   const { t } = useLingui();
   const actingAccount = useActingAccount();
-  const personalAccount = () => actingAccount.personalAccount();
-  const organizations = () => actingAccount.organizations();
+  const options = createMemo<ActingAccountMenuOption[]>(() => {
+    const personalAccount = actingAccount.personalAccount();
+    if (personalAccount == null) return [];
+    return [
+      {
+        key: PERSONAL_ACTING_ACCOUNT_KEY,
+        account: personalAccount,
+      },
+      ...actingAccount.organizations().map((membership) => ({
+        key: organizationActingAccountKey(membership.organization.id),
+        account: membership.organization,
+        badge: membership.notificationBadge,
+      })),
+    ];
+  });
+  const selectedOption = () =>
+    options().find((option) => option.key === actingAccount.selectedKey()) ??
+      options()[0];
 
   return (
     <Show
-      when={props.signedAccount != null && personalAccount() != null &&
-        organizations().length > 0}
+      when={options().length > 1 && selectedOption() != null}
     >
-      <SidebarGroup>
-        <SidebarGroupLabel>
-          {t`Act as`}
-        </SidebarGroupLabel>
-        <SidebarGroupContent>
-          <SidebarMenuItem class="list-none">
-            <SidebarMenuButton
-              type="button"
-              isActive={actingAccount.selectedKey() ===
-                PERSONAL_ACTING_ACCOUNT_KEY}
-              tooltip={t`Personal account`}
-              onClick={() =>
-                actingAccount.setSelectedKey(PERSONAL_ACTING_ACCOUNT_KEY)}
-              class="cursor-pointer"
+      <div class="border-t border-sidebar-border pt-2 group-data-[collapsible=icon]:px-0">
+        <DropdownMenu modal={false} placement="top-start" gutter={6}>
+          <DropdownMenuTrigger
+            class="flex min-h-14 w-full items-center gap-2 rounded-md border border-sidebar-border bg-sidebar px-2 py-2 text-left text-sm outline-none ring-sidebar-ring transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:min-h-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:p-0"
+            aria-label={`${t`Act as`}: ${
+              accountDisplayName(selectedOption()!.account)
+            }`}
+          >
+            <ActingAccountMenuTrigger option={selectedOption()!} />
+            <IconChevronsUpDown
+              class="ml-auto size-4 shrink-0 opacity-50 group-data-[collapsible=icon]:hidden"
+              aria-hidden="true"
+            />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent class="w-60 max-w-[calc(100vw-1rem)]">
+            <DropdownMenuRadioGroup<string>
+              value={actingAccount.selectedKey()}
+              onChange={(key) => actingAccount.setSelectedKey(key)}
             >
-              <IconUserRound class="size-4" />
-              <span class="min-w-0 truncate">
-                {personalAccount()!.name || personalAccount()!.username}
-              </span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <For each={organizations()}>
-            {(membership) => {
-              const organization = membership.organization;
-              const key = organizationActingAccountKey(organization.id);
-              return (
-                <SidebarMenuItem class="list-none">
-                  <SidebarMenuButton
-                    type="button"
-                    isActive={actingAccount.selectedKey() === key}
-                    tooltip={organization.name || organization.username}
-                    onClick={() => actingAccount.setSelectedKey(key)}
-                    class="cursor-pointer"
-                  >
-                    <IconBuilding2 class="size-4" />
-                    <span class="min-w-0 truncate">
-                      {organization.name || organization.username}
-                    </span>
-                    <OrganizationNotificationBadge
-                      badge={membership.notificationBadge}
-                    />
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              );
-            }}
-          </For>
-        </SidebarGroupContent>
-      </SidebarGroup>
+              <DropdownMenuGroup>
+                <DropdownMenuGroupLabel class="sr-only">
+                  {t`Act as`}
+                </DropdownMenuGroupLabel>
+                <For each={options()}>
+                  {(option) => (
+                    <DropdownMenuRadioItem
+                      value={option.key}
+                      indicator={<IconCheck class="size-4" />}
+                      indicatorPlacement="right"
+                      class="gap-2"
+                    >
+                      <ActingAccountMenuOptionRow option={option} />
+                    </DropdownMenuRadioItem>
+                  )}
+                </For>
+              </DropdownMenuGroup>
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </Show>
+  );
+}
+
+function ActingAccountMenuTrigger(props: { option: ActingAccountMenuOption }) {
+  return (
+    <>
+      <AccountAvatar account={props.option.account} class="size-7" />
+      <span class="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
+        <span class="block truncate font-medium leading-5">
+          {accountDisplayName(props.option.account)}
+        </span>
+        <span class="block truncate text-xs text-sidebar-foreground/65">
+          {accountHandle(props.option.account)}
+        </span>
+      </span>
+      <span class="group-data-[collapsible=icon]:hidden">
+        <OrganizationNotificationBadge badge={props.option.badge} />
+      </span>
+    </>
+  );
+}
+
+function ActingAccountMenuOptionRow(props: {
+  option: ActingAccountMenuOption;
+}) {
+  return (
+    <span class="flex min-w-0 flex-1 items-center gap-2 overflow-hidden py-0.5">
+      <AccountAvatar account={props.option.account} class="size-6" />
+      <span class="min-w-0 flex-1">
+        <span class="block truncate">
+          {accountDisplayName(props.option.account)}
+        </span>
+        <span class="block truncate text-xs text-muted-foreground">
+          {accountHandle(props.option.account)}
+        </span>
+      </span>
+      <OrganizationNotificationBadge badge={props.option.badge} />
+    </span>
+  );
+}
+
+function AccountAvatar(props: {
+  account: ActingAccountSummary;
+  class?: string;
+}) {
+  return (
+    <Avatar class={props.class} aria-hidden="true">
+      <AvatarImage src={props.account.avatarUrl ?? undefined} />
+      <AvatarFallback class="text-[0.625rem]">
+        {accountInitial(props.account)}
+      </AvatarFallback>
+    </Avatar>
   );
 }
 
@@ -562,6 +631,18 @@ function OrganizationNotificationBadge(props: {
       </span>
     </Show>
   );
+}
+
+function accountDisplayName(account: ActingAccountSummary): string {
+  return account.name || account.username;
+}
+
+function accountHandle(account: ActingAccountSummary): string {
+  return `@${account.username}`;
+}
+
+function accountInitial(account: ActingAccountSummary): string {
+  return accountDisplayName(account).charAt(0).toUpperCase();
 }
 
 interface HeaderNotificationsProps {
@@ -687,17 +768,10 @@ function AccountSection(props: AccountSectionProps) {
                     profileAccount()?.username ?? signedAccount.username
                   }`}
                 >
-                  <Avatar class="size-4" aria-hidden="true">
-                    <AvatarImage
-                      src={profileAccount()?.avatarUrl ??
-                        signedAccount.avatarUrl}
-                      width={16}
-                      height={16}
-                    />
-                    <AvatarFallback class="text-[0.625rem]">
-                      {accountInitial(profileAccount() ?? signedAccount)}
-                    </AvatarFallback>
-                  </Avatar>
+                  <AccountAvatar
+                    account={profileAccount() ?? signedAccount}
+                    class="size-4"
+                  />
                   <span class="min-w-0 truncate">
                     {accountDisplayName(profileAccount() ?? signedAccount)}
                   </span>
@@ -797,14 +871,6 @@ function AccountSection(props: AccountSectionProps) {
       </SidebarGroupContent>
     </SidebarGroup>
   );
-}
-
-function accountDisplayName(account: ActingAccountSummary): string {
-  return account.name || account.username;
-}
-
-function accountInitial(account: ActingAccountSummary): string {
-  return accountDisplayName(account).charAt(0).toUpperCase();
 }
 
 function AccountSectionPlaceholder() {
@@ -1007,88 +1073,91 @@ function AppSidebarFooter() {
 
   return (
     <SidebarFooter>
-      <p class="m-2 mb-0 text-sm">
-        <A href="/tree" class="underline">
-          {t`Invitation tree`}
-        </A>
-      </p>
-      <p class="m-2 mb-0 text-sm">
-        <A
-          href="/coc"
-          class="underline"
-        >
-          {t`Code of conduct`}
-        </A>{" "}
-        &middot;{" "}
-        <A
-          href="/privacy"
-          class="underline"
-        >
-          {t`Privacy policy`}
-        </A>
-      </p>
-      <p class="m-2 mb-0 text-sm">
-        <a
-          href="https://play.google.com/store/apps/details?id=pub.hackers.android"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="underline"
-        >
-          Android
-        </a>{" "}
-        &middot;{" "}
-        <a
-          href="https://testflight.apple.com/join/wEBBtbzA"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="underline"
-        >
-          iOS/iPadOS
-        </a>
-      </p>
-      <p class="m-2 text-sm">
-        <Trans
-          message={t`The source code of this website is available on ${"GITHUB_REPOSITORY"} under the ${"AGPL-3.0"} license.`}
-          values={{
-            GITHUB_REPOSITORY: () => (
+      <div class="group-data-[collapsible=icon]:hidden">
+        <p class="m-2 mb-0 text-sm">
+          <A href="/tree" class="underline">
+            {t`Invitation tree`}
+          </A>
+        </p>
+        <p class="m-2 mb-0 text-sm">
+          <A
+            href="/coc"
+            class="underline"
+          >
+            {t`Code of conduct`}
+          </A>{" "}
+          &middot;{" "}
+          <A
+            href="/privacy"
+            class="underline"
+          >
+            {t`Privacy policy`}
+          </A>
+        </p>
+        <p class="m-2 mb-0 text-sm">
+          <a
+            href="https://play.google.com/store/apps/details?id=pub.hackers.android"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="underline"
+          >
+            Android
+          </a>{" "}
+          &middot;{" "}
+          <a
+            href="https://testflight.apple.com/join/wEBBtbzA"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="underline"
+          >
+            iOS/iPadOS
+          </a>
+        </p>
+        <p class="m-2 text-sm">
+          <Trans
+            message={t`The source code of this website is available on ${"GITHUB_REPOSITORY"} under the ${"AGPL-3.0"} license.`}
+            values={{
+              GITHUB_REPOSITORY: () => (
+                <a
+                  href="https://github.com/hackers-pub/hackerspub"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="underline"
+                >
+                  {t`GitHub repository`}
+                </a>
+              ),
+              "AGPL-3.0": () => (
+                <a
+                  href="https://www.gnu.org/licenses/agpl-3.0.en.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="underline"
+                >
+                  AGPL 3.0
+                </a>
+              ),
+            }}
+          />{" "}
+          v{metadata.version.split("+")[0]}
+          {metadata.version.includes("+") && (
+            <>
+              +
               <a
-                href="https://github.com/hackers-pub/hackerspub"
+                href={`https://github.com/hackers-pub/hackerspub/commit/${
+                  metadata.version.split("+")[1]
+                }`}
                 target="_blank"
                 rel="noopener noreferrer"
                 class="underline"
               >
-                {t`GitHub repository`}
+                {metadata.version.split("+")[1].slice(0, 8)}
               </a>
-            ),
-            "AGPL-3.0": () => (
-              <a
-                href="https://www.gnu.org/licenses/agpl-3.0.en.html"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="underline"
-              >
-                AGPL 3.0
-              </a>
-            ),
-          }}
-        />{" "}
-        v{metadata.version.split("+")[0]}
-        {metadata.version.includes("+") && (
-          <>
-            +
-            <a
-              href={`https://github.com/hackers-pub/hackerspub/commit/${
-                metadata.version.split("+")[1]
-              }`}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="underline"
-            >
-              {metadata.version.split("+")[1].slice(0, 8)}
-            </a>
-          </>
-        )}
-      </p>
+            </>
+          )}
+        </p>
+      </div>
+      <ActingAccountMenu />
     </SidebarFooter>
   );
 }
