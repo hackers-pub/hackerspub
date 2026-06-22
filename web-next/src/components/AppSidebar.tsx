@@ -22,6 +22,7 @@ import {
 import { NotificationsBellIcon } from "~/components/NotificationsBellIcon.tsx";
 import { UnreadNotificationsFaviconBadge } from "~/components/UnreadNotificationsFaviconBadge.tsx";
 import {
+  type ActingAccountSummary,
   organizationActingAccountKey,
   PERSONAL_ACTING_ACCOUNT_KEY,
   useActingAccount,
@@ -43,7 +44,7 @@ import type {
   AppSidebar_signedAccount$data,
   AppSidebar_signedAccount$key,
 } from "./__generated__/AppSidebar_signedAccount.graphql.ts";
-import { Avatar, AvatarImage } from "./ui/avatar.tsx";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar.tsx";
 import metadata from "../../package.json" with { type: "json" };
 
 const AppSidebarSignOutMutation = graphql`
@@ -612,6 +613,11 @@ interface AccountSectionProps {
 function AccountSection(props: AccountSectionProps) {
   const { t } = useLingui();
   const location = useLocation();
+  const actingAccount = useActingAccount();
+  const profileAccount = () =>
+    actingAccount.selectedOrganization()?.organization ??
+      actingAccount.personalAccount() ??
+      props.signedAccount;
 
   function onUseOldUI() {
     setLegacyUiCookie();
@@ -677,16 +683,24 @@ function AccountSection(props: AccountSectionProps) {
               <SidebarMenuItem class="list-none">
                 <SidebarMenuButton
                   as={A}
-                  href={`/@${signedAccount.username}`}
+                  href={`/@${
+                    profileAccount()?.username ?? signedAccount.username
+                  }`}
                 >
-                  <Avatar class="size-4">
+                  <Avatar class="size-4" aria-hidden="true">
                     <AvatarImage
-                      src={signedAccount.avatarUrl}
+                      src={profileAccount()?.avatarUrl ??
+                        signedAccount.avatarUrl}
                       width={16}
                       height={16}
                     />
+                    <AvatarFallback class="text-[0.625rem]">
+                      {accountInitial(profileAccount() ?? signedAccount)}
+                    </AvatarFallback>
                   </Avatar>
-                  {signedAccount.name}
+                  <span class="min-w-0 truncate">
+                    {accountDisplayName(profileAccount() ?? signedAccount)}
+                  </span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem class="list-none">
@@ -783,6 +797,14 @@ function AccountSection(props: AccountSectionProps) {
       </SidebarGroupContent>
     </SidebarGroup>
   );
+}
+
+function accountDisplayName(account: ActingAccountSummary): string {
+  return account.name || account.username;
+}
+
+function accountInitial(account: ActingAccountSummary): string {
+  return accountDisplayName(account).charAt(0).toUpperCase();
 }
 
 function AccountSectionPlaceholder() {
