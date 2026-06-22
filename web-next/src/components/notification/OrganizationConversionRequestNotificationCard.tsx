@@ -24,6 +24,9 @@ export function OrganizationConversionRequestNotificationCard(
         request {
           uuid
           accepted
+          account {
+            username
+          }
         }
       }
     `,
@@ -42,7 +45,7 @@ export function OrganizationConversionRequestNotificationCard(
           <div class="-mt-2 mb-4 ml-20 mr-4 flex flex-wrap items-center gap-3">
             <Button
               as={A}
-              href={`/organization-conversions/${notification.request.uuid}`}
+              href={`/@${notification.request.account.username}/org-conversions/${notification.request.uuid}`}
               variant="outline"
               size="sm"
               preload={false}
