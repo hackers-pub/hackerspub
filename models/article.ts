@@ -65,6 +65,13 @@ interface CreateArticleSourceOptions {
   summarize?: boolean;
 }
 
+interface CreatePostOptions {
+  afterPostCreated?: (
+    post: Post,
+    db: Database | Transaction,
+  ) => Promise<void>;
+}
+
 class InvalidArticleSourceMediumError extends Error {
 }
 
@@ -390,6 +397,7 @@ export async function createArticle(
       mediumId: Uuid;
     }[];
   },
+  options: CreatePostOptions = {},
 ): Promise<
   Post & {
     actor: Actor & {
@@ -444,10 +452,11 @@ export async function createArticle(
     account,
   });
   await addPostToTimeline(db, post);
+  await options.afterPostCreated?.(post, db);
   const articleObject = await getArticle(fedCtx, { ...articleSource, account });
   const activity = new vocab.Create({
     id: new URL("#create", articleObject.id ?? fedCtx.origin),
-    actors: articleObject.attributionIds,
+    actor: fedCtx.getActorUri(source.accountId),
     tos: articleObject.toIds,
     ccs: articleObject.ccIds,
     object: articleObject,
@@ -682,7 +691,7 @@ export async function updateArticle(
       `#update/${articleSource.updated.toISOString()}`,
       articleObject.id ?? fedCtx.canonicalOrigin,
     ),
-    actors: articleObject.attributionIds,
+    actor: fedCtx.getActorUri(articleSource.accountId),
     tos: articleObject.toIds,
     ccs: articleObject.ccIds,
     object: articleObject,
@@ -1458,7 +1467,7 @@ async function runArticleContentTranslation(
         `#update/${updated[0].updated.toISOString()}/${targetLanguage}`,
         articleObject.id ?? fedCtx.canonicalOrigin,
       ),
-      actors: articleObject.attributionIds,
+      actor: fedCtx.getActorUri(article.accountId),
       tos: articleObject.toIds,
       ccs: articleObject.ccIds,
       object: articleObject,

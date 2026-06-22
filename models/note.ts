@@ -49,6 +49,13 @@ export type NoteSourceMediumWithMedium = NoteSourceMedium & {
   medium: Medium;
 };
 
+interface CreatePostOptions {
+  afterPostCreated?: (
+    post: Post,
+    db: Database | Transaction,
+  ) => Promise<void>;
+}
+
 export class QuotePolicyDeniedError extends Error {
   constructor() {
     super("Quote policy denied the quoted post.");
@@ -322,6 +329,7 @@ export async function createNote(
     replyTarget?: Post & { actor: Actor };
     quotedPost?: Post & { actor: Actor };
   } = {},
+  options: CreatePostOptions = {},
 ): Promise<
   Post & {
     actor: Actor & {
@@ -388,6 +396,7 @@ export async function createNote(
     await updateRepliesCount(db, relations.replyTarget, 1);
   }
   await addPostToTimeline(db, post);
+  await options.afterPostCreated?.(post, db);
   const noteObject = await getNote(
     fedCtx,
     { ...noteSource, media, account },
@@ -404,7 +413,7 @@ export async function createNote(
   );
   const activity = new vocab.Create({
     id: new URL("#create", noteObject.id ?? fedCtx.origin),
-    actors: noteObject.attributionIds,
+    actor: fedCtx.getActorUri(source.accountId),
     tos: noteObject.toIds,
     ccs: noteObject.ccIds,
     object: noteObject,
@@ -634,7 +643,7 @@ export async function updateNote(
       `#update/${noteSource.updated.toISOString()}`,
       noteObject.id ?? fedCtx.canonicalOrigin,
     ),
-    actors: noteObject.attributionIds,
+    actor: fedCtx.getActorUri(noteSource.accountId),
     tos: noteObject.toIds,
     ccs: noteObject.ccIds,
     object: noteObject,

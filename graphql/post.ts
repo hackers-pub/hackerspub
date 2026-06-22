@@ -2466,6 +2466,10 @@ builder.relayMutationField(
               media: noteMedia,
             },
             { replyTarget, quotedPost },
+            {
+              afterPostCreated: (post, db) =>
+                recordPostActingAccount(db, post.id, actingAccount),
+            },
           );
         } catch (error) {
           if (error instanceof QuotePolicyDeniedError) {
@@ -2479,7 +2483,6 @@ builder.relayMutationField(
             extensions: { code: "INTERNAL_SERVER_ERROR" },
           });
         }
-        await recordPostActingAccount(context.data.db, note.id, actingAccount);
         return note;
       });
     },
@@ -2752,6 +2755,10 @@ builder.relayMutationField(
               },
             },
             { replyTarget, quotedPost },
+            {
+              afterPostCreated: (post, db) =>
+                recordPostActingAccount(db, post.id, actingAccount),
+            },
           );
         } catch (error) {
           if (error instanceof QuotePolicyDeniedError) {
@@ -2768,11 +2775,6 @@ builder.relayMutationField(
             extensions: { code: "INTERNAL_SERVER_ERROR" },
           });
         }
-        await recordPostActingAccount(
-          context.data.db,
-          question.id,
-          actingAccount,
-        );
         return question;
       });
     },
@@ -3195,14 +3197,10 @@ builder.relayMutationField(
           content: draft.content,
           language: language.baseName,
           media,
+        }, {
+          afterPostCreated: (post, db) =>
+            recordPostActingAccount(db, post.id, actingAccount),
         });
-        if (created != null) {
-          await recordPostActingAccount(
-            context.data.db,
-            created.id,
-            actingAccount,
-          );
-        }
         return created;
       });
 

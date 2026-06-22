@@ -12,12 +12,17 @@ import {
   actorTable,
   followingTable,
   type Mention,
+  type OrganizationPostAuthor,
   type Post,
 } from "@hackerspub/models/schema";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { and, count, eq, inArray, isNotNull, like } from "drizzle-orm";
 import { builder } from "./builder.ts";
-import { getCreate, getPostRecipients } from "./objects.ts";
+import {
+  getCreate,
+  getPostAttributionIds,
+  getPostRecipients,
+} from "./objects.ts";
 
 const FOLLOWERS_WINDOW = 50;
 
@@ -153,6 +158,12 @@ export function toFeaturedCollectionItem(
     & {
       actor: { accountId: Uuid | null; iri?: string };
       mentions?: (Mention & { actor: { iri: string } })[];
+      organizationAuthor?:
+        | Pick<
+          OrganizationPostAuthor,
+          "organizationAccountId" | "memberAccountId" | "attributionMode"
+        >
+        | null;
       poll?: {
         ends: Date;
         multiple: boolean;
@@ -165,9 +176,13 @@ export function toFeaturedCollectionItem(
       } | null;
     },
 ): vocab.Article | vocab.Note | vocab.Question {
-  const attribution = post.actor.accountId == null
-    ? new URL(post.actor.iri ?? post.iri)
-    : ctx.getActorUri(post.actor.accountId);
+  const attributions = post.actor.accountId == null
+    ? [new URL(post.actor.iri ?? post.iri)]
+    : getPostAttributionIds(
+      ctx,
+      post.actor.accountId,
+      post.organizationAuthor,
+    );
   const recipients = post.actor.accountId == null ? {} : getPostRecipients(
     ctx,
     post.actor.accountId,
@@ -176,7 +191,7 @@ export function toFeaturedCollectionItem(
   );
   const common = {
     id: new URL(post.iri),
-    attribution,
+    attributions,
     ...recipients,
     contents: [
       post.contentHtml,
@@ -273,6 +288,7 @@ builder
             with: {
               actor: true,
               mentions: { with: { actor: true } },
+              organizationAuthor: true,
               poll: { with: { options: true } },
             },
           },

@@ -5,6 +5,7 @@ import { Create, Person, Question as ActivityPubQuestion } from "@fedify/vocab";
 import type { ContextData } from "./context.ts";
 import type { Transaction } from "./db.ts";
 import { createQuestion } from "./question.ts";
+import { organizationPostAuthorTable } from "./schema.ts";
 import { generateUuidV7 } from "./uuid.ts";
 import {
   createFedCtx,
@@ -100,6 +101,83 @@ test("createQuestion() creates a source-backed Question with a poll", async () =
       "Deno",
       "Node.js",
     ]);
+  });
+});
+
+test("createQuestion() applies post-created hooks before federation", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "createquestioncoauthor",
+      name: "Create Question Co-author",
+      email: "createquestioncoauthor@example.com",
+    });
+    const organization = await insertAccountWithActor(tx, {
+      username: "createquestionorg",
+      name: "Create Question Organization",
+      email: "createquestionorg@example.com",
+      kind: "organization",
+      type: "Organization",
+    });
+    const sent: unknown[][] = [];
+    const fedCtx = {
+      ...createFedCtx(tx),
+      sendActivity(...args: unknown[]) {
+        sent.push(args);
+        return Promise.resolve(undefined);
+      },
+    } as unknown as Context<ContextData<Transaction>>;
+    const now = new Date("2026-04-15T00:00:00.000Z");
+
+    const question = await createQuestion(
+      fedCtx,
+      {
+        accountId: organization.account.id,
+        visibility: "public",
+        quotePolicy: "everyone",
+        content: "Co-authored poll",
+        language: "en",
+        media: [],
+        published: now,
+        updated: now,
+        poll: {
+          title: "Co-authored choice",
+          multiple: false,
+          options: ["Yes", "No"],
+          ends: new Date("2026-04-16T00:00:00.000Z"),
+          now,
+        },
+      },
+      {},
+      {
+        async afterPostCreated(post) {
+          await tx.insert(organizationPostAuthorTable).values({
+            postId: post.id,
+            organizationAccountId: organization.account.id,
+            memberAccountId: member.account.id,
+            attributionMode: "acting_account_with_viewer",
+          });
+        },
+      },
+    );
+
+    assert.ok(question != null);
+    const create = sent
+      .map((args) => args[2])
+      .find((activity) => activity instanceof Create);
+    assert.ok(create instanceof Create);
+    assert.deepEqual(
+      create.actorIds.map((id) => id.href),
+      [`http://localhost/actors/${organization.account.id}`],
+    );
+    const object = await create.getObject({ ...fedCtx, suppressError: true });
+    assert.ok(object instanceof ActivityPubQuestion);
+    assert.deepEqual(
+      object.attributionIds.map((id) => id.href),
+      [
+        `http://localhost/actors/${organization.account.id}`,
+        `http://localhost/actors/${member.account.id}`,
+      ],
+    );
   });
 });
 

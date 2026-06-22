@@ -7,13 +7,16 @@ import type { Transaction } from "@hackerspub/models/db";
 import { createQuestion } from "@hackerspub/models/question";
 import {
   actorTable,
+  articleContentTable,
+  articleSourceTable,
+  organizationPostAuthorTable,
   postTable,
   quoteAuthorizationTable,
 } from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
 import { eq } from "drizzle-orm";
 import { builder } from "./builder.ts";
-import { getCreate, getNote, isApTargetHidden } from "./objects.ts";
+import { getArticle, getCreate, getNote, isApTargetHidden } from "./objects.ts";
 import {
   createFedCtx,
   createTestDisk,
@@ -81,6 +84,123 @@ test("getNote() omits quote policy for direct notes", async () => {
     const note = await getNote(createFedCtx(tx), noteSource);
 
     assert.equal(note.interactionPolicy == null, true);
+  });
+});
+
+test("getNote() includes member attribution for co-authored organization notes", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "notecoauthor",
+      name: "Note Co-author",
+      email: "notecoauthor@example.com",
+    });
+    const organization = await insertAccountWithActor(tx, {
+      username: "noteorg",
+      name: "Note Organization",
+      email: "noteorg@example.com",
+      kind: "organization",
+      type: "Organization",
+    });
+    const { noteSourceId, post } = await insertNotePost(tx, {
+      account: organization.account,
+      content: "Co-authored note",
+    });
+    await tx.insert(organizationPostAuthorTable).values({
+      postId: post.id,
+      organizationAccountId: organization.account.id,
+      memberAccountId: member.account.id,
+      attributionMode: "acting_account_with_viewer",
+    });
+    const noteSource = await tx.query.noteSourceTable.findFirst({
+      where: { id: noteSourceId },
+      with: {
+        account: true,
+        media: { with: { medium: true }, orderBy: { index: "asc" } },
+      },
+    });
+    assert.ok(noteSource != null);
+
+    const note = await getNote(createFedCtx(tx), noteSource);
+
+    assert.deepEqual(
+      note.attributionIds.map((id) => id.href),
+      [
+        `http://localhost/actors/${organization.account.id}`,
+        `http://localhost/actors/${member.account.id}`,
+      ],
+    );
+  });
+});
+
+test("getArticle() includes member attribution for co-authored organization articles", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "articlecoauthor",
+      name: "Article Co-author",
+      email: "articlecoauthor@example.com",
+    });
+    const organization = await insertAccountWithActor(tx, {
+      username: "articleorg",
+      name: "Article Organization",
+      email: "articleorg@example.com",
+      kind: "organization",
+      type: "Organization",
+    });
+    const published = new Date("2026-04-15T00:00:00.000Z");
+    const articleSourceId = generateUuidV7();
+    const postId = generateUuidV7();
+    await tx.insert(articleSourceTable).values({
+      id: articleSourceId,
+      accountId: organization.account.id,
+      publishedYear: 2026,
+      slug: "co-authored-article",
+      quotePolicy: "everyone",
+      published,
+      updated: published,
+    });
+    await tx.insert(articleContentTable).values({
+      sourceId: articleSourceId,
+      language: "en",
+      title: "Co-authored article",
+      content: "Hello from an organization.",
+      published,
+      updated: published,
+    });
+    await tx.insert(postTable).values({
+      id: postId,
+      iri: `http://localhost/objects/${postId}`,
+      type: "Article",
+      visibility: "public",
+      quotePolicy: "everyone",
+      actorId: organization.actor.id,
+      articleSourceId,
+      name: "Co-authored article",
+      contentHtml: "<p>Hello from an organization.</p>",
+      language: "en",
+      published,
+      updated: published,
+    });
+    await tx.insert(organizationPostAuthorTable).values({
+      postId,
+      organizationAccountId: organization.account.id,
+      memberAccountId: member.account.id,
+      attributionMode: "acting_account_with_viewer",
+    });
+    const articleSource = await tx.query.articleSourceTable.findFirst({
+      where: { id: articleSourceId },
+      with: { account: true, contents: true },
+    });
+    assert.ok(articleSource != null);
+
+    const article = await getArticle(createFedCtx(tx), articleSource);
+
+    assert.deepEqual(
+      article.attributionIds.map((id) => id.href),
+      [
+        `http://localhost/actors/${organization.account.id}`,
+        `http://localhost/actors/${member.account.id}`,
+      ],
+    );
   });
 });
 

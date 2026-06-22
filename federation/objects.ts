@@ -26,6 +26,7 @@ import type {
   Mention,
   NoteSource,
   NoteSourceMedium,
+  OrganizationPostAuthor,
   Poll,
   PollOption,
   Post,
@@ -36,6 +37,56 @@ import type {
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { escape } from "@std/html/entities";
 import { builder } from "./builder.ts";
+
+export function getPostAttributionIds(
+  ctx: Context<ContextData>,
+  accountId: Uuid,
+  organizationAuthor?:
+    | Pick<
+      OrganizationPostAuthor,
+      "organizationAccountId" | "memberAccountId" | "attributionMode"
+    >
+    | null,
+): URL[] {
+  if (
+    organizationAuthor?.attributionMode !== "acting_account_with_viewer" ||
+    organizationAuthor.organizationAccountId !== accountId
+  ) {
+    return [ctx.getActorUri(accountId)];
+  }
+  return [
+    ctx.getActorUri(organizationAuthor.organizationAccountId),
+    ctx.getActorUri(organizationAuthor.memberAccountId),
+  ];
+}
+
+async function getArticleAttributionIds(
+  ctx: Context<ContextData>,
+  articleSource: Pick<ArticleSource, "id" | "accountId">,
+): Promise<URL[]> {
+  const post = await ctx.data.db.query.postTable.findFirst({
+    columns: { id: true },
+    with: { organizationAuthor: true },
+    where: { articleSourceId: articleSource.id },
+  });
+  return getPostAttributionIds(
+    ctx,
+    articleSource.accountId,
+    post?.organizationAuthor,
+  );
+}
+
+async function getNoteAttributionIds(
+  ctx: Context<ContextData>,
+  note: Pick<NoteSource, "id" | "accountId">,
+): Promise<URL[]> {
+  const post = await ctx.data.db.query.postTable.findFirst({
+    columns: { id: true },
+    with: { organizationAuthor: true },
+    where: { noteSourceId: note.id },
+  });
+  return getPostAttributionIds(ctx, note.accountId, post?.organizationAuthor);
+}
 
 export async function getArticle(
   ctx: Context<ContextData>,
@@ -109,7 +160,7 @@ export async function getArticle(
   }
   return new vocab.Article({
     id: ctx.getObjectUri(vocab.Article, { id: articleSource.id }),
-    attribution: ctx.getActorUri(articleSource.accountId),
+    attributions: await getArticleAttributionIds(ctx, articleSource),
     to: PUBLIC_COLLECTION,
     cc: ctx.getFollowersUri(articleSource.accountId),
     interactionPolicy: getQuoteInteractionPolicy(
@@ -294,7 +345,7 @@ export async function getNote(
   );
   return new vocab.Note({
     id: ctx.getObjectUri(vocab.Note, { id: note.id }),
-    attribution: ctx.getActorUri(note.accountId),
+    attributions: await getNoteAttributionIds(ctx, note),
     ...getPostRecipients(
       ctx,
       note.accountId,
@@ -425,7 +476,7 @@ export async function getQuestion(
     );
   return new vocab.Question({
     id: ctx.getObjectUri(vocab.Question, { id: note.id }),
-    attribution: ctx.getActorUri(note.accountId),
+    attributions: await getNoteAttributionIds(ctx, note),
     ...getPostRecipients(
       ctx,
       note.accountId,

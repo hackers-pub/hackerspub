@@ -1,7 +1,15 @@
 import assert from "node:assert";
 import test from "node:test";
+import type { Context } from "@fedify/fedify";
+import { Article as ActivityPubArticle, Create } from "@fedify/vocab";
 import { createArticle, updateArticle } from "./article.ts";
-import { articleContentTable, mediumTable } from "./schema.ts";
+import type { ContextData } from "./context.ts";
+import type { Transaction } from "./db.ts";
+import {
+  articleContentTable,
+  mediumTable,
+  organizationPostAuthorTable,
+} from "./schema.ts";
 import { generateUuidV7 } from "./uuid.ts";
 import {
   createFedCtx,
@@ -70,6 +78,75 @@ test("createArticle() creates a post and timeline entry for the author", async (
     assert.ok(timelineItem != null);
     assert.equal(timelineItem.originalAuthorId, author.actor.id);
     assert.equal(timelineItem.lastSharerId, null);
+  });
+});
+
+test("createArticle() applies post-created hooks before federation", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "createarticlecoauthor",
+      name: "Create Article Co-author",
+      email: "createarticlecoauthor@example.com",
+    });
+    const organization = await insertAccountWithActor(tx, {
+      username: "createarticleorg",
+      name: "Create Article Organization",
+      email: "createarticleorg@example.com",
+      kind: "organization",
+      type: "Organization",
+    });
+    const sent: unknown[][] = [];
+    const fedCtx = {
+      ...createFedCtx(tx),
+      sendActivity(...args: unknown[]) {
+        sent.push(args);
+        return Promise.resolve(undefined);
+      },
+    } as unknown as Context<ContextData<Transaction>>;
+    fedCtx.data.models = fakeModels as typeof fedCtx.data.models;
+
+    const article = await createArticle(
+      fedCtx,
+      {
+        accountId: organization.account.id,
+        publishedYear: 2026,
+        slug: "co-authored-create-article",
+        tags: [],
+        allowLlmTranslation: false,
+        title: "Co-authored article",
+        content: "Hello from an organization.",
+        language: "en",
+      },
+      {
+        async afterPostCreated(post) {
+          await tx.insert(organizationPostAuthorTable).values({
+            postId: post.id,
+            organizationAccountId: organization.account.id,
+            memberAccountId: member.account.id,
+            attributionMode: "acting_account_with_viewer",
+          });
+        },
+      },
+    );
+
+    assert.ok(article != null);
+    const create = sent
+      .map((args) => args[2])
+      .find((activity) => activity instanceof Create);
+    assert.ok(create instanceof Create);
+    assert.deepEqual(
+      create.actorIds.map((id) => id.href),
+      [`http://localhost/actors/${organization.account.id}`],
+    );
+    const object = await create.getObject({ ...fedCtx, suppressError: true });
+    assert.ok(object instanceof ActivityPubArticle);
+    assert.deepEqual(
+      object.attributionIds.map((id) => id.href),
+      [
+        `http://localhost/actors/${organization.account.id}`,
+        `http://localhost/actors/${member.account.id}`,
+      ],
+    );
   });
 });
 

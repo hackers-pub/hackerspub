@@ -40,12 +40,19 @@ import {
 } from "./schema.ts";
 import { syncActorFromAccount } from "./actor.ts";
 import type { ContextData } from "./context.ts";
-import type { Transaction } from "./db.ts";
+import type { Database, Transaction } from "./db.ts";
 import { addPostToTimeline } from "./timeline.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 export interface CreateQuestionPollInput extends CreatePollInput {
   title: string;
+}
+
+interface CreatePostOptions {
+  afterPostCreated?: (
+    post: Post,
+    db: Database | Transaction,
+  ) => Promise<void>;
 }
 
 export async function createQuestion(
@@ -59,6 +66,7 @@ export async function createQuestion(
     replyTarget?: Post & { actor: Actor };
     quotedPost?: Post & { actor: Actor };
   } = {},
+  options: CreatePostOptions = {},
 ): Promise<
   Post & {
     actor: Actor & {
@@ -138,6 +146,7 @@ export async function createQuestion(
       await updateRepliesCount(tx, relations.replyTarget, 1);
     }
     await addPostToTimeline(tx, post);
+    await options.afterPostCreated?.(post, tx);
     return { noteSource, media, post };
   });
   if (result == null) return undefined;
@@ -160,7 +169,7 @@ export async function createQuestion(
   );
   const activity = new vocab.Create({
     id: new URL("#create", questionObject.id ?? fedCtx.origin),
-    actors: questionObject.attributionIds,
+    actor: fedCtx.getActorUri(source.accountId),
     tos: questionObject.toIds,
     ccs: questionObject.ccIds,
     object: questionObject,

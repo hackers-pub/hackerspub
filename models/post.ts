@@ -2981,7 +2981,7 @@ async function sendLocalQuoteUpdate(
       `#update/${updated.toISOString()}`,
       noteObject.id ?? fedCtx.canonicalOrigin,
     ),
-    actors: noteObject.attributionIds,
+    actor: fedCtx.getActorUri(quote.actor.accountId),
     tos: noteObject.toIds,
     ccs: noteObject.ccIds,
     object: noteObject,
