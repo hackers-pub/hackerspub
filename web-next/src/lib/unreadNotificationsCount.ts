@@ -15,8 +15,12 @@ const UnreadNotificationsCountQuery = graphql`
     viewer {
       unreadNotificationsCount
       unreadModerationNotificationCount
+      # Keep organization badge fields in this polling query so Relay refreshes
+      # the sidebar account switcher. The accessor below reports only the
+      # personal notifications page count.
       organizationMemberships {
         notificationBadge {
+          color
           count
         }
       }
@@ -24,21 +28,10 @@ const UnreadNotificationsCountQuery = graphql`
   }
 `;
 
-interface OrganizationNotificationBadge {
-  count: number;
-}
-
-interface OrganizationMembershipWithNotificationBadge {
-  notificationBadge?: OrganizationNotificationBadge | null;
-}
-
 export interface UnreadNotificationsCountAccount {
   username?: string | null;
   unreadNotificationsCount?: number | null;
   unreadModerationNotificationCount?: number | null;
-  organizationMemberships?:
-    | readonly OrganizationMembershipWithNotificationBadge[]
-    | null;
 }
 
 export function createUnreadNotificationsCount(
@@ -52,35 +45,13 @@ export function createUnreadNotificationsCount(
     unreadModerationNotificationCount,
     setUnreadModerationNotificationCount,
   ] = createSignal<number>();
-  const [
-    unreadOrganizationNotificationCount,
-    setUnreadOrganizationNotificationCount,
-  ] = createSignal<number>();
   const [documentVisible, setDocumentVisible] = createSignal(false);
-
-  const countOrganizationNotifications = (
-    memberships:
-      | readonly OrganizationMembershipWithNotificationBadge[]
-      | null
-      | undefined,
-  ): number =>
-    memberships?.reduce(
-      (total, membership) =>
-        total +
-        (membership.notificationBadge?.count ?? 0),
-      0,
-    ) ?? 0;
 
   createEffect(() => {
     const value = account();
     setUnreadNotificationsCount(value?.unreadNotificationsCount ?? undefined);
     setUnreadModerationNotificationCount(
       value?.unreadModerationNotificationCount ?? undefined,
-    );
-    setUnreadOrganizationNotificationCount(
-      value == null
-        ? undefined
-        : countOrganizationNotifications(value.organizationMemberships),
     );
   });
 
@@ -113,11 +84,6 @@ export function createUnreadNotificationsCount(
           setUnreadModerationNotificationCount(
             data.viewer?.unreadModerationNotificationCount ?? undefined,
           );
-          setUnreadOrganizationNotificationCount(
-            data.viewer == null ? undefined : countOrganizationNotifications(
-              data.viewer.organizationMemberships,
-            ),
-          );
         },
         complete() {
           pending = null;
@@ -139,10 +105,9 @@ export function createUnreadNotificationsCount(
   return () => {
     const regular = unreadNotificationsCount();
     const moderation = unreadModerationNotificationCount();
-    const organization = unreadOrganizationNotificationCount();
-    if (regular == null && moderation == null && organization == null) {
+    if (regular == null && moderation == null) {
       return undefined;
     }
-    return (regular ?? 0) + (moderation ?? 0) + (organization ?? 0);
+    return (regular ?? 0) + (moderation ?? 0);
   };
 }

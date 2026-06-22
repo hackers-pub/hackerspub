@@ -33,6 +33,7 @@ import { UnreadNotificationsFaviconBadge } from "~/components/UnreadNotification
 import {
   type ActingAccountSummary,
   organizationActingAccountKey,
+  type OrganizationNotificationBadge as ActingOrganizationNotificationBadge,
   PERSONAL_ACTING_ACCOUNT_KEY,
   useActingAccount,
 } from "~/contexts/ActingAccountContext.tsx";
@@ -74,7 +75,7 @@ export interface AppSidebarProps {
   // query finished and the visitor is anonymous; undefined means it has not
   // resolved yet. The sidebar needs that distinction to show the sign-in link.
   signedAccountLoaded?: boolean;
-  totalUnreadNotificationsCount?: number;
+  personalUnreadNotificationsCount?: number;
 }
 
 export function AppSidebar(props: AppSidebarProps) {
@@ -161,16 +162,22 @@ export function AppSidebar(props: AppSidebarProps) {
     );
   });
 
-  const unreadNotificationsCount = () => {
+  const personalUnreadNotificationsCount = () => {
     const account = signedAccount();
-    return props.totalUnreadNotificationsCount ??
+    return props.personalUnreadNotificationsCount ??
       (account == null ? 0 : account.unreadNotificationsCount +
-        (account.unreadModerationNotificationCount ?? 0) +
-        account.organizationMemberships.reduce(
-          (total, membership) =>
-            total + (membership.notificationBadge?.count ?? 0),
-          0,
-        ));
+        (account.unreadModerationNotificationCount ?? 0));
+  };
+
+  const currentNotificationBadge = ():
+    | ActingOrganizationNotificationBadge
+    | null => {
+    const organization = actingAccount.selectedOrganization();
+    if (organization != null) {
+      return organization.notificationBadge ?? null;
+    }
+    const count = personalUnreadNotificationsCount();
+    return count > 0 ? { color: "RED", count } : null;
   };
 
   async function onSignOut() {
@@ -197,13 +204,13 @@ export function AppSidebar(props: AppSidebarProps) {
   return (
     <Sidebar>
       <UnreadNotificationsFaviconBadge
-        unread={unreadNotificationsCount() > 0}
+        unread={(currentNotificationBadge()?.count ?? 0) > 0}
       />
       <SidebarHeader>
         <div class="flex items-center justify-between">
           <AppSidebarLogo />
           <Show when={signedAccount()}>
-            <HeaderNotifications count={unreadNotificationsCount()} />
+            <HeaderNotifications badge={currentNotificationBadge()} />
           </Show>
         </div>
       </SidebarHeader>
@@ -486,7 +493,7 @@ function AppSidebarLogo() {
 interface ActingAccountMenuOption {
   key: string;
   account: ActingAccountSummary;
-  badge?: { color?: string | null; count: number } | null;
+  badge?: ActingOrganizationNotificationBadge | null;
 }
 
 function ActingAccountMenu() {
@@ -612,7 +619,7 @@ function AccountAvatar(props: {
 }
 
 function OrganizationNotificationBadge(props: {
-  badge?: { color?: string | null; count: number } | null;
+  badge?: ActingOrganizationNotificationBadge | null;
 }) {
   const badge = () => props.badge;
 
@@ -646,11 +653,12 @@ function accountInitial(account: ActingAccountSummary): string {
 }
 
 interface HeaderNotificationsProps {
-  count: number;
+  badge?: ActingOrganizationNotificationBadge | null;
 }
 
 function HeaderNotifications(props: HeaderNotificationsProps) {
   const { t, i18n } = useLingui();
+  const count = () => props.badge?.count ?? 0;
 
   return (
     <Button
@@ -660,10 +668,10 @@ function HeaderNotifications(props: HeaderNotificationsProps) {
       variant="ghost"
       size="icon"
       class="relative size-9 shrink-0 rounded-full"
-      aria-label={props.count > 0
+      aria-label={count() > 0
         ? i18n._(
           msg`${
-            plural(props.count, {
+            plural(count(), {
               one: "Notifications (# unread)",
               other: "Notifications (# unread)",
             })
@@ -673,12 +681,17 @@ function HeaderNotifications(props: HeaderNotificationsProps) {
       title={t`Notifications`}
     >
       <NotificationsBellIcon class="size-5" />
-      <Show when={props.count > 0}>
+      <Show when={count() > 0}>
         <span
           aria-hidden="true"
-          class="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[0.625rem] font-semibold leading-none text-white ring-2 ring-sidebar"
+          class="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[0.625rem] font-semibold leading-none ring-2 ring-sidebar"
+          classList={{
+            "bg-red-500 text-white": props.badge?.color === "RED",
+            "bg-muted-foreground/25 text-sidebar-foreground":
+              props.badge?.color !== "RED",
+          }}
         >
-          {props.count > 99 ? "99+" : props.count}
+          {count() > 99 ? "99+" : count()}
         </span>
       </Show>
     </Button>

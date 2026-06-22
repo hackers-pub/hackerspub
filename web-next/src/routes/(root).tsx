@@ -27,7 +27,11 @@ import { NoteComposeModal } from "~/components/NoteComposeModal.tsx";
 import { SidebarProvider, SidebarTrigger } from "~/components/ui/sidebar.tsx";
 import { Toaster } from "~/components/ui/toast.tsx";
 import { WebPushPromptBanner } from "~/components/WebPushPromptBanner.tsx";
-import { ActingAccountProvider } from "~/contexts/ActingAccountContext.tsx";
+import {
+  ActingAccountProvider,
+  type OrganizationNotificationBadge,
+  useActingAccount,
+} from "~/contexts/ActingAccountContext.tsx";
 import { NoteComposeProvider } from "~/contexts/NoteComposeContext.tsx";
 import { ViewerProvider } from "~/contexts/ViewerContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -132,7 +136,7 @@ export default function RootLayout(props: RouteSectionProps) {
     chromeMounted() && !signedAccount.pending;
   const chromeSignedAccount = () =>
     chromeMounted() ? signedAccount()?.viewer : undefined;
-  const totalUnreadNotificationsCount = createUnreadNotificationsCount(
+  const personalUnreadNotificationsCount = createUnreadNotificationsCount(
     chromeSignedAccount,
   );
   const showFloatingCompose = () => {
@@ -184,7 +188,7 @@ export default function RootLayout(props: RouteSectionProps) {
             <AppSidebar
               $signedAccount={chromeSignedAccount()}
               signedAccountLoaded={chromeSignedAccountLoaded()}
-              totalUnreadNotificationsCount={totalUnreadNotificationsCount()}
+              personalUnreadNotificationsCount={personalUnreadNotificationsCount()}
             />
             <header class="fixed inset-x-0 top-0 z-40 border-b bg-background/80 backdrop-blur md:hidden">
               <div class="flex h-14 items-center justify-between px-4">
@@ -211,24 +215,9 @@ export default function RootLayout(props: RouteSectionProps) {
                   when={chromeSignedAccount()}
                   fallback={<div class="size-9" aria-hidden="true" />}
                 >
-                  <Button
-                    as={A}
-                    href="/notifications"
-                    onClick={invalidateNotificationsPageQueryCache}
-                    variant="ghost"
-                    size="icon"
-                    class="relative size-9 rounded-full"
-                    aria-label={t`Notifications`}
-                    title={t`Notifications`}
-                  >
-                    <NotificationsBellIcon class="size-5" />
-                    <Show when={(totalUnreadNotificationsCount() ?? 0) > 0}>
-                      <span
-                        class="absolute right-2 top-2 size-2.5 rounded-full bg-red-500 ring-2 ring-background"
-                        aria-hidden="true"
-                      />
-                    </Show>
-                  </Button>
+                  <MobileHeaderNotifications
+                    personalUnreadNotificationsCount={personalUnreadNotificationsCount()}
+                  />
                 </Show>
               </div>
             </header>
@@ -262,5 +251,47 @@ export default function RootLayout(props: RouteSectionProps) {
         </NoteComposeProvider>
       </ActingAccountProvider>
     </ViewerProvider>
+  );
+}
+
+interface MobileHeaderNotificationsProps {
+  personalUnreadNotificationsCount?: number;
+}
+
+function MobileHeaderNotifications(props: MobileHeaderNotificationsProps) {
+  const { t } = useLingui();
+  const actingAccount = useActingAccount();
+  const notificationBadge = (): OrganizationNotificationBadge | null => {
+    const organization = actingAccount.selectedOrganization();
+    if (organization != null) {
+      return organization.notificationBadge ?? null;
+    }
+    const count = props.personalUnreadNotificationsCount ?? 0;
+    return count > 0 ? { color: "RED", count } : null;
+  };
+
+  return (
+    <Button
+      as={A}
+      href="/notifications"
+      onClick={invalidateNotificationsPageQueryCache}
+      variant="ghost"
+      size="icon"
+      class="relative size-9 rounded-full"
+      aria-label={t`Notifications`}
+      title={t`Notifications`}
+    >
+      <NotificationsBellIcon class="size-5" />
+      <Show when={(notificationBadge()?.count ?? 0) > 0}>
+        <span
+          class="absolute right-2 top-2 size-2.5 rounded-full ring-2 ring-background"
+          classList={{
+            "bg-red-500": notificationBadge()?.color === "RED",
+            "bg-muted-foreground/40": notificationBadge()?.color !== "RED",
+          }}
+          aria-hidden="true"
+        />
+      </Show>
+    </Button>
   );
 }
