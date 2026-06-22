@@ -1,6 +1,13 @@
 import { A, useLocation } from "@solidjs/router";
 import { graphql } from "relay-runtime";
-import { createEffect, createMemo, For, Show } from "solid-js";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  onCleanup,
+  Show,
+} from "solid-js";
 import { createFragment, createMutation } from "solid-relay";
 import IconCheck from "~icons/lucide/check";
 import IconChevronsUpDown from "~icons/lucide/chevrons-up-down";
@@ -499,6 +506,8 @@ interface ActingAccountMenuOption {
 function ActingAccountMenu() {
   const { t } = useLingui();
   const actingAccount = useActingAccount();
+  const [triggerWidth, setTriggerWidth] = createSignal<number>();
+  let triggerResizeObserver: ResizeObserver | undefined;
   const options = createMemo<ActingAccountMenuOption[]>(() => {
     const personalAccount = actingAccount.personalAccount();
     if (personalAccount == null) return [];
@@ -523,15 +532,31 @@ function ActingAccountMenu() {
       option.key !== actingAccount.selectedKey() &&
       (option.badge?.count ?? 0) > 0
     );
+  const menuContentWidth = () => {
+    const width = triggerWidth();
+    if (width == null) return undefined;
+    return `${Math.max(width, 240)}px`;
+  };
+  const setTriggerElement = (element: HTMLElement) => {
+    triggerResizeObserver?.disconnect();
+    const updateWidth = () => {
+      setTriggerWidth(element.getBoundingClientRect().width);
+    };
+    updateWidth();
+    triggerResizeObserver = new ResizeObserver(updateWidth);
+    triggerResizeObserver.observe(element);
+  };
+  onCleanup(() => triggerResizeObserver?.disconnect());
 
   return (
     <Show
       when={options().length > 1 && selectedOption() != null}
     >
       <div class="-mx-2 -mb-2 border-t border-sidebar-border group-data-[collapsible=icon]:mx-0 group-data-[collapsible=icon]:mb-0 group-data-[collapsible=icon]:border-t-0">
-        <DropdownMenu modal={false} placement="top-start" gutter={6}>
+        <DropdownMenu modal={false} placement="top-start" gutter={0}>
           <DropdownMenuTrigger
-            class="flex min-h-14 w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-sm outline-none ring-sidebar-ring transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 data-[expanded]:bg-sidebar-accent data-[expanded]:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:min-h-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0"
+            ref={setTriggerElement}
+            class="flex min-h-14 w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-sm outline-none ring-sidebar-ring transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 data-[expanded]:bg-sidebar data-[expanded]:text-sidebar-foreground group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:min-h-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0"
             aria-label={`${t`Act as`}: ${
               accountDisplayName(selectedOption()!.account)
             }`}
@@ -550,7 +575,10 @@ function ActingAccountMenu() {
               </Show>
             </span>
           </DropdownMenuTrigger>
-          <DropdownMenuContent class="w-60 max-w-[calc(100vw-1rem)]">
+          <DropdownMenuContent
+            class="min-w-60 max-w-[calc(100vw-1rem)] rounded-t-md rounded-b-none border-sidebar-border border-b-0 bg-sidebar p-0 text-sidebar-foreground shadow-none"
+            style={{ width: menuContentWidth() }}
+          >
             <DropdownMenuRadioGroup<string>
               value={actingAccount.selectedKey()}
               onChange={(key) => actingAccount.setSelectedKey(key)}
@@ -565,7 +593,7 @@ function ActingAccountMenu() {
                       value={option.key}
                       indicator={<IconCheck class="size-4" />}
                       indicatorPlacement="right"
-                      class="gap-2"
+                      class="gap-2 rounded-none py-2 focus:bg-sidebar-accent focus:text-sidebar-accent-foreground"
                     >
                       <ActingAccountMenuOptionRow option={option} />
                       <Show
