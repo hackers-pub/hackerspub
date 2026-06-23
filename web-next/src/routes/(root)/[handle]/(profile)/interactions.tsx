@@ -54,7 +54,10 @@ const interactionsPageQuery = graphql`
       viewerBlocks(actingAccountId: $actingAccountId)
       blocksViewer(actingAccountId: $actingAccountId)
       ...NavigateIfHandleIsNotCanonical_actor
-      ...ActorInteractionList_interactions @arguments(locale: $locale)
+      ...ActorInteractionList_interactions @arguments(
+        locale: $locale
+        actingAccountId: $actingAccountId
+      )
       ...ProfileCard_actor @arguments(actingAccountId: $actingAccountId)
       ...ProfileTabs_actor @arguments(actingAccountId: $actingAccountId)
     }

@@ -42,7 +42,10 @@ const articlesPageQuery = graphql`
       viewerBlocks(actingAccountId: $actingAccountId)
       blocksViewer(actingAccountId: $actingAccountId)
       ...NavigateIfHandleIsNotCanonical_actor
-      ...ActorArticleList_articles @arguments(locale: $locale)
+      ...ActorArticleList_articles @arguments(
+        locale: $locale
+        actingAccountId: $actingAccountId
+      )
       ...ProfileCard_actor @arguments(actingAccountId: $actingAccountId)
       ...ProfileTabs_actor @arguments(actingAccountId: $actingAccountId)
     }

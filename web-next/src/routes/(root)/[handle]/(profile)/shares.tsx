@@ -41,7 +41,10 @@ const sharesPageQuery = graphql`
       viewerBlocks(actingAccountId: $actingAccountId)
       blocksViewer(actingAccountId: $actingAccountId)
       ...NavigateIfHandleIsNotCanonical_actor
-      ...ActorSharedPostList_sharedPosts @arguments(locale: $locale)
+      ...ActorSharedPostList_sharedPosts @arguments(
+        locale: $locale
+        actingAccountId: $actingAccountId
+      )
       ...ProfileCard_actor @arguments(actingAccountId: $actingAccountId)
       ...ProfileTabs_actor @arguments(actingAccountId: $actingAccountId)
     }

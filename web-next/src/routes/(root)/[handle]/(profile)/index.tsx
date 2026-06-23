@@ -96,7 +96,10 @@ const ProfilePageContentQuery = graphql`
           cursor
         }
       }
-      ...ActorPostList_posts @arguments(locale: $locale)
+      ...ActorPostList_posts @arguments(
+        locale: $locale
+        actingAccountId: $actingAccountId
+      )
     }
   }
 `;
@@ -117,7 +120,10 @@ const ProfilePagePinsQuery = graphql`
         __id
         edges {
           node {
-            ...PostCard_post @arguments(locale: $locale)
+            ...PostCard_post @arguments(
+              locale: $locale
+              actingAccountId: $actingAccountId
+            )
             id
           }
           cursor
