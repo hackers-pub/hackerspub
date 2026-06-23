@@ -652,7 +652,7 @@ msgstr "管理"
 
 #: src/routes/(root)/[handle]/org-conversions/[requestId].tsx:240
 msgid "After acceptance, this account becomes an organization account, cannot sign in directly, and cannot be converted back to a personal account."
-msgstr "接受后，此账号将变为组织账号，无法直接登录，也无法转换回个人账号。"
+msgstr "接受后，此账户将变为组织账号，无法直接登录，也无法转换回个人账户。"
 
 #: src/routes/(root)/[handle]/settings/account.tsx:1143
 msgid "After conversion, this account cannot sign in directly and cannot be converted back to a personal account."
@@ -1329,7 +1329,7 @@ msgstr "无法在此投票调查中投票"
 
 #: src/routes/(root)/[handle]/settings/account.tsx:665
 msgid "Create an organization account that shares the username namespace and consumes one invitation."
-msgstr "创建共享用户名命名空间并消耗一个邀请的组织账户。"
+msgstr "创建共享用户名命名空间并消耗一个邀请的组织账号。"
 
 #: src/components/AppSidebar.tsx:1071
 #: src/components/FloatingComposeButton.tsx:123
@@ -4860,7 +4860,7 @@ msgstr "现在无法删除此组织。请联系实例管理员。"
 
 #: src/routes/(root)/[handle]/settings/account.tsx:1947
 msgid "This organization's profile, posts, drafts, follows, settings, and memberships will be removed. Its username will remain reserved."
-msgstr "此组织的个人资料、帖文、草稿、关注、设置和成员关系将被移除。其用户名会继续保留。"
+msgstr "此组织的个人资料、内容、草稿、关注关系、设置和成员关系将被移除。其用户名会继续保留。"
 
 #: src/routes/(root)/[handle]/settings/account.tsx:1741
 msgid "This page only prepares the Hackers' Pub side of the move. The move still starts from your old server."
@@ -4994,7 +4994,7 @@ msgstr "重试"
 
 #: src/routes/(root)/[handle]/settings/account.tsx:707
 msgid "Turn this personal account into an organization account. This cannot be undone."
-msgstr "将此个人账户转换为组织账户。此操作无法撤销。"
+msgstr "将此个人账户转换为组织账号。此操作无法撤销。"
 
 #. placeholder {0}: props.username
 #: src/routes/(root)/[handle]/settings/account.tsx:1966

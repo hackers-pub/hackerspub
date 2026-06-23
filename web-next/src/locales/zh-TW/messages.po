@@ -652,7 +652,7 @@ msgstr "管理"
 
 #: src/routes/(root)/[handle]/org-conversions/[requestId].tsx:240
 msgid "After acceptance, this account becomes an organization account, cannot sign in directly, and cannot be converted back to a personal account."
-msgstr "接受後，此帳號將變為組織帳號，無法直接登入，也無法轉換回個人帳號。"
+msgstr "接受後，此帳戶將變為組織帳號，無法直接登入，也無法轉換回個人帳戶。"
 
 #: src/routes/(root)/[handle]/settings/account.tsx:1143
 msgid "After conversion, this account cannot sign in directly and cannot be converted back to a personal account."
@@ -1329,7 +1329,7 @@ msgstr "無法在此投票調查中投票"
 
 #: src/routes/(root)/[handle]/settings/account.tsx:665
 msgid "Create an organization account that shares the username namespace and consumes one invitation."
-msgstr "建立共享使用者名稱命名空間並消耗一個邀請的組織帳戶。"
+msgstr "建立共享使用者名稱命名空間並消耗一個邀請的組織帳號。"
 
 #: src/components/AppSidebar.tsx:1071
 #: src/components/FloatingComposeButton.tsx:123
@@ -4856,11 +4856,11 @@ msgstr "內容過長（最多 {MAX_REASON_LENGTH} 個字元）。"
 
 #: src/routes/(root)/[handle]/settings/account.tsx:1891
 msgid "This organization cannot be deleted right now. Please contact the instance administrators."
-msgstr "目前無法刪除此組織。請聯絡實例管理員。"
+msgstr "目前無法刪除此組織。請聯絡站台管理員。"
 
 #: src/routes/(root)/[handle]/settings/account.tsx:1947
 msgid "This organization's profile, posts, drafts, follows, settings, and memberships will be removed. Its username will remain reserved."
-msgstr "此組織的個人檔案、貼文、草稿、追蹤、設定和成員資格將被移除。其使用者名稱會繼續保留。"
+msgstr "此組織的個人檔案、內容、草稿、關注關係、設定和成員資格將被移除。其使用者名稱會繼續保留。"
 
 #: src/routes/(root)/[handle]/settings/account.tsx:1741
 msgid "This page only prepares the Hackers' Pub side of the move. The move still starts from your old server."
@@ -4994,7 +4994,7 @@ msgstr "重試"
 
 #: src/routes/(root)/[handle]/settings/account.tsx:707
 msgid "Turn this personal account into an organization account. This cannot be undone."
-msgstr "將此個人帳戶轉換為組織帳戶。此操作無法復原。"
+msgstr "將此個人帳戶轉換為組織帳號。此操作無法復原。"
 
 #. placeholder {0}: props.username
 #: src/routes/(root)/[handle]/settings/account.tsx:1966

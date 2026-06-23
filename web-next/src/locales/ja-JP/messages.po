@@ -4860,7 +4860,7 @@ msgstr "現在、この組織は削除できません。インスタンス管理
 
 #: src/routes/(root)/[handle]/settings/account.tsx:1947
 msgid "This organization's profile, posts, drafts, follows, settings, and memberships will be removed. Its username will remain reserved."
-msgstr "この組織のプロフィール、投稿、下書き、フォロー、設定、メンバーシップは削除されます。ユーザー名は引き続き予約されます。"
+msgstr "この組織のプロフィール、コンテンツ、下書き、フォロー、設定、メンバーシップは削除されます。ユーザー名は引き続き予約されます。"
 
 #: src/routes/(root)/[handle]/settings/account.tsx:1741
 msgid "This page only prepares the Hackers' Pub side of the move. The move still starts from your old server."
