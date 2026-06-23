@@ -128,9 +128,10 @@ export function NotificationList(props: NotificationListProps) {
       markOrganizationNotificationsAsRead({
         variables: {
           organizationId: readScope.organizationId,
+          readAt: readThrough.created,
         },
-        // Organization notification edges can be coalesced, so the edge
-        // timestamp is not a safe upper bound for the underlying rows.
+        // Bound the marker to the newest row in the loaded page so a
+        // notification created after this list was fetched remains unread.
         onCompleted: refreshUnreadNotificationsCount,
       });
     } else {
