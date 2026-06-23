@@ -799,12 +799,14 @@ function AccountSection(props: AccountSectionProps) {
         {t`Account`}
       </SidebarGroupLabel>
       <SidebarGroupContent>
-        <SidebarMenuItem class="list-none">
-          <SidebarMenuButton on:click={onUseOldUI} class="cursor-pointer">
-            <IconUndo2 class="size-6" />
-            {t`Use old UI`}
-          </SidebarMenuButton>
-        </SidebarMenuItem>
+        <Show when={actingAccount.selectedOrganization() == null}>
+          <SidebarMenuItem class="list-none">
+            <SidebarMenuButton on:click={onUseOldUI} class="cursor-pointer">
+              <IconUndo2 class="size-6" />
+              {t`Use old UI`}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </Show>
         <Show
           when={!props.signedAccountLoaded}
         >
