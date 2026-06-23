@@ -345,6 +345,9 @@ const createNoteAsOrganizationMutation = parse(`
           }
         }
       }
+      ... on ActorSuspendedError {
+        suspendedUntil
+      }
       ... on OrganizationPermissionError {
         message
       }
@@ -1234,6 +1237,54 @@ test("createNote can publish as an organization with co-authorship attribution",
       attribution?.attributionMode,
       "acting_account_with_viewer",
     );
+  });
+});
+
+test("createNote rejects suspended members acting through organizations", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "suspendedorgmember",
+      name: "Suspended Org Member",
+      email: "suspendedorgmember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "suspendedorgauthor",
+        name: "Suspended Org Author",
+        bio: "",
+      },
+    );
+    const until = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await tx.update(actorTable)
+      .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: until })
+      .where(eq(actorTable.accountId, member.account.id));
+
+    const result = await execute({
+      schema,
+      document: createNoteAsOrganizationMutation,
+      variableValues: {
+        input: {
+          visibility: "PUBLIC",
+          content: "Trying to post through an organization while suspended",
+          language: "en",
+          actingAccountId: encodeGlobalID("Account", organization.id),
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    const data = (toPlainJson(result.data) as {
+      createNote: { __typename: string; suspendedUntil: string | null };
+    }).createNote;
+    assert.equal(data.__typename, "ActorSuspendedError");
+    assert.ok(data.suspendedUntil != null);
   });
 });
 

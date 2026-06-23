@@ -8,6 +8,7 @@ import { follow } from "@hackerspub/models/following";
 import { createOrganization } from "@hackerspub/models/organization";
 import {
   accountTable,
+  actorTable,
   blockingTable,
   followingTable,
 } from "@hackerspub/models/schema";
@@ -62,6 +63,9 @@ const followActorAsOrganizationMutation = parse(`
       }
       ... on OrganizationPermissionError {
         message
+      }
+      ... on ActorSuspendedError {
+        suspendedUntil
       }
     }
   }
@@ -410,6 +414,63 @@ test("followActor and unfollowActor can act as an organization", async () => {
       },
     });
     assert.deepEqual(storedAfterUnfollow, undefined);
+  });
+});
+
+test("followActor rejects suspended members acting through organizations", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "orgfollowsuspended",
+      name: "Organization Follow Suspended",
+      email: "orgfollowsuspended@example.com",
+    });
+    const followee = await insertAccountWithActor(tx, {
+      username: "orgfollowsuspendedtarget",
+      name: "Organization Follow Suspended Target",
+      email: "orgfollowsuspendedtarget@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgfollowsuspendedactor",
+        name: "Organization Follow Suspended Actor",
+        bio: "",
+      },
+    );
+    const until = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await tx.update(actorTable)
+      .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: until })
+      .where(eq(actorTable.accountId, member.account.id));
+
+    const result = await execute({
+      schema,
+      document: followActorAsOrganizationMutation,
+      variableValues: {
+        actorId: encodeGlobalID("Actor", followee.actor.id),
+        actingAccountId: encodeGlobalID("Account", organization.id),
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(result.errors, undefined);
+    const data = (toPlainJson(result.data) as {
+      followActor: { __typename: string; suspendedUntil: string | null };
+    }).followActor;
+    assert.equal(data.__typename, "ActorSuspendedError");
+    assert.ok(data.suspendedUntil != null);
+
+    const storedFollow = await tx.query.followingTable.findFirst({
+      where: {
+        followerId: organization.actor.id,
+        followeeId: followee.actor.id,
+      },
+    });
+    assert.equal(storedFollow, undefined);
   });
 });
 

@@ -24,7 +24,11 @@ import {
   unfollow,
 } from "@hackerspub/models/following";
 import { getMutedActorIds, mute, unmute } from "@hackerspub/models/muting";
-import { isActorBanned, isActorSuspended } from "@hackerspub/models/moderation";
+import {
+  assertAccountActorNotSuspended,
+  isActorBanned,
+  isActorSuspended,
+} from "@hackerspub/models/moderation";
 import {
   OrganizationPermissionError,
   resolveActingAccount,
@@ -1493,6 +1497,7 @@ builder.relayMutationField(
       ],
     },
     async resolve(_root, args, ctx) {
+      if (ctx.account == null) throw new NotAuthenticatedError();
       const actingAccount = await resolveActingAccountForMutation(
         ctx,
         args.input,
@@ -1506,6 +1511,7 @@ builder.relayMutationField(
         throw new InvalidInputError("actorId");
       }
 
+      await assertAccountActorNotSuspended(ctx.db, ctx.account.id);
       await follow(ctx.fedCtx, actingAccount, followee);
 
       return { followeeId: followee.id, followerId: actingAccount.actor.id };

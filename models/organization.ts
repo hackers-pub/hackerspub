@@ -31,6 +31,7 @@ import {
   passkeyTable,
   pushNotificationTargetTable,
 } from "./schema.ts";
+import { validateUsername } from "./userValidation.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 export class OrganizationInvitationRequiredError extends Error {
@@ -291,9 +292,14 @@ export async function createOrganization(
   if (creator.kind !== "personal") {
     throw new OrganizationInvitationRequiredError();
   }
+  const username = normalizeUsername(input.username);
+  if (validateUsername(username) != null) {
+    throw new OrganizationMembershipError(
+      "The organization username is invalid.",
+    );
+  }
   const db = fedCtx.data.db;
   return await runInTransaction(db, async (tx) => {
-    const username = normalizeUsername(input.username);
     const creatorRows = await tx.update(accountTable)
       .set({
         leftInvitations: sql`${accountTable.leftInvitations} - 1`,

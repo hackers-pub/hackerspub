@@ -49,6 +49,7 @@ import {
   SUPPORTED_MEDIUM_IMAGE_TYPES,
   UnsafeMediumUrlError,
 } from "@hackerspub/models/medium";
+import { assertAccountActorNotSuspended } from "@hackerspub/models/moderation";
 import {
   createNote,
   QuotePolicyDeniedError,
@@ -2482,6 +2483,7 @@ builder.relayMutationField(
       if (session == null || ctx.account == null) {
         throw new NotAuthenticatedError();
       }
+      const authenticatedAccountId = ctx.account.id;
       const {
         visibility,
         content,
@@ -2608,6 +2610,7 @@ builder.relayMutationField(
           }),
         );
         let note: Awaited<ReturnType<typeof createNote>>;
+        await assertAccountActorNotSuspended(ctx.db, authenticatedAccountId);
         try {
           note = await createNote(
             context,
@@ -2775,6 +2778,7 @@ builder.relayMutationField(
       if (session == null || ctx.account == null) {
         throw new NotAuthenticatedError();
       }
+      const authenticatedAccountId = ctx.account.id;
       const {
         visibility,
         content,
@@ -2917,6 +2921,7 @@ builder.relayMutationField(
             `Unknown value in Post.visibility: "${visibility}"`,
           );
         let question: Awaited<ReturnType<typeof createQuestion>>;
+        await assertAccountActorNotSuspended(ctx.db, authenticatedAccountId);
         try {
           question = await createQuestion(
             context,
@@ -3381,6 +3386,7 @@ builder.relayMutationField(
       if (session == null || ctx.account == null) {
         throw new NotAuthenticatedError();
       }
+      const authenticatedAccountId = ctx.account.id;
       const actingAccount = await resolvePostActingAccount(ctx, args.input);
 
       // Get draft
@@ -3401,6 +3407,8 @@ builder.relayMutationField(
       }
 
       const { slug, language, allowLlmTranslation, quotePolicy } = args.input;
+
+      await assertAccountActorNotSuspended(ctx.db, authenticatedAccountId);
 
       // Create article from draft
       const article = await withTransaction(ctx.fedCtx, async (context) => {
@@ -3499,6 +3507,10 @@ builder.relayMutationField(
       ],
     },
     async resolve(_root, args, ctx) {
+      if (ctx.account == null) {
+        throw new NotAuthenticatedError();
+      }
+      const authenticatedAccountId = ctx.account.id;
       const actingAccount = await resolveActingAccountForMutation(
         ctx,
         args.input,
@@ -3544,6 +3556,8 @@ builder.relayMutationField(
       if (!isPostVisibleTo(post, actingAccount.actor)) {
         throw new InvalidInputError("postId");
       }
+
+      await assertAccountActorNotSuspended(ctx.db, authenticatedAccountId);
 
       const reaction = await react(
         ctx.fedCtx,
@@ -3727,6 +3741,10 @@ builder.relayMutationField(
       ],
     },
     async resolve(_root, args, ctx) {
+      if (ctx.account == null) {
+        throw new NotAuthenticatedError();
+      }
+      const authenticatedAccountId = ctx.account.id;
       const actingAccount = await resolveActingAccountForMutation(
         ctx,
         args.input,
@@ -3797,6 +3815,8 @@ builder.relayMutationField(
       ) {
         throw new InvalidInputError("postId");
       }
+
+      await assertAccountActorNotSuspended(ctx.db, authenticatedAccountId);
 
       const share = await sharePost(
         ctx.fedCtx,

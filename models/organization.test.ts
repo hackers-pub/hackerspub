@@ -136,6 +136,37 @@ test("createOrganization() rejects accounts without invitations", async () => {
   });
 });
 
+test("createOrganization() rejects invalid usernames without consuming invitations", async () => {
+  await withRollback(async (tx) => {
+    const creator = await insertAccountWithActor(tx, {
+      username: "invalidorgcreator",
+      name: "Invalid Org Creator",
+      email: "invalidorgcreator@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, creator.account.id));
+
+    await assert.rejects(
+      createOrganization(createFedCtx(tx), creator.account, {
+        username: "bad-org!",
+        name: "Bad Org",
+        bio: "",
+      }),
+      /username/i,
+    );
+
+    const storedCreator = await tx.query.accountTable.findFirst({
+      where: { id: creator.account.id },
+    });
+    assert.equal(storedCreator?.leftInvitations, 1);
+    const organization = await tx.query.accountTable.findFirst({
+      where: { username: "bad-org!" },
+    });
+    assert.equal(organization, undefined);
+  });
+});
+
 test("organization membership invite acceptance and last-member guard", async () => {
   await withRollback(async (tx) => {
     const admin = await insertAccountWithActor(tx, {
