@@ -423,6 +423,7 @@ const pinPostAsOrganizationMutation = parse(`
       ... on PinPostPayload {
         post {
           id
+          viewerHasPinned(actingAccountId: $actingAccountId)
         }
       }
       ... on InvalidInputError {
@@ -439,6 +440,7 @@ const unpinPostAsOrganizationMutation = parse(`
       ... on UnpinPostPayload {
         post {
           id
+          viewerHasPinned(actingAccountId: $actingAccountId)
         }
         unpinnedPostId
       }
@@ -3953,9 +3955,12 @@ test("organization members can manage organization-authored posts", async () => 
     assert.equal(pinResult.errors, undefined);
     assert.equal(
       (toPlainJson(pinResult.data) as {
-        pinPost: { __typename: string };
-      }).pinPost.__typename,
-      "PinPostPayload",
+        pinPost: {
+          __typename: string;
+          post?: { viewerHasPinned: boolean };
+        };
+      }).pinPost.post?.viewerHasPinned,
+      true,
     );
 
     const unpinResult = await execute({
@@ -3971,9 +3976,12 @@ test("organization members can manage organization-authored posts", async () => 
     assert.equal(unpinResult.errors, undefined);
     assert.equal(
       (toPlainJson(unpinResult.data) as {
-        unpinPost: { __typename: string };
-      }).unpinPost.__typename,
-      "UnpinPostPayload",
+        unpinPost: {
+          __typename: string;
+          post?: { viewerHasPinned: boolean };
+        };
+      }).unpinPost.post?.viewerHasPinned,
+      false,
     );
 
     const revokeResult = await execute({

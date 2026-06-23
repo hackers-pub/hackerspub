@@ -59,7 +59,6 @@ import {
   recordOrganizationPostAuthor,
 } from "@hackerspub/models/organization";
 import {
-  arePostsPinnedBy,
   pinPost as pinPostModel,
   unpinPost as unpinPostModel,
 } from "@hackerspub/models/pin";
@@ -87,6 +86,7 @@ import {
   articleDraftMediumTable,
   articleDraftTable,
   articleSourceMediumTable,
+  pinTable,
   postTable,
 } from "@hackerspub/models/schema";
 import type * as schema from "@hackerspub/models/schema";
@@ -924,19 +924,18 @@ export const Post = builder.drizzleInterface("postTable", {
     viewerHasPinned: t.loadable({
       type: "Boolean",
       description:
-        "Whether the authenticated viewer has pinned this post to their " +
-        "profile. Always `false` for unauthenticated requests.",
-      loaderOptions: { cache: false },
-      load: async (postIds: Uuid[], ctx: UserContext): Promise<boolean[]> => {
-        if (ctx.account == null) return postIds.map(() => false);
-        const pinned = await arePostsPinnedBy(
-          ctx.db,
-          postIds,
-          ctx.account.actor,
-        );
-        return postIds.map((id) => pinned.has(id));
+        "Whether the selected viewer account has pinned this post to their " +
+        "profile. Always `false` for unauthenticated requests. Pass " +
+        "`actingAccountId` for an organization perspective.",
+      args: {
+        actingAccountId: t.arg.globalID({
+          required: false,
+          description: actingAccountIdArgDescription,
+        }),
       },
-      resolve: (post) => post.id,
+      loaderOptions: { cache: false },
+      load: loadViewerHasPinned,
+      resolve: postViewerActorKey,
     }),
     viewerCanReply: t.loadable({
       type: "Boolean",
@@ -1115,6 +1114,42 @@ async function loadViewerHasShared(
   return keys.map((key) =>
     key.viewerActorId != null &&
     sharedKeys.has(`${key.viewerActorId}:${key.postId}`)
+  );
+}
+
+async function loadViewerHasPinned(
+  keys: ViewerActorPostKey[],
+  ctx: UserContext,
+): Promise<boolean[]> {
+  const postIdsByViewer = new Map<Uuid, Set<Uuid>>();
+  for (const key of keys) {
+    if (key.viewerActorId == null) continue;
+    let postIds = postIdsByViewer.get(key.viewerActorId);
+    if (postIds == null) {
+      postIds = new Set();
+      postIdsByViewer.set(key.viewerActorId, postIds);
+    }
+    postIds.add(key.postId);
+  }
+
+  const pinnedKeys = new Set<string>();
+  for (const [viewerActorId, postIds] of postIdsByViewer) {
+    const rows = await ctx.db.select({ postId: pinTable.postId })
+      .from(pinTable)
+      .where(
+        and(
+          eq(pinTable.actorId, viewerActorId),
+          inArray(pinTable.postId, [...postIds]),
+        ),
+      );
+    for (const row of rows) {
+      pinnedKeys.add(`${viewerActorId}:${row.postId}`);
+    }
+  }
+
+  return keys.map((key) =>
+    key.viewerActorId != null &&
+    pinnedKeys.has(`${key.viewerActorId}:${key.postId}`)
   );
 }
 

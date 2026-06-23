@@ -1108,9 +1108,14 @@ type Article implements Node & Post & Reactable {
   viewerHasBookmarked: Boolean!
 
   """
-  Whether the authenticated viewer has pinned this post to their profile. Always `false` for unauthenticated requests.
+  Whether the selected viewer account has pinned this post to their profile. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
   """
-  viewerHasPinned: Boolean!
+  viewerHasPinned(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 
   """
   Whether the selected viewer account has boosted this post. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
@@ -3233,9 +3238,14 @@ type Note implements Node & Post & Reactable {
   viewerHasBookmarked: Boolean!
 
   """
-  Whether the authenticated viewer has pinned this post to their profile. Always `false` for unauthenticated requests.
+  Whether the selected viewer account has pinned this post to their profile. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
   """
-  viewerHasPinned: Boolean!
+  viewerHasPinned(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 
   """
   Whether the selected viewer account has boosted this post. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
@@ -3873,9 +3883,14 @@ interface Post implements Node & Reactable {
   viewerHasBookmarked: Boolean!
 
   """
-  Whether the authenticated viewer has pinned this post to their profile. Always `false` for unauthenticated requests.
+  Whether the selected viewer account has pinned this post to their profile. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
   """
-  viewerHasPinned: Boolean!
+  viewerHasPinned(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 
   """
   Whether the selected viewer account has boosted this post. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
@@ -4780,9 +4795,14 @@ type Question implements Node & Post & Reactable {
   viewerHasBookmarked: Boolean!
 
   """
-  Whether the authenticated viewer has pinned this post to their profile. Always `false` for unauthenticated requests.
+  Whether the selected viewer account has pinned this post to their profile. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
   """
-  viewerHasPinned: Boolean!
+  viewerHasPinned(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 
   """
   Whether the selected viewer account has boosted this post. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.

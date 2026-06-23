@@ -72,7 +72,7 @@ const pinPostMutation = graphql`
             edgeTypeName: "ActorPinsConnectionEdge"
           ) {
           id
-          viewerHasPinned
+          viewerHasPinned(actingAccountId: $actingAccountId)
           ...PostCard_post
             @arguments(locale: $locale, actingAccountId: $actingAccountId)
         }
@@ -91,13 +91,14 @@ const unpinPostMutation = graphql`
   mutation PostActionMenu_unpinPost_Mutation(
     $input: UnpinPostInput!
     $connections: [ID!]!
+    $actingAccountId: ID
   ) {
     unpinPost(input: $input) {
       __typename
       ... on UnpinPostPayload {
         post {
           id
-          viewerHasPinned
+          viewerHasPinned(actingAccountId: $actingAccountId)
         }
         unpinnedPostId @deleteEdge(connections: $connections)
       }
@@ -149,7 +150,7 @@ export function PostActionMenu(props: PostActionMenuProps) {
         id
         iri
         visibility
-        viewerHasPinned
+        viewerHasPinned(actingAccountId: $actingAccountId)
         engagementStats {
           replies
           shares
@@ -255,6 +256,7 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
         variables: {
           input: managementInput({ postId: p.id }),
           connections: props.pinConnections ?? [],
+          actingAccountId: actingAccount.selectedActingAccountId() ?? null,
         },
         onCompleted(response) {
           if (response.unpinPost.__typename === "UnpinPostPayload") {
