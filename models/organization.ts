@@ -18,6 +18,7 @@ import {
   accountTable,
   type Actor,
   actorTable,
+  invitationLinkTable,
   type Medium,
   notificationTable,
   type OrganizationConversionRequest,
@@ -118,6 +119,17 @@ function asTransactionalFedCtx(
     ...fedCtx.data,
     db: tx,
   });
+}
+
+async function lockOrganizationMembershipSet(
+  tx: Transaction,
+  organizationAccountId: Uuid,
+): Promise<void> {
+  await tx.execute(sql`
+    SELECT pg_advisory_xact_lock(
+      hashtextextended(${`organization-membership:${organizationAccountId}`}, 0)
+    )
+  `);
 }
 
 function normalizeUsername(username: string): string {
@@ -469,30 +481,33 @@ export async function updateOrganizationMemberRole(
   memberAccountId: Uuid,
   role: OrganizationMemberRole,
 ): Promise<OrganizationMembership> {
-  await assertOrganizationAdmin(db, adminAccount, organizationAccountId);
-  const membership = await getAcceptedMembership(
-    db,
-    organizationAccountId,
-    memberAccountId,
-  );
-  if (membership == null) {
-    throw new OrganizationMembershipError("The member does not exist.");
-  }
-  if (membership.role === "admin" && role === "member") {
-    const admins = await countAcceptedAdmins(db, organizationAccountId);
-    if (admins <= 1) throw new LastOrganizationAdminError();
-  }
-  const rows = await db.update(organizationMembershipTable)
-    .set({ role, updated: sql`CURRENT_TIMESTAMP` })
-    .where(and(
-      eq(
-        organizationMembershipTable.organizationAccountId,
-        organizationAccountId,
-      ),
-      eq(organizationMembershipTable.memberAccountId, memberAccountId),
-    ))
-    .returning();
-  return rows[0]!;
+  return await runInTransaction(db, async (tx) => {
+    await lockOrganizationMembershipSet(tx, organizationAccountId);
+    await assertOrganizationAdmin(tx, adminAccount, organizationAccountId);
+    const membership = await getAcceptedMembership(
+      tx,
+      organizationAccountId,
+      memberAccountId,
+    );
+    if (membership == null) {
+      throw new OrganizationMembershipError("The member does not exist.");
+    }
+    if (membership.role === "admin" && role === "member") {
+      const admins = await countAcceptedAdmins(tx, organizationAccountId);
+      if (admins <= 1) throw new LastOrganizationAdminError();
+    }
+    const rows = await tx.update(organizationMembershipTable)
+      .set({ role, updated: sql`CURRENT_TIMESTAMP` })
+      .where(and(
+        eq(
+          organizationMembershipTable.organizationAccountId,
+          organizationAccountId,
+        ),
+        eq(organizationMembershipTable.memberAccountId, memberAccountId),
+      ))
+      .returning();
+    return rows[0]!;
+  });
 }
 
 export async function removeOrganizationMember(
@@ -502,6 +517,7 @@ export async function removeOrganizationMember(
   memberAccountId: Uuid,
 ): Promise<OrganizationMembership> {
   return await runInTransaction(db, async (tx) => {
+    await lockOrganizationMembershipSet(tx, organizationAccountId);
     await assertOrganizationAdmin(tx, adminAccount, organizationAccountId);
     const membership = await tx.query.organizationMembershipTable.findFirst({
       where: { organizationAccountId, memberAccountId },
@@ -579,31 +595,46 @@ async function removeAcceptedMembership(
   organizationAccountId: Uuid,
   memberAccountId: Uuid,
 ): Promise<OrganizationMembership> {
-  const membership = await getAcceptedMembership(
-    db,
-    organizationAccountId,
-    memberAccountId,
-  );
-  if (membership == null) {
-    throw new OrganizationMembershipError("The member does not exist.");
-  }
-  const members = await countAcceptedMembers(db, organizationAccountId);
-  if (members <= 1) throw new LastOrganizationMemberError();
-  if (membership.role === "admin") {
-    const admins = await countAcceptedAdmins(db, organizationAccountId);
-    if (admins <= 1) throw new LastOrganizationAdminError();
-  }
-  const rows = await db.delete(organizationMembershipTable)
-    .where(and(
-      eq(
-        organizationMembershipTable.organizationAccountId,
-        organizationAccountId,
-      ),
-      eq(organizationMembershipTable.memberAccountId, memberAccountId),
-      isNotNull(organizationMembershipTable.accepted),
-    ))
-    .returning();
-  return rows[0]!;
+  return await runInTransaction(db, async (tx) => {
+    await lockOrganizationMembershipSet(tx, organizationAccountId);
+    const membership = await getAcceptedMembership(
+      tx,
+      organizationAccountId,
+      memberAccountId,
+    );
+    if (membership == null) {
+      throw new OrganizationMembershipError("The member does not exist.");
+    }
+    const members = await countAcceptedMembers(tx, organizationAccountId);
+    if (members <= 1) throw new LastOrganizationMemberError();
+    if (membership.role === "admin") {
+      const admins = await countAcceptedAdmins(tx, organizationAccountId);
+      if (admins <= 1) throw new LastOrganizationAdminError();
+    }
+    const rows = await tx.delete(organizationMembershipTable)
+      .where(and(
+        eq(
+          organizationMembershipTable.organizationAccountId,
+          organizationAccountId,
+        ),
+        eq(organizationMembershipTable.memberAccountId, memberAccountId),
+        isNotNull(organizationMembershipTable.accepted),
+      ))
+      .returning();
+    const removed = rows[0];
+    if (removed == null) {
+      throw new OrganizationMembershipError("The member does not exist.");
+    }
+    await tx.delete(organizationNotificationReadTable)
+      .where(and(
+        eq(
+          organizationNotificationReadTable.organizationAccountId,
+          organizationAccountId,
+        ),
+        eq(organizationNotificationReadTable.memberAccountId, memberAccountId),
+      ));
+    return removed;
+  });
 }
 
 export async function requestOrganizationConversion(
@@ -740,6 +771,8 @@ export async function acceptOrganizationConversion(
       .where(eq(passkeyTable.accountId, request.accountId));
     await tx.delete(pushNotificationTargetTable)
       .where(eq(pushNotificationTargetTable.accountId, request.accountId));
+    await tx.delete(invitationLinkTable)
+      .where(eq(invitationLinkTable.inviterId, request.accountId));
     await tx.update(accountTable)
       .set({
         kind: "organization",
@@ -874,6 +907,15 @@ export async function getOrganizationNotificationBadge(
         FROM ${organizationNotificationReadTable}
         WHERE ${organizationNotificationReadTable.organizationAccountId} =
           ${organizationAccountId}
+          AND EXISTS (
+            SELECT 1
+            FROM ${organizationMembershipTable}
+            WHERE ${organizationMembershipTable.organizationAccountId} =
+              ${organizationNotificationReadTable.organizationAccountId}
+              AND ${organizationMembershipTable.memberAccountId} =
+              ${organizationNotificationReadTable.memberAccountId}
+              AND ${organizationMembershipTable.accepted} IS NOT NULL
+          )
       ),
       '-infinity'::timestamptz
     )

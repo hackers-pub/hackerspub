@@ -234,6 +234,56 @@ test("redeemInvitationLink validates verify URL origin", async () => {
   });
 });
 
+test("redeemInvitationLink rejects organization inviter links", async () => {
+  await withRollback(async (tx) => {
+    const organization = await insertAccountWithActor(tx, {
+      username: "linkorgowner",
+      name: "Link Org Owner",
+      email: "linkorgowner@example.com",
+      kind: "organization",
+      type: "Organization",
+    });
+    const linkId = crypto
+      .randomUUID() as `${string}-${string}-${string}-${string}-${string}`;
+    await tx.insert(invitationLinkTable).values({
+      id: linkId,
+      inviterId: organization.account.id,
+      invitationsLeft: 1,
+    });
+
+    const result = await execute({
+      schema,
+      document: redeemInvitationLinkMutation,
+      variableValues: {
+        id: linkId,
+        email: "redeem-org-link@example.com",
+        locale: "en-US",
+        verifyUrl: "http://localhost/sign/up/{token}?code={code}",
+      },
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(result.errors, undefined);
+    const validation = (result.data as {
+      redeemInvitationLink: {
+        __typename: string;
+        link: string | null;
+      };
+    }).redeemInvitationLink;
+    assert.equal(
+      validation.__typename,
+      "RedeemInvitationLinkValidationErrors",
+    );
+    assert.equal(validation.link, "LINK_NOT_FOUND");
+
+    const storedLink = await tx.query.invitationLinkTable.findFirst({
+      where: { id: linkId },
+    });
+    assert.equal(storedLink?.invitationsLeft, 1);
+  });
+});
+
 test(
   "redeemInvitationLink decrements the link and stores a signup token",
   async () => {

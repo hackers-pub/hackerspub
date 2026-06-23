@@ -69,6 +69,43 @@ test("actor dispatcher returns a Tombstone for a deleted account", async () => {
     const body = await response.json();
     assert.equal(body.type, "Tombstone");
     assert.equal(body.id, `http://localhost/ap/actors/${accountId}`);
+    assert.equal(body.formerType, "as:Person");
+  });
+});
+
+test("actor dispatcher preserves an Organization deleted actor type", async () => {
+  await withRollback(async (tx) => {
+    const accountId = generateUuidV7();
+    await tx.insert(deletedAccountTable).values({
+      accountId,
+      username: "deletedorg",
+      actorIri: `http://localhost/ap/actors/${accountId}`,
+      formerType: "Organization",
+      deleted: new Date("2026-06-17T00:00:00.000Z"),
+    });
+    const builder = await getBuilder();
+    const federation = await builder.build({
+      kv: new MemoryKvStore(),
+      origin: "http://localhost/",
+    });
+    const contextData = {
+      db: tx,
+      kv: createTestKv().kv,
+      disk: createTestDisk(),
+      models: {} as ContextData["models"],
+    };
+
+    const response = await federation.fetch(
+      new Request(`http://localhost/ap/actors/${accountId}`, {
+        headers: { Accept: "application/activity+json" },
+      }),
+      { contextData },
+    );
+
+    assert.equal(response.status, 410);
+    const body = await response.json();
+    assert.equal(body.type, "Tombstone");
+    assert.equal(body.formerType, "as:Organization");
   });
 });
 

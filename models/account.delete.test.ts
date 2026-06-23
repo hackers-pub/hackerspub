@@ -1,5 +1,6 @@
 import assert from "node:assert";
 import test from "node:test";
+import { Delete, Organization, Tombstone } from "@fedify/vocab";
 import { eq } from "drizzle-orm";
 import {
   AccountDeletionUnavailableError,
@@ -276,6 +277,38 @@ test("deleteAccount() hard-deletes an account and reserves the current username"
     });
     assert.equal(preservedKeys.length, 1);
     assert.equal(preservedKeys[0].type, "RSASSA-PKCS1-v1_5");
+  });
+});
+
+test("deleteAccount() preserves Organization tombstones", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const sentActivities: unknown[][] = [];
+    fedCtx.sendActivity = (async (...args: unknown[]) => {
+      sentActivities.push(args);
+    }) as typeof fedCtx.sendActivity;
+
+    const target = await insertAccountWithActor(tx, {
+      username: "deleteorg",
+      name: "Delete Org",
+      email: "deleteorg@example.com",
+      kind: "organization",
+      type: "Organization",
+    });
+
+    const result = await deleteAccount(fedCtx, target.account.id);
+
+    assert.equal(result?.accountId, target.account.id);
+    const tombstone = await tx.query.deletedAccountTable.findFirst({
+      where: { accountId: target.account.id },
+    });
+    assert.equal(tombstone?.formerType, "Organization");
+
+    const activity = sentActivities[0]?.[2];
+    assert.ok(activity instanceof Delete);
+    const object = await activity.getObject({ ...fedCtx, suppressError: true });
+    assert.ok(object instanceof Tombstone);
+    assert.equal(object.formerType, Organization);
   });
 });
 

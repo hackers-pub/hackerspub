@@ -241,12 +241,23 @@ export type OrganizationConversionRequest =
 export type NewOrganizationConversionRequest =
   typeof organizationConversionRequestTable.$inferInsert;
 
+export const actorTypeEnum = pgEnum("actor_type", [
+  "Application",
+  "Group",
+  "Organization",
+  "Person",
+  "Service",
+]);
+
+export type ActorType = (typeof actorTypeEnum.enumValues)[number];
+
 export const deletedAccountTable = pgTable(
   "deleted_account",
   {
     accountId: uuid("account_id").$type<Uuid>().primaryKey(),
     username: varchar({ length: 50 }).notNull().unique(),
     actorIri: text("actor_iri").notNull().unique(),
+    formerType: actorTypeEnum("former_type").notNull().default("Person"),
     deleted: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),
@@ -471,16 +482,6 @@ export const accountLinkTable = pgTable(
 
 export type AccountLink = typeof accountLinkTable.$inferSelect;
 export type NewAccountLink = typeof accountLinkTable.$inferInsert;
-
-export const actorTypeEnum = pgEnum("actor_type", [
-  "Application",
-  "Group",
-  "Organization",
-  "Person",
-  "Service",
-]);
-
-export type ActorType = (typeof actorTypeEnum.enumValues)[number];
 
 export const actorTable = pgTable(
   "actor",

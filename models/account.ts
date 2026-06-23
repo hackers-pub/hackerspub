@@ -58,7 +58,23 @@ export class AccountDeletionUnavailableError extends Error {
 export interface DeletedAccountResult {
   accountId: Uuid;
   username: string;
+  formerType: Actor["type"];
   deleted: Date;
+}
+
+function getTombstoneFormerType(actorType: Actor["type"]) {
+  switch (actorType) {
+    case "Application":
+      return vocab.Application;
+    case "Group":
+      return vocab.Group;
+    case "Organization":
+      return vocab.Organization;
+    case "Service":
+      return vocab.Service;
+    case "Person":
+      return vocab.Person;
+  }
 }
 
 async function collectNewsLinkIdsForPosts(
@@ -462,6 +478,7 @@ export async function deleteAccount(
       accountId: account.id,
       username: account.username,
       actorIri: actorUri.href,
+      formerType: actor.type,
       deleted,
     });
     if (accountKeys.length > 0) {
@@ -504,7 +521,12 @@ export async function deleteAccount(
       affectedPollVotePosts.map((post) => post.postId),
     );
     await refreshNewsScores(tx, affectedLinkIds);
-    result = { accountId: account.id, username: account.username, deleted };
+    result = {
+      accountId: account.id,
+      username: account.username,
+      formerType: actor.type,
+      deleted,
+    };
   });
 
   if (result == null) return undefined;
@@ -519,7 +541,7 @@ export async function deleteAccount(
         to: vocab.PUBLIC_COLLECTION,
         object: new vocab.Tombstone({
           id: actorUri,
-          formerType: vocab.Person,
+          formerType: getTombstoneFormerType(result.formerType),
           deleted: Temporal.Instant.fromEpochMilliseconds(deleted.getTime()),
         }),
       }),

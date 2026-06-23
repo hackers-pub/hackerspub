@@ -27,6 +27,7 @@ import {
   accountTable,
   actorTable,
   followingTable,
+  invitationLinkTable,
   notificationTable,
   organizationMembershipTable,
   pushNotificationTargetTable,
@@ -598,6 +599,80 @@ test("getOrganizationNotificationBadge() ignores notifications with no visible a
   });
 });
 
+test("getOrganizationNotificationBadge() ignores former-member read markers", async () => {
+  await withRollback(async (tx) => {
+    const admin = await insertAccountWithActor(tx, {
+      username: "formerreadadmin",
+      name: "Former Read Admin",
+      email: "formerreadadmin@example.com",
+    });
+    const currentMember = await insertAccountWithActor(tx, {
+      username: "formerreadcurrent",
+      name: "Former Read Current",
+      email: "formerreadcurrent@example.com",
+    });
+    const formerMember = await insertAccountWithActor(tx, {
+      username: "formerreader",
+      name: "Former Reader",
+      email: "formerreader@example.com",
+    });
+    const actor = await insertAccountWithActor(tx, {
+      username: "formerreadactor",
+      name: "Former Read Actor",
+      email: "formerreadactor@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, admin.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      admin.account,
+      {
+        username: "formerreadorg",
+        name: "Former Read Org",
+        bio: "",
+      },
+    );
+    for (const member of [currentMember, formerMember]) {
+      await inviteOrganizationMember(
+        tx,
+        admin.account,
+        organization.id,
+        member.account.username,
+      );
+      await acceptOrganizationInvitation(tx, member.account, organization.id);
+    }
+
+    const created = new Date("2026-04-15T09:00:00.000Z");
+    await tx.insert(notificationTable).values({
+      id: crypto.randomUUID(),
+      accountId: organization.id,
+      type: "follow",
+      actorIds: [actor.actor.id],
+      created,
+    });
+    await getOrganizationNotificationBadge(
+      tx,
+      organization.id,
+      formerMember.account.id,
+      new Date("2026-04-15T10:00:00.000Z"),
+    );
+    await removeOrganizationMember(
+      tx,
+      admin.account,
+      organization.id,
+      formerMember.account.id,
+    );
+
+    const badge = await getOrganizationNotificationBadge(
+      tx,
+      organization.id,
+      currentMember.account.id,
+    );
+    assert.deepEqual(badge, { color: "red", count: 1 });
+  });
+});
+
 test("acceptOrganizationConversion() preserves inviter and removes direct login email", async () => {
   await withRollback(async (tx) => {
     const inviter = await insertAccountWithActor(tx, {
@@ -631,6 +706,12 @@ test("acceptOrganizationConversion() preserves inviter and removes direct login 
       service: "fcm",
       token: "converted-account-fcm-token",
     });
+    await tx.insert(invitationLinkTable).values({
+      id: crypto.randomUUID() as Uuid,
+      inviterId: account.account.id,
+      invitationsLeft: 3,
+      message: "Join with a stale conversion link",
+    });
     const converted = await acceptOrganizationConversion(
       createFedCtx(tx),
       admin.account,
@@ -651,6 +732,11 @@ test("acceptOrganizationConversion() preserves inviter and removes direct login 
       .from(pushNotificationTargetTable)
       .where(eq(pushNotificationTargetTable.accountId, converted.id));
     assert.equal(pushTargets.length, 0);
+
+    const invitationLinks = await tx.select()
+      .from(invitationLinkTable)
+      .where(eq(invitationLinkTable.inviterId, converted.id));
+    assert.equal(invitationLinks.length, 0);
   });
 });
 

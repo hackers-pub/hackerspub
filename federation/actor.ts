@@ -8,13 +8,17 @@ import {
 import {
   Application,
   Endpoints,
+  Group,
   Image,
+  Organization,
   Person,
+  Service,
   Tombstone,
 } from "@fedify/vocab";
 import {
   type AccountKey,
   accountKeyTable,
+  type ActorType,
   type DeletedAccountKey,
   type NewAccountKey,
 } from "@hackerspub/models/schema";
@@ -50,6 +54,21 @@ function sortStoredActorKeys<T extends StoredActorKey>(keys: T[]): T[] {
   return [...keys].sort((a, b) =>
     a.type < b.type ? 1 : a.type > b.type ? -1 : 0
   );
+}
+
+function getTombstoneFormerType(actorType: ActorType) {
+  switch (actorType) {
+    case "Application":
+      return Application;
+    case "Group":
+      return Group;
+    case "Organization":
+      return Organization;
+    case "Service":
+      return Service;
+    case "Person":
+      return Person;
+  }
 }
 
 async function importStoredActorKeys(
@@ -141,7 +160,7 @@ builder
         return new KeyedTombstone(
           {
             id: ctx.getActorUri(identifier),
-            formerType: Person,
+            formerType: getTombstoneFormerType(deleted.formerType),
             deleted: Temporal.Instant.fromEpochMilliseconds(
               deleted.deleted.getTime(),
             ),
