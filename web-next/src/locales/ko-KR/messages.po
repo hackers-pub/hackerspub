@@ -879,6 +879,10 @@ msgstr "인증중…"
 msgid "Author"
 msgstr "작성자"
 
+#: src/components/ActingAccountSelect.tsx:129
+msgid "Choose the account or co-authors shown on this post."
+msgstr "이 콘텐츠에 표시할 계정 또는 공동 저자를 선택합니다."
+
 #: src/components/NoteComposer.tsx:1836
 msgid "Auto-fill"
 msgstr "자동 입력"

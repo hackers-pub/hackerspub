@@ -6,6 +6,7 @@ avatar → avatar
 bio → bio
 block → block
 bookmark → bookmark
+co-author → co-author
 comment → comment
 conversion → conversion
 delete account → delete account

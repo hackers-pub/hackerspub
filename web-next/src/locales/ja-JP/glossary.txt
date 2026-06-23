@@ -6,6 +6,7 @@ avatar → アイコン
 bio → 自己紹介
 block → ブロック
 bookmark → ブックマーク
+co-author → 共同著者
 comment → コメント
 conversion → 変換
 delete account → アカウントを削除

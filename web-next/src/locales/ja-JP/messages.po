@@ -879,6 +879,10 @@ msgstr "認証中…"
 msgid "Author"
 msgstr "投稿者"
 
+#: src/components/ActingAccountSelect.tsx:129
+msgid "Choose the account or co-authors shown on this post."
+msgstr "このコンテンツに表示するアカウントまたは共同著者を選択します。"
+
 #: src/components/NoteComposer.tsx:1836
 msgid "Auto-fill"
 msgstr "自動入力"

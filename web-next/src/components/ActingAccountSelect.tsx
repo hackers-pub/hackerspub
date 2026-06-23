@@ -3,6 +3,7 @@ import { createMemo } from "solid-js";
 import {
   Select,
   SelectContent,
+  SelectDescription,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -105,7 +106,7 @@ export function ActingAccountSelect(props: ActingAccountSelectProps) {
     >
       <SelectTrigger
         aria-label={t`Author`}
-        class={cn("w-full overflow-hidden sm:w-[340px]", props.class)}
+        class={cn("w-full overflow-hidden text-left sm:w-[340px]", props.class)}
       >
         <SelectValue<ComposeActingAccountOption>
           class="min-w-0 flex-1 overflow-hidden"
@@ -118,12 +119,15 @@ export function ActingAccountSelect(props: ActingAccountSelectProps) {
               />
               <AccountIdentityList
                 accounts={state.selectedOption().accounts}
-                class="flex-1"
+                class="flex-1 text-left"
               />
             </div>
           )}
         </SelectValue>
       </SelectTrigger>
+      <SelectDescription class="max-w-full text-left leading-6 sm:max-w-[340px]">
+        {t`Choose the account or co-authors shown on this post.`}
+      </SelectDescription>
       <SelectContent class="w-[min(28rem,calc(100vw-2rem))] max-w-[calc(100vw-2rem)] overflow-x-hidden" />
     </Select>
   );

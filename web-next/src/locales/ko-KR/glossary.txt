@@ -6,6 +6,7 @@ avatar → 프로필 사진
 bio → 약력
 block → 차단
 bookmark → 북마크
+co-author → 공동 저자
 comment → 댓글
 conversion → 전환
 delete account → 계정 삭제

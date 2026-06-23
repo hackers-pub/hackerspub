@@ -6,6 +6,7 @@ avatar → 頭像
 bio → 個人簡介
 block → 封鎖
 bookmark → 收藏
+co-author → 共同作者
 comment → 評論
 conversion → 轉換
 delete account → 刪除帳戶

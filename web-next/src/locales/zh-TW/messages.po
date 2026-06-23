@@ -879,6 +879,10 @@ msgstr "驗證中…"
 msgid "Author"
 msgstr "作者"
 
+#: src/components/ActingAccountSelect.tsx:129
+msgid "Choose the account or co-authors shown on this post."
+msgstr "選擇此內容中顯示的帳戶或共同作者。"
+
 #: src/components/NoteComposer.tsx:1836
 msgid "Auto-fill"
 msgstr "自動填寫"
