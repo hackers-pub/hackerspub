@@ -14,7 +14,7 @@ import { and, eq, inArray, or, sql } from "drizzle-orm";
 import type { Disk } from "flydrive";
 import sharp from "sharp";
 import type { ContextData } from "./context.ts";
-import type { Database } from "./db.ts";
+import type { Database, Transaction } from "./db.ts";
 import {
   createMediumFromBlob,
   createMediumFromBytes,
@@ -60,6 +60,14 @@ export interface DeletedAccountResult {
   username: string;
   formerType: Actor["type"];
   deleted: Date;
+}
+
+interface DeleteAccountOptions {
+  beforeDelete?: (
+    tx: Transaction,
+    account: Account,
+    actor: Actor,
+  ) => Promise<void>;
 }
 
 function getTombstoneFormerType(actorType: Actor["type"]) {
@@ -361,6 +369,7 @@ async function ensureAccountKeys(
 export async function deleteAccount(
   fedCtx: RequestContext<ContextData>,
   accountId: Uuid,
+  options: DeleteAccountOptions = {},
 ): Promise<DeletedAccountResult | undefined> {
   const { db } = fedCtx.data;
   const accountForKeys = await db.query.accountTable.findFirst({
@@ -400,6 +409,7 @@ export async function deleteAccount(
     if (await hasModerationAuditLinks(tx, account.id, actor.id)) {
       throw new AccountDeletionUnavailableError();
     }
+    await options.beforeDelete?.(tx, account, actor);
 
     const affectedPosts = await tx.query.postTable.findMany({
       where: { actorId: actor.id },

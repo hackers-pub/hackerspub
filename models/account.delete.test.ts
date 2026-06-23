@@ -280,6 +280,42 @@ test("deleteAccount() hard-deletes an account and reserves the current username"
   });
 });
 
+test("deleteAccount() runs before-delete checks inside the deletion transaction", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const target = await insertAccountWithActor(tx, {
+      username: "deletebeforecheck",
+      name: "Delete Before Check",
+      email: "deletebeforecheck@example.com",
+    });
+    let checked = false;
+
+    await assert.rejects(
+      () =>
+        deleteAccount(fedCtx, target.account.id, {
+          beforeDelete: async (deleteTx, account) => {
+            checked = true;
+            assert.equal(account.id, target.account.id);
+            const visibleAccount = await deleteTx.query.accountTable.findFirst({
+              where: { id: account.id },
+            });
+            assert.notEqual(visibleAccount, undefined);
+            throw new Error("stop deletion");
+          },
+        }),
+      /stop deletion/,
+    );
+
+    assert.equal(checked, true);
+    assert.notEqual(
+      await tx.query.accountTable.findFirst({
+        where: { id: target.account.id },
+      }),
+      undefined,
+    );
+  });
+});
+
 test("deleteAccount() preserves Organization tombstones", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);

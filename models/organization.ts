@@ -94,6 +94,10 @@ export type AccountWithActor = Account & {
   links?: AccountLink[];
 };
 
+interface OrganizationInvitationNotificationOptions {
+  forceFresh?: boolean;
+}
+
 type AccountForSync = Account & {
   avatarMedium: Medium | null;
   emails: AccountEmail[];
@@ -251,30 +255,52 @@ export async function assertPersonalAccountDeletionPreservesOrganizations(
   db: Database | Transaction,
   accountId: Uuid,
 ): Promise<void> {
-  const memberships = await db.query.organizationMembershipTable.findMany({
-    where: {
-      memberAccountId: accountId,
-      accepted: { isNotNull: true },
-    },
-    columns: {
-      organizationAccountId: true,
-      role: true,
-    },
-  });
-  for (const membership of memberships) {
-    const members = await countAcceptedMembers(
-      db,
-      membership.organizationAccountId,
-    );
-    if (members <= 1) throw new LastOrganizationMemberError();
-    if (membership.role === "admin") {
-      const admins = await countAcceptedAdmins(
-        db,
+  await runInTransaction(db, async (tx) => {
+    const initialMemberships = await tx.query.organizationMembershipTable
+      .findMany({
+        where: {
+          memberAccountId: accountId,
+          accepted: { isNotNull: true },
+        },
+        columns: {
+          organizationAccountId: true,
+        },
+      });
+    const organizationAccountIds = [
+      ...new Set(
+        initialMemberships.map((membership) =>
+          membership.organizationAccountId
+        ),
+      ),
+    ].sort();
+    for (const organizationAccountId of organizationAccountIds) {
+      await lockOrganizationMembershipSet(tx, organizationAccountId);
+    }
+    const memberships = await tx.query.organizationMembershipTable.findMany({
+      where: {
+        memberAccountId: accountId,
+        accepted: { isNotNull: true },
+      },
+      columns: {
+        organizationAccountId: true,
+        role: true,
+      },
+    });
+    for (const membership of memberships) {
+      const members = await countAcceptedMembers(
+        tx,
         membership.organizationAccountId,
       );
-      if (admins <= 1) throw new LastOrganizationAdminError();
+      if (members <= 1) throw new LastOrganizationMemberError();
+      if (membership.role === "admin") {
+        const admins = await countAcceptedAdmins(
+          tx,
+          membership.organizationAccountId,
+        );
+        if (admins <= 1) throw new LastOrganizationAdminError();
+      }
     }
-  }
+  });
 }
 
 export async function createOrganization(
@@ -391,6 +417,7 @@ export async function inviteOrganizationMember(
       db,
       organizationAccountId,
       member.id,
+      { forceFresh: rows[0] != null },
     );
   }
   return membership;
@@ -422,6 +449,7 @@ async function createOrganizationInvitationNotification(
   db: Database | Transaction,
   organizationAccountId: Uuid,
   memberAccountId: Uuid,
+  options: OrganizationInvitationNotificationOptions = {},
 ): Promise<void> {
   await runInTransaction(db, async (tx) => {
     await tx.execute(sql`
@@ -436,6 +464,13 @@ async function createOrganizationInvitationNotification(
     if (actor == null) {
       throw new OrganizationMembershipError(
         "The organization actor does not exist.",
+      );
+    }
+    if (options.forceFresh === true) {
+      await deleteOrganizationInvitationNotification(
+        tx,
+        organizationAccountId,
+        memberAccountId,
       );
     }
     await createOrganizationInvitationNotificationRow(

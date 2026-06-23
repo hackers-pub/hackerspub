@@ -1634,12 +1634,9 @@ builder.relayMutationField(
       }
       const accountId = args.input.id.id as Uuid;
       const deletingOwnAccount = session.accountId === accountId;
-      if (deletingOwnAccount && ctx.account.kind === "personal") {
-        await assertPersonalAccountDeletionPreservesOrganizations(
-          ctx.db,
-          accountId,
-        );
-      } else {
+      const deletingOwnPersonalAccount = deletingOwnAccount &&
+        ctx.account.kind === "personal";
+      if (!deletingOwnPersonalAccount) {
         const target = await ctx.db.query.accountTable.findFirst({
           where: { id: accountId },
           columns: { id: true, kind: true },
@@ -1657,7 +1654,12 @@ builder.relayMutationField(
           throw new NotAuthorizedError();
         }
       }
-      const result = await deleteAccountModel(ctx.fedCtx, accountId);
+      const result = await deleteAccountModel(ctx.fedCtx, accountId, {
+        beforeDelete: deletingOwnPersonalAccount
+          ? (tx) =>
+            assertPersonalAccountDeletionPreservesOrganizations(tx, accountId)
+          : undefined,
+      });
       if (result == null) throw new InvalidInputError("id");
       if (deletingOwnAccount) {
         try {

@@ -303,6 +303,108 @@ test("inviteOrganizationMember() notifies the invited account", async () => {
   }
 });
 
+test("inviteOrganizationMember() recreates stale invitation notifications", async () => {
+  const sent: Array<{ endpoint: string; payload: string }> = [];
+  setWebPushConfigForTesting({
+    publicKey: "test-public-key",
+    privateKey: "test-private-key",
+    subject: "mailto:test@example.com",
+  });
+  setWebPushSenderForTesting(async (subscription, payload) => {
+    sent.push({ endpoint: subscription.endpoint, payload });
+  });
+  try {
+    await withRollback(async (tx) => {
+      const admin = await insertAccountWithActor(tx, {
+        username: "reinviteadmin",
+        name: "Reinvite Admin",
+        email: "reinviteadmin@example.com",
+      });
+      const member = await insertAccountWithActor(tx, {
+        username: "reinvitemember",
+        name: "Reinvite Member",
+        email: "reinvitemember@example.com",
+      });
+      await registerPushNotificationTarget(tx, member.account.id, {
+        service: "web_push",
+        subscription: {
+          endpoint: "https://push.example/org-reinvitation",
+          p256dh: validWebPushP256dh,
+          auth: validWebPushAuth,
+        },
+      });
+      await tx.update(accountTable)
+        .set({ leftInvitations: 1 })
+        .where(eq(accountTable.id, admin.account.id));
+      const organization = await createOrganization(
+        createFedCtx(tx),
+        admin.account,
+        {
+          username: "reinviteorg",
+          name: "Reinvite Org",
+          bio: "",
+        },
+      );
+
+      await inviteOrganizationMember(
+        tx,
+        admin.account,
+        organization.id,
+        member.account.username,
+      );
+      const firstNotification = await tx.query.notificationTable.findFirst({
+        where: {
+          accountId: member.account.id,
+          type: "organization_invitation",
+        },
+      });
+      assert.ok(firstNotification != null);
+      assert.equal(sent.length, 1);
+
+      await acceptOrganizationInvitation(tx, member.account, organization.id);
+      await removeOrganizationMember(
+        tx,
+        admin.account,
+        organization.id,
+        member.account.id,
+      );
+
+      await inviteOrganizationMember(
+        tx,
+        admin.account,
+        organization.id,
+        member.account.username,
+      );
+
+      const notifications = await tx.query.notificationTable.findMany({
+        where: {
+          accountId: member.account.id,
+          type: "organization_invitation",
+        },
+      });
+      assert.equal(notifications.length, 1);
+      assert.notEqual(notifications[0].id, firstNotification.id);
+      assert.deepEqual(notifications[0].actorIds, [organization.actor.id]);
+      assert.equal(sent.length, 2);
+      assert.equal(
+        JSON.parse(sent[1].payload).data.notificationId,
+        notifications[0].id,
+      );
+
+      const membership = await tx.query.organizationMembershipTable.findFirst({
+        where: {
+          organizationAccountId: organization.id,
+          memberAccountId: member.account.id,
+        },
+      });
+      assert.equal(membership?.accepted, null);
+    });
+  } finally {
+    setWebPushConfigForTesting(undefined);
+    setWebPushSenderForTesting(undefined);
+  }
+});
+
 test("ensureOrganizationInvitationNotifications() repairs pending invitations", async () => {
   await withRollback(async (tx) => {
     const admin = await insertAccountWithActor(tx, {
