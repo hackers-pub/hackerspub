@@ -567,7 +567,10 @@ export default function AccountSettingsPage() {
                         </Show>
                       </Match>
                       <Match when={account.kind === "ORGANIZATION"}>
-                        <OrganizationMemberManagementCard account={account} />
+                        <OrganizationMemberManagementCard
+                          account={account}
+                          viewerId={data.viewer?.id ?? null}
+                        />
                         <Card>
                           <CardHeader>
                             <CardTitle>{t`Delete organization`}</CardTitle>
@@ -1227,6 +1230,7 @@ function OrganizationRoleSelect(props: {
 
 function OrganizationMemberManagementCard(props: {
   account: AccountPageAccount;
+  viewerId: string | null;
 }) {
   const { t } = useLingui();
   const roleLabel = (role: string) =>
@@ -1272,6 +1276,10 @@ function OrganizationMemberManagementCard(props: {
   function isLastAcceptedAdmin(member: OrganizationMemberRow) {
     return member.accepted != null && member.role === "ADMIN" &&
       acceptedAdminCount() <= 1;
+  }
+
+  function isViewerMembership(member: OrganizationMemberRow) {
+    return props.viewerId != null && member.member.id === props.viewerId;
   }
 
   async function loadMembers() {
@@ -1412,6 +1420,7 @@ function OrganizationMemberManagementCard(props: {
 
   function onRemove(member: OrganizationMemberRow) {
     if (isLastAcceptedAdmin(member) || removingMemberId() != null) return;
+    const removingViewer = isViewerMembership(member);
     setRemovingMemberId(member.member.id);
     removeMember({
       variables: {
@@ -1426,18 +1435,30 @@ function OrganizationMemberManagementCard(props: {
           showToast({
             title: canceledInvitation
               ? t`Invitation canceled`
+              : removingViewer
+              ? t`Left organization`
               : t`Member removed`,
             description: canceledInvitation
               ? t`${result.membership.member.username} no longer has a pending organization invitation.`
+              : removingViewer
+              ? t`You no longer belong to that organization.`
               : t`${result.membership.member.username} no longer belongs to this organization.`,
           });
+          if (removingViewer && !canceledInvitation) {
+            location.reload();
+            return;
+          }
           void loadMembers();
           return;
         }
         showToast({
-          title: t`Could not remove member`,
+          title: removingViewer
+            ? t`Could not leave organization`
+            : t`Could not remove member`,
           description: result != null && "message" in result
             ? result.message
+            : removingViewer
+            ? t`The organization could not be left. Please try again.`
             : t`The member could not be removed. Please try again.`,
           variant: "error",
         });
@@ -1446,8 +1467,12 @@ function OrganizationMemberManagementCard(props: {
         console.error(error);
         setRemovingMemberId(null);
         showToast({
-          title: t`Could not remove member`,
-          description: t`The member could not be removed. Please try again.` +
+          title: removingViewer
+            ? t`Could not leave organization`
+            : t`Could not remove member`,
+          description: (removingViewer
+            ? t`The organization could not be left. Please try again.`
+            : t`The member could not be removed. Please try again.`) +
             (import.meta.env.DEV ? `\n\n${error.message}` : ""),
           variant: "error",
         });
@@ -1556,9 +1581,13 @@ function OrganizationMemberManagementCard(props: {
                             {removingMemberId() === membership.member.id
                               ? membership.accepted == null
                                 ? t`Canceling…`
+                                : isViewerMembership(membership)
+                                ? t`Leaving…`
                                 : t`Removing…`
                               : membership.accepted == null
                               ? t`Cancel invitation`
+                              : isViewerMembership(membership)
+                              ? t`Leave`
                               : t`Remove`}
                           </Button>
                         </div>
