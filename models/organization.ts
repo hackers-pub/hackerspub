@@ -472,12 +472,62 @@ export async function removeOrganizationMember(
   organizationAccountId: Uuid,
   memberAccountId: Uuid,
 ): Promise<OrganizationMembership> {
-  await assertOrganizationAdmin(db, adminAccount, organizationAccountId);
-  return await removeAcceptedMembership(
-    db,
-    organizationAccountId,
-    memberAccountId,
-  );
+  return await runInTransaction(db, async (tx) => {
+    await assertOrganizationAdmin(tx, adminAccount, organizationAccountId);
+    const membership = await tx.query.organizationMembershipTable.findFirst({
+      where: { organizationAccountId, memberAccountId },
+    });
+    if (membership == null) {
+      throw new OrganizationMembershipError("The member does not exist.");
+    }
+    if (membership.accepted == null) {
+      const rows = await tx.delete(organizationMembershipTable)
+        .where(and(
+          eq(
+            organizationMembershipTable.organizationAccountId,
+            organizationAccountId,
+          ),
+          eq(organizationMembershipTable.memberAccountId, memberAccountId),
+          isNull(organizationMembershipTable.accepted),
+        ))
+        .returning();
+      const removed = rows[0];
+      if (removed == null) {
+        throw new OrganizationMembershipError(
+          "The invitation does not exist.",
+        );
+      }
+      await deleteOrganizationInvitationNotification(
+        tx,
+        organizationAccountId,
+        memberAccountId,
+      );
+      return removed;
+    }
+    return await removeAcceptedMembership(
+      tx,
+      organizationAccountId,
+      memberAccountId,
+    );
+  });
+}
+
+async function deleteOrganizationInvitationNotification(
+  db: Database | Transaction,
+  organizationAccountId: Uuid,
+  memberAccountId: Uuid,
+): Promise<void> {
+  const actor = await db.query.actorTable.findFirst({
+    where: { accountId: organizationAccountId },
+    columns: { id: true },
+  });
+  if (actor == null) return;
+  await db.delete(notificationTable)
+    .where(sql`
+      ${notificationTable.accountId} = ${memberAccountId}
+      AND ${notificationTable.type} = 'organization_invitation'
+      AND ${notificationTable.actorIds} = ARRAY[${actor.id}]::uuid[]
+    `);
 }
 
 export async function leaveOrganization(

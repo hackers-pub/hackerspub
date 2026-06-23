@@ -279,6 +279,7 @@ const removeOrganizationMemberMutation = parse(`
       ... on RemoveOrganizationMemberPayload {
         membership {
           role
+          accepted
           organization { username }
           member { username }
         }
@@ -287,6 +288,18 @@ const removeOrganizationMemberMutation = parse(`
       ... on LastOrganizationAdminError { message }
       ... on OrganizationMembershipError { message }
       ... on OrganizationPermissionError { message }
+    }
+  }
+`);
+
+const organizationMembersQuery = parse(`
+  query OrganizationMembers($username: String!) {
+    accountByUsername(username: $username) {
+      organizationMembers {
+        role
+        accepted
+        member { username }
+      }
     }
   }
 `);
@@ -645,6 +658,7 @@ test("organization admins can update roles and remove members", async () => {
         __typename: "RemoveOrganizationMemberPayload",
         membership: {
           role: "MEMBER",
+          accepted: accepted.toISOString(),
           organization: { username: "graphqlmanageorg" },
           member: { username: "graphqlmanageremoved" },
         },
@@ -658,6 +672,105 @@ test("organization admins can update roles and remove members", async () => {
       },
     });
     assert.equal(removed, undefined);
+  });
+});
+
+test("organization members include and can cancel pending invitations", async () => {
+  await withRollback(async (tx) => {
+    const admin = await insertAccountWithActor(tx, {
+      username: "graphqlpendingadmin",
+      name: "GraphQL Pending Admin",
+      email: "graphqlpendingadmin@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "graphqlpendingmember",
+      name: "GraphQL Pending Member",
+      email: "graphqlpendingmember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, admin.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      admin.account,
+      {
+        username: "graphqlpendingorg",
+        name: "GraphQL Pending Org",
+        bio: "",
+      },
+    );
+
+    await execute({
+      schema,
+      document: inviteOrganizationMemberMutation,
+      variableValues: {
+        organizationId: encodeGlobalID("Account", organization.id),
+        username: member.account.username,
+      },
+      contextValue: makeUserContext(tx, admin.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    const membersResult = await execute({
+      schema,
+      document: organizationMembersQuery,
+      variableValues: { username: organization.username },
+      contextValue: makeUserContext(tx, admin.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(membersResult.errors, undefined);
+    const membersData = toPlainJson(membersResult.data) as {
+      accountByUsername: {
+        organizationMembers: {
+          role: string;
+          accepted: string | null;
+          member: { username: string };
+        }[];
+      };
+    };
+    const members = membersData.accountByUsername.organizationMembers
+      .toSorted((a, b) => a.member.username.localeCompare(b.member.username));
+    assert.equal(members.length, 2);
+    assert.equal(members[0].member.username, "graphqlpendingadmin");
+    assert.equal(members[0].role, "ADMIN");
+    assert.notEqual(members[0].accepted, null);
+    assert.deepEqual(members[1], {
+      role: "MEMBER",
+      accepted: null,
+      member: { username: "graphqlpendingmember" },
+    });
+
+    const cancelResult = await execute({
+      schema,
+      document: removeOrganizationMemberMutation,
+      variableValues: {
+        organizationId: encodeGlobalID("Account", organization.id),
+        memberId: encodeGlobalID("Account", member.account.id),
+      },
+      contextValue: makeUserContext(tx, admin.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(cancelResult.errors, undefined);
+    assert.deepEqual(toPlainJson(cancelResult.data), {
+      removeOrganizationMember: {
+        __typename: "RemoveOrganizationMemberPayload",
+        membership: {
+          role: "MEMBER",
+          accepted: null,
+          organization: { username: "graphqlpendingorg" },
+          member: { username: "graphqlpendingmember" },
+        },
+      },
+    });
+    const pending = await tx.query.organizationMembershipTable.findFirst({
+      where: {
+        organizationAccountId: organization.id,
+        memberAccountId: member.account.id,
+      },
+    });
+    assert.equal(pending, undefined);
   });
 });
 

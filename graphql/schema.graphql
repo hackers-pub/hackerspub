@@ -172,7 +172,7 @@ type Account implements Node {
   organizationInvitations: [OrganizationMembership!]!
 
   """
-  Accepted members of this organization account, newest first. Readable by accepted organization members and moderators.
+  Pending and accepted members of this organization account, newest first. Readable by accepted organization members and moderators.
   """
   organizationMembers: [OrganizationMembership!]!
 
@@ -3381,7 +3381,7 @@ enum OrganizationMemberRole {
 }
 
 """
-Membership of a personal `Account` in an organization `Account`. Rows with `accepted: null` are invitations; viewer-facing membership lists only expose accepted rows.
+Membership of a personal `Account` in an organization `Account`. Rows with `accepted: null` are pending invitations; accepted rows grant access to the organization account.
 """
 type OrganizationMembership {
   """When the invitation was accepted, or `null` for a pending invite."""
@@ -5216,12 +5216,12 @@ type RemoveNewsPreferredSharerPayload {
 union RemoveNewsPreferredSharerResult = NotAuthenticatedError | NotAuthorizedError | RemoveNewsPreferredSharerPayload
 
 """
-Remove an accepted member from an organization. Only accepted organization administrators can remove members, and the last member or last administrator cannot be removed.
+Remove an accepted member or cancel a pending invitation from an organization. Only accepted organization administrators can remove members, and the last accepted member or administrator cannot be removed.
 """
 input RemoveOrganizationMemberInput {
   clientMutationId: ID
 
-  """Global `Account` id of the accepted personal member to remove."""
+  """Global `Account` id of the personal member or invitee to remove."""
   memberId: ID!
 
   """

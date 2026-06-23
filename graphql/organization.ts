@@ -215,8 +215,8 @@ OrganizationNotificationBadge.implement({
 OrganizationMembershipRef.implement({
   description:
     "Membership of a personal `Account` in an organization `Account`. " +
-    "Rows with `accepted: null` are invitations; viewer-facing membership " +
-    "lists only expose accepted rows.",
+    "Rows with `accepted: null` are pending invitations; accepted rows grant " +
+    "access to the organization account.",
   fields: (t) => ({
     role: t.field({
       type: OrganizationMemberRole,
@@ -450,8 +450,8 @@ builder.drizzleObjectField(Account, "organizationMembers", (t) =>
   t.field({
     type: [OrganizationMembershipRef],
     description:
-      "Accepted members of this organization account, newest first. " +
-      "Readable by accepted organization members and moderators.",
+      "Pending and accepted members of this organization account, newest " +
+      "first. Readable by accepted organization members and moderators.",
     select: {
       columns: { id: true, kind: true },
     },
@@ -467,7 +467,6 @@ builder.drizzleObjectField(Account, "organizationMembers", (t) =>
       return await ctx.db.query.organizationMembershipTable.findMany({
         where: {
           organizationAccountId: account.id,
-          accepted: { isNotNull: true },
         },
         orderBy: { created: "desc" },
       });
@@ -751,9 +750,10 @@ builder.relayMutationField(
   "removeOrganizationMember",
   {
     description:
-      "Remove an accepted member from an organization. Only accepted " +
-      "organization administrators can remove members, and the last member " +
-      "or last administrator cannot be removed.",
+      "Remove an accepted member or cancel a pending invitation from an " +
+      "organization. Only accepted organization administrators can remove " +
+      "members, and the last accepted member or administrator cannot be " +
+      "removed.",
     inputFields: (t) => ({
       organizationId: t.globalID({
         for: Account,
@@ -766,7 +766,7 @@ builder.relayMutationField(
         for: Account,
         required: true,
         description:
-          "Global `Account` id of the accepted personal member to remove.",
+          "Global `Account` id of the personal member or invitee to remove.",
       }),
     }),
   },

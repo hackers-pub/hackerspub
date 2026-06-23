@@ -229,6 +229,7 @@ const accountOrganizationMembersQuery = graphql`
       id
       organizationMembers {
         role
+        accepted
         member {
           id
           username
@@ -460,6 +461,7 @@ const accountRemoveOrganizationMemberMutation = graphql`
       __typename
       ... on RemoveOrganizationMemberPayload {
         membership {
+          accepted
           member {
             username
           }
@@ -1309,6 +1311,7 @@ function OrganizationMemberManagementCard(props: {
             description:
               t`${result.membership.member.username} can now accept the organization invitation.`,
           });
+          void loadMembers();
           return;
         }
         showToast({
@@ -1350,7 +1353,10 @@ function OrganizationMemberManagementCard(props: {
     member: OrganizationMemberRow,
     role: OrganizationMemberRole,
   ) {
-    if (member.role === role || updatingMemberId() != null) return;
+    if (
+      member.accepted == null || member.role === role ||
+      updatingMemberId() != null
+    ) return;
     setUpdatingMemberId(member.member.id);
     updateRole({
       variables: {
@@ -1405,10 +1411,14 @@ function OrganizationMemberManagementCard(props: {
         setRemovingMemberId(null);
         const result = response.removeOrganizationMember;
         if (result?.__typename === "RemoveOrganizationMemberPayload") {
+          const canceledInvitation = result.membership.accepted == null;
           showToast({
-            title: t`Member removed`,
-            description:
-              t`${result.membership.member.username} no longer belongs to this organization.`,
+            title: canceledInvitation
+              ? t`Invitation canceled`
+              : t`Member removed`,
+            description: canceledInvitation
+              ? t`${result.membership.member.username} no longer has a pending organization invitation.`
+              : t`${result.membership.member.username} no longer belongs to this organization.`,
           });
           void loadMembers();
           return;
@@ -1507,12 +1517,18 @@ function OrganizationMemberManagementCard(props: {
                           username={membership.member.username}
                         />
                         <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                          <Show when={membership.accepted == null}>
+                            <Badge variant="secondary" round>
+                              {t`Pending`}
+                            </Badge>
+                          </Show>
                           <OrganizationRoleSelect
                             value={membership.role === "ADMIN"
                               ? "ADMIN"
                               : "MEMBER"}
                             onChange={(role) => onUpdateRole(membership, role)}
-                            disabled={updatingMemberId() != null ||
+                            disabled={membership.accepted == null ||
+                              updatingMemberId() != null ||
                               removingMemberId() != null}
                           />
                           <Button
@@ -1525,7 +1541,11 @@ function OrganizationMemberManagementCard(props: {
                           >
                             <IconUserMinus />
                             {removingMemberId() === membership.member.id
-                              ? t`Removing…`
+                              ? membership.accepted == null
+                                ? t`Canceling…`
+                                : t`Removing…`
+                              : membership.accepted == null
+                              ? t`Cancel invitation`
                               : t`Remove`}
                           </Button>
                         </div>

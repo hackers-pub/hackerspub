@@ -17,6 +17,7 @@ import {
   getOrganizationNotificationBadge,
   inviteOrganizationMember,
   leaveOrganization,
+  removeOrganizationMember,
   requestOrganizationConversion,
 } from "./organization.ts";
 import {
@@ -43,17 +44,15 @@ let federationBuilderPromise:
 async function getFederationBuilder() {
   if (federationBuilderPromise == null) {
     federationBuilderPromise = (async () => {
-      if (Deno.env.get("INSTANCE_ACTOR_KEY") == null) {
-        const { privateKey } = await generateCryptoKeyPair(
-          "RSASSA-PKCS1-v1_5",
-        );
-        Deno.env.set(
-          "INSTANCE_ACTOR_KEY",
-          JSON.stringify(
-            await exportJwk(privateKey),
-          ),
-        );
-      }
+      const { privateKey } = await generateCryptoKeyPair(
+        "RSASSA-PKCS1-v1_5",
+      );
+      Deno.env.set(
+        "INSTANCE_ACTOR_KEY",
+        JSON.stringify(
+          await exportJwk(privateKey),
+        ),
+      );
       return (await import("../federation/mod.ts")).builder;
     })();
   }
@@ -277,6 +276,63 @@ test("ensureOrganizationInvitationNotifications() repairs pending invitations", 
     assert.deepEqual(notifications[0].actorIds, [organization.actor.id]);
     assert.equal(notifications[0].postId, null);
     assert.equal(notifications[0].organizationConversionRequestId, null);
+  });
+});
+
+test("removeOrganizationMember() cancels a pending invitation", async () => {
+  await withRollback(async (tx) => {
+    const admin = await insertAccountWithActor(tx, {
+      username: "cancelinviteadmin",
+      name: "Cancel Invite Admin",
+      email: "cancelinviteadmin@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "cancelinvitemember",
+      name: "Cancel Invite Member",
+      email: "cancelinvitemember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, admin.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      admin.account,
+      {
+        username: "cancelinviteorg",
+        name: "Cancel Invite Org",
+        bio: "",
+      },
+    );
+    await inviteOrganizationMember(
+      tx,
+      admin.account,
+      organization.id,
+      member.account.username,
+    );
+
+    const removed = await removeOrganizationMember(
+      tx,
+      admin.account,
+      organization.id,
+      member.account.id,
+    );
+
+    assert.equal(removed.memberAccountId, member.account.id);
+    assert.equal(removed.accepted, null);
+    const remaining = await tx.query.organizationMembershipTable.findFirst({
+      where: {
+        organizationAccountId: organization.id,
+        memberAccountId: member.account.id,
+      },
+    });
+    assert.equal(remaining, undefined);
+    const notifications = await tx.query.notificationTable.findMany({
+      where: {
+        accountId: member.account.id,
+        type: "organization_invitation",
+      },
+    });
+    assert.equal(notifications.length, 0);
   });
 });
 
