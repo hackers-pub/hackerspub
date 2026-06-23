@@ -917,7 +917,9 @@ function AccountSection(props: AccountSectionProps) {
               <SidebarMenuItem class="list-none">
                 <SidebarMenuButton
                   as={A}
-                  href={`/@${signedAccount.username}/settings`}
+                  href={`/@${
+                    profileAccount()?.username ?? signedAccount.username
+                  }/settings`}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
