@@ -18,7 +18,10 @@ import IconTrash2 from "~icons/lucide/trash-2";
 import IconUserMinus from "~icons/lucide/user-minus";
 import IconUserPlus from "~icons/lucide/user-plus";
 import IconUsers from "~icons/lucide/users";
-import { ActorHandleAutocomplete } from "~/components/ActorHandleAutocomplete.tsx";
+import {
+  ActorHandleAutocomplete,
+  type ActorHandleAutocompleteActor,
+} from "~/components/ActorHandleAutocomplete.tsx";
 import { SettingsContainer } from "~/components/SettingsContainer.tsx";
 import { SettingsOwnerGuard } from "~/components/SettingsOwnerGuard.tsx";
 import { SettingsTabs } from "~/components/SettingsTabs.tsx";
@@ -607,6 +610,10 @@ type OrganizationInvitationSummary =
 type OrganizationMemberRow = NonNullable<
   accountOrganizationMembersQuery["response"]["accountByUsername"]
 >["organizationMembers"][number];
+
+type LocalAutocompleteAccount = NonNullable<
+  ActorHandleAutocompleteActor["account"]
+>;
 
 function roleBadgeVariant(role: string): "secondary" | "outline" {
   return role === "ADMIN" ? "secondary" : "outline";
@@ -1229,6 +1236,9 @@ function OrganizationMemberManagementCard(props: {
   const [loading, setLoading] = createSignal(true);
   const [loadError, setLoadError] = createSignal("");
   const [inviteUsername, setInviteUsername] = createSignal("");
+  const [selectedInviteAccount, setSelectedInviteAccount] = createSignal<
+    LocalAutocompleteAccount | null
+  >(null);
   const [inviteRole, setInviteRole] = createSignal<OrganizationMemberRole>(
     "MEMBER",
   );
@@ -1293,6 +1303,7 @@ function OrganizationMemberManagementCard(props: {
         const result = response.inviteOrganizationMember;
         if (result?.__typename === "InviteOrganizationMemberPayload") {
           setInviteUsername("");
+          setSelectedInviteAccount(null);
           showToast({
             title: t`Invitation sent`,
             description:
@@ -1319,6 +1330,20 @@ function OrganizationMemberManagementCard(props: {
         });
       },
     });
+  }
+
+  function onInviteUsernameInput(value: string) {
+    const username = value.trim().replace(/^@/, "");
+    setInviteUsername(username);
+    setSelectedInviteAccount((account) =>
+      account?.username === username ? account : null
+    );
+  }
+
+  function selectInviteAccount(account: LocalAutocompleteAccount) {
+    if (account.kind !== "PERSONAL") return;
+    setInviteUsername(account.username);
+    setSelectedInviteAccount(account);
   }
 
   function onUpdateRole(
@@ -1420,19 +1445,25 @@ function OrganizationMemberManagementCard(props: {
       <CardContent>
         <div class="flex flex-col gap-6">
           <form class="flex flex-col gap-4" onSubmit={onInvite}>
-            <div class="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-              <TextField value={inviteUsername()} onChange={setInviteUsername}>
-                <TextFieldLabel>{t`Username`}</TextFieldLabel>
-                <TextFieldInput
-                  autocomplete="off"
-                  autocapitalize="none"
-                  disabled={inviting()}
-                  placeholder={t`member`}
-                />
-                <TextFieldDescription>
-                  {t`Invite a personal account by its local username.`}
-                </TextFieldDescription>
-              </TextField>
+            <div class="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+              <ActorHandleAutocomplete
+                inputId="organization-member-username"
+                label={t`Username`}
+                placeholder={t`member`}
+                value={inviteUsername()}
+                disabled={inviting()}
+                localAccountsOnly
+                accountKind="PERSONAL"
+                suggestionIdentifier="username"
+                selectedActor={selectedInviteAccount()}
+                description={t`Invite a personal account by its local username.`}
+                onInput={onInviteUsernameInput}
+                onSelect={(actor) => {
+                  const account = actor.account;
+                  if (account == null) return;
+                  selectInviteAccount(account);
+                }}
+              />
               <OrganizationRoleSelect
                 value={inviteRole()}
                 onChange={setInviteRole}

@@ -48,6 +48,12 @@ export type ActorHandleAutocompleteActor = ActorSuggestion;
 /** The branded UUID type Relay generates for the `UUID` scalar. */
 export type Uuid = ActorSuggestion["uuid"];
 
+export interface ActorHandleAutocompleteSelectedActor {
+  readonly username: string;
+  readonly name?: string | null;
+  readonly avatarUrl?: string | null;
+}
+
 export interface ActorHandleAutocompleteProps {
   /** Visible label for the input. */
   readonly label: string;
@@ -66,6 +72,8 @@ export interface ActorHandleAutocompleteProps {
   readonly suggestionIdentifier?: "handle" | "username";
   /** Optional content inside the input, before the typed value. */
   readonly leading?: JSX.Element;
+  /** Optional selected account summary rendered under the input. */
+  readonly selectedActor?: ActorHandleAutocompleteSelectedActor | null;
   /** Optional helper text rendered under the input. */
   readonly description?: JSX.Element;
   /** Called as the moderator types (a manual edit, not a suggestion pick). */
@@ -152,6 +160,20 @@ export function ActorHandleAutocomplete(props: ActorHandleAutocompleteProps) {
       return actor.account.username;
     }
     return actor.handle;
+  }
+
+  function selectedActorName(actor: ActorHandleAutocompleteSelectedActor) {
+    return actor.name?.trim() || actor.username;
+  }
+
+  function selectedActorInitials(actor: ActorHandleAutocompleteSelectedActor) {
+    const name = selectedActorName(actor);
+    const parts = name.split(/[\s_-]+/).filter((part) => part.length > 0);
+    if (parts.length === 0) {
+      return actor.username.charAt(0).toUpperCase() || "?";
+    }
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   }
 
   function onKeyDown(event: KeyboardEvent) {
@@ -265,6 +287,26 @@ export function ActorHandleAutocomplete(props: ActorHandleAutocompleteProps) {
           </ul>
         </Show>
       </div>
+      <Show keyed when={props.selectedActor}>
+        {(actor) => (
+          <div class="flex min-w-0 items-center gap-2 rounded-md bg-muted/45 px-3 py-2">
+            <Avatar class="size-7">
+              <AvatarImage src={actor.avatarUrl ?? undefined} />
+              <AvatarFallback class="text-xs">
+                {selectedActorInitials(actor)}
+              </AvatarFallback>
+            </Avatar>
+            <span class="min-w-0 flex-1">
+              <span class="block truncate text-sm font-medium">
+                {selectedActorName(actor)}
+              </span>
+              <span class="block truncate font-mono text-xs text-muted-foreground">
+                @{actor.username}
+              </span>
+            </span>
+          </div>
+        )}
+      </Show>
       <Show when={props.description}>
         <TextFieldDescription>{props.description}</TextFieldDescription>
       </Show>
