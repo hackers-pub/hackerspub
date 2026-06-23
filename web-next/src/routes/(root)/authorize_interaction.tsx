@@ -10,6 +10,7 @@ import {
   AvatarImage,
 } from "~/components/ui/avatar.tsx";
 import { Button } from "~/components/ui/button.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import {
   createStablePreloadedQuery,
@@ -40,43 +41,50 @@ function classify(raw: string): Lookup | undefined {
 }
 
 const authorizeInteractionPageByHandleQuery = graphql`
-  query authorizeInteractionPageByHandleQuery($handle: String!) {
+  query authorizeInteractionPageByHandleQuery(
+    $handle: String!
+    $actingAccountId: ID
+  ) {
     viewer {
       username
     }
     actorByHandle(handle: $handle) {
-      ...authorizeInteractionPage_actor
+      ...authorizeInteractionPage_actor @arguments(
+        actingAccountId: $actingAccountId
+      )
     }
   }
 `;
 
 const authorizeInteractionPageByUrlQuery = graphql`
-  query authorizeInteractionPageByUrlQuery($url: URL!) {
+  query authorizeInteractionPageByUrlQuery($url: URL!, $actingAccountId: ID) {
     viewer {
       username
     }
     actorByUrl(url: $url) {
-      ...authorizeInteractionPage_actor
+      ...authorizeInteractionPage_actor @arguments(
+        actingAccountId: $actingAccountId
+      )
     }
   }
 `;
 
 const loadByHandleQuery = routePreloadedQuery(
-  (handle: string) =>
+  (handle: string, actingAccountId: string | null) =>
     loadQuery<authorizeInteractionPageByHandleQuery>(
       useRelayEnvironment()(),
       authorizeInteractionPageByHandleQuery,
-      { handle },
+      { handle, actingAccountId },
     ),
   "loadAuthorizeInteractionPageByHandleQuery",
 );
 
 const loadByUrlQuery = routePreloadedQuery(
-  (url: string) =>
+  (url: string, actingAccountId: string | null) =>
     loadQuery<authorizeInteractionPageByUrlQuery>(
       useRelayEnvironment()(),
       authorizeInteractionPageByUrlQuery,
-      { url },
+      { url, actingAccountId },
     ),
   "loadAuthorizeInteractionPageByUrlQuery",
 );
@@ -113,11 +121,13 @@ export default function AuthorizeInteractionPage() {
 }
 
 function ByHandle(props: { handle: string }) {
+  const actingAccount = useActingAccount();
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
   const data = createStablePreloadedQuery<
     authorizeInteractionPageByHandleQuery
   >(
     authorizeInteractionPageByHandleQuery,
-    () => loadByHandleQuery(props.handle),
+    () => loadByHandleQuery(props.handle, actingAccountId() ?? null),
   );
   return (
     <Show keyed when={data()}>
@@ -133,9 +143,11 @@ function ByHandle(props: { handle: string }) {
 }
 
 function ByUrl(props: { url: string }) {
+  const actingAccount = useActingAccount();
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
   const data = createStablePreloadedQuery<authorizeInteractionPageByUrlQuery>(
     authorizeInteractionPageByUrlQuery,
-    () => loadByUrlQuery(props.url),
+    () => loadByUrlQuery(props.url, actingAccountId() ?? null),
   );
   return (
     <Show keyed when={data()}>
@@ -203,7 +215,9 @@ function ActorPanel(
   const navigate = useNavigate();
   const actor = createFragment(
     graphql`
-      fragment authorizeInteractionPage_actor on Actor {
+      fragment authorizeInteractionPage_actor on Actor
+        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
+      {
         name
         rawName
         username
@@ -215,7 +229,7 @@ function ActorPanel(
         instance {
           host
         }
-        ...FollowButton_actor
+        ...FollowButton_actor @arguments(actingAccountId: $actingAccountId)
       }
     `,
     () => props.$actor,

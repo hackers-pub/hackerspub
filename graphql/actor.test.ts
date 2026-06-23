@@ -85,6 +85,35 @@ const unfollowActorAsOrganizationMutation = parse(`
   }
 `);
 
+const actorViewerPerspectiveQuery = parse(`
+  query ActorViewerPerspective(
+    $target: UUID!,
+    $blocked: UUID!,
+    $viewer: UUID!,
+    $organization: UUID!,
+    $actingAccountId: ID
+  ) {
+    target: actorByUuid(uuid: $target) {
+      id
+      viewerFollows(actingAccountId: $actingAccountId)
+      followsViewer(actingAccountId: $actingAccountId)
+    }
+    blocked: actorByUuid(uuid: $blocked) {
+      id
+      viewerBlocks(actingAccountId: $actingAccountId)
+      blocksViewer(actingAccountId: $actingAccountId)
+    }
+    viewer: actorByUuid(uuid: $viewer) {
+      id
+      isViewer(actingAccountId: $actingAccountId)
+    }
+    organization: actorByUuid(uuid: $organization) {
+      id
+      isViewer(actingAccountId: $actingAccountId)
+    }
+  }
+`);
+
 const removeFollowerMutation = parse(`
   mutation RemoveFollower($actorId: ID!) {
     removeFollower(input: { actorId: $actorId }) {
@@ -435,6 +464,113 @@ test("followActor rejects organization acting without membership", async () => {
   });
 });
 
+test("Actor viewer relationship fields can use an organization perspective", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "orgviewmember",
+      name: "Organization View Member",
+      email: "orgviewmember@example.com",
+    });
+    const target = await insertAccountWithActor(tx, {
+      username: "orgviewtarget",
+      name: "Organization View Target",
+      email: "orgviewtarget@example.com",
+    });
+    const blocked = await insertAccountWithActor(tx, {
+      username: "orgviewblocked",
+      name: "Organization View Blocked",
+      email: "orgviewblocked@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgviewactor",
+        name: "Organization View Actor",
+        bio: "",
+      },
+    );
+
+    const fedCtx = createFedCtx(tx);
+    await follow(fedCtx, organization, target.actor);
+    await follow(fedCtx, target.account, organization.actor);
+    await block(fedCtx, organization, blocked.actor);
+    await block(fedCtx, blocked.account, organization.actor);
+
+    const variables = {
+      target: target.actor.id,
+      blocked: blocked.actor.id,
+      viewer: member.actor.id,
+      organization: organization.actor.id,
+    };
+    const personalResult = await execute({
+      schema,
+      document: actorViewerPerspectiveQuery,
+      variableValues: variables,
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(personalResult.errors, undefined);
+    assert.deepEqual(toPlainJson(personalResult.data), {
+      target: {
+        id: encodeGlobalID("Actor", target.actor.id),
+        viewerFollows: false,
+        followsViewer: false,
+      },
+      blocked: {
+        id: encodeGlobalID("Actor", blocked.actor.id),
+        viewerBlocks: false,
+        blocksViewer: false,
+      },
+      viewer: {
+        id: encodeGlobalID("Actor", member.actor.id),
+        isViewer: true,
+      },
+      organization: {
+        id: encodeGlobalID("Actor", organization.actor.id),
+        isViewer: false,
+      },
+    });
+
+    const organizationResult = await execute({
+      schema,
+      document: actorViewerPerspectiveQuery,
+      variableValues: {
+        ...variables,
+        actingAccountId: encodeGlobalID("Account", organization.id),
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(organizationResult.errors, undefined);
+    assert.deepEqual(toPlainJson(organizationResult.data), {
+      target: {
+        id: encodeGlobalID("Actor", target.actor.id),
+        viewerFollows: true,
+        followsViewer: true,
+      },
+      blocked: {
+        id: encodeGlobalID("Actor", blocked.actor.id),
+        viewerBlocks: true,
+        blocksViewer: true,
+      },
+      viewer: {
+        id: encodeGlobalID("Actor", member.actor.id),
+        isViewer: false,
+      },
+      organization: {
+        id: encodeGlobalID("Actor", organization.actor.id),
+        isViewer: true,
+      },
+    });
+  });
+});
+
 test("removeFollower removes an existing follower relation", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);
@@ -544,12 +680,17 @@ test("removeFollower is documented in the GraphQL schema", async () => {
   const mutation = data.__schema.mutationType.fields.find((field) =>
     field.name === "removeFollower"
   );
-  assert.match(mutation?.description ?? "", /authenticated viewer/);
+  assert.match(mutation?.description ?? "", /selected viewer account/);
 
   const actorId = data.removeFollowerInput.inputFields.find((field) =>
     field.name === "actorId"
   );
   assert.match(actorId?.description ?? "", /follower/);
+
+  const actingAccountId = data.removeFollowerInput.inputFields.find((field) =>
+    field.name === "actingAccountId"
+  );
+  assert.match(actingAccountId?.description ?? "", /organization/);
 
   const follower = data.removeFollowerPayload.fields.find((field) =>
     field.name === "follower"
@@ -559,7 +700,7 @@ test("removeFollower is documented in the GraphQL schema", async () => {
   const followee = data.removeFollowerPayload.fields.find((field) =>
     field.name === "followee"
   );
-  assert.match(followee?.description ?? "", /authenticated viewer/);
+  assert.match(followee?.description ?? "", /selected viewer account/);
 });
 
 test("blockActor and unblockActor round-trip through GraphQL", async () => {

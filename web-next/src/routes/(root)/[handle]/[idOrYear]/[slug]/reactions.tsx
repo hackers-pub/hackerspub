@@ -10,6 +10,7 @@ import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { PostCard } from "~/components/PostCard.tsx";
 import { Title } from "~/components/Title.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import {
   createStablePreloadedQuery,
@@ -27,6 +28,7 @@ const reactionsArticleEngagementQuery = graphql`
     $handle: String!
     $idOrYear: String!
     $slug: String!
+    $actingAccountId: ID
   ) {
     articleByYearAndSlug(handle: $handle, idOrYear: $idOrYear, slug: $slug) {
       id
@@ -45,7 +47,9 @@ const reactionsArticleEngagementQuery = graphql`
             edges {
               node {
                 id
-                ...ActorPreviewCard_actor
+                ...ActorPreviewCard_actor @arguments(
+                  actingAccountId: $actingAccountId
+                )
               }
             }
             pageInfo {
@@ -65,7 +69,9 @@ const reactionsArticleEngagementQuery = graphql`
             edges {
               node {
                 id
-                ...ActorPreviewCard_actor
+                ...ActorPreviewCard_actor @arguments(
+                  actingAccountId: $actingAccountId
+                )
               }
             }
             pageInfo {
@@ -80,11 +86,16 @@ const reactionsArticleEngagementQuery = graphql`
 `;
 
 const loadReactionsQuery = routePreloadedQuery(
-  (handle: string, idOrYear: string, slug: string) =>
+  (
+    handle: string,
+    idOrYear: string,
+    slug: string,
+    actingAccountId: string | null,
+  ) =>
     loadQuery<reactionsArticleEngagementQuery>(
       useRelayEnvironment()(),
       reactionsArticleEngagementQuery,
-      { handle, idOrYear, slug },
+      { handle, idOrYear, slug, actingAccountId },
       { fetchPolicy: "store-and-network" },
     ),
   REACTIONS_QUERY_KEY,
@@ -121,9 +132,17 @@ export default function ArticleReactionsPage() {
 function ArticleReactionsLoaded(
   props: { handle: string; idOrYear: string; slug: string },
 ) {
+  const actingAccount = useActingAccount();
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
   const data = createStablePreloadedQuery<reactionsArticleEngagementQuery>(
     reactionsArticleEngagementQuery,
-    () => loadReactionsQuery(props.handle, props.idOrYear, props.slug),
+    () =>
+      loadReactionsQuery(
+        props.handle,
+        props.idOrYear,
+        props.slug,
+        actingAccountId() ?? null,
+      ),
   );
   const article = (): ArticlePost | null =>
     data()?.articleByYearAndSlug ?? null;

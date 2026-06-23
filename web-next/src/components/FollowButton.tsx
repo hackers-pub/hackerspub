@@ -5,7 +5,6 @@ import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
-import { isViewerActor } from "~/lib/actorUtils.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { FollowButton_actor$key } from "./__generated__/FollowButton_actor.graphql.ts";
 import type { FollowButton_followActor_Mutation } from "./__generated__/FollowButton_followActor_Mutation.graphql.ts";
@@ -20,6 +19,7 @@ export interface FollowButtonProps {
 const followActorMutation = graphql`
   mutation FollowButton_followActor_Mutation(
     $input: FollowActorInput!
+    $actingAccountId: ID
     $connections: [ID!]!
   ) {
     followActor(input: $input) {
@@ -27,7 +27,8 @@ const followActorMutation = graphql`
       ... on FollowActorPayload {
         followee {
           id
-          viewerFollows
+          viewerFollows(actingAccountId: $actingAccountId)
+          followsViewer(actingAccountId: $actingAccountId)
           followers { totalCount }
         }
         follower @appendNode(
@@ -51,6 +52,7 @@ const followActorMutation = graphql`
 const unfollowActorMutation = graphql`
   mutation FollowButton_unfollowActor_Mutation(
     $input: UnfollowActorInput!
+    $actingAccountId: ID
     $connections: [ID!]!
   ) {
     unfollowActor(input: $input) {
@@ -58,7 +60,8 @@ const unfollowActorMutation = graphql`
       ... on UnfollowActorPayload {
         followee {
           id
-          viewerFollows
+          viewerFollows(actingAccountId: $actingAccountId)
+          followsViewer(actingAccountId: $actingAccountId)
           followers { totalCount }
         }
         follower {
@@ -82,17 +85,19 @@ export function FollowButton(props: FollowButtonProps) {
   const actingAccount = useActingAccount();
   const actor = createFragment(
     graphql`
-      fragment FollowButton_actor on Actor {
+      fragment FollowButton_actor on Actor
+        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
+      {
         id
         username
         handle
         rawName
         local
-        isViewer
-        viewerFollows
-        viewerBlocks
-        blocksViewer
-        followsViewer
+        isViewer(actingAccountId: $actingAccountId)
+        viewerFollows(actingAccountId: $actingAccountId)
+        viewerBlocks(actingAccountId: $actingAccountId)
+        blocksViewer(actingAccountId: $actingAccountId)
+        followsViewer(actingAccountId: $actingAccountId)
       }
     `,
     () => props.$actor,
@@ -106,7 +111,7 @@ export function FollowButton(props: FollowButtonProps) {
     unfollowActorMutation,
   );
 
-  const isCurrentViewerActor = () => isViewerActor(actor(), viewer.username());
+  const isCurrentViewerActor = () => actor()?.isViewer ?? false;
 
   const handleClick = () => {
     const actorData = actor();
@@ -123,6 +128,7 @@ export function FollowButton(props: FollowButtonProps) {
         actorId: actorData.id,
         ...(actingAccountId == null ? {} : { actingAccountId }),
       },
+      actingAccountId: actingAccountId ?? null,
       connections: [connectionId],
     };
 

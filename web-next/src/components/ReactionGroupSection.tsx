@@ -8,6 +8,7 @@ import {
 import { createSignal, For, Match, onCleanup, Show, Switch } from "solid-js";
 import { useRelayEnvironment } from "solid-relay";
 import { ActorPreviewCard } from "~/components/ActorPreviewCard.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import type {
   ReactionGroupSection_LoadMoreQuery,
@@ -47,6 +48,7 @@ const ReactionGroupLoadMoreQuery = graphql`
     $customEmojiId: ID
     $after: String
     $first: Int!
+    $actingAccountId: ID
   ) {
     node(id: $postId) {
       ... on Post {
@@ -56,7 +58,9 @@ const ReactionGroupLoadMoreQuery = graphql`
             edges {
               node {
                 id
-                ...ActorPreviewCard_actor
+                ...ActorPreviewCard_actor @arguments(
+                  actingAccountId: $actingAccountId
+                )
               }
             }
             pageInfo {
@@ -84,6 +88,7 @@ const ReactionGroupLoadMoreQuery = graphql`
  */
 export function ReactionGroupSection(props: ReactionGroupSectionProps) {
   const { t, i18n } = useLingui();
+  const actingAccount = useActingAccount();
   const environment = useRelayEnvironment();
   const [extra, setExtra] = createSignal<readonly ReactionGroupReactor[]>([]);
   const [endCursor, setEndCursor] = createSignal<string | null>(
@@ -126,6 +131,7 @@ export function ReactionGroupSection(props: ReactionGroupSectionProps) {
       customEmojiId: props.customEmojiNodeId,
       after: endCursor(),
       first: 20,
+      actingAccountId: actingAccount.selectedActingAccountId() ?? null,
     };
     const operation = createOperationDescriptor(
       getRequest(ReactionGroupLoadMoreQuery),

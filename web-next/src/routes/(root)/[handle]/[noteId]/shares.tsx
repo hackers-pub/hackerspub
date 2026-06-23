@@ -14,6 +14,7 @@ import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { PostCard } from "~/components/PostCard.tsx";
 import { Title } from "~/components/Title.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import {
@@ -29,7 +30,11 @@ import type { sharesNoteEngagement_post$key } from "./__generated__/sharesNoteEn
 const SHARES_QUERY_KEY = "loadSharesQuery";
 
 const sharesNoteEngagementQuery = graphql`
-  query sharesNoteEngagementQuery($handle: String!, $noteId: UUID!) {
+  query sharesNoteEngagementQuery(
+    $handle: String!
+    $noteId: UUID!
+    $actingAccountId: ID
+  ) {
     actorByHandle(handle: $handle, allowLocalHandle: true) {
       postByUuid(uuid: $noteId) {
         __typename
@@ -39,18 +44,20 @@ const sharesNoteEngagementQuery = graphql`
           reactions
         }
         ...PostCard_post
-        ...sharesNoteEngagement_post
+        ...sharesNoteEngagement_post @arguments(
+          actingAccountId: $actingAccountId
+        )
       }
     }
   }
 `;
 
 const loadSharesQuery = routePreloadedQuery(
-  (username: string, noteId: Uuid) =>
+  (username: string, noteId: Uuid, actingAccountId: string | null) =>
     loadQuery<sharesNoteEngagementQuery>(
       useRelayEnvironment()(),
       sharesNoteEngagementQuery,
-      { handle: username, noteId },
+      { handle: username, noteId, actingAccountId },
       { fetchPolicy: "store-and-network" },
     ),
   SHARES_QUERY_KEY,
@@ -82,10 +89,17 @@ type SharesPagePost = NonNullable<
 >;
 
 function SharesPageLoaded(props: { noteId: Uuid; handle: string }) {
+  const actingAccount = useActingAccount();
   const username = () => props.handle.replace(/^@/, "");
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
   const data = createStablePreloadedQuery<sharesNoteEngagementQuery>(
     sharesNoteEngagementQuery,
-    () => loadSharesQuery(username(), props.noteId),
+    () =>
+      loadSharesQuery(
+        username(),
+        props.noteId,
+        actingAccountId() ?? null,
+      ),
   );
   // Notes, questions, and articles can all be reached through the
   // `[noteId]` route.  Local articles additionally expose a prettier
@@ -144,6 +158,7 @@ function SharesList(props: { $post: sharesNoteEngagement_post$key }) {
         @argumentDefinitions(
           cursor: { type: "String" }
           count: { type: "Int", defaultValue: 30 }
+          actingAccountId: { type: "ID", defaultValue: null }
         )
       {
         shares(after: $cursor, first: $count)
@@ -154,7 +169,9 @@ function SharesList(props: { $post: sharesNoteEngagement_post$key }) {
               id
               actor {
                 id
-                ...ActorPreviewCard_actor
+                ...ActorPreviewCard_actor @arguments(
+                  actingAccountId: $actingAccountId
+                )
               }
             }
           }

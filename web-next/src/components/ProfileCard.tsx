@@ -41,7 +41,9 @@ export function ProfileCard(props: ProfileCardProps) {
   const mentionState = useMentionHoverCards(bioRef);
   const actor = createFragment(
     graphql`
-      fragment ProfileCard_actor on Actor {
+      fragment ProfileCard_actor on Actor
+        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
+      {
         id
         name
         username
@@ -59,7 +61,7 @@ export function ProfileCard(props: ProfileCardProps) {
         followersCount: followers {
           totalCount
         }
-        mutualFollowers(first: 3) {
+        mutualFollowers(first: 3, actingAccountId: $actingAccountId) {
           totalCount
           edges {
             node {
@@ -75,9 +77,9 @@ export function ProfileCard(props: ProfileCardProps) {
             }
           }
         }
-        viewerBlocks
-        blocksViewer
-        followsViewer
+        viewerBlocks(actingAccountId: $actingAccountId)
+        blocksViewer(actingAccountId: $actingAccountId)
+        followsViewer(actingAccountId: $actingAccountId)
         fields {
           name
           value
@@ -102,8 +104,8 @@ export function ProfileCard(props: ProfileCardProps) {
             verified
           }
         }
-        ...FollowButton_actor
-        ...ProfileActionMenu_actor
+        ...FollowButton_actor @arguments(actingAccountId: $actingAccountId)
+        ...ProfileActionMenu_actor @arguments(actingAccountId: $actingAccountId)
       }
     `,
     () => props.$actor,

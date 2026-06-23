@@ -436,9 +436,14 @@ type Actor implements Node {
   blockedActors(after: String, before: String, first: Int, last: Int): ActorBlockedActorsConnection!
 
   """
-  True if this actor has blocked the authenticated viewer. Always false for unauthenticated requests.
+  True if this actor has blocked the selected viewer account. Always false for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
   """
-  blocksViewer: Boolean!
+  blocksViewer(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
   created: DateTime!
 
   """
@@ -458,9 +463,14 @@ type Actor implements Node {
   follows(followeeId: ID): Boolean!
 
   """
-  True if this actor follows the authenticated viewer. Always false for unauthenticated requests.
+  True if this actor follows the selected viewer account. Always false for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
   """
-  followsViewer: Boolean!
+  followsViewer(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 
   """
   Full fediverse handle in `@username@host` format, ready to use in @-mentions across the fediverse.
@@ -499,9 +509,14 @@ type Actor implements Node {
   isFollowedBy(followerId: ID): Boolean!
 
   """
-  True if this actor belongs to the currently authenticated viewer. Always false for unauthenticated requests.
+  True if this actor belongs to the selected viewer account. Always false for unauthenticated requests. Pass `actingAccountId` to compare against an organization account managed by the authenticated viewer.
   """
-  isViewer: Boolean!
+  isViewer(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 
   """
   The `updated` timestamp of this actor's most recently updated post, or `null` if they have no posts. Useful for feed ordering without fetching full post connections.
@@ -519,9 +534,18 @@ type Actor implements Node {
   mutedActors(after: String, before: String, first: Int, last: Int): ActorMutedActorsConnection!
 
   """
-  The "followers you know": actors the authenticated viewer follows who also follow this actor (both follows accepted). Returns an empty connection for unauthenticated viewers and when this actor is the viewer themselves. Ordered by the profile-side follow, newest first. Use this for a "followed by people you know" hint on profiles; for the complete follower list use `followers` instead.
+  The "followers you know": actors the authenticated viewer follows who also follow this actor (both follows accepted). Returns an empty connection for unauthenticated viewers and when this actor is the selected viewer actor themselves. Ordered by the profile-side follow, newest first. Pass `actingAccountId` for an organization perspective; use this for a "followed by people you know" hint on profiles, and use `followers` for the complete follower list.
   """
-  mutualFollowers(after: String, before: String, first: Int, last: Int): ActorMutualFollowersConnection!
+  mutualFollowers(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): ActorMutualFollowersConnection!
 
   """
   The actor's display name rendered as HTML, with custom emoji shortcodes replaced by inline `<img>` elements. `null` when the actor has no display name set, or is permanently suspended (banned) and the viewer is neither the actor nor a moderator.
@@ -599,14 +623,24 @@ type Actor implements Node {
   uuid: UUID!
 
   """
-  True if the authenticated viewer has blocked this actor. Always false for unauthenticated requests.
+  True if the selected viewer account has blocked this actor. Always false for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
   """
-  viewerBlocks: Boolean!
+  viewerBlocks(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 
   """
-  True if the authenticated viewer follows this actor. Always false for unauthenticated requests or when the actor is the viewer themselves.
+  True if the selected viewer account follows this actor. Always false for unauthenticated requests or when the actor is the selected viewer actor themselves. Pass `actingAccountId` for an organization perspective.
   """
-  viewerFollows: Boolean!
+  viewerFollows(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 
   """
   Posts authored by either this `Actor` or the authenticated viewer that directly involve the other actor through a reply, quote, or explicit mention. Returns an empty connection for the viewer's own `Actor`; unauthenticated requests raise `AUTHENTICATION_REQUIRED`. `first` and `last` are capped at 250 posts.
@@ -614,9 +648,14 @@ type Actor implements Node {
   viewerInteractions(after: String, before: String, first: Int, last: Int): ActorViewerInteractionsConnection!
 
   """
-  True if the authenticated viewer has muted this actor. Always `false` for unauthenticated requests. Muting is local-only and one-directional: it hides the actor from the viewer's feeds and suppresses notifications from them (except replies and mentions when the viewer also follows them), but unlike `viewerBlocks` it does not federate and the actor remains visible on their profile and in threads.
+  True if the selected viewer account has muted this actor. Always `false` for unauthenticated requests. Muting is local-only and one-directional: it hides the actor from the viewer's feeds and suppresses notifications from them (except replies and mentions when the viewer also follows them), but unlike `viewerBlocks` it does not federate and the actor remains visible on their profile and in threads. Pass `actingAccountId` for an organization perspective.
   """
-  viewerMutes: Boolean!
+  viewerMutes(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 }
 
 type ActorArticlesConnection {
@@ -1202,6 +1241,10 @@ type AttachArticleSourceMediumPayload {
 union AttachArticleSourceMediumResult = AttachArticleSourceMediumPayload | InvalidInputError | NotAuthenticatedError | NotAuthorizedError
 
 input BlockActorInput {
+  """
+  Optional `Account` id to block as. Omit to block as the authenticated personal account; pass an organization account where the viewer is an accepted member to block as that organization.
+  """
+  actingAccountId: ID
   actorId: ID!
   clientMutationId: ID
 }
@@ -1212,7 +1255,7 @@ type BlockActorPayload {
   clientMutationId: ID
 }
 
-union BlockActorResult = BlockActorPayload | InvalidInputError | NotAuthenticatedError
+union BlockActorResult = BlockActorPayload | InvalidInputError | NotAuthenticatedError | OrganizationPermissionError
 
 """
 Save a post to the viewer's bookmarks. Bookmarks are private and not federated. Idempotent. Requires authentication.
@@ -2599,7 +2642,7 @@ type Mutation {
   markOrganizationNotificationsAsRead(input: MarkOrganizationNotificationsAsReadInput!): MarkOrganizationNotificationsAsReadResult!
 
   """
-  Mutes an actor on behalf of the authenticated viewer. Muting is local-only and one-directional: it hides the actor from the viewer's feeds and suppresses notifications from them (except replies and mentions when the viewer also follows them), but unlike `blockActor` it does not federate, does not remove follow relationships, and leaves the actor visible on their profile and in threads. Idempotent: muting an already-muted actor succeeds. Rejects muting yourself with `InvalidInputError`.
+  Mutes an actor on behalf of the selected viewer account. Muting is local-only and one-directional: it hides the actor from the viewer's feeds and suppresses notifications from them (except replies and mentions when the viewer also follows them), but unlike `blockActor` it does not federate, does not remove follow relationships, and leaves the actor visible on their profile and in threads. Idempotent: muting an already-muted actor succeeds. Rejects muting yourself with `InvalidInputError`.
   """
   muteActor(input: MuteActorInput!): MuteActorResult!
   pinHashtag(input: PinHashtagInput!): PinHashtagResult!
@@ -2639,7 +2682,7 @@ type Mutation {
   removeAccountMigrationAlias(input: RemoveAccountMigrationAliasInput!): RemoveAccountMigrationAliasResult!
 
   """
-  Remove an `Actor` from the authenticated viewer's followers. This deletes the follower relationship without blocking the actor; remote followers receive an ActivityPub `Reject` for the original `Follow`.
+  Remove an `Actor` from the selected viewer account's followers. This deletes the follower relationship without blocking the actor; remote followers receive an ActivityPub `Reject` for the original `Follow`.
   """
   removeFollower(input: RemoveFollowerInput!): RemoveFollowerResult!
 
@@ -2782,7 +2825,7 @@ type Mutation {
   unfollowHashtag(input: UnfollowHashtagInput!): UnfollowHashtagResult!
 
   """
-  Removes a mute previously created by `muteActor` on behalf of the authenticated viewer. Idempotent: unmuting an actor that was not muted succeeds. Rejects targeting yourself with `InvalidInputError`.
+  Removes a mute previously created by `muteActor` on behalf of the selected viewer account. Idempotent: unmuting an actor that was not muted succeeds. Rejects targeting yourself with `InvalidInputError`.
   """
   unmuteActor(input: UnmuteActorInput!): UnmuteActorResult!
   unpinHashtag(input: UnpinHashtagInput!): UnpinHashtagResult!
@@ -2835,6 +2878,11 @@ type Mutation {
 }
 
 input MuteActorInput {
+  """
+  Optional `Account` id to mute as. Omit to mute as the authenticated personal account; pass an organization account where the viewer is an accepted member to mute as that organization.
+  """
+  actingAccountId: ID
+
   """The global ID of the `Actor` to mute."""
   actorId: ID!
   clientMutationId: ID
@@ -2850,7 +2898,7 @@ type MuteActorPayload {
   muter: Actor!
 }
 
-union MuteActorResult = InvalidInputError | MuteActorPayload | NotAuthenticatedError
+union MuteActorResult = InvalidInputError | MuteActorPayload | NotAuthenticatedError | OrganizationPermissionError
 
 """
 A moderator-managed `URLPattern` string; links whose URL matches it are hidden from the news feed list (every sort order).  Their discussion page stays reachable by direct link.
@@ -5012,7 +5060,12 @@ Remove an `Actor` from the authenticated viewer's followers. This deletes the fo
 """
 input RemoveFollowerInput {
   """
-  `Actor` global ID for the follower to remove from the authenticated viewer's followers. Passing the viewer's own actor or an unknown actor returns `InvalidInputError`.
+  Optional `Account` id to remove a follower from. Omit to remove from the authenticated personal account; pass an organization account where the viewer is an accepted member to remove from that organization's followers.
+  """
+  actingAccountId: ID
+
+  """
+  `Actor` global ID for the follower to remove from the selected viewer account's followers. Passing the selected viewer account's own actor or an unknown actor returns `InvalidInputError`.
   """
   actorId: ID!
   clientMutationId: ID
@@ -5024,7 +5077,7 @@ Payload returned after successfully removing a follower. Contains the updated vi
 type RemoveFollowerPayload {
   clientMutationId: ID
 
-  """The authenticated viewer's `Actor` whose follower list changed."""
+  """The selected viewer account's `Actor` whose follower list changed."""
   followee: Actor!
 
   """
@@ -5036,7 +5089,7 @@ type RemoveFollowerPayload {
 """
 Result of removing a follower: the updated actors on success, or a typed authentication or input error.
 """
-union RemoveFollowerResult = InvalidInputError | NotAuthenticatedError | RemoveFollowerPayload
+union RemoveFollowerResult = InvalidInputError | NotAuthenticatedError | OrganizationPermissionError | RemoveFollowerPayload
 
 """The result of removing a news feed exclusion pattern."""
 type RemoveNewsExcludedPatternPayload {
@@ -5434,6 +5487,10 @@ A field whose value is a generic Universally Unique Identifier: https://en.wikip
 scalar UUID
 
 input UnblockActorInput {
+  """
+  Optional `Account` id to unblock as. Omit to unblock as the authenticated personal account; pass an organization account where the viewer is an accepted member to remove that organization's block.
+  """
+  actingAccountId: ID
   actorId: ID!
   clientMutationId: ID
 }
@@ -5444,7 +5501,7 @@ type UnblockActorPayload {
   clientMutationId: ID
 }
 
-union UnblockActorResult = InvalidInputError | NotAuthenticatedError | UnblockActorPayload
+union UnblockActorResult = InvalidInputError | NotAuthenticatedError | OrganizationPermissionError | UnblockActorPayload
 
 """
 Remove a post from the viewer's bookmarks. Idempotent. Requires authentication.
@@ -5502,6 +5559,11 @@ type UnfollowHashtagPayload {
 union UnfollowHashtagResult = InvalidInputError | NotAuthenticatedError | UnfollowHashtagPayload
 
 input UnmuteActorInput {
+  """
+  Optional `Account` id to unmute as. Omit to unmute as the authenticated personal account; pass an organization account where the viewer is an accepted member to remove that organization's mute.
+  """
+  actingAccountId: ID
+
   """The global ID of the `Actor` to unmute."""
   actorId: ID!
   clientMutationId: ID
@@ -5517,7 +5579,7 @@ type UnmuteActorPayload {
   muter: Actor!
 }
 
-union UnmuteActorResult = InvalidInputError | NotAuthenticatedError | UnmuteActorPayload
+union UnmuteActorResult = InvalidInputError | NotAuthenticatedError | OrganizationPermissionError | UnmuteActorPayload
 
 """
 Remove a hashtag from the sidebar. Idempotent: unpinning an already-unpinned tag succeeds silently. Requires authentication.

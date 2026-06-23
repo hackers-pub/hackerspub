@@ -1,6 +1,7 @@
 import { graphql } from "relay-runtime";
 import { ErrorBoundary, type JSX, Show, Suspense } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { createStablePreloadedQuery } from "~/lib/relayPreload.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { ActorHoverCardLoaderByHandleQuery } from "./__generated__/ActorHoverCardLoaderByHandleQuery.graphql.ts";
@@ -9,17 +10,17 @@ import { ActorPreviewCard } from "./ActorPreviewCard.tsx";
 import { ActorPreviewSkeleton } from "./ActorPreviewSkeleton.tsx";
 
 const actorHoverCardLoaderByHandleQuery = graphql`
-  query ActorHoverCardLoaderByHandleQuery($handle: String!) {
+  query ActorHoverCardLoaderByHandleQuery($handle: String!, $actingAccountId: ID) {
     actorByHandle(handle: $handle, allowLocalHandle: true) {
-      ...ActorPreviewCard_actor
+      ...ActorPreviewCard_actor @arguments(actingAccountId: $actingAccountId)
     }
   }
 `;
 
 const actorHoverCardLoaderByUrlQuery = graphql`
-  query ActorHoverCardLoaderByUrlQuery($url: URL!) {
+  query ActorHoverCardLoaderByUrlQuery($url: URL!, $actingAccountId: ID) {
     actorByUrl(url: $url) {
-      ...ActorPreviewCard_actor
+      ...ActorPreviewCard_actor @arguments(actingAccountId: $actingAccountId)
     }
   }
 `;
@@ -58,11 +59,14 @@ export interface ActorHoverCardLoaderProps {
 // getter under the Suspense owner, so the suspension is caught locally.
 function ActorHoverCardByHandle(props: ActorHoverCardLoaderProps) {
   const env = useRelayEnvironment();
+  const actingAccount = useActingAccount();
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
   const data = createStablePreloadedQuery<ActorHoverCardLoaderByHandleQuery>(
     actorHoverCardLoaderByHandleQuery,
     () =>
       loadQuery(env(), actorHoverCardLoaderByHandleQuery, {
         handle: props.handle,
+        actingAccountId: actingAccountId() ?? null,
       }),
   );
 
@@ -101,9 +105,15 @@ export interface ActorHoverCardLoaderByUrlProps {
 // See `ActorHoverCardByHandle` for why the query lives in a child component.
 function ActorHoverCardByUrl(props: ActorHoverCardLoaderByUrlProps) {
   const env = useRelayEnvironment();
+  const actingAccount = useActingAccount();
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
   const data = createStablePreloadedQuery<ActorHoverCardLoaderByUrlQuery>(
     actorHoverCardLoaderByUrlQuery,
-    () => loadQuery(env(), actorHoverCardLoaderByUrlQuery, { url: props.url }),
+    () =>
+      loadQuery(env(), actorHoverCardLoaderByUrlQuery, {
+        url: props.url,
+        actingAccountId: actingAccountId() ?? null,
+      }),
   );
 
   return (

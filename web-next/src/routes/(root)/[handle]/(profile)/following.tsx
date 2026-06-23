@@ -9,6 +9,7 @@ import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { Title } from "~/components/Title.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { followingPageQuery } from "./__generated__/followingPageQuery.graphql.ts";
 import {
@@ -23,24 +24,26 @@ export const route = {
 } satisfies RouteDefinition;
 
 const followingPageQuery = graphql`
-  query followingPageQuery($username: String!) {
+  query followingPageQuery($username: String!, $actingAccountId: ID) {
     accountByUsername(username: $username) {
       name
       username
       actor {
-        ...ProfileCard_actor
-        ...ActorFollowingList_following
+        ...ProfileCard_actor @arguments(actingAccountId: $actingAccountId)
+        ...ActorFollowingList_following @arguments(
+          actingAccountId: $actingAccountId
+        )
       }
     }
   }
 `;
 
 const loadPageQuery = routePreloadedQuery(
-  (username: string) =>
+  (username: string, actingAccountId: string | null) =>
     loadQuery<followingPageQuery>(
       useRelayEnvironment()(),
       followingPageQuery,
-      { username },
+      { username, actingAccountId },
     ),
   "loadFollowingPageQuery",
 );
@@ -48,10 +51,12 @@ const loadPageQuery = routePreloadedQuery(
 export default function ProfileFollowingPage() {
   const params = useParams();
   const { t } = useLingui();
+  const actingAccount = useActingAccount();
   const username = decodeRouteParam(params.handle!).substring(1);
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
   const data = createStablePreloadedQuery<followingPageQuery>(
     followingPageQuery,
-    () => loadPageQuery(username),
+    () => loadPageQuery(username, actingAccountId() ?? null),
   );
   return (
     <Show keyed when={data()}>

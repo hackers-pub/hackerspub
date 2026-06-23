@@ -24,13 +24,15 @@ export function ProfileTabs(props: ProfileTabsProps) {
   const viewer = useViewer();
   const actor = createFragment(
     graphql`
-      fragment ProfileTabs_actor on Actor {
+      fragment ProfileTabs_actor on Actor
+        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
+      {
         handle
-        isViewer
+        isViewer(actingAccountId: $actingAccountId)
         local
         username
-        viewerBlocks
-        blocksViewer
+        viewerBlocks(actingAccountId: $actingAccountId)
+        blocksViewer(actingAccountId: $actingAccountId)
       }
     `,
     () => props.$actor,

@@ -11,6 +11,7 @@ import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { ProfileTabs } from "~/components/ProfileTabs.tsx";
 import { Title } from "~/components/Title.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import {
   PROFILE_NOTES_QUERY_KEY,
@@ -29,26 +30,26 @@ export const route = {
 } satisfies RouteDefinition;
 
 const notesPageQuery = graphql`
-  query notesPageQuery($handle: String!) {
+  query notesPageQuery($handle: String!, $actingAccountId: ID) {
     actorByHandle(handle: $handle, allowLocalHandle: true) {
       rawName
       username
-      viewerBlocks
-      blocksViewer
+      viewerBlocks(actingAccountId: $actingAccountId)
+      blocksViewer(actingAccountId: $actingAccountId)
       ...NavigateIfHandleIsNotCanonical_actor
       ...ActorNoteList_notes
-      ...ProfileCard_actor
-      ...ProfileTabs_actor
+      ...ProfileCard_actor @arguments(actingAccountId: $actingAccountId)
+      ...ProfileTabs_actor @arguments(actingAccountId: $actingAccountId)
     }
   }
 `;
 
 const loadPageQuery = routePreloadedQuery(
-  (handle: string) =>
+  (handle: string, actingAccountId: string | null) =>
     loadQuery<notesPageQuery>(
       useRelayEnvironment()(),
       notesPageQuery,
-      { handle },
+      { handle, actingAccountId },
       { fetchPolicy: "store-and-network" },
     ),
   PROFILE_NOTES_QUERY_KEY,
@@ -57,9 +58,15 @@ const loadPageQuery = routePreloadedQuery(
 export default function ProfileNotesPage() {
   const params = useParams();
   const { t } = useLingui();
+  const actingAccount = useActingAccount();
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
   const data = createStablePreloadedQuery<notesPageQuery>(
     notesPageQuery,
-    () => loadPageQuery(decodeRouteParam(params.handle!)),
+    () =>
+      loadPageQuery(
+        decodeRouteParam(params.handle!),
+        actingAccountId() ?? null,
+      ),
   );
   return (
     <Show keyed when={data()}>

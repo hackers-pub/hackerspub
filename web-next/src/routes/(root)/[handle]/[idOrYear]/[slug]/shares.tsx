@@ -13,6 +13,7 @@ import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { PostCard } from "~/components/PostCard.tsx";
 import { Title } from "~/components/Title.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import {
   createStablePreloadedQuery,
@@ -31,6 +32,7 @@ const sharesArticleEngagementQuery = graphql`
     $handle: String!
     $idOrYear: String!
     $slug: String!
+    $actingAccountId: ID
   ) {
     articleByYearAndSlug(handle: $handle, idOrYear: $idOrYear, slug: $slug) {
       engagementStats {
@@ -39,17 +41,24 @@ const sharesArticleEngagementQuery = graphql`
         reactions
       }
       ...PostCard_post
-      ...sharesArticleEngagement_article
+      ...sharesArticleEngagement_article @arguments(
+        actingAccountId: $actingAccountId
+      )
     }
   }
 `;
 
 const loadSharesQuery = routePreloadedQuery(
-  (handle: string, idOrYear: string, slug: string) =>
+  (
+    handle: string,
+    idOrYear: string,
+    slug: string,
+    actingAccountId: string | null,
+  ) =>
     loadQuery<sharesArticleEngagementQuery>(
       useRelayEnvironment()(),
       sharesArticleEngagementQuery,
-      { handle, idOrYear, slug },
+      { handle, idOrYear, slug, actingAccountId },
       { fetchPolicy: "store-and-network" },
     ),
   SHARES_QUERY_KEY,
@@ -79,9 +88,17 @@ export default function ArticleSharesPage() {
 function ArticleSharesLoaded(
   props: { handle: string; idOrYear: string; slug: string },
 ) {
+  const actingAccount = useActingAccount();
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
   const data = createStablePreloadedQuery<sharesArticleEngagementQuery>(
     sharesArticleEngagementQuery,
-    () => loadSharesQuery(props.handle, props.idOrYear, props.slug),
+    () =>
+      loadSharesQuery(
+        props.handle,
+        props.idOrYear,
+        props.slug,
+        actingAccountId() ?? null,
+      ),
   );
   const article = (): ArticlePost | null =>
     data()?.articleByYearAndSlug ?? null;
@@ -135,6 +152,7 @@ function SharesList(
         @argumentDefinitions(
           cursor: { type: "String" }
           count: { type: "Int", defaultValue: 30 }
+          actingAccountId: { type: "ID", defaultValue: null }
         )
       {
         shares(after: $cursor, first: $count)
@@ -145,7 +163,9 @@ function SharesList(
               id
               actor {
                 id
-                ...ActorPreviewCard_actor
+                ...ActorPreviewCard_actor @arguments(
+                  actingAccountId: $actingAccountId
+                )
               }
             }
           }

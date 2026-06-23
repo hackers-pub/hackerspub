@@ -20,14 +20,16 @@ export function SmallProfileCard(props: SmallProfileCardProps) {
   const mentionState = useMentionHoverCards(bioRef);
   const actor = createFragment(
     graphql`
-      fragment SmallProfileCard_actor on Actor {
+      fragment SmallProfileCard_actor on Actor
+        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
+      {
         avatarUrl
         name
         bio
         handle
         local
         username
-        ...FollowButton_actor
+        ...FollowButton_actor @arguments(actingAccountId: $actingAccountId)
       }
     `,
     () => props.$actor,

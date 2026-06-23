@@ -15,6 +15,7 @@ import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { ProfileTabs } from "~/components/ProfileTabs.tsx";
 import { Title } from "~/components/Title.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { buildSignInHref, gateOnAuthentication } from "~/lib/authGate.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -39,29 +40,33 @@ export const route = {
 } satisfies RouteDefinition;
 
 const interactionsPageQuery = graphql`
-  query interactionsPageQuery($handle: String!, $locale: Locale!) {
+  query interactionsPageQuery(
+    $handle: String!
+    $locale: Locale!
+    $actingAccountId: ID
+  ) {
     actorByHandle(handle: $handle, allowLocalHandle: true) {
       rawName
       username
       local
       handle
-      isViewer
-      viewerBlocks
-      blocksViewer
+      isViewer(actingAccountId: $actingAccountId)
+      viewerBlocks(actingAccountId: $actingAccountId)
+      blocksViewer(actingAccountId: $actingAccountId)
       ...NavigateIfHandleIsNotCanonical_actor
       ...ActorInteractionList_interactions @arguments(locale: $locale)
-      ...ProfileCard_actor
-      ...ProfileTabs_actor
+      ...ProfileCard_actor @arguments(actingAccountId: $actingAccountId)
+      ...ProfileTabs_actor @arguments(actingAccountId: $actingAccountId)
     }
   }
 `;
 
 const loadPageQuery = routePreloadedQuery(
-  (handle: string, locale: string) =>
+  (handle: string, locale: string, actingAccountId: string | null) =>
     loadQuery<interactionsPageQuery>(
       useRelayEnvironment()(),
       interactionsPageQuery,
-      { handle, locale },
+      { handle, locale, actingAccountId },
       { fetchPolicy: "store-and-network" },
     ),
   PROFILE_INTERACTIONS_QUERY_KEY,
@@ -78,9 +83,16 @@ function profileBaseUrl(actor: {
 function AuthenticatedProfileInteractionsPage() {
   const params = useParams();
   const { t, i18n } = useLingui();
+  const actingAccount = useActingAccount();
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
   const data = createStablePreloadedQuery<interactionsPageQuery>(
     interactionsPageQuery,
-    () => loadPageQuery(decodeRouteParam(params.handle!), i18n.locale),
+    () =>
+      loadPageQuery(
+        decodeRouteParam(params.handle!),
+        i18n.locale,
+        actingAccountId() ?? null,
+      ),
   );
   return (
     <Show keyed when={data()}>

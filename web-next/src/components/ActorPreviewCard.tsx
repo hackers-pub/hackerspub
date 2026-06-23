@@ -19,7 +19,9 @@ export function ActorPreviewCard(props: ActorPreviewCardProps) {
   const { t, i18n } = useLingui();
   const actor = createFragment(
     graphql`
-      fragment ActorPreviewCard_actor on Actor {
+      fragment ActorPreviewCard_actor on Actor
+        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
+      {
         id
         name
         username
@@ -30,14 +32,14 @@ export function ActorPreviewCard(props: ActorPreviewCardProps) {
         local
         url
         iri
-        followsViewer
+        followsViewer(actingAccountId: $actingAccountId)
         followeesCount: followees {
           totalCount
         }
         followersCount: followers {
           totalCount
         }
-        ...FollowButton_actor
+        ...FollowButton_actor @arguments(actingAccountId: $actingAccountId)
       }
     `,
     () => props.$actor,
