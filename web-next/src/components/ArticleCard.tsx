@@ -59,7 +59,8 @@ export function ArticleCard(props: ArticleCardProps) {
         }
         publishedYear
         slug
-        ...ArticleCardInternal_article @arguments(locale: $locale)
+        ...ArticleCardInternal_article
+          @arguments(locale: $locale, actingAccountId: $actingAccountId)
         ...PostEngagementBar_post @arguments(
           actingAccountId: $actingAccountId
         )
@@ -75,7 +76,8 @@ export function ArticleCard(props: ArticleCardProps) {
             publishedYear
             slug
           }
-          ...ArticleCardInternal_article @arguments(locale: $locale)
+          ...ArticleCardInternal_article
+            @arguments(locale: $locale, actingAccountId: $actingAccountId)
           ...PostEngagementBar_post @arguments(
             actingAccountId: $actingAccountId
           )
@@ -235,7 +237,10 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
   const article = createFragment(
     graphql`
       fragment ArticleCardInternal_article on Article
-        @argumentDefinitions(locale: { type: "Locale" })
+        @argumentDefinitions(
+          locale: { type: "Locale" }
+          actingAccountId: { type: "ID", defaultValue: null }
+        )
       {
         __id
         censored
@@ -244,7 +249,7 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
           handle
           local
           username
-          isViewer
+          isViewer(actingAccountId: $actingAccountId)
           url
           iri
         }

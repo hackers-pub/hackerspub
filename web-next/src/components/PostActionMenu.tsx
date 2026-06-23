@@ -23,6 +23,7 @@ import {
 import { showToast } from "~/components/ui/toast.tsx";
 import { RefreshFromOriginItem } from "~/components/RefreshFromOriginItem.tsx";
 import { ReportDialog } from "~/components/ReportDialog.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import IconEllipsis from "~icons/lucide/ellipsis";
@@ -60,6 +61,7 @@ const pinPostMutation = graphql`
     $input: PinPostInput!
     $connections: [ID!]!
     $locale: Locale
+    $actingAccountId: ID
   ) {
     pinPost(input: $input) {
       __typename
@@ -71,7 +73,8 @@ const pinPostMutation = graphql`
           ) {
           id
           viewerHasPinned
-          ...PostCard_post @arguments(locale: $locale)
+          ...PostCard_post
+            @arguments(locale: $locale, actingAccountId: $actingAccountId)
         }
       }
       ... on InvalidInputError {
@@ -140,7 +143,9 @@ interface PostActionMenuData {
 export function PostActionMenu(props: PostActionMenuProps) {
   const post = createFragment(
     graphql`
-      fragment PostActionMenu_post on Post {
+      fragment PostActionMenu_post on Post
+        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
+      {
         id
         iri
         visibility
@@ -155,7 +160,7 @@ export function PostActionMenu(props: PostActionMenuProps) {
           id
         }
         actor {
-          isViewer
+          isViewer(actingAccountId: $actingAccountId)
           local
           handle
         }
@@ -190,6 +195,7 @@ interface PostActionMenuContentProps {
 function PostActionMenuContent(props: PostActionMenuContentProps) {
   const { i18n, t } = useLingui();
   const navigate = useNavigate();
+  const actingAccount = useActingAccount();
   const viewer = useViewer();
   const post = props.post;
   const [showConfirm, setShowConfirm] = createSignal(false);
@@ -235,6 +241,11 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
       (p.visibility === "PUBLIC" || p.visibility === "UNLISTED");
   };
 
+  const managementInput = <T extends Record<string, string>>(input: T) => {
+    const actingAccountId = actingAccount.selectedActingAccountId();
+    return actingAccountId == null ? input : { ...input, actingAccountId };
+  };
+
   const handlePinToggle = () => {
     const p = post();
     if (!p || !canPinPost()) return;
@@ -242,7 +253,7 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
     if (p.viewerHasPinned) {
       commitUnpinPost({
         variables: {
-          input: { postId: p.id },
+          input: managementInput({ postId: p.id }),
           connections: props.pinConnections ?? [],
         },
         onCompleted(response) {
@@ -265,9 +276,10 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
     } else {
       commitPinPost({
         variables: {
-          input: { postId: p.id },
+          input: managementInput({ postId: p.id }),
           connections: props.pinConnections ?? [],
           locale: i18n.locale,
+          actingAccountId: actingAccount.selectedActingAccountId() ?? null,
         },
         onCompleted(response) {
           if (response.pinPost.__typename === "PinPostPayload") {
@@ -295,7 +307,7 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
 
     commitDeletePost({
       variables: {
-        input: { id: p.id },
+        input: managementInput({ id: p.id }),
         connections: [
           ...new Set([
             ...(props.connections ?? []),

@@ -139,7 +139,7 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
         viewerCanQuote(actingAccountId: $actingAccountId)
         viewerCanShare(actingAccountId: $actingAccountId)
         ...BookmarkButton_post
-        ...PostActionMenu_post
+        ...PostActionMenu_post @arguments(actingAccountId: $actingAccountId)
         reactionGroups {
           ... on EmojiReactionGroup {
             emoji

@@ -416,6 +416,39 @@ const revokeQuoteMutation = parse(`
   }
 `);
 
+const pinPostAsOrganizationMutation = parse(`
+  mutation PinPostAsOrganization($postId: ID!, $actingAccountId: ID!) {
+    pinPost(input: { postId: $postId, actingAccountId: $actingAccountId }) {
+      __typename
+      ... on PinPostPayload {
+        post {
+          id
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+    }
+  }
+`);
+
+const unpinPostAsOrganizationMutation = parse(`
+  mutation UnpinPostAsOrganization($postId: ID!, $actingAccountId: ID!) {
+    unpinPost(input: { postId: $postId, actingAccountId: $actingAccountId }) {
+      __typename
+      ... on UnpinPostPayload {
+        post {
+          id
+        }
+        unpinnedPostId
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+    }
+  }
+`);
+
 const sharePostMutation = parse(`
   mutation SharePost($postId: ID!) {
     sharePost(input: { postId: $postId }) {
@@ -440,6 +473,23 @@ const deletePostMutation = parse(`
         deletedPostId
       }
       ... on SharedPostDeletionNotAllowedError {
+        inputPath
+      }
+    }
+  }
+`);
+
+const deletePostAsOrganizationMutation = parse(`
+  mutation DeletePostAsOrganization($id: ID!, $actingAccountId: ID!) {
+    deletePost(input: { id: $id, actingAccountId: $actingAccountId }) {
+      __typename
+      ... on DeletePostPayload {
+        deletedPostId
+      }
+      ... on SharedPostDeletionNotAllowedError {
+        inputPath
+      }
+      ... on InvalidInputError {
         inputPath
       }
     }
@@ -3819,5 +3869,214 @@ test("updateNote rejects non-existent note ID", async () => {
     }).updateNote;
     assert.equal(payload.__typename, "InvalidInputError");
     assert.equal(payload.inputPath, "noteId");
+  });
+});
+
+test("organization members can manage organization-authored posts", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "orgpostmanager",
+      name: "Organization Post Manager",
+      email: "orgpostmanager@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgmanagedposts",
+        name: "Organization Managed Posts",
+        bio: "",
+      },
+    );
+    const actingAccountId = encodeGlobalID("Account", organization.id);
+    const { post: editablePost } = await insertNotePost(tx, {
+      account: organization,
+      content: "Original organization note",
+    });
+    const { post: pinnedPost } = await insertNotePost(tx, {
+      account: organization,
+      content: "Pinned organization note",
+    });
+    const { post: deletedPost } = await insertNotePost(tx, {
+      account: organization,
+      content: "Deleted organization note",
+    });
+    const quoter = await insertAccountWithActor(tx, {
+      username: "orgquotemanager",
+      name: "Organization Quote Manager",
+      email: "orgquotemanager@example.com",
+    });
+    const { post: quotedPost } = await insertNotePost(tx, {
+      account: organization,
+      content: "Organization quote target",
+    });
+    const { post: quotePost } = await insertNotePost(tx, {
+      account: quoter.account,
+      content: "Quote of organization note",
+      quotedPostId: quotedPost.id,
+    });
+
+    const updateResult = await execute({
+      schema,
+      document: updateNoteMutation,
+      variableValues: {
+        input: {
+          noteId: encodeGlobalID("Note", editablePost.id),
+          content: "Updated by organization member",
+          actingAccountId,
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(updateResult.errors, undefined);
+    assert.equal(
+      (toPlainJson(updateResult.data) as {
+        updateNote: { __typename: string };
+      }).updateNote.__typename,
+      "UpdateNotePayload",
+    );
+
+    const pinResult = await execute({
+      schema,
+      document: pinPostAsOrganizationMutation,
+      variableValues: {
+        postId: encodeGlobalID("Note", pinnedPost.id),
+        actingAccountId,
+      },
+      contextValue: makeTransactionalUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(pinResult.errors, undefined);
+    assert.equal(
+      (toPlainJson(pinResult.data) as {
+        pinPost: { __typename: string };
+      }).pinPost.__typename,
+      "PinPostPayload",
+    );
+
+    const unpinResult = await execute({
+      schema,
+      document: unpinPostAsOrganizationMutation,
+      variableValues: {
+        postId: encodeGlobalID("Note", pinnedPost.id),
+        actingAccountId,
+      },
+      contextValue: makeTransactionalUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(unpinResult.errors, undefined);
+    assert.equal(
+      (toPlainJson(unpinResult.data) as {
+        unpinPost: { __typename: string };
+      }).unpinPost.__typename,
+      "UnpinPostPayload",
+    );
+
+    const revokeResult = await execute({
+      schema,
+      document: revokeQuoteMutation,
+      variableValues: {
+        input: {
+          quotePostId: encodeGlobalID("Note", quotePost.id),
+          actingAccountId,
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(revokeResult.errors, undefined);
+    assert.equal(
+      (toPlainJson(revokeResult.data) as {
+        revokeQuote: { __typename: string };
+      }).revokeQuote.__typename,
+      "RevokeQuotePayload",
+    );
+    const storedQuote = await tx.query.postTable.findFirst({
+      where: { id: quotePost.id },
+    });
+    assert.equal(storedQuote?.quotedPostId, null);
+
+    const deleteResult = await execute({
+      schema,
+      document: deletePostAsOrganizationMutation,
+      variableValues: {
+        id: encodeGlobalID("Note", deletedPost.id),
+        actingAccountId,
+      },
+      contextValue: makeTransactionalUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(deleteResult.errors, undefined);
+    assert.deepEqual(toPlainJson(deleteResult.data), {
+      deletePost: {
+        __typename: "DeletePostPayload",
+        deletedPostId: encodeGlobalID("Note", deletedPost.id),
+      },
+    });
+  });
+});
+
+test("organization members can update organization-authored articles", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "orgarticlemanager",
+      name: "Organization Article Manager",
+      email: "orgarticlemanager@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgmanagedarticles",
+        name: "Organization Managed Articles",
+        bio: "",
+      },
+    );
+    const fedCtx = createFedCtx(tx);
+    const article = await createArticle(fedCtx, {
+      accountId: organization.id,
+      publishedYear: 2026,
+      slug: "managed-organization-article",
+      tags: [],
+      allowLlmTranslation: false,
+      published: new Date("2026-04-15T00:00:00.000Z"),
+      updated: new Date("2026-04-15T00:00:00.000Z"),
+      title: "Organization article",
+      content: "Original organization article",
+      language: "en",
+    });
+    assert.ok(article != null);
+
+    const result = await execute({
+      schema,
+      document: updateArticleWithMediaMutation,
+      variableValues: {
+        input: {
+          articleId: encodeGlobalID("Article", article.id),
+          content: "Updated organization article",
+          actingAccountId: encodeGlobalID("Account", organization.id),
+        },
+      },
+      contextValue: makeUserContext(tx, member.account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      updateArticle: {
+        __typename: "UpdateArticlePayload",
+        article: {
+          id: encodeGlobalID("Article", article.id),
+          content: "<p>Updated organization article</p>\n",
+        },
+      },
+    });
   });
 });

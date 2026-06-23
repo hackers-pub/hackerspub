@@ -19,6 +19,7 @@ import {
 import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { VisibilityTag } from "~/components/VisibilityTag.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { useContentLinkInterceptor } from "~/lib/contentLinkInterceptor.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -35,13 +36,16 @@ import type {
 import type { QuotedNoteCardRevokeQuoteMutation } from "./__generated__/QuotedNoteCardRevokeQuoteMutation.graphql.ts";
 
 const RevokeQuoteMutation = graphql`
-  mutation QuotedNoteCardRevokeQuoteMutation($input: RevokeQuoteInput!) {
+  mutation QuotedNoteCardRevokeQuoteMutation(
+    $input: RevokeQuoteInput!
+    $actingAccountId: ID
+  ) {
     revokeQuote(input: $input) {
       __typename
       ... on RevokeQuotePayload {
         quote {
           id
-          viewerCanRevokeQuote
+          viewerCanRevokeQuote(actingAccountId: $actingAccountId)
           quoteTargetState
           quotedPost {
             id
@@ -74,6 +78,7 @@ export interface QuotedNoteCardProps {
 
 export function QuotedNoteCard(props: QuotedNoteCardProps) {
   const { t } = useLingui();
+  const actingAccount = useActingAccount();
   const { preferAiSummary, moderator } = useViewer();
   const [proseRef, setProseRef] = createSignal<HTMLElement>();
   const mentionState = useMentionHoverCards(proseRef);
@@ -291,9 +296,17 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
                             if (revoking()) return;
                             const quotePostId = props.quotePostId;
                             if (quotePostId == null) return;
+                            const actingAccountId = actingAccount
+                              .selectedActingAccountId();
                             revokeQuote({
                               variables: {
-                                input: { quotePostId },
+                                input: {
+                                  quotePostId,
+                                  ...(actingAccountId == null
+                                    ? {}
+                                    : { actingAccountId }),
+                                },
+                                actingAccountId: actingAccountId ?? null,
                               },
                               onCompleted(response) {
                                 if (

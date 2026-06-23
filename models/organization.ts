@@ -5,6 +5,12 @@ import { syncActorFromAccount } from "./actor.ts";
 import type { ContextData } from "./context.ts";
 import type { Database, Transaction } from "./db.ts";
 import {
+  createOrganizationConversionRequestNotification
+    as createOrganizationConversionRequestNotificationRow,
+  createOrganizationInvitationNotification
+    as createOrganizationInvitationNotificationRow,
+} from "./notification.ts";
+import {
   type Account,
   type AccountEmail,
   accountEmailTable,
@@ -21,6 +27,7 @@ import {
   organizationNotificationReadTable,
   organizationPostAuthorTable,
   passkeyTable,
+  pushNotificationTargetTable,
 } from "./schema.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 
@@ -382,20 +389,11 @@ async function createOrganizationInvitationNotification(
         "The organization actor does not exist.",
       );
     }
-    const existing = await tx.select({ id: notificationTable.id })
-      .from(notificationTable)
-      .where(sql`
-        ${notificationTable.accountId} = ${memberAccountId}
-        AND ${notificationTable.type} = 'organization_invitation'
-        AND ${notificationTable.actorIds} = ARRAY[${actor.id}]::uuid[]
-      `);
-    if (existing[0] != null) return;
-    await tx.insert(notificationTable).values({
-      id: generateUuidV7(),
-      accountId: memberAccountId,
-      type: "organization_invitation",
-      actorIds: [actor.id],
-    }).onConflictDoNothing();
+    await createOrganizationInvitationNotificationRow(
+      tx,
+      memberAccountId,
+      actor.id,
+    );
   });
 }
 
@@ -644,13 +642,12 @@ async function createOrganizationConversionRequestNotification(
   if (actor == null) {
     throw new OrganizationConversionError("The converting account is invalid.");
   }
-  await db.insert(notificationTable).values({
-    id: generateUuidV7(),
-    accountId: adminAccountId,
-    type: "organization_conversion_request",
-    actorIds: [actor.id],
-    organizationConversionRequestId: requestId,
-  }).onConflictDoNothing();
+  await createOrganizationConversionRequestNotificationRow(
+    db,
+    adminAccountId,
+    actor.id,
+    requestId,
+  );
 }
 
 export async function acceptOrganizationConversion(
@@ -710,6 +707,8 @@ export async function acceptOrganizationConversion(
       .where(eq(accountEmailTable.accountId, request.accountId));
     await tx.delete(passkeyTable)
       .where(eq(passkeyTable.accountId, request.accountId));
+    await tx.delete(pushNotificationTargetTable)
+      .where(eq(pushNotificationTargetTable.accountId, request.accountId));
     await tx.update(accountTable)
       .set({
         kind: "organization",

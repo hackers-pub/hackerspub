@@ -46,7 +46,7 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
         id
         uuid
         sourceId
-        viewerCanRevokeQuote
+        viewerCanRevokeQuote(actingAccountId: $actingAccountId)
         censored
         content
         language
@@ -59,7 +59,7 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
           local
           username
           handle
-          isViewer
+          isViewer(actingAccountId: $actingAccountId)
         }
         ...PostAuthorAvatar_post
         ...PostEngagementBar_post @arguments(

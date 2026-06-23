@@ -176,6 +176,12 @@ app.use((ctx) => {
           where: { id: session.accountId },
           with: { actor: true, avatarMedium: true, emails: true, links: true },
         });
+        if (account != null && account.kind !== "personal") {
+          // Organization accounts are controlled through personal member
+          // accounts. Any stale direct session must be invalidated.
+          await deleteSession(kv, session.id);
+          return { account: undefined, session: undefined };
+        }
         if (account != null && isActorBanned(account.actor)) {
           // A ban invalidates existing sessions, not just new logins
           // (mirrors the GraphQL server's context build).

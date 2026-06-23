@@ -19,6 +19,7 @@ import IconLoader2 from "~icons/lucide/loader-2";
 import { LanguageSelect } from "~/components/LanguageSelect.tsx";
 import { TagInput } from "~/components/TagInput.tsx";
 import { Button } from "~/components/ui/button.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { MarkdownEditor } from "~/components/ui/markdown-editor.tsx";
 import {
   Tabs,
@@ -57,23 +58,29 @@ const editPageQueryDef = graphql`
     $handle: String!
     $idOrYear: String!
     $slug: String!
+    $actingAccountId: ID
   ) {
     articleByYearAndSlug(
       handle: $handle
       idOrYear: $idOrYear
       slug: $slug
     ) {
-      ...edit_article
+      ...edit_article @arguments(actingAccountId: $actingAccountId)
     }
   }
 `;
 
 const loadPageQuery = routePreloadedQuery(
-  (handle: string, idOrYear: string, slug: string) =>
+  (
+    handle: string,
+    idOrYear: string,
+    slug: string,
+    actingAccountId: string | null,
+  ) =>
     loadQuery<editPageQuery>(
       useRelayEnvironment()(),
       editPageQueryDef,
-      { handle, idOrYear, slug },
+      { handle, idOrYear, slug, actingAccountId },
       { fetchPolicy: "network-only" },
     ),
   "loadArticleEditPageQuery",
@@ -84,10 +91,12 @@ export default function ArticleEditPage() {
   const handle = decodeRouteParam(params.handle!);
   const idOrYear = params.idOrYear!;
   const slug = decodeRouteParam(params.slug!);
+  const actingAccount = useActingAccount();
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
 
   const data = createStablePreloadedQuery<editPageQuery>(
     editPageQueryDef,
-    () => loadPageQuery(handle, idOrYear, slug),
+    () => loadPageQuery(handle, idOrYear, slug, actingAccountId() ?? null),
   );
 
   return (
@@ -142,11 +151,13 @@ const updateArticleMutation = graphql`
 function ArticleEditForm(props: ArticleEditFormProps) {
   const article = createFragment(
     graphql`
-      fragment edit_article on Article {
+      fragment edit_article on Article
+        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
+      {
         id
         sourceId
         actor {
-          isViewer
+          isViewer(actingAccountId: $actingAccountId)
           username
         }
         contents {
@@ -207,6 +218,7 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
   const { t } = useLingui();
   const navigate = useNavigate();
   const environment = useRelayEnvironment();
+  const actingAccount = useActingAccount();
 
   const article = () => props.article;
 
@@ -313,10 +325,12 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
 
   const handleSave = (e: SubmitEvent) => {
     e.preventDefault();
+    const actingAccountId = actingAccount.selectedActingAccountId();
     commitUpdate({
       variables: {
         input: {
           articleId: article().id,
+          ...(actingAccountId == null ? {} : { actingAccountId }),
           title: title(),
           content: markdown(),
           tags: tags(),

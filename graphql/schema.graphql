@@ -1083,9 +1083,14 @@ type Article implements Node & Post & Reactable {
   ): Boolean!
 
   """
-  Whether the authenticated viewer (as the quoted post's author) can revoke a quote of their post. `true` only when the viewer is the author of `quotedPost` and the quoting post is either local or has an authorization IRI.
+  Whether the authenticated viewer (as the quoted post's author) can revoke a quote of their post. `true` only when the viewer is the author of `quotedPost` and the quoting post is either local or has an authorization IRI. Pass `actingAccountId` for an organization perspective.
   """
-  viewerCanRevokeQuote: Boolean!
+  viewerCanRevokeQuote(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 
   """
   Whether the selected viewer account is allowed to boost this post, based on visibility and block state. A censored post cannot be boosted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
@@ -1606,10 +1611,16 @@ type DeleteOrphanMediaPayload {
 union DeleteOrphanMediaResult = DeleteOrphanMediaPayload | NotAuthenticatedError | NotAuthorizedError
 
 """
-Delete a post and send an ActivityPub `Delete` activity to federated instances. Boost wrappers cannot be deleted this way; use `unsharePost` instead (returns `SharedPostDeletionNotAllowedError`).
+Delete a post and send an ActivityPub `Delete` activity to federated instances. Boost wrappers cannot be deleted this way; use `unsharePost` instead (returns `SharedPostDeletionNotAllowedError`). Pass `actingAccountId` to delete a post authored by an organization account you belong to.
 """
 input DeletePostInput {
+  """
+  Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+  """
+  actingAccountId: ID
   clientMutationId: ID
+
+  """Global ID of the post to delete."""
   id: ID!
 }
 
@@ -1618,7 +1629,7 @@ type DeletePostPayload {
   deletedPostId: ID!
 }
 
-union DeletePostResult = DeletePostPayload | InvalidInputError | NotAuthenticatedError | SharedPostDeletionNotAllowedError
+union DeletePostResult = DeletePostPayload | InvalidInputError | NotAuthenticatedError | OrganizationPermissionError | SharedPostDeletionNotAllowedError
 
 """A document in a specific language."""
 type Document {
@@ -3197,9 +3208,14 @@ type Note implements Node & Post & Reactable {
   ): Boolean!
 
   """
-  Whether the authenticated viewer (as the quoted post's author) can revoke a quote of their post. `true` only when the viewer is the author of `quotedPost` and the quoting post is either local or has an authorization IRI.
+  Whether the authenticated viewer (as the quoted post's author) can revoke a quote of their post. `true` only when the viewer is the author of `quotedPost` and the quoting post is either local or has an authorization IRI. Pass `actingAccountId` for an organization perspective.
   """
-  viewerCanRevokeQuote: Boolean!
+  viewerCanRevokeQuote(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 
   """
   Whether the selected viewer account is allowed to boost this post, based on visibility and block state. A censored post cannot be boosted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
@@ -3532,10 +3548,16 @@ type PinHashtagPayload {
 union PinHashtagResult = InvalidInputError | NotAuthenticatedError | PinHashtagPayload
 
 """
-Pin a post to the top of the viewer's profile. Only the post's author may pin it. Requires authentication.
+Pin a post to the top of the viewer's profile. Only the post's author may pin it. Pass `actingAccountId` to pin an organization post to that organization's profile. Requires authentication.
 """
 input PinPostInput {
+  """
+  Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+  """
+  actingAccountId: ID
   clientMutationId: ID
+
+  """Global ID of the post to pin."""
   postId: ID!
 }
 
@@ -3544,7 +3566,7 @@ type PinPostPayload {
   post: Post!
 }
 
-union PinPostResult = InvalidInputError | NotAuthenticatedError | PinPostPayload
+union PinPostResult = InvalidInputError | NotAuthenticatedError | OrganizationPermissionError | PinPostPayload
 
 """
 A poll attached to a `Question` post. Contains options, vote counts, and the voting deadline.  When the owning `Question` is censored or its author is hidden by a moderation sanction, the poll (including its option titles) is part of the hidden content and is only resolvable by the author and moderators, even through direct `node(id:)` lookups.
@@ -3826,9 +3848,14 @@ interface Post implements Node & Reactable {
   ): Boolean!
 
   """
-  Whether the authenticated viewer (as the quoted post's author) can revoke a quote of their post. `true` only when the viewer is the author of `quotedPost` and the quoting post is either local or has an authorization IRI.
+  Whether the authenticated viewer (as the quoted post's author) can revoke a quote of their post. `true` only when the viewer is the author of `quotedPost` and the quoting post is either local or has an authorization IRI. Pass `actingAccountId` for an organization perspective.
   """
-  viewerCanRevokeQuote: Boolean!
+  viewerCanRevokeQuote(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 
   """
   Whether the selected viewer account is allowed to boost this post, based on visibility and block state. A censored post cannot be boosted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
@@ -4728,9 +4755,14 @@ type Question implements Node & Post & Reactable {
   ): Boolean!
 
   """
-  Whether the authenticated viewer (as the quoted post's author) can revoke a quote of their post. `true` only when the viewer is the author of `quotedPost` and the quoting post is either local or has an authorization IRI.
+  Whether the authenticated viewer (as the quoted post's author) can revoke a quote of their post. `true` only when the viewer is the author of `quotedPost` and the quoting post is either local or has an authorization IRI. Pass `actingAccountId` for an organization perspective.
   """
-  viewerCanRevokeQuote: Boolean!
+  viewerCanRevokeQuote(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 
   """
   Whether the selected viewer account is allowed to boost this post, based on visibility and block state. A censored post cannot be boosted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
@@ -5348,10 +5380,16 @@ union RequestOrganizationConversionResult = InvalidInputError | NotAuthenticated
 union ResolveFlagAppealResult = FlagAppeal | InvalidInputError | NotAuthenticatedError | NotAuthorizedError
 
 """
-As the quoted post's author, revoke permission for a quote of your post. Sends a revocation activity to the quoting instance. Only the `quotedPost`'s author may call this.
+As the quoted post's author, revoke permission for a quote of your post. Sends a revocation activity to the quoting instance. Only the `quotedPost`'s author may call this. Pass `actingAccountId` when the quoted post was authored by an organization account you belong to.
 """
 input RevokeQuoteInput {
+  """
+  Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+  """
+  actingAccountId: ID
   clientMutationId: ID
+
+  """Global ID of the quote post to revoke."""
   quotePostId: ID!
 }
 
@@ -5361,7 +5399,7 @@ type RevokeQuotePayload {
   quotedPost: Post!
 }
 
-union RevokeQuoteResult = InvalidInputError | NotAuthenticatedError | RevokeQuotePayload
+union RevokeQuoteResult = InvalidInputError | NotAuthenticatedError | OrganizationPermissionError | RevokeQuotePayload
 
 """
 The sanitized surface a sanctioned (or warned) user sees about a moderation action taken on them: the confirmed violations, the action, the target content reference, and the moderation team's message.  Deliberately absent: the reporters, their reasons, the report count, the internal rationale, and the acting moderator's identity (everything is presented under the moderation team's collective identity).
@@ -5711,9 +5749,17 @@ type UnpinHashtagPayload {
 
 union UnpinHashtagResult = InvalidInputError | NotAuthenticatedError | UnpinHashtagPayload
 
-"""Remove a pin from the viewer's profile. Requires authentication."""
+"""
+Remove a pin from the viewer's profile. Pass `actingAccountId` to remove a pin from an organization profile. Requires authentication.
+"""
 input UnpinPostInput {
+  """
+  Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+  """
+  actingAccountId: ID
   clientMutationId: ID
+
+  """Global ID of the post to unpin."""
   postId: ID!
 }
 
@@ -5723,7 +5769,7 @@ type UnpinPostPayload {
   unpinnedPostId: ID!
 }
 
-union UnpinPostResult = InvalidInputError | NotAuthenticatedError | UnpinPostPayload
+union UnpinPostResult = InvalidInputError | NotAuthenticatedError | OrganizationPermissionError | UnpinPostPayload
 
 """
 Legacy input for unregistering an APNS device token. Use `UnregisterPushNotificationTargetInput` for new clients.
@@ -5888,10 +5934,16 @@ type UpdateAccountPayload {
 }
 
 """
-Edit an existing article's content, title, or tags. Only the article's author may update it. Sends an ActivityPub `Update` activity. Requires authentication.
+Edit an existing article's content, title, or tags. Only the article's author may update it. Sends an ActivityPub `Update` activity. Pass `actingAccountId` when updating an article authored by an organization account you belong to. Requires authentication.
 """
 input UpdateArticleInput {
+  """
+  Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+  """
+  actingAccountId: ID
   allowLlmTranslation: Boolean
+
+  """Global ID of the article to update."""
   articleId: ID!
   clientMutationId: ID
   content: Markdown
@@ -5918,14 +5970,18 @@ type UpdateArticlePayload {
   clientMutationId: ID
 }
 
-union UpdateArticleResult = InvalidInputError | NotAuthenticatedError | UpdateArticlePayload
+union UpdateArticleResult = InvalidInputError | NotAuthenticatedError | OrganizationPermissionError | UpdateArticlePayload
 
 union UpdateFlagCaseStatusResult = FlagCase | InvalidInputError | NotAuthenticatedError | NotAuthorizedError
 
 """
-Edit the content, language, or quote policy of an existing local note. Visibility cannot be changed after creation. Only the note's author may call this. Sends an ActivityPub `Update` activity to the appropriate recipients. Requires authentication.
+Edit the content, language, or quote policy of an existing local note. Visibility cannot be changed after creation. Only the note's author may call this. Pass `actingAccountId` when editing a note authored by an organization account you belong to. Sends an ActivityPub `Update` activity to the appropriate recipients. Requires authentication.
 """
 input UpdateNoteInput {
+  """
+  Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+  """
+  actingAccountId: ID
   clientMutationId: ID
 
   """New Markdown body. Omit to keep the existing content."""
@@ -5948,7 +6004,7 @@ type UpdateNotePayload {
   note: Note!
 }
 
-union UpdateNoteResult = InvalidInputError | NotAuthenticatedError | UpdateNotePayload
+union UpdateNoteResult = InvalidInputError | NotAuthenticatedError | OrganizationPermissionError | UpdateNotePayload
 
 """
 Change the role of an accepted organization member. Only accepted organization administrators can update roles, and the last administrator cannot be demoted.

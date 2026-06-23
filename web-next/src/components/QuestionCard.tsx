@@ -175,7 +175,7 @@ function QuestionCardContent(props: QuestionCardContentProps) {
           handle
           username
           local
-          isViewer
+          isViewer(actingAccountId: $actingAccountId)
           url
           iri
         }
@@ -201,7 +201,7 @@ function QuestionCardContent(props: QuestionCardContentProps) {
             }
           }
         }
-        viewerCanRevokeQuote
+        viewerCanRevokeQuote(actingAccountId: $actingAccountId)
         quoteTargetState
         quotedPost {
           ...QuotedPostCard_post

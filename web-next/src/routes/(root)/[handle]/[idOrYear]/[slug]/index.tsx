@@ -398,7 +398,7 @@ function ArticleBody(props: ArticleBodyProps) {
         actor {
           local
           username
-          isViewer
+          isViewer(actingAccountId: $actingAccountId)
         }
         publishedYear
         slug

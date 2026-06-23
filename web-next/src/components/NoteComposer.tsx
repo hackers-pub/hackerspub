@@ -459,6 +459,10 @@ export function NoteComposer(props: NoteComposerProps) {
     selectedActingAccountOption() == null
       ? {}
       : actingAccount.composeInputForKey(actingAccountKey());
+  const selectedActingAccountInput = () => {
+    const actingAccountId = actingAccount.selectedActingAccountId();
+    return actingAccountId == null ? {} : { actingAccountId };
+  };
   const allowPoll = () => props.allowPoll !== false;
   const canCreatePoll = () => !props.editingNoteId && allowPoll();
   const [pastedQuoteId, setPastedQuoteId] = createSignal<string | null>(null);
@@ -1090,6 +1094,7 @@ export function NoteComposer(props: NoteComposerProps) {
             quotePolicy: isPublicOrUnlisted
               ? effectiveQuotePolicy()
               : undefined,
+            ...selectedActingAccountInput(),
           },
         },
         onCompleted(response) {

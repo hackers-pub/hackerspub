@@ -8,6 +8,7 @@ import {
 } from "@fedify/fedify";
 import { Organization, Update } from "@fedify/vocab";
 import { eq, sql } from "drizzle-orm";
+import { registerPushNotificationTarget } from "./push.ts";
 import type { ContextData } from "./context.ts";
 import {
   acceptOrganizationConversion,
@@ -27,6 +28,7 @@ import {
   followingTable,
   notificationTable,
   organizationMembershipTable,
+  pushNotificationTargetTable,
 } from "./schema.ts";
 import {
   createFedCtx,
@@ -37,6 +39,10 @@ import {
   withRollback,
 } from "../test/postgres.ts";
 import type { Uuid } from "./uuid.ts";
+import {
+  setWebPushConfigForTesting,
+  setWebPushSenderForTesting,
+} from "./webpush.ts";
 
 let federationBuilderPromise:
   | Promise<typeof import("../federation/mod.ts").builder>
@@ -59,6 +65,10 @@ async function getFederationBuilder() {
   }
   return await federationBuilderPromise;
 }
+
+const validWebPushP256dh =
+  "BAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE";
+const validWebPushAuth = "AgICAgICAgICAgICAgICAg";
 
 test("createOrganization() consumes one invitation and creates an Organization actor", async () => {
   await withRollback(async (tx) => {
@@ -183,54 +193,81 @@ test("organization membership invite acceptance and last-member guard", async ()
 });
 
 test("inviteOrganizationMember() notifies the invited account", async () => {
-  await withRollback(async (tx) => {
-    const admin = await insertAccountWithActor(tx, {
-      username: "notifyinviteadmin",
-      name: "Notify Invite Admin",
-      email: "notifyinviteadmin@example.com",
-    });
-    const member = await insertAccountWithActor(tx, {
-      username: "notifyinvitemember",
-      name: "Notify Invite Member",
-      email: "notifyinvitemember@example.com",
-    });
-    await tx.update(accountTable)
-      .set({ leftInvitations: 1 })
-      .where(eq(accountTable.id, admin.account.id));
-    const organization = await createOrganization(
-      createFedCtx(tx),
-      admin.account,
-      {
-        username: "notifyinviteorg",
-        name: "Notify Invite Org",
-        bio: "",
-      },
-    );
-
-    await inviteOrganizationMember(
-      tx,
-      admin.account,
-      organization.id,
-      member.account.username,
-    );
-    await inviteOrganizationMember(
-      tx,
-      admin.account,
-      organization.id,
-      member.account.username,
-    );
-
-    const notifications = await tx.query.notificationTable.findMany({
-      where: {
-        accountId: member.account.id,
-        type: "organization_invitation",
-      },
-    });
-    assert.equal(notifications.length, 1);
-    assert.deepEqual(notifications[0].actorIds, [organization.actor.id]);
-    assert.equal(notifications[0].postId, null);
-    assert.equal(notifications[0].organizationConversionRequestId, null);
+  const sent: Array<{ endpoint: string; payload: string }> = [];
+  setWebPushConfigForTesting({
+    publicKey: "test-public-key",
+    privateKey: "test-private-key",
+    subject: "mailto:test@example.com",
   });
+  setWebPushSenderForTesting(async (subscription, payload) => {
+    sent.push({ endpoint: subscription.endpoint, payload });
+  });
+  try {
+    await withRollback(async (tx) => {
+      const admin = await insertAccountWithActor(tx, {
+        username: "notifyinviteadmin",
+        name: "Notify Invite Admin",
+        email: "notifyinviteadmin@example.com",
+      });
+      const member = await insertAccountWithActor(tx, {
+        username: "notifyinvitemember",
+        name: "Notify Invite Member",
+        email: "notifyinvitemember@example.com",
+      });
+      await registerPushNotificationTarget(tx, member.account.id, {
+        service: "web_push",
+        subscription: {
+          endpoint: "https://push.example/org-invitation",
+          p256dh: validWebPushP256dh,
+          auth: validWebPushAuth,
+        },
+      });
+      await tx.update(accountTable)
+        .set({ leftInvitations: 1 })
+        .where(eq(accountTable.id, admin.account.id));
+      const organization = await createOrganization(
+        createFedCtx(tx),
+        admin.account,
+        {
+          username: "notifyinviteorg",
+          name: "Notify Invite Org",
+          bio: "",
+        },
+      );
+
+      await inviteOrganizationMember(
+        tx,
+        admin.account,
+        organization.id,
+        member.account.username,
+      );
+      await inviteOrganizationMember(
+        tx,
+        admin.account,
+        organization.id,
+        member.account.username,
+      );
+
+      const notifications = await tx.query.notificationTable.findMany({
+        where: {
+          accountId: member.account.id,
+          type: "organization_invitation",
+        },
+      });
+      assert.equal(notifications.length, 1);
+      assert.deepEqual(notifications[0].actorIds, [organization.actor.id]);
+      assert.equal(notifications[0].postId, null);
+      assert.equal(notifications[0].organizationConversionRequestId, null);
+      assert.equal(sent.length, 1);
+      assert.equal(
+        JSON.parse(sent[0].payload).data.notificationId,
+        notifications[0].id,
+      );
+    });
+  } finally {
+    setWebPushConfigForTesting(undefined);
+    setWebPushSenderForTesting(undefined);
+  }
 });
 
 test("ensureOrganizationInvitationNotifications() repairs pending invitations", async () => {
@@ -519,6 +556,12 @@ test("acceptOrganizationConversion() preserves inviter and removes direct login 
       admin.account.username,
       "convertme",
     );
+    await tx.insert(pushNotificationTargetTable).values({
+      id: crypto.randomUUID(),
+      accountId: account.account.id,
+      service: "fcm",
+      token: "converted-account-fcm-token",
+    });
     const converted = await acceptOrganizationConversion(
       createFedCtx(tx),
       admin.account,
@@ -534,6 +577,11 @@ test("acceptOrganizationConversion() preserves inviter and removes direct login 
       .from(accountEmailTable)
       .where(eq(accountEmailTable.accountId, converted.id));
     assert.equal(emails.length, 0);
+
+    const pushTargets = await tx.select()
+      .from(pushNotificationTargetTable)
+      .where(eq(pushNotificationTargetTable.accountId, converted.id));
+    assert.equal(pushTargets.length, 0);
   });
 });
 
@@ -663,43 +711,70 @@ test("acceptOrganizationConversion() enqueues Update(Organization) through Fedif
 });
 
 test("requestOrganizationConversion() notifies the accepting admin", async () => {
-  await withRollback(async (tx) => {
-    const account = await insertAccountWithActor(tx, {
-      username: "conversionnotify",
-      name: "Conversion Notify",
-      email: "conversionnotify@example.com",
-    });
-    const admin = await insertAccountWithActor(tx, {
-      username: "conversionnotifyadmin",
-      name: "Conversion Notify Admin",
-      email: "conversionnotifyadmin@example.com",
-    });
-
-    const first = await requestOrganizationConversion(
-      tx,
-      account.account,
-      admin.account.username,
-      account.account.username,
-    );
-    const second = await requestOrganizationConversion(
-      tx,
-      account.account,
-      admin.account.username,
-      account.account.username,
-    );
-
-    assert.equal(second.id, first.id);
-    const notifications = await tx.query.notificationTable.findMany({
-      where: {
-        accountId: admin.account.id,
-        type: "organization_conversion_request",
-      },
-    });
-    assert.equal(notifications.length, 1);
-    assert.equal(notifications[0].organizationConversionRequestId, first.id);
-    assert.deepEqual(notifications[0].actorIds, [account.actor.id]);
-    assert.equal(notifications[0].postId, null);
+  const sent: Array<{ endpoint: string; payload: string }> = [];
+  setWebPushConfigForTesting({
+    publicKey: "test-public-key",
+    privateKey: "test-private-key",
+    subject: "mailto:test@example.com",
   });
+  setWebPushSenderForTesting(async (subscription, payload) => {
+    sent.push({ endpoint: subscription.endpoint, payload });
+  });
+  try {
+    await withRollback(async (tx) => {
+      const account = await insertAccountWithActor(tx, {
+        username: "conversionnotify",
+        name: "Conversion Notify",
+        email: "conversionnotify@example.com",
+      });
+      const admin = await insertAccountWithActor(tx, {
+        username: "conversionnotifyadmin",
+        name: "Conversion Notify Admin",
+        email: "conversionnotifyadmin@example.com",
+      });
+      await registerPushNotificationTarget(tx, admin.account.id, {
+        service: "web_push",
+        subscription: {
+          endpoint: "https://push.example/org-conversion",
+          p256dh: validWebPushP256dh,
+          auth: validWebPushAuth,
+        },
+      });
+
+      const first = await requestOrganizationConversion(
+        tx,
+        account.account,
+        admin.account.username,
+        account.account.username,
+      );
+      const second = await requestOrganizationConversion(
+        tx,
+        account.account,
+        admin.account.username,
+        account.account.username,
+      );
+
+      assert.equal(second.id, first.id);
+      const notifications = await tx.query.notificationTable.findMany({
+        where: {
+          accountId: admin.account.id,
+          type: "organization_conversion_request",
+        },
+      });
+      assert.equal(notifications.length, 1);
+      assert.equal(notifications[0].organizationConversionRequestId, first.id);
+      assert.deepEqual(notifications[0].actorIds, [account.actor.id]);
+      assert.equal(notifications[0].postId, null);
+      assert.equal(sent.length, 1);
+      assert.equal(
+        JSON.parse(sent[0].payload).data.notificationId,
+        notifications[0].id,
+      );
+    });
+  } finally {
+    setWebPushConfigForTesting(undefined);
+    setWebPushSenderForTesting(undefined);
+  }
 });
 
 test("acceptOrganizationConversion() rejects accounts that still belong to organizations", async () => {

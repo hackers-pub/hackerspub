@@ -293,6 +293,10 @@ interface PostActingAccountInput {
   attributionMode?: schema.PostAttributionMode | null;
 }
 
+interface PostManagementActingAccountInput {
+  actingAccountId?: { id: string } | null;
+}
+
 interface ResolvedPostActingAccount {
   account: schema.Account & { actor: schema.Actor };
   memberAccountId: Uuid;
@@ -335,6 +339,19 @@ async function recordPostActingAccount(
     resolved.memberAccountId,
     resolved.attributionMode,
   );
+}
+
+async function resolvePostManagementActingAccount(
+  ctx: UserContext,
+  input: PostManagementActingAccountInput,
+  ownerAccountId: Uuid,
+  inputPath: string,
+): Promise<NonNullable<UserContext["account"]>> {
+  const account = await resolveActingAccountForMutation(ctx, input);
+  if (account.id !== ownerAccountId) {
+    throw new InvalidInputError(inputPath);
+  }
+  return account;
 }
 
 /**
@@ -978,7 +995,14 @@ export const Post = builder.drizzleInterface("postTable", {
         "Whether the authenticated viewer (as the quoted post's author) " +
         "can revoke a quote of their post. `true` only when the viewer " +
         "is the author of `quotedPost` and the quoting post is either " +
-        "local or has an authorization IRI.",
+        "local or has an authorization IRI. Pass `actingAccountId` for an " +
+        "organization perspective.",
+      args: {
+        actingAccountId: t.arg.globalID({
+          required: false,
+          description: actingAccountIdArgDescription,
+        }),
+      },
       select: {
         columns: {
           id: true,
@@ -994,9 +1018,10 @@ export const Post = builder.drizzleInterface("postTable", {
           },
         },
       },
-      resolve(post, _args, ctx) {
-        return ctx.account != null && post.quotedPost != null &&
-          post.quotedPost.actorId === ctx.account.actor.id &&
+      async resolve(post, args, ctx) {
+        const viewerActorId = await resolveViewerActorId(ctx, args);
+        return viewerActorId != null && post.quotedPost != null &&
+          post.quotedPost.actorId === viewerActorId &&
           (post.actor.accountId != null || post.quoteAuthorizationIri != null);
       },
     }),
@@ -2921,13 +2946,20 @@ builder.relayMutationField(
     description:
       "Edit the content, language, or quote policy of an existing local " +
       "note. Visibility cannot be changed after creation. Only the note's " +
-      "author may call this. Sends an ActivityPub `Update` activity to the " +
-      "appropriate recipients. Requires authentication.",
+      "author may call this. Pass `actingAccountId` when editing a note " +
+      "authored by an organization account you belong to. Sends an " +
+      "ActivityPub `Update` activity to the appropriate recipients. " +
+      "Requires authentication.",
     inputFields: (t) => ({
       noteId: t.globalID({
         for: [Note],
         required: true,
         description: "Global ID of the note to update.",
+      }),
+      actingAccountId: t.globalID({
+        for: [Account],
+        required: false,
+        description: actingAccountIdArgDescription,
       }),
       content: t.field({
         type: "Markdown",
@@ -2947,19 +2979,27 @@ builder.relayMutationField(
     }),
   },
   {
-    errors: { types: [NotAuthenticatedError, InvalidInputError] },
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+        OrganizationPermissionError,
+      ],
+    },
     async resolve(_root, args, ctx) {
-      const session = await ctx.session;
-      if (session == null) throw new NotAuthenticatedError();
+      if (ctx.account == null) throw new NotAuthenticatedError();
 
       const post = await ctx.db.query.postTable.findFirst({
         where: { id: args.input.noteId.id },
         with: { noteSource: true },
       });
       if (post?.noteSource == null) throw new InvalidInputError("noteId");
-      if (post.noteSource.accountId !== session.accountId) {
-        throw new InvalidInputError("noteId");
-      }
+      await resolvePostManagementActingAccount(
+        ctx,
+        args.input,
+        post.noteSource.accountId,
+        "noteId",
+      );
 
       const patch = {
         ...(args.input.content != null ? { content: args.input.content } : {}),
@@ -3102,11 +3142,19 @@ builder.relayMutationField(
   {
     description: "Delete a post and send an ActivityPub `Delete` activity to " +
       "federated instances. Boost wrappers cannot be deleted this way; " +
-      "use `unsharePost` instead (returns `SharedPostDeletionNotAllowedError`).",
+      "use `unsharePost` instead (returns `SharedPostDeletionNotAllowedError`). " +
+      "Pass `actingAccountId` to delete a post authored by an organization " +
+      "account you belong to.",
     inputFields: (t) => ({
       id: t.globalID({
         for: [Note, Article, Question],
         required: true,
+        description: "Global ID of the post to delete.",
+      }),
+      actingAccountId: t.globalID({
+        for: [Account],
+        required: false,
+        description: actingAccountIdArgDescription,
       }),
     }),
   },
@@ -3116,11 +3164,11 @@ builder.relayMutationField(
         NotAuthenticatedError,
         InvalidInputError,
         SharedPostDeletionNotAllowedError,
+        OrganizationPermissionError,
       ],
     },
     async resolve(_root, args, ctx) {
-      const session = await ctx.session;
-      if (session == null) {
+      if (ctx.account == null) {
         throw new NotAuthenticatedError();
       }
 
@@ -3129,9 +3177,15 @@ builder.relayMutationField(
         where: { id: args.input.id.id },
       });
 
-      if (post == null || post.actor.accountId !== session.accountId) {
+      if (post == null || post.actor.accountId == null) {
         throw new InvalidInputError("id");
       }
+      await resolvePostManagementActingAccount(
+        ctx,
+        args.input,
+        post.actor.accountId,
+        "id",
+      );
 
       if (post.sharedPostId != null) {
         throw new SharedPostDeletionNotAllowedError("id");
@@ -3162,11 +3216,19 @@ builder.relayMutationField(
     description:
       "As the quoted post's author, revoke permission for a quote of " +
       "your post. Sends a revocation activity to the quoting instance. " +
-      "Only the `quotedPost`'s author may call this.",
+      "Only the `quotedPost`'s author may call this. Pass `actingAccountId` " +
+      "when the quoted post was authored by an organization account you " +
+      "belong to.",
     inputFields: (t) => ({
       quotePostId: t.globalID({
         for: [Note, Article, Question],
         required: true,
+        description: "Global ID of the quote post to revoke.",
+      }),
+      actingAccountId: t.globalID({
+        for: [Account],
+        required: false,
+        description: actingAccountIdArgDescription,
       }),
     }),
   },
@@ -3175,13 +3237,17 @@ builder.relayMutationField(
       types: [
         NotAuthenticatedError,
         InvalidInputError,
+        OrganizationPermissionError,
       ],
     },
     async resolve(_root, args, ctx) {
-      const session = await ctx.session;
-      if (session == null || ctx.account == null) {
+      if (ctx.account == null) {
         throw new NotAuthenticatedError();
       }
+      const actingAccount = await resolveActingAccountForMutation(
+        ctx,
+        args.input,
+      );
       const quote = await ctx.db.query.postTable.findFirst({
         with: {
           actor: true,
@@ -3192,7 +3258,7 @@ builder.relayMutationField(
       if (quote?.quotedPost == null) {
         throw new InvalidInputError("quotePostId");
       }
-      if (quote.quotedPost.actorId !== ctx.account.actor.id) {
+      if (quote.quotedPost.actorId !== actingAccount.actor.id) {
         throw new InvalidInputError("quotePostId");
       }
       if (
@@ -3205,7 +3271,7 @@ builder.relayMutationField(
         async (context) =>
           await revokeQuoteModel(
             context,
-            ctx.account!,
+            actingAccount,
             quote,
             quote.quotedPost!,
           ),
@@ -3966,11 +4032,18 @@ builder.relayMutationField(
   {
     description:
       "Pin a post to the top of the viewer's profile. Only the post's " +
-      "author may pin it. Requires authentication.",
+      "author may pin it. Pass `actingAccountId` to pin an organization " +
+      "post to that organization's profile. Requires authentication.",
     inputFields: (t) => ({
       postId: t.globalID({
         for: [Note, Article, Question],
         required: true,
+        description: "Global ID of the post to pin.",
+      }),
+      actingAccountId: t.globalID({
+        for: [Account],
+        required: false,
+        description: actingAccountIdArgDescription,
       }),
     }),
   },
@@ -3979,12 +4052,14 @@ builder.relayMutationField(
       types: [
         NotAuthenticatedError,
         InvalidInputError,
+        OrganizationPermissionError,
       ],
     },
     async resolve(_root, args, ctx) {
-      if (ctx.account == null) {
-        throw new NotAuthenticatedError();
-      }
+      const actingAccount = await resolveActingAccountForMutation(
+        ctx,
+        args.input,
+      );
 
       const { postId } = args.input;
 
@@ -3996,7 +4071,7 @@ builder.relayMutationField(
         throw new InvalidInputError("postId");
       }
 
-      const pin = await pinPostModel(ctx.fedCtx, ctx.account.actor, post);
+      const pin = await pinPostModel(ctx.fedCtx, actingAccount.actor, post);
       if (pin == null) {
         throw new InvalidInputError("postId");
       }
@@ -4023,11 +4098,18 @@ builder.relayMutationField(
   "unpinPost",
   {
     description:
-      "Remove a pin from the viewer's profile. Requires authentication.",
+      "Remove a pin from the viewer's profile. Pass `actingAccountId` to " +
+      "remove a pin from an organization profile. Requires authentication.",
     inputFields: (t) => ({
       postId: t.globalID({
         for: [Note, Article, Question],
         required: true,
+        description: "Global ID of the post to unpin.",
+      }),
+      actingAccountId: t.globalID({
+        for: [Account],
+        required: false,
+        description: actingAccountIdArgDescription,
       }),
     }),
   },
@@ -4036,12 +4118,14 @@ builder.relayMutationField(
       types: [
         NotAuthenticatedError,
         InvalidInputError,
+        OrganizationPermissionError,
       ],
     },
     async resolve(_root, args, ctx) {
-      if (ctx.account == null) {
-        throw new NotAuthenticatedError();
-      }
+      const actingAccount = await resolveActingAccountForMutation(
+        ctx,
+        args.input,
+      );
 
       const { postId } = args.input;
 
@@ -4053,7 +4137,7 @@ builder.relayMutationField(
         throw new InvalidInputError("postId");
       }
 
-      const pin = await unpinPostModel(ctx.fedCtx, ctx.account.actor, post);
+      const pin = await unpinPostModel(ctx.fedCtx, actingAccount.actor, post);
       if (pin == null) {
         throw new InvalidInputError("postId");
       }
@@ -4267,9 +4351,19 @@ builder.relayMutationField(
     description:
       "Edit an existing article's content, title, or tags. Only the " +
       "article's author may update it. Sends an ActivityPub `Update` " +
-      "activity. Requires authentication.",
+      "activity. Pass `actingAccountId` when updating an article authored " +
+      "by an organization account you belong to. Requires authentication.",
     inputFields: (t) => ({
-      articleId: t.globalID({ for: [Article], required: true }),
+      articleId: t.globalID({
+        for: [Article],
+        required: true,
+        description: "Global ID of the article to update.",
+      }),
+      actingAccountId: t.globalID({
+        for: [Account],
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
       title: t.string({ required: false }),
       content: t.field({ type: "Markdown", required: false }),
       tags: t.stringList({ required: false }),
@@ -4288,11 +4382,11 @@ builder.relayMutationField(
       types: [
         NotAuthenticatedError,
         InvalidInputError,
+        OrganizationPermissionError,
       ],
     },
     async resolve(_root, args, ctx) {
-      const session = await ctx.session;
-      if (session == null) {
+      if (ctx.account == null) {
         throw new NotAuthenticatedError();
       }
 
@@ -4306,10 +4400,12 @@ builder.relayMutationField(
         throw new InvalidInputError("articleId");
       }
 
-      // Verify ownership
-      if (post.articleSource.accountId !== session.accountId) {
-        throw new InvalidInputError("articleId");
-      }
+      await resolvePostManagementActingAccount(
+        ctx,
+        args.input,
+        post.articleSource.accountId,
+        "articleId",
+      );
 
       const media: { key: string; mediumId: Uuid }[] = [];
       for (const [i, mediumInput] of (args.input.media ?? []).entries()) {

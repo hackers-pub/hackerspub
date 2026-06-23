@@ -156,7 +156,7 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
           local
           url
           iri
-          isViewer
+          isViewer(actingAccountId: $actingAccountId)
         }
         ...PostAuthorAvatar_post
         ...PostAuthorLine_post
