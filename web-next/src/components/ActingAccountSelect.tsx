@@ -98,18 +98,20 @@ export function ActingAccountSelect(props: ActingAccountSelectProps) {
       optionTextValue="label"
       disabled={props.disabled || options().length < 2}
       itemComponent={(props) => (
-        <SelectItem item={props.item} class="overflow-hidden">
+        <SelectItem item={props.item} class="min-w-0 overflow-hidden">
           <AccountOption option={props.item.rawValue} />
         </SelectItem>
       )}
     >
       <SelectTrigger
         aria-label={t`Author`}
-        class={cn("w-full sm:w-[340px]", props.class)}
+        class={cn("w-full overflow-hidden sm:w-[340px]", props.class)}
       >
-        <SelectValue<ComposeActingAccountOption>>
+        <SelectValue<ComposeActingAccountOption>
+          class="min-w-0 flex-1 overflow-hidden"
+        >
           {(state) => (
-            <div class="flex min-w-0 items-center gap-2">
+            <div class="flex w-full min-w-0 items-center gap-2 overflow-hidden">
               <AccountAvatarStack
                 accounts={state.selectedOption().accounts}
                 size="sm"
@@ -122,14 +124,14 @@ export function ActingAccountSelect(props: ActingAccountSelectProps) {
           )}
         </SelectValue>
       </SelectTrigger>
-      <SelectContent class="w-[min(28rem,calc(100vw-2rem))]" />
+      <SelectContent class="w-[min(28rem,calc(100vw-2rem))] max-w-[calc(100vw-2rem)] overflow-x-hidden" />
     </Select>
   );
 }
 
 function AccountOption(props: { option: ComposeActingAccountOption }) {
   return (
-    <div class="flex w-full min-w-0 items-center gap-2 overflow-hidden py-0.5">
+    <div class="flex w-full min-w-0 max-w-full items-center gap-2 overflow-hidden py-0.5">
       <AccountAvatarStack accounts={props.option.accounts} size="md" />
       <AccountOptionIdentity accounts={props.option.accounts} />
     </div>
@@ -181,7 +183,7 @@ function AccountIdentityList(props: {
   class?: string;
 }) {
   return (
-    <span class={cn("block min-w-0 truncate", props.class)}>
+    <span class={cn("block min-w-0 max-w-full truncate", props.class)}>
       <span class="sr-only">{formatAccountsLabel(props.accounts)}</span>
       <span aria-hidden="true">
         {props.accounts.map((account, index) => (
@@ -202,8 +204,8 @@ function AccountOptionIdentity(props: {
   accounts: readonly ActingAccountSummary[];
 }) {
   return (
-    <div class="min-w-0 flex-1">
-      <div class="truncate">
+    <div class="min-w-0 max-w-full flex-1 overflow-hidden">
+      <div class="min-w-0 max-w-full truncate">
         <span class="sr-only">{formatAccountsLabel(props.accounts)}</span>
         <span aria-hidden="true">
           {props.accounts.map((account, index) => (
@@ -214,7 +216,10 @@ function AccountOptionIdentity(props: {
           ))}
         </span>
       </div>
-      <div class="truncate text-xs text-muted-foreground" aria-hidden="true">
+      <div
+        class="min-w-0 max-w-full truncate text-xs text-muted-foreground"
+        aria-hidden="true"
+      >
         {props.accounts.map((account, index) => (
           <>
             {index > 0 && <span class="mx-1">+</span>}
