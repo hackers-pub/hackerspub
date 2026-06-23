@@ -19,6 +19,7 @@ import {
 } from "solid-js";
 import { createMutation, loadQuery, useRelayEnvironment } from "solid-relay";
 import { showToast } from "~/components/ui/toast.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { LangPageQuery } from "./__generated__/LangPageQuery.graphql.ts";
 import type { LangPage_requestArticleTranslation_Mutation } from "./__generated__/LangPage_requestArticleTranslation_Mutation.graphql.ts";
@@ -89,6 +90,7 @@ const LangPageQueryDef = graphql`
     $idOrYear: String!
     $slug: String!
     $language: Locale!
+    $actingAccountId: ID
   ) {
     articleByYearAndSlug(
       handle: $handle
@@ -112,7 +114,11 @@ const LangPageQueryDef = graphql`
       ...Slug_head
         @arguments(language: $language, includeBeingTranslated: true)
       ...Slug_body
-        @arguments(language: $language, includeBeingTranslated: true)
+        @arguments(
+          language: $language
+          includeBeingTranslated: true
+          actingAccountId: $actingAccountId
+        )
     }
     viewer {
       id
@@ -126,6 +132,7 @@ const requestArticleTranslationMutation = graphql`
   mutation LangPage_requestArticleTranslation_Mutation(
     $input: RequestArticleTranslationInput!
     $language: Locale!
+    $actingAccountId: ID
   ) {
     requestArticleTranslation(input: $input) {
       __typename
@@ -139,7 +146,11 @@ const requestArticleTranslationMutation = graphql`
           ...Slug_head
             @arguments(language: $language, includeBeingTranslated: true)
           ...Slug_body
-            @arguments(language: $language, includeBeingTranslated: true)
+            @arguments(
+              language: $language
+              includeBeingTranslated: true
+              actingAccountId: $actingAccountId
+            )
         }
       }
       ... on NotAuthenticatedError {
@@ -156,11 +167,17 @@ const requestArticleTranslationMutation = graphql`
 `;
 
 const loadLangPageQuery = routePreloadedQuery(
-  (handle: string, idOrYear: string, slug: string, language: string) =>
+  (
+    handle: string,
+    idOrYear: string,
+    slug: string,
+    language: string,
+    actingAccountId: string | null,
+  ) =>
     loadQuery<LangPageQuery>(
       useRelayEnvironment()(),
       LangPageQueryDef,
-      { handle, idOrYear, slug, language },
+      { handle, idOrYear, slug, language, actingAccountId },
     ),
   "loadArticleLangPageQuery",
 );
@@ -196,6 +213,8 @@ interface ArticleLangPageContentProps {
 function ArticleLangPageContent(props: ArticleLangPageContentProps) {
   const { t } = useLingui();
   const env = useRelayEnvironment();
+  const actingAccount = useActingAccount();
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
   const [requestTranslation] = createMutation<
     LangPage_requestArticleTranslation_Mutation
   >(requestArticleTranslationMutation);
@@ -211,6 +230,7 @@ function ArticleLangPageContent(props: ArticleLangPageContentProps) {
         props.idOrYear,
         props.slug,
         props.language,
+        actingAccountId() ?? null,
       ),
   );
 
@@ -379,6 +399,7 @@ function ArticleLangPageContent(props: ArticleLangPageContentProps) {
           targetLanguage: props.language,
         },
         language: props.language,
+        actingAccountId: actingAccountId() ?? null,
       },
       onCompleted(response) {
         const payload = response.requestArticleTranslation;

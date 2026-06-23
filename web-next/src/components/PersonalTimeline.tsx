@@ -99,7 +99,10 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
             }
             added
             node {
-              ...PostCard_post @arguments(locale: $locale)
+              ...PostCard_post @arguments(
+                locale: $locale
+                actingAccountId: $actingAccountId
+              )
             }
           }
           pageInfo {

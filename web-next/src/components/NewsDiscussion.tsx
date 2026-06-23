@@ -4,6 +4,7 @@ import { Match, onCleanup, onMount, Show, Switch } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import { NewsDiscussionComposer } from "~/components/NewsDiscussionComposer.tsx";
 import { NewsDiscussionThread } from "~/components/NewsDiscussionThread.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { NewsDiscussion_story$key } from "./__generated__/NewsDiscussion_story.graphql.ts";
@@ -15,6 +16,8 @@ export interface NewsDiscussionProps {
 
 export function NewsDiscussion(props: NewsDiscussionProps) {
   const { t } = useLingui();
+  const actingAccount = useActingAccount();
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
   const { onNoteUpdated } = useNoteCompose();
   // Shared across the whole tree so each post renders in exactly one place,
   // even if it is both a root sharing post and a reply/quote elsewhere.
@@ -26,6 +29,7 @@ export function NewsDiscussion(props: NewsDiscussionProps) {
         @argumentDefinitions(
           cursor: { type: "String" }
           count: { type: "Int", defaultValue: 20 }
+          actingAccountId: { type: "ID", defaultValue: null }
         )
       {
         url
@@ -36,7 +40,9 @@ export function NewsDiscussion(props: NewsDiscussionProps) {
           edges {
             node {
               id
-              ...NewsDiscussionThread_post
+              ...NewsDiscussionThread_post @arguments(
+                actingAccountId: $actingAccountId
+              )
             }
           }
           pageInfo {
@@ -55,7 +61,11 @@ export function NewsDiscussion(props: NewsDiscussionProps) {
   // the network when any note is updated.
   onMount(() => {
     onCleanup(
-      onNoteUpdated(() => story.refetch({}, { fetchPolicy: "network-only" })),
+      onNoteUpdated(() =>
+        story.refetch({
+          actingAccountId: actingAccountId() ?? null,
+        }, { fetchPolicy: "network-only" })
+      ),
     );
   });
 

@@ -1063,14 +1063,24 @@ type Article implements Node & Post & Reactable {
   uuid: UUID!
 
   """
-  Whether the authenticated viewer is allowed to quote this post, based on `quotePolicy`, visibility, and block state. A censored post cannot be quoted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests.
+  Whether the selected viewer account is allowed to quote this post, based on `quotePolicy`, visibility, and block state. A censored post cannot be quoted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
   """
-  viewerCanQuote: Boolean!
+  viewerCanQuote(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 
   """
-  Whether the authenticated viewer is allowed to reply to this post, based on visibility and block state. Always `false` for unauthenticated requests.
+  Whether the selected viewer account is allowed to reply to this post, based on visibility and block state. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
   """
-  viewerCanReply: Boolean!
+  viewerCanReply(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 
   """
   Whether the authenticated viewer (as the quoted post's author) can revoke a quote of their post. `true` only when the viewer is the author of `quotedPost` and the quoting post is either local or has an authorization IRI.
@@ -1078,9 +1088,14 @@ type Article implements Node & Post & Reactable {
   viewerCanRevokeQuote: Boolean!
 
   """
-  Whether the authenticated viewer is allowed to boost this post, based on visibility and block state. A censored post cannot be boosted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests.
+  Whether the selected viewer account is allowed to boost this post, based on visibility and block state. A censored post cannot be boosted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
   """
-  viewerCanShare: Boolean!
+  viewerCanShare(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 
   """
   Whether the authenticated viewer has bookmarked this post. Always `false` for unauthenticated requests.
@@ -1093,9 +1108,14 @@ type Article implements Node & Post & Reactable {
   viewerHasPinned: Boolean!
 
   """
-  Whether the authenticated viewer has boosted this post. Always `false` for unauthenticated requests.
+  Whether the selected viewer account has boosted this post. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
   """
-  viewerHasShared: Boolean!
+  viewerHasShared(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
   visibility: PostVisibility!
 }
 
@@ -3157,14 +3177,24 @@ type Note implements Node & Post & Reactable {
   uuid: UUID!
 
   """
-  Whether the authenticated viewer is allowed to quote this post, based on `quotePolicy`, visibility, and block state. A censored post cannot be quoted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests.
+  Whether the selected viewer account is allowed to quote this post, based on `quotePolicy`, visibility, and block state. A censored post cannot be quoted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
   """
-  viewerCanQuote: Boolean!
+  viewerCanQuote(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 
   """
-  Whether the authenticated viewer is allowed to reply to this post, based on visibility and block state. Always `false` for unauthenticated requests.
+  Whether the selected viewer account is allowed to reply to this post, based on visibility and block state. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
   """
-  viewerCanReply: Boolean!
+  viewerCanReply(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 
   """
   Whether the authenticated viewer (as the quoted post's author) can revoke a quote of their post. `true` only when the viewer is the author of `quotedPost` and the quoting post is either local or has an authorization IRI.
@@ -3172,9 +3202,14 @@ type Note implements Node & Post & Reactable {
   viewerCanRevokeQuote: Boolean!
 
   """
-  Whether the authenticated viewer is allowed to boost this post, based on visibility and block state. A censored post cannot be boosted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests.
+  Whether the selected viewer account is allowed to boost this post, based on visibility and block state. A censored post cannot be boosted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
   """
-  viewerCanShare: Boolean!
+  viewerCanShare(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 
   """
   Whether the authenticated viewer has bookmarked this post. Always `false` for unauthenticated requests.
@@ -3187,9 +3222,14 @@ type Note implements Node & Post & Reactable {
   viewerHasPinned: Boolean!
 
   """
-  Whether the authenticated viewer has boosted this post. Always `false` for unauthenticated requests.
+  Whether the selected viewer account has boosted this post. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
   """
-  viewerHasShared: Boolean!
+  viewerHasShared(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
   visibility: PostVisibility!
 }
 
@@ -3747,14 +3787,24 @@ interface Post implements Node & Reactable {
   uuid: UUID!
 
   """
-  Whether the authenticated viewer is allowed to quote this post, based on `quotePolicy`, visibility, and block state. A censored post cannot be quoted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests.
+  Whether the selected viewer account is allowed to quote this post, based on `quotePolicy`, visibility, and block state. A censored post cannot be quoted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
   """
-  viewerCanQuote: Boolean!
+  viewerCanQuote(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 
   """
-  Whether the authenticated viewer is allowed to reply to this post, based on visibility and block state. Always `false` for unauthenticated requests.
+  Whether the selected viewer account is allowed to reply to this post, based on visibility and block state. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
   """
-  viewerCanReply: Boolean!
+  viewerCanReply(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 
   """
   Whether the authenticated viewer (as the quoted post's author) can revoke a quote of their post. `true` only when the viewer is the author of `quotedPost` and the quoting post is either local or has an authorization IRI.
@@ -3762,9 +3812,14 @@ interface Post implements Node & Reactable {
   viewerCanRevokeQuote: Boolean!
 
   """
-  Whether the authenticated viewer is allowed to boost this post, based on visibility and block state. A censored post cannot be boosted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests.
+  Whether the selected viewer account is allowed to boost this post, based on visibility and block state. A censored post cannot be boosted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
   """
-  viewerCanShare: Boolean!
+  viewerCanShare(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 
   """
   Whether the authenticated viewer has bookmarked this post. Always `false` for unauthenticated requests.
@@ -3777,9 +3832,14 @@ interface Post implements Node & Reactable {
   viewerHasPinned: Boolean!
 
   """
-  Whether the authenticated viewer has boosted this post. Always `false` for unauthenticated requests.
+  Whether the selected viewer account has boosted this post. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
   """
-  viewerHasShared: Boolean!
+  viewerHasShared(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
   visibility: PostVisibility!
 }
 
@@ -4629,14 +4689,24 @@ type Question implements Node & Post & Reactable {
   uuid: UUID!
 
   """
-  Whether the authenticated viewer is allowed to quote this post, based on `quotePolicy`, visibility, and block state. A censored post cannot be quoted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests.
+  Whether the selected viewer account is allowed to quote this post, based on `quotePolicy`, visibility, and block state. A censored post cannot be quoted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
   """
-  viewerCanQuote: Boolean!
+  viewerCanQuote(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 
   """
-  Whether the authenticated viewer is allowed to reply to this post, based on visibility and block state. Always `false` for unauthenticated requests.
+  Whether the selected viewer account is allowed to reply to this post, based on visibility and block state. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
   """
-  viewerCanReply: Boolean!
+  viewerCanReply(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 
   """
   Whether the authenticated viewer (as the quoted post's author) can revoke a quote of their post. `true` only when the viewer is the author of `quotedPost` and the quoting post is either local or has an authorization IRI.
@@ -4644,9 +4714,14 @@ type Question implements Node & Post & Reactable {
   viewerCanRevokeQuote: Boolean!
 
   """
-  Whether the authenticated viewer is allowed to boost this post, based on visibility and block state. A censored post cannot be boosted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests.
+  Whether the selected viewer account is allowed to boost this post, based on visibility and block state. A censored post cannot be boosted by anyone (including its author or a moderator), so this is `false` for censored posts. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
   """
-  viewerCanShare: Boolean!
+  viewerCanShare(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 
   """
   Whether the authenticated viewer has bookmarked this post. Always `false` for unauthenticated requests.
@@ -4659,9 +4734,14 @@ type Question implements Node & Post & Reactable {
   viewerHasPinned: Boolean!
 
   """
-  Whether the authenticated viewer has boosted this post. Always `false` for unauthenticated requests.
+  Whether the selected viewer account has boosted this post. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
   """
-  viewerHasShared: Boolean!
+  viewerHasShared(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 
   """
   Who can see this `Question`. Poll votes are accepted only from actors who can see the underlying post.
@@ -4770,7 +4850,16 @@ type ReactionGroupReactorsConnection {
   edges: [ReactionGroupReactorsConnectionEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
-  viewerHasReacted: Boolean!
+
+  """
+  Whether the selected viewer account reacted with this reaction group's emoji. Always `false` for unauthenticated requests. Pass `actingAccountId` for an organization perspective.
+  """
+  viewerHasReacted(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 }
 
 type ReactionGroupReactorsConnectionEdge {

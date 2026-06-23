@@ -1,6 +1,15 @@
 import { graphql } from "relay-runtime";
-import { createSignal, For, Match, Show, Switch } from "solid-js";
+import {
+  createEffect,
+  createSignal,
+  For,
+  Match,
+  on,
+  Show,
+  Switch,
+} from "solid-js";
 import { createPaginationFragment } from "solid-relay";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { ArticleCard } from "./ArticleCard.tsx";
 import { ActorArticleList_articles$key } from "./__generated__/ActorArticleList_articles.graphql.ts";
@@ -11,6 +20,7 @@ export interface ActorArticleListProps {
 
 export function ActorArticleList(props: ActorArticleListProps) {
   const { t } = useLingui();
+  const actingAccount = useActingAccount();
   const articles = createPaginationFragment(
     graphql`
       fragment ActorArticleList_articles on Actor
@@ -18,6 +28,7 @@ export function ActorArticleList(props: ActorArticleListProps) {
         @argumentDefinitions(
           cursor: { type: "String" }
           count: { type: "Int", defaultValue: 20 }
+          actingAccountId: { type: "ID" }
           locale: { type: "Locale" }
         )
       {
@@ -29,7 +40,10 @@ export function ActorArticleList(props: ActorArticleListProps) {
           edges {
             __id
             node {
-              ...ArticleCard_article @arguments(locale: $locale)
+              ...ArticleCard_article @arguments(
+                locale: $locale
+                actingAccountId: $actingAccountId
+              )
             }
           }
           pageInfo {
@@ -43,6 +57,14 @@ export function ActorArticleList(props: ActorArticleListProps) {
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
   >("loaded");
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
+
+  createEffect(on(
+    actingAccountId,
+    (actingAccountId) =>
+      articles.refetch({ actingAccountId: actingAccountId ?? null }),
+    { defer: true },
+  ));
 
   function onLoadMore() {
     setLoadingState("loading");

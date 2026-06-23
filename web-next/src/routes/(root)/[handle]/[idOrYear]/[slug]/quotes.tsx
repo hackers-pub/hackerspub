@@ -12,6 +12,7 @@ import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { PostCard } from "~/components/PostCard.tsx";
 import { Title } from "~/components/Title.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import {
   createStablePreloadedQuery,
@@ -30,6 +31,7 @@ const quotesArticleEngagementQuery = graphql`
     $handle: String!
     $idOrYear: String!
     $slug: String!
+    $actingAccountId: ID
   ) {
     articleByYearAndSlug(handle: $handle, idOrYear: $idOrYear, slug: $slug) {
       engagementStats {
@@ -37,18 +39,25 @@ const quotesArticleEngagementQuery = graphql`
         quotes
         reactions
       }
-      ...PostCard_post
-      ...quotesArticleEngagement_article
+      ...PostCard_post @arguments(actingAccountId: $actingAccountId)
+      ...quotesArticleEngagement_article @arguments(
+        actingAccountId: $actingAccountId
+      )
     }
   }
 `;
 
 const loadQuotesQuery = routePreloadedQuery(
-  (handle: string, idOrYear: string, slug: string) =>
+  (
+    handle: string,
+    idOrYear: string,
+    slug: string,
+    actingAccountId: string | null,
+  ) =>
     loadQuery<quotesArticleEngagementQuery>(
       useRelayEnvironment()(),
       quotesArticleEngagementQuery,
-      { handle, idOrYear, slug },
+      { handle, idOrYear, slug, actingAccountId },
       { fetchPolicy: "store-and-network" },
     ),
   QUOTES_QUERY_KEY,
@@ -78,9 +87,17 @@ export default function ArticleQuotesPage() {
 function ArticleQuotesLoaded(
   props: { handle: string; idOrYear: string; slug: string },
 ) {
+  const actingAccount = useActingAccount();
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
   const data = createStablePreloadedQuery<quotesArticleEngagementQuery>(
     quotesArticleEngagementQuery,
-    () => loadQuotesQuery(props.handle, props.idOrYear, props.slug),
+    () =>
+      loadQuotesQuery(
+        props.handle,
+        props.idOrYear,
+        props.slug,
+        actingAccountId() ?? null,
+      ),
   );
   const article = (): ArticlePost | null =>
     data()?.articleByYearAndSlug ?? null;
@@ -134,6 +151,7 @@ function QuotesList(
         @argumentDefinitions(
           cursor: { type: "String" }
           count: { type: "Int", defaultValue: 20 }
+          actingAccountId: { type: "ID", defaultValue: null }
         )
       {
         quotes(after: $cursor, first: $count)
@@ -142,7 +160,7 @@ function QuotesList(
           edges {
             node {
               id
-              ...PostCard_post
+              ...PostCard_post @arguments(actingAccountId: $actingAccountId)
             }
           }
           pageInfo {

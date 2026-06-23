@@ -40,7 +40,7 @@ const sharesArticleEngagementQuery = graphql`
         quotes
         reactions
       }
-      ...PostCard_post
+      ...PostCard_post @arguments(actingAccountId: $actingAccountId)
       ...sharesArticleEngagement_article @arguments(
         actingAccountId: $actingAccountId
       )

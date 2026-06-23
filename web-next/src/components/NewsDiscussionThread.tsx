@@ -17,6 +17,7 @@ import { PostEngagementBar } from "~/components/PostEngagementBar.tsx";
 import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
 import type { QuotePolicy } from "~/components/QuotePolicySelect.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useContentLinkInterceptor } from "~/lib/contentLinkInterceptor.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -44,15 +45,30 @@ const childrenQuery = graphql`
     $quoteCursor: String
     $loadReplies: Boolean!
     $loadQuotes: Boolean!
+    $actingAccountId: ID
   ) {
     node(id: $id) {
       ... on Post {
         replies(after: $cursor, first: 10) @include(if: $loadReplies) {
-          edges { node { id ...NewsDiscussionThread_post } }
+          edges {
+            node {
+              id
+              ...NewsDiscussionThread_post @arguments(
+                actingAccountId: $actingAccountId
+              )
+            }
+          }
           pageInfo { hasNextPage endCursor }
         }
         quotes(after: $quoteCursor, first: 20) @include(if: $loadQuotes) {
-          edges { node { id ...NewsDiscussionThread_post } }
+          edges {
+            node {
+              id
+              ...NewsDiscussionThread_post @arguments(
+                actingAccountId: $actingAccountId
+              )
+            }
+          }
           pageInfo { hasNextPage endCursor }
         }
       }
@@ -104,10 +120,14 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
   const { t } = useLingui();
   const { onNoteCreated, openForEdit } = useNoteCompose();
   const environment = useRelayEnvironment();
+  const actingAccount = useActingAccount();
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
   const owner = getOwner();
   const post = createFragment(
     graphql`
-      fragment NewsDiscussionThread_post on Post {
+      fragment NewsDiscussionThread_post on Post
+        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
+      {
         id
         __typename
         uuid
@@ -140,7 +160,9 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
         }
         ...PostAuthorAvatar_post
         ...PostAuthorLine_post
-        ...PostEngagementBar_post
+        ...PostEngagementBar_post @arguments(
+          actingAccountId: $actingAccountId
+        )
       }
     `,
     () => props.$post,
@@ -222,6 +244,7 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
         quoteCursor: mode === "quotes" ? quoteCursor() : null,
         loadReplies: mode !== "quotes",
         loadQuotes: mode !== "replies",
+        actingAccountId: actingAccountId() ?? null,
       },
     ).subscribe({
       next(data) {

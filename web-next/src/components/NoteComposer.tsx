@@ -60,6 +60,7 @@ const NoteComposerMutation = graphql`
     $input: CreateNoteInput!
     $connections: [ID!]!
     $includeDiscussionThreadFields: Boolean!
+    $actingAccountId: ID
   ) {
     createNote(input: $input) {
       __typename
@@ -73,6 +74,7 @@ const NoteComposerMutation = graphql`
           # Only news-discussion posts prepend into a connection and need the
           # row fields; skip them for every other compose/reply/quote path.
           ...NewsDiscussionThread_post
+            @arguments(actingAccountId: $actingAccountId)
             @include(if: $includeDiscussionThreadFields)
         }
       }
@@ -91,6 +93,7 @@ const NoteComposerQuestionMutation = graphql`
     $input: CreateQuestionInput!
     $connections: [ID!]!
     $includeDiscussionThreadFields: Boolean!
+    $actingAccountId: ID
   ) {
     createQuestion(input: $input) {
       __typename
@@ -102,6 +105,7 @@ const NoteComposerQuestionMutation = graphql`
           ) {
           id
           ...NewsDiscussionThread_post
+            @arguments(actingAccountId: $actingAccountId)
             @include(if: $includeDiscussionThreadFields)
         }
       }
@@ -241,11 +245,11 @@ const NoteComposerReplyTargetQuery = graphql`
 `;
 
 const NoteComposerPostByUrlQuery = graphql`
-  query NoteComposerPostByUrlQuery($url: String!) {
+  query NoteComposerPostByUrlQuery($url: String!, $actingAccountId: ID) {
     postByUrl(url: $url) {
       __typename
       id
-      viewerCanQuote
+      viewerCanQuote(actingAccountId: $actingAccountId)
     }
   }
 `;
@@ -895,7 +899,10 @@ export function NoteComposer(props: NoteComposerProps) {
     fetchQuery<NoteComposerPostByUrlQuery>(
       environment(),
       NoteComposerPostByUrlQuery,
-      { url: text },
+      {
+        url: text,
+        actingAccountId: actingAccountInput().actingAccountId ?? null,
+      },
     ).subscribe({
       next(data) {
         const post = data.postByUrl;
@@ -1147,6 +1154,7 @@ export function NoteComposer(props: NoteComposerProps) {
               })),
             },
             connections: props.prependToConnections ?? [],
+            actingAccountId: actingAccountInput().actingAccountId ?? null,
             includeDiscussionThreadFields:
               (props.prependToConnections?.length ?? 0) > 0,
           },
@@ -1207,6 +1215,7 @@ export function NoteComposer(props: NoteComposerProps) {
             })),
           },
           connections: props.prependToConnections ?? [],
+          actingAccountId: actingAccountInput().actingAccountId ?? null,
           includeDiscussionThreadFields:
             (props.prependToConnections?.length ?? 0) > 0,
         },

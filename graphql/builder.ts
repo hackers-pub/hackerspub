@@ -102,11 +102,12 @@ export interface UserContext extends ServerContext {
   // link-heavy pages (the news list) stay free of per-link lookups.
   postLinkVisibleLoader?: DataLoader<Uuid, boolean>;
   // Request-scoped cache so that viewerCanReply, viewerCanQuote, and
-  // viewerCanShare for the same post only run one relational lookup
-  // even though they are exposed as three separate loadable fields.
+  // viewerCanShare for the same post and selected viewer actor only run
+  // one relational lookup even though they are exposed as three separate
+  // loadable fields.
   // Pending promises are stored synchronously so concurrent dispatch from
   // the three loaders doesn't each fire its own duplicate query.
-  viewerActionPoliciesCache?: Map<Uuid, Promise<PostInteractionPolicy>>;
+  viewerActionPoliciesCache?: Map<string, Promise<PostInteractionPolicy>>;
 }
 
 export interface PothosTypes {

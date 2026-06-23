@@ -22,6 +22,7 @@ import { TocList } from "~/components/TocList.tsx";
 import { Trans } from "~/components/Trans.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
@@ -57,6 +58,7 @@ const SlugPageQueryDef = graphql`
     $idOrYear: String!
     $slug: String!
     $language: Locale
+    $actingAccountId: ID
   ) {
     articleByYearAndSlug(
       handle: $handle
@@ -64,7 +66,10 @@ const SlugPageQueryDef = graphql`
       slug: $slug
     ) {
       ...Slug_head @arguments(language: $language)
-      ...Slug_body @arguments(language: $language)
+      ...Slug_body @arguments(
+        language: $language
+        actingAccountId: $actingAccountId
+      )
     }
     viewer {
       locales
@@ -74,11 +79,16 @@ const SlugPageQueryDef = graphql`
 `;
 
 const loadPageQuery = routePreloadedQuery(
-  (handle: string, idOrYear: string, slug: string) =>
+  (
+    handle: string,
+    idOrYear: string,
+    slug: string,
+    actingAccountId: string | null,
+  ) =>
     loadQuery<SlugPageQuery>(
       useRelayEnvironment()(),
       SlugPageQueryDef,
-      { handle, idOrYear, slug, language: null },
+      { handle, idOrYear, slug, language: null, actingAccountId },
     ),
   ARTICLE_PAGE_QUERY_KEY,
 );
@@ -89,6 +99,8 @@ export default function ArticlePage() {
   const idOrYear = params.idOrYear!;
   const slug = decodeRouteParam(params.slug!);
   const { onNoteCreated } = useNoteCompose();
+  const actingAccount = useActingAccount();
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
 
   onMount(() => {
     onCleanup(onNoteCreated(() => {
@@ -98,7 +110,7 @@ export default function ArticlePage() {
 
   const data = createStablePreloadedQuery<SlugPageQuery>(
     SlugPageQueryDef,
-    () => loadPageQuery(handle, idOrYear, slug),
+    () => loadPageQuery(handle, idOrYear, slug, actingAccountId() ?? null),
   );
 
   return (
@@ -366,6 +378,7 @@ function ArticleBody(props: ArticleBodyProps) {
         @argumentDefinitions(
           language: { type: "Locale" }
           includeBeingTranslated: { type: "Boolean", defaultValue: false }
+          actingAccountId: { type: "ID", defaultValue: null }
         )
       {
         contents(
@@ -389,10 +402,12 @@ function ArticleBody(props: ArticleBodyProps) {
         }
         publishedYear
         slug
-        ...PostEngagementBar_post
+        ...PostEngagementBar_post @arguments(
+          actingAccountId: $actingAccountId
+        )
         ...Slug_articleHeader
         ...Slug_languageSwitcher
-        ...Slug_replies
+        ...Slug_replies @arguments(actingAccountId: $actingAccountId)
       }
     `,
     () => props.$article,
@@ -915,13 +930,15 @@ function ArticleReplies(props: ArticleRepliesProps) {
   const { t, i18n } = useLingui();
   const article = createFragment(
     graphql`
-      fragment Slug_replies on Article {
+      fragment Slug_replies on Article
+        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
+      {
         id
         iri
         replies {
           edges {
             node {
-              ...NoteCard_note
+              ...NoteCard_note @arguments(actingAccountId: $actingAccountId)
             }
           }
         }

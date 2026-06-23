@@ -64,7 +64,6 @@ import {
   unpinPost as unpinPostModel,
 } from "@hackerspub/models/pin";
 import {
-  arePostsSharedBy,
   canActorRequestQuotePost,
   deletePost,
   getCensoredPostExclusionFilter,
@@ -125,6 +124,11 @@ import {
 } from "./quotepolicy.ts";
 import { CustomEmoji, Reactable, Reaction } from "./reactable.ts";
 import { NotAuthenticatedError } from "./session.ts";
+import {
+  type ActingAccountIdArg,
+  actingAccountIdArgDescription,
+  resolveViewerActorId,
+} from "./viewer-actor.ts";
 
 const articleContentOgImageComplexity = 2_000;
 const logger = getLogger(["hackerspub", "graphql", "post"]);
@@ -867,18 +871,21 @@ export const Post = builder.drizzleInterface("postTable", {
     viewerHasShared: t.loadable({
       type: "Boolean",
       description:
-        "Whether the authenticated viewer has boosted this post. Always " +
-        "`false` for unauthenticated requests.",
+        "Whether the selected viewer account has boosted this post. Always " +
+        "`false` for unauthenticated requests. Pass `actingAccountId` for " +
+        "an organization perspective.",
+      args: {
+        actingAccountId: t.arg.globalID({
+          required: false,
+          description: actingAccountIdArgDescription,
+        }),
+      },
       // cache: false so a mutation that flips share state in the same
       // request (e.g., share + read viewerHasShared) re-queries instead
       // of returning the pre-mutation value.
       loaderOptions: { cache: false },
-      load: async (postIds: Uuid[], ctx: UserContext): Promise<boolean[]> => {
-        if (ctx.account == null) return postIds.map(() => false);
-        const shared = await arePostsSharedBy(ctx.db, postIds, ctx.account);
-        return postIds.map((id) => shared.has(id));
-      },
-      resolve: (post) => post.id,
+      load: loadViewerHasShared,
+      resolve: postViewerActorKey,
     }),
     viewerHasBookmarked: t.loadable({
       type: "Boolean",
@@ -917,30 +924,54 @@ export const Post = builder.drizzleInterface("postTable", {
     viewerCanReply: t.loadable({
       type: "Boolean",
       description:
-        "Whether the authenticated viewer is allowed to reply to this " +
+        "Whether the selected viewer account is allowed to reply to this " +
         "post, based on visibility and block state. Always `false` for " +
-        "unauthenticated requests.",
-      loaderOptions: { cache: false },
-      load: async (postIds: Uuid[], ctx: UserContext): Promise<boolean[]> => {
-        const policies = await loadViewerActionPolicies(ctx, postIds);
-        return postIds.map((id) => policies.get(id)?.canReply ?? false);
+        "unauthenticated requests. Pass `actingAccountId` for an " +
+        "organization perspective.",
+      args: {
+        actingAccountId: t.arg.globalID({
+          required: false,
+          description: actingAccountIdArgDescription,
+        }),
       },
-      resolve: (post) => post.id,
+      loaderOptions: { cache: false },
+      load: async (
+        keys: ViewerActorPostKey[],
+        ctx: UserContext,
+      ): Promise<boolean[]> => {
+        const policies = await loadViewerActionPolicies(ctx, keys);
+        return keys.map((key) =>
+          policies.get(viewerActorPostKeyCacheKey(key))?.canReply ?? false
+        );
+      },
+      resolve: postViewerActorKey,
     }),
     viewerCanQuote: t.loadable({
       type: "Boolean",
       description:
-        "Whether the authenticated viewer is allowed to quote this post, " +
+        "Whether the selected viewer account is allowed to quote this post, " +
         "based on `quotePolicy`, visibility, and block state. A censored " +
         "post cannot be quoted by anyone (including its author or a " +
         "moderator), so this is `false` for censored posts. Always `false` " +
-        "for unauthenticated requests.",
-      loaderOptions: { cache: false },
-      load: async (postIds: Uuid[], ctx: UserContext): Promise<boolean[]> => {
-        const policies = await loadViewerActionPolicies(ctx, postIds);
-        return postIds.map((id) => policies.get(id)?.canQuote ?? false);
+        "for unauthenticated requests. Pass `actingAccountId` for an " +
+        "organization perspective.",
+      args: {
+        actingAccountId: t.arg.globalID({
+          required: false,
+          description: actingAccountIdArgDescription,
+        }),
       },
-      resolve: (post) => post.id,
+      loaderOptions: { cache: false },
+      load: async (
+        keys: ViewerActorPostKey[],
+        ctx: UserContext,
+      ): Promise<boolean[]> => {
+        const policies = await loadViewerActionPolicies(ctx, keys);
+        return keys.map((key) =>
+          policies.get(viewerActorPostKeyCacheKey(key))?.canQuote ?? false
+        );
+      },
+      resolve: postViewerActorKey,
     }),
     viewerCanRevokeQuote: t.boolean({
       description:
@@ -972,17 +1003,28 @@ export const Post = builder.drizzleInterface("postTable", {
     viewerCanShare: t.loadable({
       type: "Boolean",
       description:
-        "Whether the authenticated viewer is allowed to boost this post, " +
+        "Whether the selected viewer account is allowed to boost this post, " +
         "based on visibility and block state. A censored post cannot be " +
         "boosted by anyone (including its author or a moderator), so this " +
         "is `false` for censored posts. Always `false` for unauthenticated " +
-        "requests.",
-      loaderOptions: { cache: false },
-      load: async (postIds: Uuid[], ctx: UserContext): Promise<boolean[]> => {
-        const policies = await loadViewerActionPolicies(ctx, postIds);
-        return postIds.map((id) => policies.get(id)?.canShare ?? false);
+        "requests. Pass `actingAccountId` for an organization perspective.",
+      args: {
+        actingAccountId: t.arg.globalID({
+          required: false,
+          description: actingAccountIdArgDescription,
+        }),
       },
-      resolve: (post) => post.id,
+      loaderOptions: { cache: false },
+      load: async (
+        keys: ViewerActorPostKey[],
+        ctx: UserContext,
+      ): Promise<boolean[]> => {
+        const policies = await loadViewerActionPolicies(ctx, keys);
+        return keys.map((key) =>
+          policies.get(viewerActorPostKeyCacheKey(key))?.canShare ?? false
+        );
+      },
+      resolve: postViewerActorKey,
     }),
   }),
 });
@@ -993,20 +1035,89 @@ const DENY_ALL_POLICY: PostInteractionPolicy = {
   canShare: false,
 };
 
+interface ViewerActorPostKey {
+  postId: Uuid;
+  viewerActorId: Uuid | null;
+}
+
+function viewerActorPostKeyCacheKey(key: ViewerActorPostKey): string {
+  return `${key.viewerActorId ?? ""}:${key.postId}`;
+}
+
+async function postViewerActorKey(
+  post: { id: Uuid },
+  args: ActingAccountIdArg,
+  ctx: UserContext,
+): Promise<ViewerActorPostKey> {
+  return {
+    postId: post.id,
+    viewerActorId: await resolveViewerActorId(ctx, args),
+  };
+}
+
+async function loadViewerHasShared(
+  keys: ViewerActorPostKey[],
+  ctx: UserContext,
+): Promise<boolean[]> {
+  const postIdsByViewer = new Map<Uuid, Set<Uuid>>();
+  for (const key of keys) {
+    if (key.viewerActorId == null) continue;
+    let postIds = postIdsByViewer.get(key.viewerActorId);
+    if (postIds == null) {
+      postIds = new Set();
+      postIdsByViewer.set(key.viewerActorId, postIds);
+    }
+    postIds.add(key.postId);
+  }
+
+  const sharedKeys = new Set<string>();
+  for (const [viewerActorId, postIds] of postIdsByViewer) {
+    const rows = await ctx.db.select({ sharedPostId: postTable.sharedPostId })
+      .from(postTable)
+      .where(
+        and(
+          eq(postTable.actorId, viewerActorId),
+          inArray(postTable.sharedPostId, [...postIds]),
+        ),
+      );
+    for (const row of rows) {
+      if (row.sharedPostId != null) {
+        sharedKeys.add(`${viewerActorId}:${row.sharedPostId}`);
+      }
+    }
+  }
+
+  return keys.map((key) =>
+    key.viewerActorId != null &&
+    sharedKeys.has(`${key.viewerActorId}:${key.postId}`)
+  );
+}
+
 async function loadViewerActionPolicies(
   ctx: UserContext,
-  postIds: readonly Uuid[],
-): Promise<Map<Uuid, PostInteractionPolicy>> {
+  keys: readonly ViewerActorPostKey[],
+): Promise<Map<string, PostInteractionPolicy>> {
   const cache = ctx.viewerActionPoliciesCache ??= new Map();
   // Dedupe missing ids so a batch with `cache: false` (which may surface
   // duplicate keys) cannot overwrite an already-registered promise — the
   // overwritten promise would still reject on a batch failure but be
   // un-awaited, producing an unhandled rejection.
-  const missing = new Set<Uuid>();
-  for (const id of postIds) {
-    if (!cache.has(id)) missing.add(id);
+  const missingByViewer = new Map<Uuid, Set<Uuid>>();
+  for (const key of keys) {
+    const cacheKey = viewerActorPostKeyCacheKey(key);
+    if (cache.has(cacheKey)) continue;
+    if (key.viewerActorId == null) {
+      cache.set(cacheKey, Promise.resolve(DENY_ALL_POLICY));
+      continue;
+    }
+    let missing = missingByViewer.get(key.viewerActorId);
+    if (missing == null) {
+      missing = new Set();
+      missingByViewer.set(key.viewerActorId, missing);
+    }
+    missing.add(key.postId);
   }
-  if (missing.size > 0) {
+  for (const [viewerActorId, missing] of missingByViewer) {
     // Kick off the batch lookup synchronously and register a derived promise
     // per post id before awaiting so that concurrent dispatch from the three
     // viewerCan* loaders deduplicates instead of each firing its own query.
@@ -1019,21 +1130,33 @@ async function loadViewerActionPolicies(
     const batch = getPostInteractionPolicies(
       ctx.db,
       missingIds,
-      ctx.account?.actor ?? null,
+      { id: viewerActorId } as schema.Actor,
     );
     const cleanup = () => {
-      for (const id of missingIds) cache.delete(id);
+      for (const id of missingIds) {
+        cache.delete(viewerActorPostKeyCacheKey({
+          postId: id,
+          viewerActorId,
+        }));
+      }
     };
     batch.then(cleanup, cleanup);
     for (const id of missingIds) {
+      const cacheKey = viewerActorPostKeyCacheKey({
+        postId: id,
+        viewerActorId,
+      });
       cache.set(
-        id,
+        cacheKey,
         batch.then((policies) => policies.get(id) ?? DENY_ALL_POLICY),
       );
     }
   }
   const entries = await Promise.all(
-    postIds.map(async (id) => [id, await cache.get(id)!] as const),
+    keys.map(async (key) => {
+      const cacheKey = viewerActorPostKeyCacheKey(key);
+      return [cacheKey, await cache.get(cacheKey)!] as const;
+    }),
   );
   return new Map(entries);
 }

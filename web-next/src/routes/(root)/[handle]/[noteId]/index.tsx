@@ -41,6 +41,7 @@ import { QuestionCard } from "~/components/QuestionCard.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { Title } from "~/components/Title.tsx";
 import { Trans } from "~/components/Trans.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -94,19 +95,29 @@ export const route = {
 } satisfies RouteDefinition;
 
 const NoteIdPageQuery = graphql`
-  query NoteIdPageQuery($handle: String!, $noteId: UUID!, $locale: Locale) {
+  query NoteIdPageQuery(
+    $handle: String!
+    $noteId: UUID!
+    $locale: Locale
+    $actingAccountId: ID
+  ) {
     actorByHandle(handle: $handle, allowLocalHandle: true) {
       postByUuid(uuid: $noteId) {
         __typename
         ...NoteId_head
         ... on Note {
-          ...NoteId_noteBody
+          ...NoteId_noteBody @arguments(actingAccountId: $actingAccountId)
         }
         ... on Question {
-          ...NoteId_questionBody
+          ...NoteId_questionBody @arguments(
+            actingAccountId: $actingAccountId
+          )
         }
         ... on Article {
-          ...NoteId_articleBody @arguments(locale: $locale)
+          ...NoteId_articleBody @arguments(
+            locale: $locale
+            actingAccountId: $actingAccountId
+          )
         }
       }
     }
@@ -117,11 +128,16 @@ const NoteIdPageQuery = graphql`
 `;
 
 const loadNotePageQuery = routePreloadedQuery(
-  (username: string, noteId: Uuid, locale: string) =>
+  (
+    username: string,
+    noteId: Uuid,
+    locale: string,
+    actingAccountId: string | null,
+  ) =>
     loadQuery<NoteIdPageQuery>(
       useRelayEnvironment()(),
       NoteIdPageQuery,
-      { handle: username, noteId, locale },
+      { handle: username, noteId, locale, actingAccountId },
     ),
   NOTE_PAGE_QUERY_KEY,
 );
@@ -170,6 +186,8 @@ interface NotePageLoadedProps {
 function NotePageLoaded(props: NotePageLoadedProps) {
   const { onNoteCreated } = useNoteCompose();
   const { i18n } = useLingui();
+  const actingAccount = useActingAccount();
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
 
   onMount(() => {
     onCleanup(onNoteCreated(() => void revalidateNotePageQueries()));
@@ -177,7 +195,13 @@ function NotePageLoaded(props: NotePageLoadedProps) {
 
   const noteData = createStablePreloadedQuery<NoteIdPageQuery>(
     NoteIdPageQuery,
-    () => loadNotePageQuery(props.username, props.noteId, i18n.locale),
+    () =>
+      loadNotePageQuery(
+        props.username,
+        props.noteId,
+        i18n.locale,
+        actingAccountId() ?? null,
+      ),
   );
 
   const post = () => noteData()?.actorByHandle?.postByUuid;
@@ -350,12 +374,14 @@ function NoteInternal(props: NoteInternalProps) {
 
   const note = createFragment(
     graphql`
-      fragment NoteId_noteBody on Note {
+      fragment NoteId_noteBody on Note
+        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
+      {
         id
         visibility
         iri
         url
-        ...NoteCard_note
+        ...NoteCard_note @arguments(actingAccountId: $actingAccountId)
       }
     `,
     () => props.$note,
@@ -425,12 +451,14 @@ function QuestionInternal(props: QuestionInternalProps) {
 
   const question = createFragment(
     graphql`
-      fragment NoteId_questionBody on Question {
+      fragment NoteId_questionBody on Question
+        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
+      {
         id
         visibility
         iri
         url
-        ...QuestionCard_question
+        ...QuestionCard_question @arguments(actingAccountId: $actingAccountId)
       }
     `,
     () => props.$question,
@@ -503,13 +531,19 @@ function ArticleInternal(props: ArticleInternalProps) {
   const article = createFragment(
     graphql`
       fragment NoteId_articleBody on Article
-        @argumentDefinitions(locale: { type: "Locale" })
+        @argumentDefinitions(
+          locale: { type: "Locale" }
+          actingAccountId: { type: "ID", defaultValue: null }
+        )
       {
         id
         visibility
         iri
         url
-        ...ArticleCard_article @arguments(locale: $locale)
+        ...ArticleCard_article @arguments(
+          locale: $locale
+          actingAccountId: $actingAccountId
+        )
       }
     `,
     () => props.$article,

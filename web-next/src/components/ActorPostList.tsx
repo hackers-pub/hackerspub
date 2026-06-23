@@ -5,12 +5,14 @@ import {
   createSignal,
   For,
   Match,
+  on,
   onCleanup,
   Show,
   Switch,
   untrack,
 } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { scheduleDeferredRender } from "~/lib/deferredRender.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { ActorPostList_posts$key } from "./__generated__/ActorPostList_posts.graphql.ts";
@@ -26,6 +28,7 @@ export interface ActorPostListProps {
 
 export function ActorPostList(props: ActorPostListProps) {
   const { t } = useLingui();
+  const actingAccount = useActingAccount();
   const posts = createPaginationFragment(
     graphql`
       fragment ActorPostList_posts on Actor
@@ -33,6 +36,7 @@ export function ActorPostList(props: ActorPostListProps) {
         @argumentDefinitions(
           cursor: { type: "String" }
           count: { type: "Int", defaultValue: 20 }
+          actingAccountId: { type: "ID" }
           locale: { type: "Locale" }
         )
       {
@@ -44,7 +48,10 @@ export function ActorPostList(props: ActorPostListProps) {
           edges {
             __id
             node {
-              ...PostCard_post @arguments(locale: $locale)
+              ...PostCard_post @arguments(
+                locale: $locale
+                actingAccountId: $actingAccountId
+              )
             }
           }
           pageInfo {
@@ -61,8 +68,16 @@ export function ActorPostList(props: ActorPostListProps) {
   const [visiblePostCount, setVisiblePostCount] = createSignal(
     initialVisiblePosts,
   );
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
   const edges = createMemo(() => posts()?.posts?.edges ?? []);
   const visibleEdges = createMemo(() => edges().slice(0, visiblePostCount()));
+
+  createEffect(on(
+    actingAccountId,
+    (actingAccountId) =>
+      posts.refetch({ actingAccountId: actingAccountId ?? null }),
+    { defer: true },
+  ));
 
   createEffect(() => {
     const edgeCount = edges().length;

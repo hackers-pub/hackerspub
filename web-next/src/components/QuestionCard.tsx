@@ -16,6 +16,7 @@ import IconSquare from "~icons/lucide/square";
 import { Badge } from "~/components/ui/badge.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { createDeferredRender } from "~/lib/deferredRender.ts";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
@@ -53,7 +54,9 @@ export interface QuestionCardProps {
 export function QuestionCard(props: QuestionCardProps) {
   const question = createFragment(
     graphql`
-      fragment QuestionCard_question on Question {
+      fragment QuestionCard_question on Question
+        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
+      {
         actor {
           name
           local
@@ -61,11 +64,15 @@ export function QuestionCard(props: QuestionCardProps) {
           handle
         }
         published
-        ...QuestionCardContent_question
+        ...QuestionCardContent_question @arguments(
+          actingAccountId: $actingAccountId
+        )
         sharedPost {
           __typename
           ... on Question {
-            ...QuestionCardContent_question
+            ...QuestionCardContent_question @arguments(
+              actingAccountId: $actingAccountId
+            )
           }
         }
       }
@@ -149,7 +156,9 @@ function QuestionCardContent(props: QuestionCardContentProps) {
 
   const question = createFragment(
     graphql`
-      fragment QuestionCardContent_question on Question {
+      fragment QuestionCardContent_question on Question
+        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
+      {
         __id
         id
         uuid
@@ -197,13 +206,17 @@ function QuestionCardContent(props: QuestionCardContentProps) {
         quotedPost {
           ...QuotedPostCard_post
         }
-        ...PostEngagementBar_post
+        ...PostEngagementBar_post @arguments(
+          actingAccountId: $actingAccountId
+        )
       }
     `,
     () => props.$question,
   );
   const { i18n, t } = useLingui();
   const viewer = useViewer();
+  const actingAccount = useActingAccount();
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
   const [selectedOptions, setSelectedOptions] = createSignal<
     ReadonlySet<
       number
@@ -213,12 +226,17 @@ function QuestionCardContent(props: QuestionCardContentProps) {
     QuestionCard_voteOnPoll_Mutation
   >(
     graphql`
-      mutation QuestionCard_voteOnPoll_Mutation($input: VoteOnPollInput!) {
+      mutation QuestionCard_voteOnPoll_Mutation(
+        $input: VoteOnPollInput!
+        $actingAccountId: ID
+      ) {
         voteOnPoll(input: $input) {
           __typename
           ... on VoteOnPollPayload {
             question {
-              ...QuestionCard_question
+              ...QuestionCard_question @arguments(
+                actingAccountId: $actingAccountId
+              )
             }
           }
           ... on InvalidInputError {
@@ -390,6 +408,7 @@ function QuestionCardContent(props: QuestionCardContentProps) {
             questionId: props.questionId,
             optionIndices: [...selectedOptions()].sort((a, b) => a - b),
           },
+          actingAccountId: actingAccountId() ?? null,
         },
         onCompleted(response) {
           switch (response.voteOnPoll.__typename) {

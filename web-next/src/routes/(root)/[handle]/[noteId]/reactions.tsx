@@ -40,7 +40,7 @@ const reactionsNoteEngagementQuery = graphql`
           quotes
           reactions
         }
-        ...PostCard_post
+        ...PostCard_post @arguments(actingAccountId: $actingAccountId)
         reactionGroups {
           __typename
           ... on EmojiReactionGroup {

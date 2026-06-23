@@ -2,7 +2,9 @@ import assert from "node:assert";
 import test from "node:test";
 import { eq } from "drizzle-orm";
 import type { Transaction } from "@hackerspub/models/db";
+import { createOrganization } from "@hackerspub/models/organization";
 import {
+  accountTable,
   actorTable,
   customEmojiTable,
   reactionTable,
@@ -12,6 +14,7 @@ import { encodeGlobalID } from "@pothos/plugin-relay";
 import { execute, parse } from "graphql";
 import { schema } from "./mod.ts";
 import {
+  createFedCtx,
   insertAccountWithActor,
   insertNotePost,
   makeUserContext,
@@ -53,6 +56,24 @@ const reactorsQuery = parse(`
                   avatarUrl
                 }
               }
+            }
+          }
+        }
+      }
+    }
+  }
+`);
+
+const viewerHasReactedPerspectiveQuery = parse(`
+  query ViewerHasReactedPerspective($id: ID!, $actingAccountId: ID!) {
+    node(id: $id) {
+      ... on Post {
+        reactionGroups {
+          ... on EmojiReactionGroup {
+            emoji
+            reactors(first: 10) {
+              personal: viewerHasReacted
+              acting: viewerHasReacted(actingAccountId: $actingAccountId)
             }
           }
         }
@@ -129,6 +150,77 @@ test("ReactionGroup.reactors returns edges for first-page queries", async () => 
       customReactionGroup.reactors.edges[0].node.avatarUrl,
       reactors[0].avatarUrl,
     );
+  });
+});
+
+test("ReactionGroup.reactors.viewerHasReacted can use an organization perspective", async () => {
+  await withRollback(async (tx) => {
+    const suffix = crypto.randomUUID().replaceAll("-", "").slice(0, 8);
+
+    const author = await insertAccountWithActor(tx, {
+      username: `reactorgauthor${suffix}`,
+      name: "React Org Author",
+      email: `reactorgauthor-${suffix}@example.com`,
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: `reactorgmember${suffix}`,
+      name: "React Org Member",
+      email: `reactorgmember-${suffix}@example.com`,
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: `reactorg${suffix}`,
+        name: "React Org",
+        bio: "",
+      },
+    );
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Reacted by an organization",
+      reactionsCounts: { "❤️": 1 },
+    });
+    await tx.insert(reactionTable).values({
+      iri: `http://localhost/reactions/${generateUuidV7()}`,
+      postId: post.id,
+      actorId: organization.actor.id,
+      emoji: "❤️",
+      created: new Date("2026-04-15T00:00:01.000Z"),
+    });
+
+    const result = await execute({
+      schema,
+      document: viewerHasReactedPerspectiveQuery,
+      variableValues: {
+        id: encodeGlobalID("Note", post.id),
+        actingAccountId: encodeGlobalID("Account", organization.id),
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(result.errors, undefined);
+    const data = result.data as {
+      node: {
+        reactionGroups: {
+          emoji?: string;
+          reactors?: {
+            personal: boolean;
+            acting: boolean;
+          };
+        }[];
+      } | null;
+    };
+    const group = data.node?.reactionGroups.find((group) =>
+      group.emoji === "❤️"
+    );
+    assert.ok(group?.reactors != null);
+    assert.deepEqual(group.reactors.personal, false);
+    assert.deepEqual(group.reactors.acting, true);
   });
 });
 

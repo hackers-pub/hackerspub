@@ -46,7 +46,10 @@ export function ArticleCard(props: ArticleCardProps) {
   const article = createFragment(
     graphql`
       fragment ArticleCard_article on Article
-        @argumentDefinitions(locale: { type: "Locale" })
+        @argumentDefinitions(
+          locale: { type: "Locale" }
+          actingAccountId: { type: "ID", defaultValue: null }
+        )
       {
         uuid
         actor {
@@ -57,7 +60,9 @@ export function ArticleCard(props: ArticleCardProps) {
         publishedYear
         slug
         ...ArticleCardInternal_article @arguments(locale: $locale)
-        ...PostEngagementBar_post
+        ...PostEngagementBar_post @arguments(
+          actingAccountId: $actingAccountId
+        )
         ...PostSharer_post
         sharedPost {
           ... on Article {
@@ -71,7 +76,9 @@ export function ArticleCard(props: ArticleCardProps) {
             slug
           }
           ...ArticleCardInternal_article @arguments(locale: $locale)
-          ...PostEngagementBar_post
+          ...PostEngagementBar_post @arguments(
+            actingAccountId: $actingAccountId
+          )
         }
       }
     `,

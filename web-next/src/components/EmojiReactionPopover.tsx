@@ -31,6 +31,10 @@ export interface EmojiReactionPopoverProps {
   onClose: () => void;
 }
 
+function viewerReactionArgs(actingAccountId: string | null | undefined) {
+  return actingAccountId == null ? null : { actingAccountId };
+}
+
 const addReactionToPostMutation = graphql`
   mutation EmojiReactionPopoverAddMutation($input: AddReactionToPostInput!) {
     addReactionToPost(input: $input) {
@@ -152,7 +156,11 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
                   } else {
                     // Decrement count and mark as not reacted
                     reactors?.setValue(currentCount - 1, "totalCount");
-                    reactors?.setValue(false, "viewerHasReacted");
+                    reactors?.setValue(
+                      false,
+                      "viewerHasReacted",
+                      viewerReactionArgs(actingAccountId),
+                    );
                   }
                 }
               }
@@ -227,7 +235,11 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
                   const currentCount =
                     reactors.getValue("totalCount") as number || 0;
                   reactors.setValue(currentCount + 1, "totalCount");
-                  reactors.setValue(true, "viewerHasReacted");
+                  reactors.setValue(
+                    true,
+                    "viewerHasReacted",
+                    viewerReactionArgs(actingAccountId),
+                  );
                 }
               } else {
                 // Create new reaction group
@@ -241,7 +253,11 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
                 );
                 newGroup.setValue(emoji, "emoji");
                 reactors.setValue(1, "totalCount");
-                reactors.setValue(true, "viewerHasReacted");
+                reactors.setValue(
+                  true,
+                  "viewerHasReacted",
+                  viewerReactionArgs(actingAccountId),
+                );
                 newGroup.setLinkedRecord(reactors, "reactors");
                 newGroup.setLinkedRecord(postRecord, "subject");
 
@@ -331,7 +347,11 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
                     store.delete(group.getDataID());
                   } else {
                     reactors?.setValue(count - 1, "totalCount");
-                    reactors?.setValue(false, "viewerHasReacted");
+                    reactors?.setValue(
+                      false,
+                      "viewerHasReacted",
+                      viewerReactionArgs(actingAccountId),
+                    );
                   }
                 }
               }
@@ -397,7 +417,11 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
                   }
                   const count = reactors.getValue("totalCount") as number || 0;
                   reactors.setValue(count + 1, "totalCount");
-                  reactors.setValue(true, "viewerHasReacted");
+                  reactors.setValue(
+                    true,
+                    "viewerHasReacted",
+                    viewerReactionArgs(actingAccountId),
+                  );
                 }
               }
             }

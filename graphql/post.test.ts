@@ -862,6 +862,17 @@ const viewerHasMultiQuery = parse(`
   }
 `);
 
+const viewerHasSharedPerspectiveQuery = parse(`
+  query ViewerHasSharedPerspective($postId: ID!, $actingAccountId: ID!) {
+    node(id: $postId) {
+      ... on Post {
+        personal: viewerHasShared
+        acting: viewerHasShared(actingAccountId: $actingAccountId)
+      }
+    }
+  }
+`);
+
 test("viewerHasShared and viewerHasBookmarked reflect viewer state per post", async () => {
   await withRollback(async (tx) => {
     const author = await insertAccountWithActor(tx, {
@@ -945,6 +956,60 @@ test("viewerHasShared and viewerHasBookmarked reflect viewer state per post", as
       id: untouchedId,
       viewerHasShared: false,
       viewerHasBookmarked: false,
+    });
+  });
+});
+
+test("viewerHasShared can be read from an organization perspective", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "viewerhasorgshareauthor",
+      name: "ViewerHas Org Share Author",
+      email: "viewerhasorgshareauthor@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "viewerhasorgsharemember",
+      name: "ViewerHas Org Share Member",
+      email: "viewerhasorgsharemember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "viewerhasorgsharer",
+        name: "ViewerHas Org Sharer",
+        bio: "",
+      },
+    );
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Shared by an organization",
+    });
+    await sharePost(createFedCtx(tx), organization, {
+      ...post,
+      actor: author.actor,
+    });
+
+    const result = await execute({
+      schema,
+      document: viewerHasSharedPerspectiveQuery,
+      variableValues: {
+        postId: encodeGlobalID("Note", post.id),
+        actingAccountId: encodeGlobalID("Account", organization.id),
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(result.errors, undefined);
+    assert.deepEqual(result.data, {
+      node: {
+        personal: false,
+        acting: true,
+      },
     });
   });
 });
@@ -1050,15 +1115,13 @@ test("viewerHasBookmarked reflects post-mutation state across serial mutations",
   });
 });
 
-const timelineWithoutIdQuery = parse(`
-  query TimelineWithoutId {
-    publicTimeline(first: 5, local: true, withoutShares: true) {
-      edges {
-        node {
-          viewerHasShared
-          viewerHasBookmarked
-          viewerHasPinned
-        }
+const postWithoutIdQuery = parse(`
+  query PostWithoutId($id: ID!) {
+    node(id: $id) {
+      ... on Post {
+        viewerHasShared
+        viewerHasBookmarked
+        viewerHasPinned
       }
     }
   }
@@ -1090,34 +1153,28 @@ test("viewerHas* fields reflect state when id is not in the GraphQL selection", 
 
     const result = await execute({
       schema,
-      document: timelineWithoutIdQuery,
+      document: postWithoutIdQuery,
+      variableValues: { id: encodeGlobalID("Note", post.id) },
       contextValue: makeUserContext(tx, viewer.account),
       onError: "NO_PROPAGATE",
     });
 
     assert.deepEqual(result.errors, undefined);
 
-    const edges = (result.data as {
-      publicTimeline: {
-        edges: {
-          node: {
-            viewerHasShared: boolean;
-            viewerHasBookmarked: boolean;
-            viewerHasPinned: boolean;
-          };
-        }[];
+    const node = (result.data as {
+      node: {
+        viewerHasShared: boolean;
+        viewerHasBookmarked: boolean;
+        viewerHasPinned: boolean;
       };
-    }).publicTimeline.edges;
+    }).node;
 
-    // The original post (not the share) should reflect the viewer's state
-    // even though `id` was not requested in the selection set. This guards
-    // against `post.id` becoming undefined inside the t.loadable resolve
-    // function, which would silently make every viewerHas* return false.
-    const original = edges.find((e) =>
-      e.node.viewerHasBookmarked || e.node.viewerHasShared
-    );
-    assert.deepEqual(original?.node.viewerHasShared, true);
-    assert.deepEqual(original?.node.viewerHasBookmarked, true);
+    // The post should reflect the viewer's state even though `id` was not
+    // requested in the selection set. This guards against `post.id` becoming
+    // undefined inside the t.loadable resolve function, which would silently
+    // make every viewerHas* return false.
+    assert.deepEqual(node.viewerHasShared, true);
+    assert.deepEqual(node.viewerHasBookmarked, true);
   });
 });
 
@@ -1270,12 +1327,12 @@ test("engagementStats.bookmarks reflects post-mutation state across serial mutat
 });
 
 const viewerActionPolicyQuery = parse(`
-  query ViewerActionPolicy($id: ID!) {
+  query ViewerActionPolicy($id: ID!, $actingAccountId: ID = null) {
     node(id: $id) {
       ... on Post {
-        viewerCanReply
-        viewerCanQuote
-        viewerCanShare
+        viewerCanReply(actingAccountId: $actingAccountId)
+        viewerCanQuote(actingAccountId: $actingAccountId)
+        viewerCanShare(actingAccountId: $actingAccountId)
       }
     }
   }
@@ -1292,11 +1349,12 @@ async function readPolicy(
   contextValue:
     | ReturnType<typeof makeUserContext>
     | ReturnType<typeof makeGuestContext>,
+  actingAccountId?: string,
 ): Promise<ViewerActionPolicy> {
   const result = await execute({
     schema,
     document: viewerActionPolicyQuery,
-    variableValues: { id: postId },
+    variableValues: { id: postId, actingAccountId: actingAccountId ?? null },
     contextValue,
     onError: "NO_PROPAGATE",
   });
@@ -1349,6 +1407,56 @@ test("viewerCanReply/Quote/Share permit every signed-in viewer on public posts a
       viewerCanQuote: false,
       viewerCanShare: false,
     });
+  });
+});
+
+test("viewerCanReply/Quote/Share can be read from an organization perspective", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "policyorgmember",
+      name: "Policy Org Member",
+      email: "policyorgmember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "policyorgauthor",
+        name: "Policy Org Author",
+        bio: "",
+      },
+    );
+    const { post } = await insertNotePost(tx, {
+      account: organization,
+      content: "Organization followers-only post",
+      visibility: "followers",
+    });
+    const id = encodeGlobalID("Note", post.id);
+    const actingAccountId = encodeGlobalID("Account", organization.id);
+
+    assert.deepEqual(
+      await readPolicy(id, makeUserContext(tx, member.account)),
+      {
+        viewerCanReply: false,
+        viewerCanQuote: false,
+        viewerCanShare: false,
+      },
+    );
+    assert.deepEqual(
+      await readPolicy(
+        id,
+        makeUserContext(tx, member.account),
+        actingAccountId,
+      ),
+      {
+        viewerCanReply: true,
+        viewerCanQuote: true,
+        viewerCanShare: true,
+      },
+    );
   });
 });
 

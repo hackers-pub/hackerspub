@@ -14,6 +14,7 @@ import {
 } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import { PostCard } from "~/components/PostCard.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { scheduleDeferredRender } from "~/lib/deferredRender.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { SearchResults_posts$key } from "./__generated__/SearchResults_posts.graphql.ts";
@@ -28,6 +29,7 @@ export interface SearchResultsProps {
 
 export function SearchResults(props: SearchResultsProps) {
   const { t } = useLingui();
+  const actingAccount = useActingAccount();
   const posts = createPaginationFragment(
     graphql`
       fragment SearchResults_posts on Query 
@@ -35,6 +37,7 @@ export function SearchResults(props: SearchResultsProps) {
         @argumentDefinitions(
           cursor: { type: "String" }
           count: { type: "Int", defaultValue: 25 }
+          actingAccountId: { type: "ID" }
           query: { type: "String!" }
           locale: { type: "Locale" }
           languages: { type: "[Locale!]" }
@@ -52,7 +55,10 @@ export function SearchResults(props: SearchResultsProps) {
           edges {
             __id
             node {
-              ...PostCard_post @arguments(locale: $locale)
+              ...PostCard_post @arguments(
+                locale: $locale
+                actingAccountId: $actingAccountId
+              )
             }
           }
           pageInfo {
@@ -70,6 +76,7 @@ export function SearchResults(props: SearchResultsProps) {
     initialVisiblePosts,
   );
   const [renderedQuery, setRenderedQuery] = createSignal(props.query());
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
   const edges = createMemo(() => posts()?.searchPost.edges ?? []);
   const visibleEdges = createMemo(() => edges().slice(0, visiblePostCount()));
 
@@ -117,13 +124,19 @@ export function SearchResults(props: SearchResultsProps) {
     onCleanup(() => cancelDeferredRender());
   });
 
-  createEffect(on(props.query, (query) => {
-    posts.refetch({
-      query,
-    });
-  }, {
-    defer: true,
-  }));
+  createEffect(on(
+    () => `${props.query()}:${actingAccountId() ?? ""}`,
+    () => {
+      const query = props.query();
+      posts.refetch({
+        actingAccountId: actingAccountId() ?? null,
+        query,
+      });
+    },
+    {
+      defer: true,
+    },
+  ));
 
   return (
     <div class="mb-10 mt-4 overflow-hidden rounded-lg border bg-card shadow-sm md:mb-12">

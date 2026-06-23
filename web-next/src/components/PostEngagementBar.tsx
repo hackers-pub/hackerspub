@@ -63,14 +63,17 @@ export interface PostEngagementBarProps {
 }
 
 const sharePostMutation = graphql`
-  mutation PostEngagementBar_sharePost_Mutation($input: SharePostInput!) {
+  mutation PostEngagementBar_sharePost_Mutation(
+    $input: SharePostInput!
+    $actingAccountId: ID
+  ) {
     sharePost(input: $input) {
       __typename
       ... on SharePostPayload {
         originalPost {
           id
-          viewerHasShared
-          viewerCanShare
+          viewerHasShared(actingAccountId: $actingAccountId)
+          viewerCanShare(actingAccountId: $actingAccountId)
           engagementStats {
             shares
           }
@@ -89,14 +92,15 @@ const sharePostMutation = graphql`
 const unsharePostMutation = graphql`
   mutation PostEngagementBar_unsharePost_Mutation(
     $input: UnsharePostInput!
+    $actingAccountId: ID
   ) {
     unsharePost(input: $input) {
       __typename
       ... on UnsharePostPayload {
         originalPost {
           id
-          viewerHasShared
-          viewerCanShare
+          viewerHasShared(actingAccountId: $actingAccountId)
+          viewerCanShare(actingAccountId: $actingAccountId)
           engagementStats {
             shares
           }
@@ -118,7 +122,9 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
   const actingAccount = useActingAccount();
   const liveNote = createFragment(
     graphql`
-      fragment PostEngagementBar_post on Post {
+      fragment PostEngagementBar_post on Post
+        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
+      {
         __id
         engagementStats {
           replies
@@ -128,10 +134,10 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
         }
         id
         visibility
-        viewerHasShared
-        viewerCanReply
-        viewerCanQuote
-        viewerCanShare
+        viewerHasShared(actingAccountId: $actingAccountId)
+        viewerCanReply(actingAccountId: $actingAccountId)
+        viewerCanQuote(actingAccountId: $actingAccountId)
+        viewerCanShare(actingAccountId: $actingAccountId)
         ...BookmarkButton_post
         ...PostActionMenu_post
         reactionGroups {
@@ -139,7 +145,7 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
             emoji
             reactors {
               totalCount
-              viewerHasReacted
+              viewerHasReacted(actingAccountId: $actingAccountId)
             }
           }
           ... on CustomEmojiReactionGroup {
@@ -150,7 +156,7 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
             }
             reactors {
               totalCount
-              viewerHasReacted
+              viewerHasReacted(actingAccountId: $actingAccountId)
             }
           }
         }
@@ -259,7 +265,7 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
 
     if (noteData.viewerHasShared) {
       unsharePost({
-        variables: { input },
+        variables: { input, actingAccountId: actingAccountId ?? null },
         onCompleted(response) {
           if (response.unsharePost?.__typename !== "UnsharePostPayload") {
             showToast({
@@ -277,7 +283,7 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
       });
     } else {
       sharePost({
-        variables: { input },
+        variables: { input, actingAccountId: actingAccountId ?? null },
         onCompleted(response) {
           if (response.sharePost?.__typename !== "SharePostPayload") {
             showToast({

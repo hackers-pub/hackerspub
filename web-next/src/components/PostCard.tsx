@@ -24,12 +24,16 @@ export function PostCard(props: PostCardProps) {
       fragment PostCard_post on Post
         @argumentDefinitions(
           locale: { type: "Locale" },
+          actingAccountId: { type: "ID", defaultValue: null },
         )
       {
         __typename
-        ...NoteCard_note
-        ...ArticleCard_article @arguments(locale: $locale)
-        ...QuestionCard_question
+        ...NoteCard_note @arguments(actingAccountId: $actingAccountId)
+        ...ArticleCard_article @arguments(
+          locale: $locale
+          actingAccountId: $actingAccountId
+        )
+        ...QuestionCard_question @arguments(actingAccountId: $actingAccountId)
       }
     `,
     () => props.$post,

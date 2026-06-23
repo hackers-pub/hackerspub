@@ -39,7 +39,9 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
   const { openForEdit } = useNoteCompose();
   const liveNote = createFragment(
     graphql`
-      fragment NoteCardInternal_note on Note {
+      fragment NoteCardInternal_note on Note
+        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
+      {
         __id
         id
         uuid
@@ -60,7 +62,9 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
           isViewer
         }
         ...PostAuthorAvatar_post
-        ...PostEngagementBar_post
+        ...PostEngagementBar_post @arguments(
+          actingAccountId: $actingAccountId
+        )
         ...NoteMedia_note
         ...LinkPreview_note
         ...NoteHeader_note
