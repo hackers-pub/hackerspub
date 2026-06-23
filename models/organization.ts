@@ -54,7 +54,7 @@ export class LastOrganizationMemberError extends OrganizationMembershipError {
 
 export class LastOrganizationAdminError extends OrganizationMembershipError {
   constructor() {
-    super("The last admin cannot leave or be demoted.");
+    super("The last admin cannot leave, be removed, or be demoted.");
     this.name = "LastOrganizationAdminError";
   }
 }

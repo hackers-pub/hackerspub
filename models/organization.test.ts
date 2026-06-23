@@ -16,6 +16,7 @@ import {
   ensureOrganizationInvitationNotifications,
   getOrganizationNotificationBadge,
   inviteOrganizationMember,
+  LastOrganizationAdminError,
   leaveOrganization,
   removeOrganizationMember,
   requestOrganizationConversion,
@@ -333,6 +334,65 @@ test("removeOrganizationMember() cancels a pending invitation", async () => {
       },
     });
     assert.equal(notifications.length, 0);
+  });
+});
+
+test("removeOrganizationMember() rejects removing the last accepted admin", async () => {
+  await withRollback(async (tx) => {
+    const admin = await insertAccountWithActor(tx, {
+      username: "lastremoveadmin",
+      name: "Last Remove Admin",
+      email: "lastremoveadmin@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "lastremovemember",
+      name: "Last Remove Member",
+      email: "lastremovemember@example.com",
+    });
+    const pendingAdmin = await insertAccountWithActor(tx, {
+      username: "lastremovepending",
+      name: "Last Remove Pending",
+      email: "lastremovepending@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, admin.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      admin.account,
+      {
+        username: "lastremoveorg",
+        name: "Last Remove Org",
+        bio: "",
+      },
+    );
+    await tx.insert(organizationMembershipTable).values([
+      {
+        organizationAccountId: organization.id,
+        memberAccountId: member.account.id,
+        role: "member",
+        invitedById: admin.account.id,
+        accepted: new Date("2026-04-15T00:00:00.000Z"),
+      },
+      {
+        organizationAccountId: organization.id,
+        memberAccountId: pendingAdmin.account.id,
+        role: "admin",
+        invitedById: admin.account.id,
+      },
+    ]);
+
+    await assert.rejects(
+      removeOrganizationMember(
+        tx,
+        admin.account,
+        organization.id,
+        admin.account.id,
+      ),
+      (error) =>
+        error instanceof LastOrganizationAdminError &&
+        /removed/i.test(error.message),
+    );
   });
 });
 

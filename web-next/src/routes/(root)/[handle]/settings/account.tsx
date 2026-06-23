@@ -1263,6 +1263,16 @@ function OrganizationMemberManagementCard(props: {
   const canInvite = createMemo(() =>
     inviteUsername().trim() !== "" && !inviting()
   );
+  const acceptedAdminCount = createMemo(() =>
+    members().filter((member) =>
+      member.accepted != null && member.role === "ADMIN"
+    ).length
+  );
+
+  function isLastAcceptedAdmin(member: OrganizationMemberRow) {
+    return member.accepted != null && member.role === "ADMIN" &&
+      acceptedAdminCount() <= 1;
+  }
 
   async function loadMembers() {
     setLoading(true);
@@ -1355,6 +1365,7 @@ function OrganizationMemberManagementCard(props: {
   ) {
     if (
       member.accepted == null || member.role === role ||
+      isLastAcceptedAdmin(member) ||
       updatingMemberId() != null
     ) return;
     setUpdatingMemberId(member.member.id);
@@ -1400,7 +1411,7 @@ function OrganizationMemberManagementCard(props: {
   }
 
   function onRemove(member: OrganizationMemberRow) {
-    if (removingMemberId() != null) return;
+    if (isLastAcceptedAdmin(member) || removingMemberId() != null) return;
     setRemovingMemberId(member.member.id);
     removeMember({
       variables: {
@@ -1528,6 +1539,7 @@ function OrganizationMemberManagementCard(props: {
                               : "MEMBER"}
                             onChange={(role) => onUpdateRole(membership, role)}
                             disabled={membership.accepted == null ||
+                              isLastAcceptedAdmin(membership) ||
                               updatingMemberId() != null ||
                               removingMemberId() != null}
                           />
@@ -1536,6 +1548,7 @@ function OrganizationMemberManagementCard(props: {
                             variant="outline"
                             size="sm"
                             disabled={updatingMemberId() != null ||
+                              isLastAcceptedAdmin(membership) ||
                               removingMemberId() != null}
                             onClick={() => onRemove(membership)}
                           >

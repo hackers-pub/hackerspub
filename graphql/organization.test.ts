@@ -774,6 +774,79 @@ test("organization members include and can cancel pending invitations", async ()
   });
 });
 
+test("organization admins cannot remove the last accepted admin", async () => {
+  await withRollback(async (tx) => {
+    const admin = await insertAccountWithActor(tx, {
+      username: "graphqllastadmin",
+      name: "GraphQL Last Admin",
+      email: "graphqllastadmin@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "graphqllastmember",
+      name: "GraphQL Last Member",
+      email: "graphqllastmember@example.com",
+    });
+    const pendingAdmin = await insertAccountWithActor(tx, {
+      username: "graphqllastpending",
+      name: "GraphQL Last Pending",
+      email: "graphqllastpending@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, admin.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      admin.account,
+      {
+        username: "graphqllastorg",
+        name: "GraphQL Last Org",
+        bio: "",
+      },
+    );
+    await tx.insert(organizationMembershipTable).values([
+      {
+        organizationAccountId: organization.id,
+        memberAccountId: member.account.id,
+        role: "member",
+        invitedById: admin.account.id,
+        accepted: new Date("2026-04-15T00:00:00.000Z"),
+      },
+      {
+        organizationAccountId: organization.id,
+        memberAccountId: pendingAdmin.account.id,
+        role: "admin",
+        invitedById: admin.account.id,
+      },
+    ]);
+
+    const removeResult = await execute({
+      schema,
+      document: removeOrganizationMemberMutation,
+      variableValues: {
+        organizationId: encodeGlobalID("Account", organization.id),
+        memberId: encodeGlobalID("Account", admin.account.id),
+      },
+      contextValue: makeUserContext(tx, admin.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(removeResult.errors, undefined);
+    assert.deepEqual(toPlainJson(removeResult.data), {
+      removeOrganizationMember: {
+        __typename: "LastOrganizationAdminError",
+        message: "The last admin cannot leave, be removed, or be demoted.",
+      },
+    });
+    const retained = await tx.query.organizationMembershipTable.findFirst({
+      where: {
+        organizationAccountId: organization.id,
+        memberAccountId: admin.account.id,
+      },
+    });
+    assert.notEqual(retained, undefined);
+  });
+});
+
 test("organization conversion request and acceptance turn a personal account into an organization", async () => {
   await withRollback(async (tx) => {
     const account = await insertAccountWithActor(tx, {
