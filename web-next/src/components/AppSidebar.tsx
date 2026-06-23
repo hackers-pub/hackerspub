@@ -142,6 +142,8 @@ export function AppSidebar(props: AppSidebarProps) {
     AppSidebarSignOutMutation,
   );
   const actingAccount = useActingAccount();
+  const organizationSelected = () =>
+    actingAccount.selectedOrganization() != null;
 
   createEffect(() => {
     const account = signedAccount();
@@ -423,32 +425,34 @@ export function AppSidebar(props: AppSidebarProps) {
                 {t`Search`}
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <For each={signedAccount()?.pinnedHashtags ?? []}>
-              {(tag) => (
-                <SidebarMenuItem class="list-none">
-                  <SidebarMenuButton
-                    as={A}
-                    href={`/tags/${encodeURIComponent(tag)}`}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke-width="1.5"
-                      stroke="currentColor"
-                      class="size-6"
+            <Show when={!organizationSelected()}>
+              <For each={signedAccount()?.pinnedHashtags ?? []}>
+                {(tag) => (
+                  <SidebarMenuItem class="list-none">
+                    <SidebarMenuButton
+                      as={A}
+                      href={`/tags/${encodeURIComponent(tag)}`}
                     >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5-3.9 19.5m-2.1-19.5-3.9 19.5"
-                      />
-                    </svg>
-                    #{tag}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
-            </For>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="size-6"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5-3.9 19.5m-2.1-19.5-3.9 19.5"
+                        />
+                      </svg>
+                      #{tag}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )}
+              </For>
+            </Show>
           </SidebarGroupContent>
         </SidebarGroup>
         <ComposeSection
@@ -783,6 +787,8 @@ function AccountSection(props: AccountSectionProps) {
   const { t } = useLingui();
   const location = useLocation();
   const actingAccount = useActingAccount();
+  const organizationSelected = () =>
+    actingAccount.selectedOrganization() != null;
   const profileAccount = () =>
     actingAccount.selectedOrganization()?.organization ??
       actingAccount.personalAccount() ??
@@ -799,7 +805,7 @@ function AccountSection(props: AccountSectionProps) {
         {t`Account`}
       </SidebarGroupLabel>
       <SidebarGroupContent>
-        <Show when={actingAccount.selectedOrganization() == null}>
+        <Show when={!organizationSelected()}>
           <SidebarMenuItem class="list-none">
             <SidebarMenuButton on:click={onUseOldUI} class="cursor-pointer">
               <IconUndo2 class="size-6" />
@@ -867,29 +873,34 @@ function AccountSection(props: AccountSectionProps) {
                   </span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              <SidebarMenuItem class="list-none">
-                <SidebarMenuButton
-                  as={A}
-                  href={`/@${signedAccount.username}/bookmarks`}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    class="size-6"
+              <Show when={!organizationSelected()}>
+                <SidebarMenuItem class="list-none">
+                  <SidebarMenuButton
+                    as={A}
+                    href={`/@${signedAccount.username}/bookmarks`}
                   >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z"
-                    />
-                  </svg>
-                  {t`Bookmarks`}
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <Show when={signedAccount.invitationsLeft > 0}>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="1.5"
+                      stroke="currentColor"
+                      class="size-6"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z"
+                      />
+                    </svg>
+                    {t`Bookmarks`}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </Show>
+              <Show
+                when={!organizationSelected() &&
+                  signedAccount.invitationsLeft > 0}
+              >
                 <SidebarMenuItem class="list-none">
                   <SidebarMenuButton
                     as={A}
@@ -945,7 +956,7 @@ function AccountSection(props: AccountSectionProps) {
                   {t`Settings`}
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              <Show when={signedAccount.moderator}>
+              <Show when={!organizationSelected() && signedAccount.moderator}>
                 <SidebarMenuItem class="list-none">
                   <SidebarMenuButton
                     as={A}
