@@ -42,6 +42,7 @@ export const handler = define.handlers({
     if (isEmail(email)) email = normalizeEmail(email);
     let account = await db.query.accountTable.findFirst({
       where: {
+        kind: "personal",
         OR: [
           { username: email },
           { emails: { email } },
@@ -52,6 +53,7 @@ export const handler = define.handlers({
     if (account == null && isEmail(email)) {
       account = await db.query.accountTable.findFirst({
         where: {
+          kind: "personal",
           emails: {
             RAW(t) {
               return sql`lower(${t.email}) = lower(${email})`;

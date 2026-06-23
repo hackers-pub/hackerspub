@@ -22,7 +22,12 @@ import {
 import { persistActor, syncActorFromAccount } from "@hackerspub/models/actor";
 import type { Locale } from "@hackerspub/models/i18n";
 import { renderMarkup } from "@hackerspub/models/markup";
-import { ensureOrganizationInvitationNotifications } from "@hackerspub/models/organization";
+import {
+  assertPersonalAccountDeletionPreservesOrganizations,
+  ensureOrganizationInvitationNotifications,
+  LastOrganizationAdminError,
+  LastOrganizationMemberError,
+} from "@hackerspub/models/organization";
 import { deleteSession } from "@hackerspub/models/session";
 import {
   accountTable,
@@ -1596,8 +1601,10 @@ builder.relayMutationField(
       "commits the deleted actor's tombstone and preserved keys, then " +
       "attempts to enqueue one actor-level ActivityPub `Delete` to followers. " +
       "A transient delivery queue failure is logged after commit and does " +
-      "not resurrect the account. Session-store cleanup is best-effort and " +
-      "only applies when the viewer deletes their own personal account.",
+      "not resurrect the account. Personal account deletion fails if it " +
+      "would leave an accepted organization membership with no members or " +
+      "no administrators. Session-store cleanup is best-effort and only " +
+      "applies when the viewer deletes their own personal account.",
     inputFields: (t) => ({
       id: t.globalID({
         for: Account,
@@ -1616,6 +1623,8 @@ builder.relayMutationField(
         NotAuthorizedError,
         InvalidInputError,
         AccountDeletionUnavailableError,
+        LastOrganizationMemberError,
+        LastOrganizationAdminError,
       ],
     },
     async resolve(_root, args, ctx) {
@@ -1625,7 +1634,12 @@ builder.relayMutationField(
       }
       const accountId = args.input.id.id as Uuid;
       const deletingOwnAccount = session.accountId === accountId;
-      if (!deletingOwnAccount) {
+      if (deletingOwnAccount && ctx.account.kind === "personal") {
+        await assertPersonalAccountDeletionPreservesOrganizations(
+          ctx.db,
+          accountId,
+        );
+      } else {
         const target = await ctx.db.query.accountTable.findFirst({
           where: { id: accountId },
           columns: { id: true, kind: true },

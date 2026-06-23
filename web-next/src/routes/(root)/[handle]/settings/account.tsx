@@ -163,6 +163,12 @@ const accountDeleteMutation = graphql`
       ... on AccountDeletionUnavailableError {
         unavailable
       }
+      ... on LastOrganizationMemberError {
+        message
+      }
+      ... on LastOrganizationAdminError {
+        message
+      }
     }
   }
 `;
@@ -1910,6 +1916,17 @@ function AccountDeletionForm(props: AccountDeletionFormProps) {
             description: isOrganization()
               ? t`Only organization admins can delete this organization.`
               : t`You can delete only your own account.`,
+            variant: "error",
+          });
+          return;
+        }
+        if (
+          result.__typename === "LastOrganizationMemberError" ||
+          result.__typename === "LastOrganizationAdminError"
+        ) {
+          showToast({
+            title: t`Cannot delete this account`,
+            description: result.message,
             variant: "error",
           });
           return;

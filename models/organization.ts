@@ -17,6 +17,7 @@ import {
   type AccountLink,
   accountTable,
   type Actor,
+  actorTable,
   type Medium,
   notificationTable,
   type OrganizationConversionRequest,
@@ -231,6 +232,36 @@ async function countAcceptedAdmins(
       isNotNull(organizationMembershipTable.accepted),
     ));
   return Number(rows[0]?.count ?? 0);
+}
+
+export async function assertPersonalAccountDeletionPreservesOrganizations(
+  db: Database | Transaction,
+  accountId: Uuid,
+): Promise<void> {
+  const memberships = await db.query.organizationMembershipTable.findMany({
+    where: {
+      memberAccountId: accountId,
+      accepted: { isNotNull: true },
+    },
+    columns: {
+      organizationAccountId: true,
+      role: true,
+    },
+  });
+  for (const membership of memberships) {
+    const members = await countAcceptedMembers(
+      db,
+      membership.organizationAccountId,
+    );
+    if (members <= 1) throw new LastOrganizationMemberError();
+    if (membership.role === "admin") {
+      const admins = await countAcceptedAdmins(
+        db,
+        membership.organizationAccountId,
+      );
+      if (admins <= 1) throw new LastOrganizationAdminError();
+    }
+  }
 }
 
 export async function createOrganization(
@@ -860,11 +891,17 @@ export async function getOrganizationNotificationBadge(
       '-infinity'::timestamptz
     )
   `;
+  const notificationHasExistingActors = sql`EXISTS (
+    SELECT 1
+    FROM ${actorTable}
+    WHERE ${actorTable.id} = ANY(${notificationTable.actorIds})
+  )`;
   const redRows = await db.select({ count: count() })
     .from(notificationTable)
     .where(and(
       eq(notificationTable.accountId, organizationAccountId),
       sql`${notificationTable.created} > ${globalReadAt}`,
+      notificationHasExistingActors,
     ));
   const redCount = Number(redRows[0]?.count ?? 0);
   if (redCount > 0) return { color: "red", count: redCount };
@@ -874,6 +911,7 @@ export async function getOrganizationNotificationBadge(
     .where(and(
       eq(notificationTable.accountId, organizationAccountId),
       sql`${notificationTable.created} > ${memberReadAt}`,
+      notificationHasExistingActors,
     ));
   const grayCount = Number(grayRows[0]?.count ?? 0);
   if (grayCount > 0) return { color: "gray", count: grayCount };

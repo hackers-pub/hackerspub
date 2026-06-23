@@ -252,10 +252,15 @@ OrganizationMembershipRef.implement({
       nullable: true,
       description:
         "Unread notification badge for this organization as seen by this " +
-        "member. Pending invitations return `null` because they cannot read " +
-        "organization notifications yet.",
+        "member. Returns `null` for pending invitations and when resolving " +
+        "a membership that does not belong to the authenticated viewer.",
       async resolve(membership, _, ctx) {
         if (membership.accepted == null) return null;
+        if (
+          ctx.account == null || membership.memberAccountId !== ctx.account.id
+        ) {
+          return null;
+        }
         const badge = await getOrganizationNotificationBadge(
           ctx.db,
           membership.organizationAccountId,

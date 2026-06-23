@@ -189,6 +189,12 @@ const deleteAccountMutation = parse(`
       ... on AccountDeletionUnavailableError {
         unavailable
       }
+      ... on LastOrganizationMemberError {
+        message
+      }
+      ... on LastOrganizationAdminError {
+        message
+      }
     }
   }
 `);
@@ -1838,6 +1844,124 @@ test("deleteAccount deletes the viewer account and session", async () => {
       where: { accountId: account.account.id },
     });
     assert.equal(tombstone?.username, "deletegraphql");
+  });
+});
+
+test("deleteAccount rejects deleting a personal account that would orphan organizations", async () => {
+  await withRollback(async (tx) => {
+    const soleAdmin = await insertAccountWithActor(tx, {
+      username: "deleteorgsoleadmin",
+      name: "Delete Organization Sole Admin",
+      email: "deleteorgsoleadmin@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, soleAdmin.account.id));
+    const soleOrganization = await createOrganization(
+      createFedCtx(tx),
+      soleAdmin.account,
+      {
+        username: "deleteorgsole",
+        name: "Delete Organization Sole",
+        bio: "",
+      },
+    );
+
+    const soleResult = await execute({
+      schema,
+      document: deleteAccountMutation,
+      variableValues: {
+        input: { id: encodeGlobalID("Account", soleAdmin.account.id) },
+      },
+      contextValue: makeUserContext(tx, soleAdmin.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(soleResult.errors, undefined);
+    assert.deepEqual(toPlainJson(soleResult.data), {
+      deleteAccount: {
+        __typename: "LastOrganizationMemberError",
+        message: "The last member cannot leave the organization.",
+      },
+    });
+    assert.notEqual(
+      await tx.query.accountTable.findFirst({
+        where: { id: soleAdmin.account.id },
+      }),
+      undefined,
+    );
+    assert.notEqual(
+      await tx.query.organizationMembershipTable.findFirst({
+        where: {
+          organizationAccountId: soleOrganization.id,
+          memberAccountId: soleAdmin.account.id,
+        },
+      }),
+      undefined,
+    );
+
+    const lastAdmin = await insertAccountWithActor(tx, {
+      username: "deleteorglastadmin",
+      name: "Delete Organization Last Admin",
+      email: "deleteorglastadmin@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "deleteorgmemberonly",
+      name: "Delete Organization Member Only",
+      email: "deleteorgmemberonly@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, lastAdmin.account.id));
+    const sharedOrganization = await createOrganization(
+      createFedCtx(tx),
+      lastAdmin.account,
+      {
+        username: "deleteorgshared",
+        name: "Delete Organization Shared",
+        bio: "",
+      },
+    );
+    await tx.insert(organizationMembershipTable).values({
+      organizationAccountId: sharedOrganization.id,
+      memberAccountId: member.account.id,
+      role: "member",
+      invitedById: lastAdmin.account.id,
+      accepted: new Date("2026-04-15T00:00:00.000Z"),
+    });
+
+    const adminResult = await execute({
+      schema,
+      document: deleteAccountMutation,
+      variableValues: {
+        input: { id: encodeGlobalID("Account", lastAdmin.account.id) },
+      },
+      contextValue: makeUserContext(tx, lastAdmin.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(adminResult.errors, undefined);
+    assert.deepEqual(toPlainJson(adminResult.data), {
+      deleteAccount: {
+        __typename: "LastOrganizationAdminError",
+        message: "The last admin cannot leave, be removed, or be demoted.",
+      },
+    });
+    assert.notEqual(
+      await tx.query.accountTable.findFirst({
+        where: { id: lastAdmin.account.id },
+      }),
+      undefined,
+    );
+    assert.notEqual(
+      await tx.query.organizationMembershipTable.findFirst({
+        where: {
+          organizationAccountId: sharedOrganization.id,
+          memberAccountId: lastAdmin.account.id,
+        },
+      }),
+      undefined,
+    );
   });
 });
 

@@ -25,6 +25,7 @@ import {
 import {
   accountEmailTable,
   accountTable,
+  actorTable,
   followingTable,
   notificationTable,
   organizationMembershipTable,
@@ -526,6 +527,74 @@ test("getOrganizationNotificationBadge() separates globally unread and member un
     );
     assert.deepEqual(noneForAdmin, { color: null, count: 0 });
     assert.deepEqual(grayForMember, { color: "gray", count: 1 });
+  });
+});
+
+test("getOrganizationNotificationBadge() ignores notifications with no visible actors", async () => {
+  await withRollback(async (tx) => {
+    const admin = await insertAccountWithActor(tx, {
+      username: "hiddenbadgeadmin",
+      name: "Hidden Badge Admin",
+      email: "hiddenbadgeadmin@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "hiddenbadgemember",
+      name: "Hidden Badge Member",
+      email: "hiddenbadgemember@example.com",
+    });
+    const actor = await insertAccountWithActor(tx, {
+      username: "hiddenbadgeactor",
+      name: "Hidden Badge Actor",
+      email: "hiddenbadgeactor@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, admin.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      admin.account,
+      {
+        username: "hiddenbadgeorg",
+        name: "Hidden Badge Org",
+        bio: "",
+      },
+    );
+    await inviteOrganizationMember(
+      tx,
+      admin.account,
+      organization.id,
+      member.account.username,
+    );
+    await acceptOrganizationInvitation(tx, member.account, organization.id);
+
+    await tx.insert(notificationTable).values({
+      id: crypto.randomUUID(),
+      accountId: organization.id,
+      type: "follow",
+      actorIds: [actor.actor.id],
+      created: new Date("2026-04-15T09:00:00.000Z"),
+    });
+    await tx.delete(actorTable).where(eq(actorTable.id, actor.actor.id));
+
+    const unread = await getOrganizationNotificationBadge(
+      tx,
+      organization.id,
+      admin.account.id,
+    );
+    assert.deepEqual(unread, { color: null, count: 0 });
+
+    await getOrganizationNotificationBadge(
+      tx,
+      organization.id,
+      member.account.id,
+      new Date("2026-04-15T10:00:00.000Z"),
+    );
+    const readByOtherMember = await getOrganizationNotificationBadge(
+      tx,
+      organization.id,
+      admin.account.id,
+    );
+    assert.deepEqual(readByOtherMember, { color: null, count: 0 });
   });
 });
 

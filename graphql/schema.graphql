@@ -1554,7 +1554,7 @@ A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `dat
 scalar DateTime
 
 """
-Permanently delete the authenticated viewer's personal account, or an organization account administered by the viewer. This hard-deletes the local account data, reserves the account's current `username`, commits the deleted actor's tombstone and preserved keys, then attempts to enqueue one actor-level ActivityPub `Delete` to followers. A transient delivery queue failure is logged after commit and does not resurrect the account. Session-store cleanup is best-effort and only applies when the viewer deletes their own personal account.
+Permanently delete the authenticated viewer's personal account, or an organization account administered by the viewer. This hard-deletes the local account data, reserves the account's current `username`, commits the deleted actor's tombstone and preserved keys, then attempts to enqueue one actor-level ActivityPub `Delete` to followers. A transient delivery queue failure is logged after commit and does not resurrect the account. Personal account deletion fails if it would leave an accepted organization membership with no members or no administrators. Session-store cleanup is best-effort and only applies when the viewer deletes their own personal account.
 """
 input DeleteAccountInput {
   clientMutationId: ID
@@ -1582,7 +1582,7 @@ type DeleteAccountPayload {
   username: String!
 }
 
-union DeleteAccountResult = AccountDeletionUnavailableError | DeleteAccountPayload | InvalidInputError | NotAuthenticatedError | NotAuthorizedError
+union DeleteAccountResult = AccountDeletionUnavailableError | DeleteAccountPayload | InvalidInputError | LastOrganizationAdminError | LastOrganizationMemberError | NotAuthenticatedError | NotAuthorizedError
 
 """
 Permanently delete an article draft. Only the draft's owner may delete it. Requires authentication.
@@ -3420,7 +3420,7 @@ type OrganizationMembership {
   member: Account!
 
   """
-  Unread notification badge for this organization as seen by this member. Pending invitations return `null` because they cannot read organization notifications yet.
+  Unread notification badge for this organization as seen by this member. Returns `null` for pending invitations and when resolving a membership that does not belong to the authenticated viewer.
   """
   notificationBadge: OrganizationNotificationBadge
 

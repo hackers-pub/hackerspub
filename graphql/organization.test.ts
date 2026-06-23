@@ -304,6 +304,17 @@ const organizationMembersQuery = parse(`
   }
 `);
 
+const organizationMemberBadgesQuery = parse(`
+  query OrganizationMemberBadges($username: String!) {
+    accountByUsername(username: $username) {
+      organizationMembers {
+        member { username }
+        notificationBadge { color count }
+      }
+    }
+  }
+`);
+
 const markOrganizationNotificationsAsReadMutation = parse(`
   mutation MarkOrganizationNotificationsAsRead(
     $organizationId: ID!
@@ -771,6 +782,82 @@ test("organization members include and can cancel pending invitations", async ()
       },
     });
     assert.equal(pending, undefined);
+  });
+});
+
+test("organizationMembers exposes notification badges only for the requesting member", async () => {
+  await withRollback(async (tx) => {
+    const admin = await insertAccountWithActor(tx, {
+      username: "graphqlbadgeadmin",
+      name: "GraphQL Badge Admin",
+      email: "graphqlbadgeadmin@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "graphqlbadgemember",
+      name: "GraphQL Badge Member",
+      email: "graphqlbadgemember@example.com",
+    });
+    const actor = await insertAccountWithActor(tx, {
+      username: "graphqlbadgeactor",
+      name: "GraphQL Badge Actor",
+      email: "graphqlbadgeactor@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, admin.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      admin.account,
+      {
+        username: "graphqlbadgeorg",
+        name: "GraphQL Badge Org",
+        bio: "",
+      },
+    );
+    await tx.insert(organizationMembershipTable).values({
+      organizationAccountId: organization.id,
+      memberAccountId: member.account.id,
+      role: "member",
+      invitedById: admin.account.id,
+      accepted: new Date("2026-04-15T00:00:00.000Z"),
+    });
+    await tx.insert(notificationTable).values({
+      id: crypto.randomUUID(),
+      accountId: organization.id,
+      type: "follow",
+      actorIds: [actor.actor.id],
+      created: new Date("2026-04-15T09:00:00.000Z"),
+    });
+
+    const result = await execute({
+      schema,
+      document: organizationMemberBadgesQuery,
+      variableValues: { username: organization.username },
+      contextValue: makeUserContext(tx, admin.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    const memberships = (toPlainJson(result.data) as {
+      accountByUsername: {
+        organizationMembers: {
+          member: { username: string };
+          notificationBadge: { color: string; count: number } | null;
+        }[];
+      };
+    }).accountByUsername.organizationMembers.toSorted((a, b) =>
+      a.member.username.localeCompare(b.member.username)
+    );
+    assert.deepEqual(memberships, [
+      {
+        member: { username: "graphqlbadgeadmin" },
+        notificationBadge: { color: "RED", count: 1 },
+      },
+      {
+        member: { username: "graphqlbadgemember" },
+        notificationBadge: null,
+      },
+    ]);
   });
 });
 
