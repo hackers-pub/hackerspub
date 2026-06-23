@@ -108,6 +108,10 @@ export interface UserContext extends ServerContext {
   // Pending promises are stored synchronously so concurrent dispatch from
   // the three loaders doesn't each fire its own duplicate query.
   viewerActionPoliciesCache?: Map<string, Promise<PostInteractionPolicy>>;
+  organizationInvitationNotificationsEnsured?: {
+    db: Database;
+    promises: Map<Uuid, Promise<void>>;
+  };
 }
 
 export interface PothosTypes {

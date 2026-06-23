@@ -22,6 +22,7 @@ import {
 import { persistActor, syncActorFromAccount } from "@hackerspub/models/actor";
 import type { Locale } from "@hackerspub/models/i18n";
 import { renderMarkup } from "@hackerspub/models/markup";
+import { ensureOrganizationInvitationNotifications } from "@hackerspub/models/organization";
 import { deleteSession } from "@hackerspub/models/session";
 import {
   accountTable,
@@ -59,6 +60,26 @@ import { NotAuthenticatedError } from "./session.ts";
 
 const profileOgImageComplexity = 2_000;
 const logger = getLogger(["hackerspub", "graphql", "account"]);
+
+async function ensureOrganizationInvitationNotificationsForRequest(
+  ctx: UserContext,
+  accountId: Uuid,
+): Promise<void> {
+  let cache = ctx.organizationInvitationNotificationsEnsured;
+  if (cache == null || cache.db !== ctx.db) {
+    cache = {
+      db: ctx.db,
+      promises: new Map(),
+    };
+    ctx.organizationInvitationNotificationsEnsured = cache;
+  }
+  let promise = cache.promises.get(accountId);
+  if (promise == null) {
+    promise = ensureOrganizationInvitationNotifications(ctx.db, accountId);
+    cache.promises.set(accountId, promise);
+  }
+  await promise;
+}
 
 builder.objectType(AccountDeletionUnavailableError, {
   name: "AccountDeletionUnavailableError",
@@ -620,7 +641,19 @@ export const Account = builder.drizzleNode("accountTable", {
         "(e.g., the actor was deleted) are automatically excluded.",
       authScopes: async (parent, _args, ctx) =>
         await viewerCanReadAccountNotifications(ctx, parent.id),
+      select: {
+        columns: {
+          id: true,
+          kind: true,
+        },
+      },
       async resolve(account, args, ctx) {
+        if (account.kind === "personal") {
+          await ensureOrganizationInvitationNotificationsForRequest(
+            ctx,
+            account.id,
+          );
+        }
         return resolveCursorConnection(
           {
             args,
@@ -679,9 +712,16 @@ export const Account = builder.drizzleNode("accountTable", {
       select: {
         columns: {
           id: true,
+          kind: true,
         },
       },
-      resolve(account, _, ctx) {
+      async resolve(account, _, ctx) {
+        if (account.kind === "personal") {
+          await ensureOrganizationInvitationNotificationsForRequest(
+            ctx,
+            account.id,
+          );
+        }
         return ctx.db.$count(
           notificationTable,
           and(

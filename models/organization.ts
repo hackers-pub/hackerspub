@@ -323,14 +323,80 @@ export async function inviteOrganizationMember(
     role,
     invitedById: adminAccount.id,
   }).onConflictDoNothing().returning();
-  if (rows[0] != null) return rows[0];
-  const existing = await db.query.organizationMembershipTable.findFirst({
-    where: { organizationAccountId, memberAccountId: member.id },
-  });
-  if (existing == null) {
+  const membership = rows[0] ??
+    await db.query.organizationMembershipTable.findFirst({
+      where: { organizationAccountId, memberAccountId: member.id },
+    });
+  if (membership == null) {
     throw new OrganizationMembershipError("Failed to invite member.");
   }
-  return existing;
+  if (membership.accepted == null) {
+    await createOrganizationInvitationNotification(
+      db,
+      organizationAccountId,
+      member.id,
+    );
+  }
+  return membership;
+}
+
+export async function ensureOrganizationInvitationNotifications(
+  db: Database | Transaction,
+  memberAccountId: Uuid,
+): Promise<void> {
+  await runInTransaction(db, async (tx) => {
+    const memberships = await tx.query.organizationMembershipTable.findMany({
+      where: {
+        memberAccountId,
+        accepted: { isNull: true },
+      },
+      columns: { organizationAccountId: true },
+    });
+    for (const membership of memberships) {
+      await createOrganizationInvitationNotification(
+        tx,
+        membership.organizationAccountId,
+        memberAccountId,
+      );
+    }
+  });
+}
+
+async function createOrganizationInvitationNotification(
+  db: Database | Transaction,
+  organizationAccountId: Uuid,
+  memberAccountId: Uuid,
+): Promise<void> {
+  await runInTransaction(db, async (tx) => {
+    await tx.execute(sql`
+      SELECT pg_advisory_xact_lock(
+        hashtextextended(${`${organizationAccountId}:${memberAccountId}`}, 0)
+      )
+    `);
+    const actor = await tx.query.actorTable.findFirst({
+      where: { accountId: organizationAccountId },
+      columns: { id: true },
+    });
+    if (actor == null) {
+      throw new OrganizationMembershipError(
+        "The organization actor does not exist.",
+      );
+    }
+    const existing = await tx.select({ id: notificationTable.id })
+      .from(notificationTable)
+      .where(sql`
+        ${notificationTable.accountId} = ${memberAccountId}
+        AND ${notificationTable.type} = 'organization_invitation'
+        AND ${notificationTable.actorIds} = ARRAY[${actor.id}]::uuid[]
+      `);
+    if (existing[0] != null) return;
+    await tx.insert(notificationTable).values({
+      id: generateUuidV7(),
+      accountId: memberAccountId,
+      type: "organization_invitation",
+      actorIds: [actor.id],
+    }).onConflictDoNothing();
+  });
 }
 
 export async function acceptOrganizationInvitation(

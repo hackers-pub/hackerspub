@@ -117,6 +117,34 @@ const viewerOrganizationInvitationStateQuery = parse(`
   }
 `);
 
+const organizationInvitationNotificationQuery = parse(`
+  query OrganizationInvitationNotification {
+    viewer {
+      unreadNotificationsCount
+      notifications(first: 10) {
+        edges {
+          node {
+            __typename
+            ... on OrganizationInvitationNotification {
+              membership {
+                role
+                accepted
+                organization { username }
+                member { username }
+              }
+              actors(first: 10) {
+                edges {
+                  node { username }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`);
+
 const conversionMutation = parse(`
   mutation ConvertAccount(
     $accountId: ID!
@@ -486,6 +514,44 @@ test("pending organization invitations expose no notification badge", async () =
           },
           member: { username: "graphqlinvitemember" },
         }],
+      },
+    });
+
+    await tx.delete(notificationTable)
+      .where(eq(notificationTable.accountId, member.account.id));
+    const notifications = await execute({
+      schema,
+      document: organizationInvitationNotificationQuery,
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(notifications.errors, undefined);
+    assert.deepEqual(toPlainJson(notifications.data), {
+      viewer: {
+        unreadNotificationsCount: 1,
+        notifications: {
+          edges: [
+            {
+              node: {
+                __typename: "OrganizationInvitationNotification",
+                membership: {
+                  role: "MEMBER",
+                  accepted: null,
+                  organization: { username: "graphqlinviteorg" },
+                  member: { username: "graphqlinvitemember" },
+                },
+                actors: {
+                  edges: [
+                    {
+                      node: { username: "graphqlinviteorg" },
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+        },
       },
     });
   });

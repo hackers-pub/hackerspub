@@ -26,6 +26,7 @@ import { Account } from "./account.ts";
 import { builder, type UserContext } from "./builder.ts";
 import { InvalidInputError, NotAuthorizedError } from "./error.ts";
 import { OrganizationConversionRequestRef } from "./organization-conversion-request.ts";
+import { OrganizationMembershipRef } from "./organization-membership.ts";
 import { NotAuthenticatedError } from "./session.ts";
 
 type AccountForGraphql = AccountRow & {
@@ -210,10 +211,6 @@ OrganizationNotificationBadge.implement({
     }),
   }),
 });
-
-export const OrganizationMembershipRef = builder.objectRef<
-  OrganizationMembership
->("OrganizationMembership");
 
 OrganizationMembershipRef.implement({
   description:

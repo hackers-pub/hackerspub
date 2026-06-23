@@ -13,6 +13,7 @@ import {
   acceptOrganizationConversion,
   acceptOrganizationInvitation,
   createOrganization,
+  ensureOrganizationInvitationNotifications,
   getOrganizationNotificationBadge,
   inviteOrganizationMember,
   leaveOrganization,
@@ -178,6 +179,104 @@ test("organization membership invite acceptance and last-member guard", async ()
       );
     assert.equal(memberships.length, 1);
     assert.equal(memberships[0].memberAccountId, admin.account.id);
+  });
+});
+
+test("inviteOrganizationMember() notifies the invited account", async () => {
+  await withRollback(async (tx) => {
+    const admin = await insertAccountWithActor(tx, {
+      username: "notifyinviteadmin",
+      name: "Notify Invite Admin",
+      email: "notifyinviteadmin@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "notifyinvitemember",
+      name: "Notify Invite Member",
+      email: "notifyinvitemember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, admin.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      admin.account,
+      {
+        username: "notifyinviteorg",
+        name: "Notify Invite Org",
+        bio: "",
+      },
+    );
+
+    await inviteOrganizationMember(
+      tx,
+      admin.account,
+      organization.id,
+      member.account.username,
+    );
+    await inviteOrganizationMember(
+      tx,
+      admin.account,
+      organization.id,
+      member.account.username,
+    );
+
+    const notifications = await tx.query.notificationTable.findMany({
+      where: {
+        accountId: member.account.id,
+        type: "organization_invitation",
+      },
+    });
+    assert.equal(notifications.length, 1);
+    assert.deepEqual(notifications[0].actorIds, [organization.actor.id]);
+    assert.equal(notifications[0].postId, null);
+    assert.equal(notifications[0].organizationConversionRequestId, null);
+  });
+});
+
+test("ensureOrganizationInvitationNotifications() repairs pending invitations", async () => {
+  await withRollback(async (tx) => {
+    const admin = await insertAccountWithActor(tx, {
+      username: "repairinviteadmin",
+      name: "Repair Invite Admin",
+      email: "repairinviteadmin@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "repairinvitemember",
+      name: "Repair Invite Member",
+      email: "repairinvitemember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, admin.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      admin.account,
+      {
+        username: "repairinviteorg",
+        name: "Repair Invite Org",
+        bio: "",
+      },
+    );
+    await tx.insert(organizationMembershipTable).values({
+      organizationAccountId: organization.id,
+      memberAccountId: member.account.id,
+      role: "member",
+      invitedById: admin.account.id,
+    });
+
+    await ensureOrganizationInvitationNotifications(tx, member.account.id);
+    await ensureOrganizationInvitationNotifications(tx, member.account.id);
+
+    const notifications = await tx.query.notificationTable.findMany({
+      where: {
+        accountId: member.account.id,
+        type: "organization_invitation",
+      },
+    });
+    assert.equal(notifications.length, 1);
+    assert.deepEqual(notifications[0].actorIds, [organization.actor.id]);
+    assert.equal(notifications[0].postId, null);
+    assert.equal(notifications[0].organizationConversionRequestId, null);
   });
 });
 

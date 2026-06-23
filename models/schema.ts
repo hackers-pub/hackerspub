@@ -1950,6 +1950,7 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "quoted_post_updated",
   "react",
   "poll_ended",
+  "organization_invitation",
   "organization_conversion_request",
 ]);
 
@@ -1974,6 +1975,7 @@ export const notificationTable = pgTable(
     // - When type is 'quoted_post_updated', this is the updated quoted post
     // - When type is 'react', this is the ID of the post being reacted to
     // - When type is 'poll_ended', this is the ended Question post
+    // - When type is 'organization_invitation', this is not used
     // - When type is 'organization_conversion_request', this is not used
     postId: uuid("post_id")
       .$type<Uuid>()
@@ -2009,8 +2011,9 @@ export const notificationTable = pgTable(
     check(
       "notification_post_id_check",
       sql`
-        CASE ${table.type}
+        CASE ${table.type}::text
           WHEN 'follow' THEN ${table.postId} IS NULL
+          WHEN 'organization_invitation' THEN ${table.postId} IS NULL
           WHEN 'organization_conversion_request'
           THEN ${table.postId} IS NULL
           ELSE ${table.postId} IS NOT NULL

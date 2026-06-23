@@ -3269,6 +3269,9 @@ enum NotificationType {
   """
   ORGANIZATION_CONVERSION_REQUEST
 
+  """An organization invited this personal account to become a member."""
+  ORGANIZATION_INVITATION
+
   """A `Question` poll this account authored or voted in has ended."""
   POLL_ENDED
 
@@ -3339,6 +3342,22 @@ type OrganizationConversionRequestNotification implements Node & Notification {
   The conversion request that can be accepted by this notification's recipient.
   """
   request: OrganizationConversionRequest!
+  uuid: UUID!
+}
+
+"""
+Notification asking the account holder to accept an invitation to join an organization account.
+"""
+type OrganizationInvitationNotification implements Node & Notification {
+  account: Account!
+  actors(after: String, before: String, first: Int, last: Int): NotificationActorsConnection!
+  created: DateTime!
+  id: ID!
+
+  """
+  The organization membership invitation represented by this notification. This is `null` if the invitation was removed after the notification was created.
+  """
+  membership: OrganizationMembership
   uuid: UUID!
 }
 
