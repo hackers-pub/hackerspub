@@ -1,11 +1,15 @@
 import assert from "node:assert";
 import test from "node:test";
+import { sql } from "drizzle-orm";
+import { db } from "../graphql/db.ts";
 import {
   createFollowNotification,
+  createOrganizationInvitationNotification,
   createShareNotification,
   deleteShareNotification,
   getNotifications,
 } from "./notification.ts";
+import { accountTable, notificationTable } from "./schema.ts";
 import {
   insertAccountWithActor,
   insertNotePost,
@@ -72,6 +76,55 @@ test("createShareNotification() merges repeated shares into one row", async () =
       newer.toISOString(),
     );
   });
+});
+
+test("createOrganizationInvitationNotification() works with a plain database", async () => {
+  const usernames = [
+    "plainorginvitationmember",
+    "plainorginvitationorg",
+  ];
+  let member:
+    | Awaited<ReturnType<typeof insertAccountWithActor>>
+    | undefined;
+  let organization:
+    | Awaited<ReturnType<typeof insertAccountWithActor>>
+    | undefined;
+  try {
+    await db.transaction(async (tx) => {
+      member = await insertAccountWithActor(tx, {
+        username: usernames[0],
+        name: "Plain Org Invitation Member",
+        email: "plainorginvitationmember@example.com",
+      });
+      organization = await insertAccountWithActor(tx, {
+        username: usernames[1],
+        name: "Plain Org Invitation Org",
+        email: "plainorginvitationorg@example.com",
+        kind: "organization",
+        type: "Organization",
+      });
+    });
+    assert.ok(member != null);
+    assert.ok(organization != null);
+
+    const notification = await createOrganizationInvitationNotification(
+      db,
+      member.account.id,
+      organization.actor.id,
+    );
+
+    assert.ok(notification != null);
+    assert.equal(notification.accountId, member.account.id);
+    assert.equal(notification.type, "organization_invitation");
+    assert.deepEqual(notification.actorIds, [organization.actor.id]);
+  } finally {
+    await db.delete(notificationTable).where(sql`
+      ${notificationTable.accountId} = ${member?.account.id ?? null}
+    `);
+    await db.delete(accountTable).where(sql`
+      ${accountTable.username} IN (${usernames[0]}, ${usernames[1]})
+    `);
+  }
 });
 
 test("deleteShareNotification() prunes merged actors and deletes empty rows", async () => {

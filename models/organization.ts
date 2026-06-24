@@ -18,6 +18,8 @@ import {
   accountTable,
   type Actor,
   actorTable,
+  articleDraftTable,
+  bookmarkTable,
   invitationLinkTable,
   type Medium,
   notificationTable,
@@ -741,8 +743,24 @@ export async function requestOrganizationConversion(
     id: generateUuidV7(),
     accountId: account.id,
     adminAccountId: admin.id,
-  }).returning();
-  const request = rows[0];
+  }).onConflictDoNothing().returning();
+  let request = rows[0];
+  if (request == null) {
+    const pending = await db.query.organizationConversionRequestTable.findFirst(
+      {
+        where: {
+          accountId: account.id,
+          accepted: { isNull: true },
+        },
+      },
+    );
+    if (pending == null) {
+      throw new OrganizationConversionError(
+        "The conversion request could not be created.",
+      );
+    }
+    request = pending;
+  }
   await createOrganizationConversionRequestNotification(
     db,
     account.id,
@@ -857,6 +875,10 @@ export async function acceptOrganizationConversion(
       .where(eq(pushNotificationTargetTable.accountId, request.accountId));
     await tx.delete(invitationLinkTable)
       .where(eq(invitationLinkTable.inviterId, request.accountId));
+    await tx.delete(articleDraftTable)
+      .where(eq(articleDraftTable.accountId, request.accountId));
+    await tx.delete(bookmarkTable)
+      .where(eq(bookmarkTable.accountId, request.accountId));
     await tx.update(accountTable)
       .set({
         kind: "organization",

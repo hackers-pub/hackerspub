@@ -20,6 +20,18 @@ const logger = getLogger(["hackerspub", "models", "notification"]);
 
 type NotificationDatabase = Database | Transaction;
 
+function isTransaction(db: NotificationDatabase): db is Transaction {
+  return "rollback" in db;
+}
+
+async function runInTransaction<T>(
+  db: NotificationDatabase,
+  run: (tx: Transaction) => Promise<T>,
+): Promise<T> {
+  if (isTransaction(db)) return await run(db);
+  return await db.transaction(run);
+}
+
 async function sendApnsNotificationBestEffort(
   db: Database,
   options: ApnsNotificationOptions,
@@ -297,30 +309,33 @@ export async function createOrganizationInvitationNotification(
   accountId: Uuid,
   organizationActorId: Uuid,
 ): Promise<Notification | undefined> {
-  await db.execute(sql`
-    SELECT pg_advisory_xact_lock(
-      hashtextextended(${`${organizationActorId}:${accountId}`}, 0)
-    )
-  `);
-  const existing = await db.select().from(notificationTable)
-    .where(sql`
-      ${notificationTable.accountId} = ${accountId}
-      AND ${notificationTable.type} = 'organization_invitation'
-      AND ${notificationTable.actorIds} = ARRAY[${organizationActorId}]::uuid[]
+  return await runInTransaction(db, async (tx) => {
+    await tx.execute(sql`
+      SELECT pg_advisory_xact_lock(
+        hashtextextended(${`${organizationActorId}:${accountId}`}, 0)
+      )
     `);
-  if (existing[0] != null) return existing[0];
+    const existing = await tx.select().from(notificationTable)
+      .where(sql`
+        ${notificationTable.accountId} = ${accountId}
+        AND ${notificationTable.type} = 'organization_invitation'
+        AND ${notificationTable.actorIds} =
+          ARRAY[${organizationActorId}]::uuid[]
+      `);
+    if (existing[0] != null) return existing[0];
 
-  const rows = await db.insert(notificationTable).values({
-    id: generateUuidV7(),
-    accountId,
-    type: "organization_invitation",
-    actorIds: [organizationActorId],
-  }).onConflictDoNothing().returning();
-  const inserted = rows[0];
-  if (inserted != null) {
-    await sendInsertedNotificationPush(db, inserted, organizationActorId);
-  }
-  return inserted;
+    const rows = await tx.insert(notificationTable).values({
+      id: generateUuidV7(),
+      accountId,
+      type: "organization_invitation",
+      actorIds: [organizationActorId],
+    }).onConflictDoNothing().returning();
+    const inserted = rows[0];
+    if (inserted != null) {
+      await sendInsertedNotificationPush(tx, inserted, organizationActorId);
+    }
+    return inserted;
+  });
 }
 
 export async function createOrganizationConversionRequestNotification(

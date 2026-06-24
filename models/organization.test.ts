@@ -26,6 +26,8 @@ import {
   accountEmailTable,
   accountTable,
   actorTable,
+  articleDraftTable,
+  bookmarkTable,
   followingTable,
   invitationLinkTable,
   notificationTable,
@@ -37,6 +39,7 @@ import {
   createTestDisk,
   createTestKv,
   insertAccountWithActor,
+  insertNotePost,
   insertRemoteActor,
   withRollback,
 } from "../test/postgres.ts";
@@ -924,6 +927,21 @@ test("acceptOrganizationConversion() preserves inviter and removes direct login 
       invitationsLeft: 3,
       message: "Join with a stale conversion link",
     });
+    await tx.insert(articleDraftTable).values({
+      id: crypto.randomUUID() as Uuid,
+      accountId: account.account.id,
+      title: "Stale personal draft",
+      content: "Drafts are personal-only.",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: admin.account,
+      content: "Bookmark target",
+    });
+    await tx.insert(bookmarkTable).values({
+      accountId: account.account.id,
+      postId: post.id,
+    });
+
     const converted = await acceptOrganizationConversion(
       createFedCtx(tx),
       admin.account,
@@ -949,6 +967,16 @@ test("acceptOrganizationConversion() preserves inviter and removes direct login 
       .from(invitationLinkTable)
       .where(eq(invitationLinkTable.inviterId, converted.id));
     assert.equal(invitationLinks.length, 0);
+
+    const drafts = await tx.select()
+      .from(articleDraftTable)
+      .where(eq(articleDraftTable.accountId, converted.id));
+    assert.equal(drafts.length, 0);
+
+    const bookmarks = await tx.select()
+      .from(bookmarkTable)
+      .where(eq(bookmarkTable.accountId, converted.id));
+    assert.equal(bookmarks.length, 0);
   });
 });
 
