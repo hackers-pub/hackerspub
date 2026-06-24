@@ -28,18 +28,22 @@ export interface NoteCardProps {
 export function NoteCard(props: NoteCardProps) {
   const note = createFragment(
     graphql`
-      fragment NoteCard_note on Note {
-        ...NoteCardInternal_note
+      fragment NoteCard_note on Note
+        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
+      {
+        ...NoteCardInternal_note @arguments(actingAccountId: $actingAccountId)
         ...PostSharer_post
         actor {
           handle
-          viewerMutes
+          viewerMutes(actingAccountId: $actingAccountId)
         }
         sharedPost {
-          ...NoteCardInternal_note
+          ...NoteCardInternal_note @arguments(
+            actingAccountId: $actingAccountId
+          )
           actor {
             handle
-            viewerMutes
+            viewerMutes(actingAccountId: $actingAccountId)
           }
         }
       }

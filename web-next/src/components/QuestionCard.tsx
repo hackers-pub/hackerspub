@@ -16,6 +16,7 @@ import IconSquare from "~icons/lucide/square";
 import { Badge } from "~/components/ui/badge.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { createDeferredRender } from "~/lib/deferredRender.ts";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
@@ -31,7 +32,7 @@ import { ActorHoverCard } from "./ActorHoverCard.tsx";
 import { ActorSharer, ActorSharerActor } from "./ActorSharer.tsx";
 import { CensorshipNotice } from "./CensorshipNotice.tsx";
 import { InternalLink } from "./InternalLink.tsx";
-import { PostAvatar } from "./PostAvatar.tsx";
+import { PostAuthorAvatar, PostAuthorLine } from "./PostAuthor.tsx";
 import { PostEngagementBar } from "./PostEngagementBar.tsx";
 import { QuoteTargetPlaceholder } from "./QuoteTargetPlaceholder.tsx";
 import { QuotedPostCard } from "./QuotedPostCard.tsx";
@@ -53,7 +54,9 @@ export interface QuestionCardProps {
 export function QuestionCard(props: QuestionCardProps) {
   const question = createFragment(
     graphql`
-      fragment QuestionCard_question on Question {
+      fragment QuestionCard_question on Question
+        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
+      {
         actor {
           name
           local
@@ -61,11 +64,15 @@ export function QuestionCard(props: QuestionCardProps) {
           handle
         }
         published
-        ...QuestionCardContent_question
+        ...QuestionCardContent_question @arguments(
+          actingAccountId: $actingAccountId
+        )
         sharedPost {
           __typename
           ... on Question {
-            ...QuestionCardContent_question
+            ...QuestionCardContent_question @arguments(
+              actingAccountId: $actingAccountId
+            )
           }
         }
       }
@@ -149,7 +156,9 @@ function QuestionCardContent(props: QuestionCardContentProps) {
 
   const question = createFragment(
     graphql`
-      fragment QuestionCardContent_question on Question {
+      fragment QuestionCardContent_question on Question
+        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
+      {
         __id
         id
         uuid
@@ -166,11 +175,12 @@ function QuestionCardContent(props: QuestionCardContentProps) {
           handle
           username
           local
-          isViewer
+          isViewer(actingAccountId: $actingAccountId)
           url
           iri
-          ...PostAvatar_actor
         }
+        ...PostAuthorAvatar_post
+        ...PostAuthorLine_post
         poll {
           multiple
           closed
@@ -191,18 +201,22 @@ function QuestionCardContent(props: QuestionCardContentProps) {
             }
           }
         }
-        viewerCanRevokeQuote
+        viewerCanRevokeQuote(actingAccountId: $actingAccountId)
         quoteTargetState
         quotedPost {
           ...QuotedPostCard_post
         }
-        ...PostEngagementBar_post
+        ...PostEngagementBar_post @arguments(
+          actingAccountId: $actingAccountId
+        )
       }
     `,
     () => props.$question,
   );
   const { i18n, t } = useLingui();
   const viewer = useViewer();
+  const actingAccount = useActingAccount();
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
   const [selectedOptions, setSelectedOptions] = createSignal<
     ReadonlySet<
       number
@@ -212,12 +226,17 @@ function QuestionCardContent(props: QuestionCardContentProps) {
     QuestionCard_voteOnPoll_Mutation
   >(
     graphql`
-      mutation QuestionCard_voteOnPoll_Mutation($input: VoteOnPollInput!) {
+      mutation QuestionCard_voteOnPoll_Mutation(
+        $input: VoteOnPollInput!
+        $actingAccountId: ID
+      ) {
         voteOnPoll(input: $input) {
           __typename
           ... on VoteOnPollPayload {
             question {
-              ...QuestionCard_question
+              ...QuestionCard_question @arguments(
+                actingAccountId: $actingAccountId
+              )
             }
           }
           ... on InvalidInputError {
@@ -248,30 +267,10 @@ function QuestionCardContent(props: QuestionCardContentProps) {
     <Show keyed when={question()}>
       {(q) => (
         <div class="flex gap-4">
-          <PostAvatar $actor={q.actor} />
+          <PostAuthorAvatar $post={q} />
           <div class="min-w-0 grow">
             <div class="flex items-center gap-1 flex-wrap">
-              <ActorHoverCard
-                handle={q.actor.handle}
-                class="min-w-0 grow flex flex-wrap items-baseline gap-x-1"
-              >
-                <Show when={(q.actor.name ?? "").trim() !== ""}>
-                  <InternalLink
-                    href={q.actor.url ?? q.actor.iri}
-                    internalHref={q.actor.local
-                      ? `/@${q.actor.username}`
-                      : `/${q.actor.handle}`}
-                    innerHTML={q.actor.name ?? ""}
-                    class="font-semibold"
-                  />
-                </Show>
-                <span
-                  class="min-w-0 truncate select-all text-muted-foreground"
-                  title={q.actor.handle}
-                >
-                  {q.actor.handle}
-                </span>
-              </ActorHoverCard>
+              <PostAuthorLine $post={q} class="grow" />
               <span class="flex items-center text-sm text-muted-foreground/60 gap-1.5">
                 <InternalLink
                   href={q.url ?? q.iri}
@@ -408,7 +407,9 @@ function QuestionCardContent(props: QuestionCardContentProps) {
           input: {
             questionId: props.questionId,
             optionIndices: [...selectedOptions()].sort((a, b) => a - b),
+            actingAccountId: actingAccountId() ?? null,
           },
+          actingAccountId: actingAccountId() ?? null,
         },
         onCompleted(response) {
           switch (response.voteOnPoll.__typename) {

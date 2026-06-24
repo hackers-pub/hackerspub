@@ -2,8 +2,8 @@ import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
 import { NoteHeader_note$key } from "./__generated__/NoteHeader_note.graphql.ts";
-import { ActorHoverCard } from "./ActorHoverCard.tsx";
 import { InternalLink } from "./InternalLink.tsx";
+import { PostAuthorLine } from "./PostAuthor.tsx";
 import { Timestamp } from "./Timestamp.tsx";
 import { VisibilityTag } from "./VisibilityTag.tsx";
 
@@ -23,14 +23,11 @@ export function NoteHeader(props: NoteHeaderProps) {
         url
         iri
         actor {
-          name
           handle
           username
           local
-          url
-          iri
-          isViewer
         }
+        ...PostAuthorLine_post
       }
     `,
     () => props.$note,
@@ -40,27 +37,7 @@ export function NoteHeader(props: NoteHeaderProps) {
     <Show keyed when={note()}>
       {(n) => (
         <div class="flex min-w-0 flex-wrap items-center gap-x-1 gap-y-0.5">
-          <ActorHoverCard
-            handle={n.actor.handle}
-            class="min-w-0 grow flex flex-wrap items-baseline gap-x-1"
-          >
-            <Show when={(n.actor.name ?? "").trim() !== ""}>
-              <InternalLink
-                href={n.actor.url ?? n.actor.iri}
-                internalHref={n.actor.local
-                  ? `/@${n.actor.username}`
-                  : `/${n.actor.handle}`}
-                innerHTML={n.actor.name ?? ""}
-                class="font-semibold"
-              />
-            </Show>
-            <span
-              class="min-w-0 truncate select-all text-muted-foreground"
-              title={n.actor.handle}
-            >
-              {n.actor.handle}
-            </span>
-          </ActorHoverCard>
+          <PostAuthorLine $post={n} class="grow" />
           <span class="flex items-center gap-1.5 text-sm text-muted-foreground/70">
             <InternalLink
               href={n.url ?? n.iri}

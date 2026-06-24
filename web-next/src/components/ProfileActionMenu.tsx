@@ -28,8 +28,8 @@ import {
 import { showToast } from "~/components/ui/toast.tsx";
 import { RefreshFromOriginItem } from "~/components/RefreshFromOriginItem.tsx";
 import { ReportDialog } from "~/components/ReportDialog.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
-import { isViewerActor } from "~/lib/actorUtils.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import {
   holdProfileContentGate,
@@ -48,16 +48,19 @@ export interface ProfileActionMenuProps {
 }
 
 const blockActorMutation = graphql`
-  mutation ProfileActionMenu_blockActor_Mutation($input: BlockActorInput!) {
+  mutation ProfileActionMenu_blockActor_Mutation(
+    $input: BlockActorInput!
+    $actingAccountId: ID
+  ) {
     blockActor(input: $input) {
       __typename
       ... on BlockActorPayload {
         blockee {
           id
-          viewerBlocks
-          blocksViewer
-          viewerFollows
-          followsViewer
+          viewerBlocks(actingAccountId: $actingAccountId)
+          blocksViewer(actingAccountId: $actingAccountId)
+          viewerFollows(actingAccountId: $actingAccountId)
+          followsViewer(actingAccountId: $actingAccountId)
           followersCount: followers {
             totalCount
           }
@@ -67,10 +70,10 @@ const blockActorMutation = graphql`
         }
         blocker {
           id
-          viewerBlocks
-          blocksViewer
-          viewerFollows
-          followsViewer
+          viewerBlocks(actingAccountId: $actingAccountId)
+          blocksViewer(actingAccountId: $actingAccountId)
+          viewerFollows(actingAccountId: $actingAccountId)
+          followsViewer(actingAccountId: $actingAccountId)
           followersCount: followers {
             totalCount
           }
@@ -92,16 +95,17 @@ const blockActorMutation = graphql`
 const unblockActorMutation = graphql`
   mutation ProfileActionMenu_unblockActor_Mutation(
     $input: UnblockActorInput!
+    $actingAccountId: ID
   ) {
     unblockActor(input: $input) {
       __typename
       ... on UnblockActorPayload {
         blockee {
           id
-          viewerBlocks
-          blocksViewer
-          viewerFollows
-          followsViewer
+          viewerBlocks(actingAccountId: $actingAccountId)
+          blocksViewer(actingAccountId: $actingAccountId)
+          viewerFollows(actingAccountId: $actingAccountId)
+          followsViewer(actingAccountId: $actingAccountId)
           followersCount: followers {
             totalCount
           }
@@ -111,10 +115,10 @@ const unblockActorMutation = graphql`
         }
         blocker {
           id
-          viewerBlocks
-          blocksViewer
-          viewerFollows
-          followsViewer
+          viewerBlocks(actingAccountId: $actingAccountId)
+          blocksViewer(actingAccountId: $actingAccountId)
+          viewerFollows(actingAccountId: $actingAccountId)
+          followsViewer(actingAccountId: $actingAccountId)
           followersCount: followers {
             totalCount
           }
@@ -134,13 +138,16 @@ const unblockActorMutation = graphql`
 `;
 
 const muteActorMutation = graphql`
-  mutation ProfileActionMenu_muteActor_Mutation($input: MuteActorInput!) {
+  mutation ProfileActionMenu_muteActor_Mutation(
+    $input: MuteActorInput!
+    $actingAccountId: ID
+  ) {
     muteActor(input: $input) {
       __typename
       ... on MuteActorPayload {
         mutee {
           id
-          viewerMutes
+          viewerMutes(actingAccountId: $actingAccountId)
         }
       }
       ... on InvalidInputError {
@@ -154,13 +161,16 @@ const muteActorMutation = graphql`
 `;
 
 const unmuteActorMutation = graphql`
-  mutation ProfileActionMenu_unmuteActor_Mutation($input: UnmuteActorInput!) {
+  mutation ProfileActionMenu_unmuteActor_Mutation(
+    $input: UnmuteActorInput!
+    $actingAccountId: ID
+  ) {
     unmuteActor(input: $input) {
       __typename
       ... on UnmuteActorPayload {
         mutee {
           id
-          viewerMutes
+          viewerMutes(actingAccountId: $actingAccountId)
         }
       }
       ... on InvalidInputError {
@@ -176,6 +186,7 @@ const unmuteActorMutation = graphql`
 const removeFollowerMutation = graphql`
   mutation ProfileActionMenu_removeFollower_Mutation(
     $input: RemoveFollowerInput!
+    $actingAccountId: ID
   ) {
     removeFollower(input: $input) {
       __typename
@@ -186,7 +197,7 @@ const removeFollowerMutation = graphql`
         }
         follower {
           id
-          followsViewer
+          followsViewer(actingAccountId: $actingAccountId)
           followees { totalCount }
         }
       }
@@ -203,24 +214,27 @@ const removeFollowerMutation = graphql`
 export function ProfileActionMenu(props: ProfileActionMenuProps) {
   const { t } = useLingui();
   const viewer = useViewer();
+  const actingAccount = useActingAccount();
   const [showConfirm, setShowConfirm] = createSignal(false);
   const [showRemoveFollowerConfirm, setShowRemoveFollowerConfirm] =
     createSignal(false);
   const [showReport, setShowReport] = createSignal(false);
   const actor = createFragment(
     graphql`
-      fragment ProfileActionMenu_actor on Actor {
+      fragment ProfileActionMenu_actor on Actor
+        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
+      {
         id
         username
         handle
         rawName
         local
         iri
-        isViewer
-        viewerBlocks
-        blocksViewer
-        viewerMutes
-        followsViewer
+        isViewer(actingAccountId: $actingAccountId)
+        viewerBlocks(actingAccountId: $actingAccountId)
+        blocksViewer(actingAccountId: $actingAccountId)
+        viewerMutes(actingAccountId: $actingAccountId)
+        followsViewer(actingAccountId: $actingAccountId)
       }
     `,
     () => props.$actor,
@@ -244,7 +258,14 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
 
   const displayName = () => actor()?.rawName ?? actor()?.username ?? "";
   const isPending = () => isBlocking() || isUnblocking();
-  const isCurrentViewerActor = () => isViewerActor(actor(), viewer.username());
+  const isCurrentViewerActor = () => actor()?.isViewer ?? false;
+  const selectedActingAccountInput = () => {
+    const actingAccountId = actingAccount.selectedActingAccountId();
+    return {
+      actingAccountId,
+      input: actingAccountId == null ? {} : { actingAccountId },
+    };
+  };
   const showErrorToast = (title: string) => {
     showToast({
       title,
@@ -288,11 +309,13 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
     if (!actorData) return;
 
     holdProfileContentGate();
+    const acting = selectedActingAccountInput();
 
     if (actorData.viewerBlocks) {
       unblockActor({
         variables: {
-          input: { actorId: actorData.id },
+          input: { actorId: actorData.id, ...acting.input },
+          actingAccountId: acting.actingAccountId ?? null,
         },
         onCompleted(response) {
           void handleBlockToggleResult(
@@ -310,7 +333,8 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
     } else {
       blockActor({
         variables: {
-          input: { actorId: actorData.id },
+          input: { actorId: actorData.id, ...acting.input },
+          actingAccountId: acting.actingAccountId ?? null,
         },
         onCompleted(response) {
           void handleBlockToggleResult(
@@ -332,10 +356,12 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
   const handleRemoveFollower = () => {
     const actorData = actor();
     if (!actorData) return;
+    const acting = selectedActingAccountInput();
 
     removeFollower({
       variables: {
-        input: { actorId: actorData.id },
+        input: { actorId: actorData.id, ...acting.input },
+        actingAccountId: acting.actingAccountId ?? null,
       },
       onCompleted(response) {
         const typename = response.removeFollower?.__typename;
@@ -357,11 +383,13 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
   const handleMuteToggle = () => {
     const actorData = actor();
     if (!actorData) return;
+    const acting = selectedActingAccountInput();
 
     if (actorData.viewerMutes) {
       unmuteActor({
         variables: {
-          input: { actorId: actorData.id },
+          input: { actorId: actorData.id, ...acting.input },
+          actingAccountId: acting.actingAccountId ?? null,
         },
         onCompleted(response) {
           const typename = response.unmuteActor?.__typename;
@@ -379,7 +407,8 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
     } else {
       muteActor({
         variables: {
-          input: { actorId: actorData.id },
+          input: { actorId: actorData.id, ...acting.input },
+          actingAccountId: acting.actingAccountId ?? null,
         },
         onCompleted(response) {
           const typename = response.muteActor?.__typename;

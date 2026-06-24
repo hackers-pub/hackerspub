@@ -1,5 +1,6 @@
 import { assert } from "@std/assert/assert";
 import type { RequestContext } from "@fedify/fedify";
+import { Organization, Person } from "@fedify/vocab";
 import { sql } from "drizzle-orm";
 import type { ContextData } from "@hackerspub/models/context";
 import type { Transaction } from "@hackerspub/models/db";
@@ -94,6 +95,7 @@ export async function insertAccountWithActor(
     iri?: string;
     inboxUrl?: string;
     host?: string;
+    kind?: "personal" | "organization";
     type?: ActorType;
     followersCount?: number;
     followeesCount?: number;
@@ -111,6 +113,8 @@ export async function insertAccountWithActor(
 
   await tx.insert(accountTable).values({
     id: accountId,
+    kind: values.kind ??
+      (values.type === "Organization" ? "organization" : "personal"),
     username: values.username,
     name: values.name,
     bio: "",
@@ -521,7 +525,7 @@ export function createFedCtx(
     );
   });
 
-  return {
+  const fedCtx = {
     host: "localhost",
     origin: "http://localhost/",
     canonicalOrigin: "http://localhost/",
@@ -551,6 +555,20 @@ export function createFedCtx(
     getFeaturedUri(identifier: string) {
       return new URL(`/actors/${identifier}/featured`, "http://localhost/");
     },
+    async getActor(identifier: string) {
+      const account = await tx.query.accountTable.findFirst({
+        where: { id: identifier as Uuid },
+        columns: { id: true, kind: true, username: true },
+      });
+      if (account == null) return null;
+      const ActorClass = account.kind === "organization"
+        ? Organization
+        : Person;
+      return new ActorClass({
+        id: new URL(`/actors/${identifier}`, "http://localhost/"),
+        preferredUsername: account.username,
+      });
+    },
     getObjectUri(_type: unknown, values: Record<string, string>) {
       if ("id" in values) {
         return new URL(`/objects/${values.id}`, "http://localhost/");
@@ -567,7 +585,14 @@ export function createFedCtx(
     sendActivity() {
       return Promise.resolve(undefined);
     },
+    clone(this: RequestContext<ContextData>, data: ContextData) {
+      return {
+        ...this,
+        data,
+      };
+    },
   } as unknown as RequestContext<ContextData>;
+  return fedCtx;
 }
 
 function createNoopAltTextModel(): MockLanguageModelV3 {

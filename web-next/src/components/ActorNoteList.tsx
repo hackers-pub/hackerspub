@@ -1,6 +1,15 @@
 import { graphql } from "relay-runtime";
-import { createSignal, For, Match, Show, Switch } from "solid-js";
+import {
+  createEffect,
+  createSignal,
+  For,
+  Match,
+  on,
+  Show,
+  Switch,
+} from "solid-js";
 import { createPaginationFragment } from "solid-relay";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { ActorNoteList_notes$key } from "./__generated__/ActorNoteList_notes.graphql.ts";
 import { NoteCard } from "./NoteCard.tsx";
@@ -11,6 +20,7 @@ export interface ActorNoteListProps {
 
 export function ActorNoteList(props: ActorNoteListProps) {
   const { t } = useLingui();
+  const actingAccount = useActingAccount();
   const notes = createPaginationFragment(
     graphql`
       fragment ActorNoteList_notes on Actor
@@ -18,17 +28,18 @@ export function ActorNoteList(props: ActorNoteListProps) {
         @argumentDefinitions(
           cursor: { type: "String" }
           count: { type: "Int", defaultValue: 20 }
+          actingAccountId: { type: "ID" }
         )
       {
         __id
-        notes(after: $cursor, first: $count)
+        notes(after: $cursor, first: $count, actingAccountId: $actingAccountId)
           @connection(key: "ActorNoteList_notes")
         {
           __id
           edges {
             __id
             node {
-              ...NoteCard_note
+              ...NoteCard_note @arguments(actingAccountId: $actingAccountId)
             }
           }
           pageInfo {
@@ -42,6 +53,14 @@ export function ActorNoteList(props: ActorNoteListProps) {
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
   >("loaded");
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
+
+  createEffect(on(
+    actingAccountId,
+    (actingAccountId) =>
+      notes.refetch({ actingAccountId: actingAccountId ?? null }),
+    { defer: true },
+  ));
 
   function onLoadMore() {
     setLoadingState("loading");

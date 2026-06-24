@@ -28,7 +28,6 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
-import { ActorHoverCard } from "~/components/ActorHoverCard.tsx";
 import { ArticleCard } from "~/components/ArticleCard.tsx";
 import { InternalLink } from "~/components/InternalLink.tsx";
 import { MutedReplyPlaceholder } from "~/components/MutedReplyPlaceholder.tsx";
@@ -36,12 +35,13 @@ import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NoteCard } from "~/components/NoteCard.tsx";
 import { NoteComposer } from "~/components/NoteComposer.tsx";
 import { NotFoundPage } from "~/components/NotFoundPage.tsx";
-import { PostAvatar } from "~/components/PostAvatar.tsx";
+import { PostAuthorAvatar, PostAuthorLine } from "~/components/PostAuthor.tsx";
 import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
 import { QuestionCard } from "~/components/QuestionCard.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { Title } from "~/components/Title.tsx";
 import { Trans } from "~/components/Trans.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -95,19 +95,29 @@ export const route = {
 } satisfies RouteDefinition;
 
 const NoteIdPageQuery = graphql`
-  query NoteIdPageQuery($handle: String!, $noteId: UUID!, $locale: Locale) {
+  query NoteIdPageQuery(
+    $handle: String!
+    $noteId: UUID!
+    $locale: Locale
+    $actingAccountId: ID
+  ) {
     actorByHandle(handle: $handle, allowLocalHandle: true) {
-      postByUuid(uuid: $noteId) {
+      postByUuid(uuid: $noteId, actingAccountId: $actingAccountId) {
         __typename
         ...NoteId_head
         ... on Note {
-          ...NoteId_noteBody
+          ...NoteId_noteBody @arguments(actingAccountId: $actingAccountId)
         }
         ... on Question {
-          ...NoteId_questionBody
+          ...NoteId_questionBody @arguments(
+            actingAccountId: $actingAccountId
+          )
         }
         ... on Article {
-          ...NoteId_articleBody @arguments(locale: $locale)
+          ...NoteId_articleBody @arguments(
+            locale: $locale
+            actingAccountId: $actingAccountId
+          )
         }
       }
     }
@@ -118,19 +128,28 @@ const NoteIdPageQuery = graphql`
 `;
 
 const loadNotePageQuery = routePreloadedQuery(
-  (username: string, noteId: Uuid, locale: string) =>
+  (
+    username: string,
+    noteId: Uuid,
+    locale: string,
+    actingAccountId: string | null,
+  ) =>
     loadQuery<NoteIdPageQuery>(
       useRelayEnvironment()(),
       NoteIdPageQuery,
-      { handle: username, noteId, locale },
+      { handle: username, noteId, locale, actingAccountId },
     ),
   NOTE_PAGE_QUERY_KEY,
 );
 
 const NoteIdThreadQuery = graphql`
-  query NoteIdThreadQuery($handle: String!, $noteId: UUID!) {
+  query NoteIdThreadQuery(
+    $handle: String!
+    $noteId: UUID!
+    $actingAccountId: ID
+  ) {
     actorByHandle(handle: $handle, allowLocalHandle: true) {
-      postByUuid(uuid: $noteId) {
+      postByUuid(uuid: $noteId, actingAccountId: $actingAccountId) {
         ...NoteIdThread_post
       }
     }
@@ -138,11 +157,11 @@ const NoteIdThreadQuery = graphql`
 `;
 
 const loadNoteThreadQuery = routePreloadedQuery(
-  (username: string, noteId: Uuid) =>
+  (username: string, noteId: Uuid, actingAccountId: string | null) =>
     loadQuery<NoteIdThreadQuery>(
       useRelayEnvironment()(),
       NoteIdThreadQuery,
-      { handle: username, noteId },
+      { handle: username, noteId, actingAccountId },
       { fetchPolicy: "store-and-network" },
     ),
   NOTE_THREAD_QUERY_KEY,
@@ -171,6 +190,8 @@ interface NotePageLoadedProps {
 function NotePageLoaded(props: NotePageLoadedProps) {
   const { onNoteCreated } = useNoteCompose();
   const { i18n } = useLingui();
+  const actingAccount = useActingAccount();
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
 
   onMount(() => {
     onCleanup(onNoteCreated(() => void revalidateNotePageQueries()));
@@ -178,7 +199,13 @@ function NotePageLoaded(props: NotePageLoadedProps) {
 
   const noteData = createStablePreloadedQuery<NoteIdPageQuery>(
     NoteIdPageQuery,
-    () => loadNotePageQuery(props.username, props.noteId, i18n.locale),
+    () =>
+      loadNotePageQuery(
+        props.username,
+        props.noteId,
+        i18n.locale,
+        actingAccountId() ?? null,
+      ),
   );
 
   const post = () => noteData()?.actorByHandle?.postByUuid;
@@ -351,12 +378,14 @@ function NoteInternal(props: NoteInternalProps) {
 
   const note = createFragment(
     graphql`
-      fragment NoteId_noteBody on Note {
+      fragment NoteId_noteBody on Note
+        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
+      {
         id
         visibility
         iri
         url
-        ...NoteCard_note
+        ...NoteCard_note @arguments(actingAccountId: $actingAccountId)
       }
     `,
     () => props.$note,
@@ -426,12 +455,14 @@ function QuestionInternal(props: QuestionInternalProps) {
 
   const question = createFragment(
     graphql`
-      fragment NoteId_questionBody on Question {
+      fragment NoteId_questionBody on Question
+        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
+      {
         id
         visibility
         iri
         url
-        ...QuestionCard_question
+        ...QuestionCard_question @arguments(actingAccountId: $actingAccountId)
       }
     `,
     () => props.$question,
@@ -504,13 +535,19 @@ function ArticleInternal(props: ArticleInternalProps) {
   const article = createFragment(
     graphql`
       fragment NoteId_articleBody on Article
-        @argumentDefinitions(locale: { type: "Locale" })
+        @argumentDefinitions(
+          locale: { type: "Locale" }
+          actingAccountId: { type: "ID", defaultValue: null }
+        )
       {
         id
         visibility
         iri
         url
-        ...ArticleCard_article @arguments(locale: $locale)
+        ...ArticleCard_article @arguments(
+          locale: $locale
+          actingAccountId: $actingAccountId
+        )
       }
     `,
     () => props.$article,
@@ -588,12 +625,19 @@ function PermalinkThread(props: PermalinkThreadProps) {
 
 function PermalinkThreadLoaded(props: PermalinkThreadProps) {
   const { t } = useLingui();
+  const actingAccount = useActingAccount();
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
   >("loaded");
   const data = createStablePreloadedQuery<NoteIdThreadQuery>(
     NoteIdThreadQuery,
-    () => loadNoteThreadQuery(props.username, props.noteId),
+    () =>
+      loadNoteThreadQuery(
+        props.username,
+        props.noteId,
+        actingAccountId() ?? null,
+      ),
   );
   const thread = createPaginationFragment(
     graphql`
@@ -754,8 +798,9 @@ function ContextPostCard(props: ContextPostCardProps) {
           url
           iri
           viewerMutes
-          ...PostAvatar_actor
         }
+        ...PostAuthorAvatar_post
+        ...PostAuthorLine_post
       }
     `,
     () => props.$post,
@@ -781,30 +826,10 @@ function ContextPostCard(props: ContextPostCardProps) {
           >
             <article class="border-b px-4 py-3 transition-colors hover:bg-muted/30 last:border-none">
               <div class="flex gap-3 sm:gap-4">
-                <PostAvatar $actor={post.actor} />
+                <PostAuthorAvatar $post={post} />
                 <div class="min-w-0 grow">
                   <div class="flex min-w-0 flex-wrap items-center gap-x-1 gap-y-0.5">
-                    <ActorHoverCard
-                      handle={post.actor.handle}
-                      class="min-w-0 grow flex flex-wrap items-baseline gap-x-1"
-                    >
-                      <Show when={(post.actor.name ?? "").trim() !== ""}>
-                        <InternalLink
-                          href={post.actor.url ?? post.actor.iri}
-                          internalHref={post.actor.local
-                            ? `/@${post.actor.username}`
-                            : `/${post.actor.handle}`}
-                          innerHTML={post.actor.name ?? ""}
-                          class="font-semibold"
-                        />
-                      </Show>
-                      <span
-                        class="min-w-0 truncate select-all text-muted-foreground"
-                        title={post.actor.handle}
-                      >
-                        {post.actor.handle}
-                      </span>
-                    </ActorHoverCard>
+                    <PostAuthorLine $post={post} class="grow" />
                     <span class="flex items-center gap-1.5 text-sm text-muted-foreground/70">
                       <ContextPostLink
                         href={href()}

@@ -391,7 +391,7 @@ export interface ViewerReactionRow {
 export async function getViewerReactionsForPosts(
   db: Database,
   postIds: readonly Uuid[],
-  actor: Actor,
+  actor: Pick<Actor, "id">,
 ): Promise<ViewerReactionRow[]> {
   if (postIds.length < 1) return [];
   const rows = await db

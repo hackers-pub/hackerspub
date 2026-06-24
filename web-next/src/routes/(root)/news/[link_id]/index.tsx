@@ -8,6 +8,7 @@ import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NewsDiscussion } from "~/components/NewsDiscussion.tsx";
 import { NewsStoryHeader } from "~/components/NewsStoryHeader.tsx";
 import { NotFoundPage } from "~/components/NotFoundPage.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import {
   createStablePreloadedQuery,
@@ -16,19 +17,20 @@ import {
 import type { LinkIdPageQuery } from "./__generated__/LinkIdPageQuery.graphql.ts";
 
 const LinkIdPageQuery = graphql`
-  query LinkIdPageQuery($id: UUID!) {
+  query LinkIdPageQuery($id: UUID!, $actingAccountId: ID) {
     newsStory(id: $id) {
       title
       ...NewsStoryHeader_story
-      ...NewsDiscussion_story
+      ...NewsDiscussion_story @arguments(actingAccountId: $actingAccountId)
     }
   }
 `;
 
 const loadLinkIdPageQuery = routePreloadedQuery(
-  (id: Uuid) =>
+  (id: Uuid, actingAccountId: string | null) =>
     loadQuery<LinkIdPageQuery>(useRelayEnvironment()(), LinkIdPageQuery, {
       id,
+      actingAccountId,
     }),
   "loadLinkIdPageQuery",
 );
@@ -65,9 +67,11 @@ function NewsDiscussionContent(props: {
   targetUuid: string | null;
   titleFallback: string;
 }) {
+  const actingAccount = useActingAccount();
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
   const data = createStablePreloadedQuery<LinkIdPageQuery>(
     LinkIdPageQuery,
-    () => loadLinkIdPageQuery(props.linkId),
+    () => loadLinkIdPageQuery(props.linkId, actingAccountId() ?? null),
   );
 
   return (

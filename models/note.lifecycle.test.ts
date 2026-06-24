@@ -7,7 +7,12 @@ import type { ContextData } from "./context.ts";
 import type { Transaction } from "./db.ts";
 import { createNote, QuotePolicyDeniedError, updateNote } from "./note.ts";
 import { createQuestion } from "./question.ts";
-import { followingTable, mediumTable, postTable } from "./schema.ts";
+import {
+  followingTable,
+  mediumTable,
+  organizationPostAuthorTable,
+  postTable,
+} from "./schema.ts";
 import { generateUuidV7 } from "./uuid.ts";
 import { withTagsPubRelayEnabled } from "../test/env.ts";
 import {
@@ -58,6 +63,72 @@ test("createNote() creates a post and timeline entry for the author", async () =
     assert.equal(timelineItem.originalAuthorId, author.actor.id);
     assert.equal(timelineItem.lastSharerId, null);
     assert.equal(timelineItem.sharersCount, 0);
+  });
+});
+
+test("createNote() applies post-created hooks before federation", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "createnotecoauthor",
+      name: "Create Note Co-author",
+      email: "createnotecoauthor@example.com",
+    });
+    const organization = await insertAccountWithActor(tx, {
+      username: "createnoteorg",
+      name: "Create Note Organization",
+      email: "createnoteorg@example.com",
+      kind: "organization",
+      type: "Organization",
+    });
+    const sent: unknown[][] = [];
+    const fedCtx = {
+      ...createFedCtx(tx),
+      sendActivity(...args: unknown[]) {
+        sent.push(args);
+        return Promise.resolve(undefined);
+      },
+    } as unknown as Context<ContextData<Transaction>>;
+
+    const note = await createNote(
+      fedCtx,
+      {
+        accountId: organization.account.id,
+        visibility: "public",
+        content: "Co-authored note",
+        language: "en",
+        media: [],
+      },
+      {},
+      {
+        async afterPostCreated(post) {
+          await tx.insert(organizationPostAuthorTable).values({
+            postId: post.id,
+            organizationAccountId: organization.account.id,
+            memberAccountId: member.account.id,
+            attributionMode: "acting_account_with_viewer",
+          });
+        },
+      },
+    );
+
+    assert.ok(note != null);
+    const create = sent
+      .map((args) => args[2])
+      .find((activity) => activity instanceof Create);
+    assert.ok(create instanceof Create);
+    assert.deepEqual(
+      create.actorIds.map((id) => id.href),
+      [`http://localhost/actors/${organization.account.id}`],
+    );
+    const object = await create.getObject({ ...fedCtx, suppressError: true });
+    assert.ok(object instanceof ActivityPubNote);
+    assert.deepEqual(
+      object.attributionIds.map((id) => id.href),
+      [
+        `http://localhost/actors/${organization.account.id}`,
+        `http://localhost/actors/${member.account.id}`,
+      ],
+    );
   });
 });
 

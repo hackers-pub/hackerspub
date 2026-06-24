@@ -18,6 +18,7 @@ export function ActorFollowingList(props: ActorFollowingListProps) {
         @argumentDefinitions(
           cursor: { type: "String" }
           count: { type: "Int", defaultValue: 20 }
+          actingAccountId: { type: "ID", defaultValue: null }
         )
       {
         __id
@@ -27,7 +28,9 @@ export function ActorFollowingList(props: ActorFollowingListProps) {
           edges {
             __id
             node {
-              ...SmallProfileCard_actor
+              ...SmallProfileCard_actor @arguments(
+                actingAccountId: $actingAccountId
+              )
             }
           }
           pageInfo {

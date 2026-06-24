@@ -11,6 +11,7 @@ import { ReactionGroupSection } from "~/components/ReactionGroupSection.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { Title } from "~/components/Title.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import {
@@ -25,9 +26,13 @@ import type {
 const REACTIONS_QUERY_KEY = "loadReactionsQuery";
 
 const reactionsNoteEngagementQuery = graphql`
-  query reactionsNoteEngagementQuery($handle: String!, $noteId: UUID!) {
+  query reactionsNoteEngagementQuery(
+    $handle: String!
+    $noteId: UUID!
+    $actingAccountId: ID
+  ) {
     actorByHandle(handle: $handle, allowLocalHandle: true) {
-      postByUuid(uuid: $noteId) {
+      postByUuid(uuid: $noteId, actingAccountId: $actingAccountId) {
         __typename
         id
         engagementStats {
@@ -35,7 +40,7 @@ const reactionsNoteEngagementQuery = graphql`
           quotes
           reactions
         }
-        ...PostCard_post
+        ...PostCard_post @arguments(actingAccountId: $actingAccountId)
         reactionGroups {
           __typename
           ... on EmojiReactionGroup {
@@ -45,7 +50,9 @@ const reactionsNoteEngagementQuery = graphql`
               edges {
                 node {
                   id
-                  ...ActorPreviewCard_actor
+                  ...ActorPreviewCard_actor @arguments(
+                    actingAccountId: $actingAccountId
+                  )
                 }
               }
               pageInfo {
@@ -65,7 +72,9 @@ const reactionsNoteEngagementQuery = graphql`
               edges {
                 node {
                   id
-                  ...ActorPreviewCard_actor
+                  ...ActorPreviewCard_actor @arguments(
+                    actingAccountId: $actingAccountId
+                  )
                 }
               }
               pageInfo {
@@ -81,11 +90,11 @@ const reactionsNoteEngagementQuery = graphql`
 `;
 
 const loadReactionsQuery = routePreloadedQuery(
-  (username: string, noteId: Uuid) =>
+  (username: string, noteId: Uuid, actingAccountId: string | null) =>
     loadQuery<reactionsNoteEngagementQuery>(
       useRelayEnvironment()(),
       reactionsNoteEngagementQuery,
-      { handle: username, noteId },
+      { handle: username, noteId, actingAccountId },
       { fetchPolicy: "store-and-network" },
     ),
   REACTIONS_QUERY_KEY,
@@ -117,10 +126,17 @@ type ReactionsPagePost = NonNullable<
 >;
 
 function ReactionsPageLoaded(props: { noteId: Uuid; handle: string }) {
+  const actingAccount = useActingAccount();
   const username = () => props.handle.replace(/^@/, "");
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
   const data = createStablePreloadedQuery<reactionsNoteEngagementQuery>(
     reactionsNoteEngagementQuery,
-    () => loadReactionsQuery(username(), props.noteId),
+    () =>
+      loadReactionsQuery(
+        username(),
+        props.noteId,
+        actingAccountId() ?? null,
+      ),
   );
   // Notes, questions, and articles can all be reached through the
   // `[noteId]` route.  Local articles additionally expose a prettier

@@ -3,7 +3,7 @@ import { and, eq, isNull, sql } from "drizzle-orm";
 import { type ApnsNotificationOptions, sendApnsNotification } from "./apns.ts";
 import { type FcmNotificationOptions, sendFcmNotification } from "./fcm.ts";
 import { sendWebPushNotification } from "./webpush.ts";
-import type { Database } from "./db.ts";
+import { type Database, runInTransaction, type Transaction } from "./db.ts";
 import {
   type Account,
   type Actor,
@@ -17,6 +17,8 @@ import {
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "notification"]);
+
+type NotificationDatabase = Database | Transaction;
 
 async function sendApnsNotificationBestEffort(
   db: Database,
@@ -57,13 +59,14 @@ async function sendFcmNotificationBestEffort(
 }
 
 async function sendPushNotificationsBestEffort(
-  db: Database,
+  db: NotificationDatabase,
   options: ApnsNotificationOptions & FcmNotificationOptions,
 ): Promise<void> {
+  const pushDb = db as Database;
   await Promise.all([
-    sendApnsNotificationBestEffort(db, options),
-    sendFcmNotificationBestEffort(db, options),
-    sendWebPushNotificationBestEffort(db, options),
+    sendApnsNotificationBestEffort(pushDb, options),
+    sendFcmNotificationBestEffort(pushDb, options),
+    sendWebPushNotificationBestEffort(pushDb, options),
   ]);
 }
 
@@ -96,7 +99,7 @@ async function sendWebPushNotificationBestEffort(
  * @returns The created notification record or undefined if it couldn't be created
  */
 export async function createNotification(
-  db: Database,
+  db: NotificationDatabase,
   accountId: Uuid,
   type: NotificationType,
   post: Pick<Post, "id"> | null,
@@ -272,6 +275,91 @@ export async function createNotification(
     logger.error("Failed to create notification: {error}", { error });
     return undefined;
   }
+}
+
+async function sendInsertedNotificationPush(
+  db: NotificationDatabase,
+  notification: Notification,
+  actorId: Uuid,
+): Promise<void> {
+  await sendPushNotificationsBestEffort(db, {
+    accountId: notification.accountId,
+    notificationId: notification.id,
+    type: notification.type,
+    actorId,
+    postId: notification.postId,
+    emoji: null,
+  });
+}
+
+export async function createOrganizationInvitationNotification(
+  db: NotificationDatabase,
+  accountId: Uuid,
+  organizationActorId: Uuid,
+): Promise<Notification | undefined> {
+  return await runInTransaction(db, async (tx) => {
+    await tx.execute(sql`
+      SELECT pg_advisory_xact_lock(
+        hashtextextended(${`${organizationActorId}:${accountId}`}, 0)
+      )
+    `);
+    const existing = await tx.select().from(notificationTable)
+      .where(sql`
+        ${notificationTable.accountId} = ${accountId}
+        AND ${notificationTable.type} = 'organization_invitation'
+        AND ${notificationTable.actorIds} =
+          ARRAY[${organizationActorId}]::uuid[]
+      `);
+    if (existing[0] != null) return existing[0];
+
+    const rows = await tx.insert(notificationTable).values({
+      id: generateUuidV7(),
+      accountId,
+      type: "organization_invitation",
+      actorIds: [organizationActorId],
+    }).onConflictDoNothing().returning();
+    const inserted = rows[0];
+    if (inserted != null) {
+      await sendInsertedNotificationPush(tx, inserted, organizationActorId);
+    }
+    return inserted;
+  });
+}
+
+export async function createOrganizationConversionRequestNotification(
+  db: NotificationDatabase,
+  adminAccountId: Uuid,
+  convertingActorId: Uuid,
+  requestId: Uuid,
+): Promise<Notification | undefined> {
+  const existing = await db.query.notificationTable.findFirst({
+    where: {
+      accountId: adminAccountId,
+      type: "organization_conversion_request",
+      organizationConversionRequestId: requestId,
+    },
+  });
+  if (existing != null) return existing;
+
+  const rows = await db.insert(notificationTable).values({
+    id: generateUuidV7(),
+    accountId: adminAccountId,
+    type: "organization_conversion_request",
+    actorIds: [convertingActorId],
+    organizationConversionRequestId: requestId,
+  }).onConflictDoNothing().returning();
+  const inserted = rows[0];
+  if (inserted != null) {
+    await sendInsertedNotificationPush(db, inserted, convertingActorId);
+    return inserted;
+  }
+  return await db.query.notificationTable.findFirst({
+    where: {
+      accountId: adminAccountId,
+      type: "organization_conversion_request",
+      organizationConversionRequestId: requestId,
+    },
+  });
 }
 
 /**

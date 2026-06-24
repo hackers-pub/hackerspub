@@ -23,6 +23,7 @@ import {
   deleteBookmark,
   getBookmarkCountsForPosts,
 } from "@hackerspub/models/bookmark";
+import type { Database, Transaction } from "@hackerspub/models/db";
 import {
   isReactionEmoji,
   type ReactionEmoji,
@@ -48,18 +49,21 @@ import {
   SUPPORTED_MEDIUM_IMAGE_TYPES,
   UnsafeMediumUrlError,
 } from "@hackerspub/models/medium";
+import { assertAccountActorNotSuspended } from "@hackerspub/models/moderation";
 import {
   createNote,
   QuotePolicyDeniedError,
   updateNote,
 } from "@hackerspub/models/note";
 import {
-  arePostsPinnedBy,
+  OrganizationPermissionError,
+  recordOrganizationPostAuthor,
+} from "@hackerspub/models/organization";
+import {
   pinPost as pinPostModel,
   unpinPost as unpinPostModel,
 } from "@hackerspub/models/pin";
 import {
-  arePostsSharedBy,
   canActorRequestQuotePost,
   deletePost,
   getCensoredPostExclusionFilter,
@@ -83,12 +87,17 @@ import {
   articleDraftMediumTable,
   articleDraftTable,
   articleSourceMediumTable,
+  pinTable,
   postTable,
 } from "@hackerspub/models/schema";
 import type * as schema from "@hackerspub/models/schema";
 import DataLoader from "dataloader";
 import { withTransaction } from "@hackerspub/models/tx";
-import { generateUuidV7, type Uuid } from "@hackerspub/models/uuid";
+import {
+  generateUuidV7,
+  type Uuid,
+  validateUuid,
+} from "@hackerspub/models/uuid";
 import {
   createMediumUploadSession,
   deleteMediumUploadSession,
@@ -100,7 +109,11 @@ import {
 } from "./medium-upload.ts";
 import { createGraphQLError } from "graphql-yoga";
 import { Account } from "./account.ts";
-import { Actor, isActorProfileHidden } from "./actor.ts";
+import {
+  resolveActingAccountForGlobalIdArg,
+  resolveActingAccountForMutation,
+} from "./acting-account.ts";
+import { Actor, getActorById, isActorProfileHidden } from "./actor.ts";
 import { builder, Node, type UserContext } from "./builder.ts";
 import {
   ActorSuspendedError,
@@ -119,6 +132,11 @@ import {
 } from "./quotepolicy.ts";
 import { CustomEmoji, Reactable, Reaction } from "./reactable.ts";
 import { NotAuthenticatedError } from "./session.ts";
+import {
+  type ActingAccountIdArg,
+  actingAccountIdArgDescription,
+  resolveViewerActorId,
+} from "./viewer-actor.ts";
 
 const articleContentOgImageComplexity = 2_000;
 const logger = getLogger(["hackerspub", "graphql", "post"]);
@@ -159,6 +177,30 @@ export const PostType = builder.enumType("PostType", {
   } as const,
 });
 
+const PostAttributionMode = builder.enumType("PostAttributionMode", {
+  description:
+    "How a post written through an organization account should display " +
+    "the personal member who created it.",
+  values: {
+    ACTING_ACCOUNT_ONLY: {
+      value: "acting_account_only",
+      description: "Show only the acting account as the public author. For " +
+        "organization posts, the member remains recorded for audit and " +
+        "management but is not shown as a co-author.",
+    },
+    ACTING_ACCOUNT_WITH_VIEWER: {
+      value: "acting_account_with_viewer",
+      description:
+        "Show the organization account as the primary author and the " +
+        "personal member as a co-author.",
+    },
+  } as const,
+});
+
+const OrganizationPostAuthor = builder.objectRef<schema.OrganizationPostAuthor>(
+  "OrganizationPostAuthor",
+);
+
 const LlmTranslationNotAllowedReasonRef = builder.enumType(
   "LlmTranslationNotAllowedReason",
   {
@@ -190,6 +232,146 @@ builder.objectType(LlmTranslationNotAllowedError, {
     reason: t.expose("reason", { type: LlmTranslationNotAllowedReasonRef }),
   }),
 });
+
+async function loadOrganizationPostAuthorAccount(
+  ctx: UserContext,
+  id: Uuid,
+) {
+  const account = await ctx.db.query.accountTable.findFirst({
+    where: { id },
+    with: { actor: true },
+  });
+  if (account == null || account.actor == null) {
+    throw createGraphQLError("Organization post attribution is broken.", {
+      extensions: { code: "INTERNAL_SERVER_ERROR" },
+    });
+  }
+  return account;
+}
+
+OrganizationPostAuthor.implement({
+  description:
+    "Attribution metadata for a post written through an organization " +
+    "account. The `Post.actor` remains the organization; this object " +
+    "records which personal member created it and whether that member " +
+    "should be shown as a co-author.",
+  fields: (t) => ({
+    attributionMode: t.field({
+      type: PostAttributionMode,
+      description:
+        "Whether clients should display only the organization or include " +
+        "the member as a co-author.",
+      resolve: (author) => author.attributionMode,
+    }),
+    organization: t.field({
+      type: Account,
+      description: "The organization account that authored the post.",
+      async resolve(author, _, ctx) {
+        return await loadOrganizationPostAuthorAccount(
+          ctx,
+          author.organizationAccountId,
+        );
+      },
+    }),
+    member: t.field({
+      type: Account,
+      nullable: true,
+      description:
+        "The personal member account to show as a co-author. `null` when " +
+        "`attributionMode` is `ACTING_ACCOUNT_ONLY`.",
+      async resolve(author, _, ctx) {
+        if (author.attributionMode !== "acting_account_with_viewer") {
+          return null;
+        }
+        return await loadOrganizationPostAuthorAccount(
+          ctx,
+          author.memberAccountId,
+        );
+      },
+    }),
+    created: t.expose("created", {
+      type: "DateTime",
+      description: "When this organization attribution record was created.",
+    }),
+  }),
+});
+
+interface PostActingAccountInput {
+  actingAccountId?: { id: string } | null;
+  attributionMode?: schema.PostAttributionMode | null;
+}
+
+interface PostManagementActingAccountInput {
+  actingAccountId?: { id: string } | null;
+}
+
+interface ResolvedPostActingAccount {
+  account: schema.Account & { actor: schema.Actor };
+  memberAccountId: Uuid;
+  attributionMode: schema.PostAttributionMode | null;
+}
+
+async function resolvePostActingAccount(
+  ctx: UserContext,
+  input: PostActingAccountInput,
+): Promise<ResolvedPostActingAccount> {
+  if (ctx.account == null) throw new NotAuthenticatedError();
+  const account = await resolveActingAccountForMutation(ctx, input);
+  if (account.kind !== "organization") {
+    if (input.attributionMode != null) {
+      throw new InvalidInputError("attributionMode");
+    }
+    return {
+      account,
+      memberAccountId: ctx.account.id,
+      attributionMode: null,
+    };
+  }
+  return {
+    account,
+    memberAccountId: ctx.account.id,
+    attributionMode: input.attributionMode ?? "acting_account_only",
+  };
+}
+
+async function recordPostActingAccount(
+  db: Database | Transaction,
+  postId: Uuid,
+  resolved: ResolvedPostActingAccount,
+): Promise<void> {
+  if (resolved.attributionMode == null) return;
+  await recordOrganizationPostAuthor(
+    db,
+    postId,
+    resolved.account.id,
+    resolved.memberAccountId,
+    resolved.attributionMode,
+  );
+}
+
+async function assertActingAccountNotSuspended(
+  db: Database,
+  authenticatedAccountId: Uuid,
+  actingAccountId: Uuid,
+): Promise<void> {
+  await assertAccountActorNotSuspended(db, authenticatedAccountId);
+  if (actingAccountId !== authenticatedAccountId) {
+    await assertAccountActorNotSuspended(db, actingAccountId);
+  }
+}
+
+async function resolvePostManagementActingAccount(
+  ctx: UserContext,
+  input: PostManagementActingAccountInput,
+  ownerAccountId: Uuid,
+  inputPath: string,
+): Promise<NonNullable<UserContext["account"]>> {
+  const account = await resolveActingAccountForMutation(ctx, input);
+  if (account.id !== ownerAccountId) {
+    throw new InvalidInputError(inputPath);
+  }
+  return account;
+}
 
 /**
  * Whether the post's content must be redacted for the current viewer: it
@@ -676,6 +858,20 @@ export const Post = builder.drizzleInterface("postTable", {
     actor: t.relation("actor", {
       description: "The actor who authored or boosted this post.",
     }),
+    organizationAuthor: t.field({
+      type: OrganizationPostAuthor,
+      nullable: true,
+      description:
+        "Organization attribution metadata when this post was created " +
+        "through an organization account. `null` for ordinary personal " +
+        "posts and for federated posts without local organization metadata.",
+      select: {
+        with: { organizationAuthor: true },
+      },
+      resolve(post) {
+        return post.organizationAuthor ?? null;
+      },
+    }),
     media: t.field({
       type: [PostMediumRef],
       description:
@@ -711,18 +907,21 @@ export const Post = builder.drizzleInterface("postTable", {
     viewerHasShared: t.loadable({
       type: "Boolean",
       description:
-        "Whether the authenticated viewer has boosted this post. Always " +
-        "`false` for unauthenticated requests.",
+        "Whether the selected viewer account has boosted this post. Always " +
+        "`false` for unauthenticated requests. Pass `actingAccountId` for " +
+        "an organization perspective.",
+      args: {
+        actingAccountId: t.arg.globalID({
+          required: false,
+          description: actingAccountIdArgDescription,
+        }),
+      },
       // cache: false so a mutation that flips share state in the same
       // request (e.g., share + read viewerHasShared) re-queries instead
       // of returning the pre-mutation value.
       loaderOptions: { cache: false },
-      load: async (postIds: Uuid[], ctx: UserContext): Promise<boolean[]> => {
-        if (ctx.account == null) return postIds.map(() => false);
-        const shared = await arePostsSharedBy(ctx.db, postIds, ctx.account);
-        return postIds.map((id) => shared.has(id));
-      },
-      resolve: (post) => post.id,
+      load: loadViewerHasShared,
+      resolve: postViewerActorKey,
     }),
     viewerHasBookmarked: t.loadable({
       type: "Boolean",
@@ -744,54 +943,84 @@ export const Post = builder.drizzleInterface("postTable", {
     viewerHasPinned: t.loadable({
       type: "Boolean",
       description:
-        "Whether the authenticated viewer has pinned this post to their " +
-        "profile. Always `false` for unauthenticated requests.",
-      loaderOptions: { cache: false },
-      load: async (postIds: Uuid[], ctx: UserContext): Promise<boolean[]> => {
-        if (ctx.account == null) return postIds.map(() => false);
-        const pinned = await arePostsPinnedBy(
-          ctx.db,
-          postIds,
-          ctx.account.actor,
-        );
-        return postIds.map((id) => pinned.has(id));
+        "Whether the selected viewer account has pinned this post to their " +
+        "profile. Always `false` for unauthenticated requests. Pass " +
+        "`actingAccountId` for an organization perspective.",
+      args: {
+        actingAccountId: t.arg.globalID({
+          required: false,
+          description: actingAccountIdArgDescription,
+        }),
       },
-      resolve: (post) => post.id,
+      loaderOptions: { cache: false },
+      load: loadViewerHasPinned,
+      resolve: postViewerActorKey,
     }),
     viewerCanReply: t.loadable({
       type: "Boolean",
       description:
-        "Whether the authenticated viewer is allowed to reply to this " +
+        "Whether the selected viewer account is allowed to reply to this " +
         "post, based on visibility and block state. Always `false` for " +
-        "unauthenticated requests.",
-      loaderOptions: { cache: false },
-      load: async (postIds: Uuid[], ctx: UserContext): Promise<boolean[]> => {
-        const policies = await loadViewerActionPolicies(ctx, postIds);
-        return postIds.map((id) => policies.get(id)?.canReply ?? false);
+        "unauthenticated requests. Pass `actingAccountId` for an " +
+        "organization perspective.",
+      args: {
+        actingAccountId: t.arg.globalID({
+          required: false,
+          description: actingAccountIdArgDescription,
+        }),
       },
-      resolve: (post) => post.id,
+      loaderOptions: { cache: false },
+      load: async (
+        keys: ViewerActorPostKey[],
+        ctx: UserContext,
+      ): Promise<boolean[]> => {
+        const policies = await loadViewerActionPolicies(ctx, keys);
+        return keys.map((key) =>
+          policies.get(viewerActorPostKeyCacheKey(key))?.canReply ?? false
+        );
+      },
+      resolve: postViewerActorKey,
     }),
     viewerCanQuote: t.loadable({
       type: "Boolean",
       description:
-        "Whether the authenticated viewer is allowed to quote this post, " +
+        "Whether the selected viewer account is allowed to quote this post, " +
         "based on `quotePolicy`, visibility, and block state. A censored " +
         "post cannot be quoted by anyone (including its author or a " +
         "moderator), so this is `false` for censored posts. Always `false` " +
-        "for unauthenticated requests.",
-      loaderOptions: { cache: false },
-      load: async (postIds: Uuid[], ctx: UserContext): Promise<boolean[]> => {
-        const policies = await loadViewerActionPolicies(ctx, postIds);
-        return postIds.map((id) => policies.get(id)?.canQuote ?? false);
+        "for unauthenticated requests. Pass `actingAccountId` for an " +
+        "organization perspective.",
+      args: {
+        actingAccountId: t.arg.globalID({
+          required: false,
+          description: actingAccountIdArgDescription,
+        }),
       },
-      resolve: (post) => post.id,
+      loaderOptions: { cache: false },
+      load: async (
+        keys: ViewerActorPostKey[],
+        ctx: UserContext,
+      ): Promise<boolean[]> => {
+        const policies = await loadViewerActionPolicies(ctx, keys);
+        return keys.map((key) =>
+          policies.get(viewerActorPostKeyCacheKey(key))?.canQuote ?? false
+        );
+      },
+      resolve: postViewerActorKey,
     }),
     viewerCanRevokeQuote: t.boolean({
       description:
         "Whether the authenticated viewer (as the quoted post's author) " +
         "can revoke a quote of their post. `true` only when the viewer " +
         "is the author of `quotedPost` and the quoting post is either " +
-        "local or has an authorization IRI.",
+        "local or has an authorization IRI. Pass `actingAccountId` for an " +
+        "organization perspective.",
+      args: {
+        actingAccountId: t.arg.globalID({
+          required: false,
+          description: actingAccountIdArgDescription,
+        }),
+      },
       select: {
         columns: {
           id: true,
@@ -807,26 +1036,38 @@ export const Post = builder.drizzleInterface("postTable", {
           },
         },
       },
-      resolve(post, _args, ctx) {
-        return ctx.account != null && post.quotedPost != null &&
-          post.quotedPost.actorId === ctx.account.actor.id &&
+      async resolve(post, args, ctx) {
+        const viewerActorId = await resolveViewerActorId(ctx, args);
+        return viewerActorId != null && post.quotedPost != null &&
+          post.quotedPost.actorId === viewerActorId &&
           (post.actor.accountId != null || post.quoteAuthorizationIri != null);
       },
     }),
     viewerCanShare: t.loadable({
       type: "Boolean",
       description:
-        "Whether the authenticated viewer is allowed to boost this post, " +
+        "Whether the selected viewer account is allowed to boost this post, " +
         "based on visibility and block state. A censored post cannot be " +
         "boosted by anyone (including its author or a moderator), so this " +
         "is `false` for censored posts. Always `false` for unauthenticated " +
-        "requests.",
-      loaderOptions: { cache: false },
-      load: async (postIds: Uuid[], ctx: UserContext): Promise<boolean[]> => {
-        const policies = await loadViewerActionPolicies(ctx, postIds);
-        return postIds.map((id) => policies.get(id)?.canShare ?? false);
+        "requests. Pass `actingAccountId` for an organization perspective.",
+      args: {
+        actingAccountId: t.arg.globalID({
+          required: false,
+          description: actingAccountIdArgDescription,
+        }),
       },
-      resolve: (post) => post.id,
+      loaderOptions: { cache: false },
+      load: async (
+        keys: ViewerActorPostKey[],
+        ctx: UserContext,
+      ): Promise<boolean[]> => {
+        const policies = await loadViewerActionPolicies(ctx, keys);
+        return keys.map((key) =>
+          policies.get(viewerActorPostKeyCacheKey(key))?.canShare ?? false
+        );
+      },
+      resolve: postViewerActorKey,
     }),
   }),
 });
@@ -837,20 +1078,125 @@ const DENY_ALL_POLICY: PostInteractionPolicy = {
   canShare: false,
 };
 
+interface ViewerActorPostKey {
+  postId: Uuid;
+  viewerActorId: Uuid | null;
+}
+
+function viewerActorPostKeyCacheKey(key: ViewerActorPostKey): string {
+  return `${key.viewerActorId ?? ""}:${key.postId}`;
+}
+
+async function postViewerActorKey(
+  post: { id: Uuid },
+  args: ActingAccountIdArg,
+  ctx: UserContext,
+): Promise<ViewerActorPostKey> {
+  return {
+    postId: post.id,
+    viewerActorId: await resolveViewerActorId(ctx, args),
+  };
+}
+
+async function loadViewerHasShared(
+  keys: ViewerActorPostKey[],
+  ctx: UserContext,
+): Promise<boolean[]> {
+  const postIdsByViewer = new Map<Uuid, Set<Uuid>>();
+  for (const key of keys) {
+    if (key.viewerActorId == null) continue;
+    let postIds = postIdsByViewer.get(key.viewerActorId);
+    if (postIds == null) {
+      postIds = new Set();
+      postIdsByViewer.set(key.viewerActorId, postIds);
+    }
+    postIds.add(key.postId);
+  }
+
+  const sharedKeys = new Set<string>();
+  for (const [viewerActorId, postIds] of postIdsByViewer) {
+    const rows = await ctx.db.select({ sharedPostId: postTable.sharedPostId })
+      .from(postTable)
+      .where(
+        and(
+          eq(postTable.actorId, viewerActorId),
+          inArray(postTable.sharedPostId, [...postIds]),
+        ),
+      );
+    for (const row of rows) {
+      if (row.sharedPostId != null) {
+        sharedKeys.add(`${viewerActorId}:${row.sharedPostId}`);
+      }
+    }
+  }
+
+  return keys.map((key) =>
+    key.viewerActorId != null &&
+    sharedKeys.has(`${key.viewerActorId}:${key.postId}`)
+  );
+}
+
+async function loadViewerHasPinned(
+  keys: ViewerActorPostKey[],
+  ctx: UserContext,
+): Promise<boolean[]> {
+  const postIdsByViewer = new Map<Uuid, Set<Uuid>>();
+  for (const key of keys) {
+    if (key.viewerActorId == null) continue;
+    let postIds = postIdsByViewer.get(key.viewerActorId);
+    if (postIds == null) {
+      postIds = new Set();
+      postIdsByViewer.set(key.viewerActorId, postIds);
+    }
+    postIds.add(key.postId);
+  }
+
+  const pinnedKeys = new Set<string>();
+  for (const [viewerActorId, postIds] of postIdsByViewer) {
+    const rows = await ctx.db.select({ postId: pinTable.postId })
+      .from(pinTable)
+      .where(
+        and(
+          eq(pinTable.actorId, viewerActorId),
+          inArray(pinTable.postId, [...postIds]),
+        ),
+      );
+    for (const row of rows) {
+      pinnedKeys.add(`${viewerActorId}:${row.postId}`);
+    }
+  }
+
+  return keys.map((key) =>
+    key.viewerActorId != null &&
+    pinnedKeys.has(`${key.viewerActorId}:${key.postId}`)
+  );
+}
+
 async function loadViewerActionPolicies(
   ctx: UserContext,
-  postIds: readonly Uuid[],
-): Promise<Map<Uuid, PostInteractionPolicy>> {
+  keys: readonly ViewerActorPostKey[],
+): Promise<Map<string, PostInteractionPolicy>> {
   const cache = ctx.viewerActionPoliciesCache ??= new Map();
   // Dedupe missing ids so a batch with `cache: false` (which may surface
   // duplicate keys) cannot overwrite an already-registered promise — the
   // overwritten promise would still reject on a batch failure but be
   // un-awaited, producing an unhandled rejection.
-  const missing = new Set<Uuid>();
-  for (const id of postIds) {
-    if (!cache.has(id)) missing.add(id);
+  const missingByViewer = new Map<Uuid, Set<Uuid>>();
+  for (const key of keys) {
+    const cacheKey = viewerActorPostKeyCacheKey(key);
+    if (cache.has(cacheKey)) continue;
+    if (key.viewerActorId == null) {
+      cache.set(cacheKey, Promise.resolve(DENY_ALL_POLICY));
+      continue;
+    }
+    let missing = missingByViewer.get(key.viewerActorId);
+    if (missing == null) {
+      missing = new Set();
+      missingByViewer.set(key.viewerActorId, missing);
+    }
+    missing.add(key.postId);
   }
-  if (missing.size > 0) {
+  for (const [viewerActorId, missing] of missingByViewer) {
     // Kick off the batch lookup synchronously and register a derived promise
     // per post id before awaiting so that concurrent dispatch from the three
     // viewerCan* loaders deduplicates instead of each firing its own query.
@@ -863,21 +1209,33 @@ async function loadViewerActionPolicies(
     const batch = getPostInteractionPolicies(
       ctx.db,
       missingIds,
-      ctx.account?.actor ?? null,
+      { id: viewerActorId } as schema.Actor,
     );
     const cleanup = () => {
-      for (const id of missingIds) cache.delete(id);
+      for (const id of missingIds) {
+        cache.delete(viewerActorPostKeyCacheKey({
+          postId: id,
+          viewerActorId,
+        }));
+      }
     };
     batch.then(cleanup, cleanup);
     for (const id of missingIds) {
+      const cacheKey = viewerActorPostKeyCacheKey({
+        postId: id,
+        viewerActorId,
+      });
       cache.set(
-        id,
+        cacheKey,
         batch.then((policies) => policies.get(id) ?? DENY_ALL_POLICY),
       );
     }
   }
   const entries = await Promise.all(
-    postIds.map(async (id) => [id, await cache.get(id)!] as const),
+    keys.map(async (key) => {
+      const cacheKey = viewerActorPostKeyCacheKey(key);
+      return [cacheKey, await cache.get(cacheKey)!] as const;
+    }),
   );
   return new Map(entries);
 }
@@ -1071,16 +1429,27 @@ export const Note = builder.drizzleNode("postTable", {
       nullable: true,
       description:
         "The raw Markdown source of this note. Non-null only when the " +
-        "viewer is the note's author (i.e., the authenticated account " +
-        "matches the note's `accountId`). Returns `null` for federated " +
-        "remote notes, local share wrappers, and notes authored by " +
-        "someone else.",
+        "viewer is the note's author. Pass `actingAccountId` to read the " +
+        "source of a note authored by an organization account the viewer " +
+        "belongs to. Returns `null` for federated remote notes, local share " +
+        "wrappers, and notes authored by someone else.",
+      args: {
+        actingAccountId: t.arg.id({
+          required: false,
+          description: actingAccountIdArgDescription,
+        }),
+      },
       select: {
         with: { noteSource: { columns: { content: true, accountId: true } } },
       },
-      resolve: (post, _args, ctx) => {
+      async resolve(post, args, ctx) {
         if (post.noteSource == null) return null;
-        if (ctx.session?.accountId !== post.noteSource.accountId) return null;
+        if (ctx.account == null) return null;
+        const actingAccount = await resolveActingAccountForGlobalIdArg(
+          ctx,
+          args,
+        );
+        if (actingAccount.id !== post.noteSource.accountId) return null;
         return post.noteSource.content;
       },
     }),
@@ -2096,6 +2465,23 @@ builder.relayMutationField(
       content: t.field({ type: "Markdown", required: true }),
       language: t.field({ type: "Locale", required: true }),
       quotePolicy: t.field({ type: QuotePolicy, required: false }),
+      actingAccountId: t.globalID({
+        for: Account,
+        required: false,
+        description:
+          "Optional `Account` id to publish as. Omit to publish as the " +
+          "authenticated personal account; pass an organization account " +
+          "where the viewer is an accepted member to publish as that " +
+          "organization.",
+      }),
+      attributionMode: t.field({
+        type: PostAttributionMode,
+        required: false,
+        description:
+          "How to display the personal member when `actingAccountId` is " +
+          "an organization. Defaults to `ACTING_ACCOUNT_ONLY`; invalid " +
+          "when publishing as a personal account.",
+      }),
       media: t.field({
         type: [CreateNoteMediumInput],
         required: false,
@@ -2118,6 +2504,7 @@ builder.relayMutationField(
         NotAuthenticatedError,
         InvalidInputError,
         ActorSuspendedError,
+        OrganizationPermissionError,
       ],
     },
     async resolve(_root, args, ctx) {
@@ -2125,6 +2512,7 @@ builder.relayMutationField(
       if (session == null || ctx.account == null) {
         throw new NotAuthenticatedError();
       }
+      const authenticatedAccountId = ctx.account.id;
       const {
         visibility,
         content,
@@ -2134,6 +2522,7 @@ builder.relayMutationField(
         replyTargetId,
         quotedPostId,
       } = args.input;
+      const actingAccount = await resolvePostActingAccount(ctx, args.input);
       const attachedMedia = media ?? [];
       if (attachedMedia.length > 20) {
         throw new InvalidInputError("media");
@@ -2144,16 +2533,24 @@ builder.relayMutationField(
           with: {
             actor: {
               with: {
-                followers: { where: { followerId: ctx.account.actor.id } },
-                blockees: { where: { blockeeId: ctx.account.actor.id } },
-                blockers: { where: { blockerId: ctx.account.actor.id } },
+                followers: {
+                  where: { followerId: actingAccount.account.actor.id },
+                },
+                blockees: {
+                  where: { blockeeId: actingAccount.account.actor.id },
+                },
+                blockers: {
+                  where: { blockerId: actingAccount.account.actor.id },
+                },
               },
             },
-            mentions: { where: { actorId: ctx.account.actor.id } },
+            mentions: { where: { actorId: actingAccount.account.actor.id } },
           },
           where: { id: replyTargetId.id },
         });
-        if (post == null || !isPostVisibleTo(post, ctx.account.actor)) {
+        if (
+          post == null || !isPostVisibleTo(post, actingAccount.account.actor)
+        ) {
           throw new InvalidInputError("replyTargetId");
         }
         replyTarget = post;
@@ -2164,30 +2561,44 @@ builder.relayMutationField(
           with: {
             actor: {
               with: {
-                followers: { where: { followerId: ctx.account.actor.id } },
-                blockees: { where: { blockeeId: ctx.account.actor.id } },
-                blockers: { where: { blockerId: ctx.account.actor.id } },
+                followers: {
+                  where: { followerId: actingAccount.account.actor.id },
+                },
+                blockees: {
+                  where: { blockeeId: actingAccount.account.actor.id },
+                },
+                blockers: {
+                  where: { blockerId: actingAccount.account.actor.id },
+                },
               },
             },
-            mentions: { where: { actorId: ctx.account.actor.id } },
+            mentions: { where: { actorId: actingAccount.account.actor.id } },
             sharedPost: {
               with: {
                 actor: {
                   with: {
                     followers: {
-                      where: { followerId: ctx.account.actor.id },
+                      where: { followerId: actingAccount.account.actor.id },
                     },
-                    blockees: { where: { blockeeId: ctx.account.actor.id } },
-                    blockers: { where: { blockerId: ctx.account.actor.id } },
+                    blockees: {
+                      where: { blockeeId: actingAccount.account.actor.id },
+                    },
+                    blockers: {
+                      where: { blockerId: actingAccount.account.actor.id },
+                    },
                   },
                 },
-                mentions: { where: { actorId: ctx.account.actor.id } },
+                mentions: {
+                  where: { actorId: actingAccount.account.actor.id },
+                },
               },
             },
           },
           where: { id: quotedPostId.id },
         });
-        if (post == null || !isPostVisibleTo(post, ctx.account.actor)) {
+        if (
+          post == null || !isPostVisibleTo(post, actingAccount.account.actor)
+        ) {
           throw new InvalidInputError("quotedPostId");
         }
         // Validate against the effective original post to prevent bypassing
@@ -2196,7 +2607,7 @@ builder.relayMutationField(
         if (effectivePost.sharedPostId != null) {
           throw new InvalidInputError("quotedPostId");
         }
-        if (!isPostVisibleTo(effectivePost, ctx.account.actor)) {
+        if (!isPostVisibleTo(effectivePost, actingAccount.account.actor)) {
           throw new InvalidInputError("quotedPostId");
         }
         // Neither a censored post nor a censored share wrapper can be
@@ -2205,7 +2616,9 @@ builder.relayMutationField(
         if (post.censored != null || effectivePost.censored != null) {
           throw new InvalidInputError("quotedPostId");
         }
-        if (!canActorRequestQuotePost(effectivePost, ctx.account.actor)) {
+        if (
+          !canActorRequestQuotePost(effectivePost, actingAccount.account.actor)
+        ) {
           throw new InvalidInputError("quotedPostId");
         }
         quotedPost = effectivePost;
@@ -2226,11 +2639,16 @@ builder.relayMutationField(
           }),
         );
         let note: Awaited<ReturnType<typeof createNote>>;
+        await assertActingAccountNotSuspended(
+          ctx.db,
+          authenticatedAccountId,
+          actingAccount.account.id,
+        );
         try {
           note = await createNote(
             context,
             {
-              accountId: session.accountId,
+              accountId: actingAccount.account.id,
               visibility: visibility === "PUBLIC"
                 ? "public"
                 : visibility === "UNLISTED"
@@ -2267,6 +2685,10 @@ builder.relayMutationField(
               media: noteMedia,
             },
             { replyTarget, quotedPost },
+            {
+              afterPostCreated: (post, db) =>
+                recordPostActingAccount(db, post.id, actingAccount),
+            },
           );
         } catch (error) {
           if (error instanceof QuotePolicyDeniedError) {
@@ -2329,6 +2751,23 @@ builder.relayMutationField(
           "Who may quote this Question. Omit to use the default policy for " +
           "the selected `visibility`.",
       }),
+      actingAccountId: t.globalID({
+        for: Account,
+        required: false,
+        description:
+          "Optional `Account` id to publish as. Omit to publish as the " +
+          "authenticated personal account; pass an organization account " +
+          "where the viewer is an accepted member to publish as that " +
+          "organization.",
+      }),
+      attributionMode: t.field({
+        type: PostAttributionMode,
+        required: false,
+        description:
+          "How to display the personal member when `actingAccountId` is " +
+          "an organization. Defaults to `ACTING_ACCOUNT_ONLY`; invalid " +
+          "when publishing as a personal account.",
+      }),
       poll: t.field({
         type: CreateQuestionPollInput,
         required: true,
@@ -2364,6 +2803,7 @@ builder.relayMutationField(
         NotAuthenticatedError,
         InvalidInputError,
         ActorSuspendedError,
+        OrganizationPermissionError,
       ],
     },
     async resolve(_root, args, ctx) {
@@ -2371,6 +2811,7 @@ builder.relayMutationField(
       if (session == null || ctx.account == null) {
         throw new NotAuthenticatedError();
       }
+      const authenticatedAccountId = ctx.account.id;
       const {
         visibility,
         content,
@@ -2381,6 +2822,7 @@ builder.relayMutationField(
         replyTargetId,
         quotedPostId,
       } = args.input;
+      const actingAccount = await resolvePostActingAccount(ctx, args.input);
       const attachedMedia = media ?? [];
       if (attachedMedia.length > 20) {
         throw new InvalidInputError("media");
@@ -2394,16 +2836,24 @@ builder.relayMutationField(
           with: {
             actor: {
               with: {
-                followers: { where: { followerId: ctx.account.actor.id } },
-                blockees: { where: { blockeeId: ctx.account.actor.id } },
-                blockers: { where: { blockerId: ctx.account.actor.id } },
+                followers: {
+                  where: { followerId: actingAccount.account.actor.id },
+                },
+                blockees: {
+                  where: { blockeeId: actingAccount.account.actor.id },
+                },
+                blockers: {
+                  where: { blockerId: actingAccount.account.actor.id },
+                },
               },
             },
-            mentions: { where: { actorId: ctx.account.actor.id } },
+            mentions: { where: { actorId: actingAccount.account.actor.id } },
           },
           where: { id: replyTargetId.id },
         });
-        if (post == null || !isPostVisibleTo(post, ctx.account.actor)) {
+        if (
+          post == null || !isPostVisibleTo(post, actingAccount.account.actor)
+        ) {
           throw new InvalidInputError("replyTargetId");
         }
         replyTarget = post;
@@ -2414,37 +2864,51 @@ builder.relayMutationField(
           with: {
             actor: {
               with: {
-                followers: { where: { followerId: ctx.account.actor.id } },
-                blockees: { where: { blockeeId: ctx.account.actor.id } },
-                blockers: { where: { blockerId: ctx.account.actor.id } },
+                followers: {
+                  where: { followerId: actingAccount.account.actor.id },
+                },
+                blockees: {
+                  where: { blockeeId: actingAccount.account.actor.id },
+                },
+                blockers: {
+                  where: { blockerId: actingAccount.account.actor.id },
+                },
               },
             },
-            mentions: { where: { actorId: ctx.account.actor.id } },
+            mentions: { where: { actorId: actingAccount.account.actor.id } },
             sharedPost: {
               with: {
                 actor: {
                   with: {
                     followers: {
-                      where: { followerId: ctx.account.actor.id },
+                      where: { followerId: actingAccount.account.actor.id },
                     },
-                    blockees: { where: { blockeeId: ctx.account.actor.id } },
-                    blockers: { where: { blockerId: ctx.account.actor.id } },
+                    blockees: {
+                      where: { blockeeId: actingAccount.account.actor.id },
+                    },
+                    blockers: {
+                      where: { blockerId: actingAccount.account.actor.id },
+                    },
                   },
                 },
-                mentions: { where: { actorId: ctx.account.actor.id } },
+                mentions: {
+                  where: { actorId: actingAccount.account.actor.id },
+                },
               },
             },
           },
           where: { id: quotedPostId.id },
         });
-        if (post == null || !isPostVisibleTo(post, ctx.account.actor)) {
+        if (
+          post == null || !isPostVisibleTo(post, actingAccount.account.actor)
+        ) {
           throw new InvalidInputError("quotedPostId");
         }
         const effectivePost = post.sharedPost ?? post;
         if (effectivePost.sharedPostId != null) {
           throw new InvalidInputError("quotedPostId");
         }
-        if (!isPostVisibleTo(effectivePost, ctx.account.actor)) {
+        if (!isPostVisibleTo(effectivePost, actingAccount.account.actor)) {
           throw new InvalidInputError("quotedPostId");
         }
         // Neither a censored post nor a censored share wrapper can be
@@ -2453,7 +2917,9 @@ builder.relayMutationField(
         if (post.censored != null || effectivePost.censored != null) {
           throw new InvalidInputError("quotedPostId");
         }
-        if (!canActorRequestQuotePost(effectivePost, ctx.account.actor)) {
+        if (
+          !canActorRequestQuotePost(effectivePost, actingAccount.account.actor)
+        ) {
           throw new InvalidInputError("quotedPostId");
         }
         quotedPost = effectivePost;
@@ -2488,11 +2954,16 @@ builder.relayMutationField(
             `Unknown value in Post.visibility: "${visibility}"`,
           );
         let question: Awaited<ReturnType<typeof createQuestion>>;
+        await assertActingAccountNotSuspended(
+          ctx.db,
+          authenticatedAccountId,
+          actingAccount.account.id,
+        );
         try {
           question = await createQuestion(
             context,
             {
-              accountId: session.accountId,
+              accountId: actingAccount.account.id,
               visibility: modelVisibility,
               quotePolicy: normalizeQuotePolicyForVisibility(
                 modelVisibility,
@@ -2509,6 +2980,10 @@ builder.relayMutationField(
               },
             },
             { replyTarget, quotedPost },
+            {
+              afterPostCreated: (post, db) =>
+                recordPostActingAccount(db, post.id, actingAccount),
+            },
           );
         } catch (error) {
           if (error instanceof QuotePolicyDeniedError) {
@@ -2548,13 +3023,20 @@ builder.relayMutationField(
     description:
       "Edit the content, language, or quote policy of an existing local " +
       "note. Visibility cannot be changed after creation. Only the note's " +
-      "author may call this. Sends an ActivityPub `Update` activity to the " +
-      "appropriate recipients. Requires authentication.",
+      "author may call this. Pass `actingAccountId` when editing a note " +
+      "authored by an organization account you belong to. Sends an " +
+      "ActivityPub `Update` activity to the appropriate recipients. " +
+      "Requires authentication.",
     inputFields: (t) => ({
       noteId: t.globalID({
         for: [Note],
         required: true,
         description: "Global ID of the note to update.",
+      }),
+      actingAccountId: t.globalID({
+        for: [Account],
+        required: false,
+        description: actingAccountIdArgDescription,
       }),
       content: t.field({
         type: "Markdown",
@@ -2574,19 +3056,27 @@ builder.relayMutationField(
     }),
   },
   {
-    errors: { types: [NotAuthenticatedError, InvalidInputError] },
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+        OrganizationPermissionError,
+      ],
+    },
     async resolve(_root, args, ctx) {
-      const session = await ctx.session;
-      if (session == null) throw new NotAuthenticatedError();
+      if (ctx.account == null) throw new NotAuthenticatedError();
 
       const post = await ctx.db.query.postTable.findFirst({
         where: { id: args.input.noteId.id },
         with: { noteSource: true },
       });
       if (post?.noteSource == null) throw new InvalidInputError("noteId");
-      if (post.noteSource.accountId !== session.accountId) {
-        throw new InvalidInputError("noteId");
-      }
+      await resolvePostManagementActingAccount(
+        ctx,
+        args.input,
+        post.noteSource.accountId,
+        "noteId",
+      );
 
       const patch = {
         ...(args.input.content != null ? { content: args.input.content } : {}),
@@ -2729,11 +3219,19 @@ builder.relayMutationField(
   {
     description: "Delete a post and send an ActivityPub `Delete` activity to " +
       "federated instances. Boost wrappers cannot be deleted this way; " +
-      "use `unsharePost` instead (returns `SharedPostDeletionNotAllowedError`).",
+      "use `unsharePost` instead (returns `SharedPostDeletionNotAllowedError`). " +
+      "Pass `actingAccountId` to delete a post authored by an organization " +
+      "account you belong to.",
     inputFields: (t) => ({
       id: t.globalID({
         for: [Note, Article, Question],
         required: true,
+        description: "Global ID of the post to delete.",
+      }),
+      actingAccountId: t.globalID({
+        for: [Account],
+        required: false,
+        description: actingAccountIdArgDescription,
       }),
     }),
   },
@@ -2743,11 +3241,11 @@ builder.relayMutationField(
         NotAuthenticatedError,
         InvalidInputError,
         SharedPostDeletionNotAllowedError,
+        OrganizationPermissionError,
       ],
     },
     async resolve(_root, args, ctx) {
-      const session = await ctx.session;
-      if (session == null) {
+      if (ctx.account == null) {
         throw new NotAuthenticatedError();
       }
 
@@ -2756,9 +3254,15 @@ builder.relayMutationField(
         where: { id: args.input.id.id },
       });
 
-      if (post == null || post.actor.accountId !== session.accountId) {
+      if (post == null || post.actor.accountId == null) {
         throw new InvalidInputError("id");
       }
+      await resolvePostManagementActingAccount(
+        ctx,
+        args.input,
+        post.actor.accountId,
+        "id",
+      );
 
       if (post.sharedPostId != null) {
         throw new SharedPostDeletionNotAllowedError("id");
@@ -2789,11 +3293,19 @@ builder.relayMutationField(
     description:
       "As the quoted post's author, revoke permission for a quote of " +
       "your post. Sends a revocation activity to the quoting instance. " +
-      "Only the `quotedPost`'s author may call this.",
+      "Only the `quotedPost`'s author may call this. Pass `actingAccountId` " +
+      "when the quoted post was authored by an organization account you " +
+      "belong to.",
     inputFields: (t) => ({
       quotePostId: t.globalID({
         for: [Note, Article, Question],
         required: true,
+        description: "Global ID of the quote post to revoke.",
+      }),
+      actingAccountId: t.globalID({
+        for: [Account],
+        required: false,
+        description: actingAccountIdArgDescription,
       }),
     }),
   },
@@ -2802,13 +3314,17 @@ builder.relayMutationField(
       types: [
         NotAuthenticatedError,
         InvalidInputError,
+        OrganizationPermissionError,
       ],
     },
     async resolve(_root, args, ctx) {
-      const session = await ctx.session;
-      if (session == null || ctx.account == null) {
+      if (ctx.account == null) {
         throw new NotAuthenticatedError();
       }
+      const actingAccount = await resolveActingAccountForMutation(
+        ctx,
+        args.input,
+      );
       const quote = await ctx.db.query.postTable.findFirst({
         with: {
           actor: true,
@@ -2819,7 +3335,7 @@ builder.relayMutationField(
       if (quote?.quotedPost == null) {
         throw new InvalidInputError("quotePostId");
       }
-      if (quote.quotedPost.actorId !== ctx.account.actor.id) {
+      if (quote.quotedPost.actorId !== actingAccount.actor.id) {
         throw new InvalidInputError("quotePostId");
       }
       if (
@@ -2832,7 +3348,7 @@ builder.relayMutationField(
         async (context) =>
           await revokeQuoteModel(
             context,
-            ctx.account!,
+            actingAccount,
             quote,
             quote.quotedPost!,
           ),
@@ -2875,6 +3391,22 @@ builder.relayMutationField(
       language: t.field({ type: "Locale", required: true }),
       allowLlmTranslation: t.boolean({ required: false }),
       quotePolicy: t.field({ type: QuotePolicy, required: false }),
+      actingAccountId: t.globalID({
+        for: Account,
+        required: false,
+        description:
+          "Optional `Account` id to publish as. The draft must still be " +
+          "owned by the authenticated personal account; this only changes " +
+          "the published article's author.",
+      }),
+      attributionMode: t.field({
+        type: PostAttributionMode,
+        required: false,
+        description:
+          "How to display the personal member when `actingAccountId` is " +
+          "an organization. Defaults to `ACTING_ACCOUNT_ONLY`; invalid " +
+          "when publishing as a personal account.",
+      }),
     }),
   },
   {
@@ -2883,13 +3415,16 @@ builder.relayMutationField(
         NotAuthenticatedError,
         InvalidInputError,
         ActorSuspendedError,
+        OrganizationPermissionError,
       ],
     },
     async resolve(_root, args, ctx) {
       const session = await ctx.session;
-      if (session == null) {
+      if (session == null || ctx.account == null) {
         throw new NotAuthenticatedError();
       }
+      const authenticatedAccountId = ctx.account.id;
+      const actingAccount = await resolvePostActingAccount(ctx, args.input);
 
       // Get draft
       const drafts = await ctx.db
@@ -2910,14 +3445,20 @@ builder.relayMutationField(
 
       const { slug, language, allowLlmTranslation, quotePolicy } = args.input;
 
+      await assertActingAccountNotSuspended(
+        ctx.db,
+        authenticatedAccountId,
+        actingAccount.account.id,
+      );
+
       // Create article from draft
       const article = await withTransaction(ctx.fedCtx, async (context) => {
         const media = await context.data.db.query.articleDraftMediumTable
           .findMany({
             where: { articleDraftId: draft.id },
           });
-        return await createArticle(context, {
-          accountId: session.accountId,
+        const created = await createArticle(context, {
+          accountId: actingAccount.account.id,
           publishedYear: new Date().getFullYear(),
           slug,
           tags: draft.tags,
@@ -2929,7 +3470,11 @@ builder.relayMutationField(
           content: draft.content,
           language: language.baseName,
           media,
+        }, {
+          afterPostCreated: (post, db) =>
+            recordPostActingAccount(db, post.id, actingAccount),
         });
+        return created;
       });
 
       if (!article) {
@@ -2938,7 +3483,6 @@ builder.relayMutationField(
           extensions: { code: "INTERNAL_SERVER_ERROR" },
         });
       }
-
       // Delete draft after successful publish
       await deleteArticleDraft(ctx.db, session.accountId, draft.id);
 
@@ -2981,6 +3525,15 @@ builder.relayMutationField(
         for: [Note, Article, Question],
         required: true,
       }),
+      actingAccountId: t.globalID({
+        for: Account,
+        required: false,
+        description:
+          "Optional `Account` id to react as. Omit to react as the " +
+          "authenticated personal account; pass an organization account " +
+          "where the viewer is an accepted member to react as that " +
+          "organization.",
+      }),
       emoji: t.string({ required: false }),
       customEmojiId: t.globalID({ for: CustomEmoji, required: false }),
     }),
@@ -2991,12 +3544,18 @@ builder.relayMutationField(
         NotAuthenticatedError,
         InvalidInputError,
         ActorSuspendedError,
+        OrganizationPermissionError,
       ],
     },
     async resolve(_root, args, ctx) {
       if (ctx.account == null) {
         throw new NotAuthenticatedError();
       }
+      const authenticatedAccountId = ctx.account.id;
+      const actingAccount = await resolveActingAccountForMutation(
+        ctx,
+        args.input,
+      );
 
       const { postId, emoji, customEmojiId } = args.input;
 
@@ -3035,13 +3594,19 @@ builder.relayMutationField(
         throw new InvalidInputError("postId");
       }
 
-      if (!isPostVisibleTo(post, ctx.account.actor)) {
+      if (!isPostVisibleTo(post, actingAccount.actor)) {
         throw new InvalidInputError("postId");
       }
 
+      await assertActingAccountNotSuspended(
+        ctx.db,
+        authenticatedAccountId,
+        actingAccount.id,
+      );
+
       const reaction = await react(
         ctx.fedCtx,
-        ctx.account,
+        actingAccount,
         post,
         emoji as ReactionEmoji | null ?? null,
         customEmojiId?.id as Uuid | undefined,
@@ -3053,10 +3618,10 @@ builder.relayMutationField(
 
       const existingReaction = await ctx.db.query.reactionTable.findFirst({
         where: emoji != null
-          ? { postId: post.id, actorId: ctx.account.actor.id, emoji }
+          ? { postId: post.id, actorId: actingAccount.actor.id, emoji }
           : {
             postId: post.id,
-            actorId: ctx.account.actor.id,
+            actorId: actingAccount.actor.id,
             customEmojiId: customEmojiId!.id as Uuid,
           },
       });
@@ -3097,6 +3662,15 @@ builder.relayMutationField(
         for: [Note, Article, Question],
         required: true,
       }),
+      actingAccountId: t.globalID({
+        for: Account,
+        required: false,
+        description:
+          "Optional `Account` id to remove the reaction as. Omit to use " +
+          "the authenticated personal account; pass an organization account " +
+          "where the viewer is an accepted member to remove that " +
+          "organization's reaction.",
+      }),
       emoji: t.string({ required: false }),
       customEmojiId: t.globalID({ for: CustomEmoji, required: false }),
     }),
@@ -3106,12 +3680,14 @@ builder.relayMutationField(
       types: [
         NotAuthenticatedError,
         InvalidInputError,
+        OrganizationPermissionError,
       ],
     },
     async resolve(_root, args, ctx) {
-      if (ctx.account == null) {
-        throw new NotAuthenticatedError();
-      }
+      const actingAccount = await resolveActingAccountForMutation(
+        ctx,
+        args.input,
+      );
 
       const { postId, emoji, customEmojiId } = args.input;
 
@@ -3150,13 +3726,13 @@ builder.relayMutationField(
         throw new InvalidInputError("postId");
       }
 
-      if (!isPostVisibleTo(post, ctx.account.actor)) {
+      if (!isPostVisibleTo(post, actingAccount.actor)) {
         throw new InvalidInputError("postId");
       }
 
       await undoReaction(
         ctx.fedCtx,
-        ctx.account,
+        actingAccount,
         post,
         emoji as ReactionEmoji | null ?? null,
         customEmojiId?.id as Uuid | undefined,
@@ -3189,6 +3765,15 @@ builder.relayMutationField(
         for: [Note, Article, Question],
         required: true,
       }),
+      actingAccountId: t.globalID({
+        for: Account,
+        required: false,
+        description:
+          "Optional `Account` id to boost as. Omit to boost as the " +
+          "authenticated personal account; pass an organization account " +
+          "where the viewer is an accepted member to boost as that " +
+          "organization.",
+      }),
     }),
   },
   {
@@ -3197,12 +3782,18 @@ builder.relayMutationField(
         NotAuthenticatedError,
         InvalidInputError,
         ActorSuspendedError,
+        OrganizationPermissionError,
       ],
     },
     async resolve(_root, args, ctx) {
       if (ctx.account == null) {
         throw new NotAuthenticatedError();
       }
+      const authenticatedAccountId = ctx.account.id;
+      const actingAccount = await resolveActingAccountForMutation(
+        ctx,
+        args.input,
+      );
 
       const { postId } = args.input;
 
@@ -3239,7 +3830,7 @@ builder.relayMutationField(
         throw new InvalidInputError("postId");
       }
 
-      if (!isPostVisibleTo(post, ctx.account.actor)) {
+      if (!isPostVisibleTo(post, actingAccount.actor)) {
         throw new InvalidInputError("postId");
       }
 
@@ -3252,7 +3843,7 @@ builder.relayMutationField(
       if (effectivePost.sharedPostId != null) {
         throw new InvalidInputError("postId");
       }
-      if (!isPostVisibleTo(effectivePost, ctx.account.actor)) {
+      if (!isPostVisibleTo(effectivePost, actingAccount.actor)) {
         throw new InvalidInputError("postId");
       }
       // A censored post cannot be boosted (by anyone, including its
@@ -3265,14 +3856,20 @@ builder.relayMutationField(
         effectivePost.visibility !== "public" &&
         effectivePost.visibility !== "unlisted" &&
         !(effectivePost.visibility === "followers" &&
-          effectivePost.actorId === ctx.account.actor.id)
+          effectivePost.actorId === actingAccount.actor.id)
       ) {
         throw new InvalidInputError("postId");
       }
 
+      await assertActingAccountNotSuspended(
+        ctx.db,
+        authenticatedAccountId,
+        actingAccount.id,
+      );
+
       const share = await sharePost(
         ctx.fedCtx,
-        ctx.account,
+        actingAccount,
         post,
       );
 
@@ -3315,6 +3912,15 @@ builder.relayMutationField(
         for: [Note, Article, Question],
         required: true,
       }),
+      actingAccountId: t.globalID({
+        for: Account,
+        required: false,
+        description:
+          "Optional `Account` id to undo a boost as. Omit to use the " +
+          "authenticated personal account; pass an organization account " +
+          "where the viewer is an accepted member to remove that " +
+          "organization's boost.",
+      }),
     }),
   },
   {
@@ -3322,12 +3928,14 @@ builder.relayMutationField(
       types: [
         NotAuthenticatedError,
         InvalidInputError,
+        OrganizationPermissionError,
       ],
     },
     async resolve(_root, args, ctx) {
-      if (ctx.account == null) {
-        throw new NotAuthenticatedError();
-      }
+      const actingAccount = await resolveActingAccountForMutation(
+        ctx,
+        args.input,
+      );
 
       const { postId } = args.input;
 
@@ -3356,13 +3964,13 @@ builder.relayMutationField(
         throw new InvalidInputError("postId");
       }
 
-      if (!isPostVisibleTo(post, ctx.account.actor)) {
+      if (!isPostVisibleTo(post, actingAccount.actor)) {
         throw new InvalidInputError("postId");
       }
 
       const unshared = await unsharePost(
         ctx.fedCtx,
-        ctx.account,
+        actingAccount,
         post,
       );
 
@@ -3528,11 +4136,18 @@ builder.relayMutationField(
   {
     description:
       "Pin a post to the top of the viewer's profile. Only the post's " +
-      "author may pin it. Requires authentication.",
+      "author may pin it. Pass `actingAccountId` to pin an organization " +
+      "post to that organization's profile. Requires authentication.",
     inputFields: (t) => ({
       postId: t.globalID({
         for: [Note, Article, Question],
         required: true,
+        description: "Global ID of the post to pin.",
+      }),
+      actingAccountId: t.globalID({
+        for: [Account],
+        required: false,
+        description: actingAccountIdArgDescription,
       }),
     }),
   },
@@ -3541,12 +4156,14 @@ builder.relayMutationField(
       types: [
         NotAuthenticatedError,
         InvalidInputError,
+        OrganizationPermissionError,
       ],
     },
     async resolve(_root, args, ctx) {
-      if (ctx.account == null) {
-        throw new NotAuthenticatedError();
-      }
+      const actingAccount = await resolveActingAccountForMutation(
+        ctx,
+        args.input,
+      );
 
       const { postId } = args.input;
 
@@ -3558,7 +4175,7 @@ builder.relayMutationField(
         throw new InvalidInputError("postId");
       }
 
-      const pin = await pinPostModel(ctx.fedCtx, ctx.account.actor, post);
+      const pin = await pinPostModel(ctx.fedCtx, actingAccount.actor, post);
       if (pin == null) {
         throw new InvalidInputError("postId");
       }
@@ -3585,11 +4202,18 @@ builder.relayMutationField(
   "unpinPost",
   {
     description:
-      "Remove a pin from the viewer's profile. Requires authentication.",
+      "Remove a pin from the viewer's profile. Pass `actingAccountId` to " +
+      "remove a pin from an organization profile. Requires authentication.",
     inputFields: (t) => ({
       postId: t.globalID({
         for: [Note, Article, Question],
         required: true,
+        description: "Global ID of the post to unpin.",
+      }),
+      actingAccountId: t.globalID({
+        for: [Account],
+        required: false,
+        description: actingAccountIdArgDescription,
       }),
     }),
   },
@@ -3598,12 +4222,14 @@ builder.relayMutationField(
       types: [
         NotAuthenticatedError,
         InvalidInputError,
+        OrganizationPermissionError,
       ],
     },
     async resolve(_root, args, ctx) {
-      if (ctx.account == null) {
-        throw new NotAuthenticatedError();
-      }
+      const actingAccount = await resolveActingAccountForMutation(
+        ctx,
+        args.input,
+      );
 
       const { postId } = args.input;
 
@@ -3615,7 +4241,7 @@ builder.relayMutationField(
         throw new InvalidInputError("postId");
       }
 
-      const pin = await unpinPostModel(ctx.fedCtx, ctx.account.actor, post);
+      const pin = await unpinPostModel(ctx.fedCtx, actingAccount.actor, post);
       if (pin == null) {
         throw new InvalidInputError("postId");
       }
@@ -3693,15 +4319,25 @@ builder.queryField("postByUrl", (t) =>
       "Resolve a post by its URL, fetching it from the originating " +
       "instance via ActivityPub if it is not already cached. Requires " +
       "authentication (unauthenticated callers always receive `null`). " +
-      "Returns `null` if the post is not found or not visible to the viewer.",
+      "Returns `null` if the post is not found or not visible to the " +
+      "selected viewer account. Pass `actingAccountId` when validating a " +
+      "quote target for an organization account.",
     args: {
       url: t.arg.string({ required: true }),
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
     },
     async resolve(_root, args, ctx) {
       if (ctx.account == null) return null;
       const parsed = parseHttpUrl(args.url.trim());
       if (parsed == null) return null;
-      const account = ctx.account;
+      const actingAccount = await resolveActingAccountForGlobalIdArg(
+        ctx,
+        args,
+      );
+      const viewerActor = actingAccount.actor;
       const looked = await lookupPostByUrl(ctx, parsed);
       if (looked == null) return null;
       const postId = looked.id;
@@ -3709,13 +4345,13 @@ builder.queryField("postByUrl", (t) =>
         actor: {
           with: {
             followers: {
-              where: { followerId: account.actor.id },
+              where: { followerId: viewerActor.id },
             },
             blockees: {
-              where: { blockeeId: account.actor.id },
+              where: { blockeeId: viewerActor.id },
             },
             blockers: {
-              where: { blockerId: account.actor.id },
+              where: { blockerId: viewerActor.id },
             },
           },
         },
@@ -3731,7 +4367,7 @@ builder.queryField("postByUrl", (t) =>
         where: { id: postId },
       });
       if (post == null) return null;
-      if (!isPostVisibleTo(post, account.actor)) return null;
+      if (!isPostVisibleTo(post, viewerActor)) return null;
       return post;
     },
   }));
@@ -3747,6 +4383,10 @@ builder.queryField("articleByYearAndSlug", (t) =>
       handle: t.arg.string({ required: true }),
       idOrYear: t.arg.string({ required: true }),
       slug: t.arg.string({ required: true }),
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
     },
     async resolve(query, _, args, ctx) {
       if (!/^\d+$/.test(args.idOrYear)) return null;
@@ -3790,7 +4430,11 @@ builder.queryField("articleByYearAndSlug", (t) =>
       });
       if (source == null) return null;
 
-      const visibility = getPostVisibilityFilter(ctx.account?.actor ?? null);
+      const viewerActorId = await resolveViewerActorId(ctx, args);
+      const viewerActor = viewerActorId == null
+        ? null
+        : await getActorById(ctx, viewerActorId);
+      const visibility = getPostVisibilityFilter(viewerActor);
       return await ctx.db.query.postTable.findFirst(
         query({
           where: {
@@ -3829,9 +4473,19 @@ builder.relayMutationField(
     description:
       "Edit an existing article's content, title, or tags. Only the " +
       "article's author may update it. Sends an ActivityPub `Update` " +
-      "activity. Requires authentication.",
+      "activity. Pass `actingAccountId` when updating an article authored " +
+      "by an organization account you belong to. Requires authentication.",
     inputFields: (t) => ({
-      articleId: t.globalID({ for: [Article], required: true }),
+      articleId: t.globalID({
+        for: [Article],
+        required: true,
+        description: "Global ID of the article to update.",
+      }),
+      actingAccountId: t.globalID({
+        for: [Account],
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
       title: t.string({ required: false }),
       content: t.field({ type: "Markdown", required: false }),
       tags: t.stringList({ required: false }),
@@ -3850,11 +4504,11 @@ builder.relayMutationField(
       types: [
         NotAuthenticatedError,
         InvalidInputError,
+        OrganizationPermissionError,
       ],
     },
     async resolve(_root, args, ctx) {
-      const session = await ctx.session;
-      if (session == null) {
+      if (ctx.account == null) {
         throw new NotAuthenticatedError();
       }
 
@@ -3868,10 +4522,12 @@ builder.relayMutationField(
         throw new InvalidInputError("articleId");
       }
 
-      // Verify ownership
-      if (post.articleSource.accountId !== session.accountId) {
-        throw new InvalidInputError("articleId");
-      }
+      await resolvePostManagementActingAccount(
+        ctx,
+        args.input,
+        post.articleSource.accountId,
+        "articleId",
+      );
 
       const media: { key: string; mediumId: Uuid }[] = [];
       for (const [i, mediumInput] of (args.input.media ?? []).entries()) {
@@ -4393,6 +5049,11 @@ builder.relayMutationField(
           "UUID of the `ArticleSource` to attach the medium to. The viewer " +
           "must be the article's author.",
       }),
+      actingAccountId: t.globalID({
+        for: [Account],
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
       mediumId: t.field({
         type: "UUID",
         required: true,
@@ -4407,16 +5068,28 @@ builder.relayMutationField(
   },
   {
     errors: {
-      types: [NotAuthenticatedError, NotAuthorizedError, InvalidInputError],
+      types: [
+        NotAuthenticatedError,
+        NotAuthorizedError,
+        InvalidInputError,
+        OrganizationPermissionError,
+      ],
     },
     async resolve(_root, args, ctx) {
       const session = await ctx.session;
       if (session == null) throw new NotAuthenticatedError();
+      const actingAccount = await resolveActingAccountForMutation(
+        ctx,
+        args.input,
+      );
+      if (!validateUuid(args.input.articleSourceId)) {
+        throw new InvalidInputError("articleSourceId");
+      }
       const source = await ctx.db.query.articleSourceTable.findFirst({
         where: { id: args.input.articleSourceId },
         columns: { id: true, accountId: true },
       });
-      if (source == null || source.accountId !== session.accountId) {
+      if (source == null || source.accountId !== actingAccount.id) {
         throw new InvalidInputError("articleSourceId");
       }
       const medium = await ctx.db.query.mediumTable.findFirst({

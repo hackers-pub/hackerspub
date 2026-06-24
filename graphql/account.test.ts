@@ -8,6 +8,7 @@ import sharp from "sharp";
 import { updateAccountData } from "@hackerspub/models/account";
 import type { Transaction } from "@hackerspub/models/db";
 import { createMediumFromBytes } from "@hackerspub/models/medium";
+import { createOrganization } from "@hackerspub/models/organization";
 import { createSession, getSession } from "@hackerspub/models/session";
 import {
   accountTable,
@@ -15,6 +16,7 @@ import {
   deletedAccountTable,
   flagCaseTable,
   mediumTable,
+  organizationMembershipTable,
 } from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
 import type { UserContext } from "./builder.ts";
@@ -147,6 +149,25 @@ const updateAccountMutation = parse(`
   }
 `);
 
+const updateAccountProfileMutation = parse(`
+  mutation UpdateAccountProfile($input: UpdateAccountInput!) {
+    updateAccount(input: $input) {
+      account {
+        username
+        bio
+      }
+    }
+  }
+`);
+
+const accountSettingsPermissionQuery = parse(`
+  query AccountSettingsPermission($username: String!) {
+    accountByUsername(username: $username) {
+      viewerCanManageSettings
+    }
+  }
+`);
+
 const deleteAccountMutation = parse(`
   mutation DeleteAccount($input: DeleteAccountInput!) {
     deleteAccount(input: $input) {
@@ -167,6 +188,12 @@ const deleteAccountMutation = parse(`
       }
       ... on AccountDeletionUnavailableError {
         unavailable
+      }
+      ... on LastOrganizationMemberError {
+        message
+      }
+      ... on LastOrganizationAdminError {
+        message
       }
     }
   }
@@ -846,6 +873,121 @@ test("updateAccount updates profile preferences for the signed-in account", asyn
     assert.equal(stored.noteVisibility, "followers");
     assert.equal(stored.shareVisibility, "unlisted");
     assert.equal(stored.quotePolicy, "self");
+  });
+});
+
+test("updateAccount allows organization admins to update organization profiles", async () => {
+  await withRollback(async (tx) => {
+    const admin = await insertAccountWithActor(tx, {
+      username: "updateorgadmin",
+      name: "Update Org Admin",
+      email: "updateorgadmin@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "updateorgmember",
+      name: "Update Org Member",
+      email: "updateorgmember@example.com",
+    });
+    const organization = await insertAccountWithActor(tx, {
+      username: "updateorgprofile",
+      name: "Update Org Profile",
+      email: "updateorgprofile@example.com",
+      kind: "organization",
+      type: "Organization",
+    });
+    await tx.insert(organizationMembershipTable).values([
+      {
+        organizationAccountId: organization.account.id,
+        memberAccountId: admin.account.id,
+        role: "admin",
+        invitedById: admin.account.id,
+        accepted: new Date("2026-04-15T00:00:00.000Z"),
+      },
+      {
+        organizationAccountId: organization.account.id,
+        memberAccountId: member.account.id,
+        role: "member",
+        invitedById: admin.account.id,
+        accepted: new Date("2026-04-15T00:00:00.000Z"),
+      },
+    ]);
+
+    const adminPermission = await execute({
+      schema,
+      document: accountSettingsPermissionQuery,
+      variableValues: { username: organization.account.username },
+      contextValue: makeUserContext(tx, admin.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(adminPermission.errors, undefined);
+    assert.deepEqual(toPlainJson(adminPermission.data), {
+      accountByUsername: { viewerCanManageSettings: true },
+    });
+
+    const memberPermission = await execute({
+      schema,
+      document: accountSettingsPermissionQuery,
+      variableValues: { username: organization.account.username },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(memberPermission.errors, undefined);
+    assert.deepEqual(toPlainJson(memberPermission.data), {
+      accountByUsername: { viewerCanManageSettings: false },
+    });
+
+    const fedCtx = createFedCtx(tx);
+    fedCtx.getActor = (identifier: string) =>
+      Promise.resolve(
+        new vocab.Organization({
+          id: fedCtx.getActorUri(identifier),
+        }),
+      );
+
+    const result = await execute({
+      schema,
+      document: updateAccountProfileMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("Account", organization.account.id),
+          name: "Updated Organization Profile",
+          bio: "Updated organization profile bio",
+        },
+      },
+      contextValue: makeUserContext(tx, admin.account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      updateAccount: {
+        account: {
+          username: "updateorgprofile",
+          bio: "Updated organization profile bio",
+        },
+      },
+    });
+
+    const stored = await tx.query.accountTable.findFirst({
+      where: { id: organization.account.id },
+    });
+    assert.equal(stored?.name, "Updated Organization Profile");
+
+    const rejected = await execute({
+      schema,
+      document: updateAccountProfileMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("Account", organization.account.id),
+          bio: "Rejected update",
+        },
+      },
+      contextValue: makeUserContext(tx, member.account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.notEqual(rejected.errors, undefined);
+    assert.equal(rejected.errors?.[0].extensions?.code, "FORBIDDEN");
   });
 });
 
@@ -1702,6 +1844,241 @@ test("deleteAccount deletes the viewer account and session", async () => {
       where: { accountId: account.account.id },
     });
     assert.equal(tombstone?.username, "deletegraphql");
+  });
+});
+
+test("deleteAccount rejects deleting a personal account that would orphan organizations", async () => {
+  await withRollback(async (tx) => {
+    const soleAdmin = await insertAccountWithActor(tx, {
+      username: "deleteorgsoleadmin",
+      name: "Delete Organization Sole Admin",
+      email: "deleteorgsoleadmin@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, soleAdmin.account.id));
+    const soleOrganization = await createOrganization(
+      createFedCtx(tx),
+      soleAdmin.account,
+      {
+        username: "deleteorgsole",
+        name: "Delete Organization Sole",
+        bio: "",
+      },
+    );
+
+    const soleResult = await execute({
+      schema,
+      document: deleteAccountMutation,
+      variableValues: {
+        input: { id: encodeGlobalID("Account", soleAdmin.account.id) },
+      },
+      contextValue: makeUserContext(tx, soleAdmin.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(soleResult.errors, undefined);
+    assert.deepEqual(toPlainJson(soleResult.data), {
+      deleteAccount: {
+        __typename: "LastOrganizationMemberError",
+        message: "The last member cannot leave the organization.",
+      },
+    });
+    assert.notEqual(
+      await tx.query.accountTable.findFirst({
+        where: { id: soleAdmin.account.id },
+      }),
+      undefined,
+    );
+    assert.notEqual(
+      await tx.query.organizationMembershipTable.findFirst({
+        where: {
+          organizationAccountId: soleOrganization.id,
+          memberAccountId: soleAdmin.account.id,
+        },
+      }),
+      undefined,
+    );
+
+    const lastAdmin = await insertAccountWithActor(tx, {
+      username: "deleteorglastadmin",
+      name: "Delete Organization Last Admin",
+      email: "deleteorglastadmin@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "deleteorgmemberonly",
+      name: "Delete Organization Member Only",
+      email: "deleteorgmemberonly@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, lastAdmin.account.id));
+    const sharedOrganization = await createOrganization(
+      createFedCtx(tx),
+      lastAdmin.account,
+      {
+        username: "deleteorgshared",
+        name: "Delete Organization Shared",
+        bio: "",
+      },
+    );
+    await tx.insert(organizationMembershipTable).values({
+      organizationAccountId: sharedOrganization.id,
+      memberAccountId: member.account.id,
+      role: "member",
+      invitedById: lastAdmin.account.id,
+      accepted: new Date("2026-04-15T00:00:00.000Z"),
+    });
+
+    const adminResult = await execute({
+      schema,
+      document: deleteAccountMutation,
+      variableValues: {
+        input: { id: encodeGlobalID("Account", lastAdmin.account.id) },
+      },
+      contextValue: makeUserContext(tx, lastAdmin.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(adminResult.errors, undefined);
+    assert.deepEqual(toPlainJson(adminResult.data), {
+      deleteAccount: {
+        __typename: "LastOrganizationAdminError",
+        message: "The last admin cannot leave, be removed, or be demoted.",
+      },
+    });
+    assert.notEqual(
+      await tx.query.accountTable.findFirst({
+        where: { id: lastAdmin.account.id },
+      }),
+      undefined,
+    );
+    assert.notEqual(
+      await tx.query.organizationMembershipTable.findFirst({
+        where: {
+          organizationAccountId: sharedOrganization.id,
+          memberAccountId: lastAdmin.account.id,
+        },
+      }),
+      undefined,
+    );
+  });
+});
+
+test("deleteAccount lets organization admins delete organizations", async () => {
+  await withRollback(async (tx) => {
+    const { kv } = createTestKv();
+    const admin = await insertAccountWithActor(tx, {
+      username: "deleteorgadmin",
+      name: "Delete Organization Admin",
+      email: "deleteorgadmin@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "deleteorgmember",
+      name: "Delete Organization Member",
+      email: "deleteorgmember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, admin.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      admin.account,
+      {
+        username: "deleteorg",
+        name: "Delete Organization",
+        bio: "",
+      },
+    );
+    await tx.insert(organizationMembershipTable).values({
+      organizationAccountId: organization.id,
+      memberAccountId: member.account.id,
+      role: "member",
+      invitedById: admin.account.id,
+      accepted: new Date(),
+    });
+
+    const denied = await execute({
+      schema,
+      document: deleteAccountMutation,
+      variableValues: {
+        input: { id: encodeGlobalID("Account", organization.id) },
+      },
+      contextValue: makeUserContext(tx, member.account, { kv }),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(denied.errors, undefined);
+    assert.deepEqual(toPlainJson(denied.data), {
+      deleteAccount: {
+        __typename: "NotAuthorizedError",
+        notAuthorized: "",
+      },
+    });
+
+    const session = await createSession(kv, {
+      accountId: admin.account.id,
+      userAgent: "delete-organization-test",
+    });
+    const fedCtx = createFedCtx(tx, { kv });
+    const sentActivities: unknown[][] = [];
+    fedCtx.sendActivity = ((...args: unknown[]) => {
+      sentActivities.push(args);
+      return Promise.resolve(undefined);
+    }) as typeof fedCtx.sendActivity;
+
+    const result = await execute({
+      schema,
+      document: deleteAccountMutation,
+      variableValues: {
+        input: { id: encodeGlobalID("Account", organization.id) },
+      },
+      contextValue: makeUserContext(tx, admin.account, {
+        kv,
+        fedCtx,
+        session,
+      }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    const payload = (toPlainJson(result.data) as {
+      deleteAccount?: {
+        __typename?: string;
+        deletedAccountId?: string;
+        username?: string;
+        deleted?: string;
+      };
+    }).deleteAccount;
+    assert.deepEqual(
+      {
+        ...payload,
+        deleted: typeof payload?.deleted,
+      },
+      {
+        __typename: "DeleteAccountPayload",
+        deletedAccountId: encodeGlobalID("Account", organization.id),
+        username: "deleteorg",
+        deleted: "string",
+      },
+    );
+    assert.equal(sentActivities.length, 1);
+    assert.deepEqual(await getSession(kv, session.id), session);
+    assert.equal(
+      await tx.query.accountTable.findFirst({
+        where: { id: organization.id },
+      }),
+      undefined,
+    );
+    assert.equal(
+      await tx.query.organizationMembershipTable.findFirst({
+        where: { organizationAccountId: organization.id },
+      }),
+      undefined,
+    );
+    const tombstone = await tx.query.deletedAccountTable.findFirst({
+      where: { accountId: organization.id },
+    });
+    assert.equal(tombstone?.username, "deleteorg");
   });
 });
 

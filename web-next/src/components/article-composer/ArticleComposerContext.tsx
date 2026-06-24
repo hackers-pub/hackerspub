@@ -6,6 +6,7 @@ import {
   createEffect,
   createMemo,
   createSignal,
+  on,
   type ParentComponent,
   useContext,
 } from "solid-js";
@@ -14,6 +15,10 @@ import { createMutation, loadQuery, useRelayEnvironment } from "solid-relay";
 import { createStablePreloadedQuery } from "~/lib/relayPreload.ts";
 import { showToast } from "~/components/ui/toast.tsx";
 import type { QuotePolicy } from "~/components/QuotePolicySelect.tsx";
+import {
+  PERSONAL_COMPOSE_ACCOUNT_KEY,
+  useActingAccount,
+} from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { useNavigate } from "@solidjs/router";
 import { useAutoSave } from "./useAutoSave.ts";
@@ -141,6 +146,7 @@ export interface ArticleComposerContextValue {
   slug: Accessor<string>;
   language: Accessor<Intl.Locale | undefined>;
   quotePolicy: Accessor<QuotePolicy>;
+  publishActingAccountKey: Accessor<string>;
   allowLlmTranslation: Accessor<boolean>;
   isDirty: Accessor<boolean>;
   isPublishing: Accessor<boolean>;
@@ -154,6 +160,7 @@ export interface ArticleComposerContextValue {
   setSlug: (v: string) => void;
   setLanguage: (locale?: Intl.Locale) => void;
   setQuotePolicy: (v: QuotePolicy) => void;
+  setPublishActingAccountKey: (v: string) => void;
   setAllowLlmTranslation: (v: boolean) => void;
   setIsPublishing: (v: boolean) => void;
   setShowPreview: (v: boolean) => void;
@@ -177,6 +184,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
   props,
 ) => {
   const { t, i18n } = useLingui();
+  const actingAccount = useActingAccount();
   const navigate = useNavigate();
   const env = useRelayEnvironment();
   const draftUuid = (props.draftUuid ??
@@ -223,6 +231,9 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
     new Intl.Locale(i18n.locale),
   );
   const [quotePolicy, setQuotePolicy] = createSignal<QuotePolicy>("EVERYONE");
+  const [publishActingAccountKey, setPublishActingAccountKey] = createSignal(
+    PERSONAL_COMPOSE_ACCOUNT_KEY,
+  );
   const [allowLlmTranslation, setAllowLlmTranslation] = createSignal(true);
   const [manualLanguageChange, setManualLanguageChange] = createSignal(false);
   const [manualSlugChange, setManualSlugChange] = createSignal(false);
@@ -370,6 +381,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
           language: language()?.baseName ?? i18n.locale,
           allowLlmTranslation: allowLlmTranslation(),
           quotePolicy: quotePolicy(),
+          ...actingAccount.composeInputForKey(publishActingAccountKey()),
         },
       },
       onCompleted(response) {
@@ -506,6 +518,23 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
     }
   });
 
+  createEffect(
+    on(
+      () => actingAccount.defaultComposeAccountKey(),
+      (defaultKey) => setPublishActingAccountKey(defaultKey),
+    ),
+  );
+
+  createEffect(() => {
+    if (
+      publishActingAccountKey() !== PERSONAL_COMPOSE_ACCOUNT_KEY &&
+      actingAccount.composeInputForKey(publishActingAccountKey())
+          .actingAccountId == null
+    ) {
+      setPublishActingAccountKey(actingAccount.defaultComposeAccountKey());
+    }
+  });
+
   // Auto-generate slug from title (only while user hasn't manually touched it)
   createEffect(() => {
     const titleValue = title();
@@ -558,6 +587,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
     slug,
     language,
     quotePolicy,
+    publishActingAccountKey,
     allowLlmTranslation,
     isDirty,
     isPublishing,
@@ -570,6 +600,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
     setSlug: handleSetSlug,
     setLanguage,
     setQuotePolicy,
+    setPublishActingAccountKey,
     setAllowLlmTranslation,
     setIsPublishing,
     setShowPreview,

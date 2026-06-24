@@ -187,6 +187,7 @@ export async function uploadImage(
 async function attachArticleSourceMediumOnServer(
   articleSourceId: string,
   mediumId: string,
+  actingAccountId?: string | null,
 ): Promise<string> {
   "use server";
 
@@ -219,7 +220,13 @@ async function attachArticleSourceMediumOnServer(
         }
       }
     `,
-    { input: { articleSourceId, mediumId } },
+    {
+      input: {
+        articleSourceId,
+        mediumId,
+        ...(actingAccountId == null ? {} : { actingAccountId }),
+      },
+    },
   );
 
   const data = result.data?.attachArticleSourceMedium;
@@ -239,12 +246,14 @@ async function attachArticleSourceMediumOnServer(
 export async function uploadImageForArticleSource(
   file: File,
   articleSourceId: string,
+  actingAccountId?: string | null,
 ): Promise<ImageUploadResult> {
   const dataUrl = await fileToDataUrl(file);
   const medium = await createMediumFromDataUrl(dataUrl);
   const key = await attachArticleSourceMediumOnServer(
     articleSourceId,
     medium.uuid,
+    actingAccountId,
   );
   return { ...medium, url: `hp-medium:${key}` };
 }

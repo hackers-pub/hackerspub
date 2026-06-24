@@ -24,6 +24,7 @@ import {
   TooltipTrigger,
 } from "~/components/ui/tooltip.tsx";
 import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { PostEngagementBar_post$key } from "./__generated__/PostEngagementBar_post.graphql.ts";
@@ -62,14 +63,17 @@ export interface PostEngagementBarProps {
 }
 
 const sharePostMutation = graphql`
-  mutation PostEngagementBar_sharePost_Mutation($input: SharePostInput!) {
+  mutation PostEngagementBar_sharePost_Mutation(
+    $input: SharePostInput!
+    $actingAccountId: ID
+  ) {
     sharePost(input: $input) {
       __typename
       ... on SharePostPayload {
         originalPost {
           id
-          viewerHasShared
-          viewerCanShare
+          viewerHasShared(actingAccountId: $actingAccountId)
+          viewerCanShare(actingAccountId: $actingAccountId)
           engagementStats {
             shares
           }
@@ -88,14 +92,15 @@ const sharePostMutation = graphql`
 const unsharePostMutation = graphql`
   mutation PostEngagementBar_unsharePost_Mutation(
     $input: UnsharePostInput!
+    $actingAccountId: ID
   ) {
     unsharePost(input: $input) {
       __typename
       ... on UnsharePostPayload {
         originalPost {
           id
-          viewerHasShared
-          viewerCanShare
+          viewerHasShared(actingAccountId: $actingAccountId)
+          viewerCanShare(actingAccountId: $actingAccountId)
           engagementStats {
             shares
           }
@@ -114,9 +119,12 @@ const unsharePostMutation = graphql`
 export function PostEngagementBar(props: PostEngagementBarProps) {
   const { t } = useLingui();
   const { openWithQuote, openWithReply } = useNoteCompose();
+  const actingAccount = useActingAccount();
   const liveNote = createFragment(
     graphql`
-      fragment PostEngagementBar_post on Post {
+      fragment PostEngagementBar_post on Post
+        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
+      {
         __id
         engagementStats {
           replies
@@ -126,18 +134,18 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
         }
         id
         visibility
-        viewerHasShared
-        viewerCanReply
-        viewerCanQuote
-        viewerCanShare
+        viewerHasShared(actingAccountId: $actingAccountId)
+        viewerCanReply(actingAccountId: $actingAccountId)
+        viewerCanQuote(actingAccountId: $actingAccountId)
+        viewerCanShare(actingAccountId: $actingAccountId)
         ...BookmarkButton_post
-        ...PostActionMenu_post
+        ...PostActionMenu_post @arguments(actingAccountId: $actingAccountId)
         reactionGroups {
           ... on EmojiReactionGroup {
             emoji
             reactors {
               totalCount
-              viewerHasReacted
+              viewerHasReacted(actingAccountId: $actingAccountId)
             }
           }
           ... on CustomEmojiReactionGroup {
@@ -148,7 +156,7 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
             }
             reactors {
               totalCount
-              viewerHasReacted
+              viewerHasReacted(actingAccountId: $actingAccountId)
             }
           }
         }
@@ -249,10 +257,15 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
     // round-trip is still in flight; Relay updates `viewerHasShared` only
     // after the response arrives.
     if (!noteData || sharePendingAny()) return;
+    const actingAccountId = actingAccount.selectedActingAccountId();
+    const input = {
+      postId: noteData.id,
+      ...(actingAccountId == null ? {} : { actingAccountId }),
+    };
 
     if (noteData.viewerHasShared) {
       unsharePost({
-        variables: { input: { postId: noteData.id } },
+        variables: { input, actingAccountId: actingAccountId ?? null },
         onCompleted(response) {
           if (response.unsharePost?.__typename !== "UnsharePostPayload") {
             showToast({
@@ -270,7 +283,7 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
       });
     } else {
       sharePost({
-        variables: { input: { postId: noteData.id } },
+        variables: { input, actingAccountId: actingAccountId ?? null },
         onCompleted(response) {
           if (response.sharePost?.__typename !== "SharePostPayload") {
             showToast({

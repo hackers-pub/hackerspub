@@ -16,7 +16,7 @@ import { CensorshipNotice } from "./CensorshipNotice.tsx";
 import { LinkPreview } from "./LinkPreview.tsx";
 import { NoteHeader } from "./NoteHeader.tsx";
 import { NoteMedia } from "./NoteMedia.tsx";
-import { PostAvatar } from "./PostAvatar.tsx";
+import { PostAuthorAvatar } from "./PostAuthor.tsx";
 import { PostEngagementBar } from "./PostEngagementBar.tsx";
 import type { PostVisibility } from "./PostVisibilitySelect.tsx";
 import type { QuotePolicy } from "./QuotePolicySelect.tsx";
@@ -39,16 +39,19 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
   const { openForEdit } = useNoteCompose();
   const liveNote = createFragment(
     graphql`
-      fragment NoteCardInternal_note on Note {
+      fragment NoteCardInternal_note on Note
+        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
+      {
         __id
         id
         uuid
         sourceId
-        viewerCanRevokeQuote
+        viewerCanRevokeQuote(actingAccountId: $actingAccountId)
         censored
         content
         language
-        rawContent
+        personalRawContent: rawContent
+        rawContent(actingAccountId: $actingAccountId)
         sensitive
         summary
         quotePolicy
@@ -57,10 +60,16 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
           local
           username
           handle
-          isViewer
-          ...PostAvatar_actor
+          isViewer(actingAccountId: $actingAccountId)
+          account {
+            id
+            kind
+          }
         }
-        ...PostEngagementBar_post
+        ...PostAuthorAvatar_post
+        ...PostEngagementBar_post @arguments(
+          actingAccountId: $actingAccountId
+        )
         ...NoteMedia_note
         ...LinkPreview_note
         ...NoteHeader_note
@@ -129,7 +138,7 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
     <Show keyed when={note()}>
       {(n) => (
         <div class="flex gap-3 sm:gap-4">
-          <PostAvatar $actor={n.actor} />
+          <PostAuthorAvatar $post={n} />
           <div class="min-w-0 grow">
             <NoteHeader
               $note={n}
@@ -198,13 +207,18 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
                 pinConnections={props.pinConnections}
                 bookmarkListConnections={props.bookmarkListConnections}
                 onDeleted={props.onDeleted}
-                onEdit={n.rawContent != null && n.visibility !== "NONE"
+                onEdit={(n.rawContent ?? n.personalRawContent) != null &&
+                    n.visibility !== "NONE"
                   ? () =>
                     openForEdit(n.id, {
-                      content: n.rawContent!,
+                      content: (n.rawContent ?? n.personalRawContent)!,
                       language: n.language,
                       quotePolicy: (n.quotePolicy as QuotePolicy) ?? "EVERYONE",
                       visibility: (n.visibility as PostVisibility) ?? "PUBLIC",
+                      authorAccountId: n.rawContent != null &&
+                          n.actor.account?.kind === "ORGANIZATION"
+                        ? n.actor.account.id
+                        : null,
                     })
                   : undefined}
               />

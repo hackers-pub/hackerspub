@@ -1,10 +1,28 @@
 import { A, useLocation } from "@solidjs/router";
 import { graphql } from "relay-runtime";
-import { For, Show } from "solid-js";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  onCleanup,
+  Show,
+} from "solid-js";
 import { createFragment, createMutation } from "solid-relay";
+import IconCheck from "~icons/lucide/check";
+import IconChevronsUpDown from "~icons/lucide/chevrons-up-down";
 import IconShieldCheck from "~icons/lucide/shield-check";
 import IconUndo2 from "~icons/lucide/undo-2";
 import { Button } from "~/components/ui/button.tsx";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuGroupLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu.tsx";
 import {
   Sidebar,
   SidebarContent,
@@ -19,6 +37,13 @@ import {
 } from "~/components/ui/sidebar.tsx";
 import { NotificationsBellIcon } from "~/components/NotificationsBellIcon.tsx";
 import { UnreadNotificationsFaviconBadge } from "~/components/UnreadNotificationsFaviconBadge.tsx";
+import {
+  type ActingAccountSummary,
+  organizationActingAccountKey,
+  type OrganizationNotificationBadge as ActingOrganizationNotificationBadge,
+  PERSONAL_ACTING_ACCOUNT_KEY,
+  useActingAccount,
+} from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import { invalidateNotificationsPageQueryCache } from "~/lib/notificationsPageQueryCache.ts";
@@ -36,7 +61,7 @@ import type {
   AppSidebar_signedAccount$data,
   AppSidebar_signedAccount$key,
 } from "./__generated__/AppSidebar_signedAccount.graphql.ts";
-import { Avatar, AvatarImage } from "./ui/avatar.tsx";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar.tsx";
 import metadata from "../../package.json" with { type: "json" };
 
 const AppSidebarSignOutMutation = graphql`
@@ -57,7 +82,7 @@ export interface AppSidebarProps {
   // query finished and the visitor is anonymous; undefined means it has not
   // resolved yet. The sidebar needs that distinction to show the sign-in link.
   signedAccountLoaded?: boolean;
-  totalUnreadNotificationsCount?: number;
+  personalUnreadNotificationsCount?: number;
 }
 
 export function AppSidebar(props: AppSidebarProps) {
@@ -72,6 +97,7 @@ export function AppSidebar(props: AppSidebarProps) {
           count: { type: "Int", defaultValue: 3 }
         ) {
         name
+        id
         username
         avatarUrl
         invitationsLeft
@@ -79,6 +105,19 @@ export function AppSidebar(props: AppSidebarProps) {
         unreadModerationNotificationCount
         moderator
         pinnedHashtags
+        organizationMemberships {
+          role
+          notificationBadge {
+            color
+            count
+          }
+          organization {
+            id
+            name
+            username
+            avatarUrl
+          }
+        }
         articleDrafts(after: $cursor, first: $count)
           @connection(key: "SignedAccount_articleDrafts") {
           __id
@@ -102,12 +141,52 @@ export function AppSidebar(props: AppSidebarProps) {
   const [signOut] = createMutation<AppSidebarSignOutMutation>(
     AppSidebarSignOutMutation,
   );
+  const actingAccount = useActingAccount();
+  const organizationSelected = () =>
+    actingAccount.selectedOrganization() != null;
 
-  const unreadNotificationsCount = () => {
+  createEffect(() => {
     const account = signedAccount();
-    return props.totalUnreadNotificationsCount ??
+    if (account == null) {
+      actingAccount.setAccounts(null, []);
+      return;
+    }
+    actingAccount.setAccounts(
+      {
+        id: account.id,
+        name: account.name,
+        username: account.username,
+        avatarUrl: account.avatarUrl,
+      },
+      account.organizationMemberships.map((membership) => ({
+        role: membership.role,
+        notificationBadge: membership.notificationBadge,
+        organization: {
+          id: membership.organization.id,
+          name: membership.organization.name,
+          username: membership.organization.username,
+          avatarUrl: membership.organization.avatarUrl,
+        },
+      })),
+    );
+  });
+
+  const personalUnreadNotificationsCount = () => {
+    const account = signedAccount();
+    return props.personalUnreadNotificationsCount ??
       (account == null ? 0 : account.unreadNotificationsCount +
         (account.unreadModerationNotificationCount ?? 0));
+  };
+
+  const currentNotificationBadge = ():
+    | ActingOrganizationNotificationBadge
+    | null => {
+    const organization = actingAccount.selectedOrganization();
+    if (organization != null) {
+      return organization.notificationBadge ?? null;
+    }
+    const count = personalUnreadNotificationsCount();
+    return count > 0 ? { color: "RED", count } : null;
   };
 
   async function onSignOut() {
@@ -134,13 +213,13 @@ export function AppSidebar(props: AppSidebarProps) {
   return (
     <Sidebar>
       <UnreadNotificationsFaviconBadge
-        unread={(props.totalUnreadNotificationsCount ?? 0) > 0}
+        unread={(currentNotificationBadge()?.count ?? 0) > 0}
       />
       <SidebarHeader>
         <div class="flex items-center justify-between">
           <AppSidebarLogo />
           <Show when={signedAccount()}>
-            <HeaderNotifications count={unreadNotificationsCount()} />
+            <HeaderNotifications badge={currentNotificationBadge()} />
           </Show>
         </div>
       </SidebarHeader>
@@ -346,32 +425,34 @@ export function AppSidebar(props: AppSidebarProps) {
                 {t`Search`}
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <For each={signedAccount()?.pinnedHashtags ?? []}>
-              {(tag) => (
-                <SidebarMenuItem class="list-none">
-                  <SidebarMenuButton
-                    as={A}
-                    href={`/tags/${encodeURIComponent(tag)}`}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke-width="1.5"
-                      stroke="currentColor"
-                      class="size-6"
+            <Show when={!organizationSelected()}>
+              <For each={signedAccount()?.pinnedHashtags ?? []}>
+                {(tag) => (
+                  <SidebarMenuItem class="list-none">
+                    <SidebarMenuButton
+                      as={A}
+                      href={`/tags/${encodeURIComponent(tag)}`}
                     >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5-3.9 19.5m-2.1-19.5-3.9 19.5"
-                      />
-                    </svg>
-                    #{tag}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
-            </For>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="size-6"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5-3.9 19.5m-2.1-19.5-3.9 19.5"
+                        />
+                      </svg>
+                      #{tag}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )}
+              </For>
+            </Show>
           </SidebarGroupContent>
         </SidebarGroup>
         <ComposeSection
@@ -420,12 +501,244 @@ function AppSidebarLogo() {
   );
 }
 
+interface ActingAccountMenuOption {
+  key: string;
+  account: ActingAccountSummary;
+  badge?: ActingOrganizationNotificationBadge | null;
+}
+
+function ActingAccountMenu() {
+  const { t } = useLingui();
+  const actingAccount = useActingAccount();
+  const [triggerWidth, setTriggerWidth] = createSignal<number>();
+  let triggerResizeObserver: ResizeObserver | undefined;
+  const options = createMemo<ActingAccountMenuOption[]>(() => {
+    const personalAccount = actingAccount.personalAccount();
+    if (personalAccount == null) return [];
+    return [
+      {
+        key: PERSONAL_ACTING_ACCOUNT_KEY,
+        account: personalAccount,
+      },
+      ...actingAccount.organizations().map((membership) => ({
+        key: organizationActingAccountKey(membership.organization.id),
+        account: membership.organization,
+        badge: membership.notificationBadge,
+      })),
+    ];
+  });
+  const selectedOption = () =>
+    options().find((option) => option.key === actingAccount.selectedKey()) ??
+      options()[0];
+  const hasUnreadUnselectedOrganizationNotifications = () =>
+    options().some((option) =>
+      option.key !== PERSONAL_ACTING_ACCOUNT_KEY &&
+      option.key !== actingAccount.selectedKey() &&
+      (option.badge?.count ?? 0) > 0
+    );
+  const menuContentWidth = () => {
+    const width = triggerWidth();
+    if (width == null) return undefined;
+    return `${Math.max(width + 1, 240)}px`;
+  };
+  const setTriggerElement = (element: HTMLElement | undefined) => {
+    triggerResizeObserver?.disconnect();
+    if (element == null) return;
+    const updateWidth = () => {
+      setTriggerWidth(element.getBoundingClientRect().width);
+    };
+    updateWidth();
+    triggerResizeObserver = new ResizeObserver(updateWidth);
+    triggerResizeObserver.observe(element);
+  };
+  onCleanup(() => triggerResizeObserver?.disconnect());
+
+  return (
+    <Show
+      when={options().length > 1 && selectedOption() != null}
+    >
+      <div class="-mx-2 -mb-2 border-t border-sidebar-border group-data-[collapsible=icon]:mx-0 group-data-[collapsible=icon]:mb-0 group-data-[collapsible=icon]:border-t-0">
+        <DropdownMenu
+          modal={false}
+          placement="top-start"
+          gutter={0}
+          overflowPadding={0}
+        >
+          <DropdownMenuTrigger
+            ref={setTriggerElement}
+            class="flex min-h-14 w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-sm outline-none ring-sidebar-ring transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 data-[expanded]:bg-sidebar data-[expanded]:text-sidebar-foreground group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:min-h-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0"
+            aria-label={`${t`Act as`}: ${
+              accountDisplayName(selectedOption()!.account)
+            }`}
+          >
+            <ActingAccountMenuTrigger option={selectedOption()!} />
+            <span class="relative ml-auto shrink-0 group-data-[collapsible=icon]:hidden">
+              <IconChevronsUpDown
+                class="size-4 opacity-50"
+                aria-hidden="true"
+              />
+              <Show when={hasUnreadUnselectedOrganizationNotifications()}>
+                <span
+                  aria-hidden="true"
+                  class="absolute -right-1 -top-1 size-2 rounded-full bg-red-500 ring-2 ring-sidebar"
+                />
+              </Show>
+            </span>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            class="min-w-60 max-w-[calc(100vw-1rem)] rounded-t-md rounded-b-none border-sidebar-border border-b-0 bg-sidebar p-0 text-sidebar-foreground shadow-none"
+            style={{ width: menuContentWidth() }}
+          >
+            <DropdownMenuRadioGroup<string>
+              value={actingAccount.selectedKey()}
+              onChange={(key) => actingAccount.setSelectedKey(key)}
+            >
+              <DropdownMenuGroup>
+                <DropdownMenuGroupLabel class="sr-only">
+                  {t`Act as`}
+                </DropdownMenuGroupLabel>
+                <For each={options()}>
+                  {(option) => (
+                    <DropdownMenuRadioItem
+                      value={option.key}
+                      indicator={<IconCheck class="size-4" />}
+                      indicatorPlacement="right"
+                      class="gap-2 rounded-none py-2 focus:bg-sidebar-accent focus:text-sidebar-accent-foreground"
+                    >
+                      <ActingAccountMenuOptionRow option={option} />
+                      <Show
+                        when={option.key !== actingAccount.selectedKey()}
+                      >
+                        <AlignedOrganizationNotificationBadge
+                          badge={option.badge}
+                        />
+                      </Show>
+                    </DropdownMenuRadioItem>
+                  )}
+                </For>
+              </DropdownMenuGroup>
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </Show>
+  );
+}
+
+function ActingAccountMenuTrigger(props: { option: ActingAccountMenuOption }) {
+  return (
+    <>
+      <AccountAvatar account={props.option.account} class="size-7" />
+      <span class="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
+        <span class="block truncate font-medium leading-5">
+          {accountDisplayName(props.option.account)}
+        </span>
+        <span class="block truncate text-xs text-sidebar-foreground/65">
+          {accountHandle(props.option.account)}
+        </span>
+      </span>
+      <span class="group-data-[collapsible=icon]:hidden">
+        <OrganizationNotificationBadge badge={props.option.badge} />
+      </span>
+    </>
+  );
+}
+
+function ActingAccountMenuOptionRow(props: {
+  option: ActingAccountMenuOption;
+}) {
+  return (
+    <span class="flex min-w-0 flex-1 items-center gap-2 overflow-hidden py-0.5">
+      <AccountAvatar account={props.option.account} class="size-6" />
+      <span class="min-w-0 flex-1">
+        <span class="block truncate">
+          {accountDisplayName(props.option.account)}
+        </span>
+        <span class="block truncate text-xs text-muted-foreground">
+          {accountHandle(props.option.account)}
+        </span>
+      </span>
+    </span>
+  );
+}
+
+function AccountAvatar(props: {
+  account: ActingAccountSummary;
+  class?: string;
+}) {
+  return (
+    <Avatar class={props.class} aria-hidden="true">
+      <AvatarImage src={props.account.avatarUrl ?? undefined} />
+      <AvatarFallback class="text-[0.625rem]">
+        {accountInitial(props.account)}
+      </AvatarFallback>
+    </Avatar>
+  );
+}
+
+function OrganizationNotificationBadge(props: {
+  badge?: ActingOrganizationNotificationBadge | null;
+}) {
+  const badge = () => props.badge;
+
+  return (
+    <Show when={badge() != null && badge()!.count > 0}>
+      <span
+        aria-hidden="true"
+        class="ml-auto flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full px-1 text-[0.625rem] font-semibold leading-none"
+        classList={{
+          "bg-red-500 text-white": badge()!.color === "RED",
+          "bg-muted-foreground/25 text-sidebar-foreground":
+            badge()!.color !== "RED",
+        }}
+      >
+        {badge()!.count > 99 ? "99+" : badge()!.count}
+      </span>
+    </Show>
+  );
+}
+
+function AlignedOrganizationNotificationBadge(props: {
+  badge?: ActingOrganizationNotificationBadge | null;
+}) {
+  const badge = () => props.badge;
+
+  return (
+    <Show when={badge() != null && badge()!.count > 0}>
+      <span
+        aria-hidden="true"
+        class="pointer-events-none absolute right-2 top-1/2 flex h-4 min-w-4 -translate-y-1/2 items-center justify-center rounded-full px-1 text-[0.625rem] font-semibold leading-none"
+        classList={{
+          "bg-red-500 text-white": badge()!.color === "RED",
+          "bg-muted-foreground/25 text-popover-foreground":
+            badge()!.color !== "RED",
+        }}
+      >
+        {badge()!.count > 99 ? "99+" : badge()!.count}
+      </span>
+    </Show>
+  );
+}
+
+function accountDisplayName(account: ActingAccountSummary): string {
+  return account.name || account.username;
+}
+
+function accountHandle(account: ActingAccountSummary): string {
+  return `@${account.username}`;
+}
+
+function accountInitial(account: ActingAccountSummary): string {
+  return Array.from(accountDisplayName(account))[0]?.toUpperCase() ?? "?";
+}
+
 interface HeaderNotificationsProps {
-  count: number;
+  badge?: ActingOrganizationNotificationBadge | null;
 }
 
 function HeaderNotifications(props: HeaderNotificationsProps) {
   const { t, i18n } = useLingui();
+  const count = () => props.badge?.count ?? 0;
 
   return (
     <Button
@@ -435,10 +748,10 @@ function HeaderNotifications(props: HeaderNotificationsProps) {
       variant="ghost"
       size="icon"
       class="relative size-9 shrink-0 rounded-full"
-      aria-label={props.count > 0
+      aria-label={count() > 0
         ? i18n._(
           msg`${
-            plural(props.count, {
+            plural(count(), {
               one: "Notifications (# unread)",
               other: "Notifications (# unread)",
             })
@@ -448,12 +761,17 @@ function HeaderNotifications(props: HeaderNotificationsProps) {
       title={t`Notifications`}
     >
       <NotificationsBellIcon class="size-5" />
-      <Show when={props.count > 0}>
+      <Show when={count() > 0}>
         <span
           aria-hidden="true"
-          class="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[0.625rem] font-semibold leading-none text-white ring-2 ring-sidebar"
+          class="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[0.625rem] font-semibold leading-none ring-2 ring-sidebar"
+          classList={{
+            "bg-red-500 text-white": props.badge?.color === "RED",
+            "bg-muted-foreground/25 text-sidebar-foreground":
+              props.badge?.color !== "RED",
+          }}
         >
-          {props.count > 99 ? "99+" : props.count}
+          {count() > 99 ? "99+" : count()}
         </span>
       </Show>
     </Button>
@@ -469,6 +787,17 @@ interface AccountSectionProps {
 function AccountSection(props: AccountSectionProps) {
   const { t } = useLingui();
   const location = useLocation();
+  const actingAccount = useActingAccount();
+  const organizationSelected = () =>
+    actingAccount.selectedOrganization() != null;
+  const profileAccount = () =>
+    actingAccount.selectedOrganization()?.organization ??
+      actingAccount.personalAccount() ??
+      props.signedAccount;
+  const settingsAccount = () =>
+    actingAccount.selectedOrganization()?.role === "ADMIN"
+      ? actingAccount.selectedOrganization()?.organization
+      : actingAccount.personalAccount() ?? props.signedAccount;
 
   function onUseOldUI() {
     setLegacyUiCookie();
@@ -481,12 +810,14 @@ function AccountSection(props: AccountSectionProps) {
         {t`Account`}
       </SidebarGroupLabel>
       <SidebarGroupContent>
-        <SidebarMenuItem class="list-none">
-          <SidebarMenuButton on:click={onUseOldUI} class="cursor-pointer">
-            <IconUndo2 class="size-6" />
-            {t`Use old UI`}
-          </SidebarMenuButton>
-        </SidebarMenuItem>
+        <Show when={!organizationSelected()}>
+          <SidebarMenuItem class="list-none">
+            <SidebarMenuButton on:click={onUseOldUI} class="cursor-pointer">
+              <IconUndo2 class="size-6" />
+              {t`Use old UI`}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </Show>
         <Show
           when={!props.signedAccountLoaded}
         >
@@ -534,41 +865,47 @@ function AccountSection(props: AccountSectionProps) {
               <SidebarMenuItem class="list-none">
                 <SidebarMenuButton
                   as={A}
-                  href={`/@${signedAccount.username}`}
+                  href={`/@${
+                    profileAccount()?.username ?? signedAccount.username
+                  }`}
                 >
-                  <Avatar class="size-4">
-                    <AvatarImage
-                      src={signedAccount.avatarUrl}
-                      width={16}
-                      height={16}
-                    />
-                  </Avatar>
-                  {signedAccount.name}
+                  <AccountAvatar
+                    account={profileAccount() ?? signedAccount}
+                    class="size-4"
+                  />
+                  <span class="min-w-0 truncate">
+                    {accountDisplayName(profileAccount() ?? signedAccount)}
+                  </span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              <SidebarMenuItem class="list-none">
-                <SidebarMenuButton
-                  as={A}
-                  href={`/@${signedAccount.username}/bookmarks`}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    class="size-6"
+              <Show when={!organizationSelected()}>
+                <SidebarMenuItem class="list-none">
+                  <SidebarMenuButton
+                    as={A}
+                    href={`/@${signedAccount.username}/bookmarks`}
                   >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z"
-                    />
-                  </svg>
-                  {t`Bookmarks`}
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <Show when={signedAccount.invitationsLeft > 0}>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="1.5"
+                      stroke="currentColor"
+                      class="size-6"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z"
+                      />
+                    </svg>
+                    {t`Bookmarks`}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </Show>
+              <Show
+                when={!organizationSelected() &&
+                  signedAccount.invitationsLeft > 0}
+              >
                 <SidebarMenuItem class="list-none">
                   <SidebarMenuButton
                     as={A}
@@ -598,7 +935,9 @@ function AccountSection(props: AccountSectionProps) {
               <SidebarMenuItem class="list-none">
                 <SidebarMenuButton
                   as={A}
-                  href={`/@${signedAccount.username}/settings`}
+                  href={`/@${
+                    settingsAccount()?.username ?? signedAccount.username
+                  }/settings`}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -622,7 +961,7 @@ function AccountSection(props: AccountSectionProps) {
                   {t`Settings`}
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              <Show when={signedAccount.moderator}>
+              <Show when={!organizationSelected() && signedAccount.moderator}>
                 <SidebarMenuItem class="list-none">
                   <SidebarMenuButton
                     as={A}
@@ -842,88 +1181,91 @@ function AppSidebarFooter() {
 
   return (
     <SidebarFooter>
-      <p class="m-2 mb-0 text-sm">
-        <A href="/tree" class="underline">
-          {t`Invitation tree`}
-        </A>
-      </p>
-      <p class="m-2 mb-0 text-sm">
-        <A
-          href="/coc"
-          class="underline"
-        >
-          {t`Code of conduct`}
-        </A>{" "}
-        &middot;{" "}
-        <A
-          href="/privacy"
-          class="underline"
-        >
-          {t`Privacy policy`}
-        </A>
-      </p>
-      <p class="m-2 mb-0 text-sm">
-        <a
-          href="https://play.google.com/store/apps/details?id=pub.hackers.android"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="underline"
-        >
-          Android
-        </a>{" "}
-        &middot;{" "}
-        <a
-          href="https://testflight.apple.com/join/wEBBtbzA"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="underline"
-        >
-          iOS/iPadOS
-        </a>
-      </p>
-      <p class="m-2 text-sm">
-        <Trans
-          message={t`The source code of this website is available on ${"GITHUB_REPOSITORY"} under the ${"AGPL-3.0"} license.`}
-          values={{
-            GITHUB_REPOSITORY: () => (
+      <div class="group-data-[collapsible=icon]:hidden">
+        <p class="m-2 mb-0 text-sm">
+          <A href="/tree" class="underline">
+            {t`Invitation tree`}
+          </A>
+        </p>
+        <p class="m-2 mb-0 text-sm">
+          <A
+            href="/coc"
+            class="underline"
+          >
+            {t`Code of conduct`}
+          </A>{" "}
+          &middot;{" "}
+          <A
+            href="/privacy"
+            class="underline"
+          >
+            {t`Privacy policy`}
+          </A>
+        </p>
+        <p class="m-2 mb-0 text-sm">
+          <a
+            href="https://play.google.com/store/apps/details?id=pub.hackers.android"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="underline"
+          >
+            Android
+          </a>{" "}
+          &middot;{" "}
+          <a
+            href="https://testflight.apple.com/join/wEBBtbzA"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="underline"
+          >
+            iOS/iPadOS
+          </a>
+        </p>
+        <p class="m-2 text-sm">
+          <Trans
+            message={t`The source code of this website is available on ${"GITHUB_REPOSITORY"} under the ${"AGPL-3.0"} license.`}
+            values={{
+              GITHUB_REPOSITORY: () => (
+                <a
+                  href="https://github.com/hackers-pub/hackerspub"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="underline"
+                >
+                  {t`GitHub repository`}
+                </a>
+              ),
+              "AGPL-3.0": () => (
+                <a
+                  href="https://www.gnu.org/licenses/agpl-3.0.en.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="underline"
+                >
+                  AGPL 3.0
+                </a>
+              ),
+            }}
+          />{" "}
+          v{metadata.version.split("+")[0]}
+          {metadata.version.includes("+") && (
+            <>
+              +
               <a
-                href="https://github.com/hackers-pub/hackerspub"
+                href={`https://github.com/hackers-pub/hackerspub/commit/${
+                  metadata.version.split("+")[1]
+                }`}
                 target="_blank"
                 rel="noopener noreferrer"
                 class="underline"
               >
-                {t`GitHub repository`}
+                {metadata.version.split("+")[1].slice(0, 8)}
               </a>
-            ),
-            "AGPL-3.0": () => (
-              <a
-                href="https://www.gnu.org/licenses/agpl-3.0.en.html"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="underline"
-              >
-                AGPL 3.0
-              </a>
-            ),
-          }}
-        />{" "}
-        v{metadata.version.split("+")[0]}
-        {metadata.version.includes("+") && (
-          <>
-            +
-            <a
-              href={`https://github.com/hackers-pub/hackerspub/commit/${
-                metadata.version.split("+")[1]
-              }`}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="underline"
-            >
-              {metadata.version.split("+")[1].slice(0, 8)}
-            </a>
-          </>
-        )}
-      </p>
+            </>
+          )}
+        </p>
+      </div>
+      <ActingAccountMenu />
     </SidebarFooter>
   );
 }

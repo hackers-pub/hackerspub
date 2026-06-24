@@ -17,6 +17,7 @@ import { PostListSkeleton } from "~/components/PostListSkeleton.tsx";
 import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { ProfileTabs } from "~/components/ProfileTabs.tsx";
 import { Title } from "~/components/Title.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import {
   PROFILE_PAGE_BASE_QUERY_KEY,
@@ -61,7 +62,7 @@ export const route = {
 // The remaining multi-second freeze on first navigation into this route is tracked
 // upstream at https://github.com/XiNiHa/solid-relay/issues/66.
 const ProfilePageBaseQuery = graphql`
-  query ProfilePageBaseQuery($handle: String!) {
+  query ProfilePageBaseQuery($handle: String!, $actingAccountId: ID) {
     actorByHandle(handle: $handle, allowLocalHandle: true) {
       id
       rawName
@@ -69,29 +70,38 @@ const ProfilePageBaseQuery = graphql`
       url
       iri
       local
-      viewerBlocks
-      blocksViewer
+      viewerBlocks(actingAccountId: $actingAccountId)
+      blocksViewer(actingAccountId: $actingAccountId)
       ...NavigateIfHandleIsNotCanonical_actor
-      ...ProfileCard_actor
-      ...ProfileTabs_actor
+      ...ProfileCard_actor @arguments(actingAccountId: $actingAccountId)
+      ...ProfileTabs_actor @arguments(actingAccountId: $actingAccountId)
     }
   }
 `;
 
 const ProfilePageContentQuery = graphql`
-  query ProfilePageContentQuery($handle: String!, $locale: Locale) {
+  query ProfilePageContentQuery(
+    $handle: String!
+    $locale: Locale
+    $actingAccountId: ID
+  ) {
     actorByHandle(handle: $handle, allowLocalHandle: true) {
       id
-      isViewer
-      viewerBlocks
-      blocksViewer
-      posts(first: 20) @connection(key: "ActorPostList_posts") {
+      isViewer(actingAccountId: $actingAccountId)
+      viewerBlocks(actingAccountId: $actingAccountId)
+      blocksViewer(actingAccountId: $actingAccountId)
+      posts(first: 20, actingAccountId: $actingAccountId)
+        @connection(key: "ActorPostList_posts")
+      {
         __id
         edges {
           cursor
         }
       }
-      ...ActorPostList_posts @arguments(locale: $locale)
+      ...ActorPostList_posts @arguments(
+        locale: $locale
+        actingAccountId: $actingAccountId
+      )
     }
   }
 `;
@@ -100,15 +110,22 @@ const ProfilePageContentQuery = graphql`
 // that would hit the complexity limit for unauthenticated users.  Complexity of
 // pins(5) × PostCard is ~12 200, which is under 20 000 on its own.
 const ProfilePagePinsQuery = graphql`
-  query ProfilePagePinsQuery($handle: String!, $locale: Locale) {
+  query ProfilePagePinsQuery(
+    $handle: String!
+    $locale: Locale
+    $actingAccountId: ID
+  ) {
     actorByHandle(handle: $handle, allowLocalHandle: true) {
       id
-      isViewer
+      isViewer(actingAccountId: $actingAccountId)
       pins(first: 20) @connection(key: "ProfilePage_pins") {
         __id
         edges {
           node {
-            ...PostCard_post @arguments(locale: $locale)
+            ...PostCard_post @arguments(
+              locale: $locale
+              actingAccountId: $actingAccountId
+            )
             id
           }
           cursor
@@ -123,33 +140,33 @@ const ProfilePagePinsQuery = graphql`
 `;
 
 const loadBaseQuery = routePreloadedQuery(
-  (handle: string) =>
+  (handle: string, actingAccountId: string | null) =>
     loadQuery<ProfilePageBaseQuery>(
       useRelayEnvironment()(),
       ProfilePageBaseQuery,
-      { handle },
+      { handle, actingAccountId },
       { fetchPolicy: "store-and-network" },
     ),
   PROFILE_PAGE_BASE_QUERY_KEY,
 );
 
 const loadContentQuery = routePreloadedQuery(
-  (handle: string, locale: string) =>
+  (handle: string, locale: string, actingAccountId: string | null) =>
     loadQuery<ProfilePageContentQuery>(
       useRelayEnvironment()(),
       ProfilePageContentQuery,
-      { handle, locale },
+      { handle, locale, actingAccountId },
       { fetchPolicy: "store-and-network" },
     ),
   PROFILE_PAGE_POSTS_QUERY_KEY,
 );
 
 const loadPinsQuery = routePreloadedQuery(
-  (handle: string, locale: string) =>
+  (handle: string, locale: string, actingAccountId: string | null) =>
     loadQuery<ProfilePagePinsQuery>(
       useRelayEnvironment()(),
       ProfilePagePinsQuery,
-      { handle, locale },
+      { handle, locale, actingAccountId },
       { fetchPolicy: "store-and-network" },
     ),
   PROFILE_PAGE_PINS_QUERY_KEY,
@@ -157,14 +174,25 @@ const loadPinsQuery = routePreloadedQuery(
 
 export default function ProfilePage() {
   const { i18n, t } = useLingui();
+  const actingAccount = useActingAccount();
   const params = useParams();
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
   const baseData = createStablePreloadedQuery<ProfilePageBaseQuery>(
     ProfilePageBaseQuery,
-    () => loadBaseQuery(decodeRouteParam(params.handle!)),
+    () =>
+      loadBaseQuery(
+        decodeRouteParam(params.handle!),
+        actingAccountId() ?? null,
+      ),
   );
   const contentData = createStablePreloadedQuery<ProfilePageContentQuery>(
     ProfilePageContentQuery,
-    () => loadContentQuery(decodeRouteParam(params.handle!), i18n.locale),
+    () =>
+      loadContentQuery(
+        decodeRouteParam(params.handle!),
+        i18n.locale,
+        actingAccountId() ?? null,
+      ),
   );
 
   // Pins are loaded client-side only, and must not render during the hydration
@@ -184,7 +212,11 @@ export default function ProfilePage() {
   createEffect(() => {
     if (!hydrated()) return;
     setPinsQueryRef(
-      loadPinsQuery(decodeRouteParam(params.handle!), i18n.locale),
+      loadPinsQuery(
+        decodeRouteParam(params.handle!),
+        i18n.locale,
+        actingAccountId() ?? null,
+      ),
     );
   });
   const pinsData = createPreloadedQuery<ProfilePagePinsQuery>(

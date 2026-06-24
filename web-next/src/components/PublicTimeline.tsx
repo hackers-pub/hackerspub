@@ -14,6 +14,7 @@ import {
 import { createPaginationFragment, useRelayEnvironment } from "solid-relay";
 import { LazyMount } from "~/components/LazyMount.tsx";
 import { PostCard } from "~/components/PostCard.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type {
@@ -55,6 +56,7 @@ export interface PublicTimelineProps {
 
 export function PublicTimeline(props: PublicTimelineProps) {
   const { t } = useLingui();
+  const actingAccount = useActingAccount();
   const { onNoteCreated } = useNoteCompose();
   const environment = useRelayEnvironment();
   const posts = createPaginationFragment(
@@ -64,6 +66,7 @@ export function PublicTimeline(props: PublicTimelineProps) {
         @argumentDefinitions(
           cursor: { type: "String" }
           count: { type: "Int", defaultValue: 25 }
+          actingAccountId: { type: "ID" }
           locale: { type: "Locale" }
           languages: { type: "[Locale!]", }
           local: { type: "Boolean", defaultValue: false }
@@ -87,7 +90,10 @@ export function PublicTimeline(props: PublicTimelineProps) {
             __id
             cursor
             node {
-              ...PostCard_post @arguments(locale: $locale)
+              ...PostCard_post @arguments(
+                locale: $locale
+                actingAccountId: $actingAccountId
+              )
             }
           }
           pageInfo {
@@ -136,10 +142,16 @@ export function PublicTimeline(props: PublicTimelineProps) {
   // fragment level so the DOM subtree stays mounted (no flash). The top-level
   // query still carries the initial language for SSR; this effect handles
   // subsequent client-side filter changes without reloading the whole query.
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
+
   createEffect(on(
-    () => props.activeLanguage?.(),
-    (lang) => {
-      posts.refetch({ languages: lang ? [lang] : [] });
+    () => `${props.activeLanguage?.() ?? ""}:${actingAccountId() ?? ""}`,
+    () => {
+      const lang = props.activeLanguage?.();
+      posts.refetch({
+        actingAccountId: actingAccountId() ?? null,
+        languages: lang ? [lang] : [],
+      });
     },
     { defer: true },
   ));
@@ -147,7 +159,10 @@ export function PublicTimeline(props: PublicTimelineProps) {
   onMount(() => {
     onCleanup(onNoteCreated(() => {
       const lang = props.activeLanguage?.();
-      posts.refetch({ languages: lang ? [lang] : [] });
+      posts.refetch({
+        actingAccountId: actingAccountId() ?? null,
+        languages: lang ? [lang] : [],
+      });
     }));
 
     // Poll for new content without disrupting the current view.
@@ -228,7 +243,10 @@ export function PublicTimeline(props: PublicTimelineProps) {
   function onBannerClick() {
     setHasNewPosts(false);
     const lang = props.activeLanguage?.();
-    posts.refetch({ languages: lang ? [lang] : [] });
+    posts.refetch({
+      actingAccountId: actingAccountId() ?? null,
+      languages: lang ? [lang] : [],
+    });
   }
 
   function onLoadMore() {

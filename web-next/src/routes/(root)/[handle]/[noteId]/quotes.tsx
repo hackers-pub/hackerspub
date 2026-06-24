@@ -13,6 +13,7 @@ import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PostCard } from "~/components/PostCard.tsx";
 import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { Title } from "~/components/Title.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import {
@@ -28,28 +29,34 @@ import type { quotesNoteEngagement_post$key } from "./__generated__/quotesNoteEn
 const QUOTES_QUERY_KEY = "loadQuotesQuery";
 
 const quotesNoteEngagementQuery = graphql`
-  query quotesNoteEngagementQuery($handle: String!, $noteId: UUID!) {
+  query quotesNoteEngagementQuery(
+    $handle: String!
+    $noteId: UUID!
+    $actingAccountId: ID
+  ) {
     actorByHandle(handle: $handle, allowLocalHandle: true) {
-      postByUuid(uuid: $noteId) {
+      postByUuid(uuid: $noteId, actingAccountId: $actingAccountId) {
         __typename
         engagementStats {
           shares
           quotes
           reactions
         }
-        ...PostCard_post
-        ...quotesNoteEngagement_post
+        ...PostCard_post @arguments(actingAccountId: $actingAccountId)
+        ...quotesNoteEngagement_post @arguments(
+          actingAccountId: $actingAccountId
+        )
       }
     }
   }
 `;
 
 const loadQuotesQuery = routePreloadedQuery(
-  (username: string, noteId: Uuid) =>
+  (username: string, noteId: Uuid, actingAccountId: string | null) =>
     loadQuery<quotesNoteEngagementQuery>(
       useRelayEnvironment()(),
       quotesNoteEngagementQuery,
-      { handle: username, noteId },
+      { handle: username, noteId, actingAccountId },
       { fetchPolicy: "store-and-network" },
     ),
   QUOTES_QUERY_KEY,
@@ -81,10 +88,12 @@ type QuotesPagePost = NonNullable<
 >;
 
 function QuotesPageLoaded(props: { noteId: Uuid; handle: string }) {
+  const actingAccount = useActingAccount();
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
   const username = () => props.handle.replace(/^@/, "");
   const data = createStablePreloadedQuery<quotesNoteEngagementQuery>(
     quotesNoteEngagementQuery,
-    () => loadQuotesQuery(username(), props.noteId),
+    () => loadQuotesQuery(username(), props.noteId, actingAccountId() ?? null),
   );
   // Notes, questions, and articles can all be reached through the
   // `[noteId]` route.  Local articles additionally expose a prettier
@@ -99,13 +108,23 @@ function QuotesPageLoaded(props: { noteId: Uuid; handle: string }) {
   return (
     <Show when={data() != null}>
       <Show keyed when={post()} fallback={<NotFoundPage embedded />}>
-        {(p) => <QuotesPageBody post={p} base={base()} />}
+        {(p) => (
+          <QuotesPageBody
+            post={p}
+            base={base()}
+            actingAccountId={actingAccountId}
+          />
+        )}
       </Show>
     </Show>
   );
 }
 
-function QuotesPageBody(props: { post: QuotesPagePost; base: string }) {
+function QuotesPageBody(props: {
+  post: QuotesPagePost;
+  base: string;
+  actingAccountId: () => string | undefined;
+}) {
   const { t } = useLingui();
   return (
     <NarrowContainer>
@@ -129,7 +148,10 @@ function QuotesPageBody(props: { post: QuotesPagePost; base: string }) {
   );
 }
 
-function QuotesList(props: { $post: quotesNoteEngagement_post$key }) {
+function QuotesList(props: {
+  $post: quotesNoteEngagement_post$key;
+  actingAccountId?: () => string | undefined;
+}) {
   const { t } = useLingui();
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
@@ -141,6 +163,7 @@ function QuotesList(props: { $post: quotesNoteEngagement_post$key }) {
         @argumentDefinitions(
           cursor: { type: "String" }
           count: { type: "Int", defaultValue: 20 }
+          actingAccountId: { type: "ID", defaultValue: null }
         )
       {
         quotes(after: $cursor, first: $count)
@@ -149,7 +172,7 @@ function QuotesList(props: { $post: quotesNoteEngagement_post$key }) {
           edges {
             node {
               id
-              ...PostCard_post
+              ...PostCard_post @arguments(actingAccountId: $actingAccountId)
             }
           }
           pageInfo {

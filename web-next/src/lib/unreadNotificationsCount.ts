@@ -15,6 +15,15 @@ const UnreadNotificationsCountQuery = graphql`
     viewer {
       unreadNotificationsCount
       unreadModerationNotificationCount
+      # Keep organization badge fields in this polling query so Relay refreshes
+      # the sidebar account switcher. The accessor below reports only the
+      # personal notifications page count.
+      organizationMemberships {
+        notificationBadge {
+          color
+          count
+        }
+      }
     }
   }
 `;
@@ -96,7 +105,9 @@ export function createUnreadNotificationsCount(
   return () => {
     const regular = unreadNotificationsCount();
     const moderation = unreadModerationNotificationCount();
-    if (regular == null && moderation == null) return undefined;
+    if (regular == null && moderation == null) {
+      return undefined;
+    }
     return (regular ?? 0) + (moderation ?? 0);
   };
 }

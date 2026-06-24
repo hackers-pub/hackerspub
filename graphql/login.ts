@@ -139,7 +139,7 @@ builder.mutationFields((t) => ({
           id: true,
         },
         with: { emails: true },
-        where: { username: args.username },
+        where: { username: args.username, kind: "personal" },
       });
       if (account == null) {
         throw new AccountNotFoundError(args.username);
@@ -211,12 +211,14 @@ builder.mutationFields((t) => ({
         },
         with: { emails: true },
         where: {
+          kind: "personal",
           emails: { email: args.email },
         },
       });
       if (account == null) {
         account = await ctx.db.query.accountTable.findFirst({
           where: {
+            kind: "personal",
             emails: {
               RAW(t) {
                 return sql`lower(${t.email}) = lower(${args.email})`;
@@ -290,6 +292,14 @@ builder.mutationFields((t) => ({
     async resolve(_, args, ctx) {
       const token = await getSigninToken(ctx.kv, args.token);
       if (token == null || token.code !== args.code) return null;
+      const account = await ctx.db.query.accountTable.findFirst({
+        where: { id: token.accountId },
+        columns: { kind: true },
+      });
+      if (account?.kind !== "personal") {
+        await deleteSigninToken(ctx.kv, token.token);
+        return null;
+      }
       // A permanently suspended (banned) account cannot log in at all;
       // temporary suspension only restricts writing, not signing in.
       const actor = await ctx.db.query.actorTable.findFirst({
@@ -404,6 +414,7 @@ builder.mutationFields((t) => ({
       if (result == null) return null;
       const { response, account } = result;
       if (!response.verified) return null;
+      if (account.kind !== "personal") return null;
       // Banned accounts cannot log in by passkey either.
       const actor = await ctx.db.query.actorTable.findFirst({
         where: { accountId: account.id },

@@ -1,11 +1,14 @@
 account → アカウント
 account deletion → アカウント削除
+admin → 管理者
 article → 記事
 avatar → アイコン
 bio → 自己紹介
 block → ブロック
 bookmark → ブックマーク
+co-author → 共同著者
 comment → コメント
+conversion → 変換
 delete account → アカウントを削除
 disk object → ディスクオブジェクト
 displayName → 名前
@@ -26,6 +29,9 @@ mute → ミュート
 note → 投稿
 notification → 通知
 option → 選択肢
+organization → 組織
+organization account → 組織アカウント
+organization conversion → 組織への変換
 orphan media → 孤立したメディア
 passkey → パスキー
 pin → 固定

@@ -14,6 +14,7 @@ export interface NoteEditInitialData {
   language: string | null | undefined;
   quotePolicy: QuotePolicy;
   visibility: PostVisibility;
+  authorAccountId?: string | null;
 }
 
 interface NoteComposeContextValue {

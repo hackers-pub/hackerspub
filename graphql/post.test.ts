@@ -1,8 +1,10 @@
 import assert from "node:assert";
 import test from "node:test";
 import { createBookmark, deleteBookmark } from "@hackerspub/models/bookmark";
+import { createOrganization } from "@hackerspub/models/organization";
 import { sharePost } from "@hackerspub/models/post";
 import {
+  accountTable,
   actorTable,
   followingTable,
   postTable,
@@ -56,6 +58,55 @@ const addReactionMutation = parse(`
   }
 `);
 
+const addReactionAsOrganizationMutation = parse(`
+  mutation AddReactionAsOrganization(
+    $postId: ID!,
+    $emoji: String!,
+    $actingAccountId: ID!,
+  ) {
+    addReactionToPost(input: {
+      postId: $postId,
+      emoji: $emoji,
+      actingAccountId: $actingAccountId,
+    }) {
+      __typename
+      ... on AddReactionToPostPayload {
+        reaction {
+          id
+        }
+      }
+      ... on ActorSuspendedError {
+        suspendedUntil
+      }
+      ... on OrganizationPermissionError {
+        message
+      }
+    }
+  }
+`);
+
+const removeReactionAsOrganizationMutation = parse(`
+  mutation RemoveReactionAsOrganization(
+    $postId: ID!,
+    $emoji: String!,
+    $actingAccountId: ID!,
+  ) {
+    removeReactionFromPost(input: {
+      postId: $postId,
+      emoji: $emoji,
+      actingAccountId: $actingAccountId,
+    }) {
+      __typename
+      ... on RemoveReactionFromPostPayload {
+        success
+      }
+      ... on OrganizationPermissionError {
+        message
+      }
+    }
+  }
+`);
+
 const shareMutation = parse(`
   mutation SharePost($postId: ID!) {
     sharePost(input: { postId: $postId }) {
@@ -78,6 +129,31 @@ const shareMutation = parse(`
   }
 `);
 
+const shareAsOrganizationMutation = parse(`
+  mutation ShareAsOrganization($postId: ID!, $actingAccountId: ID!) {
+    sharePost(input: {
+      postId: $postId,
+      actingAccountId: $actingAccountId,
+    }) {
+      __typename
+      ... on SharePostPayload {
+        originalPost {
+          id
+        }
+        share {
+          id
+        }
+      }
+      ... on ActorSuspendedError {
+        suspendedUntil
+      }
+      ... on OrganizationPermissionError {
+        message
+      }
+    }
+  }
+`);
+
 const unshareMutation = parse(`
   mutation UnsharePost($postId: ID!) {
     unsharePost(input: { postId: $postId }) {
@@ -92,6 +168,25 @@ const unshareMutation = parse(`
       }
       ... on NotAuthenticatedError {
         notAuthenticated
+      }
+    }
+  }
+`);
+
+const unshareAsOrganizationMutation = parse(`
+  mutation UnshareAsOrganization($postId: ID!, $actingAccountId: ID!) {
+    unsharePost(input: {
+      postId: $postId,
+      actingAccountId: $actingAccountId,
+    }) {
+      __typename
+      ... on UnsharePostPayload {
+        originalPost {
+          id
+        }
+      }
+      ... on OrganizationPermissionError {
+        message
       }
     }
   }
@@ -487,6 +582,159 @@ test("addReactionToPost returns the created reaction for visible posts", async (
   });
 });
 
+test("addReactionToPost and removeReactionFromPost can act as an organization", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "orgreactionauthor",
+      name: "Organization Reaction Author",
+      email: "orgreactionauthor@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "orgreactionmember",
+      name: "Organization Reaction Member",
+      email: "orgreactionmember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgreactionactor",
+        name: "Organization Reaction Actor",
+        bio: "",
+      },
+    );
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Organization reaction target",
+    });
+    const postId = encodeGlobalID("Note", post.id);
+    const actingAccountId = encodeGlobalID("Account", organization.id);
+
+    const addResult = await execute({
+      schema,
+      document: addReactionAsOrganizationMutation,
+      variableValues: {
+        postId,
+        emoji: "🎉",
+        actingAccountId,
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(addResult.errors, undefined);
+    const addPayload = (addResult.data as {
+      addReactionToPost: {
+        __typename: string;
+        reaction?: { id: string } | null;
+      };
+    }).addReactionToPost;
+    assert.deepEqual(addPayload.__typename, "AddReactionToPostPayload");
+    assert.ok(addPayload.reaction?.id != null);
+
+    const reactionsAfterAdd = await tx.query.reactionTable.findMany({
+      where: {
+        postId: post.id,
+        actorId: organization.actor.id,
+        emoji: "🎉",
+      },
+    });
+    assert.deepEqual(reactionsAfterAdd.length, 1);
+
+    const removeResult = await execute({
+      schema,
+      document: removeReactionAsOrganizationMutation,
+      variableValues: {
+        postId,
+        emoji: "🎉",
+        actingAccountId,
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(removeResult.errors, undefined);
+    assert.deepEqual(
+      (removeResult.data as {
+        removeReactionFromPost: { __typename: string; success?: boolean };
+      }).removeReactionFromPost,
+      {
+        __typename: "RemoveReactionFromPostPayload",
+        success: true,
+      },
+    );
+
+    const reactionsAfterRemove = await tx.query.reactionTable.findMany({
+      where: {
+        postId: post.id,
+        actorId: organization.actor.id,
+        emoji: "🎉",
+      },
+    });
+    assert.deepEqual(reactionsAfterRemove, []);
+  });
+});
+
+test("addReactionToPost rejects suspended organizations", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "suspendedorgreactionauthor",
+      name: "Suspended Org Reaction Author",
+      email: "suspendedorgreactionauthor@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "suspendedorgreactionmember",
+      name: "Suspended Org Reaction Member",
+      email: "suspendedorgreactionmember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "suspendedorgreactionactor",
+        name: "Suspended Org Reaction Actor",
+        bio: "",
+      },
+    );
+    const until = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await tx.update(actorTable)
+      .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: until })
+      .where(eq(actorTable.accountId, organization.id));
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Suspended organization reaction target",
+    });
+
+    const result = await execute({
+      schema,
+      document: addReactionAsOrganizationMutation,
+      variableValues: {
+        postId: encodeGlobalID("Note", post.id),
+        emoji: "🎉",
+        actingAccountId: encodeGlobalID("Account", organization.id),
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(result.errors, undefined);
+    const data = (result.data as {
+      addReactionToPost: {
+        __typename: string;
+        suspendedUntil: string | null;
+      };
+    }).addReactionToPost;
+    assert.deepEqual(data.__typename, "ActorSuspendedError");
+    assert.ok(data.suspendedUntil != null);
+  });
+});
+
 test("sharePost and unsharePost round-trip through GraphQL", async () => {
   await withRollback(async (tx) => {
     const author = await insertAccountWithActor(tx, {
@@ -563,6 +811,147 @@ test("sharePost and unsharePost round-trip through GraphQL", async () => {
   });
 });
 
+test("sharePost and unsharePost can act as an organization", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "orgshareauthor",
+      name: "Organization Share Author",
+      email: "orgshareauthor@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "orgsharemember",
+      name: "Organization Share Member",
+      email: "orgsharemember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgshareactor",
+        name: "Organization Share Actor",
+        bio: "",
+      },
+    );
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Organization share target",
+    });
+    const postId = encodeGlobalID("Note", post.id);
+    const actingAccountId = encodeGlobalID("Account", organization.id);
+
+    const shareResult = await execute({
+      schema,
+      document: shareAsOrganizationMutation,
+      variableValues: { postId, actingAccountId },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(shareResult.errors, undefined);
+    const sharePayload = (shareResult.data as {
+      sharePost: {
+        __typename: string;
+        originalPost?: { id: string };
+        share?: { id: string };
+      };
+    }).sharePost;
+    assert.deepEqual(sharePayload.__typename, "SharePostPayload");
+    assert.deepEqual(sharePayload.originalPost?.id, postId);
+    assert.ok(sharePayload.share?.id != null);
+
+    const sharesAfterShare = await tx.query.postTable.findMany({
+      where: {
+        actorId: organization.actor.id,
+        sharedPostId: post.id,
+      },
+    });
+    assert.deepEqual(sharesAfterShare.length, 1);
+
+    const unshareResult = await execute({
+      schema,
+      document: unshareAsOrganizationMutation,
+      variableValues: { postId, actingAccountId },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(unshareResult.errors, undefined);
+    assert.deepEqual(
+      (unshareResult.data as {
+        unsharePost: { __typename: string; originalPost?: { id: string } };
+      }).unsharePost,
+      {
+        __typename: "UnsharePostPayload",
+        originalPost: { id: postId },
+      },
+    );
+
+    const sharesAfterUnshare = await tx.query.postTable.findMany({
+      where: {
+        actorId: organization.actor.id,
+        sharedPostId: post.id,
+      },
+    });
+    assert.deepEqual(sharesAfterUnshare, []);
+  });
+});
+
+test("sharePost rejects suspended organizations", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "suspendedorgshareauthor",
+      name: "Suspended Org Share Author",
+      email: "suspendedorgshareauthor@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "suspendedorgsharemember",
+      name: "Suspended Org Share Member",
+      email: "suspendedorgsharemember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "suspendedorgshareactor",
+        name: "Suspended Org Share Actor",
+        bio: "",
+      },
+    );
+    const until = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await tx.update(actorTable)
+      .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: until })
+      .where(eq(actorTable.accountId, organization.id));
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Suspended organization share target",
+    });
+
+    const result = await execute({
+      schema,
+      document: shareAsOrganizationMutation,
+      variableValues: {
+        postId: encodeGlobalID("Note", post.id),
+        actingAccountId: encodeGlobalID("Account", organization.id),
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(result.errors, undefined);
+    const data = (result.data as {
+      sharePost: { __typename: string; suspendedUntil: string | null };
+    }).sharePost;
+    assert.deepEqual(data.__typename, "ActorSuspendedError");
+    assert.ok(data.suspendedUntil != null);
+  });
+});
+
 const viewerHasMultiQuery = parse(`
   query ViewerHasMulti($a: ID!, $b: ID!, $c: ID!) {
     a: node(id: $a) {
@@ -584,6 +973,17 @@ const viewerHasMultiQuery = parse(`
         id
         viewerHasShared
         viewerHasBookmarked
+      }
+    }
+  }
+`);
+
+const viewerHasSharedPerspectiveQuery = parse(`
+  query ViewerHasSharedPerspective($postId: ID!, $actingAccountId: ID!) {
+    node(id: $postId) {
+      ... on Post {
+        personal: viewerHasShared
+        acting: viewerHasShared(actingAccountId: $actingAccountId)
       }
     }
   }
@@ -672,6 +1072,60 @@ test("viewerHasShared and viewerHasBookmarked reflect viewer state per post", as
       id: untouchedId,
       viewerHasShared: false,
       viewerHasBookmarked: false,
+    });
+  });
+});
+
+test("viewerHasShared can be read from an organization perspective", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "viewerhasorgshareauthor",
+      name: "ViewerHas Org Share Author",
+      email: "viewerhasorgshareauthor@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "viewerhasorgsharemember",
+      name: "ViewerHas Org Share Member",
+      email: "viewerhasorgsharemember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "viewerhasorgsharer",
+        name: "ViewerHas Org Sharer",
+        bio: "",
+      },
+    );
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Shared by an organization",
+    });
+    await sharePost(createFedCtx(tx), organization, {
+      ...post,
+      actor: author.actor,
+    });
+
+    const result = await execute({
+      schema,
+      document: viewerHasSharedPerspectiveQuery,
+      variableValues: {
+        postId: encodeGlobalID("Note", post.id),
+        actingAccountId: encodeGlobalID("Account", organization.id),
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(result.errors, undefined);
+    assert.deepEqual(result.data, {
+      node: {
+        personal: false,
+        acting: true,
+      },
     });
   });
 });
@@ -777,15 +1231,13 @@ test("viewerHasBookmarked reflects post-mutation state across serial mutations",
   });
 });
 
-const timelineWithoutIdQuery = parse(`
-  query TimelineWithoutId {
-    publicTimeline(first: 5, local: true, withoutShares: true) {
-      edges {
-        node {
-          viewerHasShared
-          viewerHasBookmarked
-          viewerHasPinned
-        }
+const postWithoutIdQuery = parse(`
+  query PostWithoutId($id: ID!) {
+    node(id: $id) {
+      ... on Post {
+        viewerHasShared
+        viewerHasBookmarked
+        viewerHasPinned
       }
     }
   }
@@ -817,34 +1269,28 @@ test("viewerHas* fields reflect state when id is not in the GraphQL selection", 
 
     const result = await execute({
       schema,
-      document: timelineWithoutIdQuery,
+      document: postWithoutIdQuery,
+      variableValues: { id: encodeGlobalID("Note", post.id) },
       contextValue: makeUserContext(tx, viewer.account),
       onError: "NO_PROPAGATE",
     });
 
     assert.deepEqual(result.errors, undefined);
 
-    const edges = (result.data as {
-      publicTimeline: {
-        edges: {
-          node: {
-            viewerHasShared: boolean;
-            viewerHasBookmarked: boolean;
-            viewerHasPinned: boolean;
-          };
-        }[];
+    const node = (result.data as {
+      node: {
+        viewerHasShared: boolean;
+        viewerHasBookmarked: boolean;
+        viewerHasPinned: boolean;
       };
-    }).publicTimeline.edges;
+    }).node;
 
-    // The original post (not the share) should reflect the viewer's state
-    // even though `id` was not requested in the selection set. This guards
-    // against `post.id` becoming undefined inside the t.loadable resolve
-    // function, which would silently make every viewerHas* return false.
-    const original = edges.find((e) =>
-      e.node.viewerHasBookmarked || e.node.viewerHasShared
-    );
-    assert.deepEqual(original?.node.viewerHasShared, true);
-    assert.deepEqual(original?.node.viewerHasBookmarked, true);
+    // The post should reflect the viewer's state even though `id` was not
+    // requested in the selection set. This guards against `post.id` becoming
+    // undefined inside the t.loadable resolve function, which would silently
+    // make every viewerHas* return false.
+    assert.deepEqual(node.viewerHasShared, true);
+    assert.deepEqual(node.viewerHasBookmarked, true);
   });
 });
 
@@ -997,12 +1443,12 @@ test("engagementStats.bookmarks reflects post-mutation state across serial mutat
 });
 
 const viewerActionPolicyQuery = parse(`
-  query ViewerActionPolicy($id: ID!) {
+  query ViewerActionPolicy($id: ID!, $actingAccountId: ID = null) {
     node(id: $id) {
       ... on Post {
-        viewerCanReply
-        viewerCanQuote
-        viewerCanShare
+        viewerCanReply(actingAccountId: $actingAccountId)
+        viewerCanQuote(actingAccountId: $actingAccountId)
+        viewerCanShare(actingAccountId: $actingAccountId)
       }
     }
   }
@@ -1019,11 +1465,12 @@ async function readPolicy(
   contextValue:
     | ReturnType<typeof makeUserContext>
     | ReturnType<typeof makeGuestContext>,
+  actingAccountId?: string,
 ): Promise<ViewerActionPolicy> {
   const result = await execute({
     schema,
     document: viewerActionPolicyQuery,
-    variableValues: { id: postId },
+    variableValues: { id: postId, actingAccountId: actingAccountId ?? null },
     contextValue,
     onError: "NO_PROPAGATE",
   });
@@ -1076,6 +1523,56 @@ test("viewerCanReply/Quote/Share permit every signed-in viewer on public posts a
       viewerCanQuote: false,
       viewerCanShare: false,
     });
+  });
+});
+
+test("viewerCanReply/Quote/Share can be read from an organization perspective", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "policyorgmember",
+      name: "Policy Org Member",
+      email: "policyorgmember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "policyorgauthor",
+        name: "Policy Org Author",
+        bio: "",
+      },
+    );
+    const { post } = await insertNotePost(tx, {
+      account: organization,
+      content: "Organization followers-only post",
+      visibility: "followers",
+    });
+    const id = encodeGlobalID("Note", post.id);
+    const actingAccountId = encodeGlobalID("Account", organization.id);
+
+    assert.deepEqual(
+      await readPolicy(id, makeUserContext(tx, member.account)),
+      {
+        viewerCanReply: false,
+        viewerCanQuote: false,
+        viewerCanShare: false,
+      },
+    );
+    assert.deepEqual(
+      await readPolicy(
+        id,
+        makeUserContext(tx, member.account),
+        actingAccountId,
+      ),
+      {
+        viewerCanReply: true,
+        viewerCanQuote: true,
+        viewerCanShare: true,
+      },
+    );
   });
 });
 

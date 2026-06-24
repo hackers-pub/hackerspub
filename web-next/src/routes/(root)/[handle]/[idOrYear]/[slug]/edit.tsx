@@ -19,6 +19,7 @@ import IconLoader2 from "~icons/lucide/loader-2";
 import { LanguageSelect } from "~/components/LanguageSelect.tsx";
 import { TagInput } from "~/components/TagInput.tsx";
 import { Button } from "~/components/ui/button.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { MarkdownEditor } from "~/components/ui/markdown-editor.tsx";
 import {
   Tabs,
@@ -57,23 +58,37 @@ const editPageQueryDef = graphql`
     $handle: String!
     $idOrYear: String!
     $slug: String!
+    $actingAccountId: ID
   ) {
     articleByYearAndSlug(
       handle: $handle
       idOrYear: $idOrYear
       slug: $slug
+      actingAccountId: $actingAccountId
     ) {
-      ...edit_article
+      ...edit_article @arguments(actingAccountId: $actingAccountId)
+    }
+    viewer {
+      organizationMemberships {
+        organization {
+          id
+        }
+      }
     }
   }
 `;
 
 const loadPageQuery = routePreloadedQuery(
-  (handle: string, idOrYear: string, slug: string) =>
+  (
+    handle: string,
+    idOrYear: string,
+    slug: string,
+    actingAccountId: string | null,
+  ) =>
     loadQuery<editPageQuery>(
       useRelayEnvironment()(),
       editPageQueryDef,
-      { handle, idOrYear, slug },
+      { handle, idOrYear, slug, actingAccountId },
       { fetchPolicy: "network-only" },
     ),
   "loadArticleEditPageQuery",
@@ -84,10 +99,12 @@ export default function ArticleEditPage() {
   const handle = decodeRouteParam(params.handle!);
   const idOrYear = params.idOrYear!;
   const slug = decodeRouteParam(params.slug!);
+  const actingAccount = useActingAccount();
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
 
   const data = createStablePreloadedQuery<editPageQuery>(
     editPageQueryDef,
-    () => loadPageQuery(handle, idOrYear, slug),
+    () => loadPageQuery(handle, idOrYear, slug, actingAccountId() ?? null),
   );
 
   return (
@@ -98,7 +115,14 @@ export default function ArticleEditPage() {
           when={data.articleByYearAndSlug}
           fallback={<HttpStatusCode code={404} />}
         >
-          {(article) => <ArticleEditForm $article={article} />}
+          {(article) => (
+            <ArticleEditForm
+              $article={article}
+              viewerOrganizationIds={data.viewer?.organizationMemberships.map((
+                membership,
+              ) => membership.organization.id) ?? []}
+            />
+          )}
         </Show>
       )}
     </Show>
@@ -107,14 +131,20 @@ export default function ArticleEditPage() {
 
 interface ArticleEditFormProps {
   $article: edit_article$key;
+  viewerOrganizationIds: readonly string[];
 }
 
 const renderMarkdownQuery = graphql`
   query edit_renderMarkdown_Query(
     $content: String!
     $articleSourceId: UUID
+    $actingAccountId: ID
   ) {
-    renderMarkdown(content: $content, articleSourceId: $articleSourceId)
+    renderMarkdown(
+      content: $content
+      articleSourceId: $articleSourceId
+      actingAccountId: $actingAccountId
+    )
   }
 `;
 
@@ -142,11 +172,17 @@ const updateArticleMutation = graphql`
 function ArticleEditForm(props: ArticleEditFormProps) {
   const article = createFragment(
     graphql`
-      fragment edit_article on Article {
+      fragment edit_article on Article
+        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
+      {
         id
         sourceId
         actor {
-          isViewer
+          personalIsViewer: isViewer
+          isViewer(actingAccountId: $actingAccountId)
+          account {
+            id
+          }
           username
         }
         contents {
@@ -164,23 +200,38 @@ function ArticleEditForm(props: ArticleEditFormProps) {
     () => props.$article,
   );
 
-  // Authorization runs on the server so unauthorized requests get an
-  // actual HTTP 403 instead of a blank 200 page. `isViewer` is only
-  // strictly `false` once the fragment has loaded (it's undefined while
-  // loading on the client), so the fallback only fires for genuine
-  // non-owners on either the server or the client.
+  const authoringOrganizationId = () => {
+    const ownerAccountId = article()?.actor.account?.id;
+    if (ownerAccountId == null) return null;
+    return props.viewerOrganizationIds.includes(ownerAccountId)
+      ? ownerAccountId
+      : null;
+  };
+  const canEdit = () =>
+    article()?.actor.personalIsViewer === true ||
+    article()?.actor.isViewer === true ||
+    authoringOrganizationId() != null;
+
+  // Authorization runs on the server so unauthorized requests get an actual
+  // HTTP 403 instead of a blank 200 page. Organization-authored articles need
+  // a server-derived membership check because the client-selected acting
+  // account is localStorage-backed and is unavailable during SSR.
   return (
     <Show
-      when={article()?.actor.isViewer !== false}
+      when={article() == null || canEdit()}
       fallback={<HttpStatusCode code={403} />}
     >
-      <ArticleEditFormGate article={article()} />
+      <ArticleEditFormGate
+        article={canEdit() ? article() : undefined}
+        actingAccountIdFallback={authoringOrganizationId()}
+      />
     </Show>
   );
 }
 
 interface ArticleEditFormGateProps {
   article: edit_article$data | null | undefined;
+  actingAccountIdFallback: string | null;
 }
 
 function ArticleEditFormGate(props: ArticleEditFormGateProps) {
@@ -194,21 +245,36 @@ function ArticleEditFormGate(props: ArticleEditFormGateProps) {
   const loadedArticle = () => (isServer ? undefined : props.article);
   return (
     <Show keyed when={loadedArticle()}>
-      {(article) => <ArticleEditFormInner article={article} />}
+      {(article) => (
+        <ArticleEditFormInner
+          article={article}
+          actingAccountIdFallback={props.actingAccountIdFallback}
+        />
+      )}
     </Show>
   );
 }
 
 interface ArticleEditFormInnerProps {
   article: edit_article$data;
+  actingAccountIdFallback: string | null;
 }
 
 function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
   const { t } = useLingui();
   const navigate = useNavigate();
   const environment = useRelayEnvironment();
+  const actingAccount = useActingAccount();
 
   const article = () => props.article;
+  const actingAccountIdForArticle = () => {
+    const selected = actingAccount.selectedActingAccountId();
+    const ownerAccountId = article().actor.account?.id;
+    if (article().actor.personalIsViewer) return null;
+    return selected != null && selected === ownerAccountId
+      ? selected
+      : props.actingAccountIdFallback;
+  };
 
   const [commitUpdate, isUpdating] = createMutation<
     edit_updateArticle_Mutation
@@ -251,7 +317,12 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
       throw new Error("Article has no local source");
     }
     try {
-      const result = await uploadImageForArticleSource(file, sourceId);
+      const actingAccountId = actingAccountIdForArticle();
+      const result = await uploadImageForArticleSource(
+        file,
+        sourceId,
+        actingAccountId ?? null,
+      );
       return { url: result.url };
     } catch (error) {
       showToast({
@@ -293,7 +364,11 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
     previewSubscription = fetchQuery<edit_renderMarkdown_Query>(
       environment(),
       renderMarkdownQuery,
-      { content: text, articleSourceId: article().sourceId ?? null },
+      {
+        content: text,
+        articleSourceId: article().sourceId ?? null,
+        actingAccountId: actingAccountIdForArticle(),
+      },
     ).subscribe({
       next(data) {
         if (requestVersion !== previewRequestVersion) return;
@@ -313,10 +388,12 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
 
   const handleSave = (e: SubmitEvent) => {
     e.preventDefault();
+    const actingAccountId = actingAccountIdForArticle();
     commitUpdate({
       variables: {
         input: {
           articleId: article().id,
+          ...(actingAccountId == null ? {} : { actingAccountId }),
           title: title(),
           content: markdown(),
           tags: tags(),

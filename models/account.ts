@@ -14,7 +14,7 @@ import { and, eq, inArray, or, sql } from "drizzle-orm";
 import type { Disk } from "flydrive";
 import sharp from "sharp";
 import type { ContextData } from "./context.ts";
-import type { Database } from "./db.ts";
+import type { Database, Transaction } from "./db.ts";
 import {
   createMediumFromBlob,
   createMediumFromBytes,
@@ -58,7 +58,32 @@ export class AccountDeletionUnavailableError extends Error {
 export interface DeletedAccountResult {
   accountId: Uuid;
   username: string;
+  formerType: Actor["type"];
   deleted: Date;
+}
+
+interface DeleteAccountOptions {
+  beforeDelete?: (
+    tx: Transaction,
+    account: Account,
+    actor: Actor,
+  ) => Promise<void>;
+}
+
+function getTombstoneFormerType(actorType: Actor["type"]) {
+  switch (actorType) {
+    case "Application":
+      return vocab.Application;
+    case "Group":
+      return vocab.Group;
+    case "Organization":
+      return vocab.Organization;
+    case "Service":
+      return vocab.Service;
+    case "Person":
+    default:
+      return vocab.Person;
+  }
 }
 
 async function collectNewsLinkIdsForPosts(
@@ -345,6 +370,7 @@ async function ensureAccountKeys(
 export async function deleteAccount(
   fedCtx: RequestContext<ContextData>,
   accountId: Uuid,
+  options: DeleteAccountOptions = {},
 ): Promise<DeletedAccountResult | undefined> {
   const { db } = fedCtx.data;
   const accountForKeys = await db.query.accountTable.findFirst({
@@ -384,6 +410,7 @@ export async function deleteAccount(
     if (await hasModerationAuditLinks(tx, account.id, actor.id)) {
       throw new AccountDeletionUnavailableError();
     }
+    await options.beforeDelete?.(tx, account, actor);
 
     const affectedPosts = await tx.query.postTable.findMany({
       where: { actorId: actor.id },
@@ -462,6 +489,7 @@ export async function deleteAccount(
       accountId: account.id,
       username: account.username,
       actorIri: actorUri.href,
+      formerType: actor.type,
       deleted,
     });
     if (accountKeys.length > 0) {
@@ -504,7 +532,12 @@ export async function deleteAccount(
       affectedPollVotePosts.map((post) => post.postId),
     );
     await refreshNewsScores(tx, affectedLinkIds);
-    result = { accountId: account.id, username: account.username, deleted };
+    result = {
+      accountId: account.id,
+      username: account.username,
+      formerType: actor.type,
+      deleted,
+    };
   });
 
   if (result == null) return undefined;
@@ -519,7 +552,7 @@ export async function deleteAccount(
         to: vocab.PUBLIC_COLLECTION,
         object: new vocab.Tombstone({
           id: actorUri,
-          formerType: vocab.Person,
+          formerType: getTombstoneFormerType(result.formerType),
           deleted: Temporal.Instant.fromEpochMilliseconds(deleted.getTime()),
         }),
       }),

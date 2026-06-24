@@ -1,7 +1,7 @@
 import { assert } from "@std/assert";
 import { isActor } from "@fedify/vocab";
 import DataLoader from "dataloader";
-import { desc, eq, inArray } from "drizzle-orm";
+import { desc, eq, inArray, sql } from "drizzle-orm";
 import {
   getAvatarUrl,
   persistActor,
@@ -24,7 +24,12 @@ import {
   unfollow,
 } from "@hackerspub/models/following";
 import { getMutedActorIds, mute, unmute } from "@hackerspub/models/muting";
-import { isActorBanned, isActorSuspended } from "@hackerspub/models/moderation";
+import {
+  assertAccountActorNotSuspended,
+  isActorBanned,
+  isActorSuspended,
+} from "@hackerspub/models/moderation";
+import { OrganizationPermissionError } from "@hackerspub/models/organization";
 import {
   getCensoredPostExclusionFilter,
   getPostVisibilityFilter,
@@ -45,13 +50,90 @@ import { assertNever } from "@std/assert/unstable-never";
 import { escape } from "@std/html/entities";
 import { createGraphQLError } from "graphql-yoga";
 import xss from "xss";
+import { Account } from "./account.ts";
+import {
+  resolveActingAccountForGlobalIdArg,
+  resolveActingAccountForMutation,
+} from "./acting-account.ts";
 import { builder, type UserContext } from "./builder.ts";
 import { ActorSuspendedError, InvalidInputError } from "./error.ts";
 import { lookupActorByUrl, parseHttpUrl } from "./lookup.ts";
 import { Article, Note, Post, Question } from "./post.ts";
 import { NotAuthenticatedError } from "./session.ts";
+import {
+  type ActingAccountIdArg,
+  actingAccountIdArgDescription,
+  resolveViewerActorId,
+} from "./viewer-actor.ts";
 
 const MAX_VIEWER_INTERACTIONS_WINDOW = 250;
+
+interface RelationshipBooleanKey {
+  viewerActorId: Uuid | null;
+  targetActorId: Uuid;
+}
+
+function actorProfilePostRelations(viewerActorId: Uuid | null) {
+  const viewerOnlyFilter = viewerActorId == null
+    ? { RAW: sql`false` }
+    : { actorId: viewerActorId };
+  const actorRelations = {
+    instance: true,
+    followers: viewerActorId == null
+      ? { where: { RAW: sql`false` } }
+      : { where: { followerId: viewerActorId } },
+    blockees: viewerActorId == null
+      ? { where: { RAW: sql`false` } }
+      : { where: { blockeeId: viewerActorId } },
+    blockers: viewerActorId == null
+      ? { where: { RAW: sql`false` } }
+      : { where: { blockerId: viewerActorId } },
+  } as const;
+  const nestedPostRelations = {
+    actor: { with: actorRelations },
+    articleSource: {
+      with: { contents: { where: { beingTranslated: false } } },
+    },
+    link: { with: { creator: true } },
+    mentions: { with: { actor: true } },
+    media: true,
+  } as const;
+  return {
+    ...nestedPostRelations,
+    shares: { where: viewerOnlyFilter },
+    reactions: { where: viewerOnlyFilter },
+    organizationAuthor: true,
+    replyTarget: { with: nestedPostRelations },
+    quotedPost: { with: nestedPostRelations },
+    sharedPost: {
+      with: {
+        ...nestedPostRelations,
+        shares: { where: viewerOnlyFilter },
+        reactions: { where: viewerOnlyFilter },
+        replyTarget: { with: nestedPostRelations },
+        quotedPost: { with: nestedPostRelations },
+      },
+    },
+  } as const;
+}
+
+async function loadActorProfilePostPage(
+  ctx: UserContext,
+  postPage: Array<{ id: Uuid }>,
+  viewerActorId: Uuid | null,
+) {
+  const postIds = postPage.map((post) => post.id);
+  if (postIds.length < 1) return [];
+  const posts = await ctx.db.query.postTable.findMany({
+    where: { id: { in: postIds } },
+    with: actorProfilePostRelations(viewerActorId),
+  });
+  const postsById = new Map(posts.map((post) => [post.id, post]));
+  return postPage.flatMap((post) => {
+    const loaded = postsById.get(post.id);
+    return loaded == null ? [] : [loaded];
+  });
+}
 
 // Per-request loader keyed by actor id.  Several resolvers (e.g.,
 // `Notification.actors`) need to fetch actor rows by id one-by-one
@@ -78,12 +160,22 @@ export function getActorById(
   return ctx.actorByIdLoader.load(actorId);
 }
 
-// Builds a Pothos `t.loadable` `load` function for boolean relationship
-// fields like `viewerFollows`/`viewerBlocks`/`blocksViewer`/`followsViewer`.
-// Each of those fields asks "for these N actor ids, which ones are in the
-// directional relationship with the viewer?" and only differs by which
-// model helper produces the matched-id Set.  Hoisting the shared shape
-// here keeps the field declarations to one line of `load:` each.
+async function relationshipBooleanKey(
+  actor: ActorRow,
+  args: ActingAccountIdArg,
+  ctx: UserContext,
+): Promise<RelationshipBooleanKey> {
+  return {
+    viewerActorId: await resolveViewerActorId(ctx, args),
+    targetActorId: actor.id,
+  };
+}
+
+// Builds a Pothos `t.loadable` `load` function for boolean relationship fields
+// like `viewerFollows`/`viewerBlocks`/`blocksViewer`/`followsViewer`.  Each
+// field asks "for these N actor ids, which ones are in the directional
+// relationship with the selected viewer actor?" and only differs by which model
+// helper produces the matched-id Set.
 function createRelationshipBooleanLoader(
   getMatchedIds: (
     db: UserContext["db"],
@@ -92,16 +184,35 @@ function createRelationshipBooleanLoader(
   ) => Promise<Set<Uuid>>,
 ) {
   return async (
-    actorIds: Uuid[],
+    keys: RelationshipBooleanKey[],
     ctx: UserContext,
   ): Promise<boolean[]> => {
-    if (ctx.account?.actor == null) return actorIds.map(() => false);
-    const matched = await getMatchedIds(
-      ctx.db,
-      ctx.account.actor.id,
-      actorIds,
+    const targetIdsByViewer = new Map<Uuid, Uuid[]>();
+    for (const { viewerActorId, targetActorId } of keys) {
+      if (viewerActorId == null) continue;
+      const targetIds = targetIdsByViewer.get(viewerActorId);
+      if (targetIds == null) {
+        targetIdsByViewer.set(viewerActorId, [targetActorId]);
+      } else {
+        targetIds.push(targetActorId);
+      }
+    }
+
+    const matchedIdsByViewer = new Map<Uuid, Set<Uuid>>();
+    await Promise.all(
+      [...targetIdsByViewer].map(async ([viewerActorId, targetIds]) => {
+        matchedIdsByViewer.set(
+          viewerActorId,
+          await getMatchedIds(ctx.db, viewerActorId, targetIds),
+        );
+      }),
     );
-    return actorIds.map((id) => matched.has(id));
+
+    return keys.map(({ viewerActorId, targetActorId }) =>
+      viewerActorId == null
+        ? false
+        : matchedIdsByViewer.get(viewerActorId)?.has(targetActorId) ?? false
+    );
   };
 }
 
@@ -210,9 +321,10 @@ export const Actor = builder.drizzleNode("actorTable", {
     "An ActivityPub actor: the public identity used for federation. " +
     "Actors can be local (originating from this instance, `local: true`) or " +
     "federated (from another instance, `local: false`). Local actors have an " +
-    "associated `Account` that holds login credentials and settings; remote " +
-    "actors do not. When in doubt, use `Actor` for display and `Account` " +
-    "only for settings that belong to the authenticated viewer.",
+    "associated `Account`; only `PERSONAL` accounts hold direct login " +
+    "credentials, while `ORGANIZATION` accounts are controlled through " +
+    "memberships. When in doubt, use `Actor` for display and `Account` for " +
+    "viewer, organization, or moderation state.",
   id: {
     column: (actor) => actor.id,
   },
@@ -532,38 +644,82 @@ export const Actor = builder.drizzleNode("actorTable", {
       select: { columns: { suspended: true, suspendedUntil: true } },
       resolve: (actor) => isActorSuspended(actor),
     }),
-    posts: t.relatedConnection("posts", {
+    posts: t.connection({
       type: Post,
       description:
         "All of this actor's posts (Notes, Articles, Questions, and " +
         "boost wrappers), newest published first. Filtered to posts " +
-        "visible to the current viewer.",
-      query: (_, ctx) => ({
-        where: {
-          AND: [
-            getPostVisibilityFilter(ctx.account?.actor ?? null),
-            getCensoredPostExclusionFilter(ctx.account?.actor.id),
-          ],
-        },
-        orderBy: { published: "desc" },
-      }),
+        "visible to the selected viewer account. Pass `actingAccountId` " +
+        "for an organization perspective.",
+      args: {
+        actingAccountId: t.arg.id({
+          required: false,
+          description: actingAccountIdArgDescription,
+        }),
+      },
+      async resolve(actor, args, ctx) {
+        const viewerActorId = await resolveViewerActorId(ctx, args);
+        const viewerActor = viewerActorId == null
+          ? null
+          : await getActorById(ctx, viewerActorId);
+        return await resolveOffsetConnection(
+          { args },
+          async ({ offset, limit }) => {
+            const postPage = await ctx.db.query.postTable.findMany({
+              where: {
+                AND: [
+                  { actorId: actor.id },
+                  getPostVisibilityFilter(viewerActor),
+                  getCensoredPostExclusionFilter(viewerActor?.id),
+                ],
+              },
+              orderBy: { published: "desc" },
+              limit,
+              offset,
+            });
+            return await loadActorProfilePostPage(ctx, postPage, viewerActorId);
+          },
+        );
+      },
     }),
-    notes: t.relatedConnection("posts", {
+    notes: t.connection({
       type: Note,
       description:
         "This actor's `Note`-type posts, newest first, filtered to those " +
         "visible to the viewer. Includes both original notes and boost " +
-        "wrappers of remote notes. Use `sharedPosts` to see only boosts.",
-      query: (_, ctx) => ({
-        where: {
-          AND: [
-            { type: "Note" },
-            getPostVisibilityFilter(ctx.account?.actor ?? null),
-            getCensoredPostExclusionFilter(ctx.account?.actor.id),
-          ],
-        },
-        orderBy: { published: "desc" },
-      }),
+        "wrappers of remote notes. Use `sharedPosts` to see only boosts. " +
+        "Pass `actingAccountId` for an organization perspective.",
+      args: {
+        actingAccountId: t.arg.id({
+          required: false,
+          description: actingAccountIdArgDescription,
+        }),
+      },
+      async resolve(actor, args, ctx) {
+        const viewerActorId = await resolveViewerActorId(ctx, args);
+        const viewerActor = viewerActorId == null
+          ? null
+          : await getActorById(ctx, viewerActorId);
+        return await resolveOffsetConnection(
+          { args },
+          async ({ offset, limit }) => {
+            const postPage = await ctx.db.query.postTable.findMany({
+              where: {
+                AND: [
+                  { actorId: actor.id },
+                  { type: "Note" },
+                  getPostVisibilityFilter(viewerActor),
+                  getCensoredPostExclusionFilter(viewerActor?.id),
+                ],
+              },
+              orderBy: { published: "desc" },
+              limit,
+              offset,
+            });
+            return await loadActorProfilePostPage(ctx, postPage, viewerActorId);
+          },
+        );
+      },
     }),
     noteByUuid: t.drizzleField({
       type: Note,
@@ -604,7 +760,8 @@ export const Actor = builder.drizzleNode("actorTable", {
         "UUID for source-backed local posts, including local `Question`s. " +
         "For posts without a local source row (federated remote posts and " +
         "local share wrappers), the row PK is the lookup token. The OR-match " +
-        "here keeps both styles working. Returns null if no post matches.",
+        "here keeps both styles working. Returns `null` if no post matches " +
+        "or the post is not visible to the selected viewer account.",
       select: { columns: { id: true } },
       nullable: true,
       args: {
@@ -615,11 +772,19 @@ export const Actor = builder.drizzleNode("actorTable", {
             "Any of `Post.uuid`, `Note.sourceId` (also used by local " +
             "`Question`s), or the local article source's id.",
         }),
+        actingAccountId: t.arg.id({
+          required: false,
+          description: actingAccountIdArgDescription,
+        }),
       },
       async resolve(query, actor, args, ctx) {
         if (!validateUuid(args.uuid)) return null;
 
-        const visibility = getPostVisibilityFilter(ctx.account?.actor ?? null);
+        const viewerActorId = await resolveViewerActorId(ctx, args);
+        const viewerActor = viewerActorId == null
+          ? null
+          : await getActorById(ctx, viewerActorId);
+        const visibility = getPostVisibilityFilter(viewerActor);
         return await ctx.db.query.postTable.findFirst(query({
           where: {
             AND: [
@@ -637,27 +802,49 @@ export const Actor = builder.drizzleNode("actorTable", {
         })) ?? null;
       },
     }),
-    articles: t.relatedConnection("posts", {
+    articles: t.connection({
       type: Article,
       description:
         "This actor's locally-authored `Article`-type posts, newest first. " +
         "Only includes articles that have a local `articleSource` row; " +
-        "remote articles federated in from other instances are excluded.",
-      query: (_, ctx) => ({
-        where: {
-          AND: [
-            { type: "Article" },
-            {
-              articleSourceId: {
-                isNotNull: true,
+        "remote articles federated in from other instances are excluded. " +
+        "Pass `actingAccountId` for an organization perspective.",
+      args: {
+        actingAccountId: t.arg.id({
+          required: false,
+          description: actingAccountIdArgDescription,
+        }),
+      },
+      async resolve(actor, args, ctx) {
+        const viewerActorId = await resolveViewerActorId(ctx, args);
+        const viewerActor = viewerActorId == null
+          ? null
+          : await getActorById(ctx, viewerActorId);
+        return await resolveOffsetConnection(
+          { args },
+          async ({ offset, limit }) => {
+            const postPage = await ctx.db.query.postTable.findMany({
+              where: {
+                AND: [
+                  { actorId: actor.id },
+                  { type: "Article" },
+                  {
+                    articleSourceId: {
+                      isNotNull: true,
+                    },
+                  },
+                  getPostVisibilityFilter(viewerActor),
+                  getCensoredPostExclusionFilter(viewerActor?.id),
+                ],
               },
-            },
-            getPostVisibilityFilter(ctx.account?.actor ?? null),
-            getCensoredPostExclusionFilter(ctx.account?.actor.id),
-          ],
-        },
-        orderBy: { published: "desc" },
-      }),
+              orderBy: { published: "desc" },
+              limit,
+              offset,
+            });
+            return await loadActorProfilePostPage(ctx, postPage, viewerActorId);
+          },
+        );
+      },
     }),
     questions: t.relatedConnection("posts", {
       type: Question,
@@ -675,21 +862,43 @@ export const Actor = builder.drizzleNode("actorTable", {
         orderBy: { published: "desc" },
       }),
     }),
-    sharedPosts: t.relatedConnection("posts", {
+    sharedPosts: t.connection({
       type: Post,
       description:
         "Posts that this actor has boosted (shared), newest first. " +
-        "These are boost wrapper rows where `sharedPost` is non-null.",
-      query: (_, ctx) => ({
-        where: {
-          AND: [
-            getPostVisibilityFilter(ctx.account?.actor ?? null),
-            getCensoredPostExclusionFilter(ctx.account?.actor.id),
-            { sharedPostId: { isNotNull: true } },
-          ],
-        },
-        orderBy: { published: "desc" },
-      }),
+        "These are boost wrapper rows where `sharedPost` is non-null. " +
+        "Pass `actingAccountId` for an organization perspective.",
+      args: {
+        actingAccountId: t.arg.id({
+          required: false,
+          description: actingAccountIdArgDescription,
+        }),
+      },
+      async resolve(actor, args, ctx) {
+        const viewerActorId = await resolveViewerActorId(ctx, args);
+        const viewerActor = viewerActorId == null
+          ? null
+          : await getActorById(ctx, viewerActorId);
+        return await resolveOffsetConnection(
+          { args },
+          async ({ offset, limit }) => {
+            const postPage = await ctx.db.query.postTable.findMany({
+              where: {
+                AND: [
+                  { actorId: actor.id },
+                  getPostVisibilityFilter(viewerActor),
+                  getCensoredPostExclusionFilter(viewerActor?.id),
+                  { sharedPostId: { isNotNull: true } },
+                ],
+              },
+              orderBy: { published: "desc" },
+              limit,
+              offset,
+            });
+            return await loadActorProfilePostPage(ctx, postPage, viewerActorId);
+          },
+        );
+      },
     }),
     pins: t.connection({
       type: Post,
@@ -765,16 +974,25 @@ builder.drizzleObjectFields(Actor, (t) => ({
         'The "followers you know": actors the authenticated viewer follows ' +
         "who also follow this actor (both follows accepted). Returns an empty " +
         "connection for unauthenticated viewers and when this actor is the " +
-        "viewer themselves. Ordered by the profile-side follow, newest first. " +
-        'Use this for a "followed by people you know" hint on profiles; for ' +
-        "the complete follower list use `followers` instead.",
+        "selected viewer actor themselves. Ordered by the profile-side follow, " +
+        "newest first. Pass `actingAccountId` for an organization perspective; " +
+        'use this for a "followed by people you know" hint on profiles, and ' +
+        "use `followers` for the complete follower list.",
+      args: {
+        actingAccountId: t.arg.globalID({
+          for: Account,
+          required: false,
+          description: actingAccountIdArgDescription,
+        }),
+      },
       resolve: async (actor, args, ctx) => {
-        if (ctx.account?.actor == null || ctx.account.actor.id === actor.id) {
+        const viewerActorId = await resolveViewerActorId(ctx, args);
+        if (viewerActorId == null || viewerActorId === actor.id) {
           return resolveOffsetConnection({ args, totalCount: 0 }, () => []);
         }
         const ids = await getMutualFollowerActorIds(
           ctx.db,
-          ctx.account.actor.id,
+          viewerActorId,
           actor.id,
         );
         return resolveOffsetConnection(
@@ -799,17 +1017,25 @@ builder.drizzleObjectFields(Actor, (t) => ({
   viewerInteractions: t.connection({
     type: Post,
     description:
-      "Posts authored by either this `Actor` or the authenticated viewer " +
+      "Posts authored by either this `Actor` or the selected viewer account " +
       "that directly involve the other actor through a reply, quote, or " +
       "explicit mention. Returns an empty connection for the viewer's own " +
       "`Actor`; unauthenticated requests raise `AUTHENTICATION_REQUIRED`. " +
-      "`first` and `last` are capped at 250 posts.",
+      "`first` and `last` are capped at 250 posts. Pass `actingAccountId` " +
+      "for an organization perspective.",
+    args: {
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
     async resolve(actor, args, ctx) {
       if (ctx.account == null) {
         authenticationRequired();
       } else if (args.after != null && args.before != null) {
         conflictingCursors();
       }
+      const actingAccount = await resolveActingAccountForGlobalIdArg(ctx, args);
       const backwards = args.last != null;
       const window = getConnectionWindow(args);
       const since = args.before == null
@@ -819,7 +1045,7 @@ builder.drizzleObjectFields(Actor, (t) => ({
         ? undefined
         : parseRequiredTimelineCursor(args.after);
       const interactions = await getProfileInteractions(ctx.db, {
-        viewer: ctx.account,
+        viewer: actingAccount,
         profileActorId: actor.id,
         direction: backwards ? "backward" : "forward",
         window: window + 1,
@@ -876,75 +1102,123 @@ builder.drizzleObjectFields(Actor, (t) => ({
   isViewer: t.field({
     type: "Boolean",
     description:
-      "True if this actor belongs to the currently authenticated viewer. " +
-      "Always false for unauthenticated requests.",
-    resolve(actor, _, ctx) {
-      return ctx.account?.actor?.id === actor.id;
+      "True if this actor belongs to the selected viewer account. Always " +
+      "false for unauthenticated requests. Pass `actingAccountId` to compare " +
+      "against an organization account managed by the authenticated viewer.",
+    args: {
+      actingAccountId: t.arg.globalID({
+        for: Account,
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
+    async resolve(actor, args, ctx) {
+      return (await resolveViewerActorId(ctx, args)) === actor.id;
     },
   }),
   viewerFollows: t.loadable({
     type: "Boolean",
     description:
-      "True if the authenticated viewer follows this actor. Always false " +
-      "for unauthenticated requests or when the actor is the viewer themselves.",
+      "True if the selected viewer account follows this actor. Always false " +
+      "for unauthenticated requests or when the actor is the selected viewer " +
+      "actor themselves. Pass `actingAccountId` for an organization perspective.",
+    args: {
+      actingAccountId: t.arg.globalID({
+        for: Account,
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
     // cache: false so a mutation that changes follow state in the same
     // request (e.g., followActor + read viewerFollows in the payload)
     // re-queries instead of returning the pre-mutation value.
     loaderOptions: { cache: false },
     load: createRelationshipBooleanLoader(getFollowedActorIds),
-    resolve: (actor) => actor.id,
+    resolve: relationshipBooleanKey,
   }),
   viewerBlocks: t.loadable({
     type: "Boolean",
     description:
-      "True if the authenticated viewer has blocked this actor. Always " +
-      "false for unauthenticated requests.",
+      "True if the selected viewer account has blocked this actor. Always " +
+      "false for unauthenticated requests. Pass `actingAccountId` for an " +
+      "organization perspective.",
+    args: {
+      actingAccountId: t.arg.globalID({
+        for: Account,
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
     // cache: false so blockActor and unblockActor mutations are
     // reflected by subsequent reads of the field within the same
     // request rather than a stale per-request cached value.
     loaderOptions: { cache: false },
     load: createRelationshipBooleanLoader(getBlockedActorIds),
-    resolve: (actor) => actor.id,
+    resolve: relationshipBooleanKey,
   }),
   blocksViewer: t.loadable({
     type: "Boolean",
     description:
-      "True if this actor has blocked the authenticated viewer. Always " +
-      "false for unauthenticated requests.",
+      "True if this actor has blocked the selected viewer account. Always " +
+      "false for unauthenticated requests. Pass `actingAccountId` for an " +
+      "organization perspective.",
+    args: {
+      actingAccountId: t.arg.globalID({
+        for: Account,
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
     // cache: false so a block-state mutation in the same request is
     // reflected by a subsequent read of the field rather than a
     // stale per-request cached value.
     loaderOptions: { cache: false },
     load: createRelationshipBooleanLoader(getBlockerActorIds),
-    resolve: (actor) => actor.id,
+    resolve: relationshipBooleanKey,
   }),
   viewerMutes: t.loadable({
     type: "Boolean",
     description:
-      "True if the authenticated viewer has muted this actor. Always `false` " +
-      "for unauthenticated requests. Muting is local-only and one-directional: " +
-      "it hides the actor from the viewer's feeds and suppresses notifications " +
-      "from them (except replies and mentions when the viewer also follows " +
-      "them), but unlike `viewerBlocks` it does not federate and the actor " +
-      "remains visible on their profile and in threads.",
+      "True if the selected viewer account has muted this actor. Always " +
+      "`false` for unauthenticated requests. Muting is local-only and " +
+      "one-directional: it hides the actor from the viewer's feeds and " +
+      "suppresses notifications from them (except replies and mentions when " +
+      "the viewer also follows them), but unlike `viewerBlocks` it does not " +
+      "federate and the actor remains visible on their profile and in threads. " +
+      "Pass `actingAccountId` for an organization perspective.",
+    args: {
+      actingAccountId: t.arg.globalID({
+        for: Account,
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
     // cache: false so muteActor and unmuteActor mutations are reflected by
     // subsequent reads of the field within the same request rather than a
     // stale per-request cached value.
     loaderOptions: { cache: false },
     load: createRelationshipBooleanLoader(getMutedActorIds),
-    resolve: (actor) => actor.id,
+    resolve: relationshipBooleanKey,
   }),
   followsViewer: t.loadable({
     type: "Boolean",
     description:
-      "True if this actor follows the authenticated viewer. Always false " +
-      "for unauthenticated requests.",
+      "True if this actor follows the selected viewer account. Always false " +
+      "for unauthenticated requests. Pass `actingAccountId` for an " +
+      "organization perspective.",
+    args: {
+      actingAccountId: t.arg.globalID({
+        for: Account,
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
     // cache: false so a follow-state mutation in the same request
     // (e.g., removeFollower) is reflected by a subsequent read of
     // the field rather than a stale per-request cached value.
     loaderOptions: { cache: false },
     load: createRelationshipBooleanLoader(getFollowerActorIds),
-    resolve: (actor) => actor.id,
+    resolve: relationshipBooleanKey,
   }),
   followees: t.connection(
     {
@@ -1313,29 +1587,48 @@ builder.relayMutationField(
         for: [Actor],
         required: true,
       }),
+      actingAccountId: t.globalID({
+        for: Account,
+        required: false,
+        description:
+          "Optional `Account` id to follow as. Omit to follow as the " +
+          "authenticated personal account; pass an organization account " +
+          "where the viewer is an accepted member to follow as that " +
+          "organization.",
+      }),
     }),
   },
   {
     errors: {
-      types: [NotAuthenticatedError, InvalidInputError, ActorSuspendedError],
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+        ActorSuspendedError,
+        OrganizationPermissionError,
+      ],
     },
     async resolve(_root, args, ctx) {
-      const session = await ctx.session;
-      if (session == null || ctx.account == null) {
-        throw new NotAuthenticatedError();
-      }
+      if (ctx.account == null) throw new NotAuthenticatedError();
+      const actingAccount = await resolveActingAccountForMutation(
+        ctx,
+        args.input,
+      );
 
       const followee = await ctx.db.query.actorTable.findFirst({
         where: { id: args.input.actorId.id },
       });
 
-      if (followee == null || followee.accountId === session.accountId) {
+      if (followee == null || followee.accountId === actingAccount.id) {
         throw new InvalidInputError("actorId");
       }
 
-      await follow(ctx.fedCtx, ctx.account, followee);
+      await assertAccountActorNotSuspended(ctx.db, ctx.account.id);
+      if (actingAccount.id !== ctx.account.id) {
+        await assertAccountActorNotSuspended(ctx.db, actingAccount.id);
+      }
+      await follow(ctx.fedCtx, actingAccount, followee);
 
-      return { followeeId: followee.id, followerId: ctx.account.actor.id };
+      return { followeeId: followee.id, followerId: actingAccount.actor.id };
     },
   },
   {
@@ -1374,29 +1667,42 @@ builder.relayMutationField(
         for: [Actor],
         required: true,
       }),
+      actingAccountId: t.globalID({
+        for: Account,
+        required: false,
+        description:
+          "Optional `Account` id to unfollow as. Omit to unfollow as the " +
+          "authenticated personal account; pass an organization account " +
+          "where the viewer is an accepted member to remove that " +
+          "organization's follow.",
+      }),
     }),
   },
   {
     errors: {
-      types: [NotAuthenticatedError, InvalidInputError],
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+        OrganizationPermissionError,
+      ],
     },
     async resolve(_root, args, ctx) {
-      const session = await ctx.session;
-      if (session == null || ctx.account == null) {
-        throw new NotAuthenticatedError();
-      }
+      const actingAccount = await resolveActingAccountForMutation(
+        ctx,
+        args.input,
+      );
 
       const followee = await ctx.db.query.actorTable.findFirst({
         where: { id: args.input.actorId.id },
       });
 
-      if (followee == null || followee.accountId === session.accountId) {
+      if (followee == null || followee.accountId === actingAccount.id) {
         throw new InvalidInputError("actorId");
       }
 
-      await unfollow(ctx.fedCtx, ctx.account, followee);
+      await unfollow(ctx.fedCtx, actingAccount, followee);
 
-      return { followeeId: followee.id, followerId: ctx.account.actor.id };
+      return { followeeId: followee.id, followerId: actingAccount.actor.id };
     },
   },
   {
@@ -1440,19 +1746,32 @@ builder.relayMutationField(
         for: [Actor],
         required: true,
         description: "`Actor` global ID for the follower to remove from the " +
-          "authenticated viewer's followers. Passing the viewer's own actor " +
-          "or an unknown actor returns `InvalidInputError`.",
+          "selected viewer account's followers. Passing the selected viewer " +
+          "account's own actor or an unknown actor returns `InvalidInputError`.",
+      }),
+      actingAccountId: t.globalID({
+        for: Account,
+        required: false,
+        description:
+          "Optional `Account` id to remove a follower from. Omit to remove " +
+          "from the authenticated personal account; pass an organization " +
+          "account where the viewer is an accepted member to remove from " +
+          "that organization's followers.",
       }),
     }),
   },
   {
     description:
-      "Remove an `Actor` from the authenticated viewer's followers. " +
+      "Remove an `Actor` from the selected viewer account's followers. " +
       "This deletes the follower relationship without blocking the actor; " +
       "remote followers receive an ActivityPub `Reject` for the original " +
       "`Follow`.",
     errors: {
-      types: [NotAuthenticatedError, InvalidInputError],
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+        OrganizationPermissionError,
+      ],
       union: {
         description:
           "Result of removing a follower: the updated actors on success, " +
@@ -1460,24 +1779,24 @@ builder.relayMutationField(
       },
     },
     async resolve(_root, args, ctx) {
-      const session = await ctx.session;
-      if (session == null || ctx.account == null) {
-        throw new NotAuthenticatedError();
-      }
+      const actingAccount = await resolveActingAccountForMutation(
+        ctx,
+        args.input,
+      );
 
       const follower = await ctx.db.query.actorTable.findFirst({
         where: { id: args.input.actorId.id },
       });
 
-      if (follower == null || follower.accountId === session.accountId) {
+      if (follower == null || follower.accountId === actingAccount.id) {
         throw new InvalidInputError("actorId");
       }
 
-      await removeFollowerModel(ctx.fedCtx, ctx.account, follower);
+      await removeFollowerModel(ctx.fedCtx, actingAccount, follower);
 
       return {
         followerId: follower.id,
-        followeeId: ctx.account.actor.id,
+        followeeId: actingAccount.actor.id,
       };
     },
   },
@@ -1504,7 +1823,7 @@ builder.relayMutationField(
       followee: t.drizzleField({
         type: Actor,
         description:
-          "The authenticated viewer's `Actor` whose follower list changed.",
+          "The selected viewer account's `Actor` whose follower list changed.",
         async resolve(query, result, _args, ctx) {
           const actor = await ctx.db.query.actorTable.findFirst(
             query({ where: { id: result.followeeId } }),
@@ -1526,30 +1845,43 @@ builder.relayMutationField(
         for: [Actor],
         required: true,
       }),
+      actingAccountId: t.globalID({
+        for: Account,
+        required: false,
+        description:
+          "Optional `Account` id to block as. Omit to block as the " +
+          "authenticated personal account; pass an organization account " +
+          "where the viewer is an accepted member to block as that " +
+          "organization.",
+      }),
     }),
   },
   {
     errors: {
-      types: [NotAuthenticatedError, InvalidInputError],
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+        OrganizationPermissionError,
+      ],
     },
     async resolve(_root, args, ctx) {
-      const session = await ctx.session;
-      if (session == null || ctx.account == null) {
-        throw new NotAuthenticatedError();
-      }
+      const actingAccount = await resolveActingAccountForMutation(
+        ctx,
+        args.input,
+      );
 
       const blockee = await ctx.db.query.actorTable.findFirst({
         where: { id: args.input.actorId.id },
       });
 
-      if (blockee == null || blockee.accountId === session.accountId) {
+      if (blockee == null || blockee.accountId === actingAccount.id) {
         throw new InvalidInputError("actorId");
       }
 
-      await block(ctx.fedCtx, ctx.account, blockee);
+      await block(ctx.fedCtx, actingAccount, blockee);
 
       return {
-        blockerId: ctx.account.actor.id,
+        blockerId: actingAccount.actor.id,
         blockeeId: blockee.id,
       };
     },
@@ -1586,30 +1918,43 @@ builder.relayMutationField(
         for: [Actor],
         required: true,
       }),
+      actingAccountId: t.globalID({
+        for: Account,
+        required: false,
+        description:
+          "Optional `Account` id to unblock as. Omit to unblock as the " +
+          "authenticated personal account; pass an organization account " +
+          "where the viewer is an accepted member to remove that " +
+          "organization's block.",
+      }),
     }),
   },
   {
     errors: {
-      types: [NotAuthenticatedError, InvalidInputError],
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+        OrganizationPermissionError,
+      ],
     },
     async resolve(_root, args, ctx) {
-      const session = await ctx.session;
-      if (session == null || ctx.account == null) {
-        throw new NotAuthenticatedError();
-      }
+      const actingAccount = await resolveActingAccountForMutation(
+        ctx,
+        args.input,
+      );
 
       const blockee = await ctx.db.query.actorTable.findFirst({
         where: { id: args.input.actorId.id },
       });
 
-      if (blockee == null || blockee.accountId === session.accountId) {
+      if (blockee == null || blockee.accountId === actingAccount.id) {
         throw new InvalidInputError("actorId");
       }
 
-      await unblock(ctx.fedCtx, ctx.account, blockee);
+      await unblock(ctx.fedCtx, actingAccount, blockee);
 
       return {
-        blockerId: ctx.account.actor.id,
+        blockerId: actingAccount.actor.id,
         blockeeId: blockee.id,
       };
     },
@@ -1651,11 +1996,19 @@ builder.relayMutationField(
         required: true,
         description: "The global ID of the `Actor` to mute.",
       }),
+      actingAccountId: t.globalID({
+        for: Account,
+        required: false,
+        description: "Optional `Account` id to mute as. Omit to mute as the " +
+          "authenticated personal account; pass an organization account " +
+          "where the viewer is an accepted member to mute as that " +
+          "organization.",
+      }),
     }),
   },
   {
     description:
-      "Mutes an actor on behalf of the authenticated viewer. Muting is " +
+      "Mutes an actor on behalf of the selected viewer account. Muting is " +
       "local-only and one-directional: it hides the actor from the viewer's " +
       "feeds and suppresses notifications from them (except replies and " +
       "mentions when the viewer also follows them), but unlike `blockActor` it " +
@@ -1664,13 +2017,17 @@ builder.relayMutationField(
       "already-muted actor succeeds. Rejects muting yourself with " +
       "`InvalidInputError`.",
     errors: {
-      types: [NotAuthenticatedError, InvalidInputError],
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+        OrganizationPermissionError,
+      ],
     },
     async resolve(_root, args, ctx) {
-      const session = await ctx.session;
-      if (session == null || ctx.account == null) {
-        throw new NotAuthenticatedError();
-      }
+      const actingAccount = await resolveActingAccountForMutation(
+        ctx,
+        args.input,
+      );
 
       if (!validateUuid(args.input.actorId.id)) {
         throw new InvalidInputError("actorId");
@@ -1680,14 +2037,14 @@ builder.relayMutationField(
         where: { id: args.input.actorId.id },
       });
 
-      if (mutee == null || mutee.accountId === session.accountId) {
+      if (mutee == null || mutee.accountId === actingAccount.id) {
         throw new InvalidInputError("actorId");
       }
 
-      await mute(ctx.db, ctx.account, mutee);
+      await mute(ctx.db, actingAccount, mutee);
 
       return {
-        muterId: ctx.account.actor.id,
+        muterId: actingAccount.actor.id,
         muteeId: mutee.id,
       };
     },
@@ -1731,21 +2088,34 @@ builder.relayMutationField(
         required: true,
         description: "The global ID of the `Actor` to unmute.",
       }),
+      actingAccountId: t.globalID({
+        for: Account,
+        required: false,
+        description:
+          "Optional `Account` id to unmute as. Omit to unmute as the " +
+          "authenticated personal account; pass an organization account " +
+          "where the viewer is an accepted member to remove that " +
+          "organization's mute.",
+      }),
     }),
   },
   {
     description:
       "Removes a mute previously created by `muteActor` on behalf of the " +
-      "authenticated viewer. Idempotent: unmuting an actor that was not muted " +
-      "succeeds. Rejects targeting yourself with `InvalidInputError`.",
+      "selected viewer account. Idempotent: unmuting an actor that was not " +
+      "muted succeeds. Rejects targeting yourself with `InvalidInputError`.",
     errors: {
-      types: [NotAuthenticatedError, InvalidInputError],
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+        OrganizationPermissionError,
+      ],
     },
     async resolve(_root, args, ctx) {
-      const session = await ctx.session;
-      if (session == null || ctx.account == null) {
-        throw new NotAuthenticatedError();
-      }
+      const actingAccount = await resolveActingAccountForMutation(
+        ctx,
+        args.input,
+      );
 
       if (!validateUuid(args.input.actorId.id)) {
         throw new InvalidInputError("actorId");
@@ -1755,14 +2125,14 @@ builder.relayMutationField(
         where: { id: args.input.actorId.id },
       });
 
-      if (mutee == null || mutee.accountId === session.accountId) {
+      if (mutee == null || mutee.accountId === actingAccount.id) {
         throw new InvalidInputError("actorId");
       }
 
-      await unmute(ctx.db, ctx.account, mutee);
+      await unmute(ctx.db, actingAccount, mutee);
 
       return {
-        muterId: ctx.account.actor.id,
+        muterId: actingAccount.actor.id,
         muteeId: mutee.id,
       };
     },

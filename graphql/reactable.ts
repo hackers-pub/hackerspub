@@ -7,6 +7,11 @@ import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { createGraphQLError } from "graphql-yoga";
 import { Actor } from "./actor.ts";
 import { builder, Node, type UserContext } from "./builder.ts";
+import {
+  type ActingAccountIdArg,
+  actingAccountIdArgDescription,
+  resolveViewerActorId,
+} from "./viewer-actor.ts";
 
 export interface Reactable {
   id: Uuid;
@@ -17,6 +22,7 @@ interface ViewerHasReactedKey {
   postId: Uuid;
   emoji: string | null;
   customEmojiId: Uuid | null;
+  viewerActorId: Uuid | null;
 }
 
 // Encoded as JSON because federated reaction emoji can contain any
@@ -24,7 +30,7 @@ interface ViewerHasReactedKey {
 function encodeReactionKey(connection: {
   postId: Uuid;
   where: RelationsFilter<"reactionTable">;
-}): string {
+}, viewerActorId: Uuid | null): string {
   const filter = connection.where as {
     emoji?: string;
     customEmojiId?: Uuid;
@@ -33,6 +39,7 @@ function encodeReactionKey(connection: {
     postId: connection.postId,
     emoji: filter.emoji ?? null,
     customEmojiId: filter.customEmojiId ?? null,
+    viewerActorId,
   };
   return JSON.stringify(key);
 }
@@ -179,21 +186,51 @@ export const ReactionGroup = builder.interfaceRef<ReactionGroup>(
         totalCount: t.exposeInt("totalCount"),
         viewerHasReacted: t.loadable({
           type: "Boolean",
+          description:
+            "Whether the selected viewer account reacted with this reaction " +
+            "group's emoji. Always `false` for unauthenticated requests. Pass " +
+            "`actingAccountId` for an organization perspective.",
+          args: {
+            actingAccountId: t.arg.globalID({
+              required: false,
+              description: actingAccountIdArgDescription,
+            }),
+          },
           loaderOptions: { cache: false },
           load: async (
             keys: string[],
             ctx: UserContext,
           ): Promise<boolean[]> => {
-            if (ctx.account == null) return keys.map(() => false);
             const decoded = keys.map(decodeReactionKey);
-            const postIds = [...new Set(decoded.map((k) => k.postId))];
-            const rows = await getViewerReactionsForPosts(
-              ctx.db,
-              postIds,
-              ctx.account.actor,
-            );
+            const rowsByViewer = new Map<
+              Uuid,
+              Awaited<
+                ReturnType<typeof getViewerReactionsForPosts>
+              >
+            >();
+            const postIdsByViewer = new Map<Uuid, Set<Uuid>>();
+            for (const key of decoded) {
+              if (key.viewerActorId == null) continue;
+              let postIds = postIdsByViewer.get(key.viewerActorId);
+              if (postIds == null) {
+                postIds = new Set();
+                postIdsByViewer.set(key.viewerActorId, postIds);
+              }
+              postIds.add(key.postId);
+            }
+            for (const [viewerActorId, postIds] of postIdsByViewer) {
+              rowsByViewer.set(
+                viewerActorId,
+                await getViewerReactionsForPosts(
+                  ctx.db,
+                  [...postIds],
+                  { id: viewerActorId },
+                ),
+              );
+            }
             return decoded.map((key) =>
-              rows.some((row) =>
+              key.viewerActorId != null &&
+              (rowsByViewer.get(key.viewerActorId) ?? []).some((row) =>
                 row.postId === key.postId &&
                 (key.emoji == null || row.emoji === key.emoji) &&
                 (key.customEmojiId == null ||
@@ -201,7 +238,11 @@ export const ReactionGroup = builder.interfaceRef<ReactionGroup>(
               )
             );
           },
-          resolve: (connection) => encodeReactionKey(connection),
+          resolve: async (connection, args: ActingAccountIdArg, ctx) =>
+            encodeReactionKey(
+              connection,
+              await resolveViewerActorId(ctx, args),
+            ),
         }),
       }),
     }),

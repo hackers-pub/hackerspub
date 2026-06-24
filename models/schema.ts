@@ -71,10 +71,18 @@ export const pushNotificationServiceEnum = pgEnum(
 export type PushNotificationService =
   (typeof pushNotificationServiceEnum.enumValues)[number];
 
+export const accountKindEnum = pgEnum("account_kind", [
+  "personal",
+  "organization",
+]);
+
+export type AccountKind = (typeof accountKindEnum.enumValues)[number];
+
 export const accountTable = pgTable(
   "account",
   {
     id: uuid().$type<Uuid>().primaryKey(),
+    kind: accountKindEnum().notNull().default("personal"),
     username: varchar({ length: 50 }).notNull().unique(),
     oldUsername: varchar("old_username", { length: 50 }),
     usernameChanged: timestamp("username_changed", { withTimezone: true }),
@@ -142,12 +150,114 @@ export const accountTable = pgTable(
 export type Account = typeof accountTable.$inferSelect;
 export type NewAccount = typeof accountTable.$inferInsert;
 
+export const organizationMemberRoleEnum = pgEnum("organization_member_role", [
+  "admin",
+  "member",
+]);
+
+export type OrganizationMemberRole =
+  (typeof organizationMemberRoleEnum.enumValues)[number];
+
+export const organizationMembershipTable = pgTable(
+  "organization_membership",
+  {
+    organizationAccountId: uuid("organization_account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => accountTable.id, { onDelete: "cascade" }),
+    memberAccountId: uuid("member_account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => accountTable.id, { onDelete: "cascade" }),
+    role: organizationMemberRoleEnum().notNull().default("member"),
+    invitedById: uuid("invited_by_id")
+      .$type<Uuid>()
+      .references(() => accountTable.id, { onDelete: "set null" }),
+    accepted: timestamp({ withTimezone: true }),
+    updated: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.organizationAccountId, table.memberAccountId],
+    }),
+    index("organization_membership_member_idx").on(table.memberAccountId),
+    index("organization_membership_organization_role_idx").on(
+      table.organizationAccountId,
+      table.role,
+    ),
+    check(
+      "organization_membership_self_check",
+      sql`${table.organizationAccountId} <> ${table.memberAccountId}`,
+    ),
+  ],
+);
+
+export type OrganizationMembership =
+  typeof organizationMembershipTable.$inferSelect;
+export type NewOrganizationMembership =
+  typeof organizationMembershipTable.$inferInsert;
+
+export const organizationConversionRequestTable = pgTable(
+  "organization_conversion_request",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    accountId: uuid("account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => accountTable.id, { onDelete: "cascade" }),
+    adminAccountId: uuid("admin_account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => accountTable.id, { onDelete: "cascade" }),
+    accepted: timestamp({ withTimezone: true }),
+    updated: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    index("organization_conversion_request_admin_idx").on(
+      table.adminAccountId,
+    ),
+    uniqueIndex("organization_conversion_request_pending_account_idx")
+      .on(table.accountId)
+      .where(isNull(table.accepted)),
+    check(
+      "organization_conversion_request_self_check",
+      sql`${table.accountId} <> ${table.adminAccountId}`,
+    ),
+  ],
+);
+
+export type OrganizationConversionRequest =
+  typeof organizationConversionRequestTable.$inferSelect;
+export type NewOrganizationConversionRequest =
+  typeof organizationConversionRequestTable.$inferInsert;
+
+export const actorTypeEnum = pgEnum("actor_type", [
+  "Application",
+  "Group",
+  "Organization",
+  "Person",
+  "Service",
+]);
+
+export type ActorType = (typeof actorTypeEnum.enumValues)[number];
+
 export const deletedAccountTable = pgTable(
   "deleted_account",
   {
     accountId: uuid("account_id").$type<Uuid>().primaryKey(),
     username: varchar({ length: 50 }).notNull().unique(),
     actorIri: text("actor_iri").notNull().unique(),
+    formerType: actorTypeEnum("former_type").notNull().default("Person"),
     deleted: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),
@@ -372,16 +482,6 @@ export const accountLinkTable = pgTable(
 
 export type AccountLink = typeof accountLinkTable.$inferSelect;
 export type NewAccountLink = typeof accountLinkTable.$inferInsert;
-
-export const actorTypeEnum = pgEnum("actor_type", [
-  "Application",
-  "Group",
-  "Organization",
-  "Person",
-  "Service",
-]);
-
-export type ActorType = (typeof actorTypeEnum.enumValues)[number];
 
 export const actorTable = pgTable(
   "actor",
@@ -832,6 +932,14 @@ export const postTypeEnum = pgEnum("post_type", [
 
 export type PostType = (typeof postTypeEnum.enumValues)[number];
 
+export const postAttributionModeEnum = pgEnum("post_attribution_mode", [
+  "acting_account_only",
+  "acting_account_with_viewer",
+]);
+
+export type PostAttributionMode =
+  (typeof postAttributionModeEnum.enumValues)[number];
+
 export const quoteTargetStateEnum = pgEnum("quote_target_state", [
   "pending",
   "denied",
@@ -1084,6 +1192,45 @@ export const postTable = pgTable(
 
 export type Post = typeof postTable.$inferSelect;
 export type NewPost = typeof postTable.$inferInsert;
+
+export const organizationPostAuthorTable = pgTable(
+  "organization_post_author",
+  {
+    postId: uuid("post_id")
+      .$type<Uuid>()
+      .primaryKey()
+      .references(() => postTable.id, { onDelete: "cascade" }),
+    organizationAccountId: uuid("organization_account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => accountTable.id, { onDelete: "cascade" }),
+    memberAccountId: uuid("member_account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => accountTable.id, { onDelete: "cascade" }),
+    attributionMode: postAttributionModeEnum("attribution_mode")
+      .notNull()
+      .default("acting_account_only"),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    index("organization_post_author_organization_idx").on(
+      table.organizationAccountId,
+    ),
+    index("organization_post_author_member_idx").on(table.memberAccountId),
+    check(
+      "organization_post_author_self_check",
+      sql`${table.organizationAccountId} <> ${table.memberAccountId}`,
+    ),
+  ],
+);
+
+export type OrganizationPostAuthor =
+  typeof organizationPostAuthorTable.$inferSelect;
+export type NewOrganizationPostAuthor =
+  typeof organizationPostAuthorTable.$inferInsert;
 
 export const quoteAuthorizationTable = pgTable(
   "quote_authorization",
@@ -1804,6 +1951,8 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "quoted_post_updated",
   "react",
   "poll_ended",
+  "organization_invitation",
+  "organization_conversion_request",
 ]);
 
 export type NotificationType = (typeof notificationTypeEnum.enumValues)[number];
@@ -1827,6 +1976,8 @@ export const notificationTable = pgTable(
     // - When type is 'quoted_post_updated', this is the updated quoted post
     // - When type is 'react', this is the ID of the post being reacted to
     // - When type is 'poll_ended', this is the ended Question post
+    // - When type is 'organization_invitation', this is not used
+    // - When type is 'organization_conversion_request', this is not used
     postId: uuid("post_id")
       .$type<Uuid>()
       .references((): AnyPgColumn => postTable.id, { onDelete: "cascade" }),
@@ -1839,6 +1990,11 @@ export const notificationTable = pgTable(
     customEmojiId: uuid("custom_emoji_id")
       .$type<Uuid>()
       .references((): AnyPgColumn => customEmojiTable.id, {
+        onDelete: "cascade",
+      }),
+    organizationConversionRequestId: uuid("organization_conversion_request_id")
+      .$type<Uuid>()
+      .references((): AnyPgColumn => organizationConversionRequestTable.id, {
         onDelete: "cascade",
       }),
     created: timestamp({ withTimezone: true })
@@ -1856,8 +2012,11 @@ export const notificationTable = pgTable(
     check(
       "notification_post_id_check",
       sql`
-        CASE ${table.type}
+        CASE ${table.type}::text
           WHEN 'follow' THEN ${table.postId} IS NULL
+          WHEN 'organization_invitation' THEN ${table.postId} IS NULL
+          WHEN 'organization_conversion_request'
+          THEN ${table.postId} IS NULL
           ELSE ${table.postId} IS NOT NULL
         END
       `,
@@ -1865,11 +2024,21 @@ export const notificationTable = pgTable(
     check(
       "notification_emoji_check",
       sql`
-        CASE ${table.type}
+        CASE ${table.type}::text
           WHEN 'react'
           THEN ${table.emoji} IS NOT NULL AND ${table.customEmojiId} IS NULL
             OR ${table.emoji} IS NULL AND ${table.customEmojiId} IS NOT NULL
           ELSE ${table.emoji} IS NULL AND ${table.customEmojiId} IS NULL
+        END
+      `,
+    ),
+    check(
+      "notification_organization_conversion_request_id_check",
+      sql`
+        CASE ${table.type}::text
+          WHEN 'organization_conversion_request'
+          THEN ${table.organizationConversionRequestId} IS NOT NULL
+          ELSE ${table.organizationConversionRequestId} IS NULL
         END
       `,
     ),
@@ -1879,6 +2048,8 @@ export const notificationTable = pgTable(
     uniqueIndex()
       .on(table.accountId, table.type, table.postId)
       .where(sql`${table.type} NOT IN ('follow', 'react')`),
+    uniqueIndex("notification_organization_conversion_request_idx")
+      .on(table.accountId, table.type, table.organizationConversionRequestId),
     uniqueIndex()
       .on(table.accountId, table.postId, table.emoji)
       .where(sql`${table.type} = 'react' AND ${table.customEmojiId} IS NULL`),
@@ -1890,6 +2061,43 @@ export const notificationTable = pgTable(
 
 export type Notification = typeof notificationTable.$inferSelect;
 export type NewNotification = typeof notificationTable.$inferInsert;
+
+export const organizationNotificationReadTable = pgTable(
+  "organization_notification_read",
+  {
+    organizationAccountId: uuid("organization_account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => accountTable.id, { onDelete: "cascade" }),
+    memberAccountId: uuid("member_account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => accountTable.id, { onDelete: "cascade" }),
+    readAt: timestamp("read_at", { withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    updated: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.organizationAccountId, table.memberAccountId],
+    }),
+    index("organization_notification_read_member_idx").on(
+      table.memberAccountId,
+    ),
+    check(
+      "organization_notification_read_self_check",
+      sql`${table.organizationAccountId} <> ${table.memberAccountId}`,
+    ),
+  ],
+);
+
+export type OrganizationNotificationRead =
+  typeof organizationNotificationReadTable.$inferSelect;
+export type NewOrganizationNotificationRead =
+  typeof organizationNotificationReadTable.$inferInsert;
 
 export const invitationLinkTable = pgTable(
   "invitation_link",

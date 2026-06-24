@@ -4,6 +4,10 @@ import {
   getBookmarks,
 } from "@hackerspub/models/bookmark";
 import {
+  OrganizationPermissionError,
+  resolveActingAccount,
+} from "@hackerspub/models/organization";
+import {
   formatTimelineCursor,
   getPersonalTimeline,
   getPublicTimeline,
@@ -13,8 +17,9 @@ import {
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { assertNever } from "@std/assert/unstable-never";
 import { createGraphQLError } from "graphql-yoga";
+import { Account as AccountRef } from "./account.ts";
 import { Actor } from "./actor.ts";
-import { builder } from "./builder.ts";
+import { builder, type UserContext } from "./builder.ts";
 import { Post, PostType } from "./post.ts";
 
 const MAX_TIMELINE_WINDOW = 250;
@@ -32,6 +37,34 @@ function authenticationRequired(): never {
   throw createGraphQLError("Authentication required.", {
     extensions: { code: "AUTHENTICATION_REQUIRED" },
   });
+}
+
+async function resolvePersonalTimelineAccount(
+  ctx: UserContext,
+  actingAccountId?: { id: string } | null,
+): Promise<Awaited<ReturnType<typeof resolveActingAccount>>> {
+  if (ctx.account == null) authenticationRequired();
+  const rawAccountId = actingAccountId?.id;
+  if (rawAccountId != null && !validateUuid(rawAccountId)) {
+    throw createGraphQLError("Invalid acting account.", {
+      extensions: { code: "BAD_USER_INPUT" },
+    });
+  }
+  try {
+    return await resolveActingAccount(
+      ctx.db,
+      ctx.account,
+      rawAccountId as Uuid | undefined,
+    );
+  } catch (error) {
+    if (error instanceof OrganizationPermissionError) {
+      throw createGraphQLError("Not allowed to read this account's feed.", {
+        originalError: error,
+        extensions: { code: "FORBIDDEN" },
+      });
+    }
+    throw error;
+  }
 }
 
 function parseBookmarkCursor(raw: string): BookmarkCursor | undefined {
@@ -302,8 +335,18 @@ builder.queryFields((t) => ({
         `${MAX_TIMELINE_WINDOW} posts. Use \`languages\` to filter by ` +
         `language (a base code like \`"en"\` matches \`"en"\` and all ` +
         `\`"en-*"\` variants), \`local\` to restrict to this instance only, ` +
-        `and \`withoutShares\` to hide boost wrappers.`,
+        `and \`withoutShares\` to hide boost wrappers. Pass ` +
+        `\`actingAccountId\` to read an organization account's feed when ` +
+        `the viewer is an accepted member.`,
       args: {
+        actingAccountId: t.arg.globalID({
+          for: AccountRef,
+          required: false,
+          description:
+            "Optional `Account` id whose feed should be read instead of " +
+            "the viewer's personal account. Only accepted organization " +
+            "members can read an organization's feed this way.",
+        }),
         languages: t.arg({
           type: ["Locale"],
           defaultValue: [],
@@ -345,8 +388,12 @@ builder.queryFields((t) => ({
         const until = args.after == null
           ? undefined
           : parseRequiredTimelineCursor(args.after);
+        const timelineAccount = await resolvePersonalTimelineAccount(
+          ctx,
+          args.actingAccountId,
+        );
         const timeline = await getPersonalTimeline(ctx.db, {
-          currentAccount: ctx.account,
+          currentAccount: timelineAccount,
           direction: backwards ? "backward" : "forward",
           languages: new Set(
             (args.languages ?? []).flatMap((l) =>

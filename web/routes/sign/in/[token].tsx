@@ -45,6 +45,7 @@ export const handler = define.handlers(
       },
     });
     if (account == null) return page();
+    if (account.kind !== "personal") return page();
     // A permanently suspended (banned) account cannot sign in at all;
     // temporary suspension only restricts writing, not signing in.
     if (isActorBanned(account.actor)) return page({ banned: true });

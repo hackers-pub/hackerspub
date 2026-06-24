@@ -27,6 +27,11 @@ import { NoteComposeModal } from "~/components/NoteComposeModal.tsx";
 import { SidebarProvider, SidebarTrigger } from "~/components/ui/sidebar.tsx";
 import { Toaster } from "~/components/ui/toast.tsx";
 import { WebPushPromptBanner } from "~/components/WebPushPromptBanner.tsx";
+import {
+  ActingAccountProvider,
+  type OrganizationNotificationBadge,
+  useActingAccount,
+} from "~/contexts/ActingAccountContext.tsx";
 import { NoteComposeProvider } from "~/contexts/NoteComposeContext.tsx";
 import { ViewerProvider } from "~/contexts/ViewerContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -54,6 +59,11 @@ const RootLayoutQuery = graphql`
       preferAiSummary
       unreadNotificationsCount
       unreadModerationNotificationCount
+      organizationMemberships {
+        notificationBadge {
+          count
+        }
+      }
       actor {
         suspended
       }
@@ -126,7 +136,7 @@ export default function RootLayout(props: RouteSectionProps) {
     chromeMounted() && !signedAccount.pending;
   const chromeSignedAccount = () =>
     chromeMounted() ? signedAccount()?.viewer : undefined;
-  const totalUnreadNotificationsCount = createUnreadNotificationsCount(
+  const personalUnreadNotificationsCount = createUnreadNotificationsCount(
     chromeSignedAccount,
   );
   const showFloatingCompose = () => {
@@ -172,87 +182,116 @@ export default function RootLayout(props: RouteSectionProps) {
       suspended={() => signedAccount()?.viewer?.actor?.suspended ?? false}
       preferAiSummary={() => signedAccount()?.viewer?.preferAiSummary ?? true}
     >
-      <NoteComposeProvider>
-        <SidebarProvider>
-          <AppSidebar
-            $signedAccount={chromeSignedAccount()}
-            signedAccountLoaded={chromeSignedAccountLoaded()}
-            totalUnreadNotificationsCount={totalUnreadNotificationsCount()}
-          />
-          <header class="fixed inset-x-0 top-0 z-40 border-b bg-background/80 backdrop-blur md:hidden">
-            <div class="flex h-14 items-center justify-between px-4">
-              <SidebarTrigger
-                class="size-9 rounded-full"
-                aria-label={t`Toggle sidebar`}
-              />
-              <A href="/" aria-label={t`Hackers' Pub home`}>
-                <picture>
-                  <source
-                    srcset="/logo-dark.svg"
-                    media="(prefers-color-scheme: dark)"
-                  />
-                  <img
-                    src="/logo-light.svg"
-                    alt={t`Hackers' Pub`}
-                    width={111}
-                    height={28}
-                    class="h-7 w-auto"
-                  />
-                </picture>
-              </A>
-              <Show
-                when={chromeSignedAccount()}
-                fallback={<div class="size-9" aria-hidden="true" />}
-              >
-                <Button
-                  as={A}
-                  href="/notifications"
-                  onClick={invalidateNotificationsPageQueryCache}
-                  variant="ghost"
-                  size="icon"
-                  class="relative size-9 rounded-full"
-                  aria-label={t`Notifications`}
-                  title={t`Notifications`}
-                >
-                  <NotificationsBellIcon class="size-5" />
-                  <Show when={(totalUnreadNotificationsCount() ?? 0) > 0}>
-                    <span
-                      class="absolute right-2 top-2 size-2.5 rounded-full bg-red-500 ring-2 ring-background"
-                      aria-hidden="true"
-                    />
-                  </Show>
-                </Button>
-              </Show>
-            </div>
-          </header>
-          <main
-            lang={new Intl.Locale(i18n.locale).minimize().baseName}
-            class="w-full pt-14 md:pt-0"
-            classList={{
-              "pb-24 md:pb-0": showFloatingCompose(),
-              "bg-[url(/dev-bg-light.svg)]": import.meta.env.DEV,
-              "dark:bg-[url(/dev-bg-dark.svg)]": import.meta.env.DEV,
-            }}
-          >
-            <WebPushPromptBanner
-              enabled={!signedAccount.pending &&
-                signedAccount()?.viewer != null}
-              loaded={!signedAccount.pending}
-              vapidPublicKey={signedAccount()?.webPushVapidPublicKey}
+      <ActingAccountProvider>
+        <NoteComposeProvider>
+          <SidebarProvider>
+            <AppSidebar
+              $signedAccount={chromeSignedAccount()}
+              signedAccountLoaded={chromeSignedAccountLoaded()}
+              personalUnreadNotificationsCount={personalUnreadNotificationsCount()}
             />
-            <Suspense fallback={<RouteLoadingFallback />}>
-              {props.children}
-            </Suspense>
-          </main>
-          <FloatingComposeButton
-            show={showFloatingCompose()}
-            username={chromeSignedAccount()?.username}
-            $signedAccount={chromeSignedAccount()}
-          />
-          <NoteComposeModal />
-          <Toaster />
-        </SidebarProvider>
-      </NoteComposeProvider>
+            <header class="fixed inset-x-0 top-0 z-40 border-b bg-background/80 backdrop-blur md:hidden">
+              <div class="flex h-14 items-center justify-between px-4">
+                <SidebarTrigger
+                  class="size-9 rounded-full"
+                  aria-label={t`Toggle sidebar`}
+                />
+                <A href="/" aria-label={t`Hackers' Pub home`}>
+                  <picture>
+                    <source
+                      srcset="/logo-dark.svg"
+                      media="(prefers-color-scheme: dark)"
+                    />
+                    <img
+                      src="/logo-light.svg"
+                      alt={t`Hackers' Pub`}
+                      width={111}
+                      height={28}
+                      class="h-7 w-auto"
+                    />
+                  </picture>
+                </A>
+                <Show
+                  when={chromeSignedAccount()}
+                  fallback={<div class="size-9" aria-hidden="true" />}
+                >
+                  <MobileHeaderNotifications
+                    personalUnreadNotificationsCount={personalUnreadNotificationsCount()}
+                  />
+                </Show>
+              </div>
+            </header>
+            <main
+              lang={new Intl.Locale(i18n.locale).minimize().baseName}
+              class="w-full pt-14 md:pt-0"
+              classList={{
+                "pb-24 md:pb-0": showFloatingCompose(),
+                "bg-[url(/dev-bg-light.svg)]": import.meta.env.DEV,
+                "dark:bg-[url(/dev-bg-dark.svg)]": import.meta.env.DEV,
+              }}
+            >
+              <WebPushPromptBanner
+                enabled={!signedAccount.pending &&
+                  signedAccount()?.viewer != null}
+                loaded={!signedAccount.pending}
+                vapidPublicKey={signedAccount()?.webPushVapidPublicKey}
+              />
+              <Suspense fallback={<RouteLoadingFallback />}>
+                {props.children}
+              </Suspense>
+            </main>
+            <FloatingComposeButton
+              show={showFloatingCompose()}
+              username={chromeSignedAccount()?.username}
+              $signedAccount={chromeSignedAccount()}
+            />
+            <NoteComposeModal />
+            <Toaster />
+          </SidebarProvider>
+        </NoteComposeProvider>
+      </ActingAccountProvider>
     </ViewerProvider>
+  );
+}
+
+interface MobileHeaderNotificationsProps {
+  personalUnreadNotificationsCount?: number;
+}
+
+function MobileHeaderNotifications(props: MobileHeaderNotificationsProps) {
+  const { t } = useLingui();
+  const actingAccount = useActingAccount();
+  const notificationBadge = (): OrganizationNotificationBadge | null => {
+    const organization = actingAccount.selectedOrganization();
+    if (organization != null) {
+      return organization.notificationBadge ?? null;
+    }
+    const count = props.personalUnreadNotificationsCount ?? 0;
+    return count > 0 ? { color: "RED", count } : null;
+  };
+
+  return (
+    <Button
+      as={A}
+      href="/notifications"
+      onClick={invalidateNotificationsPageQueryCache}
+      variant="ghost"
+      size="icon"
+      class="relative size-9 rounded-full"
+      aria-label={t`Notifications`}
+      title={t`Notifications`}
+    >
+      <NotificationsBellIcon class="size-5" />
+      <Show when={(notificationBadge()?.count ?? 0) > 0}>
+        <span
+          class="absolute right-2 top-2 size-2.5 rounded-full ring-2 ring-background"
+          classList={{
+            "bg-red-500": notificationBadge()?.color === "RED",
+            "bg-muted-foreground/40": notificationBadge()?.color !== "RED",
+          }}
+          aria-hidden="true"
+        />
+      </Show>
+    </Button>
   );
 }

@@ -21,6 +21,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "~/components/ui/tooltip.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 
 export interface RemoveFollowerButtonProps {
@@ -31,6 +32,7 @@ export interface RemoveFollowerButtonProps {
 const removeFollowerMutation = graphql`
   mutation RemoveFollowerButton_removeFollower_Mutation(
     $input: RemoveFollowerInput!
+    $actingAccountId: ID
     $connections: [ID!]!
   ) {
     removeFollower(input: $input) {
@@ -43,7 +45,7 @@ const removeFollowerMutation = graphql`
         follower {
           id @deleteEdge(connections: $connections)
           followees { totalCount }
-          followsViewer
+          followsViewer(actingAccountId: $actingAccountId)
         }
       }
       ... on InvalidInputError {
@@ -58,6 +60,7 @@ const removeFollowerMutation = graphql`
 
 export function RemoveFollowerButton(props: RemoveFollowerButtonProps) {
   const { t } = useLingui();
+  const actingAccount = useActingAccount();
   const [showConfirm, setShowConfirm] = createSignal(false);
   const actor = createFragment(
     graphql`
@@ -80,10 +83,15 @@ export function RemoveFollowerButton(props: RemoveFollowerButtonProps) {
   function handleRemove() {
     const actorData = actor();
     if (actorData == null) return;
+    const actingAccountId = actingAccount.selectedActingAccountId();
 
     removeFollower({
       variables: {
-        input: { actorId: actorData.id },
+        input: {
+          actorId: actorData.id,
+          ...(actingAccountId == null ? {} : { actingAccountId }),
+        },
+        actingAccountId: actingAccountId ?? null,
         connections: [props.connectionId],
       },
       onCompleted(response) {

@@ -6,6 +6,8 @@ import { eq } from "drizzle-orm";
 import { execute, parse } from "graphql";
 import type { UserContext } from "./builder.ts";
 import { createArticle, updateArticleDraft } from "@hackerspub/models/article";
+import { follow } from "@hackerspub/models/following";
+import { createOrganization } from "@hackerspub/models/organization";
 import {
   accountTable,
   actorTable,
@@ -94,10 +96,68 @@ const publishArticleDraftMutation = parse(`
 `);
 
 const articleByYearAndSlugQuery = parse(`
-  query ArticleByYearAndSlug($handle: String!, $idOrYear: String!, $slug: String!) {
-    articleByYearAndSlug(handle: $handle, idOrYear: $idOrYear, slug: $slug) {
+  query ArticleByYearAndSlug(
+    $handle: String!
+    $idOrYear: String!
+    $slug: String!
+    $actingAccountId: ID
+  ) {
+    articleByYearAndSlug(
+      handle: $handle
+      idOrYear: $idOrYear
+      slug: $slug
+      actingAccountId: $actingAccountId
+    ) {
       id
       slug
+    }
+  }
+`);
+
+const actorPostsAsActingAccountQuery = parse(`
+  query ActorPostsAsActingAccount($handle: String!, $actingAccountId: ID) {
+    actorByHandle(handle: $handle, allowLocalHandle: true) {
+      posts(first: 10, actingAccountId: $actingAccountId) {
+        edges {
+          node {
+            id
+          }
+        }
+      }
+    }
+  }
+`);
+
+const actorProfileConnectionsAsActingAccountQuery = parse(`
+  query ActorProfileConnectionsAsActingAccount(
+    $handle: String!
+    $actingAccountId: ID
+  ) {
+    actorByHandle(handle: $handle, allowLocalHandle: true) {
+      notes(first: 10, actingAccountId: $actingAccountId) {
+        edges {
+          node {
+            id
+            content
+          }
+        }
+      }
+      articles(first: 10, actingAccountId: $actingAccountId) {
+        edges {
+          node {
+            id
+            content
+          }
+        }
+      }
+      sharedPosts(first: 10, actingAccountId: $actingAccountId) {
+        edges {
+          node {
+            id
+            content
+          }
+        }
+      }
     }
   }
 `);
@@ -217,6 +277,29 @@ const attachArticleDraftMediumMutation = parse(`
   }
 `);
 
+const attachArticleSourceMediumMutation = parse(`
+  mutation AttachArticleSourceMedium($input: AttachArticleSourceMediumInput!) {
+    attachArticleSourceMedium(input: $input) {
+      __typename
+      ... on AttachArticleSourceMediumPayload {
+        key
+        medium {
+          uuid
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+      ... on NotAuthenticatedError {
+        notAuthenticated
+      }
+      ... on NotAuthorizedError {
+        notAuthorized
+      }
+    }
+  }
+`);
+
 const updateArticleWithMediaMutation = parse(`
   mutation UpdateArticleWithMedia($input: UpdateArticleInput!) {
     updateArticle(input: $input) {
@@ -234,6 +317,33 @@ const updateArticleWithMediaMutation = parse(`
         notAuthenticated
       }
     }
+  }
+`);
+
+const noteRawContentAsActingAccountQuery = parse(`
+  query NoteRawContentAsActingAccount($id: ID!, $actingAccountId: ID!) {
+    node(id: $id) {
+      ... on Note {
+        actor {
+          isViewer(actingAccountId: $actingAccountId)
+        }
+        rawContent(actingAccountId: $actingAccountId)
+      }
+    }
+  }
+`);
+
+const renderMarkdownWithArticleSourceQuery = parse(`
+  query RenderMarkdownWithArticleSource(
+    $content: String!
+    $articleSourceId: UUID!
+    $actingAccountId: ID
+  ) {
+    renderMarkdown(
+      content: $content
+      articleSourceId: $articleSourceId
+      actingAccountId: $actingAccountId
+    )
   }
 `);
 
@@ -330,6 +440,74 @@ const createQuestionMutation = parse(`
   }
 `);
 
+const createNoteAsOrganizationMutation = parse(`
+  mutation CreateNoteAsOrganization($input: CreateNoteInput!) {
+    createNote(input: $input) {
+      __typename
+      ... on CreateNotePayload {
+        note {
+          actor { username }
+          organizationAuthor {
+            attributionMode
+            organization { username }
+            member { username }
+          }
+        }
+      }
+      ... on ActorSuspendedError {
+        suspendedUntil
+      }
+      ... on OrganizationPermissionError {
+        message
+      }
+    }
+  }
+`);
+
+const createQuestionAsOrganizationMutation = parse(`
+  mutation CreateQuestionAsOrganization($input: CreateQuestionInput!) {
+    createQuestion(input: $input) {
+      __typename
+      ... on CreateQuestionPayload {
+        question {
+          actor { username }
+          organizationAuthor {
+            attributionMode
+            organization { username }
+            member { username }
+          }
+        }
+      }
+      ... on ActorSuspendedError {
+        suspendedUntil
+      }
+    }
+  }
+`);
+
+const publishArticleDraftAsOrganizationMutation = parse(`
+  mutation PublishArticleDraftAsOrganization($input: PublishArticleDraftInput!) {
+    publishArticleDraft(input: $input) {
+      __typename
+      ... on PublishArticleDraftPayload {
+        article {
+          actor { username }
+          slug
+          organizationAuthor {
+            attributionMode
+            organization { username }
+            member { username }
+          }
+        }
+        deletedDraftId
+      }
+      ... on ActorSuspendedError {
+        suspendedUntil
+      }
+    }
+  }
+`);
+
 const viewerCanRevokeQuoteQuery = parse(`
   query ViewerCanRevokeQuote($id: ID!) {
     node(id: $id) {
@@ -348,6 +526,41 @@ const revokeQuoteMutation = parse(`
         quote {
           id
         }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+    }
+  }
+`);
+
+const pinPostAsOrganizationMutation = parse(`
+  mutation PinPostAsOrganization($postId: ID!, $actingAccountId: ID!) {
+    pinPost(input: { postId: $postId, actingAccountId: $actingAccountId }) {
+      __typename
+      ... on PinPostPayload {
+        post {
+          id
+          viewerHasPinned(actingAccountId: $actingAccountId)
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+    }
+  }
+`);
+
+const unpinPostAsOrganizationMutation = parse(`
+  mutation UnpinPostAsOrganization($postId: ID!, $actingAccountId: ID!) {
+    unpinPost(input: { postId: $postId, actingAccountId: $actingAccountId }) {
+      __typename
+      ... on UnpinPostPayload {
+        post {
+          id
+          viewerHasPinned(actingAccountId: $actingAccountId)
+        }
+        unpinnedPostId
       }
       ... on InvalidInputError {
         inputPath
@@ -386,9 +599,26 @@ const deletePostMutation = parse(`
   }
 `);
 
+const deletePostAsOrganizationMutation = parse(`
+  mutation DeletePostAsOrganization($id: ID!, $actingAccountId: ID!) {
+    deletePost(input: { id: $id, actingAccountId: $actingAccountId }) {
+      __typename
+      ... on DeletePostPayload {
+        deletedPostId
+      }
+      ... on SharedPostDeletionNotAllowedError {
+        inputPath
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+    }
+  }
+`);
+
 const postByUrlQuery = parse(`
-  query PostByUrl($url: String!) {
-    postByUrl(url: $url) {
+  query PostByUrl($url: String!, $actingAccountId: ID) {
+    postByUrl(url: $url, actingAccountId: $actingAccountId) {
       id
     }
   }
@@ -917,6 +1147,142 @@ test("updateArticle accepts media for new article source references", async () =
   });
 });
 
+test("organization members can read organization note raw content", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "orgnoterawreader",
+      name: "Organization Note Raw Reader",
+      email: "orgnoterawreader@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgrawnotes",
+        name: "Organization Raw Notes",
+        bio: "",
+      },
+    );
+    const { post } = await insertNotePost(tx, {
+      account: organization,
+      content: "Organization _raw_ note",
+    });
+    const actingAccountId = encodeGlobalID("Account", organization.id);
+
+    const result = await execute({
+      schema,
+      document: noteRawContentAsActingAccountQuery,
+      variableValues: {
+        id: encodeGlobalID("Note", post.id),
+        actingAccountId,
+      },
+      contextValue: makeTransactionalUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      node: {
+        actor: { isViewer: true },
+        rawContent: "Organization _raw_ note",
+      },
+    });
+  });
+});
+
+test("organization members can preview and attach article media", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "orgarticlepreviewer",
+      name: "Organization Article Previewer",
+      email: "orgarticlepreviewer@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgarticlepreviews",
+        name: "Organization Article Previews",
+        bio: "",
+      },
+    );
+    const fedCtx = createFedCtx(tx);
+    const article = await createArticle(fedCtx, {
+      accountId: organization.id,
+      publishedYear: 2026,
+      slug: "organization-preview-media",
+      tags: [],
+      allowLlmTranslation: false,
+      published: new Date("2026-04-15T00:00:00.000Z"),
+      updated: new Date("2026-04-15T00:00:00.000Z"),
+      title: "Organization preview",
+      content: "Original organization article",
+      language: "en",
+    });
+    assert.ok(article != null);
+    const actingAccountId = encodeGlobalID("Account", organization.id);
+
+    const previewResult = await execute({
+      schema,
+      document: renderMarkdownWithArticleSourceQuery,
+      variableValues: {
+        content: "Preview as organization",
+        articleSourceId: article.articleSource.id,
+        actingAccountId,
+      },
+      contextValue: makeUserContext(tx, member.account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(previewResult.errors, undefined);
+    assert.deepEqual(toPlainJson(previewResult.data), {
+      renderMarkdown: "<p>Preview as organization</p>\n",
+    });
+
+    const mediumId = generateUuidV7();
+    await tx.insert(mediumTable).values({
+      id: mediumId,
+      key: "media/organization-preview-media.webp",
+      type: "image/webp",
+      width: 2,
+      height: 2,
+    });
+
+    const attachResult = await execute({
+      schema,
+      document: attachArticleSourceMediumMutation,
+      variableValues: {
+        input: {
+          articleSourceId: article.articleSource.id,
+          mediumId,
+          key: "hero",
+          actingAccountId,
+        },
+      },
+      contextValue: makeUserContext(tx, member.account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(attachResult.errors, undefined);
+    assert.deepEqual(toPlainJson(attachResult.data), {
+      attachArticleSourceMedium: {
+        __typename: "AttachArticleSourceMediumPayload",
+        key: "hero",
+        medium: { uuid: mediumId },
+      },
+    });
+
+    const relation = await tx.query.articleSourceMediumTable.findFirst({
+      where: { articleSourceId: article.articleSource.id, key: "hero" },
+    });
+    assert.equal(relation?.mediumId, mediumId);
+  });
+});
+
 test("finishMediumUpload cleans up invalid uploaded bytes", async () => {
   await withRollback(async (tx) => {
     const account = await insertAccountWithActor(tx, {
@@ -1058,6 +1424,458 @@ test("publishArticleDraft publishes an article and removes the draft", async () 
       },
     });
     assert.equal(remainingDraft, undefined);
+  });
+});
+
+test("createNote can publish as an organization with co-authorship attribution", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "orgnotemember",
+      name: "Organization Note Member",
+      email: "orgnotemember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgnoteauthor",
+        name: "Organization Note Author",
+        bio: "",
+      },
+    );
+
+    const result = await execute({
+      schema,
+      document: createNoteAsOrganizationMutation,
+      variableValues: {
+        input: {
+          visibility: "PUBLIC",
+          content: "Organization note body",
+          language: "en",
+          actingAccountId: encodeGlobalID("Account", organization.id),
+          attributionMode: "ACTING_ACCOUNT_WITH_VIEWER",
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      createNote: {
+        __typename: "CreateNotePayload",
+        note: {
+          actor: { username: "orgnoteauthor" },
+          organizationAuthor: {
+            attributionMode: "ACTING_ACCOUNT_WITH_VIEWER",
+            organization: { username: "orgnoteauthor" },
+            member: { username: "orgnotemember" },
+          },
+        },
+      },
+    });
+
+    const attribution = await tx.query.organizationPostAuthorTable.findFirst({
+      where: {
+        organizationAccountId: organization.id,
+        memberAccountId: member.account.id,
+      },
+    });
+    assert.equal(
+      attribution?.attributionMode,
+      "acting_account_with_viewer",
+    );
+  });
+});
+
+test("createNote rejects suspended members acting through organizations", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "suspendedorgmember",
+      name: "Suspended Org Member",
+      email: "suspendedorgmember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "suspendedorgauthor",
+        name: "Suspended Org Author",
+        bio: "",
+      },
+    );
+    const until = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await tx.update(actorTable)
+      .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: until })
+      .where(eq(actorTable.accountId, member.account.id));
+
+    const result = await execute({
+      schema,
+      document: createNoteAsOrganizationMutation,
+      variableValues: {
+        input: {
+          visibility: "PUBLIC",
+          content: "Trying to post through an organization while suspended",
+          language: "en",
+          actingAccountId: encodeGlobalID("Account", organization.id),
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    const data = (toPlainJson(result.data) as {
+      createNote: { __typename: string; suspendedUntil: string | null };
+    }).createNote;
+    assert.equal(data.__typename, "ActorSuspendedError");
+    assert.ok(data.suspendedUntil != null);
+  });
+});
+
+test("createNote rejects suspended organizations", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "suspendedorgnotemember",
+      name: "Suspended Org Note Member",
+      email: "suspendedorgnotemember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "suspendedorgnoteauthor",
+        name: "Suspended Org Note Author",
+        bio: "",
+      },
+    );
+    const until = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await tx.update(actorTable)
+      .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: until })
+      .where(eq(actorTable.accountId, organization.id));
+
+    const result = await execute({
+      schema,
+      document: createNoteAsOrganizationMutation,
+      variableValues: {
+        input: {
+          visibility: "PUBLIC",
+          content: "Trying to post as a suspended organization",
+          language: "en",
+          actingAccountId: encodeGlobalID("Account", organization.id),
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    const data = (toPlainJson(result.data) as {
+      createNote: { __typename: string; suspendedUntil: string | null };
+    }).createNote;
+    assert.equal(data.__typename, "ActorSuspendedError");
+    assert.ok(data.suspendedUntil != null);
+  });
+});
+
+test("createNote rejects acting as an organization without membership", async () => {
+  await withRollback(async (tx) => {
+    const admin = await insertAccountWithActor(tx, {
+      username: "orgnoteadmin",
+      name: "Organization Note Admin",
+      email: "orgnoteadmin@example.com",
+    });
+    const outsider = await insertAccountWithActor(tx, {
+      username: "orgnoteoutsider",
+      name: "Organization Note Outsider",
+      email: "orgnoteoutsider@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, admin.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      admin.account,
+      {
+        username: "orgnotenotmember",
+        name: "Organization Note Not Member",
+        bio: "",
+      },
+    );
+
+    const result = await execute({
+      schema,
+      document: createNoteAsOrganizationMutation,
+      variableValues: {
+        input: {
+          visibility: "PUBLIC",
+          content: "Unauthorized organization note",
+          language: "en",
+          actingAccountId: encodeGlobalID("Account", organization.id),
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, outsider.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      createNote: {
+        __typename: "OrganizationPermissionError",
+        message: "The account is not allowed to manage this organization.",
+      },
+    });
+  });
+});
+
+test("createQuestion can publish as an organization", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "orgquestionmember",
+      name: "Organization Question Member",
+      email: "orgquestionmember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgquestionauthor",
+        name: "Organization Question Author",
+        bio: "",
+      },
+    );
+
+    const result = await execute({
+      schema,
+      document: createQuestionAsOrganizationMutation,
+      variableValues: {
+        input: {
+          visibility: "PUBLIC",
+          content: "Organization question body",
+          language: "en",
+          actingAccountId: encodeGlobalID("Account", organization.id),
+          poll: {
+            title: "Organization poll",
+            multiple: false,
+            options: ["Yes", "No"],
+            ends: new Date(Date.now() + 3_600_000).toISOString(),
+          },
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      createQuestion: {
+        __typename: "CreateQuestionPayload",
+        question: {
+          actor: { username: "orgquestionauthor" },
+          organizationAuthor: {
+            attributionMode: "ACTING_ACCOUNT_ONLY",
+            organization: { username: "orgquestionauthor" },
+            member: null,
+          },
+        },
+      },
+    });
+  });
+});
+
+test("createQuestion rejects suspended organizations", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "suspendedorgquestionmember",
+      name: "Suspended Org Question Member",
+      email: "suspendedorgquestionmember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "suspendedorgquestionauthor",
+        name: "Suspended Org Question Author",
+        bio: "",
+      },
+    );
+    const until = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await tx.update(actorTable)
+      .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: until })
+      .where(eq(actorTable.accountId, organization.id));
+
+    const result = await execute({
+      schema,
+      document: createQuestionAsOrganizationMutation,
+      variableValues: {
+        input: {
+          visibility: "PUBLIC",
+          content: "Trying to ask as a suspended organization",
+          language: "en",
+          actingAccountId: encodeGlobalID("Account", organization.id),
+          poll: {
+            title: "Suspended organization poll",
+            multiple: false,
+            options: ["Yes", "No"],
+            ends: new Date(Date.now() + 3_600_000).toISOString(),
+          },
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    const data = (toPlainJson(result.data) as {
+      createQuestion: { __typename: string; suspendedUntil: string | null };
+    }).createQuestion;
+    assert.equal(data.__typename, "ActorSuspendedError");
+    assert.ok(data.suspendedUntil != null);
+  });
+});
+
+test("publishArticleDraft can publish as an organization", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "orgarticlemember",
+      name: "Organization Article Member",
+      email: "orgarticlemember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgarticleauthor",
+        name: "Organization Article Author",
+        bio: "",
+      },
+    );
+    const draftId = generateUuidV7();
+    await tx.insert(articleDraftTable).values({
+      id: draftId,
+      accountId: member.account.id,
+      title: "Organization article",
+      content: "Organization article body",
+      tags: ["organization"],
+    });
+
+    const result = await execute({
+      schema,
+      document: publishArticleDraftAsOrganizationMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("ArticleDraft", draftId),
+          slug: "organization-article",
+          language: "en",
+          allowLlmTranslation: false,
+          actingAccountId: encodeGlobalID("Account", organization.id),
+          attributionMode: "ACTING_ACCOUNT_WITH_VIEWER",
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      publishArticleDraft: {
+        __typename: "PublishArticleDraftPayload",
+        article: {
+          actor: { username: "orgarticleauthor" },
+          slug: "organization-article",
+          organizationAuthor: {
+            attributionMode: "ACTING_ACCOUNT_WITH_VIEWER",
+            organization: { username: "orgarticleauthor" },
+            member: { username: "orgarticlemember" },
+          },
+        },
+        deletedDraftId: encodeGlobalID("ArticleDraft", draftId),
+      },
+    });
+
+    const articleSource = await tx.query.articleSourceTable.findFirst({
+      where: {
+        accountId: organization.id,
+        slug: "organization-article",
+      },
+    });
+    assert.ok(articleSource != null);
+  });
+});
+
+test("publishArticleDraft rejects suspended organizations", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "suspendedorgarticlemember",
+      name: "Suspended Org Article Member",
+      email: "suspendedorgarticlemember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "suspendedorgarticleauthor",
+        name: "Suspended Org Article Author",
+        bio: "",
+      },
+    );
+    const until = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await tx.update(actorTable)
+      .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: until })
+      .where(eq(actorTable.accountId, organization.id));
+    const draftId = generateUuidV7();
+    await tx.insert(articleDraftTable).values({
+      id: draftId,
+      accountId: member.account.id,
+      title: "Suspended organization article",
+      content: "Draft content",
+    });
+
+    const result = await execute({
+      schema,
+      document: publishArticleDraftAsOrganizationMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("ArticleDraft", draftId),
+          slug: "suspended-organization-article",
+          language: "en",
+          actingAccountId: encodeGlobalID("Account", organization.id),
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    const data = (toPlainJson(result.data) as {
+      publishArticleDraft: {
+        __typename: string;
+        suspendedUntil: string | null;
+      };
+    }).publishArticleDraft;
+    assert.equal(data.__typename, "ActorSuspendedError");
+    assert.ok(data.suspendedUntil != null);
   });
 });
 
@@ -1387,6 +2205,114 @@ test("articleByYearAndSlug returns a local article by route components", async (
       articleByYearAndSlug: {
         id: encodeGlobalID("Article", postId),
         slug: "route-article",
+      },
+    });
+  });
+});
+
+test("articleByYearAndSlug can resolve with an organization perspective", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "orgarticlelookupmember",
+      name: "Organization Article Lookup Member",
+      email: "orgarticlelookupmember@example.com",
+    });
+    const author = await insertAccountWithActor(tx, {
+      username: "orgarticlelookupauthor",
+      name: "Organization Article Lookup Author",
+      email: "orgarticlelookupauthor@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgarticlelookup",
+        name: "Organization Article Lookup",
+        bio: "",
+      },
+    );
+    await follow(createFedCtx(tx), organization, author.actor);
+
+    const sourceId = generateUuidV7();
+    const postId = generateUuidV7();
+    const published = new Date("2026-04-15T00:00:00.000Z");
+
+    await tx.insert(articleSourceTable).values({
+      id: sourceId,
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "followers-article",
+      tags: [],
+      allowLlmTranslation: false,
+      published,
+      updated: published,
+    });
+    await tx.insert(articleContentTable).values({
+      sourceId,
+      language: "en",
+      title: "Followers Article",
+      content: "Followers article body",
+      published,
+      updated: published,
+    });
+    await tx.insert(postTable).values(
+      {
+        id: postId,
+        iri: `http://localhost/objects/${postId}`,
+        type: "Article",
+        visibility: "followers",
+        actorId: author.actor.id,
+        articleSourceId: sourceId,
+        name: "Followers Article",
+        contentHtml: "<p>Followers article body</p>",
+        language: "en",
+        tags: {},
+        emojis: {},
+        url:
+          `http://localhost/@${author.account.username}/2026/followers-article`,
+        published,
+        updated: published,
+      } satisfies NewPost,
+    );
+
+    const personalResult = await execute({
+      schema,
+      document: articleByYearAndSlugQuery,
+      variableValues: {
+        handle: author.account.username,
+        idOrYear: "2026",
+        slug: "followers-article",
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(personalResult.errors, undefined);
+    assert.deepEqual(toPlainJson(personalResult.data), {
+      articleByYearAndSlug: null,
+    });
+
+    const organizationResult = await execute({
+      schema,
+      document: articleByYearAndSlugQuery,
+      variableValues: {
+        handle: author.account.username,
+        idOrYear: "2026",
+        slug: "followers-article",
+        actingAccountId: encodeGlobalID("Account", organization.id),
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(organizationResult.errors, undefined);
+    assert.deepEqual(toPlainJson(organizationResult.data), {
+      articleByYearAndSlug: {
+        id: encodeGlobalID("Article", postId),
+        slug: "followers-article",
       },
     });
   });
@@ -2440,6 +3366,292 @@ test("deletePost rejects deleting shared posts and postByUrl resolves owned post
         id: encodeGlobalID("Note", original.id),
       },
     });
+  });
+});
+
+test("postByUrl can resolve with an organization perspective", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "orgquoteurlmember",
+      name: "Organization Quote URL Member",
+      email: "orgquoteurlmember@example.com",
+    });
+    const author = await insertAccountWithActor(tx, {
+      username: "orgquoteurlauthor",
+      name: "Organization Quote URL Author",
+      email: "orgquoteurlauthor@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgquoteurl",
+        name: "Organization Quote URL",
+        bio: "",
+      },
+    );
+    const fedCtx = createFedCtx(tx);
+    await follow(fedCtx, organization, author.actor);
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Followers-only quote target for an organization",
+      visibility: "followers",
+    });
+
+    const personalResult = await execute({
+      schema,
+      document: postByUrlQuery,
+      variableValues: { url: post.url },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(personalResult.errors, undefined);
+    assert.deepEqual(toPlainJson(personalResult.data), {
+      postByUrl: null,
+    });
+
+    const organizationResult = await execute({
+      schema,
+      document: postByUrlQuery,
+      variableValues: {
+        url: post.url,
+        actingAccountId: encodeGlobalID("Account", organization.id),
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(organizationResult.errors, undefined);
+    assert.deepEqual(toPlainJson(organizationResult.data), {
+      postByUrl: {
+        id: encodeGlobalID("Note", post.id),
+      },
+    });
+  });
+});
+
+test("Actor.posts can resolve with an organization perspective", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "orgprofilepostmember",
+      name: "Organization Profile Post Member",
+      email: "orgprofilepostmember@example.com",
+    });
+    const author = await insertAccountWithActor(tx, {
+      username: "orgprofilepostauthor",
+      name: "Organization Profile Post Author",
+      email: "orgprofilepostauthor@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgprofilepost",
+        name: "Organization Profile Post",
+        bio: "",
+      },
+    );
+    await follow(createFedCtx(tx), organization, author.actor);
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Followers-only profile post for an organization",
+      visibility: "followers",
+    });
+
+    const personalResult = await execute({
+      schema,
+      document: actorPostsAsActingAccountQuery,
+      variableValues: { handle: author.account.username },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(personalResult.errors, undefined);
+    assert.deepEqual(toPlainJson(personalResult.data), {
+      actorByHandle: {
+        posts: {
+          edges: [],
+        },
+      },
+    });
+
+    const organizationResult = await execute({
+      schema,
+      document: actorPostsAsActingAccountQuery,
+      variableValues: {
+        handle: author.account.username,
+        actingAccountId: encodeGlobalID("Account", organization.id),
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(organizationResult.errors, undefined);
+    assert.deepEqual(toPlainJson(organizationResult.data), {
+      actorByHandle: {
+        posts: {
+          edges: [
+            {
+              node: {
+                id: encodeGlobalID("Note", post.id),
+              },
+            },
+          ],
+        },
+      },
+    });
+  });
+});
+
+test("profile post connections can resolve with an organization perspective", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "orgprofileconnectionsmember",
+      name: "Organization Profile Connections Member",
+      email: "orgprofileconnectionsmember@example.com",
+    });
+    const author = await insertAccountWithActor(tx, {
+      username: "orgprofileconnectionsauthor",
+      name: "Organization Profile Connections Author",
+      email: "orgprofileconnectionsauthor@example.com",
+    });
+    const source = await insertAccountWithActor(tx, {
+      username: "orgprofileconnectionssource",
+      name: "Organization Profile Connections Source",
+      email: "orgprofileconnectionssource@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgprofileconnections",
+        name: "Organization Profile Connections",
+        bio: "",
+      },
+    );
+    await follow(createFedCtx(tx), organization, author.actor);
+
+    const { post: note } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Followers-only profile note for an organization",
+      visibility: "followers",
+    });
+    const article = await createArticle(createFedCtx(tx), {
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "organization-profile-connection",
+      tags: [],
+      allowLlmTranslation: false,
+      published: new Date("2026-04-15T00:00:00.000Z"),
+      updated: new Date("2026-04-15T00:00:00.000Z"),
+      title: "Organization profile connection",
+      content: "Followers-only profile article for an organization",
+      language: "en",
+    });
+    assert.ok(article != null);
+    await tx.update(postTable)
+      .set({ visibility: "followers" })
+      .where(eq(postTable.id, article.id));
+    const { post: original } = await insertNotePost(tx, {
+      account: source.account,
+      content: "Original post shared by the profile author",
+      visibility: "public",
+    });
+    const { post: sharedPost } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Followers-only share for an organization",
+      visibility: "followers",
+      sharedPostId: original.id,
+    });
+
+    const personalResult = await execute({
+      schema,
+      document: actorProfileConnectionsAsActingAccountQuery,
+      variableValues: { handle: author.account.username },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(personalResult.errors, undefined);
+    assert.deepEqual(toPlainJson(personalResult.data), {
+      actorByHandle: {
+        notes: {
+          edges: [],
+        },
+        articles: {
+          edges: [],
+        },
+        sharedPosts: {
+          edges: [],
+        },
+      },
+    });
+
+    const organizationResult = await execute({
+      schema,
+      document: actorProfileConnectionsAsActingAccountQuery,
+      variableValues: {
+        handle: author.account.username,
+        actingAccountId: encodeGlobalID("Account", organization.id),
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(organizationResult.errors, undefined);
+    const organizationData = toPlainJson(organizationResult.data) as {
+      actorByHandle: {
+        notes: { edges: { node: { id: string; content: string } }[] };
+        articles: { edges: { node: { id: string; content: string } }[] };
+        sharedPosts: { edges: { node: { id: string; content: string } }[] };
+      };
+    };
+    assert.deepEqual(
+      organizationData.actorByHandle.notes.edges
+        .map((edge) => edge.node.id)
+        .sort(),
+      [
+        encodeGlobalID("Note", note.id),
+        encodeGlobalID("Note", sharedPost.id),
+      ].sort(),
+    );
+    assert.deepEqual(
+      organizationData.actorByHandle.notes.edges.map((edge) =>
+        edge.node.content
+      ).sort(),
+      [
+        "<p>Followers-only profile note for an organization</p>",
+        "<p>Followers-only share for an organization</p>",
+      ].sort(),
+    );
+    assert.deepEqual(
+      organizationData.actorByHandle.articles.edges.map((edge) => edge.node.id),
+      [encodeGlobalID("Article", article.id)],
+    );
+    assert.equal(
+      organizationData.actorByHandle.articles.edges[0].node.content,
+      "<p>Followers-only profile article for an organization</p>\n",
+    );
+    assert.deepEqual(
+      organizationData.actorByHandle.sharedPosts.edges.map((edge) =>
+        edge.node.id
+      ),
+      [encodeGlobalID("Note", sharedPost.id)],
+    );
+    assert.equal(
+      organizationData.actorByHandle.sharedPosts.edges[0].node.content,
+      "<p>Followers-only share for an organization</p>",
+    );
   });
 });
 
@@ -3515,5 +4727,220 @@ test("updateNote rejects non-existent note ID", async () => {
     }).updateNote;
     assert.equal(payload.__typename, "InvalidInputError");
     assert.equal(payload.inputPath, "noteId");
+  });
+});
+
+test("organization members can manage organization-authored posts", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "orgpostmanager",
+      name: "Organization Post Manager",
+      email: "orgpostmanager@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgmanagedposts",
+        name: "Organization Managed Posts",
+        bio: "",
+      },
+    );
+    const actingAccountId = encodeGlobalID("Account", organization.id);
+    const { post: editablePost } = await insertNotePost(tx, {
+      account: organization,
+      content: "Original organization note",
+    });
+    const { post: pinnedPost } = await insertNotePost(tx, {
+      account: organization,
+      content: "Pinned organization note",
+    });
+    const { post: deletedPost } = await insertNotePost(tx, {
+      account: organization,
+      content: "Deleted organization note",
+    });
+    const quoter = await insertAccountWithActor(tx, {
+      username: "orgquotemanager",
+      name: "Organization Quote Manager",
+      email: "orgquotemanager@example.com",
+    });
+    const { post: quotedPost } = await insertNotePost(tx, {
+      account: organization,
+      content: "Organization quote target",
+    });
+    const { post: quotePost } = await insertNotePost(tx, {
+      account: quoter.account,
+      content: "Quote of organization note",
+      quotedPostId: quotedPost.id,
+    });
+
+    const updateResult = await execute({
+      schema,
+      document: updateNoteMutation,
+      variableValues: {
+        input: {
+          noteId: encodeGlobalID("Note", editablePost.id),
+          content: "Updated by organization member",
+          actingAccountId,
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(updateResult.errors, undefined);
+    assert.equal(
+      (toPlainJson(updateResult.data) as {
+        updateNote: { __typename: string };
+      }).updateNote.__typename,
+      "UpdateNotePayload",
+    );
+
+    const pinResult = await execute({
+      schema,
+      document: pinPostAsOrganizationMutation,
+      variableValues: {
+        postId: encodeGlobalID("Note", pinnedPost.id),
+        actingAccountId,
+      },
+      contextValue: makeTransactionalUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(pinResult.errors, undefined);
+    assert.equal(
+      (toPlainJson(pinResult.data) as {
+        pinPost: {
+          __typename: string;
+          post?: { viewerHasPinned: boolean };
+        };
+      }).pinPost.post?.viewerHasPinned,
+      true,
+    );
+
+    const unpinResult = await execute({
+      schema,
+      document: unpinPostAsOrganizationMutation,
+      variableValues: {
+        postId: encodeGlobalID("Note", pinnedPost.id),
+        actingAccountId,
+      },
+      contextValue: makeTransactionalUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(unpinResult.errors, undefined);
+    assert.equal(
+      (toPlainJson(unpinResult.data) as {
+        unpinPost: {
+          __typename: string;
+          post?: { viewerHasPinned: boolean };
+        };
+      }).unpinPost.post?.viewerHasPinned,
+      false,
+    );
+
+    const revokeResult = await execute({
+      schema,
+      document: revokeQuoteMutation,
+      variableValues: {
+        input: {
+          quotePostId: encodeGlobalID("Note", quotePost.id),
+          actingAccountId,
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(revokeResult.errors, undefined);
+    assert.equal(
+      (toPlainJson(revokeResult.data) as {
+        revokeQuote: { __typename: string };
+      }).revokeQuote.__typename,
+      "RevokeQuotePayload",
+    );
+    const storedQuote = await tx.query.postTable.findFirst({
+      where: { id: quotePost.id },
+    });
+    assert.equal(storedQuote?.quotedPostId, null);
+
+    const deleteResult = await execute({
+      schema,
+      document: deletePostAsOrganizationMutation,
+      variableValues: {
+        id: encodeGlobalID("Note", deletedPost.id),
+        actingAccountId,
+      },
+      contextValue: makeTransactionalUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(deleteResult.errors, undefined);
+    assert.deepEqual(toPlainJson(deleteResult.data), {
+      deletePost: {
+        __typename: "DeletePostPayload",
+        deletedPostId: encodeGlobalID("Note", deletedPost.id),
+      },
+    });
+  });
+});
+
+test("organization members can update organization-authored articles", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "orgarticlemanager",
+      name: "Organization Article Manager",
+      email: "orgarticlemanager@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgmanagedarticles",
+        name: "Organization Managed Articles",
+        bio: "",
+      },
+    );
+    const fedCtx = createFedCtx(tx);
+    const article = await createArticle(fedCtx, {
+      accountId: organization.id,
+      publishedYear: 2026,
+      slug: "managed-organization-article",
+      tags: [],
+      allowLlmTranslation: false,
+      published: new Date("2026-04-15T00:00:00.000Z"),
+      updated: new Date("2026-04-15T00:00:00.000Z"),
+      title: "Organization article",
+      content: "Original organization article",
+      language: "en",
+    });
+    assert.ok(article != null);
+
+    const result = await execute({
+      schema,
+      document: updateArticleWithMediaMutation,
+      variableValues: {
+        input: {
+          articleId: encodeGlobalID("Article", article.id),
+          content: "Updated organization article",
+          actingAccountId: encodeGlobalID("Account", organization.id),
+        },
+      },
+      contextValue: makeUserContext(tx, member.account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      updateArticle: {
+        __typename: "UpdateArticlePayload",
+        article: {
+          id: encodeGlobalID("Article", article.id),
+          content: "<p>Updated organization article</p>\n",
+        },
+      },
+    });
   });
 });

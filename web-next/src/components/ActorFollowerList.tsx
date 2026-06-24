@@ -19,10 +19,11 @@ export function ActorFollowerList(props: ActorFollowerListProps) {
         @argumentDefinitions(
           cursor: { type: "String" }
           count: { type: "Int", defaultValue: 20 }
+          actingAccountId: { type: "ID", defaultValue: null }
         )
       {
         __id
-        isViewer
+        isViewer(actingAccountId: $actingAccountId)
         followers(after: $cursor, first: $count)
           @connection(key: "ActorFollowerList_followers")
         {
@@ -31,7 +32,9 @@ export function ActorFollowerList(props: ActorFollowerListProps) {
             __id
             node {
               ...RemoveFollowerButton_actor
-              ...SmallProfileCard_actor
+              ...SmallProfileCard_actor @arguments(
+                actingAccountId: $actingAccountId
+              )
             }
           }
           pageInfo {

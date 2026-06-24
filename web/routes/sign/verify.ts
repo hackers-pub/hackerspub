@@ -31,6 +31,12 @@ export const handler = define.handlers({
     const { response, account } = result;
     // A permanently suspended (banned) account cannot sign in by passkey
     // either; report it as a failed verification to the sign-in island.
+    if (response.verified && account.kind !== "personal") {
+      return new Response(
+        JSON.stringify({ ...response, verified: false }),
+        { headers: { "Content-Type": "application/json" } },
+      );
+    }
     if (response.verified) {
       const actor = await db.query.actorTable.findFirst({
         where: { accountId: account.id },

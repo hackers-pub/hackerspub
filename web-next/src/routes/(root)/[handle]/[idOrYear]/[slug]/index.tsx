@@ -12,22 +12,17 @@ import { HttpHeader, HttpStatusCode } from "@solidjs/start";
 import { graphql } from "relay-runtime";
 import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
 import { createFragment, loadQuery, useRelayEnvironment } from "solid-relay";
-import { ActorHoverCard } from "~/components/ActorHoverCard.tsx";
 import { CensorshipNotice } from "~/components/CensorshipNotice.tsx";
 import { NoteCard } from "~/components/NoteCard.tsx";
 import { NoteComposer } from "~/components/NoteComposer.tsx";
+import { PostAuthorAvatar, PostAuthorLine } from "~/components/PostAuthor.tsx";
 import { PostEngagementBar } from "~/components/PostEngagementBar.tsx";
 import { Title } from "~/components/Title.tsx";
 import { TocList } from "~/components/TocList.tsx";
 import { Trans } from "~/components/Trans.tsx";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "~/components/ui/avatar.tsx";
 import { Button } from "~/components/ui/button.tsx";
-import { InternalLink } from "~/components/InternalLink.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
@@ -63,14 +58,19 @@ const SlugPageQueryDef = graphql`
     $idOrYear: String!
     $slug: String!
     $language: Locale
+    $actingAccountId: ID
   ) {
     articleByYearAndSlug(
       handle: $handle
       idOrYear: $idOrYear
       slug: $slug
+      actingAccountId: $actingAccountId
     ) {
       ...Slug_head @arguments(language: $language)
-      ...Slug_body @arguments(language: $language)
+      ...Slug_body @arguments(
+        language: $language
+        actingAccountId: $actingAccountId
+      )
     }
     viewer {
       locales
@@ -80,11 +80,16 @@ const SlugPageQueryDef = graphql`
 `;
 
 const loadPageQuery = routePreloadedQuery(
-  (handle: string, idOrYear: string, slug: string) =>
+  (
+    handle: string,
+    idOrYear: string,
+    slug: string,
+    actingAccountId: string | null,
+  ) =>
     loadQuery<SlugPageQuery>(
       useRelayEnvironment()(),
       SlugPageQueryDef,
-      { handle, idOrYear, slug, language: null },
+      { handle, idOrYear, slug, language: null, actingAccountId },
     ),
   ARTICLE_PAGE_QUERY_KEY,
 );
@@ -95,6 +100,8 @@ export default function ArticlePage() {
   const idOrYear = params.idOrYear!;
   const slug = decodeRouteParam(params.slug!);
   const { onNoteCreated } = useNoteCompose();
+  const actingAccount = useActingAccount();
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
 
   onMount(() => {
     onCleanup(onNoteCreated(() => {
@@ -104,7 +111,7 @@ export default function ArticlePage() {
 
   const data = createStablePreloadedQuery<SlugPageQuery>(
     SlugPageQueryDef,
-    () => loadPageQuery(handle, idOrYear, slug),
+    () => loadPageQuery(handle, idOrYear, slug, actingAccountId() ?? null),
   );
 
   return (
@@ -372,6 +379,7 @@ function ArticleBody(props: ArticleBodyProps) {
         @argumentDefinitions(
           language: { type: "Locale" }
           includeBeingTranslated: { type: "Boolean", defaultValue: false }
+          actingAccountId: { type: "ID", defaultValue: null }
         )
       {
         contents(
@@ -391,14 +399,16 @@ function ArticleBody(props: ArticleBodyProps) {
         actor {
           local
           username
-          isViewer
+          isViewer(actingAccountId: $actingAccountId)
         }
         publishedYear
         slug
-        ...PostEngagementBar_post
+        ...PostEngagementBar_post @arguments(
+          actingAccountId: $actingAccountId
+        )
         ...Slug_articleHeader
         ...Slug_languageSwitcher
-        ...Slug_replies
+        ...Slug_replies @arguments(actingAccountId: $actingAccountId)
       }
     `,
     () => props.$article,
@@ -639,16 +649,8 @@ function ArticleHeader(props: ArticleHeaderProps) {
   const article = createFragment(
     graphql`
       fragment Slug_articleHeader on Article {
-        actor {
-          name
-          handle
-          avatarUrl
-          avatarInitials
-          local
-          username
-          url
-          iri
-        }
+        ...PostAuthorAvatar_post
+        ...PostAuthorLine_post
         published
       }
     `,
@@ -658,50 +660,12 @@ function ArticleHeader(props: ArticleHeaderProps) {
   return (
     <Show keyed when={article()}>
       {(article) => {
-        const actorHref = () => article.actor.url ?? article.actor.iri;
-        const actorInternalHref = () =>
-          article.actor.local
-            ? `/@${article.actor.username}`
-            : `/${article.actor.handle}`;
-
         return (
           <div class="flex gap-4 mt-4 items-center">
-            <ActorHoverCard
-              handle={article.actor.handle}
-              class="shrink-0"
-            >
-              <Avatar class="size-12">
-                <InternalLink
-                  href={actorHref()}
-                  internalHref={actorInternalHref()}
-                >
-                  <AvatarImage
-                    src={article.actor.avatarUrl}
-                    class="size-12"
-                  />
-                  <AvatarFallback class="size-12">
-                    {article.actor.avatarInitials}
-                  </AvatarFallback>
-                </InternalLink>
-              </Avatar>
-            </ActorHoverCard>
+            <PostAuthorAvatar $post={article} size="large" />
             <div class="flex flex-col flex-1">
-              <Show when={(article.actor.name ?? "").trim() !== ""}>
-                {/* Actor names are sanitized HTML that may include custom emoji markup. */}
-                <ActorHoverCard handle={article.actor.handle}>
-                  <InternalLink
-                    innerHTML={article.actor.name ?? ""}
-                    href={actorHref()}
-                    internalHref={actorInternalHref()}
-                    class="font-semibold"
-                  />
-                </ActorHoverCard>
-              </Show>
+              <PostAuthorLine $post={article} />
               <div class="flex flex-row items-center text-muted-foreground gap-1 flex-wrap">
-                <span class="select-all">
-                  {article.actor.handle}
-                </span>
-                <span>&middot;</span>
                 <Timestamp
                   value={article.published}
                   capitalizeFirstLetter
@@ -967,13 +931,15 @@ function ArticleReplies(props: ArticleRepliesProps) {
   const { t, i18n } = useLingui();
   const article = createFragment(
     graphql`
-      fragment Slug_replies on Article {
+      fragment Slug_replies on Article
+        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
+      {
         id
         iri
         replies {
           edges {
             node {
-              ...NoteCard_note
+              ...NoteCard_note @arguments(actingAccountId: $actingAccountId)
             }
           }
         }

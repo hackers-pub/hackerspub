@@ -11,6 +11,8 @@ import { and, eq, sql } from "drizzle-orm";
 import { Actor, getActorById } from "./actor.ts";
 import { builder, Node } from "./builder.ts";
 import { InvalidInputError } from "./error.ts";
+import { OrganizationConversionRequestRef } from "./organization-conversion-request.ts";
+import { OrganizationMembershipRef } from "./organization-membership.ts";
 import { Post } from "./post.ts";
 import { NotAuthenticatedError } from "./session.ts";
 
@@ -48,6 +50,15 @@ export const NotificationType = builder.enumType("NotificationType", {
       description:
         "A `Question` poll this account authored or voted in has ended.",
     },
+    ORGANIZATION_INVITATION: {
+      description:
+        "An organization invited this personal account to become a member.",
+    },
+    ORGANIZATION_CONVERSION_REQUEST: {
+      description:
+        "A personal account asked this account to accept its conversion " +
+        "into an organization account.",
+    },
   } as const,
 });
 
@@ -79,6 +90,10 @@ export const Notification = builder.drizzleInterface("notificationTable", {
         return ReactNotification.name;
       case "poll_ended":
         return PollEndedNotification.name;
+      case "organization_invitation":
+        return OrganizationInvitationNotification.name;
+      case "organization_conversion_request":
+        return OrganizationConversionRequestNotification.name;
     }
   },
   fields: (t) => ({
@@ -259,6 +274,75 @@ export const PollEndedNotification = builder.drizzleNode(
         nullable: true,
         description:
           "The ended `Question` post. This may be `null` if the post was deleted after the notification was created.",
+      }),
+    }),
+  },
+);
+
+export const OrganizationConversionRequestNotification = builder.drizzleNode(
+  "notificationTable",
+  {
+    variant: "OrganizationConversionRequestNotification",
+    description:
+      "Notification asking the account holder to accept another account's " +
+      "irreversible conversion into an organization account.",
+    interfaces: [Notification],
+    id: {
+      column: (notification) => notification.id,
+    },
+    fields: (t) => ({
+      request: t.field({
+        type: OrganizationConversionRequestRef,
+        description:
+          "The conversion request that can be accepted by this notification's " +
+          "recipient.",
+        async resolve(notification, _, ctx) {
+          const requestId = notification.organizationConversionRequestId;
+          if (requestId == null) throw new InvalidInputError("request");
+          const request = await ctx.db.query.organizationConversionRequestTable
+            .findFirst({ where: { id: requestId } });
+          if (request == null) throw new InvalidInputError("request");
+          return request;
+        },
+      }),
+    }),
+  },
+);
+
+export const OrganizationInvitationNotification = builder.drizzleNode(
+  "notificationTable",
+  {
+    variant: "OrganizationInvitationNotification",
+    description:
+      "Notification asking the account holder to accept an invitation to " +
+      "join an organization account.",
+    interfaces: [Notification],
+    id: {
+      column: (notification) => notification.id,
+    },
+    fields: (t) => ({
+      membership: t.field({
+        type: OrganizationMembershipRef,
+        nullable: true,
+        description:
+          "The organization membership invitation represented by this " +
+          "notification. This is `null` if the invitation was removed after " +
+          "the notification was created.",
+        async resolve(notification, _, ctx) {
+          const organizationActorId = notification.actorIds[0];
+          if (organizationActorId == null) return null;
+          const organizationActor = await ctx.db.query.actorTable.findFirst({
+            where: { id: organizationActorId },
+            columns: { accountId: true },
+          });
+          if (organizationActor?.accountId == null) return null;
+          return await ctx.db.query.organizationMembershipTable.findFirst({
+            where: {
+              organizationAccountId: organizationActor.accountId,
+              memberAccountId: notification.accountId,
+            },
+          }) ?? null;
+        },
       }),
     }),
   },

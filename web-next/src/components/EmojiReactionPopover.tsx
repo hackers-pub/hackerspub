@@ -4,6 +4,7 @@ import { createSignal, For, Show } from "solid-js";
 import { createMutation } from "solid-relay";
 import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { EmojiReactionPopoverAddMutation } from "./__generated__/EmojiReactionPopoverAddMutation.graphql.ts";
 import type { EmojiReactionPopoverRemoveMutation } from "./__generated__/EmojiReactionPopoverRemoveMutation.graphql.ts";
@@ -28,6 +29,10 @@ interface NoteData {
 export interface EmojiReactionPopoverProps {
   noteData: NoteData;
   onClose: () => void;
+}
+
+function viewerReactionArgs(actingAccountId: string | null | undefined) {
+  return actingAccountId == null ? null : { actingAccountId };
 }
 
 const addReactionToPostMutation = graphql`
@@ -66,6 +71,7 @@ const removeReactionFromPostMutation = graphql`
 
 export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
   const { t } = useLingui();
+  const actingAccount = useActingAccount();
   const [isSubmitting, setIsSubmitting] = createSignal(false);
 
   const [commitAddReaction] = createMutation<EmojiReactionPopoverAddMutation>(
@@ -84,6 +90,7 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
     setIsSubmitting(true);
     const noteData = props.noteData;
     const postId = noteData.id;
+    const actingAccountId = actingAccount.selectedActingAccountId();
     try {
       // Check if user has already reacted with this emoji
       const existingReaction = noteData.reactionGroups.find((group) => {
@@ -102,6 +109,7 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
             input: {
               postId,
               emoji,
+              ...(actingAccountId == null ? {} : { actingAccountId }),
             },
           },
           updater: (store) => {
@@ -148,7 +156,11 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
                   } else {
                     // Decrement count and mark as not reacted
                     reactors?.setValue(currentCount - 1, "totalCount");
-                    reactors?.setValue(false, "viewerHasReacted");
+                    reactors?.setValue(
+                      false,
+                      "viewerHasReacted",
+                      viewerReactionArgs(actingAccountId),
+                    );
                   }
                 }
               }
@@ -183,6 +195,7 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
             input: {
               postId,
               emoji,
+              ...(actingAccountId == null ? {} : { actingAccountId }),
             },
           },
           updater: (store) => {
@@ -222,7 +235,11 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
                   const currentCount =
                     reactors.getValue("totalCount") as number || 0;
                   reactors.setValue(currentCount + 1, "totalCount");
-                  reactors.setValue(true, "viewerHasReacted");
+                  reactors.setValue(
+                    true,
+                    "viewerHasReacted",
+                    viewerReactionArgs(actingAccountId),
+                  );
                 }
               } else {
                 // Create new reaction group
@@ -236,7 +253,11 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
                 );
                 newGroup.setValue(emoji, "emoji");
                 reactors.setValue(1, "totalCount");
-                reactors.setValue(true, "viewerHasReacted");
+                reactors.setValue(
+                  true,
+                  "viewerHasReacted",
+                  viewerReactionArgs(actingAccountId),
+                );
                 newGroup.setLinkedRecord(reactors, "reactors");
                 newGroup.setLinkedRecord(postRecord, "subject");
 
@@ -280,6 +301,7 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
     setIsSubmitting(true);
     const noteData = props.noteData;
     const postId = noteData.id;
+    const actingAccountId = actingAccount.selectedActingAccountId();
     try {
       const existingReaction = noteData.reactionGroups.find((group) =>
         group.customEmoji?.id === customEmojiId
@@ -288,7 +310,13 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
 
       if (shouldUndo) {
         commitRemoveReaction({
-          variables: { input: { postId, customEmojiId } },
+          variables: {
+            input: {
+              postId,
+              customEmojiId,
+              ...(actingAccountId == null ? {} : { actingAccountId }),
+            },
+          },
           updater: (store) => {
             const postRecord = store.get(postId);
             if (postRecord) {
@@ -319,7 +347,11 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
                     store.delete(group.getDataID());
                   } else {
                     reactors?.setValue(count - 1, "totalCount");
-                    reactors?.setValue(false, "viewerHasReacted");
+                    reactors?.setValue(
+                      false,
+                      "viewerHasReacted",
+                      viewerReactionArgs(actingAccountId),
+                    );
                   }
                 }
               }
@@ -349,7 +381,13 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
         });
       } else {
         commitAddReaction({
-          variables: { input: { postId, customEmojiId } },
+          variables: {
+            input: {
+              postId,
+              customEmojiId,
+              ...(actingAccountId == null ? {} : { actingAccountId }),
+            },
+          },
           updater: (store) => {
             const postRecord = store.get(postId);
             if (postRecord) {
@@ -379,7 +417,11 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
                   }
                   const count = reactors.getValue("totalCount") as number || 0;
                   reactors.setValue(count + 1, "totalCount");
-                  reactors.setValue(true, "viewerHasReacted");
+                  reactors.setValue(
+                    true,
+                    "viewerHasReacted",
+                    viewerReactionArgs(actingAccountId),
+                  );
                 }
               }
             }

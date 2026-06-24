@@ -27,6 +27,7 @@ export function SettingsTabs(props: SettingsTabsProps) {
   const account = createFragment(
     graphql`
       fragment SettingsTabs_account on Account {
+        kind
         username
       }
     `,
@@ -47,62 +48,64 @@ export function SettingsTabs(props: SettingsTabsProps) {
               >
                 {t`Profile`}
               </TabsTrigger>
-              <TabsTrigger
-                as={A}
-                value="preferences"
-                href={`/@${account.username}/settings/preferences`}
-                class="shrink-0"
-              >
-                {t`Preferences`}
-              </TabsTrigger>
-              <TabsTrigger
-                as={A}
-                value="language"
-                href={`/@${account.username}/settings/language`}
-                class="shrink-0"
-              >
-                {t`Languages`}
-              </TabsTrigger>
-              <TabsTrigger
-                as={A}
-                value="invite"
-                href={`/@${account.username}/settings/invite`}
-                class="shrink-0"
-              >
-                {t`Invite`}
-              </TabsTrigger>
-              <TabsTrigger
-                as={A}
-                value="passkeys"
-                href={`/@${account.username}/settings/passkeys`}
-                class="shrink-0"
-              >
-                {t`Passkeys`}
-              </TabsTrigger>
-              <TabsTrigger
-                as={A}
-                value="blocks"
-                href={`/@${account.username}/settings/blocks`}
-                class="shrink-0"
-              >
-                {t`Mutes & blocks`}
-              </TabsTrigger>
-              <TabsTrigger
-                as={A}
-                value="reports"
-                href={`/@${account.username}/settings/reports`}
-                class="shrink-0"
-              >
-                {t`Reports`}
-              </TabsTrigger>
-              <TabsTrigger
-                as={A}
-                value="sanctions"
-                href={`/@${account.username}/settings/sanctions`}
-                class="shrink-0"
-              >
-                {t`Sanctions`}
-              </TabsTrigger>
+              <Show when={account.kind === "PERSONAL"}>
+                <TabsTrigger
+                  as={A}
+                  value="preferences"
+                  href={`/@${account.username}/settings/preferences`}
+                  class="shrink-0"
+                >
+                  {t`Preferences`}
+                </TabsTrigger>
+                <TabsTrigger
+                  as={A}
+                  value="language"
+                  href={`/@${account.username}/settings/language`}
+                  class="shrink-0"
+                >
+                  {t`Languages`}
+                </TabsTrigger>
+                <TabsTrigger
+                  as={A}
+                  value="invite"
+                  href={`/@${account.username}/settings/invite`}
+                  class="shrink-0"
+                >
+                  {t`Invite`}
+                </TabsTrigger>
+                <TabsTrigger
+                  as={A}
+                  value="passkeys"
+                  href={`/@${account.username}/settings/passkeys`}
+                  class="shrink-0"
+                >
+                  {t`Passkeys`}
+                </TabsTrigger>
+                <TabsTrigger
+                  as={A}
+                  value="blocks"
+                  href={`/@${account.username}/settings/blocks`}
+                  class="shrink-0"
+                >
+                  {t`Mutes & blocks`}
+                </TabsTrigger>
+                <TabsTrigger
+                  as={A}
+                  value="reports"
+                  href={`/@${account.username}/settings/reports`}
+                  class="shrink-0"
+                >
+                  {t`Reports`}
+                </TabsTrigger>
+                <TabsTrigger
+                  as={A}
+                  value="sanctions"
+                  href={`/@${account.username}/settings/sanctions`}
+                  class="shrink-0"
+                >
+                  {t`Sanctions`}
+                </TabsTrigger>
+              </Show>
               <TabsTrigger
                 as={A}
                 value="account"

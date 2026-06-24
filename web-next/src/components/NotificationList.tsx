@@ -7,12 +7,18 @@ import {
 } from "solid-relay";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { NotificationListMarkAsReadMutation } from "./__generated__/NotificationListMarkAsReadMutation.graphql.ts";
+import type { NotificationListMarkOrganizationNotificationsAsReadMutation } from "./__generated__/NotificationListMarkOrganizationNotificationsAsReadMutation.graphql.ts";
 import type { NotificationListUnreadNotificationsQuery } from "./__generated__/NotificationListUnreadNotificationsQuery.graphql.ts";
 import type { NotificationList_notifications$key } from "./__generated__/NotificationList_notifications.graphql.ts";
 import { NotificationCard } from "./NotificationCard.tsx";
 
+type NotificationListReadScope =
+  | { readonly kind: "personal" }
+  | { readonly kind: "organization"; readonly organizationId: string };
+
 export interface NotificationListProps {
   $account: NotificationList_notifications$key;
+  readScope?: NotificationListReadScope;
 }
 
 const NotificationListMarkAsReadMutation = graphql`
@@ -21,10 +27,36 @@ const NotificationListMarkAsReadMutation = graphql`
   }
 `;
 
+const NotificationListMarkOrganizationNotificationsAsReadMutation = graphql`
+  mutation NotificationListMarkOrganizationNotificationsAsReadMutation(
+    $organizationId: ID!
+    $upTo: UUID
+  ) {
+    markOrganizationNotificationsAsRead(
+      input: { organizationId: $organizationId, upTo: $upTo }
+    ) {
+      __typename
+      ... on MarkOrganizationNotificationsAsReadPayload {
+        badge {
+          color
+          count
+        }
+      }
+    }
+  }
+`;
+
 const NotificationListUnreadNotificationsQuery = graphql`
   query NotificationListUnreadNotificationsQuery {
     viewer {
       unreadNotificationsCount
+      unreadModerationNotificationCount
+      organizationMemberships {
+        notificationBadge {
+          color
+          count
+        }
+      }
     }
   }
 `;
@@ -37,6 +69,11 @@ export function NotificationList(props: NotificationListProps) {
   >(
     NotificationListMarkAsReadMutation,
   );
+  const [markOrganizationNotificationsAsRead] = createMutation<
+    NotificationListMarkOrganizationNotificationsAsReadMutation
+  >(
+    NotificationListMarkOrganizationNotificationsAsReadMutation,
+  );
   const notifications = createPaginationFragment(
     graphql`
       fragment NotificationList_notifications on Account
@@ -46,12 +83,14 @@ export function NotificationList(props: NotificationListProps) {
           count: { type: "Int", defaultValue: 20 }
         )
       {
+        id
         notifications(after: $cursor, first: $count)
           @connection(key: "NotificationList_notifications")
         {
           edges {
             node {
               uuid
+              created
               ...NotificationCard_notification
             }
           }
@@ -67,24 +106,48 @@ export function NotificationList(props: NotificationListProps) {
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
   >("loaded");
-  let markedNotificationsAsRead = false;
+  let markedReadThroughKey: string | null = null;
+
+  function refreshUnreadNotificationsCount() {
+    fetchQuery<NotificationListUnreadNotificationsQuery>(
+      environment(),
+      NotificationListUnreadNotificationsQuery,
+      {},
+      { fetchPolicy: "network-only" },
+    ).subscribe({});
+  }
 
   createEffect(() => {
     const data = notifications();
-    if (markedNotificationsAsRead || data == null) return;
-    const readThrough = data.notifications.edges[0]?.node.uuid;
-    if (readThrough == null) return;
-    markedNotificationsAsRead = true;
-    markNotificationsAsRead({
-      variables: { upTo: readThrough },
-      onCompleted() {
-        fetchQuery<NotificationListUnreadNotificationsQuery>(
-          environment(),
-          NotificationListUnreadNotificationsQuery,
-          {},
-        ).subscribe({});
-      },
-    });
+    if (data == null) return;
+    const readThrough = data.notifications.edges[0]?.node;
+    if (readThrough == null) {
+      return;
+    }
+    const readScope = props.readScope ?? { kind: "personal" };
+    const readThroughKey = readScope.kind === "organization"
+      ? `${readScope.kind}:${readScope.organizationId}:${readThrough.uuid}`
+      : `${readScope.kind}:${readThrough.uuid}`;
+    if (markedReadThroughKey === readThroughKey) {
+      return;
+    }
+    markedReadThroughKey = readThroughKey;
+    if (readScope.kind === "organization") {
+      markOrganizationNotificationsAsRead({
+        variables: {
+          organizationId: readScope.organizationId,
+          upTo: readThrough.uuid,
+        },
+        // Bound the marker to the newest row in the loaded page so a
+        // notification created after this list was fetched remains unread.
+        onCompleted: refreshUnreadNotificationsCount,
+      });
+    } else {
+      markNotificationsAsRead({
+        variables: { upTo: readThrough.uuid },
+        onCompleted: refreshUnreadNotificationsCount,
+      });
+    }
   });
 
   function onLoadMore() {

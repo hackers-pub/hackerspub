@@ -1,9 +1,9 @@
 import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
 import { createFragment, createMutation } from "solid-relay";
-import { ActorHoverCard } from "~/components/ActorHoverCard.tsx";
 import { CensorshipNotice } from "~/components/CensorshipNotice.tsx";
 import { InternalLink } from "~/components/InternalLink.tsx";
+import { PostAuthorAvatar, PostAuthorLine } from "~/components/PostAuthor.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import {
   AlertDialog,
@@ -16,10 +16,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "~/components/ui/alert-dialog.tsx";
-import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { VisibilityTag } from "~/components/VisibilityTag.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { useContentLinkInterceptor } from "~/lib/contentLinkInterceptor.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -36,13 +36,16 @@ import type {
 import type { QuotedNoteCardRevokeQuoteMutation } from "./__generated__/QuotedNoteCardRevokeQuoteMutation.graphql.ts";
 
 const RevokeQuoteMutation = graphql`
-  mutation QuotedNoteCardRevokeQuoteMutation($input: RevokeQuoteInput!) {
+  mutation QuotedNoteCardRevokeQuoteMutation(
+    $input: RevokeQuoteInput!
+    $actingAccountId: ID
+  ) {
     revokeQuote(input: $input) {
       __typename
       ... on RevokeQuotePayload {
         quote {
           id
-          viewerCanRevokeQuote
+          viewerCanRevokeQuote(actingAccountId: $actingAccountId)
           quoteTargetState
           quotedPost {
             id
@@ -75,6 +78,7 @@ export interface QuotedNoteCardProps {
 
 export function QuotedNoteCard(props: QuotedNoteCardProps) {
   const { t } = useLingui();
+  const actingAccount = useActingAccount();
   const { preferAiSummary, moderator } = useViewer();
   const [proseRef, setProseRef] = createSignal<HTMLElement>();
   const mentionState = useMentionHoverCards(proseRef);
@@ -114,6 +118,8 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
           iri
           viewerMutes
         }
+        ...PostAuthorAvatar_post
+        ...PostAuthorLine_post
         sensitive
         summary
         visibility
@@ -168,40 +174,9 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
           >
             <div class="flex flex-col bg-muted p-4">
               <div class="flex min-w-0 gap-4">
-                <ActorHoverCard handle={post.actor.handle} class="shrink-0">
-                  <Avatar class="size-12 shrink-0">
-                    <InternalLink
-                      href={post.actor.url ?? post.actor.iri}
-                      internalHref={post.actor.local
-                        ? `/@${post.actor.username}`
-                        : `/${post.actor.handle}`}
-                    >
-                      <AvatarImage src={post.actor.avatarUrl} class="size-12" />
-                    </InternalLink>
-                  </Avatar>
-                </ActorHoverCard>
+                <PostAuthorAvatar $post={post} size="large" />
                 <div class="flex min-w-0 flex-col">
-                  <ActorHoverCard
-                    handle={post.actor.handle}
-                    class="min-w-0 flex flex-wrap items-baseline gap-x-1"
-                  >
-                    <Show when={(post.actor.name ?? "").trim() !== ""}>
-                      <InternalLink
-                        href={post.actor.url ?? post.actor.iri}
-                        internalHref={post.actor.local
-                          ? `/@${post.actor.username}`
-                          : `/${post.actor.handle}`}
-                        innerHTML={post.actor.name ?? ""}
-                        class="font-semibold"
-                      />
-                    </Show>
-                    <span
-                      class="min-w-0 break-all select-all text-muted-foreground"
-                      title={post.actor.handle}
-                    >
-                      {post.actor.handle}
-                    </span>
-                  </ActorHoverCard>
+                  <PostAuthorLine $post={post} handleClass="break-all" />
                   <div class="flex min-w-0 flex-row flex-wrap gap-1 text-muted-foreground">
                     <InternalLink
                       href={post.url ?? post.iri}
@@ -321,9 +296,17 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
                             if (revoking()) return;
                             const quotePostId = props.quotePostId;
                             if (quotePostId == null) return;
+                            const actingAccountId = actingAccount
+                              .selectedActingAccountId();
                             revokeQuote({
                               variables: {
-                                input: { quotePostId },
+                                input: {
+                                  quotePostId,
+                                  ...(actingAccountId == null
+                                    ? {}
+                                    : { actingAccountId }),
+                                },
+                                actingAccountId: actingAccountId ?? null,
                               },
                               onCompleted(response) {
                                 if (

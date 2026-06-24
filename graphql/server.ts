@@ -66,7 +66,13 @@ export function createYogaServer(): YogaServerInstance<
           },
         });
         if (account == null) session = undefined;
-        else if (isActorBanned(account.actor)) {
+        else if (account.kind !== "personal") {
+          // Organization accounts are controlled through personal member
+          // accounts. Any stale direct session must be invalidated.
+          await deleteSession(kv, session.id);
+          session = undefined;
+          account = undefined;
+        } else if (isActorBanned(account.actor)) {
           // A ban invalidates existing sessions, not just new logins.
           await deleteSession(kv, session.id);
           session = undefined;

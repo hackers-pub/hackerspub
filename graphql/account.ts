@@ -22,6 +22,11 @@ import {
 import { persistActor, syncActorFromAccount } from "@hackerspub/models/actor";
 import type { Locale } from "@hackerspub/models/i18n";
 import { renderMarkup } from "@hackerspub/models/markup";
+import {
+  assertPersonalAccountDeletionPreservesOrganizations,
+  LastOrganizationAdminError,
+  LastOrganizationMemberError,
+} from "@hackerspub/models/organization";
 import { deleteSession } from "@hackerspub/models/session";
 import {
   accountTable,
@@ -110,6 +115,46 @@ const sanctionActorRelation = {
     suspendedUntil: true,
   },
 } as const;
+
+async function viewerCanManageAccountSettings(
+  ctx: UserContext,
+  accountId: Uuid,
+  accountKind: "personal" | "organization",
+  viewerAccountId: Uuid,
+): Promise<boolean> {
+  if (accountId === viewerAccountId) return true;
+  if (accountKind !== "organization") return false;
+  const membership = await ctx.db.query.organizationMembershipTable.findFirst({
+    where: {
+      organizationAccountId: accountId,
+      memberAccountId: viewerAccountId,
+      role: "admin",
+      accepted: { isNotNull: true },
+    },
+    columns: { organizationAccountId: true },
+  });
+  return membership != null;
+}
+
+async function viewerCanReadAccountNotifications(
+  ctx: UserContext,
+  accountId: Uuid,
+  accountKind: "personal" | "organization",
+): Promise<boolean> {
+  const session = await ctx.session;
+  if (session == null) return false;
+  if (session.accountId === accountId) return true;
+  if (accountKind !== "organization") return false;
+  const membership = await ctx.db.query.organizationMembershipTable.findFirst({
+    where: {
+      organizationAccountId: accountId,
+      memberAccountId: session.accountId,
+      accepted: { isNotNull: true },
+    },
+    columns: { organizationAccountId: true },
+  });
+  return membership != null;
+}
 
 function parseActorHandle(raw: string): {
   handle: string;
@@ -238,11 +283,12 @@ async function removeAccountMigrationAlias(
 export const Account = builder.drizzleNode("accountTable", {
   name: "Account",
   description:
-    "A local user account on this Hackers' Pub instance. Every `Account` " +
-    "has exactly one `Actor` (its public ActivityPub identity) and holds " +
-    "login credentials, settings, and moderation state. `Account` is only " +
-    "returned for the authenticated viewer and for moderator-only queries; " +
-    "all public identity data (name, bio, posts, followers) lives on `Actor`.",
+    "A local account on this Hackers' Pub instance. Every `Account` has " +
+    "exactly one `Actor` (its public ActivityPub identity). `PERSONAL` " +
+    "accounts hold login credentials and settings; `ORGANIZATION` accounts " +
+    "are controlled through personal member accounts. `Account` is returned " +
+    "for the authenticated viewer, organization management, and " +
+    "moderator-only queries; public identity data lives on `Actor`.",
   id: {
     column: (account) => account.id,
   },
@@ -447,6 +493,23 @@ export const Account = builder.drizzleNode("accountTable", {
         selfAccount: parent.id,
       }),
     }),
+    viewerCanManageSettings: t.boolean({
+      description:
+        "Whether the authenticated viewer may open settings for this " +
+        "`Account`. This is `true` for the personal account holder and for " +
+        "accepted administrators of an organization account.",
+      select: { columns: { id: true, kind: true } },
+      async resolve(account, _, ctx) {
+        const session = await ctx.session;
+        if (session == null) return false;
+        return await viewerCanManageAccountSettings(
+          ctx,
+          account.id,
+          account.kind,
+          session.accountId,
+        );
+      },
+    }),
     preferAiSummary: t.exposeBoolean("preferAiSummary", {
       authScopes: (parent) => ({
         moderator: true,
@@ -558,11 +621,17 @@ export const Account = builder.drizzleNode("accountTable", {
       type: Notification,
       description:
         "This account's notifications, newest first. Only visible to " +
-        "the account holder. Notifications whose actor list is empty " +
+        "the account holder, or to accepted members when this is an " +
+        "organization account. Notifications whose actor list is empty " +
         "(e.g., the actor was deleted) are automatically excluded.",
-      authScopes: (parent) => ({
-        selfAccount: parent.id,
-      }),
+      authScopes: async (parent, _args, ctx) =>
+        await viewerCanReadAccountNotifications(ctx, parent.id, parent.kind),
+      select: {
+        columns: {
+          id: true,
+          kind: true,
+        },
+      },
       async resolve(account, args, ctx) {
         return resolveCursorConnection(
           {
@@ -622,9 +691,10 @@ export const Account = builder.drizzleNode("accountTable", {
       select: {
         columns: {
           id: true,
+          kind: true,
         },
       },
-      resolve(account, _, ctx) {
+      async resolve(account, _, ctx) {
         return ctx.db.$count(
           notificationTable,
           and(
@@ -1172,8 +1242,9 @@ builder.relayMutationField(
   "updateAccount",
   {
     description:
-      "Update the authenticated viewer's account settings. Only the " +
-      "account holder may update their own account.",
+      "Update account settings. Personal accounts may update themselves; " +
+      "organization accounts may be updated by accepted organization " +
+      "administrators.",
     inputFields: (t) => ({
       id: t.globalID({ for: Account, required: true }),
       username: t.string(),
@@ -1215,10 +1286,6 @@ builder.relayMutationField(
         throw createGraphQLError("Not authenticated.", {
           extensions: { code: "UNAUTHENTICATED" },
         });
-      } else if (session.accountId !== args.input.id.id) {
-        throw createGraphQLError("Not authorized.", {
-          extensions: { code: "FORBIDDEN" },
-        });
       }
       const account = await ctx.db.query.accountTable.findFirst({
         where: {
@@ -1228,6 +1295,18 @@ builder.relayMutationField(
       if (account == null) {
         throw createGraphQLError("Account not found.", {
           extensions: { code: "NOT_FOUND" },
+        });
+      }
+      if (
+        !await viewerCanManageAccountSettings(
+          ctx,
+          account.id,
+          account.kind,
+          session.accountId,
+        )
+      ) {
+        throw createGraphQLError("Not authorized.", {
+          extensions: { code: "FORBIDDEN" },
         });
       }
       if (args.input.username != null && account.usernameChanged != null) {
@@ -1484,20 +1563,24 @@ builder.relayMutationField(
   "deleteAccount",
   {
     description:
-      "Permanently delete the authenticated viewer's account. This " +
-      "hard-deletes the local account data, reserves the account's current " +
-      "`username`, commits the deleted actor's tombstone and preserved keys, " +
-      "then attempts to enqueue one actor-level ActivityPub `Delete` to " +
-      "followers. A transient delivery queue failure is logged after commit " +
-      "and does not resurrect the account. Session-store cleanup is also " +
-      "best-effort after the deletion commits.",
+      "Permanently delete the authenticated viewer's personal account, or " +
+      "an organization account administered by the viewer. This hard-deletes " +
+      "the local account data, reserves the account's current `username`, " +
+      "commits the deleted actor's tombstone and preserved keys, then " +
+      "attempts to enqueue one actor-level ActivityPub `Delete` to followers. " +
+      "A transient delivery queue failure is logged after commit and does " +
+      "not resurrect the account. Personal account deletion fails if it " +
+      "would leave an accepted organization membership with no members or " +
+      "no administrators. Session-store cleanup is best-effort and only " +
+      "applies when the viewer deletes their own personal account.",
     inputFields: (t) => ({
       id: t.globalID({
         for: Account,
         required: true,
         description:
-          "The `Account` global id of the authenticated viewer. Passing any " +
-          "other account id returns `NotAuthorizedError`.",
+          "The `Account` global id to delete. Passing another personal " +
+          "account returns `NotAuthorizedError`; organization accounts can " +
+          "be deleted by accepted organization administrators.",
       }),
     }),
   },
@@ -1508,6 +1591,8 @@ builder.relayMutationField(
         NotAuthorizedError,
         InvalidInputError,
         AccountDeletionUnavailableError,
+        LastOrganizationMemberError,
+        LastOrganizationAdminError,
       ],
     },
     async resolve(_root, args, ctx) {
@@ -1515,21 +1600,47 @@ builder.relayMutationField(
       if (session == null || ctx.account == null) {
         throw new NotAuthenticatedError();
       }
-      if (session.accountId !== args.input.id.id) {
-        throw new NotAuthorizedError();
+      const accountId = args.input.id.id as Uuid;
+      const deletingOwnAccount = session.accountId === accountId;
+      const deletingOwnPersonalAccount = deletingOwnAccount &&
+        ctx.account.kind === "personal";
+      if (!deletingOwnPersonalAccount) {
+        const target = await ctx.db.query.accountTable.findFirst({
+          where: { id: accountId },
+          columns: { id: true, kind: true },
+        });
+        if (
+          target == null ||
+          target.kind !== "organization" ||
+          !await viewerCanManageAccountSettings(
+            ctx,
+            target.id,
+            target.kind,
+            session.accountId,
+          )
+        ) {
+          throw new NotAuthorizedError();
+        }
       }
-      const result = await deleteAccountModel(ctx.fedCtx, args.input.id.id);
+      const result = await deleteAccountModel(ctx.fedCtx, accountId, {
+        beforeDelete: deletingOwnPersonalAccount
+          ? (tx) =>
+            assertPersonalAccountDeletionPreservesOrganizations(tx, accountId)
+          : undefined,
+      });
       if (result == null) throw new InvalidInputError("id");
-      try {
-        await deleteSession(ctx.kv, session.id);
-      } catch (error) {
-        logger.warn(
-          "Failed to delete session after deleting account {accountId}: {error}",
-          {
-            accountId: result.accountId,
-            error,
-          },
-        );
+      if (deletingOwnAccount) {
+        try {
+          await deleteSession(ctx.kv, session.id);
+        } catch (error) {
+          logger.warn(
+            "Failed to delete session after deleting account {accountId}: {error}",
+            {
+              accountId: result.accountId,
+              error,
+            },
+          );
+        }
       }
       return result;
     },

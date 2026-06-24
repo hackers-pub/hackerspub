@@ -70,6 +70,7 @@ const settingsPageQuery = graphql`
     }
     accountByUsername(username: $username) {
       id
+      viewerCanManageSettings
       ...settingsForm_account
       ...SettingsTabs_account
     }
@@ -116,6 +117,7 @@ export default function SettingsPage() {
       {(data) => (
         <SettingsOwnerGuard
           accountId={data.accountByUsername?.id}
+          canManageSettings={data.accountByUsername?.viewerCanManageSettings}
           viewerId={data.viewer?.id}
         >
           {
