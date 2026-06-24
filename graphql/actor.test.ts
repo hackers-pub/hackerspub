@@ -16,6 +16,7 @@ import { schema } from "./mod.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
+  insertMention,
   insertNotePost,
   makeGuestContext,
   makeUserContext,
@@ -128,6 +129,23 @@ const actorPostByUuidAsActingAccountQuery = parse(`
     actorByHandle(handle: $handle, allowLocalHandle: true) {
       postByUuid(uuid: $uuid, actingAccountId: $actingAccountId) {
         id
+      }
+    }
+  }
+`);
+
+const actorViewerInteractionsAsActingAccountQuery = parse(`
+  query ActorViewerInteractionsAsActingAccount(
+    $handle: String!,
+    $actingAccountId: ID,
+  ) {
+    actorByHandle(handle: $handle, allowLocalHandle: true) {
+      viewerInteractions(first: 10, actingAccountId: $actingAccountId) {
+        edges {
+          node {
+            id
+          }
+        }
       }
     }
   }
@@ -712,6 +730,86 @@ test("Actor.postByUuid can resolve with an organization perspective", async () =
       actorByHandle: {
         postByUuid: {
           id: encodeGlobalID("Note", post.id),
+        },
+      },
+    });
+  });
+});
+
+test("Actor.viewerInteractions can use an organization perspective", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "orginteractionmember",
+      name: "Organization Interaction Member",
+      email: "orginteractionmember@example.com",
+    });
+    const profile = await insertAccountWithActor(tx, {
+      username: "orginteractionprofile",
+      name: "Organization Interaction Profile",
+      email: "orginteractionprofile@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orginteractions",
+        name: "Organization Interactions",
+        bio: "",
+      },
+    );
+    const { post } = await insertNotePost(tx, {
+      account: organization,
+      content: "Organization mentions profile",
+    });
+    await insertMention(tx, {
+      postId: post.id,
+      actorId: profile.actor.id,
+    });
+
+    const personalResult = await execute({
+      schema,
+      document: actorViewerInteractionsAsActingAccountQuery,
+      variableValues: {
+        handle: profile.account.username,
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(personalResult.errors, undefined);
+    assert.deepEqual(toPlainJson(personalResult.data), {
+      actorByHandle: {
+        viewerInteractions: {
+          edges: [],
+        },
+      },
+    });
+
+    const organizationResult = await execute({
+      schema,
+      document: actorViewerInteractionsAsActingAccountQuery,
+      variableValues: {
+        handle: profile.account.username,
+        actingAccountId: encodeGlobalID("Account", organization.id),
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(organizationResult.errors, undefined);
+    assert.deepEqual(toPlainJson(organizationResult.data), {
+      actorByHandle: {
+        viewerInteractions: {
+          edges: [
+            {
+              node: {
+                id: encodeGlobalID("Note", post.id),
+              },
+            },
+          ],
         },
       },
     });

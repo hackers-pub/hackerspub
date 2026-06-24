@@ -51,7 +51,10 @@ import { escape } from "@std/html/entities";
 import { createGraphQLError } from "graphql-yoga";
 import xss from "xss";
 import { Account } from "./account.ts";
-import { resolveActingAccountForMutation } from "./acting-account.ts";
+import {
+  resolveActingAccountForGlobalIdArg,
+  resolveActingAccountForMutation,
+} from "./acting-account.ts";
 import { builder, type UserContext } from "./builder.ts";
 import { ActorSuspendedError, InvalidInputError } from "./error.ts";
 import { lookupActorByUrl, parseHttpUrl } from "./lookup.ts";
@@ -864,17 +867,25 @@ builder.drizzleObjectFields(Actor, (t) => ({
   viewerInteractions: t.connection({
     type: Post,
     description:
-      "Posts authored by either this `Actor` or the authenticated viewer " +
+      "Posts authored by either this `Actor` or the selected viewer account " +
       "that directly involve the other actor through a reply, quote, or " +
       "explicit mention. Returns an empty connection for the viewer's own " +
       "`Actor`; unauthenticated requests raise `AUTHENTICATION_REQUIRED`. " +
-      "`first` and `last` are capped at 250 posts.",
+      "`first` and `last` are capped at 250 posts. Pass `actingAccountId` " +
+      "for an organization perspective.",
+    args: {
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
     async resolve(actor, args, ctx) {
       if (ctx.account == null) {
         authenticationRequired();
       } else if (args.after != null && args.before != null) {
         conflictingCursors();
       }
+      const actingAccount = await resolveActingAccountForGlobalIdArg(ctx, args);
       const backwards = args.last != null;
       const window = getConnectionWindow(args);
       const since = args.before == null
@@ -884,7 +895,7 @@ builder.drizzleObjectFields(Actor, (t) => ({
         ? undefined
         : parseRequiredTimelineCursor(args.after);
       const interactions = await getProfileInteractions(ctx.db, {
-        viewer: ctx.account,
+        viewer: actingAccount,
         profileActorId: actor.id,
         direction: backwards ? "backward" : "forward",
         window: window + 1,

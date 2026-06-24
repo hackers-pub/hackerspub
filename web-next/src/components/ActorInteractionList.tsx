@@ -33,7 +33,11 @@ export function ActorInteractionList(props: ActorInteractionListProps) {
         )
       {
         __id
-        viewerInteractions(after: $cursor, first: $count)
+        viewerInteractions(
+          after: $cursor
+          first: $count
+          actingAccountId: $actingAccountId
+        )
           @connection(key: "ActorInteractionList_viewerInteractions")
         {
           __id

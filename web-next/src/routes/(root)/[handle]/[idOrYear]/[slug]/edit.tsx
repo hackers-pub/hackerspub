@@ -67,6 +67,13 @@ const editPageQueryDef = graphql`
     ) {
       ...edit_article @arguments(actingAccountId: $actingAccountId)
     }
+    viewer {
+      organizationMemberships {
+        organization {
+          id
+        }
+      }
+    }
   }
 `;
 
@@ -107,7 +114,14 @@ export default function ArticleEditPage() {
           when={data.articleByYearAndSlug}
           fallback={<HttpStatusCode code={404} />}
         >
-          {(article) => <ArticleEditForm $article={article} />}
+          {(article) => (
+            <ArticleEditForm
+              $article={article}
+              viewerOrganizationIds={data.viewer?.organizationMemberships.map((
+                membership,
+              ) => membership.organization.id) ?? []}
+            />
+          )}
         </Show>
       )}
     </Show>
@@ -116,6 +130,7 @@ export default function ArticleEditPage() {
 
 interface ArticleEditFormProps {
   $article: edit_article$key;
+  viewerOrganizationIds: readonly string[];
 }
 
 const renderMarkdownQuery = graphql`
@@ -163,6 +178,9 @@ function ArticleEditForm(props: ArticleEditFormProps) {
         sourceId
         actor {
           isViewer(actingAccountId: $actingAccountId)
+          account {
+            id
+          }
           username
         }
         contents {
@@ -180,23 +198,36 @@ function ArticleEditForm(props: ArticleEditFormProps) {
     () => props.$article,
   );
 
-  // Authorization runs on the server so unauthorized requests get an
-  // actual HTTP 403 instead of a blank 200 page. `isViewer` is only
-  // strictly `false` once the fragment has loaded (it's undefined while
-  // loading on the client), so the fallback only fires for genuine
-  // non-owners on either the server or the client.
+  const authoringOrganizationId = () => {
+    const ownerAccountId = article()?.actor.account?.id;
+    if (ownerAccountId == null) return null;
+    return props.viewerOrganizationIds.includes(ownerAccountId)
+      ? ownerAccountId
+      : null;
+  };
+  const canEdit = () =>
+    article()?.actor.isViewer === true || authoringOrganizationId() != null;
+
+  // Authorization runs on the server so unauthorized requests get an actual
+  // HTTP 403 instead of a blank 200 page. Organization-authored articles need
+  // a server-derived membership check because the client-selected acting
+  // account is localStorage-backed and is unavailable during SSR.
   return (
     <Show
-      when={article()?.actor.isViewer !== false}
+      when={article() == null || canEdit()}
       fallback={<HttpStatusCode code={403} />}
     >
-      <ArticleEditFormGate article={article()} />
+      <ArticleEditFormGate
+        article={canEdit() ? article() : undefined}
+        actingAccountIdFallback={authoringOrganizationId()}
+      />
     </Show>
   );
 }
 
 interface ArticleEditFormGateProps {
   article: edit_article$data | null | undefined;
+  actingAccountIdFallback: string | null;
 }
 
 function ArticleEditFormGate(props: ArticleEditFormGateProps) {
@@ -210,13 +241,19 @@ function ArticleEditFormGate(props: ArticleEditFormGateProps) {
   const loadedArticle = () => (isServer ? undefined : props.article);
   return (
     <Show keyed when={loadedArticle()}>
-      {(article) => <ArticleEditFormInner article={article} />}
+      {(article) => (
+        <ArticleEditFormInner
+          article={article}
+          actingAccountIdFallback={props.actingAccountIdFallback}
+        />
+      )}
     </Show>
   );
 }
 
 interface ArticleEditFormInnerProps {
   article: edit_article$data;
+  actingAccountIdFallback: string | null;
 }
 
 function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
@@ -226,6 +263,13 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
   const actingAccount = useActingAccount();
 
   const article = () => props.article;
+  const actingAccountIdForArticle = () => {
+    const selected = actingAccount.selectedActingAccountId();
+    const ownerAccountId = article().actor.account?.id;
+    return selected != null && selected === ownerAccountId
+      ? selected
+      : props.actingAccountIdFallback;
+  };
 
   const [commitUpdate, isUpdating] = createMutation<
     edit_updateArticle_Mutation
@@ -268,7 +312,7 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
       throw new Error("Article has no local source");
     }
     try {
-      const actingAccountId = actingAccount.selectedActingAccountId();
+      const actingAccountId = actingAccountIdForArticle();
       const result = await uploadImageForArticleSource(
         file,
         sourceId,
@@ -318,7 +362,7 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
       {
         content: text,
         articleSourceId: article().sourceId ?? null,
-        actingAccountId: actingAccount.selectedActingAccountId() ?? null,
+        actingAccountId: actingAccountIdForArticle(),
       },
     ).subscribe({
       next(data) {
@@ -339,7 +383,7 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
 
   const handleSave = (e: SubmitEvent) => {
     e.preventDefault();
-    const actingAccountId = actingAccount.selectedActingAccountId();
+    const actingAccountId = actingAccountIdForArticle();
     commitUpdate({
       variables: {
         input: {
