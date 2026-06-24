@@ -1057,8 +1057,7 @@ function OrganizationConversionForms(props: { account: AccountPageAccount }) {
   }, 150);
   const canRequest = createMemo(() =>
     adminUsername().trim() !== "" &&
-    confirmation().trim().toLowerCase() ===
-      props.account.username.toLowerCase() &&
+    confirmation().trim() === props.account.username &&
     !requesting()
   );
 
