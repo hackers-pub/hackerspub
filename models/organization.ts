@@ -31,7 +31,11 @@ import {
   passkeyTable,
   pushNotificationTargetTable,
 } from "./schema.ts";
-import { validateUsername } from "./userValidation.ts";
+import {
+  validateBio,
+  validateDisplayName,
+  validateUsername,
+} from "./userValidation.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 export class OrganizationInvitationRequiredError extends Error {
@@ -324,6 +328,17 @@ export async function createOrganization(
       "The organization username is invalid.",
     );
   }
+  const name = input.name.trim();
+  if (validateDisplayName(name) != null) {
+    throw new OrganizationMembershipError(
+      "The organization display name is invalid.",
+    );
+  }
+  if (validateBio(input.bio) != null) {
+    throw new OrganizationMembershipError(
+      "The organization bio is invalid.",
+    );
+  }
   const db = fedCtx.data.db;
   return await runInTransaction(db, async (tx) => {
     const creatorRows = await tx.update(accountTable)
@@ -346,7 +361,7 @@ export async function createOrganization(
       id: organizationId,
       kind: "organization",
       username,
-      name: input.name,
+      name,
       bio: input.bio,
       leftInvitations: 0,
       inviterId: creator.id,

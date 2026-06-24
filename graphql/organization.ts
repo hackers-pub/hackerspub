@@ -971,6 +971,7 @@ builder.relayMutationField(
       types: [
         NotAuthenticatedError,
         NotAuthorizedError,
+        InvalidInputError,
         OrganizationPermissionError,
       ],
     },

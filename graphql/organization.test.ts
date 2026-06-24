@@ -41,6 +41,7 @@ const createOrganizationMutation = parse(`
         }
       }
       ... on OrganizationInvitationRequiredError { message }
+      ... on OrganizationMembershipError { message }
       ... on NotAuthenticatedError { notAuthenticated }
     }
   }
@@ -334,6 +335,7 @@ const markOrganizationNotificationsAsReadMutation = parse(`
           count
         }
       }
+      ... on InvalidInputError { inputPath }
     }
   }
 `);
@@ -394,6 +396,45 @@ test("createOrganization creates an Organization account and admin membership", 
       where: { id: creator.account.id },
     });
     assert.equal(storedCreator?.leftInvitations, 0);
+  });
+});
+
+test("createOrganization validates organization profile fields", async () => {
+  await withRollback(async (tx) => {
+    const creator = await insertAccountWithActor(tx, {
+      username: "graphqlorgprofilecreator",
+      name: "GraphQL Org Profile Creator",
+      email: "graphqlorgprofilecreator@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, creator.account.id));
+
+    const result = await execute({
+      schema,
+      document: createOrganizationMutation,
+      variableValues: {
+        input: {
+          username: "graphqlinvalidprofileorg",
+          name: "",
+          bio: "Built from GraphQL",
+        },
+      },
+      contextValue: makeUserContext(tx, creator.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      createOrganization: {
+        __typename: "OrganizationMembershipError",
+        message: "The organization display name is invalid.",
+      },
+    });
+    const storedCreator = await tx.query.accountTable.findFirst({
+      where: { id: creator.account.id },
+    });
+    assert.equal(storedCreator?.leftInvitations, 1);
   });
 });
 
@@ -1182,6 +1223,47 @@ test(
     });
   },
 );
+
+test("markOrganizationNotificationsAsRead returns typed errors for stale markers", async () => {
+  await withRollback(async (tx) => {
+    const admin = await insertAccountWithActor(tx, {
+      username: "graphqlorgstaleadmin",
+      name: "GraphQL Org Stale Admin",
+      email: "graphqlorgstaleadmin@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, admin.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      admin.account,
+      {
+        username: "graphqlorgstale",
+        name: "GraphQL Org Stale",
+        bio: "",
+      },
+    );
+
+    const result = await execute({
+      schema,
+      document: markOrganizationNotificationsAsReadMutation,
+      variableValues: {
+        organizationId: encodeGlobalID("Account", organization.id),
+        upTo: generateUuidV7(),
+      },
+      contextValue: makeUserContext(tx, admin.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      markOrganizationNotificationsAsRead: {
+        __typename: "InvalidInputError",
+        inputPath: "upTo",
+      },
+    });
+  });
+});
 
 test("organization members can read organization notifications", async () => {
   await withRollback(async (tx) => {

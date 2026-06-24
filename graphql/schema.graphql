@@ -2333,7 +2333,7 @@ type MarkOrganizationNotificationsAsReadPayload {
   clientMutationId: ID
 }
 
-union MarkOrganizationNotificationsAsReadResult = MarkOrganizationNotificationsAsReadPayload | NotAuthenticatedError | NotAuthorizedError | OrganizationPermissionError
+union MarkOrganizationNotificationsAsReadResult = InvalidInputError | MarkOrganizationNotificationsAsReadPayload | NotAuthenticatedError | NotAuthorizedError | OrganizationPermissionError
 
 """A Hackers' Pub-flavored Markdown text."""
 scalar Markdown

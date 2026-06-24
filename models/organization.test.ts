@@ -167,6 +167,45 @@ test("createOrganization() rejects invalid usernames without consuming invitatio
   });
 });
 
+test("createOrganization() rejects invalid display names and bios without consuming invitations", async () => {
+  await withRollback(async (tx) => {
+    const creator = await insertAccountWithActor(tx, {
+      username: "invalidorgprofilecreator",
+      name: "Invalid Org Profile Creator",
+      email: "invalidorgprofilecreator@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, creator.account.id));
+
+    await assert.rejects(
+      createOrganization(createFedCtx(tx), creator.account, {
+        username: "blanknameorg",
+        name: "   ",
+        bio: "",
+      }),
+      /display name/i,
+    );
+    await assert.rejects(
+      createOrganization(createFedCtx(tx), creator.account, {
+        username: "longbioorg",
+        name: "Long Bio Org",
+        bio: "a".repeat(513),
+      }),
+      /bio/i,
+    );
+
+    const storedCreator = await tx.query.accountTable.findFirst({
+      where: { id: creator.account.id },
+    });
+    assert.equal(storedCreator?.leftInvitations, 1);
+    const organizations = await tx.query.accountTable.findMany({
+      where: { inviterId: creator.account.id, kind: "organization" },
+    });
+    assert.equal(organizations.length, 0);
+  });
+});
+
 test("organization membership invite acceptance and last-member guard", async () => {
   await withRollback(async (tx) => {
     const admin = await insertAccountWithActor(tx, {
