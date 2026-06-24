@@ -1117,9 +1117,9 @@ export async function markOrganizationNotificationsReadThrough(
 
   const result = await db.execute<{ inserted: number }>(sql`
     INSERT INTO ${organizationNotificationReadTable} (
-      ${sql.raw('"organization_account_id"')},
-      ${sql.raw('"member_account_id"')},
-      ${sql.raw('"read_at"')}
+      ${organizationNotificationReadTable.organizationAccountId},
+      ${organizationNotificationReadTable.memberAccountId},
+      ${organizationNotificationReadTable.readAt}
     )
     SELECT
       ${organizationAccountId},
@@ -1129,14 +1129,14 @@ export async function markOrganizationNotificationsReadThrough(
     WHERE ${notificationTable.id} = ${notificationId}
       AND ${notificationTable.accountId} = ${organizationAccountId}
     ON CONFLICT (
-      ${sql.raw('"organization_account_id"')},
-      ${sql.raw('"member_account_id"')}
+      ${organizationNotificationReadTable.organizationAccountId},
+      ${organizationNotificationReadTable.memberAccountId}
     ) DO UPDATE SET
-      ${sql.raw('"read_at"')} = GREATEST(
+      ${organizationNotificationReadTable.readAt} = GREATEST(
         ${organizationNotificationReadTable.readAt},
         EXCLUDED.read_at
       ),
-      ${sql.raw('"updated"')} = CURRENT_TIMESTAMP
+      ${organizationNotificationReadTable.updated} = CURRENT_TIMESTAMP
     RETURNING 1 AS inserted
   `);
   return result.length > 0;
