@@ -541,8 +541,9 @@ function ActingAccountMenu() {
     if (width == null) return undefined;
     return `${Math.max(width + 1, 240)}px`;
   };
-  const setTriggerElement = (element: HTMLElement) => {
+  const setTriggerElement = (element: HTMLElement | undefined) => {
     triggerResizeObserver?.disconnect();
+    if (element == null) return;
     const updateWidth = () => {
       setTriggerWidth(element.getBoundingClientRect().width);
     };

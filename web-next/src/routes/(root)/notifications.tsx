@@ -1,11 +1,7 @@
 import { Navigate } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { createMemo, For, Show } from "solid-js";
-import {
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { ModerationNotificationList } from "~/components/ModerationNotificationList.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NotificationList } from "~/components/NotificationList.tsx";
@@ -108,7 +104,7 @@ function NotificationsPageContent(props: NotificationsPageContentProps) {
   const selectedOrganizationId = createMemo(() =>
     actingAccount.selectedOrganization()?.organization.id ?? null
   );
-  const organizationData = createPreloadedQuery<
+  const organizationData = createStablePreloadedQuery<
     notificationsOrganizationNotificationsQuery
   >(
     notificationsOrganizationNotificationsQuery,
