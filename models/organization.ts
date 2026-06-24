@@ -1010,17 +1010,14 @@ export async function getOrganizationNotificationBadge(
       (
         SELECT MAX(${organizationNotificationReadTable.readAt})
         FROM ${organizationNotificationReadTable}
+        JOIN ${organizationMembershipTable}
+          ON ${organizationMembershipTable.organizationAccountId} =
+            ${organizationNotificationReadTable.organizationAccountId}
+          AND ${organizationMembershipTable.memberAccountId} =
+            ${organizationNotificationReadTable.memberAccountId}
         WHERE ${organizationNotificationReadTable.organizationAccountId} =
           ${organizationAccountId}
-          AND EXISTS (
-            SELECT 1
-            FROM ${organizationMembershipTable}
-            WHERE ${organizationMembershipTable.organizationAccountId} =
-              ${organizationNotificationReadTable.organizationAccountId}
-              AND ${organizationMembershipTable.memberAccountId} =
-              ${organizationNotificationReadTable.memberAccountId}
-              AND ${organizationMembershipTable.accepted} IS NOT NULL
-          )
+          AND ${organizationMembershipTable.accepted} IS NOT NULL
       ),
       '-infinity'::timestamptz
     )

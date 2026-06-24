@@ -106,7 +106,7 @@ export function NotificationList(props: NotificationListProps) {
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
   >("loaded");
-  let markedAccountId: string | null = null;
+  let markedReadThroughId: string | null = null;
 
   function refreshUnreadNotificationsCount() {
     fetchQuery<NotificationListUnreadNotificationsQuery>(
@@ -119,10 +119,12 @@ export function NotificationList(props: NotificationListProps) {
 
   createEffect(() => {
     const data = notifications();
-    if (data == null || markedAccountId === data.id) return;
+    if (data == null) return;
     const readThrough = data.notifications.edges[0]?.node;
-    if (readThrough == null) return;
-    markedAccountId = data.id;
+    if (readThrough == null || markedReadThroughId === readThrough.uuid) {
+      return;
+    }
+    markedReadThroughId = readThrough.uuid;
     const readScope = props.readScope ?? { kind: "personal" };
     if (readScope.kind === "organization") {
       markOrganizationNotificationsAsRead({
