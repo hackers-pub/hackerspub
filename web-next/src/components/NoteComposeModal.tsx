@@ -118,6 +118,7 @@ export function NoteComposeModal() {
               initialLanguage={editInitialData()?.language}
               initialQuotePolicy={editInitialData()?.quotePolicy}
               editingVisibility={editInitialData()?.visibility}
+              editingAuthorAccountId={editInitialData()?.authorAccountId}
             />
           </div>
         </DialogContent>

@@ -177,6 +177,7 @@ function ArticleEditForm(props: ArticleEditFormProps) {
         id
         sourceId
         actor {
+          personalIsViewer: isViewer
           isViewer(actingAccountId: $actingAccountId)
           account {
             id
@@ -206,7 +207,9 @@ function ArticleEditForm(props: ArticleEditFormProps) {
       : null;
   };
   const canEdit = () =>
-    article()?.actor.isViewer === true || authoringOrganizationId() != null;
+    article()?.actor.personalIsViewer === true ||
+    article()?.actor.isViewer === true ||
+    authoringOrganizationId() != null;
 
   // Authorization runs on the server so unauthorized requests get an actual
   // HTTP 403 instead of a blank 200 page. Organization-authored articles need
@@ -266,6 +269,7 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
   const actingAccountIdForArticle = () => {
     const selected = actingAccount.selectedActingAccountId();
     const ownerAccountId = article().actor.account?.id;
+    if (article().actor.personalIsViewer) return null;
     return selected != null && selected === ownerAccountId
       ? selected
       : props.actingAccountIdFallback;

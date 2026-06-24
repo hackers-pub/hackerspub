@@ -138,7 +138,8 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
         published
         visibility
         ... on Note {
-          rawContent
+          personalRawContent: rawContent
+          rawContent(actingAccountId: $actingAccountId)
           quotePolicy
         }
         ... on Article {
@@ -157,6 +158,10 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
           url
           iri
           isViewer(actingAccountId: $actingAccountId)
+          account {
+            id
+            kind
+          }
         }
         ...PostAuthorAvatar_post
         ...PostAuthorLine_post
@@ -442,15 +447,20 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
                   engagementBase={engagementBase(p)}
                   connections={props.connections ?? []}
                   onDeleted={props.onDeleted}
-                  onEdit={p.rawContent != null && p.visibility !== "NONE"
+                  onEdit={(p.rawContent ?? p.personalRawContent) != null &&
+                      p.visibility !== "NONE"
                     ? () =>
                       openForEdit(p.id, {
-                        content: p.rawContent!,
+                        content: (p.rawContent ?? p.personalRawContent)!,
                         language: p.language,
                         quotePolicy: (p.quotePolicy as QuotePolicy) ??
                           "EVERYONE",
                         visibility: (p.visibility as PostVisibility) ??
                           "PUBLIC",
+                        authorAccountId: p.rawContent != null &&
+                            p.actor.account?.kind === "ORGANIZATION"
+                          ? p.actor.account.id
+                          : null,
                       })
                     : undefined}
                   class="mt-1"

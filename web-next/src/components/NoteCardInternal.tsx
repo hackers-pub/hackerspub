@@ -50,6 +50,7 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
         censored
         content
         language
+        personalRawContent: rawContent
         rawContent(actingAccountId: $actingAccountId)
         sensitive
         summary
@@ -60,6 +61,10 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
           username
           handle
           isViewer(actingAccountId: $actingAccountId)
+          account {
+            id
+            kind
+          }
         }
         ...PostAuthorAvatar_post
         ...PostEngagementBar_post @arguments(
@@ -202,13 +207,18 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
                 pinConnections={props.pinConnections}
                 bookmarkListConnections={props.bookmarkListConnections}
                 onDeleted={props.onDeleted}
-                onEdit={n.rawContent != null && n.visibility !== "NONE"
+                onEdit={(n.rawContent ?? n.personalRawContent) != null &&
+                    n.visibility !== "NONE"
                   ? () =>
                     openForEdit(n.id, {
-                      content: n.rawContent!,
+                      content: (n.rawContent ?? n.personalRawContent)!,
                       language: n.language,
                       quotePolicy: (n.quotePolicy as QuotePolicy) ?? "EVERYONE",
                       visibility: (n.visibility as PostVisibility) ?? "PUBLIC",
+                      authorAccountId: n.rawContent != null &&
+                          n.actor.account?.kind === "ORGANIZATION"
+                        ? n.actor.account.id
+                        : null,
                     })
                   : undefined}
               />
