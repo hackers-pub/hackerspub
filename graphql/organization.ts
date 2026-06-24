@@ -469,7 +469,14 @@ builder.drizzleObjectField(Account, "organizationMembers", (t) =>
         throw new NotAuthenticatedError();
       }
       if (!viewer.moderator) {
-        await requireMembership(ctx, account.id, viewer.id);
+        try {
+          await requireMembership(ctx, account.id, viewer.id);
+        } catch (error) {
+          if (error instanceof OrganizationPermissionError) {
+            throw new NotAuthorizedError();
+          }
+          throw error;
+        }
       }
       return await ctx.db.query.organizationMembershipTable.findMany({
         where: {

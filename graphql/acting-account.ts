@@ -1,8 +1,11 @@
 import { decodeGlobalID } from "@pothos/plugin-relay";
-import { resolveActingAccount } from "@hackerspub/models/organization";
+import {
+  OrganizationPermissionError,
+  resolveActingAccount,
+} from "@hackerspub/models/organization";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import type { UserContext } from "./builder.ts";
-import { InvalidInputError } from "./error.ts";
+import { InvalidInputError, NotAuthorizedError } from "./error.ts";
 import { NotAuthenticatedError } from "./session.ts";
 
 type ActingAccount = NonNullable<UserContext["account"]>;
@@ -43,37 +46,44 @@ export async function resolveActingAccountForGlobalIdArg(
   ctx: UserContext,
   input: ActingAccountGlobalIdInput,
 ): Promise<ActingAccount> {
-  const actingAccountId = input.actingAccountId;
-  if (actingAccountId == null) {
-    return await resolveActingAccountForMutation(ctx, {
-      actingAccountId: null,
-    });
-  }
-  let id: unknown;
-  let typename: unknown;
-  if (typeof actingAccountId === "string") {
-    try {
-      ({ id, typename } = decodeGlobalID(actingAccountId));
-    } catch {
+  try {
+    const actingAccountId = input.actingAccountId;
+    if (actingAccountId == null) {
+      return await resolveActingAccountForMutation(ctx, {
+        actingAccountId: null,
+      });
+    }
+    let id: unknown;
+    let typename: unknown;
+    if (typeof actingAccountId === "string") {
+      try {
+        ({ id, typename } = decodeGlobalID(actingAccountId));
+      } catch {
+        throw new InvalidInputError("actingAccountId");
+      }
+    } else {
+      id = actingAccountId.id;
+      typename = actingAccountId.typename;
+    }
+    if (
+      typename != null &&
+      typename !== "Account"
+    ) {
       throw new InvalidInputError("actingAccountId");
     }
-  } else {
-    id = actingAccountId.id;
-    typename = actingAccountId.typename;
+    if (typeof id !== "string" || !validateUuid(id)) {
+      throw new InvalidInputError("actingAccountId");
+    }
+    return await resolveActingAccountForMutation(ctx, {
+      actingAccountId: {
+        id: id as Uuid,
+        typename: typeof typename === "string" ? typename : undefined,
+      },
+    });
+  } catch (error) {
+    if (error instanceof OrganizationPermissionError) {
+      throw new NotAuthorizedError();
+    }
+    throw error;
   }
-  if (
-    typename != null &&
-    typename !== "Account"
-  ) {
-    throw new InvalidInputError("actingAccountId");
-  }
-  if (typeof id !== "string" || !validateUuid(id)) {
-    throw new InvalidInputError("actingAccountId");
-  }
-  return await resolveActingAccountForMutation(ctx, {
-    actingAccountId: {
-      id: id as Uuid,
-      typename: typeof typename === "string" ? typename : undefined,
-    },
-  });
 }
