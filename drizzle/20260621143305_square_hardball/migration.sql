@@ -58,4 +58,5 @@ ALTER TABLE "organization_notification_read" ADD CONSTRAINT "organization_notifi
 ALTER TABLE "organization_notification_read" ADD CONSTRAINT "organization_notification_read_FaWR1bypTwkX_fkey" FOREIGN KEY ("member_account_id") REFERENCES "account"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "organization_post_author" ADD CONSTRAINT "organization_post_author_post_id_post_id_fkey" FOREIGN KEY ("post_id") REFERENCES "post"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "organization_post_author" ADD CONSTRAINT "organization_post_author_xvxV0edtHJ7A_fkey" FOREIGN KEY ("organization_account_id") REFERENCES "account"("id") ON DELETE CASCADE;--> statement-breakpoint
-ALTER TABLE "organization_post_author" ADD CONSTRAINT "organization_post_author_member_account_id_account_id_fkey" FOREIGN KEY ("member_account_id") REFERENCES "account"("id") ON DELETE CASCADE;
+ALTER TABLE "organization_post_author" ADD CONSTRAINT "organization_post_author_member_account_id_account_id_fkey" FOREIGN KEY ("member_account_id") REFERENCES "account"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TYPE "notification_type" ADD VALUE 'organization_conversion_request';
