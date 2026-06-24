@@ -138,6 +138,7 @@ const actorProfileConnectionsAsActingAccountQuery = parse(`
         edges {
           node {
             id
+            content
           }
         }
       }
@@ -145,6 +146,7 @@ const actorProfileConnectionsAsActingAccountQuery = parse(`
         edges {
           node {
             id
+            content
           }
         }
       }
@@ -152,6 +154,7 @@ const actorProfileConnectionsAsActingAccountQuery = parse(`
         edges {
           node {
             id
+            content
           }
         }
       }
@@ -3608,9 +3611,9 @@ test("profile post connections can resolve with an organization perspective", as
     assert.equal(organizationResult.errors, undefined);
     const organizationData = toPlainJson(organizationResult.data) as {
       actorByHandle: {
-        notes: { edges: { node: { id: string } }[] };
-        articles: { edges: { node: { id: string } }[] };
-        sharedPosts: { edges: { node: { id: string } }[] };
+        notes: { edges: { node: { id: string; content: string } }[] };
+        articles: { edges: { node: { id: string; content: string } }[] };
+        sharedPosts: { edges: { node: { id: string; content: string } }[] };
       };
     };
     assert.deepEqual(
@@ -3623,14 +3626,31 @@ test("profile post connections can resolve with an organization perspective", as
       ].sort(),
     );
     assert.deepEqual(
+      organizationData.actorByHandle.notes.edges.map((edge) =>
+        edge.node.content
+      ).sort(),
+      [
+        "<p>Followers-only profile note for an organization</p>",
+        "<p>Followers-only share for an organization</p>",
+      ].sort(),
+    );
+    assert.deepEqual(
       organizationData.actorByHandle.articles.edges.map((edge) => edge.node.id),
       [encodeGlobalID("Article", article.id)],
+    );
+    assert.equal(
+      organizationData.actorByHandle.articles.edges[0].node.content,
+      "<p>Followers-only profile article for an organization</p>\n",
     );
     assert.deepEqual(
       organizationData.actorByHandle.sharedPosts.edges.map((edge) =>
         edge.node.id
       ),
       [encodeGlobalID("Note", sharedPost.id)],
+    );
+    assert.equal(
+      organizationData.actorByHandle.sharedPosts.edges[0].node.content,
+      "<p>Followers-only share for an organization</p>",
     );
   });
 });

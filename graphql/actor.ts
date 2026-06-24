@@ -1,7 +1,7 @@
 import { assert } from "@std/assert";
 import { isActor } from "@fedify/vocab";
 import DataLoader from "dataloader";
-import { desc, eq, inArray } from "drizzle-orm";
+import { desc, eq, inArray, sql } from "drizzle-orm";
 import {
   getAvatarUrl,
   persistActor,
@@ -71,6 +71,68 @@ const MAX_VIEWER_INTERACTIONS_WINDOW = 250;
 interface RelationshipBooleanKey {
   viewerActorId: Uuid | null;
   targetActorId: Uuid;
+}
+
+function actorProfilePostRelations(viewerActorId: Uuid | null) {
+  const viewerOnlyFilter = viewerActorId == null
+    ? { RAW: sql`false` }
+    : { actorId: viewerActorId };
+  const actorRelations = {
+    instance: true,
+    followers: viewerActorId == null
+      ? { where: { RAW: sql`false` } }
+      : { where: { followerId: viewerActorId } },
+    blockees: viewerActorId == null
+      ? { where: { RAW: sql`false` } }
+      : { where: { blockeeId: viewerActorId } },
+    blockers: viewerActorId == null
+      ? { where: { RAW: sql`false` } }
+      : { where: { blockerId: viewerActorId } },
+  } as const;
+  const nestedPostRelations = {
+    actor: { with: actorRelations },
+    articleSource: {
+      with: { contents: { where: { beingTranslated: false } } },
+    },
+    link: { with: { creator: true } },
+    mentions: { with: { actor: true } },
+    media: true,
+  } as const;
+  return {
+    ...nestedPostRelations,
+    shares: { where: viewerOnlyFilter },
+    reactions: { where: viewerOnlyFilter },
+    organizationAuthor: true,
+    replyTarget: { with: nestedPostRelations },
+    quotedPost: { with: nestedPostRelations },
+    sharedPost: {
+      with: {
+        ...nestedPostRelations,
+        shares: { where: viewerOnlyFilter },
+        reactions: { where: viewerOnlyFilter },
+        replyTarget: { with: nestedPostRelations },
+        quotedPost: { with: nestedPostRelations },
+      },
+    },
+  } as const;
+}
+
+async function loadActorProfilePostPage(
+  ctx: UserContext,
+  postPage: Array<{ id: Uuid }>,
+  viewerActorId: Uuid | null,
+) {
+  const postIds = postPage.map((post) => post.id);
+  if (postIds.length < 1) return [];
+  const posts = await ctx.db.query.postTable.findMany({
+    where: { id: { in: postIds } },
+    with: actorProfilePostRelations(viewerActorId),
+  });
+  const postsById = new Map(posts.map((post) => [post.id, post]));
+  return postPage.flatMap((post) => {
+    const loaded = postsById.get(post.id);
+    return loaded == null ? [] : [loaded];
+  });
 }
 
 // Per-request loader keyed by actor id.  Several resolvers (e.g.,
@@ -602,8 +664,8 @@ export const Actor = builder.drizzleNode("actorTable", {
           : await getActorById(ctx, viewerActorId);
         return await resolveOffsetConnection(
           { args },
-          async ({ offset, limit }) =>
-            await ctx.db.query.postTable.findMany({
+          async ({ offset, limit }) => {
+            const postPage = await ctx.db.query.postTable.findMany({
               where: {
                 AND: [
                   { actorId: actor.id },
@@ -614,7 +676,9 @@ export const Actor = builder.drizzleNode("actorTable", {
               orderBy: { published: "desc" },
               limit,
               offset,
-            }),
+            });
+            return await loadActorProfilePostPage(ctx, postPage, viewerActorId);
+          },
         );
       },
     }),
@@ -638,8 +702,8 @@ export const Actor = builder.drizzleNode("actorTable", {
           : await getActorById(ctx, viewerActorId);
         return await resolveOffsetConnection(
           { args },
-          async ({ offset, limit }) =>
-            await ctx.db.query.postTable.findMany({
+          async ({ offset, limit }) => {
+            const postPage = await ctx.db.query.postTable.findMany({
               where: {
                 AND: [
                   { actorId: actor.id },
@@ -651,7 +715,9 @@ export const Actor = builder.drizzleNode("actorTable", {
               orderBy: { published: "desc" },
               limit,
               offset,
-            }),
+            });
+            return await loadActorProfilePostPage(ctx, postPage, viewerActorId);
+          },
         );
       },
     }),
@@ -756,8 +822,8 @@ export const Actor = builder.drizzleNode("actorTable", {
           : await getActorById(ctx, viewerActorId);
         return await resolveOffsetConnection(
           { args },
-          async ({ offset, limit }) =>
-            await ctx.db.query.postTable.findMany({
+          async ({ offset, limit }) => {
+            const postPage = await ctx.db.query.postTable.findMany({
               where: {
                 AND: [
                   { actorId: actor.id },
@@ -774,7 +840,9 @@ export const Actor = builder.drizzleNode("actorTable", {
               orderBy: { published: "desc" },
               limit,
               offset,
-            }),
+            });
+            return await loadActorProfilePostPage(ctx, postPage, viewerActorId);
+          },
         );
       },
     }),
@@ -813,8 +881,8 @@ export const Actor = builder.drizzleNode("actorTable", {
           : await getActorById(ctx, viewerActorId);
         return await resolveOffsetConnection(
           { args },
-          async ({ offset, limit }) =>
-            await ctx.db.query.postTable.findMany({
+          async ({ offset, limit }) => {
+            const postPage = await ctx.db.query.postTable.findMany({
               where: {
                 AND: [
                   { actorId: actor.id },
@@ -826,7 +894,9 @@ export const Actor = builder.drizzleNode("actorTable", {
               orderBy: { published: "desc" },
               limit,
               offset,
-            }),
+            });
+            return await loadActorProfilePostPage(ctx, postPage, viewerActorId);
+          },
         );
       },
     }),
