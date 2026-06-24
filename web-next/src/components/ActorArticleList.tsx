@@ -33,7 +33,11 @@ export function ActorArticleList(props: ActorArticleListProps) {
         )
       {
         __id
-        articles(after: $cursor, first: $count)
+        articles(
+          after: $cursor
+          first: $count
+          actingAccountId: $actingAccountId
+        )
           @connection(key: "ActorArticleList_articles")
         {
           __id

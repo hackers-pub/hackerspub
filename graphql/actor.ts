@@ -618,22 +618,42 @@ export const Actor = builder.drizzleNode("actorTable", {
         );
       },
     }),
-    notes: t.relatedConnection("posts", {
+    notes: t.connection({
       type: Note,
       description:
         "This actor's `Note`-type posts, newest first, filtered to those " +
         "visible to the viewer. Includes both original notes and boost " +
-        "wrappers of remote notes. Use `sharedPosts` to see only boosts.",
-      query: (_, ctx) => ({
-        where: {
-          AND: [
-            { type: "Note" },
-            getPostVisibilityFilter(ctx.account?.actor ?? null),
-            getCensoredPostExclusionFilter(ctx.account?.actor.id),
-          ],
-        },
-        orderBy: { published: "desc" },
-      }),
+        "wrappers of remote notes. Use `sharedPosts` to see only boosts. " +
+        "Pass `actingAccountId` for an organization perspective.",
+      args: {
+        actingAccountId: t.arg.id({
+          required: false,
+          description: actingAccountIdArgDescription,
+        }),
+      },
+      async resolve(actor, args, ctx) {
+        const viewerActorId = await resolveViewerActorId(ctx, args);
+        const viewerActor = viewerActorId == null
+          ? null
+          : await getActorById(ctx, viewerActorId);
+        return await resolveOffsetConnection(
+          { args },
+          async ({ offset, limit }) =>
+            await ctx.db.query.postTable.findMany({
+              where: {
+                AND: [
+                  { actorId: actor.id },
+                  { type: "Note" },
+                  getPostVisibilityFilter(viewerActor),
+                  getCensoredPostExclusionFilter(viewerActor?.id),
+                ],
+              },
+              orderBy: { published: "desc" },
+              limit,
+              offset,
+            }),
+        );
+      },
     }),
     noteByUuid: t.drizzleField({
       type: Note,
@@ -716,27 +736,47 @@ export const Actor = builder.drizzleNode("actorTable", {
         })) ?? null;
       },
     }),
-    articles: t.relatedConnection("posts", {
+    articles: t.connection({
       type: Article,
       description:
         "This actor's locally-authored `Article`-type posts, newest first. " +
         "Only includes articles that have a local `articleSource` row; " +
-        "remote articles federated in from other instances are excluded.",
-      query: (_, ctx) => ({
-        where: {
-          AND: [
-            { type: "Article" },
-            {
-              articleSourceId: {
-                isNotNull: true,
+        "remote articles federated in from other instances are excluded. " +
+        "Pass `actingAccountId` for an organization perspective.",
+      args: {
+        actingAccountId: t.arg.id({
+          required: false,
+          description: actingAccountIdArgDescription,
+        }),
+      },
+      async resolve(actor, args, ctx) {
+        const viewerActorId = await resolveViewerActorId(ctx, args);
+        const viewerActor = viewerActorId == null
+          ? null
+          : await getActorById(ctx, viewerActorId);
+        return await resolveOffsetConnection(
+          { args },
+          async ({ offset, limit }) =>
+            await ctx.db.query.postTable.findMany({
+              where: {
+                AND: [
+                  { actorId: actor.id },
+                  { type: "Article" },
+                  {
+                    articleSourceId: {
+                      isNotNull: true,
+                    },
+                  },
+                  getPostVisibilityFilter(viewerActor),
+                  getCensoredPostExclusionFilter(viewerActor?.id),
+                ],
               },
-            },
-            getPostVisibilityFilter(ctx.account?.actor ?? null),
-            getCensoredPostExclusionFilter(ctx.account?.actor.id),
-          ],
-        },
-        orderBy: { published: "desc" },
-      }),
+              orderBy: { published: "desc" },
+              limit,
+              offset,
+            }),
+        );
+      },
     }),
     questions: t.relatedConnection("posts", {
       type: Question,
@@ -754,21 +794,41 @@ export const Actor = builder.drizzleNode("actorTable", {
         orderBy: { published: "desc" },
       }),
     }),
-    sharedPosts: t.relatedConnection("posts", {
+    sharedPosts: t.connection({
       type: Post,
       description:
         "Posts that this actor has boosted (shared), newest first. " +
-        "These are boost wrapper rows where `sharedPost` is non-null.",
-      query: (_, ctx) => ({
-        where: {
-          AND: [
-            getPostVisibilityFilter(ctx.account?.actor ?? null),
-            getCensoredPostExclusionFilter(ctx.account?.actor.id),
-            { sharedPostId: { isNotNull: true } },
-          ],
-        },
-        orderBy: { published: "desc" },
-      }),
+        "These are boost wrapper rows where `sharedPost` is non-null. " +
+        "Pass `actingAccountId` for an organization perspective.",
+      args: {
+        actingAccountId: t.arg.id({
+          required: false,
+          description: actingAccountIdArgDescription,
+        }),
+      },
+      async resolve(actor, args, ctx) {
+        const viewerActorId = await resolveViewerActorId(ctx, args);
+        const viewerActor = viewerActorId == null
+          ? null
+          : await getActorById(ctx, viewerActorId);
+        return await resolveOffsetConnection(
+          { args },
+          async ({ offset, limit }) =>
+            await ctx.db.query.postTable.findMany({
+              where: {
+                AND: [
+                  { actorId: actor.id },
+                  getPostVisibilityFilter(viewerActor),
+                  getCensoredPostExclusionFilter(viewerActor?.id),
+                  { sharedPostId: { isNotNull: true } },
+                ],
+              },
+              orderBy: { published: "desc" },
+              limit,
+              offset,
+            }),
+        );
+      },
     }),
     pins: t.connection({
       type: Post,

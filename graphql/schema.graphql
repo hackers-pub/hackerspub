@@ -406,9 +406,18 @@ type Actor implements Node {
   aliases: [URL!]!
 
   """
-  This actor's locally-authored `Article`-type posts, newest first. Only includes articles that have a local `articleSource` row; remote articles federated in from other instances are excluded.
+  This actor's locally-authored `Article`-type posts, newest first. Only includes articles that have a local `articleSource` row; remote articles federated in from other instances are excluded. Pass `actingAccountId` for an organization perspective.
   """
-  articles(after: String, before: String, first: Int, last: Int): ActorArticlesConnection!
+  articles(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): ActorArticlesConnection!
 
   """
   If false, incoming follow requests must be manually approved. Pending follows appear with a `null` `accepted` timestamp in `ActorFollowersConnectionEdge` until the actor approves them.
@@ -554,9 +563,18 @@ type Actor implements Node {
   noteByUuid(uuid: UUID!): Note
 
   """
-  This actor's `Note`-type posts, newest first, filtered to those visible to the viewer. Includes both original notes and boost wrappers of remote notes. Use `sharedPosts` to see only boosts.
+  This actor's `Note`-type posts, newest first, filtered to those visible to the viewer. Includes both original notes and boost wrappers of remote notes. Use `sharedPosts` to see only boosts. Pass `actingAccountId` for an organization perspective.
   """
-  notes(after: String, before: String, first: Int, last: Int): ActorNotesConnection!
+  notes(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): ActorNotesConnection!
 
   """
   Posts this actor has pinned to the top of their profile, most recently pinned first. Only posts visible to the current viewer are included.
@@ -613,9 +631,18 @@ type Actor implements Node {
   sensitive: Boolean!
 
   """
-  Posts that this actor has boosted (shared), newest first. These are boost wrapper rows where `sharedPost` is non-null.
+  Posts that this actor has boosted (shared), newest first. These are boost wrapper rows where `sharedPost` is non-null. Pass `actingAccountId` for an organization perspective.
   """
-  sharedPosts(after: String, before: String, first: Int, last: Int): ActorSharedPostsConnection!
+  sharedPosts(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): ActorSharedPostsConnection!
 
   """
   If this actor has migrated to a new account via the ActivityPub Move activity, points to the new actor. The old actor's posts are not automatically transferred to the new account.

@@ -32,7 +32,7 @@ export function ActorNoteList(props: ActorNoteListProps) {
         )
       {
         __id
-        notes(after: $cursor, first: $count)
+        notes(after: $cursor, first: $count, actingAccountId: $actingAccountId)
           @connection(key: "ActorNoteList_notes")
         {
           __id

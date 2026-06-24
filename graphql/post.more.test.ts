@@ -128,6 +128,37 @@ const actorPostsAsActingAccountQuery = parse(`
   }
 `);
 
+const actorProfileConnectionsAsActingAccountQuery = parse(`
+  query ActorProfileConnectionsAsActingAccount(
+    $handle: String!
+    $actingAccountId: ID
+  ) {
+    actorByHandle(handle: $handle, allowLocalHandle: true) {
+      notes(first: 10, actingAccountId: $actingAccountId) {
+        edges {
+          node {
+            id
+          }
+        }
+      }
+      articles(first: 10, actingAccountId: $actingAccountId) {
+        edges {
+          node {
+            id
+          }
+        }
+      }
+      sharedPosts(first: 10, actingAccountId: $actingAccountId) {
+        edges {
+          node {
+            id
+          }
+        }
+      }
+    }
+  }
+`);
+
 const articleContentOgImageUrlQuery = parse(`
   query ArticleContentOgImageUrl(
     $handle: String!
@@ -3473,6 +3504,134 @@ test("Actor.posts can resolve with an organization perspective", async () => {
         },
       },
     });
+  });
+});
+
+test("profile post connections can resolve with an organization perspective", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "orgprofileconnectionsmember",
+      name: "Organization Profile Connections Member",
+      email: "orgprofileconnectionsmember@example.com",
+    });
+    const author = await insertAccountWithActor(tx, {
+      username: "orgprofileconnectionsauthor",
+      name: "Organization Profile Connections Author",
+      email: "orgprofileconnectionsauthor@example.com",
+    });
+    const source = await insertAccountWithActor(tx, {
+      username: "orgprofileconnectionssource",
+      name: "Organization Profile Connections Source",
+      email: "orgprofileconnectionssource@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgprofileconnections",
+        name: "Organization Profile Connections",
+        bio: "",
+      },
+    );
+    await follow(createFedCtx(tx), organization, author.actor);
+
+    const { post: note } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Followers-only profile note for an organization",
+      visibility: "followers",
+    });
+    const article = await createArticle(createFedCtx(tx), {
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "organization-profile-connection",
+      tags: [],
+      allowLlmTranslation: false,
+      published: new Date("2026-04-15T00:00:00.000Z"),
+      updated: new Date("2026-04-15T00:00:00.000Z"),
+      title: "Organization profile connection",
+      content: "Followers-only profile article for an organization",
+      language: "en",
+    });
+    assert.ok(article != null);
+    await tx.update(postTable)
+      .set({ visibility: "followers" })
+      .where(eq(postTable.id, article.id));
+    const { post: original } = await insertNotePost(tx, {
+      account: source.account,
+      content: "Original post shared by the profile author",
+      visibility: "public",
+    });
+    const { post: sharedPost } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Followers-only share for an organization",
+      visibility: "followers",
+      sharedPostId: original.id,
+    });
+
+    const personalResult = await execute({
+      schema,
+      document: actorProfileConnectionsAsActingAccountQuery,
+      variableValues: { handle: author.account.username },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(personalResult.errors, undefined);
+    assert.deepEqual(toPlainJson(personalResult.data), {
+      actorByHandle: {
+        notes: {
+          edges: [],
+        },
+        articles: {
+          edges: [],
+        },
+        sharedPosts: {
+          edges: [],
+        },
+      },
+    });
+
+    const organizationResult = await execute({
+      schema,
+      document: actorProfileConnectionsAsActingAccountQuery,
+      variableValues: {
+        handle: author.account.username,
+        actingAccountId: encodeGlobalID("Account", organization.id),
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(organizationResult.errors, undefined);
+    const organizationData = toPlainJson(organizationResult.data) as {
+      actorByHandle: {
+        notes: { edges: { node: { id: string } }[] };
+        articles: { edges: { node: { id: string } }[] };
+        sharedPosts: { edges: { node: { id: string } }[] };
+      };
+    };
+    assert.deepEqual(
+      organizationData.actorByHandle.notes.edges
+        .map((edge) => edge.node.id)
+        .sort(),
+      [
+        encodeGlobalID("Note", note.id),
+        encodeGlobalID("Note", sharedPost.id),
+      ].sort(),
+    );
+    assert.deepEqual(
+      organizationData.actorByHandle.articles.edges.map((edge) => edge.node.id),
+      [encodeGlobalID("Article", article.id)],
+    );
+    assert.deepEqual(
+      organizationData.actorByHandle.sharedPosts.edges.map((edge) =>
+        edge.node.id
+      ),
+      [encodeGlobalID("Note", sharedPost.id)],
+    );
   });
 });
 

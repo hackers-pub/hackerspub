@@ -81,6 +81,7 @@ function getTombstoneFormerType(actorType: Actor["type"]) {
     case "Service":
       return vocab.Service;
     case "Person":
+    default:
       return vocab.Person;
   }
 }

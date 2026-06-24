@@ -435,7 +435,7 @@ builder.mutationField("redeemInvitationLink", (t) =>
       });
       if (link == null) {
         return { link: "LINK_NOT_FOUND" } satisfies RedeemValidationErrors;
-      } else if (link.inviter.kind !== "personal") {
+      } else if (link.inviter?.kind !== "personal") {
         return { link: "LINK_NOT_FOUND" } satisfies RedeemValidationErrors;
       } else if (link.expires && link.expires < new Date()) {
         return { link: "LINK_EXPIRED" } satisfies RedeemValidationErrors;

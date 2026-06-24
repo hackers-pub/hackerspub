@@ -33,7 +33,11 @@ export function ActorSharedPostList(props: ActorSharedPostListProps) {
         )
       {
         __id
-        sharedPosts(after: $cursor, first: $count)
+        sharedPosts(
+          after: $cursor
+          first: $count
+          actingAccountId: $actingAccountId
+        )
           @connection(key: "ActorSharedPostList_sharedPosts")
         {
           __id

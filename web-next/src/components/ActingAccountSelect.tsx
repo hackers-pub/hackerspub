@@ -1,5 +1,5 @@
 import type { Accessor } from "solid-js";
-import { createMemo } from "solid-js";
+import { createMemo, For } from "solid-js";
 import {
   Avatar,
   AvatarFallback,
@@ -167,17 +167,19 @@ function AccountAvatarStack(props: {
   const avatarSize = () => props.size === "sm" ? "size-5" : "size-6";
   return (
     <div class="flex shrink-0 -space-x-1" aria-hidden="true">
-      {props.accounts.map((account) => (
-        <Avatar class={cn(avatarSize(), "border border-background")}>
-          <AvatarImage
-            src={account.avatarUrl ?? undefined}
-            alt=""
-          />
-          <AvatarFallback class="text-[0.625rem] font-medium">
-            {formatAccountName(account).charAt(0).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
-      ))}
+      <For each={props.accounts}>
+        {(account) => (
+          <Avatar class={cn(avatarSize(), "border border-background")}>
+            <AvatarImage
+              src={account.avatarUrl ?? undefined}
+              alt=""
+            />
+            <AvatarFallback class="text-[0.625rem] font-medium">
+              {formatAccountName(account).charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+        )}
+      </For>
     </div>
   );
 }
@@ -190,15 +192,17 @@ function AccountIdentityList(props: {
     <span class={cn("block min-w-0 max-w-full truncate", props.class)}>
       <span class="sr-only">{formatAccountsLabel(props.accounts)}</span>
       <span aria-hidden="true">
-        {props.accounts.map((account, index) => (
-          <>
-            {index > 0 && <span class="mx-1 text-muted-foreground">+</span>}
-            <span>{formatAccountName(account)}</span>{" "}
-            <span class="text-muted-foreground">
-              ({formatAccountHandle(account)})
-            </span>
-          </>
-        ))}
+        <For each={props.accounts}>
+          {(account, index) => (
+            <>
+              {index() > 0 && <span class="mx-1 text-muted-foreground">+</span>}
+              <span>{formatAccountName(account)}</span>{" "}
+              <span class="text-muted-foreground">
+                ({formatAccountHandle(account)})
+              </span>
+            </>
+          )}
+        </For>
       </span>
     </span>
   );
@@ -212,24 +216,30 @@ function AccountOptionIdentity(props: {
       <div class="min-w-0 max-w-full truncate">
         <span class="sr-only">{formatAccountsLabel(props.accounts)}</span>
         <span aria-hidden="true">
-          {props.accounts.map((account, index) => (
-            <>
-              {index > 0 && <span class="mx-1 text-muted-foreground">+</span>}
-              <span>{formatAccountName(account)}</span>
-            </>
-          ))}
+          <For each={props.accounts}>
+            {(account, index) => (
+              <>
+                {index() > 0 && (
+                  <span class="mx-1 text-muted-foreground">+</span>
+                )}
+                <span>{formatAccountName(account)}</span>
+              </>
+            )}
+          </For>
         </span>
       </div>
       <div
         class="min-w-0 max-w-full truncate text-xs text-muted-foreground"
         aria-hidden="true"
       >
-        {props.accounts.map((account, index) => (
-          <>
-            {index > 0 && <span class="mx-1">+</span>}
-            <span>{formatAccountHandle(account)}</span>
-          </>
-        ))}
+        <For each={props.accounts}>
+          {(account, index) => (
+            <>
+              {index() > 0 && <span class="mx-1">+</span>}
+              <span>{formatAccountHandle(account)}</span>
+            </>
+          )}
+        </For>
       </div>
     </div>
   );
