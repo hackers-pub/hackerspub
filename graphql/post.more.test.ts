@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import { execute, parse } from "graphql";
 import type { UserContext } from "./builder.ts";
 import { createArticle, updateArticleDraft } from "@hackerspub/models/article";
+import { follow } from "@hackerspub/models/following";
 import { createOrganization } from "@hackerspub/models/organization";
 import {
   accountTable,
@@ -552,8 +553,8 @@ const deletePostAsOrganizationMutation = parse(`
 `);
 
 const postByUrlQuery = parse(`
-  query PostByUrl($url: String!) {
-    postByUrl(url: $url) {
+  query PostByUrl($url: String!, $actingAccountId: ID) {
+    postByUrl(url: $url, actingAccountId: $actingAccountId) {
       id
     }
   }
@@ -3031,6 +3032,71 @@ test("deletePost rejects deleting shared posts and postByUrl resolves owned post
     assert.deepEqual(toPlainJson(lookupResult.data), {
       postByUrl: {
         id: encodeGlobalID("Note", original.id),
+      },
+    });
+  });
+});
+
+test("postByUrl can resolve with an organization perspective", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "orgquoteurlmember",
+      name: "Organization Quote URL Member",
+      email: "orgquoteurlmember@example.com",
+    });
+    const author = await insertAccountWithActor(tx, {
+      username: "orgquoteurlauthor",
+      name: "Organization Quote URL Author",
+      email: "orgquoteurlauthor@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgquoteurl",
+        name: "Organization Quote URL",
+        bio: "",
+      },
+    );
+    const fedCtx = createFedCtx(tx);
+    await follow(fedCtx, organization, author.actor);
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Followers-only quote target for an organization",
+      visibility: "followers",
+    });
+
+    const personalResult = await execute({
+      schema,
+      document: postByUrlQuery,
+      variableValues: { url: post.url },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(personalResult.errors, undefined);
+    assert.deepEqual(toPlainJson(personalResult.data), {
+      postByUrl: null,
+    });
+
+    const organizationResult = await execute({
+      schema,
+      document: postByUrlQuery,
+      variableValues: {
+        url: post.url,
+        actingAccountId: encodeGlobalID("Account", organization.id),
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(organizationResult.errors, undefined);
+    assert.deepEqual(toPlainJson(organizationResult.data), {
+      postByUrl: {
+        id: encodeGlobalID("Note", post.id),
       },
     });
   });

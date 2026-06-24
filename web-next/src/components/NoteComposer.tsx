@@ -246,7 +246,7 @@ const NoteComposerReplyTargetQuery = graphql`
 
 const NoteComposerPostByUrlQuery = graphql`
   query NoteComposerPostByUrlQuery($url: String!, $actingAccountId: ID) {
-    postByUrl(url: $url) {
+    postByUrl(url: $url, actingAccountId: $actingAccountId) {
       __typename
       id
       viewerCanQuote(actingAccountId: $actingAccountId)

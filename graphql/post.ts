@@ -4284,15 +4284,25 @@ builder.queryField("postByUrl", (t) =>
       "Resolve a post by its URL, fetching it from the originating " +
       "instance via ActivityPub if it is not already cached. Requires " +
       "authentication (unauthenticated callers always receive `null`). " +
-      "Returns `null` if the post is not found or not visible to the viewer.",
+      "Returns `null` if the post is not found or not visible to the " +
+      "selected viewer account. Pass `actingAccountId` when validating a " +
+      "quote target for an organization account.",
     args: {
       url: t.arg.string({ required: true }),
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
     },
     async resolve(_root, args, ctx) {
       if (ctx.account == null) return null;
       const parsed = parseHttpUrl(args.url.trim());
       if (parsed == null) return null;
-      const account = ctx.account;
+      const actingAccount = await resolveActingAccountForGlobalIdArg(
+        ctx,
+        args,
+      );
+      const viewerActor = actingAccount.actor;
       const looked = await lookupPostByUrl(ctx, parsed);
       if (looked == null) return null;
       const postId = looked.id;
@@ -4300,13 +4310,13 @@ builder.queryField("postByUrl", (t) =>
         actor: {
           with: {
             followers: {
-              where: { followerId: account.actor.id },
+              where: { followerId: viewerActor.id },
             },
             blockees: {
-              where: { blockeeId: account.actor.id },
+              where: { blockeeId: viewerActor.id },
             },
             blockers: {
-              where: { blockerId: account.actor.id },
+              where: { blockerId: viewerActor.id },
             },
           },
         },
@@ -4322,7 +4332,7 @@ builder.queryField("postByUrl", (t) =>
         where: { id: postId },
       });
       if (post == null) return null;
-      if (!isPostVisibleTo(post, account.actor)) return null;
+      if (!isPostVisibleTo(post, viewerActor)) return null;
       return post;
     },
   }));

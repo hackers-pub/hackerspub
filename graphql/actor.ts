@@ -29,10 +29,7 @@ import {
   isActorBanned,
   isActorSuspended,
 } from "@hackerspub/models/moderation";
-import {
-  OrganizationPermissionError,
-  resolveActingAccount,
-} from "@hackerspub/models/organization";
+import { OrganizationPermissionError } from "@hackerspub/models/organization";
 import {
   getCensoredPostExclusionFilter,
   getPostVisibilityFilter,
@@ -60,27 +57,18 @@ import { ActorSuspendedError, InvalidInputError } from "./error.ts";
 import { lookupActorByUrl, parseHttpUrl } from "./lookup.ts";
 import { Article, Note, Post, Question } from "./post.ts";
 import { NotAuthenticatedError } from "./session.ts";
+import {
+  type ActingAccountIdArg,
+  actingAccountIdArgDescription,
+  resolveViewerActorId,
+} from "./viewer-actor.ts";
 
 const MAX_VIEWER_INTERACTIONS_WINDOW = 250;
-
-const actingAccountIdArgDescription =
-  "Optional `Account` ID that changes viewer-relative checks to an " +
-  "organization account managed by the authenticated viewer. Omit this " +
-  "argument to use the authenticated viewer's personal account.";
-
-interface ActingAccountIdArg {
-  actingAccountId?: { id: string } | null;
-}
 
 interface RelationshipBooleanKey {
   viewerActorId: Uuid | null;
   targetActorId: Uuid;
 }
-
-const viewerActorIdCache = new WeakMap<
-  UserContext,
-  Map<string, Promise<Uuid | null>>
->();
 
 // Per-request loader keyed by actor id.  Several resolvers (e.g.,
 // `Notification.actors`) need to fetch actor rows by id one-by-one
@@ -105,53 +93,6 @@ export function getActorById(
     },
   );
   return ctx.actorByIdLoader.load(actorId);
-}
-
-async function resolveViewerActorId(
-  ctx: UserContext,
-  { actingAccountId }: ActingAccountIdArg,
-): Promise<Uuid | null> {
-  const cacheKey = actingAccountId?.id ?? "";
-  let cache = viewerActorIdCache.get(ctx);
-  if (cache == null) {
-    cache = new Map();
-    viewerActorIdCache.set(ctx, cache);
-  }
-  let promise = cache.get(cacheKey);
-  if (promise == null) {
-    promise = resolveViewerActorIdUncached(ctx, { actingAccountId });
-    cache.set(cacheKey, promise);
-  }
-  return await promise;
-}
-
-async function resolveViewerActorIdUncached(
-  ctx: UserContext,
-  { actingAccountId }: ActingAccountIdArg,
-): Promise<Uuid | null> {
-  if (ctx.account?.actor == null) return null;
-  const rawAccountId = actingAccountId?.id;
-  if (rawAccountId != null && !validateUuid(rawAccountId)) {
-    throw createGraphQLError("Invalid acting account.", {
-      extensions: { code: "BAD_USER_INPUT" },
-    });
-  }
-  try {
-    const account = await resolveActingAccount(
-      ctx.db,
-      ctx.account,
-      rawAccountId as Uuid | undefined,
-    );
-    return account.actor.id;
-  } catch (error) {
-    if (error instanceof OrganizationPermissionError) {
-      throw createGraphQLError("Not allowed to use this acting account.", {
-        originalError: error,
-        extensions: { code: "FORBIDDEN" },
-      });
-    }
-    throw error;
-  }
 }
 
 async function relationshipBooleanKey(
@@ -710,7 +651,8 @@ export const Actor = builder.drizzleNode("actorTable", {
         "UUID for source-backed local posts, including local `Question`s. " +
         "For posts without a local source row (federated remote posts and " +
         "local share wrappers), the row PK is the lookup token. The OR-match " +
-        "here keeps both styles working. Returns null if no post matches.",
+        "here keeps both styles working. Returns `null` if no post matches " +
+        "or the post is not visible to the selected viewer account.",
       select: { columns: { id: true } },
       nullable: true,
       args: {
@@ -721,11 +663,19 @@ export const Actor = builder.drizzleNode("actorTable", {
             "Any of `Post.uuid`, `Note.sourceId` (also used by local " +
             "`Question`s), or the local article source's id.",
         }),
+        actingAccountId: t.arg.id({
+          required: false,
+          description: actingAccountIdArgDescription,
+        }),
       },
       async resolve(query, actor, args, ctx) {
         if (!validateUuid(args.uuid)) return null;
 
-        const visibility = getPostVisibilityFilter(ctx.account?.actor ?? null);
+        const viewerActorId = await resolveViewerActorId(ctx, args);
+        const viewerActor = viewerActorId == null
+          ? null
+          : await getActorById(ctx, viewerActorId);
+        const visibility = getPostVisibilityFilter(viewerActor);
         return await ctx.db.query.postTable.findFirst(query({
           where: {
             AND: [

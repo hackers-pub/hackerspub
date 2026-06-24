@@ -564,9 +564,14 @@ type Actor implements Node {
   pins(after: String, before: String, first: Int, last: Int): ActorPinsConnection!
 
   """
-  Look up one of this actor's posts by any of its UUIDs. Resolves a match against any of the three UUIDs a post can carry: `Post.uuid` (the post row's PK), `Note.sourceId` (= `noteSourceTable.id`, set on source-backed local notes and Questions), or the local article source's id. The canonical permalink in `Post.url` uses the source UUID for source-backed local posts, including local `Question`s. For posts without a local source row (federated remote posts and local share wrappers), the row PK is the lookup token. The OR-match here keeps both styles working. Returns null if no post matches.
+  Look up one of this actor's posts by any of its UUIDs. Resolves a match against any of the three UUIDs a post can carry: `Post.uuid` (the post row's PK), `Note.sourceId` (= `noteSourceTable.id`, set on source-backed local notes and Questions), or the local article source's id. The canonical permalink in `Post.url` uses the source UUID for source-backed local posts, including local `Question`s. For posts without a local source row (federated remote posts and local share wrappers), the row PK is the lookup token. The OR-match here keeps both styles working. Returns `null` if no post matches or the post is not visible to the selected viewer account.
   """
   postByUuid(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+
     """
     Any of `Post.uuid`, `Note.sourceId` (also used by local `Question`s), or the local article source's id.
     """
@@ -4435,9 +4440,15 @@ type Query {
   ): QueryPersonalTimelineConnection!
 
   """
-  Resolve a post by its URL, fetching it from the originating instance via ActivityPub if it is not already cached. Requires authentication (unauthenticated callers always receive `null`). Returns `null` if the post is not found or not visible to the viewer.
+  Resolve a post by its URL, fetching it from the originating instance via ActivityPub if it is not already cached. Requires authentication (unauthenticated callers always receive `null`). Returns `null` if the post is not found or not visible to the selected viewer account. Pass `actingAccountId` when validating a quote target for an organization account.
   """
-  postByUrl(url: String!): Post
+  postByUrl(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+    url: String!
+  ): Post
   privacyPolicy(
     """The locale for the Privacy Policy."""
     locale: Locale!

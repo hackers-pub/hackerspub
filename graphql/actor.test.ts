@@ -16,6 +16,7 @@ import { schema } from "./mod.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
+  insertNotePost,
   makeGuestContext,
   makeUserContext,
   toPlainJson,
@@ -114,6 +115,20 @@ const actorViewerPerspectiveQuery = parse(`
     organization: actorByUuid(uuid: $organization) {
       id
       isViewer(actingAccountId: $actingAccountId)
+    }
+  }
+`);
+
+const actorPostByUuidAsActingAccountQuery = parse(`
+  query ActorPostByUuidAsActingAccount(
+    $handle: String!,
+    $uuid: UUID!,
+    $actingAccountId: ID,
+  ) {
+    actorByHandle(handle: $handle, allowLocalHandle: true) {
+      postByUuid(uuid: $uuid, actingAccountId: $actingAccountId) {
+        id
+      }
     }
   }
 `);
@@ -627,6 +642,77 @@ test("Actor viewer relationship fields can use an organization perspective", asy
       organization: {
         id: encodeGlobalID("Actor", organization.actor.id),
         isViewer: true,
+      },
+    });
+  });
+});
+
+test("Actor.postByUuid can resolve with an organization perspective", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "orgpostlookupmember",
+      name: "Organization Post Lookup Member",
+      email: "orgpostlookupmember@example.com",
+    });
+    const author = await insertAccountWithActor(tx, {
+      username: "orgpostlookupauthor",
+      name: "Organization Post Lookup Author",
+      email: "orgpostlookupauthor@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgpostlookup",
+        name: "Organization Post Lookup",
+        bio: "",
+      },
+    );
+    const fedCtx = createFedCtx(tx);
+    await follow(fedCtx, organization, author.actor);
+    const { noteSourceId, post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Followers-only note for an organization",
+      visibility: "followers",
+    });
+
+    const personalResult = await execute({
+      schema,
+      document: actorPostByUuidAsActingAccountQuery,
+      variableValues: {
+        handle: author.account.username,
+        uuid: noteSourceId,
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(personalResult.errors, undefined);
+    assert.deepEqual(toPlainJson(personalResult.data), {
+      actorByHandle: { postByUuid: null },
+    });
+
+    const organizationResult = await execute({
+      schema,
+      document: actorPostByUuidAsActingAccountQuery,
+      variableValues: {
+        handle: author.account.username,
+        uuid: noteSourceId,
+        actingAccountId: encodeGlobalID("Account", organization.id),
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(organizationResult.errors, undefined);
+    assert.deepEqual(toPlainJson(organizationResult.data), {
+      actorByHandle: {
+        postByUuid: {
+          id: encodeGlobalID("Note", post.id),
+        },
       },
     });
   });

@@ -102,7 +102,7 @@ const NoteIdPageQuery = graphql`
     $actingAccountId: ID
   ) {
     actorByHandle(handle: $handle, allowLocalHandle: true) {
-      postByUuid(uuid: $noteId) {
+      postByUuid(uuid: $noteId, actingAccountId: $actingAccountId) {
         __typename
         ...NoteId_head
         ... on Note {
@@ -143,9 +143,13 @@ const loadNotePageQuery = routePreloadedQuery(
 );
 
 const NoteIdThreadQuery = graphql`
-  query NoteIdThreadQuery($handle: String!, $noteId: UUID!) {
+  query NoteIdThreadQuery(
+    $handle: String!
+    $noteId: UUID!
+    $actingAccountId: ID
+  ) {
     actorByHandle(handle: $handle, allowLocalHandle: true) {
-      postByUuid(uuid: $noteId) {
+      postByUuid(uuid: $noteId, actingAccountId: $actingAccountId) {
         ...NoteIdThread_post
       }
     }
@@ -153,11 +157,11 @@ const NoteIdThreadQuery = graphql`
 `;
 
 const loadNoteThreadQuery = routePreloadedQuery(
-  (username: string, noteId: Uuid) =>
+  (username: string, noteId: Uuid, actingAccountId: string | null) =>
     loadQuery<NoteIdThreadQuery>(
       useRelayEnvironment()(),
       NoteIdThreadQuery,
-      { handle: username, noteId },
+      { handle: username, noteId, actingAccountId },
       { fetchPolicy: "store-and-network" },
     ),
   NOTE_THREAD_QUERY_KEY,
@@ -621,12 +625,19 @@ function PermalinkThread(props: PermalinkThreadProps) {
 
 function PermalinkThreadLoaded(props: PermalinkThreadProps) {
   const { t } = useLingui();
+  const actingAccount = useActingAccount();
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
   >("loaded");
   const data = createStablePreloadedQuery<NoteIdThreadQuery>(
     NoteIdThreadQuery,
-    () => loadNoteThreadQuery(props.username, props.noteId),
+    () =>
+      loadNoteThreadQuery(
+        props.username,
+        props.noteId,
+        actingAccountId() ?? null,
+      ),
   );
   const thread = createPaginationFragment(
     graphql`
