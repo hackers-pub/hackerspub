@@ -245,6 +245,26 @@ async function countAcceptedAdmins(
   return Number(rows[0]?.count ?? 0);
 }
 
+async function assertAccountHasNoAcceptedOrganizationMemberships(
+  db: Database | Transaction,
+  accountId: Uuid,
+): Promise<void> {
+  const existingMemberships = await db.select({
+    organizationAccountId: organizationMembershipTable.organizationAccountId,
+  })
+    .from(organizationMembershipTable)
+    .where(and(
+      eq(organizationMembershipTable.memberAccountId, accountId),
+      isNotNull(organizationMembershipTable.accepted),
+    ))
+    .limit(1);
+  if (existingMemberships.length > 0) {
+    throw new OrganizationConversionError(
+      "The account must leave organizations before conversion.",
+    );
+  }
+}
+
 export async function assertPersonalAccountDeletionPreservesOrganizations(
   db: Database | Transaction,
   accountId: Uuid,
@@ -819,20 +839,10 @@ export async function acceptOrganizationConversion(
         "The conversion request is invalid.",
       );
     }
-    const existingMemberships = await tx.select({
-      organizationAccountId: organizationMembershipTable.organizationAccountId,
-    })
-      .from(organizationMembershipTable)
-      .where(and(
-        eq(organizationMembershipTable.memberAccountId, request.accountId),
-        isNotNull(organizationMembershipTable.accepted),
-      ))
-      .limit(1);
-    if (existingMemberships.length > 0) {
-      throw new OrganizationConversionError(
-        "The account must leave organizations before conversion.",
-      );
-    }
+    await assertAccountHasNoAcceptedOrganizationMemberships(
+      tx,
+      request.accountId,
+    );
 
     const pendingMemberships = await tx.query.organizationMembershipTable
       .findMany({
@@ -854,6 +864,10 @@ export async function acceptOrganizationConversion(
         eq(organizationMembershipTable.memberAccountId, request.accountId),
         isNull(organizationMembershipTable.accepted),
       ));
+    await assertAccountHasNoAcceptedOrganizationMemberships(
+      tx,
+      request.accountId,
+    );
 
     await tx.delete(accountEmailTable)
       .where(eq(accountEmailTable.accountId, request.accountId));
