@@ -167,6 +167,46 @@ test("createOrganization() rejects invalid usernames without consuming invitatio
   });
 });
 
+test("createOrganization() rejects deleted account usernames", async () => {
+  await withRollback(async (tx) => {
+    const creator = await insertAccountWithActor(tx, {
+      username: "reservedorgcreator",
+      name: "Reserved Org Creator",
+      email: "reservedorgcreator@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, creator.account.id));
+    await tx.execute(sql`
+      INSERT INTO deleted_account (account_id, username, actor_iri, deleted)
+      VALUES (
+        ${crypto.randomUUID() as Uuid},
+        'reservedorg',
+        'http://localhost/ap/actors/reservedorg',
+        TIMESTAMPTZ '2026-06-24T00:00:00.000Z'
+      )
+    `);
+
+    await assert.rejects(
+      createOrganization(createFedCtx(tx), creator.account, {
+        username: "reservedorg",
+        name: "Reserved Org",
+        bio: "",
+      }),
+      /username is already in use/i,
+    );
+
+    const storedCreator = await tx.query.accountTable.findFirst({
+      where: { id: creator.account.id },
+    });
+    assert.equal(storedCreator?.leftInvitations, 1);
+    const organization = await tx.query.accountTable.findFirst({
+      where: { username: "reservedorg" },
+    });
+    assert.equal(organization, undefined);
+  });
+});
+
 test("createOrganization() rejects invalid display names and bios without consuming invitations", async () => {
   await withRollback(async (tx) => {
     const creator = await insertAccountWithActor(tx, {

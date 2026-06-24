@@ -1,6 +1,6 @@
 import type { Context, RequestContext } from "@fedify/fedify";
 import { and, count, eq, gt, isNotNull, isNull, sql } from "drizzle-orm";
-import { sendAccountActorUpdate } from "./account.ts";
+import { isUsernameReserved, sendAccountActorUpdate } from "./account.ts";
 import { syncActorFromAccount } from "./actor.ts";
 import type { ContextData } from "./context.ts";
 import type { Database, Transaction } from "./db.ts";
@@ -328,6 +328,12 @@ export async function createOrganization(
       "The organization username is invalid.",
     );
   }
+  const db = fedCtx.data.db;
+  if (await isUsernameReserved(db, username)) {
+    throw new OrganizationMembershipError(
+      "The organization username is already in use.",
+    );
+  }
   const name = input.name.trim();
   if (validateDisplayName(name) != null) {
     throw new OrganizationMembershipError(
@@ -339,7 +345,6 @@ export async function createOrganization(
       "The organization bio is invalid.",
     );
   }
-  const db = fedCtx.data.db;
   return await runInTransaction(db, async (tx) => {
     const creatorRows = await tx.update(accountTable)
       .set({
