@@ -1,7 +1,8 @@
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
-import { cn } from "~/lib/utils.ts";
+import { ActorHoverCard } from "./ActorHoverCard.tsx";
+import { InternalLink } from "./InternalLink.tsx";
 import type {
   PostAuthorAvatar_post$data,
   PostAuthorAvatar_post$key,
@@ -14,9 +15,8 @@ import type {
   PostAuthorText_post$data,
   PostAuthorText_post$key,
 } from "./__generated__/PostAuthorText_post.graphql.ts";
-import { ActorHoverCard } from "./ActorHoverCard.tsx";
-import { InternalLink } from "./InternalLink.tsx";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar.tsx";
+import { cn } from "~/lib/utils.ts";
 
 type AvatarActor = PostAuthorAvatar_post$data["actor"];
 type LineActor = PostAuthorLine_post$data["actor"];

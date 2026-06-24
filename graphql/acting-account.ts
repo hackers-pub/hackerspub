@@ -1,6 +1,6 @@
+import { decodeGlobalID } from "@pothos/plugin-relay";
 import { resolveActingAccount } from "@hackerspub/models/organization";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
-import { decodeGlobalID } from "@pothos/plugin-relay";
 import type { UserContext } from "./builder.ts";
 import { InvalidInputError } from "./error.ts";
 import { NotAuthenticatedError } from "./session.ts";

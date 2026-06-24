@@ -1,6 +1,11 @@
 import type { Accessor } from "solid-js";
 import { createMemo } from "solid-js";
 import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "~/components/ui/avatar.tsx";
+import {
   Select,
   SelectContent,
   SelectDescription,
@@ -8,11 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select.tsx";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "~/components/ui/avatar.tsx";
 import {
   type ActingAccountSummary,
   organizationComposeAccountKey,
