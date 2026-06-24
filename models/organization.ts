@@ -739,6 +739,32 @@ export async function requestOrganizationConversion(
     },
   });
   if (pending != null) {
+    if (pending.adminAccountId !== admin.id) {
+      await db.delete(notificationTable)
+        .where(and(
+          eq(notificationTable.accountId, pending.adminAccountId),
+          eq(notificationTable.type, "organization_conversion_request"),
+          eq(notificationTable.organizationConversionRequestId, pending.id),
+        ));
+      const rows = await db.update(organizationConversionRequestTable)
+        .set({
+          adminAccountId: admin.id,
+          updated: sql`CURRENT_TIMESTAMP`,
+        })
+        .where(and(
+          eq(organizationConversionRequestTable.id, pending.id),
+          isNull(organizationConversionRequestTable.accepted),
+        ))
+        .returning();
+      const reassigned = rows[0];
+      if (reassigned == null) {
+        throw new OrganizationConversionError(
+          "The conversion request could not be updated.",
+        );
+      }
+      pending.adminAccountId = reassigned.adminAccountId;
+      pending.updated = reassigned.updated;
+    }
     await createOrganizationConversionRequestNotification(
       db,
       account.id,

@@ -1183,6 +1183,61 @@ test("requestOrganizationConversion() notifies the accepting admin", async () =>
   }
 });
 
+test("requestOrganizationConversion() reassigns pending requests to a new admin", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "conversionreassign",
+      name: "Conversion Reassign",
+      email: "conversionreassign@example.com",
+    });
+    const firstAdmin = await insertAccountWithActor(tx, {
+      username: "conversionreassignfirst",
+      name: "Conversion Reassign First",
+      email: "conversionreassignfirst@example.com",
+    });
+    const secondAdmin = await insertAccountWithActor(tx, {
+      username: "conversionreassignsecond",
+      name: "Conversion Reassign Second",
+      email: "conversionreassignsecond@example.com",
+    });
+
+    const first = await requestOrganizationConversion(
+      tx,
+      account.account,
+      firstAdmin.account.username,
+      account.account.username,
+    );
+    const second = await requestOrganizationConversion(
+      tx,
+      account.account,
+      secondAdmin.account.username,
+      account.account.username,
+    );
+
+    assert.equal(second.id, first.id);
+    assert.equal(second.adminAccountId, secondAdmin.account.id);
+    const stored = await tx.query.organizationConversionRequestTable.findFirst({
+      where: { id: first.id },
+    });
+    assert.equal(stored?.adminAccountId, secondAdmin.account.id);
+    const staleNotifications = await tx.query.notificationTable.findMany({
+      where: {
+        accountId: firstAdmin.account.id,
+        type: "organization_conversion_request",
+      },
+    });
+    assert.equal(staleNotifications.length, 0);
+    const newNotifications = await tx.query.notificationTable.findMany({
+      where: {
+        accountId: secondAdmin.account.id,
+        type: "organization_conversion_request",
+      },
+    });
+    assert.equal(newNotifications.length, 1);
+    assert.equal(newNotifications[0].organizationConversionRequestId, first.id);
+  });
+});
+
 test("acceptOrganizationConversion() rejects accounts that still belong to organizations", async () => {
   await withRollback(async (tx) => {
     const admin = await insertAccountWithActor(tx, {
