@@ -793,6 +793,10 @@ function AccountSection(props: AccountSectionProps) {
     actingAccount.selectedOrganization()?.organization ??
       actingAccount.personalAccount() ??
       props.signedAccount;
+  const settingsAccount = () =>
+    actingAccount.selectedOrganization()?.role === "ADMIN"
+      ? actingAccount.selectedOrganization()?.organization
+      : actingAccount.personalAccount() ?? props.signedAccount;
 
   function onUseOldUI() {
     setLegacyUiCookie();
@@ -931,7 +935,7 @@ function AccountSection(props: AccountSectionProps) {
                 <SidebarMenuButton
                   as={A}
                   href={`/@${
-                    profileAccount()?.username ?? signedAccount.username
+                    settingsAccount()?.username ?? signedAccount.username
                   }/settings`}
                 >
                   <svg

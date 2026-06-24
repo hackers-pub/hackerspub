@@ -1123,3 +1123,66 @@ test("acceptOrganizationConversion() rejects accounts that still belong to organ
     assert.equal(storedMember?.kind, "personal");
   });
 });
+
+test("acceptOrganizationConversion() clears pending organization invitations", async () => {
+  await withRollback(async (tx) => {
+    const inviter = await insertAccountWithActor(tx, {
+      username: "conversionpendinginviter",
+      name: "Conversion Pending Inviter",
+      email: "conversionpendinginviter@example.com",
+    });
+    const invited = await insertAccountWithActor(tx, {
+      username: "conversionpending",
+      name: "Conversion Pending",
+      email: "conversionpending@example.com",
+    });
+    const targetAdmin = await insertAccountWithActor(tx, {
+      username: "conversionpendingadmin",
+      name: "Conversion Pending Admin",
+      email: "conversionpendingadmin@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, inviter.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      inviter.account,
+      {
+        username: "conversionpendingorg",
+        name: "Conversion Pending Org",
+        bio: "",
+      },
+    );
+    await inviteOrganizationMember(
+      tx,
+      inviter.account,
+      organization.id,
+      invited.account.username,
+    );
+
+    const request = await requestOrganizationConversion(
+      tx,
+      invited.account,
+      targetAdmin.account.username,
+      invited.account.username,
+    );
+    const converted = await acceptOrganizationConversion(
+      createFedCtx(tx),
+      targetAdmin.account,
+      request.id,
+    );
+
+    assert.equal(converted.kind, "organization");
+    const memberships = await tx.query.organizationMembershipTable.findMany({
+      where: { memberAccountId: invited.account.id },
+    });
+    assert.equal(memberships.length, 0);
+    const invitationNotifications = await tx.query.notificationTable.findMany({
+      where: {
+        accountId: invited.account.id,
+        type: "organization_invitation",
+      },
+    });
+    assert.equal(invitationNotifications.length, 0);
+  });
+});

@@ -793,18 +793,41 @@ export async function acceptOrganizationConversion(
         "The conversion request is invalid.",
       );
     }
-    const existingMembership = await tx.query.organizationMembershipTable
-      .findFirst({
-        where: { memberAccountId: request.accountId },
-        columns: {
-          organizationAccountId: true,
-        },
-      });
-    if (existingMembership != null) {
+    const existingMemberships = await tx.select({
+      organizationAccountId: organizationMembershipTable.organizationAccountId,
+    })
+      .from(organizationMembershipTable)
+      .where(and(
+        eq(organizationMembershipTable.memberAccountId, request.accountId),
+        isNotNull(organizationMembershipTable.accepted),
+      ))
+      .limit(1);
+    if (existingMemberships.length > 0) {
       throw new OrganizationConversionError(
         "The account must leave organizations before conversion.",
       );
     }
+
+    const pendingMemberships = await tx.query.organizationMembershipTable
+      .findMany({
+        where: {
+          memberAccountId: request.accountId,
+          accepted: { isNull: true },
+        },
+        columns: { organizationAccountId: true },
+      });
+    for (const membership of pendingMemberships) {
+      await deleteOrganizationInvitationNotification(
+        tx,
+        membership.organizationAccountId,
+        request.accountId,
+      );
+    }
+    await tx.delete(organizationMembershipTable)
+      .where(and(
+        eq(organizationMembershipTable.memberAccountId, request.accountId),
+        isNull(organizationMembershipTable.accepted),
+      ));
 
     await tx.delete(accountEmailTable)
       .where(eq(accountEmailTable.accountId, request.accountId));
