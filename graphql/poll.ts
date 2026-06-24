@@ -14,7 +14,10 @@ import {
 import type { Uuid } from "@hackerspub/models/uuid";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { eq } from "drizzle-orm";
+import { OrganizationPermissionError } from "@hackerspub/models/organization";
+import { Account } from "./account.ts";
 import { Actor } from "./actor.ts";
+import { resolveActingAccountForMutation } from "./acting-account.ts";
 import { builder, type UserContext } from "./builder.ts";
 import { ActorSuspendedError, InvalidInputError } from "./error.ts";
 import { Post, Question } from "./post.ts";
@@ -685,6 +688,13 @@ builder.relayMutationField(
           "exactly one index; multi-choice polls accept one or more unique " +
           "indices.",
       }),
+      actingAccountId: t.globalID({
+        for: [Account],
+        required: false,
+        description:
+          "Optional `Account` global id to vote as an organization account. " +
+          "Omit this to vote as the signed-in personal account.",
+      }),
     }),
   },
   {
@@ -693,6 +703,7 @@ builder.relayMutationField(
         NotAuthenticatedError,
         InvalidInputError,
         ActorSuspendedError,
+        OrganizationPermissionError,
       ],
     },
     async resolve(_root, args, ctx) {
@@ -707,6 +718,11 @@ builder.relayMutationField(
       if (optionIndices.size < 1) {
         throw new InvalidInputError("optionIndices");
       }
+
+      const actingAccount = await resolveActingAccountForMutation(
+        ctx,
+        args.input,
+      );
 
       const question = await ctx.db.query.postTable.findFirst({
         with: {
@@ -739,7 +755,7 @@ builder.relayMutationField(
 
       if (
         question == null || question.poll == null ||
-        !isPostVisibleTo(question, ctx.account.actor) ||
+        !isPostVisibleTo(question, actingAccount.actor) ||
         isPollCensoredForViewer(question, ctx)
       ) {
         throw new InvalidInputError("questionId");
@@ -764,7 +780,7 @@ builder.relayMutationField(
 
       const persistedVotes = await vote(
         ctx.fedCtx,
-        ctx.account,
+        actingAccount,
         question.poll,
         optionIndices,
       );

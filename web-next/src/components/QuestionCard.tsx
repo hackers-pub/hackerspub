@@ -407,6 +407,7 @@ function QuestionCardContent(props: QuestionCardContentProps) {
           input: {
             questionId: props.questionId,
             optionIndices: [...selectedOptions()].sort((a, b) => a - b),
+            actingAccountId: actingAccountId() ?? null,
           },
           actingAccountId: actingAccountId() ?? null,
         },

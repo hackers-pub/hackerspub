@@ -9,6 +9,7 @@ import type { Transaction } from "@hackerspub/models/db";
 import { createQuestion } from "@hackerspub/models/question";
 import {
   type NewPost,
+  organizationMembershipTable,
   pollOptionTable,
   pollTable,
   pollVoteTable,
@@ -112,10 +113,15 @@ const sharedQuestionPollQuery = parse(`
 `);
 
 const voteOnPollMutation = parse(`
-  mutation VoteOnPoll($questionId: ID!, $optionIndices: [Int!]!) {
+  mutation VoteOnPoll(
+    $questionId: ID!,
+    $optionIndices: [Int!]!,
+    $actingAccountId: ID
+  ) {
     voteOnPoll(input: {
       questionId: $questionId,
       optionIndices: $optionIndices,
+      actingAccountId: $actingAccountId,
     }) {
       __typename
       ... on VoteOnPollPayload {
@@ -934,6 +940,92 @@ test("voteOnPoll stores a single-choice vote and updates viewer fields", async (
     assert.deepEqual(repeatPayload.votes, [
       { option: { index: 1, title: "Rust", votes: { totalCount: 1 } } },
     ]);
+  });
+});
+
+test("voteOnPoll can vote as an organization account", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "pollgraphqlorgvoteauthor",
+      name: "Poll GraphQL Org Vote Author",
+      email: "pollgraphqlorgvoteauthor@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "pollgraphqlorgvotemember",
+      name: "Poll GraphQL Org Vote Member",
+      email: "pollgraphqlorgvotemember@example.com",
+    });
+    const organization = await insertAccountWithActor(tx, {
+      username: "pollgraphqlorgvoter",
+      name: "Poll GraphQL Org Voter",
+      email: "pollgraphqlorgvoter@example.com",
+      kind: "organization",
+    });
+    await tx.insert(organizationMembershipTable).values({
+      organizationAccountId: organization.account.id,
+      memberAccountId: member.account.id,
+      role: "member",
+      invitedById: member.account.id,
+      accepted: new Date(),
+    });
+    const questionId = generateUuidV7();
+    const questionGlobalId = encodeGlobalID("Question", questionId);
+    const organizationGlobalId = encodeGlobalID(
+      "Account",
+      organization.account.id,
+    );
+    const published = new Date("2026-04-15T00:00:00.000Z");
+
+    await tx.insert(postTable).values(
+      {
+        id: questionId,
+        iri: `http://localhost/objects/${questionId}`,
+        type: "Question",
+        visibility: "public",
+        actorId: author.actor.id,
+        name: "Vote as org?",
+        contentHtml: "<p>Vote as org?</p>",
+        language: "en",
+        tags: {},
+        emojis: {},
+        url: `http://localhost/@${author.account.username}/polls/${questionId}`,
+        published,
+        updated: published,
+      } satisfies NewPost,
+    );
+    await tx.insert(pollTable).values({
+      postId: questionId,
+      multiple: false,
+      votersCount: 0,
+      ends: pollEndsInFuture(),
+    });
+    await tx.insert(pollOptionTable).values([
+      { postId: questionId, index: 0, title: "Personal", votesCount: 0 },
+      { postId: questionId, index: 1, title: "Organization", votesCount: 0 },
+    ]);
+
+    const result = await execute({
+      schema,
+      document: voteOnPollMutation,
+      variableValues: {
+        questionId: questionGlobalId,
+        optionIndices: [1],
+        actingAccountId: organizationGlobalId,
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    const payload = (toPlainJson(result.data) as {
+      voteOnPoll: { __typename: string };
+    }).voteOnPoll;
+    assert.equal(payload.__typename, "VoteOnPollPayload");
+    const votes = await tx.query.pollVoteTable.findMany({
+      where: { postId: questionId },
+    });
+    assert.equal(votes.length, 1);
+    assert.equal(votes[0].actorId, organization.actor.id);
   });
 });
 

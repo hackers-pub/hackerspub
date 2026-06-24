@@ -6141,6 +6141,10 @@ union UpdateOrganizationMemberRoleResult = LastOrganizationAdminError | NotAuthe
 Vote in a visible poll. Votes are idempotent: once the viewer has voted, later calls return the stored selections instead of replacing them. Federates the vote when the poll is remote.
 """
 input VoteOnPollInput {
+  """
+  Optional `Account` global id to vote as an organization account. Omit this to vote as the signed-in personal account.
+  """
+  actingAccountId: ID
   clientMutationId: ID
 
   """
@@ -6169,7 +6173,7 @@ type VoteOnPollPayload {
   votes: [PollVote!]!
 }
 
-union VoteOnPollResult = ActorSuspendedError | InvalidInputError | NotAuthenticatedError | VoteOnPollPayload
+union VoteOnPollResult = ActorSuspendedError | InvalidInputError | NotAuthenticatedError | OrganizationPermissionError | VoteOnPollPayload
 
 """
 Result of looking up a remote follower via WebFinger, including their ActivityPub profile and remote follow URL.
