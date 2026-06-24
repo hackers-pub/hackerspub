@@ -90,7 +90,9 @@ const ProfilePageContentQuery = graphql`
       isViewer(actingAccountId: $actingAccountId)
       viewerBlocks(actingAccountId: $actingAccountId)
       blocksViewer(actingAccountId: $actingAccountId)
-      posts(first: 20) @connection(key: "ActorPostList_posts") {
+      posts(first: 20, actingAccountId: $actingAccountId)
+        @connection(key: "ActorPostList_posts")
+      {
         __id
         edges {
           cursor

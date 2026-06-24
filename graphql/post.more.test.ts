@@ -114,6 +114,20 @@ const articleByYearAndSlugQuery = parse(`
   }
 `);
 
+const actorPostsAsActingAccountQuery = parse(`
+  query ActorPostsAsActingAccount($handle: String!, $actingAccountId: ID) {
+    actorByHandle(handle: $handle, allowLocalHandle: true) {
+      posts(first: 10, actingAccountId: $actingAccountId) {
+        edges {
+          node {
+            id
+          }
+        }
+      }
+    }
+  }
+`);
+
 const articleContentOgImageUrlQuery = parse(`
   query ArticleContentOgImageUrl(
     $handle: String!
@@ -3381,6 +3395,82 @@ test("postByUrl can resolve with an organization perspective", async () => {
     assert.deepEqual(toPlainJson(organizationResult.data), {
       postByUrl: {
         id: encodeGlobalID("Note", post.id),
+      },
+    });
+  });
+});
+
+test("Actor.posts can resolve with an organization perspective", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "orgprofilepostmember",
+      name: "Organization Profile Post Member",
+      email: "orgprofilepostmember@example.com",
+    });
+    const author = await insertAccountWithActor(tx, {
+      username: "orgprofilepostauthor",
+      name: "Organization Profile Post Author",
+      email: "orgprofilepostauthor@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgprofilepost",
+        name: "Organization Profile Post",
+        bio: "",
+      },
+    );
+    await follow(createFedCtx(tx), organization, author.actor);
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Followers-only profile post for an organization",
+      visibility: "followers",
+    });
+
+    const personalResult = await execute({
+      schema,
+      document: actorPostsAsActingAccountQuery,
+      variableValues: { handle: author.account.username },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(personalResult.errors, undefined);
+    assert.deepEqual(toPlainJson(personalResult.data), {
+      actorByHandle: {
+        posts: {
+          edges: [],
+        },
+      },
+    });
+
+    const organizationResult = await execute({
+      schema,
+      document: actorPostsAsActingAccountQuery,
+      variableValues: {
+        handle: author.account.username,
+        actingAccountId: encodeGlobalID("Account", organization.id),
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(organizationResult.errors, undefined);
+    assert.deepEqual(toPlainJson(organizationResult.data), {
+      actorByHandle: {
+        posts: {
+          edges: [
+            {
+              node: {
+                id: encodeGlobalID("Note", post.id),
+              },
+            },
+          ],
+        },
       },
     });
   });

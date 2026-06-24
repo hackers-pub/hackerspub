@@ -582,21 +582,41 @@ export const Actor = builder.drizzleNode("actorTable", {
       select: { columns: { suspended: true, suspendedUntil: true } },
       resolve: (actor) => isActorSuspended(actor),
     }),
-    posts: t.relatedConnection("posts", {
+    posts: t.connection({
       type: Post,
       description:
         "All of this actor's posts (Notes, Articles, Questions, and " +
         "boost wrappers), newest published first. Filtered to posts " +
-        "visible to the current viewer.",
-      query: (_, ctx) => ({
-        where: {
-          AND: [
-            getPostVisibilityFilter(ctx.account?.actor ?? null),
-            getCensoredPostExclusionFilter(ctx.account?.actor.id),
-          ],
-        },
-        orderBy: { published: "desc" },
-      }),
+        "visible to the selected viewer account. Pass `actingAccountId` " +
+        "for an organization perspective.",
+      args: {
+        actingAccountId: t.arg.id({
+          required: false,
+          description: actingAccountIdArgDescription,
+        }),
+      },
+      async resolve(actor, args, ctx) {
+        const viewerActorId = await resolveViewerActorId(ctx, args);
+        const viewerActor = viewerActorId == null
+          ? null
+          : await getActorById(ctx, viewerActorId);
+        return await resolveOffsetConnection(
+          { args },
+          async ({ offset, limit }) =>
+            await ctx.db.query.postTable.findMany({
+              where: {
+                AND: [
+                  { actorId: actor.id },
+                  getPostVisibilityFilter(viewerActor),
+                  getCensoredPostExclusionFilter(viewerActor?.id),
+                ],
+              },
+              orderBy: { published: "desc" },
+              limit,
+              offset,
+            }),
+        );
+      },
     }),
     notes: t.relatedConnection("posts", {
       type: Note,

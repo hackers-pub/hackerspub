@@ -18,7 +18,7 @@ type AcceptOrganizationConversionPayload {
   organization: Account!
 }
 
-union AcceptOrganizationConversionResult = AcceptOrganizationConversionPayload | NotAuthenticatedError | NotAuthorizedError | OrganizationConversionError
+union AcceptOrganizationConversionResult = AcceptOrganizationConversionPayload | InvalidInputError | NotAuthenticatedError | NotAuthorizedError | OrganizationConversionError
 
 """
 Accept a pending organization invitation for the authenticated personal account.
@@ -579,9 +579,18 @@ type Actor implements Node {
   ): Post
 
   """
-  All of this actor's posts (Notes, Articles, Questions, and boost wrappers), newest published first. Filtered to posts visible to the current viewer.
+  All of this actor's posts (Notes, Articles, Questions, and boost wrappers), newest published first. Filtered to posts visible to the selected viewer account. Pass `actingAccountId` for an organization perspective.
   """
-  posts(after: String, before: String, first: Int, last: Int): ActorPostsConnection!
+  posts(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): ActorPostsConnection!
 
   """
   When the actor was first published, as reported by the actor's ActivityPub profile. `null` for remote actors whose profile did not include a published date.

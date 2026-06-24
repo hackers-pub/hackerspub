@@ -41,7 +41,11 @@ export function ActorPostList(props: ActorPostListProps) {
         )
       {
         __id
-        posts(after: $cursor, first: $count)
+        posts(
+          after: $cursor
+          first: $count
+          actingAccountId: $actingAccountId
+        )
           @connection(key: "ActorPostList_posts")
         {
           __id

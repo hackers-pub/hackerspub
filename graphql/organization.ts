@@ -345,6 +345,7 @@ builder.queryField("organizationConversionRequest", (t) =>
     async resolve(_root, args, ctx) {
       const viewer = ctx.account;
       if (viewer == null) return null;
+      if (!validateUuid(args.id)) return null;
       const request = await ctx.db.query.organizationConversionRequestTable
         .findFirst({
           where: { id: args.id as Uuid },
@@ -899,11 +900,15 @@ builder.relayMutationField(
       types: [
         NotAuthenticatedError,
         NotAuthorizedError,
+        InvalidInputError,
         OrganizationConversionError,
       ],
     },
     async resolve(_root, args, ctx): Promise<OrganizationPayload> {
       const admin = await requirePersonalAccount(ctx);
+      if (!validateUuid(args.input.requestId)) {
+        throw new InvalidInputError("requestId");
+      }
       const organization = await acceptOrganizationConversionModel(
         ctx.fedCtx,
         admin,
@@ -986,6 +991,9 @@ builder.relayMutationField(
         "organizationId",
       );
       if (args.input.upTo != null) {
+        if (!validateUuid(args.input.upTo)) {
+          throw new InvalidInputError("upTo");
+        }
         const marked = await markOrganizationNotificationsReadThrough(
           ctx.db,
           organizationId,

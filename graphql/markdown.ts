@@ -3,9 +3,10 @@ import {
   getMissingArticleMediumLabel,
   renderMarkup,
 } from "@hackerspub/models/markup";
+import { validateUuid } from "@hackerspub/models/uuid";
 import { resolveActingAccountForGlobalIdArg } from "./acting-account.ts";
 import { builder } from "./builder.ts";
-import { NotAuthorizedError } from "./error.ts";
+import { InvalidInputError, NotAuthorizedError } from "./error.ts";
 import { actingAccountIdArgDescription } from "./viewer-actor.ts";
 
 builder.queryField("renderMarkdown", (t) =>
@@ -42,6 +43,9 @@ builder.queryField("renderMarkdown", (t) =>
       let mediumUrls: Record<string, string> | undefined;
       let missingMediumLabel: string | undefined;
       if (args.articleSourceId != null) {
+        if (!validateUuid(args.articleSourceId)) {
+          throw new InvalidInputError("articleSourceId");
+        }
         const actingAccount = await resolveActingAccountForGlobalIdArg(
           ctx,
           args,

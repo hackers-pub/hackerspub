@@ -93,7 +93,11 @@ import {
 import type * as schema from "@hackerspub/models/schema";
 import DataLoader from "dataloader";
 import { withTransaction } from "@hackerspub/models/tx";
-import { generateUuidV7, type Uuid } from "@hackerspub/models/uuid";
+import {
+  generateUuidV7,
+  type Uuid,
+  validateUuid,
+} from "@hackerspub/models/uuid";
 import {
   createMediumUploadSession,
   deleteMediumUploadSession,
@@ -5078,6 +5082,9 @@ builder.relayMutationField(
         ctx,
         args.input,
       );
+      if (!validateUuid(args.input.articleSourceId)) {
+        throw new InvalidInputError("articleSourceId");
+      }
       const source = await ctx.db.query.articleSourceTable.findFirst({
         where: { id: args.input.articleSourceId },
         columns: { id: true, accountId: true },
