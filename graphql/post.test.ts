@@ -75,6 +75,9 @@ const addReactionAsOrganizationMutation = parse(`
           id
         }
       }
+      ... on ActorSuspendedError {
+        suspendedUntil
+      }
       ... on OrganizationPermissionError {
         message
       }
@@ -140,6 +143,9 @@ const shareAsOrganizationMutation = parse(`
         share {
           id
         }
+      }
+      ... on ActorSuspendedError {
+        suspendedUntil
       }
       ... on OrganizationPermissionError {
         message
@@ -672,6 +678,63 @@ test("addReactionToPost and removeReactionFromPost can act as an organization", 
   });
 });
 
+test("addReactionToPost rejects suspended organizations", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "suspendedorgreactionauthor",
+      name: "Suspended Org Reaction Author",
+      email: "suspendedorgreactionauthor@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "suspendedorgreactionmember",
+      name: "Suspended Org Reaction Member",
+      email: "suspendedorgreactionmember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "suspendedorgreactionactor",
+        name: "Suspended Org Reaction Actor",
+        bio: "",
+      },
+    );
+    const until = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await tx.update(actorTable)
+      .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: until })
+      .where(eq(actorTable.accountId, organization.id));
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Suspended organization reaction target",
+    });
+
+    const result = await execute({
+      schema,
+      document: addReactionAsOrganizationMutation,
+      variableValues: {
+        postId: encodeGlobalID("Note", post.id),
+        emoji: "🎉",
+        actingAccountId: encodeGlobalID("Account", organization.id),
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(result.errors, undefined);
+    const data = (result.data as {
+      addReactionToPost: {
+        __typename: string;
+        suspendedUntil: string | null;
+      };
+    }).addReactionToPost;
+    assert.deepEqual(data.__typename, "ActorSuspendedError");
+    assert.ok(data.suspendedUntil != null);
+  });
+});
+
 test("sharePost and unsharePost round-trip through GraphQL", async () => {
   await withRollback(async (tx) => {
     const author = await insertAccountWithActor(tx, {
@@ -833,6 +896,59 @@ test("sharePost and unsharePost can act as an organization", async () => {
       },
     });
     assert.deepEqual(sharesAfterUnshare, []);
+  });
+});
+
+test("sharePost rejects suspended organizations", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "suspendedorgshareauthor",
+      name: "Suspended Org Share Author",
+      email: "suspendedorgshareauthor@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "suspendedorgsharemember",
+      name: "Suspended Org Share Member",
+      email: "suspendedorgsharemember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "suspendedorgshareactor",
+        name: "Suspended Org Share Actor",
+        bio: "",
+      },
+    );
+    const until = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await tx.update(actorTable)
+      .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: until })
+      .where(eq(actorTable.accountId, organization.id));
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Suspended organization share target",
+    });
+
+    const result = await execute({
+      schema,
+      document: shareAsOrganizationMutation,
+      variableValues: {
+        postId: encodeGlobalID("Note", post.id),
+        actingAccountId: encodeGlobalID("Account", organization.id),
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(result.errors, undefined);
+    const data = (result.data as {
+      sharePost: { __typename: string; suspendedUntil: string | null };
+    }).sharePost;
+    assert.deepEqual(data.__typename, "ActorSuspendedError");
+    assert.ok(data.suspendedUntil != null);
   });
 });
 

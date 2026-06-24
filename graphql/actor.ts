@@ -1473,6 +1473,9 @@ builder.relayMutationField(
       }
 
       await assertAccountActorNotSuspended(ctx.db, ctx.account.id);
+      if (actingAccount.id !== ctx.account.id) {
+        await assertAccountActorNotSuspended(ctx.db, actingAccount.id);
+      }
       await follow(ctx.fedCtx, actingAccount, followee);
 
       return { followeeId: followee.id, followerId: actingAccount.actor.id };

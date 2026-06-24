@@ -507,6 +507,63 @@ test("followActor rejects suspended members acting through organizations", async
   });
 });
 
+test("followActor rejects suspended organizations", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "orgfollowsuspendedorgmember",
+      name: "Organization Follow Suspended Org Member",
+      email: "orgfollowsuspendedorgmember@example.com",
+    });
+    const followee = await insertAccountWithActor(tx, {
+      username: "orgfollowsuspendedorgtarget",
+      name: "Organization Follow Suspended Org Target",
+      email: "orgfollowsuspendedorgtarget@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgfollowsuspendedorgactor",
+        name: "Organization Follow Suspended Org Actor",
+        bio: "",
+      },
+    );
+    const until = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await tx.update(actorTable)
+      .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: until })
+      .where(eq(actorTable.accountId, organization.id));
+
+    const result = await execute({
+      schema,
+      document: followActorAsOrganizationMutation,
+      variableValues: {
+        actorId: encodeGlobalID("Actor", followee.actor.id),
+        actingAccountId: encodeGlobalID("Account", organization.id),
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(result.errors, undefined);
+    const data = (toPlainJson(result.data) as {
+      followActor: { __typename: string; suspendedUntil: string | null };
+    }).followActor;
+    assert.equal(data.__typename, "ActorSuspendedError");
+    assert.ok(data.suspendedUntil != null);
+
+    const storedFollow = await tx.query.followingTable.findFirst({
+      where: {
+        followerId: organization.actor.id,
+        followeeId: followee.actor.id,
+      },
+    });
+    assert.equal(storedFollow, undefined);
+  });
+});
+
 test("followActor rejects organization acting without membership", async () => {
   await withRollback(async (tx) => {
     const admin = await insertAccountWithActor(tx, {

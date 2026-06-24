@@ -420,6 +420,9 @@ const createQuestionAsOrganizationMutation = parse(`
           }
         }
       }
+      ... on ActorSuspendedError {
+        suspendedUntil
+      }
     }
   }
 `);
@@ -439,6 +442,9 @@ const publishArticleDraftAsOrganizationMutation = parse(`
           }
         }
         deletedDraftId
+      }
+      ... on ActorSuspendedError {
+        suspendedUntil
       }
     }
   }
@@ -1475,6 +1481,54 @@ test("createNote rejects suspended members acting through organizations", async 
   });
 });
 
+test("createNote rejects suspended organizations", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "suspendedorgnotemember",
+      name: "Suspended Org Note Member",
+      email: "suspendedorgnotemember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "suspendedorgnoteauthor",
+        name: "Suspended Org Note Author",
+        bio: "",
+      },
+    );
+    const until = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await tx.update(actorTable)
+      .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: until })
+      .where(eq(actorTable.accountId, organization.id));
+
+    const result = await execute({
+      schema,
+      document: createNoteAsOrganizationMutation,
+      variableValues: {
+        input: {
+          visibility: "PUBLIC",
+          content: "Trying to post as a suspended organization",
+          language: "en",
+          actingAccountId: encodeGlobalID("Account", organization.id),
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    const data = (toPlainJson(result.data) as {
+      createNote: { __typename: string; suspendedUntil: string | null };
+    }).createNote;
+    assert.equal(data.__typename, "ActorSuspendedError");
+    assert.ok(data.suspendedUntil != null);
+  });
+});
+
 test("createNote rejects acting as an organization without membership", async () => {
   await withRollback(async (tx) => {
     const admin = await insertAccountWithActor(tx, {
@@ -1583,6 +1637,60 @@ test("createQuestion can publish as an organization", async () => {
   });
 });
 
+test("createQuestion rejects suspended organizations", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "suspendedorgquestionmember",
+      name: "Suspended Org Question Member",
+      email: "suspendedorgquestionmember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "suspendedorgquestionauthor",
+        name: "Suspended Org Question Author",
+        bio: "",
+      },
+    );
+    const until = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await tx.update(actorTable)
+      .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: until })
+      .where(eq(actorTable.accountId, organization.id));
+
+    const result = await execute({
+      schema,
+      document: createQuestionAsOrganizationMutation,
+      variableValues: {
+        input: {
+          visibility: "PUBLIC",
+          content: "Trying to ask as a suspended organization",
+          language: "en",
+          actingAccountId: encodeGlobalID("Account", organization.id),
+          poll: {
+            title: "Suspended organization poll",
+            multiple: false,
+            options: ["Yes", "No"],
+            ends: new Date(Date.now() + 3_600_000).toISOString(),
+          },
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    const data = (toPlainJson(result.data) as {
+      createQuestion: { __typename: string; suspendedUntil: string | null };
+    }).createQuestion;
+    assert.equal(data.__typename, "ActorSuspendedError");
+    assert.ok(data.suspendedUntil != null);
+  });
+});
+
 test("publishArticleDraft can publish as an organization", async () => {
   await withRollback(async (tx) => {
     const member = await insertAccountWithActor(tx, {
@@ -1652,6 +1760,64 @@ test("publishArticleDraft can publish as an organization", async () => {
       },
     });
     assert.ok(articleSource != null);
+  });
+});
+
+test("publishArticleDraft rejects suspended organizations", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "suspendedorgarticlemember",
+      name: "Suspended Org Article Member",
+      email: "suspendedorgarticlemember@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "suspendedorgarticleauthor",
+        name: "Suspended Org Article Author",
+        bio: "",
+      },
+    );
+    const until = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await tx.update(actorTable)
+      .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: until })
+      .where(eq(actorTable.accountId, organization.id));
+    const draftId = generateUuidV7();
+    await tx.insert(articleDraftTable).values({
+      id: draftId,
+      accountId: member.account.id,
+      title: "Suspended organization article",
+      content: "Draft content",
+    });
+
+    const result = await execute({
+      schema,
+      document: publishArticleDraftAsOrganizationMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("ArticleDraft", draftId),
+          slug: "suspended-organization-article",
+          language: "en",
+          actingAccountId: encodeGlobalID("Account", organization.id),
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    const data = (toPlainJson(result.data) as {
+      publishArticleDraft: {
+        __typename: string;
+        suspendedUntil: string | null;
+      };
+    }).publishArticleDraft;
+    assert.equal(data.__typename, "ActorSuspendedError");
+    assert.ok(data.suspendedUntil != null);
   });
 });
 

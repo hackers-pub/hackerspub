@@ -345,6 +345,17 @@ async function recordPostActingAccount(
   );
 }
 
+async function assertActingAccountNotSuspended(
+  db: Database,
+  authenticatedAccountId: Uuid,
+  actingAccountId: Uuid,
+): Promise<void> {
+  await assertAccountActorNotSuspended(db, authenticatedAccountId);
+  if (actingAccountId !== authenticatedAccountId) {
+    await assertAccountActorNotSuspended(db, actingAccountId);
+  }
+}
+
 async function resolvePostManagementActingAccount(
   ctx: UserContext,
   input: PostManagementActingAccountInput,
@@ -2624,7 +2635,11 @@ builder.relayMutationField(
           }),
         );
         let note: Awaited<ReturnType<typeof createNote>>;
-        await assertAccountActorNotSuspended(ctx.db, authenticatedAccountId);
+        await assertActingAccountNotSuspended(
+          ctx.db,
+          authenticatedAccountId,
+          actingAccount.account.id,
+        );
         try {
           note = await createNote(
             context,
@@ -2935,7 +2950,11 @@ builder.relayMutationField(
             `Unknown value in Post.visibility: "${visibility}"`,
           );
         let question: Awaited<ReturnType<typeof createQuestion>>;
-        await assertAccountActorNotSuspended(ctx.db, authenticatedAccountId);
+        await assertActingAccountNotSuspended(
+          ctx.db,
+          authenticatedAccountId,
+          actingAccount.account.id,
+        );
         try {
           question = await createQuestion(
             context,
@@ -3422,7 +3441,11 @@ builder.relayMutationField(
 
       const { slug, language, allowLlmTranslation, quotePolicy } = args.input;
 
-      await assertAccountActorNotSuspended(ctx.db, authenticatedAccountId);
+      await assertActingAccountNotSuspended(
+        ctx.db,
+        authenticatedAccountId,
+        actingAccount.account.id,
+      );
 
       // Create article from draft
       const article = await withTransaction(ctx.fedCtx, async (context) => {
@@ -3571,7 +3594,11 @@ builder.relayMutationField(
         throw new InvalidInputError("postId");
       }
 
-      await assertAccountActorNotSuspended(ctx.db, authenticatedAccountId);
+      await assertActingAccountNotSuspended(
+        ctx.db,
+        authenticatedAccountId,
+        actingAccount.id,
+      );
 
       const reaction = await react(
         ctx.fedCtx,
@@ -3830,7 +3857,11 @@ builder.relayMutationField(
         throw new InvalidInputError("postId");
       }
 
-      await assertAccountActorNotSuspended(ctx.db, authenticatedAccountId);
+      await assertActingAccountNotSuspended(
+        ctx.db,
+        authenticatedAccountId,
+        actingAccount.id,
+      );
 
       const share = await sharePost(
         ctx.fedCtx,
