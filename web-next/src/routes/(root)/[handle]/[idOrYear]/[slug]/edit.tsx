@@ -122,8 +122,13 @@ const renderMarkdownQuery = graphql`
   query edit_renderMarkdown_Query(
     $content: String!
     $articleSourceId: UUID
+    $actingAccountId: ID
   ) {
-    renderMarkdown(content: $content, articleSourceId: $articleSourceId)
+    renderMarkdown(
+      content: $content
+      articleSourceId: $articleSourceId
+      actingAccountId: $actingAccountId
+    )
   }
 `;
 
@@ -263,7 +268,12 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
       throw new Error("Article has no local source");
     }
     try {
-      const result = await uploadImageForArticleSource(file, sourceId);
+      const actingAccountId = actingAccount.selectedActingAccountId();
+      const result = await uploadImageForArticleSource(
+        file,
+        sourceId,
+        actingAccountId ?? null,
+      );
       return { url: result.url };
     } catch (error) {
       showToast({
@@ -305,7 +315,11 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
     previewSubscription = fetchQuery<edit_renderMarkdown_Query>(
       environment(),
       renderMarkdownQuery,
-      { content: text, articleSourceId: article().sourceId ?? null },
+      {
+        content: text,
+        articleSourceId: article().sourceId ?? null,
+        actingAccountId: actingAccount.selectedActingAccountId() ?? null,
+      },
     ).subscribe({
       next(data) {
         if (requestVersion !== previewRequestVersion) return;

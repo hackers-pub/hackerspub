@@ -218,6 +218,29 @@ const attachArticleDraftMediumMutation = parse(`
   }
 `);
 
+const attachArticleSourceMediumMutation = parse(`
+  mutation AttachArticleSourceMedium($input: AttachArticleSourceMediumInput!) {
+    attachArticleSourceMedium(input: $input) {
+      __typename
+      ... on AttachArticleSourceMediumPayload {
+        key
+        medium {
+          uuid
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+      ... on NotAuthenticatedError {
+        notAuthenticated
+      }
+      ... on NotAuthorizedError {
+        notAuthorized
+      }
+    }
+  }
+`);
+
 const updateArticleWithMediaMutation = parse(`
   mutation UpdateArticleWithMedia($input: UpdateArticleInput!) {
     updateArticle(input: $input) {
@@ -235,6 +258,33 @@ const updateArticleWithMediaMutation = parse(`
         notAuthenticated
       }
     }
+  }
+`);
+
+const noteRawContentAsActingAccountQuery = parse(`
+  query NoteRawContentAsActingAccount($id: ID!, $actingAccountId: ID!) {
+    node(id: $id) {
+      ... on Note {
+        actor {
+          isViewer(actingAccountId: $actingAccountId)
+        }
+        rawContent(actingAccountId: $actingAccountId)
+      }
+    }
+  }
+`);
+
+const renderMarkdownWithArticleSourceQuery = parse(`
+  query RenderMarkdownWithArticleSource(
+    $content: String!
+    $articleSourceId: UUID!
+    $actingAccountId: ID
+  ) {
+    renderMarkdown(
+      content: $content
+      articleSourceId: $articleSourceId
+      actingAccountId: $actingAccountId
+    )
   }
 `);
 
@@ -1024,6 +1074,142 @@ test("updateArticle accepts media for new article source references", async () =
       /http:\/\/localhost\/media\/media\/update-article-medium-graphql\.webp/,
     );
     assert.doesNotMatch(updated.article.content, /hp-medium:hero/);
+
+    const relation = await tx.query.articleSourceMediumTable.findFirst({
+      where: { articleSourceId: article.articleSource.id, key: "hero" },
+    });
+    assert.equal(relation?.mediumId, mediumId);
+  });
+});
+
+test("organization members can read organization note raw content", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "orgnoterawreader",
+      name: "Organization Note Raw Reader",
+      email: "orgnoterawreader@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgrawnotes",
+        name: "Organization Raw Notes",
+        bio: "",
+      },
+    );
+    const { post } = await insertNotePost(tx, {
+      account: organization,
+      content: "Organization _raw_ note",
+    });
+    const actingAccountId = encodeGlobalID("Account", organization.id);
+
+    const result = await execute({
+      schema,
+      document: noteRawContentAsActingAccountQuery,
+      variableValues: {
+        id: encodeGlobalID("Note", post.id),
+        actingAccountId,
+      },
+      contextValue: makeTransactionalUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      node: {
+        actor: { isViewer: true },
+        rawContent: "Organization _raw_ note",
+      },
+    });
+  });
+});
+
+test("organization members can preview and attach article media", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "orgarticlepreviewer",
+      name: "Organization Article Previewer",
+      email: "orgarticlepreviewer@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgarticlepreviews",
+        name: "Organization Article Previews",
+        bio: "",
+      },
+    );
+    const fedCtx = createFedCtx(tx);
+    const article = await createArticle(fedCtx, {
+      accountId: organization.id,
+      publishedYear: 2026,
+      slug: "organization-preview-media",
+      tags: [],
+      allowLlmTranslation: false,
+      published: new Date("2026-04-15T00:00:00.000Z"),
+      updated: new Date("2026-04-15T00:00:00.000Z"),
+      title: "Organization preview",
+      content: "Original organization article",
+      language: "en",
+    });
+    assert.ok(article != null);
+    const actingAccountId = encodeGlobalID("Account", organization.id);
+
+    const previewResult = await execute({
+      schema,
+      document: renderMarkdownWithArticleSourceQuery,
+      variableValues: {
+        content: "Preview as organization",
+        articleSourceId: article.articleSource.id,
+        actingAccountId,
+      },
+      contextValue: makeUserContext(tx, member.account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(previewResult.errors, undefined);
+    assert.deepEqual(toPlainJson(previewResult.data), {
+      renderMarkdown: "<p>Preview as organization</p>\n",
+    });
+
+    const mediumId = generateUuidV7();
+    await tx.insert(mediumTable).values({
+      id: mediumId,
+      key: "media/organization-preview-media.webp",
+      type: "image/webp",
+      width: 2,
+      height: 2,
+    });
+
+    const attachResult = await execute({
+      schema,
+      document: attachArticleSourceMediumMutation,
+      variableValues: {
+        input: {
+          articleSourceId: article.articleSource.id,
+          mediumId,
+          key: "hero",
+          actingAccountId,
+        },
+      },
+      contextValue: makeUserContext(tx, member.account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(attachResult.errors, undefined);
+    assert.deepEqual(toPlainJson(attachResult.data), {
+      attachArticleSourceMedium: {
+        __typename: "AttachArticleSourceMediumPayload",
+        key: "hero",
+        medium: { uuid: mediumId },
+      },
+    });
 
     const relation = await tx.query.articleSourceMediumTable.findFirst({
       where: { articleSourceId: article.articleSource.id, key: "hero" },

@@ -50,7 +50,7 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
         censored
         content
         language
-        rawContent
+        rawContent(actingAccountId: $actingAccountId)
         sensitive
         summary
         quotePolicy

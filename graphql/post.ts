@@ -105,7 +105,10 @@ import {
 } from "./medium-upload.ts";
 import { createGraphQLError } from "graphql-yoga";
 import { Account } from "./account.ts";
-import { resolveActingAccountForMutation } from "./acting-account.ts";
+import {
+  resolveActingAccountForGlobalIdArg,
+  resolveActingAccountForMutation,
+} from "./acting-account.ts";
 import { Actor, isActorProfileHidden } from "./actor.ts";
 import { builder, Node, type UserContext } from "./builder.ts";
 import {
@@ -1411,16 +1414,27 @@ export const Note = builder.drizzleNode("postTable", {
       nullable: true,
       description:
         "The raw Markdown source of this note. Non-null only when the " +
-        "viewer is the note's author (i.e., the authenticated account " +
-        "matches the note's `accountId`). Returns `null` for federated " +
-        "remote notes, local share wrappers, and notes authored by " +
-        "someone else.",
+        "viewer is the note's author. Pass `actingAccountId` to read the " +
+        "source of a note authored by an organization account the viewer " +
+        "belongs to. Returns `null` for federated remote notes, local share " +
+        "wrappers, and notes authored by someone else.",
+      args: {
+        actingAccountId: t.arg.id({
+          required: false,
+          description: actingAccountIdArgDescription,
+        }),
+      },
       select: {
         with: { noteSource: { columns: { content: true, accountId: true } } },
       },
-      resolve: (post, _args, ctx) => {
+      async resolve(post, args, ctx) {
         if (post.noteSource == null) return null;
-        if (ctx.session?.accountId !== post.noteSource.accountId) return null;
+        if (ctx.account == null) return null;
+        const actingAccount = await resolveActingAccountForGlobalIdArg(
+          ctx,
+          args,
+        );
+        if (actingAccount.id !== post.noteSource.accountId) return null;
         return post.noteSource.content;
       },
     }),
@@ -4982,6 +4996,11 @@ builder.relayMutationField(
           "UUID of the `ArticleSource` to attach the medium to. The viewer " +
           "must be the article's author.",
       }),
+      actingAccountId: t.globalID({
+        for: [Account],
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
       mediumId: t.field({
         type: "UUID",
         required: true,
@@ -4996,16 +5015,25 @@ builder.relayMutationField(
   },
   {
     errors: {
-      types: [NotAuthenticatedError, NotAuthorizedError, InvalidInputError],
+      types: [
+        NotAuthenticatedError,
+        NotAuthorizedError,
+        InvalidInputError,
+        OrganizationPermissionError,
+      ],
     },
     async resolve(_root, args, ctx) {
       const session = await ctx.session;
       if (session == null) throw new NotAuthenticatedError();
+      const actingAccount = await resolveActingAccountForMutation(
+        ctx,
+        args.input,
+      );
       const source = await ctx.db.query.articleSourceTable.findFirst({
         where: { id: args.input.articleSourceId },
         columns: { id: true, accountId: true },
       });
-      if (source == null || source.accountId !== session.accountId) {
+      if (source == null || source.accountId !== actingAccount.id) {
         throw new InvalidInputError("articleSourceId");
       }
       const medium = await ctx.db.query.mediumTable.findFirst({

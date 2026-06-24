@@ -3,9 +3,11 @@ import {
   getMissingArticleMediumLabel,
   renderMarkup,
 } from "@hackerspub/models/markup";
+import { resolveActingAccountForGlobalIdArg } from "./acting-account.ts";
 import { builder } from "./builder.ts";
 import { NotAuthorizedError } from "./error.ts";
 import { NotAuthenticatedError } from "./session.ts";
+import { actingAccountIdArgDescription } from "./viewer-actor.ts";
 
 builder.queryField("renderMarkdown", (t) =>
   t.field({
@@ -32,6 +34,10 @@ builder.queryField("renderMarkdown", (t) =>
           "this source's media. The missing-medium placeholder is " +
           "localized to the viewer's preferred locale.",
       }),
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
     },
     async resolve(_root, args, ctx) {
       let mediumUrls: Record<string, string> | undefined;
@@ -39,11 +45,15 @@ builder.queryField("renderMarkdown", (t) =>
       if (args.articleSourceId != null) {
         const session = await ctx.session;
         if (session == null) throw new NotAuthenticatedError();
+        const actingAccount = await resolveActingAccountForGlobalIdArg(
+          ctx,
+          args,
+        );
         const source = await ctx.db.query.articleSourceTable.findFirst({
           where: { id: args.articleSourceId },
           columns: { id: true, accountId: true },
         });
-        if (source == null || source.accountId !== session.accountId) {
+        if (source == null || source.accountId !== actingAccount.id) {
           throw new NotAuthorizedError();
         }
         mediumUrls = await getArticleSourceMediumUrls(

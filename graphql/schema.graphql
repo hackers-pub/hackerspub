@@ -1244,6 +1244,11 @@ Associate an uploaded `Medium` with a published article so it can be referenced 
 """
 input AttachArticleSourceMediumInput {
   """
+  Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+  """
+  actingAccountId: ID
+
+  """
   UUID of the `ArticleSource` to attach the medium to. The viewer must be the article's author.
   """
   articleSourceId: UUID!
@@ -1268,7 +1273,7 @@ type AttachArticleSourceMediumPayload {
   medium: Medium!
 }
 
-union AttachArticleSourceMediumResult = AttachArticleSourceMediumPayload | InvalidInputError | NotAuthenticatedError | NotAuthorizedError
+union AttachArticleSourceMediumResult = AttachArticleSourceMediumPayload | InvalidInputError | NotAuthenticatedError | NotAuthorizedError | OrganizationPermissionError
 
 input BlockActorInput {
   """
@@ -3142,9 +3147,14 @@ type Note implements Node & Post & Reactable {
   quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
 
   """
-  The raw Markdown source of this note. Non-null only when the viewer is the note's author (i.e., the authenticated account matches the note's `accountId`). Returns `null` for federated remote notes, local share wrappers, and notes authored by someone else.
+  The raw Markdown source of this note. Non-null only when the viewer is the note's author. Pass `actingAccountId` to read the source of a note authored by an organization account the viewer belongs to. Returns `null` for federated remote notes, local share wrappers, and notes authored by someone else.
   """
-  rawContent: Markdown
+  rawContent(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Markdown
   reactionGroup(customEmojiId: ID, emoji: String): ReactionGroup
   reactionGroups: [ReactionGroup!]!
 
@@ -4465,6 +4475,11 @@ type Query {
   Renders a Markdown string to HTML. When `articleSourceId` is provided, `hp-medium:KEY` references in the markdown are resolved against that article source's attached media (e.g. for previewing edits to an existing article). Only the article's author may pass their own `articleSourceId`; otherwise the call is rejected.
   """
   renderMarkdown(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+
     """
     UUID of an `ArticleSource` owned by the viewer. When provided, the rendered HTML resolves `hp-medium:KEY` references against this source's media. The missing-medium placeholder is localized to the viewer's preferred locale.
     """
