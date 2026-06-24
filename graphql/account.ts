@@ -24,7 +24,6 @@ import type { Locale } from "@hackerspub/models/i18n";
 import { renderMarkup } from "@hackerspub/models/markup";
 import {
   assertPersonalAccountDeletionPreservesOrganizations,
-  ensureOrganizationInvitationNotifications,
   LastOrganizationAdminError,
   LastOrganizationMemberError,
 } from "@hackerspub/models/organization";
@@ -65,26 +64,6 @@ import { NotAuthenticatedError } from "./session.ts";
 
 const profileOgImageComplexity = 2_000;
 const logger = getLogger(["hackerspub", "graphql", "account"]);
-
-async function ensureOrganizationInvitationNotificationsForRequest(
-  ctx: UserContext,
-  accountId: Uuid,
-): Promise<void> {
-  let cache = ctx.organizationInvitationNotificationsEnsured;
-  if (cache == null || cache.db !== ctx.db) {
-    cache = {
-      db: ctx.db,
-      promises: new Map(),
-    };
-    ctx.organizationInvitationNotificationsEnsured = cache;
-  }
-  let promise = cache.promises.get(accountId);
-  if (promise == null) {
-    promise = ensureOrganizationInvitationNotifications(ctx.db, accountId);
-    cache.promises.set(accountId, promise);
-  }
-  await promise;
-}
 
 builder.objectType(AccountDeletionUnavailableError, {
   name: "AccountDeletionUnavailableError",
@@ -654,12 +633,6 @@ export const Account = builder.drizzleNode("accountTable", {
         },
       },
       async resolve(account, args, ctx) {
-        if (account.kind === "personal") {
-          await ensureOrganizationInvitationNotificationsForRequest(
-            ctx,
-            account.id,
-          );
-        }
         return resolveCursorConnection(
           {
             args,
@@ -722,12 +695,6 @@ export const Account = builder.drizzleNode("accountTable", {
         },
       },
       async resolve(account, _, ctx) {
-        if (account.kind === "personal") {
-          await ensureOrganizationInvitationNotificationsForRequest(
-            ctx,
-            account.id,
-          );
-        }
         return ctx.db.$count(
           notificationTable,
           and(
