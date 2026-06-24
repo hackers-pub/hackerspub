@@ -33,7 +33,12 @@ const quotesArticleEngagementQuery = graphql`
     $slug: String!
     $actingAccountId: ID
   ) {
-    articleByYearAndSlug(handle: $handle, idOrYear: $idOrYear, slug: $slug) {
+    articleByYearAndSlug(
+      handle: $handle
+      idOrYear: $idOrYear
+      slug: $slug
+      actingAccountId: $actingAccountId
+    ) {
       engagementStats {
         shares
         quotes

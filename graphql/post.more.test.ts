@@ -96,8 +96,18 @@ const publishArticleDraftMutation = parse(`
 `);
 
 const articleByYearAndSlugQuery = parse(`
-  query ArticleByYearAndSlug($handle: String!, $idOrYear: String!, $slug: String!) {
-    articleByYearAndSlug(handle: $handle, idOrYear: $idOrYear, slug: $slug) {
+  query ArticleByYearAndSlug(
+    $handle: String!
+    $idOrYear: String!
+    $slug: String!
+    $actingAccountId: ID
+  ) {
+    articleByYearAndSlug(
+      handle: $handle
+      idOrYear: $idOrYear
+      slug: $slug
+      actingAccountId: $actingAccountId
+    ) {
       id
       slug
     }
@@ -2147,6 +2157,114 @@ test("articleByYearAndSlug returns a local article by route components", async (
       articleByYearAndSlug: {
         id: encodeGlobalID("Article", postId),
         slug: "route-article",
+      },
+    });
+  });
+});
+
+test("articleByYearAndSlug can resolve with an organization perspective", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "orgarticlelookupmember",
+      name: "Organization Article Lookup Member",
+      email: "orgarticlelookupmember@example.com",
+    });
+    const author = await insertAccountWithActor(tx, {
+      username: "orgarticlelookupauthor",
+      name: "Organization Article Lookup Author",
+      email: "orgarticlelookupauthor@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgarticlelookup",
+        name: "Organization Article Lookup",
+        bio: "",
+      },
+    );
+    await follow(createFedCtx(tx), organization, author.actor);
+
+    const sourceId = generateUuidV7();
+    const postId = generateUuidV7();
+    const published = new Date("2026-04-15T00:00:00.000Z");
+
+    await tx.insert(articleSourceTable).values({
+      id: sourceId,
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "followers-article",
+      tags: [],
+      allowLlmTranslation: false,
+      published,
+      updated: published,
+    });
+    await tx.insert(articleContentTable).values({
+      sourceId,
+      language: "en",
+      title: "Followers Article",
+      content: "Followers article body",
+      published,
+      updated: published,
+    });
+    await tx.insert(postTable).values(
+      {
+        id: postId,
+        iri: `http://localhost/objects/${postId}`,
+        type: "Article",
+        visibility: "followers",
+        actorId: author.actor.id,
+        articleSourceId: sourceId,
+        name: "Followers Article",
+        contentHtml: "<p>Followers article body</p>",
+        language: "en",
+        tags: {},
+        emojis: {},
+        url:
+          `http://localhost/@${author.account.username}/2026/followers-article`,
+        published,
+        updated: published,
+      } satisfies NewPost,
+    );
+
+    const personalResult = await execute({
+      schema,
+      document: articleByYearAndSlugQuery,
+      variableValues: {
+        handle: author.account.username,
+        idOrYear: "2026",
+        slug: "followers-article",
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(personalResult.errors, undefined);
+    assert.deepEqual(toPlainJson(personalResult.data), {
+      articleByYearAndSlug: null,
+    });
+
+    const organizationResult = await execute({
+      schema,
+      document: articleByYearAndSlugQuery,
+      variableValues: {
+        handle: author.account.username,
+        idOrYear: "2026",
+        slug: "followers-article",
+        actingAccountId: encodeGlobalID("Account", organization.id),
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(organizationResult.errors, undefined);
+    assert.deepEqual(toPlainJson(organizationResult.data), {
+      articleByYearAndSlug: {
+        id: encodeGlobalID("Article", postId),
+        slug: "followers-article",
       },
     });
   });

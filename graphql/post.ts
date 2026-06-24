@@ -109,7 +109,7 @@ import {
   resolveActingAccountForGlobalIdArg,
   resolveActingAccountForMutation,
 } from "./acting-account.ts";
-import { Actor, isActorProfileHidden } from "./actor.ts";
+import { Actor, getActorById, isActorProfileHidden } from "./actor.ts";
 import { builder, Node, type UserContext } from "./builder.ts";
 import {
   ActorSuspendedError,
@@ -4379,6 +4379,10 @@ builder.queryField("articleByYearAndSlug", (t) =>
       handle: t.arg.string({ required: true }),
       idOrYear: t.arg.string({ required: true }),
       slug: t.arg.string({ required: true }),
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
     },
     async resolve(query, _, args, ctx) {
       if (!/^\d+$/.test(args.idOrYear)) return null;
@@ -4422,7 +4426,11 @@ builder.queryField("articleByYearAndSlug", (t) =>
       });
       if (source == null) return null;
 
-      const visibility = getPostVisibilityFilter(ctx.account?.actor ?? null);
+      const viewerActorId = await resolveViewerActorId(ctx, args);
+      const viewerActor = viewerActorId == null
+        ? null
+        : await getActorById(ctx, viewerActorId);
+      const visibility = getPostVisibilityFilter(viewerActor);
       return await ctx.db.query.postTable.findFirst(
         query({
           where: {

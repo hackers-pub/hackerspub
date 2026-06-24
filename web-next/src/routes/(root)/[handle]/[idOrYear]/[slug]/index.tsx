@@ -64,6 +64,7 @@ const SlugPageQueryDef = graphql`
       handle: $handle
       idOrYear: $idOrYear
       slug: $slug
+      actingAccountId: $actingAccountId
     ) {
       ...Slug_head @arguments(language: $language)
       ...Slug_body @arguments(

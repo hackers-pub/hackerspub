@@ -96,6 +96,7 @@ const LangPageQueryDef = graphql`
       handle: $handle
       idOrYear: $idOrYear
       slug: $slug
+      actingAccountId: $actingAccountId
     ) {
       id
       language

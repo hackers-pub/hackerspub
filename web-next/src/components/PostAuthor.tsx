@@ -185,7 +185,7 @@ export function PostAuthorAvatar(props: PostAuthorAvatarProps) {
                   href={actorHref(p.actor)}
                   internalHref={actorInternalHref(p.actor)}
                 >
-                  <AvatarImage src={p.actor.avatarUrl} />
+                  <AvatarImage src={p.actor.avatarUrl ?? undefined} />
                   <AvatarFallback>{p.actor.avatarInitials}</AvatarFallback>
                 </InternalLink>
               </Avatar>
@@ -207,7 +207,7 @@ export function PostAuthorAvatar(props: PostAuthorAvatarProps) {
                       href={actorHref(m)}
                       internalHref={actorInternalHref(m)}
                     >
-                      <AvatarImage src={m.avatarUrl} />
+                      <AvatarImage src={m.avatarUrl ?? undefined} />
                       <AvatarFallback class="text-[0.625rem]">
                         {m.avatarInitials}
                       </AvatarFallback>

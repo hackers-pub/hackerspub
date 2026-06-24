@@ -64,6 +64,7 @@ const editPageQueryDef = graphql`
       handle: $handle
       idOrYear: $idOrYear
       slug: $slug
+      actingAccountId: $actingAccountId
     ) {
       ...edit_article @arguments(actingAccountId: $actingAccountId)
     }

@@ -160,10 +160,12 @@ async function viewerCanManageAccountSettings(
 async function viewerCanReadAccountNotifications(
   ctx: UserContext,
   accountId: Uuid,
+  accountKind: "personal" | "organization",
 ): Promise<boolean> {
   const session = await ctx.session;
   if (session == null) return false;
   if (session.accountId === accountId) return true;
+  if (accountKind !== "organization") return false;
   const membership = await ctx.db.query.organizationMembershipTable.findFirst({
     where: {
       organizationAccountId: accountId,
@@ -171,9 +173,8 @@ async function viewerCanReadAccountNotifications(
       accepted: { isNotNull: true },
     },
     columns: { organizationAccountId: true },
-    with: { organization: { columns: { kind: true } } },
   });
-  return membership?.organization.kind === "organization";
+  return membership != null;
 }
 
 function parseActorHandle(raw: string): {
@@ -645,7 +646,7 @@ export const Account = builder.drizzleNode("accountTable", {
         "organization account. Notifications whose actor list is empty " +
         "(e.g., the actor was deleted) are automatically excluded.",
       authScopes: async (parent, _args, ctx) =>
-        await viewerCanReadAccountNotifications(ctx, parent.id),
+        await viewerCanReadAccountNotifications(ctx, parent.id, parent.kind),
       select: {
         columns: {
           id: true,

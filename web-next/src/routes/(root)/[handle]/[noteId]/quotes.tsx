@@ -35,7 +35,7 @@ const quotesNoteEngagementQuery = graphql`
     $actingAccountId: ID
   ) {
     actorByHandle(handle: $handle, allowLocalHandle: true) {
-      postByUuid(uuid: $noteId) {
+      postByUuid(uuid: $noteId, actingAccountId: $actingAccountId) {
         __typename
         engagementStats {
           shares

@@ -4256,7 +4256,15 @@ type Query {
   """
   Look up a locally-authored article by the author's handle, publication year, and URL slug. This is the resolver for the canonical article permalink path `/@{handle}/{year}/{slug}`.
   """
-  articleByYearAndSlug(handle: String!, idOrYear: String!, slug: String!): Article
+  articleByYearAndSlug(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+    handle: String!
+    idOrYear: String!
+    slug: String!
+  ): Article
 
   """
   Look up an article draft by its global `id` or its `uuid`. Requires authentication; only returns drafts owned by the authenticated viewer.

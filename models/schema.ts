@@ -2024,7 +2024,7 @@ export const notificationTable = pgTable(
     check(
       "notification_emoji_check",
       sql`
-        CASE ${table.type}
+        CASE ${table.type}::text
           WHEN 'react'
           THEN ${table.emoji} IS NOT NULL AND ${table.customEmojiId} IS NULL
             OR ${table.emoji} IS NULL AND ${table.customEmojiId} IS NOT NULL
@@ -2035,7 +2035,7 @@ export const notificationTable = pgTable(
     check(
       "notification_organization_conversion_request_id_check",
       sql`
-        CASE ${table.type}
+        CASE ${table.type}::text
           WHEN 'organization_conversion_request'
           THEN ${table.organizationConversionRequestId} IS NOT NULL
           ELSE ${table.organizationConversionRequestId} IS NULL

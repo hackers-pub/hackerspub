@@ -1078,36 +1078,29 @@ export async function markOrganizationNotificationsReadThrough(
   );
   if (membership == null) throw new OrganizationPermissionError();
 
-  const notificationRows = await db.select({ id: notificationTable.id })
-    .from(notificationTable)
-    .where(and(
-      eq(notificationTable.id, notificationId),
-      eq(notificationTable.accountId, organizationAccountId),
-    ))
-    .limit(1);
-  if (notificationRows.length < 1) return false;
-
-  await db.insert(organizationNotificationReadTable).values({
-    organizationAccountId,
-    memberAccountId,
-    readAt: sql`(
-      SELECT LEAST(${notificationTable.created}, CURRENT_TIMESTAMP)
-      FROM ${notificationTable}
-      WHERE ${notificationTable.id} = ${notificationId}
-        AND ${notificationTable.accountId} = ${organizationAccountId}
-    )`,
-  }).onConflictDoUpdate({
-    target: [
-      organizationNotificationReadTable.organizationAccountId,
-      organizationNotificationReadTable.memberAccountId,
-    ],
-    set: {
-      readAt: sql`GREATEST(
+  const result = await db.execute<{ inserted: number }>(sql`
+    INSERT INTO ${organizationNotificationReadTable} (
+      ${sql.raw('"organization_account_id"')},
+      ${sql.raw('"member_account_id"')},
+      ${sql.raw('"read_at"')}
+    )
+    SELECT
+      ${organizationAccountId},
+      ${memberAccountId},
+      LEAST(${notificationTable.created}, CURRENT_TIMESTAMP)
+    FROM ${notificationTable}
+    WHERE ${notificationTable.id} = ${notificationId}
+      AND ${notificationTable.accountId} = ${organizationAccountId}
+    ON CONFLICT (
+      ${sql.raw('"organization_account_id"')},
+      ${sql.raw('"member_account_id"')}
+    ) DO UPDATE SET
+      ${sql.raw('"read_at"')} = GREATEST(
         ${organizationNotificationReadTable.readAt},
         EXCLUDED.read_at
-      )`,
-      updated: sql`CURRENT_TIMESTAMP`,
-    },
-  });
-  return true;
+      ),
+      ${sql.raw('"updated"')} = CURRENT_TIMESTAMP
+    RETURNING 1 AS inserted
+  `);
+  return result.length > 0;
 }
