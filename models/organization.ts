@@ -869,6 +869,15 @@ export async function acceptOrganizationConversion(
       .where(eq(bookmarkTable.accountId, request.accountId));
     await tx.delete(notificationTable)
       .where(eq(notificationTable.accountId, request.accountId));
+    await tx.delete(organizationConversionRequestTable).where(
+      and(
+        eq(
+          organizationConversionRequestTable.adminAccountId,
+          request.accountId,
+        ),
+        isNull(organizationConversionRequestTable.accepted),
+      ),
+    );
     await tx.update(accountTable)
       .set({
         kind: "organization",

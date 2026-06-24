@@ -1304,3 +1304,57 @@ test("acceptOrganizationConversion() clears pending organization invitations", a
     assert.equal(invitationNotifications.length, 0);
   });
 });
+
+test("acceptOrganizationConversion() clears delegated conversion requests", async () => {
+  await withRollback(async (tx) => {
+    const delegatedAdmin = await insertAccountWithActor(tx, {
+      username: "delegatedadmin",
+      name: "Delegated Admin",
+      email: "delegated-admin@example.com",
+    });
+    const finalAdmin = await insertAccountWithActor(tx, {
+      username: "finaladmin",
+      name: "Final Admin",
+      email: "final-admin@example.com",
+    });
+    const other = await insertAccountWithActor(tx, {
+      username: "other",
+      name: "Other",
+      email: "other@example.com",
+    });
+
+    const delegatedRequest = await requestOrganizationConversion(
+      tx,
+      other.account,
+      delegatedAdmin.account.username,
+      other.account.username,
+    );
+    const request = await requestOrganizationConversion(
+      tx,
+      delegatedAdmin.account,
+      finalAdmin.account.username,
+      delegatedAdmin.account.username,
+    );
+
+    await acceptOrganizationConversion(
+      createFedCtx(tx),
+      finalAdmin.account,
+      request.id,
+    );
+
+    const storedDelegatedRequest = await tx.query
+      .organizationConversionRequestTable.findFirst({
+        where: { id: delegatedRequest.id },
+      });
+    assert.equal(storedDelegatedRequest, undefined);
+
+    const replacementRequest = await requestOrganizationConversion(
+      tx,
+      other.account,
+      finalAdmin.account.username,
+      other.account.username,
+    );
+    assert.notEqual(replacementRequest.id, delegatedRequest.id);
+    assert.equal(replacementRequest.adminAccountId, finalAdmin.account.id);
+  });
+});
