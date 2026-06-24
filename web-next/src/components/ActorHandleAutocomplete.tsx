@@ -170,10 +170,14 @@ export function ActorHandleAutocomplete(props: ActorHandleAutocompleteProps) {
     const name = selectedActorName(actor);
     const parts = name.split(/[\s_-]+/).filter((part) => part.length > 0);
     if (parts.length === 0) {
-      return actor.username.charAt(0).toUpperCase() || "?";
+      return Array.from(actor.username)[0]?.toUpperCase() ?? "?";
     }
-    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    if (parts.length === 1) {
+      return Array.from(parts[0]).slice(0, 2).join("").toUpperCase();
+    }
+    const firstInitial = Array.from(parts[0])[0];
+    const lastInitial = Array.from(parts[parts.length - 1])[0];
+    return `${firstInitial ?? ""}${lastInitial ?? ""}`.toUpperCase() || "?";
   }
 
   function onKeyDown(event: KeyboardEvent) {

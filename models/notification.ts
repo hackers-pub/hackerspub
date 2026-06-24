@@ -3,7 +3,7 @@ import { and, eq, isNull, sql } from "drizzle-orm";
 import { type ApnsNotificationOptions, sendApnsNotification } from "./apns.ts";
 import { type FcmNotificationOptions, sendFcmNotification } from "./fcm.ts";
 import { sendWebPushNotification } from "./webpush.ts";
-import type { Database, Transaction } from "./db.ts";
+import { type Database, runInTransaction, type Transaction } from "./db.ts";
 import {
   type Account,
   type Actor,
@@ -19,18 +19,6 @@ import { generateUuidV7, type Uuid } from "./uuid.ts";
 const logger = getLogger(["hackerspub", "models", "notification"]);
 
 type NotificationDatabase = Database | Transaction;
-
-function isTransaction(db: NotificationDatabase): db is Transaction {
-  return "rollback" in db;
-}
-
-async function runInTransaction<T>(
-  db: NotificationDatabase,
-  run: (tx: Transaction) => Promise<T>,
-): Promise<T> {
-  if (isTransaction(db)) return await run(db);
-  return await db.transaction(run);
-}
 
 async function sendApnsNotificationBestEffort(
   db: Database,

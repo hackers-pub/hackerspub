@@ -941,6 +941,12 @@ test("acceptOrganizationConversion() preserves inviter and removes direct login 
       accountId: account.account.id,
       postId: post.id,
     });
+    await tx.insert(notificationTable).values({
+      id: crypto.randomUUID() as Uuid,
+      accountId: account.account.id,
+      type: "follow",
+      actorIds: [inviter.actor.id],
+    });
 
     const converted = await acceptOrganizationConversion(
       createFedCtx(tx),
@@ -977,6 +983,11 @@ test("acceptOrganizationConversion() preserves inviter and removes direct login 
       .from(bookmarkTable)
       .where(eq(bookmarkTable.accountId, converted.id));
     assert.equal(bookmarks.length, 0);
+
+    const notifications = await tx.select()
+      .from(notificationTable)
+      .where(eq(notificationTable.accountId, converted.id));
+    assert.equal(notifications.length, 0);
   });
 });
 

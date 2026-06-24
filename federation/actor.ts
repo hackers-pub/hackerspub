@@ -50,13 +50,20 @@ type StoredActorKey = Pick<
   "type" | "public" | "private"
 >;
 
+type TombstoneFormerType =
+  | typeof Application
+  | typeof Group
+  | typeof Organization
+  | typeof Person
+  | typeof Service;
+
 function sortStoredActorKeys<T extends StoredActorKey>(keys: T[]): T[] {
   return [...keys].sort((a, b) =>
     a.type < b.type ? 1 : a.type > b.type ? -1 : 0
   );
 }
 
-function getTombstoneFormerType(actorType: ActorType) {
+function getTombstoneFormerType(actorType: ActorType): TombstoneFormerType {
   switch (actorType) {
     case "Application":
       return Application;
@@ -67,6 +74,7 @@ function getTombstoneFormerType(actorType: ActorType) {
     case "Service":
       return Service;
     case "Person":
+    default:
       return Person;
   }
 }

@@ -3,7 +3,7 @@ import { and, count, eq, gt, isNotNull, isNull, sql } from "drizzle-orm";
 import { isUsernameReserved, sendAccountActorUpdate } from "./account.ts";
 import { syncActorFromAccount } from "./actor.ts";
 import type { ContextData } from "./context.ts";
-import type { Database, Transaction } from "./db.ts";
+import { type Database, runInTransaction, type Transaction } from "./db.ts";
 import {
   createOrganizationConversionRequestNotification
     as createOrganizationConversionRequestNotificationRow,
@@ -109,18 +109,6 @@ type AccountForSync = Account & {
   emails: AccountEmail[];
   links: AccountLink[];
 };
-
-function isTransaction(db: Database | Transaction): db is Transaction {
-  return "rollback" in db;
-}
-
-async function runInTransaction<T>(
-  db: Database | Transaction,
-  run: (tx: Transaction) => Promise<T>,
-): Promise<T> {
-  if (isTransaction(db)) return await run(db);
-  return await db.transaction(run);
-}
 
 function asTransactionalFedCtx(
   fedCtx: Context<ContextData>,
@@ -879,6 +867,8 @@ export async function acceptOrganizationConversion(
       .where(eq(articleDraftTable.accountId, request.accountId));
     await tx.delete(bookmarkTable)
       .where(eq(bookmarkTable.accountId, request.accountId));
+    await tx.delete(notificationTable)
+      .where(eq(notificationTable.accountId, request.accountId));
     await tx.update(accountTable)
       .set({
         kind: "organization",

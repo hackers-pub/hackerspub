@@ -728,7 +728,7 @@ function accountHandle(account: ActingAccountSummary): string {
 }
 
 function accountInitial(account: ActingAccountSummary): string {
-  return accountDisplayName(account).charAt(0).toUpperCase();
+  return Array.from(accountDisplayName(account))[0]?.toUpperCase() ?? "?";
 }
 
 interface HeaderNotificationsProps {
