@@ -1023,3 +1023,50 @@ export async function getOrganizationNotificationBadge(
   if (grayCount > 0) return { color: "gray", count: grayCount };
   return { color: null, count: 0 };
 }
+
+export async function markOrganizationNotificationsReadThrough(
+  db: Database | Transaction,
+  organizationAccountId: Uuid,
+  memberAccountId: Uuid,
+  notificationId: Uuid,
+): Promise<boolean> {
+  const membership = await getAcceptedMembership(
+    db,
+    organizationAccountId,
+    memberAccountId,
+  );
+  if (membership == null) throw new OrganizationPermissionError();
+
+  const notificationRows = await db.select({ id: notificationTable.id })
+    .from(notificationTable)
+    .where(and(
+      eq(notificationTable.id, notificationId),
+      eq(notificationTable.accountId, organizationAccountId),
+    ))
+    .limit(1);
+  if (notificationRows.length < 1) return false;
+
+  await db.insert(organizationNotificationReadTable).values({
+    organizationAccountId,
+    memberAccountId,
+    readAt: sql`(
+      SELECT LEAST(${notificationTable.created}, CURRENT_TIMESTAMP)
+      FROM ${notificationTable}
+      WHERE ${notificationTable.id} = ${notificationId}
+        AND ${notificationTable.accountId} = ${organizationAccountId}
+    )`,
+  }).onConflictDoUpdate({
+    target: [
+      organizationNotificationReadTable.organizationAccountId,
+      organizationNotificationReadTable.memberAccountId,
+    ],
+    set: {
+      readAt: sql`GREATEST(
+        ${organizationNotificationReadTable.readAt},
+        EXCLUDED.read_at
+      )`,
+      updated: sql`CURRENT_TIMESTAMP`,
+    },
+  });
+  return true;
+}

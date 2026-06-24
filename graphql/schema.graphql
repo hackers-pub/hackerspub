@@ -2317,9 +2317,14 @@ input MarkOrganizationNotificationsAsReadInput {
   organizationId: ID!
 
   """
-  Read marker to store. Omit to use the current server time. Future timestamps are clamped to the current server time.
+  Read marker to store. Omit to use the current server time. Future timestamps are clamped to the current server time. Prefer `upTo` when marking notifications loaded from the API, because it preserves database timestamp precision.
   """
   readAt: DateTime
+
+  """
+  UUID of the newest loaded organization notification to mark as read through. This stores the notification row's server-side `created` timestamp, preserving database precision.
+  """
+  upTo: UUID
 }
 
 type MarkOrganizationNotificationsAsReadPayload {

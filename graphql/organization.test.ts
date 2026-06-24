@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import test from "node:test";
 import { encodeGlobalID } from "@pothos/plugin-relay";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { execute, parse } from "graphql";
 import {
   createOrganization,
@@ -12,6 +12,7 @@ import {
   notificationTable,
   organizationMembershipTable,
 } from "@hackerspub/models/schema";
+import { generateUuidV7 } from "@hackerspub/models/uuid";
 import { schema } from "./mod.ts";
 import {
   createFedCtx,
@@ -319,10 +320,12 @@ const markOrganizationNotificationsAsReadMutation = parse(`
   mutation MarkOrganizationNotificationsAsRead(
     $organizationId: ID!
     $readAt: DateTime
+    $upTo: UUID
   ) {
     markOrganizationNotificationsAsRead(input: {
       organizationId: $organizationId
       readAt: $readAt
+      upTo: $upTo
     }) {
       __typename
       ... on MarkOrganizationNotificationsAsReadPayload {
@@ -1114,6 +1117,71 @@ test("markOrganizationNotificationsAsRead clamps future read markers", async () 
     });
   });
 });
+
+test(
+  "markOrganizationNotificationsAsRead preserves database timestamp precision",
+  async () => {
+    await withRollback(async (tx) => {
+      const admin = await insertAccountWithActor(tx, {
+        username: "graphqlorgprecisionadmin",
+        name: "GraphQL Org Precision Admin",
+        email: "graphqlorgprecisionadmin@example.com",
+      });
+      const actor = await insertAccountWithActor(tx, {
+        username: "graphqlorgprecisionactor",
+        name: "GraphQL Org Precision Actor",
+        email: "graphqlorgprecisionactor@example.com",
+      });
+      await tx.update(accountTable)
+        .set({ leftInvitations: 1 })
+        .where(eq(accountTable.id, admin.account.id));
+      const organization = await createOrganization(
+        createFedCtx(tx),
+        admin.account,
+        {
+          username: "graphqlorgprecision",
+          name: "GraphQL Org Precision",
+          bio: "",
+        },
+      );
+      const notificationId = generateUuidV7();
+      await tx.insert(notificationTable).values({
+        id: notificationId,
+        accountId: organization.id,
+        type: "follow",
+        actorIds: [actor.actor.id],
+        created: new Date("2026-04-15T00:00:00.000Z"),
+      });
+      await tx.update(notificationTable)
+        .set({
+          created: sql`'2026-04-15T00:00:00.123456Z'::timestamptz`,
+        })
+        .where(eq(notificationTable.id, notificationId));
+
+      const result = await execute({
+        schema,
+        document: markOrganizationNotificationsAsReadMutation,
+        variableValues: {
+          organizationId: encodeGlobalID("Account", organization.id),
+          upTo: notificationId,
+        },
+        contextValue: makeUserContext(tx, admin.account),
+        onError: "NO_PROPAGATE",
+      });
+
+      assert.equal(result.errors, undefined);
+      assert.deepEqual(toPlainJson(result.data), {
+        markOrganizationNotificationsAsRead: {
+          __typename: "MarkOrganizationNotificationsAsReadPayload",
+          badge: {
+            color: null,
+            count: 0,
+          },
+        },
+      });
+    });
+  },
+);
 
 test("organization members can read organization notifications", async () => {
   await withRollback(async (tx) => {

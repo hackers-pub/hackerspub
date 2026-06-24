@@ -30,10 +30,10 @@ const NotificationListMarkAsReadMutation = graphql`
 const NotificationListMarkOrganizationNotificationsAsReadMutation = graphql`
   mutation NotificationListMarkOrganizationNotificationsAsReadMutation(
     $organizationId: ID!
-    $readAt: DateTime
+    $upTo: UUID
   ) {
     markOrganizationNotificationsAsRead(
-      input: { organizationId: $organizationId, readAt: $readAt }
+      input: { organizationId: $organizationId, upTo: $upTo }
     ) {
       __typename
       ... on MarkOrganizationNotificationsAsReadPayload {
@@ -128,7 +128,7 @@ export function NotificationList(props: NotificationListProps) {
       markOrganizationNotificationsAsRead({
         variables: {
           organizationId: readScope.organizationId,
-          readAt: readThrough.created,
+          upTo: readThrough.uuid,
         },
         // Bound the marker to the newest row in the loaded page so a
         // notification created after this list was fetched remains unread.

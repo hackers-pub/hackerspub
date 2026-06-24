@@ -7,6 +7,7 @@ import {
   LastOrganizationAdminError,
   LastOrganizationMemberError,
   leaveOrganization as leaveOrganizationModel,
+  markOrganizationNotificationsReadThrough,
   OrganizationConversionError,
   OrganizationInvitationRequiredError,
   OrganizationMembershipError,
@@ -951,7 +952,17 @@ builder.relayMutationField(
         required: false,
         description:
           "Read marker to store. Omit to use the current server time. " +
-          "Future timestamps are clamped to the current server time.",
+          "Future timestamps are clamped to the current server time. " +
+          "Prefer `upTo` when marking notifications loaded from the API, " +
+          "because it preserves database timestamp precision.",
+      }),
+      upTo: t.field({
+        type: "UUID",
+        required: false,
+        description:
+          "UUID of the newest loaded organization notification to mark " +
+          "as read through. This stores the notification row's server-side " +
+          "`created` timestamp, preserving database precision.",
       }),
     }),
   },
@@ -969,13 +980,31 @@ builder.relayMutationField(
       ctx,
     ): Promise<OrganizationNotificationBadgeShape> {
       const member = await requirePersonalAccount(ctx);
+      const organizationId = parseAccountId(
+        args.input.organizationId.id,
+        "organizationId",
+      );
+      if (args.input.upTo != null) {
+        const marked = await markOrganizationNotificationsReadThrough(
+          ctx.db,
+          organizationId,
+          member.id,
+          args.input.upTo as Uuid,
+        );
+        if (!marked) throw new InvalidInputError("upTo");
+        return await getOrganizationNotificationBadge(
+          ctx.db,
+          organizationId,
+          member.id,
+        );
+      }
       const now = new Date();
       const readAt = args.input.readAt == null || args.input.readAt > now
         ? now
         : args.input.readAt;
       return await getOrganizationNotificationBadge(
         ctx.db,
-        parseAccountId(args.input.organizationId.id, "organizationId"),
+        organizationId,
         member.id,
         readAt,
       );
