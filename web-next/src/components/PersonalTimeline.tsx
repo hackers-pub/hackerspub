@@ -150,12 +150,10 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
   // When the language filter changes after initial mount, refetch at the
   // fragment level so the DOM subtree stays mounted (no flash).
   createEffect(on(
-    () =>
-      `${props.activeLanguage?.() ?? ""}:${props.actingAccountId?.() ?? ""}`,
-    () => {
-      const lang = props.activeLanguage?.();
+    [() => props.activeLanguage?.(), () => props.actingAccountId?.()],
+    ([lang, actingAccountId]) => {
       posts.refetch({
-        actingAccountId: props.actingAccountId?.() ?? null,
+        actingAccountId: actingAccountId ?? null,
         languages: lang ? [lang] : [],
       });
     },
