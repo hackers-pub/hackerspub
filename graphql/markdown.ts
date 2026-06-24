@@ -6,7 +6,6 @@ import {
 import { resolveActingAccountForGlobalIdArg } from "./acting-account.ts";
 import { builder } from "./builder.ts";
 import { NotAuthorizedError } from "./error.ts";
-import { NotAuthenticatedError } from "./session.ts";
 import { actingAccountIdArgDescription } from "./viewer-actor.ts";
 
 builder.queryField("renderMarkdown", (t) =>
@@ -43,8 +42,6 @@ builder.queryField("renderMarkdown", (t) =>
       let mediumUrls: Record<string, string> | undefined;
       let missingMediumLabel: string | undefined;
       if (args.articleSourceId != null) {
-        const session = await ctx.session;
-        if (session == null) throw new NotAuthenticatedError();
         const actingAccount = await resolveActingAccountForGlobalIdArg(
           ctx,
           args,

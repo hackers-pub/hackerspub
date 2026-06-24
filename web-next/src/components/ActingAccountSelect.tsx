@@ -114,11 +114,11 @@ export function ActingAccountSelect(props: ActingAccountSelectProps) {
           {(state) => (
             <div class="flex w-full min-w-0 items-center gap-2 overflow-hidden">
               <AccountAvatarStack
-                accounts={state.selectedOption().accounts}
+                accounts={state.selectedOption()?.accounts ?? []}
                 size="sm"
               />
               <AccountIdentityList
-                accounts={state.selectedOption().accounts}
+                accounts={state.selectedOption()?.accounts ?? []}
                 class="flex-1 text-left"
               />
             </div>
