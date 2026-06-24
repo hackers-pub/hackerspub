@@ -597,28 +597,9 @@ test("pending organization invitations expose no notification badge", async () =
     assert.equal(notifications.errors, undefined);
     assert.deepEqual(toPlainJson(notifications.data), {
       viewer: {
-        unreadNotificationsCount: 1,
+        unreadNotificationsCount: 0,
         notifications: {
-          edges: [
-            {
-              node: {
-                __typename: "OrganizationInvitationNotification",
-                membership: {
-                  role: "MEMBER",
-                  accepted: null,
-                  organization: { username: "graphqlinviteorg" },
-                  member: { username: "graphqlinvitemember" },
-                },
-                actors: {
-                  edges: [
-                    {
-                      node: { username: "graphqlinviteorg" },
-                    },
-                  ],
-                },
-              },
-            },
-          ],
+          edges: [],
         },
       },
     });

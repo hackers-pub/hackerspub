@@ -1115,11 +1115,24 @@ export async function markOrganizationNotificationsReadThrough(
   );
   if (membership == null) throw new OrganizationPermissionError();
 
+  const organizationAccountIdColumn = sql.identifier(
+    organizationNotificationReadTable.organizationAccountId.name,
+  );
+  const memberAccountIdColumn = sql.identifier(
+    organizationNotificationReadTable.memberAccountId.name,
+  );
+  const readAtColumn = sql.identifier(
+    organizationNotificationReadTable.readAt.name,
+  );
+  const updatedColumn = sql.identifier(
+    organizationNotificationReadTable.updated.name,
+  );
+
   const result = await db.execute<{ inserted: number }>(sql`
     INSERT INTO ${organizationNotificationReadTable} (
-      ${organizationNotificationReadTable.organizationAccountId},
-      ${organizationNotificationReadTable.memberAccountId},
-      ${organizationNotificationReadTable.readAt}
+      ${organizationAccountIdColumn},
+      ${memberAccountIdColumn},
+      ${readAtColumn}
     )
     SELECT
       ${organizationAccountId},
@@ -1129,14 +1142,14 @@ export async function markOrganizationNotificationsReadThrough(
     WHERE ${notificationTable.id} = ${notificationId}
       AND ${notificationTable.accountId} = ${organizationAccountId}
     ON CONFLICT (
-      ${organizationNotificationReadTable.organizationAccountId},
-      ${organizationNotificationReadTable.memberAccountId}
+      ${organizationAccountIdColumn},
+      ${memberAccountIdColumn}
     ) DO UPDATE SET
-      ${organizationNotificationReadTable.readAt} = GREATEST(
+      ${readAtColumn} = GREATEST(
         ${organizationNotificationReadTable.readAt},
-        EXCLUDED.read_at
+        EXCLUDED.${readAtColumn}
       ),
-      ${organizationNotificationReadTable.updated} = CURRENT_TIMESTAMP
+      ${updatedColumn} = CURRENT_TIMESTAMP
     RETURNING 1 AS inserted
   `);
   return result.length > 0;
