@@ -86,21 +86,22 @@ export function useComposeActingAccountOptions(): Accessor<
 export function ActingAccountSelect(props: ActingAccountSelectProps) {
   const { t } = useLingui();
   const options = useComposeActingAccountOptions();
-  const selectedOption = () =>
-    options().find((option) => option.value === props.value) ?? options()[0];
+  const optionValues = createMemo(() =>
+    options().map((option) => option.value)
+  );
+  const optionByValue = (value: string | null | undefined) =>
+    options().find((option) => option.value === value) ?? options()[0];
 
   return (
     <Select
-      value={selectedOption()}
+      value={props.value}
       onChange={(option) =>
-        props.onChange(option?.value ?? PERSONAL_COMPOSE_ACCOUNT_KEY)}
-      options={options()}
-      optionValue="value"
-      optionTextValue="label"
+        props.onChange(option ?? PERSONAL_COMPOSE_ACCOUNT_KEY)}
+      options={optionValues()}
       disabled={props.disabled || options().length < 2}
       itemComponent={(props) => (
         <SelectItem item={props.item} class="min-w-0 overflow-hidden">
-          <AccountOption option={props.item.rawValue} />
+          <AccountOption option={optionByValue(props.item.rawValue)} />
         </SelectItem>
       )}
     >
@@ -108,17 +109,17 @@ export function ActingAccountSelect(props: ActingAccountSelectProps) {
         aria-label={t`Author`}
         class={cn("w-full overflow-hidden text-left sm:w-[340px]", props.class)}
       >
-        <SelectValue<ComposeActingAccountOption>
+        <SelectValue<string>
           class="min-w-0 flex-1 overflow-hidden"
         >
           {(state) => (
             <div class="flex w-full min-w-0 items-center gap-2 overflow-hidden">
               <AccountAvatarStack
-                accounts={state.selectedOption()?.accounts ?? []}
+                accounts={optionByValue(state.selectedOption())?.accounts ?? []}
                 size="sm"
               />
               <AccountIdentityList
-                accounts={state.selectedOption()?.accounts ?? []}
+                accounts={optionByValue(state.selectedOption())?.accounts ?? []}
                 class="flex-1 text-left"
               />
             </div>
@@ -133,7 +134,8 @@ export function ActingAccountSelect(props: ActingAccountSelectProps) {
   );
 }
 
-function AccountOption(props: { option: ComposeActingAccountOption }) {
+function AccountOption(props: { option?: ComposeActingAccountOption }) {
+  if (props.option == null) return null;
   return (
     <div class="flex w-full min-w-0 max-w-full items-center gap-2 overflow-hidden py-0.5">
       <AccountAvatarStack accounts={props.option.accounts} size="md" />
