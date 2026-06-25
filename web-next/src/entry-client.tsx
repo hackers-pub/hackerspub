@@ -5,6 +5,7 @@ import { solidRouterBrowserTracingIntegration } from "@sentry/solidstart/solidro
 import { mount, StartClient } from "@solidjs/start/client";
 import { render } from "solid-js/web";
 import { startClientMemoryWatchdog } from "~/lib/clientMemoryWatchdog.ts";
+import { isNetworkError } from "~/lib/networkError.ts";
 import { isTransientUpstreamGraphQLErrorEvent } from "~/lib/upstreamGraphQLError.ts";
 import packageJson from "../package.json" with { type: "json" };
 
@@ -38,6 +39,7 @@ if (sentryDsn) {
     sendDefaultPii: true,
     beforeSend(event, hint) {
       if (isTransientUpstreamGraphQLErrorEvent(event, hint)) return null;
+      if (isNetworkError(hint.originalException)) return null;
       return event;
     },
   });
