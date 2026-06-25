@@ -4,6 +4,7 @@ import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
 import { createMutation, loadQuery, useRelayEnvironment } from "solid-relay";
 import { LocaleSelect } from "~/components/LocaleSelect.tsx";
+import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { Title } from "~/components/Title.tsx";
 import { Trans } from "~/components/Trans.tsx";
@@ -63,6 +64,8 @@ const invitationLinkPageQuery = graphql`
 `;
 
 type UUID = `${string}-${string}-${string}-${string}-${string}`;
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const loadInvitationLinkPageQuery = routePreloadedQuery(
   (id: string, handle: string) =>
@@ -111,6 +114,7 @@ const invitationLinkRedeemMutation = graphql`
 export default function InvitationLinkPage() {
   const params = useParams();
   const { t, i18n } = useLingui();
+  if (!UUID_PATTERN.test(params.id!)) return <NotFoundPage embedded />;
   const data = createStablePreloadedQuery<IdInvitationLinkPageQuery>(
     invitationLinkPageQuery,
     () =>
