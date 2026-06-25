@@ -1,10 +1,19 @@
 import { fetchQuery, graphql } from "relay-runtime";
-import { createEffect, createSignal, For, Match, Show, Switch } from "solid-js";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  Match,
+  Show,
+  Switch,
+} from "solid-js";
 import {
   createMutation,
   createPaginationFragment,
   useRelayEnvironment,
 } from "solid-relay";
+import { createChunkedVisibleCount } from "~/lib/deferredRender.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { NotificationListMarkAsReadMutation } from "./__generated__/NotificationListMarkAsReadMutation.graphql.ts";
 import type { NotificationListMarkOrganizationNotificationsAsReadMutation } from "./__generated__/NotificationListMarkOrganizationNotificationsAsReadMutation.graphql.ts";
@@ -106,6 +115,15 @@ export function NotificationList(props: NotificationListProps) {
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
   >("loaded");
+  const notificationEdges = createMemo(() =>
+    notifications()?.notifications.edges ?? []
+  );
+  const visibleNotificationCount = createChunkedVisibleCount(
+    () => notificationEdges().length,
+  );
+  const visibleNotificationEdges = createMemo(() =>
+    notificationEdges().slice(0, visibleNotificationCount())
+  );
   let markedReadThroughKey: string | null = null;
 
   function refreshUnreadNotificationsCount() {
@@ -161,13 +179,16 @@ export function NotificationList(props: NotificationListProps) {
 
   return (
     <Show keyed when={notifications()}>
-      {(data) => (
+      {(_data) => (
         <>
           <ul class="mb-10 flex flex-col overflow-hidden rounded-lg border bg-card shadow-sm md:mb-12">
-            <For each={data.notifications.edges}>
+            <For each={visibleNotificationEdges()}>
               {(edge) => <NotificationCard $notification={edge.node} />}
             </For>
-            <Show when={notifications.hasNext}>
+            <Show
+              when={notifications.hasNext &&
+                visibleNotificationCount() >= notificationEdges().length}
+            >
               <li>
                 <button
                   type="button"

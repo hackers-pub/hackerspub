@@ -1,6 +1,6 @@
 import { A } from "@solidjs/router";
 import { fetchQuery, graphql } from "relay-runtime";
-import { createEffect, For, Show } from "solid-js";
+import { createEffect, createMemo, For, Show } from "solid-js";
 import {
   createMutation,
   createPaginationFragment,
@@ -8,6 +8,7 @@ import {
 } from "solid-relay";
 import IconShieldAlert from "~icons/lucide/shield-alert";
 import { Timestamp } from "~/components/Timestamp.tsx";
+import { createChunkedVisibleCount } from "~/lib/deferredRender.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { ModerationNotificationListMarkReadMutation } from "./__generated__/ModerationNotificationListMarkReadMutation.graphql.ts";
 import type { ModerationNotificationListUnreadCountQuery } from "./__generated__/ModerationNotificationListUnreadCountQuery.graphql.ts";
@@ -72,6 +73,15 @@ export function ModerationNotificationList(
       }
     `,
     () => props.$account,
+  );
+  const notificationEdges = createMemo(() =>
+    data()?.moderationNotifications?.edges ?? []
+  );
+  const visibleNotificationCount = createChunkedVisibleCount(
+    () => notificationEdges().length,
+  );
+  const visibleNotificationEdges = createMemo(() =>
+    notificationEdges().slice(0, visibleNotificationCount())
   );
 
   let marked = false;
@@ -151,7 +161,7 @@ export function ModerationNotificationList(
               {t`Moderation`}
             </h2>
             <ul class="flex flex-col overflow-hidden rounded-lg border bg-card shadow-sm">
-              <For each={value.moderationNotifications?.edges ?? []}>
+              <For each={visibleNotificationEdges()}>
                 {(edge) => (
                   <li>
                     <A
@@ -179,7 +189,10 @@ export function ModerationNotificationList(
                   </li>
                 )}
               </For>
-              <Show when={data.hasNext}>
+              <Show
+                when={data.hasNext &&
+                  visibleNotificationCount() >= notificationEdges().length}
+              >
                 <li>
                   <button
                     type="button"
