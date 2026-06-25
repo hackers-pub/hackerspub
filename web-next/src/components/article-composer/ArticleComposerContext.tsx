@@ -21,6 +21,10 @@ import {
 } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { useNavigate } from "@solidjs/router";
+import {
+  createDraftFormSnapshot,
+  draftFormMatchesSnapshot,
+} from "./draftSaveSnapshot.ts";
 import { useAutoSave } from "./useAutoSave.ts";
 import { useUnsavedGuard } from "./useUnsavedGuard.ts";
 import type { ArticleComposerContextSaveMutation } from "./__generated__/ArticleComposerContextSaveMutation.graphql.ts";
@@ -178,6 +182,8 @@ export interface ArticleComposerContextValue {
 
 const ArticleComposerContext = createContext<ArticleComposerContextValue>();
 
+type DraftState = NonNullable<ReturnType<ArticleComposerContextValue["draft"]>>;
+
 // --- Provider ---
 
 export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
@@ -207,10 +213,12 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
     )
     : undefined;
 
-  const draft = createMemo(() => {
+  const loadedDraft = createMemo(() => {
     if (!props.draftUuid || !draftData) return undefined;
     return draftData()?.articleDraft ?? undefined;
   });
+  const [savedDraft, setSavedDraft] = createSignal<DraftState | undefined>();
+  const draft = createMemo(() => savedDraft() ?? loadedDraft());
 
   const draftDataLoaded = createMemo(() => {
     // When editing an existing draft the Relay store starts empty on the
@@ -289,14 +297,20 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
       return;
     }
 
+    const submittedDraft = createDraftFormSnapshot(
+      title(),
+      content(),
+      tags(),
+    );
+
     saveDraft({
       variables: {
         input: {
           id: draft()?.id,
           uuid: draft()?.id == null ? draftUuid : undefined,
-          title: title().trim(),
-          content: content().trim(),
-          tags: tags(),
+          title: submittedDraft.title,
+          content: submittedDraft.content,
+          tags: submittedDraft.tags,
         },
         connections: draftConnections(),
       },
@@ -305,11 +319,32 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
           response.saveArticleDraft.__typename === "SaveArticleDraftPayload"
         ) {
           const savedDraft = response.saveArticleDraft.draft;
+          const currentDraft = createDraftFormSnapshot(
+            title(),
+            content(),
+            tags(),
+          );
+          const formStillMatchesSubmitted = draftFormMatchesSnapshot(
+            currentDraft,
+            submittedDraft,
+          );
 
-          setTitle(savedDraft.title);
-          setContent(savedDraft.content);
-          setTags([...savedDraft.tags]);
-          setIsDirty(false);
+          setSavedDraft({
+            id: savedDraft.id,
+            uuid: savedDraft.uuid,
+            title: savedDraft.title,
+            content: savedDraft.content,
+            tags: savedDraft.tags,
+          });
+
+          if (formStillMatchesSubmitted) {
+            setTitle(savedDraft.title);
+            setContent(savedDraft.content);
+            setTags([...savedDraft.tags]);
+            setIsDirty(false);
+          } else {
+            setIsDirty(true);
+          }
 
           if (savedDraft.contentHtml) {
             setPreviewHtml(savedDraft.contentHtml);
@@ -322,7 +357,9 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
               variant: "success",
             });
           }
-          props.onSaved?.(savedDraft.id, savedDraft.uuid);
+          if (formStillMatchesSubmitted) {
+            props.onSaved?.(savedDraft.id, savedDraft.uuid);
+          }
         } else if (
           response.saveArticleDraft.__typename === "InvalidInputError"
         ) {
@@ -493,13 +530,19 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
 
   // --- Effects ---
 
-  // Populate form when draft loads
+  const [hydratedDraft, setHydratedDraft] = createSignal(false);
+
+  // Populate form when the initial draft loads. Later save responses update
+  // the saved baseline, but must not overwrite text the user typed while the
+  // request was in flight.
   createEffect(() => {
-    const currentDraft = draft();
-    if (currentDraft) {
+    const currentDraft = loadedDraft();
+    if (currentDraft && !hydratedDraft()) {
+      setSavedDraft(currentDraft);
       setTitle(currentDraft.title);
       setContent(currentDraft.content);
       setTags([...currentDraft.tags]);
+      setHydratedDraft(true);
     }
   });
 
