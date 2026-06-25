@@ -139,6 +139,73 @@ test("scrapePostLink() keeps image URL when metadata probing fails", async () =>
   resetGlobalFetch();
 });
 
+test("scrapePostLink() ignores unsupported charsets", async () => {
+  mockGlobalFetch();
+  mockFetch("https://example.internal/legacy-charset.html", {
+    headers: {
+      "Content-Type": "text/html; charset=cp51932",
+    },
+    body: `<html>
+        <head>
+          <meta property="og:title" content="Legacy charset">
+        </head>
+      </html>`,
+  });
+
+  const link = await scrapePostLink(
+    ctx,
+    "https://example.internal/legacy-charset.html",
+    () => Promise.resolve(undefined),
+  );
+
+  assert.equal(link, undefined);
+  resetFetch();
+  resetGlobalFetch();
+});
+
+test("scrapePostLink() drops non-HTTP image URL protocols", async () => {
+  mockGlobalFetch();
+  mockFetch("https://example.internal/relative-image.html", {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+    },
+    body: `<html>
+        <head>
+          <meta property="og:title" content="Relative image">
+          <meta property="og:url" content="https://example.internal/relative-image">
+          <meta property="og:image" content="git.ayo.run:3000/repo-avatars/image.jpg">
+          <meta property="og:image:alt" content="Preview">
+          <meta property="og:image:type" content="image/jpeg">
+        </head>
+      </html>`,
+  });
+
+  const link = await scrapePostLink(
+    ctx,
+    "https://example.internal/relative-image.html",
+    () => Promise.resolve(undefined),
+  );
+
+  assert.deepEqual(link, {
+    id: link?.id ?? "00000000-0000-0000-0000-000000000000",
+    url: "https://example.internal/relative-image",
+    title: "Relative image",
+    description: undefined,
+    siteName: undefined,
+    type: undefined,
+    author: undefined,
+    imageUrl: undefined,
+    imageWidth: undefined,
+    imageHeight: undefined,
+    imageType: undefined,
+    imageAlt: undefined,
+    creatorId: undefined,
+  });
+  assert.ok(link != null && validate(link.id));
+  resetFetch();
+  resetGlobalFetch();
+});
+
 test("scrapePostLink() treats an empty HTML response as no preview", async () => {
   mockGlobalFetch();
   mockFetch("https://example.internal/empty.html", {

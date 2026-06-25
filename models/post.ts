@@ -3313,9 +3313,19 @@ export async function scrapePostLink<TContextData>(
     if (charsetMatch != null) charset = charsetMatch[1].toLowerCase();
   }
 
-  const html = !charset || charset === "utf-8" || charset === "utf8"
-    ? new TextDecoder().decode(bytes)
-    : iconv.decode(Buffer.from(bytes), charset);
+  let html: string;
+  try {
+    html = !charset || charset === "utf-8" || charset === "utf8"
+      ? new TextDecoder().decode(bytes)
+      : iconv.decode(Buffer.from(bytes), charset);
+  } catch (error) {
+    lg.warn("Failed to decode HTML from {url}: {error}", {
+      url: responseUrl,
+      error,
+      charset,
+    });
+    return undefined;
+  }
   if (html.trim().length < 1) {
     lg.warn("Empty HTML page: {url}", { url: responseUrl });
     return undefined;
@@ -3351,9 +3361,15 @@ export async function scrapePostLink<TContextData>(
   lg.debug("Scraped {url}: {result}", { url: responseUrl, result });
   const ogImage = result.ogImage ?? [];
   const twitterImage = result.twitterImage ?? [];
-  const image = ogImage.length > 0
+  const image: {
+    imageUrl?: string;
+    imageAlt?: string;
+    imageType?: string;
+    imageWidth?: number;
+    imageHeight?: number;
+  } = ogImage.length > 0
     ? {
-      imageUrl: new URL(ogImage[0].url, responseUrl).href,
+      imageUrl: ogImage[0].url,
       imageAlt: ogImage[0].alt,
       imageType: ogImage[0].type === "png"
         ? "image/png"
@@ -3372,7 +3388,7 @@ export async function scrapePostLink<TContextData>(
     }
     : twitterImage.length > 0
     ? {
-      imageUrl: new URL(twitterImage[0].url, responseUrl).href,
+      imageUrl: twitterImage[0].url,
       imageAlt: twitterImage[0].alt,
       imageWidth: typeof twitterImage[0].width === "string"
         ? parseInt(twitterImage[0].width)
@@ -3382,6 +3398,28 @@ export async function scrapePostLink<TContextData>(
         : twitterImage[0].height,
     }
     : {};
+  if (image.imageUrl != null) {
+    try {
+      const imageUrl = new URL(image.imageUrl, responseUrl);
+      if (imageUrl.protocol !== "http:" && imageUrl.protocol !== "https:") {
+        throw new TypeError(
+          `Unsupported image URL protocol: ${imageUrl.protocol}`,
+        );
+      }
+      image.imageUrl = imageUrl.href;
+    } catch (error) {
+      lg.warn("Ignoring invalid preview image URL for {url}: {error}", {
+        url: responseUrl,
+        imageUrl: image.imageUrl,
+        error,
+      });
+      image.imageUrl = undefined;
+      image.imageAlt = undefined;
+      image.imageType = undefined;
+      image.imageWidth = undefined;
+      image.imageHeight = undefined;
+    }
+  }
   if (
     image.imageUrl != null &&
     (image.imageWidth == null || image.imageHeight == null)
