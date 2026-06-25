@@ -27,6 +27,7 @@ import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import IconLoader2 from "~icons/lucide/loader-2";
+import { articleOgImageUrl } from "~/lib/articleOgImage.ts";
 import { useContentLinkInterceptor } from "~/lib/contentLinkInterceptor.ts";
 import {
   MentionHoverCardLayer,
@@ -237,13 +238,11 @@ function ArticleMetaHead(props: ArticleMetaHeadProps) {
             return null;
           }
         };
-        const ogImageUrls = () =>
-          articleOgImageUrls(
+        const ogImageUrl = () =>
+          articleOgImageUrl(
             article.url,
-            content()?.url,
+            content(),
             article.language,
-            content()?.language,
-            article.contents,
           );
         return (
           <>
@@ -261,7 +260,7 @@ function ArticleMetaHead(props: ArticleMetaHeadProps) {
             <Meta property="og:title" content={title()} />
             <Meta property="og:description" content={description()} />
             <Meta property="og:type" content="article" />
-            <For each={ogImageUrls()}>
+            <Show keyed when={ogImageUrl()}>
               {(ogImageUrl) => (
                 <>
                   <Meta property="og:image" content={ogImageUrl} />
@@ -269,8 +268,8 @@ function ArticleMetaHead(props: ArticleMetaHeadProps) {
                   <Meta property="og:image:height" content="630" />
                 </>
               )}
-            </For>
-            <Show when={ogImageUrls().length > 0}>
+            </Show>
+            <Show when={ogImageUrl() != null}>
               <Meta name="twitter:card" content="summary_large_image" />
             </Show>
             <Meta
@@ -330,35 +329,6 @@ function ArticleMetaHead(props: ArticleMetaHeadProps) {
       }}
     </Show>
   );
-}
-
-function articleOgImageUrls(
-  articleUrl: string | null | undefined,
-  fallbackContentUrl: string | null | undefined,
-  articleLanguage: string | null | undefined,
-  fallbackContentLanguage: string | null | undefined,
-  contents:
-    | readonly { readonly language: string; readonly url: string }[]
-    | null
-    | undefined,
-) {
-  const baseUrl = articleUrl ?? fallbackContentUrl;
-  if (baseUrl == null || contents == null || contents.length < 1) return [];
-  return contents.map((content) => {
-    const url = new URL(baseUrl);
-    if (
-      articleUrl == null &&
-      articleLanguage != null &&
-      fallbackContentLanguage !== articleLanguage
-    ) {
-      url.pathname = url.pathname.replace(/\/+$/, "").replace(/\/[^/]+$/, "");
-    }
-    url.pathname = `${url.pathname.replace(/\/+$/, "")}/ogimage`;
-    if (articleLanguage == null || content.language !== articleLanguage) {
-      url.searchParams.set("l", content.language);
-    }
-    return url.toString();
-  });
 }
 
 interface ArticleBodyProps {
