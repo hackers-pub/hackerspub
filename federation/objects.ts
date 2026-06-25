@@ -120,7 +120,7 @@ export async function getArticle(
       const missingMediumLabel = getMissingArticleMediumLabel(
         content.language,
       );
-      const rendered = await renderMarkup(ctx, content.content, {
+      const { hashtags, html } = await renderMarkup(ctx, content.content, {
         docId: articleSource.id,
         kv: ctx.data.kv,
         mediumUrls,
@@ -128,7 +128,8 @@ export async function getArticle(
       });
       return {
         ...content,
-        ...rendered,
+        hashtags,
+        html,
         content: resolveMediumUrls(content.content, mediumUrls, {
           missingMediumLabel,
         }),

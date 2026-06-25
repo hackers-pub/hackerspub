@@ -204,6 +204,67 @@ test("getArticle() includes member attribution for co-authored organization arti
   });
 });
 
+test("getArticle() preserves article content titles when rendered body has no heading", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "articlebodytitle",
+      name: "Article Body Title",
+      email: "articlebodytitle@example.com",
+    });
+    const published = new Date("2026-04-15T00:00:00.000Z");
+    const articleSourceId = generateUuidV7();
+    await tx.insert(articleSourceTable).values({
+      id: articleSourceId,
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "body-without-heading",
+      quotePolicy: "everyone",
+      published,
+      updated: published,
+    });
+    await tx.insert(articleContentTable).values([
+      {
+        sourceId: articleSourceId,
+        language: "ko",
+        title: "본문 제목이 아닌 글 제목",
+        content: "본문에는 별도의 H1 제목이 없습니다.",
+        published,
+        updated: published,
+      },
+      {
+        sourceId: articleSourceId,
+        language: "en",
+        title: "Article title, not body title",
+        content: "The body has no separate H1 heading.",
+        originalLanguage: "ko",
+        translationRequesterId: author.account.id,
+        published: new Date("2026-04-15T00:01:00.000Z"),
+        updated: new Date("2026-04-15T00:01:00.000Z"),
+      },
+    ]);
+    const articleSource = await tx.query.articleSourceTable.findFirst({
+      where: { id: articleSourceId },
+      with: { account: true, contents: true },
+    });
+    assert.ok(articleSource != null);
+
+    const article = await getArticle(createFedCtx(tx), articleSource);
+    const jsonLd = await article.toJsonLd() as {
+      nameMap?: Record<string, string>;
+    };
+
+    assert.equal(article.name?.toString(), "본문 제목이 아닌 글 제목");
+    assert.deepEqual(jsonLd.nameMap, {
+      ko: "본문 제목이 아닌 글 제목",
+      en: "Article title, not body title",
+    });
+    assert.match(
+      article.content?.toString() ?? "",
+      />Article title, not body title<\/a>/,
+    );
+  });
+});
+
 test("source-backed Questions do not resolve through the Note dispatcher", async () => {
   await withRollback(async (tx) => {
     const author = await insertAccountWithActor(tx, {
