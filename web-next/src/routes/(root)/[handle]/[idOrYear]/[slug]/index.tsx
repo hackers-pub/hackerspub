@@ -209,7 +209,12 @@ function ArticleMetaHead(props: ArticleMetaHeadProps) {
         const content = () => {
           const c = article.contents;
           if (c == null) return undefined;
-          return c.find((entry) => entry.language === article.language) ??
+          // solid-relay can republish a transiently incomplete store
+          // snapshot inside `batch()` (e.g., while navigating away), where
+          // individual list rows read as `undefined` even though `article()`
+          // itself is still truthy.  Guard the row access with `?.` so this
+          // reactive recompute doesn't throw during that window.
+          return c.find((entry) => entry?.language === article.language) ??
             c[0];
         };
         const title = () => content()?.title ?? "";
@@ -310,7 +315,12 @@ function ArticleMetaHead(props: ArticleMetaHeadProps) {
                 // translations yet, so listing them as
                 // `og:locale:alternate` would advertise content the
                 // crawler will only see as a "translating…" message.
-                (c) => !c.beingTranslated && c.language !== currentLanguage(),
+                // The `c != null` guard mirrors `content()` above: a
+                // transient solid-relay republish can surface `undefined`
+                // rows mid-`batch()`.
+                (c) =>
+                  c != null && !c.beingTranslated &&
+                  c.language !== currentLanguage(),
               )}
             >
               {(c) => (
@@ -396,7 +406,12 @@ function ArticleBody(props: ArticleBodyProps) {
         const content = () => {
           const c = article.contents;
           if (c == null) return undefined;
-          return c.find((entry) => entry.language === article.language) ??
+          // solid-relay can republish a transiently incomplete store
+          // snapshot inside `batch()` (e.g., while navigating away), where
+          // individual list rows read as `undefined` even though `article()`
+          // itself is still truthy.  Guard the row access with `?.` so this
+          // reactive recompute doesn't throw during that window.
+          return c.find((entry) => entry?.language === article.language) ??
             c[0];
         };
         const toc = () => (content()?.toc ?? []) as Toc[];
@@ -710,6 +725,12 @@ function ArticleLanguageSwitcher(props: ArticleLanguageSwitcherProps) {
       {(article) => {
         const postUrl = () =>
           `/@${article.actor.username}/${article.publishedYear}/${article.slug}`;
+        // solid-relay can republish a transiently incomplete store
+        // snapshot inside `batch()` (e.g., while navigating away),
+        // surfacing `undefined` rows even though `article()` itself is
+        // still truthy.  Normalize to the present rows once so every read
+        // below stays guarded.
+        const allContents = () => article.allContents.filter((c) => c != null);
         // Extra links for the viewer's preferred locales that aren't
         // already represented in the existing translations and aren't
         // the article's original language.  Clicking one navigates to
@@ -740,7 +761,7 @@ function ArticleLanguageSwitcher(props: ArticleLanguageSwitcherProps) {
             }
           };
           const existing = new Set(
-            article.allContents.map((c) => subtag(c.language)),
+            allContents().map((c) => subtag(c.language)),
           );
           const articleSubtag = subtag(article.language);
           const currentSubtag = subtag(props.currentLanguage);
@@ -771,7 +792,7 @@ function ArticleLanguageSwitcher(props: ArticleLanguageSwitcherProps) {
 
         return (
           <Show
-            when={article.allContents.length > 1 ||
+            when={allContents().length > 1 ||
               extraLocales().length > 0}
           >
             <aside class="mt-8 p-4 max-w-[80ch] border border-stone-200 dark:border-stone-700 flex flex-row gap-3 rounded-md">
@@ -793,7 +814,7 @@ function ArticleLanguageSwitcher(props: ArticleLanguageSwitcherProps) {
                 <Show keyed when={props.currentOriginalLanguage}>
                   {(originalLanguage) => {
                     const sourceUrl = () => {
-                      const entry = article.allContents.find(
+                      const entry = allContents().find(
                         (c) => c.language === originalLanguage,
                       );
                       return entry?.url ?? postUrl();
@@ -820,7 +841,7 @@ function ArticleLanguageSwitcher(props: ArticleLanguageSwitcherProps) {
                   <strong>{t`Other languages`}</strong> &rarr;{" "}
                   <For
                     each={[
-                      ...article.allContents.filter(
+                      ...allContents().filter(
                         (c) => c.language !== props.currentLanguage,
                       ).map((c) => ({
                         language: c.language,
