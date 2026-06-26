@@ -20,6 +20,7 @@ import { and, asc, desc, eq, isNotNull, or, type SQL, sql } from "drizzle-orm";
 import { Account } from "./account.ts";
 import { builder } from "./builder.ts";
 import { NotAuthorizedError } from "./error.ts";
+import { AccountKind } from "./organization.ts";
 import { NotAuthenticatedError } from "./session.ts";
 
 const ADMIN_SORT_FIELDS = [
@@ -42,6 +43,7 @@ const OrderDirection = builder.enumType("OrderDirection", {
 
 type AdminOrderBy = typeof AdminAccountOrderBy.$inferType;
 type AdminOrderDir = typeof OrderDirection.$inferType;
+type AccountKindFilter = typeof AccountKind.$inferType;
 
 interface AdminAccountRow {
   account: typeof accountTable.$inferSelect;
@@ -174,6 +176,12 @@ builder.queryField("adminAccounts", (t) =>
       before: t.arg.string(),
       orderBy: t.arg({ type: AdminAccountOrderBy }),
       orderDirection: t.arg({ type: OrderDirection }),
+      kind: t.arg({
+        type: AccountKind,
+        description:
+          "Optional account-kind filter. Use `PERSONAL` for login-capable " +
+          "accounts and `ORGANIZATION` for organization accounts.",
+      }),
       search: t.arg.string(),
     },
     async resolve(
@@ -186,6 +194,7 @@ builder.queryField("adminAccounts", (t) =>
 
       const orderBy: AdminOrderBy = args.orderBy ?? "LAST_ACTIVITY";
       const orderDir: AdminOrderDir = args.orderDirection ?? "DESC";
+      const accountKind: AccountKindFilter | null = args.kind ?? null;
 
       // Split the search string into words; each word must appear in either
       // the display name or the username (case-insensitive substring match).
@@ -206,6 +215,10 @@ builder.queryField("adminAccounts", (t) =>
           )!;
         }),
       );
+      const kindFilter = accountKind == null
+        ? undefined
+        : eq(accountTable.kind, accountKind);
+      const baseFilter = and(searchFilter, kindFilter);
 
       // --- Subqueries ---
 
@@ -330,7 +343,7 @@ builder.queryField("adminAccounts", (t) =>
       const [{ totalCount }] = await ctx.db
         .select({ totalCount: sql<number>`COUNT(*)::int` })
         .from(accountTable)
-        .where(searchFilter);
+        .where(baseFilter);
 
       // --- Cursor filter helpers ---
       // For DESC natural order: "after" a cursor means a smaller value;
@@ -452,7 +465,7 @@ builder.queryField("adminAccounts", (t) =>
           }
 
           const rows = await q
-            .where(and(beforeFilter, afterFilter, searchFilter))
+            .where(and(beforeFilter, afterFilter, baseFilter))
             .orderBy(...orderByClause)
             .limit(limit);
 

@@ -19,6 +19,14 @@ import { createPaginationFragment } from "solid-relay";
 import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select.tsx";
+import {
   Table,
   TableBody,
   TableCell,
@@ -33,6 +41,14 @@ import type { AdminAccountsTable_query$key } from "./__generated__/AdminAccounts
 export interface AdminAccountsTableProps {
   $query: AdminAccountsTable_query$key;
 }
+
+type AccountKindFilter = "all" | "personal" | "organization";
+
+const ACCOUNT_KIND_FILTERS: AccountKindFilter[] = [
+  "all",
+  "personal",
+  "organization",
+];
 
 export function AdminAccountsTable(props: AdminAccountsTableProps) {
   const { i18n, t } = useLingui();
@@ -51,6 +67,10 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
     return raw === "ASC" || raw === "DESC" ? raw : "DESC";
   };
   const currentSearch = () => searchParams().get("q") ?? "";
+  const currentKind = (): AccountKindFilter => {
+    const raw = searchParams().get("kind");
+    return raw === "personal" || raw === "organization" ? raw : "all";
+  };
 
   // Sync the text input with the URL whenever the URL's ?q param changes
   // (e.g. after navigating via a sort-column link).
@@ -74,6 +94,16 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
       params.set("q", q.trim());
     } else {
       params.delete("q");
+    }
+    return `${location.pathname}?${params.toString()}`;
+  }
+
+  function kindHref(kind: AccountKindFilter): string {
+    const params = new URLSearchParams(location.search);
+    if (kind === "all") {
+      params.delete("kind");
+    } else {
+      params.set("kind", kind);
     }
     return `${location.pathname}?${params.toString()}`;
   }
@@ -103,6 +133,17 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
     );
   }
 
+  function accountKindLabel(kind: AccountKindFilter) {
+    switch (kind) {
+      case "personal":
+        return t`Personal accounts`;
+      case "organization":
+        return t`Organization accounts`;
+      case "all":
+        return t`All accounts`;
+    }
+  }
+
   const data = createPaginationFragment(
     graphql`
       fragment AdminAccountsTable_query on Query
@@ -112,6 +153,7 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
           count: { type: "Int", defaultValue: 100 }
           orderBy: { type: "AdminAccountOrderBy" }
           orderDirection: { type: "OrderDirection" }
+          kind: { type: "AccountKind" }
           search: { type: "String" }
         )
       {
@@ -120,11 +162,12 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
           first: $count
           orderBy: $orderBy
           orderDirection: $orderDirection
+          kind: $kind
           search: $search
         )
           @connection(
             key: "AdminAccountsTable_adminAccounts"
-            filters: ["orderBy", "orderDirection", "search"]
+            filters: ["orderBy", "orderDirection", "kind", "search"]
           )
         {
           totalCount
@@ -187,32 +230,60 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
     <Show keyed when={data()?.adminAccounts}>
       {(conn) => (
         <>
-          <form onSubmit={onSearchSubmit} class="mb-4 flex gap-2">
+          <form
+            onSubmit={onSearchSubmit}
+            class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end"
+          >
             <div class="relative flex-1">
+              <label for="admin-account-search" class="sr-only">
+                {t`Search accounts`}
+              </label>
               <IconSearch class="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <input
+                id="admin-account-search"
                 type="search"
                 value={searchInput()}
                 onInput={(e) => setSearchInput(e.currentTarget.value)}
                 placeholder={t`Search by name or username…`}
-                class="h-9 w-full rounded-md border border-input bg-transparent pl-8 pr-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                class="h-10 w-full rounded-md border border-input bg-transparent pl-8 pr-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               />
             </div>
-            <Button type="submit" variant="outline" size="sm">
-              {t`Search`}
-            </Button>
-            <Show when={currentSearch()}>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                class="gap-1"
-                onClick={() => navigate(searchHref(""))}
+            <div class="flex flex-wrap gap-2 sm:flex-nowrap">
+              <Select
+                class="grid min-w-48 gap-1.5"
+                value={currentKind()}
+                onChange={(kind) => kind != null && navigate(kindHref(kind))}
+                options={ACCOUNT_KIND_FILTERS}
+                itemComponent={(props) => (
+                  <SelectItem item={props.item}>
+                    {accountKindLabel(props.item.rawValue)}
+                  </SelectItem>
+                )}
               >
-                <IconX class="size-3" />
-                {t`Clear`}
+                <SelectLabel class="sr-only">{t`Account kind`}</SelectLabel>
+                <SelectTrigger class="h-10">
+                  <SelectValue<AccountKindFilter>>
+                    {(state) => accountKindLabel(state.selectedOption())}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent />
+              </Select>
+              <Button type="submit" variant="outline" size="sm" class="h-10">
+                {t`Search`}
               </Button>
-            </Show>
+              <Show when={currentSearch()}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  class="h-10 gap-1"
+                  onClick={() => navigate(searchHref(""))}
+                >
+                  <IconX class="size-3" />
+                  {t`Clear`}
+                </Button>
+              </Show>
+            </div>
           </form>
           <p class="mb-4 text-sm text-muted-foreground">
             {t`Total: ${formatNumber(conn.totalCount)}`}

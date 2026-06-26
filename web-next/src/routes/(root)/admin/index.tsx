@@ -8,6 +8,7 @@ import { Title } from "~/components/Title.tsx";
 import { WideContainer } from "~/components/WideContainer.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type {
+  AccountKind,
   AdminAccountOrderBy,
   adminAccountsPageQuery,
   OrderDirection,
@@ -24,6 +25,7 @@ const adminAccountsPageQuery = graphql`
     $cursor: String
     $orderBy: AdminAccountOrderBy
     $orderDirection: OrderDirection
+    $kind: AccountKind
     $search: String
   ) {
     viewer {
@@ -35,6 +37,7 @@ const adminAccountsPageQuery = graphql`
         cursor: $cursor
         orderBy: $orderBy
         orderDirection: $orderDirection
+        kind: $kind
         search: $search
       )
   }
@@ -43,6 +46,7 @@ const adminAccountsPageQuery = graphql`
 function parseQueryParams(search: string): {
   orderBy: AdminAccountOrderBy;
   orderDirection: OrderDirection;
+  kind: AccountKind | undefined;
   search: string | undefined;
 } {
   const params = new URLSearchParams(search);
@@ -54,20 +58,27 @@ function parseQueryParams(search: string): {
   const orderDirection: OrderDirection = rawDir === "ASC" || rawDir === "DESC"
     ? rawDir
     : "DESC";
+  const rawKind = params.get("kind");
+  const kind: AccountKind | undefined = rawKind === "personal"
+    ? "PERSONAL"
+    : rawKind === "organization"
+    ? "ORGANIZATION"
+    : undefined;
   const q = params.get("q") ?? undefined;
-  return { orderBy, orderDirection, search: q };
+  return { orderBy, orderDirection, kind, search: q };
 }
 
 const loadAdminAccountsPageQuery = routePreloadedQuery(
   (
     orderBy: AdminAccountOrderBy,
     orderDirection: OrderDirection,
+    kind: AccountKind | undefined,
     search: string | undefined,
   ) =>
     loadQuery<adminAccountsPageQuery>(
       useRelayEnvironment()(),
       adminAccountsPageQuery,
-      { count: 100, orderBy, orderDirection, search },
+      { count: 100, orderBy, orderDirection, kind, search },
     ),
   "loadAdminAccountsPageQuery",
 );
@@ -79,8 +90,13 @@ export default function AdminAccountsPage() {
   const data = createStablePreloadedQuery<adminAccountsPageQuery>(
     adminAccountsPageQuery,
     () => {
-      const { orderBy, orderDirection, search } = queryParams();
-      return loadAdminAccountsPageQuery(orderBy, orderDirection, search);
+      const { orderBy, orderDirection, kind, search } = queryParams();
+      return loadAdminAccountsPageQuery(
+        orderBy,
+        orderDirection,
+        kind,
+        search,
+      );
     },
   );
   return (

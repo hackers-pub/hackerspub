@@ -53,8 +53,15 @@ const adminAccountsQuery = parse(`
     $after: String
     $last: Int
     $before: String
+    $kind: AccountKind
   ) {
-    adminAccounts(first: $first, after: $after, last: $last, before: $before) {
+    adminAccounts(
+      first: $first
+      after: $after
+      last: $last
+      before: $before
+      kind: $kind
+    ) {
       totalCount
       edges {
         cursor
@@ -491,6 +498,63 @@ test("adminAccounts.totalCount equals overall account count", async () => {
     };
     assert.deepEqual(data.adminAccounts.totalCount, 8);
     assert.deepEqual(data.adminAccounts.edges.length, 2);
+  });
+});
+
+test("adminAccounts filters by account kind", async () => {
+  await withRollback(async (tx) => {
+    const mod = await makeModerator(tx, "kindmod");
+    await insertAccountWithActor(tx, {
+      username: "kindpersonal",
+      name: "Kind Personal",
+      email: "kindpersonal@example.com",
+    });
+    await insertAccountWithActor(tx, {
+      username: "kindorg",
+      name: "Kind Organization",
+      email: "kindorg@example.com",
+      type: "Organization",
+    });
+
+    const personalResult = await execute({
+      schema,
+      document: adminAccountsQuery,
+      variableValues: { first: 10, kind: "PERSONAL" },
+      contextValue: makeUserContext(tx, mod.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(personalResult.errors, undefined);
+    const personalData = personalResult.data as {
+      adminAccounts: {
+        totalCount: number;
+        edges: { node: { username: string } }[];
+      };
+    };
+    assert.deepEqual(personalData.adminAccounts.totalCount, 2);
+    assert.deepEqual(
+      personalData.adminAccounts.edges.map((e) => e.node.username).sort(),
+      ["kindmod", "kindpersonal"],
+    );
+
+    const organizationResult = await execute({
+      schema,
+      document: adminAccountsQuery,
+      variableValues: { first: 10, kind: "ORGANIZATION" },
+      contextValue: makeUserContext(tx, mod.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(organizationResult.errors, undefined);
+    const organizationData = organizationResult.data as {
+      adminAccounts: {
+        totalCount: number;
+        edges: { node: { username: string } }[];
+      };
+    };
+    assert.deepEqual(organizationData.adminAccounts.totalCount, 1);
+    assert.deepEqual(
+      organizationData.adminAccounts.edges.map((e) => e.node.username),
+      ["kindorg"],
+    );
   });
 });
 

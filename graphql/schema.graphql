@@ -4287,7 +4287,20 @@ type Query {
   """
   Moderator-only connection of every account.  Returns null when the viewer is not a moderator; routes should guard with `viewer.moderator` and redirect non-moderators.
   """
-  adminAccounts(after: String, before: String, first: Int, last: Int, orderBy: AdminAccountOrderBy, orderDirection: OrderDirection, search: String): AdminAccountConnection
+  adminAccounts(
+    after: String
+    before: String
+    first: Int
+
+    """
+    Optional account-kind filter. Use `PERSONAL` for login-capable accounts and `ORGANIZATION` for organization accounts.
+    """
+    kind: AccountKind
+    last: Int
+    orderBy: AdminAccountOrderBy
+    orderDirection: OrderDirection
+    search: String
+  ): AdminAccountConnection
 
   """
   Look up a locally-authored article by the author's handle, publication year, and URL slug. This is the resolver for the canonical article permalink path `/@{handle}/{year}/{slug}`.
