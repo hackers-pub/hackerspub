@@ -218,12 +218,25 @@ async function getAuthorizedMigrationAccount(
     throw new NotAuthenticatedError();
   }
   if (!validateUuid(accountId)) throw new InvalidInputError("accountId");
-  if (session.accountId !== accountId) throw new NotAuthorizedError();
   const account = await ctx.db.query.accountTable.findFirst({
     where: { id: accountId },
     with: { actor: true },
   });
-  if (account?.actor == null) throw new InvalidInputError("accountId");
+  // Treat a nonexistent account the same as an unauthorized one so the error
+  // does not leak whether the id exists (the input description promises that
+  // any account id the viewer cannot manage returns `NotAuthorizedError`).
+  if (
+    account == null ||
+    !(await viewerCanManageAccountSettings(
+      ctx,
+      account.id,
+      account.kind,
+      session.accountId,
+    ))
+  ) {
+    throw new NotAuthorizedError();
+  }
+  if (account.actor == null) throw new InvalidInputError("accountId");
   return account;
 }
 
@@ -1445,17 +1458,21 @@ builder.relayMutationField(
   "addAccountMigrationAlias",
   {
     description:
-      "Add a previous account actor as an ActivityPub migration alias for " +
-      "the authenticated viewer's local account. The stored value is the " +
-      "resolved actor IRI, which is then advertised as `alsoKnownAs` on " +
-      "the local actor document so a later remote `Move` can be validated.",
+      "Add a previous account actor as an ActivityPub migration alias for a " +
+      "local account the authenticated viewer can manage: their own personal " +
+      "account, or an `ORGANIZATION` account they are an accepted `admin` of. " +
+      "The stored value is the resolved actor IRI, which is then advertised " +
+      "as `alsoKnownAs` on the local actor document so a later remote `Move` " +
+      "can be validated.",
     inputFields: (t) => ({
       accountId: t.globalID({
         for: Account,
         required: true,
         description:
-          "The `Account` global id owned by the authenticated viewer. " +
-          "Passing another account id returns `NotAuthorizedError`.",
+          "The `Account` global id to add the alias to. The authenticated " +
+          "viewer must be able to manage that account: its personal holder, " +
+          "or an accepted `admin` of an `ORGANIZATION` account. Any other " +
+          "account id returns `NotAuthorizedError`.",
       }),
       actor: t.string({
         required: true,
@@ -1506,17 +1523,19 @@ builder.relayMutationField(
   "removeAccountMigrationAlias",
   {
     description:
-      "Remove one ActivityPub migration alias from the authenticated " +
-      "viewer's local account. Removing an alias only changes the new " +
-      "account's `alsoKnownAs` list; it does not send or retract a remote " +
-      "`Move` activity.",
+      "Remove one ActivityPub migration alias from a local account the " +
+      "authenticated viewer can manage: their own personal account, or an " +
+      "`ORGANIZATION` account they are an accepted `admin` of. Removing an " +
+      "alias only changes the account's `alsoKnownAs` list; it does not send " +
+      "or retract a remote `Move` activity.",
     inputFields: (t) => ({
       accountId: t.globalID({
         for: Account,
         required: true,
-        description:
-          "The `Account` global id owned by the authenticated viewer. " +
-          "Passing another account id returns `NotAuthorizedError`.",
+        description: "The `Account` global id to remove the alias from. The " +
+          "authenticated viewer must be able to manage that account: its " +
+          "personal holder, or an accepted `admin` of an `ORGANIZATION` " +
+          "account. Any other account id returns `NotAuthorizedError`.",
       }),
       alias: t.field({
         type: "URL",

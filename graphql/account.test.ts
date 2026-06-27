@@ -1676,6 +1676,31 @@ test("addAccountMigrationAlias returns typed errors", async () => {
       "NotAuthorizedError",
     );
 
+    // A well-formed but nonexistent account id is also rejected with
+    // NotAuthorizedError, so the error does not leak whether the id exists.
+    const missing = await execute({
+      schema,
+      document: addAccountMigrationAliasMutation,
+      variableValues: {
+        input: {
+          accountId: encodeGlobalID(
+            "Account",
+            "00000000-0000-4000-8000-000000000000",
+          ),
+          actor: "@old@remote.example",
+        },
+      },
+      contextValue: makeUserContext(tx, owner.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(missing.errors, undefined);
+    assert.equal(
+      (toPlainJson(missing.data) as {
+        addAccountMigrationAlias?: { __typename?: string };
+      }).addAccountMigrationAlias?.__typename,
+      "NotAuthorizedError",
+    );
+
     const invalid = await execute({
       schema,
       document: addAccountMigrationAliasMutation,
@@ -1775,6 +1800,159 @@ test("removeAccountMigrationAlias removes one alias idempotently", async () => {
     }
 
     assert.equal(sentActivities.length, 2);
+  });
+});
+
+test("account migration aliases are manageable by organization admins", async () => {
+  await withRollback(async (tx) => {
+    const admin = await insertAccountWithActor(tx, {
+      username: "orgmigadmin",
+      name: "Org Migration Admin",
+      email: "orgmigadmin@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "orgmigmember",
+      name: "Org Migration Member",
+      email: "orgmigmember@example.com",
+    });
+    const outsider = await insertAccountWithActor(tx, {
+      username: "orgmigoutsider",
+      name: "Org Migration Outsider",
+      email: "orgmigoutsider@example.com",
+    });
+    const organization = await insertAccountWithActor(tx, {
+      username: "orgmigration",
+      name: "Org Migration",
+      email: "orgmigration@example.com",
+      kind: "organization",
+      type: "Organization",
+    });
+    await tx.insert(organizationMembershipTable).values([
+      {
+        organizationAccountId: organization.account.id,
+        memberAccountId: admin.account.id,
+        role: "admin",
+        invitedById: admin.account.id,
+        accepted: new Date("2026-04-15T00:00:00.000Z"),
+      },
+      {
+        organizationAccountId: organization.account.id,
+        memberAccountId: member.account.id,
+        role: "member",
+        invitedById: admin.account.id,
+        accepted: new Date("2026-04-15T00:00:00.000Z"),
+      },
+    ]);
+    await insertRemoteActor(tx, {
+      username: "orgoldalias",
+      name: "Org Old Alias",
+      host: "old.example",
+      iri: "https://old.example/users/orgoldalias",
+      url: "https://old.example/@orgoldalias",
+    });
+
+    const fedCtx = createFedCtx(tx);
+    fedCtx.getActor = (identifier: string) =>
+      Promise.resolve(
+        new vocab.Organization({ id: fedCtx.getActorUri(identifier) }),
+      );
+    const sentActivities: unknown[][] = [];
+    fedCtx.sendActivity = ((...args: unknown[]) => {
+      sentActivities.push(args);
+      return Promise.resolve(undefined);
+    }) as typeof fedCtx.sendActivity;
+
+    // An accepted admin can add an alias to the organization account.
+    const added = await execute({
+      schema,
+      document: addAccountMigrationAliasMutation,
+      variableValues: {
+        input: {
+          accountId: encodeGlobalID("Account", organization.account.id),
+          actor: "@orgoldalias@old.example",
+        },
+      },
+      contextValue: makeUserContext(tx, admin.account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(added.errors, undefined);
+    assert.deepEqual(toPlainJson(added.data), {
+      addAccountMigrationAlias: {
+        __typename: "AddAccountMigrationAliasPayload",
+        account: {
+          actor: {
+            aliases: ["https://old.example/users/orgoldalias"],
+          },
+        },
+      },
+    });
+
+    // ... and remove it again.
+    const removed = await execute({
+      schema,
+      document: removeAccountMigrationAliasMutation,
+      variableValues: {
+        input: {
+          accountId: encodeGlobalID("Account", organization.account.id),
+          alias: "https://old.example/users/orgoldalias",
+        },
+      },
+      contextValue: makeUserContext(tx, admin.account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(removed.errors, undefined);
+    assert.deepEqual(toPlainJson(removed.data), {
+      removeAccountMigrationAlias: {
+        __typename: "RemoveAccountMigrationAliasPayload",
+        account: {
+          actor: {
+            aliases: [],
+          },
+        },
+      },
+    });
+
+    // A non-admin member cannot manage the organization's migration aliases.
+    const byMember = await execute({
+      schema,
+      document: addAccountMigrationAliasMutation,
+      variableValues: {
+        input: {
+          accountId: encodeGlobalID("Account", organization.account.id),
+          actor: "@orgoldalias@old.example",
+        },
+      },
+      contextValue: makeUserContext(tx, member.account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(byMember.errors, undefined);
+    assert.equal(
+      (toPlainJson(byMember.data) as {
+        addAccountMigrationAlias?: { __typename?: string };
+      }).addAccountMigrationAlias?.__typename,
+      "NotAuthorizedError",
+    );
+
+    // Neither can an account that is not a member at all.
+    const byOutsider = await execute({
+      schema,
+      document: addAccountMigrationAliasMutation,
+      variableValues: {
+        input: {
+          accountId: encodeGlobalID("Account", organization.account.id),
+          actor: "@orgoldalias@old.example",
+        },
+      },
+      contextValue: makeUserContext(tx, outsider.account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(byOutsider.errors, undefined);
+    assert.equal(
+      (toPlainJson(byOutsider.data) as {
+        addAccountMigrationAlias?: { __typename?: string };
+      }).addAccountMigrationAlias?.__typename,
+      "NotAuthorizedError",
+    );
   });
 });
 

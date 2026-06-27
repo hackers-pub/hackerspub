@@ -872,11 +872,11 @@ type ActorViewerInteractionsConnectionEdge {
 }
 
 """
-Add a previous account actor as an ActivityPub migration alias for the authenticated viewer's local account. The stored value is the resolved actor IRI, which is then advertised as `alsoKnownAs` on the local actor document so a later remote `Move` can be validated.
+Add a previous account actor as an ActivityPub migration alias for a local account the authenticated viewer can manage: their own personal account, or an `ORGANIZATION` account they are an accepted `admin` of. The stored value is the resolved actor IRI, which is then advertised as `alsoKnownAs` on the local actor document so a later remote `Move` can be validated.
 """
 input AddAccountMigrationAliasInput {
   """
-  The `Account` global id owned by the authenticated viewer. Passing another account id returns `NotAuthorizedError`.
+  The `Account` global id to add the alias to. The authenticated viewer must be able to manage that account: its personal holder, or an accepted `admin` of an `ORGANIZATION` account. Any other account id returns `NotAuthorizedError`.
   """
   accountId: ID!
 
@@ -5287,11 +5287,11 @@ type RelaySubscription implements Node {
 }
 
 """
-Remove one ActivityPub migration alias from the authenticated viewer's local account. Removing an alias only changes the new account's `alsoKnownAs` list; it does not send or retract a remote `Move` activity.
+Remove one ActivityPub migration alias from a local account the authenticated viewer can manage: their own personal account, or an `ORGANIZATION` account they are an accepted `admin` of. Removing an alias only changes the account's `alsoKnownAs` list; it does not send or retract a remote `Move` activity.
 """
 input RemoveAccountMigrationAliasInput {
   """
-  The `Account` global id owned by the authenticated viewer. Passing another account id returns `NotAuthorizedError`.
+  The `Account` global id to remove the alias from. The authenticated viewer must be able to manage that account: its personal holder, or an accepted `admin` of an `ORGANIZATION` account. Any other account id returns `NotAuthorizedError`.
   """
   accountId: ID!
 

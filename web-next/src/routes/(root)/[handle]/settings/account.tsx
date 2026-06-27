@@ -538,22 +538,7 @@ export default function AccountSettingsPage() {
                                 account={account}
                                 viewer={viewer}
                               />
-                              <Card>
-                                <CardHeader>
-                                  <CardTitle>
-                                    {t`Account migration`}
-                                  </CardTitle>
-                                  <CardDescription>
-                                    {t`Prepare this account as the destination for a Mastodon-style move.`}
-                                  </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                  <AccountMigrationAliasesForm
-                                    id={account.id}
-                                    aliases={account.actor.aliases}
-                                  />
-                                </CardContent>
-                              </Card>
+                              <AccountMigrationCard account={account} />
                               <Card>
                                 <CardHeader>
                                   <CardTitle>{t`Delete account`}</CardTitle>
@@ -577,6 +562,7 @@ export default function AccountSettingsPage() {
                           account={account}
                           viewerId={data.viewer?.id ?? null}
                         />
+                        <AccountMigrationCard account={account} />
                         <Card>
                           <CardHeader>
                             <CardTitle>{t`Delete organization`}</CardTitle>
@@ -1609,6 +1595,30 @@ function OrganizationMemberManagementCard(props: {
   );
 }
 
+interface AccountMigrationCardProps {
+  account: AccountPageAccount;
+}
+
+function AccountMigrationCard(props: AccountMigrationCardProps) {
+  const { t } = useLingui();
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t`Account migration`}</CardTitle>
+        <CardDescription>
+          {t`Prepare this account as the destination for a Mastodon-style move.`}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <AccountMigrationAliasesForm
+          id={props.account.id}
+          aliases={props.account.actor.aliases}
+        />
+      </CardContent>
+    </Card>
+  );
+}
+
 interface AccountMigrationAliasesFormProps {
   aliases: readonly string[];
   id: string;
@@ -1667,7 +1677,7 @@ function AccountMigrationAliasesForm(
         if (result?.__typename === "NotAuthorizedError") {
           showMutationError(
             t`Cannot update this account`,
-            t`You can prepare migration only for your own account.`,
+            t`You can prepare migration only for accounts you can manage.`,
           );
           return;
         }
@@ -1718,7 +1728,7 @@ function AccountMigrationAliasesForm(
         if (result?.__typename === "NotAuthorizedError") {
           showMutationError(
             t`Cannot update this account`,
-            t`You can prepare migration only for your own account.`,
+            t`You can prepare migration only for accounts you can manage.`,
           );
           return;
         }

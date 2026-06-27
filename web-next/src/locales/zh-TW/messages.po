@@ -5455,10 +5455,10 @@ msgstr "您只能檢視自己的收藏"
 msgid "You can only view your own drafts"
 msgstr "您只能檢視自己的草稿"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1670
-#: src/routes/(root)/[handle]/settings/account.tsx:1721
-msgid "You can prepare migration only for your own account."
-msgstr "你只能為自己的帳戶準備遷移。"
+#: src/routes/(root)/[handle]/settings/account.tsx:1676
+#: src/routes/(root)/[handle]/settings/account.tsx:1727
+msgid "You can prepare migration only for accounts you can manage."
+msgstr "你只能為你能管理的帳戶準備遷移。"
 
 #: src/routes/(root)/[handle]/settings/account.tsx:979
 msgid "You do not belong to any organizations yet."
