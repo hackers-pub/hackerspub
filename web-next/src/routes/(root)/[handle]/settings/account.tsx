@@ -538,22 +538,7 @@ export default function AccountSettingsPage() {
                                 account={account}
                                 viewer={viewer}
                               />
-                              <Card>
-                                <CardHeader>
-                                  <CardTitle>
-                                    {t`Account migration`}
-                                  </CardTitle>
-                                  <CardDescription>
-                                    {t`Prepare this account as the destination for a Mastodon-style move.`}
-                                  </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                  <AccountMigrationAliasesForm
-                                    id={account.id}
-                                    aliases={account.actor.aliases}
-                                  />
-                                </CardContent>
-                              </Card>
+                              <AccountMigrationCard account={account} />
                               <Card>
                                 <CardHeader>
                                   <CardTitle>{t`Delete account`}</CardTitle>
@@ -577,22 +562,7 @@ export default function AccountSettingsPage() {
                           account={account}
                           viewerId={data.viewer?.id ?? null}
                         />
-                        <Card>
-                          <CardHeader>
-                            <CardTitle>
-                              {t`Account migration`}
-                            </CardTitle>
-                            <CardDescription>
-                              {t`Prepare this account as the destination for a Mastodon-style move.`}
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <AccountMigrationAliasesForm
-                              id={account.id}
-                              aliases={account.actor.aliases}
-                            />
-                          </CardContent>
-                        </Card>
+                        <AccountMigrationCard account={account} />
                         <Card>
                           <CardHeader>
                             <CardTitle>{t`Delete organization`}</CardTitle>
@@ -1620,6 +1590,26 @@ function OrganizationMemberManagementCard(props: {
             </Switch>
           </div>
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function AccountMigrationCard(props: { account: AccountPageAccount }) {
+  const { t } = useLingui();
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t`Account migration`}</CardTitle>
+        <CardDescription>
+          {t`Prepare this account as the destination for a Mastodon-style move.`}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <AccountMigrationAliasesForm
+          id={props.account.id}
+          aliases={props.account.actor.aliases}
+        />
       </CardContent>
     </Card>
   );
