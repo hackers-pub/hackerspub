@@ -876,7 +876,7 @@ Add a previous account actor as an ActivityPub migration alias for the authentic
 """
 input AddAccountMigrationAliasInput {
   """
-  The `Account` global id owned by the authenticated viewer. Passing another account id returns `NotAuthorizedError`.
+  The `Account` global id to add the alias to. The authenticated viewer must be able to manage that account: its personal holder, or an accepted `admin` of an `ORGANIZATION` account. Any other account id returns `NotAuthorizedError`.
   """
   accountId: ID!
 
@@ -5291,7 +5291,7 @@ Remove one ActivityPub migration alias from the authenticated viewer's local acc
 """
 input RemoveAccountMigrationAliasInput {
   """
-  The `Account` global id owned by the authenticated viewer. Passing another account id returns `NotAuthorizedError`.
+  The `Account` global id to remove the alias from. The authenticated viewer must be able to manage that account: its personal holder, or an accepted `admin` of an `ORGANIZATION` account. Any other account id returns `NotAuthorizedError`.
   """
   accountId: ID!
 
