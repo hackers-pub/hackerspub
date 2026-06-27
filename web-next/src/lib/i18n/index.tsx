@@ -13,6 +13,7 @@ import { graphql, readInlineData } from "relay-runtime";
 import { createMemo, type ParentProps, Show } from "solid-js";
 import linguiConfig from "../../../lingui.config.ts";
 import type { i18nProviderLoadI18n_query$key } from "./__generated__/i18nProviderLoadI18n_query.graphql.ts";
+import { getValidLocaleBaseNames } from "./locales.ts";
 
 const loadI18n = query(async (
   $query: i18nProviderLoadI18n_query$key,
@@ -33,10 +34,13 @@ const loadI18n = query(async (
 
   let loc: Intl.Locale | undefined;
   const locales: string[] = [];
-  if (langOverride) {
+  const validLangOverride = langOverride == null
+    ? undefined
+    : getValidLocaleBaseNames([langOverride])[0];
+  if (validLangOverride != null) {
     try {
       loc = negotiateLocale(
-        new Intl.Locale(langOverride),
+        new Intl.Locale(validLangOverride),
         linguiConfig.locales,
       );
     } catch {
@@ -44,12 +48,15 @@ const loadI18n = query(async (
     }
   }
   if (loc == null && accountLocales != null && accountLocales.length > 0) {
-    loc = negotiateLocale(accountLocales, linguiConfig.locales);
-    locales.push(...accountLocales);
+    const validAccountLocales = getValidLocaleBaseNames(accountLocales);
+    loc = negotiateLocale(validAccountLocales, linguiConfig.locales);
+    locales.push(...validAccountLocales);
   }
   if (loc == null) {
     const acceptLanguage = getRequestHeader("Accept-Language");
-    const acceptLanguages = parseAcceptLanguage(acceptLanguage);
+    const acceptLanguages = getValidLocaleBaseNames(
+      parseAcceptLanguage(acceptLanguage),
+    );
     loc = negotiateLocale(acceptLanguages, linguiConfig.locales);
     locales.push(...acceptLanguages);
   }
