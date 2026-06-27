@@ -719,6 +719,7 @@ export async function requestOrganizationConversion(
       "Only personal accounts can convert.",
     );
   }
+  await assertAccountHasNoAcceptedOrganizationMemberships(db, account.id);
   if (confirmationUsername !== account.username) {
     throw new OrganizationConversionError("The username confirmation failed.");
   }

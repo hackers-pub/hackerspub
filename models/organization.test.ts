@@ -1116,6 +1116,67 @@ test("acceptOrganizationConversion() enqueues Update(Organization) through Fedif
   });
 });
 
+test("requestOrganizationConversion() rejects accounts that belong to an organization", async () => {
+  await withRollback(async (tx) => {
+    const orgAdmin = await insertAccountWithActor(tx, {
+      username: "convertorgadmin",
+      name: "Convert Org Admin",
+      email: "convertorgadmin@example.com",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "convertmember",
+      name: "Convert Member",
+      email: "convertmember@example.com",
+    });
+    const accepter = await insertAccountWithActor(tx, {
+      username: "convertaccepter",
+      name: "Convert Accepter",
+      email: "convertaccepter@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, orgAdmin.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      orgAdmin.account,
+      {
+        username: "convertblockorg",
+        name: "Convert Block Org",
+        bio: "",
+      },
+    );
+    await inviteOrganizationMember(
+      tx,
+      orgAdmin.account,
+      organization.id,
+      member.account.username,
+    );
+    const accepted = await acceptOrganizationInvitation(
+      tx,
+      member.account,
+      organization.id,
+    );
+    assert.ok(accepted.accepted != null);
+
+    await assert.rejects(
+      requestOrganizationConversion(
+        tx,
+        member.account,
+        accepter.account.username,
+        member.account.username,
+      ),
+      /leave organizations/i,
+    );
+
+    const pending = await tx.query.organizationConversionRequestTable.findFirst(
+      {
+        where: { accountId: member.account.id },
+      },
+    );
+    assert.equal(pending, undefined);
+  });
+});
+
 test("requestOrganizationConversion() notifies the accepting admin", async () => {
   const sent: Array<{ endpoint: string; payload: string }> = [];
   setWebPushConfigForTesting({
@@ -1255,6 +1316,17 @@ test("acceptOrganizationConversion() rejects accounts that still belong to organ
       name: "Conversion Target Admin",
       email: "conversiontargetadmin@example.com",
     });
+    // The account requests conversion while it still belongs to no
+    // organization, then joins one before the admin accepts. This exercises
+    // the accept-time guard that defends against that race (the request-time
+    // guard cannot catch a membership gained after the request).
+    const request = await requestOrganizationConversion(
+      tx,
+      member.account,
+      targetAdmin.account.username,
+      member.account.username,
+    );
+
     await tx.update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, admin.account.id));
@@ -1275,12 +1347,6 @@ test("acceptOrganizationConversion() rejects accounts that still belong to organ
     );
     await acceptOrganizationInvitation(tx, member.account, organization.id);
 
-    const request = await requestOrganizationConversion(
-      tx,
-      member.account,
-      targetAdmin.account.username,
-      member.account.username,
-    );
     await assert.rejects(
       acceptOrganizationConversion(
         createFedCtx(tx),
