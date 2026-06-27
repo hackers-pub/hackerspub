@@ -5455,10 +5455,10 @@ msgstr "자신의 북마크만 볼 수 있습니다"
 msgid "You can only view your own drafts"
 msgstr "자신의 초고만 볼 수 있습니다"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1670
-#: src/routes/(root)/[handle]/settings/account.tsx:1721
-msgid "You can prepare migration only for your own account."
-msgstr "자신의 계정에서만 이전을 준비할 수 있습니다."
+#: src/routes/(root)/[handle]/settings/account.tsx:1676
+#: src/routes/(root)/[handle]/settings/account.tsx:1727
+msgid "You can prepare migration only for accounts you can manage."
+msgstr "관리할 수 있는 계정에서만 이전을 준비할 수 있습니다."
 
 #: src/routes/(root)/[handle]/settings/account.tsx:979
 msgid "You do not belong to any organizations yet."

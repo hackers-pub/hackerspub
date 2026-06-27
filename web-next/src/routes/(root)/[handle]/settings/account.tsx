@@ -1673,7 +1673,7 @@ function AccountMigrationAliasesForm(
         if (result?.__typename === "NotAuthorizedError") {
           showMutationError(
             t`Cannot update this account`,
-            t`You can prepare migration only for your own account.`,
+            t`You can prepare migration only for accounts you can manage.`,
           );
           return;
         }
@@ -1724,7 +1724,7 @@ function AccountMigrationAliasesForm(
         if (result?.__typename === "NotAuthorizedError") {
           showMutationError(
             t`Cannot update this account`,
-            t`You can prepare migration only for your own account.`,
+            t`You can prepare migration only for accounts you can manage.`,
           );
           return;
         }
