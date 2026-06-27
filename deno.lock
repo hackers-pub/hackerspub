@@ -2,17 +2,17 @@
   "version": "5",
   "specifiers": {
     "jsr:@c4spar/mock-fetch@1": "1.0.0",
-    "jsr:@fedify/fedify@2.3.0": "2.3.0",
-    "jsr:@fedify/fedify@^2.3.0": "2.3.0",
+    "jsr:@fedify/fedify@2.3.1": "2.3.1",
+    "jsr:@fedify/fedify@^2.3.1": "2.3.1",
     "jsr:@fedify/markdown-it-hashtag@0.3": "0.3.0",
     "jsr:@fedify/markdown-it-mention@0.3": "0.3.0",
-    "jsr:@fedify/postgres@2.3.0": "2.3.0",
-    "jsr:@fedify/redis@2.3.0": "2.3.0",
-    "jsr:@fedify/uri-template@^2.3.0": "2.3.0",
-    "jsr:@fedify/vocab-runtime@^2.3.0": "2.3.0",
-    "jsr:@fedify/vocab@2.3.0": "2.3.0",
-    "jsr:@fedify/vocab@^2.3.0": "2.3.0",
-    "jsr:@fedify/webfinger@^2.3.0": "2.3.0",
+    "jsr:@fedify/postgres@2.3.1": "2.3.1",
+    "jsr:@fedify/redis@2.3.1": "2.3.1",
+    "jsr:@fedify/uri-template@^2.3.1": "2.3.1",
+    "jsr:@fedify/vocab-runtime@^2.3.1": "2.3.1",
+    "jsr:@fedify/vocab@2.3.1": "2.3.1",
+    "jsr:@fedify/vocab@^2.3.1": "2.3.1",
+    "jsr:@fedify/webfinger@^2.3.1": "2.3.1",
     "jsr:@fresh/core@2.0.0-alpha.34": "2.0.0-alpha.34",
     "jsr:@fresh/core@^2.0.0-alpha.1": "2.0.0-alpha.34",
     "jsr:@fresh/plugin-tailwind@0.0.1-alpha.7": "0.0.1-alpha.7",
@@ -291,13 +291,13 @@
         "jsr:@std/assert@~0.225.2"
       ]
     },
-    "@fedify/fedify@2.3.0": {
-      "integrity": "d3612d4de576c2c0248e8a560b2791ca179f11b00cfa703e6b66ec44bd91a45b",
+    "@fedify/fedify@2.3.1": {
+      "integrity": "deeeaadb1700e8a8ec5474d933615a03c5de5337f47bdc474af4372dcfa28de0",
       "dependencies": [
-        "jsr:@fedify/fedify@^2.3.0",
+        "jsr:@fedify/fedify@^2.3.1",
         "jsr:@fedify/uri-template",
         "jsr:@fedify/vocab-runtime",
-        "jsr:@fedify/vocab@^2.3.0",
+        "jsr:@fedify/vocab@^2.3.1",
         "jsr:@fedify/webfinger",
         "jsr:@logtape/logtape@^2.2.0",
         "npm:@opentelemetry/api@^1.9.1",
@@ -323,27 +323,27 @@
         "npm:@types/markdown-it"
       ]
     },
-    "@fedify/postgres@2.3.0": {
-      "integrity": "4952d9f0726634408f5c48241f2ce0ac3acadadaa241623792b8922a54296dae",
+    "@fedify/postgres@2.3.1": {
+      "integrity": "a73721c3b72cfb5547d65b5df465f604ee437ff8a58b560144078d7b8b5cbb96",
       "dependencies": [
-        "jsr:@fedify/fedify@^2.3.0",
+        "jsr:@fedify/fedify@^2.3.1",
         "jsr:@logtape/logtape@^2.2.0",
         "npm:postgres@^3.4.7"
       ]
     },
-    "@fedify/redis@2.3.0": {
-      "integrity": "14967ab471726931d95be5dcba4a1bc8783a65c4d84d342b69cbab059cf27890",
+    "@fedify/redis@2.3.1": {
+      "integrity": "d1a07fada6911424d6de8ee02f9461a8aeb22abc650d8250f139a9e4be08224f",
       "dependencies": [
-        "jsr:@fedify/fedify@^2.3.0",
+        "jsr:@fedify/fedify@^2.3.1",
         "jsr:@logtape/logtape@^2.2.0",
         "npm:ioredis@^5.8.2"
       ]
     },
-    "@fedify/uri-template@2.3.0": {
-      "integrity": "5f74abbb651aa35e680fa15f64f1eb1a945c1d830106e4d6e1f4acaeec7d4cb0"
+    "@fedify/uri-template@2.3.1": {
+      "integrity": "a9786bf204e65a99ee229fc6a06aefdc7b2b441c425099fc225909958d3bcd67"
     },
-    "@fedify/vocab@2.3.0": {
-      "integrity": "0fe63bd44a74c2549e16c7e3619ba11df5dc8c0238742e1b8e4b5b58ee6acac1",
+    "@fedify/vocab@2.3.1": {
+      "integrity": "c7e58814429002d81b833f1432e64fd9d0f83974e997550b4dc18df783c31cd6",
       "dependencies": [
         "jsr:@fedify/vocab-runtime",
         "jsr:@fedify/webfinger",
@@ -352,8 +352,8 @@
         "npm:es-toolkit@^1.46.1"
       ]
     },
-    "@fedify/vocab-runtime@2.3.0": {
-      "integrity": "bd0e85ee5a86578c295642fba0d689af8e661c3b0bdc9cb88d5caa1c89b74229",
+    "@fedify/vocab-runtime@2.3.1": {
+      "integrity": "1e6b30704b0e1ceccf8e5bcbba033ed749526b33f2677d9eeffdc6a53f4837d6",
       "dependencies": [
         "jsr:@logtape/logtape@^2.2.0",
         "npm:@multiformats/base-x",
@@ -364,8 +364,8 @@
         "npm:pkijs"
       ]
     },
-    "@fedify/webfinger@2.3.0": {
-      "integrity": "ed9057c34bc4516267db5ffeca00bcdbef8ff8c4b91e605745b8c7d63740e0c8",
+    "@fedify/webfinger@2.3.1": {
+      "integrity": "ef17da1c89b50490573f66eded3ea04520fd3505e9f4bfacf209496e8cbb6e82",
       "dependencies": [
         "jsr:@fedify/vocab-runtime",
         "jsr:@logtape/logtape@^2.2.0",
@@ -13151,13 +13151,13 @@
   "workspace": {
     "dependencies": [
       "jsr:@c4spar/mock-fetch@1",
-      "jsr:@fedify/fedify@2.3.0",
+      "jsr:@fedify/fedify@2.3.1",
       "jsr:@fedify/markdown-it-hashtag@0.3",
       "jsr:@fedify/markdown-it-mention@0.3",
-      "jsr:@fedify/postgres@2.3.0",
-      "jsr:@fedify/redis@2.3.0",
-      "jsr:@fedify/vocab-runtime@2.3.0",
-      "jsr:@fedify/vocab@2.3.0",
+      "jsr:@fedify/postgres@2.3.1",
+      "jsr:@fedify/redis@2.3.1",
+      "jsr:@fedify/vocab-runtime@2.3.1",
+      "jsr:@fedify/vocab@2.3.1",
       "jsr:@fresh/core@2.0.0-alpha.34",
       "jsr:@fresh/plugin-tailwind@0.0.1-alpha.7",
       "jsr:@hongminhee/x-forwarded-fetch@0.2",

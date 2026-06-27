@@ -10,8 +10,8 @@ catalogs:
       specifier: jsr:^1.0.0
       version: 1.0.0
     '@fedify/fedify':
-      specifier: jsr:2.3.0
-      version: 2.3.0
+      specifier: jsr:2.3.1
+      version: 2.3.1
     '@fedify/markdown-it-hashtag':
       specifier: jsr:^0.3.0
       version: 0.3.0
@@ -19,8 +19,8 @@ catalogs:
       specifier: jsr:^0.3.0
       version: 0.3.0
     '@fedify/vocab':
-      specifier: jsr:2.3.0
-      version: 2.3.0
+      specifier: jsr:2.3.1
+      version: 2.3.1
     '@hackerspub/markdown-it-texmath':
       specifier: ^1.0.1
       version: 1.0.1
@@ -215,10 +215,10 @@ importers:
     dependencies:
       '@fedify/fedify':
         specifier: 'catalog:'
-        version: '@jsr/fedify__fedify@2.3.0'
+        version: '@jsr/fedify__fedify@2.3.1'
       '@fedify/vocab':
         specifier: 'catalog:'
-        version: '@jsr/fedify__vocab@2.3.0'
+        version: '@jsr/fedify__vocab@2.3.1'
       '@hackerspub/models':
         specifier: workspace:*
         version: link:../models
@@ -242,7 +242,7 @@ importers:
         version: '@jsr/c4spar__mock-fetch@1.0.0'
       '@fedify/fedify':
         specifier: 'catalog:'
-        version: '@jsr/fedify__fedify@2.3.0'
+        version: '@jsr/fedify__fedify@2.3.1'
       '@fedify/markdown-it-hashtag':
         specifier: 'catalog:'
         version: '@jsr/fedify__markdown-it-hashtag@0.3.0'
@@ -251,7 +251,7 @@ importers:
         version: '@jsr/fedify__markdown-it-mention@0.3.0'
       '@fedify/vocab':
         specifier: 'catalog:'
-        version: '@jsr/fedify__vocab@2.3.0'
+        version: '@jsr/fedify__vocab@2.3.1'
       '@hackerspub/ai':
         specifier: workspace:*
         version: link:../ai
@@ -1590,8 +1590,8 @@ packages:
   '@jsr/c4spar__mock-fetch@1.0.0':
     resolution: {integrity: sha512-vDuyEcmIdknJRuh9DMlFlEWfeXoBdQOrNeQ8cVPDQ4e2zxlZezEO8zKPpe2JvP9UvC3XkCrIIzSKkHShzb04dQ==, tarball: https://npm.jsr.io/~/11/@jsr/c4spar__mock-fetch/1.0.0.tgz}
 
-  '@jsr/fedify__fedify@2.3.0':
-    resolution: {integrity: sha512-Rb3Wu0eJ9D5tStiMsE11ZGCWre4XIab/Tx1HJYl733ksMZYgM96fnBg860xWeSbloanAiQaJeICjfEh8Su/7wA==, tarball: https://npm.jsr.io/~/11/@jsr/fedify__fedify/2.3.0.tgz}
+  '@jsr/fedify__fedify@2.3.1':
+    resolution: {integrity: sha512-IGRXxOK4mxIszS2XLXqKCWuP75lONs4sowGnNkGbu0p2iKISiZ2P4ADpMts7FeI7aktRY8MneU5yUqql90U4ig==, tarball: https://npm.jsr.io/~/11/@jsr/fedify__fedify/2.3.1.tgz}
 
   '@jsr/fedify__markdown-it-hashtag@0.3.0':
     resolution: {integrity: sha512-bBDar2DMcjI7VXsuc5aRU3vjsD8t9bxwD1pFYbxD6rr+P2ZR2hnVnQauO6LV3gcI8at1IxDYHTGhE6Lay3QopQ==, tarball: https://npm.jsr.io/~/11/@jsr/fedify__markdown-it-hashtag/0.3.0.tgz}
@@ -1599,17 +1599,17 @@ packages:
   '@jsr/fedify__markdown-it-mention@0.3.0':
     resolution: {integrity: sha512-bxAgJuhq95rg6jFUAgtkZU5QrYOX7jqUHGBZm3ynW7ju3Hyv/AebB4TV7pQ0WKwP/ODVPtD5MsmaLs0ReIQs5Q==, tarball: https://npm.jsr.io/~/11/@jsr/fedify__markdown-it-mention/0.3.0.tgz}
 
-  '@jsr/fedify__uri-template@2.3.0':
-    resolution: {integrity: sha512-nXwkEIOWfGi/+KDbhzdmQ8ODPcgI+1YT+Pu0vNvcV3chcdComWa8KKtu5lBxKPMCg3Zca6NlSWifDbvLo+SX+g==, tarball: https://npm.jsr.io/~/11/@jsr/fedify__uri-template/2.3.0.tgz}
+  '@jsr/fedify__uri-template@2.3.1':
+    resolution: {integrity: sha512-XUHuytS5cPMwzpEk55RJyes0N9xhvIVX9Z2hKUvrRroDmfV2mDvjLlonrlz1tOurnAMRbNtsfrXjvD/yt24Pvw==, tarball: https://npm.jsr.io/~/11/@jsr/fedify__uri-template/2.3.1.tgz}
 
-  '@jsr/fedify__vocab-runtime@2.3.0':
-    resolution: {integrity: sha512-qar95l83cscRw9OX6jXyHED53wO32XBQYoloVnQlsafMcGDq5nHHDKnWiod5eJ1g37Dl431AkS8T3w/2tesQlw==, tarball: https://npm.jsr.io/~/11/@jsr/fedify__vocab-runtime/2.3.0.tgz}
+  '@jsr/fedify__vocab-runtime@2.3.1':
+    resolution: {integrity: sha512-gxbnavqnj7K3VW4FtdzTM8OZOgTSJBLE1zV69jbtmT45gCV2qRXPWW4Uiqvu7QFx+WSb8QRyqMPkz0jjemwXLQ==, tarball: https://npm.jsr.io/~/11/@jsr/fedify__vocab-runtime/2.3.1.tgz}
 
-  '@jsr/fedify__vocab@2.3.0':
-    resolution: {integrity: sha512-ciybOk4yLIZsCTrNkGrZ1OAb3UZGxW0qA/cuHFTQ33dV0EVsGuwsEMlpVpbYrgmD0BO+k2n8xsOc2zBA/BwShg==, tarball: https://npm.jsr.io/~/11/@jsr/fedify__vocab/2.3.0.tgz}
+  '@jsr/fedify__vocab@2.3.1':
+    resolution: {integrity: sha512-9thAAi3qzmYli1mblBtVjcGY/+Zy7OwsePrmoSlAyIaAO3VCAX5KoZUNu6krwKtI6YBdDObcQ8wP5ZobNg7PvQ==, tarball: https://npm.jsr.io/~/11/@jsr/fedify__vocab/2.3.1.tgz}
 
-  '@jsr/fedify__webfinger@2.3.0':
-    resolution: {integrity: sha512-NkvO3zx4O857IalRgQ3QCo2FwRuDf7MRNjC8wcrIhOrpI6Ni4zuPxLxCuLhQ6nPt5FB0liHoSzHet7MIdCPvrw==, tarball: https://npm.jsr.io/~/11/@jsr/fedify__webfinger/2.3.0.tgz}
+  '@jsr/fedify__webfinger@2.3.1':
+    resolution: {integrity: sha512-XiMpyDomlazqwnRTwowubeJvmG9k75mVZC5WYjyHuvCen7RQPhkdnpe55lNTuy47un3PWbhPVYaOzefwo4BjYA==, tarball: https://npm.jsr.io/~/11/@jsr/fedify__webfinger/2.3.1.tgz}
 
   '@jsr/logtape__logtape@2.0.6':
     resolution: {integrity: sha512-Lw0+sFlpD9U+WzE/77diiDzEoYkhTuhrE53Fl5sXcNqWnlOJNi2x3K2elF+EhqdrZub2mHGSYznPRttlf/ah7Q==, tarball: https://npm.jsr.io/~/11/@jsr/logtape__logtape/2.0.6.tgz}
@@ -7709,12 +7709,12 @@ snapshots:
     dependencies:
       '@jsr/std__assert': 0.225.3
 
-  '@jsr/fedify__fedify@2.3.0':
+  '@jsr/fedify__fedify@2.3.1':
     dependencies:
-      '@jsr/fedify__uri-template': 2.3.0
-      '@jsr/fedify__vocab': 2.3.0
-      '@jsr/fedify__vocab-runtime': 2.3.0
-      '@jsr/fedify__webfinger': 2.3.0
+      '@jsr/fedify__uri-template': 2.3.1
+      '@jsr/fedify__vocab': 2.3.1
+      '@jsr/fedify__vocab-runtime': 2.3.1
+      '@jsr/fedify__webfinger': 2.3.1
       '@jsr/logtape__logtape': 2.2.1
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/core': 2.8.0(@opentelemetry/api@1.9.1)
@@ -7736,9 +7736,9 @@ snapshots:
       '@jsr/std__html': 0.224.2
       '@types/markdown-it': 14.1.2
 
-  '@jsr/fedify__uri-template@2.3.0': {}
+  '@jsr/fedify__uri-template@2.3.1': {}
 
-  '@jsr/fedify__vocab-runtime@2.3.0':
+  '@jsr/fedify__vocab-runtime@2.3.1':
     dependencies:
       '@jsr/logtape__logtape': 2.2.1
       '@multiformats/base-x': 4.0.1
@@ -7748,17 +7748,17 @@ snapshots:
       jsonld: 9.0.0
       pkijs: 3.4.0
 
-  '@jsr/fedify__vocab@2.3.0':
+  '@jsr/fedify__vocab@2.3.1':
     dependencies:
-      '@jsr/fedify__vocab-runtime': 2.3.0
-      '@jsr/fedify__webfinger': 2.3.0
+      '@jsr/fedify__vocab-runtime': 2.3.1
+      '@jsr/fedify__webfinger': 2.3.1
       '@jsr/logtape__logtape': 2.2.1
       '@opentelemetry/api': 1.9.1
       es-toolkit: 1.48.1
 
-  '@jsr/fedify__webfinger@2.3.0':
+  '@jsr/fedify__webfinger@2.3.1':
     dependencies:
-      '@jsr/fedify__vocab-runtime': 2.3.0
+      '@jsr/fedify__vocab-runtime': 2.3.1
       '@jsr/logtape__logtape': 2.2.1
       '@opentelemetry/api': 1.9.1
 
