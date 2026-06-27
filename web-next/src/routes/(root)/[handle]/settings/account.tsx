@@ -1595,7 +1595,11 @@ function OrganizationMemberManagementCard(props: {
   );
 }
 
-function AccountMigrationCard(props: { account: AccountPageAccount }) {
+interface AccountMigrationCardProps {
+  account: AccountPageAccount;
+}
+
+function AccountMigrationCard(props: AccountMigrationCardProps) {
   const { t } = useLingui();
   return (
     <Card>
