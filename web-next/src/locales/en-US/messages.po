@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: article.replies?.edges.length ?? 0
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:936
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:957
 msgid "{0, plural, one {# comment} other {# comments}}"
 msgstr "{0, plural, one {# comment} other {# comments}}"
 
@@ -132,6 +132,11 @@ msgstr "{0, plural, one {Regenerated invitations for # account.} other {Regenera
 msgid "{0, plural, one {You have invited total # person so far.} other {You have invited total # people so far.}}"
 msgstr "{0, plural, one {You have invited total # person so far.} other {You have invited total # people so far.}}"
 
+#. placeholder {0}: organizationCount()
+#: src/routes/(root)/[handle]/settings/account.tsx:654
+msgid "{0, plural, one {You still belong to # organization.} other {You still belong to # organizations.}}"
+msgstr "{0, plural, one {You still belong to # organization.} other {You still belong to # organizations.}}"
+
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "COUNT"
 #: src/components/notification/OrganizationConversionRequestNotificationCard.tsx:42
@@ -218,7 +223,7 @@ msgid "{0} asked you to become the first admin of this organization account."
 msgstr "{0} asked you to become the first admin of this organization account."
 
 #. placeholder {0}: result.membership.member.username
-#: src/routes/(root)/[handle]/settings/account.tsx:1335
+#: src/routes/(root)/[handle]/settings/account.tsx:1342
 msgid "{0} can now accept the organization invitation."
 msgstr "{0} can now accept the organization invitation."
 
@@ -263,7 +268,7 @@ msgstr "{0} is already a member of Hackers' Pub."
 
 #. placeholder {0}: result.membership.member.username
 #. placeholder {1}: roleLabel(result.membership.role)
-#: src/routes/(root)/[handle]/settings/account.tsx:1397
+#: src/routes/(root)/[handle]/settings/account.tsx:1404
 msgid "{0} is now {1}."
 msgstr "{0} is now {1}."
 
@@ -273,12 +278,12 @@ msgid "{0} mentioned you"
 msgstr "{0} mentioned you"
 
 #. placeholder {0}: result.membership.member.username
-#: src/routes/(root)/[handle]/settings/account.tsx:1450
+#: src/routes/(root)/[handle]/settings/account.tsx:1457
 msgid "{0} no longer belongs to this organization."
 msgstr "{0} no longer belongs to this organization."
 
 #. placeholder {0}: result.membership.member.username
-#: src/routes/(root)/[handle]/settings/account.tsx:1447
+#: src/routes/(root)/[handle]/settings/account.tsx:1454
 msgid "{0} no longer has a pending organization invitation."
 msgstr "{0} no longer has a pending organization invitation."
 
@@ -339,7 +344,7 @@ msgid "{0} updated a post you shared"
 msgstr "{0} updated a post you shared"
 
 #. placeholder {0}: result.request.admin.username
-#: src/routes/(root)/[handle]/settings/account.tsx:1115
+#: src/routes/(root)/[handle]/settings/account.tsx:1122
 msgid "{0} will receive a notification to review it."
 msgstr "{0} will receive a notification to review it."
 
@@ -347,7 +352,7 @@ msgstr "{0} will receive a notification to review it."
 #. placeholder {0}: post.actor.rawName ?? post.actor.username
 #. placeholder {1}: post.excerpt
 #. placeholder {1}: title()
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:250
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:255
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:312
 msgid "{0}: {1}"
 msgstr "{0}: {1}"
@@ -419,7 +424,7 @@ msgstr "{days} days"
 msgid "{HIGH_PRIORITY_REPORT_COUNT}+ reports"
 msgstr "{HIGH_PRIORITY_REPORT_COUNT}+ reports"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1777
+#: src/routes/(root)/[handle]/settings/account.tsx:1808
 msgid "@old@example.com or actor URL"
 msgstr "@old@example.com or actor URL"
 
@@ -508,7 +513,7 @@ msgstr "A summary is required because this report will be forwarded."
 msgid "A user (profile) report."
 msgstr "A user (profile) report."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:914
+#: src/routes/(root)/[handle]/settings/account.tsx:921
 msgid "Accept"
 msgstr "Accept"
 
@@ -524,12 +529,12 @@ msgstr "Accept conversion"
 msgid "Accept organization conversion"
 msgstr "Accept organization conversion"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:685
+#: src/routes/(root)/[handle]/settings/account.tsx:682
 msgid "Accept pending invitations from organization administrators."
 msgstr "Accept pending invitations from organization administrators."
 
 #: src/routes/(root)/[handle]/org-conversions/[requestId].tsx:269
-#: src/routes/(root)/[handle]/settings/account.tsx:913
+#: src/routes/(root)/[handle]/settings/account.tsx:920
 msgid "Accepting…"
 msgstr "Accepting…"
 
@@ -543,7 +548,7 @@ msgstr "Account"
 msgid "Account converted"
 msgstr "Account converted"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1894
+#: src/routes/(root)/[handle]/settings/account.tsx:1925
 msgid "Account deletion is unavailable"
 msgstr "Account deletion is unavailable"
 
@@ -555,7 +560,7 @@ msgstr "Account handle"
 msgid "Account kind"
 msgstr "Account kind"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:544
+#: src/routes/(root)/[handle]/settings/account.tsx:1628
 msgid "Account migration"
 msgstr "Account migration"
 
@@ -603,7 +608,7 @@ msgstr "Active since"
 msgid "Actors currently under an active suspension or federation block. Expired suspensions drop off automatically."
 msgstr "Actors currently under an active suspension or federation block. Expired suspensions drop off automatically."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1797
+#: src/routes/(root)/[handle]/settings/account.tsx:1828
 #: src/routes/(root)/[handle]/settings/language.tsx:196
 #: src/routes/(root)/admin/news.tsx:639
 #: src/routes/(root)/admin/news.tsx:748
@@ -628,7 +633,7 @@ msgstr "Add option"
 msgid "Add poll"
 msgstr "Add poll"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1750
+#: src/routes/(root)/[handle]/settings/account.tsx:1781
 msgid "Add the old account here. Hackers' Pub will publish it as another account that belongs to you."
 msgstr "Add the old account here. Hackers' Pub will publish it as another account that belongs to you."
 
@@ -636,7 +641,7 @@ msgstr "Add the old account here. Hackers' Pub will publish it as another accoun
 msgid "Add to sidebar"
 msgstr "Add to sidebar"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1797
+#: src/routes/(root)/[handle]/settings/account.tsx:1828
 #: src/routes/(root)/admin/news.tsx:639
 #: src/routes/(root)/admin/news.tsx:748
 msgid "Adding…"
@@ -658,11 +663,11 @@ msgstr "Admin"
 msgid "After acceptance, this account becomes an organization account, cannot sign in directly, and cannot be converted back to a personal account."
 msgstr "After acceptance, this account becomes an organization account, cannot sign in directly, and cannot be converted back to a personal account."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1148
+#: src/routes/(root)/[handle]/settings/account.tsx:1155
 msgid "After conversion, this account cannot sign in directly and cannot be converted back to a personal account."
 msgstr "After conversion, this account cannot sign in directly and cannot be converted back to a personal account."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1756
+#: src/routes/(root)/[handle]/settings/account.tsx:1787
 msgid "After the old server confirms the destination, it sends the Move activity and compatible servers can move followers here."
 msgstr "After the old server confirms the destination, it sends the Move activity and compatible servers can move followers here."
 
@@ -1038,18 +1043,18 @@ msgstr "By {0}"
 #: src/components/RemoveFollowerButton.tsx:152
 #: src/components/ReportDialog.tsx:224
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:600
-#: src/routes/(root)/[handle]/settings/account.tsx:2014
+#: src/routes/(root)/[handle]/settings/account.tsx:2045
 #: src/routes/(root)/[handle]/settings/index.tsx:410
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:522
 #: src/routes/(root)/authorize_interaction.tsx:287
 msgid "Cancel"
 msgstr "Cancel"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1593
+#: src/routes/(root)/[handle]/settings/account.tsx:1600
 msgid "Cancel invitation"
 msgstr "Cancel invitation"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1588
+#: src/routes/(root)/[handle]/settings/account.tsx:1595
 msgid "Canceling…"
 msgstr "Canceling…"
 
@@ -1057,17 +1062,17 @@ msgstr "Canceling…"
 msgid "Cannot change the language because translations already exist"
 msgstr "Cannot change the language because translations already exist"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1914
-#: src/routes/(root)/[handle]/settings/account.tsx:1927
+#: src/routes/(root)/[handle]/settings/account.tsx:1945
+#: src/routes/(root)/[handle]/settings/account.tsx:1958
 msgid "Cannot delete this account"
 msgstr "Cannot delete this account"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1913
+#: src/routes/(root)/[handle]/settings/account.tsx:1944
 msgid "Cannot delete this organization"
 msgstr "Cannot delete this organization"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1669
-#: src/routes/(root)/[handle]/settings/account.tsx:1720
+#: src/routes/(root)/[handle]/settings/account.tsx:1700
+#: src/routes/(root)/[handle]/settings/account.tsx:1751
 msgid "Cannot update this account"
 msgstr "Cannot update this account"
 
@@ -1088,11 +1093,11 @@ msgstr "Censored by a moderator."
 msgid "Check again"
 msgstr "Check again"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1123
+#: src/routes/(root)/[handle]/settings/account.tsx:1130
 msgid "Check the admin username and confirmation, then try again."
 msgstr "Check the admin username and confirmation, then try again."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:767
+#: src/routes/(root)/[handle]/settings/account.tsx:774
 msgid "Check the username and your remaining invitations, then try again."
 msgstr "Check the username and your remaining invitations, then try again."
 
@@ -1213,11 +1218,11 @@ msgstr "Controls who can quote this article on their timeline."
 msgid "Conversion already accepted"
 msgstr "Conversion already accepted"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1113
+#: src/routes/(root)/[handle]/settings/account.tsx:1120
 msgid "Conversion request created"
 msgstr "Conversion request created"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:711
+#: src/routes/(root)/[handle]/settings/account.tsx:708
 msgid "Convert to organization"
 msgstr "Convert to organization"
 
@@ -1234,8 +1239,8 @@ msgstr "Copy"
 msgid "Could not accept conversion"
 msgstr "Could not accept conversion"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:862
-#: src/routes/(root)/[handle]/settings/account.tsx:873
+#: src/routes/(root)/[handle]/settings/account.tsx:869
+#: src/routes/(root)/[handle]/settings/account.tsx:880
 msgid "Could not accept invitation"
 msgstr "Could not accept invitation"
 
@@ -1244,8 +1249,8 @@ msgstr "Could not accept invitation"
 #~ msgid "Could not add migration alias"
 #~ msgstr "Could not add migration alias"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1677
-#: src/routes/(root)/[handle]/settings/account.tsx:1683
+#: src/routes/(root)/[handle]/settings/account.tsx:1708
+#: src/routes/(root)/[handle]/settings/account.tsx:1714
 msgid "Could not add previous account"
 msgstr "Could not add previous account"
 
@@ -1253,8 +1258,8 @@ msgstr "Could not add previous account"
 msgid "Could not copy the link to the clipboard."
 msgstr "Could not copy the link to the clipboard."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:764
-#: src/routes/(root)/[handle]/settings/account.tsx:775
+#: src/routes/(root)/[handle]/settings/account.tsx:771
+#: src/routes/(root)/[handle]/settings/account.tsx:782
 msgid "Could not create organization"
 msgstr "Could not create organization"
 
@@ -1262,15 +1267,15 @@ msgstr "Could not create organization"
 #~ msgid "Could not find a post at this URL"
 #~ msgstr "Could not find a post at this URL"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1341
-#: src/routes/(root)/[handle]/settings/account.tsx:1352
+#: src/routes/(root)/[handle]/settings/account.tsx:1348
+#: src/routes/(root)/[handle]/settings/account.tsx:1359
 msgid "Could not invite member"
 msgstr "Could not invite member"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:953
-#: src/routes/(root)/[handle]/settings/account.tsx:964
-#: src/routes/(root)/[handle]/settings/account.tsx:1461
-#: src/routes/(root)/[handle]/settings/account.tsx:1476
+#: src/routes/(root)/[handle]/settings/account.tsx:960
+#: src/routes/(root)/[handle]/settings/account.tsx:971
+#: src/routes/(root)/[handle]/settings/account.tsx:1468
+#: src/routes/(root)/[handle]/settings/account.tsx:1483
 msgid "Could not leave organization"
 msgstr "Could not leave organization"
 
@@ -1288,8 +1293,8 @@ msgstr "Could not record the action"
 msgid "Could not refresh this from its origin."
 msgstr "Could not refresh this from its origin."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1462
-#: src/routes/(root)/[handle]/settings/account.tsx:1477
+#: src/routes/(root)/[handle]/settings/account.tsx:1469
+#: src/routes/(root)/[handle]/settings/account.tsx:1484
 msgid "Could not remove member"
 msgstr "Could not remove member"
 
@@ -1298,13 +1303,13 @@ msgstr "Could not remove member"
 #~ msgid "Could not remove migration alias"
 #~ msgstr "Could not remove migration alias"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1726
-#: src/routes/(root)/[handle]/settings/account.tsx:1734
+#: src/routes/(root)/[handle]/settings/account.tsx:1757
+#: src/routes/(root)/[handle]/settings/account.tsx:1765
 msgid "Could not remove previous account"
 msgstr "Could not remove previous account"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1120
-#: src/routes/(root)/[handle]/settings/account.tsx:1131
+#: src/routes/(root)/[handle]/settings/account.tsx:1127
+#: src/routes/(root)/[handle]/settings/account.tsx:1138
 msgid "Could not request conversion"
 msgstr "Could not request conversion"
 
@@ -1327,8 +1332,8 @@ msgstr "Could not revoke quote"
 msgid "Could not submit the appeal"
 msgstr "Could not submit the appeal"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1405
-#: src/routes/(root)/[handle]/settings/account.tsx:1416
+#: src/routes/(root)/[handle]/settings/account.tsx:1412
+#: src/routes/(root)/[handle]/settings/account.tsx:1423
 msgid "Could not update role"
 msgstr "Could not update role"
 
@@ -1336,7 +1341,7 @@ msgstr "Could not update role"
 msgid "Could not vote on this poll"
 msgstr "Could not vote on this poll"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:671
+#: src/routes/(root)/[handle]/settings/account.tsx:668
 msgid "Create an organization account that shares the username namespace and consumes one invitation."
 msgstr "Create an organization account that shares the username namespace and consumes one invitation."
 
@@ -1356,8 +1361,8 @@ msgstr "Create invitation link"
 msgid "Create note"
 msgstr "Create note"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:669
-#: src/routes/(root)/[handle]/settings/account.tsx:826
+#: src/routes/(root)/[handle]/settings/account.tsx:666
+#: src/routes/(root)/[handle]/settings/account.tsx:833
 msgid "Create organization"
 msgstr "Create organization"
 
@@ -1383,7 +1388,7 @@ msgid "Creating account…"
 msgstr "Creating account…"
 
 #: src/components/NoteComposer.tsx:1947
-#: src/routes/(root)/[handle]/settings/account.tsx:826
+#: src/routes/(root)/[handle]/settings/account.tsx:833
 #: src/routes/(root)/[handle]/settings/invite.tsx:855
 msgid "Creating…"
 msgstr "Creating…"
@@ -1396,7 +1401,7 @@ msgstr "Crop"
 msgid "Crop your new avatar"
 msgstr "Crop your new avatar"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1173
+#: src/routes/(root)/[handle]/settings/account.tsx:1180
 msgid "Current username"
 msgstr "Current username"
 
@@ -1445,13 +1450,13 @@ msgstr "Default share privacy"
 msgid "Delete"
 msgstr "Delete"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:559
-#: src/routes/(root)/[handle]/settings/account.tsx:1994
-#: src/routes/(root)/[handle]/settings/account.tsx:2027
+#: src/routes/(root)/[handle]/settings/account.tsx:544
+#: src/routes/(root)/[handle]/settings/account.tsx:2025
+#: src/routes/(root)/[handle]/settings/account.tsx:2058
 msgid "Delete account"
 msgstr "Delete account"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:2004
+#: src/routes/(root)/[handle]/settings/account.tsx:2035
 msgid "Delete account permanently?"
 msgstr "Delete account permanently?"
 
@@ -1459,13 +1464,13 @@ msgstr "Delete account permanently?"
 msgid "Delete draft"
 msgstr "Delete draft"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:582
-#: src/routes/(root)/[handle]/settings/account.tsx:1994
-#: src/routes/(root)/[handle]/settings/account.tsx:2026
+#: src/routes/(root)/[handle]/settings/account.tsx:568
+#: src/routes/(root)/[handle]/settings/account.tsx:2025
+#: src/routes/(root)/[handle]/settings/account.tsx:2057
 msgid "Delete organization"
 msgstr "Delete organization"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:2003
+#: src/routes/(root)/[handle]/settings/account.tsx:2034
 msgid "Delete organization permanently?"
 msgstr "Delete organization permanently?"
 
@@ -1479,7 +1484,7 @@ msgid "Delete post?"
 msgstr "Delete post?"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:21
-#: src/routes/(root)/[handle]/settings/account.tsx:2024
+#: src/routes/(root)/[handle]/settings/account.tsx:2055
 #: src/routes/(root)/[handle]/settings/invite.tsx:745
 #: src/routes/(root)/admin/media.tsx:189
 msgid "Deleting…"
@@ -1502,7 +1507,7 @@ msgstr "Denied"
 msgid "Deny (uphold decision)"
 msgstr "Deny (uphold decision)"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:817
+#: src/routes/(root)/[handle]/settings/account.tsx:824
 msgid "Description"
 msgstr "Description"
 
@@ -1545,7 +1550,7 @@ msgstr "Dismiss"
 msgid "Dismissed"
 msgstr "Dismissed"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:808
+#: src/routes/(root)/[handle]/settings/account.tsx:815
 #: src/routes/(root)/[handle]/settings/index.tsx:479
 #: src/routes/(root)/sign/up/[token].tsx:377
 msgid "Display name"
@@ -1637,11 +1642,11 @@ msgstr "Ends"
 #~ msgid "Enter article title..."
 #~ msgstr "Enter article title..."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1784
+#: src/routes/(root)/[handle]/settings/account.tsx:1815
 msgid "Enter the account you are moving from, for example @old@example.com."
 msgstr "Enter the account you are moving from, for example @old@example.com."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1675
+#: src/routes/(root)/[handle]/settings/account.tsx:1706
 msgid "Enter the account you are moving from, such as @old@example.com or its actor URL."
 msgstr "Enter the account you are moving from, such as @old@example.com or its actor URL."
 
@@ -1777,9 +1782,9 @@ msgstr "Failed to copy"
 msgid "Failed to create invitation link"
 msgstr "Failed to create invitation link"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1869
-#: src/routes/(root)/[handle]/settings/account.tsx:1934
-#: src/routes/(root)/[handle]/settings/account.tsx:1945
+#: src/routes/(root)/[handle]/settings/account.tsx:1900
+#: src/routes/(root)/[handle]/settings/account.tsx:1965
+#: src/routes/(root)/[handle]/settings/account.tsx:1976
 msgid "Failed to delete account"
 msgstr "Failed to delete account"
 
@@ -2235,11 +2240,11 @@ msgstr "Hackers' Pub is a place for software engineers to share their knowledge 
 #~ msgid "Hackers' Pub no longer publishes that account as an alias."
 #~ msgstr "Hackers' Pub no longer publishes that account as an alias."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1707
+#: src/routes/(root)/[handle]/settings/account.tsx:1738
 msgid "Hackers' Pub no longer publishes that account as another account that belongs to you."
 msgstr "Hackers' Pub no longer publishes that account as another account that belongs to you."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1656
+#: src/routes/(root)/[handle]/settings/account.tsx:1687
 msgid "Hackers' Pub now publishes the old account as another account that belongs to you."
 msgstr "Hackers' Pub now publishes the old account as another account that belongs to you."
 
@@ -2363,7 +2368,7 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:958
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:979
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:586
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
@@ -2424,11 +2429,11 @@ msgstr "Invalid input: {0}"
 msgid "Invalid input: {inputPath}"
 msgstr "Invalid input: {inputPath}"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:854
+#: src/routes/(root)/[handle]/settings/account.tsx:861
 msgid "Invitation accepted"
 msgstr "Invitation accepted"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1442
+#: src/routes/(root)/[handle]/settings/account.tsx:1449
 msgid "Invitation canceled"
 msgstr "Invitation canceled"
 
@@ -2453,7 +2458,7 @@ msgstr "Invitation link deleted"
 msgid "Invitation links"
 msgstr "Invitation links"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1333
+#: src/routes/(root)/[handle]/settings/account.tsx:1340
 #: src/routes/(root)/[handle]/settings/invite.tsx:274
 msgid "Invitation sent"
 msgstr "Invitation sent"
@@ -2484,15 +2489,15 @@ msgstr "Invite"
 msgid "Invite a friend"
 msgstr "Invite a friend"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1510
+#: src/routes/(root)/[handle]/settings/account.tsx:1517
 msgid "Invite a personal account by its local username."
 msgstr "Invite a personal account by its local username."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1528
+#: src/routes/(root)/[handle]/settings/account.tsx:1535
 msgid "Invite member"
 msgstr "Invite member"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1493
+#: src/routes/(root)/[handle]/settings/account.tsx:1500
 msgid "Invite members and choose who can manage this organization."
 msgstr "Invite members and choose who can manage this organization."
 
@@ -2509,7 +2514,7 @@ msgstr "Invited by"
 msgid "Invited by {0}"
 msgstr "Invited by {0}"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1528
+#: src/routes/(root)/[handle]/settings/account.tsx:1535
 msgid "Inviting…"
 msgstr "Inviting…"
 
@@ -2585,22 +2590,26 @@ msgstr "Last regenerated:"
 msgid "Last used {0}"
 msgstr "Last used {0}"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1006
-#: src/routes/(root)/[handle]/settings/account.tsx:1595
+#: src/routes/(root)/[handle]/settings/account.tsx:1013
+#: src/routes/(root)/[handle]/settings/account.tsx:1602
 msgid "Leave"
 msgstr "Leave"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:699
+#: src/routes/(root)/[handle]/settings/account.tsx:721
+msgid "Leave every organization listed under \"Your organizations\" above before you can convert this account."
+msgstr "Leave every organization listed under \"Your organizations\" above before you can convert this account."
+
+#: src/routes/(root)/[handle]/settings/account.tsx:696
 msgid "Leave organizations you no longer work with. The last member or last admin cannot leave."
 msgstr "Leave organizations you no longer work with. The last member or last admin cannot leave."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1005
-#: src/routes/(root)/[handle]/settings/account.tsx:1590
+#: src/routes/(root)/[handle]/settings/account.tsx:1012
+#: src/routes/(root)/[handle]/settings/account.tsx:1597
 msgid "Leaving…"
 msgstr "Leaving…"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:946
-#: src/routes/(root)/[handle]/settings/account.tsx:1444
+#: src/routes/(root)/[handle]/settings/account.tsx:953
+#: src/routes/(root)/[handle]/settings/account.tsx:1451
 msgid "Left organization"
 msgstr "Left organization"
 
@@ -2732,7 +2741,7 @@ msgstr "Load more stories"
 msgid "Loading draft…"
 msgstr "Loading draft…"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1537
+#: src/routes/(root)/[handle]/settings/account.tsx:1544
 msgid "Loading members…"
 msgstr "Loading members…"
 
@@ -2861,22 +2870,22 @@ msgstr "Markdown supported"
 msgid "Media"
 msgstr "Media"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1503
+#: src/routes/(root)/[handle]/settings/account.tsx:1510
 msgid "member"
 msgstr "member"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:838
-#: src/routes/(root)/[handle]/settings/account.tsx:930
-#: src/routes/(root)/[handle]/settings/account.tsx:1207
-#: src/routes/(root)/[handle]/settings/account.tsx:1242
+#: src/routes/(root)/[handle]/settings/account.tsx:845
+#: src/routes/(root)/[handle]/settings/account.tsx:937
+#: src/routes/(root)/[handle]/settings/account.tsx:1214
+#: src/routes/(root)/[handle]/settings/account.tsx:1249
 msgid "Member"
 msgstr "Member"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1445
+#: src/routes/(root)/[handle]/settings/account.tsx:1452
 msgid "Member removed"
 msgstr "Member removed"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1305
+#: src/routes/(root)/[handle]/settings/account.tsx:1312
 msgid "Members could not be loaded."
 msgstr "Members could not be loaded."
 
@@ -3007,7 +3016,7 @@ msgstr "Never expires"
 msgid "Never used"
 msgstr "Never used"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1156
+#: src/routes/(root)/[handle]/settings/account.tsx:1163
 msgid "New admin username"
 msgstr "New admin username"
 
@@ -3111,7 +3120,7 @@ msgstr "No invitations left"
 msgid "No matching object found"
 msgstr "No matching object found"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1547
+#: src/routes/(root)/[handle]/settings/account.tsx:1554
 msgid "No members found."
 msgstr "No members found."
 
@@ -3145,7 +3154,7 @@ msgstr "No one has shared this yet."
 msgid "No penalized links."
 msgstr "No penalized links."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:888
+#: src/routes/(root)/[handle]/settings/account.tsx:895
 msgid "No pending organization invitations."
 msgstr "No pending organization invitations."
 
@@ -3165,7 +3174,7 @@ msgstr "No preferred sharers yet."
 msgid "No previews"
 msgstr "No previews"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1806
+#: src/routes/(root)/[handle]/settings/account.tsx:1837
 msgid "No previous accounts added yet."
 msgstr "No previous accounts added yet."
 
@@ -3305,11 +3314,11 @@ msgstr "Notifications are blocked in your browser settings."
 msgid "Number of invitations"
 msgstr "Number of invitations"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1771
+#: src/routes/(root)/[handle]/settings/account.tsx:1802
 msgid "Old account"
 msgstr "Old account"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1753
+#: src/routes/(root)/[handle]/settings/account.tsx:1784
 msgid "On the old server, open account migration settings and set this Hackers' Pub account as the new account."
 msgstr "On the old server, open account migration settings and set this Hackers' Pub account as the new account."
 
@@ -3318,7 +3327,7 @@ msgstr "On the old server, open account migration settings and set this Hackers'
 msgid "Only moderators can refresh remote objects."
 msgstr "Only moderators can refresh remote objects."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1916
+#: src/routes/(root)/[handle]/settings/account.tsx:1947
 msgid "Only organization admins can delete this organization."
 msgstr "Only organization admins can delete this organization."
 
@@ -3366,34 +3375,34 @@ msgstr "Or enter the code from the email"
 msgid "Organization accounts"
 msgstr "Organization accounts"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:838
-#: src/routes/(root)/[handle]/settings/account.tsx:930
-#: src/routes/(root)/[handle]/settings/account.tsx:1207
-#: src/routes/(root)/[handle]/settings/account.tsx:1242
+#: src/routes/(root)/[handle]/settings/account.tsx:845
+#: src/routes/(root)/[handle]/settings/account.tsx:937
+#: src/routes/(root)/[handle]/settings/account.tsx:1214
+#: src/routes/(root)/[handle]/settings/account.tsx:1249
 msgid "Organization admin"
 msgstr "Organization admin"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:757
+#: src/routes/(root)/[handle]/settings/account.tsx:764
 msgid "Organization created"
 msgstr "Organization created"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1879
+#: src/routes/(root)/[handle]/settings/account.tsx:1910
 msgid "Organization deleted"
 msgstr "Organization deleted"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1893
+#: src/routes/(root)/[handle]/settings/account.tsx:1924
 msgid "Organization deletion is unavailable"
 msgstr "Organization deletion is unavailable"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:683
+#: src/routes/(root)/[handle]/settings/account.tsx:680
 msgid "Organization invitations"
 msgstr "Organization invitations"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1491
+#: src/routes/(root)/[handle]/settings/account.tsx:1498
 msgid "Organization members"
 msgstr "Organization members"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:820
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:841
 msgid "Other languages"
 msgstr "Other languages"
 
@@ -3435,7 +3444,7 @@ msgid "Penalty cleared."
 msgstr "Penalty cleared."
 
 #: src/components/admin/ModerationCaseList.tsx:100
-#: src/routes/(root)/[handle]/settings/account.tsx:1563
+#: src/routes/(root)/[handle]/settings/account.tsx:1570
 #: src/routes/(root)/admin/moderation/appeals.tsx:158
 #: src/routes/(root)/admin/moderation/appeals.tsx:225
 #: src/routes/(root)/admin/moderation/index.tsx:124
@@ -3451,11 +3460,11 @@ msgstr "Pending review"
 msgid "People you might want to follow"
 msgstr "People you might want to follow"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:584
+#: src/routes/(root)/[handle]/settings/account.tsx:570
 msgid "Permanently delete this organization account and its content."
 msgstr "Permanently delete this organization account and its content."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:561
+#: src/routes/(root)/[handle]/settings/account.tsx:546
 msgid "Permanently delete your account and sign out of this session."
 msgstr "Permanently delete your account and sign out of this session."
 
@@ -3510,8 +3519,8 @@ msgstr "Please enter a title for your article."
 msgid "Please enter your Fediverse handle."
 msgstr "Please enter your Fediverse handle."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1663
-#: src/routes/(root)/[handle]/settings/account.tsx:1714
+#: src/routes/(root)/[handle]/settings/account.tsx:1694
+#: src/routes/(root)/[handle]/settings/account.tsx:1745
 msgid "Please sign in again before changing account migration settings."
 msgstr "Please sign in again before changing account migration settings."
 
@@ -3520,7 +3529,7 @@ msgstr "Please sign in again before changing account migration settings."
 #~ msgid "Please sign in again before changing migration aliases."
 #~ msgstr "Please sign in again before changing migration aliases."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1905
+#: src/routes/(root)/[handle]/settings/account.tsx:1936
 msgid "Please sign in again before deleting your account."
 msgstr "Please sign in again before deleting your account."
 
@@ -3640,7 +3649,7 @@ msgstr "Preferred sharer removed."
 msgid "Preferred sharers"
 msgstr "Preferred sharers"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:547
+#: src/routes/(root)/[handle]/settings/account.tsx:1630
 msgid "Prepare this account as the destination for a Mastodon-style move."
 msgstr "Prepare this account as the destination for a Mastodon-style move."
 
@@ -3654,11 +3663,11 @@ msgstr "Preview"
 #~ msgid "Previous account"
 #~ msgstr "Previous account"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1654
+#: src/routes/(root)/[handle]/settings/account.tsx:1685
 msgid "Previous account added"
 msgstr "Previous account added"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1705
+#: src/routes/(root)/[handle]/settings/account.tsx:1736
 msgid "Previous account removed"
 msgstr "Previous account removed"
 
@@ -3935,8 +3944,8 @@ msgid "Remote follow"
 msgstr "Remote follow"
 
 #: src/components/LanguageList.tsx:225
-#: src/routes/(root)/[handle]/settings/account.tsx:1596
-#: src/routes/(root)/[handle]/settings/account.tsx:1827
+#: src/routes/(root)/[handle]/settings/account.tsx:1603
+#: src/routes/(root)/[handle]/settings/account.tsx:1858
 #: src/routes/(root)/admin/news.tsx:669
 #: src/routes/(root)/admin/news.tsx:805
 msgid "Remove"
@@ -3947,7 +3956,7 @@ msgstr "Remove"
 msgid "Remove {0}"
 msgstr "Remove {0}"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1823
+#: src/routes/(root)/[handle]/settings/account.tsx:1854
 msgid "Remove {alias}"
 msgstr "Remove {alias}"
 
@@ -3998,8 +4007,8 @@ msgstr "Remove quote"
 msgid "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 msgstr "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1591
-#: src/routes/(root)/[handle]/settings/account.tsx:1827
+#: src/routes/(root)/[handle]/settings/account.tsx:1598
+#: src/routes/(root)/[handle]/settings/account.tsx:1858
 msgid "Removing…"
 msgstr "Removing…"
 
@@ -4079,11 +4088,11 @@ msgstr "Reports"
 msgid "Reports you have filed, newest first. You can see the target, your reason, and the current status. Detailed outcomes are not shown, and the reported user never learns who reported them."
 msgstr "Reports you have filed, newest first. You can see the target, your reason, and the current status. Detailed outcomes are not shown, and the reported user never learns who reported them."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1188
+#: src/routes/(root)/[handle]/settings/account.tsx:1195
 msgid "Request conversion"
 msgstr "Request conversion"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1188
+#: src/routes/(root)/[handle]/settings/account.tsx:1195
 msgid "Requesting…"
 msgstr "Requesting…"
 
@@ -4141,12 +4150,12 @@ msgstr "Revoke quote"
 msgid "Revoke this quote?"
 msgstr "Revoke this quote?"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1230
-#: src/routes/(root)/[handle]/settings/account.tsx:1522
+#: src/routes/(root)/[handle]/settings/account.tsx:1237
+#: src/routes/(root)/[handle]/settings/account.tsx:1529
 msgid "Role"
 msgstr "Role"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1396
+#: src/routes/(root)/[handle]/settings/account.tsx:1403
 msgid "Role updated"
 msgstr "Role updated"
 
@@ -4356,9 +4365,9 @@ msgstr "Shown to the user"
 msgid "Sign in"
 msgstr "Sign in"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1662
-#: src/routes/(root)/[handle]/settings/account.tsx:1713
-#: src/routes/(root)/[handle]/settings/account.tsx:1904
+#: src/routes/(root)/[handle]/settings/account.tsx:1693
+#: src/routes/(root)/[handle]/settings/account.tsx:1744
+#: src/routes/(root)/[handle]/settings/account.tsx:1935
 msgid "Sign in required"
 msgstr "Sign in required"
 
@@ -4535,9 +4544,9 @@ msgid "Suspension length"
 msgstr "Suspension length"
 
 #: src/components/DocumentView.tsx:38
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:664
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:672
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1001
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:679
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:687
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1022
 msgid "Table of contents"
 msgstr "Table of contents"
 
@@ -4547,7 +4556,7 @@ msgstr "Table of contents"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:158
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:556
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1010
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1031
 msgid "Tags"
 msgstr "Tags"
 
@@ -4555,11 +4564,11 @@ msgstr "Tags"
 msgid "Take action"
 msgstr "Take action"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:812
+#: src/routes/(root)/[handle]/settings/account.tsx:819
 msgid "Team name"
 msgstr "Team name"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:801
+#: src/routes/(root)/[handle]/settings/account.tsx:808
 msgid "team-name"
 msgstr "team-name"
 
@@ -4595,7 +4604,7 @@ msgstr "That is not a valid relay actor URL."
 msgid "That is not a valid URL pattern."
 msgstr "That is not a valid URL pattern."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1192
+#: src/routes/(root)/[handle]/settings/account.tsx:1199
 msgid "The accepting admin will receive a notification with a review link."
 msgstr "The accepting admin will receive a notification with a review link."
 
@@ -4620,7 +4629,7 @@ msgstr "The browser did not provide a complete push subscription."
 #~ msgid "The conversion request could not be accepted. Please try again."
 #~ msgstr "The conversion request could not be accepted. Please try again."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1133
+#: src/routes/(root)/[handle]/settings/account.tsx:1140
 msgid "The conversion request could not be created. Please try again."
 msgstr "The conversion request could not be created. Please try again."
 
@@ -4640,9 +4649,9 @@ msgstr "The default privacy setting for your shares."
 msgid "The default quote permission for your notes."
 msgstr "The default quote permission for your notes."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1871
-#: src/routes/(root)/[handle]/settings/account.tsx:1936
-#: src/routes/(root)/[handle]/settings/account.tsx:1947
+#: src/routes/(root)/[handle]/settings/account.tsx:1902
+#: src/routes/(root)/[handle]/settings/account.tsx:1967
+#: src/routes/(root)/[handle]/settings/account.tsx:1978
 msgid "The deletion request could not be completed. Please try again."
 msgstr "The deletion request could not be completed. Please try again."
 
@@ -4659,8 +4668,8 @@ msgstr "The email address is not only used for receiving the invitation, but als
 msgid "The following passkeys are registered to your account. You can use them to sign in to your account."
 msgstr "The following passkeys are registered to your account. You can use them to sign in to your account."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:865
-#: src/routes/(root)/[handle]/settings/account.tsx:875
+#: src/routes/(root)/[handle]/settings/account.tsx:872
+#: src/routes/(root)/[handle]/settings/account.tsx:882
 msgid "The invitation could not be accepted. Please try again."
 msgstr "The invitation could not be accepted. Please try again."
 
@@ -4692,18 +4701,18 @@ msgstr "The invitation link has been deleted successfully."
 msgid "The link to this story is added to your post automatically."
 msgstr "The link to this story is added to your post automatically."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1344
-#: src/routes/(root)/[handle]/settings/account.tsx:1353
+#: src/routes/(root)/[handle]/settings/account.tsx:1351
+#: src/routes/(root)/[handle]/settings/account.tsx:1360
 msgid "The member could not be invited. Please try again."
 msgstr "The member could not be invited. Please try again."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1467
-#: src/routes/(root)/[handle]/settings/account.tsx:1480
+#: src/routes/(root)/[handle]/settings/account.tsx:1474
+#: src/routes/(root)/[handle]/settings/account.tsx:1487
 msgid "The member could not be removed. Please try again."
 msgstr "The member could not be removed. Please try again."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1408
-#: src/routes/(root)/[handle]/settings/account.tsx:1418
+#: src/routes/(root)/[handle]/settings/account.tsx:1415
+#: src/routes/(root)/[handle]/settings/account.tsx:1425
 msgid "The member role could not be updated. Please try again."
 msgstr "The member role could not be updated. Please try again."
 
@@ -4720,18 +4729,18 @@ msgstr "The member role could not be updated. Please try again."
 msgid "The moderation team will review your appeal and notify you."
 msgstr "The moderation team will review your appeal and notify you."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1880
+#: src/routes/(root)/[handle]/settings/account.tsx:1911
 msgid "The organization account was deleted."
 msgstr "The organization account was deleted."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:777
+#: src/routes/(root)/[handle]/settings/account.tsx:784
 msgid "The organization could not be created. Please try again."
 msgstr "The organization could not be created. Please try again."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:956
-#: src/routes/(root)/[handle]/settings/account.tsx:966
-#: src/routes/(root)/[handle]/settings/account.tsx:1466
-#: src/routes/(root)/[handle]/settings/account.tsx:1479
+#: src/routes/(root)/[handle]/settings/account.tsx:963
+#: src/routes/(root)/[handle]/settings/account.tsx:973
+#: src/routes/(root)/[handle]/settings/account.tsx:1473
+#: src/routes/(root)/[handle]/settings/account.tsx:1486
 msgid "The organization could not be left. Please try again."
 msgstr "The organization could not be left. Please try again."
 
@@ -4743,12 +4752,12 @@ msgstr "The page you're looking for doesn't exist or has been moved."
 msgid "The passkey has been successfully revoked."
 msgstr "The passkey has been successfully revoked."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1684
+#: src/routes/(root)/[handle]/settings/account.tsx:1715
 msgid "The previous account could not be added. Please try again."
 msgstr "The previous account could not be added. Please try again."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1727
-#: src/routes/(root)/[handle]/settings/account.tsx:1735
+#: src/routes/(root)/[handle]/settings/account.tsx:1758
+#: src/routes/(root)/[handle]/settings/account.tsx:1766
 msgid "The previous account could not be removed. Please try again."
 msgstr "The previous account could not be removed. Please try again."
 
@@ -4796,7 +4805,7 @@ msgstr "The Web Push public key is invalid."
 msgid "There are no moderation actions on your account."
 msgstr "There are no moderation actions on your account."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1897
+#: src/routes/(root)/[handle]/settings/account.tsx:1928
 msgid "This account cannot be deleted right now. Please contact the instance administrators."
 msgstr "This account cannot be deleted right now. Please contact the instance administrators."
 
@@ -4817,8 +4826,8 @@ msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "This action cannot be undone. This will permanently delete this post."
 
 #: src/routes/(root)/[handle]/org-conversions/[requestId].tsx:237
-#: src/routes/(root)/[handle]/settings/account.tsx:1145
-#: src/routes/(root)/[handle]/settings/account.tsx:1959
+#: src/routes/(root)/[handle]/settings/account.tsx:1152
+#: src/routes/(root)/[handle]/settings/account.tsx:1990
 msgid "This action is permanent."
 msgstr "This action is permanent."
 
@@ -4827,11 +4836,11 @@ msgstr "This action is permanent."
 msgid "This browser does not support Web Push."
 msgstr "This browser does not support Web Push."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:2008
+#: src/routes/(root)/[handle]/settings/account.tsx:2039
 msgid "This cannot be undone. The organization account will be deleted, but you will stay signed in."
 msgstr "This cannot be undone. The organization account will be deleted, but you will stay signed in."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:2009
+#: src/routes/(root)/[handle]/settings/account.tsx:2040
 msgid "This cannot be undone. Your account will be deleted and you will be signed out."
 msgstr "This cannot be undone. Your account will be deleted and you will be signed out."
 
@@ -4879,19 +4888,19 @@ msgstr "This is a remote actor with no local notification or appeal. A warning i
 msgid "This is too long (maximum {MAX_REASON_LENGTH} characters)."
 msgstr "This is too long (maximum {MAX_REASON_LENGTH} characters)."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1896
+#: src/routes/(root)/[handle]/settings/account.tsx:1927
 msgid "This organization cannot be deleted right now. Please contact the instance administrators."
 msgstr "This organization cannot be deleted right now. Please contact the instance administrators."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1963
+#: src/routes/(root)/[handle]/settings/account.tsx:1994
 msgid "This organization's profile, posts, drafts, follows, settings, and memberships will be removed. Its username will remain reserved."
 msgstr "This organization's profile, posts, drafts, follows, settings, and memberships will be removed. Its username will remain reserved."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1746
+#: src/routes/(root)/[handle]/settings/account.tsx:1777
 msgid "This page only prepares the Hackers' Pub side of the move. The move still starts from your old server."
 msgstr "This page only prepares the Hackers' Pub side of the move. The move still starts from your old server."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1164
+#: src/routes/(root)/[handle]/settings/account.tsx:1171
 msgid "This personal account will accept the request and become the first organization admin."
 msgstr "This personal account will accept the request and become the first organization admin."
 
@@ -4931,7 +4940,7 @@ msgstr "This server has not configured Web Push yet."
 msgid "This service does not support remote follow."
 msgstr "This service does not support remote follow."
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:559
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:574
 msgid "This usually takes about a minute. The page will update automatically when the translation is ready."
 msgstr "This usually takes about a minute. The page will update automatically when the translation is ready."
 
@@ -4976,7 +4985,7 @@ msgstr "Total: {0}"
 
 #. placeholder {0}: "LANGUAGE"
 #: src/components/ArticleCard.tsx:322
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:804
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:825
 msgid "Translated from {0}"
 msgstr "Translated from {0}"
 
@@ -4984,18 +4993,18 @@ msgstr "Translated from {0}"
 #~ msgid "Translating to {0}…"
 #~ msgstr "Translating to {0}…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:554
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:569
 msgid "Translating to {name}…"
 msgstr "Translating to {name}…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:550
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:565
 msgid "Translating…"
 msgstr "Translating…"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:413
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:436
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:445
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:595
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:610
 msgid "Translation request failed"
 msgstr "Translation request failed"
 
@@ -5003,7 +5012,7 @@ msgstr "Translation request failed"
 #~ msgid "Translation request failed for {0}"
 #~ msgstr "Translation request failed for {0}"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:600
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:615
 msgid "Translation request failed for {name}"
 msgstr "Translation request failed for {name}"
 
@@ -5013,26 +5022,26 @@ msgid "Tree"
 msgstr "Tree"
 
 #: src/app.tsx:129
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:608
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:623
 msgid "Try again"
 msgstr "Try again"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:713
+#: src/routes/(root)/[handle]/settings/account.tsx:710
 msgid "Turn this personal account into an organization account. This cannot be undone."
 msgstr "Turn this personal account into an organization account. This cannot be undone."
 
 #. placeholder {0}: props.username
-#: src/routes/(root)/[handle]/settings/account.tsx:1982
+#: src/routes/(root)/[handle]/settings/account.tsx:2013
 msgid "Type {0} to confirm account deletion."
 msgstr "Type {0} to confirm account deletion."
 
 #. placeholder {0}: props.account.username
-#: src/routes/(root)/[handle]/settings/account.tsx:1181
+#: src/routes/(root)/[handle]/settings/account.tsx:1188
 msgid "Type {0} to confirm conversion."
 msgstr "Type {0} to confirm conversion."
 
 #. placeholder {0}: props.username
-#: src/routes/(root)/[handle]/settings/account.tsx:1981
+#: src/routes/(root)/[handle]/settings/account.tsx:2012
 msgid "Type {0} to confirm organization deletion."
 msgstr "Type {0} to confirm organization deletion."
 
@@ -5129,7 +5138,7 @@ msgstr "Use old UI"
 #~ msgid "Use the old account's handle or actor URL."
 #~ msgstr "Use the old account's handle or actor URL."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:804
+#: src/routes/(root)/[handle]/settings/account.tsx:811
 msgid "Used for the profile URL and WebFinger handle."
 msgstr "Used for the profile URL and WebFinger handle."
 
@@ -5155,13 +5164,13 @@ msgstr "User unblocked"
 msgid "User unmuted"
 msgstr "User unmuted"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1157
+#: src/routes/(root)/[handle]/settings/account.tsx:1164
 msgid "username"
 msgstr "username"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:796
-#: src/routes/(root)/[handle]/settings/account.tsx:1502
-#: src/routes/(root)/[handle]/settings/account.tsx:1972
+#: src/routes/(root)/[handle]/settings/account.tsx:803
+#: src/routes/(root)/[handle]/settings/account.tsx:1509
+#: src/routes/(root)/[handle]/settings/account.tsx:2003
 #: src/routes/(root)/[handle]/settings/index.tsx:425
 #: src/routes/(root)/sign/up/[token].tsx:331
 msgid "Username"
@@ -5296,7 +5305,7 @@ msgstr "Warning"
 msgid "We couldn't reach the server"
 msgstr "We couldn't reach the server"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:605
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:620
 msgid "We couldn't reach the translation service. Try again, or come back in a few minutes."
 msgstr "We couldn't reach the translation service. Try again, or come back in a few minutes."
 
@@ -5359,7 +5368,7 @@ msgid "Write"
 msgstr "Write"
 
 #: src/components/NoteComposeModal.tsx:115
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:949
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:970
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:415
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:495
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:577
@@ -5400,7 +5409,7 @@ msgstr "You are blocking this user. They can't follow you or see your posts."
 msgid "You are now an admin of {0}."
 msgstr "You are now an admin of {0}."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:758
+#: src/routes/(root)/[handle]/settings/account.tsx:765
 msgid "You are now an admin of the new organization."
 msgstr "You are now an admin of the new organization."
 
@@ -5425,7 +5434,7 @@ msgstr "You can change it only once, and the old username will become available 
 #~ msgid "You can change migration aliases only for your own account."
 #~ msgstr "You can change migration aliases only for your own account."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1917
+#: src/routes/(root)/[handle]/settings/account.tsx:1948
 msgid "You can delete only your own account."
 msgstr "You can delete only your own account."
 
@@ -5439,7 +5448,7 @@ msgid "You can leave this field empty."
 msgstr "You can leave this field empty."
 
 #. placeholder {0}: result.membership.organization.username
-#: src/routes/(root)/[handle]/settings/account.tsx:856
+#: src/routes/(root)/[handle]/settings/account.tsx:863
 msgid "You can now act as {0}."
 msgstr "You can now act as {0}."
 
@@ -5459,12 +5468,12 @@ msgstr "You can only view your own bookmarks"
 msgid "You can only view your own drafts"
 msgstr "You can only view your own drafts"
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1676
-#: src/routes/(root)/[handle]/settings/account.tsx:1727
+#: src/routes/(root)/[handle]/settings/account.tsx:1701
+#: src/routes/(root)/[handle]/settings/account.tsx:1752
 msgid "You can prepare migration only for accounts you can manage."
 msgstr "You can prepare migration only for accounts you can manage."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:979
+#: src/routes/(root)/[handle]/settings/account.tsx:986
 msgid "You do not belong to any organizations yet."
 msgstr "You do not belong to any organizations yet."
 
@@ -5473,7 +5482,7 @@ msgid "You don't have any passkeys registered yet."
 msgstr "You don't have any passkeys registered yet."
 
 #. placeholder {0}: props.invitationsLeft
-#: src/routes/(root)/[handle]/settings/account.tsx:788
+#: src/routes/(root)/[handle]/settings/account.tsx:795
 msgid "You have {0} invitations available."
 msgstr "You have {0} invitations available."
 
@@ -5540,8 +5549,8 @@ msgstr "You must be signed in to save a draft"
 msgid "You must be signed in."
 msgstr "You must be signed in."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:947
-#: src/routes/(root)/[handle]/settings/account.tsx:1449
+#: src/routes/(root)/[handle]/settings/account.tsx:954
+#: src/routes/(root)/[handle]/settings/account.tsx:1456
 msgid "You no longer belong to that organization."
 msgstr "You no longer belong to that organization."
 
@@ -5610,7 +5619,7 @@ msgstr "Your identity is kept strictly confidential: only the moderation team ca
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "Your name will be displayed on your profile and in your posts."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:697
+#: src/routes/(root)/[handle]/settings/account.tsx:694
 msgid "Your organizations"
 msgstr "Your organizations"
 
@@ -5630,7 +5639,7 @@ msgstr "Your preferred languages have been updated."
 msgid "Your profile settings have been updated successfully."
 msgstr "Your profile settings have been updated successfully."
 
-#: src/routes/(root)/[handle]/settings/account.tsx:1964
+#: src/routes/(root)/[handle]/settings/account.tsx:1995
 msgid "Your profile, posts, drafts, follows, settings, and login credentials will be removed. Your current username will remain reserved."
 msgstr "Your profile, posts, drafts, follows, settings, and login credentials will be removed. Your current username will remain reserved."
 

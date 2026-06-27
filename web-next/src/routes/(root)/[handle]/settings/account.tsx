@@ -67,7 +67,7 @@ import {
   SelectValue,
 } from "~/components/ui/select.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,
@@ -646,7 +646,18 @@ function PersonalOrganizationCards(props: {
   account: AccountPageAccount;
   viewer: AccountPageViewer;
 }) {
-  const { t } = useLingui();
+  const { t, i18n } = useLingui();
+  const organizationCount = () => props.viewer.organizationMemberships.length;
+  const belongsToOrganizations = () => organizationCount() > 0;
+  const membershipNotice = () =>
+    i18n._(
+      msg`${
+        plural(organizationCount(), {
+          one: "You still belong to # organization.",
+          other: "You still belong to # organizations.",
+        })
+      }`,
+    );
 
   return (
     <>
@@ -700,7 +711,17 @@ function PersonalOrganizationCards(props: {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <OrganizationConversionForms account={props.account} />
+          <Show
+            when={belongsToOrganizations()}
+            fallback={<OrganizationConversionForms account={props.account} />}
+          >
+            <div class="rounded-md border bg-muted/40 p-4 text-sm">
+              <p class="font-medium">{membershipNotice()}</p>
+              <p class="mt-2 text-muted-foreground">
+                {t`Leave every organization listed under "Your organizations" above before you can convert this account.`}
+              </p>
+            </div>
+          </Show>
         </CardContent>
       </Card>
     </>
