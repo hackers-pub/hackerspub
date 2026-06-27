@@ -579,6 +579,22 @@ export default function AccountSettingsPage() {
                         />
                         <Card>
                           <CardHeader>
+                            <CardTitle>
+                              {t`Account migration`}
+                            </CardTitle>
+                            <CardDescription>
+                              {t`Prepare this account as the destination for a Mastodon-style move.`}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <AccountMigrationAliasesForm
+                              id={account.id}
+                              aliases={account.actor.aliases}
+                            />
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardHeader>
                             <CardTitle>{t`Delete organization`}</CardTitle>
                             <CardDescription>
                               {t`Permanently delete this organization account and its content.`}
