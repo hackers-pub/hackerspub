@@ -823,7 +823,9 @@ builder.relayMutationField(
       "Request irreversible conversion of the authenticated personal " +
       "account into an organization account. The current username must be " +
       "typed as confirmation, and a different personal account must be " +
-      "named as the accepting administrator.",
+      "named as the accepting administrator. The account must not belong to " +
+      "any organization: leave every organization first, otherwise this " +
+      "fails with `OrganizationConversionError`.",
     inputFields: (t) => ({
       accountId: t.globalID({
         for: Account,

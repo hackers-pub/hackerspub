@@ -959,6 +959,68 @@ test("organization admins cannot remove the last accepted admin", async () => {
   });
 });
 
+test("requestOrganizationConversion rejects accounts that belong to an organization", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "graphqlconvertmember",
+      name: "GraphQL Convert Member",
+      email: "graphqlconvertmember@example.com",
+    });
+    const orgAdmin = await insertAccountWithActor(tx, {
+      username: "graphqlconvertorgadmin",
+      name: "GraphQL Convert Org Admin",
+      email: "graphqlconvertorgadmin@example.com",
+    });
+    const accepter = await insertAccountWithActor(tx, {
+      username: "graphqlconvertaccepter",
+      name: "GraphQL Convert Accepter",
+      email: "graphqlconvertaccepter@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, orgAdmin.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      orgAdmin.account,
+      { username: "graphqlconvertblockorg", name: "Block Org", bio: "" },
+    );
+    await tx.insert(organizationMembershipTable).values({
+      organizationAccountId: organization.id,
+      memberAccountId: member.account.id,
+      role: "member",
+      invitedById: orgAdmin.account.id,
+      accepted: sql`CURRENT_TIMESTAMP`,
+    });
+
+    const result = await execute({
+      schema,
+      document: conversionMutation,
+      variableValues: {
+        accountId: encodeGlobalID("Account", member.account.id),
+        adminUsername: accepter.account.username,
+        confirmationUsername: member.account.username,
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      requestOrganizationConversion: {
+        __typename: "OrganizationConversionError",
+        message: "The account must leave organizations before conversion.",
+      },
+    });
+
+    const pending = await tx.query.organizationConversionRequestTable.findFirst(
+      {
+        where: { accountId: member.account.id },
+      },
+    );
+    assert.equal(pending, undefined);
+  });
+});
+
 test("organization conversion request and acceptance turn a personal account into an organization", async () => {
   await withRollback(async (tx) => {
     const account = await insertAccountWithActor(tx, {
