@@ -1458,10 +1458,12 @@ builder.relayMutationField(
   "addAccountMigrationAlias",
   {
     description:
-      "Add a previous account actor as an ActivityPub migration alias for " +
-      "the authenticated viewer's local account. The stored value is the " +
-      "resolved actor IRI, which is then advertised as `alsoKnownAs` on " +
-      "the local actor document so a later remote `Move` can be validated.",
+      "Add a previous account actor as an ActivityPub migration alias for a " +
+      "local account the authenticated viewer can manage: their own personal " +
+      "account, or an `ORGANIZATION` account they are an accepted `admin` of. " +
+      "The stored value is the resolved actor IRI, which is then advertised " +
+      "as `alsoKnownAs` on the local actor document so a later remote `Move` " +
+      "can be validated.",
     inputFields: (t) => ({
       accountId: t.globalID({
         for: Account,
@@ -1521,10 +1523,11 @@ builder.relayMutationField(
   "removeAccountMigrationAlias",
   {
     description:
-      "Remove one ActivityPub migration alias from the authenticated " +
-      "viewer's local account. Removing an alias only changes the new " +
-      "account's `alsoKnownAs` list; it does not send or retract a remote " +
-      "`Move` activity.",
+      "Remove one ActivityPub migration alias from a local account the " +
+      "authenticated viewer can manage: their own personal account, or an " +
+      "`ORGANIZATION` account they are an accepted `admin` of. Removing an " +
+      "alias only changes the account's `alsoKnownAs` list; it does not send " +
+      "or retract a remote `Move` activity.",
     inputFields: (t) => ({
       accountId: t.globalID({
         for: Account,
