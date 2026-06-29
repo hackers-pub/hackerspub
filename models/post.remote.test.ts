@@ -4,11 +4,16 @@ import {
   Announce,
   Article,
   Collection,
+  Emoji,
+  EmojiReact,
+  Image,
   InteractionPolicy,
   InteractionRule,
+  Like,
   Mention,
   Note,
   PUBLIC_COLLECTION,
+  Question,
   QuoteAuthorization,
 } from "@fedify/vocab";
 import { eq } from "drizzle-orm";
@@ -22,11 +27,14 @@ import {
 } from "./post.ts";
 import {
   actorTable,
+  instanceTable,
   postTable,
   quoteAuthorizationTable,
   quoteRequestTable,
+  reactionTable,
 } from "./schema.ts";
-import { generateUuidV7 } from "./uuid.ts";
+import { withTransaction } from "./tx.ts";
+import { generateUuidV7, type Uuid } from "./uuid.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
@@ -36,6 +44,19 @@ import {
   insertRemotePost,
   withRollback,
 } from "../test/postgres.ts";
+import { db } from "../graphql/db.ts";
+
+async function waitFor<T>(
+  read: () => Promise<T | undefined>,
+  message: string,
+): Promise<T> {
+  for (let i = 0; i < 50; i++) {
+    const value = await read();
+    if (value != null) return value;
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  throw new Error(message);
+}
 
 test("getPostByUsernameAndId() requires a full handle and returns a matching post", async () => {
   await withRollback(async (tx) => {
@@ -188,6 +209,340 @@ test("persistPost() stores manual quote request policies separately", async () =
     assert.equal(persisted.quotePolicy, "self");
     assert.equal(persisted.quoteRequestPolicy, "everyone");
   });
+});
+
+test("persistPost() backfills a remote Note emojiReactions collection", async () => {
+  await withRollback(async (tx) => {
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "noteemojiimportauthor",
+      name: "Note Emoji Import Author",
+      host: "remote.example",
+    });
+    const reactor = await insertRemoteActor(tx, {
+      username: "noteemojiimportreactor",
+      name: "Note Emoji Import Reactor",
+      host: "remote.example",
+    });
+    const postIri = new URL("https://remote.example/objects/emoji-note");
+    const offTargetPost = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>Not the emojiReactions collection owner</p>",
+    });
+    const customEmojiIri = new URL("https://remote.example/emojis/party");
+    const customEmoji = new Emoji({
+      id: customEmojiIri,
+      name: ":party:",
+      icon: new Image({
+        mediaType: "image/png",
+        url: new URL("https://remote.example/emoji/party.png"),
+      }),
+    });
+    const post = new Note({
+      id: postIri,
+      attribution: new URL(remoteActor.iri),
+      to: PUBLIC_COLLECTION,
+      content: "Backfill note reactions",
+      emojiReactions: new Collection({
+        items: [
+          new Like({
+            id: new URL("https://remote.example/likes/note-heart"),
+            actor: new URL(reactor.iri),
+            object: postIri,
+            content: "❤️",
+          }),
+          new Like({
+            id: new URL("https://remote.example/likes/note-heart-duplicate"),
+            actor: new URL(reactor.iri),
+            object: postIri,
+            content: "❤️",
+          }),
+          new EmojiReact({
+            id: new URL("https://remote.example/reactions/note-party"),
+            actor: new URL(reactor.iri),
+            object: postIri,
+            content: ":party:",
+            tags: [customEmoji],
+          }),
+          new EmojiReact({
+            id: new URL("https://remote.example/reactions/note-missing"),
+            actor: new URL(reactor.iri),
+            object: postIri,
+            content: ":missing:",
+          }),
+          new Like({
+            id: new URL("https://remote.example/likes/note-off-target"),
+            actor: new URL(reactor.iri),
+            object: new URL(offTargetPost.iri),
+            content: "🔥",
+          }),
+          new Note({
+            id: new URL("https://remote.example/objects/not-a-reaction"),
+            attribution: new URL(reactor.iri),
+            content: "not a reaction",
+          }),
+        ],
+      }),
+    });
+
+    const persisted = await persistPost(createFedCtx(tx), post);
+
+    assert.ok(persisted != null);
+    const storedCustomEmoji = await waitFor(
+      () =>
+        tx.query.customEmojiTable.findFirst({
+          where: { iri: customEmojiIri.href },
+        }),
+      "Timed out waiting for custom emoji import.",
+    );
+    const storedPost = await waitFor(async () => {
+      const row = await tx.query.postTable.findFirst({
+        where: { id: persisted.id },
+      });
+      return row?.reactionsCounts["❤️"] === 1 &&
+          row.reactionsCounts[storedCustomEmoji.id] === 1
+        ? row
+        : undefined;
+    }, "Timed out waiting for Note emoji reaction backfill.");
+    assert.deepEqual(storedPost.reactionsCounts, {
+      "❤️": 1,
+      [storedCustomEmoji.id]: 1,
+    });
+
+    const allReactions = await tx.query.reactionTable.findMany({
+      where: { postId: persisted.id },
+    });
+    assert.deepEqual(
+      allReactions.map((reaction) => reaction.emoji).sort(),
+      ["❤️", null].sort(),
+    );
+    assert.equal(
+      allReactions.some((reaction) => reaction.emoji === ":missing:"),
+      false,
+    );
+    const offTargetReactions = await tx.query.reactionTable.findMany({
+      where: { postId: offTargetPost.id },
+    });
+    assert.deepEqual(offTargetReactions, []);
+
+    await tx.update(postTable)
+      .set({ reactionsCounts: {} })
+      .where(eq(postTable.id, persisted.id));
+
+    const refetched = await persistPost(createFedCtx(tx), post);
+
+    assert.ok(refetched != null);
+    const recountedPost = await waitFor(async () => {
+      const row = await tx.query.postTable.findFirst({
+        where: { id: persisted.id },
+      });
+      return row?.reactionsCounts["❤️"] === 1 &&
+          row.reactionsCounts[storedCustomEmoji.id] === 1
+        ? row
+        : undefined;
+    }, "Timed out waiting for duplicate emoji reaction recount.");
+    assert.deepEqual(recountedPost.reactionsCounts, {
+      "❤️": 1,
+      [storedCustomEmoji.id]: 1,
+    });
+  });
+});
+
+test("persistPost() backfills a remote Article emojiReactions collection", async () => {
+  await withRollback(async (tx) => {
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "articleemojiimportauthor",
+      name: "Article Emoji Import Author",
+      host: "blog.example",
+    });
+    const reactor = await insertRemoteActor(tx, {
+      username: "articleemojiimportreactor",
+      name: "Article Emoji Import Reactor",
+      host: "blog.example",
+    });
+    const articleIri = new URL(
+      "https://blog.example/ap/articles/emoji-reactions",
+    );
+    const article = new Article({
+      id: articleIri,
+      attribution: new URL(remoteActor.iri),
+      to: PUBLIC_COLLECTION,
+      name: "Remote article reactions",
+      content: "Backfill article reactions",
+      emojiReactions: new Collection({
+        id: new URL(
+          "https://blog.example/ap/articles/emoji-reactions/reactions",
+        ),
+        items: [
+          new EmojiReact({
+            id: new URL("https://blog.example/reactions/article-fire"),
+            actor: new URL(reactor.iri),
+            object: articleIri,
+            content: "🔥",
+          }),
+        ],
+      }),
+    });
+
+    const persisted = await persistPost(createFedCtx(tx), article);
+
+    assert.ok(persisted != null);
+    const storedPost = await waitFor(
+      async () => {
+        const row = await tx.query.postTable.findFirst({
+          where: { id: persisted.id },
+        });
+        return row?.reactionsCounts["🔥"] === 1 ? row : undefined;
+      },
+      "Timed out waiting for Article emoji reaction backfill.",
+    );
+    assert.equal(storedPost.type, "Article");
+  });
+});
+
+test("persistPost() backfills a remote Question emojiReactions collection", async () => {
+  await withRollback(async (tx) => {
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "questionemojiimportauthor",
+      name: "Question Emoji Import Author",
+      host: "poll.example",
+    });
+    const reactor = await insertRemoteActor(tx, {
+      username: "questionemojiimportreactor",
+      name: "Question Emoji Import Reactor",
+      host: "poll.example",
+    });
+    const questionIri = new URL(
+      "https://poll.example/objects/question-emoji-reactions",
+    );
+    const question = new Question({
+      id: questionIri,
+      attribution: new URL(remoteActor.iri),
+      to: PUBLIC_COLLECTION,
+      name: "Poll reaction import",
+      content: "Backfill question reactions",
+      endTime: Temporal.Instant.from("2099-06-10T00:00:00.000Z"),
+      exclusiveOptions: [
+        new Note({ name: "Yes" }),
+        new Note({ name: "No" }),
+      ],
+      emojiReactions: new Collection({
+        id: new URL(
+          "https://poll.example/objects/question-emoji-reactions/reactions",
+        ),
+        items: [
+          new Like({
+            id: new URL("https://poll.example/likes/question-heart"),
+            actor: new URL(reactor.iri),
+            object: questionIri,
+            content: "❤️",
+          }),
+        ],
+      }),
+    });
+
+    const persisted = await persistPost(createFedCtx(tx), question);
+
+    assert.ok(persisted != null);
+    const storedPost = await waitFor(
+      async () => {
+        const row = await tx.query.postTable.findFirst({
+          where: { id: persisted.id },
+        });
+        return row?.reactionsCounts["❤️"] === 1 ? row : undefined;
+      },
+      "Timed out waiting for Question emoji reaction backfill.",
+    );
+    assert.equal(storedPost.type, "Question");
+  });
+});
+
+test("persistPost() starts emojiReactions backfill after transaction commit", async () => {
+  const suffix = generateUuidV7().replaceAll("-", "").slice(0, 12);
+  let postId: Uuid | undefined;
+  const remoteHost = `emoji-after-${suffix}.example`;
+  try {
+    const fedCtx = createFedCtx(
+      db as unknown as Parameters<typeof createFedCtx>[0],
+    );
+    Object.assign(fedCtx, {
+      federation: {
+        createContext(request: Request, data: typeof fedCtx.data) {
+          return { ...fedCtx, request, data };
+        },
+      } as typeof fedCtx.federation,
+      request: new Request("http://localhost/"),
+    });
+
+    let transactionOpen = true;
+    let backfillStartedDuringTransaction = false;
+    const postIri = new URL(
+      `https://${remoteHost}/objects/emoji-after-commit-${suffix}`,
+    );
+
+    await withTransaction(fedCtx, async (context) => {
+      const remoteActor = await insertRemoteActor(context.data.db, {
+        username: `emojiafterauthor${suffix}`,
+        name: "Emoji After Commit Author",
+        host: remoteHost,
+      });
+      const reactor = await insertRemoteActor(context.data.db, {
+        username: `emojiafterreactor${suffix}`,
+        name: "Emoji After Commit Reactor",
+        host: remoteHost,
+      });
+      const reactionCollection = new Collection({
+        items: [
+          new Like({
+            id: new URL(
+              `https://${remoteHost}/likes/emoji-after-commit-${suffix}`,
+            ),
+            actor: new URL(reactor.iri),
+            object: postIri,
+            content: "❤️",
+          }),
+        ],
+      });
+      const post = new Note({
+        id: postIri,
+        attribution: new URL(remoteActor.iri),
+        to: PUBLIC_COLLECTION,
+        content: "Backfill reactions after commit",
+        emojiReactions: reactionCollection,
+      });
+      (
+        post as unknown as {
+          getEmojiReactions: typeof post.getEmojiReactions;
+        }
+      ).getEmojiReactions = async () => {
+        if (transactionOpen) backfillStartedDuringTransaction = true;
+        return reactionCollection;
+      };
+
+      context.data.afterCommit?.push(() => {
+        transactionOpen = false;
+      });
+      const persisted = await persistPost(context, post);
+      assert.ok(persisted != null);
+      postId = persisted.id;
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      assert.equal(backfillStartedDuringTransaction, false);
+    });
+
+    const storedPost = await waitFor(async () => {
+      const row = await db.query.postTable.findFirst({
+        where: { id: postId! },
+      });
+      return row?.reactionsCounts["❤️"] === 1 ? row : undefined;
+    }, "Timed out waiting for post-commit emoji reaction backfill.");
+    assert.equal(storedPost.iri, postIri.href);
+  } finally {
+    if (postId != null) {
+      await db.delete(reactionTable).where(eq(reactionTable.postId, postId));
+      await db.delete(postTable).where(eq(postTable.id, postId));
+    }
+    await db.delete(actorTable).where(eq(actorTable.instanceHost, remoteHost));
+    await db.delete(instanceTable).where(eq(instanceTable.host, remoteHost));
+  }
 });
 
 test("persistPost() ignores ActivityPub mention hrefs when selecting link previews", async () => {

@@ -95,6 +95,7 @@ import {
   type Reaction,
 } from "./schema.ts";
 import { addPostToTimeline, removeFromTimeline } from "./timeline.ts";
+import { queueAfterCommit } from "./tx.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "post"]);
@@ -103,6 +104,9 @@ const DEFAULT_MAX_INLINE_REPLIES = 50;
 const DEFAULT_INLINE_REPLIES_THRESHOLD = 10;
 const REPLIES_BACKFILL_LOCK_TTL_SECONDS = 300;
 const REPLIES_BACKFILL_RETRY_DELAY_MS = 30_000;
+const EMOJI_REACTIONS_BACKFILL_LOCK_TTL_MS = 300_000;
+const EMOJI_REACTIONS_BACKFILL_RETRY_DELAY_MS = 30_000;
+const MAX_EMOJI_REACTIONS_BACKFILL = 500;
 // Per-fetch ceiling for remote ActivityPub dereferencing during post
 // persistence.  Deno's `fetch` has no default timeout, so an unresponsive
 // remote host could otherwise hang an inbox handler past the message queue's
@@ -170,6 +174,92 @@ export function withDocumentLoaderTimeout(
     const signal = signals.length === 1 ? signals[0] : AbortSignal.any(signals);
     return loader(url, { ...options, signal });
   };
+}
+
+async function backfillEmojiReactions(
+  ctx: Context<ContextData>,
+  post: PostObject,
+  persistedPost: Pick<Post, "id" | "iri">,
+  options: {
+    contextLoader?: DocumentLoader;
+    documentLoader?: DocumentLoader;
+  },
+): Promise<void> {
+  const opts = {
+    contextLoader: options.contextLoader,
+    documentLoader: withDocumentLoaderTimeout(
+      options.documentLoader ?? ctx.documentLoader,
+    ),
+    suppressError: true,
+  };
+  const collection = await post.getEmojiReactions(opts);
+  if (collection == null) return;
+  const { persistReaction, updateReactionsCounts } = await import(
+    "./reaction.ts"
+  );
+  let shouldUpdateCounts = false;
+  try {
+    let scanned = 0;
+    for await (const item of traverseCollection(collection, opts)) {
+      if (scanned >= MAX_EMOJI_REACTIONS_BACKFILL) break;
+      scanned++;
+      if (!(item instanceof vocab.Like || item instanceof vocab.EmojiReact)) {
+        continue;
+      }
+      if (item.objectId?.href !== persistedPost.iri) continue;
+      shouldUpdateCounts = true;
+      await persistReaction(ctx, item, opts);
+    }
+  } finally {
+    if (shouldUpdateCounts) {
+      await updateReactionsCounts(ctx.data.db, persistedPost.id);
+    }
+  }
+}
+
+async function enqueueEmojiReactionsBackfill(
+  ctx: Context<ContextData>,
+  post: PostObject,
+  persistedPost: Pick<Post, "id" | "iri">,
+  options: {
+    contextLoader?: DocumentLoader;
+    documentLoader?: DocumentLoader;
+  },
+): Promise<void> {
+  const lockKey = `emoji-reactions-backfill/${persistedPost.iri}`;
+  const [locked] = await ctx.data.kv.getMany<string>([lockKey]);
+  if (locked === "1") return;
+  await ctx.data.kv.set(
+    lockKey,
+    "1",
+    EMOJI_REACTIONS_BACKFILL_LOCK_TTL_MS,
+  );
+  void (async () => {
+    const run = async (attempt: number): Promise<void> => {
+      try {
+        await backfillEmojiReactions(ctx, post, persistedPost, options);
+      } catch (error) {
+        if (attempt < 1) {
+          await new Promise((resolve) =>
+            setTimeout(resolve, EMOJI_REACTIONS_BACKFILL_RETRY_DELAY_MS)
+          );
+          await run(attempt + 1);
+          return;
+        }
+        logger.warn(
+          "Failed to backfill emoji reactions for {postIri} after retry: " +
+            "{error}",
+          { postIri: persistedPost.iri, error },
+        );
+      }
+    };
+    await run(0);
+  })().catch((error) => {
+    logger.warn(
+      "Emoji reactions backfill task failed for {postIri}: {error}",
+      { postIri: persistedPost.iri, error },
+    );
+  });
 }
 
 export type PostObject = vocab.Article | vocab.Note | vocab.Question;
@@ -1639,6 +1729,20 @@ export async function persistPost(
   let poll: Poll | undefined;
   if (post instanceof vocab.Question) {
     poll = await persistPoll(db, post, persistedPost.id);
+  }
+  if (depth === 0) {
+    await queueAfterCommit(ctx, () => {
+      const db = ctx.data.rootDb ?? ctx.data.db;
+      return enqueueEmojiReactionsBackfill(
+        ctx.clone({ ...ctx.data, db, rootDb: db, afterCommit: undefined }),
+        post,
+        persistedPost,
+        {
+          contextLoader: options.contextLoader,
+          documentLoader: options.documentLoader,
+        },
+      );
+    });
   }
   // Only refresh at the top level: recursive reply backfill (depth > 0) would
   // re-score the same story once per reply; the periodic sweep covers those.
