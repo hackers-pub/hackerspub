@@ -157,6 +157,23 @@ const updateArticleMutation = graphql`
           id
           url
           ...Slug_head
+          contents(includeBeingTranslated: false) {
+            title
+            content
+            toc
+            language
+            originalLanguage
+            beingTranslated
+          }
+          allContents: contents(includeBeingTranslated: true) {
+            language
+            url
+          }
+          language
+          tags
+          allowLlmTranslation
+          publishedYear
+          slug
         }
       }
       ... on InvalidInputError {
@@ -401,7 +418,7 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
           allowLlmTranslation: allowLlmTranslation(),
         },
       },
-      onCompleted(response) {
+      async onCompleted(response) {
         if (
           response.updateArticle.__typename === "UpdateArticlePayload"
         ) {
@@ -412,7 +429,9 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
           });
           const articleUrl = response.updateArticle.article.url;
           if (articleUrl) {
-            revalidate("loadArticlePageQuery");
+            await revalidate("loadArticlePageQuery").catch((error) => {
+              console.error("Failed to revalidate article page:", error);
+            });
             navigate(new URL(articleUrl).pathname);
           }
         } else if (
