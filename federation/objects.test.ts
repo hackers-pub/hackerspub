@@ -16,7 +16,14 @@ import {
 import { generateUuidV7 } from "@hackerspub/models/uuid";
 import { eq } from "drizzle-orm";
 import { builder } from "./builder.ts";
-import { getArticle, getCreate, getNote, isApTargetHidden } from "./objects.ts";
+import {
+  getArticle,
+  getCreate,
+  getNote,
+  getQuestion,
+  isApTargetHidden,
+  isEmojiReactionCollectionVisible,
+} from "./objects.ts";
 import {
   createFedCtx,
   createTestDisk,
@@ -132,6 +139,35 @@ test("getNote() includes member attribution for co-authored organization notes",
   });
 });
 
+test("getNote() advertises the emoji reactions collection", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "noteemojireactions",
+      name: "Note Emoji Reactions",
+      email: "noteemojireactions@example.com",
+    });
+    const { noteSourceId } = await insertNotePost(tx, {
+      account: author.account,
+      content: "React here",
+    });
+    const noteSource = await tx.query.noteSourceTable.findFirst({
+      where: { id: noteSourceId },
+      with: {
+        account: true,
+        media: { with: { medium: true }, orderBy: { index: "asc" } },
+      },
+    });
+    assert.ok(noteSource != null);
+
+    const note = await getNote(createFedCtx(tx), noteSource);
+
+    assert.equal(
+      note.emojiReactionsId?.href,
+      `http://localhost/ap/emoji-reactions/notes/${noteSourceId}`,
+    );
+  });
+});
+
 test("getArticle() includes member attribution for co-authored organization articles", async () => {
   await withRollback(async (tx) => {
     const member = await insertAccountWithActor(tx, {
@@ -204,6 +240,47 @@ test("getArticle() includes member attribution for co-authored organization arti
   });
 });
 
+test("getArticle() advertises the emoji reactions collection", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "articleemojireactions",
+      name: "Article Emoji Reactions",
+      email: "articleemojireactions@example.com",
+    });
+    const published = new Date("2026-04-15T00:00:00.000Z");
+    const articleSourceId = generateUuidV7();
+    await tx.insert(articleSourceTable).values({
+      id: articleSourceId,
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "emoji-reactions",
+      quotePolicy: "everyone",
+      published,
+      updated: published,
+    });
+    await tx.insert(articleContentTable).values({
+      sourceId: articleSourceId,
+      language: "en",
+      title: "Emoji reactions",
+      content: "Article reactions",
+      published,
+      updated: published,
+    });
+    const articleSource = await tx.query.articleSourceTable.findFirst({
+      where: { id: articleSourceId },
+      with: { account: true, contents: true },
+    });
+    assert.ok(articleSource != null);
+
+    const article = await getArticle(createFedCtx(tx), articleSource);
+
+    assert.equal(
+      article.emojiReactionsId?.href,
+      `http://localhost/ap/emoji-reactions/articles/${articleSourceId}`,
+    );
+  });
+});
+
 test("getArticle() preserves article content titles when rendered body has no heading", async () => {
   await withRollback(async (tx) => {
     const author = await insertAccountWithActor(tx, {
@@ -261,6 +338,61 @@ test("getArticle() preserves article content titles when rendered body has no he
     assert.match(
       article.content?.toString() ?? "",
       />Article title, not body title<\/a>/,
+    );
+  });
+});
+
+test("getQuestion() advertises the emoji reactions collection", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "questionemojireactions",
+      name: "Question Emoji Reactions",
+      email: "questionemojireactions@example.com",
+    });
+    const published = new Date("2026-04-15T00:00:00.000Z");
+    const question = await createQuestion(
+      createFedCtx(tx) as unknown as Context<ContextData<Transaction>>,
+      {
+        accountId: author.account.id,
+        visibility: "public",
+        quotePolicy: "everyone",
+        content: "React to a poll?",
+        language: "en",
+        media: [],
+        published,
+        updated: published,
+        poll: {
+          title: "Poll reactions",
+          multiple: false,
+          options: ["Yes", "No"],
+          ends: new Date("2026-04-16T00:00:00.000Z"),
+          now: published,
+        },
+      },
+    );
+    assert.ok(question != null);
+    const noteSource = await tx.query.noteSourceTable.findFirst({
+      where: { id: question.noteSource.id },
+      with: {
+        account: true,
+        media: { with: { medium: true }, orderBy: { index: "asc" } },
+      },
+    });
+    const poll = await tx.query.pollTable.findFirst({
+      where: { postId: question.id },
+      with: { options: { orderBy: { index: "asc" } } },
+    });
+    assert.ok(noteSource != null);
+    assert.ok(poll != null);
+
+    const activity = await getQuestion(createFedCtx(tx), noteSource, {
+      ...poll,
+      post: question,
+    });
+
+    assert.equal(
+      activity.emojiReactionsId?.href,
+      `http://localhost/ap/emoji-reactions/questions/${question.noteSource.id}`,
     );
   });
 });
@@ -360,6 +492,31 @@ test("isApTargetHidden() hides censored or sanction-hidden reply/quote targets",
       .where(eq(actorTable.id, remoteAuthor.id));
     assert.equal(isApTargetHidden(await load()), true);
   });
+});
+
+test("isEmojiReactionCollectionVisible() preserves signed actor block checks", () => {
+  const viewer = { iri: "https://viewer.example/actors/blocked" };
+  const author = {
+    iri: "https://author.example/actors/author",
+    followers: [],
+    blockees: [{
+      blockeeId: "00000000-0000-0000-0000-000000000001",
+      blockee: viewer,
+    }],
+    blockers: [],
+  };
+  const post = {
+    visibility: "public",
+    actor: author,
+    mentions: [],
+  } as unknown as Parameters<typeof isEmojiReactionCollectionVisible>[1];
+
+  assert.equal(isEmojiReactionCollectionVisible("note", post), true);
+  assert.equal(isEmojiReactionCollectionVisible("note", post, viewer), false);
+  assert.equal(
+    isEmojiReactionCollectionVisible("question", post, viewer),
+    false,
+  );
 });
 
 test("getCreate() returns a Create activity with a dereferenceable id", async () => {

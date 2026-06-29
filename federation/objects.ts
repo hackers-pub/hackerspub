@@ -22,6 +22,7 @@ import type {
   Actor,
   ArticleContent,
   ArticleSource,
+  CustomEmoji,
   Medium,
   Mention,
   NoteSource,
@@ -34,9 +35,39 @@ import type {
   QuotePolicy,
   Reaction,
 } from "@hackerspub/models/schema";
+import { reactionTable } from "@hackerspub/models/schema";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { escape } from "@std/html/entities";
+import { and, count, desc, eq, lt, or } from "drizzle-orm";
 import { builder } from "./builder.ts";
+
+const EMOJI_REACTIONS_WINDOW = 50;
+
+type EmojiReactableObject = "articles" | "notes" | "questions";
+
+function getEmojiReactionsUri(
+  ctx: Context<ContextData>,
+  object: EmojiReactableObject,
+  id: Uuid,
+): URL {
+  // A nested object URL such as `/ap/notes/{id}/emoji-reactions` would be more
+  // natural, but this separate namespace keeps the temporary dispatcher
+  // workaround local until https://github.com/fedify-dev/fedify/issues/849 is
+  // fixed.
+  return new URL(`/ap/emoji-reactions/${object}/${id}`, ctx.canonicalOrigin);
+}
+
+function getEmojiReactionsPageUri(
+  ctx: Context<ContextData>,
+  object: EmojiReactableObject,
+  id: Uuid,
+  cursor: string,
+): URL {
+  return new URL(
+    `/ap/emoji-reactions/${object}/${id}/page/${cursor}`,
+    ctx.canonicalOrigin,
+  );
+}
 
 export function getPostAttributionIds(
   ctx: Context<ContextData>,
@@ -183,6 +214,7 @@ export async function getArticle(
         mediaType: "text/markdown",
       })
       : null,
+    emojiReactions: getEmojiReactionsUri(ctx, "articles", articleSource.id),
     tags: [...articleSource.tags, ...hashtags].map((tag) =>
       new vocab.Hashtag({
         name: `#${tag.replace(/^#/, "")}`,
@@ -385,6 +417,7 @@ export async function getNote(
       content: note.content,
       mediaType: "text/markdown",
     }),
+    emojiReactions: getEmojiReactionsUri(ctx, "notes", note.id),
     attachments,
     tags,
     url: new URL(
@@ -516,6 +549,7 @@ export async function getQuestion(
       content: note.content,
       mediaType: "text/markdown",
     }),
+    emojiReactions: getEmojiReactionsUri(ctx, "questions", note.id),
     attachments,
     tags,
     url: new URL(
@@ -931,40 +965,61 @@ export function getEmojiReactId(
   postId: Uuid,
   emoji: ReactionEmoji,
 ): URL {
-  const activityType = getEmojiReactType(emoji);
-  return ctx.getObjectUri<vocab.Like | vocab.EmojiReact>(activityType, {
-    accountId,
-    postId,
-    emoji,
-  });
+  return getEmojiReactType(emoji) === vocab.Like
+    ? ctx.getObjectUri(vocab.Like, { accountId, postId, emoji })
+    : ctx.getObjectUri(vocab.EmojiReact, {
+      id: `${accountId}/${postId}/${emoji}`,
+    });
 }
 
 export function getEmojiReact(
   ctx: Context<ContextData>,
-  reaction: Reaction & { actor: Actor; post: Post & { actor: Actor } },
+  reaction: Reaction & {
+    actor: Actor;
+    customEmoji?: CustomEmoji | null;
+    post: Post & { actor: Actor };
+  },
 ): vocab.Like | vocab.EmojiReact | null {
-  if (
-    reaction.actor.accountId == null || reaction.emoji == null ||
-    !isReactionEmoji(reaction.emoji)
-  ) {
+  const content = reaction.emoji ?? reaction.customEmoji?.name;
+  if (content == null) return null;
+  const activityType = reaction.customEmoji == null &&
+      reaction.emoji != null &&
+      isReactionEmoji(reaction.emoji)
+    ? getEmojiReactType(reaction.emoji)
+    : vocab.EmojiReact;
+  let id: URL;
+  try {
+    id = new URL(reaction.iri);
+  } catch {
     return null;
   }
-  const activityType = getEmojiReactType(reaction.emoji);
+  const actor = reaction.actor.accountId == null
+    ? new URL(reaction.actor.iri)
+    : ctx.getActorUri(reaction.actor.accountId);
   return new activityType({
-    id: getEmojiReactId(
-      ctx,
-      reaction.actor.accountId,
-      reaction.post.id,
-      reaction.emoji,
-    ),
-    actor: ctx.getActorUri(reaction.actor.accountId),
+    id,
+    actor,
     tos: [
       new URL(reaction.post.actor.iri),
-      ctx.getFollowersUri(reaction.actor.accountId),
+      ...(
+        reaction.actor.accountId == null
+          ? []
+          : [ctx.getFollowersUri(reaction.actor.accountId)]
+      ),
     ],
     cc: PUBLIC_COLLECTION,
     object: new URL(reaction.post.iri),
-    content: reaction.emoji,
+    content,
+    tags: reaction.customEmoji == null ? [] : [
+      new vocab.Emoji({
+        id: new URL(reaction.customEmoji.iri),
+        name: reaction.customEmoji.name,
+        icon: new vocab.Image({
+          mediaType: reaction.customEmoji.imageType,
+          url: new URL(reaction.customEmoji.imageUrl),
+        }),
+      }),
+    ],
   });
 }
 
@@ -972,22 +1027,94 @@ async function getEmojiReactOrLike(
   ctx: RequestContext<ContextData>,
   values: Record<"accountId" | "postId" | "emoji", string>,
 ): Promise<vocab.Like | vocab.EmojiReact | null> {
+  return getStandardEmojiReactOrLike(
+    ctx,
+    values.accountId,
+    values.postId,
+    values.emoji,
+  );
+}
+
+async function getStandardEmojiReactOrLike(
+  ctx: RequestContext<ContextData>,
+  accountId: string,
+  postId: string,
+  emoji: string,
+): Promise<vocab.Like | vocab.EmojiReact | null> {
   if (
-    !validateUuid(values.accountId) || !validateUuid(values.postId) ||
-    !isReactionEmoji(values.emoji)
+    !validateUuid(accountId) || !validateUuid(postId) ||
+    !isReactionEmoji(emoji)
   ) {
     return null;
   }
   const reaction = await ctx.data.db.query.reactionTable.findFirst({
-    with: { actor: true, post: { with: { actor: true } } },
+    with: { actor: true, customEmoji: true, post: { with: { actor: true } } },
     where: {
-      actor: { accountId: values.accountId },
-      postId: values.postId,
-      emoji: values.emoji,
+      actor: { accountId },
+      postId,
+      emoji,
     },
   });
   if (reaction == null) return null;
   return getEmojiReact(ctx, reaction);
+}
+
+async function getCustomEmojiReact(
+  ctx: RequestContext<ContextData>,
+  values: Record<"id", string>,
+): Promise<vocab.EmojiReact | null> {
+  if (!validateUuid(values.id)) return null;
+  const iri = new URL(
+    `/ap/emojireacts/custom/${values.id}`,
+    ctx.canonicalOrigin,
+  ).href;
+  const reaction = await ctx.data.db.query.reactionTable.findFirst({
+    with: {
+      actor: true,
+      customEmoji: true,
+      post: {
+        with: {
+          actor: {
+            with: {
+              followers: { with: { follower: true } },
+              blockees: { with: { blockee: true } },
+              blockers: { with: { blocker: true } },
+            },
+          },
+          mentions: { with: { actor: true } },
+        },
+      },
+    },
+    where: {
+      iri,
+      customEmojiId: { isNotNull: true },
+    },
+  });
+  if (reaction == null) return null;
+  const kind = getEmojiReactionCollectionKindForPost(reaction.post);
+  if (kind == null) return null;
+  if (!await canViewEmojiReactionPost(ctx, kind, reaction.post)) return null;
+  const activity = getEmojiReact(ctx, reaction);
+  return activity instanceof vocab.EmojiReact ? activity : null;
+}
+
+async function getEmojiReactByPath(
+  ctx: RequestContext<ContextData>,
+  values: Record<"id", string>,
+): Promise<vocab.EmojiReact | null> {
+  const segments = values.id.split("/");
+  if (segments[0] === "custom" && segments.length === 2) {
+    return getCustomEmojiReact(ctx, { id: segments[1] });
+  }
+  if (segments.length !== 3) return null;
+  const [accountId, postId, emoji] = segments;
+  const reaction = await getStandardEmojiReactOrLike(
+    ctx,
+    accountId,
+    postId,
+    decodeURIComponent(emoji),
+  );
+  return reaction instanceof vocab.EmojiReact ? reaction : null;
 }
 
 builder.setObjectDispatcher(
@@ -998,6 +1125,308 @@ builder.setObjectDispatcher(
 
 builder.setObjectDispatcher(
   vocab.EmojiReact,
-  "/ap/emojireacts/{accountId}/{postId}/{emoji}",
-  getEmojiReactOrLike,
+  "/ap/emojireacts/{+id}",
+  getEmojiReactByPath,
 );
+
+export type EmojiReactionCollectionKind = "article" | "note" | "question";
+
+interface EmojiReactionCursor {
+  readonly created: Date;
+  readonly iri: string;
+}
+
+function getEmojiReactionObject(kind: EmojiReactionCollectionKind) {
+  switch (kind) {
+    case "article":
+      return "articles";
+    case "note":
+      return "notes";
+    case "question":
+      return "questions";
+  }
+}
+
+function parseEmojiReactionObject(
+  object: string,
+): EmojiReactionCollectionKind | null {
+  switch (object) {
+    case "articles":
+      return "article";
+    case "notes":
+      return "note";
+    case "questions":
+      return "question";
+    default:
+      return null;
+  }
+}
+
+export function isEmojiReactionCollectionVisible(
+  kind: EmojiReactionCollectionKind,
+  post: Parameters<typeof isPostVisibleTo>[0],
+  signedActor?: { iri: string },
+): boolean {
+  return kind === "article" ? true : isPostVisibleTo(post, signedActor);
+}
+
+function getEmojiReactionCollectionKindForPost(
+  post: Pick<Post, "type">,
+): EmojiReactionCollectionKind | null {
+  switch (post.type) {
+    case "Article":
+      return "article";
+    case "Note":
+      return "note";
+    case "Question":
+      return "question";
+    default:
+      return null;
+  }
+}
+
+function hasHttpSignature(ctx: RequestContext<ContextData>): boolean {
+  const request = (ctx as RequestContext<ContextData> & { request?: Request })
+    .request;
+  if (request == null) return false;
+  return request.headers.has("authorization") ||
+    request.headers.has("signature") ||
+    request.headers.has("signature-input");
+}
+
+async function canViewEmojiReactionPost(
+  ctx: RequestContext<ContextData>,
+  kind: EmojiReactionCollectionKind,
+  post: Parameters<typeof isPostVisibleTo>[0] & {
+    actor: { accountId?: Uuid | null };
+    censored?: Date | null;
+  },
+): Promise<boolean> {
+  if (post.censored != null) return false;
+  if (kind === "article" && isActorSanctionHidden(post.actor)) return false;
+  if (kind === "article") return isEmojiReactionCollectionVisible(kind, post);
+  let signedActor: { iri: string } | undefined;
+  if (hasHttpSignature(ctx)) {
+    if (post.actor.accountId == null) return false;
+    const documentLoader = await ctx.getDocumentLoader({
+      identifier: post.actor.accountId,
+    });
+    const signedKeyOwner = await ctx.getSignedKeyOwner({ documentLoader });
+    signedActor = signedKeyOwner?.id == null
+      ? undefined
+      : { iri: signedKeyOwner.id.href };
+  }
+  return isEmojiReactionCollectionVisible(
+    kind,
+    post,
+    signedActor,
+  );
+}
+
+function encodeBase64Url(value: string): string {
+  const bytes = new TextEncoder().encode(value);
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replaceAll(
+    "=",
+    "",
+  );
+}
+
+function decodeBase64Url(value: string): string | null {
+  try {
+    const base64 = value.replaceAll("-", "+").replaceAll("_", "/");
+    const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
+    const binary = atob(padded);
+    return new TextDecoder().decode(
+      Uint8Array.from(binary, (char) => char.charCodeAt(0)),
+    );
+  } catch {
+    return null;
+  }
+}
+
+function encodeEmojiReactionCursor(
+  reaction: Pick<Reaction, "created" | "iri">,
+): string {
+  return encodeBase64Url(
+    JSON.stringify({
+      created: reaction.created.toISOString(),
+      iri: reaction.iri,
+    }),
+  );
+}
+
+function decodeEmojiReactionCursor(cursor: string): EmojiReactionCursor | null {
+  const json = decodeBase64Url(cursor);
+  if (json == null) return null;
+  try {
+    const parsed = JSON.parse(json) as { created?: unknown; iri?: unknown };
+    if (typeof parsed.created !== "string" || typeof parsed.iri !== "string") {
+      return null;
+    }
+    const created = new Date(parsed.created);
+    if (Number.isNaN(created.valueOf())) return null;
+    return { created, iri: parsed.iri };
+  } catch {
+    return null;
+  }
+}
+
+async function getPostForEmojiReactions(
+  ctx: RequestContext<ContextData>,
+  kind: EmojiReactionCollectionKind,
+  id: Uuid,
+) {
+  const post = await ctx.data.db.query.postTable.findFirst({
+    with: {
+      actor: {
+        with: {
+          followers: { with: { follower: true } },
+          blockees: { with: { blockee: true } },
+          blockers: { with: { blocker: true } },
+        },
+      },
+      mentions: { with: { actor: true } },
+    },
+    where: kind === "article"
+      ? { articleSourceId: id, type: "Article" }
+      : kind === "note"
+      ? { noteSourceId: id, type: "Note" }
+      : { noteSourceId: id, type: "Question" },
+  });
+  if (post == null || post.censored != null) return null;
+  if (kind === "article" && isActorSanctionHidden(post.actor)) return null;
+  return post;
+}
+
+async function canViewEmojiReactions(
+  ctx: RequestContext<ContextData>,
+  kind: EmojiReactionCollectionKind,
+  id: Uuid,
+): Promise<boolean> {
+  const post = await getPostForEmojiReactions(ctx, kind, id);
+  if (post == null) return false;
+  return await canViewEmojiReactionPost(ctx, kind, post);
+}
+
+async function getEmojiReactionCollectionItems(
+  ctx: RequestContext<ContextData>,
+  kind: EmojiReactionCollectionKind,
+  id: Uuid,
+  cursor: string | null,
+): Promise<
+  { items: (vocab.Like | vocab.EmojiReact)[]; nextCursor: string | null } | null
+> {
+  const post = await getPostForEmojiReactions(ctx, kind, id);
+  if (post == null) return null;
+  const decodedCursor = cursor == null || cursor.trim() === ""
+    ? null
+    : decodeEmojiReactionCursor(cursor);
+  if (cursor != null && cursor.trim() !== "" && decodedCursor == null) {
+    return null;
+  }
+  const rows = await ctx.data.db.select({
+    iri: reactionTable.iri,
+    created: reactionTable.created,
+  })
+    .from(reactionTable)
+    .where(and(
+      eq(reactionTable.postId, post.id),
+      decodedCursor == null ? undefined : or(
+        lt(reactionTable.created, decodedCursor.created),
+        and(
+          eq(reactionTable.created, decodedCursor.created),
+          lt(reactionTable.iri, decodedCursor.iri),
+        ),
+      ),
+    ))
+    .orderBy(desc(reactionTable.created), desc(reactionTable.iri))
+    .limit(EMOJI_REACTIONS_WINDOW + 1);
+  const pageRows = rows.slice(0, EMOJI_REACTIONS_WINDOW);
+  if (pageRows.length < 1) return { items: [], nextCursor: null };
+  const reactions = await ctx.data.db.query.reactionTable.findMany({
+    with: {
+      actor: true,
+      customEmoji: true,
+      post: { with: { actor: true } },
+    },
+    where: { iri: { in: pageRows.map((row) => row.iri) } },
+  });
+  const reactionByIri = new Map(
+    reactions.map((reaction) => [reaction.iri, reaction]),
+  );
+  const items = pageRows
+    .map((row) => reactionByIri.get(row.iri))
+    .map((reaction) => reaction == null ? null : getEmojiReact(ctx, reaction))
+    .filter((item): item is vocab.Like | vocab.EmojiReact => item != null);
+  return {
+    items,
+    nextCursor: rows.length > EMOJI_REACTIONS_WINDOW
+      ? encodeEmojiReactionCursor(pageRows[pageRows.length - 1])
+      : null,
+  };
+}
+
+builder
+  // Use object dispatchers for now because Fedify 2.3.1 drops custom
+  // collection dispatcher callbacks during `FederationBuilder.build()`.
+  // See https://github.com/fedify-dev/fedify/issues/849.
+  .setObjectDispatcher(
+    vocab.Collection,
+    "/ap/emoji-reactions/{object}/{id}",
+    async (ctx, values) => {
+      const kind = parseEmojiReactionObject(values.object);
+      if (kind == null || !validateUuid(values.id)) return null;
+      if (!await canViewEmojiReactions(ctx, kind, values.id)) return null;
+      const post = await getPostForEmojiReactions(ctx, kind, values.id);
+      if (post == null) return null;
+      const [{ cnt }] = await ctx.data.db.select({ cnt: count() })
+        .from(reactionTable)
+        .where(eq(reactionTable.postId, post.id));
+      const object = getEmojiReactionObject(kind);
+      return new vocab.Collection({
+        id: getEmojiReactionsUri(ctx, object, values.id),
+        totalItems: cnt,
+        first: getEmojiReactionsPageUri(ctx, object, values.id, "_"),
+      });
+    },
+  )
+  .authorize(async (ctx, values) => {
+    const kind = parseEmojiReactionObject(values.object);
+    return kind != null && validateUuid(values.id) &&
+      await canViewEmojiReactions(ctx, kind, values.id);
+  });
+
+builder
+  .setObjectDispatcher(
+    vocab.CollectionPage,
+    "/ap/emoji-reactions/{object}/{id}/page/{cursor}",
+    async (ctx, values) => {
+      const kind = parseEmojiReactionObject(values.object);
+      if (kind == null || !validateUuid(values.id)) return null;
+      if (!await canViewEmojiReactions(ctx, kind, values.id)) return null;
+      const object = getEmojiReactionObject(kind);
+      const cursor = values.cursor === "_" ? "" : values.cursor;
+      const page = await getEmojiReactionCollectionItems(
+        ctx,
+        kind,
+        values.id,
+        cursor,
+      );
+      if (page == null) return null;
+      return new vocab.CollectionPage({
+        id: getEmojiReactionsPageUri(ctx, object, values.id, values.cursor),
+        partOf: getEmojiReactionsUri(ctx, object, values.id),
+        items: page.items,
+        next: page.nextCursor == null
+          ? null
+          : getEmojiReactionsPageUri(ctx, object, values.id, page.nextCursor),
+      });
+    },
+  )
+  .authorize(async (ctx, values) => {
+    const kind = parseEmojiReactionObject(values.object);
+    return kind != null && validateUuid(values.id) &&
+      await canViewEmojiReactions(ctx, kind, values.id);
+  });
