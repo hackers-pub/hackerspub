@@ -67,10 +67,36 @@ import {
 } from "./viewer-actor.ts";
 
 const MAX_VIEWER_INTERACTIONS_WINDOW = 250;
+const avatarInitialsSegmenter = new Intl.Segmenter(undefined, {
+  granularity: "grapheme",
+});
 
 interface RelationshipBooleanKey {
   viewerActorId: Uuid | null;
   targetActorId: Uuid;
+}
+
+function getAvatarInitials(name: string): string {
+  const parts = name.trim().split(/[\s_-]+/).filter((p) => p.length > 0);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) {
+    return graphemes(parts[0]).slice(0, 2).join("").toUpperCase();
+  }
+  const first = firstGrapheme(parts[0]);
+  const last = firstGrapheme(parts[parts.length - 1]);
+  return `${first}${last}`.toUpperCase();
+}
+
+function graphemes(text: string): string[] {
+  return Array.from(
+    avatarInitialsSegmenter.segment(text),
+    (segment) => segment.segment,
+  );
+}
+
+function firstGrapheme(text: string): string {
+  return avatarInitialsSegmenter.segment(text)[Symbol.iterator]().next()
+    .value?.segment ?? "";
 }
 
 function actorProfilePostRelations(viewerActorId: Uuid | null) {
@@ -506,14 +532,7 @@ export const Actor = builder.drizzleNode("actorTable", {
         const name = isActorProfileHidden(actor, ctx)
           ? actor.username
           : actor.name ?? actor.username;
-        const parts = name.trim().split(/[\s_-]+/).filter((p) => p.length > 0);
-        if (parts.length === 0) return "?";
-        if (parts.length === 1) {
-          return parts[0].substring(0, 2).toUpperCase();
-        }
-        return (
-          parts[0][0] + parts[parts.length - 1][0]
-        ).toUpperCase();
+        return getAvatarInitials(name);
       },
     }),
     headerUrl: t.field({

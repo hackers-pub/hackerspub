@@ -48,6 +48,14 @@ const actorByHandleQuery = parse(`
   }
 `);
 
+const actorAvatarInitialsQuery = parse(`
+  query ActorAvatarInitials($handle: String!) {
+    actorByHandle(handle: $handle, allowLocalHandle: true) {
+      avatarInitials
+    }
+  }
+`);
+
 const actorByUrlQuery = parse(`
   query ActorByUrl($url: URL!) {
     actorByUrl(url: $url) {
@@ -166,6 +174,56 @@ test("actorByUuid and actorByHandle resolve local actors", async () => {
       actorByHandle: {
         id: encodeGlobalID("Actor", actor.actor.id),
         handle: "@actorlookupgraphql@localhost",
+      },
+    });
+  });
+});
+
+test("avatarInitials slices actor names by grapheme cluster", async () => {
+  await withRollback(async (tx) => {
+    const actor = await insertAccountWithActor(tx, {
+      username: "graphemeavatar",
+      name: "🔒 알티머신이지만 봇은 아닌_카토",
+      email: "graphemeavatar@example.com",
+    });
+
+    const result = await execute({
+      schema,
+      document: actorAvatarInitialsQuery,
+      variableValues: { handle: actor.actor.handle },
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      actorByHandle: {
+        avatarInitials: "🔒카",
+      },
+    });
+  });
+});
+
+test("avatarInitials keeps multi-codepoint graphemes intact", async () => {
+  await withRollback(async (tx) => {
+    const actor = await insertAccountWithActor(tx, {
+      username: "singlegraphemeavatar",
+      name: "👩‍💻🇰🇷coder",
+      email: "singlegraphemeavatar@example.com",
+    });
+
+    const result = await execute({
+      schema,
+      document: actorAvatarInitialsQuery,
+      variableValues: { handle: actor.actor.handle },
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      actorByHandle: {
+        avatarInitials: "👩‍💻🇰🇷",
       },
     });
   });
