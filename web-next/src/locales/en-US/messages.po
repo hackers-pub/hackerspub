@@ -706,7 +706,7 @@ msgid "All-time"
 msgstr "All-time"
 
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:109
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:584
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:603
 msgid "Allow automatic translation by AI"
 msgstr "Allow automatic translation by AI"
 
@@ -867,7 +867,7 @@ msgstr "Article drafts"
 msgid "Article published"
 msgstr "Article published"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:410
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:427
 msgid "Article updated"
 msgstr "Article updated"
 
@@ -1037,12 +1037,12 @@ msgstr "By {0}"
 #: src/components/ProfileActionMenu.tsx:533
 #: src/components/ProfileActionMenu.tsx:563
 #: src/components/ProfileActionMenu.tsx:564
-#: src/components/QuotedNoteCard.tsx:292
+#: src/components/QuotedNoteCard.tsx:318
 #: src/components/RemoteFollowButton.tsx:218
 #: src/components/RemoteFollowButton.tsx:280
 #: src/components/RemoveFollowerButton.tsx:152
 #: src/components/ReportDialog.tsx:224
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:600
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:619
 #: src/routes/(root)/[handle]/settings/account.tsx:2045
 #: src/routes/(root)/[handle]/settings/index.tsx:410
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:522
@@ -1058,7 +1058,7 @@ msgstr "Cancel invitation"
 msgid "Canceling…"
 msgstr "Canceling…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:425
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:444
 msgid "Cannot change the language because translations already exist"
 msgstr "Cannot change the language because translations already exist"
 
@@ -1194,7 +1194,7 @@ msgstr "Compose"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:65
 #: src/components/NoteComposer.tsx:1489
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:470
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:489
 msgid "Content"
 msgstr "Content"
 
@@ -1323,7 +1323,7 @@ msgstr "Could not resolve that as a remote object."
 msgid "Could not resolve the appeal"
 msgstr "Could not resolve the appeal"
 
-#: src/components/QuotedNoteCard.tsx:323
+#: src/components/QuotedNoteCard.tsx:349
 msgid "Could not revoke quote"
 msgstr "Could not revoke quote"
 
@@ -1411,7 +1411,7 @@ msgid "Cutoff:"
 msgstr "Cutoff:"
 
 #: src/components/NoteCardInternal.tsx:156
-#: src/components/QuotedNoteCard.tsx:201
+#: src/components/QuotedNoteCard.tsx:227
 msgid "CW"
 msgstr "CW"
 
@@ -1593,7 +1593,7 @@ msgstr "e.g., @user@mastodon.social"
 msgid "Edit"
 msgstr "Edit"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:452
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:471
 msgid "Edit article"
 msgstr "Edit article"
 
@@ -1693,12 +1693,12 @@ msgstr "Enter your email or username below to sign in."
 #: src/components/NoteComposer.tsx:1247
 #: src/components/NoteComposer.tsx:1255
 #: src/components/NoteComposer.tsx:1312
-#: src/components/QuotedNoteCard.tsx:322
-#: src/components/QuotedNoteCard.tsx:330
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:329
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:423
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:433
+#: src/components/QuotedNoteCard.tsx:348
+#: src/components/QuotedNoteCard.tsx:356
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:346
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:442
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:452
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:461
 #: src/routes/(root)/[handle]/drafts/index.tsx:183
 #: src/routes/(root)/[handle]/drafts/index.tsx:192
 #: src/routes/(root)/[handle]/drafts/index.tsx:200
@@ -1989,7 +1989,7 @@ msgid "Failed to remove preferred sharer."
 msgstr "Failed to remove preferred sharer."
 
 #: src/components/MarkdownEditor.tsx:192
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:539
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:558
 msgid "Failed to render preview"
 msgstr "Failed to render preview"
 
@@ -2083,7 +2083,7 @@ msgstr "Failed to update penalty."
 msgid "Failed to update push notification privacy"
 msgstr "Failed to update push notification privacy"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:443
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:462
 msgid "Failed to update the article. Please try again."
 msgstr "Failed to update the article. Please try again."
 
@@ -2093,7 +2093,7 @@ msgstr "Failed to update the article. Please try again."
 
 #: src/components/article-composer/ArticleComposerForm.tsx:38
 #: src/components/NoteComposer.tsx:832
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:332
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:349
 msgid "Failed to upload image"
 msgstr "Failed to upload image"
 
@@ -2335,7 +2335,7 @@ msgstr "Hidden account"
 
 #: src/components/NoteCardInternal.tsx:165
 #: src/components/NoteMedia.tsx:270
-#: src/components/QuotedNoteCard.tsx:212
+#: src/components/QuotedNoteCard.tsx:238
 msgid "Hide"
 msgstr "Hide"
 
@@ -2425,7 +2425,7 @@ msgstr "Invalid Fediverse handle format."
 msgid "Invalid input: {0}"
 msgstr "Invalid input: {0}"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:426
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:445
 msgid "Invalid input: {inputPath}"
 msgstr "Invalid input: {inputPath}"
 
@@ -2547,7 +2547,7 @@ msgstr "Keep editing"
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:69
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:567
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:586
 msgid "Language"
 msgstr "Language"
 
@@ -2861,7 +2861,7 @@ msgstr "Markdown guide"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:90
 #: src/components/NoteComposer.tsx:1601
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:495
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:514
 msgid "Markdown supported"
 msgstr "Markdown supported"
 
@@ -3281,7 +3281,7 @@ msgid "Notes"
 msgstr "Notes"
 
 #: src/components/MarkdownEditor.tsx:193
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:540
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:559
 msgid "Nothing to preview"
 msgstr "Nothing to preview"
 
@@ -3351,6 +3351,10 @@ msgstr "Open in app"
 #: src/routes/(root)/[handle]/org-conversions/[requestId].tsx:260
 msgid "Open organization settings"
 msgstr "Open organization settings"
+
+#: src/components/QuotedNoteCard.tsx:188
+msgid "Open post"
+msgstr "Open post"
 
 #. placeholder {0}: index() + 1
 #: src/components/NoteComposer.tsx:1701
@@ -3511,7 +3515,7 @@ msgid "Please correct the errors and try again."
 msgstr "Please correct the errors and try again."
 
 #: src/components/article-composer/ArticleComposerForm.tsx:53
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:461
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:480
 msgid "Please enter a title for your article."
 msgstr "Please enter a title for your article."
 
@@ -3655,7 +3659,7 @@ msgstr "Prepare this account as the destination for a Mastodon-style move."
 
 #: src/components/article-composer/ArticleComposerForm.tsx:111
 #: src/components/MarkdownEditor.tsx:164
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:504
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:523
 msgid "Preview"
 msgstr "Preview"
 
@@ -3765,7 +3769,7 @@ msgstr "Quote"
 msgid "Quote permission"
 msgstr "Quote permission"
 
-#: src/components/QuotedNoteCard.tsx:317
+#: src/components/QuotedNoteCard.tsx:343
 msgid "Quote revoked"
 msgstr "Quote revoked"
 
@@ -4014,7 +4018,7 @@ msgstr "Removing…"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:134
 #: src/components/MarkdownEditor.tsx:181
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:530
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:549
 msgid "Rendering…"
 msgstr "Rendering…"
 
@@ -4141,12 +4145,12 @@ msgstr "Revoke"
 msgid "Revoke passkey"
 msgstr "Revoke passkey"
 
-#: src/components/QuotedNoteCard.tsx:280
-#: src/components/QuotedNoteCard.tsx:338
+#: src/components/QuotedNoteCard.tsx:306
+#: src/components/QuotedNoteCard.tsx:364
 msgid "Revoke quote"
 msgstr "Revoke quote"
 
-#: src/components/QuotedNoteCard.tsx:285
+#: src/components/QuotedNoteCard.tsx:311
 msgid "Revoke this quote?"
 msgstr "Revoke this quote?"
 
@@ -4179,7 +4183,7 @@ msgid "Save"
 msgstr "Save"
 
 #: src/components/NoteComposer.tsx:1951
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:606
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:625
 msgid "Save changes"
 msgstr "Save changes"
 
@@ -4193,7 +4197,7 @@ msgstr "Save draft to see preview"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:36
 #: src/components/NoteComposer.tsx:1952
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:606
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:625
 #: src/routes/(root)/[handle]/settings/index.tsx:547
 #: src/routes/(root)/[handle]/settings/language.tsx:201
 #: src/routes/(root)/[handle]/settings/preferences.tsx:236
@@ -4267,7 +4271,7 @@ msgstr "Send"
 msgid "Sending…"
 msgstr "Sending…"
 
-#: src/components/QuotedNoteCard.tsx:205
+#: src/components/QuotedNoteCard.tsx:231
 msgid "Sensitive content"
 msgstr "Sensitive content"
 
@@ -4326,8 +4330,8 @@ msgstr "Sharing is not available for this post"
 
 #: src/components/MutedReplyPlaceholder.tsx:32
 #: src/components/NoteCardInternal.tsx:165
-#: src/components/QuotedNoteCard.tsx:170
-#: src/components/QuotedNoteCard.tsx:212
+#: src/components/QuotedNoteCard.tsx:172
+#: src/components/QuotedNoteCard.tsx:238
 msgid "Show"
 msgstr "Show"
 
@@ -4494,7 +4498,7 @@ msgstr "Subscribing…"
 #: src/components/NoteComposer.tsx:1104
 #: src/components/NoteComposer.tsx:1172
 #: src/components/NoteComposer.tsx:1231
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:409
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:426
 #: src/routes/(root)/[handle]/drafts/index.tsx:175
 msgid "Success"
 msgstr "Success"
@@ -4512,7 +4516,7 @@ msgid "Successfully saved settings"
 msgstr "Successfully saved settings"
 
 #: src/components/ArticleCard.tsx:464
-#: src/components/QuotedNoteCard.tsx:262
+#: src/components/QuotedNoteCard.tsx:288
 msgid "Summarized by LLM"
 msgstr "Summarized by LLM"
 
@@ -4555,7 +4559,7 @@ msgstr "Table of contents"
 #~ msgstr "Tag"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:158
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:556
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:575
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1031
 msgid "Tags"
 msgstr "Tags"
@@ -4765,7 +4769,7 @@ msgstr "The previous account could not be removed. Please try again."
 msgid "The primary language of your article, used for accessibility and discovery."
 msgstr "The primary language of your article, used for accessibility and discovery."
 
-#: src/components/QuotedNoteCard.tsx:288
+#: src/components/QuotedNoteCard.tsx:314
 msgid "The quoting post will no longer include your post as a quote."
 msgstr "The quoting post will no longer include your post as a quote."
 
@@ -4917,7 +4921,7 @@ msgid "This quote is waiting for approval from the original author."
 msgstr "This quote is waiting for approval from the original author."
 
 #. placeholder {0}: post.actor.handle
-#: src/components/QuotedNoteCard.tsx:162
+#: src/components/QuotedNoteCard.tsx:164
 msgid "This quoted post is hidden because you muted {0}."
 msgstr "This quoted post is hidden because you muted {0}."
 
@@ -4957,7 +4961,7 @@ msgid "Timeline"
 msgstr "Timeline"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:49
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:457
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:476
 msgid "Title"
 msgstr "Title"
 
@@ -5046,7 +5050,7 @@ msgid "Type {0} to confirm organization deletion."
 msgstr "Type {0} to confirm organization deletion."
 
 #: src/components/article-composer/ArticleComposerForm.tsx:162
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:560
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:579
 msgid "Type tags separated by spaces"
 msgstr "Type tags separated by spaces"
 
@@ -5363,7 +5367,7 @@ msgstr "Without shares"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:108
 #: src/components/MarkdownEditor.tsx:161
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:501
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:520
 msgid "Write"
 msgstr "Write"
 
@@ -5375,7 +5379,7 @@ msgstr "Write"
 msgid "Write a reply…"
 msgstr "Write a reply…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:515
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:534
 msgid "Write your article here."
 msgstr "Write your article here."
 
@@ -5533,7 +5537,7 @@ msgstr "You must be signed in to delete a draft"
 msgid "You must be signed in to edit a note"
 msgstr "You must be signed in to edit a note"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:434
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:453
 msgid "You must be signed in to edit an article"
 msgstr "You must be signed in to edit an article"
 

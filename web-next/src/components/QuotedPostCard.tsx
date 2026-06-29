@@ -10,6 +10,7 @@ export interface QuotedPostCardProps {
   readonly $post: QuotedPostCard_post$key;
   readonly quotePostId?: string;
   readonly canRevokeQuote?: boolean;
+  readonly linkPreview?: boolean;
   readonly class?: string;
   readonly classList?: { [k: string]: boolean | undefined };
 }
@@ -33,6 +34,7 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
             $post={post}
             quotePostId={props.quotePostId}
             canRevokeQuote={props.canRevokeQuote}
+            linkPreview={props.linkPreview}
             class={props.class}
             classList={props.classList}
           />

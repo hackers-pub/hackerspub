@@ -70,7 +70,9 @@ export function ReactNotificationCard(props: ReactNotificationCardProps) {
                record change. */
             }
             <Show keyed when={notification.post}>
-              {(post) => <QuotedPostCard $post={post} class="-mt-2" />}
+              {(post) => (
+                <QuotedPostCard $post={post} linkPreview class="-mt-2" />
+              )}
             </Show>
           </div>
         );

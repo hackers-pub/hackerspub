@@ -706,7 +706,7 @@ msgid "All-time"
 msgstr "全部时间"
 
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:109
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:584
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:603
 msgid "Allow automatic translation by AI"
 msgstr "允许 AI 自动翻译"
 
@@ -867,7 +867,7 @@ msgstr "文章草稿"
 msgid "Article published"
 msgstr "文章已发布"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:410
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:427
 msgid "Article updated"
 msgstr "文章已更新"
 
@@ -1037,12 +1037,12 @@ msgstr "由 {0} 发布"
 #: src/components/ProfileActionMenu.tsx:533
 #: src/components/ProfileActionMenu.tsx:563
 #: src/components/ProfileActionMenu.tsx:564
-#: src/components/QuotedNoteCard.tsx:292
+#: src/components/QuotedNoteCard.tsx:318
 #: src/components/RemoteFollowButton.tsx:218
 #: src/components/RemoteFollowButton.tsx:280
 #: src/components/RemoveFollowerButton.tsx:152
 #: src/components/ReportDialog.tsx:224
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:600
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:619
 #: src/routes/(root)/[handle]/settings/account.tsx:2045
 #: src/routes/(root)/[handle]/settings/index.tsx:410
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:522
@@ -1058,7 +1058,7 @@ msgstr "取消邀请"
 msgid "Canceling…"
 msgstr "正在取消…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:425
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:444
 msgid "Cannot change the language because translations already exist"
 msgstr "由于已存在翻译，无法更改语言"
 
@@ -1194,7 +1194,7 @@ msgstr "写作"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:65
 #: src/components/NoteComposer.tsx:1489
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:470
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:489
 msgid "Content"
 msgstr "内容"
 
@@ -1323,7 +1323,7 @@ msgstr "无法将其解析为远程对象。"
 msgid "Could not resolve the appeal"
 msgstr "无法处理申诉"
 
-#: src/components/QuotedNoteCard.tsx:323
+#: src/components/QuotedNoteCard.tsx:349
 msgid "Could not revoke quote"
 msgstr "无法撤销引用"
 
@@ -1411,7 +1411,7 @@ msgid "Cutoff:"
 msgstr "截止时间："
 
 #: src/components/NoteCardInternal.tsx:156
-#: src/components/QuotedNoteCard.tsx:201
+#: src/components/QuotedNoteCard.tsx:227
 msgid "CW"
 msgstr "CW"
 
@@ -1593,7 +1593,7 @@ msgstr "例如：@user@mastodon.social"
 msgid "Edit"
 msgstr "编辑"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:452
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:471
 msgid "Edit article"
 msgstr "编辑文章"
 
@@ -1689,12 +1689,12 @@ msgstr "请在下方输入您的邮箱或用户名以登录。"
 #: src/components/NoteComposer.tsx:1247
 #: src/components/NoteComposer.tsx:1255
 #: src/components/NoteComposer.tsx:1312
-#: src/components/QuotedNoteCard.tsx:322
-#: src/components/QuotedNoteCard.tsx:330
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:329
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:423
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:433
+#: src/components/QuotedNoteCard.tsx:348
+#: src/components/QuotedNoteCard.tsx:356
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:346
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:442
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:452
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:461
 #: src/routes/(root)/[handle]/drafts/index.tsx:183
 #: src/routes/(root)/[handle]/drafts/index.tsx:192
 #: src/routes/(root)/[handle]/drafts/index.tsx:200
@@ -1985,7 +1985,7 @@ msgid "Failed to remove preferred sharer."
 msgstr "移除优先转帖者失败。"
 
 #: src/components/MarkdownEditor.tsx:192
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:539
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:558
 msgid "Failed to render preview"
 msgstr "预览渲染失败"
 
@@ -2079,7 +2079,7 @@ msgstr "更新处罚失败。"
 msgid "Failed to update push notification privacy"
 msgstr "未能更新推送通知隐私设置"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:443
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:462
 msgid "Failed to update the article. Please try again."
 msgstr "文章更新失败，请重试。"
 
@@ -2089,7 +2089,7 @@ msgstr "文章更新失败，请重试。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:38
 #: src/components/NoteComposer.tsx:832
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:332
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:349
 msgid "Failed to upload image"
 msgstr "图片上传失败"
 
@@ -2331,7 +2331,7 @@ msgstr "隐藏账户"
 
 #: src/components/NoteCardInternal.tsx:165
 #: src/components/NoteMedia.tsx:270
-#: src/components/QuotedNoteCard.tsx:212
+#: src/components/QuotedNoteCard.tsx:238
 msgid "Hide"
 msgstr "隐藏"
 
@@ -2421,7 +2421,7 @@ msgstr "联邦宇宙用户名格式无效。"
 msgid "Invalid input: {0}"
 msgstr "无效输入：{0}"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:426
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:445
 msgid "Invalid input: {inputPath}"
 msgstr "无效输入：{inputPath}"
 
@@ -2543,7 +2543,7 @@ msgstr "继续编辑"
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:69
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:567
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:586
 msgid "Language"
 msgstr "语言"
 
@@ -2857,7 +2857,7 @@ msgstr "Markdown 指南"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:90
 #: src/components/NoteComposer.tsx:1601
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:495
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:514
 msgid "Markdown supported"
 msgstr "Markdown 可用"
 
@@ -3277,7 +3277,7 @@ msgid "Notes"
 msgstr "帖子"
 
 #: src/components/MarkdownEditor.tsx:193
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:540
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:559
 msgid "Nothing to preview"
 msgstr "没有可预览的内容"
 
@@ -3347,6 +3347,10 @@ msgstr "在应用中打开"
 #: src/routes/(root)/[handle]/org-conversions/[requestId].tsx:260
 msgid "Open organization settings"
 msgstr "打开组织设置"
+
+#: src/components/QuotedNoteCard.tsx:188
+msgid "Open post"
+msgstr "打开内容"
 
 #. placeholder {0}: index() + 1
 #: src/components/NoteComposer.tsx:1701
@@ -3507,7 +3511,7 @@ msgid "Please correct the errors and try again."
 msgstr "请修正错误并重试。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:53
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:461
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:480
 msgid "Please enter a title for your article."
 msgstr "请输入文章标题。"
 
@@ -3651,7 +3655,7 @@ msgstr "将此账户准备为 Mastodon 式迁移的目标账户。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:111
 #: src/components/MarkdownEditor.tsx:164
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:504
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:523
 msgid "Preview"
 msgstr "预览"
 
@@ -3761,7 +3765,7 @@ msgstr "引用"
 msgid "Quote permission"
 msgstr "引用权限"
 
-#: src/components/QuotedNoteCard.tsx:317
+#: src/components/QuotedNoteCard.tsx:343
 msgid "Quote revoked"
 msgstr "引用已撤销"
 
@@ -4010,7 +4014,7 @@ msgstr "正在移除…"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:134
 #: src/components/MarkdownEditor.tsx:181
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:530
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:549
 msgid "Rendering…"
 msgstr "渲染中…"
 
@@ -4137,12 +4141,12 @@ msgstr "撤销"
 msgid "Revoke passkey"
 msgstr "撤销通行密钥"
 
-#: src/components/QuotedNoteCard.tsx:280
-#: src/components/QuotedNoteCard.tsx:338
+#: src/components/QuotedNoteCard.tsx:306
+#: src/components/QuotedNoteCard.tsx:364
 msgid "Revoke quote"
 msgstr "撤销引用"
 
-#: src/components/QuotedNoteCard.tsx:285
+#: src/components/QuotedNoteCard.tsx:311
 msgid "Revoke this quote?"
 msgstr "撤销此引用？"
 
@@ -4175,7 +4179,7 @@ msgid "Save"
 msgstr "保存"
 
 #: src/components/NoteComposer.tsx:1951
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:606
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:625
 msgid "Save changes"
 msgstr "保存更改"
 
@@ -4189,7 +4193,7 @@ msgstr "保存草稿以查看预览"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:36
 #: src/components/NoteComposer.tsx:1952
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:606
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:625
 #: src/routes/(root)/[handle]/settings/index.tsx:547
 #: src/routes/(root)/[handle]/settings/language.tsx:201
 #: src/routes/(root)/[handle]/settings/preferences.tsx:236
@@ -4263,7 +4267,7 @@ msgstr "发送"
 msgid "Sending…"
 msgstr "发送中…"
 
-#: src/components/QuotedNoteCard.tsx:205
+#: src/components/QuotedNoteCard.tsx:231
 msgid "Sensitive content"
 msgstr "敏感内容"
 
@@ -4322,8 +4326,8 @@ msgstr "无法转帖此内容。"
 
 #: src/components/MutedReplyPlaceholder.tsx:32
 #: src/components/NoteCardInternal.tsx:165
-#: src/components/QuotedNoteCard.tsx:170
-#: src/components/QuotedNoteCard.tsx:212
+#: src/components/QuotedNoteCard.tsx:172
+#: src/components/QuotedNoteCard.tsx:238
 msgid "Show"
 msgstr "显示"
 
@@ -4490,7 +4494,7 @@ msgstr "正在订阅…"
 #: src/components/NoteComposer.tsx:1104
 #: src/components/NoteComposer.tsx:1172
 #: src/components/NoteComposer.tsx:1231
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:409
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:426
 #: src/routes/(root)/[handle]/drafts/index.tsx:175
 msgid "Success"
 msgstr "成功"
@@ -4508,7 +4512,7 @@ msgid "Successfully saved settings"
 msgstr "设置保存成功"
 
 #: src/components/ArticleCard.tsx:464
-#: src/components/QuotedNoteCard.tsx:262
+#: src/components/QuotedNoteCard.tsx:288
 msgid "Summarized by LLM"
 msgstr "由 AI 生成的摘要"
 
@@ -4551,7 +4555,7 @@ msgstr "目录"
 #~ msgstr "标签"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:158
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:556
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:575
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1031
 msgid "Tags"
 msgstr "标签"
@@ -4761,7 +4765,7 @@ msgstr "无法移除旧账户。请重试。"
 msgid "The primary language of your article, used for accessibility and discovery."
 msgstr "文章的主要语言，用于无障碍功能和内容发现。"
 
-#: src/components/QuotedNoteCard.tsx:288
+#: src/components/QuotedNoteCard.tsx:314
 msgid "The quoting post will no longer include your post as a quote."
 msgstr "引用内容将不再把你的内容作为引用包含在内。"
 
@@ -4913,7 +4917,7 @@ msgid "This quote is waiting for approval from the original author."
 msgstr "此引用正在等待原作者批准。"
 
 #. placeholder {0}: post.actor.handle
-#: src/components/QuotedNoteCard.tsx:162
+#: src/components/QuotedNoteCard.tsx:164
 msgid "This quoted post is hidden because you muted {0}."
 msgstr "因为你隐藏了 {0}，此引用已被隐藏。"
 
@@ -4953,7 +4957,7 @@ msgid "Timeline"
 msgstr "时间线"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:49
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:457
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:476
 msgid "Title"
 msgstr "标题"
 
@@ -5042,7 +5046,7 @@ msgid "Type {0} to confirm organization deletion."
 msgstr "输入 {0} 以确认删除组织。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:162
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:560
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:579
 msgid "Type tags separated by spaces"
 msgstr "输入标签，用空格分隔"
 
@@ -5359,7 +5363,7 @@ msgstr "不含转帖"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:108
 #: src/components/MarkdownEditor.tsx:161
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:501
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:520
 msgid "Write"
 msgstr "撰写"
 
@@ -5371,7 +5375,7 @@ msgstr "撰写"
 msgid "Write a reply…"
 msgstr "写个回复…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:515
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:534
 msgid "Write your article here."
 msgstr "在此撰写您的文章。"
 
@@ -5529,7 +5533,7 @@ msgstr "您必须登录才能删除草稿"
 msgid "You must be signed in to edit a note"
 msgstr "编辑帖子需要登录。"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:434
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:453
 msgid "You must be signed in to edit an article"
 msgstr "您必须登录才能编辑文章"
 
