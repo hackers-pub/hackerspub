@@ -125,6 +125,23 @@ describe("negotiateLocale()", () => {
     assert.deepEqual(result, undefined);
   });
 
+  it("ignores invalid wanted locale strings", () => {
+    const availableLocales = ["en-US", "ko-KR"];
+    const result = negotiateLocale(["en-US;q=0.9", "ko"], availableLocales);
+    assert.deepEqual(result?.baseName, "ko-KR");
+  });
+
+  it("ignores invalid available locale strings", () => {
+    const availableLocales = ["en-US", "not a locale!"];
+    const result = negotiateLocale("en", availableLocales);
+    assert.deepEqual(result?.baseName, "en-US");
+  });
+
+  it("returns undefined when every candidate locale string is invalid", () => {
+    const result = negotiateLocale(["not a locale!"], ["also invalid!"]);
+    assert.deepEqual(result, undefined);
+  });
+
   it(
     "language match prefers exact region over different region",
     () => {

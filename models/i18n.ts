@@ -178,17 +178,32 @@ export function negotiateLocale(
     return undefined;
   }
 
-  const wantedArray = Array.isArray(wantedLocales)
-    ? wantedLocales.map((l) => typeof l === "string" ? new Intl.Locale(l) : l)
-    : [
-      typeof wantedLocales === "string"
-        ? new Intl.Locale(wantedLocales)
-        : wantedLocales,
-    ];
+  const toLocale = (locale: Intl.Locale | string): Intl.Locale | undefined => {
+    if (locale instanceof Intl.Locale) return locale;
+    try {
+      return new Intl.Locale(locale);
+    } catch {
+      return undefined;
+    }
+  };
 
-  const availableLocalesNormalized = availableLocales.map((l) =>
-    typeof l === "string" ? new Intl.Locale(l) : l
-  );
+  const wantedArray = (
+    Array.isArray(wantedLocales)
+      ? wantedLocales.map(toLocale)
+      : [toLocale(wantedLocales as Intl.Locale | string)]
+  ).filter((l): l is Intl.Locale => l != null);
+
+  if (wantedArray.length === 0) {
+    return undefined;
+  }
+
+  const availableLocalesNormalized = availableLocales
+    .map(toLocale)
+    .filter((l): l is Intl.Locale => l != null);
+  if (availableLocalesNormalized.length === 0) {
+    return undefined;
+  }
+
   const availablesWithMaximized = availableLocalesNormalized.map((raw) => ({
     raw,
     max: raw.maximize(),
