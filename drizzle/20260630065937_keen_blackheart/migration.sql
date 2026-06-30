@@ -1,0 +1,1 @@
+ALTER TABLE "notification_digest_delivery" ADD COLUMN "sent_recipients" text[] DEFAULT (ARRAY[]::text[])::text[] NOT NULL;

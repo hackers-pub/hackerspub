@@ -71,6 +71,17 @@ export const pushNotificationServiceEnum = pgEnum(
 export type PushNotificationService =
   (typeof pushNotificationServiceEnum.enumValues)[number];
 
+export const notificationDigestFrequencyEnum = pgEnum(
+  "notification_digest_frequency",
+  [
+    "daily",
+    "weekly",
+  ],
+);
+
+export type NotificationDigestFrequency =
+  (typeof notificationDigestFrequencyEnum.enumValues)[number];
+
 export const accountKindEnum = pgEnum("account_kind", [
   "personal",
   "organization",
@@ -123,6 +134,12 @@ export const accountTable = pgTable(
     )
       .notNull()
       .default("public_only"),
+    notificationEmailDigestDaily: boolean("notification_email_digest_daily")
+      .notNull()
+      .default(true),
+    notificationEmailDigestWeekly: boolean("notification_email_digest_weekly")
+      .notNull()
+      .default(false),
     updated: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),
@@ -149,6 +166,39 @@ export const accountTable = pgTable(
 
 export type Account = typeof accountTable.$inferSelect;
 export type NewAccount = typeof accountTable.$inferInsert;
+
+export const notificationDigestDeliveryTable = pgTable(
+  "notification_digest_delivery",
+  {
+    accountId: uuid("account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => accountTable.id, { onDelete: "cascade" }),
+    frequency: notificationDigestFrequencyEnum().notNull(),
+    periodStart: timestamp("period_start", { withTimezone: true }).notNull(),
+    notificationsCount: integer("notifications_count").notNull(),
+    sent: timestamp({ withTimezone: true }),
+    sentRecipients: text("sent_recipients").array().notNull().default(
+      sql`(ARRAY[]::text[])`,
+    ),
+    failed: timestamp({ withTimezone: true }),
+    error: text(),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.accountId, table.frequency, table.periodStart],
+    }),
+    index("notification_digest_delivery_created_idx").on(table.created),
+  ],
+);
+
+export type NotificationDigestDelivery =
+  typeof notificationDigestDeliveryTable.$inferSelect;
+export type NewNotificationDigestDelivery =
+  typeof notificationDigestDeliveryTable.$inferInsert;
 
 export const organizationMemberRoleEnum = pgEnum("organization_member_role", [
   "admin",

@@ -8,6 +8,34 @@
     "emailContent": "{{inviter}} invites you to Hackers' Pub!\n\nHackers' Pub is a place for software engineers to share their knowledge and experience with each other. It's also an ActivityPub-enabled social network, so you can follow your favorite hackers in the fediverse and get their latest posts in your feed.\n\nTo accept the invitation, click the following link:\n\n{{verifyUrl}}\n\nThis link will expire in {{expiration}}.\n",
     "emailContentWithMessage": "{{inviter}} invites you to Hackers' Pub! Here's a message from {{inviterName}}:\n\n{{message}}\n\nTo accept the invitation, click the following link:\n\n{{verifyUrl}}\n\nThis link will expire in {{expiration}}.\n"
   },
+  "digest": {
+    "dailyEmailSubject": "Daily Hackers' Pub digest: {{count}} unread",
+    "weeklyEmailSubject": "Weekly Hackers' Pub digest: {{count}} unread",
+    "emailContent": "Hello {{name}},\n\nYou still have unread notifications on Hackers' Pub.\n\nUnread notifications: {{count}}\nPersonal: {{personalCount}}\nModeration: {{moderationCount}}\nOrganizations: {{organizationCount}}\n\nRecent notifications:\n{{items}}\n\nView notifications: {{notificationsUrl}}\nChange digest settings: {{settingsUrl}}\n",
+    "itemLine": "• {{label}} ({{date}})",
+    "notificationLabels": {
+      "follow": "New follower",
+      "mention": "Mention",
+      "reply": "Reply",
+      "share": "Share",
+      "quote": "Quote",
+      "shared_post_updated": "Shared post updated",
+      "quoted_post_updated": "Quoted post updated",
+      "react": "Reaction",
+      "poll_ended": "Poll ended",
+      "organization_invitation": "Organization invitation",
+      "organization_conversion_request": "Organization conversion request",
+      "notification": "Notification"
+    },
+    "moderationNotificationLabels": {
+      "flag_received": "Moderation: new report",
+      "action_taken": "Moderation: action taken",
+      "appeal_received": "Moderation: new appeal",
+      "appeal_resolved": "Moderation: appeal reviewed",
+      "suspension_ending": "Moderation: suspension ending soon",
+      "notification": "Moderation notification"
+    }
+  },
   "moderation": {
     "actionNames": {
       "warning": "Warning",

@@ -9,6 +9,7 @@ bookmark → ブックマーク
 co-author → 共同著者
 comment → コメント
 conversion → 変換
+daily digest → 日次通知ダイジェスト
 delete account → アカウントを削除
 disk object → ディスクオブジェクト
 displayName → 名前
@@ -19,6 +20,7 @@ followee → フォロー中
 follower → フォロワー
 handle → ハンドル
 instance → インスタンス
+interaction scope → やり取りの範囲
 invitation → 招待
 invitationLink → 招待リンク
 login credentials → ログイン認証情報
@@ -52,3 +54,4 @@ timeline → タイムライン
 username → ユーザー名
 vote → 投票
 voter → 投票者
+weekly digest → 週次通知ダイジェスト

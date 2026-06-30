@@ -740,7 +740,9 @@ msgstr "在注册您的通行密钥时发生错误。"
 msgid "An error occurred while revoking your passkey."
 msgstr "在撤销您的通行密钥时发生错误。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:144
+#: src/routes/(root)/[handle]/settings/preferences.tsx:199
+#: src/routes/(root)/[handle]/settings/preferences.tsx:236
+#: src/routes/(root)/[handle]/settings/preferences.tsx:270
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "保存设置时出现错误。请重试，如果问题持续存在，请联系支持。"
 
@@ -1037,7 +1039,7 @@ msgstr "由 {0} 发布"
 #: src/components/ProfileActionMenu.tsx:533
 #: src/components/ProfileActionMenu.tsx:563
 #: src/components/ProfileActionMenu.tsx:564
-#: src/components/QuotedNoteCard.tsx:318
+#: src/components/QuotedNoteCard.tsx:347
 #: src/components/RemoteFollowButton.tsx:218
 #: src/components/RemoteFollowButton.tsx:280
 #: src/components/RemoveFollowerButton.tsx:152
@@ -1323,7 +1325,7 @@ msgstr "无法将其解析为远程对象。"
 msgid "Could not resolve the appeal"
 msgstr "无法处理申诉"
 
-#: src/components/QuotedNoteCard.tsx:349
+#: src/components/QuotedNoteCard.tsx:378
 msgid "Could not revoke quote"
 msgstr "无法撤销引用"
 
@@ -1411,9 +1413,13 @@ msgid "Cutoff:"
 msgstr "截止时间："
 
 #: src/components/NoteCardInternal.tsx:156
-#: src/components/QuotedNoteCard.tsx:227
+#: src/components/QuotedNoteCard.tsx:256
 msgid "CW"
 msgstr "CW"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:415
+msgid "Daily digest"
+msgstr "每日摘要"
 
 #: src/components/NoteComposer.tsx:1727
 msgid "Deadline"
@@ -1431,15 +1437,15 @@ msgstr "处理记录"
 msgid "Decisions the moderation team has made about your account or posts, newest first. You can appeal a decision once, within 14 days."
 msgstr "管理团队对你的账户或内容做出的决定，按时间倒序排列。每个决定可在 14 天内申诉一次。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:193
+#: src/routes/(root)/[handle]/settings/preferences.tsx:347
 msgid "Default note privacy"
 msgstr "默认帖子隐私设置"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:218
+#: src/routes/(root)/[handle]/settings/preferences.tsx:372
 msgid "Default quote permission"
 msgstr "默认引用权限"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:205
+#: src/routes/(root)/[handle]/settings/preferences.tsx:359
 msgid "Default share privacy"
 msgstr "默认转帖隐私设置"
 
@@ -1612,6 +1618,10 @@ msgstr "编辑帖子"
 msgid "Email address"
 msgstr "电子邮件地址"
 
+#: src/routes/(root)/[handle]/settings/preferences.tsx:400
+msgid "Email digests"
+msgstr "邮件摘要"
+
 #: src/routes/(root)/sign/index.tsx:403
 msgid "Email or username"
 msgstr "邮箱或用户名"
@@ -1689,8 +1699,8 @@ msgstr "请在下方输入您的邮箱或用户名以登录。"
 #: src/components/NoteComposer.tsx:1247
 #: src/components/NoteComposer.tsx:1255
 #: src/components/NoteComposer.tsx:1312
-#: src/components/QuotedNoteCard.tsx:348
-#: src/components/QuotedNoteCard.tsx:356
+#: src/components/QuotedNoteCard.tsx:377
+#: src/components/QuotedNoteCard.tsx:385
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:346
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:442
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:452
@@ -1998,7 +2008,9 @@ msgstr "撤销通行密钥失败"
 msgid "Failed to save language preferences"
 msgstr "保存语言偏好失败"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:142
+#: src/routes/(root)/[handle]/settings/preferences.tsx:197
+#: src/routes/(root)/[handle]/settings/preferences.tsx:234
+#: src/routes/(root)/[handle]/settings/preferences.tsx:268
 msgid "Failed to save preferences"
 msgstr "保存设置失败"
 
@@ -2331,7 +2343,7 @@ msgstr "隐藏账户"
 
 #: src/components/NoteCardInternal.tsx:165
 #: src/components/NoteMedia.tsx:270
-#: src/components/QuotedNoteCard.tsx:238
+#: src/components/QuotedNoteCard.tsx:267
 msgid "Hide"
 msgstr "隐藏"
 
@@ -2359,7 +2371,7 @@ msgstr "我同意 Hackers' Pub 的行为准则。"
 msgid "If enabled, a report will be sent to the remote server's moderators after our moderation team acts. Your identity will not be revealed; only a summary written by our moderation team is shared, never your original wording."
 msgstr "启用后，在我们的管理团队处理之后，举报将发送给远程服务器的版主。您的身份不会被透露；只会共享由我们的管理团队撰写的摘要，绝不会共享您的原文。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:187
+#: src/routes/(root)/[handle]/settings/preferences.tsx:322
 msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 msgstr "启用后，AI 将为您生成文章摘要。否则，将使用文章的前几行作为摘要。"
 
@@ -2395,6 +2407,10 @@ msgstr "加重处罚"
 #: src/routes/(root)/admin/moderation/appeals.tsx:142
 msgid "Increased"
 msgstr "已加重"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:339
+msgid "Interaction scope"
+msgstr "互动范围"
 
 #: src/components/ProfileTabs.tsx:89
 msgid "Interactions"
@@ -2835,7 +2851,7 @@ msgstr "正在加载搜索结果…"
 msgid "Loading…"
 msgstr "正在加载…"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:227
+#: src/routes/(root)/[handle]/settings/preferences.tsx:383
 msgid "Locked to \"Only me\" because your default note privacy restricts visibility."
 msgstr "由于默认帖子隐私设置限制了可见性，已锁定为「仅我自己」。"
 
@@ -3348,7 +3364,7 @@ msgstr "在应用中打开"
 msgid "Open organization settings"
 msgstr "打开组织设置"
 
-#: src/components/QuotedNoteCard.tsx:188
+#: src/components/QuotedNoteCard.tsx:217
 msgid "Open post"
 msgstr "打开内容"
 
@@ -3619,13 +3635,13 @@ msgstr "已取消置顶内容"
 msgid "Posts"
 msgstr "内容"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:184
+#: src/routes/(root)/[handle]/settings/preferences.tsx:319
 msgid "Prefer AI-generated summary"
 msgstr "优先使用 AI 生成的摘要"
 
 #: src/components/SettingsTabs.tsx:58
-#: src/routes/(root)/[handle]/settings/preferences.tsx:170
-#: src/routes/(root)/[handle]/settings/preferences.tsx:171
+#: src/routes/(root)/[handle]/settings/preferences.tsx:295
+#: src/routes/(root)/[handle]/settings/preferences.tsx:305
 msgid "Preferences"
 msgstr "偏好设置"
 
@@ -3765,7 +3781,7 @@ msgstr "引用"
 msgid "Quote permission"
 msgstr "引用权限"
 
-#: src/components/QuotedNoteCard.tsx:343
+#: src/components/QuotedNoteCard.tsx:372
 msgid "Quote revoked"
 msgstr "引用已撤销"
 
@@ -3828,6 +3844,10 @@ msgstr "举报原因"
 #: src/routes/(root)/admin/news.tsx:562
 msgid "Rebuilds the popularity score of every shared link from scratch. The operation is idempotent and safe to run at any time; scores normally stay fresh on their own, so this is mainly a manual backstop and a development tool."
 msgstr "从头重新计算每个被转帖链接的热度评分。该操作是幂等的，随时运行都安全。评分通常会自动保持最新，因此这主要是一个手动备用手段和开发工具。"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:402
+msgid "Receive a summary email when unread notifications remain."
+msgstr "当仍有未读通知时接收摘要邮件。"
 
 #: src/components/WebPushPromptBanner.tsx:252
 msgid "Receive new notifications immediately, even when this tab is closed."
@@ -4141,12 +4161,12 @@ msgstr "撤销"
 msgid "Revoke passkey"
 msgstr "撤销通行密钥"
 
-#: src/components/QuotedNoteCard.tsx:306
-#: src/components/QuotedNoteCard.tsx:364
+#: src/components/QuotedNoteCard.tsx:335
+#: src/components/QuotedNoteCard.tsx:393
 msgid "Revoke quote"
 msgstr "撤销引用"
 
-#: src/components/QuotedNoteCard.tsx:311
+#: src/components/QuotedNoteCard.tsx:340
 msgid "Revoke this quote?"
 msgstr "撤销此引用？"
 
@@ -4174,7 +4194,9 @@ msgstr "处罚"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:547
 #: src/routes/(root)/[handle]/settings/language.tsx:201
-#: src/routes/(root)/[handle]/settings/preferences.tsx:236
+#: src/routes/(root)/[handle]/settings/preferences.tsx:331
+#: src/routes/(root)/[handle]/settings/preferences.tsx:392
+#: src/routes/(root)/[handle]/settings/preferences.tsx:443
 msgid "Save"
 msgstr "保存"
 
@@ -4196,7 +4218,9 @@ msgstr "保存草稿以查看预览"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:625
 #: src/routes/(root)/[handle]/settings/index.tsx:547
 #: src/routes/(root)/[handle]/settings/language.tsx:201
-#: src/routes/(root)/[handle]/settings/preferences.tsx:236
+#: src/routes/(root)/[handle]/settings/preferences.tsx:331
+#: src/routes/(root)/[handle]/settings/preferences.tsx:392
+#: src/routes/(root)/[handle]/settings/preferences.tsx:443
 msgid "Saving…"
 msgstr "保存中…"
 
@@ -4262,12 +4286,20 @@ msgstr "选择方式"
 msgid "Send"
 msgstr "发送"
 
+#: src/routes/(root)/[handle]/settings/preferences.tsx:418
+msgid "Send one email per day while unread notifications remain."
+msgstr "当仍有未读通知时，每天发送一封邮件。"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:434
+msgid "Send one email per week while unread notifications remain."
+msgstr "当仍有未读通知时，每周发送一封邮件。"
+
 #: src/routes/(root)/[handle]/invite/[id].tsx:413
 #: src/routes/(root)/[handle]/settings/invite.tsx:428
 msgid "Sending…"
 msgstr "发送中…"
 
-#: src/components/QuotedNoteCard.tsx:231
+#: src/components/QuotedNoteCard.tsx:260
 msgid "Sensitive content"
 msgstr "敏感内容"
 
@@ -4275,7 +4307,11 @@ msgstr "敏感内容"
 msgid "Separate tags with spaces. Tags help readers discover your article."
 msgstr "标签之间用空格分隔。标签有助于读者发现您的文章。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:172
+#: src/routes/(root)/[handle]/settings/preferences.tsx:341
+msgid "Set the default visibility and quote permissions for new posts."
+msgstr "设置新内容的默认可见性和引用权限。"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:307
 msgid "Set your personal preferences."
 msgstr "设置您的个人偏好设置。"
 
@@ -4326,8 +4362,8 @@ msgstr "无法转帖此内容。"
 
 #: src/components/MutedReplyPlaceholder.tsx:32
 #: src/components/NoteCardInternal.tsx:165
-#: src/components/QuotedNoteCard.tsx:172
-#: src/components/QuotedNoteCard.tsx:238
+#: src/components/QuotedNoteCard.tsx:191
+#: src/components/QuotedNoteCard.tsx:267
 msgid "Show"
 msgstr "显示"
 
@@ -4503,7 +4539,9 @@ msgstr "成功"
 msgid "Successfully saved language preferences"
 msgstr "成功保存语言偏好"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:134
+#: src/routes/(root)/[handle]/settings/preferences.tsx:189
+#: src/routes/(root)/[handle]/settings/preferences.tsx:226
+#: src/routes/(root)/[handle]/settings/preferences.tsx:260
 msgid "Successfully saved preferences"
 msgstr "设置已成功保存"
 
@@ -4512,7 +4550,7 @@ msgid "Successfully saved settings"
 msgstr "设置保存成功"
 
 #: src/components/ArticleCard.tsx:464
-#: src/components/QuotedNoteCard.tsx:288
+#: src/components/QuotedNoteCard.tsx:317
 msgid "Summarized by LLM"
 msgstr "由 AI 生成的摘要"
 
@@ -4637,15 +4675,15 @@ msgstr "无法创建转换请求。请重试。"
 msgid "The decision has been recorded and applied."
 msgstr "处理已记录并生效。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:201
+#: src/routes/(root)/[handle]/settings/preferences.tsx:355
 msgid "The default privacy setting for your notes."
 msgstr "您帖子的默认隐私设置。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:213
+#: src/routes/(root)/[handle]/settings/preferences.tsx:367
 msgid "The default privacy setting for your shares."
 msgstr "您转帖的默认隐私设置。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:228
+#: src/routes/(root)/[handle]/settings/preferences.tsx:384
 msgid "The default quote permission for your notes."
 msgstr "帖子的默认引用权限设置。"
 
@@ -4765,7 +4803,7 @@ msgstr "无法移除旧账户。请重试。"
 msgid "The primary language of your article, used for accessibility and discovery."
 msgstr "文章的主要语言，用于无障碍功能和内容发现。"
 
-#: src/components/QuotedNoteCard.tsx:314
+#: src/components/QuotedNoteCard.tsx:343
 msgid "The quoting post will no longer include your post as a quote."
 msgstr "引用内容将不再把你的内容作为引用包含在内。"
 
@@ -4917,7 +4955,7 @@ msgid "This quote is waiting for approval from the original author."
 msgstr "此引用正在等待原作者批准。"
 
 #. placeholder {0}: post.actor.handle
-#: src/components/QuotedNoteCard.tsx:164
+#: src/components/QuotedNoteCard.tsx:183
 msgid "This quoted post is hidden because you muted {0}."
 msgstr "因为你隐藏了 {0}，此引用已被隐藏。"
 
@@ -5313,6 +5351,10 @@ msgstr "无法连接到翻译服务。请重试或几分钟后再来。"
 msgid "Website"
 msgstr "网站"
 
+#: src/routes/(root)/[handle]/settings/preferences.tsx:431
+msgid "Weekly digest"
+msgstr "每周摘要"
+
 #: src/routes/(root)/sign/up/[token].tsx:301
 msgid "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 msgstr "欢迎来到 Hackers' Pub！请填写以下表单完成注册。"
@@ -5627,7 +5669,9 @@ msgstr "你的组织"
 msgid "Your passkey has been registered and can now be used for authentication."
 msgstr "您的通行密钥已注册，现在可以用于身份验证。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:135
+#: src/routes/(root)/[handle]/settings/preferences.tsx:190
+#: src/routes/(root)/[handle]/settings/preferences.tsx:227
+#: src/routes/(root)/[handle]/settings/preferences.tsx:261
 msgid "Your preferences have been updated successfully."
 msgstr "您的设置已成功更新。"
 

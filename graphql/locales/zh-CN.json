@@ -8,6 +8,34 @@
     "emailContent": "{{inviter}} 邀请你加入 Hackers' Pub！\n\nHackers' Pub 是个为软件工程师共同分享知识和经验的地方。它也是启用了 ActivityPub 的社交网络，这样你可以在联邦宇宙里关注你喜爱的黑客，并获取最新的帖子。\n\n要接受邀请，请点击以下链接：\n\n{{verifyUrl}}\n\n该链接将于 {{expiration}} 失效。\n",
     "emailContentWithMessage": "{{inviter}} 邀请你加入 Hackers' Pub！以下是来自 {{inviterName}} 的信息：\n\n{{message}}\n\n要接受邀请，请点击以下链接：\n\n{{verifyUrl}}\n\n该链接将于 {{expiration}} 失效。\n"
   },
+  "digest": {
+    "dailyEmailSubject": "Hackers' Pub 每日摘要：{{count}} 条未读通知",
+    "weeklyEmailSubject": "Hackers' Pub 每周摘要：{{count}} 条未读通知",
+    "emailContent": "{{name}}，你好。\n\nHackers' Pub 上仍有未读通知。\n\n未读通知：{{count}} 条\n个人：{{personalCount}} 条\n管理：{{moderationCount}} 条\n组织：{{organizationCount}} 条\n\n最近通知：\n{{items}}\n\n查看通知：{{notificationsUrl}}\n更改摘要设置：{{settingsUrl}}\n",
+    "itemLine": "• {{label}}（{{date}}）",
+    "notificationLabels": {
+      "follow": "新关注者",
+      "mention": "提及",
+      "reply": "回复",
+      "share": "分享",
+      "quote": "引用",
+      "shared_post_updated": "已分享帖子更新",
+      "quoted_post_updated": "已引用帖子更新",
+      "react": "回应",
+      "poll_ended": "投票已结束",
+      "organization_invitation": "组织邀请",
+      "organization_conversion_request": "组织转换请求",
+      "notification": "通知"
+    },
+    "moderationNotificationLabels": {
+      "flag_received": "管理：新举报",
+      "action_taken": "管理：已采取处理",
+      "appeal_received": "管理：新申诉",
+      "appeal_resolved": "管理：申诉已审核",
+      "suspension_ending": "管理：停用即将结束",
+      "notification": "管理通知"
+    }
+  },
   "moderation": {
     "actionNames": {
       "warning": "警告",

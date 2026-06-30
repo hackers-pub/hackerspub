@@ -1,5 +1,5 @@
 import { and, count, eq, isNull, lte, sql } from "drizzle-orm";
-import type { Database } from "./db.ts";
+import type { Database, Transaction } from "./db.ts";
 import {
   type Account,
   type Actor,
@@ -63,7 +63,7 @@ export async function createFlagReceivedNotifications(
  * reveals the acting moderator, the reporters, or the report count.
  */
 export async function createActionTakenNotification(
-  db: Database,
+  db: Database | Transaction,
   accountId: Uuid,
   action: FlagAction,
 ): Promise<ModerationNotification | undefined> {

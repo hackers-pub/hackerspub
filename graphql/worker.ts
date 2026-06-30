@@ -12,8 +12,9 @@ import { sql } from "drizzle-orm";
 import * as models from "./ai.ts";
 import { db } from "./db.ts";
 import { drive } from "./drive.ts";
-import { federation } from "./federation.ts";
+import { federation, ORIGIN } from "./federation.ts";
 import { kv } from "./kv.ts";
+import { sendNotificationDigests } from "./notification-digest.ts";
 
 const logger = getLogger(["hackerspub", "graphql", "worker"]);
 
@@ -136,6 +137,55 @@ Deno.cron("notify-ended-polls", "* * * * *", {
       "Ended poll notification drain failed for {jobName}: {error}",
       { jobName: "notify-ended-polls", error },
     );
+  }
+});
+
+const digestLogger = getLogger([
+  "hackerspub",
+  "graphql",
+  "notification-digest",
+]);
+
+async function sendNotificationDigestJob(frequency: "daily" | "weekly") {
+  const { EMAIL_FROM, transport: email } = await import("./email.ts");
+  return await sendNotificationDigests({
+    db,
+    email,
+    from: EMAIL_FROM,
+    origin: ORIGIN,
+    frequency,
+  });
+}
+
+Deno.cron("send-weekly-notification-digests", "0 0 * * 1", {
+  signal: controller.signal,
+}, async () => {
+  try {
+    const result = await sendNotificationDigestJob("weekly");
+    digestLogger.debug(
+      "Processed weekly notification digests: {result}",
+      { result },
+    );
+  } catch (error) {
+    digestLogger.error("Weekly notification digest job failed: {error}", {
+      error,
+    });
+  }
+});
+
+Deno.cron("send-daily-notification-digests", "5 0 * * *", {
+  signal: controller.signal,
+}, async () => {
+  try {
+    const result = await sendNotificationDigestJob("daily");
+    digestLogger.debug(
+      "Processed daily notification digests: {result}",
+      { result },
+    );
+  } catch (error) {
+    digestLogger.error("Daily notification digest job failed: {error}", {
+      error,
+    });
   }
 });
 

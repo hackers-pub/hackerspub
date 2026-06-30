@@ -157,6 +157,16 @@ type Account implements Node {
   name: String!
 
   """
+  Whether the account receives daily digest emails when unread notifications remain. Only visible to the account holder and moderators; change it with `updateNotificationEmailDigestSettings`.
+  """
+  notificationEmailDigestDaily: Boolean!
+
+  """
+  Whether the account receives weekly digest emails when unread notifications remain. Only visible to the account holder and moderators; change it with `updateNotificationEmailDigestSettings`.
+  """
+  notificationEmailDigestWeekly: Boolean!
+
+  """
   This account's notifications, newest first. Only visible to the account holder, or to accepted members when this is an organization account. Notifications whose actor list is empty (e.g., the actor was deleted) are automatically excluded.
   """
   notifications(after: String, before: String, first: Int, last: Int): AccountNotificationsConnection!
@@ -2964,6 +2974,7 @@ type Mutation {
     status: FlagStatus!
   ): UpdateFlagCaseStatusResult
   updateNote(input: UpdateNoteInput!): UpdateNoteResult!
+  updateNotificationEmailDigestSettings(input: UpdateNotificationEmailDigestSettingsInput!): UpdateNotificationEmailDigestSettingsPayload!
   updateOrganizationMemberRole(input: UpdateOrganizationMemberRoleInput!): UpdateOrganizationMemberRoleResult!
 
   """
@@ -6122,6 +6133,32 @@ type UpdateNotePayload {
 }
 
 union UpdateNoteResult = InvalidInputError | NotAuthenticatedError | OrganizationPermissionError | UpdateNotePayload
+
+"""
+Update private email digest settings for the authenticated personal account. This does not publish an ActivityPub `Update`.
+"""
+input UpdateNotificationEmailDigestSettingsInput {
+  clientMutationId: ID
+
+  """Whether to send a daily digest email when unread notifications remain."""
+  daily: Boolean!
+
+  """
+  Global `Account` id of the personal account whose digest settings should be updated. Must be the authenticated account.
+  """
+  id: ID!
+
+  """
+  Whether to send a weekly digest email when unread notifications remain.
+  """
+  weekly: Boolean!
+}
+
+type UpdateNotificationEmailDigestSettingsPayload {
+  """Account with the updated digest settings."""
+  account: Account!
+  clientMutationId: ID
+}
 
 """
 Change the role of an accepted organization member. Only accepted organization administrators can update roles, and the last administrator cannot be demoted.

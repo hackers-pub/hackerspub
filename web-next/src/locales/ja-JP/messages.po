@@ -740,7 +740,9 @@ msgstr "パスキーの登録中にエラーが発生しました。"
 msgid "An error occurred while revoking your passkey."
 msgstr "パスキーの取消中にエラーが発生しました。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:144
+#: src/routes/(root)/[handle]/settings/preferences.tsx:199
+#: src/routes/(root)/[handle]/settings/preferences.tsx:236
+#: src/routes/(root)/[handle]/settings/preferences.tsx:270
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "環境設定の保存中にエラーが発生しました。再度お試しいただくか、問題が解決しない場合はサポートにお問い合わせください。"
 
@@ -1037,7 +1039,7 @@ msgstr "{0}さんによる記事"
 #: src/components/ProfileActionMenu.tsx:533
 #: src/components/ProfileActionMenu.tsx:563
 #: src/components/ProfileActionMenu.tsx:564
-#: src/components/QuotedNoteCard.tsx:318
+#: src/components/QuotedNoteCard.tsx:347
 #: src/components/RemoteFollowButton.tsx:218
 #: src/components/RemoteFollowButton.tsx:280
 #: src/components/RemoveFollowerButton.tsx:152
@@ -1323,7 +1325,7 @@ msgstr "リモートオブジェクトとして解決できませんでした。
 msgid "Could not resolve the appeal"
 msgstr "異議申し立てを処理できませんでした"
 
-#: src/components/QuotedNoteCard.tsx:349
+#: src/components/QuotedNoteCard.tsx:378
 msgid "Could not revoke quote"
 msgstr "引用を取り消せませんでした"
 
@@ -1411,9 +1413,13 @@ msgid "Cutoff:"
 msgstr "カットオフ："
 
 #: src/components/NoteCardInternal.tsx:156
-#: src/components/QuotedNoteCard.tsx:227
+#: src/components/QuotedNoteCard.tsx:256
 msgid "CW"
 msgstr "CW"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:415
+msgid "Daily digest"
+msgstr "日次通知ダイジェスト"
 
 #: src/components/NoteComposer.tsx:1727
 msgid "Deadline"
@@ -1431,15 +1437,15 @@ msgstr "対応履歴"
 msgid "Decisions the moderation team has made about your account or posts, newest first. You can appeal a decision once, within 14 days."
 msgstr "モデレーションチームがあなたのアカウントやコンテンツについて下した決定を新しい順に表示します。各決定には14日以内に1回異議を申し立てることができます。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:193
+#: src/routes/(root)/[handle]/settings/preferences.tsx:347
 msgid "Default note privacy"
 msgstr "投稿のデフォルト公開範囲"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:218
+#: src/routes/(root)/[handle]/settings/preferences.tsx:372
 msgid "Default quote permission"
 msgstr "引用のデフォルト許可設定"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:205
+#: src/routes/(root)/[handle]/settings/preferences.tsx:359
 msgid "Default share privacy"
 msgstr "共有のデフォルト公開範囲"
 
@@ -1612,6 +1618,10 @@ msgstr "投稿を編集"
 msgid "Email address"
 msgstr "メールアドレス"
 
+#: src/routes/(root)/[handle]/settings/preferences.tsx:400
+msgid "Email digests"
+msgstr "通知ダイジェスト"
+
 #: src/routes/(root)/sign/index.tsx:403
 msgid "Email or username"
 msgstr "メールアドレスまたはユーザー名"
@@ -1689,8 +1699,8 @@ msgstr "以下にメールアドレスまたはユーザー名を入力してロ
 #: src/components/NoteComposer.tsx:1247
 #: src/components/NoteComposer.tsx:1255
 #: src/components/NoteComposer.tsx:1312
-#: src/components/QuotedNoteCard.tsx:348
-#: src/components/QuotedNoteCard.tsx:356
+#: src/components/QuotedNoteCard.tsx:377
+#: src/components/QuotedNoteCard.tsx:385
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:346
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:442
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:452
@@ -1998,7 +2008,9 @@ msgstr "パスキーの取り消しに失敗しました"
 msgid "Failed to save language preferences"
 msgstr "言語設定の保存に失敗しました"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:142
+#: src/routes/(root)/[handle]/settings/preferences.tsx:197
+#: src/routes/(root)/[handle]/settings/preferences.tsx:234
+#: src/routes/(root)/[handle]/settings/preferences.tsx:268
 msgid "Failed to save preferences"
 msgstr "環境設定の保存に失敗しました"
 
@@ -2331,7 +2343,7 @@ msgstr "非表示のアカウント"
 
 #: src/components/NoteCardInternal.tsx:165
 #: src/components/NoteMedia.tsx:270
-#: src/components/QuotedNoteCard.tsx:238
+#: src/components/QuotedNoteCard.tsx:267
 msgid "Hide"
 msgstr "隠す"
 
@@ -2359,7 +2371,7 @@ msgstr "行動規範に同意します。"
 msgid "If enabled, a report will be sent to the remote server's moderators after our moderation team acts. Your identity will not be revealed; only a summary written by our moderation team is shared, never your original wording."
 msgstr "有効にすると、当方のモデレーションチームの対応後、リモートサーバーのモデレーターに通報が送信されます。通報者の身元は公開されず、原文ではなくモデレーションチームが作成した要約のみが共有されます。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:187
+#: src/routes/(root)/[handle]/settings/preferences.tsx:322
 msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 msgstr "有効にすると、AIが記事の要約を生成します。無効の場合は、記事の最初の数行が要約として使用されます。"
 
@@ -2395,6 +2407,10 @@ msgstr "制裁を強化"
 #: src/routes/(root)/admin/moderation/appeals.tsx:142
 msgid "Increased"
 msgstr "強化"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:339
+msgid "Interaction scope"
+msgstr "やり取りの範囲"
 
 #: src/components/ProfileTabs.tsx:89
 msgid "Interactions"
@@ -2835,7 +2851,7 @@ msgstr "検索結果を読み込み中…"
 msgid "Loading…"
 msgstr "読み込み中…"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:227
+#: src/routes/(root)/[handle]/settings/preferences.tsx:383
 msgid "Locked to \"Only me\" because your default note privacy restricts visibility."
 msgstr "デフォルトの投稿公開範囲が制限されているため、「自分のみ」に固定されています。"
 
@@ -3348,7 +3364,7 @@ msgstr "アプリで開く"
 msgid "Open organization settings"
 msgstr "組織設定を開く"
 
-#: src/components/QuotedNoteCard.tsx:188
+#: src/components/QuotedNoteCard.tsx:217
 msgid "Open post"
 msgstr "コンテンツを開く"
 
@@ -3619,13 +3635,13 @@ msgstr "コンテンツの固定を解除しました"
 msgid "Posts"
 msgstr "コンテンツ"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:184
+#: src/routes/(root)/[handle]/settings/preferences.tsx:319
 msgid "Prefer AI-generated summary"
 msgstr "AI生成の要約を優先"
 
 #: src/components/SettingsTabs.tsx:58
-#: src/routes/(root)/[handle]/settings/preferences.tsx:170
-#: src/routes/(root)/[handle]/settings/preferences.tsx:171
+#: src/routes/(root)/[handle]/settings/preferences.tsx:295
+#: src/routes/(root)/[handle]/settings/preferences.tsx:305
 msgid "Preferences"
 msgstr "環境設定"
 
@@ -3765,7 +3781,7 @@ msgstr "引用"
 msgid "Quote permission"
 msgstr "引用権限"
 
-#: src/components/QuotedNoteCard.tsx:343
+#: src/components/QuotedNoteCard.tsx:372
 msgid "Quote revoked"
 msgstr "引用を取り消しました"
 
@@ -3828,6 +3844,10 @@ msgstr "通報理由"
 #: src/routes/(root)/admin/news.tsx:562
 msgid "Rebuilds the popularity score of every shared link from scratch. The operation is idempotent and safe to run at any time; scores normally stay fresh on their own, so this is mainly a manual backstop and a development tool."
 msgstr "共有されたすべてのリンクの人気スコアを一から再構築します。この操作は冪等で、いつ実行しても安全です。スコアは通常自動的に最新の状態に保たれるため、これは主に手動の予備手段および開発ツールです。"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:402
+msgid "Receive a summary email when unread notifications remain."
+msgstr "未読通知が残っている場合に概要メールを受け取ります。"
 
 #: src/components/WebPushPromptBanner.tsx:252
 msgid "Receive new notifications immediately, even when this tab is closed."
@@ -4141,12 +4161,12 @@ msgstr "取り消す"
 msgid "Revoke passkey"
 msgstr "パスキーを取り消す"
 
-#: src/components/QuotedNoteCard.tsx:306
-#: src/components/QuotedNoteCard.tsx:364
+#: src/components/QuotedNoteCard.tsx:335
+#: src/components/QuotedNoteCard.tsx:393
 msgid "Revoke quote"
 msgstr "引用を取り消す"
 
-#: src/components/QuotedNoteCard.tsx:311
+#: src/components/QuotedNoteCard.tsx:340
 msgid "Revoke this quote?"
 msgstr "この引用を取り消しますか？"
 
@@ -4174,7 +4194,9 @@ msgstr "制裁"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:547
 #: src/routes/(root)/[handle]/settings/language.tsx:201
-#: src/routes/(root)/[handle]/settings/preferences.tsx:236
+#: src/routes/(root)/[handle]/settings/preferences.tsx:331
+#: src/routes/(root)/[handle]/settings/preferences.tsx:392
+#: src/routes/(root)/[handle]/settings/preferences.tsx:443
 msgid "Save"
 msgstr "保存"
 
@@ -4196,7 +4218,9 @@ msgstr "下書きを保存するとプレビューが表示されます"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:625
 #: src/routes/(root)/[handle]/settings/index.tsx:547
 #: src/routes/(root)/[handle]/settings/language.tsx:201
-#: src/routes/(root)/[handle]/settings/preferences.tsx:236
+#: src/routes/(root)/[handle]/settings/preferences.tsx:331
+#: src/routes/(root)/[handle]/settings/preferences.tsx:392
+#: src/routes/(root)/[handle]/settings/preferences.tsx:443
 msgid "Saving…"
 msgstr "保存中…"
 
@@ -4262,12 +4286,20 @@ msgstr "選択方式"
 msgid "Send"
 msgstr "送信"
 
+#: src/routes/(root)/[handle]/settings/preferences.tsx:418
+msgid "Send one email per day while unread notifications remain."
+msgstr "未読通知が残っている間、1日に1通メールを送信します。"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:434
+msgid "Send one email per week while unread notifications remain."
+msgstr "未読通知が残っている間、1週間に1通メールを送信します。"
+
 #: src/routes/(root)/[handle]/invite/[id].tsx:413
 #: src/routes/(root)/[handle]/settings/invite.tsx:428
 msgid "Sending…"
 msgstr "送信中…"
 
-#: src/components/QuotedNoteCard.tsx:231
+#: src/components/QuotedNoteCard.tsx:260
 msgid "Sensitive content"
 msgstr "センシティブなコンテンツ"
 
@@ -4275,7 +4307,11 @@ msgstr "センシティブなコンテンツ"
 msgid "Separate tags with spaces. Tags help readers discover your article."
 msgstr "タグはスペースで区切ります。タグを付けると読者が記事を見つけやすくなります。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:172
+#: src/routes/(root)/[handle]/settings/preferences.tsx:341
+msgid "Set the default visibility and quote permissions for new posts."
+msgstr "新しいコンテンツの既定の公開範囲と引用権限を設定します。"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:307
 msgid "Set your personal preferences."
 msgstr "個人の環境設定を設定してください。"
 
@@ -4326,8 +4362,8 @@ msgstr "このコンテンツは共有できません。"
 
 #: src/components/MutedReplyPlaceholder.tsx:32
 #: src/components/NoteCardInternal.tsx:165
-#: src/components/QuotedNoteCard.tsx:172
-#: src/components/QuotedNoteCard.tsx:238
+#: src/components/QuotedNoteCard.tsx:191
+#: src/components/QuotedNoteCard.tsx:267
 msgid "Show"
 msgstr "表示"
 
@@ -4503,7 +4539,9 @@ msgstr "成功"
 msgid "Successfully saved language preferences"
 msgstr "言語設定を正常に保存しました"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:134
+#: src/routes/(root)/[handle]/settings/preferences.tsx:189
+#: src/routes/(root)/[handle]/settings/preferences.tsx:226
+#: src/routes/(root)/[handle]/settings/preferences.tsx:260
 msgid "Successfully saved preferences"
 msgstr "環境設定を正常に保存しました"
 
@@ -4512,7 +4550,7 @@ msgid "Successfully saved settings"
 msgstr "設定を正常に保存しました"
 
 #: src/components/ArticleCard.tsx:464
-#: src/components/QuotedNoteCard.tsx:288
+#: src/components/QuotedNoteCard.tsx:317
 msgid "Summarized by LLM"
 msgstr "LLMによる要約"
 
@@ -4637,15 +4675,15 @@ msgstr "変換リクエストを作成できませんでした。もう一度お
 msgid "The decision has been recorded and applied."
 msgstr "対応が記録され、適用されました。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:201
+#: src/routes/(root)/[handle]/settings/preferences.tsx:355
 msgid "The default privacy setting for your notes."
 msgstr "投稿のデフォルト公開設定です。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:213
+#: src/routes/(root)/[handle]/settings/preferences.tsx:367
 msgid "The default privacy setting for your shares."
 msgstr "共有のデフォルト公開設定です。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:228
+#: src/routes/(root)/[handle]/settings/preferences.tsx:384
 msgid "The default quote permission for your notes."
 msgstr "投稿のデフォルト引用許可設定です。"
 
@@ -4765,7 +4803,7 @@ msgstr "古いアカウントを削除できませんでした。もう一度お
 msgid "The primary language of your article, used for accessibility and discovery."
 msgstr "記事の主言語です。アクセシビリティや検索に使用されます。"
 
-#: src/components/QuotedNoteCard.tsx:314
+#: src/components/QuotedNoteCard.tsx:343
 msgid "The quoting post will no longer include your post as a quote."
 msgstr "引用しているコンテンツには、あなたのコンテンツが引用として含まれなくなります。"
 
@@ -4917,7 +4955,7 @@ msgid "This quote is waiting for approval from the original author."
 msgstr "この引用は元の作成者からの承認を待っています。"
 
 #. placeholder {0}: post.actor.handle
-#: src/components/QuotedNoteCard.tsx:164
+#: src/components/QuotedNoteCard.tsx:183
 msgid "This quoted post is hidden because you muted {0}."
 msgstr "{0}をミュートしているため、この引用は非表示になっています。"
 
@@ -5313,6 +5351,10 @@ msgstr "翻訳サービスに接続できませんでした。再試行するか
 msgid "Website"
 msgstr "ウェブサイト"
 
+#: src/routes/(root)/[handle]/settings/preferences.tsx:431
+msgid "Weekly digest"
+msgstr "週次通知ダイジェスト"
+
 #: src/routes/(root)/sign/up/[token].tsx:301
 msgid "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 msgstr "Hackers' Pubへようこそ！登録を完了するには以下のフォームにご記入ください。"
@@ -5627,7 +5669,9 @@ msgstr "あなたの組織"
 msgid "Your passkey has been registered and can now be used for authentication."
 msgstr "パスキーが登録され、認証に使用できるようになりました。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:135
+#: src/routes/(root)/[handle]/settings/preferences.tsx:190
+#: src/routes/(root)/[handle]/settings/preferences.tsx:227
+#: src/routes/(root)/[handle]/settings/preferences.tsx:261
 msgid "Your preferences have been updated successfully."
 msgstr "環境設定が正常に更新されました。"
 

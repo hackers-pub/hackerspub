@@ -8,6 +8,34 @@
     "emailContent": "{{inviter}}さんがHackers' Pubに招待しています！\n\nHackers' Pubは、ソフトウェアエンジニアが知識と経験を共有する場所です。また、ActivityPubに対応したソーシャルネットワークでもあり、フェディバース（fediverse）で気に入ったハッカーをフォローして、最新のコンテンツをフィードで受け取ることができます。\n\n招待を受け入れるには、以下のリンクをクリックしてください：\n\n{{verifyUrl}}\n\nこのリンクは{{expiration}}後に有効期限が切れます。\n",
     "emailContentWithMessage": "{{inviter}}さんがHackers' Pubに招待しています！{{inviterName}}さんからのメッセージです：\n\n{{message}}\n\n招待を受け入れるには、以下のリンクをクリックしてください：\n\n{{verifyUrl}}\n\nこのリンクは{{expiration}}後に有効期限が切れます。\n"
   },
+  "digest": {
+    "dailyEmailSubject": "Hackers' Pub日次通知ダイジェスト：未読通知{{count}}件",
+    "weeklyEmailSubject": "Hackers' Pub週次通知ダイジェスト：未読通知{{count}}件",
+    "emailContent": "{{name}}さん、こんにちは。\n\nHackers' Pubに未読通知が残っています。\n\n未読通知：{{count}}件\n個人：{{personalCount}}件\nモデレーション：{{moderationCount}}件\n組織：{{organizationCount}}件\n\n最近の通知：\n{{items}}\n\n通知を見る：{{notificationsUrl}}\n通知ダイジェスト設定を変更：{{settingsUrl}}\n",
+    "itemLine": "• {{label}}（{{date}}）",
+    "notificationLabels": {
+      "follow": "新しいフォロワー",
+      "mention": "メンション",
+      "reply": "返信",
+      "share": "共有",
+      "quote": "引用",
+      "shared_post_updated": "共有したコンテンツの更新",
+      "quoted_post_updated": "引用したコンテンツの更新",
+      "react": "リアクション",
+      "poll_ended": "投票終了",
+      "organization_invitation": "組織への招待",
+      "organization_conversion_request": "組織への転換リクエスト",
+      "notification": "通知"
+    },
+    "moderationNotificationLabels": {
+      "flag_received": "モデレーション：新しい通報",
+      "action_taken": "モデレーション：措置が取られました",
+      "appeal_received": "モデレーション：新しい異議申し立て",
+      "appeal_resolved": "モデレーション：異議申し立てが審査されました",
+      "suspension_ending": "モデレーション：停止期間の終了が近づいています",
+      "notification": "モデレーション通知"
+    }
+  },
   "moderation": {
     "actionNames": {
       "warning": "警告",

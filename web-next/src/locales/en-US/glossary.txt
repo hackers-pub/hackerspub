@@ -9,6 +9,7 @@ bookmark → bookmark
 co-author → co-author
 comment → comment
 conversion → conversion
+daily digest → daily notification digest
 delete account → delete account
 disk object → disk object
 displayName → name
@@ -19,6 +20,7 @@ followee → following
 follower → follower
 handle → handle
 instance → instance
+interaction scope → interaction scope
 invitation → invitation
 invitationLink → invitation link
 login credentials → login credentials
@@ -50,3 +52,4 @@ timeline → timeline
 username → username
 vote → vote
 voter → voter
+weekly digest → weekly notification digest

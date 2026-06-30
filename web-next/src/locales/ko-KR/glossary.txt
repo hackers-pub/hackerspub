@@ -9,6 +9,7 @@ bookmark → 북마크
 co-author → 공동 저자
 comment → 댓글
 conversion → 전환
+daily digest → 일간 알림 요약
 delete account → 계정 삭제
 disk object → 디스크 객체
 displayName → 이름
@@ -19,6 +20,7 @@ followee → 팔로잉
 follower → 팔로워
 handle → 핸들
 instance → 인스턴스
+interaction scope → 상호작용 범위
 invitation → 초대
 invitationLink → 초대 링크
 login credentials → 로그인 인증 정보
@@ -52,3 +54,4 @@ timeline → 타임라인
 username → 아이디
 vote → 투표
 voter → 투표자
+weekly digest → 주간 알림 요약

@@ -599,6 +599,32 @@ export const Account = builder.drizzleNode("accountTable", {
         );
       },
     }),
+    notificationEmailDigestDaily: t.exposeBoolean(
+      "notificationEmailDigestDaily",
+      {
+        authScopes: (parent) => ({
+          moderator: true,
+          selfAccount: parent.id,
+        }),
+        description:
+          "Whether the account receives daily digest emails when unread " +
+          "notifications remain. Only visible to the account holder and " +
+          "moderators; change it with `updateNotificationEmailDigestSettings`.",
+      },
+    ),
+    notificationEmailDigestWeekly: t.exposeBoolean(
+      "notificationEmailDigestWeekly",
+      {
+        authScopes: (parent) => ({
+          moderator: true,
+          selfAccount: parent.id,
+        }),
+        description:
+          "Whether the account receives weekly digest emails when unread " +
+          "notifications remain. Only visible to the account holder and " +
+          "moderators; change it with `updateNotificationEmailDigestSettings`.",
+      },
+    ),
     updated: t.expose("updated", { type: "DateTime" }),
     created: t.expose("created", { type: "DateTime" }),
     actor: t.relation("actor", {
@@ -1448,6 +1474,72 @@ builder.relayMutationField(
         type: Account,
         resolve(result) {
           return result;
+        },
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "updateNotificationEmailDigestSettings",
+  {
+    description:
+      "Update private email digest settings for the authenticated personal " +
+      "account. This does not publish an ActivityPub `Update`.",
+    inputFields: (t) => ({
+      id: t.globalID({
+        for: Account,
+        required: true,
+        description:
+          "Global `Account` id of the personal account whose digest " +
+          "settings should be updated. Must be the authenticated account.",
+      }),
+      daily: t.boolean({
+        required: true,
+        description:
+          "Whether to send a daily digest email when unread notifications " +
+          "remain.",
+      }),
+      weekly: t.boolean({
+        required: true,
+        description:
+          "Whether to send a weekly digest email when unread notifications " +
+          "remain.",
+      }),
+    }),
+  },
+  {
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null || ctx.account == null) {
+        throw new NotAuthenticatedError();
+      }
+      if (
+        args.input.id.id !== session.accountId ||
+        ctx.account.kind !== "personal"
+      ) {
+        throw new NotAuthorizedError();
+      }
+      const [account] = await ctx.db.update(accountTable).set({
+        notificationEmailDigestDaily: args.input.daily,
+        notificationEmailDigestWeekly: args.input.weekly,
+        updated: sql`CURRENT_TIMESTAMP`,
+      }).where(eq(accountTable.id, session.accountId)).returning();
+      if (account == null) {
+        throw createGraphQLError("Account not found.", {
+          extensions: { code: "NOT_FOUND" },
+        });
+      }
+      return account;
+    },
+  },
+  {
+    outputFields: (t) => ({
+      account: t.field({
+        type: Account,
+        description: "Account with the updated digest settings.",
+        resolve(account) {
+          return account;
         },
       }),
     }),

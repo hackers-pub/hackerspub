@@ -9,6 +9,7 @@ bookmark → 收藏
 co-author → 共同作者
 comment → 评论
 conversion → 转换
+daily digest → 每日通知摘要
 delete account → 删除账户
 disk object → 磁盘对象
 displayName → 昵称
@@ -19,6 +20,7 @@ followee → 关注
 follower → 粉丝
 handle → handle
 instance → 实例
+interaction scope → 互动范围
 invitation → 邀请
 invitationLink → 邀请链接
 login credentials → 登录凭据
@@ -52,3 +54,4 @@ timeline → 时间线
 username → 用户名
 vote → 投票
 voter → 投票者
+weekly digest → 每周通知摘要

@@ -740,7 +740,9 @@ msgstr "An error occurred while registering your passkey."
 msgid "An error occurred while revoking your passkey."
 msgstr "An error occurred while revoking your passkey."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:144
+#: src/routes/(root)/[handle]/settings/preferences.tsx:199
+#: src/routes/(root)/[handle]/settings/preferences.tsx:236
+#: src/routes/(root)/[handle]/settings/preferences.tsx:270
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 
@@ -1037,7 +1039,7 @@ msgstr "By {0}"
 #: src/components/ProfileActionMenu.tsx:533
 #: src/components/ProfileActionMenu.tsx:563
 #: src/components/ProfileActionMenu.tsx:564
-#: src/components/QuotedNoteCard.tsx:318
+#: src/components/QuotedNoteCard.tsx:347
 #: src/components/RemoteFollowButton.tsx:218
 #: src/components/RemoteFollowButton.tsx:280
 #: src/components/RemoveFollowerButton.tsx:152
@@ -1323,7 +1325,7 @@ msgstr "Could not resolve that as a remote object."
 msgid "Could not resolve the appeal"
 msgstr "Could not resolve the appeal"
 
-#: src/components/QuotedNoteCard.tsx:349
+#: src/components/QuotedNoteCard.tsx:378
 msgid "Could not revoke quote"
 msgstr "Could not revoke quote"
 
@@ -1411,9 +1413,13 @@ msgid "Cutoff:"
 msgstr "Cutoff:"
 
 #: src/components/NoteCardInternal.tsx:156
-#: src/components/QuotedNoteCard.tsx:227
+#: src/components/QuotedNoteCard.tsx:256
 msgid "CW"
 msgstr "CW"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:415
+msgid "Daily digest"
+msgstr "Daily digest"
 
 #: src/components/NoteComposer.tsx:1727
 msgid "Deadline"
@@ -1431,15 +1437,15 @@ msgstr "Decisions"
 msgid "Decisions the moderation team has made about your account or posts, newest first. You can appeal a decision once, within 14 days."
 msgstr "Decisions the moderation team has made about your account or posts, newest first. You can appeal a decision once, within 14 days."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:193
+#: src/routes/(root)/[handle]/settings/preferences.tsx:347
 msgid "Default note privacy"
 msgstr "Default note privacy"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:218
+#: src/routes/(root)/[handle]/settings/preferences.tsx:372
 msgid "Default quote permission"
 msgstr "Default quote permission"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:205
+#: src/routes/(root)/[handle]/settings/preferences.tsx:359
 msgid "Default share privacy"
 msgstr "Default share privacy"
 
@@ -1612,6 +1618,10 @@ msgstr "Edit note"
 msgid "Email address"
 msgstr "Email address"
 
+#: src/routes/(root)/[handle]/settings/preferences.tsx:400
+msgid "Email digests"
+msgstr "Email digests"
+
 #: src/routes/(root)/sign/index.tsx:403
 msgid "Email or username"
 msgstr "Email or username"
@@ -1693,8 +1703,8 @@ msgstr "Enter your email or username below to sign in."
 #: src/components/NoteComposer.tsx:1247
 #: src/components/NoteComposer.tsx:1255
 #: src/components/NoteComposer.tsx:1312
-#: src/components/QuotedNoteCard.tsx:348
-#: src/components/QuotedNoteCard.tsx:356
+#: src/components/QuotedNoteCard.tsx:377
+#: src/components/QuotedNoteCard.tsx:385
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:346
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:442
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:452
@@ -2002,7 +2012,9 @@ msgstr "Failed to revoke passkey"
 msgid "Failed to save language preferences"
 msgstr "Failed to save language preferences"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:142
+#: src/routes/(root)/[handle]/settings/preferences.tsx:197
+#: src/routes/(root)/[handle]/settings/preferences.tsx:234
+#: src/routes/(root)/[handle]/settings/preferences.tsx:268
 msgid "Failed to save preferences"
 msgstr "Failed to save preferences"
 
@@ -2335,7 +2347,7 @@ msgstr "Hidden account"
 
 #: src/components/NoteCardInternal.tsx:165
 #: src/components/NoteMedia.tsx:270
-#: src/components/QuotedNoteCard.tsx:238
+#: src/components/QuotedNoteCard.tsx:267
 msgid "Hide"
 msgstr "Hide"
 
@@ -2363,7 +2375,7 @@ msgstr "I have read and agree to the Code of conduct."
 msgid "If enabled, a report will be sent to the remote server's moderators after our moderation team acts. Your identity will not be revealed; only a summary written by our moderation team is shared, never your original wording."
 msgstr "If enabled, a report will be sent to the remote server's moderators after our moderation team acts. Your identity will not be revealed; only a summary written by our moderation team is shared, never your original wording."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:187
+#: src/routes/(root)/[handle]/settings/preferences.tsx:322
 msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 msgstr "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 
@@ -2399,6 +2411,10 @@ msgstr "Increase sanction"
 #: src/routes/(root)/admin/moderation/appeals.tsx:142
 msgid "Increased"
 msgstr "Increased"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:339
+msgid "Interaction scope"
+msgstr "Interaction scope"
 
 #: src/components/ProfileTabs.tsx:89
 msgid "Interactions"
@@ -2839,7 +2855,7 @@ msgstr "Loading search results…"
 msgid "Loading…"
 msgstr "Loading…"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:227
+#: src/routes/(root)/[handle]/settings/preferences.tsx:383
 msgid "Locked to \"Only me\" because your default note privacy restricts visibility."
 msgstr "Locked to \"Only me\" because your default note privacy restricts visibility."
 
@@ -3352,7 +3368,7 @@ msgstr "Open in app"
 msgid "Open organization settings"
 msgstr "Open organization settings"
 
-#: src/components/QuotedNoteCard.tsx:188
+#: src/components/QuotedNoteCard.tsx:217
 msgid "Open post"
 msgstr "Open post"
 
@@ -3623,13 +3639,13 @@ msgstr "Post unpinned"
 msgid "Posts"
 msgstr "Posts"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:184
+#: src/routes/(root)/[handle]/settings/preferences.tsx:319
 msgid "Prefer AI-generated summary"
 msgstr "Prefer AI-generated summary"
 
 #: src/components/SettingsTabs.tsx:58
-#: src/routes/(root)/[handle]/settings/preferences.tsx:170
-#: src/routes/(root)/[handle]/settings/preferences.tsx:171
+#: src/routes/(root)/[handle]/settings/preferences.tsx:295
+#: src/routes/(root)/[handle]/settings/preferences.tsx:305
 msgid "Preferences"
 msgstr "Preferences"
 
@@ -3769,7 +3785,7 @@ msgstr "Quote"
 msgid "Quote permission"
 msgstr "Quote permission"
 
-#: src/components/QuotedNoteCard.tsx:343
+#: src/components/QuotedNoteCard.tsx:372
 msgid "Quote revoked"
 msgstr "Quote revoked"
 
@@ -3832,6 +3848,10 @@ msgstr "Reason"
 #: src/routes/(root)/admin/news.tsx:562
 msgid "Rebuilds the popularity score of every shared link from scratch. The operation is idempotent and safe to run at any time; scores normally stay fresh on their own, so this is mainly a manual backstop and a development tool."
 msgstr "Rebuilds the popularity score of every shared link from scratch. The operation is idempotent and safe to run at any time; scores normally stay fresh on their own, so this is mainly a manual backstop and a development tool."
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:402
+msgid "Receive a summary email when unread notifications remain."
+msgstr "Receive a summary email when unread notifications remain."
 
 #: src/components/WebPushPromptBanner.tsx:252
 msgid "Receive new notifications immediately, even when this tab is closed."
@@ -4145,12 +4165,12 @@ msgstr "Revoke"
 msgid "Revoke passkey"
 msgstr "Revoke passkey"
 
-#: src/components/QuotedNoteCard.tsx:306
-#: src/components/QuotedNoteCard.tsx:364
+#: src/components/QuotedNoteCard.tsx:335
+#: src/components/QuotedNoteCard.tsx:393
 msgid "Revoke quote"
 msgstr "Revoke quote"
 
-#: src/components/QuotedNoteCard.tsx:311
+#: src/components/QuotedNoteCard.tsx:340
 msgid "Revoke this quote?"
 msgstr "Revoke this quote?"
 
@@ -4178,7 +4198,9 @@ msgstr "Sanctions"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:547
 #: src/routes/(root)/[handle]/settings/language.tsx:201
-#: src/routes/(root)/[handle]/settings/preferences.tsx:236
+#: src/routes/(root)/[handle]/settings/preferences.tsx:331
+#: src/routes/(root)/[handle]/settings/preferences.tsx:392
+#: src/routes/(root)/[handle]/settings/preferences.tsx:443
 msgid "Save"
 msgstr "Save"
 
@@ -4200,7 +4222,9 @@ msgstr "Save draft to see preview"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:625
 #: src/routes/(root)/[handle]/settings/index.tsx:547
 #: src/routes/(root)/[handle]/settings/language.tsx:201
-#: src/routes/(root)/[handle]/settings/preferences.tsx:236
+#: src/routes/(root)/[handle]/settings/preferences.tsx:331
+#: src/routes/(root)/[handle]/settings/preferences.tsx:392
+#: src/routes/(root)/[handle]/settings/preferences.tsx:443
 msgid "Saving…"
 msgstr "Saving…"
 
@@ -4266,12 +4290,20 @@ msgstr "Selection"
 msgid "Send"
 msgstr "Send"
 
+#: src/routes/(root)/[handle]/settings/preferences.tsx:418
+msgid "Send one email per day while unread notifications remain."
+msgstr "Send one email per day while unread notifications remain."
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:434
+msgid "Send one email per week while unread notifications remain."
+msgstr "Send one email per week while unread notifications remain."
+
 #: src/routes/(root)/[handle]/invite/[id].tsx:413
 #: src/routes/(root)/[handle]/settings/invite.tsx:428
 msgid "Sending…"
 msgstr "Sending…"
 
-#: src/components/QuotedNoteCard.tsx:231
+#: src/components/QuotedNoteCard.tsx:260
 msgid "Sensitive content"
 msgstr "Sensitive content"
 
@@ -4279,7 +4311,11 @@ msgstr "Sensitive content"
 msgid "Separate tags with spaces. Tags help readers discover your article."
 msgstr "Separate tags with spaces. Tags help readers discover your article."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:172
+#: src/routes/(root)/[handle]/settings/preferences.tsx:341
+msgid "Set the default visibility and quote permissions for new posts."
+msgstr "Set the default visibility and quote permissions for new posts."
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:307
 msgid "Set your personal preferences."
 msgstr "Set your personal preferences."
 
@@ -4330,8 +4366,8 @@ msgstr "Sharing is not available for this post"
 
 #: src/components/MutedReplyPlaceholder.tsx:32
 #: src/components/NoteCardInternal.tsx:165
-#: src/components/QuotedNoteCard.tsx:172
-#: src/components/QuotedNoteCard.tsx:238
+#: src/components/QuotedNoteCard.tsx:191
+#: src/components/QuotedNoteCard.tsx:267
 msgid "Show"
 msgstr "Show"
 
@@ -4507,7 +4543,9 @@ msgstr "Success"
 msgid "Successfully saved language preferences"
 msgstr "Successfully saved language preferences"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:134
+#: src/routes/(root)/[handle]/settings/preferences.tsx:189
+#: src/routes/(root)/[handle]/settings/preferences.tsx:226
+#: src/routes/(root)/[handle]/settings/preferences.tsx:260
 msgid "Successfully saved preferences"
 msgstr "Successfully saved preferences"
 
@@ -4516,7 +4554,7 @@ msgid "Successfully saved settings"
 msgstr "Successfully saved settings"
 
 #: src/components/ArticleCard.tsx:464
-#: src/components/QuotedNoteCard.tsx:288
+#: src/components/QuotedNoteCard.tsx:317
 msgid "Summarized by LLM"
 msgstr "Summarized by LLM"
 
@@ -4641,15 +4679,15 @@ msgstr "The conversion request could not be created. Please try again."
 msgid "The decision has been recorded and applied."
 msgstr "The decision has been recorded and applied."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:201
+#: src/routes/(root)/[handle]/settings/preferences.tsx:355
 msgid "The default privacy setting for your notes."
 msgstr "The default privacy setting for your notes."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:213
+#: src/routes/(root)/[handle]/settings/preferences.tsx:367
 msgid "The default privacy setting for your shares."
 msgstr "The default privacy setting for your shares."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:228
+#: src/routes/(root)/[handle]/settings/preferences.tsx:384
 msgid "The default quote permission for your notes."
 msgstr "The default quote permission for your notes."
 
@@ -4769,7 +4807,7 @@ msgstr "The previous account could not be removed. Please try again."
 msgid "The primary language of your article, used for accessibility and discovery."
 msgstr "The primary language of your article, used for accessibility and discovery."
 
-#: src/components/QuotedNoteCard.tsx:314
+#: src/components/QuotedNoteCard.tsx:343
 msgid "The quoting post will no longer include your post as a quote."
 msgstr "The quoting post will no longer include your post as a quote."
 
@@ -4921,7 +4959,7 @@ msgid "This quote is waiting for approval from the original author."
 msgstr "This quote is waiting for approval from the original author."
 
 #. placeholder {0}: post.actor.handle
-#: src/components/QuotedNoteCard.tsx:164
+#: src/components/QuotedNoteCard.tsx:183
 msgid "This quoted post is hidden because you muted {0}."
 msgstr "This quoted post is hidden because you muted {0}."
 
@@ -5317,6 +5355,10 @@ msgstr "We couldn't reach the translation service. Try again, or come back in a 
 msgid "Website"
 msgstr "Website"
 
+#: src/routes/(root)/[handle]/settings/preferences.tsx:431
+msgid "Weekly digest"
+msgstr "Weekly digest"
+
 #: src/routes/(root)/sign/up/[token].tsx:301
 msgid "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 msgstr "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
@@ -5631,7 +5673,9 @@ msgstr "Your organizations"
 msgid "Your passkey has been registered and can now be used for authentication."
 msgstr "Your passkey has been registered and can now be used for authentication."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:135
+#: src/routes/(root)/[handle]/settings/preferences.tsx:190
+#: src/routes/(root)/[handle]/settings/preferences.tsx:227
+#: src/routes/(root)/[handle]/settings/preferences.tsx:261
 msgid "Your preferences have been updated successfully."
 msgstr "Your preferences have been updated successfully."
 

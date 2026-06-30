@@ -8,6 +8,34 @@
     "emailContent": "{{inviter}} 님이 Hackers' Pub에 초대합니다!\n\nHackers' Pub은 소프트웨어 프로그래머들이 지식과 경험을 서로 나누는 곳입니다. 또한 ActivityPub을 지원하는 소셜 네트워크이기도 하며, 연합우주(fediverse)에서 즐겨찾는 소프트웨어 프로그래머들을 팔로하고 최신 콘텐츠를 받아 볼 수 있습니다.\n\n초대장을 받으려면 아래 링크를 클릭하세요:\n\n{{verifyUrl}}\n\n이 링크는 {{expiration}} 후에 만료됩니다.\n",
     "emailContentWithMessage": "{{inviter}} 님이 Hackers' Pub에 초대합니다! 다음은 {{inviterName}} 님의 메시지입니다:\n\n{{message}}\n\n초대장을 받으려면 아래 링크를 클릭하세요:\n\n{{verifyUrl}}\n\n이 링크는 {{expiration}} 후에 만료됩니다.\n"
   },
+  "digest": {
+    "dailyEmailSubject": "Hackers' Pub 일간 알림 요약: 읽지 않은 알림 {{count}}개",
+    "weeklyEmailSubject": "Hackers' Pub 주간 알림 요약: 읽지 않은 알림 {{count}}개",
+    "emailContent": "안녕하세요, {{name}} 님.\n\nHackers' Pub에 아직 읽지 않은 알림이 남아 있습니다.\n\n읽지 않은 알림: {{count}}개\n개인: {{personalCount}}개\n모더레이션: {{moderationCount}}개\n조직: {{organizationCount}}개\n\n최근 알림:\n{{items}}\n\n알림 보기: {{notificationsUrl}}\n알림 요약 설정 변경: {{settingsUrl}}\n",
+    "itemLine": "• {{label}} ({{date}})",
+    "notificationLabels": {
+      "follow": "새 팔로워",
+      "mention": "멘션",
+      "reply": "답글",
+      "share": "공유",
+      "quote": "인용",
+      "shared_post_updated": "공유한 콘텐츠 업데이트",
+      "quoted_post_updated": "인용한 콘텐츠 업데이트",
+      "react": "반응",
+      "poll_ended": "투표 종료",
+      "organization_invitation": "조직 초대",
+      "organization_conversion_request": "조직 전환 요청",
+      "notification": "알림"
+    },
+    "moderationNotificationLabels": {
+      "flag_received": "모더레이션: 새 신고",
+      "action_taken": "모더레이션: 조치 적용",
+      "appeal_received": "모더레이션: 새 이의 제기",
+      "appeal_resolved": "모더레이션: 이의 제기 검토됨",
+      "suspension_ending": "모더레이션: 정지 종료 임박",
+      "notification": "모더레이션 알림"
+    }
+  },
   "moderation": {
     "actionNames": {
       "warning": "경고",
