@@ -147,7 +147,7 @@ export function ModerationNotificationList(
       case "APPEAL_RECEIVED":
         return "/admin/moderation/appeals";
       default:
-        return `/@${node.username}/settings/sanctions`;
+        return `/@${node.username}/settings/moderation`;
     }
   };
 

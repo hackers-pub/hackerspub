@@ -435,7 +435,7 @@ msgstr "@old@example.com or actor URL"
 
 #: src/components/admin/AppealResolveForm.tsx:301
 #: src/components/admin/ModerationActionForm.tsx:303
-#: src/components/NoteComposer.tsx:1736
+#: src/components/NoteComposer.tsx:1746
 msgid "1 day"
 msgstr "1 day"
 
@@ -444,11 +444,11 @@ msgstr "1 day"
 msgid "1 report"
 msgstr "1 report"
 
-#: src/components/NoteComposer.tsx:1752
+#: src/components/NoteComposer.tsx:1762
 msgid "1 week"
 msgstr "1 week"
 
-#: src/components/NoteComposer.tsx:1744
+#: src/components/NoteComposer.tsx:1754
 msgid "3 days"
 msgstr "3 days"
 
@@ -540,7 +540,7 @@ msgstr "Accepting…"
 
 #: src/components/admin/AdminAccountsTable.tsx:295
 #: src/components/AppSidebar.tsx:810
-#: src/components/SettingsTabs.tsx:115
+#: src/components/SettingsTabs.tsx:106
 msgid "Account"
 msgstr "Account"
 
@@ -564,7 +564,7 @@ msgstr "Account kind"
 msgid "Account migration"
 msgstr "Account migration"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:94
+#: src/components/SanctionHistoryList.tsx:44
 msgid "Account permanently suspended"
 msgstr "Account permanently suspended"
 
@@ -573,7 +573,7 @@ msgstr "Account permanently suspended"
 msgid "Account settings"
 msgstr "Account settings"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:92
+#: src/components/SanctionHistoryList.tsx:42
 msgid "Account suspended"
 msgstr "Account suspended"
 
@@ -620,16 +620,16 @@ msgstr "Add"
 msgid "Add {0}"
 msgstr "Add {0}"
 
-#: src/components/NoteComposer.tsx:992
+#: src/components/NoteComposer.tsx:1000
 msgid "Add at least {MIN_POLL_OPTIONS} poll options"
 msgstr "Add at least {MIN_POLL_OPTIONS} poll options"
 
-#: src/components/NoteComposer.tsx:1685
+#: src/components/NoteComposer.tsx:1695
 msgid "Add option"
 msgstr "Add option"
 
-#: src/components/NoteComposer.tsx:1553
-#: src/components/NoteComposer.tsx:1554
+#: src/components/NoteComposer.tsx:1563
+#: src/components/NoteComposer.tsx:1564
 msgid "Add poll"
 msgstr "Add poll"
 
@@ -681,11 +681,11 @@ msgstr "All"
 msgid "All accounts"
 msgstr "All accounts"
 
-#: src/components/NoteComposer.tsx:1072
+#: src/components/NoteComposer.tsx:1080
 msgid "All images must finish uploading before posting"
 msgstr "All images must finish uploading before posting"
 
-#: src/components/NoteComposer.tsx:1080
+#: src/components/NoteComposer.tsx:1088
 msgid "All images require alt text"
 msgstr "All images require alt text"
 
@@ -720,11 +720,11 @@ msgid "Also send this report to the remote instance ({0})"
 msgstr "Also send this report to the remote instance ({0})"
 
 #. placeholder {0}: index() + 1
-#: src/components/NoteComposer.tsx:1820
+#: src/components/NoteComposer.tsx:1830
 msgid "Alt text for image {0}"
 msgstr "Alt text for image {0}"
 
-#: src/components/NoteComposer.tsx:1832
+#: src/components/NoteComposer.tsx:1842
 msgid "Alt text for visually impaired people (required)"
 msgstr "Alt text for visually impaired people (required)"
 
@@ -776,11 +776,11 @@ msgstr "Anything you believe was not considered."
 msgid "Appeal"
 msgstr "Appeal"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:116
+#: src/components/SanctionHistoryList.tsx:66
 msgid "Appeal denied: the decision stands"
 msgstr "Appeal denied: the decision stands"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:106
+#: src/components/SanctionHistoryList.tsx:56
 msgid "Appeal pending"
 msgstr "Appeal pending"
 
@@ -788,7 +788,7 @@ msgstr "Appeal pending"
 msgid "Appeal resolved"
 msgstr "Appeal resolved"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:114
+#: src/components/SanctionHistoryList.tsx:64
 msgid "Appeal reviewed: the sanction was increased"
 msgstr "Appeal reviewed: the sanction was increased"
 
@@ -797,19 +797,19 @@ msgid "Appeal submitted"
 msgstr "Appeal submitted"
 
 #: src/components/AppealDialog.tsx:131
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:220
+#: src/components/SanctionHistoryList.tsx:141
 msgid "Appeal this decision"
 msgstr "Appeal this decision"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:105
+#: src/components/SanctionHistoryList.tsx:55
 msgid "Appeal under review"
 msgstr "Appeal under review"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:110
+#: src/components/SanctionHistoryList.tsx:60
 msgid "Appeal upheld: the decision was withdrawn"
 msgstr "Appeal upheld: the decision was withdrawn"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:112
+#: src/components/SanctionHistoryList.tsx:62
 msgid "Appeal upheld: the sanction was reduced"
 msgstr "Appeal upheld: the sanction was reduced"
 
@@ -897,8 +897,8 @@ msgstr "As you have already changed it {0}, you can't change it again."
 msgid "Assigned to {0}"
 msgstr "Assigned to {0}"
 
-#: src/components/NoteComposer.tsx:1542
-#: src/components/NoteComposer.tsx:1543
+#: src/components/NoteComposer.tsx:1552
+#: src/components/NoteComposer.tsx:1553
 msgid "Attach image"
 msgstr "Attach image"
 
@@ -911,12 +911,12 @@ msgstr "Authenticating…"
 msgid "Author"
 msgstr "Author"
 
-#: src/components/NoteComposer.tsx:1851
+#: src/components/NoteComposer.tsx:1861
 msgid "Auto-fill"
 msgstr "Auto-fill"
 
-#: src/components/NoteComposer.tsx:1844
-#: src/components/NoteComposer.tsx:1845
+#: src/components/NoteComposer.tsx:1854
+#: src/components/NoteComposer.tsx:1855
 msgid "Auto-fill alt text"
 msgstr "Auto-fill alt text"
 
@@ -1031,9 +1031,9 @@ msgstr "By {0}"
 
 #: src/components/AppealDialog.tsx:187
 #: src/components/article-composer/ArticleComposerActions.tsx:48
-#: src/components/NoteComposer.tsx:1879
-#: src/components/NoteComposer.tsx:1880
-#: src/components/NoteComposer.tsx:1923
+#: src/components/NoteComposer.tsx:1889
+#: src/components/NoteComposer.tsx:1890
+#: src/components/NoteComposer.tsx:1933
 #: src/components/PostActionMenu.tsx:456
 #: src/components/ProfileActionMenu.tsx:532
 #: src/components/ProfileActionMenu.tsx:533
@@ -1180,8 +1180,8 @@ msgstr "Code"
 msgid "Code of conduct"
 msgstr "Code of conduct"
 
-#. placeholder {0}: sanction .violatedProvisions.join(", ")
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:179
+#. placeholder {0}: sanction.violatedProvisions.join(", ")
+#: src/components/SanctionHistoryList.tsx:102
 msgid "Code of conduct: {0}"
 msgstr "Code of conduct: {0}"
 
@@ -1195,12 +1195,12 @@ msgid "Compose"
 msgstr "Compose"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:65
-#: src/components/NoteComposer.tsx:1489
+#: src/components/NoteComposer.tsx:1499
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:489
 msgid "Content"
 msgstr "Content"
 
-#: src/components/NoteComposer.tsx:1062
+#: src/components/NoteComposer.tsx:1070
 msgid "Content cannot be empty"
 msgstr "Content cannot be empty"
 
@@ -1359,7 +1359,7 @@ msgstr "Create invitation link"
 #: src/components/AppSidebar.tsx:1053
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:78
-#: src/components/NoteComposer.tsx:1945
+#: src/components/NoteComposer.tsx:1955
 msgid "Create note"
 msgstr "Create note"
 
@@ -1368,7 +1368,7 @@ msgstr "Create note"
 msgid "Create organization"
 msgstr "Create organization"
 
-#: src/components/NoteComposer.tsx:1944
+#: src/components/NoteComposer.tsx:1954
 msgid "Create poll"
 msgstr "Create poll"
 
@@ -1389,7 +1389,7 @@ msgstr "Created {0}"
 msgid "Creating account…"
 msgstr "Creating account…"
 
-#: src/components/NoteComposer.tsx:1947
+#: src/components/NoteComposer.tsx:1957
 #: src/routes/(root)/[handle]/settings/account.tsx:833
 #: src/routes/(root)/[handle]/settings/invite.tsx:855
 msgid "Creating…"
@@ -1421,7 +1421,7 @@ msgstr "CW"
 msgid "Daily digest"
 msgstr "Daily digest"
 
-#: src/components/NoteComposer.tsx:1727
+#: src/components/NoteComposer.tsx:1737
 msgid "Deadline"
 msgstr "Deadline"
 
@@ -1433,7 +1433,7 @@ msgstr "Decision"
 msgid "Decisions"
 msgstr "Decisions"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:138
+#: src/routes/(root)/[handle]/settings/moderation.tsx:111
 msgid "Decisions the moderation team has made about your account or posts, newest first. You can appeal a decision once, within 14 days."
 msgstr "Decisions the moderation team has made about your account or posts, newest first. You can appeal a decision once, within 14 days."
 
@@ -1566,7 +1566,7 @@ msgstr "Display name"
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 
-#: src/components/NoteComposer.tsx:926
+#: src/components/NoteComposer.tsx:934
 msgid "Do you want to quote this link?"
 msgstr "Do you want to quote this link?"
 
@@ -1682,27 +1682,27 @@ msgstr "Enter your email or username below to sign in."
 #: src/components/article-composer/ArticleComposerContext.tsx:515
 #: src/components/article-composer/ArticleComposerContext.tsx:523
 #: src/components/article-composer/ArticleComposerForm.tsx:35
-#: src/components/NoteComposer.tsx:782
-#: src/components/NoteComposer.tsx:829
-#: src/components/NoteComposer.tsx:973
-#: src/components/NoteComposer.tsx:983
+#: src/components/NoteComposer.tsx:790
+#: src/components/NoteComposer.tsx:837
+#: src/components/NoteComposer.tsx:981
 #: src/components/NoteComposer.tsx:991
 #: src/components/NoteComposer.tsx:999
-#: src/components/NoteComposer.tsx:1009
+#: src/components/NoteComposer.tsx:1007
 #: src/components/NoteComposer.tsx:1017
-#: src/components/NoteComposer.tsx:1061
-#: src/components/NoteComposer.tsx:1071
+#: src/components/NoteComposer.tsx:1025
+#: src/components/NoteComposer.tsx:1069
 #: src/components/NoteComposer.tsx:1079
-#: src/components/NoteComposer.tsx:1114
+#: src/components/NoteComposer.tsx:1087
 #: src/components/NoteComposer.tsx:1122
 #: src/components/NoteComposer.tsx:1130
-#: src/components/NoteComposer.tsx:1182
-#: src/components/NoteComposer.tsx:1191
+#: src/components/NoteComposer.tsx:1138
+#: src/components/NoteComposer.tsx:1190
 #: src/components/NoteComposer.tsx:1199
-#: src/components/NoteComposer.tsx:1239
-#: src/components/NoteComposer.tsx:1247
-#: src/components/NoteComposer.tsx:1255
-#: src/components/NoteComposer.tsx:1312
+#: src/components/NoteComposer.tsx:1207
+#: src/components/NoteComposer.tsx:1249
+#: src/components/NoteComposer.tsx:1257
+#: src/components/NoteComposer.tsx:1265
+#: src/components/NoteComposer.tsx:1322
 #: src/components/QuotedNoteCard.tsx:377
 #: src/components/QuotedNoteCard.tsx:385
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:346
@@ -1833,7 +1833,7 @@ msgstr "Failed to enable browser notifications"
 msgid "Failed to follow"
 msgstr "Failed to follow"
 
-#: src/components/NoteComposer.tsx:1313
+#: src/components/NoteComposer.tsx:1323
 msgid "Failed to generate alt text"
 msgstr "Failed to generate alt text"
 
@@ -1913,11 +1913,11 @@ msgstr "Failed to load more shares; click to retry"
 msgid "Failed to load more; click to retry"
 msgstr "Failed to load more; click to retry"
 
-#: src/components/NoteComposer.tsx:1371
+#: src/components/NoteComposer.tsx:1381
 msgid "Failed to load post"
 msgstr "Failed to load post"
 
-#: src/components/NoteComposer.tsx:1422
+#: src/components/NoteComposer.tsx:1432
 msgid "Failed to load quoted post"
 msgstr "Failed to load quoted post"
 
@@ -2104,7 +2104,7 @@ msgstr "Failed to update the article. Please try again."
 #~ msgstr "Failed to update the note. Please try again."
 
 #: src/components/article-composer/ArticleComposerForm.tsx:38
-#: src/components/NoteComposer.tsx:832
+#: src/components/NoteComposer.tsx:840
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:349
 msgid "Failed to upload image"
 msgstr "Failed to upload image"
@@ -2184,7 +2184,7 @@ msgstr "Formatting"
 msgid "Forwarded to the remote instance"
 msgstr "Forwarded to the remote instance"
 
-#: src/components/NoteComposer.tsx:1870
+#: src/components/NoteComposer.tsx:1880
 msgid "Generating…"
 msgstr "Generating…"
 
@@ -2434,9 +2434,9 @@ msgstr "Invalid Fediverse handle format."
 #: src/components/article-composer/ArticleComposerContext.tsx:369
 #: src/components/article-composer/ArticleComposerContext.tsx:443
 #: src/components/article-composer/ArticleComposerContext.tsx:508
-#: src/components/NoteComposer.tsx:1115
-#: src/components/NoteComposer.tsx:1184
-#: src/components/NoteComposer.tsx:1240
+#: src/components/NoteComposer.tsx:1123
+#: src/components/NoteComposer.tsx:1192
+#: src/components/NoteComposer.tsx:1250
 #: src/routes/(root)/[handle]/drafts/index.tsx:185
 msgid "Invalid input: {0}"
 msgstr "Invalid input: {0}"
@@ -2496,7 +2496,7 @@ msgid "Invitations left"
 msgstr "Invitations left"
 
 #: src/components/AppSidebar.tsx:928
-#: src/components/SettingsTabs.tsx:74
+#: src/components/SettingsTabs.tsx:73
 #: src/routes/(root)/[handle]/settings/invite.tsx:311
 msgid "Invite"
 msgstr "Invite"
@@ -2575,7 +2575,7 @@ msgstr "Language code"
 msgid "Language settings"
 msgstr "Language settings"
 
-#: src/components/SettingsTabs.tsx:66
+#: src/components/SettingsTabs.tsx:65
 msgid "Languages"
 msgstr "Languages"
 
@@ -2841,7 +2841,7 @@ msgstr "Loading more stories…"
 msgid "Loading more…"
 msgstr "Loading more…"
 
-#: src/components/NoteComposer.tsx:1423
+#: src/components/NoteComposer.tsx:1433
 msgid "Loading quoted post…"
 msgstr "Loading quoted post…"
 
@@ -2849,7 +2849,7 @@ msgstr "Loading quoted post…"
 msgid "Loading search results…"
 msgstr "Loading search results…"
 
-#: src/components/NoteComposer.tsx:1372
+#: src/components/NoteComposer.tsx:1382
 #: src/routes/(root)/[handle]/drafts/index.tsx:344
 #: src/routes/(root)/sign/up/[token].tsx:465
 msgid "Loading…"
@@ -2876,7 +2876,7 @@ msgid "Markdown guide"
 msgstr "Markdown guide"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:90
-#: src/components/NoteComposer.tsx:1601
+#: src/components/NoteComposer.tsx:1611
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:514
 msgid "Markdown supported"
 msgstr "Markdown supported"
@@ -2934,10 +2934,12 @@ msgstr "Moderate"
 
 #: src/components/AdminTabs.tsx:34
 #: src/components/ModerationNotificationList.tsx:161
+#: src/components/SettingsTabs.tsx:97
+#: src/routes/(root)/[handle]/settings/moderation.tsx:92
 msgid "Moderation"
 msgstr "Moderation"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:136
+#: src/routes/(root)/[handle]/settings/moderation.tsx:109
 msgid "Moderation actions"
 msgstr "Moderation actions"
 
@@ -2970,7 +2972,7 @@ msgstr "Move to the top"
 msgid "Move up"
 msgstr "Move up"
 
-#: src/components/NoteComposer.tsx:1660
+#: src/components/NoteComposer.tsx:1670
 #: src/components/QuestionCard.tsx:471
 msgid "Multiple choice"
 msgstr "Multiple choice"
@@ -2991,7 +2993,7 @@ msgstr "Muted accounts"
 msgid "Muted accounts are hidden from your feeds and stop notifying you, except for replies and mentions from accounts you follow. You can still visit their profiles, and muting is private and never federated."
 msgstr "Muted accounts are hidden from your feeds and stop notifying you, except for replies and mentions from accounts you follow. You can still visit their profiles, and muting is private and never federated."
 
-#: src/components/SettingsTabs.tsx:90
+#: src/components/SettingsTabs.tsx:89
 msgid "Mutes & blocks"
 msgstr "Mutes & blocks"
 
@@ -3278,7 +3280,7 @@ msgstr "Not subscribed to any relays yet."
 msgid "Note (optional)"
 msgstr "Note (optional)"
 
-#: src/components/NoteComposer.tsx:1232
+#: src/components/NoteComposer.tsx:1241
 msgid "Note created successfully"
 msgstr "Note created successfully"
 
@@ -3287,7 +3289,7 @@ msgstr "Note created successfully"
 msgid "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
 msgstr "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
 
-#: src/components/NoteComposer.tsx:1105
+#: src/components/NoteComposer.tsx:1113
 msgid "Note updated"
 msgstr "Note updated"
 
@@ -3373,11 +3375,11 @@ msgid "Open post"
 msgstr "Open post"
 
 #. placeholder {0}: index() + 1
-#: src/components/NoteComposer.tsx:1701
+#: src/components/NoteComposer.tsx:1711
 msgid "Option {0}"
 msgstr "Option {0}"
 
-#: src/components/NoteComposer.tsx:1668
+#: src/components/NoteComposer.tsx:1678
 #: src/components/PostActionMenu.tsx:349
 #: src/components/PostActionMenu.tsx:350
 msgid "Options"
@@ -3450,7 +3452,7 @@ msgstr "Passkey registered successfully"
 msgid "Passkey revoked"
 msgstr "Passkey revoked"
 
-#: src/components/SettingsTabs.tsx:82
+#: src/components/SettingsTabs.tsx:81
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:356
 msgid "Passkeys"
 msgstr "Passkeys"
@@ -3563,7 +3565,7 @@ msgstr "Please sign in to access this page"
 msgid "Please sign in to vote"
 msgstr "Please sign in to vote"
 
-#: src/components/NoteComposer.tsx:1611
+#: src/components/NoteComposer.tsx:1621
 msgid "Poll"
 msgstr "Poll"
 
@@ -3571,35 +3573,35 @@ msgstr "Poll"
 msgid "Poll closed"
 msgstr "Poll closed"
 
-#: src/components/NoteComposer.tsx:1173
+#: src/components/NoteComposer.tsx:1181
 msgid "Poll created successfully"
 msgstr "Poll created successfully"
 
-#: src/components/NoteComposer.tsx:1010
+#: src/components/NoteComposer.tsx:1018
 msgid "Poll deadline is invalid"
 msgstr "Poll deadline is invalid"
 
-#: src/components/NoteComposer.tsx:1018
+#: src/components/NoteComposer.tsx:1026
 msgid "Poll deadline must be at least 1 minute from now"
 msgstr "Poll deadline must be at least 1 minute from now"
 
-#: src/components/NoteComposer.tsx:984
+#: src/components/NoteComposer.tsx:992
 msgid "Poll options cannot be empty"
 msgstr "Poll options cannot be empty"
 
-#: src/components/NoteComposer.tsx:1000
+#: src/components/NoteComposer.tsx:1008
 msgid "Poll options must be unique"
 msgstr "Poll options must be unique"
 
-#: src/components/NoteComposer.tsx:1629
+#: src/components/NoteComposer.tsx:1639
 msgid "Poll title"
 msgstr "Poll title"
 
-#: src/components/NoteComposer.tsx:974
+#: src/components/NoteComposer.tsx:982
 msgid "Poll title cannot be empty"
 msgstr "Poll title cannot be empty"
 
-#: src/components/NoteComposer.tsx:1764
+#: src/components/NoteComposer.tsx:1774
 msgid "Polls cannot be edited after publishing."
 msgstr "Polls cannot be edited after publishing."
 
@@ -3622,7 +3624,7 @@ msgstr "Post censored"
 msgid "Post deleted"
 msgstr "Post deleted"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:90
+#: src/components/SanctionHistoryList.tsx:40
 msgid "Post hidden"
 msgstr "Post hidden"
 
@@ -3643,7 +3645,7 @@ msgstr "Posts"
 msgid "Prefer AI-generated summary"
 msgstr "Prefer AI-generated summary"
 
-#: src/components/SettingsTabs.tsx:58
+#: src/components/SettingsTabs.tsx:57
 #: src/routes/(root)/[handle]/settings/preferences.tsx:295
 #: src/routes/(root)/[handle]/settings/preferences.tsx:305
 msgid "Preferences"
@@ -3716,7 +3718,7 @@ msgstr "Processed"
 msgid "Processing rate"
 msgstr "Processing rate"
 
-#: src/components/SettingsTabs.tsx:49
+#: src/components/SettingsTabs.tsx:48
 msgid "Profile"
 msgstr "Profile"
 
@@ -4005,25 +4007,25 @@ msgstr "Remove from followers"
 msgid "Remove from sidebar"
 msgstr "Remove from sidebar"
 
-#: src/components/NoteComposer.tsx:1891
-#: src/components/NoteComposer.tsx:1892
+#: src/components/NoteComposer.tsx:1901
+#: src/components/NoteComposer.tsx:1902
 msgid "Remove image"
 msgstr "Remove image"
 
-#: src/components/NoteComposer.tsx:1710
-#: src/components/NoteComposer.tsx:1711
+#: src/components/NoteComposer.tsx:1720
+#: src/components/NoteComposer.tsx:1721
 msgid "Remove option"
 msgstr "Remove option"
 
-#: src/components/NoteComposer.tsx:1553
-#: src/components/NoteComposer.tsx:1554
-#: src/components/NoteComposer.tsx:1618
-#: src/components/NoteComposer.tsx:1619
+#: src/components/NoteComposer.tsx:1563
+#: src/components/NoteComposer.tsx:1564
+#: src/components/NoteComposer.tsx:1628
+#: src/components/NoteComposer.tsx:1629
 msgid "Remove poll"
 msgstr "Remove poll"
 
-#: src/components/NoteComposer.tsx:1470
-#: src/components/NoteComposer.tsx:1471
+#: src/components/NoteComposer.tsx:1480
+#: src/components/NoteComposer.tsx:1481
 msgid "Remove quote"
 msgstr "Remove quote"
 
@@ -4059,7 +4061,7 @@ msgstr "Reply"
 msgid "Replying is not available for this post"
 msgstr "Replying is not available for this post"
 
-#: src/components/NoteComposer.tsx:1364
+#: src/components/NoteComposer.tsx:1374
 msgid "Replying to"
 msgstr "Replying to"
 
@@ -4072,12 +4074,11 @@ msgstr "Report"
 msgid "Report {0}"
 msgstr "Report {0}"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:96
+#: src/components/SanctionHistoryList.tsx:46
 msgid "Report dismissed"
 msgstr "Report dismissed"
 
-#: src/routes/(root)/[handle]/settings/reports.tsx:74
-#: src/routes/(root)/[handle]/settings/reports.tsx:81
+#: src/routes/(root)/[handle]/settings/moderation.tsx:98
 msgid "Report history"
 msgstr "Report history"
 
@@ -4105,10 +4106,10 @@ msgid "Reported a post by {0}"
 msgstr "Reported a post by {0}"
 
 #: src/components/SettingsTabs.tsx:98
-msgid "Reports"
-msgstr "Reports"
+#~ msgid "Reports"
+#~ msgstr "Reports"
 
-#: src/routes/(root)/[handle]/settings/reports.tsx:83
+#: src/routes/(root)/[handle]/settings/moderation.tsx:100
 msgid "Reports you have filed, newest first. You can see the target, your reason, and the current status. Detailed outcomes are not shown, and the reported user never learns who reported them."
 msgstr "Reports you have filed, newest first. You can see the target, your reason, and the current status. Detailed outcomes are not shown, and the reported user never learns who reported them."
 
@@ -4193,8 +4194,8 @@ msgstr "Sanctioned actors"
 
 #: src/components/SettingsTabs.tsx:106
 #: src/routes/(root)/[handle]/settings/sanctions.tsx:130
-msgid "Sanctions"
-msgstr "Sanctions"
+#~ msgid "Sanctions"
+#~ msgstr "Sanctions"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:547
 #: src/routes/(root)/[handle]/settings/language.tsx:201
@@ -4204,7 +4205,7 @@ msgstr "Sanctions"
 msgid "Save"
 msgstr "Save"
 
-#: src/components/NoteComposer.tsx:1951
+#: src/components/NoteComposer.tsx:1961
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:625
 msgid "Save changes"
 msgstr "Save changes"
@@ -4218,7 +4219,7 @@ msgid "Save draft to see preview"
 msgstr "Save draft to see preview"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:36
-#: src/components/NoteComposer.tsx:1952
+#: src/components/NoteComposer.tsx:1962
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:625
 #: src/routes/(root)/[handle]/settings/index.tsx:547
 #: src/routes/(root)/[handle]/settings/language.tsx:201
@@ -4282,7 +4283,7 @@ msgstr "Select options"
 msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."
 msgstr "Select your preferred languages in order of preference. This will help tailor content to your preferences."
 
-#: src/components/NoteComposer.tsx:1643
+#: src/components/NoteComposer.tsx:1653
 msgid "Selection"
 msgstr "Selection"
 
@@ -4452,7 +4453,7 @@ msgstr "Signing in…"
 msgid "Signing up for Hackers' Pub"
 msgstr "Signing up for Hackers' Pub"
 
-#: src/components/NoteComposer.tsx:1652
+#: src/components/NoteComposer.tsx:1662
 #: src/components/QuestionCard.tsx:471
 msgid "Single choice"
 msgstr "Single choice"
@@ -4473,7 +4474,7 @@ msgstr "Slug cannot be empty"
 msgid "Snapshot at report time"
 msgstr "Snapshot at report time"
 
-#: src/components/NoteComposer.tsx:794
+#: src/components/NoteComposer.tsx:802
 msgid "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 msgstr "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 
@@ -4531,9 +4532,9 @@ msgstr "Subscribing…"
 #: src/components/article-composer/ArticleComposerContext.tsx:355
 #: src/components/article-composer/ArticleComposerContext.tsx:433
 #: src/components/article-composer/ArticleComposerContext.tsx:498
-#: src/components/NoteComposer.tsx:1104
-#: src/components/NoteComposer.tsx:1172
-#: src/components/NoteComposer.tsx:1231
+#: src/components/NoteComposer.tsx:1112
+#: src/components/NoteComposer.tsx:1180
+#: src/components/NoteComposer.tsx:1240
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:426
 #: src/routes/(root)/[handle]/drafts/index.tsx:175
 msgid "Success"
@@ -4575,7 +4576,7 @@ msgstr "Suspend"
 msgid "Suspended"
 msgstr "Suspended"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:197
+#: src/components/SanctionHistoryList.tsx:119
 #: src/routes/(root)/admin/moderation/[id].tsx:402
 msgid "Suspension ends"
 msgstr "Suspension ends"
@@ -4650,7 +4651,7 @@ msgstr "That is not a valid URL pattern."
 msgid "The accepting admin will receive a notification with a review link."
 msgstr "The accepting admin will receive a notification with a review link."
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:210
+#: src/components/SanctionHistoryList.tsx:132
 msgid "The appeal window has closed."
 msgstr "The appeal window has closed."
 
@@ -4843,7 +4844,7 @@ msgstr "The URL of the link, e.g., https://github.com/yourhandle."
 msgid "The Web Push public key is invalid."
 msgstr "The Web Push public key is invalid."
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:146
+#: src/components/SanctionHistoryList.tsx:76
 msgid "There are no moderation actions on your account."
 msgstr "There are no moderation actions on your account."
 
@@ -5160,7 +5161,7 @@ msgstr "Update your profile information, including your avatar, username, displa
 msgid "Updated {0}"
 msgstr "Updated {0}"
 
-#: src/components/NoteComposer.tsx:1807
+#: src/components/NoteComposer.tsx:1817
 msgid "Upload progress"
 msgstr "Upload progress"
 
@@ -5335,8 +5336,8 @@ msgstr "Voting…"
 
 #: src/components/admin/AppealResolveForm.tsx:93
 #: src/components/admin/ModerationActionForm.tsx:113
-#: src/components/NoteComposer.tsx:792
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:88
+#: src/components/NoteComposer.tsx:800
+#: src/components/SanctionHistoryList.tsx:38
 #: src/routes/(root)/admin/moderation/[id].tsx:139
 #: src/routes/(root)/admin/moderation/appeals.tsx:121
 #: src/routes/(root)/admin/moderation/statistics.tsx:73
@@ -5371,11 +5372,11 @@ msgstr "What happened?"
 msgid "What is Hackers' Pub?"
 msgstr "What is Hackers' Pub?"
 
-#: src/components/NoteComposer.tsx:1636
+#: src/components/NoteComposer.tsx:1646
 msgid "What should people decide?"
 msgstr "What should people decide?"
 
-#: src/components/NoteComposer.tsx:1521
+#: src/components/NoteComposer.tsx:1531
 msgid "What's on your mind?"
 msgstr "What's on your mind?"
 
@@ -5467,7 +5468,7 @@ msgstr "You are now hidden from the invitation tree."
 msgid "You are now shown in the invitation tree."
 msgstr "You are now shown in the invitation tree."
 
-#: src/components/NoteComposer.tsx:783
+#: src/components/NoteComposer.tsx:791
 msgid "You can attach up to {MAX_MEDIA} images"
 msgstr "You can attach up to {MAX_MEDIA} images"
 
@@ -5562,11 +5563,11 @@ msgstr "You may have already appealed, or the appeal window has closed."
 msgid "You must be signed in"
 msgstr "You must be signed in"
 
-#: src/components/NoteComposer.tsx:1248
+#: src/components/NoteComposer.tsx:1258
 msgid "You must be signed in to create a note"
 msgstr "You must be signed in to create a note"
 
-#: src/components/NoteComposer.tsx:1192
+#: src/components/NoteComposer.tsx:1200
 msgid "You must be signed in to create a poll"
 msgstr "You must be signed in to create a poll"
 
@@ -5575,7 +5576,7 @@ msgstr "You must be signed in to create a poll"
 msgid "You must be signed in to delete a draft"
 msgstr "You must be signed in to delete a draft"
 
-#: src/components/NoteComposer.tsx:1123
+#: src/components/NoteComposer.tsx:1131
 msgid "You must be signed in to edit a note"
 msgstr "You must be signed in to edit a note"
 
@@ -5616,7 +5617,7 @@ msgstr "You'll automatically follow each other when you sign up."
 msgid "You've been invited to Hackers' Pub"
 msgstr "You've been invited to Hackers' Pub"
 
-#: src/components/NoteComposer.tsx:1355
+#: src/components/NoteComposer.tsx:1365
 msgid "Your account is suspended, so you can't post right now. See your sanctions for details and how to appeal."
 msgstr "Your account is suspended, so you can't post right now. See your sanctions for details and how to appeal."
 

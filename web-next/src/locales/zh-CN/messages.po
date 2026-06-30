@@ -435,7 +435,7 @@ msgstr "@old@example.com 或 actor URL"
 
 #: src/components/admin/AppealResolveForm.tsx:301
 #: src/components/admin/ModerationActionForm.tsx:303
-#: src/components/NoteComposer.tsx:1736
+#: src/components/NoteComposer.tsx:1746
 msgid "1 day"
 msgstr "1 天"
 
@@ -444,11 +444,11 @@ msgstr "1 天"
 msgid "1 report"
 msgstr "1 条举报"
 
-#: src/components/NoteComposer.tsx:1752
+#: src/components/NoteComposer.tsx:1762
 msgid "1 week"
 msgstr "1 周"
 
-#: src/components/NoteComposer.tsx:1744
+#: src/components/NoteComposer.tsx:1754
 msgid "3 days"
 msgstr "3 天"
 
@@ -540,7 +540,7 @@ msgstr "正在接受…"
 
 #: src/components/admin/AdminAccountsTable.tsx:295
 #: src/components/AppSidebar.tsx:810
-#: src/components/SettingsTabs.tsx:115
+#: src/components/SettingsTabs.tsx:106
 msgid "Account"
 msgstr "账户"
 
@@ -564,7 +564,7 @@ msgstr "账户类型"
 msgid "Account migration"
 msgstr "账户迁移"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:94
+#: src/components/SanctionHistoryList.tsx:44
 msgid "Account permanently suspended"
 msgstr "账户已永久封停"
 
@@ -573,7 +573,7 @@ msgstr "账户已永久封停"
 msgid "Account settings"
 msgstr "账户设置"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:92
+#: src/components/SanctionHistoryList.tsx:42
 msgid "Account suspended"
 msgstr "账户已封停"
 
@@ -620,16 +620,16 @@ msgstr "添加"
 msgid "Add {0}"
 msgstr "添加{0}"
 
-#: src/components/NoteComposer.tsx:992
+#: src/components/NoteComposer.tsx:1000
 msgid "Add at least {MIN_POLL_OPTIONS} poll options"
 msgstr "请至少添加 {MIN_POLL_OPTIONS} 个投票调查选项"
 
-#: src/components/NoteComposer.tsx:1685
+#: src/components/NoteComposer.tsx:1695
 msgid "Add option"
 msgstr "添加选项"
 
-#: src/components/NoteComposer.tsx:1553
-#: src/components/NoteComposer.tsx:1554
+#: src/components/NoteComposer.tsx:1563
+#: src/components/NoteComposer.tsx:1564
 msgid "Add poll"
 msgstr "添加投票调查"
 
@@ -681,11 +681,11 @@ msgstr "全部"
 msgid "All accounts"
 msgstr "全部账户"
 
-#: src/components/NoteComposer.tsx:1072
+#: src/components/NoteComposer.tsx:1080
 msgid "All images must finish uploading before posting"
 msgstr "发布前，所有图片必须完成上传。"
 
-#: src/components/NoteComposer.tsx:1080
+#: src/components/NoteComposer.tsx:1088
 msgid "All images require alt text"
 msgstr "所有图片均需提供替代文字。"
 
@@ -720,11 +720,11 @@ msgid "Also send this report to the remote instance ({0})"
 msgstr "同时将此举报发送给远程实例（{0}）"
 
 #. placeholder {0}: index() + 1
-#: src/components/NoteComposer.tsx:1820
+#: src/components/NoteComposer.tsx:1830
 msgid "Alt text for image {0}"
 msgstr "图片 {0} 的替代文字"
 
-#: src/components/NoteComposer.tsx:1832
+#: src/components/NoteComposer.tsx:1842
 msgid "Alt text for visually impaired people (required)"
 msgstr "供视力障碍人士使用的替代文字（必填）"
 
@@ -776,11 +776,11 @@ msgstr "你认为未被考虑的任何情况。"
 msgid "Appeal"
 msgstr "申诉"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:116
+#: src/components/SanctionHistoryList.tsx:66
 msgid "Appeal denied: the decision stands"
 msgstr "申诉被驳回：维持原决定"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:106
+#: src/components/SanctionHistoryList.tsx:56
 msgid "Appeal pending"
 msgstr "申诉待处理"
 
@@ -788,7 +788,7 @@ msgstr "申诉待处理"
 msgid "Appeal resolved"
 msgstr "申诉已处理"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:114
+#: src/components/SanctionHistoryList.tsx:64
 msgid "Appeal reviewed: the sanction was increased"
 msgstr "申诉已审核：处罚已加重"
 
@@ -797,19 +797,19 @@ msgid "Appeal submitted"
 msgstr "申诉已提交"
 
 #: src/components/AppealDialog.tsx:131
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:220
+#: src/components/SanctionHistoryList.tsx:141
 msgid "Appeal this decision"
 msgstr "对此决定提出申诉"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:105
+#: src/components/SanctionHistoryList.tsx:55
 msgid "Appeal under review"
 msgstr "申诉审核中"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:110
+#: src/components/SanctionHistoryList.tsx:60
 msgid "Appeal upheld: the decision was withdrawn"
 msgstr "申诉成立：决定已撤销"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:112
+#: src/components/SanctionHistoryList.tsx:62
 msgid "Appeal upheld: the sanction was reduced"
 msgstr "申诉成立：处罚已减轻"
 
@@ -897,8 +897,8 @@ msgstr "自打你已经把用户名换成 {0} 了，你再也改不了了。"
 msgid "Assigned to {0}"
 msgstr "已分配给 {0}"
 
-#: src/components/NoteComposer.tsx:1542
-#: src/components/NoteComposer.tsx:1543
+#: src/components/NoteComposer.tsx:1552
+#: src/components/NoteComposer.tsx:1553
 msgid "Attach image"
 msgstr "附加图片"
 
@@ -911,12 +911,12 @@ msgstr "正在验证…"
 msgid "Author"
 msgstr "作者"
 
-#: src/components/NoteComposer.tsx:1851
+#: src/components/NoteComposer.tsx:1861
 msgid "Auto-fill"
 msgstr "自动填写"
 
-#: src/components/NoteComposer.tsx:1844
-#: src/components/NoteComposer.tsx:1845
+#: src/components/NoteComposer.tsx:1854
+#: src/components/NoteComposer.tsx:1855
 msgid "Auto-fill alt text"
 msgstr "自动填写替代文字"
 
@@ -1031,9 +1031,9 @@ msgstr "由 {0} 发布"
 
 #: src/components/AppealDialog.tsx:187
 #: src/components/article-composer/ArticleComposerActions.tsx:48
-#: src/components/NoteComposer.tsx:1879
-#: src/components/NoteComposer.tsx:1880
-#: src/components/NoteComposer.tsx:1923
+#: src/components/NoteComposer.tsx:1889
+#: src/components/NoteComposer.tsx:1890
+#: src/components/NoteComposer.tsx:1933
 #: src/components/PostActionMenu.tsx:456
 #: src/components/ProfileActionMenu.tsx:532
 #: src/components/ProfileActionMenu.tsx:533
@@ -1180,8 +1180,8 @@ msgstr "代码"
 msgid "Code of conduct"
 msgstr "行为准则"
 
-#. placeholder {0}: sanction .violatedProvisions.join(", ")
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:179
+#. placeholder {0}: sanction.violatedProvisions.join(", ")
+#: src/components/SanctionHistoryList.tsx:102
 msgid "Code of conduct: {0}"
 msgstr "行为准则：{0}"
 
@@ -1195,12 +1195,12 @@ msgid "Compose"
 msgstr "写作"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:65
-#: src/components/NoteComposer.tsx:1489
+#: src/components/NoteComposer.tsx:1499
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:489
 msgid "Content"
 msgstr "内容"
 
-#: src/components/NoteComposer.tsx:1062
+#: src/components/NoteComposer.tsx:1070
 msgid "Content cannot be empty"
 msgstr "内容不能为空"
 
@@ -1359,7 +1359,7 @@ msgstr "创建邀请链接"
 #: src/components/AppSidebar.tsx:1053
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:78
-#: src/components/NoteComposer.tsx:1945
+#: src/components/NoteComposer.tsx:1955
 msgid "Create note"
 msgstr "创建帖子"
 
@@ -1368,7 +1368,7 @@ msgstr "创建帖子"
 msgid "Create organization"
 msgstr "创建组织"
 
-#: src/components/NoteComposer.tsx:1944
+#: src/components/NoteComposer.tsx:1954
 msgid "Create poll"
 msgstr "创建投票调查"
 
@@ -1389,7 +1389,7 @@ msgstr "{0}创建"
 msgid "Creating account…"
 msgstr "正在创建账户…"
 
-#: src/components/NoteComposer.tsx:1947
+#: src/components/NoteComposer.tsx:1957
 #: src/routes/(root)/[handle]/settings/account.tsx:833
 #: src/routes/(root)/[handle]/settings/invite.tsx:855
 msgid "Creating…"
@@ -1421,7 +1421,7 @@ msgstr "CW"
 msgid "Daily digest"
 msgstr "每日摘要"
 
-#: src/components/NoteComposer.tsx:1727
+#: src/components/NoteComposer.tsx:1737
 msgid "Deadline"
 msgstr "截止时间"
 
@@ -1433,7 +1433,7 @@ msgstr "处理方式"
 msgid "Decisions"
 msgstr "处理记录"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:138
+#: src/routes/(root)/[handle]/settings/moderation.tsx:111
 msgid "Decisions the moderation team has made about your account or posts, newest first. You can appeal a decision once, within 14 days."
 msgstr "管理团队对你的账户或内容做出的决定，按时间倒序排列。每个决定可在 14 天内申诉一次。"
 
@@ -1566,7 +1566,7 @@ msgstr "昵称"
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "需要创建账户吗？Hackers' Pub 仅限邀请，请联系朋友邀请您。"
 
-#: src/components/NoteComposer.tsx:926
+#: src/components/NoteComposer.tsx:934
 msgid "Do you want to quote this link?"
 msgstr "要引用此链接吗？"
 
@@ -1678,27 +1678,27 @@ msgstr "请在下方输入您的邮箱或用户名以登录。"
 #: src/components/article-composer/ArticleComposerContext.tsx:515
 #: src/components/article-composer/ArticleComposerContext.tsx:523
 #: src/components/article-composer/ArticleComposerForm.tsx:35
-#: src/components/NoteComposer.tsx:782
-#: src/components/NoteComposer.tsx:829
-#: src/components/NoteComposer.tsx:973
-#: src/components/NoteComposer.tsx:983
+#: src/components/NoteComposer.tsx:790
+#: src/components/NoteComposer.tsx:837
+#: src/components/NoteComposer.tsx:981
 #: src/components/NoteComposer.tsx:991
 #: src/components/NoteComposer.tsx:999
-#: src/components/NoteComposer.tsx:1009
+#: src/components/NoteComposer.tsx:1007
 #: src/components/NoteComposer.tsx:1017
-#: src/components/NoteComposer.tsx:1061
-#: src/components/NoteComposer.tsx:1071
+#: src/components/NoteComposer.tsx:1025
+#: src/components/NoteComposer.tsx:1069
 #: src/components/NoteComposer.tsx:1079
-#: src/components/NoteComposer.tsx:1114
+#: src/components/NoteComposer.tsx:1087
 #: src/components/NoteComposer.tsx:1122
 #: src/components/NoteComposer.tsx:1130
-#: src/components/NoteComposer.tsx:1182
-#: src/components/NoteComposer.tsx:1191
+#: src/components/NoteComposer.tsx:1138
+#: src/components/NoteComposer.tsx:1190
 #: src/components/NoteComposer.tsx:1199
-#: src/components/NoteComposer.tsx:1239
-#: src/components/NoteComposer.tsx:1247
-#: src/components/NoteComposer.tsx:1255
-#: src/components/NoteComposer.tsx:1312
+#: src/components/NoteComposer.tsx:1207
+#: src/components/NoteComposer.tsx:1249
+#: src/components/NoteComposer.tsx:1257
+#: src/components/NoteComposer.tsx:1265
+#: src/components/NoteComposer.tsx:1322
 #: src/components/QuotedNoteCard.tsx:377
 #: src/components/QuotedNoteCard.tsx:385
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:346
@@ -1829,7 +1829,7 @@ msgstr "未能开启浏览器通知"
 msgid "Failed to follow"
 msgstr "关注失败"
 
-#: src/components/NoteComposer.tsx:1313
+#: src/components/NoteComposer.tsx:1323
 msgid "Failed to generate alt text"
 msgstr "替代文字生成失败"
 
@@ -1909,11 +1909,11 @@ msgstr "加载更多转帖失败，点击重试"
 msgid "Failed to load more; click to retry"
 msgstr "加载更多失败；点击重试"
 
-#: src/components/NoteComposer.tsx:1371
+#: src/components/NoteComposer.tsx:1381
 msgid "Failed to load post"
 msgstr "无法加载内容"
 
-#: src/components/NoteComposer.tsx:1422
+#: src/components/NoteComposer.tsx:1432
 msgid "Failed to load quoted post"
 msgstr "无法加载引用内容"
 
@@ -2100,7 +2100,7 @@ msgstr "文章更新失败，请重试。"
 #~ msgstr "帖子更新失败，请重试。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:38
-#: src/components/NoteComposer.tsx:832
+#: src/components/NoteComposer.tsx:840
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:349
 msgid "Failed to upload image"
 msgstr "图片上传失败"
@@ -2180,7 +2180,7 @@ msgstr "格式"
 msgid "Forwarded to the remote instance"
 msgstr "已转发给远程实例"
 
-#: src/components/NoteComposer.tsx:1870
+#: src/components/NoteComposer.tsx:1880
 msgid "Generating…"
 msgstr "生成中…"
 
@@ -2430,9 +2430,9 @@ msgstr "联邦宇宙用户名格式无效。"
 #: src/components/article-composer/ArticleComposerContext.tsx:369
 #: src/components/article-composer/ArticleComposerContext.tsx:443
 #: src/components/article-composer/ArticleComposerContext.tsx:508
-#: src/components/NoteComposer.tsx:1115
-#: src/components/NoteComposer.tsx:1184
-#: src/components/NoteComposer.tsx:1240
+#: src/components/NoteComposer.tsx:1123
+#: src/components/NoteComposer.tsx:1192
+#: src/components/NoteComposer.tsx:1250
 #: src/routes/(root)/[handle]/drafts/index.tsx:185
 msgid "Invalid input: {0}"
 msgstr "无效输入：{0}"
@@ -2492,7 +2492,7 @@ msgid "Invitations left"
 msgstr "剩余邀请"
 
 #: src/components/AppSidebar.tsx:928
-#: src/components/SettingsTabs.tsx:74
+#: src/components/SettingsTabs.tsx:73
 #: src/routes/(root)/[handle]/settings/invite.tsx:311
 msgid "Invite"
 msgstr "邀请"
@@ -2571,7 +2571,7 @@ msgstr "语言代码"
 msgid "Language settings"
 msgstr "语言设置"
 
-#: src/components/SettingsTabs.tsx:66
+#: src/components/SettingsTabs.tsx:65
 msgid "Languages"
 msgstr "语言"
 
@@ -2837,7 +2837,7 @@ msgstr "正在加载更多新闻…"
 msgid "Loading more…"
 msgstr "正在加载更多…"
 
-#: src/components/NoteComposer.tsx:1423
+#: src/components/NoteComposer.tsx:1433
 msgid "Loading quoted post…"
 msgstr "正在加载引用内容…"
 
@@ -2845,7 +2845,7 @@ msgstr "正在加载引用内容…"
 msgid "Loading search results…"
 msgstr "正在加载搜索结果…"
 
-#: src/components/NoteComposer.tsx:1372
+#: src/components/NoteComposer.tsx:1382
 #: src/routes/(root)/[handle]/drafts/index.tsx:344
 #: src/routes/(root)/sign/up/[token].tsx:465
 msgid "Loading…"
@@ -2872,7 +2872,7 @@ msgid "Markdown guide"
 msgstr "Markdown 指南"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:90
-#: src/components/NoteComposer.tsx:1601
+#: src/components/NoteComposer.tsx:1611
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:514
 msgid "Markdown supported"
 msgstr "Markdown 可用"
@@ -2930,10 +2930,12 @@ msgstr "管理"
 
 #: src/components/AdminTabs.tsx:34
 #: src/components/ModerationNotificationList.tsx:161
+#: src/components/SettingsTabs.tsx:97
+#: src/routes/(root)/[handle]/settings/moderation.tsx:92
 msgid "Moderation"
 msgstr "审核"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:136
+#: src/routes/(root)/[handle]/settings/moderation.tsx:109
 msgid "Moderation actions"
 msgstr "审核处理"
 
@@ -2966,7 +2968,7 @@ msgstr "移动到顶部"
 msgid "Move up"
 msgstr "向上移动"
 
-#: src/components/NoteComposer.tsx:1660
+#: src/components/NoteComposer.tsx:1670
 #: src/components/QuestionCard.tsx:471
 msgid "Multiple choice"
 msgstr "多选"
@@ -2987,7 +2989,7 @@ msgstr "已隐藏的账户"
 msgid "Muted accounts are hidden from your feeds and stop notifying you, except for replies and mentions from accounts you follow. You can still visit their profiles, and muting is private and never federated."
 msgstr "被隐藏的账户不会出现在你的时间线中，也不会通知你，但你关注的账户的回复和提及仍会通知你。你仍可访问其个人资料；隐藏是私密的，且不会进行联邦。"
 
-#: src/components/SettingsTabs.tsx:90
+#: src/components/SettingsTabs.tsx:89
 msgid "Mutes & blocks"
 msgstr "隐藏与屏蔽"
 
@@ -3274,7 +3276,7 @@ msgstr "尚未订阅任何中继。"
 msgid "Note (optional)"
 msgstr "备注（可选）"
 
-#: src/components/NoteComposer.tsx:1232
+#: src/components/NoteComposer.tsx:1241
 msgid "Note created successfully"
 msgstr "帖子创建成功"
 
@@ -3283,7 +3285,7 @@ msgstr "帖子创建成功"
 msgid "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
 msgstr "你可以验证这些链接确实属于你。在链接的页面上使用 {0} 属性链接回你的 Hackers' Pub 个人资料页。"
 
-#: src/components/NoteComposer.tsx:1105
+#: src/components/NoteComposer.tsx:1113
 msgid "Note updated"
 msgstr "帖子已更新。"
 
@@ -3369,11 +3371,11 @@ msgid "Open post"
 msgstr "打开内容"
 
 #. placeholder {0}: index() + 1
-#: src/components/NoteComposer.tsx:1701
+#: src/components/NoteComposer.tsx:1711
 msgid "Option {0}"
 msgstr "选项 {0}"
 
-#: src/components/NoteComposer.tsx:1668
+#: src/components/NoteComposer.tsx:1678
 #: src/components/PostActionMenu.tsx:349
 #: src/components/PostActionMenu.tsx:350
 msgid "Options"
@@ -3446,7 +3448,7 @@ msgstr "通行密钥注册成功"
 msgid "Passkey revoked"
 msgstr "通行密钥已撤销"
 
-#: src/components/SettingsTabs.tsx:82
+#: src/components/SettingsTabs.tsx:81
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:356
 msgid "Passkeys"
 msgstr "通行密钥"
@@ -3559,7 +3561,7 @@ msgstr "请登录以访问此页面"
 msgid "Please sign in to vote"
 msgstr "请登录后投票"
 
-#: src/components/NoteComposer.tsx:1611
+#: src/components/NoteComposer.tsx:1621
 msgid "Poll"
 msgstr "投票调查"
 
@@ -3567,35 +3569,35 @@ msgstr "投票调查"
 msgid "Poll closed"
 msgstr "投票调查已结束"
 
-#: src/components/NoteComposer.tsx:1173
+#: src/components/NoteComposer.tsx:1181
 msgid "Poll created successfully"
 msgstr "投票调查已创建"
 
-#: src/components/NoteComposer.tsx:1010
+#: src/components/NoteComposer.tsx:1018
 msgid "Poll deadline is invalid"
 msgstr "投票调查截止时间无效"
 
-#: src/components/NoteComposer.tsx:1018
+#: src/components/NoteComposer.tsx:1026
 msgid "Poll deadline must be at least 1 minute from now"
 msgstr "投票调查截止时间必须至少晚于现在 1 分钟"
 
-#: src/components/NoteComposer.tsx:984
+#: src/components/NoteComposer.tsx:992
 msgid "Poll options cannot be empty"
 msgstr "投票调查选项不能为空"
 
-#: src/components/NoteComposer.tsx:1000
+#: src/components/NoteComposer.tsx:1008
 msgid "Poll options must be unique"
 msgstr "投票调查选项不能重复"
 
-#: src/components/NoteComposer.tsx:1629
+#: src/components/NoteComposer.tsx:1639
 msgid "Poll title"
 msgstr "投票调查标题"
 
-#: src/components/NoteComposer.tsx:974
+#: src/components/NoteComposer.tsx:982
 msgid "Poll title cannot be empty"
 msgstr "投票调查标题不能为空"
 
-#: src/components/NoteComposer.tsx:1764
+#: src/components/NoteComposer.tsx:1774
 msgid "Polls cannot be edited after publishing."
 msgstr "投票调查发布后无法编辑。"
 
@@ -3618,7 +3620,7 @@ msgstr "内容已屏蔽"
 msgid "Post deleted"
 msgstr "内容已删除"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:90
+#: src/components/SanctionHistoryList.tsx:40
 msgid "Post hidden"
 msgstr "内容已隐藏"
 
@@ -3639,7 +3641,7 @@ msgstr "内容"
 msgid "Prefer AI-generated summary"
 msgstr "优先使用 AI 生成的摘要"
 
-#: src/components/SettingsTabs.tsx:58
+#: src/components/SettingsTabs.tsx:57
 #: src/routes/(root)/[handle]/settings/preferences.tsx:295
 #: src/routes/(root)/[handle]/settings/preferences.tsx:305
 msgid "Preferences"
@@ -3712,7 +3714,7 @@ msgstr "已处理"
 msgid "Processing rate"
 msgstr "处理率"
 
-#: src/components/SettingsTabs.tsx:49
+#: src/components/SettingsTabs.tsx:48
 msgid "Profile"
 msgstr "个人资料"
 
@@ -4001,25 +4003,25 @@ msgstr "从粉丝中移除"
 msgid "Remove from sidebar"
 msgstr "从侧边栏移除"
 
-#: src/components/NoteComposer.tsx:1891
-#: src/components/NoteComposer.tsx:1892
+#: src/components/NoteComposer.tsx:1901
+#: src/components/NoteComposer.tsx:1902
 msgid "Remove image"
 msgstr "移除图片"
 
-#: src/components/NoteComposer.tsx:1710
-#: src/components/NoteComposer.tsx:1711
+#: src/components/NoteComposer.tsx:1720
+#: src/components/NoteComposer.tsx:1721
 msgid "Remove option"
 msgstr "移除选项"
 
-#: src/components/NoteComposer.tsx:1553
-#: src/components/NoteComposer.tsx:1554
-#: src/components/NoteComposer.tsx:1618
-#: src/components/NoteComposer.tsx:1619
+#: src/components/NoteComposer.tsx:1563
+#: src/components/NoteComposer.tsx:1564
+#: src/components/NoteComposer.tsx:1628
+#: src/components/NoteComposer.tsx:1629
 msgid "Remove poll"
 msgstr "移除投票调查"
 
-#: src/components/NoteComposer.tsx:1470
-#: src/components/NoteComposer.tsx:1471
+#: src/components/NoteComposer.tsx:1480
+#: src/components/NoteComposer.tsx:1481
 msgid "Remove quote"
 msgstr "移除引用"
 
@@ -4055,7 +4057,7 @@ msgstr "回复"
 msgid "Replying is not available for this post"
 msgstr "无法回复此内容"
 
-#: src/components/NoteComposer.tsx:1364
+#: src/components/NoteComposer.tsx:1374
 msgid "Replying to"
 msgstr "回复给"
 
@@ -4068,12 +4070,11 @@ msgstr "举报"
 msgid "Report {0}"
 msgstr "举报 {0}"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:96
+#: src/components/SanctionHistoryList.tsx:46
 msgid "Report dismissed"
 msgstr "举报已驳回"
 
-#: src/routes/(root)/[handle]/settings/reports.tsx:74
-#: src/routes/(root)/[handle]/settings/reports.tsx:81
+#: src/routes/(root)/[handle]/settings/moderation.tsx:98
 msgid "Report history"
 msgstr "举报记录"
 
@@ -4101,10 +4102,10 @@ msgid "Reported a post by {0}"
 msgstr "已举报 {0} 的内容"
 
 #: src/components/SettingsTabs.tsx:98
-msgid "Reports"
-msgstr "举报记录"
+#~ msgid "Reports"
+#~ msgstr "举报记录"
 
-#: src/routes/(root)/[handle]/settings/reports.tsx:83
+#: src/routes/(root)/[handle]/settings/moderation.tsx:100
 msgid "Reports you have filed, newest first. You can see the target, your reason, and the current status. Detailed outcomes are not shown, and the reported user never learns who reported them."
 msgstr "按时间倒序显示你提交的举报。你可以查看举报对象、填写的理由和当前状态。详细的处理结果不会显示，被举报的用户也永远不会知道是谁举报的。"
 
@@ -4189,8 +4190,8 @@ msgstr "受处罚的行为者"
 
 #: src/components/SettingsTabs.tsx:106
 #: src/routes/(root)/[handle]/settings/sanctions.tsx:130
-msgid "Sanctions"
-msgstr "处罚"
+#~ msgid "Sanctions"
+#~ msgstr "处罚"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:547
 #: src/routes/(root)/[handle]/settings/language.tsx:201
@@ -4200,7 +4201,7 @@ msgstr "处罚"
 msgid "Save"
 msgstr "保存"
 
-#: src/components/NoteComposer.tsx:1951
+#: src/components/NoteComposer.tsx:1961
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:625
 msgid "Save changes"
 msgstr "保存更改"
@@ -4214,7 +4215,7 @@ msgid "Save draft to see preview"
 msgstr "保存草稿以查看预览"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:36
-#: src/components/NoteComposer.tsx:1952
+#: src/components/NoteComposer.tsx:1962
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:625
 #: src/routes/(root)/[handle]/settings/index.tsx:547
 #: src/routes/(root)/[handle]/settings/language.tsx:201
@@ -4278,7 +4279,7 @@ msgstr "请选择选项"
 msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."
 msgstr "按偏好顺序选择您的偏好语言。这将有助于根据您的偏好定制内容。"
 
-#: src/components/NoteComposer.tsx:1643
+#: src/components/NoteComposer.tsx:1653
 msgid "Selection"
 msgstr "选择方式"
 
@@ -4448,7 +4449,7 @@ msgstr "登录中…"
 msgid "Signing up for Hackers' Pub"
 msgstr "注册 Hackers' Pub"
 
-#: src/components/NoteComposer.tsx:1652
+#: src/components/NoteComposer.tsx:1662
 #: src/components/QuestionCard.tsx:471
 msgid "Single choice"
 msgstr "单选"
@@ -4469,7 +4470,7 @@ msgstr "URL 别名不能为空"
 msgid "Snapshot at report time"
 msgstr "举报时的快照"
 
-#: src/components/NoteComposer.tsx:794
+#: src/components/NoteComposer.tsx:802
 msgid "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 msgstr "已达到 {MAX_MEDIA} 张图片上限，部分图片已被跳过"
 
@@ -4527,9 +4528,9 @@ msgstr "正在订阅…"
 #: src/components/article-composer/ArticleComposerContext.tsx:355
 #: src/components/article-composer/ArticleComposerContext.tsx:433
 #: src/components/article-composer/ArticleComposerContext.tsx:498
-#: src/components/NoteComposer.tsx:1104
-#: src/components/NoteComposer.tsx:1172
-#: src/components/NoteComposer.tsx:1231
+#: src/components/NoteComposer.tsx:1112
+#: src/components/NoteComposer.tsx:1180
+#: src/components/NoteComposer.tsx:1240
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:426
 #: src/routes/(root)/[handle]/drafts/index.tsx:175
 msgid "Success"
@@ -4571,7 +4572,7 @@ msgstr "封停"
 msgid "Suspended"
 msgstr "已封停"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:197
+#: src/components/SanctionHistoryList.tsx:119
 #: src/routes/(root)/admin/moderation/[id].tsx:402
 msgid "Suspension ends"
 msgstr "封停结束"
@@ -4646,7 +4647,7 @@ msgstr "这不是有效的 URL 模式。"
 msgid "The accepting admin will receive a notification with a review link."
 msgstr "接受管理员将收到包含审核链接的通知。"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:210
+#: src/components/SanctionHistoryList.tsx:132
 msgid "The appeal window has closed."
 msgstr "申诉期限已结束。"
 
@@ -4839,7 +4840,7 @@ msgstr "该链接的 URL，例如 https://github.com/nideyonghuming 。"
 msgid "The Web Push public key is invalid."
 msgstr "Web Push 公钥无效。"
 
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:146
+#: src/components/SanctionHistoryList.tsx:76
 msgid "There are no moderation actions on your account."
 msgstr "你的账户没有任何审核处理。"
 
@@ -5156,7 +5157,7 @@ msgstr "更新您的个人资料信息，包括头像、用户名、昵称、个
 msgid "Updated {0}"
 msgstr "更新于 {0}"
 
-#: src/components/NoteComposer.tsx:1807
+#: src/components/NoteComposer.tsx:1817
 msgid "Upload progress"
 msgstr "上传进度"
 
@@ -5331,8 +5332,8 @@ msgstr "正在投票…"
 
 #: src/components/admin/AppealResolveForm.tsx:93
 #: src/components/admin/ModerationActionForm.tsx:113
-#: src/components/NoteComposer.tsx:792
-#: src/routes/(root)/[handle]/settings/sanctions.tsx:88
+#: src/components/NoteComposer.tsx:800
+#: src/components/SanctionHistoryList.tsx:38
 #: src/routes/(root)/admin/moderation/[id].tsx:139
 #: src/routes/(root)/admin/moderation/appeals.tsx:121
 #: src/routes/(root)/admin/moderation/statistics.tsx:73
@@ -5367,11 +5368,11 @@ msgstr "发生了什么？"
 msgid "What is Hackers' Pub?"
 msgstr "什么是 Hackers' Pub？"
 
-#: src/components/NoteComposer.tsx:1636
+#: src/components/NoteComposer.tsx:1646
 msgid "What should people decide?"
 msgstr "你想让大家决定什么？"
 
-#: src/components/NoteComposer.tsx:1521
+#: src/components/NoteComposer.tsx:1531
 msgid "What's on your mind?"
 msgstr "你在想啥？"
 
@@ -5463,7 +5464,7 @@ msgstr "你现在已从邀请树中隐藏。"
 msgid "You are now shown in the invitation tree."
 msgstr "你现在会显示在邀请树中。"
 
-#: src/components/NoteComposer.tsx:783
+#: src/components/NoteComposer.tsx:791
 msgid "You can attach up to {MAX_MEDIA} images"
 msgstr "最多可附加 {MAX_MEDIA} 张图片"
 
@@ -5558,11 +5559,11 @@ msgstr "你可能已经申诉过，或申诉期限已结束。"
 msgid "You must be signed in"
 msgstr "请先登录"
 
-#: src/components/NoteComposer.tsx:1248
+#: src/components/NoteComposer.tsx:1258
 msgid "You must be signed in to create a note"
 msgstr "你必须登录才能创建帖子"
 
-#: src/components/NoteComposer.tsx:1192
+#: src/components/NoteComposer.tsx:1200
 msgid "You must be signed in to create a poll"
 msgstr "你必须登录才能创建投票调查"
 
@@ -5571,7 +5572,7 @@ msgstr "你必须登录才能创建投票调查"
 msgid "You must be signed in to delete a draft"
 msgstr "您必须登录才能删除草稿"
 
-#: src/components/NoteComposer.tsx:1123
+#: src/components/NoteComposer.tsx:1131
 msgid "You must be signed in to edit a note"
 msgstr "编辑帖子需要登录。"
 
@@ -5612,7 +5613,7 @@ msgstr "您在注册时将自动互相关注。"
 msgid "You've been invited to Hackers' Pub"
 msgstr "你被邀请加入 Hackers' Pub"
 
-#: src/components/NoteComposer.tsx:1355
+#: src/components/NoteComposer.tsx:1365
 msgid "Your account is suspended, so you can't post right now. See your sanctions for details and how to appeal."
 msgstr "你的账户已被封停，目前无法发帖。详情及申诉方法请查看处罚记录。"
 

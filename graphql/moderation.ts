@@ -1249,7 +1249,7 @@ async function sendModerationActionEmail(
   if (emails.length < 1) return;
   const locale = new Intl.Locale(account.locales?.[0] ?? "en");
   const appealUrl = new URL(
-    `/@${account.username}/settings/sanctions`,
+    `/@${account.username}/settings/moderation`,
     ctx.fedCtx.canonicalOrigin,
   ).href;
   const targetUrl = flagCase.targetPost?.url ??

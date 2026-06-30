@@ -358,6 +358,8 @@ test("takeModerationAction records a warning and emails the user", async () => {
     assert.ok(body.length > 0);
     assert.match(body, /2\.3/);
     assert.match(body, /Please review our code of conduct on harassment\./);
+    assert.match(body, /\/@author\/settings\/moderation/);
+    assert.ok(!body.includes("/settings/sanctions"));
     // The reporter's wording must never reach the reported user:
     assert.ok(!body.includes(REASON));
   });
