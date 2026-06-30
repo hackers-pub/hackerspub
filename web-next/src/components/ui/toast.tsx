@@ -1,3 +1,4 @@
+import { A } from "@solidjs/router";
 import type { JSX, ValidComponent } from "solid-js";
 import { Match, splitProps, Switch } from "solid-js";
 import { Portal } from "solid-js/web";
@@ -146,6 +147,7 @@ const ToastDescription = <T extends ValidComponent = "div">(
 function showToast(props: {
   title?: JSX.Element;
   description?: JSX.Element;
+  href?: string;
   variant?: ToastVariant;
   duration?: number;
 }) {
@@ -155,15 +157,49 @@ function showToast(props: {
       variant={props.variant}
       duration={props.duration}
     >
-      <div class="grid gap-1">
-        {props.title && <ToastTitle>{props.title}</ToastTitle>}
-        {props.description && (
-          <ToastDescription>{props.description}</ToastDescription>
+      <div
+        class={cn(
+          "grid gap-1",
+          props.href && "min-w-0 flex-1",
         )}
+      >
+        <ShowToastContent
+          toastId={data.toastId}
+          href={props.href}
+          title={props.title}
+          description={props.description}
+        />
       </div>
       <ToastClose />
     </Toast>
   ));
+}
+
+function ShowToastContent(props: {
+  toastId: number;
+  href?: string;
+  title?: JSX.Element;
+  description?: JSX.Element;
+}) {
+  const content = (
+    <>
+      {props.title && <ToastTitle>{props.title}</ToastTitle>}
+      {props.description && (
+        <ToastDescription>{props.description}</ToastDescription>
+      )}
+    </>
+  );
+
+  if (props.href == null) return content;
+  return (
+    <A
+      href={props.href}
+      class="block min-w-0 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      onClick={() => ToastPrimitive.toaster.dismiss(props.toastId)}
+    >
+      {content}
+    </A>
+  );
 }
 
 function showToastPromise<T, U>(

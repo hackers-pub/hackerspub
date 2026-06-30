@@ -18,6 +18,7 @@ import {
 } from "solid-js";
 import { createMutation, useRelayEnvironment } from "solid-relay";
 import { ensureLinkInContent } from "~/lib/composerLink.ts";
+import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { detectLanguage } from "~/lib/langdet.ts";
 import {
   UploadAbortedError,
@@ -71,6 +72,13 @@ const NoteComposerMutation = graphql`
             edgeTypeName: "PostLinkSharingPostsConnectionEdge"
           ) {
           id
+          uuid
+          sourceId
+          actor {
+            handle
+            username
+            local
+          }
           # Only news-discussion posts prepend into a connection and need the
           # row fields; skip them for every other compose/reply/quote path.
           ...NewsDiscussionThread_post
@@ -1227,9 +1235,11 @@ export function NoteComposer(props: NoteComposerProps) {
         },
         onCompleted(response) {
           if (response.createNote.__typename === "CreateNotePayload") {
+            const href = getNoteInternalHref(response.createNote.note);
             showToast({
               title: t`Success`,
               description: t`Note created successfully`,
+              href,
               variant: "success",
             });
             resetForm();
@@ -1957,4 +1967,17 @@ export function NoteComposer(props: NoteComposerProps) {
       </div>
     </form>
   );
+}
+
+function getNoteInternalHref(
+  note: NonNullable<
+    NoteComposerMutation["response"]["createNote"] & {
+      __typename: "CreateNotePayload";
+    }
+  >["note"],
+): string {
+  const actorSegment = note.actor.local
+    ? `@${note.actor.username}`
+    : encodeHandleSegment(note.actor.handle);
+  return `/${actorSegment}/${note.sourceId ?? note.uuid}`;
 }
