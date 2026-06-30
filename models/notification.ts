@@ -558,6 +558,25 @@ export async function deleteNotification(
   emoji?: string | CustomEmoji | null,
 ): Promise<Notification | undefined> {
   try {
+    const deletedExact = await db.delete(notificationTable)
+      .where(
+        and(
+          eq(notificationTable.accountId, accountId),
+          eq(notificationTable.type, type),
+          postId == null
+            ? isNull(notificationTable.postId)
+            : eq(notificationTable.postId, postId),
+          emoji == null
+            ? undefined
+            : typeof emoji === "string"
+            ? eq(notificationTable.emoji, emoji)
+            : eq(notificationTable.customEmojiId, emoji.id),
+          sql`${notificationTable.actorIds} = ARRAY[${actorId}]::uuid[]`,
+        ),
+      )
+      .returning();
+    if (deletedExact[0] != null) return deletedExact[0];
+
     const updated = await db.update(notificationTable)
       .set({
         actorIds: sql`array_remove(${notificationTable.actorIds}, ${actorId})`,
@@ -574,6 +593,7 @@ export async function deleteNotification(
             : typeof emoji === "string"
             ? eq(notificationTable.emoji, emoji)
             : eq(notificationTable.customEmojiId, emoji.id),
+          sql`${actorId} = ANY(${notificationTable.actorIds})`,
         ),
       )
       .returning();

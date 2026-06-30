@@ -6,6 +6,7 @@ import {
   createFollowNotification,
   createOrganizationInvitationNotification,
   createShareNotification,
+  deleteFollowNotification,
   deleteShareNotification,
   getNotifications,
 } from "./notification.ts";
@@ -190,7 +191,7 @@ test("deleteShareNotification() prunes merged actors and deletes empty rows", as
     );
 
     assert.ok(deleted != null);
-    assert.deepEqual(deleted.actorIds, []);
+    assert.deepEqual(deleted.actorIds, [secondSharer.actor.id]);
 
     const removedNotification = await tx.query.notificationTable.findFirst({
       where: {
@@ -200,6 +201,51 @@ test("deleteShareNotification() prunes merged actors and deletes empty rows", as
       },
     });
     assert.deepEqual(removedNotification, undefined);
+  });
+});
+
+test("deleteFollowNotification() deletes exact rows before pruning actors", async () => {
+  await withRollback(async (tx) => {
+    const recipient = await insertAccountWithActor(tx, {
+      username: "deletefollowrecipient",
+      name: "Delete Follow Recipient",
+      email: "deletefollowrecipient@example.com",
+    });
+    const follower = await insertAccountWithActor(tx, {
+      username: "deletefollowfollower",
+      name: "Delete Follow Follower",
+      email: "deletefollowfollower@example.com",
+    });
+    await tx.insert(notificationTable).values({
+      id: "019f19d0-0000-7000-8000-000000000001",
+      accountId: recipient.account.id,
+      type: "follow",
+      actorIds: [],
+    });
+    await createFollowNotification(
+      tx,
+      recipient.account.id,
+      follower.actor,
+    );
+
+    const deleted = await deleteFollowNotification(
+      tx,
+      recipient.account.id,
+      follower.actor,
+    );
+
+    assert.ok(deleted != null);
+    assert.deepEqual(deleted.actorIds, [follower.actor.id]);
+
+    const remaining = await tx.query.notificationTable.findMany({
+      where: {
+        accountId: recipient.account.id,
+        type: "follow",
+      },
+      orderBy: { created: "asc" },
+    });
+    assert.equal(remaining.length, 1);
+    assert.deepEqual(remaining[0].actorIds, []);
   });
 });
 
