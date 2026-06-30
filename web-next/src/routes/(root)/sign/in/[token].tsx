@@ -1,16 +1,20 @@
 import { EXPIRATION } from "@hackerspub/models/session";
 import { validateUuid } from "@hackerspub/models/uuid";
 import { redirect } from "@solidjs/router";
-import { getQuery, getRequestProtocol, setCookie } from "@solidjs/start/http";
+import { getQuery } from "@solidjs/start/http";
 import type { APIEvent } from "@solidjs/start/server";
 import { commitMutation, graphql } from "relay-runtime";
 import { createEnvironment } from "~/RelayEnvironment.tsx";
+import {
+  buildSessionSetCookieHeader,
+  isSecureRequest,
+} from "~/lib/sessionCookie.ts";
 import type {
   TokenCompleteMutation,
   TokenCompleteMutation$data,
 } from "./__generated__/TokenCompleteMutation.graphql.ts";
 
-export async function GET({ params, nativeEvent }: APIEvent) {
+export async function GET({ params, nativeEvent, request }: APIEvent) {
   if (!validateUuid(params.token)) {
     throw new Error("Invalid token"); // FIXME
   }
@@ -58,12 +62,14 @@ export async function GET({ params, nativeEvent }: APIEvent) {
     throw new Error("Invalid token or code"); // FIXME
   }
   const sessionId = result.id;
-  setCookie(nativeEvent, "session", sessionId, {
-    httpOnly: true,
-    path: "/",
+  // Avoid setCookie(nativeEvent, ...): SolidStart 2.0.0-alpha.2 can produce a
+  // malformed Set-Cookie name for API route handlers.
+  const cookie = buildSessionSetCookieHeader(sessionId, {
     expires: new Date(Date.now() + EXPIRATION.total("millisecond")),
-    secure: getRequestProtocol(nativeEvent) === "https",
+    secure: isSecureRequest(request),
   });
   const next = typeof query.next === "string" ? query.next : "/";
-  return redirect(next);
+  return redirect(next, {
+    headers: { "Set-Cookie": cookie },
+  });
 }
