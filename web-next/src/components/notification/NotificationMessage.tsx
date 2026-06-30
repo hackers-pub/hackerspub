@@ -5,7 +5,6 @@ import type { JSX } from "solid-js";
 import { For, Match, Show, Switch } from "solid-js";
 import { createFragment } from "solid-relay";
 import { ActorHoverCard } from "~/components/ActorHoverCard.tsx";
-import { NotificationActor } from "~/components/NotificationActor.tsx";
 import { Trans } from "~/components/Trans.tsx";
 import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
 import type { NotificationMessage_notification$key } from "./__generated__/NotificationMessage_notification.graphql.ts";
@@ -51,11 +50,48 @@ export function NotificationMessage(props: NotificationMessageProps) {
             }
           }
         }
-        ...NotificationActor_notification
       }
     `,
     () => props.$notification,
   );
+
+  type Notification = NonNullable<ReturnType<typeof notification>>;
+
+  const firstActor = (notification: Notification) =>
+    notification.actors.edges[0]?.node;
+
+  const actorElement = (notification: Notification) => {
+    const actor = firstActor(notification);
+    if (actor == null) return null;
+    const href = `/${actor.local ? `@${actor.username}` : actor.handle}`;
+    return (
+      <ActorHoverCard handle={actor.handle}>
+        <a href={href} class="min-w-0">
+          <Show
+            keyed
+            when={actor.name}
+            fallback={
+              <span class="font-semibold text-muted-foreground">
+                {actor.handle}
+              </span>
+            }
+          >
+            {(name) => (
+              <span class="inline min-w-0">
+                <span innerHTML={name} class="font-semibold" />{" "}
+                <span
+                  class="break-all text-muted-foreground"
+                  title={actor.handle}
+                >
+                  ({actor.handle})
+                </span>
+              </span>
+            )}
+          </Show>
+        </a>
+      </ActorHoverCard>
+    );
+  };
 
   return (
     <Show keyed when={notification()}>
@@ -90,9 +126,7 @@ export function NotificationMessage(props: NotificationMessageProps) {
                 <Trans
                   message={props.singleActorMessage}
                   values={{
-                    ACTOR: () => (
-                      <NotificationActor $notification={notification} />
-                    ),
+                    ACTOR: () => actorElement(notification),
                     ...props.additionalValues,
                   }}
                 />
@@ -103,9 +137,7 @@ export function NotificationMessage(props: NotificationMessageProps) {
                 <Trans
                   message={props.multipleActorMessage}
                   values={{
-                    ACTOR: () => (
-                      <NotificationActor $notification={notification} />
-                    ),
+                    ACTOR: () => actorElement(notification),
                     COUNT: () => notification.actors.edges.length - 1,
                     ...props.additionalValues,
                   }}
