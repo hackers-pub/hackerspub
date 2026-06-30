@@ -6,8 +6,11 @@ import { mount, StartClient } from "@solidjs/start/client";
 import { render } from "solid-js/web";
 import { startClientMemoryWatchdog } from "~/lib/clientMemoryWatchdog.ts";
 import { isNetworkError } from "~/lib/networkError.ts";
+import { installPromiseWithResolversPolyfill } from "~/lib/promiseWithResolvers.ts";
 import { isTransientUpstreamGraphQLErrorEvent } from "~/lib/upstreamGraphQLError.ts";
 import packageJson from "../package.json" with { type: "json" };
+
+installPromiseWithResolversPolyfill();
 
 if (import.meta.env.DEV) {
   void import("~/lib/installSolidDevtools.ts");
