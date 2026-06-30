@@ -367,7 +367,10 @@ export async function persistActor(
     featuredPosts.reverse();
     await db.delete(pinTable).where(eq(pinTable.actorId, result.id));
     for (const p of featuredPosts) {
-      await db.insert(pinTable).values({ postId: p.id, actorId: result.id });
+      if (p.actorId !== result.id) continue;
+      await db.insert(pinTable)
+        .values({ postId: p.id, actorId: result.id })
+        .onConflictDoNothing();
     }
   }
   const outbox = options.outbox ? await actor.getOutbox(getterOpts) : null;

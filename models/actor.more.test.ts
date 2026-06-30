@@ -84,6 +84,49 @@ test("persistActor() ignores invalid remote follow collections", async () => {
   });
 });
 
+test("persistActor() skips featured posts authored by other actors", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const author = await insertAccountWithActor(tx, {
+      username: "featuredauthor",
+      name: "Featured Author",
+      email: "featuredauthor@example.com",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Other actor featured post",
+    });
+    const actorObject = new vocab.Person({
+      id: new URL("https://featured.example/users/alice"),
+      preferredUsername: "alice",
+      name: "Alice Featured",
+      inbox: new URL("https://featured.example/users/alice/inbox"),
+      followers: new URL("https://featured.example/users/alice/followers"),
+      url: new URL("https://featured.example/@alice"),
+    });
+    Object.defineProperty(actorObject, "getFeatured", {
+      value: () =>
+        new vocab.Collection({
+          items: [
+            new vocab.Note({
+              id: new URL(post.iri),
+              attribution: new URL(author.actor.iri),
+              content: "Other actor featured post",
+            }),
+          ],
+        }),
+    });
+
+    const actor = await persistActor(fedCtx, actorObject, { outbox: false });
+
+    assert.ok(actor != null);
+    const pins = await tx.query.pinTable.findMany({
+      where: { actorId: actor.id },
+    });
+    assert.deepEqual(pins, []);
+  });
+});
+
 test("persistActorsByHandles() fetches missing handles and returns cached actors on repeat", async () => {
   await withRollback(async (tx) => {
     const { kv, store } = createTestKv();
