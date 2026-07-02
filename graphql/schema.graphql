@@ -4390,6 +4390,11 @@ type PostQuotesConnectionEdge {
 type PostRepliesConnection {
   edges: [PostRepliesConnectionEdge!]!
   pageInfo: PageInfo!
+
+  """
+  Total number of direct replies visible to the selected viewer account, independent of the current page size. Unlike counting the fetched edges, this is not capped by `first`, and excludes the same censored, sanction-hidden, and not-visible replies as the edges.
+  """
+  totalCount: Int!
 }
 
 type PostRepliesConnectionEdge {

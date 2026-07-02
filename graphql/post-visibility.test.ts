@@ -566,3 +566,76 @@ test("Post.replies applies the acting account's visibility, not the personal one
     );
   });
 });
+
+test("Post.replies.totalCount counts only visible replies", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "rtcauthor",
+      name: "RTC Author",
+      email: "rtcauthor@example.com",
+    });
+    const follower = await insertAccountWithActor(tx, {
+      username: "rtcfollower",
+      name: "RTC Follower",
+      email: "rtcfollower@example.com",
+    });
+    const stranger = await insertAccountWithActor(tx, {
+      username: "rtcstranger",
+      name: "RTC Stranger",
+      email: "rtcstranger@example.com",
+    });
+    await follows(tx, follower, author);
+    const { post: root } = await insertNotePost(tx, {
+      account: author.account,
+      content: "root",
+    });
+    await insertNotePost(tx, {
+      account: author.account,
+      content: "public reply",
+      replyTargetId: root.id,
+    });
+    await insertNotePost(tx, {
+      account: author.account,
+      content: "followers-only reply",
+      visibility: "followers",
+      replyTargetId: root.id,
+    });
+
+    const query = parse(`
+      query($id: ID!) {
+        node(id: $id) { ... on Post { replies(first: 0) { totalCount } } }
+      }
+    `);
+    const gid = encodeGlobalID("Note", root.id);
+    interface Data {
+      node: { replies: { totalCount: number } };
+    }
+
+    const asStranger = await execute({
+      schema,
+      document: query,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, stranger.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(asStranger.errors, undefined);
+    // The stranger sees only the public reply, not the followers-only one.
+    assert.equal(
+      (asStranger.data as unknown as Data).node.replies.totalCount,
+      1,
+    );
+
+    const asFollower = await execute({
+      schema,
+      document: query,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, follower.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(asFollower.errors, undefined);
+    assert.equal(
+      (asFollower.data as unknown as Data).node.replies.totalCount,
+      2,
+    );
+  });
+});

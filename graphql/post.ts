@@ -1393,6 +1393,36 @@ async function visibleRelatedPostsPage(
   return await loadActorProfilePostPage(ctx, page, viewerActorId);
 }
 
+// Exact count of everything `visibleRelatedPostsPage` would return across all
+// pages, for a connection `totalCount` that is not capped by the page size.
+// Direct replies/quotes/shares of one post are bounded, so counting ids is
+// acceptable; the relational visibility filter cannot be expressed as a plain
+// SQL `$count` predicate.  `resolveViewerActorId`/`getActorById` are
+// per-request cached, so re-resolving them here is free.
+async function countVisibleRelatedPosts(
+  ctx: UserContext,
+  args: ActingAccountIdArg,
+  column: "replyTargetId" | "quotedPostId" | "sharedPostId",
+  targetId: Uuid,
+): Promise<number> {
+  const viewerActorId = await resolveViewerActorId(ctx, args);
+  const viewerActor = viewerActorId == null
+    ? null
+    : await getActorById(ctx, viewerActorId);
+  const rows = await ctx.db.query.postTable.findMany({
+    columns: { id: true },
+    where: {
+      AND: [
+        { [column]: targetId },
+        { actor: getSanctionVisibleActorFilter() },
+        getCensoredPostExclusionFilter(viewerActorId),
+        getPostVisibilityFilter(viewerActor),
+      ],
+    },
+  });
+  return rows.length;
+}
+
 // The id-only companion of loadVisibleThreadPosts, for checking path
 // ancestors that never become connection nodes themselves: same filters,
 // no relation hydration.
@@ -1594,8 +1624,29 @@ builder.drizzleInterfaceFields(Post, (t) => ({
           startCursor: pageInfo.startCursor,
           endCursor: pageInfo.endCursor,
         },
+        // Carried for the lazy `totalCount` field below.
+        countTargetId: post.id,
+        countArgs: args,
       };
     },
+  }, {
+    fields: (t) => ({
+      totalCount: t.int({
+        description:
+          "Total number of direct replies visible to the selected viewer " +
+          "account, independent of the current page size. Unlike counting " +
+          "the fetched edges, this is not capped by `first`, and excludes " +
+          "the same censored, sanction-hidden, and not-visible replies as " +
+          "the edges.",
+        resolve: (connection, _args, ctx) =>
+          countVisibleRelatedPosts(
+            ctx,
+            connection.countArgs,
+            "replyTargetId",
+            connection.countTargetId,
+          ),
+      }),
+    }),
   }),
   ancestors: t.connection({
     type: Post,
