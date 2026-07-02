@@ -639,3 +639,54 @@ test("Post.replies.totalCount counts only visible replies", async () => {
     );
   });
 });
+
+test("descendants hydrate note sources so own replies stay editable", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "editauthor",
+      name: "Edit Author",
+      email: "editauthor@example.com",
+    });
+    const { post: root } = await insertNotePost(tx, {
+      account: author.account,
+      content: "root",
+    });
+    await insertNotePost(tx, {
+      account: author.account,
+      content: "editable reply body",
+      replyTargetId: root.id,
+    });
+
+    const query = parse(`
+      query($id: ID!) {
+        node(id: $id) {
+          ... on Post {
+            descendants(first: 10) {
+              edges { node { ... on Note { rawContent } } }
+            }
+          }
+        }
+      }
+    `);
+    interface Data {
+      node: {
+        descendants: { edges: { node: { rawContent: string | null } }[] };
+      };
+    }
+
+    const result = await execute({
+      schema,
+      document: query,
+      variableValues: { id: encodeGlobalID("Note", root.id) },
+      contextValue: makeUserContext(tx, author.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(result.errors, undefined);
+    const edges = (result.data as unknown as Data).node.descendants.edges;
+    assert.equal(edges.length, 1);
+    // The author owns the reply, so its Markdown source must resolve; before
+    // the loader hydrated `noteSource` this came back `null` and the client
+    // hid the edit action.
+    assert.equal(edges[0].node.rawContent, "editable reply body");
+  });
+});
