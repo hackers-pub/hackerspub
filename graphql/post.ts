@@ -1384,8 +1384,9 @@ async function visibleRelatedPostsPage(
       ],
     },
     // `id` breaks `published` ties so offset pagination is stable (no
-    // duplicated or skipped rows across pages when timestamps collide).
-    orderBy: { published: "desc", id: "desc" },
+    // duplicated or skipped rows across pages when timestamps collide). The
+    // callback form guarantees both columns order deterministically.
+    orderBy: (post, { desc }) => [desc(post.published), desc(post.id)],
     limit,
     offset,
   });
