@@ -127,6 +127,16 @@ msgstr "{0, plural, one {Recomputed # link.} other {Recomputed # links.}}"
 msgid "{0, plural, one {Regenerated invitations for # account.} other {Regenerated invitations for # accounts.}}"
 msgstr "{0, plural, one {Regenerated invitations for # account.} other {Regenerated invitations for # accounts.}}"
 
+#. placeholder {0}: hiddenCount()
+#: src/components/PermalinkThread.tsx:316
+msgid "{0, plural, one {Show # more post} other {Show # more posts}}"
+msgstr "{0, plural, one {Show # more post} other {Show # more posts}}"
+
+#. placeholder {0}: subtreeSize()
+#: src/components/PermalinkThread.tsx:584
+msgid "{0, plural, one {Show # reply} other {Show # replies}}"
+msgstr "{0, plural, one {Show # reply} other {Show # replies}}"
+
 #. placeholder {0}: account.inviteesCount.totalCount
 #: src/routes/(root)/[handle]/settings/invite.tsx:458
 msgid "{0, plural, one {You have invited total # person so far.} other {You have invited total # people so far.}}"
@@ -353,7 +363,7 @@ msgstr "{0} will receive a notification to review it."
 #. placeholder {1}: post.excerpt
 #. placeholder {1}: title()
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:255
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:312
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:262
 msgid "{0}: {1}"
 msgstr "{0}: {1}"
 
@@ -1208,6 +1218,10 @@ msgstr "Content cannot be empty"
 msgid "Continue in browser"
 msgstr "Continue in browser"
 
+#: src/components/PermalinkThread.tsx:838
+msgid "Continue this thread"
+msgstr "Continue this thread"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:912
 msgid "Control how you appear in the public invitation tree that shows who invited whom."
 msgstr "Control how you appear in the public invitation tree that shows who invited whom."
@@ -1898,7 +1912,7 @@ msgstr "Failed to load more quotes; click to retry"
 msgid "Failed to load more reactors; click to retry"
 msgstr "Failed to load more reactors; click to retry"
 
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:755
+#: src/components/PermalinkThread.tsx:505
 msgid "Failed to load more replies; click to retry"
 msgstr "Failed to load more replies; click to retry"
 
@@ -2363,6 +2377,10 @@ msgstr "Hide me from the invitation tree"
 #~ msgid "Hide preview"
 #~ msgstr "Hide preview"
 
+#: src/components/PermalinkThread.tsx:601
+msgid "Hide replies"
+msgstr "Hide replies"
+
 #: src/components/TopBreadcrumb.tsx:21
 #~ msgid "Home"
 #~ msgstr "Home"
@@ -2381,17 +2399,17 @@ msgstr "If enabled, the AI will generate a summary of the article for you. Other
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:979
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:586
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:536
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:424
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:374
 msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 msgstr "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:504
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:454
 msgid "If you have a fediverse account, you can reply to this post from your own instance. Search {0} on your instance and reply to it."
 msgstr "If you have a fediverse account, you can reply to this post from your own instance. Search {0} on your instance and reply to it."
 
@@ -2740,7 +2758,7 @@ msgstr "Load more quotes"
 #~ msgstr "Load more reactors (+{0})"
 
 #: src/components/NewsDiscussionThread.tsx:529
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:758
+#: src/components/PermalinkThread.tsx:508
 msgid "Load more replies"
 msgstr "Load more replies"
 
@@ -2818,7 +2836,7 @@ msgstr "Loading more quotes…"
 msgid "Loading more reactors…"
 msgstr "Loading more reactors…"
 
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:752
+#: src/components/PermalinkThread.tsx:502
 msgid "Loading more replies…"
 msgstr "Loading more replies…"
 
@@ -4478,6 +4496,10 @@ msgstr "Snapshot at report time"
 msgid "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 msgstr "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 
+#: src/components/PermalinkThread.tsx:331
+msgid "Some posts in this thread cannot be shown."
+msgstr "Some posts in this thread cannot be shown."
+
 #: src/app.tsx:120
 msgid "Something went wrong"
 msgstr "Something went wrong"
@@ -5257,6 +5279,10 @@ msgstr "Verifying your invitation…"
 msgid "View all drafts →"
 msgstr "View all drafts →"
 
+#: src/components/PermalinkThread.tsx:360
+msgid "View earlier posts in this thread"
+msgstr "View earlier posts in this thread"
+
 #: src/components/NoteMedia.tsx:68
 msgid "View image"
 msgstr "View image"
@@ -5416,9 +5442,9 @@ msgstr "Write"
 
 #: src/components/NoteComposeModal.tsx:115
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:970
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:415
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:495
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:577
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:365
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:445
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:527
 msgid "Write a reply…"
 msgstr "Write a reply…"
 

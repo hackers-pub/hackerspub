@@ -1,9 +1,6 @@
 // The `/replies` sub-route is the canonical destination for the
-// engagement bar's reply control.  For now it re-uses the bare
-// permalink renderer at `./index.tsx`, which already shows the
-// immediate parent, the focused post, an inline composer, and a flat
-// paginated list of direct replies.  A follow-up unit will extend the
-// thread view here with a deeper ancestor chain and recursive
-// descendant expansion, at which point the two routes will diverge in
-// content as the user requested.
+// engagement bar's reply control.  It is an intentional alias of the
+// bare permalink at `./index.tsx`, which renders the full thread view:
+// the ancestor chain up to the thread root, the focused post with an
+// inline composer, and the nested reply tree.
 export { default, route } from "./index.tsx";
