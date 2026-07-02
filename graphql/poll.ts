@@ -1,6 +1,7 @@
 import * as vocab from "@fedify/vocab";
 import { renderCustomEmojis } from "@hackerspub/models/emoji";
 import { addExternalLinkTargets } from "@hackerspub/models/html";
+import { OrganizationPermissionError } from "@hackerspub/models/organization";
 import { vote } from "@hackerspub/models/poll";
 import {
   getSanctionVisibleActorFilter,
@@ -26,10 +27,9 @@ import {
   lte,
   or,
 } from "drizzle-orm";
-import { OrganizationPermissionError } from "@hackerspub/models/organization";
 import { Account } from "./account.ts";
-import { Actor } from "./actor.ts";
 import { resolveActingAccountForMutation } from "./acting-account.ts";
+import { Actor } from "./actor.ts";
 import { builder, type UserContext } from "./builder.ts";
 import { ActorSuspendedError, InvalidInputError } from "./error.ts";
 import { isPostVisibleToViewer, Post, Question } from "./post.ts";
