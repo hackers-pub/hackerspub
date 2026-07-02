@@ -88,6 +88,25 @@ export function getRelativeTimeUpdateDelayMs(
   return DAY;
 }
 
+// `Intl.RelativeTimeFormat` is comparatively expensive to construct (it loads
+// CLDR data for the locale). The previous implementation built a fresh
+// formatter on every render, which is wasteful when 25+ timeline cards each
+// re-render their relative timestamp every 1s/30s/1min. Cache by the
+// (locale, options) tuple that actually affects output.
+const relativeTimeFormatCache = new Map<string, Intl.RelativeTimeFormat>();
+function getRelativeTimeFormat(
+  locale: string,
+  options: Intl.RelativeTimeFormatOptions,
+): Intl.RelativeTimeFormat {
+  const key = `${locale}|${options.numeric ?? ""}|${options.style ?? ""}`;
+  let f = relativeTimeFormatCache.get(key);
+  if (f == null) {
+    f = new Intl.RelativeTimeFormat(locale, options);
+    relativeTimeFormatCache.set(key, f);
+  }
+  return f;
+}
+
 function formatRelativeTime(
   currentDate: Date,
   targetDate: Date,
@@ -107,16 +126,17 @@ function formatRelativeTime(
   for (const { unit, ms } of UNITS) {
     if (absDiff >= ms) {
       const value = Math.round(diffMs / ms);
-      const f = new Intl.RelativeTimeFormat(locale, options).format(
-        value,
-        unit,
-      );
+      const f = getRelativeTimeFormat(locale, options).format(value, unit);
       return options.capitalizeFirstLetter
         ? f.charAt(0).toUpperCase() + f.slice(1)
         : f;
     }
   }
-  const f = new Intl.RelativeTimeFormat(locale).format(0, "second");
+  // Use the caller-supplied `options` here so the fallback respects
+  // `numeric` / `style` the same way the loop above does. Hardcoding a
+  // different `numeric` would change the output for value=0 (e.g. "now"
+  // under "auto" vs "0 seconds ago" under the Intl default "always").
+  const f = getRelativeTimeFormat(locale, options).format(0, "second");
   return options.capitalizeFirstLetter
     ? f.charAt(0).toUpperCase() + f.slice(1)
     : f;

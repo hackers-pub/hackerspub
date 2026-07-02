@@ -1,5 +1,5 @@
 import { POSSIBLE_LOCALES } from "@hackerspub/models/i18n";
-import { Show } from "solid-js";
+import { createMemo, Show } from "solid-js";
 import {
   Combobox,
   ComboboxContent,
@@ -28,20 +28,37 @@ interface LocaleInfo {
   readonly disabled: boolean;
 }
 
+// `Intl.DisplayNames` instances are expensive: each one loads CLDR tables for
+// its target locale. With ~200 entries in POSSIBLE_LOCALES we'd otherwise
+// allocate that many tables on every read of `locales()`. Cache per-locale
+// formatters once at module scope and reuse them.
+const nativeDisplayNamesCache = new Map<string, Intl.DisplayNames>();
+function getNativeDisplayNames(locale: string): Intl.DisplayNames {
+  let dn = nativeDisplayNamesCache.get(locale);
+  if (dn == null) {
+    dn = new Intl.DisplayNames(locale, { type: "language" });
+    nativeDisplayNamesCache.set(locale, dn);
+  }
+  return dn;
+}
+
+const englishNames = new Intl.DisplayNames("en", { type: "language" });
+
 export function LanguageSelect(props: LanguageSelectProps) {
   const { t, i18n } = useLingui();
-  const displayNames = new Intl.DisplayNames(i18n.locale, { type: "language" });
-  const englishNames = new Intl.DisplayNames("en", { type: "language" });
-  const locales = () => {
+  const displayNames = createMemo(() =>
+    new Intl.DisplayNames(i18n.locale, { type: "language" })
+  );
+  const locales = createMemo(() => {
+    const dn = displayNames();
     const localeCodes: string[] = [...POSSIBLE_LOCALES];
-    if (props.value != null && localeCodes.includes(props.value.baseName)) {
+    if (props.value != null && !localeCodes.includes(props.value.baseName)) {
       localeCodes.push(props.value.baseName);
     }
-    const locales = localeCodes.map<LocaleInfo>((locale) => {
-      const name = displayNames.of(locale) ?? locale;
-      const nativeName =
-        new Intl.DisplayNames(locale, { type: "language" }).of(locale) ??
-          locale;
+    const exclude = props.exclude;
+    const result = localeCodes.map<LocaleInfo>((locale) => {
+      const name = dn.of(locale) ?? locale;
+      const nativeName = getNativeDisplayNames(locale).of(locale) ?? locale;
       return {
         code: locale,
         name,
@@ -50,12 +67,12 @@ export function LanguageSelect(props: LanguageSelectProps) {
           englishNames.of(locale) ?? ""
         }`
           .trim(),
-        disabled: props.exclude?.some((l) => l.baseName === locale) ?? false,
+        disabled: exclude?.some((l) => l.baseName === locale) ?? false,
       };
     });
-    locales.sort((a, b) => a.name.localeCompare(b.name));
-    return locales;
-  };
+    result.sort((a, b) => a.name.localeCompare(b.name));
+    return result;
+  });
   return (
     <Combobox<LocaleInfo>
       options={locales()}
