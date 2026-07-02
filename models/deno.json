@@ -52,6 +52,7 @@
     "./session": "./session.ts",
     "./signin": "./signin.ts",
     "./signup": "./signup.ts",
+    "./thread": "./thread.ts",
     "./timeline": "./timeline.ts",
     "./tx": "./tx.ts",
     "./upload": "./upload.ts",
