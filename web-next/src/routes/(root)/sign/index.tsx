@@ -464,6 +464,7 @@ export default function SignPage() {
             <OTPField maxLength={6}>
               <OTPFieldInput
                 ref={codeInput}
+                inputMode="text"
                 pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
                 tabindex={0}
                 on:input={onCodeInput}
