@@ -1041,6 +1041,16 @@ type Article implements Node & Post & Reactable {
   excerptHtml(maxChars: Int!): HTML!
 
   """
+  Whether this post has at least one quote the selected viewer can see, under the same filter as the `quotes` connection (author sanction state, censorship, and per-post visibility). Prefer this over `engagementStats.quotes > 0` when deciding whether to show a "show quotes" affordance: the raw counter includes quotes hidden from the viewer (followers-only, direct, censored, or by a sanctioned author), so branching on it would surface an affordance that then loads an empty list, revealing that hidden quotes exist. Pass `actingAccountId` for an organization perspective.
+  """
+  hasVisibleQuotes(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
+
+  """
   Whether this post has at least one direct reply the selected viewer can see, under the same filter as the `replies` connection (author sanction state, censorship, and per-post visibility). Prefer this over `engagementStats.replies > 0` when deciding whether to show a "continue this thread" affordance in a thread view: the raw counter includes replies hidden from the viewer (followers-only, direct, censored, or by a sanctioned author), so branching on it would reveal that hidden replies exist. Pass `actingAccountId` for an organization perspective.
   """
   hasVisibleReplies(
@@ -3279,6 +3289,16 @@ type Note implements Node & Post & Reactable {
   excerptHtml(maxChars: Int!): HTML!
 
   """
+  Whether this post has at least one quote the selected viewer can see, under the same filter as the `quotes` connection (author sanction state, censorship, and per-post visibility). Prefer this over `engagementStats.quotes > 0` when deciding whether to show a "show quotes" affordance: the raw counter includes quotes hidden from the viewer (followers-only, direct, censored, or by a sanctioned author), so branching on it would surface an affordance that then loads an empty list, revealing that hidden quotes exist. Pass `actingAccountId` for an organization perspective.
+  """
+  hasVisibleQuotes(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
+
+  """
   Whether this post has at least one direct reply the selected viewer can see, under the same filter as the `replies` connection (author sanction state, censorship, and per-post visibility). Prefer this over `engagementStats.replies > 0` when deciding whether to show a "continue this thread" affordance in a thread view: the raw counter includes replies hidden from the viewer (followers-only, direct, censored, or by a sanctioned author), so branching on it would reveal that hidden replies exist. Pass `actingAccountId` for an organization perspective.
   """
   hasVisibleReplies(
@@ -4026,6 +4046,16 @@ interface Post implements Node & Reactable {
   A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post) and the viewer is neither the content's author nor a moderator.
   """
   excerptHtml(maxChars: Int!): HTML!
+
+  """
+  Whether this post has at least one quote the selected viewer can see, under the same filter as the `quotes` connection (author sanction state, censorship, and per-post visibility). Prefer this over `engagementStats.quotes > 0` when deciding whether to show a "show quotes" affordance: the raw counter includes quotes hidden from the viewer (followers-only, direct, censored, or by a sanctioned author), so branching on it would surface an affordance that then loads an empty list, revealing that hidden quotes exist. Pass `actingAccountId` for an organization perspective.
+  """
+  hasVisibleQuotes(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 
   """
   Whether this post has at least one direct reply the selected viewer can see, under the same filter as the `replies` connection (author sanction state, censorship, and per-post visibility). Prefer this over `engagementStats.replies > 0` when deciding whether to show a "continue this thread" affordance in a thread view: the raw counter includes replies hidden from the viewer (followers-only, direct, censored, or by a sanctioned author), so branching on it would reveal that hidden replies exist. Pass `actingAccountId` for an organization perspective.
@@ -5068,6 +5098,16 @@ type Question implements Node & Post & Reactable {
   A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post) and the viewer is neither the content's author nor a moderator.
   """
   excerptHtml(maxChars: Int!): HTML!
+
+  """
+  Whether this post has at least one quote the selected viewer can see, under the same filter as the `quotes` connection (author sanction state, censorship, and per-post visibility). Prefer this over `engagementStats.quotes > 0` when deciding whether to show a "show quotes" affordance: the raw counter includes quotes hidden from the viewer (followers-only, direct, censored, or by a sanctioned author), so branching on it would surface an affordance that then loads an empty list, revealing that hidden quotes exist. Pass `actingAccountId` for an organization perspective.
+  """
+  hasVisibleQuotes(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Boolean!
 
   """
   Whether this post has at least one direct reply the selected viewer can see, under the same filter as the `replies` connection (author sanction state, censorship, and per-post visibility). Prefer this over `engagementStats.replies > 0` when deciding whether to show a "continue this thread" affordance in a thread view: the raw counter includes replies hidden from the viewer (followers-only, direct, censored, or by a sanctioned author), so branching on it would reveal that hidden replies exist. Pass `actingAccountId` for an organization perspective.

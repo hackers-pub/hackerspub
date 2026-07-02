@@ -132,6 +132,7 @@ const threadPostFragment = graphql`
       quotes
     }
     hasVisibleReplies(actingAccountId: $actingAccountId)
+    hasVisibleQuotes(actingAccountId: $actingAccountId)
     actor {
       id
       name
@@ -496,6 +497,12 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
   onCleanup(() => disposed = true);
 
   const quoteCount = () => post()?.engagementStats.quotes ?? 0;
+  // Whether any quote is visible to the viewer. The raw `quotes` counter above
+  // still drives the collapsed label (it is public, shown in the engagement
+  // bar), but the quote branch and its auto-expansion gate on this so a post
+  // whose quotes are all hidden from the viewer does not surface a "show
+  // quotes" affordance that then loads an empty list.
+  const hasVisibleQuotes = () => post()?.hasVisibleQuotes ?? false;
 
   const replyChildren = createMemo<readonly SubtreeReplyNode[]>(() => {
     const p = post();
@@ -616,7 +623,7 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
       if (quotedPostId() === post()?.id) loadQuotes();
     }));
     if (
-      quoteCount() > 0 &&
+      hasVisibleQuotes() &&
       (props.depth < NEWS_DISCUSSION_AUTO_DEPTH ||
         (props.targetUuid != null &&
           props.depth < NEWS_DISCUSSION_TARGET_MAX_DEPTH))
@@ -754,9 +761,9 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
             </div>
           </article>
 
-          <Show when={quoteCount() > 0 || replyChildren().length > 0}>
+          <Show when={hasVisibleQuotes() || replyChildren().length > 0}>
             <div class="ml-4 sm:ml-6">
-              <Show when={quoteCount() > 0}>
+              <Show when={hasVisibleQuotes()}>
                 <Show
                   when={expanded()}
                   fallback={

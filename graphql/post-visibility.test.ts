@@ -972,3 +972,72 @@ test("reactionGroups hides a group whose only reactor is sanction-hidden", async
     assert.equal(data.node.heart, null);
   });
 });
+
+test("hasVisibleQuotes hides the existence of a followers-only quote", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "hvqauthor",
+      name: "HVQ Author",
+      email: "hvqauthor@example.com",
+    });
+    const follower = await insertAccountWithActor(tx, {
+      username: "hvqfollower",
+      name: "HVQ Follower",
+      email: "hvqfollower@example.com",
+    });
+    const stranger = await insertAccountWithActor(tx, {
+      username: "hvqstranger",
+      name: "HVQ Stranger",
+      email: "hvqstranger@example.com",
+    });
+    await follows(tx, follower, author);
+    const { post: root } = await insertNotePost(tx, {
+      account: author.account,
+      content: "quote me",
+    });
+    // The only quote of the root is followers-only, so a stranger must not
+    // learn it exists (which would surface a "show quotes" affordance).
+    await insertNotePost(tx, {
+      account: author.account,
+      content: "followers-only quote",
+      visibility: "followers",
+      quotedPostId: root.id,
+    });
+
+    const query = parse(`
+      query($id: ID!) {
+        node(id: $id) { ... on Post { hasVisibleQuotes } }
+      }
+    `);
+    const gid = encodeGlobalID("Note", root.id);
+    interface Data {
+      node: { hasVisibleQuotes: boolean };
+    }
+
+    const asStranger = await execute({
+      schema,
+      document: query,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, stranger.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(asStranger.errors, undefined);
+    assert.equal(
+      (asStranger.data as unknown as Data).node.hasVisibleQuotes,
+      false,
+    );
+
+    const asFollower = await execute({
+      schema,
+      document: query,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, follower.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(asFollower.errors, undefined);
+    assert.equal(
+      (asFollower.data as unknown as Data).node.hasVisibleQuotes,
+      true,
+    );
+  });
+});

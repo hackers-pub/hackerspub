@@ -116,6 +116,10 @@ export interface UserContext extends ServerContext {
   // does not reveal their existence.  Batched so a whole reply page resolves
   // in one query; keyed by the viewer actor id ("" for guests).
   postHasVisibleRepliesLoader?: Map<string, DataLoader<Uuid, boolean>>;
+  // Same as `postHasVisibleRepliesLoader` but for quotes (the news-discussion
+  // view gates its quote branch on it so a hidden-only quote set does not
+  // surface a "show quotes" affordance).  Keyed by the viewer actor id.
+  postHasVisibleQuotesLoader?: Map<string, DataLoader<Uuid, boolean>>;
   // Request-scoped cache so that viewerCanReply, viewerCanQuote, and
   // viewerCanShare for the same post and selected viewer actor only run
   // one relational lookup even though they are exposed as three separate

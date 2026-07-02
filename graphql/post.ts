@@ -1405,6 +1405,46 @@ function postHasVisibleReplies(
   return loader.load(postId);
 }
 
+// Whether the given post has at least one quote visible to the viewer, under
+// the same sanction + censorship + visibility filter as the `quotes`
+// connection.  The news-discussion view uses this instead of the raw
+// `engagementStats.quotes` counter so a "show quotes" affordance (which then
+// loads an empty list) cannot reveal that hidden quotes exist.  Batched (one
+// query per page) and keyed by viewer, mirroring `postHasVisibleReplies`.
+function postHasVisibleQuotes(
+  ctx: UserContext,
+  postId: Uuid,
+  viewerActorId: Uuid | null,
+): Promise<boolean> {
+  ctx.postHasVisibleQuotesLoader ??= new Map();
+  let loader = ctx.postHasVisibleQuotesLoader.get(viewerActorId ?? "");
+  if (loader == null) {
+    loader = new DataLoader<Uuid, boolean>(
+      async (ids) => {
+        const idList = ids as Uuid[];
+        const viewerActor = viewerActorId == null
+          ? null
+          : await getActorById(ctx, viewerActorId);
+        const rows = await ctx.db.query.postTable.findMany({
+          columns: { quotedPostId: true },
+          where: {
+            AND: [
+              { quotedPostId: { in: idList } },
+              { actor: getSanctionVisibleActorFilter(ctx.now ??= new Date()) },
+              getCensoredPostExclusionFilter(viewerActorId),
+              getPostVisibilityFilter(viewerActor),
+            ],
+          },
+        });
+        const withQuotes = new Set(rows.map((row) => row.quotedPostId));
+        return idList.map((id) => withQuotes.has(id));
+      },
+    );
+    ctx.postHasVisibleQuotesLoader.set(viewerActorId ?? "", loader);
+  }
+  return loader.load(postId);
+}
+
 // Backs the `Post.replies` / `Post.quotes` / `Post.shares` connections:
 // posts related to `targetId` through `column` (`replyTargetId`,
 // `quotedPostId`, or `sharedPostId`), newest first, filtered to those
@@ -1720,6 +1760,28 @@ builder.drizzleInterfaceFields(Post, (t) => ({
     resolve: async (post, args, ctx) => {
       const viewerActorId = await resolveViewerActorId(ctx, args);
       return await postHasVisibleReplies(ctx, post.id, viewerActorId);
+    },
+  }),
+  hasVisibleQuotes: t.boolean({
+    description:
+      "Whether this post has at least one quote the selected viewer can see, " +
+      "under the same filter as the `quotes` connection (author sanction " +
+      "state, censorship, and per-post visibility). Prefer this over " +
+      "`engagementStats.quotes > 0` when deciding whether to show a " +
+      '"show quotes" affordance: the raw counter includes quotes hidden from ' +
+      "the viewer (followers-only, direct, censored, or by a sanctioned " +
+      "author), so branching on it would surface an affordance that then " +
+      "loads an empty list, revealing that hidden quotes exist. Pass " +
+      "`actingAccountId` for an organization perspective.",
+    args: {
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
+    resolve: async (post, args, ctx) => {
+      const viewerActorId = await resolveViewerActorId(ctx, args);
+      return await postHasVisibleQuotes(ctx, post.id, viewerActorId);
     },
   }),
   ancestors: t.connection({
