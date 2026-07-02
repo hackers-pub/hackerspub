@@ -160,7 +160,9 @@ function PermalinkThreadLoaded(props: PermalinkThreadProps) {
               replyTarget(actingAccountId: $actingAccountId) {
                 id
               }
-              ...PermalinkThread_contextPost
+              ...PermalinkThread_contextPost @arguments(
+                actingAccountId: $actingAccountId
+              )
             }
           }
           pageInfo {
@@ -718,7 +720,7 @@ const replyNodeFragment = graphql`
       local
       url
       iri
-      viewerMutes
+      viewerMutes(actingAccountId: $actingAccountId)
       account {
         id
         kind
@@ -899,7 +901,11 @@ function ContinueThreadLink(props: ContinueThreadLinkProps) {
 }
 
 const contextPostFragment = graphql`
-  fragment PermalinkThread_contextPost on Post {
+  fragment PermalinkThread_contextPost on Post
+    @argumentDefinitions(
+      actingAccountId: { type: "ID", defaultValue: null }
+    )
+  {
     __typename
     uuid
     name
@@ -924,7 +930,7 @@ const contextPostFragment = graphql`
       local
       url
       iri
-      viewerMutes
+      viewerMutes(actingAccountId: $actingAccountId)
     }
     ...PostAuthorAvatar_post
     ...PostAuthorLine_post
