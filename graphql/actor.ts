@@ -99,7 +99,11 @@ function firstGrapheme(text: string): string {
     .value?.segment ?? "";
 }
 
-function actorProfilePostRelations(viewerActorId: Uuid | null) {
+// Also used by the thread fields in post.ts (`Post.ancestors` /
+// `Post.descendants`), which load post pages outside Pothos's nested
+// selection machinery and need the same eager relation set to avoid
+// per-node lazy loads.
+export function actorProfilePostRelations(viewerActorId: Uuid | null) {
   const viewerOnlyFilter = viewerActorId == null
     ? { RAW: sql`false` }
     : { actorId: viewerActorId };

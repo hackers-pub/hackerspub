@@ -101,6 +101,14 @@ export interface UserContext extends ServerContext {
   // every post referencing it is censored for the viewer.  Batched so
   // link-heavy pages (the news list) stay free of per-link lookups.
   postLinkVisibleLoader?: DataLoader<Uuid, boolean>;
+  // Request-scoped check of whether a post is visible to the viewer
+  // (per-post visibility and author sanction state; censorship is not
+  // part of it, since censored posts stay reachable and self-redact).
+  // Batched so nullable post relations (e.g. `Post.replyTarget`) on
+  // list pages stay free of per-post lookups.  Keyed by the viewer
+  // actor id ("" for guests), since `actingAccountId` can switch the
+  // perspective per field.
+  postVisibleLoader?: Map<string, DataLoader<Uuid, boolean>>;
   // Request-scoped cache so that viewerCanReply, viewerCanQuote, and
   // viewerCanShare for the same post and selected viewer actor only run
   // one relational lookup even though they are exposed as three separate

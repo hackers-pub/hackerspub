@@ -982,6 +982,20 @@ type Article implements Node & Post & Reactable {
   allowLlmTranslation: Boolean
 
   """
+  The chain of posts this post replies to, from the nearest parent toward the thread root: the first node is the same post as `replyTarget`, the last is the oldest reachable ancestor. Ancestors that are censored, whose author is hidden by a moderation sanction, or that are not visible to the viewer are omitted from the chain. To detect such gaps, compare a node's `replyTarget` with the next node: a mismatching id (censored parent) or a `null` `replyTarget` on a node that is not the last one (invisible parent) marks a gap, and a last node with a non-`null` `replyTarget` means the chain continues past what was returned. The walk is bounded to 200 hops server-side. Pass `actingAccountId` for an organization perspective.
+  """
+  ancestors(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): PostAncestorsConnection!
+
+  """
   When a moderator censored this post, or `null` when it is not censored.  Censored posts disappear from timelines, search, and recommendations, but their permalinks stay reachable so a censorship notice can be shown.  For everyone but the author and moderators, all content-bearing fields are redacted: `content`, the excerpt fields, `name`, `summary`, `hashtags`, `Article.tags`, `media`, `link`, `mentions`, `sharedPost`, `quotedPost`, article contents, and poll data.
   """
   censored: DateTime
@@ -995,6 +1009,25 @@ type Article implements Node & Post & Reactable {
   All available language versions of this article's content. Pass `language` to get only the best-matching locale (BCP 47 negotiation). Pass `includeBeingTranslated: true` to also include language versions whose LLM translation is still in progress.  Empty when the article is censored or its author is hidden by a moderation sanction, and the viewer is neither its author nor a moderator.
   """
   contents(includeBeingTranslated: Boolean = false, language: Locale): [ArticleContent!]!
+
+  """
+  Every reply below this post (replies, replies to replies, and so on), flattened in depth-first order with siblings ordered by `published`. A node's parent (`replyTarget`) always appears before the node itself, including across pages, so clients can rebuild the tree from `replyTarget` ids alone. Subtrees rooted at a censored post, a post by a sanction-hidden actor, or a post invisible to the viewer are pruned along with that post. Traversal depth is capped at `maxDepth`; fetch a deeper branch from the deepest returned post's own `descendants`. Only forward pagination (`first`/`after`) is supported. Pass `actingAccountId` for an organization perspective.
+  """
+  descendants(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+    after: String
+    before: String
+    first: Int
+    last: Int
+
+    """
+    Maximum tree depth to traverse below this post (direct replies are depth 1). Defaults to 20 and is clamped server-side to 40.
+    """
+    maxDepth: Int
+  ): PostDescendantsConnection!
   engagementStats: PostEngagementStats!
 
   """
@@ -1069,12 +1102,19 @@ type Article implements Node & Post & Reactable {
   reactionGroups: [ReactionGroup!]!
 
   """
-  Posts that are direct replies to this post. Censored replies and replies by actors whose content is hidden by a moderation sanction are excluded.
+  Posts that are direct replies to this post. Censored replies, replies by actors whose content is hidden by a moderation sanction, and replies not visible to the authenticated viewer (e.g., followers-only replies by actors the viewer does not follow) are excluded.
   """
   replies(after: String, before: String, first: Int, last: Int): PostRepliesConnection!
 
-  """The post this post is a reply to, or `null` for top-level posts."""
-  replyTarget: Post
+  """
+  The post this post is a reply to. `null` for top-level posts, and also when the parent is not visible to the authenticated viewer (e.g., a followers-only post by an actor the viewer does not follow, or a post whose author is hidden by a moderation sanction), so a public reply cannot leak its private parent. A censored parent is still returned and self-redacts its content-bearing fields. Pass `actingAccountId` for an organization perspective, matching the perspective of the surrounding query.
+  """
+  replyTarget(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Post
 
   """
   Whether the post is marked as sensitive (NSFW). Clients should hide the content behind a content warning when this is `true`.
@@ -3138,6 +3178,20 @@ type Note implements Node & Post & Reactable {
   actor: Actor!
 
   """
+  The chain of posts this post replies to, from the nearest parent toward the thread root: the first node is the same post as `replyTarget`, the last is the oldest reachable ancestor. Ancestors that are censored, whose author is hidden by a moderation sanction, or that are not visible to the viewer are omitted from the chain. To detect such gaps, compare a node's `replyTarget` with the next node: a mismatching id (censored parent) or a `null` `replyTarget` on a node that is not the last one (invisible parent) marks a gap, and a last node with a non-`null` `replyTarget` means the chain continues past what was returned. The walk is bounded to 200 hops server-side. Pass `actingAccountId` for an organization perspective.
+  """
+  ancestors(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): PostAncestorsConnection!
+
+  """
   When a moderator censored this post, or `null` when it is not censored.  Censored posts disappear from timelines, search, and recommendations, but their permalinks stay reachable so a censorship notice can be shown.  For everyone but the author and moderators, all content-bearing fields are redacted: `content`, the excerpt fields, `name`, `summary`, `hashtags`, `Article.tags`, `media`, `link`, `mentions`, `sharedPost`, `quotedPost`, article contents, and poll data.
   """
   censored: DateTime
@@ -3146,6 +3200,25 @@ type Note implements Node & Post & Reactable {
   The post's full HTML content, with custom emoji shortcodes rendered as `<img>` elements and external links annotated with `target="_blank"`. Boost wrappers copy the boosted post's content; prefer `sharedPost.content`.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post), and the viewer is neither the content's author nor a moderator.
   """
   content: HTML!
+
+  """
+  Every reply below this post (replies, replies to replies, and so on), flattened in depth-first order with siblings ordered by `published`. A node's parent (`replyTarget`) always appears before the node itself, including across pages, so clients can rebuild the tree from `replyTarget` ids alone. Subtrees rooted at a censored post, a post by a sanction-hidden actor, or a post invisible to the viewer are pruned along with that post. Traversal depth is capped at `maxDepth`; fetch a deeper branch from the deepest returned post's own `descendants`. Only forward pagination (`first`/`after`) is supported. Pass `actingAccountId` for an organization perspective.
+  """
+  descendants(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+    after: String
+    before: String
+    first: Int
+    last: Int
+
+    """
+    Maximum tree depth to traverse below this post (direct replies are depth 1). Defaults to 20 and is clamped server-side to 40.
+    """
+    maxDepth: Int
+  ): PostDescendantsConnection!
   engagementStats: PostEngagementStats!
 
   """
@@ -3225,12 +3298,19 @@ type Note implements Node & Post & Reactable {
   reactionGroups: [ReactionGroup!]!
 
   """
-  Posts that are direct replies to this post. Censored replies and replies by actors whose content is hidden by a moderation sanction are excluded.
+  Posts that are direct replies to this post. Censored replies, replies by actors whose content is hidden by a moderation sanction, and replies not visible to the authenticated viewer (e.g., followers-only replies by actors the viewer does not follow) are excluded.
   """
   replies(after: String, before: String, first: Int, last: Int): PostRepliesConnection!
 
-  """The post this post is a reply to, or `null` for top-level posts."""
-  replyTarget: Post
+  """
+  The post this post is a reply to. `null` for top-level posts, and also when the parent is not visible to the authenticated viewer (e.g., a followers-only post by an actor the viewer does not follow, or a post whose author is hidden by a moderation sanction), so a public reply cannot leak its private parent. A censored parent is still returned and self-redacts its content-bearing fields. Pass `actingAccountId` for an organization perspective, matching the perspective of the surrounding query.
+  """
+  replyTarget(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Post
 
   """
   Whether the post is marked as sensitive (NSFW). Clients should hide the content behind a content warning when this is `true`.
@@ -3798,6 +3878,20 @@ interface Post implements Node & Reactable {
   actor: Actor!
 
   """
+  The chain of posts this post replies to, from the nearest parent toward the thread root: the first node is the same post as `replyTarget`, the last is the oldest reachable ancestor. Ancestors that are censored, whose author is hidden by a moderation sanction, or that are not visible to the viewer are omitted from the chain. To detect such gaps, compare a node's `replyTarget` with the next node: a mismatching id (censored parent) or a `null` `replyTarget` on a node that is not the last one (invisible parent) marks a gap, and a last node with a non-`null` `replyTarget` means the chain continues past what was returned. The walk is bounded to 200 hops server-side. Pass `actingAccountId` for an organization perspective.
+  """
+  ancestors(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): PostAncestorsConnection!
+
+  """
   When a moderator censored this post, or `null` when it is not censored.  Censored posts disappear from timelines, search, and recommendations, but their permalinks stay reachable so a censorship notice can be shown.  For everyone but the author and moderators, all content-bearing fields are redacted: `content`, the excerpt fields, `name`, `summary`, `hashtags`, `Article.tags`, `media`, `link`, `mentions`, `sharedPost`, `quotedPost`, article contents, and poll data.
   """
   censored: DateTime
@@ -3806,6 +3900,25 @@ interface Post implements Node & Reactable {
   The post's full HTML content, with custom emoji shortcodes rendered as `<img>` elements and external links annotated with `target="_blank"`. Boost wrappers copy the boosted post's content; prefer `sharedPost.content`.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post), and the viewer is neither the content's author nor a moderator.
   """
   content: HTML!
+
+  """
+  Every reply below this post (replies, replies to replies, and so on), flattened in depth-first order with siblings ordered by `published`. A node's parent (`replyTarget`) always appears before the node itself, including across pages, so clients can rebuild the tree from `replyTarget` ids alone. Subtrees rooted at a censored post, a post by a sanction-hidden actor, or a post invisible to the viewer are pruned along with that post. Traversal depth is capped at `maxDepth`; fetch a deeper branch from the deepest returned post's own `descendants`. Only forward pagination (`first`/`after`) is supported. Pass `actingAccountId` for an organization perspective.
+  """
+  descendants(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+    after: String
+    before: String
+    first: Int
+    last: Int
+
+    """
+    Maximum tree depth to traverse below this post (direct replies are depth 1). Defaults to 20 and is clamped server-side to 40.
+    """
+    maxDepth: Int
+  ): PostDescendantsConnection!
   engagementStats: PostEngagementStats!
 
   """
@@ -3875,12 +3988,19 @@ interface Post implements Node & Reactable {
   reactionGroups: [ReactionGroup!]!
 
   """
-  Posts that are direct replies to this post. Censored replies and replies by actors whose content is hidden by a moderation sanction are excluded.
+  Posts that are direct replies to this post. Censored replies, replies by actors whose content is hidden by a moderation sanction, and replies not visible to the authenticated viewer (e.g., followers-only replies by actors the viewer does not follow) are excluded.
   """
   replies(after: String, before: String, first: Int, last: Int): PostRepliesConnection!
 
-  """The post this post is a reply to, or `null` for top-level posts."""
-  replyTarget: Post
+  """
+  The post this post is a reply to. `null` for top-level posts, and also when the parent is not visible to the authenticated viewer (e.g., a followers-only post by an actor the viewer does not follow, or a post whose author is hidden by a moderation sanction), so a public reply cannot leak its private parent. A censored parent is still returned and self-redacts its content-bearing fields. Pass `actingAccountId` for an organization perspective, matching the perspective of the surrounding query.
+  """
+  replyTarget(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Post
 
   """
   Whether the post is marked as sensitive (NSFW). Clients should hide the content behind a content warning when this is `true`.
@@ -3980,6 +4100,16 @@ interface Post implements Node & Reactable {
   visibility: PostVisibility!
 }
 
+type PostAncestorsConnection {
+  edges: [PostAncestorsConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type PostAncestorsConnectionEdge {
+  cursor: String!
+  node: Post!
+}
+
 """
 How a post written through an organization account should display the personal member who created it.
 """
@@ -3993,6 +4123,16 @@ enum PostAttributionMode {
   Show the organization account as the primary author and the personal member as a co-author.
   """
   ACTING_ACCOUNT_WITH_VIEWER
+}
+
+type PostDescendantsConnection {
+  edges: [PostDescendantsConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type PostDescendantsConnectionEdge {
+  cursor: String!
+  node: Post!
 }
 
 """
@@ -4728,6 +4868,20 @@ type Question implements Node & Post & Reactable {
   actor: Actor!
 
   """
+  The chain of posts this post replies to, from the nearest parent toward the thread root: the first node is the same post as `replyTarget`, the last is the oldest reachable ancestor. Ancestors that are censored, whose author is hidden by a moderation sanction, or that are not visible to the viewer are omitted from the chain. To detect such gaps, compare a node's `replyTarget` with the next node: a mismatching id (censored parent) or a `null` `replyTarget` on a node that is not the last one (invisible parent) marks a gap, and a last node with a non-`null` `replyTarget` means the chain continues past what was returned. The walk is bounded to 200 hops server-side. Pass `actingAccountId` for an organization perspective.
+  """
+  ancestors(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): PostAncestorsConnection!
+
+  """
   When a moderator censored this post, or `null` when it is not censored.  Censored posts disappear from timelines, search, and recommendations, but their permalinks stay reachable so a censorship notice can be shown.  For everyone but the author and moderators, all content-bearing fields are redacted: `content`, the excerpt fields, `name`, `summary`, `hashtags`, `Article.tags`, `media`, `link`, `mentions`, `sharedPost`, `quotedPost`, article contents, and poll data.
   """
   censored: DateTime
@@ -4736,6 +4890,25 @@ type Question implements Node & Post & Reactable {
   The rendered body of the `Question`, excluding poll options. Use `Question.poll` to render the voting UI.  Empty when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post), and the viewer is neither the content's author nor a moderator.
   """
   content: HTML!
+
+  """
+  Every reply below this post (replies, replies to replies, and so on), flattened in depth-first order with siblings ordered by `published`. A node's parent (`replyTarget`) always appears before the node itself, including across pages, so clients can rebuild the tree from `replyTarget` ids alone. Subtrees rooted at a censored post, a post by a sanction-hidden actor, or a post invisible to the viewer are pruned along with that post. Traversal depth is capped at `maxDepth`; fetch a deeper branch from the deepest returned post's own `descendants`. Only forward pagination (`first`/`after`) is supported. Pass `actingAccountId` for an organization perspective.
+  """
+  descendants(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+    after: String
+    before: String
+    first: Int
+    last: Int
+
+    """
+    Maximum tree depth to traverse below this post (direct replies are depth 1). Defaults to 20 and is clamped server-side to 40.
+    """
+    maxDepth: Int
+  ): PostDescendantsConnection!
   engagementStats: PostEngagementStats!
 
   """
@@ -4814,12 +4987,19 @@ type Question implements Node & Post & Reactable {
   reactionGroups: [ReactionGroup!]!
 
   """
-  Posts that are direct replies to this post. Censored replies and replies by actors whose content is hidden by a moderation sanction are excluded.
+  Posts that are direct replies to this post. Censored replies, replies by actors whose content is hidden by a moderation sanction, and replies not visible to the authenticated viewer (e.g., followers-only replies by actors the viewer does not follow) are excluded.
   """
   replies(after: String, before: String, first: Int, last: Int): PostRepliesConnection!
 
-  """The post this post is a reply to, or `null` for top-level posts."""
-  replyTarget: Post
+  """
+  The post this post is a reply to. `null` for top-level posts, and also when the parent is not visible to the authenticated viewer (e.g., a followers-only post by an actor the viewer does not follow, or a post whose author is hidden by a moderation sanction), so a public reply cannot leak its private parent. A censored parent is still returned and self-redacts its content-bearing fields. Pass `actingAccountId` for an organization perspective, matching the perspective of the surrounding query.
+  """
+  replyTarget(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Post
 
   """
   Whether the post is marked as sensitive (NSFW). Clients should hide the content behind a content warning when this is `true`.
