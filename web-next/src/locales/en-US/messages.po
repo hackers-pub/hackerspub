@@ -13,8 +13,8 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#. placeholder {0}: article.engagementStats.replies
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:973
+#. placeholder {0}: article.replies?.edges.length ?? 0
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:981
 msgid "{0, plural, one {# comment} other {# comments}}"
 msgstr "{0, plural, one {# comment} other {# comments}}"
 
@@ -2402,7 +2402,7 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:995
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1003
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:536
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
@@ -4616,7 +4616,7 @@ msgstr "Suspension length"
 #: src/components/DocumentView.tsx:38
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:687
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:695
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1037
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1045
 msgid "Table of contents"
 msgstr "Table of contents"
 
@@ -4626,7 +4626,7 @@ msgstr "Table of contents"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:158
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:575
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1046
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1054
 msgid "Tags"
 msgstr "Tags"
 
@@ -5446,7 +5446,7 @@ msgid "Write"
 msgstr "Write"
 
 #: src/components/NoteComposeModal.tsx:115
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:986
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:994
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:365
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:445
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:527
