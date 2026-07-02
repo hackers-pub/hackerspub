@@ -434,6 +434,12 @@ export interface PermalinkThreadTreeProps {
   $post: PermalinkThreadTree_post$key;
   focusedPostId: string;
   targetUuid: string | null;
+  /**
+   * Container chrome. The default attaches the tree flush under the focused
+   * post's card; standalone surfaces (e.g. the article page's comments
+   * section) pass a fully rounded box instead.
+   */
+  class?: string;
 }
 
 export function PermalinkThreadTree(props: PermalinkThreadTreeProps) {
@@ -501,7 +507,9 @@ export function PermalinkThreadTree(props: PermalinkThreadTreeProps) {
 
   return (
     <Show when={roots().length > 0 || tree.hasNext}>
-      <div class="border-x border-b rounded-b-xl overflow-hidden">
+      <div
+        class={props.class ?? "border-x border-b rounded-b-xl overflow-hidden"}
+      >
         <Key each={roots()} by={(node) => node.id}>
           {(node) => (
             <ThreadReplyNode

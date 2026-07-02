@@ -4,17 +4,25 @@ import { Link, Meta } from "@solidjs/meta";
 import {
   revalidate,
   type RouteDefinition,
+  useLocation,
   useNavigate,
   useParams,
 } from "@solidjs/router";
 import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { HttpHeader, HttpStatusCode } from "@solidjs/start";
 import { graphql } from "relay-runtime";
-import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
+import {
+  createMemo,
+  createSignal,
+  For,
+  onCleanup,
+  onMount,
+  Show,
+} from "solid-js";
 import { createFragment, loadQuery, useRelayEnvironment } from "solid-relay";
 import { CensorshipNotice } from "~/components/CensorshipNotice.tsx";
-import { NoteCard } from "~/components/NoteCard.tsx";
 import { NoteComposer } from "~/components/NoteComposer.tsx";
+import { PermalinkThreadTree } from "~/components/PermalinkThread.tsx";
 import { PostAuthorAvatar, PostAuthorLine } from "~/components/PostAuthor.tsx";
 import { PostEngagementBar } from "~/components/PostEngagementBar.tsx";
 import { Title } from "~/components/Title.tsx";
@@ -920,24 +928,32 @@ interface ArticleRepliesProps {
 
 function ArticleReplies(props: ArticleRepliesProps) {
   const { t, i18n } = useLingui();
+  const location = useLocation();
   const article = createFragment(
     graphql`
       fragment Slug_replies on Article
         @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
       {
         id
+        uuid
         iri
-        replies {
-          edges {
-            node {
-              ...NoteCard_note @arguments(actingAccountId: $actingAccountId)
-            }
-          }
+        engagementStats {
+          replies
         }
+        ...PermalinkThreadTree_post @arguments(
+          actingAccountId: $actingAccountId
+        )
       }
     `,
     () => props.$article,
   );
+  // A hash for the article itself is just the page; only hashes for other
+  // posts are chased into the reply tree.
+  const targetUuid = createMemo(() => {
+    const match = /^#post-([0-9a-f-]{36})$/.exec(location.hash);
+    if (match == null) return null;
+    return match[1] === article()?.uuid ? null : match[1];
+  });
   const viewer = createFragment(
     graphql`
       fragment Slug_viewer on Account {
@@ -955,7 +971,7 @@ function ArticleReplies(props: ArticleRepliesProps) {
             <h2 class="text-xl font-bold mb-4">
               {i18n._(
                 msg`${
-                  plural(article.replies?.edges.length ?? 0, {
+                  plural(article.engagementStats.replies, {
                     one: "# comment",
                     other: "# comments",
                   })
@@ -988,13 +1004,12 @@ function ArticleReplies(props: ArticleRepliesProps) {
               </p>
             </Show>
 
-            <Show when={article.replies?.edges.length}>
-              <div class="border rounded-xl">
-                <For each={article.replies?.edges}>
-                  {(edge) => <NoteCard $note={edge.node} placeholderIfMuted />}
-                </For>
-              </div>
-            </Show>
+            <PermalinkThreadTree
+              $post={article}
+              focusedPostId={article.id}
+              targetUuid={targetUuid()}
+              class="border rounded-xl overflow-hidden"
+            />
           </div>
         );
       }}
