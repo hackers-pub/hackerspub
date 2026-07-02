@@ -1353,3 +1353,119 @@ test("poll vote/voter counts exclude sanction-hidden voters", async () => {
     assert.equal(byTitle.get("Emacs")?.edges.length, 0);
   });
 });
+
+test("poll vote-count batching maps each poll to its own totals", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "pollbatchauthor",
+      name: "Poll Batch Author",
+      email: "pollbatchauthor@example.com",
+    });
+    const voters: Awaited<ReturnType<typeof insertAccountWithActor>>[] = [];
+    for (let i = 0; i < 3; i++) {
+      voters.push(
+        await insertAccountWithActor(tx, {
+          username: `pollbatchvoter${i}`,
+          name: `Poll Batch Voter ${i}`,
+          email: `pollbatchvoter${i}@example.com`,
+        }),
+      );
+    }
+
+    async function makePoll(name: string, voterCount: number) {
+      const questionId = generateUuidV7();
+      const published = new Date("2026-04-15T00:00:00.000Z");
+      await tx.insert(postTable).values(
+        {
+          id: questionId,
+          iri: `http://localhost/objects/${questionId}`,
+          type: "Question",
+          visibility: "public",
+          actorId: author.actor.id,
+          name,
+          contentHtml: `<p>${name}</p>`,
+          language: "en",
+          tags: {},
+          emojis: {},
+          url:
+            `http://localhost/@${author.account.username}/polls/${questionId}`,
+          published,
+          updated: published,
+        } satisfies NewPost,
+      );
+      await tx.insert(pollTable).values({
+        postId: questionId,
+        multiple: false,
+        votersCount: voterCount,
+        ends: pollEndedInPast(),
+      });
+      await tx.insert(pollOptionTable).values([
+        { postId: questionId, index: 0, title: "A", votesCount: voterCount },
+      ]);
+      await tx.insert(pollVoteTable).values(
+        voters.slice(0, voterCount).map((v, i) => ({
+          postId: questionId,
+          optionIndex: 0,
+          actorId: v.actor.id,
+          created: new Date(`2026-04-15T00:00:0${i + 1}.000Z`),
+        })),
+      );
+      return questionId;
+    }
+
+    // Two polls with different totals, resolved in one request so the
+    // per-poll count DataLoaders batch; each must get its own numbers.
+    const a = await makePoll("Poll A", 3);
+    const b = await makePoll("Poll B", 1);
+
+    const query = parse(`
+      query($a: ID!, $b: ID!) {
+        a: node(id: $a) {
+          ... on Question {
+            poll {
+              votes { totalCount }
+              voters { totalCount }
+              options { votes { totalCount } }
+            }
+          }
+        }
+        b: node(id: $b) {
+          ... on Question {
+            poll {
+              votes { totalCount }
+              voters { totalCount }
+              options { votes { totalCount } }
+            }
+          }
+        }
+      }
+    `);
+    const result = await execute({
+      schema,
+      document: query,
+      variableValues: {
+        a: encodeGlobalID("Question", a),
+        b: encodeGlobalID("Question", b),
+      },
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(result.errors, undefined);
+    const data = toPlainJson(result.data) as {
+      a: { poll: PollTotals };
+      b: { poll: PollTotals };
+    };
+    assert.equal(data.a.poll.votes.totalCount, 3);
+    assert.equal(data.a.poll.voters.totalCount, 3);
+    assert.equal(data.a.poll.options[0].votes.totalCount, 3);
+    assert.equal(data.b.poll.votes.totalCount, 1);
+    assert.equal(data.b.poll.voters.totalCount, 1);
+    assert.equal(data.b.poll.options[0].votes.totalCount, 1);
+  });
+});
+
+interface PollTotals {
+  votes: { totalCount: number };
+  voters: { totalCount: number };
+  options: Array<{ votes: { totalCount: number } }>;
+}

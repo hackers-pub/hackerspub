@@ -123,6 +123,22 @@ export interface UserContext extends ServerContext {
   // Pending promises are stored synchronously so concurrent dispatch from
   // the three loaders doesn't each fire its own duplicate query.
   viewerActionPoliciesCache?: Map<string, Promise<PostInteractionPolicy>>;
+  // A single wall-clock instant for the whole request, set lazily on first
+  // use.  Every sanction-activeness check (the edge filters and their batched
+  // counts) reads it, so they evaluate against the same moment and cannot
+  // disagree at a suspension boundary.
+  now?: Date;
+  // Request-scoped batches for the sanction-filtered engagement counts, so a
+  // list of posts (a timeline, a profile) resolves each in one query instead
+  // of one per post/group/option.  All share the request clock (`now` above).
+  //   - reactor totalCount, keyed by `postId\ncustomEmojiId\nemoji`.
+  //   - poll visible-vote totalCount, keyed by poll post id.
+  //   - poll sanction-hidden distinct voter count, keyed by poll post id.
+  //   - poll sanction-hidden per-option vote count, keyed by `postId\nindex`.
+  reactorCountLoader?: DataLoader<string, number>;
+  pollVisibleVoteCountLoader?: DataLoader<Uuid, number>;
+  pollHiddenVoterCountLoader?: DataLoader<Uuid, number>;
+  pollHiddenOptionVoteCountLoader?: DataLoader<string, number>;
 }
 
 export interface PothosTypes {

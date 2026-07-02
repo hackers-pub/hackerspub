@@ -633,3 +633,89 @@ async function seedReactedNote(
     ],
   };
 }
+
+test("reactor-count batching maps each post to its own total", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "reactbatchauthor",
+      name: "React Batch Author",
+      email: "reactbatchauthor@example.com",
+    });
+    const reactors: Awaited<ReturnType<typeof insertAccountWithActor>>[] = [];
+    for (let i = 0; i < 3; i++) {
+      reactors.push(
+        await insertAccountWithActor(tx, {
+          username: `reactbatchreactor${i}`,
+          name: `React Batch Reactor ${i}`,
+          email: `reactbatchreactor${i}@example.com`,
+        }),
+      );
+    }
+    // postA has three ❤️ reactors, postB has one. Resolved in one request so
+    // the reactor-count DataLoader batches; each must get its own total.
+    const { post: postA } = await insertNotePost(tx, {
+      account: author.account,
+      content: "A",
+      reactionsCounts: { "❤️": 3 },
+    });
+    const { post: postB } = await insertNotePost(tx, {
+      account: author.account,
+      content: "B",
+      reactionsCounts: { "❤️": 1 },
+    });
+    await tx.insert(reactionTable).values([
+      ...reactors.map((r, i) => ({
+        iri: `http://localhost/reactions/${generateUuidV7()}`,
+        postId: postA.id,
+        actorId: r.actor.id,
+        emoji: "❤️",
+        created: new Date(`2026-04-15T00:00:0${i + 1}.000Z`),
+      })),
+      {
+        iri: `http://localhost/reactions/${generateUuidV7()}`,
+        postId: postB.id,
+        actorId: reactors[0].actor.id,
+        emoji: "❤️",
+        created: new Date("2026-04-15T00:00:09.000Z"),
+      },
+    ]);
+
+    const query = parse(`
+      query($a: ID!, $b: ID!) {
+        a: node(id: $a) {
+          ... on Post {
+            reactionGroups {
+              ... on EmojiReactionGroup { emoji reactors(first: 10) { totalCount } }
+            }
+          }
+        }
+        b: node(id: $b) {
+          ... on Post {
+            reactionGroups {
+              ... on EmojiReactionGroup { emoji reactors(first: 10) { totalCount } }
+            }
+          }
+        }
+      }
+    `);
+    const result = await execute({
+      schema,
+      document: query,
+      variableValues: {
+        a: encodeGlobalID("Note", postA.id),
+        b: encodeGlobalID("Note", postB.id),
+      },
+      contextValue: makeUserContext(tx, author.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(result.errors, undefined);
+    interface Groups {
+      reactionGroups: { emoji?: string; reactors?: { totalCount: number } }[];
+    }
+    const data = result.data as unknown as { a: Groups; b: Groups };
+    const heartA = data.a.reactionGroups.find((g) => g.emoji === "❤️");
+    const heartB = data.b.reactionGroups.find((g) => g.emoji === "❤️");
+    assert.equal(heartA?.reactors?.totalCount, 3);
+    assert.equal(heartB?.reactors?.totalCount, 1);
+  });
+});

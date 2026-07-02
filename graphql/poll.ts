@@ -16,12 +16,14 @@ import {
 } from "@hackerspub/models/schema";
 import type { Uuid } from "@hackerspub/models/uuid";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
+import DataLoader from "dataloader";
 import {
   and,
   count,
   countDistinct,
   eq,
   gt,
+  inArray,
   isNotNull,
   isNull,
   lte,
@@ -402,7 +404,7 @@ const Poll = builder.drizzleNode("pollTable", {
           // reveals a banned/federation-blocked actor's participation.
           votes: andActorSanctionFilter(
             pollVoteConnectionHelpers.getQuery(args, ctx, nestedSelect),
-            { actor: getSanctionVisibleActorFilter() },
+            { actor: getSanctionVisibleActorFilter(ctx.now ??= new Date()) },
           ),
         },
       }),
@@ -415,9 +417,7 @@ const Poll = builder.drizzleNode("pollTable", {
         );
         return {
           ...connection,
-          totalCount: await countPollVotesBySanction(ctx, poll.postId, {
-            sanctionHidden: false,
-          }),
+          totalCount: await pollVisibleVoteCount(ctx, poll.postId),
         };
       },
     }, {
@@ -444,7 +444,7 @@ const Poll = builder.drizzleNode("pollTable", {
           // Exclude sanction-hidden actors from the voter list.
           voters: andActorSanctionFilter(
             actorConnectionHelpers.getQuery(args, ctx, nestedSelect),
-            getSanctionVisibleActorFilter(),
+            getSanctionVisibleActorFilter(ctx.now ??= new Date()),
           ),
         },
       }),
@@ -458,10 +458,7 @@ const Poll = builder.drizzleNode("pollTable", {
         // Stored counter (federated aggregate + local votes) minus the
         // sanction-hidden local voters, so the total matches the filtered
         // edges without zeroing out a remote poll's federated count.
-        const hidden = await countPollVotesBySanction(ctx, poll.postId, {
-          distinctActors: true,
-          sanctionHidden: true,
-        });
+        const hidden = await pollHiddenVoterCount(ctx, poll.postId);
         return {
           ...connection,
           totalCount: Math.max(poll.votersCount - hidden, 0),
@@ -525,7 +522,7 @@ const PollOption = builder.drizzleObject("pollOptionTable", {
           // Exclude votes by sanction-hidden actors (see `Poll.votes`).
           votes: andActorSanctionFilter(
             pollVoteConnectionHelpers.getQuery(args, ctx, nestedSelect),
-            { actor: getSanctionVisibleActorFilter() },
+            { actor: getSanctionVisibleActorFilter(ctx.now ??= new Date()) },
           ),
         },
       }),
@@ -538,10 +535,11 @@ const PollOption = builder.drizzleObject("pollOptionTable", {
         );
         // Stored per-option counter minus the sanction-hidden local votes
         // for this option (keeps remote federated per-option totals intact).
-        const hidden = await countPollVotesBySanction(ctx, option.postId, {
-          optionIndex: option.index,
-          sanctionHidden: true,
-        });
+        const hidden = await pollHiddenOptionVoteCount(
+          ctx,
+          option.postId,
+          option.index,
+        );
         return {
           ...connection,
           totalCount: Math.max(option.votesCount - hidden, 0),
@@ -594,41 +592,36 @@ const actorConnectionHelpers = drizzleConnectionHelpers(
   {},
 );
 
-// Counts this poll's locally-stored votes, split by whether the voter is
-// hidden by a moderation sanction (banned local / federation-blocked
-// remote).  Used to reconcile the connection `totalCount`s with their
-// (sanction-filtered) edges: without this, `totalCount > edges.length`
-// would let a client infer that a sanction-hidden actor voted.
-//
 // The stored counters (`pollTable.votersCount`, `pollOptionTable.votesCount`)
-// include remote-federated aggregates plus one increment per local vote, so
-// the visible total is `stored - (sanction-hidden local votes)`; counting
-// only the hidden local rows here and subtracting keeps remote aggregate
-// totals intact.  The poll-level `Poll.votes.totalCount` has no stored
-// counter (it was a live count of local rows), so it passes
-// `sanctionHidden: false` to count the visible rows directly.
+// include remote-federated aggregates plus one increment per local vote, so a
+// visible total is `stored - (sanction-hidden local votes)`; counting only the
+// hidden local rows and subtracting keeps remote aggregate totals intact.  The
+// poll-level `Poll.votes.totalCount` has no stored counter (it is a live count
+// of local rows), so it counts the visible rows directly.  Reconciling these
+// totals with their (sanction-filtered) edges is what stops a client inferring
+// from `totalCount > edges.length` that a sanction-hidden actor voted.
 //
-// `distinctActors` counts distinct voters (for `Poll.voters`); `optionIndex`
-// narrows to one option (for `PollOption.votes`).  Sanction activeness is
-// compared against the application clock (`new Date()`), matching
-// `isActorSanctionHidden`, not SQL `now()` (frozen inside a transaction).
-async function countPollVotesBySanction(
-  ctx: UserContext,
-  postId: Uuid,
-  options: {
-    optionIndex?: number;
-    distinctActors?: boolean;
-    sanctionHidden: boolean;
-  },
-): Promise<number> {
-  const now = new Date();
-  const notHidden = or(
+// Each count is batched with a request-scoped `DataLoader` so a list of polls
+// (a timeline, a profile) runs one grouped query instead of one per poll or
+// option.  Sanction activeness is compared against the request clock
+// (`ctx.now`), matching `isActorSanctionHidden` and the edge filters, not SQL
+// `now()` (which is frozen inside a transaction).
+
+// Voter is NOT hidden by a sanction (mirror of `getSanctionVisibleActorFilter`
+// as a raw predicate over the joined `actorTable`).
+function pollVoterNotHiddenCondition(now: Date) {
+  return or(
     isNull(actorTable.suspended),
     gt(actorTable.suspended, now),
     lte(actorTable.suspendedUntil, now),
     and(isNotNull(actorTable.accountId), gt(actorTable.suspendedUntil, now)),
   );
-  const hidden = and(
+}
+
+// Voter IS hidden by a sanction (the complement used to subtract from the
+// stored counters).
+function pollVoterHiddenCondition(now: Date) {
+  return and(
     lte(actorTable.suspended, now),
     or(
       and(isNull(actorTable.accountId), isNull(actorTable.suspendedUntil)),
@@ -636,23 +629,93 @@ async function countPollVotesBySanction(
       and(isNotNull(actorTable.accountId), isNull(actorTable.suspendedUntil)),
     ),
   );
-  const conditions = [
-    eq(pollVoteTable.postId, postId),
-    options.sanctionHidden ? hidden : notHidden,
-  ];
-  if (options.optionIndex != null) {
-    conditions.push(eq(pollVoteTable.optionIndex, options.optionIndex));
-  }
-  const [row] = await ctx.db
-    .select({
-      c: options.distinctActors
-        ? countDistinct(pollVoteTable.actorId)
-        : count(),
-    })
-    .from(pollVoteTable)
-    .innerJoin(actorTable, eq(actorTable.id, pollVoteTable.actorId))
-    .where(and(...conditions));
-  return row?.c ?? 0;
+}
+
+// `Poll.votes.totalCount`: visible (non-sanction-hidden) votes for the poll.
+function pollVisibleVoteCount(ctx: UserContext, postId: Uuid): Promise<number> {
+  ctx.pollVisibleVoteCountLoader ??= new DataLoader<Uuid, number>(
+    async (ids) => {
+      const now = (ctx.now ??= new Date());
+      const rows = await ctx.db
+        .select({ postId: pollVoteTable.postId, c: count() })
+        .from(pollVoteTable)
+        .innerJoin(actorTable, eq(actorTable.id, pollVoteTable.actorId))
+        .where(
+          and(
+            inArray(pollVoteTable.postId, ids as Uuid[]),
+            pollVoterNotHiddenCondition(now),
+          ),
+        )
+        .groupBy(pollVoteTable.postId);
+      const byId = new Map(rows.map((row) => [row.postId, Number(row.c)]));
+      return (ids as Uuid[]).map((id) => byId.get(id) ?? 0);
+    },
+  );
+  return ctx.pollVisibleVoteCountLoader.load(postId);
+}
+
+// `Poll.voters.totalCount`: distinct sanction-hidden voters, subtracted from
+// the stored `votersCount`.
+function pollHiddenVoterCount(ctx: UserContext, postId: Uuid): Promise<number> {
+  ctx.pollHiddenVoterCountLoader ??= new DataLoader<Uuid, number>(
+    async (ids) => {
+      const now = (ctx.now ??= new Date());
+      const rows = await ctx.db
+        .select({
+          postId: pollVoteTable.postId,
+          c: countDistinct(pollVoteTable.actorId),
+        })
+        .from(pollVoteTable)
+        .innerJoin(actorTable, eq(actorTable.id, pollVoteTable.actorId))
+        .where(
+          and(
+            inArray(pollVoteTable.postId, ids as Uuid[]),
+            pollVoterHiddenCondition(now),
+          ),
+        )
+        .groupBy(pollVoteTable.postId);
+      const byId = new Map(rows.map((row) => [row.postId, Number(row.c)]));
+      return (ids as Uuid[]).map((id) => byId.get(id) ?? 0);
+    },
+  );
+  return ctx.pollHiddenVoterCountLoader.load(postId);
+}
+
+// `PollOption.votes.totalCount`: sanction-hidden votes for one option,
+// subtracted from that option's stored `votesCount`.
+function pollHiddenOptionVoteCount(
+  ctx: UserContext,
+  postId: Uuid,
+  optionIndex: number,
+): Promise<number> {
+  ctx.pollHiddenOptionVoteCountLoader ??= new DataLoader<string, number>(
+    async (keys) => {
+      const now = (ctx.now ??= new Date());
+      const postIds = [
+        ...new Set((keys as string[]).map((k) => k.split("\n")[0] as Uuid)),
+      ];
+      const rows = await ctx.db
+        .select({
+          postId: pollVoteTable.postId,
+          optionIndex: pollVoteTable.optionIndex,
+          c: count(),
+        })
+        .from(pollVoteTable)
+        .innerJoin(actorTable, eq(actorTable.id, pollVoteTable.actorId))
+        .where(
+          and(
+            inArray(pollVoteTable.postId, postIds),
+            pollVoterHiddenCondition(now),
+          ),
+        )
+        .groupBy(pollVoteTable.postId, pollVoteTable.optionIndex);
+      const byKey = new Map(
+        rows.map((row) => [`${row.postId}\n${row.optionIndex}`, Number(row.c)]),
+      );
+      return (keys as string[]).map((k) => byKey.get(k) ?? 0);
+    },
+  );
+  return ctx.pollHiddenOptionVoteCountLoader.load(`${postId}\n${optionIndex}`);
 }
 
 // Fold an extra `where` filter into a connection helper's query config
