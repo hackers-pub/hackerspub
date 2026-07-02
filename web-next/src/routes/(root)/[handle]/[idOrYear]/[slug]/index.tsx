@@ -937,8 +937,16 @@ function ArticleReplies(props: ArticleRepliesProps) {
         id
         uuid
         iri
-        engagementStats {
-          replies
+        # Count the visible direct replies for the heading, not the cached
+        # aggregate engagementStats.replies: the aggregate includes replies
+        # the viewer cannot see (followers-only/direct or moderation-hidden),
+        # which would miscount and reveal that hidden replies exist.
+        replies(first: 100, actingAccountId: $actingAccountId) {
+          edges {
+            node {
+              id
+            }
+          }
         }
         ...PermalinkThreadTree_post @arguments(
           actingAccountId: $actingAccountId
@@ -971,7 +979,7 @@ function ArticleReplies(props: ArticleRepliesProps) {
             <h2 class="text-xl font-bold mb-4">
               {i18n._(
                 msg`${
-                  plural(article.engagementStats.replies, {
+                  plural(article.replies?.edges.length ?? 0, {
                     one: "# comment",
                     other: "# comments",
                   })
