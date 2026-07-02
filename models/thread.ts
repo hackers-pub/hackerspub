@@ -120,15 +120,19 @@ export async function getDescendantPage(
   const limit = Math.max(options.limit, 0);
   if (limit < 1) return { entries: [], hasMore: false };
   const viewerActorId = options.viewerActorId ?? null;
-  // Each path element is fixed-width (18-digit zero-padded epoch
-  // microseconds — the full precision of timestamptz — then `~` and the
-  // 36-char uuid as a total-order tiebreak), so element-wise text[]
-  // comparison yields the depth-first order with chronological siblings,
-  // and a `path > $after` predicate resumes the traversal exactly.
+  // Each path element sorts a node among its siblings: the publish time as a
+  // fixed-width, lexicographically ordered UTC string
+  // (`YYYY-MM-DDTHH24:MI:SS.US`, microsecond precision), then `~` and the
+  // 36-char uuid as a total-order tiebreak.  Element-wise text[] comparison
+  // then yields depth-first order with chronological siblings, and a
+  // `path > $after` predicate resumes the traversal exactly.  Formatting the
+  // timestamp beats its epoch: it keeps ordering correct for pre-1970 dates
+  // (a signed epoch string sorts negatives backwards under `lpad`) and avoids
+  // the float rounding of `extract(epoch from ...)`.
   const pathElement = (alias: string) =>
     sql.raw(
-      `lpad((extract(epoch from ${alias}.published) * 1000000)` +
-        `::bigint::text, 18, '0') || '~' || ${alias}.id::text`,
+      `to_char(${alias}.published at time zone 'UTC', ` +
+        `'YYYY-MM-DD"T"HH24:MI:SS.US') || '~' || ${alias}.id::text`,
     );
   const censoredPrune = (alias: string) =>
     viewerActorId == null

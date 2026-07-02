@@ -374,3 +374,42 @@ test("getDescendantPage() terminates on cycles and never re-emits the root", asy
     assert.deepEqual(page.entries.map((entry) => entry.id), [x.id, y.id]);
   });
 });
+
+test("getDescendantPage() orders pre-1970 siblings chronologically", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "threadprehistoric",
+      name: "Thread Prehistoric",
+      email: "threadprehistoric@example.com",
+    });
+    const { post: root } = await insertNotePost(tx, {
+      account: author.account,
+      content: "root",
+    });
+    // Both replies predate 1970 with the same epoch digit count. The old key
+    // rendered the epoch and zero-padded it with `lpad`, which pads negatives
+    // to equal width and then compares digits ascending, so the more-negative
+    // (earlier) post sorted last; the earlier post must still come first.
+    const { post: earlier } = await insertNotePost(tx, {
+      account: author.account,
+      content: "1969-03",
+      replyTargetId: root.id,
+      published: new Date("1969-03-01T00:00:00.000Z"),
+    });
+    const { post: later } = await insertNotePost(tx, {
+      account: author.account,
+      content: "1969-09",
+      replyTargetId: root.id,
+      published: new Date("1969-09-01T00:00:00.000Z"),
+    });
+
+    const page = await getDescendantPage(tx, root.id, {
+      limit: 10,
+      maxDepth: 20,
+    });
+    assert.deepEqual(
+      page.entries.map((entry) => entry.id),
+      [earlier.id, later.id],
+    );
+  });
+});

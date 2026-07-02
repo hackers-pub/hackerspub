@@ -758,3 +758,159 @@ test("hasVisibleReplies hides the existence of followers-only replies", async ()
     );
   });
 });
+
+test("descendants hasNextPage reflects visible rows, not the raw tail", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "dhnauthor",
+      name: "DHN Author",
+      email: "dhnauthor@example.com",
+    });
+    const follower = await insertAccountWithActor(tx, {
+      username: "dhnfollower",
+      name: "DHN Follower",
+      email: "dhnfollower@example.com",
+    });
+    const stranger = await insertAccountWithActor(tx, {
+      username: "dhnstranger",
+      name: "DHN Stranger",
+      email: "dhnstranger@example.com",
+    });
+    await follows(tx, follower, author);
+    const { post: root } = await insertNotePost(tx, {
+      account: author.account,
+      content: "root",
+    });
+    // Two visible replies, then a followers-only reply that a stranger cannot
+    // see. Requesting exactly the two visible ones must not report a next page
+    // to a stranger (the only remaining raw row is hidden from them).
+    await insertNotePost(tx, {
+      account: author.account,
+      content: "public reply 1",
+      replyTargetId: root.id,
+    });
+    await insertNotePost(tx, {
+      account: author.account,
+      content: "public reply 2",
+      replyTargetId: root.id,
+    });
+    await insertNotePost(tx, {
+      account: author.account,
+      content: "followers-only reply",
+      visibility: "followers",
+      replyTargetId: root.id,
+    });
+
+    const query = parse(`
+      query($id: ID!) {
+        node(id: $id) {
+          ... on Post {
+            descendants(first: 2) {
+              edges { node { uuid } }
+              pageInfo { hasNextPage }
+            }
+          }
+        }
+      }
+    `);
+    const gid = encodeGlobalID("Note", root.id);
+    interface Data {
+      node: {
+        descendants: {
+          edges: { node: { uuid: string } }[];
+          pageInfo: { hasNextPage: boolean };
+        };
+      };
+    }
+
+    const asStranger = await execute({
+      schema,
+      document: query,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, stranger.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(asStranger.errors, undefined);
+    const strangerData = (asStranger.data as unknown as Data).node.descendants;
+    assert.equal(strangerData.edges.length, 2);
+    // The only unread raw row is the followers-only reply, invisible to the
+    // stranger, so advertising a next page would leak that it exists.
+    assert.equal(strangerData.pageInfo.hasNextPage, false);
+
+    const asFollower = await execute({
+      schema,
+      document: query,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, follower.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(asFollower.errors, undefined);
+    const followerData = (asFollower.data as unknown as Data).node.descendants;
+    assert.equal(followerData.edges.length, 2);
+    // The follower can see the third reply, so a next page genuinely exists.
+    assert.equal(followerData.pageInfo.hasNextPage, true);
+  });
+});
+
+test("descendants endCursor never exposes a hidden row", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "dhecauthor",
+      name: "DHEC Author",
+      email: "dhecauthor@example.com",
+    });
+    const stranger = await insertAccountWithActor(tx, {
+      username: "dhecstranger",
+      name: "DHEC Stranger",
+      email: "dhecstranger@example.com",
+    });
+    const { post: root } = await insertNotePost(tx, {
+      account: author.account,
+      content: "root",
+    });
+    // The root's only reply is followers-only. To a stranger the descendants
+    // connection must look exactly like a post with no replies at all: no
+    // edges, no next page, and a null endCursor. A non-null cursor here would
+    // be base64 of the hidden reply's path, leaking its id and publish time.
+    await insertNotePost(tx, {
+      account: author.account,
+      content: "hidden reply",
+      visibility: "followers",
+      replyTargetId: root.id,
+    });
+
+    const query = parse(`
+      query($id: ID!) {
+        node(id: $id) {
+          ... on Post {
+            descendants(first: 10) {
+              edges { node { uuid } }
+              pageInfo { hasNextPage endCursor }
+            }
+          }
+        }
+      }
+    `);
+    interface Data {
+      node: {
+        descendants: {
+          edges: unknown[];
+          pageInfo: { hasNextPage: boolean; endCursor: string | null };
+        };
+      };
+    }
+
+    const result = await execute({
+      schema,
+      document: query,
+      variableValues: { id: encodeGlobalID("Note", root.id) },
+      contextValue: makeUserContext(tx, stranger.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(result.errors, undefined);
+    const conn = (result.data as unknown as Data).node.descendants;
+    assert.deepEqual(conn.edges, []);
+    assert.equal(conn.pageInfo.hasNextPage, false);
+    assert.equal(conn.pageInfo.endCursor, null);
+  });
+});

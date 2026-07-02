@@ -1285,12 +1285,13 @@ export function hidePostRelationWithoutActor<T>(
 }
 
 // A descendants cursor is base64 of the model layer's DFS path: fixed-width
-// `<18-digit epoch microseconds>~<uuid>` elements joined by `/`.  The uuid
-// parts double as the entry's strict ancestor chain below the focused post,
-// which the resolver uses to drop entries whose subtree root got filtered
-// out on an earlier page.
+// `<YYYY-MM-DDTHH:MM:SS.ffffff>~<uuid>` elements joined by `/` (the timestamp
+// is the node's UTC publish time to microsecond precision).  The uuid parts
+// double as the entry's strict ancestor chain below the focused post, which
+// the resolver uses to drop entries whose subtree root got filtered out on an
+// earlier page.
 const descendantPathElement =
-  /^\d{18}~[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/;
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}~[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/;
 
 function encodeDescendantCursor(path: string): string {
   return btoa(path);
@@ -1313,7 +1314,10 @@ function decodeDescendantCursor(cursor: string): string {
 
 function descendantPathAncestorIds(path: string): Uuid[] {
   const elements = path.split("/");
-  return elements.slice(0, -1).map((element) => element.slice(19) as Uuid);
+  // Each element is `<sortkey>~<uuid>`; the uuid (36 chars, no `~`) is the id.
+  return elements.slice(0, -1).map((element) =>
+    element.slice(element.indexOf("~") + 1) as Uuid
+  );
 }
 
 // Whether the given post is visible to the authenticated viewer: per-post
@@ -1789,24 +1793,34 @@ builder.drizzleInterfaceFields(Post, (t) => ({
       let after = args.after == null
         ? null
         : decodeDescendantCursor(args.after);
-      let hasNextPage = false;
-      let endCursor = args.after ?? null;
-      // Rows the raw traversal returns can still be filtered out below, so
-      // one raw page may fill less than `first` edges.  Keep scanning a few
-      // pages to fill up, but bounded, so a subtree of mostly-invisible
-      // posts cannot make one request scan without limit.  `endCursor`
-      // tracks the raw scan position (not the last visible edge): a page
-      // whose tail got filtered out must not be re-scanned by the next
-      // request, and even an all-filtered page then still advances.
-      for (let round = 0; round < 5 && edges.length < first; round++) {
+      // Whether a reply visible to this viewer exists past the emitted page.
+      // Derived from actually finding one more visible survivor, never from the
+      // raw `hasMore`: the raw tail can be entirely invisible to this viewer,
+      // and reporting `hasNextPage: true` off it would leak that hidden replies
+      // exist (the client would then load a phantom, empty next page).
+      let sawExtraVisible = false;
+      // Whether the raw traversal ran out of rows entirely.
+      let rawExhausted = false;
+      // Bound the work per request so a subtree padded with replies hidden
+      // from this viewer cannot make one request scan without limit.  `after`
+      // (the raw scan position) advances through hidden runs within a request,
+      // but the returned `endCursor` never does: see below.
+      const maxRounds = 10;
+      for (let round = 0; round < maxRounds; round++) {
+        const remaining = first - edges.length;
         const page = await getDescendantPage(ctx.db, post.id, {
           after,
-          limit: first - edges.length,
+          // While filling, fetch what is left plus one so a single dense page
+          // both fills and reveals the next survivor; once full, fetch a batch
+          // to scan over runs of hidden rows while probing for one.
+          limit: remaining > 0 ? remaining + 1 : first,
           maxDepth,
           viewerActorId,
         });
-        hasNextPage = page.hasMore;
-        if (page.entries.length < 1) break;
+        if (page.entries.length < 1) {
+          rawExhausted = true;
+          break;
+        }
         const idsToCheck = new Set<Uuid>();
         for (const entry of page.entries) {
           idsToCheck.add(entry.id);
@@ -1833,15 +1847,42 @@ builder.drizzleInterfaceFields(Post, (t) => ({
         for (const entry of survivors) {
           const row = rows.get(entry.id);
           if (row == null) continue;
-          edges.push({
-            cursor: encodeDescendantCursor(entry.cursor),
-            node: row,
-          });
+          if (edges.length < first) {
+            edges.push({
+              cursor: encodeDescendantCursor(entry.cursor),
+              node: row,
+            });
+          } else {
+            // One visible survivor beyond the emitted page is enough to know a
+            // real next page exists; do not emit it, the next request will.
+            sawExtraVisible = true;
+            break;
+          }
         }
+        if (sawExtraVisible) break;
         after = page.entries[page.entries.length - 1].cursor;
-        endCursor = encodeDescendantCursor(after);
-        if (!page.hasMore) break;
+        if (!page.hasMore) {
+          rawExhausted = true;
+          break;
+        }
       }
+      // `endCursor` is only ever a visible edge we emitted, never a hidden
+      // row: a hidden row's cursor is base64 of its path (its id and publish
+      // time), so exposing it would disclose that hidden descendants exist and
+      // leak their identity.  A page that emits nothing returns a `null`
+      // cursor, indistinguishable from a post that has no descendants at all.
+      const endCursor = edges.length > 0
+        ? edges[edges.length - 1].cursor
+        : null;
+      const hitBound = !sawExtraVisible && !rawExhausted;
+      // Offer a next page only when we truly saw a further visible reply, or
+      // when the bounded scan stopped with rows still unread *and* this request
+      // emitted something to resume from.  A request that scanned its whole
+      // budget of hidden rows without emitting anything reports no next page
+      // rather than loop forever or leak a hidden cursor; a reply buried under
+      // that many hidden ones stays reachable through its own permalink.
+      const hasNextPage = sawExtraVisible ||
+        (hitBound && edges.length > 0);
       return {
         edges,
         pageInfo: {
