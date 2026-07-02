@@ -271,9 +271,13 @@ function PermalinkAncestors(props: PermalinkAncestorsProps) {
   const { t, i18n } = useLingui();
   const [expanded, setExpanded] = createSignal(false);
 
-  // Server order is nearest-first; display order is root-first.
+  // Server order is nearest-first; display order is root-first. Relay can
+  // surface a null edge or node for a record it could not fetch, so guard
+  // before dereferencing (same as `PermalinkThreadTree`'s node list).
   const chain = createMemo<AncestorEdgeNode[]>(() =>
-    (props.post.ancestors?.edges ?? []).map((edge) => edge.node).toReversed()
+    (props.post.ancestors?.edges ?? [])
+      .flatMap((edge) => edge?.node == null ? [] : [edge.node])
+      .toReversed()
   );
   const hasMoreAbove = createMemo(() => {
     const rows = chain();
