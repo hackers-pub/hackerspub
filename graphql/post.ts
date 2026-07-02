@@ -1806,8 +1806,6 @@ builder.drizzleInterfaceFields(Post, (t) => ({
       // and reporting `hasNextPage: true` off it would leak that hidden replies
       // exist (the client would then load a phantom, empty next page).
       let sawExtraVisible = false;
-      // Whether the raw traversal ran out of rows entirely.
-      let rawExhausted = false;
       // Bound the work per request so a subtree padded with replies hidden
       // from this viewer cannot make one request scan without limit.  `after`
       // (the raw scan position) advances through hidden runs within a request,
@@ -1825,10 +1823,7 @@ builder.drizzleInterfaceFields(Post, (t) => ({
           maxDepth,
           viewerActorId,
         });
-        if (page.entries.length < 1) {
-          rawExhausted = true;
-          break;
-        }
+        if (page.entries.length < 1) break;
         const idsToCheck = new Set<Uuid>();
         for (const entry of page.entries) {
           idsToCheck.add(entry.id);
@@ -1869,10 +1864,7 @@ builder.drizzleInterfaceFields(Post, (t) => ({
         }
         if (sawExtraVisible) break;
         after = page.entries[page.entries.length - 1].cursor;
-        if (!page.hasMore) {
-          rawExhausted = true;
-          break;
-        }
+        if (!page.hasMore) break;
       }
       // `endCursor` is only ever a visible edge we emitted, never a hidden
       // row: a hidden row's cursor is base64 of its path (its id and publish
@@ -1882,15 +1874,13 @@ builder.drizzleInterfaceFields(Post, (t) => ({
       const endCursor = edges.length > 0
         ? edges[edges.length - 1].cursor
         : null;
-      const hitBound = !sawExtraVisible && !rawExhausted;
-      // Offer a next page only when we truly saw a further visible reply, or
-      // when the bounded scan stopped with rows still unread *and* this request
-      // emitted something to resume from.  A request that scanned its whole
-      // budget of hidden rows without emitting anything reports no next page
-      // rather than loop forever or leak a hidden cursor; a reply buried under
-      // that many hidden ones stays reachable through its own permalink.
-      const hasNextPage = sawExtraVisible ||
-        (hitBound && edges.length > 0);
+      // Offer a next page only when the probe actually found one more visible
+      // reply, never off unread rows alone.  Once the page is full, a bounded
+      // run of replies hidden from this viewer must not surface a "load more"
+      // that then yields an empty page: that would disclose that hidden
+      // descendants exist.  A visible reply buried under a run of hidden ones
+      // longer than the probe budget stays reachable through its own permalink.
+      const hasNextPage = sawExtraVisible;
       return {
         edges,
         pageInfo: {
