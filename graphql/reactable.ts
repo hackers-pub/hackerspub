@@ -4,7 +4,9 @@ import type { RelationsFilter } from "@hackerspub/models/db";
 import { getSanctionVisibleActorFilter } from "@hackerspub/models/post";
 import { getViewerReactionsForPosts } from "@hackerspub/models/reaction";
 import { relations } from "@hackerspub/models/relations";
+import { actorTable, reactionTable } from "@hackerspub/models/schema";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
+import { and, count, eq, gt, isNotNull, isNull, lte, or } from "drizzle-orm";
 import { createGraphQLError } from "graphql-yoga";
 import { Actor } from "./actor.ts";
 import { builder, Node, type UserContext } from "./builder.ts";
@@ -156,6 +158,10 @@ export const ReactionGroup = builder.interfaceRef<ReactionGroup>(
       type: Actor,
       async resolve(group, args, ctx, info) {
         const query = reactorConnectionHelpers.getQuery(args, ctx, info);
+        // Evaluate sanction activeness for both the edges and the total
+        // against the same instant, so they cannot disagree at a suspension
+        // boundary.
+        const now = new Date();
         // Exclude reactions by actors whose content is hidden by a
         // moderation sanction (banned local / federation-blocked remote), so
         // the reactor list never reveals a sanction-hidden actor's identity
@@ -165,7 +171,7 @@ export const ReactionGroup = builder.interfaceRef<ReactionGroup>(
             AND: [
               group.where,
               { postId: group.subject.id },
-              { actor: getSanctionVisibleActorFilter() },
+              { actor: getSanctionVisibleActorFilter(now) },
             ],
           }
           : {
@@ -173,18 +179,46 @@ export const ReactionGroup = builder.interfaceRef<ReactionGroup>(
               query.where,
               group.where,
               { postId: group.subject.id },
-              { actor: getSanctionVisibleActorFilter() },
+              { actor: getSanctionVisibleActorFilter(now) },
             ],
           };
         const reactions = await ctx.db.query.reactionTable.findMany({
           ...query,
           where,
         });
+        // `group.count` comes from the denormalized reaction counter, which
+        // still includes sanction-hidden reactors; count them out here so the
+        // total agrees with the (sanction-filtered) edges and cannot reveal
+        // that a hidden actor reacted.  Same post/emoji predicate as the edge
+        // query, with the sanction-visible actor check as a join filter.
+        const groupFilter = group.where as {
+          emoji?: string;
+          customEmojiId?: Uuid;
+        };
+        const [totalRow] = await ctx.db
+          .select({ c: count() })
+          .from(reactionTable)
+          .innerJoin(actorTable, eq(actorTable.id, reactionTable.actorId))
+          .where(and(
+            eq(reactionTable.postId, group.subject.id),
+            groupFilter.customEmojiId != null
+              ? eq(reactionTable.customEmojiId, groupFilter.customEmojiId)
+              : eq(reactionTable.emoji, groupFilter.emoji!),
+            or(
+              isNull(actorTable.suspended),
+              gt(actorTable.suspended, now),
+              lte(actorTable.suspendedUntil, now),
+              and(
+                isNotNull(actorTable.accountId),
+                gt(actorTable.suspendedUntil, now),
+              ),
+            ),
+          ));
         return {
           postId: group.subject.id,
           where: group.where,
           ...reactorConnectionHelpers.resolve(reactions, args, ctx),
-          totalCount: group.count,
+          totalCount: totalRow?.c ?? 0,
         };
       },
     }, {

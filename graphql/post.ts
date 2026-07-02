@@ -4542,6 +4542,10 @@ builder.relayMutationField(
 
       const { postId } = args.input;
 
+      const alreadyBookmarked =
+        (await arePostsBookmarkedBy(ctx.db, [postId.id], ctx.account))
+          .has(postId.id);
+
       const post = await ctx.db.query.postTable.findFirst({
         with: {
           actor: {
@@ -4563,10 +4567,13 @@ builder.relayMutationField(
         throw new InvalidInputError("postId");
       }
 
-      // Gate on visibility so this mutation cannot be used as an oracle to
-      // fetch a post the viewer cannot see via its `post` output field
-      // (`deleteBookmark` is a silent no-op when no bookmark exists).
-      if (!isPostVisibleTo(post, ctx.account.actor)) {
+      // Removing an existing bookmark is always allowed, even if the post has
+      // since become invisible to the viewer (they bookmarked it while it was
+      // visible). The visibility gate applies only when there is no bookmark
+      // to remove, so this mutation cannot be used as an oracle to probe a
+      // post the viewer cannot see via its `post` output field
+      // (`deleteBookmark` is otherwise a silent no-op).
+      if (!alreadyBookmarked && !isPostVisibleTo(post, ctx.account.actor)) {
         throw new InvalidInputError("postId");
       }
 

@@ -1,7 +1,12 @@
 import {
+  arePostsBookmarkedBy,
+  createBookmark,
+} from "@hackerspub/models/bookmark";
+import {
   actorTable,
   articleDraftTable,
   followingTable,
+  postTable,
 } from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
 import { encodeGlobalID } from "@pothos/plugin-relay";
@@ -382,7 +387,7 @@ test("reactor list excludes sanction-hidden actors", async () => {
           node(id: $id) {
             ... on Post {
               reactionGroups {
-                reactors { edges { node { username } } }
+                reactors { totalCount edges { node { username } } }
               }
             }
           }
@@ -396,7 +401,10 @@ test("reactor list excludes sanction-hidden actors", async () => {
     const groups = (result.data as {
       node: {
         reactionGroups: {
-          reactors: { edges: { node: { username: string } }[] };
+          reactors: {
+            totalCount: number;
+            edges: { node: { username: string } }[];
+          };
         }[];
       };
     }).node.reactionGroups;
@@ -405,6 +413,64 @@ test("reactor list excludes sanction-hidden actors", async () => {
     );
     assert.ok(reactorNames.includes("rxgood"));
     assert.ok(!reactorNames.includes("rxbanned"));
+    // The total must exclude the banned reactor too, so it matches the
+    // visible edges rather than the denormalized counter (which still counts
+    // them).
+    const total = groups.reduce((sum, g) => sum + g.reactors.totalCount, 0);
+    assert.equal(total, 1);
+  });
+});
+
+test("unbookmarkPost lets the owner remove a bookmark on a now-invisible post", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "ubowner_author",
+      name: "UB Owner Author",
+      email: "ubowner_author@example.com",
+    });
+    const viewer = await insertAccountWithActor(tx, {
+      username: "ubowner_viewer",
+      name: "UB Owner Viewer",
+      email: "ubowner_viewer@example.com",
+    });
+    // The viewer bookmarks a public post, then the post is downgraded to
+    // followers-only (and the viewer does not follow the author), so it is no
+    // longer visible to them.
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "was public",
+    });
+    await createBookmark(tx, viewer.account, post);
+    await tx.update(postTable)
+      .set({ visibility: "followers" })
+      .where(eq(postTable.id, post.id));
+
+    const result = await execute({
+      schema,
+      document: parse(`
+        mutation($postId: ID!) {
+          unbookmarkPost(input: { postId: $postId }) {
+            __typename
+            ... on UnbookmarkPostPayload { unbookmarkedPostId }
+            ... on InvalidInputError { inputPath }
+          }
+        }
+      `),
+      variableValues: { postId: encodeGlobalID("Note", post.id) },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(result.errors, undefined);
+    assert.equal(
+      (result.data as { unbookmarkPost: { __typename: string } })
+        .unbookmarkPost.__typename,
+      "UnbookmarkPostPayload",
+    );
+    // The bookmark is actually gone.
+    assert.deepEqual(
+      await arePostsBookmarkedBy(tx, [post.id], viewer.account),
+      new Set(),
+    );
   });
 });
 
