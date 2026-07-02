@@ -161,7 +161,7 @@ function SharesList(props: { $post: sharesNoteEngagement_post$key }) {
           actingAccountId: { type: "ID", defaultValue: null }
         )
       {
-        shares(after: $cursor, first: $count)
+        shares(after: $cursor, first: $count, actingAccountId: $actingAccountId)
           @connection(key: "SharesNoteEngagement__shares")
         {
           edges {

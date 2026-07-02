@@ -160,7 +160,7 @@ function SharesList(
           actingAccountId: { type: "ID", defaultValue: null }
         )
       {
-        shares(after: $cursor, first: $count)
+        shares(after: $cursor, first: $count, actingAccountId: $actingAccountId)
           @connection(key: "SharesArticleEngagement__shares")
         {
           edges {

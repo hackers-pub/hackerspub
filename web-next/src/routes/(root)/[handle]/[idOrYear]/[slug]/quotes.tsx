@@ -159,7 +159,7 @@ function QuotesList(
           actingAccountId: { type: "ID", defaultValue: null }
         )
       {
-        quotes(after: $cursor, first: $count)
+        quotes(after: $cursor, first: $count, actingAccountId: $actingAccountId)
           @connection(key: "QuotesArticleEngagement__quotes")
         {
           edges {
