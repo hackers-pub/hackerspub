@@ -429,7 +429,7 @@ HTML ドキュメントは W3C 標準に従っています。
 *[HTML]: HyperText Markup Language
 
 *[W3C]: World Wide Web Consortium
->
+
 > HTML ドキュメントは W3C 標準に従っています。
 
 ### テーブル

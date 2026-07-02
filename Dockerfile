@@ -16,20 +16,26 @@ ENV MISE_DATA_DIR="/mise"
 ENV MISE_CONFIG_DIR="/mise"
 ENV MISE_CACHE_DIR="/mise/cache"
 ENV MISE_INSTALL_PATH="/usr/local/bin/mise"
+ENV npm_config_fetch_retries="5"
+ENV npm_config_fetch_retry_maxtimeout="120000"
+ENV npm_config_fetch_timeout="300000"
 ENV PATH="/mise/shims:$PATH"
 
 RUN curl https://mise.run | sh
 
 WORKDIR /app
 COPY mise.toml /app/mise.toml
-RUN --mount=type=secret,id=github_token,env=GITHUB_TOKEN \
+RUN --mount=type=secret,id=github_token,target=/run/secrets/github_token,required=false \
   --mount=type=cache,id=mise-cache,target=/mise/cache \
+  if [ -f /run/secrets/github_token ]; then \
+    export GITHUB_TOKEN="$(cat /run/secrets/github_token)"; \
+  fi && \
   mise trust && mise install
 
 # --- Prod dependencies (runs in parallel with builder) -----------------------
 # Only depends on lockfiles and manifest files — not on any source code.
 # This means the layer stays cached on source-only changes, avoiding the
-# 2-3 min prod pnpm install + deno install on every commit.
+# 2-3 min prod dependency install on every commit.
 FROM mise-base AS prod-deps
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml /app/
@@ -58,7 +64,7 @@ RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
 # Re-populate /app/node_modules entries that Deno needs but pnpm doesn't
 # track. Without this the first `mise run prod:graphql` at deploy time spends
 # minutes rebuilding the directory; with it the server starts in seconds.
-RUN deno install
+RUN mise deps install deno --force
 
 # --- Builder stage -----------------------------------------------------------
 FROM mise-base AS builder
@@ -85,8 +91,8 @@ COPY asset-cdn/package.json /app/asset-cdn/package.json
 COPY patches /app/patches
 
 RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
-  pnpm install --frozen-lockfile
-RUN deno install
+  mise deps install pnpm --force
+RUN mise deps install deno --force
 
 COPY . /app
 
@@ -109,23 +115,24 @@ RUN if [ -n "$GIT_COMMIT" ]; then \
   mv /tmp/package.json web-next/package.json \
   ; fi
 
-# `--mount=type=secret,id=sentry_auth_token,...` exposes
-# SENTRY_AUTH_TOKEN to this RUN step only. The value is never written to
-# any image layer, so the public image stays free of the secret. CI
-# provides the secret via docker/build-push-action's `secrets:` input
-# (see .github/workflows/main.yml). Without the secret the build still
-# succeeds — the Sentry Vite plugin (vite.config.ts) just skips its
-# source-map upload when SENTRY_AUTH_TOKEN is unset. Source maps remain
-# in the deployed web-next output so production browser and server
-# debugging can use the same artifacts.
-RUN --mount=type=secret,id=sentry_auth_token,env=SENTRY_AUTH_TOKEN \
+# The `sentry_auth_token` secret is read, exported, and used in this RUN step
+# only. The value is never written to any image layer, so the public image
+# stays free of the secret. CI provides the secret via docker/build-push-action's
+# `secrets:` input (see .github/workflows/main.yml). Without the secret the
+# build still succeeds: the Sentry Vite plugin skips its source-map upload when
+# SENTRY_AUTH_TOKEN is unset. Source maps remain in the deployed web-next output
+# so production browser and server debugging can use the same artifacts.
+RUN --mount=type=secret,id=sentry_auth_token,target=/run/secrets/sentry_auth_token,required=false \
+  if [ -f /run/secrets/sentry_auth_token ]; then \
+    export SENTRY_AUTH_TOKEN="$(cat /run/secrets/sentry_auth_token)"; \
+  fi && \
   cp .env.sample .env && \
   sed -i '/^INSTANCE_ACTOR_KEY=/d' .env && \
   echo >> .env && \
   echo "INSTANCE_ACTOR_KEY='$(mise run keygen)'" >> .env && \
-  deno task -r codegen && \
-  deno task build && \
-  pnpm --filter @hackerspub/web-next build && \
+  mise run codegen && \
+  mise run build:web && \
+  mise run build:web-next && \
   rm .env
 
 # Strip dev node_modules; the runtime stage pulls prod deps from prod-deps.

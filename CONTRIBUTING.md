@@ -71,22 +71,24 @@ Prerequisites
 
 To build the project, you need to have the following tools installed:
 
- -  [Deno] 2.3 or higher
- -  [Node.js] 24 or higher (for *web-next/*)
+ -  [mise]
  -  [PostgreSQL] 17 or higher
  -  [ffmpeg] 5.0 or higher
  -  [Mailgun] account (optional; for sending emails)
  -  [Anthropic] API key (optional; for translating posts)
  -  [Google Generative AI] API key (optional; for summarizing posts)
 
-Any other dependencies can be installed using Deno and pnpm:
+Project tools and dependencies are managed by mise.  From the repository root,
+run:
 
 ~~~~ sh
-deno install
-pnpm install
+mise install
 ~~~~
 
-[Node.js]: https://nodejs.org/
+This installs the pinned Deno, Node.js, pnpm, and project tools, installs Deno
+and pnpm dependencies, and writes the pre-commit hook.
+
+[mise]: https://mise.jdx.dev/
 [Mailgun]: https://www.mailgun.com/
 [Anthropic]: https://console.anthropic.com/
 [Google Generative AI]: https://aistudio.google.com/apikey
@@ -124,22 +126,22 @@ and set the values of the variables according to your environment.
 >
 >  -  `SECRET_KEY` is a random string that is used for encrypting the session
 >     data.  You can generate a new key using the following command:
-
+>
 >     ~~~~ sh
 >     openssl rand -hex 32
 >     ~~~~
 >
 >  -  `INSTANCE_ACTOR_KEY` is a RSA private key with JWK format.  You can
 >     generate a new key using the following command:
-
+>
 >     ~~~~ sh
 >     mise run keygen
 >     ~~~~
-
+>
 >     Warn that you should quote the key value with single quotes in the *.env*
 >     file, e.g., `INSTANCE_ACTOR_KEY='{"kty":"RSA",...}'`.
 >
-> - `WEB_PUSH_VAPID_PUBLIC_KEY` and `WEB_PUSH_VAPID_PRIVATE_KEY` are used by
+>  -  `WEB_PUSH_VAPID_PUBLIC_KEY` and `WEB_PUSH_VAPID_PRIVATE_KEY` are used by
 >     browser Web Push notifications.  You can generate a pair in *.env* format
 >     using the following command:
 >
@@ -157,11 +159,10 @@ and set the values of the variables according to your environment.
 >     `KV_URL=file:///tmp/kv.db`.
 >
 >  -  `DRIVE_DISK` can be set to `fs` to use the file system for storing files.
-
 >     In this case, you also need to set `FS_LOCATION` to the directory where
 >     the files will be stored, which can be a relative path to the project
 >     directory, e.g., `FS_LOCATION=./media`.
-
+>
 >     For your information, the *media/* directory under the project directory
 >     is listed in the *.gitignore* file, so you don't need to worry about
 >     accidentally committing the files to the repository.
@@ -268,20 +269,18 @@ Running web-next
 
 To run web-next, the new web frontend for Hackers' Pub, follow these steps:
 
-1.  Navigate to the *web-next/* directory.
-
-2.  Optionally install [watchman].  If watchman is available, the Relay
+1.  Optionally install [watchman].  If watchman is available, the Relay
     compiler runs automatically as part of the Vite dev server via
     [vite-plugin-relay-lite].  If watchman is not installed, set the
     `NO_WATCHMAN=1` environment variable when running the dev server and
-    run `pnpm codegen` manually whenever GraphQL files change.
+    run `mise run next:codegen` manually whenever GraphQL files change.
 
-3.  Run the development server with the command
+2.  Run the development server with the command
     `API_URL=http://localhost:8000/graphql mise run dev:web-next`.
     The legacy server must be running at this point, as it also serves as
     the GraphQL API server for web-next.
 
-4.  Access http://localhost:3000/ to see the new look of Hackers' Pub.
+3.  Access http://localhost:3000/ to see the new look of Hackers' Pub.
 
 When you build new UI in *web-next/*, follow the conventions documented in
 [*DESIGN.md*](./DESIGN.md) — it covers the color tokens, typography, component
@@ -325,7 +324,7 @@ Currently, we don't have many tests.  However, we encourage you to write tests
 for your changes.  To run the tests, execute the following command:
 
 ~~~~ sh
-deno task test
+mise run test
 ~~~~
 
 
@@ -333,19 +332,18 @@ Before submitting a pull request
 --------------------------------
 
 Before submitting a pull request, ensure that your changes pass the tests and
-that you have formatted the code using `deno fmt`.  You can use the following
-command to check the code formatting and run lint checks:
+that you have formatted the code and Markdown using `mise run fmt`.  You can
+use the following command to check the code formatting and run lint checks:
 
 ~~~~ sh
-deno task check
+mise run check
 ~~~~
 
 > [!TIP]
-> Or, you can use the following command to install a *pre-commit* hook that
-> checks the code formatting and runs lint checks before committing:
+> `mise install` installs this hook automatically.  To refresh it manually, run:
 >
 > ~~~~ sh
-> deno task hooks:install
+> mise generate git-pre-commit --write --task=check
 > ~~~~
 
 

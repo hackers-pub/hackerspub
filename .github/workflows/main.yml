@@ -10,6 +10,8 @@ on:
 jobs:
   test:
     runs-on: namespace-profile-linux-amd64-8cpu-16gb
+    env:
+      MISE_ENV_FILE: .env.ci
     services:
       postgres:
         image: postgres:16
@@ -27,31 +29,25 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: jdx/mise-action@v4
-    - name: Get pnpm store directory
-      id: pnpm-store
-      run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
-    - uses: actions/cache@v4
       with:
-        path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
-        key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-        restore-keys: pnpm-${{ runner.os }}-
-    - name: Install dependencies
-      run: pnpm install
+        experimental: true
+        cache: true
+        cache_key_prefix: mise-v4
     - name: Run codegen
-      run: npx @dotenvx/dotenvx run -f .env.ci -- deno task -r codegen
+      run: mise run codegen
     - name: Build web-next
       run: mise run build:web-next
     - name: Run database migrations
-      run: npx @dotenvx/dotenvx run -f .env.ci -- mise run migrate
+      run: mise run migrate
     - name: Run tests
       if: always()
-      run: npx @dotenvx/dotenvx run -f .env.ci -- deno task test
+      run: mise run test
     - name: Run checks
       if: always()
-      run: deno task check
+      run: mise run check
     - name: Typecheck asset-cdn Worker
       if: always()
-      # asset-cdn is excluded from `deno task check` (it targets the Cloudflare
+      # asset-cdn is excluded from `mise run check` (it targets the Cloudflare
       # Workers runtime, not Deno), so type-check it with its own tsc.
       run: pnpm --filter @hackerspub/asset-cdn typecheck
     - name: Check for untranslated messages
@@ -80,7 +76,7 @@ jobs:
         fi
     - name: Extract web-next translations
       if: always()
-      run: cd web-next && pnpm extract
+      run: mise run next:extract
     - name: Check for uncommitted changes
       if: always()
       run: |
@@ -90,7 +86,9 @@ jobs:
         while IFS= read -r file; do
           echo "::error file=$file::Generated file has uncommitted changes - please run generators locally and commit"
           git diff --unified=0 "$file" | grep '^@@' | while read -r hunk; do
-            line_info=$(echo "$hunk" | sed 's/.*+\([0-9]*\).*/\1/')
+            line_info=${hunk#*+}
+            line_info=${line_info%%,*}
+            line_info=${line_info%% *}
             [ -n "$line_info" ] && echo "::error file=$file,line=$line_info::Generated content differs from committed version"
           done
           has_changes=true

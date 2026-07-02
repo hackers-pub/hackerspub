@@ -9,6 +9,7 @@
     "jsr:@fedify/postgres@2.3.1": "2.3.1",
     "jsr:@fedify/redis@2.3.1": "2.3.1",
     "jsr:@fedify/uri-template@^2.3.1": "2.3.1",
+    "jsr:@fedify/vocab-runtime@2.3.1": "2.3.1",
     "jsr:@fedify/vocab-runtime@^2.3.1": "2.3.1",
     "jsr:@fedify/vocab@2.3.1": "2.3.1",
     "jsr:@fedify/vocab@^2.3.1": "2.3.1",
@@ -119,12 +120,14 @@
     "npm:@opentelemetry/api@^1.9.0": "1.9.1",
     "npm:@opentelemetry/api@^1.9.1": "1.9.1",
     "npm:@opentelemetry/context-async-hooks@^1.28.0": "1.30.1_@opentelemetry+api@1.9.1",
+    "npm:@opentelemetry/core@^2.7.1": "2.7.1_@opentelemetry+api@1.9.1",
     "npm:@opentelemetry/instrumentation-ioredis@0.45": "0.45.0_@opentelemetry+api@1.9.1",
     "npm:@opentelemetry/instrumentation-redis-4@0.44": "0.44.0_@opentelemetry+api@1.9.1",
     "npm:@opentelemetry/instrumentation@0.55": "0.55.0_@opentelemetry+api@1.9.1",
     "npm:@opentelemetry/resources@^1.28.0": "1.30.1_@opentelemetry+api@1.9.1",
     "npm:@opentelemetry/sdk-metrics@2.7.1": "2.7.1_@opentelemetry+api@1.9.1",
     "npm:@opentelemetry/sdk-trace-base@^1.28.0": "1.30.1_@opentelemetry+api@1.9.1",
+    "npm:@opentelemetry/sdk-trace-base@^2.7.1": "2.7.1_@opentelemetry+api@1.9.1",
     "npm:@opentelemetry/semantic-conventions@^1.36.0": "1.40.0",
     "npm:@opentelemetry/semantic-conventions@^1.40.0": "1.40.0",
     "npm:@parcel/watcher@^2.5.1": "2.5.6",
@@ -296,12 +299,14 @@
       "dependencies": [
         "jsr:@fedify/fedify@^2.3.1",
         "jsr:@fedify/uri-template",
-        "jsr:@fedify/vocab-runtime",
+        "jsr:@fedify/vocab-runtime@^2.3.1",
         "jsr:@fedify/vocab@^2.3.1",
         "jsr:@fedify/webfinger",
         "jsr:@logtape/logtape@^2.2.0",
         "npm:@opentelemetry/api@^1.9.1",
+        "npm:@opentelemetry/core",
         "npm:@opentelemetry/sdk-metrics",
+        "npm:@opentelemetry/sdk-trace-base@^2.7.1",
         "npm:@opentelemetry/semantic-conventions@^1.40.0",
         "npm:byte-encodings",
         "npm:es-toolkit@^1.46.1",
@@ -345,7 +350,7 @@
     "@fedify/vocab@2.3.1": {
       "integrity": "c7e58814429002d81b833f1432e64fd9d0f83974e997550b4dc18df783c31cd6",
       "dependencies": [
-        "jsr:@fedify/vocab-runtime",
+        "jsr:@fedify/vocab-runtime@^2.3.1",
         "jsr:@fedify/webfinger",
         "jsr:@logtape/logtape@^2.2.0",
         "npm:@opentelemetry/api@^1.9.1",
@@ -367,7 +372,7 @@
     "@fedify/webfinger@2.3.1": {
       "integrity": "ef17da1c89b50490573f66eded3ea04520fd3505e9f4bfacf209496e8cbb6e82",
       "dependencies": [
-        "jsr:@fedify/vocab-runtime",
+        "jsr:@fedify/vocab-runtime@^2.3.1",
         "jsr:@logtape/logtape@^2.2.0",
         "npm:@opentelemetry/api@^1.9.1"
       ]
@@ -383,7 +388,7 @@
         "jsr:@std/fs@1",
         "jsr:@std/html@1",
         "jsr:@std/http@^1.0.15",
-        "jsr:@std/jsonc",
+        "jsr:@std/jsonc@1",
         "jsr:@std/media-types@1",
         "jsr:@std/path@1",
         "jsr:@std/semver",

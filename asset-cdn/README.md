@@ -59,10 +59,10 @@ repo.
     with a Cloudflare API token that can edit Workers and the `hackers.pub`
     zone:
 
-    ```sh
+    ~~~~ sh
     export CLOUDFLARE_API_TOKEN=...   # Workers Scripts:Edit + zone Workers Routes:Edit
     pnpm --filter @hackerspub/asset-cdn exec wrangler deploy
-    ```
+    ~~~~
 
     `wrangler` reads the R2 binding and the route from `wrangler.toml`.
 
@@ -70,12 +70,12 @@ repo.
     immediately, instead of waiting for the next push to main. Either re-run
     the latest `main` workflow after step 5, or upload once locally:
 
-    ```sh
+    ~~~~ sh
     # from the repo root, against a current production build
     aws s3 sync web-next/.output/public/_build "s3://hackerspub-assets/_build" \
       --endpoint-url "$R2_S3_ENDPOINT" \
       --cache-control "public, max-age=31536000, immutable"
-    ```
+    ~~~~
 
 
 Verifying

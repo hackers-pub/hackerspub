@@ -1,12 +1,16 @@
+[settings]
+experimental = true
+
 [tools]
 deno = "2.7.4"
 node = "24"
 pnpm = "10.12.4"
+"aqua:nushell/nushell" = "0.99.1"
 "npm:@sentry/mcp-server" = "latest"
 "github:joho/godotenv" = "latest"
 
 [tools."github:dahlia/hongdown"]
-version = "0.4.3"
+version = "0.5.1"
 
 [tools."github:dahlia/hongdown".platforms]
 linux-x64 = "hongdown-*-x86_64-unknown-linux-musl.tar.bz2"
@@ -15,59 +19,132 @@ linux-arm64 = "hongdown-*-aarch64-unknown-linux-musl.tar.bz2"
 [env]
 _.file = ".env"
 
+[hooks]
+postinstall = [
+  { run = "mise deps install" },
+  { run = 'if (".git" | path exists) { mise generate git-pre-commit --write --task=check }', shell = "nu -c" },
+]
+
+[deps.pnpm]
+auto = true
+
+[deps.deno]
+auto = true
+
+[tasks.codegen]
+description = "Generate all checked-in artifacts"
+run = "deno task -r codegen"
+
+[tasks."next:codegen"]
+description = "Generate Relay artifacts for web-next"
+run = "deno task -f web-next codegen"
+
+[tasks."next:extract"]
+description = "Extract Lingui messages for web-next"
+run = "pnpm extract"
+dir = "web-next"
+
+[tasks.check]
+description = "Run formatting, linting, type checking, and generated artifact checks"
+depends = ["next:codegen"]
+run = ["deno fmt --check", "hongdown --check", "deno lint", "deno check ."]
+
+[tasks.fmt]
+description = "Format source and Markdown files"
+run = ["deno fmt", "hongdown --write"]
+
+[tasks.test]
+description = "Run the Deno test suite"
+run = '''
+if (".env.test" | path exists) {
+  godotenv -f .env.test -o deno test --allow-all --parallel
+} else {
+  deno test --allow-all --parallel
+}
+'''
+shell = "nu -c"
+
 [tasks."dev:web"]
 description = "Run the legacy web stack in development mode"
-run = "cd web && deno task dev"
+run = "deno task dev"
+dir = "web"
 
 [tasks."dev:graphql"]
 description = "Run the GraphQL server in development mode"
-run = "cd graphql && deno task dev"
+run = "deno task dev"
+dir = "graphql"
 
 [tasks."dev:graphql-worker"]
 description = "Run the GraphQL federation queue worker in development mode"
-run = "cd graphql && deno task dev:worker"
+run = "deno task dev:worker"
+dir = "graphql"
 
 [tasks."dev:web-next"]
 description = "Run the web-next stack in development mode"
-run = "cd web-next && pnpm dev"
+run = "pnpm dev"
+dir = "web-next"
 
 [tasks."build:web"]
 description = "Build the legacy web stack"
-run = "cd web && deno task build"
+run = "deno task build"
+dir = "web"
 
 [tasks."build:web-next"]
 description = "Build the web-next stack"
-run = "cd web-next && pnpm build"
+run = "pnpm build"
+dir = "web-next"
 
 [tasks."prod:web"]
 description = "Start the legacy web stack in production"
-run = "cd web && deno task start"
+run = "deno task start"
+dir = "web"
 
 [tasks."prod:graphql"]
 description = "Start the GraphQL server in production"
-run = "cd graphql && deno task start"
+run = "deno task start"
+dir = "graphql"
 
 [tasks."prod:graphql-worker"]
 description = "Start the GraphQL federation queue worker in production (no HTTP; do not put behind a load balancer)"
-run = "cd graphql && deno task worker"
+run = "deno task worker"
+dir = "graphql"
 
 [tasks."prod:web-next"]
 description = "Start the web-next stack in production"
-run = "cd web-next && node --enable-source-maps --import ./instrument.server.mjs .output/server/index.mjs"
+run = "node --enable-source-maps --import ./instrument.server.mjs .output/server/index.mjs"
+dir = "web-next"
 
 [tasks."prod:hc:web"]
 description = "Health check the legacy web stack"
-run = '''deno eval 'if (!(await fetch("http://127.0.0.1:8000/search")).ok) Deno.exit(1)' '''
+run = '''
+const response = await fetch("http://127.0.0.1:8000/search");
+if (!response.ok) Deno.exit(1);
+'''
+shell = "deno eval"
 
 [tasks."prod:hc:graphql"]
 description = "Health check the GraphQL server with a __typename query"
-run = '''deno eval 'const r = await fetch("http://127.0.0.1:8080/graphql", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ query: "{__typename}" }) }); if (!r.ok) Deno.exit(1); const j = await r.json(); if (j.errors || j.data?.__typename !== "Query") Deno.exit(1)' '''
+run = '''
+const response = await fetch("http://127.0.0.1:8080/graphql", {
+  method: "POST",
+  headers: { "content-type": "application/json" },
+  body: JSON.stringify({ query: "{__typename}" }),
+});
+if (!response.ok) Deno.exit(1);
+const result = await response.json();
+if (result.errors || result.data?.__typename !== "Query") Deno.exit(1);
+'''
+shell = "deno eval"
 
 [tasks."prod:hc:web-next"]
 description = "Health check the web-next stack"
-run = '''deno eval 'if (!(await fetch("http://127.0.0.1:3000/search")).ok) Deno.exit(1)' '''
+run = '''
+const response = await fetch("http://127.0.0.1:3000/search");
+if (!response.ok) Deno.exit(1);
+'''
+shell = "deno eval"
 
-[tasks."migrate"]
+[tasks.migrate]
 description = "Run database migrations"
 run = "deno run -A drizzle-kit migrate"
 
@@ -79,7 +156,7 @@ run = "deno run -A drizzle-kit generate"
 description = "Run database migrations against the test database"
 run = "godotenv -f .env.test -o deno run -A drizzle-kit migrate"
 
-[tasks."keygen"]
+[tasks.keygen]
 description = "Generate an instance actor key pair (prints a JWK to stdout)"
 run = "deno run --allow-read --allow-env scripts/keygen.ts"
 
@@ -87,6 +164,6 @@ run = "deno run --allow-read --allow-env scripts/keygen.ts"
 description = "Generate Web Push VAPID keys for WEB_PUSH_VAPID_*_KEY"
 run = "deno run --allow-env --allow-read scripts/generate-vapid-keys.ts"
 
-[tasks."addaccount"]
+[tasks.addaccount]
 description = "Create a user account from the command line"
 run = "deno run --allow-all scripts/addaccount.ts"

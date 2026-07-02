@@ -4,8 +4,8 @@ Hackers' Pub Privacy Policy
 *Last updated: May 25, 2026*
 
 
-1. Introduction
----------------
+1\. Introduction
+----------------
 
 Hackers' Pub is an invite-only social network for software engineers and
 technology enthusiasts, built on the [ActivityPub] federated protocol. This
@@ -15,8 +15,8 @@ rights regarding your data.
 [ActivityPub]: https://www.w3.org/TR/activitypub/
 
 
-2. Information We Collect
--------------------------
+2\. Information We Collect
+--------------------------
 
 ### Account Information
 
@@ -91,8 +91,8 @@ We record which account invited you to Hackers' Pub, and we track the
 invitation links you create and how many times they have been used.
 
 
-3. How We Use Your Information
-------------------------------
+3\. How We Use Your Information
+-------------------------------
 
 We use the collected information to:
 
@@ -106,8 +106,8 @@ We use the collected information to:
  -  Respond to your support and privacy requests
 
 
-4. Information Sharing and Federation
--------------------------------------
+4\. Information Sharing and Federation
+--------------------------------------
 
 ### ActivityPub Federation
 
@@ -131,8 +131,8 @@ the specific data you explicitly grant permission for. They never receive your
 passkeys or email address through this mechanism.
 
 
-5. Data Retention
------------------
+5\. Data Retention
+------------------
 
 | Data                              | Retained for                                               |
 | --------------------------------- | ---------------------------------------------------------- |
@@ -143,8 +143,8 @@ passkeys or email address through this mechanism.
 | Push notification targets         | Until you revoke push notifications or delete your account |
 
 
-6. Data Security
-----------------
+6\. Data Security
+-----------------
 
 We protect your data using:
 
@@ -154,8 +154,8 @@ We protect your data using:
     leave your device in any form
 
 
-7. Your Rights
---------------
+7\. Your Rights
+---------------
 
 You have the right to:
 
@@ -169,16 +169,16 @@ You have the right to:
  -  **Objection**: Contact us to raise concerns about how we process your data
 
 
-8. Cookies
-----------
+8\. Cookies
+-----------
 
 We use session cookies solely to keep you signed in to Hackers' Pub. These
 cookies are strictly necessary for the service to function and are not used for
 advertising or cross-site tracking.
 
 
-9. Children's Privacy
----------------------
+9\. Children's Privacy
+----------------------
 
 Hackers' Pub is not intended for children under 13 years of age (or under 16
 in the EU/EEA). We do not knowingly collect personal information from children.
@@ -186,8 +186,8 @@ If you believe a child has provided us with personal data, please contact us and
 we will delete it.
 
 
-10. Contact
------------
+10\. Contact
+------------
 
 For privacy-related questions or requests, please contact us at:
 

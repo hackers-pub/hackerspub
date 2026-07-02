@@ -12,6 +12,9 @@ ENV MISE_DATA_DIR="/mise"
 ENV MISE_CONFIG_DIR="/mise"
 ENV MISE_CACHE_DIR="/mise/cache"
 ENV MISE_INSTALL_PATH="/usr/local/bin/mise"
+ENV npm_config_fetch_retries="5"
+ENV npm_config_fetch_retry_maxtimeout="120000"
+ENV npm_config_fetch_timeout="300000"
 ENV PATH="/mise/shims:$PATH"
 
 RUN curl https://mise.run | sh
@@ -40,17 +43,18 @@ COPY web-next/package.json /app/web-next/package.json
 COPY asset-cdn/package.json /app/asset-cdn/package.json
 COPY patches /app/patches
 
-RUN pnpm install --frozen-lockfile
-RUN deno install
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
+  mise deps install pnpm --force
+RUN mise deps install deno --force
 
 COPY . /app
 RUN cp .env.sample .env && \
   sed -i '/^INSTANCE_ACTOR_KEY=/d' .env && \
   echo >> .env && \
   echo "INSTANCE_ACTOR_KEY='$(mise run keygen)'" >> .env && \
-  deno task -r codegen && \
-  deno task build && \
+  mise run codegen && \
+  mise run build:web && \
   rm .env
 
 EXPOSE 8000
-CMD ["deno", "task", "dev"]
+CMD ["mise", "run", "dev:web"]

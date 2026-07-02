@@ -63,7 +63,7 @@
     }
   },
   // Commands to run after the container is created.
-  "postCreateCommand": "deno install && deno run -A drizzle-kit migrate",
+  "postCreateCommand": "mise install && mise run migrate",
   // Add a name to the Docker network used by docker-compose.
   "runServices": [
     "app",

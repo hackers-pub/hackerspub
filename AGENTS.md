@@ -61,9 +61,10 @@ Build/Lint/Test Commands
 Cross-stack tasks (dev, build, prod, migrate) live in `mise.toml` and are
 invoked with `mise run <task>`. Run `mise tasks` to list everything that's
 available. Tools (Deno, Node.js, pnpm) are pinned in the same `mise.toml`,
-so `mise install` once gets you a reproducible toolchain. mise also
-auto-loads `.env` so tasks pick up `DATABASE_URL` etc. without each
-underlying command needing an explicit `--env-file` flag.
+so `mise install` once gets you a reproducible toolchain, installs project
+dependencies, and writes the pre-commit hook. mise also auto-loads `.env` so
+tasks pick up `DATABASE_URL` etc. without each underlying command needing an
+explicit `--env-file` flag.
 
 ### Per-stack tasks (via mise)
 
@@ -85,17 +86,19 @@ underlying command needing an explicit `--env-file` flag.
     `INSTANCE_ACTOR_KEY`): `mise run keygen`
  -  Create a user account from the CLI: `mise run addaccount`
 
-### Workspace tasks (still on `deno task`)
+### Workspace tasks (via mise)
 
- -  Lint/format check: `deno task check`
- -  Run tests: `deno task test`
- -  Pre-commit hook: `deno task hooks:pre-commit`
+ -  Lint/format/type check: `mise run check`
+ -  Format source and Markdown files: `mise run fmt`
+ -  Run tests: `mise run test`
+ -  Install/update the pre-commit hook:
+    `mise generate git-pre-commit --write --task=check`
 
-### web-next helpers (run from `web-next/`)
+### web-next helpers
 
- -  Relay codegen: `pnpm codegen` (Vite runs this automatically when watchman
-    is installed)
- -  Extract translations: `pnpm extract`
+ -  Relay codegen: `mise run next:codegen` (Vite runs this automatically when
+    watchman is installed)
+ -  Extract translations: `mise run next:extract`
 
 Note: `mise run dev:web-next` requires `API_URL` set to the GraphQL endpoint
 (e.g. `API_URL=http://localhost:8000/graphql` when running against the legacy
@@ -108,7 +111,7 @@ Code Style Guidelines
 
 ### General
 
- -  Format code with `deno fmt` before submitting PRs
+ -  Format code and Markdown with `mise run fmt` before submitting PRs
  -  Use spaces for indentation (not tabs)
 
 ### Commit Messages
@@ -191,8 +194,8 @@ GraphQL Schema Documentation
 
 Every element in the GraphQL schema (types, interfaces, unions, enums,
 enum values, fields, arguments, and mutations) must have a `description`.
-Run `deno task codegen` from the `graphql/` directory after any schema change
-to regenerate `graphql/schema.graphql`.
+Run `mise run codegen` from the repository root after any schema change to
+regenerate checked-in GraphQL artifacts, including `graphql/schema.graphql`.
 
 ### What to document
 

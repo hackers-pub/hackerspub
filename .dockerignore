@@ -9,3 +9,4 @@ web-next/.output
 web-next/dist
 web-next/storybook-static
 web/_fresh
+log.jsonl

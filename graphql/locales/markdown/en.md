@@ -435,8 +435,9 @@ HTML documents follow W3C standards.
 Preview:
 
 *[HTML]: HyperText Markup Language
-> *[W3C]: World Wide Web Consortium
->
+
+*[W3C]: World Wide Web Consortium
+
 > HTML documents follow W3C standards.
 
 ### Tables

@@ -434,7 +434,7 @@ HTML 문서는 W3C 표준을 따릅니다.
 *[HTML]: HyperText Markup Language
 
 *[W3C]: World Wide Web Consortium
->
+
 > HTML 문서는 W3C 표준을 따릅니다.
 
 ### 표

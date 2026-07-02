@@ -20,7 +20,7 @@ services:
       - "8000:8000"
     depends_on:
       - db
-    command: deno task dev
+    command: mise run dev:web
     volumes:
       - .:/app
       - /app/deps
@@ -40,7 +40,7 @@ services:
       - "3000:3000"
     depends_on:
       - app
-    command: sh -c "deno task -f web-next codegen && deno task -f web-next dev"
+    command: sh -c "mise run next:codegen && mise run dev:web-next"
     volumes:
       - .:/app
       - /app/deps

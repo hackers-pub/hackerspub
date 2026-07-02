@@ -426,8 +426,9 @@ HTML 文档遵循 W3C 标准。
 预览：
 
 *[HTML]: HyperText Markup Language
-> *[W3C]: World Wide Web Consortium
->
+
+*[W3C]: World Wide Web Consortium
+
 > HTML 文档遵循 W3C 标准。
 
 ### 表格

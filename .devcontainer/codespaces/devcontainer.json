@@ -53,7 +53,7 @@
   // Runs once when the Codespace is created (as root by default for this script).
   "onCreateCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
   // Runs after VS Code connects (as remoteUser: "deno").
-  "postCreateCommand": "deno install && deno run -A drizzle-kit migrate",
+  "postCreateCommand": "mise install && mise run migrate",
   "waitFor": "postCreateCommand",
   "customizations": {
     "vscode": {
