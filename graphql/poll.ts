@@ -10,11 +10,22 @@ import {
 } from "@hackerspub/models/post";
 import {
   type Actor as ActorRow,
+  actorTable,
   pollVoteTable,
 } from "@hackerspub/models/schema";
 import type { Uuid } from "@hackerspub/models/uuid";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
-import { eq } from "drizzle-orm";
+import {
+  and,
+  count,
+  countDistinct,
+  eq,
+  gt,
+  isNotNull,
+  isNull,
+  lte,
+  or,
+} from "drizzle-orm";
 import { OrganizationPermissionError } from "@hackerspub/models/organization";
 import { Account } from "./account.ts";
 import { Actor } from "./actor.ts";
@@ -382,6 +393,7 @@ const Poll = builder.drizzleNode("pollTable", {
         "exposed on the connection.",
       complexity: pollBranchComplexity,
       select: (args, ctx, nestedSelect) => ({
+        columns: { postId: true },
         with: {
           // Exclude votes by sanction-hidden actors so the vote list never
           // reveals a banned/federation-blocked actor's participation.
@@ -390,22 +402,20 @@ const Poll = builder.drizzleNode("pollTable", {
             { actor: getSanctionVisibleActorFilter() },
           ),
         },
-        extras: {
-          votesCount: (table) =>
-            ctx.db.$count(
-              pollVoteTable,
-              eq(pollVoteTable.postId, table.postId),
-            ),
-        },
       }),
-      resolve(poll, args, ctx) {
+      async resolve(poll, args, ctx) {
         const connection = pollVoteConnectionHelpers.resolve(
           poll.votes,
           args,
           ctx,
           poll,
         );
-        return { ...connection, totalCount: poll.votesCount };
+        return {
+          ...connection,
+          totalCount: await countPollVotesBySanction(ctx, poll.postId, {
+            sanctionHidden: false,
+          }),
+        };
       },
     }, {
       fields: (t) => ({
@@ -422,6 +432,7 @@ const Poll = builder.drizzleNode("pollTable", {
         "Actors who have voted in this poll (deduplicated across options).",
       complexity: pollBranchComplexity,
       select: (args, ctx, nestedSelect) => ({
+        columns: { postId: true, votersCount: true },
         with: {
           // Exclude sanction-hidden actors from the voter list.
           voters: andActorSanctionFilter(
@@ -430,14 +441,24 @@ const Poll = builder.drizzleNode("pollTable", {
           ),
         },
       }),
-      resolve(poll, args, ctx) {
+      async resolve(poll, args, ctx) {
         const connection = actorConnectionHelpers.resolve(
           poll.voters,
           args,
           ctx,
           poll,
         );
-        return { ...connection, totalCount: poll.votersCount };
+        // Stored counter (federated aggregate + local votes) minus the
+        // sanction-hidden local voters, so the total matches the filtered
+        // edges without zeroing out a remote poll's federated count.
+        const hidden = await countPollVotesBySanction(ctx, poll.postId, {
+          distinctActors: true,
+          sanctionHidden: true,
+        });
+        return {
+          ...connection,
+          totalCount: Math.max(poll.votersCount - hidden, 0),
+        };
       },
     }, {
       fields: (t) => ({
@@ -488,6 +509,7 @@ const PollOption = builder.drizzleObject("pollOptionTable", {
         "the current viewer's selected state.",
       complexity: pollBranchComplexity,
       select: (args, ctx, nestedSelect) => ({
+        columns: { postId: true, index: true, votesCount: true },
         with: {
           // Exclude votes by sanction-hidden actors (see `Poll.votes`).
           votes: andActorSanctionFilter(
@@ -496,14 +518,23 @@ const PollOption = builder.drizzleObject("pollOptionTable", {
           ),
         },
       }),
-      resolve(option, args, ctx) {
+      async resolve(option, args, ctx) {
         const connection = pollVoteConnectionHelpers.resolve(
           option.votes,
           args,
           ctx,
           option,
         );
-        return { ...connection, totalCount: option.votesCount };
+        // Stored per-option counter minus the sanction-hidden local votes
+        // for this option (keeps remote federated per-option totals intact).
+        const hidden = await countPollVotesBySanction(ctx, option.postId, {
+          optionIndex: option.index,
+          sanctionHidden: true,
+        });
+        return {
+          ...connection,
+          totalCount: Math.max(option.votesCount - hidden, 0),
+        };
       },
     }, {
       fields: (t) => ({
@@ -550,6 +581,67 @@ const actorConnectionHelpers = drizzleConnectionHelpers(
   "actorTable",
   {},
 );
+
+// Counts this poll's locally-stored votes, split by whether the voter is
+// hidden by a moderation sanction (banned local / federation-blocked
+// remote).  Used to reconcile the connection `totalCount`s with their
+// (sanction-filtered) edges: without this, `totalCount > edges.length`
+// would let a client infer that a sanction-hidden actor voted.
+//
+// The stored counters (`pollTable.votersCount`, `pollOptionTable.votesCount`)
+// include remote-federated aggregates plus one increment per local vote, so
+// the visible total is `stored - (sanction-hidden local votes)`; counting
+// only the hidden local rows here and subtracting keeps remote aggregate
+// totals intact.  The poll-level `Poll.votes.totalCount` has no stored
+// counter (it was a live count of local rows), so it passes
+// `sanctionHidden: false` to count the visible rows directly.
+//
+// `distinctActors` counts distinct voters (for `Poll.voters`); `optionIndex`
+// narrows to one option (for `PollOption.votes`).  Sanction activeness is
+// compared against the application clock (`new Date()`), matching
+// `isActorSanctionHidden`, not SQL `now()` (frozen inside a transaction).
+async function countPollVotesBySanction(
+  ctx: UserContext,
+  postId: Uuid,
+  options: {
+    optionIndex?: number;
+    distinctActors?: boolean;
+    sanctionHidden: boolean;
+  },
+): Promise<number> {
+  const now = new Date();
+  const notHidden = or(
+    isNull(actorTable.suspended),
+    gt(actorTable.suspended, now),
+    lte(actorTable.suspendedUntil, now),
+    and(isNotNull(actorTable.accountId), gt(actorTable.suspendedUntil, now)),
+  );
+  const hidden = and(
+    lte(actorTable.suspended, now),
+    or(
+      and(isNull(actorTable.accountId), isNull(actorTable.suspendedUntil)),
+      and(isNull(actorTable.accountId), gt(actorTable.suspendedUntil, now)),
+      and(isNotNull(actorTable.accountId), isNull(actorTable.suspendedUntil)),
+    ),
+  );
+  const conditions = [
+    eq(pollVoteTable.postId, postId),
+    options.sanctionHidden ? hidden : notHidden,
+  ];
+  if (options.optionIndex != null) {
+    conditions.push(eq(pollVoteTable.optionIndex, options.optionIndex));
+  }
+  const [row] = await ctx.db
+    .select({
+      c: options.distinctActors
+        ? countDistinct(pollVoteTable.actorId)
+        : count(),
+    })
+    .from(pollVoteTable)
+    .innerJoin(actorTable, eq(actorTable.id, pollVoteTable.actorId))
+    .where(and(...conditions));
+  return row?.c ?? 0;
+}
 
 // Fold an extra `where` filter into a connection helper's query config
 // (AND-merged so the helper's own cursor pagination `where` is preserved).

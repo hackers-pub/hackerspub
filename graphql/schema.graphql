@@ -1100,16 +1100,34 @@ type Article implements Node & Post & Reactable {
   ): Post
 
   """
-  Posts that quote this post inline. Censored quotes, quotes by actors whose content is hidden by a moderation sanction, and quotes not visible to the authenticated viewer (e.g., followers-only quotes by actors the viewer does not follow) are excluded.
+  Posts that quote this post inline, newest first. Censored quotes, quotes by actors whose content is hidden by a moderation sanction, and quotes not visible to the selected viewer account (e.g., followers-only quotes by actors the viewer does not follow) are excluded. Pass `actingAccountId` for an organization perspective.
   """
-  quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
+  quotes(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): PostQuotesConnection!
   reactionGroup(customEmojiId: ID, emoji: String): ReactionGroup
   reactionGroups: [ReactionGroup!]!
 
   """
-  Posts that are direct replies to this post. Censored replies, replies by actors whose content is hidden by a moderation sanction, and replies not visible to the authenticated viewer (e.g., followers-only replies by actors the viewer does not follow) are excluded.
+  Posts that are direct replies to this post, newest first. Censored replies, replies by actors whose content is hidden by a moderation sanction, and replies not visible to the selected viewer account (e.g., followers-only replies by actors the viewer does not follow) are excluded. Pass `actingAccountId` for an organization perspective.
   """
-  replies(after: String, before: String, first: Int, last: Int): PostRepliesConnection!
+  replies(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): PostRepliesConnection!
 
   """
   The post this post is a reply to. `null` for top-level posts, and also when the parent is not visible to the authenticated viewer (e.g., a followers-only post by an actor the viewer does not follow, or a post whose author is hidden by a moderation sanction), so a public reply cannot leak its private parent. A censored parent is still returned and self-redacts its content-bearing fields. Pass `actingAccountId` for an organization perspective, matching the perspective of the surrounding query.
@@ -1137,9 +1155,18 @@ type Article implements Node & Post & Reactable {
   ): Post
 
   """
-  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor. Censored boosts (including boosts of a censored post), boosts by actors whose content is hidden by a moderation sanction, and boosts not visible to the authenticated viewer (e.g., followers-only boosts by actors the viewer does not follow) are excluded.
+  Boost wrapper posts that reshare this post, newest first. Each edge represents a single boost by a specific actor. Censored boosts (including boosts of a censored post), boosts by actors whose content is hidden by a moderation sanction, and boosts not visible to the selected viewer account (e.g., followers-only boosts by actors the viewer does not follow) are excluded. Pass `actingAccountId` for an organization perspective.
   """
-  shares(after: String, before: String, first: Int, last: Int): PostSharesConnection!
+  shares(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): PostSharesConnection!
 
   """
   URL slug for the article, used together with `publishedYear` to build its permalink. `null` for remote articles.
@@ -3296,9 +3323,18 @@ type Note implements Node & Post & Reactable {
   ): Post
 
   """
-  Posts that quote this post inline. Censored quotes, quotes by actors whose content is hidden by a moderation sanction, and quotes not visible to the authenticated viewer (e.g., followers-only quotes by actors the viewer does not follow) are excluded.
+  Posts that quote this post inline, newest first. Censored quotes, quotes by actors whose content is hidden by a moderation sanction, and quotes not visible to the selected viewer account (e.g., followers-only quotes by actors the viewer does not follow) are excluded. Pass `actingAccountId` for an organization perspective.
   """
-  quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
+  quotes(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): PostQuotesConnection!
 
   """
   The raw Markdown source of this note. Non-null only when the viewer is the note's author. Pass `actingAccountId` to read the source of a note authored by an organization account the viewer belongs to. Returns `null` for federated remote notes, local share wrappers, and notes authored by someone else.
@@ -3313,9 +3349,18 @@ type Note implements Node & Post & Reactable {
   reactionGroups: [ReactionGroup!]!
 
   """
-  Posts that are direct replies to this post. Censored replies, replies by actors whose content is hidden by a moderation sanction, and replies not visible to the authenticated viewer (e.g., followers-only replies by actors the viewer does not follow) are excluded.
+  Posts that are direct replies to this post, newest first. Censored replies, replies by actors whose content is hidden by a moderation sanction, and replies not visible to the selected viewer account (e.g., followers-only replies by actors the viewer does not follow) are excluded. Pass `actingAccountId` for an organization perspective.
   """
-  replies(after: String, before: String, first: Int, last: Int): PostRepliesConnection!
+  replies(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): PostRepliesConnection!
 
   """
   The post this post is a reply to. `null` for top-level posts, and also when the parent is not visible to the authenticated viewer (e.g., a followers-only post by an actor the viewer does not follow, or a post whose author is hidden by a moderation sanction), so a public reply cannot leak its private parent. A censored parent is still returned and self-redacts its content-bearing fields. Pass `actingAccountId` for an organization perspective, matching the perspective of the surrounding query.
@@ -3343,9 +3388,18 @@ type Note implements Node & Post & Reactable {
   ): Post
 
   """
-  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor. Censored boosts (including boosts of a censored post), boosts by actors whose content is hidden by a moderation sanction, and boosts not visible to the authenticated viewer (e.g., followers-only boosts by actors the viewer does not follow) are excluded.
+  Boost wrapper posts that reshare this post, newest first. Each edge represents a single boost by a specific actor. Censored boosts (including boosts of a censored post), boosts by actors whose content is hidden by a moderation sanction, and boosts not visible to the selected viewer account (e.g., followers-only boosts by actors the viewer does not follow) are excluded. Pass `actingAccountId` for an organization perspective.
   """
-  shares(after: String, before: String, first: Int, last: Int): PostSharesConnection!
+  shares(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): PostSharesConnection!
 
   """
   The local source UUID for this note — `noteSourceTable.id`, the identifier embedded in `Post.url` (`/@username/<sourceId>`). Non-null only for source-backed local notes (notes originally composed on this instance). Null for federated remote notes and for local share wrappers (boosts), since neither carries a `noteSourceTable` row; for those, fall back to `Post.uuid`.
@@ -4006,16 +4060,34 @@ interface Post implements Node & Reactable {
   ): Post
 
   """
-  Posts that quote this post inline. Censored quotes, quotes by actors whose content is hidden by a moderation sanction, and quotes not visible to the authenticated viewer (e.g., followers-only quotes by actors the viewer does not follow) are excluded.
+  Posts that quote this post inline, newest first. Censored quotes, quotes by actors whose content is hidden by a moderation sanction, and quotes not visible to the selected viewer account (e.g., followers-only quotes by actors the viewer does not follow) are excluded. Pass `actingAccountId` for an organization perspective.
   """
-  quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
+  quotes(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): PostQuotesConnection!
   reactionGroup(customEmojiId: ID, emoji: String): ReactionGroup
   reactionGroups: [ReactionGroup!]!
 
   """
-  Posts that are direct replies to this post. Censored replies, replies by actors whose content is hidden by a moderation sanction, and replies not visible to the authenticated viewer (e.g., followers-only replies by actors the viewer does not follow) are excluded.
+  Posts that are direct replies to this post, newest first. Censored replies, replies by actors whose content is hidden by a moderation sanction, and replies not visible to the selected viewer account (e.g., followers-only replies by actors the viewer does not follow) are excluded. Pass `actingAccountId` for an organization perspective.
   """
-  replies(after: String, before: String, first: Int, last: Int): PostRepliesConnection!
+  replies(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): PostRepliesConnection!
 
   """
   The post this post is a reply to. `null` for top-level posts, and also when the parent is not visible to the authenticated viewer (e.g., a followers-only post by an actor the viewer does not follow, or a post whose author is hidden by a moderation sanction), so a public reply cannot leak its private parent. A censored parent is still returned and self-redacts its content-bearing fields. Pass `actingAccountId` for an organization perspective, matching the perspective of the surrounding query.
@@ -4043,9 +4115,18 @@ interface Post implements Node & Reactable {
   ): Post
 
   """
-  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor. Censored boosts (including boosts of a censored post), boosts by actors whose content is hidden by a moderation sanction, and boosts not visible to the authenticated viewer (e.g., followers-only boosts by actors the viewer does not follow) are excluded.
+  Boost wrapper posts that reshare this post, newest first. Each edge represents a single boost by a specific actor. Censored boosts (including boosts of a censored post), boosts by actors whose content is hidden by a moderation sanction, and boosts not visible to the selected viewer account (e.g., followers-only boosts by actors the viewer does not follow) are excluded. Pass `actingAccountId` for an organization perspective.
   """
-  shares(after: String, before: String, first: Int, last: Int): PostSharesConnection!
+  shares(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): PostSharesConnection!
 
   """
   Author-provided or LLM-generated summary of the post. `null` when no summary has been set. For LLM summaries, check `ArticleContent.summary` and `summaryStarted` instead, as those are tracked per language on articles.  `null` when the post is censored or its author is hidden by a moderation sanction (or it boosts such a post), and the viewer is neither the content's author nor a moderator.
@@ -5015,16 +5096,34 @@ type Question implements Node & Post & Reactable {
   ): Post
 
   """
-  Posts that quote this post inline. Censored quotes, quotes by actors whose content is hidden by a moderation sanction, and quotes not visible to the authenticated viewer (e.g., followers-only quotes by actors the viewer does not follow) are excluded.
+  Posts that quote this post inline, newest first. Censored quotes, quotes by actors whose content is hidden by a moderation sanction, and quotes not visible to the selected viewer account (e.g., followers-only quotes by actors the viewer does not follow) are excluded. Pass `actingAccountId` for an organization perspective.
   """
-  quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
+  quotes(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): PostQuotesConnection!
   reactionGroup(customEmojiId: ID, emoji: String): ReactionGroup
   reactionGroups: [ReactionGroup!]!
 
   """
-  Posts that are direct replies to this post. Censored replies, replies by actors whose content is hidden by a moderation sanction, and replies not visible to the authenticated viewer (e.g., followers-only replies by actors the viewer does not follow) are excluded.
+  Posts that are direct replies to this post, newest first. Censored replies, replies by actors whose content is hidden by a moderation sanction, and replies not visible to the selected viewer account (e.g., followers-only replies by actors the viewer does not follow) are excluded. Pass `actingAccountId` for an organization perspective.
   """
-  replies(after: String, before: String, first: Int, last: Int): PostRepliesConnection!
+  replies(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): PostRepliesConnection!
 
   """
   The post this post is a reply to. `null` for top-level posts, and also when the parent is not visible to the authenticated viewer (e.g., a followers-only post by an actor the viewer does not follow, or a post whose author is hidden by a moderation sanction), so a public reply cannot leak its private parent. A censored parent is still returned and self-redacts its content-bearing fields. Pass `actingAccountId` for an organization perspective, matching the perspective of the surrounding query.
@@ -5052,9 +5151,18 @@ type Question implements Node & Post & Reactable {
   ): Post
 
   """
-  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor. Censored boosts (including boosts of a censored post), boosts by actors whose content is hidden by a moderation sanction, and boosts not visible to the authenticated viewer (e.g., followers-only boosts by actors the viewer does not follow) are excluded.
+  Boost wrapper posts that reshare this post, newest first. Each edge represents a single boost by a specific actor. Censored boosts (including boosts of a censored post), boosts by actors whose content is hidden by a moderation sanction, and boosts not visible to the selected viewer account (e.g., followers-only boosts by actors the viewer does not follow) are excluded. Pass `actingAccountId` for an organization perspective.
   """
-  shares(after: String, before: String, first: Int, last: Int): PostSharesConnection!
+  shares(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+    after: String
+    before: String
+    first: Int
+    last: Int
+  ): PostSharesConnection!
 
   """
   The local source UUID for this question (`noteSourceTable.id`), embedded in source-backed local Question URLs as `/@username/<sourceId>`. `null` for federated remote questions and local share wrappers; use `Post.uuid` as the fallback route token.

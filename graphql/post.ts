@@ -2,7 +2,10 @@ import * as vocab from "@fedify/vocab";
 import { generateAltText } from "@hackerspub/ai/alttext";
 import { getLogger } from "@logtape/logtape";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
-import { resolveArrayConnection } from "@pothos/plugin-relay";
+import {
+  resolveArrayConnection,
+  resolveOffsetConnection,
+} from "@pothos/plugin-relay";
 import { unreachable } from "@std/assert";
 import { assertNever } from "@std/assert/unstable-never";
 import { and, eq, gt, inArray, isNotNull, isNull, lte, or } from "drizzle-orm";
@@ -124,6 +127,7 @@ import {
   actorProfilePostRelations,
   getActorById,
   isActorProfileHidden,
+  loadActorProfilePostPage,
 } from "./actor.ts";
 import { builder, Node, type UserContext } from "./builder.ts";
 import {
@@ -1349,6 +1353,45 @@ export function isPostVisibleToViewer(
   return loader.load(postId);
 }
 
+// Backs the `Post.replies` / `Post.quotes` / `Post.shares` connections:
+// posts related to `targetId` through `column` (`replyTargetId`,
+// `quotedPostId`, or `sharedPostId`), newest first, filtered to those
+// visible to the selected viewer account.  Resolves the acting account from
+// `actingAccountId` (like `ancestors`/`descendants` and `Actor.posts`), so an
+// organization perspective sees followers-only interactions the org can see
+// but the viewer's personal actor cannot.  Censored and sanction-hidden are
+// excluded here (these are lists, not the self-redacting permalink).
+async function visibleRelatedPostsPage(
+  ctx: UserContext,
+  args: ActingAccountIdArg,
+  column: "replyTargetId" | "quotedPostId" | "sharedPostId",
+  targetId: Uuid,
+  offset: number,
+  limit: number,
+) {
+  const viewerActorId = await resolveViewerActorId(ctx, args);
+  const viewerActor = viewerActorId == null
+    ? null
+    : await getActorById(ctx, viewerActorId);
+  const page = await ctx.db.query.postTable.findMany({
+    columns: { id: true },
+    where: {
+      AND: [
+        { [column]: targetId },
+        { actor: getSanctionVisibleActorFilter() },
+        getCensoredPostExclusionFilter(viewerActorId),
+        getPostVisibilityFilter(viewerActor),
+      ],
+    },
+    // `id` breaks `published` ties so offset pagination is stable (no
+    // duplicated or skipped rows across pages when timestamps collide).
+    orderBy: { published: "desc", id: "desc" },
+    limit,
+    offset,
+  });
+  return await loadActorProfilePostPage(ctx, page, viewerActorId);
+}
+
 // The id-only companion of loadVisibleThreadPosts, for checking path
 // ancestors that never become connection nodes themselves: same filters,
 // no relation hydration.
@@ -1514,23 +1557,44 @@ builder.drizzleInterfaceFields(Post, (t) => ({
         : null;
     },
   }),
-  replies: t.relatedConnection("replies", {
+  replies: t.connection({
     type: Post,
     description:
-      "Posts that are direct replies to this post. Censored replies, " +
-      "replies by actors whose content is hidden by a moderation " +
-      "sanction, and replies not visible to the authenticated viewer " +
+      "Posts that are direct replies to this post, newest first. Censored " +
+      "replies, replies by actors whose content is hidden by a moderation " +
+      "sanction, and replies not visible to the selected viewer account " +
       "(e.g., followers-only replies by actors the viewer does not " +
-      "follow) are excluded.",
-    query: (_, ctx) => ({
-      where: {
-        AND: [
-          { actor: getSanctionVisibleActorFilter() },
-          getCensoredPostExclusionFilter(ctx.account?.actor.id),
-          getPostVisibilityFilter(ctx.account?.actor ?? null),
-        ],
-      },
-    }),
+      "follow) are excluded. Pass `actingAccountId` for an organization " +
+      "perspective.",
+    args: {
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
+    resolve: async (post, args, ctx) => {
+      const { edges, pageInfo } = await resolveOffsetConnection(
+        { args },
+        ({ offset, limit }) =>
+          visibleRelatedPostsPage(
+            ctx,
+            args,
+            "replyTargetId",
+            post.id,
+            offset,
+            limit,
+          ),
+      );
+      return {
+        edges: [...edges],
+        pageInfo: {
+          hasNextPage: pageInfo.hasNextPage,
+          hasPreviousPage: pageInfo.hasPreviousPage,
+          startCursor: pageInfo.startCursor,
+          endCursor: pageInfo.endCursor,
+        },
+      };
+    },
   }),
   ancestors: t.connection({
     type: Post,
@@ -1674,42 +1738,83 @@ builder.drizzleInterfaceFields(Post, (t) => ({
       };
     },
   }),
-  shares: t.relatedConnection("shares", {
+  shares: t.connection({
     type: Post,
     description:
-      "Boost wrapper posts that reshare this post. Each edge represents " +
-      "a single boost by a specific actor. Censored boosts (including " +
-      "boosts of a censored post), boosts by actors whose content is " +
-      "hidden by a moderation sanction, and boosts not visible to the " +
-      "authenticated viewer (e.g., followers-only boosts by actors the " +
-      "viewer does not follow) are excluded.",
-    query: (_, ctx) => ({
-      where: {
-        AND: [
-          { actor: getSanctionVisibleActorFilter() },
-          getCensoredPostExclusionFilter(ctx.account?.actor.id),
-          getPostVisibilityFilter(ctx.account?.actor ?? null),
-        ],
-      },
-    }),
+      "Boost wrapper posts that reshare this post, newest first. Each edge " +
+      "represents a single boost by a specific actor. Censored boosts " +
+      "(including boosts of a censored post), boosts by actors whose " +
+      "content is hidden by a moderation sanction, and boosts not visible " +
+      "to the selected viewer account (e.g., followers-only boosts by " +
+      "actors the viewer does not follow) are excluded. Pass " +
+      "`actingAccountId` for an organization perspective.",
+    args: {
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
+    resolve: async (post, args, ctx) => {
+      const { edges, pageInfo } = await resolveOffsetConnection(
+        { args },
+        ({ offset, limit }) =>
+          visibleRelatedPostsPage(
+            ctx,
+            args,
+            "sharedPostId",
+            post.id,
+            offset,
+            limit,
+          ),
+      );
+      return {
+        edges: [...edges],
+        pageInfo: {
+          hasNextPage: pageInfo.hasNextPage,
+          hasPreviousPage: pageInfo.hasPreviousPage,
+          startCursor: pageInfo.startCursor,
+          endCursor: pageInfo.endCursor,
+        },
+      };
+    },
   }),
-  quotes: t.relatedConnection("quotes", {
+  quotes: t.connection({
     type: Post,
     description:
-      "Posts that quote this post inline. Censored quotes, quotes by " +
-      "actors whose content is hidden by a moderation sanction, and " +
-      "quotes not visible to the authenticated viewer (e.g., " +
+      "Posts that quote this post inline, newest first. Censored quotes, " +
+      "quotes by actors whose content is hidden by a moderation sanction, " +
+      "and quotes not visible to the selected viewer account (e.g., " +
       "followers-only quotes by actors the viewer does not follow) are " +
-      "excluded.",
-    query: (_, ctx) => ({
-      where: {
-        AND: [
-          { actor: getSanctionVisibleActorFilter() },
-          getCensoredPostExclusionFilter(ctx.account?.actor.id),
-          getPostVisibilityFilter(ctx.account?.actor ?? null),
-        ],
-      },
-    }),
+      "excluded. Pass `actingAccountId` for an organization perspective.",
+    args: {
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
+    resolve: async (post, args, ctx) => {
+      const { edges, pageInfo } = await resolveOffsetConnection(
+        { args },
+        ({ offset, limit }) =>
+          visibleRelatedPostsPage(
+            ctx,
+            args,
+            "quotedPostId",
+            post.id,
+            offset,
+            limit,
+          ),
+      );
+      return {
+        edges: [...edges],
+        pageInfo: {
+          hasNextPage: pageInfo.hasNextPage,
+          hasPreviousPage: pageInfo.hasPreviousPage,
+          startCursor: pageInfo.startCursor,
+          endCursor: pageInfo.endCursor,
+        },
+      };
+    },
   }),
   mentions: t.connection({
     type: Actor,

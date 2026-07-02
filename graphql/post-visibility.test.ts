@@ -10,6 +10,7 @@ import { execute, parse } from "graphql";
 import assert from "node:assert";
 import test from "node:test";
 import {
+  createFedCtx,
   insertAccountWithActor,
   insertNotePost,
   insertReaction,
@@ -18,6 +19,9 @@ import {
   withRollback,
 } from "../test/postgres.ts";
 import type { Transaction } from "@hackerspub/models/db";
+import { follow } from "@hackerspub/models/following";
+import { createOrganization } from "@hackerspub/models/organization";
+import { accountTable } from "@hackerspub/models/schema";
 import type { Uuid } from "@hackerspub/models/uuid";
 import { schema } from "./mod.ts";
 
@@ -401,5 +405,94 @@ test("reactor list excludes sanction-hidden actors", async () => {
     );
     assert.ok(reactorNames.includes("rxgood"));
     assert.ok(!reactorNames.includes("rxbanned"));
+  });
+});
+
+test("Post.replies applies the acting account's visibility, not the personal one", async () => {
+  await withRollback(async (tx) => {
+    const member = await insertAccountWithActor(tx, {
+      username: "orgrepliesmember",
+      name: "Org Replies Member",
+      email: "orgrepliesmember@example.com",
+    });
+    const author = await insertAccountWithActor(tx, {
+      username: "orgrepliesauthor",
+      name: "Org Replies Author",
+      email: "orgrepliesauthor@example.com",
+    });
+    await tx.update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, member.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      member.account,
+      {
+        username: "orgreplies",
+        name: "Org Replies",
+        bio: "",
+      },
+    );
+    // The organization (not the member's personal actor) follows the author.
+    await follow(createFedCtx(tx), organization, author.actor);
+
+    const { post: root } = await insertNotePost(tx, {
+      account: author.account,
+      content: "public root",
+    });
+    const { post: reply } = await insertNotePost(tx, {
+      account: author.account,
+      content: "followers-only reply",
+      visibility: "followers",
+      replyTargetId: root.id,
+    });
+
+    const query = parse(`
+      query($id: ID!, $actingAccountId: ID) {
+        node(id: $id) {
+          ... on Post {
+            replies(actingAccountId: $actingAccountId) {
+              edges { node { id } }
+            }
+          }
+        }
+      }
+    `);
+    const gid = encodeGlobalID("Note", root.id);
+    interface Data {
+      node: { replies: { edges: { node: { id: string } }[] } };
+    }
+
+    // Personal perspective: the member does not follow the author, so the
+    // followers-only reply is hidden.
+    const personal = await execute({
+      schema,
+      document: query,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(personal.errors, undefined);
+    assert.deepEqual(
+      (personal.data as unknown as Data).node.replies.edges,
+      [],
+    );
+
+    // Organization perspective: the org follows the author, so the reply is
+    // visible.
+    const org = await execute({
+      schema,
+      document: query,
+      variableValues: {
+        id: gid,
+        actingAccountId: encodeGlobalID("Account", organization.id),
+      },
+      contextValue: makeUserContext(tx, member.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(org.errors, undefined);
+    assert.deepEqual(
+      (org.data as unknown as Data).node.replies.edges.map((e) => e.node.id),
+      [encodeGlobalID("Note", reply.id)],
+    );
   });
 });

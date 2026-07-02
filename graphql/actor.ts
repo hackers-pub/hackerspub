@@ -147,7 +147,11 @@ export function actorProfilePostRelations(viewerActorId: Uuid | null) {
   } as const;
 }
 
-async function loadActorProfilePostPage(
+// Also used by the thread/interaction connections in post.ts (`replies`,
+// `quotes`, `shares`), which resolve an acting-account viewer and page over
+// `postTable` manually, so they need the same eager relation set as the
+// profile post lists.
+export async function loadActorProfilePostPage(
   ctx: UserContext,
   postPage: Array<{ id: Uuid }>,
   viewerActorId: Uuid | null,
