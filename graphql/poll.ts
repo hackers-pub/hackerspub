@@ -389,8 +389,11 @@ const Poll = builder.drizzleNode("pollTable", {
     votes: t.connection({
       type: PollVote,
       description:
-        "All votes cast across all options, with the total vote count " +
-        "exposed on the connection.",
+        "Votes cast across all options, with the total vote count exposed " +
+        "on the connection. Votes by actors whose content is hidden by a " +
+        "moderation sanction (banned local or federation-blocked remote) " +
+        "are excluded from both the edges and `totalCount`, so a hidden " +
+        "actor's participation is never revealed.",
       complexity: pollBranchComplexity,
       select: (args, ctx, nestedSelect) => ({
         columns: { postId: true },
@@ -421,15 +424,19 @@ const Poll = builder.drizzleNode("pollTable", {
       fields: (t) => ({
         totalCount: t.exposeInt("totalCount", {
           description:
-            "Total number of stored votes across all options, independent " +
-            "of the current page size.",
+            "Number of votes across all options, independent of the current " +
+            "page size and excluding votes by sanction-hidden actors, so it " +
+            "matches the (also sanction-filtered) edges.",
         }),
       }),
     }),
     voters: t.connection({
       type: Actor,
       description:
-        "Actors who have voted in this poll (deduplicated across options).",
+        "Actors who have voted in this poll (deduplicated across options). " +
+        "Actors whose content is hidden by a moderation sanction (banned " +
+        "local or federation-blocked remote) are excluded from both the " +
+        "edges and `totalCount`.",
       complexity: pollBranchComplexity,
       select: (args, ctx, nestedSelect) => ({
         columns: { postId: true, votersCount: true },
@@ -464,8 +471,10 @@ const Poll = builder.drizzleNode("pollTable", {
       fields: (t) => ({
         totalCount: t.exposeInt("totalCount", {
           description:
-            "Total number of distinct actors who have voted in this poll, " +
-            "independent of the current page size.",
+            "Number of distinct actors who have voted in this poll, " +
+            "independent of the current page size and excluding " +
+            "sanction-hidden actors, so it matches the (also " +
+            "sanction-filtered) edges.",
         }),
       }),
     }),
@@ -506,7 +515,9 @@ const PollOption = builder.drizzleObject("pollOptionTable", {
       type: PollVote,
       description:
         "Votes cast for this option. Use `PollOption.viewerHasVoted` for " +
-        "the current viewer's selected state.",
+        "the current viewer's selected state. Votes by sanction-hidden " +
+        "actors (banned local or federation-blocked remote) are excluded " +
+        "from both the edges and `totalCount`.",
       complexity: pollBranchComplexity,
       select: (args, ctx, nestedSelect) => ({
         columns: { postId: true, index: true, votesCount: true },
@@ -540,8 +551,9 @@ const PollOption = builder.drizzleObject("pollOptionTable", {
       fields: (t) => ({
         totalCount: t.exposeInt("totalCount", {
           description:
-            "Total number of stored votes for this option, independent of " +
-            "the current page size.",
+            "Number of votes for this option, independent of the current " +
+            "page size and excluding votes by sanction-hidden actors, so it " +
+            "matches the (also sanction-filtered) edges.",
         }),
       }),
     }),
