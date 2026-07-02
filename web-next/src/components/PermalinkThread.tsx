@@ -178,14 +178,19 @@ function PermalinkThreadLoaded(props: PermalinkThreadProps) {
   );
   // Relay can briefly republish this fragment as `null` when another update
   // touches the same `Post` record. Keep the permalink thread mounted across
-  // that gap so opening action popovers does not drop the thread.
+  // that gap so opening action popovers does not drop the thread. The key
+  // includes the acting account, so a genuine `null` after switching to an
+  // account that cannot see the post drops the private thread instead of being
+  // masked as a transient gap and left rendered under the narrower perspective.
   const stablePost = createMemo<
     {
       routeKey: string;
       value: PermalinkThread_post$data;
     } | null
   >((previous) => {
-    const routeKey = `${props.username}/${props.noteId}`;
+    const routeKey = `${props.username}/${props.noteId}/${
+      actingAccountId() ?? ""
+    }`;
     const value = post();
     if (
       value != null &&
