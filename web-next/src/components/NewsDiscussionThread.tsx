@@ -211,6 +211,11 @@ export function NewsDiscussionSubtree(props: NewsDiscussionSubtreeProps) {
   const [loadState, setLoadState] = createSignal<
     "idle" | "loading" | "errored"
   >("idle");
+  // Flips true after the first successful page and never resets.  Only then is
+  // "no more pages" meaningful: before it (SSR, pre-mount, the initial fetch,
+  // or an initial error) a missing reply is "not fetched yet", not "cut off by
+  // the server's depth cap", so the continuation link must stay hidden.
+  const [loaded, setLoaded] = createSignal(false);
   // Dedup across pages; reset on each fresh load.
   const seen = new Set<string>();
   let disposed = false;
@@ -218,6 +223,13 @@ export function NewsDiscussionSubtree(props: NewsDiscussionSubtreeProps) {
   // a reply composed mid-load is not silently dropped.
   let reloadQueued = false;
   onCleanup(() => disposed = true);
+
+  // The subtree's reply pagination counts as exhausted only once a load has
+  // succeeded, nothing is in flight, and no more pages remain.  A node with no
+  // loaded replies is treated as capped (and offered a continuation link) only
+  // then; otherwise it is simply awaiting a page.
+  const subtreeMayContinue = () =>
+    !loaded() || loadState() !== "idle" || hasMore();
 
   function loadReplies(mode: "initial" | "more" = "initial") {
     const p = post();
@@ -263,6 +275,7 @@ export function NewsDiscussionSubtree(props: NewsDiscussionSubtreeProps) {
           setNodes((prev) => mode === "more" ? [...prev, ...page] : page);
           setEndCursor(descendants?.pageInfo?.endCursor ?? null);
           setHasMore(descendants?.pageInfo?.hasNextPage ?? false);
+          setLoaded(true);
           setLoadState("idle");
           if (reloadQueued) {
             reloadQueued = false;
@@ -363,6 +376,7 @@ export function NewsDiscussionSubtree(props: NewsDiscussionSubtreeProps) {
         onDeleted={props.onDeleted}
         repliesOf={(id) => repliesByParent().get(id) ?? []}
         onReplyDeleted={removeReply}
+        subtreeMayContinue={subtreeMayContinue()}
       />
       <Show when={hasMore()}>
         <button
@@ -431,6 +445,14 @@ export interface NewsDiscussionThreadProps {
   repliesOf: (id: string) => readonly SubtreeReplyNode[];
   /** Bubbles a deleted reply up to the subtree owning the reply list. */
   onReplyDeleted?: (id: string) => void;
+  /**
+   * Whether the enclosing subtree's `descendants` pagination may still load
+   * more replies.  While it can, a node with no loaded replies is just "not
+   * fetched yet"; once the connection is exhausted, a node that still reports
+   * replies but has none loaded was cut off by the server's depth cap (or is
+   * not fully federated), so it links to its own permalink to continue there.
+   */
+  subtreeMayContinue: boolean;
 }
 
 export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
@@ -489,6 +511,14 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
   );
   const visibleQuoteChildren = createMemo(() =>
     quoteChildren().filter((child) => !replyIds().has(child.id))
+  );
+  // The server's `descendants` depth cap (or a not-yet-federated branch) can
+  // leave a node with known replies but none loaded even after the subtree's
+  // pagination is exhausted; its own permalink picks the thread up from there.
+  const continueHere = createMemo(() =>
+    replyChildren().length < 1 &&
+    (post()?.engagementStats.replies ?? 0) > 0 &&
+    !props.subtreeMayContinue
   );
 
   // Drop a deleted quote child from the locally fetched signal; its subtree
@@ -783,9 +813,20 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
                     onDeleted={() => props.onReplyDeleted?.(child().id)}
                     repliesOf={props.repliesOf}
                     onReplyDeleted={props.onReplyDeleted}
+                    subtreeMayContinue={props.subtreeMayContinue}
                   />
                 )}
               </Key>
+            </div>
+          </Show>
+          <Show when={continueHere()}>
+            <div class="ml-4 sm:ml-6">
+              <a
+                href={p.url ?? p.iri}
+                class="block px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-primary"
+              >
+                {t`Continue this thread`} →
+              </a>
             </div>
           </Show>
         </div>
