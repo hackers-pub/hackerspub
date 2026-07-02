@@ -914,3 +914,61 @@ test("descendants endCursor never exposes a hidden row", async () => {
     assert.equal(conn.pageInfo.endCursor, null);
   });
 });
+
+test("reactionGroups hides a group whose only reactor is sanction-hidden", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "rghauthor",
+      name: "RGH Author",
+      email: "rghauthor@example.com",
+    });
+    const bannedReactor = await insertAccountWithActor(tx, {
+      username: "rghbanned",
+      name: "RGH Banned",
+      email: "rghbanned@example.com",
+    });
+    const viewer = await insertAccountWithActor(tx, {
+      username: "rghviewer",
+      name: "RGH Viewer",
+      email: "rghviewer@example.com",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "react to me",
+      reactionsCounts: { "❤️": 1 },
+    });
+    await insertReaction(tx, {
+      postId: post.id,
+      actorId: bannedReactor.actor.id,
+    });
+    await tx.update(actorTable)
+      .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: null })
+      .where(eq(actorTable.id, bannedReactor.actor.id));
+
+    const result = await execute({
+      schema,
+      document: parse(`
+        query($id: ID!) {
+          node(id: $id) {
+            ... on Post {
+              reactionGroups { __typename }
+              heart: reactionGroup(emoji: "❤️") { __typename }
+            }
+          }
+        }
+      `),
+      variableValues: { id: encodeGlobalID("Note", post.id) },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(result.errors, undefined);
+    const data = result.data as {
+      node: { reactionGroups: unknown[]; heart: unknown | null };
+    };
+    // The denormalized counter still lists the emoji, but its only reactor is
+    // banned, so the group must not surface (in the list or by direct lookup);
+    // otherwise it discloses that a hidden actor reacted with it.
+    assert.deepEqual(data.node.reactionGroups, []);
+    assert.equal(data.node.heart, null);
+  });
+});

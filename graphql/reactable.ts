@@ -72,8 +72,8 @@ Reactable.implement({
   fields: (t) => ({
     reactionGroups: t.field({
       type: [ReactionGroup],
-      resolve(post) {
-        return Object.entries(post.reactionsCounts)
+      async resolve(post, _args, ctx) {
+        const groups = Object.entries(post.reactionsCounts)
           .map(
             (
               [emojiOrId, count],
@@ -95,6 +95,21 @@ Reactable.implement({
               };
             },
           );
+        // Drop groups whose reactors are all hidden by a sanction: the
+        // denormalized `reactionsCounts` still lists such an emoji, but
+        // surfacing the group would disclose that a hidden actor reacted with
+        // it.  Uses the same batched, request-shared count as
+        // `reactors.totalCount`, so it adds no query beyond that.
+        const visibleCounts = await Promise.all(
+          groups.map((group) =>
+            reactorCount(
+              ctx,
+              post.id,
+              group.where as { emoji?: string; customEmojiId?: Uuid },
+            )
+          ),
+        );
+        return groups.filter((_group, i) => visibleCounts[i] > 0);
       },
     }),
     // Singular accessor for one reaction group on the post, used by the
@@ -109,7 +124,7 @@ Reactable.implement({
         emoji: t.arg.string({ required: false }),
         customEmojiId: t.arg.globalID({ for: CustomEmoji, required: false }),
       },
-      resolve(post, args) {
+      async resolve(post, args, ctx) {
         const emoji = args.emoji ?? null;
         const customEmojiId = args.customEmojiId?.id ?? null;
         if (
@@ -121,6 +136,16 @@ Reactable.implement({
         if (customEmojiId != null) {
           const count = post.reactionsCounts[customEmojiId];
           if (count == null) return null;
+          // Hide the group when every reactor is sanction-hidden (see
+          // `reactionGroups`), so a direct query for one emoji cannot confirm
+          // a hidden actor reacted with it.
+          if (
+            await reactorCount(ctx, post.id, {
+              customEmojiId: customEmojiId as Uuid,
+            }) < 1
+          ) {
+            return null;
+          }
           return {
             subject: post,
             count,
@@ -131,6 +156,9 @@ Reactable.implement({
         }
         const count = post.reactionsCounts[emoji!];
         if (count == null) return null;
+        if (await reactorCount(ctx, post.id, { emoji: emoji! }) < 1) {
+          return null;
+        }
         return {
           subject: post,
           count,
