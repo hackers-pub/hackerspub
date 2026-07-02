@@ -86,7 +86,11 @@ const quotesQuery = graphql`
   ) {
     node(id: $id) {
       ... on Post {
-        quotes(after: $quoteCursor, first: 20) {
+        quotes(
+          after: $quoteCursor
+          first: 20
+          actingAccountId: $actingAccountId
+        ) {
           edges {
             node {
               id
@@ -762,7 +766,7 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
                       onClick={() => loadQuotes()}
                       class="block w-full cursor-pointer px-4 py-2 text-left text-sm text-error transition-colors hover:underline"
                     >
-                      {t`Failed to load replies; click to retry`}
+                      {t`Failed to load quotes; click to retry`}
                     </button>
                   </Show>
                 </Show>

@@ -13,8 +13,8 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#. placeholder {0}: article.replies?.edges.length ?? 0
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:957
+#. placeholder {0}: article.engagementStats.replies
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:973
 msgid "{0, plural, one {# comment} other {# comments}}"
 msgstr "{0, plural, other {#コメント}}"
 
@@ -128,12 +128,12 @@ msgid "{0, plural, one {Regenerated invitations for # account.} other {Regenerat
 msgstr "{0, plural, other {#件のアカウントに招待状を再付与しました。}}"
 
 #. placeholder {0}: hiddenCount()
-#: src/components/PermalinkThread.tsx:316
+#: src/components/PermalinkThread.tsx:335
 msgid "{0, plural, one {Show # more post} other {Show # more posts}}"
 msgstr "{0, plural, other {コンテンツをあと#件表示}}"
 
 #. placeholder {0}: subtreeSize()
-#: src/components/PermalinkThread.tsx:584
+#: src/components/PermalinkThread.tsx:616
 msgid "{0, plural, one {Show # reply} other {Show # replies}}"
 msgstr "{0, plural, other {返信を#件表示}}"
 
@@ -362,7 +362,7 @@ msgstr "{0}さんに確認用の通知が届きます。"
 #. placeholder {0}: post.actor.rawName ?? post.actor.username
 #. placeholder {1}: post.excerpt
 #. placeholder {1}: title()
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:255
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:263
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:262
 msgid "{0}: {1}"
 msgstr "{0}：{1}"
@@ -1218,7 +1218,7 @@ msgstr "内容を入力してください"
 msgid "Continue in browser"
 msgstr "ブラウザで続ける"
 
-#: src/components/PermalinkThread.tsx:838
+#: src/components/PermalinkThread.tsx:872
 msgid "Continue this thread"
 msgstr "このスレッドの続きを見る"
 
@@ -1908,7 +1908,7 @@ msgstr "引用の追加読み込みに失敗しました。再試行するには
 msgid "Failed to load more reactors; click to retry"
 msgstr "リアクターの追加読み込みに失敗しました。再試行するにはクリックしてください"
 
-#: src/components/PermalinkThread.tsx:505
+#: src/components/PermalinkThread.tsx:537
 msgid "Failed to load more replies; click to retry"
 msgstr "返信の読み込みに失敗しました。クリックして再試行してください"
 
@@ -1931,7 +1931,11 @@ msgstr "コンテンツの読み込みに失敗しました"
 msgid "Failed to load quoted post"
 msgstr "引用コンテンツの読み込みに失敗しました"
 
-#: src/components/NewsDiscussionThread.tsx:538
+#: src/components/NewsDiscussionThread.tsx:769
+msgid "Failed to load quotes; click to retry"
+msgstr "引用の読み込みに失敗しました。クリックして再試行してください"
+
+#: src/components/NewsDiscussionThread.tsx:387
 msgid "Failed to load replies; click to retry"
 msgstr "返信の読み込みに失敗しました。クリックして再試行してください"
 
@@ -2373,7 +2377,7 @@ msgstr "招待ツリーから非表示にする"
 #~ msgid "Hide preview"
 #~ msgstr "プレビューを隠す"
 
-#: src/components/PermalinkThread.tsx:601
+#: src/components/PermalinkThread.tsx:635
 msgid "Hide replies"
 msgstr "返信を隠す"
 
@@ -2394,7 +2398,7 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "有効にすると、AIが記事の要約を生成します。無効の場合は、記事の最初の数行が要約として使用されます。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:979
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:995
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:536
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "フェディバース（fediverse）アカウントをお持ちの場合、この記事に返信することができます。ご利用のインスタンスの検索バーに{0}を検索し、該当記事に返信してください。"
@@ -2743,7 +2747,7 @@ msgstr "パスキーを読み込む"
 msgid "Load more posts"
 msgstr "コンテンツをもっと読み込む"
 
-#: src/components/NewsDiscussionThread.tsx:506
+#: src/components/NewsDiscussionThread.tsx:760
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/quotes.tsx:221
 #: src/routes/(root)/[handle]/[noteId]/quotes.tsx:228
 msgid "Load more quotes"
@@ -2753,8 +2757,8 @@ msgstr "引用をもっと読み込む"
 #~ msgid "Load more reactors (+{0})"
 #~ msgstr "リアクターをもっと読み込む (+{0})"
 
-#: src/components/NewsDiscussionThread.tsx:529
-#: src/components/PermalinkThread.tsx:508
+#: src/components/NewsDiscussionThread.tsx:377
+#: src/components/PermalinkThread.tsx:540
 msgid "Load more replies"
 msgstr "返信をもっと読み込む"
 
@@ -2832,7 +2836,8 @@ msgstr "引用を読み込み中…"
 msgid "Loading more reactors…"
 msgstr "リアクターを読み込み中…"
 
-#: src/components/PermalinkThread.tsx:502
+#: src/components/NewsDiscussionThread.tsx:376
+#: src/components/PermalinkThread.tsx:534
 msgid "Loading more replies…"
 msgstr "返信を読み込み中…"
 
@@ -3438,7 +3443,7 @@ msgstr "組織の招待"
 msgid "Organization members"
 msgstr "組織メンバー"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:841
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:849
 msgid "Other languages"
 msgstr "他の言語"
 
@@ -3849,7 +3854,7 @@ msgstr "リアクション"
 
 #: src/components/ArticleCard.tsx:491
 #: src/components/ArticleCard.tsx:511
-#: src/components/NewsDiscussionThread.tsx:439
+#: src/components/NewsDiscussionThread.tsx:692
 msgid "Read full article"
 msgstr "記事全文を読む"
 
@@ -4386,8 +4391,8 @@ msgstr "このコンテンツは共有できません。"
 msgid "Show"
 msgstr "表示"
 
-#. placeholder {0}: childCount()
-#: src/components/NewsDiscussionThread.tsx:482
+#. placeholder {0}: quoteCount()
+#: src/components/NewsDiscussionThread.tsx:736
 msgid "Show {0} more in this thread"
 msgstr "このスレッドであと{0}件を表示"
 
@@ -4492,7 +4497,7 @@ msgstr "通報時点のスナップショット"
 msgid "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 msgstr "{MAX_MEDIA} 枚の上限に達したため、一部の画像をスキップしました"
 
-#: src/components/PermalinkThread.tsx:331
+#: src/components/PermalinkThread.tsx:350
 msgid "Some posts in this thread cannot be shown."
 msgstr "このスレッドの一部のコンテンツは表示できません。"
 
@@ -4605,9 +4610,9 @@ msgid "Suspension length"
 msgstr "停止期間"
 
 #: src/components/DocumentView.tsx:38
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:679
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:687
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1022
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:695
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1037
 msgid "Table of contents"
 msgstr "目次"
 
@@ -4617,7 +4622,7 @@ msgstr "目次"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:158
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:575
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1031
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1046
 msgid "Tags"
 msgstr "タグ"
 
@@ -5001,7 +5006,7 @@ msgstr "このサーバーではまだWeb Pushが設定されていません。"
 msgid "This service does not support remote follow."
 msgstr "このサービスはリモートフォローに対応していません。"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:574
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:582
 msgid "This usually takes about a minute. The page will update automatically when the translation is ready."
 msgstr "通常1分ほどかかります。翻訳が完了するとページが自動的に更新されます。"
 
@@ -5046,7 +5051,7 @@ msgstr "合計：{0}"
 
 #. placeholder {0}: "LANGUAGE"
 #: src/components/ArticleCard.tsx:322
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:825
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:833
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
 
@@ -5054,18 +5059,18 @@ msgstr "{0}から翻訳"
 #~ msgid "Translating to {0}…"
 #~ msgstr "{0}に翻訳中…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:569
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:577
 msgid "Translating to {name}…"
 msgstr "{name}に翻訳中…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:565
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:573
 msgid "Translating…"
 msgstr "翻訳中…"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:413
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:436
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:445
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:610
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:618
 msgid "Translation request failed"
 msgstr "翻訳のリクエストに失敗しました"
 
@@ -5073,7 +5078,7 @@ msgstr "翻訳のリクエストに失敗しました"
 #~ msgid "Translation request failed for {0}"
 #~ msgstr "{0}への翻訳リクエストに失敗しました"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:615
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:623
 msgid "Translation request failed for {name}"
 msgstr "{name}への翻訳リクエストに失敗しました"
 
@@ -5083,7 +5088,7 @@ msgid "Tree"
 msgstr "ツリー"
 
 #: src/app.tsx:129
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:623
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:631
 msgid "Try again"
 msgstr "再試行"
 
@@ -5275,7 +5280,7 @@ msgstr "招待を確認中…"
 msgid "View all drafts →"
 msgstr "すべての下書きを表示 →"
 
-#: src/components/PermalinkThread.tsx:360
+#: src/components/PermalinkThread.tsx:379
 msgid "View earlier posts in this thread"
 msgstr "このスレッドの以前のコンテンツを表示"
 
@@ -5370,7 +5375,7 @@ msgstr "警告"
 msgid "We couldn't reach the server"
 msgstr "サーバーに接続できませんでした"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:620
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:628
 msgid "We couldn't reach the translation service. Try again, or come back in a few minutes."
 msgstr "翻訳サービスに接続できませんでした。再試行するか、数分後に再度お試しください。"
 
@@ -5437,7 +5442,7 @@ msgid "Write"
 msgstr "編集"
 
 #: src/components/NoteComposeModal.tsx:115
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:970
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:986
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:365
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:445
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:527

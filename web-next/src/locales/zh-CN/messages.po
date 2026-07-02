@@ -13,8 +13,8 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#. placeholder {0}: article.replies?.edges.length ?? 0
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:957
+#. placeholder {0}: article.engagementStats.replies
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:973
 msgid "{0, plural, one {# comment} other {# comments}}"
 msgstr "{0, plural, other {# 条评论}}"
 
@@ -128,12 +128,12 @@ msgid "{0, plural, one {Regenerated invitations for # account.} other {Regenerat
 msgstr "{0, plural, other {已为 # 个账号重新发放邀请。}}"
 
 #. placeholder {0}: hiddenCount()
-#: src/components/PermalinkThread.tsx:316
+#: src/components/PermalinkThread.tsx:335
 msgid "{0, plural, one {Show # more post} other {Show # more posts}}"
 msgstr "{0, plural, other {显示另外 # 条内容}}"
 
 #. placeholder {0}: subtreeSize()
-#: src/components/PermalinkThread.tsx:584
+#: src/components/PermalinkThread.tsx:616
 msgid "{0, plural, one {Show # reply} other {Show # replies}}"
 msgstr "{0, plural, other {显示 # 条回复}}"
 
@@ -362,7 +362,7 @@ msgstr "{0} 将收到一条通知以进行审核。"
 #. placeholder {0}: post.actor.rawName ?? post.actor.username
 #. placeholder {1}: post.excerpt
 #. placeholder {1}: title()
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:255
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:263
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:262
 msgid "{0}: {1}"
 msgstr "{0}：{1}"
@@ -1218,7 +1218,7 @@ msgstr "内容不能为空"
 msgid "Continue in browser"
 msgstr "在浏览器中继续"
 
-#: src/components/PermalinkThread.tsx:838
+#: src/components/PermalinkThread.tsx:872
 msgid "Continue this thread"
 msgstr "继续查看该讨论"
 
@@ -1908,7 +1908,7 @@ msgstr "加载更多引用失败，点击重试"
 msgid "Failed to load more reactors; click to retry"
 msgstr "加载更多反应者失败，点击重试"
 
-#: src/components/PermalinkThread.tsx:505
+#: src/components/PermalinkThread.tsx:537
 msgid "Failed to load more replies; click to retry"
 msgstr "加载更多回复失败，点击重试"
 
@@ -1931,7 +1931,11 @@ msgstr "无法加载内容"
 msgid "Failed to load quoted post"
 msgstr "无法加载引用内容"
 
-#: src/components/NewsDiscussionThread.tsx:538
+#: src/components/NewsDiscussionThread.tsx:769
+msgid "Failed to load quotes; click to retry"
+msgstr "加载引用失败，点击重试"
+
+#: src/components/NewsDiscussionThread.tsx:387
 msgid "Failed to load replies; click to retry"
 msgstr "加载回复失败，点击重试"
 
@@ -2373,7 +2377,7 @@ msgstr "在邀请树中隐藏我"
 #~ msgid "Hide preview"
 #~ msgstr "隐藏预览"
 
-#: src/components/PermalinkThread.tsx:601
+#: src/components/PermalinkThread.tsx:635
 msgid "Hide replies"
 msgstr "隐藏回复"
 
@@ -2394,7 +2398,7 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "启用后，AI 将为您生成文章摘要。否则，将使用文章的前几行作为摘要。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:979
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:995
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:536
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你在联邦宇宙有个账户，你可以在你自己的实例里评论此文章。在你的实例搜索 {0} 后回复。"
@@ -2743,7 +2747,7 @@ msgstr "加载更多通行密钥"
 msgid "Load more posts"
 msgstr "加载更多内容"
 
-#: src/components/NewsDiscussionThread.tsx:506
+#: src/components/NewsDiscussionThread.tsx:760
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/quotes.tsx:221
 #: src/routes/(root)/[handle]/[noteId]/quotes.tsx:228
 msgid "Load more quotes"
@@ -2753,8 +2757,8 @@ msgstr "加载更多引用"
 #~ msgid "Load more reactors (+{0})"
 #~ msgstr "加载更多反应者 (+{0})"
 
-#: src/components/NewsDiscussionThread.tsx:529
-#: src/components/PermalinkThread.tsx:508
+#: src/components/NewsDiscussionThread.tsx:377
+#: src/components/PermalinkThread.tsx:540
 msgid "Load more replies"
 msgstr "加载更多回复"
 
@@ -2832,7 +2836,8 @@ msgstr "正在加载更多引用…"
 msgid "Loading more reactors…"
 msgstr "正在加载更多反应者…"
 
-#: src/components/PermalinkThread.tsx:502
+#: src/components/NewsDiscussionThread.tsx:376
+#: src/components/PermalinkThread.tsx:534
 msgid "Loading more replies…"
 msgstr "正在加载更多回复…"
 
@@ -3438,7 +3443,7 @@ msgstr "组织邀请"
 msgid "Organization members"
 msgstr "组织成员"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:841
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:849
 msgid "Other languages"
 msgstr "其他语言"
 
@@ -3849,7 +3854,7 @@ msgstr "反应"
 
 #: src/components/ArticleCard.tsx:491
 #: src/components/ArticleCard.tsx:511
-#: src/components/NewsDiscussionThread.tsx:439
+#: src/components/NewsDiscussionThread.tsx:692
 msgid "Read full article"
 msgstr "阅读完整文章"
 
@@ -4386,8 +4391,8 @@ msgstr "无法转帖此内容。"
 msgid "Show"
 msgstr "显示"
 
-#. placeholder {0}: childCount()
-#: src/components/NewsDiscussionThread.tsx:482
+#. placeholder {0}: quoteCount()
+#: src/components/NewsDiscussionThread.tsx:736
 msgid "Show {0} more in this thread"
 msgstr "显示该讨论中的另外 {0} 条"
 
@@ -4492,7 +4497,7 @@ msgstr "举报时的快照"
 msgid "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 msgstr "已达到 {MAX_MEDIA} 张图片上限，部分图片已被跳过"
 
-#: src/components/PermalinkThread.tsx:331
+#: src/components/PermalinkThread.tsx:350
 msgid "Some posts in this thread cannot be shown."
 msgstr "该讨论中的部分内容无法显示。"
 
@@ -4605,9 +4610,9 @@ msgid "Suspension length"
 msgstr "封停时长"
 
 #: src/components/DocumentView.tsx:38
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:679
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:687
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1022
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:695
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1037
 msgid "Table of contents"
 msgstr "目录"
 
@@ -4617,7 +4622,7 @@ msgstr "目录"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:158
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:575
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1031
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1046
 msgid "Tags"
 msgstr "标签"
 
@@ -5001,7 +5006,7 @@ msgstr "此服务器尚未配置 Web Push。"
 msgid "This service does not support remote follow."
 msgstr "该服务不支持远程关注。"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:574
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:582
 msgid "This usually takes about a minute. The page will update automatically when the translation is ready."
 msgstr "通常需要一分钟左右。翻译完成后页面将自动更新。"
 
@@ -5046,7 +5051,7 @@ msgstr "共 {0} 个"
 
 #. placeholder {0}: "LANGUAGE"
 #: src/components/ArticleCard.tsx:322
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:825
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:833
 msgid "Translated from {0}"
 msgstr "翻译自{0}"
 
@@ -5054,18 +5059,18 @@ msgstr "翻译自{0}"
 #~ msgid "Translating to {0}…"
 #~ msgstr "正在翻译为{0}…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:569
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:577
 msgid "Translating to {name}…"
 msgstr "正在翻译为{name}…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:565
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:573
 msgid "Translating…"
 msgstr "正在翻译…"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:413
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:436
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:445
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:610
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:618
 msgid "Translation request failed"
 msgstr "翻译请求失败"
 
@@ -5073,7 +5078,7 @@ msgstr "翻译请求失败"
 #~ msgid "Translation request failed for {0}"
 #~ msgstr "向{0}的翻译请求失败"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:615
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:623
 msgid "Translation request failed for {name}"
 msgstr "向{name}的翻译请求失败"
 
@@ -5083,7 +5088,7 @@ msgid "Tree"
 msgstr "树状图"
 
 #: src/app.tsx:129
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:623
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:631
 msgid "Try again"
 msgstr "重试"
 
@@ -5275,7 +5280,7 @@ msgstr "正在验证您的邀请…"
 msgid "View all drafts →"
 msgstr "查看所有草稿 →"
 
-#: src/components/PermalinkThread.tsx:360
+#: src/components/PermalinkThread.tsx:379
 msgid "View earlier posts in this thread"
 msgstr "查看该讨论中更早的内容"
 
@@ -5370,7 +5375,7 @@ msgstr "警告"
 msgid "We couldn't reach the server"
 msgstr "无法连接到服务器"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:620
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:628
 msgid "We couldn't reach the translation service. Try again, or come back in a few minutes."
 msgstr "无法连接到翻译服务。请重试或几分钟后再来。"
 
@@ -5437,7 +5442,7 @@ msgid "Write"
 msgstr "撰写"
 
 #: src/components/NoteComposeModal.tsx:115
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:970
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:986
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:365
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:445
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:527
