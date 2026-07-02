@@ -65,7 +65,7 @@ export function ArticleCard(props: ArticleCardProps) {
           actingAccountId: $actingAccountId
         )
         ...PostSharer_post
-        sharedPost {
+        sharedPost(actingAccountId: $actingAccountId) {
           ... on Article {
             uuid
             actor {

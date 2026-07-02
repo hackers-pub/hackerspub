@@ -71,10 +71,10 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
           actingAccountId: $actingAccountId
         )
         ...NoteMedia_note
-        ...LinkPreview_note
+        ...LinkPreview_note @arguments(actingAccountId: $actingAccountId)
         ...NoteHeader_note
         quoteTargetState
-        quotedPost {
+        quotedPost(actingAccountId: $actingAccountId) {
           ...QuotedPostCard_post
         }
       }

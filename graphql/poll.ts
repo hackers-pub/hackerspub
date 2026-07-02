@@ -1,28 +1,47 @@
 import * as vocab from "@fedify/vocab";
 import { renderCustomEmojis } from "@hackerspub/models/emoji";
 import { addExternalLinkTargets } from "@hackerspub/models/html";
+import { OrganizationPermissionError } from "@hackerspub/models/organization";
 import { vote } from "@hackerspub/models/poll";
 import {
+  getSanctionVisibleActorFilter,
   isActorSanctionHidden,
   isPostVisibleTo,
   persistPost,
 } from "@hackerspub/models/post";
 import {
   type Actor as ActorRow,
+  actorTable,
   pollVoteTable,
 } from "@hackerspub/models/schema";
 import type { Uuid } from "@hackerspub/models/uuid";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
-import { eq } from "drizzle-orm";
-import { OrganizationPermissionError } from "@hackerspub/models/organization";
+import DataLoader from "dataloader";
+import {
+  and,
+  count,
+  countDistinct,
+  eq,
+  gt,
+  inArray,
+  isNotNull,
+  isNull,
+  lte,
+  or,
+} from "drizzle-orm";
 import { Account } from "./account.ts";
-import { Actor } from "./actor.ts";
 import { resolveActingAccountForMutation } from "./acting-account.ts";
+import { Actor } from "./actor.ts";
 import { builder, type UserContext } from "./builder.ts";
 import { ActorSuspendedError, InvalidInputError } from "./error.ts";
-import { Post, Question } from "./post.ts";
+import { isPostVisibleToViewer, Post, Question } from "./post.ts";
 import { PostVisibility, toPostVisibility } from "./postvisibility.ts";
 import { NotAuthenticatedError } from "./session.ts";
+import {
+  type ActingAccountIdArg,
+  actingAccountIdArgDescription,
+  resolveViewerActorId,
+} from "./viewer-actor.ts";
 
 const pollBranchComplexity = { field: 0, multiplier: 0 } as const;
 const questionPollComplexity = { field: 0, multiplier: 0 } as const;
@@ -211,16 +230,35 @@ builder.drizzleObjectFields(Question, (t) => ({
     nullable: true,
     complexity: questionPollComplexity,
     description:
-      "The post quoted by this `Question`, if any. Visibility rules still " +
-      "apply to the quoted post.  `null` when the quoting `Question` is " +
-      "censored, or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator: " +
-      "the quoted target is part of the censored content.",
+      "The post quoted by this `Question`, if any. `null` when the quoting " +
+      "`Question` is censored or its author is hidden by a moderation " +
+      "sanction and the viewer is neither the author nor a moderator (the " +
+      "quoted target is part of the censored content), and also when the " +
+      "quoted post is not visible to the viewer (e.g., a followers-only " +
+      "post the viewer does not follow), so a public quote cannot leak its " +
+      "private target.",
+    args: {
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
     select: (_, __, nestedSelect) => ({
       columns: { actorId: true, censored: true },
       with: { actor: sanctionActorSelection, quotedPost: nestedSelect() },
     }),
-    resolve: (question, _, ctx) =>
-      isPollCensoredForViewer(question, ctx) ? null : question.quotedPost,
+    resolve: async (question, args, ctx) => {
+      if (isPollCensoredForViewer(question, ctx)) return null;
+      const quotedPost = question.quotedPost;
+      if (quotedPost == null) return null;
+      const viewerActorId = await resolveViewerActorId(
+        ctx,
+        args as ActingAccountIdArg,
+      );
+      return await isPostVisibleToViewer(ctx, quotedPost.id, viewerActorId)
+        ? quotedPost
+        : null;
+    },
   }),
   sharedPost: t.field({
     type: Post,
@@ -229,17 +267,35 @@ builder.drizzleObjectFields(Question, (t) => ({
     description:
       "The original post when this row is a local share wrapper. Polls live " +
       "on the original `Question`, not on the wrapper.  `null` when the " +
-      "wrapper itself is censored, or the booster is hidden by a " +
-      "moderation sanction, and the viewer is neither the author nor a " +
-      "moderator: what was boosted is the hidden content.",
+      "wrapper itself is censored or the booster is hidden by a " +
+      "moderation sanction and the viewer is neither the author nor a " +
+      "moderator (what was boosted is the hidden content), and also when " +
+      "the boosted post is not visible to the viewer (e.g., a " +
+      "followers-only post the viewer does not follow).",
+    args: {
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
     select: (_, __, nestedSelect) => ({
       columns: { actorId: true, censored: true },
       with: { actor: sanctionActorSelection, sharedPost: nestedSelect() },
     }),
     // Row-only check: a wrapper of a censored Question keeps the relation
     // so the boosted Question redacts itself and exposes `censored`.
-    resolve: (question, _, ctx) =>
-      isPollRowCensoredForViewer(question, ctx) ? null : question.sharedPost,
+    resolve: async (question, args, ctx) => {
+      if (isPollRowCensoredForViewer(question, ctx)) return null;
+      const sharedPost = question.sharedPost;
+      if (sharedPost == null) return null;
+      const viewerActorId = await resolveViewerActorId(
+        ctx,
+        args as ActingAccountIdArg,
+      );
+      return await isPostVisibleToViewer(ctx, sharedPost.id, viewerActorId)
+        ? sharedPost
+        : null;
+    },
   }),
 }));
 
@@ -335,64 +391,87 @@ const Poll = builder.drizzleNode("pollTable", {
     votes: t.connection({
       type: PollVote,
       description:
-        "All votes cast across all options, with the total vote count " +
-        "exposed on the connection.",
+        "Votes cast across all options, with the total vote count exposed " +
+        "on the connection. Votes by actors whose content is hidden by a " +
+        "moderation sanction (banned local or federation-blocked remote) " +
+        "are excluded from both the edges and `totalCount`, so a hidden " +
+        "actor's participation is never revealed.",
       complexity: pollBranchComplexity,
       select: (args, ctx, nestedSelect) => ({
+        columns: { postId: true },
         with: {
-          votes: pollVoteConnectionHelpers.getQuery(args, ctx, nestedSelect),
-        },
-        extras: {
-          votesCount: (table) =>
-            ctx.db.$count(
-              pollVoteTable,
-              eq(pollVoteTable.postId, table.postId),
-            ),
+          // Exclude votes by sanction-hidden actors so the vote list never
+          // reveals a banned/federation-blocked actor's participation.
+          votes: andActorSanctionFilter(
+            pollVoteConnectionHelpers.getQuery(args, ctx, nestedSelect),
+            { actor: getSanctionVisibleActorFilter(ctx.now ??= new Date()) },
+          ),
         },
       }),
-      resolve(poll, args, ctx) {
+      async resolve(poll, args, ctx) {
         const connection = pollVoteConnectionHelpers.resolve(
           poll.votes,
           args,
           ctx,
           poll,
         );
-        return { ...connection, totalCount: poll.votesCount };
+        return {
+          ...connection,
+          totalCount: await pollVisibleVoteCount(ctx, poll.postId),
+        };
       },
     }, {
       fields: (t) => ({
         totalCount: t.exposeInt("totalCount", {
           description:
-            "Total number of stored votes across all options, independent " +
-            "of the current page size.",
+            "Number of votes across all options, independent of the current " +
+            "page size and excluding votes by sanction-hidden actors, so it " +
+            "matches the (also sanction-filtered) edges.",
         }),
       }),
     }),
     voters: t.connection({
       type: Actor,
       description:
-        "Actors who have voted in this poll (deduplicated across options).",
+        "Actors who have voted in this poll (deduplicated across options). " +
+        "Actors whose content is hidden by a moderation sanction (banned " +
+        "local or federation-blocked remote) are excluded from both the " +
+        "edges and `totalCount`.",
       complexity: pollBranchComplexity,
       select: (args, ctx, nestedSelect) => ({
+        columns: { postId: true, votersCount: true },
         with: {
-          voters: actorConnectionHelpers.getQuery(args, ctx, nestedSelect),
+          // Exclude sanction-hidden actors from the voter list.
+          voters: andActorSanctionFilter(
+            actorConnectionHelpers.getQuery(args, ctx, nestedSelect),
+            getSanctionVisibleActorFilter(ctx.now ??= new Date()),
+          ),
         },
       }),
-      resolve(poll, args, ctx) {
+      async resolve(poll, args, ctx) {
         const connection = actorConnectionHelpers.resolve(
           poll.voters,
           args,
           ctx,
           poll,
         );
-        return { ...connection, totalCount: poll.votersCount };
+        // Stored counter (federated aggregate + local votes) minus the
+        // sanction-hidden local voters, so the total matches the filtered
+        // edges without zeroing out a remote poll's federated count.
+        const hidden = await pollHiddenVoterCount(ctx, poll.postId);
+        return {
+          ...connection,
+          totalCount: Math.max(poll.votersCount - hidden, 0),
+        };
       },
     }, {
       fields: (t) => ({
         totalCount: t.exposeInt("totalCount", {
           description:
-            "Total number of distinct actors who have voted in this poll, " +
-            "independent of the current page size.",
+            "Number of distinct actors who have voted in this poll, " +
+            "independent of the current page size and excluding " +
+            "sanction-hidden actors, so it matches the (also " +
+            "sanction-filtered) edges.",
         }),
       }),
     }),
@@ -433,28 +512,46 @@ const PollOption = builder.drizzleObject("pollOptionTable", {
       type: PollVote,
       description:
         "Votes cast for this option. Use `PollOption.viewerHasVoted` for " +
-        "the current viewer's selected state.",
+        "the current viewer's selected state. Votes by sanction-hidden " +
+        "actors (banned local or federation-blocked remote) are excluded " +
+        "from both the edges and `totalCount`.",
       complexity: pollBranchComplexity,
       select: (args, ctx, nestedSelect) => ({
+        columns: { postId: true, index: true, votesCount: true },
         with: {
-          votes: pollVoteConnectionHelpers.getQuery(args, ctx, nestedSelect),
+          // Exclude votes by sanction-hidden actors (see `Poll.votes`).
+          votes: andActorSanctionFilter(
+            pollVoteConnectionHelpers.getQuery(args, ctx, nestedSelect),
+            { actor: getSanctionVisibleActorFilter(ctx.now ??= new Date()) },
+          ),
         },
       }),
-      resolve(option, args, ctx) {
+      async resolve(option, args, ctx) {
         const connection = pollVoteConnectionHelpers.resolve(
           option.votes,
           args,
           ctx,
           option,
         );
-        return { ...connection, totalCount: option.votesCount };
+        // Stored per-option counter minus the sanction-hidden local votes
+        // for this option (keeps remote federated per-option totals intact).
+        const hidden = await pollHiddenOptionVoteCount(
+          ctx,
+          option.postId,
+          option.index,
+        );
+        return {
+          ...connection,
+          totalCount: Math.max(option.votesCount - hidden, 0),
+        };
       },
     }, {
       fields: (t) => ({
         totalCount: t.exposeInt("totalCount", {
           description:
-            "Total number of stored votes for this option, independent of " +
-            "the current page size.",
+            "Number of votes for this option, independent of the current " +
+            "page size and excluding votes by sanction-hidden actors, so it " +
+            "matches the (also sanction-filtered) edges.",
         }),
       }),
     }),
@@ -494,6 +591,148 @@ const actorConnectionHelpers = drizzleConnectionHelpers(
   "actorTable",
   {},
 );
+
+// The stored counters (`pollTable.votersCount`, `pollOptionTable.votesCount`)
+// include remote-federated aggregates plus one increment per local vote, so a
+// visible total is `stored - (sanction-hidden local votes)`; counting only the
+// hidden local rows and subtracting keeps remote aggregate totals intact.  The
+// poll-level `Poll.votes.totalCount` has no stored counter (it is a live count
+// of local rows), so it counts the visible rows directly.  Reconciling these
+// totals with their (sanction-filtered) edges is what stops a client inferring
+// from `totalCount > edges.length` that a sanction-hidden actor voted.
+//
+// Each count is batched with a request-scoped `DataLoader` so a list of polls
+// (a timeline, a profile) runs one grouped query instead of one per poll or
+// option.  Sanction activeness is compared against the request clock
+// (`ctx.now`), matching `isActorSanctionHidden` and the edge filters, not SQL
+// `now()` (which is frozen inside a transaction).
+
+// Voter is NOT hidden by a sanction (mirror of `getSanctionVisibleActorFilter`
+// as a raw predicate over the joined `actorTable`).
+function pollVoterNotHiddenCondition(now: Date) {
+  return or(
+    isNull(actorTable.suspended),
+    gt(actorTable.suspended, now),
+    lte(actorTable.suspendedUntil, now),
+    and(isNotNull(actorTable.accountId), gt(actorTable.suspendedUntil, now)),
+  );
+}
+
+// Voter IS hidden by a sanction (the complement used to subtract from the
+// stored counters).
+function pollVoterHiddenCondition(now: Date) {
+  return and(
+    lte(actorTable.suspended, now),
+    or(
+      // A `null` `suspendedUntil` (permanent) hides the actor regardless of
+      // whether it is local or remote, so the two `accountId` branches for it
+      // collapse into one check.
+      isNull(actorTable.suspendedUntil),
+      // A remote actor with a still-future `suspendedUntil` stays hidden; a
+      // local one is only write-restricted, so its content remains visible.
+      and(isNull(actorTable.accountId), gt(actorTable.suspendedUntil, now)),
+    ),
+  );
+}
+
+// `Poll.votes.totalCount`: visible (non-sanction-hidden) votes for the poll.
+function pollVisibleVoteCount(ctx: UserContext, postId: Uuid): Promise<number> {
+  ctx.pollVisibleVoteCountLoader ??= new DataLoader<Uuid, number>(
+    async (ids) => {
+      const now = (ctx.now ??= new Date());
+      const rows = await ctx.db
+        .select({ postId: pollVoteTable.postId, c: count() })
+        .from(pollVoteTable)
+        .innerJoin(actorTable, eq(actorTable.id, pollVoteTable.actorId))
+        .where(
+          and(
+            inArray(pollVoteTable.postId, ids as Uuid[]),
+            pollVoterNotHiddenCondition(now),
+          ),
+        )
+        .groupBy(pollVoteTable.postId);
+      const byId = new Map(rows.map((row) => [row.postId, Number(row.c)]));
+      return (ids as Uuid[]).map((id) => byId.get(id) ?? 0);
+    },
+  );
+  return ctx.pollVisibleVoteCountLoader.load(postId);
+}
+
+// `Poll.voters.totalCount`: distinct sanction-hidden voters, subtracted from
+// the stored `votersCount`.
+function pollHiddenVoterCount(ctx: UserContext, postId: Uuid): Promise<number> {
+  ctx.pollHiddenVoterCountLoader ??= new DataLoader<Uuid, number>(
+    async (ids) => {
+      const now = (ctx.now ??= new Date());
+      const rows = await ctx.db
+        .select({
+          postId: pollVoteTable.postId,
+          c: countDistinct(pollVoteTable.actorId),
+        })
+        .from(pollVoteTable)
+        .innerJoin(actorTable, eq(actorTable.id, pollVoteTable.actorId))
+        .where(
+          and(
+            inArray(pollVoteTable.postId, ids as Uuid[]),
+            pollVoterHiddenCondition(now),
+          ),
+        )
+        .groupBy(pollVoteTable.postId);
+      const byId = new Map(rows.map((row) => [row.postId, Number(row.c)]));
+      return (ids as Uuid[]).map((id) => byId.get(id) ?? 0);
+    },
+  );
+  return ctx.pollHiddenVoterCountLoader.load(postId);
+}
+
+// `PollOption.votes.totalCount`: sanction-hidden votes for one option,
+// subtracted from that option's stored `votesCount`.
+function pollHiddenOptionVoteCount(
+  ctx: UserContext,
+  postId: Uuid,
+  optionIndex: number,
+): Promise<number> {
+  ctx.pollHiddenOptionVoteCountLoader ??= new DataLoader<string, number>(
+    async (keys) => {
+      const now = (ctx.now ??= new Date());
+      const postIds = [
+        ...new Set((keys as string[]).map((k) => k.split("\n")[0] as Uuid)),
+      ];
+      const rows = await ctx.db
+        .select({
+          postId: pollVoteTable.postId,
+          optionIndex: pollVoteTable.optionIndex,
+          c: count(),
+        })
+        .from(pollVoteTable)
+        .innerJoin(actorTable, eq(actorTable.id, pollVoteTable.actorId))
+        .where(
+          and(
+            inArray(pollVoteTable.postId, postIds),
+            pollVoterHiddenCondition(now),
+          ),
+        )
+        .groupBy(pollVoteTable.postId, pollVoteTable.optionIndex);
+      const byKey = new Map(
+        rows.map((row) => [`${row.postId}\n${row.optionIndex}`, Number(row.c)]),
+      );
+      return (keys as string[]).map((k) => byKey.get(k) ?? 0);
+    },
+  );
+  return ctx.pollHiddenOptionVoteCountLoader.load(`${postId}\n${optionIndex}`);
+}
+
+// Fold an extra `where` filter into a connection helper's query config
+// (AND-merged so the helper's own cursor pagination `where` is preserved).
+// Mutates and returns the same object; the helper hands back a fresh config
+// per call.  Typed loosely because the two vote/voter connections target
+// different tables (`pollVoteTable` vs `actorTable`).
+// deno-lint-ignore no-explicit-any
+function andActorSanctionFilter<Q>(query: Q, extra: any): Q {
+  const q = query as { where?: unknown };
+  q.where = q.where == null ? extra : { AND: [q.where, extra] };
+  return query;
+}
 
 async function getViewerPollOptionIndices(
   ctx: UserContext,

@@ -2,6 +2,10 @@ import * as vocab from "@fedify/vocab";
 import { generateAltText } from "@hackerspub/ai/alttext";
 import { getLogger } from "@logtape/logtape";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
+import {
+  resolveArrayConnection,
+  resolveOffsetConnection,
+} from "@pothos/plugin-relay";
 import { unreachable } from "@std/assert";
 import { assertNever } from "@std/assert/unstable-never";
 import { and, eq, gt, inArray, isNotNull, isNull, lte, or } from "drizzle-orm";
@@ -92,6 +96,11 @@ import {
 } from "@hackerspub/models/schema";
 import type * as schema from "@hackerspub/models/schema";
 import DataLoader from "dataloader";
+import {
+  DESCENDANT_TREE_MAX_DEPTH,
+  getAncestorChain,
+  getDescendantPage,
+} from "@hackerspub/models/thread";
 import { withTransaction } from "@hackerspub/models/tx";
 import {
   generateUuidV7,
@@ -113,7 +122,13 @@ import {
   resolveActingAccountForGlobalIdArg,
   resolveActingAccountForMutation,
 } from "./acting-account.ts";
-import { Actor, getActorById, isActorProfileHidden } from "./actor.ts";
+import {
+  Actor,
+  actorProfilePostRelations,
+  getActorById,
+  isActorProfileHidden,
+  loadActorProfilePostPage,
+} from "./actor.ts";
 import { builder, Node, type UserContext } from "./builder.ts";
 import {
   ActorSuspendedError,
@@ -1269,6 +1284,293 @@ export function hidePostRelationWithoutActor<T>(
   return post;
 }
 
+// Raw rows to scan per round once the `descendants` page is already full and
+// the resolver only needs to confirm one more visible reply exists (for
+// `hasNextPage`).  Kept small so a probe that finds a survivor early does not
+// over-fetch a whole `first`-sized page; a longer run of hidden rows is
+// stepped over across the bounded rounds instead.
+const DESCENDANT_PROBE_BATCH = 20;
+
+// A descendants cursor is base64 of the model layer's DFS path: fixed-width
+// `<YYYY-MM-DDTHH:MM:SS.ffffff>~<uuid>` elements joined by `/` (the timestamp
+// is the node's UTC publish time to microsecond precision).  The uuid parts
+// double as the entry's strict ancestor chain below the focused post, which
+// the resolver uses to drop entries whose subtree root got filtered out on an
+// earlier page.
+const descendantPathElement =
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}~[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/;
+
+function encodeDescendantCursor(path: string): string {
+  return btoa(path);
+}
+
+function decodeDescendantCursor(cursor: string): string {
+  let path: string;
+  try {
+    path = atob(cursor);
+  } catch {
+    throw createGraphQLError("Malformed `descendants` cursor.");
+  }
+  if (
+    !path.split("/").every((element) => descendantPathElement.test(element))
+  ) {
+    throw createGraphQLError("Malformed `descendants` cursor.");
+  }
+  return path;
+}
+
+function descendantPathAncestorIds(path: string): Uuid[] {
+  const elements = path.split("/");
+  // Each element is `<sortkey>~<uuid>`; the uuid (36 chars, no `~`) is the id.
+  return elements.slice(0, -1).map((element) =>
+    element.slice(element.indexOf("~") + 1) as Uuid
+  );
+}
+
+// Whether the given post is visible to the authenticated viewer: per-post
+// visibility plus the author's sanction state.  Censorship is deliberately
+// not part of this check; censored posts stay reachable and self-redact
+// their content-bearing fields instead.
+export function isPostVisibleToViewer(
+  ctx: UserContext,
+  postId: Uuid,
+  viewerActorId: Uuid | null,
+): Promise<boolean> {
+  ctx.postVisibleLoader ??= new Map();
+  let loader = ctx.postVisibleLoader.get(viewerActorId ?? "");
+  if (loader == null) {
+    loader = new DataLoader<Uuid, boolean>(
+      async (ids) => {
+        const idList = ids as Uuid[];
+        const viewerActor = viewerActorId == null
+          ? null
+          : await getActorById(ctx, viewerActorId);
+        const rows = await ctx.db.query.postTable.findMany({
+          columns: { id: true },
+          where: {
+            AND: [
+              { id: { in: idList } },
+              { actor: getSanctionVisibleActorFilter(ctx.now ??= new Date()) },
+              getPostVisibilityFilter(viewerActor),
+            ],
+          },
+        });
+        const visible = new Set(rows.map((row) => row.id));
+        return idList.map((id) => visible.has(id));
+      },
+    );
+    ctx.postVisibleLoader.set(viewerActorId ?? "", loader);
+  }
+  return loader.load(postId);
+}
+
+// Whether the given post has at least one direct reply visible to the viewer,
+// under the same sanction + censorship + visibility filter as the `replies`
+// connection.  Thread views use this instead of the raw
+// `engagementStats.replies` counter: a node whose only replies are hidden
+// (followers-only to a stranger, censored, or by a sanctioned author) reports
+// `false`, so a "continue this thread" affordance cannot reveal that hidden
+// replies exist.  Batched (one query per reply page) and keyed by viewer.
+function postHasVisibleReplies(
+  ctx: UserContext,
+  postId: Uuid,
+  viewerActorId: Uuid | null,
+): Promise<boolean> {
+  ctx.postHasVisibleRepliesLoader ??= new Map();
+  let loader = ctx.postHasVisibleRepliesLoader.get(viewerActorId ?? "");
+  if (loader == null) {
+    loader = new DataLoader<Uuid, boolean>(
+      async (ids) => {
+        const idList = ids as Uuid[];
+        const viewerActor = viewerActorId == null
+          ? null
+          : await getActorById(ctx, viewerActorId);
+        const rows = await ctx.db.query.postTable.findMany({
+          columns: { replyTargetId: true },
+          where: {
+            AND: [
+              { replyTargetId: { in: idList } },
+              { actor: getSanctionVisibleActorFilter(ctx.now ??= new Date()) },
+              getCensoredPostExclusionFilter(viewerActorId),
+              getPostVisibilityFilter(viewerActor),
+            ],
+          },
+        });
+        const withReplies = new Set(rows.map((row) => row.replyTargetId));
+        return idList.map((id) => withReplies.has(id));
+      },
+    );
+    ctx.postHasVisibleRepliesLoader.set(viewerActorId ?? "", loader);
+  }
+  return loader.load(postId);
+}
+
+// Whether the given post has at least one quote visible to the viewer, under
+// the same sanction + censorship + visibility filter as the `quotes`
+// connection.  The news-discussion view uses this instead of the raw
+// `engagementStats.quotes` counter so a "show quotes" affordance (which then
+// loads an empty list) cannot reveal that hidden quotes exist.  Batched (one
+// query per page) and keyed by viewer, mirroring `postHasVisibleReplies`.
+function postHasVisibleQuotes(
+  ctx: UserContext,
+  postId: Uuid,
+  viewerActorId: Uuid | null,
+): Promise<boolean> {
+  ctx.postHasVisibleQuotesLoader ??= new Map();
+  let loader = ctx.postHasVisibleQuotesLoader.get(viewerActorId ?? "");
+  if (loader == null) {
+    loader = new DataLoader<Uuid, boolean>(
+      async (ids) => {
+        const idList = ids as Uuid[];
+        const viewerActor = viewerActorId == null
+          ? null
+          : await getActorById(ctx, viewerActorId);
+        const rows = await ctx.db.query.postTable.findMany({
+          columns: { quotedPostId: true },
+          where: {
+            AND: [
+              { quotedPostId: { in: idList } },
+              { actor: getSanctionVisibleActorFilter(ctx.now ??= new Date()) },
+              getCensoredPostExclusionFilter(viewerActorId),
+              getPostVisibilityFilter(viewerActor),
+            ],
+          },
+        });
+        const withQuotes = new Set(rows.map((row) => row.quotedPostId));
+        return idList.map((id) => withQuotes.has(id));
+      },
+    );
+    ctx.postHasVisibleQuotesLoader.set(viewerActorId ?? "", loader);
+  }
+  return loader.load(postId);
+}
+
+// Backs the `Post.replies` / `Post.quotes` / `Post.shares` connections:
+// posts related to `targetId` through `column` (`replyTargetId`,
+// `quotedPostId`, or `sharedPostId`), newest first, filtered to those
+// visible to the selected viewer account.  Resolves the acting account from
+// `actingAccountId` (like `ancestors`/`descendants` and `Actor.posts`), so an
+// organization perspective sees followers-only interactions the org can see
+// but the viewer's personal actor cannot.  Censored and sanction-hidden are
+// excluded here (these are lists, not the self-redacting permalink).
+async function visibleRelatedPostsPage(
+  ctx: UserContext,
+  args: ActingAccountIdArg,
+  column: "replyTargetId" | "quotedPostId" | "sharedPostId",
+  targetId: Uuid,
+  offset: number,
+  limit: number,
+) {
+  const viewerActorId = await resolveViewerActorId(ctx, args);
+  const viewerActor = viewerActorId == null
+    ? null
+    : await getActorById(ctx, viewerActorId);
+  const page = await ctx.db.query.postTable.findMany({
+    columns: { id: true },
+    where: {
+      AND: [
+        { [column]: targetId },
+        { actor: getSanctionVisibleActorFilter(ctx.now ??= new Date()) },
+        getCensoredPostExclusionFilter(viewerActorId),
+        getPostVisibilityFilter(viewerActor),
+      ],
+    },
+    // `id` breaks `published` ties so offset pagination is stable (no
+    // duplicated or skipped rows across pages when timestamps collide). The
+    // callback form guarantees both columns order deterministically.
+    orderBy: (post, { desc }) => [desc(post.published), desc(post.id)],
+    limit,
+    offset,
+  });
+  return await loadActorProfilePostPage(ctx, page, viewerActorId);
+}
+
+// Exact count of everything `visibleRelatedPostsPage` would return across all
+// pages, for a connection `totalCount` that is not capped by the page size.
+// Direct replies/quotes/shares of one post are bounded, so counting ids is
+// acceptable; the relational visibility filter cannot be expressed as a plain
+// SQL `$count` predicate.  `resolveViewerActorId`/`getActorById` are
+// per-request cached, so re-resolving them here is free.
+async function countVisibleRelatedPosts(
+  ctx: UserContext,
+  args: ActingAccountIdArg,
+  column: "replyTargetId" | "quotedPostId" | "sharedPostId",
+  targetId: Uuid,
+): Promise<number> {
+  const viewerActorId = await resolveViewerActorId(ctx, args);
+  const viewerActor = viewerActorId == null
+    ? null
+    : await getActorById(ctx, viewerActorId);
+  const rows = await ctx.db.query.postTable.findMany({
+    columns: { id: true },
+    where: {
+      AND: [
+        { [column]: targetId },
+        { actor: getSanctionVisibleActorFilter(ctx.now ??= new Date()) },
+        getCensoredPostExclusionFilter(viewerActorId),
+        getPostVisibilityFilter(viewerActor),
+      ],
+    },
+  });
+  return rows.length;
+}
+
+// The id-only companion of loadVisibleThreadPosts, for checking path
+// ancestors that never become connection nodes themselves: same filters,
+// no relation hydration.
+async function loadVisibleThreadPostIds(
+  ctx: UserContext,
+  ids: readonly Uuid[],
+  viewerActorId: Uuid | null,
+): Promise<Set<Uuid>> {
+  if (ids.length < 1) return new Set();
+  const viewerActor = viewerActorId == null
+    ? null
+    : await getActorById(ctx, viewerActorId);
+  const rows = await ctx.db.query.postTable.findMany({
+    columns: { id: true },
+    where: {
+      AND: [
+        { id: { in: [...ids] } },
+        { actor: getSanctionVisibleActorFilter(ctx.now ??= new Date()) },
+        getCensoredPostExclusionFilter(viewerActorId),
+        getPostVisibilityFilter(viewerActor),
+      ],
+    },
+  });
+  return new Set(rows.map((row) => row.id));
+}
+
+// Loads the given posts with the canonical thread filters (sanction,
+// censorship, visibility) applied, keyed by id; absent ids are not visible
+// to the viewer.  The eager relation set matches what profile/timeline post
+// loading uses, since these rows bypass Pothos's nested selection machinery.
+async function loadVisibleThreadPosts(
+  ctx: UserContext,
+  ids: readonly Uuid[],
+  viewerActorId: Uuid | null,
+) {
+  const viewerActor = viewerActorId == null
+    ? null
+    : await getActorById(ctx, viewerActorId);
+  const rows = ids.length < 1 ? [] : await ctx.db.query.postTable.findMany({
+    where: {
+      AND: [
+        { id: { in: [...ids] } },
+        { actor: getSanctionVisibleActorFilter(ctx.now ??= new Date()) },
+        getCensoredPostExclusionFilter(viewerActorId),
+        getPostVisibilityFilter(viewerActor),
+      ],
+    },
+    with: actorProfilePostRelations(viewerActorId),
+  });
+  return new Map(rows.map((row) => [row.id, row]));
+}
+
+type ThreadPostRow = Awaited<
+  ReturnType<typeof loadVisibleThreadPosts>
+> extends Map<Uuid, infer R> ? R : never;
+
 builder.drizzleInterfaceFields(Post, (t) => ({
   sharedPost: t.field({
     type: Post,
@@ -1277,8 +1579,17 @@ builder.drizzleInterfaceFields(Post, (t) => ({
       "The post being boosted. Non-null only for boost wrapper rows. " +
       "When this is non-null, `content` is empty and `url` mirrors the " +
       "shared post's URL.  `null` when the boost wrapper itself is " +
-      "censored, or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator: " +
-      "what was boosted is the censored content.",
+      "censored, or its author is hidden by a moderation sanction, and " +
+      "the viewer is neither the author nor a moderator (what was boosted " +
+      "is the censored content), and also when the boosted post is not " +
+      "visible to the viewer (e.g., a followers-only post the viewer does " +
+      "not follow), so a boost cannot leak its private target.",
+    args: {
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
     select: (_, __, nestedSelection) => ({
       columns: { censored: true, actorId: true },
       with: {
@@ -1292,32 +1603,66 @@ builder.drizzleInterfaceFields(Post, (t) => ({
     // GraphQL fields.  If the related post row survives that re-fetch without
     // its required actor, hide the nullable relation instead of letting the
     // non-null `Post.actor` field fail the whole query.
-    resolve: (post, _, ctx) =>
-      isRowCensoredForViewer(post, ctx)
-        ? null
-        : hidePostRelationWithoutActor(post.sharedPost),
+    resolve: async (post, args, ctx) => {
+      if (isRowCensoredForViewer(post, ctx)) return null;
+      const sharedPost = hidePostRelationWithoutActor(post.sharedPost);
+      if (sharedPost == null) return null;
+      const viewerActorId = await resolveViewerActorId(ctx, args);
+      return await isPostVisibleToViewer(ctx, sharedPost.id, viewerActorId)
+        ? sharedPost
+        : null;
+    },
   }),
   replyTarget: t.field({
     type: Post,
     nullable: true,
     description:
-      "The post this post is a reply to, or `null` for top-level posts.",
+      "The post this post is a reply to. `null` for top-level posts, and " +
+      "also when the parent is not visible to the authenticated viewer " +
+      "(e.g., a followers-only post by an actor the viewer does not " +
+      "follow, or a post whose author is hidden by a moderation " +
+      "sanction), so a public reply cannot leak its private parent. A " +
+      "censored parent is still returned and self-redacts its " +
+      "content-bearing fields. Pass `actingAccountId` for an " +
+      "organization perspective, matching the perspective of the " +
+      "surrounding query.",
+    args: {
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
     select: (_, __, nestedSelection) => ({
       with: {
         replyTarget: selectPostRelationWithActor(nestedSelection),
       },
     }),
-    resolve: (post) => hidePostRelationWithoutActor(post.replyTarget),
+    resolve: async (post, args, ctx) => {
+      const replyTarget = hidePostRelationWithoutActor(post.replyTarget);
+      if (replyTarget == null) return null;
+      const viewerActorId = await resolveViewerActorId(ctx, args);
+      return await isPostVisibleToViewer(ctx, replyTarget.id, viewerActorId)
+        ? replyTarget
+        : null;
+    },
   }),
   quotedPost: t.field({
     type: Post,
     nullable: true,
     description:
       "The post being quoted inline. `null` for posts that are not " +
-      "quotes, and also when the quoting post is censored or its author " +
-      "is hidden by a moderation sanction, and the viewer " +
-      "is neither its author nor a moderator: the quoted target is part " +
-      "of the censored content.",
+      "quotes, when the quoting post is censored or its author " +
+      "is hidden by a moderation sanction and the viewer " +
+      "is neither its author nor a moderator (the quoted target is part " +
+      "of the censored content), and also when the quoted post is not " +
+      "visible to the viewer (e.g., a followers-only post the viewer does " +
+      "not follow), so a public quote cannot leak its private target.",
+    args: {
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
     select: (_, __, nestedSelection) => ({
       columns: { censored: true, actorId: true },
       with: {
@@ -1325,56 +1670,367 @@ builder.drizzleInterfaceFields(Post, (t) => ({
         quotedPost: selectPostRelationWithActor(nestedSelection),
       },
     }),
-    resolve: (post, _, ctx) =>
-      isCensoredForViewer(post, ctx)
+    resolve: async (post, args, ctx) => {
+      if (isCensoredForViewer(post, ctx)) return null;
+      const quotedPost = hidePostRelationWithoutActor(post.quotedPost);
+      if (quotedPost == null) return null;
+      const viewerActorId = await resolveViewerActorId(ctx, args);
+      return await isPostVisibleToViewer(ctx, quotedPost.id, viewerActorId)
+        ? quotedPost
+        : null;
+    },
+  }),
+  replies: t.connection({
+    type: Post,
+    description:
+      "Posts that are direct replies to this post, newest first. Censored " +
+      "replies, replies by actors whose content is hidden by a moderation " +
+      "sanction, and replies not visible to the selected viewer account " +
+      "(e.g., followers-only replies by actors the viewer does not " +
+      "follow) are excluded. Pass `actingAccountId` for an organization " +
+      "perspective.",
+    args: {
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
+    resolve: async (post, args, ctx) => {
+      const { edges, pageInfo } = await resolveOffsetConnection(
+        { args },
+        ({ offset, limit }) =>
+          visibleRelatedPostsPage(
+            ctx,
+            args,
+            "replyTargetId",
+            post.id,
+            offset,
+            limit,
+          ),
+      );
+      return {
+        edges: [...edges],
+        pageInfo: {
+          hasNextPage: pageInfo.hasNextPage,
+          hasPreviousPage: pageInfo.hasPreviousPage,
+          startCursor: pageInfo.startCursor,
+          endCursor: pageInfo.endCursor,
+        },
+        // Carried for the lazy `totalCount` field below.
+        countTargetId: post.id,
+        countArgs: args,
+      };
+    },
+  }, {
+    fields: (t) => ({
+      totalCount: t.int({
+        description:
+          "Total number of direct replies visible to the selected viewer " +
+          "account, independent of the current page size. Unlike counting " +
+          "the fetched edges, this is not capped by `first`, and excludes " +
+          "the same censored, sanction-hidden, and not-visible replies as " +
+          "the edges.",
+        resolve: (connection, _args, ctx) =>
+          countVisibleRelatedPosts(
+            ctx,
+            connection.countArgs,
+            "replyTargetId",
+            connection.countTargetId,
+          ),
+      }),
+    }),
+  }),
+  hasVisibleReplies: t.boolean({
+    description:
+      "Whether this post has at least one direct reply the selected viewer " +
+      "can see, under the same filter as the `replies` connection (author " +
+      "sanction state, censorship, and per-post visibility). Prefer this " +
+      "over `engagementStats.replies > 0` when deciding whether to show a " +
+      '"continue this thread" affordance in a thread view: the raw counter ' +
+      "includes replies hidden from the viewer (followers-only, direct, " +
+      "censored, or by a sanctioned author), so branching on it would " +
+      "reveal that hidden replies exist. Pass `actingAccountId` for an " +
+      "organization perspective.",
+    args: {
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
+    resolve: async (post, args, ctx) => {
+      const viewerActorId = await resolveViewerActorId(ctx, args);
+      return await postHasVisibleReplies(ctx, post.id, viewerActorId);
+    },
+  }),
+  hasVisibleQuotes: t.boolean({
+    description:
+      "Whether this post has at least one quote the selected viewer can see, " +
+      "under the same filter as the `quotes` connection (author sanction " +
+      "state, censorship, and per-post visibility). Prefer this over " +
+      "`engagementStats.quotes > 0` when deciding whether to show a " +
+      '"show quotes" affordance: the raw counter includes quotes hidden from ' +
+      "the viewer (followers-only, direct, censored, or by a sanctioned " +
+      "author), so branching on it would surface an affordance that then " +
+      "loads an empty list, revealing that hidden quotes exist. Pass " +
+      "`actingAccountId` for an organization perspective.",
+    args: {
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
+    resolve: async (post, args, ctx) => {
+      const viewerActorId = await resolveViewerActorId(ctx, args);
+      return await postHasVisibleQuotes(ctx, post.id, viewerActorId);
+    },
+  }),
+  ancestors: t.connection({
+    type: Post,
+    description:
+      "The chain of posts this post replies to, from the nearest parent " +
+      "toward the thread root: the first node is the same post as " +
+      "`replyTarget`, the last is the oldest reachable ancestor. " +
+      "Ancestors that are censored, whose author is hidden by a " +
+      "moderation sanction, or that are not visible to the viewer are " +
+      "omitted from the chain. To detect such gaps, compare a node's " +
+      "`replyTarget` with the next node: a mismatching id (censored " +
+      "parent) or a `null` `replyTarget` on a node that is not the last " +
+      "one (invisible parent) marks a gap, and a last node with a " +
+      "non-`null` `replyTarget` means the chain continues past what was " +
+      "returned. The walk is bounded to 200 hops server-side. Pass " +
+      "`actingAccountId` for an organization perspective.",
+    args: {
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
+    resolve: async (post, args, ctx) => {
+      const viewerActorId = await resolveViewerActorId(ctx, args);
+      const chain = await getAncestorChain(ctx.db, post.id);
+      const visible = await loadVisibleThreadPosts(
+        ctx,
+        chain.map((entry) => entry.id),
+        viewerActorId,
+      );
+      const nodes = chain.flatMap((entry) => {
+        const row = visible.get(entry.id);
+        return row == null ? [] : [row];
+      });
+      return resolveArrayConnection({ args }, nodes);
+    },
+  }),
+  descendants: t.connection({
+    type: Post,
+    description:
+      "Every reply below this post (replies, replies to replies, and so " +
+      "on), flattened in depth-first order with siblings ordered by " +
+      "`published`. A node's parent (`replyTarget`) always appears " +
+      "before the node itself, including across pages, so clients can " +
+      "rebuild the tree from `replyTarget` ids alone. Subtrees rooted at " +
+      "a censored post, a post by a sanction-hidden actor, or a post " +
+      "invisible to the viewer are pruned along with that post. " +
+      "Traversal depth is capped at `maxDepth`; fetch a deeper branch " +
+      "from the deepest returned post's own `descendants`. Only forward " +
+      "pagination (`first`/`after`) is supported. Pass `actingAccountId` " +
+      "for an organization perspective.",
+    args: {
+      maxDepth: t.arg.int({
+        description: "Maximum tree depth to traverse below this post (direct " +
+          "replies are depth 1). Defaults to 20 and is clamped " +
+          "server-side to 40.",
+      }),
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
+    resolve: async (post, args, ctx) => {
+      if (args.last != null || args.before != null) {
+        throw createGraphQLError(
+          "`descendants` only supports forward pagination " +
+            "(`first`/`after`).",
+        );
+      }
+      const first = Math.min(Math.max(args.first ?? 60, 1), 200);
+      const maxDepth = Math.min(
+        Math.max(args.maxDepth ?? 20, 1),
+        DESCENDANT_TREE_MAX_DEPTH,
+      );
+      const viewerActorId = await resolveViewerActorId(ctx, args);
+      const edges: { cursor: string; node: ThreadPostRow }[] = [];
+      let after = args.after == null
         ? null
-        : hidePostRelationWithoutActor(post.quotedPost),
+        : decodeDescendantCursor(args.after);
+      // Whether a reply visible to this viewer exists past the emitted page.
+      // Derived from actually finding one more visible survivor, never from the
+      // raw `hasMore`: the raw tail can be entirely invisible to this viewer,
+      // and reporting `hasNextPage: true` off it would leak that hidden replies
+      // exist (the client would then load a phantom, empty next page).
+      let sawExtraVisible = false;
+      // Bound the work per request so a subtree padded with replies hidden
+      // from this viewer cannot make one request scan without limit.  `after`
+      // (the raw scan position) advances through hidden runs within a request,
+      // but the returned `endCursor` never does: see below.
+      const maxRounds = 10;
+      for (let round = 0; round < maxRounds; round++) {
+        const remaining = first - edges.length;
+        const page = await getDescendantPage(ctx.db, post.id, {
+          after,
+          // While filling, fetch what is left plus one so a single dense page
+          // both fills and reveals the next survivor.  Once full, only one more
+          // visible survivor is needed, so fetch a small fixed batch (enough to
+          // step over a short run of hidden rows) rather than another `first`.
+          limit: remaining > 0 ? remaining + 1 : DESCENDANT_PROBE_BATCH,
+          maxDepth,
+          viewerActorId,
+        });
+        if (page.entries.length < 1) break;
+        const idsToCheck = new Set<Uuid>();
+        for (const entry of page.entries) {
+          idsToCheck.add(entry.id);
+          for (const ancestorId of descendantPathAncestorIds(entry.cursor)) {
+            idsToCheck.add(ancestorId);
+          }
+        }
+        const visibleIds = await loadVisibleThreadPostIds(
+          ctx,
+          [...idsToCheck],
+          viewerActorId,
+        );
+        const survivors = page.entries.filter((entry) =>
+          visibleIds.has(entry.id) &&
+          descendantPathAncestorIds(entry.cursor).every((id) =>
+            visibleIds.has(id)
+          )
+        );
+        const rows = await loadVisibleThreadPosts(
+          ctx,
+          survivors.map((entry) => entry.id),
+          viewerActorId,
+        );
+        for (const entry of survivors) {
+          const row = rows.get(entry.id);
+          if (row == null) continue;
+          if (edges.length < first) {
+            edges.push({
+              cursor: encodeDescendantCursor(entry.cursor),
+              node: row,
+            });
+          } else {
+            // One visible survivor beyond the emitted page is enough to know a
+            // real next page exists; do not emit it, the next request will.
+            sawExtraVisible = true;
+            break;
+          }
+        }
+        if (sawExtraVisible) break;
+        after = page.entries[page.entries.length - 1].cursor;
+        if (!page.hasMore) break;
+      }
+      // `endCursor` is only ever a visible edge we emitted, never a hidden
+      // row: a hidden row's cursor is base64 of its path (its id and publish
+      // time), so exposing it would disclose that hidden descendants exist and
+      // leak their identity.  A page that emits nothing returns a `null`
+      // cursor, indistinguishable from a post that has no descendants at all.
+      const endCursor = edges.length > 0
+        ? edges[edges.length - 1].cursor
+        : null;
+      // Offer a next page only when the probe actually found one more visible
+      // reply, never off unread rows alone.  Once the page is full, a bounded
+      // run of replies hidden from this viewer must not surface a "load more"
+      // that then yields an empty page: that would disclose that hidden
+      // descendants exist.  A visible reply buried under a run of hidden ones
+      // longer than the probe budget stays reachable through its own permalink.
+      const hasNextPage = sawExtraVisible;
+      return {
+        edges,
+        pageInfo: {
+          hasNextPage,
+          hasPreviousPage: args.after != null,
+          startCursor: edges.length > 0 ? edges[0].cursor : null,
+          endCursor,
+        },
+      };
+    },
   }),
-  replies: t.relatedConnection("replies", {
+  shares: t.connection({
     type: Post,
     description:
-      "Posts that are direct replies to this post. Censored replies and " +
-      "replies by actors whose content is hidden by a moderation sanction " +
-      "are excluded.",
-    query: (_, ctx) => ({
-      where: {
-        AND: [
-          { actor: getSanctionVisibleActorFilter() },
-          getCensoredPostExclusionFilter(ctx.account?.actor.id),
-        ],
-      },
-    }),
+      "Boost wrapper posts that reshare this post, newest first. Each edge " +
+      "represents a single boost by a specific actor. Censored boosts " +
+      "(including boosts of a censored post), boosts by actors whose " +
+      "content is hidden by a moderation sanction, and boosts not visible " +
+      "to the selected viewer account (e.g., followers-only boosts by " +
+      "actors the viewer does not follow) are excluded. Pass " +
+      "`actingAccountId` for an organization perspective.",
+    args: {
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
+    resolve: async (post, args, ctx) => {
+      const { edges, pageInfo } = await resolveOffsetConnection(
+        { args },
+        ({ offset, limit }) =>
+          visibleRelatedPostsPage(
+            ctx,
+            args,
+            "sharedPostId",
+            post.id,
+            offset,
+            limit,
+          ),
+      );
+      return {
+        edges: [...edges],
+        pageInfo: {
+          hasNextPage: pageInfo.hasNextPage,
+          hasPreviousPage: pageInfo.hasPreviousPage,
+          startCursor: pageInfo.startCursor,
+          endCursor: pageInfo.endCursor,
+        },
+      };
+    },
   }),
-  shares: t.relatedConnection("shares", {
+  quotes: t.connection({
     type: Post,
     description:
-      "Boost wrapper posts that reshare this post. Each edge represents " +
-      "a single boost by a specific actor. Censored boosts (including " +
-      "boosts of a censored post) and boosts by actors whose content is " +
-      "hidden by a moderation sanction are excluded.",
-    query: (_, ctx) => ({
-      where: {
-        AND: [
-          { actor: getSanctionVisibleActorFilter() },
-          getCensoredPostExclusionFilter(ctx.account?.actor.id),
-        ],
-      },
-    }),
-  }),
-  quotes: t.relatedConnection("quotes", {
-    type: Post,
-    description:
-      "Posts that quote this post inline. Censored quotes and quotes by " +
-      "actors whose content is hidden by a moderation sanction are " +
-      "excluded.",
-    query: (_, ctx) => ({
-      where: {
-        AND: [
-          { actor: getSanctionVisibleActorFilter() },
-          getCensoredPostExclusionFilter(ctx.account?.actor.id),
-        ],
-      },
-    }),
+      "Posts that quote this post inline, newest first. Censored quotes, " +
+      "quotes by actors whose content is hidden by a moderation sanction, " +
+      "and quotes not visible to the selected viewer account (e.g., " +
+      "followers-only quotes by actors the viewer does not follow) are " +
+      "excluded. Pass `actingAccountId` for an organization perspective.",
+    args: {
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
+    resolve: async (post, args, ctx) => {
+      const { edges, pageInfo } = await resolveOffsetConnection(
+        { args },
+        ({ offset, limit }) =>
+          visibleRelatedPostsPage(
+            ctx,
+            args,
+            "quotedPostId",
+            post.id,
+            offset,
+            limit,
+          ),
+      );
+      return {
+        edges: [...edges],
+        pageInfo: {
+          hasNextPage: pageInfo.hasNextPage,
+          hasPreviousPage: pageInfo.hasPreviousPage,
+          startCursor: pageInfo.startCursor,
+          endCursor: pageInfo.endCursor,
+        },
+      };
+    },
   }),
   mentions: t.connection({
     type: Actor,
@@ -1621,6 +2277,13 @@ export const ArticleDraft = builder.drizzleNode("articleDraftTable", {
   description:
     "An unpublished article draft. Visible only to the owning account. " +
     "Drafts are promoted to `Article`s via the `publishArticleDraft` mutation.",
+  // The `articleDraft` query already scopes lookups to the owner, but a
+  // draft's global ID must not let anyone else read it via `node(id:)`.
+  // Owner-only, matching the query (drafts belong to personal accounts;
+  // not even moderators can read them).
+  authScopes: (draft, ctx) =>
+    ctx.account != null && draft.accountId === ctx.account.id,
+  runScopesOnType: true,
   id: {
     column: (draft) => draft.id,
   },
@@ -4095,11 +4758,38 @@ builder.relayMutationField(
 
       const { postId } = args.input;
 
+      const alreadyBookmarked =
+        (await arePostsBookmarkedBy(ctx.db, [postId.id], ctx.account))
+          .has(postId.id);
+
       const post = await ctx.db.query.postTable.findFirst({
+        with: {
+          actor: {
+            with: {
+              followers: true,
+              blockees: true,
+              blockers: true,
+            },
+          },
+          mentions: true,
+          // Mirror `bookmarkPost`: a boost wrapper's boosted post must be
+          // hydrated so `isPostVisibleTo` does not fail closed on it.
+          sharedPost: { with: { actor: true } },
+        },
         where: { id: postId.id },
       });
 
       if (post == null) {
+        throw new InvalidInputError("postId");
+      }
+
+      // Removing an existing bookmark is always allowed, even if the post has
+      // since become invisible to the viewer (they bookmarked it while it was
+      // visible). The visibility gate applies only when there is no bookmark
+      // to remove, so this mutation cannot be used as an oracle to probe a
+      // post the viewer cannot see via its `post` output field
+      // (`deleteBookmark` is otherwise a silent no-op).
+      if (!alreadyBookmarked && !isPostVisibleTo(post, ctx.account.actor)) {
         throw new InvalidInputError("postId");
       }
 
@@ -4112,11 +4802,21 @@ builder.relayMutationField(
     outputFields: (t) => ({
       post: t.drizzleField({
         type: Post,
+        // Nullable and visibility-gated: removing an owned bookmark is
+        // allowed even after the post became invisible to the viewer, but
+        // the payload must not then re-expose that post's content. Returns
+        // `null` when the post is no longer visible; the client can still
+        // reconcile its cache from `unbookmarkedPostId`.
+        nullable: true,
         async resolve(query, result, _args, ctx) {
+          const viewerActorId = ctx.account?.actor.id ?? null;
+          if (!await isPostVisibleToViewer(ctx, result.postId, viewerActorId)) {
+            return null;
+          }
           const post = await ctx.db.query.postTable.findFirst(
             query({ where: { id: result.postId } }),
           );
-          return post!;
+          return post ?? null;
         },
       }),
       unbookmarkedPostId: t.globalID({

@@ -1,9 +1,23 @@
-import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
-import { assertNever } from "@std/assert/unstable-never";
 import type { RelationsFilter } from "@hackerspub/models/db";
+import { getSanctionVisibleActorFilter } from "@hackerspub/models/post";
 import { getViewerReactionsForPosts } from "@hackerspub/models/reaction";
 import { relations } from "@hackerspub/models/relations";
+import { actorTable, reactionTable } from "@hackerspub/models/schema";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
+import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
+import { assertNever } from "@std/assert/unstable-never";
+import DataLoader from "dataloader";
+import {
+  and,
+  count,
+  eq,
+  gt,
+  inArray,
+  isNotNull,
+  isNull,
+  lte,
+  or,
+} from "drizzle-orm";
 import { createGraphQLError } from "graphql-yoga";
 import { Actor } from "./actor.ts";
 import { builder, Node, type UserContext } from "./builder.ts";
@@ -58,8 +72,8 @@ Reactable.implement({
   fields: (t) => ({
     reactionGroups: t.field({
       type: [ReactionGroup],
-      resolve(post) {
-        return Object.entries(post.reactionsCounts)
+      async resolve(post, _args, ctx) {
+        const groups = Object.entries(post.reactionsCounts)
           .map(
             (
               [emojiOrId, count],
@@ -81,6 +95,21 @@ Reactable.implement({
               };
             },
           );
+        // Drop groups whose reactors are all hidden by a sanction: the
+        // denormalized `reactionsCounts` still lists such an emoji, but
+        // surfacing the group would disclose that a hidden actor reacted with
+        // it.  Uses the same batched, request-shared count as
+        // `reactors.totalCount`, so it adds no query beyond that.
+        const visibleCounts = await Promise.all(
+          groups.map((group) =>
+            reactorCount(
+              ctx,
+              post.id,
+              group.where as { emoji?: string; customEmojiId?: Uuid },
+            )
+          ),
+        );
+        return groups.filter((_group, i) => visibleCounts[i] > 0);
       },
     }),
     // Singular accessor for one reaction group on the post, used by the
@@ -95,7 +124,7 @@ Reactable.implement({
         emoji: t.arg.string({ required: false }),
         customEmojiId: t.arg.globalID({ for: CustomEmoji, required: false }),
       },
-      resolve(post, args) {
+      async resolve(post, args, ctx) {
         const emoji = args.emoji ?? null;
         const customEmojiId = args.customEmojiId?.id ?? null;
         if (
@@ -107,6 +136,16 @@ Reactable.implement({
         if (customEmojiId != null) {
           const count = post.reactionsCounts[customEmojiId];
           if (count == null) return null;
+          // Hide the group when every reactor is sanction-hidden (see
+          // `reactionGroups`), so a direct query for one emoji cannot confirm
+          // a hidden actor reacted with it.
+          if (
+            await reactorCount(ctx, post.id, {
+              customEmojiId: customEmojiId as Uuid,
+            }) < 1
+          ) {
+            return null;
+          }
           return {
             subject: post,
             count,
@@ -117,6 +156,9 @@ Reactable.implement({
         }
         const count = post.reactionsCounts[emoji!];
         if (count == null) return null;
+        if (await reactorCount(ctx, post.id, { emoji: emoji! }) < 1) {
+          return null;
+        }
         return {
           subject: post,
           count,
@@ -155,16 +197,28 @@ export const ReactionGroup = builder.interfaceRef<ReactionGroup>(
       type: Actor,
       async resolve(group, args, ctx, info) {
         const query = reactorConnectionHelpers.getQuery(args, ctx, info);
+        // Evaluate sanction activeness for both the edges and the total
+        // against the same instant (the request clock), so they cannot
+        // disagree at a suspension boundary.
+        const now = (ctx.now ??= new Date());
+        // Exclude reactions by actors whose content is hidden by a
+        // moderation sanction (banned local / federation-blocked remote), so
+        // the reactor list never reveals a sanction-hidden actor's identity
+        // or participation.
         const where = query.where == null
           ? {
-            ...group.where,
-            postId: group.subject.id,
+            AND: [
+              group.where,
+              { postId: group.subject.id },
+              { actor: getSanctionVisibleActorFilter(now) },
+            ],
           }
           : {
             AND: [
               query.where,
               group.where,
               { postId: group.subject.id },
+              { actor: getSanctionVisibleActorFilter(now) },
             ],
           };
         const reactions = await ctx.db.query.reactionTable.findMany({
@@ -175,7 +229,15 @@ export const ReactionGroup = builder.interfaceRef<ReactionGroup>(
           postId: group.subject.id,
           where: group.where,
           ...reactorConnectionHelpers.resolve(reactions, args, ctx),
-          totalCount: group.count,
+          // The denormalized reaction counter still includes sanction-hidden
+          // reactors, so recompute the total (batched across the request) to
+          // keep it consistent with the sanction-filtered edges and avoid
+          // revealing that a hidden actor reacted.
+          totalCount: await reactorCount(
+            ctx,
+            group.subject.id,
+            group.where as { emoji?: string; customEmojiId?: Uuid },
+          ),
         };
       },
     }, {
@@ -261,6 +323,69 @@ const reactorConnectionHelpers = drizzleConnectionHelpers(
     resolveNode: (reaction) => reaction.actor,
   },
 );
+
+// Batches `ReactionGroup.reactors.totalCount` across every group in the
+// request, so a list of posts resolves the counts in one query instead of one
+// per reaction group.  Keyed by (postId, customEmojiId | emoji); the
+// sanction-visible actor predicate uses the request clock (`ctx.now`) so the
+// count is evaluated against the same instant as the edge query.  The count is
+// recomputed (rather than read from the denormalized counter) because that
+// counter still includes sanction-hidden reactors.
+function reactorKey(
+  postId: Uuid,
+  filter: { emoji?: string | null; customEmojiId?: Uuid | null },
+): string {
+  return filter.customEmojiId != null
+    ? `c\n${postId}\n${filter.customEmojiId}`
+    : `e\n${postId}\n${filter.emoji ?? ""}`;
+}
+
+function reactorCount(
+  ctx: UserContext,
+  postId: Uuid,
+  groupFilter: { emoji?: string; customEmojiId?: Uuid },
+): Promise<number> {
+  ctx.reactorCountLoader ??= new DataLoader<string, number>(async (keys) => {
+    const now = (ctx.now ??= new Date());
+    const postIds = [
+      ...new Set((keys as string[]).map((k) => k.split("\n")[1] as Uuid)),
+    ];
+    const rows = await ctx.db
+      .select({
+        postId: reactionTable.postId,
+        emoji: reactionTable.emoji,
+        customEmojiId: reactionTable.customEmojiId,
+        c: count(),
+      })
+      .from(reactionTable)
+      .innerJoin(actorTable, eq(actorTable.id, reactionTable.actorId))
+      .where(
+        and(
+          inArray(reactionTable.postId, postIds),
+          or(
+            isNull(actorTable.suspended),
+            gt(actorTable.suspended, now),
+            lte(actorTable.suspendedUntil, now),
+            and(
+              isNotNull(actorTable.accountId),
+              gt(actorTable.suspendedUntil, now),
+            ),
+          ),
+        ),
+      )
+      .groupBy(
+        reactionTable.postId,
+        reactionTable.emoji,
+        reactionTable.customEmojiId,
+      );
+    const byKey = new Map<string, number>();
+    for (const row of rows) {
+      byKey.set(reactorKey(row.postId, row), Number(row.c));
+    }
+    return (keys as string[]).map((k) => byKey.get(k) ?? 0);
+  });
+  return ctx.reactorCountLoader.load(reactorKey(postId, groupFilter));
+}
 
 export interface EmojiReactionGroup extends ReactionGroup {
   type: "Emoji";

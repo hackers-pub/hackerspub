@@ -8,6 +8,7 @@ import type { ContextData } from "@hackerspub/models/context";
 import type { Transaction } from "@hackerspub/models/db";
 import { createQuestion } from "@hackerspub/models/question";
 import {
+  actorTable,
   type NewPost,
   organizationMembershipTable,
   pollOptionTable,
@@ -15,6 +16,7 @@ import {
   pollVoteTable,
   postTable,
 } from "@hackerspub/models/schema";
+import { eq } from "drizzle-orm";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
 import { schema } from "./mod.ts";
 import {
@@ -1254,3 +1256,216 @@ test("voteOnPoll rejects guest, invalid, and expired votes", async () => {
     });
   });
 });
+
+test("poll vote/voter counts exclude sanction-hidden voters", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "pollsanctionauthor",
+      name: "Poll Sanction Author",
+      email: "pollsanctionauthor@example.com",
+    });
+    const goodVoter = await insertAccountWithActor(tx, {
+      username: "pollsanctiongood",
+      name: "Poll Sanction Good",
+      email: "pollsanctiongood@example.com",
+    });
+    const bannedVoter = await insertAccountWithActor(tx, {
+      username: "pollsanctionbanned",
+      name: "Poll Sanction Banned",
+      email: "pollsanctionbanned@example.com",
+    });
+    const questionId = generateUuidV7();
+    const published = new Date("2026-04-15T00:00:00.000Z");
+    await tx.insert(postTable).values(
+      {
+        id: questionId,
+        iri: `http://localhost/objects/${questionId}`,
+        type: "Question",
+        visibility: "public",
+        actorId: author.actor.id,
+        name: "Best editor?",
+        contentHtml: "<p>Best editor?</p>",
+        language: "en",
+        tags: {},
+        emojis: {},
+        url: `http://localhost/@${author.account.username}/polls/${questionId}`,
+        published,
+        updated: published,
+      } satisfies NewPost,
+    );
+    // Two local voters, one per option; stored counters include both.
+    await tx.insert(pollTable).values({
+      postId: questionId,
+      multiple: false,
+      votersCount: 2,
+      ends: pollEndedInPast(),
+    });
+    await tx.insert(pollOptionTable).values([
+      { postId: questionId, index: 0, title: "Vim", votesCount: 1 },
+      { postId: questionId, index: 1, title: "Emacs", votesCount: 1 },
+    ]);
+    await tx.insert(pollVoteTable).values([
+      { postId: questionId, optionIndex: 0, actorId: goodVoter.actor.id },
+      { postId: questionId, optionIndex: 1, actorId: bannedVoter.actor.id },
+    ]);
+    // Permanently ban the second voter (local ban => sanction-hidden).
+    await tx.update(actorTable)
+      .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: null })
+      .where(eq(actorTable.id, bannedVoter.actor.id));
+
+    const result = await execute({
+      schema,
+      document: questionPollQuery,
+      variableValues: { id: encodeGlobalID("Question", questionId) },
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(result.errors, undefined);
+    const poll = (toPlainJson(result.data) as {
+      node: {
+        poll: {
+          options: Array<
+            { title: string; votes: { totalCount: number; edges: unknown[] } }
+          >;
+          votes: { totalCount: number; edges: unknown[] };
+          voters: {
+            totalCount: number;
+            edges: Array<{ node: { id: string } }>;
+          };
+        };
+      } | null;
+    }).node?.poll;
+    assert.ok(poll != null);
+    // The banned voter is dropped from both the edges and the totals, so
+    // totalCount matches the visible edges (no hidden-participation leak).
+    assert.equal(poll.voters.totalCount, 1);
+    assert.equal(poll.voters.edges.length, 1);
+    assert.equal(
+      poll.voters.edges[0].node.id,
+      encodeGlobalID("Actor", goodVoter.actor.id),
+    );
+    assert.equal(poll.votes.totalCount, 1);
+    assert.equal(poll.votes.edges.length, 1);
+    // The banned voter's option total drops to 0; the other stays 1.
+    const byTitle = new Map(poll.options.map((o) => [o.title, o.votes]));
+    assert.equal(byTitle.get("Vim")?.totalCount, 1);
+    assert.equal(byTitle.get("Emacs")?.totalCount, 0);
+    assert.equal(byTitle.get("Emacs")?.edges.length, 0);
+  });
+});
+
+test("poll vote-count batching maps each poll to its own totals", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "pollbatchauthor",
+      name: "Poll Batch Author",
+      email: "pollbatchauthor@example.com",
+    });
+    const voters: Awaited<ReturnType<typeof insertAccountWithActor>>[] = [];
+    for (let i = 0; i < 3; i++) {
+      voters.push(
+        await insertAccountWithActor(tx, {
+          username: `pollbatchvoter${i}`,
+          name: `Poll Batch Voter ${i}`,
+          email: `pollbatchvoter${i}@example.com`,
+        }),
+      );
+    }
+
+    async function makePoll(name: string, voterCount: number) {
+      const questionId = generateUuidV7();
+      const published = new Date("2026-04-15T00:00:00.000Z");
+      await tx.insert(postTable).values(
+        {
+          id: questionId,
+          iri: `http://localhost/objects/${questionId}`,
+          type: "Question",
+          visibility: "public",
+          actorId: author.actor.id,
+          name,
+          contentHtml: `<p>${name}</p>`,
+          language: "en",
+          tags: {},
+          emojis: {},
+          url:
+            `http://localhost/@${author.account.username}/polls/${questionId}`,
+          published,
+          updated: published,
+        } satisfies NewPost,
+      );
+      await tx.insert(pollTable).values({
+        postId: questionId,
+        multiple: false,
+        votersCount: voterCount,
+        ends: pollEndedInPast(),
+      });
+      await tx.insert(pollOptionTable).values([
+        { postId: questionId, index: 0, title: "A", votesCount: voterCount },
+      ]);
+      await tx.insert(pollVoteTable).values(
+        voters.slice(0, voterCount).map((v, i) => ({
+          postId: questionId,
+          optionIndex: 0,
+          actorId: v.actor.id,
+          created: new Date(`2026-04-15T00:00:0${i + 1}.000Z`),
+        })),
+      );
+      return questionId;
+    }
+
+    // Two polls with different totals, resolved in one request so the
+    // per-poll count DataLoaders batch; each must get its own numbers.
+    const a = await makePoll("Poll A", 3);
+    const b = await makePoll("Poll B", 1);
+
+    const query = parse(`
+      query($a: ID!, $b: ID!) {
+        a: node(id: $a) {
+          ... on Question {
+            poll {
+              votes { totalCount }
+              voters { totalCount }
+              options { votes { totalCount } }
+            }
+          }
+        }
+        b: node(id: $b) {
+          ... on Question {
+            poll {
+              votes { totalCount }
+              voters { totalCount }
+              options { votes { totalCount } }
+            }
+          }
+        }
+      }
+    `);
+    const result = await execute({
+      schema,
+      document: query,
+      variableValues: {
+        a: encodeGlobalID("Question", a),
+        b: encodeGlobalID("Question", b),
+      },
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(result.errors, undefined);
+    const data = toPlainJson(result.data) as {
+      a: { poll: PollTotals };
+      b: { poll: PollTotals };
+    };
+    assert.equal(data.a.poll.votes.totalCount, 3);
+    assert.equal(data.a.poll.voters.totalCount, 3);
+    assert.equal(data.a.poll.options[0].votes.totalCount, 3);
+    assert.equal(data.b.poll.votes.totalCount, 1);
+    assert.equal(data.b.poll.voters.totalCount, 1);
+    assert.equal(data.b.poll.options[0].votes.totalCount, 1);
+  });
+});
+
+interface PollTotals {
+  votes: { totalCount: number };
+  voters: { totalCount: number };
+  options: Array<{ votes: { totalCount: number } }>;
+}

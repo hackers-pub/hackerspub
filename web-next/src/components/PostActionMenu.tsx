@@ -157,7 +157,7 @@ export function PostActionMenu(props: PostActionMenuProps) {
           quotes
           reactions
         }
-        sharedPost {
+        sharedPost(actingAccountId: $actingAccountId) {
           id
         }
         actor {

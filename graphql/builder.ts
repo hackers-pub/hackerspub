@@ -101,6 +101,25 @@ export interface UserContext extends ServerContext {
   // every post referencing it is censored for the viewer.  Batched so
   // link-heavy pages (the news list) stay free of per-link lookups.
   postLinkVisibleLoader?: DataLoader<Uuid, boolean>;
+  // Request-scoped check of whether a post is visible to the viewer
+  // (per-post visibility and author sanction state; censorship is not
+  // part of it, since censored posts stay reachable and self-redact).
+  // Batched so nullable post relations (e.g. `Post.replyTarget`) on
+  // list pages stay free of per-post lookups.  Keyed by the viewer
+  // actor id ("" for guests), since `actingAccountId` can switch the
+  // perspective per field.
+  postVisibleLoader?: Map<string, DataLoader<Uuid, boolean>>;
+  // Request-scoped check of whether a post has at least one direct reply
+  // visible to the viewer (same sanction + censorship + visibility filter as
+  // the `replies` connection).  Thread views use it instead of the raw
+  // `engagementStats.replies` counter so a node whose only replies are hidden
+  // does not reveal their existence.  Batched so a whole reply page resolves
+  // in one query; keyed by the viewer actor id ("" for guests).
+  postHasVisibleRepliesLoader?: Map<string, DataLoader<Uuid, boolean>>;
+  // Same as `postHasVisibleRepliesLoader` but for quotes (the news-discussion
+  // view gates its quote branch on it so a hidden-only quote set does not
+  // surface a "show quotes" affordance).  Keyed by the viewer actor id.
+  postHasVisibleQuotesLoader?: Map<string, DataLoader<Uuid, boolean>>;
   // Request-scoped cache so that viewerCanReply, viewerCanQuote, and
   // viewerCanShare for the same post and selected viewer actor only run
   // one relational lookup even though they are exposed as three separate
@@ -108,6 +127,22 @@ export interface UserContext extends ServerContext {
   // Pending promises are stored synchronously so concurrent dispatch from
   // the three loaders doesn't each fire its own duplicate query.
   viewerActionPoliciesCache?: Map<string, Promise<PostInteractionPolicy>>;
+  // A single wall-clock instant for the whole request, set lazily on first
+  // use.  Every sanction-activeness check (the edge filters and their batched
+  // counts) reads it, so they evaluate against the same moment and cannot
+  // disagree at a suspension boundary.
+  now?: Date;
+  // Request-scoped batches for the sanction-filtered engagement counts, so a
+  // list of posts (a timeline, a profile) resolves each in one query instead
+  // of one per post/group/option.  All share the request clock (`now` above).
+  //   - reactor totalCount, keyed by `postId\ncustomEmojiId\nemoji`.
+  //   - poll visible-vote totalCount, keyed by poll post id.
+  //   - poll sanction-hidden distinct voter count, keyed by poll post id.
+  //   - poll sanction-hidden per-option vote count, keyed by `postId\nindex`.
+  reactorCountLoader?: DataLoader<string, number>;
+  pollVisibleVoteCountLoader?: DataLoader<Uuid, number>;
+  pollHiddenVoterCountLoader?: DataLoader<Uuid, number>;
+  pollHiddenOptionVoteCountLoader?: DataLoader<string, number>;
 }
 
 export interface PothosTypes {

@@ -1,7 +1,6 @@
 // The `/replies` sub-route is the canonical destination for the
-// engagement bar's reply control on articles.  Articles already
-// embed the conversation under the body via `Slug_replies` on the
-// bare permalink, so re-export that view for now.  A future
-// iteration will swap this for a dedicated thread renderer that
-// matches what the note `/replies` route eventually grows into.
+// engagement bar's reply control on articles.  It is an intentional
+// alias of the bare permalink at `./index.tsx`, which embeds the
+// nested reply tree (the same renderer note permalinks use) under the
+// article body.
 export { default, route } from "./index.tsx";

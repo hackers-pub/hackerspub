@@ -99,7 +99,11 @@ function firstGrapheme(text: string): string {
     .value?.segment ?? "";
 }
 
-function actorProfilePostRelations(viewerActorId: Uuid | null) {
+// Also used by the thread fields in post.ts (`Post.ancestors` /
+// `Post.descendants`), which load post pages outside Pothos's nested
+// selection machinery and need the same eager relation set to avoid
+// per-node lazy loads.
+export function actorProfilePostRelations(viewerActorId: Uuid | null) {
   const viewerOnlyFilter = viewerActorId == null
     ? { RAW: sql`false` }
     : { actorId: viewerActorId };
@@ -126,6 +130,11 @@ function actorProfilePostRelations(viewerActorId: Uuid | null) {
   } as const;
   return {
     ...nestedPostRelations,
+    // `Note.rawContent` reads `post.noteSource`, and these rows are returned
+    // straight to Pothos (bypassing its per-field `select` merge), so the
+    // source has to be hydrated eagerly or the edit action is hidden for the
+    // viewer's own notes in profile lists and thread/interaction connections.
+    noteSource: { columns: { content: true, accountId: true } },
     shares: { where: viewerOnlyFilter },
     reactions: { where: viewerOnlyFilter },
     organizationAuthor: true,
@@ -143,7 +152,11 @@ function actorProfilePostRelations(viewerActorId: Uuid | null) {
   } as const;
 }
 
-async function loadActorProfilePostPage(
+// Also used by the thread/interaction connections in post.ts (`replies`,
+// `quotes`, `shares`), which resolve an acting-account viewer and page over
+// `postTable` manually, so they need the same eager relation set as the
+// profile post lists.
+export async function loadActorProfilePostPage(
   ctx: UserContext,
   postPage: Array<{ id: Uuid }>,
   viewerActorId: Uuid | null,

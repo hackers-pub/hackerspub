@@ -166,7 +166,7 @@ function QuotesList(props: {
           actingAccountId: { type: "ID", defaultValue: null }
         )
       {
-        quotes(after: $cursor, first: $count)
+        quotes(after: $cursor, first: $count, actingAccountId: $actingAccountId)
           @connection(key: "QuotesNoteEngagement__quotes")
         {
           edges {
