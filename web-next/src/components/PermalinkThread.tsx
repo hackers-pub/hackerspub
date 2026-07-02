@@ -277,7 +277,9 @@ function PermalinkAncestors(props: PermalinkAncestorsProps) {
   const chain = createMemo<AncestorEdgeNode[]>(() =>
     (props.post.ancestors?.edges ?? [])
       .flatMap((edge) => edge?.node == null ? [] : [edge.node])
-      .toReversed()
+      // `flatMap` already returns a fresh array, so reverse it in place rather
+      // than with the ES2023-only `toReversed()`.
+      .reverse()
   );
   const hasMoreAbove = createMemo(() => {
     const rows = chain();
