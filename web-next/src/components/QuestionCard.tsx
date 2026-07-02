@@ -67,7 +67,7 @@ export function QuestionCard(props: QuestionCardProps) {
         ...QuestionCardContent_question @arguments(
           actingAccountId: $actingAccountId
         )
-        sharedPost {
+        sharedPost(actingAccountId: $actingAccountId) {
           __typename
           ... on Question {
             ...QuestionCardContent_question @arguments(
@@ -203,7 +203,7 @@ function QuestionCardContent(props: QuestionCardContentProps) {
         }
         viewerCanRevokeQuote(actingAccountId: $actingAccountId)
         quoteTargetState
-        quotedPost {
+        quotedPost(actingAccountId: $actingAccountId) {
           ...QuotedPostCard_post
         }
         ...PostEngagementBar_post @arguments(

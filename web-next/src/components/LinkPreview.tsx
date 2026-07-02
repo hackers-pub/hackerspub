@@ -11,11 +11,15 @@ export interface LinkPreviewProps {
 export function LinkPreview(props: LinkPreviewProps) {
   const note = createFragment(
     graphql`
-      fragment LinkPreview_note on Note {
+      fragment LinkPreview_note on Note
+        @argumentDefinitions(
+          actingAccountId: { type: "ID", defaultValue: null }
+        )
+      {
         media {
           url
         }
-        quotedPost {
+        quotedPost(actingAccountId: $actingAccountId) {
           __typename
         }
         quoteTargetState

@@ -37,7 +37,7 @@ export function NoteCard(props: NoteCardProps) {
           handle
           viewerMutes(actingAccountId: $actingAccountId)
         }
-        sharedPost {
+        sharedPost(actingAccountId: $actingAccountId) {
           ...NoteCardInternal_note @arguments(
             actingAccountId: $actingAccountId
           )
