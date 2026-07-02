@@ -525,7 +525,7 @@ export function PermalinkThreadTree(props: PermalinkThreadTreeProps) {
         <Show when={tree.hasNext}>
           <button
             type="button"
-            on:click={loadingState() === "loading" ? undefined : onLoadMore}
+            onClick={onLoadMore}
             disabled={tree.pending || loadingState() === "loading"}
             class="block w-full cursor-pointer border-t px-4 py-4 text-center text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
           >
