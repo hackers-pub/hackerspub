@@ -1316,7 +1316,7 @@ function descendantPathAncestorIds(path: string): Uuid[] {
 // visibility plus the author's sanction state.  Censorship is deliberately
 // not part of this check; censored posts stay reachable and self-redact
 // their content-bearing fields instead.
-function isPostVisibleToViewer(
+export function isPostVisibleToViewer(
   ctx: UserContext,
   postId: Uuid,
   viewerActorId: Uuid | null,
@@ -1413,8 +1413,17 @@ builder.drizzleInterfaceFields(Post, (t) => ({
       "The post being boosted. Non-null only for boost wrapper rows. " +
       "When this is non-null, `content` is empty and `url` mirrors the " +
       "shared post's URL.  `null` when the boost wrapper itself is " +
-      "censored, or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator: " +
-      "what was boosted is the censored content.",
+      "censored, or its author is hidden by a moderation sanction, and " +
+      "the viewer is neither the author nor a moderator (what was boosted " +
+      "is the censored content), and also when the boosted post is not " +
+      "visible to the viewer (e.g., a followers-only post the viewer does " +
+      "not follow), so a boost cannot leak its private target.",
+    args: {
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
     select: (_, __, nestedSelection) => ({
       columns: { censored: true, actorId: true },
       with: {
@@ -1428,10 +1437,15 @@ builder.drizzleInterfaceFields(Post, (t) => ({
     // GraphQL fields.  If the related post row survives that re-fetch without
     // its required actor, hide the nullable relation instead of letting the
     // non-null `Post.actor` field fail the whole query.
-    resolve: (post, _, ctx) =>
-      isRowCensoredForViewer(post, ctx)
-        ? null
-        : hidePostRelationWithoutActor(post.sharedPost),
+    resolve: async (post, args, ctx) => {
+      if (isRowCensoredForViewer(post, ctx)) return null;
+      const sharedPost = hidePostRelationWithoutActor(post.sharedPost);
+      if (sharedPost == null) return null;
+      const viewerActorId = await resolveViewerActorId(ctx, args);
+      return await isPostVisibleToViewer(ctx, sharedPost.id, viewerActorId)
+        ? sharedPost
+        : null;
+    },
   }),
   replyTarget: t.field({
     type: Post,
@@ -1471,10 +1485,18 @@ builder.drizzleInterfaceFields(Post, (t) => ({
     nullable: true,
     description:
       "The post being quoted inline. `null` for posts that are not " +
-      "quotes, and also when the quoting post is censored or its author " +
-      "is hidden by a moderation sanction, and the viewer " +
-      "is neither its author nor a moderator: the quoted target is part " +
-      "of the censored content.",
+      "quotes, when the quoting post is censored or its author " +
+      "is hidden by a moderation sanction and the viewer " +
+      "is neither its author nor a moderator (the quoted target is part " +
+      "of the censored content), and also when the quoted post is not " +
+      "visible to the viewer (e.g., a followers-only post the viewer does " +
+      "not follow), so a public quote cannot leak its private target.",
+    args: {
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
     select: (_, __, nestedSelection) => ({
       columns: { censored: true, actorId: true },
       with: {
@@ -1482,10 +1504,15 @@ builder.drizzleInterfaceFields(Post, (t) => ({
         quotedPost: selectPostRelationWithActor(nestedSelection),
       },
     }),
-    resolve: (post, _, ctx) =>
-      isCensoredForViewer(post, ctx)
-        ? null
-        : hidePostRelationWithoutActor(post.quotedPost),
+    resolve: async (post, args, ctx) => {
+      if (isCensoredForViewer(post, ctx)) return null;
+      const quotedPost = hidePostRelationWithoutActor(post.quotedPost);
+      if (quotedPost == null) return null;
+      const viewerActorId = await resolveViewerActorId(ctx, args);
+      return await isPostVisibleToViewer(ctx, quotedPost.id, viewerActorId)
+        ? quotedPost
+        : null;
+    },
   }),
   replies: t.relatedConnection("replies", {
     type: Post,
@@ -1652,13 +1679,16 @@ builder.drizzleInterfaceFields(Post, (t) => ({
     description:
       "Boost wrapper posts that reshare this post. Each edge represents " +
       "a single boost by a specific actor. Censored boosts (including " +
-      "boosts of a censored post) and boosts by actors whose content is " +
-      "hidden by a moderation sanction are excluded.",
+      "boosts of a censored post), boosts by actors whose content is " +
+      "hidden by a moderation sanction, and boosts not visible to the " +
+      "authenticated viewer (e.g., followers-only boosts by actors the " +
+      "viewer does not follow) are excluded.",
     query: (_, ctx) => ({
       where: {
         AND: [
           { actor: getSanctionVisibleActorFilter() },
           getCensoredPostExclusionFilter(ctx.account?.actor.id),
+          getPostVisibilityFilter(ctx.account?.actor ?? null),
         ],
       },
     }),
@@ -1666,14 +1696,17 @@ builder.drizzleInterfaceFields(Post, (t) => ({
   quotes: t.relatedConnection("quotes", {
     type: Post,
     description:
-      "Posts that quote this post inline. Censored quotes and quotes by " +
-      "actors whose content is hidden by a moderation sanction are " +
+      "Posts that quote this post inline. Censored quotes, quotes by " +
+      "actors whose content is hidden by a moderation sanction, and " +
+      "quotes not visible to the authenticated viewer (e.g., " +
+      "followers-only quotes by actors the viewer does not follow) are " +
       "excluded.",
     query: (_, ctx) => ({
       where: {
         AND: [
           { actor: getSanctionVisibleActorFilter() },
           getCensoredPostExclusionFilter(ctx.account?.actor.id),
+          getPostVisibilityFilter(ctx.account?.actor ?? null),
         ],
       },
     }),
@@ -1923,6 +1956,13 @@ export const ArticleDraft = builder.drizzleNode("articleDraftTable", {
   description:
     "An unpublished article draft. Visible only to the owning account. " +
     "Drafts are promoted to `Article`s via the `publishArticleDraft` mutation.",
+  // The `articleDraft` query already scopes lookups to the owner, but a
+  // draft's global ID must not let anyone else read it via `node(id:)`.
+  // Owner-only, matching the query (drafts belong to personal accounts;
+  // not even moderators can read them).
+  authScopes: (draft, ctx) =>
+    ctx.account != null && draft.accountId === ctx.account.id,
+  runScopesOnType: true,
   id: {
     column: (draft) => draft.id,
   },
@@ -4398,10 +4438,30 @@ builder.relayMutationField(
       const { postId } = args.input;
 
       const post = await ctx.db.query.postTable.findFirst({
+        with: {
+          actor: {
+            with: {
+              followers: true,
+              blockees: true,
+              blockers: true,
+            },
+          },
+          mentions: true,
+          // Mirror `bookmarkPost`: a boost wrapper's boosted post must be
+          // hydrated so `isPostVisibleTo` does not fail closed on it.
+          sharedPost: { with: { actor: true } },
+        },
         where: { id: postId.id },
       });
 
       if (post == null) {
+        throw new InvalidInputError("postId");
+      }
+
+      // Gate on visibility so this mutation cannot be used as an oracle to
+      // fetch a post the viewer cannot see via its `post` output field
+      // (`deleteBookmark` is a silent no-op when no bookmark exists).
+      if (!isPostVisibleTo(post, ctx.account.actor)) {
         throw new InvalidInputError("postId");
       }
 

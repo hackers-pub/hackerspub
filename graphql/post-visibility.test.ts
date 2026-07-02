@@ -1,0 +1,405 @@
+import {
+  actorTable,
+  articleDraftTable,
+  followingTable,
+} from "@hackerspub/models/schema";
+import { generateUuidV7 } from "@hackerspub/models/uuid";
+import { encodeGlobalID } from "@pothos/plugin-relay";
+import { eq } from "drizzle-orm";
+import { execute, parse } from "graphql";
+import assert from "node:assert";
+import test from "node:test";
+import {
+  insertAccountWithActor,
+  insertNotePost,
+  insertReaction,
+  makeGuestContext,
+  makeUserContext,
+  withRollback,
+} from "../test/postgres.ts";
+import type { Transaction } from "@hackerspub/models/db";
+import type { Uuid } from "@hackerspub/models/uuid";
+import { schema } from "./mod.ts";
+
+async function follows(
+  tx: Transaction,
+  follower: { actor: { id: Uuid } },
+  followee: { actor: { id: Uuid } },
+) {
+  await tx.insert(followingTable).values({
+    iri:
+      `https://example.com/following/${follower.actor.id}/${followee.actor.id}`,
+    followerId: follower.actor.id,
+    followeeId: followee.actor.id,
+    accepted: new Date(),
+  });
+}
+
+test("quotedPost does not leak a followers-only quoted post", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "vqauthor",
+      name: "VQ Author",
+      email: "vqauthor@example.com",
+    });
+    const follower = await insertAccountWithActor(tx, {
+      username: "vqfollower",
+      name: "VQ Follower",
+      email: "vqfollower@example.com",
+    });
+    const stranger = await insertAccountWithActor(tx, {
+      username: "vqstranger",
+      name: "VQ Stranger",
+      email: "vqstranger@example.com",
+    });
+    await follows(tx, follower, author);
+    const { post: secret } = await insertNotePost(tx, {
+      account: author.account,
+      content: "SECRET quoted",
+      visibility: "followers",
+    });
+    const { post: quoting } = await insertNotePost(tx, {
+      account: author.account,
+      content: "public quoting",
+      quotedPostId: secret.id,
+    });
+
+    const query = parse(`
+      query($id: ID!) {
+        node(id: $id) { ... on Post { quotedPost { content } } }
+      }
+    `);
+    const gid = encodeGlobalID("Note", quoting.id);
+    interface Data {
+      node: { quotedPost: { content: string } | null };
+    }
+
+    const strangerResult = await execute({
+      schema,
+      document: query,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, stranger.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(strangerResult.errors, undefined);
+    assert.deepEqual(
+      (strangerResult.data as unknown as Data).node.quotedPost,
+      null,
+    );
+
+    const followerResult = await execute({
+      schema,
+      document: query,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, follower.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(followerResult.errors, undefined);
+    assert.match(
+      (followerResult.data as unknown as Data).node.quotedPost?.content ?? "",
+      /SECRET/,
+    );
+  });
+});
+
+test("sharedPost does not leak a followers-only boosted post", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "vsauthor",
+      name: "VS Author",
+      email: "vsauthor@example.com",
+    });
+    const stranger = await insertAccountWithActor(tx, {
+      username: "vsstranger",
+      name: "VS Stranger",
+      email: "vsstranger@example.com",
+    });
+    const { post: secret } = await insertNotePost(tx, {
+      account: author.account,
+      content: "SECRET boosted",
+      visibility: "followers",
+    });
+    const { post: wrapper } = await insertNotePost(tx, {
+      account: author.account,
+      content: "",
+      sharedPostId: secret.id,
+    });
+
+    const result = await execute({
+      schema,
+      document: parse(`
+        query($id: ID!) {
+          node(id: $id) { ... on Post { sharedPost { content } } }
+        }
+      `),
+      variableValues: { id: encodeGlobalID("Note", wrapper.id) },
+      contextValue: makeUserContext(tx, stranger.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(result.errors, undefined);
+    assert.deepEqual(
+      (result.data as { node: { sharedPost: unknown } }).node.sharedPost,
+      null,
+    );
+  });
+});
+
+test("quotes and shares connections exclude followers-only posts", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "vcauthor",
+      name: "VC Author",
+      email: "vcauthor@example.com",
+    });
+    const follower = await insertAccountWithActor(tx, {
+      username: "vcfollower",
+      name: "VC Follower",
+      email: "vcfollower@example.com",
+    });
+    const stranger = await insertAccountWithActor(tx, {
+      username: "vcstranger",
+      name: "VC Stranger",
+      email: "vcstranger@example.com",
+    });
+    await follows(tx, follower, author);
+    const { post: pub } = await insertNotePost(tx, {
+      account: author.account,
+      content: "public target",
+    });
+    await insertNotePost(tx, {
+      account: author.account,
+      content: "SECRET quote of public",
+      visibility: "followers",
+      quotedPostId: pub.id,
+    });
+    await insertNotePost(tx, {
+      account: author.account,
+      content: "",
+      visibility: "followers",
+      sharedPostId: pub.id,
+    });
+
+    const query = parse(`
+      query($id: ID!) {
+        node(id: $id) {
+          ... on Post {
+            quotes { edges { node { content } } }
+            shares { edges { node { id } } }
+          }
+        }
+      }
+    `);
+    const gid = encodeGlobalID("Note", pub.id);
+    interface Data {
+      node: {
+        quotes: { edges: { node: { content: string } }[] };
+        shares: { edges: { node: { id: string } }[] };
+      };
+    }
+
+    const strangerResult = await execute({
+      schema,
+      document: query,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, stranger.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(strangerResult.errors, undefined);
+    const strangerData = strangerResult.data as unknown as Data;
+    assert.deepEqual(strangerData.node.quotes.edges, []);
+    assert.deepEqual(strangerData.node.shares.edges, []);
+
+    const followerResult = await execute({
+      schema,
+      document: query,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, follower.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(followerResult.errors, undefined);
+    const followerData = followerResult.data as unknown as Data;
+    assert.equal(followerData.node.quotes.edges.length, 1);
+    assert.match(followerData.node.quotes.edges[0].node.content, /SECRET/);
+    assert.equal(followerData.node.shares.edges.length, 1);
+  });
+});
+
+test("ArticleDraft node is not readable by a non-owner", async () => {
+  await withRollback(async (tx) => {
+    const owner = await insertAccountWithActor(tx, {
+      username: "draftowner",
+      name: "Draft Owner",
+      email: "draftowner@example.com",
+    });
+    const other = await insertAccountWithActor(tx, {
+      username: "draftother",
+      name: "Draft Other",
+      email: "draftother@example.com",
+    });
+    const draftId = generateUuidV7();
+    await tx.insert(articleDraftTable).values({
+      id: draftId,
+      accountId: owner.account.id,
+      title: "Secret draft",
+      content: "SECRET draft body",
+      tags: [],
+    });
+
+    const query = parse(`
+      query($id: ID!) {
+        node(id: $id) { ... on ArticleDraft { title content } }
+      }
+    `);
+    const gid = encodeGlobalID("ArticleDraft", draftId);
+    interface Data {
+      node: { title: string; content: string } | null;
+    }
+
+    const otherResult = await execute({
+      schema,
+      document: query,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, other.account),
+      onError: "NO_PROPAGATE",
+    });
+    // Non-owner: unauthorized (node scope denies), no draft body returned.
+    assert.ok((otherResult.errors?.length ?? 0) > 0);
+    assert.equal((otherResult.data as unknown as Data)?.node, null);
+
+    const guestResult = await execute({
+      schema,
+      document: query,
+      variableValues: { id: gid },
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+    assert.ok((guestResult.errors?.length ?? 0) > 0);
+
+    const ownerResult = await execute({
+      schema,
+      document: query,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, owner.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(ownerResult.errors, undefined);
+    assert.equal(
+      (ownerResult.data as unknown as Data)?.node?.title,
+      "Secret draft",
+    );
+  });
+});
+
+test("unbookmarkPost cannot be used to read an invisible post", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "ubauthor",
+      name: "UB Author",
+      email: "ubauthor@example.com",
+    });
+    const stranger = await insertAccountWithActor(tx, {
+      username: "ubstranger",
+      name: "UB Stranger",
+      email: "ubstranger@example.com",
+    });
+    const { post: secret } = await insertNotePost(tx, {
+      account: author.account,
+      content: "SECRET unbookmark",
+      visibility: "followers",
+    });
+
+    const result = await execute({
+      schema,
+      document: parse(`
+        mutation($postId: ID!) {
+          unbookmarkPost(input: { postId: $postId }) {
+            __typename
+            ... on UnbookmarkPostPayload { post { content } }
+            ... on InvalidInputError { inputPath }
+          }
+        }
+      `),
+      variableValues: { postId: encodeGlobalID("Note", secret.id) },
+      contextValue: makeUserContext(tx, stranger.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(result.errors, undefined);
+    const payload = (result.data as {
+      unbookmarkPost: { __typename: string };
+    }).unbookmarkPost;
+    assert.equal(payload.__typename, "InvalidInputError");
+  });
+});
+
+test("reactor list excludes sanction-hidden actors", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "rxauthor",
+      name: "RX Author",
+      email: "rxauthor@example.com",
+    });
+    const goodReactor = await insertAccountWithActor(tx, {
+      username: "rxgood",
+      name: "RX Good",
+      email: "rxgood@example.com",
+    });
+    const bannedReactor = await insertAccountWithActor(tx, {
+      username: "rxbanned",
+      name: "RX Banned",
+      email: "rxbanned@example.com",
+    });
+    const viewer = await insertAccountWithActor(tx, {
+      username: "rxviewer",
+      name: "RX Viewer",
+      email: "rxviewer@example.com",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "react to me",
+      reactionsCounts: { "❤️": 2 },
+    });
+    await insertReaction(tx, {
+      postId: post.id,
+      actorId: goodReactor.actor.id,
+    });
+    await insertReaction(tx, {
+      postId: post.id,
+      actorId: bannedReactor.actor.id,
+    });
+    // Ban the reactor (permanent local suspension → sanction-hidden).
+    await tx.update(actorTable)
+      .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: null })
+      .where(eq(actorTable.id, bannedReactor.actor.id));
+
+    const result = await execute({
+      schema,
+      document: parse(`
+        query($id: ID!) {
+          node(id: $id) {
+            ... on Post {
+              reactionGroups {
+                reactors { edges { node { username } } }
+              }
+            }
+          }
+        }
+      `),
+      variableValues: { id: encodeGlobalID("Note", post.id) },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(result.errors, undefined);
+    const groups = (result.data as {
+      node: {
+        reactionGroups: {
+          reactors: { edges: { node: { username: string } }[] };
+        }[];
+      };
+    }).node.reactionGroups;
+    const reactorNames = groups.flatMap((g) =>
+      g.reactors.edges.map((e) => e.node.username)
+    );
+    assert.ok(reactorNames.includes("rxgood"));
+    assert.ok(!reactorNames.includes("rxbanned"));
+  });
+});

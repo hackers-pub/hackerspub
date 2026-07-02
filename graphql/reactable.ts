@@ -1,6 +1,7 @@
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { assertNever } from "@std/assert/unstable-never";
 import type { RelationsFilter } from "@hackerspub/models/db";
+import { getSanctionVisibleActorFilter } from "@hackerspub/models/post";
 import { getViewerReactionsForPosts } from "@hackerspub/models/reaction";
 import { relations } from "@hackerspub/models/relations";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
@@ -155,16 +156,24 @@ export const ReactionGroup = builder.interfaceRef<ReactionGroup>(
       type: Actor,
       async resolve(group, args, ctx, info) {
         const query = reactorConnectionHelpers.getQuery(args, ctx, info);
+        // Exclude reactions by actors whose content is hidden by a
+        // moderation sanction (banned local / federation-blocked remote), so
+        // the reactor list never reveals a sanction-hidden actor's identity
+        // or participation.
         const where = query.where == null
           ? {
-            ...group.where,
-            postId: group.subject.id,
+            AND: [
+              group.where,
+              { postId: group.subject.id },
+              { actor: getSanctionVisibleActorFilter() },
+            ],
           }
           : {
             AND: [
               query.where,
               group.where,
               { postId: group.subject.id },
+              { actor: getSanctionVisibleActorFilter() },
             ],
           };
         const reactions = await ctx.db.query.reactionTable.findMany({

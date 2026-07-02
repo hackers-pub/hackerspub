@@ -3,6 +3,7 @@ import { renderCustomEmojis } from "@hackerspub/models/emoji";
 import { addExternalLinkTargets } from "@hackerspub/models/html";
 import { vote } from "@hackerspub/models/poll";
 import {
+  getSanctionVisibleActorFilter,
   isActorSanctionHidden,
   isPostVisibleTo,
   persistPost,
@@ -20,9 +21,14 @@ import { Actor } from "./actor.ts";
 import { resolveActingAccountForMutation } from "./acting-account.ts";
 import { builder, type UserContext } from "./builder.ts";
 import { ActorSuspendedError, InvalidInputError } from "./error.ts";
-import { Post, Question } from "./post.ts";
+import { isPostVisibleToViewer, Post, Question } from "./post.ts";
 import { PostVisibility, toPostVisibility } from "./postvisibility.ts";
 import { NotAuthenticatedError } from "./session.ts";
+import {
+  type ActingAccountIdArg,
+  actingAccountIdArgDescription,
+  resolveViewerActorId,
+} from "./viewer-actor.ts";
 
 const pollBranchComplexity = { field: 0, multiplier: 0 } as const;
 const questionPollComplexity = { field: 0, multiplier: 0 } as const;
@@ -211,16 +217,35 @@ builder.drizzleObjectFields(Question, (t) => ({
     nullable: true,
     complexity: questionPollComplexity,
     description:
-      "The post quoted by this `Question`, if any. Visibility rules still " +
-      "apply to the quoted post.  `null` when the quoting `Question` is " +
-      "censored, or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator: " +
-      "the quoted target is part of the censored content.",
+      "The post quoted by this `Question`, if any. `null` when the quoting " +
+      "`Question` is censored or its author is hidden by a moderation " +
+      "sanction and the viewer is neither the author nor a moderator (the " +
+      "quoted target is part of the censored content), and also when the " +
+      "quoted post is not visible to the viewer (e.g., a followers-only " +
+      "post the viewer does not follow), so a public quote cannot leak its " +
+      "private target.",
+    args: {
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
     select: (_, __, nestedSelect) => ({
       columns: { actorId: true, censored: true },
       with: { actor: sanctionActorSelection, quotedPost: nestedSelect() },
     }),
-    resolve: (question, _, ctx) =>
-      isPollCensoredForViewer(question, ctx) ? null : question.quotedPost,
+    resolve: async (question, args, ctx) => {
+      if (isPollCensoredForViewer(question, ctx)) return null;
+      const quotedPost = question.quotedPost;
+      if (quotedPost == null) return null;
+      const viewerActorId = await resolveViewerActorId(
+        ctx,
+        args as ActingAccountIdArg,
+      );
+      return await isPostVisibleToViewer(ctx, quotedPost.id, viewerActorId)
+        ? quotedPost
+        : null;
+    },
   }),
   sharedPost: t.field({
     type: Post,
@@ -229,17 +254,35 @@ builder.drizzleObjectFields(Question, (t) => ({
     description:
       "The original post when this row is a local share wrapper. Polls live " +
       "on the original `Question`, not on the wrapper.  `null` when the " +
-      "wrapper itself is censored, or the booster is hidden by a " +
-      "moderation sanction, and the viewer is neither the author nor a " +
-      "moderator: what was boosted is the hidden content.",
+      "wrapper itself is censored or the booster is hidden by a " +
+      "moderation sanction and the viewer is neither the author nor a " +
+      "moderator (what was boosted is the hidden content), and also when " +
+      "the boosted post is not visible to the viewer (e.g., a " +
+      "followers-only post the viewer does not follow).",
+    args: {
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
     select: (_, __, nestedSelect) => ({
       columns: { actorId: true, censored: true },
       with: { actor: sanctionActorSelection, sharedPost: nestedSelect() },
     }),
     // Row-only check: a wrapper of a censored Question keeps the relation
     // so the boosted Question redacts itself and exposes `censored`.
-    resolve: (question, _, ctx) =>
-      isPollRowCensoredForViewer(question, ctx) ? null : question.sharedPost,
+    resolve: async (question, args, ctx) => {
+      if (isPollRowCensoredForViewer(question, ctx)) return null;
+      const sharedPost = question.sharedPost;
+      if (sharedPost == null) return null;
+      const viewerActorId = await resolveViewerActorId(
+        ctx,
+        args as ActingAccountIdArg,
+      );
+      return await isPostVisibleToViewer(ctx, sharedPost.id, viewerActorId)
+        ? sharedPost
+        : null;
+    },
   }),
 }));
 
@@ -340,7 +383,12 @@ const Poll = builder.drizzleNode("pollTable", {
       complexity: pollBranchComplexity,
       select: (args, ctx, nestedSelect) => ({
         with: {
-          votes: pollVoteConnectionHelpers.getQuery(args, ctx, nestedSelect),
+          // Exclude votes by sanction-hidden actors so the vote list never
+          // reveals a banned/federation-blocked actor's participation.
+          votes: andActorSanctionFilter(
+            pollVoteConnectionHelpers.getQuery(args, ctx, nestedSelect),
+            { actor: getSanctionVisibleActorFilter() },
+          ),
         },
         extras: {
           votesCount: (table) =>
@@ -375,7 +423,11 @@ const Poll = builder.drizzleNode("pollTable", {
       complexity: pollBranchComplexity,
       select: (args, ctx, nestedSelect) => ({
         with: {
-          voters: actorConnectionHelpers.getQuery(args, ctx, nestedSelect),
+          // Exclude sanction-hidden actors from the voter list.
+          voters: andActorSanctionFilter(
+            actorConnectionHelpers.getQuery(args, ctx, nestedSelect),
+            getSanctionVisibleActorFilter(),
+          ),
         },
       }),
       resolve(poll, args, ctx) {
@@ -437,7 +489,11 @@ const PollOption = builder.drizzleObject("pollOptionTable", {
       complexity: pollBranchComplexity,
       select: (args, ctx, nestedSelect) => ({
         with: {
-          votes: pollVoteConnectionHelpers.getQuery(args, ctx, nestedSelect),
+          // Exclude votes by sanction-hidden actors (see `Poll.votes`).
+          votes: andActorSanctionFilter(
+            pollVoteConnectionHelpers.getQuery(args, ctx, nestedSelect),
+            { actor: getSanctionVisibleActorFilter() },
+          ),
         },
       }),
       resolve(option, args, ctx) {
@@ -494,6 +550,18 @@ const actorConnectionHelpers = drizzleConnectionHelpers(
   "actorTable",
   {},
 );
+
+// Fold an extra `where` filter into a connection helper's query config
+// (AND-merged so the helper's own cursor pagination `where` is preserved).
+// Mutates and returns the same object; the helper hands back a fresh config
+// per call.  Typed loosely because the two vote/voter connections target
+// different tables (`pollVoteTable` vs `actorTable`).
+// deno-lint-ignore no-explicit-any
+function andActorSanctionFilter<Q>(query: Q, extra: any): Q {
+  const q = query as { where?: unknown };
+  q.where = q.where == null ? extra : { AND: [q.where, extra] };
+  return query;
+}
 
 async function getViewerPollOptionIndices(
   ctx: UserContext,

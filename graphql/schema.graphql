@@ -1090,12 +1090,17 @@ type Article implements Node & Post & Reactable {
   quoteTargetState: QuoteTargetState
 
   """
-  The post being quoted inline. `null` for posts that are not quotes, and also when the quoting post is censored or its author is hidden by a moderation sanction, and the viewer is neither its author nor a moderator: the quoted target is part of the censored content.
+  The post being quoted inline. `null` for posts that are not quotes, when the quoting post is censored or its author is hidden by a moderation sanction and the viewer is neither its author nor a moderator (the quoted target is part of the censored content), and also when the quoted post is not visible to the viewer (e.g., a followers-only post the viewer does not follow), so a public quote cannot leak its private target.
   """
-  quotedPost: Post
+  quotedPost(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Post
 
   """
-  Posts that quote this post inline. Censored quotes and quotes by actors whose content is hidden by a moderation sanction are excluded.
+  Posts that quote this post inline. Censored quotes, quotes by actors whose content is hidden by a moderation sanction, and quotes not visible to the authenticated viewer (e.g., followers-only quotes by actors the viewer does not follow) are excluded.
   """
   quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
   reactionGroup(customEmojiId: ID, emoji: String): ReactionGroup
@@ -1122,12 +1127,17 @@ type Article implements Node & Post & Reactable {
   sensitive: Boolean!
 
   """
-  The post being boosted. Non-null only for boost wrapper rows. When this is non-null, `content` is empty and `url` mirrors the shared post's URL.  `null` when the boost wrapper itself is censored, or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator: what was boosted is the censored content.
+  The post being boosted. Non-null only for boost wrapper rows. When this is non-null, `content` is empty and `url` mirrors the shared post's URL.  `null` when the boost wrapper itself is censored, or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator (what was boosted is the censored content), and also when the boosted post is not visible to the viewer (e.g., a followers-only post the viewer does not follow), so a boost cannot leak its private target.
   """
-  sharedPost: Post
+  sharedPost(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Post
 
   """
-  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor. Censored boosts (including boosts of a censored post) and boosts by actors whose content is hidden by a moderation sanction are excluded.
+  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor. Censored boosts (including boosts of a censored post), boosts by actors whose content is hidden by a moderation sanction, and boosts not visible to the authenticated viewer (e.g., followers-only boosts by actors the viewer does not follow) are excluded.
   """
   shares(after: String, before: String, first: Int, last: Int): PostSharesConnection!
 
@@ -3276,12 +3286,17 @@ type Note implements Node & Post & Reactable {
   quoteTargetState: QuoteTargetState
 
   """
-  The post being quoted inline. `null` for posts that are not quotes, and also when the quoting post is censored or its author is hidden by a moderation sanction, and the viewer is neither its author nor a moderator: the quoted target is part of the censored content.
+  The post being quoted inline. `null` for posts that are not quotes, when the quoting post is censored or its author is hidden by a moderation sanction and the viewer is neither its author nor a moderator (the quoted target is part of the censored content), and also when the quoted post is not visible to the viewer (e.g., a followers-only post the viewer does not follow), so a public quote cannot leak its private target.
   """
-  quotedPost: Post
+  quotedPost(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Post
 
   """
-  Posts that quote this post inline. Censored quotes and quotes by actors whose content is hidden by a moderation sanction are excluded.
+  Posts that quote this post inline. Censored quotes, quotes by actors whose content is hidden by a moderation sanction, and quotes not visible to the authenticated viewer (e.g., followers-only quotes by actors the viewer does not follow) are excluded.
   """
   quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
 
@@ -3318,12 +3333,17 @@ type Note implements Node & Post & Reactable {
   sensitive: Boolean!
 
   """
-  The post being boosted. Non-null only for boost wrapper rows. When this is non-null, `content` is empty and `url` mirrors the shared post's URL.  `null` when the boost wrapper itself is censored, or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator: what was boosted is the censored content.
+  The post being boosted. Non-null only for boost wrapper rows. When this is non-null, `content` is empty and `url` mirrors the shared post's URL.  `null` when the boost wrapper itself is censored, or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator (what was boosted is the censored content), and also when the boosted post is not visible to the viewer (e.g., a followers-only post the viewer does not follow), so a boost cannot leak its private target.
   """
-  sharedPost: Post
+  sharedPost(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Post
 
   """
-  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor. Censored boosts (including boosts of a censored post) and boosts by actors whose content is hidden by a moderation sanction are excluded.
+  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor. Censored boosts (including boosts of a censored post), boosts by actors whose content is hidden by a moderation sanction, and boosts not visible to the authenticated viewer (e.g., followers-only boosts by actors the viewer does not follow) are excluded.
   """
   shares(after: String, before: String, first: Int, last: Int): PostSharesConnection!
 
@@ -3976,12 +3996,17 @@ interface Post implements Node & Reactable {
   quoteTargetState: QuoteTargetState
 
   """
-  The post being quoted inline. `null` for posts that are not quotes, and also when the quoting post is censored or its author is hidden by a moderation sanction, and the viewer is neither its author nor a moderator: the quoted target is part of the censored content.
+  The post being quoted inline. `null` for posts that are not quotes, when the quoting post is censored or its author is hidden by a moderation sanction and the viewer is neither its author nor a moderator (the quoted target is part of the censored content), and also when the quoted post is not visible to the viewer (e.g., a followers-only post the viewer does not follow), so a public quote cannot leak its private target.
   """
-  quotedPost: Post
+  quotedPost(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Post
 
   """
-  Posts that quote this post inline. Censored quotes and quotes by actors whose content is hidden by a moderation sanction are excluded.
+  Posts that quote this post inline. Censored quotes, quotes by actors whose content is hidden by a moderation sanction, and quotes not visible to the authenticated viewer (e.g., followers-only quotes by actors the viewer does not follow) are excluded.
   """
   quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
   reactionGroup(customEmojiId: ID, emoji: String): ReactionGroup
@@ -4008,12 +4033,17 @@ interface Post implements Node & Reactable {
   sensitive: Boolean!
 
   """
-  The post being boosted. Non-null only for boost wrapper rows. When this is non-null, `content` is empty and `url` mirrors the shared post's URL.  `null` when the boost wrapper itself is censored, or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator: what was boosted is the censored content.
+  The post being boosted. Non-null only for boost wrapper rows. When this is non-null, `content` is empty and `url` mirrors the shared post's URL.  `null` when the boost wrapper itself is censored, or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator (what was boosted is the censored content), and also when the boosted post is not visible to the viewer (e.g., a followers-only post the viewer does not follow), so a boost cannot leak its private target.
   """
-  sharedPost: Post
+  sharedPost(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Post
 
   """
-  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor. Censored boosts (including boosts of a censored post) and boosts by actors whose content is hidden by a moderation sanction are excluded.
+  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor. Censored boosts (including boosts of a censored post), boosts by actors whose content is hidden by a moderation sanction, and boosts not visible to the authenticated viewer (e.g., followers-only boosts by actors the viewer does not follow) are excluded.
   """
   shares(after: String, before: String, first: Int, last: Int): PostSharesConnection!
 
@@ -4975,12 +5005,17 @@ type Question implements Node & Post & Reactable {
   quoteTargetState: QuoteTargetState
 
   """
-  The post quoted by this `Question`, if any. Visibility rules still apply to the quoted post.  `null` when the quoting `Question` is censored, or its author is hidden by a moderation sanction, and the viewer is neither the author nor a moderator: the quoted target is part of the censored content.
+  The post quoted by this `Question`, if any. `null` when the quoting `Question` is censored or its author is hidden by a moderation sanction and the viewer is neither the author nor a moderator (the quoted target is part of the censored content), and also when the quoted post is not visible to the viewer (e.g., a followers-only post the viewer does not follow), so a public quote cannot leak its private target.
   """
-  quotedPost: Post
+  quotedPost(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Post
 
   """
-  Posts that quote this post inline. Censored quotes and quotes by actors whose content is hidden by a moderation sanction are excluded.
+  Posts that quote this post inline. Censored quotes, quotes by actors whose content is hidden by a moderation sanction, and quotes not visible to the authenticated viewer (e.g., followers-only quotes by actors the viewer does not follow) are excluded.
   """
   quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
   reactionGroup(customEmojiId: ID, emoji: String): ReactionGroup
@@ -5007,12 +5042,17 @@ type Question implements Node & Post & Reactable {
   sensitive: Boolean!
 
   """
-  The original post when this row is a local share wrapper. Polls live on the original `Question`, not on the wrapper.  `null` when the wrapper itself is censored, or the booster is hidden by a moderation sanction, and the viewer is neither the author nor a moderator: what was boosted is the hidden content.
+  The original post when this row is a local share wrapper. Polls live on the original `Question`, not on the wrapper.  `null` when the wrapper itself is censored or the booster is hidden by a moderation sanction and the viewer is neither the author nor a moderator (what was boosted is the hidden content), and also when the boosted post is not visible to the viewer (e.g., a followers-only post the viewer does not follow).
   """
-  sharedPost: Post
+  sharedPost(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): Post
 
   """
-  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor. Censored boosts (including boosts of a censored post) and boosts by actors whose content is hidden by a moderation sanction are excluded.
+  Boost wrapper posts that reshare this post. Each edge represents a single boost by a specific actor. Censored boosts (including boosts of a censored post), boosts by actors whose content is hidden by a moderation sanction, and boosts not visible to the authenticated viewer (e.g., followers-only boosts by actors the viewer does not follow) are excluded.
   """
   shares(after: String, before: String, first: Int, last: Int): PostSharesConnection!
 
