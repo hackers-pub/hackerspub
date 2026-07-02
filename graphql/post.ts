@@ -1350,7 +1350,7 @@ export function isPostVisibleToViewer(
           where: {
             AND: [
               { id: { in: idList } },
-              { actor: getSanctionVisibleActorFilter() },
+              { actor: getSanctionVisibleActorFilter(ctx.now ??= new Date()) },
               getPostVisibilityFilter(viewerActor),
             ],
           },
@@ -1390,7 +1390,7 @@ function postHasVisibleReplies(
           where: {
             AND: [
               { replyTargetId: { in: idList } },
-              { actor: getSanctionVisibleActorFilter() },
+              { actor: getSanctionVisibleActorFilter(ctx.now ??= new Date()) },
               getCensoredPostExclusionFilter(viewerActorId),
               getPostVisibilityFilter(viewerActor),
             ],
@@ -1430,7 +1430,7 @@ async function visibleRelatedPostsPage(
     where: {
       AND: [
         { [column]: targetId },
-        { actor: getSanctionVisibleActorFilter() },
+        { actor: getSanctionVisibleActorFilter(ctx.now ??= new Date()) },
         getCensoredPostExclusionFilter(viewerActorId),
         getPostVisibilityFilter(viewerActor),
       ],
@@ -1466,7 +1466,7 @@ async function countVisibleRelatedPosts(
     where: {
       AND: [
         { [column]: targetId },
-        { actor: getSanctionVisibleActorFilter() },
+        { actor: getSanctionVisibleActorFilter(ctx.now ??= new Date()) },
         getCensoredPostExclusionFilter(viewerActorId),
         getPostVisibilityFilter(viewerActor),
       ],
@@ -1492,7 +1492,7 @@ async function loadVisibleThreadPostIds(
     where: {
       AND: [
         { id: { in: [...ids] } },
-        { actor: getSanctionVisibleActorFilter() },
+        { actor: getSanctionVisibleActorFilter(ctx.now ??= new Date()) },
         getCensoredPostExclusionFilter(viewerActorId),
         getPostVisibilityFilter(viewerActor),
       ],
@@ -1517,7 +1517,7 @@ async function loadVisibleThreadPosts(
     where: {
       AND: [
         { id: { in: [...ids] } },
-        { actor: getSanctionVisibleActorFilter() },
+        { actor: getSanctionVisibleActorFilter(ctx.now ??= new Date()) },
         getCensoredPostExclusionFilter(viewerActorId),
         getPostVisibilityFilter(viewerActor),
       ],
