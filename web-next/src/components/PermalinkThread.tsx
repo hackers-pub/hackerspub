@@ -145,6 +145,9 @@ function PermalinkThreadLoaded(props: PermalinkThreadProps) {
         ... on Question {
           sourceId
         }
+        ... on Article {
+          sourceId
+        }
         replyTarget(actingAccountId: $actingAccountId) {
           id
         }
@@ -411,6 +414,15 @@ const PermalinkThreadTreeFragment = graphql`
         node {
           id
           uuid
+          ... on Note {
+            sourceId
+          }
+          ... on Question {
+            sourceId
+          }
+          ... on Article {
+            sourceId
+          }
           replyTarget(actingAccountId: $actingAccountId) {
             id
           }
@@ -503,7 +515,9 @@ export function PermalinkThreadTree(props: PermalinkThreadTreeProps) {
       targetPages = 0;
     }
     if (target == null || targetPages >= TREE_TARGET_MAX_PAGES) return;
-    if (nodes().some((node) => node.uuid === target)) return;
+    if (
+      nodes().some((node) => node.uuid === target || node.sourceId === target)
+    ) return;
     if (!tree.hasNext || tree.pending || loadingState() === "loading") return;
     targetPages++;
     onLoadMore();
@@ -691,6 +705,7 @@ const replyNodeFragment = graphql`
       sourceId
     }
     ... on Article {
+      sourceId
       name
       publishedYear
       slug
@@ -730,7 +745,8 @@ function ThreadReplyRow(props: ThreadReplyRowProps) {
   useContentLinkInterceptor(proseRef);
 
   const isTarget = (p: PermalinkThread_replyNode$data) =>
-    props.targetUuid != null && p.uuid === props.targetUuid;
+    props.targetUuid != null &&
+    (p.uuid === props.targetUuid || p.sourceId === props.targetUuid);
 
   let articleRef: HTMLElement | undefined;
   onMount(() => {
