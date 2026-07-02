@@ -56,6 +56,7 @@ export async function getAncestorChain(
       from post p
       join ancestors a on p.id = a.id
       where p.reply_target_id is not null
+        and p.reply_target_id <> p.id
         and not (p.reply_target_id = any(a.seen))
         and a.depth < ${limit}
     )

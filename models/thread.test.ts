@@ -413,3 +413,30 @@ test("getDescendantPage() orders pre-1970 siblings chronologically", async () =>
     );
   });
 });
+
+test("getAncestorChain() does not duplicate a self-replying ancestor", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "threadselfreply",
+      name: "Thread Self Reply",
+      email: "threadselfreply@example.com",
+    });
+    const { post: root } = await insertNotePost(tx, {
+      account: author.account,
+      content: "root",
+    });
+    const { post: leaf } = await insertNotePost(tx, {
+      account: author.account,
+      content: "leaf",
+      replyTargetId: root.id,
+    });
+    // Hostile/federated data: the ancestor replies to itself. The chain must
+    // still list it exactly once, not once per the base and recursive steps.
+    await tx.update(postTable)
+      .set({ replyTargetId: root.id })
+      .where(eq(postTable.id, root.id));
+
+    const chain = await getAncestorChain(tx, leaf.id);
+    assert.deepEqual(chain, [{ id: root.id, depth: 1 }]);
+  });
+});
