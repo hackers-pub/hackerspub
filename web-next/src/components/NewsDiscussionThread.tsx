@@ -1,8 +1,9 @@
+import { Key } from "@solid-primitives/keyed";
 import { fetchQuery, graphql } from "relay-runtime";
 import {
+  createEffect,
   createMemo,
   createSignal,
-  For,
   getOwner,
   Match,
   onCleanup,
@@ -27,32 +28,42 @@ import type {
   NewsDiscussionThread_post$key,
 } from "./__generated__/NewsDiscussionThread_post.graphql.ts";
 import type { NewsDiscussionThreadChildrenQuery } from "./__generated__/NewsDiscussionThreadChildrenQuery.graphql.ts";
+import type { NewsDiscussionThreadSubtreeQuery } from "./__generated__/NewsDiscussionThreadSubtreeQuery.graphql.ts";
 
-// Auto-expand replies/quotes down to this depth; deeper levels load only when
-// the reader asks (so a busy thread does not fetch everything up front).
+// Auto-expand quotes down to this depth; deeper levels load only when the
+// reader asks.  Replies need no such gate: they arrive in bulk, one query
+// per subtree root, via `descendants`.
 export const NEWS_DISCUSSION_AUTO_DEPTH = 3;
-// Following a deep link auto-expands the target's ancestors past
-// NEWS_DISCUSSION_AUTO_DEPTH, but only down to this depth and only this many
-// reply pages per node, so a hash link cannot fan out into fetching the entire
-// tree at once.
+// Following a deep link auto-expands quotes past NEWS_DISCUSSION_AUTO_DEPTH,
+// but only down to this depth and only this many pages per connection, so a
+// hash link cannot fan out into fetching the entire tree at once.  The same
+// page bound applies to chasing the target through reply pages.
 const NEWS_DISCUSSION_TARGET_MAX_DEPTH = 8;
 const NEWS_DISCUSSION_TARGET_MAX_PAGES = 5;
 
-const childrenQuery = graphql`
-  query NewsDiscussionThreadChildrenQuery(
+// One fetch per subtree root (a sharing post or a quote) brings its whole
+// reply tree, flattened depth-first; the previous architecture fetched every
+// node's direct replies separately, which made busy threads fire dozens of
+// requests.  This stays a standalone query rather than a field nested in the
+// discussion's roots query: the roots query is already near the server's
+// structural complexity limit, and nesting the tree under 20 root nodes
+// would push it over.
+const subtreeQuery = graphql`
+  query NewsDiscussionThreadSubtreeQuery(
     $id: ID!
     $cursor: String
-    $quoteCursor: String
-    $loadReplies: Boolean!
-    $loadQuotes: Boolean!
     $actingAccountId: ID
   ) {
     node(id: $id) {
       ... on Post {
-        replies(after: $cursor, first: 10) @include(if: $loadReplies) {
+        descendants(after: $cursor, first: 60, actingAccountId: $actingAccountId) {
           edges {
             node {
               id
+              uuid
+              replyTarget(actingAccountId: $actingAccountId) {
+                id
+              }
               ...NewsDiscussionThread_post @arguments(
                 actingAccountId: $actingAccountId
               )
@@ -60,7 +71,22 @@ const childrenQuery = graphql`
           }
           pageInfo { hasNextPage endCursor }
         }
-        quotes(after: $quoteCursor, first: 20) @include(if: $loadQuotes) {
+      }
+    }
+  }
+`;
+
+// Quotes are not part of the reply graph, so they stay per-node and lazy;
+// this only ever runs for nodes whose cached quote counter is nonzero.
+const quotesQuery = graphql`
+  query NewsDiscussionThreadChildrenQuery(
+    $id: ID!
+    $quoteCursor: String
+    $actingAccountId: ID
+  ) {
+    node(id: $id) {
+      ... on Post {
+        quotes(after: $quoteCursor, first: 20) {
           edges {
             node {
               id
@@ -76,12 +102,290 @@ const childrenQuery = graphql`
   }
 `;
 
-interface Child {
+const threadPostFragment = graphql`
+  fragment NewsDiscussionThread_post on Post
+    @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
+  {
+    id
+    __typename
+    uuid
+    content
+    language
+    url
+    iri
+    published
+    visibility
+    ... on Note {
+      personalRawContent: rawContent
+      rawContent(actingAccountId: $actingAccountId)
+      quotePolicy
+    }
+    ... on Article {
+      name
+      excerptHtml(maxChars: 700)
+    }
+    engagementStats {
+      replies
+      quotes
+    }
+    actor {
+      id
+      name
+      handle
+      username
+      local
+      url
+      iri
+      isViewer(actingAccountId: $actingAccountId)
+      account {
+        id
+        kind
+      }
+    }
+    ...PostAuthorAvatar_post
+    ...PostAuthorLine_post
+    ...PostEngagementBar_post @arguments(
+      actingAccountId: $actingAccountId
+    )
+  }
+`;
+
+interface SubtreeReplyNode {
+  readonly id: string;
+  readonly uuid: string;
+  readonly parentId: string;
+  readonly key: NewsDiscussionThread_post$key;
+}
+
+interface QuoteChild {
   readonly id: string;
   readonly key: NewsDiscussionThread_post$key;
 }
 
-type LoadMode = "initial" | "replies" | "quotes";
+export interface NewsDiscussionSubtreeProps {
+  $post: NewsDiscussionThread_post$key;
+  depth: number;
+  /** UUID from the URL hash; the tree auto-expands toward it. */
+  targetUuid?: string | null;
+  /** Post ids already rendered up the ancestor chain, to break cycles. */
+  visited?: ReadonlySet<string>;
+  /**
+   * Discussion-wide set of post ids already rendered anywhere in the tree.
+   * See {@link NewsDiscussionThreadProps.rendered}.
+   */
+  rendered: Set<string>;
+  /** Relay connection ids to prune on deletion (the discussion's roots). */
+  connections?: string[];
+  /** Called after this subtree's root post is deleted. */
+  onDeleted?: () => void;
+}
+
+/**
+ * A discussion subtree root (a sharing post or a quote): renders the root
+ * row plus its whole reply tree, loaded in bulk from the root's
+ * `descendants` with "load more" continuing the server's depth-first
+ * traversal.
+ */
+export function NewsDiscussionSubtree(props: NewsDiscussionSubtreeProps) {
+  const { t } = useLingui();
+  const { onNoteCreated, replyTargetId } = useNoteCompose();
+  const environment = useRelayEnvironment();
+  const actingAccount = useActingAccount();
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
+  const owner = getOwner();
+  const post = createFragment(threadPostFragment, () => props.$post);
+
+  // A duplicate occurrence elsewhere in the discussion renders nothing (its
+  // row would lose the `rendered` claim anyway), so don't fetch its subtree
+  // either.  Same synchronous check the row component makes before claiming.
+  const ownId = post()?.id;
+  if (ownId != null && props.rendered.has(ownId)) return null;
+
+  const [nodes, setNodes] = createSignal<SubtreeReplyNode[]>([]);
+  const [hasMore, setHasMore] = createSignal(false);
+  const [endCursor, setEndCursor] = createSignal<string | null>(null);
+  const [loadState, setLoadState] = createSignal<
+    "idle" | "loading" | "errored"
+  >("idle");
+  // Dedup across pages; reset on each fresh load.
+  const seen = new Set<string>();
+  let disposed = false;
+  // A reload requested while a fetch is in flight runs after it settles, so
+  // a reply composed mid-load is not silently dropped.
+  let reloadQueued = false;
+  onCleanup(() => disposed = true);
+
+  function loadReplies(mode: "initial" | "more" = "initial") {
+    const p = post();
+    if (p == null) return;
+    if (loadState() === "loading") {
+      if (mode === "initial") reloadQueued = true;
+      return;
+    }
+    if (mode === "initial") {
+      seen.clear();
+      setNodes([]);
+      setEndCursor(null);
+      setHasMore(false);
+    }
+    setLoadState("loading");
+    fetchQuery<NewsDiscussionThreadSubtreeQuery>(
+      environment(),
+      subtreeQuery,
+      {
+        id: p.id,
+        cursor: mode === "more" ? endCursor() : null,
+        actingAccountId: actingAccountId() ?? null,
+      },
+    ).subscribe({
+      next(data) {
+        if (disposed) return;
+        runWithOwner(owner, () => {
+          const descendants = data.node?.descendants;
+          const page: SubtreeReplyNode[] = [];
+          for (const edge of descendants?.edges ?? []) {
+            const n = edge?.node;
+            if (n == null || n.replyTarget == null) continue;
+            if (n.id === p.id) continue;
+            if (seen.has(n.id)) continue;
+            seen.add(n.id);
+            page.push({
+              id: n.id,
+              uuid: n.uuid,
+              parentId: n.replyTarget.id,
+              key: n,
+            });
+          }
+          setNodes((prev) => mode === "more" ? [...prev, ...page] : page);
+          setEndCursor(descendants?.pageInfo?.endCursor ?? null);
+          setHasMore(descendants?.pageInfo?.hasNextPage ?? false);
+          setLoadState("idle");
+          if (reloadQueued) {
+            reloadQueued = false;
+            loadReplies();
+          }
+        });
+      },
+      error() {
+        if (disposed) return;
+        runWithOwner(owner, () => {
+          setLoadState("errored");
+          reloadQueued = false;
+        });
+      },
+    });
+  }
+
+  // The server guarantees a parent appears before its replies, so the tree
+  // rebuilds from `replyTarget` ids alone.
+  const repliesByParent = createMemo(() => {
+    const map = new Map<string, SubtreeReplyNode[]>();
+    for (const node of nodes()) {
+      let bucket = map.get(node.parentId);
+      if (bucket == null) {
+        bucket = [];
+        map.set(node.parentId, bucket);
+      }
+      bucket.push(node);
+    }
+    return map;
+  });
+
+  const removeReply = (id: string) => {
+    // Prune the whole subtree of the removed node, not just the node: its
+    // descendants would otherwise linger in `nodes` (never rendered, their
+    // parent chain is gone) and stay deduped in `seen`.
+    setNodes((prev) => {
+      const removed = new Set([id]);
+      let grew = true;
+      while (grew) {
+        grew = false;
+        for (const node of prev) {
+          if (removed.has(node.parentId) && !removed.has(node.id)) {
+            removed.add(node.id);
+            grew = true;
+          }
+        }
+      }
+      for (const node of removed) seen.delete(node);
+      return prev.filter((node) => !removed.has(node.id));
+    });
+  };
+
+  onMount(() => {
+    if ((post()?.engagementStats.replies ?? 0) > 0) loadReplies();
+    // Composing a reply to a post inside this subtree refreshes just this
+    // subtree.  `notifyNoteCreated` fires before the compose modal resets
+    // its state, so the reply target is still readable here.
+    onCleanup(onNoteCreated(() => {
+      const parentId = replyTargetId();
+      if (parentId == null) return;
+      if (
+        parentId !== post()?.id &&
+        !nodes().some((node) => node.id === parentId)
+      ) return;
+      loadReplies();
+    }));
+  });
+
+  // Following a deep link into a reply page that is not loaded yet: keep
+  // loading more pages toward the target, bounded per target.
+  let targetPages = 0;
+  let lastTarget: string | null = null;
+  createEffect(() => {
+    const target = props.targetUuid ?? null;
+    if (target !== lastTarget) {
+      lastTarget = target;
+      targetPages = 0;
+    }
+    if (target == null || targetPages >= NEWS_DISCUSSION_TARGET_MAX_PAGES) {
+      return;
+    }
+    if (nodes().some((node) => node.uuid === target)) return;
+    if (!hasMore() || loadState() !== "idle") return;
+    targetPages++;
+    loadReplies("more");
+  });
+
+  return (
+    <>
+      <NewsDiscussionThread
+        $post={props.$post}
+        depth={props.depth}
+        targetUuid={props.targetUuid}
+        visited={props.visited}
+        rendered={props.rendered}
+        connections={props.connections}
+        onDeleted={props.onDeleted}
+        repliesOf={(id) => repliesByParent().get(id) ?? []}
+        onReplyDeleted={removeReply}
+      />
+      <Show when={hasMore()}>
+        <button
+          type="button"
+          onClick={() => loadReplies("more")}
+          disabled={loadState() === "loading"}
+          class="block w-full cursor-pointer px-4 py-2 text-left text-sm text-muted-foreground transition-colors hover:text-primary disabled:opacity-60"
+          classList={{ "pl-8 sm:pl-10": props.depth > 0 }}
+        >
+          {loadState() === "loading"
+            ? t`Loading more replies…`
+            : t`Load more replies`}
+        </button>
+      </Show>
+      <Show when={loadState() === "errored"}>
+        <button
+          type="button"
+          onClick={() => loadReplies(nodes().length > 0 ? "more" : "initial")}
+          class="block w-full cursor-pointer px-4 py-2 text-left text-sm text-error transition-colors hover:underline"
+          classList={{ "pl-8 sm:pl-10": props.depth > 0 }}
+        >
+          {t`Failed to load replies; click to retry`}
+        </button>
+      </Show>
+    </>
+  );
+}
 
 export interface NewsDiscussionThreadProps {
   $post: NewsDiscussionThread_post$key;
@@ -101,77 +405,38 @@ export interface NewsDiscussionThreadProps {
   /**
    * The discussion's root connection (`NewsDiscussion__sharingPosts`), so
    * deleting a post that is an edge of it removes that edge via `@deleteEdge`.
-   * Forwarded unchanged to children: reply/quote children are normally removed
-   * from local signals via `onDeleted`, but a post can be both a root sharing
-   * post and a reply/quote (rendered in whichever place claims it first), so a
-   * child delete must also prune the root edge or the post would resurface as a
-   * root.  `@deleteEdge` is a no-op for a child that has no root edge.
+   * Forwarded unchanged to children: reply/quote children are removed from
+   * local state via their own callbacks, but a post can be both a root
+   * sharing post and a reply/quote (rendered in whichever place claims it
+   * first), so a child delete must also prune the root edge or the post
+   * would resurface as a root.  `@deleteEdge` is a no-op for a child that
+   * has no root edge.
    */
   connections?: string[];
   /**
-   * Called after this post is deleted, so the parent can drop it from its
-   * locally fetched reply/quote signals (children are not Relay connections,
-   * so `@deleteEdge` cannot reach them).
+   * Called after this post is deleted, so the owner can drop it from its
+   * local state (the enclosing subtree's reply list, or the parent node's
+   * quote list).
    */
   onDeleted?: () => void;
+  /**
+   * Replies below the enclosing subtree's root, keyed by parent post id.
+   * Populated in bulk from the subtree root's `descendants`; reply rows
+   * recurse with the same accessor.
+   */
+  repliesOf: (id: string) => readonly SubtreeReplyNode[];
+  /** Bubbles a deleted reply up to the subtree owning the reply list. */
+  onReplyDeleted?: (id: string) => void;
 }
 
 export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
   const { t } = useLingui();
-  const { onNoteCreated, openForEdit } = useNoteCompose();
+  const { onNoteCreated, openForEdit, quotedPostId } = useNoteCompose();
   const environment = useRelayEnvironment();
   const actingAccount = useActingAccount();
   const actingAccountId = () => actingAccount.selectedActingAccountId();
   const owner = getOwner();
-  const post = createFragment(
-    graphql`
-      fragment NewsDiscussionThread_post on Post
-        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
-      {
-        id
-        __typename
-        uuid
-        content
-        language
-        url
-        iri
-        published
-        visibility
-        ... on Note {
-          personalRawContent: rawContent
-          rawContent(actingAccountId: $actingAccountId)
-          quotePolicy
-        }
-        ... on Article {
-          name
-          excerptHtml(maxChars: 700)
-        }
-        engagementStats {
-          replies
-          quotes
-        }
-        actor {
-          name
-          handle
-          username
-          local
-          url
-          iri
-          isViewer(actingAccountId: $actingAccountId)
-          account {
-            id
-            kind
-          }
-        }
-        ...PostAuthorAvatar_post
-        ...PostAuthorLine_post
-        ...PostEngagementBar_post @arguments(
-          actingAccountId: $actingAccountId
-        )
-      }
-    `,
-    () => props.$post,
-  );
+  const post = createFragment(threadPostFragment, () => props.$post);
 
   // Claim this post id for the whole discussion (synchronously, before render):
   // a duplicate occurrence elsewhere in the tree renders nothing.  Released on
@@ -183,72 +448,74 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
     onCleanup(() => props.rendered.delete(ownId));
   }
 
-  const [replyChildren, setReplyChildren] = createSignal<Child[]>([]);
-  const [quoteChildren, setQuoteChildren] = createSignal<Child[]>([]);
+  const [quoteChildren, setQuoteChildren] = createSignal<QuoteChild[]>([]);
   const [expanded, setExpanded] = createSignal(false);
   const [loadState, setLoadState] = createSignal<
     "idle" | "loading" | "errored"
   >("idle");
-  const [replyCursor, setReplyCursor] = createSignal<string | null>(null);
-  const [replyHasMore, setReplyHasMore] = createSignal(false);
   const [quoteCursor, setQuoteCursor] = createSignal<string | null>(null);
   const [quoteHasMore, setQuoteHasMore] = createSignal(false);
-  // Dedup across pages and against replies that are also quotes of this post.
+  // Dedup across pages.
   const seen = new Set<string>();
   // `fetchQuery` is one-shot (next then complete), and the `loadState` guard
   // below prevents overlapping loads, so the subscription needs no manual
   // unsubscribe (unsubscribing an in-flight request throws `AbortError`).  This
   // flag just stops late callbacks from touching state after unmount.
   let disposed = false;
-  // Bounds the deep-link auto-pagination per connection; reset on each fresh
-  // load.
-  let autoReplyPages = 0;
+  // Bounds the deep-link auto-pagination; reset on each fresh load.
   let autoQuotePages = 0;
-  // The last load kind, so the error-retry button repeats it.
-  let lastMode: LoadMode = "initial";
+  // A reload requested while a fetch is in flight runs after it settles, so
+  // a quote composed mid-load is not silently dropped.
+  let reloadQueued = false;
   onCleanup(() => disposed = true);
 
-  const childCount = () => {
-    const p = post();
-    return p == null ? 0 : p.engagementStats.replies + p.engagementStats.quotes;
-  };
+  const quoteCount = () => post()?.engagementStats.quotes ?? 0;
 
-  // Drop a deleted child from the locally fetched reply/quote signals; its
-  // subtree unmounts and releases its `rendered` claim.
-  const removeChild = (id: string) => {
+  const replyChildren = createMemo<readonly SubtreeReplyNode[]>(() => {
+    const p = post();
+    if (p == null) return [];
+    return props.repliesOf(p.id).filter((child) =>
+      child.id !== p.id && !(props.visited?.has(child.id))
+    );
+  });
+  // A reply that also quotes this post renders once, as a reply; the quote
+  // occurrence is filtered out.
+  const replyIds = createMemo(() =>
+    new Set(replyChildren().map((child) => child.id))
+  );
+  const visibleQuoteChildren = createMemo(() =>
+    quoteChildren().filter((child) => !replyIds().has(child.id))
+  );
+
+  // Drop a deleted quote child from the locally fetched signal; its subtree
+  // unmounts and releases its `rendered` claim.
+  const removeQuoteChild = (id: string) => {
     seen.delete(id);
-    setReplyChildren((prev) => prev.filter((c) => c.id !== id));
-    setQuoteChildren((prev) => prev.filter((c) => c.id !== id));
+    setQuoteChildren((prev) => prev.filter((child) => child.id !== id));
   };
 
-  function loadChildren(mode: LoadMode = "initial") {
+  function loadQuotes(mode: "initial" | "more" = "initial") {
     const p = post();
-    if (p == null || loadState() === "loading") return;
-    lastMode = mode;
+    if (p == null) return;
+    if (loadState() === "loading") {
+      if (mode === "initial") reloadQueued = true;
+      return;
+    }
     if (mode === "initial") {
       seen.clear();
-      autoReplyPages = 0;
       autoQuotePages = 0;
-      setReplyChildren([]);
       setQuoteChildren([]);
-      setReplyCursor(null);
       setQuoteCursor(null);
-      setReplyHasMore(false);
       setQuoteHasMore(false);
     }
     setExpanded(true);
     setLoadState("loading");
-    // Only fetch the connection this load touches; the other would just be
-    // refetched and discarded.
     fetchQuery<NewsDiscussionThreadChildrenQuery>(
       environment(),
-      childrenQuery,
+      quotesQuery,
       {
         id: p.id,
-        cursor: mode === "replies" ? replyCursor() : null,
-        quoteCursor: mode === "quotes" ? quoteCursor() : null,
-        loadReplies: mode !== "quotes",
-        loadQuotes: mode !== "replies",
+        quoteCursor: mode === "more" ? quoteCursor() : null,
         actingAccountId: actingAccountId() ?? null,
       },
     ).subscribe({
@@ -256,57 +523,43 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
         if (disposed) return;
         runWithOwner(owner, () => {
           const node = data.node;
-          const collect = (
-            edges:
-              | ReadonlyArray<{ node: { id: string } & Child["key"] } | null>
-              | null
-              | undefined,
-          ): Child[] => {
-            const out: Child[] = [];
-            for (const edge of edges ?? []) {
-              const n = edge?.node;
-              if (n == null) continue;
-              if (n.id === p.id) continue; // never re-render self
-              if (props.visited?.has(n.id)) continue; // ancestor already shows it
-              if (seen.has(n.id)) continue; // already loaded under this node
-              seen.add(n.id);
-              out.push({ id: n.id, key: n });
-            }
-            return out;
-          };
-          // A reply that also quotes this post is collected as a reply (below,
-          // first) and deduped out of the quotes, so it renders exactly once.
-          if (mode !== "quotes") {
-            const replies = collect(node?.replies?.edges);
-            setReplyChildren((prev) =>
-              mode === "replies" ? [...prev, ...replies] : replies
-            );
-            setReplyCursor(node?.replies?.pageInfo?.endCursor ?? null);
-            setReplyHasMore(node?.replies?.pageInfo?.hasNextPage ?? false);
+          const quotes: QuoteChild[] = [];
+          for (const edge of node?.quotes?.edges ?? []) {
+            const n = edge?.node;
+            if (n == null) continue;
+            if (n.id === p.id) continue; // never re-render self
+            if (props.visited?.has(n.id)) continue; // ancestor already shows it
+            if (seen.has(n.id)) continue; // already loaded under this node
+            seen.add(n.id);
+            quotes.push({ id: n.id, key: n });
           }
-          if (mode !== "replies") {
-            const quotes = collect(node?.quotes?.edges);
-            setQuoteChildren((prev) =>
-              mode === "quotes" ? [...prev, ...quotes] : quotes
-            );
-            setQuoteCursor(node?.quotes?.pageInfo?.endCursor ?? null);
-            setQuoteHasMore(node?.quotes?.pageInfo?.hasNextPage ?? false);
-          }
+          setQuoteChildren((prev) =>
+            mode === "more" ? [...prev, ...quotes] : quotes
+          );
+          setQuoteCursor(node?.quotes?.pageInfo?.endCursor ?? null);
+          setQuoteHasMore(node?.quotes?.pageInfo?.hasNextPage ?? false);
           setLoadState("idle");
+          if (reloadQueued) {
+            reloadQueued = false;
+            loadQuotes();
+            return;
+          }
           maybeAutoPaginate();
         });
       },
       error() {
         if (disposed) return;
-        runWithOwner(owner, () => setLoadState("errored"));
+        runWithOwner(owner, () => {
+          setLoadState("errored");
+          reloadQueued = false;
+        });
       },
     });
   }
 
-  // While following a deep link, keep paginating toward the buried target one
-  // connection at a time (replies first, then quotes), each capped by page
-  // count and by depth so the expansion stays bounded.  A deep-linked quote
-  // past the first page is reached this way, not just a deep-linked reply.
+  // While following a deep link, keep paginating the quotes toward the
+  // buried target, capped by page count and by depth so the expansion stays
+  // bounded.  (Reply pages are chased by the enclosing subtree instead.)
   function maybeAutoPaginate() {
     if (
       props.targetUuid == null ||
@@ -314,29 +567,25 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
     ) {
       return;
     }
-    if (replyHasMore() && autoReplyPages < NEWS_DISCUSSION_TARGET_MAX_PAGES) {
-      autoReplyPages++;
-      loadChildren("replies");
-    } else if (
-      quoteHasMore() && autoQuotePages < NEWS_DISCUSSION_TARGET_MAX_PAGES
-    ) {
+    if (quoteHasMore() && autoQuotePages < NEWS_DISCUSSION_TARGET_MAX_PAGES) {
       autoQuotePages++;
-      loadChildren("quotes");
+      loadQuotes("more");
     }
   }
 
   onMount(() => {
-    // Refresh this node's loaded children when the viewer composes a reply.
+    // Composing a quote of this post refreshes its loaded quotes.  (Replies
+    // are refreshed by the enclosing subtree's bulk reload.)
     onCleanup(onNoteCreated(() => {
-      if (expanded()) loadChildren();
+      if (quotedPostId() === post()?.id) loadQuotes();
     }));
     if (
-      childCount() > 0 &&
+      quoteCount() > 0 &&
       (props.depth < NEWS_DISCUSSION_AUTO_DEPTH ||
         (props.targetUuid != null &&
           props.depth < NEWS_DISCUSSION_TARGET_MAX_DEPTH))
     ) {
-      loadChildren();
+      loadQuotes();
     }
   });
 
@@ -469,76 +718,70 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
             </div>
           </article>
 
-          <Show when={childCount() > 0}>
+          <Show when={quoteCount() > 0 || replyChildren().length > 0}>
             <div class="ml-4 sm:ml-6">
-              <Show
-                when={expanded()}
-                fallback={
-                  <button
-                    type="button"
-                    onClick={() => loadChildren()}
-                    class="block w-full cursor-pointer px-4 py-2 text-left text-sm text-muted-foreground transition-colors hover:text-primary"
-                  >
-                    {t`Show ${childCount()} more in this thread`}
-                  </button>
-                }
-              >
-                <For each={quoteChildren()}>
-                  {(child) => (
-                    <NewsDiscussionThread
-                      $post={child.key}
-                      depth={props.depth + 1}
-                      targetUuid={props.targetUuid}
-                      visited={childVisited()}
-                      rendered={props.rendered}
-                      connections={props.connections}
-                      onDeleted={() => removeChild(child.id)}
-                    />
-                  )}
-                </For>
-                <Show when={quoteHasMore()}>
-                  <button
-                    type="button"
-                    onClick={() => loadChildren("quotes")}
-                    disabled={loadState() === "loading"}
-                    class="block w-full cursor-pointer px-4 py-2 text-left text-sm text-muted-foreground transition-colors hover:text-primary disabled:opacity-60"
-                  >
-                    {t`Load more quotes`}
-                  </button>
-                </Show>
-                <For each={replyChildren()}>
-                  {(child) => (
-                    <NewsDiscussionThread
-                      $post={child.key}
-                      depth={props.depth + 1}
-                      targetUuid={props.targetUuid}
-                      visited={childVisited()}
-                      rendered={props.rendered}
-                      connections={props.connections}
-                      onDeleted={() => removeChild(child.id)}
-                    />
-                  )}
-                </For>
-                <Show when={replyHasMore()}>
-                  <button
-                    type="button"
-                    onClick={() => loadChildren("replies")}
-                    disabled={loadState() === "loading"}
-                    class="block w-full cursor-pointer px-4 py-2 text-left text-sm text-muted-foreground transition-colors hover:text-primary disabled:opacity-60"
-                  >
-                    {t`Load more replies`}
-                  </button>
-                </Show>
-                <Show when={loadState() === "errored"}>
-                  <button
-                    type="button"
-                    onClick={() => loadChildren(lastMode)}
-                    class="block w-full cursor-pointer px-4 py-2 text-left text-sm text-error transition-colors hover:underline"
-                  >
-                    {t`Failed to load replies; click to retry`}
-                  </button>
+              <Show when={quoteCount() > 0}>
+                <Show
+                  when={expanded()}
+                  fallback={
+                    <button
+                      type="button"
+                      onClick={() => loadQuotes()}
+                      class="block w-full cursor-pointer px-4 py-2 text-left text-sm text-muted-foreground transition-colors hover:text-primary"
+                    >
+                      {t`Show ${quoteCount()} more in this thread`}
+                    </button>
+                  }
+                >
+                  <Key each={visibleQuoteChildren()} by={(child) => child.id}>
+                    {(child) => (
+                      <NewsDiscussionSubtree
+                        $post={child().key}
+                        depth={props.depth + 1}
+                        targetUuid={props.targetUuid}
+                        visited={childVisited()}
+                        rendered={props.rendered}
+                        connections={props.connections}
+                        onDeleted={() => removeQuoteChild(child().id)}
+                      />
+                    )}
+                  </Key>
+                  <Show when={quoteHasMore()}>
+                    <button
+                      type="button"
+                      onClick={() => loadQuotes("more")}
+                      disabled={loadState() === "loading"}
+                      class="block w-full cursor-pointer px-4 py-2 text-left text-sm text-muted-foreground transition-colors hover:text-primary disabled:opacity-60"
+                    >
+                      {t`Load more quotes`}
+                    </button>
+                  </Show>
+                  <Show when={loadState() === "errored"}>
+                    <button
+                      type="button"
+                      onClick={() => loadQuotes()}
+                      class="block w-full cursor-pointer px-4 py-2 text-left text-sm text-error transition-colors hover:underline"
+                    >
+                      {t`Failed to load replies; click to retry`}
+                    </button>
+                  </Show>
                 </Show>
               </Show>
+              <Key each={replyChildren()} by={(child) => child.id}>
+                {(child) => (
+                  <NewsDiscussionThread
+                    $post={child().key}
+                    depth={props.depth + 1}
+                    targetUuid={props.targetUuid}
+                    visited={childVisited()}
+                    rendered={props.rendered}
+                    connections={props.connections}
+                    onDeleted={() => props.onReplyDeleted?.(child().id)}
+                    repliesOf={props.repliesOf}
+                    onReplyDeleted={props.onReplyDeleted}
+                  />
+                )}
+              </Key>
             </div>
           </Show>
         </div>

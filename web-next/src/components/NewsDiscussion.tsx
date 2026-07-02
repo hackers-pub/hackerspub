@@ -3,7 +3,7 @@ import { graphql } from "relay-runtime";
 import { Match, onCleanup, onMount, Show, Switch } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import { NewsDiscussionComposer } from "~/components/NewsDiscussionComposer.tsx";
-import { NewsDiscussionThread } from "~/components/NewsDiscussionThread.tsx";
+import { NewsDiscussionSubtree } from "~/components/NewsDiscussionThread.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -94,7 +94,7 @@ export function NewsDiscussion(props: NewsDiscussionProps) {
             <Key each={data.sharingPosts.edges} by={(edge) => edge.node.id}>
               {(edge) => (
                 <div class="border-b last:border-none">
-                  <NewsDiscussionThread
+                  <NewsDiscussionSubtree
                     $post={edge().node}
                     depth={0}
                     targetUuid={props.targetUuid}
