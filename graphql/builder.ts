@@ -109,6 +109,13 @@ export interface UserContext extends ServerContext {
   // actor id ("" for guests), since `actingAccountId` can switch the
   // perspective per field.
   postVisibleLoader?: Map<string, DataLoader<Uuid, boolean>>;
+  // Request-scoped check of whether a post has at least one direct reply
+  // visible to the viewer (same sanction + censorship + visibility filter as
+  // the `replies` connection).  Thread views use it instead of the raw
+  // `engagementStats.replies` counter so a node whose only replies are hidden
+  // does not reveal their existence.  Batched so a whole reply page resolves
+  // in one query; keyed by the viewer actor id ("" for guests).
+  postHasVisibleRepliesLoader?: Map<string, DataLoader<Uuid, boolean>>;
   // Request-scoped cache so that viewerCanReply, viewerCanQuote, and
   // viewerCanShare for the same post and selected viewer actor only run
   // one relational lookup even though they are exposed as three separate

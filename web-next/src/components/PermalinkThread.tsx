@@ -408,9 +408,7 @@ const PermalinkThreadTreeFragment = graphql`
           replyTarget(actingAccountId: $actingAccountId) {
             id
           }
-          engagementStats {
-            replies
-          }
+          hasVisibleReplies(actingAccountId: $actingAccountId)
           actor {
             id
           }
@@ -585,12 +583,14 @@ function ThreadReplyNode(props: ThreadReplyNodeProps) {
     }
     return count;
   });
-  // The depth cap (or a not-yet-federated subtree) can leave a node with
-  // known replies but none loaded even after the whole connection is
-  // exhausted; its own permalink picks the thread up from there.
+  // The depth cap can leave a node with visible replies that never loaded,
+  // even after the whole connection is exhausted; its own permalink picks the
+  // thread up from there. Gate on `hasVisibleReplies` (not the raw counter) so
+  // a node whose only replies are hidden from the viewer shows no link, which
+  // would otherwise reveal that those hidden replies exist.
   const continueHere = createMemo(() =>
     children().length < 1 &&
-    props.node.engagementStats.replies > 0 &&
+    props.node.hasVisibleReplies &&
     !props.subtreeMayContinue
   );
 

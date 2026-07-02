@@ -129,9 +129,9 @@ const threadPostFragment = graphql`
       excerptHtml(maxChars: 700)
     }
     engagementStats {
-      replies
       quotes
     }
+    hasVisibleReplies(actingAccountId: $actingAccountId)
     actor {
       id
       name
@@ -330,7 +330,7 @@ export function NewsDiscussionSubtree(props: NewsDiscussionSubtreeProps) {
   };
 
   onMount(() => {
-    if ((post()?.engagementStats.replies ?? 0) > 0) loadReplies();
+    if (post()?.hasVisibleReplies) loadReplies();
     // Composing a reply to a post inside this subtree refreshes just this
     // subtree.  `notifyNoteCreated` fires before the compose modal resets
     // its state, so the reply target is still readable here.
@@ -512,12 +512,14 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
   const visibleQuoteChildren = createMemo(() =>
     quoteChildren().filter((child) => !replyIds().has(child.id))
   );
-  // The server's `descendants` depth cap (or a not-yet-federated branch) can
-  // leave a node with known replies but none loaded even after the subtree's
-  // pagination is exhausted; its own permalink picks the thread up from there.
+  // The server's `descendants` depth cap can leave a node with visible replies
+  // that never loaded, even after the subtree's pagination is exhausted; its
+  // own permalink picks the thread up from there. Gate on `hasVisibleReplies`
+  // (not the raw counter) so a node whose only replies are hidden from the
+  // viewer shows no link, which would otherwise reveal that they exist.
   const continueHere = createMemo(() =>
     replyChildren().length < 1 &&
-    (post()?.engagementStats.replies ?? 0) > 0 &&
+    (post()?.hasVisibleReplies ?? false) &&
     !props.subtreeMayContinue
   );
 

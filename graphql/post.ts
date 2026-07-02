@@ -1353,6 +1353,47 @@ export function isPostVisibleToViewer(
   return loader.load(postId);
 }
 
+// Whether the given post has at least one direct reply visible to the viewer,
+// under the same sanction + censorship + visibility filter as the `replies`
+// connection.  Thread views use this instead of the raw
+// `engagementStats.replies` counter: a node whose only replies are hidden
+// (followers-only to a stranger, censored, or by a sanctioned author) reports
+// `false`, so a "continue this thread" affordance cannot reveal that hidden
+// replies exist.  Batched (one query per reply page) and keyed by viewer.
+function postHasVisibleReplies(
+  ctx: UserContext,
+  postId: Uuid,
+  viewerActorId: Uuid | null,
+): Promise<boolean> {
+  ctx.postHasVisibleRepliesLoader ??= new Map();
+  let loader = ctx.postHasVisibleRepliesLoader.get(viewerActorId ?? "");
+  if (loader == null) {
+    loader = new DataLoader<Uuid, boolean>(
+      async (ids) => {
+        const idList = ids as Uuid[];
+        const viewerActor = viewerActorId == null
+          ? null
+          : await getActorById(ctx, viewerActorId);
+        const rows = await ctx.db.query.postTable.findMany({
+          columns: { replyTargetId: true },
+          where: {
+            AND: [
+              { replyTargetId: { in: idList } },
+              { actor: getSanctionVisibleActorFilter() },
+              getCensoredPostExclusionFilter(viewerActorId),
+              getPostVisibilityFilter(viewerActor),
+            ],
+          },
+        });
+        const withReplies = new Set(rows.map((row) => row.replyTargetId));
+        return idList.map((id) => withReplies.has(id));
+      },
+    );
+    ctx.postHasVisibleRepliesLoader.set(viewerActorId ?? "", loader);
+  }
+  return loader.load(postId);
+}
+
 // Backs the `Post.replies` / `Post.quotes` / `Post.shares` connections:
 // posts related to `targetId` through `column` (`replyTargetId`,
 // `quotedPostId`, or `sharedPostId`), newest first, filtered to those
@@ -1647,6 +1688,28 @@ builder.drizzleInterfaceFields(Post, (t) => ({
           ),
       }),
     }),
+  }),
+  hasVisibleReplies: t.boolean({
+    description:
+      "Whether this post has at least one direct reply the selected viewer " +
+      "can see, under the same filter as the `replies` connection (author " +
+      "sanction state, censorship, and per-post visibility). Prefer this " +
+      "over `engagementStats.replies > 0` when deciding whether to show a " +
+      '"continue this thread" affordance in a thread view: the raw counter ' +
+      "includes replies hidden from the viewer (followers-only, direct, " +
+      "censored, or by a sanctioned author), so branching on it would " +
+      "reveal that hidden replies exist. Pass `actingAccountId` for an " +
+      "organization perspective.",
+    args: {
+      actingAccountId: t.arg.id({
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
+    resolve: async (post, args, ctx) => {
+      const viewerActorId = await resolveViewerActorId(ctx, args);
+      return await postHasVisibleReplies(ctx, post.id, viewerActorId);
+    },
   }),
   ancestors: t.connection({
     type: Post,

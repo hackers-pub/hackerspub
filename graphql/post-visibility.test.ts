@@ -690,3 +690,71 @@ test("descendants hydrate note sources so own replies stay editable", async () =
     assert.equal(edges[0].node.rawContent, "editable reply body");
   });
 });
+
+test("hasVisibleReplies hides the existence of followers-only replies", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "hvrauthor",
+      name: "HVR Author",
+      email: "hvrauthor@example.com",
+    });
+    const follower = await insertAccountWithActor(tx, {
+      username: "hvrfollower",
+      name: "HVR Follower",
+      email: "hvrfollower@example.com",
+    });
+    const stranger = await insertAccountWithActor(tx, {
+      username: "hvrstranger",
+      name: "HVR Stranger",
+      email: "hvrstranger@example.com",
+    });
+    await follows(tx, follower, author);
+    const { post: root } = await insertNotePost(tx, {
+      account: author.account,
+      content: "root",
+    });
+    // The only reply is followers-only, so a stranger must not learn it exists.
+    await insertNotePost(tx, {
+      account: author.account,
+      content: "followers-only reply",
+      visibility: "followers",
+      replyTargetId: root.id,
+    });
+
+    const query = parse(`
+      query($id: ID!) {
+        node(id: $id) { ... on Post { hasVisibleReplies } }
+      }
+    `);
+    const gid = encodeGlobalID("Note", root.id);
+    interface Data {
+      node: { hasVisibleReplies: boolean };
+    }
+
+    const asStranger = await execute({
+      schema,
+      document: query,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, stranger.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(asStranger.errors, undefined);
+    assert.equal(
+      (asStranger.data as unknown as Data).node.hasVisibleReplies,
+      false,
+    );
+
+    const asFollower = await execute({
+      schema,
+      document: query,
+      variableValues: { id: gid },
+      contextValue: makeUserContext(tx, follower.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(asFollower.errors, undefined);
+    assert.equal(
+      (asFollower.data as unknown as Data).node.hasVisibleReplies,
+      true,
+    );
+  });
+});
