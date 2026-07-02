@@ -6,6 +6,7 @@ import {
   createSignal,
   getOwner,
   Match,
+  on,
   onCleanup,
   onMount,
   runWithOwner,
@@ -288,7 +289,13 @@ export function NewsDiscussionSubtree(props: NewsDiscussionSubtreeProps) {
         if (disposed) return;
         runWithOwner(owner, () => {
           setLoadState("errored");
-          reloadQueued = false;
+          // A reload queued mid-flight (e.g. an acting-account switch) must
+          // still run, or stale replies from the failed old-scope request
+          // would linger under the new perspective.
+          if (reloadQueued) {
+            reloadQueued = false;
+            loadReplies();
+          }
         });
       },
     });
@@ -345,6 +352,30 @@ export function NewsDiscussionSubtree(props: NewsDiscussionSubtreeProps) {
       loadReplies();
     }));
   });
+
+  // The loaded replies are scoped to the acting account they were fetched
+  // under.  Re-scope them when the account changes so an org-visible
+  // followers-only/direct reply does not linger after switching to a narrower
+  // perspective, and refetch when replies first become visible under the new
+  // account.  `onMount` owns the very first load, so this is deferred.
+  createEffect(on(
+    [() => actingAccountId() ?? null, () => post()?.hasVisibleReplies ?? false],
+    ([acct, hasVisible], prev) => {
+      if (acct !== prev?.[0]) {
+        if (hasVisible || loaded() || loadState() === "loading") {
+          loadReplies("initial");
+        } else {
+          seen.clear();
+          setNodes([]);
+          setEndCursor(null);
+          setHasMore(false);
+        }
+      } else if (hasVisible && !loaded() && loadState() === "idle") {
+        loadReplies("initial");
+      }
+    },
+    { defer: true },
+  ));
 
   // Following a deep link into a reply page that is not loaded yet: keep
   // loading more pages toward the target, bounded per target.
@@ -594,7 +625,13 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
         if (disposed) return;
         runWithOwner(owner, () => {
           setLoadState("errored");
-          reloadQueued = false;
+          // A reload queued mid-flight (e.g. an acting-account switch) must
+          // still run, or stale quotes from the failed old-scope request would
+          // linger under the new perspective.
+          if (reloadQueued) {
+            reloadQueued = false;
+            loadQuotes();
+          }
         });
       },
     });
@@ -631,6 +668,23 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
       loadQuotes();
     }
   });
+
+  // Loaded quotes are scoped to the acting account they were fetched under.
+  // Re-scope them when the account changes so an org-visible quote does not
+  // linger after switching to a narrower perspective; when the branch was
+  // collapsed, drop the stale state so a fresh expand refetches.  `onMount`
+  // owns the very first load, so this is deferred.
+  createEffect(on(() => actingAccountId() ?? null, () => {
+    if (expanded() || loadState() === "loading") {
+      loadQuotes("initial");
+    } else {
+      seen.clear();
+      autoQuotePages = 0;
+      setQuoteChildren([]);
+      setQuoteCursor(null);
+      setQuoteHasMore(false);
+    }
+  }, { defer: true }));
 
   const isTarget = createMemo(() =>
     props.targetUuid != null && post()?.uuid === props.targetUuid
