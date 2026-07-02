@@ -1284,6 +1284,13 @@ export function hidePostRelationWithoutActor<T>(
   return post;
 }
 
+// Raw rows to scan per round once the `descendants` page is already full and
+// the resolver only needs to confirm one more visible reply exists (for
+// `hasNextPage`).  Kept small so a probe that finds a survivor early does not
+// over-fetch a whole `first`-sized page; a longer run of hidden rows is
+// stepped over across the bounded rounds instead.
+const DESCENDANT_PROBE_BATCH = 20;
+
 // A descendants cursor is base64 of the model layer's DFS path: fixed-width
 // `<YYYY-MM-DDTHH:MM:SS.ffffff>~<uuid>` elements joined by `/` (the timestamp
 // is the node's UTC publish time to microsecond precision).  The uuid parts
@@ -1811,9 +1818,10 @@ builder.drizzleInterfaceFields(Post, (t) => ({
         const page = await getDescendantPage(ctx.db, post.id, {
           after,
           // While filling, fetch what is left plus one so a single dense page
-          // both fills and reveals the next survivor; once full, fetch a batch
-          // to scan over runs of hidden rows while probing for one.
-          limit: remaining > 0 ? remaining + 1 : first,
+          // both fills and reveals the next survivor.  Once full, only one more
+          // visible survivor is needed, so fetch a small fixed batch (enough to
+          // step over a short run of hidden rows) rather than another `first`.
+          limit: remaining > 0 ? remaining + 1 : DESCENDANT_PROBE_BATCH,
           maxDepth,
           viewerActorId,
         });
