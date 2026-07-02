@@ -624,9 +624,13 @@ function pollVoterHiddenCondition(now: Date) {
   return and(
     lte(actorTable.suspended, now),
     or(
-      and(isNull(actorTable.accountId), isNull(actorTable.suspendedUntil)),
+      // A `null` `suspendedUntil` (permanent) hides the actor regardless of
+      // whether it is local or remote, so the two `accountId` branches for it
+      // collapse into one check.
+      isNull(actorTable.suspendedUntil),
+      // A remote actor with a still-future `suspendedUntil` stays hidden; a
+      // local one is only write-restricted, so its content remains visible.
       and(isNull(actorTable.accountId), gt(actorTable.suspendedUntil, now)),
-      and(isNotNull(actorTable.accountId), isNull(actorTable.suspendedUntil)),
     ),
   );
 }
