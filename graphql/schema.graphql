@@ -6117,7 +6117,7 @@ input UnbookmarkPostInput {
 
 type UnbookmarkPostPayload {
   clientMutationId: ID
-  post: Post!
+  post: Post
   unbookmarkedPostId: ID!
 }
 

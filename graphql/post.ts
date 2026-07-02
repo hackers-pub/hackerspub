@@ -4587,11 +4587,21 @@ builder.relayMutationField(
     outputFields: (t) => ({
       post: t.drizzleField({
         type: Post,
+        // Nullable and visibility-gated: removing an owned bookmark is
+        // allowed even after the post became invisible to the viewer, but
+        // the payload must not then re-expose that post's content. Returns
+        // `null` when the post is no longer visible; the client can still
+        // reconcile its cache from `unbookmarkedPostId`.
+        nullable: true,
         async resolve(query, result, _args, ctx) {
+          const viewerActorId = ctx.account?.actor.id ?? null;
+          if (!await isPostVisibleToViewer(ctx, result.postId, viewerActorId)) {
+            return null;
+          }
           const post = await ctx.db.query.postTable.findFirst(
             query({ where: { id: result.postId } }),
           );
-          return post!;
+          return post ?? null;
         },
       }),
       unbookmarkedPostId: t.globalID({

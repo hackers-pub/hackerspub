@@ -450,7 +450,10 @@ test("unbookmarkPost lets the owner remove a bookmark on a now-invisible post", 
         mutation($postId: ID!) {
           unbookmarkPost(input: { postId: $postId }) {
             __typename
-            ... on UnbookmarkPostPayload { unbookmarkedPostId }
+            ... on UnbookmarkPostPayload {
+              unbookmarkedPostId
+              post { id }
+            }
             ... on InvalidInputError { inputPath }
           }
         }
@@ -460,11 +463,13 @@ test("unbookmarkPost lets the owner remove a bookmark on a now-invisible post", 
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    assert.equal(
-      (result.data as { unbookmarkPost: { __typename: string } })
-        .unbookmarkPost.__typename,
-      "UnbookmarkPostPayload",
-    );
+    const payload = (result.data as {
+      unbookmarkPost: { __typename: string; post: { id: string } | null };
+    }).unbookmarkPost;
+    assert.equal(payload.__typename, "UnbookmarkPostPayload");
+    // Removal succeeds, but the payload does not re-expose the now-invisible
+    // post's content.
+    assert.equal(payload.post, null);
     // The bookmark is actually gone.
     assert.deepEqual(
       await arePostsBookmarkedBy(tx, [post.id], viewer.account),
