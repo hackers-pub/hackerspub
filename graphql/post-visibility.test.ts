@@ -2,18 +2,23 @@ import {
   arePostsBookmarkedBy,
   createBookmark,
 } from "@hackerspub/models/bookmark";
+import type { Transaction } from "@hackerspub/models/db";
+import { follow } from "@hackerspub/models/following";
+import { createOrganization } from "@hackerspub/models/organization";
 import {
+  accountTable,
   actorTable,
   articleDraftTable,
   followingTable,
   postTable,
 } from "@hackerspub/models/schema";
-import { generateUuidV7 } from "@hackerspub/models/uuid";
+import { generateUuidV7, type Uuid } from "@hackerspub/models/uuid";
 import { encodeGlobalID } from "@pothos/plugin-relay";
 import { eq } from "drizzle-orm";
 import { execute, parse } from "graphql";
 import assert from "node:assert";
 import test from "node:test";
+import { schema } from "./mod.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
@@ -23,12 +28,6 @@ import {
   makeUserContext,
   withRollback,
 } from "../test/postgres.ts";
-import type { Transaction } from "@hackerspub/models/db";
-import { follow } from "@hackerspub/models/following";
-import { createOrganization } from "@hackerspub/models/organization";
-import { accountTable } from "@hackerspub/models/schema";
-import type { Uuid } from "@hackerspub/models/uuid";
-import { schema } from "./mod.ts";
 
 async function follows(
   tx: Transaction,
