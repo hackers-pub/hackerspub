@@ -195,25 +195,30 @@ export const ReactionGroup = builder.interfaceRef<ReactionGroup>(
           emoji?: string;
           customEmojiId?: Uuid;
         };
+        const conditions = [
+          eq(reactionTable.postId, group.subject.id),
+          or(
+            isNull(actorTable.suspended),
+            gt(actorTable.suspended, now),
+            lte(actorTable.suspendedUntil, now),
+            and(
+              isNotNull(actorTable.accountId),
+              gt(actorTable.suspendedUntil, now),
+            ),
+          ),
+        ];
+        if (groupFilter.customEmojiId != null) {
+          conditions.push(
+            eq(reactionTable.customEmojiId, groupFilter.customEmojiId),
+          );
+        } else if (groupFilter.emoji != null) {
+          conditions.push(eq(reactionTable.emoji, groupFilter.emoji));
+        }
         const [totalRow] = await ctx.db
           .select({ c: count() })
           .from(reactionTable)
           .innerJoin(actorTable, eq(actorTable.id, reactionTable.actorId))
-          .where(and(
-            eq(reactionTable.postId, group.subject.id),
-            groupFilter.customEmojiId != null
-              ? eq(reactionTable.customEmojiId, groupFilter.customEmojiId)
-              : eq(reactionTable.emoji, groupFilter.emoji!),
-            or(
-              isNull(actorTable.suspended),
-              gt(actorTable.suspended, now),
-              lte(actorTable.suspendedUntil, now),
-              and(
-                isNotNull(actorTable.accountId),
-                gt(actorTable.suspendedUntil, now),
-              ),
-            ),
-          ));
+          .where(and(...conditions));
         return {
           postId: group.subject.id,
           where: group.where,
