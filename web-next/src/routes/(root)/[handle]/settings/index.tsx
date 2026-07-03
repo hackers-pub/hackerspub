@@ -244,21 +244,28 @@ function SettingsForm(props: SettingsFormProps) {
     });
   }
   const [links, setLinks] = createStore<{
-    readonly links: {
-      readonly name: string;
-      readonly url: string;
-      readonly index: number;
-    }[];
+    readonly links: AccountLinkFormItem[];
   }>({
-    links: [...account()?.links ?? [], {
-      name: "",
-      url: "",
-      index: account()?.links.length ?? 0,
-    }],
+    links: accountLinksToFormItems(account()?.links),
+  });
+  const [linksEdited, setLinksEdited] = createSignal(false);
+  const [syncedLinksAccountId, setSyncedLinksAccountId] = createSignal<
+    string | undefined
+  >();
+  createEffect(() => {
+    const id = account()?.id;
+    const accountLinks = account()?.links;
+    if (id == null || accountLinks == null) return;
+    const accountChanged = syncedLinksAccountId() !== id;
+    if (!accountChanged && linksEdited()) return;
+    setLinks({ links: accountLinksToFormItems(accountLinks) });
+    setSyncedLinksAccountId(id);
+    setLinksEdited(false);
   });
   function onLinkItemChange(
     values: { name: string; url: string; index: number },
   ) {
+    setLinksEdited(true);
     setLinks("links", values.index, () => {
       return values;
     });
@@ -549,6 +556,26 @@ function SettingsForm(props: SettingsFormProps) {
       </div>
     </form>
   );
+}
+
+interface AccountLinkFormItem {
+  readonly name: string;
+  readonly url: string;
+  readonly index: number;
+}
+
+function accountLinksToFormItems(
+  links:
+    | ReadonlyArray<{ readonly name: string; readonly url: string }>
+    | null
+    | undefined,
+): AccountLinkFormItem[] {
+  const items = links?.map((link, index) => ({
+    name: link.name,
+    url: link.url,
+    index,
+  })) ?? [];
+  return [...items, { name: "", url: "", index: items.length }];
 }
 
 interface LinkItemFormProps {
