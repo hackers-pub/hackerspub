@@ -7,6 +7,7 @@ import IconSquare from "~icons/lucide/square";
 import IconTrash from "~icons/lucide/trash-2";
 import IconX from "~icons/lucide/x";
 import {
+  batch,
   createEffect,
   createMemo,
   createSignal,
@@ -15,11 +16,23 @@ import {
   onCleanup,
   onMount,
   Show,
+  untrack,
 } from "solid-js";
 import { createMutation, useRelayEnvironment } from "solid-relay";
 import { ensureLinkInContent } from "~/lib/composerLink.ts";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { detectLanguage } from "~/lib/langdet.ts";
+import {
+  getNoteDraftStorageKey,
+  isMeaningfulNoteDraft,
+  type NoteDraftData,
+  type NoteDraftMedia,
+  type NoteDraftScope,
+  readNoteDraft,
+  removeNoteDraft,
+  type StoredNoteDraft,
+  writeNoteDraft,
+} from "~/lib/noteDraftStorage.ts";
 import {
   UploadAbortedError,
   uploadMediumFile,
@@ -38,6 +51,16 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "~/components/ui/avatar.tsx";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogClose,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "~/components/ui/alert-dialog.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { MarkdownEditor } from "~/components/MarkdownEditor.tsx";
 import { TextField, TextFieldLabel } from "~/components/ui/text-field.tsx";
@@ -50,6 +73,7 @@ import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { NoteComposerGeneratedAltTextQuery } from "./__generated__/NoteComposerGeneratedAltTextQuery.graphql.ts";
 import type { NoteComposerMutation } from "./__generated__/NoteComposerMutation.graphql.ts";
+import type { NoteComposerDraftMediaQuery } from "./__generated__/NoteComposerDraftMediaQuery.graphql.ts";
 import type { NoteComposerPostByUrlQuery } from "./__generated__/NoteComposerPostByUrlQuery.graphql.ts";
 import type { NoteComposerQuestionMutation } from "./__generated__/NoteComposerQuestionMutation.graphql.ts";
 import type { NoteComposerQuotedPostQuery } from "./__generated__/NoteComposerQuotedPostQuery.graphql.ts";
@@ -145,6 +169,20 @@ const NoteComposerUpdateMutation = graphql`
       }
       ... on NotAuthenticatedError {
         notAuthenticated
+      }
+    }
+  }
+`;
+
+const NoteComposerDraftMediaQuery = graphql`
+  query NoteComposerDraftMediaQuery($ids: [ID!]!) {
+    nodes(ids: $ids) {
+      ... on Medium {
+        id
+        uuid
+        url
+        width
+        height
       }
     }
   }
@@ -337,11 +375,14 @@ function defaultPollEnds(): string {
 
 interface MediaItem {
   localId: string;
-  file: File;
+  file?: File;
   previewUrl: string;
   alt: string;
   mediumRelayId?: string;
   uuid?: string;
+  url?: string;
+  width?: number;
+  height?: number;
   uploading: boolean;
   uploadProgress: number;
   generatingAlt: boolean;
@@ -358,10 +399,17 @@ interface QuotedPostPreview {
   actorAvatarUrl: string;
 }
 
+export type NoteDraftFlush = () => boolean;
+
+function revokePreviewUrl(url: string): void {
+  if (url.startsWith("blob:")) URL.revokeObjectURL(url);
+}
+
 export interface NoteComposerProps {
   onSuccess?: () => void;
   onCancel?: () => void;
   onContentChange?: (isDirty: boolean) => void;
+  onDraftFlushAvailable?: (flush: NoteDraftFlush | null) => void;
   showCancelButton?: boolean;
   autoFocus?: boolean;
   placeholder?: string;
@@ -378,6 +426,9 @@ export interface NoteComposerProps {
   // New notes only: Relay connection record ids to prepend the created note's
   // edge into, so the new note appears in those lists without a refetch.
   prependToConnections?: string[];
+  // New notes only: controls browser-side local draft reads and writes. Modal
+  // composers stay mounted while closed, so they disable this when hidden.
+  draftActive?: boolean;
   // New notes only: hide the poll composer in surfaces whose optimistic or
   // inline render path cannot display a `Question` poll yet.
   allowPoll?: boolean;
@@ -537,13 +588,50 @@ export function NoteComposer(props: NoteComposerProps) {
   let removeDragListeners: (() => void) | undefined;
   let textareaRef: HTMLTextAreaElement | undefined;
   let fileInputRef: HTMLInputElement | undefined;
+  let saveDraftTimer: ReturnType<typeof setTimeout> | undefined;
+  let draftRestoreMediaSubscription:
+    | { unsubscribe: () => void }
+    | undefined;
+  let restoringDraft = false;
+  let formDraftKey: string | null = null;
+
+  const draftScope = createMemo<NoteDraftScope | null>(() => {
+    if (props.editingNoteId) return null;
+    if (props.replyTargetId) {
+      return { type: "reply", targetId: props.replyTargetId };
+    }
+    const quoteId = props.quotedPostId;
+    if (quoteId) return { type: "quote", targetId: quoteId };
+    if (props.ensureLinkUrl) return { type: "link", url: props.ensureLinkUrl };
+    const initial = props.initialContent?.trim();
+    if (initial) return { type: "prefill", content: initial };
+    return { type: "new" };
+  });
+  const draftStorageKey = createMemo(() => {
+    if (props.draftActive === false) return null;
+    const scope = draftScope();
+    const username = viewer.username();
+    if (scope == null || username == null) return null;
+    return getNoteDraftStorageKey(username, scope);
+  });
+  const [loadedDraftKey, setLoadedDraftKey] = createSignal<string | null>(null);
+  const [hasLocalDraft, setHasLocalDraft] = createSignal(false);
+  const [draftSaveStatus, setDraftSaveStatus] = createSignal<
+    "idle" | "saved" | "unavailable"
+  >("idle");
+  const [showDeleteDraftConfirm, setShowDeleteDraftConfirm] = createSignal(
+    false,
+  );
 
   onCleanup(() => {
+    props.onDraftFlushAvailable?.(null);
     removeDragListeners?.();
+    clearTimeout(saveDraftTimer);
+    draftRestoreMediaSubscription?.unsubscribe();
     for (const item of mediaItems) {
       item.abortUpload?.();
       item.altSubscription?.unsubscribe();
-      URL.revokeObjectURL(item.previewUrl);
+      revokePreviewUrl(item.previewUrl);
     }
   });
 
@@ -565,6 +653,284 @@ export function NoteComposer(props: NoteComposerProps) {
   const isSubmitting = () =>
     isCreating() || isCreatingQuestion() ||
     isUpdating();
+
+  const getBrowserDraftStorage = () => {
+    try {
+      return globalThis.localStorage;
+    } catch {
+      return undefined;
+    }
+  };
+
+  const currentDraftData = (): NoteDraftData => ({
+    content: content(),
+    language: language()?.baseName,
+    visibility: visibility(),
+    quotePolicy: quotePolicy(),
+    actingAccountKey: actingAccountKey(),
+    quotedPostId: effectiveQuotedPostId() ?? undefined,
+    replyTargetId: props.replyTargetId ?? undefined,
+    ensureLinkUrl: props.ensureLinkUrl ?? undefined,
+    media: mediaItems
+      .filter((item) =>
+        item.uuid != null && item.mediumRelayId != null &&
+        (item.url != null || !item.previewUrl.startsWith("blob:"))
+      )
+      .map((item): NoteDraftMedia => ({
+        localId: item.localId,
+        mediumRelayId: item.mediumRelayId!,
+        uuid: item.uuid!,
+        url: item.url ?? item.previewUrl,
+        alt: item.alt,
+        width: item.width,
+        height: item.height,
+      })),
+    poll: {
+      enabled: canCreatePoll() && pollEnabled(),
+      title: pollTitle(),
+      multiple: pollMultiple(),
+      ends: pollEnds(),
+      options: pollOptions.map((option) => ({
+        localId: option.localId,
+        title: option.title,
+      })),
+    },
+    updatedAt: new Date().toISOString(),
+  });
+
+  const currentStorableDraftData = (): NoteDraftData => {
+    const draft = currentDraftData();
+    if (isDirty()) return draft;
+    return {
+      ...draft,
+      content: "",
+      media: [],
+      poll: {
+        ...draft.poll,
+        enabled: false,
+      },
+    };
+  };
+
+  const hasUnstorableMedia = () =>
+    mediaItems.some((item) =>
+      item.uploading ||
+      item.uuid == null ||
+      item.mediumRelayId == null ||
+      (item.url == null && item.previewUrl.startsWith("blob:"))
+    );
+
+  const currentDraftIsMeaningful = createMemo(() =>
+    !props.editingNoteId && isMeaningfulNoteDraft(currentStorableDraftData())
+  );
+
+  const saveCurrentDraftNow = (): boolean => {
+    const key = draftStorageKey();
+    const scope = draftScope();
+    if (
+      key == null || scope == null || loadedDraftKey() !== key ||
+      restoringDraft
+    ) {
+      return !isDirty();
+    }
+
+    clearTimeout(saveDraftTimer);
+    const draft = currentStorableDraftData();
+    const hasMediaNotInDraft = hasUnstorableMedia();
+    const result = writeNoteDraft(getBrowserDraftStorage(), key, scope, draft);
+    setHasLocalDraft(result === "ok");
+    if (result === "ok") {
+      formDraftKey = key;
+      setDraftSaveStatus(hasMediaNotInDraft ? "idle" : "saved");
+      return !hasMediaNotInDraft;
+    }
+    if (result === "unavailable" && isMeaningfulNoteDraft(draft)) {
+      setDraftSaveStatus("unavailable");
+      return false;
+    }
+    setDraftSaveStatus("idle");
+    return !isDirty();
+  };
+
+  createEffect(() => {
+    if (props.editingNoteId) {
+      props.onDraftFlushAvailable?.(null);
+    } else {
+      props.onDraftFlushAvailable?.(saveCurrentDraftNow);
+    }
+  });
+
+  const restoreDraftMedia = (media: readonly NoteDraftMedia[]) => {
+    draftRestoreMediaSubscription?.unsubscribe();
+    draftRestoreMediaSubscription = undefined;
+    if (media.length < 1) {
+      setMediaItems([]);
+      return;
+    }
+    setMediaItems(media.map((item) => ({
+      localId: item.localId,
+      previewUrl: item.url,
+      alt: item.alt,
+      mediumRelayId: item.mediumRelayId,
+      uuid: item.uuid,
+      url: item.url,
+      width: item.width,
+      height: item.height,
+      uploading: false,
+      uploadProgress: 100,
+      generatingAlt: false,
+    })));
+    const storedById = new Map(media.map((item) => [item.mediumRelayId, item]));
+    draftRestoreMediaSubscription = fetchQuery<NoteComposerDraftMediaQuery>(
+      environment(),
+      NoteComposerDraftMediaQuery,
+      { ids: media.map((item) => item.mediumRelayId) },
+    ).subscribe({
+      next(data) {
+        const restored = (data.nodes ?? []).flatMap((node) => {
+          if (
+            node == null || node.id == null || node.uuid == null ||
+            node.url == null
+          ) {
+            return [];
+          }
+          const stored = storedById.get(node.id);
+          if (stored == null) return [];
+          return [
+            {
+              localId: stored.localId,
+              previewUrl: node.url.toString(),
+              alt: stored.alt,
+              mediumRelayId: node.id,
+              uuid: node.uuid,
+              url: node.url.toString(),
+              width: node.width ?? undefined,
+              height: node.height ?? undefined,
+              uploading: false,
+              uploadProgress: 100,
+              generatingAlt: false,
+            } satisfies MediaItem,
+          ];
+        });
+        if (restored.length < media.length) {
+          showToast({
+            title: t`Warning`,
+            description:
+              t`Some locally saved images are no longer available and were removed from the draft.`,
+            variant: "warning",
+          });
+        }
+        setMediaItems(restored);
+      },
+      error() {
+        showToast({
+          title: t`Warning`,
+          description:
+            t`Could not verify locally saved images. They may fail when you post.`,
+          variant: "warning",
+        });
+      },
+    });
+  };
+
+  const applyStoredDraft = (draft: StoredNoteDraft) => {
+    restoringDraft = true;
+    batch(() => {
+      setContent(draft.content);
+      setVisibility(draft.visibility);
+      setQuotePolicy(draft.quotePolicy);
+      setLanguage(draft.language ? new Intl.Locale(draft.language) : undefined);
+      setManualLanguageChange(draft.language != null);
+      setActingAccountKey(draft.actingAccountKey);
+      if (draft.quotedPostId && !props.quotedPostId) {
+        setPastedQuoteId(draft.quotedPostId);
+      }
+      setPollEnabled(canCreatePoll() && draft.poll.enabled);
+      setPollTitle(draft.poll.title);
+      setPollMultiple(draft.poll.multiple);
+      setPollEnds(draft.poll.ends || defaultPollEnds());
+      setPollOptions(
+        draft.poll.options.length >= MIN_POLL_OPTIONS
+          ? draft.poll.options.map((option) => ({
+            localId: option.localId,
+            title: option.title,
+          }))
+          : [
+            { localId: createLocalId(), title: "" },
+            { localId: createLocalId(), title: "" },
+          ],
+      );
+      restoreDraftMedia(draft.media);
+      setEditorResetKey((k) => k + 1);
+    });
+    queueMicrotask(() => {
+      restoringDraft = false;
+    });
+  };
+
+  createEffect(() => {
+    const key = draftStorageKey();
+    const scope = draftScope();
+    clearTimeout(saveDraftTimer);
+    setDraftSaveStatus("idle");
+    if (key == null || scope == null) {
+      setLoadedDraftKey(null);
+      formDraftKey = null;
+      setHasLocalDraft(false);
+      return;
+    }
+    const previousLoadedDraftKey = untrack(loadedDraftKey);
+    const shouldPreserveCurrentForm = untrack(() =>
+      previousLoadedDraftKey != null &&
+      formDraftKey === previousLoadedDraftKey &&
+      previousLoadedDraftKey !== key &&
+      isDirty()
+    );
+    const draft = readNoteDraft(getBrowserDraftStorage(), key);
+    if (draft != null) {
+      if (!shouldPreserveCurrentForm) {
+        applyStoredDraft(draft);
+      }
+      setHasLocalDraft(true);
+    } else {
+      if (!shouldPreserveCurrentForm) {
+        resetFormForDraftScope(scope);
+      }
+      setHasLocalDraft(false);
+    }
+    formDraftKey = key;
+    setLoadedDraftKey(key);
+  });
+
+  createEffect(() => {
+    const key = draftStorageKey();
+    const scope = draftScope();
+    if (
+      key == null || scope == null || loadedDraftKey() !== key ||
+      restoringDraft
+    ) {
+      return;
+    }
+    void currentStorableDraftData();
+    clearTimeout(saveDraftTimer);
+    saveDraftTimer = setTimeout(() => {
+      saveCurrentDraftNow();
+    }, 350);
+  });
+
+  const clearCurrentDraft = () => {
+    const key = draftStorageKey();
+    if (key == null) return;
+    removeNoteDraft(getBrowserDraftStorage(), key);
+    setHasLocalDraft(false);
+    setDraftSaveStatus("idle");
+  };
+
+  const deleteCurrentDraftAndReset = () => {
+    setShowDeleteDraftConfirm(false);
+    clearCurrentDraft();
+    resetForm();
+  };
 
   // Use capture-phase listeners so Firefox's native textarea drag handling
   // cannot block our handlers.  relatedTarget in dragleave tells us whether
@@ -821,6 +1187,9 @@ export function NoteComposer(props: NoteComposerProps) {
             m.uploadProgress = 100;
             m.uuid = result.uuid;
             m.mediumRelayId = result.mediumRelayId;
+            m.url = result.url;
+            m.width = result.width;
+            m.height = result.height;
             m.abortUpload = undefined;
           }
         }));
@@ -829,7 +1198,7 @@ export function NoteComposer(props: NoteComposerProps) {
         setMediaItems(produce((items) => {
           const idx = items.findIndex((m) => m.localId === localId);
           if (idx !== -1) {
-            URL.revokeObjectURL(items[idx].previewUrl);
+            revokePreviewUrl(items[idx].previewUrl);
             items.splice(idx, 1);
           }
         }));
@@ -1037,11 +1406,14 @@ export function NoteComposer(props: NoteComposerProps) {
     };
   };
 
-  const resetForm = () => {
+  function resetForm() {
+    formDraftKey = null;
+    draftRestoreMediaSubscription?.unsubscribe();
+    draftRestoreMediaSubscription = undefined;
     for (const item of mediaItems) {
       item.abortUpload?.();
       item.altSubscription?.unsubscribe();
-      URL.revokeObjectURL(item.previewUrl);
+      revokePreviewUrl(item.previewUrl);
     }
     prefillRef = "";
     setContent("");
@@ -1058,7 +1430,16 @@ export function NoteComposer(props: NoteComposerProps) {
     setMediaItems([]);
     resetPoll();
     setEditorResetKey((k) => k + 1);
-  };
+  }
+
+  function resetFormForDraftScope(scope: NoteDraftScope) {
+    resetForm();
+    if (scope.type !== "prefill") return;
+    const initialContent = props.initialContent ?? "";
+    prefillRef = initialContent;
+    setContent(initialContent);
+    setEditorResetKey((k) => k + 1);
+  }
 
   const handleSubmit = (e: Event) => {
     e.preventDefault();
@@ -1113,6 +1494,7 @@ export function NoteComposer(props: NoteComposerProps) {
               description: t`Note updated`,
               variant: "success",
             });
+            clearCurrentDraft();
             resetForm();
             props.onSuccess?.();
           } else if (
@@ -1181,6 +1563,7 @@ export function NoteComposer(props: NoteComposerProps) {
                 description: t`Poll created successfully`,
                 variant: "success",
               });
+              clearCurrentDraft();
               resetForm();
               props.onSuccess?.();
             } else if (
@@ -1242,6 +1625,7 @@ export function NoteComposer(props: NoteComposerProps) {
               href,
               variant: "success",
             });
+            clearCurrentDraft();
             resetForm();
             props.onSuccess?.();
           } else if (response.createNote.__typename === "InvalidInputError") {
@@ -1343,629 +1727,682 @@ export function NoteComposer(props: NoteComposerProps) {
   };
 
   return (
-    <form
-      ref={(el) => (formRef = el)}
-      onSubmit={handleSubmit}
-      class={props.class}
-    >
-      <div
-        class={`grid gap-4 rounded-lg transition-colors ${
-          isDraggingOver()
-            ? "outline outline-2 outline-dashed outline-primary"
-            : ""
-        }`}
+    <>
+      <form
+        ref={(el) => (formRef = el)}
+        onSubmit={handleSubmit}
+        class={props.class}
       >
-        {
-          /* Suspended accounts cannot create posts (editing an existing one
+        <div
+          class={`grid gap-4 rounded-lg transition-colors ${
+            isDraggingOver()
+              ? "outline outline-2 outline-dashed outline-primary"
+              : ""
+          }`}
+        >
+          {
+            /* Suspended accounts cannot create posts (editing an existing one
             stays allowed); the write itself is blocked server-side, but
             surface it here instead of a generic failure. */
-        }
-        <Show when={!props.editingNoteId && viewer.suspended()}>
-          <div class="rounded-md border border-warning-foreground bg-warning px-3 py-2 text-sm text-warning-foreground">
-            {t`Your account is suspended, so you can't post right now. See your sanctions for details and how to appeal.`}
-          </div>
-        </Show>
-        {/* Reply target preview — hidden in edit mode */}
-        <Show
-          when={!props.editingNoteId && props.replyTargetId &&
-            props.showReplyTarget !== false}
-        >
-          <div class="rounded-md border border-input bg-muted/50 p-3">
-            <p class="text-xs text-muted-foreground mb-2">{t`Replying to`}</p>
-            <Show
-              keyed
-              when={replyTargetPost()}
-              fallback={
-                <span class="text-sm text-muted-foreground">
-                  {replyTargetFetchError()
-                    ? t`Failed to load post`
-                    : t`Loading…`}
-                </span>
-              }
-            >
-              {(rtp) => (
-                <div class="flex items-start gap-3">
-                  <Avatar class="size-8 flex-shrink-0">
-                    <AvatarImage src={rtp.actorAvatarUrl} />
-                    <AvatarFallback class="size-8">
-                      {rtp.actorName?.charAt(0) ?? "?"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-1 text-sm">
-                      <span class="font-medium truncate">
-                        {rtp.actorName ?? rtp.actorHandle}
-                      </span>
-                      <Show when={rtp.actorName}>
-                        <span class="text-muted-foreground truncate">
-                          {rtp.actorHandle}
-                        </span>
-                      </Show>
-                    </div>
-                    <Show when={rtp.typename === "Article" && rtp.name}>
-                      <div class="text-sm font-medium mt-1">{rtp.name}</div>
-                    </Show>
-                    <Show keyed when={rtp.excerpt}>
-                      {(excerpt) => (
-                        <p class="text-sm text-muted-foreground mt-1 line-clamp-3">
-                          {excerpt}
-                        </p>
-                      )}
-                    </Show>
-                  </div>
-                </div>
-              )}
-            </Show>
-          </div>
-        </Show>
-
-        {/* Quoted post preview — hidden in edit mode */}
-        <Show when={!props.editingNoteId && effectiveQuotedPostId()}>
-          <div class="flex items-start gap-3 rounded-md border border-input bg-muted/50 p-3">
-            <Show
-              keyed
-              when={quotedPost()}
-              fallback={
-                <div class="flex-1 min-w-0">
+          }
+          <Show when={!props.editingNoteId && viewer.suspended()}>
+            <div class="rounded-md border border-warning-foreground bg-warning px-3 py-2 text-sm text-warning-foreground">
+              {t`Your account is suspended, so you can't post right now. See your sanctions for details and how to appeal.`}
+            </div>
+          </Show>
+          {/* Reply target preview — hidden in edit mode */}
+          <Show
+            when={!props.editingNoteId && props.replyTargetId &&
+              props.showReplyTarget !== false}
+          >
+            <div class="rounded-md border border-input bg-muted/50 p-3">
+              <p class="text-xs text-muted-foreground mb-2">{t`Replying to`}</p>
+              <Show
+                keyed
+                when={replyTargetPost()}
+                fallback={
                   <span class="text-sm text-muted-foreground">
-                    {quoteFetchError()
-                      ? t`Failed to load quoted post`
-                      : t`Loading quoted post…`}
+                    {replyTargetFetchError()
+                      ? t`Failed to load post`
+                      : t`Loading…`}
                   </span>
-                </div>
-              }
-            >
-              {(qp) => (
-                <>
-                  <Avatar class="size-8 flex-shrink-0">
-                    <AvatarImage src={qp.actorAvatarUrl} />
-                    <AvatarFallback class="size-8">
-                      {qp.actorName?.charAt(0) ?? "?"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-1 text-sm">
-                      <span class="font-medium truncate">
-                        {qp.actorName ?? qp.actorHandle}
-                      </span>
-                      <Show when={qp.actorName}>
-                        <span class="text-muted-foreground truncate">
-                          {qp.actorHandle}
+                }
+              >
+                {(rtp) => (
+                  <div class="flex items-start gap-3">
+                    <Avatar class="size-8 flex-shrink-0">
+                      <AvatarImage src={rtp.actorAvatarUrl} />
+                      <AvatarFallback class="size-8">
+                        {rtp.actorName?.charAt(0) ?? "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-1 text-sm">
+                        <span class="font-medium truncate">
+                          {rtp.actorName ?? rtp.actorHandle}
                         </span>
+                        <Show when={rtp.actorName}>
+                          <span class="text-muted-foreground truncate">
+                            {rtp.actorHandle}
+                          </span>
+                        </Show>
+                      </div>
+                      <Show when={rtp.typename === "Article" && rtp.name}>
+                        <div class="text-sm font-medium mt-1">{rtp.name}</div>
+                      </Show>
+                      <Show keyed when={rtp.excerpt}>
+                        {(excerpt) => (
+                          <p class="text-sm text-muted-foreground mt-1 line-clamp-3">
+                            {excerpt}
+                          </p>
+                        )}
                       </Show>
                     </div>
-                    <Show when={qp.typename === "Article" && qp.name}>
-                      <div class="text-sm font-medium mt-1">{qp.name}</div>
-                    </Show>
-                    <Show keyed when={qp.excerpt}>
-                      {(excerpt) => (
-                        <p class="text-sm text-muted-foreground mt-1 line-clamp-3">
-                          {excerpt}
-                        </p>
-                      )}
-                    </Show>
                   </div>
-                </>
-              )}
-            </Show>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              class="h-6 w-6 p-0 text-muted-foreground hover:text-foreground flex-shrink-0"
-              onClick={() => {
-                props.onQuoteRemoved?.();
-                clearPastedQuote();
-              }}
-              title={t`Remove quote`}
-              aria-label={t`Remove quote`}
-            >
-              <IconX class="size-4" />
-            </Button>
-          </div>
-        </Show>
+                )}
+              </Show>
+            </div>
+          </Show>
 
-        <Show
-          when={!props.editingNoteId &&
-            composeActingAccountOptions().length > 1}
-        >
-          <ActingAccountSelect
-            value={actingAccountKey()}
-            onChange={setActingAccountKey}
-          />
-        </Show>
-
-        <TextField value={content()} onChange={setContent}>
-          <TextFieldLabel class="sr-only">{t`Content`}</TextFieldLabel>
-          <MarkdownEditor
-            value={content()}
-            onInput={setContent}
-            resetKey={editorResetKey()}
-            ref={(el) => (textareaRef = el)}
-            onPaste={handlePaste}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-                e.preventDefault();
-                const submitting = isSubmitting() ||
-                  (!props.editingNoteId && viewer.suspended()) ||
-                  mediaItems.some((m) => m.uploading) ||
-                  (!!effectiveQuotedPostId() && !quotedPost() &&
-                    !quoteFetchError()) ||
-                  (!!props.replyTargetId &&
-                    props.showReplyTarget !== false &&
-                    !replyTargetPost() && !replyTargetFetchError());
-                if (!submitting) formRef?.requestSubmit();
-              }
-            }}
-            onWheel={(e) => {
-              const el = e.currentTarget;
-              const scrollingDown = e.deltaY > 0;
-              if (
-                (scrollingDown &&
-                  el.scrollTop + el.clientHeight < el.scrollHeight) ||
-                (!scrollingDown && el.scrollTop > 0)
-              ) {
-                e.stopPropagation();
-              }
-            }}
-            placeholder={props.placeholder ?? t`What's on your mind?`}
-            autofocus={props.autoFocus}
-            minHeight="min-h-[150px]"
-            writeTabSlot={
-              <MentionAutocomplete
-                textareaRef={() => textareaRef}
-                onComplete={() => {
-                  if (textareaRef) setContent(textareaRef.value);
-                }}
-              />
-            }
-          />
-          <div class="flex items-center justify-between mt-1">
-            {/* Media attach button — hidden in edit mode */}
-            <Show when={!props.editingNoteId} fallback={<span />}>
-              <div class="flex items-center gap-1">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  disabled={mediaItems.length >= MAX_MEDIA}
-                  title={t`Attach image`}
-                  aria-label={t`Attach image`}
-                  onClick={() => fileInputRef?.click()}
-                >
-                  <IconImage class="size-5" />
-                </Button>
-                <Show when={allowPoll()}>
-                  <Button
-                    type="button"
-                    variant={pollEnabled() ? "secondary" : "ghost"}
-                    size="icon"
-                    title={pollEnabled() ? t`Remove poll` : t`Add poll`}
-                    aria-label={pollEnabled() ? t`Remove poll` : t`Add poll`}
-                    onClick={() => {
-                      if (pollEnabled()) resetPoll();
-                      else setPollEnabled(true);
-                    }}
-                  >
-                    <IconListChecks class="size-5" />
-                  </Button>
-                </Show>
-              </div>
-            </Show>
-            <input
-              ref={(el) => (fileInputRef = el)}
-              type="file"
-              accept={SUPPORTED_IMAGE_TYPES.join(",")}
-              multiple
-              class="hidden"
-              onChange={(e) => {
-                const files = e.currentTarget.files;
-                if (files) addFiles(files);
-                e.currentTarget.value = "";
-              }}
-            />
-            <a
-              href="/markdown"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-            >
-              <svg
-                fill="currentColor"
-                height="128"
-                viewBox="0 0 208 128"
-                width="208"
-                xmlns="http://www.w3.org/2000/svg"
-                class="size-4"
-                stroke="currentColor"
+          {/* Quoted post preview — hidden in edit mode */}
+          <Show when={!props.editingNoteId && effectiveQuotedPostId()}>
+            <div class="flex items-start gap-3 rounded-md border border-input bg-muted/50 p-3">
+              <Show
+                keyed
+                when={quotedPost()}
+                fallback={
+                  <div class="flex-1 min-w-0">
+                    <span class="text-sm text-muted-foreground">
+                      {quoteFetchError()
+                        ? t`Failed to load quoted post`
+                        : t`Loading quoted post…`}
+                    </span>
+                  </div>
+                }
               >
-                <g>
-                  <path
-                    clip-rule="evenodd"
-                    d="m15 10c-2.7614 0-5 2.2386-5 5v98c0 2.761 2.2386 5 5 5h178c2.761 0 5-2.239 5-5v-98c0-2.7614-2.239-5-5-5zm-15 5c0-8.28427 6.71573-15 15-15h178c8.284 0 15 6.71573 15 15v98c0 8.284-6.716 15-15 15h-178c-8.28427 0-15-6.716-15-15z"
-                    fill-rule="evenodd"
-                  />
-                  <path d="m30 98v-68h20l20 25 20-25h20v68h-20v-39l-20 25-20-25v39zm125 0-30-33h20v-35h20v35h20z" />
-                </g>
-              </svg>
-              {t`Markdown supported`}
-            </a>
-          </div>
-        </TextField>
-
-        <Show when={canCreatePoll() && pollEnabled()}>
-          <section class="rounded-md border border-input p-3">
-            <div class="flex items-start justify-between gap-3">
-              <div class="flex min-w-0 items-center gap-2">
-                <IconListChecks class="size-4 shrink-0 text-muted-foreground" />
-                <h3 class="text-sm font-medium">{t`Poll`}</h3>
-              </div>
+                {(qp) => (
+                  <>
+                    <Avatar class="size-8 flex-shrink-0">
+                      <AvatarImage src={qp.actorAvatarUrl} />
+                      <AvatarFallback class="size-8">
+                        {qp.actorName?.charAt(0) ?? "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-1 text-sm">
+                        <span class="font-medium truncate">
+                          {qp.actorName ?? qp.actorHandle}
+                        </span>
+                        <Show when={qp.actorName}>
+                          <span class="text-muted-foreground truncate">
+                            {qp.actorHandle}
+                          </span>
+                        </Show>
+                      </div>
+                      <Show when={qp.typename === "Article" && qp.name}>
+                        <div class="text-sm font-medium mt-1">{qp.name}</div>
+                      </Show>
+                      <Show keyed when={qp.excerpt}>
+                        {(excerpt) => (
+                          <p class="text-sm text-muted-foreground mt-1 line-clamp-3">
+                            {excerpt}
+                          </p>
+                        )}
+                      </Show>
+                    </div>
+                  </>
+                )}
+              </Show>
               <Button
                 type="button"
                 variant="ghost"
-                size="icon"
-                class="size-7 shrink-0"
-                title={t`Remove poll`}
-                aria-label={t`Remove poll`}
-                onClick={resetPoll}
+                size="sm"
+                class="h-6 w-6 p-0 text-muted-foreground hover:text-foreground flex-shrink-0"
+                onClick={() => {
+                  props.onQuoteRemoved?.();
+                  clearPastedQuote();
+                }}
+                title={t`Remove quote`}
+                aria-label={t`Remove quote`}
               >
                 <IconX class="size-4" />
               </Button>
             </div>
+          </Show>
 
-            <div class="mt-3 grid gap-3">
-              <label class="grid gap-1.5">
-                <span class="text-xs font-medium text-muted-foreground">
-                  {t`Poll title`}
-                </span>
-                <input
-                  type="text"
-                  value={pollTitle()}
-                  maxLength={200}
-                  onInput={(e) => setPollTitle(e.currentTarget.value)}
-                  placeholder={t`What should people decide?`}
-                  class="h-9 rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          <Show
+            when={!props.editingNoteId &&
+              composeActingAccountOptions().length > 1}
+          >
+            <ActingAccountSelect
+              value={actingAccountKey()}
+              onChange={setActingAccountKey}
+            />
+          </Show>
+
+          <TextField value={content()} onChange={setContent}>
+            <TextFieldLabel class="sr-only">{t`Content`}</TextFieldLabel>
+            <MarkdownEditor
+              value={content()}
+              onInput={setContent}
+              resetKey={editorResetKey()}
+              ref={(el) => (textareaRef = el)}
+              onPaste={handlePaste}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                  e.preventDefault();
+                  const submitting = isSubmitting() ||
+                    (!props.editingNoteId && viewer.suspended()) ||
+                    mediaItems.some((m) => m.uploading) ||
+                    (!!effectiveQuotedPostId() && !quotedPost() &&
+                      !quoteFetchError()) ||
+                    (!!props.replyTargetId &&
+                      props.showReplyTarget !== false &&
+                      !replyTargetPost() && !replyTargetFetchError());
+                  if (!submitting) formRef?.requestSubmit();
+                }
+              }}
+              onWheel={(e) => {
+                const el = e.currentTarget;
+                const scrollingDown = e.deltaY > 0;
+                if (
+                  (scrollingDown &&
+                    el.scrollTop + el.clientHeight < el.scrollHeight) ||
+                  (!scrollingDown && el.scrollTop > 0)
+                ) {
+                  e.stopPropagation();
+                }
+              }}
+              placeholder={props.placeholder ?? t`What's on your mind?`}
+              autofocus={props.autoFocus}
+              minHeight="min-h-[150px]"
+              writeTabSlot={
+                <MentionAutocomplete
+                  textareaRef={() => textareaRef}
+                  onComplete={() => {
+                    if (textareaRef) setContent(textareaRef.value);
+                  }}
                 />
-              </label>
-
-              <div class="grid gap-1.5">
-                <span class="text-xs font-medium text-muted-foreground">
-                  {t`Selection`}
-                </span>
-                <div class="grid grid-cols-2 overflow-hidden rounded-md border border-input">
-                  <Button
-                    type="button"
-                    variant={pollMultiple() ? "ghost" : "secondary"}
-                    class="h-9 rounded-none border-r"
-                    onClick={() => setPollMultiple(false)}
-                  >
-                    {t`Single choice`}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={pollMultiple() ? "secondary" : "ghost"}
-                    class="h-9 rounded-none"
-                    onClick={() => setPollMultiple(true)}
-                  >
-                    {t`Multiple choice`}
-                  </Button>
-                </div>
-              </div>
-
-              <div class="grid gap-2">
-                <div class="flex items-center justify-between gap-2">
-                  <span class="text-xs font-medium text-muted-foreground">
-                    {t`Options`}
-                  </span>
+              }
+            />
+            <div class="flex items-center justify-between mt-1">
+              {/* Media attach button — hidden in edit mode */}
+              <Show when={!props.editingNoteId} fallback={<span />}>
+                <div class="flex items-center gap-1">
                   <Button
                     type="button"
                     variant="ghost"
-                    size="sm"
-                    disabled={pollOptions.length >= MAX_POLL_OPTIONS}
-                    onClick={() =>
-                      setPollOptions(produce((options) => {
-                        if (options.length >= MAX_POLL_OPTIONS) return;
-                        options.push({
-                          localId: createLocalId(),
-                          title: "",
-                        });
-                      }))}
+                    size="icon"
+                    disabled={mediaItems.length >= MAX_MEDIA}
+                    title={t`Attach image`}
+                    aria-label={t`Attach image`}
+                    onClick={() => fileInputRef?.click()}
                   >
-                    <IconPlus class="mr-1 size-3.5" />
-                    {t`Add option`}
+                    <IconImage class="size-5" />
                   </Button>
-                </div>
-                <For each={pollOptions}>
-                  {(option, index) => (
-                    <div class="grid grid-cols-[1fr_auto] gap-2">
-                      <input
-                        type="text"
-                        value={option.title}
-                        maxLength={200}
-                        onInput={(e) =>
-                          setPollOptions(
-                            index(),
-                            "title",
-                            e.currentTarget.value,
-                          )}
-                        placeholder={t`Option ${index() + 1}`}
-                        class="h-9 min-w-0 rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        class="size-9 text-muted-foreground hover:text-foreground"
-                        disabled={pollOptions.length <= MIN_POLL_OPTIONS}
-                        title={t`Remove option`}
-                        aria-label={t`Remove option`}
-                        onClick={() =>
-                          setPollOptions(produce((options) => {
-                            if (options.length <= MIN_POLL_OPTIONS) return;
-                            options.splice(index(), 1);
-                          }))}
-                      >
-                        <IconTrash class="size-4" />
-                      </Button>
-                    </div>
-                  )}
-                </For>
-              </div>
-
-              <div class="grid gap-1.5">
-                <span class="text-xs font-medium text-muted-foreground">
-                  {t`Deadline`}
-                </span>
-                <div class="flex flex-wrap gap-1">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPollDuration(1)}
-                  >
-                    {t`1 day`}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPollDuration(3)}
-                  >
-                    {t`3 days`}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPollDuration(7)}
-                  >
-                    {t`1 week`}
-                  </Button>
-                </div>
-                <input
-                  type="datetime-local"
-                  value={pollEnds()}
-                  onInput={(e) => setPollEnds(e.currentTarget.value)}
-                  class="h-9 rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                />
-              </div>
-
-              <p class="rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning-foreground">
-                {t`Polls cannot be edited after publishing.`}
-              </p>
-            </div>
-          </section>
-        </Show>
-
-        {/* Toolbar: language, visibility, quote policy */}
-        <div class="flex flex-wrap items-center gap-2">
-          <LanguageSelect
-            value={language()}
-            onChange={handleLanguageChange}
-            class="flex-1 min-w-[8rem]"
-          />
-          <NoteVisibilityQuotePolicySelect
-            visibility={props.editingNoteId
-              ? (props.editingVisibility ?? "PUBLIC")
-              : visibility()}
-            quotePolicy={quotePolicy()}
-            onVisibilityChange={props.editingNoteId ? undefined : setVisibility}
-            onQuotePolicyChange={setQuotePolicy}
-            visibilityDisabled={!!props.editingNoteId}
-          />
-        </div>
-
-        {/* Media previews — hidden in edit mode */}
-        <Show when={!props.editingNoteId && mediaItems.length > 0}>
-          <div class="flex flex-col gap-3">
-            <For each={mediaItems}>
-              {(item, index) => (
-                <div class="flex gap-3 items-start">
-                  {/* Thumbnail with progress overlay */}
-                  <div class="relative flex-shrink-0 w-20 h-20 rounded-md overflow-hidden bg-muted">
-                    <img
-                      src={item.previewUrl}
-                      alt=""
-                      class="w-full h-full object-cover"
-                    />
-                    <Show when={item.uploading}>
-                      <div class="absolute inset-0 flex flex-col items-center justify-center bg-background/70 gap-1 px-2">
-                        <progress
-                          value={item.uploadProgress}
-                          max={100}
-                          class="w-full h-1.5 rounded-full"
-                          aria-label={t`Upload progress`}
-                        />
-                        <span class="text-xs text-muted-foreground">
-                          {item.uploadProgress}%
-                        </span>
-                      </div>
-                    </Show>
-                  </div>
-
-                  {/* Alt text input + controls */}
-                  <div class="flex-1 flex flex-col gap-1.5">
-                    <textarea
-                      value={item.alt}
-                      aria-label={t`Alt text for image ${index() + 1}`}
-                      aria-required="true"
-                      required
-                      onInput={(e) => {
-                        const v = e.currentTarget.value;
-                        setMediaItems(produce((items) => {
-                          const m = items.find((m) =>
-                            m.localId === item.localId
-                          );
-                          if (m) m.alt = v;
-                        }));
+                  <Show when={allowPoll()}>
+                    <Button
+                      type="button"
+                      variant={pollEnabled() ? "secondary" : "ghost"}
+                      size="icon"
+                      title={pollEnabled() ? t`Remove poll` : t`Add poll`}
+                      aria-label={pollEnabled() ? t`Remove poll` : t`Add poll`}
+                      onClick={() => {
+                        if (pollEnabled()) resetPoll();
+                        else setPollEnabled(true);
                       }}
-                      placeholder={t`Alt text for visually impaired people (required)`}
-                      disabled={item.generatingAlt}
-                      rows={3}
-                      class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                    >
+                      <IconListChecks class="size-5" />
+                    </Button>
+                  </Show>
+                </div>
+              </Show>
+              <input
+                ref={(el) => (fileInputRef = el)}
+                type="file"
+                accept={SUPPORTED_IMAGE_TYPES.join(",")}
+                multiple
+                class="hidden"
+                onChange={(e) => {
+                  const files = e.currentTarget.files;
+                  if (files) addFiles(files);
+                  e.currentTarget.value = "";
+                }}
+              />
+              <a
+                href="/markdown"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+              >
+                <svg
+                  fill="currentColor"
+                  height="128"
+                  viewBox="0 0 208 128"
+                  width="208"
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="size-4"
+                  stroke="currentColor"
+                >
+                  <g>
+                    <path
+                      clip-rule="evenodd"
+                      d="m15 10c-2.7614 0-5 2.2386-5 5v98c0 2.761 2.2386 5 5 5h178c2.761 0 5-2.239 5-5v-98c0-2.7614-2.239-5-5-5zm-15 5c0-8.28427 6.71573-15 15-15h178c8.284 0 15 6.71573 15 15v98c0 8.284-6.716 15-15 15h-178c-8.28427 0-15-6.716-15-15z"
+                      fill-rule="evenodd"
                     />
-                    <div class="flex gap-1 justify-end">
-                      <Show when={item.mediumRelayId && !item.uploading}>
+                    <path d="m30 98v-68h20l20 25 20-25h20v68h-20v-39l-20 25-20-25v39zm125 0-30-33h20v-35h20v35h20z" />
+                  </g>
+                </svg>
+                {t`Markdown supported`}
+              </a>
+            </div>
+          </TextField>
+
+          <Show when={canCreatePoll() && pollEnabled()}>
+            <section class="rounded-md border border-input p-3">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex min-w-0 items-center gap-2">
+                  <IconListChecks class="size-4 shrink-0 text-muted-foreground" />
+                  <h3 class="text-sm font-medium">{t`Poll`}</h3>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  class="size-7 shrink-0"
+                  title={t`Remove poll`}
+                  aria-label={t`Remove poll`}
+                  onClick={resetPoll}
+                >
+                  <IconX class="size-4" />
+                </Button>
+              </div>
+
+              <div class="mt-3 grid gap-3">
+                <label class="grid gap-1.5">
+                  <span class="text-xs font-medium text-muted-foreground">
+                    {t`Poll title`}
+                  </span>
+                  <input
+                    type="text"
+                    value={pollTitle()}
+                    maxLength={200}
+                    onInput={(e) => setPollTitle(e.currentTarget.value)}
+                    placeholder={t`What should people decide?`}
+                    class="h-9 rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  />
+                </label>
+
+                <div class="grid gap-1.5">
+                  <span class="text-xs font-medium text-muted-foreground">
+                    {t`Selection`}
+                  </span>
+                  <div class="grid grid-cols-2 overflow-hidden rounded-md border border-input">
+                    <Button
+                      type="button"
+                      variant={pollMultiple() ? "ghost" : "secondary"}
+                      class="h-9 rounded-none border-r"
+                      onClick={() => setPollMultiple(false)}
+                    >
+                      {t`Single choice`}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={pollMultiple() ? "secondary" : "ghost"}
+                      class="h-9 rounded-none"
+                      onClick={() => setPollMultiple(true)}
+                    >
+                      {t`Multiple choice`}
+                    </Button>
+                  </div>
+                </div>
+
+                <div class="grid gap-2">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="text-xs font-medium text-muted-foreground">
+                      {t`Options`}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      disabled={pollOptions.length >= MAX_POLL_OPTIONS}
+                      onClick={() =>
+                        setPollOptions(produce((options) => {
+                          if (options.length >= MAX_POLL_OPTIONS) return;
+                          options.push({
+                            localId: createLocalId(),
+                            title: "",
+                          });
+                        }))}
+                    >
+                      <IconPlus class="mr-1 size-3.5" />
+                      {t`Add option`}
+                    </Button>
+                  </div>
+                  <For each={pollOptions}>
+                    {(option, index) => (
+                      <div class="grid grid-cols-[1fr_auto] gap-2">
+                        <input
+                          type="text"
+                          value={option.title}
+                          maxLength={200}
+                          onInput={(e) =>
+                            setPollOptions(
+                              index(),
+                              "title",
+                              e.currentTarget.value,
+                            )}
+                          placeholder={t`Option ${index() + 1}`}
+                          class="h-9 min-w-0 rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        />
                         <Button
                           type="button"
                           variant="ghost"
-                          size="sm"
-                          disabled={item.generatingAlt}
-                          aria-label={t`Auto-fill alt text`}
-                          title={t`Auto-fill alt text`}
-                          onClick={() => handleGenerateAlt(item.localId)}
+                          size="icon"
+                          class="size-9 text-muted-foreground hover:text-foreground"
+                          disabled={pollOptions.length <= MIN_POLL_OPTIONS}
+                          title={t`Remove option`}
+                          aria-label={t`Remove option`}
+                          onClick={() =>
+                            setPollOptions(produce((options) => {
+                              if (options.length <= MIN_POLL_OPTIONS) return;
+                              options.splice(index(), 1);
+                            }))}
                         >
-                          <Show
-                            when={item.generatingAlt}
-                            fallback={
-                              <span class="text-xs">{t`Auto-fill`}</span>
-                            }
-                          >
-                            {/* Spinner */}
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke-width="1.5"
-                              stroke="currentColor"
-                              class="size-4 animate-spin"
-                              aria-hidden="true"
-                            >
-                              <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
-                              />
-                            </svg>
-                            <span class="text-xs ml-1">{t`Generating…`}</span>
-                          </Show>
+                          <IconTrash class="size-4" />
                         </Button>
+                      </div>
+                    )}
+                  </For>
+                </div>
+
+                <div class="grid gap-1.5">
+                  <span class="text-xs font-medium text-muted-foreground">
+                    {t`Deadline`}
+                  </span>
+                  <div class="flex flex-wrap gap-1">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPollDuration(1)}
+                    >
+                      {t`1 day`}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPollDuration(3)}
+                    >
+                      {t`3 days`}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPollDuration(7)}
+                    >
+                      {t`1 week`}
+                    </Button>
+                  </div>
+                  <input
+                    type="datetime-local"
+                    value={pollEnds()}
+                    onInput={(e) => setPollEnds(e.currentTarget.value)}
+                    class="h-9 rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  />
+                </div>
+
+                <p class="rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning-foreground">
+                  {t`Polls cannot be edited after publishing.`}
+                </p>
+              </div>
+            </section>
+          </Show>
+
+          {/* Toolbar: language, visibility, quote policy */}
+          <div class="flex flex-wrap items-center gap-2">
+            <LanguageSelect
+              value={language()}
+              onChange={handleLanguageChange}
+              class="flex-1 min-w-[8rem]"
+            />
+            <NoteVisibilityQuotePolicySelect
+              visibility={props.editingNoteId
+                ? (props.editingVisibility ?? "PUBLIC")
+                : visibility()}
+              quotePolicy={quotePolicy()}
+              onVisibilityChange={props.editingNoteId
+                ? undefined
+                : setVisibility}
+              onQuotePolicyChange={setQuotePolicy}
+              visibilityDisabled={!!props.editingNoteId}
+            />
+          </div>
+
+          {/* Media previews — hidden in edit mode */}
+          <Show when={!props.editingNoteId && mediaItems.length > 0}>
+            <div class="flex flex-col gap-3">
+              <For each={mediaItems}>
+                {(item, index) => (
+                  <div class="flex gap-3 items-start">
+                    {/* Thumbnail with progress overlay */}
+                    <div class="relative flex-shrink-0 w-20 h-20 rounded-md overflow-hidden bg-muted">
+                      <img
+                        src={item.previewUrl}
+                        alt=""
+                        class="w-full h-full object-cover"
+                      />
+                      <Show when={item.uploading}>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center bg-background/70 gap-1 px-2">
+                          <progress
+                            value={item.uploadProgress}
+                            max={100}
+                            class="w-full h-1.5 rounded-full"
+                            aria-label={t`Upload progress`}
+                          />
+                          <span class="text-xs text-muted-foreground">
+                            {item.uploadProgress}%
+                          </span>
+                        </div>
                       </Show>
-                      <Show when={item.generatingAlt}>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          aria-label={t`Cancel`}
-                          title={t`Cancel`}
-                          onClick={() => handleCancelAlt(item.localId)}
-                        >
-                          <IconSquare class="size-4" />
-                        </Button>
-                      </Show>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        class="text-muted-foreground hover:text-foreground"
-                        aria-label={t`Remove image`}
-                        title={t`Remove image`}
-                        onClick={() => {
-                          item.abortUpload?.();
-                          item.altSubscription?.unsubscribe();
-                          URL.revokeObjectURL(item.previewUrl);
+                    </div>
+
+                    {/* Alt text input + controls */}
+                    <div class="flex-1 flex flex-col gap-1.5">
+                      <textarea
+                        value={item.alt}
+                        aria-label={t`Alt text for image ${index() + 1}`}
+                        aria-required="true"
+                        required
+                        onInput={(e) => {
+                          const v = e.currentTarget.value;
                           setMediaItems(produce((items) => {
-                            const idx = items.findIndex(
-                              (m) => m.localId === item.localId,
+                            const m = items.find((m) =>
+                              m.localId === item.localId
                             );
-                            if (idx !== -1) items.splice(idx, 1);
+                            if (m) m.alt = v;
                           }));
                         }}
-                      >
-                        <IconX class="size-4" />
-                      </Button>
+                        placeholder={t`Alt text for visually impaired people (required)`}
+                        disabled={item.generatingAlt}
+                        rows={3}
+                        class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                      />
+                      <div class="flex gap-1 justify-end">
+                        <Show when={item.mediumRelayId && !item.uploading}>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            disabled={item.generatingAlt}
+                            aria-label={t`Auto-fill alt text`}
+                            title={t`Auto-fill alt text`}
+                            onClick={() => handleGenerateAlt(item.localId)}
+                          >
+                            <Show
+                              when={item.generatingAlt}
+                              fallback={
+                                <span class="text-xs">{t`Auto-fill`}</span>
+                              }
+                            >
+                              {/* Spinner */}
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="size-4 animate-spin"
+                                aria-hidden="true"
+                              >
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
+                                />
+                              </svg>
+                              <span class="text-xs ml-1">{t`Generating…`}</span>
+                            </Show>
+                          </Button>
+                        </Show>
+                        <Show when={item.generatingAlt}>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            aria-label={t`Cancel`}
+                            title={t`Cancel`}
+                            onClick={() => handleCancelAlt(item.localId)}
+                          >
+                            <IconSquare class="size-4" />
+                          </Button>
+                        </Show>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          class="text-muted-foreground hover:text-foreground"
+                          aria-label={t`Remove image`}
+                          title={t`Remove image`}
+                          onClick={() => {
+                            item.abortUpload?.();
+                            item.altSubscription?.unsubscribe();
+                            revokePreviewUrl(item.previewUrl);
+                            setMediaItems(produce((items) => {
+                              const idx = items.findIndex(
+                                (m) => m.localId === item.localId,
+                              );
+                              if (idx !== -1) items.splice(idx, 1);
+                            }));
+                          }}
+                        >
+                          <IconX class="size-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </For>
-          </div>
-        </Show>
-
-        <div class="flex gap-2 justify-end">
-          <Show when={props.showCancelButton}>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => props.onCancel?.()}
-              disabled={isSubmitting()}
-            >
-              {t`Cancel`}
-            </Button>
+                )}
+              </For>
+            </div>
           </Show>
-          <Button
-            type="submit"
-            disabled={isSubmitting() ||
-              (props.editingNoteId ? !isDirty() : (
-                viewer.suspended() ||
-                mediaItems.some((m) => m.uploading) ||
-                (!!effectiveQuotedPostId() && !quotedPost() &&
-                  !quoteFetchError()) ||
-                (!!props.replyTargetId && props.showReplyTarget !== false &&
-                  !replyTargetPost() && !replyTargetFetchError())
-              ))}
+
+          <Show
+            when={!props.editingNoteId &&
+              (currentDraftIsMeaningful() || hasLocalDraft() ||
+                draftSaveStatus() === "unavailable")}
           >
-            <Show
-              when={props.editingNoteId}
-              fallback={
+            <div class="flex flex-wrap items-center justify-between gap-2 border-t pt-3 text-xs text-muted-foreground">
+              <span>
                 <Show
-                  when={isCreating() || isCreatingQuestion()}
-                  fallback={canCreatePoll() && pollEnabled()
-                    ? t`Create poll`
-                    : t`Create note`}
+                  when={draftSaveStatus() !== "unavailable"}
+                  fallback={t`Local draft could not be saved`}
                 >
-                  {t`Creating…`}
+                  {hasLocalDraft() ? t`Saved locally` : t`Local draft`}
                 </Show>
-              }
-            >
-              <Show when={isUpdating()} fallback={t`Save changes`}>
-                {t`Saving…`}
-              </Show>
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                class="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
+                onClick={() => setShowDeleteDraftConfirm(true)}
+              >
+                {t`Delete local draft`}
+              </Button>
+            </div>
+          </Show>
+
+          <div class="flex gap-2 justify-end">
+            <Show when={props.showCancelButton}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => props.onCancel?.()}
+                disabled={isSubmitting()}
+              >
+                {t`Cancel`}
+              </Button>
             </Show>
-          </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting() ||
+                (props.editingNoteId ? !isDirty() : (
+                  viewer.suspended() ||
+                  mediaItems.some((m) => m.uploading) ||
+                  (!!effectiveQuotedPostId() && !quotedPost() &&
+                    !quoteFetchError()) ||
+                  (!!props.replyTargetId && props.showReplyTarget !== false &&
+                    !replyTargetPost() && !replyTargetFetchError())
+                ))}
+            >
+              <Show
+                when={props.editingNoteId}
+                fallback={
+                  <Show
+                    when={isCreating() || isCreatingQuestion()}
+                    fallback={canCreatePoll() && pollEnabled()
+                      ? t`Create poll`
+                      : t`Create note`}
+                  >
+                    {t`Creating…`}
+                  </Show>
+                }
+              >
+                <Show when={isUpdating()} fallback={t`Save changes`}>
+                  {t`Saving…`}
+                </Show>
+              </Show>
+            </Button>
+          </div>
         </div>
-      </div>
-    </form>
+      </form>
+
+      <AlertDialog
+        open={showDeleteDraftConfirm()}
+        onOpenChange={(open) => !open && setShowDeleteDraftConfirm(false)}
+      >
+        <AlertDialogContent class="sm:max-w-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t`Delete local draft?`}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t`This clears the saved draft from this browser.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogClose>{t`Keep draft`}</AlertDialogClose>
+            <AlertDialogAction
+              class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={deleteCurrentDraftAndReset}
+            >
+              {t`Delete draft`}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 

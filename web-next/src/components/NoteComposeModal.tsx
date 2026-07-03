@@ -1,6 +1,9 @@
 import { createEffect, createSignal } from "solid-js";
 import { MENTION_AUTOCOMPLETE_PORTAL_ID } from "~/components/MentionAutocomplete.tsx";
-import { NoteComposer } from "~/components/NoteComposer.tsx";
+import {
+  NoteComposer,
+  type NoteDraftFlush,
+} from "~/components/NoteComposer.tsx";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,6 +41,7 @@ export function NoteComposeModal() {
 
   const [isDirty, setIsDirty] = createSignal(false);
   const [showDiscardConfirm, setShowDiscardConfirm] = createSignal(false);
+  let flushLocalDraft: NoteDraftFlush | undefined;
 
   // Reset dirty state whenever the dialog closes.
   createEffect(() => {
@@ -56,9 +60,11 @@ export function NoteComposeModal() {
     close();
   };
 
-  // Intercept close attempts: show confirmation if the composer is dirty.
   const handleClose = () => {
-    if (isDirty()) {
+    const localDraftSaved = editingNoteId()
+      ? false
+      : (flushLocalDraft?.() ?? !isDirty());
+    if (isDirty() && !localDraftSaved) {
       setShowDiscardConfirm(true);
     } else {
       close();
@@ -106,8 +112,12 @@ export function NoteComposeModal() {
               onSuccess={handleSuccess}
               onCancel={handleClose}
               onContentChange={setIsDirty}
+              onDraftFlushAvailable={(flush) => {
+                flushLocalDraft = flush ?? undefined;
+              }}
               showCancelButton
               autoFocus
+              draftActive={isOpen()}
               quotedPostId={quotedPostId()}
               onQuoteRemoved={clearQuote}
               replyTargetId={replyTargetId()}
