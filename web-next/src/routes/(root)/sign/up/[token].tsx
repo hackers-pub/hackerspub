@@ -12,6 +12,7 @@ import { createMutation, loadQuery, useRelayEnvironment } from "solid-relay";
 import { createStablePreloadedQuery } from "~/lib/relayPreload.ts";
 import { DocumentView } from "~/components/DocumentView.tsx";
 import { MarkdownEditor } from "~/components/MarkdownEditor.tsx";
+import { Title } from "~/components/Title.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import {
   TextField,
@@ -277,6 +278,7 @@ export default function SignupPage(props: RouteSectionProps) {
 
   return (
     <>
+      <Title>{t`Signing up for Hackers' Pub`}</Title>
       <div
         lang={i18n.locale}
         class="lg:p-8 min-h-screen flex items-center justify-center"

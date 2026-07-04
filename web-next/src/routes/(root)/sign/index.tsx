@@ -8,6 +8,7 @@ import { graphql } from "relay-runtime";
 import { createSignal, onMount, Show } from "solid-js";
 import { createMutation } from "solid-relay";
 import { Button } from "~/components/ui/button.tsx";
+import { Title } from "~/components/Title.tsx";
 import { Grid } from "~/components/ui/grid.tsx";
 import {
   OTPField,
@@ -380,6 +381,7 @@ export default function SignPage() {
       lang={i18n.locale}
       class="lg:p-8 w-full h-full flex items-center justify-center"
     >
+      <Title>{t`Sign in to Hackers' Pub`}</Title>
       <div class="w-full sm:w-[350px]">
         <div class="flex flex-col space-y-2 text-center">
           <h1 class="text-2xl font-semibold tracking-tight">

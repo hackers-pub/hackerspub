@@ -8,6 +8,7 @@ import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { SearchForm } from "~/components/SearchForm.tsx";
 import { SearchResults } from "~/components/SearchResults.tsx";
 import { SearchResultsSkeleton } from "~/components/SearchResultsSkeleton.tsx";
+import { Title } from "~/components/Title.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import {
   createStablePreloadedQuery,
@@ -53,7 +54,7 @@ const loadTagQuery = routePreloadedQuery(
 );
 
 export default function TagPage() {
-  const { i18n } = useLingui();
+  const { i18n, t } = useLingui();
   const params = useParams<{ tag: string }>();
   const tag = () => decodeRouteParam(params.tag);
   const searchQuery = () => `#${tag()}`;
@@ -71,6 +72,7 @@ export default function TagPage() {
 
   return (
     <NarrowContainer class="px-4 py-4 sm:py-6">
+      <Title>{t`Hackers' Pub: #${tag()}`}</Title>
       <div class="relative mb-6">
         <SearchForm value={searchQuery()} />
       </div>

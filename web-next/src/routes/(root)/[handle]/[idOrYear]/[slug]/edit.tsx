@@ -18,6 +18,7 @@ import {
 import IconLoader2 from "~icons/lucide/loader-2";
 import { LanguageSelect } from "~/components/LanguageSelect.tsx";
 import { TagInput } from "~/components/TagInput.tsx";
+import { Title } from "~/components/Title.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { MarkdownEditor } from "~/components/ui/markdown-editor.tsx";
@@ -468,6 +469,7 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
 
   return (
     <div class="mt-8 mb-4 px-4 max-w-3xl mx-auto">
+      <Title>{t`Edit article`}</Title>
       <h1 class="text-2xl font-bold mb-6">{t`Edit article`}</h1>
 
       <form onSubmit={handleSave} class="flex flex-col gap-6">

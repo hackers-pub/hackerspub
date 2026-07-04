@@ -9,6 +9,7 @@ import {
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { Title } from "~/components/Title.tsx";
 
 const TreeGraphQueryDocument = graphql`
   query graphQuery {
@@ -73,6 +74,7 @@ export default function InvitationTreeGraph() {
 
   return (
     <div class="h-full flex flex-col">
+      <Title>{t`Hackers' Pub: Invitation graph`}</Title>
       <div class="container px-8 max-sm:px-4 py-8">
         <div class="flex items-center gap-6 mb-6">
           <h1 class="text-xl font-semibold">

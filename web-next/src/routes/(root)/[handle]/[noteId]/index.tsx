@@ -58,6 +58,7 @@ type NoteIdPageArticle = Extract<
 >;
 
 const NOTE_PAGE_QUERY_KEY = "loadNotePageQuery";
+const NOTE_TITLE_EXCERPT_GRAPHEME_LIMIT = 80;
 
 function revalidateNotePageQueries() {
   return revalidate([NOTE_PAGE_QUERY_KEY, PERMALINK_THREAD_QUERY_KEY]);
@@ -235,6 +236,7 @@ function PostMetaHead(props: PostMetaHeadProps) {
   const post = createFragment(
     graphql`
       fragment NoteId_head on Post {
+        __typename
         content
         excerpt
         published
@@ -256,61 +258,83 @@ function PostMetaHead(props: PostMetaHeadProps) {
 
   return (
     <Show keyed when={post()}>
-      {(post) => (
-        <>
-          <Title>
-            {t`${post.actor.rawName ?? post.actor.username}: ${post.excerpt}`}
-          </Title>
-          <Meta property="og:title" content={post.excerpt} />
-          <Meta property="og:description" content={post.excerpt} />
-          <Meta property="og:type" content="article" />
-          <Meta
-            property="article:published_time"
-            content={post.published}
-          />
-          <Meta
-            property="article:modified_time"
-            content={post.updated}
-          />
-          <Show keyed when={post.actor.rawName}>
-            {(name) => (
-              <Meta
-                property="article:author"
-                content={name}
-              />
-            )}
-          </Show>
-          <Meta
-            property="article:author.username"
-            content={post.actor.username}
-          />
-          <Meta
-            name="fediverse:creator"
-            content={post.actor.handle.replace(/^@/, "")}
-          />
-          <For each={post.hashtags}>
-            {(hashtag) => (
-              <Meta
-                property="article:tag"
-                content={hashtag.name}
-              />
-            )}
-          </For>
-          <Show keyed when={post.language}>
-            {(language) => (
-              <Meta
-                property="og:locale"
-                content={language}
-              />
-            )}
-          </Show>
+      {(post) => {
+        const titleExcerpt = () => {
+          if (post.__typename !== "Note") return post.excerpt;
+          const excerpt = post.excerpt.replace(/\s+/g, " ").trim();
+          const graphemes = Array.from(
+            new Intl.Segmenter(undefined, { granularity: "grapheme" })
+              .segment(excerpt),
+            ({ segment }) => segment,
+          );
+          if (graphemes.length <= NOTE_TITLE_EXCERPT_GRAPHEME_LIMIT) {
+            return excerpt;
+          }
+          return `${
+            graphemes
+              .slice(0, NOTE_TITLE_EXCERPT_GRAPHEME_LIMIT - 1)
+              .join("")
+              .trimEnd()
+          }…`;
+        };
+        return (
+          <>
+            <Title>
+              {t`${
+                post.actor.rawName ?? post.actor.username
+              }: ${titleExcerpt()}`}
+            </Title>
+            <Meta property="og:title" content={titleExcerpt()} />
+            <Meta property="og:description" content={post.excerpt} />
+            <Meta property="og:type" content="article" />
+            <Meta
+              property="article:published_time"
+              content={post.published}
+            />
+            <Meta
+              property="article:modified_time"
+              content={post.updated}
+            />
+            <Show keyed when={post.actor.rawName}>
+              {(name) => (
+                <Meta
+                  property="article:author"
+                  content={name}
+                />
+              )}
+            </Show>
+            <Meta
+              property="article:author.username"
+              content={post.actor.username}
+            />
+            <Meta
+              name="fediverse:creator"
+              content={post.actor.handle.replace(/^@/, "")}
+            />
+            <For each={post.hashtags}>
+              {(hashtag) => (
+                <Meta
+                  property="article:tag"
+                  content={hashtag.name}
+                />
+              )}
+            </For>
+            <Show keyed when={post.language}>
+              {(language) => (
+                <Meta
+                  property="og:locale"
+                  content={language}
+                />
+              )}
+            </Show>
 
-          <HttpHeader
-            name="Link"
-            value={`<${post.iri}>; rel="alternate"; type="application/activity+json"`}
-          />
-        </>
-      )}
+            <HttpHeader
+              name="Link"
+              value={`<${post.iri}>; rel="alternate"; type="application/activity+json"`}
+            />
+          </>
+        );
+      }}
     </Show>
   );
 }

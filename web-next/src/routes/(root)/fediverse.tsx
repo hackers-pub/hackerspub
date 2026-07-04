@@ -6,6 +6,7 @@ import { FollowRecommendations } from "~/components/FollowRecommendations.tsx";
 import { LanguageFilter } from "~/components/LanguageFilter.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PublicTimeline } from "~/components/PublicTimeline.tsx";
+import { Title } from "~/components/Title.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import {
   createStablePreloadedQuery,
@@ -56,7 +57,7 @@ const loadFediverseTimelineQuery = routePreloadedQuery(
 );
 
 export default function FediverseTimeline() {
-  const { i18n } = useLingui();
+  const { i18n, t } = useLingui();
   const { activeLanguage, initialLang, buildHref } = useLanguageFilter(
     "/fediverse",
   );
@@ -70,37 +71,40 @@ export default function FediverseTimeline() {
   );
 
   return (
-    <Show keyed when={data()}>
-      {(data) => (
-        <NarrowContainer>
-          <Show when={data.viewer == null}>
-            <AboutHackersPub />
-          </Show>
-          <Show keyed when={data.viewer}>
-            {(viewer) => (
-              <FollowRecommendations
-                followeesCount={viewer.actor.followees.totalCount}
-                postCount={viewer.postCount}
+    <>
+      <Title>{t`Hackers' Pub: Fediverse timeline`}</Title>
+      <Show keyed when={data()}>
+        {(data) => (
+          <NarrowContainer>
+            <Show when={data.viewer == null}>
+              <AboutHackersPub />
+            </Show>
+            <Show keyed when={data.viewer}>
+              {(viewer) => (
+                <FollowRecommendations
+                  followeesCount={viewer.actor.followees.totalCount}
+                  postCount={viewer.postCount}
+                />
+              )}
+            </Show>
+            <Show
+              when={data.suggestedFilterLanguages.length > 0 ||
+                !!activeLanguage()}
+            >
+              <LanguageFilter
+                languages={data.suggestedFilterLanguages}
+                activeLanguage={activeLanguage()}
+                buildHref={buildHref}
               />
-            )}
-          </Show>
-          <Show
-            when={data.suggestedFilterLanguages.length > 0 ||
-              !!activeLanguage()}
-          >
-            <LanguageFilter
-              languages={data.suggestedFilterLanguages}
-              activeLanguage={activeLanguage()}
-              buildHref={buildHref}
+            </Show>
+            <PublicTimeline
+              $posts={data}
+              activeLanguage={activeLanguage}
+              local={false}
             />
-          </Show>
-          <PublicTimeline
-            $posts={data}
-            activeLanguage={activeLanguage}
-            local={false}
-          />
-        </NarrowContainer>
-      )}
-    </Show>
+          </NarrowContainer>
+        )}
+      </Show>
+    </>
   );
 }

@@ -16,6 +16,7 @@ import { SearchForm } from "~/components/SearchForm.tsx";
 import { SearchGuide } from "~/components/SearchGuide.tsx";
 import { SearchResults } from "~/components/SearchResults.tsx";
 import { SearchResultsSkeleton } from "~/components/SearchResultsSkeleton.tsx";
+import { Title } from "~/components/Title.tsx";
 import { Trans } from "~/components/Trans.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { searchObjectPageQuery } from "./__generated__/searchObjectPageQuery.graphql.ts";
@@ -135,6 +136,11 @@ export default function SearchPage() {
 
   return (
     <NarrowContainer class="px-4 py-4 sm:py-6">
+      <Title>
+        <Show when={searchQuery()} fallback={t`Hackers' Pub: Search`}>
+          {t`Hackers' Pub: Search results for ${searchQuery()}`}
+        </Show>
+      </Title>
       <div class="relative mb-6">
         <SearchForm value={searchQuery()} />
       </div>

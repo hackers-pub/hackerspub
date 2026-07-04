@@ -18,6 +18,7 @@ import {
   Switch,
 } from "solid-js";
 import { createMutation, loadQuery, useRelayEnvironment } from "solid-relay";
+import { Title } from "~/components/Title.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -505,6 +506,7 @@ function ArticleLangPageContent(props: ArticleLangPageContentProps) {
         </Match>
         <Match when={shouldAutoRequest() && requestFailed()}>
           <div class="mt-8 mb-4 px-4 max-w-3xl mx-auto xl:max-w-4xl 2xl:max-w-screen-lg">
+            <Title>{t`Article translation failed`}</Title>
             <article class="min-w-0">
               <ArticleTranslationFailure
                 targetLanguage={props.language}
@@ -515,6 +517,7 @@ function ArticleLangPageContent(props: ArticleLangPageContentProps) {
         </Match>
         <Match when={shouldAutoRequest()}>
           <div class="mt-8 mb-4 px-4 max-w-3xl mx-auto xl:max-w-4xl 2xl:max-w-screen-lg">
+            <Title>{t`Translating article`}</Title>
             <article class="min-w-0">
               <ArticleTranslationPlaceholder
                 targetLanguage={props.language}

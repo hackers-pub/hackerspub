@@ -9,6 +9,7 @@ import {
 } from "~/lib/relayPreload.ts";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import { ActorHoverCard } from "~/components/ActorHoverCard.tsx";
+import { Title } from "~/components/Title.tsx";
 
 const TreeIndexQueryDocument = graphql`
   query treeQuery {
@@ -201,6 +202,7 @@ export default function InvitationTree() {
 
   return (
     <div class="container px-8 max-sm:px-4 py-8">
+      <Title>{t`Hackers' Pub: Invitation tree`}</Title>
       <div class="flex items-center gap-6 mb-6">
         <h1 class="text-xl font-semibold">
           {t`Invitation tree`}

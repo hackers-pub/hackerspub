@@ -6,6 +6,7 @@ import { FollowRecommendations } from "~/components/FollowRecommendations.tsx";
 import { LanguageFilter } from "~/components/LanguageFilter.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PersonalTimeline } from "~/components/PersonalTimeline.tsx";
+import { Title } from "~/components/Title.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { buildSignInHref, gateOnAuthentication } from "~/lib/authGate.ts";
@@ -127,17 +128,21 @@ function AuthenticatedArticlesFeedTimeline() {
 export default function ArticlesFeedTimeline() {
   const viewer = useViewer();
   const location = useLocation();
+  const { t } = useLingui();
   const signInHref = () =>
     buildSignInHref(location.pathname + location.search + location.hash);
 
   return (
-    <Show when={viewer.isLoaded()}>
-      <Show
-        when={viewer.isAuthenticated()}
-        fallback={<Navigate href={signInHref()} />}
-      >
-        <AuthenticatedArticlesFeedTimeline />
+    <>
+      <Title>{t`Hackers' Pub: Articles feed`}</Title>
+      <Show when={viewer.isLoaded()}>
+        <Show
+          when={viewer.isAuthenticated()}
+          fallback={<Navigate href={signInHref()} />}
+        >
+          <AuthenticatedArticlesFeedTimeline />
+        </Show>
       </Show>
-    </Show>
+    </>
   );
 }

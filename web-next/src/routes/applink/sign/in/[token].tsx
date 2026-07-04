@@ -1,5 +1,6 @@
 import { A, useParams, useSearchParams } from "@solidjs/router";
 import { onMount } from "solid-js";
+import { Title } from "~/components/Title.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 
@@ -34,6 +35,7 @@ export default function AppLinkVerify() {
 
   return (
     <div class="flex min-h-screen items-center justify-center bg-background">
+      <Title>{t`Sign in to Hackers' Pub`}</Title>
       <div class="flex flex-col items-center gap-4 p-6 text-center">
         <p class="text-lg font-medium">
           {t`Sign in to Hackers' Pub`}
