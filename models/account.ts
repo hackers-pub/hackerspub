@@ -263,6 +263,30 @@ async function removeActorFromNotifications(
   db: Database,
   actorId: Uuid,
 ): Promise<void> {
+  await db.delete(notificationTable)
+    .where(sql`
+      ${notificationTable.type} = 'follow'
+      AND ${actorId} = ANY(${notificationTable.actorIds})
+      AND array_length(
+        array_remove(${notificationTable.actorIds}, ${actorId}),
+        1
+      ) IS NOT NULL
+      AND EXISTS (
+        SELECT 1
+        FROM ${notificationTable} existing
+        WHERE existing.id <> ${notificationTable.id}
+          AND existing.account_id = ${notificationTable.accountId}
+          AND existing.type = 'follow'
+          AND array_remove(existing.actor_ids, ${actorId}) = array_remove(
+            ${notificationTable.actorIds},
+            ${actorId}
+          )
+          AND (
+            NOT (${actorId} = ANY(existing.actor_ids))
+            OR existing.id < ${notificationTable.id}
+          )
+      )
+    `);
   const updated = await db.update(notificationTable)
     .set({
       actorIds: sql`array_remove(${notificationTable.actorIds}, ${actorId})`,

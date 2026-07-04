@@ -21,6 +21,7 @@ import {
   flagCaseTable,
   followingTable,
   instanceTable,
+  notificationTable,
   pollOptionTable,
   pollTable,
   pollVoteTable,
@@ -930,5 +931,60 @@ test("deleteAccount() ignores unrelated moderation audit records", async () => {
       where: { id: flagCaseId },
     });
     assert.equal(flagCase?.targetActorId, unrelated.actor.id);
+  });
+});
+
+test("deleteAccount() avoids duplicate follow notification actor sets", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    fedCtx.sendActivity = (() =>
+      Promise.resolve(undefined)) as typeof fedCtx.sendActivity;
+    const recipient = await insertAccountWithActor(tx, {
+      username: "deletefollowrecipient",
+      name: "Delete Follow Recipient",
+      email: "deletefollowrecipient@example.com",
+    });
+    const target = await insertAccountWithActor(tx, {
+      username: "deletefollowtarget",
+      name: "Delete Follow Target",
+      email: "deletefollowtarget@example.com",
+    });
+    const survivor = await insertAccountWithActor(tx, {
+      username: "deletefollowsurvivor",
+      name: "Delete Follow Survivor",
+      email: "deletefollowsurvivor@example.com",
+    });
+
+    await tx.insert(notificationTable).values([
+      {
+        id: generateUuidV7(),
+        accountId: recipient.account.id,
+        type: "follow",
+        actorIds: [survivor.actor.id],
+      },
+      {
+        id: generateUuidV7(),
+        accountId: recipient.account.id,
+        type: "follow",
+        actorIds: [target.actor.id, survivor.actor.id],
+      },
+      {
+        id: generateUuidV7(),
+        accountId: recipient.account.id,
+        type: "follow",
+        actorIds: [survivor.actor.id, target.actor.id],
+      },
+    ]);
+
+    await deleteAccount(fedCtx, target.account.id);
+
+    const notifications = await tx.query.notificationTable.findMany({
+      where: {
+        accountId: recipient.account.id,
+        type: "follow",
+      },
+    });
+    assert.equal(notifications.length, 1);
+    assert.deepEqual(notifications[0].actorIds, [survivor.actor.id]);
   });
 });
