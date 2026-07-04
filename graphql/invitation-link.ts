@@ -21,6 +21,12 @@ import { NotAuthenticatedError } from "./session.ts";
 
 const logger = getLogger(["hackerspub", "graphql", "invitation-link"]);
 
+function isDailyEmailQuotaError(errors: readonly string[]): boolean {
+  return errors.some((error) =>
+    error.toLowerCase().includes("daily request limit exceeded")
+  );
+}
+
 async function withRetry<T>(
   fn: () => Promise<T>,
   maxRetries = 3,
@@ -542,10 +548,15 @@ builder.mutationField("redeemInvitationLink", (t) =>
         });
         const receipt = await ctx.email.send(message);
         if (!receipt.successful) {
-          logger.error(
-            "Failed to send invitation link email: {errors}",
-            { errors: receipt.errorMessages },
-          );
+          if (isDailyEmailQuotaError(receipt.errorMessages)) {
+            logger.warn("Failed to send invitation link email: {errors}", {
+              errors: receipt.errorMessages,
+            });
+          } else {
+            logger.error("Failed to send invitation link email: {errors}", {
+              errors: receipt.errorMessages,
+            });
+          }
           // Credit back on failure
           await ctx.db.update(invitationLinkTable)
             .set({

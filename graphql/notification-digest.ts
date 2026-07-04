@@ -78,6 +78,25 @@ export interface SendNotificationDigestsResult {
 let cachedDigestTemplates: Map<string, DigestEmailTemplate> | null = null;
 let cachedAvailableLocales: string[] | null = null;
 
+function isDailyEmailQuotaError(message: string): boolean {
+  return message.toLowerCase().includes("daily request limit exceeded");
+}
+
+function logDigestDeliveryFailure(accountId: Uuid, error: string): void {
+  const properties = { accountId, error };
+  if (isDailyEmailQuotaError(error)) {
+    logger.warn(
+      "Failed to send notification digest for account {accountId}: {error}",
+      properties,
+    );
+  } else {
+    logger.error(
+      "Failed to send notification digest for account {accountId}: {error}",
+      properties,
+    );
+  }
+}
+
 async function loadDigestEmailTemplates(): Promise<void> {
   if (cachedDigestTemplates != null && cachedAvailableLocales != null) return;
 
@@ -240,10 +259,7 @@ export async function sendNotificationDigests(
       } else {
         accountsFailed++;
         const error = errors.join("; ") || "Unknown delivery failure.";
-        logger.error(
-          "Failed to send notification digest for account {accountId}: {error}",
-          { accountId: account.id, error },
-        );
+        logDigestDeliveryFailure(account.id, error);
         await markDigestDeliveryFailed(
           options.db,
           account.id,
@@ -256,10 +272,7 @@ export async function sendNotificationDigests(
     } catch (error) {
       accountsFailed++;
       const message = getErrorMessage(error);
-      logger.error(
-        "Failed to send notification digest for account {accountId}: {error}",
-        { accountId: account.id, error: message },
-      );
+      logDigestDeliveryFailure(account.id, message);
       await markDigestDeliveryFailed(
         options.db,
         account.id,
