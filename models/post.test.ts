@@ -139,6 +139,32 @@ test("scrapePostLink() keeps image URL when metadata probing fails", async () =>
   resetGlobalFetch();
 });
 
+test("scrapePostLink() falls back when canonical metadata is invalid", async () => {
+  mockGlobalFetch();
+  mockFetch("https://delta.chat/index.html", {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+    },
+    body: `<html>
+        <head>
+          <meta property="og:title" content="Delta Chat">
+          <meta property="og:url" content="https://delta.chat{{ page.url }}">
+        </head>
+      </html>`,
+  });
+
+  const link = await scrapePostLink(
+    ctx,
+    "https://delta.chat/index.html",
+    () => Promise.resolve(undefined),
+  );
+
+  assert.equal(link?.url, "https://delta.chat/index.html");
+  assert.equal(link?.title, "Delta Chat");
+  resetFetch();
+  resetGlobalFetch();
+});
+
 test("scrapePostLink() ignores unsupported charsets", async () => {
   mockGlobalFetch();
   mockFetch("https://example.internal/legacy-charset.html", {

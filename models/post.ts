@@ -3586,15 +3586,25 @@ export async function scrapePostLink<TContextData>(
     : Array.isArray(result.customMetaTags.fediverseCreator)
     ? result.customMetaTags.fediverseCreator[0]
     : result.customMetaTags.fediverseCreator;
-  const canonicalUrl = new URL(
-    result.ogUrl ?? result.twitterUrl ?? result.requestUrl ??
+  let canonicalUrl: URL;
+  try {
+    canonicalUrl = new URL(
+      result.ogUrl ?? result.twitterUrl ?? result.requestUrl ??
+        responseUrl,
       responseUrl,
-    responseUrl,
-  );
+    );
+  } catch (error) {
+    lg.warn("Ignoring invalid canonical URL for {url}: {error}", {
+      url: responseUrl,
+      canonicalUrl: result.ogUrl ?? result.twitterUrl ?? result.requestUrl,
+      error,
+    });
+    canonicalUrl = new URL(responseUrl);
+  }
   // Verify if the canonical URL they claim is the same as the one we
   // requested.
   const canonicalUrlVerified = canonicalUrl.origin === url.origin ||
-    new URL(responseUrl ?? url).origin;
+    canonicalUrl.origin === new URL(responseUrl).origin;
   return {
     id: generateUuidV7(),
     url: canonicalUrlVerified ? canonicalUrl.href : responseUrl,
