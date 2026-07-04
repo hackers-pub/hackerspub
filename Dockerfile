@@ -15,6 +15,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 ENV MISE_DATA_DIR="/mise"
 ENV MISE_CONFIG_DIR="/mise"
 ENV MISE_CACHE_DIR="/mise/cache"
+ENV MISE_STATE_DIR="/mise/state"
 ENV MISE_INSTALL_PATH="/usr/local/bin/mise"
 ENV npm_config_fetch_retries="5"
 ENV npm_config_fetch_retry_maxtimeout="120000"
@@ -152,12 +153,17 @@ RUN apt-get update && apt-get -y --no-install-recommends install \
 ENV MISE_DATA_DIR="/mise"
 ENV MISE_CONFIG_DIR="/mise"
 ENV MISE_CACHE_DIR="/mise/cache"
+ENV MISE_STATE_DIR="/mise/state"
 ENV MISE_INSTALL_PATH="/usr/local/bin/mise"
 ENV PATH="/mise/shims:$PATH"
 
 # mise binary plus its data dir (tool installs, shims, trusted-config state).
 COPY --from=mise-base /usr/local/bin/mise /usr/local/bin/mise
 COPY --from=mise-base /mise /mise
+# `mise deps` records freshness state outside the project tree. Carry the
+# builder's state into the runtime image so auto deps do not reinstall on first
+# `mise run prod:*`.
+COPY --from=builder /mise/state /mise/state
 
 # Deno keeps its module cache at $HOME/.cache/deno; ship it so the runtime
 # doesn't need network access to resolve imports.
@@ -170,8 +176,9 @@ COPY --from=builder /app /app
 COPY --from=prod-deps /app/node_modules /app/node_modules
 COPY --from=prod-deps /app/web-next/node_modules /app/web-next/node_modules
 
-# Re-trust the config in the runtime stage. mise stores trust state under
-# the user's home (not MISE_DATA_DIR), and we don't carry that over.
+# Re-trust the config in the runtime stage after all runtime files are in
+# place. The copied state keeps deps fresh, and this keeps trust explicit for
+# the final image's `/app/mise.toml`.
 RUN mise trust /app/mise.toml
 
 EXPOSE 8000

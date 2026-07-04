@@ -11,6 +11,7 @@ RUN apt-get update && apt-get -y --no-install-recommends install \
 ENV MISE_DATA_DIR="/mise"
 ENV MISE_CONFIG_DIR="/mise"
 ENV MISE_CACHE_DIR="/mise/cache"
+ENV MISE_STATE_DIR="/mise/state"
 ENV MISE_INSTALL_PATH="/usr/local/bin/mise"
 ENV npm_config_fetch_retries="5"
 ENV npm_config_fetch_retry_maxtimeout="120000"
