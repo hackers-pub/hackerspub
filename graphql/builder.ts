@@ -153,6 +153,7 @@ export interface PothosTypes {
     signed: boolean;
     moderator: boolean;
     selfAccount: Uuid;
+    canManageAccountSettings: Uuid;
   };
   Scalars: {
     Date: {
@@ -262,6 +263,27 @@ export const builder = new SchemaBuilder<PothosTypes>({
         return account?.moderator ?? false;
       },
       selfAccount: async (id) => id === ctx.session?.accountId,
+      canManageAccountSettings: async (id) => {
+        const viewerAccountId = ctx.session?.accountId;
+        if (viewerAccountId == null) return false;
+        if (id === viewerAccountId) return true;
+        const account = await ctx.db.query.accountTable.findFirst({
+          where: { id },
+          columns: { id: true, kind: true },
+        });
+        if (account?.kind !== "organization") return false;
+        const membership = await ctx.db.query.organizationMembershipTable
+          .findFirst({
+            where: {
+              organizationAccountId: id,
+              memberAccountId: viewerAccountId,
+              role: "admin",
+              accepted: { isNotNull: true },
+            },
+            columns: { organizationAccountId: true },
+          });
+        return membership != null;
+      },
     }),
   },
   relay: {

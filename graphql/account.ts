@@ -500,10 +500,11 @@ export const Account = builder.drizzleNode("accountTable", {
     invitationsLeft: t.exposeInt("leftInvitations", {
       description:
         "Number of invitation slots this account can still hand out. " +
-        "Only visible to the account holder and to moderators.",
+        "Only visible to viewers who can manage this account's settings " +
+        "and to moderators.",
       authScopes: (parent) => ({
         moderator: true,
-        selfAccount: parent.id,
+        canManageAccountSettings: parent.id,
       }),
     }),
     viewerCanManageSettings: t.boolean({
@@ -526,24 +527,25 @@ export const Account = builder.drizzleNode("accountTable", {
     preferAiSummary: t.exposeBoolean("preferAiSummary", {
       authScopes: (parent) => ({
         moderator: true,
-        selfAccount: parent.id,
+        canManageAccountSettings: parent.id,
       }),
       description:
         "Whether to show LLM-generated article summaries by default. " +
-        "Only visible to the account holder and moderators.",
+        "Only visible to viewers who can manage this account's settings " +
+        "and to moderators.",
     }),
     hideFromInvitationTree: t.exposeBoolean("hideFromInvitationTree", {
       authScopes: (parent) => ({
         moderator: true,
-        selfAccount: parent.id,
+        canManageAccountSettings: parent.id,
       }),
       description:
         "Whether this account has opted out of the public invitation tree. " +
         "When `true`, the account appears anonymously in the invitation tree " +
         "and its invitation relationships are hidden on profiles (see " +
-        "`Account.inviter`). Only visible to the account holder and " +
-        "moderators; change it with the `hideFromInvitationTree` input of " +
-        "the `updateAccount` mutation.",
+        "`Account.inviter`). Only visible to viewers who can manage this " +
+        "account's settings and to moderators; change it with the " +
+        "`hideFromInvitationTree` input of the `updateAccount` mutation.",
     }),
     defaultNoteVisibility: t.field({
       type: PostVisibility,
@@ -585,11 +587,12 @@ export const Account = builder.drizzleNode("accountTable", {
       type: PushNotificationPreviewPolicy,
       authScopes: (parent) => ({
         moderator: true,
-        selfAccount: parent.id,
+        canManageAccountSettings: parent.id,
       }),
       description:
         "Controls whether push notification payloads may include short post " +
-        "content previews. Only visible to the account holder and moderators.",
+        "content previews. Only visible to viewers who can manage this " +
+        "account's settings and to moderators.",
       select: {
         columns: { pushNotificationPreviewPolicy: true },
       },
@@ -604,12 +607,13 @@ export const Account = builder.drizzleNode("accountTable", {
       {
         authScopes: (parent) => ({
           moderator: true,
-          selfAccount: parent.id,
+          canManageAccountSettings: parent.id,
         }),
         description:
           "Whether the account receives daily digest emails when unread " +
-          "notifications remain. Only visible to the account holder and " +
-          "moderators; change it with `updateNotificationEmailDigestSettings`.",
+          "notifications remain. Only visible to viewers who can manage this " +
+          "account's settings and to moderators; change it with " +
+          "`updateNotificationEmailDigestSettings`.",
       },
     ),
     notificationEmailDigestWeekly: t.exposeBoolean(
@@ -617,12 +621,13 @@ export const Account = builder.drizzleNode("accountTable", {
       {
         authScopes: (parent) => ({
           moderator: true,
-          selfAccount: parent.id,
+          canManageAccountSettings: parent.id,
         }),
         description:
           "Whether the account receives weekly digest emails when unread " +
-          "notifications remain. Only visible to the account holder and " +
-          "moderators; change it with `updateNotificationEmailDigestSettings`.",
+          "notifications remain. Only visible to viewers who can manage this " +
+          "account's settings and to moderators; change it with " +
+          "`updateNotificationEmailDigestSettings`.",
       },
     ),
     updated: t.expose("updated", { type: "DateTime" }),
@@ -765,10 +770,11 @@ builder.drizzleObjectField(Account, "invitationLinks", (t) =>
     type: [InvitationLink],
     description:
       "Shareable invitation links created by this account, newest first. " +
-      "Only visible to the account holder and moderators.",
+      "Only visible to viewers who can manage this account's settings and " +
+      "to moderators.",
     authScopes: (parent) => ({
       moderator: true,
-      selfAccount: parent.id,
+      canManageAccountSettings: parent.id,
     }),
     select: {
       columns: { id: true },

@@ -96,18 +96,18 @@ type Account implements Node {
   handle: String!
 
   """
-  Whether this account has opted out of the public invitation tree. When `true`, the account appears anonymously in the invitation tree and its invitation relationships are hidden on profiles (see `Account.inviter`). Only visible to the account holder and moderators; change it with the `hideFromInvitationTree` input of the `updateAccount` mutation.
+  Whether this account has opted out of the public invitation tree. When `true`, the account appears anonymously in the invitation tree and its invitation relationships are hidden on profiles (see `Account.inviter`). Only visible to viewers who can manage this account's settings and to moderators; change it with the `hideFromInvitationTree` input of the `updateAccount` mutation.
   """
   hideFromInvitationTree: Boolean!
   id: ID!
 
   """
-  Shareable invitation links created by this account, newest first. Only visible to the account holder and moderators.
+  Shareable invitation links created by this account, newest first. Only visible to viewers who can manage this account's settings and to moderators.
   """
   invitationLinks: [InvitationLink!]!
 
   """
-  Number of invitation slots this account can still hand out. Only visible to the account holder and to moderators.
+  Number of invitation slots this account can still hand out. Only visible to viewers who can manage this account's settings and to moderators.
   """
   invitationsLeft: Int!
 
@@ -157,12 +157,12 @@ type Account implements Node {
   name: String!
 
   """
-  Whether the account receives daily digest emails when unread notifications remain. Only visible to the account holder and moderators; change it with `updateNotificationEmailDigestSettings`.
+  Whether the account receives daily digest emails when unread notifications remain. Only visible to viewers who can manage this account's settings and to moderators; change it with `updateNotificationEmailDigestSettings`.
   """
   notificationEmailDigestDaily: Boolean!
 
   """
-  Whether the account receives weekly digest emails when unread notifications remain. Only visible to the account holder and moderators; change it with `updateNotificationEmailDigestSettings`.
+  Whether the account receives weekly digest emails when unread notifications remain. Only visible to viewers who can manage this account's settings and to moderators; change it with `updateNotificationEmailDigestSettings`.
   """
   notificationEmailDigestWeekly: Boolean!
 
@@ -203,12 +203,12 @@ type Account implements Node {
   postCount: Int
 
   """
-  Whether to show LLM-generated article summaries by default. Only visible to the account holder and moderators.
+  Whether to show LLM-generated article summaries by default. Only visible to viewers who can manage this account's settings and to moderators.
   """
   preferAiSummary: Boolean!
 
   """
-  Controls whether push notification payloads may include short post content previews. Only visible to the account holder and moderators.
+  Controls whether push notification payloads may include short post content previews. Only visible to viewers who can manage this account's settings and to moderators.
   """
   pushNotificationPreviewPolicy: PushNotificationPreviewPolicy!
 

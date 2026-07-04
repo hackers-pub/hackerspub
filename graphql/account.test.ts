@@ -168,6 +168,21 @@ const accountSettingsPermissionQuery = parse(`
   }
 `);
 
+const accountSettingsPrivateFieldsQuery = parse(`
+  query AccountSettingsPrivateFields($username: String!) {
+    accountByUsername(username: $username) {
+      invitationsLeft
+      preferAiSummary
+      hideFromInvitationTree
+      notificationEmailDigestDaily
+      notificationEmailDigestWeekly
+      invitationLinks {
+        id
+      }
+    }
+  }
+`);
+
 const deleteAccountMutation = parse(`
   mutation DeleteAccount($input: DeleteAccountInput!) {
     deleteAccount(input: $input) {
@@ -922,6 +937,27 @@ test("updateAccount allows organization admins to update organization profiles",
     assert.equal(adminPermission.errors, undefined);
     assert.deepEqual(toPlainJson(adminPermission.data), {
       accountByUsername: { viewerCanManageSettings: true },
+    });
+
+    const adminPrivateFields = await execute({
+      schema,
+      document: accountSettingsPrivateFieldsQuery,
+      variableValues: { username: organization.account.username },
+      contextValue: makeUserContext(tx, admin.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.equal(adminPrivateFields.errors, undefined);
+    assert.deepEqual(toPlainJson(adminPrivateFields.data), {
+      accountByUsername: {
+        invitationsLeft: organization.account.leftInvitations,
+        preferAiSummary: organization.account.preferAiSummary,
+        hideFromInvitationTree: organization.account.hideFromInvitationTree,
+        notificationEmailDigestDaily: organization.account
+          .notificationEmailDigestDaily,
+        notificationEmailDigestWeekly: organization.account
+          .notificationEmailDigestWeekly,
+        invitationLinks: [],
+      },
     });
 
     const memberPermission = await execute({
