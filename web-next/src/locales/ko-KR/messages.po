@@ -2376,7 +2376,7 @@ msgstr "Hackers' Pub: 초대 그래프"
 
 #: src/routes/(root)/tree/index.tsx:205
 msgid "Hackers' Pub: Invitation tree"
-msgstr "Hackers' Pub: 초대 트리"
+msgstr "Hackers' Pub: 초대 족보"
 
 #: src/routes/(root)/local.tsx:69
 msgid "Hackers' Pub: Local timeline"

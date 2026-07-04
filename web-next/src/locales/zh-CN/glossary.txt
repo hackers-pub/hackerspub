@@ -22,6 +22,7 @@ handle → handle
 instance → 实例
 interaction scope → 互动范围
 invitation → 邀请
+invitation tree → 邀请树
 invitationLink → 邀请链接
 login credentials → 登录凭据
 medium → 媒体

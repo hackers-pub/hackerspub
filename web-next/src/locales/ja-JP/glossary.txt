@@ -22,6 +22,7 @@ handle → ハンドル
 instance → インスタンス
 interaction scope → やり取りの範囲
 invitation → 招待
+invitation tree → 招待ツリー
 invitationLink → 招待リンク
 login credentials → ログイン認証情報
 medium → メディア

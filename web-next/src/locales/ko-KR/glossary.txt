@@ -22,6 +22,7 @@ handle → 핸들
 instance → 인스턴스
 interaction scope → 상호작용 범위
 invitation → 초대
+invitation tree → 초대 족보
 invitationLink → 초대 링크
 login credentials → 로그인 인증 정보
 medium → 미디어

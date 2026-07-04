@@ -22,6 +22,7 @@ handle → 識別碼
 instance → 站台
 interaction scope → 互動範圍
 invitation → 邀請
+invitation tree → 邀請樹
 invitationLink → 邀請連結
 login credentials → 登入憑證
 medium → 媒體
