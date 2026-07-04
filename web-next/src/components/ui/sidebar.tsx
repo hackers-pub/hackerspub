@@ -215,6 +215,17 @@ const Sidebar: Component<SidebarProps> = (rawProps) => {
 
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
 
+  const closeMobileSidebarOnLinkClick = (event: MouseEvent) => {
+    const target = event.target;
+    const currentTarget = event.currentTarget;
+    if (!(target instanceof Element) || !(currentTarget instanceof Element)) {
+      return;
+    }
+    const link = target.closest("a[href]");
+    if (link == null || !currentTarget.contains(link)) return;
+    setOpenMobile(false);
+  };
+
   return (
     <Switch>
       <Match when={local.collapsible === "none"}>
@@ -239,7 +250,12 @@ const Sidebar: Component<SidebarProps> = (rawProps) => {
             }}
             position={local.side}
           >
-            <div class="flex size-full flex-col">{local.children}</div>
+            <div
+              class="flex size-full flex-col"
+              onClick={closeMobileSidebarOnLinkClick}
+            >
+              {local.children}
+            </div>
           </SheetContent>
         </Sheet>
       </Match>
