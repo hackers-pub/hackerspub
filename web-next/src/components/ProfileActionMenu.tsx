@@ -60,6 +60,7 @@ const blockActorMutation = graphql`
           viewerBlocks(actingAccountId: $actingAccountId)
           blocksViewer(actingAccountId: $actingAccountId)
           viewerFollows(actingAccountId: $actingAccountId)
+          viewerFollowState(actingAccountId: $actingAccountId)
           followsViewer(actingAccountId: $actingAccountId)
           followersCount: followers {
             totalCount
@@ -73,6 +74,7 @@ const blockActorMutation = graphql`
           viewerBlocks(actingAccountId: $actingAccountId)
           blocksViewer(actingAccountId: $actingAccountId)
           viewerFollows(actingAccountId: $actingAccountId)
+          viewerFollowState(actingAccountId: $actingAccountId)
           followsViewer(actingAccountId: $actingAccountId)
           followersCount: followers {
             totalCount
@@ -105,6 +107,7 @@ const unblockActorMutation = graphql`
           viewerBlocks(actingAccountId: $actingAccountId)
           blocksViewer(actingAccountId: $actingAccountId)
           viewerFollows(actingAccountId: $actingAccountId)
+          viewerFollowState(actingAccountId: $actingAccountId)
           followsViewer(actingAccountId: $actingAccountId)
           followersCount: followers {
             totalCount
@@ -118,6 +121,7 @@ const unblockActorMutation = graphql`
           viewerBlocks(actingAccountId: $actingAccountId)
           blocksViewer(actingAccountId: $actingAccountId)
           viewerFollows(actingAccountId: $actingAccountId)
+          viewerFollowState(actingAccountId: $actingAccountId)
           followsViewer(actingAccountId: $actingAccountId)
           followersCount: followers {
             totalCount

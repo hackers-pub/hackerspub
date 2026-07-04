@@ -73,6 +73,14 @@ test("follow() and unfollow() send federation activities for remote actors", asy
       },
     });
     assert.equal(stored, undefined);
+    const storedLocal = await tx.query.actorTable.findFirst({
+      where: { id: local.actor.id },
+    });
+    const storedRemote = await tx.query.actorTable.findFirst({
+      where: { id: remote.id },
+    });
+    assert.equal(storedLocal?.followeesCount, 0);
+    assert.equal(storedRemote?.followersCount, 0);
   });
 });
 

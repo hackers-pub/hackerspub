@@ -18,6 +18,7 @@ import {
   follow,
   getFollowedActorIds,
   getFollowerActorIds,
+  getFollowStatesByActorId,
   getMutualFollowerActorIds,
   getRankedFollowerPage,
   removeFollower as removeFollowerModel,
@@ -255,6 +256,48 @@ function createRelationshipBooleanLoader(
   };
 }
 
+function createViewerFollowStateLoader() {
+  return async (
+    keys: RelationshipBooleanKey[],
+    ctx: UserContext,
+  ): Promise<(typeof ViewerFollowState.$inferType)[]> => {
+    const targetIdsByViewer = new Map<Uuid, Uuid[]>();
+    for (const { viewerActorId, targetActorId } of keys) {
+      if (viewerActorId == null) continue;
+      const targetIds = targetIdsByViewer.get(viewerActorId);
+      if (targetIds == null) {
+        targetIdsByViewer.set(viewerActorId, [targetActorId]);
+      } else {
+        targetIds.push(targetActorId);
+      }
+    }
+
+    const statesByViewer = new Map<
+      Uuid,
+      Map<Uuid, "none" | "pending" | "accepted">
+    >();
+    await Promise.all(
+      [...targetIdsByViewer].map(async ([viewerActorId, targetIds]) => {
+        statesByViewer.set(
+          viewerActorId,
+          await getFollowStatesByActorId(ctx.db, viewerActorId, targetIds),
+        );
+      }),
+    );
+
+    return keys.map(({ viewerActorId, targetActorId }) => {
+      const state = viewerActorId == null
+        ? "none"
+        : statesByViewer.get(viewerActorId)?.get(targetActorId) ?? "none";
+      return state === "accepted"
+        ? "ACCEPTED"
+        : state === "pending"
+        ? "PENDING"
+        : "NONE";
+    });
+  };
+}
+
 function authenticationRequired(): never {
   throw createGraphQLError("Authentication required.", {
     extensions: { code: "AUTHENTICATION_REQUIRED" },
@@ -324,6 +367,29 @@ export const ActorType = builder.enumType("ActorType", {
     },
     ORGANIZATION: {
       description: "An organization actor.",
+    },
+  } as const,
+});
+
+const ViewerFollowState = builder.enumType("ViewerFollowState", {
+  description:
+    "The selected viewer account's follow relationship to an `Actor`. Use " +
+    "this instead of `viewerFollows` when pending follow requests need a " +
+    "distinct UI state.",
+  values: {
+    NONE: {
+      description:
+        "The selected viewer account has no follow row for this `Actor`.",
+    },
+    PENDING: {
+      description:
+        "The selected viewer account sent a `Follow` and is waiting for an " +
+        "`Accept` or `Reject` from a remote actor.",
+    },
+    ACCEPTED: {
+      description:
+        "The selected viewer account follows this `Actor`; the follow row " +
+        "has a non-`null` `accepted` timestamp.",
     },
   } as const,
 });
@@ -1151,9 +1217,12 @@ builder.drizzleObjectFields(Actor, (t) => ({
   viewerFollows: t.loadable({
     type: "Boolean",
     description:
-      "True if the selected viewer account follows this actor. Always false " +
-      "for unauthenticated requests or when the actor is the selected viewer " +
-      "actor themselves. Pass `actingAccountId` for an organization perspective.",
+      "True if the selected viewer account has an accepted follow for this " +
+      "actor. Pending follow requests return `false`; use " +
+      "`viewerFollowState` to distinguish `PENDING` from `NONE`. Always " +
+      "false for unauthenticated requests or when the actor is the selected " +
+      "viewer actor themselves. Pass `actingAccountId` for an organization " +
+      "perspective.",
     args: {
       actingAccountId: t.arg.globalID({
         for: Account,
@@ -1166,6 +1235,26 @@ builder.drizzleObjectFields(Actor, (t) => ({
     // re-queries instead of returning the pre-mutation value.
     loaderOptions: { cache: false },
     load: createRelationshipBooleanLoader(getFollowedActorIds),
+    resolve: relationshipBooleanKey,
+  }),
+  viewerFollowState: t.loadable({
+    type: ViewerFollowState,
+    description:
+      "Follow state from the selected viewer account to this actor. Pending " +
+      "remote follows return `PENDING` until an `Accept` or `Reject` arrives. " +
+      "Unauthenticated requests and the selected viewer actor themselves " +
+      "return `NONE`. Pass `actingAccountId` for an organization perspective.",
+    args: {
+      actingAccountId: t.arg.globalID({
+        for: Account,
+        required: false,
+        description: actingAccountIdArgDescription,
+      }),
+    },
+    // cache: false so followActor and unfollowActor payload reads observe
+    // the mutation result in the same GraphQL request.
+    loaderOptions: { cache: false },
+    load: createViewerFollowStateLoader(),
     resolve: relationshipBooleanKey,
   }),
   viewerBlocks: t.loadable({

@@ -13,6 +13,7 @@ import { generateUuidV7, type Uuid } from "./uuid.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
+  insertRemoteActor,
   seedLocalInstance,
   withRollback,
 } from "../test/postgres.ts";
@@ -204,17 +205,25 @@ test("getFollowedActorIds returns the subset that the follower follows", async (
       name: "GFAI Not Followed",
       email: `gfainotfollowed-${suffix}@example.com`,
     });
+    const pending = await insertRemoteActor(tx, {
+      username: `gfaipending${suffix}`,
+      name: "GFAI Pending",
+      host: "pending.example",
+    });
 
     await follow(fedCtx, viewer.account, followed.actor);
+    await follow(fedCtx, viewer.account, pending);
 
     const result = await getFollowedActorIds(tx, viewer.actor.id, [
       followed.actor.id,
       notFollowed.actor.id,
+      pending.id,
       generateUuidV7() as Uuid,
     ]);
 
     assert.deepEqual(result.has(followed.actor.id), true);
     assert.deepEqual(result.has(notFollowed.actor.id), false);
+    assert.deepEqual(result.has(pending.id), false);
     assert.deepEqual(result.size, 1);
   });
 });
@@ -250,17 +259,30 @@ test("getFollowerActorIds returns the subset that follows the followee", async (
       name: "GFRAI Stranger",
       email: `gfraistranger-${suffix}@example.com`,
     });
+    const pending = await insertRemoteActor(tx, {
+      username: `gfraipending${suffix}`,
+      name: "GFRAI Pending",
+      host: "pending.example",
+    });
 
     await follow(fedCtx, fan.account, target.actor);
+    await tx.insert(followingTable).values({
+      iri: `https://pending.example/follows/${pending.id}`,
+      followerId: pending.id,
+      followeeId: target.actor.id,
+      accepted: null,
+    });
 
     const result = await getFollowerActorIds(tx, target.actor.id, [
       fan.actor.id,
       stranger.actor.id,
+      pending.id,
       generateUuidV7() as Uuid,
     ]);
 
     assert.deepEqual(result.has(fan.actor.id), true);
     assert.deepEqual(result.has(stranger.actor.id), false);
+    assert.deepEqual(result.has(pending.id), false);
     assert.deepEqual(result.size, 1);
   });
 });

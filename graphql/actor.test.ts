@@ -18,6 +18,7 @@ import {
   insertAccountWithActor,
   insertMention,
   insertNotePost,
+  insertRemoteActor,
   makeGuestContext,
   makeUserContext,
   toPlainJson,
@@ -1228,6 +1229,14 @@ const viewerFollowsBatchQuery = parse(`
   }
 `);
 
+const viewerFollowStateBatchQuery = parse(`
+  query ViewerFollowStateBatch($a: UUID!, $b: UUID!, $c: UUID!) {
+    a: actorByUuid(uuid: $a) { id viewerFollows viewerFollowState }
+    b: actorByUuid(uuid: $b) { id viewerFollows viewerFollowState }
+    c: actorByUuid(uuid: $c) { id viewerFollows viewerFollowState }
+  }
+`);
+
 const mutualFollowersQuery = parse(`
   query MutualFollowers($uuid: UUID!) {
     actorByUuid(uuid: $uuid) {
@@ -1325,6 +1334,66 @@ test("Actor.viewerFollows returns the right state per actor when batched", async
       c: {
         id: encodeGlobalID("Actor", stranger.actor.id),
         viewerFollows: false,
+      },
+    });
+  });
+});
+
+test("Actor.viewerFollowState distinguishes pending and accepted follows", async () => {
+  await withRollback(async (tx) => {
+    const viewer = await insertAccountWithActor(tx, {
+      username: "vfsviewer",
+      name: "VFS Viewer",
+      email: "vfsviewer@example.com",
+    });
+    const accepted = await insertAccountWithActor(tx, {
+      username: "vfsaccepted",
+      name: "VFS Accepted",
+      email: "vfsaccepted@example.com",
+    });
+    const pending = await insertRemoteActor(tx, {
+      username: "vfspending",
+      name: "VFS Pending",
+      host: "pending.example",
+    });
+    const none = await insertAccountWithActor(tx, {
+      username: "vfsnone",
+      name: "VFS None",
+      email: "vfsnone@example.com",
+    });
+
+    const fedCtx = createFedCtx(tx);
+    await follow(fedCtx, viewer.account, accepted.actor);
+    await follow(fedCtx, viewer.account, pending);
+
+    const result = await execute({
+      schema,
+      document: viewerFollowStateBatchQuery,
+      variableValues: {
+        a: accepted.actor.id,
+        b: pending.id,
+        c: none.actor.id,
+      },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(result.errors, undefined);
+    assert.deepEqual(result.data, {
+      a: {
+        id: encodeGlobalID("Actor", accepted.actor.id),
+        viewerFollows: true,
+        viewerFollowState: "ACCEPTED",
+      },
+      b: {
+        id: encodeGlobalID("Actor", pending.id),
+        viewerFollows: false,
+        viewerFollowState: "PENDING",
+      },
+      c: {
+        id: encodeGlobalID("Actor", none.actor.id),
+        viewerFollows: false,
+        viewerFollowState: "NONE",
       },
     });
   });
@@ -1553,6 +1622,48 @@ test("Actor.viewerFollows returns false for a guest viewer", async () => {
     assert.deepEqual(data.a.viewerFollows, false);
     assert.deepEqual(data.b.viewerFollows, false);
     assert.deepEqual(data.c.viewerFollows, false);
+  });
+});
+
+test("Actor.viewerFollowState returns NONE for a guest viewer", async () => {
+  await withRollback(async (tx) => {
+    const a = await insertAccountWithActor(tx, {
+      username: "vfsguesta",
+      name: "VFS Guest A",
+      email: "vfsguesta@example.com",
+    });
+    const b = await insertAccountWithActor(tx, {
+      username: "vfsguestb",
+      name: "VFS Guest B",
+      email: "vfsguestb@example.com",
+    });
+    const c = await insertRemoteActor(tx, {
+      username: "vfsguestc",
+      name: "VFS Guest C",
+      host: "guest.example",
+    });
+
+    const result = await execute({
+      schema,
+      document: viewerFollowStateBatchQuery,
+      variableValues: {
+        a: a.actor.id,
+        b: b.actor.id,
+        c: c.id,
+      },
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(result.errors, undefined);
+    const data = result.data as {
+      a: { viewerFollowState: string };
+      b: { viewerFollowState: string };
+      c: { viewerFollowState: string };
+    };
+    assert.deepEqual(data.a.viewerFollowState, "NONE");
+    assert.deepEqual(data.b.viewerFollowState, "NONE");
+    assert.deepEqual(data.c.viewerFollowState, "NONE");
   });
 });
 
@@ -1895,13 +2006,13 @@ const followUnfollowMutation = parse(`
     follow: followActor(input: { actorId: $actorId }) {
       __typename
       ... on FollowActorPayload {
-        followee { id viewerFollows }
+        followee { id viewerFollows viewerFollowState }
       }
     }
     unfollow: unfollowActor(input: { actorId: $actorId }) {
       __typename
       ... on UnfollowActorPayload {
-        followee { id viewerFollows }
+        followee { id viewerFollows viewerFollowState }
       }
     }
   }
@@ -1935,20 +2046,30 @@ test(
       const data = result.data as {
         follow: {
           __typename: string;
-          followee?: { id: string; viewerFollows: boolean };
+          followee?: {
+            id: string;
+            viewerFollows: boolean;
+            viewerFollowState: string;
+          };
         };
         unfollow: {
           __typename: string;
-          followee?: { id: string; viewerFollows: boolean };
+          followee?: {
+            id: string;
+            viewerFollows: boolean;
+            viewerFollowState: string;
+          };
         };
       };
 
       assert.deepEqual(data.follow.__typename, "FollowActorPayload");
       assert.deepEqual(data.unfollow.__typename, "UnfollowActorPayload");
       assert.deepEqual(data.follow.followee?.viewerFollows, true);
+      assert.deepEqual(data.follow.followee?.viewerFollowState, "ACCEPTED");
       // A `cache: true` regression on `viewerFollows` would surface
       // here as a stale cached `true`.
       assert.deepEqual(data.unfollow.followee?.viewerFollows, false);
+      assert.deepEqual(data.unfollow.followee?.viewerFollowState, "NONE");
     });
   },
 );

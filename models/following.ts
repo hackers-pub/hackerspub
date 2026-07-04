@@ -151,7 +151,7 @@ export async function unfollow(
       },
     );
   }
-  if (rows.length > 0) {
+  if (rows.length > 0 && rows[0].accepted != null) {
     await updateFolloweesCount(db, rows[0].followerId, -1);
     await updateFollowersCount(db, rows[0].followeeId, -1);
     if (followee.accountId != null) {
@@ -205,6 +205,34 @@ export async function removeFollower(
   return rows[0];
 }
 
+export type FollowState = "none" | "pending" | "accepted";
+
+export async function getFollowStatesByActorId(
+  db: Database,
+  followerId: Uuid,
+  followeeIds: readonly Uuid[],
+): Promise<Map<Uuid, FollowState>> {
+  if (followeeIds.length < 1) return new Map();
+  const rows = await db
+    .select({
+      followeeId: followingTable.followeeId,
+      accepted: followingTable.accepted,
+    })
+    .from(followingTable)
+    .where(
+      and(
+        eq(followingTable.followerId, followerId),
+        inArray(followingTable.followeeId, followeeIds as Uuid[]),
+      ),
+    );
+  return new Map(
+    rows.map((row) => [
+      row.followeeId,
+      row.accepted == null ? "pending" : "accepted",
+    ]),
+  );
+}
+
 export async function getFollowedActorIds(
   db: Database,
   followerId: Uuid,
@@ -218,6 +246,7 @@ export async function getFollowedActorIds(
       and(
         eq(followingTable.followerId, followerId),
         inArray(followingTable.followeeId, followeeIds as Uuid[]),
+        isNotNull(followingTable.accepted),
       ),
     );
   return new Set(rows.map((row) => row.followeeId));
@@ -236,6 +265,7 @@ export async function getFollowerActorIds(
       and(
         eq(followingTable.followeeId, followeeId),
         inArray(followingTable.followerId, followerIds as Uuid[]),
+        isNotNull(followingTable.accepted),
       ),
     );
   return new Set(rows.map((row) => row.followerId));

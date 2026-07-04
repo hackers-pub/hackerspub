@@ -684,7 +684,17 @@ type Actor implements Node {
   ): Boolean!
 
   """
-  True if the selected viewer account follows this actor. Always false for unauthenticated requests or when the actor is the selected viewer actor themselves. Pass `actingAccountId` for an organization perspective.
+  Follow state from the selected viewer account to this actor. Pending remote follows return `PENDING` until an `Accept` or `Reject` arrives. Unauthenticated requests and the selected viewer actor themselves return `NONE`. Pass `actingAccountId` for an organization perspective.
+  """
+  viewerFollowState(
+    """
+    Optional `Account` ID that changes viewer-relative checks to an organization account managed by the authenticated viewer. Omit this argument to use the authenticated viewer's personal account.
+    """
+    actingAccountId: ID
+  ): ViewerFollowState!
+
+  """
+  True if the selected viewer account has an accepted follow for this actor. Pending follow requests return `false`; use `viewerFollowState` to distinguish `PENDING` from `NONE`. Always false for unauthenticated requests or when the actor is the selected viewer actor themselves. Pass `actingAccountId` for an organization perspective.
   """
   viewerFollows(
     """
@@ -6601,6 +6611,24 @@ type UpdateOrganizationMemberRolePayload {
 }
 
 union UpdateOrganizationMemberRoleResult = LastOrganizationAdminError | NotAuthenticatedError | NotAuthorizedError | OrganizationMembershipError | OrganizationPermissionError | UpdateOrganizationMemberRolePayload
+
+"""
+The selected viewer account's follow relationship to an `Actor`. Use this instead of `viewerFollows` when pending follow requests need a distinct UI state.
+"""
+enum ViewerFollowState {
+  """
+  The selected viewer account follows this `Actor`; the follow row has a non-`null` `accepted` timestamp.
+  """
+  ACCEPTED
+
+  """The selected viewer account has no follow row for this `Actor`."""
+  NONE
+
+  """
+  The selected viewer account sent a `Follow` and is waiting for an `Accept` or `Reject` from a remote actor.
+  """
+  PENDING
+}
 
 """
 Vote in a visible poll. Votes are idempotent: once the viewer has voted, later calls return the stored selections instead of replacing them. Federates the vote when the poll is remote.

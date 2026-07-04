@@ -28,6 +28,7 @@ const followActorMutation = graphql`
         followee {
           id
           viewerFollows(actingAccountId: $actingAccountId)
+          viewerFollowState(actingAccountId: $actingAccountId)
           followsViewer(actingAccountId: $actingAccountId)
           followers { totalCount }
         }
@@ -61,6 +62,7 @@ const unfollowActorMutation = graphql`
         followee {
           id
           viewerFollows(actingAccountId: $actingAccountId)
+          viewerFollowState(actingAccountId: $actingAccountId)
           followsViewer(actingAccountId: $actingAccountId)
           followers { totalCount }
         }
@@ -95,6 +97,7 @@ export function FollowButton(props: FollowButtonProps) {
         local
         isViewer(actingAccountId: $actingAccountId)
         viewerFollows(actingAccountId: $actingAccountId)
+        viewerFollowState(actingAccountId: $actingAccountId)
         viewerBlocks(actingAccountId: $actingAccountId)
         blocksViewer(actingAccountId: $actingAccountId)
         followsViewer(actingAccountId: $actingAccountId)
@@ -103,19 +106,24 @@ export function FollowButton(props: FollowButtonProps) {
     () => props.$actor,
   );
 
-  const [followActor] = createMutation<FollowButton_followActor_Mutation>(
+  const [followActor, followPending] = createMutation<
+    FollowButton_followActor_Mutation
+  >(
     followActorMutation,
   );
 
-  const [unfollowActor] = createMutation<FollowButton_unfollowActor_Mutation>(
+  const [unfollowActor, unfollowPending] = createMutation<
+    FollowButton_unfollowActor_Mutation
+  >(
     unfollowActorMutation,
   );
 
   const isCurrentViewerActor = () => actor()?.isViewer ?? false;
+  const mutationPending = () => followPending() || unfollowPending();
 
   const handleClick = () => {
     const actorData = actor();
-    if (!actorData) return;
+    if (!actorData || mutationPending()) return;
 
     const connectionId = ConnectionHandler.getConnectionID(
       actorData.id,
@@ -123,16 +131,23 @@ export function FollowButton(props: FollowButtonProps) {
     );
     const actingAccountId = actingAccount.selectedActingAccountId();
 
-    const variables = {
-      input: {
-        actorId: actorData.id,
-        ...(actingAccountId == null ? {} : { actingAccountId }),
-      },
-      actingAccountId: actingAccountId ?? null,
-      connections: [connectionId],
+    const input = {
+      actorId: actorData.id,
+      ...(actingAccountId == null ? {} : { actingAccountId }),
     };
+    const actingAccountVariable = actingAccountId ?? null;
 
-    if (actorData.viewerFollows) {
+    if (actorData.viewerFollowState !== "NONE") {
+      const variables = {
+        input: {
+          ...input,
+        },
+        actingAccountId: actingAccountVariable,
+        connections: actorData.viewerFollowState === "PENDING"
+          ? []
+          : [connectionId],
+      };
+
       unfollowActor({
         variables,
         onCompleted(response) {
@@ -153,6 +168,14 @@ export function FollowButton(props: FollowButtonProps) {
         },
       });
     } else {
+      const variables = {
+        input: {
+          ...input,
+        },
+        actingAccountId: actingAccountVariable,
+        connections: actorData.local ? [connectionId] : [],
+      };
+
       followActor({
         variables,
         onCompleted(response) {
@@ -195,12 +218,17 @@ export function FollowButton(props: FollowButtonProps) {
             }
           >
             <Button
-              variant={actor.viewerFollows ? "outline" : "default"}
+              variant={actor.viewerFollowState === "NONE"
+                ? "default"
+                : "outline"}
               size="sm"
               class="cursor-pointer"
+              disabled={mutationPending()}
               onClick={handleClick}
             >
-              {actor.viewerFollows
+              {actor.viewerFollowState === "PENDING"
+                ? t`Cancel request`
+                : actor.viewerFollowState === "ACCEPTED"
                 ? t`Unfollow`
                 : actor.followsViewer
                 ? t`Follow back`
