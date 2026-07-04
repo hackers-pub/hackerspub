@@ -8,6 +8,7 @@ import {
   verifyAuthentication,
   verifyRegistration,
 } from "./passkey.ts";
+import { passkeyTable } from "./schema.ts";
 import {
   createTestKv,
   insertAccountWithActor,
@@ -158,3 +159,42 @@ test(
     });
   },
 );
+
+test("verifyAuthentication() returns undefined when WebAuthn verification throws", async () => {
+  await withRollback(async (tx) => {
+    const { kv } = createTestKv();
+    const sessionId = "019d9163-0000-7000-8000-000000000000";
+    const account = await insertAccountWithActor(tx, {
+      username: "passkeyverifythrows",
+      name: "Passkey Verify Throws",
+      email: "passkeyverifythrows@example.com",
+    });
+    await getAuthenticationOptions(
+      kv,
+      "https://pub.hackers.pub/sign/in",
+      sessionId,
+    );
+    await tx.insert(passkeyTable).values({
+      id: "throwing-credential",
+      accountId: account.account.id,
+      name: "Broken credential",
+      publicKey: Buffer.from([1, 2, 3]),
+      webauthnUserId: "throwing-user",
+      counter: 0n,
+      deviceType: "singleDevice",
+      backedUp: false,
+      transports: ["internal"],
+    });
+
+    const result = await verifyAuthentication(
+      tx,
+      kv,
+      ["https://pub.hackers.pub"],
+      "pub.hackers.pub",
+      sessionId,
+      { id: "throwing-credential" } as never,
+    );
+
+    assert.deepEqual(result, undefined);
+  });
+});

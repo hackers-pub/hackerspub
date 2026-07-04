@@ -10,6 +10,7 @@ import {
   verifyAuthenticationResponse,
   verifyRegistrationResponse,
 } from "@simplewebauthn/server";
+import { getLogger } from "@logtape/logtape";
 import { eq, sql } from "drizzle-orm";
 import type Keyv from "keyv";
 import { Buffer } from "node:buffer";
@@ -21,6 +22,8 @@ import {
   passkeyTable,
 } from "./schema.ts";
 import type { Uuid } from "./uuid.ts";
+
+const logger = getLogger(["hackerspub", "models", "passkey"]);
 
 const RP_NAME = "Hackers' Pub";
 
@@ -150,18 +153,24 @@ export async function verifyAuthentication(
     },
   });
   if (passkey == null) return undefined;
-  const result = await verifyAuthenticationResponse({
-    response,
-    expectedChallenge: options.challenge,
-    expectedOrigin: origins,
-    expectedRPID: rpId,
-    credential: {
-      id: response.id,
-      publicKey: new Uint8Array(passkey.publicKey),
-      counter: Number(passkey.counter),
-      transports: passkey.transports ?? undefined,
-    },
-  });
+  let result: VerifiedAuthenticationResponse;
+  try {
+    result = await verifyAuthenticationResponse({
+      response,
+      expectedChallenge: options.challenge,
+      expectedOrigin: origins,
+      expectedRPID: rpId,
+      credential: {
+        id: response.id,
+        publicKey: new Uint8Array(passkey.publicKey),
+        counter: Number(passkey.counter),
+        transports: passkey.transports ?? undefined,
+      },
+    });
+  } catch (error) {
+    logger.warn("Passkey authentication failed: {error}", { error });
+    return undefined;
+  }
   if (result.verified) {
     await db.update(passkeyTable)
       .set({
