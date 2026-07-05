@@ -71,13 +71,13 @@ export default function EditArticleDraftPage() {
         </WideContainer>
       }
     >
-      <WideContainer>
+      <div class="flex h-[100dvh] flex-col overflow-hidden">
         <Title>{t`Edit draft`}</Title>
         <ArticleComposer
           draftUuid={params.id}
           viewerId={data()?.viewer?.id}
         />
-      </WideContainer>
+      </div>
     </Show>
   );
 }

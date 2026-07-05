@@ -6,6 +6,7 @@ import {
 } from "@solidjs/router";
 import * as Sentry from "@sentry/solidstart";
 import {
+  createMemo,
   createRenderEffect,
   createSignal,
   For,
@@ -145,6 +146,14 @@ export default function RootLayout(props: RouteSectionProps) {
       location.pathname,
     );
   };
+  // The article writing surfaces (draft composer and the published-article
+  // editor) render full-bleed, so hide the sidebar and mobile header on those
+  // routes. Matches `/@handle/drafts/new`, `/@handle/drafts/{uuid}`, and
+  // `/@handle/{year|id}/{slug}/edit` (but not the bare `/@handle/drafts` list).
+  const isComposeRoute = createMemo(() =>
+    /^\/@[^/]+\/drafts\/[^/]+/.test(location.pathname) ||
+    /^\/@[^/]+\/[^/]+\/[^/]+\/edit\/?$/.test(location.pathname)
+  );
   // Tag every Sentry event with the signed-in viewer so errors carry user
   // identity — this covers both browser-side captures (errors from
   // app.tsx's ErrorBoundary, RelayEnvironment.tsx's network-failure
@@ -185,57 +194,62 @@ export default function RootLayout(props: RouteSectionProps) {
       <ActingAccountProvider>
         <NoteComposeProvider>
           <SidebarProvider>
-            <AppSidebar
-              $signedAccount={chromeSignedAccount()}
-              signedAccountLoaded={chromeSignedAccountLoaded()}
-              personalUnreadNotificationsCount={personalUnreadNotificationsCount()}
-            />
-            <header class="fixed inset-x-0 top-0 z-40 border-b bg-background/80 backdrop-blur md:hidden">
-              <div class="flex h-14 items-center justify-between px-4">
-                <SidebarTrigger
-                  class="size-9 rounded-full"
-                  aria-label={t`Toggle sidebar`}
-                />
-                <A href="/" aria-label={t`Hackers' Pub home`}>
-                  <picture>
-                    <source
-                      srcset="/logo-dark.svg"
-                      media="(prefers-color-scheme: dark)"
-                    />
-                    <img
-                      src="/logo-light.svg"
-                      alt={t`Hackers' Pub`}
-                      width={111}
-                      height={28}
-                      class="h-7 w-auto"
-                    />
-                  </picture>
-                </A>
-                <Show
-                  when={chromeSignedAccount()}
-                  fallback={<div class="size-9" aria-hidden="true" />}
-                >
-                  <MobileHeaderNotifications
-                    personalUnreadNotificationsCount={personalUnreadNotificationsCount()}
+            <Show when={!isComposeRoute()}>
+              <AppSidebar
+                $signedAccount={chromeSignedAccount()}
+                signedAccountLoaded={chromeSignedAccountLoaded()}
+                personalUnreadNotificationsCount={personalUnreadNotificationsCount()}
+              />
+              <header class="fixed inset-x-0 top-0 z-40 border-b bg-background/80 backdrop-blur md:hidden">
+                <div class="flex h-14 items-center justify-between px-4">
+                  <SidebarTrigger
+                    class="size-9 rounded-full"
+                    aria-label={t`Toggle sidebar`}
                   />
-                </Show>
-              </div>
-            </header>
+                  <A href="/" aria-label={t`Hackers' Pub home`}>
+                    <picture>
+                      <source
+                        srcset="/logo-dark.svg"
+                        media="(prefers-color-scheme: dark)"
+                      />
+                      <img
+                        src="/logo-light.svg"
+                        alt={t`Hackers' Pub`}
+                        width={111}
+                        height={28}
+                        class="h-7 w-auto"
+                      />
+                    </picture>
+                  </A>
+                  <Show
+                    when={chromeSignedAccount()}
+                    fallback={<div class="size-9" aria-hidden="true" />}
+                  >
+                    <MobileHeaderNotifications
+                      personalUnreadNotificationsCount={personalUnreadNotificationsCount()}
+                    />
+                  </Show>
+                </div>
+              </header>
+            </Show>
             <main
               lang={new Intl.Locale(i18n.locale).minimize().baseName}
-              class="w-full pt-14 md:pt-0"
+              class="w-full"
               classList={{
+                "pt-14 md:pt-0": !isComposeRoute(),
                 "pb-24 md:pb-0": showFloatingCompose(),
                 "bg-[url(/dev-bg-light.svg)]": import.meta.env.DEV,
                 "dark:bg-[url(/dev-bg-dark.svg)]": import.meta.env.DEV,
               }}
             >
-              <WebPushPromptBanner
-                enabled={!signedAccount.pending &&
-                  signedAccount()?.viewer != null}
-                loaded={!signedAccount.pending}
-                vapidPublicKey={signedAccount()?.webPushVapidPublicKey}
-              />
+              <Show when={!isComposeRoute()}>
+                <WebPushPromptBanner
+                  enabled={!signedAccount.pending &&
+                    signedAccount()?.viewer != null}
+                  loaded={!signedAccount.pending}
+                  vapidPublicKey={signedAccount()?.webPushVapidPublicKey}
+                />
+              </Show>
               <Suspense fallback={<RouteLoadingFallback />}>
                 {props.children}
               </Suspense>
