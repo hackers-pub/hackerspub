@@ -140,12 +140,6 @@ export default function RootLayout(props: RouteSectionProps) {
   const personalUnreadNotificationsCount = createUnreadNotificationsCount(
     chromeSignedAccount,
   );
-  const showFloatingCompose = () => {
-    if (!chromeSignedAccountLoaded() || !chromeSignedAccount()) return false;
-    return !/^\/(?:@[^/]+\/(?:drafts|settings)|sign)(?:\/|$)/.test(
-      location.pathname,
-    );
-  };
   // The article writing surfaces (draft composer and the published-article
   // editor) render full-bleed, so hide the sidebar and mobile header on those
   // routes. Matches `/@handle/drafts/new`, `/@handle/drafts/{uuid}`, and
@@ -154,6 +148,16 @@ export default function RootLayout(props: RouteSectionProps) {
     /^\/@[^/]+\/drafts\/[^/]+/.test(location.pathname) ||
     /^\/@[^/]+\/[^/]+\/[^/]+\/edit\/?$/.test(location.pathname)
   );
+  const showFloatingCompose = () => {
+    if (!chromeSignedAccountLoaded() || !chromeSignedAccount()) return false;
+    // Keep the full-bleed compose/edit surfaces chrome-free: no floating
+    // compose button (it would overlap the editor's action bar) and no
+    // bottom padding reserved for it.
+    if (isComposeRoute()) return false;
+    return !/^\/(?:@[^/]+\/(?:drafts|settings)|sign)(?:\/|$)/.test(
+      location.pathname,
+    );
+  };
   // Tag every Sentry event with the signed-in viewer so errors carry user
   // identity — this covers both browser-side captures (errors from
   // app.tsx's ErrorBoundary, RelayEnvironment.tsx's network-failure
