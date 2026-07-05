@@ -45,7 +45,15 @@ export interface MarkdownEditorProps {
   class?: string;
   disabled?: boolean;
   minHeight?: string;
+  /**
+   * When `true`, the editor fills its (flex) parent's height and scrolls
+   * internally instead of growing from `minHeight`. The caller is responsible
+   * for giving the wrapper a definite height (e.g. `flex-1 min-h-0`).
+   */
+  fillHeight?: boolean;
   showToolbar?: boolean;
+  /** Accessible name for the editing region (the CodeMirror content). */
+  ariaLabel?: string;
   onImageUpload?: (file: File) => Promise<{ url: string }>;
 }
 
@@ -263,7 +271,9 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
     "class",
     "disabled",
     "minHeight",
+    "fillHeight",
     "showToolbar",
+    "ariaLabel",
     "onImageUpload",
   ]);
 
@@ -357,19 +367,30 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
   onMount(() => {
     if (!containerRef) return;
 
-    // Dynamic theme for minHeight
-    const minHeightTheme = EditorView.theme({
-      ".cm-content, .cm-gutter": {
-        minHeight: local.minHeight ?? "80px",
-      },
-      ".cm-scroller": {
-        minHeight: local.minHeight ?? "80px",
-      },
-    });
+    // Dynamic theme controlling the editor's height. In `fillHeight` mode the
+    // editor stretches to its (flex) parent and scrolls internally; otherwise
+    // it grows from `minHeight`.
+    const heightTheme = local.fillHeight
+      ? EditorView.theme({
+        "&": {
+          height: "100%",
+        },
+        ".cm-scroller": {
+          overflow: "auto",
+        },
+      })
+      : EditorView.theme({
+        ".cm-content, .cm-gutter": {
+          minHeight: local.minHeight ?? "80px",
+        },
+        ".cm-scroller": {
+          minHeight: local.minHeight ?? "80px",
+        },
+      });
 
     const extensions = [
       editorTheme,
-      minHeightTheme,
+      heightTheme,
       history(),
       // Formatting keymap first so it takes precedence
       keymap.of(formattingKeymap),
@@ -445,6 +466,12 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
       extensions.push(placeholderExt(local.placeholder));
     }
 
+    if (local.ariaLabel) {
+      extensions.push(
+        EditorView.contentAttributes.of({ "aria-label": local.ariaLabel }),
+      );
+    }
+
     const state = EditorState.create({
       doc: local.value ?? "",
       extensions,
@@ -509,6 +536,7 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
       class={cn(
         "w-full rounded-md border border-input bg-background text-sm ring-offset-background",
         "focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
+        local.fillHeight && "flex flex-col",
         local.disabled && "cursor-not-allowed opacity-50",
         local.class,
       )}
@@ -517,7 +545,10 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
         <div
           role="toolbar"
           aria-label={t`Formatting`}
-          class="flex flex-wrap gap-1 border-b border-input p-2"
+          class={cn(
+            "flex flex-wrap gap-1 border-b border-input p-2",
+            local.fillHeight && "shrink-0",
+          )}
         >
           <For each={blockStyles}>
             {(style) => (
@@ -597,9 +628,10 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
       </Show>
       <div
         ref={containerRef}
-        style={{
-          "min-height": local.minHeight ?? "80px",
-        }}
+        class={cn(local.fillHeight && "min-h-0 flex-1")}
+        style={local.fillHeight
+          ? undefined
+          : { "min-height": local.minHeight ?? "80px" }}
         {...others}
       />
     </div>
