@@ -32,14 +32,14 @@ msgstr "{0, plural, other {符合条件的账号 # 个}}；若现在重新发放
 #. placeholder {0}: a.followersCount.totalCount
 #. placeholder {0}: actor.followersCount?.totalCount ?? 0
 #: src/components/ActorPreviewCard.tsx:65
-#: src/components/ProfileCard.tsx:355
+#: src/components/ProfileCard.tsx:435
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {被 # 人关注}}"
 
 #. placeholder {0}: a.followeesCount.totalCount
 #. placeholder {0}: actor.followeesCount?.totalCount ?? 0
 #: src/components/ActorPreviewCard.tsx:56
-#: src/components/ProfileCard.tsx:342
+#: src/components/ProfileCard.tsx:420
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {关注 # 人}}"
 
@@ -93,7 +93,7 @@ msgid "{0, plural, one {Deleted # orphan medium.} other {Deleted # orphan media.
 msgstr "{0, plural, other {已删除 # 个孤立媒体。}}"
 
 #. placeholder {0}: actor.mutualFollowers?.totalCount ?? 0
-#: src/components/ProfileCard.tsx:396
+#: src/components/ProfileCard.tsx:476
 msgid "{0, plural, one {Followed by # person you follow} other {Followed by # people you follow}}"
 msgstr "{0, plural, other {你关注的 # 人也关注了}}"
 
@@ -360,10 +360,10 @@ msgstr "{0} 将收到一条通知以进行审核。"
 
 #. placeholder {0}: article.actor.rawName
 #. placeholder {0}: post.actor.rawName ?? post.actor.username
-#. placeholder {1}: post.excerpt
 #. placeholder {1}: title()
+#. placeholder {1}: titleExcerpt()
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:263
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:262
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:283
 msgid "{0}: {1}"
 msgstr "{0}：{1}"
 
@@ -474,7 +474,7 @@ msgstr "本地处罚会以管理团队名义通知被举报用户，用户可在
 msgid "A moderation decision was made about your account."
 msgstr "已对你的账户做出审核决定。"
 
-#: src/components/ProfileCard.tsx:219
+#: src/components/ProfileCard.tsx:294
 msgid "A moderator suspended this account for violating the code of conduct."
 msgstr "版主因违反行为准则封停了此账户。"
 
@@ -707,7 +707,7 @@ msgstr "所有语言"
 msgid "All notifications"
 msgstr "所有通知"
 
-#: src/components/ProfileCard.tsx:192
+#: src/components/ProfileCard.tsx:216
 msgid "All posts"
 msgstr "全部内容"
 
@@ -716,7 +716,7 @@ msgid "All-time"
 msgstr "全部时间"
 
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:109
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:606
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:605
 msgid "Allow automatic translation by AI"
 msgstr "允许 AI 自动翻译"
 
@@ -897,7 +897,7 @@ msgid "Articles"
 msgstr "文章"
 
 #: src/components/AppSidebar.tsx:351
-#: src/components/ProfileCard.tsx:199
+#: src/components/ProfileCard.tsx:223
 msgid "Articles only"
 msgstr "仅文章"
 
@@ -916,7 +916,7 @@ msgstr "已分配给 {0}"
 msgid "Attach image"
 msgstr "附加图片"
 
-#: src/routes/(root)/sign/index.tsx:445
+#: src/routes/(root)/sign/index.tsx:444
 msgid "Authenticating…"
 msgstr "正在验证…"
 
@@ -1058,7 +1058,7 @@ msgstr "由 {0} 发布"
 #: src/components/RemoteFollowButton.tsx:280
 #: src/components/RemoveFollowerButton.tsx:152
 #: src/components/ReportDialog.tsx:224
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:622
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:621
 #: src/routes/(root)/[handle]/settings/account.tsx:2045
 #: src/routes/(root)/[handle]/settings/index.tsx:417
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:522
@@ -1070,7 +1070,7 @@ msgstr "取消"
 msgid "Cancel invitation"
 msgstr "取消邀请"
 
-#: src/components/FollowButton.tsx:230
+#: src/components/FollowButton.tsx:241
 msgid "Cancel request"
 msgstr "取消关注请求"
 
@@ -1214,7 +1214,7 @@ msgstr "写作"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:65
 #: src/components/NoteComposer.tsx:1884
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:492
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:491
 msgid "Content"
 msgstr "内容"
 
@@ -1222,7 +1222,7 @@ msgstr "内容"
 msgid "Content cannot be empty"
 msgstr "内容不能为空"
 
-#: src/routes/applink/sign/in/[token].tsx:59
+#: src/routes/applink/sign/in/[token].tsx:58
 msgid "Continue in browser"
 msgstr "在浏览器中继续"
 
@@ -1598,7 +1598,7 @@ msgstr "已驳回"
 msgid "Display name"
 msgstr "昵称"
 
-#: src/routes/(root)/sign/index.tsx:451
+#: src/routes/(root)/sign/index.tsx:450
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "需要创建账户吗？Hackers' Pub 仅限邀请，请联系朋友邀请您。"
 
@@ -1636,7 +1636,7 @@ msgid "Edit"
 msgstr "编辑"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:472
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:474
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:473
 msgid "Edit article"
 msgstr "编辑文章"
 
@@ -1659,7 +1659,7 @@ msgstr "电子邮件地址"
 msgid "Email digests"
 msgstr "邮件摘要"
 
-#: src/routes/(root)/sign/index.tsx:406
+#: src/routes/(root)/sign/index.tsx:405
 msgid "Email or username"
 msgstr "邮箱或用户名"
 
@@ -1860,7 +1860,7 @@ msgstr "未能关闭浏览器通知"
 msgid "Failed to enable browser notifications"
 msgstr "未能开启浏览器通知"
 
-#: src/components/FollowButton.tsx:195
+#: src/components/FollowButton.tsx:199
 #: src/components/HashtagActionBar.tsx:154
 #: src/components/HashtagActionBar.tsx:158
 msgid "Failed to follow"
@@ -2036,7 +2036,7 @@ msgid "Failed to remove preferred sharer."
 msgstr "移除优先转帖者失败。"
 
 #: src/components/MarkdownEditor.tsx:192
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:561
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:560
 msgid "Failed to render preview"
 msgstr "预览渲染失败"
 
@@ -2096,7 +2096,7 @@ msgstr "订阅中继失败。"
 msgid "Failed to unblock this user"
 msgstr "未能取消屏蔽此用户"
 
-#: src/components/FollowButton.tsx:165
+#: src/components/FollowButton.tsx:169
 #: src/components/HashtagActionBar.tsx:177
 #: src/components/HashtagActionBar.tsx:181
 msgid "Failed to unfollow"
@@ -2170,12 +2170,12 @@ msgstr "订阅流"
 msgid "First shared"
 msgstr "首次转帖"
 
-#: src/components/FollowButton.tsx:235
+#: src/components/FollowButton.tsx:246
 #: src/components/HashtagActionBar.tsx:237
 msgid "Follow"
 msgstr "关注"
 
-#: src/components/FollowButton.tsx:234
+#: src/components/FollowButton.tsx:245
 msgid "Follow back"
 msgstr "回关"
 
@@ -2209,7 +2209,7 @@ msgid "Following"
 msgstr "关注"
 
 #: src/components/ActorPreviewCard.tsx:151
-#: src/components/ProfileCard.tsx:365
+#: src/components/ProfileCard.tsx:445
 msgid "Following you"
 msgstr "关注了你"
 
@@ -2258,12 +2258,16 @@ msgstr "前往我的收藏"
 msgid "Go to my drafts"
 msgstr "前往我的草稿"
 
+#: src/components/ProfileCard.tsx:275
+msgid "Go to new profile"
+msgstr "前往新个人资料"
+
 #: src/routes/(root)/admin/invitations.tsx:156
 msgid "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 msgstr "向自上次重新发放截止时间以来最活跃的账号（按内容数排名前三分之一）额外发放一份邀请。"
 
-#: src/routes/(root)/tree/graph.tsx:95
-#: src/routes/(root)/tree/index.tsx:222
+#: src/routes/(root)/tree/graph.tsx:94
+#: src/routes/(root)/tree/index.tsx:221
 msgid "Graph"
 msgstr "关系图"
 
@@ -2464,17 +2468,17 @@ msgstr "启用后，AI 将为您生成文章摘要。否则，将使用文章的
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1000
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:536
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:560
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你在联邦宇宙有个账户，你可以在你自己的实例里评论此文章。在你的实例搜索 {0} 后回复。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:374
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:398
 msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你在联邦宇宙有个账户，你可以在你自己的实例里评论此帖子。在你的实例搜索 {0} 后回复。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:454
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:478
 msgid "If you have a fediverse account, you can reply to this post from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你有联邦宇宙账号，可以从自己的实例回复此内容。在你的实例中搜索 {0} 并回复。"
 
@@ -2564,8 +2568,8 @@ msgstr "邀请已发送"
 
 #: src/components/AppSidebar.tsx:1187
 #: src/routes/(root)/[handle]/settings/invite.tsx:910
-#: src/routes/(root)/tree/graph.tsx:82
-#: src/routes/(root)/tree/index.tsx:209
+#: src/routes/(root)/tree/graph.tsx:81
+#: src/routes/(root)/tree/index.tsx:208
 msgid "Invitation tree"
 msgstr "邀请树"
 
@@ -2609,7 +2613,7 @@ msgid "Invited by"
 msgstr "邀请人"
 
 #. placeholder {0}: "INVITER"
-#: src/components/ProfileCard.tsx:431
+#: src/components/ProfileCard.tsx:511
 msgid "Invited by {0}"
 msgstr "由 {0} 邀请"
 
@@ -2629,8 +2633,8 @@ msgstr "张三"
 msgid "Join the discussion about this story."
 msgstr "参与关于这个话题的讨论。"
 
-#. placeholder {0}: new Date(created).toLocaleDateString(i18n.locale, { year: "numeric", month: "long", })
-#: src/components/ProfileCard.tsx:466
+#. placeholder {0}: new Date(created).toLocaleDateString( i18n.locale, { year: "numeric", month: "long", }, )
+#: src/components/ProfileCard.tsx:546
 msgid "Joined {0}"
 msgstr "加入于 {0}"
 
@@ -2650,7 +2654,7 @@ msgstr "继续编辑"
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:69
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:589
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:588
 msgid "Language"
 msgstr "语言"
 
@@ -2973,7 +2977,7 @@ msgstr "Markdown 指南"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:90
 #: src/components/NoteComposer.tsx:1996
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:517
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:516
 msgid "Markdown supported"
 msgstr "Markdown 可用"
 
@@ -3220,7 +3224,7 @@ msgstr "没有找到关注的用户"
 msgid "No interactions found"
 msgstr "没有找到互动"
 
-#: src/routes/(root)/tree/index.tsx:230
+#: src/routes/(root)/tree/index.tsx:229
 msgid "No invitation tree data yet."
 msgstr "还没有邀请树数据。"
 
@@ -3395,7 +3399,7 @@ msgid "Notes"
 msgstr "帖子"
 
 #: src/components/MarkdownEditor.tsx:193
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:562
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:561
 msgid "Nothing to preview"
 msgstr "没有可预览的内容"
 
@@ -3458,7 +3462,7 @@ msgstr "只有你可以引用"
 msgid "Open"
 msgstr "进行中"
 
-#: src/routes/applink/sign/in/[token].tsx:50
+#: src/routes/applink/sign/in/[token].tsx:49
 msgid "Open in app"
 msgstr "在应用中打开"
 
@@ -3481,11 +3485,11 @@ msgstr "选项 {0}"
 msgid "Options"
 msgstr "选项"
 
-#: src/routes/(root)/sign/index.tsx:432
+#: src/routes/(root)/sign/index.tsx:431
 msgid "Or"
 msgstr "或"
 
-#: src/routes/(root)/sign/index.tsx:462
+#: src/routes/(root)/sign/index.tsx:461
 msgid "Or enter the code from the email"
 msgstr "或输入邮件中的验证码"
 
@@ -3629,7 +3633,7 @@ msgid "Please correct the errors and try again."
 msgstr "请修正错误并重试。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:53
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:483
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:482
 msgid "Please enter a title for your article."
 msgstr "请输入文章标题。"
 
@@ -3773,7 +3777,7 @@ msgstr "将此账户准备为 Mastodon 式迁移的目标账户。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:111
 #: src/components/MarkdownEditor.tsx:164
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:526
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:525
 msgid "Preview"
 msgstr "预览"
 
@@ -4136,7 +4140,7 @@ msgstr "正在移除…"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:134
 #: src/components/MarkdownEditor.tsx:181
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:552
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:551
 msgid "Rendering…"
 msgstr "渲染中…"
 
@@ -4302,7 +4306,7 @@ msgid "Save"
 msgstr "保存"
 
 #: src/components/NoteComposer.tsx:2374
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:628
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:627
 msgid "Save changes"
 msgstr "保存更改"
 
@@ -4320,7 +4324,7 @@ msgstr "已保存到本地"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:36
 #: src/components/NoteComposer.tsx:2375
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:628
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:627
 #: src/routes/(root)/[handle]/settings/index.tsx:554
 #: src/routes/(root)/[handle]/settings/language.tsx:201
 #: src/routes/(root)/[handle]/settings/preferences.tsx:331
@@ -4502,7 +4506,7 @@ msgid "Shown to the user"
 msgstr "向用户显示"
 
 #: src/components/AppSidebar.tsx:854
-#: src/routes/(root)/sign/index.tsx:422
+#: src/routes/(root)/sign/index.tsx:421
 msgid "Sign in"
 msgstr "登录"
 
@@ -4512,9 +4516,9 @@ msgstr "登录"
 msgid "Sign in required"
 msgstr "需要登录"
 
-#: src/routes/(root)/sign/index.tsx:381
+#: src/routes/(root)/sign/index.tsx:384
 #: src/routes/applink/sign/in/[token].tsx:38
-#: src/routes/applink/sign/in/[token].tsx:42
+#: src/routes/applink/sign/in/[token].tsx:41
 msgid "Sign in to Hackers' Pub"
 msgstr "登录 Hackers' Pub"
 
@@ -4526,7 +4530,7 @@ msgstr "登录后发表"
 msgid "Sign in to vote"
 msgstr "登录后投票"
 
-#: src/routes/(root)/sign/index.tsx:446
+#: src/routes/(root)/sign/index.tsx:445
 msgid "Sign in with passkey"
 msgstr "使用通行密钥登录"
 
@@ -4543,11 +4547,11 @@ msgstr "注册"
 msgid "Signed in as"
 msgstr "当前登录账户："
 
-#: src/routes/(root)/sign/index.tsx:389
+#: src/routes/(root)/sign/index.tsx:388
 msgid "Signing in Hackers' Pub"
 msgstr "登录 Hackers' Pub"
 
-#: src/routes/(root)/sign/index.tsx:422
+#: src/routes/(root)/sign/index.tsx:421
 msgid "Signing in…"
 msgstr "登录中…"
 
@@ -4624,7 +4628,7 @@ msgstr "订阅"
 msgid "Subscribe to a relay"
 msgstr "订阅中继"
 
-#: src/components/ProfileCard.tsx:165
+#: src/components/ProfileCard.tsx:189
 msgid "Subscribe via RSS"
 msgstr "通过 RSS 订阅"
 
@@ -4709,7 +4713,7 @@ msgstr "目录"
 #~ msgstr "标签"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:158
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:578
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:577
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1051
 msgid "Tags"
 msgstr "标签"
@@ -4967,11 +4971,19 @@ msgstr "当前无法删除此账户。请联系实例管理员。"
 msgid "This account has been permanently suspended and can no longer sign in."
 msgstr "此账户已被永久封停，无法再登录。"
 
+#: src/components/ProfileCard.tsx:238
+msgid "This account has moved."
+msgstr "此账户已迁移。"
+
 #: src/routes/(root)/tree/index.tsx:125
 msgid "This account is hidden because they want to keep their identity private."
 msgstr "此账户已隐藏，因为用户希望保持身份私密。"
 
-#: src/components/ProfileCard.tsx:217
+#: src/components/ProfileCard.tsx:240
+msgid "This account is no longer in use."
+msgstr "此账户不再使用。"
+
+#: src/components/ProfileCard.tsx:292
 msgid "This account is suspended."
 msgstr "此账户已被封停。"
 
@@ -5115,7 +5127,7 @@ msgid "Timeline"
 msgstr "时间线"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:49
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:479
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:478
 msgid "Title"
 msgstr "标题"
 
@@ -5178,8 +5190,8 @@ msgstr "翻译请求失败"
 msgid "Translation request failed for {name}"
 msgstr "向{name}的翻译请求失败"
 
-#: src/routes/(root)/tree/graph.tsx:89
-#: src/routes/(root)/tree/index.tsx:216
+#: src/routes/(root)/tree/graph.tsx:88
+#: src/routes/(root)/tree/index.tsx:215
 msgid "Tree"
 msgstr "树状图"
 
@@ -5208,7 +5220,7 @@ msgid "Type {0} to confirm organization deletion."
 msgstr "输入 {0} 以确认删除组织。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:162
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:582
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:581
 msgid "Type tags separated by spaces"
 msgstr "输入标签，用空格分隔"
 
@@ -5241,7 +5253,7 @@ msgstr "取消屏蔽用户？"
 msgid "Under review"
 msgstr "审核中"
 
-#: src/components/FollowButton.tsx:232
+#: src/components/FollowButton.tsx:243
 #: src/components/HashtagActionBar.tsx:247
 msgid "Unfollow"
 msgstr "取消关注"
@@ -5364,7 +5376,7 @@ msgstr "您邀请的用户"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:314
+#: src/components/ProfileCard.tsx:389
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "已于{1}验证此链接归{0}所有"
 
@@ -5535,19 +5547,19 @@ msgstr "不含转帖"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:108
 #: src/components/MarkdownEditor.tsx:161
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:523
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:522
 msgid "Write"
 msgstr "撰写"
 
 #: src/components/NoteComposeModal.tsx:125
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:991
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:365
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:445
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:527
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:389
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:469
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:551
 msgid "Write a reply…"
 msgstr "写个回复…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:537
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:536
 msgid "Write your article here."
 msgstr "在此撰写您的文章。"
 
@@ -5568,11 +5580,11 @@ msgstr "您对该对象已有一条处理中的举报。您可以在举报历史
 msgid "You are about to follow {0}."
 msgstr "你即将从你的账户关注{0}。"
 
-#: src/components/ProfileCard.tsx:234
+#: src/components/ProfileCard.tsx:309
 msgid "You are blocked by this user. You can't follow them or see their posts."
 msgstr "你已被此用户屏蔽。你无法关注该用户或查看该用户的内容。"
 
-#: src/components/ProfileCard.tsx:227
+#: src/components/ProfileCard.tsx:302
 msgid "You are blocking this user. They can't follow you or see your posts."
 msgstr "你正在屏蔽此用户。该用户无法关注你或查看你的内容。"
 
@@ -5679,8 +5691,8 @@ msgstr "你还没有隐藏任何账户。"
 msgid "You may have already appealed, or the appeal window has closed."
 msgstr "你可能已经申诉过，或申诉期限已结束。"
 
-#: src/components/FollowButton.tsx:158
-#: src/components/FollowButton.tsx:184
+#: src/components/FollowButton.tsx:162
+#: src/components/FollowButton.tsx:188
 #: src/components/HashtagActionBar.tsx:148
 #: src/components/HashtagActionBar.tsx:171
 #: src/components/ProfileActionMenu.tsx:284

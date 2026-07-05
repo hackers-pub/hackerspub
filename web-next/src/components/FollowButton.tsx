@@ -101,6 +101,9 @@ export function FollowButton(props: FollowButtonProps) {
         viewerBlocks(actingAccountId: $actingAccountId)
         blocksViewer(actingAccountId: $actingAccountId)
         followsViewer(actingAccountId: $actingAccountId)
+        successor {
+          id
+        }
       }
     `,
     () => props.$actor,
@@ -120,6 +123,7 @@ export function FollowButton(props: FollowButtonProps) {
 
   const isCurrentViewerActor = () => actor()?.isViewer ?? false;
   const mutationPending = () => followPending() || unfollowPending();
+  const canStartFollowing = () => actor()?.successor == null;
 
   const handleClick = () => {
     const actorData = actor();
@@ -208,32 +212,41 @@ export function FollowButton(props: FollowButtonProps) {
             !actor.blocksViewer && viewer.isLoaded()}
         >
           <Show
-            when={viewer.isAuthenticated()}
-            fallback={
-              <RemoteFollowButton
-                actorId={actor.id}
-                actorHandle={actor.handle}
-                actorName={actor.rawName}
-              />
-            }
+            when={viewer.isAuthenticated() || canStartFollowing()}
           >
-            <Button
-              variant={actor.viewerFollowState === "NONE"
-                ? "default"
-                : "outline"}
-              size="sm"
-              class="cursor-pointer"
-              disabled={mutationPending()}
-              onClick={handleClick}
+            <Show
+              when={viewer.isAuthenticated()}
+              fallback={
+                <RemoteFollowButton
+                  actorId={actor.id}
+                  actorHandle={actor.handle}
+                  actorName={actor.rawName}
+                />
+              }
             >
-              {actor.viewerFollowState === "PENDING"
-                ? t`Cancel request`
-                : actor.viewerFollowState === "ACCEPTED"
-                ? t`Unfollow`
-                : actor.followsViewer
-                ? t`Follow back`
-                : t`Follow`}
-            </Button>
+              <Show
+                when={actor.viewerFollowState !== "NONE" ||
+                  canStartFollowing()}
+              >
+                <Button
+                  variant={actor.viewerFollowState === "NONE"
+                    ? "default"
+                    : "outline"}
+                  size="sm"
+                  class="cursor-pointer"
+                  disabled={mutationPending()}
+                  onClick={handleClick}
+                >
+                  {actor.viewerFollowState === "PENDING"
+                    ? t`Cancel request`
+                    : actor.viewerFollowState === "ACCEPTED"
+                    ? t`Unfollow`
+                    : actor.followsViewer
+                    ? t`Follow back`
+                    : t`Follow`}
+                </Button>
+              </Show>
+            </Show>
           </Show>
         </Show>
       )}

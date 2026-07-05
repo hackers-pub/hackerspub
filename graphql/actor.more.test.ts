@@ -48,6 +48,21 @@ const actorByHandleQuery = parse(`
   }
 `);
 
+const actorSuccessorQuery = parse(`
+  query ActorSuccessor($handle: String!) {
+    actorByHandle(handle: $handle, allowLocalHandle: true) {
+      handle
+      successor {
+        id
+        handle
+        username
+        url
+        iri
+      }
+    }
+  }
+`);
+
 const actorAvatarInitialsQuery = parse(`
   query ActorAvatarInitials($handle: String!) {
     actorByHandle(handle: $handle, allowLocalHandle: true) {
@@ -174,6 +189,48 @@ test("actorByUuid and actorByHandle resolve local actors", async () => {
       actorByHandle: {
         id: encodeGlobalID("Actor", actor.actor.id),
         handle: "@actorlookupgraphql@localhost",
+      },
+    });
+  });
+});
+
+test("actorByHandle exposes the successor for a moved actor", async () => {
+  await withRollback(async (tx) => {
+    const oldActor = await insertRemoteActor(tx, {
+      username: "oldmoved",
+      name: "Old Moved",
+      host: "old.example",
+      url: "https://old.example/@oldmoved",
+    });
+    const newActor = await insertRemoteActor(tx, {
+      username: "newmoved",
+      name: "New Moved",
+      host: "new.example",
+      url: "https://new.example/@newmoved",
+    });
+    await tx.update(actorTable)
+      .set({ successorId: newActor.id })
+      .where(eq(actorTable.id, oldActor.id));
+
+    const result = await execute({
+      schema,
+      document: actorSuccessorQuery,
+      variableValues: { handle: oldActor.handle },
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      actorByHandle: {
+        handle: "@oldmoved@old.example",
+        successor: {
+          id: encodeGlobalID("Actor", newActor.id),
+          handle: "@newmoved@new.example",
+          username: "newmoved",
+          url: "https://new.example/@newmoved",
+          iri: "https://new.example/users/newmoved",
+        },
       },
     });
   });

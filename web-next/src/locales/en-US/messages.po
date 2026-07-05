@@ -32,14 +32,14 @@ msgstr "{0, plural, one {# eligible account} other {# eligible accounts}}; {1, p
 #. placeholder {0}: a.followersCount.totalCount
 #. placeholder {0}: actor.followersCount?.totalCount ?? 0
 #: src/components/ActorPreviewCard.tsx:65
-#: src/components/ProfileCard.tsx:355
+#: src/components/ProfileCard.tsx:435
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, one {# follower} other {# followers}}"
 
 #. placeholder {0}: a.followeesCount.totalCount
 #. placeholder {0}: actor.followeesCount?.totalCount ?? 0
 #: src/components/ActorPreviewCard.tsx:56
-#: src/components/ProfileCard.tsx:342
+#: src/components/ProfileCard.tsx:420
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, one {# following} other {# following}}"
 
@@ -93,7 +93,7 @@ msgid "{0, plural, one {Deleted # orphan medium.} other {Deleted # orphan media.
 msgstr "{0, plural, one {Deleted # orphan medium.} other {Deleted # orphan media.}}"
 
 #. placeholder {0}: actor.mutualFollowers?.totalCount ?? 0
-#: src/components/ProfileCard.tsx:396
+#: src/components/ProfileCard.tsx:476
 msgid "{0, plural, one {Followed by # person you follow} other {Followed by # people you follow}}"
 msgstr "{0, plural, one {Followed by # person you follow} other {Followed by # people you follow}}"
 
@@ -360,10 +360,10 @@ msgstr "{0} will receive a notification to review it."
 
 #. placeholder {0}: article.actor.rawName
 #. placeholder {0}: post.actor.rawName ?? post.actor.username
-#. placeholder {1}: post.excerpt
 #. placeholder {1}: title()
+#. placeholder {1}: titleExcerpt()
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:263
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:262
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:283
 msgid "{0}: {1}"
 msgstr "{0}: {1}"
 
@@ -474,7 +474,7 @@ msgstr "A local sanction notifies the reported user under the moderation team's 
 msgid "A moderation decision was made about your account."
 msgstr "A moderation decision was made about your account."
 
-#: src/components/ProfileCard.tsx:219
+#: src/components/ProfileCard.tsx:294
 msgid "A moderator suspended this account for violating the code of conduct."
 msgstr "A moderator suspended this account for violating the code of conduct."
 
@@ -707,7 +707,7 @@ msgstr "All languages"
 msgid "All notifications"
 msgstr "All notifications"
 
-#: src/components/ProfileCard.tsx:192
+#: src/components/ProfileCard.tsx:216
 msgid "All posts"
 msgstr "All posts"
 
@@ -716,7 +716,7 @@ msgid "All-time"
 msgstr "All-time"
 
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:109
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:606
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:605
 msgid "Allow automatic translation by AI"
 msgstr "Allow automatic translation by AI"
 
@@ -897,7 +897,7 @@ msgid "Articles"
 msgstr "Articles"
 
 #: src/components/AppSidebar.tsx:351
-#: src/components/ProfileCard.tsx:199
+#: src/components/ProfileCard.tsx:223
 msgid "Articles only"
 msgstr "Articles only"
 
@@ -916,7 +916,7 @@ msgstr "Assigned to {0}"
 msgid "Attach image"
 msgstr "Attach image"
 
-#: src/routes/(root)/sign/index.tsx:445
+#: src/routes/(root)/sign/index.tsx:444
 msgid "Authenticating…"
 msgstr "Authenticating…"
 
@@ -1058,7 +1058,7 @@ msgstr "By {0}"
 #: src/components/RemoteFollowButton.tsx:280
 #: src/components/RemoveFollowerButton.tsx:152
 #: src/components/ReportDialog.tsx:224
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:622
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:621
 #: src/routes/(root)/[handle]/settings/account.tsx:2045
 #: src/routes/(root)/[handle]/settings/index.tsx:417
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:522
@@ -1070,7 +1070,7 @@ msgstr "Cancel"
 msgid "Cancel invitation"
 msgstr "Cancel invitation"
 
-#: src/components/FollowButton.tsx:230
+#: src/components/FollowButton.tsx:241
 msgid "Cancel request"
 msgstr "Cancel request"
 
@@ -1214,7 +1214,7 @@ msgstr "Compose"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:65
 #: src/components/NoteComposer.tsx:1884
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:492
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:491
 msgid "Content"
 msgstr "Content"
 
@@ -1222,7 +1222,7 @@ msgstr "Content"
 msgid "Content cannot be empty"
 msgstr "Content cannot be empty"
 
-#: src/routes/applink/sign/in/[token].tsx:59
+#: src/routes/applink/sign/in/[token].tsx:58
 msgid "Continue in browser"
 msgstr "Continue in browser"
 
@@ -1598,7 +1598,7 @@ msgstr "Dismissed"
 msgid "Display name"
 msgstr "Display name"
 
-#: src/routes/(root)/sign/index.tsx:451
+#: src/routes/(root)/sign/index.tsx:450
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 
@@ -1636,7 +1636,7 @@ msgid "Edit"
 msgstr "Edit"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:472
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:474
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:473
 msgid "Edit article"
 msgstr "Edit article"
 
@@ -1659,7 +1659,7 @@ msgstr "Email address"
 msgid "Email digests"
 msgstr "Email digests"
 
-#: src/routes/(root)/sign/index.tsx:406
+#: src/routes/(root)/sign/index.tsx:405
 msgid "Email or username"
 msgstr "Email or username"
 
@@ -1864,7 +1864,7 @@ msgstr "Failed to disable browser notifications"
 msgid "Failed to enable browser notifications"
 msgstr "Failed to enable browser notifications"
 
-#: src/components/FollowButton.tsx:195
+#: src/components/FollowButton.tsx:199
 #: src/components/HashtagActionBar.tsx:154
 #: src/components/HashtagActionBar.tsx:158
 msgid "Failed to follow"
@@ -2040,7 +2040,7 @@ msgid "Failed to remove preferred sharer."
 msgstr "Failed to remove preferred sharer."
 
 #: src/components/MarkdownEditor.tsx:192
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:561
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:560
 msgid "Failed to render preview"
 msgstr "Failed to render preview"
 
@@ -2100,7 +2100,7 @@ msgstr "Failed to subscribe to the relay."
 msgid "Failed to unblock this user"
 msgstr "Failed to unblock this user"
 
-#: src/components/FollowButton.tsx:165
+#: src/components/FollowButton.tsx:169
 #: src/components/HashtagActionBar.tsx:177
 #: src/components/HashtagActionBar.tsx:181
 msgid "Failed to unfollow"
@@ -2174,12 +2174,12 @@ msgstr "Feed"
 msgid "First shared"
 msgstr "First shared"
 
-#: src/components/FollowButton.tsx:235
+#: src/components/FollowButton.tsx:246
 #: src/components/HashtagActionBar.tsx:237
 msgid "Follow"
 msgstr "Follow"
 
-#: src/components/FollowButton.tsx:234
+#: src/components/FollowButton.tsx:245
 msgid "Follow back"
 msgstr "Follow back"
 
@@ -2213,7 +2213,7 @@ msgid "Following"
 msgstr "Following"
 
 #: src/components/ActorPreviewCard.tsx:151
-#: src/components/ProfileCard.tsx:365
+#: src/components/ProfileCard.tsx:445
 msgid "Following you"
 msgstr "Following you"
 
@@ -2262,12 +2262,16 @@ msgstr "Go to my bookmarks"
 msgid "Go to my drafts"
 msgstr "Go to my drafts"
 
+#: src/components/ProfileCard.tsx:275
+msgid "Go to new profile"
+msgstr "Go to new profile"
+
 #: src/routes/(root)/admin/invitations.tsx:156
 msgid "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 msgstr "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 
-#: src/routes/(root)/tree/graph.tsx:95
-#: src/routes/(root)/tree/index.tsx:222
+#: src/routes/(root)/tree/graph.tsx:94
+#: src/routes/(root)/tree/index.tsx:221
 msgid "Graph"
 msgstr "Graph"
 
@@ -2468,17 +2472,17 @@ msgstr "If enabled, the AI will generate a summary of the article for you. Other
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1000
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:536
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:560
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:374
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:398
 msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 msgstr "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:454
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:478
 msgid "If you have a fediverse account, you can reply to this post from your own instance. Search {0} on your instance and reply to it."
 msgstr "If you have a fediverse account, you can reply to this post from your own instance. Search {0} on your instance and reply to it."
 
@@ -2568,8 +2572,8 @@ msgstr "Invitation sent"
 
 #: src/components/AppSidebar.tsx:1187
 #: src/routes/(root)/[handle]/settings/invite.tsx:910
-#: src/routes/(root)/tree/graph.tsx:82
-#: src/routes/(root)/tree/index.tsx:209
+#: src/routes/(root)/tree/graph.tsx:81
+#: src/routes/(root)/tree/index.tsx:208
 msgid "Invitation tree"
 msgstr "Invitation tree"
 
@@ -2613,7 +2617,7 @@ msgid "Invited by"
 msgstr "Invited by"
 
 #. placeholder {0}: "INVITER"
-#: src/components/ProfileCard.tsx:431
+#: src/components/ProfileCard.tsx:511
 msgid "Invited by {0}"
 msgstr "Invited by {0}"
 
@@ -2633,8 +2637,8 @@ msgstr "John Doe"
 msgid "Join the discussion about this story."
 msgstr "Join the discussion about this story."
 
-#. placeholder {0}: new Date(created).toLocaleDateString(i18n.locale, { year: "numeric", month: "long", })
-#: src/components/ProfileCard.tsx:466
+#. placeholder {0}: new Date(created).toLocaleDateString( i18n.locale, { year: "numeric", month: "long", }, )
+#: src/components/ProfileCard.tsx:546
 msgid "Joined {0}"
 msgstr "Joined {0}"
 
@@ -2654,7 +2658,7 @@ msgstr "Keep editing"
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:69
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:589
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:588
 msgid "Language"
 msgstr "Language"
 
@@ -2977,7 +2981,7 @@ msgstr "Markdown guide"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:90
 #: src/components/NoteComposer.tsx:1996
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:517
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:516
 msgid "Markdown supported"
 msgstr "Markdown supported"
 
@@ -3224,7 +3228,7 @@ msgstr "No following found"
 msgid "No interactions found"
 msgstr "No interactions found"
 
-#: src/routes/(root)/tree/index.tsx:230
+#: src/routes/(root)/tree/index.tsx:229
 msgid "No invitation tree data yet."
 msgstr "No invitation tree data yet."
 
@@ -3399,7 +3403,7 @@ msgid "Notes"
 msgstr "Notes"
 
 #: src/components/MarkdownEditor.tsx:193
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:562
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:561
 msgid "Nothing to preview"
 msgstr "Nothing to preview"
 
@@ -3462,7 +3466,7 @@ msgstr "Only you can quote"
 msgid "Open"
 msgstr "Open"
 
-#: src/routes/applink/sign/in/[token].tsx:50
+#: src/routes/applink/sign/in/[token].tsx:49
 msgid "Open in app"
 msgstr "Open in app"
 
@@ -3485,11 +3489,11 @@ msgstr "Option {0}"
 msgid "Options"
 msgstr "Options"
 
-#: src/routes/(root)/sign/index.tsx:432
+#: src/routes/(root)/sign/index.tsx:431
 msgid "Or"
 msgstr "Or"
 
-#: src/routes/(root)/sign/index.tsx:462
+#: src/routes/(root)/sign/index.tsx:461
 msgid "Or enter the code from the email"
 msgstr "Or enter the code from the email"
 
@@ -3633,7 +3637,7 @@ msgid "Please correct the errors and try again."
 msgstr "Please correct the errors and try again."
 
 #: src/components/article-composer/ArticleComposerForm.tsx:53
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:483
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:482
 msgid "Please enter a title for your article."
 msgstr "Please enter a title for your article."
 
@@ -3777,7 +3781,7 @@ msgstr "Prepare this account as the destination for a Mastodon-style move."
 
 #: src/components/article-composer/ArticleComposerForm.tsx:111
 #: src/components/MarkdownEditor.tsx:164
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:526
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:525
 msgid "Preview"
 msgstr "Preview"
 
@@ -4140,7 +4144,7 @@ msgstr "Removing…"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:134
 #: src/components/MarkdownEditor.tsx:181
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:552
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:551
 msgid "Rendering…"
 msgstr "Rendering…"
 
@@ -4306,7 +4310,7 @@ msgid "Save"
 msgstr "Save"
 
 #: src/components/NoteComposer.tsx:2374
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:628
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:627
 msgid "Save changes"
 msgstr "Save changes"
 
@@ -4324,7 +4328,7 @@ msgstr "Saved locally"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:36
 #: src/components/NoteComposer.tsx:2375
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:628
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:627
 #: src/routes/(root)/[handle]/settings/index.tsx:554
 #: src/routes/(root)/[handle]/settings/language.tsx:201
 #: src/routes/(root)/[handle]/settings/preferences.tsx:331
@@ -4506,7 +4510,7 @@ msgid "Shown to the user"
 msgstr "Shown to the user"
 
 #: src/components/AppSidebar.tsx:854
-#: src/routes/(root)/sign/index.tsx:422
+#: src/routes/(root)/sign/index.tsx:421
 msgid "Sign in"
 msgstr "Sign in"
 
@@ -4516,9 +4520,9 @@ msgstr "Sign in"
 msgid "Sign in required"
 msgstr "Sign in required"
 
-#: src/routes/(root)/sign/index.tsx:381
+#: src/routes/(root)/sign/index.tsx:384
 #: src/routes/applink/sign/in/[token].tsx:38
-#: src/routes/applink/sign/in/[token].tsx:42
+#: src/routes/applink/sign/in/[token].tsx:41
 msgid "Sign in to Hackers' Pub"
 msgstr "Sign in to Hackers' Pub"
 
@@ -4530,7 +4534,7 @@ msgstr "Sign in to post"
 msgid "Sign in to vote"
 msgstr "Sign in to vote"
 
-#: src/routes/(root)/sign/index.tsx:446
+#: src/routes/(root)/sign/index.tsx:445
 msgid "Sign in with passkey"
 msgstr "Sign in with passkey"
 
@@ -4547,11 +4551,11 @@ msgstr "Sign up"
 msgid "Signed in as"
 msgstr "Signed in as"
 
-#: src/routes/(root)/sign/index.tsx:389
+#: src/routes/(root)/sign/index.tsx:388
 msgid "Signing in Hackers' Pub"
 msgstr "Signing in Hackers' Pub"
 
-#: src/routes/(root)/sign/index.tsx:422
+#: src/routes/(root)/sign/index.tsx:421
 msgid "Signing in…"
 msgstr "Signing in…"
 
@@ -4628,7 +4632,7 @@ msgstr "Subscribe"
 msgid "Subscribe to a relay"
 msgstr "Subscribe to a relay"
 
-#: src/components/ProfileCard.tsx:165
+#: src/components/ProfileCard.tsx:189
 msgid "Subscribe via RSS"
 msgstr "Subscribe via RSS"
 
@@ -4713,7 +4717,7 @@ msgstr "Table of contents"
 #~ msgstr "Tag"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:158
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:578
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:577
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1051
 msgid "Tags"
 msgstr "Tags"
@@ -4971,11 +4975,19 @@ msgstr "This account cannot be deleted right now. Please contact the instance ad
 msgid "This account has been permanently suspended and can no longer sign in."
 msgstr "This account has been permanently suspended and can no longer sign in."
 
+#: src/components/ProfileCard.tsx:238
+msgid "This account has moved."
+msgstr "This account has moved."
+
 #: src/routes/(root)/tree/index.tsx:125
 msgid "This account is hidden because they want to keep their identity private."
 msgstr "This account is hidden because they want to keep their identity private."
 
-#: src/components/ProfileCard.tsx:217
+#: src/components/ProfileCard.tsx:240
+msgid "This account is no longer in use."
+msgstr "This account is no longer in use."
+
+#: src/components/ProfileCard.tsx:292
 msgid "This account is suspended."
 msgstr "This account is suspended."
 
@@ -5119,7 +5131,7 @@ msgid "Timeline"
 msgstr "Timeline"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:49
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:479
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:478
 msgid "Title"
 msgstr "Title"
 
@@ -5182,8 +5194,8 @@ msgstr "Translation request failed"
 msgid "Translation request failed for {name}"
 msgstr "Translation request failed for {name}"
 
-#: src/routes/(root)/tree/graph.tsx:89
-#: src/routes/(root)/tree/index.tsx:216
+#: src/routes/(root)/tree/graph.tsx:88
+#: src/routes/(root)/tree/index.tsx:215
 msgid "Tree"
 msgstr "Tree"
 
@@ -5212,7 +5224,7 @@ msgid "Type {0} to confirm organization deletion."
 msgstr "Type {0} to confirm organization deletion."
 
 #: src/components/article-composer/ArticleComposerForm.tsx:162
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:582
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:581
 msgid "Type tags separated by spaces"
 msgstr "Type tags separated by spaces"
 
@@ -5245,7 +5257,7 @@ msgstr "Unblock user?"
 msgid "Under review"
 msgstr "Under review"
 
-#: src/components/FollowButton.tsx:232
+#: src/components/FollowButton.tsx:243
 #: src/components/HashtagActionBar.tsx:247
 msgid "Unfollow"
 msgstr "Unfollow"
@@ -5368,7 +5380,7 @@ msgstr "Users you have invited"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:314
+#: src/components/ProfileCard.tsx:389
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "Verified that this link is owned by {0} {1}"
 
@@ -5539,19 +5551,19 @@ msgstr "Without shares"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:108
 #: src/components/MarkdownEditor.tsx:161
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:523
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:522
 msgid "Write"
 msgstr "Write"
 
 #: src/components/NoteComposeModal.tsx:125
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:991
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:365
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:445
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:527
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:389
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:469
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:551
 msgid "Write a reply…"
 msgstr "Write a reply…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:537
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:536
 msgid "Write your article here."
 msgstr "Write your article here."
 
@@ -5572,11 +5584,11 @@ msgstr "You already have an open report on this target. You can check its status
 msgid "You are about to follow {0}."
 msgstr "You are about to follow {0}."
 
-#: src/components/ProfileCard.tsx:234
+#: src/components/ProfileCard.tsx:309
 msgid "You are blocked by this user. You can't follow them or see their posts."
 msgstr "You are blocked by this user. You can't follow them or see their posts."
 
-#: src/components/ProfileCard.tsx:227
+#: src/components/ProfileCard.tsx:302
 msgid "You are blocking this user. They can't follow you or see your posts."
 msgstr "You are blocking this user. They can't follow you or see your posts."
 
@@ -5683,8 +5695,8 @@ msgstr "You haven't muted anyone."
 msgid "You may have already appealed, or the appeal window has closed."
 msgstr "You may have already appealed, or the appeal window has closed."
 
-#: src/components/FollowButton.tsx:158
-#: src/components/FollowButton.tsx:184
+#: src/components/FollowButton.tsx:162
+#: src/components/FollowButton.tsx:188
 #: src/components/HashtagActionBar.tsx:148
 #: src/components/HashtagActionBar.tsx:171
 #: src/components/ProfileActionMenu.tsx:284
