@@ -621,7 +621,15 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
               <Button
                 type="button"
                 onClick={() => {
-                  if (title().trim()) setShowSettings(true);
+                  if (!title().trim()) {
+                    showToast({
+                      title: t`Error`,
+                      description: t`Title cannot be empty`,
+                      variant: "error",
+                    });
+                    return;
+                  }
+                  setShowSettings(true);
                 }}
               >
                 {t`Continue`}
