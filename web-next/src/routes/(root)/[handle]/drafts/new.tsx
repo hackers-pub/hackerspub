@@ -81,13 +81,13 @@ export default function NewArticleDraftPage() {
         </WideContainer>
       }
     >
-      <WideContainer>
+      <div class="flex h-[100dvh] flex-col overflow-hidden">
         <Title>{draftId() ? t`Edit draft` : t`New article`}</Title>
         <ArticleComposer
           onSaved={handleSaved}
           viewerId={connectionsData()?.viewer?.id}
         />
-      </WideContainer>
+      </div>
     </Show>
   );
 }

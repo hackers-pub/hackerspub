@@ -5,9 +5,8 @@ import {
   ArticleComposerProvider,
   useArticleComposer,
 } from "./ArticleComposerContext.tsx";
-import { ArticleComposerForm } from "./ArticleComposerForm.tsx";
-import { ArticleComposerActions } from "./ArticleComposerActions.tsx";
-import { ArticleComposerPublishFields } from "./ArticleComposerPublishFields.tsx";
+import { ArticleComposerWriteStep } from "./ArticleComposerWriteStep.tsx";
+import { ArticleComposerPublishStep } from "./ArticleComposerPublishStep.tsx";
 
 export { type ArticleComposerProps };
 
@@ -27,7 +26,7 @@ function ArticleComposerInner() {
     <Show
       when={ctx.draftDataLoaded()}
       fallback={
-        <div class="max-w-4xl mx-auto p-6 text-center text-muted-foreground">
+        <div class="grid flex-1 place-items-center p-6 text-center text-muted-foreground">
           {t`Loading draft…`}
         </div>
       }
@@ -35,25 +34,21 @@ function ArticleComposerInner() {
       <Show
         when={!ctx.isExistingDraft || ctx.draft()}
         fallback={
-          <div class="max-w-4xl mx-auto p-6 text-center text-muted-foreground">
+          <div class="grid flex-1 place-items-center p-6 text-center text-muted-foreground">
             {t`Draft not found`}
           </div>
         }
       >
         <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (ctx.isPublishing()) {
-              ctx.handlePublish(e);
-            } else {
-              ctx.handleSave(e);
-            }
-          }}
-          class="flex flex-col gap-4 p-6"
+          onSubmit={(e) => e.preventDefault()}
+          class="flex min-h-0 flex-1 flex-col"
         >
-          <ArticleComposerForm />
-          <ArticleComposerPublishFields />
-          <ArticleComposerActions />
+          <Show
+            when={!ctx.isPublishing()}
+            fallback={<ArticleComposerPublishStep />}
+          >
+            <ArticleComposerWriteStep />
+          </Show>
         </form>
       </Show>
     </Show>

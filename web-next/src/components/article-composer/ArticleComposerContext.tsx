@@ -113,6 +113,7 @@ const ArticleComposerDraftQuery = graphql`
       uuid
       title
       content
+      contentHtml
       tags
     }
   }
@@ -170,9 +171,14 @@ export interface ArticleComposerContextValue {
   setShowPreview: (v: boolean) => void;
 
   // Actions
-  handleSave: (e?: Event, silent?: boolean) => void;
-  handlePublish: (e: Event) => void;
+  handleSave: (e?: Event, silent?: boolean, afterSave?: () => void) => void;
+  handlePublish: (e?: Event) => void;
   handleDelete: () => void;
+  /**
+   * Advance from the writing stage to the publish-settings stage, persisting any
+   * unsaved changes first so the draft exists and its `id` is available.
+   */
+  goToPublishSettings: () => void;
 
   // Loading states
   isSaving: Accessor<boolean>;
@@ -283,7 +289,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
 
   // --- Handlers ---
 
-  const handleSave = (e?: Event, silent?: boolean) => {
+  const handleSave = (e?: Event, silent?: boolean, afterSave?: () => void) => {
     e?.preventDefault();
 
     if (!title().trim()) {
@@ -359,6 +365,11 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
           }
           if (formStillMatchesSubmitted) {
             props.onSaved?.(savedDraft.id, savedDraft.uuid);
+            // Only continue (e.g. advance to publish, or publish now) when the
+            // saved snapshot still matches the form. If the user edited while
+            // the save was in flight, the newer changes are unsaved, so skip
+            // the follow-up rather than acting on a stale draft.
+            afterSave?.();
           }
         } else if (
           response.saveArticleDraft.__typename === "InvalidInputError"
@@ -389,8 +400,8 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
     });
   };
 
-  const handlePublish = (e: Event) => {
-    e.preventDefault();
+  const handlePublish = (e?: Event) => {
+    e?.preventDefault();
 
     if (!slug().trim()) {
       showToast({
@@ -410,6 +421,17 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
       return;
     }
 
+    // Tags are only persisted via `saveDraft` (the publish input doesn't carry
+    // them) and Stage 2 pauses autosave, so flush any pending edits first, then
+    // publish once the save lands.
+    if (isDirty()) {
+      handleSave(undefined, true, publishNow);
+    } else {
+      publishNow();
+    }
+  };
+
+  const publishNow = () => {
     publishDraft({
       variables: {
         input: {
@@ -528,6 +550,23 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
     });
   };
 
+  const goToPublishSettings = () => {
+    if (!title().trim()) {
+      showToast({
+        title: t`Error`,
+        description: t`Title cannot be empty`,
+        variant: "error",
+      });
+      return;
+    }
+
+    if (isDirty()) {
+      handleSave(undefined, true, () => setIsPublishing(true));
+    } else {
+      setIsPublishing(true);
+    }
+  };
+
   // --- Effects ---
 
   const [hydratedDraft, setHydratedDraft] = createSignal(false);
@@ -542,6 +581,10 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
       setTitle(currentDraft.title);
       setContent(currentDraft.content);
       setTags([...currentDraft.tags]);
+      // Seed the preview so an existing draft shows rendered content
+      // immediately (the desktop side-by-side preview otherwise stays empty
+      // until the first autosave).
+      if (currentDraft.contentHtml) setPreviewHtml(currentDraft.contentHtml);
       setHydratedDraft(true);
     }
   });
@@ -651,6 +694,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
     handleSave,
     handlePublish,
     handleDelete,
+    goToPublishSettings,
 
     isSaving,
     isPublishingMutation,
