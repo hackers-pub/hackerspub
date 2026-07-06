@@ -135,6 +135,16 @@ test("inbox: drops a processing failure caused by a transport error", () => {
   assert.equal(isRoutineFederationError(r), true);
 });
 
+test("inbox: drops a processing failure caused by a remote body read error", () => {
+  const r = record(
+    ["fedify", "federation", "inbox"],
+    "Failed to process the incoming activity {activityId} (attempt " +
+      "#{attempt}); retry...:\n{error}",
+    { error: new TypeError("error reading a body from connection") },
+  );
+  assert.equal(isRoutineFederationError(r), true);
+});
+
 test("inbox: KEEPS a processing failure caused by an app/listener bug", () => {
   const r = record(
     ["fedify", "federation", "inbox"],
@@ -295,6 +305,20 @@ test("vocab: drops a suppressed parse failure from remote JSON-LD syntax", () =>
   assert.equal(isRoutineFederationError(r), true);
 });
 
+test("vocab: drops a suppressed parse failure from a malformed remote multikey", () => {
+  const r = record(
+    ["fedify", "vocab"],
+    "Failed to parse {url}: {error}",
+    {
+      url: "http://xenon.social/@tkgka#multikey-1",
+      error: new TypeError(
+        "Expected an object of any type of: https://w3id.org/security#Multikey",
+      ),
+    },
+  );
+  assert.equal(isRoutineFederationError(r), true);
+});
+
 test("vocab: keeps a suppressed parse failure from a parser type error", () => {
   const r = record(
     ["fedify", "vocab"],
@@ -364,6 +388,12 @@ function urlError(address: string): Error {
 test("isRemoteTransportError: positive signals", () => {
   assert.equal(isRemoteTransportError(fetchError()), true);
   assert.equal(isRemoteTransportError(denoFetchError("dns error")), true);
+  assert.equal(
+    isRemoteTransportError(
+      new TypeError("error reading a body from connection"),
+    ),
+    true,
+  );
   assert.equal(isRemoteTransportError(timeoutError()), true);
   // jsonld.InvalidUrl: remote @context URL returned invalid JSON-LD (GRAPHQL-1J)
   assert.equal(

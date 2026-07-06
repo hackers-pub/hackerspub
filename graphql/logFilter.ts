@@ -35,6 +35,14 @@ export function isRemoteTransportError(error: unknown): boolean {
   ) {
     return true;
   }
+  // Deno can raise this while reading a remote response body after the request
+  // has already reached the peer. In Fedify inbox processing it means the
+  // remote dereference failed mid-stream, not that our listener code crashed.
+  if (
+    name === "TypeError" && message === "error reading a body from connection"
+  ) {
+    return true;
+  }
   // Deno (and the standard Web API) raises `TimeoutError` when an
   // `AbortSignal.timeout()` fires before the remote server responds (GRAPHQL-2N).
   // This is routine network-level slowness, not an application bug.
@@ -65,6 +73,15 @@ function isRemoteJsonLdSyntaxError(error: unknown): boolean {
   if (typeof error !== "object" || error === null) return false;
   const name = stringProp(error, "name");
   return name === "jsonld.SyntaxError";
+}
+
+function isRemoteMalformedMultikeyError(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) return false;
+  const name = stringProp(error, "name");
+  const message = stringProp(error, "message");
+  return name === "TypeError" &&
+    message ===
+      "Expected an object of any type of: https://w3id.org/security#Multikey";
 }
 
 /**
@@ -115,7 +132,8 @@ export function isRoutineFederationError(record: LogRecord): boolean {
     }
     if (message.startsWith("Failed to parse")) {
       return isRemoteTransportError(properties.error) ||
-        isRemoteJsonLdSyntaxError(properties.error);
+        isRemoteJsonLdSyntaxError(properties.error) ||
+        isRemoteMalformedMultikeyError(properties.error);
     }
     return false;
   }
