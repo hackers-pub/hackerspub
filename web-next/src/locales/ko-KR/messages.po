@@ -445,7 +445,7 @@ msgstr "@old@example.com 또는 액터 URL"
 
 #: src/components/admin/AppealResolveForm.tsx:301
 #: src/components/admin/ModerationActionForm.tsx:303
-#: src/components/NoteComposer.tsx:2131
+#: src/components/NoteComposer.tsx:2173
 msgid "1 day"
 msgstr "1일"
 
@@ -454,11 +454,11 @@ msgstr "1일"
 msgid "1 report"
 msgstr "신고 1건"
 
-#: src/components/NoteComposer.tsx:2147
+#: src/components/NoteComposer.tsx:2189
 msgid "1 week"
 msgstr "1주"
 
-#: src/components/NoteComposer.tsx:2139
+#: src/components/NoteComposer.tsx:2181
 msgid "3 days"
 msgstr "3일"
 
@@ -630,16 +630,16 @@ msgstr "추가"
 msgid "Add {0}"
 msgstr "{0} 추가"
 
-#: src/components/NoteComposer.tsx:1369
+#: src/components/NoteComposer.tsx:1411
 msgid "Add at least {MIN_POLL_OPTIONS} poll options"
 msgstr "설문 선택지를 최소 {MIN_POLL_OPTIONS}개 추가해 주세요"
 
-#: src/components/NoteComposer.tsx:2080
+#: src/components/NoteComposer.tsx:2122
 msgid "Add option"
 msgstr "선택지 추가"
 
-#: src/components/NoteComposer.tsx:1948
-#: src/components/NoteComposer.tsx:1949
+#: src/components/NoteComposer.tsx:1990
+#: src/components/NoteComposer.tsx:1991
 msgid "Add poll"
 msgstr "설문 추가"
 
@@ -691,11 +691,11 @@ msgstr "전체"
 msgid "All accounts"
 msgstr "모든 계정"
 
-#: src/components/NoteComposer.tsx:1461
+#: src/components/NoteComposer.tsx:1503
 msgid "All images must finish uploading before posting"
 msgstr "투고하기 전에 모든 이미지 업로드를 완료해야 합니다."
 
-#: src/components/NoteComposer.tsx:1469
+#: src/components/NoteComposer.tsx:1511
 msgid "All images require alt text"
 msgstr "모든 이미지에 대체 텍스트가 필요합니다."
 
@@ -730,11 +730,11 @@ msgid "Also send this report to the remote instance ({0})"
 msgstr "이 신고를 원격 인스턴스({0})에도 전송"
 
 #. placeholder {0}: index() + 1
-#: src/components/NoteComposer.tsx:2217
+#: src/components/NoteComposer.tsx:2259
 msgid "Alt text for image {0}"
 msgstr "이미지 {0}의 대체 텍스트"
 
-#: src/components/NoteComposer.tsx:2229
+#: src/components/NoteComposer.tsx:2271
 msgid "Alt text for visually impaired people (required)"
 msgstr "시각장애인을 위한 대체 텍스트 (필수)"
 
@@ -750,9 +750,9 @@ msgstr "패스키를 등록하는 중에 오류가 발생했습니다."
 msgid "An error occurred while revoking your passkey."
 msgstr "패스키를 취소하는 중에 오류가 발생했습니다."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:199
-#: src/routes/(root)/[handle]/settings/preferences.tsx:236
-#: src/routes/(root)/[handle]/settings/preferences.tsx:270
+#: src/routes/(root)/[handle]/settings/preferences.tsx:253
+#: src/routes/(root)/[handle]/settings/preferences.tsx:290
+#: src/routes/(root)/[handle]/settings/preferences.tsx:324
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "환경 설정 저장 중 오류가 발생했습니다. 다시 시도하거나 문제가 지속되면 지원팀에 문의해 주세요."
 
@@ -915,8 +915,8 @@ msgstr "이미 {0} 변경하였기 때문에 다시 변경할 수 없습니다."
 msgid "Assigned to {0}"
 msgstr "{0}에게 배정됨"
 
-#: src/components/NoteComposer.tsx:1937
-#: src/components/NoteComposer.tsx:1938
+#: src/components/NoteComposer.tsx:1979
+#: src/components/NoteComposer.tsx:1980
 msgid "Attach image"
 msgstr "이미지 첨부"
 
@@ -929,12 +929,12 @@ msgstr "인증중…"
 msgid "Author"
 msgstr "작성자"
 
-#: src/components/NoteComposer.tsx:2248
+#: src/components/NoteComposer.tsx:2290
 msgid "Auto-fill"
 msgstr "자동 입력"
 
-#: src/components/NoteComposer.tsx:2241
-#: src/components/NoteComposer.tsx:2242
+#: src/components/NoteComposer.tsx:2283
+#: src/components/NoteComposer.tsx:2284
 msgid "Auto-fill alt text"
 msgstr "대체 텍스트 자동 입력"
 
@@ -1032,7 +1032,7 @@ msgid "Browser notifications disabled"
 msgstr "브라우저 알림을 껐습니다"
 
 #: src/components/WebPushNotificationSettings.tsx:242
-#: src/components/WebPushPromptBanner.tsx:196
+#: src/components/WebPushPromptBanner.tsx:213
 msgid "Browser notifications enabled"
 msgstr "브라우저 알림을 켰습니다"
 
@@ -1057,9 +1057,9 @@ msgid "By {0}"
 msgstr "{0} 작성"
 
 #: src/components/AppealDialog.tsx:187
-#: src/components/NoteComposer.tsx:2276
-#: src/components/NoteComposer.tsx:2277
-#: src/components/NoteComposer.tsx:2346
+#: src/components/NoteComposer.tsx:2318
+#: src/components/NoteComposer.tsx:2319
+#: src/components/NoteComposer.tsx:2388
 #: src/components/PostActionMenu.tsx:456
 #: src/components/ProfileActionMenu.tsx:536
 #: src/components/ProfileActionMenu.tsx:537
@@ -1229,15 +1229,15 @@ msgid "Compose"
 msgstr "작성"
 
 #: src/components/article-composer/shared/ComposerEditorPanes.tsx:87
-#: src/components/NoteComposer.tsx:1884
+#: src/components/NoteComposer.tsx:1926
 msgid "Content"
 msgstr "내용"
 
-#: src/components/NoteComposer.tsx:1451
+#: src/components/NoteComposer.tsx:1493
 msgid "Content cannot be empty"
 msgstr "내용을 입력하세요"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:627
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:635
 msgid "Continue"
 msgstr "계속"
 
@@ -1381,7 +1381,7 @@ msgstr "이의 제기를 제출하지 못했습니다"
 msgid "Could not update role"
 msgstr "역할을 변경할 수 없습니다"
 
-#: src/components/NoteComposer.tsx:829
+#: src/components/NoteComposer.tsx:852
 msgid "Could not verify locally saved images. They may fail when you post."
 msgstr "로컬에 저장된 이미지를 확인할 수 없습니다. 게시할 때 실패할 수 있습니다."
 
@@ -1405,7 +1405,7 @@ msgstr "초대 링크 생성"
 #: src/components/AppSidebar.tsx:1053
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:84
-#: src/components/NoteComposer.tsx:2368
+#: src/components/NoteComposer.tsx:2410
 msgid "Create note"
 msgstr "단문 작성"
 
@@ -1414,7 +1414,7 @@ msgstr "단문 작성"
 msgid "Create organization"
 msgstr "조직 만들기"
 
-#: src/components/NoteComposer.tsx:2367
+#: src/components/NoteComposer.tsx:2409
 msgid "Create poll"
 msgstr "설문 만들기"
 
@@ -1435,7 +1435,7 @@ msgstr "{0}에 생성됨"
 msgid "Creating account…"
 msgstr "계정을 생성하는 중…"
 
-#: src/components/NoteComposer.tsx:2370
+#: src/components/NoteComposer.tsx:2412
 #: src/routes/(root)/[handle]/settings/account.tsx:833
 #: src/routes/(root)/[handle]/settings/invite.tsx:855
 msgid "Creating…"
@@ -1463,11 +1463,11 @@ msgstr "기준 시각:"
 msgid "CW"
 msgstr "CW"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:415
+#: src/routes/(root)/[handle]/settings/preferences.tsx:459
 msgid "Daily digest"
 msgstr "일간 알림 요약"
 
-#: src/components/NoteComposer.tsx:2122
+#: src/components/NoteComposer.tsx:2164
 msgid "Deadline"
 msgstr "마감"
 
@@ -1483,15 +1483,15 @@ msgstr "조치 내역"
 msgid "Decisions the moderation team has made about your account or posts, newest first. You can appeal a decision once, within 14 days."
 msgstr "모더레이션 팀이 회원님의 계정이나 콘텐츠에 대해 내린 결정을 최신순으로 보여 줍니다. 각 결정에 대해 14일 이내에 한 번 이의를 제기할 수 있습니다."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:347
+#: src/routes/(root)/[handle]/settings/preferences.tsx:391
 msgid "Default note privacy"
 msgstr "기본 단문 공개 범위"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:372
+#: src/routes/(root)/[handle]/settings/preferences.tsx:416
 msgid "Default quote permission"
 msgstr "기본 인용 권한"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:359
+#: src/routes/(root)/[handle]/settings/preferences.tsx:403
 msgid "Default share privacy"
 msgstr "기본 공유 공개 범위"
 
@@ -1513,15 +1513,15 @@ msgid "Delete account permanently?"
 msgstr "계정을 영구적으로 삭제할까요?"
 
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:159
-#: src/components/NoteComposer.tsx:2400
+#: src/components/NoteComposer.tsx:2442
 msgid "Delete draft"
 msgstr "초고 삭제"
 
-#: src/components/NoteComposer.tsx:2333
+#: src/components/NoteComposer.tsx:2375
 msgid "Delete local draft"
 msgstr "로컬 초고 삭제"
 
-#: src/components/NoteComposer.tsx:2389
+#: src/components/NoteComposer.tsx:2431
 msgid "Delete local draft?"
 msgstr "로컬 초고를 삭제하시겠습니까?"
 
@@ -1598,7 +1598,7 @@ msgstr "저장하지 않은 변경 사항을 삭제하시겠습니까?"
 
 #: src/components/admin/ModerationActionForm.tsx:112
 #: src/components/FollowRecommendations.tsx:134
-#: src/components/WebPushPromptBanner.tsx:269
+#: src/components/WebPushPromptBanner.tsx:286
 msgid "Dismiss"
 msgstr "닫기"
 
@@ -1621,7 +1621,7 @@ msgstr "이름"
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "계정이 필요하신가요? Hackers' Pub은 초대 전용입니다. 친구에게 초대를 요청해주세요."
 
-#: src/components/NoteComposer.tsx:1303
+#: src/components/NoteComposer.tsx:1345
 msgid "Do you want to quote this link?"
 msgstr "이 링크를 인용하시겠습니까?"
 
@@ -1673,7 +1673,7 @@ msgstr "단문 수정"
 msgid "Email address"
 msgstr "이메일 주소"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:400
+#: src/routes/(root)/[handle]/settings/preferences.tsx:444
 msgid "Email digests"
 msgstr "이메일 알림 요약"
 
@@ -1682,12 +1682,12 @@ msgid "Email or username"
 msgstr "이메일 또는 아이디"
 
 #: src/components/WebPushNotificationSettings.tsx:420
-#: src/components/WebPushPromptBanner.tsx:263
+#: src/components/WebPushPromptBanner.tsx:280
 msgid "Enable"
 msgstr "켜기"
 
 #: src/components/WebPushNotificationSettings.tsx:420
-#: src/components/WebPushPromptBanner.tsx:263
+#: src/components/WebPushPromptBanner.tsx:280
 msgid "Enabling…"
 msgstr "켜는 중…"
 
@@ -1734,33 +1734,34 @@ msgstr "로그인하려면 아래에 이메일 또는 아이디를 입력해주�
 #: src/components/article-composer/ArticleComposerContext.tsx:545
 #: src/components/article-composer/ArticleComposerContext.tsx:556
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:24
-#: src/components/NoteComposer.tsx:1156
-#: src/components/NoteComposer.tsx:1206
-#: src/components/NoteComposer.tsx:1350
-#: src/components/NoteComposer.tsx:1360
-#: src/components/NoteComposer.tsx:1368
-#: src/components/NoteComposer.tsx:1376
-#: src/components/NoteComposer.tsx:1386
-#: src/components/NoteComposer.tsx:1394
-#: src/components/NoteComposer.tsx:1450
-#: src/components/NoteComposer.tsx:1460
-#: src/components/NoteComposer.tsx:1468
-#: src/components/NoteComposer.tsx:1504
-#: src/components/NoteComposer.tsx:1512
-#: src/components/NoteComposer.tsx:1520
-#: src/components/NoteComposer.tsx:1573
-#: src/components/NoteComposer.tsx:1582
-#: src/components/NoteComposer.tsx:1590
-#: src/components/NoteComposer.tsx:1633
-#: src/components/NoteComposer.tsx:1641
-#: src/components/NoteComposer.tsx:1649
-#: src/components/NoteComposer.tsx:1706
+#: src/components/NoteComposer.tsx:1198
+#: src/components/NoteComposer.tsx:1248
+#: src/components/NoteComposer.tsx:1392
+#: src/components/NoteComposer.tsx:1402
+#: src/components/NoteComposer.tsx:1410
+#: src/components/NoteComposer.tsx:1418
+#: src/components/NoteComposer.tsx:1428
+#: src/components/NoteComposer.tsx:1436
+#: src/components/NoteComposer.tsx:1492
+#: src/components/NoteComposer.tsx:1502
+#: src/components/NoteComposer.tsx:1510
+#: src/components/NoteComposer.tsx:1546
+#: src/components/NoteComposer.tsx:1554
+#: src/components/NoteComposer.tsx:1562
+#: src/components/NoteComposer.tsx:1615
+#: src/components/NoteComposer.tsx:1624
+#: src/components/NoteComposer.tsx:1632
+#: src/components/NoteComposer.tsx:1675
+#: src/components/NoteComposer.tsx:1683
+#: src/components/NoteComposer.tsx:1691
+#: src/components/NoteComposer.tsx:1748
 #: src/components/QuotedNoteCard.tsx:377
 #: src/components/QuotedNoteCard.tsx:385
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:417
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:462
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:472
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:481
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:626
 #: src/routes/(root)/[handle]/drafts/index.tsx:183
 #: src/routes/(root)/[handle]/drafts/index.tsx:192
 #: src/routes/(root)/[handle]/drafts/index.tsx:200
@@ -1873,9 +1874,9 @@ msgstr "브라우저 알림을 끄지 못했습니다"
 #: src/components/WebPushNotificationSettings.tsx:225
 #: src/components/WebPushNotificationSettings.tsx:261
 #: src/components/WebPushNotificationSettings.tsx:278
-#: src/components/WebPushPromptBanner.tsx:180
-#: src/components/WebPushPromptBanner.tsx:216
-#: src/components/WebPushPromptBanner.tsx:234
+#: src/components/WebPushPromptBanner.tsx:197
+#: src/components/WebPushPromptBanner.tsx:233
+#: src/components/WebPushPromptBanner.tsx:251
 msgid "Failed to enable browser notifications"
 msgstr "브라우저 알림을 켜지 못했습니다"
 
@@ -1885,7 +1886,7 @@ msgstr "브라우저 알림을 켜지 못했습니다"
 msgid "Failed to follow"
 msgstr "팔로에 실패했습니다"
 
-#: src/components/NoteComposer.tsx:1707
+#: src/components/NoteComposer.tsx:1749
 msgid "Failed to generate alt text"
 msgstr "대체 텍스트 생성에 실패했습니다"
 
@@ -1965,11 +1966,11 @@ msgstr "공유를 더 불러오지 못했습니다. 다시 시도하려면 클�
 msgid "Failed to load more; click to retry"
 msgstr "더 불러오지 못했습니다. 클릭하여 다시 시도하세요"
 
-#: src/components/NoteComposer.tsx:1766
+#: src/components/NoteComposer.tsx:1808
 msgid "Failed to load post"
 msgstr "콘텐츠를 불러오지 못했습니다"
 
-#: src/components/NoteComposer.tsx:1817
+#: src/components/NoteComposer.tsx:1859
 msgid "Failed to load quoted post"
 msgstr "인용 콘텐츠를 불러오지 못했습니다"
 
@@ -2068,9 +2069,9 @@ msgstr "패스키 취소 실패"
 msgid "Failed to save language preferences"
 msgstr "언어 설정 저장 실패"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:197
-#: src/routes/(root)/[handle]/settings/preferences.tsx:234
-#: src/routes/(root)/[handle]/settings/preferences.tsx:268
+#: src/routes/(root)/[handle]/settings/preferences.tsx:251
+#: src/routes/(root)/[handle]/settings/preferences.tsx:288
+#: src/routes/(root)/[handle]/settings/preferences.tsx:322
 msgid "Failed to save preferences"
 msgstr "환경 설정 저장 실패"
 
@@ -2160,7 +2161,7 @@ msgstr "게시글을 수정하지 못했습니다. 다시 시도해 주세요."
 #~ msgstr "단문 수정에 실패했습니다. 다시 시도해 주세요."
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:27
-#: src/components/NoteComposer.tsx:1209
+#: src/components/NoteComposer.tsx:1251
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:420
 msgid "Failed to upload image"
 msgstr "이미지 업로드에 실패했습니다"
@@ -2240,11 +2241,11 @@ msgstr "서식"
 msgid "Forwarded to the remote instance"
 msgstr "원격 인스턴스로 전달됨"
 
-#: src/components/NoteComposer.tsx:2267
+#: src/components/NoteComposer.tsx:2309
 msgid "Generating…"
 msgstr "생성 중…"
 
-#: src/components/WebPushPromptBanner.tsx:249
+#: src/components/WebPushPromptBanner.tsx:266
 msgid "Get browser notifications"
 msgstr "브라우저 알림 받기"
 
@@ -2292,7 +2293,7 @@ msgstr "그래프"
 
 #: src/components/AppSidebar.tsx:369
 #: src/components/AppSidebar.tsx:493
-#: src/routes/(root).tsx:217
+#: src/routes/(root).tsx:221
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/markdown.tsx:40
 #: src/routes/(root)/privacy.tsx:40
@@ -2300,7 +2301,7 @@ msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
 #: src/components/NotFoundPage.tsx:19
-#: src/routes/(root).tsx:209
+#: src/routes/(root).tsx:213
 msgid "Hackers' Pub home"
 msgstr "Hackers' Pub 홈"
 
@@ -2381,11 +2382,11 @@ msgstr "Hackers' Pub: 관리 · 제재된 액터"
 msgid "Hackers' Pub: Articles feed"
 msgstr "Hackers' Pub: 게시글 피드"
 
-#: src/routes/(root)/fediverse.tsx:75
+#: src/routes/(root)/fediverse.tsx:76
 msgid "Hackers' Pub: Fediverse timeline"
 msgstr "Hackers' Pub: 연합우주 타임라인"
 
-#: src/routes/(root)/feed/index.tsx:135
+#: src/routes/(root)/feed/index.tsx:139
 msgid "Hackers' Pub: Feed"
 msgstr "Hackers' Pub: 피드"
 
@@ -2401,7 +2402,7 @@ msgstr "Hackers' Pub: 초대 그래프"
 msgid "Hackers' Pub: Invitation tree"
 msgstr "Hackers' Pub: 초대 족보"
 
-#: src/routes/(root)/local.tsx:69
+#: src/routes/(root)/local.tsx:70
 msgid "Hackers' Pub: Local timeline"
 msgstr "Hackers' Pub: 로컬 타임라인"
 
@@ -2481,7 +2482,7 @@ msgstr "Hackers' Pub의 행동 강령을 읽고 동의합니다."
 msgid "If enabled, a report will be sent to the remote server's moderators after our moderation team acts. Your identity will not be revealed; only a summary written by our moderation team is shared, never your original wording."
 msgstr "켜면 우리 모더레이션 팀의 조치 후 원격 서버의 모더레이터에게 신고가 전송됩니다. 신고자의 신원은 공개되지 않으며, 원문이 아닌 모더레이션 팀이 작성한 요약만 공유됩니다."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:322
+#: src/routes/(root)/[handle]/settings/preferences.tsx:366
 msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 msgstr "활성화하면 AI가 글의 요약을 생성합니다. 비활성화 시 글의 처음 몇 줄이 요약으로 사용됩니다."
 
@@ -2518,7 +2519,7 @@ msgstr "제재 강화"
 msgid "Increased"
 msgstr "강화됨"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:339
+#: src/routes/(root)/[handle]/settings/preferences.tsx:383
 msgid "Interaction scope"
 msgstr "상호작용 범위"
 
@@ -2540,9 +2541,9 @@ msgstr "올바른 연합우주 핸들 형식이 아닙니다."
 #: src/components/article-composer/ArticleComposerContext.tsx:380
 #: src/components/article-composer/ArticleComposerContext.tsx:465
 #: src/components/article-composer/ArticleComposerContext.tsx:530
-#: src/components/NoteComposer.tsx:1505
-#: src/components/NoteComposer.tsx:1575
-#: src/components/NoteComposer.tsx:1634
+#: src/components/NoteComposer.tsx:1547
+#: src/components/NoteComposer.tsx:1617
+#: src/components/NoteComposer.tsx:1676
 #: src/routes/(root)/[handle]/drafts/index.tsx:185
 msgid "Invalid input: {0}"
 msgstr "잘못된 입력: {0}"
@@ -2662,7 +2663,7 @@ msgstr "{0}에 가입"
 msgid "Joined on {0}"
 msgstr "{0}에 가입"
 
-#: src/components/NoteComposer.tsx:2395
+#: src/components/NoteComposer.tsx:2437
 msgid "Keep draft"
 msgstr "초고 유지"
 
@@ -2952,7 +2953,7 @@ msgstr "뉴스를 더 불러오는 중…"
 msgid "Loading more…"
 msgstr "더 불러오는 중…"
 
-#: src/components/NoteComposer.tsx:1818
+#: src/components/NoteComposer.tsx:1860
 msgid "Loading quoted post…"
 msgstr "인용 콘텐츠를 불러오는 중…"
 
@@ -2960,21 +2961,22 @@ msgstr "인용 콘텐츠를 불러오는 중…"
 msgid "Loading search results…"
 msgstr "검색 결과를 불러오는 중…"
 
-#: src/components/NoteComposer.tsx:1767
+#: src/components/NoteComposer.tsx:1809
 #: src/routes/(root)/[handle]/drafts/index.tsx:344
 #: src/routes/(root)/sign/up/[token].tsx:467
 msgid "Loading…"
 msgstr "로딩 중…"
 
-#: src/components/NoteComposer.tsx:2323
+#: src/components/NoteComposer.tsx:2365
+#: src/components/TimelineNoteComposer.tsx:68
 msgid "Local draft"
 msgstr "로컬 초고"
 
-#: src/components/NoteComposer.tsx:2321
+#: src/components/NoteComposer.tsx:2363
 msgid "Local draft could not be saved"
 msgstr "로컬 초고를 저장할 수 없습니다"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:383
+#: src/routes/(root)/[handle]/settings/preferences.tsx:427
 msgid "Locked to \"Only me\" because your default note privacy restricts visibility."
 msgstr "기본 단문 공개 범위가 제한되어 있어 “나만”으로 고정됩니다."
 
@@ -2995,7 +2997,7 @@ msgid "Markdown guide"
 msgstr "Markdown 가이드"
 
 #: src/components/article-composer/shared/ComposerEditorPanes.tsx:58
-#: src/components/NoteComposer.tsx:1996
+#: src/components/NoteComposer.tsx:2038
 msgid "Markdown supported"
 msgstr "Markdown 사용 가능"
 
@@ -3090,7 +3092,7 @@ msgstr "맨 위로 이동"
 msgid "Move up"
 msgstr "위로 이동"
 
-#: src/components/NoteComposer.tsx:2055
+#: src/components/NoteComposer.tsx:2097
 #: src/components/QuestionCard.tsx:471
 msgid "Multiple choice"
 msgstr "복수 선택"
@@ -3398,7 +3400,7 @@ msgstr "아직 구독한 릴레이가 없습니다."
 msgid "Note (optional)"
 msgstr "메모 (선택)"
 
-#: src/components/NoteComposer.tsx:1624
+#: src/components/NoteComposer.tsx:1666
 msgid "Note created successfully"
 msgstr "단문이 작성되었습니다"
 
@@ -3407,7 +3409,7 @@ msgstr "단문이 작성되었습니다"
 msgid "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
 msgstr "링크가 실제로 당신의 것인지 인증할 수 있습니다. 링크한 페이지에서도 {0} 속성을 사용해 당신의 Hackers' Pub 프로필로 링크를 걸어 주세요."
 
-#: src/components/NoteComposer.tsx:1494
+#: src/components/NoteComposer.tsx:1536
 msgid "Note updated"
 msgstr "단문이 수정되었습니다."
 
@@ -3421,7 +3423,7 @@ msgid "Nothing to preview"
 msgstr "미리볼 내용이 없습니다"
 
 #: src/components/WebPushNotificationSettings.tsx:156
-#: src/components/WebPushPromptBanner.tsx:91
+#: src/components/WebPushPromptBanner.tsx:108
 msgid "Notification permission was not granted."
 msgstr "알림 권한이 허용되지 않았습니다."
 
@@ -3431,13 +3433,13 @@ msgstr "알림 미리보기 개인정보"
 
 #: src/components/AppSidebar.tsx:760
 #: src/components/AppSidebar.tsx:761
-#: src/routes/(root).tsx:295
-#: src/routes/(root).tsx:296
+#: src/routes/(root).tsx:299
+#: src/routes/(root).tsx:300
 msgid "Notifications"
 msgstr "알림"
 
 #: src/components/WebPushNotificationSettings.tsx:154
-#: src/components/WebPushPromptBanner.tsx:89
+#: src/components/WebPushPromptBanner.tsx:106
 msgid "Notifications are blocked for this site."
 msgstr "이 사이트의 알림이 차단되어 있습니다."
 
@@ -3492,11 +3494,11 @@ msgid "Open post"
 msgstr "콘텐츠 열기"
 
 #. placeholder {0}: index() + 1
-#: src/components/NoteComposer.tsx:2096
+#: src/components/NoteComposer.tsx:2138
 msgid "Option {0}"
 msgstr "선택지 {0}"
 
-#: src/components/NoteComposer.tsx:2063
+#: src/components/NoteComposer.tsx:2105
 #: src/components/PostActionMenu.tsx:349
 #: src/components/PostActionMenu.tsx:350
 msgid "Options"
@@ -3682,7 +3684,7 @@ msgstr "이 페이지에 접근하려면 로그인하세요"
 msgid "Please sign in to vote"
 msgstr "투표하려면 로그인하세요"
 
-#: src/components/NoteComposer.tsx:2006
+#: src/components/NoteComposer.tsx:2048
 msgid "Poll"
 msgstr "설문"
 
@@ -3690,35 +3692,35 @@ msgstr "설문"
 msgid "Poll closed"
 msgstr "설문이 마감되었습니다"
 
-#: src/components/NoteComposer.tsx:1563
+#: src/components/NoteComposer.tsx:1605
 msgid "Poll created successfully"
 msgstr "설문을 만들었습니다"
 
-#: src/components/NoteComposer.tsx:1387
+#: src/components/NoteComposer.tsx:1429
 msgid "Poll deadline is invalid"
 msgstr "설문 마감 시각이 올바르지 않습니다"
 
-#: src/components/NoteComposer.tsx:1395
+#: src/components/NoteComposer.tsx:1437
 msgid "Poll deadline must be at least 1 minute from now"
 msgstr "설문 마감은 현재로부터 최소 1분 뒤여야 합니다"
 
-#: src/components/NoteComposer.tsx:1361
+#: src/components/NoteComposer.tsx:1403
 msgid "Poll options cannot be empty"
 msgstr "설문 선택지는 비워 둘 수 없습니다"
 
-#: src/components/NoteComposer.tsx:1377
+#: src/components/NoteComposer.tsx:1419
 msgid "Poll options must be unique"
 msgstr "설문 선택지는 서로 달라야 합니다"
 
-#: src/components/NoteComposer.tsx:2024
+#: src/components/NoteComposer.tsx:2066
 msgid "Poll title"
 msgstr "설문 제목"
 
-#: src/components/NoteComposer.tsx:1351
+#: src/components/NoteComposer.tsx:1393
 msgid "Poll title cannot be empty"
 msgstr "설문 제목은 비워 둘 수 없습니다"
 
-#: src/components/NoteComposer.tsx:2159
+#: src/components/NoteComposer.tsx:2201
 msgid "Polls cannot be edited after publishing."
 msgstr "설문은 게시한 뒤 수정할 수 없습니다."
 
@@ -3758,13 +3760,13 @@ msgstr "콘텐츠 고정을 해제했습니다"
 msgid "Posts"
 msgstr "콘텐츠"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:319
+#: src/routes/(root)/[handle]/settings/preferences.tsx:363
 msgid "Prefer AI-generated summary"
 msgstr "AI 생성 요약 선호"
 
 #: src/components/SettingsTabs.tsx:57
-#: src/routes/(root)/[handle]/settings/preferences.tsx:295
-#: src/routes/(root)/[handle]/settings/preferences.tsx:305
+#: src/routes/(root)/[handle]/settings/preferences.tsx:177
+#: src/routes/(root)/[handle]/settings/preferences.tsx:349
 msgid "Preferences"
 msgstr "환경 설정"
 
@@ -3975,11 +3977,11 @@ msgstr "신고 사유"
 msgid "Rebuilds the popularity score of every shared link from scratch. The operation is idempotent and safe to run at any time; scores normally stay fresh on their own, so this is mainly a manual backstop and a development tool."
 msgstr "공유된 모든 링크의 인기 점수를 처음부터 다시 계산합니다. 이 작업은 멱등하며 언제 실행해도 안전합니다. 점수는 평소 자동으로 최신 상태를 유지하므로, 이 기능은 주로 수동 보완 수단이자 개발용 도구입니다."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:402
+#: src/routes/(root)/[handle]/settings/preferences.tsx:446
 msgid "Receive a summary email when unread notifications remain."
 msgstr "읽지 않은 알림이 남아 있으면 요약 이메일을 받습니다."
 
-#: src/components/WebPushPromptBanner.tsx:252
+#: src/components/WebPushPromptBanner.tsx:269
 msgid "Receive new notifications immediately, even when this tab is closed."
 msgstr "이 탭을 닫아도 새 알림을 즉시 받습니다."
 
@@ -4131,25 +4133,25 @@ msgstr "팔로워 삭제"
 msgid "Remove from sidebar"
 msgstr "사이드바에서 제거"
 
-#: src/components/NoteComposer.tsx:2288
-#: src/components/NoteComposer.tsx:2289
+#: src/components/NoteComposer.tsx:2330
+#: src/components/NoteComposer.tsx:2331
 msgid "Remove image"
 msgstr "이미지 제거"
 
-#: src/components/NoteComposer.tsx:2105
-#: src/components/NoteComposer.tsx:2106
+#: src/components/NoteComposer.tsx:2147
+#: src/components/NoteComposer.tsx:2148
 msgid "Remove option"
 msgstr "선택지 삭제"
 
-#: src/components/NoteComposer.tsx:1948
-#: src/components/NoteComposer.tsx:1949
-#: src/components/NoteComposer.tsx:2013
-#: src/components/NoteComposer.tsx:2014
+#: src/components/NoteComposer.tsx:1990
+#: src/components/NoteComposer.tsx:1991
+#: src/components/NoteComposer.tsx:2055
+#: src/components/NoteComposer.tsx:2056
 msgid "Remove poll"
 msgstr "설문 삭제"
 
-#: src/components/NoteComposer.tsx:1865
-#: src/components/NoteComposer.tsx:1866
+#: src/components/NoteComposer.tsx:1907
+#: src/components/NoteComposer.tsx:1908
 msgid "Remove quote"
 msgstr "인용 삭제"
 
@@ -4184,7 +4186,7 @@ msgstr "댓글"
 msgid "Replying is not available for this post"
 msgstr "이 콘텐츠에는 댓글을 달 수 없습니다"
 
-#: src/components/NoteComposer.tsx:1759
+#: src/components/NoteComposer.tsx:1801
 msgid "Replying to"
 msgstr "댓글 대상"
 
@@ -4322,13 +4324,13 @@ msgstr "제재된 액터"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:554
 #: src/routes/(root)/[handle]/settings/language.tsx:201
-#: src/routes/(root)/[handle]/settings/preferences.tsx:331
-#: src/routes/(root)/[handle]/settings/preferences.tsx:392
-#: src/routes/(root)/[handle]/settings/preferences.tsx:443
+#: src/routes/(root)/[handle]/settings/preferences.tsx:375
+#: src/routes/(root)/[handle]/settings/preferences.tsx:436
+#: src/routes/(root)/[handle]/settings/preferences.tsx:487
 msgid "Save"
 msgstr "저장"
 
-#: src/components/NoteComposer.tsx:2374
+#: src/components/NoteComposer.tsx:2416
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:589
 msgid "Save changes"
 msgstr "변경사항 저장"
@@ -4341,18 +4343,18 @@ msgstr "초고 저장"
 #~ msgid "Save draft to see preview"
 #~ msgstr "미리보기를 보려면 초고로 저장하세요"
 
-#: src/components/NoteComposer.tsx:2323
+#: src/components/NoteComposer.tsx:2365
 msgid "Saved locally"
 msgstr "로컬에 저장했습니다"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:84
-#: src/components/NoteComposer.tsx:2375
+#: src/components/NoteComposer.tsx:2417
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:589
 #: src/routes/(root)/[handle]/settings/index.tsx:554
 #: src/routes/(root)/[handle]/settings/language.tsx:201
-#: src/routes/(root)/[handle]/settings/preferences.tsx:331
-#: src/routes/(root)/[handle]/settings/preferences.tsx:392
-#: src/routes/(root)/[handle]/settings/preferences.tsx:443
+#: src/routes/(root)/[handle]/settings/preferences.tsx:375
+#: src/routes/(root)/[handle]/settings/preferences.tsx:436
+#: src/routes/(root)/[handle]/settings/preferences.tsx:487
 msgid "Saving…"
 msgstr "저장 중…"
 
@@ -4410,7 +4412,7 @@ msgstr "선택지를 선택하세요"
 msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."
 msgstr "선호하는 언어를 우선순위에 따라 선택하세요. 콘텐츠를 사용자의 취향에 맞게 조정하는 데 도움이 됩니다."
 
-#: src/components/NoteComposer.tsx:2038
+#: src/components/NoteComposer.tsx:2080
 msgid "Selection"
 msgstr "선택 방식"
 
@@ -4418,11 +4420,11 @@ msgstr "선택 방식"
 msgid "Send"
 msgstr "보내기"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:418
+#: src/routes/(root)/[handle]/settings/preferences.tsx:462
 msgid "Send one email per day while unread notifications remain."
 msgstr "읽지 않은 알림이 남아 있는 동안 하루에 한 번 이메일을 보냅니다."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:434
+#: src/routes/(root)/[handle]/settings/preferences.tsx:478
 msgid "Send one email per week while unread notifications remain."
 msgstr "읽지 않은 알림이 남아 있는 동안 일주일에 한 번 이메일을 보냅니다."
 
@@ -4440,11 +4442,11 @@ msgstr "민감한 콘텐츠"
 msgid "Separate tags with spaces. Tags help readers discover your article."
 msgstr "태그는 공백으로 구분합니다. 태그는 독자가 게시글을 찾는 데 도움이 됩니다."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:341
+#: src/routes/(root)/[handle]/settings/preferences.tsx:385
 msgid "Set the default visibility and quote permissions for new posts."
 msgstr "새 콘텐츠의 기본 공개 범위와 인용 권한을 설정합니다."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:307
+#: src/routes/(root)/[handle]/settings/preferences.tsx:351
 msgid "Set your personal preferences."
 msgstr "개인의 환경 설정을 설정하세요."
 
@@ -4584,7 +4586,7 @@ msgstr "로그인 중…"
 msgid "Signing up for Hackers' Pub"
 msgstr "Hackers' Pub 가입"
 
-#: src/components/NoteComposer.tsx:2047
+#: src/components/NoteComposer.tsx:2089
 #: src/components/QuestionCard.tsx:471
 msgid "Single choice"
 msgstr "단일 선택"
@@ -4605,11 +4607,11 @@ msgstr "슬러그는 비워둘 수 없습니다"
 msgid "Snapshot at report time"
 msgstr "신고 시점 스냅샷"
 
-#: src/components/NoteComposer.tsx:1168
+#: src/components/NoteComposer.tsx:1210
 msgid "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 msgstr "이미지 {MAX_MEDIA}개 제한에 도달하여 일부 이미지가 건너뛰어졌습니다"
 
-#: src/components/NoteComposer.tsx:819
+#: src/components/NoteComposer.tsx:842
 msgid "Some locally saved images are no longer available and were removed from the draft."
 msgstr "로컬에 저장된 일부 이미지를 더 이상 사용할 수 없어 초고에서 제거했습니다."
 
@@ -4676,9 +4678,9 @@ msgstr "구독 중…"
 #: src/components/article-composer/ArticleComposerContext.tsx:361
 #: src/components/article-composer/ArticleComposerContext.tsx:455
 #: src/components/article-composer/ArticleComposerContext.tsx:520
-#: src/components/NoteComposer.tsx:1493
-#: src/components/NoteComposer.tsx:1562
-#: src/components/NoteComposer.tsx:1623
+#: src/components/NoteComposer.tsx:1535
+#: src/components/NoteComposer.tsx:1604
+#: src/components/NoteComposer.tsx:1665
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:446
 #: src/routes/(root)/[handle]/drafts/index.tsx:175
 msgid "Success"
@@ -4688,9 +4690,9 @@ msgstr "성공"
 msgid "Successfully saved language preferences"
 msgstr "언어 설정이 성공적으로 저장되었습니다"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:189
-#: src/routes/(root)/[handle]/settings/preferences.tsx:226
-#: src/routes/(root)/[handle]/settings/preferences.tsx:260
+#: src/routes/(root)/[handle]/settings/preferences.tsx:243
+#: src/routes/(root)/[handle]/settings/preferences.tsx:280
+#: src/routes/(root)/[handle]/settings/preferences.tsx:314
 msgid "Successfully saved preferences"
 msgstr "환경 설정이 성공적으로 저장되었습니다"
 
@@ -4808,7 +4810,7 @@ msgid "The automated analysis was unavailable for this report."
 msgstr "이 신고에 대한 자동 분석을 사용할 수 없습니다."
 
 #: src/components/WebPushNotificationSettings.tsx:158
-#: src/components/WebPushPromptBanner.tsx:93
+#: src/components/WebPushPromptBanner.tsx:110
 msgid "The browser did not provide a complete push subscription."
 msgstr "브라우저가 완전한 푸시 알림 구독 정보를 제공하지 않았습니다."
 
@@ -4824,15 +4826,15 @@ msgstr "전환 요청을 만들 수 없습니다. 다시 시도하세요."
 msgid "The decision has been recorded and applied."
 msgstr "조치가 기록되고 적용되었습니다."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:355
+#: src/routes/(root)/[handle]/settings/preferences.tsx:399
 msgid "The default privacy setting for your notes."
 msgstr "단문의 기본 공개 설정입니다."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:367
+#: src/routes/(root)/[handle]/settings/preferences.tsx:411
 msgid "The default privacy setting for your shares."
 msgstr "공유의 기본 공개 설정입니다."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:384
+#: src/routes/(root)/[handle]/settings/preferences.tsx:428
 msgid "The default quote permission for your notes."
 msgstr "단문의 기본 인용 권한 설정입니다."
 
@@ -4985,7 +4987,7 @@ msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "링크의 URL. 예: https://github.com/yourhandle."
 
 #: src/components/WebPushNotificationSettings.tsx:160
-#: src/components/WebPushPromptBanner.tsx:95
+#: src/components/WebPushPromptBanner.tsx:112
 msgid "The Web Push public key is invalid."
 msgstr "Web Push 공개 키가 올바르지 않습니다."
 
@@ -5028,7 +5030,7 @@ msgid "This action is permanent."
 msgstr "이 작업은 되돌릴 수 없습니다."
 
 #: src/components/WebPushNotificationSettings.tsx:152
-#: src/components/WebPushPromptBanner.tsx:87
+#: src/components/WebPushPromptBanner.tsx:104
 msgid "This browser does not support Web Push."
 msgstr "이 브라우저는 Web Push를 지원하지 않습니다."
 
@@ -5048,7 +5050,7 @@ msgstr "존재하지 않는 케이스입니다."
 msgid "This case is resolved."
 msgstr "이미 처리된 케이스입니다."
 
-#: src/components/NoteComposer.tsx:2391
+#: src/components/NoteComposer.tsx:2433
 msgid "This clears the saved draft from this browser."
 msgstr "이 브라우저에 저장된 초고를 삭제합니다."
 
@@ -5164,6 +5166,7 @@ msgstr "제목"
 
 #: src/components/article-composer/ArticleComposerContext.tsx:299
 #: src/components/article-composer/ArticleComposerContext.tsx:557
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:627
 msgid "Title cannot be empty"
 msgstr "제목은 비워둘 수 없습니다"
 
@@ -5172,7 +5175,7 @@ msgstr "제목은 비워둘 수 없습니다"
 msgid "To follow {0}, enter your Fediverse handle."
 msgstr "{0}님을 팔로하려면 연합우주 핸들을 입력해 주세요."
 
-#: src/routes/(root).tsx:207
+#: src/routes/(root).tsx:211
 msgid "Toggle sidebar"
 msgstr "사이드바 전환"
 
@@ -5332,7 +5335,7 @@ msgstr "{0}에 업데이트됨"
 msgid "Updating…"
 msgstr "업데이트 중…"
 
-#: src/components/NoteComposer.tsx:2204
+#: src/components/NoteComposer.tsx:2246
 msgid "Upload progress"
 msgstr "업로드 진행률"
 
@@ -5511,9 +5514,9 @@ msgstr "투표 중…"
 
 #: src/components/admin/AppealResolveForm.tsx:93
 #: src/components/admin/ModerationActionForm.tsx:113
-#: src/components/NoteComposer.tsx:817
-#: src/components/NoteComposer.tsx:827
-#: src/components/NoteComposer.tsx:1166
+#: src/components/NoteComposer.tsx:840
+#: src/components/NoteComposer.tsx:850
+#: src/components/NoteComposer.tsx:1208
 #: src/components/SanctionHistoryList.tsx:38
 #: src/routes/(root)/admin/moderation/[id].tsx:139
 #: src/routes/(root)/admin/moderation/appeals.tsx:121
@@ -5533,7 +5536,7 @@ msgstr "번역 서비스에 연결하지 못했습니다. 다시 시도하거나
 msgid "Website"
 msgstr "웹사이트"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:431
+#: src/routes/(root)/[handle]/settings/preferences.tsx:475
 msgid "Weekly digest"
 msgstr "주간 알림 요약"
 
@@ -5549,11 +5552,12 @@ msgstr "무슨 일이 있었나요?"
 msgid "What is Hackers' Pub?"
 msgstr "Hackers' Pub이란?"
 
-#: src/components/NoteComposer.tsx:2031
+#: src/components/NoteComposer.tsx:2073
 msgid "What should people decide?"
 msgstr "무엇을 정할까요?"
 
-#: src/components/NoteComposer.tsx:1916
+#: src/components/NoteComposer.tsx:1958
+#: src/components/TimelineNoteComposer.tsx:69
 msgid "What's on your mind?"
 msgstr "무슨 생각 해요?"
 
@@ -5645,7 +5649,7 @@ msgstr "이제 초대 족보에서 숨겨집니다."
 msgid "You are now shown in the invitation tree."
 msgstr "이제 초대 족보에 표시됩니다."
 
-#: src/components/NoteComposer.tsx:1157
+#: src/components/NoteComposer.tsx:1199
 msgid "You can attach up to {MAX_MEDIA} images"
 msgstr "이미지는 최대 {MAX_MEDIA}장까지 첨부할 수 있습니다"
 
@@ -5740,11 +5744,11 @@ msgstr "이미 이의를 제기했거나 이의 제기 기간이 종료되었을
 msgid "You must be signed in"
 msgstr "로그인이 필요합니다"
 
-#: src/components/NoteComposer.tsx:1642
+#: src/components/NoteComposer.tsx:1684
 msgid "You must be signed in to create a note"
 msgstr "단문을 작성하려면 로그인해야 합니다"
 
-#: src/components/NoteComposer.tsx:1583
+#: src/components/NoteComposer.tsx:1625
 msgid "You must be signed in to create a poll"
 msgstr "설문을 만들려면 로그인해야 합니다"
 
@@ -5753,7 +5757,7 @@ msgstr "설문을 만들려면 로그인해야 합니다"
 msgid "You must be signed in to delete a draft"
 msgstr "초고를 삭제하려면 로그인해야 합니다"
 
-#: src/components/NoteComposer.tsx:1513
+#: src/components/NoteComposer.tsx:1555
 msgid "You must be signed in to edit a note"
 msgstr "단문을 수정하려면 로그인해야 합니다."
 
@@ -5794,7 +5798,7 @@ msgstr "가입 시 자동으로 서로 팔로하게 됩니다."
 msgid "You've been invited to Hackers' Pub"
 msgstr "Hackers' Pub에 초대되었습니다"
 
-#: src/components/NoteComposer.tsx:1750
+#: src/components/NoteComposer.tsx:1792
 msgid "Your account is suspended, so you can't post right now. See your sanctions for details and how to appeal."
 msgstr "회원님의 계정이 정지되어 지금은 글을 작성할 수 없습니다. 자세한 내용과 이의 제기 방법은 제재 내역에서 확인하세요."
 
@@ -5851,9 +5855,9 @@ msgstr "내 조직"
 msgid "Your passkey has been registered and can now be used for authentication."
 msgstr "패스키가 등록되었습니다. 이제 이 패스키를 사용하여 로그인 할 수 있습니다."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:190
-#: src/routes/(root)/[handle]/settings/preferences.tsx:227
-#: src/routes/(root)/[handle]/settings/preferences.tsx:261
+#: src/routes/(root)/[handle]/settings/preferences.tsx:244
+#: src/routes/(root)/[handle]/settings/preferences.tsx:281
+#: src/routes/(root)/[handle]/settings/preferences.tsx:315
 msgid "Your preferences have been updated successfully."
 msgstr "환경 설정이 성공적으로 업데이트되었습니다."
 
