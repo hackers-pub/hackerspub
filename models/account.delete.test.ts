@@ -988,3 +988,47 @@ test("deleteAccount() avoids duplicate follow notification actor sets", async ()
     assert.deepEqual(notifications[0].actorIds, [survivor.actor.id]);
   });
 });
+
+test("deleteAccount() removes follow notifications emptied by actor removal", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    fedCtx.sendActivity = (() =>
+      Promise.resolve(undefined)) as typeof fedCtx.sendActivity;
+    const recipient = await insertAccountWithActor(tx, {
+      username: "deleteemptyrecipient",
+      name: "Delete Empty Recipient",
+      email: "deleteemptyrecipient@example.com",
+    });
+    const target = await insertAccountWithActor(tx, {
+      username: "deleteemptytarget",
+      name: "Delete Empty Target",
+      email: "deleteemptytarget@example.com",
+    });
+
+    await tx.insert(notificationTable).values([
+      {
+        id: generateUuidV7(),
+        accountId: recipient.account.id,
+        type: "follow",
+        actorIds: [],
+      },
+      {
+        id: generateUuidV7(),
+        accountId: recipient.account.id,
+        type: "follow",
+        actorIds: [target.actor.id],
+      },
+    ]);
+
+    await deleteAccount(fedCtx, target.account.id);
+
+    const notifications = await tx.query.notificationTable.findMany({
+      where: {
+        accountId: recipient.account.id,
+        type: "follow",
+      },
+    });
+    assert.equal(notifications.length, 1);
+    assert.deepEqual(notifications[0].actorIds, []);
+  });
+});
