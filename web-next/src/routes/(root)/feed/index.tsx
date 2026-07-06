@@ -6,6 +6,7 @@ import { FollowRecommendations } from "~/components/FollowRecommendations.tsx";
 import { LanguageFilter } from "~/components/LanguageFilter.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PersonalTimeline } from "~/components/PersonalTimeline.tsx";
+import { TimelineNoteComposer } from "~/components/TimelineNoteComposer.tsx";
 import { Title } from "~/components/Title.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
@@ -97,10 +98,13 @@ function AuthenticatedFeedTimeline() {
         <NarrowContainer>
           <Show keyed when={d.viewer}>
             {(viewer) => (
-              <FollowRecommendations
-                followeesCount={viewer.actor.followees.totalCount}
-                postCount={viewer.postCount}
-              />
+              <>
+                <TimelineNoteComposer />
+                <FollowRecommendations
+                  followeesCount={viewer.actor.followees.totalCount}
+                  postCount={viewer.postCount}
+                />
+              </>
             )}
           </Show>
           <Show

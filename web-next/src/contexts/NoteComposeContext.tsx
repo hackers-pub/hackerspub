@@ -6,6 +6,7 @@ import {
 } from "solid-js";
 import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
 import type { QuotePolicy } from "~/components/QuotePolicySelect.tsx";
+import { flushNoteDraftScope } from "~/lib/noteDraftSync.ts";
 
 type NoteCreatedCallback = () => void;
 
@@ -63,6 +64,7 @@ export const NoteComposeProvider: ParentComponent = (props) => {
   >(new Set());
 
   const open = () => {
+    flushNoteDraftScope({ type: "new" });
     setQuotedPostId(null);
     setReplyTargetId(null);
     setReplyDefaultVisibility(null);

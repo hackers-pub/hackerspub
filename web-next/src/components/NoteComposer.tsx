@@ -34,6 +34,11 @@ import {
   writeNoteDraft,
 } from "~/lib/noteDraftStorage.ts";
 import {
+  publishNoteDraftChange,
+  registerNoteDraftFlush,
+  subscribeNoteDraftChanges,
+} from "~/lib/noteDraftSync.ts";
+import {
   UploadAbortedError,
   uploadMediumFile,
 } from "~/lib/uploadMediumWithProgress.ts";
@@ -594,6 +599,8 @@ export function NoteComposer(props: NoteComposerProps) {
     | undefined;
   let restoringDraft = false;
   let formDraftKey: string | null = null;
+  let unregisterDraftFlush: (() => void) | undefined;
+  const draftSyncOrigin = Symbol("NoteComposer");
 
   const draftScope = createMemo<NoteDraftScope | null>(() => {
     if (props.editingNoteId) return null;
@@ -624,7 +631,9 @@ export function NoteComposer(props: NoteComposerProps) {
   );
 
   onCleanup(() => {
+    saveCurrentDraftNow();
     props.onDraftFlushAvailable?.(null);
+    unregisterDraftFlush?.();
     removeDragListeners?.();
     clearTimeout(saveDraftTimer);
     draftRestoreMediaSubscription?.unsubscribe();
@@ -742,7 +751,11 @@ export function NoteComposer(props: NoteComposerProps) {
     if (result === "ok") {
       formDraftKey = key;
       setDraftSaveStatus(hasMediaNotInDraft ? "idle" : "saved");
+      publishNoteDraftChange({ key, origin: draftSyncOrigin });
       return !hasMediaNotInDraft;
+    }
+    if (result === "empty") {
+      publishNoteDraftChange({ key, origin: draftSyncOrigin });
     }
     if (result === "unavailable" && isMeaningfulNoteDraft(draft)) {
       setDraftSaveStatus("unavailable");
@@ -758,6 +771,16 @@ export function NoteComposer(props: NoteComposerProps) {
     } else {
       props.onDraftFlushAvailable?.(saveCurrentDraftNow);
     }
+  });
+
+  createEffect(() => {
+    unregisterDraftFlush?.();
+    unregisterDraftFlush = undefined;
+    const scope = draftScope();
+    if (props.editingNoteId || props.draftActive === false || scope == null) {
+      return;
+    }
+    unregisterDraftFlush = registerNoteDraftFlush(scope, saveCurrentDraftNow);
   });
 
   const restoreDraftMedia = (media: readonly NoteDraftMedia[]) => {
@@ -868,24 +891,12 @@ export function NoteComposer(props: NoteComposerProps) {
     });
   };
 
-  createEffect(() => {
-    const key = draftStorageKey();
-    const scope = draftScope();
-    clearTimeout(saveDraftTimer);
+  const loadDraftFromStorage = (
+    key: string,
+    scope: NoteDraftScope,
+    shouldPreserveCurrentForm: boolean,
+  ) => {
     setDraftSaveStatus("idle");
-    if (key == null || scope == null) {
-      setLoadedDraftKey(null);
-      formDraftKey = null;
-      setHasLocalDraft(false);
-      return;
-    }
-    const previousLoadedDraftKey = untrack(loadedDraftKey);
-    const shouldPreserveCurrentForm = untrack(() =>
-      previousLoadedDraftKey != null &&
-      formDraftKey === previousLoadedDraftKey &&
-      previousLoadedDraftKey !== key &&
-      isDirty()
-    );
     const draft = readNoteDraft(getBrowserDraftStorage(), key);
     if (draft != null) {
       if (!shouldPreserveCurrentForm) {
@@ -900,7 +911,37 @@ export function NoteComposer(props: NoteComposerProps) {
     }
     formDraftKey = key;
     setLoadedDraftKey(key);
+  };
+
+  createEffect(() => {
+    const key = draftStorageKey();
+    const scope = draftScope();
+    clearTimeout(saveDraftTimer);
+    if (key == null || scope == null) {
+      setDraftSaveStatus("idle");
+      setLoadedDraftKey(null);
+      formDraftKey = null;
+      setHasLocalDraft(false);
+      return;
+    }
+    const previousLoadedDraftKey = untrack(loadedDraftKey);
+    const shouldPreserveCurrentForm = untrack(() =>
+      previousLoadedDraftKey != null &&
+      formDraftKey === previousLoadedDraftKey &&
+      previousLoadedDraftKey !== key &&
+      isDirty()
+    );
+    loadDraftFromStorage(key, scope, shouldPreserveCurrentForm);
   });
+
+  onCleanup(subscribeNoteDraftChanges((change) => {
+    if (change.origin === draftSyncOrigin) return;
+    const key = untrack(draftStorageKey);
+    const scope = untrack(draftScope);
+    if (key == null || scope == null || change.key !== key) return;
+    clearTimeout(saveDraftTimer);
+    loadDraftFromStorage(key, scope, false);
+  }));
 
   createEffect(() => {
     const key = draftStorageKey();
@@ -924,6 +965,7 @@ export function NoteComposer(props: NoteComposerProps) {
     removeNoteDraft(getBrowserDraftStorage(), key);
     setHasLocalDraft(false);
     setDraftSaveStatus("idle");
+    publishNoteDraftChange({ key, origin: draftSyncOrigin });
   };
 
   const deleteCurrentDraftAndReset = () => {
@@ -1734,7 +1776,7 @@ export function NoteComposer(props: NoteComposerProps) {
         class={props.class}
       >
         <div
-          class={`grid gap-4 rounded-lg transition-colors ${
+          class={`grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4 rounded-lg transition-colors ${
             isDraggingOver()
               ? "outline outline-2 outline-dashed outline-primary"
               : ""
@@ -2335,7 +2377,7 @@ export function NoteComposer(props: NoteComposerProps) {
             </div>
           </Show>
 
-          <div class="flex gap-2 justify-end">
+          <div class="flex min-w-0 gap-2 justify-end">
             <Show when={props.showCancelButton}>
               <Button
                 type="button"

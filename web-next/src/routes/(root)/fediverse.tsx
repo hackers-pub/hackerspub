@@ -6,6 +6,7 @@ import { FollowRecommendations } from "~/components/FollowRecommendations.tsx";
 import { LanguageFilter } from "~/components/LanguageFilter.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PublicTimeline } from "~/components/PublicTimeline.tsx";
+import { TimelineNoteComposer } from "~/components/TimelineNoteComposer.tsx";
 import { Title } from "~/components/Title.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import {
@@ -81,10 +82,13 @@ export default function FediverseTimeline() {
             </Show>
             <Show keyed when={data.viewer}>
               {(viewer) => (
-                <FollowRecommendations
-                  followeesCount={viewer.actor.followees.totalCount}
-                  postCount={viewer.postCount}
-                />
+                <>
+                  <TimelineNoteComposer />
+                  <FollowRecommendations
+                    followeesCount={viewer.actor.followees.totalCount}
+                    postCount={viewer.postCount}
+                  />
+                </>
               )}
             </Show>
             <Show
