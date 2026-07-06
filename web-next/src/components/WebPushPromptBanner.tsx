@@ -26,6 +26,23 @@ export interface WebPushPromptBannerProps {
 
 const DISMISSED_KEY = "hackerspub.webPushPrompt.dismissed";
 
+function getDismissedPreference(): boolean {
+  try {
+    return globalThis.localStorage?.getItem(DISMISSED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function setDismissedPreference(): void {
+  try {
+    globalThis.localStorage?.setItem(DISMISSED_KEY, "1");
+  } catch {
+    // Storage can be unavailable in restricted WebViews. The in-memory
+    // signal still dismisses the current banner render.
+  }
+}
+
 const registerMutation = graphql`
   mutation WebPushPromptBannerRegisterMutation(
     $endpoint: String!,
@@ -98,7 +115,7 @@ export function WebPushPromptBanner(props: WebPushPromptBannerProps) {
 
   onMount(() => {
     setMounted(true);
-    setDismissed(localStorage.getItem(DISMISSED_KEY) === "1");
+    setDismissed(getDismissedPreference());
     setSupported(isWebPushSupported());
     setPermission(getNotificationPermission());
     const updatePermission = () => setPermission(getNotificationPermission());
@@ -132,7 +149,7 @@ export function WebPushPromptBanner(props: WebPushPromptBannerProps) {
   });
 
   function dismiss() {
-    localStorage.setItem(DISMISSED_KEY, "1");
+    setDismissedPreference();
     setDismissed(true);
   }
 
@@ -190,7 +207,7 @@ export function WebPushPromptBanner(props: WebPushPromptBannerProps) {
           return;
         }
         if (!options.silent) {
-          localStorage.setItem(DISMISSED_KEY, "1");
+          setDismissedPreference();
           setDismissed(true);
           showToast({
             title: t`Browser notifications enabled`,
