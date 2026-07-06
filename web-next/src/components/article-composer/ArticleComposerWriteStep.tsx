@@ -86,7 +86,7 @@ export function ArticleComposerWriteStep() {
             <Button
               type="button"
               onClick={ctx.goToPublishSettings}
-              disabled={!ctx.draft()?.id}
+              disabled={!ctx.draft()?.id || ctx.isSaving()}
             >
               {t`Publish`}
             </Button>
