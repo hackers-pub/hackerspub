@@ -1,5 +1,5 @@
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
-import { Meta } from "@solidjs/meta";
+import { Link, Meta } from "@solidjs/meta";
 import {
   revalidate,
   type RouteDefinition,
@@ -328,6 +328,11 @@ function PostMetaHead(props: PostMetaHeadProps) {
               )}
             </Show>
 
+            <Link
+              rel="alternate"
+              type="application/activity+json"
+              href={post.iri}
+            />
             <HttpHeader
               name="Link"
               value={`<${post.iri}>; rel="alternate"; type="application/activity+json"`}

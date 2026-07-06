@@ -338,6 +338,11 @@ function ArticleMetaHead(props: ArticleMetaHeadProps) {
                 />
               )}
             </For>
+            <Link
+              rel="alternate"
+              type="application/activity+json"
+              href={article.iri}
+            />
             <HttpHeader
               name="Link"
               value={`<${article.iri}>; rel="alternate"; type="application/activity+json"`}
