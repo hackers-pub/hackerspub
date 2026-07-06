@@ -54,6 +54,34 @@ test("createMediumFromBytes() stores webp media once by content hash", async () 
   });
 });
 
+test("createMediumFromBytes() stores animated image frame height", async () => {
+  await withRollback(async (tx) => {
+    const disk = {
+      put() {
+        return Promise.resolve();
+      },
+      getUrl(key: string) {
+        return Promise.resolve(`http://localhost/media/${key}`);
+      },
+    };
+    const input = Uint8Array.from(
+      atob(
+        "R0lGODlhAwACAPAAAP8AAP///yH/C05FVFNDQVBFMi4wAwEAAAAh+QQACgAAACwAAAAAAwACAAACAoRfACH5BAAKAAAALAAAAAADAAIAgAAA/////wIChF8AOw==",
+      ),
+      (char) => char.charCodeAt(0),
+    );
+
+    const medium = await createMediumFromBytes(tx, disk as never, input, {
+      contentType: "image/gif",
+    });
+
+    assert.ok(medium != null);
+    assert.equal(medium.type, "image/webp");
+    assert.equal(medium.width, 3);
+    assert.equal(medium.height, 2);
+  });
+});
+
 test("createMediumFromBytes() rejects corrupt image bytes", async () => {
   const medium = await createMediumFromBytes(
     undefined as never,

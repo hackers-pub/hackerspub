@@ -210,9 +210,12 @@ export async function createMediumFromBytes(
       .rotate()
       .webp()
       .toBuffer({ resolveWithObject: true });
+    const info = result.info as typeof result.info & { pageHeight?: number };
     data = result.data;
-    width = result.info.width;
-    height = result.info.height;
+    width = info.width;
+    // For animated images, Sharp reports the full stacked canvas height in
+    // `height`; `pageHeight` is the actual frame height peers expect.
+    height = info.pageHeight ?? info.height;
   } catch {
     return undefined;
   }
