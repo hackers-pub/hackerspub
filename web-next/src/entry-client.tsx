@@ -105,11 +105,17 @@ window.addEventListener("vite:preloadError", (event) => {
   // so Sentry's global `unhandledrejection` handler captures the error
   // without a manual capture (avoiding duplicate events).
   if (!shouldAttemptStaleChunkReload()) return;
-  // Capture before reloading so we keep visibility into how often
-  // the recovery fires. When the DSN isn't configured, no-ops.
-  Sentry.captureException(event.payload, {
-    tags: { stale_chunk_reload: "true" },
+  Sentry.addBreadcrumb({
+    category: "vite",
+    level: "info",
+    message: "Reloading after stale module preload error.",
+    data: {
+      error: event.payload instanceof Error
+        ? event.payload.message
+        : String(event.payload),
+    },
   });
+  console.info("Reloading after stale module preload error.", event.payload);
   // Do NOT call event.preventDefault(). When prevented, Vite's
   // __vitePreload wrapper resolves the dynamic import with `undefined`
   // instead of rejecting it. Solid's lazy() then stores
