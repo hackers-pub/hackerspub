@@ -54,6 +54,7 @@ const RootLayoutQuery = graphql`
   query RootLayoutQuery {
     webPushVapidPublicKey
     viewer {
+      id
       uuid
       username
       moderator
@@ -190,6 +191,7 @@ export default function RootLayout(props: RouteSectionProps) {
       isAuthenticated={() =>
         !signedAccount.pending && !!signedAccount()?.viewer}
       isLoaded={() => !signedAccount.pending}
+      id={() => signedAccount()?.viewer?.id}
       username={() => signedAccount()?.viewer?.username}
       moderator={() => signedAccount()?.viewer?.moderator ?? false}
       suspended={() => signedAccount()?.viewer?.actor?.suspended ?? false}

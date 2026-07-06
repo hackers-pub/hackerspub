@@ -445,7 +445,7 @@ msgstr "@old@example.com 或 actor URL"
 
 #: src/components/admin/AppealResolveForm.tsx:301
 #: src/components/admin/ModerationActionForm.tsx:303
-#: src/components/NoteComposer.tsx:2173
+#: src/components/NoteComposer.tsx:2336
 msgid "1 day"
 msgstr "1 天"
 
@@ -454,11 +454,11 @@ msgstr "1 天"
 msgid "1 report"
 msgstr "1 則檢舉"
 
-#: src/components/NoteComposer.tsx:2189
+#: src/components/NoteComposer.tsx:2352
 msgid "1 week"
 msgstr "1 週"
 
-#: src/components/NoteComposer.tsx:2181
+#: src/components/NoteComposer.tsx:2344
 msgid "3 days"
 msgstr "3 天"
 
@@ -630,16 +630,16 @@ msgstr "新增"
 msgid "Add {0}"
 msgstr "新增{0}"
 
-#: src/components/NoteComposer.tsx:1411
+#: src/components/NoteComposer.tsx:1574
 msgid "Add at least {MIN_POLL_OPTIONS} poll options"
 msgstr "請至少新增 {MIN_POLL_OPTIONS} 個投票調查選項"
 
-#: src/components/NoteComposer.tsx:2122
+#: src/components/NoteComposer.tsx:2285
 msgid "Add option"
 msgstr "新增選項"
 
-#: src/components/NoteComposer.tsx:1990
-#: src/components/NoteComposer.tsx:1991
+#: src/components/NoteComposer.tsx:2153
+#: src/components/NoteComposer.tsx:2154
 msgid "Add poll"
 msgstr "新增投票調查"
 
@@ -691,11 +691,11 @@ msgstr "全部"
 msgid "All accounts"
 msgstr "全部帳戶"
 
-#: src/components/NoteComposer.tsx:1503
+#: src/components/NoteComposer.tsx:1666
 msgid "All images must finish uploading before posting"
 msgstr "發佈前，所有圖片必須完成上傳。"
 
-#: src/components/NoteComposer.tsx:1511
+#: src/components/NoteComposer.tsx:1674
 msgid "All images require alt text"
 msgstr "所有圖片均需提供替代文字。"
 
@@ -715,7 +715,7 @@ msgstr "全部內容"
 msgid "All-time"
 msgstr "全部時間"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:136
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:146
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:555
 msgid "Allow automatic translation by AI"
 msgstr "允許 AI 自動翻譯"
@@ -730,11 +730,11 @@ msgid "Also send this report to the remote instance ({0})"
 msgstr "同時將此檢舉傳送給遠端站台（{0}）"
 
 #. placeholder {0}: index() + 1
-#: src/components/NoteComposer.tsx:2259
+#: src/components/NoteComposer.tsx:2422
 msgid "Alt text for image {0}"
 msgstr "圖片 {0} 的替代文字"
 
-#: src/components/NoteComposer.tsx:2271
+#: src/components/NoteComposer.tsx:2434
 msgid "Alt text for visually impaired people (required)"
 msgstr "供視力障礙人士使用的替代文字（必填）"
 
@@ -842,7 +842,7 @@ msgstr "確定要封鎖 {0}（{1}）嗎？該使用者將無法關注你或查�
 msgid "Are you sure you want to delete \"{draftTitle}\"? This action cannot be undone."
 msgstr "您確定要刪除「{draftTitle}」嗎？此操作無法復原。"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:500
+#: src/components/article-composer/ArticleComposerContext.tsx:606
 msgid "Are you sure you want to delete this draft? This action cannot be undone."
 msgstr "您確定要刪除此草稿嗎？此操作無法復原。"
 
@@ -875,7 +875,7 @@ msgstr "文章"
 msgid "Article drafts"
 msgstr "文章草稿"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:456
+#: src/components/article-composer/ArticleComposerContext.tsx:562
 msgid "Article published"
 msgstr "文章已發布"
 
@@ -891,7 +891,7 @@ msgstr "文章翻譯失敗"
 msgid "Article updated"
 msgstr "文章已更新"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:73
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:83
 msgid "article-url-slug"
 msgstr "文章網址別名"
 
@@ -915,8 +915,8 @@ msgstr "自從你已經把使用者名稱換成 {0} 了，你再也改不了了�
 msgid "Assigned to {0}"
 msgstr "已指派給 {0}"
 
-#: src/components/NoteComposer.tsx:1979
-#: src/components/NoteComposer.tsx:1980
+#: src/components/NoteComposer.tsx:2142
+#: src/components/NoteComposer.tsx:2143
 msgid "Attach image"
 msgstr "附加圖片"
 
@@ -925,16 +925,16 @@ msgid "Authenticating…"
 msgstr "驗證中…"
 
 #: src/components/ActingAccountSelect.tsx:109
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:84
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:94
 msgid "Author"
 msgstr "作者"
 
-#: src/components/NoteComposer.tsx:2290
+#: src/components/NoteComposer.tsx:2453
 msgid "Auto-fill"
 msgstr "自動填寫"
 
-#: src/components/NoteComposer.tsx:2283
-#: src/components/NoteComposer.tsx:2284
+#: src/components/NoteComposer.tsx:2446
+#: src/components/NoteComposer.tsx:2447
 msgid "Auto-fill alt text"
 msgstr "自動填寫替代文字"
 
@@ -954,7 +954,7 @@ msgstr "返回"
 msgid "Back to cases"
 msgstr "返回案件列表"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:170
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:180
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:576
 msgid "Back to editing"
 msgstr "返回編輯"
@@ -1057,9 +1057,9 @@ msgid "By {0}"
 msgstr "由 {0} 發佈"
 
 #: src/components/AppealDialog.tsx:187
-#: src/components/NoteComposer.tsx:2318
-#: src/components/NoteComposer.tsx:2319
-#: src/components/NoteComposer.tsx:2388
+#: src/components/NoteComposer.tsx:2481
+#: src/components/NoteComposer.tsx:2482
+#: src/components/NoteComposer.tsx:2568
 #: src/components/PostActionMenu.tsx:456
 #: src/components/ProfileActionMenu.tsx:536
 #: src/components/ProfileActionMenu.tsx:537
@@ -1153,7 +1153,7 @@ msgstr "請選擇處置方式。"
 msgid "Choose an outcome."
 msgstr "請選擇處理結果。"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:44
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:54
 msgid "Choose how this article appears and who can interact with it."
 msgstr "選擇這篇文章的顯示方式，以及誰可以與之互動。"
 
@@ -1229,11 +1229,11 @@ msgid "Compose"
 msgstr "寫作"
 
 #: src/components/article-composer/shared/ComposerEditorPanes.tsx:87
-#: src/components/NoteComposer.tsx:1926
+#: src/components/NoteComposer.tsx:2089
 msgid "Content"
 msgstr "內容"
 
-#: src/components/NoteComposer.tsx:1493
+#: src/components/NoteComposer.tsx:1656
 msgid "Content cannot be empty"
 msgstr "內容不能為空"
 
@@ -1254,7 +1254,7 @@ msgstr "繼續閱讀此討論串"
 msgid "Control how you appear in the public invitation tree that shows who invited whom."
 msgstr "控制你在顯示誰邀請了誰的公開邀請樹中的顯示方式。"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:115
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:125
 msgid "Controls who can quote this article on their timeline."
 msgstr "設定誰可以在時間軸上引用這篇文章。"
 
@@ -1381,7 +1381,7 @@ msgstr "無法提交申訴"
 msgid "Could not update role"
 msgstr "無法更新角色"
 
-#: src/components/NoteComposer.tsx:852
+#: src/components/NoteComposer.tsx:1015
 msgid "Could not verify locally saved images. They may fail when you post."
 msgstr "無法驗證本機儲存的圖片。發布時可能會失敗。"
 
@@ -1405,7 +1405,7 @@ msgstr "建立邀請連結"
 #: src/components/AppSidebar.tsx:1053
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:84
-#: src/components/NoteComposer.tsx:2410
+#: src/components/NoteComposer.tsx:2590
 msgid "Create note"
 msgstr "建立貼文"
 
@@ -1414,7 +1414,7 @@ msgstr "建立貼文"
 msgid "Create organization"
 msgstr "建立組織"
 
-#: src/components/NoteComposer.tsx:2409
+#: src/components/NoteComposer.tsx:2589
 msgid "Create poll"
 msgstr "建立投票調查"
 
@@ -1435,7 +1435,7 @@ msgstr "{0}建立"
 msgid "Creating account…"
 msgstr "創建帳戶…"
 
-#: src/components/NoteComposer.tsx:2412
+#: src/components/NoteComposer.tsx:2592
 #: src/routes/(root)/[handle]/settings/account.tsx:833
 #: src/routes/(root)/[handle]/settings/invite.tsx:855
 msgid "Creating…"
@@ -1467,7 +1467,7 @@ msgstr "CW"
 msgid "Daily digest"
 msgstr "每日摘要"
 
-#: src/components/NoteComposer.tsx:2164
+#: src/components/NoteComposer.tsx:2327
 msgid "Deadline"
 msgstr "截止時間"
 
@@ -1512,16 +1512,16 @@ msgstr "刪除帳戶"
 msgid "Delete account permanently?"
 msgstr "要永久刪除帳戶嗎？"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:159
-#: src/components/NoteComposer.tsx:2442
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:169
+#: src/components/NoteComposer.tsx:2622
 msgid "Delete draft"
 msgstr "刪除草稿"
 
-#: src/components/NoteComposer.tsx:2375
+#: src/components/NoteComposer.tsx:2538
 msgid "Delete local draft"
 msgstr "刪除本機草稿"
 
-#: src/components/NoteComposer.tsx:2431
+#: src/components/NoteComposer.tsx:2611
 msgid "Delete local draft?"
 msgstr "要刪除本機草稿嗎？"
 
@@ -1544,7 +1544,7 @@ msgstr "刪除孤立媒體"
 msgid "Delete post?"
 msgstr "刪除內容？"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:159
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:169
 #: src/routes/(root)/[handle]/settings/account.tsx:2055
 #: src/routes/(root)/[handle]/settings/invite.tsx:745
 #: src/routes/(root)/admin/media.tsx:189
@@ -1621,16 +1621,16 @@ msgstr "暱稱"
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "需要建立帳戶嗎？Hackers' Pub 僅限邀請，請聯繫朋友邀請您。"
 
-#: src/components/NoteComposer.tsx:1345
+#: src/components/NoteComposer.tsx:1508
 msgid "Do you want to quote this link?"
 msgstr "要引用此連結嗎？"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:521
+#: src/components/article-composer/ArticleComposerContext.tsx:627
 #: src/routes/(root)/[handle]/drafts/index.tsx:176
 msgid "Draft deleted"
 msgstr "草稿已刪除"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:418
+#: src/components/article-composer/ArticleComposerContext.tsx:450
 msgid "Draft must be saved before publishing"
 msgstr "發布前必須儲存草稿"
 
@@ -1638,7 +1638,8 @@ msgstr "發布前必須儲存草稿"
 msgid "Draft not found"
 msgstr "未找到草稿"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:362
+#: src/components/article-composer/ArticleComposerContext.tsx:385
+#: src/components/NoteComposer.tsx:802
 msgid "Draft saved"
 msgstr "草稿已儲存"
 
@@ -1719,42 +1720,48 @@ msgstr "請在下方輸入你的電子郵件地址以開始。"
 msgid "Enter your email or username below to sign in."
 msgstr "請在下方輸入您的電子郵件或使用者名稱以登入。"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:298
-#: src/components/article-composer/ArticleComposerContext.tsx:378
-#: src/components/article-composer/ArticleComposerContext.tsx:387
-#: src/components/article-composer/ArticleComposerContext.tsx:395
-#: src/components/article-composer/ArticleComposerContext.tsx:408
-#: src/components/article-composer/ArticleComposerContext.tsx:417
-#: src/components/article-composer/ArticleComposerContext.tsx:463
-#: src/components/article-composer/ArticleComposerContext.tsx:472
-#: src/components/article-composer/ArticleComposerContext.tsx:480
-#: src/components/article-composer/ArticleComposerContext.tsx:491
-#: src/components/article-composer/ArticleComposerContext.tsx:528
-#: src/components/article-composer/ArticleComposerContext.tsx:537
-#: src/components/article-composer/ArticleComposerContext.tsx:545
-#: src/components/article-composer/ArticleComposerContext.tsx:556
+#: src/components/article-composer/ArticleComposerContext.tsx:321
+#: src/components/article-composer/ArticleComposerContext.tsx:401
+#: src/components/article-composer/ArticleComposerContext.tsx:410
+#: src/components/article-composer/ArticleComposerContext.tsx:418
+#: src/components/article-composer/ArticleComposerContext.tsx:440
+#: src/components/article-composer/ArticleComposerContext.tsx:449
+#: src/components/article-composer/ArticleComposerContext.tsx:483
+#: src/components/article-composer/ArticleComposerContext.tsx:521
+#: src/components/article-composer/ArticleComposerContext.tsx:569
+#: src/components/article-composer/ArticleComposerContext.tsx:578
+#: src/components/article-composer/ArticleComposerContext.tsx:586
+#: src/components/article-composer/ArticleComposerContext.tsx:597
+#: src/components/article-composer/ArticleComposerContext.tsx:634
+#: src/components/article-composer/ArticleComposerContext.tsx:643
+#: src/components/article-composer/ArticleComposerContext.tsx:651
+#: src/components/article-composer/ArticleComposerContext.tsx:662
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:24
-#: src/components/NoteComposer.tsx:1198
-#: src/components/NoteComposer.tsx:1248
-#: src/components/NoteComposer.tsx:1392
-#: src/components/NoteComposer.tsx:1402
-#: src/components/NoteComposer.tsx:1410
-#: src/components/NoteComposer.tsx:1418
-#: src/components/NoteComposer.tsx:1428
-#: src/components/NoteComposer.tsx:1436
-#: src/components/NoteComposer.tsx:1492
-#: src/components/NoteComposer.tsx:1502
-#: src/components/NoteComposer.tsx:1510
-#: src/components/NoteComposer.tsx:1546
-#: src/components/NoteComposer.tsx:1554
-#: src/components/NoteComposer.tsx:1562
-#: src/components/NoteComposer.tsx:1615
-#: src/components/NoteComposer.tsx:1624
-#: src/components/NoteComposer.tsx:1632
-#: src/components/NoteComposer.tsx:1675
-#: src/components/NoteComposer.tsx:1683
-#: src/components/NoteComposer.tsx:1691
-#: src/components/NoteComposer.tsx:1748
+#: src/components/NoteComposer.tsx:770
+#: src/components/NoteComposer.tsx:812
+#: src/components/NoteComposer.tsx:821
+#: src/components/NoteComposer.tsx:829
+#: src/components/NoteComposer.tsx:1361
+#: src/components/NoteComposer.tsx:1411
+#: src/components/NoteComposer.tsx:1555
+#: src/components/NoteComposer.tsx:1565
+#: src/components/NoteComposer.tsx:1573
+#: src/components/NoteComposer.tsx:1581
+#: src/components/NoteComposer.tsx:1591
+#: src/components/NoteComposer.tsx:1599
+#: src/components/NoteComposer.tsx:1655
+#: src/components/NoteComposer.tsx:1665
+#: src/components/NoteComposer.tsx:1673
+#: src/components/NoteComposer.tsx:1709
+#: src/components/NoteComposer.tsx:1717
+#: src/components/NoteComposer.tsx:1725
+#: src/components/NoteComposer.tsx:1778
+#: src/components/NoteComposer.tsx:1787
+#: src/components/NoteComposer.tsx:1795
+#: src/components/NoteComposer.tsx:1838
+#: src/components/NoteComposer.tsx:1846
+#: src/components/NoteComposer.tsx:1854
+#: src/components/NoteComposer.tsx:1911
 #: src/components/QuotedNoteCard.tsx:377
 #: src/components/QuotedNoteCard.tsx:385
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:417
@@ -1886,7 +1893,7 @@ msgstr "無法啟用瀏覽器通知"
 msgid "Failed to follow"
 msgstr "關注失敗"
 
-#: src/components/NoteComposer.tsx:1749
+#: src/components/NoteComposer.tsx:1912
 msgid "Failed to generate alt text"
 msgstr "替代文字生成失敗"
 
@@ -1966,11 +1973,11 @@ msgstr "載入更多轉貼失敗，點擊重試"
 msgid "Failed to load more; click to retry"
 msgstr "載入更多失敗；點擊重試"
 
-#: src/components/NoteComposer.tsx:1808
+#: src/components/NoteComposer.tsx:1971
 msgid "Failed to load post"
 msgstr "無法載入內容"
 
-#: src/components/NoteComposer.tsx:1859
+#: src/components/NoteComposer.tsx:2022
 msgid "Failed to load quoted post"
 msgstr "無法載入引用內容"
 
@@ -2161,7 +2168,7 @@ msgstr "文章更新失敗，請重試。"
 #~ msgstr "貼文更新失敗，請重試。"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:27
-#: src/components/NoteComposer.tsx:1251
+#: src/components/NoteComposer.tsx:1414
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:420
 msgid "Failed to upload image"
 msgstr "圖片上傳失敗"
@@ -2241,7 +2248,7 @@ msgstr "格式"
 msgid "Forwarded to the remote instance"
 msgstr "已轉送給遠端站台"
 
-#: src/components/NoteComposer.tsx:2309
+#: src/components/NoteComposer.tsx:2472
 msgid "Generating…"
 msgstr "生成中…"
 
@@ -2293,7 +2300,7 @@ msgstr "關係圖"
 
 #: src/components/AppSidebar.tsx:369
 #: src/components/AppSidebar.tsx:493
-#: src/routes/(root).tsx:221
+#: src/routes/(root).tsx:223
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/markdown.tsx:40
 #: src/routes/(root)/privacy.tsx:40
@@ -2301,7 +2308,7 @@ msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
 #: src/components/NotFoundPage.tsx:19
-#: src/routes/(root).tsx:213
+#: src/routes/(root).tsx:215
 msgid "Hackers' Pub home"
 msgstr "Hackers' Pub 首頁"
 
@@ -2538,12 +2545,13 @@ msgstr "聯邦宇宙使用者名稱格式無效。"
 #. placeholder {0}: response.createNote.inputPath
 #. placeholder {0}: response.createQuestion.inputPath
 #. placeholder {0}: response.deleteArticleDraft.inputPath
-#: src/components/article-composer/ArticleComposerContext.tsx:380
-#: src/components/article-composer/ArticleComposerContext.tsx:465
-#: src/components/article-composer/ArticleComposerContext.tsx:530
-#: src/components/NoteComposer.tsx:1547
-#: src/components/NoteComposer.tsx:1617
-#: src/components/NoteComposer.tsx:1676
+#: src/components/article-composer/ArticleComposerContext.tsx:403
+#: src/components/article-composer/ArticleComposerContext.tsx:571
+#: src/components/article-composer/ArticleComposerContext.tsx:636
+#: src/components/NoteComposer.tsx:814
+#: src/components/NoteComposer.tsx:1710
+#: src/components/NoteComposer.tsx:1780
+#: src/components/NoteComposer.tsx:1839
 #: src/routes/(root)/[handle]/drafts/index.tsx:185
 msgid "Invalid input: {0}"
 msgstr "無效輸入：{0}"
@@ -2663,7 +2671,7 @@ msgstr "加入於 {0}"
 msgid "Joined on {0}"
 msgstr "於{0}加入"
 
-#: src/components/NoteComposer.tsx:2437
+#: src/components/NoteComposer.tsx:2617
 msgid "Keep draft"
 msgstr "保留草稿"
 
@@ -2671,7 +2679,15 @@ msgstr "保留草稿"
 msgid "Keep editing"
 msgstr "繼續編輯"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:96
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:230
+msgid "Keep existing draft"
+msgstr "保留現有草稿"
+
+#: src/components/NoteComposer.tsx:2643
+msgid "Keep writing note"
+msgstr "繼續寫貼文"
+
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:106
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:529
@@ -2953,7 +2969,7 @@ msgstr "正在載入更多新聞…"
 msgid "Loading more…"
 msgstr "正在載入更多…"
 
-#: src/components/NoteComposer.tsx:1860
+#: src/components/NoteComposer.tsx:2023
 msgid "Loading quoted post…"
 msgstr "正在載入引用內容…"
 
@@ -2961,20 +2977,25 @@ msgstr "正在載入引用內容…"
 msgid "Loading search results…"
 msgstr "正在載入搜尋結果…"
 
-#: src/components/NoteComposer.tsx:1809
+#: src/components/NoteComposer.tsx:1972
 #: src/routes/(root)/[handle]/drafts/index.tsx:344
 #: src/routes/(root)/sign/up/[token].tsx:467
 msgid "Loading…"
 msgstr "載入中…"
 
-#: src/components/NoteComposer.tsx:2365
-#: src/components/TimelineNoteComposer.tsx:68
+#: src/components/NoteComposer.tsx:2528
+#: src/components/TimelineNoteComposer.tsx:71
 msgid "Local draft"
 msgstr "本機草稿"
 
-#: src/components/NoteComposer.tsx:2363
+#: src/components/article-composer/ArticleComposerContext.tsx:522
+#: src/components/NoteComposer.tsx:2526
 msgid "Local draft could not be saved"
 msgstr "無法儲存本機草稿"
+
+#: src/components/article-composer/ArticleComposerContext.tsx:534
+msgid "Local draft saved"
+msgstr "本機草稿已儲存"
 
 #: src/routes/(root)/[handle]/settings/preferences.tsx:427
 msgid "Locked to \"Only me\" because your default note privacy restricts visibility."
@@ -2997,7 +3018,7 @@ msgid "Markdown guide"
 msgstr "Markdown 指南"
 
 #: src/components/article-composer/shared/ComposerEditorPanes.tsx:58
-#: src/components/NoteComposer.tsx:2038
+#: src/components/NoteComposer.tsx:2201
 msgid "Markdown supported"
 msgstr "Markdown 可用"
 
@@ -3092,7 +3113,7 @@ msgstr "移動到頂部"
 msgid "Move up"
 msgstr "向上移動"
 
-#: src/components/NoteComposer.tsx:2097
+#: src/components/NoteComposer.tsx:2260
 #: src/components/QuestionCard.tsx:471
 msgid "Multiple choice"
 msgstr "多選"
@@ -3220,7 +3241,7 @@ msgstr "暫無收藏"
 msgid "No cases match these filters."
 msgstr "沒有符合這些篩選條件的案件。"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:492
+#: src/components/article-composer/ArticleComposerContext.tsx:598
 msgid "No draft to delete"
 msgstr "沒有要刪除的草稿"
 
@@ -3400,7 +3421,7 @@ msgstr "尚未訂閱任何中繼。"
 msgid "Note (optional)"
 msgstr "備註（可選）"
 
-#: src/components/NoteComposer.tsx:1666
+#: src/components/NoteComposer.tsx:1829
 msgid "Note created successfully"
 msgstr "貼文建立成功"
 
@@ -3409,7 +3430,7 @@ msgstr "貼文建立成功"
 msgid "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
 msgstr "你可以驗證這些連結確實屬於你。在連結的頁面上使用 {0} 屬性連結回你的 Hackers' Pub 個人資料頁。"
 
-#: src/components/NoteComposer.tsx:1536
+#: src/components/NoteComposer.tsx:1699
 msgid "Note updated"
 msgstr "貼文已更新。"
 
@@ -3433,8 +3454,8 @@ msgstr "通知預覽隱私"
 
 #: src/components/AppSidebar.tsx:760
 #: src/components/AppSidebar.tsx:761
-#: src/routes/(root).tsx:299
-#: src/routes/(root).tsx:300
+#: src/routes/(root).tsx:301
+#: src/routes/(root).tsx:302
 msgid "Notifications"
 msgstr "通知"
 
@@ -3494,11 +3515,11 @@ msgid "Open post"
 msgstr "開啟內容"
 
 #. placeholder {0}: index() + 1
-#: src/components/NoteComposer.tsx:2138
+#: src/components/NoteComposer.tsx:2301
 msgid "Option {0}"
 msgstr "選項 {0}"
 
-#: src/components/NoteComposer.tsx:2105
+#: src/components/NoteComposer.tsx:2268
 #: src/components/PostActionMenu.tsx:349
 #: src/components/PostActionMenu.tsx:350
 msgid "Options"
@@ -3684,7 +3705,7 @@ msgstr "請登入以存取此頁面"
 msgid "Please sign in to vote"
 msgstr "請登入後投票"
 
-#: src/components/NoteComposer.tsx:2048
+#: src/components/NoteComposer.tsx:2211
 msgid "Poll"
 msgstr "投票調查"
 
@@ -3692,35 +3713,35 @@ msgstr "投票調查"
 msgid "Poll closed"
 msgstr "投票調查已結束"
 
-#: src/components/NoteComposer.tsx:1605
+#: src/components/NoteComposer.tsx:1768
 msgid "Poll created successfully"
 msgstr "投票調查已建立"
 
-#: src/components/NoteComposer.tsx:1429
+#: src/components/NoteComposer.tsx:1592
 msgid "Poll deadline is invalid"
 msgstr "投票調查截止時間無效"
 
-#: src/components/NoteComposer.tsx:1437
+#: src/components/NoteComposer.tsx:1600
 msgid "Poll deadline must be at least 1 minute from now"
 msgstr "投票調查截止時間必須至少晚於現在 1 分鐘"
 
-#: src/components/NoteComposer.tsx:1403
+#: src/components/NoteComposer.tsx:1566
 msgid "Poll options cannot be empty"
 msgstr "投票調查選項不能為空"
 
-#: src/components/NoteComposer.tsx:1419
+#: src/components/NoteComposer.tsx:1582
 msgid "Poll options must be unique"
 msgstr "投票調查選項不能重複"
 
-#: src/components/NoteComposer.tsx:2066
+#: src/components/NoteComposer.tsx:2229
 msgid "Poll title"
 msgstr "投票調查標題"
 
-#: src/components/NoteComposer.tsx:1393
+#: src/components/NoteComposer.tsx:1556
 msgid "Poll title cannot be empty"
 msgstr "投票調查標題不能為空"
 
-#: src/components/NoteComposer.tsx:2201
+#: src/components/NoteComposer.tsx:2364
 msgid "Polls cannot be edited after publishing."
 msgstr "投票調查發布後無法編輯。"
 
@@ -3867,19 +3888,23 @@ msgstr "僅公開內容"
 msgid "Publish"
 msgstr "發布"
 
-#: src/components/article-composer/ArticleComposerActions.tsx:61
-#~ msgid "Publish article"
-#~ msgstr "發布文章"
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:209
+msgid "Publish article"
+msgstr "發布文章"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:180
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:190
 msgid "Publish now"
 msgstr "立即發布"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:41
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:51
 msgid "Publish settings"
 msgstr "發布設定"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:180
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:202
+msgid "Publish this as a note?"
+msgstr "要將其作為貼文發布嗎？"
+
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:190
 msgid "Publishing…"
 msgstr "發布中…"
 
@@ -3908,7 +3933,7 @@ msgstr "悄悄公開"
 msgid "Quote"
 msgstr "引用"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:108
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:118
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:134
 msgid "Quote permission"
 msgstr "引用權限"
@@ -4133,25 +4158,25 @@ msgstr "從粉絲中移除"
 msgid "Remove from sidebar"
 msgstr "從側邊欄移除"
 
-#: src/components/NoteComposer.tsx:2330
-#: src/components/NoteComposer.tsx:2331
+#: src/components/NoteComposer.tsx:2493
+#: src/components/NoteComposer.tsx:2494
 msgid "Remove image"
 msgstr "移除圖片"
 
-#: src/components/NoteComposer.tsx:2147
-#: src/components/NoteComposer.tsx:2148
+#: src/components/NoteComposer.tsx:2310
+#: src/components/NoteComposer.tsx:2311
 msgid "Remove option"
 msgstr "移除選項"
 
-#: src/components/NoteComposer.tsx:1990
-#: src/components/NoteComposer.tsx:1991
-#: src/components/NoteComposer.tsx:2055
-#: src/components/NoteComposer.tsx:2056
+#: src/components/NoteComposer.tsx:2153
+#: src/components/NoteComposer.tsx:2154
+#: src/components/NoteComposer.tsx:2218
+#: src/components/NoteComposer.tsx:2219
 msgid "Remove poll"
 msgstr "移除投票調查"
 
-#: src/components/NoteComposer.tsx:1907
-#: src/components/NoteComposer.tsx:1908
+#: src/components/NoteComposer.tsx:2070
+#: src/components/NoteComposer.tsx:2071
 msgid "Remove quote"
 msgstr "移除引用"
 
@@ -4168,6 +4193,14 @@ msgstr "正在移除…"
 #: src/components/MarkdownEditor.tsx:181
 msgid "Rendering…"
 msgstr "渲染中…"
+
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:232
+msgid "Replace draft"
+msgstr "取代草稿"
+
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:224
+msgid "Replace local note draft?"
+msgstr "取代本機貼文草稿？"
 
 #: src/components/admin/AppealResolveForm.tsx:314
 msgid "Replacement rationale"
@@ -4186,7 +4219,7 @@ msgstr "回覆"
 msgid "Replying is not available for this post"
 msgstr "無法回覆此內容"
 
-#: src/components/NoteComposer.tsx:1801
+#: src/components/NoteComposer.tsx:1964
 msgid "Replying to"
 msgstr "回覆給"
 
@@ -4330,7 +4363,15 @@ msgstr "受處置的行為者"
 msgid "Save"
 msgstr "儲存"
 
-#: src/components/NoteComposer.tsx:2416
+#: src/components/NoteComposer.tsx:2651
+msgid "Save as article draft"
+msgstr "儲存為文章草稿"
+
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:212
+msgid "Save as note draft"
+msgstr "儲存為貼文草稿"
+
+#: src/components/NoteComposer.tsx:2596
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:589
 msgid "Save changes"
 msgstr "儲存變更"
@@ -4343,12 +4384,14 @@ msgstr "儲存草稿"
 #~ msgid "Save draft to see preview"
 #~ msgstr "儲存草稿以查看預覽"
 
-#: src/components/NoteComposer.tsx:2365
+#: src/components/NoteComposer.tsx:2528
 msgid "Saved locally"
 msgstr "已儲存在本機"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:84
-#: src/components/NoteComposer.tsx:2417
+#: src/components/NoteComposer.tsx:2554
+#: src/components/NoteComposer.tsx:2597
+#: src/components/NoteComposer.tsx:2650
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:589
 #: src/routes/(root)/[handle]/settings/index.tsx:554
 #: src/routes/(root)/[handle]/settings/language.tsx:201
@@ -4412,7 +4455,7 @@ msgstr "請選擇選項"
 msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."
 msgstr "按偏好順序選擇您的偏好語言。這將有助於根據您的偏好定製內容。"
 
-#: src/components/NoteComposer.tsx:2080
+#: src/components/NoteComposer.tsx:2243
 msgid "Selection"
 msgstr "選擇方式"
 
@@ -4437,7 +4480,7 @@ msgstr "發送中…"
 msgid "Sensitive content"
 msgstr "敏感內容"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:59
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:69
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:524
 msgid "Separate tags with spaces. Tags help readers discover your article."
 msgstr "標籤之間用空格分隔。標籤有助於讀者發現您的文章。"
@@ -4586,7 +4629,7 @@ msgstr "登入中…"
 msgid "Signing up for Hackers' Pub"
 msgstr "註冊 Hackers' Pub"
 
-#: src/components/NoteComposer.tsx:2089
+#: src/components/NoteComposer.tsx:2252
 #: src/components/QuestionCard.tsx:471
 msgid "Single choice"
 msgstr "單選"
@@ -4595,11 +4638,11 @@ msgstr "單選"
 msgid "Skip"
 msgstr "跳過"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:65
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:75
 msgid "Slug (URL)"
 msgstr "網址別名"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:409
+#: src/components/article-composer/ArticleComposerContext.tsx:441
 msgid "Slug cannot be empty"
 msgstr "網址別名不能為空"
 
@@ -4607,11 +4650,11 @@ msgstr "網址別名不能為空"
 msgid "Snapshot at report time"
 msgstr "檢舉時的快照"
 
-#: src/components/NoteComposer.tsx:1210
+#: src/components/NoteComposer.tsx:1373
 msgid "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 msgstr "已達到 {MAX_MEDIA} 張圖片上限，部分圖片已被跳過"
 
-#: src/components/NoteComposer.tsx:842
+#: src/components/NoteComposer.tsx:1005
 msgid "Some locally saved images are no longer available and were removed from the draft."
 msgstr "部分本機儲存的圖片已無法使用，已從草稿中移除。"
 
@@ -4675,12 +4718,14 @@ msgstr "已訂閱該中繼。"
 msgid "Subscribing…"
 msgstr "正在訂閱…"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:361
-#: src/components/article-composer/ArticleComposerContext.tsx:455
-#: src/components/article-composer/ArticleComposerContext.tsx:520
-#: src/components/NoteComposer.tsx:1535
-#: src/components/NoteComposer.tsx:1604
-#: src/components/NoteComposer.tsx:1665
+#: src/components/article-composer/ArticleComposerContext.tsx:384
+#: src/components/article-composer/ArticleComposerContext.tsx:533
+#: src/components/article-composer/ArticleComposerContext.tsx:561
+#: src/components/article-composer/ArticleComposerContext.tsx:626
+#: src/components/NoteComposer.tsx:801
+#: src/components/NoteComposer.tsx:1698
+#: src/components/NoteComposer.tsx:1767
+#: src/components/NoteComposer.tsx:1828
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:446
 #: src/routes/(root)/[handle]/drafts/index.tsx:175
 msgid "Success"
@@ -4732,6 +4777,10 @@ msgstr "停權結束"
 msgid "Suspension length"
 msgstr "停權期間"
 
+#: src/components/NoteComposer.tsx:2555
+msgid "Switch to article"
+msgstr "切換為文章"
+
 #: src/components/DocumentView.tsx:38
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:687
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:695
@@ -4743,7 +4792,7 @@ msgstr "目錄"
 #~ msgid "Tag"
 #~ msgstr "標籤"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:52
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:62
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:517
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1051
 msgid "Tags"
@@ -4950,7 +4999,7 @@ msgstr "無法新增舊帳戶。請再試一次。"
 msgid "The previous account could not be removed. Please try again."
 msgstr "無法移除舊帳戶。請再試一次。"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:103
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:113
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:536
 msgid "The primary language of your article, used for accessibility and discovery."
 msgstr "文章的主要語言，用於無障礙功能和內容發現。"
@@ -5029,6 +5078,14 @@ msgstr "此操作無法復原。這將永久刪除該內容。"
 msgid "This action is permanent."
 msgstr "此操作無法復原。"
 
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:204
+msgid "This article is short enough to work well as a note. Notes appear directly in the timeline and do not need a title or URL slug."
+msgstr "這篇文章較短，也適合作為貼文發布。貼文會直接顯示在時間軸中，不需要標題或URL代稱。"
+
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:226
+msgid "This browser already has a local note draft. Replacing it will overwrite that saved note draft."
+msgstr "此瀏覽器中已有本機貼文草稿。取代後將覆寫已儲存的貼文草稿。"
+
 #: src/components/WebPushNotificationSettings.tsx:152
 #: src/components/WebPushPromptBanner.tsx:104
 msgid "This browser does not support Web Push."
@@ -5050,7 +5107,7 @@ msgstr "此案件不存在。"
 msgid "This case is resolved."
 msgstr "此案件已處置。"
 
-#: src/components/NoteComposer.tsx:2433
+#: src/components/NoteComposer.tsx:2613
 msgid "This clears the saved draft from this browser."
 msgstr "這會清除此瀏覽器中儲存的草稿。"
 
@@ -5089,6 +5146,10 @@ msgstr "這是沒有本地通知或申訴的遠端行為者。警告僅作記錄
 #: src/components/AppealDialog.tsx:176
 msgid "This is too long (maximum {MAX_REASON_LENGTH} characters)."
 msgstr "內容過長（最多 {MAX_REASON_LENGTH} 個字元）。"
+
+#: src/components/NoteComposer.tsx:2638
+msgid "This note is getting long. Articles give longer writing a title, a dedicated draft, and a better reading page."
+msgstr "這篇貼文正在變長。文章可以為長篇內容提供標題、專用草稿和更好的閱讀頁面。"
 
 #: src/routes/(root)/[handle]/settings/account.tsx:1927
 msgid "This organization cannot be deleted right now. Please contact the instance administrators."
@@ -5150,7 +5211,7 @@ msgstr "通常需要一分鐘左右。翻譯完成後頁面將自動更新。"
 #~ msgid "This will be part of the article URL"
 #~ msgstr "這將成為文章網址的一部分"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:78
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:88
 msgid "This will be part of the article URL."
 msgstr "這將成為文章網址的一部分。"
 
@@ -5164,8 +5225,8 @@ msgstr "時間軸"
 msgid "Title"
 msgstr "標題"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:299
-#: src/components/article-composer/ArticleComposerContext.tsx:557
+#: src/components/article-composer/ArticleComposerContext.tsx:322
+#: src/components/article-composer/ArticleComposerContext.tsx:663
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:627
 msgid "Title cannot be empty"
 msgstr "標題不能為空"
@@ -5175,7 +5236,7 @@ msgstr "標題不能為空"
 msgid "To follow {0}, enter your Fediverse handle."
 msgstr "要關注{0}，請輸入你的聯邦宇宙使用者名稱。"
 
-#: src/routes/(root).tsx:211
+#: src/routes/(root).tsx:213
 msgid "Toggle sidebar"
 msgstr "切換側邊欄"
 
@@ -5254,7 +5315,7 @@ msgstr "輸入 {0} 以確認轉換。"
 msgid "Type {0} to confirm organization deletion."
 msgstr "輸入 {0} 以確認刪除組織。"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:56
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:66
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:521
 msgid "Type tags separated by spaces"
 msgstr "輸入標籤，用空格分隔"
@@ -5335,7 +5396,7 @@ msgstr "更新於 {0}"
 msgid "Updating…"
 msgstr "更新中…"
 
-#: src/components/NoteComposer.tsx:2246
+#: src/components/NoteComposer.tsx:2409
 msgid "Upload progress"
 msgstr "上傳進度"
 
@@ -5514,9 +5575,9 @@ msgstr "正在投票…"
 
 #: src/components/admin/AppealResolveForm.tsx:93
 #: src/components/admin/ModerationActionForm.tsx:113
-#: src/components/NoteComposer.tsx:840
-#: src/components/NoteComposer.tsx:850
-#: src/components/NoteComposer.tsx:1208
+#: src/components/NoteComposer.tsx:1003
+#: src/components/NoteComposer.tsx:1013
+#: src/components/NoteComposer.tsx:1371
 #: src/components/SanctionHistoryList.tsx:38
 #: src/routes/(root)/admin/moderation/[id].tsx:139
 #: src/routes/(root)/admin/moderation/appeals.tsx:121
@@ -5552,16 +5613,16 @@ msgstr "發生了什麼事？"
 msgid "What is Hackers' Pub?"
 msgstr "什麼是 Hackers' Pub？"
 
-#: src/components/NoteComposer.tsx:2073
+#: src/components/NoteComposer.tsx:2236
 msgid "What should people decide?"
 msgstr "你想讓大家決定什麼？"
 
-#: src/components/NoteComposer.tsx:1958
-#: src/components/TimelineNoteComposer.tsx:69
+#: src/components/NoteComposer.tsx:2121
+#: src/components/TimelineNoteComposer.tsx:72
 msgid "What's on your mind?"
 msgstr "你在想什麼？"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:142
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:152
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:561
 msgid "When enabled, AI may automatically translate this article into other languages."
 msgstr "啟用後，AI 可能會自動將這篇文章翻譯成其他語言。"
@@ -5602,6 +5663,10 @@ msgstr "撰寫"
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:551
 msgid "Write a reply…"
 msgstr "寫個回覆…"
+
+#: src/components/NoteComposer.tsx:2636
+msgid "Write this as an article?"
+msgstr "要將其寫成文章嗎？"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:605
 msgid "Write your article here."
@@ -5649,7 +5714,7 @@ msgstr "你現在已從邀請樹中隱藏。"
 msgid "You are now shown in the invitation tree."
 msgstr "你現在會顯示在邀請樹中。"
 
-#: src/components/NoteComposer.tsx:1199
+#: src/components/NoteComposer.tsx:1362
 msgid "You can attach up to {MAX_MEDIA} images"
 msgstr "最多可附加 {MAX_MEDIA} 張圖片"
 
@@ -5744,20 +5809,20 @@ msgstr "你可能已經申訴過，或申訴期限已結束。"
 msgid "You must be signed in"
 msgstr "請先登入"
 
-#: src/components/NoteComposer.tsx:1684
+#: src/components/NoteComposer.tsx:1847
 msgid "You must be signed in to create a note"
 msgstr "你必須登入才能建立貼文"
 
-#: src/components/NoteComposer.tsx:1625
+#: src/components/NoteComposer.tsx:1788
 msgid "You must be signed in to create a poll"
 msgstr "你必須登入才能建立投票調查"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:538
+#: src/components/article-composer/ArticleComposerContext.tsx:644
 #: src/routes/(root)/[handle]/drafts/index.tsx:193
 msgid "You must be signed in to delete a draft"
 msgstr "您必須登入才能刪除草稿"
 
-#: src/components/NoteComposer.tsx:1555
+#: src/components/NoteComposer.tsx:1718
 msgid "You must be signed in to edit a note"
 msgstr "編輯貼文需要登入。"
 
@@ -5765,11 +5830,14 @@ msgstr "編輯貼文需要登入。"
 msgid "You must be signed in to edit an article"
 msgstr "您必須登入才能編輯文章"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:473
+#: src/components/article-composer/ArticleComposerContext.tsx:579
 msgid "You must be signed in to publish an article"
 msgstr "您必須登入才能發布文章"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:388
+#: src/components/article-composer/ArticleComposerContext.tsx:411
+#: src/components/article-composer/ArticleComposerContext.tsx:484
+#: src/components/NoteComposer.tsx:771
+#: src/components/NoteComposer.tsx:822
 msgid "You must be signed in to save a draft"
 msgstr "您必須登入才能儲存草稿"
 
@@ -5798,7 +5866,7 @@ msgstr "註冊後您將自動追蹤對方。"
 msgid "You've been invited to Hackers' Pub"
 msgstr "你被邀請加入 Hackers' Pub"
 
-#: src/components/NoteComposer.tsx:1792
+#: src/components/NoteComposer.tsx:1955
 msgid "Your account is suspended, so you can't post right now. See your sanctions for details and how to appeal."
 msgstr "你的帳戶已被停權，目前無法發文。詳情及申訴方法請查看處置紀錄。"
 

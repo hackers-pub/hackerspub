@@ -11,6 +11,16 @@ import { TagInput } from "~/components/TagInput.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { Label } from "~/components/ui/label.tsx";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogClose,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "~/components/ui/alert-dialog.tsx";
+import {
   TextField,
   TextFieldDescription,
   TextFieldInput,
@@ -182,6 +192,48 @@ export function ArticleComposerPublishStep() {
           </>
         }
       />
+
+      <AlertDialog
+        open={ctx.showShortArticleSuggestion()}
+        onOpenChange={(open) => ctx.setShowShortArticleSuggestion(open)}
+      >
+        <AlertDialogContent class="sm:max-w-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t`Publish this as a note?`}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t`This article is short enough to work well as a note. Notes appear directly in the timeline and do not need a title or URL slug.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogClose onClick={ctx.publishArticleAnyway}>
+              {t`Publish article`}
+            </AlertDialogClose>
+            <AlertDialogAction onClick={() => ctx.saveAsNoteDraft()}>
+              {t`Save as note draft`}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={ctx.showReplaceNoteDraftConfirm()}
+        onOpenChange={(open) => ctx.setShowReplaceNoteDraftConfirm(open)}
+      >
+        <AlertDialogContent class="sm:max-w-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t`Replace local note draft?`}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t`This browser already has a local note draft. Replacing it will overwrite that saved note draft.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogClose>{t`Keep existing draft`}</AlertDialogClose>
+            <AlertDialogAction onClick={() => ctx.saveAsNoteDraft(true)}>
+              {t`Replace draft`}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

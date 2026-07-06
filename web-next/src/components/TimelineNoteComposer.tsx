@@ -5,6 +5,7 @@ import {
   onCleanup,
   Show,
 } from "solid-js";
+import { useLocation } from "@solidjs/router";
 import IconPencil from "~icons/lucide/pencil";
 import { NoteComposer } from "~/components/NoteComposer.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
@@ -20,6 +21,7 @@ export function TimelineNoteComposer() {
   const { t } = useLingui();
   const viewer = useViewer();
   const { notifyNoteCreated } = useNoteCompose();
+  const location = useLocation();
   const [expanded, setExpanded] = createSignal(false);
   const [hasSavedDraft, setHasSavedDraft] = createSignal(false);
   const [savedDraftPreview, setSavedDraftPreview] = createSignal<string | null>(
@@ -74,6 +76,19 @@ export function TimelineNoteComposer() {
       composerContainerRef?.querySelector("textarea")?.focus();
     });
   };
+
+  createEffect(() => {
+    if (location.query.compose !== "note") return;
+    expandComposer();
+    const nextSearch = new URLSearchParams(location.search);
+    nextSearch.delete("compose");
+    const suffix = nextSearch.toString();
+    history.replaceState(
+      history.state,
+      "",
+      `${location.pathname}${suffix ? `?${suffix}` : ""}${location.hash}`,
+    );
+  });
 
   return (
     <div class="mt-4 overflow-hidden border bg-card md:rounded-lg md:shadow-sm">

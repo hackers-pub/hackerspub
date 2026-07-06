@@ -3,6 +3,7 @@ import { createContext, type ParentComponent, useContext } from "solid-js";
 interface ViewerContextValue {
   isAuthenticated: () => boolean;
   isLoaded: () => boolean;
+  id: () => string | undefined;
   username: () => string | undefined;
   moderator: () => boolean;
   /** Whether the signed-in account is under an active moderation suspension. */
@@ -13,6 +14,7 @@ interface ViewerContextValue {
 export interface ViewerProviderProps {
   isAuthenticated: () => boolean;
   isLoaded: () => boolean;
+  id?: () => string | undefined;
   username?: () => string | undefined;
   moderator?: () => boolean;
   suspended?: () => boolean;
@@ -27,6 +29,7 @@ export const ViewerProvider: ParentComponent<ViewerProviderProps> = (props) => {
       value={{
         isAuthenticated: props.isAuthenticated,
         isLoaded: props.isLoaded,
+        id: props.id ?? (() => undefined),
         username: props.username ?? (() => undefined),
         moderator: props.moderator ?? (() => false),
         suspended: props.suspended ?? (() => false),

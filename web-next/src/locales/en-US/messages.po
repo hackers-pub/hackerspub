@@ -445,7 +445,7 @@ msgstr "@old@example.com or actor URL"
 
 #: src/components/admin/AppealResolveForm.tsx:301
 #: src/components/admin/ModerationActionForm.tsx:303
-#: src/components/NoteComposer.tsx:2173
+#: src/components/NoteComposer.tsx:2336
 msgid "1 day"
 msgstr "1 day"
 
@@ -454,11 +454,11 @@ msgstr "1 day"
 msgid "1 report"
 msgstr "1 report"
 
-#: src/components/NoteComposer.tsx:2189
+#: src/components/NoteComposer.tsx:2352
 msgid "1 week"
 msgstr "1 week"
 
-#: src/components/NoteComposer.tsx:2181
+#: src/components/NoteComposer.tsx:2344
 msgid "3 days"
 msgstr "3 days"
 
@@ -630,16 +630,16 @@ msgstr "Add"
 msgid "Add {0}"
 msgstr "Add {0}"
 
-#: src/components/NoteComposer.tsx:1411
+#: src/components/NoteComposer.tsx:1574
 msgid "Add at least {MIN_POLL_OPTIONS} poll options"
 msgstr "Add at least {MIN_POLL_OPTIONS} poll options"
 
-#: src/components/NoteComposer.tsx:2122
+#: src/components/NoteComposer.tsx:2285
 msgid "Add option"
 msgstr "Add option"
 
-#: src/components/NoteComposer.tsx:1990
-#: src/components/NoteComposer.tsx:1991
+#: src/components/NoteComposer.tsx:2153
+#: src/components/NoteComposer.tsx:2154
 msgid "Add poll"
 msgstr "Add poll"
 
@@ -691,11 +691,11 @@ msgstr "All"
 msgid "All accounts"
 msgstr "All accounts"
 
-#: src/components/NoteComposer.tsx:1503
+#: src/components/NoteComposer.tsx:1666
 msgid "All images must finish uploading before posting"
 msgstr "All images must finish uploading before posting"
 
-#: src/components/NoteComposer.tsx:1511
+#: src/components/NoteComposer.tsx:1674
 msgid "All images require alt text"
 msgstr "All images require alt text"
 
@@ -715,7 +715,7 @@ msgstr "All posts"
 msgid "All-time"
 msgstr "All-time"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:136
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:146
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:555
 msgid "Allow automatic translation by AI"
 msgstr "Allow automatic translation by AI"
@@ -730,11 +730,11 @@ msgid "Also send this report to the remote instance ({0})"
 msgstr "Also send this report to the remote instance ({0})"
 
 #. placeholder {0}: index() + 1
-#: src/components/NoteComposer.tsx:2259
+#: src/components/NoteComposer.tsx:2422
 msgid "Alt text for image {0}"
 msgstr "Alt text for image {0}"
 
-#: src/components/NoteComposer.tsx:2271
+#: src/components/NoteComposer.tsx:2434
 msgid "Alt text for visually impaired people (required)"
 msgstr "Alt text for visually impaired people (required)"
 
@@ -842,7 +842,7 @@ msgstr "Are you sure you want to block {0} ({1})? They won't be able to follow y
 msgid "Are you sure you want to delete \"{draftTitle}\"? This action cannot be undone."
 msgstr "Are you sure you want to delete \"{draftTitle}\"? This action cannot be undone."
 
-#: src/components/article-composer/ArticleComposerContext.tsx:500
+#: src/components/article-composer/ArticleComposerContext.tsx:606
 msgid "Are you sure you want to delete this draft? This action cannot be undone."
 msgstr "Are you sure you want to delete this draft? This action cannot be undone."
 
@@ -875,7 +875,7 @@ msgstr "Article"
 msgid "Article drafts"
 msgstr "Article drafts"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:456
+#: src/components/article-composer/ArticleComposerContext.tsx:562
 msgid "Article published"
 msgstr "Article published"
 
@@ -891,7 +891,7 @@ msgstr "Article translation failed"
 msgid "Article updated"
 msgstr "Article updated"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:73
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:83
 msgid "article-url-slug"
 msgstr "article-url-slug"
 
@@ -915,8 +915,8 @@ msgstr "As you have already changed it {0}, you can't change it again."
 msgid "Assigned to {0}"
 msgstr "Assigned to {0}"
 
-#: src/components/NoteComposer.tsx:1979
-#: src/components/NoteComposer.tsx:1980
+#: src/components/NoteComposer.tsx:2142
+#: src/components/NoteComposer.tsx:2143
 msgid "Attach image"
 msgstr "Attach image"
 
@@ -925,16 +925,16 @@ msgid "Authenticating…"
 msgstr "Authenticating…"
 
 #: src/components/ActingAccountSelect.tsx:109
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:84
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:94
 msgid "Author"
 msgstr "Author"
 
-#: src/components/NoteComposer.tsx:2290
+#: src/components/NoteComposer.tsx:2453
 msgid "Auto-fill"
 msgstr "Auto-fill"
 
-#: src/components/NoteComposer.tsx:2283
-#: src/components/NoteComposer.tsx:2284
+#: src/components/NoteComposer.tsx:2446
+#: src/components/NoteComposer.tsx:2447
 msgid "Auto-fill alt text"
 msgstr "Auto-fill alt text"
 
@@ -954,7 +954,7 @@ msgstr "Back"
 msgid "Back to cases"
 msgstr "Back to cases"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:170
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:180
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:576
 msgid "Back to editing"
 msgstr "Back to editing"
@@ -1057,9 +1057,9 @@ msgid "By {0}"
 msgstr "By {0}"
 
 #: src/components/AppealDialog.tsx:187
-#: src/components/NoteComposer.tsx:2318
-#: src/components/NoteComposer.tsx:2319
-#: src/components/NoteComposer.tsx:2388
+#: src/components/NoteComposer.tsx:2481
+#: src/components/NoteComposer.tsx:2482
+#: src/components/NoteComposer.tsx:2568
 #: src/components/PostActionMenu.tsx:456
 #: src/components/ProfileActionMenu.tsx:536
 #: src/components/ProfileActionMenu.tsx:537
@@ -1153,7 +1153,7 @@ msgstr "Choose a decision."
 msgid "Choose an outcome."
 msgstr "Choose an outcome."
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:44
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:54
 msgid "Choose how this article appears and who can interact with it."
 msgstr "Choose how this article appears and who can interact with it."
 
@@ -1229,11 +1229,11 @@ msgid "Compose"
 msgstr "Compose"
 
 #: src/components/article-composer/shared/ComposerEditorPanes.tsx:87
-#: src/components/NoteComposer.tsx:1926
+#: src/components/NoteComposer.tsx:2089
 msgid "Content"
 msgstr "Content"
 
-#: src/components/NoteComposer.tsx:1493
+#: src/components/NoteComposer.tsx:1656
 msgid "Content cannot be empty"
 msgstr "Content cannot be empty"
 
@@ -1254,7 +1254,7 @@ msgstr "Continue this thread"
 msgid "Control how you appear in the public invitation tree that shows who invited whom."
 msgstr "Control how you appear in the public invitation tree that shows who invited whom."
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:115
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:125
 msgid "Controls who can quote this article on their timeline."
 msgstr "Controls who can quote this article on their timeline."
 
@@ -1381,7 +1381,7 @@ msgstr "Could not submit the appeal"
 msgid "Could not update role"
 msgstr "Could not update role"
 
-#: src/components/NoteComposer.tsx:852
+#: src/components/NoteComposer.tsx:1015
 msgid "Could not verify locally saved images. They may fail when you post."
 msgstr "Could not verify locally saved images. They may fail when you post."
 
@@ -1405,7 +1405,7 @@ msgstr "Create invitation link"
 #: src/components/AppSidebar.tsx:1053
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:84
-#: src/components/NoteComposer.tsx:2410
+#: src/components/NoteComposer.tsx:2590
 msgid "Create note"
 msgstr "Create note"
 
@@ -1414,7 +1414,7 @@ msgstr "Create note"
 msgid "Create organization"
 msgstr "Create organization"
 
-#: src/components/NoteComposer.tsx:2409
+#: src/components/NoteComposer.tsx:2589
 msgid "Create poll"
 msgstr "Create poll"
 
@@ -1435,7 +1435,7 @@ msgstr "Created {0}"
 msgid "Creating account…"
 msgstr "Creating account…"
 
-#: src/components/NoteComposer.tsx:2412
+#: src/components/NoteComposer.tsx:2592
 #: src/routes/(root)/[handle]/settings/account.tsx:833
 #: src/routes/(root)/[handle]/settings/invite.tsx:855
 msgid "Creating…"
@@ -1467,7 +1467,7 @@ msgstr "CW"
 msgid "Daily digest"
 msgstr "Daily digest"
 
-#: src/components/NoteComposer.tsx:2164
+#: src/components/NoteComposer.tsx:2327
 msgid "Deadline"
 msgstr "Deadline"
 
@@ -1512,16 +1512,16 @@ msgstr "Delete account"
 msgid "Delete account permanently?"
 msgstr "Delete account permanently?"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:159
-#: src/components/NoteComposer.tsx:2442
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:169
+#: src/components/NoteComposer.tsx:2622
 msgid "Delete draft"
 msgstr "Delete draft"
 
-#: src/components/NoteComposer.tsx:2375
+#: src/components/NoteComposer.tsx:2538
 msgid "Delete local draft"
 msgstr "Delete local draft"
 
-#: src/components/NoteComposer.tsx:2431
+#: src/components/NoteComposer.tsx:2611
 msgid "Delete local draft?"
 msgstr "Delete local draft?"
 
@@ -1544,7 +1544,7 @@ msgstr "Delete orphan media"
 msgid "Delete post?"
 msgstr "Delete post?"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:159
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:169
 #: src/routes/(root)/[handle]/settings/account.tsx:2055
 #: src/routes/(root)/[handle]/settings/invite.tsx:745
 #: src/routes/(root)/admin/media.tsx:189
@@ -1621,16 +1621,16 @@ msgstr "Display name"
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 
-#: src/components/NoteComposer.tsx:1345
+#: src/components/NoteComposer.tsx:1508
 msgid "Do you want to quote this link?"
 msgstr "Do you want to quote this link?"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:521
+#: src/components/article-composer/ArticleComposerContext.tsx:627
 #: src/routes/(root)/[handle]/drafts/index.tsx:176
 msgid "Draft deleted"
 msgstr "Draft deleted"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:418
+#: src/components/article-composer/ArticleComposerContext.tsx:450
 msgid "Draft must be saved before publishing"
 msgstr "Draft must be saved before publishing"
 
@@ -1638,7 +1638,8 @@ msgstr "Draft must be saved before publishing"
 msgid "Draft not found"
 msgstr "Draft not found"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:362
+#: src/components/article-composer/ArticleComposerContext.tsx:385
+#: src/components/NoteComposer.tsx:802
 msgid "Draft saved"
 msgstr "Draft saved"
 
@@ -1723,42 +1724,48 @@ msgstr "Enter your email address below to get started."
 msgid "Enter your email or username below to sign in."
 msgstr "Enter your email or username below to sign in."
 
-#: src/components/article-composer/ArticleComposerContext.tsx:298
-#: src/components/article-composer/ArticleComposerContext.tsx:378
-#: src/components/article-composer/ArticleComposerContext.tsx:387
-#: src/components/article-composer/ArticleComposerContext.tsx:395
-#: src/components/article-composer/ArticleComposerContext.tsx:408
-#: src/components/article-composer/ArticleComposerContext.tsx:417
-#: src/components/article-composer/ArticleComposerContext.tsx:463
-#: src/components/article-composer/ArticleComposerContext.tsx:472
-#: src/components/article-composer/ArticleComposerContext.tsx:480
-#: src/components/article-composer/ArticleComposerContext.tsx:491
-#: src/components/article-composer/ArticleComposerContext.tsx:528
-#: src/components/article-composer/ArticleComposerContext.tsx:537
-#: src/components/article-composer/ArticleComposerContext.tsx:545
-#: src/components/article-composer/ArticleComposerContext.tsx:556
+#: src/components/article-composer/ArticleComposerContext.tsx:321
+#: src/components/article-composer/ArticleComposerContext.tsx:401
+#: src/components/article-composer/ArticleComposerContext.tsx:410
+#: src/components/article-composer/ArticleComposerContext.tsx:418
+#: src/components/article-composer/ArticleComposerContext.tsx:440
+#: src/components/article-composer/ArticleComposerContext.tsx:449
+#: src/components/article-composer/ArticleComposerContext.tsx:483
+#: src/components/article-composer/ArticleComposerContext.tsx:521
+#: src/components/article-composer/ArticleComposerContext.tsx:569
+#: src/components/article-composer/ArticleComposerContext.tsx:578
+#: src/components/article-composer/ArticleComposerContext.tsx:586
+#: src/components/article-composer/ArticleComposerContext.tsx:597
+#: src/components/article-composer/ArticleComposerContext.tsx:634
+#: src/components/article-composer/ArticleComposerContext.tsx:643
+#: src/components/article-composer/ArticleComposerContext.tsx:651
+#: src/components/article-composer/ArticleComposerContext.tsx:662
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:24
-#: src/components/NoteComposer.tsx:1198
-#: src/components/NoteComposer.tsx:1248
-#: src/components/NoteComposer.tsx:1392
-#: src/components/NoteComposer.tsx:1402
-#: src/components/NoteComposer.tsx:1410
-#: src/components/NoteComposer.tsx:1418
-#: src/components/NoteComposer.tsx:1428
-#: src/components/NoteComposer.tsx:1436
-#: src/components/NoteComposer.tsx:1492
-#: src/components/NoteComposer.tsx:1502
-#: src/components/NoteComposer.tsx:1510
-#: src/components/NoteComposer.tsx:1546
-#: src/components/NoteComposer.tsx:1554
-#: src/components/NoteComposer.tsx:1562
-#: src/components/NoteComposer.tsx:1615
-#: src/components/NoteComposer.tsx:1624
-#: src/components/NoteComposer.tsx:1632
-#: src/components/NoteComposer.tsx:1675
-#: src/components/NoteComposer.tsx:1683
-#: src/components/NoteComposer.tsx:1691
-#: src/components/NoteComposer.tsx:1748
+#: src/components/NoteComposer.tsx:770
+#: src/components/NoteComposer.tsx:812
+#: src/components/NoteComposer.tsx:821
+#: src/components/NoteComposer.tsx:829
+#: src/components/NoteComposer.tsx:1361
+#: src/components/NoteComposer.tsx:1411
+#: src/components/NoteComposer.tsx:1555
+#: src/components/NoteComposer.tsx:1565
+#: src/components/NoteComposer.tsx:1573
+#: src/components/NoteComposer.tsx:1581
+#: src/components/NoteComposer.tsx:1591
+#: src/components/NoteComposer.tsx:1599
+#: src/components/NoteComposer.tsx:1655
+#: src/components/NoteComposer.tsx:1665
+#: src/components/NoteComposer.tsx:1673
+#: src/components/NoteComposer.tsx:1709
+#: src/components/NoteComposer.tsx:1717
+#: src/components/NoteComposer.tsx:1725
+#: src/components/NoteComposer.tsx:1778
+#: src/components/NoteComposer.tsx:1787
+#: src/components/NoteComposer.tsx:1795
+#: src/components/NoteComposer.tsx:1838
+#: src/components/NoteComposer.tsx:1846
+#: src/components/NoteComposer.tsx:1854
+#: src/components/NoteComposer.tsx:1911
 #: src/components/QuotedNoteCard.tsx:377
 #: src/components/QuotedNoteCard.tsx:385
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:417
@@ -1890,7 +1897,7 @@ msgstr "Failed to enable browser notifications"
 msgid "Failed to follow"
 msgstr "Failed to follow"
 
-#: src/components/NoteComposer.tsx:1749
+#: src/components/NoteComposer.tsx:1912
 msgid "Failed to generate alt text"
 msgstr "Failed to generate alt text"
 
@@ -1970,11 +1977,11 @@ msgstr "Failed to load more shares; click to retry"
 msgid "Failed to load more; click to retry"
 msgstr "Failed to load more; click to retry"
 
-#: src/components/NoteComposer.tsx:1808
+#: src/components/NoteComposer.tsx:1971
 msgid "Failed to load post"
 msgstr "Failed to load post"
 
-#: src/components/NoteComposer.tsx:1859
+#: src/components/NoteComposer.tsx:2022
 msgid "Failed to load quoted post"
 msgstr "Failed to load quoted post"
 
@@ -2165,7 +2172,7 @@ msgstr "Failed to update the article. Please try again."
 #~ msgstr "Failed to update the note. Please try again."
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:27
-#: src/components/NoteComposer.tsx:1251
+#: src/components/NoteComposer.tsx:1414
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:420
 msgid "Failed to upload image"
 msgstr "Failed to upload image"
@@ -2245,7 +2252,7 @@ msgstr "Formatting"
 msgid "Forwarded to the remote instance"
 msgstr "Forwarded to the remote instance"
 
-#: src/components/NoteComposer.tsx:2309
+#: src/components/NoteComposer.tsx:2472
 msgid "Generating…"
 msgstr "Generating…"
 
@@ -2297,7 +2304,7 @@ msgstr "Graph"
 
 #: src/components/AppSidebar.tsx:369
 #: src/components/AppSidebar.tsx:493
-#: src/routes/(root).tsx:221
+#: src/routes/(root).tsx:223
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/markdown.tsx:40
 #: src/routes/(root)/privacy.tsx:40
@@ -2305,7 +2312,7 @@ msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
 #: src/components/NotFoundPage.tsx:19
-#: src/routes/(root).tsx:213
+#: src/routes/(root).tsx:215
 msgid "Hackers' Pub home"
 msgstr "Hackers' Pub home"
 
@@ -2542,12 +2549,13 @@ msgstr "Invalid Fediverse handle format."
 #. placeholder {0}: response.createNote.inputPath
 #. placeholder {0}: response.createQuestion.inputPath
 #. placeholder {0}: response.deleteArticleDraft.inputPath
-#: src/components/article-composer/ArticleComposerContext.tsx:380
-#: src/components/article-composer/ArticleComposerContext.tsx:465
-#: src/components/article-composer/ArticleComposerContext.tsx:530
-#: src/components/NoteComposer.tsx:1547
-#: src/components/NoteComposer.tsx:1617
-#: src/components/NoteComposer.tsx:1676
+#: src/components/article-composer/ArticleComposerContext.tsx:403
+#: src/components/article-composer/ArticleComposerContext.tsx:571
+#: src/components/article-composer/ArticleComposerContext.tsx:636
+#: src/components/NoteComposer.tsx:814
+#: src/components/NoteComposer.tsx:1710
+#: src/components/NoteComposer.tsx:1780
+#: src/components/NoteComposer.tsx:1839
 #: src/routes/(root)/[handle]/drafts/index.tsx:185
 msgid "Invalid input: {0}"
 msgstr "Invalid input: {0}"
@@ -2667,7 +2675,7 @@ msgstr "Joined {0}"
 msgid "Joined on {0}"
 msgstr "Joined on {0}"
 
-#: src/components/NoteComposer.tsx:2437
+#: src/components/NoteComposer.tsx:2617
 msgid "Keep draft"
 msgstr "Keep draft"
 
@@ -2675,7 +2683,15 @@ msgstr "Keep draft"
 msgid "Keep editing"
 msgstr "Keep editing"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:96
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:230
+msgid "Keep existing draft"
+msgstr "Keep existing draft"
+
+#: src/components/NoteComposer.tsx:2643
+msgid "Keep writing note"
+msgstr "Keep writing note"
+
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:106
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:529
@@ -2957,7 +2973,7 @@ msgstr "Loading more stories…"
 msgid "Loading more…"
 msgstr "Loading more…"
 
-#: src/components/NoteComposer.tsx:1860
+#: src/components/NoteComposer.tsx:2023
 msgid "Loading quoted post…"
 msgstr "Loading quoted post…"
 
@@ -2965,20 +2981,25 @@ msgstr "Loading quoted post…"
 msgid "Loading search results…"
 msgstr "Loading search results…"
 
-#: src/components/NoteComposer.tsx:1809
+#: src/components/NoteComposer.tsx:1972
 #: src/routes/(root)/[handle]/drafts/index.tsx:344
 #: src/routes/(root)/sign/up/[token].tsx:467
 msgid "Loading…"
 msgstr "Loading…"
 
-#: src/components/NoteComposer.tsx:2365
-#: src/components/TimelineNoteComposer.tsx:68
+#: src/components/NoteComposer.tsx:2528
+#: src/components/TimelineNoteComposer.tsx:71
 msgid "Local draft"
 msgstr "Local draft"
 
-#: src/components/NoteComposer.tsx:2363
+#: src/components/article-composer/ArticleComposerContext.tsx:522
+#: src/components/NoteComposer.tsx:2526
 msgid "Local draft could not be saved"
 msgstr "Local draft could not be saved"
+
+#: src/components/article-composer/ArticleComposerContext.tsx:534
+msgid "Local draft saved"
+msgstr "Local draft saved"
 
 #: src/routes/(root)/[handle]/settings/preferences.tsx:427
 msgid "Locked to \"Only me\" because your default note privacy restricts visibility."
@@ -3001,7 +3022,7 @@ msgid "Markdown guide"
 msgstr "Markdown guide"
 
 #: src/components/article-composer/shared/ComposerEditorPanes.tsx:58
-#: src/components/NoteComposer.tsx:2038
+#: src/components/NoteComposer.tsx:2201
 msgid "Markdown supported"
 msgstr "Markdown supported"
 
@@ -3096,7 +3117,7 @@ msgstr "Move to the top"
 msgid "Move up"
 msgstr "Move up"
 
-#: src/components/NoteComposer.tsx:2097
+#: src/components/NoteComposer.tsx:2260
 #: src/components/QuestionCard.tsx:471
 msgid "Multiple choice"
 msgstr "Multiple choice"
@@ -3224,7 +3245,7 @@ msgstr "No bookmarks yet"
 msgid "No cases match these filters."
 msgstr "No cases match these filters."
 
-#: src/components/article-composer/ArticleComposerContext.tsx:492
+#: src/components/article-composer/ArticleComposerContext.tsx:598
 msgid "No draft to delete"
 msgstr "No draft to delete"
 
@@ -3404,7 +3425,7 @@ msgstr "Not subscribed to any relays yet."
 msgid "Note (optional)"
 msgstr "Note (optional)"
 
-#: src/components/NoteComposer.tsx:1666
+#: src/components/NoteComposer.tsx:1829
 msgid "Note created successfully"
 msgstr "Note created successfully"
 
@@ -3413,7 +3434,7 @@ msgstr "Note created successfully"
 msgid "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
 msgstr "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
 
-#: src/components/NoteComposer.tsx:1536
+#: src/components/NoteComposer.tsx:1699
 msgid "Note updated"
 msgstr "Note updated"
 
@@ -3437,8 +3458,8 @@ msgstr "Notification preview privacy"
 
 #: src/components/AppSidebar.tsx:760
 #: src/components/AppSidebar.tsx:761
-#: src/routes/(root).tsx:299
-#: src/routes/(root).tsx:300
+#: src/routes/(root).tsx:301
+#: src/routes/(root).tsx:302
 msgid "Notifications"
 msgstr "Notifications"
 
@@ -3498,11 +3519,11 @@ msgid "Open post"
 msgstr "Open post"
 
 #. placeholder {0}: index() + 1
-#: src/components/NoteComposer.tsx:2138
+#: src/components/NoteComposer.tsx:2301
 msgid "Option {0}"
 msgstr "Option {0}"
 
-#: src/components/NoteComposer.tsx:2105
+#: src/components/NoteComposer.tsx:2268
 #: src/components/PostActionMenu.tsx:349
 #: src/components/PostActionMenu.tsx:350
 msgid "Options"
@@ -3688,7 +3709,7 @@ msgstr "Please sign in to access this page"
 msgid "Please sign in to vote"
 msgstr "Please sign in to vote"
 
-#: src/components/NoteComposer.tsx:2048
+#: src/components/NoteComposer.tsx:2211
 msgid "Poll"
 msgstr "Poll"
 
@@ -3696,35 +3717,35 @@ msgstr "Poll"
 msgid "Poll closed"
 msgstr "Poll closed"
 
-#: src/components/NoteComposer.tsx:1605
+#: src/components/NoteComposer.tsx:1768
 msgid "Poll created successfully"
 msgstr "Poll created successfully"
 
-#: src/components/NoteComposer.tsx:1429
+#: src/components/NoteComposer.tsx:1592
 msgid "Poll deadline is invalid"
 msgstr "Poll deadline is invalid"
 
-#: src/components/NoteComposer.tsx:1437
+#: src/components/NoteComposer.tsx:1600
 msgid "Poll deadline must be at least 1 minute from now"
 msgstr "Poll deadline must be at least 1 minute from now"
 
-#: src/components/NoteComposer.tsx:1403
+#: src/components/NoteComposer.tsx:1566
 msgid "Poll options cannot be empty"
 msgstr "Poll options cannot be empty"
 
-#: src/components/NoteComposer.tsx:1419
+#: src/components/NoteComposer.tsx:1582
 msgid "Poll options must be unique"
 msgstr "Poll options must be unique"
 
-#: src/components/NoteComposer.tsx:2066
+#: src/components/NoteComposer.tsx:2229
 msgid "Poll title"
 msgstr "Poll title"
 
-#: src/components/NoteComposer.tsx:1393
+#: src/components/NoteComposer.tsx:1556
 msgid "Poll title cannot be empty"
 msgstr "Poll title cannot be empty"
 
-#: src/components/NoteComposer.tsx:2201
+#: src/components/NoteComposer.tsx:2364
 msgid "Polls cannot be edited after publishing."
 msgstr "Polls cannot be edited after publishing."
 
@@ -3871,19 +3892,23 @@ msgstr "Public posts only"
 msgid "Publish"
 msgstr "Publish"
 
-#: src/components/article-composer/ArticleComposerActions.tsx:61
-#~ msgid "Publish article"
-#~ msgstr "Publish article"
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:209
+msgid "Publish article"
+msgstr "Publish article"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:180
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:190
 msgid "Publish now"
 msgstr "Publish now"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:41
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:51
 msgid "Publish settings"
 msgstr "Publish settings"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:180
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:202
+msgid "Publish this as a note?"
+msgstr "Publish this as a note?"
+
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:190
 msgid "Publishing…"
 msgstr "Publishing…"
 
@@ -3912,7 +3937,7 @@ msgstr "Quiet public"
 msgid "Quote"
 msgstr "Quote"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:108
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:118
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:134
 msgid "Quote permission"
 msgstr "Quote permission"
@@ -4137,25 +4162,25 @@ msgstr "Remove from followers"
 msgid "Remove from sidebar"
 msgstr "Remove from sidebar"
 
-#: src/components/NoteComposer.tsx:2330
-#: src/components/NoteComposer.tsx:2331
+#: src/components/NoteComposer.tsx:2493
+#: src/components/NoteComposer.tsx:2494
 msgid "Remove image"
 msgstr "Remove image"
 
-#: src/components/NoteComposer.tsx:2147
-#: src/components/NoteComposer.tsx:2148
+#: src/components/NoteComposer.tsx:2310
+#: src/components/NoteComposer.tsx:2311
 msgid "Remove option"
 msgstr "Remove option"
 
-#: src/components/NoteComposer.tsx:1990
-#: src/components/NoteComposer.tsx:1991
-#: src/components/NoteComposer.tsx:2055
-#: src/components/NoteComposer.tsx:2056
+#: src/components/NoteComposer.tsx:2153
+#: src/components/NoteComposer.tsx:2154
+#: src/components/NoteComposer.tsx:2218
+#: src/components/NoteComposer.tsx:2219
 msgid "Remove poll"
 msgstr "Remove poll"
 
-#: src/components/NoteComposer.tsx:1907
-#: src/components/NoteComposer.tsx:1908
+#: src/components/NoteComposer.tsx:2070
+#: src/components/NoteComposer.tsx:2071
 msgid "Remove quote"
 msgstr "Remove quote"
 
@@ -4172,6 +4197,14 @@ msgstr "Removing…"
 #: src/components/MarkdownEditor.tsx:181
 msgid "Rendering…"
 msgstr "Rendering…"
+
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:232
+msgid "Replace draft"
+msgstr "Replace draft"
+
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:224
+msgid "Replace local note draft?"
+msgstr "Replace local note draft?"
 
 #: src/components/admin/AppealResolveForm.tsx:314
 msgid "Replacement rationale"
@@ -4190,7 +4223,7 @@ msgstr "Reply"
 msgid "Replying is not available for this post"
 msgstr "Replying is not available for this post"
 
-#: src/components/NoteComposer.tsx:1801
+#: src/components/NoteComposer.tsx:1964
 msgid "Replying to"
 msgstr "Replying to"
 
@@ -4334,7 +4367,15 @@ msgstr "Sanctioned actors"
 msgid "Save"
 msgstr "Save"
 
-#: src/components/NoteComposer.tsx:2416
+#: src/components/NoteComposer.tsx:2651
+msgid "Save as article draft"
+msgstr "Save as article draft"
+
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:212
+msgid "Save as note draft"
+msgstr "Save as note draft"
+
+#: src/components/NoteComposer.tsx:2596
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:589
 msgid "Save changes"
 msgstr "Save changes"
@@ -4347,12 +4388,14 @@ msgstr "Save draft"
 #~ msgid "Save draft to see preview"
 #~ msgstr "Save draft to see preview"
 
-#: src/components/NoteComposer.tsx:2365
+#: src/components/NoteComposer.tsx:2528
 msgid "Saved locally"
 msgstr "Saved locally"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:84
-#: src/components/NoteComposer.tsx:2417
+#: src/components/NoteComposer.tsx:2554
+#: src/components/NoteComposer.tsx:2597
+#: src/components/NoteComposer.tsx:2650
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:589
 #: src/routes/(root)/[handle]/settings/index.tsx:554
 #: src/routes/(root)/[handle]/settings/language.tsx:201
@@ -4416,7 +4459,7 @@ msgstr "Select options"
 msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."
 msgstr "Select your preferred languages in order of preference. This will help tailor content to your preferences."
 
-#: src/components/NoteComposer.tsx:2080
+#: src/components/NoteComposer.tsx:2243
 msgid "Selection"
 msgstr "Selection"
 
@@ -4441,7 +4484,7 @@ msgstr "Sending…"
 msgid "Sensitive content"
 msgstr "Sensitive content"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:59
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:69
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:524
 msgid "Separate tags with spaces. Tags help readers discover your article."
 msgstr "Separate tags with spaces. Tags help readers discover your article."
@@ -4590,7 +4633,7 @@ msgstr "Signing in…"
 msgid "Signing up for Hackers' Pub"
 msgstr "Signing up for Hackers' Pub"
 
-#: src/components/NoteComposer.tsx:2089
+#: src/components/NoteComposer.tsx:2252
 #: src/components/QuestionCard.tsx:471
 msgid "Single choice"
 msgstr "Single choice"
@@ -4599,11 +4642,11 @@ msgstr "Single choice"
 msgid "Skip"
 msgstr "Skip"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:65
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:75
 msgid "Slug (URL)"
 msgstr "Slug (URL)"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:409
+#: src/components/article-composer/ArticleComposerContext.tsx:441
 msgid "Slug cannot be empty"
 msgstr "Slug cannot be empty"
 
@@ -4611,11 +4654,11 @@ msgstr "Slug cannot be empty"
 msgid "Snapshot at report time"
 msgstr "Snapshot at report time"
 
-#: src/components/NoteComposer.tsx:1210
+#: src/components/NoteComposer.tsx:1373
 msgid "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 msgstr "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 
-#: src/components/NoteComposer.tsx:842
+#: src/components/NoteComposer.tsx:1005
 msgid "Some locally saved images are no longer available and were removed from the draft."
 msgstr "Some locally saved images are no longer available and were removed from the draft."
 
@@ -4679,12 +4722,14 @@ msgstr "Subscribed to the relay."
 msgid "Subscribing…"
 msgstr "Subscribing…"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:361
-#: src/components/article-composer/ArticleComposerContext.tsx:455
-#: src/components/article-composer/ArticleComposerContext.tsx:520
-#: src/components/NoteComposer.tsx:1535
-#: src/components/NoteComposer.tsx:1604
-#: src/components/NoteComposer.tsx:1665
+#: src/components/article-composer/ArticleComposerContext.tsx:384
+#: src/components/article-composer/ArticleComposerContext.tsx:533
+#: src/components/article-composer/ArticleComposerContext.tsx:561
+#: src/components/article-composer/ArticleComposerContext.tsx:626
+#: src/components/NoteComposer.tsx:801
+#: src/components/NoteComposer.tsx:1698
+#: src/components/NoteComposer.tsx:1767
+#: src/components/NoteComposer.tsx:1828
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:446
 #: src/routes/(root)/[handle]/drafts/index.tsx:175
 msgid "Success"
@@ -4736,6 +4781,10 @@ msgstr "Suspension ends"
 msgid "Suspension length"
 msgstr "Suspension length"
 
+#: src/components/NoteComposer.tsx:2555
+msgid "Switch to article"
+msgstr "Switch to article"
+
 #: src/components/DocumentView.tsx:38
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:687
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:695
@@ -4747,7 +4796,7 @@ msgstr "Table of contents"
 #~ msgid "Tag"
 #~ msgstr "Tag"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:52
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:62
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:517
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1051
 msgid "Tags"
@@ -4954,7 +5003,7 @@ msgstr "The previous account could not be added. Please try again."
 msgid "The previous account could not be removed. Please try again."
 msgstr "The previous account could not be removed. Please try again."
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:103
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:113
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:536
 msgid "The primary language of your article, used for accessibility and discovery."
 msgstr "The primary language of your article, used for accessibility and discovery."
@@ -5033,6 +5082,14 @@ msgstr "This action cannot be undone. This will permanently delete this post."
 msgid "This action is permanent."
 msgstr "This action is permanent."
 
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:204
+msgid "This article is short enough to work well as a note. Notes appear directly in the timeline and do not need a title or URL slug."
+msgstr "This article is short enough to work well as a note. Notes appear directly in the timeline and do not need a title or URL slug."
+
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:226
+msgid "This browser already has a local note draft. Replacing it will overwrite that saved note draft."
+msgstr "This browser already has a local note draft. Replacing it will overwrite that saved note draft."
+
 #: src/components/WebPushNotificationSettings.tsx:152
 #: src/components/WebPushPromptBanner.tsx:104
 msgid "This browser does not support Web Push."
@@ -5054,7 +5111,7 @@ msgstr "This case does not exist."
 msgid "This case is resolved."
 msgstr "This case is resolved."
 
-#: src/components/NoteComposer.tsx:2433
+#: src/components/NoteComposer.tsx:2613
 msgid "This clears the saved draft from this browser."
 msgstr "This clears the saved draft from this browser."
 
@@ -5093,6 +5150,10 @@ msgstr "This is a remote actor with no local notification or appeal. A warning i
 #: src/components/AppealDialog.tsx:176
 msgid "This is too long (maximum {MAX_REASON_LENGTH} characters)."
 msgstr "This is too long (maximum {MAX_REASON_LENGTH} characters)."
+
+#: src/components/NoteComposer.tsx:2638
+msgid "This note is getting long. Articles give longer writing a title, a dedicated draft, and a better reading page."
+msgstr "This note is getting long. Articles give longer writing a title, a dedicated draft, and a better reading page."
 
 #: src/routes/(root)/[handle]/settings/account.tsx:1927
 msgid "This organization cannot be deleted right now. Please contact the instance administrators."
@@ -5154,7 +5215,7 @@ msgstr "This usually takes about a minute. The page will update automatically wh
 #~ msgid "This will be part of the article URL"
 #~ msgstr "This will be part of the article URL"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:78
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:88
 msgid "This will be part of the article URL."
 msgstr "This will be part of the article URL."
 
@@ -5168,8 +5229,8 @@ msgstr "Timeline"
 msgid "Title"
 msgstr "Title"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:299
-#: src/components/article-composer/ArticleComposerContext.tsx:557
+#: src/components/article-composer/ArticleComposerContext.tsx:322
+#: src/components/article-composer/ArticleComposerContext.tsx:663
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:627
 msgid "Title cannot be empty"
 msgstr "Title cannot be empty"
@@ -5179,7 +5240,7 @@ msgstr "Title cannot be empty"
 msgid "To follow {0}, enter your Fediverse handle."
 msgstr "To follow {0}, enter your Fediverse handle."
 
-#: src/routes/(root).tsx:211
+#: src/routes/(root).tsx:213
 msgid "Toggle sidebar"
 msgstr "Toggle sidebar"
 
@@ -5258,7 +5319,7 @@ msgstr "Type {0} to confirm conversion."
 msgid "Type {0} to confirm organization deletion."
 msgstr "Type {0} to confirm organization deletion."
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:56
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:66
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:521
 msgid "Type tags separated by spaces"
 msgstr "Type tags separated by spaces"
@@ -5339,7 +5400,7 @@ msgstr "Updated {0}"
 msgid "Updating…"
 msgstr "Updating…"
 
-#: src/components/NoteComposer.tsx:2246
+#: src/components/NoteComposer.tsx:2409
 msgid "Upload progress"
 msgstr "Upload progress"
 
@@ -5518,9 +5579,9 @@ msgstr "Voting…"
 
 #: src/components/admin/AppealResolveForm.tsx:93
 #: src/components/admin/ModerationActionForm.tsx:113
-#: src/components/NoteComposer.tsx:840
-#: src/components/NoteComposer.tsx:850
-#: src/components/NoteComposer.tsx:1208
+#: src/components/NoteComposer.tsx:1003
+#: src/components/NoteComposer.tsx:1013
+#: src/components/NoteComposer.tsx:1371
 #: src/components/SanctionHistoryList.tsx:38
 #: src/routes/(root)/admin/moderation/[id].tsx:139
 #: src/routes/(root)/admin/moderation/appeals.tsx:121
@@ -5556,16 +5617,16 @@ msgstr "What happened?"
 msgid "What is Hackers' Pub?"
 msgstr "What is Hackers' Pub?"
 
-#: src/components/NoteComposer.tsx:2073
+#: src/components/NoteComposer.tsx:2236
 msgid "What should people decide?"
 msgstr "What should people decide?"
 
-#: src/components/NoteComposer.tsx:1958
-#: src/components/TimelineNoteComposer.tsx:69
+#: src/components/NoteComposer.tsx:2121
+#: src/components/TimelineNoteComposer.tsx:72
 msgid "What's on your mind?"
 msgstr "What's on your mind?"
 
-#: src/components/article-composer/ArticleComposerPublishStep.tsx:142
+#: src/components/article-composer/ArticleComposerPublishStep.tsx:152
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:561
 msgid "When enabled, AI may automatically translate this article into other languages."
 msgstr "When enabled, AI may automatically translate this article into other languages."
@@ -5606,6 +5667,10 @@ msgstr "Write"
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:551
 msgid "Write a reply…"
 msgstr "Write a reply…"
+
+#: src/components/NoteComposer.tsx:2636
+msgid "Write this as an article?"
+msgstr "Write this as an article?"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:605
 msgid "Write your article here."
@@ -5653,7 +5718,7 @@ msgstr "You are now hidden from the invitation tree."
 msgid "You are now shown in the invitation tree."
 msgstr "You are now shown in the invitation tree."
 
-#: src/components/NoteComposer.tsx:1199
+#: src/components/NoteComposer.tsx:1362
 msgid "You can attach up to {MAX_MEDIA} images"
 msgstr "You can attach up to {MAX_MEDIA} images"
 
@@ -5748,20 +5813,20 @@ msgstr "You may have already appealed, or the appeal window has closed."
 msgid "You must be signed in"
 msgstr "You must be signed in"
 
-#: src/components/NoteComposer.tsx:1684
+#: src/components/NoteComposer.tsx:1847
 msgid "You must be signed in to create a note"
 msgstr "You must be signed in to create a note"
 
-#: src/components/NoteComposer.tsx:1625
+#: src/components/NoteComposer.tsx:1788
 msgid "You must be signed in to create a poll"
 msgstr "You must be signed in to create a poll"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:538
+#: src/components/article-composer/ArticleComposerContext.tsx:644
 #: src/routes/(root)/[handle]/drafts/index.tsx:193
 msgid "You must be signed in to delete a draft"
 msgstr "You must be signed in to delete a draft"
 
-#: src/components/NoteComposer.tsx:1555
+#: src/components/NoteComposer.tsx:1718
 msgid "You must be signed in to edit a note"
 msgstr "You must be signed in to edit a note"
 
@@ -5769,11 +5834,14 @@ msgstr "You must be signed in to edit a note"
 msgid "You must be signed in to edit an article"
 msgstr "You must be signed in to edit an article"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:473
+#: src/components/article-composer/ArticleComposerContext.tsx:579
 msgid "You must be signed in to publish an article"
 msgstr "You must be signed in to publish an article"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:388
+#: src/components/article-composer/ArticleComposerContext.tsx:411
+#: src/components/article-composer/ArticleComposerContext.tsx:484
+#: src/components/NoteComposer.tsx:771
+#: src/components/NoteComposer.tsx:822
 msgid "You must be signed in to save a draft"
 msgstr "You must be signed in to save a draft"
 
@@ -5802,7 +5870,7 @@ msgstr "You'll automatically follow each other when you sign up."
 msgid "You've been invited to Hackers' Pub"
 msgstr "You've been invited to Hackers' Pub"
 
-#: src/components/NoteComposer.tsx:1792
+#: src/components/NoteComposer.tsx:1955
 msgid "Your account is suspended, so you can't post right now. See your sanctions for details and how to appeal."
 msgstr "Your account is suspended, so you can't post right now. See your sanctions for details and how to appeal."
 

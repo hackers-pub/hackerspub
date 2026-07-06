@@ -19,8 +19,19 @@ import {
   PERSONAL_COMPOSE_ACCOUNT_KEY,
   useActingAccount,
 } from "~/contexts/ActingAccountContext.tsx";
+import {
+  buildNoteDraftContentFromArticle,
+  shouldSuggestNoteForArticle,
+} from "~/lib/formatGuidance.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { useNavigate } from "@solidjs/router";
+import {
+  getNoteDraftStorageKey,
+  readNoteDraft,
+  writeNoteDraft,
+} from "~/lib/noteDraftStorage.ts";
+import { publishNoteDraftChange } from "~/lib/noteDraftSync.ts";
+import { decodeRouteParam } from "~/lib/routeParam.ts";
+import { useNavigate, useParams } from "@solidjs/router";
 import {
   createDraftFormSnapshot,
   draftFormMatchesSnapshot,
@@ -173,6 +184,8 @@ export interface ArticleComposerContextValue {
   // Actions
   handleSave: (e?: Event, silent?: boolean, afterSave?: () => void) => void;
   handlePublish: (e?: Event) => void;
+  publishArticleAnyway: () => void;
+  saveAsNoteDraft: (replaceExisting?: boolean) => void;
   handleDelete: () => void;
   /**
    * Advance from the writing stage to the publish-settings stage, persisting any
@@ -184,6 +197,10 @@ export interface ArticleComposerContextValue {
   isSaving: Accessor<boolean>;
   isPublishingMutation: Accessor<boolean>;
   isDeleting: Accessor<boolean>;
+  showShortArticleSuggestion: Accessor<boolean>;
+  setShowShortArticleSuggestion: (v: boolean) => void;
+  showReplaceNoteDraftConfirm: Accessor<boolean>;
+  setShowReplaceNoteDraftConfirm: (v: boolean) => void;
 }
 
 const ArticleComposerContext = createContext<ArticleComposerContextValue>();
@@ -198,6 +215,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
   const { t, i18n } = useLingui();
   const actingAccount = useActingAccount();
   const navigate = useNavigate();
+  const params = useParams();
   const env = useRelayEnvironment();
   const draftUuid = (props.draftUuid ??
     crypto
@@ -252,6 +270,11 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
   const [manualLanguageChange, setManualLanguageChange] = createSignal(false);
   const [manualSlugChange, setManualSlugChange] = createSignal(false);
   const [isPublishing, setIsPublishing] = createSignal(false);
+  const [showShortArticleSuggestion, setShowShortArticleSuggestion] =
+    createSignal(false);
+  const [showReplaceNoteDraftConfirm, setShowReplaceNoteDraftConfirm] =
+    createSignal(false);
+  const noteDraftSyncOrigin = Symbol("ArticleComposer");
 
   // Preview state
   const [showPreview, setShowPreview] = createSignal(false);
@@ -403,6 +426,15 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
   const handlePublish = (e?: Event) => {
     e?.preventDefault();
 
+    if (shouldSuggestNoteForArticle(content())) {
+      setShowShortArticleSuggestion(true);
+      return;
+    }
+
+    publishArticleAnyway();
+  };
+
+  const publishArticleAnyway = () => {
     if (!slug().trim()) {
       showToast({
         title: t`Error`,
@@ -429,6 +461,80 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
     } else {
       publishNow();
     }
+  };
+
+  const getBrowserDraftStorage = () => {
+    try {
+      return globalThis.localStorage;
+    } catch {
+      return undefined;
+    }
+  };
+
+  const getRouteUsername = () => {
+    const handle = params.handle;
+    return handle == null ? null : decodeRouteParam(handle).substring(1);
+  };
+
+  const saveAsNoteDraft = (replaceExisting = false) => {
+    const username = getRouteUsername();
+    if (username == null) {
+      showToast({
+        title: t`Error`,
+        description: t`You must be signed in to save a draft`,
+        variant: "error",
+      });
+      return;
+    }
+
+    const scope = { type: "new" } as const;
+    const key = getNoteDraftStorageKey(username, scope);
+    const storage = getBrowserDraftStorage();
+    if (readNoteDraft(storage, key) != null && !replaceExisting) {
+      setShowShortArticleSuggestion(false);
+      setShowReplaceNoteDraftConfirm(true);
+      return;
+    }
+
+    const result = writeNoteDraft(storage, key, scope, {
+      content: buildNoteDraftContentFromArticle(title(), content()),
+      language: language()?.baseName,
+      visibility: "PUBLIC",
+      quotePolicy: quotePolicy(),
+      actingAccountKey: publishActingAccountKey(),
+      media: [],
+      poll: {
+        enabled: false,
+        title: "",
+        multiple: false,
+        ends: "",
+        options: [
+          { localId: crypto.randomUUID(), title: "" },
+          { localId: crypto.randomUUID(), title: "" },
+        ],
+      },
+      updatedAt: new Date().toISOString(),
+    });
+
+    if (result !== "ok") {
+      showToast({
+        title: t`Error`,
+        description: t`Local draft could not be saved`,
+        variant: "error",
+      });
+      return;
+    }
+
+    publishNoteDraftChange({ key, origin: noteDraftSyncOrigin });
+    setIsDirty(false);
+    setShowShortArticleSuggestion(false);
+    setShowReplaceNoteDraftConfirm(false);
+    showToast({
+      title: t`Success`,
+      description: t`Local draft saved`,
+      variant: "success",
+    });
+    navigate("/feed?compose=note");
   };
 
   const publishNow = () => {
@@ -693,12 +799,18 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
 
     handleSave,
     handlePublish,
+    publishArticleAnyway,
+    saveAsNoteDraft,
     handleDelete,
     goToPublishSettings,
 
     isSaving,
     isPublishingMutation,
     isDeleting,
+    showShortArticleSuggestion,
+    setShowShortArticleSuggestion,
+    showReplaceNoteDraftConfirm,
+    setShowReplaceNoteDraftConfirm,
   };
 
   return (

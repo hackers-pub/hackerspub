@@ -1,5 +1,7 @@
-import { fetchQuery, graphql } from "relay-runtime";
+import { useNavigate } from "@solidjs/router";
+import { ConnectionHandler, fetchQuery, graphql } from "relay-runtime";
 import { createStore, produce } from "solid-js/store";
+import IconFileText from "~icons/lucide/file-text";
 import IconImage from "~icons/lucide/image";
 import IconListChecks from "~icons/lucide/list-checks";
 import IconPlus from "~icons/lucide/plus";
@@ -22,6 +24,7 @@ import { createMutation, useRelayEnvironment } from "solid-relay";
 import { ensureLinkInContent } from "~/lib/composerLink.ts";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { detectLanguage } from "~/lib/langdet.ts";
+import { shouldSuggestArticleForNote } from "~/lib/formatGuidance.ts";
 import {
   getNoteDraftStorageKey,
   isMeaningfulNoteDraft,
@@ -77,6 +80,7 @@ import {
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { NoteComposerGeneratedAltTextQuery } from "./__generated__/NoteComposerGeneratedAltTextQuery.graphql.ts";
+import type { NoteComposerArticleDraftMutation } from "./__generated__/NoteComposerArticleDraftMutation.graphql.ts";
 import type { NoteComposerMutation } from "./__generated__/NoteComposerMutation.graphql.ts";
 import type { NoteComposerDraftMediaQuery } from "./__generated__/NoteComposerDraftMediaQuery.graphql.ts";
 import type { NoteComposerPostByUrlQuery } from "./__generated__/NoteComposerPostByUrlQuery.graphql.ts";
@@ -167,6 +171,37 @@ const NoteComposerUpdateMutation = graphql`
           rawContent
           language
           quotePolicy
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+      ... on NotAuthenticatedError {
+        notAuthenticated
+      }
+    }
+  }
+`;
+
+const NoteComposerArticleDraftMutation = graphql`
+  mutation NoteComposerArticleDraftMutation(
+    $input: SaveArticleDraftInput!
+    $connections: [ID!]!
+  ) {
+    saveArticleDraft(input: $input) {
+      __typename
+      ... on SaveArticleDraftPayload {
+        draft
+          @prependNode(
+            connections: $connections
+            edgeTypeName: "AccountArticleDraftsConnectionEdge"
+          ) {
+          id
+          uuid
+          title
+          content
+          tags
+          updated
         }
       }
       ... on InvalidInputError {
@@ -453,6 +488,7 @@ export function NoteComposer(props: NoteComposerProps) {
   const actingAccount = useActingAccount();
   const composeActingAccountOptions = useComposeActingAccountOptions();
   const environment = useRelayEnvironment();
+  const navigate = useNavigate();
   // Initialize content directly from props so a deliberate pre-fill — an edit's
   // body, or a "share this link" URL passed via `initialContent` — is present
   // on the first render (avoids an async createEffect lag).  Empty for a plain
@@ -578,6 +614,11 @@ export function NoteComposer(props: NoteComposerProps) {
   const [updateNote, isUpdating] = createMutation<NoteComposerUpdateMutation>(
     NoteComposerUpdateMutation,
   );
+  const [saveArticleDraft, isSavingArticleDraft] = createMutation<
+    NoteComposerArticleDraftMutation
+  >(
+    NoteComposerArticleDraftMutation,
+  );
   const [mediaItems, setMediaItems] = createStore<MediaItem[]>([]);
   const [pollOptions, setPollOptions] = createStore<PollOptionDraft[]>([
     { localId: createLocalId(), title: "" },
@@ -629,6 +670,14 @@ export function NoteComposer(props: NoteComposerProps) {
   const [showDeleteDraftConfirm, setShowDeleteDraftConfirm] = createSignal(
     false,
   );
+  const [showArticleSuggestion, setShowArticleSuggestion] = createSignal(
+    false,
+  );
+  const [articleSuggestionDismissed, setArticleSuggestionDismissed] =
+    createSignal(false);
+  const [showArticleSwitchButton, setShowArticleSwitchButton] = createSignal(
+    false,
+  );
 
   onCleanup(() => {
     saveCurrentDraftNow();
@@ -661,7 +710,30 @@ export function NoteComposer(props: NoteComposerProps) {
   createEffect(() => props.onContentChange?.(isDirty()));
   const isSubmitting = () =>
     isCreating() || isCreatingQuestion() ||
-    isUpdating();
+    isUpdating() || isSavingArticleDraft();
+  const isPlainNewNote = () =>
+    !props.editingNoteId &&
+    !props.replyTargetId &&
+    !props.quotedPostId &&
+    !props.ensureLinkUrl &&
+    !props.initialContent &&
+    effectiveQuotedPostId() == null;
+  const canSwitchToArticle = () =>
+    isPlainNewNote() &&
+    mediaItems.length === 0 &&
+    !pollEnabled() &&
+    content().trim() !== "";
+  const articleDraftConnections = () => {
+    const viewerId = viewer.id();
+    if (viewerId == null) return [];
+    return [
+      "SignedAccount_articleDrafts",
+      "draftsPaginationFragment_articleDrafts",
+      "FloatingComposeButton_articleDrafts",
+    ].map((connectionKey) =>
+      ConnectionHandler.getConnectionID(viewerId, connectionKey)
+    );
+  };
 
   const getBrowserDraftStorage = () => {
     try {
@@ -669,6 +741,97 @@ export function NoteComposer(props: NoteComposerProps) {
     } catch {
       return undefined;
     }
+  };
+
+  createEffect(() => {
+    if (
+      !canSwitchToArticle() ||
+      articleSuggestionDismissed() ||
+      showArticleSuggestion()
+    ) {
+      return;
+    }
+    if (shouldSuggestArticleForNote(content())) {
+      setShowArticleSuggestion(true);
+    }
+  });
+
+  const dismissArticleSuggestion = () => {
+    setShowArticleSuggestion(false);
+    setArticleSuggestionDismissed(true);
+    setShowArticleSwitchButton(true);
+  };
+
+  const switchToArticleDraft = () => {
+    const username = viewer.username();
+    const draftContent = content().trim();
+    if (username == null) {
+      showToast({
+        title: t`Error`,
+        description: t`You must be signed in to save a draft`,
+        variant: "error",
+      });
+      return;
+    }
+    if (!canSwitchToArticle() || draftContent === "") {
+      setShowArticleSuggestion(false);
+      return;
+    }
+
+    saveCurrentDraftNow();
+    saveArticleDraft({
+      variables: {
+        input: {
+          title: "",
+          content: draftContent,
+          tags: [],
+        },
+        connections: articleDraftConnections(),
+      },
+      onCompleted(response) {
+        if (
+          response.saveArticleDraft.__typename === "SaveArticleDraftPayload"
+        ) {
+          const draft = response.saveArticleDraft.draft;
+          clearCurrentDraft();
+          resetForm();
+          setShowArticleSuggestion(false);
+          setShowArticleSwitchButton(false);
+          showToast({
+            title: t`Success`,
+            description: t`Draft saved`,
+            variant: "success",
+          });
+          navigate(
+            `/@${encodeHandleSegment(username)}/drafts/${draft.uuid}`,
+          );
+        } else if (
+          response.saveArticleDraft.__typename === "InvalidInputError"
+        ) {
+          showToast({
+            title: t`Error`,
+            description:
+              t`Invalid input: ${response.saveArticleDraft.inputPath}`,
+            variant: "error",
+          });
+        } else if (
+          response.saveArticleDraft.__typename === "NotAuthenticatedError"
+        ) {
+          showToast({
+            title: t`Error`,
+            description: t`You must be signed in to save a draft`,
+            variant: "error",
+          });
+        }
+      },
+      onError(error) {
+        showToast({
+          title: t`Error`,
+          description: error.message,
+          variant: "error",
+        });
+      },
+    });
   };
 
   const currentDraftData = (): NoteDraftData => ({
@@ -2377,6 +2540,21 @@ export function NoteComposer(props: NoteComposerProps) {
             </div>
           </Show>
 
+          <Show when={showArticleSwitchButton() && canSwitchToArticle()}>
+            <div class="flex justify-end border-t pt-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={switchToArticleDraft}
+                disabled={isSubmitting()}
+              >
+                <IconFileText class="size-4" />
+                {isSavingArticleDraft() ? t`Saving…` : t`Switch to article`}
+              </Button>
+            </div>
+          </Show>
+
           <div class="flex min-w-0 gap-2 justify-end">
             <Show when={props.showCancelButton}>
               <Button
@@ -2440,6 +2618,33 @@ export function NoteComposer(props: NoteComposerProps) {
               onClick={deleteCurrentDraftAndReset}
             >
               {t`Delete draft`}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={showArticleSuggestion()}
+        onOpenChange={(open) => {
+          if (!open && showArticleSuggestion()) dismissArticleSuggestion();
+        }}
+      >
+        <AlertDialogContent class="sm:max-w-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t`Write this as an article?`}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t`This note is getting long. Articles give longer writing a title, a dedicated draft, and a better reading page.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogClose onClick={dismissArticleSuggestion}>
+              {t`Keep writing note`}
+            </AlertDialogClose>
+            <AlertDialogAction
+              onClick={switchToArticleDraft}
+              disabled={isSavingArticleDraft()}
+            >
+              {isSavingArticleDraft() ? t`Saving…` : t`Save as article draft`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
