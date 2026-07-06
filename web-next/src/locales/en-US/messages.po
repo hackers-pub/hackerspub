@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: article.replies?.totalCount ?? 0
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:978
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:983
 msgid "{0, plural, one {# comment} other {# comments}}"
 msgstr "{0, plural, one {# comment} other {# comments}}"
 
@@ -626,7 +626,7 @@ msgid "Add"
 msgstr "Add"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
-#: src/components/EmojiReactionPopover.tsx:494
+#: src/components/EmojiReactionPopover.tsx:560
 msgid "Add {0}"
 msgstr "Add {0}"
 
@@ -650,6 +650,10 @@ msgstr "Add the old account here. Hackers' Pub will publish it as another accoun
 #: src/components/HashtagActionBar.tsx:258
 msgid "Add to sidebar"
 msgstr "Add to sidebar"
+
+#: src/components/EmojiReactionPopover.tsx:101
+msgid "Adding reaction…"
+msgstr "Adding reaction…"
 
 #: src/routes/(root)/[handle]/settings/account.tsx:1828
 #: src/routes/(root)/admin/news.tsx:639
@@ -1059,7 +1063,7 @@ msgstr "By {0}"
 #: src/components/AppealDialog.tsx:187
 #: src/components/NoteComposer.tsx:2481
 #: src/components/NoteComposer.tsx:2482
-#: src/components/NoteComposer.tsx:2568
+#: src/components/NoteComposer.tsx:2566
 #: src/components/PostActionMenu.tsx:456
 #: src/components/ProfileActionMenu.tsx:536
 #: src/components/ProfileActionMenu.tsx:537
@@ -1405,7 +1409,7 @@ msgstr "Create invitation link"
 #: src/components/AppSidebar.tsx:1053
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:84
-#: src/components/NoteComposer.tsx:2590
+#: src/components/NoteComposer.tsx:2588
 msgid "Create note"
 msgstr "Create note"
 
@@ -1414,7 +1418,7 @@ msgstr "Create note"
 msgid "Create organization"
 msgstr "Create organization"
 
-#: src/components/NoteComposer.tsx:2589
+#: src/components/NoteComposer.tsx:2587
 msgid "Create poll"
 msgstr "Create poll"
 
@@ -1435,7 +1439,7 @@ msgstr "Created {0}"
 msgid "Creating account…"
 msgstr "Creating account…"
 
-#: src/components/NoteComposer.tsx:2592
+#: src/components/NoteComposer.tsx:2590
 #: src/routes/(root)/[handle]/settings/account.tsx:833
 #: src/routes/(root)/[handle]/settings/invite.tsx:855
 msgid "Creating…"
@@ -1513,7 +1517,7 @@ msgid "Delete account permanently?"
 msgstr "Delete account permanently?"
 
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:169
-#: src/components/NoteComposer.tsx:2622
+#: src/components/NoteComposer.tsx:2620
 msgid "Delete draft"
 msgstr "Delete draft"
 
@@ -1521,7 +1525,7 @@ msgstr "Delete draft"
 msgid "Delete local draft"
 msgstr "Delete local draft"
 
-#: src/components/NoteComposer.tsx:2611
+#: src/components/NoteComposer.tsx:2609
 msgid "Delete local draft?"
 msgstr "Delete local draft?"
 
@@ -2011,14 +2015,14 @@ msgstr "Failed to mute this user"
 msgid "Failed to pin post"
 msgstr "Failed to pin post"
 
-#: src/components/EmojiReactionPopover.tsx:177
-#: src/components/EmojiReactionPopover.tsx:186
-#: src/components/EmojiReactionPopover.tsx:277
-#: src/components/EmojiReactionPopover.tsx:286
-#: src/components/EmojiReactionPopover.tsx:367
-#: src/components/EmojiReactionPopover.tsx:376
-#: src/components/EmojiReactionPopover.tsx:436
-#: src/components/EmojiReactionPopover.tsx:445
+#: src/components/EmojiReactionPopover.tsx:214
+#: src/components/EmojiReactionPopover.tsx:224
+#: src/components/EmojiReactionPopover.tsx:316
+#: src/components/EmojiReactionPopover.tsx:326
+#: src/components/EmojiReactionPopover.tsx:408
+#: src/components/EmojiReactionPopover.tsx:418
+#: src/components/EmojiReactionPopover.tsx:479
+#: src/components/EmojiReactionPopover.tsx:489
 msgid "Failed to react"
 msgstr "Failed to react"
 
@@ -2101,8 +2105,8 @@ msgstr "Failed to send email"
 msgid "Failed to send invitation"
 msgstr "Failed to send invitation"
 
-#: src/components/PostEngagementBar.tsx:290
-#: src/components/PostEngagementBar.tsx:297
+#: src/components/PostEngagementBar.tsx:291
+#: src/components/PostEngagementBar.tsx:298
 msgid "Failed to share post"
 msgstr "Failed to share post"
 
@@ -2145,8 +2149,8 @@ msgstr "Failed to unmute this user"
 msgid "Failed to unpin post"
 msgstr "Failed to unpin post"
 
-#: src/components/PostEngagementBar.tsx:272
-#: src/components/PostEngagementBar.tsx:279
+#: src/components/PostEngagementBar.tsx:273
+#: src/components/PostEngagementBar.tsx:280
 msgid "Failed to unshare post"
 msgstr "Failed to unshare post"
 
@@ -2498,18 +2502,18 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1000
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:560
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1005
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:565
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:398
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:403
 msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 msgstr "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:478
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:483
 msgid "If you have a fediverse account, you can reply to this post from your own instance. Search {0} on your instance and reply to it."
 msgstr "If you have a fediverse account, you can reply to this post from your own instance. Search {0} on your instance and reply to it."
 
@@ -2675,7 +2679,7 @@ msgstr "Joined {0}"
 msgid "Joined on {0}"
 msgstr "Joined on {0}"
 
-#: src/components/NoteComposer.tsx:2617
+#: src/components/NoteComposer.tsx:2615
 msgid "Keep draft"
 msgstr "Keep draft"
 
@@ -2687,7 +2691,7 @@ msgstr "Keep editing"
 msgid "Keep existing draft"
 msgstr "Keep existing draft"
 
-#: src/components/NoteComposer.tsx:2643
+#: src/components/NoteComposer.tsx:2641
 msgid "Keep writing note"
 msgstr "Keep writing note"
 
@@ -2988,7 +2992,7 @@ msgid "Loading…"
 msgstr "Loading…"
 
 #: src/components/NoteComposer.tsx:2528
-#: src/components/TimelineNoteComposer.tsx:71
+#: src/components/TimelineNoteComposer.tsx:70
 msgid "Local draft"
 msgstr "Local draft"
 
@@ -3568,7 +3572,7 @@ msgstr "Organization invitations"
 msgid "Organization members"
 msgstr "Organization members"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:849
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:854
 msgid "Other languages"
 msgstr "Other languages"
 
@@ -3932,7 +3936,7 @@ msgid "Quiet public"
 msgstr "Quiet public"
 
 #: src/components/NoteComposeModal.tsx:83
-#: src/components/PostEngagementBar.tsx:579
+#: src/components/PostEngagementBar.tsx:600
 #: src/components/ui/markdown-editor.tsx:299
 msgid "Quote"
 msgstr "Quote"
@@ -3960,7 +3964,7 @@ msgstr "Quoted post hidden"
 msgid "Quotes"
 msgstr "Quotes"
 
-#: src/components/PostEngagementBar.tsx:579
+#: src/components/PostEngagementBar.tsx:600
 msgid "Quoting is not available for this post"
 msgstr "Quoting is not available for this post"
 
@@ -3968,17 +3972,17 @@ msgstr "Quoting is not available for this post"
 msgid "Re-fetch a remote actor or post from its origin server and overwrite the cached copy. Enter a fediverse handle, profile URL, or ActivityPub IRI."
 msgstr "Re-fetch a remote actor or post from its origin server and overwrite the cached copy. Enter a fediverse handle, profile URL, or ActivityPub IRI."
 
-#: src/components/PostEngagementBar.tsx:387
-#: src/components/PostEngagementBar.tsx:388
+#: src/components/PostEngagementBar.tsx:390
+#: src/components/PostEngagementBar.tsx:391
 msgid "React"
 msgstr "React"
 
-#: src/components/EmojiReactionPopover.tsx:541
+#: src/components/EmojiReactionPopover.tsx:623
 msgid "React with {emoji}"
 msgstr "React with {emoji}"
 
-#: src/components/EmojiReactionPopover.tsx:492
-#: src/components/EmojiReactionPopover.tsx:495
+#: src/components/EmojiReactionPopover.tsx:558
+#: src/components/EmojiReactionPopover.tsx:561
 msgid "reaction"
 msgstr "reaction"
 
@@ -4133,7 +4137,7 @@ msgid "Remove"
 msgstr "Remove"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
-#: src/components/EmojiReactionPopover.tsx:491
+#: src/components/EmojiReactionPopover.tsx:557
 msgid "Remove {0}"
 msgstr "Remove {0}"
 
@@ -4188,6 +4192,10 @@ msgstr "Remove quote"
 msgid "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 msgstr "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 
+#: src/components/EmojiReactionPopover.tsx:100
+msgid "Removing reaction…"
+msgstr "Removing reaction…"
+
 #: src/routes/(root)/[handle]/settings/account.tsx:1598
 #: src/routes/(root)/[handle]/settings/account.tsx:1858
 msgid "Removing…"
@@ -4215,11 +4223,11 @@ msgid "Replacement sanction"
 msgstr "Replacement sanction"
 
 #: src/components/NoteComposeModal.tsx:82
-#: src/components/PostEngagementBar.tsx:357
+#: src/components/PostEngagementBar.tsx:358
 msgid "Reply"
 msgstr "Reply"
 
-#: src/components/PostEngagementBar.tsx:358
+#: src/components/PostEngagementBar.tsx:359
 msgid "Replying is not available for this post"
 msgstr "Replying is not available for this post"
 
@@ -4367,7 +4375,7 @@ msgstr "Sanctioned actors"
 msgid "Save"
 msgstr "Save"
 
-#: src/components/NoteComposer.tsx:2651
+#: src/components/NoteComposer.tsx:2647
 msgid "Save as article draft"
 msgstr "Save as article draft"
 
@@ -4375,7 +4383,7 @@ msgstr "Save as article draft"
 msgid "Save as note draft"
 msgstr "Save as note draft"
 
-#: src/components/NoteComposer.tsx:2596
+#: src/components/NoteComposer.tsx:2594
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:589
 msgid "Save changes"
 msgstr "Save changes"
@@ -4393,9 +4401,9 @@ msgid "Saved locally"
 msgstr "Saved locally"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:84
-#: src/components/NoteComposer.tsx:2554
-#: src/components/NoteComposer.tsx:2597
-#: src/components/NoteComposer.tsx:2650
+#: src/components/NoteComposer.tsx:2553
+#: src/components/NoteComposer.tsx:2595
+#: src/components/NoteComposer.tsx:2647
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:589
 #: src/routes/(root)/[handle]/settings/index.tsx:554
 #: src/routes/(root)/[handle]/settings/language.tsx:201
@@ -4505,11 +4513,11 @@ msgstr "Settings"
 msgid "Settings saved"
 msgstr "Settings saved"
 
-#: src/components/PostEngagementBar.tsx:577
+#: src/components/PostEngagementBar.tsx:589
 msgid "Share"
 msgstr "Share"
 
-#: src/components/PostEngagementBar.tsx:571
+#: src/components/PostEngagementBar.tsx:581
 msgid "Share or quote"
 msgstr "Share or quote"
 
@@ -4534,13 +4542,17 @@ msgstr "Share your opinion on this story…"
 msgid "Shares"
 msgstr "Shares"
 
-#: src/components/PostEngagementBar.tsx:570
+#: src/components/PostEngagementBar.tsx:580
 msgid "Sharing and quoting are not available for this post"
 msgstr "Sharing and quoting are not available for this post"
 
-#: src/components/PostEngagementBar.tsx:576
+#: src/components/PostEngagementBar.tsx:588
 msgid "Sharing is not available for this post"
 msgstr "Sharing is not available for this post"
+
+#: src/components/PostEngagementBar.tsx:575
+msgid "Sharing…"
+msgstr "Sharing…"
 
 #: src/components/MutedReplyPlaceholder.tsx:32
 #: src/components/NoteCardInternal.tsx:165
@@ -4781,14 +4793,14 @@ msgstr "Suspension ends"
 msgid "Suspension length"
 msgstr "Suspension length"
 
-#: src/components/NoteComposer.tsx:2555
+#: src/components/NoteComposer.tsx:2553
 msgid "Switch to article"
 msgstr "Switch to article"
 
 #: src/components/DocumentView.tsx:38
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:687
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:695
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1042
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:692
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:700
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1047
 msgid "Table of contents"
 msgstr "Table of contents"
 
@@ -4798,7 +4810,7 @@ msgstr "Table of contents"
 
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:62
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:517
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1051
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1056
 msgid "Tags"
 msgstr "Tags"
 
@@ -5111,7 +5123,7 @@ msgstr "This case does not exist."
 msgid "This case is resolved."
 msgstr "This case is resolved."
 
-#: src/components/NoteComposer.tsx:2613
+#: src/components/NoteComposer.tsx:2611
 msgid "This clears the saved draft from this browser."
 msgstr "This clears the saved draft from this browser."
 
@@ -5151,7 +5163,7 @@ msgstr "This is a remote actor with no local notification or appeal. A warning i
 msgid "This is too long (maximum {MAX_REASON_LENGTH} characters)."
 msgstr "This is too long (maximum {MAX_REASON_LENGTH} characters)."
 
-#: src/components/NoteComposer.tsx:2638
+#: src/components/NoteComposer.tsx:2636
 msgid "This note is getting long. Articles give longer writing a title, a dedicated draft, and a better reading page."
 msgstr "This note is getting long. Articles give longer writing a title, a dedicated draft, and a better reading page."
 
@@ -5207,7 +5219,7 @@ msgstr "This server has not configured Web Push yet."
 msgid "This service does not support remote follow."
 msgstr "This service does not support remote follow."
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:582
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:587
 msgid "This usually takes about a minute. The page will update automatically when the translation is ready."
 msgstr "This usually takes about a minute. The page will update automatically when the translation is ready."
 
@@ -5255,7 +5267,7 @@ msgstr "Total: {0}"
 
 #. placeholder {0}: "LANGUAGE"
 #: src/components/ArticleCard.tsx:322
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:833
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:838
 msgid "Translated from {0}"
 msgstr "Translated from {0}"
 
@@ -5267,18 +5279,18 @@ msgstr "Translating article"
 #~ msgid "Translating to {0}…"
 #~ msgstr "Translating to {0}…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:577
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:582
 msgid "Translating to {name}…"
 msgstr "Translating to {name}…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:573
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:578
 msgid "Translating…"
 msgstr "Translating…"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:414
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:437
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:446
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:618
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:623
 msgid "Translation request failed"
 msgstr "Translation request failed"
 
@@ -5286,7 +5298,7 @@ msgstr "Translation request failed"
 #~ msgid "Translation request failed for {0}"
 #~ msgstr "Translation request failed for {0}"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:623
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:628
 msgid "Translation request failed for {name}"
 msgstr "Translation request failed for {name}"
 
@@ -5296,7 +5308,7 @@ msgid "Tree"
 msgstr "Tree"
 
 #: src/app.tsx:129
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:631
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:636
 msgid "Try again"
 msgstr "Try again"
 
@@ -5324,17 +5336,17 @@ msgstr "Type {0} to confirm organization deletion."
 msgid "Type tags separated by spaces"
 msgstr "Type tags separated by spaces"
 
-#: src/components/EmojiReactionPopover.tsx:278
-#: src/components/EmojiReactionPopover.tsx:287
-#: src/components/EmojiReactionPopover.tsx:437
-#: src/components/EmojiReactionPopover.tsx:446
+#: src/components/EmojiReactionPopover.tsx:317
+#: src/components/EmojiReactionPopover.tsx:327
+#: src/components/EmojiReactionPopover.tsx:480
+#: src/components/EmojiReactionPopover.tsx:490
 msgid "Unable to add reaction. Please try again."
 msgstr "Unable to add reaction. Please try again."
 
-#: src/components/EmojiReactionPopover.tsx:178
-#: src/components/EmojiReactionPopover.tsx:187
-#: src/components/EmojiReactionPopover.tsx:368
-#: src/components/EmojiReactionPopover.tsx:377
+#: src/components/EmojiReactionPopover.tsx:215
+#: src/components/EmojiReactionPopover.tsx:225
+#: src/components/EmojiReactionPopover.tsx:409
+#: src/components/EmojiReactionPopover.tsx:419
 msgid "Unable to remove reaction. Please try again."
 msgstr "Unable to remove reaction. Please try again."
 
@@ -5371,9 +5383,13 @@ msgstr "Unpin from profile"
 msgid "Unread"
 msgstr "Unread"
 
-#: src/components/PostEngagementBar.tsx:574
+#: src/components/PostEngagementBar.tsx:586
 msgid "Unshare"
 msgstr "Unshare"
+
+#: src/components/PostEngagementBar.tsx:575
+msgid "Unsharing…"
+msgstr "Unsharing…"
 
 #: src/routes/(root)/admin/relay.tsx:324
 msgid "Unsubscribe"
@@ -5509,17 +5525,17 @@ msgid "View organization"
 msgstr "View organization"
 
 #: src/components/PostActionMenu.tsx:422
-#: src/components/PostEngagementBar.tsx:622
+#: src/components/PostEngagementBar.tsx:645
 msgid "View quotes"
 msgstr "View quotes"
 
 #: src/components/PostActionMenu.tsx:428
-#: src/components/PostEngagementBar.tsx:441
+#: src/components/PostEngagementBar.tsx:444
 msgid "View reactions"
 msgstr "View reactions"
 
 #: src/components/PostActionMenu.tsx:408
-#: src/components/PostEngagementBar.tsx:359
+#: src/components/PostEngagementBar.tsx:360
 msgid "View replies"
 msgstr "View replies"
 
@@ -5528,7 +5544,7 @@ msgid "View request"
 msgstr "View request"
 
 #: src/components/PostActionMenu.tsx:416
-#: src/components/PostEngagementBar.tsx:621
+#: src/components/PostEngagementBar.tsx:644
 msgid "View shares"
 msgstr "View shares"
 
@@ -5593,7 +5609,7 @@ msgstr "Warning"
 msgid "We couldn't reach the server"
 msgstr "We couldn't reach the server"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:628
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:633
 msgid "We couldn't reach the translation service. Try again, or come back in a few minutes."
 msgstr "We couldn't reach the translation service. Try again, or come back in a few minutes."
 
@@ -5622,7 +5638,7 @@ msgid "What should people decide?"
 msgstr "What should people decide?"
 
 #: src/components/NoteComposer.tsx:2121
-#: src/components/TimelineNoteComposer.tsx:72
+#: src/components/TimelineNoteComposer.tsx:71
 msgid "What's on your mind?"
 msgstr "What's on your mind?"
 
@@ -5661,14 +5677,14 @@ msgid "Write"
 msgstr "Write"
 
 #: src/components/NoteComposeModal.tsx:125
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:991
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:389
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:469
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:551
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:996
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:394
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:474
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:556
 msgid "Write a reply…"
 msgstr "Write a reply…"
 
-#: src/components/NoteComposer.tsx:2636
+#: src/components/NoteComposer.tsx:2634
 msgid "Write this as an article?"
 msgstr "Write this as an article?"
 

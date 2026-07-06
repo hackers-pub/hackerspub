@@ -10,6 +10,7 @@ import {
   Show,
 } from "solid-js";
 import { createFragment, createMutation } from "solid-relay";
+import IconLoader2 from "~icons/lucide/loader-2";
 import IconRepeat2 from "~icons/lucide/repeat-2";
 import {
   DropdownMenu,
@@ -365,6 +366,8 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
             shares={note.engagementStats.shares}
             quotes={note.engagementStats.quotes}
             viewerHasShared={note.viewerHasShared}
+            sharing={sharePending()}
+            unsharing={unsharePending()}
             shareDisabled={sharePendingAny() ||
               (!note.viewerHasShared && !note.viewerCanShare)}
             quoteDisabled={!note.viewerCanQuote}
@@ -558,6 +561,8 @@ function ShareQuoteControl(props: {
   shares: number;
   quotes: number;
   viewerHasShared: boolean;
+  sharing: boolean;
+  unsharing: boolean;
   shareDisabled: boolean;
   quoteDisabled: boolean;
   onShareSelect: () => void;
@@ -565,16 +570,31 @@ function ShareQuoteControl(props: {
 }) {
   const { t } = useLingui();
   const disabled = () => props.shareDisabled && props.quoteDisabled;
+  const sharePending = () => props.sharing || props.unsharing;
+  const sharePendingLabel = () => props.unsharing ? t`Unsharing…` : t`Sharing…`;
   const triggerLabel = () =>
-    disabled()
+    sharePending()
+      ? sharePendingLabel()
+      : disabled()
       ? t`Sharing and quoting are not available for this post`
       : t`Share or quote`;
   const shareLabel = () =>
-    props.viewerHasShared
+    sharePending()
+      ? sharePendingLabel()
+      : props.viewerHasShared
       ? t`Unshare`
       : props.shareDisabled
       ? t`Sharing is not available for this post`
       : t`Share`;
+  const shareMenuItemDisabled = () => props.shareDisabled || sharePending();
+  const shareIcon = () =>
+    sharePending()
+      ? <IconLoader2 class="size-4 animate-spin" aria-hidden="true" />
+      : <IconRepeat2 class="size-4" aria-hidden="true" />;
+  const shareMenuIcon = () =>
+    sharePending()
+      ? <IconLoader2 class="size-4 animate-spin" aria-hidden="true" />
+      : null;
   const quoteLabel = () =>
     props.quoteDisabled ? t`Quoting is not available for this post` : t`Quote`;
 
@@ -593,14 +613,16 @@ function ShareQuoteControl(props: {
                   props.viewerHasShared,
               }}
               aria-label={triggerLabel()}
+              title={triggerLabel()}
             >
-              <IconRepeat2 class="size-4" aria-hidden="true" />
+              {shareIcon()}
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem
-                disabled={props.shareDisabled}
+                disabled={shareMenuItemDisabled()}
                 onSelect={() => props.onShareSelect()}
               >
+                {shareMenuIcon()}
                 {shareLabel()}
               </DropdownMenuItem>
               <DropdownMenuItem

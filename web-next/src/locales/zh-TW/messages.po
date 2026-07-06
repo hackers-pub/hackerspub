@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: article.replies?.totalCount ?? 0
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:978
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:983
 msgid "{0, plural, one {# comment} other {# comments}}"
 msgstr "{0, plural, other {# 則評論}}"
 
@@ -626,7 +626,7 @@ msgid "Add"
 msgstr "新增"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
-#: src/components/EmojiReactionPopover.tsx:494
+#: src/components/EmojiReactionPopover.tsx:560
 msgid "Add {0}"
 msgstr "新增{0}"
 
@@ -650,6 +650,10 @@ msgstr "在這裡新增舊帳戶。Hackers' Pub 會將它公開為屬於你的�
 #: src/components/HashtagActionBar.tsx:258
 msgid "Add to sidebar"
 msgstr "新增至側邊欄"
+
+#: src/components/EmojiReactionPopover.tsx:101
+msgid "Adding reaction…"
+msgstr "正在新增反應…"
 
 #: src/routes/(root)/[handle]/settings/account.tsx:1828
 #: src/routes/(root)/admin/news.tsx:639
@@ -1059,7 +1063,7 @@ msgstr "由 {0} 發佈"
 #: src/components/AppealDialog.tsx:187
 #: src/components/NoteComposer.tsx:2481
 #: src/components/NoteComposer.tsx:2482
-#: src/components/NoteComposer.tsx:2568
+#: src/components/NoteComposer.tsx:2566
 #: src/components/PostActionMenu.tsx:456
 #: src/components/ProfileActionMenu.tsx:536
 #: src/components/ProfileActionMenu.tsx:537
@@ -1405,7 +1409,7 @@ msgstr "建立邀請連結"
 #: src/components/AppSidebar.tsx:1053
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:84
-#: src/components/NoteComposer.tsx:2590
+#: src/components/NoteComposer.tsx:2588
 msgid "Create note"
 msgstr "建立貼文"
 
@@ -1414,7 +1418,7 @@ msgstr "建立貼文"
 msgid "Create organization"
 msgstr "建立組織"
 
-#: src/components/NoteComposer.tsx:2589
+#: src/components/NoteComposer.tsx:2587
 msgid "Create poll"
 msgstr "建立投票調查"
 
@@ -1435,7 +1439,7 @@ msgstr "{0}建立"
 msgid "Creating account…"
 msgstr "創建帳戶…"
 
-#: src/components/NoteComposer.tsx:2592
+#: src/components/NoteComposer.tsx:2590
 #: src/routes/(root)/[handle]/settings/account.tsx:833
 #: src/routes/(root)/[handle]/settings/invite.tsx:855
 msgid "Creating…"
@@ -1513,7 +1517,7 @@ msgid "Delete account permanently?"
 msgstr "要永久刪除帳戶嗎？"
 
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:169
-#: src/components/NoteComposer.tsx:2622
+#: src/components/NoteComposer.tsx:2620
 msgid "Delete draft"
 msgstr "刪除草稿"
 
@@ -1521,7 +1525,7 @@ msgstr "刪除草稿"
 msgid "Delete local draft"
 msgstr "刪除本機草稿"
 
-#: src/components/NoteComposer.tsx:2611
+#: src/components/NoteComposer.tsx:2609
 msgid "Delete local draft?"
 msgstr "要刪除本機草稿嗎？"
 
@@ -2007,14 +2011,14 @@ msgstr "無法靜音此使用者"
 msgid "Failed to pin post"
 msgstr "無法釘選內容"
 
-#: src/components/EmojiReactionPopover.tsx:177
-#: src/components/EmojiReactionPopover.tsx:186
-#: src/components/EmojiReactionPopover.tsx:277
-#: src/components/EmojiReactionPopover.tsx:286
-#: src/components/EmojiReactionPopover.tsx:367
-#: src/components/EmojiReactionPopover.tsx:376
-#: src/components/EmojiReactionPopover.tsx:436
-#: src/components/EmojiReactionPopover.tsx:445
+#: src/components/EmojiReactionPopover.tsx:214
+#: src/components/EmojiReactionPopover.tsx:224
+#: src/components/EmojiReactionPopover.tsx:316
+#: src/components/EmojiReactionPopover.tsx:326
+#: src/components/EmojiReactionPopover.tsx:408
+#: src/components/EmojiReactionPopover.tsx:418
+#: src/components/EmojiReactionPopover.tsx:479
+#: src/components/EmojiReactionPopover.tsx:489
 msgid "Failed to react"
 msgstr "反應失敗"
 
@@ -2097,8 +2101,8 @@ msgstr "傳送郵件失敗"
 msgid "Failed to send invitation"
 msgstr "發送邀請失敗"
 
-#: src/components/PostEngagementBar.tsx:290
-#: src/components/PostEngagementBar.tsx:297
+#: src/components/PostEngagementBar.tsx:291
+#: src/components/PostEngagementBar.tsx:298
 msgid "Failed to share post"
 msgstr "轉貼失敗"
 
@@ -2141,8 +2145,8 @@ msgstr "無法解除靜音此使用者"
 msgid "Failed to unpin post"
 msgstr "無法取消釘選內容"
 
-#: src/components/PostEngagementBar.tsx:272
-#: src/components/PostEngagementBar.tsx:279
+#: src/components/PostEngagementBar.tsx:273
+#: src/components/PostEngagementBar.tsx:280
 msgid "Failed to unshare post"
 msgstr "取消轉貼失敗"
 
@@ -2494,18 +2498,18 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "啟用後，AI 將為您生成文章摘要。否則，將使用文章的前幾行作為摘要。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1000
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:560
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1005
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:565
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你在聯邦宇宙有個帳戶，你可以在你自己的站台裡評論此文章。在你的站台搜尋 {0} 後回覆。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:398
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:403
 msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你在聯邦宇宙有個帳戶，你可以在你自己的實例裡評論此貼文。在你的實例搜尋 {0} 後回覆。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:478
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:483
 msgid "If you have a fediverse account, you can reply to this post from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你有聯邦宇宙帳號，可以從自己的站台回覆此內容。在你的站台中搜尋 {0} 並回覆。"
 
@@ -2671,7 +2675,7 @@ msgstr "加入於 {0}"
 msgid "Joined on {0}"
 msgstr "於{0}加入"
 
-#: src/components/NoteComposer.tsx:2617
+#: src/components/NoteComposer.tsx:2615
 msgid "Keep draft"
 msgstr "保留草稿"
 
@@ -2683,7 +2687,7 @@ msgstr "繼續編輯"
 msgid "Keep existing draft"
 msgstr "保留現有草稿"
 
-#: src/components/NoteComposer.tsx:2643
+#: src/components/NoteComposer.tsx:2641
 msgid "Keep writing note"
 msgstr "繼續寫貼文"
 
@@ -2984,7 +2988,7 @@ msgid "Loading…"
 msgstr "載入中…"
 
 #: src/components/NoteComposer.tsx:2528
-#: src/components/TimelineNoteComposer.tsx:71
+#: src/components/TimelineNoteComposer.tsx:70
 msgid "Local draft"
 msgstr "本機草稿"
 
@@ -3564,7 +3568,7 @@ msgstr "組織邀請"
 msgid "Organization members"
 msgstr "組織成員"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:849
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:854
 msgid "Other languages"
 msgstr "其他語言"
 
@@ -3928,7 +3932,7 @@ msgid "Quiet public"
 msgstr "悄悄公開"
 
 #: src/components/NoteComposeModal.tsx:83
-#: src/components/PostEngagementBar.tsx:579
+#: src/components/PostEngagementBar.tsx:600
 #: src/components/ui/markdown-editor.tsx:299
 msgid "Quote"
 msgstr "引用"
@@ -3956,7 +3960,7 @@ msgstr "引用內容已隱藏"
 msgid "Quotes"
 msgstr "引用"
 
-#: src/components/PostEngagementBar.tsx:579
+#: src/components/PostEngagementBar.tsx:600
 msgid "Quoting is not available for this post"
 msgstr "無法引用此內容。"
 
@@ -3964,17 +3968,17 @@ msgstr "無法引用此內容。"
 msgid "Re-fetch a remote actor or post from its origin server and overwrite the cached copy. Enter a fediverse handle, profile URL, or ActivityPub IRI."
 msgstr "從來源伺服器重新取得遠端帳號或內容，並覆寫快取的副本。請輸入聯邦宇宙使用者名稱、個人檔案 URL 或 ActivityPub IRI。"
 
-#: src/components/PostEngagementBar.tsx:387
-#: src/components/PostEngagementBar.tsx:388
+#: src/components/PostEngagementBar.tsx:390
+#: src/components/PostEngagementBar.tsx:391
 msgid "React"
 msgstr "反應"
 
-#: src/components/EmojiReactionPopover.tsx:541
+#: src/components/EmojiReactionPopover.tsx:623
 msgid "React with {emoji}"
 msgstr "用{emoji}反應"
 
-#: src/components/EmojiReactionPopover.tsx:492
-#: src/components/EmojiReactionPopover.tsx:495
+#: src/components/EmojiReactionPopover.tsx:558
+#: src/components/EmojiReactionPopover.tsx:561
 msgid "reaction"
 msgstr "反應"
 
@@ -4129,7 +4133,7 @@ msgid "Remove"
 msgstr "移除"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
-#: src/components/EmojiReactionPopover.tsx:491
+#: src/components/EmojiReactionPopover.tsx:557
 msgid "Remove {0}"
 msgstr "移除{0}"
 
@@ -4184,6 +4188,10 @@ msgstr "移除引用"
 msgid "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 msgstr "移除已足夠舊且不再附加到頭像、貼文、文章草稿或文章的已儲存媒體。"
 
+#: src/components/EmojiReactionPopover.tsx:100
+msgid "Removing reaction…"
+msgstr "正在移除反應…"
+
 #: src/routes/(root)/[handle]/settings/account.tsx:1598
 #: src/routes/(root)/[handle]/settings/account.tsx:1858
 msgid "Removing…"
@@ -4211,11 +4219,11 @@ msgid "Replacement sanction"
 msgstr "替代處置"
 
 #: src/components/NoteComposeModal.tsx:82
-#: src/components/PostEngagementBar.tsx:357
+#: src/components/PostEngagementBar.tsx:358
 msgid "Reply"
 msgstr "回覆"
 
-#: src/components/PostEngagementBar.tsx:358
+#: src/components/PostEngagementBar.tsx:359
 msgid "Replying is not available for this post"
 msgstr "無法回覆此內容"
 
@@ -4363,7 +4371,7 @@ msgstr "受處置的行為者"
 msgid "Save"
 msgstr "儲存"
 
-#: src/components/NoteComposer.tsx:2651
+#: src/components/NoteComposer.tsx:2647
 msgid "Save as article draft"
 msgstr "儲存為文章草稿"
 
@@ -4371,7 +4379,7 @@ msgstr "儲存為文章草稿"
 msgid "Save as note draft"
 msgstr "儲存為貼文草稿"
 
-#: src/components/NoteComposer.tsx:2596
+#: src/components/NoteComposer.tsx:2594
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:589
 msgid "Save changes"
 msgstr "儲存變更"
@@ -4389,9 +4397,9 @@ msgid "Saved locally"
 msgstr "已儲存在本機"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:84
-#: src/components/NoteComposer.tsx:2554
-#: src/components/NoteComposer.tsx:2597
-#: src/components/NoteComposer.tsx:2650
+#: src/components/NoteComposer.tsx:2553
+#: src/components/NoteComposer.tsx:2595
+#: src/components/NoteComposer.tsx:2647
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:589
 #: src/routes/(root)/[handle]/settings/index.tsx:554
 #: src/routes/(root)/[handle]/settings/language.tsx:201
@@ -4501,11 +4509,11 @@ msgstr "設定"
 msgid "Settings saved"
 msgstr "設定已儲存"
 
-#: src/components/PostEngagementBar.tsx:577
+#: src/components/PostEngagementBar.tsx:589
 msgid "Share"
 msgstr "轉貼"
 
-#: src/components/PostEngagementBar.tsx:571
+#: src/components/PostEngagementBar.tsx:581
 msgid "Share or quote"
 msgstr "轉貼或引用"
 
@@ -4530,13 +4538,17 @@ msgstr "分享你對這個話題的看法…"
 msgid "Shares"
 msgstr "轉貼"
 
-#: src/components/PostEngagementBar.tsx:570
+#: src/components/PostEngagementBar.tsx:580
 msgid "Sharing and quoting are not available for this post"
 msgstr "無法轉貼或引用此內容。"
 
-#: src/components/PostEngagementBar.tsx:576
+#: src/components/PostEngagementBar.tsx:588
 msgid "Sharing is not available for this post"
 msgstr "無法轉貼此內容。"
+
+#: src/components/PostEngagementBar.tsx:575
+msgid "Sharing…"
+msgstr "正在轉貼…"
 
 #: src/components/MutedReplyPlaceholder.tsx:32
 #: src/components/NoteCardInternal.tsx:165
@@ -4777,14 +4789,14 @@ msgstr "停權結束"
 msgid "Suspension length"
 msgstr "停權期間"
 
-#: src/components/NoteComposer.tsx:2555
+#: src/components/NoteComposer.tsx:2553
 msgid "Switch to article"
 msgstr "切換為文章"
 
 #: src/components/DocumentView.tsx:38
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:687
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:695
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1042
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:692
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:700
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1047
 msgid "Table of contents"
 msgstr "目錄"
 
@@ -4794,7 +4806,7 @@ msgstr "目錄"
 
 #: src/components/article-composer/ArticleComposerPublishStep.tsx:62
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:517
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1051
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1056
 msgid "Tags"
 msgstr "標籤"
 
@@ -5107,7 +5119,7 @@ msgstr "此案件不存在。"
 msgid "This case is resolved."
 msgstr "此案件已處置。"
 
-#: src/components/NoteComposer.tsx:2613
+#: src/components/NoteComposer.tsx:2611
 msgid "This clears the saved draft from this browser."
 msgstr "這會清除此瀏覽器中儲存的草稿。"
 
@@ -5147,7 +5159,7 @@ msgstr "這是沒有本地通知或申訴的遠端行為者。警告僅作記錄
 msgid "This is too long (maximum {MAX_REASON_LENGTH} characters)."
 msgstr "內容過長（最多 {MAX_REASON_LENGTH} 個字元）。"
 
-#: src/components/NoteComposer.tsx:2638
+#: src/components/NoteComposer.tsx:2636
 msgid "This note is getting long. Articles give longer writing a title, a dedicated draft, and a better reading page."
 msgstr "這篇貼文正在變長。文章可以為長篇內容提供標題、專用草稿和更好的閱讀頁面。"
 
@@ -5203,7 +5215,7 @@ msgstr "此伺服器尚未設定 Web Push。"
 msgid "This service does not support remote follow."
 msgstr "該服務不支援遠端關注。"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:582
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:587
 msgid "This usually takes about a minute. The page will update automatically when the translation is ready."
 msgstr "通常需要一分鐘左右。翻譯完成後頁面將自動更新。"
 
@@ -5251,7 +5263,7 @@ msgstr "共 {0} 個"
 
 #. placeholder {0}: "LANGUAGE"
 #: src/components/ArticleCard.tsx:322
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:833
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:838
 msgid "Translated from {0}"
 msgstr "翻譯自{0}"
 
@@ -5263,18 +5275,18 @@ msgstr "正在翻譯文章"
 #~ msgid "Translating to {0}…"
 #~ msgstr "正在翻譯為{0}…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:577
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:582
 msgid "Translating to {name}…"
 msgstr "正在翻譯為{name}…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:573
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:578
 msgid "Translating…"
 msgstr "正在翻譯…"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:414
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:437
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:446
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:618
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:623
 msgid "Translation request failed"
 msgstr "翻譯請求失敗"
 
@@ -5282,7 +5294,7 @@ msgstr "翻譯請求失敗"
 #~ msgid "Translation request failed for {0}"
 #~ msgstr "向{0}的翻譯請求失敗"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:623
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:628
 msgid "Translation request failed for {name}"
 msgstr "向{name}的翻譯請求失敗"
 
@@ -5292,7 +5304,7 @@ msgid "Tree"
 msgstr "樹狀圖"
 
 #: src/app.tsx:129
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:631
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:636
 msgid "Try again"
 msgstr "重試"
 
@@ -5320,17 +5332,17 @@ msgstr "輸入 {0} 以確認刪除組織。"
 msgid "Type tags separated by spaces"
 msgstr "輸入標籤，用空格分隔"
 
-#: src/components/EmojiReactionPopover.tsx:278
-#: src/components/EmojiReactionPopover.tsx:287
-#: src/components/EmojiReactionPopover.tsx:437
-#: src/components/EmojiReactionPopover.tsx:446
+#: src/components/EmojiReactionPopover.tsx:317
+#: src/components/EmojiReactionPopover.tsx:327
+#: src/components/EmojiReactionPopover.tsx:480
+#: src/components/EmojiReactionPopover.tsx:490
 msgid "Unable to add reaction. Please try again."
 msgstr "無法新增反應。請重試。"
 
-#: src/components/EmojiReactionPopover.tsx:178
-#: src/components/EmojiReactionPopover.tsx:187
-#: src/components/EmojiReactionPopover.tsx:368
-#: src/components/EmojiReactionPopover.tsx:377
+#: src/components/EmojiReactionPopover.tsx:215
+#: src/components/EmojiReactionPopover.tsx:225
+#: src/components/EmojiReactionPopover.tsx:409
+#: src/components/EmojiReactionPopover.tsx:419
 msgid "Unable to remove reaction. Please try again."
 msgstr "無法移除反應。請重試。"
 
@@ -5367,9 +5379,13 @@ msgstr "從個人資料取消釘選"
 msgid "Unread"
 msgstr "未讀"
 
-#: src/components/PostEngagementBar.tsx:574
+#: src/components/PostEngagementBar.tsx:586
 msgid "Unshare"
 msgstr "取消轉貼"
+
+#: src/components/PostEngagementBar.tsx:575
+msgid "Unsharing…"
+msgstr "正在取消轉貼…"
 
 #: src/routes/(root)/admin/relay.tsx:324
 msgid "Unsubscribe"
@@ -5505,17 +5521,17 @@ msgid "View organization"
 msgstr "查看組織"
 
 #: src/components/PostActionMenu.tsx:422
-#: src/components/PostEngagementBar.tsx:622
+#: src/components/PostEngagementBar.tsx:645
 msgid "View quotes"
 msgstr "查看引用"
 
 #: src/components/PostActionMenu.tsx:428
-#: src/components/PostEngagementBar.tsx:441
+#: src/components/PostEngagementBar.tsx:444
 msgid "View reactions"
 msgstr "查看反應"
 
 #: src/components/PostActionMenu.tsx:408
-#: src/components/PostEngagementBar.tsx:359
+#: src/components/PostEngagementBar.tsx:360
 msgid "View replies"
 msgstr "查看回覆"
 
@@ -5524,7 +5540,7 @@ msgid "View request"
 msgstr "查看請求"
 
 #: src/components/PostActionMenu.tsx:416
-#: src/components/PostEngagementBar.tsx:621
+#: src/components/PostEngagementBar.tsx:644
 msgid "View shares"
 msgstr "查看轉貼"
 
@@ -5589,7 +5605,7 @@ msgstr "警告"
 msgid "We couldn't reach the server"
 msgstr "無法連接到伺服器"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:628
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:633
 msgid "We couldn't reach the translation service. Try again, or come back in a few minutes."
 msgstr "無法連接到翻譯服務。請重試或幾分鐘後再來。"
 
@@ -5618,7 +5634,7 @@ msgid "What should people decide?"
 msgstr "你想讓大家決定什麼？"
 
 #: src/components/NoteComposer.tsx:2121
-#: src/components/TimelineNoteComposer.tsx:72
+#: src/components/TimelineNoteComposer.tsx:71
 msgid "What's on your mind?"
 msgstr "你在想什麼？"
 
@@ -5657,14 +5673,14 @@ msgid "Write"
 msgstr "撰寫"
 
 #: src/components/NoteComposeModal.tsx:125
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:991
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:389
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:469
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:551
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:996
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:394
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:474
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:556
 msgid "Write a reply…"
 msgstr "寫個回覆…"
 
-#: src/components/NoteComposer.tsx:2636
+#: src/components/NoteComposer.tsx:2634
 msgid "Write this as an article?"
 msgstr "要將其寫成文章嗎？"
 
