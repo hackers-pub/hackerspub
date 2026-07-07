@@ -28,16 +28,15 @@ import {
 import type { QuestionCard_question$key } from "./__generated__/QuestionCard_question.graphql.ts";
 import type { QuestionCardContent_question$key } from "./__generated__/QuestionCardContent_question.graphql.ts";
 import type { QuestionCard_voteOnPoll_Mutation } from "./__generated__/QuestionCard_voteOnPoll_Mutation.graphql.ts";
-import { ActorHoverCard } from "./ActorHoverCard.tsx";
 import { ActorSharer, ActorSharerActor } from "./ActorSharer.tsx";
 import { CensorshipNotice } from "./CensorshipNotice.tsx";
 import { InternalLink } from "./InternalLink.tsx";
 import { PostAuthorAvatar, PostAuthorLine } from "./PostAuthor.tsx";
 import { PostEngagementBar } from "./PostEngagementBar.tsx";
+import { PostSharer } from "./PostSharer.tsx";
 import { QuoteTargetPlaceholder } from "./QuoteTargetPlaceholder.tsx";
 import { QuotedPostCard } from "./QuotedPostCard.tsx";
 import { Timestamp } from "./Timestamp.tsx";
-import { Trans } from "./Trans.tsx";
 import { VisibilityTag } from "./VisibilityTag.tsx";
 
 export interface QuestionCardProps {
@@ -57,13 +56,7 @@ export function QuestionCard(props: QuestionCardProps) {
       fragment QuestionCard_question on Question
         @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
       {
-        actor {
-          name
-          local
-          username
-          handle
-        }
-        published
+        ...PostSharer_post
         ...QuestionCardContent_question @arguments(
           actingAccountId: $actingAccountId
         )
@@ -79,7 +72,6 @@ export function QuestionCard(props: QuestionCardProps) {
     `,
     () => props.$question,
   );
-  const { t } = useLingui();
 
   return (
     <Show keyed when={question()}>
@@ -92,28 +84,7 @@ export function QuestionCard(props: QuestionCardProps) {
           <article class="border-b px-4 py-4 transition-colors hover:bg-muted/30 last:border-none">
             <div class="flex flex-col gap-0.5">
               <Show when={sharedQuestion()}>
-                <p class="ml-14 text-sm text-muted-foreground">
-                  <Trans
-                    message={t`${"SHARER"} shared ${"RELATIVE_TIME"}`}
-                    values={{
-                      SHARER: () => (
-                        <ActorHoverCard handle={q.actor.handle}>
-                          <a
-                            href={`/${
-                              q.actor.local
-                                ? `@${q.actor.username}`
-                                : q.actor.handle
-                            }`}
-                            class="font-semibold"
-                          >
-                            {q.actor.name}
-                          </a>
-                        </ActorHoverCard>
-                      ),
-                      RELATIVE_TIME: () => <Timestamp value={q.published} />,
-                    }}
-                  />
-                </p>
+                <PostSharer $post={q} class="ml-14" />
               </Show>
               <Show when={props.sharerActor}>
                 <ActorSharer
