@@ -13,6 +13,9 @@ import {
   resolveMediumUrls,
 } from "@hackerspub/models/markup";
 import {
+  getCensoredPostExclusionFilter,
+  getPostVisibilityFilter,
+  getSanctionVisibleActorFilter,
   isActorSanctionHidden,
   isPostVisibleTo,
   normalizeQuotePolicyForVisibility,
@@ -35,15 +38,58 @@ import type {
   QuotePolicy,
   Reaction,
 } from "@hackerspub/models/schema";
-import { reactionTable } from "@hackerspub/models/schema";
+import {
+  actorTable,
+  postTable,
+  reactionTable,
+} from "@hackerspub/models/schema";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { escape } from "@std/html/entities";
-import { and, count, desc, eq, lt, or } from "drizzle-orm";
+import {
+  aliasedTable,
+  and,
+  count,
+  desc,
+  eq,
+  gt,
+  inArray,
+  isNotNull,
+  isNull,
+  lt,
+  lte,
+  or,
+} from "drizzle-orm";
 import { builder } from "./builder.ts";
 
 const EMOJI_REACTIONS_WINDOW = 50;
+const REPLIES_WINDOW = 50;
 
 type EmojiReactableObject = "articles" | "notes" | "questions";
+type ReplyCollectionObject = "articles" | "notes" | "questions";
+
+function isPublicPostVisibility(visibility: PostVisibility): boolean {
+  return visibility === "public" || visibility === "unlisted";
+}
+
+function getRepliesUri(
+  ctx: Context<ContextData>,
+  object: ReplyCollectionObject,
+  id: Uuid,
+): URL {
+  return new URL(`/ap/replies/${object}/${id}`, ctx.canonicalOrigin);
+}
+
+function getRepliesPageUri(
+  ctx: Context<ContextData>,
+  object: ReplyCollectionObject,
+  id: Uuid,
+  cursor: string,
+): URL {
+  return new URL(
+    `/ap/replies/${object}/${id}/page/${cursor}`,
+    ctx.canonicalOrigin,
+  );
+}
 
 function getEmojiReactionsUri(
   ctx: Context<ContextData>,
@@ -214,6 +260,7 @@ export async function getArticle(
         mediaType: "text/markdown",
       })
       : null,
+    replies: getRepliesUri(ctx, "articles", articleSource.id),
     emojiReactions: getEmojiReactionsUri(ctx, "articles", articleSource.id),
     tags: [...articleSource.tags, ...hashtags].map((tag) =>
       new vocab.Hashtag({
@@ -417,6 +464,9 @@ export async function getNote(
       content: note.content,
       mediaType: "text/markdown",
     }),
+    replies: isPublicPostVisibility(note.visibility)
+      ? getRepliesUri(ctx, "notes", note.id)
+      : null,
     emojiReactions: getEmojiReactionsUri(ctx, "notes", note.id),
     attachments,
     tags,
@@ -549,6 +599,9 @@ export async function getQuestion(
       content: note.content,
       mediaType: "text/markdown",
     }),
+    replies: isPublicPostVisibility(note.visibility)
+      ? getRepliesUri(ctx, "questions", note.id)
+      : null,
     emojiReactions: getEmojiReactionsUri(ctx, "questions", note.id),
     attachments,
     tags,
@@ -1272,6 +1325,237 @@ function decodeEmojiReactionCursor(cursor: string): EmojiReactionCursor | null {
     return null;
   }
 }
+
+type ReplyCollectionKind = "article" | "note" | "question";
+
+interface RepliesCursor {
+  readonly published: Date;
+  readonly id: Uuid;
+}
+
+function getReplyCollectionObject(
+  kind: ReplyCollectionKind,
+): ReplyCollectionObject {
+  switch (kind) {
+    case "article":
+      return "articles";
+    case "note":
+      return "notes";
+    case "question":
+      return "questions";
+  }
+}
+
+function parseReplyCollectionObject(
+  object: string,
+): ReplyCollectionKind | null {
+  switch (object) {
+    case "articles":
+      return "article";
+    case "notes":
+      return "note";
+    case "questions":
+      return "question";
+    default:
+      return null;
+  }
+}
+
+function encodeRepliesCursor(post: Pick<Post, "id" | "published">): string {
+  return encodeBase64Url(
+    JSON.stringify({
+      id: post.id,
+      published: post.published.toISOString(),
+    }),
+  );
+}
+
+function decodeRepliesCursor(cursor: string): RepliesCursor | null {
+  const json = decodeBase64Url(cursor);
+  if (json == null) return null;
+  try {
+    const parsed = JSON.parse(json) as { id?: unknown; published?: unknown };
+    if (
+      typeof parsed.id !== "string" ||
+      !validateUuid(parsed.id) ||
+      typeof parsed.published !== "string"
+    ) {
+      return null;
+    }
+    const published = new Date(parsed.published);
+    if (Number.isNaN(published.valueOf())) return null;
+    return { id: parsed.id, published };
+  } catch {
+    return null;
+  }
+}
+
+async function getPostForReplies(
+  ctx: RequestContext<ContextData>,
+  kind: ReplyCollectionKind,
+  id: Uuid,
+) {
+  const post = await ctx.data.db.query.postTable.findFirst({
+    with: { actor: true },
+    where: kind === "article"
+      ? { articleSourceId: id, type: "Article" }
+      : kind === "note"
+      ? { noteSourceId: id, type: "Note" }
+      : { noteSourceId: id, type: "Question" },
+  });
+  if (
+    post == null ||
+    post.censored != null ||
+    !isPublicPostVisibility(post.visibility) ||
+    isActorSanctionHidden(post.actor)
+  ) {
+    return null;
+  }
+  return post;
+}
+
+async function getRepliesCollectionRows(
+  ctx: RequestContext<ContextData>,
+  postId: Uuid,
+  cursor: string | null,
+): Promise<
+  | {
+    rows: Pick<Post, "id" | "iri" | "published">[];
+    nextCursor: string | null;
+  }
+  | null
+> {
+  const decodedCursor = cursor == null || cursor.trim() === ""
+    ? null
+    : decodeRepliesCursor(cursor);
+  if (cursor != null && cursor.trim() !== "" && decodedCursor == null) {
+    return null;
+  }
+  const rows = await ctx.data.db.query.postTable.findMany({
+    columns: { id: true, iri: true, published: true },
+    where: {
+      AND: [
+        { replyTargetId: postId },
+        { actor: getSanctionVisibleActorFilter() },
+        getCensoredPostExclusionFilter(null),
+        getPostVisibilityFilter(null),
+        ...(decodedCursor == null ? [] : [{
+          OR: [
+            { published: { lt: decodedCursor.published } },
+            {
+              published: { eq: decodedCursor.published },
+              id: { lt: decodedCursor.id },
+            },
+          ],
+        }]),
+      ],
+    },
+    orderBy: (post, { desc }) => [desc(post.published), desc(post.id)],
+    limit: REPLIES_WINDOW + 1,
+  });
+  const pageRows = rows.slice(0, REPLIES_WINDOW);
+  return {
+    rows: pageRows,
+    nextCursor: rows.length > REPLIES_WINDOW
+      ? encodeRepliesCursor(pageRows[pageRows.length - 1])
+      : null,
+  };
+}
+
+async function countRepliesCollectionItems(
+  ctx: RequestContext<ContextData>,
+  postId: Uuid,
+): Promise<number> {
+  const sharedPost = aliasedTable(postTable, "replies_shared_post");
+  const sharedActor = aliasedTable(actorTable, "replies_shared_actor");
+  const now = new Date();
+  const [{ cnt }] = await ctx.data.db.select({ cnt: count() })
+    .from(postTable)
+    .innerJoin(actorTable, eq(actorTable.id, postTable.actorId))
+    .leftJoin(sharedPost, eq(sharedPost.id, postTable.sharedPostId))
+    .leftJoin(sharedActor, eq(sharedActor.id, sharedPost.actorId))
+    .where(and(
+      eq(postTable.replyTargetId, postId),
+      inArray(postTable.visibility, ["public", "unlisted"]),
+      isNull(postTable.censored),
+      or(
+        isNull(actorTable.suspended),
+        gt(actorTable.suspended, now),
+        lte(actorTable.suspendedUntil, now),
+        and(
+          isNotNull(actorTable.accountId),
+          gt(actorTable.suspendedUntil, now),
+        ),
+      ),
+      or(isNull(sharedPost.id), isNull(sharedPost.censored)),
+      or(
+        isNull(sharedPost.id),
+        isNull(sharedActor.suspended),
+        gt(sharedActor.suspended, now),
+        lte(sharedActor.suspendedUntil, now),
+        and(
+          isNotNull(sharedActor.accountId),
+          gt(sharedActor.suspendedUntil, now),
+        ),
+      ),
+    ));
+  return cnt;
+}
+
+builder
+  // Use object dispatchers for now because Fedify 2.3.1 drops custom
+  // collection dispatcher callbacks during `FederationBuilder.build()`.
+  // See https://github.com/fedify-dev/fedify/issues/849.
+  .setObjectDispatcher(
+    vocab.OrderedCollection,
+    "/ap/replies/{object}/{id}",
+    async (ctx, values) => {
+      const kind = parseReplyCollectionObject(values.object);
+      if (kind == null || !validateUuid(values.id)) return null;
+      const post = await getPostForReplies(ctx, kind, values.id);
+      if (post == null) return null;
+      const object = getReplyCollectionObject(kind);
+      return new vocab.OrderedCollection({
+        id: getRepliesUri(ctx, object, values.id),
+        totalItems: await countRepliesCollectionItems(ctx, post.id),
+        first: getRepliesPageUri(ctx, object, values.id, "_"),
+      });
+    },
+  )
+  .authorize(async (ctx, values) => {
+    const kind = parseReplyCollectionObject(values.object);
+    return kind != null && validateUuid(values.id) &&
+      await getPostForReplies(ctx, kind, values.id) != null;
+  });
+
+builder
+  .setObjectDispatcher(
+    vocab.OrderedCollectionPage,
+    "/ap/replies/{object}/{id}/page/{cursor}",
+    async (ctx, values) => {
+      const kind = parseReplyCollectionObject(values.object);
+      if (kind == null || !validateUuid(values.id)) return null;
+      const post = await getPostForReplies(ctx, kind, values.id);
+      if (post == null) return null;
+      const object = getReplyCollectionObject(kind);
+      const cursor = values.cursor === "_" ? "" : values.cursor;
+      const page = await getRepliesCollectionRows(ctx, post.id, cursor);
+      if (page == null) return null;
+      return new vocab.OrderedCollectionPage({
+        id: getRepliesPageUri(ctx, object, values.id, values.cursor),
+        partOf: getRepliesUri(ctx, object, values.id),
+        items: page.rows.map((row) => new URL(row.iri)),
+        next: page.nextCursor == null
+          ? null
+          : getRepliesPageUri(ctx, object, values.id, page.nextCursor),
+      });
+    },
+  )
+  .authorize(async (ctx, values) => {
+    const kind = parseReplyCollectionObject(values.object);
+    return kind != null && validateUuid(values.id) &&
+      await getPostForReplies(ctx, kind, values.id) != null;
+  });
 
 async function getPostForEmojiReactions(
   ctx: RequestContext<ContextData>,

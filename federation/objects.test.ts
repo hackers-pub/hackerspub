@@ -168,6 +168,50 @@ test("getNote() advertises the emoji reactions collection", async () => {
   });
 });
 
+test("getNote() advertises replies only for public ActivityPub notes", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "notereplies",
+      name: "Note Replies",
+      email: "notereplies@example.com",
+    });
+    const { noteSourceId } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Reply here",
+    });
+    const { noteSourceId: followersOnlySourceId } = await insertNotePost(tx, {
+      account: author.account,
+      visibility: "followers",
+      content: "Followers-only",
+    });
+    const noteSource = await tx.query.noteSourceTable.findFirst({
+      where: { id: noteSourceId },
+      with: {
+        account: true,
+        media: { with: { medium: true }, orderBy: { index: "asc" } },
+      },
+    });
+    const followersOnlySource = await tx.query.noteSourceTable.findFirst({
+      where: { id: followersOnlySourceId },
+      with: {
+        account: true,
+        media: { with: { medium: true }, orderBy: { index: "asc" } },
+      },
+    });
+    assert.ok(noteSource != null);
+    assert.ok(followersOnlySource != null);
+
+    const note = await getNote(createFedCtx(tx), noteSource);
+    const followersOnly = await getNote(createFedCtx(tx), followersOnlySource);
+
+    assert.equal(
+      note.repliesId?.href,
+      `http://localhost/ap/replies/notes/${noteSourceId}`,
+    );
+    assert.equal(followersOnly.repliesId, null);
+  });
+});
+
 test("getArticle() includes member attribution for co-authored organization articles", async () => {
   await withRollback(async (tx) => {
     const member = await insertAccountWithActor(tx, {
@@ -277,6 +321,47 @@ test("getArticle() advertises the emoji reactions collection", async () => {
     assert.equal(
       article.emojiReactionsId?.href,
       `http://localhost/ap/emoji-reactions/articles/${articleSourceId}`,
+    );
+  });
+});
+
+test("getArticle() advertises the replies collection", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "articlereplies",
+      name: "Article Replies",
+      email: "articlereplies@example.com",
+    });
+    const published = new Date("2026-04-15T00:00:00.000Z");
+    const articleSourceId = generateUuidV7();
+    await tx.insert(articleSourceTable).values({
+      id: articleSourceId,
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "replies",
+      quotePolicy: "everyone",
+      published,
+      updated: published,
+    });
+    await tx.insert(articleContentTable).values({
+      sourceId: articleSourceId,
+      language: "en",
+      title: "Replies",
+      content: "Article replies",
+      published,
+      updated: published,
+    });
+    const articleSource = await tx.query.articleSourceTable.findFirst({
+      where: { id: articleSourceId },
+      with: { account: true, contents: true },
+    });
+    assert.ok(articleSource != null);
+
+    const article = await getArticle(createFedCtx(tx), articleSource);
+
+    assert.equal(
+      article.repliesId?.href,
+      `http://localhost/ap/replies/articles/${articleSourceId}`,
     );
   });
 });
@@ -394,6 +479,10 @@ test("getQuestion() advertises the emoji reactions collection", async () => {
       activity.emojiReactionsId?.href,
       `http://localhost/ap/emoji-reactions/questions/${question.noteSource.id}`,
     );
+    assert.equal(
+      activity.repliesId?.href,
+      `http://localhost/ap/replies/questions/${question.noteSource.id}`,
+    );
   });
 });
 
@@ -451,6 +540,305 @@ test("source-backed Questions do not resolve through the Note dispatcher", async
       noteResponse.status >= 400 && noteResponse.status < 500,
       `expected Note dispatcher miss to return 4xx, got ${noteResponse.status}`,
     );
+  });
+});
+
+test("replies collection exposes only public direct replies", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "apreplyroot",
+      name: "AP Reply Root",
+      email: "apreplyroot@example.com",
+    });
+    const replier = await insertAccountWithActor(tx, {
+      username: "apreplier",
+      name: "AP Replier",
+      email: "apreplier@example.com",
+    });
+    const hiddenReplier = await insertAccountWithActor(tx, {
+      username: "aphiddenreplier",
+      name: "AP Hidden Replier",
+      email: "aphiddenreplier@example.com",
+    });
+    const published = new Date("2026-04-15T00:00:00.000Z");
+    const articleSourceId = generateUuidV7();
+    const articlePostId = generateUuidV7();
+    await tx.insert(articleSourceTable).values({
+      id: articleSourceId,
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "ap-replies",
+      quotePolicy: "everyone",
+      published,
+      updated: published,
+    });
+    await tx.insert(articleContentTable).values({
+      sourceId: articleSourceId,
+      language: "en",
+      title: "AP replies",
+      content: "Reply to this article",
+      published,
+      updated: published,
+    });
+    await tx.insert(postTable).values({
+      id: articlePostId,
+      iri: `http://localhost/objects/${articlePostId}`,
+      type: "Article",
+      visibility: "public",
+      quotePolicy: "everyone",
+      actorId: author.actor.id,
+      articleSourceId,
+      name: "AP replies",
+      contentHtml: "<p>Reply to this article</p>",
+      language: "en",
+      published,
+      updated: published,
+    });
+    const { post: publicReply } = await insertNotePost(tx, {
+      account: replier.account,
+      content: "Public reply",
+      replyTargetId: articlePostId,
+      published: new Date("2026-04-15T00:05:00.000Z"),
+    });
+    const { post: unlistedReply } = await insertNotePost(tx, {
+      account: replier.account,
+      visibility: "unlisted",
+      content: "Unlisted reply",
+      replyTargetId: articlePostId,
+      published: new Date("2026-04-15T00:04:00.000Z"),
+    });
+    await insertNotePost(tx, {
+      account: replier.account,
+      visibility: "followers",
+      content: "Followers-only reply",
+      replyTargetId: articlePostId,
+      published: new Date("2026-04-15T00:06:00.000Z"),
+    });
+    await insertNotePost(tx, {
+      account: replier.account,
+      visibility: "direct",
+      content: "Direct reply",
+      replyTargetId: articlePostId,
+      published: new Date("2026-04-15T00:07:00.000Z"),
+    });
+    const { post: censoredReply } = await insertNotePost(tx, {
+      account: replier.account,
+      content: "Censored reply",
+      replyTargetId: articlePostId,
+      published: new Date("2026-04-15T00:08:00.000Z"),
+    });
+    await tx.update(postTable)
+      .set({ censored: new Date("2026-04-15T00:09:00.000Z") })
+      .where(eq(postTable.id, censoredReply.id));
+    await insertNotePost(tx, {
+      account: hiddenReplier.account,
+      content: "Sanction-hidden reply",
+      replyTargetId: articlePostId,
+      published: new Date("2026-04-15T00:10:00.000Z"),
+    });
+    await tx.update(actorTable)
+      .set({ suspended: new Date("2026-04-15T00:00:00.000Z") })
+      .where(eq(actorTable.id, hiddenReplier.actor.id));
+    await insertNotePost(tx, {
+      account: replier.account,
+      content: "Nested reply",
+      replyTargetId: publicReply.id,
+      published: new Date("2026-04-15T00:11:00.000Z"),
+    });
+    const federation = await builder.build({
+      kv: new MemoryKvStore(),
+      origin: "http://localhost/",
+    });
+    const contextData = {
+      db: tx,
+      kv: createTestKv().kv,
+      disk: createTestDisk(),
+      models: {} as ContextData["models"],
+    };
+
+    const rootResponse = await federation.fetch(
+      new Request(
+        `http://localhost/ap/replies/articles/${articleSourceId}`,
+        { headers: { Accept: "application/activity+json" } },
+      ),
+      { contextData },
+    );
+    assert.equal(rootResponse.status, 200);
+    const root = await rootResponse.json() as {
+      type?: string;
+      totalItems?: number;
+      first?: string | { id?: string; "@id"?: string };
+    };
+    assert.equal(root.type, "OrderedCollection");
+    assert.equal(root.totalItems, 2);
+    const first = typeof root.first === "string"
+      ? root.first
+      : root.first?.id ?? root.first?.["@id"];
+    assert.ok(first != null);
+
+    const pageResponse = await federation.fetch(
+      new Request(first, { headers: { Accept: "application/activity+json" } }),
+      { contextData },
+    );
+    assert.equal(pageResponse.status, 200);
+    const page = await pageResponse.json() as {
+      type?: string;
+      partOf?: string;
+      orderedItems?: string[];
+      next?: string;
+    };
+    assert.equal(page.type, "OrderedCollectionPage");
+    assert.equal(
+      page.partOf,
+      `http://localhost/ap/replies/articles/${articleSourceId}`,
+    );
+    assert.deepEqual(page.orderedItems, [
+      publicReply.iri,
+      unlistedReply.iri,
+    ]);
+    assert.equal(page.next, undefined);
+  });
+});
+
+test("replies collection paginates public replies", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "apreplypageauthor",
+      name: "AP Reply Page Author",
+      email: "apreplypageauthor@example.com",
+    });
+    const replier = await insertAccountWithActor(tx, {
+      username: "apreplypagereplier",
+      name: "AP Reply Page Replier",
+      email: "apreplypagereplier@example.com",
+    });
+    const { noteSourceId, post: root } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Paginate my replies",
+    });
+    const replies: { iri: string }[] = [];
+    for (let index = 0; index < 51; index++) {
+      const { post } = await insertNotePost(tx, {
+        account: replier.account,
+        content: `Reply ${index}`,
+        replyTargetId: root.id,
+        published: new Date(Date.UTC(2026, 3, 15, 0, index, 0)),
+      });
+      replies.push(post);
+    }
+    const federation = await builder.build({
+      kv: new MemoryKvStore(),
+      origin: "http://localhost/",
+    });
+    const contextData = {
+      db: tx,
+      kv: createTestKv().kv,
+      disk: createTestDisk(),
+      models: {} as ContextData["models"],
+    };
+
+    const rootResponse = await federation.fetch(
+      new Request(
+        `http://localhost/ap/replies/notes/${noteSourceId}`,
+        { headers: { Accept: "application/activity+json" } },
+      ),
+      { contextData },
+    );
+    assert.equal(rootResponse.status, 200);
+    const collection = await rootResponse.json() as {
+      totalItems?: number;
+      first?: string | { id?: string; "@id"?: string };
+    };
+    assert.equal(collection.totalItems, 51);
+    const first = typeof collection.first === "string"
+      ? collection.first
+      : collection.first?.id ?? collection.first?.["@id"];
+    assert.ok(first != null);
+
+    const firstPageResponse = await federation.fetch(
+      new Request(first, { headers: { Accept: "application/activity+json" } }),
+      { contextData },
+    );
+    assert.equal(firstPageResponse.status, 200);
+    const firstPage = await firstPageResponse.json() as {
+      orderedItems?: string[];
+      next?: string;
+    };
+    assert.deepEqual(
+      firstPage.orderedItems,
+      replies.slice(1).toReversed().map((post) => post.iri),
+    );
+    assert.ok(firstPage.next != null);
+
+    const secondPageResponse = await federation.fetch(
+      new Request(firstPage.next, {
+        headers: { Accept: "application/activity+json" },
+      }),
+      { contextData },
+    );
+    assert.equal(secondPageResponse.status, 200);
+    const secondPage = await secondPageResponse.json() as {
+      orderedItems?: string[];
+      next?: string;
+    };
+    assert.deepEqual(secondPage.orderedItems, [replies[0].iri]);
+    assert.equal(secondPage.next, undefined);
+  });
+});
+
+test("replies collection hides private, censored, and sanction-hidden roots", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "apreplyhiddenroot",
+      name: "AP Reply Hidden Root",
+      email: "apreplyhiddenroot@example.com",
+    });
+    const hiddenAuthor = await insertAccountWithActor(tx, {
+      username: "apreplysanctionroot",
+      name: "AP Reply Sanction Root",
+      email: "apreplysanctionroot@example.com",
+    });
+    const { noteSourceId: privateSourceId } = await insertNotePost(tx, {
+      account: author.account,
+      visibility: "followers",
+      content: "Private root",
+    });
+    const { noteSourceId: censoredSourceId, post: censoredRoot } =
+      await insertNotePost(tx, {
+        account: author.account,
+        content: "Censored root",
+      });
+    await tx.update(postTable)
+      .set({ censored: new Date("2026-04-15T00:00:00.000Z") })
+      .where(eq(postTable.id, censoredRoot.id));
+    const { noteSourceId: sanctionedSourceId } = await insertNotePost(tx, {
+      account: hiddenAuthor.account,
+      content: "Sanction-hidden root",
+    });
+    await tx.update(actorTable)
+      .set({ suspended: new Date("2026-04-15T00:00:00.000Z") })
+      .where(eq(actorTable.id, hiddenAuthor.actor.id));
+    const federation = await builder.build({
+      kv: new MemoryKvStore(),
+      origin: "http://localhost/",
+    });
+    const contextData = {
+      db: tx,
+      kv: createTestKv().kv,
+      disk: createTestDisk(),
+      models: {} as ContextData["models"],
+    };
+
+    for (const id of [privateSourceId, censoredSourceId, sanctionedSourceId]) {
+      const response = await federation.fetch(
+        new Request(
+          `http://localhost/ap/replies/notes/${id}`,
+          { headers: { Accept: "application/activity+json" } },
+        ),
+        { contextData },
+      );
+      assert.equal(response.status, 404);
+    }
   });
 });
 
