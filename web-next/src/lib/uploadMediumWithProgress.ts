@@ -60,12 +60,13 @@ export interface UploadHandle {
 
 export function uploadMediumFile(
   file: File,
+  contentType: string,
   onProgress?: (progress: number) => void,
 ): UploadHandle {
   const controller = new AbortController();
 
   const result = (async () => {
-    const session = await startMediumUploadOnServer(file.size, file.type);
+    const session = await startMediumUploadOnServer(file.size, contentType);
     if (controller.signal.aborted) throw new UploadAbortedError();
     await xhrUpload(
       session.method,

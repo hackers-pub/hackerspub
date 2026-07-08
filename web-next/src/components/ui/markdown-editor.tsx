@@ -27,15 +27,12 @@ import {
   Show,
   splitProps,
 } from "solid-js";
+import {
+  hasSupportedImageContentType,
+  supportedImageMimeAccept,
+} from "~/lib/supportedImageFile.ts";
 import { cn } from "~/lib/utils.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-
-const SUPPORTED_IMAGE_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/gif",
-  "image/webp",
-];
 
 export interface MarkdownEditorProps {
   value?: string;
@@ -357,7 +354,7 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
     const view = editorView();
     if (!input.files || !view) return;
     for (const file of Array.from(input.files)) {
-      if (SUPPORTED_IMAGE_TYPES.includes(file.type)) {
+      if (hasSupportedImageContentType(file)) {
         handleImageUpload(file, view, view.state.selection.main.head);
       }
     }
@@ -422,7 +419,7 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
           const files = event.dataTransfer?.files;
           if (!files || files.length === 0) return false;
           const imageFiles = Array.from(files).filter((f) =>
-            SUPPORTED_IMAGE_TYPES.includes(f.type)
+            hasSupportedImageContentType(f)
           );
           if (imageFiles.length === 0) return false;
           event.preventDefault();
@@ -441,19 +438,15 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
           if (!items) return false;
           const itemList = Array.from(items);
           for (const item of itemList) {
-            if (
-              item.kind === "file" &&
-              SUPPORTED_IMAGE_TYPES.includes(item.type)
-            ) {
+            if (item.kind !== "file") continue;
+            const file = item.getAsFile();
+            if (file != null && hasSupportedImageContentType(file)) {
               event.preventDefault();
-              const file = item.getAsFile();
-              if (file) {
-                handleImageUpload(
-                  file,
-                  view,
-                  view.state.selection.main.head,
-                );
-              }
+              handleImageUpload(
+                file,
+                view,
+                view.state.selection.main.head,
+              );
               return true;
             }
           }
@@ -619,7 +612,7 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/jpeg,image/png,image/gif,image/webp"
+              accept={supportedImageMimeAccept}
               class="hidden"
               onChange={handleFileSelect}
             />

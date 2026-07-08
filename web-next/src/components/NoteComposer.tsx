@@ -46,6 +46,11 @@ import {
   uploadMediumFile,
 } from "~/lib/uploadMediumWithProgress.ts";
 import {
+  getSupportedImageContentType,
+  isSupportedImageFile,
+  supportedImageAccept,
+} from "~/lib/supportedImageFile.ts";
+import {
   ActingAccountSelect,
   useComposeActingAccountOptions,
 } from "~/components/ActingAccountSelect.tsx";
@@ -353,13 +358,6 @@ const NoteComposerGeneratedAltTextQuery = graphql`
     }
   }
 `;
-
-const SUPPORTED_IMAGE_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/gif",
-  "image/webp",
-];
 
 const MAX_MEDIA = 20;
 const MIN_POLL_OPTIONS = 2;
@@ -1096,7 +1094,7 @@ export function NoteComposer(props: NoteComposerProps) {
       previousLoadedDraftKey !== key &&
       isDirty()
     );
-    loadDraftFromStorage(key, scope, shouldPreserveCurrentForm);
+    untrack(() => loadDraftFromStorage(key, scope, shouldPreserveCurrentForm));
   });
 
   onCleanup(subscribeNoteDraftChanges((change) => {
@@ -1353,9 +1351,7 @@ export function NoteComposer(props: NoteComposerProps) {
 
   const addFiles = (files: FileList | File[]) => {
     if (props.editingNoteId) return;
-    const fileArray = Array.from(files).filter((f) =>
-      SUPPORTED_IMAGE_TYPES.includes(f.type)
-    );
+    const fileArray = Array.from(files).filter(isSupportedImageFile);
     if (fileArray.length === 0) return;
 
     const current = mediaItems;
@@ -1382,7 +1378,11 @@ export function NoteComposer(props: NoteComposerProps) {
     // start, avoiding a second setMediaItems pass for each file.
     const newItems: MediaItem[] = toAdd.map((file) => {
       const localId = createLocalId();
-      const handle = uploadMediumFile(file, (progress) => {
+      const contentType = getSupportedImageContentType(file);
+      if (contentType == null) {
+        throw new Error("Expected supported image content type");
+      }
+      const handle = uploadMediumFile(file, contentType, (progress) => {
         setMediaItems(produce((items) => {
           const m = items.find((m) => m.localId === localId);
           if (m) m.uploadProgress = progress;
@@ -1441,7 +1441,7 @@ export function NoteComposer(props: NoteComposerProps) {
     const files = e.clipboardData?.files;
     if (files && files.length > 0) {
       const imageFiles = Array.from(files).filter((f) =>
-        SUPPORTED_IMAGE_TYPES.includes(f.type)
+        isSupportedImageFile(f)
       );
       if (imageFiles.length > 0) {
         e.preventDefault();
@@ -2184,7 +2184,7 @@ export function NoteComposer(props: NoteComposerProps) {
               <input
                 ref={(el) => (fileInputRef = el)}
                 type="file"
-                accept={SUPPORTED_IMAGE_TYPES.join(",")}
+                accept={supportedImageAccept}
                 multiple
                 class="hidden"
                 onChange={(e) => {
