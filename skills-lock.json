@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "graphql-schema-design": {
+      "source": "ChilliCream/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/graphql-schema-design/SKILL.md",
+      "computedHash": "daa7be0631ea37c02ea9e000cfabb867c84fae2e958445beb1f63521f602e448"
+    }
+  }
+}
