@@ -579,6 +579,7 @@ export function NoteComposer(props: NoteComposerProps) {
   // Tracks the currently pre-filled mention string so we can detect whether
   // the user has edited the content away from the auto-fill.
   let prefillRef = initialEditContent;
+  let replyPrefillTargetId: string | null = null;
 
   // When edit mode is (re-)activated, sync form state from the new props.
   // The `on()` helper ensures this only re-runs when editingNoteId changes,
@@ -598,6 +599,7 @@ export function NoteComposer(props: NoteComposerProps) {
         setLanguage(lang ? new Intl.Locale(lang) : undefined);
         setManualLanguageChange(true);
         if (qp) setQuotePolicy(qp as QuotePolicy);
+        replyPrefillTargetId = null;
         setEditorResetKey((k) => k + 1);
       },
     ),
@@ -1260,6 +1262,7 @@ export function NoteComposer(props: NoteComposerProps) {
       if (!props.editingNoteId && !props.initialContent) {
         if (content() === prefillRef) setContent("");
         prefillRef = "";
+        replyPrefillTargetId = null;
       }
       return;
     }
@@ -1321,6 +1324,7 @@ export function NoteComposer(props: NoteComposerProps) {
         const newPrefill = mentionHandles.map((h) => `${h} `).join("");
         const oldPrefill = prefillRef;
         prefillRef = newPrefill;
+        replyPrefillTargetId = id;
         if (content() === "" || content() === oldPrefill) {
           setContent(newPrefill);
         }
@@ -1621,6 +1625,7 @@ export function NoteComposer(props: NoteComposerProps) {
       revokePreviewUrl(item.previewUrl);
     }
     prefillRef = "";
+    replyPrefillTargetId = null;
     setContent("");
     setVisibility(props.defaultVisibility ?? "PUBLIC");
     setQuotePolicy("EVERYONE");
@@ -1638,12 +1643,26 @@ export function NoteComposer(props: NoteComposerProps) {
   }
 
   function resetFormForDraftScope(scope: NoteDraftScope) {
+    const currentContent = untrack(content);
+    const currentPrefill = prefillRef;
+    const currentReplyPrefillTargetId = replyPrefillTargetId;
     resetForm();
-    if (scope.type !== "prefill") return;
-    const initialContent = props.initialContent ?? "";
-    prefillRef = initialContent;
-    setContent(initialContent);
-    setEditorResetKey((k) => k + 1);
+    if (scope.type === "prefill") {
+      const initialContent = props.initialContent ?? "";
+      prefillRef = initialContent;
+      setContent(initialContent);
+      setEditorResetKey((k) => k + 1);
+    } else if (
+      scope.type === "reply" &&
+      currentPrefill !== "" &&
+      currentContent === currentPrefill &&
+      currentReplyPrefillTargetId === scope.targetId
+    ) {
+      prefillRef = currentPrefill;
+      replyPrefillTargetId = currentReplyPrefillTargetId;
+      setContent(currentPrefill);
+      setEditorResetKey((k) => k + 1);
+    }
   }
 
   const handleSubmit = (e: Event) => {
