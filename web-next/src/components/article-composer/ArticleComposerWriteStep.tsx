@@ -4,7 +4,9 @@ import { useNavigate } from "@solidjs/router";
 import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { uploadImage } from "~/lib/uploadImage.ts";
+import { getSupportedImageContentType } from "~/lib/supportedImageFile.ts";
+import { uploadMediumFile } from "~/lib/uploadMediumWithProgress.ts";
+import { attachArticleDraftMediumOnServer } from "~/lib/uploadImage.ts";
 import { useArticleComposer } from "./ArticleComposerContext.tsx";
 import { ComposerActionBar } from "./shared/ComposerActionBar.tsx";
 import { ComposerEditorPanes } from "./shared/ComposerEditorPanes.tsx";
@@ -17,8 +19,14 @@ export function ArticleComposerWriteStep() {
 
   const handleImageUpload = async (file: File): Promise<{ url: string }> => {
     try {
-      const result = await uploadImage(file, ctx.draftUuid);
-      return { url: result.url };
+      const contentType = getSupportedImageContentType(file);
+      if (contentType == null) throw new Error(t`Failed to upload image`);
+      const result = await uploadMediumFile(file, contentType).result;
+      const key = await attachArticleDraftMediumOnServer(
+        ctx.draftUuid,
+        result.uuid,
+      );
+      return { url: `hp-medium:${key}` };
     } catch (error) {
       showToast({
         title: t`Error`,

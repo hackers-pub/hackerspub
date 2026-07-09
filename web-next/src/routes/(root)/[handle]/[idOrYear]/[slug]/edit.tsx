@@ -29,7 +29,9 @@ import { ComposerEditorPanes } from "~/components/article-composer/shared/Compos
 import { ComposerTitleField } from "~/components/article-composer/shared/ComposerTitleField.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { uploadImageForArticleSource } from "~/lib/uploadImage.ts";
+import { getSupportedImageContentType } from "~/lib/supportedImageFile.ts";
+import { uploadMediumFile } from "~/lib/uploadMediumWithProgress.ts";
+import { attachArticleSourceMediumOnServer } from "~/lib/uploadImage.ts";
 import type { editPageQuery } from "./__generated__/editPageQuery.graphql.ts";
 import type {
   edit_article$data,
@@ -406,12 +408,15 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
     }
     try {
       const actingAccountId = actingAccountIdForArticle();
-      const result = await uploadImageForArticleSource(
-        file,
+      const contentType = getSupportedImageContentType(file);
+      if (contentType == null) throw new Error(t`Failed to upload image`);
+      const result = await uploadMediumFile(file, contentType).result;
+      const key = await attachArticleSourceMediumOnServer(
         sourceId,
+        result.uuid,
         actingAccountId ?? null,
       );
-      return { url: result.url };
+      return { url: `hp-medium:${key}` };
     } catch (error) {
       showToast({
         title: t`Error`,

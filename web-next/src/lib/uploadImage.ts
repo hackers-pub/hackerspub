@@ -127,7 +127,7 @@ export async function createMediumFromDataUrl(
   throw new Error("Upload failed");
 }
 
-async function attachArticleDraftMediumOnServer(
+export async function attachArticleDraftMediumOnServer(
   draftId: string,
   mediumId: string,
 ): Promise<string> {
@@ -184,7 +184,7 @@ export async function uploadImage(
   return { ...medium, url: `hp-medium:${key}` };
 }
 
-async function attachArticleSourceMediumOnServer(
+export async function attachArticleSourceMediumOnServer(
   articleSourceId: string,
   mediumId: string,
   actingAccountId?: string | null,
