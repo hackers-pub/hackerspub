@@ -2190,7 +2190,7 @@ export function NoteComposer(props: NoteComposerProps) {
             />
           </Show>
 
-          <TextField value={content()} onChange={setContent}>
+          <TextField>
             <TextFieldLabel class="sr-only">{t`Content`}</TextFieldLabel>
             <MarkdownEditor
               value={content()}
