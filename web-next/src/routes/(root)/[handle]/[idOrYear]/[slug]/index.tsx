@@ -950,6 +950,19 @@ function ArticleReplies(props: ArticleRepliesProps) {
         replies(first: 0, actingAccountId: $actingAccountId) {
           totalCount
         }
+        descendants(
+          first: 60
+          actingAccountId: $actingAccountId
+        )
+          @connection(key: "PermalinkThreadTree_descendants")
+        {
+          __id
+          edges {
+            node {
+              id
+            }
+          }
+        }
         ...PermalinkThreadTree_post @arguments(
           actingAccountId: $actingAccountId
         )
@@ -994,6 +1007,9 @@ function ArticleReplies(props: ArticleRepliesProps) {
                 <NoteComposer
                   replyTargetId={article.id}
                   placeholder={t`Write a reply…`}
+                  appendToConnections={article.descendants == null
+                    ? []
+                    : [article.descendants.__id]}
                   onSuccess={() => void revalidate(ARTICLE_PAGE_QUERY_KEY)}
                 />
               </div>

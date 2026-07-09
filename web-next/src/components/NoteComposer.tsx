@@ -1,5 +1,10 @@
 import { useNavigate } from "@solidjs/router";
-import { ConnectionHandler, fetchQuery, graphql } from "relay-runtime";
+import {
+  ConnectionHandler,
+  fetchQuery,
+  graphql,
+  type RecordSourceSelectorProxy,
+} from "relay-runtime";
 import { createStore, produce } from "solid-js/store";
 import IconFileText from "~icons/lucide/file-text";
 import IconImage from "~icons/lucide/image";
@@ -112,11 +117,19 @@ const NoteComposerMutation = graphql`
           id
           uuid
           sourceId
+          replyTarget(actingAccountId: $actingAccountId) {
+            id
+          }
+          hasVisibleReplies(actingAccountId: $actingAccountId)
           actor {
+            id
             handle
             username
             local
           }
+          ...PermalinkThread_replyNode @arguments(
+            actingAccountId: $actingAccountId
+          )
           # Only news-discussion posts prepend into a connection and need the
           # row fields; skip them for every other compose/reply/quote path.
           ...NewsDiscussionThread_post
@@ -150,6 +163,18 @@ const NoteComposerQuestionMutation = graphql`
             edgeTypeName: "PostLinkSharingPostsConnectionEdge"
           ) {
           id
+          uuid
+          sourceId
+          replyTarget(actingAccountId: $actingAccountId) {
+            id
+          }
+          hasVisibleReplies(actingAccountId: $actingAccountId)
+          actor {
+            id
+          }
+          ...PermalinkThread_replyNode @arguments(
+            actingAccountId: $actingAccountId
+          )
           ...NewsDiscussionThread_post
             @arguments(actingAccountId: $actingAccountId)
             @include(if: $includeDiscussionThreadFields)
@@ -464,6 +489,9 @@ export interface NoteComposerProps {
   // New notes only: Relay connection record ids to prepend the created note's
   // edge into, so the new note appears in those lists without a refetch.
   prependToConnections?: string[];
+  // New notes only: Relay connection record ids to append the created note's
+  // edge into, for chronological reply trees such as article comments.
+  appendToConnections?: string[];
   // New notes only: controls browser-side local draft reads and writes. Modal
   // composers stay mounted while closed, so they disable this when hidden.
   draftActive?: boolean;
@@ -733,6 +761,48 @@ export function NoteComposer(props: NoteComposerProps) {
     ].map((connectionKey) =>
       ConnectionHandler.getConnectionID(viewerId, connectionKey)
     );
+  };
+  const appendCreatedPostToConnections = (
+    store: RecordSourceSelectorProxy,
+    rootFieldName: "createNote" | "createQuestion",
+    postFieldName: "note" | "question",
+  ): boolean => {
+    const payload = store.getRootField(rootFieldName);
+    if (
+      payload?.getValue("__typename") !==
+        (rootFieldName === "createNote"
+          ? "CreateNotePayload"
+          : "CreateQuestionPayload")
+    ) {
+      return false;
+    }
+    const post = payload.getLinkedRecord(postFieldName);
+    if (post == null) return false;
+    const connections = props.appendToConnections ?? [];
+    for (const connectionId of connections) {
+      const connection = store.get(connectionId);
+      if (connection == null) continue;
+      const edge = ConnectionHandler.createEdge(
+        store,
+        connection,
+        post,
+        "PostDescendantsConnectionEdge",
+      );
+      ConnectionHandler.insertEdgeAfter(connection, edge);
+    }
+    return true;
+  };
+  const incrementReplyCount = (store: RecordSourceSelectorProxy) => {
+    if (props.replyTargetId == null) return;
+    const target = store.get(props.replyTargetId);
+    const replies = target?.getLinkedRecord("replies", {
+      first: 0,
+      actingAccountId: actingAccountInput().actingAccountId ?? null,
+    });
+    if (replies == null) return;
+    const totalCount = replies.getValue("totalCount");
+    if (typeof totalCount !== "number") return;
+    replies.setValue(totalCount + 1, "totalCount");
   };
 
   const getBrowserDraftStorage = () => {
@@ -1778,6 +1848,17 @@ export function NoteComposer(props: NoteComposerProps) {
             includeDiscussionThreadFields:
               (props.prependToConnections?.length ?? 0) > 0,
           },
+          updater(store) {
+            if (
+              appendCreatedPostToConnections(
+                store,
+                "createQuestion",
+                "question",
+              )
+            ) {
+              incrementReplyCount(store);
+            }
+          },
           onCompleted(response) {
             if (
               response.createQuestion.__typename === "CreateQuestionPayload"
@@ -1839,6 +1920,11 @@ export function NoteComposer(props: NoteComposerProps) {
           actingAccountId: actingAccountInput().actingAccountId ?? null,
           includeDiscussionThreadFields:
             (props.prependToConnections?.length ?? 0) > 0,
+        },
+        updater(store) {
+          if (appendCreatedPostToConnections(store, "createNote", "note")) {
+            incrementReplyCount(store);
+          }
         },
         onCompleted(response) {
           if (response.createNote.__typename === "CreateNotePayload") {
