@@ -34,6 +34,13 @@ const linkMetadata: Record<string, LinkMetadata> = {
   "https://www.facebook.com/zuck": { icon: "facebook", "handle": "zuck" },
   "https://www.facebook.com/profile.php?id=4": { icon: "facebook" },
   "https://github.com/dahlia": { icon: "github", handle: "@dahlia" },
+  "https://github.com/hackers-pub/hackerspub": {
+    icon: "github",
+    handle: "hackers-pub/hackerspub",
+  },
+  "https://github.com/hackers-pub/hackerspub/issues/331": {
+    icon: "github",
+  },
   "https://gitlab.com/hongminhee": { icon: "gitlab", handle: "@hongminhee" },
   "https://news.ycombinator.com/user?id=dahlia": {
     icon: "hackernews",

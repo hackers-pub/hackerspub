@@ -44,7 +44,7 @@ import {
   reactionTable,
 } from "./schema.ts";
 import { removePostsFromTimeline } from "./timeline.ts";
-import { compactUrl } from "./url.ts";
+import { getAccountLinkDisplayText } from "./url.ts";
 import type { Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "account"]);
@@ -938,8 +938,16 @@ export async function fetchAccountLinkMetadata(
     const m = url.pathname.match(/^\/+([^/]+)\/*/);
     if (m != null) return { icon: "facebook", handle: m[1] };
   } else if (host === "github.com") {
-    const m = url.pathname.match(/^\/+([^/]+)\/*/);
-    if (m != null) return { icon: "github", handle: `@${m[1]}` };
+    const segments = url.pathname.split("/").filter((segment) =>
+      segment !== ""
+    );
+    if (segments.length === 1) {
+      return { icon: "github", handle: `@${segments[0]}` };
+    }
+    if (segments.length === 2) {
+      return { icon: "github", handle: segments.join("/") };
+    }
+    return { icon: "github" };
   } else if (host === "gitlab.com") {
     const m = url.pathname.match(/^\/+([^/]+)\/*/);
     if (m != null) return { icon: "gitlab", handle: `@${m[1]}` };
@@ -1043,7 +1051,7 @@ export function renderAccountLinks(links: AccountLink[]): PropertyValue[] {
     new PropertyValue({
       name: link.name,
       value: `<a href="${escape(link.url)}" rel="me" translate="no">${
-        escape(link.handle ?? compactUrl(link.url))
+        escape(getAccountLinkDisplayText(link.url, link.handle))
       }</a>`,
     })
   );

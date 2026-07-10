@@ -3,7 +3,7 @@ import { getAvatarUrl } from "@hackerspub/models/avatar";
 import { renderCustomEmojis } from "@hackerspub/models/emoji";
 import { preprocessContentHtml, sanitizeHtml } from "@hackerspub/models/html";
 import type { AccountLink, Actor } from "@hackerspub/models/schema";
-import { compactUrl } from "@hackerspub/models/url";
+import { getAccountLinkDisplayText } from "@hackerspub/models/url";
 import { escape } from "@std/html/entities";
 import { ConfirmForm } from "../islands/ConfirmForm.tsx";
 import { Link } from "../islands/Link.tsx";
@@ -364,7 +364,7 @@ export function Profile(
                   </dt>
                   <dd key={`dd-${link.index}`} class="mr-2 flex flex-row">
                     <a href={link.url} rel="me">
-                      {link.handle ?? compactUrl(link.url)}
+                      {getAccountLinkDisplayText(link.url, link.handle)}
                     </a>
                     {link.verified &&
                       (

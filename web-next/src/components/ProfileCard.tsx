@@ -1,4 +1,4 @@
-import { compactUrl } from "@hackerspub/models/url";
+import { getAccountLinkDisplayText } from "@hackerspub/models/url";
 import { graphql } from "relay-runtime";
 import { createSignal, For, Show } from "solid-js";
 import { createFragment } from "solid-relay";
@@ -363,7 +363,7 @@ export function ProfileCard(props: ProfileCardProps) {
                               {link.name}
                             </span>
                             <a href={link.url}>
-                              {link.handle ?? compactUrl(link.url)}
+                              {getAccountLinkDisplayText(link.url, link.handle)}
                             </a>
                             <Show keyed when={link.verified}>
                               {(verified) => (
