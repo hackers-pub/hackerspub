@@ -1712,6 +1712,65 @@ test("persistSharedPost() updates an existing boost of the same post", async () 
   });
 });
 
+test("persistSharedPost() reuses a boost with the same activity IRI", async () => {
+  await withRollback(async (tx) => {
+    const booster = await insertRemoteActor(tx, {
+      username: "reusediribooster",
+      name: "Reused IRI Booster",
+      host: "remote.example",
+    });
+    const originalAuthor = await insertRemoteActor(tx, {
+      username: "reusediriauthor",
+      name: "Reused IRI Author",
+      host: "remote.example",
+    });
+    const previousOriginal = await insertRemotePost(tx, {
+      actorId: originalAuthor.id,
+      contentHtml: "<p>Previous boosted post</p>",
+      sharesCount: 1,
+    });
+    const currentOriginal = await insertRemotePost(tx, {
+      actorId: originalAuthor.id,
+      contentHtml: "<p>Current boosted post</p>",
+      sharesCount: 0,
+    });
+    const existingShare = await insertRemotePost(tx, {
+      actorId: booster.id,
+      sharedPostId: previousOriginal.id,
+      contentHtml: "<p>Stale boost wrapper</p>",
+    });
+    const announceIri = "https://remote.example/announces/reused-iri";
+    await tx.update(postTable)
+      .set({ iri: announceIri })
+      .where(eq(postTable.id, existingShare.id));
+    const announce = new Announce({
+      id: new URL(announceIri),
+      actor: new URL(booster.iri),
+      to: PUBLIC_COLLECTION,
+      object: new Note({
+        id: new URL(currentOriginal.iri),
+        attribution: new URL(originalAuthor.iri),
+        to: PUBLIC_COLLECTION,
+        content: "Current boosted post",
+      }),
+    });
+
+    const shared = await persistSharedPost(createFedCtx(tx), announce);
+
+    assert.ok(shared != null);
+    assert.equal(shared.id, existingShare.id);
+    assert.equal(shared.sharedPostId, currentOriginal.id);
+    const previousAfter = await tx.query.postTable.findFirst({
+      where: { id: previousOriginal.id },
+    });
+    const currentAfter = await tx.query.postTable.findFirst({
+      where: { id: currentOriginal.id },
+    });
+    assert.equal(previousAfter?.sharesCount, 0);
+    assert.equal(currentAfter?.sharesCount, 1);
+  });
+});
+
 test("persistPost() drops an authorized quote of a censored post", async () => {
   await withRollback(async (tx) => {
     const author = await insertAccountWithActor(tx, {

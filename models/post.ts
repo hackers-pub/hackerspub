@@ -48,7 +48,12 @@ import {
 } from "./article.ts";
 import type { ContextData } from "./context.ts";
 import { toDate } from "./date.ts";
-import type { Database, RelationsFilter, Transaction } from "./db.ts";
+import {
+  type Database,
+  type RelationsFilter,
+  runInTransaction,
+  type Transaction,
+} from "./db.ts";
 import { extractExternalLinks, stripHtml } from "./html.ts";
 import { getMissingArticleMediumLabel, renderMarkup } from "./markup.ts";
 import { persistPostMedium } from "./medium.ts";
@@ -1786,6 +1791,7 @@ export async function persistSharedPost(
     );
     return;
   }
+  const announceId = announce.id.href;
   const { db } = ctx.data;
   // One deadline for this entire operation.  Reuse the caller's signal when
   // available so pre-persistPost fetches (getActor, getObject) and the
@@ -1827,7 +1833,7 @@ export async function persistSharedPost(
   const to = new Set(announce.toIds.map((u) => u.href));
   const cc = new Set(announce.ccIds.map((u) => u.href));
   const values: Omit<NewPost, "id"> = {
-    iri: announce.id.href,
+    iri: announceId,
     type: post.type,
     visibility: to.has(PUBLIC_COLLECTION.href)
       ? "public"
@@ -1849,22 +1855,88 @@ export async function persistSharedPost(
     updated: toDate(announce.updated ?? announce.published) ?? undefined,
     published: toDate(announce.published) ?? undefined,
   };
-  const id = generateUuidV7();
-  const rows = await db.insert(postTable)
-    .values({ id, ...values })
-    .onConflictDoUpdate({
-      target: [postTable.actorId, postTable.sharedPostId],
-      set: values,
-      setWhere: and(
-        eq(postTable.actorId, actor.id),
-        eq(postTable.sharedPostId, post.id),
-      ),
-    })
-    .returning();
-  if (rows.length < 1) return undefined;
-  if (rows[0].id === id) await updateSharesCount(db, post, 1);
-  await refreshNewsScores(db, [post.type === "Article" ? post.linkId : null]);
-  return { ...rows[0], actor, sharedPost: post };
+  return await runInTransaction(db, async (tx) => {
+    const lockKeys = [
+      `announce:${announceId}`,
+      `share:${actor.id}:${post.id}`,
+    ].sort();
+    for (const lockKey of lockKeys) {
+      await tx.execute(sql`
+        SELECT pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))
+      `);
+    }
+
+    const existingByIri = await tx.query.postTable.findFirst({
+      where: { iri: announceId },
+    });
+    if (existingByIri != null && existingByIri.sharedPostId == null) {
+      logger.warn(
+        "Dropping Announce {announceId}: its IRI belongs to a non-share post.",
+        { announceId },
+      );
+      return undefined;
+    }
+    const existingByPair = await tx.query.postTable.findFirst({
+      where: { actorId: actor.id, sharedPostId: post.id },
+    });
+    const affectedNewsLinkIds = new Set<Uuid>();
+    if (post.type === "Article" && post.linkId != null) {
+      affectedNewsLinkIds.add(post.linkId);
+    }
+
+    if (
+      existingByIri != null && existingByPair != null &&
+      existingByIri.id !== existingByPair.id
+    ) {
+      logger.warn(
+        "Keeping existing share {shareId}: Announce {announceId} also belongs to share {iriShareId}.",
+        {
+          shareId: existingByPair.id,
+          announceId,
+          iriShareId: existingByIri.id,
+        },
+      );
+      await refreshNewsScores(tx, [...affectedNewsLinkIds]);
+      return { ...existingByPair, actor, sharedPost: post };
+    }
+    const existing = existingByIri ?? existingByPair;
+
+    let persistedShare: Post;
+    if (existing == null) {
+      const rows = await tx.insert(postTable)
+        .values({ id: generateUuidV7(), ...values })
+        .returning();
+      if (rows.length < 1) return undefined;
+      persistedShare = rows[0];
+      await updateSharesCount(tx, post, 1);
+    } else {
+      const rows = await tx.update(postTable)
+        .set(values)
+        .where(eq(postTable.id, existing.id))
+        .returning();
+      if (rows.length < 1) return undefined;
+      persistedShare = rows[0];
+      if (existing.sharedPostId !== post.id) {
+        if (existing.sharedPostId != null) {
+          const previousPost = await tx.query.postTable.findFirst({
+            where: { id: existing.sharedPostId },
+          });
+          if (previousPost != null) {
+            await updateSharesCount(tx, previousPost, -1);
+            if (
+              previousPost.type === "Article" && previousPost.linkId != null
+            ) {
+              affectedNewsLinkIds.add(previousPost.linkId);
+            }
+          }
+        }
+        await updateSharesCount(tx, post, 1);
+      }
+    }
+
+    await refreshNewsScores(tx, [...affectedNewsLinkIds]);
+    return { ...persistedShare, actor, sharedPost: post };
+  });
 }
 
 async function getOriginalSharedPost(
