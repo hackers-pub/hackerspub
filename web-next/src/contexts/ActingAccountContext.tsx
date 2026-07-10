@@ -8,6 +8,10 @@ import {
   useContext,
 } from "solid-js";
 import { isServer } from "solid-js/web";
+import {
+  readBrowserLocalStorage,
+  writeBrowserLocalStorage,
+} from "~/lib/browserStorage.ts";
 
 const STORAGE_KEY = "hackerspub:acting-account";
 
@@ -112,7 +116,7 @@ export const ActingAccountProvider: ParentComponent = (props) => {
 
   const persistSelectedKey = (key: string) => {
     if (isServer) return;
-    localStorage.setItem(STORAGE_KEY, key);
+    writeBrowserLocalStorage(STORAGE_KEY, key);
   };
 
   const setSelectedKey = (key: string) => {
@@ -134,7 +138,7 @@ export const ActingAccountProvider: ParentComponent = (props) => {
 
   onMount(() => {
     if (!isServer) {
-      const storedKey = localStorage.getItem(STORAGE_KEY);
+      const storedKey = readBrowserLocalStorage(STORAGE_KEY);
       if (storedKey != null) setSelectedKeySignal(storedKey);
       setStorageLoaded(true);
     }

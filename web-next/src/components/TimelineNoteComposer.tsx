@@ -10,6 +10,7 @@ import IconPencil from "~icons/lucide/pencil";
 import { NoteComposer } from "~/components/NoteComposer.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
+import { getBrowserLocalStorage } from "~/lib/browserStorage.ts";
 import {
   getNoteDraftStorageKey,
   readNoteDraft,
@@ -36,13 +37,7 @@ export function TimelineNoteComposer() {
       : getNoteDraftStorageKey(username, { type: "new" });
   });
 
-  const getBrowserDraftStorage = () => {
-    try {
-      return globalThis.localStorage;
-    } catch {
-      return undefined;
-    }
-  };
+  const getBrowserDraftStorage = getBrowserLocalStorage;
 
   const updateSavedDraftStatus = () => {
     const key = draftStorageKey();

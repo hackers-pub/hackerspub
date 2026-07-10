@@ -10,6 +10,10 @@ import {
 } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
+import {
+  readBrowserLocalStorage,
+  writeBrowserLocalStorage,
+} from "~/lib/browserStorage.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { createStablePreloadedQuery } from "~/lib/relayPreload.ts";
 import { cn } from "~/lib/utils.ts";
@@ -87,11 +91,7 @@ function FollowRecommendationsInner(props: { storageKey: string }) {
   );
 
   const handleDismiss = () => {
-    try {
-      localStorage.setItem(props.storageKey, "1");
-    } catch {
-      // storage unavailable, ignore
-    }
+    writeBrowserLocalStorage(props.storageKey, "1");
     setDismissed(true);
   };
 
@@ -233,12 +233,8 @@ export function FollowRecommendations(props: FollowRecommendationsProps) {
     if (!viewer.isLoaded() || !viewer.isAuthenticated()) return;
     const username = viewer.username();
     if (username == null) return;
-    let isDismissed = false;
-    try {
-      isDismissed = localStorage.getItem(getStorageKey(username)) === "1";
-    } catch {
-      // storage unavailable, ignore
-    }
+    const isDismissed = readBrowserLocalStorage(getStorageKey(username)) ===
+      "1";
     setDismissed(isDismissed);
     setDismissalLoaded(true);
   });

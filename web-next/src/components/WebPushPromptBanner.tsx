@@ -4,6 +4,10 @@ import { createMutation } from "solid-relay";
 import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import {
+  readBrowserLocalStorage,
+  writeBrowserLocalStorage,
+} from "~/lib/browserStorage.ts";
+import {
   getNotificationPermission,
   getReusableWebPushSubscriptionData,
   isWebPushSupported,
@@ -27,20 +31,13 @@ export interface WebPushPromptBannerProps {
 const DISMISSED_KEY = "hackerspub.webPushPrompt.dismissed";
 
 function getDismissedPreference(): boolean {
-  try {
-    return globalThis.localStorage?.getItem(DISMISSED_KEY) === "1";
-  } catch {
-    return false;
-  }
+  return readBrowserLocalStorage(DISMISSED_KEY) === "1";
 }
 
 function setDismissedPreference(): void {
-  try {
-    globalThis.localStorage?.setItem(DISMISSED_KEY, "1");
-  } catch {
-    // Storage can be unavailable in restricted WebViews. The in-memory
-    // signal still dismisses the current banner render.
-  }
+  // The in-memory signal still dismisses this render when restricted
+  // WebViews do not expose persistent storage.
+  writeBrowserLocalStorage(DISMISSED_KEY, "1");
 }
 
 const registerMutation = graphql`

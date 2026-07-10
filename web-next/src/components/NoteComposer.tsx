@@ -26,6 +26,7 @@ import {
   untrack,
 } from "solid-js";
 import { createMutation, useRelayEnvironment } from "solid-relay";
+import { getBrowserLocalStorage } from "~/lib/browserStorage.ts";
 import { ensureLinkInContent } from "~/lib/composerLink.ts";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { detectLanguage } from "~/lib/langdet.ts";
@@ -805,13 +806,7 @@ export function NoteComposer(props: NoteComposerProps) {
     replies.setValue(totalCount + 1, "totalCount");
   };
 
-  const getBrowserDraftStorage = () => {
-    try {
-      return globalThis.localStorage;
-    } catch {
-      return undefined;
-    }
-  };
+  const getBrowserDraftStorage = getBrowserLocalStorage;
 
   createEffect(() => {
     if (

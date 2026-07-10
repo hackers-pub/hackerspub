@@ -19,6 +19,7 @@ import {
   PERSONAL_COMPOSE_ACCOUNT_KEY,
   useActingAccount,
 } from "~/contexts/ActingAccountContext.tsx";
+import { getBrowserLocalStorage } from "~/lib/browserStorage.ts";
 import {
   buildNoteDraftContentFromArticle,
   shouldSuggestNoteForArticle,
@@ -463,13 +464,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
     }
   };
 
-  const getBrowserDraftStorage = () => {
-    try {
-      return globalThis.localStorage;
-    } catch {
-      return undefined;
-    }
-  };
+  const getBrowserDraftStorage = getBrowserLocalStorage;
 
   const getRouteUsername = () => {
     const handle = params.handle;
