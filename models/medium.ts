@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { type Context, getUserAgent } from "@fedify/fedify";
 import * as vocab from "@fedify/vocab";
+import { getLogger } from "@logtape/logtape";
 import ffmpeg from "fluent-ffmpeg";
 import type { Disk } from "flydrive";
 import sharp from "sharp";
@@ -22,6 +23,8 @@ import {
   type PostMediumType,
 } from "./schema.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
+
+const logger = getLogger(["hackerspub", "models", "medium"]);
 
 const mediaTypes: Record<string, PostMediumType> = {
   "gif": "image/gif",
@@ -375,14 +378,16 @@ export async function persistPostMedium(
   } else {
     return undefined;
   }
-  const response = await fetch(url, {
-    headers: {
-      "User-Agent": getUserAgent({
-        software: `HackersPub/${metadata.version}`,
-        url: new URL(fedCtx.canonicalOrigin),
-      }),
-    },
-  });
+  let response: Response;
+  try {
+    response = await fetchMediumUrl(url, new URL(fedCtx.canonicalOrigin));
+  } catch (error) {
+    logger.warn("Failed to fetch remote medium {url}: {error}", {
+      url: url.href,
+      error,
+    });
+    return undefined;
+  }
   if (!response.ok) return undefined;
   const contentType = response.headers.get("content-type");
   const responseMediumType = parsePostMediumType(contentType);

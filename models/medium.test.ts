@@ -287,6 +287,37 @@ test("persistPostMedium() ignores failed remote video responses", async () => {
   });
 });
 
+test("persistPostMedium() ignores remote transport failures", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const account = await insertAccountWithActor(tx, {
+      username: "unreachablemediaowner",
+      name: "Unreachable Media Owner",
+      email: "unreachablemediaowner@example.com",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: account.account,
+      content: "Post with unreachable media",
+    });
+
+    await withMockFetch(async () => {
+      throw new TypeError("DNS lookup failed");
+    }, async () => {
+      const medium = await persistPostMedium(
+        fedCtx,
+        new vocab.Image({
+          url: new URL("https://unreachable.example/media/image.png"),
+          mediaType: "image/png",
+        }),
+        post.id,
+        0,
+      );
+
+      assert.equal(medium, undefined);
+    });
+  });
+});
+
 test("persistPostMedium() ignores non-media remote video responses", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);
