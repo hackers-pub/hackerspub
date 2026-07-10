@@ -1,5 +1,5 @@
 import { getLogger } from "@logtape/logtape";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { type ApnsNotificationOptions, sendApnsNotification } from "./apns.ts";
 import { type FcmNotificationOptions, sendFcmNotification } from "./fcm.ts";
 import { sendWebPushNotification } from "./webpush.ts";
@@ -558,6 +558,52 @@ export async function deleteNotification(
   emoji?: string | CustomEmoji | null,
 ): Promise<Notification | undefined> {
   try {
+    if (type === "follow") {
+      return await runInTransaction(db, async (tx) => {
+        const rows = await tx.select().from(notificationTable)
+          .where(
+            and(
+              eq(notificationTable.accountId, accountId),
+              eq(notificationTable.type, "follow"),
+              sql`${actorId} = ANY(${notificationTable.actorIds})`,
+            ),
+          );
+        if (rows.length < 1) return undefined;
+
+        await tx.delete(notificationTable).where(
+          inArray(notificationTable.id, rows.map((row) => row.id)),
+        );
+
+        // Older versions merged follow notifications into actor arrays. Split
+        // any survivors into the current one-actor-per-row shape before
+        // inserting them back: updating [removed, survivor] to [survivor]
+        // can collide with an existing singleton row under the partial unique
+        // index on (account_id, actor_ids).
+        const survivors = new Map<Uuid, Date>();
+        for (const row of rows) {
+          for (const remainingActorId of row.actorIds) {
+            if (remainingActorId === actorId) continue;
+            const previousCreated = survivors.get(remainingActorId);
+            if (previousCreated == null || previousCreated < row.created) {
+              survivors.set(remainingActorId, row.created);
+            }
+          }
+        }
+        if (survivors.size > 0) {
+          await tx.insert(notificationTable).values(
+            [...survivors].map(([remainingActorId, created]) => ({
+              id: generateUuidV7(),
+              accountId,
+              type: "follow" as const,
+              actorIds: [remainingActorId],
+              created,
+            })),
+          ).onConflictDoNothing();
+        }
+        return rows[0];
+      });
+    }
+
     const deletedExact = await db.delete(notificationTable)
       .where(
         and(

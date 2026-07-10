@@ -249,6 +249,56 @@ test("deleteFollowNotification() deletes exact rows before pruning actors", asyn
   });
 });
 
+test("deleteFollowNotification() preserves actors from legacy merged rows", async () => {
+  await withRollback(async (tx) => {
+    const recipient = await insertAccountWithActor(tx, {
+      username: "deletefollowmergedrecipient",
+      name: "Delete Follow Merged Recipient",
+      email: "deletefollowmergedrecipient@example.com",
+    });
+    const removedFollower = await insertAccountWithActor(tx, {
+      username: "deletefollowmergedremoved",
+      name: "Delete Follow Merged Removed",
+      email: "deletefollowmergedremoved@example.com",
+    });
+    const remainingFollower = await insertAccountWithActor(tx, {
+      username: "deletefollowmergedremaining",
+      name: "Delete Follow Merged Remaining",
+      email: "deletefollowmergedremaining@example.com",
+    });
+    await tx.insert(notificationTable).values([
+      {
+        id: "019f19d0-0000-7000-8000-000000000002",
+        accountId: recipient.account.id,
+        type: "follow",
+        actorIds: [removedFollower.actor.id, remainingFollower.actor.id],
+      },
+      {
+        id: "019f19d0-0000-7000-8000-000000000003",
+        accountId: recipient.account.id,
+        type: "follow",
+        actorIds: [remainingFollower.actor.id],
+      },
+    ]);
+
+    const deleted = await deleteFollowNotification(
+      tx,
+      recipient.account.id,
+      removedFollower.actor,
+    );
+
+    assert.ok(deleted != null);
+    const remaining = await tx.query.notificationTable.findMany({
+      where: {
+        accountId: recipient.account.id,
+        type: "follow",
+      },
+    });
+    assert.equal(remaining.length, 1);
+    assert.deepEqual(remaining[0].actorIds, [remainingFollower.actor.id]);
+  });
+});
+
 test("getNotifications() returns newest notifications with loaded relations", async () => {
   await withRollback(async (tx) => {
     const recipient = await insertAccountWithActor(tx, {
