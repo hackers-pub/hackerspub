@@ -509,6 +509,12 @@ interface ActingAccountMenuOption {
 function ActingAccountMenu() {
   const { t } = useLingui();
   const actingAccount = useActingAccount();
+  const selectActingAccount = (key: string) => {
+    // Let Kobalte finish its pointer event and close the menu before changing
+    // the signal that replaces selected menu subtrees. Updating synchronously
+    // can make Solid re-enter owner cleanup from inside that same cleanup.
+    queueMicrotask(() => actingAccount.setSelectedKey(key));
+  };
   const [triggerWidth, setTriggerWidth] = createSignal<number>();
   let triggerResizeObserver: ResizeObserver | undefined;
   const options = createMemo<ActingAccountMenuOption[]>(() => {
@@ -590,7 +596,7 @@ function ActingAccountMenu() {
           >
             <DropdownMenuRadioGroup<string>
               value={actingAccount.selectedKey()}
-              onChange={(key) => actingAccount.setSelectedKey(key)}
+              onChange={selectActingAccount}
             >
               <DropdownMenuGroup>
                 <DropdownMenuGroupLabel class="sr-only">
