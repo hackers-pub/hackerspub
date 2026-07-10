@@ -74,7 +74,7 @@ test("scrapePostLink() scrapes Open Graph metadata", async () => {
   );
   assert.deepEqual(link, {
     id: link?.id ?? "00000000-0000-0000-0000-000000000000",
-    url: "https://example.internal/",
+    url: "https://example.internal/index.html",
     title: "Example title",
     description: "Example og description",
     siteName: "Example Site",
@@ -121,7 +121,7 @@ test("scrapePostLink() keeps image URL when metadata probing fails", async () =>
   );
   assert.deepEqual(link, {
     id: link?.id ?? "00000000-0000-0000-0000-000000000000",
-    url: "https://example.internal/no-dimensions",
+    url: "https://example.internal/no-dimensions.html",
     title: "No dimensions",
     description: undefined,
     siteName: "Example Site",
@@ -139,7 +139,7 @@ test("scrapePostLink() keeps image URL when metadata probing fails", async () =>
   resetGlobalFetch();
 });
 
-test("scrapePostLink() falls back when canonical metadata is invalid", async () => {
+test("scrapePostLink() ignores malformed canonical metadata", async () => {
   mockGlobalFetch();
   mockFetch("https://delta.chat/index.html", {
     headers: {
@@ -163,6 +163,56 @@ test("scrapePostLink() falls back when canonical metadata is invalid", async () 
   assert.equal(link?.title, "Delta Chat");
   resetFetch();
   resetGlobalFetch();
+});
+
+test("scrapePostLink() ignores same-origin canonical metadata", async () => {
+  mockGlobalFetch();
+  mockFetch("https://www.youtube.com/watch?v=video", {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+    },
+    body: `<html>
+        <head>
+          <meta property="og:title" content="Example video">
+          <meta property="og:url" content="https://www.youtube.com/undefined">
+        </head>
+      </html>`,
+  });
+
+  const link = await scrapePostLink(
+    ctx,
+    "https://www.youtube.com/watch?v=video",
+    () => Promise.resolve(undefined),
+  );
+
+  assert.equal(link?.url, "https://www.youtube.com/watch?v=video");
+  assert.equal(link?.title, "Example video");
+  resetFetch();
+  resetGlobalFetch();
+});
+
+test("scrapePostLink() uses the redirect-verified response URL", async () => {
+  const originalFetch = globalThis.fetch;
+  const response = new Response(
+    `<html><head><meta property="og:title" content="Redirected"></head></html>`,
+    { headers: { "Content-Type": "text/html; charset=utf-8" } },
+  );
+  Object.defineProperty(response, "url", {
+    value: "https://destination.example/article",
+  });
+  globalThis.fetch = () => Promise.resolve(response);
+  try {
+    const link = await scrapePostLink(
+      ctx,
+      "https://short.example/story",
+      () => Promise.resolve(undefined),
+    );
+
+    assert.equal(link?.url, "https://destination.example/article");
+    assert.equal(link?.title, "Redirected");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("scrapePostLink() ignores unsupported charsets", async () => {
@@ -214,7 +264,7 @@ test("scrapePostLink() drops non-HTTP image URL protocols", async () => {
 
   assert.deepEqual(link, {
     id: link?.id ?? "00000000-0000-0000-0000-000000000000",
-    url: "https://example.internal/relative-image",
+    url: "https://example.internal/relative-image.html",
     title: "Relative image",
     description: undefined,
     siteName: undefined,

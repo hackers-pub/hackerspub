@@ -919,6 +919,24 @@ export const Post = builder.drizzleInterface("postTable", {
       resolve: (post, _, ctx) =>
         isCensoredForViewer(post, ctx) ? null : post.link,
     }),
+    linkPreviewUrl: t.field({
+      type: "URL",
+      nullable: true,
+      description:
+        "The exact first external URL shared in this post, including its " +
+        "query string and fragment, for link-preview navigation. `null` " +
+        "when no preview metadata is attached, and hidden under the same " +
+        "moderation rules as `Post.link`. Use `PostLink.url` only as the " +
+        "resolved identity used to share preview metadata and news scores.",
+      select: {
+        columns: { censored: true, actorId: true, linkUrl: true },
+        with: { actor: sanctionActorSelection },
+      },
+      resolve: (post, _, ctx) =>
+        isCensoredForViewer(post, ctx) || post.linkUrl == null
+          ? null
+          : new URL(post.linkUrl),
+    }),
     viewerHasShared: t.loadable({
       type: "Boolean",
       description:

@@ -559,15 +559,17 @@ test("persistPost() ignores ActivityPub mention hrefs when selecting link previe
       url: "https://forum.example/user/nodebbmention",
     });
     const storyLink = await insertPostLink(tx, {
-      url: "https://example.com/story",
+      url: "https://example.com/story?view=full",
       title: "Example story",
     });
+    const sharedStoryUrl =
+      "https://example.com/story?view=full#discussion-section";
     const post = new Note({
       id: new URL("https://forum.example/post/mention-link-preview"),
       attribution: new URL(remoteActor.iri),
       to: PUBLIC_COLLECTION,
       content:
-        '<p><a href="https://forum.example/user/nodebbmention">@nodebbmention</a> <a href="https://example.com/story">story</a></p>',
+        `<p><a href="https://forum.example/user/nodebbmention">@nodebbmention</a> <a href="${sharedStoryUrl}">story</a></p>`,
       tags: [
         new Mention({
           href: new URL(mentionedActor.iri),
@@ -580,7 +582,7 @@ test("persistPost() ignores ActivityPub mention hrefs when selecting link previe
 
     assert.ok(persisted != null);
     assert.equal(persisted.linkId, storyLink.id);
-    assert.equal(persisted.linkUrl, storyLink.url);
+    assert.equal(persisted.linkUrl, sharedStoryUrl);
     assert.equal(persisted.mentions.length, 1);
     assert.equal(persisted.mentions[0].actor.id, mentionedActor.id);
   });

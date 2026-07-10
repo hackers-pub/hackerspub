@@ -31,6 +31,7 @@ import {
   createTestKv,
   insertAccountWithActor,
   insertNotePost,
+  insertPostLink,
   insertRemoteActor,
   insertRemotePost,
   makeGuestContext,
@@ -328,6 +329,19 @@ const noteRawContentAsActingAccountQuery = parse(`
           isViewer(actingAccountId: $actingAccountId)
         }
         rawContent(actingAccountId: $actingAccountId)
+      }
+    }
+  }
+`);
+
+const noteLinkPreviewUrlQuery = parse(`
+  query NoteLinkPreviewUrl($id: ID!) {
+    node(id: $id) {
+      ... on Note {
+        linkPreviewUrl
+        link {
+          url
+        }
       }
     }
   }
@@ -679,6 +693,42 @@ function makeTransactionalUserContext(
   } as UserContext["fedCtx"];
   return makeUserContext(tx, account, { fedCtx });
 }
+
+test("Post.linkPreviewUrl preserves the URL shared by the post", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "linkpreviewurl",
+      name: "Link Preview URL",
+      email: "linkpreviewurl@example.com",
+    });
+    const link = await insertPostLink(tx, {
+      url: "https://docs.example/guide",
+      title: "Example guide",
+    });
+    const sharedUrl = "https://docs.example/guide?view=full#installation";
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      contentHtml: `<p><a href="${sharedUrl}">Guide</a></p>`,
+      link: { id: link.id, url: sharedUrl },
+    });
+
+    const result = await execute({
+      schema,
+      document: noteLinkPreviewUrlQuery,
+      variableValues: { id: encodeGlobalID("Note", post.id) },
+      contextValue: makeUserContext(tx, author.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      node: {
+        linkPreviewUrl: sharedUrl,
+        link: { url: "https://docs.example/guide" },
+      },
+    });
+  });
+});
 
 test("createNote rejects quoting a censored post", async () => {
   await withRollback(async (tx) => {

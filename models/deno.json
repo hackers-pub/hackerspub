@@ -24,6 +24,7 @@
     "./i18n": "./i18n.ts",
     "./instance": "./instance.ts",
     "./langdet": "./langdet.ts",
+    "./link-preview": "./link-preview.ts",
     "./markup": "./markup.ts",
     "./medium": "./medium.ts",
     "./moderation": "./moderation.ts",

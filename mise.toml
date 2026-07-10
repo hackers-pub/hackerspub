@@ -167,3 +167,7 @@ run = "deno run --allow-env --allow-read scripts/generate-vapid-keys.ts"
 [tasks.addaccount]
 description = "Create a user account from the command line"
 run = "deno run --allow-all scripts/addaccount.ts"
+
+[tasks."repair:link-previews"]
+description = "Repair posts grouped under malformed link-preview URLs"
+run = "deno run --allow-all --env-file=.env scripts/repair-link-previews.ts"

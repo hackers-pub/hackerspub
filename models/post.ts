@@ -980,11 +980,10 @@ export async function syncPostFromNoteSource(
     // the update set, which would otherwise leave the old link attached (and
     // keep a dropped story in the news feed).  Matches `persistPost`.
     linkId: link?.id ?? null,
-    linkUrl: link == null
-      ? null
-      : externalLinks[0].hash === ""
-      ? link.url
-      : new URL(externalLinks[0].hash, link.url).href,
+    // Keep the exact URL the author shared for navigation.  The PostLink URL
+    // is a fragment-less fetch/aggregation identity and may differ after an
+    // HTTP redirect; neither should replace the author's query or fragment.
+    linkUrl: link == null ? null : externalLinks[0].href,
     url,
     updated: noteSource.updated,
     published: noteSource.published,
@@ -1483,13 +1482,13 @@ export async function persistPost(
     tags,
     emojis,
     linkId: link?.id ?? null,
+    // Keep the exact URL from the post body for navigation.  Canonical
+    // metadata and redirects belong to the shared PostLink identity only.
     linkUrl: link == null
       ? null
       : articleNewsLink != null
       ? articleNewsLink.url
-      : externalLinks[0].hash === ""
-      ? link.url
-      : new URL(externalLinks[0].hash, link.url).href,
+      : externalLinks[0].href,
     url: postUrl,
     replyTargetId: replyTarget?.id,
     quotedPostId: quotedPost?.id ?? null,
@@ -3586,28 +3585,20 @@ export async function scrapePostLink<TContextData>(
     : Array.isArray(result.customMetaTags.fediverseCreator)
     ? result.customMetaTags.fediverseCreator[0]
     : result.customMetaTags.fediverseCreator;
-  let canonicalUrl: URL;
-  try {
-    canonicalUrl = new URL(
-      result.ogUrl ?? result.twitterUrl ?? result.requestUrl ??
-        responseUrl,
-      responseUrl,
-    );
-  } catch (error) {
-    lg.warn("Ignoring invalid canonical URL for {url}: {error}", {
+  const declaredCanonicalUrl = result.ogUrl ?? result.twitterUrl ??
+    result.requestUrl;
+  if (declaredCanonicalUrl != null) {
+    lg.debug("Ignoring declared canonical URL for {url}: {canonicalUrl}", {
       url: responseUrl,
-      canonicalUrl: result.ogUrl ?? result.twitterUrl ?? result.requestUrl,
-      error,
+      canonicalUrl: declaredCanonicalUrl,
     });
-    canonicalUrl = new URL(responseUrl);
   }
-  // Verify if the canonical URL they claim is the same as the one we
-  // requested.
-  const canonicalUrlVerified = canonicalUrl.origin === url.origin ||
-    canonicalUrl.origin === new URL(responseUrl).origin;
   return {
     id: generateUuidV7(),
-    url: canonicalUrlVerified ? canonicalUrl.href : responseUrl,
+    // response.url is the strongest identity we can verify: unlike Open Graph
+    // or rel=canonical metadata, it is the URL reached by an actual redirect
+    // chain.  Fragments never reach HTTP and are preserved separately on Post.
+    url: responseUrl,
     title: result.ogTitle ?? result.twitterTitle,
     siteName: result.ogSiteName,
     type: result.ogType,
@@ -3632,9 +3623,11 @@ export async function persistPostLink(
     logger.error("Unsafe URL: {url}", { url: url.href });
     return undefined;
   }
+  const scrapeUrl = new URL(url);
+  scrapeUrl.hash = "";
   const { db } = ctx.data;
   const link = await db.query.postLinkTable.findFirst({
-    where: { url: url.href },
+    where: { url: scrapeUrl.href },
   });
   if (link != null) {
     const scraped = link.scraped.toTemporalInstant();
@@ -3644,11 +3637,11 @@ export async function persistPostLink(
         Temporal.Now.instant(),
       ) > 0
     ) {
-      logger.debug("Post link cache hit: {url}", { url: url.href });
+      logger.debug("Post link cache hit: {url}", { url: scrapeUrl.href });
       return link;
     }
   }
-  let scrapedLink = await scrapePostLink(ctx, url, async (handle) => {
+  let scrapedLink = await scrapePostLink(ctx, scrapeUrl, async (handle) => {
     if (!handle.startsWith("@")) handle = `@${handle}`;
     const actors = await persistActorsByHandles(ctx, [handle]);
     return actors[handle]?.id;

@@ -23,8 +23,8 @@ export function LinkPreview(props: LinkPreviewProps) {
           __typename
         }
         quoteTargetState
+        linkPreviewUrl
         link {
-          url
           title
           description
           author
@@ -47,14 +47,18 @@ export function LinkPreview(props: LinkPreviewProps) {
   const shouldShowLink = () => {
     const n = note();
     return n && n.media.length === 0 && n.quotedPost == null &&
-      n.quoteTargetState == null && n.link;
+        n.quoteTargetState == null && n.link != null &&
+        n.linkPreviewUrl != null
+      ? { link: n.link, url: n.linkPreviewUrl }
+      : null;
   };
 
   return (
     /* `keyed`: avoid Solid's stale-accessor race when this Relay-derived
        field flips to null inside a `batch()` update. */
     <Show keyed when={shouldShowLink()}>
-      {(link) => {
+      {(preview) => {
+        const link = preview.link;
         const image = link.image;
         const layoutMode = image == null ||
             (image.width != null && image.height != null &&
@@ -66,7 +70,7 @@ export function LinkPreview(props: LinkPreviewProps) {
         return (
           <div class="mt-4 overflow-hidden rounded-lg border bg-card shadow-sm">
             <a
-              href={link.url}
+              href={preview.url}
               target="_blank"
               rel="noopener noreferrer"
               data-layout={layoutMode}
@@ -114,7 +118,7 @@ export function LinkPreview(props: LinkPreviewProps) {
                 </Show>
                 <p class="mt-3 text-xs">
                   <span class="font-medium uppercase text-muted-foreground">
-                    {new URL(link.url).host}
+                    {new URL(preview.url).host}
                   </span>
                   {/* `keyed`: same race shape; siteName can flip to null. */}
                   <Show keyed when={link.siteName}>
