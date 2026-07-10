@@ -3393,7 +3393,7 @@ export async function scrapePostLink<TContextData>(
   const lg = logger.getChild("scrapePostLink");
   url = typeof url === "string" ? new URL(url) : url;
   if (!isSSRFSafeURL(url.href)) {
-    lg.error("Unsafe URL: {url}", { url: url.href });
+    lg.warn("Unsafe URL: {url}", { url: url.href });
     return undefined;
   }
   let response: Response;
@@ -3692,7 +3692,7 @@ export async function persistPostLink(
 ): Promise<PostLink | undefined> {
   if (typeof url === "string") url = new URL(url);
   if (!isSSRFSafeURL(url.href)) {
-    logger.error("Unsafe URL: {url}", { url: url.href });
+    logger.warn("Unsafe URL: {url}", { url: url.href });
     return undefined;
   }
   const scrapeUrl = new URL(url);
