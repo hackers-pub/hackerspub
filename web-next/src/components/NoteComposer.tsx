@@ -966,7 +966,7 @@ export function NoteComposer(props: NoteComposerProps) {
     !props.editingNoteId && isMeaningfulNoteDraft(currentStorableDraftData())
   );
 
-  const saveCurrentDraftNow = (): boolean => {
+  const saveCurrentDraftNow = (notifyChange = true): boolean => {
     const key = draftStorageKey();
     const scope = draftScope();
     if (
@@ -984,10 +984,12 @@ export function NoteComposer(props: NoteComposerProps) {
     if (result === "ok") {
       formDraftKey = key;
       setDraftSaveStatus(hasMediaNotInDraft ? "idle" : "saved");
-      publishNoteDraftChange({ key, origin: draftSyncOrigin });
+      if (notifyChange) {
+        publishNoteDraftChange({ key, origin: draftSyncOrigin });
+      }
       return !hasMediaNotInDraft;
     }
-    if (result === "empty") {
+    if (result === "empty" && notifyChange) {
       publishNoteDraftChange({ key, origin: draftSyncOrigin });
     }
     if (result === "unavailable" && isMeaningfulNoteDraft(draft)) {
@@ -1173,7 +1175,15 @@ export function NoteComposer(props: NoteComposerProps) {
     const scope = untrack(draftScope);
     if (key == null || scope == null || change.key !== key) return;
     clearTimeout(saveDraftTimer);
-    loadDraftFromStorage(key, scope, false);
+    // A stale composer can publish this scope during soft navigation.  Do not
+    // let it overwrite text the active composer has not saved yet.
+    const shouldPreserveCurrentForm = untrack(isDirty);
+    loadDraftFromStorage(key, scope, shouldPreserveCurrentForm);
+    if (shouldPreserveCurrentForm) {
+      saveDraftTimer = setTimeout(() => {
+        saveCurrentDraftNow(false);
+      }, 350);
+    }
   }));
 
   createEffect(() => {
