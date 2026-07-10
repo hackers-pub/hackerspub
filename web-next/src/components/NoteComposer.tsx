@@ -1534,69 +1534,69 @@ export function NoteComposer(props: NoteComposerProps) {
     if (props.editingNoteId || effectiveQuotedPostId()) return;
     const clipboardText = e.clipboardData?.getData("text/plain");
     if (clipboardText == null) return;
-    const text = clipboardText.trim();
+    // Native textarea paste normalizes CRLF and CR line endings to LF.
+    const pastedText = clipboardText.replace(/\r\n?/g, "\n");
+    const text = pastedText.trim();
     if (!text || !URL.canParse(text) || !text.match(/^https?:/)) return;
     const target = e.currentTarget;
     if (!(target instanceof HTMLTextAreaElement)) return;
-    e.preventDefault();
     const pasteStart = target.selectionStart;
-    const pasteEnd = target.selectionEnd;
-    const pastedRange = {
-      start: pasteStart,
-      end: pasteStart + clipboardText.length,
-    };
-    setContent((prev) =>
-      prev.slice(0, pasteStart) + clipboardText + prev.slice(pasteEnd)
-    );
-    queueMicrotask(() => {
-      target.setSelectionRange(pastedRange.end, pastedRange.end);
-    });
-    const removePastedUrl = () => {
-      setContent((prev) => {
-        if (
-          prev.slice(pastedRange.start, pastedRange.end) === clipboardText
-        ) {
-          return prev.slice(0, pastedRange.start) +
-            prev.slice(pastedRange.end);
-        }
-        const firstMatch = prev.indexOf(clipboardText);
-        if (firstMatch >= 0 && firstMatch === prev.lastIndexOf(clipboardText)) {
-          return prev.slice(0, firstMatch) +
-            prev.slice(firstMatch + clipboardText.length);
-        }
-        return prev;
+    // Keep the browser's native paste so the edit remains in its undo stack.
+    // The following input event runs after the default paste action, so it can
+    // inspect the inserted range without relying on task or microtask timing.
+    target.addEventListener("input", () => {
+      const pastedEnd = pasteStart + pastedText.length;
+      if (target.value.slice(pasteStart, pastedEnd) !== pastedText) return;
+      const pastedRange = { start: pasteStart, end: pastedEnd };
+      const removePastedUrl = () => {
+        setContent((prev) => {
+          if (
+            prev.slice(pastedRange.start, pastedRange.end) === pastedText
+          ) {
+            return prev.slice(0, pastedRange.start) +
+              prev.slice(pastedRange.end);
+          }
+          const firstMatch = prev.indexOf(pastedText);
+          if (
+            firstMatch >= 0 && firstMatch === prev.lastIndexOf(pastedText)
+          ) {
+            return prev.slice(0, firstMatch) +
+              prev.slice(firstMatch + pastedText.length);
+          }
+          return prev;
+        });
+      };
+      fetchQuery<NoteComposerPostByUrlQuery>(
+        environment(),
+        NoteComposerPostByUrlQuery,
+        {
+          url: text,
+          actingAccountId: actingAccountInput().actingAccountId ?? null,
+        },
+      ).subscribe({
+        next(data) {
+          const post = data.postByUrl;
+          if (!post) {
+            return;
+          }
+          if (
+            post.__typename !== "Note" && post.__typename !== "Article" &&
+            post.__typename !== "Question"
+          ) {
+            return;
+          }
+          if (!post.viewerCanQuote) {
+            return;
+          }
+          if (!confirm(t`Do you want to quote this link?`)) {
+            return;
+          }
+          removePastedUrl();
+          setPastedQuoteId(post.id);
+        },
+        error() {},
       });
-    };
-    fetchQuery<NoteComposerPostByUrlQuery>(
-      environment(),
-      NoteComposerPostByUrlQuery,
-      {
-        url: text,
-        actingAccountId: actingAccountInput().actingAccountId ?? null,
-      },
-    ).subscribe({
-      next(data) {
-        const post = data.postByUrl;
-        if (!post) {
-          return;
-        }
-        if (
-          post.__typename !== "Note" && post.__typename !== "Article" &&
-          post.__typename !== "Question"
-        ) {
-          return;
-        }
-        if (!post.viewerCanQuote) {
-          return;
-        }
-        if (!confirm(t`Do you want to quote this link?`)) {
-          return;
-        }
-        removePastedUrl();
-        setPastedQuoteId(post.id);
-      },
-      error() {},
-    });
+    }, { once: true });
   };
 
   const handleLanguageChange = (locale?: Intl.Locale) => {
