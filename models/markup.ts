@@ -43,7 +43,7 @@ import { type Actor, actorTable } from "./schema.ts";
 const logger = getLogger(["hackerspub", "models", "markup"]);
 
 const KV_NAMESPACE = "markup";
-const KV_CACHE_VERSION = "2025-06-08";
+const KV_CACHE_VERSION = "2026-07-12";
 
 const MISSING_ARTICLE_MEDIUM_LABELS = {
   en: "This medium has not been attached to this article.",
@@ -64,10 +64,6 @@ const md = MarkdownItAsync({ html: true, linkify: true })
     slugifyWithState(title: string, state: { env: Env }) {
       return slugifyTitle(title, state.env.docId);
     },
-    permalink: anchor.permalink.linkInsideHeader({
-      symbol: `<span aria-hidden="true" title="Link to this section"></span>`,
-      placement: "after",
-    }),
   })
   .use(cjkBreaks)
   .use(deflist)

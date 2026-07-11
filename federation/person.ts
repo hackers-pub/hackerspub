@@ -2,6 +2,7 @@ import type { ActorKeyPair, Context } from "@fedify/fedify";
 import { Endpoints, Image, Organization, Person } from "@fedify/vocab";
 import { getAvatarUrl, renderAccountLinks } from "@hackerspub/models/account";
 import type { ContextData } from "@hackerspub/models/context";
+import { removeHeaderAnchorLinks } from "@hackerspub/models/html";
 import { renderMarkup } from "@hackerspub/models/markup";
 import { isActorBanned } from "@hackerspub/models/moderation";
 import type {
@@ -69,7 +70,7 @@ export async function getAccountActor(
   return new ActorClass({
     ...common,
     name: account.name,
-    summary: bio.html,
+    summary: removeHeaderAnchorLinks(bio.html),
     icon: new Image({
       url: new URL(await getAvatarUrl(ctx.data.disk, account)),
     }),

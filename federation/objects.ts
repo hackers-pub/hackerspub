@@ -7,6 +7,7 @@ import {
   isReactionEmoji,
   type ReactionEmoji,
 } from "@hackerspub/models/emoji";
+import { removeHeaderAnchorLinks } from "@hackerspub/models/html";
 import {
   getMissingArticleMediumLabel,
   renderMarkup,
@@ -206,7 +207,7 @@ export async function getArticle(
       return {
         ...content,
         hashtags,
-        html,
+        html: removeHeaderAnchorLinks(html),
         content: resolveMediumUrls(content.content, mediumUrls, {
           missingMediumLabel,
         }),
@@ -405,7 +406,7 @@ export async function getNote(
       }),
     );
   }
-  let contentHtml = rendered.html;
+  let contentHtml = removeHeaderAnchorLinks(rendered.html);
   if (relations.quotedPost != null) {
     const quoteUrl = relations.quotedPost.url ?? relations.quotedPost.iri;
     tags.push(
@@ -530,7 +531,7 @@ export async function getQuestion(
       }),
     );
   }
-  let contentHtml = rendered.html;
+  let contentHtml = removeHeaderAnchorLinks(rendered.html);
   if (relations.quotedPost != null) {
     const quoteUrl = relations.quotedPost.url ?? relations.quotedPost.iri;
     tags.push(

@@ -13,12 +13,22 @@
   opacity: .5;
 }
 
+.prose a.header-anchor[data-hackerspub-generated] {
+  margin-inline-start: .25em;
+}
+
 .prose h1:hover > a.header-anchor:last-child:after,
 .prose h2:hover > a.header-anchor:last-child:after,
 .prose h3:hover > a.header-anchor:last-child:after,
 .prose h4:hover > a.header-anchor:last-child:after,
 .prose h5:hover > a.header-anchor:last-child:after,
-.prose h6:hover > a.header-anchor:last-child:after {
+.prose h6:hover > a.header-anchor:last-child:after,
+.prose h1 > a.header-anchor:last-child:focus-visible:after,
+.prose h2 > a.header-anchor:last-child:focus-visible:after,
+.prose h3 > a.header-anchor:last-child:focus-visible:after,
+.prose h4 > a.header-anchor:last-child:focus-visible:after,
+.prose h5 > a.header-anchor:last-child:focus-visible:after,
+.prose h6 > a.header-anchor:last-child:focus-visible:after {
   content: '#';
 }
 

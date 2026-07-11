@@ -4,6 +4,7 @@ import * as vocab from "@fedify/vocab";
 import { toRecipient } from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
 import type { RelationsFilter } from "@hackerspub/models/db";
+import { removeHeaderAnchorLinks } from "@hackerspub/models/html";
 import {
   getSanctionHiddenActorFilter,
   isActorSanctionHidden,
@@ -189,15 +190,16 @@ export function toFeaturedCollectionItem(
     post.mentions?.map((mention) => new URL(mention.actor.iri)) ?? [],
     post.visibility,
   );
+  const contentHtml = removeHeaderAnchorLinks(post.contentHtml);
   const common = {
     id: new URL(post.iri),
     attributions,
     ...recipients,
     contents: [
-      post.contentHtml,
+      contentHtml,
       ...(post.language == null
         ? []
-        : [new LanguageString(post.contentHtml, post.language)]),
+        : [new LanguageString(contentHtml, post.language)]),
     ],
     name: post.name,
     published: post.published.toTemporalInstant(),

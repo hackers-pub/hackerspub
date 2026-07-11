@@ -81,7 +81,8 @@ test("toFeaturedCollectionItem() returns importable Question posts", async () =>
     iri: "https://example.com/objects/question",
     type: "Question",
     actor: { accountId },
-    contentHtml: "<p>Poll question</p>",
+    contentHtml:
+      '<h2 id="poll-question">Poll question<a class="header-anchor" href="#poll-question"></a></h2>',
     language: "en",
     name: "Poll question",
     poll: {
@@ -106,7 +107,10 @@ test("toFeaturedCollectionItem() returns importable Question posts", async () =>
     item.attributionId?.href,
     "https://example.com/ap/actors/00000000-0000-0000-0000-000000000001",
   );
-  assert.equal(item.content?.toString(), "<p>Poll question</p>");
+  assert.equal(
+    item.content?.toString(),
+    '<h2 id="poll-question">Poll question</h2>',
+  );
   assert.equal(item.name?.toString(), "Poll question");
   const options = await Array.fromAsync(item.getExclusiveOptions());
   assert.deepEqual(options.map((option) => option.name?.toString()), [

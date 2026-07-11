@@ -3,12 +3,24 @@ import test, { describe, it } from "node:test";
 import {
   addExternalLinkTargets,
   extractExternalLinks,
+  removeHeaderAnchorLinks,
   removeQuoteInlineFallback,
   stripHtml,
   transformMentions,
   truncateHtml,
 } from "./html.ts";
 import type { Actor } from "./schema.ts";
+
+test("removeHeaderAnchorLinks() preserves heading IDs and ordinary links", () => {
+  const html = removeHeaderAnchorLinks(
+    '<h2 id="section">Section<a class="header-anchor" href="#section"><span aria-hidden="true"></span></a></h2>' +
+      '<p><a href="https://example.com/">ordinary link</a></p>',
+  );
+
+  assert.match(html, /<h2 id="section">Section<\/h2>/);
+  assert.doesNotMatch(html, /header-anchor/);
+  assert.match(html, /<a href="https:\/\/example\.com\/">ordinary link<\/a>/);
+});
 
 describe("extractExternalLinks()", () => {
   it("extracts http(s) links, ignoring mentions and hashtags", () => {

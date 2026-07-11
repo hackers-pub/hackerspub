@@ -14,6 +14,7 @@ import { Msg, Translation, TranslationSetup } from "../components/Msg.tsx";
 import { db } from "../db.ts";
 import metadata from "../deno.json" with { type: "json" };
 import { drive } from "../drive.ts";
+import { HeaderAnchorLinks } from "../islands/HeaderAnchorLinks.tsx";
 import { NotificationIcon } from "../islands/NotificationIcon.tsx";
 import { WebNextBanner } from "../islands/WebNextBanner.tsx";
 import { kv } from "../kv.ts";
@@ -164,6 +165,7 @@ export default async function App(
                   : ""
               }`}
             >
+              <HeaderAnchorLinks />
               <header class="h-[60px] bg-black text-gray-300 dark:bg-stone-100 dark:text-stone-700">
                 <nav class="m-auto xl:max-w-screen-xl text-xl flex flex-row gap-4">
                   <div class="grow-0 lg:basis-1/3 p-4 flex flex-row gap-4">

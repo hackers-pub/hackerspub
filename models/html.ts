@@ -304,6 +304,25 @@ export function sanitizeExcerptHtml(html: string): string {
   return excerptHtmlXss.process(html);
 }
 
+/**
+ * Removes Hackers' Pub's legacy heading permalink controls from HTML that is
+ * about to be federated.  Heading IDs are document structure and remain
+ * intact; the empty `.header-anchor` link is a local UI affordance that the
+ * browser now adds at runtime.
+ *
+ * This also covers rendered HTML persisted before the Markdown renderer
+ * stopped emitting the links.
+ */
+export function removeHeaderAnchorLinks(html: string): string {
+  const $ = load(html, null, false);
+  $(
+    "h1 > a.header-anchor, h2 > a.header-anchor, " +
+      "h3 > a.header-anchor, h4 > a.header-anchor, " +
+      "h5 > a.header-anchor, h6 > a.header-anchor",
+  ).remove();
+  return $.root().html() ?? "";
+}
+
 type DomNode = {
   type?: string;
   data?: string;

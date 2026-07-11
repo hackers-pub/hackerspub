@@ -1,4 +1,5 @@
 // @refresh reload
+import { installHeaderAnchorLinks } from "@hackerspub/models/header-anchor";
 import { init as initPlausible } from "@plausible-analytics/tracker";
 import * as Sentry from "@sentry/solidstart";
 import { solidRouterBrowserTracingIntegration } from "@sentry/solidstart/solidrouter";
@@ -133,6 +134,7 @@ const app = document.getElementById("app");
 if (app == null) throw new Error("#app element not found");
 
 const disposeHydration = mount(() => <StartClient />, app);
+installHeaderAnchorLinks(document);
 
 function hasHydrationNodes(element: Element): boolean {
   // Solid may leave only comment/template markers in #app while a root

@@ -27,7 +27,8 @@ Welcome to #HackersPub.`;
 
   assert.equal(first.title, "Hello World");
   assert.deepEqual(first.hashtags, ["#HackersPub"]);
-  assert.match(first.html, /<h1/);
+  assert.match(first.html, /<h1 id="doc-1--hello-world">/);
+  assert.doesNotMatch(first.html, /header-anchor/);
   assert.equal(first.toc[0].title.trim(), "Hello World");
   assert.equal(first.toc[0].children[0].title.trim(), "Section Title");
   assert.equal(store.size, 1);

@@ -20,6 +20,7 @@
     "./flag": "./flag.ts",
     "./following": "./following.ts",
     "./hashtag": "./hashtag.ts",
+    "./header-anchor": "./header-anchor.ts",
     "./html": "./html.ts",
     "./i18n": "./i18n.ts",
     "./instance": "./instance.ts",
