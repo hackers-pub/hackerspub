@@ -92,11 +92,11 @@ export default function FediverseTimeline() {
               )}
             </Show>
             <Show
-              when={data.suggestedFilterLanguages.length > 0 ||
+              when={(data.suggestedFilterLanguages?.length ?? 0) > 0 ||
                 !!activeLanguage()}
             >
               <LanguageFilter
-                languages={data.suggestedFilterLanguages}
+                languages={data.suggestedFilterLanguages ?? []}
                 activeLanguage={activeLanguage()}
                 buildHref={buildHref}
               />

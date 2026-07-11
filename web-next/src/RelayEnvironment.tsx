@@ -13,6 +13,10 @@ import {
 } from "relay-runtime";
 import { getRequestEvent, isServer } from "solid-js/web";
 import { getApiUrl } from "~/lib/env.ts";
+import {
+  isExpectedAuthError,
+  isExpectedAuthResponse,
+} from "~/lib/graphqlAuthError.ts";
 import { isNetworkError } from "~/lib/networkError.ts";
 import { readSessionCookie } from "~/lib/sessionCookie.ts";
 import {
@@ -20,24 +24,7 @@ import {
   TransientUpstreamGraphQLError,
 } from "~/lib/upstreamGraphQLError.ts";
 
-// Errors the upstream produces in response to an authentication
-// failure. The GraphQL server tags these with this extension code (see
-// graphql/timeline.ts) precisely so we can recognize them here without
-// pattern-matching on the user-facing message. Relay's `PayloadError`
-// type does not model `extensions`, but Yoga emits them per the
-// GraphQL spec, so we read it through a structural narrowing.
-const AUTH_REQUIRED_CODE = "AUTHENTICATION_REQUIRED";
 const UPSTREAM_BODY_PREVIEW_LENGTH = 2048;
-
-function isExpectedAuthError(errors: ReadonlyArray<unknown>): boolean {
-  if (errors.length === 0) return false;
-  return errors.every((error) => {
-    if (error == null || typeof error !== "object") return false;
-    const extensions = (error as { extensions?: unknown }).extensions;
-    if (extensions == null || typeof extensions !== "object") return false;
-    return (extensions as { code?: unknown }).code === AUTH_REQUIRED_CODE;
-  });
-}
 
 function isSensitiveResponseHeader(name: string): boolean {
   const headerName = name.toLowerCase();
@@ -505,6 +492,16 @@ function createRelayEnvironment(): IEnvironment {
             next: (response) => {
               if (!isGraphQLResponse(response)) {
                 handleAttemptError(createInvalidGraphQLResponseError());
+                return;
+              }
+              if (!isServer && isExpectedAuthResponse(response)) {
+                // The root viewer snapshot can remain authenticated after a
+                // session expires. Reload so it is fetched again and the
+                // protected route's normal sign-in redirect takes over.
+                currentController = null;
+                currentSubscription = null;
+                window.location.reload();
+                sink.complete();
                 return;
               }
               sink.next(response);

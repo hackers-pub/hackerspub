@@ -105,10 +105,11 @@ function AuthenticatedWithoutSharesFeedTimeline() {
             )}
           </Show>
           <Show
-            when={d.suggestedFilterLanguages.length > 0 || !!activeLanguage()}
+            when={(d.suggestedFilterLanguages?.length ?? 0) > 0 ||
+              !!activeLanguage()}
           >
             <LanguageFilter
-              languages={d.suggestedFilterLanguages}
+              languages={d.suggestedFilterLanguages ?? []}
               activeLanguage={activeLanguage()}
               buildHref={buildHref}
             />
