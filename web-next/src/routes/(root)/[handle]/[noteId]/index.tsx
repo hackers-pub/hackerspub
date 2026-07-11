@@ -27,6 +27,7 @@ import { Trans } from "~/components/Trans.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { buildPostTitleExcerpt } from "~/lib/postTitleExcerpt.ts";
 import type {
   NoteId_articleBody$key,
 } from "./__generated__/NoteId_articleBody.graphql.ts";
@@ -260,22 +261,11 @@ function PostMetaHead(props: PostMetaHeadProps) {
     <Show keyed when={post()}>
       {(post) => {
         const titleExcerpt = () => {
-          if (post.__typename !== "Note") return post.excerpt;
-          const excerpt = post.excerpt.replace(/\s+/g, " ").trim();
-          const graphemes = Array.from(
-            new Intl.Segmenter(undefined, { granularity: "grapheme" })
-              .segment(excerpt),
-            ({ segment }) => segment,
+          return buildPostTitleExcerpt(
+            post.excerpt,
+            post.__typename === "Note",
+            NOTE_TITLE_EXCERPT_GRAPHEME_LIMIT,
           );
-          if (graphemes.length <= NOTE_TITLE_EXCERPT_GRAPHEME_LIMIT) {
-            return excerpt;
-          }
-          return `${
-            graphemes
-              .slice(0, NOTE_TITLE_EXCERPT_GRAPHEME_LIMIT - 1)
-              .join("")
-              .trimEnd()
-          }…`;
         };
         return (
           <>
@@ -285,7 +275,7 @@ function PostMetaHead(props: PostMetaHeadProps) {
               }: ${titleExcerpt()}`}
             </Title>
             <Meta property="og:title" content={titleExcerpt()} />
-            <Meta property="og:description" content={post.excerpt} />
+            <Meta property="og:description" content={post.excerpt ?? ""} />
             <Meta property="og:type" content="article" />
             <Meta
               property="article:published_time"

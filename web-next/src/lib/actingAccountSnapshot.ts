@@ -1,4 +1,5 @@
 import type {
+  ActingAccountSummary,
   ActingOrganizationMembership,
   OrganizationNotificationBadge,
 } from "~/contexts/ActingAccountContext.tsx";
@@ -12,6 +13,29 @@ export interface OrganizationMembershipSnapshot {
     readonly username?: string;
     readonly avatarUrl?: string | null;
   } | null;
+}
+
+export interface AccountSummarySnapshot {
+  readonly id?: string;
+  readonly name?: string;
+  readonly username?: string;
+  readonly avatarUrl?: string | null;
+}
+
+export function getCompleteActingAccount(
+  account: AccountSummarySnapshot,
+): ActingAccountSummary | null {
+  if (
+    typeof account.id !== "string" ||
+    typeof account.name !== "string" ||
+    typeof account.username !== "string"
+  ) return null;
+  return {
+    id: account.id,
+    name: account.name,
+    username: account.username,
+    avatarUrl: account.avatarUrl,
+  };
 }
 
 export function getCompleteActingOrganizations(

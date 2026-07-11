@@ -1,6 +1,37 @@
 import assert from "node:assert";
 import test from "node:test";
-import { getCompleteActingOrganizations } from "./actingAccountSnapshot.ts";
+import {
+  getCompleteActingAccount,
+  getCompleteActingOrganizations,
+} from "./actingAccountSnapshot.ts";
+
+test("getCompleteActingAccount() rejects incomplete Relay snapshots", () => {
+  assert.equal(
+    getCompleteActingAccount({ id: "account-id", username: "alice" }),
+    null,
+  );
+  assert.equal(
+    getCompleteActingAccount({ id: "account-id", name: "Alice" }),
+    null,
+  );
+});
+
+test("getCompleteActingAccount() copies a complete account", () => {
+  assert.deepEqual(
+    getCompleteActingAccount({
+      id: "account-id",
+      name: "Alice",
+      username: "alice",
+      avatarUrl: null,
+    }),
+    {
+      id: "account-id",
+      name: "Alice",
+      username: "alice",
+      avatarUrl: null,
+    },
+  );
+});
 
 test("getCompleteActingOrganizations() rejects incomplete Relay snapshots", () => {
   assert.equal(

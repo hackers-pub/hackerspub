@@ -113,6 +113,9 @@ export default function ArticleDraftsListPage() {
     DraftsPaginationFragment,
     () => data()?.viewer as draftsPaginationFragment$key,
   );
+  const draftEdges = () =>
+    draftData()?.articleDrafts?.edges?.filter((edge) => edge?.node != null) ??
+      [];
 
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
@@ -143,7 +146,7 @@ export default function ArticleDraftsListPage() {
         viewerId,
         "SignedAccount_articleDrafts",
       ),
-      draftData()?.articleDrafts.__id,
+      draftData()?.articleDrafts?.__id,
       ConnectionHandler.getConnectionID(
         viewerId,
         "FloatingComposeButton_articleDrafts",
@@ -256,8 +259,7 @@ export default function ArticleDraftsListPage() {
           </div>
 
           <Show
-            when={draftData()?.articleDrafts.edges &&
-              draftData()!.articleDrafts.edges.length > 0}
+            when={draftEdges().length > 0}
             fallback={
               <Card>
                 <CardContent class="py-12 text-center text-muted-foreground">
@@ -267,11 +269,7 @@ export default function ArticleDraftsListPage() {
             }
           >
             <div class="grid gap-3">
-              <For
-                each={draftData()?.articleDrafts.edges.filter((edge) =>
-                  edge.node != null
-                )}
-              >
+              <For each={draftEdges()}>
                 {(edge) => (
                   <Card class="transition-colors hover:bg-accent/40">
                     <CardContent class="p-4">

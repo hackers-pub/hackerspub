@@ -46,7 +46,10 @@ import {
   useActingAccount,
 } from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
-import { getCompleteActingOrganizations } from "~/lib/actingAccountSnapshot.ts";
+import {
+  getCompleteActingAccount,
+  getCompleteActingOrganizations,
+} from "~/lib/actingAccountSnapshot.ts";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import { invalidateNotificationsPageQueryCache } from "~/lib/notificationsPageQueryCache.ts";
 import {
@@ -153,20 +156,16 @@ export function AppSidebar(props: AppSidebarProps) {
       actingAccount.setAccounts(null, []);
       return;
     }
+    const personalAccount = getCompleteActingAccount(account);
     const organizations = getCompleteActingOrganizations(
       account.organizationMemberships,
     );
     // Relay can briefly publish the parent record before every linked
     // organization is available. Keep the last complete account list until
     // the follow-up snapshot arrives.
-    if (organizations == null) return;
+    if (personalAccount == null || organizations == null) return;
     actingAccount.setAccounts(
-      {
-        id: account.id,
-        name: account.name,
-        username: account.username,
-        avatarUrl: account.avatarUrl,
-      },
+      personalAccount,
       organizations,
     );
   });
