@@ -7,6 +7,7 @@ import {
   For,
   onCleanup,
   Show,
+  startTransition,
 } from "solid-js";
 import { createFragment, createMutation } from "solid-relay";
 import IconCheck from "~icons/lucide/check";
@@ -510,10 +511,12 @@ function ActingAccountMenu() {
   const { t } = useLingui();
   const actingAccount = useActingAccount();
   const selectActingAccount = (key: string) => {
-    // Let Kobalte finish its pointer event and close the menu before changing
-    // the signal that replaces selected menu subtrees. Updating synchronously
-    // can make Solid re-enter owner cleanup from inside that same cleanup.
-    queueMicrotask(() => actingAccount.setSelectedKey(key));
+    // Let Kobalte finish its pointer event, then replace account-sensitive
+    // subtrees as a transition. A synchronous replacement can make nested
+    // permalink queries re-enter Solid owner cleanup.
+    queueMicrotask(() => {
+      void startTransition(() => actingAccount.setSelectedKey(key));
+    });
   };
   const [triggerWidth, setTriggerWidth] = createSignal<number>();
   let triggerResizeObserver: ResizeObserver | undefined;
