@@ -323,10 +323,19 @@ export function detectMemoryAlert(input: {
 
   const domGrowth = sample.domNodes - baseline.domNodes;
   const domRecentGrowth = sample.domNodes - previous.domNodes;
+  // A steadily growing document with a flat measured heap is commonly caused
+  // by browser translation/accessibility tooling injecting wrappers, or by a
+  // user intentionally revealing a long paginated list. Do not label that a
+  // client memory leak when the browser's memory API says the DOM growth
+  // retained no additional JavaScript heap across the sample trail.
+  const measuredHeapIsStable = sample.memoryApi !== "none" &&
+    sample.usedBytes != null && previous.usedBytes != null &&
+    baseline.usedBytes != null && usedGrowth <= 0 && usedRecentGrowth <= 0;
   if (
     sample.domNodes >= DOM_NODES_THRESHOLD &&
     domGrowth >= DOM_NODES_GROWTH_THRESHOLD &&
-    domRecentGrowth > 0
+    domRecentGrowth > 0 &&
+    !measuredHeapIsStable
   ) {
     return {
       reason: "dom_growth",

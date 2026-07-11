@@ -174,3 +174,87 @@ test("buildMemoryAlertDiagnostics reports deltas and route trail", () => {
     "/feed",
   ]);
 });
+
+test("detectMemoryAlert ignores DOM growth with a stable measured heap", () => {
+  const baseline = makeSample({
+    uptimeMs: 30_000,
+    usedBytes: 10_600_000,
+    domNodes: 5_534,
+  });
+  const previous = makeSample({
+    uptimeMs: 270_000,
+    usedBytes: 10_600_000,
+    domNodes: 21_564,
+  });
+  const sample = makeSample({
+    uptimeMs: 330_000,
+    usedBytes: 10_600_000,
+    domNodes: 22_898,
+  });
+
+  assert.equal(
+    detectMemoryAlert({
+      baseline,
+      previous,
+      sample,
+      sampleCount: 6,
+    }),
+    null,
+  );
+});
+
+test("detectMemoryAlert reports DOM growth with recent heap growth", () => {
+  const baseline = makeSample({
+    uptimeMs: 30_000,
+    usedBytes: 10_600_000,
+    domNodes: 5_000,
+  });
+  const previous = makeSample({
+    uptimeMs: 270_000,
+    usedBytes: 20_000_000,
+    domNodes: 21_000,
+  });
+  const sample = makeSample({
+    uptimeMs: 330_000,
+    usedBytes: 21_000_000,
+    domNodes: 22_500,
+  });
+
+  assert.equal(
+    detectMemoryAlert({
+      baseline,
+      previous,
+      sample,
+      sampleCount: 6,
+    })?.reason,
+    "dom_growth",
+  );
+});
+
+test("detectMemoryAlert reports DOM growth after cumulative heap growth", () => {
+  const baseline = makeSample({
+    uptimeMs: 30_000,
+    usedBytes: 10_000_000,
+    domNodes: 5_000,
+  });
+  const previous = makeSample({
+    uptimeMs: 270_000,
+    usedBytes: 21_000_000,
+    domNodes: 21_000,
+  });
+  const sample = makeSample({
+    uptimeMs: 330_000,
+    usedBytes: 20_000_000,
+    domNodes: 22_500,
+  });
+
+  assert.equal(
+    detectMemoryAlert({
+      baseline,
+      previous,
+      sample,
+      sampleCount: 6,
+    })?.reason,
+    "dom_growth",
+  );
+});
