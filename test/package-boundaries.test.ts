@@ -1,5 +1,6 @@
 import assert from "node:assert";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 
 interface PackageManifest {
   readonly name: string;
@@ -11,6 +12,7 @@ interface PackageManifest {
 
 interface DenoInfoModule {
   readonly local?: string;
+  readonly error?: string;
   readonly dependencies?: readonly { readonly specifier: string }[];
 }
 
@@ -29,23 +31,31 @@ async function readJson<T>(url: URL): Promise<T> {
 }
 
 function getPackageName(specifier: string): string | undefined {
+  const normalized = specifier.replace(/^(?:jsr|npm):/, "");
   if (
-    specifier.startsWith(".") || specifier.startsWith("/") ||
-    specifier.startsWith("data:") || specifier.startsWith("file:") ||
-    specifier.startsWith("node:")
+    normalized.startsWith(".") || normalized.startsWith("/") ||
+    normalized.startsWith("data:") || normalized.startsWith("file:") ||
+    normalized.startsWith("node:")
   ) {
     return undefined;
   }
-  const parts = specifier.split("/");
-  return specifier.startsWith("@") ? parts.slice(0, 2).join("/") : parts[0];
+  const parts = normalized.split("/");
+  return normalized.startsWith("@") ? parts.slice(0, 2).join("/") : parts[0];
 }
+
+test("getPackageName() normalizes registry prefixes", () => {
+  assert.equal(getPackageName("npm:postgres"), "postgres");
+  assert.equal(getPackageName("jsr:@std/assert"), "@std/assert");
+});
 
 async function getProductionImports(directory: string): Promise<string[]> {
   const packageRoot = new URL(`${directory}/`, repositoryRoot);
   const denoConfig = await readJson<{
-    exports: Record<string, string>;
+    exports: string | Record<string, string>;
   }>(new URL("deno.json", packageRoot));
-  const entrypoints = [...new Set(Object.values(denoConfig.exports))];
+  const entrypoints = typeof denoConfig.exports === "string"
+    ? [denoConfig.exports]
+    : [...new Set(Object.values(denoConfig.exports))];
   const source = entrypoints.map((entrypoint) =>
     `import ${JSON.stringify(new URL(entrypoint, packageRoot).href)};`
   ).join("\n");
@@ -67,8 +77,13 @@ async function getProductionImports(directory: string): Promise<string[]> {
   const graph = JSON.parse(new TextDecoder().decode(result.stdout)) as {
     modules: DenoInfoModule[];
   };
+  assert.deepEqual(
+    graph.modules.flatMap((module) => module.error ?? []),
+    [],
+    `${directory} has invalid exported modules`,
+  );
   const importedPackages = new Set<string>();
-  const packagePath = decodeURIComponent(packageRoot.pathname);
+  const packagePath = fileURLToPath(packageRoot);
   for (const module of graph.modules) {
     if (module.local == null || !module.local.startsWith(packagePath)) continue;
     for (const dependency of module.dependencies ?? []) {

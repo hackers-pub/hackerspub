@@ -15,7 +15,6 @@
     "./context": "./context.ts",
     "./date": "./date.ts",
     "./db": "./db.ts",
-    "./dblogger": "./dblogger.ts",
     "./emoji": "./emoji.ts",
     "./flag": "./flag.ts",
     "./following": "./following.ts",
