@@ -2178,7 +2178,7 @@ export async function unsharePost(
   }
   const announce = fedCtx.data.services.federation.getAnnounce(fedCtx, {
     ...unshared[0],
-    actor,
+    actor: { ...actor, account },
     sharedPost: originalPost,
     mentions: [],
   });
