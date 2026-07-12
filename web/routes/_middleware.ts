@@ -16,6 +16,7 @@ import getFixedT, {
   SUPPORTED_LANGUAGES,
 } from "../i18n.ts";
 import { kv } from "../kv.ts";
+import { services } from "../services.ts";
 import { define } from "../utils.ts";
 
 export const handler = define.middleware([
@@ -25,6 +26,7 @@ export const handler = define.middleware([
       kv,
       disk: drive.use(),
       models,
+      services,
     });
     ctx.state.fedCtx = fedCtx;
     ctx.state.canonicalOrigin = fedCtx.canonicalOrigin;

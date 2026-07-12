@@ -1,4 +1,3 @@
-import { analyzeFlaggedContent } from "@hackerspub/ai/moderation";
 import { getLogger } from "@logtape/logtape";
 import type { LanguageModel } from "ai";
 import { and, eq, inArray, isNull } from "drizzle-orm";
@@ -18,6 +17,7 @@ import {
   type Post,
 } from "./schema.ts";
 import { generateUuidV7 } from "./uuid.ts";
+import type { AiServices } from "./services.ts";
 
 function isTransaction(db: Database): db is Transaction {
   return "rollback" in db;
@@ -287,6 +287,7 @@ async function getPostSourceContent(
  */
 export async function analyzeFlag(
   db: Database,
+  aiServices: Pick<AiServices, "analyzeFlaggedContent">,
   model: LanguageModel,
   flag: Flag,
   snapshot: ContentSnapshot,
@@ -295,7 +296,7 @@ export async function analyzeFlag(
   let analysis: FlagLlmAnalysis;
   try {
     const provisions = await getCocProvisions("en");
-    const result = await analyzeFlaggedContent({
+    const result = await aiServices.analyzeFlaggedContent({
       model,
       provisions,
       reason: flag.reason,

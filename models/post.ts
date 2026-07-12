@@ -13,8 +13,6 @@ import {
   traverseCollection,
 } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
-import { getAnnounce, getNote } from "@hackerspub/federation/objects";
-import { sendTagsPubRelayActivity } from "@hackerspub/federation/tags-pub";
 import { getLogger } from "@logtape/logtape";
 import { assertNever } from "@std/assert/unstable-never";
 import {
@@ -2117,7 +2115,7 @@ export async function sharePost(
       notification,
     });
   }
-  const announce = getAnnounce(fedCtx, {
+  const announce = fedCtx.data.services.federation.getAnnounce(fedCtx, {
     ...share,
     sharedPost,
     actor: { ...actor, account },
@@ -2178,7 +2176,7 @@ export async function unsharePost(
       actor,
     );
   }
-  const announce = getAnnounce(fedCtx, {
+  const announce = fedCtx.data.services.federation.getAnnounce(fedCtx, {
     ...unshared[0],
     actor,
     sharedPost: originalPost,
@@ -3144,13 +3142,17 @@ async function sendLocalQuoteUpdate(
     },
   });
   if (noteSource == null) return;
-  const noteObject = await getNote(fedCtx, noteSource, {
-    replyTargetId: quote.replyTarget == null
-      ? undefined
-      : new URL(quote.replyTarget.iri),
-    quotedPost: quote.quotedPost ?? undefined,
-    quoteAuthorizationIri,
-  });
+  const noteObject = await fedCtx.data.services.federation.getNote(
+    fedCtx,
+    noteSource,
+    {
+      replyTargetId: quote.replyTarget == null
+        ? undefined
+        : new URL(quote.replyTarget.iri),
+      quotedPost: quote.quotedPost ?? undefined,
+      quoteAuthorizationIri,
+    },
+  );
   const update = new vocab.Update({
     id: new URL(
       `#update/${updated.toISOString()}`,
@@ -3193,17 +3195,18 @@ async function sendLocalQuoteUpdate(
       },
     );
   }
-  const relayedTags = await sendTagsPubRelayActivity(
-    fedCtx,
-    quote.actor.accountId,
-    update,
-    {
-      orderingKey: quote.iri,
-      visibility: quote.visibility,
-      accountBio: noteSource.account.bio,
-      relayedTags: quote.relayedTags,
-    },
-  );
+  const relayedTags = await fedCtx.data.services.federation
+    .sendTagsPubRelayActivity(
+      fedCtx,
+      quote.actor.accountId,
+      update,
+      {
+        orderingKey: quote.iri,
+        visibility: quote.visibility,
+        accountBio: noteSource.account.bio,
+        relayedTags: quote.relayedTags,
+      },
+    );
   if (relayedTags != null) {
     await fedCtx.data.db.update(postTable)
       .set({ relayedTags: [...relayedTags] })
@@ -3366,12 +3369,17 @@ export async function deletePost(
       excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
     },
   );
-  await sendTagsPubRelayActivity(fedCtx, post.actor.accountId, activity, {
-    orderingKey: post.iri,
-    visibility: post.visibility,
-    accountBio: post.actor.bioHtml,
-    relayedTags: post.relayedTags,
-  });
+  await fedCtx.data.services.federation.sendTagsPubRelayActivity(
+    fedCtx,
+    post.actor.accountId,
+    activity,
+    {
+      orderingKey: post.iri,
+      visibility: post.visibility,
+      accountBio: post.actor.bioHtml,
+      relayedTags: post.relayedTags,
+    },
+  );
   await fedCtx.sendActivity(
     { identifier: post.actor.accountId },
     recipients,

@@ -1,13 +1,6 @@
 import type { Context } from "@fedify/fedify";
 import { assertAccountActorNotSuspended } from "./moderation.ts";
 import * as vocab from "@fedify/vocab";
-import {
-  removeDetailsFromSummaryInput,
-  summarize,
-} from "@hackerspub/ai/summary";
-import { translate } from "@hackerspub/ai/translate";
-import { getArticle } from "@hackerspub/federation/objects";
-import { sendTagsPubRelayActivity } from "@hackerspub/federation/tags-pub";
 import { getLogger } from "@logtape/logtape";
 import { minBy } from "@std/collections/min-by";
 import type { LanguageModel } from "ai";
@@ -25,6 +18,7 @@ import type { Disk } from "flydrive";
 import postgres from "postgres";
 import type { ContextData, Models } from "./context.ts";
 import type { Database, Transaction } from "./db.ts";
+import type { AiServices } from "./services.ts";
 import { syncPostFromArticleSource } from "./post.ts";
 import {
   type Account,
@@ -51,6 +45,7 @@ import {
 import { addPostToTimeline } from "./timeline.ts";
 import { queueAfterCommit } from "./tx.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
+import { removeDetailsFromSummaryInput } from "./summary.ts";
 
 const logger = getLogger(["hackerspub", "models", "article"]);
 const articleMediumReferencePattern = /hp-medium:([A-Za-z0-9._:/-]+)/g;
@@ -346,6 +341,7 @@ export async function getArticleSource(
 export async function createArticleSource(
   db: Database,
   models: Models,
+  aiServices: Pick<AiServices, "summarize">,
   source: Omit<NewArticleSource, "id"> & {
     id?: Uuid;
     title: string;
@@ -368,7 +364,12 @@ export async function createArticleSource(
     })
     .returning();
   if (options.summarize ?? true) {
-    await startArticleContentSummary(db, models.summarizer, contents[0]);
+    await startArticleContentSummary(
+      db,
+      models.summarizer,
+      contents[0],
+      aiServices.summarize,
+    );
   }
   return { ...sources[0], contents };
 }
@@ -382,6 +383,7 @@ async function queueArticleContentSummary(
       fedCtx.data.rootDb ?? fedCtx.data.db,
       fedCtx.data.models.summarizer,
       content,
+      fedCtx.data.services.ai.summarize,
     ));
 }
 
@@ -427,6 +429,7 @@ export async function createArticle(
   const articleSource = await createArticleSource(
     db,
     fedCtx.data.models,
+    fedCtx.data.services.ai,
     articleSourceInput,
     { summarize: false },
   );
@@ -453,7 +456,10 @@ export async function createArticle(
   });
   await addPostToTimeline(db, post);
   await options.afterPostCreated?.(post, db);
-  const articleObject = await getArticle(fedCtx, { ...articleSource, account });
+  const articleObject = await fedCtx.data.services.federation.getArticle(
+    fedCtx,
+    { ...articleSource, account },
+  );
   const activity = new vocab.Create({
     id: new URL("#create", articleObject.id ?? fedCtx.origin),
     actor: fedCtx.getActorUri(source.accountId),
@@ -471,16 +477,17 @@ export async function createArticle(
       excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
     },
   );
-  const relayedTags = await sendTagsPubRelayActivity(
-    fedCtx,
-    source.accountId,
-    activity,
-    {
-      orderingKey: post.iri,
-      visibility: post.visibility,
-      accountBio: account.bio,
-    },
-  );
+  const relayedTags = await fedCtx.data.services.federation
+    .sendTagsPubRelayActivity(
+      fedCtx,
+      source.accountId,
+      activity,
+      {
+        orderingKey: post.iri,
+        visibility: post.visibility,
+        accountBio: account.bio,
+      },
+    );
   if (relayedTags != null) {
     await db.update(postTable)
       .set({ relayedTags: [...relayedTags] })
@@ -524,6 +531,7 @@ export async function updateArticleSource(
     media?: readonly ArticleMediumInput[];
   },
   models?: Models,
+  aiServices?: Pick<AiServices, "summarize">,
 ): Promise<UpdateArticleSourceResult | undefined> {
   const { media: sourceMedia, ...sourceFields } = source;
   // Captured inside the transaction and used after it commits so we
@@ -633,8 +641,13 @@ export async function updateArticleSource(
   // Queue a fresh summarization outside of the transaction so the
   // claim is visible to other workers as soon as it is acquired and
   // the deferred apply step does not try to use a closed transaction.
-  if (resummarizeTarget != null && models != null) {
-    await startArticleContentSummary(db, models.summarizer, resummarizeTarget);
+  if (resummarizeTarget != null && models != null && aiServices != null) {
+    await startArticleContentSummary(
+      db,
+      models.summarizer,
+      resummarizeTarget,
+      aiServices.summarize,
+    );
   }
   return { source: result, originalContentChanged };
 }
@@ -668,6 +681,7 @@ export async function updateArticle(
     articleSourceId,
     source,
     models,
+    fedCtx.data.services.ai,
   );
   if (updateResult == null) return undefined;
   const { source: articleSource, originalContentChanged } = updateResult;
@@ -685,7 +699,10 @@ export async function updateArticle(
   // tag relays, and translation restarts (each of which fires its own Update)
   // are skipped, while it remains censored.
   if (post.censored != null) return post;
-  const articleObject = await getArticle(fedCtx, { ...articleSource, account });
+  const articleObject = await fedCtx.data.services.federation.getArticle(
+    fedCtx,
+    { ...articleSource, account },
+  );
   const activity = new vocab.Update({
     id: new URL(
       `#update/${articleSource.updated.toISOString()}`,
@@ -709,17 +726,18 @@ export async function updateArticle(
       ],
     },
   );
-  const relayedTags = await sendTagsPubRelayActivity(
-    fedCtx,
-    articleSource.accountId,
-    activity,
-    {
-      orderingKey: post.iri,
-      visibility: post.visibility,
-      accountBio: account.bio,
-      relayedTags: previousPost?.relayedTags,
-    },
-  );
+  const relayedTags = await fedCtx.data.services.federation
+    .sendTagsPubRelayActivity(
+      fedCtx,
+      articleSource.accountId,
+      activity,
+      {
+        orderingKey: post.iri,
+        visibility: post.visibility,
+        accountBio: account.bio,
+        relayedTags: previousPost?.relayedTags,
+      },
+    );
   if (relayedTags != null) {
     await db.update(postTable)
       .set({ relayedTags: [...relayedTags] })
@@ -784,6 +802,7 @@ export async function startArticleContentSummary(
   db: Database,
   model: LanguageModel,
   content: ArticleContent,
+  summarize: AiServices["summarize"],
 ): Promise<void> {
   // Use a JS-side Date so the value round-trips through the driver
   // with millisecond precision.  This is later used as a CAS stamp.
@@ -1376,7 +1395,7 @@ async function runArticleContentTranslation(
   // `article_content_being_translated_check` makes that imply
   // `originalLanguage IS NOT NULL`.  Drizzle types it as nullable
   // because the column is nullable in general, so assert.
-  translate({
+  fedCtx.data.services.ai.translate({
     model,
     summarizationModel: summarizer,
     sourceLanguage: claimed.originalLanguage!,
@@ -1448,10 +1467,18 @@ async function runArticleContentTranslation(
     if (post?.censored != null) {
       // A censored article must not federate a completed translation's
       // Update; the translation row and its summary still persist locally.
-      await startArticleContentSummary(db, summarizer, updated[0]);
+      await startArticleContentSummary(
+        db,
+        summarizer,
+        updated[0],
+        fedCtx.data.services.ai.summarize,
+      );
       return;
     }
-    const articleObject = await getArticle(fedCtx, article);
+    const articleObject = await fedCtx.data.services.federation.getArticle(
+      fedCtx,
+      article,
+    );
     // The id has to be unique across translation completions for
     // this article — multiple locales can complete in close
     // succession (especially after a body edit re-queues every
@@ -1488,17 +1515,18 @@ async function runArticleContentTranslation(
       },
     );
     if (post != null) {
-      const relayedTags = await sendTagsPubRelayActivity(
-        fedCtx,
-        article.accountId,
-        update,
-        {
-          orderingKey,
-          visibility: post.visibility,
-          accountBio: article.account.bio,
-          relayedTags: post.relayedTags,
-        },
-      );
+      const relayedTags = await fedCtx.data.services.federation
+        .sendTagsPubRelayActivity(
+          fedCtx,
+          article.accountId,
+          update,
+          {
+            orderingKey,
+            visibility: post.visibility,
+            accountBio: article.account.bio,
+            relayedTags: post.relayedTags,
+          },
+        );
       if (relayedTags != null) {
         await db.update(postTable)
           .set({ relayedTags: [...relayedTags] })
@@ -1510,6 +1538,7 @@ async function runArticleContentTranslation(
       db,
       summarizer,
       updated[0],
+      fedCtx.data.services.ai.summarize,
     );
   }).catch(async (error) => {
     logger.error("Translation failed ({sourceId} {language}): {error}", {

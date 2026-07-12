@@ -10,6 +10,7 @@
     "./nodeinfo": "./nodeinfo.ts",
     "./tags-pub": "./tags-pub.ts",
     "./objects": "./objects.ts",
+    "./services": "./services.ts",
     "./webfinger": "./webfinger.ts"
   }
 }

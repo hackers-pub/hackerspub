@@ -360,7 +360,13 @@ builder.mutationField("reportContent", (t) =>
       // failure) in flag.llmAnalysis; it never blocks report creation.
       const analyzer = ctx.fedCtx.data.models.moderationAnalyzer;
       if (analyzer != null) {
-        void analyzeFlag(ctx.db, analyzer, flag, flag.snapshot)
+        void analyzeFlag(
+          ctx.db,
+          ctx.fedCtx.data.services.ai,
+          analyzer,
+          flag,
+          flag.snapshot,
+        )
           .catch((error) => {
             logger.error(
               "Failed to analyze flag {flagId}: {error}",

@@ -41,6 +41,7 @@ import {
   insertAccountWithActor,
   insertNotePost,
   insertRemoteActor,
+  services,
   withRollback,
 } from "../test/postgres.ts";
 import type { Uuid } from "./uuid.ts";
@@ -1107,6 +1108,7 @@ test("acceptOrganizationConversion() enqueues Update(Organization) through Fedif
         kv,
         disk: createTestDisk(),
         models: {} as ContextData["models"],
+        services,
       },
     );
 

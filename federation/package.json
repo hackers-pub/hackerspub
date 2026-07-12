@@ -6,7 +6,6 @@
     "./*": "./*.ts"
   },
   "dependencies": {
-    "@std/assert": "catalog:",
     "@std/html": "catalog:",
     "@fedify/fedify": "catalog:",
     "@fedify/vocab": "catalog:",

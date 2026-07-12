@@ -37,3 +37,10 @@ Hackers' Pub is open source.  The source code is available under the AGPL-3.0.
 [^1]: Of course, these features are not implemented yet. This is just a plan.
 
 [invitation tree]: https://hackers.pub/tree
+
+
+Development
+-----------
+
+See [Application architecture](ARCHITECTURE.md) for the package dependency
+direction and composition rules.

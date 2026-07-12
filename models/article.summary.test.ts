@@ -10,7 +10,11 @@ import {
   articleSourceTable,
   postTable,
 } from "./schema.ts";
-import { insertAccountWithActor, withRollback } from "../test/postgres.ts";
+import {
+  insertAccountWithActor,
+  services,
+  withRollback,
+} from "../test/postgres.ts";
 import { generateUuidV7 } from "./uuid.ts";
 
 test(
@@ -218,7 +222,12 @@ test(
 
       // Even though we pass a fake model, this should never be invoked
       // because the row is marked unnecessary.
-      await startArticleContentSummary(tx, {} as never, content);
+      await startArticleContentSummary(
+        tx,
+        {} as never,
+        content,
+        services.ai.summarize,
+      );
 
       const after = await tx.query.articleContentTable.findFirst({
         where: { sourceId, language: "en" },
@@ -576,6 +585,7 @@ test(
           translator: hangingModel,
           moderationAnalyzer: hangingModel,
         },
+        services.ai,
       );
       assert.ok(updated != null);
 
@@ -632,6 +642,7 @@ test(
           translator: {} as never,
           moderationAnalyzer: {} as never,
         },
+        services.ai,
       );
       assert.ok(updated != null);
 
@@ -764,7 +775,12 @@ test(
 
       // Should be a no-op because the row is being translated.  The
       // fake model would otherwise crash if generateText() were called.
-      await startArticleContentSummary(tx, {} as never, content);
+      await startArticleContentSummary(
+        tx,
+        {} as never,
+        content,
+        services.ai.summarize,
+      );
 
       const after = await tx.query.articleContentTable.findFirst({
         where: { sourceId, language: "ko" },

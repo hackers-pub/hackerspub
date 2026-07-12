@@ -2,7 +2,6 @@ import type { Context, DocumentLoader } from "@fedify/fedify";
 import { assertAccountActorNotSuspended } from "./moderation.ts";
 import { isActor } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
-import { getEmojiReact, getEmojiReactId } from "@hackerspub/federation/objects";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import {
   getPersistedActor,
@@ -222,7 +221,12 @@ export async function react(
   await assertAccountActorNotSuspended(db, account.id);
   let iri: string;
   if (emoji != null) {
-    iri = getEmojiReactId(ctx, account.id, post.id, emoji).href;
+    iri = ctx.data.services.federation.getEmojiReactId(
+      ctx,
+      account.id,
+      post.id,
+      emoji,
+    ).href;
   } else {
     iri = new URL(
       `/ap/emojireacts/custom/${generateUuidV7()}`,
@@ -258,7 +262,7 @@ export async function react(
     );
   }
   if (emoji == null) return rows[0];
-  const activity = getEmojiReact(ctx, {
+  const activity = ctx.data.services.federation.getEmojiReact(ctx, {
     ...rows[0],
     actor: account.actor,
     post,
@@ -338,7 +342,7 @@ export async function undoReaction(
     );
   }
   if (emoji == null) return rows[0];
-  const activity = getEmojiReact(ctx, {
+  const activity = ctx.data.services.federation.getEmojiReact(ctx, {
     ...rows[0],
     actor: account.actor,
     post,

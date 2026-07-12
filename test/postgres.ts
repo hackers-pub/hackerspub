@@ -24,6 +24,9 @@ import { generateUuidV7 } from "@hackerspub/models/uuid";
 import type { Uuid } from "@hackerspub/models/uuid";
 import { db } from "../graphql/db.ts";
 import type { UserContext } from "../graphql/builder.ts";
+import { services } from "./services.ts";
+
+export { services };
 
 export type AuthenticatedAccount = NonNullable<UserContext["account"]>;
 
@@ -534,6 +537,7 @@ export function createFedCtx(
       kv: kv as unknown as ContextData["kv"],
       disk: createTestDisk(),
       models: {} as ContextData["models"],
+      services,
     },
     getActorUri(identifier: string) {
       return new URL(`/actors/${identifier}`, "http://localhost/");

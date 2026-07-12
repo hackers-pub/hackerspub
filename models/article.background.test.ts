@@ -18,6 +18,7 @@ import { withTransaction } from "./tx.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
+  services,
   withRollback,
 } from "../test/postgres.ts";
 import { waitFor } from "../test/wait.ts";
@@ -58,7 +59,12 @@ test("startArticleContentSummary() resets summaryStarted when summarization fail
     });
     assert.ok(content != null);
 
-    await startArticleContentSummary(tx, {} as never, content);
+    await startArticleContentSummary(
+      tx,
+      {} as never,
+      content,
+      services.ai.summarize,
+    );
 
     const started = await tx.query.articleContentTable.findFirst({
       where: { sourceId, language: "en" },
