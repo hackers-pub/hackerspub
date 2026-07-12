@@ -164,6 +164,25 @@ test("removeDetailsFromSummaryInput() ignores escaped backticks", () => {
   assert.equal(output.includes("Hidden answer."), false);
 });
 
+test("removeDetailsFromSummaryInput() treats backslashes literally in code", () => {
+  const closingBacktick = "\\\u0060";
+  const inlineCode = `Use \`<details>${closingBacktick} as markup.`;
+  const input = [
+    inlineCode,
+    "<details>",
+    "<summary>Answer</summary>",
+    "Hidden answer.",
+    "</details>",
+    "Visible after.",
+  ].join("\n");
+
+  const output = removeDetailsFromSummaryInput(input);
+
+  assert.equal(output.includes(inlineCode), true);
+  assert.equal(output.includes("Visible after."), true);
+  assert.equal(output.includes("Hidden answer."), false);
+});
+
 test("removeDetailsFromSummaryInput() handles many unclosed inline code markers", () => {
   const input = `${"` ".repeat(2_000)}\nVisible after markers.`;
 

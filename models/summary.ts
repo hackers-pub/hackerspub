@@ -158,7 +158,9 @@ function findInlineCodeRanges(
       index = blockCodeRange.end - 1;
       continue;
     }
-    if (text[index] !== "`" || isEscaped(text, index)) continue;
+    if (text[index] !== "`" || (opened == null && isEscaped(text, index))) {
+      continue;
+    }
     const start = index;
     let length = 1;
     while (text[start + length] === "`") length++;
