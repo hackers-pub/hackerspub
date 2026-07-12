@@ -8,6 +8,7 @@ import {
   postTable,
 } from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
+import type { LanguageModel } from "ai";
 import { eq, sql } from "drizzle-orm";
 import {
   insertAccountWithActor,
@@ -16,9 +17,40 @@ import {
   insertRemotePost,
   withRollback,
 } from "../test/postgres.ts";
-import { createFlag, getFlagByIri, MIN_REPORT_REASON_LENGTH } from "./flag.ts";
+import type { Transaction } from "./db.ts";
+import {
+  analyzeFlag,
+  createFlag,
+  getFlagByIri,
+  MIN_REPORT_REASON_LENGTH,
+} from "./flag.ts";
 
 const REASON = "This post contains harassment targeting another user.";
+
+async function createAnalyzableFlag(tx: Transaction) {
+  const reporter = await insertAccountWithActor(tx, {
+    username: "analysisreporter",
+    name: "Analysis Reporter",
+    email: "analysisreporter@example.com",
+  });
+  const reported = await insertAccountWithActor(tx, {
+    username: "analysisreported",
+    name: "Analysis Reported",
+    email: "analysisreported@example.com",
+  });
+  const { post } = await insertNotePost(tx, {
+    account: reported.account,
+    content: "Reported content for analysis",
+  });
+  const flag = await createFlag(tx, {
+    reporter: reporter.actor,
+    targetActor: reported.actor,
+    targetPost: post,
+    reason: REASON,
+  });
+  assert.ok(flag != null);
+  return flag;
+}
 
 describe("createFlag()", () => {
   it("creates a case, flag, and snapshot for a post report", async () => {
@@ -533,6 +565,76 @@ describe("createFlag()", () => {
       // Reporters and the reported user get nothing.
       assert.ok(
         afterSecond.every((n) => n.accountId === moderator.account.id),
+      );
+    });
+  });
+});
+
+describe("analyzeFlag()", () => {
+  it("uses the injected analyzer and stores its result", async () => {
+    await withRollback(async (tx) => {
+      const flag = await createAnalyzableFlag(tx);
+      let analyzedReason: string | undefined;
+      await analyzeFlag(
+        tx,
+        {
+          analyzeFlaggedContent(options) {
+            analyzedReason = options.reason;
+            assert.equal(options.contentHtml, flag.snapshot.contentHtml);
+            assert.ok(options.provisions.length > 0);
+            return Promise.resolve({
+              matches: [{
+                provision: options.provisions[0].id,
+                confidence: 0.75,
+                rationale: "The report matches this provision.",
+              }],
+              summary: "A concise moderation summary.",
+            });
+          },
+        },
+        { modelId: "test-analyzer" } as LanguageModel,
+        flag,
+        flag.snapshot,
+      );
+
+      assert.equal(analyzedReason, REASON);
+      const stored = await tx.query.flagTable.findFirst({
+        where: { id: flag.id },
+      });
+      assert.equal(stored?.llmAnalysis?.model, "test-analyzer");
+      assert.equal(
+        stored?.llmAnalysis?.summary,
+        "A concise moderation summary.",
+      );
+      assert.equal(stored?.llmAnalysis?.matches.length, 1);
+      assert.equal(stored?.llmAnalysis?.error, undefined);
+    });
+  });
+
+  it("stores analyzer failures without rejecting", async () => {
+    await withRollback(async (tx) => {
+      const flag = await createAnalyzableFlag(tx);
+      await analyzeFlag(
+        tx,
+        {
+          analyzeFlaggedContent() {
+            return Promise.reject(new Error("analyzer unavailable"));
+          },
+        },
+        { modelId: "failing-analyzer" } as LanguageModel,
+        flag,
+        flag.snapshot,
+      );
+
+      const stored = await tx.query.flagTable.findFirst({
+        where: { id: flag.id },
+      });
+      assert.equal(stored?.llmAnalysis?.model, "failing-analyzer");
+      assert.deepEqual(stored?.llmAnalysis?.matches, []);
+      assert.equal(stored?.llmAnalysis?.summary, "");
+      assert.match(
+        stored?.llmAnalysis?.error ?? "",
+        /analyzer unavailable/,
       );
     });
   });

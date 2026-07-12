@@ -134,7 +134,13 @@ export async function onFlagged(
   const analyzer = fedCtx.data.models.moderationAnalyzer;
   if (analyzer != null) {
     // Fire-and-forget; failures are recorded in flag.llmAnalysis.
-    void analyzeFlag(db, analyzer, created, created.snapshot)
+    void analyzeFlag(
+      db,
+      fedCtx.data.services.ai,
+      analyzer,
+      created,
+      created.snapshot,
+    )
       .catch((error) => {
         logger.error(
           "Failed to analyze flag {flagId}: {error}",

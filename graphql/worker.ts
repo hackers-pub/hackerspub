@@ -15,6 +15,7 @@ import { drive } from "./drive.ts";
 import { federation, ORIGIN } from "./federation.ts";
 import { kv } from "./kv.ts";
 import { sendNotificationDigests } from "./notification-digest.ts";
+import { services } from "./services.ts";
 
 const logger = getLogger(["hackerspub", "graphql", "worker"]);
 
@@ -200,7 +201,7 @@ Deno.cron("send-daily-notification-digests", "5 0 * * *", {
 const disk = drive.use();
 logger.info("Starting the federation message queue worker.");
 await federation.startQueue(
-  { db, kv, disk, models },
+  { db, kv, disk, models, services },
   { signal: controller.signal },
 );
 logger.info("The federation message queue worker has stopped.");

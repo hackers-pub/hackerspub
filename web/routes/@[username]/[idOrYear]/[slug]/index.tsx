@@ -193,7 +193,12 @@ export async function handleArticle(
   );
   const description = content.summary ?? rendered.text;
   if (content.summary == null) {
-    await startArticleContentSummary(db, summarizer, content);
+    await startArticleContentSummary(
+      db,
+      summarizer,
+      content,
+      ctx.state.fedCtx.data.services.ai.summarize,
+    );
   }
   ctx.state.metas.push(
     { name: "description", content: description },

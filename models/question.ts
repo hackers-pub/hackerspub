@@ -1,10 +1,8 @@
 import type { Context } from "@fedify/fedify";
-import { assertAccountActorNotSuspended } from "./moderation.ts";
 import type { Recipient } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
-import { getQuestion } from "@hackerspub/federation/objects";
-import { sendTagsPubRelayActivity } from "@hackerspub/federation/tags-pub";
 import { eq, sql } from "drizzle-orm";
+import { assertAccountActorNotSuspended } from "./moderation.ts";
 import {
   createMentionNotification,
   createQuoteNotification,
@@ -152,7 +150,7 @@ export async function createQuestion(
   if (result == null) return undefined;
   const { noteSource, media, post } = result;
 
-  const questionObject = await getQuestion(
+  const questionObject = await fedCtx.data.services.federation.getQuestion(
     fedCtx,
     { ...noteSource, media, account },
     { ...post.poll, post, options: post.poll.options },
@@ -181,7 +179,7 @@ export async function createQuestion(
       "#quote-request",
       questionObject.id ?? fedCtx.origin,
     );
-    const instrument = await getQuestion(
+    const instrument = await fedCtx.data.services.federation.getQuestion(
       fedCtx,
       { ...noteSource, media, account },
       { ...post.poll, post, options: post.poll.options },
@@ -261,16 +259,17 @@ export async function createQuestion(
       },
     );
   }
-  const relayedTags = await sendTagsPubRelayActivity(
-    fedCtx,
-    source.accountId,
-    activity,
-    {
-      orderingKey,
-      visibility: post.visibility,
-      accountBio: account.bio,
-    },
-  );
+  const relayedTags = await fedCtx.data.services.federation
+    .sendTagsPubRelayActivity(
+      fedCtx,
+      source.accountId,
+      activity,
+      {
+        orderingKey,
+        visibility: post.visibility,
+        accountBio: account.bio,
+      },
+    );
   if (relayedTags != null) {
     await db.update(postTable)
       .set({ relayedTags: [...relayedTags] })

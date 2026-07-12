@@ -32,6 +32,7 @@ function createContext(db: Database): RequestContext<ContextData> {
     disk: {} as never,
     kv: {} as never,
     models: {} as never,
+    services: {} as never,
   });
 }
 

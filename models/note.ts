@@ -1,14 +1,12 @@
 import type { Context } from "@fedify/fedify";
-import { assertAccountActorNotSuspended } from "./moderation.ts";
 import type { Recipient } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
-import { getNote } from "@hackerspub/federation/objects";
-import { sendTagsPubRelayActivity } from "@hackerspub/federation/tags-pub";
 import { eq, sql } from "drizzle-orm";
 import type { Disk } from "flydrive";
 import { syncActorFromAccount } from "./actor.ts";
 import type { ContextData } from "./context.ts";
 import type { Database, Transaction } from "./db.ts";
+import { assertAccountActorNotSuspended } from "./moderation.ts";
 import {
   createMentionNotification,
   createQuoteNotification,
@@ -397,7 +395,7 @@ export async function createNote(
   }
   await addPostToTimeline(db, post);
   await options.afterPostCreated?.(post, db);
-  const noteObject = await getNote(
+  const noteObject = await fedCtx.data.services.federation.getNote(
     fedCtx,
     { ...noteSource, media, account },
     {
@@ -422,7 +420,7 @@ export async function createNote(
   const quoteRequestTarget = post.quoteRequestTarget;
   if (post.quoteRequestRequired && quoteRequestTarget != null) {
     const requestId = new URL("#quote-request", noteObject.id ?? fedCtx.origin);
-    const instrument = await getNote(
+    const instrument = await fedCtx.data.services.federation.getNote(
       fedCtx,
       { ...noteSource, media, account },
       {
@@ -501,16 +499,17 @@ export async function createNote(
       },
     );
   }
-  const relayedTags = await sendTagsPubRelayActivity(
-    fedCtx,
-    source.accountId,
-    activity,
-    {
-      orderingKey,
-      visibility: post.visibility,
-      accountBio: account.bio,
-    },
-  );
+  const relayedTags = await fedCtx.data.services.federation
+    .sendTagsPubRelayActivity(
+      fedCtx,
+      source.accountId,
+      activity,
+      {
+        orderingKey,
+        visibility: post.visibility,
+        accountBio: account.bio,
+      },
+    );
   if (relayedTags != null) {
     await db.update(postTable)
       .set({ relayedTags: [...relayedTags] })
@@ -620,7 +619,7 @@ export async function updateNote(
   // but no Update(Note) is delivered to mentions, followers, or tag relays
   // while it remains censored.
   if (post.censored != null) return post;
-  const noteObject = await getNote(
+  const noteObject = await fedCtx.data.services.federation.getNote(
     fedCtx,
     { ...noteSource, media, account },
     {
@@ -692,17 +691,18 @@ export async function updateNote(
       },
     );
   }
-  const relayedTags = await sendTagsPubRelayActivity(
-    fedCtx,
-    noteSource.accountId,
-    activity,
-    {
-      orderingKey: post.iri,
-      visibility: post.visibility,
-      accountBio: account.bio,
-      relayedTags: previousPost?.relayedTags,
-    },
-  );
+  const relayedTags = await fedCtx.data.services.federation
+    .sendTagsPubRelayActivity(
+      fedCtx,
+      noteSource.accountId,
+      activity,
+      {
+        orderingKey: post.iri,
+        visibility: post.visibility,
+        accountBio: account.bio,
+        relayedTags: previousPost?.relayedTags,
+      },
+    );
   if (relayedTags != null) {
     await db.update(postTable)
       .set({ relayedTags: [...relayedTags] })

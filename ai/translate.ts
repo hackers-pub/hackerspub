@@ -1,21 +1,9 @@
 import { fetchWebPage } from "@vertana/context-web";
 import type { ContextSource, RequiredContextSource } from "@vertana/core";
 import { translate as vertanaTranslate } from "@vertana/facade";
-import type { LanguageModel } from "ai";
+import type { TranslationOptions } from "@hackerspub/models/services";
 
-export interface TranslationOptions {
-  model: LanguageModel;
-  summarizationModel?: LanguageModel;
-  sourceLanguage: string;
-  targetLanguage: string;
-  text: string;
-  /** Author's display name */
-  authorName?: string;
-  /** Author's bio/description */
-  authorBio?: string;
-  /** Article tags for context */
-  tags?: string[];
-}
+export type { TranslationOptions };
 
 /**
  * Creates a required context source with author information

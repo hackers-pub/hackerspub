@@ -24,6 +24,7 @@ import {
   insertAccountWithActor,
   insertNotePost,
   insertRemoteActor,
+  services,
   withRollback,
 } from "../test/postgres.ts";
 
@@ -53,6 +54,7 @@ test("outbox root omits totalItems without counting posts", async () => {
       kv: createTestKv().kv,
       disk: createTestDisk(),
       models: {} as ContextData["models"],
+      services,
     };
 
     const response = await federation.fetch(
@@ -232,6 +234,7 @@ test("emoji reactions collection returns Like, EmojiReact, and custom emoji item
       kv: createTestKv().kv,
       disk: createTestDisk(),
       models: {} as ContextData["models"],
+      services,
     };
 
     const rootResponse = await federation.fetch(

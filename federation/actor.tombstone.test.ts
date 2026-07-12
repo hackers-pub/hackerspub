@@ -14,6 +14,7 @@ import { generateUuidV7 } from "@hackerspub/models/uuid";
 import {
   createTestDisk,
   createTestKv,
+  services,
   withRollback,
 } from "../test/postgres.ts";
 
@@ -56,6 +57,7 @@ test("actor dispatcher returns a Tombstone for a deleted account", async () => {
       kv: createTestKv().kv,
       disk: createTestDisk(),
       models: {} as ContextData["models"],
+      services,
     };
 
     const response = await federation.fetch(
@@ -93,6 +95,7 @@ test("actor dispatcher preserves an Organization deleted actor type", async () =
       kv: createTestKv().kv,
       disk: createTestDisk(),
       models: {} as ContextData["models"],
+      services,
     };
 
     const response = await federation.fetch(
@@ -137,6 +140,7 @@ test("actor dispatcher preserves deleted actor public keys", async () => {
       kv: createTestKv().kv,
       disk: createTestDisk(),
       models: {} as ContextData["models"],
+      services,
     };
 
     const response = await federation.fetch(
@@ -179,6 +183,7 @@ test("WebFinger maps a deleted username to the Tombstone actor", async () => {
       kv: createTestKv().kv,
       disk: createTestDisk(),
       models: {} as ContextData["models"],
+      services,
     };
 
     const response = await federation.fetch(

@@ -30,9 +30,6 @@ catalogs:
     '@mdit-vue/plugin-title':
       specifier: ^2.1.4
       version: 2.1.4
-    '@opentelemetry/api':
-      specifier: ^1.0.15
-      version: 1.9.1
     '@searking/markdown-it-cjk-breaks':
       specifier: 2.0.1-0
       version: 2.0.1-0
@@ -225,9 +222,6 @@ importers:
       '@logtape/logtape':
         specifier: 'catalog:'
         version: '@jsr/logtape__logtape@2.0.6'
-      '@std/assert':
-        specifier: 'catalog:'
-        version: '@jsr/std__assert@1.0.19'
       '@std/html':
         specifier: 'catalog:'
         version: '@jsr/std__html@1.0.5'
@@ -237,9 +231,6 @@ importers:
 
   models:
     dependencies:
-      '@c4spar/mock-fetch':
-        specifier: 'catalog:'
-        version: '@jsr/c4spar__mock-fetch@1.0.0'
       '@fedify/fedify':
         specifier: 'catalog:'
         version: '@jsr/fedify__fedify@2.3.1'
@@ -252,12 +243,6 @@ importers:
       '@fedify/vocab':
         specifier: 'catalog:'
         version: '@jsr/fedify__vocab@2.3.1'
-      '@hackerspub/ai':
-        specifier: workspace:*
-        version: link:../ai
-      '@hackerspub/federation':
-        specifier: workspace:*
-        version: link:../federation
       '@hackerspub/markdown-it-texmath':
         specifier: 'catalog:'
         version: 1.0.1
@@ -267,9 +252,6 @@ importers:
       '@mdit-vue/plugin-title':
         specifier: 'catalog:'
         version: 2.1.4
-      '@opentelemetry/api':
-        specifier: 'catalog:'
-        version: 1.9.1
       '@searking/markdown-it-cjk-breaks':
         specifier: 'catalog:'
         version: 2.0.1-0
@@ -387,6 +369,10 @@ importers:
       xss:
         specifier: 'catalog:'
         version: 1.0.15
+    devDependencies:
+      '@c4spar/mock-fetch':
+        specifier: 'catalog:'
+        version: '@jsr/c4spar__mock-fetch@1.0.0'
 
   web-next:
     dependencies:

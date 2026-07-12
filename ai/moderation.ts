@@ -1,56 +1,19 @@
+import { generateObject, jsonSchema } from "ai";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { generateObject, jsonSchema, type LanguageModel } from "ai";
+import type { CocProvision } from "@hackerspub/models/coc";
+import type {
+  ModerationAnalysis,
+  ModerationAnalysisMatch,
+  ModerationAnalysisOptions,
+} from "@hackerspub/models/services";
 
-/**
- * A code of conduct provision as the analyzer sees it.  Mirrors
- * `CocProvision` from `@hackerspub/models/coc` (this package cannot import
- * it: `@hackerspub/models` depends on `@hackerspub/ai`, not the other way
- * around).
- */
-export interface ModerationProvision {
-  /** Stable structural id, e.g. `"2.3"`. */
-  id: string;
-  section: string;
-  title: string;
-  text: string;
-}
-
-export interface ModerationAnalysisMatch {
-  /** The id of a provision the content plausibly violates. */
-  provision: string;
-  /** Confidence between 0 and 1. */
-  confidence: number;
-  /** One-sentence rationale. */
-  rationale: string;
-}
-
-/**
- * The result of matching a report against the code of conduct.  This is a
- * reference tool for moderators, never an automated decision: LLMs can
- * exhibit biases, so the matches must always be reviewed and validated by
- * a human moderator before any action.
- */
-export interface ModerationAnalysis {
-  matches: ModerationAnalysisMatch[];
-  /** A short, neutral summary of what the report is about. */
-  summary: string;
-}
-
-export interface ModerationAnalysisOptions {
-  model: LanguageModel;
-  /** The current code of conduct provisions, with stable ids. */
-  provisions: readonly ModerationProvision[];
-  /** The reporter's written reason (untrusted input). */
-  reason: string;
-  /** The reported content's rendered HTML (untrusted input). */
-  contentHtml: string;
-  /**
-   * What kind of content is being analyzed, e.g. `"post"` (default) or
-   * `"profile"`.
-   */
-  contentKind?: string;
-}
+export type ModerationProvision = CocProvision;
+export type {
+  ModerationAnalysis,
+  ModerationAnalysisMatch,
+  ModerationAnalysisOptions,
+};
 
 const ANALYSIS_SCHEMA = jsonSchema<ModerationAnalysis>({
   type: "object",

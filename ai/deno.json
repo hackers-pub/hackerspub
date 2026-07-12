@@ -5,6 +5,7 @@
     ".": "./mod.ts",
     "./alttext": "./alttext.ts",
     "./moderation": "./moderation.ts",
+    "./services": "./services.ts",
     "./summary": "./summary.ts",
     "./translate": "./translate.ts"
   }

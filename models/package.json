@@ -5,17 +5,13 @@
     "./*": "./*.ts"
   },
   "dependencies": {
-    "@c4spar/mock-fetch": "catalog:",
     "@fedify/fedify": "catalog:",
     "@fedify/markdown-it-hashtag": "catalog:",
     "@fedify/markdown-it-mention": "catalog:",
     "@fedify/vocab": "catalog:",
-    "@hackerspub/ai": "workspace:*",
-    "@hackerspub/federation": "workspace:*",
     "@hackerspub/markdown-it-texmath": "catalog:",
     "@logtape/logtape": "catalog:",
     "@mdit-vue/plugin-title": "catalog:",
-    "@opentelemetry/api": "catalog:",
     "@searking/markdown-it-cjk-breaks": "catalog:",
     "@shikijs/markdown-it": "catalog:",
     "@shikijs/transformers": "catalog:",
@@ -55,5 +51,8 @@
     "tinyld": "catalog:",
     "web-push": "catalog:",
     "xss": "catalog:"
+  },
+  "devDependencies": {
+    "@c4spar/mock-fetch": "catalog:"
   }
 }

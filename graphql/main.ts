@@ -10,6 +10,7 @@ import { federation } from "./federation.ts";
 import { kv } from "./kv.ts";
 import { createYogaServer } from "./mod.ts";
 import { handleMediumUploadProxy } from "./medium-upload.ts";
+import { services } from "./services.ts";
 import assetlinks from "./static/.well-known/assetlinks.json" with {
   type: "json",
 };
@@ -46,7 +47,7 @@ Deno.serve({ port: 8080 }, async (req, info) => {
       url.pathname.startsWith("/nodeinfo/")
     ) {
       return await federation.fetch(req, {
-        contextData: { db, kv, disk, models },
+        contextData: { db, kv, disk, models, services },
       });
     }
     return await yogaServer.fetch(req, {
@@ -55,7 +56,13 @@ Deno.serve({ port: 8080 }, async (req, info) => {
       kv,
       disk,
       email,
-      fedCtx: federation.createContext(req, { db, kv, disk, models }),
+      fedCtx: federation.createContext(req, {
+        db,
+        kv,
+        disk,
+        models,
+        services,
+      }),
       request: req,
       connectionInfo: info,
     });

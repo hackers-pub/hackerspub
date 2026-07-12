@@ -34,6 +34,7 @@ import { federation } from "./federation.ts";
 import { makeQueryGraphQL } from "./graphql/gql.ts";
 import { kv } from "./kv.ts";
 import "./logging.ts";
+import { services } from "./services.ts";
 import type { State } from "./utils.ts";
 import assetlinks from "../graphql/static/.well-known/assetlinks.json" with {
   type: "json",
@@ -214,7 +215,7 @@ app.use(async (ctx) => {
   ) {
     const disk = drive.use();
     return await federation.fetch(ctx.req, {
-      contextData: { db, kv, disk, models },
+      contextData: { db, kv, disk, models, services },
     });
   }
 
@@ -225,7 +226,13 @@ app.use(async (ctx) => {
     kv,
     disk,
     email,
-    fedCtx: federation.createContext(ctx.req, { db, kv, disk, models }),
+    fedCtx: federation.createContext(ctx.req, {
+      db,
+      kv,
+      disk,
+      models,
+      services,
+    }),
     session: await ctx.state.sessionPromise?.then(({ session }) => session),
     account: await ctx.state.sessionPromise?.then(({ account }) => account),
     request: ctx.req,

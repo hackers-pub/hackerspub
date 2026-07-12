@@ -14,7 +14,11 @@ import {
   postTable,
 } from "./schema.ts";
 import { generateUuidV7 } from "./uuid.ts";
-import { insertAccountWithActor, withRollback } from "../test/postgres.ts";
+import {
+  insertAccountWithActor,
+  services,
+  withRollback,
+} from "../test/postgres.ts";
 
 const fakeModels = {
   summarizer: {} as never,
@@ -31,7 +35,7 @@ test("createArticleSource() creates a source and initial content", async () => {
     });
     const published = new Date("2026-04-15T00:00:00.000Z");
 
-    const source = await createArticleSource(tx, fakeModels, {
+    const source = await createArticleSource(tx, fakeModels, services.ai, {
       accountId: author.account.id,
       publishedYear: 2026,
       slug: "source-test",

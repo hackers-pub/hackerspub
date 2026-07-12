@@ -32,6 +32,7 @@ import {
   insertNotePost,
   insertRemoteActor,
   insertRemotePost,
+  services,
   withRollback,
 } from "../test/postgres.ts";
 
@@ -526,6 +527,7 @@ test("source-backed Questions do not resolve through the Note dispatcher", async
       kv,
       disk: createTestDisk(),
       models: {} as ContextData["models"],
+      services,
     };
 
     const noteResponse = await federation.fetch(
@@ -654,6 +656,7 @@ test("replies collection exposes only public direct replies", async () => {
       kv: createTestKv().kv,
       disk: createTestDisk(),
       models: {} as ContextData["models"],
+      services,
     };
 
     const rootResponse = await federation.fetch(
@@ -735,6 +738,7 @@ test("replies collection paginates public replies", async () => {
       kv: createTestKv().kv,
       disk: createTestDisk(),
       models: {} as ContextData["models"],
+      services,
     };
 
     const rootResponse = await federation.fetch(
@@ -827,6 +831,7 @@ test("replies collection hides private, censored, and sanction-hidden roots", as
       kv: createTestKv().kv,
       disk: createTestDisk(),
       models: {} as ContextData["models"],
+      services,
     };
 
     for (const id of [privateSourceId, censoredSourceId, sanctionedSourceId]) {
@@ -1038,6 +1043,7 @@ test("the quote-authorization dispatcher hides censored posts", async () => {
       kv: createTestKv().kv,
       disk: createTestDisk(),
       models: {} as ContextData["models"],
+      services,
     };
     const url = `http://localhost/ap/quote-authorizations/${authId}`;
 
