@@ -158,7 +158,7 @@ function findInlineCodeRanges(
       index = blockCodeRange.end - 1;
       continue;
     }
-    if (text[index] !== "`") continue;
+    if (text[index] !== "`" || isEscaped(text, index)) continue;
     const start = index;
     let length = 1;
     while (text[start + length] === "`") length++;
@@ -171,6 +171,12 @@ function findInlineCodeRanges(
     index = start + length - 1;
   }
   return ranges;
+}
+
+function isEscaped(text: string, index: number): boolean {
+  let backslashes = 0;
+  for (let cursor = index - 1; text[cursor] === "\\"; cursor--) backslashes++;
+  return backslashes % 2 === 1;
 }
 
 function findMarkdownCodeRanges(text: string): TextRange[] {
