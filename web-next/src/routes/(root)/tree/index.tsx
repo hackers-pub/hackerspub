@@ -1,6 +1,6 @@
 import { graphql } from "relay-runtime";
 import { createMemo, For, Show } from "solid-js";
-import { A } from "@solidjs/router";
+import { A, useLocation, useNavigate, useSearchParams } from "@solidjs/router";
 import type { treeQuery as treeQueryType } from "./__generated__/treeQuery.graphql.ts";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
 import {
@@ -8,8 +8,25 @@ import {
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
+import {
+  buildInvitationTree,
+  buildInvitationTreeSortHref,
+  INVITATION_TREE_SORTS,
+  type InvitationTreeSort,
+  isNewInvitationTreeMember,
+  parseInvitationTreeSort,
+} from "~/lib/invitationTree.ts";
 import { ActorHoverCard } from "~/components/ActorHoverCard.tsx";
 import { Title } from "~/components/Title.tsx";
+import { Badge } from "~/components/ui/badge.tsx";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select.tsx";
 
 const TreeIndexQueryDocument = graphql`
   query treeQuery {
@@ -21,6 +38,7 @@ const TreeIndexQueryDocument = graphql`
       avatarUrl
       inviterId
       hidden
+      created
     }
   }
 `;
@@ -43,24 +61,13 @@ interface TreeNode {
   avatarUrl: string;
   inviterId: string | null | undefined;
   hidden: boolean;
-}
-
-function buildTree(
-  nodes: readonly TreeNode[],
-): Map<string | null, TreeNode[]> {
-  const tree = new Map<string | null, TreeNode[]>();
-  for (const node of nodes) {
-    const parentId = node.inviterId ?? null;
-    if (!tree.has(parentId)) tree.set(parentId, []);
-    tree.get(parentId)!.push(node);
-  }
-
-  return tree;
+  created: string | null | undefined;
 }
 
 interface LeafProps {
   tree: Map<string | null, TreeNode[]>;
   parentId: string | null;
+  newMemberReferenceTime: Date;
   class?: string;
 }
 
@@ -81,6 +88,7 @@ function Leaf(props: LeafProps) {
                     <VisibleNode
                       user={account}
                       inviteCount={inviteCount()}
+                      newMemberReferenceTime={props.newMemberReferenceTime}
                     />
                   )}
               </div>
@@ -88,6 +96,7 @@ function Leaf(props: LeafProps) {
                 <Leaf
                   tree={props.tree}
                   parentId={account.id}
+                  newMemberReferenceTime={props.newMemberReferenceTime}
                   class="ml-7"
                 />
               )}
@@ -129,7 +138,12 @@ function HiddenNode(_props: { username?: string | null }) {
   );
 }
 
-function VisibleNode(props: { user: TreeNode; inviteCount: number }) {
+function VisibleNode(props: {
+  user: TreeNode;
+  inviteCount: number;
+  newMemberReferenceTime: Date;
+}) {
+  const { t } = useLingui();
   return (
     <>
       <ActorHoverCard handle={props.user.handle!} class="shrink-0">
@@ -145,14 +159,26 @@ function VisibleNode(props: { user: TreeNode; inviteCount: number }) {
         </A>
       </ActorHoverCard>
       <div class="flex flex-col min-w-0">
-        <ActorHoverCard handle={props.user.handle!} class="min-w-0">
-          <A
-            href={`/@${props.user.username}`}
-            class="font-semibold text-sm leading-tight"
+        <div class="flex min-w-0 items-center gap-2">
+          <ActorHoverCard handle={props.user.handle!} class="min-w-0">
+            <A
+              href={`/@${props.user.username}`}
+              class="font-semibold text-sm leading-tight"
+            >
+              {props.user.name ?? props.user.username}
+            </A>
+          </ActorHoverCard>
+          <Show
+            when={isNewInvitationTreeMember(
+              props.user.created,
+              props.newMemberReferenceTime,
+            )}
           >
-            {props.user.name ?? props.user.username}
-          </A>
-        </ActorHoverCard>
+            <Badge variant="success" class="shrink-0 px-1.5 py-0">
+              {t`New`}
+            </Badge>
+          </Show>
+        </div>
         <span class="text-sm text-muted-foreground">
           <ActorHoverCard handle={props.user.handle!} class="min-w-0">
             <A
@@ -187,40 +213,83 @@ function InvitedCount(props: { count: number }) {
 
 export default function InvitationTree() {
   const { t } = useLingui();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams<{ sort?: string }>();
+  const newMemberReferenceTime = new Date();
   const data = createStablePreloadedQuery<treeQueryType>(
     TreeIndexQueryDocument,
     () => loadTreeIndexQuery(),
   );
 
+  const activeSort = () => parseInvitationTreeSort(searchParams.sort);
+
   const tree = createMemo(() => {
     const queryData = data();
     if (!queryData) return new Map<string | null, TreeNode[]>();
-    return buildTree(queryData.invitationTree);
+    return buildInvitationTree(queryData.invitationTree, activeSort());
   });
 
   const roots = () => tree().get(null) ?? [];
 
+  const sortLabel = (sort: InvitationTreeSort) => {
+    switch (sort) {
+      case "OLDEST":
+        return t`Oldest signups`;
+      case "NEWEST":
+        return t`Newest signups`;
+      case "MOST_INVITATIONS":
+        return t`Most invitations`;
+    }
+  };
+
+  const changeSort = (sort: InvitationTreeSort | null) => {
+    if (sort == null) return;
+    navigate(
+      buildInvitationTreeSortHref(location.pathname, location.search, sort),
+    );
+  };
+
   return (
     <div class="container px-8 max-sm:px-4 py-8">
       <Title>{t`Hackers' Pub: Invitation tree`}</Title>
-      <div class="flex items-center gap-6 mb-6">
+      <div class="flex flex-wrap items-center gap-4 mb-6">
         <h1 class="text-xl font-semibold">
           {t`Invitation tree`}
         </h1>
         <div class="flex gap-1 border border-border rounded-md p-0.5">
           <A
-            href="/tree"
+            href={`/tree${location.search}`}
             class="px-3 py-1 text-sm font-medium rounded-sm bg-accent text-accent-foreground"
           >
             {t`Tree`}
           </A>
           <A
-            href="/tree/graph"
+            href={`/tree/graph${location.search}`}
             class="px-3 py-1 text-sm font-medium rounded-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
           >
             {t`Graph`}
           </A>
         </div>
+        <Select
+          class="grid w-full gap-1.5 sm:ml-auto sm:w-52"
+          value={activeSort()}
+          onChange={changeSort}
+          options={INVITATION_TREE_SORTS}
+          itemComponent={(props) => (
+            <SelectItem item={props.item}>
+              {sortLabel(props.item.rawValue)}
+            </SelectItem>
+          )}
+        >
+          <SelectLabel class="sr-only">{t`Sort invitation tree`}</SelectLabel>
+          <SelectTrigger>
+            <SelectValue<InvitationTreeSort>>
+              {(state) => sortLabel(state.selectedOption())}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent />
+        </Select>
       </div>
       <Show
         when={roots().length > 0}
@@ -230,7 +299,12 @@ export default function InvitationTree() {
           </p>
         }
       >
-        <Leaf tree={tree()} parentId={null} class="mt-4" />
+        <Leaf
+          tree={tree()}
+          parentId={null}
+          newMemberReferenceTime={newMemberReferenceTime}
+          class="mt-4"
+        />
       </Show>
     </div>
   );

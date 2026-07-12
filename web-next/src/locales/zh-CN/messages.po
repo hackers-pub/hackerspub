@@ -3097,6 +3097,10 @@ msgstr "审核案例"
 #~ msgid "More engagement views"
 #~ msgstr "查看其他反应"
 
+#: src/routes/(root)/tree/index.tsx:242
+msgid "Most invitations"
+msgstr "邀请数从多到少"
+
 #: src/routes/(root)/admin/moderation/statistics.tsx:216
 msgid "Most-cited provisions"
 msgstr "最常引用的条款"
@@ -3179,6 +3183,10 @@ msgstr "永不过期"
 msgid "Never used"
 msgstr "从未使用过"
 
+#: src/routes/(root)/tree/index.tsx:178
+msgid "New"
+msgstr "新加入"
+
 #: src/routes/(root)/[handle]/settings/account.tsx:1163
 msgid "New admin username"
 msgstr "新管理员用户名"
@@ -3200,6 +3208,10 @@ msgstr "有新内容 — 点击加载"
 #: src/components/NewsList.tsx:89
 msgid "Newest"
 msgstr "最新"
+
+#: src/routes/(root)/tree/index.tsx:240
+msgid "Newest signups"
+msgstr "最新注册优先"
 
 #: src/components/AdminTabs.tsx:58
 #: src/components/AppSidebar.tsx:255
@@ -3479,6 +3491,10 @@ msgstr "邀请次数"
 #: src/routes/(root)/[handle]/settings/account.tsx:1802
 msgid "Old account"
 msgstr "旧账户"
+
+#: src/routes/(root)/tree/index.tsx:238
+msgid "Oldest signups"
+msgstr "最早注册优先"
 
 #: src/routes/(root)/[handle]/settings/account.tsx:1784
 msgid "On the old server, open account migration settings and set this Hackers' Pub account as the new account."
@@ -4681,6 +4697,10 @@ msgstr "出现错误"
 #: src/routes/(root)/sign/index.tsx:253
 msgid "Something went wrong—please try again."
 msgstr "出现错误，请重试。"
+
+#: src/routes/(root)/tree/index.tsx:285
+msgid "Sort invitation tree"
+msgstr "排序邀请树"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:58
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:610

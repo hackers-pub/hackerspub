@@ -1,6 +1,6 @@
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
-import { A } from "@solidjs/router";
+import { A, useLocation } from "@solidjs/router";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { ForceGraph } from "~/components/ForceGraph.tsx";
 import type { graphQuery as graphQueryType } from "./__generated__/graphQuery.graphql.ts";
@@ -67,6 +67,7 @@ function transformToGraphData(treeData: readonly TreeNode[]) {
 
 export default function InvitationTreeGraph() {
   const { t } = useLingui();
+  const location = useLocation();
   const data = createStablePreloadedQuery<graphQueryType>(
     TreeGraphQueryDocument,
     () => loadTreeGraphQuery(),
@@ -82,13 +83,13 @@ export default function InvitationTreeGraph() {
           </h1>
           <div class="flex gap-1 border border-border rounded-md p-0.5">
             <A
-              href="/tree"
+              href={`/tree${location.search}`}
               class="px-3 py-1 text-sm font-medium rounded-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
             >
               {t`Tree`}
             </A>
             <A
-              href="/tree/graph"
+              href={`/tree/graph${location.search}`}
               class="px-3 py-1 text-sm font-medium rounded-sm bg-accent text-accent-foreground"
             >
               {t`Graph`}

@@ -1204,6 +1204,7 @@ interface InvitationTreeNode {
   avatarUrl: string;
   inviterId: string | null;
   hidden: boolean;
+  created: Date | null;
 }
 
 const DEFAULT_AVATAR_URL = "https://gravatar.com/avatar/?d=mp&s=128";
@@ -1230,6 +1231,14 @@ InvitationTreeNodeRef.implement({
     }),
     inviterId: t.exposeID("inviterId", { nullable: true }),
     hidden: t.exposeBoolean("hidden"),
+    created: t.expose("created", {
+      type: "DateTime",
+      nullable: true,
+      description:
+        "The time when this account joined Hackers' Pub. `null` when " +
+        "`InvitationTreeNode.hidden` is `true`, so the invitation tree does " +
+        "not reveal an anonymous account's exact signup time.",
+    }),
   }),
 });
 
@@ -1270,6 +1279,7 @@ builder.queryField("invitationTree", (t) =>
               : await getAvatarUrl(ctx.disk, account),
             inviterId: account.inviterId,
             hidden,
+            created: hidden ? null : account.created,
           };
         }),
       );

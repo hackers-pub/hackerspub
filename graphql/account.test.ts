@@ -90,6 +90,7 @@ const invitationTreeQuery = parse(`
       avatarUrl
       inviterId
       hidden
+      created
     }
   }
 `);
@@ -491,6 +492,7 @@ test("invitationTree redacts hidden accounts", async () => {
         avatarUrl: string;
         inviterId: string | null;
         hidden: boolean;
+        created: Date | null;
       }>;
     }).invitationTree;
     const visibleNode = nodes.find((node) => node.id === visible.account.id);
@@ -501,10 +503,12 @@ test("invitationTree redacts hidden accounts", async () => {
     assert.equal(visibleNode.hidden, false);
     assert.equal(visibleNode.username, "visibletree");
     assert.equal(visibleNode.name, "Visible Tree");
+    assert.deepEqual(visibleNode.created, visible.account.created);
 
     assert.equal(hiddenNode.hidden, true);
     assert.equal(hiddenNode.username, null);
     assert.equal(hiddenNode.name, null);
+    assert.equal(hiddenNode.created, null);
     assert.equal(
       hiddenNode.avatarUrl,
       "https://gravatar.com/avatar/?d=mp&s=128",
@@ -542,6 +546,7 @@ test("invitationTree redacts banned accounts", async () => {
         avatarUrl: string;
         inviterId: string | null;
         hidden: boolean;
+        created: Date | null;
       }>;
     }).invitationTree;
     const bannedNode = nodes.find((node) => node.id === banned.account.id);
@@ -550,6 +555,7 @@ test("invitationTree redacts banned accounts", async () => {
     assert.equal(bannedNode.hidden, true);
     assert.equal(bannedNode.username, null);
     assert.equal(bannedNode.name, null);
+    assert.equal(bannedNode.created, null);
     assert.equal(
       bannedNode.avatarUrl,
       "https://gravatar.com/avatar/?d=mp&s=128",

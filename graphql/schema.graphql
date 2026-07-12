@@ -2329,6 +2329,11 @@ type InvitationTreeNode {
   avatarUrl: URL!
 
   """
+  The time when this account joined Hackers' Pub. `null` when `InvitationTreeNode.hidden` is `true`, so the invitation tree does not reveal an anonymous account's exact signup time.
+  """
+  created: DateTime
+
+  """
   Full fediverse handle in `@username@host` format, or `null` when the account has opted out of the invitation tree.
   """
   handle: String

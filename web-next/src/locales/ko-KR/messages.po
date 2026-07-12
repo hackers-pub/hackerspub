@@ -3097,6 +3097,10 @@ msgstr "모더레이션 케이스"
 #~ msgid "More engagement views"
 #~ msgstr "다른 반응 보기"
 
+#: src/routes/(root)/tree/index.tsx:242
+msgid "Most invitations"
+msgstr "초대 많이 한 순"
+
 #: src/routes/(root)/admin/moderation/statistics.tsx:216
 msgid "Most-cited provisions"
 msgstr "최다 인용 조항"
@@ -3179,6 +3183,10 @@ msgstr "유효기간 없음"
 msgid "Never used"
 msgstr "사용된 적 없음"
 
+#: src/routes/(root)/tree/index.tsx:178
+msgid "New"
+msgstr "신규"
+
 #: src/routes/(root)/[handle]/settings/account.tsx:1163
 msgid "New admin username"
 msgstr "새 관리자 아이디"
@@ -3200,6 +3208,10 @@ msgstr "새 콘텐츠가 있습니다 — 클릭하여 불러오기"
 #: src/components/NewsList.tsx:89
 msgid "Newest"
 msgstr "최신"
+
+#: src/routes/(root)/tree/index.tsx:240
+msgid "Newest signups"
+msgstr "신규 가입순"
 
 #: src/components/AdminTabs.tsx:58
 #: src/components/AppSidebar.tsx:255
@@ -3479,6 +3491,10 @@ msgstr "초대 횟수"
 #: src/routes/(root)/[handle]/settings/account.tsx:1802
 msgid "Old account"
 msgstr "예전 계정"
+
+#: src/routes/(root)/tree/index.tsx:238
+msgid "Oldest signups"
+msgstr "오래된 가입순"
 
 #: src/routes/(root)/[handle]/settings/account.tsx:1784
 msgid "On the old server, open account migration settings and set this Hackers' Pub account as the new account."
@@ -4681,6 +4697,10 @@ msgstr "문제가 발생했습니다"
 #: src/routes/(root)/sign/index.tsx:253
 msgid "Something went wrong—please try again."
 msgstr "문제가 발생했습니다. 다시 시도해주세요."
+
+#: src/routes/(root)/tree/index.tsx:285
+msgid "Sort invitation tree"
+msgstr "초대 족보 정렬"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:58
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:610

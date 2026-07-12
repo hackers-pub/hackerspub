@@ -3101,6 +3101,10 @@ msgstr "Moderation cases"
 #~ msgid "More engagement views"
 #~ msgstr "More engagement views"
 
+#: src/routes/(root)/tree/index.tsx:242
+msgid "Most invitations"
+msgstr "Most invitations"
+
 #: src/routes/(root)/admin/moderation/statistics.tsx:216
 msgid "Most-cited provisions"
 msgstr "Most-cited provisions"
@@ -3183,6 +3187,10 @@ msgstr "Never expires"
 msgid "Never used"
 msgstr "Never used"
 
+#: src/routes/(root)/tree/index.tsx:178
+msgid "New"
+msgstr "New"
+
 #: src/routes/(root)/[handle]/settings/account.tsx:1163
 msgid "New admin username"
 msgstr "New admin username"
@@ -3204,6 +3212,10 @@ msgstr "New posts available — click to load"
 #: src/components/NewsList.tsx:89
 msgid "Newest"
 msgstr "Newest"
+
+#: src/routes/(root)/tree/index.tsx:240
+msgid "Newest signups"
+msgstr "Newest signups"
 
 #: src/components/AdminTabs.tsx:58
 #: src/components/AppSidebar.tsx:255
@@ -3483,6 +3495,10 @@ msgstr "Number of invitations"
 #: src/routes/(root)/[handle]/settings/account.tsx:1802
 msgid "Old account"
 msgstr "Old account"
+
+#: src/routes/(root)/tree/index.tsx:238
+msgid "Oldest signups"
+msgstr "Oldest signups"
 
 #: src/routes/(root)/[handle]/settings/account.tsx:1784
 msgid "On the old server, open account migration settings and set this Hackers' Pub account as the new account."
@@ -4685,6 +4701,10 @@ msgstr "Something went wrong"
 #: src/routes/(root)/sign/index.tsx:253
 msgid "Something went wrong—please try again."
 msgstr "Something went wrong—please try again."
+
+#: src/routes/(root)/tree/index.tsx:285
+msgid "Sort invitation tree"
+msgstr "Sort invitation tree"
 
 #: src/components/article-composer/ArticleComposerWriteStep.tsx:58
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:610
