@@ -1101,6 +1101,12 @@ export const postTable = pgTable(
       .on(table.actorId, desc(table.published)),
     index("idx_post_actor_id_updated")
       .on(table.actorId, desc(table.updated)),
+    index("idx_post_outbox_actor_id_id")
+      .on(table.actorId, desc(table.id))
+      .where(sql`
+        ${table.censored} IS NULL
+        AND ${table.visibility} IN ('public', 'unlisted')
+      `),
     index("idx_post_actor_id_published_ms")
       .on(
         table.actorId,
