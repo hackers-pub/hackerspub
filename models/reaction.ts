@@ -1,5 +1,4 @@
 import type { Context, DocumentLoader } from "@fedify/fedify";
-import { assertAccountActorNotSuspended } from "./moderation.ts";
 import { isActor } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
 import { and, eq, inArray, sql } from "drizzle-orm";
@@ -11,6 +10,7 @@ import {
 import type { ContextData } from "./context.ts";
 import type { Database } from "./db.ts";
 import { DEFAULT_REACTION_EMOJI, type ReactionEmoji } from "./emoji.ts";
+import { assertAccountActorNotSuspended } from "./moderation.ts";
 import { refreshNewsScores } from "./news.ts";
 import {
   createReactNotification,

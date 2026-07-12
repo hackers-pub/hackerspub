@@ -1,3 +1,4 @@
+import { generateText } from "ai";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import {
@@ -7,7 +8,6 @@ import {
 } from "@hackerspub/models/i18n";
 import type { SummaryOptions } from "@hackerspub/models/services";
 import { removeDetailsFromSummaryInput } from "@hackerspub/models/summary";
-import { generateText } from "ai";
 
 const PROMPT_LANGUAGES: Locale[] = (
   await readdir(

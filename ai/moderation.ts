@@ -1,3 +1,4 @@
+import { generateObject, jsonSchema } from "ai";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { CocProvision } from "@hackerspub/models/coc";
@@ -6,7 +7,6 @@ import type {
   ModerationAnalysisMatch,
   ModerationAnalysisOptions,
 } from "@hackerspub/models/services";
-import { generateObject, jsonSchema } from "ai";
 
 export type ModerationProvision = CocProvision;
 export type {

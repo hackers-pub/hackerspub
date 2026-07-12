@@ -17,13 +17,13 @@ import {
   insertRemotePost,
   withRollback,
 } from "../test/postgres.ts";
+import type { Transaction } from "./db.ts";
 import {
   analyzeFlag,
   createFlag,
   getFlagByIri,
   MIN_REPORT_REASON_LENGTH,
 } from "./flag.ts";
-import type { Transaction } from "./db.ts";
 
 const REASON = "This post contains harassment targeting another user.";
 

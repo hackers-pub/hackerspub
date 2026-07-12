@@ -1,5 +1,4 @@
 import type { Context } from "@fedify/fedify";
-import { assertAccountActorNotSuspended } from "./moderation.ts";
 import type { Recipient } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
 import { eq, sql } from "drizzle-orm";
@@ -7,6 +6,7 @@ import type { Disk } from "flydrive";
 import { syncActorFromAccount } from "./actor.ts";
 import type { ContextData } from "./context.ts";
 import type { Database, Transaction } from "./db.ts";
+import { assertAccountActorNotSuspended } from "./moderation.ts";
 import {
   createMentionNotification,
   createQuoteNotification,

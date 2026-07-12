@@ -1,8 +1,8 @@
 import type { Context } from "@fedify/fedify";
-import { assertAccountActorNotSuspended } from "./moderation.ts";
 import type { Recipient } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
 import { eq, sql } from "drizzle-orm";
+import { assertAccountActorNotSuspended } from "./moderation.ts";
 import {
   createMentionNotification,
   createQuoteNotification,
