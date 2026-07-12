@@ -35,6 +35,7 @@ function getPackageName(specifier: string): string | undefined {
   if (
     normalized.startsWith(".") || normalized.startsWith("/") ||
     normalized.startsWith("data:") || normalized.startsWith("file:") ||
+    normalized.startsWith("http:") || normalized.startsWith("https:") ||
     normalized.startsWith("node:")
   ) {
     return undefined;
@@ -46,6 +47,8 @@ function getPackageName(specifier: string): string | undefined {
 test("getPackageName() normalizes registry prefixes", () => {
   assert.equal(getPackageName("npm:postgres"), "postgres");
   assert.equal(getPackageName("jsr:@std/assert"), "@std/assert");
+  assert.equal(getPackageName("http://example.com/mod.ts"), undefined);
+  assert.equal(getPackageName("https://example.com/mod.ts"), undefined);
 });
 
 async function getProductionImports(directory: string): Promise<string[]> {
