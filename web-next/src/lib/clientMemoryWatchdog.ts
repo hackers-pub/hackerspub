@@ -77,7 +77,7 @@ interface NetworkSnapshot {
 }
 
 interface MemorySample {
-  readonly sampledAt: number;
+  readonly sampled: number;
   readonly uptimeMs: number;
   readonly memoryApi: "measureUserAgentSpecificMemory" | "memory" | "none";
   readonly usedBytes?: number;
@@ -108,7 +108,7 @@ interface MemoryDelta {
 }
 
 interface MemorySampleTrailEntry {
-  readonly sampledAt: number;
+  readonly sampled: number;
   readonly uptimeMs: number;
   readonly route: string;
   readonly usedBytes?: number;
@@ -228,7 +228,7 @@ async function collectMemorySample(): Promise<MemorySample> {
   const elementCounts = collectElementCounts();
 
   return {
-    sampledAt: Date.now(),
+    sampled: Date.now(),
     uptimeMs: Math.round(performance.now()),
     route: window.location.pathname,
     visibilityState: document.visibilityState,
@@ -545,7 +545,7 @@ function calculateBytesPerMinute(
 
 function toSampleTrailEntry(sample: MemorySample): MemorySampleTrailEntry {
   return {
-    sampledAt: sample.sampledAt,
+    sampled: sample.sampled,
     uptimeMs: sample.uptimeMs,
     route: sample.route,
     usedBytes: sample.usedBytes,

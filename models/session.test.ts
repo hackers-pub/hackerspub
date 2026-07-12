@@ -5,21 +5,21 @@ import { createTestKv } from "../test/postgres.ts";
 
 test("sessions round-trip through Keyv", async () => {
   const { kv } = createTestKv();
-  const createdAt = new Date("2026-04-15T00:00:00.000Z");
+  const createdTime = new Date("2026-04-15T00:00:00.000Z");
 
   const session = await createSession(kv, {
     id: "019d9162-ffff-7fff-8fff-ffffffffffff",
     accountId: "019d9162-eeee-7eee-8eee-eeeeeeeeeeee",
     userAgent: "session-test",
     ipAddress: "127.0.0.1",
-    created: createdAt,
+    created: createdTime,
   });
 
   assert.deepEqual(session.id, "019d9162-ffff-7fff-8fff-ffffffffffff");
   assert.deepEqual(session.accountId, "019d9162-eeee-7eee-8eee-eeeeeeeeeeee");
   assert.deepEqual(session.userAgent, "session-test");
   assert.deepEqual(session.ipAddress, "127.0.0.1");
-  assert.deepEqual(session.created, createdAt);
+  assert.deepEqual(session.created, createdTime);
 
   const stored = await getSession(kv, session.id);
   assert.ok(stored != null);

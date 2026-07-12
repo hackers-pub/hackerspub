@@ -36,15 +36,15 @@ export function sortReactionGroups<T extends ReactionGroup>(
 
     // If both are standard emojis
     if (emojiA && emojiB) {
-      const isAReactionEmoji = isReactionEmoji(emojiA);
-      const isBReactionEmoji = isReactionEmoji(emojiB);
+      const reactionEmojiA = isReactionEmoji(emojiA);
+      const reactionEmojiB = isReactionEmoji(emojiB);
 
       // REACTION_EMOJIS come first
-      if (isAReactionEmoji && !isBReactionEmoji) return -1;
-      if (!isAReactionEmoji && isBReactionEmoji) return 1;
+      if (reactionEmojiA && !reactionEmojiB) return -1;
+      if (!reactionEmojiA && reactionEmojiB) return 1;
 
       // If both are in REACTION_EMOJIS, sort by their order
-      if (isAReactionEmoji && isBReactionEmoji) {
+      if (reactionEmojiA && reactionEmojiB) {
         const indexA = REACTION_EMOJIS.indexOf(emojiA as ReactionEmoji);
         const indexB = REACTION_EMOJIS.indexOf(emojiB as ReactionEmoji);
         return indexA - indexB;

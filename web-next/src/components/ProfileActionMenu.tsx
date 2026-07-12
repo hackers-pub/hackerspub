@@ -247,13 +247,13 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
   const [blockActor, isBlocking] = createMutation<
     ProfileActionMenu_blockActor_Mutation
   >(blockActorMutation);
-  const [unblockActor, isUnblocking] = createMutation<
+  const [unblockActor, unblocking] = createMutation<
     ProfileActionMenu_unblockActor_Mutation
   >(unblockActorMutation);
   const [muteActor, isMuting] = createMutation<
     ProfileActionMenu_muteActor_Mutation
   >(muteActorMutation);
-  const [unmuteActor, isUnmuting] = createMutation<
+  const [unmuteActor, unmuting] = createMutation<
     ProfileActionMenu_unmuteActor_Mutation
   >(unmuteActorMutation);
   const [removeFollower, isRemovingFollower] = createMutation<
@@ -261,7 +261,7 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
   >(removeFollowerMutation);
 
   const displayName = () => actor()?.rawName ?? actor()?.username ?? "";
-  const isPending = () => isBlocking() || isUnblocking();
+  const isPending = () => isBlocking() || unblocking();
   const isCurrentViewerActor = () => actor()?.isViewer ?? false;
   const selectedActingAccountInput = () => {
     const actingAccountId = actingAccount.selectedActingAccountId();
@@ -356,7 +356,7 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
     }
   };
 
-  const isMutePending = () => isMuting() || isUnmuting();
+  const isMutePending = () => isMuting() || unmuting();
   const handleRemoveFollower = () => {
     const actorData = actor();
     if (!actorData) return;

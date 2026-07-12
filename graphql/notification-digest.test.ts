@@ -136,7 +136,7 @@ test(
       await tx.insert(organizationNotificationReadTable).values({
         organizationAccountId: organization.account.id,
         memberAccountId: otherMember.account.id,
-        readAt: new Date("2026-06-29T12:02:00.000Z"),
+        read: new Date("2026-06-29T12:02:00.000Z"),
       });
 
       const email = createTestEmailTransport();

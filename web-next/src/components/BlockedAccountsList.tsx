@@ -72,7 +72,7 @@ export function BlockedAccountsList(props: BlockedAccountsListProps) {
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
   >("loaded");
-  const [unblockActor, isUnblocking] = createMutation<
+  const [unblockActor, unblocking] = createMutation<
     BlockedAccountsList_unblockActor_Mutation
   >(unblockActorMutation);
 
@@ -115,7 +115,7 @@ export function BlockedAccountsList(props: BlockedAccountsListProps) {
           onLoadMore={onLoadMore}
           onAction={(actorId) => onUnblock(actorId, data.blockedActors.__id)}
           actionLabel={t`Unblock`}
-          actionDisabled={isUnblocking()}
+          actionDisabled={unblocking()}
           emptyMessage={t`You haven't blocked anyone.`}
         />
       )}

@@ -38,7 +38,7 @@ export interface NoteDraftData {
   readonly ensureLinkUrl?: string;
   readonly media: readonly NoteDraftMedia[];
   readonly poll: NoteDraftPoll;
-  readonly updatedAt: string;
+  readonly updated: string;
 }
 
 export type NoteDraftScope =
@@ -122,7 +122,10 @@ export function parseNoteDraft(raw: string | null): StoredNoteDraft | null {
     ensureLinkUrl: optionalString(value.ensureLinkUrl),
     media,
     poll,
-    updatedAt: optionalString(value.updatedAt) ?? new Date(0).toISOString(),
+    // Preserve drafts saved before the datetime naming convention changed.
+    updated: optionalString(value.updated) ??
+      optionalString(value["updatedAt"]) ??
+      new Date(0).toISOString(),
   };
   return isMeaningfulNoteDraft(draft) ? draft : null;
 }

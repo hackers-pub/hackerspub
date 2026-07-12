@@ -211,14 +211,14 @@ export function createYogaServer(): YogaServerInstance<
       } as EnvelopPlugin,
       {
         onExecute: ({ setExecuteFn, context }) => {
-          const isNoPropagate =
+          const noPropagate =
             new URL(context.request.url).searchParams.get("no-propagate") ===
               "true" ||
             context.request.headers.get("x-no-propagate") === "true";
           setExecuteFn((args) =>
             execute({
               ...args,
-              onError: isNoPropagate ? "NO_PROPAGATE" : "PROPAGATE",
+              onError: noPropagate ? "NO_PROPAGATE" : "PROPAGATE",
             })
           );
         },

@@ -9,7 +9,7 @@ type MemorySample = Parameters<typeof detectMemoryAlert>[0]["sample"];
 
 function makeSample(overrides: Partial<MemorySample> = {}): MemorySample {
   return {
-    sampledAt: 1_780_000_000_000,
+    sampled: 1_780_000_000_000,
     uptimeMs: 300_000,
     memoryApi: "memory",
     usedBytes: 100_000_000,

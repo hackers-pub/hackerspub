@@ -40,7 +40,7 @@ export interface ModerationActionFormProps {
    * Whether the target is a local account.  Remote targets receive no
    * in-app message, so the "message to the user" field is hidden for them.
    */
-  isLocal: boolean;
+  local: boolean;
   /** Called after a successful action so the page can refresh. */
   onActioned: () => void;
 }
@@ -181,7 +181,7 @@ export function ModerationActionForm(props: ModerationActionFormProps) {
         actionType: at,
         violatedProvisions: needsProvisions() ? [...selected()] : null,
         rationale: rationale().trim(),
-        messageToUser: props.isLocal && messageToUser().trim()
+        messageToUser: props.local && messageToUser().trim()
           ? messageToUser().trim()
           : null,
         suspensionStarts: suspensionStarts ?? null,
@@ -322,7 +322,7 @@ export function ModerationActionForm(props: ModerationActionFormProps) {
         </Show>
       </TextField>
 
-      <Show when={props.isLocal}>
+      <Show when={props.local}>
         <TextField value={messageToUser()} onChange={setMessageToUser}>
           <TextFieldLabel>{t`Message to the user (optional)`}</TextFieldLabel>
           <TextFieldTextArea

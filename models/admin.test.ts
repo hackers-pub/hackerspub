@@ -101,7 +101,7 @@ test("getInvitationRegenerationStatus uses now-7d cutoff when KV key absent", as
     const { kv } = createTestKv();
     const now = new Date("2026-04-15T00:00:00.000Z");
     const status = await getInvitationRegenerationStatus(tx, kv, { now });
-    assert.deepEqual(status.lastRegeneratedAt, null);
+    assert.deepEqual(status.lastRegenerated, null);
     assert.deepEqual(
       status.cutoffDate.toISOString(),
       new Date("2026-04-08T00:00:00.000Z").toISOString(),
@@ -118,9 +118,9 @@ test("getInvitationRegenerationStatus uses stored timestamp as cutoff", async ()
     store.set(INVITATIONS_LAST_REGEN_KEY, lastRegen.toISOString());
     const now = new Date("2026-04-15T00:00:00.000Z");
     const status = await getInvitationRegenerationStatus(tx, kv, { now });
-    assert.ok(status.lastRegeneratedAt != null);
+    assert.ok(status.lastRegenerated != null);
     assert.deepEqual(
-      status.lastRegeneratedAt.toISOString(),
+      status.lastRegenerated.toISOString(),
       lastRegen.toISOString(),
     );
     assert.deepEqual(status.cutoffDate.toISOString(), lastRegen.toISOString());
@@ -222,7 +222,7 @@ test("regenerateInvitations grants +1 to the top third by post count", async () 
 
     const result = await regenerateInvitations(tx, kv, { now });
     assert.deepEqual(result.accountsAffected, 1);
-    assert.deepEqual(result.regeneratedAt.toISOString(), now.toISOString());
+    assert.deepEqual(result.regenerated.toISOString(), now.toISOString());
 
     const aRow = await tx.query.accountTable.findFirst({
       where: { id: a.account.id },

@@ -249,7 +249,7 @@ test("moderationStatistics aggregates the queue for moderators", async () => {
           ],
           summary: "Probably spam.",
           model: "test",
-          analyzedAt: new Date().toISOString(),
+          analyzed: new Date().toISOString(),
         },
       })
       .where(eq(flagTable.id, flag.id));

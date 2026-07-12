@@ -32,7 +32,7 @@ function ArticleComposerInner() {
       }
     >
       <Show
-        when={!ctx.isExistingDraft || ctx.draft()}
+        when={!ctx.existingDraft || ctx.draft()}
         fallback={
           <div class="grid flex-1 place-items-center p-6 text-center text-muted-foreground">
             {t`Draft not found`}

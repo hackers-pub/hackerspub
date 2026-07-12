@@ -45,7 +45,7 @@ function draft(overrides: Partial<NoteDraftData> = {}): NoteDraftData {
         { localId: "b", title: "" },
       ],
     },
-    updatedAt: "2026-07-03T00:00:00.000Z",
+    updated: "2026-07-03T00:00:00.000Z",
     ...overrides,
   };
 }
@@ -69,6 +69,18 @@ test("parseNoteDraft ignores invalid and empty payloads", () => {
       serializeNoteDraft({ type: "new" }, draft({ content: " " }))!,
     ),
     null,
+  );
+});
+
+test("parseNoteDraft migrates the legacy draft timestamp property", () => {
+  const serialized = JSON.parse(
+    serializeNoteDraft({ type: "new" }, draft())!,
+  );
+  serialized["updatedAt"] = serialized.updated;
+  delete serialized.updated;
+  assert.equal(
+    parseNoteDraft(JSON.stringify(serialized))?.updated,
+    "2026-07-03T00:00:00.000Z",
   );
 });
 

@@ -125,8 +125,8 @@ export function NoteMedia(props: NoteMediaProps) {
           imageIndex: number | null,
           imgClass: string,
         ) => {
-          const isSensitive = props.postSensitive || medium.sensitive;
-          if (!isSensitive) return mediaItem(medium, imageIndex, imgClass);
+          const sensitive = props.postSensitive || medium.sensitive;
+          if (!sensitive) return mediaItem(medium, imageIndex, imgClass);
           return (
             <SensitiveWrapper
               index={mediumIndex}

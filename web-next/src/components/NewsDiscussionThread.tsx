@@ -686,7 +686,7 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
     }
   }, { defer: true }));
 
-  const isTarget = createMemo(() =>
+  const target = createMemo(() =>
     props.targetUuid != null && post()?.uuid === props.targetUuid
   );
   const childVisited = createMemo(() => {
@@ -698,7 +698,7 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
 
   let articleRef: HTMLElement | undefined;
   onMount(() => {
-    if (isTarget() && articleRef != null) {
+    if (target() && articleRef != null) {
       requestAnimationFrame(() =>
         articleRef?.scrollIntoView({ block: "center" })
       );
@@ -730,8 +730,8 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
             id={`post-${p.uuid}`}
             class="scroll-mt-20 px-4 py-3 transition-colors"
             classList={{
-              "bg-info/10": isTarget(),
-              "hover:bg-muted/30": !isTarget(),
+              "bg-info/10": target(),
+              "hover:bg-muted/30": !target(),
               "pl-4 sm:pl-6": props.depth > 0,
             }}
           >

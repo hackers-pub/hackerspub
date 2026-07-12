@@ -355,7 +355,7 @@ export async function onQuoteRequestAccepted(
     });
     return true;
   }
-  const acceptedAt = new Date();
+  const accepted = new Date();
   const resultIri = accept.resultId.href;
   const shouldSendUpdate = quote.quoteAuthorizationIri !== resultIri ||
     quote.quotedPostId !== quotedPost.id;
@@ -375,15 +375,15 @@ export async function onQuoteRequestAccepted(
         quotedPostId: quotedPost.id,
         attributedActorId: quotedPost.actorId,
         revoked: false,
-        updated: acceptedAt,
+        updated: accepted,
       },
     });
     if (quoteRequestIri != null) {
       await tx.update(quoteRequestTable)
         .set({
-          accepted: acceptedAt,
+          accepted,
           rejected: null,
-          updated: acceptedAt,
+          updated: accepted,
         })
         .where(eq(quoteRequestTable.iri, quoteRequestIri));
     }
@@ -392,12 +392,12 @@ export async function onQuoteRequestAccepted(
         quotedPostId: quotedPost.id,
         quoteAuthorizationIri: resultIri,
         quoteTargetState: null,
-        updated: acceptedAt,
+        updated: accepted,
       })
       .where(eq(postTable.id, quote.id));
     if (quote.noteSourceId != null) {
       await tx.update(noteSourceTable)
-        .set({ updated: acceptedAt })
+        .set({ updated: accepted })
         .where(eq(noteSourceTable.id, quote.noteSourceId));
     }
     if (quote.quotedPostId !== quotedPost.id) {
@@ -413,10 +413,10 @@ export async function onQuoteRequestAccepted(
         quotedPostId: quotedPost.id,
         quoteAuthorizationIri: resultIri,
         quoteTargetState: null,
-        updated: acceptedAt,
+        updated: accepted,
       },
       resultIri,
-      acceptedAt,
+      accepted,
     );
   }
   return true;
@@ -609,22 +609,22 @@ export async function onQuoteRequestRejected(
     logger.warn("Ignoring quote request rejection for unexpected target.");
     return true;
   }
-  const rejectedAt = new Date();
+  const rejected = new Date();
   const updatedQuote = {
     ...quote,
     quotedPost: null,
     quotedPostId: null,
     quoteAuthorizationIri: null,
     quoteTargetState: "denied" as const,
-    updated: rejectedAt,
+    updated: rejected,
   };
   await fedCtx.data.db.transaction(async (tx) => {
     if (quoteRequestIri != null) {
       await tx.update(quoteRequestTable)
         .set({
           accepted: null,
-          rejected: rejectedAt,
-          updated: rejectedAt,
+          rejected,
+          updated: rejected,
         })
         .where(eq(quoteRequestTable.iri, quoteRequestIri));
     }
@@ -633,12 +633,12 @@ export async function onQuoteRequestRejected(
         quotedPostId: null,
         quoteAuthorizationIri: null,
         quoteTargetState: "denied",
-        updated: rejectedAt,
+        updated: rejected,
       })
       .where(eq(postTable.id, quote.id));
     if (quote.noteSourceId != null) {
       await tx.update(noteSourceTable)
-        .set({ updated: rejectedAt })
+        .set({ updated: rejected })
         .where(eq(noteSourceTable.id, quote.noteSourceId));
     }
     if (quote.quotedPostId === quotedPost.id) {
@@ -646,7 +646,7 @@ export async function onQuoteRequestRejected(
     }
   });
   if (quote.quotedPostId === quotedPost.id) {
-    await sendQuoteUpdate(fedCtx, updatedQuote, null, rejectedAt);
+    await sendQuoteUpdate(fedCtx, updatedQuote, null, rejected);
   }
   return true;
 }
@@ -679,10 +679,10 @@ export async function onQuoteAuthorizationDeleted(
     },
     where: { quoteAuthorizationIri: authorizationIri },
   });
-  const revokedAt = new Date();
+  const revokedTime = new Date();
   const revoked = await fedCtx.data.db.transaction(async (tx) => {
     const rows = await tx.update(quoteAuthorizationTable)
-      .set({ revoked: true, updated: revokedAt })
+      .set({ revoked: true, updated: revokedTime })
       .where(eq(quoteAuthorizationTable.iri, authorizationIri))
       .returning();
     if (rows.length < 1) return false;
@@ -691,7 +691,7 @@ export async function onQuoteAuthorizationDeleted(
         quotedPostId: null,
         quoteAuthorizationIri: null,
         quoteTargetState: "denied",
-        updated: revokedAt,
+        updated: revokedTime,
       })
       .where(eq(postTable.quoteAuthorizationIri, authorizationIri));
     const noteSourceIds = quotes
@@ -699,7 +699,7 @@ export async function onQuoteAuthorizationDeleted(
       .filter((id) => id != null);
     if (noteSourceIds.length > 0) {
       await tx.update(noteSourceTable)
-        .set({ updated: revokedAt })
+        .set({ updated: revokedTime })
         .where(inArray(noteSourceTable.id, noteSourceIds));
     }
     if (quotes.length > 0) {
@@ -721,10 +721,10 @@ export async function onQuoteAuthorizationDeleted(
         quotedPostId: null,
         quoteAuthorizationIri: null,
         quoteTargetState: "denied" as const,
-        updated: revokedAt,
+        updated: revokedTime,
       },
       null,
-      revokedAt,
+      revokedTime,
     );
   }
   logger.debug("Quote authorization deleted: {iri}", {

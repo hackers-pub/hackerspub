@@ -232,7 +232,7 @@ test("recomputeNewsScores ignores links with no public share", async () => {
 
     const row = await readLink(tx, link.id);
     assert.deepEqual(row.score, 0);
-    assert.deepEqual(row.latestActivityAt, null);
+    assert.deepEqual(row.latestActivity, null);
     assert.deepEqual(row.postCount, 0);
 
     const stories = await getNewsStories(tx, {
@@ -438,11 +438,11 @@ test("recomputeNewsScores excludes censored and sanction-hidden content", async 
       email: "modbanned@example.com",
     });
     const link = await insertPostLink(tx, { url: "https://example.com/mod" });
-    const sharedAt = new Date("2026-04-15T00:00:00.000Z");
+    const sharedTime = new Date("2026-04-15T00:00:00.000Z");
     const { post: share } = await insertNotePost(tx, {
       account: sharer.account,
       link: { id: link.id, url: link.url },
-      published: sharedAt,
+      published: sharedTime,
     });
     // A censored reply must not add mass nor refresh the link's freshness…
     const { post: censoredReply } = await insertNotePost(tx, {
@@ -476,7 +476,7 @@ test("recomputeNewsScores excludes censored and sanction-hidden content", async 
 
     const row = await readLink(tx, link.id);
     assertAlmostEquals(row.weightedMass, mass(1, 1), 1e-9);
-    assert.deepEqual(row.latestActivityAt, sharedAt);
+    assert.deepEqual(row.latestActivity, sharedTime);
     assert.equal(row.postCount, 1);
   });
 });
@@ -490,16 +490,16 @@ test("recomputeNewsScores adds a recency term anchored to a fixed epoch", async 
     });
     const older = await insertPostLink(tx, { url: "https://example.com/o" });
     const newer = await insertPostLink(tx, { url: "https://example.com/n" });
-    const olderAt = new Date("2026-04-15T00:00:00.000Z");
-    const newerAt = new Date("2026-04-16T00:00:00.000Z"); // +24h
+    const olderTime = new Date("2026-04-15T00:00:00.000Z");
+    const newerTime = new Date("2026-04-16T00:00:00.000Z"); // +24h
     await insertNotePost(tx, {
       account: sharer.account,
-      published: olderAt,
+      published: olderTime,
       link: { id: older.id, url: older.url },
     });
     await insertNotePost(tx, {
       account: sharer.account,
-      published: newerAt,
+      published: newerTime,
       link: { id: newer.id, url: newer.url },
     });
 
@@ -507,10 +507,10 @@ test("recomputeNewsScores adds a recency term anchored to a fixed epoch", async 
 
     const o = await readLink(tx, older.id);
     const n = await readLink(tx, newer.id);
-    assert.deepEqual(o.latestActivityAt?.getTime(), olderAt.getTime());
-    assert.deepEqual(n.latestActivityAt?.getTime(), newerAt.getTime());
-    assertAlmostEquals(o.score, score(mass(1, 1), olderAt), 1e-6);
-    assertAlmostEquals(n.score, score(mass(1, 1), newerAt), 1e-6);
+    assert.deepEqual(o.latestActivity?.getTime(), olderTime.getTime());
+    assert.deepEqual(n.latestActivity?.getTime(), newerTime.getTime());
+    assertAlmostEquals(o.score, score(mass(1, 1), olderTime), 1e-6);
+    assertAlmostEquals(n.score, score(mass(1, 1), newerTime), 1e-6);
     // 24h apart => exactly 86400 / TAU difference in the recency term.
     assertAlmostEquals(n.score - o.score, 86400 / NEWS_TAU_SECONDS, 1e-6);
   });
@@ -528,26 +528,26 @@ test("recomputeNewsScores lifts an old link with a recent reaction", async () =>
       name: "Reactor",
       email: "reactor@example.com",
     });
-    const sharedAt = new Date("2025-01-01T00:00:00.000Z");
-    const reactionAt = new Date("2026-05-29T00:00:00.000Z");
+    const sharedTime = new Date("2025-01-01T00:00:00.000Z");
+    const reactionTime = new Date("2026-05-29T00:00:00.000Z");
 
     const fresh = await insertPostLink(tx, { url: "https://example.com/f" });
     const stale = await insertPostLink(tx, { url: "https://example.com/s" });
     const { post: freshPost } = await insertNotePost(tx, {
       account: sharer.account,
-      published: sharedAt,
+      published: sharedTime,
       link: { id: fresh.id, url: fresh.url },
     });
     await insertNotePost(tx, {
       account: sharer.account,
-      published: sharedAt,
+      published: sharedTime,
       link: { id: stale.id, url: stale.url },
     });
     // A reaction created long after the share bumps `fresh`'s activity.
     await insertReaction(tx, {
       postId: freshPost.id,
       actorId: reactor.actor.id,
-      created: reactionAt,
+      created: reactionTime,
     });
 
     await recomputeNewsScores(tx);
@@ -555,8 +555,8 @@ test("recomputeNewsScores lifts an old link with a recent reaction", async () =>
     const f = await readLink(tx, fresh.id);
     const s = await readLink(tx, stale.id);
     // The reaction timestamp wins over the (older) share publish time.
-    assert.deepEqual(f.latestActivityAt?.getTime(), reactionAt.getTime());
-    assert.deepEqual(s.latestActivityAt?.getTime(), sharedAt.getTime());
+    assert.deepEqual(f.latestActivity?.getTime(), reactionTime.getTime());
+    assert.deepEqual(s.latestActivity?.getTime(), sharedTime.getTime());
     // Same mass, but the fresh reaction lifts the old link far above the
     // otherwise-identical stale one.
     assert.ok(f.score > s.score);
@@ -613,12 +613,12 @@ test("recomputeNewsScores is idempotent", async () => {
       assert.deepEqual(first.recencyComponent, second.recencyComponent);
       assert.deepEqual(first.postCount, second.postCount);
       assert.deepEqual(
-        first.firstSharedAt?.getTime(),
-        second.firstSharedAt?.getTime(),
+        first.firstShared?.getTime(),
+        second.firstShared?.getTime(),
       );
       assert.deepEqual(
-        first.latestActivityAt?.getTime(),
-        second.latestActivityAt?.getTime(),
+        first.latestActivity?.getTime(),
+        second.latestActivity?.getTime(),
       );
     }
   });
@@ -644,11 +644,11 @@ test("recomputeNewsScores can target a subset of links", async () => {
 
     const result = await recomputeNewsScores(tx, { linkIds: [a.id] });
     assert.deepEqual(result.linksUpdated, 1);
-    assert.ok((await readLink(tx, a.id)).latestActivityAt != null);
-    assert.deepEqual((await readLink(tx, b.id)).latestActivityAt, null);
+    assert.ok((await readLink(tx, a.id)).latestActivity != null);
+    assert.deepEqual((await readLink(tx, b.id)).latestActivity, null);
 
     await recomputeNewsScores(tx);
-    assert.ok((await readLink(tx, b.id)).latestActivityAt != null);
+    assert.ok((await readLink(tx, b.id)).latestActivity != null);
   });
 });
 
@@ -664,50 +664,50 @@ test("recomputeNewsScores activeSince picks up fresh activity on old links", asy
       name: "Sweep Reactor",
       email: "sweepreactor@example.com",
     });
-    const sharedAt = new Date("2025-06-01T00:00:00.000Z");
+    const sharedTime = new Date("2025-06-01T00:00:00.000Z");
     const active = await insertPostLink(tx, {
       url: "https://example.com/sw1",
     });
     const idle = await insertPostLink(tx, { url: "https://example.com/sw2" });
     const { post: activePost } = await insertNotePost(tx, {
       account: sharer.account,
-      published: sharedAt,
+      published: sharedTime,
       link: { id: active.id, url: active.url },
     });
     await insertNotePost(tx, {
       account: sharer.account,
-      published: sharedAt,
+      published: sharedTime,
       link: { id: idle.id, url: idle.url },
     });
 
     await recomputeNewsScores(tx);
     assert.deepEqual(
-      (await readLink(tx, active.id)).latestActivityAt?.getTime(),
-      sharedAt.getTime(),
+      (await readLink(tx, active.id)).latestActivity?.getTime(),
+      sharedTime.getTime(),
     );
 
     // A reaction arrives long after the initial scoring.
-    const reactionAt = new Date("2026-05-29T00:00:00.000Z");
+    const reactionTime = new Date("2026-05-29T00:00:00.000Z");
     await insertReaction(tx, {
       postId: activePost.id,
       actorId: reactor.actor.id,
-      created: reactionAt,
+      created: reactionTime,
     });
 
     // The sweep targets only links with activity since the cutoff, derived
-    // from source timestamps (not the stale stored latestActivityAt).
+    // from source timestamps (not the stale stored latestActivity).
     const result = await recomputeNewsScores(tx, {
       activeSince: new Date("2026-01-01T00:00:00.000Z"),
     });
     assert.deepEqual(result.linksUpdated, 1);
     assert.deepEqual(
-      (await readLink(tx, active.id)).latestActivityAt?.getTime(),
-      reactionAt.getTime(),
+      (await readLink(tx, active.id)).latestActivity?.getTime(),
+      reactionTime.getTime(),
     );
     // The idle link had no fresh activity, so the sweep left it untouched.
     assert.deepEqual(
-      (await readLink(tx, idle.id)).latestActivityAt?.getTime(),
-      sharedAt.getTime(),
+      (await readLink(tx, idle.id)).latestActivity?.getTime(),
+      sharedTime.getTime(),
     );
   });
 });
@@ -726,7 +726,7 @@ test("recomputeNewsScores drops a link that lost its last public share", async (
     });
 
     await recomputeNewsScores(tx);
-    assert.ok((await readLink(tx, link.id)).latestActivityAt != null);
+    assert.ok((await readLink(tx, link.id)).latestActivity != null);
 
     // The only public share becomes followers-only.
     await tx.update(postTable).set({ visibility: "followers" }).where(
@@ -736,7 +736,7 @@ test("recomputeNewsScores drops a link that lost its last public share", async (
 
     const row = await readLink(tx, link.id);
     assert.deepEqual(row.score, 0);
-    assert.deepEqual(row.latestActivityAt, null);
+    assert.deepEqual(row.latestActivity, null);
     assert.deepEqual(row.postCount, 0);
   });
 });
@@ -790,10 +790,10 @@ test("recomputeNewsScores activeSince still drops a link that lost its share", a
     });
 
     await recomputeNewsScores(tx);
-    assert.ok((await readLink(tx, link.id)).latestActivityAt != null);
+    assert.ok((await readLink(tx, link.id)).latestActivity != null);
 
     // The only public share becomes followers-only, then a sweep runs.  The
-    // sweep's zeroing scopes by the stored latestActivityAt, so it still
+    // sweep's zeroing scopes by the stored latestActivity, so it still
     // resets the dropped-out link even though it is no longer "active".
     await tx.update(postTable).set({ visibility: "followers" }).where(
       eq(postTable.id, post.id),
@@ -804,7 +804,7 @@ test("recomputeNewsScores activeSince still drops a link that lost its share", a
 
     const row = await readLink(tx, link.id);
     assert.deepEqual(row.score, 0);
-    assert.deepEqual(row.latestActivityAt, null);
+    assert.deepEqual(row.latestActivity, null);
     assert.deepEqual(row.postCount, 0);
   });
 });
@@ -851,7 +851,7 @@ test("getNewsStories diverges between popular and allTime order", async () => {
   });
 });
 
-test("recomputeNewsScores aggregates postCount and firstSharedAt", async () => {
+test("recomputeNewsScores aggregates postCount and firstShared", async () => {
   await withRollback(async (tx) => {
     const link = await insertPostLink(tx, { url: "https://example.com/agg" });
     const times = [
@@ -879,11 +879,11 @@ test("recomputeNewsScores aggregates postCount and firstSharedAt", async () => {
     const row = await readLink(tx, link.id);
     assert.deepEqual(row.postCount, 3);
     assert.deepEqual(
-      row.firstSharedAt?.getTime(),
+      row.firstShared?.getTime(),
       new Date("2026-05-10T00:00:00.000Z").getTime(),
     );
     assert.deepEqual(
-      row.latestActivityAt?.getTime(),
+      row.latestActivity?.getTime(),
       new Date("2026-05-12T00:00:00.000Z").getTime(),
     );
   });
@@ -927,7 +927,7 @@ test("recomputeNewsScores counts boosts of Article news posts", async () => {
     assert.deepEqual(row.postCount, 2);
     assertAlmostEquals(row.weightedMass, 2 * NEWS_W_SHARE, 0.000001);
     assert.deepEqual(
-      row.latestActivityAt?.getTime(),
+      row.latestActivity?.getTime(),
       new Date("2026-05-11T00:00:00.000Z").getTime(),
     );
 
@@ -972,7 +972,7 @@ test("recomputeNewsScores ignores boosts of ordinary link-sharing notes", async 
     assert.deepEqual(row.postCount, 1);
     assertAlmostEquals(row.weightedMass, NEWS_W_SHARE, 0.000001);
     assert.deepEqual(
-      row.latestActivityAt?.getTime(),
+      row.latestActivity?.getTime(),
       new Date("2026-05-10T00:00:00.000Z").getTime(),
     );
 
@@ -999,7 +999,7 @@ test("getNewsStories paginates by keyset without gaps or overlaps", async () => 
       });
       await insertNotePost(tx, {
         account: sharer.account,
-        // Distinct published times => distinct firstSharedAt order.
+        // Distinct published times => distinct firstShared order.
         published: new Date(Date.UTC(2026, 4, 10 + i)),
         link: { id: link.id, url: link.url },
       });
@@ -1014,7 +1014,7 @@ test("getNewsStories paginates by keyset without gaps or overlaps", async () => 
     const page2 = await getNewsStories(tx, {
       order: "newest",
       limit: 2,
-      after: { value: last.firstSharedAt!, id: last.id },
+      after: { value: last.firstShared!, id: last.id },
     });
     assert.deepEqual(page2.length, 2);
 
@@ -1069,7 +1069,7 @@ test("getNewsStories newest pagination keeps sub-millisecond-close links", async
       if (page.length < 1) break;
       const link = page[0];
       seen.push(link.id);
-      after = { value: link.firstSharedAt!, id: link.id };
+      after = { value: link.firstShared!, id: link.id };
     }
     assert.deepEqual(new Set(seen).size, 2);
     assert.ok(seen.includes(a.id));
@@ -1096,7 +1096,7 @@ test("getNewsScoreStatus reports scored link count and last recompute", async ()
 
     const after = await getNewsScoreStatus(tx);
     assert.deepEqual(after.scoredLinkCount, 1);
-    assert.ok(after.lastRecomputedAt != null);
+    assert.ok(after.lastRecomputed != null);
   });
 });
 
@@ -1113,10 +1113,10 @@ test("refreshNewsScores scores a newly shared link without a batch run", async (
       link: { id: link.id, url: link.url },
     });
 
-    assert.deepEqual((await readLink(tx, link.id)).latestActivityAt, null);
+    assert.deepEqual((await readLink(tx, link.id)).latestActivity, null);
     await refreshNewsScores(tx, [link.id]);
     const row = await readLink(tx, link.id);
-    assert.ok(row.latestActivityAt != null);
+    assert.ok(row.latestActivity != null);
     assert.ok(row.score > 0);
   });
 });
@@ -1134,7 +1134,7 @@ test("refreshNewsScores drops a link whose share is no longer public", async () 
       link: { id: link.id, url: link.url },
     });
     await refreshNewsScores(tx, [link.id]);
-    assert.ok((await readLink(tx, link.id)).latestActivityAt != null);
+    assert.ok((await readLink(tx, link.id)).latestActivity != null);
 
     // The edit removes the only public share; refreshing the (previous) link
     // drops it from the feed.
@@ -1142,7 +1142,7 @@ test("refreshNewsScores drops a link whose share is no longer public", async () 
       eq(postTable.id, post.id),
     );
     await refreshNewsScores(tx, [link.id]);
-    assert.deepEqual((await readLink(tx, link.id)).latestActivityAt, null);
+    assert.deepEqual((await readLink(tx, link.id)).latestActivity, null);
     assert.deepEqual((await readLink(tx, link.id)).score, 0);
   });
 });
@@ -1166,7 +1166,7 @@ test("syncPostFromNoteSource clears a removed link and drops the story", async (
       link: { id: link.id, url: link.url },
     });
     await refreshNewsScores(tx, [link.id]);
-    assert.ok((await readLink(tx, link.id)).latestActivityAt != null);
+    assert.ok((await readLink(tx, link.id)).latestActivity != null);
 
     const noteSource = await tx.query.noteSourceTable.findFirst({
       where: { id: noteSourceId },
@@ -1184,7 +1184,7 @@ test("syncPostFromNoteSource clears a removed link and drops the story", async (
     // The link is cleared (not left as the stale previous value)...
     assert.deepEqual(updated.linkId, null);
     // ...and the incremental refresh of the previous link drops the story.
-    assert.deepEqual((await readLink(tx, link.id)).latestActivityAt, null);
+    assert.deepEqual((await readLink(tx, link.id)).latestActivity, null);
     assert.deepEqual((await readLink(tx, link.id)).score, 0);
   });
 });
@@ -1287,13 +1287,13 @@ test("refreshNewsScoresForPostLinks drops a link when its share is deleted", asy
       link: { id: link.id, url: link.url },
     });
     await recomputeNewsScores(tx);
-    assert.ok((await readLink(tx, link.id)).latestActivityAt != null);
+    assert.ok((await readLink(tx, link.id)).latestActivity != null);
 
     await tx.delete(postTable).where(eq(postTable.id, share.id));
     await refreshNewsScoresForPostLinks(tx, share);
     const row = await readLink(tx, link.id);
     assert.deepEqual(row.score, 0);
-    assert.deepEqual(row.latestActivityAt, null);
+    assert.deepEqual(row.latestActivity, null);
     assert.deepEqual(row.postCount, 0);
   });
 });
@@ -1337,7 +1337,7 @@ test("recomputeNewsScores excludes a Service-actor (bot) share", async () => {
     assert.deepEqual(result.linksUpdated, 0);
     const row = await readLink(tx, link.id);
     assert.deepEqual(row.score, 0);
-    assert.deepEqual(row.latestActivityAt, null);
+    assert.deepEqual(row.latestActivity, null);
     assert.deepEqual(row.postCount, 0);
     const stories = await getNewsStories(tx, { order: "popular", limit: 10 });
     assert.deepEqual(stories.find((s) => s.id === link.id), undefined);
@@ -1366,7 +1366,7 @@ test("recomputeNewsScores excludes an Application-actor (bot) share", async () =
 
     await recomputeNewsScores(tx);
     const row = await readLink(tx, link.id);
-    assert.deepEqual(row.latestActivityAt, null);
+    assert.deepEqual(row.latestActivity, null);
     assert.deepEqual(row.postCount, 0);
   });
 });
@@ -1413,8 +1413,8 @@ test("recomputeNewsScores ignores a bot share when a human also shares", async (
     assertAlmostEquals(linkRow.weightedMass, baselineRow.weightedMass, 1e-9);
     assertAlmostEquals(linkRow.score, baselineRow.score, 1e-9);
     assert.deepEqual(
-      linkRow.latestActivityAt?.getTime(),
-      baselineRow.latestActivityAt?.getTime(),
+      linkRow.latestActivity?.getTime(),
+      baselineRow.latestActivity?.getTime(),
     );
   });
 });
@@ -1444,7 +1444,7 @@ test("recomputeNewsScores still scores a Group-actor share", async () => {
 
     await recomputeNewsScores(tx);
     const row = await readLink(tx, link.id);
-    assert.ok(row.latestActivityAt != null);
+    assert.ok(row.latestActivity != null);
     assert.deepEqual(row.postCount, 1);
   });
 });
@@ -1476,7 +1476,7 @@ test("refreshNewsScores drops a link left with only a bot share", async () => {
     });
 
     await recomputeNewsScores(tx);
-    assert.ok((await readLink(tx, link.id)).latestActivityAt != null);
+    assert.ok((await readLink(tx, link.id)).latestActivity != null);
     assert.deepEqual((await readLink(tx, link.id)).postCount, 1);
 
     // Delete the only human share: the bot share remains but does not qualify,
@@ -1486,7 +1486,7 @@ test("refreshNewsScores drops a link left with only a bot share", async () => {
 
     const row = await readLink(tx, link.id);
     assert.deepEqual(row.score, 0);
-    assert.deepEqual(row.latestActivityAt, null);
+    assert.deepEqual(row.latestActivity, null);
     assert.deepEqual(row.postCount, 0);
   });
 });
@@ -1516,7 +1516,7 @@ test("recomputeNewsScores activeSince skips a bot-only link", async () => {
       activeSince: new Date("2026-01-01T00:00:00.000Z"),
     });
     assert.deepEqual(result.linksUpdated, 0);
-    assert.deepEqual((await readLink(tx, link.id)).latestActivityAt, null);
+    assert.deepEqual((await readLink(tx, link.id)).latestActivity, null);
   });
 });
 
@@ -1701,7 +1701,7 @@ test("refreshNewsScoresForActor re-scores links across a bot transition", async 
     });
 
     await recomputeNewsScores(tx);
-    assert.ok((await readLink(tx, link.id)).latestActivityAt != null);
+    assert.ok((await readLink(tx, link.id)).latestActivity != null);
 
     // The actor toggles Mastodon's bot flag, federating as a Service: its
     // share no longer qualifies, and refreshing by actor drops the link.
@@ -1711,7 +1711,7 @@ test("refreshNewsScoresForActor re-scores links across a bot transition", async 
     await refreshNewsScoresForActor(tx, actor.id);
     const botted = await readLink(tx, link.id);
     assert.deepEqual(botted.score, 0);
-    assert.deepEqual(botted.latestActivityAt, null);
+    assert.deepEqual(botted.latestActivity, null);
     assert.deepEqual(botted.postCount, 0);
 
     // Turning the bot flag back off re-scores the link.
@@ -1719,7 +1719,7 @@ test("refreshNewsScoresForActor re-scores links across a bot transition", async 
       eq(actorTable.id, actor.id),
     );
     await refreshNewsScoresForActor(tx, actor.id);
-    assert.ok((await readLink(tx, link.id)).latestActivityAt != null);
+    assert.ok((await readLink(tx, link.id)).latestActivity != null);
   });
 });
 
@@ -1871,7 +1871,7 @@ test("recomputeNewsScores keeps a rapid repeat from refreshing freshness", async
     const row = await readLink(tx, link.id);
     assert.deepEqual(row.postCount, 2);
     // The rapid second share does not count as fresh activity.
-    assert.deepEqual(row.latestActivityAt?.getTime(), t0.getTime());
+    assert.deepEqual(row.latestActivity?.getTime(), t0.getTime());
   });
 });
 
@@ -1901,7 +1901,7 @@ test("recomputeNewsScores lets a long-gap repeat refresh freshness", async () =>
     await recomputeNewsScores(tx);
 
     const row = await readLink(tx, link.id);
-    assert.deepEqual(row.latestActivityAt?.getTime(), t1.getTime());
+    assert.deepEqual(row.latestActivity?.getTime(), t1.getTime());
   });
 });
 
@@ -1939,7 +1939,7 @@ test("recomputeNewsScores still refreshes freshness from a repeat's replies", as
     const row = await readLink(tx, link.id);
     // The bare repeat share would not refresh freshness (gap < FRESH_MIN), but
     // its genuine reply does, so the link is fresh as of t1.
-    assert.deepEqual(row.latestActivityAt?.getTime(), t1.getTime());
+    assert.deepEqual(row.latestActivity?.getTime(), t1.getTime());
   });
 });
 
@@ -2217,7 +2217,7 @@ test("a preferred sharer whitelists an otherwise-excluded bot's shares", async (
 
     // Without curation the bot's share is excluded from News entirely.
     await recomputeNewsScores(tx);
-    assert.deepEqual((await readLink(tx, link.id)).latestActivityAt, null);
+    assert.deepEqual((await readLink(tx, link.id)).latestActivity, null);
 
     // Curating the bot whitelists its share and promotes the link at once.
     await addNewsPreferredSharer(tx, {
@@ -2227,7 +2227,7 @@ test("a preferred sharer whitelists an otherwise-excluded bot's shares", async (
     await drainNewsRescoreQueue(tx);
     const promoted = await readLink(tx, link.id);
     assert.deepEqual(promoted.postCount, 1);
-    assert.ok(promoted.latestActivityAt != null);
+    assert.ok(promoted.latestActivity != null);
     assertAlmostEquals(
       promoted.weightedMass,
       NEWS_SOURCE_WEIGHT_REMOTE,
@@ -2252,7 +2252,7 @@ test("a preferred sharer whitelists an otherwise-excluded bot's shares", async (
     assert.deepEqual(await removeNewsPreferredSharer(tx, sharer.id), true);
     await drainNewsRescoreQueue(tx);
     const dropped = await readLink(tx, link.id);
-    assert.deepEqual(dropped.latestActivityAt, null);
+    assert.deepEqual(dropped.latestActivity, null);
     assert.deepEqual(dropped.score, 0);
     assert.deepEqual(dropped.promotionBonus, 0);
     assert.deepEqual(dropped.postCount, 0);
@@ -2383,14 +2383,14 @@ test("addNewsPreferredSharer defers the rescore to drainNewsRescoreQueue", async
       link: { id: link.id, url: link.url },
     });
     await recomputeNewsScores(tx);
-    assert.deepEqual((await readLink(tx, link.id)).latestActivityAt, null);
+    assert.deepEqual((await readLink(tx, link.id)).latestActivity, null);
 
     // Adding the sharer enqueues the actor but does NOT score the link yet.
     await addNewsPreferredSharer(tx, {
       actorId: bot.id,
       bonus: NEWS_PROMOTE_NORMAL,
     });
-    assert.deepEqual((await readLink(tx, link.id)).latestActivityAt, null);
+    assert.deepEqual((await readLink(tx, link.id)).latestActivity, null);
     const queued = await tx.select().from(newsRescoreQueueTable);
     assert.deepEqual(queued.length, 1);
     assert.deepEqual(queued[0].actorId, bot.id);
@@ -2399,7 +2399,7 @@ test("addNewsPreferredSharer defers the rescore to drainNewsRescoreQueue", async
     const result = await drainNewsRescoreQueue(tx);
     assert.deepEqual(result.actorsProcessed, 1);
     assert.ok(result.linksRecomputed >= 1);
-    assert.ok((await readLink(tx, link.id)).latestActivityAt != null);
+    assert.ok((await readLink(tx, link.id)).latestActivity != null);
     assert.deepEqual(
       (await tx.select().from(newsRescoreQueueTable)).length,
       0,
@@ -2442,19 +2442,19 @@ test("drainNewsRescoreQueue skips a leased actor until the lease expires", async
     // must leave it alone (no double processing) and the link stays unscored.
     await tx
       .update(newsRescoreQueueTable)
-      .set({ claimedAt: new Date() })
+      .set({ claimed: new Date() })
       .where(eq(newsRescoreQueueTable.actorId, bot.id));
     assert.deepEqual((await drainNewsRescoreQueue(tx)).actorsProcessed, 0);
-    assert.deepEqual((await readLink(tx, link.id)).latestActivityAt, null);
+    assert.deepEqual((await readLink(tx, link.id)).latestActivity, null);
     assert.deepEqual((await tx.select().from(newsRescoreQueueTable)).length, 1);
 
     // Once the lease is stale (the holder crashed), a drain reclaims it.
     await tx
       .update(newsRescoreQueueTable)
-      .set({ claimedAt: new Date("2020-01-01T00:00:00.000Z") })
+      .set({ claimed: new Date("2020-01-01T00:00:00.000Z") })
       .where(eq(newsRescoreQueueTable.actorId, bot.id));
     assert.deepEqual((await drainNewsRescoreQueue(tx)).actorsProcessed, 1);
-    assert.ok((await readLink(tx, link.id)).latestActivityAt != null);
+    assert.ok((await readLink(tx, link.id)).latestActivity != null);
     assert.deepEqual((await tx.select().from(newsRescoreQueueTable)).length, 0);
   });
 });

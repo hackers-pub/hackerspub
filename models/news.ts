@@ -96,7 +96,7 @@ export const NEWS_REPEAT_CAP = 0.5;
 export const NEWS_REPEAT_RECOVERY_TAU_SECONDS = 2_592_000; // 30 days
 /**
  * Minimum gap (seconds) since an account's previous share of the same link for
- * a repeat share to refresh the link's freshness (`latestActivityAt`).  Below
+ * a repeat share to refresh the link's freshness (`latestActivity`).  Below
  * this, a repeat is not treated as fresh activity (so rapid re-sharing cannot
  * pin a link at the top); genuine replies/quotes/reactions still refresh it.
  */
@@ -242,7 +242,7 @@ export interface RecomputeNewsScoresOptions {
    */
   readonly linkIds?: readonly Uuid[];
   /**
-   * Restrict the recompute to links whose `latestActivityAt` is at or after
+   * Restrict the recompute to links whose `latestActivity` is at or after
    * this instant.  Used by the periodic sweep to bound cost to recently
    * active stories.  Ignored when `linkIds` is given.
    */
@@ -253,7 +253,7 @@ export interface RecomputeNewsScoresResult {
   /** Number of links that have at least one qualifying public share. */
   readonly linksUpdated: number;
   /** When the recompute ran. */
-  readonly recomputedAt: Date;
+  readonly recomputed: Date;
 }
 
 function isTransaction(db: Database): db is Transaction {
@@ -263,14 +263,14 @@ function isTransaction(db: Database): db is Transaction {
 /**
  * Recompute popularity scores for news links and write them onto
  * `post_link`.  Idempotent: running it repeatedly on unchanged data yields
- * identical `score`/`weightedMass`/`firstSharedAt`/`latestActivityAt`
+ * identical `score`/`weightedMass`/`firstShared`/`latestActivity`
  * (`scoreUpdated` aside).
  *
  * A "sharing post" is either a publicly visible (`public`/`unlisted`),
  * non-boost post whose `linkId` points at the link, or a public boost of an
  * `Article` whose own `linkId` points at the link.  `weightedMass` sums each
  * sharing post's source weight times account-reputation weight times its
- * weighted engagement counts; `latestActivityAt` is the freshest of the share,
+ * weighted engagement counts; `latestActivity` is the freshest of the share,
  * its reactions, and its direct replies/quotes.  Links that have lost their
  * last qualifying share are reset to a zero score and dropped from the feed.
  */
@@ -278,12 +278,12 @@ export async function recomputeNewsScores(
   db: Database,
   options: RecomputeNewsScoresOptions = {},
 ): Promise<RecomputeNewsScoresResult> {
-  const recomputedAt = new Date();
+  const recomputed = new Date();
   const scope = resolveScope(options);
 
   // An explicit but empty link set has nothing to do; skip the round trip.
   if (scope.kind === "links" && scope.ids.length < 1) {
-    return { linksUpdated: 0, recomputedAt };
+    return { linksUpdated: 0, recomputed };
   }
 
   const run = async (tx: Database): Promise<number> => {
@@ -314,7 +314,7 @@ export async function recomputeNewsScores(
     "Recomputed news scores for {linksUpdated} link(s).",
     { linksUpdated },
   );
-  return { linksUpdated, recomputedAt };
+  return { linksUpdated, recomputed };
 }
 
 /**
@@ -495,7 +495,7 @@ function scopeFilter(scope: AggregateScope, linkIdColumn: SQL): SQL {
  * Candidate link ids for the stale-link reset.  A link that just lost its last
  * public share is, by definition, absent from `activeLinkIdsSubquery` (which
  * requires a qualifying share), so the `activeSince` sweep scopes its zeroing by
- * the stored `latest_activity_at` instead: reset recently-scored links that no
+ * the stored `latest_activity` instead: reset recently-scored links that no
  * longer qualify.
  */
 function staleTargetLinks(scope: RecomputeScope): SQL {
@@ -504,7 +504,7 @@ function staleTargetLinks(scope: RecomputeScope): SQL {
       return sql`
         select pl.id
         from post_link pl
-        where pl.latest_activity_at is not null
+        where pl.latest_activity is not null
       `;
     case "links": {
       const literal = `{${scope.ids.join(",")}}`;
@@ -514,8 +514,8 @@ function staleTargetLinks(scope: RecomputeScope): SQL {
       return sql`
         select pl.id
         from post_link pl
-        where pl.latest_activity_at is not null
-          and pl.latest_activity_at >= ${scope.since.toISOString()}::timestamptz
+        where pl.latest_activity is not null
+          and pl.latest_activity >= ${scope.since.toISOString()}::timestamptz
       `;
   }
 }
@@ -524,8 +524,8 @@ function staleTargetLinks(scope: RecomputeScope): SQL {
  * Subquery of link ids with any engagement at or after `activeSince`: a
  * qualifying share published since then, a reaction created since then, or a
  * public direct reply/quote published since then.  The periodic sweep scopes
- * to this (rather than the stored `latestActivityAt`) so a fresh reaction on an
- * *older* story is still picked up: that story's stored `latestActivityAt` is
+ * to this (rather than the stored `latestActivity`) so a fresh reaction on an
+ * *older* story is still picked up: that story's stored `latestActivity` is
  * still old, but its underlying reaction is new.
  */
 function activeLinkIdsSubquery(activeSince: Date): SQL {
@@ -752,7 +752,7 @@ async function recomputeAggregate(
       select
         s.link_id as link_id,
         count(*) as post_count,
-        min(s.published) as first_shared_at,
+        min(s.published) as first_shared,
         -- Only a first share or a sufficiently-gapped re-share refreshes the
         -- link's freshness, so rapid re-sharing cannot pin it at the top.
         -- (Genuine replies/quotes/reactions still refresh it via the activity
@@ -798,13 +798,13 @@ async function recomputeAggregate(
       select
         agg.link_id as link_id,
         agg.post_count as post_count,
-        agg.first_shared_at as first_shared_at,
+        agg.first_shared as first_shared,
         greatest(
           agg.latest_share,
           agg.latest_reply,
           agg.latest_quote,
           ra.latest
-        ) as latest_activity_at,
+        ) as latest_activity,
         agg.weighted_mass as weighted_mass,
         agg.promotion_bonus as promotion_bonus
       from agg
@@ -815,8 +815,8 @@ async function recomputeAggregate(
       -- Truncate to milliseconds so the stored value matches the precision of
       -- the JS-Date-derived NEWEST feed cursor (toISOString is ms-only);
       -- otherwise sub-millisecond rows after a cursor would be skipped.
-      first_shared_at = date_trunc('milliseconds', final.first_shared_at),
-      latest_activity_at = final.latest_activity_at,
+      first_shared = date_trunc('milliseconds', final.first_shared),
+      latest_activity = final.latest_activity,
       weighted_mass = final.weighted_mass,
       -- A moderator penalty overrides the preferred-sharer promotion: while
       -- score_penalty > 0 the stored bonus (and its term in score) is zeroed, so
@@ -825,11 +825,11 @@ async function recomputeAggregate(
         case when pl.score_penalty > 0 then 0::double precision
              else final.promotion_bonus end,
       recency_component =
-        (extract(epoch from final.latest_activity_at) - ${NEWS_EPOCH_SECONDS}::double precision)
+        (extract(epoch from final.latest_activity) - ${NEWS_EPOCH_SECONDS}::double precision)
           / ${NEWS_TAU_SECONDS}::double precision,
       score =
         log(greatest(1::double precision, final.weighted_mass))
-        + (extract(epoch from final.latest_activity_at) - ${NEWS_EPOCH_SECONDS}::double precision)
+        + (extract(epoch from final.latest_activity) - ${NEWS_EPOCH_SECONDS}::double precision)
             / ${NEWS_TAU_SECONDS}::double precision
         + case when pl.score_penalty > 0 then 0::double precision
                else final.promotion_bonus end
@@ -886,12 +886,12 @@ async function zeroStaleLinks(
       recency_component = 0,
       promotion_bonus = 0,
       post_count = 0,
-      first_shared_at = null,
-      latest_activity_at = null,
+      first_shared = null,
+      latest_activity = null,
       score_updated = now()
     from target_links tl
     where pl.id = tl.id
-      and pl.latest_activity_at is not null
+      and pl.latest_activity is not null
       and not exists (
         select 1
         from qualifying_links q
@@ -923,20 +923,20 @@ export interface GetNewsStoriesOptions {
  * Read a page of ranked news links (newest/most-popular first).  Keyset
  * pagination on `(sortKey, id)` matching the partial feed indexes; pass the
  * previous page's last row as `after`.  Only links with at least one public
- * share (`latestActivityAt IS NOT NULL`) are returned.
+ * share (`latestActivity IS NOT NULL`) are returned.
  */
 export async function getNewsStories(
   db: Database,
   options: GetNewsStoriesOptions,
 ): Promise<PostLink[]> {
   const sortColumn = options.order === "newest"
-    ? postLinkTable.firstSharedAt
+    ? postLinkTable.firstShared
     : options.order === "allTime"
     ? postLinkTable.weightedMass
     : postLinkTable.score;
 
   const conditions: SQL[] = [
-    isNotNull(postLinkTable.latestActivityAt),
+    isNotNull(postLinkTable.latestActivity),
     eq(postLinkTable.excludedFromNews, false),
   ];
   if (options.after != null) {
@@ -965,7 +965,7 @@ export interface NewsScoreStatus {
   /** Links currently in the feed (with at least one public share). */
   readonly scoredLinkCount: number;
   /** When scores were last recomputed, or `null` if never. */
-  readonly lastRecomputedAt: Date | null;
+  readonly lastRecomputed: Date | null;
 }
 
 /** Snapshot of news scoring state for the moderator admin page. */
@@ -975,7 +975,7 @@ export async function getNewsScoreStatus(
   const [counts] = await db
     .select({ scoredLinkCount: count() })
     .from(postLinkTable)
-    .where(isNotNull(postLinkTable.latestActivityAt));
+    .where(isNotNull(postLinkTable.latestActivity));
   // Read the column directly (ordered, not aggregated) so drizzle applies the
   // timestamptz -> Date mapping; `max()` would hand back a raw Postgres string
   // the GraphQL `DateTime` scalar then refuses to serialize.
@@ -987,7 +987,7 @@ export async function getNewsScoreStatus(
     .limit(1);
   return {
     scoredLinkCount: Number(counts?.scoredLinkCount ?? 0),
-    lastRecomputedAt: latest?.scoreUpdated ?? null,
+    lastRecomputed: latest?.scoreUpdated ?? null,
   };
 }
 
@@ -1155,7 +1155,7 @@ export async function applyNewsExclusions(
   if (linkIds != null && linkIds.length < 1) return;
   const scope = linkIds != null
     ? inArray(postLinkTable.id, [...linkIds])
-    : isNotNull(postLinkTable.latestActivityAt);
+    : isNotNull(postLinkTable.latestActivity);
 
   const patternRows = await db
     .select({ pattern: newsExcludedPatternTable.pattern })
@@ -1476,7 +1476,7 @@ export interface DrainNewsRescoreQueueResult {
  * has shared, in chunks, off the request path.
  *
  * Concurrency: `Deno.cron` fires per worker process, so several replicas run
- * this at once.  Each claim *leases* one actor (sets `claimed_at`) with
+ * this at once.  Each claim *leases* one actor (sets `claimed`) with
  * `for update skip locked`, so a given actor is processed by exactly one replica
  * at a time; the worker refreshes the lease after every chunk so a long backlog
  * cannot expire mid-flight and let another replica race it on the same links.
@@ -1513,11 +1513,11 @@ export async function drainNewsRescoreQueue(
     // this row instead of blocking, so two replicas never lease the same actor.
     const claimed = await db.execute(sql`
       update news_rescore_queue
-      set claimed_at = now(), dirty = false
+      set claimed = now(), dirty = false
       where actor_id in (
         select actor_id from news_rescore_queue
-        where claimed_at is null
-          or claimed_at < now() - ${leaseSeconds} * interval '1 second'
+        where claimed is null
+          or claimed < now() - ${leaseSeconds} * interval '1 second'
         order by enqueued
         for update skip locked
         limit 1
@@ -1536,7 +1536,7 @@ export async function drainNewsRescoreQueue(
         // Refresh the lease so a long backlog cannot expire and be reclaimed by
         // another replica mid-flight.
         await db.execute(sql`
-          update news_rescore_queue set claimed_at = now()
+          update news_rescore_queue set claimed = now()
           where actor_id = ${actorId}
         `);
       }
@@ -1551,7 +1551,7 @@ export async function drainNewsRescoreQueue(
       `) as unknown as { actor_id: Uuid }[];
       if (deleted.length < 1) {
         await db.execute(sql`
-          update news_rescore_queue set claimed_at = null
+          update news_rescore_queue set claimed = null
           where actor_id = ${actorId}
         `);
       }

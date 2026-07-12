@@ -122,7 +122,7 @@ interface LlmAnalysis {
   matches?: { provision: string; confidence: number; rationale: string }[];
   summary?: string;
   model?: string;
-  analyzedAt?: string;
+  analyzed?: string;
   error?: string;
 }
 
@@ -188,7 +188,7 @@ export default function ModerationCaseDetailPage() {
                 const isOpen = () =>
                   flagCase.status === "PENDING" ||
                   flagCase.status === "REVIEWING";
-                const isPostReport = flagCase.targetPostIri != null;
+                const postReport = flagCase.targetPostIri != null;
                 const canCensor = flagCase.targetPost != null;
                 // `violationHistory` is the target's standing history across
                 // all cases; on a resolved case it includes the action just
@@ -260,7 +260,7 @@ export default function ModerationCaseDetailPage() {
                         </CardTitle>
                         <CardDescription>
                           <Show
-                            when={isPostReport}
+                            when={postReport}
                             fallback={t`A user (profile) report.`}
                           >
                             {t`A content (post) report.`}
@@ -438,7 +438,7 @@ export default function ModerationCaseDetailPage() {
                             provisions={data.codeOfConductProvisions ?? []}
                             canCensor={canCensor}
                             forwardingEnabled={flagCase.forwardingEnabled}
-                            isLocal={flagCase.targetActor.local}
+                            local={flagCase.targetActor.local}
                             onActioned={() => navigate("/admin/moderation")}
                           />
                         </CardContent>

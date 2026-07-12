@@ -308,7 +308,7 @@ export async function analyzeFlag(
       matches: result.matches,
       summary: result.summary,
       model: modelId,
-      analyzedAt: new Date().toISOString(),
+      analyzed: new Date().toISOString(),
     };
   } catch (error) {
     logger.warn(
@@ -319,7 +319,7 @@ export async function analyzeFlag(
       matches: [],
       summary: "",
       model: modelId,
-      analyzedAt: new Date().toISOString(),
+      analyzed: new Date().toISOString(),
       error: String(error),
     };
   }

@@ -22,7 +22,7 @@ export interface FloatingComposeButtonProps {
 
 export function FloatingComposeButton(props: FloatingComposeButtonProps) {
   const { t } = useLingui();
-  const { isMobile, state } = useSidebar();
+  const { isMobile: mobile, state } = useSidebar();
   const { open: openNoteCompose } = useNoteCompose();
 
   const signedAccount = createFragment(
@@ -46,8 +46,7 @@ export function FloatingComposeButton(props: FloatingComposeButtonProps) {
     () => props.$signedAccount,
   );
 
-  const shouldShow = () =>
-    props.show && (isMobile() || state() === "collapsed");
+  const shouldShow = () => props.show && (mobile() || state() === "collapsed");
 
   return (
     <>

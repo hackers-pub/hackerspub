@@ -8,7 +8,7 @@ import type { Language } from "../i18n.ts";
 import type { ActorInfo } from "../routes/api/webfinger.ts";
 
 export interface RemoteFollowModalProps {
-  isOpen: boolean;
+  open: boolean;
   onClose: () => void;
   actorHandle: string;
   actorName?: string;
@@ -16,11 +16,11 @@ export interface RemoteFollowModalProps {
 }
 
 export function RemoteFollowModal(
-  { isOpen, onClose, actorHandle, actorName, language }: RemoteFollowModalProps,
+  { open, onClose, actorHandle, actorName, language }: RemoteFollowModalProps,
 ) {
   const fediverseId = useSignal("");
   const errorMessage = useSignal("");
-  const isLoading = useSignal(false);
+  const loading = useSignal(false);
   const actorInfo = useSignal<ActorInfo | null>(null);
   const t = getFixedT(language);
 
@@ -48,7 +48,7 @@ export function RemoteFollowModal(
 
     // General Fediverse user: webfinger lookup through server API
     try {
-      isLoading.value = true;
+      loading.value = true;
       errorMessage.value = "";
 
       const response = await fetch("/api/webfinger", {
@@ -76,7 +76,7 @@ export function RemoteFollowModal(
         : t("remoteFollow.userLookupError");
       actorInfo.value = null;
     } finally {
-      isLoading.value = false;
+      loading.value = false;
     }
   };
 
@@ -120,7 +120,7 @@ export function RemoteFollowModal(
     onClose();
   };
 
-  if (!isOpen) return null;
+  if (!open) return null;
 
   return (
     <TranslationSetup language={language}>
@@ -181,7 +181,7 @@ export function RemoteFollowModal(
                 placeholder={t("remoteFollow.fediverseIdPlaceholder")}
                 value={fediverseId.value}
                 onInput={handleInputChange}
-                disabled={isLoading.value}
+                disabled={loading.value}
                 class={`w-full px-3 py-2 border rounded-md bg-white dark:bg-stone-700 text-gray-900 dark:text-gray-100 disabled:opacity-50 ${
                   errorMessage.value
                     ? "border-red-500 dark:border-red-400"
@@ -192,7 +192,7 @@ export function RemoteFollowModal(
               {errorMessage.value && (
                 <p class="text-red-500 text-xs mt-1">{errorMessage.value}</p>
               )}
-              {isLoading.value && (
+              {loading.value && (
                 <p class="text-blue-500 text-xs mt-1">
                   <Msg $key="remoteFollow.lookingUpUser" />
                 </p>
@@ -277,10 +277,10 @@ export function RemoteFollowModal(
                 : (
                   <Button
                     type="submit"
-                    disabled={isLoading.value}
+                    disabled={loading.value}
                     class="flex-1 disabled:opacity-50"
                   >
-                    {isLoading.value
+                    {loading.value
                       ? <Msg $key="remoteFollow.lookingUpUser" />
                       : <Msg $key="remoteFollow.lookupUser" />}
                   </Button>

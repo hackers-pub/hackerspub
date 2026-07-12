@@ -1892,7 +1892,7 @@ type Flag implements Node {
   id: ID!
 
   """
-  The LLM's code of conduct matching result (`matches` with provision ids, confidences, and rationales; `summary`; `model`; `analyzedAt`; `error` when the analysis failed).  A reference tool for moderators, never an automated decision: always verify independently.  Moderator-only.  `null` while the analysis is still pending.
+  The LLM's code of conduct matching result (`matches` with provision ids, confidences, and rationales; `summary`; `model`; `analyzed`; `error` when the analysis failed).  A reference tool for moderators, never an automated decision: always verify independently.  Moderator-only.  `null` while the analysis is still pending.
   """
   llmAnalysis: JSON
 
@@ -2314,11 +2314,6 @@ type InvitationRegenerationStatus {
   lastRegenerated: DateTime
 
   """
-  When the regeneration was last triggered, or null if it has never been run.
-  """
-  lastRegeneratedAt: DateTime @deprecated(reason: "Use lastRegenerated")
-
-  """
   Number of accounts that would receive an invitation if a regeneration were triggered now (ceil(eligible / 3)).
   """
   topThirdCount: Int!
@@ -2482,7 +2477,12 @@ input MarkOrganizationNotificationsAsReadInput {
   """
   Read marker to store. Omit to use the current server time. Future timestamps are clamped to the current server time. Prefer `upTo` when marking notifications loaded from the API, because it preserves database timestamp precision.
   """
-  readAt: DateTime
+  read: DateTime
+
+  """
+  Deprecated compatibility alias for `read`. Use `read` to provide the notification read marker.
+  """
+  readAt: DateTime @deprecated(reason: "Use `read` instead.")
 
   """
   UUID of the newest loaded organization notification to mark as read through. This stores the notification row's server-side `created` timestamp, preserving database precision.
@@ -3211,7 +3211,7 @@ enum NewsPromotion {
 """A snapshot of news scoring state, for the moderator admin page."""
 type NewsScoreStatus {
   """When scores were last recomputed, or `null` if never."""
-  lastRecomputedAt: DateTime
+  lastRecomputed: DateTime
 
   """
   Number of links currently in the feed (with at least one public share).
@@ -4370,14 +4370,24 @@ type PostLink implements Node {
   """
   When this link was first shared publicly by a qualifying account (a non-bot account, or a curated preferred sharer; censored shares and sanction-hidden actors do not qualify), or `null` if it has never been.  Drives the `NEWEST` order.
   """
-  firstSharedAt: DateTime
+  firstShared: DateTime
+
+  """
+  Deprecated compatibility alias for `firstShared`. Use `firstShared` for the first qualifying public share timestamp.
+  """
+  firstSharedAt: DateTime @deprecated(reason: "Use `firstShared` instead.")
   id: ID!
   image: PostLinkImage
 
   """
   Timestamp of the freshest activity on this link's qualifying shares (the share itself, a reply, a quote, or a reaction); shares are direct linked posts or boosts of `Article` posts backed by this link, public, uncensored, and authored by non-bot, sanction-visible accounts (or curated preferred sharers).  Censored replies/quotes and child posts by sanction-hidden actors do not refresh this timestamp.  A rapid repeat share by the same account does not refresh this (only a first share, a sufficiently-gapped re-share, or genuine replies/quotes/reactions do), so re-posting cannot keep a link pinned at the top.  `null` means the link is not a news story (no qualifying public share); such links are excluded from the feed.
   """
-  latestActivityAt: DateTime
+  latestActivity: DateTime
+
+  """
+  Deprecated compatibility alias for `latestActivity`. Use `latestActivity` for the freshest qualifying activity timestamp.
+  """
+  latestActivityAt: DateTime @deprecated(reason: "Use `latestActivity` instead.")
 
   """
   The moderator score penalty on this link (demoting it in the `POPULAR` feed).  `null` for non-moderators; moderators see `NONE` when the link is unpenalized.  Set it with `setNewsScorePenalty`.
@@ -4823,7 +4833,7 @@ type Query {
   ): QueryNewsStoriesConnection!
 
   """
-  Look up a news story (a shared link) by its row UUID, for the discussion permalink `/news/{uuid}`.  Returns `null` for a malformed id, or for a link that is not a public news story: only links with a qualifying public share (`latestActivityAt` is not `null`) resolve, so a link seen only in followers-only or direct posts stays private.  A link hidden from the feed by an exclusion pattern (`excludedFromNews`) is still reachable here.
+  Look up a news story (a shared link) by its row UUID, for the discussion permalink `/news/{uuid}`.  Returns `null` for a malformed id, or for a link that is not a public news story: only links with a qualifying public share (`latestActivity` is not `null`) resolve, so a link seen only in followers-only or direct posts stays private.  A link hidden from the feed by an exclusion pattern (`excludedFromNews`) is still reachable here.
   """
   newsStory(
     """
@@ -5504,7 +5514,7 @@ type RecomputeNewsScoresPayload {
   linksUpdated: Int!
 
   """When the recompute ran."""
-  recomputedAt: DateTime!
+  recomputed: DateTime!
 
   """The scoring status after the run."""
   status: NewsScoreStatus!
@@ -5582,9 +5592,6 @@ type RegenerateInvitationsPayload {
 
   """When the regeneration ran."""
   regenerated: DateTime!
-
-  """When the regeneration ran."""
-  regeneratedAt: DateTime! @deprecated(reason: "Use regenerated")
 
   """The updated regeneration status reflecting the just-recorded run."""
   status: InvitationRegenerationStatus!

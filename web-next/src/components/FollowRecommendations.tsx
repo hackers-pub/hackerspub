@@ -233,9 +233,9 @@ export function FollowRecommendations(props: FollowRecommendationsProps) {
     if (!viewer.isLoaded() || !viewer.isAuthenticated()) return;
     const username = viewer.username();
     if (username == null) return;
-    const isDismissed = readBrowserLocalStorage(getStorageKey(username)) ===
+    const dismissed = readBrowserLocalStorage(getStorageKey(username)) ===
       "1";
-    setDismissed(isDismissed);
+    setDismissed(dismissed);
     setDismissalLoaded(true);
   });
 

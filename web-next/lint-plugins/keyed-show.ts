@@ -236,10 +236,10 @@ const plugin: Deno.lint.Plugin = {
 
           let cursor: any = node.parent;
           while (cursor) {
-            const isFn = cursor.type === "ArrowFunctionExpression" ||
+            const fn = cursor.type === "ArrowFunctionExpression" ||
               cursor.type === "FunctionExpression" ||
               cursor.type === "FunctionDeclaration";
-            if (isFn) {
+            if (fn) {
               if (paramRebindsName(cursor.params, calleeName)) {
                 const entry = shows.get(cursor);
                 if (entry && entry.paramName === calleeName) {
@@ -328,13 +328,13 @@ const plugin: Deno.lint.Plugin = {
 
           VariableDeclarator(node: any) {
             const init = node.init;
-            const isRelay = init?.type === "CallExpression" &&
+            const relay = init?.type === "CallExpression" &&
               isRelayPrimitiveCallResolved(init);
             // Record the binding either way: relay if the init is a tracked
             // solid-relay primitive call, shadow otherwise. Recording shadow
             // bindings lets isRelayBacked detect when a closer scope hides
             // an outer Relay-backed name.
-            recordPatternBindings(node.id, isRelay ? "relay" : "shadow");
+            recordPatternBindings(node.id, relay ? "relay" : "shadow");
           },
 
           JSXElement(node: any) {

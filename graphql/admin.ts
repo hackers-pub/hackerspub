@@ -86,8 +86,8 @@ function decodeAdminCursor(encoded: string): AdminCursorData | null {
     if (dir !== "ASC" && dir !== "DESC") return null;
     if (!validateUuid(id as Uuid)) return null;
     // Validate the sort-key value to prevent SQL cast errors.
-    const isTimestampField = field === "LAST_ACTIVITY" || field === "CREATED";
-    if (isTimestampField) {
+    const timestampField = field === "LAST_ACTIVITY" || field === "CREATED";
+    if (timestampField) {
       // Validate the PostgreSQL timestamptz text format emitted by ::text
       // (e.g. "2024-01-15 10:30:00.123456+00") by checking each calendar
       // and time component directly.  Avoids relying on JS Date parsing,
@@ -300,42 +300,42 @@ builder.queryField("adminAccounts", (t) =>
       }
 
       let sortExpr: SQL;
-      let isTimestamp: boolean;
+      let timestamp: boolean;
       let extractSortVal: (r: SortRow) => string;
       switch (orderBy) {
         case "FOLLOWING":
           sortExpr = sql<number>`COALESCE(${followingSubq!.count}, 0)`;
-          isTimestamp = false;
+          timestamp = false;
           extractSortVal = (r) => String(r.sortCount);
           break;
         case "FOLLOWERS":
           sortExpr = sql<number>`COALESCE(${followersSubq!.count}, 0)`;
-          isTimestamp = false;
+          timestamp = false;
           extractSortVal = (r) => String(r.sortCount);
           break;
         case "POSTS":
           sortExpr = sql<number>`COALESCE(${postsSubq.count}, 0)`;
-          isTimestamp = false;
+          timestamp = false;
           extractSortVal = (r) => String(r.sortCount);
           break;
         case "INVITATIONS_LEFT":
           sortExpr = sql`${accountTable.leftInvitations}`;
-          isTimestamp = false;
+          timestamp = false;
           extractSortVal = (r) => String(r.account.leftInvitations);
           break;
         case "INVITED":
           sortExpr = sql<number>`COALESCE(${inviteesSubq!.count}, 0)`;
-          isTimestamp = false;
+          timestamp = false;
           extractSortVal = (r) => String(r.sortCount);
           break;
         case "LAST_ACTIVITY":
           sortExpr = lastActivityExpr;
-          isTimestamp = true;
+          timestamp = true;
           extractSortVal = (r) => r.lastActivityRaw;
           break;
         case "CREATED":
           sortExpr = sql`${accountTable.created}`;
-          isTimestamp = true;
+          timestamp = true;
           extractSortVal = (r) => r.createdRaw;
           break;
       }
@@ -349,7 +349,7 @@ builder.queryField("adminAccounts", (t) =>
       // For DESC natural order: "after" a cursor means a smaller value;
       // for ASC natural order: "after" means a larger value.
       function buildAfterFilter(c: AdminCursorData): SQL {
-        const cast = isTimestamp ? "timestamptz" : "bigint";
+        const cast = timestamp ? "timestamptz" : "bigint";
         const v = sql`${c.val}::${sql.raw(cast)}`;
         const id = sql`${c.id}::uuid`;
         return c.dir === "DESC"
@@ -358,7 +358,7 @@ builder.queryField("adminAccounts", (t) =>
       }
 
       function buildBeforeFilter(c: AdminCursorData): SQL {
-        const cast = isTimestamp ? "timestamptz" : "bigint";
+        const cast = timestamp ? "timestamptz" : "bigint";
         const v = sql`${c.val}::${sql.raw(cast)}`;
         const id = sql`${c.id}::uuid`;
         return c.dir === "DESC"
@@ -414,7 +414,7 @@ builder.queryField("adminAccounts", (t) =>
 
           // sortCount carries the active sort field's count expression.
           // For timestamp and INVITATIONS_LEFT sorts it is unused (set to 0).
-          const sortCountExpr: SQL<number> = isTimestamp
+          const sortCountExpr: SQL<number> = timestamp
             ? sql<number>`0`
             : sql<number>`(${sortExpr})::int`;
 
@@ -519,14 +519,6 @@ const InvitationRegenerationStatus = builder.simpleObject(
           "When the regeneration was last triggered, or null if it has " +
           "never been run.",
       }),
-      lastRegeneratedAt: t.field({
-        type: "DateTime",
-        nullable: true,
-        deprecationReason: "Use lastRegenerated",
-        description:
-          "When the regeneration was last triggered, or null if it has " +
-          "never been run.",
-      }),
       cutoffDate: t.field({
         type: "DateTime",
         description:
@@ -549,7 +541,6 @@ const InvitationRegenerationStatus = builder.simpleObject(
 
 interface InvitationRegenerationStatusShape {
   lastRegenerated: Date | null;
-  lastRegeneratedAt: Date | null;
   cutoffDate: Date;
   eligibleAccountsCount: number;
   topThirdCount: number;
@@ -559,8 +550,7 @@ function toInvitationRegenerationStatusShape(
   status: ModelInvitationRegenerationStatus,
 ): InvitationRegenerationStatusShape {
   return {
-    lastRegenerated: status.lastRegeneratedAt,
-    lastRegeneratedAt: status.lastRegeneratedAt,
+    lastRegenerated: status.lastRegenerated,
     cutoffDate: status.cutoffDate,
     eligibleAccountsCount: status.eligibleAccountsCount,
     topThirdCount: status.topThirdCount,
@@ -591,11 +581,6 @@ const RegenerateInvitationsPayload = builder.simpleObject(
     fields: (t) => ({
       regenerated: t.field({
         type: "DateTime",
-        description: "When the regeneration ran.",
-      }),
-      regeneratedAt: t.field({
-        type: "DateTime",
-        deprecationReason: "Use regenerated",
         description: "When the regeneration ran.",
       }),
       accountsAffected: t.int({
@@ -634,8 +619,7 @@ builder.mutationField("regenerateInvitations", (t) =>
       // pay one aggregate query and report the actual numbers.
       const status = await getInvitationRegenerationStatus(ctx.db, ctx.kv);
       return {
-        regenerated: result.regeneratedAt,
-        regeneratedAt: result.regeneratedAt,
+        regenerated: result.regenerated,
         accountsAffected: result.accountsAffected,
         status: toInvitationRegenerationStatusShape(status),
       };

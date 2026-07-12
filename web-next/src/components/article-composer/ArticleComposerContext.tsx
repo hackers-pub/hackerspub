@@ -143,7 +143,7 @@ export interface ArticleComposerProps {
 export interface ArticleComposerContextValue {
   // Draft data
   draftUuid: string;
-  isExistingDraft: boolean;
+  existingDraft: boolean;
   draftDataLoaded: Accessor<boolean>;
   draft: Accessor<
     | {
@@ -508,7 +508,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
           { localId: crypto.randomUUID(), title: "" },
         ],
       },
-      updatedAt: new Date().toISOString(),
+      updated: new Date().toISOString(),
     });
 
     if (result !== "ok") {
@@ -764,7 +764,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
 
   const contextValue: ArticleComposerContextValue = {
     draftUuid,
-    isExistingDraft: props.draftUuid != null,
+    existingDraft: props.draftUuid != null,
     draftDataLoaded,
     draft,
 

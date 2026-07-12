@@ -193,10 +193,10 @@ function applyInlineStyle(view: EditorView, style: InlineStyle): void {
     });
   } else {
     const selectedText = state.sliceDoc(selection.from, selection.to);
-    const isWrapped = selectedText.startsWith(style.prefix) &&
+    const wrapped = selectedText.startsWith(style.prefix) &&
       selectedText.endsWith(style.suffix);
 
-    if (isWrapped) {
+    if (wrapped) {
       const unwrapped = selectedText.slice(
         style.prefix.length,
         -style.suffix.length,

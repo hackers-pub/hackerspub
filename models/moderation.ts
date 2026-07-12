@@ -307,12 +307,12 @@ function isStandingAction(
 function isActorContentHidden(
   suspended: Date | null,
   suspendedUntil: Date | null,
-  isRemote: boolean,
+  remote: boolean,
   now: Date,
 ): boolean {
   if (suspended == null || suspended > now) return false;
   if (suspendedUntil != null && suspendedUntil <= now) return false;
-  return suspendedUntil == null || isRemote;
+  return suspendedUntil == null || remote;
 }
 
 /**
@@ -339,7 +339,7 @@ async function recomputeActorEnforcement(
     .where(eq(actorTable.id, actorId))
     .for("update");
   if (actor == null) return false;
-  const isRemote = actor.accountId == null;
+  const remote = actor.accountId == null;
   const actions = await tx.query.flagActionTable.findMany({
     where: {
       case: { targetActorId: actorId },
@@ -376,13 +376,13 @@ async function recomputeActorEnforcement(
   const hiddenBefore = isActorContentHidden(
     actor.suspended,
     actor.suspendedUntil,
-    isRemote,
+    remote,
     now,
   );
   const hiddenAfter = isActorContentHidden(
     suspended,
     suspendedUntil,
-    isRemote,
+    remote,
     now,
   );
   const stateChanged =

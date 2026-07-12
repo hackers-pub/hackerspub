@@ -247,7 +247,7 @@ export const Flag = builder.drizzleNode("flagTable", {
       description:
         "The LLM's code of conduct matching result (`matches` with " +
         "provision ids, confidences, and rationales; `summary`; `model`; " +
-        "`analyzedAt`; `error` when the analysis failed).  A reference " +
+        "`analyzed`; `error` when the analysis failed).  A reference " +
         "tool for moderators, never an automated decision: always verify " +
         "independently.  Moderator-only.  `null` while the analysis is " +
         "still pending.",

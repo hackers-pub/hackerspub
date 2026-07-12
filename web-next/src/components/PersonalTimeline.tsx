@@ -190,7 +190,7 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
     // Poll for new content without disrupting the current view.
     const pollIntervalMs = import.meta.env.DEV ? 10_000 : 60_000;
     let pendingPollSub: { unsubscribe(): void } | null = null;
-    let isPolling = false;
+    let polling = false;
     let intervalId: ReturnType<typeof setInterval> | null = null;
     const [documentVisible, setDocumentVisible] = createSignal(
       document.visibilityState === "visible",
@@ -207,16 +207,16 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
       }
       pendingPollSub?.unsubscribe();
       pendingPollSub = null;
-      isPolling = false;
+      polling = false;
     };
 
     const poll = () => {
-      if (!documentVisible() || posts.pending || hasNewPosts() || isPolling) {
+      if (!documentVisible() || posts.pending || hasNewPosts() || polling) {
         return;
       }
 
       const lang = props.activeLanguage?.();
-      isPolling = true;
+      polling = true;
       pendingPollSub = fetchQuery<PersonalTimelinePollQuery>(
         environment(),
         pollQuery,
@@ -237,11 +237,11 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
         },
         error() {
           // Ignore poll errors silently; the next tick will retry.
-          isPolling = false;
+          polling = false;
           pendingPollSub = null;
         },
         complete() {
-          isPolling = false;
+          polling = false;
           pendingPollSub = null;
         },
       });

@@ -458,7 +458,7 @@ async function countOrganizationUnreadNotifications(
       AND ${organizationMembershipTable.accepted} IS NOT NULL
       AND ${notificationTable.created} > COALESCE(
         (
-          SELECT MAX(${organizationNotificationReadTable.readAt})
+          SELECT MAX(${organizationNotificationReadTable.read})
           FROM ${organizationNotificationReadTable}
           JOIN ${organizationMembershipTable} accepted_members
             ON accepted_members.organization_account_id =
@@ -562,7 +562,7 @@ async function getOrganizationDigestItems(
       AND ${organizationMembershipTable.accepted} IS NOT NULL
       AND ${notificationTable.created} > COALESCE(
         (
-          SELECT MAX(${organizationNotificationReadTable.readAt})
+          SELECT MAX(${organizationNotificationReadTable.read})
           FROM ${organizationNotificationReadTable}
           JOIN ${organizationMembershipTable} accepted_members
             ON accepted_members.organization_account_id =

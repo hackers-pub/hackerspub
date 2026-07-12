@@ -42,7 +42,7 @@ const setPenaltyMutation = graphql`
 export interface NewsStoryCardProps {
   $story: NewsStoryCard_story$key;
   /** Whether the viewer is a moderator (shows the demote/bury control). */
-  isModerator?: boolean;
+  moderator?: boolean;
   /** Called after a penalty change, to refetch the feed so it reorders. */
   onPenaltyChanged?: () => void;
 }
@@ -59,7 +59,7 @@ export function NewsStoryCard(props: NewsStoryCardProps) {
         siteName
         description
         discussionCount
-        latestActivityAt
+        latestActivity
         penalty
         article {
           id
@@ -245,7 +245,7 @@ export function NewsStoryCard(props: NewsStoryCardProps) {
                 </svg>
                 {s.article ? t`Share this article` : t`Share this link`}
               </button>
-              <Show keyed when={s.latestActivityAt}>
+              <Show keyed when={s.latestActivity}>
                 {(at) => (
                   <>
                     <span aria-hidden="true">·</span>
@@ -256,7 +256,7 @@ export function NewsStoryCard(props: NewsStoryCardProps) {
                   </>
                 )}
               </Show>
-              <Show when={props.isModerator}>
+              <Show when={props.moderator}>
                 <Show when={s.penalty && s.penalty !== "NONE"}>
                   <span aria-hidden="true">·</span>
                   <span class="text-muted-foreground/70">

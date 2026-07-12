@@ -93,7 +93,7 @@ export interface AppSidebarProps {
 export function AppSidebar(props: AppSidebarProps) {
   const { t } = useLingui();
   const { open: openNoteCompose } = useNoteCompose();
-  const { isMobile, state } = useSidebar();
+  const { isMobile: mobile, state } = useSidebar();
   const signedAccount = createFragment(
     graphql`
       fragment AppSidebar_signedAccount on Account
@@ -457,13 +457,13 @@ export function AppSidebar(props: AppSidebarProps) {
         <ComposeSection
           signedAccount={signedAccount()}
           visible={!!signedAccount() &&
-            !isMobile() && state() !== "collapsed"}
+            !mobile() && state() !== "collapsed"}
           onComposeNote={openNoteCompose}
         />
         <RecentDraftsSection
           signedAccount={signedAccount()}
           visible={!!signedAccount() &&
-            !isMobile() && state() !== "collapsed"}
+            !mobile() && state() !== "collapsed"}
         />
         <AccountSection
           signedAccount={signedAccount()}

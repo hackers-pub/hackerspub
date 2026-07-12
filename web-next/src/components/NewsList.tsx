@@ -120,7 +120,7 @@ export function NewsList(props: NewsListProps) {
                 {(edge) => (
                   <NewsStoryCard
                     $story={edge.node}
-                    isModerator={data.viewer?.moderator ?? false}
+                    moderator={data.viewer?.moderator ?? false}
                     onPenaltyChanged={() =>
                       stories.refetch(
                         { order: props.activeSort() },

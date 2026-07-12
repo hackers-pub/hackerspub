@@ -72,7 +72,7 @@ export function MutedAccountsList(props: MutedAccountsListProps) {
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
   >("loaded");
-  const [unmuteActor, isUnmuting] = createMutation<
+  const [unmuteActor, unmuting] = createMutation<
     MutedAccountsList_unmuteActor_Mutation
   >(unmuteActorMutation);
 
@@ -112,7 +112,7 @@ export function MutedAccountsList(props: MutedAccountsListProps) {
           onLoadMore={onLoadMore}
           onAction={(actorId) => onUnmute(actorId, data.mutedActors.__id)}
           actionLabel={t`Unmute`}
-          actionDisabled={isUnmuting()}
+          actionDisabled={unmuting()}
           emptyMessage={t`You haven't muted anyone.`}
         />
       )}

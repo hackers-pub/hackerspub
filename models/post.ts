@@ -1441,11 +1441,11 @@ export async function persistPost(
     : post instanceof vocab.Question
     ? "Question"
     : assertNever(post, `Unexpected type of post: ${post}`);
-  const isQualifyingArticleNewsPost = type === "Article" &&
+  const qualifyingArticleNewsPost = type === "Article" &&
     (visibility === "public" || visibility === "unlisted") &&
     replyTarget == null &&
     quotedPost == null;
-  const articleNewsLink = isQualifyingArticleNewsPost
+  const articleNewsLink = qualifyingArticleNewsPost
     ? await persistArticleNewsLink(ctx, {
       url: postUrl,
       iri: post.id.href,
@@ -3003,14 +3003,14 @@ export async function revokeQuote(
   quotedPost: Post,
 ): Promise<Post> {
   const { db } = fedCtx.data;
-  const revokedAt = new Date();
+  const revoked = new Date();
   let updatedQuote: QuoteUpdatePost | undefined;
   const rows = await db.update(postTable)
     .set({
       quotedPostId: null,
       quoteAuthorizationIri: null,
       quoteTargetState: "denied",
-      updated: revokedAt,
+      updated: revoked,
     })
     .where(and(
       eq(postTable.id, quotePost.id),
@@ -3026,7 +3026,7 @@ export async function revokeQuote(
   }
   if (quotePost.actor.accountId != null && quotePost.noteSourceId != null) {
     await db.update(noteSourceTable)
-      .set({ updated: revokedAt })
+      .set({ updated: revoked })
       .where(eq(noteSourceTable.id, quotePost.noteSourceId));
     updatedQuote = await db.query.postTable.findFirst({
       with: {
@@ -3038,12 +3038,12 @@ export async function revokeQuote(
       where: { id: quotePost.id },
     });
     if (updatedQuote != null) {
-      await sendLocalQuoteUpdate(fedCtx, updatedQuote, null, revokedAt);
+      await sendLocalQuoteUpdate(fedCtx, updatedQuote, null, revoked);
     }
   }
   if (quotePost.quoteAuthorizationIri != null) {
     await db.update(quoteAuthorizationTable)
-      .set({ revoked: true, updated: revokedAt })
+      .set({ revoked: true, updated: revoked })
       .where(eq(quoteAuthorizationTable.iri, quotePost.quoteAuthorizationIri));
     if (quotePost.actor.accountId == null) {
       const activity = new vocab.Delete({

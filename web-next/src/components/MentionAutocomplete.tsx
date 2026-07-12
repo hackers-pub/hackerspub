@@ -55,7 +55,7 @@ export function MentionAutocomplete(props: MentionAutocompleteProps) {
     undefined,
   );
   const [requestVersion, setRequestVersion] = createSignal(0);
-  const [isMouseOverDropdown, setIsMouseOverDropdown] = createSignal(false);
+  const [mouseOverDropdown, setMouseOverDropdown] = createSignal(false);
   const [mountPoint, setMountPoint] = createSignal<HTMLElement | undefined>(
     undefined,
   );
@@ -268,7 +268,7 @@ export function MentionAutocomplete(props: MentionAutocompleteProps) {
     }
     // Delay to allow click on candidates
     setTimeout(() => {
-      if (!isMouseOverDropdown()) {
+      if (!mouseOverDropdown()) {
         setCandidates(undefined);
       }
     }, 200);
@@ -311,8 +311,8 @@ export function MentionAutocomplete(props: MentionAutocompleteProps) {
             top: `${candidates()?.y ?? 0}px`,
           }}
           aria-hidden="false"
-          onMouseEnter={() => setIsMouseOverDropdown(true)}
-          onMouseLeave={() => setIsMouseOverDropdown(false)}
+          onMouseEnter={() => setMouseOverDropdown(true)}
+          onMouseLeave={() => setMouseOverDropdown(false)}
           onPointerDown={(e) => {
             // Prevent the textarea from losing focus (and triggering
             // the dialog's interact-outside handler) when the user

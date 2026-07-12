@@ -472,7 +472,7 @@ function revokePreviewUrl(url: string): void {
 export interface NoteComposerProps {
   onSuccess?: () => void;
   onCancel?: () => void;
-  onContentChange?: (isDirty: boolean) => void;
+  onContentChange?: (dirty: boolean) => void;
   onDraftFlushAvailable?: (flush: NoteDraftFlush | null) => void;
   showCancelButton?: boolean;
   autoFocus?: boolean;
@@ -725,7 +725,7 @@ export function NoteComposer(props: NoteComposerProps) {
   // In edit mode treat any divergence from the original as dirty, including
   // clearing all content.  In compose mode keep the original guard so an
   // empty textarea isn't flagged dirty on first render.
-  const isDirty = createMemo(() => {
+  const dirty = createMemo(() => {
     const contentDirty = props.editingNoteId
       ? content().trim() !== prefillRef.trim()
       : content().trim() !== "" && content().trim() !== prefillRef.trim();
@@ -736,7 +736,7 @@ export function NoteComposer(props: NoteComposerProps) {
     const pollDirty = canCreatePoll() && pollEnabled();
     return contentDirty || mediaItems.length > 0 || editMetaDirty || pollDirty;
   });
-  createEffect(() => props.onContentChange?.(isDirty()));
+  createEffect(() => props.onContentChange?.(dirty()));
   const isSubmitting = () =>
     isCreating() || isCreatingQuestion() ||
     isUpdating() || isSavingArticleDraft();
@@ -932,12 +932,12 @@ export function NoteComposer(props: NoteComposerProps) {
         title: option.title,
       })),
     },
-    updatedAt: new Date().toISOString(),
+    updated: new Date().toISOString(),
   });
 
   const currentStorableDraftData = (): NoteDraftData => {
     const draft = currentDraftData();
-    if (isDirty()) return draft;
+    if (dirty()) return draft;
     return {
       ...draft,
       content: "",
@@ -968,7 +968,7 @@ export function NoteComposer(props: NoteComposerProps) {
       key == null || scope == null || loadedDraftKey() !== key ||
       restoringDraft
     ) {
-      return !isDirty();
+      return !dirty();
     }
 
     clearTimeout(saveDraftTimer);
@@ -992,7 +992,7 @@ export function NoteComposer(props: NoteComposerProps) {
       return false;
     }
     setDraftSaveStatus("idle");
-    return !isDirty();
+    return !dirty();
   };
 
   createEffect(() => {
@@ -1159,7 +1159,7 @@ export function NoteComposer(props: NoteComposerProps) {
       previousLoadedDraftKey != null &&
       formDraftKey === previousLoadedDraftKey &&
       previousLoadedDraftKey !== key &&
-      isDirty()
+      dirty()
     );
     untrack(() => loadDraftFromStorage(key, scope, shouldPreserveCurrentForm));
   });
@@ -1172,7 +1172,7 @@ export function NoteComposer(props: NoteComposerProps) {
     clearTimeout(saveDraftTimer);
     // A stale composer can publish this scope during soft navigation.  Do not
     // let it overwrite text the active composer has not saved yet.
-    const shouldPreserveCurrentForm = untrack(isDirty);
+    const shouldPreserveCurrentForm = untrack(dirty);
     loadDraftFromStorage(key, scope, shouldPreserveCurrentForm);
     if (shouldPreserveCurrentForm) {
       saveDraftTimer = setTimeout(() => {
@@ -1772,7 +1772,7 @@ export function NoteComposer(props: NoteComposerProps) {
     }
 
     if (props.editingNoteId) {
-      const isPublicOrUnlisted = props.editingVisibility === "PUBLIC" ||
+      const publicOrUnlisted = props.editingVisibility === "PUBLIC" ||
         props.editingVisibility === "UNLISTED";
       updateNote({
         variables: {
@@ -1780,9 +1780,7 @@ export function NoteComposer(props: NoteComposerProps) {
             noteId: props.editingNoteId,
             content: noteContent,
             language: language()?.baseName ?? null,
-            quotePolicy: isPublicOrUnlisted
-              ? effectiveQuotePolicy()
-              : undefined,
+            quotePolicy: publicOrUnlisted ? effectiveQuotePolicy() : undefined,
             ...editActingAccountInput(),
           },
         },
@@ -2679,7 +2677,7 @@ export function NoteComposer(props: NoteComposerProps) {
             <Button
               type="submit"
               disabled={isSubmitting() ||
-                (props.editingNoteId ? !isDirty() : (
+                (props.editingNoteId ? !dirty() : (
                   viewer.suspended() ||
                   mediaItems.some((m) => m.uploading) ||
                   (!!effectiveQuotedPostId() && !quotedPost() &&

@@ -216,7 +216,7 @@ builder.drizzleObjectFields(PostLink, (t) => ({
       "with a modest `score` is expected, since repeats contribute diminishing " +
       "weight).",
   }),
-  firstSharedAt: t.expose("firstSharedAt", {
+  firstShared: t.expose("firstShared", {
     type: "DateTime",
     nullable: true,
     description:
@@ -225,7 +225,18 @@ builder.drizzleObjectFields(PostLink, (t) => ({
       "sanction-hidden actors do not qualify), or `null` if it has " +
       "never been.  Drives the `NEWEST` order.",
   }),
-  latestActivityAt: t.expose("latestActivityAt", {
+  // TODO: Remove this compatibility alias after external clients migrate to
+  // `firstShared`.
+  firstSharedAt: t.field({
+    type: "DateTime",
+    nullable: true,
+    deprecationReason: "Use `firstShared` instead.",
+    description:
+      "Deprecated compatibility alias for `firstShared`. Use `firstShared` " +
+      "for the first qualifying public share timestamp.",
+    resolve: (link) => link.firstShared,
+  }),
+  latestActivity: t.expose("latestActivity", {
     type: "DateTime",
     nullable: true,
     description:
@@ -242,6 +253,16 @@ builder.drizzleObjectFields(PostLink, (t) => ({
       "cannot keep a link pinned at the top.  `null` means the link is not a " +
       "news story (no qualifying public share); such links are excluded from " +
       "the feed.",
+  }),
+  // TODO: Remove this compatibility alias after external clients migrate to
+  // `latestActivity`.
+  latestActivityAt: t.field({
+    type: "DateTime",
+    nullable: true,
+    deprecationReason: "Use `latestActivity` instead.",
+    description: "Deprecated compatibility alias for `latestActivity`. Use " +
+      "`latestActivity` for the freshest qualifying activity timestamp.",
+    resolve: (link) => link.latestActivity,
   }),
   sharingPosts: t.relatedConnection("posts", {
     type: Post,
@@ -394,7 +415,7 @@ function newsWindow(first: number | null | undefined): number {
 function cursorScalar(link: PostLinkRow, order: NewsOrderValue): string {
   switch (order) {
     case "newest":
-      return link.firstSharedAt?.toISOString() ?? "";
+      return link.firstShared?.toISOString() ?? "";
     case "allTime":
       return String(link.weightedMass);
     case "popular":
@@ -486,7 +507,7 @@ builder.queryField("newsStory", (t) =>
       "Look up a news story (a shared link) by its row UUID, for the " +
       "discussion permalink `/news/{uuid}`.  Returns `null` for a malformed " +
       "id, or for a link that is not a public news story: only links with a " +
-      "qualifying public share (`latestActivityAt` is not `null`) resolve, so " +
+      "qualifying public share (`latestActivity` is not `null`) resolve, so " +
       "a link seen only in followers-only or direct posts stays private.  A " +
       "link hidden from the feed by an exclusion pattern (`excludedFromNews`) " +
       "is still reachable here.",
@@ -503,7 +524,7 @@ builder.queryField("newsStory", (t) =>
       if (!validateUuid(args.id)) return null;
       return ctx.db.query.postLinkTable.findFirst(
         query({
-          where: { id: args.id, latestActivityAt: { isNotNull: true } },
+          where: { id: args.id, latestActivity: { isNotNull: true } },
         }),
       );
     },
@@ -522,7 +543,7 @@ const NewsScoreStatus = builder.simpleObject("NewsScoreStatus", {
         "Number of links currently in the feed (with at least one public " +
         "share).",
     }),
-    lastRecomputedAt: t.field({
+    lastRecomputed: t.field({
       type: "DateTime",
       nullable: true,
       description: "When scores were last recomputed, or `null` if never.",
@@ -556,7 +577,7 @@ const RecomputeNewsScoresPayload = builder.simpleObject(
           "(they lost their last public share) are reset to zero but not " +
           "counted here.",
       }),
-      recomputedAt: t.field({
+      recomputed: t.field({
         type: "DateTime",
         description: "When the recompute ran.",
       }),
@@ -587,7 +608,7 @@ builder.mutationField("recomputeNewsScores", (t) =>
       const status = await getNewsScoreStatus(ctx.db);
       return {
         linksUpdated: result.linksUpdated,
-        recomputedAt: result.recomputedAt,
+        recomputed: result.recomputed,
         status,
       };
     },

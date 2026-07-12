@@ -37,7 +37,7 @@ export interface FcmNotificationOptions {
 }
 
 let cachedServiceAccount: FcmServiceAccount | null | undefined;
-let cachedAccessToken: { token: string; expiresAt: number } | null = null;
+let cachedAccessToken: { token: string; expires: number } | null = null;
 let hasLoggedFcmDisabled = false;
 
 export function resetFcmStateForTesting(): void {
@@ -125,7 +125,7 @@ function getServiceAccount(): FcmServiceAccount | null {
 async function getAccessToken(): Promise<string | null> {
   if (
     cachedAccessToken != null &&
-    cachedAccessToken.expiresAt > Date.now() + 60000
+    cachedAccessToken.expires > Date.now() + 60000
   ) {
     return cachedAccessToken.token;
   }
@@ -194,7 +194,7 @@ async function getAccessToken(): Promise<string | null> {
     };
     cachedAccessToken = {
       token: data.access_token,
-      expiresAt: Date.now() + (data.expires_in * 1000),
+      expires: Date.now() + (data.expires_in * 1000),
     };
     return cachedAccessToken.token;
   } catch (error) {

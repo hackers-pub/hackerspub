@@ -136,6 +136,12 @@ Code Style Guidelines
  -  Files with components use PascalCase (Button.tsx)
  -  Model files use lowercase (post.ts)
  -  Tests have a `.test.ts` suffix
+ -  Do not use the `At` (or `_at`) suffix for names that represent datetimes
+    (e.g., use `created` instead of `createdAt`, `updated` instead of
+    `updatedAt`)
+ -  Do not use the `is` (or `is_`) prefix for names that represent Boolean
+    values, except for predicate methods or functions (e.g., use `active`
+    instead of `isActive`, but `isActive()` is allowed)
 
 ### TypeScript
 

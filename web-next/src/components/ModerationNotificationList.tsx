@@ -96,7 +96,7 @@ export function ModerationNotificationList(
     // all currently-loaded unread records read in the store too — the
     // Int-returning mutation can't do it, and otherwise the unread dots
     // would linger until the next full page load.
-    const readAt = new Date().toISOString();
+    const read = new Date().toISOString();
     const unreadIds = edges
       .filter((edge) => edge.node.read == null)
       .map((edge) => edge.node.id);
@@ -104,7 +104,7 @@ export function ModerationNotificationList(
       variables: { upToId: newest.id },
       updater(store) {
         for (const id of unreadIds) {
-          store.get(id)?.setValue(readAt, "read");
+          store.get(id)?.setValue(read, "read");
         }
       },
       onCompleted() {

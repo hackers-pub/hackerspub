@@ -53,13 +53,13 @@ function isTransaction(db: Database): db is Transaction {
 }
 
 export interface RegenerateInvitationsResult {
-  regeneratedAt: Date;
+  regenerated: Date;
   accountsAffected: number;
   cutoffDate: Date;
 }
 
 export interface InvitationRegenerationStatus {
-  lastRegeneratedAt: Date | null;
+  lastRegenerated: Date | null;
   cutoffDate: Date;
   eligibleAccountsCount: number;
   topThirdCount: number;
@@ -165,11 +165,11 @@ export async function getInvitationRegenerationStatus(
   kv?: Keyv,
   options: RegenerateOptions = {},
 ): Promise<InvitationRegenerationStatus> {
-  const lastRegeneratedAt = await getInvitationsLastRegen(db, kv);
-  const { now, cutoffDate } = resolveCutoff(lastRegeneratedAt, options);
+  const lastRegenerated = await getInvitationsLastRegen(db, kv);
+  const { now, cutoffDate } = resolveCutoff(lastRegenerated, options);
   const active = await selectActiveAccounts(db, cutoffDate, now);
   return {
-    lastRegeneratedAt,
+    lastRegenerated,
     cutoffDate,
     eligibleAccountsCount: active.length,
     topThirdCount: Math.ceil(active.length / 3),
@@ -223,7 +223,7 @@ export async function regenerateInvitations(
         target: adminStateTable.key,
         set: { value: now.toISOString(), updated: now },
       });
-    return { regeneratedAt: now, accountsAffected, cutoffDate };
+    return { regenerated: now, accountsAffected, cutoffDate };
   };
   const ranInExistingTransaction = isTransaction(db);
   const result = ranInExistingTransaction
@@ -246,7 +246,7 @@ export async function regenerateInvitations(
     try {
       await kv.set(
         INVITATIONS_LAST_REGEN_KEY,
-        result.regeneratedAt.toISOString(),
+        result.regenerated.toISOString(),
       );
     } catch (error) {
       logger.warn(

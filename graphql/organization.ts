@@ -961,7 +961,7 @@ builder.relayMutationField(
           "Global `Account` id of the organization whose notifications " +
           "should be marked read.",
       }),
-      readAt: t.field({
+      read: t.field({
         type: "DateTime",
         required: false,
         description:
@@ -969,6 +969,16 @@ builder.relayMutationField(
           "Future timestamps are clamped to the current server time. " +
           "Prefer `upTo` when marking notifications loaded from the API, " +
           "because it preserves database timestamp precision.",
+      }),
+      // TODO: Remove this compatibility alias after external clients migrate
+      // to `read`.
+      readAt: t.field({
+        type: "DateTime",
+        required: false,
+        deprecationReason: "Use `read` instead.",
+        description:
+          "Deprecated compatibility alias for `read`. Use `read` to provide " +
+          "the notification read marker.",
       }),
       upTo: t.field({
         type: "UUID",
@@ -1017,14 +1027,15 @@ builder.relayMutationField(
         );
       }
       const now = new Date();
-      const readAt = args.input.readAt == null || args.input.readAt > now
+      const requestedRead = args.input.read ?? args.input["readAt"];
+      const read = requestedRead == null || requestedRead > now
         ? now
-        : args.input.readAt;
+        : requestedRead;
       return await getOrganizationNotificationBadge(
         ctx.db,
         organizationId,
         member.id,
-        readAt,
+        read,
       );
     },
   },

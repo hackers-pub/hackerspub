@@ -2949,8 +2949,8 @@ builder.drizzleObjectField(Medium, "generatedAltText", (t) =>
     async resolve(medium, args, ctx) {
       const session = await ctx.session;
       if (session == null) throw new NotAuthenticatedError();
-      const isOwner = await isMediumOwner(ctx.kv, medium.id, session.accountId);
-      if (!isOwner) {
+      const owner = await isMediumOwner(ctx.kv, medium.id, session.accountId);
+      if (!owner) {
         const windowActive = await isMediumUploadWindowActive(
           ctx.kv,
           medium.id,
@@ -5820,12 +5820,12 @@ builder.relayMutationField(
       // After the window expires the medium is either publicly referenced
       // or pending orphan cleanup, so any authenticated owner of the
       // target article may attach it.
-      const isOwner = await isMediumOwner(
+      const owner = await isMediumOwner(
         ctx.kv,
         medium.id,
         session.accountId,
       );
-      if (!isOwner) {
+      if (!owner) {
         const windowActive = await isMediumUploadWindowActive(
           ctx.kv,
           medium.id,

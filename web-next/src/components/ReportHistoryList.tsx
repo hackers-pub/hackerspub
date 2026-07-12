@@ -129,13 +129,13 @@ export function ReportHistoryList(props: ReportHistoryListProps) {
             <For each={data.reports?.edges ?? []}>
               {(edge) => {
                 const node = edge.node;
-                const isPostReport = node.targetPostIri != null;
+                const postReport = node.targetPostIri != null;
                 const postHref = safeHttpUrl(node.targetPostIri);
                 return (
                   <li class="flex flex-col gap-2 px-4 py-4">
                     <div class="flex flex-wrap items-center justify-between gap-2">
                       <Switch>
-                        <Match when={!isPostReport}>
+                        <Match when={!postReport}>
                           <a
                             href={profileHref(node.targetActor)}
                             class="flex min-w-0 items-center gap-1.5 font-medium hover:underline"
@@ -159,7 +159,7 @@ export function ReportHistoryList(props: ReportHistoryListProps) {
                             </span>
                           </a>
                         </Match>
-                        <Match when={isPostReport}>
+                        <Match when={postReport}>
                           <span class="flex min-w-0 items-center gap-1.5 font-medium">
                             <IconFileText class="size-4 shrink-0 text-muted-foreground" />
                             <span class="truncate">

@@ -24,8 +24,8 @@ export function NewsStoryHeader(props: NewsStoryHeaderProps) {
         siteName
         description
         discussionCount
-        firstSharedAt
-        latestActivityAt
+        firstShared
+        latestActivity
         article {
           id
           actor {
@@ -148,14 +148,14 @@ export function NewsStoryHeader(props: NewsStoryHeaderProps) {
             <span class="font-medium text-foreground">
               {discussionText(s.discussionCount)}
             </span>
-            <Show keyed when={s.latestActivityAt}>
+            <Show keyed when={s.latestActivity}>
               {(at) => (
                 <span>
                   {t`Last active`} <Timestamp value={at} />
                 </span>
               )}
             </Show>
-            <Show keyed when={s.firstSharedAt}>
+            <Show keyed when={s.firstShared}>
               {(at) => (
                 <span>
                   {t`First shared`} <Timestamp value={at} />

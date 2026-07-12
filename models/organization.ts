@@ -1017,7 +1017,7 @@ export async function getOrganizationNotificationBadge(
   db: Database | Transaction,
   organizationAccountId: Uuid,
   memberAccountId: Uuid,
-  markReadAt?: Date,
+  markRead?: Date,
 ): Promise<OrganizationNotificationBadge> {
   const membership = await getAcceptedMembership(
     db,
@@ -1026,30 +1026,30 @@ export async function getOrganizationNotificationBadge(
   );
   if (membership == null) throw new OrganizationPermissionError();
 
-  if (markReadAt != null) {
+  if (markRead != null) {
     await db.insert(organizationNotificationReadTable).values({
       organizationAccountId,
       memberAccountId,
-      readAt: markReadAt,
+      read: markRead,
     }).onConflictDoUpdate({
       target: [
         organizationNotificationReadTable.organizationAccountId,
         organizationNotificationReadTable.memberAccountId,
       ],
       set: {
-        readAt: sql`GREATEST(
-          ${organizationNotificationReadTable.readAt},
-          ${markReadAt.toISOString()}::timestamptz
+        read: sql`GREATEST(
+          ${organizationNotificationReadTable.read},
+          ${markRead.toISOString()}::timestamptz
         )`,
         updated: sql`CURRENT_TIMESTAMP`,
       },
     });
   }
 
-  const globalReadAt = sql`
+  const globalReadMarker = sql`
     COALESCE(
       (
-        SELECT MAX(${organizationNotificationReadTable.readAt})
+        SELECT MAX(${organizationNotificationReadTable.read})
         FROM ${organizationNotificationReadTable}
         JOIN ${organizationMembershipTable}
           ON ${organizationMembershipTable.organizationAccountId} =
@@ -1063,10 +1063,10 @@ export async function getOrganizationNotificationBadge(
       '-infinity'::timestamptz
     )
   `;
-  const memberReadAt = sql`
+  const memberReadMarker = sql`
     COALESCE(
       (
-        SELECT ${organizationNotificationReadTable.readAt}
+        SELECT ${organizationNotificationReadTable.read}
         FROM ${organizationNotificationReadTable}
         WHERE ${organizationNotificationReadTable.organizationAccountId} =
           ${organizationAccountId}
@@ -1085,7 +1085,7 @@ export async function getOrganizationNotificationBadge(
     .from(notificationTable)
     .where(and(
       eq(notificationTable.accountId, organizationAccountId),
-      sql`${notificationTable.created} > ${globalReadAt}`,
+      sql`${notificationTable.created} > ${globalReadMarker}`,
       notificationHasExistingActors,
     ));
   const redCount = Number(redRows[0]?.count ?? 0);
@@ -1095,7 +1095,7 @@ export async function getOrganizationNotificationBadge(
     .from(notificationTable)
     .where(and(
       eq(notificationTable.accountId, organizationAccountId),
-      sql`${notificationTable.created} > ${memberReadAt}`,
+      sql`${notificationTable.created} > ${memberReadMarker}`,
       notificationHasExistingActors,
     ));
   const grayCount = Number(grayRows[0]?.count ?? 0);
@@ -1122,8 +1122,8 @@ export async function markOrganizationNotificationsReadThrough(
   const memberAccountIdColumn = sql.identifier(
     organizationNotificationReadTable.memberAccountId.name,
   );
-  const readAtColumn = sql.identifier(
-    organizationNotificationReadTable.readAt.name,
+  const readColumn = sql.identifier(
+    organizationNotificationReadTable.read.name,
   );
   const updatedColumn = sql.identifier(
     organizationNotificationReadTable.updated.name,
@@ -1133,7 +1133,7 @@ export async function markOrganizationNotificationsReadThrough(
     INSERT INTO ${organizationNotificationReadTable} (
       ${organizationAccountIdColumn},
       ${memberAccountIdColumn},
-      ${readAtColumn}
+      ${readColumn}
     )
     SELECT
       ${organizationAccountId},
@@ -1146,9 +1146,9 @@ export async function markOrganizationNotificationsReadThrough(
       ${organizationAccountIdColumn},
       ${memberAccountIdColumn}
     ) DO UPDATE SET
-      ${readAtColumn} = GREATEST(
-        ${organizationNotificationReadTable.readAt},
-        EXCLUDED.${readAtColumn}
+      ${readColumn} = GREATEST(
+        ${organizationNotificationReadTable.read},
+        EXCLUDED.${readColumn}
       ),
       ${updatedColumn} = CURRENT_TIMESTAMP
     RETURNING 1 AS inserted

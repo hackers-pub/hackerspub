@@ -55,9 +55,9 @@ const APPLE_STARTUP_IMAGE_LINKS = APPLE_STARTUP_CONFIGS.flatMap((
 ) =>
   ["dark", "light"].flatMap((theme) =>
     ["portrait", "landscape"].map((orientation) => {
-      const isPortrait = orientation === "portrait";
-      const imageWidth = isPortrait ? width * pixelRatio : height * pixelRatio;
-      const imageHeight = isPortrait ? height * pixelRatio : width * pixelRatio;
+      const portrait = orientation === "portrait";
+      const imageWidth = portrait ? width * pixelRatio : height * pixelRatio;
+      const imageHeight = portrait ? height * pixelRatio : width * pixelRatio;
 
       return (
         <link

@@ -201,7 +201,7 @@ export default function ModerationAppealsPage() {
                 <For each={data.moderationAppeals?.edges ?? []}>
                   {(edge) => {
                     const appeal = edge.node;
-                    const isOpen = appeal.status !== "RESOLVED";
+                    const open = appeal.status !== "RESOLVED";
                     const sameModerator = appeal.action.moderator?.id ===
                       data.viewer?.id;
                     const canCensor = appeal.action.case.targetPost != null;
@@ -219,7 +219,7 @@ export default function ModerationAppealsPage() {
                             <span class="text-sm font-normal text-muted-foreground">
                               {appeal.appellant.handle}
                             </span>
-                            <Badge variant={isOpen ? "warning" : "secondary"}>
+                            <Badge variant={open ? "warning" : "secondary"}>
                               <Show
                                 when={appeal.result}
                                 fallback={t`Pending`}
@@ -268,7 +268,7 @@ export default function ModerationAppealsPage() {
                             </p>
                           </div>
 
-                          <Show when={isOpen && sameModerator}>
+                          <Show when={open && sameModerator}>
                             <div class="flex items-start gap-2 rounded-md border border-warning-foreground bg-warning px-3 py-2 text-sm text-warning-foreground">
                               <IconTriangleAlert
                                 class="mt-0.5 size-4 shrink-0"
@@ -281,7 +281,7 @@ export default function ModerationAppealsPage() {
                           </Show>
 
                           <Show
-                            when={isOpen}
+                            when={open}
                             fallback={
                               <Show keyed when={appeal.reviewRationale}>
                                 {(rationale) => (

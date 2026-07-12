@@ -165,10 +165,10 @@ export const ActingAccountProvider: ParentComponent = (props) => {
     if (key === PERSONAL_COMPOSE_ACCOUNT_KEY) return {};
     const parsed = parseOrganizationComposeAccountKey(key);
     if (parsed == null) return {};
-    const isValid = organizations().some((membership) =>
+    const valid = organizations().some((membership) =>
       membership.organization.id === parsed.actingAccountId
     );
-    return isValid ? parsed : {};
+    return valid ? parsed : {};
   };
 
   return (

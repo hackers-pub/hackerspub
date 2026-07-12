@@ -66,7 +66,7 @@ test("createArticle() creates a post and timeline entry for the author", async (
     assert.equal(link.type, "article");
     assert.equal(link.creatorId, author.actor.id);
     assert.equal(link.postCount, 1);
-    assert.ok(link.latestActivityAt != null);
+    assert.ok(link.latestActivity != null);
     assert.ok(link.scoreUpdated != null);
 
     const timelineItem = await tx.query.timelineItemTable.findFirst({
@@ -295,7 +295,7 @@ test("updateArticle() rewrites the persisted article post", async () => {
       where: { id: originalLinkId },
     });
     assert.ok(originalLink != null);
-    assert.equal(originalLink.latestActivityAt, null);
+    assert.equal(originalLink.latestActivity, null);
 
     const updatedLink = await tx.query.postLinkTable.findFirst({
       where: { id: updated.linkId },
@@ -303,7 +303,7 @@ test("updateArticle() rewrites the persisted article post", async () => {
     assert.ok(updatedLink != null);
     assert.equal(updatedLink.url, updated.url);
     assert.equal(updatedLink.title, "Updated article");
-    assert.ok(updatedLink.latestActivityAt != null);
+    assert.ok(updatedLink.latestActivity != null);
   });
 });
 

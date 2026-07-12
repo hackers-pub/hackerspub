@@ -59,7 +59,7 @@ const newsAdminPageQuery = graphql`
     }
     newsScoreStatus {
       scoredLinkCount
-      lastRecomputedAt
+      lastRecomputed
     }
     newsExcludedPatterns {
       id
@@ -107,7 +107,7 @@ const newsAdminRecomputeMutation = graphql`
         linksUpdated
         status {
           scoredLinkCount
-          lastRecomputedAt
+          lastRecomputed
         }
       }
       ... on NotAuthenticatedError {
@@ -579,7 +579,7 @@ export default function AdminNewsPage() {
                         </span>{" "}
                         <Show
                           keyed
-                          when={status()?.lastRecomputedAt}
+                          when={status()?.lastRecomputed}
                           fallback={t`never`}
                         >
                           {(ts) => <Timestamp value={ts} />}

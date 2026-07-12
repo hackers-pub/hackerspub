@@ -273,8 +273,8 @@ test("PostLink.article batches article lookups across news stories", async () =>
         score: 1_000_000 + i,
         weightedMass: 1,
         postCount: 1,
-        firstSharedAt: now,
-        latestActivityAt: now,
+        firstShared: now,
+        latestActivity: now,
         scoreUpdated: now,
       }).where(eq(postLinkTable.id, link.id));
       expected.push({ url: link.url, name: `GQL batch article ${i}` });
@@ -763,7 +763,7 @@ const statusQuery = parse(`
   query NewsScoreStatus {
     newsScoreStatus {
       scoredLinkCount
-      lastRecomputedAt
+      lastRecomputed
     }
   }
 `);
@@ -784,7 +784,15 @@ test("newsStory looks a link up by uuid for the discussion permalink", async () 
 
     const doc = parse(`
         query Story($id: UUID!) {
-          newsStory(id: $id) { uuid url postCount }
+          newsStory(id: $id) {
+            uuid
+            url
+            postCount
+            firstShared
+            firstSharedAt
+            latestActivity
+            latestActivityAt
+          }
         }
       `);
     const found = await execute({
@@ -796,11 +804,21 @@ test("newsStory looks a link up by uuid for the discussion permalink", async () 
     });
     assert.deepEqual(found.errors, undefined);
     const story = (found.data as {
-      newsStory: { uuid: string; url: string; postCount: number } | null;
+      newsStory: {
+        uuid: string;
+        url: string;
+        postCount: number;
+        firstShared: string | null;
+        firstSharedAt: string | null;
+        latestActivity: string | null;
+        latestActivityAt: string | null;
+      } | null;
     }).newsStory;
     assert.deepEqual(story?.uuid, link.id);
     assert.deepEqual(story?.url, link.url);
     assert.deepEqual(story?.postCount, 1);
+    assert.deepEqual(story?.firstSharedAt, story?.firstShared);
+    assert.deepEqual(story?.latestActivityAt, story?.latestActivity);
 
     // A well-formed but unknown uuid resolves to null (not an error).
     const missing = await execute({
@@ -857,7 +875,8 @@ const recomputeMutation = parse(`
       __typename
       ... on RecomputeNewsScoresPayload {
         linksUpdated
-        status { scoredLinkCount lastRecomputedAt }
+        recomputed
+        status { scoredLinkCount lastRecomputed }
       }
     }
   }
@@ -924,13 +943,17 @@ test("recomputeNewsScores rebuilds scores for a moderator", async () => {
       recomputeNewsScores: {
         __typename: string;
         linksUpdated: number;
-        status: { scoredLinkCount: number; lastRecomputedAt: string | null };
+        recomputed: string;
+        status: {
+          scoredLinkCount: number;
+          lastRecomputed: string | null;
+        };
       };
     }).recomputeNewsScores;
     assert.deepEqual(payload.__typename, "RecomputeNewsScoresPayload");
     assert.deepEqual(payload.linksUpdated, 1);
     assert.deepEqual(payload.status.scoredLinkCount, 1);
-    assert.ok(payload.status.lastRecomputedAt != null);
+    assert.ok(payload.status.lastRecomputed != null);
 
     // The feed now lists the recomputed story.
     const feed = await execute({

@@ -330,8 +330,8 @@ function QuestionCardContent(props: QuestionCardContentProps) {
     poll: NonNullable<NonNullable<ReturnType<typeof question>>["poll"]>;
   }) {
     const [now, setNow] = createSignal(Date.now());
-    const endsAt = () => new Date(props.poll.ends).getTime();
-    const isClosed = () => props.poll.closed || endsAt() <= now();
+    const ends = () => new Date(props.poll.ends).getTime();
+    const isClosed = () => props.poll.closed || ends() <= now();
     const totalVotes = createMemo(() =>
       props.poll.options.reduce(
         (sum, option) => sum + Math.max(option.votes.totalCount, 0),
@@ -411,7 +411,7 @@ function QuestionCardContent(props: QuestionCardContentProps) {
     };
 
     createEffect(() => {
-      const delay = endsAt() - now();
+      const delay = ends() - now();
       if (!Number.isFinite(delay) || delay <= 0) return;
 
       const timeout = setTimeout(

@@ -13,14 +13,14 @@ export interface RemoteFollowButtonProps {
 export function RemoteFollowButton(
   { actorHandle, actorName, language }: RemoteFollowButtonProps,
 ) {
-  const isModalOpen = useSignal(false);
+  const modalOpen = useSignal(false);
 
   const openModal = () => {
-    isModalOpen.value = true;
+    modalOpen.value = true;
   };
 
   const closeModal = () => {
-    isModalOpen.value = false;
+    modalOpen.value = false;
   };
 
   return (
@@ -34,7 +34,7 @@ export function RemoteFollowButton(
       </Button>
 
       <RemoteFollowModal
-        isOpen={isModalOpen.value}
+        open={modalOpen.value}
         onClose={closeModal}
         actorHandle={actorHandle}
         actorName={actorName}

@@ -1507,8 +1507,8 @@ export const postLinkTable = pgTable(
     weightedMass: doublePrecision("weighted_mass").notNull().default(0),
     recencyComponent: doublePrecision("recency_component").notNull().default(0),
     postCount: integer("post_count").notNull().default(0),
-    firstSharedAt: timestamp("first_shared_at", { withTimezone: true }),
-    latestActivityAt: timestamp("latest_activity_at", { withTimezone: true }),
+    firstShared: timestamp("first_shared", { withTimezone: true }),
+    latestActivity: timestamp("latest_activity", { withTimezone: true }),
     scoreUpdated: timestamp("score_updated", { withTimezone: true }),
     // Moderator-applied penalty subtracted from `score` to demote a link in the
     // feed.  Persisted across recomputes (the recompute reads and re-applies it).
@@ -1573,21 +1573,21 @@ export const postLinkTable = pgTable(
       `,
     ),
     index().on(table.creatorId),
-    // News feed sorts.  The partial predicate `latest_activity_at IS NOT NULL`
+    // News feed sorts.  The partial predicate `latest_activity IS NOT NULL`
     // is the canonical "has at least one public, non-boost sharing post" flag,
     // so scraped-but-never-publicly-shared links stay out of every feed query.
     // Every index carries the `id DESC` tiebreaker so it fully covers the
     // `(sortKey, id)` keyset pagination order (scores tie at 0 before/between
-    // batch runs, and `first_shared_at` timestamps can collide).
+    // batch runs, and `first_shared` timestamps can collide).
     index("idx_post_link_score")
       .on(desc(table.score), desc(table.id))
-      .where(isNotNull(table.latestActivityAt)),
+      .where(isNotNull(table.latestActivity)),
     index("idx_post_link_first_shared")
-      .on(desc(table.firstSharedAt), desc(table.id))
-      .where(isNotNull(table.latestActivityAt)),
+      .on(desc(table.firstShared), desc(table.id))
+      .where(isNotNull(table.latestActivity)),
     index("idx_post_link_weighted_mass")
       .on(desc(table.weightedMass), desc(table.id))
-      .where(isNotNull(table.latestActivityAt)),
+      .where(isNotNull(table.latestActivity)),
   ],
 );
 
@@ -1680,7 +1680,7 @@ export const newsRescoreQueueTable = pgTable("news_rescore_queue", {
   // unclaimed; a claim older than the lease window is treated as abandoned (the
   // worker crashed) and may be reclaimed.  This is what serializes processing of
   // a given actor across the per-process `Deno.cron` drains.
-  claimedAt: timestamp("claimed_at", { withTimezone: true }),
+  claimed: timestamp({ withTimezone: true }),
   // Set by an enqueue that lands while a worker is already processing this actor
   // (the actor was re-added/removed mid-rescore).  The claim clears it; if it is
   // set again by the time processing finishes, the worker reopens the row for
@@ -2129,7 +2129,7 @@ export const organizationNotificationReadTable = pgTable(
       .$type<Uuid>()
       .notNull()
       .references(() => accountTable.id, { onDelete: "cascade" }),
-    readAt: timestamp("read_at", { withTimezone: true })
+    read: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),
     updated: timestamp({ withTimezone: true })
@@ -2365,7 +2365,7 @@ export interface FlagLlmAnalysis {
   matches: FlagLlmAnalysisMatch[];
   summary: string;
   model: string;
-  analyzedAt: string;
+  analyzed: string;
   error?: string;
 }
 

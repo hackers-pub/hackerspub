@@ -583,7 +583,7 @@ type SidebarMenuButtonProps<T extends ValidComponent = "button"> =
   & ComponentProps<T>
   & VariantProps<typeof sidebarMenuButtonVariants>
   & {
-    isActive?: boolean;
+    active?: boolean;
     tooltip?: string;
   };
 
@@ -591,12 +591,12 @@ const SidebarMenuButton = <T extends ValidComponent = "button">(
   rawProps: PolymorphicProps<T, SidebarMenuButtonProps<T>>,
 ) => {
   const props = mergeProps({
-    isActive: false,
+    active: false,
     variant: "default",
     size: "default",
   }, rawProps);
   const [local, others] = splitProps(props as SidebarMenuButtonProps, [
-    "isActive",
+    "active",
     "tooltip",
     "variant",
     "size",
@@ -609,7 +609,7 @@ const SidebarMenuButton = <T extends ValidComponent = "button">(
       as="button"
       data-sidebar="menu-button"
       data-size={local.size}
-      data-active={local.isActive}
+      data-active={local.active}
       class={cn(
         sidebarMenuButtonVariants({ variant: local.variant, size: local.size }),
         local.class,
@@ -739,7 +739,7 @@ type SidebarMenuSubButtonProps<T extends ValidComponent = "a"> =
   & ComponentProps<T>
   & {
     size?: "sm" | "md";
-    isActive?: boolean;
+    active?: boolean;
   };
 
 const SidebarMenuSubButton = <T extends ValidComponent = "a">(
@@ -748,7 +748,7 @@ const SidebarMenuSubButton = <T extends ValidComponent = "a">(
   const props = mergeProps({ size: "md" }, rawProps);
   const [local, others] = splitProps(props as SidebarMenuSubButtonProps, [
     "size",
-    "isActive",
+    "active",
     "class",
   ]);
 
@@ -757,7 +757,7 @@ const SidebarMenuSubButton = <T extends ValidComponent = "a">(
       as="a"
       data-sidebar="menu-sub-button"
       data-size={local.size}
-      data-active={local.isActive}
+      data-active={local.active}
       class={cn(
         "flex h-7 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-md px-2 text-sidebar-foreground outline-none ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-sidebar-accent-foreground",
         "data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground",

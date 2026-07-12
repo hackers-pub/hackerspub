@@ -320,12 +320,12 @@ const organizationMemberBadgesQuery = parse(`
 const markOrganizationNotificationsAsReadMutation = parse(`
   mutation MarkOrganizationNotificationsAsRead(
     $organizationId: ID!
-    $readAt: DateTime
+    $read: DateTime
     $upTo: UUID
   ) {
     markOrganizationNotificationsAsRead(input: {
       organizationId: $organizationId
-      readAt: $readAt
+      read: $read
       upTo: $upTo
     }) {
       __typename
@@ -336,6 +336,23 @@ const markOrganizationNotificationsAsReadMutation = parse(`
         }
       }
       ... on InvalidInputError { inputPath }
+    }
+  }
+`);
+
+const markOrganizationNotificationsAsReadLegacyMutation = parse(`
+  mutation MarkOrganizationNotificationsAsReadLegacy(
+    $organizationId: ID!
+    $readAt: DateTime
+  ) {
+    markOrganizationNotificationsAsRead(input: {
+      organizationId: $organizationId
+      readAt: $readAt
+    }) {
+      __typename
+      ... on MarkOrganizationNotificationsAsReadPayload {
+        badge { color count }
+      }
     }
   }
 `);
@@ -1180,7 +1197,7 @@ test("markOrganizationNotificationsAsRead clamps future read markers", async () 
 
     const result = await execute({
       schema,
-      document: markOrganizationNotificationsAsReadMutation,
+      document: markOrganizationNotificationsAsReadLegacyMutation,
       variableValues: {
         organizationId: encodeGlobalID("Account", organization.id),
         readAt: new Date(Date.now() + 3_600_000).toISOString(),

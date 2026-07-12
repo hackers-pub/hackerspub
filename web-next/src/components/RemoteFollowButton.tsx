@@ -77,9 +77,9 @@ export function RemoteFollowButton(props: RemoteFollowButtonProps) {
     setIsLoading(false);
   };
 
-  const handleOpenChange = (isOpen: boolean) => {
-    setOpen(isOpen);
-    if (!isOpen) resetState();
+  const handleOpenChange = (open: boolean) => {
+    setOpen(open);
+    if (!open) resetState();
   };
 
   const handleInputChange = (value: string) => {

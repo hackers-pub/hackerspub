@@ -19,14 +19,14 @@ export interface NewsDiscussionComposerProps {
 
 export function NewsDiscussionComposer(props: NewsDiscussionComposerProps) {
   const { t } = useLingui();
-  const { isAuthenticated, isLoaded } = useViewer();
+  const { isAuthenticated: authenticated, isLoaded: loaded } = useViewer();
   const location = useLocation();
   const signInHref = () =>
     buildSignInHref(location.pathname + location.search + location.hash);
 
   return (
     <Switch>
-      <Match when={isLoaded() && isAuthenticated()}>
+      <Match when={loaded() && authenticated()}>
         <div class="mt-4 rounded-lg border bg-card p-4 shadow-sm">
           <NoteComposer
             ensureLinkUrl={props.url}
@@ -40,7 +40,7 @@ export function NewsDiscussionComposer(props: NewsDiscussionComposerProps) {
           </p>
         </div>
       </Match>
-      <Match when={isLoaded() && !isAuthenticated()}>
+      <Match when={loaded() && !authenticated()}>
         <div class="mt-4 flex items-center justify-between gap-3 rounded-lg border bg-card px-4 py-3 shadow-sm">
           <p class="text-sm text-muted-foreground">
             {t`Join the discussion about this story.`}
