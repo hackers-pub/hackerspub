@@ -1227,6 +1227,10 @@ msgstr "행동 강령: {0}"
 #~ msgid "Comments ({0})"
 #~ msgstr "댓글 ({0})"
 
+#: src/routes/(root)/tree/index.tsx:94
+msgid "Collapse invited members"
+msgstr "초대한 회원 접기"
+
 #: src/components/AppSidebar.tsx:1031
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
@@ -1792,6 +1796,10 @@ msgstr "제외 패턴을 추가했습니다."
 #: src/routes/(root)/admin/news.tsx:377
 msgid "Exclusion pattern removed."
 msgstr "제외 패턴을 제거했습니다."
+
+#: src/routes/(root)/tree/index.tsx:93
+msgid "Expand invited members"
+msgstr "초대한 회원 펼치기"
 
 #. placeholder {0}: "DATE"
 #: src/routes/(root)/[handle]/invite/[id].tsx:343

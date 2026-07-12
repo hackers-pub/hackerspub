@@ -1227,6 +1227,10 @@ msgstr "Code of conduct: {0}"
 #~ msgid "Comments ({0})"
 #~ msgstr "Comments ({0})"
 
+#: src/routes/(root)/tree/index.tsx:94
+msgid "Collapse invited members"
+msgstr "Collapse invited members"
+
 #: src/components/AppSidebar.tsx:1031
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
@@ -1796,6 +1800,10 @@ msgstr "Exclusion pattern added."
 #: src/routes/(root)/admin/news.tsx:377
 msgid "Exclusion pattern removed."
 msgstr "Exclusion pattern removed."
+
+#: src/routes/(root)/tree/index.tsx:93
+msgid "Expand invited members"
+msgstr "Expand invited members"
 
 #. placeholder {0}: "DATE"
 #: src/routes/(root)/[handle]/invite/[id].tsx:343

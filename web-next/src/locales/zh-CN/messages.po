@@ -1227,6 +1227,10 @@ msgstr "行为准则：{0}"
 #~ msgid "Comments ({0})"
 #~ msgstr "评论（{0}）"
 
+#: src/routes/(root)/tree/index.tsx:94
+msgid "Collapse invited members"
+msgstr "收起受邀成员"
+
 #: src/components/AppSidebar.tsx:1031
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
@@ -1792,6 +1796,10 @@ msgstr "已添加排除模式。"
 #: src/routes/(root)/admin/news.tsx:377
 msgid "Exclusion pattern removed."
 msgstr "已移除排除模式。"
+
+#: src/routes/(root)/tree/index.tsx:93
+msgid "Expand invited members"
+msgstr "展开受邀成员"
 
 #. placeholder {0}: "DATE"
 #: src/routes/(root)/[handle]/invite/[id].tsx:343

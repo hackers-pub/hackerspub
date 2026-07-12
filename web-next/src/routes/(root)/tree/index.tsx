@@ -1,6 +1,8 @@
 import { graphql } from "relay-runtime";
-import { createMemo, For, Show } from "solid-js";
+import { createMemo, createSignal, For, Show } from "solid-js";
 import { A, useLocation, useNavigate, useSearchParams } from "@solidjs/router";
+import IconChevronDown from "~icons/lucide/chevron-down";
+import IconChevronRight from "~icons/lucide/chevron-right";
 import type { treeQuery as treeQueryType } from "./__generated__/treeQuery.graphql.ts";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
 import {
@@ -68,17 +70,28 @@ interface LeafProps {
   tree: Map<string | null, TreeNode[]>;
   parentId: string | null;
   newMemberReferenceTime: Date;
+  isCollapsed: (accountId: string) => boolean;
+  toggleCollapsed: (accountId: string) => void;
+  id?: string;
   class?: string;
 }
 
 function Leaf(props: LeafProps) {
+  const { t } = useLingui();
   const children = () => props.tree.get(props.parentId) ?? [];
 
   return (
-    <ul class={props.class}>
+    <ul id={props.id} class={props.class}>
       <For each={children()}>
         {(account) => {
           const inviteCount = () => props.tree.get(account.id)?.length ?? 0;
+          const hasChildren = () => inviteCount() > 0;
+          const collapsed = () => props.isCollapsed(account.id);
+          const subtreeId = `invitation-subtree-${account.id}`;
+          const toggleLabel = () =>
+            collapsed()
+              ? t`Expand invited members`
+              : t`Collapse invited members`;
           return (
             <li class="relative pt-4 pl-7 border-l border-border last:border-l-0 last:before:content-['.'] last:before:absolute last:before:text-transparent last:before:border-l last:before:border-border last:before:h-12 last:before:ml-[-1.75rem] last:before:mt-[-1rem]">
               <div class="flex items-start gap-3 before:content-['.'] before:absolute before:text-transparent before:border-t before:border-border before:w-7 before:mt-6 before:ml-[-1.75rem]">
@@ -91,15 +104,36 @@ function Leaf(props: LeafProps) {
                       newMemberReferenceTime={props.newMemberReferenceTime}
                     />
                   )}
+                <Show when={hasChildren()}>
+                  <button
+                    type="button"
+                    onClick={() => props.toggleCollapsed(account.id)}
+                    aria-expanded={!collapsed()}
+                    aria-controls={subtreeId}
+                    aria-label={toggleLabel()}
+                    title={toggleLabel()}
+                    class="mt-3 inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <Show
+                      when={collapsed()}
+                      fallback={<IconChevronDown class="size-4" />}
+                    >
+                      <IconChevronRight class="size-4" />
+                    </Show>
+                  </button>
+                </Show>
               </div>
-              {(props.tree.get(account.id)?.length ?? 0) > 0 && (
+              <Show when={hasChildren() && !collapsed()}>
                 <Leaf
+                  id={subtreeId}
                   tree={props.tree}
                   parentId={account.id}
                   newMemberReferenceTime={props.newMemberReferenceTime}
+                  isCollapsed={props.isCollapsed}
+                  toggleCollapsed={props.toggleCollapsed}
                   class="ml-7"
                 />
-              )}
+              </Show>
             </li>
           );
         }}
@@ -216,6 +250,9 @@ export default function InvitationTree() {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams<{ sort?: string }>();
+  const [collapsedNodeIds, setCollapsedNodeIds] = createSignal<
+    ReadonlySet<string>
+  >(new Set());
   const newMemberReferenceTime = new Date();
   const data = createStablePreloadedQuery<treeQueryType>(
     TreeIndexQueryDocument,
@@ -231,6 +268,15 @@ export default function InvitationTree() {
   });
 
   const roots = () => tree().get(null) ?? [];
+
+  const toggleCollapsed = (accountId: string) => {
+    setCollapsedNodeIds((current) => {
+      const next = new Set(current);
+      if (next.has(accountId)) next.delete(accountId);
+      else next.add(accountId);
+      return next;
+    });
+  };
 
   const sortLabel = (sort: InvitationTreeSort) => {
     switch (sort) {
@@ -303,6 +349,8 @@ export default function InvitationTree() {
           tree={tree()}
           parentId={null}
           newMemberReferenceTime={newMemberReferenceTime}
+          isCollapsed={(accountId) => collapsedNodeIds().has(accountId)}
+          toggleCollapsed={toggleCollapsed}
           class="mt-4"
         />
       </Show>
