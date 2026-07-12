@@ -1,5 +1,4 @@
 import type { Context } from "@fedify/fedify";
-import { assertAccountActorNotSuspended } from "./moderation.ts";
 import * as vocab from "@fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import { minBy } from "@std/collections/min-by";
@@ -18,7 +17,7 @@ import type { Disk } from "flydrive";
 import postgres from "postgres";
 import type { ContextData, Models } from "./context.ts";
 import type { Database, Transaction } from "./db.ts";
-import type { AiServices } from "./services.ts";
+import { assertAccountActorNotSuspended } from "./moderation.ts";
 import { syncPostFromArticleSource } from "./post.ts";
 import {
   type Account,
@@ -42,10 +41,11 @@ import {
   postTable,
   type Reaction,
 } from "./schema.ts";
+import type { AiServices } from "./services.ts";
+import { removeDetailsFromSummaryInput } from "./summary.ts";
 import { addPostToTimeline } from "./timeline.ts";
 import { queueAfterCommit } from "./tx.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
-import { removeDetailsFromSummaryInput } from "./summary.ts";
 
 const logger = getLogger(["hackerspub", "models", "article"]);
 const articleMediumReferencePattern = /hp-medium:([A-Za-z0-9._:/-]+)/g;

@@ -33,8 +33,8 @@ import { transport as email } from "./email.ts";
 import { federation } from "./federation.ts";
 import { makeQueryGraphQL } from "./graphql/gql.ts";
 import { kv } from "./kv.ts";
-import { services } from "./services.ts";
 import "./logging.ts";
+import { services } from "./services.ts";
 import type { State } from "./utils.ts";
 import assetlinks from "../graphql/static/.well-known/assetlinks.json" with {
   type: "json",

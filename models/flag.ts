@@ -16,8 +16,8 @@ import {
   flagTable,
   type Post,
 } from "./schema.ts";
-import { generateUuidV7 } from "./uuid.ts";
 import type { AiServices } from "./services.ts";
+import { generateUuidV7 } from "./uuid.ts";
 
 function isTransaction(db: Database): db is Transaction {
   return "rollback" in db;

@@ -1,7 +1,7 @@
+import type { TranslationOptions } from "@hackerspub/models/services";
 import { fetchWebPage } from "@vertana/context-web";
 import type { ContextSource, RequiredContextSource } from "@vertana/core";
 import { translate as vertanaTranslate } from "@vertana/facade";
-import type { TranslationOptions } from "@hackerspub/models/services";
 
 export type { TranslationOptions };
 
