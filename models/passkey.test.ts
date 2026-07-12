@@ -109,6 +109,35 @@ test("verifyRegistration() fails when registration options are missing", async (
   });
 });
 
+test("verifyRegistration() returns unverified for invalid responses", async () => {
+  await withRollback(async (tx) => {
+    const { kv } = createTestKv();
+    const account = await insertAccountWithActor(tx, {
+      username: "invalidregistration",
+      name: "Invalid Registration",
+      email: "invalidregistration@example.com",
+    });
+    await getRegistrationOptions(
+      kv,
+      "https://pub.hackers.pub/sign/in",
+      { ...account.account, passkeys: [] },
+    );
+
+    const result = await verifyRegistration(
+      tx,
+      kv,
+      ["https://pub.hackers.pub"],
+      "pub.hackers.pub",
+      account.account,
+      "Laptop",
+      { id: "credential-id" } as never,
+    );
+
+    assert.equal(result.verified, false);
+    assert.equal(result.registrationInfo, undefined);
+  });
+});
+
 test("getAuthenticationOptions() stores a challenge for the session", async () => {
   const { kv, store } = createTestKv();
   const sessionId = "019d9162-ffff-7fff-8fff-ffffffffffff";

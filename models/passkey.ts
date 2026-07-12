@@ -86,12 +86,21 @@ export async function verifyRegistration(
   if (options == null) {
     throw new Error(`Missing registration options for account ${account.id}.`);
   }
-  const result = await verifyRegistrationResponse({
-    response,
-    expectedChallenge: options.challenge,
-    expectedOrigin: origins,
-    expectedRPID: rpId,
-  });
+  let result: VerifiedRegistrationResponse;
+  try {
+    result = await verifyRegistrationResponse({
+      response,
+      expectedChallenge: options.challenge,
+      expectedOrigin: origins,
+      expectedRPID: rpId,
+    });
+  } catch (error) {
+    // Authenticator responses are untrusted input.  Verification failures are
+    // an expected negative result, while persistence failures below must still
+    // propagate as server errors.
+    logger.warn("Passkey registration failed: {error}", { error });
+    return { verified: false, registrationInfo: undefined };
+  }
   if (result.verified && result.registrationInfo != null) {
     const { credential, credentialDeviceType, credentialBackedUp } =
       result.registrationInfo;
