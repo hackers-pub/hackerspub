@@ -3,7 +3,8 @@ import assert from "node:assert";
 import test from "node:test";
 import { and, eq } from "drizzle-orm";
 import { follow } from "./following.ts";
-import { revokeQuote, sharePost, unsharePost } from "./post.ts";
+import { revokeQuote } from "./post/engagement.ts";
+import { sharePost, unsharePost } from "./post/sharing.ts";
 import {
   followingTable,
   noteSourceTable,

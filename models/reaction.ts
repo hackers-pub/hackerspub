@@ -16,7 +16,8 @@ import {
   createReactNotification,
   deleteReactNotification,
 } from "./notification.ts";
-import { getPersistedPost, isPostObject, persistPost } from "./post.ts";
+import { getPersistedPost, isPostObject } from "./post/core.ts";
+import { persistPost } from "./post/remote.ts";
 import {
   type Account,
   type Actor,

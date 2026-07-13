@@ -35,7 +35,8 @@ import metadata from "./deno.json" with { type: "json" };
 import { persistInstance } from "./instance.ts";
 import { renderMarkup } from "./markup.ts";
 import { isNewsBotActorType, refreshNewsScoresForActor } from "./news.ts";
-import { isPostObject, persistPost, persistSharedPost } from "./post.ts";
+import { isPostObject } from "./post/core.ts";
+import { persistPost, persistSharedPost } from "./post/remote.ts";
 import {
   type Account,
   type AccountEmail,

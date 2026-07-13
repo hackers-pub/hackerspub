@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import test from "node:test";
-import { arePostsSharedBy, sharePost } from "./post.ts";
+import { arePostsSharedBy, sharePost } from "./post/sharing.ts";
 import {
   createFedCtx,
   insertAccountWithActor,

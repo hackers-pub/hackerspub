@@ -2,7 +2,7 @@ import type { InboxContext } from "@fedify/fedify";
 import { isActor, type Update } from "@fedify/vocab";
 import { isCachedActorFederationBlocked } from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
-import { isPostObject } from "@hackerspub/models/post";
+import { isPostObject } from "@hackerspub/models/post/core";
 import { getLogger } from "@logtape/logtape";
 import { onActorUpdated } from "./actor.ts";
 import { onPostUpdated } from "./subscribe.ts";

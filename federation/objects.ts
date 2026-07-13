@@ -21,7 +21,7 @@ import {
   isActorSanctionHidden,
   isPostVisibleTo,
   normalizeQuotePolicyForVisibility,
-} from "@hackerspub/models/post";
+} from "@hackerspub/models/post/visibility";
 import type {
   Account,
   Actor,

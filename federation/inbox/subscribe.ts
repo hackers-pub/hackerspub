@@ -31,14 +31,14 @@ import {
 import {
   deletePersistedPost,
   deleteSharedPost,
-  isPostObject,
   PERSIST_POST_OVERALL_BUDGET_MS,
   persistPost,
   persistSharedPost,
   REMOTE_FETCH_TIMEOUT_MS,
-  updateRepliesCount,
   withDocumentLoaderTimeout,
-} from "@hackerspub/models/post";
+} from "@hackerspub/models/post/remote";
+import { isPostObject } from "@hackerspub/models/post/core";
+import { updateRepliesCount } from "@hackerspub/models/post/engagement";
 import { persistPollVoteResult } from "@hackerspub/models/poll";
 import {
   deleteReaction,

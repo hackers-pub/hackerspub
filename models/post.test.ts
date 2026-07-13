@@ -12,12 +12,10 @@ import {
 import assert from "node:assert";
 import test, { describe, it } from "node:test";
 import { validate } from "@std/uuid/v7";
-import {
-  isArticleLike,
-  isPostVisibleTo,
-  scrapePostLink,
-  withDocumentLoaderTimeout,
-} from "./post.ts";
+import { scrapePostLink } from "./link-preview.ts";
+import { isArticleLike } from "./post/core.ts";
+import { withDocumentLoaderTimeout } from "./post/remote.ts";
+import { isPostVisibleTo } from "./post/visibility.ts";
 import type { Actor, Instance, Post } from "./schema.ts";
 
 const federation = createFederation<void>({

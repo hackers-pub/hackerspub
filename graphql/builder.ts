@@ -51,7 +51,7 @@ import type Keyv from "keyv";
 import { normalizeEmail } from "@hackerspub/models/account";
 import type { ApplicationContext } from "@hackerspub/models/context";
 import type { Database } from "@hackerspub/models/db";
-import type { PostInteractionPolicy } from "@hackerspub/models/post";
+import type { PostInteractionPolicy } from "@hackerspub/models/post/visibility";
 import { relations } from "@hackerspub/models/relations";
 import type {
   Account,

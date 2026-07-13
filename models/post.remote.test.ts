@@ -17,14 +17,14 @@ import {
   QuoteAuthorization,
 } from "@fedify/vocab";
 import { eq } from "drizzle-orm";
+import { getPostByUsernameAndId } from "./post/core.ts";
 import {
   deletePersistedPost,
   deleteSharedPost,
-  getAllowedQuoteTargetForActor,
-  getPostByUsernameAndId,
   persistPost,
   persistSharedPost,
-} from "./post.ts";
+} from "./post/remote.ts";
+import { getAllowedQuoteTargetForActor } from "./post/visibility.ts";
 import {
   actorTable,
   instanceTable,

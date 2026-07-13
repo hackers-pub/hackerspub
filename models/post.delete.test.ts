@@ -1,7 +1,8 @@
 import assert from "node:assert";
 import test from "node:test";
 import { eq, inArray } from "drizzle-orm";
-import { deletePost, sharePost } from "./post.ts";
+import { deletePost } from "./post/lifecycle.ts";
+import { sharePost } from "./post/sharing.ts";
 import { noteSourceTable, notificationTable, postTable } from "./schema.ts";
 import {
   createFedCtx,

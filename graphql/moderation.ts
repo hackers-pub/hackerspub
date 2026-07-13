@@ -16,7 +16,7 @@ import {
   countUnreadModerationNotifications,
   markModerationNotificationsRead,
 } from "@hackerspub/models/moderation-notification";
-import { isPostVisibleTo } from "@hackerspub/models/post";
+import { isPostVisibleTo } from "@hackerspub/models/post/visibility";
 import type {
   Account as AccountRow,
   Flag as FlagRow,

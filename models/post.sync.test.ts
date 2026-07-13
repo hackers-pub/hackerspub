@@ -10,7 +10,10 @@ import {
   postTable,
 } from "./schema.ts";
 import { createQuestion } from "./question.ts";
-import { syncPostFromArticleSource, syncPostFromNoteSource } from "./post.ts";
+import {
+  syncPostFromArticleSource,
+  syncPostFromNoteSource,
+} from "./post/source.ts";
 import { generateUuidV7 } from "./uuid.ts";
 import {
   createFedCtx,

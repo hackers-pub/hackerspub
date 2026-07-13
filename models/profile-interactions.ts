@@ -3,7 +3,7 @@ import type { Database, RelationsFilter } from "./db.ts";
 import {
   getCensoredPostExclusionFilter,
   getPostVisibilityFilter,
-} from "./post.ts";
+} from "./post/visibility.ts";
 import {
   type Account,
   type Actor,

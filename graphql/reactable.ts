@@ -1,5 +1,5 @@
 import type { RelationsFilter } from "@hackerspub/models/db";
-import { getSanctionVisibleActorFilter } from "@hackerspub/models/post";
+import { getSanctionVisibleActorFilter } from "@hackerspub/models/post/visibility";
 import { getViewerReactionsForPosts } from "@hackerspub/models/reaction";
 import { relations } from "@hackerspub/models/relations";
 import { actorTable, reactionTable } from "@hackerspub/models/schema";

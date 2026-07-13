@@ -14,11 +14,9 @@ import {
   QuotePolicyDeniedError,
 } from "./note.ts";
 import { type CreatePollInput, normalizePollInput } from "./poll.ts";
-import {
-  getAllowedQuoteTargetForActor,
-  syncPostFromNoteSource,
-  updateRepliesCount,
-} from "./post.ts";
+import { updateRepliesCount } from "./post/engagement.ts";
+import { syncPostFromNoteSource } from "./post/source.ts";
+import { getAllowedQuoteTargetForActor } from "./post/visibility.ts";
 import {
   type Account,
   type AccountEmail,
