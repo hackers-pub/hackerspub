@@ -1,5 +1,4 @@
-import { type GraphQLSchema, printSchema } from "graphql";
-import path from "node:path";
+import type { GraphQLSchema } from "graphql";
 import "./account.ts";
 import "./admin.ts";
 import "./actor.ts";
@@ -34,8 +33,3 @@ export type { UserContext as Context } from "./builder.ts";
 export { createYogaServer } from "./server.ts";
 
 export const schema: GraphQLSchema = builder.toSchema();
-
-void Deno.writeTextFile(
-  path.join(import.meta.dirname ?? "", "schema.graphql"),
-  printSchema(schema),
-);
