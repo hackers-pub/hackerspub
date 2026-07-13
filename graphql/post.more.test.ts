@@ -2675,6 +2675,90 @@ test("createQuestion rejects NONE visibility", async () => {
   });
 });
 
+test("createNote and createQuestion allow replies to public shares", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "replyshareauthor",
+      name: "Reply Share Author",
+      email: "replyshareauthor@example.com",
+    });
+    const sharer = await insertAccountWithActor(tx, {
+      username: "replysharer",
+      name: "Reply Sharer",
+      email: "replysharer@example.com",
+    });
+    const requester = await insertAccountWithActor(tx, {
+      username: "replysharerequester",
+      name: "Reply Share Requester",
+      email: "replysharerequester@example.com",
+    });
+    const { post: original } = await insertNotePost(tx, {
+      account: author.account,
+      visibility: "public",
+      content: "Public post to share",
+    });
+    const { post: share } = await insertNotePost(tx, {
+      account: sharer.account,
+      visibility: "public",
+      sharedPostId: original.id,
+    });
+    const replyTargetId = encodeGlobalID("Note", share.id);
+    const contextValue = makeTransactionalUserContext(tx, requester.account);
+
+    const noteResult = await execute({
+      schema,
+      document: createNoteMutation,
+      variableValues: {
+        input: {
+          content: "Replying to the shared note",
+          language: "en",
+          visibility: "PUBLIC",
+          replyTargetId,
+        },
+      },
+      contextValue,
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(noteResult.errors, undefined);
+    assert.equal(
+      (toPlainJson(noteResult.data) as {
+        createNote: { __typename: string };
+      }).createNote.__typename,
+      "CreateNotePayload",
+    );
+
+    const questionResult = await execute({
+      schema,
+      document: createQuestionMutation,
+      variableValues: {
+        input: {
+          content: "Polling from the shared note",
+          language: "en",
+          visibility: "PUBLIC",
+          replyTargetId,
+          poll: {
+            title: "Pick one",
+            multiple: false,
+            options: ["Yes", "No"],
+            ends: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          },
+        },
+      },
+      contextValue,
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(questionResult.errors, undefined);
+    assert.equal(
+      (toPlainJson(questionResult.data) as {
+        createQuestion: { __typename: string };
+      }).createQuestion.__typename,
+      "CreateQuestionPayload",
+    );
+  });
+});
+
 test("createNote rejects invisible reply and quote targets", async () => {
   await withRollback(async (tx) => {
     const author = await insertAccountWithActor(tx, {

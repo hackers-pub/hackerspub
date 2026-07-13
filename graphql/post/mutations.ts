@@ -256,6 +256,26 @@ builder.relayMutationField(
               },
             },
             mentions: { where: { actorId: actingAccount.account.actor.id } },
+            sharedPost: {
+              with: {
+                actor: {
+                  with: {
+                    followers: {
+                      where: { followerId: actingAccount.account.actor.id },
+                    },
+                    blockees: {
+                      where: { blockeeId: actingAccount.account.actor.id },
+                    },
+                    blockers: {
+                      where: { blockerId: actingAccount.account.actor.id },
+                    },
+                  },
+                },
+                mentions: {
+                  where: { actorId: actingAccount.account.actor.id },
+                },
+              },
+            },
           },
           where: { id: replyTargetId.id },
         });
@@ -559,6 +579,26 @@ builder.relayMutationField(
               },
             },
             mentions: { where: { actorId: actingAccount.account.actor.id } },
+            sharedPost: {
+              with: {
+                actor: {
+                  with: {
+                    followers: {
+                      where: { followerId: actingAccount.account.actor.id },
+                    },
+                    blockees: {
+                      where: { blockeeId: actingAccount.account.actor.id },
+                    },
+                    blockers: {
+                      where: { blockerId: actingAccount.account.actor.id },
+                    },
+                  },
+                },
+                mentions: {
+                  where: { actorId: actingAccount.account.actor.id },
+                },
+              },
+            },
           },
           where: { id: replyTargetId.id },
         });
