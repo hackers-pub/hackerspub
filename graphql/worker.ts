@@ -242,9 +242,9 @@ try {
 }
 if (queueFailed) {
   if (closeFailed) {
-    logger.error(
-      "Failed to close runtime resources after the queue failed: {error}",
-      { error: closeError },
+    throw new AggregateError(
+      [queueError, closeError],
+      "The federation queue worker failed and its resources could not be closed.",
     );
   }
   throw queueError;
