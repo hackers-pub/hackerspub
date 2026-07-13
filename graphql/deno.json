@@ -11,7 +11,7 @@
     ]
   },
   "tasks": {
-    "codegen": "deno run -A --env-file=../.env mod.ts",
+    "codegen": "deno run -A --env-file=../.env generate-schema.ts",
     "dev": "deno run -A --unstable-cron --env-file=../.env main.ts",
     "start": "deno run -A --unstable-otel --unstable-cron --env-file=../.env main.ts",
     "dev:worker": "deno run -A --unstable-cron --env-file=../.env worker.ts",
