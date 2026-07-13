@@ -1,7 +1,6 @@
-import type { Context } from "@fedify/fedify";
 import * as vocab from "@fedify/vocab";
 import { and, count, eq, inArray } from "drizzle-orm";
-import type { ContextData } from "./context.ts";
+import type { ApplicationContext } from "./context.ts";
 import type { Database, Transaction } from "./db.ts";
 import {
   type Actor,
@@ -24,11 +23,11 @@ export function canPinPost(
 }
 
 export async function pinPost(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   actor: Actor,
   post: Post,
 ): Promise<Pin | null> {
-  const { db } = fedCtx.data;
+  const { db } = fedCtx;
   if (!canPinPost(actor, post)) return null;
 
   const pinInTransaction = async (tx: Transaction) => {
@@ -85,11 +84,11 @@ function isTransaction(db: Database): db is Transaction {
 }
 
 export async function unpinPost(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   actor: Actor,
   post: Post,
 ): Promise<Pin | null> {
-  const { db } = fedCtx.data;
+  const { db } = fedCtx;
   const [pin] = await db
     .delete(pinTable)
     .where(
@@ -104,7 +103,7 @@ export async function unpinPost(
 }
 
 async function sendPinActivity(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   actor: Actor,
   post: Post,
 ): Promise<void> {
@@ -132,7 +131,7 @@ async function sendPinActivity(
 }
 
 async function sendUnpinActivity(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   actor: Actor,
   post: Post,
 ): Promise<void> {

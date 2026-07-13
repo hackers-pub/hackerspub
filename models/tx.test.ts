@@ -1,7 +1,6 @@
 import assert from "node:assert";
 import test from "node:test";
-import type { RequestContext } from "@fedify/fedify";
-import type { ContextData } from "./context.ts";
+import type { ApplicationContext } from "./context.ts";
 import type { Database } from "./db.ts";
 import { queueAfterCommit, withTransaction } from "./tx.ts";
 
@@ -13,27 +12,43 @@ function createFakeDb(): Database {
   return db;
 }
 
-function createContext(db: Database): RequestContext<ContextData> {
-  const request = new Request("http://localhost/");
-  const federation = {
-    createContext(
-      nextRequest: Request,
-      data: ContextData,
-    ): RequestContext<ContextData> {
-      return {
-        data,
-        federation,
-        request: nextRequest,
-      } as RequestContext<ContextData>;
-    },
-  } as RequestContext<ContextData>["federation"];
-  return federation.createContext(request, {
+function createContext(
+  db: Database,
+  capabilityDbs: Database[] = [],
+  services: ApplicationContext["services"] = {} as never,
+): ApplicationContext {
+  const never = () => {
+    throw new Error("Unexpected federation capability call.");
+  };
+  return {
     db,
-    disk: {} as never,
+    withDatabase: (nextDb) => createContext(nextDb, capabilityDbs, services),
+    storage: {} as never,
     kv: {} as never,
     models: {} as never,
-    services: {} as never,
-  });
+    services,
+    federation: {},
+    origin: "http://localhost/",
+    canonicalOrigin: "http://localhost/",
+    host: "localhost",
+    documentLoader: never,
+    contextLoader: never,
+    getActorUri: never,
+    getInboxUri: never,
+    getOutboxUri: never,
+    getFollowersUri: never,
+    getFollowingUri: never,
+    getFeaturedUri: never,
+    getObjectUri: never,
+    getDocumentLoader: never,
+    lookupObject: async () => {
+      capabilityDbs.push(db);
+      return null;
+    },
+    lookupWebFinger: never,
+    getActor: never,
+    sendActivity: never,
+  };
 }
 
 test("withTransaction() discards after-commit tasks from rolled back nested transactions", async () => {
@@ -64,4 +79,18 @@ test("withTransaction() discards after-commit tasks from rolled back nested tran
   });
 
   assert.deepEqual(completedTasks, ["outer"]);
+});
+
+test("withTransaction() rebinds adapter capabilities to the transaction", async () => {
+  const rootDb = createFakeDb();
+  const capabilityDbs: Database[] = [];
+  const context = createContext(rootDb, capabilityDbs);
+
+  await withTransaction(context, async (transactionContext) => {
+    assert.notEqual(transactionContext.db, rootDb);
+    assert.equal(transactionContext.rootDb, rootDb);
+    assert.equal(transactionContext.services, context.services);
+    await transactionContext.lookupObject("https://example.com/object");
+    assert.deepEqual(capabilityDbs, [transactionContext.db]);
+  });
 });

@@ -6,6 +6,7 @@ import {
 } from "@hackerspub/models/actor";
 import { persistBlocking } from "@hackerspub/models/blocking";
 import type { ContextData } from "@hackerspub/models/context";
+import { toApplicationContext } from "../context.ts";
 import {
   acceptFollowing,
   updateFolloweesCount,
@@ -349,10 +350,14 @@ export async function onFollowed(
   if (await isCachedActorFederationBlocked(db, follow.actorId)) return;
   const followActor = await follow.getActor(fedCtx);
   if (followActor == null) return;
-  const follower = await persistActor(fedCtx, followActor, {
-    ...fedCtx,
-    outbox: false,
-  });
+  const follower = await persistActor(
+    toApplicationContext(fedCtx),
+    followActor,
+    {
+      ...fedCtx,
+      outbox: false,
+    },
+  );
   if (follower == null) return;
   const rows = await db.insert(followingTable).values({
     iri: follow.id.href,
@@ -427,7 +432,7 @@ export async function onBlocked(
   fedCtx: InboxContext<ContextData>,
   block: Block,
 ): Promise<void> {
-  await persistBlocking(fedCtx, block, fedCtx);
+  await persistBlocking(toApplicationContext(fedCtx), block, fedCtx);
 }
 
 export async function onUnblocked(

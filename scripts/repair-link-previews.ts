@@ -1,5 +1,12 @@
 import { repairBrokenLinkPreviews } from "@hackerspub/models/link-preview";
-import { db, postgres } from "../graphql/db.ts";
+import {
+  getDenoEnvironment,
+  loadDatabaseConfig,
+} from "@hackerspub/runtime/config";
+import { createDatabaseResources } from "@hackerspub/runtime/resources";
+
+const database = loadDatabaseConfig(getDenoEnvironment());
+const { db, postgres } = createDatabaseResources(database);
 
 try {
   const result = await db.transaction((tx) => repairBrokenLinkPreviews(tx));

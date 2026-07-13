@@ -1,4 +1,3 @@
-import type { RequestContext } from "@fedify/fedify";
 import SchemaBuilder from "@pothos/core";
 import ComplexityPlugin from "@pothos/plugin-complexity";
 import DataloaderPlugin from "@pothos/plugin-dataloader";
@@ -50,7 +49,7 @@ import {
 import { createGraphQLError } from "graphql-yoga";
 import type Keyv from "keyv";
 import { normalizeEmail } from "@hackerspub/models/account";
-import type { ContextData } from "@hackerspub/models/context";
+import type { ApplicationContext } from "@hackerspub/models/context";
 import type { Database } from "@hackerspub/models/db";
 import type { PostInteractionPolicy } from "@hackerspub/models/post";
 import { relations } from "@hackerspub/models/relations";
@@ -73,7 +72,8 @@ export interface ServerContext {
   kv: Keyv;
   disk: Disk;
   email: Transport;
-  fedCtx: RequestContext<ContextData>;
+  emailFrom: string;
+  fedCtx: ApplicationContext;
   request: Request;
   connectionInfo?: Deno.ServeHandlerInfo<Deno.Addr>;
 }

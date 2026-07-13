@@ -5,6 +5,7 @@ import {
   persistActor,
 } from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
+import { toApplicationContext } from "../context.ts";
 import { follow } from "@hackerspub/models/following";
 import {
   ActorSuspendedError,
@@ -21,7 +22,10 @@ export async function onActorUpdated(
   const actor = object ??
     await update.getObject({ ...fedCtx, suppressError: true });
   if (!isActor(actor) || update.actorId?.href !== actor.id?.href) return;
-  await persistActor(fedCtx, actor, { ...fedCtx, outbox: false });
+  await persistActor(toApplicationContext(fedCtx), actor, {
+    ...fedCtx,
+    outbox: false,
+  });
 }
 
 export async function onActorDeleted(
@@ -88,9 +92,17 @@ export async function onActorMoved(
   ) {
     return;
   }
-  const oldActor = await persistActor(fedCtx, object, fedCtx);
+  const oldActor = await persistActor(
+    toApplicationContext(fedCtx),
+    object,
+    fedCtx,
+  );
   if (oldActor == null) return;
-  const newActor = await persistActor(fedCtx, target, fedCtx);
+  const newActor = await persistActor(
+    toApplicationContext(fedCtx),
+    target,
+    fedCtx,
+  );
   if (newActor == null) return;
   if (newActor.id === oldActor.id) return;
   const { db } = fedCtx.data;
@@ -108,7 +120,7 @@ export async function onActorMoved(
     if (follower.account == null) continue;
     try {
       await follow(
-        fedCtx,
+        toApplicationContext(fedCtx),
         { ...follower.account, actor: follower },
         newActor,
       );

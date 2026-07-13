@@ -1,3 +1,4 @@
+import { toApplicationContext } from "@hackerspub/federation/context";
 import {
   isLocale,
   type Locale,
@@ -21,13 +22,15 @@ import { define } from "../utils.ts";
 
 export const handler = define.middleware([
   (ctx) => {
-    const fedCtx = federation.createContext(ctx.req, {
-      db,
-      kv,
-      disk: drive.use(),
-      models,
-      services,
-    });
+    const fedCtx = toApplicationContext(
+      federation.createContext(ctx.req, {
+        db,
+        kv,
+        disk: drive.use(),
+        models,
+        services,
+      }),
+    );
     ctx.state.fedCtx = fedCtx;
     ctx.state.canonicalOrigin = fedCtx.canonicalOrigin;
     return ctx.next();

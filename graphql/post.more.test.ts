@@ -681,15 +681,6 @@ function makeTransactionalUserContext(
   const fedCtx = {
     ...baseFedCtx,
     request: new Request("http://localhost/graphql"),
-    federation: {
-      createContext(request: unknown, data: unknown) {
-        return {
-          ...baseFedCtx,
-          request,
-          data,
-        };
-      },
-    },
   } as UserContext["fedCtx"];
   return makeUserContext(tx, account, { fedCtx });
 }

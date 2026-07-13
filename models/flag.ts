@@ -1,5 +1,5 @@
 import { getLogger } from "@logtape/logtape";
-import type { LanguageModel } from "ai";
+import type { ApplicationModel } from "./context.ts";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import { getCocProvisions, getCocVersion } from "./coc.ts";
 import type { Database, Transaction } from "./db.ts";
@@ -288,11 +288,11 @@ async function getPostSourceContent(
 export async function analyzeFlag(
   db: Database,
   aiServices: Pick<AiServices, "analyzeFlaggedContent">,
-  model: LanguageModel,
+  model: ApplicationModel,
   flag: Flag,
   snapshot: ContentSnapshot,
 ): Promise<void> {
-  const modelId = typeof model === "string" ? model : model.modelId;
+  const modelId = model.id;
   let analysis: FlagLlmAnalysis;
   try {
     const provisions = await getCocProvisions("en");

@@ -1,4 +1,3 @@
-import type { Context } from "@fedify/fedify";
 import { assertAccountActorNotSuspended } from "./moderation.ts";
 import { Follow, Reject, Undo } from "@fedify/vocab";
 import {
@@ -12,7 +11,7 @@ import {
   sql,
 } from "drizzle-orm";
 import { toRecipient } from "./actor.ts";
-import type { ContextData } from "./context.ts";
+import type { ApplicationContext } from "./context.ts";
 import type { Database } from "./db.ts";
 import {
   createFollowNotification,
@@ -28,7 +27,7 @@ import {
 import type { Uuid } from "./uuid.ts";
 
 export function createFollowingIri(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   follower: Account,
 ): URL {
   return new URL(
@@ -38,11 +37,11 @@ export function createFollowingIri(
 }
 
 export async function follow(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   follower: Account & { actor: Actor },
   followee: Actor,
 ): Promise<Following | undefined> {
-  const { db } = fedCtx.data;
+  const { db } = fedCtx;
   await assertAccountActorNotSuspended(db, follower.id);
   const rows = await db.insert(followingTable).values({
     iri: createFollowingIri(fedCtx, follower).href,
@@ -122,11 +121,11 @@ export async function acceptFollowing(
 }
 
 export async function unfollow(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   follower: Account & { actor: Actor },
   followee: Actor,
 ): Promise<Following | undefined> {
-  const { db } = fedCtx.data;
+  const { db } = fedCtx;
   const rows = await db.delete(followingTable).where(
     and(
       eq(followingTable.followerId, follower.actor.id),
@@ -166,11 +165,11 @@ export async function unfollow(
 }
 
 export async function removeFollower(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   followee: Account & { actor: Actor },
   follower: Actor,
 ): Promise<Following | undefined> {
-  const { db } = fedCtx.data;
+  const { db } = fedCtx;
   const rows = await db.delete(followingTable).where(
     and(
       eq(followingTable.followerId, follower.id),

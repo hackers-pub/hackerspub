@@ -538,6 +538,7 @@ builder.mutationField("redeemInvitationLink", (t) =>
           expiration: EXPIRATION,
         });
         const message = await getEmailMessage({
+          from: ctx.emailFrom,
           locale: args.locale,
           inviter: link.inviter,
           verifyUrlTemplate: args.verifyUrl,

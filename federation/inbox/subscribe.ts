@@ -19,6 +19,7 @@ import {
   persistActor,
 } from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
+import { toApplicationContext } from "../context.ts";
 import { refreshNewsScoresForPostId } from "@hackerspub/models/news";
 import {
   createMentionNotification,
@@ -74,16 +75,20 @@ export async function onPostCreated(
     object instanceof Note &&
     object.attributionId?.href === create.actorId?.href
   ) {
-    const vote = await persistPollVoteResult(fedCtx, object, {
-      documentLoader: fedCtx.documentLoader,
-      contextLoader: fedCtx.contextLoader,
-    });
+    const vote = await persistPollVoteResult(
+      toApplicationContext(fedCtx),
+      object,
+      {
+        documentLoader: fedCtx.documentLoader,
+        contextLoader: fedCtx.contextLoader,
+      },
+    );
     if (vote.attempted) return;
   }
   if (!isPostObject(object)) return;
   if (object.attributionId?.href !== create.actorId?.href) return;
   const { db } = fedCtx.data;
-  const post = await persistPost(fedCtx, object, {
+  const post = await persistPost(toApplicationContext(fedCtx), object, {
     replies: true,
     documentLoader: fedCtx.documentLoader,
     contextLoader: fedCtx.contextLoader,
@@ -134,7 +139,7 @@ export async function onPostUpdated(
     await update.getObject({ ...fedCtx, suppressError: true });
   if (!isPostObject(postObject)) return;
   if (postObject.attributionId?.href !== update.actorId?.href) return;
-  await persistPost(fedCtx, postObject, {
+  await persistPost(toApplicationContext(fedCtx), postObject, {
     replies: true,
     documentLoader: fedCtx.documentLoader,
     contextLoader: fedCtx.contextLoader,
@@ -191,7 +196,7 @@ export async function onPostShared(
   });
   if (!isPostObject(object)) return;
   if (isTagsPubHashtagActor(actorId.href)) {
-    const post = await persistPost(fedCtx, object, {
+    const post = await persistPost(toApplicationContext(fedCtx), object, {
       replies: true,
       documentLoader: boundedLoader,
       contextLoader: fedCtx.contextLoader,
@@ -202,7 +207,7 @@ export async function onPostShared(
     }
     return;
   }
-  const post = await persistSharedPost(fedCtx, announce, {
+  const post = await persistSharedPost(toApplicationContext(fedCtx), announce, {
     ...fedCtx,
     documentLoader: boundedLoader,
     signal: overallSignal,
@@ -261,7 +266,7 @@ export async function onReactedOnPost(
 ): Promise<void> {
   logger.debug("On post reacted: {reaction}", { reaction });
   const reactionObject = await persistReaction(
-    fedCtx,
+    toApplicationContext(fedCtx),
     reaction,
     fedCtx,
   );
@@ -312,7 +317,11 @@ export async function onPostPinned(
   if (actor?.featuredUrl == null) {
     const actorObject = await add.getActor({ ...fedCtx, suppressError: true });
     if (actorObject == null) return;
-    actor = await persistActor(fedCtx, actorObject, fedCtx);
+    actor = await persistActor(
+      toApplicationContext(fedCtx),
+      actorObject,
+      fedCtx,
+    );
     if (actor?.featuredUrl == null) return;
   }
   if (add.targetIds.find((tid) => tid.href === actor.featuredUrl) == null) {
@@ -321,7 +330,7 @@ export async function onPostPinned(
   const pinnedPosts: Post[] = [];
   for await (const obj of add.getObjects({ ...fedCtx, suppressError: true })) {
     if (!isPostObject(obj)) continue;
-    const post = await persistPost(fedCtx, obj, fedCtx);
+    const post = await persistPost(toApplicationContext(fedCtx), obj, fedCtx);
     if (post != null) pinnedPosts.push(post);
   }
   if (pinnedPosts.length > 0) {
@@ -352,7 +361,11 @@ export async function onPostUnpinned(
       suppressError: true,
     });
     if (actorObject == null) return;
-    actor = await persistActor(fedCtx, actorObject, fedCtx);
+    actor = await persistActor(
+      toApplicationContext(fedCtx),
+      actorObject,
+      fedCtx,
+    );
     if (actor?.featuredUrl == null) return;
   }
   if (remove.targetIds.find((tid) => tid.href === actor.featuredUrl) == null) {
@@ -363,7 +376,7 @@ export async function onPostUnpinned(
     const obj of remove.getObjects({ ...fedCtx, suppressError: true })
   ) {
     if (!isPostObject(obj)) continue;
-    const post = await persistPost(fedCtx, obj, fedCtx);
+    const post = await persistPost(toApplicationContext(fedCtx), obj, fedCtx);
     if (post != null) unpinnedPosts.push(post);
   }
   if (unpinnedPosts.length > 0) {

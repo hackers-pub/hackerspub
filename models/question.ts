@@ -1,4 +1,3 @@
-import type { Context } from "@fedify/fedify";
 import type { Recipient } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
 import { eq, sql } from "drizzle-orm";
@@ -37,7 +36,7 @@ import {
   quoteRequestTable,
 } from "./schema.ts";
 import { syncActorFromAccount } from "./actor.ts";
-import type { ContextData } from "./context.ts";
+import type { ApplicationContext } from "./context.ts";
 import type { Database, Transaction } from "./db.ts";
 import { addPostToTimeline } from "./timeline.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
@@ -54,7 +53,7 @@ interface CreatePostOptions {
 }
 
 export async function createQuestion(
-  fedCtx: Context<ContextData<Transaction>>,
+  fedCtx: ApplicationContext<Transaction>,
   source: Omit<NewNoteSource, "id"> & {
     id?: Uuid;
     media: ({ blob: Blob; alt: string } | { mediumId: Uuid; alt: string })[];
@@ -81,7 +80,7 @@ export async function createQuestion(
   } | undefined
 > {
   const normalizedPoll = normalizePollInput(source.poll);
-  const { db, disk } = fedCtx.data;
+  const { db, storage: disk } = fedCtx;
   const account = await db.query.accountTable.findFirst({
     where: { id: source.accountId },
     with: { avatarMedium: true, emails: true, links: true },
@@ -99,9 +98,10 @@ export async function createQuestion(
   }
 
   const result = await db.transaction(async (tx) => {
-    const txCtx = Object.create(fedCtx, {
-      data: { value: { ...fedCtx.data, db: tx } },
-    }) as Context<ContextData<Transaction>>;
+    const txCtx: ApplicationContext<Transaction> = {
+      ...fedCtx.withDatabase(tx),
+      db: tx,
+    };
     const noteSource = await createNoteSource(tx, source);
     if (noteSource == null) return undefined;
 
@@ -150,7 +150,7 @@ export async function createQuestion(
   if (result == null) return undefined;
   const { noteSource, media, post } = result;
 
-  const questionObject = await fedCtx.data.services.federation.getQuestion(
+  const questionObject = await fedCtx.services.federation.getQuestion(
     fedCtx,
     { ...noteSource, media, account },
     { ...post.poll, post, options: post.poll.options },
@@ -179,7 +179,7 @@ export async function createQuestion(
       "#quote-request",
       questionObject.id ?? fedCtx.origin,
     );
-    const instrument = await fedCtx.data.services.federation.getQuestion(
+    const instrument = await fedCtx.services.federation.getQuestion(
       fedCtx,
       { ...noteSource, media, account },
       { ...post.poll, post, options: post.poll.options },
@@ -259,7 +259,7 @@ export async function createQuestion(
       },
     );
   }
-  const relayedTags = await fedCtx.data.services.federation
+  const relayedTags = await fedCtx.services.federation
     .sendTagsPubRelayActivity(
       fedCtx,
       source.accountId,

@@ -233,6 +233,7 @@ builder.mutationField("invite", (t) =>
       };
       try {
         const message = await getEmailMessage({
+          from: ctx.emailFrom,
           locale: args.locale,
           inviter,
           verifyUrlTemplate: args.verifyUrl,

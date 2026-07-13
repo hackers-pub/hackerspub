@@ -3,7 +3,6 @@ import type { FlagAction, FlagAppeal } from "@hackerspub/models/schema";
 import { expandGlob } from "@std/fs";
 import { join } from "@std/path";
 import { createMessage, type Message } from "@upyo/core";
-import { EMAIL_FROM } from "./email.ts";
 
 const LOCALES_DIR = join(import.meta.dirname!, "locales");
 
@@ -63,6 +62,7 @@ async function loadTemplates(): Promise<Map<string, ModerationTemplates>> {
  * collective identity; the acting moderator is never named.
  */
 export async function getModerationActionEmail(options: {
+  from: string;
   locale: Intl.Locale;
   to: string;
   action: FlagAction;
@@ -109,7 +109,7 @@ export async function getModerationActionEmail(options: {
     );
   }
   return createMessage({
-    from: EMAIL_FROM,
+    from: options.from,
     to: options.to,
     subject: substitute(template.subject),
     content: {
@@ -131,6 +131,7 @@ export async function getModerationActionEmail(options: {
  * identity.
  */
 export async function getAppealResolvedEmail(options: {
+  from: string;
   locale: Intl.Locale;
   to: string;
   appeal: FlagAppeal;
@@ -154,7 +155,7 @@ export async function getAppealResolvedEmail(options: {
     );
   }
   return createMessage({
-    from: EMAIL_FROM,
+    from: options.from,
     to: options.to,
     subject: substitute(template.appealSubject),
     content: {

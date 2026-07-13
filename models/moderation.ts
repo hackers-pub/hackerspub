@@ -1,9 +1,8 @@
-import type { Context } from "@fedify/fedify";
 import * as vocab from "@fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { toRecipient } from "./actor.ts";
-import type { ContextData } from "./context.ts";
+import type { ApplicationContext } from "./context.ts";
 import type { Database, Transaction } from "./db.ts";
 import {
   createActionTakenNotification,
@@ -557,10 +556,10 @@ export interface TakeModerationActionOptions {
  * instance without a `forwardSummary`) or the case is not open.
  */
 export async function takeModerationAction(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   options: TakeModerationActionOptions,
 ): Promise<FlagAction | undefined> {
-  const { db } = fedCtx.data;
+  const { db } = fedCtx;
   const provisions = options.violatedProvisions ?? [];
   if (!options.moderator.moderator) {
     logger.warn(

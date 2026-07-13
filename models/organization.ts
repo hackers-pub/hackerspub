@@ -1,8 +1,7 @@
-import type { Context, RequestContext } from "@fedify/fedify";
 import { and, count, eq, gt, isNotNull, isNull, sql } from "drizzle-orm";
 import { isUsernameReserved, sendAccountActorUpdate } from "./account.ts";
 import { syncActorFromAccount } from "./actor.ts";
-import type { ContextData } from "./context.ts";
+import type { ApplicationContext } from "./context.ts";
 import { type Database, runInTransaction, type Transaction } from "./db.ts";
 import {
   createOrganizationConversionRequestNotification
@@ -111,13 +110,13 @@ type AccountForSync = Account & {
 };
 
 function asTransactionalFedCtx(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   tx: Transaction,
-): Context<ContextData> {
-  return fedCtx.clone({
-    ...fedCtx.data,
+): ApplicationContext<Transaction> {
+  return {
+    ...fedCtx.withDatabase(tx),
     db: tx,
-  });
+  };
 }
 
 async function lockOrganizationMembershipSet(
@@ -318,7 +317,7 @@ export async function assertPersonalAccountDeletionPreservesOrganizations(
 }
 
 export async function createOrganization(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   creator: Pick<Account, "id" | "kind">,
   input: CreateOrganizationInput,
 ): Promise<
@@ -338,7 +337,7 @@ export async function createOrganization(
       "The organization username is invalid.",
     );
   }
-  const db = fedCtx.data.db;
+  const db = fedCtx.db;
   if (await isUsernameReserved(db, username)) {
     throw new OrganizationMembershipError(
       "The organization username is already in use.",
@@ -827,7 +826,7 @@ async function createOrganizationConversionRequestNotification(
 }
 
 export async function acceptOrganizationConversion(
-  fedCtx: RequestContext<ContextData>,
+  fedCtx: ApplicationContext,
   adminAccount: Pick<Account, "id" | "kind">,
   requestId: Uuid,
 ): Promise<
@@ -841,7 +840,7 @@ export async function acceptOrganizationConversion(
   if (adminAccount.kind !== "personal") {
     throw new OrganizationConversionError("Only personal accounts can accept.");
   }
-  const db = fedCtx.data.db;
+  const db = fedCtx.db;
   const organization = await runInTransaction(db, async (tx) => {
     const request = await tx.query.organizationConversionRequestTable.findFirst(
       {

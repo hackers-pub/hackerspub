@@ -1,5 +1,5 @@
 import type * as vocab from "@fedify/vocab";
-import type { LanguageModel } from "ai";
+import type { ApplicationModel } from "./context.ts";
 import type { CocProvision } from "./coc.ts";
 import type { ReactionEmoji } from "./emoji.ts";
 import type {
@@ -22,15 +22,15 @@ import type {
 import type { Uuid } from "./uuid.ts";
 
 export interface SummaryOptions {
-  model: LanguageModel;
+  model: ApplicationModel;
   sourceLanguage: string;
   targetLanguage: string;
   text: string;
 }
 
 export interface TranslationOptions {
-  model: LanguageModel;
-  summarizationModel?: LanguageModel;
+  model: ApplicationModel;
+  summarizationModel?: ApplicationModel;
   sourceLanguage: string;
   targetLanguage: string;
   text: string;
@@ -51,7 +51,7 @@ export interface ModerationAnalysis {
 }
 
 export interface ModerationAnalysisOptions {
-  model: LanguageModel;
+  model: ApplicationModel;
   provisions: readonly CocProvision[];
   reason: string;
   contentHtml: string;
@@ -74,6 +74,14 @@ export interface SendTagsPubRelayOptions {
 }
 
 export interface FederationServices<TContext> {
+  readonly subscribeTagsPubHashtag: (
+    context: TContext,
+    tag: string,
+  ) => Promise<void>;
+  readonly unsubscribeTagsPubHashtag: (
+    context: TContext,
+    tag: string,
+  ) => Promise<void>;
   readonly getAnnounce: (
     context: TContext,
     share: Post & {

@@ -1,7 +1,6 @@
 /// <reference lib="deno.unstable" />
-import type { RequestContext } from "@fedify/fedify";
 import { createDefine } from "@fresh/core";
-import type { ContextData } from "@hackerspub/models/context";
+import type { ApplicationContext } from "@hackerspub/models/context";
 import type { Locale } from "@hackerspub/models/i18n";
 import type {
   Account,
@@ -53,7 +52,7 @@ export interface State {
     links: AccountLink[];
   };
   canonicalOrigin: string;
-  fedCtx: RequestContext<ContextData>;
+  fedCtx: ApplicationContext;
   language: Language;
   locales: Locale[];
   t: ReturnType<typeof getFixedT>;

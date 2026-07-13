@@ -1,4 +1,4 @@
-import type { Context, DocumentLoader } from "@fedify/fedify";
+import type { DocumentLoader } from "@fedify/fedify";
 import { isActor } from "@fedify/vocab";
 import type * as vocab from "@fedify/vocab";
 import { hashtag, spanHashAndTag } from "@fedify/markdown-it-hashtag";
@@ -24,7 +24,7 @@ import { ASCII_DIACRITICS_REGEXP, slugify } from "@std/text/unstable-slugify";
 import { load } from "cheerio";
 import { arrayOverlaps, eq } from "drizzle-orm";
 import katex from "katex";
-import type Keyv from "keyv";
+import type { KeyValueStore } from "./context.ts";
 import abbr from "markdown-it-abbr";
 import anchor from "markdown-it-anchor";
 import MarkdownItAsync from "markdown-it-async";
@@ -35,7 +35,7 @@ import graphviz from "markdown-it-graphviz";
 import toc from "markdown-it-toc-done-right";
 import { codeToHtml } from "shiki";
 import { persistActor, persistActorsByHandles } from "./actor.ts";
-import type { ContextData } from "./context.ts";
+import type { ApplicationContext } from "./context.ts";
 import { sanitizeExcerptHtml, sanitizeHtml, stripHtml } from "./html.ts";
 import { negotiateLocale } from "./i18n.ts";
 import { type Actor, actorTable } from "./schema.ts";
@@ -174,7 +174,7 @@ interface Env {
 }
 
 export interface RenderMarkupOptions {
-  kv?: Keyv | null;
+  kv?: KeyValueStore | null;
   docId?: string | null;
   refresh?: boolean;
   mediumUrls?: Record<string, string>;
@@ -190,7 +190,7 @@ function canonicalizeMediumUrls(mediumUrls: Record<string, string>): string {
 }
 
 export async function renderMarkup(
-  fedCtx: Context<ContextData> | null | undefined,
+  fedCtx: ApplicationContext | null | undefined,
   markup: string,
   options: RenderMarkupOptions = {},
 ): Promise<RenderedMarkup> {
@@ -419,11 +419,11 @@ function toToc(toc: InternalToc, docId?: string | null): Toc {
 export interface ExtractMentionsFromHtmlOptions {
   contextLoader?: DocumentLoader;
   documentLoader?: DocumentLoader;
-  kv?: Keyv;
+  kv?: KeyValueStore;
 }
 
 export async function extractMentionsFromHtml(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   html: string,
   options: ExtractMentionsFromHtmlOptions = {},
 ): Promise<{ actor: Actor }[]> {
@@ -446,7 +446,7 @@ export async function extractMentionsFromHtml(
     if (href != null) mentionHrefs.add(href);
   });
   if (mentionHrefs.size < 1) return [];
-  const { db } = fedCtx.data;
+  const { db } = fedCtx;
   const actors = await db.query.actorTable.findMany({
     where: {
       OR: [

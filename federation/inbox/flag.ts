@@ -6,6 +6,7 @@ import {
   persistActor,
 } from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
+import { toApplicationContext } from "../context.ts";
 import { analyzeFlag, createFlag, getFlagByIri } from "@hackerspub/models/flag";
 import type { Actor, Post } from "@hackerspub/models/schema";
 import { getLogger } from "@logtape/logtape";
@@ -60,7 +61,8 @@ export async function onFlagged(
       );
       return;
     }
-    reporter = await persistActor(fedCtx, actorObject) ?? undefined;
+    reporter = await persistActor(toApplicationContext(fedCtx), actorObject) ??
+      undefined;
     if (reporter == null) return;
   }
   // Match the flagged objects against local data.  A Flag usually carries

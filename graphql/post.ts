@@ -3309,7 +3309,7 @@ builder.relayMutationField(
           attachedMedia.map(async (medium, i) => {
             const alt = medium.alt.trim();
             if (alt === "") throw new InvalidInputError(`media.${i}.alt`);
-            const storedMedium = await context.data.db.query.mediumTable
+            const storedMedium = await context.db.query.mediumTable
               .findFirst({
                 where: { id: medium.mediumId },
               });
@@ -3610,7 +3610,7 @@ builder.relayMutationField(
           attachedMedia.map(async (medium, i) => {
             const alt = medium.alt.trim();
             if (alt === "") throw new InvalidInputError(`media.${i}.alt`);
-            const storedMedium = await context.data.db.query.mediumTable
+            const storedMedium = await context.db.query.mediumTable
               .findFirst({
                 where: { id: medium.mediumId },
               });
@@ -4134,7 +4134,7 @@ builder.relayMutationField(
 
       // Create article from draft
       const article = await withTransaction(ctx.fedCtx, async (context) => {
-        const media = await context.data.db.query.articleDraftMediumTable
+        const media = await context.db.query.articleDraftMediumTable
           .findMany({
             where: { articleDraftId: draft.id },
           });

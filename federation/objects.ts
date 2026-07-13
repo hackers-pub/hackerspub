@@ -2,6 +2,7 @@ import type { Context, RequestContext } from "@fedify/fedify";
 import { LanguageString, PUBLIC_COLLECTION } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
 import type { ContextData } from "@hackerspub/models/context";
+import { toApplicationContext } from "./context.ts";
 import {
   DEFAULT_REACTION_EMOJI,
   isReactionEmoji,
@@ -198,12 +199,16 @@ export async function getArticle(
       const missingMediumLabel = getMissingArticleMediumLabel(
         content.language,
       );
-      const { hashtags, html } = await renderMarkup(ctx, content.content, {
-        docId: articleSource.id,
-        kv: ctx.data.kv,
-        mediumUrls,
-        missingMediumLabel,
-      });
+      const { hashtags, html } = await renderMarkup(
+        toApplicationContext(ctx),
+        content.content,
+        {
+          docId: articleSource.id,
+          kv: ctx.data.kv,
+          mediumUrls,
+          missingMediumLabel,
+        },
+      );
       return {
         ...content,
         hashtags,
@@ -371,7 +376,7 @@ export async function getNote(
     quoteRequestPolicy?: QuotePolicy | null;
   } = {},
 ): Promise<vocab.Note> {
-  const rendered = await renderMarkup(ctx, note.content, {
+  const rendered = await renderMarkup(toApplicationContext(ctx), note.content, {
     docId: note.id,
     kv: ctx.data.kv,
   });
@@ -496,7 +501,7 @@ export async function getQuestion(
     quoteRequestPolicy?: QuotePolicy | null;
   } = {},
 ): Promise<vocab.Question> {
-  const rendered = await renderMarkup(ctx, note.content, {
+  const rendered = await renderMarkup(toApplicationContext(ctx), note.content, {
     docId: note.id,
     kv: ctx.data.kv,
   });

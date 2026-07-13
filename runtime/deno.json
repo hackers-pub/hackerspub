@@ -1,0 +1,8 @@
+{
+  "name": "@hackerspub/runtime",
+  "version": "0.2.0",
+  "exports": {
+    "./config": "./config.ts",
+    "./resources": "./resources.ts"
+  }
+}

@@ -1,7 +1,5 @@
 import assert from "node:assert";
 import test from "node:test";
-import type { RequestContext } from "@fedify/fedify";
-import type { ContextData } from "@hackerspub/models/context";
 import type { Transaction } from "@hackerspub/models/db";
 import { createArticle } from "@hackerspub/models/article";
 import { createFlag } from "@hackerspub/models/flag";
@@ -43,7 +41,7 @@ import {
 const HOUR = 60 * 60 * 1000;
 const REASON = "This post contains harassment targeting another user.";
 
-function quietFedCtx(tx: Transaction): RequestContext<ContextData> {
+function quietFedCtx(tx: Transaction): ReturnType<typeof createFedCtx> {
   const fedCtx = createFedCtx(tx);
   // deno-lint-ignore no-explicit-any
   (fedCtx as any).sendActivity = () => Promise.resolve();
@@ -1055,6 +1053,7 @@ test("ban emails direct appeals to email replies", async () => {
   await withRollback(async (tx) => {
     const { action } = await sanction(tx, "ban");
     const message = await getModerationActionEmail({
+      from: "moderation@example.com",
       locale: new Intl.Locale("en"),
       to: "reported@example.com",
       action,

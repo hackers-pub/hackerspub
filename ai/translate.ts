@@ -1,9 +1,14 @@
 import { fetchWebPage } from "@vertana/context-web";
 import type { ContextSource, RequiredContextSource } from "@vertana/core";
 import { translate as vertanaTranslate } from "@vertana/facade";
-import type { TranslationOptions } from "@hackerspub/models/services";
+import type { LanguageModel } from "ai";
+import type { TranslationOptions as ApplicationTranslationOptions } from "@hackerspub/models/services";
 
-export type { TranslationOptions };
+export interface TranslationOptions
+  extends Omit<ApplicationTranslationOptions, "model" | "summarizationModel"> {
+  model: LanguageModel;
+  summarizationModel?: LanguageModel;
+}
 
 /**
  * Creates a required context source with author information
@@ -72,7 +77,10 @@ export async function translate(options: TranslationOptions): Promise<string> {
     maxCharsPerPage: 10_000,
     maxTotalChars: 30_000,
     ...(options.summarizationModel && {
-      summarize: { model: options.summarizationModel, maxChars: 3_000 },
+      summarize: {
+        model: options.summarizationModel,
+        maxChars: 3_000,
+      },
     }),
   }));
 

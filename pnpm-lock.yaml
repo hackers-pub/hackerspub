@@ -6,6 +6,12 @@ settings:
 
 catalogs:
   default:
+    '@ai-sdk/anthropic':
+      specifier: ^3.0.44
+      version: 3.0.96
+    '@ai-sdk/google':
+      specifier: ^3.0.29
+      version: 3.0.91
     '@c4spar/mock-fetch':
       specifier: jsr:^1.0.0
       version: 1.0.0
@@ -18,12 +24,27 @@ catalogs:
     '@fedify/markdown-it-mention':
       specifier: jsr:^0.3.0
       version: 0.3.0
+    '@fedify/postgres':
+      specifier: jsr:2.3.1
+      version: 2.3.1
+    '@fedify/redis':
+      specifier: jsr:2.3.1
+      version: 2.3.1
     '@fedify/vocab':
+      specifier: jsr:2.3.1
+      version: 2.3.1
+    '@fedify/vocab-runtime':
       specifier: jsr:2.3.1
       version: 2.3.1
     '@hackerspub/markdown-it-texmath':
       specifier: ^1.0.1
       version: 1.0.1
+    '@keyv/redis':
+      specifier: ^4.6.0
+      version: 4.6.0
+    '@logtape/drizzle-orm':
+      specifier: jsr:2.1.1
+      version: 2.1.1
     '@logtape/logtape':
       specifier: jsr:2.0.6
       version: 2.0.6
@@ -66,6 +87,15 @@ catalogs:
     '@std/uuid':
       specifier: jsr:^1.1.0
       version: 1.1.0
+    '@upyo/core':
+      specifier: jsr:^0.5.0
+      version: 0.5.0
+    '@upyo/mailgun':
+      specifier: jsr:^0.5.0
+      version: 0.5.0
+    '@upyo/mock':
+      specifier: jsr:^0.5.0
+      version: 0.5.0
     '@vertana/context-web':
       specifier: ^0.2.0
       version: 0.2.0
@@ -102,12 +132,18 @@ catalogs:
     iconv-lite:
       specifier: ^0.6.3
       version: 0.6.3
+    ioredis:
+      specifier: ^5.4.1
+      version: 5.10.1
     katex:
       specifier: ^0.16.44
       version: 0.16.44
     keyv:
       specifier: ^5.6.0
       version: 5.6.0
+    keyv-file:
+      specifier: ^5.1.3
+      version: 5.3.5
     markdown-it-abbr:
       specifier: ^2.0.0
       version: 2.0.0
@@ -243,6 +279,9 @@ importers:
       '@fedify/vocab':
         specifier: 'catalog:'
         version: '@jsr/fedify__vocab@2.3.1'
+      '@fedify/vocab-runtime':
+        specifier: 'catalog:'
+        version: '@jsr/fedify__vocab-runtime@2.3.1'
       '@hackerspub/markdown-it-texmath':
         specifier: 'catalog:'
         version: 1.0.1
@@ -285,9 +324,6 @@ importers:
       '@std/uuid':
         specifier: 'catalog:'
         version: '@jsr/std__uuid@1.1.0'
-      ai:
-        specifier: 'catalog:'
-        version: 6.0.146(zod@4.3.6)
       apns2:
         specifier: 'catalog:'
         version: 12.2.0
@@ -373,6 +409,66 @@ importers:
       '@c4spar/mock-fetch':
         specifier: 'catalog:'
         version: '@jsr/c4spar__mock-fetch@1.0.0'
+
+  runtime:
+    dependencies:
+      '@ai-sdk/anthropic':
+        specifier: 'catalog:'
+        version: 3.0.96(zod@4.3.6)
+      '@ai-sdk/google':
+        specifier: 'catalog:'
+        version: 3.0.91(zod@4.3.6)
+      '@fedify/fedify':
+        specifier: 'catalog:'
+        version: '@jsr/fedify__fedify@2.3.1'
+      '@fedify/postgres':
+        specifier: 'catalog:'
+        version: '@jsr/fedify__postgres@2.3.1'
+      '@fedify/redis':
+        specifier: 'catalog:'
+        version: '@jsr/fedify__redis@2.3.1'
+      '@hackerspub/federation':
+        specifier: workspace:*
+        version: link:../federation
+      '@hackerspub/models':
+        specifier: workspace:*
+        version: link:../models
+      '@keyv/redis':
+        specifier: 'catalog:'
+        version: 4.6.0(keyv@5.6.0)
+      '@logtape/drizzle-orm':
+        specifier: 'catalog:'
+        version: '@jsr/logtape__drizzle-orm@2.1.1'
+      '@logtape/logtape':
+        specifier: 'catalog:'
+        version: '@jsr/logtape__logtape@2.0.6'
+      '@upyo/core':
+        specifier: 'catalog:'
+        version: '@jsr/upyo__core@0.5.0'
+      '@upyo/mailgun':
+        specifier: 'catalog:'
+        version: '@jsr/upyo__mailgun@0.5.0'
+      '@upyo/mock':
+        specifier: 'catalog:'
+        version: '@jsr/upyo__mock@0.5.0'
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 1.0.0-beta.1-5e64efc(@cloudflare/workers-types@4.20260529.1)(@opentelemetry/api@1.9.1)(@types/pg@8.15.6)(postgres@3.4.8)
+      flydrive:
+        specifier: 'catalog:'
+        version: 1.3.0
+      ioredis:
+        specifier: 'catalog:'
+        version: 5.10.1
+      keyv:
+        specifier: 'catalog:'
+        version: 5.6.0
+      keyv-file:
+        specifier: 'catalog:'
+        version: 5.3.5
+      postgres:
+        specifier: 'catalog:'
+        version: 3.4.8
 
   web-next:
     dependencies:
@@ -548,8 +644,20 @@ packages:
   '@adobe/css-tools@4.4.4':
     resolution: {integrity: sha512-Elp+iwUx5rN5+Y8xLt5/GRoG20WGoDCQ/1Fb+1LiGtvwbDavuSk0jhD/eZdckHAuzcDzccnkv+rEjyWfRx18gg==}
 
+  '@ai-sdk/anthropic@3.0.96':
+    resolution: {integrity: sha512-6VQzaXQdm5FkX6NWOyKzV5GB11C8IqkgsKZE91lg/bdwyvnQJLDwal2qkE0+fC8CCGeW5d+VV8Mw/+H+OcDC1A==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
+
   '@ai-sdk/gateway@3.0.88':
     resolution: {integrity: sha512-AFoj7xdWAtCQcy0jJ235ENSakYM8D28qBX+rB+/rX4r8qe/LXgl0e5UivOqxAlIM5E9jnQdYxIPuj3XFtGk/yg==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
+
+  '@ai-sdk/google@3.0.91':
+    resolution: {integrity: sha512-d/ho+sDjArFjreE2002t9jE4LXX3wde97dN2HCLCX1l41gaJV3wf/c/19axjUNfIf/4uUq+nJmhBO0lW/dg3yw==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -559,6 +667,16 @@ packages:
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
+
+  '@ai-sdk/provider-utils@4.0.38':
+    resolution: {integrity: sha512-/HHGmtKllqjg1OLc023v9w9kK3laW7Z6TzfZukYQWCsGBbzB9p60zTvvpXFVcs44NZBVXL3viOa1HRKUbeee8g==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
+
+  '@ai-sdk/provider@3.0.14':
+    resolution: {integrity: sha512-5X1k57JBJ4H7H1QjX7CnJYAB1I19r/trVZTMcSms7/kLNZ8RaU4Nt2agcwZzv82Hfx6Q7/TOLU7agAKeFfc8cA==}
+    engines: {node: '>=18'}
 
   '@ai-sdk/provider@3.0.8':
     resolution: {integrity: sha512-oGMAgGoQdBXbZqNG0Ze56CHjDZ1IDYOwGYxYjO5KLSlz5HiNQ9udIXsPZ61VWaHGZ5XW/jyjmr6t2xz2jGVwbQ==}
@@ -1585,6 +1703,12 @@ packages:
   '@jsr/fedify__markdown-it-mention@0.3.0':
     resolution: {integrity: sha512-bxAgJuhq95rg6jFUAgtkZU5QrYOX7jqUHGBZm3ynW7ju3Hyv/AebB4TV7pQ0WKwP/ODVPtD5MsmaLs0ReIQs5Q==, tarball: https://npm.jsr.io/~/11/@jsr/fedify__markdown-it-mention/0.3.0.tgz}
 
+  '@jsr/fedify__postgres@2.3.1':
+    resolution: {integrity: sha512-j39qcQB57YpnaDFgfdanK8okNxgWQcF6sK7sBLipJImYGDc3ey+IGUqKr0iT3qZ9MWKuy0ahGgGg9HzPA9J7rg==, tarball: https://npm.jsr.io/~/11/@jsr/fedify__postgres/2.3.1.tgz}
+
+  '@jsr/fedify__redis@2.3.1':
+    resolution: {integrity: sha512-Z8yAmAeOBQzPsx3CUKk8RyMh8/S/Snu3iHBDASGLH7BvtIKDJTytx8EGh7XW+QBkLf0mRTqtXBr6pel/cnHk5g==, tarball: https://npm.jsr.io/~/11/@jsr/fedify__redis/2.3.1.tgz}
+
   '@jsr/fedify__uri-template@2.3.1':
     resolution: {integrity: sha512-XUHuytS5cPMwzpEk55RJyes0N9xhvIVX9Z2hKUvrRroDmfV2mDvjLlonrlz1tOurnAMRbNtsfrXjvD/yt24Pvw==, tarball: https://npm.jsr.io/~/11/@jsr/fedify__uri-template/2.3.1.tgz}
 
@@ -1596,6 +1720,9 @@ packages:
 
   '@jsr/fedify__webfinger@2.3.1':
     resolution: {integrity: sha512-XiMpyDomlazqwnRTwowubeJvmG9k75mVZC5WYjyHuvCen7RQPhkdnpe55lNTuy47un3PWbhPVYaOzefwo4BjYA==, tarball: https://npm.jsr.io/~/11/@jsr/fedify__webfinger/2.3.1.tgz}
+
+  '@jsr/logtape__drizzle-orm@2.1.1':
+    resolution: {integrity: sha512-IDW8BaI12Qzkv6dkQ4EMbyqgecLabbgdwSCq8N4pY7Uwj7BQq2wI7w2/W9ArG56JHG+YWW7CpdLzET6ScrgArw==, tarball: https://npm.jsr.io/~/11/@jsr/logtape__drizzle-orm/2.1.1.tgz}
 
   '@jsr/logtape__logtape@2.0.6':
     resolution: {integrity: sha512-Lw0+sFlpD9U+WzE/77diiDzEoYkhTuhrE53Fl5sXcNqWnlOJNi2x3K2elF+EhqdrZub2mHGSYznPRttlf/ah7Q==, tarball: https://npm.jsr.io/~/11/@jsr/logtape__logtape/2.0.6.tgz}
@@ -1651,11 +1778,26 @@ packages:
   '@jsr/std__uuid@1.1.0':
     resolution: {integrity: sha512-V5tUE+zEFoOLNqC3W4c/ki0ikE5qzGfvaY3mZpxWd4BczhVjHZYlLLrbTkMkCsWM9quQSf3+eP0kHzEn+e5LvA==, tarball: https://npm.jsr.io/~/11/@jsr/std__uuid/1.1.0.tgz}
 
+  '@jsr/upyo__core@0.5.0':
+    resolution: {integrity: sha512-Auj86dYOY+3ayfYHYSdSjF8SR8pg6nQ8PHoau8GTTdEKZe+d8qactka2JY/kHSAdJd+ookE5Zf3TJKLAqljl0g==, tarball: https://npm.jsr.io/~/11/@jsr/upyo__core/0.5.0.tgz}
+
+  '@jsr/upyo__mailgun@0.5.0':
+    resolution: {integrity: sha512-aHAxVCqTSoTfev+Lqorv1/m9n/z3aetM72JA8LV2L99TextqJl7IY3ccqx6TPpCzLPTiBeMzOjPtrvabxJOgdw==, tarball: https://npm.jsr.io/~/11/@jsr/upyo__mailgun/0.5.0.tgz}
+
+  '@jsr/upyo__mock@0.5.0':
+    resolution: {integrity: sha512-q9nTJgqW8FiPY/UtGfaVuHoXsjN2HV1poO+WoafTNvP2dVllzFKm8BC9Kk6Vd2jDKW+LcrmSk9DtAuQKytdF/A==, tarball: https://npm.jsr.io/~/11/@jsr/upyo__mock/0.5.0.tgz}
+
   '@jsr/vertana__core@0.2.0':
     resolution: {integrity: sha512-mb6aaUmwpX4WDIuwNF+qCKR8+4/Gg06lc6x2kVhcsWXlsOXu8nHA6kmj2O0ZYLErqa3UCL8ZYutECKrlzUYNvQ==, tarball: https://npm.jsr.io/~/11/@jsr/vertana__core/0.2.0.tgz}
 
   '@jsr/vertana__facade@0.2.0':
     resolution: {integrity: sha512-GlQu432hPXBft263oqPt4Nr1dD9k34V344pze6KuTuLL9ofl5AjfaF4DFPy4OSIqZfR+K48Bp2WMGqjQlIWo0g==, tarball: https://npm.jsr.io/~/11/@jsr/vertana__facade/0.2.0.tgz}
+
+  '@keyv/redis@4.6.0':
+    resolution: {integrity: sha512-FP3FP42RiQ3j0UC6f4Maf7ISTLAIivm37/SdfG5xvhqceMMq3kabtC6T4a2h5byMnh4S8PjP51DY/9CpyrcfsQ==}
+    engines: {node: '>= 18'}
+    peerDependencies:
+      keyv: ^5.3.4
 
   '@keyv/serialize@1.1.1':
     resolution: {integrity: sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==}
@@ -2370,6 +2512,10 @@ packages:
     resolution: {integrity: sha512-ZPW2gRiwpPzEfgeZgaekhqXrbW+Y2RJKHVqUmlhZhKzRNCcvR6DykzylDrynpArKKRQtLxoZy36fK7U0p3pdgQ==}
     peerDependencies:
       '@opentelemetry/api': ^1.8
+
+  '@redis/client@1.6.1':
+    resolution: {integrity: sha512-/KCsg3xSlR+nCK8/8ZYSknYxvXHwubJrU82F3Lm1Fp6789VQ0/3RJKfsmRXjqfaTA++23CvC3hqmqe/2GEt6Kw==}
+    engines: {node: '>=14'}
 
   '@rollup/plugin-alias@6.0.0':
     resolution: {integrity: sha512-tPCzJOtS7uuVZd+xPhoy5W4vThe6KWXNmsFCNktaAh5RTqcLiSfT4huPQIXkgJ6YCOjJHvecOAzQxLFhPxKr+g==}
@@ -4268,6 +4414,10 @@ packages:
     resolution: {integrity: sha512-Vo1ab+QXPzZ4tCa8SwIHJFaSzy4R6SHf7BY79rFBDf0idraZWAkYrDjDj8uWaSm3S2TK+hJ7/t1CEmZ7jXw+pg==}
     engines: {node: '>=18.0.0'}
 
+  eventsource-parser@3.1.0:
+    resolution: {integrity: sha512-kJezFj9YFAMLeORyi7aCLxLbD5/qWMQnoMVlVPyHIll7lgRJCc3JVln9Vgl9nwQi0YkMnhdGTMNn7CkRRAptMg==}
+    engines: {node: '>=18.0.0'}
+
   exit-hook@2.2.1:
     resolution: {integrity: sha512-eNTPlAD67BmP31LDINZ3U7HSF8l57TxOY2PmBJ1shpCvpnxBF93mWCE8YHBnXs8qiUZJc9WDcWIeC3a2HIAMfw==}
     engines: {node: '>=6'}
@@ -4379,6 +4529,10 @@ packages:
   generator-function@2.0.1:
     resolution: {integrity: sha512-SFdFmIJi+ybC0vjlHN0ZGVGHc3lgE0DxPAT0djjVg+kjOnSqclqmj0KQ7ykTOLP6YxoqOvuAODGdcHJn+43q3g==}
     engines: {node: '>= 0.4'}
+
+  generic-pool@3.9.0:
+    resolution: {integrity: sha512-hymDOu5B53XvN4QT9dBmZxPX4CWhBPPLguTZ9MMFeFa/Kg0xWVfylOVNlJji/E7yTZWFd/q9GO5TxDLq156D7g==}
+    engines: {node: '>= 4'}
 
   gensync@1.0.0-beta.2:
     resolution: {integrity: sha512-3hN7NaskYvMDLQY55gnW3NQ+mesEAepTqlg+VEbj7zzqEMBVNhzcGYYeqFo/TlYz6eQiFcp1HcsCZO+nGgS8zg==}
@@ -4504,6 +4658,9 @@ packages:
 
   hookable@5.5.3:
     resolution: {integrity: sha512-Yc+BQe8SvoXH1643Qez1zqLRmbA5rCL+sSmk6TVos0LWVfNIB7PGncdlId77WzLGSIB5KaWgTaNTs2lNVEI6VQ==}
+
+  hookified@1.15.1:
+    resolution: {integrity: sha512-MvG/clsADq1GPM2KGo2nyfaWVyn9naPiXrqIe4jYjXNZQt238kWyOGrsyc/DmRAQ+Re6yeo6yX/yoNCG5KAEVg==}
 
   html-entities@2.3.3:
     resolution: {integrity: sha512-DV5Ln36z34NNTDgnz0EWGBLZENelNAtkiFA4kyNOG2tDI6Mz1uSWiq1wAKdyjnJwyDiDO7Fa2SO1CTxPXL8VxA==}
@@ -4833,6 +4990,9 @@ packages:
   katex@0.16.44:
     resolution: {integrity: sha512-EkxoDTk8ufHqHlf9QxGwcxeLkWRR3iOuYfRpfORgYfqc8s13bgb+YtRY59NK5ZpRaCwq1kqA6a5lpX8C/eLphQ==}
     hasBin: true
+
+  keyv-file@5.3.5:
+    resolution: {integrity: sha512-0JFTTi55d1HdhIrSOnPngUw0fyHLn3BHqoLJ8TyGKM/fQfuZsz8HkcFxpl6YzU2mj1ZfRF/6BXlSqOpyfXYAmw==}
 
   keyv@5.6.0:
     resolution: {integrity: sha512-CYDD3SOtsHtyXeEORYRx2qBtpDJFjRTGXUtmNEMGyzYOKj1TE3tycdlho7kA1Ufx9OYWZzg52QFBGALTirzDSw==}
@@ -6650,6 +6810,12 @@ snapshots:
 
   '@adobe/css-tools@4.4.4': {}
 
+  '@ai-sdk/anthropic@3.0.96(zod@4.3.6)':
+    dependencies:
+      '@ai-sdk/provider': 3.0.14
+      '@ai-sdk/provider-utils': 4.0.38(zod@4.3.6)
+      zod: 4.3.6
+
   '@ai-sdk/gateway@3.0.88(zod@4.2.1)':
     dependencies:
       '@ai-sdk/provider': 3.0.8
@@ -6662,6 +6828,12 @@ snapshots:
       '@ai-sdk/provider': 3.0.8
       '@ai-sdk/provider-utils': 4.0.22(zod@4.3.6)
       '@vercel/oidc': 3.1.0
+      zod: 4.3.6
+
+  '@ai-sdk/google@3.0.91(zod@4.3.6)':
+    dependencies:
+      '@ai-sdk/provider': 3.0.14
+      '@ai-sdk/provider-utils': 4.0.38(zod@4.3.6)
       zod: 4.3.6
 
   '@ai-sdk/provider-utils@4.0.22(zod@4.2.1)':
@@ -6677,6 +6849,17 @@ snapshots:
       '@standard-schema/spec': 1.1.0
       eventsource-parser: 3.0.6
       zod: 4.3.6
+
+  '@ai-sdk/provider-utils@4.0.38(zod@4.3.6)':
+    dependencies:
+      '@ai-sdk/provider': 3.0.14
+      '@standard-schema/spec': 1.1.0
+      eventsource-parser: 3.1.0
+      zod: 4.3.6
+
+  '@ai-sdk/provider@3.0.14':
+    dependencies:
+      json-schema: 0.4.0
 
   '@ai-sdk/provider@3.0.8':
     dependencies:
@@ -7722,6 +7905,20 @@ snapshots:
       '@jsr/std__html': 0.224.2
       '@types/markdown-it': 14.1.2
 
+  '@jsr/fedify__postgres@2.3.1':
+    dependencies:
+      '@jsr/fedify__fedify': 2.3.1
+      '@jsr/logtape__logtape': 2.2.1
+      postgres: 3.4.8
+
+  '@jsr/fedify__redis@2.3.1':
+    dependencies:
+      '@jsr/fedify__fedify': 2.3.1
+      '@jsr/logtape__logtape': 2.2.1
+      ioredis: 5.10.1
+    transitivePeerDependencies:
+      - supports-color
+
   '@jsr/fedify__uri-template@2.3.1': {}
 
   '@jsr/fedify__vocab-runtime@2.3.1':
@@ -7747,6 +7944,10 @@ snapshots:
       '@jsr/fedify__vocab-runtime': 2.3.1
       '@jsr/logtape__logtape': 2.2.1
       '@opentelemetry/api': 1.9.1
+
+  '@jsr/logtape__drizzle-orm@2.1.1':
+    dependencies:
+      '@jsr/logtape__logtape': 2.2.1
 
   '@jsr/logtape__logtape@2.0.6': {}
 
@@ -7802,6 +8003,16 @@ snapshots:
       '@jsr/std__bytes': 1.0.6
       '@jsr/std__crypto': 1.0.5
 
+  '@jsr/upyo__core@0.5.0': {}
+
+  '@jsr/upyo__mailgun@0.5.0':
+    dependencies:
+      '@jsr/upyo__core': 0.5.0
+
+  '@jsr/upyo__mock@0.5.0':
+    dependencies:
+      '@jsr/upyo__core': 0.5.0
+
   '@jsr/vertana__core@0.2.0(@types/json-schema@7.0.15)(quansync@0.2.11)':
     dependencies:
       '@jsr/logtape__logtape': 2.0.7
@@ -7840,6 +8051,13 @@ snapshots:
       - valibot
       - zod
       - zod-to-json-schema
+
+  '@keyv/redis@4.6.0(keyv@5.6.0)':
+    dependencies:
+      '@redis/client': 1.6.1
+      cluster-key-slot: 1.1.2
+      hookified: 1.15.1
+      keyv: 5.6.0
 
   '@keyv/serialize@1.1.1': {}
 
@@ -8578,14 +8796,14 @@ snapshots:
       '@peculiar/asn1-pkcs8': 2.6.1
       '@peculiar/asn1-rsa': 2.6.1
       '@peculiar/asn1-schema': 2.6.0
-      asn1js: 3.0.7
+      asn1js: 3.0.10
       tslib: 2.8.1
 
   '@peculiar/asn1-pkcs8@2.6.1':
     dependencies:
       '@peculiar/asn1-schema': 2.6.0
       '@peculiar/asn1-x509': 2.6.1
-      asn1js: 3.0.7
+      asn1js: 3.0.10
       tslib: 2.8.1
 
   '@peculiar/asn1-pkcs9@2.6.1':
@@ -8616,7 +8834,7 @@ snapshots:
     dependencies:
       '@peculiar/asn1-schema': 2.6.0
       '@peculiar/asn1-x509': 2.6.1
-      asn1js: 3.0.7
+      asn1js: 3.0.10
       tslib: 2.8.1
 
   '@peculiar/asn1-x509@2.6.1':
@@ -8681,6 +8899,12 @@ snapshots:
       '@opentelemetry/instrumentation': 0.207.0(@opentelemetry/api@1.9.1)
     transitivePeerDependencies:
       - supports-color
+
+  '@redis/client@1.6.1':
+    dependencies:
+      cluster-key-slot: 1.1.2
+      generic-pool: 3.9.0
+      yallist: 4.0.0
 
   '@rollup/plugin-alias@6.0.0(rollup@4.60.1)':
     optionalDependencies:
@@ -10713,6 +10937,8 @@ snapshots:
 
   eventsource-parser@3.0.6: {}
 
+  eventsource-parser@3.1.0: {}
+
   exit-hook@2.2.1: {}
 
   exsolve@1.0.8: {}
@@ -10823,6 +11049,8 @@ snapshots:
   functions-have-names@1.2.3: {}
 
   generator-function@2.0.1: {}
+
+  generic-pool@3.9.0: {}
 
   gensync@1.0.0-beta.2: {}
 
@@ -10974,6 +11202,8 @@ snapshots:
       '@types/hast': 3.0.4
 
   hookable@5.5.3: {}
+
+  hookified@1.15.1: {}
 
   html-entities@2.3.3: {}
 
@@ -11310,6 +11540,11 @@ snapshots:
   katex@0.16.44:
     dependencies:
       commander: 8.3.0
+
+  keyv-file@5.3.5:
+    dependencies:
+      '@keyv/serialize': 1.1.1
+      tslib: 1.14.1
 
   keyv@5.6.0:
     dependencies:

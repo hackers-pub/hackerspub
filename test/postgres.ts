@@ -2,8 +2,12 @@ import { assert } from "@std/assert/assert";
 import type { RequestContext } from "@fedify/fedify";
 import { Organization, Person } from "@fedify/vocab";
 import { sql } from "drizzle-orm";
-import type { ContextData } from "@hackerspub/models/context";
-import type { Transaction } from "@hackerspub/models/db";
+import {
+  type ApplicationContext,
+  type ContextData,
+  defineApplicationModel,
+} from "@hackerspub/models/context";
+import type { Database, Transaction } from "@hackerspub/models/db";
 import type { Transport } from "@upyo/core";
 import { MockLanguageModelV3 } from "ai/test";
 import {
@@ -22,7 +26,7 @@ import {
 } from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
 import type { Uuid } from "@hackerspub/models/uuid";
-import { db } from "../graphql/db.ts";
+import { db } from "./database.ts";
 import type { UserContext } from "../graphql/builder.ts";
 import { services } from "./services.ts";
 
@@ -512,13 +516,13 @@ const stubAuthenticatedDocumentLoader = () =>
     ),
   );
 
-export function createFedCtx(
-  tx: Transaction,
+export function createFedCtx<D extends Database>(
+  tx: D,
   options: {
     kv?: UserContext["kv"];
     lookupObject?: FedCtxLookupObject;
   } = {},
-): RequestContext<ContextData> {
+): RequestContext<ContextData<D>> & ApplicationContext<D> {
   const kv = options.kv ?? createTestKv().kv;
   const lookupObject: FedCtxLookupObject = options.lookupObject ?? (() => {
     throw new Error(
@@ -528,17 +532,60 @@ export function createFedCtx(
     );
   });
 
+  const disk = createTestDisk();
+  const unavailableModel = defineApplicationModel(undefined, "unavailable");
+  const models: ContextData["models"] = {
+    summarizer: unavailableModel,
+    translator: unavailableModel,
+    moderationAnalyzer: unavailableModel,
+  };
+  const data: ContextData<D> = {
+    db: tx,
+    kv: kv as unknown as ContextData["kv"],
+    disk,
+    models,
+    services,
+  };
   const fedCtx = {
     host: "localhost",
     origin: "http://localhost/",
     canonicalOrigin: "http://localhost/",
-    data: {
-      db: tx,
-      kv: kv as unknown as ContextData["kv"],
-      disk: createTestDisk(),
-      models: {} as ContextData["models"],
-      services,
+    data,
+    get db() {
+      return data.db;
     },
+    set db(value) {
+      data.db = value;
+    },
+    withDatabase(
+      this: RequestContext<ContextData> & ApplicationContext,
+      db: Database,
+    ) {
+      const cloned = this.clone({ ...this.data, db }) as
+        & RequestContext<ContextData>
+        & ApplicationContext;
+      cloned.db = db;
+      (cloned as unknown as { federation: object }).federation = cloned;
+      return cloned;
+    },
+    get kv() {
+      return data.kv;
+    },
+    get storage() {
+      return data.disk;
+    },
+    get models() {
+      return data.models;
+    },
+    set models(value) {
+      data.models = value;
+    },
+    get services() {
+      return data.services;
+    },
+    federation: {},
+    documentLoader: undefined as never,
+    contextLoader: undefined as never,
     getActorUri(identifier: string) {
       return new URL(`/actors/${identifier}`, "http://localhost/");
     },
@@ -559,8 +606,11 @@ export function createFedCtx(
     getFeaturedUri(identifier: string) {
       return new URL(`/actors/${identifier}/featured`, "http://localhost/");
     },
-    async getActor(identifier: string) {
-      const account = await tx.query.accountTable.findFirst({
+    async getActor(
+      this: RequestContext<ContextData<D>>,
+      identifier: string,
+    ) {
+      const account = await this.data.db.query.accountTable.findFirst({
         where: { id: identifier as Uuid },
         columns: { id: true, kind: true, username: true },
       });
@@ -583,19 +633,24 @@ export function createFedCtx(
       );
     },
     getDocumentLoader() {
-      return Promise.resolve(stubAuthenticatedDocumentLoader);
+      return stubAuthenticatedDocumentLoader;
     },
     lookupObject,
+    lookupWebFinger() {
+      return Promise.resolve(null);
+    },
     sendActivity() {
       return Promise.resolve(undefined);
     },
     clone(this: RequestContext<ContextData>, data: ContextData) {
       return {
         ...this,
+        db: data.db,
         data,
       };
     },
-  } as unknown as RequestContext<ContextData>;
+  } as unknown as RequestContext<ContextData<D>> & ApplicationContext<D>;
+  (fedCtx as unknown as { federation: object }).federation = fedCtx;
   return fedCtx;
 }
 
@@ -625,6 +680,7 @@ export function makeUserContext(
     kv,
     disk: createTestDisk() as UserContext["disk"],
     email,
+    emailFrom: "noreply@example.com",
     fedCtx,
     request: new Request("http://localhost/graphql"),
     session: {
@@ -651,6 +707,7 @@ export function makeGuestContext(
     kv,
     disk: createTestDisk() as UserContext["disk"],
     email,
+    emailFrom: "noreply@example.com",
     fedCtx,
     request: new Request("http://localhost/graphql"),
     session: undefined,

@@ -1,19 +1,20 @@
-import { generateObject, jsonSchema } from "ai";
+import { generateObject, jsonSchema, type LanguageModel } from "ai";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { CocProvision } from "@hackerspub/models/coc";
 import type {
   ModerationAnalysis,
   ModerationAnalysisMatch,
-  ModerationAnalysisOptions,
+  ModerationAnalysisOptions as ApplicationModerationAnalysisOptions,
 } from "@hackerspub/models/services";
 
 export type ModerationProvision = CocProvision;
-export type {
-  ModerationAnalysis,
-  ModerationAnalysisMatch,
-  ModerationAnalysisOptions,
-};
+export type { ModerationAnalysis, ModerationAnalysisMatch };
+
+export interface ModerationAnalysisOptions
+  extends Omit<ApplicationModerationAnalysisOptions, "model"> {
+  model: LanguageModel;
+}
 
 const ANALYSIS_SCHEMA = jsonSchema<ModerationAnalysis>({
   type: "object",

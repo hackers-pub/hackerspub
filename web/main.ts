@@ -7,6 +7,7 @@ import {
   trailingSlashes,
 } from "@fresh/core";
 import { type Context, createYogaServer } from "@hackerspub/graphql";
+import { toApplicationContext } from "@hackerspub/federation/context";
 import { handleMediumUploadProxy } from "@hackerspub/graphql/medium-upload";
 import {
   ActorSuspendedError,
@@ -26,25 +27,57 @@ import {
 import "@std/dotenv/load";
 import { getCookies } from "@std/http/cookie";
 import { serveDir } from "@std/http/file-server";
-import * as models from "./ai.ts";
-import { db } from "./db.ts";
-import { drive } from "./drive.ts";
-import { transport as email } from "./email.ts";
-import { federation } from "./federation.ts";
+import { fromFileUrl } from "@std/path/from-file-url";
+import {
+  getDenoEnvironment,
+  loadServerConfig,
+} from "@hackerspub/runtime/config";
+import {
+  createRuntimeResources,
+  runWithFederationQueue,
+} from "@hackerspub/runtime/resources";
+import { configureAiModels } from "./ai.ts";
+import { configureDatabase } from "./db.ts";
+import { configureDrive } from "./drive.ts";
+import { configureEmail } from "./email.ts";
+import { configureFederation } from "./federation.ts";
 import { makeQueryGraphQL } from "./graphql/gql.ts";
-import { kv } from "./kv.ts";
+import { configureKeyValue } from "./kv.ts";
 import "./logging.ts";
 import { services } from "./services.ts";
 import type { State } from "./utils.ts";
 import assetlinks from "../graphql/static/.well-known/assetlinks.json" with {
   type: "json",
 };
+import metadata from "./deno.json" with { type: "json" };
 const appleAppSiteAssociationJson = Deno.readTextFileSync(
   new URL(
     "../graphql/static/.well-known/apple-app-site-association",
     import.meta.url,
   ),
 );
+
+const resources = await createRuntimeResources(
+  loadServerConfig(getDenoEnvironment()),
+  metadata.version,
+  {
+    fileSystemBaseUrl: new URL("./", import.meta.url),
+    federation: {
+      manuallyStartQueue: true,
+      // TODO: Revert to Fedify's default RFC 9421-first behavior once
+      // https://github.com/bonfire-networks/activity_pub/issues/8 is fixed
+      // and released.
+      firstKnock: "draft-cavage-http-signatures-12",
+    },
+  },
+);
+const { db, drive, email, federation, kv, models } = resources;
+configureDatabase(resources);
+configureDrive(drive);
+configureEmail(email, resources.config.email.from);
+configureFederation(federation, resources.config.origin);
+configureKeyValue(kv);
+configureAiModels(models);
 
 export const app = new App<State>();
 const staticHandler = staticFiles();
@@ -75,22 +108,21 @@ app.use(async (ctx) => {
   return await staticHandler(ctx);
 });
 
-if (Deno.env.get("DRIVE_DISK") === "fs") {
-  const FS_LOCATION = Deno.env.get("FS_LOCATION");
-  if (FS_LOCATION == null) {
-    throw new Error("Missing FS_LOCATION environment variable.");
+if (resources.config.storage.driver === "fs") {
+  const fileSystemRoot = drive.fileSystemRoot;
+  if (fileSystemRoot == null) {
+    throw new TypeError("The filesystem drive has no resolved root path.");
   }
-
   app.use((ctx) => {
     if (!ctx.url.pathname.startsWith("/media/")) return ctx.next();
     return serveDir(ctx.req, {
       urlRoot: "media",
-      fsRoot: FS_LOCATION,
+      fsRoot: fromFileUrl(fileSystemRoot),
     });
   });
 }
 
-if (Deno.env.get("BEHIND_PROXY") === "true") {
+if (resources.config.behindProxy) {
   app.use(async (ctx) => {
     // @ts-ignore: Fresh will fix https://github.com/denoland/fresh/pull/2751
     ctx.req = await getXForwardedRequest(ctx.req);
@@ -226,13 +258,16 @@ app.use(async (ctx) => {
     kv,
     disk,
     email,
-    fedCtx: federation.createContext(ctx.req, {
-      db,
-      kv,
-      disk,
-      models,
-      services,
-    }),
+    emailFrom: resources.config.email.from,
+    fedCtx: toApplicationContext(
+      federation.createContext(ctx.req, {
+        db,
+        kv,
+        disk,
+        models,
+        services,
+      }),
+    ),
     session: await ctx.state.sessionPromise?.then(({ session }) => session),
     account: await ctx.state.sessionPromise?.then(({ account }) => account),
     request: ctx.req,
@@ -257,6 +292,50 @@ await fsRoutes(app, {
   loadRoute: (path) => import(`./routes/${path}`),
 });
 
+export async function runWebServer(
+  runServer: (signal: AbortSignal) => Promise<void>,
+  options: { readonly signal?: AbortSignal } = {},
+): Promise<void> {
+  const disk = drive.use();
+  try {
+    await runWithFederationQueue(
+      federation,
+      { db, kv, disk, models, services },
+      runServer,
+      options,
+    );
+  } finally {
+    await resources.close();
+  }
+}
+
+export function closeWebResources(): Promise<void> {
+  return resources.close();
+}
+
 if (import.meta.main) {
-  await app.listen();
+  const controller = new AbortController();
+  const signalListeners = new Map<"SIGINT" | "SIGTERM", () => void>();
+  const removeSignalListeners = () => {
+    for (const [signalName, listener] of signalListeners) {
+      Deno.removeSignalListener(signalName, listener);
+    }
+    signalListeners.clear();
+  };
+  try {
+    for (const signalName of ["SIGINT", "SIGTERM"] as const) {
+      const listener = () => {
+        removeSignalListeners();
+        controller.abort();
+      };
+      Deno.addSignalListener(signalName, listener);
+      signalListeners.set(signalName, listener);
+    }
+    await runWebServer(
+      (signal) => app.listen({ signal }),
+      { signal: controller.signal },
+    );
+  } finally {
+    removeSignalListeners();
+  }
 }
