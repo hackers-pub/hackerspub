@@ -1,10 +1,35 @@
 import { assertStrictEquals } from "@std/assert";
 import type { Context } from "@fedify/fedify";
 import type {
+  AfterCommitTask,
   ApplicationContext,
   ContextData,
 } from "@hackerspub/models/context";
-import { getFedifyContext } from "./context.ts";
+import { getFedifyContext, toApplicationContext } from "./context.ts";
+
+function createFedifyContext(data: ContextData): Context<ContextData> {
+  const documentLoader = () => Promise.reject(new Error("Not implemented"));
+  return {
+    data,
+    clone: createFedifyContext,
+    origin: "https://example.com",
+    canonicalOrigin: "https://example.com",
+    host: "example.com",
+    documentLoader,
+    contextLoader: documentLoader,
+    getActorUri: () => new URL("https://example.com/actor"),
+    getInboxUri: () => new URL("https://example.com/inbox"),
+    getOutboxUri: () => new URL("https://example.com/outbox"),
+    getFollowersUri: () => new URL("https://example.com/followers"),
+    getFollowingUri: () => new URL("https://example.com/following"),
+    getFeaturedUri: () => new URL("https://example.com/featured"),
+    getObjectUri: () => new URL("https://example.com/object"),
+    getDocumentLoader: () => documentLoader,
+    lookupObject: () => Promise.resolve(null),
+    lookupWebFinger: () => Promise.resolve(null),
+    sendActivity: () => Promise.resolve(),
+  } as unknown as Context<ContextData>;
+}
 
 Deno.test("Fedify adapter state survives application context cloning", () => {
   const rootDb = {} as ContextData["db"];
@@ -24,4 +49,26 @@ Deno.test("Fedify adapter state survives application context cloning", () => {
   const adapted = getFedifyContext({ ...context });
   assertStrictEquals(adapted.data.db, transactionDb);
   assertStrictEquals(fedifyContext.data.db, rootDb);
+});
+
+Deno.test("database rebinding preserves transaction adapter state", () => {
+  const rootDb = {} as ContextData["db"];
+  const transactionDb = {} as ContextData["db"];
+  const reboundDb = {} as ContextData["db"];
+  const afterCommit: AfterCommitTask[] = [];
+  const applicationContext = toApplicationContext(
+    createFedifyContext({ db: rootDb } as ContextData),
+  );
+  const transactionContext = {
+    ...applicationContext,
+    db: transactionDb,
+    rootDb,
+    afterCommit,
+  };
+
+  const rebound = transactionContext.withDatabase(reboundDb);
+
+  assertStrictEquals(rebound.db, reboundDb);
+  assertStrictEquals(rebound.rootDb, rootDb);
+  assertStrictEquals(rebound.afterCommit, afterCommit);
 });

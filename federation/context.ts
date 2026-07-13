@@ -51,8 +51,14 @@ export function toApplicationContext(
     : undefined;
   const applicationContext: ApplicationContext = {
     db: context.data.db,
-    withDatabase: (db) =>
-      toApplicationContext(context.clone({ ...context.data, db })),
+    withDatabase(db) {
+      return toApplicationContext(context.clone({
+        ...context.data,
+        db,
+        rootDb: this.rootDb,
+        afterCommit: this.afterCommit,
+      }));
+    },
     rootDb: context.data.rootDb,
     afterCommit: context.data.afterCommit,
     kv: context.data.kv,
