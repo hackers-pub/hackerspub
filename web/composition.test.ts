@@ -6,6 +6,9 @@ Deno.test("legacy web owns the federation queue lifecycle", async () => {
   assertStringIncludes(source, "manuallyStartQueue: true");
   assertStringIncludes(source, "await runWithFederationQueue(");
   assertStringIncludes(source, "(signal) => app.listen({ signal })");
+  assertStringIncludes(source, "Deno.addSignalListener(signalName, listener)");
+  assertStringIncludes(source, "removeSignalListeners()");
+  assertStringIncludes(source, "{ signal: controller.signal }");
   assert(
     source.indexOf("await runWithFederationQueue(") <
       source.indexOf("await resources.close()"),

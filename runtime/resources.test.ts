@@ -95,6 +95,43 @@ Deno.test("runWithFederationQueue accepts Error-shaped abort failures", async ()
   await runWithFederationQueue(federation, undefined, () => Promise.resolve());
 });
 
+Deno.test("runWithFederationQueue stops both tasks on an external signal", async () => {
+  const controller = new AbortController();
+  const queueStarted = Promise.withResolvers<void>();
+  const serverStarted = Promise.withResolvers<void>();
+  const federation = {
+    startQueue(
+      _contextData: undefined,
+      options?: { signal?: AbortSignal },
+    ): Promise<void> {
+      queueStarted.resolve();
+      return new Promise((_resolve, reject) => {
+        options?.signal?.addEventListener("abort", () => {
+          const error = new Error("Queue aborted");
+          error.name = "AbortError";
+          reject(error);
+        });
+      });
+    },
+  };
+
+  const running = runWithFederationQueue(
+    federation,
+    undefined,
+    (signal) => {
+      serverStarted.resolve();
+      return new Promise((resolve) => {
+        signal.addEventListener("abort", () => resolve());
+      });
+    },
+    { signal: controller.signal },
+  );
+  await Promise.all([queueStarted.promise, serverStarted.promise]);
+  controller.abort();
+
+  await running;
+});
+
 Deno.test("createEmailResource warns when Mailgun is unconfigured", () => {
   const warnings: string[] = [];
   const transport = createEmailResource(

@@ -159,8 +159,19 @@ export async function runWithFederationQueue<TContextData>(
   federation: FederationQueueRunner<TContextData>,
   contextData: TContextData,
   runServer: (signal: AbortSignal) => Promise<void>,
+  options: { readonly signal?: AbortSignal } = {},
 ): Promise<void> {
   const controller = new AbortController();
+  let shutdownRequested = options.signal?.aborted ?? false;
+  const requestShutdown = () => {
+    shutdownRequested = true;
+    controller.abort();
+  };
+  if (options.signal?.aborted) {
+    requestShutdown();
+  } else {
+    options.signal?.addEventListener("abort", requestShutdown, { once: true });
+  }
   const settle = (
     source: "queue" | "server",
     promise: Promise<void>,
@@ -178,19 +189,33 @@ export async function runWithFederationQueue<TContextData>(
     Promise.resolve().then(() => runServer(controller.signal)),
   );
 
-  const first = await Promise.race([queueCompletion, serverCompletion]);
-  controller.abort();
-  const [queue, server] = await Promise.all([
-    queueCompletion,
-    serverCompletion,
-  ]);
+  try {
+    const first = await Promise.race([queueCompletion, serverCompletion]);
+    controller.abort();
+    const [queue, server] = await Promise.all([
+      queueCompletion,
+      serverCompletion,
+    ]);
 
-  if (!first.successful) throw first.error;
-  if (first.source === "queue") {
-    throw new Error("The federation queue stopped before the server.");
+    if (
+      !first.successful &&
+      !(shutdownRequested && isAbortError(first.error))
+    ) {
+      throw first.error;
+    }
+    if (first.source === "queue" && first.successful && !shutdownRequested) {
+      throw new Error("The federation queue stopped before the server.");
+    }
+    if (
+      !server.successful &&
+      !(shutdownRequested && isAbortError(server.error))
+    ) {
+      throw server.error;
+    }
+    if (!queue.successful && !isAbortError(queue.error)) throw queue.error;
+  } finally {
+    options.signal?.removeEventListener("abort", requestShutdown);
   }
-  if (!server.successful) throw server.error;
-  if (!queue.successful && !isAbortError(queue.error)) throw queue.error;
 }
 
 export interface WarningLogger {

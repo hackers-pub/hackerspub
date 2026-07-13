@@ -294,6 +294,7 @@ await fsRoutes(app, {
 
 export async function runWebServer(
   runServer: (signal: AbortSignal) => Promise<void>,
+  options: { readonly signal?: AbortSignal } = {},
 ): Promise<void> {
   const disk = drive.use();
   try {
@@ -301,6 +302,7 @@ export async function runWebServer(
       federation,
       { db, kv, disk, models, services },
       runServer,
+      options,
     );
   } finally {
     await resources.close();
@@ -312,5 +314,28 @@ export function closeWebResources(): Promise<void> {
 }
 
 if (import.meta.main) {
-  await runWebServer((signal) => app.listen({ signal }));
+  const controller = new AbortController();
+  const signalListeners = new Map<"SIGINT" | "SIGTERM", () => void>();
+  const removeSignalListeners = () => {
+    for (const [signalName, listener] of signalListeners) {
+      Deno.removeSignalListener(signalName, listener);
+    }
+    signalListeners.clear();
+  };
+  try {
+    for (const signalName of ["SIGINT", "SIGTERM"] as const) {
+      const listener = () => {
+        removeSignalListeners();
+        controller.abort();
+      };
+      Deno.addSignalListener(signalName, listener);
+      signalListeners.set(signalName, listener);
+    }
+    await runWebServer(
+      (signal) => app.listen({ signal }),
+      { signal: controller.signal },
+    );
+  } finally {
+    removeSignalListeners();
+  }
 }
