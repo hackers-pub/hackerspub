@@ -44,6 +44,7 @@ import { configureFederation } from "./federation.ts";
 import { makeQueryGraphQL } from "./graphql/gql.ts";
 import { configureKeyValue } from "./kv.ts";
 import "./logging.ts";
+import { runFreshServerUntilAborted } from "./server-lifecycle.ts";
 import { services } from "./services.ts";
 import type { State } from "./utils.ts";
 import assetlinks from "../graphql/static/.well-known/assetlinks.json" with {
@@ -301,7 +302,7 @@ export async function runWebServer(
     await runWithFederationQueue(
       federation,
       { db, kv, disk, models, services },
-      runServer,
+      (signal) => runFreshServerUntilAborted(runServer, signal),
       options,
     );
   } finally {
