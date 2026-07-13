@@ -26,6 +26,60 @@ import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "link-preview"]);
 const SCRAPE_IMAGE_METADATA_BYTES_LIMIT = 128 * 1024;
+const MAX_REMOTE_REDIRECTS = 20;
+const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
+
+class UnsafeRemoteUrlError extends TypeError {}
+
+function assertSafeRemoteUrl(url: URL): void {
+  if (!isSSRFSafeURL(url.href, { autoPrependProtocol: false })) {
+    throw new UnsafeRemoteUrlError(`Unsafe URL: ${url.href}`);
+  }
+}
+
+async function fetchWithSafeRedirects(
+  url: URL,
+  init: Omit<RequestInit, "redirect">,
+): Promise<Response> {
+  let currentUrl = url;
+  for (let redirectCount = 0;; redirectCount++) {
+    assertSafeRemoteUrl(currentUrl);
+    const response = await fetch(currentUrl, { ...init, redirect: "manual" });
+    const responseUrl = response.url === ""
+      ? currentUrl
+      : new URL(response.url);
+    try {
+      assertSafeRemoteUrl(responseUrl);
+    } catch (error) {
+      await response.body?.cancel().catch(() => {});
+      throw error;
+    }
+    if (!REDIRECT_STATUSES.has(response.status)) return response;
+
+    const location = response.headers.get("Location");
+    if (location == null) return response;
+    if (redirectCount >= MAX_REMOTE_REDIRECTS) {
+      await response.body?.cancel().catch(() => {});
+      throw new TypeError(`Too many redirects from ${url.href}`);
+    }
+    await response.body?.cancel().catch(() => {});
+    currentUrl = new URL(location, responseUrl);
+  }
+}
+
+function clearPreviewImage(image: {
+  imageUrl?: string;
+  imageAlt?: string;
+  imageType?: string;
+  imageWidth?: number;
+  imageHeight?: number;
+}): void {
+  image.imageUrl = undefined;
+  image.imageAlt = undefined;
+  image.imageType = undefined;
+  image.imageWidth = undefined;
+  image.imageHeight = undefined;
+}
 
 export interface RepairBrokenLinkPreviewsResult {
   readonly brokenLinks: number;
@@ -201,14 +255,13 @@ export async function scrapePostLink(
   }
   let response: Response;
   try {
-    response = await fetch(url, {
+    response = await fetchWithSafeRedirects(url, {
       headers: {
         "User-Agent": getUserAgent({
           software: "HackersPub",
           url: new URL(fedCtx.canonicalOrigin),
         }),
       },
-      redirect: "follow",
       signal: getRemoteFetchSignal(options.signal),
     });
   } catch (error) {
@@ -238,7 +291,7 @@ export async function scrapePostLink(
     contentType === "application/pdf" || contentType === "application/x-pdf"
   ) {
     try {
-      const pdf = await PDFDocument.load(await response.bytes(), {
+      const pdf = await PDFDocument.load(await response.arrayBuffer(), {
         updateMetadata: false,
       });
       return {
@@ -275,7 +328,7 @@ export async function scrapePostLink(
   let charset = contentTypeParams.charset?.toLowerCase();
   let bytes: Uint8Array;
   try {
-    bytes = await response.bytes();
+    bytes = new Uint8Array(await response.arrayBuffer());
   } catch (error) {
     lg.warn("Failed to read body from {url}: {error}", {
       url: responseUrl,
@@ -379,11 +432,7 @@ export async function scrapePostLink(
   if (image.imageUrl != null) {
     try {
       const imageUrl = new URL(image.imageUrl, responseUrl);
-      if (imageUrl.protocol !== "http:" && imageUrl.protocol !== "https:") {
-        throw new TypeError(
-          `Unsupported image URL protocol: ${imageUrl.protocol}`,
-        );
-      }
+      assertSafeRemoteUrl(imageUrl);
       image.imageUrl = imageUrl.href;
     } catch (error) {
       lg.warn("Ignoring invalid preview image URL for {url}: {error}", {
@@ -391,11 +440,7 @@ export async function scrapePostLink(
         imageUrl: image.imageUrl,
         error,
       });
-      image.imageUrl = undefined;
-      image.imageAlt = undefined;
-      image.imageType = undefined;
-      image.imageWidth = undefined;
-      image.imageHeight = undefined;
+      clearPreviewImage(image);
     }
   }
   if (
@@ -403,7 +448,7 @@ export async function scrapePostLink(
     (image.imageWidth == null || image.imageHeight == null)
   ) {
     try {
-      const response = await fetch(image.imageUrl, {
+      const response = await fetchWithSafeRedirects(new URL(image.imageUrl), {
         headers: {
           "User-Agent": getUserAgent({
             software: "HackersPub",
@@ -413,7 +458,6 @@ export async function scrapePostLink(
           "Range": `bytes=0-${SCRAPE_IMAGE_METADATA_BYTES_LIMIT - 1}`,
           "Referer": responseUrl,
         },
-        redirect: "follow",
         signal: getRemoteFetchSignal(options.signal),
       });
       logger.debug("Fetched image {url}: {status} {statusText}", {
@@ -451,8 +495,12 @@ export async function scrapePostLink(
         "Failed to fetch image {url}: {error}",
         { url: image.imageUrl, error },
       );
-      image.imageWidth = undefined;
-      image.imageHeight = undefined;
+      if (error instanceof UnsafeRemoteUrlError) {
+        clearPreviewImage(image);
+      } else {
+        image.imageWidth = undefined;
+        image.imageHeight = undefined;
+      }
     }
   }
   const creatorHandle = result.customMetaTags?.fediverseCreator == null
@@ -501,9 +549,21 @@ export async function persistPostLink(
   const scrapeUrl = new URL(url);
   scrapeUrl.hash = "";
   const { db } = ctx;
-  const link = await db.query.postLinkTable.findFirst({
+  let link = await db.query.postLinkTable.findFirst({
     where: { url: scrapeUrl.href },
   });
+  if (link == null) {
+    const priorPost = await db.query.postTable.findFirst({
+      columns: { linkId: true },
+      where: { linkUrl: url.href },
+      orderBy: { updated: "desc" },
+    });
+    if (priorPost?.linkId != null) {
+      link = await db.query.postLinkTable.findFirst({
+        where: { id: priorPost.linkId },
+      });
+    }
+  }
   if (link != null) {
     const scraped = link.scraped.toTemporalInstant();
     if (

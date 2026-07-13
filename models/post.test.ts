@@ -137,6 +137,90 @@ test("scrapePostLink() keeps image URL when metadata probing fails", async () =>
   resetGlobalFetch();
 });
 
+test("scrapePostLink() does not fetch unsafe preview images", async () => {
+  const originalFetch = globalThis.fetch;
+  const requestedUrls: string[] = [];
+  globalThis.fetch = ((input) => {
+    const url = input.toString();
+    requestedUrls.push(url);
+    if (url === "https://example.com/article") {
+      return Promise.resolve(
+        new Response(
+          `<html><head>
+          <meta property="og:title" content="Unsafe image">
+          <meta property="og:image" content="http://127.0.0.1/private.png">
+        </head></html>`,
+          { headers: { "Content-Type": "text/html; charset=utf-8" } },
+        ),
+      );
+    }
+    throw new Error(`Unexpected fetch: ${url}`);
+  }) as typeof fetch;
+  try {
+    const link = await scrapePostLink(
+      ctx,
+      "https://example.com/article",
+      () => Promise.resolve(undefined),
+    );
+
+    assert.deepEqual(requestedUrls, ["https://example.com/article"]);
+    assert.equal(link?.imageUrl, undefined);
+    assert.equal(link?.imageWidth, undefined);
+    assert.equal(link?.imageHeight, undefined);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("scrapePostLink() rejects unsafe preview image redirects", async () => {
+  const originalFetch = globalThis.fetch;
+  const requestedUrls: string[] = [];
+  const redirectModes: (RequestRedirect | undefined)[] = [];
+  globalThis.fetch = ((input, init) => {
+    const url = input.toString();
+    requestedUrls.push(url);
+    redirectModes.push(init?.redirect);
+    if (url === "https://example.com/article") {
+      return Promise.resolve(
+        new Response(
+          `<html><head>
+          <meta property="og:title" content="Redirected image">
+          <meta property="og:image" content="https://images.example/preview.png">
+        </head></html>`,
+          { headers: { "Content-Type": "text/html; charset=utf-8" } },
+        ),
+      );
+    }
+    if (url === "https://images.example/preview.png") {
+      return Promise.resolve(
+        new Response(null, {
+          status: 302,
+          headers: { Location: "http://127.0.0.1/private.png" },
+        }),
+      );
+    }
+    throw new Error(`Unexpected fetch: ${url}`);
+  }) as typeof fetch;
+  try {
+    const link = await scrapePostLink(
+      ctx,
+      "https://example.com/article",
+      () => Promise.resolve(undefined),
+    );
+
+    assert.deepEqual(requestedUrls, [
+      "https://example.com/article",
+      "https://images.example/preview.png",
+    ]);
+    assert.deepEqual(redirectModes, ["manual", "manual"]);
+    assert.equal(link?.imageUrl, undefined);
+    assert.equal(link?.imageWidth, undefined);
+    assert.equal(link?.imageHeight, undefined);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("scrapePostLink() ignores malformed canonical metadata", async () => {
   mockGlobalFetch();
   mockFetch("https://delta.chat/index.html", {
