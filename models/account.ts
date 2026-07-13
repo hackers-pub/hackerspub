@@ -386,11 +386,8 @@ async function ensureAccountKeys(
   fedCtx: ApplicationContext,
   accountId: Uuid,
 ): Promise<void> {
-  const context = fedCtx as ApplicationContext & {
-    getActorKeyPairs?: (identifier: string) => Promise<unknown>;
-  };
-  if (typeof context.getActorKeyPairs !== "function") return;
-  await context.getActorKeyPairs(accountId);
+  if (typeof fedCtx.getActorKeyPairs !== "function") return;
+  await fedCtx.getActorKeyPairs(accountId);
 }
 
 export async function deleteAccount(
