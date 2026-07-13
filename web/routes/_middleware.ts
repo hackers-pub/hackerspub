@@ -1,9 +1,9 @@
+import { toApplicationContext } from "@hackerspub/federation/context";
 import {
   isLocale,
   type Locale,
   normalizeLocale,
 } from "@hackerspub/models/i18n";
-import { toApplicationContext } from "@hackerspub/federation/context";
 import { acceptsLanguages } from "@std/http/negotiation";
 import * as models from "../ai.ts";
 import { db } from "../db.ts";
