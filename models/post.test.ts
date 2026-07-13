@@ -510,4 +510,16 @@ describe("isPostVisibleTo()", () => {
     } as unknown as Parameters<typeof isPostVisibleTo>[0];
     assert.equal(isPostVisibleTo(fineWrapper), true);
   });
+
+  it("hides boost wrappers whose shared post is missing", () => {
+    const wrapper = {
+      sharedPostId: crypto.randomUUID(),
+      sharedPost: null,
+      visibility: "public",
+      actor: fakeActor({}),
+      mentions: [],
+    } as unknown as Parameters<typeof isPostVisibleTo>[0];
+
+    assert.equal(isPostVisibleTo(wrapper), false);
+  });
 });

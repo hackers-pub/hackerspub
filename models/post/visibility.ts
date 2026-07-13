@@ -224,7 +224,7 @@ export function isPostVisibleTo(
   // When the boosted post was not loaded, that cannot be evaluated, so fail
   // closed rather than let a wrapper of a hidden post pass on the booster
   // alone (e.g. an interaction resolver that has only a wrapper id).
-  if (post.sharedPostId != null && post.sharedPost === undefined) return false;
+  if (post.sharedPostId != null && post.sharedPost == null) return false;
   // A share wrapper denormalizes the boosted post's content, so a boost
   // of a sanction-hidden actor's post is hidden too (when the relation
   // is loaded).  Checked before the wrapper-author fast path: only the
