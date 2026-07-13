@@ -35,13 +35,6 @@ export async function deletePost(
   for (const reply of replies) {
     await deletePost(fedCtx, { ...reply, replyTarget: post });
   }
-  // Get posts quoting this post before deleting
-  const quotingPosts = await db.query.postTable.findMany({
-    where: {
-      quotedPostId: post.id,
-    },
-  });
-
   const interactions = await db.delete(postTable).where(
     or(
       eq(postTable.replyTargetId, post.id),
@@ -83,19 +76,6 @@ export async function deletePost(
     }
   }
 
-  // When a quoted post is deleted, update the quotes count of the original posts
-  for (const quotingPost of quotingPosts) {
-    if (quotingPost.quotedPostId) {
-      const quotedPost = await db.query.postTable.findFirst({
-        where: {
-          id: quotingPost.quotedPostId,
-        },
-      });
-      if (quotedPost) {
-        await updateQuotesCount(db, quotedPost, -1);
-      }
-    }
-  }
   // Re-score every link affected by this cascade: the link each deleted post
   // shared (this post plus its bulk-deleted replies/quotes/boosts, any of which
   // may itself be a sharing post), and the links of the posts this post replied
