@@ -1,9 +1,6 @@
 import assert from "node:assert";
 import test from "node:test";
-import type { Context } from "@fedify/fedify";
 import { eq } from "drizzle-orm";
-import type { ContextData } from "./context.ts";
-import type { Transaction } from "./db.ts";
 import {
   accountTable,
   articleContentTable,
@@ -96,9 +93,7 @@ test("syncPostFromArticleSource() upserts the post when source content changes",
 
 test("syncPostFromNoteSource() preserves existing Question type", async () => {
   await withRollback(async (tx) => {
-    const fedCtx = createFedCtx(tx) as unknown as Context<
-      ContextData<Transaction>
-    >;
+    const fedCtx = createFedCtx(tx);
     const author = await insertAccountWithActor(tx, {
       username: "syncquestionowner",
       name: "Sync Question Owner",

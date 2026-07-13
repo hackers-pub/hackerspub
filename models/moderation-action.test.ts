@@ -1,8 +1,6 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import type { RequestContext } from "@fedify/fedify";
 import * as vocab from "@fedify/vocab";
-import type { ContextData } from "@hackerspub/models/context";
 import type { Transaction } from "@hackerspub/models/db";
 import { createFlag } from "@hackerspub/models/flag";
 import {
@@ -43,7 +41,7 @@ interface SentActivity {
 
 function recordingFedCtx(
   tx: Transaction,
-): { fedCtx: RequestContext<ContextData>; sent: SentActivity[] } {
+): { fedCtx: ReturnType<typeof createFedCtx>; sent: SentActivity[] } {
   const fedCtx = createFedCtx(tx);
   const sent: SentActivity[] = [];
   // deno-lint-ignore no-explicit-any

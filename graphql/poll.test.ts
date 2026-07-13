@@ -1,11 +1,8 @@
 import assert from "node:assert";
 import test from "node:test";
-import type { Context } from "@fedify/fedify";
 import * as vocab from "@fedify/vocab";
 import { encodeGlobalID } from "@pothos/plugin-relay";
 import { execute, parse } from "graphql";
-import type { ContextData } from "@hackerspub/models/context";
-import type { Transaction } from "@hackerspub/models/db";
 import { createQuestion } from "@hackerspub/models/question";
 import {
   actorTable,
@@ -385,10 +382,10 @@ test("source-backed local Questions expose their Question ActivityPub IRI", asyn
         }
         return new URL(`/objects/${values.id}`, "http://localhost/");
       },
-    } as ReturnType<typeof createFedCtx>;
+    };
     const published = new Date("2026-04-15T00:00:00.000Z");
     const question = await createQuestion(
-      fedCtx as unknown as Context<ContextData<Transaction>>,
+      fedCtx,
       {
         accountId: author.account.id,
         visibility: "public",

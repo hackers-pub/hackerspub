@@ -1,9 +1,8 @@
 import assert from "node:assert";
 import test from "node:test";
-import type { Context } from "@fedify/fedify";
 import { Create, Note as ActivityPubNote, QuoteRequest } from "@fedify/vocab";
 import { eq } from "drizzle-orm";
-import type { ContextData } from "./context.ts";
+import type { ApplicationContext } from "./context.ts";
 import type { Transaction } from "./db.ts";
 import { createNote, QuotePolicyDeniedError, updateNote } from "./note.ts";
 import { createQuestion } from "./question.ts";
@@ -33,7 +32,7 @@ test("createNote() creates a post and timeline entry for the author", async () =
     const published = new Date("2026-04-15T00:00:00.000Z");
 
     const note = await createNote(
-      fedCtx as unknown as Context<ContextData<Transaction>>,
+      fedCtx as unknown as ApplicationContext<Transaction>,
       {
         accountId: author.account.id,
         visibility: "public",
@@ -87,7 +86,7 @@ test("createNote() applies post-created hooks before federation", async () => {
         sent.push(args);
         return Promise.resolve(undefined);
       },
-    } as unknown as Context<ContextData<Transaction>>;
+    } as unknown as ApplicationContext<Transaction>;
 
     const note = await createNote(
       fedCtx,
@@ -304,7 +303,7 @@ test("updateNote() does not notify sharers when only quote policy changes", asyn
       email: "updatenotepolicysharer@example.com",
     });
     const post = await createNote(
-      fedCtx as unknown as Context<ContextData<Transaction>>,
+      fedCtx as unknown as ApplicationContext<Transaction>,
       {
         accountId: author.account.id,
         visibility: "public",
@@ -352,7 +351,7 @@ test("createNote() allows the same medium at multiple indexes", async () => {
     }).returning();
 
     const note = await createNote(
-      fedCtx as unknown as Context<ContextData<Transaction>>,
+      fedCtx as unknown as ApplicationContext<Transaction>,
       {
         accountId: author.account.id,
         visibility: "public",
@@ -387,7 +386,7 @@ test("createNote() fails when a requested medium cannot be attached", async () =
     });
 
     const note = await createNote(
-      fedCtx as unknown as Context<ContextData<Transaction>>,
+      fedCtx as unknown as ApplicationContext<Transaction>,
       {
         accountId: author.account.id,
         visibility: "public",
@@ -415,7 +414,7 @@ test("createNote() stores tags relayed to tags.pub only for public posts", async
       const published = new Date("2026-04-15T00:00:00.000Z");
 
       const publicNote = await createNote(
-        fedCtx as unknown as Context<ContextData<Transaction>>,
+        fedCtx as unknown as ApplicationContext<Transaction>,
         {
           accountId: author.account.id,
           visibility: "public",
@@ -427,7 +426,7 @@ test("createNote() stores tags relayed to tags.pub only for public posts", async
         },
       );
       const followersNote = await createNote(
-        fedCtx as unknown as Context<ContextData<Transaction>>,
+        fedCtx as unknown as ApplicationContext<Transaction>,
         {
           accountId: author.account.id,
           visibility: "followers",
@@ -476,7 +475,7 @@ test("createNote() enforces quote policy for legacy callers", async () => {
     await assert.rejects(
       () =>
         createNote(
-          fedCtx as unknown as Context<ContextData<Transaction>>,
+          fedCtx as unknown as ApplicationContext<Transaction>,
           {
             accountId: follower.account.id,
             visibility: "public",
@@ -522,7 +521,7 @@ test("createNote() rejects direct quote targets for legacy callers", async () =>
     await assert.rejects(
       () =>
         createNote(
-          fedCtx as unknown as Context<ContextData<Transaction>>,
+          fedCtx as unknown as ApplicationContext<Transaction>,
           {
             accountId: author.account.id,
             visibility: "public",
@@ -579,7 +578,7 @@ test("createNote() federates the normalized quote target for shares", async () =
         sent.push(args);
         return Promise.resolve(undefined);
       },
-    } as unknown as Context<ContextData<Transaction>>;
+    } as unknown as ApplicationContext<Transaction>;
 
     const quote = await createNote(fedCtx, {
       accountId: quoter.account.id,
@@ -633,7 +632,7 @@ test("createNote() keeps pending quote requests out of confirmed quote state", a
         sent.push(args);
         return Promise.resolve(undefined);
       },
-    } as unknown as Context<ContextData<Transaction>>;
+    } as unknown as ApplicationContext<Transaction>;
 
     const quote = await createNote(fedCtx, {
       accountId: quoter.account.id,
@@ -679,7 +678,7 @@ test("updateNote() updates the persisted post for an existing note source", asyn
       email: "updatenoteauthor@example.com",
     });
     const original = await createNote(
-      fedCtx as unknown as Context<ContextData<Transaction>>,
+      fedCtx as unknown as ApplicationContext<Transaction>,
       {
         accountId: author.account.id,
         visibility: "public",
@@ -724,7 +723,7 @@ test("updateNote() rejects existing Question sources before changing content", a
     });
     const published = new Date("2026-04-15T00:00:00.000Z");
     const question = await createQuestion(
-      fedCtx as unknown as Context<ContextData<Transaction>>,
+      fedCtx as unknown as ApplicationContext<Transaction>,
       {
         accountId: author.account.id,
         visibility: "public",

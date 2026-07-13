@@ -1,8 +1,7 @@
 import assert from "node:assert";
 import test from "node:test";
-import type { Context } from "@fedify/fedify";
 import { Create, Person, Question as ActivityPubQuestion } from "@fedify/vocab";
-import type { ContextData } from "./context.ts";
+import type { ApplicationContext } from "./context.ts";
 import type { Transaction } from "./db.ts";
 import { createQuestion } from "./question.ts";
 import { organizationPostAuthorTable } from "./schema.ts";
@@ -28,7 +27,7 @@ test("createQuestion() creates a source-backed Question with a poll", async () =
         sent.push(args);
         return Promise.resolve(undefined);
       },
-    } as unknown as Context<ContextData<Transaction>>;
+    } as unknown as ApplicationContext<Transaction>;
     const published = new Date("2026-04-15T00:00:00.000Z");
 
     const question = await createQuestion(fedCtx, {
@@ -125,7 +124,7 @@ test("createQuestion() applies post-created hooks before federation", async () =
         sent.push(args);
         return Promise.resolve(undefined);
       },
-    } as unknown as Context<ContextData<Transaction>>;
+    } as unknown as ApplicationContext<Transaction>;
     const now = new Date("2026-04-15T00:00:00.000Z");
 
     const question = await createQuestion(
@@ -195,7 +194,7 @@ test("createQuestion() does not federate none visibility polls to followers", as
         sent.push(args);
         return Promise.resolve(undefined);
       },
-    } as unknown as Context<ContextData<Transaction>>;
+    } as unknown as ApplicationContext<Transaction>;
     const now = new Date("2026-04-15T00:00:00.000Z");
 
     const question = await createQuestion(fedCtx, {
@@ -231,9 +230,7 @@ test("createQuestion() throws when a requested medium cannot be attached", async
       name: "Missing Question Media",
       email: "missingquestionmedia@example.com",
     });
-    const fedCtx = createFedCtx(tx) as unknown as Context<
-      ContextData<Transaction>
-    >;
+    const fedCtx = createFedCtx(tx);
     const now = new Date("2026-04-15T00:00:00.000Z");
 
     await assert.rejects(
@@ -283,9 +280,7 @@ test("createQuestion() creates reply notifications without duplicate mention not
       account: targetAuthor.account,
       content: "Original note",
     });
-    const fedCtx = createFedCtx(tx) as unknown as Context<
-      ContextData<Transaction>
-    >;
+    const fedCtx = createFedCtx(tx);
     fedCtx.lookupObject = (handle: string) => {
       if (handle !== "@questionreplytarget@localhost") {
         return Promise.resolve(null);
@@ -345,9 +340,7 @@ test("createQuestion() rolls back the poll when source-backed Question creation 
       name: "Invalid Question Author",
       email: "invalidquestionauthor@example.com",
     });
-    const fedCtx = createFedCtx(tx) as unknown as Context<
-      ContextData<Transaction>
-    >;
+    const fedCtx = createFedCtx(tx);
     const now = new Date("2026-04-15T00:00:00.000Z");
 
     await assert.rejects(

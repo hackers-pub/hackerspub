@@ -1,4 +1,4 @@
-import { getNodeInfo, type RequestContext } from "@fedify/fedify";
+import { getNodeInfo } from "@fedify/fedify";
 import {
   getActorHandle,
   isActor,
@@ -11,9 +11,9 @@ import { zip } from "@std/collections/zip";
 import { encodeHex } from "@std/encoding/hex";
 import { escape, unescape } from "@std/html/entities";
 import { and, eq, inArray, or, sql } from "drizzle-orm";
-import type { Disk } from "flydrive";
+import type { StorageService } from "./context.ts";
 import sharp from "sharp";
-import type { ContextData } from "./context.ts";
+import type { ApplicationContext } from "./context.ts";
 import type { Database, Transaction } from "./db.ts";
 import {
   createMediumFromBlob,
@@ -383,10 +383,10 @@ function toDeletedAccountRecipient(actor: Actor): vocab.Recipient | null {
 }
 
 async function ensureAccountKeys(
-  fedCtx: RequestContext<ContextData>,
+  fedCtx: ApplicationContext,
   accountId: Uuid,
 ): Promise<void> {
-  const context = fedCtx as RequestContext<ContextData> & {
+  const context = fedCtx as ApplicationContext & {
     getActorKeyPairs?: (identifier: string) => Promise<unknown>;
   };
   if (typeof context.getActorKeyPairs !== "function") return;
@@ -394,11 +394,11 @@ async function ensureAccountKeys(
 }
 
 export async function deleteAccount(
-  fedCtx: RequestContext<ContextData>,
+  fedCtx: ApplicationContext,
   accountId: Uuid,
   options: DeleteAccountOptions = {},
 ): Promise<DeletedAccountResult | undefined> {
-  const { db } = fedCtx.data;
+  const { db } = fedCtx;
   const accountForKeys = await db.query.accountTable.findFirst({
     where: { id: accountId },
     with: { actor: true },
@@ -598,7 +598,7 @@ export async function deleteAccount(
 }
 
 export async function getAvatarUrl(
-  disk: Disk,
+  disk: StorageService,
   account: Account & {
     emails: AccountEmail[];
     avatarMedium?: Medium | null;
@@ -636,7 +636,7 @@ async function preprocessAvatarMedium(
 
 export async function createAvatarMediumFromBlob(
   db: Database,
-  disk: Disk,
+  disk: StorageService,
   blob: Blob,
   options: { maxSize?: number } = {},
 ): Promise<Medium | undefined> {
@@ -648,7 +648,7 @@ export async function createAvatarMediumFromBlob(
 
 export async function createAvatarMediumFromUrl(
   db: Database,
-  disk: Disk,
+  disk: StorageService,
   url: URL,
   options: { maxSize?: number; userAgentUrl?: URL } = {},
 ): Promise<Medium | undefined> {
@@ -660,7 +660,7 @@ export async function createAvatarMediumFromUrl(
 
 export async function createAvatarMediumFromMedium(
   db: Database,
-  disk: Disk,
+  disk: StorageService,
   medium: Medium,
   options: { maxSize?: number } = {},
 ): Promise<Medium | undefined> {
@@ -710,10 +710,10 @@ export async function getAccountByUsername(
 }
 
 export async function updateAccount(
-  fedCtx: RequestContext<ContextData>,
+  fedCtx: ApplicationContext,
   account: Partial<NewAccount> & { id: Uuid; links?: Link[] },
 ): Promise<Account & { links: AccountLink[] } | undefined> {
-  const { db } = fedCtx.data;
+  const { db } = fedCtx;
   const result = await updateAccountData(db, account);
   if (result == null) return undefined;
   let links: AccountLink[];
@@ -735,7 +735,7 @@ export async function updateAccount(
 }
 
 export async function sendAccountActorUpdate(
-  fedCtx: RequestContext<ContextData>,
+  fedCtx: ApplicationContext,
   accountId: Uuid,
   updated: Date,
 ): Promise<void> {

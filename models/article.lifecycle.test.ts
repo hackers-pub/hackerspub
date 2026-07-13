@@ -1,9 +1,8 @@
 import assert from "node:assert";
 import test from "node:test";
-import type { Context } from "@fedify/fedify";
 import { Article as ActivityPubArticle, Create } from "@fedify/vocab";
 import { createArticle, updateArticle } from "./article.ts";
-import type { ContextData } from "./context.ts";
+import type { ApplicationContext } from "./context.ts";
 import type { Transaction } from "./db.ts";
 import {
   articleContentTable,
@@ -28,7 +27,7 @@ const fakeModels = {
 test("createArticle() creates a post and timeline entry for the author", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);
-    fedCtx.data.models = fakeModels as typeof fedCtx.data.models;
+    fedCtx.models = fakeModels as typeof fedCtx.models;
     const author = await insertAccountWithActor(tx, {
       username: "createarticleauthor",
       name: "Create Article Author",
@@ -102,8 +101,8 @@ test("createArticle() applies post-created hooks before federation", async () =>
         sent.push(args);
         return Promise.resolve(undefined);
       },
-    } as unknown as Context<ContextData<Transaction>>;
-    fedCtx.data.models = fakeModels as typeof fedCtx.data.models;
+    } as unknown as ApplicationContext<Transaction>;
+    fedCtx.models = fakeModels as typeof fedCtx.models;
 
     const article = await createArticle(
       fedCtx,
@@ -153,7 +152,7 @@ test("createArticle() applies post-created hooks before federation", async () =>
 test("createArticle() copies source media before rendering the post", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);
-    fedCtx.data.models = fakeModels as typeof fedCtx.data.models;
+    fedCtx.models = fakeModels as typeof fedCtx.models;
     const author = await insertAccountWithActor(tx, {
       username: "createarticlemediaauthor",
       name: "Create Article Media Author",
@@ -213,7 +212,7 @@ test("createArticle() copies source media before rendering the post", async () =
 test("createArticle() rejects content with missing source media", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);
-    fedCtx.data.models = fakeModels as typeof fedCtx.data.models;
+    fedCtx.models = fakeModels as typeof fedCtx.models;
     const author = await insertAccountWithActor(tx, {
       username: "missingarticlemediaauthor",
       name: "Missing Article Media Author",
@@ -243,7 +242,7 @@ test("createArticle() rejects content with missing source media", async () => {
 test("updateArticle() rewrites the persisted article post", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);
-    fedCtx.data.models = fakeModels as typeof fedCtx.data.models;
+    fedCtx.models = fakeModels as typeof fedCtx.models;
     const author = await insertAccountWithActor(tx, {
       username: "updatearticleauthor",
       name: "Update Article Author",
@@ -310,7 +309,7 @@ test("updateArticle() rewrites the persisted article post", async () => {
 test("updateArticle() notifies local sharers when the title changes", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);
-    fedCtx.data.models = fakeModels as typeof fedCtx.data.models;
+    fedCtx.models = fakeModels as typeof fedCtx.models;
     const author = await insertAccountWithActor(tx, {
       username: "updatearticleshareauthor",
       name: "Update Article Share Author",
@@ -357,7 +356,7 @@ test("updateArticle() notifies local sharers when the title changes", async () =
 test("updateArticle() attaches source media before rendering the post", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);
-    fedCtx.data.models = fakeModels as typeof fedCtx.data.models;
+    fedCtx.models = fakeModels as typeof fedCtx.models;
     const author = await insertAccountWithActor(tx, {
       username: "updatearticlemediaauthor",
       name: "Update Article Media Author",
@@ -408,7 +407,7 @@ test("updateArticle() attaches source media before rendering the post", async ()
 test("updateArticle() rejects missing source media without saving content", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);
-    fedCtx.data.models = fakeModels as typeof fedCtx.data.models;
+    fedCtx.models = fakeModels as typeof fedCtx.models;
     const author = await insertAccountWithActor(tx, {
       username: "updatearticlemissingmedia",
       name: "Update Article Missing Media",
@@ -448,7 +447,7 @@ test("updateArticle() rejects missing source media without saving content", asyn
 test("updateArticle() resets existing translation rows when the body changes", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);
-    fedCtx.data.models = fakeModels as typeof fedCtx.data.models;
+    fedCtx.models = fakeModels as typeof fedCtx.models;
     const author = await insertAccountWithActor(tx, {
       username: "retranslateauthor",
       name: "Retranslate Author",
@@ -512,7 +511,7 @@ test("updateArticle() resets existing translation rows when the body changes", a
 test("updateArticle() leaves existing translations alone on title-only edits", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);
-    fedCtx.data.models = fakeModels as typeof fedCtx.data.models;
+    fedCtx.models = fakeModels as typeof fedCtx.models;
     const author = await insertAccountWithActor(tx, {
       username: "retranslatetitleauthor",
       name: "Retranslate Title Author",
@@ -571,7 +570,7 @@ test("updateArticle() leaves existing translations alone on title-only edits", a
 test("updateArticle() does not retranslate when allowLlmTranslation is false", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);
-    fedCtx.data.models = fakeModels as typeof fedCtx.data.models;
+    fedCtx.models = fakeModels as typeof fedCtx.models;
     const author = await insertAccountWithActor(tx, {
       username: "noretranslateauthor",
       name: "No Retranslate Author",
@@ -638,7 +637,7 @@ test("updateArticle() does not retranslate when allowLlmTranslation is false", a
 test("updateArticle() does not retranslate human-curated translation rows", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);
-    fedCtx.data.models = fakeModels as typeof fedCtx.data.models;
+    fedCtx.models = fakeModels as typeof fedCtx.models;
     const author = await insertAccountWithActor(tx, {
       username: "humantranslateauthor",
       name: "Human Translate Author",

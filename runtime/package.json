@@ -1,0 +1,28 @@
+{
+  "name": "@hackerspub/runtime",
+  "type": "module",
+  "exports": {
+    "./*": "./*.ts"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "catalog:",
+    "@ai-sdk/google": "catalog:",
+    "@fedify/fedify": "catalog:",
+    "@fedify/postgres": "catalog:",
+    "@fedify/redis": "catalog:",
+    "@hackerspub/federation": "workspace:*",
+    "@hackerspub/models": "workspace:*",
+    "@keyv/redis": "catalog:",
+    "@logtape/drizzle-orm": "catalog:",
+    "@logtape/logtape": "catalog:",
+    "@upyo/core": "catalog:",
+    "@upyo/mailgun": "catalog:",
+    "@upyo/mock": "catalog:",
+    "drizzle-orm": "catalog:",
+    "flydrive": "catalog:",
+    "ioredis": "catalog:",
+    "keyv": "catalog:",
+    "keyv-file": "catalog:",
+    "postgres": "catalog:"
+  }
+}

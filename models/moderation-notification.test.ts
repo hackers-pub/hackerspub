@@ -1,7 +1,5 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import type { RequestContext } from "@fedify/fedify";
-import type { ContextData } from "@hackerspub/models/context";
 import type { Transaction } from "@hackerspub/models/db";
 import { createFlag } from "@hackerspub/models/flag";
 import {
@@ -28,7 +26,7 @@ import {
 const HOUR = 60 * 60 * 1000;
 const REASON = "This post contains harassment targeting another user.";
 
-function quietFedCtx(tx: Transaction): RequestContext<ContextData> {
+function quietFedCtx(tx: Transaction): ReturnType<typeof createFedCtx> {
   const fedCtx = createFedCtx(tx);
   // deno-lint-ignore no-explicit-any
   (fedCtx as any).sendActivity = () => Promise.resolve();
@@ -54,7 +52,7 @@ async function makeModerator(tx: Transaction, username = "moderator") {
 
 async function suspendedAccountWithAction(
   tx: Transaction,
-  fedCtx: RequestContext<ContextData>,
+  fedCtx: ReturnType<typeof createFedCtx>,
   suspensionEnds: Date,
 ) {
   const moderator = await makeModerator(tx);

@@ -10,10 +10,6 @@ import {
   unpinHashtag,
   validateHashtag,
 } from "@hackerspub/models/hashtag";
-import {
-  subscribeTagsPubHashtag,
-  unsubscribeTagsPubHashtag,
-} from "../federation/tags-pub.ts";
 import { Account } from "./account.ts";
 import { builder } from "./builder.ts";
 import { InvalidInputError } from "./error.ts";
@@ -74,7 +70,10 @@ builder.relayMutationField(
       const countBefore = await getHashtagFollowerCount(ctx.db, tag);
       await followHashtag(ctx.db, ctx.account.id, tag);
       if (countBefore === 0) {
-        await subscribeTagsPubHashtag(ctx.fedCtx, tag);
+        await ctx.fedCtx.services.federation.subscribeTagsPubHashtag(
+          ctx.fedCtx,
+          tag,
+        );
       }
       return { accountId: ctx.account.id, tag };
     },
@@ -124,7 +123,10 @@ builder.relayMutationField(
       await unfollowHashtag(ctx.db, ctx.account.id, tag);
       const countAfter = await getHashtagFollowerCount(ctx.db, tag);
       if (countAfter === 0) {
-        await unsubscribeTagsPubHashtag(ctx.fedCtx, tag);
+        await ctx.fedCtx.services.federation.unsubscribeTagsPubHashtag(
+          ctx.fedCtx,
+          tag,
+        );
       }
       return { accountId: ctx.account.id, tag };
     },

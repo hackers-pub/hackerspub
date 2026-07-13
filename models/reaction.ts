@@ -1,4 +1,4 @@
-import type { Context, DocumentLoader } from "@fedify/fedify";
+import type { DocumentLoader } from "@fedify/fedify";
 import { isActor } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
 import { and, eq, inArray, sql } from "drizzle-orm";
@@ -7,7 +7,7 @@ import {
   isFederationBlocked,
   persistActor,
 } from "./actor.ts";
-import type { ContextData } from "./context.ts";
+import type { ApplicationContext } from "./context.ts";
 import type { Database } from "./db.ts";
 import { DEFAULT_REACTION_EMOJI, type ReactionEmoji } from "./emoji.ts";
 import { assertAccountActorNotSuspended } from "./moderation.ts";
@@ -70,7 +70,7 @@ export async function persistCustomEmoji(
 }
 
 export async function persistReaction(
-  ctx: Context<ContextData>,
+  ctx: ApplicationContext,
   reaction: vocab.Like | vocab.EmojiReact,
   options: {
     contextLoader?: DocumentLoader;
@@ -82,7 +82,7 @@ export async function persistReaction(
   ) {
     return undefined;
   }
-  const { db } = ctx.data;
+  const { db } = ctx;
   let actor = await getPersistedActor(db, reaction.actorId);
   const opts = { ...options, suppressError: true };
   if (actor == null) {
@@ -211,17 +211,17 @@ export async function deleteReaction(
 }
 
 export async function react(
-  ctx: Context<ContextData>,
+  ctx: ApplicationContext,
   account: Account & { actor: Actor },
   post: Post & { actor: Actor },
   emoji: ReactionEmoji | null,
   customEmojiId?: Uuid,
 ): Promise<Reaction | undefined> {
-  const { db } = ctx.data;
+  const { db } = ctx;
   await assertAccountActorNotSuspended(db, account.id);
   let iri: string;
   if (emoji != null) {
-    iri = ctx.data.services.federation.getEmojiReactId(
+    iri = ctx.services.federation.getEmojiReactId(
       ctx,
       account.id,
       post.id,
@@ -262,7 +262,7 @@ export async function react(
     );
   }
   if (emoji == null) return rows[0];
-  const activity = ctx.data.services.federation.getEmojiReact(ctx, {
+  const activity = ctx.services.federation.getEmojiReact(ctx, {
     ...rows[0],
     actor: account.actor,
     post,
@@ -299,13 +299,13 @@ export async function react(
 }
 
 export async function undoReaction(
-  ctx: Context<ContextData>,
+  ctx: ApplicationContext,
   account: Account & { actor: Actor },
   post: Post & { actor: Actor },
   emoji: ReactionEmoji | null,
   customEmojiId?: Uuid,
 ): Promise<Reaction | undefined> {
-  const { db } = ctx.data;
+  const { db } = ctx;
   const whereClause = emoji != null
     ? and(
       eq(reactionTable.postId, post.id),
@@ -342,7 +342,7 @@ export async function undoReaction(
     );
   }
   if (emoji == null) return rows[0];
-  const activity = ctx.data.services.federation.getEmojiReact(ctx, {
+  const activity = ctx.services.federation.getEmojiReact(ctx, {
     ...rows[0],
     actor: account.actor,
     post,

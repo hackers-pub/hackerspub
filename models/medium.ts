@@ -1,14 +1,14 @@
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { type Context, getUserAgent } from "@fedify/fedify";
+import { getUserAgent } from "@fedify/fedify";
 import * as vocab from "@fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import ffmpeg from "fluent-ffmpeg";
-import type { Disk } from "flydrive";
+import type { StorageService } from "./context.ts";
 import sharp from "sharp";
 import { isSSRFSafeURL } from "ssrfcheck";
-import type { ContextData } from "./context.ts";
+import type { ApplicationContext } from "./context.ts";
 import type { Database } from "./db.ts";
 import metadata from "./deno.json" with { type: "json" };
 import {
@@ -175,7 +175,7 @@ async function readResponseBytes(
 
 export async function createMediumFromBytes(
   db: Database,
-  disk: Disk,
+  disk: StorageService,
   bytes: Uint8Array | ArrayBuffer,
   options: {
     maxSize?: number;
@@ -253,7 +253,7 @@ export async function createMediumFromBytes(
 
 export async function createMediumFromBlob(
   db: Database,
-  disk: Disk,
+  disk: StorageService,
   blob: Blob,
   options: { maxSize?: number; preprocess?: MediumPreprocess } = {},
 ): Promise<Medium | undefined> {
@@ -266,7 +266,7 @@ export async function createMediumFromBlob(
 
 export async function createMediumFromUrl(
   db: Database,
-  disk: Disk,
+  disk: StorageService,
   url: URL,
   options: {
     maxSize?: number;
@@ -343,14 +343,14 @@ export async function createMediumForExistingKey(
 }
 
 export async function getMediumUrl(
-  disk: Disk,
+  disk: StorageService,
   medium: Pick<Medium, "key">,
 ): Promise<string> {
   return await disk.getUrl(medium.key);
 }
 
 export async function persistPostMedium(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   document: vocab.Document,
   postId: Uuid,
   index: number,
@@ -438,7 +438,7 @@ export async function persistPostMedium(
       );
       if (!screenshotCreated) return undefined;
       const screenshot = join(tmpDir, "screenshot.png");
-      await fedCtx.data.disk.put(
+      await fedCtx.storage.put(
         thumbnailKey = `videos/${crypto.randomUUID()}.png`,
         await readFile(screenshot),
       );
@@ -457,7 +457,7 @@ export async function persistPostMedium(
     thumbnailKey,
     sensitive: document.sensitive ?? false,
   } satisfies NewPostMedium;
-  const result = await fedCtx.data.db.insert(postMediumTable)
+  const result = await fedCtx.db.insert(postMediumTable)
     .values(values)
     .onConflictDoUpdate({
       target: [postMediumTable.postId, postMediumTable.index],

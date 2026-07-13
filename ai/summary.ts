@@ -1,4 +1,4 @@
-import { generateText } from "ai";
+import { generateText, type LanguageModel } from "ai";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import {
@@ -6,7 +6,7 @@ import {
   isLocale,
   type Locale,
 } from "@hackerspub/models/i18n";
-import type { SummaryOptions } from "@hackerspub/models/services";
+import type { SummaryOptions as ApplicationSummaryOptions } from "@hackerspub/models/services";
 import { removeDetailsFromSummaryInput } from "@hackerspub/models/summary";
 
 const PROMPT_LANGUAGES: Locale[] = (
@@ -15,6 +15,11 @@ const PROMPT_LANGUAGES: Locale[] = (
     { withFileTypes: true },
   )
 ).map((f) => f.name.replace(/\.md$/, "")).filter(isLocale);
+
+export interface SummaryOptions
+  extends Omit<ApplicationSummaryOptions, "model"> {
+  model: LanguageModel;
+}
 
 async function getSummaryPrompt(
   sourceLanguage: string,
@@ -39,7 +44,6 @@ async function getSummaryPrompt(
 }
 
 export { removeDetailsFromSummaryInput };
-export type { SummaryOptions };
 
 export async function summarize(options: SummaryOptions): Promise<string> {
   const system = await getSummaryPrompt(

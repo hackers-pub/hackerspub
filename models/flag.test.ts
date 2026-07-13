@@ -8,7 +8,6 @@ import {
   postTable,
 } from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
-import type { LanguageModel } from "ai";
 import { eq, sql } from "drizzle-orm";
 import {
   insertAccountWithActor,
@@ -18,6 +17,7 @@ import {
   withRollback,
 } from "../test/postgres.ts";
 import type { Transaction } from "./db.ts";
+import { defineApplicationModel } from "./context.ts";
 import {
   analyzeFlag,
   createFlag,
@@ -592,7 +592,7 @@ describe("analyzeFlag()", () => {
             });
           },
         },
-        { modelId: "test-analyzer" } as LanguageModel,
+        defineApplicationModel({}, "test-analyzer"),
         flag,
         flag.snapshot,
       );
@@ -621,7 +621,7 @@ describe("analyzeFlag()", () => {
             return Promise.reject(new Error("analyzer unavailable"));
           },
         },
-        { modelId: "failing-analyzer" } as LanguageModel,
+        defineApplicationModel({}, "failing-analyzer"),
         flag,
         flag.snapshot,
       );

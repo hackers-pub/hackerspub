@@ -30,7 +30,6 @@ import { createGraphQLError } from "graphql-yoga";
 import { parseTemplate } from "url-template";
 import { Account } from "./account.ts";
 import { builder } from "./builder.ts";
-import { EMAIL_FROM } from "./email.ts";
 import { SessionRef } from "./session.ts";
 
 const logger = getLogger(["hackerspub", "graphql", "login"]);
@@ -148,6 +147,7 @@ builder.mutationFields((t) => ({
       const messages: Message[] = [];
       for (const { email } of account.emails) {
         const message = await getEmailMessage({
+          from: ctx.emailFrom,
           locale: args.locale,
           to: email,
           verifyUrlTemplate: args.verifyUrl,
@@ -235,6 +235,7 @@ builder.mutationFields((t) => ({
       const messages: Message[] = [];
       for (const { email } of account.emails) {
         const message = await getEmailMessage({
+          from: ctx.emailFrom,
           locale: args.locale,
           to: email,
           verifyUrlTemplate: args.verifyUrl,
@@ -464,7 +465,8 @@ async function getEmailTemplate(
   };
 }
 
-async function getEmailMessage({ locale, to, verifyUrlTemplate, token }: {
+async function getEmailMessage({ from, locale, to, verifyUrlTemplate, token }: {
+  from: string;
   locale: Intl.Locale;
   to: string;
   verifyUrlTemplate: string;
@@ -488,7 +490,7 @@ async function getEmailMessage({ locale, to, verifyUrlTemplate, token }: {
         : expiration;
     });
   return createMessage({
-    from: EMAIL_FROM,
+    from,
     to,
     subject: template.subject,
     content: {

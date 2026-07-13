@@ -7,7 +7,6 @@ import { join } from "@std/path";
 import { createMessage, type Message } from "@upyo/core";
 import { createGraphQLError } from "graphql-yoga";
 import { parseTemplate } from "url-template";
-import { EMAIL_FROM } from "./email.ts";
 
 const LOCALES_DIR = join(import.meta.dirname!, "locales");
 
@@ -90,15 +89,17 @@ async function getEmailTemplate(
 }
 
 export async function getEmailMessage(
-  { locale, inviter, to, verifyUrlTemplate, token, message, expiration }: {
-    locale: Intl.Locale;
-    inviter: AccountTable & { actor: Actor };
-    to: string;
-    verifyUrlTemplate: string;
-    token: SignupToken;
-    message?: string;
-    expiration: Temporal.Duration;
-  },
+  { from, locale, inviter, to, verifyUrlTemplate, token, message, expiration }:
+    {
+      from: string;
+      locale: Intl.Locale;
+      inviter: AccountTable & { actor: Actor };
+      to: string;
+      verifyUrlTemplate: string;
+      token: SignupToken;
+      message?: string;
+      expiration: Temporal.Duration;
+    },
 ): Promise<Message> {
   const verifyUrl = parseTemplate(verifyUrlTemplate).expand({
     token: token.token,
@@ -134,7 +135,7 @@ export async function getEmailMessage(
   }
   const textContent = substitute(template.content);
   return createMessage({
-    from: EMAIL_FROM,
+    from,
     to,
     subject: substitute(template.subject),
     content: {

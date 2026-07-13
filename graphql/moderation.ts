@@ -358,11 +358,11 @@ builder.mutationField("reportContent", (t) =>
       // Fire-and-forget: the LLM code of conduct matching runs in the
       // background on the root database handle and stores its result (or
       // failure) in flag.llmAnalysis; it never blocks report creation.
-      const analyzer = ctx.fedCtx.data.models.moderationAnalyzer;
+      const analyzer = ctx.fedCtx.models.moderationAnalyzer;
       if (analyzer != null) {
         void analyzeFlag(
           ctx.db,
-          ctx.fedCtx.data.services.ai,
+          ctx.fedCtx.services.ai,
           analyzer,
           flag,
           flag.snapshot,
@@ -1266,6 +1266,7 @@ async function sendModerationActionEmail(
   const messages = await Promise.all(
     emails.map(({ email }) =>
       getModerationActionEmail({
+        from: ctx.emailFrom,
         locale,
         to: email,
         action,
@@ -1931,7 +1932,12 @@ builder.mutationField("resolveFlagAppeal", (t) =>
             .filter((email) => email.verified != null);
           const locale = new Intl.Locale(appellant.locales?.[0] ?? "en");
           const messages = await Promise.all(emails.map(({ email }) =>
-            getAppealResolvedEmail({ locale, to: email, appeal })
+            getAppealResolvedEmail({
+              from: ctx.emailFrom,
+              locale,
+              to: email,
+              appeal,
+            })
           ));
           for await (const receipt of ctx.email.sendMany(messages)) {
             if (!receipt.successful) {

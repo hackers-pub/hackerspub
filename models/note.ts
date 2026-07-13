@@ -1,10 +1,9 @@
-import type { Context } from "@fedify/fedify";
 import type { Recipient } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
 import { eq, sql } from "drizzle-orm";
-import type { Disk } from "flydrive";
+import type { StorageService } from "./context.ts";
 import { syncActorFromAccount } from "./actor.ts";
-import type { ContextData } from "./context.ts";
+import type { ApplicationContext } from "./context.ts";
 import type { Database, Transaction } from "./db.ts";
 import { assertAccountActorNotSuspended } from "./moderation.ts";
 import {
@@ -299,7 +298,7 @@ export async function getNoteSource(
 
 export async function createNoteSourceMedium(
   db: Database,
-  disk: Disk,
+  disk: StorageService,
   sourceId: Uuid,
   index: number,
   input: { blob: Blob; alt: string } | { mediumId: Uuid; alt: string },
@@ -318,7 +317,7 @@ export async function createNoteSourceMedium(
 }
 
 export async function createNote(
-  fedCtx: Context<ContextData<Transaction>>,
+  fedCtx: ApplicationContext<Transaction>,
   source: Omit<NewNoteSource, "id"> & {
     id?: Uuid;
     media: ({ blob: Blob; alt: string } | { mediumId: Uuid; alt: string })[];
@@ -341,7 +340,7 @@ export async function createNote(
     media: PostMedium[];
   } | undefined
 > {
-  const { db, disk } = fedCtx.data;
+  const { db, storage: disk } = fedCtx;
   const account = await db.query.accountTable.findFirst({
     where: { id: source.accountId },
     with: { avatarMedium: true, emails: true, links: true },
@@ -395,7 +394,7 @@ export async function createNote(
   }
   await addPostToTimeline(db, post);
   await options.afterPostCreated?.(post, db);
-  const noteObject = await fedCtx.data.services.federation.getNote(
+  const noteObject = await fedCtx.services.federation.getNote(
     fedCtx,
     { ...noteSource, media, account },
     {
@@ -420,7 +419,7 @@ export async function createNote(
   const quoteRequestTarget = post.quoteRequestTarget;
   if (post.quoteRequestRequired && quoteRequestTarget != null) {
     const requestId = new URL("#quote-request", noteObject.id ?? fedCtx.origin);
-    const instrument = await fedCtx.data.services.federation.getNote(
+    const instrument = await fedCtx.services.federation.getNote(
       fedCtx,
       { ...noteSource, media, account },
       {
@@ -499,7 +498,7 @@ export async function createNote(
       },
     );
   }
-  const relayedTags = await fedCtx.data.services.federation
+  const relayedTags = await fedCtx.services.federation
     .sendTagsPubRelayActivity(
       fedCtx,
       source.accountId,
@@ -566,7 +565,7 @@ export async function updateNoteSource(
 }
 
 export async function updateNote(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   noteSourceId: Uuid,
   source: Partial<NewNoteSource>,
 ): Promise<
@@ -583,7 +582,7 @@ export async function updateNote(
     media: PostMedium[];
   } | undefined
 > {
-  const { db } = fedCtx.data;
+  const { db } = fedCtx;
   const previousPost = await db.query.postTable.findFirst({
     where: { noteSourceId },
   });
@@ -619,7 +618,7 @@ export async function updateNote(
   // but no Update(Note) is delivered to mentions, followers, or tag relays
   // while it remains censored.
   if (post.censored != null) return post;
-  const noteObject = await fedCtx.data.services.federation.getNote(
+  const noteObject = await fedCtx.services.federation.getNote(
     fedCtx,
     { ...noteSource, media, account },
     {
@@ -691,7 +690,7 @@ export async function updateNote(
       },
     );
   }
-  const relayedTags = await fedCtx.data.services.federation
+  const relayedTags = await fedCtx.services.federation
     .sendTagsPubRelayActivity(
       fedCtx,
       noteSource.accountId,

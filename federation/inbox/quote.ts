@@ -16,6 +16,7 @@ import {
   persistActor,
 } from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
+import { toApplicationContext } from "../context.ts";
 import {
   canActorQuotePost,
   canActorRequestQuotePost,
@@ -81,7 +82,11 @@ export async function onQuoteRequested(
       suppressError: true,
     });
     if (!isActor(actorObject)) return;
-    actor = await persistActor(fedCtx, actorObject, fedCtx);
+    actor = await persistActor(
+      toApplicationContext(fedCtx),
+      actorObject,
+      fedCtx,
+    );
     if (actor == null) return;
   }
   const quotedPost = await getQuoteRequestTarget(
@@ -114,10 +119,14 @@ export async function onQuoteRequested(
   }
   const { instrument, instrumentIri } = validInstrument;
   if (!canActorQuotePost(quotedPost, actor)) {
-    const quotePost = await persistPost(fedCtx, instrument, {
-      actor,
-      replies: false,
-    });
+    const quotePost = await persistPost(
+      toApplicationContext(fedCtx),
+      instrument,
+      {
+        actor,
+        replies: false,
+      },
+    );
     if (quotePost == null) return;
     await fedCtx.data.db.update(postTable)
       .set({ quoteTargetState: "pending" })

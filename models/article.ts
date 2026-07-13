@@ -1,8 +1,7 @@
-import type { Context } from "@fedify/fedify";
 import * as vocab from "@fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import { minBy } from "@std/collections/min-by";
-import type { LanguageModel } from "ai";
+import type { ApplicationModel } from "./context.ts";
 import {
   and,
   eq,
@@ -13,9 +12,9 @@ import {
   or,
   sql,
 } from "drizzle-orm";
-import type { Disk } from "flydrive";
+import type { StorageService } from "./context.ts";
 import postgres from "postgres";
-import type { ContextData, Models } from "./context.ts";
+import type { ApplicationContext, Models } from "./context.ts";
 import type { Database, Transaction } from "./db.ts";
 import { assertAccountActorNotSuspended } from "./moderation.ts";
 import { syncPostFromArticleSource } from "./post.ts";
@@ -145,7 +144,7 @@ async function updateArticleSourceMedia(
 
 export async function getArticleDraftMediumUrls(
   db: Database,
-  disk: Disk,
+  disk: StorageService,
   draftId: Uuid,
 ): Promise<Record<string, string>> {
   const media = await db.query.articleDraftMediumTable.findMany({
@@ -164,7 +163,7 @@ export async function getArticleDraftMediumUrls(
 
 export async function getArticleSourceMediumUrls(
   db: Database,
-  disk: Disk,
+  disk: StorageService,
   sourceId: Uuid,
 ): Promise<Record<string, string>> {
   const media = await db.query.articleSourceMediumTable.findMany({
@@ -375,20 +374,20 @@ export async function createArticleSource(
 }
 
 async function queueArticleContentSummary(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   content: ArticleContent,
 ): Promise<void> {
   await queueAfterCommit(fedCtx, () =>
     startArticleContentSummary(
-      fedCtx.data.rootDb ?? fedCtx.data.db,
-      fedCtx.data.models.summarizer,
+      fedCtx.rootDb ?? fedCtx.db,
+      fedCtx.models.summarizer,
       content,
-      fedCtx.data.services.ai.summarize,
+      fedCtx.services.ai.summarize,
     ));
 }
 
 export async function createArticle(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   source: Omit<NewArticleSource, "id"> & {
     id?: Uuid;
     title: string;
@@ -412,7 +411,7 @@ export async function createArticle(
     };
   } | undefined
 > {
-  const { db } = fedCtx.data;
+  const { db } = fedCtx;
   // Check the suspension before any insert: when this function runs
   // without an enclosing transaction (the legacy draft-publish route),
   // a guard placed after createArticleSource would leave already-
@@ -428,8 +427,8 @@ export async function createArticle(
   }
   const articleSource = await createArticleSource(
     db,
-    fedCtx.data.models,
-    fedCtx.data.services.ai,
+    fedCtx.models,
+    fedCtx.services.ai,
     articleSourceInput,
     { summarize: false },
   );
@@ -456,7 +455,7 @@ export async function createArticle(
   });
   await addPostToTimeline(db, post);
   await options.afterPostCreated?.(post, db);
-  const articleObject = await fedCtx.data.services.federation.getArticle(
+  const articleObject = await fedCtx.services.federation.getArticle(
     fedCtx,
     { ...articleSource, account },
   );
@@ -477,7 +476,7 @@ export async function createArticle(
       excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
     },
   );
-  const relayedTags = await fedCtx.data.services.federation
+  const relayedTags = await fedCtx.services.federation
     .sendTagsPubRelayActivity(
       fedCtx,
       source.accountId,
@@ -653,7 +652,7 @@ export async function updateArticleSource(
 }
 
 export async function updateArticle(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   articleSourceId: Uuid,
   source: Partial<NewArticleSource> & {
     title?: string;
@@ -672,7 +671,7 @@ export async function updateArticle(
     };
   } | undefined
 > {
-  const { db, models } = fedCtx.data;
+  const { db, models } = fedCtx;
   const previousPost = await db.query.postTable.findFirst({
     where: { articleSourceId },
   });
@@ -681,7 +680,7 @@ export async function updateArticle(
     articleSourceId,
     source,
     models,
-    fedCtx.data.services.ai,
+    fedCtx.services.ai,
   );
   if (updateResult == null) return undefined;
   const { source: articleSource, originalContentChanged } = updateResult;
@@ -699,7 +698,7 @@ export async function updateArticle(
   // tag relays, and translation restarts (each of which fires its own Update)
   // are skipped, while it remains censored.
   if (post.censored != null) return post;
-  const articleObject = await fedCtx.data.services.federation.getArticle(
+  const articleObject = await fedCtx.services.federation.getArticle(
     fedCtx,
     { ...articleSource, account },
   );
@@ -726,7 +725,7 @@ export async function updateArticle(
       ],
     },
   );
-  const relayedTags = await fedCtx.data.services.federation
+  const relayedTags = await fedCtx.services.federation
     .sendTagsPubRelayActivity(
       fedCtx,
       articleSource.accountId,
@@ -800,7 +799,7 @@ export function getOriginalArticleContent(
 
 export async function startArticleContentSummary(
   db: Database,
-  model: LanguageModel,
+  model: ApplicationModel,
   content: ArticleContent,
   summarize: AiServices["summarize"],
 ): Promise<void> {
@@ -1008,10 +1007,10 @@ export interface ArticleContentTranslationOptions {
 }
 
 export async function startArticleContentTranslation(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   { content, targetLanguage, requester }: ArticleContentTranslationOptions,
 ): Promise<ArticleContent> {
-  const { db } = fedCtx.data;
+  const { db } = fedCtx;
   // Stamp `updated` with a JS-side Date rather than letting it
   // default to PG's `CURRENT_TIMESTAMP`.  See the long comment on
   // the CAS in `runArticleContentTranslation` for why this matters:
@@ -1129,10 +1128,10 @@ export async function startArticleContentTranslation(
  * <https://github.com/hackers-pub/hackerspub/issues/95>.
  */
 export async function restartArticleContentTranslations(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   articleSource: ArticleSource,
 ): Promise<void> {
-  const { db } = fedCtx.data;
+  const { db } = fedCtx;
   // Serialize the read-original-then-reset-translations sequence
   // against any other writer to this article's source row.  Two
   // concurrent restartArticleContentTranslations calls (driven by
@@ -1295,10 +1294,10 @@ export function splitTranslationTitleAndContent(
  * the row into the placeholder state first.
  */
 async function runArticleContentTranslation(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   queued: ArticleContent,
 ): Promise<void> {
-  const { db, models: { translator: model, summarizer } } = fedCtx.data;
+  const { db, models: { translator: model, summarizer } } = fedCtx;
   logger.debug(
     "Starting translation for content: {sourceId} {language}",
     queued,
@@ -1395,7 +1394,7 @@ async function runArticleContentTranslation(
   // `article_content_being_translated_check` makes that imply
   // `originalLanguage IS NOT NULL`.  Drizzle types it as nullable
   // because the column is nullable in general, so assert.
-  fedCtx.data.services.ai.translate({
+  fedCtx.services.ai.translate({
     model,
     summarizationModel: summarizer,
     sourceLanguage: claimed.originalLanguage!,
@@ -1471,11 +1470,11 @@ async function runArticleContentTranslation(
         db,
         summarizer,
         updated[0],
-        fedCtx.data.services.ai.summarize,
+        fedCtx.services.ai.summarize,
       );
       return;
     }
-    const articleObject = await fedCtx.data.services.federation.getArticle(
+    const articleObject = await fedCtx.services.federation.getArticle(
       fedCtx,
       article,
     );
@@ -1515,7 +1514,7 @@ async function runArticleContentTranslation(
       },
     );
     if (post != null) {
-      const relayedTags = await fedCtx.data.services.federation
+      const relayedTags = await fedCtx.services.federation
         .sendTagsPubRelayActivity(
           fedCtx,
           article.accountId,
@@ -1538,7 +1537,7 @@ async function runArticleContentTranslation(
       db,
       summarizer,
       updated[0],
-      fedCtx.data.services.ai.summarize,
+      fedCtx.services.ai.summarize,
     );
   }).catch(async (error) => {
     logger.error("Translation failed ({sourceId} {language}): {error}", {

@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import test from "node:test";
 import { sql } from "drizzle-orm";
-import { db } from "../graphql/db.ts";
+import { db } from "../test/database.ts";
 import {
   createFollowNotification,
   createOrganizationInvitationNotification,

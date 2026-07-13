@@ -7,6 +7,7 @@ import {
   type MessageQueue,
 } from "@fedify/fedify";
 import { Organization, Update } from "@fedify/vocab";
+import { toApplicationContext } from "@hackerspub/federation/context";
 import { eq, sql } from "drizzle-orm";
 import { registerPushNotificationTarget } from "./push.ts";
 import type { ContextData } from "./context.ts";
@@ -1031,7 +1032,11 @@ test("acceptOrganizationConversion() sends Update(Organization) to followers", a
       },
     } as typeof baseFedCtx;
 
-    await acceptOrganizationConversion(fedCtx, admin.account, request.id);
+    await acceptOrganizationConversion(
+      toApplicationContext(fedCtx),
+      admin.account,
+      request.id,
+    );
 
     assert.equal(sent.length, 1);
     assert.equal(sent[0].recipient, "followers");
@@ -1112,7 +1117,11 @@ test("acceptOrganizationConversion() enqueues Update(Organization) through Fedif
       },
     );
 
-    await acceptOrganizationConversion(fedCtx, admin.account, request.id);
+    await acceptOrganizationConversion(
+      toApplicationContext(fedCtx),
+      admin.account,
+      request.id,
+    );
 
     assert.equal(queued.length, 1);
   });

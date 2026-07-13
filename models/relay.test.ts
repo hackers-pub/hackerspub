@@ -1,14 +1,12 @@
 import assert from "node:assert";
 import test from "node:test";
 import { Follow, Undo } from "@fedify/vocab";
-import type { RequestContext } from "@fedify/fedify";
 import { eq } from "drizzle-orm";
 import {
   createFedCtx,
   insertRemoteActor,
   withRollback,
 } from "../test/postgres.ts";
-import type { ContextData } from "./context.ts";
 import { relaySubscriptionTable } from "./schema.ts";
 import {
   getRelayFollowIri,
@@ -28,7 +26,7 @@ interface SentActivity {
 function withCapturingFedCtx(
   tx: Parameters<typeof createFedCtx>[0],
 ): {
-  fedCtx: RequestContext<ContextData>;
+  fedCtx: ReturnType<typeof createFedCtx>;
   sent: SentActivity[];
 } {
   const fedCtx = createFedCtx(tx);

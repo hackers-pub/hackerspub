@@ -1,8 +1,7 @@
-import type { Context } from "@fedify/fedify";
 import { Follow, Undo } from "@fedify/vocab";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { toRecipient } from "./actor.ts";
-import type { ContextData } from "./context.ts";
+import type { ApplicationContext } from "./context.ts";
 import type { Database } from "./db.ts";
 import {
   type Actor,
@@ -26,7 +25,7 @@ export type RelaySubscriptionWithActor = RelaySubscription & {
  * origin's hostname (e.g. `hackers.pub`).  The instance actor has no `Account`
  * or `actorTable` row; it is dispatched purely from this identifier.
  */
-function getInstanceActorIdentifier(fedCtx: Context<ContextData>): string {
+function getInstanceActorIdentifier(fedCtx: ApplicationContext): string {
   return new URL(fedCtx.canonicalOrigin).hostname;
 }
 
@@ -36,7 +35,7 @@ function getInstanceActorIdentifier(fedCtx: Context<ContextData>): string {
  * `Accept`/`Reject`, letting us reconcile the response to the exact row.
  */
 export function getRelayFollowIri(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   subscriptionId: Uuid,
 ): URL {
   const identifier = getInstanceActorIdentifier(fedCtx);
@@ -77,10 +76,10 @@ export function getRelaySubscription(
  * `undefined`.
  */
 export async function subscribeRelay(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   relayActor: Actor,
 ): Promise<RelaySubscription | undefined> {
-  const { db } = fedCtx.data;
+  const { db } = fedCtx;
   const id = generateUuidV7();
   const followIri = getRelayFollowIri(fedCtx, id);
   const rows = await db.insert(relaySubscriptionTable).values({
@@ -132,10 +131,10 @@ export async function subscribeRelay(
  * was already gone.
  */
 export async function unsubscribeRelay(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   subscription: RelaySubscription & { actor: Actor },
 ): Promise<RelaySubscription | undefined> {
-  const { db } = fedCtx.data;
+  const { db } = fedCtx;
   const identifier = getInstanceActorIdentifier(fedCtx);
   const followIri = new URL(subscription.followIri);
   await fedCtx.sendActivity(

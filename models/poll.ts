@@ -1,4 +1,4 @@
-import type { Context, DocumentLoader } from "@fedify/fedify";
+import type { DocumentLoader } from "@fedify/fedify";
 import { assertAccountActorNotSuspended } from "./moderation.ts";
 import * as vocab from "@fedify/vocab";
 import { and, eq, inArray, sql } from "drizzle-orm";
@@ -9,7 +9,7 @@ import {
   persistActor,
   toRecipient,
 } from "./actor.ts";
-import type { ContextData } from "./context.ts";
+import type { ApplicationContext } from "./context.ts";
 import { toDate } from "./date.ts";
 import type { Database, Transaction } from "./db.ts";
 import { createPollEndedNotification } from "./notification.ts";
@@ -252,7 +252,7 @@ export interface PersistPollVoteResult {
 }
 
 export async function persistPollVote(
-  ctx: Context<ContextData>,
+  ctx: ApplicationContext,
   note: vocab.Note,
   options: {
     contextLoader?: DocumentLoader;
@@ -263,7 +263,7 @@ export async function persistPollVote(
 }
 
 export async function persistPollVoteResult(
-  ctx: Context<ContextData>,
+  ctx: ApplicationContext,
   note: vocab.Note,
   options: {
     contextLoader?: DocumentLoader;
@@ -279,7 +279,7 @@ export async function persistPollVoteResult(
   const voteName = note.name.toString();
   const hasReplyContent = note.content != null &&
     note.content.toString().trim() !== "";
-  const { db } = ctx.data;
+  const { db } = ctx;
   // Check the cached voter first, before any remote dereference or
   // Question persistence a federation-blocked actor could trigger.
   if (await isCachedActorFederationBlocked(db, note.attributionId)) {
@@ -541,12 +541,12 @@ async function notifyClaimedEndedPolls(
 }
 
 export async function vote(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   voter: Account & { actor: Actor },
   poll: Poll & { options: PollOption[] },
   optionIndices: Set<number>,
 ): Promise<PollVote[]> {
-  const { db } = fedCtx.data;
+  const { db } = fedCtx;
   await assertAccountActorNotSuspended(db, voter.id);
   const voteInTransaction = async (tx: Transaction) => {
     if (

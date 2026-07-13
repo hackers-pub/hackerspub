@@ -1,30 +1,41 @@
 // Must be the first import — see instrument.ts for the rationale.
 import "./instrument.ts";
+import "./logging.ts";
 
 import { getXForwardedRequest } from "@hongminhee/x-forwarded-fetch";
-import * as models from "./ai.ts";
-import { db } from "./db.ts";
-import { drive } from "./drive.ts";
-import { transport as email } from "./email.ts";
-import { federation } from "./federation.ts";
-import { kv } from "./kv.ts";
+import { toApplicationContext } from "@hackerspub/federation/context";
+import {
+  getDenoEnvironment,
+  loadServerConfig,
+} from "@hackerspub/runtime/config";
+import { createRuntimeResources } from "@hackerspub/runtime/resources";
 import { createYogaServer } from "./mod.ts";
 import { handleMediumUploadProxy } from "./medium-upload.ts";
 import { services } from "./services.ts";
 import assetlinks from "./static/.well-known/assetlinks.json" with {
   type: "json",
 };
+import metadata from "./deno.json" with { type: "json" };
 const appleAppSiteAssociationJson = Deno.readTextFileSync(
   new URL("./static/.well-known/apple-app-site-association", import.meta.url),
 );
 
 const yogaServer = createYogaServer();
+const resources = await createRuntimeResources(
+  loadServerConfig(getDenoEnvironment()),
+  metadata.version,
+  {
+    fileSystemBaseUrl: new URL("./", import.meta.url),
+    federation: { manuallyStartQueue: true },
+  },
+);
+const { db, drive, email, federation, kv, models } = resources;
 
 // The federation inbox/outbox queue worker and the periodic news-score sweep
 // run in a separate process (`worker.ts`), not here: keeping that background
 // work off this event loop and DB pool is what stops it from starving
 // user-facing GraphQL requests into Caddy 504s (WEB-NEXT-1W).
-Deno.serve({ port: 8080 }, async (req, info) => {
+const server = Deno.serve({ port: 8080 }, async (req, info) => {
   try {
     req = await getXForwardedRequest(req);
     const url = new URL(req.url);
@@ -56,13 +67,16 @@ Deno.serve({ port: 8080 }, async (req, info) => {
       kv,
       disk,
       email,
-      fedCtx: federation.createContext(req, {
-        db,
-        kv,
-        disk,
-        models,
-        services,
-      }),
+      emailFrom: resources.config.email.from,
+      fedCtx: toApplicationContext(
+        federation.createContext(req, {
+          db,
+          kv,
+          disk,
+          models,
+          services,
+        }),
+      ),
       request: req,
       connectionInfo: info,
     });
@@ -74,3 +88,9 @@ Deno.serve({ port: 8080 }, async (req, info) => {
     throw e;
   }
 });
+
+for (const signal of ["SIGINT", "SIGTERM"] as const) {
+  Deno.addSignalListener(signal, () => server.shutdown());
+}
+await server.finished;
+await resources.close();

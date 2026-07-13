@@ -1,4 +1,4 @@
-import type { Context, DocumentLoader } from "@fedify/fedify";
+import type { DocumentLoader } from "@fedify/fedify";
 import { isActor } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
 import { and, eq, inArray } from "drizzle-orm";
@@ -8,7 +8,7 @@ import {
   persistActor,
   toRecipient,
 } from "./actor.ts";
-import type { ContextData } from "./context.ts";
+import type { ApplicationContext } from "./context.ts";
 import type { Database } from "./db.ts";
 import { removeFollower, unfollow } from "./following.ts";
 import {
@@ -20,7 +20,7 @@ import {
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 export async function persistBlocking(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   block: vocab.Block,
   options: {
     contextLoader?: DocumentLoader;
@@ -31,7 +31,7 @@ export async function persistBlocking(
     return undefined;
   }
   const getterOpts = { ...options, suppressError: true };
-  const { db } = fedCtx.data;
+  const { db } = fedCtx;
   let blocker = await getPersistedActor(db, block.actorId);
   if (blocker == null) {
     const actor = await block.getActor(getterOpts);
@@ -72,12 +72,12 @@ export async function persistBlocking(
 }
 
 export async function block(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   blocker: Account & { actor: Actor },
   blockee: Actor,
 ): Promise<Blocking | undefined> {
   const id = generateUuidV7();
-  const { db } = fedCtx.data;
+  const { db } = fedCtx;
   const removeLocalFollowRelationships = async () => {
     await removeFollower(fedCtx, blocker, blockee);
     await unfollow(fedCtx, blocker, blockee);
@@ -125,11 +125,11 @@ export async function block(
 }
 
 export async function unblock(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   blocker: Account & { actor: Actor },
   blockee: Actor,
 ): Promise<Blocking | undefined> {
-  const { db } = fedCtx.data;
+  const { db } = fedCtx;
   const rows = await db.delete(blockingTable).where(
     and(
       eq(blockingTable.blockerId, blocker.actor.id),

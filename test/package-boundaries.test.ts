@@ -22,9 +22,15 @@ const workspaceDirectories = [
   "asset-cdn",
   "federation",
   "models",
+  "runtime",
   "web-next",
 ] as const;
-const corePackageDirectories = ["ai", "federation", "models"] as const;
+const corePackageDirectories = [
+  "ai",
+  "federation",
+  "models",
+  "runtime",
+] as const;
 
 async function readJson<T>(url: URL): Promise<T> {
   return JSON.parse(await Deno.readTextFile(url)) as T;

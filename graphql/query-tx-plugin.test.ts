@@ -25,12 +25,35 @@ interface StubDb {
   ): Promise<unknown>;
 }
 
+interface StubApplicationContext {
+  readonly db: unknown;
+  withDatabase(db: unknown): StubApplicationContext;
+  lookupObject(value: URL): Promise<null>;
+}
+
+function makeStubApplicationContext(
+  db: unknown,
+  onLookup: (db: unknown) => void = () => {},
+): StubApplicationContext {
+  return {
+    db,
+    withDatabase(nextDb) {
+      return makeStubApplicationContext(nextDb, onLookup);
+    },
+    lookupObject(_value) {
+      onLookup(db);
+      return Promise.resolve(null);
+    },
+  };
+}
+
 interface Harness {
   readonly stubDb: StubDb;
   readonly txCalls: Array<
     { config: { isolationLevel?: string; accessMode?: string } }
   >;
-  readonly fedData: { db: unknown };
+  readonly fedData: StubApplicationContext;
+  readonly lookupState: { db?: unknown };
   readonly payload: OnExecutePayload;
   registeredExecute: ExecuteFn | undefined;
   innerExecuteSawCtxDb?: unknown;
@@ -49,15 +72,20 @@ function buildHarness(
       return await cb({ id: "tx" });
     },
   };
-  const fedData = { db: stubDb as unknown };
+  const lookupState: { db?: unknown } = {};
+  const fedData = makeStubApplicationContext(
+    stubDb,
+    (db) => lookupState.db = db,
+  );
   const contextValue = {
     db: stubDb,
-    fedCtx: { data: fedData },
+    fedCtx: fedData,
   } as unknown as UserContext;
   const harness: Harness = {
     stubDb,
     txCalls,
     fedData,
+    lookupState,
     registeredExecute: undefined,
     payload: {
       args: {
@@ -69,10 +97,11 @@ function buildHarness(
       executeFn: (async (args) => {
         const innerCtx = args.contextValue as unknown as {
           db: unknown;
-          fedCtx: { data: { db: unknown } };
+          fedCtx: StubApplicationContext;
         };
         harness.innerExecuteSawCtxDb = innerCtx.db;
-        harness.innerExecuteSawFedDb = innerCtx.fedCtx.data.db;
+        harness.innerExecuteSawFedDb = innerCtx.fedCtx.db;
+        await innerCtx.fedCtx.lookupObject(new URL("https://example.com/"));
         return { data: { __typename: "Query" } };
       }) as ExecuteFn,
       setExecuteFn(fn: ExecuteFn) {
@@ -108,7 +137,7 @@ test("useQuerySnapshotTransaction wraps a query in REPEATABLE READ", async () =>
   // legitimately write (e.g. `addPostToTimeline`, `persistPost` through
   // `ctx.fedCtx`), and locking them out would regress those flows.
   assert.deepEqual(h.txCalls[0].config.accessMode, undefined);
-  // Both ctx.db and ctx.fedCtx.data.db should observe the swap so any
+  // Both ctx.db and ctx.fedCtx.db should observe the swap so any
   // model helper invoked via fedCtx (persistActor / persistPost / ...)
   // shares the transaction snapshot.
   assert.deepEqual(
@@ -118,6 +147,11 @@ test("useQuerySnapshotTransaction wraps a query in REPEATABLE READ", async () =>
   assert.deepEqual(
     (h.innerExecuteSawFedDb as { id?: string } | undefined)?.id,
     "tx",
+  );
+  assert.deepEqual(
+    (h.lookupState.db as { id?: string } | undefined)?.id,
+    "tx",
+    "Fedify helpers must close over the transaction-scoped context",
   );
   // The originals are restored once execute returns.
   assert.deepEqual(
@@ -239,10 +273,9 @@ test("useQuerySnapshotTransaction retries on serialization failure (40001)", asy
       return await cb({ id: "tx" });
     },
   };
-  const fedData = { db: stubDb as unknown };
   const contextValue = {
     db: stubDb,
-    fedCtx: { data: fedData },
+    fedCtx: makeStubApplicationContext(stubDb),
   } as unknown as UserContext;
   let registeredExecute: ExecuteFn | undefined;
   const payload = {
@@ -284,10 +317,9 @@ test("useQuerySnapshotTransaction retries on deadlock (40P01)", async () => {
       return await cb({ id: "tx" });
     },
   };
-  const fedData = { db: stubDb as unknown };
   const contextValue = {
     db: stubDb,
-    fedCtx: { data: fedData },
+    fedCtx: makeStubApplicationContext(stubDb),
   } as unknown as UserContext;
   let registeredExecute: ExecuteFn | undefined;
   const payload = {
@@ -325,10 +357,9 @@ test("useQuerySnapshotTransaction gives up after maxRetries", async () => {
       throw makePgError("40001");
     },
   };
-  const fedData = { db: stubDb as unknown };
   const contextValue = {
     db: stubDb,
-    fedCtx: { data: fedData },
+    fedCtx: makeStubApplicationContext(stubDb),
   } as unknown as UserContext;
   let registeredExecute: ExecuteFn | undefined;
   const payload = {
@@ -373,10 +404,9 @@ test("useQuerySnapshotTransaction does not retry non-retryable errors", async ()
       throw new Error("some other error");
     },
   };
-  const fedData = { db: stubDb as unknown };
   const contextValue = {
     db: stubDb,
-    fedCtx: { data: fedData },
+    fedCtx: makeStubApplicationContext(stubDb),
   } as unknown as UserContext;
   let registeredExecute: ExecuteFn | undefined;
   const payload = {

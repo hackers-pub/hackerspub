@@ -1,9 +1,8 @@
-import type { Context } from "@fedify/fedify";
 import { isActor } from "@fedify/vocab";
 import type * as vocab from "@fedify/vocab";
 import { page } from "@fresh/core";
 import { persistActor } from "@hackerspub/models/actor";
-import type { ContextData } from "@hackerspub/models/context";
+import type { ApplicationContext } from "@hackerspub/models/context";
 import type { RelationsFilter } from "@hackerspub/models/db";
 import {
   getCensoredPostExclusionFilter,
@@ -40,7 +39,7 @@ import { db } from "../db.ts";
 import { define } from "../utils.ts";
 
 async function searchHandle(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   account?: Account,
   keyword?: string | null,
 ): Promise<string | undefined> {
@@ -90,7 +89,7 @@ async function searchHandle(
 }
 
 async function searchUrl(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   account?: Account,
   keyword?: string | null,
 ): Promise<string | undefined> {

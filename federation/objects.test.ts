@@ -1,9 +1,7 @@
 import assert from "node:assert";
 import test from "node:test";
-import type { Context } from "@fedify/fedify";
 import { MemoryKvStore } from "@fedify/fedify";
 import type { ContextData } from "@hackerspub/models/context";
-import type { Transaction } from "@hackerspub/models/db";
 import { createQuestion } from "@hackerspub/models/question";
 import {
   actorTable,
@@ -437,7 +435,7 @@ test("getQuestion() advertises the emoji reactions collection", async () => {
     });
     const published = new Date("2026-04-15T00:00:00.000Z");
     const question = await createQuestion(
-      createFedCtx(tx) as unknown as Context<ContextData<Transaction>>,
+      createFedCtx(tx),
       {
         accountId: author.account.id,
         visibility: "public",
@@ -496,7 +494,7 @@ test("source-backed Questions do not resolve through the Note dispatcher", async
     });
     const published = new Date("2026-04-15T00:00:00.000Z");
     const question = await createQuestion(
-      createFedCtx(tx) as unknown as Context<ContextData<Transaction>>,
+      createFedCtx(tx),
       {
         accountId: author.account.id,
         visibility: "public",

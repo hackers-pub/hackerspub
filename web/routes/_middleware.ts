@@ -3,6 +3,7 @@ import {
   type Locale,
   normalizeLocale,
 } from "@hackerspub/models/i18n";
+import { toApplicationContext } from "@hackerspub/federation/context";
 import { acceptsLanguages } from "@std/http/negotiation";
 import * as models from "../ai.ts";
 import { db } from "../db.ts";
@@ -21,13 +22,15 @@ import { define } from "../utils.ts";
 
 export const handler = define.middleware([
   (ctx) => {
-    const fedCtx = federation.createContext(ctx.req, {
-      db,
-      kv,
-      disk: drive.use(),
-      models,
-      services,
-    });
+    const fedCtx = toApplicationContext(
+      federation.createContext(ctx.req, {
+        db,
+        kv,
+        disk: drive.use(),
+        models,
+        services,
+      }),
+    );
     ctx.state.fedCtx = fedCtx;
     ctx.state.canonicalOrigin = fedCtx.canonicalOrigin;
     return ctx.next();

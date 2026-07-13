@@ -2,6 +2,7 @@ import assert from "node:assert";
 import test from "node:test";
 import { MockLanguageModelV3 } from "ai/test";
 import { eq } from "drizzle-orm";
+import { defineApplicationModel } from "./context.ts";
 import {
   accountTable,
   articleContentTable,
@@ -23,7 +24,7 @@ import {
 } from "../test/postgres.ts";
 import { waitFor } from "../test/wait.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
-import { db } from "../graphql/db.ts";
+import { db } from "../test/database.ts";
 
 test("startArticleContentSummary() resets summaryStarted when summarization fails", async () => {
   await withRollback(async (tx) => {
@@ -129,19 +130,11 @@ test("createArticle() starts summaries after enclosing transaction commit", asyn
     const fedCtx = createFedCtx(
       db as unknown as Parameters<typeof createFedCtx>[0],
     );
-    Object.assign(fedCtx, {
-      federation: {
-        createContext(request: Request, data: typeof fedCtx.data) {
-          return { ...fedCtx, request, data };
-        },
-      } as typeof fedCtx.federation,
-      request: new Request("http://localhost/"),
-    });
-    fedCtx.data.models = {
-      summarizer,
+    fedCtx.models = {
+      summarizer: defineApplicationModel(summarizer),
       translator: {} as never,
       moderationAnalyzer: {} as never,
-    } as typeof fedCtx.data.models;
+    } as typeof fedCtx.models;
     const published = new Date("2026-04-15T00:00:00.000Z");
     let sourceId: Uuid | undefined;
 
@@ -188,11 +181,11 @@ test("createArticle() starts summaries after enclosing transaction commit", asyn
 test("startArticleContentTranslation() deletes queued rows when translation fails", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);
-    fedCtx.data.models = {
+    fedCtx.models = {
       summarizer: {} as never,
       translator: {} as never,
       moderationAnalyzer: {} as never,
-    } as typeof fedCtx.data.models;
+    } as typeof fedCtx.models;
     const author = await insertAccountWithActor(tx, {
       username: "translationbackground",
       name: "Translation Background",
@@ -259,11 +252,11 @@ test(
       // branch, which is enough to confirm
       // restartArticleContentTranslations actually re-fired the
       // translation pipeline against the reset row.
-      fedCtx.data.models = {
+      fedCtx.models = {
         summarizer: {} as never,
         translator: {} as never,
         moderationAnalyzer: {} as never,
-      } as typeof fedCtx.data.models;
+      } as typeof fedCtx.models;
       const author = await insertAccountWithActor(tx, {
         username: "restarttranslator",
         name: "Restart Translator",
@@ -351,11 +344,11 @@ test(
   async () => {
     await withRollback(async (tx) => {
       const fedCtx = createFedCtx(tx);
-      fedCtx.data.models = {
+      fedCtx.models = {
         summarizer: {} as never,
         translator: {} as never,
         moderationAnalyzer: {} as never,
-      } as typeof fedCtx.data.models;
+      } as typeof fedCtx.models;
       const author = await insertAccountWithActor(tx, {
         username: "restartnotrans",
         name: "Restart No Translations",

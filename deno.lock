@@ -21,9 +21,9 @@
     "jsr:@logtape/drizzle-orm@2.1.1": "2.1.1",
     "jsr:@logtape/file@2.1.1": "2.1.1",
     "jsr:@logtape/logtape@2.1.1": "2.1.1",
-    "jsr:@logtape/logtape@^2.0.7": "2.2.1",
-    "jsr:@logtape/logtape@^2.1.1": "2.2.1",
-    "jsr:@logtape/logtape@^2.2.0": "2.2.1",
+    "jsr:@logtape/logtape@^2.0.7": "2.1.1",
+    "jsr:@logtape/logtape@^2.1.1": "2.2.4",
+    "jsr:@logtape/logtape@^2.2.0": "2.2.4",
     "jsr:@logtape/logtape@^2.2.0-dev.620+455a47e2": "2.2.1",
     "jsr:@logtape/redaction@2.1.1": "2.1.1",
     "jsr:@logtape/sentry@2.2.0-dev.620+455a47e2": "2.2.0-dev.620+455a47e2",
@@ -35,21 +35,24 @@
     "jsr:@std/assert@0.221": "0.221.0",
     "jsr:@std/assert@^1.0.12": "1.0.19",
     "jsr:@std/assert@~0.225.2": "0.225.3",
-    "jsr:@std/async@^1.0.12": "1.4.0",
+    "jsr:@std/async@^1.0.12": "1.5.0",
     "jsr:@std/bytes@^1.0.2": "1.0.6",
     "jsr:@std/bytes@^1.0.6": "1.0.6",
     "jsr:@std/cli@^1.0.30": "1.0.30",
-    "jsr:@std/collections@^1.0.10": "1.2.0",
+    "jsr:@std/cli@^1.0.31": "1.0.32",
+    "jsr:@std/collections@^1.0.10": "1.3.0",
     "jsr:@std/crypto@1": "1.1.0",
     "jsr:@std/crypto@^1.1.0": "1.1.0",
     "jsr:@std/data-structures@^1.0.11": "1.0.11",
     "jsr:@std/data-structures@^1.1.0": "1.1.0",
+    "jsr:@std/data-structures@^1.1.1": "1.1.1",
     "jsr:@std/datetime@~0.225.2": "0.225.7",
     "jsr:@std/dotenv@~0.225.3": "0.225.7",
-    "jsr:@std/encoding@1": "1.0.10",
+    "jsr:@std/encoding@1": "1.0.11",
     "jsr:@std/encoding@^1.0.10": "1.0.10",
-    "jsr:@std/encoding@^1.0.5": "1.0.10",
-    "jsr:@std/encoding@^1.0.8": "1.0.10",
+    "jsr:@std/encoding@^1.0.11": "1.0.11",
+    "jsr:@std/encoding@^1.0.5": "1.0.11",
+    "jsr:@std/encoding@^1.0.8": "1.0.11",
     "jsr:@std/fmt@1": "1.0.10",
     "jsr:@std/fmt@^1.0.10": "1.0.10",
     "jsr:@std/fs@1": "1.0.24",
@@ -59,8 +62,8 @@
     "jsr:@std/html@1": "1.0.7",
     "jsr:@std/html@^1.0.3": "1.0.7",
     "jsr:@std/html@^1.0.7": "1.0.7",
-    "jsr:@std/http@^1.0.13": "1.1.1",
-    "jsr:@std/http@^1.0.15": "1.1.1",
+    "jsr:@std/http@^1.0.13": "1.1.2",
+    "jsr:@std/http@^1.0.15": "1.1.2",
     "jsr:@std/internal@^1.0.12": "1.0.14",
     "jsr:@std/internal@^1.0.14": "1.0.14",
     "jsr:@std/json@^1.0.2": "1.1.0",
@@ -69,22 +72,22 @@
     "jsr:@std/media-types@^1.1.0": "1.1.0",
     "jsr:@std/net@^1.0.6": "1.0.6",
     "jsr:@std/path@0.221": "0.221.0",
-    "jsr:@std/path@1": "1.1.5",
-    "jsr:@std/path@^1.0.6": "1.1.5",
-    "jsr:@std/path@^1.0.8": "1.1.5",
-    "jsr:@std/path@^1.1.0": "1.1.5",
-    "jsr:@std/path@^1.1.5": "1.1.5",
+    "jsr:@std/path@1": "1.1.6",
+    "jsr:@std/path@^1.0.6": "1.1.6",
+    "jsr:@std/path@^1.0.8": "1.1.6",
+    "jsr:@std/path@^1.1.0": "1.1.6",
+    "jsr:@std/path@^1.1.5": "1.1.6",
+    "jsr:@std/path@^1.1.6": "1.1.6",
     "jsr:@std/regexp@^1.0.1": "1.0.1",
     "jsr:@std/regexp@^1.0.2": "1.0.2",
     "jsr:@std/semver@1": "1.0.8",
     "jsr:@std/streams@^1.1.1": "1.1.1",
     "jsr:@std/text@^1.0.12": "1.0.19",
     "jsr:@std/uuid@^1.1.0": "1.1.1",
-    "jsr:@upyo/core@~0.1.1": "0.1.2",
-    "jsr:@upyo/core@~0.1.2": "0.1.2",
-    "jsr:@upyo/mailgun@~0.1.1": "0.1.2",
-    "jsr:@upyo/mock@~0.1.1": "0.1.2",
-    "jsr:@valibot/valibot@1": "1.4.1",
+    "jsr:@upyo/core@0.5": "0.5.0",
+    "jsr:@upyo/mailgun@0.5": "0.5.0",
+    "jsr:@upyo/mock@0.5": "0.5.0",
+    "jsr:@valibot/valibot@1": "1.4.2",
     "jsr:@vertana/core@0.2": "0.2.0",
     "jsr:@vertana/facade@0.2": "0.2.0",
     "npm:@ai-sdk/anthropic@^3.0.44": "3.0.44_zod@4.2.1",
@@ -388,7 +391,7 @@
         "jsr:@std/fs@1",
         "jsr:@std/html@1",
         "jsr:@std/http@^1.0.15",
-        "jsr:@std/jsonc@1",
+        "jsr:@std/jsonc",
         "jsr:@std/media-types@1",
         "jsr:@std/path@1",
         "jsr:@std/semver",
@@ -438,6 +441,9 @@
     },
     "@logtape/logtape@2.2.1": {
       "integrity": "eef6a50f472462a639a110c4bf4def43ec2f8e1400c500e8426773ca44555bf4"
+    },
+    "@logtape/logtape@2.2.4": {
+      "integrity": "8ee23b7c8d4b2e28c43a3a16027a7a27ed3d453c395c7d91b9960640399201ec"
     },
     "@logtape/redaction@2.1.1": {
       "integrity": "7c19cd623c44e3be7204ade9f7b5cf1901fad3935bcdcbc7c8855941f960f027",
@@ -576,11 +582,20 @@
         "jsr:@std/data-structures@^1.1.0"
       ]
     },
+    "@std/async@1.5.0": {
+      "integrity": "4c1f22d287a17ad7d8643b1952bc5a4d21e5d8b68dc8c20d8268eecc69096e82",
+      "dependencies": [
+        "jsr:@std/data-structures@^1.1.1"
+      ]
+    },
     "@std/bytes@1.0.6": {
       "integrity": "f6ac6adbd8ccd99314045f5703e23af0a68d7f7e58364b47d2c7f408aeb5820a"
     },
     "@std/cli@1.0.30": {
       "integrity": "769446536522d0417d7127ebcabcafac1ab0ce6766d0eb3fca1d36326fe98d13"
+    },
+    "@std/cli@1.0.32": {
+      "integrity": "188b3a100d6202d64e3f5bd3d799c7fa4f6d77f92cc65eb7f641c1fa0aa92a66"
     },
     "@std/collections@1.1.2": {
       "integrity": "f1685dd45c3ec27c39d0e8a642ccf810f391ec8a6cb5e7355926e6dacc64c43e"
@@ -597,6 +612,9 @@
     "@std/collections@1.2.0": {
       "integrity": "47627a21d3a13138b77fd0e4d790ba9d2e603c3510b686cde6b132fe9aa98a88"
     },
+    "@std/collections@1.3.0": {
+      "integrity": "eb36b43d784477ea0b476483ac034a14bdd182aff921c812ecf662a1fcef9498"
+    },
     "@std/crypto@1.1.0": {
       "integrity": "b8d6d0a6377a32b213af2661ed7bf1062d94feac0c57def5526a8e74a95c3ec8"
     },
@@ -605,6 +623,9 @@
     },
     "@std/data-structures@1.1.0": {
       "integrity": "c35ae4ad5d8e41a38573c2fe3e19b18ea2505f63cfea201edcb8720aca1f7f58"
+    },
+    "@std/data-structures@1.1.1": {
+      "integrity": "7e1fcf19771fb9c6dbcd7f65039d6d42ef8dc023cfbc0c4cdc74b24e09229380"
     },
     "@std/datetime@0.225.7": {
       "integrity": "e62c6c454a0ecfc2918fe41e7a621e0f334a6f82605e98fd32eb1e6371999328"
@@ -620,6 +641,9 @@
     },
     "@std/encoding@1.0.10": {
       "integrity": "8783c6384a2d13abd5e9e87a7ae0520a30e9f56aeeaa3bdf910a3eaaf5c811a1"
+    },
+    "@std/encoding@1.0.11": {
+      "integrity": "e7cef2f0b3153bccc17431e7c864a1de03a4b6d9647389c43e08aaa775d37385"
     },
     "@std/fmt@1.0.10": {
       "integrity": "90dfba288802ac6de82fb31d0917eb9e4450b9925b954d5e51fc29ac07419db5"
@@ -646,7 +670,7 @@
     "@std/http@1.1.1": {
       "integrity": "e343a9a80aea07c716b91be5c79df764144430ad2dd7c9121ed7443f08dc74f7",
       "dependencies": [
-        "jsr:@std/cli",
+        "jsr:@std/cli@^1.0.30",
         "jsr:@std/encoding@^1.0.10",
         "jsr:@std/fmt@^1.0.10",
         "jsr:@std/fs@^1.0.24",
@@ -654,6 +678,20 @@
         "jsr:@std/media-types@^1.1.0",
         "jsr:@std/net",
         "jsr:@std/path@^1.1.5",
+        "jsr:@std/streams"
+      ]
+    },
+    "@std/http@1.1.2": {
+      "integrity": "1c0473590d5e5b75b30b2be4833c08047dd799aeea35624fd34ec58d67fc9240",
+      "dependencies": [
+        "jsr:@std/cli@^1.0.31",
+        "jsr:@std/encoding@^1.0.11",
+        "jsr:@std/fmt@^1.0.10",
+        "jsr:@std/fs@^1.0.24",
+        "jsr:@std/html@^1.0.7",
+        "jsr:@std/media-types@^1.1.0",
+        "jsr:@std/net",
+        "jsr:@std/path@^1.1.6",
         "jsr:@std/streams"
       ]
     },
@@ -683,6 +721,12 @@
     },
     "@std/path@1.1.5": {
       "integrity": "ccea00982ea28c36becaf6e62f855406c76a8c32d462f66f415bbb7d83a271bc",
+      "dependencies": [
+        "jsr:@std/internal@^1.0.14"
+      ]
+    },
+    "@std/path@1.1.6": {
+      "integrity": "c68485c2a4dfbb5ae3cc74fae4e8c4e5d874cf8a8ed12927917235c758b46cbe",
       "dependencies": [
         "jsr:@std/internal@^1.0.14"
       ]
@@ -736,31 +780,19 @@
     "@upyo/core@0.1.1": {
       "integrity": "1a6a29b263734881a6fb3fa083329a9c956abc48552dcc9cca4f54b89acc8a5d"
     },
-    "@upyo/core@0.1.2": {
-      "integrity": "d096e0009313206e547892648cb0b82864c28e8d2611e73474c24c13204e90e7"
+    "@upyo/core@0.5.0": {
+      "integrity": "bc963a289248558815ee8e9168def2ec62aeb8287bec54580ff8aac6527d587c"
     },
-    "@upyo/mailgun@0.1.1": {
-      "integrity": "6727e3cb5bed340cc5ab473f7f65e6ac38318e44adfcd4110322f8bc4a52b4fb",
+    "@upyo/mailgun@0.5.0": {
+      "integrity": "c90403a12f8226d19db67f0e496e93c87d974781fd7d61317fff33f507284065",
       "dependencies": [
-        "jsr:@upyo/core@~0.1.1"
+        "jsr:@upyo/core"
       ]
     },
-    "@upyo/mailgun@0.1.2": {
-      "integrity": "f785efaf77536e34f832a8e125044e5ff44bea4f042fc25b790e359100781571",
+    "@upyo/mock@0.5.0": {
+      "integrity": "d6be2bcc6ea31756a0eecaa52da5c3311ecc6eb5d6c2facc91d26e39ce113e16",
       "dependencies": [
-        "jsr:@upyo/core@~0.1.2"
-      ]
-    },
-    "@upyo/mock@0.1.1": {
-      "integrity": "9589150113e11078cbc3af67ec1b3c7a213f223163290bde803dcae52a6c9a08",
-      "dependencies": [
-        "jsr:@upyo/core@~0.1.1"
-      ]
-    },
-    "@upyo/mock@0.1.2": {
-      "integrity": "180ed3d9a0967d84e947fcbf7cf8fa3f0caad504303acf18f111eb2114ff6f18",
-      "dependencies": [
-        "jsr:@upyo/core@~0.1.2"
+        "jsr:@upyo/core"
       ]
     },
     "@valibot/valibot@1.1.0": {
@@ -777,6 +809,9 @@
     },
     "@valibot/valibot@1.4.1": {
       "integrity": "9be12a3f73f3fd00fa44ae189bc1bb3ab4d9088ec2e32a6ab370ae4fca29ee6e"
+    },
+    "@valibot/valibot@1.4.2": {
+      "integrity": "14f7fbb7474a8ade216224062d1e8b23cd17ecbb5176fc23595e846778c4725d"
     },
     "@vertana/core@0.2.0": {
       "integrity": "ed9fc31b64d6d3d61f1522b71ca3f2417621d5e764731b8baf09e8646d0b6a72",
@@ -13186,9 +13221,9 @@
       "jsr:@std/path@^1.0.8",
       "jsr:@std/text@^1.0.12",
       "jsr:@std/uuid@^1.1.0",
-      "jsr:@upyo/core@~0.1.1",
-      "jsr:@upyo/mailgun@~0.1.1",
-      "jsr:@upyo/mock@~0.1.1",
+      "jsr:@upyo/core@0.5",
+      "jsr:@upyo/mailgun@0.5",
+      "jsr:@upyo/mock@0.5",
       "jsr:@valibot/valibot@1",
       "jsr:@vertana/core@0.2",
       "jsr:@vertana/facade@0.2",

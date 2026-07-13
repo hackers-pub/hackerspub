@@ -1,4 +1,4 @@
-import type { Context, DocumentLoader } from "@fedify/fedify";
+import type { DocumentLoader } from "@fedify/fedify";
 import {
   getActorHandle,
   getActorTypeName,
@@ -28,7 +28,7 @@ import {
   getAvatarUrl as getAccountAvatarUrl,
   renderAccountLinks,
 } from "./account.ts";
-import type { ContextData } from "./context.ts";
+import type { ApplicationContext } from "./context.ts";
 import { isActorSuspended } from "./moderation.ts";
 import { toDate } from "./date.ts";
 import metadata from "./deno.json" with { type: "json" };
@@ -100,7 +100,7 @@ async function mapWithConcurrencyLimit<T, TResult>(
 }
 
 export async function syncActorFromAccount(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   account: Account & {
     avatarMedium: Medium | null;
     emails: AccountEmail[];
@@ -121,7 +121,7 @@ export async function syncActorFromAccount(
     software: "hackerspub",
     softwareVersion: metadata.version,
   };
-  const { db, kv, disk } = fedCtx.data;
+  const { db, kv, storage: disk } = fedCtx;
   const instances = await db.insert(instanceTable)
     .values(instance)
     .onConflictDoUpdate({
@@ -169,7 +169,7 @@ export async function syncActorFromAccount(
 }
 
 export async function persistActor(
-  ctx: Context<ContextData>,
+  ctx: ApplicationContext,
   actor: vocab.Actor,
   options: {
     contextLoader?: DocumentLoader;
@@ -189,9 +189,9 @@ export async function persistActor(
     return undefined;
   }
   if (actor.id.origin === ctx.canonicalOrigin) {
-    return await getPersistedActor(ctx.data.db, actor.id.href);
+    return await getPersistedActor(ctx.db, actor.id.href);
   }
-  const { db } = ctx.data;
+  const { db } = ctx;
   // Remote actors under an active moderation suspension are federation-
   // blocked: their activities are dropped at this single choke point
   // (nearly every inbox handler bails when the actor fails to persist),
@@ -463,7 +463,7 @@ export function getPersistedActor(
 const KV_UNREACHABLE_HANDLES_NAMESPACE = "unreachable-handles";
 
 export async function persistActorsByHandles(
-  ctx: Context<ContextData>,
+  ctx: ApplicationContext,
   handles: string[],
 ): Promise<Record<string, Actor & { instance: Instance }>> {
   const filter: RelationsFilter<"actorTable">[] = [];
@@ -485,7 +485,7 @@ export async function persistActorsByHandles(
     });
   }
   if (filter.length < 1) return {};
-  const { db } = ctx.data;
+  const { db } = ctx;
   const existingActors = await db.query.actorTable.findMany({
     with: { instance: true },
     where: { OR: [...filter] },
@@ -501,7 +501,7 @@ export async function persistActorsByHandles(
     }
   }
   const handlesToFetchArray = [...handlesToFetch];
-  const unreachableHandles = await ctx.data.kv.getMany<string>(
+  const unreachableHandles = await ctx.kv.getMany<string>(
     handlesToFetchArray.map((handle) =>
       `${KV_UNREACHABLE_HANDLES_NAMESPACE}/${handle}`
     ),
@@ -530,7 +530,7 @@ export async function persistActorsByHandles(
             "Timeout while looking up actor {handle}, skipping.",
             { handle },
           );
-          await ctx.data.kv.set(
+          await ctx.kv.set(
             `${KV_UNREACHABLE_HANDLES_NAMESPACE}/${handle}`,
             "1",
             300_000,

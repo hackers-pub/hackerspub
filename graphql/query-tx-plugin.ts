@@ -72,20 +72,18 @@ export function useQuerySnapshotTransaction(
                 // both direct Drizzle access (`ctx.db` for resolvers and
                 // Pothos drizzle's re-fetches, via the schema's
                 // `drizzle.client: (ctx) => ctx.db` factory) and federation
-                // helpers (`ctx.fedCtx.data.db` used by `persistActor`,
-                // `persistPost`, `addPostToTimeline`, …) share the same
-                // snapshot.  Leaving `fedCtx.data.db` pointing at the root
-                // pool would let a query resolver write outside the
-                // transaction and then fail to see its own write through
-                // `ctx.db`.  `contextValue` is typed `Readonly` by envelop,
-                // but at runtime it is the same object resolvers consume,
-                // and per-request mutation is the standard envelop pattern
-                // for request-scoped overrides.
+                // helpers share the same snapshot.  Rebinding the complete
+                // application context is necessary because methods such as
+                // `lookupObject` and `sendActivity` close over the underlying
+                // Fedify context and its `data.db`; changing only `fedCtx.db`
+                // leaves those methods on the root pool.  `contextValue` is
+                // typed `Readonly` by envelop, but at runtime it is the same
+                // object resolvers consume, and per-request mutation is the
+                // standard envelop pattern for request-scoped overrides.
                 const liveCtx = innerArgs
                   .contextValue as unknown as UserContext;
                 const originalDb = liveCtx.db;
-                const fedData = liveCtx.fedCtx.data;
-                const originalFedDb = fedData.db;
+                const originalFedCtx = liveCtx.fedCtx;
                 // Cast: PostgresJsTransaction structurally satisfies the
                 // PostgresJsDatabase interface (both extend PgAsyncDatabase),
                 // but Drizzle's nominal class typing makes TypeScript reject
@@ -93,12 +91,12 @@ export function useQuerySnapshotTransaction(
                 // every method Pothos and resolvers call.
                 const txAsDb = tx as unknown as Database;
                 liveCtx.db = txAsDb;
-                fedData.db = txAsDb;
+                liveCtx.fedCtx = originalFedCtx.withDatabase(txAsDb);
                 try {
                   return await wrappedExecute(innerArgs);
                 } finally {
                   liveCtx.db = originalDb;
-                  fedData.db = originalFedDb;
+                  liveCtx.fedCtx = originalFedCtx;
                 }
               },
               { isolationLevel: "repeatable read" },

@@ -1,7 +1,6 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import type { Context } from "@fedify/fedify";
-import type { ContextData } from "@hackerspub/models/context";
+import type { ApplicationContext } from "@hackerspub/models/context";
 import type { Transaction } from "@hackerspub/models/db";
 import { follow } from "@hackerspub/models/following";
 import {
@@ -139,7 +138,7 @@ describe("write-path suspension guards", () => {
       });
       await suspend(tx, author.actor.id);
       await assert.rejects(
-        createNote(fedCtx as unknown as Context<ContextData<Transaction>>, {
+        createNote(fedCtx as unknown as ApplicationContext<Transaction>, {
           accountId: author.account.id,
           visibility: "public",
           content: "Hello",
@@ -166,7 +165,7 @@ describe("write-path suspension guards", () => {
         })
         .where(eq(actorTable.id, author.actor.id));
       const note = await createNote(
-        fedCtx as unknown as Context<ContextData<Transaction>>,
+        fedCtx as unknown as ApplicationContext<Transaction>,
         {
           accountId: author.account.id,
           visibility: "public",

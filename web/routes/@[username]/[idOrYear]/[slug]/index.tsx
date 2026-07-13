@@ -197,7 +197,7 @@ export async function handleArticle(
       db,
       summarizer,
       content,
-      ctx.state.fedCtx.data.services.ai.summarize,
+      ctx.state.fedCtx.services.ai.summarize,
     );
   }
   ctx.state.metas.push(

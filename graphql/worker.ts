@@ -1,5 +1,6 @@
 // Must be the first import — see instrument.ts for the rationale.
 import "./instrument.ts";
+import "./logging.ts";
 
 import { sweepExpiredSuspensionRescores } from "@hackerspub/models/moderation";
 import {
@@ -8,14 +9,25 @@ import {
 } from "@hackerspub/models/news";
 import { notifyEndedPolls } from "@hackerspub/models/poll";
 import { getLogger } from "@logtape/logtape";
+import {
+  getDenoEnvironment,
+  loadServerConfig,
+} from "@hackerspub/runtime/config";
+import { createRuntimeResources } from "@hackerspub/runtime/resources";
 import { sql } from "drizzle-orm";
-import * as models from "./ai.ts";
-import { db } from "./db.ts";
-import { drive } from "./drive.ts";
-import { federation, ORIGIN } from "./federation.ts";
-import { kv } from "./kv.ts";
 import { sendNotificationDigests } from "./notification-digest.ts";
 import { services } from "./services.ts";
+import metadata from "./deno.json" with { type: "json" };
+
+const resources = await createRuntimeResources(
+  loadServerConfig(getDenoEnvironment()),
+  metadata.version,
+  {
+    fileSystemBaseUrl: new URL("./", import.meta.url),
+    federation: { manuallyStartQueue: true },
+  },
+);
+const { db, drive, email, federation, kv, models } = resources;
 
 const logger = getLogger(["hackerspub", "graphql", "worker"]);
 
@@ -148,12 +160,11 @@ const digestLogger = getLogger([
 ]);
 
 async function sendNotificationDigestJob(frequency: "daily" | "weekly") {
-  const { EMAIL_FROM, transport: email } = await import("./email.ts");
   return await sendNotificationDigests({
     db,
     email,
-    from: EMAIL_FROM,
-    origin: ORIGIN,
+    from: resources.config.email.from,
+    origin: resources.config.origin.href,
     frequency,
   });
 }
@@ -200,8 +211,12 @@ Deno.cron("send-daily-notification-digests", "5 0 * * *", {
 // independently).
 const disk = drive.use();
 logger.info("Starting the federation message queue worker.");
-await federation.startQueue(
-  { db, kv, disk, models, services },
-  { signal: controller.signal },
-);
-logger.info("The federation message queue worker has stopped.");
+try {
+  await federation.startQueue(
+    { db, kv, disk, models, services },
+    { signal: controller.signal },
+  );
+  logger.info("The federation message queue worker has stopped.");
+} finally {
+  await resources.close();
+}

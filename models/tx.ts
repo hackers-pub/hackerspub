@@ -1,12 +1,11 @@
-import type { RequestContext } from "@fedify/fedify";
-import type { AfterCommitTask, ContextData } from "./context.ts";
+import type { AfterCommitTask, ApplicationContext } from "./context.ts";
 import type { Database, Transaction } from "./db.ts";
 
 export async function queueAfterCommit<D extends Database>(
-  context: { data: ContextData<D> },
+  context: Pick<ApplicationContext<D>, "afterCommit">,
   task: AfterCommitTask,
 ): Promise<void> {
-  const afterCommit = context.data.afterCommit;
+  const afterCommit = context.afterCommit;
   if (afterCommit != null) {
     afterCommit.push(task);
     return;
@@ -15,19 +14,19 @@ export async function queueAfterCommit<D extends Database>(
 }
 
 export async function withTransaction<T>(
-  context: RequestContext<ContextData>,
-  callback: (context: RequestContext<ContextData<Transaction>>) => Promise<T>,
+  context: ApplicationContext,
+  callback: (context: ApplicationContext<Transaction>) => Promise<T>,
 ) {
-  const parentAfterCommit = context.data.afterCommit;
+  const parentAfterCommit = context.afterCommit;
   const afterCommit: AfterCommitTask[] = [];
-  const rootDb = context.data.rootDb ?? context.data.db;
-  const result = await context.data.db.transaction(async (transaction) => {
-    const nextContext = context.federation.createContext(context.request, {
-      ...context.data,
+  const rootDb = context.rootDb ?? context.db;
+  const result = await context.db.transaction(async (transaction) => {
+    const nextContext: ApplicationContext<Transaction> = {
+      ...context.withDatabase(transaction),
       db: transaction,
       rootDb,
       afterCommit,
-    }) as RequestContext<ContextData<Transaction>>;
+    };
     return await callback(nextContext);
   });
   if (parentAfterCommit != null) {

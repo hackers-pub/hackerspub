@@ -44,7 +44,7 @@ import {
   insertRemotePost,
   withRollback,
 } from "../test/postgres.ts";
-import { db } from "../graphql/db.ts";
+import { db } from "../test/database.ts";
 
 async function waitFor<T>(
   read: () => Promise<T | undefined>,
@@ -464,14 +464,6 @@ test("persistPost() starts emojiReactions backfill after transaction commit", as
     const fedCtx = createFedCtx(
       db as unknown as Parameters<typeof createFedCtx>[0],
     );
-    Object.assign(fedCtx, {
-      federation: {
-        createContext(request: Request, data: typeof fedCtx.data) {
-          return { ...fedCtx, request, data };
-        },
-      } as typeof fedCtx.federation,
-      request: new Request("http://localhost/"),
-    });
 
     let transactionOpen = true;
     let backfillStartedDuringTransaction = false;
@@ -480,12 +472,12 @@ test("persistPost() starts emojiReactions backfill after transaction commit", as
     );
 
     await withTransaction(fedCtx, async (context) => {
-      const remoteActor = await insertRemoteActor(context.data.db, {
+      const remoteActor = await insertRemoteActor(context.db, {
         username: `emojiafterauthor${suffix}`,
         name: "Emoji After Commit Author",
         host: remoteHost,
       });
-      const reactor = await insertRemoteActor(context.data.db, {
+      const reactor = await insertRemoteActor(context.db, {
         username: `emojiafterreactor${suffix}`,
         name: "Emoji After Commit Reactor",
         host: remoteHost,
@@ -518,7 +510,7 @@ test("persistPost() starts emojiReactions backfill after transaction commit", as
         return reactionCollection;
       };
 
-      context.data.afterCommit?.push(() => {
+      context.afterCommit?.push(() => {
         transactionOpen = false;
       });
       const persisted = await persistPost(context, post);

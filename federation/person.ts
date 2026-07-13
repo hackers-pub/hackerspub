@@ -2,6 +2,7 @@ import type { ActorKeyPair, Context } from "@fedify/fedify";
 import { Endpoints, Image, Organization, Person } from "@fedify/vocab";
 import { getAvatarUrl, renderAccountLinks } from "@hackerspub/models/account";
 import type { ContextData } from "@hackerspub/models/context";
+import { toApplicationContext } from "./context.ts";
 import { removeHeaderAnchorLinks } from "@hackerspub/models/html";
 import { renderMarkup } from "@hackerspub/models/markup";
 import { isActorBanned } from "@hackerspub/models/moderation";
@@ -60,7 +61,7 @@ export async function getAccountActor(
     });
   }
   const bio = await renderMarkup(
-    ctx,
+    toApplicationContext(ctx),
     account.bio,
     {
       docId: account.id,

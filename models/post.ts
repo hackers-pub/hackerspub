@@ -1,9 +1,5 @@
 import { assertAccountActorNotSuspended } from "./moderation.ts";
-import {
-  type Context,
-  type DocumentLoader,
-  getUserAgent,
-} from "@fedify/fedify";
+import { type DocumentLoader, getUserAgent } from "@fedify/fedify";
 import {
   isActor,
   LanguageString,
@@ -44,7 +40,7 @@ import {
   getArticleSourceMediumUrls,
   getOriginalArticleContent,
 } from "./article.ts";
-import type { ContextData } from "./context.ts";
+import type { ApplicationContext } from "./context.ts";
 import { toDate } from "./date.ts";
 import {
   type Database,
@@ -180,7 +176,7 @@ export function withDocumentLoaderTimeout(
 }
 
 async function backfillEmojiReactions(
-  ctx: Context<ContextData>,
+  ctx: ApplicationContext,
   post: PostObject,
   persistedPost: Pick<Post, "id" | "iri">,
   options: {
@@ -215,13 +211,13 @@ async function backfillEmojiReactions(
     }
   } finally {
     if (shouldUpdateCounts) {
-      await updateReactionsCounts(ctx.data.db, persistedPost.id);
+      await updateReactionsCounts(ctx.db, persistedPost.id);
     }
   }
 }
 
 async function enqueueEmojiReactionsBackfill(
-  ctx: Context<ContextData>,
+  ctx: ApplicationContext,
   post: PostObject,
   persistedPost: Pick<Post, "id" | "iri">,
   options: {
@@ -230,9 +226,9 @@ async function enqueueEmojiReactionsBackfill(
   },
 ): Promise<void> {
   const lockKey = `emoji-reactions-backfill/${persistedPost.iri}`;
-  const [locked] = await ctx.data.kv.getMany<string>([lockKey]);
+  const [locked] = await ctx.kv.getMany<string>([lockKey]);
   if (locked === "1") return;
-  await ctx.data.kv.set(
+  await ctx.kv.set(
     lockKey,
     "1",
     EMOJI_REACTIONS_BACKFILL_LOCK_TTL_MS,
@@ -336,7 +332,7 @@ function truncatePlainText(value: string): string {
 }
 
 async function persistArticleNewsLink(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   article: {
     readonly url: string | null | undefined;
     readonly iri: string;
@@ -367,7 +363,7 @@ async function persistArticleNewsLink(
     author,
     creatorId: actor.id,
   };
-  const rows = await fedCtx.data.db
+  const rows = await fedCtx.db
     .insert(postLinkTable)
     .values(values)
     .onConflictDoUpdate({
@@ -388,7 +384,7 @@ async function persistArticleNewsLink(
 }
 
 async function resolveMentionedActors(
-  ctx: Context<ContextData>,
+  ctx: ApplicationContext,
   mentionHrefs: ReadonlySet<string>,
   options: {
     contextLoader?: DocumentLoader;
@@ -396,7 +392,7 @@ async function resolveMentionedActors(
   },
 ): Promise<Actor[]> {
   if (mentionHrefs.size < 1) return [];
-  const { db } = ctx.data;
+  const { db } = ctx;
   const unresolvedHrefs = new Set(mentionHrefs);
   const actorsById = new Map<Uuid, Actor>();
   const actorRows = await db.query.actorTable.findMany({
@@ -719,7 +715,7 @@ async function readResponseBytesAtMost(
 }
 
 export async function syncPostFromArticleSource(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   articleSource: ArticleSource & {
     account: Account & {
       avatarMedium: Medium | null;
@@ -749,7 +745,7 @@ export async function syncPostFromArticleSource(
     mentions: Mention[];
   }
 > {
-  const { db, kv, disk } = fedCtx.data;
+  const { db, kv, storage: disk } = fedCtx;
   const actor = await syncActorFromAccount(fedCtx, articleSource.account);
   const content = getOriginalArticleContent(articleSource);
   if (content == null) {
@@ -826,7 +822,7 @@ export async function syncPostFromArticleSource(
 }
 
 export async function syncPostFromNoteSource(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   noteSource: NoteSource & {
     account: Account & {
       avatarMedium: Medium | null;
@@ -871,7 +867,7 @@ export async function syncPostFromNoteSource(
   }
   | undefined
 > {
-  const { db, kv, disk } = fedCtx.data;
+  const { db, kv, storage: disk } = fedCtx;
   const existingPost = await db.query.postTable.findFirst({
     columns: {
       id: true,
@@ -1102,7 +1098,7 @@ export async function syncPostFromNoteSource(
 }
 
 export async function persistPost(
-  ctx: Context<ContextData>,
+  ctx: ApplicationContext,
   post: PostObject,
   options: {
     actor?: Actor & { instance: Instance };
@@ -1142,7 +1138,7 @@ export async function persistPost(
     );
     return;
   }
-  const { db } = ctx.data;
+  const { db } = ctx;
   const depth = options.depth ?? 0;
   const maxDepth = options.maxDepth ?? DEFAULT_MAX_PERSIST_POST_DEPTH;
   const maxReplies = options.maxReplies ?? DEFAULT_MAX_INLINE_REPLIES;
@@ -1647,11 +1643,11 @@ export async function persistPost(
       }
     } else if (deferLargeReplies) {
       const lockKey = `reply-backfill/${persistedPost.iri}`;
-      const [locked] = await ctx.data.kv.getMany<string>([lockKey]);
+      const [locked] = await ctx.kv.getMany<string>([lockKey]);
       if (locked !== "1") {
         // Best-effort dedupe lock: avoid spawning multiple backfills for
         // the same post during bursty inbox traffic.
-        await ctx.data.kv.set(lockKey, "1", REPLIES_BACKFILL_LOCK_TTL_SECONDS);
+        await ctx.kv.set(lockKey, "1", REPLIES_BACKFILL_LOCK_TTL_SECONDS);
         void (async () => {
           // This runs in the background after the handler returns, so it must
           // NOT inherit the handler's overall deadline (`opts` is bound to
@@ -1734,9 +1730,14 @@ export async function persistPost(
   }
   if (depth === 0) {
     await queueAfterCommit(ctx, () => {
-      const db = ctx.data.rootDb ?? ctx.data.db;
+      const db = ctx.rootDb ?? ctx.db;
       return enqueueEmojiReactionsBackfill(
-        ctx.clone({ ...ctx.data, db, rootDb: db, afterCommit: undefined }),
+        {
+          ...ctx.withDatabase(db),
+          db,
+          rootDb: db,
+          afterCommit: undefined,
+        },
         post,
         persistedPost,
         {
@@ -1761,7 +1762,7 @@ export async function persistPost(
 }
 
 export async function persistSharedPost(
-  ctx: Context<ContextData>,
+  ctx: ApplicationContext,
   announce: vocab.Announce,
   options: {
     actor?: Actor & { instance: Instance };
@@ -1790,7 +1791,7 @@ export async function persistSharedPost(
     return;
   }
   const announceId = announce.id.href;
-  const { db } = ctx.data;
+  const { db } = ctx;
   // One deadline for this entire operation.  Reuse the caller's signal when
   // available so pre-persistPost fetches (getActor, getObject) and the
   // persistPost subtree are all capped by the same wall-clock budget.
@@ -2049,7 +2050,7 @@ async function getOriginalQuoteTarget(
 }
 
 export async function sharePost(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   account: Account & {
     avatarMedium: Medium | null;
     emails: AccountEmail[];
@@ -2058,7 +2059,7 @@ export async function sharePost(
   post: Post & { actor: Actor },
   visibility?: PostVisibility,
 ): Promise<Post> {
-  const { db } = fedCtx.data;
+  const { db } = fedCtx;
   await assertAccountActorNotSuspended(db, account.id);
   const sharedPost = await getOriginalSharedPost(db, post);
   // Callers reject censored targets with a proper response; this is a
@@ -2115,7 +2116,7 @@ export async function sharePost(
       notification,
     });
   }
-  const announce = fedCtx.data.services.federation.getAnnounce(fedCtx, {
+  const announce = fedCtx.services.federation.getAnnounce(fedCtx, {
     ...share,
     sharedPost,
     actor: { ...actor, account },
@@ -2144,7 +2145,7 @@ export async function sharePost(
 }
 
 export async function unsharePost(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   account: Account & {
     avatarMedium: Medium | null;
     emails: AccountEmail[];
@@ -2152,7 +2153,7 @@ export async function unsharePost(
   },
   sharedPost: Post & { actor: Actor },
 ): Promise<Post | undefined> {
-  const { db } = fedCtx.data;
+  const { db } = fedCtx;
   const originalPost = await getOriginalSharedPost(db, sharedPost);
   if (originalPost.sharedPostId != null) return;
   const actor = await syncActorFromAccount(fedCtx, account);
@@ -2176,7 +2177,7 @@ export async function unsharePost(
       actor,
     );
   }
-  const announce = fedCtx.data.services.federation.getAnnounce(fedCtx, {
+  const announce = fedCtx.services.federation.getAnnounce(fedCtx, {
     ...unshared[0],
     actor: { ...actor, account },
     sharedPost: originalPost,
@@ -2995,12 +2996,12 @@ export async function updateQuotesCount(
 }
 
 export async function revokeQuote(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   account: Account,
   quotePost: Post & { actor: Actor },
   quotedPost: Post,
 ): Promise<Post> {
-  const { db } = fedCtx.data;
+  const { db } = fedCtx;
   const revoked = new Date();
   let updatedQuote: QuoteUpdatePost | undefined;
   const rows = await db.update(postTable)
@@ -3074,7 +3075,7 @@ export async function revokeQuote(
 }
 
 async function sendLocalQuoteAuthorizationDelete(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   account: Account,
   quote: QuoteUpdatePost,
   quoteAuthorizationIri: string,
@@ -3107,7 +3108,7 @@ async function sendLocalQuoteAuthorizationDelete(
   ) {
     return;
   }
-  const followers = await fedCtx.data.db.query.followingTable.findMany({
+  const followers = await fedCtx.db.query.followingTable.findMany({
     with: { follower: true },
     where: {
       followeeId: quote.actorId,
@@ -3128,13 +3129,13 @@ async function sendLocalQuoteAuthorizationDelete(
 }
 
 async function sendLocalQuoteUpdate(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   quote: QuoteUpdatePost,
   quoteAuthorizationIri: string | null,
   updated: Date,
 ): Promise<void> {
   if (quote.actor.accountId == null || quote.noteSourceId == null) return;
-  const noteSource = await fedCtx.data.db.query.noteSourceTable.findFirst({
+  const noteSource = await fedCtx.db.query.noteSourceTable.findFirst({
     where: { id: quote.noteSourceId },
     with: {
       account: true,
@@ -3142,7 +3143,7 @@ async function sendLocalQuoteUpdate(
     },
   });
   if (noteSource == null) return;
-  const noteObject = await fedCtx.data.services.federation.getNote(
+  const noteObject = await fedCtx.services.federation.getNote(
     fedCtx,
     noteSource,
     {
@@ -3195,7 +3196,7 @@ async function sendLocalQuoteUpdate(
       },
     );
   }
-  const relayedTags = await fedCtx.data.services.federation
+  const relayedTags = await fedCtx.services.federation
     .sendTagsPubRelayActivity(
       fedCtx,
       quote.actor.accountId,
@@ -3208,7 +3209,7 @@ async function sendLocalQuoteUpdate(
       },
     );
   if (relayedTags != null) {
-    await fedCtx.data.db.update(postTable)
+    await fedCtx.db.update(postTable)
       .set({ relayedTags: [...relayedTags] })
       .where(eq(postTable.id, quote.id));
     quote.relayedTags = [...relayedTags];
@@ -3216,10 +3217,10 @@ async function sendLocalQuoteUpdate(
 }
 
 export async function deletePost(
-  fedCtx: Context<ContextData>,
+  fedCtx: ApplicationContext,
   post: Post & { actor: Actor; replyTarget: Post | null },
 ): Promise<void> {
-  const { db } = fedCtx.data;
+  const { db } = fedCtx;
   const replies = await db.query.postTable.findMany({
     with: { actor: true },
     where: {
@@ -3369,7 +3370,7 @@ export async function deletePost(
       excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
     },
   );
-  await fedCtx.data.services.federation.sendTagsPubRelayActivity(
+  await fedCtx.services.federation.sendTagsPubRelayActivity(
     fedCtx,
     post.actor.accountId,
     activity,
@@ -3392,8 +3393,8 @@ export async function deletePost(
   );
 }
 
-export async function scrapePostLink<TContextData>(
-  fedCtx: Context<TContextData>,
+export async function scrapePostLink(
+  fedCtx: Pick<ApplicationContext, "canonicalOrigin">,
   url: string | URL,
   handleToActorId: (handle: string) => Promise<Uuid | undefined>,
   options: { signal?: AbortSignal } = {},
@@ -3694,7 +3695,7 @@ export async function scrapePostLink<TContextData>(
 const POST_LINK_CACHE_TTL = Temporal.Duration.from({ hours: 24 });
 
 export async function persistPostLink(
-  ctx: Context<ContextData>,
+  ctx: ApplicationContext,
   url: string | URL,
   options: { signal?: AbortSignal } = {},
 ): Promise<PostLink | undefined> {
@@ -3705,7 +3706,7 @@ export async function persistPostLink(
   }
   const scrapeUrl = new URL(url);
   scrapeUrl.hash = "";
-  const { db } = ctx.data;
+  const { db } = ctx;
   const link = await db.query.postLinkTable.findFirst({
     where: { url: scrapeUrl.href },
   });
