@@ -101,7 +101,7 @@ const logger = getLogger(["hackerspub", "models", "post"]);
 const DEFAULT_MAX_PERSIST_POST_DEPTH = 3;
 const DEFAULT_MAX_INLINE_REPLIES = 50;
 const DEFAULT_INLINE_REPLIES_THRESHOLD = 10;
-const REPLIES_BACKFILL_LOCK_TTL_SECONDS = 300;
+const REPLIES_BACKFILL_LOCK_TTL_MS = 300_000;
 const REPLIES_BACKFILL_RETRY_DELAY_MS = 30_000;
 const EMOJI_REACTIONS_BACKFILL_LOCK_TTL_MS = 300_000;
 const EMOJI_REACTIONS_BACKFILL_RETRY_DELAY_MS = 30_000;
@@ -1647,7 +1647,7 @@ export async function persistPost(
       if (locked !== "1") {
         // Best-effort dedupe lock: avoid spawning multiple backfills for
         // the same post during bursty inbox traffic.
-        await ctx.kv.set(lockKey, "1", REPLIES_BACKFILL_LOCK_TTL_SECONDS);
+        await ctx.kv.set(lockKey, "1", REPLIES_BACKFILL_LOCK_TTL_MS);
         void (async () => {
           // This runs in the background after the handler returns, so it must
           // NOT inherit the handler's overall deadline (`opts` is bound to
