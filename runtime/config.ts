@@ -195,6 +195,7 @@ export function loadServerConfig(env: Environment): ServerConfig {
 
   const configuredFrom = (env.EMAIL_FROM ?? env.MAILGUN_FROM)?.trim();
   const defaultFrom = `noreply@${origin?.hostname ?? "localhost"}`;
+  const mode = env.MODE ?? "production";
   const mailgunSelected = [
     env.MAILGUN_KEY,
     env.MAILGUN_DOMAIN,
@@ -206,7 +207,10 @@ export function loadServerConfig(env: Environment): ServerConfig {
       from: configuredFrom || defaultFrom,
       reason: "ci",
     };
-  } else if (!mailgunSelected) {
+  } else if (
+    !mailgunSelected &&
+    (mode === "development" || mode === "test" || mode === "build")
+  ) {
     email = {
       transport: "mock",
       from: configuredFrom || defaultFrom,
@@ -265,7 +269,7 @@ export function loadServerConfig(env: Environment): ServerConfig {
       moderationModel: env.AI_MODERATION_MODEL ?? "claude-sonnet-4-6",
     },
     behindProxy: env.BEHIND_PROXY?.toLowerCase() === "true",
-    mode: env.MODE ?? "production",
+    mode,
   };
 }
 

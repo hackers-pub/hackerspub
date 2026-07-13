@@ -47,9 +47,9 @@ Deno.test("loadServerConfig parses runtime configuration without reading Deno.en
   });
 });
 
-Deno.test("loadServerConfig falls back to mock email when Mailgun is unconfigured", () => {
+Deno.test("loadServerConfig uses mock email in development without Mailgun", () => {
   const { CI: _ci, EMAIL_FROM: _emailFrom, ...withoutEmail } = required;
-  const config = loadServerConfig(withoutEmail);
+  const config = loadServerConfig({ ...withoutEmail, MODE: "development" });
 
   assertEquals(config.email, {
     transport: "mock",
@@ -62,6 +62,7 @@ Deno.test("loadServerConfig ignores sender and region without Mailgun credential
   const { CI: _ci, ...withoutCi } = required;
   const config = loadServerConfig({
     ...withoutCi,
+    MODE: "development",
     MAILGUN_FROM: "legacy@hackers.pub",
     MAILGUN_REGION: "us",
   });
@@ -71,6 +72,19 @@ Deno.test("loadServerConfig ignores sender and region without Mailgun credential
     from: "noreply@hackers.pub",
     reason: "mailgun-unconfigured",
   });
+});
+
+Deno.test("loadServerConfig requires Mailgun in the default production mode", () => {
+  const { CI: _ci, ...withoutCi } = required;
+  const error = assertThrows(
+    () => loadServerConfig({ ...withoutCi, MAILGUN_REGION: "us" }),
+    ConfigurationError,
+  ) as ConfigurationError;
+
+  assertEquals(
+    error.issues.map((issue) => issue.variable).toSorted(),
+    ["MAILGUN_DOMAIN", "MAILGUN_KEY"],
+  );
 });
 
 Deno.test("loadServerConfig rejects partial Mailgun configuration", () => {
