@@ -42,7 +42,7 @@ test("scrapePostLink() scrapes Open Graph metadata", async () => {
   mockGlobalFetch();
   mockFetch("https://example.internal/index.html", {
     headers: {
-      "Content-Type": "text/html; charset=utf-8",
+      "Content-Type": 'text/html; charset="utf-8"',
     },
     body: `<html>
         <head>

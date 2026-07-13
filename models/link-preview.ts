@@ -325,7 +325,9 @@ export async function scrapePostLink(
         pair as [string, string]
       ),
   );
-  let charset = contentTypeParams.charset?.toLowerCase();
+  let charset = contentTypeParams.charset
+    ?.replace(/^(["'])(.*)\1$/, "$2")
+    .toLowerCase();
   let bytes: Uint8Array;
   try {
     bytes = new Uint8Array(await response.arrayBuffer());
