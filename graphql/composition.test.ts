@@ -8,6 +8,7 @@ for (const compositionRoot of ["main.ts", "worker.ts"]) {
     const instrumentImport = 'import "./instrument.ts";';
     const loggingImport = 'import "./logging.ts";';
 
+    assertStringIncludes(source, instrumentImport);
     assertStringIncludes(source, loggingImport);
     assert(
       source.indexOf(instrumentImport) < source.indexOf(loggingImport),
