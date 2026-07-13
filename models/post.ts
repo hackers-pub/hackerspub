@@ -1648,77 +1648,89 @@ export async function persistPost(
         // Best-effort dedupe lock: avoid spawning multiple backfills for
         // the same post during bursty inbox traffic.
         await ctx.kv.set(lockKey, "1", REPLIES_BACKFILL_LOCK_TTL_MS);
-        void (async () => {
-          // This runs in the background after the handler returns, so it must
-          // NOT inherit the handler's overall deadline (`opts` is bound to
-          // `overallSignal`).  Give it a loader with only the per-fetch timeout
-          // so a long backfill is not truncated at the synchronous handler's
-          // budget; each backfilled reply still gets its own fresh overall
-          // budget via the `persistPost` call below (which omits `signal`).
-          const backfillOpts = {
-            contextLoader: options.contextLoader,
-            documentLoader: withDocumentLoaderTimeout(
-              options.documentLoader ?? ctx.documentLoader,
-            ),
-            suppressError: true,
+        await queueAfterCommit(ctx, () => {
+          const backgroundDb = ctx.rootDb ?? ctx.db;
+          const backgroundCtx: ApplicationContext = {
+            ...ctx.withDatabase(backgroundDb),
+            db: backgroundDb,
+            rootDb: backgroundDb,
+            afterCommit: undefined,
           };
-          const persistReply = async (
-            attempt: number,
-          ): Promise<void> => {
-            try {
-              let count = 0;
-              for await (
-                const reply of traverseCollection(replies, backfillOpts)
-              ) {
-                if (count >= maxReplies) break;
-                if (!isPostObject(reply)) continue;
-                await persistPost(ctx, reply, {
-                  ...options,
-                  actor,
-                  replyTarget: persistedPost,
-                  replies: false,
-                  depth: depth + 1,
-                  // Don't inherit a caller's top-level deadline (`...options`
-                  // may carry one); each backfilled reply mints its own fresh
-                  // budget so the background batch isn't cut off by the
-                  // originating handler's deadline.
-                  signal: undefined,
-                });
-                count++;
-              }
-              if (persistedPost.repliesCount < count) {
-                await db.update(postTable)
-                  .set({
-                    repliesCount:
-                      sql`GREATEST(${postTable.repliesCount}, ${count})`,
-                  })
-                  .where(eq(postTable.id, persistedPost.id));
-                persistedPost.repliesCount = Math.max(
-                  persistedPost.repliesCount,
-                  count,
+          void (async () => {
+            // This runs in the background after the handler returns, so it must
+            // NOT inherit the handler's overall deadline (`opts` is bound to
+            // `overallSignal`).  Give it a loader with only the per-fetch timeout
+            // so a long backfill is not truncated at the synchronous handler's
+            // budget; each backfilled reply still gets its own fresh overall
+            // budget via the `persistPost` call below (which omits `signal`).
+            const backfillOpts = {
+              contextLoader: options.contextLoader,
+              documentLoader: withDocumentLoaderTimeout(
+                options.documentLoader ?? backgroundCtx.documentLoader,
+              ),
+              suppressError: true,
+            };
+            const persistReply = async (
+              attempt: number,
+            ): Promise<void> => {
+              try {
+                let count = 0;
+                for await (
+                  const reply of traverseCollection(replies, backfillOpts)
+                ) {
+                  if (count >= maxReplies) break;
+                  if (!isPostObject(reply)) continue;
+                  await persistPost(backgroundCtx, reply, {
+                    ...options,
+                    actor,
+                    replyTarget: persistedPost,
+                    replies: false,
+                    depth: depth + 1,
+                    // Don't inherit a caller's top-level deadline (`...options`
+                    // may carry one); each backfilled reply mints its own fresh
+                    // budget so the background batch isn't cut off by the
+                    // originating handler's deadline.
+                    signal: undefined,
+                  });
+                  count++;
+                }
+                if (persistedPost.repliesCount < count) {
+                  await backgroundDb.update(postTable)
+                    .set({
+                      repliesCount:
+                        sql`GREATEST(${postTable.repliesCount}, ${count})`,
+                    })
+                    .where(eq(postTable.id, persistedPost.id));
+                  persistedPost.repliesCount = Math.max(
+                    persistedPost.repliesCount,
+                    count,
+                  );
+                }
+              } catch (error) {
+                if (attempt < 1) {
+                  // Single delayed retry to absorb transient federation failures
+                  // without introducing a durable queue.
+                  await new Promise((resolve) =>
+                    setTimeout(resolve, REPLIES_BACKFILL_RETRY_DELAY_MS)
+                  );
+                  await persistReply(attempt + 1);
+                  return;
+                }
+                logger.warn(
+                  "Failed to backfill replies for {postIri} after retry: {error}",
+                  { postIri: persistedPost.iri, error },
                 );
               }
-            } catch (error) {
-              if (attempt < 1) {
-                // Single delayed retry to absorb transient federation failures
-                // without introducing a durable queue.
-                await new Promise((resolve) =>
-                  setTimeout(resolve, REPLIES_BACKFILL_RETRY_DELAY_MS)
-                );
-                await persistReply(attempt + 1);
-                return;
-              }
-              logger.warn(
-                "Failed to backfill replies for {postIri} after retry: {error}",
-                { postIri: persistedPost.iri, error },
-              );
-            }
-          };
-          await persistReply(0);
-        })().catch((error) => {
-          logger.warn("Replies backfill task failed for {postIri}: {error}", {
-            postIri: persistedPost.iri,
-            error,
+            };
+            await persistReply(0);
+          })().catch((error) => {
+            logger.warn(
+              "Replies backfill task failed for {postIri}: {error}",
+              {
+                postIri: persistedPost.iri,
+                error,
+              },
+            );
           });
         });
       }

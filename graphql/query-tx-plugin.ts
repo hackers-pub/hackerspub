@@ -1,3 +1,4 @@
+import type { AfterCommitTask } from "@hackerspub/models/context";
 import type { Database } from "@hackerspub/models/db";
 import { type DocumentNode, Kind, type OperationDefinitionNode } from "graphql";
 import type { Plugin as EnvelopPlugin } from "graphql-yoga";
@@ -65,8 +66,10 @@ export function useQuerySnapshotTransaction(
       setExecuteFn(async (innerArgs) => {
         let attempt = 0;
         while (true) {
+          const afterCommit: AfterCommitTask[] = [];
+          let result: Awaited<ReturnType<typeof wrappedExecute>>;
           try {
-            return await rootDb.transaction(
+            result = await rootDb.transaction(
               async (tx) => {
                 // Swap every database handle reachable through the context so
                 // both direct Drizzle access (`ctx.db` for resolvers and
@@ -91,7 +94,12 @@ export function useQuerySnapshotTransaction(
                 // every method Pothos and resolvers call.
                 const txAsDb = tx as unknown as Database;
                 liveCtx.db = txAsDb;
-                liveCtx.fedCtx = originalFedCtx.withDatabase(txAsDb);
+                liveCtx.fedCtx = {
+                  ...originalFedCtx.withDatabase(txAsDb),
+                  db: txAsDb,
+                  rootDb,
+                  afterCommit,
+                };
                 try {
                   return await wrappedExecute(innerArgs);
                 } finally {
@@ -108,6 +116,11 @@ export function useQuerySnapshotTransaction(
             }
             throw err;
           }
+          // A query resolver can schedule work that outlives execution.  Run
+          // it only after the snapshot transaction commits so it can rebind
+          // itself to rootDb instead of retaining a closed transaction.
+          for (const task of afterCommit) await task();
+          return result;
         }
       });
     },

@@ -27,6 +27,8 @@ interface StubDb {
 
 interface StubApplicationContext {
   readonly db: unknown;
+  readonly rootDb?: unknown;
+  readonly afterCommit?: Array<() => Promise<void> | void>;
   withDatabase(db: unknown): StubApplicationContext;
   lookupObject(value: URL): Promise<null>;
 }
@@ -54,6 +56,7 @@ interface Harness {
   >;
   readonly fedData: StubApplicationContext;
   readonly lookupState: { db?: unknown };
+  readonly transactionState: { open: boolean };
   readonly payload: OnExecutePayload;
   registeredExecute: ExecuteFn | undefined;
   innerExecuteSawCtxDb?: unknown;
@@ -65,11 +68,17 @@ function buildHarness(
   operationName: string | null = null,
 ): Harness {
   const txCalls: Harness["txCalls"] = [];
+  const transactionState = { open: false };
   const stubDb: StubDb = {
     id: "root-db",
     async transaction(cb, config) {
       txCalls.push({ config });
-      return await cb({ id: "tx" });
+      transactionState.open = true;
+      try {
+        return await cb({ id: "tx" });
+      } finally {
+        transactionState.open = false;
+      }
     },
   };
   const lookupState: { db?: unknown } = {};
@@ -86,6 +95,7 @@ function buildHarness(
     txCalls,
     fedData,
     lookupState,
+    transactionState,
     registeredExecute: undefined,
     payload: {
       args: {
@@ -166,6 +176,33 @@ test("useQuerySnapshotTransaction wraps a query in REPEATABLE READ", async () =>
     (result as { data: { __typename: string } }).data.__typename,
     "Query",
   );
+});
+
+test("useQuerySnapshotTransaction defers work until after commit", async () => {
+  const plugin = useQuerySnapshotTransaction();
+  const h = buildHarness("query Q { __typename }", "Q");
+  let backgroundRanInTransaction: boolean | undefined;
+  h.payload.executeFn = (async (args) => {
+    const innerCtx = args.contextValue as unknown as {
+      fedCtx: StubApplicationContext;
+    };
+    const txCtx = innerCtx.fedCtx;
+    assert.deepEqual(txCtx.rootDb, h.stubDb);
+    assert.ok(txCtx.afterCommit != null);
+    txCtx.afterCommit.push(async () => {
+      backgroundRanInTransaction = h.transactionState.open;
+      await txCtx.withDatabase(txCtx.rootDb).lookupObject(
+        new URL("https://example.com/background"),
+      );
+    });
+    return { data: { __typename: "Query" } };
+  }) as ExecuteFn;
+
+  await plugin.onExecute!(h.payload);
+  await h.registeredExecute!(h.payload.args);
+
+  assert.deepEqual(backgroundRanInTransaction, false);
+  assert.deepEqual(h.lookupState.db, h.stubDb);
 });
 
 test("useQuerySnapshotTransaction restores db handles when execute throws", async () => {
