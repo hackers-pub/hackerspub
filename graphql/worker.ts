@@ -37,14 +37,20 @@ const logger = getLogger(["hackerspub", "graphql", "worker"]);
 // this signal; otherwise the process would hang on shutdown (or run another
 // sweep mid-shutdown) instead of draining and exiting.
 const controller = new AbortController();
+const signalListeners: Array<{
+  readonly signal: "SIGINT" | "SIGTERM";
+  readonly listener: () => void;
+}> = [];
 for (const signalName of ["SIGINT", "SIGTERM"] as const) {
-  Deno.addSignalListener(signalName, () => {
+  const listener = () => {
     logger.info(
       "Received {signal}; shutting down the queue worker gracefully.",
       { signal: signalName },
     );
     controller.abort();
-  });
+  };
+  Deno.addSignalListener(signalName, listener);
+  signalListeners.push({ signal: signalName, listener });
 }
 
 // Periodic news-score sweep.  The write hook re-scores a link only when the
@@ -211,12 +217,36 @@ Deno.cron("send-daily-notification-digests", "5 0 * * *", {
 // independently).
 const disk = drive.use();
 logger.info("Starting the federation message queue worker.");
+let queueFailed = false;
+let queueError: unknown;
 try {
   await federation.startQueue(
     { db, kv, disk, models, services },
     { signal: controller.signal },
   );
   logger.info("The federation message queue worker has stopped.");
-} finally {
-  await resources.close();
+} catch (error) {
+  queueFailed = true;
+  queueError = error;
 }
+for (const { signal, listener } of signalListeners) {
+  Deno.removeSignalListener(signal, listener);
+}
+let closeFailed = false;
+let closeError: unknown;
+try {
+  await resources.close();
+} catch (error) {
+  closeFailed = true;
+  closeError = error;
+}
+if (queueFailed) {
+  if (closeFailed) {
+    logger.error(
+      "Failed to close runtime resources after the queue failed: {error}",
+      { error: closeError },
+    );
+  }
+  throw queueError;
+}
+if (closeFailed) throw closeError;

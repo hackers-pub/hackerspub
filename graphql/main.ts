@@ -35,62 +35,106 @@ const { db, drive, email, federation, kv, models } = resources;
 // run in a separate process (`worker.ts`), not here: keeping that background
 // work off this event loop and DB pool is what stops it from starving
 // user-facing GraphQL requests into Caddy 504s (WEB-NEXT-1W).
-const server = Deno.serve({ port: 8080 }, async (req, info) => {
-  try {
-    req = await getXForwardedRequest(req);
-    const url = new URL(req.url);
-    const disk = drive.use();
-    const uploadResponse = await handleMediumUploadProxy(req, kv, disk);
-    if (uploadResponse != null) return uploadResponse;
-    if (url.pathname === "/.well-known/assetlinks.json") {
-      return new Response(JSON.stringify(assetlinks), {
-        headers: { "content-type": "application/json" },
+const startServer = () =>
+  Deno.serve({ port: 8080 }, async (req, info) => {
+    try {
+      req = await getXForwardedRequest(req);
+      const url = new URL(req.url);
+      const disk = drive.use();
+      const uploadResponse = await handleMediumUploadProxy(req, kv, disk);
+      if (uploadResponse != null) return uploadResponse;
+      if (url.pathname === "/.well-known/assetlinks.json") {
+        return new Response(JSON.stringify(assetlinks), {
+          headers: { "content-type": "application/json" },
+        });
+      }
+      if (url.pathname === "/.well-known/apple-app-site-association") {
+        return new Response(appleAppSiteAssociationJson, {
+          headers: { "content-type": "application/json" },
+        });
+      }
+      if (
+        url.pathname.startsWith("/.well-known/") ||
+        url.pathname.startsWith("/ap/") ||
+        url.pathname.startsWith("/nodeinfo/")
+      ) {
+        return await federation.fetch(req, {
+          contextData: { db, kv, disk, models, services },
+        });
+      }
+      return await yogaServer.fetch(req, {
+        altTextGenerator: models.altTextGenerator,
+        db,
+        kv,
+        disk,
+        email,
+        emailFrom: resources.config.email.from,
+        fedCtx: toApplicationContext(
+          federation.createContext(req, {
+            db,
+            kv,
+            disk,
+            models,
+            services,
+          }),
+        ),
+        request: req,
+        connectionInfo: info,
       });
+    } catch (e) {
+      // Client disconnected before the server finished — not a server error.
+      if (e instanceof DOMException && e.name === "AbortError") {
+        return new Response(null, { status: 499 });
+      }
+      throw e;
     }
-    if (url.pathname === "/.well-known/apple-app-site-association") {
-      return new Response(appleAppSiteAssociationJson, {
-        headers: { "content-type": "application/json" },
-      });
-    }
-    if (
-      url.pathname.startsWith("/.well-known/") ||
-      url.pathname.startsWith("/ap/") ||
-      url.pathname.startsWith("/nodeinfo/")
-    ) {
-      return await federation.fetch(req, {
-        contextData: { db, kv, disk, models, services },
-      });
-    }
-    return await yogaServer.fetch(req, {
-      altTextGenerator: models.altTextGenerator,
-      db,
-      kv,
-      disk,
-      email,
-      emailFrom: resources.config.email.from,
-      fedCtx: toApplicationContext(
-        federation.createContext(req, {
-          db,
-          kv,
-          disk,
-          models,
-          services,
-        }),
-      ),
-      request: req,
-      connectionInfo: info,
-    });
-  } catch (e) {
-    // Client disconnected before the server finished — not a server error.
-    if (e instanceof DOMException && e.name === "AbortError") {
-      return new Response(null, { status: 499 });
-    }
-    throw e;
-  }
-});
+  });
 
-for (const signal of ["SIGINT", "SIGTERM"] as const) {
-  Deno.addSignalListener(signal, () => server.shutdown());
+let runtimeFailed = false;
+let runtimeError: unknown;
+try {
+  const server = startServer();
+  const signals = ["SIGINT", "SIGTERM"] as const;
+  const registeredSignals = new Set<(typeof signals)[number]>();
+  const removeSignalListeners = () => {
+    for (const signal of registeredSignals) {
+      Deno.removeSignalListener(signal, shutdown);
+    }
+    registeredSignals.clear();
+  };
+  const shutdown = () => {
+    removeSignalListeners();
+    void server.shutdown();
+  };
+  try {
+    for (const signal of signals) {
+      Deno.addSignalListener(signal, shutdown);
+      registeredSignals.add(signal);
+    }
+    await server.finished;
+  } finally {
+    removeSignalListeners();
+  }
+} catch (error) {
+  runtimeFailed = true;
+  runtimeError = error;
 }
-await server.finished;
-await resources.close();
+
+let closeFailed = false;
+let closeError: unknown;
+try {
+  await resources.close();
+} catch (error) {
+  closeFailed = true;
+  closeError = error;
+}
+if (runtimeFailed) {
+  if (closeFailed) {
+    throw new AggregateError(
+      [runtimeError, closeError],
+      "The GraphQL server failed and its resources could not be closed.",
+    );
+  }
+  throw runtimeError;
+}
+if (closeFailed) throw closeError;

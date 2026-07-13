@@ -1,7 +1,10 @@
 import { assertEquals, assertInstanceOf } from "@std/assert";
 import { MockTransport } from "@upyo/mock";
+import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import {
   createEmailResource,
+  createKeyValueResource,
   getFederationBehaviorOptions,
   resolveFileSystemStorageLocation,
   runWithFederationQueue,
@@ -15,6 +18,20 @@ Deno.test("resolveFileSystemStorageLocation resolves relative paths from the com
     ).href,
     "file:///app/web/media",
   );
+});
+
+Deno.test("createKeyValueResource decodes file URL paths", async () => {
+  const directory = await Deno.makeTempDir();
+  const filename = join(directory, "cache file.json");
+  const kv = createKeyValueResource({ url: pathToFileURL(filename) });
+  try {
+    await kv.set("key", "value");
+    assertEquals(await kv.get("key"), "value");
+    await Deno.stat(filename);
+  } finally {
+    await kv.disconnect();
+    await Deno.remove(directory, { recursive: true });
+  }
 });
 
 Deno.test("getFederationBehaviorOptions supports an explicitly managed legacy queue", () => {
@@ -57,6 +74,25 @@ Deno.test("runWithFederationQueue aborts and awaits the queue before returning",
     "server-stopped",
     "queue-stopped",
   ]);
+});
+
+Deno.test("runWithFederationQueue accepts Error-shaped abort failures", async () => {
+  const federation = {
+    startQueue(
+      _contextData: undefined,
+      options?: { signal?: AbortSignal },
+    ): Promise<void> {
+      return new Promise((_resolve, reject) => {
+        options?.signal?.addEventListener("abort", () => {
+          const error = new Error("Queue aborted");
+          error.name = "AbortError";
+          reject(error);
+        });
+      });
+    },
+  };
+
+  await runWithFederationQueue(federation, undefined, () => Promise.resolve());
 });
 
 Deno.test("createEmailResource warns when Mailgun is unconfigured", () => {

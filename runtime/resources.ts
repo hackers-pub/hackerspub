@@ -23,6 +23,8 @@ import { S3Driver } from "flydrive/drivers/s3";
 import { Redis } from "ioredis";
 import Keyv from "keyv";
 import { KeyvFile } from "keyv-file";
+import { resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import postgresJs, { type Sql } from "postgres";
 import type { KeyValueConfig, ServerConfig } from "./config.ts";
 
@@ -48,7 +50,7 @@ export function createDatabaseResources(
 
 export function createKeyValueResource(config: KeyValueConfig): Keyv {
   const adapter = config.url.protocol === "file:"
-    ? new KeyvFile({ filename: config.url.pathname })
+    ? new KeyvFile({ filename: fileURLToPath(config.url) })
     : new KeyvRedis(config.url.href);
   return new Keyv(adapter);
 }
@@ -62,7 +64,7 @@ export function resolveFileSystemStorageLocation(
   location: string,
   baseUrl: URL,
 ): URL {
-  return new URL(location, baseUrl);
+  return pathToFileURL(resolve(fileURLToPath(baseUrl), location));
 }
 
 export function createDriveResource(
@@ -147,7 +149,10 @@ type LifecycleCompletion =
   };
 
 function isAbortError(error: unknown): boolean {
-  return error instanceof DOMException && error.name === "AbortError";
+  return (
+    (error instanceof DOMException && error.name === "AbortError") ||
+    (error instanceof Error && error.name === "AbortError")
+  );
 }
 
 export async function runWithFederationQueue<TContextData>(
@@ -288,27 +293,49 @@ export interface RuntimeResourceOptions {
   readonly federation: FederationResourceOptions;
 }
 
+type ResourceCleanup = () => Promise<unknown>;
+
+async function closeResourceHandles(
+  cleanups: readonly ResourceCleanup[],
+): Promise<void> {
+  const errors: unknown[] = [];
+  for (const cleanup of cleanups) {
+    try {
+      await cleanup();
+    } catch (error) {
+      errors.push(error);
+    }
+  }
+  if (errors.length === 1) throw errors[0];
+  if (errors.length > 1) {
+    throw new AggregateError(errors, "Failed to close runtime resources.");
+  }
+}
+
 export async function createRuntimeResources(
   config: ServerConfig,
   softwareVersion: string,
   options: RuntimeResourceOptions,
 ): Promise<RuntimeResources> {
   const { postgres, db } = createDatabaseResources(config.database);
-  const kv = createKeyValueResource(config.kv);
-  const drive = createDriveResource(
-    config.storage,
-    config.origin,
-    options.fileSystemBaseUrl,
-  );
-  const email = createEmailResource(config.email);
-  const models = createAiModels(config.ai);
+  const cleanups: ResourceCleanup[] = [() => postgres.end()];
   try {
+    const kv = createKeyValueResource(config.kv);
+    cleanups.unshift(() => kv.disconnect());
+    const drive = createDriveResource(
+      config.storage,
+      config.origin,
+      options.fileSystemBaseUrl,
+    );
+    const email = createEmailResource(config.email);
+    const models = createAiModels(config.ai);
     const federationResources = await createFederationResource(
       config,
       postgres,
       softwareVersion,
       options.federation,
     );
+    cleanups.unshift(() => federationResources.close());
     const { federation } = federationResources;
     return {
       config,
@@ -320,14 +347,18 @@ export async function createRuntimeResources(
       models,
       federation,
       async close() {
-        await federationResources.close();
-        await kv.disconnect();
-        await postgres.end();
+        await closeResourceHandles(cleanups);
       },
     };
   } catch (error) {
-    await kv.disconnect();
-    await postgres.end();
+    try {
+      await closeResourceHandles(cleanups);
+    } catch (cleanupError) {
+      throw new AggregateError(
+        [error, cleanupError],
+        "Failed to create and clean up runtime resources.",
+      );
+    }
     throw error;
   }
 }
