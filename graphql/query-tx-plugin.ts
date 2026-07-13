@@ -1,5 +1,6 @@
 import type { AfterCommitTask } from "@hackerspub/models/context";
 import type { Database } from "@hackerspub/models/db";
+import { getLogger } from "@logtape/logtape";
 import { type DocumentNode, Kind, type OperationDefinitionNode } from "graphql";
 import type { Plugin as EnvelopPlugin } from "graphql-yoga";
 import postgres from "postgres";
@@ -42,6 +43,7 @@ import type { UserContext } from "./builder.ts";
 // 40P01 — deadlock_detected: raised when the server breaks a deadlock by
 //   aborting one of the involved transactions.
 const RETRYABLE_PG_CODES = new Set(["40001", "40P01"]);
+const logger = getLogger(["hackerspub", "graphql", "query-tx-plugin"]);
 
 export function isRetryableError(err: unknown): boolean {
   return err instanceof postgres.PostgresError &&
@@ -119,7 +121,15 @@ export function useQuerySnapshotTransaction(
           // A query resolver can schedule work that outlives execution.  Run
           // it only after the snapshot transaction commits so it can rebind
           // itself to rootDb instead of retaining a closed transaction.
-          for (const task of afterCommit) await task();
+          for (const task of afterCommit) {
+            try {
+              await task();
+            } catch (error) {
+              logger.error("Failed to run after-commit task: {error}", {
+                error,
+              });
+            }
+          }
           return result;
         }
       });

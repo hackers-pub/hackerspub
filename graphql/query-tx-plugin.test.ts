@@ -205,6 +205,33 @@ test("useQuerySnapshotTransaction defers work until after commit", async () => {
   assert.deepEqual(h.lookupState.db, h.stubDb);
 });
 
+test("useQuerySnapshotTransaction continues after an after-commit failure", async () => {
+  const plugin = useQuerySnapshotTransaction();
+  const h = buildHarness("query Q { __typename }", "Q");
+  let subsequentTaskRan = false;
+  h.payload.executeFn = (async (args) => {
+    const innerCtx = args.contextValue as unknown as {
+      fedCtx: StubApplicationContext;
+    };
+    innerCtx.fedCtx.afterCommit?.push(
+      () => Promise.reject(new Error("background failure")),
+      () => {
+        subsequentTaskRan = true;
+      },
+    );
+    return { data: { __typename: "Query" } };
+  }) as ExecuteFn;
+
+  await plugin.onExecute!(h.payload);
+  const result = await h.registeredExecute!(h.payload.args);
+
+  assert.deepEqual(subsequentTaskRan, true);
+  assert.deepEqual(
+    (result as { data: { __typename: string } }).data.__typename,
+    "Query",
+  );
+});
+
 test("useQuerySnapshotTransaction restores db handles when execute throws", async () => {
   const plugin = useQuerySnapshotTransaction();
   const h = buildHarness("query Q { __typename }", "Q");
