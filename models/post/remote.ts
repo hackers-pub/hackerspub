@@ -725,43 +725,47 @@ export async function persistPost(
       const repliesIterator = traverseCollection(replies, opts)[
         Symbol.asyncIterator
       ]();
-      while (repliesCount < maxReplies) {
-        let result: Awaited<ReturnType<typeof repliesIterator.next>>;
-        try {
-          result = await repliesIterator.next();
-        } catch (error) {
-          logger.debug(
-            "Inline replies traversal for {postIri} failed after " +
-              "{repliesCount} replies; keeping the parent post.",
-            { postIri: persistedPost.iri, repliesCount, error },
-          );
-          break;
+      try {
+        while (repliesCount < maxReplies) {
+          let result: Awaited<ReturnType<typeof repliesIterator.next>>;
+          try {
+            result = await repliesIterator.next();
+          } catch (error) {
+            logger.debug(
+              "Inline replies traversal for {postIri} failed after " +
+                "{repliesCount} replies; keeping the parent post.",
+              { postIri: persistedPost.iri, repliesCount, error },
+            );
+            break;
+          }
+          if (result.done) break;
+          if (Date.now() >= traversalDeadline) {
+            logger.debug(
+              "Inline replies traversal for {postIri} hit the {budgetMs}ms " +
+                "budget after {repliesCount} replies; stopping early to stay " +
+                "under the message handler timeout.",
+              {
+                postIri: persistedPost.iri,
+                budgetMs: INLINE_REPLIES_TRAVERSAL_BUDGET_MS,
+                repliesCount,
+              },
+            );
+            break;
+          }
+          const reply = result.value;
+          if (!isPostObject(reply)) continue;
+          await persistPost(ctx, reply, {
+            ...options,
+            actor,
+            replyTarget: persistedPost,
+            replies: false,
+            depth: depth + 1,
+            signal: overallSignal,
+          });
+          repliesCount++;
         }
-        if (result.done) break;
-        if (Date.now() >= traversalDeadline) {
-          logger.debug(
-            "Inline replies traversal for {postIri} hit the {budgetMs}ms " +
-              "budget after {repliesCount} replies; stopping early to stay " +
-              "under the message handler timeout.",
-            {
-              postIri: persistedPost.iri,
-              budgetMs: INLINE_REPLIES_TRAVERSAL_BUDGET_MS,
-              repliesCount,
-            },
-          );
-          break;
-        }
-        const reply = result.value;
-        if (!isPostObject(reply)) continue;
-        await persistPost(ctx, reply, {
-          ...options,
-          actor,
-          replyTarget: persistedPost,
-          replies: false,
-          depth: depth + 1,
-          signal: overallSignal,
-        });
-        repliesCount++;
+      } finally {
+        await repliesIterator.return?.();
       }
       if (persistedPost.repliesCount < repliesCount) {
         await db.update(postTable)
