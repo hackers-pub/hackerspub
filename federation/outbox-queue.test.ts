@@ -1,9 +1,11 @@
 import assert from "node:assert";
 import test from "node:test";
-import { eq } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
+import { db as testDb } from "../test/database.ts";
 import { withRollback } from "../test/postgres.ts";
 import { outboxEventTable } from "@hackerspub/models/schema";
 import {
+  getCurrentOutboxDatabase,
   recordOutboxDeliveryError,
   runWithOutboxContext,
   TransactionalOutboxQueue,
@@ -90,6 +92,75 @@ test("nested parallel enqueues receive distinct ordering positions", async () =>
     assert.equal(rows[0].sequence, rows[1].sequence);
     assert.deepEqual(rows.map((row) => row.position).sort(), [0, 1]);
   });
+});
+
+test("fanout side effects roll back before the event is retried", async () => {
+  const suffix = crypto.randomUUID();
+  const parentId = `fanout-rollback-${suffix}`;
+  const childId = `delivery-rollback-${suffix}`;
+  const fanoutQueue = new TransactionalOutboxQueue(
+    testDb,
+    "activitypub.fanout",
+    {
+      now: () => now,
+      pollInterval: { milliseconds: 1 },
+    },
+  );
+  const deliveryQueue = new TransactionalOutboxQueue(
+    testDb,
+    "activitypub.delivery",
+    { now: () => now },
+  );
+
+  try {
+    await fanoutQueue.enqueue({ type: "fanout", id: parentId });
+
+    await fanoutQueue.listen(async () => {
+      await deliveryQueue.enqueue(message(childId));
+      throw new Error("fanout failed after enqueue");
+    }, { signal: AbortSignal.timeout(25) });
+
+    const rows = await testDb.select().from(outboxEventTable).where(
+      inArray(outboxEventTable.messageId, [parentId, childId]),
+    );
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].messageId, parentId);
+    assert.equal(rows[0].status, "pending");
+    assert.equal(rows[0].lastError?.message, "fanout failed after enqueue");
+  } finally {
+    await testDb.delete(outboxEventTable).where(
+      inArray(outboxEventTable.messageId, [parentId, childId]),
+    );
+  }
+});
+
+test("fanout retries survive an aborted database transaction", async () => {
+  const messageId = `fanout-database-error-${crypto.randomUUID()}`;
+  const queue = new TransactionalOutboxQueue(testDb, "activitypub.fanout", {
+    now: () => now,
+    pollInterval: { milliseconds: 1 },
+  });
+
+  try {
+    await queue.enqueue({ type: "fanout", id: messageId });
+
+    await queue.listen(async () => {
+      const db = getCurrentOutboxDatabase();
+      assert(db != null);
+      await db.execute(sql`select 1 / 0`);
+    }, { signal: AbortSignal.timeout(25) });
+
+    const [row] = await testDb.select().from(outboxEventTable).where(
+      eq(outboxEventTable.messageId, messageId),
+    );
+    assert.equal(row.status, "pending");
+    assert.equal(row.processingAttempts, 1);
+    assert.match(row.lastError?.message ?? "", /select 1 \/ 0/);
+  } finally {
+    await testDb.delete(outboxEventTable).where(
+      eq(outboxEventTable.messageId, messageId),
+    );
+  }
 });
 
 test("queue listener completes and redacts a delivered message", async () => {

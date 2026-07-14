@@ -112,6 +112,13 @@ export class OutboxHandlerTimeoutError extends Error {
   }
 }
 
+class RecordedOutboxDeliveryError extends Error {
+  constructor(readonly outboxError: OutboxEventError) {
+    super(outboxError.message);
+    this.name = outboxError.name;
+  }
+}
+
 function durationMilliseconds(
   value: Temporal.Duration | Temporal.DurationLike,
 ): number {
@@ -457,94 +464,32 @@ export class TransactionalOutboxQueue implements MessageQueue {
         requeued: false,
       };
       const context: OutboxContext = { db, pending: [], processing };
-      try {
-        if (event.payloadVersion !== 1) {
-          throw new TypeError(
-            `Unsupported ${event.eventType} payload version ${event.payloadVersion}.`,
-          );
-        }
-        validateMessage(this.#eventType, event.payload);
-        await contextStorage.run(context, async () => {
-          await runHandlerBounded(
-            () => handler(event.payload),
-            this.#handlerTimeoutMilliseconds,
-            signal,
-          );
-          await Promise.all(context.pending);
-        });
-        if (processing.requeued) return;
-        if (processing.deliveryError != null) {
-          const failed = await failOutboxEvent(
-            db,
-            event,
-            processing.deliveryError,
-            this.#now(),
-          );
-          logger.error("Outbox event {eventId} failed permanently.", {
-            eventId: event.id,
-            eventType: event.eventType,
-            payloadVersion: event.payloadVersion,
-            processingAttempts: event.processingAttempts,
-            staleLease: !failed,
-            error: processing.deliveryError,
-          });
-          return;
-        }
-        const completed = await completeOutboxEvent(db, event, this.#now());
-        logger.debug("Completed outbox event {eventId}.", {
-          eventId: event.id,
-          eventType: event.eventType,
-          payloadVersion: event.payloadVersion,
-          processingAttempts: event.processingAttempts,
-          staleLease: !completed,
-        });
-      } catch (error) {
-        const serialized = serializeOutboxError(error);
-        const invalidPayload = error instanceof TypeError &&
-          (event.payloadVersion !== 1 ||
-            error.message.startsWith(`Invalid ${event.eventType}`));
-        if (
-          invalidPayload ||
-          event.processingAttempts >= this.#maximumProcessingAttempts
-        ) {
-          const failed = await failOutboxEvent(
-            db,
-            event,
-            serialized,
-            this.#now(),
-          );
-          logger.error("Outbox event {eventId} failed permanently.", {
-            eventId: event.id,
-            eventType: event.eventType,
-            payloadVersion: event.payloadVersion,
-            processingAttempts: event.processingAttempts,
-            staleLease: !failed,
-            error: serialized,
-          });
-          return;
-        }
-        const delaySeconds = Math.min(
-          300,
-          5 * 2 ** Math.max(0, event.processingAttempts - 1),
+      if (event.payloadVersion !== 1) {
+        throw new TypeError(
+          `Unsupported ${event.eventType} payload version ${event.payloadVersion}.`,
         );
-        const available = new Date(
-          this.#now().getTime() + delaySeconds * 1000,
-        );
-        const retried = await retryOutboxEvent(db, event, {
-          payload: event.payload,
-          available,
-          error: serialized,
-        }, this.#now());
-        logger.error("Outbox event {eventId} will be retried.", {
-          eventId: event.id,
-          eventType: event.eventType,
-          payloadVersion: event.payloadVersion,
-          processingAttempts: event.processingAttempts,
-          available,
-          staleLease: !retried,
-          error: serialized,
-        });
       }
+      validateMessage(this.#eventType, event.payload);
+      await contextStorage.run(context, async () => {
+        await runHandlerBounded(
+          () => handler(event.payload),
+          this.#handlerTimeoutMilliseconds,
+          signal,
+        );
+        await Promise.all(context.pending);
+      });
+      if (processing.requeued) return;
+      if (processing.deliveryError != null) {
+        throw new RecordedOutboxDeliveryError(processing.deliveryError);
+      }
+      const completed = await completeOutboxEvent(db, event, this.#now());
+      logger.debug("Completed outbox event {eventId}.", {
+        eventId: event.id,
+        eventType: event.eventType,
+        payloadVersion: event.payloadVersion,
+        processingAttempts: event.processingAttempts,
+        staleLease: !completed,
+      });
     };
 
     try {
@@ -553,6 +498,55 @@ export class TransactionalOutboxQueue implements MessageQueue {
       } else {
         await processWithDatabase(this.#db);
       }
+    } catch (error) {
+      const serialized = error instanceof RecordedOutboxDeliveryError
+        ? error.outboxError
+        : serializeOutboxError(error);
+      const invalidPayload = error instanceof TypeError &&
+        (event.payloadVersion !== 1 ||
+          error.message.startsWith(`Invalid ${event.eventType}`));
+      if (
+        error instanceof RecordedOutboxDeliveryError ||
+        invalidPayload ||
+        event.processingAttempts >= this.#maximumProcessingAttempts
+      ) {
+        const failed = await failOutboxEvent(
+          this.#db,
+          event,
+          serialized,
+          this.#now(),
+        );
+        logger.error("Outbox event {eventId} failed permanently.", {
+          eventId: event.id,
+          eventType: event.eventType,
+          payloadVersion: event.payloadVersion,
+          processingAttempts: event.processingAttempts,
+          staleLease: !failed,
+          error: serialized,
+        });
+        return;
+      }
+      const delaySeconds = Math.min(
+        300,
+        5 * 2 ** Math.max(0, event.processingAttempts - 1),
+      );
+      const available = new Date(
+        this.#now().getTime() + delaySeconds * 1000,
+      );
+      const retried = await retryOutboxEvent(this.#db, event, {
+        payload: event.payload,
+        available,
+        error: serialized,
+      }, this.#now());
+      logger.error("Outbox event {eventId} will be retried.", {
+        eventId: event.id,
+        eventType: event.eventType,
+        payloadVersion: event.payloadVersion,
+        processingAttempts: event.processingAttempts,
+        available,
+        staleLease: !retried,
+        error: serialized,
+      });
     } finally {
       clearInterval(heartbeat);
     }
