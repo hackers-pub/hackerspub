@@ -473,12 +473,8 @@ describe("takeModerationAction()", () => {
     });
   });
 
-  it("keeps the recorded action when forwarding the Flag fails", async () => {
+  it("rolls back the action when forwarding the Flag cannot be queued", async () => {
     await withRollback(async (tx) => {
-      // A send failure must not fail the action: the recorded decision and
-      // enforcement stand, and a retry would hit an already-resolved case.
-      // (withRollback exercises the caller-supplied-transaction path; the
-      // production path additionally commits before the send.)
       const fedCtx = createFedCtx(tx);
       // deno-lint-ignore no-explicit-any
       (fedCtx as any).sendActivity = () =>
@@ -488,26 +484,25 @@ describe("takeModerationAction()", () => {
         remote: true,
         forwardToRemote: true,
       });
-      const action = await takeModerationAction(fedCtx, {
-        caseId: flag.caseId,
-        moderator: moderator.account,
-        actionType: "ban",
-        violatedProvisions: ["2.3"],
-        rationale: "Internal rationale with details only moderators see.",
-        forwardSummary: "Violation of our code of conduct: harassment.",
-      });
-      // The action is reported as success despite the forwarding failure:
-      assert.ok(action != null);
-      assert.equal(action.actionType, "ban");
-      // The case stayed resolved and the ban enforcement stands:
+      await assert.rejects(
+        takeModerationAction(fedCtx, {
+          caseId: flag.caseId,
+          moderator: moderator.account,
+          actionType: "ban",
+          violatedProvisions: ["2.3"],
+          rationale: "Internal rationale with details only moderators see.",
+          forwardSummary: "Violation of our code of conduct: harassment.",
+        }),
+        /outbound queue unavailable/,
+      );
       const caseRow = await tx.query.flagCaseTable.findFirst({
         where: { id: flag.caseId },
       });
-      assert.equal(caseRow?.status, "resolved");
+      assert.equal(caseRow?.status, "pending");
       const actorRow = await tx.query.actorTable.findFirst({
         where: { id: targetActor.id },
       });
-      assert.ok(actorRow?.suspended != null);
+      assert.equal(actorRow?.suspended, null);
       assert.equal(actorRow?.suspendedUntil, null);
     });
   });

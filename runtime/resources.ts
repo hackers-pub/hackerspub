@@ -257,13 +257,20 @@ export function createAiModels(config: ServerConfig["ai"]): Models & {
 export async function createFederationResource(
   config: Pick<ServerConfig, "origin" | "kv">,
   postgres: Sql,
+  db: Database,
   softwareVersion: string,
   options: FederationResourceOptions,
 ): Promise<{
   readonly federation: Federation<ContextData>;
   close(): Promise<void>;
 }> {
-  const { builder } = await import("@hackerspub/federation");
+  const [{ builder }, {
+    recordOutboxDeliveryError,
+    TransactionalOutboxQueue,
+  }] = await Promise.all([
+    import("@hackerspub/federation"),
+    import("@hackerspub/federation/outbox-queue"),
+  ]);
   const redis = config.kv.url.protocol === "redis:"
     ? new Redis(config.kv.url.href, {
       family: config.kv.url.hostname.endsWith(".upstash.io") ? 6 : 4,
@@ -272,14 +279,27 @@ export async function createFederationResource(
   const federationKv = redis == null
     ? new PostgresKvStore(postgres)
     : new RedisKvStore(redis);
-  const queue = new PostgresMessageQueue(postgres, {
+  const inboxQueue = new PostgresMessageQueue(postgres, {
     handlerTimeout: { seconds: 180 },
   });
+  const fanoutQueue = new TransactionalOutboxQueue(
+    db,
+    "activitypub.fanout",
+  );
+  const outboxQueue = new TransactionalOutboxQueue(
+    db,
+    "activitypub.delivery",
+  );
   let federation: Federation<ContextData>;
   try {
     federation = await builder.build({
       kv: federationKv,
-      queue,
+      queue: {
+        inbox: inboxQueue,
+        fanout: fanoutQueue,
+        outbox: outboxQueue,
+      },
+      onOutboxError: (error) => recordOutboxDeliveryError(error),
       ...getFederationBehaviorOptions(options),
       origin: config.origin.href,
       userAgent: {
@@ -357,6 +377,7 @@ export async function createRuntimeResources(
     const federationResources = await createFederationResource(
       config,
       postgres,
+      db,
       softwareVersion,
       options.federation,
     );

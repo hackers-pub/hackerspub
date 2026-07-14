@@ -14,6 +14,7 @@ import {
   restartArticleContentTranslations,
   startArticleContentSummary,
   startArticleContentTranslation,
+  updateArticle,
 } from "./article.ts";
 import { withTransaction } from "./tx.ts";
 import {
@@ -169,6 +170,116 @@ test("createArticle() starts summaries after enclosing transaction commit", asyn
       return current?.summary === "Short summary.";
     });
   } finally {
+    if (accountId != null) {
+      await db.delete(accountTable).where(eq(accountTable.id, accountId));
+    }
+    if (linkId != null) {
+      await db.delete(postLinkTable).where(eq(postLinkTable.id, linkId));
+    }
+  }
+});
+
+test("updateArticle() persists regenerated summaries after commit", async () => {
+  let accountId: Uuid | undefined;
+  let linkId: Uuid | undefined;
+  const releaseRegeneratedSummary = Promise.withResolvers<void>();
+  try {
+    const regeneratedSummaryStarted = Promise.withResolvers<void>();
+    let generation = 0;
+    const summarizer = new MockLanguageModelV3({
+      doGenerate: async () => {
+        generation++;
+        if (generation > 1) {
+          regeneratedSummaryStarted.resolve();
+          await releaseRegeneratedSummary.promise;
+        }
+        return {
+          content: [{
+            type: "text",
+            text: generation === 1
+              ? "Initial summary."
+              : "Regenerated summary.",
+          }],
+          finishReason: { unified: "stop", raw: undefined },
+          usage: {
+            inputTokens: {
+              total: 10,
+              noCache: 10,
+              cacheRead: undefined,
+              cacheWrite: undefined,
+            },
+            outputTokens: {
+              total: 4,
+              text: 4,
+              reasoning: undefined,
+            },
+          },
+          warnings: [],
+        };
+      },
+    });
+    const suffix = generateUuidV7().replaceAll("-", "").slice(0, 12);
+    const author = await insertAccountWithActor(
+      db as unknown as Parameters<typeof insertAccountWithActor>[0],
+      {
+        username: `summaryedit${suffix}`,
+        name: "Summary After Edit",
+        email: `summaryedit${suffix}@example.com`,
+      },
+    );
+    accountId = author.account.id;
+    const fedCtx = createFedCtx(
+      db as unknown as Parameters<typeof createFedCtx>[0],
+    );
+    fedCtx.models = {
+      summarizer: defineApplicationModel(summarizer),
+      translator: {} as never,
+      moderationAnalyzer: {} as never,
+    } as typeof fedCtx.models;
+    const published = new Date("2026-04-15T00:00:00.000Z");
+    const article = await createArticle(fedCtx, {
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "summary-after-edit",
+      tags: [],
+      allowLlmTranslation: false,
+      published,
+      updated: published,
+      title: "Summary after edit",
+      content:
+        "This original article body is deliberately long enough for its " +
+        "initial generated summary to be shorter than the source text.",
+      language: "en",
+    });
+    assert.ok(article != null);
+    linkId = article.linkId ?? undefined;
+    const sourceId = article.articleSource.id;
+
+    await waitFor(async () => {
+      const current = await db.query.articleContentTable.findFirst({
+        where: { sourceId, language: "en" },
+      });
+      return current?.summary === "Initial summary.";
+    });
+
+    const updated = await updateArticle(fedCtx, sourceId, {
+      content:
+        "This edited article body is also deliberately long enough for its " +
+        "regenerated summary to be shorter than the new source text.",
+    });
+    assert.ok(updated != null);
+    await regeneratedSummaryStarted.promise;
+    releaseRegeneratedSummary.resolve();
+
+    await waitFor(async () => {
+      const current = await db.query.articleContentTable.findFirst({
+        where: { sourceId, language: "en" },
+      });
+      return current?.summary === "Regenerated summary." &&
+        current.summaryStarted == null;
+    }, 1_000);
+  } finally {
+    releaseRegeneratedSummary.resolve();
     if (accountId != null) {
       await db.delete(accountTable).where(eq(accountTable.id, accountId));
     }
@@ -335,6 +446,88 @@ test(
         });
         return current == null;
       });
+    });
+  },
+);
+
+test(
+  "restartArticleContentTranslations() preserves its placeholder when outbox persistence fails",
+  async () => {
+    await withRollback(async (tx) => {
+      const baseFedCtx = createFedCtx(tx);
+      baseFedCtx.data.services = {
+        ...baseFedCtx.data.services,
+        ai: {
+          ...baseFedCtx.data.services.ai,
+          translate: () =>
+            Promise.resolve("# Translated title\n\nTranslated body"),
+        },
+      };
+      const deliveryAttempted = Promise.withResolvers<void>();
+      const fedCtx = {
+        ...baseFedCtx,
+        sendActivity() {
+          deliveryAttempted.resolve();
+          return Promise.reject(new Error("outbox persistence failed"));
+        },
+      } as typeof baseFedCtx;
+      const author = await insertAccountWithActor(tx, {
+        username: "retrytranslation",
+        name: "Retry Translation",
+        email: "retrytranslation@example.com",
+      });
+      const requester = await insertAccountWithActor(tx, {
+        username: "retryrequester",
+        name: "Retry Requester",
+        email: "retryrequester@example.com",
+      });
+      const sourceId = generateUuidV7();
+      const published = new Date("2026-04-15T00:00:00.000Z");
+      const [articleSource] = await tx.insert(articleSourceTable).values({
+        id: sourceId,
+        accountId: author.account.id,
+        publishedYear: 2026,
+        slug: "retry-translation",
+        tags: [],
+        allowLlmTranslation: true,
+        published,
+        updated: published,
+      }).returning();
+      await tx.insert(articleContentTable).values({
+        sourceId,
+        language: "en",
+        title: "Current original title",
+        content: "Current original body",
+        published,
+        updated: published,
+      });
+      await tx.insert(articleContentTable).values({
+        sourceId,
+        language: "ko",
+        title: "Previous translated title",
+        content: "Previous translated body",
+        originalLanguage: "en",
+        translationRequesterId: requester.account.id,
+        beingTranslated: false,
+        published,
+        updated: published,
+      });
+
+      await restartArticleContentTranslations(fedCtx, articleSource);
+      await deliveryAttempted.promise;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const placeholder = await tx.query.articleContentTable.findFirst({
+        where: { sourceId, language: "ko" },
+      });
+      assert.ok(placeholder != null);
+      assert.equal(placeholder.beingTranslated, true);
+      assert.equal(placeholder.title, "Current original title");
+      assert.equal(placeholder.content, "Current original body");
+      assert.equal(
+        placeholder.translationRequesterId,
+        requester.account.id,
+      );
     });
   },
 );

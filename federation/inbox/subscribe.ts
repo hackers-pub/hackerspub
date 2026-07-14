@@ -149,10 +149,13 @@ export async function onPostUpdated(
 export async function onPostDeleted(
   fedCtx: InboxContext<ContextData>,
   del: Delete,
+  resolved?: Readonly<{ object: unknown }>,
 ): Promise<boolean> {
   logger.debug("On post deleted: {delete}", { delete: del });
   if (del.objectId?.origin !== del.actorId?.origin) return false;
-  const object = await del.getObject({ ...fedCtx, suppressError: true });
+  const object = resolved == null
+    ? await del.getObject({ ...fedCtx, suppressError: true })
+    : resolved.object;
   if (
     !(isPostObject(object) || object instanceof Tombstone) ||
     object.id == null || del.actorId == null

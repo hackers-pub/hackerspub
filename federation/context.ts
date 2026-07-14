@@ -1,8 +1,27 @@
-import type { Context } from "@fedify/fedify";
+import type { Context, InboxContext } from "@fedify/fedify";
+import type { Activity } from "@fedify/vocab";
 import type {
   ApplicationContext,
   ContextData,
 } from "@hackerspub/models/context";
+import { withTransaction } from "@hackerspub/models/tx";
+import { runWithOutboxContext } from "./outbox-queue.ts";
+
+export function sendActivityWithOutbox(
+  context: Context<ContextData>,
+  sender: unknown,
+  recipients: unknown,
+  activity: Activity,
+  options?: unknown,
+): Promise<void> {
+  return runWithOutboxContext(context.data.db, () =>
+    context.sendActivity(
+      sender as never,
+      recipients as never,
+      activity,
+      options as never,
+    ));
+}
 
 /** Return the adapter-owned Fedify context for a federation implementation. */
 export function getFedifyContext(
@@ -39,6 +58,20 @@ export function getFedifyContext(
     lookupWebFinger: context.lookupWebFinger,
     sendActivity: context.sendActivity,
   });
+}
+
+/** Run an inbox operation with its state changes and outgoing work atomic. */
+export async function withInboxTransaction<T>(
+  context: InboxContext<ContextData>,
+  callback: (context: InboxContext<ContextData>) => Promise<T>,
+): Promise<T> {
+  return await withTransaction(
+    toApplicationContext(context),
+    async (txCtx) =>
+      await callback(
+        getFedifyContext(txCtx) as InboxContext<ContextData>,
+      ),
+  );
 }
 
 /** Translate a Fedify adapter context into the context used by application code. */
@@ -98,11 +131,12 @@ export function toApplicationContext(
     },
     ...(getActorKeyPairs == null ? {} : { getActorKeyPairs }),
     sendActivity: (sender, recipients, activity, options) =>
-      context.sendActivity(
-        sender as never,
-        recipients as never,
+      sendActivityWithOutbox(
+        context,
+        sender,
+        recipients,
         activity,
-        options as never,
+        options,
       ),
   };
   return applicationContext;

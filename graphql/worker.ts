@@ -7,6 +7,7 @@ import {
   drainNewsRescoreQueue,
   recomputeNewsScores,
 } from "@hackerspub/models/news";
+import { pruneOutboxEvents } from "@hackerspub/models/outbox";
 import { notifyEndedPolls } from "@hackerspub/models/poll";
 import { getLogger } from "@logtape/logtape";
 import {
@@ -207,8 +208,36 @@ Deno.cron("send-daily-notification-digests", "5 0 * * *", {
   }
 });
 
-// Drain the federation inbox/outbox queue.  The API process (`main.ts`) builds
-// the same federation with `manuallyStartQueue: true` and only enqueues, so
+const outboxLogger = getLogger([
+  "hackerspub",
+  "graphql",
+  "transactional-outbox",
+]);
+const DAY_MILLISECONDS = 24 * 60 * 60 * 1000;
+Deno.cron("prune-transactional-outbox", "30 3 * * *", {
+  signal: controller.signal,
+}, async () => {
+  try {
+    const now = Date.now();
+    const deleted = await pruneOutboxEvents(db, {
+      completedBefore: new Date(now - DAY_MILLISECONDS),
+      failedBefore: new Date(now - 30 * DAY_MILLISECONDS),
+    });
+    if (deleted > 0) {
+      outboxLogger.info("Pruned {deleted} expired outbox event(s).", {
+        deleted,
+      });
+    }
+  } catch (error) {
+    outboxLogger.error("Transactional outbox pruning failed: {error}", {
+      error,
+    });
+  }
+});
+
+// Drain the federation inbox and transactional fanout/delivery queues.  The
+// API process (`main.ts`) builds the same federation with
+// `manuallyStartQueue: true` and only enqueues, so
 // this dedicated process is the sole consumer on the new (graphql) stack side.
 // Running it apart from the API gives the heavy, bursty federation work its own
 // event loop and DB pool, so a slow/zombie inbox handler can no longer starve

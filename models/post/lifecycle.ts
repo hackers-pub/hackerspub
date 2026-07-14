@@ -11,13 +11,14 @@ import {
   postTable,
 } from "../schema.ts";
 import type { Uuid } from "../uuid.ts";
+import { transactional } from "../tx.ts";
 import {
   updateQuotesCount,
   updateRepliesCount,
   updateSharesCount,
 } from "./engagement.ts";
 
-export async function deletePost(
+async function deletePostOperation(
   fedCtx: ApplicationContext,
   post: Post & { actor: Actor; replyTarget: Post | null },
 ): Promise<void> {
@@ -173,3 +174,5 @@ export async function deletePost(
     },
   );
 }
+
+export const deletePost = transactional(deletePostOperation);

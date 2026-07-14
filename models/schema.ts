@@ -12,6 +12,7 @@ import {
   json,
   jsonb,
   pgEnum,
+  pgSequence,
   pgTable,
   primaryKey,
   smallint,
@@ -1691,6 +1692,85 @@ export const newsRescoreQueueTable = pgTable("news_rescore_queue", {
 
 export type NewsRescoreQueueItem = typeof newsRescoreQueueTable.$inferSelect;
 export type NewNewsRescoreQueueItem = typeof newsRescoreQueueTable.$inferInsert;
+
+export const outboxEventSequence = pgSequence("outbox_event_sequence");
+
+export const outboxEventStatusEnum = pgEnum("outbox_event_status", [
+  "pending",
+  "processing",
+  "completed",
+  "dead",
+]);
+
+export type OutboxEventStatus =
+  (typeof outboxEventStatusEnum.enumValues)[number];
+
+export interface OutboxEventError {
+  readonly name: string;
+  readonly message: string;
+  readonly stack?: string;
+  readonly details?: Readonly<Record<string, unknown>>;
+}
+
+// Durable application events which must commit atomically with the state that
+// produced them.  Payloads are versioned at the application boundary instead
+// of inheriting the lifecycle of a queue library's private table format.
+export const outboxEventTable = pgTable(
+  "outbox_event",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    eventType: text("event_type").notNull(),
+    payloadVersion: smallint("payload_version").notNull(),
+    messageId: text("message_id").notNull(),
+    groupId: uuid("group_id").$type<Uuid>().notNull(),
+    sequence: bigint({ mode: "bigint" }).notNull(),
+    position: integer().notNull(),
+    orderingKey: text("ordering_key"),
+    status: outboxEventStatusEnum().notNull().default("pending"),
+    payload: jsonb().$type<unknown | null>(),
+    activityId: text("activity_id"),
+    activityType: text("activity_type"),
+    inbox: text(),
+    available: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    processingAttempts: integer("processing_attempts").notNull().default(0),
+    leaseToken: uuid("lease_token").$type<Uuid>(),
+    leased: timestamp({ withTimezone: true }),
+    lastError: jsonb("last_error").$type<OutboxEventError | null>(),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    updated: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    completed: timestamp({ withTimezone: true }),
+    failed: timestamp({ withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex("outbox_event_message_idx").on(
+      table.eventType,
+      table.messageId,
+    ),
+    index("outbox_event_ready_idx").on(
+      table.eventType,
+      table.status,
+      table.available,
+      table.sequence,
+      table.position,
+    ),
+    index("outbox_event_ordering_idx").on(
+      table.orderingKey,
+      table.status,
+      table.sequence,
+      table.position,
+    ),
+    index("outbox_event_lease_idx").on(table.status, table.leased),
+  ],
+);
+
+export type OutboxEvent = typeof outboxEventTable.$inferSelect;
+export type NewOutboxEvent = typeof outboxEventTable.$inferInsert;
 
 export const pollTable = pgTable(
   "poll",

@@ -160,11 +160,48 @@ collections follows the post's visibility and local moderation state.
 Delivery and relays
 -------------------
 
-Outgoing activities are delivered asynchronously through Fedify's message
-queue.  Public and unlisted posts are delivered to their intended public,
-followers, and mentioned recipients; followers-only and direct posts are sent
-only to their explicit audiences.  Shared inbox delivery is used where
-appropriate.
+Outgoing activities are delivered asynchronously through two queue layers.
+Incoming activities remain in Fedify's PostgreSQL inbox queue.  Outgoing
+fanout and per-inbox delivery messages are stored in Hackers' Pub's
+`outbox_event` table as `activitypub.fanout` and `activitypub.delivery` events
+with payload version `1`.  Application state and initial fanout events use the
+same database transaction, so a successful mutation cannot lose its matching
+federation work if the API process exits after commit.
+
+The GraphQL worker drains all three queues.  It is a background worker and
+must not be placed behind a load balancer.  Outbox workers claim rows with
+leases and compare-and-set acknowledgements.  An expired lease can be
+reclaimed after a crash, while the stale worker can no longer complete that
+row.  Enqueue transactions take a transaction-scoped lock for each ordering
+key before allocating sequence numbers, and workers skip a key while another
+row for it has an active processing lease.  These constraints prevent a later
+per-object event from overtaking or running concurrently with an older event,
+even when multiple transactions and workers race.
+
+Delivery is at least once: a process can exit after a remote inbox accepts an
+activity but before the local acknowledgement commits.  Activity and message
+IDs stay stable across retries so compatible receivers can deduplicate them.
+Fedify-requested retries update the leased event with its next payload and
+delivery time.  Other transient worker failures use bounded exponential
+backoff and become dead letters after 10 processing attempts.  Permanent
+delivery errors become dead letters immediately.  Logs include the event type,
+payload version, attempt count, next delivery time, and available activity or
+inbox diagnostics.  A handler may wait at most 180 seconds; reaching that
+limit, or stopping the listener, releases the row for retry instead of leaving
+the worker blocked indefinitely.
+
+Completed rows have their payload removed immediately and their metadata is
+kept for one day.  Dead letters keep their payload and error diagnostics for 30
+days.  The worker prunes both sets daily.  Operators can inspect a dead row and
+requeue it with `replayOutboxEvent` from *@hackerspub/models/outbox*; replay
+uses the same row and resets its processing-attempt count.  A payload format
+change must introduce a new `payloadVersion` decoder before producers begin
+writing that version.  Unsupported versions are dead-lettered rather than
+guessed or retried indefinitely.
+
+Public and unlisted posts are delivered to their intended public, followers,
+and mentioned recipients; followers-only and direct posts are sent only to
+their explicit audiences.  Shared inbox delivery is used where appropriate.
 
 Administrators can initiate partial LitePub/Pleroma-style relay subscriptions
 for the instance actor, subject to the interoperability limitations described

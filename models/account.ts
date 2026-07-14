@@ -46,6 +46,7 @@ import {
 import { removePostsFromTimeline } from "./timeline.ts";
 import { getAccountLinkDisplayText } from "./url.ts";
 import type { Uuid } from "./uuid.ts";
+import { transactional } from "./tx.ts";
 
 const logger = getLogger(["hackerspub", "models", "account"]);
 
@@ -390,7 +391,7 @@ async function ensureAccountKeys(
   await fedCtx.getActorKeyPairs(accountId);
 }
 
-export async function deleteAccount(
+async function deleteAccountOperation(
   fedCtx: ApplicationContext,
   accountId: Uuid,
   options: DeleteAccountOptions = {},
@@ -565,34 +566,29 @@ export async function deleteAccount(
 
   if (result == null) return undefined;
   const actorUri = fedCtx.getActorUri(result.accountId);
-  try {
-    await fedCtx.sendActivity(
-      { identifier: result.accountId },
-      deleteRecipients,
-      new vocab.Delete({
-        id: new URL(`#delete/${deleted.toISOString()}`, actorUri),
-        actor: actorUri,
-        to: vocab.PUBLIC_COLLECTION,
-        object: new vocab.Tombstone({
-          id: actorUri,
-          formerType: getTombstoneFormerType(result.formerType),
-          deleted: Temporal.Instant.fromEpochMilliseconds(deleted.getTime()),
-        }),
+  await fedCtx.sendActivity(
+    { identifier: result.accountId },
+    deleteRecipients,
+    new vocab.Delete({
+      id: new URL(`#delete/${deleted.toISOString()}`, actorUri),
+      actor: actorUri,
+      to: vocab.PUBLIC_COLLECTION,
+      object: new vocab.Tombstone({
+        id: actorUri,
+        formerType: getTombstoneFormerType(result.formerType),
+        deleted: Temporal.Instant.fromEpochMilliseconds(deleted.getTime()),
       }),
-      {
-        orderingKey: actorUri.href,
-        preferSharedInbox: true,
-        excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
-      },
-    );
-  } catch (error) {
-    logger.error(
-      "Failed to enqueue actor Delete for deleted account {accountId}: {error}",
-      { accountId: result.accountId, error },
-    );
-  }
+    }),
+    {
+      orderingKey: actorUri.href,
+      preferSharedInbox: true,
+      excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+    },
+  );
   return result;
 }
+
+export const deleteAccount = transactional(deleteAccountOperation);
 
 export async function getAvatarUrl(
   disk: StorageService,
@@ -706,7 +702,7 @@ export async function getAccountByUsername(
   });
 }
 
-export async function updateAccount(
+async function updateAccountOperation(
   fedCtx: ApplicationContext,
   account: Partial<NewAccount> & { id: Uuid; links?: Link[] },
 ): Promise<Account & { links: AccountLink[] } | undefined> {
@@ -730,6 +726,8 @@ export async function updateAccount(
   await sendAccountActorUpdate(fedCtx, result.id, result.updated);
   return { ...result, links };
 }
+
+export const updateAccount = transactional(updateAccountOperation);
 
 export async function sendAccountActorUpdate(
   fedCtx: ApplicationContext,

@@ -18,6 +18,7 @@ import {
   blockingTable,
 } from "./schema.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
+import { transactional } from "./tx.ts";
 
 export async function persistBlocking(
   fedCtx: ApplicationContext,
@@ -71,7 +72,7 @@ export async function persistBlocking(
   return rows[0];
 }
 
-export async function block(
+async function blockOperation(
   fedCtx: ApplicationContext,
   blocker: Account & { actor: Actor },
   blockee: Actor,
@@ -124,7 +125,9 @@ export async function block(
   return rows[0];
 }
 
-export async function unblock(
+export const block = transactional(blockOperation);
+
+async function unblockOperation(
   fedCtx: ApplicationContext,
   blocker: Account & { actor: Actor },
   blockee: Actor,
@@ -161,6 +164,8 @@ export async function unblock(
   }
   return rows[0];
 }
+
+export const unblock = transactional(unblockOperation);
 
 export async function getBlockedActorIds(
   db: Database,

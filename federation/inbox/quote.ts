@@ -16,7 +16,7 @@ import {
   persistActor,
 } from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
-import { toApplicationContext } from "../context.ts";
+import { sendActivityWithOutbox, toApplicationContext } from "../context.ts";
 import { isPostObject, type PostObject } from "@hackerspub/models/post/core";
 import { updateQuotesCount } from "@hackerspub/models/post/engagement";
 import { persistPost } from "@hackerspub/models/post/remote";
@@ -104,7 +104,8 @@ export async function onQuoteRequested(
     ? await getValidQuoteRequestInstrument(fedCtx, request)
     : undefined;
   if (validInstrument == null) {
-    await fedCtx.sendActivity(
+    await sendActivityWithOutbox(
+      fedCtx,
       { identifier: quotedPost.actor.accountId },
       { id: request.actorId, inboxId: new URL(actor.inboxUrl) },
       new Reject({
@@ -181,7 +182,8 @@ export async function onQuoteRequested(
       updated: sql`CURRENT_TIMESTAMP`,
     },
   });
-  await fedCtx.sendActivity(
+  await sendActivityWithOutbox(
+    fedCtx,
     { identifier: quotedPost.actor.accountId },
     { id: request.actorId, inboxId: new URL(actor.inboxUrl) },
     response,
@@ -306,6 +308,7 @@ function validateQuoteRequestInstrument(
 export async function onQuoteRequestAccepted(
   fedCtx: InboxContext<ContextData>,
   accept: Accept,
+  resolved?: Readonly<{ object: unknown; result: unknown }>,
 ): Promise<boolean> {
   if (accept.actorId == null || accept.resultId == null) return false;
   let quoteRequestIri = accept.objectId?.href;
@@ -315,7 +318,9 @@ export async function onQuoteRequestAccepted(
   let quote = storedRequest?.quotePost;
   let quotedPost = storedRequest?.quotedPost;
   if (quote == null) {
-    const request = await accept.getObject({ ...fedCtx, suppressError: true });
+    const request = resolved == null
+      ? await accept.getObject({ ...fedCtx, suppressError: true })
+      : resolved.object;
     if (!(request instanceof QuoteRequest)) return false;
     if (request.instrumentId == null) return false;
     quoteRequestIri = request.id?.href ?? quoteRequestIri;
@@ -348,10 +353,12 @@ export async function onQuoteRequestAccepted(
     );
     return true;
   }
-  const authorization = await accept.getResult({
-    ...fedCtx,
-    suppressError: true,
-  });
+  const authorization = resolved == null
+    ? await accept.getResult({
+      ...fedCtx,
+      suppressError: true,
+    })
+    : resolved.result;
   const validAuthorization = authorization instanceof QuoteAuthorization &&
     authorization.id?.href === accept.resultId.href &&
     authorization.interactingObjectId?.href === quote.iri &&
@@ -517,7 +524,8 @@ async function sendQuoteUpdate(
     new URL(fedCtx.canonicalOrigin),
   ];
   if (quote.mentions.length > 0) {
-    await fedCtx.sendActivity(
+    await sendActivityWithOutbox(
+      fedCtx,
       { identifier: quote.actor.accountId },
       quote.mentions.map((mention) => ({
         id: new URL(mention.actor.iri),
@@ -539,7 +547,8 @@ async function sendQuoteUpdate(
     quote.visibility === "unlisted" ||
     quote.visibility === "followers"
   ) {
-    await fedCtx.sendActivity(
+    await sendActivityWithOutbox(
+      fedCtx,
       { identifier: quote.actor.accountId },
       "followers",
       update,
@@ -572,6 +581,7 @@ async function sendQuoteUpdate(
 export async function onQuoteRequestRejected(
   fedCtx: InboxContext<ContextData>,
   reject: Reject,
+  resolved?: Readonly<{ object: unknown }>,
 ): Promise<boolean> {
   if (reject.actorId == null) return false;
   let quoteRequestIri = reject.objectId?.href;
@@ -582,7 +592,9 @@ export async function onQuoteRequestRejected(
   let quotedPost = storedRequest?.quotedPost;
   let requestTargetIri: string | undefined;
   if (quote == null) {
-    const request = await reject.getObject({ ...fedCtx, suppressError: true });
+    const request = resolved == null
+      ? await reject.getObject({ ...fedCtx, suppressError: true })
+      : resolved.object;
     if (!(request instanceof QuoteRequest)) return false;
     if (request.instrumentId == null) return false;
     quoteRequestIri = request.id?.href ?? quoteRequestIri;

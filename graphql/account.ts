@@ -28,6 +28,7 @@ import {
   LastOrganizationMemberError,
 } from "@hackerspub/models/organization";
 import { deleteSession } from "@hackerspub/models/session";
+import { withTransaction } from "@hackerspub/models/tx";
 import {
   accountTable,
   type Actor as ActorRow,
@@ -239,40 +240,34 @@ async function getAuthorizedMigrationAccount(
   return account;
 }
 
-async function getUpdatedMigrationAccount(
-  ctx: UserContext,
-  accountId: Uuid,
-  updated: Date,
-) {
-  await sendAccountActorUpdate(ctx.fedCtx, accountId, updated);
-  const account = await ctx.db.query.accountTable.findFirst({
-    where: { id: accountId },
-  });
-  if (account == null) throw new InvalidInputError("accountId");
-  return account;
-}
-
 async function addAccountMigrationAlias(
   ctx: UserContext,
   accountId: Uuid,
   alias: string,
 ) {
-  const rows = await ctx.db.update(actorTable)
-    .set({
-      aliases: sql`
-        CASE
-          WHEN ${alias} = ANY(${actorTable.aliases})
-          THEN ${actorTable.aliases}
-          ELSE array_append(${actorTable.aliases}, ${alias})
-        END
-      `,
-      updated: sql`CURRENT_TIMESTAMP`,
-    })
-    .where(eq(actorTable.accountId, accountId))
-    .returning();
-  const actor = rows[0];
-  if (actor == null) throw new InvalidInputError("accountId");
-  return await getUpdatedMigrationAccount(ctx, accountId, actor.updated);
+  return await withTransaction(ctx.fedCtx, async (fedCtx) => {
+    const rows = await fedCtx.db.update(actorTable)
+      .set({
+        aliases: sql`
+          CASE
+            WHEN ${alias} = ANY(${actorTable.aliases})
+            THEN ${actorTable.aliases}
+            ELSE array_append(${actorTable.aliases}, ${alias})
+          END
+        `,
+        updated: sql`CURRENT_TIMESTAMP`,
+      })
+      .where(eq(actorTable.accountId, accountId))
+      .returning();
+    const actor = rows[0];
+    if (actor == null) throw new InvalidInputError("accountId");
+    await sendAccountActorUpdate(fedCtx, accountId, actor.updated);
+    const account = await fedCtx.db.query.accountTable.findFirst({
+      where: { id: accountId },
+    });
+    if (account == null) throw new InvalidInputError("accountId");
+    return account;
+  });
 }
 
 async function removeAccountMigrationAlias(
@@ -280,16 +275,23 @@ async function removeAccountMigrationAlias(
   accountId: Uuid,
   alias: string,
 ) {
-  const rows = await ctx.db.update(actorTable)
-    .set({
-      aliases: sql`array_remove(${actorTable.aliases}, ${alias})`,
-      updated: sql`CURRENT_TIMESTAMP`,
-    })
-    .where(eq(actorTable.accountId, accountId))
-    .returning();
-  const actor = rows[0];
-  if (actor == null) throw new InvalidInputError("accountId");
-  return await getUpdatedMigrationAccount(ctx, accountId, actor.updated);
+  return await withTransaction(ctx.fedCtx, async (fedCtx) => {
+    const rows = await fedCtx.db.update(actorTable)
+      .set({
+        aliases: sql`array_remove(${actorTable.aliases}, ${alias})`,
+        updated: sql`CURRENT_TIMESTAMP`,
+      })
+      .where(eq(actorTable.accountId, accountId))
+      .returning();
+    const actor = rows[0];
+    if (actor == null) throw new InvalidInputError("accountId");
+    await sendAccountActorUpdate(fedCtx, accountId, actor.updated);
+    const account = await fedCtx.db.query.accountTable.findFirst({
+      where: { id: accountId },
+    });
+    if (account == null) throw new InvalidInputError("accountId");
+    return account;
+  });
 }
 
 export const Account = builder.drizzleNode("accountTable", {
@@ -1674,10 +1676,10 @@ builder.relayMutationField(
       "Permanently delete the authenticated viewer's personal account, or " +
       "an organization account administered by the viewer. This hard-deletes " +
       "the local account data, reserves the account's current `username`, " +
-      "commits the deleted actor's tombstone and preserved keys, then " +
-      "attempts to enqueue one actor-level ActivityPub `Delete` to followers. " +
-      "A transient delivery queue failure is logged after commit and does " +
-      "not resurrect the account. Personal account deletion fails if it " +
+      "and enqueues one actor-level ActivityPub `Delete` to followers in " +
+      "the same transaction as the deleted actor's tombstone and preserved " +
+      "keys. If that durable enqueue fails, the deletion is rolled back. " +
+      "Personal account deletion also fails if it " +
       "would leave an accepted organization membership with no members or " +
       "no administrators. Session-store cleanup is best-effort and only " +
       "applies when the viewer deletes their own personal account.",
