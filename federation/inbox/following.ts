@@ -408,7 +408,9 @@ export async function prepareFollower(
   fedCtx: InboxContext<ContextData>,
   follow: Follow,
 ): Promise<PreparedFollower | undefined> {
-  if (follow.id == null || follow.objectId == null) return undefined;
+  if (
+    follow.id == null || follow.actorId == null || follow.objectId == null
+  ) return undefined;
   const followObject = fedCtx.parseUri(follow.objectId);
   if (followObject?.type !== "actor") return undefined;
   if (!validateUuid(followObject.identifier)) return undefined;

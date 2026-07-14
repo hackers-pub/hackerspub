@@ -137,4 +137,36 @@ describe("transactional inbox dispatch", () => {
       assert.equal(dereferenceDb, tx);
     });
   });
+
+  it("does not dereference a Follow without an actor ID", async () => {
+    await withRollback(async (tx) => {
+      const local = await insertAccountWithActor(tx, {
+        username: "followedwithoutactor",
+        name: "Followed Without Actor",
+        email: "followedwithoutactor@example.com",
+      });
+      const fedCtx = createFedCtx(tx) as unknown as InboxContext<ContextData>;
+      Object.assign(fedCtx, {
+        parseUri(uri: URL | null) {
+          return uri?.href === local.actor.iri
+            ? { type: "actor", identifier: local.account.id }
+            : null;
+        },
+      });
+      let dereferenced = false;
+      const follow = {
+        id: new URL("https://remote.example/follows/without-actor"),
+        actorId: null,
+        objectId: new URL(local.actor.iri),
+        getActor() {
+          dereferenced = true;
+          return Promise.resolve(null);
+        },
+      } as unknown as Follow;
+
+      await onFollowReceived(fedCtx, follow);
+
+      assert.equal(dereferenced, false);
+    });
+  });
 });
