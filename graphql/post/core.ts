@@ -1,5 +1,4 @@
 import * as vocab from "@fedify/vocab";
-import { generateAltText } from "@hackerspub/ai/alttext";
 import { getLogger } from "@logtape/logtape";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import {
@@ -8,7 +7,10 @@ import {
 } from "@pothos/plugin-relay";
 import { unreachable } from "@std/assert";
 import { assertNever } from "@std/assert/unstable-never";
+import DataLoader from "dataloader";
 import { and, eq, gt, inArray, isNotNull, isNull, lte, or } from "drizzle-orm";
+import { createGraphQLError } from "graphql-yoga";
+import { generateAltText } from "@hackerspub/ai/alttext";
 import {
   arePostsBookmarkedBy,
   getBookmarkCountsForPosts,
@@ -35,15 +37,12 @@ import {
 } from "@hackerspub/models/post/visibility";
 import { actorTable, pinTable, postTable } from "@hackerspub/models/schema";
 import type * as schema from "@hackerspub/models/schema";
-import DataLoader from "dataloader";
 import {
   DESCENDANT_TREE_MAX_DEPTH,
   getAncestorChain,
   getDescendantPage,
 } from "@hackerspub/models/thread";
 import type { Uuid } from "@hackerspub/models/uuid";
-import { isMediumOwner, isMediumUploadWindowActive } from "../medium-upload.ts";
-import { createGraphQLError } from "graphql-yoga";
 import { Account } from "../account.ts";
 import { resolveActingAccountForMutation } from "../acting-account.ts";
 import {
@@ -55,6 +54,7 @@ import {
 } from "../actor.ts";
 import { builder, Node, type UserContext } from "../builder.ts";
 import { InvalidInputError, NotAuthorizedError } from "../error.ts";
+import { isMediumOwner, isMediumUploadWindowActive } from "../medium-upload.ts";
 import { PostVisibility, toPostVisibility } from "../postvisibility.ts";
 import {
   QuotePolicy,

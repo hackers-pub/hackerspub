@@ -1,3 +1,4 @@
+import { resolveOffsetConnection } from "@pothos/plugin-relay";
 import {
   getCensoredPostExclusionFilter,
   getPostVisibilityFilter,
@@ -7,7 +8,7 @@ import {
   getProfileInteractions,
 } from "@hackerspub/models/profile-interactions";
 import { validateUuid } from "@hackerspub/models/uuid";
-import { resolveOffsetConnection } from "@pothos/plugin-relay";
+import { resolveActingAccountForGlobalIdArg } from "../acting-account.ts";
 import {
   Actor,
   authenticationRequired,
@@ -18,7 +19,6 @@ import {
   parseRequiredTimelineCursor,
   pinConnectionHelpers,
 } from "../actor.ts";
-import { resolveActingAccountForGlobalIdArg } from "../acting-account.ts";
 import { builder } from "../builder.ts";
 import {
   actingAccountIdArgDescription,
