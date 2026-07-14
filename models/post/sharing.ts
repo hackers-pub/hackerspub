@@ -1,10 +1,10 @@
 import * as vocab from "@fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import { and, eq, inArray } from "drizzle-orm";
-import { assertAccountActorNotSuspended } from "../moderation.ts";
 import { syncActorFromAccount, toRecipient } from "../actor.ts";
 import type { ApplicationContext } from "../context.ts";
 import type { Database } from "../db.ts";
+import { assertAccountActorNotSuspended } from "../moderation.ts";
 import { refreshNewsScores } from "../news.ts";
 import {
   createShareNotification,
