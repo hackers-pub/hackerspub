@@ -70,7 +70,6 @@ type ValidQuoteRequestInstrument = {
 interface PreparedQuoteRequest {
   actor: NonNullable<Awaited<ReturnType<typeof getPersistedActor>>>;
   validInstrument?: ValidQuoteRequestInstrument;
-  quotePostId?: Post["id"];
 }
 
 async function prepareQuoteRequest(
@@ -109,18 +108,7 @@ async function prepareQuoteRequest(
   const validInstrument = requestAllowed
     ? await getValidQuoteRequestInstrument(fedCtx, request)
     : undefined;
-  if (validInstrument == null || canActorQuotePost(quotedPost, actor)) {
-    return { actor, validInstrument };
-  }
-  const quotePost = await persistPost(
-    toApplicationContext(fedCtx),
-    validInstrument.instrument,
-    {
-      actor,
-      replies: false,
-    },
-  );
-  return { actor, validInstrument, quotePostId: quotePost?.id };
+  return { actor, validInstrument };
 }
 
 export async function onQuoteRequestReceived(
@@ -179,21 +167,35 @@ export async function onQuoteRequested(
     );
     return;
   }
-  const { instrumentIri } = validInstrument;
+  const { instrument, instrumentIri } = validInstrument;
   if (!canActorQuotePost(quotedPost, actor)) {
-    if (preparedRequest.quotePostId == null) return;
+    const existingQuotePost = await fedCtx.data.db.query.postTable.findFirst({
+      columns: { id: true },
+      where: { iri: instrumentIri },
+    });
+    const quotePostId = existingQuotePost?.id ??
+      (await persistPost(
+        toApplicationContext(fedCtx),
+        instrument,
+        {
+          actor,
+          replies: false,
+          fetchRemote: false,
+        },
+      ))?.id;
+    if (quotePostId == null) return;
     await fedCtx.data.db.update(postTable)
       .set({ quoteTargetState: "pending" })
-      .where(eq(postTable.id, preparedRequest.quotePostId));
+      .where(eq(postTable.id, quotePostId));
     await fedCtx.data.db.insert(quoteRequestTable).values({
       id: generateUuidV7(),
       iri: request.id.href,
-      quotePostId: preparedRequest.quotePostId,
+      quotePostId,
       quotedPostId: quotedPost.id,
     }).onConflictDoUpdate({
       target: quoteRequestTable.iri,
       set: {
-        quotePostId: preparedRequest.quotePostId,
+        quotePostId,
         quotedPostId: quotedPost.id,
         accepted: null,
         rejected: null,

@@ -85,6 +85,8 @@ const EMOJI_REACTIONS_BACKFILL_LOCK_TTL_MS = 300_000;
 const EMOJI_REACTIONS_BACKFILL_RETRY_DELAY_MS = 30_000;
 const MAX_EMOJI_REACTIONS_BACKFILL = 500;
 const INLINE_REPLIES_TRAVERSAL_BUDGET_MS = 15_000;
+const disabledDocumentLoader: DocumentLoader = (url) =>
+  Promise.reject(new TypeError(`Remote fetch disabled for ${url}`));
 
 async function backfillEmojiReactions(
   ctx: ApplicationContext,
@@ -196,6 +198,7 @@ async function resolveMentionedActors(
     contextLoader?: DocumentLoader;
     documentLoader?: DocumentLoader;
   },
+  fetchRemote = true,
 ): Promise<Actor[]> {
   if (mentionHrefs.size < 1) return [];
   const { db } = ctx;
@@ -214,6 +217,7 @@ async function resolveMentionedActors(
     actorsById.set(actor.id, actor);
     deleteActorMentionHrefs(unresolvedHrefs, actor);
   }
+  if (!fetchRemote) return [...actorsById.values()];
   for (const href of unresolvedHrefs) {
     const apActor = await lookupObject(href, options);
     if (!isActor(apActor)) continue;
@@ -245,6 +249,13 @@ export async function persistPost(
     deferLargeReplies?: boolean;
     contextLoader?: DocumentLoader;
     documentLoader?: DocumentLoader;
+    /**
+     * Whether linked ActivityPub objects and external resources may be
+     * fetched while persisting the post.  Set this to `false` only when the
+     * caller already dereferenced the post and must keep the remaining work
+     * database-only, such as inside an inbox transaction.
+     */
+    fetchRemote?: boolean;
     /**
      * Shared overall deadline for the whole synchronous persist subtree.  Left
      * unset by top-level callers (an inbox handler): the first call mints one
@@ -279,7 +290,8 @@ export async function persistPost(
   const inlineRepliesThreshold = options.inlineRepliesThreshold ??
     DEFAULT_INLINE_REPLIES_THRESHOLD;
   const deferLargeReplies = options.deferLargeReplies ?? true;
-  const shouldRecurse = depth < maxDepth;
+  const fetchRemote = options.fetchRemote ?? true;
+  const shouldRecurse = fetchRemote && depth < maxDepth;
   if (post.id.origin === ctx.canonicalOrigin) {
     return await getPersistedPost(db, post.id);
   }
@@ -292,12 +304,14 @@ export async function persistPost(
   const overallSignal = options.signal ??
     AbortSignal.timeout(PERSIST_POST_OVERALL_BUDGET_MS);
   const opts = {
-    contextLoader: options.contextLoader,
-    documentLoader: withDocumentLoaderTimeout(
-      options.documentLoader ?? ctx.documentLoader,
-      REMOTE_FETCH_TIMEOUT_MS,
-      overallSignal,
-    ),
+    contextLoader: fetchRemote ? options.contextLoader : disabledDocumentLoader,
+    documentLoader: fetchRemote
+      ? withDocumentLoaderTimeout(
+        options.documentLoader ?? ctx.documentLoader,
+        REMOTE_FETCH_TIMEOUT_MS,
+        overallSignal,
+      )
+      : disabledDocumentLoader,
     suppressError: true,
   };
   if (actor != null && isFederationBlocked(actor)) return undefined;
@@ -553,7 +567,12 @@ export async function persistPost(
       existingPost.id,
       unauthorizedQuoteTarget.id,
     );
-  const mentionedActors = await resolveMentionedActors(ctx, mentions, opts);
+  const mentionedActors = await resolveMentionedActors(
+    ctx,
+    mentions,
+    opts,
+    fetchRemote,
+  );
   const mentionLinkHrefs = new Set(mentions);
   for (const actor of mentionedActors) {
     for (const href of getActorMentionHrefs(actor)) mentionLinkHrefs.add(href);
@@ -569,7 +588,7 @@ export async function persistPost(
     : post instanceof vocab.Question
     ? "Question"
     : assertNever(post, `Unexpected type of post: ${post}`);
-  const qualifyingArticleNewsPost = type === "Article" &&
+  const qualifyingArticleNewsPost = fetchRemote && type === "Article" &&
     (visibility === "public" || visibility === "unlisted") &&
     replyTarget == null &&
     quotedPost == null;
@@ -592,7 +611,8 @@ export async function persistPost(
       quotedPostIri !== l.href
     );
   }
-  const embeddedLink = articleNewsLink == null && externalLinks.length > 0
+  const embeddedLink = fetchRemote && articleNewsLink == null &&
+      externalLinks.length > 0
     ? await persistPostLink(ctx, externalLinks[0], { signal: overallSignal })
     : undefined;
   const link = articleNewsLink ?? embeddedLink;
@@ -635,8 +655,23 @@ export async function persistPost(
   const {
     repliesCount: _repliesCount,
     sharesCount: _sharesCount,
-    ...updateSet
+    ...fullUpdateSet
   } = values;
+  const updateSet = fetchRemote ? fullUpdateSet : {
+    type: values.type,
+    visibility: values.visibility,
+    quotePolicy: values.quotePolicy,
+    quoteRequestPolicy: values.quoteRequestPolicy,
+    actorId: values.actorId,
+    sensitive: values.sensitive,
+    name: values.name,
+    summary: values.summary,
+    contentHtml: values.contentHtml,
+    language: values.language,
+    url: values.url,
+    updated: values.updated,
+    published: values.published,
+  };
   const rows = await db.insert(postTable)
     .values({ id: generateUuidV7(), ...values })
     .onConflictDoUpdate({
@@ -672,9 +707,11 @@ export async function persistPost(
       },
     });
   }
-  await db.delete(mentionTable).where(
-    eq(mentionTable.postId, persistedPost.id),
-  );
+  if (fetchRemote) {
+    await db.delete(mentionTable).where(
+      eq(mentionTable.postId, persistedPost.id),
+    );
+  }
 
   if (
     existingPost?.quotedPostId != null &&
@@ -707,13 +744,17 @@ export async function persistPost(
     ...m,
     actor: mentionedActors.find((a) => a.id === m.actorId)!,
   }));
-  await db.delete(postMediumTable).where(
-    eq(postMediumTable.postId, persistedPost.id),
-  );
+  if (fetchRemote) {
+    await db.delete(postMediumTable).where(
+      eq(postMediumTable.postId, persistedPost.id),
+    );
+  }
   let i = 0;
-  for (const attachment of attachments) {
-    await persistPostMedium(ctx, attachment, persistedPost.id, i);
-    i++;
+  if (fetchRemote) {
+    for (const attachment of attachments) {
+      await persistPostMedium(ctx, attachment, persistedPost.id, i);
+      i++;
+    }
   }
   if (options.replies && depth === 0 && replies != null) {
     const totalItems = replies.totalItems ?? 0;
@@ -878,7 +919,7 @@ export async function persistPost(
   if (post instanceof vocab.Question) {
     poll = await persistPoll(db, post, persistedPost.id);
   }
-  if (depth === 0) {
+  if (depth === 0 && fetchRemote) {
     await queueAfterCommit(ctx, () => {
       const db = ctx.rootDb ?? ctx.db;
       return enqueueEmojiReactionsBackfill(
