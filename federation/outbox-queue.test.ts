@@ -134,6 +134,49 @@ test("fanout side effects roll back before the event is retried", async () => {
   }
 });
 
+test("fanout side effects roll back when the completion lease is stale", async () => {
+  const suffix = crypto.randomUUID();
+  const parentId = `fanout-stale-${suffix}`;
+  const childId = `delivery-stale-${suffix}`;
+  const reclaimedLeaseToken = crypto.randomUUID();
+  const fanoutQueue = new TransactionalOutboxQueue(
+    testDb,
+    "activitypub.fanout",
+    {
+      now: () => now,
+      pollInterval: { milliseconds: 1 },
+    },
+  );
+  const deliveryQueue = new TransactionalOutboxQueue(
+    testDb,
+    "activitypub.delivery",
+    { now: () => now },
+  );
+
+  try {
+    await fanoutQueue.enqueue({ type: "fanout", id: parentId });
+
+    await fanoutQueue.listen(async () => {
+      await deliveryQueue.enqueue(message(childId));
+      await testDb.update(outboxEventTable).set({
+        leaseToken: reclaimedLeaseToken,
+      }).where(eq(outboxEventTable.messageId, parentId));
+    }, { signal: AbortSignal.timeout(50) });
+
+    const rows = await testDb.select().from(outboxEventTable).where(
+      inArray(outboxEventTable.messageId, [parentId, childId]),
+    );
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].messageId, parentId);
+    assert.equal(rows[0].status, "processing");
+    assert.equal(rows[0].leaseToken, reclaimedLeaseToken);
+  } finally {
+    await testDb.delete(outboxEventTable).where(
+      inArray(outboxEventTable.messageId, [parentId, childId]),
+    );
+  }
+});
+
 test("fanout retries survive an aborted database transaction", async () => {
   const messageId = `fanout-database-error-${crypto.randomUUID()}`;
   const queue = new TransactionalOutboxQueue(testDb, "activitypub.fanout", {

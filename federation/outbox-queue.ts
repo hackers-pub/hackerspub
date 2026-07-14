@@ -483,12 +483,12 @@ export class TransactionalOutboxQueue implements MessageQueue {
         throw new RecordedOutboxDeliveryError(processing.deliveryError);
       }
       const completed = await completeOutboxEvent(db, event, this.#now());
+      if (!completed) throw new Error("The leased outbox event was lost.");
       logger.debug("Completed outbox event {eventId}.", {
         eventId: event.id,
         eventType: event.eventType,
         payloadVersion: event.payloadVersion,
         processingAttempts: event.processingAttempts,
-        staleLease: !completed,
       });
     };
 
