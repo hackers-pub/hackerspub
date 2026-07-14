@@ -57,6 +57,7 @@ export function PollEditor(props: PollEditorProps) {
           <div class="grid grid-cols-2 overflow-hidden rounded-md border border-input">
             <Button
               type="button"
+              aria-pressed={!props.poll.multiple()}
               variant={props.poll.multiple() ? "ghost" : "secondary"}
               class="h-9 rounded-none border-r"
               onClick={() => props.poll.setMultiple(false)}
@@ -65,6 +66,7 @@ export function PollEditor(props: PollEditorProps) {
             </Button>
             <Button
               type="button"
+              aria-pressed={props.poll.multiple()}
               variant={props.poll.multiple() ? "secondary" : "ghost"}
               class="h-9 rounded-none"
               onClick={() => props.poll.setMultiple(true)}
