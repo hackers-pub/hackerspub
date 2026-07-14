@@ -1,9 +1,11 @@
+import { AsyncLocalStorage } from "node:async_hooks";
 import type {
   MessageQueue,
   MessageQueueDepth,
   MessageQueueEnqueueOptions,
   MessageQueueListenOptions,
 } from "@fedify/fedify";
+import { getLogger } from "@logtape/logtape";
 import { runInTransaction } from "@hackerspub/models/db";
 import {
   type ClaimedOutboxEvent,
@@ -18,8 +20,6 @@ import {
   retryOutboxEvent,
 } from "@hackerspub/models/outbox";
 import type { OutboxEventError } from "@hackerspub/models/schema";
-import { getLogger } from "@logtape/logtape";
-import { AsyncLocalStorage } from "node:async_hooks";
 
 const logger = getLogger(["hackerspub", "federation", "transactional-outbox"]);
 
