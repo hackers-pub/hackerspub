@@ -1,9 +1,5 @@
 import { useNavigate } from "@solidjs/router";
 import { fetchQuery, graphql } from "relay-runtime";
-import IconFileText from "~icons/lucide/file-text";
-import IconImage from "~icons/lucide/image";
-import IconListChecks from "~icons/lucide/list-checks";
-import IconX from "~icons/lucide/x";
 import {
   batch,
   createEffect,
@@ -16,8 +12,12 @@ import {
   untrack,
 } from "solid-js";
 import { useRelayEnvironment } from "solid-relay";
-import { detectLanguage } from "~/lib/langdet.ts";
+import IconFileText from "~icons/lucide/file-text";
+import IconImage from "~icons/lucide/image";
+import IconListChecks from "~icons/lucide/list-checks";
+import IconX from "~icons/lucide/x";
 import { shouldSuggestArticleForNote } from "~/lib/formatGuidance.ts";
+import { detectLanguage } from "~/lib/langdet.ts";
 import {
   type NoteDraftData,
   type NoteDraftScope,
