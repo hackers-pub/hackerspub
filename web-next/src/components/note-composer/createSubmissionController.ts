@@ -11,6 +11,7 @@ import {
   buildUpdateNoteInput,
   getNoteInternalHref,
   type SubmissionMedium,
+  type SubmissionValidationError,
   validateSubmission,
 } from "./submissionState.ts";
 import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
@@ -229,13 +230,13 @@ export function createSubmissionController(
   const submitting = () =>
     creating() || creatingQuestion() || updating() || savingArticleDraft();
 
-  const showValidationError = (
-    error: "empty-content" | "uploading-media" | "missing-alt",
-  ) => {
+  const showValidationError = (error: SubmissionValidationError) => {
     const description = error === "empty-content"
       ? t`Content cannot be empty`
       : error === "uploading-media"
       ? t`All images must finish uploading before posting`
+      : error === "failed-media-upload"
+      ? t`Failed to upload image`
       : t`All images require alt text`;
     showToast({ title: t`Error`, description, variant: "error" });
   };
@@ -313,7 +314,7 @@ export function createSubmissionController(
       quotedPostId: options.quotedPostId(),
       replyTargetId: options.replyTargetId(),
       actingAccountInput,
-      media: options.media(),
+      media: validation.media,
     });
     const connections = [...options.prependToConnections()];
     const mutationVariables = {

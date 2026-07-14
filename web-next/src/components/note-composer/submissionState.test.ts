@@ -11,7 +11,7 @@ const uploadedMedia = [{
   uuid: "00000000-0000-0000-0000-000000000000",
   alt: " Diagram ",
   uploading: false,
-}];
+}] as const;
 
 test("validateSubmission rejects empty content and incomplete media", () => {
   assert.deepEqual(validateSubmission(" ", []), {
@@ -30,6 +30,16 @@ test("validateSubmission rejects empty content and incomplete media", () => {
   );
   assert.deepEqual(
     validateSubmission("hello", [{
+      alt: "Diagram",
+      uploading: false,
+    }]),
+    {
+      ok: false,
+      error: "failed-media-upload",
+    },
+  );
+  assert.deepEqual(
+    validateSubmission("hello", [{
       ...uploadedMedia[0],
       alt: " ",
     }]),
@@ -38,6 +48,11 @@ test("validateSubmission rejects empty content and incomplete media", () => {
       error: "missing-alt",
     },
   );
+  assert.deepEqual(validateSubmission(" hello ", uploadedMedia), {
+    ok: true,
+    content: "hello",
+    media: uploadedMedia,
+  });
 });
 
 test("buildCreatePostInput normalizes shared note fields", () => {

@@ -1,9 +1,8 @@
+import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
 import type { QuotePolicy } from "~/components/QuotePolicySelect.tsx";
 import { ensureLinkInContent } from "~/lib/composerLink.ts";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
-
-type Uuid = `${string}-${string}-${string}-${string}-${string}`;
 
 export interface SubmissionMedium {
   readonly uuid?: string;
@@ -11,11 +10,25 @@ export interface SubmissionMedium {
   readonly uploading: boolean;
 }
 
+export interface ValidatedSubmissionMedium extends SubmissionMedium {
+  readonly uuid: Uuid;
+}
+
+export type SubmissionValidationError =
+  | "empty-content"
+  | "uploading-media"
+  | "failed-media-upload"
+  | "missing-alt";
+
 export type SubmissionValidationResult =
-  | { readonly ok: true; readonly content: string }
+  | {
+    readonly ok: true;
+    readonly content: string;
+    readonly media: readonly ValidatedSubmissionMedium[];
+  }
   | {
     readonly ok: false;
-    readonly error: "empty-content" | "uploading-media" | "missing-alt";
+    readonly error: SubmissionValidationError;
   };
 
 export interface BuildCreatePostInputOptions {
@@ -28,7 +41,7 @@ export interface BuildCreatePostInputOptions {
   readonly quotedPostId?: string | null;
   readonly replyTargetId?: string | null;
   readonly actingAccountInput: { readonly actingAccountId?: string };
-  readonly media: readonly SubmissionMedium[];
+  readonly media: readonly ValidatedSubmissionMedium[];
 }
 
 export interface CreatePostInput {
@@ -81,10 +94,19 @@ export function validateSubmission(
   if (media.some((item) => item.uploading)) {
     return { ok: false, error: "uploading-media" };
   }
+  if (!media.every(hasUploadedUuid)) {
+    return { ok: false, error: "failed-media-upload" };
+  }
   if (media.some((item) => item.alt.trim() === "")) {
     return { ok: false, error: "missing-alt" };
   }
-  return { ok: true, content: normalizedContent };
+  return { ok: true, content: normalizedContent, media };
+}
+
+function hasUploadedUuid(
+  medium: SubmissionMedium,
+): medium is ValidatedSubmissionMedium {
+  return validateUuid(medium.uuid);
 }
 
 export function buildCreatePostInput(
@@ -102,7 +124,7 @@ export function buildCreatePostInput(
     replyTargetId: options.replyTargetId ?? null,
     ...options.actingAccountInput,
     media: options.media.map((item) => ({
-      mediumId: item.uuid! as Uuid,
+      mediumId: item.uuid,
       alt: item.alt.trim(),
     })),
   };
