@@ -114,7 +114,7 @@ export async function onDeleted(
   );
   if (quoteAuthorizationDeleted) return;
 
-  if (del.objectId?.href === del.actorId?.href) {
+  if (del.objectId != null && del.objectId.href === del.actorId?.href) {
     const actorDeleted = await withInboxTransaction(
       fedCtx,
       (txCtx) => onActorDeleted(txCtx, del),

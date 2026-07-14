@@ -68,6 +68,25 @@ describe("transactional inbox dispatch", () => {
     });
   });
 
+  it("does not treat a Delete without IDs as an actor deletion", async () => {
+    await withRollback(async (tx) => {
+      const fedCtx = createFedCtx(tx) as unknown as InboxContext<ContextData>;
+      let dereferenced = false;
+      const del = {
+        actorId: null,
+        objectId: null,
+        getObject() {
+          dereferenced = true;
+          return Promise.resolve(null);
+        },
+      } as unknown as Delete;
+
+      await onDeleted(fedCtx, del);
+
+      assert.equal(dereferenced, true);
+    });
+  });
+
   it("resolves a Follow actor before opening the relationship transaction", async () => {
     await withRollback(async (tx) => {
       const local = await insertAccountWithActor(tx, {
