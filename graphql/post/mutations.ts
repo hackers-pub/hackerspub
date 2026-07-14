@@ -279,8 +279,13 @@ builder.relayMutationField(
           },
           where: { id: replyTargetId.id },
         });
+        if (post == null) {
+          throw new InvalidInputError("replyTargetId");
+        }
+        const effectivePost = post.sharedPost ?? post;
         if (
-          post == null || !isPostVisibleTo(post, actingAccount.account.actor)
+          !isPostVisibleTo(post, actingAccount.account.actor) ||
+          !isPostVisibleTo(effectivePost, actingAccount.account.actor)
         ) {
           throw new InvalidInputError("replyTargetId");
         }
@@ -602,8 +607,13 @@ builder.relayMutationField(
           },
           where: { id: replyTargetId.id },
         });
+        if (post == null) {
+          throw new InvalidInputError("replyTargetId");
+        }
+        const effectivePost = post.sharedPost ?? post;
         if (
-          post == null || !isPostVisibleTo(post, actingAccount.account.actor)
+          !isPostVisibleTo(post, actingAccount.account.actor) ||
+          !isPostVisibleTo(effectivePost, actingAccount.account.actor)
         ) {
           throw new InvalidInputError("replyTargetId");
         }

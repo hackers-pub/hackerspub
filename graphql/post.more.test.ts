@@ -2759,6 +2759,90 @@ test("createNote and createQuestion allow replies to public shares", async () =>
   });
 });
 
+test("createNote and createQuestion reject shares of invisible posts", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "invisibleshareauthor",
+      name: "Invisible Share Author",
+      email: "invisibleshareauthor@example.com",
+    });
+    const sharer = await insertAccountWithActor(tx, {
+      username: "invisiblesharer",
+      name: "Invisible Sharer",
+      email: "invisiblesharer@example.com",
+    });
+    const requester = await insertAccountWithActor(tx, {
+      username: "invisiblesharerequester",
+      name: "Invisible Share Requester",
+      email: "invisiblesharerequester@example.com",
+    });
+    const { post: original } = await insertNotePost(tx, {
+      account: author.account,
+      visibility: "followers",
+      content: "Followers-only post to share",
+    });
+    const { post: share } = await insertNotePost(tx, {
+      account: sharer.account,
+      visibility: "public",
+      sharedPostId: original.id,
+    });
+    const replyTargetId = encodeGlobalID("Note", share.id);
+    const contextValue = makeTransactionalUserContext(tx, requester.account);
+
+    const noteResult = await execute({
+      schema,
+      document: createNoteWithErrorMutation,
+      variableValues: {
+        input: {
+          content: "Replying to the hidden shared note",
+          language: "en",
+          visibility: "PUBLIC",
+          replyTargetId,
+        },
+      },
+      contextValue,
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(noteResult.errors, undefined);
+    assert.deepEqual(toPlainJson(noteResult.data), {
+      createNote: {
+        __typename: "InvalidInputError",
+        inputPath: "replyTargetId",
+      },
+    });
+
+    const questionResult = await execute({
+      schema,
+      document: createQuestionMutation,
+      variableValues: {
+        input: {
+          content: "Polling from the hidden shared note",
+          language: "en",
+          visibility: "PUBLIC",
+          replyTargetId,
+          poll: {
+            title: "Pick one",
+            multiple: false,
+            options: ["Yes", "No"],
+            ends: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          },
+        },
+      },
+      contextValue,
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(questionResult.errors, undefined);
+    assert.deepEqual(toPlainJson(questionResult.data), {
+      createQuestion: {
+        __typename: "InvalidInputError",
+        inputPath: "replyTargetId",
+      },
+    });
+  });
+});
+
 test("createNote rejects invisible reply and quote targets", async () => {
   await withRollback(async (tx) => {
     const author = await insertAccountWithActor(tx, {
