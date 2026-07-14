@@ -129,11 +129,20 @@ export const Article = builder.drizzleNode("postTable", {
         "a moderation sanction, and the viewer is neither " +
         "its author nor a moderator.",
       args: {
-        language: t.arg({ type: "Locale", required: false }),
+        language: t.arg({
+          type: "Locale",
+          required: false,
+          description:
+            "Preferred BCP 47 locale for content negotiation. Omit it to " +
+            "return every eligible language version.",
+        }),
         includeBeingTranslated: t.arg({
           type: "Boolean",
           required: false,
           defaultValue: false,
+          description:
+            "Whether to include language versions whose LLM translation is " +
+            "still in progress. Defaults to `false`.",
         }),
       },
       complexity: (args) => ({

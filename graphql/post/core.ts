@@ -485,6 +485,10 @@ export const Post = builder.drizzleInterface("postTable", {
     }),
     visibility: t.field({
       type: PostVisibility,
+      description:
+        "The audience allowed to view this post and whether it appears in " +
+        "public timelines. The value cannot be changed after the post has " +
+        "been federated.",
       select: {
         columns: { visibility: true },
       },
@@ -494,6 +498,10 @@ export const Post = builder.drizzleInterface("postTable", {
     }),
     quotePolicy: t.field({
       type: QuotePolicy,
+      description:
+        "Who may embed this post as a quote. Posts with `FOLLOWERS`, `DIRECT`, " +
+        "or `NONE` visibility always use `SELF` regardless of a broader " +
+        "received policy.",
       select: {
         columns: { quotePolicy: true },
       },
@@ -504,6 +512,10 @@ export const Post = builder.drizzleInterface("postTable", {
     quoteTargetState: t.field({
       type: QuoteTargetState,
       nullable: true,
+      description:
+        "The cross-instance approval state when this post quotes another " +
+        "post. `null` means no request is outstanding or the request was " +
+        "approved.",
       select: {
         columns: { quoteTargetState: true },
       },
