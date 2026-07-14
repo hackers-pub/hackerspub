@@ -1,58 +1,29 @@
 import { useNavigate } from "@solidjs/router";
-import {
-  ConnectionHandler,
-  fetchQuery,
-  graphql,
-  type RecordSourceSelectorProxy,
-} from "relay-runtime";
-import { createStore, produce } from "solid-js/store";
-import IconFileText from "~icons/lucide/file-text";
-import IconImage from "~icons/lucide/image";
-import IconListChecks from "~icons/lucide/list-checks";
-import IconPlus from "~icons/lucide/plus";
-import IconSquare from "~icons/lucide/square";
-import IconTrash from "~icons/lucide/trash-2";
-import IconX from "~icons/lucide/x";
+import { fetchQuery, graphql } from "relay-runtime";
 import {
   batch,
   createEffect,
   createMemo,
   createSignal,
-  For,
   on,
   onCleanup,
   onMount,
   Show,
   untrack,
 } from "solid-js";
-import { createMutation, useRelayEnvironment } from "solid-relay";
-import { getBrowserLocalStorage } from "~/lib/browserStorage.ts";
-import { ensureLinkInContent } from "~/lib/composerLink.ts";
-import { encodeHandleSegment } from "~/lib/handleSegment.ts";
-import { detectLanguage } from "~/lib/langdet.ts";
+import { useRelayEnvironment } from "solid-relay";
+import IconFileText from "~icons/lucide/file-text";
+import IconImage from "~icons/lucide/image";
+import IconListChecks from "~icons/lucide/list-checks";
+import IconX from "~icons/lucide/x";
 import { shouldSuggestArticleForNote } from "~/lib/formatGuidance.ts";
+import { detectLanguage } from "~/lib/langdet.ts";
 import {
-  getNoteDraftStorageKey,
-  isMeaningfulNoteDraft,
   type NoteDraftData,
-  type NoteDraftMedia,
   type NoteDraftScope,
-  readNoteDraft,
-  removeNoteDraft,
   type StoredNoteDraft,
-  writeNoteDraft,
 } from "~/lib/noteDraftStorage.ts";
 import {
-  publishNoteDraftChange,
-  registerNoteDraftFlush,
-  subscribeNoteDraftChanges,
-} from "~/lib/noteDraftSync.ts";
-import {
-  UploadAbortedError,
-  uploadMediumFile,
-} from "~/lib/uploadMediumWithProgress.ts";
-import {
-  getSupportedImageContentType,
   isSupportedImageFile,
   supportedImageAccept,
 } from "~/lib/supportedImageFile.ts";
@@ -90,174 +61,25 @@ import {
 } from "~/contexts/ActingAccountContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import type { NoteComposerGeneratedAltTextQuery } from "./__generated__/NoteComposerGeneratedAltTextQuery.graphql.ts";
-import type { NoteComposerArticleDraftMutation } from "./__generated__/NoteComposerArticleDraftMutation.graphql.ts";
-import type { NoteComposerMutation } from "./__generated__/NoteComposerMutation.graphql.ts";
-import type { NoteComposerDraftMediaQuery } from "./__generated__/NoteComposerDraftMediaQuery.graphql.ts";
+import { createDraftController } from "./note-composer/createDraftController.ts";
+import {
+  createMediaController,
+  MAX_MEDIA,
+} from "./note-composer/createMediaController.ts";
+import { createPollController } from "./note-composer/createPollController.ts";
+import { createSubmissionController } from "./note-composer/createSubmissionController.ts";
+import {
+  createNoteDraftData,
+  getNoteComposerDraftScope,
+  hasUnstorableDraftMedia,
+  toStorableNoteDraftData,
+} from "./note-composer/draftState.ts";
+import { MediaEditor } from "./note-composer/MediaEditor.tsx";
+import { PollEditor } from "./note-composer/PollEditor.tsx";
+import { MIN_POLL_OPTIONS } from "./note-composer/pollState.ts";
 import type { NoteComposerPostByUrlQuery } from "./__generated__/NoteComposerPostByUrlQuery.graphql.ts";
-import type { NoteComposerQuestionMutation } from "./__generated__/NoteComposerQuestionMutation.graphql.ts";
 import type { NoteComposerQuotedPostQuery } from "./__generated__/NoteComposerQuotedPostQuery.graphql.ts";
 import type { NoteComposerReplyTargetQuery } from "./__generated__/NoteComposerReplyTargetQuery.graphql.ts";
-import type { NoteComposerUpdateMutation } from "./__generated__/NoteComposerUpdateMutation.graphql.ts";
-
-const NoteComposerMutation = graphql`
-  mutation NoteComposerMutation(
-    $input: CreateNoteInput!
-    $connections: [ID!]!
-    $includeDiscussionThreadFields: Boolean!
-    $actingAccountId: ID
-  ) {
-    createNote(input: $input) {
-      __typename
-      ... on CreateNotePayload {
-        note
-          @prependNode(
-            connections: $connections
-            edgeTypeName: "PostLinkSharingPostsConnectionEdge"
-          ) {
-          id
-          uuid
-          sourceId
-          replyTarget(actingAccountId: $actingAccountId) {
-            id
-          }
-          hasVisibleReplies(actingAccountId: $actingAccountId)
-          actor {
-            id
-            handle
-            username
-            local
-          }
-          ...PermalinkThread_replyNode @arguments(
-            actingAccountId: $actingAccountId
-          )
-          # Only news-discussion posts prepend into a connection and need the
-          # row fields; skip them for every other compose/reply/quote path.
-          ...NewsDiscussionThread_post
-            @arguments(actingAccountId: $actingAccountId)
-            @include(if: $includeDiscussionThreadFields)
-        }
-      }
-      ... on InvalidInputError {
-        inputPath
-      }
-      ... on NotAuthenticatedError {
-        notAuthenticated
-      }
-    }
-  }
-`;
-
-const NoteComposerQuestionMutation = graphql`
-  mutation NoteComposerQuestionMutation(
-    $input: CreateQuestionInput!
-    $connections: [ID!]!
-    $includeDiscussionThreadFields: Boolean!
-    $actingAccountId: ID
-  ) {
-    createQuestion(input: $input) {
-      __typename
-      ... on CreateQuestionPayload {
-        question
-          @prependNode(
-            connections: $connections
-            edgeTypeName: "PostLinkSharingPostsConnectionEdge"
-          ) {
-          id
-          uuid
-          sourceId
-          replyTarget(actingAccountId: $actingAccountId) {
-            id
-          }
-          hasVisibleReplies(actingAccountId: $actingAccountId)
-          actor {
-            id
-          }
-          ...PermalinkThread_replyNode @arguments(
-            actingAccountId: $actingAccountId
-          )
-          ...NewsDiscussionThread_post
-            @arguments(actingAccountId: $actingAccountId)
-            @include(if: $includeDiscussionThreadFields)
-        }
-      }
-      ... on InvalidInputError {
-        inputPath
-      }
-      ... on NotAuthenticatedError {
-        notAuthenticated
-      }
-    }
-  }
-`;
-
-const NoteComposerUpdateMutation = graphql`
-  mutation NoteComposerUpdateMutation($input: UpdateNoteInput!) {
-    updateNote(input: $input) {
-      __typename
-      ... on UpdateNotePayload {
-        note {
-          id
-          content
-          rawContent
-          language
-          quotePolicy
-        }
-      }
-      ... on InvalidInputError {
-        inputPath
-      }
-      ... on NotAuthenticatedError {
-        notAuthenticated
-      }
-    }
-  }
-`;
-
-const NoteComposerArticleDraftMutation = graphql`
-  mutation NoteComposerArticleDraftMutation(
-    $input: SaveArticleDraftInput!
-    $connections: [ID!]!
-  ) {
-    saveArticleDraft(input: $input) {
-      __typename
-      ... on SaveArticleDraftPayload {
-        draft
-          @prependNode(
-            connections: $connections
-            edgeTypeName: "AccountArticleDraftsConnectionEdge"
-          ) {
-          id
-          uuid
-          title
-          content
-          tags
-          updated
-        }
-      }
-      ... on InvalidInputError {
-        inputPath
-      }
-      ... on NotAuthenticatedError {
-        notAuthenticated
-      }
-    }
-  }
-`;
-
-const NoteComposerDraftMediaQuery = graphql`
-  query NoteComposerDraftMediaQuery($ids: [ID!]!) {
-    nodes(ids: $ids) {
-      ... on Medium {
-        id
-        uuid
-        url
-        width
-        height
-      }
-    }
-  }
-`;
 
 const NoteComposerQuotedPostQuery = graphql`
   query NoteComposerQuotedPostQuery($id: ID!) {
@@ -371,89 +193,6 @@ const NoteComposerPostByUrlQuery = graphql`
   }
 `;
 
-const NoteComposerGeneratedAltTextQuery = graphql`
-  query NoteComposerGeneratedAltTextQuery(
-    $mediumId: ID!
-    $language: Locale!
-    $context: String
-  ) {
-    node(id: $mediumId) {
-      ... on Medium {
-        generatedAltText(language: $language, context: $context)
-      }
-    }
-  }
-`;
-
-const MAX_MEDIA = 20;
-const MIN_POLL_OPTIONS = 2;
-const MAX_POLL_OPTIONS = 20;
-
-interface PollOptionDraft {
-  localId: string;
-  title: string;
-}
-
-interface ValidatedPollInput {
-  title: string;
-  multiple: boolean;
-  options: string[];
-  ends: string;
-}
-
-function createLocalId(): string {
-  return globalThis.crypto?.randomUUID?.() ??
-    Math.random().toString(36).slice(2);
-}
-
-function formatDateTimeLocal(date: Date): string {
-  const pad = (value: number) => String(value).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${
-    pad(date.getDate())
-  }T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
-
-function parseDateTimeLocal(value: string): Date {
-  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value);
-  if (match == null) return new Date(NaN);
-  const [, year, month, day, hours, minutes] = match.map(Number);
-  const date = new Date(year, month - 1, day, hours, minutes);
-  if (
-    date.getFullYear() !== year ||
-    date.getMonth() !== month - 1 ||
-    date.getDate() !== day ||
-    date.getHours() !== hours ||
-    date.getMinutes() !== minutes
-  ) {
-    return new Date(NaN);
-  }
-  return date;
-}
-
-function defaultPollEnds(): string {
-  const date = new Date();
-  date.setDate(date.getDate() + 1);
-  date.setSeconds(0, 0);
-  return formatDateTimeLocal(date);
-}
-
-interface MediaItem {
-  localId: string;
-  file?: File;
-  previewUrl: string;
-  alt: string;
-  mediumRelayId?: string;
-  uuid?: string;
-  url?: string;
-  width?: number;
-  height?: number;
-  uploading: boolean;
-  uploadProgress: number;
-  generatingAlt: boolean;
-  abortUpload?: () => void;
-  altSubscription?: { unsubscribe: () => void };
-}
-
 interface QuotedPostPreview {
   typename: "Note" | "Article" | "Question";
   excerpt: string;
@@ -464,10 +203,6 @@ interface QuotedPostPreview {
 }
 
 export type NoteDraftFlush = () => boolean;
-
-function revokePreviewUrl(url: string): void {
-  if (url.startsWith("blob:")) URL.revokeObjectURL(url);
-}
 
 export interface NoteComposerProps {
   onSuccess?: () => void;
@@ -587,10 +322,6 @@ export function NoteComposer(props: NoteComposerProps) {
     selectedActingAccountOption() == null
       ? {}
       : actingAccount.composeInputForKey(actingAccountKey());
-  const editActingAccountInput = () =>
-    props.editingAuthorAccountId == null
-      ? {}
-      : { actingAccountId: props.editingAuthorAccountId };
   const allowPoll = () => props.allowPoll !== false;
   const canCreatePoll = () => !props.editingNoteId && allowPoll();
   const [pastedQuoteId, setPastedQuoteId] = createSignal<string | null>(null);
@@ -632,72 +363,23 @@ export function NoteComposer(props: NoteComposerProps) {
     ),
   );
 
-  const [createNote, isCreating] = createMutation<NoteComposerMutation>(
-    NoteComposerMutation,
-  );
-  const [createQuestion, isCreatingQuestion] = createMutation<
-    NoteComposerQuestionMutation
-  >(
-    NoteComposerQuestionMutation,
-  );
-  const [updateNote, isUpdating] = createMutation<NoteComposerUpdateMutation>(
-    NoteComposerUpdateMutation,
-  );
-  const [saveArticleDraft, isSavingArticleDraft] = createMutation<
-    NoteComposerArticleDraftMutation
-  >(
-    NoteComposerArticleDraftMutation,
-  );
-  const [mediaItems, setMediaItems] = createStore<MediaItem[]>([]);
-  const [pollOptions, setPollOptions] = createStore<PollOptionDraft[]>([
-    { localId: createLocalId(), title: "" },
-    { localId: createLocalId(), title: "" },
-  ]);
-  const [pollEnabled, setPollEnabled] = createSignal(false);
-  const [pollTitle, setPollTitle] = createSignal("");
-  const [pollMultiple, setPollMultiple] = createSignal(false);
-  const [pollEnds, setPollEnds] = createSignal(defaultPollEnds());
+  const media = createMediaController({
+    environment,
+    editing: () => !!props.editingNoteId,
+    language: () => language()?.baseName ?? i18n.locale,
+    content,
+  });
+  const mediaItems = media.items;
+  const poll = createPollController();
   const [isDraggingOver, setIsDraggingOver] = createSignal(false);
   const [editorResetKey, setEditorResetKey] = createSignal(0);
   let formRef: HTMLFormElement | undefined;
   let removeDragListeners: (() => void) | undefined;
   let textareaRef: HTMLTextAreaElement | undefined;
   let fileInputRef: HTMLInputElement | undefined;
-  let saveDraftTimer: ReturnType<typeof setTimeout> | undefined;
-  let draftRestoreMediaSubscription:
-    | { unsubscribe: () => void }
-    | undefined;
-  let restoringDraft = false;
-  let formDraftKey: string | null = null;
-  let unregisterDraftFlush: (() => void) | undefined;
-  const draftSyncOrigin = Symbol("NoteComposer");
 
-  const draftScope = createMemo<NoteDraftScope | null>(() => {
-    if (props.editingNoteId) return null;
-    if (props.replyTargetId) {
-      return { type: "reply", targetId: props.replyTargetId };
-    }
-    const quoteId = props.quotedPostId;
-    if (quoteId) return { type: "quote", targetId: quoteId };
-    if (props.ensureLinkUrl) return { type: "link", url: props.ensureLinkUrl };
-    const initial = props.initialContent?.trim();
-    if (initial) return { type: "prefill", content: initial };
-    return { type: "new" };
-  });
-  const draftStorageKey = createMemo(() => {
-    if (props.draftActive === false) return null;
-    const scope = draftScope();
-    const username = viewer.username();
-    if (scope == null || username == null) return null;
-    return getNoteDraftStorageKey(username, scope);
-  });
-  const [loadedDraftKey, setLoadedDraftKey] = createSignal<string | null>(null);
-  const [hasLocalDraft, setHasLocalDraft] = createSignal(false);
-  const [draftSaveStatus, setDraftSaveStatus] = createSignal<
-    "idle" | "saved" | "unavailable"
-  >("idle");
-  const [showDeleteDraftConfirm, setShowDeleteDraftConfirm] = createSignal(
-    false,
+  const draftScope = createMemo<NoteDraftScope | null>(() =>
+    getNoteComposerDraftScope(props)
   );
   const [showArticleSuggestion, setShowArticleSuggestion] = createSignal(
     false,
@@ -709,17 +391,7 @@ export function NoteComposer(props: NoteComposerProps) {
   );
 
   onCleanup(() => {
-    saveCurrentDraftNow();
-    props.onDraftFlushAvailable?.(null);
-    unregisterDraftFlush?.();
     removeDragListeners?.();
-    clearTimeout(saveDraftTimer);
-    draftRestoreMediaSubscription?.unsubscribe();
-    for (const item of mediaItems) {
-      item.abortUpload?.();
-      item.altSubscription?.unsubscribe();
-      revokePreviewUrl(item.previewUrl);
-    }
   });
 
   // In edit mode treat any divergence from the original as dirty, including
@@ -733,13 +405,11 @@ export function NoteComposer(props: NoteComposerProps) {
       language()?.baseName !== (props.initialLanguage ?? undefined) ||
       quotePolicy() !== (props.initialQuotePolicy ?? "EVERYONE")
     );
-    const pollDirty = canCreatePoll() && pollEnabled();
-    return contentDirty || mediaItems.length > 0 || editMetaDirty || pollDirty;
+    const pollDirty = canCreatePoll() && poll.enabled();
+    return contentDirty || mediaItems().length > 0 || editMetaDirty ||
+      pollDirty;
   });
   createEffect(() => props.onContentChange?.(dirty()));
-  const isSubmitting = () =>
-    isCreating() || isCreatingQuestion() ||
-    isUpdating() || isSavingArticleDraft();
   const isPlainNewNote = () =>
     !props.editingNoteId &&
     !props.replyTargetId &&
@@ -749,64 +419,9 @@ export function NoteComposer(props: NoteComposerProps) {
     effectiveQuotedPostId() == null;
   const canSwitchToArticle = () =>
     isPlainNewNote() &&
-    mediaItems.length === 0 &&
-    !pollEnabled() &&
+    mediaItems().length === 0 &&
+    !poll.enabled() &&
     content().trim() !== "";
-  const articleDraftConnections = () => {
-    const viewerId = viewer.id();
-    if (viewerId == null) return [];
-    return [
-      "SignedAccount_articleDrafts",
-      "draftsPaginationFragment_articleDrafts",
-      "FloatingComposeButton_articleDrafts",
-    ].map((connectionKey) =>
-      ConnectionHandler.getConnectionID(viewerId, connectionKey)
-    );
-  };
-  const appendCreatedPostToConnections = (
-    store: RecordSourceSelectorProxy,
-    rootFieldName: "createNote" | "createQuestion",
-    postFieldName: "note" | "question",
-  ): boolean => {
-    const payload = store.getRootField(rootFieldName);
-    if (
-      payload?.getValue("__typename") !==
-        (rootFieldName === "createNote"
-          ? "CreateNotePayload"
-          : "CreateQuestionPayload")
-    ) {
-      return false;
-    }
-    const post = payload.getLinkedRecord(postFieldName);
-    if (post == null) return false;
-    const connections = props.appendToConnections ?? [];
-    for (const connectionId of connections) {
-      const connection = store.get(connectionId);
-      if (connection == null) continue;
-      const edge = ConnectionHandler.createEdge(
-        store,
-        connection,
-        post,
-        "PostDescendantsConnectionEdge",
-      );
-      ConnectionHandler.insertEdgeAfter(connection, edge);
-    }
-    return true;
-  };
-  const incrementReplyCount = (store: RecordSourceSelectorProxy) => {
-    if (props.replyTargetId == null) return;
-    const target = store.get(props.replyTargetId);
-    const replies = target?.getLinkedRecord("replies", {
-      first: 0,
-      actingAccountId: actingAccountInput().actingAccountId ?? null,
-    });
-    if (replies == null) return;
-    const totalCount = replies.getValue("totalCount");
-    if (typeof totalCount !== "number") return;
-    replies.setValue(totalCount + 1, "totalCount");
-  };
-
-  const getBrowserDraftStorage = getBrowserLocalStorage;
 
   createEffect(() => {
     if (
@@ -827,267 +442,30 @@ export function NoteComposer(props: NoteComposerProps) {
     setShowArticleSwitchButton(true);
   };
 
-  const switchToArticleDraft = () => {
-    const username = viewer.username();
-    const draftContent = content().trim();
-    if (username == null) {
-      showToast({
-        title: t`Error`,
-        description: t`You must be signed in to save a draft`,
-        variant: "error",
-      });
-      return;
-    }
-    if (!canSwitchToArticle() || draftContent === "") {
-      setShowArticleSuggestion(false);
-      return;
-    }
-
-    saveCurrentDraftNow();
-    saveArticleDraft({
-      variables: {
-        input: {
-          title: "",
-          content: draftContent,
-          tags: [],
-        },
-        connections: articleDraftConnections(),
-      },
-      onCompleted(response) {
-        if (
-          response.saveArticleDraft.__typename === "SaveArticleDraftPayload"
-        ) {
-          const draft = response.saveArticleDraft.draft;
-          clearCurrentDraft();
-          resetForm();
-          setShowArticleSuggestion(false);
-          setShowArticleSwitchButton(false);
-          showToast({
-            title: t`Success`,
-            description: t`Draft saved`,
-            variant: "success",
-          });
-          navigate(
-            `/@${encodeHandleSegment(username)}/drafts/${draft.uuid}`,
-          );
-        } else if (
-          response.saveArticleDraft.__typename === "InvalidInputError"
-        ) {
-          showToast({
-            title: t`Error`,
-            description:
-              t`Invalid input: ${response.saveArticleDraft.inputPath}`,
-            variant: "error",
-          });
-        } else if (
-          response.saveArticleDraft.__typename === "NotAuthenticatedError"
-        ) {
-          showToast({
-            title: t`Error`,
-            description: t`You must be signed in to save a draft`,
-            variant: "error",
-          });
-        }
-      },
-      onError(error) {
-        showToast({
-          title: t`Error`,
-          description: error.message,
-          variant: "error",
-        });
+  const currentDraftData = (): NoteDraftData =>
+    createNoteDraftData({
+      content: content(),
+      language: language()?.baseName,
+      visibility: visibility(),
+      quotePolicy: quotePolicy(),
+      actingAccountKey: actingAccountKey(),
+      quotedPostId: effectiveQuotedPostId(),
+      replyTargetId: props.replyTargetId,
+      ensureLinkUrl: props.ensureLinkUrl,
+      media: mediaItems(),
+      poll: {
+        ...poll.snapshot(),
+        enabled: canCreatePoll() && poll.enabled(),
       },
     });
-  };
-
-  const currentDraftData = (): NoteDraftData => ({
-    content: content(),
-    language: language()?.baseName,
-    visibility: visibility(),
-    quotePolicy: quotePolicy(),
-    actingAccountKey: actingAccountKey(),
-    quotedPostId: effectiveQuotedPostId() ?? undefined,
-    replyTargetId: props.replyTargetId ?? undefined,
-    ensureLinkUrl: props.ensureLinkUrl ?? undefined,
-    media: mediaItems
-      .filter((item) =>
-        item.uuid != null && item.mediumRelayId != null &&
-        (item.url != null || !item.previewUrl.startsWith("blob:"))
-      )
-      .map((item): NoteDraftMedia => ({
-        localId: item.localId,
-        mediumRelayId: item.mediumRelayId!,
-        uuid: item.uuid!,
-        url: item.url ?? item.previewUrl,
-        alt: item.alt,
-        width: item.width,
-        height: item.height,
-      })),
-    poll: {
-      enabled: canCreatePoll() && pollEnabled(),
-      title: pollTitle(),
-      multiple: pollMultiple(),
-      ends: pollEnds(),
-      options: pollOptions.map((option) => ({
-        localId: option.localId,
-        title: option.title,
-      })),
-    },
-    updated: new Date().toISOString(),
-  });
 
   const currentStorableDraftData = (): NoteDraftData => {
-    const draft = currentDraftData();
-    if (dirty()) return draft;
-    return {
-      ...draft,
-      content: "",
-      media: [],
-      poll: {
-        ...draft.poll,
-        enabled: false,
-      },
-    };
+    return toStorableNoteDraftData(currentDraftData(), dirty());
   };
 
-  const hasUnstorableMedia = () =>
-    mediaItems.some((item) =>
-      item.uploading ||
-      item.uuid == null ||
-      item.mediumRelayId == null ||
-      (item.url == null && item.previewUrl.startsWith("blob:"))
-    );
-
-  const currentDraftIsMeaningful = createMemo(() =>
-    !props.editingNoteId && isMeaningfulNoteDraft(currentStorableDraftData())
-  );
-
-  const saveCurrentDraftNow = (notifyChange = true): boolean => {
-    const key = draftStorageKey();
-    const scope = draftScope();
-    if (
-      key == null || scope == null || loadedDraftKey() !== key ||
-      restoringDraft
-    ) {
-      return !dirty();
-    }
-
-    clearTimeout(saveDraftTimer);
-    const draft = currentStorableDraftData();
-    const hasMediaNotInDraft = hasUnstorableMedia();
-    const result = writeNoteDraft(getBrowserDraftStorage(), key, scope, draft);
-    setHasLocalDraft(result === "ok");
-    if (result === "ok") {
-      formDraftKey = key;
-      setDraftSaveStatus(hasMediaNotInDraft ? "idle" : "saved");
-      if (notifyChange) {
-        publishNoteDraftChange({ key, origin: draftSyncOrigin });
-      }
-      return !hasMediaNotInDraft;
-    }
-    if (result === "empty" && notifyChange) {
-      publishNoteDraftChange({ key, origin: draftSyncOrigin });
-    }
-    if (result === "unavailable" && isMeaningfulNoteDraft(draft)) {
-      setDraftSaveStatus("unavailable");
-      return false;
-    }
-    setDraftSaveStatus("idle");
-    return !dirty();
-  };
-
-  createEffect(() => {
-    if (props.editingNoteId) {
-      props.onDraftFlushAvailable?.(null);
-    } else {
-      props.onDraftFlushAvailable?.(saveCurrentDraftNow);
-    }
-  });
-
-  createEffect(() => {
-    unregisterDraftFlush?.();
-    unregisterDraftFlush = undefined;
-    const scope = draftScope();
-    if (props.editingNoteId || props.draftActive === false || scope == null) {
-      return;
-    }
-    unregisterDraftFlush = registerNoteDraftFlush(scope, saveCurrentDraftNow);
-  });
-
-  const restoreDraftMedia = (media: readonly NoteDraftMedia[]) => {
-    draftRestoreMediaSubscription?.unsubscribe();
-    draftRestoreMediaSubscription = undefined;
-    if (media.length < 1) {
-      setMediaItems([]);
-      return;
-    }
-    setMediaItems(media.map((item) => ({
-      localId: item.localId,
-      previewUrl: item.url,
-      alt: item.alt,
-      mediumRelayId: item.mediumRelayId,
-      uuid: item.uuid,
-      url: item.url,
-      width: item.width,
-      height: item.height,
-      uploading: false,
-      uploadProgress: 100,
-      generatingAlt: false,
-    })));
-    const storedById = new Map(media.map((item) => [item.mediumRelayId, item]));
-    draftRestoreMediaSubscription = fetchQuery<NoteComposerDraftMediaQuery>(
-      environment(),
-      NoteComposerDraftMediaQuery,
-      { ids: media.map((item) => item.mediumRelayId) },
-    ).subscribe({
-      next(data) {
-        const restored = (data.nodes ?? []).flatMap((node) => {
-          if (
-            node == null || node.id == null || node.uuid == null ||
-            node.url == null
-          ) {
-            return [];
-          }
-          const stored = storedById.get(node.id);
-          if (stored == null) return [];
-          return [
-            {
-              localId: stored.localId,
-              previewUrl: node.url.toString(),
-              alt: stored.alt,
-              mediumRelayId: node.id,
-              uuid: node.uuid,
-              url: node.url.toString(),
-              width: node.width ?? undefined,
-              height: node.height ?? undefined,
-              uploading: false,
-              uploadProgress: 100,
-              generatingAlt: false,
-            } satisfies MediaItem,
-          ];
-        });
-        if (restored.length < media.length) {
-          showToast({
-            title: t`Warning`,
-            description:
-              t`Some locally saved images are no longer available and were removed from the draft.`,
-            variant: "warning",
-          });
-        }
-        setMediaItems(restored);
-      },
-      error() {
-        showToast({
-          title: t`Warning`,
-          description:
-            t`Could not verify locally saved images. They may fail when you post.`,
-          variant: "warning",
-        });
-      },
-    });
-  };
+  const hasUnstorableMedia = () => hasUnstorableDraftMedia(mediaItems());
 
   const applyStoredDraft = (draft: StoredNoteDraft) => {
-    restoringDraft = true;
     batch(() => {
       setContent(draft.content);
       setVisibility(draft.visibility);
@@ -1098,119 +476,56 @@ export function NoteComposer(props: NoteComposerProps) {
       if (draft.quotedPostId && !props.quotedPostId) {
         setPastedQuoteId(draft.quotedPostId);
       }
-      setPollEnabled(canCreatePoll() && draft.poll.enabled);
-      setPollTitle(draft.poll.title);
-      setPollMultiple(draft.poll.multiple);
-      setPollEnds(draft.poll.ends || defaultPollEnds());
-      setPollOptions(
-        draft.poll.options.length >= MIN_POLL_OPTIONS
-          ? draft.poll.options.map((option) => ({
-            localId: option.localId,
-            title: option.title,
-          }))
-          : [
-            { localId: createLocalId(), title: "" },
-            { localId: createLocalId(), title: "" },
-          ],
-      );
-      restoreDraftMedia(draft.media);
+      poll.restore(draft.poll, canCreatePoll());
+      media.restore(draft.media);
       setEditorResetKey((k) => k + 1);
     });
-    queueMicrotask(() => {
-      restoringDraft = false;
-    });
   };
 
-  const loadDraftFromStorage = (
-    key: string,
-    scope: NoteDraftScope,
-    shouldPreserveCurrentForm: boolean,
-  ) => {
-    setDraftSaveStatus("idle");
-    const draft = readNoteDraft(getBrowserDraftStorage(), key);
-    if (draft != null) {
-      if (!shouldPreserveCurrentForm) {
-        applyStoredDraft(draft);
-      }
-      setHasLocalDraft(true);
-    } else {
-      if (!shouldPreserveCurrentForm) {
-        resetFormForDraftScope(scope);
-      }
-      setHasLocalDraft(false);
-    }
-    formDraftKey = key;
-    setLoadedDraftKey(key);
-  };
-
-  createEffect(() => {
-    const key = draftStorageKey();
-    const scope = draftScope();
-    clearTimeout(saveDraftTimer);
-    if (key == null || scope == null) {
-      setDraftSaveStatus("idle");
-      setLoadedDraftKey(null);
-      formDraftKey = null;
-      setHasLocalDraft(false);
-      return;
-    }
-    const previousLoadedDraftKey = untrack(loadedDraftKey);
-    const shouldPreserveCurrentForm = untrack(() =>
-      previousLoadedDraftKey != null &&
-      formDraftKey === previousLoadedDraftKey &&
-      previousLoadedDraftKey !== key &&
-      dirty()
-    );
-    untrack(() => loadDraftFromStorage(key, scope, shouldPreserveCurrentForm));
+  const draft = createDraftController({
+    active: () => props.draftActive !== false,
+    editing: () => !!props.editingNoteId,
+    username: viewer.username,
+    scope: draftScope,
+    dirty,
+    snapshot: currentStorableDraftData,
+    hasUnstorableMedia,
+    apply: applyStoredDraft,
+    resetForm,
+    resetFormForScope: resetFormForDraftScope,
+    onFlushAvailable: () => props.onDraftFlushAvailable,
   });
-
-  onCleanup(subscribeNoteDraftChanges((change) => {
-    if (change.origin === draftSyncOrigin) return;
-    const key = untrack(draftStorageKey);
-    const scope = untrack(draftScope);
-    if (key == null || scope == null || change.key !== key) return;
-    clearTimeout(saveDraftTimer);
-    // A stale composer can publish this scope during soft navigation.  Do not
-    // let it overwrite text the active composer has not saved yet.
-    const shouldPreserveCurrentForm = untrack(dirty);
-    loadDraftFromStorage(key, scope, shouldPreserveCurrentForm);
-    if (shouldPreserveCurrentForm) {
-      saveDraftTimer = setTimeout(() => {
-        saveCurrentDraftNow(false);
-      }, 350);
-    }
-  }));
-
-  createEffect(() => {
-    const key = draftStorageKey();
-    const scope = draftScope();
-    if (
-      key == null || scope == null || loadedDraftKey() !== key ||
-      restoringDraft
-    ) {
-      return;
-    }
-    void currentStorableDraftData();
-    clearTimeout(saveDraftTimer);
-    saveDraftTimer = setTimeout(() => {
-      saveCurrentDraftNow();
-    }, 350);
+  const submission = createSubmissionController({
+    content,
+    media: mediaItems,
+    editingNoteId: () => props.editingNoteId,
+    editingVisibility: () => props.editingVisibility,
+    editingAuthorAccountId: () => props.editingAuthorAccountId,
+    language: () => language()?.baseName,
+    fallbackLanguage: () => i18n.locale,
+    visibility,
+    quotePolicy: effectiveQuotePolicy,
+    quotedPostId: effectiveQuotedPostId,
+    replyTargetId: () => props.replyTargetId,
+    ensureLinkUrl: () => props.ensureLinkUrl,
+    actingAccountInput,
+    prependToConnections: () => props.prependToConnections ?? [],
+    appendToConnections: () => props.appendToConnections ?? [],
+    viewerId: viewer.id,
+    username: viewer.username,
+    pollEnabled: () => canCreatePoll() && poll.enabled(),
+    validatedPoll: () => getValidatedPollInput(),
+    canSwitchToArticle,
+    saveDraftNow: draft.saveNow,
+    clearDraft: draft.clear,
+    resetForm,
+    onSuccess: () => props.onSuccess?.(),
+    onArticleSwitch: () => {
+      setShowArticleSuggestion(false);
+      setShowArticleSwitchButton(false);
+    },
+    navigate,
   });
-
-  const clearCurrentDraft = () => {
-    const key = draftStorageKey();
-    if (key == null) return;
-    removeNoteDraft(getBrowserDraftStorage(), key);
-    setHasLocalDraft(false);
-    setDraftSaveStatus("idle");
-    publishNoteDraftChange({ key, origin: draftSyncOrigin });
-  };
-
-  const deleteCurrentDraftAndReset = () => {
-    setShowDeleteDraftConfirm(false);
-    clearCurrentDraft();
-    resetForm();
-  };
 
   // Use capture-phase listeners so Firefox's native textarea drag handling
   // cannot block our handlers.  relatedTarget in dragleave tells us whether
@@ -1232,7 +547,7 @@ export function NoteComposer(props: NoteComposerProps) {
     const onDragEnter = (e: DragEvent) => {
       clearTimeout(dragLeaveTimer);
       dragLeaveTimer = undefined;
-      if (hasFiles(e) && mediaItems.length < MAX_MEDIA) {
+      if (hasFiles(e) && mediaItems().length < MAX_MEDIA) {
         setIsDraggingOver(true);
       }
     };
@@ -1257,7 +572,7 @@ export function NoteComposer(props: NoteComposerProps) {
       if (!hasFiles(e)) return;
       e.preventDefault();
       const files = e.dataTransfer!.files;
-      if (files) addFiles(files);
+      if (files) media.addFiles(files);
     };
 
     const opts = { capture: true } as const;
@@ -1424,93 +739,6 @@ export function NoteComposer(props: NoteComposerProps) {
     }
   });
 
-  const addFiles = (files: FileList | File[]) => {
-    if (props.editingNoteId) return;
-    const fileArray = Array.from(files).filter(isSupportedImageFile);
-    if (fileArray.length === 0) return;
-
-    const current = mediaItems;
-    const remaining = MAX_MEDIA - current.length;
-    if (remaining <= 0) {
-      showToast({
-        title: t`Error`,
-        description: t`You can attach up to ${MAX_MEDIA} images`,
-        variant: "error",
-      });
-      return;
-    }
-
-    const toAdd = fileArray.slice(0, remaining);
-    if (toAdd.length < fileArray.length) {
-      showToast({
-        title: t`Warning`,
-        description:
-          t`Some images were skipped because the limit of ${MAX_MEDIA} was reached`,
-        variant: "warning",
-      });
-    }
-    // Create handles before inserting items so abortUpload is set from the
-    // start, avoiding a second setMediaItems pass for each file.
-    const newItems: MediaItem[] = toAdd.map((file) => {
-      const localId = createLocalId();
-      const contentType = getSupportedImageContentType(file);
-      if (contentType == null) {
-        throw new Error("Expected supported image content type");
-      }
-      const handle = uploadMediumFile(file, contentType, (progress) => {
-        setMediaItems(produce((items) => {
-          const m = items.find((m) => m.localId === localId);
-          if (m) m.uploadProgress = progress;
-        }));
-      });
-      handle.result.then((result) => {
-        setMediaItems(produce((items) => {
-          const m = items.find((m) => m.localId === localId);
-          if (m) {
-            m.uploading = false;
-            m.uploadProgress = 100;
-            m.uuid = result.uuid;
-            m.mediumRelayId = result.mediumRelayId;
-            m.url = result.url;
-            m.width = result.width;
-            m.height = result.height;
-            m.abortUpload = undefined;
-          }
-        }));
-      }).catch((err) => {
-        if (err instanceof UploadAbortedError) return;
-        setMediaItems(produce((items) => {
-          const idx = items.findIndex((m) => m.localId === localId);
-          if (idx !== -1) {
-            revokePreviewUrl(items[idx].previewUrl);
-            items.splice(idx, 1);
-          }
-        }));
-        showToast({
-          title: t`Error`,
-          description: err instanceof Error && err.message
-            ? err.message
-            : t`Failed to upload image`,
-          variant: "error",
-        });
-      });
-      return {
-        localId,
-        file,
-        previewUrl: URL.createObjectURL(file),
-        alt: "",
-        uploading: true,
-        uploadProgress: 0,
-        generatingAlt: false,
-        abortUpload: handle.abort,
-      };
-    });
-
-    setMediaItems(produce((items) => {
-      items.push(...newItems);
-    }));
-  };
-
   const handlePaste = (e: ClipboardEvent) => {
     // Check for pasted images first
     const files = e.clipboardData?.files;
@@ -1520,7 +748,7 @@ export function NoteComposer(props: NoteComposerProps) {
       );
       if (imageFiles.length > 0) {
         e.preventDefault();
-        addFiles(imageFiles);
+        media.addFiles(imageFiles);
         return;
       }
     }
@@ -1605,100 +833,34 @@ export function NoteComposer(props: NoteComposerProps) {
     setQuoteFetchError(false);
   };
 
-  const resetPoll = () => {
-    setPollEnabled(false);
-    setPollTitle("");
-    setPollMultiple(false);
-    setPollEnds(defaultPollEnds());
-    setPollOptions([
-      { localId: createLocalId(), title: "" },
-      { localId: createLocalId(), title: "" },
-    ]);
-  };
-
   createEffect(() => {
-    if (props.editingNoteId) resetPoll();
+    if (props.editingNoteId) poll.reset();
   });
 
-  const setPollDuration = (days: number) => {
-    const date = new Date();
-    date.setDate(date.getDate() + days);
-    date.setSeconds(0, 0);
-    setPollEnds(formatDateTimeLocal(date));
-  };
-
-  const getValidatedPollInput = (): ValidatedPollInput | null => {
-    const title = pollTitle().trim();
-    if (!title) {
-      showToast({
-        title: t`Error`,
-        description: t`Poll title cannot be empty`,
-        variant: "error",
-      });
-      return null;
-    }
-
-    const options = pollOptions.map((option) => option.title.trim());
-    if (options.some((option) => option === "")) {
-      showToast({
-        title: t`Error`,
-        description: t`Poll options cannot be empty`,
-        variant: "error",
-      });
-      return null;
-    }
-    if (options.length < MIN_POLL_OPTIONS) {
-      showToast({
-        title: t`Error`,
-        description: t`Add at least ${MIN_POLL_OPTIONS} poll options`,
-        variant: "error",
-      });
-      return null;
-    }
-    if (new Set(options).size !== options.length) {
-      showToast({
-        title: t`Error`,
-        description: t`Poll options must be unique`,
-        variant: "error",
-      });
-      return null;
-    }
-
-    const ends = parseDateTimeLocal(pollEnds());
-    if (!Number.isFinite(ends.getTime())) {
-      showToast({
-        title: t`Error`,
-        description: t`Poll deadline is invalid`,
-        variant: "error",
-      });
-      return null;
-    }
-    if (ends.getTime() - Date.now() < 60_000) {
-      showToast({
-        title: t`Error`,
-        description: t`Poll deadline must be at least 1 minute from now`,
-        variant: "error",
-      });
-      return null;
-    }
-
-    return {
-      title,
-      multiple: pollMultiple(),
-      options,
-      ends: ends.toISOString(),
-    };
+  const getValidatedPollInput = () => {
+    const result = poll.validate();
+    if (result.ok) return result.value;
+    const description = (() => {
+      switch (result.error) {
+        case "empty-title":
+          return t`Poll title cannot be empty`;
+        case "empty-option":
+          return t`Poll options cannot be empty`;
+        case "too-few-options":
+          return t`Add at least ${MIN_POLL_OPTIONS} poll options`;
+        case "duplicate-options":
+          return t`Poll options must be unique`;
+        case "invalid-deadline":
+          return t`Poll deadline is invalid`;
+        case "deadline-too-soon":
+          return t`Poll deadline must be at least 1 minute from now`;
+      }
+    })();
+    showToast({ title: t`Error`, description, variant: "error" });
+    return null;
   };
 
   function resetForm() {
-    formDraftKey = null;
-    draftRestoreMediaSubscription?.unsubscribe();
-    draftRestoreMediaSubscription = undefined;
-    for (const item of mediaItems) {
-      item.abortUpload?.();
-      item.altSubscription?.unsubscribe();
-      revokePreviewUrl(item.previewUrl);
-    }
     prefillRef = "";
     replyPrefillTargetId = null;
     setContent("");
@@ -1712,8 +874,8 @@ export function NoteComposer(props: NoteComposerProps) {
     setQuoteFetchError(false);
     setReplyTargetPost(null);
     setReplyTargetFetchError(false);
-    setMediaItems([]);
-    resetPoll();
+    media.reset();
+    poll.reset();
     setEditorResetKey((k) => k + 1);
   }
 
@@ -1740,310 +902,11 @@ export function NoteComposer(props: NoteComposerProps) {
     }
   }
 
-  const handleSubmit = (e: Event) => {
-    e.preventDefault();
-
-    const noteContent = content().trim();
-    if (!noteContent) {
-      showToast({
-        title: t`Error`,
-        description: t`Content cannot be empty`,
-        variant: "error",
-      });
-      return;
-    }
-
-    const items = mediaItems;
-    if (items.some((m) => m.uploading)) {
-      showToast({
-        title: t`Error`,
-        description: t`All images must finish uploading before posting`,
-        variant: "error",
-      });
-      return;
-    }
-    if (items.some((m) => !m.alt.trim())) {
-      showToast({
-        title: t`Error`,
-        description: t`All images require alt text`,
-        variant: "error",
-      });
-      return;
-    }
-
-    if (props.editingNoteId) {
-      const publicOrUnlisted = props.editingVisibility === "PUBLIC" ||
-        props.editingVisibility === "UNLISTED";
-      updateNote({
-        variables: {
-          input: {
-            noteId: props.editingNoteId,
-            content: noteContent,
-            language: language()?.baseName ?? null,
-            quotePolicy: publicOrUnlisted ? effectiveQuotePolicy() : undefined,
-            ...editActingAccountInput(),
-          },
-        },
-        onCompleted(response) {
-          if (response.updateNote.__typename === "UpdateNotePayload") {
-            showToast({
-              title: t`Success`,
-              description: t`Note updated`,
-              variant: "success",
-            });
-            clearCurrentDraft();
-            resetForm();
-            props.onSuccess?.();
-          } else if (
-            response.updateNote.__typename === "InvalidInputError"
-          ) {
-            showToast({
-              title: t`Error`,
-              description: t`Invalid input: ${response.updateNote.inputPath}`,
-              variant: "error",
-            });
-          } else if (
-            response.updateNote.__typename === "NotAuthenticatedError"
-          ) {
-            showToast({
-              title: t`Error`,
-              description: t`You must be signed in to edit a note`,
-              variant: "error",
-            });
-          }
-        },
-        onError(error) {
-          showToast({
-            title: t`Error`,
-            description: error.message,
-            variant: "error",
-          });
-        },
-      });
-    } else {
-      // Append the discussed link to the bottom unless the author already
-      // included it, so an inline opinion joins this link's discussion.
-      const finalContent = props.ensureLinkUrl
-        ? ensureLinkInContent(noteContent, props.ensureLinkUrl)
-        : noteContent;
-      if (canCreatePoll() && pollEnabled()) {
-        const poll = getValidatedPollInput();
-        if (poll == null) return;
-        createQuestion({
-          variables: {
-            input: {
-              content: finalContent,
-              language: language()?.baseName ?? i18n.locale,
-              visibility: visibility(),
-              quotePolicy: effectiveQuotePolicy(),
-              quotedPostId: effectiveQuotedPostId() ?? null,
-              replyTargetId: props.replyTargetId ?? null,
-              ...actingAccountInput(),
-              poll,
-              media: items.map((m) => ({
-                mediumId: m
-                  .uuid! as `${string}-${string}-${string}-${string}-${string}`,
-                alt: m.alt.trim(),
-              })),
-            },
-            connections: props.prependToConnections ?? [],
-            actingAccountId: actingAccountInput().actingAccountId ?? null,
-            includeDiscussionThreadFields:
-              (props.prependToConnections?.length ?? 0) > 0,
-          },
-          updater(store) {
-            if (
-              appendCreatedPostToConnections(
-                store,
-                "createQuestion",
-                "question",
-              )
-            ) {
-              incrementReplyCount(store);
-            }
-          },
-          onCompleted(response) {
-            if (
-              response.createQuestion.__typename === "CreateQuestionPayload"
-            ) {
-              showToast({
-                title: t`Success`,
-                description: t`Poll created successfully`,
-                variant: "success",
-              });
-              clearCurrentDraft();
-              resetForm();
-              props.onSuccess?.();
-            } else if (
-              response.createQuestion.__typename === "InvalidInputError"
-            ) {
-              showToast({
-                title: t`Error`,
-                description:
-                  t`Invalid input: ${response.createQuestion.inputPath}`,
-                variant: "error",
-              });
-            } else if (
-              response.createQuestion.__typename === "NotAuthenticatedError"
-            ) {
-              showToast({
-                title: t`Error`,
-                description: t`You must be signed in to create a poll`,
-                variant: "error",
-              });
-            }
-          },
-          onError(error) {
-            showToast({
-              title: t`Error`,
-              description: error.message,
-              variant: "error",
-            });
-          },
-        });
-        return;
-      }
-      createNote({
-        variables: {
-          input: {
-            content: finalContent,
-            language: language()?.baseName ?? i18n.locale,
-            visibility: visibility(),
-            quotePolicy: effectiveQuotePolicy(),
-            quotedPostId: effectiveQuotedPostId() ?? null,
-            replyTargetId: props.replyTargetId ?? null,
-            ...actingAccountInput(),
-            media: items.map((m) => ({
-              mediumId: m
-                .uuid! as `${string}-${string}-${string}-${string}-${string}`,
-              alt: m.alt.trim(),
-            })),
-          },
-          connections: props.prependToConnections ?? [],
-          actingAccountId: actingAccountInput().actingAccountId ?? null,
-          includeDiscussionThreadFields:
-            (props.prependToConnections?.length ?? 0) > 0,
-        },
-        updater(store) {
-          if (appendCreatedPostToConnections(store, "createNote", "note")) {
-            incrementReplyCount(store);
-          }
-        },
-        onCompleted(response) {
-          if (response.createNote.__typename === "CreateNotePayload") {
-            const href = getNoteInternalHref(response.createNote.note);
-            showToast({
-              title: t`Success`,
-              description: t`Note created successfully`,
-              href,
-              variant: "success",
-            });
-            clearCurrentDraft();
-            resetForm();
-            props.onSuccess?.();
-          } else if (response.createNote.__typename === "InvalidInputError") {
-            showToast({
-              title: t`Error`,
-              description: t`Invalid input: ${response.createNote.inputPath}`,
-              variant: "error",
-            });
-          } else if (
-            response.createNote.__typename === "NotAuthenticatedError"
-          ) {
-            showToast({
-              title: t`Error`,
-              description: t`You must be signed in to create a note`,
-              variant: "error",
-            });
-          }
-        },
-        onError(error) {
-          showToast({
-            title: t`Error`,
-            description: error.message,
-            variant: "error",
-          });
-        },
-      });
-    }
-  };
-
-  const handleGenerateAlt = (localId: string) => {
-    const item = mediaItems.find((m) => m.localId === localId);
-    if (!item?.mediumRelayId) return;
-
-    setMediaItems(produce((items) => {
-      const m = items.find((m) => m.localId === localId);
-      if (m) m.generatingAlt = true;
-    }));
-
-    const subscription = fetchQuery<NoteComposerGeneratedAltTextQuery>(
-      environment(),
-      NoteComposerGeneratedAltTextQuery,
-      {
-        mediumId: item.mediumRelayId,
-        language: language()?.baseName ?? i18n.locale,
-        context: content().trim() || undefined,
-      },
-    ).subscribe({
-      next(data) {
-        const medium = data.node;
-        if (medium && "generatedAltText" in medium) {
-          setMediaItems(produce((items) => {
-            const m = items.find((m) => m.localId === localId);
-            if (m) {
-              m.generatingAlt = false;
-              m.alt = medium.generatedAltText ?? m.alt;
-              m.altSubscription = undefined;
-            }
-          }));
-        } else {
-          setMediaItems(produce((items) => {
-            const m = items.find((m) => m.localId === localId);
-            if (m) {
-              m.generatingAlt = false;
-              m.altSubscription = undefined;
-            }
-          }));
-        }
-      },
-      error(err: Error) {
-        setMediaItems(produce((items) => {
-          const m = items.find((m) => m.localId === localId);
-          if (m) {
-            m.generatingAlt = false;
-            m.altSubscription = undefined;
-          }
-        }));
-        showToast({
-          title: t`Error`,
-          description: err?.message || t`Failed to generate alt text`,
-          variant: "error",
-        });
-      },
-    });
-    setMediaItems(produce((items) => {
-      const m = items.find((m) => m.localId === localId);
-      if (m) m.altSubscription = subscription;
-    }));
-  };
-
-  const handleCancelAlt = (localId: string) => {
-    setMediaItems(produce((items) => {
-      const m = items.find((m) => m.localId === localId);
-      if (m) {
-        m.altSubscription?.unsubscribe();
-        m.altSubscription = undefined;
-        m.generatingAlt = false;
-      }
-    }));
-  };
-
   return (
     <>
       <form
         ref={(el) => (formRef = el)}
-        onSubmit={handleSubmit}
+        onSubmit={submission.submit}
         class={props.class}
       >
         <div
@@ -2204,9 +1067,9 @@ export function NoteComposer(props: NoteComposerProps) {
               onKeyDown={(e) => {
                 if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
                   e.preventDefault();
-                  const submitting = isSubmitting() ||
+                  const submitting = submission.submitting() ||
                     (!props.editingNoteId && viewer.suspended()) ||
-                    mediaItems.some((m) => m.uploading) ||
+                    mediaItems().some((m) => m.uploading) ||
                     (!!effectiveQuotedPostId() && !quotedPost() &&
                       !quoteFetchError()) ||
                     (!!props.replyTargetId &&
@@ -2246,7 +1109,7 @@ export function NoteComposer(props: NoteComposerProps) {
                     type="button"
                     variant="ghost"
                     size="icon"
-                    disabled={mediaItems.length >= MAX_MEDIA}
+                    disabled={mediaItems().length >= MAX_MEDIA}
                     title={t`Attach image`}
                     aria-label={t`Attach image`}
                     onClick={() => fileInputRef?.click()}
@@ -2256,13 +1119,13 @@ export function NoteComposer(props: NoteComposerProps) {
                   <Show when={allowPoll()}>
                     <Button
                       type="button"
-                      variant={pollEnabled() ? "secondary" : "ghost"}
+                      variant={poll.enabled() ? "secondary" : "ghost"}
                       size="icon"
-                      title={pollEnabled() ? t`Remove poll` : t`Add poll`}
-                      aria-label={pollEnabled() ? t`Remove poll` : t`Add poll`}
+                      title={poll.enabled() ? t`Remove poll` : t`Add poll`}
+                      aria-label={poll.enabled() ? t`Remove poll` : t`Add poll`}
                       onClick={() => {
-                        if (pollEnabled()) resetPoll();
-                        else setPollEnabled(true);
+                        if (poll.enabled()) poll.reset();
+                        else poll.setEnabled(true);
                       }}
                     >
                       <IconListChecks class="size-5" />
@@ -2278,7 +1141,7 @@ export function NoteComposer(props: NoteComposerProps) {
                 class="hidden"
                 onChange={(e) => {
                   const files = e.currentTarget.files;
-                  if (files) addFiles(files);
+                  if (files) media.addFiles(files);
                   e.currentTarget.value = "";
                 }}
               />
@@ -2311,168 +1174,8 @@ export function NoteComposer(props: NoteComposerProps) {
             </div>
           </TextField>
 
-          <Show when={canCreatePoll() && pollEnabled()}>
-            <section class="rounded-md border border-input p-3">
-              <div class="flex items-start justify-between gap-3">
-                <div class="flex min-w-0 items-center gap-2">
-                  <IconListChecks class="size-4 shrink-0 text-muted-foreground" />
-                  <h3 class="text-sm font-medium">{t`Poll`}</h3>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  class="size-7 shrink-0"
-                  title={t`Remove poll`}
-                  aria-label={t`Remove poll`}
-                  onClick={resetPoll}
-                >
-                  <IconX class="size-4" />
-                </Button>
-              </div>
-
-              <div class="mt-3 grid gap-3">
-                <label class="grid gap-1.5">
-                  <span class="text-xs font-medium text-muted-foreground">
-                    {t`Poll title`}
-                  </span>
-                  <input
-                    type="text"
-                    value={pollTitle()}
-                    maxLength={200}
-                    onInput={(e) => setPollTitle(e.currentTarget.value)}
-                    placeholder={t`What should people decide?`}
-                    class="h-9 rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  />
-                </label>
-
-                <div class="grid gap-1.5">
-                  <span class="text-xs font-medium text-muted-foreground">
-                    {t`Selection`}
-                  </span>
-                  <div class="grid grid-cols-2 overflow-hidden rounded-md border border-input">
-                    <Button
-                      type="button"
-                      variant={pollMultiple() ? "ghost" : "secondary"}
-                      class="h-9 rounded-none border-r"
-                      onClick={() => setPollMultiple(false)}
-                    >
-                      {t`Single choice`}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={pollMultiple() ? "secondary" : "ghost"}
-                      class="h-9 rounded-none"
-                      onClick={() => setPollMultiple(true)}
-                    >
-                      {t`Multiple choice`}
-                    </Button>
-                  </div>
-                </div>
-
-                <div class="grid gap-2">
-                  <div class="flex items-center justify-between gap-2">
-                    <span class="text-xs font-medium text-muted-foreground">
-                      {t`Options`}
-                    </span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      disabled={pollOptions.length >= MAX_POLL_OPTIONS}
-                      onClick={() =>
-                        setPollOptions(produce((options) => {
-                          if (options.length >= MAX_POLL_OPTIONS) return;
-                          options.push({
-                            localId: createLocalId(),
-                            title: "",
-                          });
-                        }))}
-                    >
-                      <IconPlus class="mr-1 size-3.5" />
-                      {t`Add option`}
-                    </Button>
-                  </div>
-                  <For each={pollOptions}>
-                    {(option, index) => (
-                      <div class="grid grid-cols-[1fr_auto] gap-2">
-                        <input
-                          type="text"
-                          value={option.title}
-                          maxLength={200}
-                          onInput={(e) =>
-                            setPollOptions(
-                              index(),
-                              "title",
-                              e.currentTarget.value,
-                            )}
-                          placeholder={t`Option ${index() + 1}`}
-                          class="h-9 min-w-0 rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          class="size-9 text-muted-foreground hover:text-foreground"
-                          disabled={pollOptions.length <= MIN_POLL_OPTIONS}
-                          title={t`Remove option`}
-                          aria-label={t`Remove option`}
-                          onClick={() =>
-                            setPollOptions(produce((options) => {
-                              if (options.length <= MIN_POLL_OPTIONS) return;
-                              options.splice(index(), 1);
-                            }))}
-                        >
-                          <IconTrash class="size-4" />
-                        </Button>
-                      </div>
-                    )}
-                  </For>
-                </div>
-
-                <div class="grid gap-1.5">
-                  <span class="text-xs font-medium text-muted-foreground">
-                    {t`Deadline`}
-                  </span>
-                  <div class="flex flex-wrap gap-1">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setPollDuration(1)}
-                    >
-                      {t`1 day`}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setPollDuration(3)}
-                    >
-                      {t`3 days`}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setPollDuration(7)}
-                    >
-                      {t`1 week`}
-                    </Button>
-                  </div>
-                  <input
-                    type="datetime-local"
-                    value={pollEnds()}
-                    onInput={(e) => setPollEnds(e.currentTarget.value)}
-                    class="h-9 rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  />
-                </div>
-
-                <p class="rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning-foreground">
-                  {t`Polls cannot be edited after publishing.`}
-                </p>
-              </div>
-            </section>
+          <Show when={canCreatePoll() && poll.enabled()}>
+            <PollEditor poll={poll} />
           </Show>
 
           {/* Toolbar: language, visibility, quote policy */}
@@ -2496,144 +1199,22 @@ export function NoteComposer(props: NoteComposerProps) {
           </div>
 
           {/* Media previews — hidden in edit mode */}
-          <Show when={!props.editingNoteId && mediaItems.length > 0}>
-            <div class="flex flex-col gap-3">
-              <For each={mediaItems}>
-                {(item, index) => (
-                  <div class="flex gap-3 items-start">
-                    {/* Thumbnail with progress overlay */}
-                    <div class="relative flex-shrink-0 w-20 h-20 rounded-md overflow-hidden bg-muted">
-                      <img
-                        src={item.previewUrl}
-                        alt=""
-                        class="w-full h-full object-cover"
-                      />
-                      <Show when={item.uploading}>
-                        <div class="absolute inset-0 flex flex-col items-center justify-center bg-background/70 gap-1 px-2">
-                          <progress
-                            value={item.uploadProgress}
-                            max={100}
-                            class="w-full h-1.5 rounded-full"
-                            aria-label={t`Upload progress`}
-                          />
-                          <span class="text-xs text-muted-foreground">
-                            {item.uploadProgress}%
-                          </span>
-                        </div>
-                      </Show>
-                    </div>
-
-                    {/* Alt text input + controls */}
-                    <div class="flex-1 flex flex-col gap-1.5">
-                      <textarea
-                        value={item.alt}
-                        aria-label={t`Alt text for image ${index() + 1}`}
-                        aria-required="true"
-                        required
-                        onInput={(e) => {
-                          const v = e.currentTarget.value;
-                          setMediaItems(produce((items) => {
-                            const m = items.find((m) =>
-                              m.localId === item.localId
-                            );
-                            if (m) m.alt = v;
-                          }));
-                        }}
-                        placeholder={t`Alt text for visually impaired people (required)`}
-                        disabled={item.generatingAlt}
-                        rows={3}
-                        class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
-                      />
-                      <div class="flex gap-1 justify-end">
-                        <Show when={item.mediumRelayId && !item.uploading}>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            disabled={item.generatingAlt}
-                            aria-label={t`Auto-fill alt text`}
-                            title={t`Auto-fill alt text`}
-                            onClick={() => handleGenerateAlt(item.localId)}
-                          >
-                            <Show
-                              when={item.generatingAlt}
-                              fallback={
-                                <span class="text-xs">{t`Auto-fill`}</span>
-                              }
-                            >
-                              {/* Spinner */}
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke-width="1.5"
-                                stroke="currentColor"
-                                class="size-4 animate-spin"
-                                aria-hidden="true"
-                              >
-                                <path
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
-                                />
-                              </svg>
-                              <span class="text-xs ml-1">{t`Generating…`}</span>
-                            </Show>
-                          </Button>
-                        </Show>
-                        <Show when={item.generatingAlt}>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            aria-label={t`Cancel`}
-                            title={t`Cancel`}
-                            onClick={() => handleCancelAlt(item.localId)}
-                          >
-                            <IconSquare class="size-4" />
-                          </Button>
-                        </Show>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          class="text-muted-foreground hover:text-foreground"
-                          aria-label={t`Remove image`}
-                          title={t`Remove image`}
-                          onClick={() => {
-                            item.abortUpload?.();
-                            item.altSubscription?.unsubscribe();
-                            revokePreviewUrl(item.previewUrl);
-                            setMediaItems(produce((items) => {
-                              const idx = items.findIndex(
-                                (m) => m.localId === item.localId,
-                              );
-                              if (idx !== -1) items.splice(idx, 1);
-                            }));
-                          }}
-                        >
-                          <IconX class="size-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </For>
-            </div>
+          <Show when={!props.editingNoteId && mediaItems().length > 0}>
+            <MediaEditor media={media} />
           </Show>
 
           <Show
             when={!props.editingNoteId &&
-              (currentDraftIsMeaningful() || hasLocalDraft() ||
-                draftSaveStatus() === "unavailable")}
+              (draft.meaningful() || draft.hasLocalDraft() ||
+                draft.saveStatus() === "unavailable")}
           >
             <div class="flex flex-wrap items-center justify-between gap-2 border-t pt-3 text-xs text-muted-foreground">
               <span>
                 <Show
-                  when={draftSaveStatus() !== "unavailable"}
+                  when={draft.saveStatus() !== "unavailable"}
                   fallback={t`Local draft could not be saved`}
                 >
-                  {hasLocalDraft() ? t`Saved locally` : t`Local draft`}
+                  {draft.hasLocalDraft() ? t`Saved locally` : t`Local draft`}
                 </Show>
               </span>
               <Button
@@ -2641,7 +1222,7 @@ export function NoteComposer(props: NoteComposerProps) {
                 variant="ghost"
                 size="sm"
                 class="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
-                onClick={() => setShowDeleteDraftConfirm(true)}
+                onClick={() => draft.setShowDeleteConfirm(true)}
               >
                 {t`Delete local draft`}
               </Button>
@@ -2654,11 +1235,13 @@ export function NoteComposer(props: NoteComposerProps) {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={switchToArticleDraft}
-                disabled={isSubmitting()}
+                onClick={submission.switchToArticleDraft}
+                disabled={submission.submitting()}
               >
                 <IconFileText class="size-4" />
-                {isSavingArticleDraft() ? t`Saving…` : t`Switch to article`}
+                {submission.savingArticleDraft()
+                  ? t`Saving…`
+                  : t`Switch to article`}
               </Button>
             </div>
           </Show>
@@ -2669,17 +1252,17 @@ export function NoteComposer(props: NoteComposerProps) {
                 type="button"
                 variant="outline"
                 onClick={() => props.onCancel?.()}
-                disabled={isSubmitting()}
+                disabled={submission.submitting()}
               >
                 {t`Cancel`}
               </Button>
             </Show>
             <Button
               type="submit"
-              disabled={isSubmitting() ||
+              disabled={submission.submitting() ||
                 (props.editingNoteId ? !dirty() : (
                   viewer.suspended() ||
-                  mediaItems.some((m) => m.uploading) ||
+                  mediaItems().some((m) => m.uploading) ||
                   (!!effectiveQuotedPostId() && !quotedPost() &&
                     !quoteFetchError()) ||
                   (!!props.replyTargetId && props.showReplyTarget !== false &&
@@ -2690,8 +1273,9 @@ export function NoteComposer(props: NoteComposerProps) {
                 when={props.editingNoteId}
                 fallback={
                   <Show
-                    when={isCreating() || isCreatingQuestion()}
-                    fallback={canCreatePoll() && pollEnabled()
+                    when={submission.creating() ||
+                      submission.creatingQuestion()}
+                    fallback={canCreatePoll() && poll.enabled()
                       ? t`Create poll`
                       : t`Create note`}
                   >
@@ -2699,7 +1283,7 @@ export function NoteComposer(props: NoteComposerProps) {
                   </Show>
                 }
               >
-                <Show when={isUpdating()} fallback={t`Save changes`}>
+                <Show when={submission.updating()} fallback={t`Save changes`}>
                   {t`Saving…`}
                 </Show>
               </Show>
@@ -2709,8 +1293,8 @@ export function NoteComposer(props: NoteComposerProps) {
       </form>
 
       <AlertDialog
-        open={showDeleteDraftConfirm()}
-        onOpenChange={(open) => !open && setShowDeleteDraftConfirm(false)}
+        open={draft.showDeleteConfirm()}
+        onOpenChange={(open) => !open && draft.setShowDeleteConfirm(false)}
       >
         <AlertDialogContent class="sm:max-w-sm">
           <AlertDialogHeader>
@@ -2723,7 +1307,7 @@ export function NoteComposer(props: NoteComposerProps) {
             <AlertDialogClose>{t`Keep draft`}</AlertDialogClose>
             <AlertDialogAction
               class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={deleteCurrentDraftAndReset}
+              onClick={draft.deleteAndReset}
             >
               {t`Delete draft`}
             </AlertDialogAction>
@@ -2749,27 +1333,16 @@ export function NoteComposer(props: NoteComposerProps) {
               {t`Keep writing note`}
             </AlertDialogClose>
             <AlertDialogAction
-              onClick={switchToArticleDraft}
-              disabled={isSavingArticleDraft()}
+              onClick={submission.switchToArticleDraft}
+              disabled={submission.savingArticleDraft()}
             >
-              {isSavingArticleDraft() ? t`Saving…` : t`Save as article draft`}
+              {submission.savingArticleDraft()
+                ? t`Saving…`
+                : t`Save as article draft`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>
   );
-}
-
-function getNoteInternalHref(
-  note: NonNullable<
-    NoteComposerMutation["response"]["createNote"] & {
-      __typename: "CreateNotePayload";
-    }
-  >["note"],
-): string {
-  const actorSegment = note.actor.local
-    ? `@${note.actor.username}`
-    : encodeHandleSegment(note.actor.handle);
-  return `/${actorSegment}/${note.sourceId ?? note.uuid}`;
 }
