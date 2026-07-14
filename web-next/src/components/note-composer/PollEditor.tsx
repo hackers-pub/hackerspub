@@ -1,4 +1,4 @@
-import { For } from "solid-js";
+import { Index } from "solid-js";
 import IconListChecks from "~icons/lucide/list-checks";
 import IconPlus from "~icons/lucide/plus";
 import IconTrash from "~icons/lucide/trash-2";
@@ -90,19 +90,19 @@ export function PollEditor(props: PollEditorProps) {
               {t`Add option`}
             </Button>
           </div>
-          <For each={props.poll.options()}>
+          <Index each={props.poll.options()}>
             {(option, index) => (
               <div class="grid grid-cols-[1fr_auto] gap-2">
                 <input
                   type="text"
-                  value={option.title}
+                  value={option().title}
                   maxLength={200}
                   onInput={(event) =>
                     props.poll.setOptionTitle(
-                      option.localId,
+                      option().localId,
                       event.currentTarget.value,
                     )}
-                  placeholder={t`Option ${index() + 1}`}
+                  placeholder={t`Option ${index + 1}`}
                   class="h-9 min-w-0 rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
                 <Button
@@ -113,13 +113,13 @@ export function PollEditor(props: PollEditorProps) {
                   disabled={props.poll.options().length <= MIN_POLL_OPTIONS}
                   title={t`Remove option`}
                   aria-label={t`Remove option`}
-                  onClick={() => props.poll.removeOption(option.localId)}
+                  onClick={() => props.poll.removeOption(option().localId)}
                 >
                   <IconTrash class="size-4" />
                 </Button>
               </div>
             )}
-          </For>
+          </Index>
         </div>
 
         <div class="grid gap-1.5">
