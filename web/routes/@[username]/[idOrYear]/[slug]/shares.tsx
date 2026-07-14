@@ -60,6 +60,10 @@ export const handler = define.handlers(async (ctx) => {
         },
       },
       mentions: true,
+      // isPostVisibleTo fails closed for a wrapper whose original post was
+      // not loaded. The query is already constrained to the visible article
+      // above, so only its author is needed for the wrapper's sanction check.
+      sharedPost: { with: { actor: true } },
     },
     where: {
       AND: [
