@@ -3,10 +3,10 @@ import IconListChecks from "~icons/lucide/list-checks";
 import IconPlus from "~icons/lucide/plus";
 import IconTrash from "~icons/lucide/trash-2";
 import IconX from "~icons/lucide/x";
-import { Button } from "~/components/ui/button.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { PollController } from "./createPollController.ts";
 import { MAX_POLL_OPTIONS, MIN_POLL_OPTIONS } from "./pollState.ts";
+import { Button } from "~/components/ui/button.tsx";
+import { useLingui } from "~/lib/i18n/macro.d.ts";
 
 export interface PollEditorProps {
   poll: PollController;

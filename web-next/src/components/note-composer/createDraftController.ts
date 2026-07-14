@@ -6,6 +6,10 @@ import {
   onCleanup,
   untrack,
 } from "solid-js";
+import {
+  decideExternalDraftChange,
+  shouldPreserveCurrentDraftForm,
+} from "./draftState.ts";
 import { getBrowserLocalStorage } from "~/lib/browserStorage.ts";
 import {
   getNoteDraftStorageKey,
@@ -22,10 +26,6 @@ import {
   registerNoteDraftFlush,
   subscribeNoteDraftChanges,
 } from "~/lib/noteDraftSync.ts";
-import {
-  decideExternalDraftChange,
-  shouldPreserveCurrentDraftForm,
-} from "./draftState.ts";
 
 export type DraftSaveStatus = "idle" | "saved" | "unavailable";
 export type DraftFlush = () => boolean;

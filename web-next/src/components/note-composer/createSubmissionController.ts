@@ -1,10 +1,5 @@
 import { ConnectionHandler, graphql } from "relay-runtime";
 import { createMutation } from "solid-relay";
-import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
-import type { QuotePolicy } from "~/components/QuotePolicySelect.tsx";
-import { showToast } from "~/components/ui/toast.tsx";
-import { encodeHandleSegment } from "~/lib/handleSegment.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { createSubmissionControllerArticleDraftMutation } from "./__generated__/createSubmissionControllerArticleDraftMutation.graphql.ts";
 import type { createSubmissionControllerCreateNoteMutation } from "./__generated__/createSubmissionControllerCreateNoteMutation.graphql.ts";
 import type { createSubmissionControllerCreateQuestionMutation } from "./__generated__/createSubmissionControllerCreateQuestionMutation.graphql.ts";
@@ -18,6 +13,11 @@ import {
   type SubmissionMedium,
   validateSubmission,
 } from "./submissionState.ts";
+import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
+import type { QuotePolicy } from "~/components/QuotePolicySelect.tsx";
+import { showToast } from "~/components/ui/toast.tsx";
+import { encodeHandleSegment } from "~/lib/handleSegment.ts";
+import { useLingui } from "~/lib/i18n/macro.d.ts";
 
 const CreateNoteMutation = graphql`
   mutation createSubmissionControllerCreateNoteMutation(

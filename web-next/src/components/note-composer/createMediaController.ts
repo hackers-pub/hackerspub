@@ -1,5 +1,8 @@
 import { fetchQuery, graphql, type IEnvironment } from "relay-runtime";
 import { type Accessor, createSignal, onCleanup } from "solid-js";
+import type { createMediaControllerDraftMediaQuery } from "./__generated__/createMediaControllerDraftMediaQuery.graphql.ts";
+import type { createMediaControllerGeneratedAltTextQuery } from "./__generated__/createMediaControllerGeneratedAltTextQuery.graphql.ts";
+import { type MediaItem, reduceMediaItems } from "./mediaState.ts";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { NoteDraftMedia } from "~/lib/noteDraftStorage.ts";
@@ -11,9 +14,6 @@ import {
   UploadAbortedError,
   uploadMediumFile,
 } from "~/lib/uploadMediumWithProgress.ts";
-import type { createMediaControllerDraftMediaQuery } from "./__generated__/createMediaControllerDraftMediaQuery.graphql.ts";
-import type { createMediaControllerGeneratedAltTextQuery } from "./__generated__/createMediaControllerGeneratedAltTextQuery.graphql.ts";
-import { type MediaItem, reduceMediaItems } from "./mediaState.ts";
 
 const DraftMediaQuery = graphql`
   query createMediaControllerDraftMediaQuery($ids: [ID!]!) {

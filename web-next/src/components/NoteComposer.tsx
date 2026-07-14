@@ -61,11 +61,11 @@ import {
 } from "~/contexts/ActingAccountContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { createDraftController } from "./note-composer/createDraftController.ts";
 import {
   createMediaController,
   MAX_MEDIA,
 } from "./note-composer/createMediaController.ts";
-import { createDraftController } from "./note-composer/createDraftController.ts";
 import { createPollController } from "./note-composer/createPollController.ts";
 import { createSubmissionController } from "./note-composer/createSubmissionController.ts";
 import {

@@ -1,5 +1,4 @@
 import { type Accessor, createSignal } from "solid-js";
-import type { NoteDraftPoll } from "~/lib/noteDraftStorage.ts";
 import {
   addPollOption,
   createPollDraft,
@@ -10,6 +9,7 @@ import {
   setPollDuration,
   validatePollDraft,
 } from "./pollState.ts";
+import type { NoteDraftPoll } from "~/lib/noteDraftStorage.ts";
 
 export interface PollController {
   readonly draft: Accessor<PollDraft>;

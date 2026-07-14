@@ -1,9 +1,9 @@
 import { For, Show } from "solid-js";
 import IconSquare from "~icons/lucide/square";
 import IconX from "~icons/lucide/x";
+import type { MediaController } from "./createMediaController.ts";
 import { Button } from "~/components/ui/button.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import type { MediaController } from "./createMediaController.ts";
 
 export interface MediaEditorProps {
   media: MediaController;
