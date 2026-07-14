@@ -434,6 +434,7 @@ export class TransactionalOutboxQueue implements MessageQueue {
         });
         await this.#process(event, handler, signal);
       } catch (error) {
+        if (signal?.aborted) break;
         logger.error("Failed to poll the transactional outbox: {error}", {
           eventType: this.#eventType,
           error,
@@ -448,13 +449,22 @@ export class TransactionalOutboxQueue implements MessageQueue {
     handler: (message: unknown) => Promise<void> | void,
     signal?: AbortSignal,
   ): Promise<void> {
+    let heartbeatActive = true;
     const heartbeat = setInterval(() => {
-      void renewOutboxLease(this.#db, event, this.#now()).catch((error) => {
-        logger.error("Failed to renew outbox lease {eventId}: {error}", {
-          eventId: event.id,
-          error,
+      void renewOutboxLease(this.#db, event, this.#now())
+        .then((renewed) => {
+          if (!renewed && heartbeatActive) {
+            logger.warning("Outbox lease {eventId} was lost or expired.", {
+              eventId: event.id,
+            });
+          }
+        })
+        .catch((error) => {
+          logger.error("Failed to renew outbox lease {eventId}: {error}", {
+            eventId: event.id,
+            error,
+          });
         });
-      });
     }, this.#heartbeatIntervalMilliseconds);
 
     const processWithDatabase = async (db: OutboxDatabase) => {
@@ -538,16 +548,31 @@ export class TransactionalOutboxQueue implements MessageQueue {
         available,
         error: serialized,
       }, this.#now());
-      logger.error("Outbox event {eventId} will be retried.", {
-        eventId: event.id,
-        eventType: event.eventType,
-        payloadVersion: event.payloadVersion,
-        processingAttempts: event.processingAttempts,
-        available,
-        staleLease: !retried,
-        error: serialized,
-      });
+      if (
+        signal?.aborted &&
+        (error === signal.reason ||
+          error instanceof DOMException && error.name === "AbortError")
+      ) {
+        logger.debug("Released outbox event {eventId} during shutdown.", {
+          eventId: event.id,
+          eventType: event.eventType,
+          payloadVersion: event.payloadVersion,
+          processingAttempts: event.processingAttempts,
+          staleLease: !retried,
+        });
+      } else {
+        logger.error("Outbox event {eventId} will be retried.", {
+          eventId: event.id,
+          eventType: event.eventType,
+          payloadVersion: event.payloadVersion,
+          processingAttempts: event.processingAttempts,
+          available,
+          staleLease: !retried,
+          error: serialized,
+        });
+      }
     } finally {
+      heartbeatActive = false;
       clearInterval(heartbeat);
     }
   }
