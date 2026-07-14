@@ -13,15 +13,15 @@ import type { Database } from "./db.ts";
 import { extractExternalLinks } from "./html.ts";
 import { recomputeNewsScores } from "./news.ts";
 import {
+  getRemoteFetchSignal,
+  readResponseBytesAtMost,
+} from "./post/remote-fetch.ts";
+import {
   type NewPostLink,
   type PostLink,
   postLinkTable,
   postTable,
 } from "./schema.ts";
-import {
-  getRemoteFetchSignal,
-  readResponseBytesAtMost,
-} from "./post/remote-fetch.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "link-preview"]);

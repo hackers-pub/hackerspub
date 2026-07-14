@@ -8,6 +8,7 @@ import {
 } from "../article-source.ts";
 import type { ApplicationContext } from "../context.ts";
 import { extractExternalLinks } from "../html.ts";
+import { persistPostLink } from "../link-preview.ts";
 import { getMissingArticleMediumLabel, renderMarkup } from "../markup.ts";
 import { refreshNewsScores } from "../news.ts";
 import { createPoll, type CreatePollInput } from "../poll.ts";
@@ -34,8 +35,6 @@ import {
   quoteAuthorizationTable,
 } from "../schema.ts";
 import { generateUuidV7 } from "../uuid.ts";
-
-import { persistPostLink } from "../link-preview.ts";
 import { updateQuotesCount } from "./engagement.ts";
 import {
   createTargetPostUpdatedNotifications,
