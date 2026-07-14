@@ -24,7 +24,7 @@ import {
 import {
   getCensoredPostExclusionFilter,
   getPostVisibilityFilter,
-} from "@hackerspub/models/post";
+} from "@hackerspub/models/post/visibility";
 import type { PostLink as PostLinkRow } from "@hackerspub/models/schema";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { builder } from "./builder.ts";

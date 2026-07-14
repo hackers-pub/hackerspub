@@ -6,7 +6,7 @@ import {
   getMutedActorExclusionFilter,
   getPostVisibilityFilter,
   getPublicTimelineVisibilityFilter,
-} from "./post.ts";
+} from "./post/visibility.ts";
 import {
   type Account,
   type Actor,

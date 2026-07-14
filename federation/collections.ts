@@ -8,7 +8,7 @@ import { removeHeaderAnchorLinks } from "@hackerspub/models/html";
 import {
   getSanctionHiddenActorFilter,
   isActorSanctionHidden,
-} from "@hackerspub/models/post";
+} from "@hackerspub/models/post/visibility";
 import {
   actorTable,
   followingTable,

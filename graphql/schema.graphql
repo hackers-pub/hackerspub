@@ -1018,7 +1018,17 @@ type Article implements Node & Post & Reactable {
   """
   All available language versions of this article's content. Pass `language` to get only the best-matching locale (BCP 47 negotiation). Pass `includeBeingTranslated: true` to also include language versions whose LLM translation is still in progress.  Empty when the article is censored or its author is hidden by a moderation sanction, and the viewer is neither its author nor a moderator.
   """
-  contents(includeBeingTranslated: Boolean = false, language: Locale): [ArticleContent!]!
+  contents(
+    """
+    Whether to include language versions whose LLM translation is still in progress. Defaults to `false`.
+    """
+    includeBeingTranslated: Boolean = false
+
+    """
+    Preferred BCP 47 locale for content negotiation. Omit it to return every eligible language version.
+    """
+    language: Locale
+  ): [ArticleContent!]!
 
   """
   Every reply below this post (replies, replies to replies, and so on), flattened in depth-first order with siblings ordered by `published`. A node's parent (`replyTarget`) always appears before the node itself, including across pages, so clients can rebuild the tree from `replyTarget` ids alone. Subtrees rooted at a censored post, a post by a sanction-hidden actor, or a post invisible to the viewer are pruned along with that post. Traversal depth is capped at `maxDepth`; fetch a deeper branch from the deepest returned post's own `descendants`. Only forward pagination (`first`/`after`) is supported. Pass `actingAccountId` for an organization perspective.
@@ -1121,7 +1131,15 @@ type Article implements Node & Post & Reactable {
   The year the article was first published, used as part of its URL path (e.g., `/@alice/2024/my-article`). `null` for articles federated in from remote instances.
   """
   publishedYear: Int
+
+  """
+  Who may embed this post as a quote. Posts with `FOLLOWERS`, `DIRECT`, or `NONE` visibility always use `SELF` regardless of a broader received policy.
+  """
   quotePolicy: QuotePolicy!
+
+  """
+  The cross-instance approval state when this post quotes another post. `null` means no request is outstanding or the request was approved.
+  """
   quoteTargetState: QuoteTargetState
 
   """
@@ -1298,6 +1316,10 @@ type Article implements Node & Post & Reactable {
     """
     actingAccountId: ID
   ): Boolean!
+
+  """
+  The audience allowed to view this post and whether it appears in public timelines. The value cannot be changed after the post has been federated.
+  """
   visibility: PostVisibility!
 }
 
@@ -3374,7 +3396,15 @@ type Note implements Node & Post & Reactable {
   """
   organizationAuthor: OrganizationPostAuthor
   published: DateTime!
+
+  """
+  Who may embed this post as a quote. Posts with `FOLLOWERS`, `DIRECT`, or `NONE` visibility always use `SELF` regardless of a broader received policy.
+  """
   quotePolicy: QuotePolicy!
+
+  """
+  The cross-instance approval state when this post quotes another post. `null` means no request is outstanding or the request was approved.
+  """
   quoteTargetState: QuoteTargetState
 
   """
@@ -3551,6 +3581,10 @@ type Note implements Node & Post & Reactable {
     """
     actingAccountId: ID
   ): Boolean!
+
+  """
+  The audience allowed to view this post and whether it appears in public timelines. The value cannot be changed after the post has been federated.
+  """
   visibility: PostVisibility!
 }
 
@@ -4138,7 +4172,15 @@ interface Post implements Node & Reactable {
   """
   organizationAuthor: OrganizationPostAuthor
   published: DateTime!
+
+  """
+  Who may embed this post as a quote. Posts with `FOLLOWERS`, `DIRECT`, or `NONE` visibility always use `SELF` regardless of a broader received policy.
+  """
   quotePolicy: QuotePolicy!
+
+  """
+  The cross-instance approval state when this post quotes another post. `null` means no request is outstanding or the request was approved.
+  """
   quoteTargetState: QuoteTargetState
 
   """
@@ -4300,6 +4342,10 @@ interface Post implements Node & Reactable {
     """
     actingAccountId: ID
   ): Boolean!
+
+  """
+  The audience allowed to view this post and whether it appears in public timelines. The value cannot be changed after the post has been federated.
+  """
   visibility: PostVisibility!
 }
 
@@ -5214,7 +5260,15 @@ type Question implements Node & Post & Reactable {
   When this `Question` was published according to its local source or remote ActivityPub object.
   """
   published: DateTime!
+
+  """
+  Who may embed this post as a quote. Posts with `FOLLOWERS`, `DIRECT`, or `NONE` visibility always use `SELF` regardless of a broader received policy.
+  """
   quotePolicy: QuotePolicy!
+
+  """
+  The cross-instance approval state when this post quotes another post. `null` means no request is outstanding or the request was approved.
+  """
   quoteTargetState: QuoteTargetState
 
   """

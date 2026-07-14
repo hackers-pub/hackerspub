@@ -1,6 +1,5 @@
 import * as vocab from "@fedify/vocab";
 import { getLogger } from "@logtape/logtape";
-import { minBy } from "@std/collections/min-by";
 import type { ApplicationModel } from "./context.ts";
 import {
   and,
@@ -12,12 +11,17 @@ import {
   or,
   sql,
 } from "drizzle-orm";
-import type { StorageService } from "./context.ts";
 import postgres from "postgres";
+export {
+  getArticleDraftMediumUrls,
+  getArticleSourceMediumUrls,
+  getOriginalArticleContent,
+} from "./article-source.ts";
+import { getOriginalArticleContent } from "./article-source.ts";
 import type { ApplicationContext, Models } from "./context.ts";
 import type { Database, Transaction } from "./db.ts";
 import { assertAccountActorNotSuspended } from "./moderation.ts";
-import { syncPostFromArticleSource } from "./post.ts";
+import { syncPostFromArticleSource } from "./post/source.ts";
 import {
   type Account,
   type AccountEmail,
@@ -140,44 +144,6 @@ async function updateArticleSourceMedia(
     });
   }
   return true;
-}
-
-export async function getArticleDraftMediumUrls(
-  db: Database,
-  disk: StorageService,
-  draftId: Uuid,
-): Promise<Record<string, string>> {
-  const media = await db.query.articleDraftMediumTable.findMany({
-    where: { articleDraftId: draftId },
-    with: { medium: true },
-  });
-  return Object.fromEntries(
-    await Promise.all(
-      media.map(async (relation) => [
-        relation.key,
-        await disk.getUrl(relation.medium.key),
-      ]),
-    ),
-  );
-}
-
-export async function getArticleSourceMediumUrls(
-  db: Database,
-  disk: StorageService,
-  sourceId: Uuid,
-): Promise<Record<string, string>> {
-  const media = await db.query.articleSourceMediumTable.findMany({
-    where: { articleSourceId: sourceId },
-    with: { medium: true },
-  });
-  return Object.fromEntries(
-    await Promise.all(
-      media.map(async (relation) => [
-        relation.key,
-        await disk.getUrl(relation.medium.key),
-      ]),
-    ),
-  );
 }
 
 /**
@@ -764,37 +730,6 @@ export async function updateArticle(
     await restartArticleContentTranslations(fedCtx, articleSource);
   }
   return post;
-}
-
-export function getOriginalArticleContent(
-  source: ArticleSource & { contents: ArticleContent[] },
-): ArticleContent | undefined;
-export function getOriginalArticleContent(
-  db: Database,
-  source: ArticleSource,
-): Promise<ArticleContent | undefined>;
-export function getOriginalArticleContent(
-  dbOrSrc: ArticleSource & { contents: ArticleContent[] } | Database,
-  source?: ArticleSource,
-): ArticleContent | undefined | Promise<ArticleContent | undefined> {
-  if ("contents" in dbOrSrc) {
-    const contents = dbOrSrc.contents.filter((content) =>
-      content.originalLanguage == null &&
-      content.translatorId == null &&
-      content.translationRequesterId == null
-    );
-    return minBy(contents, (content) => +content.published);
-  }
-  if (source == null) return Promise.resolve(undefined);
-  return dbOrSrc.query.articleContentTable.findFirst({
-    where: {
-      sourceId: source.id,
-      originalLanguage: { isNull: true },
-      translatorId: { isNull: true },
-      translationRequesterId: { isNull: true },
-    },
-    orderBy: { published: "asc" },
-  });
 }
 
 export async function startArticleContentSummary(

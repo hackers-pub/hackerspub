@@ -7,8 +7,8 @@ import {
   getSanctionVisibleActorFilter,
   isActorSanctionHidden,
   isPostVisibleTo,
-  persistPost,
-} from "@hackerspub/models/post";
+} from "@hackerspub/models/post/visibility";
+import { persistPost } from "@hackerspub/models/post/remote";
 import {
   type Actor as ActorRow,
   actorTable,

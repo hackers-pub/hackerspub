@@ -17,15 +17,14 @@ import {
 } from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
 import { toApplicationContext } from "../context.ts";
+import { isPostObject, type PostObject } from "@hackerspub/models/post/core";
+import { updateQuotesCount } from "@hackerspub/models/post/engagement";
+import { persistPost } from "@hackerspub/models/post/remote";
 import {
   canActorQuotePost,
   canActorRequestQuotePost,
   getOriginalPostId,
-  isPostObject,
-  persistPost,
-  type PostObject,
-  updateQuotesCount,
-} from "@hackerspub/models/post";
+} from "@hackerspub/models/post/visibility";
 import {
   type Actor,
   type Blocking,

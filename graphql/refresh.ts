@@ -1,6 +1,7 @@
 import { isActor } from "@fedify/vocab";
 import { persistActor } from "@hackerspub/models/actor";
-import { isPostObject, persistPost } from "@hackerspub/models/post";
+import { isPostObject } from "@hackerspub/models/post/core";
+import { persistPost } from "@hackerspub/models/post/remote";
 import type { Uuid } from "@hackerspub/models/uuid";
 import { Actor } from "./actor.ts";
 import { builder } from "./builder.ts";

@@ -13,7 +13,9 @@ import type { ApplicationContext } from "./context.ts";
 import { toDate } from "./date.ts";
 import type { Database, Transaction } from "./db.ts";
 import { createPollEndedNotification } from "./notification.ts";
-import { getPersistedPost, isPostVisibleTo, persistPost } from "./post.ts";
+import { getPersistedPost } from "./post/core.ts";
+import { persistPost } from "./post/remote.ts";
+import { isPostVisibleTo } from "./post/visibility.ts";
 import {
   type Account,
   type Actor,

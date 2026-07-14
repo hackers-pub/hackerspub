@@ -48,7 +48,6 @@ import { InvitationLink } from "./invitation-link.ts";
 import { lookupActorByUrl, parseHttpUrl } from "./lookup.ts";
 import { Notification } from "./notification.ts";
 import { putProfileOgImage } from "./og.ts";
-import { ArticleDraft } from "./post.ts";
 import {
   fromPostVisibility,
   PostVisibility,
@@ -894,24 +893,6 @@ builder.drizzleObjectField(Account, "invitees", (t) =>
       }),
     },
   ));
-
-builder.drizzleObjectField(
-  Account,
-  "articleDrafts",
-  (t) =>
-    t.relatedConnection("articleDrafts", {
-      type: ArticleDraft,
-      description:
-        "Unpublished article drafts belonging to this account, most " +
-        "recently updated first. Only visible to the account holder.",
-      authScopes: (parent) => ({
-        selfAccount: "id" in parent ? parent.id : undefined,
-      }),
-      query: () => ({
-        orderBy: { updated: "desc" },
-      }),
-    }),
-);
 
 // Per-request batching loader for Account.postCount and
 // Account.lastPostPublished.  Without this, requesting these fields on a

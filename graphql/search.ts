@@ -4,9 +4,9 @@ import type { RelationsFilter } from "@hackerspub/models/db";
 import {
   getCensoredPostExclusionFilter,
   getPostVisibilityFilter,
-  isPostObject,
-  persistPost,
-} from "@hackerspub/models/post";
+} from "@hackerspub/models/post/visibility";
+import { isPostObject } from "@hackerspub/models/post/core";
+import { persistPost } from "@hackerspub/models/post/remote";
 import { parseQuery } from "@hackerspub/models/search";
 import { compileQuery } from "@hackerspub/models/search-query";
 import {

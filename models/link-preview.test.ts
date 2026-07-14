@@ -1,17 +1,49 @@
 import assert from "node:assert";
 import test from "node:test";
 import { eq, inArray } from "drizzle-orm";
-import { repairBrokenLinkPreviews } from "./link-preview.ts";
+import { persistPostLink, repairBrokenLinkPreviews } from "./link-preview.ts";
 import { NEWS_PENALTY_DEMOTE } from "./news.ts";
 import { postLinkTable, postTable } from "./schema.ts";
 import { generateUuidV7 } from "./uuid.ts";
 import {
+  createFedCtx,
   insertAccountWithActor,
   insertNotePost,
   insertPostLink,
   insertRemoteActor,
   withRollback,
 } from "../test/postgres.ts";
+
+test("persistPostLink() reuses redirected links by authored URL", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "redirectcache",
+      name: "Redirect Cache",
+      email: "redirectcache@example.com",
+    });
+    const authoredUrl = "https://short.example/story";
+    const destinationLink = await insertPostLink(tx, {
+      url: "https://destination.example/article",
+      title: "Destination",
+    });
+    await insertNotePost(tx, {
+      account: author.account,
+      link: { id: destinationLink.id, url: authoredUrl },
+    });
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = () => {
+      throw new Error("The cached authored URL should not be fetched");
+    };
+    try {
+      const link = await persistPostLink(createFedCtx(tx), authoredUrl);
+
+      assert.equal(link?.id, destinationLink.id);
+      assert.equal(link?.url, destinationLink.url);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+});
 
 test("repairBrokenLinkPreviews() splits malformed canonical URLs", async () => {
   await withRollback(async (tx) => {
