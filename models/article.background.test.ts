@@ -451,22 +451,27 @@ test(
 );
 
 test(
-  "restartArticleContentTranslations() preserves its placeholder when outbox persistence fails",
+  "restartArticleContentTranslations() leaves persistence failures immediately retryable",
   async () => {
     await withRollback(async (tx) => {
       const baseFedCtx = createFedCtx(tx);
+      let translationAttempts = 0;
       baseFedCtx.data.services = {
         ...baseFedCtx.data.services,
         ai: {
           ...baseFedCtx.data.services.ai,
-          translate: () =>
-            Promise.resolve("# Translated title\n\nTranslated body"),
+          translate: () => {
+            translationAttempts++;
+            return Promise.resolve("# Translated title\n\nTranslated body");
+          },
         },
       };
       const deliveryAttempted = Promise.withResolvers<void>();
+      let deliveryAttempts = 0;
       const fedCtx = {
         ...baseFedCtx,
         sendActivity() {
+          deliveryAttempts++;
           deliveryAttempted.resolve();
           return Promise.reject(new Error("outbox persistence failed"));
         },
@@ -515,13 +520,38 @@ test(
 
       await restartArticleContentTranslations(fedCtx, articleSource);
       await deliveryAttempted.promise;
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await waitFor(async () => {
+        const current = await tx.query.articleContentTable.findFirst({
+          where: { sourceId, language: "ko" },
+        });
+        return current?.beingTranslated === true &&
+          current.updated.getTime() === 0;
+      });
+
+      const original = await tx.query.articleContentTable.findFirst({
+        where: { sourceId, language: "en" },
+      });
+      assert.ok(original != null);
+      await startArticleContentTranslation(fedCtx, {
+        content: original,
+        targetLanguage: "ko",
+        requester: requester.account,
+      });
+      await waitFor(async () => {
+        if (translationAttempts < 2 || deliveryAttempts < 2) return false;
+        const current = await tx.query.articleContentTable.findFirst({
+          where: { sourceId, language: "ko" },
+        });
+        return current?.beingTranslated === true &&
+          current.updated.getTime() === 0;
+      });
 
       const placeholder = await tx.query.articleContentTable.findFirst({
         where: { sourceId, language: "ko" },
       });
       assert.ok(placeholder != null);
       assert.equal(placeholder.beingTranslated, true);
+      assert.equal(placeholder.updated.getTime(), 0);
       assert.equal(placeholder.title, "Current original title");
       assert.equal(placeholder.content, "Current original body");
       assert.equal(

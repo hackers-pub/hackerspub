@@ -1509,6 +1509,30 @@ async function runArticleContentTranslation(
           error,
         },
       );
+      try {
+        await (fedCtx.rootDb ?? db).update(articleContentTable)
+          // Keep the placeholder but make its claim older than the
+          // 30-minute staleness threshold so the next request can retry
+          // immediately.  The CAS below must still match this run's claim.
+          .set({ updated: new Date(0) })
+          .where(
+            and(
+              eq(articleContentTable.sourceId, sourceId),
+              eq(articleContentTable.language, targetLanguage),
+              eq(articleContentTable.beingTranslated, true),
+              eq(articleContentTable.updated, claim),
+            ),
+          );
+      } catch (resetError) {
+        logger.error(
+          "Failed to reset translation claim " +
+            "({sourceId} {language}): {error}",
+          {
+            ...queued,
+            error: resetError,
+          },
+        );
+      }
     }
   }, async (error) => {
     logger.error("Translation failed ({sourceId} {language}): {error}", {
