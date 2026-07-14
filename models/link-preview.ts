@@ -491,6 +491,8 @@ export async function scrapePostLink(
           image.imageWidth = undefined;
           image.imageHeight = undefined;
         }
+      } else {
+        await response.body?.cancel().catch(() => {});
       }
     } catch (error) {
       logger.debug(

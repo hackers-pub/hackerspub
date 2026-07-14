@@ -137,6 +137,50 @@ test("scrapePostLink() keeps image URL when metadata probing fails", async () =>
   resetGlobalFetch();
 });
 
+test("scrapePostLink() cancels unsuccessful image metadata responses", async () => {
+  const originalFetch = globalThis.fetch;
+  let imageResponseCancelled = false;
+  globalThis.fetch = ((input) => {
+    const url = input.toString();
+    if (url === "https://example.com/article") {
+      return Promise.resolve(
+        new Response(
+          `<html><head>
+          <meta property="og:title" content="Missing image">
+          <meta property="og:image" content="https://images.example/missing.png">
+        </head></html>`,
+          { headers: { "Content-Type": "text/html; charset=utf-8" } },
+        ),
+      );
+    }
+    if (url === "https://images.example/missing.png") {
+      return Promise.resolve(
+        new Response(
+          new ReadableStream({
+            cancel() {
+              imageResponseCancelled = true;
+            },
+          }),
+          { status: 404 },
+        ),
+      );
+    }
+    throw new Error(`Unexpected fetch: ${url}`);
+  }) as typeof fetch;
+  try {
+    const link = await scrapePostLink(
+      ctx,
+      "https://example.com/article",
+      () => Promise.resolve(undefined),
+    );
+
+    assert.equal(link?.imageUrl, "https://images.example/missing.png");
+    assert.equal(imageResponseCancelled, true);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("scrapePostLink() does not fetch unsafe preview images", async () => {
   const originalFetch = globalThis.fetch;
   const requestedUrls: string[] = [];
