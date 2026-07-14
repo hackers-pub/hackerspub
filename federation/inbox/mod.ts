@@ -18,7 +18,6 @@ import {
 } from "@fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import { builder } from "../builder.ts";
-import { withInboxTransaction } from "../context.ts";
 import { onActorMoved } from "./actor.ts";
 import {
   onAccepted,
@@ -28,7 +27,7 @@ import {
 } from "./dispatch.ts";
 import { onFlagged } from "./flag.ts";
 import { onBlocked, onUnblocked, onUnfollowed } from "./following.ts";
-import { onQuoteRequested } from "./quote.ts";
+import { onQuoteRequestReceived } from "./quote.ts";
 import {
   onPostCreated,
   onPostPinned,
@@ -51,11 +50,7 @@ builder
   .onUnverifiedActivity(onUnverifiedActivity)
   .on(Accept, onAccepted)
   .on(Reject, onRejected)
-  .on(
-    QuoteRequest,
-    (fedCtx, request) =>
-      withInboxTransaction(fedCtx, (txCtx) => onQuoteRequested(txCtx, request)),
-  )
+  .on(QuoteRequest, onQuoteRequestReceived)
   .on(Follow, onFollowReceived)
   .on(Undo, async (fedCtx, undo) => {
     const object = await undo.getObject({ ...fedCtx, suppressError: true });

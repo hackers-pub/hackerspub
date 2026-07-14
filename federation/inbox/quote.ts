@@ -16,7 +16,11 @@ import {
   persistActor,
 } from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
-import { sendActivityWithOutbox, toApplicationContext } from "../context.ts";
+import {
+  sendActivityWithOutbox,
+  toApplicationContext,
+  withInboxTransaction,
+} from "../context.ts";
 import { isPostObject, type PostObject } from "@hackerspub/models/post/core";
 import { updateQuotesCount } from "@hackerspub/models/post/engagement";
 import { persistPost } from "@hackerspub/models/post/remote";
@@ -63,10 +67,16 @@ type ValidQuoteRequestInstrument = {
   instrumentIri: string;
 };
 
-export async function onQuoteRequested(
+interface PreparedQuoteRequest {
+  actor: NonNullable<Awaited<ReturnType<typeof getPersistedActor>>>;
+  validInstrument?: ValidQuoteRequestInstrument;
+  quotePostId?: Post["id"];
+}
+
+async function prepareQuoteRequest(
   fedCtx: InboxContext<ContextData>,
   request: QuoteRequest,
-): Promise<void> {
+): Promise<PreparedQuoteRequest | undefined> {
   if (
     request.id == null || request.actorId == null || request.objectId == null ||
     request.instrumentId == null
@@ -94,6 +104,58 @@ export async function onQuoteRequested(
     actor,
   );
   if (quotedPost?.actor.accountId == null) return;
+  const requestAllowed = quotedPost.censored == null &&
+    canActorRequestQuotePost(quotedPost, actor);
+  const validInstrument = requestAllowed
+    ? await getValidQuoteRequestInstrument(fedCtx, request)
+    : undefined;
+  if (validInstrument == null || canActorQuotePost(quotedPost, actor)) {
+    return { actor, validInstrument };
+  }
+  const quotePost = await persistPost(
+    toApplicationContext(fedCtx),
+    validInstrument.instrument,
+    {
+      actor,
+      replies: false,
+    },
+  );
+  return { actor, validInstrument, quotePostId: quotePost?.id };
+}
+
+export async function onQuoteRequestReceived(
+  fedCtx: InboxContext<ContextData>,
+  request: QuoteRequest,
+): Promise<void> {
+  const prepared = await prepareQuoteRequest(fedCtx, request);
+  if (prepared == null) return;
+  await withInboxTransaction(
+    fedCtx,
+    (txCtx) => onQuoteRequested(txCtx, request, prepared),
+  );
+}
+
+export async function onQuoteRequested(
+  fedCtx: InboxContext<ContextData>,
+  request: QuoteRequest,
+  prepared?: PreparedQuoteRequest,
+): Promise<void> {
+  if (
+    request.id == null || request.actorId == null || request.objectId == null ||
+    request.instrumentId == null
+  ) {
+    return;
+  }
+  const preparedRequest = prepared ??
+    await prepareQuoteRequest(fedCtx, request);
+  if (preparedRequest == null) return;
+  const { actor } = preparedRequest;
+  const quotedPost = await getQuoteRequestTarget(
+    fedCtx,
+    request.objectId.href,
+    actor,
+  );
+  if (quotedPost?.actor.accountId == null) return;
   // A censored post cannot be quoted (the local create-note path enforces the
   // same), so a remote QuoteRequest for it is denied: granting a
   // QuoteAuthorization would let federated users re-amplify content the
@@ -101,7 +163,7 @@ export async function onQuoteRequested(
   const requestAllowed = quotedPost.censored == null &&
     canActorRequestQuotePost(quotedPost, actor);
   const validInstrument = requestAllowed
-    ? await getValidQuoteRequestInstrument(fedCtx, request)
+    ? preparedRequest.validInstrument
     : undefined;
   if (validInstrument == null) {
     await sendActivityWithOutbox(
@@ -117,29 +179,21 @@ export async function onQuoteRequested(
     );
     return;
   }
-  const { instrument, instrumentIri } = validInstrument;
+  const { instrumentIri } = validInstrument;
   if (!canActorQuotePost(quotedPost, actor)) {
-    const quotePost = await persistPost(
-      toApplicationContext(fedCtx),
-      instrument,
-      {
-        actor,
-        replies: false,
-      },
-    );
-    if (quotePost == null) return;
+    if (preparedRequest.quotePostId == null) return;
     await fedCtx.data.db.update(postTable)
       .set({ quoteTargetState: "pending" })
-      .where(eq(postTable.id, quotePost.id));
+      .where(eq(postTable.id, preparedRequest.quotePostId));
     await fedCtx.data.db.insert(quoteRequestTable).values({
       id: generateUuidV7(),
       iri: request.id.href,
-      quotePostId: quotePost.id,
+      quotePostId: preparedRequest.quotePostId,
       quotedPostId: quotedPost.id,
     }).onConflictDoUpdate({
       target: quoteRequestTable.iri,
       set: {
-        quotePostId: quotePost.id,
+        quotePostId: preparedRequest.quotePostId,
         quotedPostId: quotedPost.id,
         accepted: null,
         rejected: null,
