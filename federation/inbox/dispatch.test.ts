@@ -68,7 +68,7 @@ describe("transactional inbox dispatch", () => {
     });
   });
 
-  it("does not treat a Delete without IDs as an actor deletion", async () => {
+  it("does not dereference a Delete without IDs", async () => {
     await withRollback(async (tx) => {
       const fedCtx = createFedCtx(tx) as unknown as InboxContext<ContextData>;
       let dereferenced = false;
@@ -83,7 +83,26 @@ describe("transactional inbox dispatch", () => {
 
       await onDeleted(fedCtx, del);
 
-      assert.equal(dereferenced, true);
+      assert.equal(dereferenced, false);
+    });
+  });
+
+  it("does not dereference a cross-origin Delete object", async () => {
+    await withRollback(async (tx) => {
+      const fedCtx = createFedCtx(tx) as unknown as InboxContext<ContextData>;
+      let dereferenced = false;
+      const del = {
+        actorId: new URL("https://remote.example/actors/alice"),
+        objectId: new URL("https://objects.example/posts/1"),
+        getObject() {
+          dereferenced = true;
+          return Promise.resolve(null);
+        },
+      } as unknown as Delete;
+
+      await onDeleted(fedCtx, del);
+
+      assert.equal(dereferenced, false);
     });
   });
 

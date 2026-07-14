@@ -114,7 +114,13 @@ export async function onDeleted(
   );
   if (quoteAuthorizationDeleted) return;
 
-  if (del.objectId != null && del.objectId.href === del.actorId?.href) {
+  const objectId = del.objectId;
+  const actorId = del.actorId;
+  if (objectId == null || actorId == null) {
+    logger.warn("Unhandled Delete object: {delete}", { delete: del });
+    return;
+  }
+  if (objectId.href === actorId.href) {
     const actorDeleted = await withInboxTransaction(
       fedCtx,
       (txCtx) => onActorDeleted(txCtx, del),
@@ -122,6 +128,10 @@ export async function onDeleted(
     if (!actorDeleted) {
       logger.warn("Unhandled Delete object: {delete}", { delete: del });
     }
+    return;
+  }
+  if (objectId.origin !== actorId.origin) {
+    logger.warn("Unhandled Delete object: {delete}", { delete: del });
     return;
   }
 
