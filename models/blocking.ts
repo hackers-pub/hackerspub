@@ -18,15 +18,26 @@ import {
   blockingTable,
 } from "./schema.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
+import { transactional } from "./tx.ts";
 
-export async function persistBlocking(
+type PersistedBlockingActor = NonNullable<
+  Awaited<ReturnType<typeof getPersistedActor>>
+>;
+
+export interface PreparedBlocking {
+  readonly iri: string;
+  readonly blocker: PersistedBlockingActor;
+  readonly blockee: PersistedBlockingActor;
+}
+
+export async function prepareBlocking(
   fedCtx: ApplicationContext,
   block: vocab.Block,
   options: {
     contextLoader?: DocumentLoader;
     documentLoader?: DocumentLoader;
   } = {},
-): Promise<Blocking | undefined> {
+): Promise<PreparedBlocking | undefined> {
   if (block.id == null || block.actorId == null || block.objectId == null) {
     return undefined;
   }
@@ -47,31 +58,53 @@ export async function persistBlocking(
     blockee = await persistActor(fedCtx, object, options);
     if (blockee == null) return undefined;
   }
+  return { iri: block.id.href, blocker, blockee };
+}
+
+export async function persistPreparedBlocking(
+  fedCtx: ApplicationContext,
+  prepared: PreparedBlocking,
+): Promise<Blocking | undefined> {
+  const { db } = fedCtx;
   const rows = await db.insert(blockingTable)
     .values({
       id: generateUuidV7(),
-      iri: block.id.href,
-      blockerId: blocker.id,
-      blockeeId: blockee.id,
+      iri: prepared.iri,
+      blockerId: prepared.blocker.id,
+      blockeeId: prepared.blockee.id,
     })
     .onConflictDoNothing()
     .returning();
   if (rows.length < 1) return undefined;
-  if (blockee.account == null) return undefined;
+  if (prepared.blockee.account == null) return undefined;
   await removeFollower(
     fedCtx,
-    { ...blockee.account, actor: blockee },
-    blocker,
+    { ...prepared.blockee.account, actor: prepared.blockee },
+    prepared.blocker,
   );
   await unfollow(
     fedCtx,
-    { ...blockee.account, actor: blockee },
-    blocker,
+    { ...prepared.blockee.account, actor: prepared.blockee },
+    prepared.blocker,
   );
   return rows[0];
 }
 
-export async function block(
+export async function persistBlocking(
+  fedCtx: ApplicationContext,
+  block: vocab.Block,
+  options: {
+    contextLoader?: DocumentLoader;
+    documentLoader?: DocumentLoader;
+  } = {},
+): Promise<Blocking | undefined> {
+  const prepared = await prepareBlocking(fedCtx, block, options);
+  return prepared == null
+    ? undefined
+    : await persistPreparedBlocking(fedCtx, prepared);
+}
+
+async function blockOperation(
   fedCtx: ApplicationContext,
   blocker: Account & { actor: Actor },
   blockee: Actor,
@@ -124,7 +157,9 @@ export async function block(
   return rows[0];
 }
 
-export async function unblock(
+export const block = transactional(blockOperation);
+
+async function unblockOperation(
   fedCtx: ApplicationContext,
   blocker: Account & { actor: Actor },
   blockee: Actor,
@@ -161,6 +196,8 @@ export async function unblock(
   }
   return rows[0];
 }
+
+export const unblock = transactional(unblockOperation);
 
 export async function getBlockedActorIds(
   db: Database,

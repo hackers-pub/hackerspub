@@ -18,26 +18,18 @@ import {
 } from "@fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import { builder } from "../builder.ts";
-import { onActorDeleted, onActorMoved } from "./actor.ts";
+import { onActorMoved } from "./actor.ts";
+import {
+  onAccepted,
+  onDeleted,
+  onFollowReceived,
+  onRejected,
+} from "./dispatch.ts";
 import { onFlagged } from "./flag.ts";
-import {
-  onBlocked,
-  onFollowAccepted,
-  onFollowed,
-  onFollowRejected,
-  onUnblocked,
-  onUnfollowed,
-} from "./following.ts";
-import {
-  onQuoteAuthorizationDeleted,
-  onQuoteRequestAccepted,
-  onQuoteRequested,
-  onQuoteRequestRejected,
-} from "./quote.ts";
-import { onRelayFollowAccepted, onRelayFollowRejected } from "./relay.ts";
+import { onBlocked, onUnblocked, onUnfollowed } from "./following.ts";
+import { onQuoteRequestReceived } from "./quote.ts";
 import {
   onPostCreated,
-  onPostDeleted,
   onPostPinned,
   onPostShared,
   onPostUnpinned,
@@ -56,18 +48,10 @@ builder
     identifier: new URL(ctx.canonicalOrigin).hostname,
   }))
   .onUnverifiedActivity(onUnverifiedActivity)
-  .on(Accept, async (fedCtx, accept) => {
-    if (await onQuoteRequestAccepted(fedCtx, accept)) return;
-    if (await onRelayFollowAccepted(fedCtx, accept)) return;
-    await onFollowAccepted(fedCtx, accept);
-  })
-  .on(Reject, async (fedCtx, reject) => {
-    if (await onQuoteRequestRejected(fedCtx, reject)) return;
-    if (await onRelayFollowRejected(fedCtx, reject)) return;
-    await onFollowRejected(fedCtx, reject);
-  })
-  .on(QuoteRequest, onQuoteRequested)
-  .on(Follow, onFollowed)
+  .on(Accept, onAccepted)
+  .on(Reject, onRejected)
+  .on(QuoteRequest, onQuoteRequestReceived)
+  .on(Follow, onFollowReceived)
   .on(Undo, async (fedCtx, undo) => {
     const object = await undo.getObject({ ...fedCtx, suppressError: true });
     if (object instanceof Follow) await onUnfollowed(fedCtx, undo);
@@ -81,12 +65,7 @@ builder
   .on(Update, onUpdated)
   .on(Like, onReactedOnPost)
   .on(EmojiReact, onReactedOnPost)
-  .on(Delete, async (fedCtx, del) => {
-    await onQuoteAuthorizationDeleted(fedCtx, del) ||
-      await onPostDeleted(fedCtx, del) ||
-      await onActorDeleted(fedCtx, del) ||
-      logger.warn("Unhandled Delete object: {delete}", { delete: del });
-  })
+  .on(Delete, onDeleted)
   .on(Move, onActorMoved)
   .on(Flag, onFlagged)
   .on(Block, onBlocked)

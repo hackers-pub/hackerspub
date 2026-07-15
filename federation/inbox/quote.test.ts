@@ -32,8 +32,128 @@ import {
   onQuoteAuthorizationDeleted,
   onQuoteRequestAccepted,
   onQuoteRequested,
+  onQuoteRequestReceived,
   onQuoteRequestRejected,
 } from "./quote.ts";
+
+test("onQuoteRequestReceived dereferences the instrument before opening a transaction", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "quoteprepareowner",
+      name: "Quote Prepare Owner",
+      email: "quoteprepareowner@example.com",
+    });
+    const requester = await insertRemoteActor(tx, {
+      username: "quotepreparerequester",
+      name: "Quote Prepare Requester",
+      host: "remote.example",
+    });
+    const { post: quotedPost } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Public quote target",
+      quotePolicy: "everyone",
+    });
+    const instrumentIri = "https://remote.example/objects/prepared-quote";
+    const request = new QuoteRequest({
+      id: new URL("https://remote.example/quote-requests/prepared"),
+      actor: new URL(requester.iri),
+      object: new URL(quotedPost.iri),
+      instrument: new URL(instrumentIri),
+    });
+    let dereferenceDb: ContextData["db"] | undefined;
+    Object.defineProperty(request, "getInstrument", {
+      value(options: InboxContext<ContextData>) {
+        dereferenceDb = options.data.db;
+        return Promise.resolve(
+          new Note({
+            id: new URL(instrumentIri),
+            attribution: new URL(requester.iri),
+            quote: new URL(quotedPost.iri),
+            content: "Prepared outside the transaction",
+          }),
+        );
+      },
+    });
+    const sent: unknown[][] = [];
+    const fedCtx = {
+      ...createFedCtx(tx),
+      sendActivity(...args: unknown[]) {
+        sent.push(args);
+        return Promise.resolve(undefined);
+      },
+    } as unknown as InboxContext<ContextData>;
+
+    await onQuoteRequestReceived(fedCtx, request);
+
+    assert.equal(dereferenceDb, tx);
+    assert.equal(sent.some((args) => args[2] instanceof Accept), true);
+  });
+});
+
+test("onQuoteRequestReceived rolls back a pending quote post with its request", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "quoterollbackowner",
+      name: "Quote Rollback Owner",
+      email: "quoterollbackowner@example.com",
+    });
+    const requester = await insertRemoteActor(tx, {
+      username: "quoterollbackrequester",
+      name: "Quote Rollback Requester",
+      host: "remote.example",
+    });
+    const { post: quotedPost } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Request-only quote target",
+      quotePolicy: "self",
+      quoteRequestPolicy: "everyone",
+    });
+    const instrumentIri = "https://remote.example/objects/rolled-back-quote";
+    const request = new QuoteRequest({
+      id: new URL("https://remote.example/quote-requests/rolled-back"),
+      actor: new URL(requester.iri),
+      object: new URL(quotedPost.iri),
+      instrument: new Note({
+        id: new URL(instrumentIri),
+        attribution: new URL(requester.iri),
+        quote: new URL(quotedPost.iri),
+        content: "This pending quote must roll back with its request",
+      }),
+    });
+    const transactionDb = new Proxy(tx, {
+      get(target, property) {
+        if (property === "transaction") {
+          return async (
+            callback: (nested: ContextData["db"]) => Promise<unknown>,
+          ) =>
+            await target.transaction(async (nested) => {
+              await callback(nested);
+              throw new Error("forced transaction rollback");
+            });
+        }
+        const value = Reflect.get(target, property, target);
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    }) as ContextData["db"];
+    const fedCtx = createFedCtx(transactionDb) as unknown as InboxContext<
+      ContextData
+    >;
+
+    await assert.rejects(
+      () => onQuoteRequestReceived(fedCtx, request),
+      /forced transaction rollback/,
+    );
+
+    const persistedPost = await tx.query.postTable.findFirst({
+      where: { iri: instrumentIri },
+    });
+    const persistedRequest = await tx.query.quoteRequestTable.findFirst({
+      where: { iri: request.id!.href },
+    });
+    assert.equal(persistedPost, undefined);
+    assert.equal(persistedRequest, undefined);
+  });
+});
 
 test("onQuoteRequested rejects instruments not attributed to the requester", async () => {
   await withRollback(async (tx) => {

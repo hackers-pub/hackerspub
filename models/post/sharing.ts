@@ -23,6 +23,7 @@ import {
 import { addPostToTimeline, removeFromTimeline } from "../timeline.ts";
 import { generateUuidV7, type Uuid } from "../uuid.ts";
 import { updateSharesCount } from "./engagement.ts";
+import { transactional } from "../tx.ts";
 
 const logger = getLogger(["hackerspub", "models", "post", "sharing"]);
 
@@ -57,7 +58,7 @@ async function getOriginalSharedPost(
   return post;
 }
 
-export async function sharePost(
+async function sharePostOperation(
   fedCtx: ApplicationContext,
   account: Account & {
     avatarMedium: Medium | null;
@@ -152,7 +153,9 @@ export async function sharePost(
   return share;
 }
 
-export async function unsharePost(
+export const sharePost = transactional(sharePostOperation);
+
+async function unsharePostOperation(
   fedCtx: ApplicationContext,
   account: Account & {
     avatarMedium: Medium | null;
@@ -218,6 +221,8 @@ export async function unsharePost(
   );
   return unshared[0];
 }
+
+export const unsharePost = transactional(unsharePostOperation);
 
 export async function arePostsSharedBy(
   db: Database,

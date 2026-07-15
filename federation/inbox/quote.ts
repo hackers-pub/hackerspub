@@ -16,7 +16,11 @@ import {
   persistActor,
 } from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
-import { toApplicationContext } from "../context.ts";
+import {
+  sendActivityWithOutbox,
+  toApplicationContext,
+  withInboxTransaction,
+} from "../context.ts";
 import { isPostObject, type PostObject } from "@hackerspub/models/post/core";
 import { updateQuotesCount } from "@hackerspub/models/post/engagement";
 import { persistPost } from "@hackerspub/models/post/remote";
@@ -63,10 +67,15 @@ type ValidQuoteRequestInstrument = {
   instrumentIri: string;
 };
 
-export async function onQuoteRequested(
+interface PreparedQuoteRequest {
+  actor: NonNullable<Awaited<ReturnType<typeof getPersistedActor>>>;
+  validInstrument?: ValidQuoteRequestInstrument;
+}
+
+async function prepareQuoteRequest(
   fedCtx: InboxContext<ContextData>,
   request: QuoteRequest,
-): Promise<void> {
+): Promise<PreparedQuoteRequest | undefined> {
   if (
     request.id == null || request.actorId == null || request.objectId == null ||
     request.instrumentId == null
@@ -94,6 +103,47 @@ export async function onQuoteRequested(
     actor,
   );
   if (quotedPost?.actor.accountId == null) return;
+  const requestAllowed = quotedPost.censored == null &&
+    canActorRequestQuotePost(quotedPost, actor);
+  const validInstrument = requestAllowed
+    ? await getValidQuoteRequestInstrument(fedCtx, request)
+    : undefined;
+  return { actor, validInstrument };
+}
+
+export async function onQuoteRequestReceived(
+  fedCtx: InboxContext<ContextData>,
+  request: QuoteRequest,
+): Promise<void> {
+  const prepared = await prepareQuoteRequest(fedCtx, request);
+  if (prepared == null) return;
+  await withInboxTransaction(
+    fedCtx,
+    (txCtx) => onQuoteRequested(txCtx, request, prepared),
+  );
+}
+
+export async function onQuoteRequested(
+  fedCtx: InboxContext<ContextData>,
+  request: QuoteRequest,
+  prepared?: PreparedQuoteRequest,
+): Promise<void> {
+  if (
+    request.id == null || request.actorId == null || request.objectId == null ||
+    request.instrumentId == null
+  ) {
+    return;
+  }
+  const preparedRequest = prepared ??
+    await prepareQuoteRequest(fedCtx, request);
+  if (preparedRequest == null) return;
+  const { actor } = preparedRequest;
+  const quotedPost = await getQuoteRequestTarget(
+    fedCtx,
+    request.objectId.href,
+    actor,
+  );
+  if (quotedPost?.actor.accountId == null) return;
   // A censored post cannot be quoted (the local create-note path enforces the
   // same), so a remote QuoteRequest for it is denied: granting a
   // QuoteAuthorization would let federated users re-amplify content the
@@ -101,10 +151,11 @@ export async function onQuoteRequested(
   const requestAllowed = quotedPost.censored == null &&
     canActorRequestQuotePost(quotedPost, actor);
   const validInstrument = requestAllowed
-    ? await getValidQuoteRequestInstrument(fedCtx, request)
+    ? preparedRequest.validInstrument
     : undefined;
   if (validInstrument == null) {
-    await fedCtx.sendActivity(
+    await sendActivityWithOutbox(
+      fedCtx,
       { identifier: quotedPost.actor.accountId },
       { id: request.actorId, inboxId: new URL(actor.inboxUrl) },
       new Reject({
@@ -118,27 +169,33 @@ export async function onQuoteRequested(
   }
   const { instrument, instrumentIri } = validInstrument;
   if (!canActorQuotePost(quotedPost, actor)) {
-    const quotePost = await persistPost(
-      toApplicationContext(fedCtx),
-      instrument,
-      {
-        actor,
-        replies: false,
-      },
-    );
-    if (quotePost == null) return;
+    const existingQuotePost = await fedCtx.data.db.query.postTable.findFirst({
+      columns: { id: true },
+      where: { iri: instrumentIri },
+    });
+    const quotePostId = existingQuotePost?.id ??
+      (await persistPost(
+        toApplicationContext(fedCtx),
+        instrument,
+        {
+          actor,
+          replies: false,
+          fetchRemote: false,
+        },
+      ))?.id;
+    if (quotePostId == null) return;
     await fedCtx.data.db.update(postTable)
       .set({ quoteTargetState: "pending" })
-      .where(eq(postTable.id, quotePost.id));
+      .where(eq(postTable.id, quotePostId));
     await fedCtx.data.db.insert(quoteRequestTable).values({
       id: generateUuidV7(),
       iri: request.id.href,
-      quotePostId: quotePost.id,
+      quotePostId,
       quotedPostId: quotedPost.id,
     }).onConflictDoUpdate({
       target: quoteRequestTable.iri,
       set: {
-        quotePostId: quotePost.id,
+        quotePostId,
         quotedPostId: quotedPost.id,
         accepted: null,
         rejected: null,
@@ -181,7 +238,8 @@ export async function onQuoteRequested(
       updated: sql`CURRENT_TIMESTAMP`,
     },
   });
-  await fedCtx.sendActivity(
+  await sendActivityWithOutbox(
+    fedCtx,
     { identifier: quotedPost.actor.accountId },
     { id: request.actorId, inboxId: new URL(actor.inboxUrl) },
     response,
@@ -306,6 +364,7 @@ function validateQuoteRequestInstrument(
 export async function onQuoteRequestAccepted(
   fedCtx: InboxContext<ContextData>,
   accept: Accept,
+  resolved?: Readonly<{ object: unknown; result: unknown }>,
 ): Promise<boolean> {
   if (accept.actorId == null || accept.resultId == null) return false;
   let quoteRequestIri = accept.objectId?.href;
@@ -315,7 +374,9 @@ export async function onQuoteRequestAccepted(
   let quote = storedRequest?.quotePost;
   let quotedPost = storedRequest?.quotedPost;
   if (quote == null) {
-    const request = await accept.getObject({ ...fedCtx, suppressError: true });
+    const request = resolved == null
+      ? await accept.getObject({ ...fedCtx, suppressError: true })
+      : resolved.object;
     if (!(request instanceof QuoteRequest)) return false;
     if (request.instrumentId == null) return false;
     quoteRequestIri = request.id?.href ?? quoteRequestIri;
@@ -348,10 +409,12 @@ export async function onQuoteRequestAccepted(
     );
     return true;
   }
-  const authorization = await accept.getResult({
-    ...fedCtx,
-    suppressError: true,
-  });
+  const authorization = resolved == null
+    ? await accept.getResult({
+      ...fedCtx,
+      suppressError: true,
+    })
+    : resolved.result;
   const validAuthorization = authorization instanceof QuoteAuthorization &&
     authorization.id?.href === accept.resultId.href &&
     authorization.interactingObjectId?.href === quote.iri &&
@@ -517,7 +580,8 @@ async function sendQuoteUpdate(
     new URL(fedCtx.canonicalOrigin),
   ];
   if (quote.mentions.length > 0) {
-    await fedCtx.sendActivity(
+    await sendActivityWithOutbox(
+      fedCtx,
       { identifier: quote.actor.accountId },
       quote.mentions.map((mention) => ({
         id: new URL(mention.actor.iri),
@@ -539,7 +603,8 @@ async function sendQuoteUpdate(
     quote.visibility === "unlisted" ||
     quote.visibility === "followers"
   ) {
-    await fedCtx.sendActivity(
+    await sendActivityWithOutbox(
+      fedCtx,
       { identifier: quote.actor.accountId },
       "followers",
       update,
@@ -572,6 +637,7 @@ async function sendQuoteUpdate(
 export async function onQuoteRequestRejected(
   fedCtx: InboxContext<ContextData>,
   reject: Reject,
+  resolved?: Readonly<{ object: unknown }>,
 ): Promise<boolean> {
   if (reject.actorId == null) return false;
   let quoteRequestIri = reject.objectId?.href;
@@ -582,7 +648,9 @@ export async function onQuoteRequestRejected(
   let quotedPost = storedRequest?.quotedPost;
   let requestTargetIri: string | undefined;
   if (quote == null) {
-    const request = await reject.getObject({ ...fedCtx, suppressError: true });
+    const request = resolved == null
+      ? await reject.getObject({ ...fedCtx, suppressError: true })
+      : resolved.object;
     if (!(request instanceof QuoteRequest)) return false;
     if (request.instrumentId == null) return false;
     quoteRequestIri = request.id?.href ?? quoteRequestIri;

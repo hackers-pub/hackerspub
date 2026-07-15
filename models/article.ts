@@ -21,6 +21,7 @@ import { getOriginalArticleContent } from "./article-source.ts";
 import type { ApplicationContext, Models } from "./context.ts";
 import type { Database, Transaction } from "./db.ts";
 import { assertAccountActorNotSuspended } from "./moderation.ts";
+import { transactional, withTransaction } from "./tx.ts";
 import { syncPostFromArticleSource } from "./post/source.ts";
 import {
   type Account,
@@ -352,7 +353,7 @@ async function queueArticleContentSummary(
     ));
 }
 
-export async function createArticle(
+async function createArticleOperation(
   fedCtx: ApplicationContext,
   source: Omit<NewArticleSource, "id"> & {
     id?: Uuid;
@@ -464,8 +465,15 @@ export async function createArticle(
   return post;
 }
 
+export const createArticle = transactional(createArticleOperation);
+
 export interface UpdateArticleSourceResult {
   source: ArticleSource & { contents: ArticleContent[] };
+  /**
+   * The updated original-language row that needs a fresh summary.
+   * Context-aware callers use this to defer background work until commit.
+   */
+  resummarizeTarget?: ArticleContent;
   /**
    * `true` when the original-language `article_content` row's body
    * actually changed during this update.  The caller uses this to
@@ -495,13 +503,10 @@ export async function updateArticleSource(
     language?: string;
     media?: readonly ArticleMediumInput[];
   },
-  models?: Models,
-  aiServices?: Pick<AiServices, "summarize">,
 ): Promise<UpdateArticleSourceResult | undefined> {
   const { media: sourceMedia, ...sourceFields } = source;
-  // Captured inside the transaction and used after it commits so we
-  // can enqueue a fresh summarization for the row whose body or
-  // language just changed.
+  // Captured inside the transaction and returned so context-aware callers can
+  // enqueue fresh summarization after their enclosing transaction commits.
   let resummarizeTarget: ArticleContent | undefined;
   let originalContentChanged = false;
   let result: (ArticleSource & { contents: ArticleContent[] }) | undefined;
@@ -603,21 +608,10 @@ export async function updateArticleSource(
     throw error;
   }
   if (result == null) return undefined;
-  // Queue a fresh summarization outside of the transaction so the
-  // claim is visible to other workers as soon as it is acquired and
-  // the deferred apply step does not try to use a closed transaction.
-  if (resummarizeTarget != null && models != null && aiServices != null) {
-    await startArticleContentSummary(
-      db,
-      models.summarizer,
-      resummarizeTarget,
-      aiServices.summarize,
-    );
-  }
-  return { source: result, originalContentChanged };
+  return { source: result, originalContentChanged, resummarizeTarget };
 }
 
-export async function updateArticle(
+async function updateArticleOperation(
   fedCtx: ApplicationContext,
   articleSourceId: Uuid,
   source: Partial<NewArticleSource> & {
@@ -637,7 +631,7 @@ export async function updateArticle(
     };
   } | undefined
 > {
-  const { db, models } = fedCtx;
+  const { db } = fedCtx;
   const previousPost = await db.query.postTable.findFirst({
     where: { articleSourceId },
   });
@@ -645,11 +639,16 @@ export async function updateArticle(
     db,
     articleSourceId,
     source,
-    models,
-    fedCtx.services.ai,
   );
   if (updateResult == null) return undefined;
-  const { source: articleSource, originalContentChanged } = updateResult;
+  const {
+    source: articleSource,
+    originalContentChanged,
+    resummarizeTarget,
+  } = updateResult;
+  if (resummarizeTarget != null) {
+    await queueArticleContentSummary(fedCtx, resummarizeTarget);
+  }
   const account = await db.query.accountTable.findFirst({
     where: { id: articleSource.accountId },
     with: { avatarMedium: true, emails: true, links: true },
@@ -731,6 +730,8 @@ export async function updateArticle(
   }
   return post;
 }
+
+export const updateArticle = transactional(updateArticleOperation);
 
 export async function startArticleContentSummary(
   db: Database,
@@ -1159,13 +1160,24 @@ export async function restartArticleContentTranslations(
     // fetch) can itself throw on a transient DB error; without it
     // those rejections would surface as unhandled promise
     // rejections.
-    runArticleContentTranslation(fedCtx, resetRow).catch((error) => {
-      logger.error(
-        "Failed to start retranslation for {sourceId} {language}: {error}",
-        {
-          sourceId: resetRow.sourceId,
-          language: resetRow.language,
-          error,
+    await queueAfterCommit(fedCtx, () => {
+      const rootDb = fedCtx.rootDb ?? fedCtx.db;
+      const backgroundContext: ApplicationContext = {
+        ...fedCtx.withDatabase(rootDb),
+        db: rootDb,
+        rootDb,
+        afterCommit: undefined,
+      };
+      return runArticleContentTranslation(backgroundContext, resetRow).catch(
+        (error) => {
+          logger.error(
+            "Failed to start retranslation for {sourceId} {language}: {error}",
+            {
+              sourceId: resetRow.sourceId,
+              language: resetRow.language,
+              error,
+            },
+          );
         },
       );
     });
@@ -1340,141 +1352,189 @@ async function runArticleContentTranslation(
     authorBio: articleSource?.account?.actor?.bioHtml ?? undefined,
     tags: articleSource?.tags,
   }).then(async (translation) => {
-    logger.debug("Translation completed: {sourceId} {language}", {
-      ...queued,
-      translation,
-    });
-    const { title, content } = splitTranslationTitleAndContent(translation);
-    const updated = await db.update(articleContentTable)
-      .set({
-        title,
-        content,
-        beingTranslated: false,
-        updated: sql`CURRENT_TIMESTAMP`,
-        // The translation has just replaced the placeholder content,
-        // so any existing summary state from the original-language
-        // body no longer applies.  Clear it so a fresh summary can be
-        // generated for the translated text below.
-        summary: null,
-        summaryStarted: null,
-        summaryUnnecessary: false,
-        // The cached OG image was rendered from the placeholder
-        // (or from a prior translation of an older body) and is
-        // now stale; clear it for the same reason as `summary` so
-        // the next request regenerates it from the translated text.
-        ogImageKey: null,
-      })
-      .where(
-        and(
-          eq(articleContentTable.sourceId, sourceId),
-          eq(articleContentTable.language, targetLanguage),
-          // CAS on the claim taken at the top of this function — see
-          // that comment for why a JS `Date` rather than the row's
-          // round-tripped `updated` is the safe reference.  If a
-          // concurrent re-translation took its own claim under us
-          // the `updated` will no longer match `claim` and this
-          // write becomes a no-op so we don't clobber its fresher
-          // placeholder with our stale text.
-          eq(articleContentTable.updated, claim),
-        ),
-      )
-      .returning();
-    if (updated.length < 1) {
-      logger.debug(
-        "Stale translation claim, skipping federation/summary " +
-          "({sourceId} {language}).",
-        queued,
-      );
-      return;
-    }
-    const article = await db.query.articleSourceTable.findFirst({
-      where: { id: sourceId },
-      with: {
-        account: true,
-        contents: true,
-      },
-    });
-    if (article == null) return;
-    const post = await db.query.postTable.findFirst({
-      where: { articleSourceId: article.id },
-    });
-    if (post?.censored != null) {
-      // A censored article must not federate a completed translation's
-      // Update; the translation row and its summary still persist locally.
-      await startArticleContentSummary(
-        db,
-        summarizer,
-        updated[0],
-        fedCtx.services.ai.summarize,
-      );
-      return;
-    }
-    const articleObject = await fedCtx.services.federation.getArticle(
-      fedCtx,
-      article,
-    );
-    // The id has to be unique across translation completions for
-    // this article — multiple locales can complete in close
-    // succession (especially after a body edit re-queues every
-    // existing translation), and they would all collide on
-    // `article.updated` since translation completions don't bump
-    // it.  Including both the target language and the translated
-    // row's own `updated` (a fresh `CURRENT_TIMESTAMP` from the
-    // success UPDATE just above) keeps the id distinct from the
-    // original-language Update activity and from every other
-    // translation's Update for the same edit.
-    const update = new vocab.Update({
-      id: new URL(
-        `#update/${updated[0].updated.toISOString()}/${targetLanguage}`,
-        articleObject.id ?? fedCtx.canonicalOrigin,
-      ),
-      actor: fedCtx.getActorUri(article.accountId),
-      tos: articleObject.toIds,
-      ccs: articleObject.ccIds,
-      object: articleObject,
-    });
-    const orderingKey = fedCtx.getObjectUri(vocab.Article, { id: article.id })
-      .href;
-    await fedCtx.sendActivity(
-      { identifier: article.accountId },
-      "followers",
-      update,
-      {
-        orderingKey,
-        preferSharedInbox: true,
-        excludeBaseUris: [
-          new URL(fedCtx.origin),
-          new URL(fedCtx.canonicalOrigin),
-        ],
-      },
-    );
-    if (post != null) {
-      const relayedTags = await fedCtx.services.federation
-        .sendTagsPubRelayActivity(
-          fedCtx,
-          article.accountId,
+    try {
+      logger.debug("Translation completed: {sourceId} {language}", {
+        ...queued,
+        translation,
+      });
+      const { title, content } = splitTranslationTitleAndContent(translation);
+      const rootDb = fedCtx.rootDb ?? db;
+      const backgroundContext: ApplicationContext = {
+        ...fedCtx.withDatabase(rootDb),
+        db: rootDb,
+        rootDb,
+        afterCommit: undefined,
+      };
+      await withTransaction(backgroundContext, async (txFedCtx) => {
+        const tx = txFedCtx.db;
+        const updated = await tx.update(articleContentTable)
+          .set({
+            title,
+            content,
+            beingTranslated: false,
+            updated: sql`CURRENT_TIMESTAMP`,
+            // The translation has just replaced the placeholder content,
+            // so any existing summary state from the original-language
+            // body no longer applies.  Clear it so a fresh summary can be
+            // generated for the translated text below.
+            summary: null,
+            summaryStarted: null,
+            summaryUnnecessary: false,
+            // The cached OG image was rendered from the placeholder
+            // (or from a prior translation of an older body) and is
+            // now stale; clear it for the same reason as `summary` so
+            // the next request regenerates it from the translated text.
+            ogImageKey: null,
+          })
+          .where(
+            and(
+              eq(articleContentTable.sourceId, sourceId),
+              eq(articleContentTable.language, targetLanguage),
+              // CAS on the claim taken at the top of this function — see
+              // that comment for why a JS `Date` rather than the row's
+              // round-tripped `updated` is the safe reference.  If a
+              // concurrent re-translation took its own claim under us
+              // the `updated` will no longer match `claim` and this
+              // write becomes a no-op so we don't clobber its fresher
+              // placeholder with our stale text.
+              eq(articleContentTable.updated, claim),
+            ),
+          )
+          .returning();
+        if (updated.length < 1) {
+          logger.debug(
+            "Stale translation claim, skipping federation/summary " +
+              "({sourceId} {language}).",
+            queued,
+          );
+          return;
+        }
+        const article = await tx.query.articleSourceTable.findFirst({
+          where: { id: sourceId },
+          with: {
+            account: true,
+            contents: true,
+          },
+        });
+        if (article == null) return;
+        const post = await tx.query.postTable.findFirst({
+          where: { articleSourceId: article.id },
+        });
+        if (post?.censored != null) {
+          // A censored article must not federate a completed translation's
+          // Update; the translation row and its summary still persist locally.
+          await queueAfterCommit(txFedCtx, () =>
+            startArticleContentSummary(
+              rootDb,
+              summarizer,
+              updated[0],
+              txFedCtx.services.ai.summarize,
+            ));
+          return;
+        }
+        const articleObject = await txFedCtx.services.federation.getArticle(
+          txFedCtx,
+          article,
+        );
+        // The id has to be unique across translation completions for
+        // this article — multiple locales can complete in close
+        // succession (especially after a body edit re-queues every
+        // existing translation), and they would all collide on
+        // `article.updated` since translation completions don't bump
+        // it.  Including both the target language and the translated
+        // row's own `updated` (a fresh `CURRENT_TIMESTAMP` from the
+        // success UPDATE just above) keeps the id distinct from the
+        // original-language Update activity and from every other
+        // translation's Update for the same edit.
+        const update = new vocab.Update({
+          id: new URL(
+            `#update/${updated[0].updated.toISOString()}/${targetLanguage}`,
+            articleObject.id ?? txFedCtx.canonicalOrigin,
+          ),
+          actor: txFedCtx.getActorUri(article.accountId),
+          tos: articleObject.toIds,
+          ccs: articleObject.ccIds,
+          object: articleObject,
+        });
+        const orderingKey = txFedCtx.getObjectUri(vocab.Article, {
+          id: article.id,
+        }).href;
+        await txFedCtx.sendActivity(
+          { identifier: article.accountId },
+          "followers",
           update,
           {
             orderingKey,
-            visibility: post.visibility,
-            accountBio: article.account.bio,
-            relayedTags: post.relayedTags,
+            preferSharedInbox: true,
+            excludeBaseUris: [
+              new URL(txFedCtx.origin),
+              new URL(txFedCtx.canonicalOrigin),
+            ],
           },
         );
-      if (relayedTags != null) {
-        await db.update(postTable)
-          .set({ relayedTags: [...relayedTags] })
-          .where(eq(postTable.id, post.id));
+        if (post != null) {
+          const relayedTags = await txFedCtx.services.federation
+            .sendTagsPubRelayActivity(
+              txFedCtx,
+              article.accountId,
+              update,
+              {
+                orderingKey,
+                visibility: post.visibility,
+                accountBio: article.account.bio,
+                relayedTags: post.relayedTags,
+              },
+            );
+          if (relayedTags != null) {
+            await tx.update(postTable)
+              .set({ relayedTags: [...relayedTags] })
+              .where(eq(postTable.id, post.id));
+          }
+        }
+        // TODO: send Update(Article) to the mentioned actors too
+        await queueAfterCommit(txFedCtx, () =>
+          startArticleContentSummary(
+            rootDb,
+            summarizer,
+            updated[0],
+            txFedCtx.services.ai.summarize,
+          ));
+      });
+    } catch (error) {
+      logger.error(
+        "Failed to persist completed translation " +
+          "({sourceId} {language}): {error}",
+        {
+          ...queued,
+          error,
+        },
+      );
+      try {
+        await (fedCtx.rootDb ?? db).update(articleContentTable)
+          // Keep the placeholder but make its claim older than the
+          // 30-minute staleness threshold so the next request can retry
+          // immediately.  The CAS below must still match this run's claim.
+          .set({ updated: new Date(0) })
+          .where(
+            and(
+              eq(articleContentTable.sourceId, sourceId),
+              eq(articleContentTable.language, targetLanguage),
+              eq(articleContentTable.beingTranslated, true),
+              eq(articleContentTable.updated, claim),
+            ),
+          );
+      } catch (resetError) {
+        logger.error(
+          "Failed to reset translation claim " +
+            "({sourceId} {language}): {error}",
+          {
+            ...queued,
+            error: resetError,
+          },
+        );
       }
     }
-    // TODO: send Update(Article) to the mentioned actors too
-    await startArticleContentSummary(
-      db,
-      summarizer,
-      updated[0],
-      fedCtx.services.ai.summarize,
-    );
-  }).catch(async (error) => {
+  }, async (error) => {
     logger.error("Translation failed ({sourceId} {language}): {error}", {
       ...queued,
       error,

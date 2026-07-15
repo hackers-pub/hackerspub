@@ -10,6 +10,7 @@ import {
   relaySubscriptionTable,
 } from "./schema.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
+import { transactional } from "./tx.ts";
 
 /**
  * A relay subscription together with the relay `Actor` it points at (and that
@@ -75,7 +76,7 @@ export function getRelaySubscription(
  * existing row, while an already-accepted subscription is a no-op that returns
  * `undefined`.
  */
-export async function subscribeRelay(
+async function subscribeRelayOperation(
   fedCtx: ApplicationContext,
   relayActor: Actor,
 ): Promise<RelaySubscription | undefined> {
@@ -121,6 +122,8 @@ export async function subscribeRelay(
   return subscription;
 }
 
+export const subscribeRelay = transactional(subscribeRelayOperation);
+
 /**
  * Unsubscribes the instance actor from a relay by sending an `Undo` of the
  * original `Follow` and then deleting the subscription row.  The `Undo` is
@@ -130,7 +133,7 @@ export async function subscribeRelay(
  * retry from.  Returns the deleted row, or `undefined` when the subscription
  * was already gone.
  */
-export async function unsubscribeRelay(
+async function unsubscribeRelayOperation(
   fedCtx: ApplicationContext,
   subscription: RelaySubscription & { actor: Actor },
 ): Promise<RelaySubscription | undefined> {
@@ -167,6 +170,8 @@ export async function unsubscribeRelay(
   if (rows.length < 1) return undefined;
   return rows[0];
 }
+
+export const unsubscribeRelay = transactional(unsubscribeRelayOperation);
 
 /**
  * Marks a pending relay subscription as accepted, in response to the relay's

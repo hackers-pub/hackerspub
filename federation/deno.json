@@ -9,6 +9,7 @@
     "./context": "./context.ts",
     "./inbox": "./inbox/mod.ts",
     "./nodeinfo": "./nodeinfo.ts",
+    "./outbox-queue": "./outbox-queue.ts",
     "./tags-pub": "./tags-pub.ts",
     "./objects": "./objects.ts",
     "./services": "./services.ts",

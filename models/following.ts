@@ -25,6 +25,7 @@ import {
   followingTable,
 } from "./schema.ts";
 import type { Uuid } from "./uuid.ts";
+import { transactional } from "./tx.ts";
 
 export function createFollowingIri(
   fedCtx: ApplicationContext,
@@ -36,7 +37,7 @@ export function createFollowingIri(
   );
 }
 
-export async function follow(
+async function followOperation(
   fedCtx: ApplicationContext,
   follower: Account & { actor: Actor },
   followee: Actor,
@@ -75,6 +76,8 @@ export async function follow(
   }
   return rows[0];
 }
+
+export const follow = transactional(followOperation);
 
 export async function acceptFollowing(
   db: Database,
@@ -120,7 +123,7 @@ export async function acceptFollowing(
   return rows[0];
 }
 
-export async function unfollow(
+async function unfollowOperation(
   fedCtx: ApplicationContext,
   follower: Account & { actor: Actor },
   followee: Actor,
@@ -164,7 +167,9 @@ export async function unfollow(
   return rows[0];
 }
 
-export async function removeFollower(
+export const unfollow = transactional(unfollowOperation);
+
+async function removeFollowerOperation(
   fedCtx: ApplicationContext,
   followee: Account & { actor: Actor },
   follower: Actor,
@@ -203,6 +208,8 @@ export async function removeFollower(
   }
   return rows[0];
 }
+
+export const removeFollower = transactional(removeFollowerOperation);
 
 export type FollowState = "none" | "pending" | "accepted";
 

@@ -10,6 +10,7 @@ import {
   type Post,
 } from "./schema.ts";
 import type { Uuid } from "./uuid.ts";
+import { transactional } from "./tx.ts";
 
 export const MAX_PINNED_POSTS = 20;
 
@@ -22,7 +23,7 @@ export function canPinPost(
     (post.visibility === "public" || post.visibility === "unlisted");
 }
 
-export async function pinPost(
+async function pinPostOperation(
   fedCtx: ApplicationContext,
   actor: Actor,
   post: Post,
@@ -83,7 +84,9 @@ function isTransaction(db: Database): db is Transaction {
   return "rollback" in db;
 }
 
-export async function unpinPost(
+export const pinPost = transactional(pinPostOperation);
+
+async function unpinPostOperation(
   fedCtx: ApplicationContext,
   actor: Actor,
   post: Post,
@@ -101,6 +104,8 @@ export async function unpinPost(
   if (pin != null) await sendUnpinActivity(fedCtx, actor, post);
   return pin ?? null;
 }
+
+export const unpinPost = transactional(unpinPostOperation);
 
 async function sendPinActivity(
   fedCtx: ApplicationContext,

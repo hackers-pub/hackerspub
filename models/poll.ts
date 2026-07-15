@@ -16,6 +16,7 @@ import { createPollEndedNotification } from "./notification.ts";
 import { getPersistedPost } from "./post/core.ts";
 import { persistPost } from "./post/remote.ts";
 import { isPostVisibleTo } from "./post/visibility.ts";
+import { transactional } from "./tx.ts";
 import {
   type Account,
   type Actor,
@@ -542,7 +543,7 @@ async function notifyClaimedEndedPolls(
   return { pollsProcessed: postIds.length, notificationsCreated };
 }
 
-export async function vote(
+async function voteOperation(
   fedCtx: ApplicationContext,
   voter: Account & { actor: Actor },
   poll: Poll & { options: PollOption[] },
@@ -651,6 +652,8 @@ export async function vote(
   }
   return votes;
 }
+
+export const vote = transactional(voteOperation);
 
 function isTransaction(db: Database): db is Transaction {
   return "rollback" in db;

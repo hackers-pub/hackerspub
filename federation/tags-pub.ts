@@ -5,6 +5,7 @@ import * as vocab from "@fedify/vocab";
 import type { ContextData } from "@hackerspub/models/context";
 import type { PostVisibility } from "@hackerspub/models/schema";
 import type { Uuid } from "@hackerspub/models/uuid";
+import { sendActivityWithOutbox } from "./context.ts";
 
 export const DEFAULT_TAGS_PUB_RELAY_ACTOR_ID: URL = new URL(
   "https://tags.pub/user/_____relay_____",
@@ -126,7 +127,8 @@ export async function sendTagsPubRelayActivity(
   });
   if (!decision.send) return undefined;
 
-  await ctx.sendActivity(
+  await sendActivityWithOutbox(
+    ctx,
     { identifier: accountId },
     getTagsPubRelayRecipient(config),
     activity,
@@ -242,7 +244,8 @@ export async function subscribeTagsPubHashtag(
       sharedInbox: new URL(`${TAGS_PUB_ORIGIN}/shared/inbox`),
     },
   };
-  await ctx.sendActivity(
+  await sendActivityWithOutbox(
+    ctx,
     { identifier: hostname },
     recipient,
     new vocab.Follow({
@@ -272,7 +275,8 @@ export async function unsubscribeTagsPubHashtag(
       sharedInbox: new URL(`${TAGS_PUB_ORIGIN}/shared/inbox`),
     },
   };
-  await ctx.sendActivity(
+  await sendActivityWithOutbox(
+    ctx,
     { identifier: hostname },
     recipient,
     new vocab.Undo({

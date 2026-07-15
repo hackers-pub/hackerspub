@@ -28,6 +28,7 @@ import {
   postTable,
 } from "./schema.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
+import { transactional } from "./tx.ts";
 
 const logger = getLogger(["hackerspub", "models", "moderation"]);
 
@@ -538,24 +539,18 @@ export interface TakeModerationActionOptions {
  * - notifies the reported user (for dismissals only when the moderator
  *   wrote a message, at their discretion).
  *
- * After the transaction, when the target is remote, at least one reporter
- * opted in to forwarding, and the action is not a dismissal, a `Flag`
- * activity is sent to the remote instance from the *instance actor* (never
- * a personal actor), carrying only the moderator-written summary.  This
- * forwarding is best-effort: a send failure is logged and swallowed rather
- * than failing the action, which would otherwise leave a resolved case that
- * a retry could neither re-act on nor re-forward.  When this function owns
- * the transaction (the common path), the decision is already committed by the
- * time the send runs; when the caller supplies the transaction
- * (`isTransaction(db)`), the send runs before the outer commit, but the
- * swallow still keeps a forwarding hiccup from aborting the caller's work.
+ * When the target is remote, at least one reporter opted in to forwarding,
+ * and the action is not a dismissal, the same transaction also persists a
+ * durable `Flag` delivery from the *instance actor* (never a personal actor),
+ * carrying only the moderator-written summary.  A queue-storage failure rolls
+ * back the decision; remote delivery happens later in the federation worker.
  *
  * Returns `undefined` when the input is invalid (non-moderator, missing
  * provisions, missing or inverted suspension window, censoring a case
  * without a post, or a non-dismiss action that would forward to a remote
  * instance without a `forwardSummary`) or the case is not open.
  */
-export async function takeModerationAction(
+async function takeModerationActionOperation(
   fedCtx: ApplicationContext,
   options: TakeModerationActionOptions,
 ): Promise<FlagAction | undefined> {
@@ -679,9 +674,6 @@ export async function takeModerationAction(
     flagCase.flags.some((flag) => flag.forwardToRemote)
   ) {
     const identifier = new URL(fedCtx.canonicalOrigin).hostname;
-    // Build the activity outside the `try` so only the send is best-effort:
-    // a failure to construct it (e.g. a malformed IRI) is a real bug and must
-    // still surface, not be swallowed as a delivery hiccup.
     const recipient = toRecipient(targetActor);
     const flagActivity = new vocab.Flag({
       id: new URL(`/ap/flags/${action.id}`, fedCtx.canonicalOrigin),
@@ -697,35 +689,19 @@ export async function takeModerationAction(
     const sendOptions = {
       excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
     };
-    try {
-      await fedCtx.sendActivity(
-        { identifier },
-        recipient,
-        flagActivity,
-        sendOptions,
-      );
-    } catch (error) {
-      // The decision and its enforcement are already recorded (and, on the
-      // path where this function owns the transaction, committed) by the time
-      // the send runs, so a failure to enqueue/deliver the `Flag` must not
-      // fail the action: a retry would hit an already-resolved case and could
-      // no longer re-forward.  Best-effort: log and move on.  Normal delivery
-      // durability comes from Fedify's outbound queue once the activity is
-      // enqueued.
-      logger.warn(
-        "Failed to forward the report for case {caseId} (action {actionId}) " +
-          "to remote actor {actorIri}: {error}",
-        {
-          caseId: flagCase.id,
-          actionId: action.id,
-          actorIri: targetActor.iri,
-          error,
-        },
-      );
-    }
+    await fedCtx.sendActivity(
+      { identifier },
+      recipient,
+      flagActivity,
+      sendOptions,
+    );
   }
   return action;
 }
+
+export const takeModerationAction = transactional(
+  takeModerationActionOperation,
+);
 
 /**
  * Assigns the case to a moderator (or unassigns it with `null`) for

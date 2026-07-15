@@ -1,5 +1,6 @@
 import { and, count, eq, gt, isNotNull, isNull, sql } from "drizzle-orm";
 import { isUsernameReserved, sendAccountActorUpdate } from "./account.ts";
+import { transactional } from "./tx.ts";
 import { syncActorFromAccount } from "./actor.ts";
 import type { ApplicationContext } from "./context.ts";
 import { type Database, runInTransaction, type Transaction } from "./db.ts";
@@ -825,7 +826,7 @@ async function createOrganizationConversionRequestNotification(
   );
 }
 
-export async function acceptOrganizationConversion(
+async function acceptOrganizationConversionOperation(
   fedCtx: ApplicationContext,
   adminAccount: Pick<Account, "id" | "kind">,
   requestId: Uuid,
@@ -957,6 +958,10 @@ export async function acceptOrganizationConversion(
   await sendAccountActorUpdate(fedCtx, organization.id, organization.updated);
   return organization;
 }
+
+export const acceptOrganizationConversion = transactional(
+  acceptOrganizationConversionOperation,
+);
 
 export async function resolveActingAccount(
   db: Database | Transaction,

@@ -827,7 +827,7 @@ test("deleteAccount() backfills missing actor keys before tombstoning", async ()
   });
 });
 
-test("deleteAccount() keeps the deletion when actor Delete enqueue fails", async () => {
+test("deleteAccount() rolls back when actor Delete enqueue fails", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);
     fedCtx.sendActivity = (() =>
@@ -840,17 +840,19 @@ test("deleteAccount() keeps the deletion when actor Delete enqueue fails", async
       email: "deletequeuefail@example.com",
     });
 
-    const result = await deleteAccount(fedCtx, target.account.id);
+    await assert.rejects(
+      deleteAccount(fedCtx, target.account.id),
+      /queue unavailable/,
+    );
 
-    assert.equal(result?.accountId, target.account.id);
     const account = await tx.query.accountTable.findFirst({
       where: { id: target.account.id },
     });
-    assert.equal(account, undefined);
+    assert.equal(account?.id, target.account.id);
     const tombstone = await tx.query.deletedAccountTable.findFirst({
       where: { accountId: target.account.id },
     });
-    assert.equal(tombstone?.username, "deletequeuefail");
+    assert.equal(tombstone, undefined);
   });
 });
 

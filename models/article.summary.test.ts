@@ -521,8 +521,8 @@ test(
 );
 
 test(
-  "updateArticleSource() queues a re-summarization when content changes " +
-    "and models are provided",
+  "updateArticleSource() returns a re-summarization target when content " +
+    "changes",
   async () => {
     await withRollback(async (tx) => {
       const author = await insertAccountWithActor(tx, {
@@ -557,22 +557,6 @@ test(
         updated: published,
       });
 
-      // Use a model whose `summarize()` Promise never resolves, so the
-      // background `.then`/`.catch` handlers cannot race with our
-      // assertions or with `withRollback`'s teardown.  All we want to
-      // verify is that the synchronous claim-acquisition step ran.
-      const hangingPromise = new Promise<never>(() => {});
-      const hangingModel = {
-        // Just enough surface for `generateText` to start without
-        // crashing synchronously in summarize().
-        specificationVersion: "v2",
-        provider: "test",
-        modelId: "hanging",
-        doGenerate: () => hangingPromise,
-        doStream: () => hangingPromise,
-        supportedUrls: {},
-      } as unknown as never;
-
       const updated = await updateArticleSource(
         tx,
         sourceId,
@@ -580,27 +564,23 @@ test(
           content: "This article body is now long enough to be worth " +
             "summarizing again, so we expect a fresh claim to be acquired.",
         },
-        {
-          summarizer: hangingModel,
-          translator: hangingModel,
-          moderationAnalyzer: hangingModel,
-        },
-        services.ai,
       );
       assert.ok(updated != null);
+      assert.equal(updated.resummarizeTarget?.sourceId, sourceId);
+      assert.equal(updated.resummarizeTarget?.language, "en");
 
       const after = await tx.query.articleContentTable.findFirst({
         where: { sourceId, language: "en" },
       });
       assert.equal(after?.summaryUnnecessary, false);
       assert.equal(after?.summary, null);
-      assert.ok(after?.summaryStarted != null);
+      assert.equal(after?.summaryStarted, null);
     });
   },
 );
 
 test(
-  "updateArticleSource() does not queue summarization when content is " +
+  "updateArticleSource() does not return a summary target when content is " +
     "unchanged",
   async () => {
     await withRollback(async (tx) => {
@@ -637,14 +617,9 @@ test(
         tx,
         sourceId,
         { title: "Renamed" },
-        {
-          summarizer: {} as never,
-          translator: {} as never,
-          moderationAnalyzer: {} as never,
-        },
-        services.ai,
       );
       assert.ok(updated != null);
+      assert.equal(updated.resummarizeTarget, undefined);
 
       const after = await tx.query.articleContentTable.findFirst({
         where: { sourceId, language: "en" },

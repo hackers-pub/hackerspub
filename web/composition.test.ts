@@ -4,6 +4,7 @@ Deno.test("legacy web owns the federation queue lifecycle", async () => {
   const source = await Deno.readTextFile(new URL("main.ts", import.meta.url));
 
   assertStringIncludes(source, "manuallyStartQueue: true");
+  assertStringIncludes(source, "await migrateLegacyOutboxEvents(db);");
   assertStringIncludes(source, "await runWithFederationQueue(");
   assertStringIncludes(
     source,
@@ -13,6 +14,11 @@ Deno.test("legacy web owns the federation queue lifecycle", async () => {
   assertStringIncludes(source, "Deno.addSignalListener(signalName, listener)");
   assertStringIncludes(source, "removeSignalListeners()");
   assertStringIncludes(source, "{ signal: controller.signal }");
+  assert(
+    source.indexOf("await migrateLegacyOutboxEvents(db);") <
+      source.indexOf("await runWithFederationQueue("),
+    "legacy outgoing messages must migrate before the queue starts",
+  );
   assert(
     source.indexOf("await runWithFederationQueue(") <
       source.indexOf("await resources.close()"),
@@ -32,6 +38,10 @@ Deno.test("Fresh development starts the federation queue but static builds do no
   assert(
     !buildBranch.includes("runWebServer"),
     "static builds must not start the federation queue",
+  );
+  assert(
+    !buildBranch.includes("migrateLegacyOutboxEvents"),
+    "static builds must not contact PostgreSQL to migrate queue rows",
   );
   assertStringIncludes(
     listenBranch,

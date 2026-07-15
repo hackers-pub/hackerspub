@@ -94,3 +94,16 @@ test("withTransaction() rebinds adapter capabilities to the transaction", async 
     assert.deepEqual(capabilityDbs, [transactionContext.db]);
   });
 });
+
+test("withTransaction() does not fail committed work for an after-commit error", async () => {
+  const context = createContext(createFakeDb());
+
+  const result = await withTransaction(context, async (transactionContext) => {
+    await queueAfterCommit(transactionContext, () => {
+      throw new Error("best-effort task failed");
+    });
+    return "committed";
+  });
+
+  assert.equal(result, "committed");
+});

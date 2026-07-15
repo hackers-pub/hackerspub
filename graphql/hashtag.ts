@@ -10,6 +10,7 @@ import {
   unpinHashtag,
   validateHashtag,
 } from "@hackerspub/models/hashtag";
+import { withTransaction } from "@hackerspub/models/tx";
 import { Account } from "./account.ts";
 import { builder } from "./builder.ts";
 import { InvalidInputError } from "./error.ts";
@@ -67,14 +68,16 @@ builder.relayMutationField(
       if (ctx.account == null) throw new NotAuthenticatedError();
       if (!validateHashtag(args.input.tag)) throw new InvalidInputError("tag");
       const tag = normalizeHashtag(args.input.tag);
-      const countBefore = await getHashtagFollowerCount(ctx.db, tag);
-      await followHashtag(ctx.db, ctx.account.id, tag);
-      if (countBefore === 0) {
-        await ctx.fedCtx.services.federation.subscribeTagsPubHashtag(
-          ctx.fedCtx,
-          tag,
-        );
-      }
+      await withTransaction(ctx.fedCtx, async (fedCtx) => {
+        const countBefore = await getHashtagFollowerCount(fedCtx.db, tag);
+        await followHashtag(fedCtx.db, ctx.account!.id, tag);
+        if (countBefore === 0) {
+          await fedCtx.services.federation.subscribeTagsPubHashtag(
+            fedCtx,
+            tag,
+          );
+        }
+      });
       return { accountId: ctx.account.id, tag };
     },
   },
@@ -120,14 +123,16 @@ builder.relayMutationField(
       if (ctx.account == null) throw new NotAuthenticatedError();
       if (!validateHashtag(args.input.tag)) throw new InvalidInputError("tag");
       const tag = normalizeHashtag(args.input.tag);
-      await unfollowHashtag(ctx.db, ctx.account.id, tag);
-      const countAfter = await getHashtagFollowerCount(ctx.db, tag);
-      if (countAfter === 0) {
-        await ctx.fedCtx.services.federation.unsubscribeTagsPubHashtag(
-          ctx.fedCtx,
-          tag,
-        );
-      }
+      await withTransaction(ctx.fedCtx, async (fedCtx) => {
+        await unfollowHashtag(fedCtx.db, ctx.account!.id, tag);
+        const countAfter = await getHashtagFollowerCount(fedCtx.db, tag);
+        if (countAfter === 0) {
+          await fedCtx.services.federation.unsubscribeTagsPubHashtag(
+            fedCtx,
+            tag,
+          );
+        }
+      });
       return { accountId: ctx.account.id, tag };
     },
   },

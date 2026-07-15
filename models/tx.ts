@@ -1,5 +1,8 @@
+import { getLogger } from "@logtape/logtape";
 import type { AfterCommitTask, ApplicationContext } from "./context.ts";
 import type { Database, Transaction } from "./db.ts";
+
+const logger = getLogger(["hackerspub", "models", "transaction"]);
 
 export async function queueAfterCommit<D extends Database>(
   context: Pick<ApplicationContext<D>, "afterCommit">,
@@ -32,7 +35,30 @@ export async function withTransaction<T>(
   if (parentAfterCommit != null) {
     parentAfterCommit.push(...afterCommit);
   } else {
-    for (const task of afterCommit) await task();
+    for (const task of afterCommit) {
+      try {
+        await task();
+      } catch (error) {
+        logger.error("Failed to run after-commit task: {error}", { error });
+      }
+    }
   }
   return result;
+}
+
+export function transactional<Arguments extends unknown[], Result>(
+  operation: (
+    context: ApplicationContext,
+    ...args: Arguments
+  ) => Promise<Result>,
+): (
+  context: ApplicationContext,
+  ...args: Arguments
+) => Promise<Result> {
+  return async (context, ...args) =>
+    await withTransaction(
+      context,
+      async (transactionContext) =>
+        await operation(transactionContext, ...args),
+    );
 }

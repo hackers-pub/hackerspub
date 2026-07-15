@@ -16,3 +16,18 @@ for (const compositionRoot of ["main.ts", "worker.ts"]) {
     );
   });
 }
+
+Deno.test("the queue worker migrates legacy deliveries before listening", async () => {
+  const source = await Deno.readTextFile(
+    new URL("worker.ts", import.meta.url),
+  );
+  const migration = "await migrateLegacyOutboxEvents(db);";
+  const queueStart = "await federation.startQueue(";
+
+  assertStringIncludes(source, migration);
+  assertStringIncludes(source, queueStart);
+  assert(
+    source.indexOf(migration) < source.indexOf(queueStart),
+    "legacy outgoing messages must migrate before the queue starts",
+  );
+});

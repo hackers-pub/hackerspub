@@ -13,6 +13,7 @@ import type { Uuid } from "@hackerspub/models/uuid";
 import { getLogger } from "@logtape/logtape";
 import { and, inArray, isNull } from "drizzle-orm";
 import { builder } from "./builder.ts";
+import { recordOutboxDeliveryError } from "./outbox-queue.ts";
 
 const logger = getLogger(["hackerspub", "federation", "outbox"]);
 
@@ -154,6 +155,7 @@ export async function handlePermanentFailure(
 }
 
 builder.setOutboxPermanentFailureHandler(async (ctx, values) => {
+  recordOutboxDeliveryError(values.error);
   const repo = createRepository(ctx.data.db);
   await handlePermanentFailure(repo, values);
 });

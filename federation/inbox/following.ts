@@ -1,12 +1,26 @@
 import type { InboxContext } from "@fedify/fedify";
-import { Accept, Block, Follow, type Reject, type Undo } from "@fedify/vocab";
+import {
+  Accept,
+  type Actor as ActivityPubActor,
+  Block,
+  Follow,
+  type Reject,
+  type Undo,
+} from "@fedify/vocab";
 import {
   isCachedActorFederationBlocked,
   persistActor,
 } from "@hackerspub/models/actor";
-import { persistBlocking } from "@hackerspub/models/blocking";
+import {
+  persistPreparedBlocking,
+  prepareBlocking,
+} from "@hackerspub/models/blocking";
 import type { ContextData } from "@hackerspub/models/context";
-import { toApplicationContext } from "../context.ts";
+import {
+  sendActivityWithOutbox,
+  toApplicationContext,
+  withInboxTransaction,
+} from "../context.ts";
 import {
   acceptFollowing,
   updateFolloweesCount,
@@ -54,6 +68,11 @@ export interface PendingOutgoingFollowRepository {
       followeeActorId: Uuid;
     } | undefined
   >;
+}
+
+export interface PreparedFollower {
+  actor: ActivityPubActor;
+  persisted: NonNullable<Awaited<ReturnType<typeof persistActor>>>;
 }
 
 async function findPendingOutgoingByIri(
@@ -167,7 +186,8 @@ export async function reconcileFollowRejectionFromObjectId(
 export async function onFollowAccepted(
   fedCtx: InboxContext<ContextData>,
   accept: Accept,
-): Promise<void> {
+  resolved?: Readonly<{ object: unknown }>,
+): Promise<boolean> {
   const { db } = fedCtx.data;
   const fallbackRepo = {
     async findPendingOutgoingByIri(followIri: string, followeeIri: string) {
@@ -200,25 +220,27 @@ export async function onFollowAccepted(
       },
     )
   ) {
-    return;
+    return true;
   }
-  const follow = await accept.getObject({ ...fedCtx, crossOrigin: "trust" });
-  if (!(follow instanceof Follow)) return;
-  else if (follow.objectId == null) return;
-  else if (accept.actorId?.href !== follow.objectId.href) return;
+  const follow = resolved == null
+    ? await accept.getObject({ ...fedCtx, crossOrigin: "trust" })
+    : resolved.object;
+  if (!(follow instanceof Follow)) return false;
+  else if (follow.objectId == null) return false;
+  else if (accept.actorId?.href !== follow.objectId.href) return false;
   const followActor = fedCtx.parseUri(follow.actorId);
-  if (followActor?.type !== "actor") return;
-  else if (!validateUuid(followActor.identifier)) return;
+  if (followActor?.type !== "actor") return false;
+  else if (!validateUuid(followActor.identifier)) return false;
   const follower = await db.query.accountTable.findFirst({
     with: { actor: true },
     where: { id: followActor.identifier },
   });
-  if (follower == null) return;
+  if (follower == null) return false;
   const followee = await db.query.actorTable.findFirst({
     where: { iri: follow.objectId.href },
   });
-  if (followee == null) return;
-  await reconcileFollowAcceptance(
+  if (followee == null) return false;
+  return await reconcileFollowAcceptance(
     {
       async acceptByIri(followIri) {
         return await acceptFollowing(db, followIri) != null;
@@ -238,7 +260,8 @@ export async function onFollowAccepted(
 export async function onFollowRejected(
   fedCtx: InboxContext<ContextData>,
   reject: Reject,
-): Promise<void> {
+  resolved?: Readonly<{ object: unknown }>,
+): Promise<boolean> {
   const { db } = fedCtx.data;
   const fallbackRepo = {
     async findPendingOutgoingByIri(followIri: string, followeeIri: string) {
@@ -278,25 +301,27 @@ export async function onFollowRejected(
       },
     )
   ) {
-    return;
+    return true;
   }
-  const follow = await reject.getObject({ ...fedCtx, crossOrigin: "trust" });
-  if (reject.actorId == null) return;
-  if (!(follow instanceof Follow)) return;
-  if (follow.objectId?.href !== reject.actorId?.href) return;
+  const follow = resolved == null
+    ? await reject.getObject({ ...fedCtx, crossOrigin: "trust" })
+    : resolved.object;
+  if (reject.actorId == null) return false;
+  if (!(follow instanceof Follow)) return false;
+  if (follow.objectId?.href !== reject.actorId?.href) return false;
   const followee = await db.query.actorTable.findFirst({
     where: { iri: reject.actorId.href },
   });
-  if (followee == null) return;
+  if (followee == null) return false;
   const followActor = fedCtx.parseUri(follow.actorId);
-  if (followActor?.type !== "actor") return;
-  if (!validateUuid(followActor.identifier)) return;
+  if (followActor?.type !== "actor") return false;
+  if (!validateUuid(followActor.identifier)) return false;
   const follower = await db.query.accountTable.findFirst({
     with: { actor: true },
     where: { id: followActor.identifier },
   });
-  if (follower == null) return;
-  await reconcileFollowRejection(
+  if (follower == null) return false;
+  return await reconcileFollowRejection(
     {
       async rejectByIri(followIri, followeeActorId) {
         const rows = await db
@@ -334,6 +359,7 @@ export async function onFollowRejected(
 export async function onFollowed(
   fedCtx: InboxContext<ContextData>,
   follow: Follow,
+  prepared?: PreparedFollower,
 ) {
   if (follow.id == null || follow.objectId == null) return;
   const followObject = fedCtx.parseUri(follow.objectId);
@@ -345,36 +371,30 @@ export async function onFollowed(
     where: { id: followObject.identifier },
   });
   if (followee == null) return;
-  // Check the cached follower before fetching their actor document, so a
-  // federation-blocked actor cannot make us spend the remote fetch.
-  if (await isCachedActorFederationBlocked(db, follow.actorId)) return;
-  const followActor = await follow.getActor(fedCtx);
-  if (followActor == null) return;
-  const follower = await persistActor(
-    toApplicationContext(fedCtx),
-    followActor,
-    {
-      ...fedCtx,
-      outbox: false,
-    },
-  );
+  const follower = prepared ?? await prepareFollower(fedCtx, follow);
   if (follower == null) return;
   const rows = await db.insert(followingTable).values({
     iri: follow.id.href,
-    followerId: follower.id,
+    followerId: follower.persisted.id,
     followeeId: followee.actor.id,
     accepted: sql`CURRENT_TIMESTAMP`,
   }).onConflictDoNothing().returning();
   if (rows.length < 1) return;
-  await updateFolloweesCount(db, follower.id, 1);
+  await updateFolloweesCount(db, follower.persisted.id, 1);
   await updateFollowersCount(db, followee.actor.id, 1);
-  await createFollowNotification(db, followee.id, follower, rows[0].accepted);
-  await fedCtx.sendActivity(
+  await createFollowNotification(
+    db,
+    followee.id,
+    follower.persisted,
+    rows[0].accepted,
+  );
+  await sendActivityWithOutbox(
+    fedCtx,
     { identifier: followee.id },
-    followActor,
+    follower.actor,
     new Accept({
       id: new URL(
-        `#accept/${follower.id}/${+rows[0].accepted!}`,
+        `#accept/${follower.persisted.id}/${+rows[0].accepted!}`,
         fedCtx.getActorUri(followee.id),
       ),
       actor: fedCtx.getActorUri(followee.id),
@@ -385,6 +405,42 @@ export async function onFollowed(
       excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
     },
   );
+}
+
+export async function prepareFollower(
+  fedCtx: InboxContext<ContextData>,
+  follow: Follow,
+): Promise<PreparedFollower | undefined> {
+  if (
+    follow.id == null || follow.actorId == null || follow.objectId == null
+  ) return undefined;
+  const followObject = fedCtx.parseUri(follow.objectId);
+  if (followObject?.type !== "actor") return undefined;
+  if (!validateUuid(followObject.identifier)) return undefined;
+  const { db } = fedCtx.data;
+  const followee = await db.query.accountTable.findFirst({
+    where: { id: followObject.identifier },
+    columns: { id: true },
+  });
+  if (followee == null) return undefined;
+  // Check the cached follower before fetching their actor document, so a
+  // federation-blocked actor cannot make us spend the remote fetch.
+  if (await isCachedActorFederationBlocked(db, follow.actorId)) {
+    return undefined;
+  }
+  const followActor = await follow.getActor(fedCtx);
+  if (followActor == null) return undefined;
+  const follower = await persistActor(
+    toApplicationContext(fedCtx),
+    followActor,
+    {
+      ...fedCtx,
+      outbox: false,
+    },
+  );
+  return follower == null
+    ? undefined
+    : { actor: followActor, persisted: follower };
 }
 
 export async function onUnfollowed(
@@ -432,7 +488,17 @@ export async function onBlocked(
   fedCtx: InboxContext<ContextData>,
   block: Block,
 ): Promise<void> {
-  await persistBlocking(toApplicationContext(fedCtx), block, fedCtx);
+  const prepared = await prepareBlocking(
+    toApplicationContext(fedCtx),
+    block,
+    fedCtx,
+  );
+  if (prepared == null) return;
+  await withInboxTransaction(
+    fedCtx,
+    async (txCtx) =>
+      await persistPreparedBlocking(toApplicationContext(txCtx), prepared),
+  );
 }
 
 export async function onUnblocked(

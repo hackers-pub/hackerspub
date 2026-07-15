@@ -13,6 +13,7 @@ import {
   postTable,
   quoteAuthorizationTable,
 } from "../schema.ts";
+import { transactional } from "../tx.ts";
 
 type QuoteUpdatePost = Post & {
   actor: Actor;
@@ -78,7 +79,7 @@ export async function updateQuotesCount(
   return quotesCount;
 }
 
-export async function revokeQuote(
+async function revokeQuoteOperation(
   fedCtx: ApplicationContext,
   account: Account,
   quotePost: Post & { actor: Actor },
@@ -156,6 +157,8 @@ export async function revokeQuote(
   await refreshNewsScores(db, [quotedPost.linkId]);
   return updatedPost;
 }
+
+export const revokeQuote = transactional(revokeQuoteOperation);
 
 async function sendLocalQuoteAuthorizationDelete(
   fedCtx: ApplicationContext,

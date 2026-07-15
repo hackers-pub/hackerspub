@@ -25,6 +25,34 @@ package manifests with their production module graphs and reject workspace
 dependency cycles.
 
 
+Transactional side effects
+--------------------------
+
+State changes that produce outgoing ActivityPub work use a transactional
+outbox.  An application operation opens one database transaction, writes its
+domain state, and asks Fedify to enqueue fanout work through the same database
+handle.  The transaction therefore commits both changes or neither change.
+Network delivery happens later in the GraphQL worker and never keeps an
+application transaction open.
+
+The generic persistence and leasing API lives in *@hackerspub/models/outbox*.
+It knows stable event names and versioned JSON payloads, but it does not import
+Fedify.  *@hackerspub/federation/outbox-queue* adapts Fedify's `MessageQueue`
+contract to that storage.  Keeping this split preserves the package direction
+above and lets other durable side effects reuse the same table without taking
+a dependency on the federation adapter.
+
+Outgoing ActivityPub work that reflects committed application state is
+critical.  Failure to store that work rolls back the state change.  AI article
+summary generation and remote reply or emoji-reaction backfills are explicitly
+best-effort enrichment tasks; they run through `queueAfterCommit` and do not
+roll back the user-visible operation.
+
+Delivery is at least once.  Activity IDs and Fedify message IDs must therefore
+remain stable across retries, and consumers must tolerate a duplicate request.
+See *FEDERATION.md* for worker, retry, retention, and replay details.
+
+
 Post feature boundaries
 -----------------------
 

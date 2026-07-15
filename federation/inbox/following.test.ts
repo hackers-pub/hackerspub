@@ -1,9 +1,20 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
+import type { InboxContext } from "@fedify/fedify";
+import { Block } from "@fedify/vocab";
+import type { ContextData } from "@hackerspub/models/context";
+import { followingTable } from "@hackerspub/models/schema";
 import type { Uuid } from "@hackerspub/models/uuid";
+import {
+  createFedCtx,
+  insertAccountWithActor,
+  insertRemoteActor,
+  withRollback,
+} from "../../test/postgres.ts";
 import {
   type FollowAcceptanceRepository,
   type FollowRejectionRepository,
+  onBlocked,
   type PendingOutgoingFollowRepository,
   reconcileFollowAcceptance,
   reconcileFollowAcceptanceFromObjectId,
@@ -13,6 +24,101 @@ import {
 
 const FOLLOWER_ACTOR_ID = "00000000-0000-0000-0000-000000000001" as Uuid;
 const FOLLOWEE_ACTOR_ID = "00000000-0000-0000-0000-000000000002" as Uuid;
+
+describe("onBlocked()", () => {
+  it("resolves actors before opening the relationship transaction", async () => {
+    await withRollback(async (tx) => {
+      const fedCtx = createFedCtx(tx) as unknown as InboxContext<ContextData>;
+      let dereferenceDb: ContextData["db"] | undefined;
+      const block = {
+        id: new URL("https://remote.example/blocks/1"),
+        actorId: new URL("https://remote.example/actors/alice"),
+        objectId: new URL("http://localhost/actors/bob"),
+        getActor(context: InboxContext<ContextData>) {
+          dereferenceDb = context.data.db;
+          return Promise.resolve(null);
+        },
+      } as unknown as Block;
+
+      await onBlocked(fedCtx, block);
+
+      assert.equal(dereferenceDb, tx);
+    });
+  });
+
+  it("rolls back the block when relationship cleanup cannot be enqueued", async () => {
+    await withRollback(async (tx) => {
+      let deliveryFails = true;
+      const baseFedCtx = createFedCtx(tx);
+      const fedCtx = {
+        ...baseFedCtx,
+        sendActivity() {
+          return deliveryFails
+            ? Promise.reject(new Error("outbox persistence failed"))
+            : Promise.resolve(undefined);
+        },
+      } as typeof baseFedCtx;
+      const local = await insertAccountWithActor(tx, {
+        username: "blockedlocal",
+        name: "Blocked Local",
+        email: "blockedlocal@example.com",
+      });
+      const remote = await insertRemoteActor(tx, {
+        username: "blockingremote",
+        name: "Blocking Remote",
+        host: "blocking.example",
+      });
+      const followIri =
+        `https://blocking.example/follows/${crypto.randomUUID()}`;
+      await tx.insert(followingTable).values({
+        iri: followIri,
+        followerId: remote.id,
+        followeeId: local.actor.id,
+        accepted: new Date("2026-04-15T00:00:00.000Z"),
+      });
+      const block = new Block({
+        id: new URL(
+          `https://blocking.example/blocks/${crypto.randomUUID()}`,
+        ),
+        actor: new URL(remote.iri),
+        object: new URL(local.actor.iri),
+      });
+      const inboxContext = fedCtx as unknown as InboxContext<ContextData>;
+
+      await assert.rejects(
+        () => onBlocked(inboxContext, block),
+        /outbox persistence failed/,
+      );
+
+      const failedBlock = await tx.query.blockingTable.findFirst({
+        where: { iri: block.id!.href },
+      });
+      const retainedFollow = await tx.query.followingTable.findFirst({
+        where: {
+          followerId: remote.id,
+          followeeId: local.actor.id,
+        },
+      });
+      assert.equal(failedBlock, undefined);
+      assert.ok(retainedFollow != null);
+
+      deliveryFails = false;
+      await onBlocked(inboxContext, block);
+
+      const persistedBlock = await tx.query.blockingTable.findFirst({
+        where: { iri: block.id!.href },
+      });
+      const removedFollow = await tx.query.followingTable.findFirst({
+        where: {
+          followerId: remote.id,
+          followeeId: local.actor.id,
+        },
+      });
+      assert.ok(persistedBlock != null);
+      assert.equal(removedFollow, undefined);
+    });
+  });
+});
 
 describe("reconcileFollowAcceptance()", () => {
   it(

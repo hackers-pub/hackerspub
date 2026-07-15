@@ -1056,10 +1056,10 @@ builder.mutationField("takeModerationAction", (t) =>
       "`forwardSummary` is sent to the remote instance from the instance " +
       "actor; in that case a non-empty `forwardSummary` is required for " +
       "non-dismiss actions (`InvalidInputError` otherwise) so the internal " +
-      "`rationale` is never externalized.  That forwarding is best-effort " +
-      "and happens after the decision is committed: a send failure is logged " +
-      "server-side and does not fail this mutation (the action still " +
-      "succeeds).  Requires a moderator account.",
+      "`rationale` is never externalized.  The decision and durable `Flag` " +
+      "enqueue commit atomically: if the activity cannot be stored for " +
+      "delivery, the decision is rolled back and the mutation fails.  " +
+      "Requires a moderator account.",
     errors: {
       types: [NotAuthenticatedError, NotAuthorizedError, InvalidInputError],
     },

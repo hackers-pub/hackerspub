@@ -29,6 +29,7 @@ import {
   reactionTable,
 } from "./schema.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
+import { transactional } from "./tx.ts";
 
 function isCustomEmojiShortcode(value: string): boolean {
   return /^:[^:\s]+:$/.test(value);
@@ -211,7 +212,7 @@ export async function deleteReaction(
   return deleted[0];
 }
 
-export async function react(
+async function reactOperation(
   ctx: ApplicationContext,
   account: Account & { actor: Actor },
   post: Post & { actor: Actor },
@@ -299,7 +300,9 @@ export async function react(
   return rows[0];
 }
 
-export async function undoReaction(
+export const react = transactional(reactOperation);
+
+async function undoReactionOperation(
   ctx: ApplicationContext,
   account: Account & { actor: Actor },
   post: Post & { actor: Actor },
@@ -386,6 +389,8 @@ export async function undoReaction(
   );
   return rows[0];
 }
+
+export const undoReaction = transactional(undoReactionOperation);
 
 export interface ViewerReactionRow {
   postId: Uuid;

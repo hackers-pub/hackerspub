@@ -14,6 +14,7 @@ import {
 import { updateRepliesCount } from "./post/engagement.ts";
 import { syncPostFromNoteSource } from "./post/source.ts";
 import { getAllowedQuoteTargetForActor } from "./post/visibility.ts";
+import { transactional } from "./tx.ts";
 import {
   type Account,
   type AccountEmail,
@@ -562,7 +563,7 @@ export async function updateNoteSource(
   return rows[0];
 }
 
-export async function updateNote(
+async function updateNoteOperation(
   fedCtx: ApplicationContext,
   noteSourceId: Uuid,
   source: Partial<NewNoteSource>,
@@ -708,3 +709,5 @@ export async function updateNote(
   }
   return post;
 }
+
+export const updateNote = transactional(updateNoteOperation);
