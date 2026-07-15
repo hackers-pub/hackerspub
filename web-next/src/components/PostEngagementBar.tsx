@@ -28,6 +28,7 @@ import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { getViewportPopoverPosition } from "~/lib/popoverPosition.ts";
 import type { PostEngagementBar_post$key } from "./__generated__/PostEngagementBar_post.graphql.ts";
 import type { PostEngagementBar_sharePost_Mutation } from "./__generated__/PostEngagementBar_sharePost_Mutation.graphql.ts";
 import type { PostEngagementBar_unsharePost_Mutation } from "./__generated__/PostEngagementBar_unsharePost_Mutation.graphql.ts";
@@ -202,20 +203,29 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
     if (trigger == null || !trigger.isConnected) return false;
 
     const rect = trigger.getBoundingClientRect();
-    const width = 320;
-    const margin = 8;
-    const maxLeft = Math.max(margin, window.innerWidth - width - margin);
-    setEmojiPopoverPosition({
-      left: Math.min(Math.max(margin, rect.left), maxLeft),
-      top: rect.bottom + 4,
-    });
+    const popover = emojiPopover();
+    setEmojiPopoverPosition(
+      getViewportPopoverPosition(
+        rect,
+        {
+          width: popover?.isConnected ? popover.offsetWidth : 320,
+          height: popover?.isConnected ? popover.offsetHeight : 0,
+        },
+        { width: window.innerWidth, height: window.innerHeight },
+      ),
+    );
     return true;
   };
 
   createEffect(() => {
     if (!showEmojiPopover()) return;
 
+    const popover = emojiPopover();
     updateEmojiPopoverPosition();
+    const resizeObserver = popover == null
+      ? undefined
+      : new ResizeObserver(() => updateEmojiPopoverPosition());
+    if (popover != null) resizeObserver?.observe(popover);
     const onPointerDown = (event: PointerEvent) => {
       const target = event.target;
       if (!(target instanceof Node)) return;
@@ -237,6 +247,7 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
     document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("keydown", onKeyDown);
     onCleanup(() => {
+      resizeObserver?.disconnect();
       window.removeEventListener("resize", updateFromCurrentTrigger);
       window.removeEventListener("scroll", updateFromCurrentTrigger, true);
       document.removeEventListener("pointerdown", onPointerDown);
@@ -423,7 +434,7 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
               {(popoverData) => (
                 <div
                   ref={setEmojiPopover}
-                  class="z-50 w-80 overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md outline-none"
+                  class="z-50 max-h-[calc(100vh-1rem)] w-80 max-w-[calc(100vw-1rem)] overflow-y-auto rounded-md border bg-popover text-popover-foreground shadow-md outline-none"
                   style={{
                     position: "fixed",
                     left: `${emojiPopoverPosition()!.left}px`,
