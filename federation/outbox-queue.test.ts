@@ -152,16 +152,32 @@ test("fanout side effects roll back when the completion lease is stale", async (
     "activitypub.delivery",
     { now: () => now },
   );
+  const controller = new AbortController();
+  const signal = AbortSignal.any([
+    controller.signal,
+    AbortSignal.timeout(5_000),
+  ]);
 
   try {
     await fanoutQueue.enqueue({ type: "fanout", id: parentId });
 
     await fanoutQueue.listen(async () => {
-      await deliveryQueue.enqueue(message(childId));
-      await testDb.update(outboxEventTable).set({
-        leaseToken: reclaimedLeaseToken,
-      }).where(eq(outboxEventTable.messageId, parentId));
-    }, { signal: AbortSignal.timeout(50) });
+      try {
+        await deliveryQueue.enqueue(message(childId));
+        await testDb.update(outboxEventTable).set({
+          leaseToken: reclaimedLeaseToken,
+        }).where(eq(outboxEventTable.messageId, parentId));
+      } finally {
+        // Let the async handler settle before stopping the listener so the
+        // queue attempts completion and detects the replaced lease token.
+        setTimeout(() => controller.abort(), 0);
+      }
+    }, { signal });
+    assert.equal(
+      controller.signal.aborted,
+      true,
+      "the fallback deadline elapsed before the handler completed",
+    );
 
     const rows = await testDb.select().from(outboxEventTable).where(
       inArray(outboxEventTable.messageId, [parentId, childId]),
