@@ -10,13 +10,13 @@ catalog:
   '@ai-sdk/anthropic': ^3.0.44
   '@ai-sdk/google': ^3.0.29
   '@c4spar/mock-fetch': jsr:^1.0.0
-  '@fedify/fedify': jsr:2.3.1
+  '@fedify/fedify': jsr:2.3.2
   '@fedify/markdown-it-hashtag': jsr:^0.3.0
   '@fedify/markdown-it-mention': jsr:^0.3.0
-  '@fedify/postgres': jsr:2.3.1
-  '@fedify/redis': jsr:2.3.1
-  '@fedify/vocab': jsr:2.3.1
-  '@fedify/vocab-runtime': jsr:2.3.1
+  '@fedify/postgres': jsr:2.3.2
+  '@fedify/redis': jsr:2.3.2
+  '@fedify/vocab': jsr:2.3.2
+  '@fedify/vocab-runtime': jsr:2.3.2
   '@hackerspub/markdown-it-texmath': ^1.0.1
   '@keyv/redis': ^4.6.0
   '@logtape/drizzle-orm': jsr:2.1.1
