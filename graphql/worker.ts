@@ -7,7 +7,10 @@ import {
   drainNewsRescoreQueue,
   recomputeNewsScores,
 } from "@hackerspub/models/news";
-import { pruneOutboxEvents } from "@hackerspub/models/outbox";
+import {
+  migrateLegacyOutboxEvents,
+  pruneOutboxEvents,
+} from "@hackerspub/models/outbox";
 import { notifyEndedPolls } from "@hackerspub/models/poll";
 import { getLogger } from "@logtape/logtape";
 import {
@@ -249,6 +252,7 @@ logger.info("Starting the federation message queue worker.");
 let queueFailed = false;
 let queueError: unknown;
 try {
+  await migrateLegacyOutboxEvents(db);
   await federation.startQueue(
     { db, kv, disk, models, services },
     { signal: controller.signal },

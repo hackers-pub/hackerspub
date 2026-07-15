@@ -13,6 +13,7 @@ import {
   ActorSuspendedError,
   isActorBanned,
 } from "@hackerspub/models/moderation";
+import { migrateLegacyOutboxEvents } from "@hackerspub/models/outbox";
 import { deleteSession, getSession } from "@hackerspub/models/session";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { getXForwardedRequest } from "@hongminhee/x-forwarded-fetch";
@@ -299,6 +300,7 @@ export async function runWebServer(
 ): Promise<void> {
   const disk = drive.use();
   try {
+    await migrateLegacyOutboxEvents(db);
     await runWithFederationQueue(
       federation,
       { db, kv, disk, models, services },

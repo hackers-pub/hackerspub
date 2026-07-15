@@ -9,7 +9,6 @@ import {
   type Models,
 } from "@hackerspub/models/context";
 import type { Database } from "@hackerspub/models/db";
-import { migrateLegacyOutboxEvents } from "@hackerspub/models/outbox";
 import { relations } from "@hackerspub/models/relations";
 import { getLogger as getDatabaseLogger } from "@logtape/drizzle-orm";
 import { getLogger } from "@logtape/logtape";
@@ -272,7 +271,6 @@ export async function createFederationResource(
     import("@hackerspub/federation"),
     import("@hackerspub/federation/outbox-queue"),
   ]);
-  await migrateLegacyOutboxEvents(db);
   const redis = config.kv.url.protocol === "redis:"
     ? new Redis(config.kv.url.href, {
       family: config.kv.url.hostname.endsWith(".upstash.io") ? 6 : 4,
