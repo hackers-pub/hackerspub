@@ -11,7 +11,10 @@ import {
   isCachedActorFederationBlocked,
   persistActor,
 } from "@hackerspub/models/actor";
-import { persistBlocking } from "@hackerspub/models/blocking";
+import {
+  persistPreparedBlocking,
+  prepareBlocking,
+} from "@hackerspub/models/blocking";
 import type { ContextData } from "@hackerspub/models/context";
 import {
   sendActivityWithOutbox,
@@ -485,10 +488,16 @@ export async function onBlocked(
   fedCtx: InboxContext<ContextData>,
   block: Block,
 ): Promise<void> {
+  const prepared = await prepareBlocking(
+    toApplicationContext(fedCtx),
+    block,
+    fedCtx,
+  );
+  if (prepared == null) return;
   await withInboxTransaction(
     fedCtx,
     async (txCtx) =>
-      await persistBlocking(toApplicationContext(txCtx), block, txCtx),
+      await persistPreparedBlocking(toApplicationContext(txCtx), prepared),
   );
 }
 

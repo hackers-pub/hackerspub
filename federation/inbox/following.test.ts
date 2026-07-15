@@ -26,6 +26,26 @@ const FOLLOWER_ACTOR_ID = "00000000-0000-0000-0000-000000000001" as Uuid;
 const FOLLOWEE_ACTOR_ID = "00000000-0000-0000-0000-000000000002" as Uuid;
 
 describe("onBlocked()", () => {
+  it("resolves actors before opening the relationship transaction", async () => {
+    await withRollback(async (tx) => {
+      const fedCtx = createFedCtx(tx) as unknown as InboxContext<ContextData>;
+      let dereferenceDb: ContextData["db"] | undefined;
+      const block = {
+        id: new URL("https://remote.example/blocks/1"),
+        actorId: new URL("https://remote.example/actors/alice"),
+        objectId: new URL("http://localhost/actors/bob"),
+        getActor(context: InboxContext<ContextData>) {
+          dereferenceDb = context.data.db;
+          return Promise.resolve(null);
+        },
+      } as unknown as Block;
+
+      await onBlocked(fedCtx, block);
+
+      assert.equal(dereferenceDb, tx);
+    });
+  });
+
   it("rolls back the block when relationship cleanup cannot be enqueued", async () => {
     await withRollback(async (tx) => {
       let deliveryFails = true;
