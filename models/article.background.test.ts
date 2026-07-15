@@ -21,6 +21,7 @@ import {
   createFedCtx,
   insertAccountWithActor,
   services,
+  withExclusiveTestDatabase,
   withRollback,
 } from "../test/postgres.ts";
 import { waitFor } from "../test/wait.ts";
@@ -83,210 +84,214 @@ test("startArticleContentSummary() resets summaryStarted when summarization fail
 });
 
 test("createArticle() starts summaries after enclosing transaction commit", async () => {
-  let accountId: Uuid | undefined;
-  let linkId: Uuid | undefined;
-  try {
-    let releaseSummary!: () => void;
-    let summaryStarted!: () => void;
-    const releaseSummaryPromise = new Promise<void>((resolve) => {
-      releaseSummary = resolve;
-    });
-    const summaryStartedPromise = new Promise<void>((resolve) => {
-      summaryStarted = resolve;
-    });
-    const summarizer = new MockLanguageModelV3({
-      doGenerate: async () => {
-        summaryStarted();
-        await releaseSummaryPromise;
-        return {
-          content: [{ type: "text", text: "Short summary." }],
-          finishReason: { unified: "stop", raw: undefined },
-          usage: {
-            inputTokens: {
-              total: 10,
-              noCache: 10,
-              cacheRead: undefined,
-              cacheWrite: undefined,
+  await withExclusiveTestDatabase(async () => {
+    let accountId: Uuid | undefined;
+    let linkId: Uuid | undefined;
+    try {
+      let releaseSummary!: () => void;
+      let summaryStarted!: () => void;
+      const releaseSummaryPromise = new Promise<void>((resolve) => {
+        releaseSummary = resolve;
+      });
+      const summaryStartedPromise = new Promise<void>((resolve) => {
+        summaryStarted = resolve;
+      });
+      const summarizer = new MockLanguageModelV3({
+        doGenerate: async () => {
+          summaryStarted();
+          await releaseSummaryPromise;
+          return {
+            content: [{ type: "text", text: "Short summary." }],
+            finishReason: { unified: "stop", raw: undefined },
+            usage: {
+              inputTokens: {
+                total: 10,
+                noCache: 10,
+                cacheRead: undefined,
+                cacheWrite: undefined,
+              },
+              outputTokens: {
+                total: 4,
+                text: 4,
+                reasoning: undefined,
+              },
             },
-            outputTokens: {
-              total: 4,
-              text: 4,
-              reasoning: undefined,
-            },
-          },
-          warnings: [],
-        };
-      },
-    });
-    const suffix = generateUuidV7().replaceAll("-", "").slice(0, 12);
-    const author = await insertAccountWithActor(
-      db as unknown as Parameters<typeof insertAccountWithActor>[0],
-      {
-        username: `summaryafter${suffix}`,
-        name: "Summary After Commit",
-        email: `summaryafter${suffix}@example.com`,
-      },
-    );
-    accountId = author.account.id;
-    const fedCtx = createFedCtx(
-      db as unknown as Parameters<typeof createFedCtx>[0],
-    );
-    fedCtx.models = {
-      summarizer: defineApplicationModel(summarizer),
-      translator: {} as never,
-      moderationAnalyzer: {} as never,
-    } as typeof fedCtx.models;
-    const published = new Date("2026-04-15T00:00:00.000Z");
-    let sourceId: Uuid | undefined;
+            warnings: [],
+          };
+        },
+      });
+      const suffix = generateUuidV7().replaceAll("-", "").slice(0, 12);
+      const author = await insertAccountWithActor(
+        db as unknown as Parameters<typeof insertAccountWithActor>[0],
+        {
+          username: `summaryafter${suffix}`,
+          name: "Summary After Commit",
+          email: `summaryafter${suffix}@example.com`,
+        },
+      );
+      accountId = author.account.id;
+      const fedCtx = createFedCtx(
+        db as unknown as Parameters<typeof createFedCtx>[0],
+      );
+      fedCtx.models = {
+        summarizer: defineApplicationModel(summarizer),
+        translator: {} as never,
+        moderationAnalyzer: {} as never,
+      } as typeof fedCtx.models;
+      const published = new Date("2026-04-15T00:00:00.000Z");
+      let sourceId: Uuid | undefined;
 
-    await withTransaction(fedCtx, async (context) => {
-      const article = await createArticle(context, {
+      await withTransaction(fedCtx, async (context) => {
+        const article = await createArticle(context, {
+          accountId: author.account.id,
+          publishedYear: 2026,
+          slug: "summary-after-commit",
+          tags: [],
+          allowLlmTranslation: false,
+          published,
+          updated: published,
+          title: "Summary after commit",
+          content:
+            "This article body is deliberately long enough for a shorter " +
+            "generated summary to be persisted after the surrounding " +
+            "transaction commits.",
+          language: "en",
+        });
+        assert.ok(article != null);
+        sourceId = article.articleSource.id;
+        linkId = article.linkId ?? undefined;
+      });
+
+      await summaryStartedPromise;
+      releaseSummary();
+
+      await waitFor(async () => {
+        const current = await db.query.articleContentTable.findFirst({
+          where: { sourceId: sourceId!, language: "en" },
+        });
+        return current?.summary === "Short summary.";
+      });
+    } finally {
+      if (accountId != null) {
+        await db.delete(accountTable).where(eq(accountTable.id, accountId));
+      }
+      if (linkId != null) {
+        await db.delete(postLinkTable).where(eq(postLinkTable.id, linkId));
+      }
+    }
+  });
+});
+
+test("updateArticle() persists regenerated summaries after commit", async () => {
+  await withExclusiveTestDatabase(async () => {
+    let accountId: Uuid | undefined;
+    let linkId: Uuid | undefined;
+    const releaseRegeneratedSummary = Promise.withResolvers<void>();
+    try {
+      const regeneratedSummaryStarted = Promise.withResolvers<void>();
+      let generation = 0;
+      const summarizer = new MockLanguageModelV3({
+        doGenerate: async () => {
+          generation++;
+          if (generation > 1) {
+            regeneratedSummaryStarted.resolve();
+            await releaseRegeneratedSummary.promise;
+          }
+          return {
+            content: [{
+              type: "text",
+              text: generation === 1
+                ? "Initial summary."
+                : "Regenerated summary.",
+            }],
+            finishReason: { unified: "stop", raw: undefined },
+            usage: {
+              inputTokens: {
+                total: 10,
+                noCache: 10,
+                cacheRead: undefined,
+                cacheWrite: undefined,
+              },
+              outputTokens: {
+                total: 4,
+                text: 4,
+                reasoning: undefined,
+              },
+            },
+            warnings: [],
+          };
+        },
+      });
+      const suffix = generateUuidV7().replaceAll("-", "").slice(0, 12);
+      const author = await insertAccountWithActor(
+        db as unknown as Parameters<typeof insertAccountWithActor>[0],
+        {
+          username: `summaryedit${suffix}`,
+          name: "Summary After Edit",
+          email: `summaryedit${suffix}@example.com`,
+        },
+      );
+      accountId = author.account.id;
+      const fedCtx = createFedCtx(
+        db as unknown as Parameters<typeof createFedCtx>[0],
+      );
+      fedCtx.models = {
+        summarizer: defineApplicationModel(summarizer),
+        translator: {} as never,
+        moderationAnalyzer: {} as never,
+      } as typeof fedCtx.models;
+      const published = new Date("2026-04-15T00:00:00.000Z");
+      const article = await createArticle(fedCtx, {
         accountId: author.account.id,
         publishedYear: 2026,
-        slug: "summary-after-commit",
+        slug: "summary-after-edit",
         tags: [],
         allowLlmTranslation: false,
         published,
         updated: published,
-        title: "Summary after commit",
+        title: "Summary after edit",
         content:
-          "This article body is deliberately long enough for a shorter " +
-          "generated summary to be persisted after the surrounding " +
-          "transaction commits.",
+          "This original article body is deliberately long enough for its " +
+          "initial generated summary to be shorter than the source text.",
         language: "en",
       });
       assert.ok(article != null);
-      sourceId = article.articleSource.id;
       linkId = article.linkId ?? undefined;
-    });
+      const sourceId = article.articleSource.id;
 
-    await summaryStartedPromise;
-    releaseSummary();
-
-    await waitFor(async () => {
-      const current = await db.query.articleContentTable.findFirst({
-        where: { sourceId: sourceId!, language: "en" },
+      await waitFor(async () => {
+        const current = await db.query.articleContentTable.findFirst({
+          where: { sourceId, language: "en" },
+        });
+        return current?.summary === "Initial summary.";
       });
-      return current?.summary === "Short summary.";
-    });
-  } finally {
-    if (accountId != null) {
-      await db.delete(accountTable).where(eq(accountTable.id, accountId));
-    }
-    if (linkId != null) {
-      await db.delete(postLinkTable).where(eq(postLinkTable.id, linkId));
-    }
-  }
-});
 
-test("updateArticle() persists regenerated summaries after commit", async () => {
-  let accountId: Uuid | undefined;
-  let linkId: Uuid | undefined;
-  const releaseRegeneratedSummary = Promise.withResolvers<void>();
-  try {
-    const regeneratedSummaryStarted = Promise.withResolvers<void>();
-    let generation = 0;
-    const summarizer = new MockLanguageModelV3({
-      doGenerate: async () => {
-        generation++;
-        if (generation > 1) {
-          regeneratedSummaryStarted.resolve();
-          await releaseRegeneratedSummary.promise;
-        }
-        return {
-          content: [{
-            type: "text",
-            text: generation === 1
-              ? "Initial summary."
-              : "Regenerated summary.",
-          }],
-          finishReason: { unified: "stop", raw: undefined },
-          usage: {
-            inputTokens: {
-              total: 10,
-              noCache: 10,
-              cacheRead: undefined,
-              cacheWrite: undefined,
-            },
-            outputTokens: {
-              total: 4,
-              text: 4,
-              reasoning: undefined,
-            },
-          },
-          warnings: [],
-        };
-      },
-    });
-    const suffix = generateUuidV7().replaceAll("-", "").slice(0, 12);
-    const author = await insertAccountWithActor(
-      db as unknown as Parameters<typeof insertAccountWithActor>[0],
-      {
-        username: `summaryedit${suffix}`,
-        name: "Summary After Edit",
-        email: `summaryedit${suffix}@example.com`,
-      },
-    );
-    accountId = author.account.id;
-    const fedCtx = createFedCtx(
-      db as unknown as Parameters<typeof createFedCtx>[0],
-    );
-    fedCtx.models = {
-      summarizer: defineApplicationModel(summarizer),
-      translator: {} as never,
-      moderationAnalyzer: {} as never,
-    } as typeof fedCtx.models;
-    const published = new Date("2026-04-15T00:00:00.000Z");
-    const article = await createArticle(fedCtx, {
-      accountId: author.account.id,
-      publishedYear: 2026,
-      slug: "summary-after-edit",
-      tags: [],
-      allowLlmTranslation: false,
-      published,
-      updated: published,
-      title: "Summary after edit",
-      content:
-        "This original article body is deliberately long enough for its " +
-        "initial generated summary to be shorter than the source text.",
-      language: "en",
-    });
-    assert.ok(article != null);
-    linkId = article.linkId ?? undefined;
-    const sourceId = article.articleSource.id;
-
-    await waitFor(async () => {
-      const current = await db.query.articleContentTable.findFirst({
-        where: { sourceId, language: "en" },
+      const updated = await updateArticle(fedCtx, sourceId, {
+        content:
+          "This edited article body is also deliberately long enough for its " +
+          "regenerated summary to be shorter than the new source text.",
       });
-      return current?.summary === "Initial summary.";
-    });
+      assert.ok(updated != null);
+      await regeneratedSummaryStarted.promise;
+      releaseRegeneratedSummary.resolve();
 
-    const updated = await updateArticle(fedCtx, sourceId, {
-      content:
-        "This edited article body is also deliberately long enough for its " +
-        "regenerated summary to be shorter than the new source text.",
-    });
-    assert.ok(updated != null);
-    await regeneratedSummaryStarted.promise;
-    releaseRegeneratedSummary.resolve();
-
-    await waitFor(async () => {
-      const current = await db.query.articleContentTable.findFirst({
-        where: { sourceId, language: "en" },
-      });
-      return current?.summary === "Regenerated summary." &&
-        current.summaryStarted == null;
-    }, 1_000);
-  } finally {
-    releaseRegeneratedSummary.resolve();
-    if (accountId != null) {
-      await db.delete(accountTable).where(eq(accountTable.id, accountId));
+      await waitFor(async () => {
+        const current = await db.query.articleContentTable.findFirst({
+          where: { sourceId, language: "en" },
+        });
+        return current?.summary === "Regenerated summary." &&
+          current.summaryStarted == null;
+      }, 1_000);
+    } finally {
+      releaseRegeneratedSummary.resolve();
+      if (accountId != null) {
+        await db.delete(accountTable).where(eq(accountTable.id, accountId));
+      }
+      if (linkId != null) {
+        await db.delete(postLinkTable).where(eq(postLinkTable.id, linkId));
+      }
     }
-    if (linkId != null) {
-      await db.delete(postLinkTable).where(eq(postLinkTable.id, linkId));
-    }
-  }
+  });
 });
 
 test("startArticleContentTranslation() deletes queued rows when translation fails", async () => {

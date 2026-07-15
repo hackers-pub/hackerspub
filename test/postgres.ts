@@ -44,6 +44,22 @@ export interface TestEmailTransport {
   readonly transport: UserContext["email"];
 }
 
+async function lockTestDatabase(tx: Transaction): Promise<void> {
+  await tx.execute(sql`select pg_advisory_xact_lock(914441, 1)`);
+}
+
+// Keep committed fixtures invisible to rollback-based tests running in
+// parallel.  The callback must use the root database so its own transactions
+// can commit while this separate transaction holds the shared test lock.
+export async function withExclusiveTestDatabase<T>(
+  run: () => Promise<T>,
+): Promise<T> {
+  return await db.transaction(async (tx) => {
+    await lockTestDatabase(tx);
+    return await run();
+  });
+}
+
 export async function withRollback(
   run: (tx: Transaction) => Promise<void>,
 ): Promise<void> {
@@ -52,7 +68,7 @@ export async function withRollback(
   try {
     await db.transaction(async (tx) => {
       // Parallel rollback tests share fixture keys such as localhost.
-      await tx.execute(sql`select pg_advisory_xact_lock(914441, 1)`);
+      await lockTestDatabase(tx);
       await run(tx);
       rolledBack = true;
       tx.rollback();
