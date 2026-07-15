@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import test from "node:test";
-import { eq, sql } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import { db as testDb } from "../test/database.ts";
 import { withRollback } from "../test/postgres.ts";
 import {
@@ -8,6 +8,7 @@ import {
   completeOutboxEvent,
   enqueueOutboxEvents,
   failOutboxEvent,
+  migrateLegacyOutboxEvents,
   pruneOutboxEvents,
   replayOutboxEvent,
   retryOutboxEvent,
@@ -22,6 +23,88 @@ const delivery = (messageId: string) => ({
   activityId: `https://example.com/activities/${messageId}`,
   activityType: "Create",
   inbox: "https://remote.example/inbox",
+});
+
+test("legacy Fedify deliveries migrate before the transactional queue starts", async () => {
+  await withRollback(async (tx) => {
+    const suffix = crypto.randomUUID();
+    const fanoutId = `legacy-fanout-${suffix}`;
+    const deliveryId = `legacy-delivery-${suffix}`;
+    const inboxId = `legacy-inbox-${suffix}`;
+    await tx.execute(sql`
+      CREATE TABLE IF NOT EXISTS fedify_message_v2 (
+        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        message jsonb NOT NULL,
+        delay interval DEFAULT '0 seconds',
+        created timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+        ordering_key text
+      )
+    `);
+    await tx.execute(sql`
+      INSERT INTO fedify_message_v2 (message, delay, created, ordering_key)
+      VALUES
+        (
+          ${JSON.stringify({ type: "fanout", id: fanoutId })}::jsonb,
+          interval '2 minutes',
+          timestamp with time zone '2026-07-14T00:00:00Z',
+          'actor:alice'
+        ),
+        (
+          ${
+      JSON.stringify({
+        type: "outbox",
+        id: deliveryId,
+        activityId: "https://example.com/activities/legacy",
+        activityType: "Create",
+        inbox: "https://remote.example/inbox",
+      })
+    }::jsonb,
+          interval '3 minutes',
+          timestamp with time zone '2026-07-14T00:01:00Z',
+          'actor:alice'
+        ),
+        (
+          ${JSON.stringify({ type: "inbox", id: inboxId })}::jsonb,
+          interval '0 seconds',
+          timestamp with time zone '2026-07-14T00:02:00Z',
+          NULL
+        )
+    `);
+
+    assert.equal(await migrateLegacyOutboxEvents(tx), 2);
+
+    const migrated = await tx.select().from(outboxEventTable).where(
+      inArray(outboxEventTable.messageId, [fanoutId, deliveryId]),
+    ).orderBy(outboxEventTable.sequence);
+    assert.deepEqual(
+      migrated.map((row) => ({
+        eventType: row.eventType,
+        messageId: row.messageId,
+        orderingKey: row.orderingKey,
+        available: row.available.toISOString(),
+      })),
+      [
+        {
+          eventType: "activitypub.fanout",
+          messageId: fanoutId,
+          orderingKey: "actor:alice",
+          available: "2026-07-14T00:02:00.000Z",
+        },
+        {
+          eventType: "activitypub.delivery",
+          messageId: deliveryId,
+          orderingKey: "actor:alice",
+          available: "2026-07-14T00:04:00.000Z",
+        },
+      ],
+    );
+    const legacy = await tx.execute<{ message: { id: string } }>(sql`
+      SELECT message
+      FROM fedify_message_v2
+      WHERE message->>'id' IN (${fanoutId}, ${deliveryId}, ${inboxId})
+    `);
+    assert.deepEqual(legacy.map((row) => row.message.id), [inboxId]);
+  });
 });
 
 test("outbox enqueue follows transaction commit and rollback", async () => {

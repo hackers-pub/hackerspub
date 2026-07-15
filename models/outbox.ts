@@ -52,6 +52,95 @@ export interface OutboxDepth {
   readonly delayed: number;
 }
 
+/**
+ * Move pending outgoing messages from Fedify's former shared PostgreSQL queue.
+ * Inbox messages remain in place for the inbox queue to consume.
+ */
+export async function migrateLegacyOutboxEvents(
+  db: OutboxDatabase,
+): Promise<number> {
+  const [legacyTable] = await db.execute<{ present: boolean }>(sql`
+    select to_regclass('public.fedify_message_v2') is not null as present
+  `);
+  if (!legacyTable.present) return 0;
+
+  return await runInTransaction(db, async (tx) => {
+    // Prevent the legacy queue from changing its snapshot between the copy and
+    // delete statements. The lock is held only while the pending rows move.
+    await tx.execute(sql`
+      lock table fedify_message_v2 in share row exclusive mode
+    `);
+    await tx.execute(sql`
+      insert into outbox_event (
+        id,
+        event_type,
+        payload_version,
+        message_id,
+        group_id,
+        sequence,
+        position,
+        ordering_key,
+        payload,
+        activity_id,
+        activity_type,
+        inbox,
+        available,
+        created,
+        updated
+      )
+      select
+        gen_random_uuid(),
+        case message->>'type'
+          when 'fanout' then 'activitypub.fanout'
+          else 'activitypub.delivery'
+        end,
+        1,
+        message->>'id',
+        gen_random_uuid(),
+        nextval('outbox_event_sequence'),
+        0,
+        ordering_key,
+        message,
+        case when jsonb_typeof(message->'activityId') = 'string'
+          then message->>'activityId'
+        end,
+        case when jsonb_typeof(message->'activityType') = 'string'
+          then message->>'activityType'
+        end,
+        case when jsonb_typeof(message->'inbox') = 'string'
+          then message->>'inbox'
+        end,
+        coalesce(created, current_timestamp) +
+          coalesce(delay, interval '0 seconds'),
+        coalesce(created, current_timestamp),
+        current_timestamp
+      from fedify_message_v2
+      where jsonb_typeof(message) = 'object'
+        and message->>'type' in ('fanout', 'outbox')
+        and jsonb_typeof(message->'id') = 'string'
+      order by created, id
+      on conflict (event_type, message_id) do nothing
+    `);
+    const removed = await tx.execute<{ id: string }>(sql`
+      delete from fedify_message_v2 as legacy
+      where jsonb_typeof(legacy.message) = 'object'
+        and legacy.message->>'type' in ('fanout', 'outbox')
+        and jsonb_typeof(legacy.message->'id') = 'string'
+        and exists (
+          select 1
+          from outbox_event as event
+          where event.event_type = case legacy.message->>'type'
+              when 'fanout' then 'activitypub.fanout'
+              else 'activitypub.delivery'
+            end
+            and event.message_id = legacy.message->>'id'
+        )
+      returning legacy.id
+    `);
+    return removed.length;
+  });
+}
+
 export type ClaimedOutboxEvent = OutboxEvent & {
   readonly status: "processing";
   readonly leaseToken: Uuid;
