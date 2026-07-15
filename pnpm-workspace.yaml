@@ -7,8 +7,8 @@ packages:
   - asset-cdn
 
 catalog:
-  '@ai-sdk/anthropic': ^3.0.44
-  '@ai-sdk/google': ^3.0.29
+  '@ai-sdk/anthropic': ^4.0.15
+  '@ai-sdk/google': ^4.0.16
   '@c4spar/mock-fetch': jsr:^1.0.0
   '@fedify/fedify': jsr:2.3.2
   '@fedify/markdown-it-hashtag': jsr:^0.3.0
@@ -41,7 +41,7 @@ catalog:
   '@vertana/context-web': ^0.2.0
   '@vertana/core': jsr:^0.2.0
   '@vertana/facade': jsr:^0.2.0
-  ai: ^6.0.146
+  ai: ^7.0.28
   apns2: ^12.2.0
   arcsecond: ^5.0.0
   cheerio: ^1.2.0
