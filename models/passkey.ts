@@ -33,7 +33,13 @@ export type PasskeyPlatform = "web" | "android" | "ios";
 
 const PLATFORM_ORIGINS: Partial<Record<PasskeyPlatform, string[]>> = {
   android: [
-    // Release signing key (pub.hackers.android)
+    // Play App Signing key (pub.hackers.android). Google re-signs release
+    // APKs distributed via the Play Store with this key, which differs
+    // from the upload keystore below.
+    "android:apk-key-hash:rcYstHvAfSZI1cjlUYi_HoIztMxao3RJJdDEPDLXErs",
+    // Upload/release keystore (pub.hackers.android). APKs built directly
+    // from hackerspub-release.jks and distributed via GitHub Releases /
+    // F-Droid are signed with this key instead of the Play Signing key.
     "android:apk-key-hash:UqAUIQLNMP2LKaPtgCsKvq-rNyl5OYQat545Ba9k1Ro",
     // Local debug keystore (pub.hackers.android.dev)
     "android:apk-key-hash:yqSW6UZsaCl_dADWM0X3C_ndgblJU4uUMrjQYLIxEFs",

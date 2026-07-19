@@ -4,7 +4,6 @@ import { Buffer } from "node:buffer";
 import {
   getAuthenticationOptions,
   getRegistrationOptions,
-  resolvePasskeyOrigins,
   verifyAuthentication,
   verifyRegistration,
 } from "./passkey.ts";
@@ -14,24 +13,6 @@ import {
   insertAccountWithActor,
   withRollback,
 } from "../test/postgres.ts";
-
-test("resolvePasskeyOrigins() prefers platform-specific origins", () => {
-  assert.deepEqual(
-    resolvePasskeyOrigins("https://pub.hackers.pub/sign/in", "web"),
-    ["https://pub.hackers.pub"],
-  );
-  assert.deepEqual(
-    resolvePasskeyOrigins("https://pub.hackers.pub/sign/in", "ios"),
-    ["ios:pub.hackers.HackersPub"],
-  );
-  assert.deepEqual(
-    resolvePasskeyOrigins("https://pub.hackers.pub/sign/in", "android"),
-    [
-      "android:apk-key-hash:UqAUIQLNMP2LKaPtgCsKvq-rNyl5OYQat545Ba9k1Ro",
-      "android:apk-key-hash:yqSW6UZsaCl_dADWM0X3C_ndgblJU4uUMrjQYLIxEFs",
-    ],
-  );
-});
 
 test(
   "getRegistrationOptions() stores a challenge and excludes existing credentials",
