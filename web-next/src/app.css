@@ -547,6 +547,11 @@
   background-color: transparent !important;
 }
 
+.prose table {
+  display: block;
+  overflow-x: auto;
+}
+
 @media (prefers-color-scheme: dark) {
   .prose pre.shiki,
   .prose pre.shiki span {
