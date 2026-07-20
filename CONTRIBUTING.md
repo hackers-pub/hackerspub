@@ -275,12 +275,17 @@ To run web-next, the new web frontend for Hackers' Pub, follow these steps:
     `NO_WATCHMAN=1` environment variable when running the dev server and
     run `mise run next:codegen` manually whenever GraphQL files change.
 
-2.  Run the development server with the command
-    `API_URL=http://localhost:8000/graphql mise run dev:web-next`.
-    The legacy server must be running at this point, as it also serves as
-    the GraphQL API server for web-next.
+2.  Start the standalone GraphQL API and its queue worker in separate
+    terminals with `mise run dev:graphql` and
+    `mise run dev:graphql-worker`.
 
-3.  Access http://localhost:3000/ to see the new look of Hackers' Pub.
+3.  Run the development server with
+    `API_URL=http://localhost:8080/graphql mise run dev:web-next`.
+    Alternatively, `docker compose up` starts PostgreSQL, Redis, the
+    standalone API, the worker, and web-next together.  Fresh is available
+    only through the explicit `legacy` Compose profile.
+
+4.  Access http://localhost:3000/ to see the new look of Hackers' Pub.
 
 When you build new UI in *web-next/*, follow the conventions documented in
 [*DESIGN.md*](./DESIGN.md) — it covers the color tokens, typography, component

@@ -1,7 +1,11 @@
 import { EXPIRATION } from "@hackerspub/models/session";
 import { validateUuid } from "@hackerspub/models/uuid";
 import type { APIEvent } from "@solidjs/start/server";
-import { buildSessionSetCookieHeader } from "~/lib/sessionCookie.ts";
+import { getBehindProxy } from "~/lib/env.ts";
+import {
+  buildSessionSetCookieHeader,
+  isSecureRequest,
+} from "~/lib/sessionCookie.ts";
 
 // Sets the session cookie server-side and returns 204.
 // The session ID is sent in the POST body to avoid it appearing in
@@ -21,7 +25,7 @@ export async function POST({ request }: APIEvent) {
   if (id == null || !validateUuid(id)) {
     return new Response(null, { status: 400 });
   }
-  const secure = new URL(request.url).protocol === "https:";
+  const secure = isSecureRequest(request, getBehindProxy());
   const expires = new Date(Date.now() + EXPIRATION.total("millisecond"));
   const cookie = buildSessionSetCookieHeader(id, { expires, secure });
   return new Response(null, {

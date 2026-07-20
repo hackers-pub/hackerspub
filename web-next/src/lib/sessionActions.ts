@@ -1,6 +1,7 @@
 import type { Uuid } from "@hackerspub/models/uuid";
 import { appendHeader } from "@solidjs/start/http";
 import { getRequestEvent } from "solid-js/web";
+import { getBehindProxy } from "./env.ts";
 import {
   buildExpiredSessionSetCookieHeader,
   isSecureRequest,
@@ -20,7 +21,7 @@ export async function removeSessionCookie(): Promise<void> {
   appendHeader(
     "Set-Cookie",
     buildExpiredSessionSetCookieHeader({
-      secure: isSecureRequest(event.request),
+      secure: isSecureRequest(event.request, getBehindProxy()),
     }),
   );
 }

@@ -136,6 +136,18 @@ if (result.errors || result.data?.__typename !== "Query") Deno.exit(1);
 '''
 shell = "deno eval"
 
+[tasks."prod:hc:graphql-worker"]
+description = "Health check the GraphQL worker heartbeat"
+run = '''
+import {
+  checkWorkerHeartbeat,
+  DEFAULT_WORKER_HEALTH_FILE,
+} from "./graphql/worker-health.ts";
+const path = Deno.env.get("WORKER_HEALTH_FILE") ?? DEFAULT_WORKER_HEALTH_FILE;
+if (!await checkWorkerHeartbeat(path)) Deno.exit(1);
+'''
+shell = "deno eval"
+
 [tasks."prod:hc:web-next"]
 description = "Health check the web-next stack"
 run = '''
@@ -143,6 +155,10 @@ const response = await fetch("http://127.0.0.1:3000/search");
 if (!response.ok) Deno.exit(1);
 '''
 shell = "deno eval"
+
+[tasks."smoke:standalone"]
+description = "Smoke test the standalone GraphQL, worker, and web-next topology"
+run = "deno run --allow-all scripts/smoke-standalone.ts"
 
 [tasks.migrate]
 description = "Run database migrations"

@@ -7,7 +7,7 @@
   "dockerComposeFile": [
     "../../docker-compose.yml"
   ],
-  "service": "app",
+  "service": "graphql",
   "workspaceFolder": "/app", // Your project code is mounted to /app
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {
@@ -22,13 +22,19 @@
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
   "forwardPorts": [
-    8000,
+    3000,
+    8080,
     5432
   ],
   "portsAttributes": {
-    "8000": {
-      "label": "Application (Hackers' Pub)",
+    "3000": {
+      "label": "web-next (Hackers' Pub)",
       "onAutoForward": "openPreview",
+      "protocol": "http"
+    },
+    "8080": {
+      "label": "Standalone GraphQL API",
+      "onAutoForward": "silent",
       "protocol": "http"
     },
     "5432": {
@@ -41,13 +47,13 @@
   },
   "remoteUser": "deno",
   "remoteEnv": {
-    "ORIGIN": "https://${localEnv:CODESPACE_NAME}-8000.${localEnv:GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}",
+    "ORIGIN": "https://${localEnv:CODESPACE_NAME}-8080.${localEnv:GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}",
     "BEHIND_PROXY": "true",
     // Ensure your docker-compose.yml can pick up Codespace secrets for other variables
     // For example, by having "environment: [DB_HOST: ${DB_HOST_SECRET}]" in compose
     // and then setting DB_HOST_SECRET as a Codespace secret.
     "DATABASE_URL": "postgresql://postgres:password@db:5432/hackerspub",
-    "KV_URL": "file:///tmp/kv.db"
+    "KV_URL": "redis://redis:6379/0"
     // Add other non-sensitive environment variables needed by VS Code server/terminals if any
   },
   // Runs once when the Codespace is created (as root by default for this script).
@@ -96,8 +102,11 @@
     }
   },
   "runServices": [
-    "app",
-    "db"
+    "graphql",
+    "graphql-worker",
+    "web-next",
+    "db",
+    "redis"
   ],
   "shutdownAction": "stopCompose"
 }

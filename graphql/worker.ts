@@ -21,6 +21,10 @@ import { createRuntimeResources } from "@hackerspub/runtime/resources";
 import { sql } from "drizzle-orm";
 import { sendNotificationDigests } from "./notification-digest.ts";
 import { services } from "./services.ts";
+import {
+  DEFAULT_WORKER_HEALTH_FILE,
+  startWorkerHeartbeat,
+} from "./worker-health.ts";
 import metadata from "./deno.json" with { type: "json" };
 
 const resources = await createRuntimeResources(
@@ -253,11 +257,19 @@ let queueFailed = false;
 let queueError: unknown;
 try {
   await migrateLegacyOutboxEvents(db);
-  await federation.startQueue(
+  const queue = federation.startQueue(
     { db, kv, disk, models, services },
     { signal: controller.signal },
   );
-  logger.info("The federation message queue worker has stopped.");
+  const heartbeat = await startWorkerHeartbeat(
+    Deno.env.get("WORKER_HEALTH_FILE") ?? DEFAULT_WORKER_HEALTH_FILE,
+  );
+  try {
+    await queue;
+    logger.info("The federation message queue worker has stopped.");
+  } finally {
+    await heartbeat.stop();
+  }
 } catch (error) {
   queueFailed = true;
   queueError = error;

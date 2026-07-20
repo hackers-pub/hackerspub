@@ -1,7 +1,7 @@
 {
   "name": "Hackers' Pub Dev Environment",
   "dockerComposeFile": "../docker-compose.yml", // Adjusted path if devcontainer.json is in .devcontainer/
-  "service": "app",
+  "service": "graphql",
   "workspaceFolder": "/app",
   // Configure features for the dev container.
   "features": {
@@ -17,9 +17,10 @@
     "ghcr.io/devcontainers/features/docker-in-docker:2": {},
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
-  // Forward ports. 8000 for the app, 5432 for PostgreSQL.
+  // Forward ports for web-next, GraphQL, and PostgreSQL.
   "forwardPorts": [
-    8000,
+    3000,
+    8080,
     5432
   ],
   // Set environment variables.
@@ -66,8 +67,11 @@
   "postCreateCommand": "mise install && mise run migrate",
   // Add a name to the Docker network used by docker-compose.
   "runServices": [
-    "app",
-    "db"
+    "graphql",
+    "graphql-worker",
+    "web-next",
+    "db",
+    "redis"
   ],
   "shutdownAction": "stopCompose"
 }

@@ -1,51 +1,107 @@
-version: "3.8"
+x-application: &application
+  build:
+    context: .
+    dockerfile: Dockerfile.dev
+  environment: &application-environment
+    DATABASE_URL: postgresql://postgres:password@db:5432/hackerspub
+    KV_URL: redis://redis:6379/0
+    ORIGIN: ${ORIGIN}
+    SECRET_KEY: ${SECRET_KEY}
+    INSTANCE_ACTOR_KEY: ${INSTANCE_ACTOR_KEY}
+    BEHIND_PROXY: ${BEHIND_PROXY:-false}
+    DRIVE_DISK: ${DRIVE_DISK:-fs}
+    FS_LOCATION: ${FS_LOCATION:-/tmp/hackerspub}
+    MODE: ${MODE:-development}
+    EMAIL_FROM: ${EMAIL_FROM:-admin@example.com}
+    MAILGUN_KEY: ${MAILGUN_KEY}
+    MAILGUN_REGION: ${MAILGUN_REGION}
+    MAILGUN_DOMAIN: ${MAILGUN_DOMAIN}
+    MAILGUN_FROM: ${MAILGUN_FROM}
+    SENTRY_DSN: ${SENTRY_DSN}
+    PLAUSIBLE: ${PLAUSIBLE:-false}
+  volumes: &application-volumes
+  - .:/app
+  - /app/deps
+  - /app/.cache
+  - /app/.deno
 
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    environment:
-      DATABASE_URL: postgresql://postgres:password@db:5432/hackerspub
-      KV_URL: file:///tmp/kv.db
-      SECRET_KEY: ${SECRET_KEY}
-      BEHIND_PROXY: ${BEHIND_PROXY}
-      MAILGUN_KEY: ${MAILGUN_KEY}
-      MAILGUN_REGION: ${MAILGUN_REGION}
-      MAILGUN_DOMAIN: ${MAILGUN_DOMAIN}
-      MAILGUN_FROM: ${MAILGUN_FROM}
-      SENTRY_DSN: ${SENTRY_DSN}
-      PLAUSIBLE: ${PLAUSIBLE}
-    ports:
-      - "8000:8000"
+  migration:
+    <<: *application
+    command: mise run migrate
     depends_on:
-      - db
-    command: mise run dev:web
-    volumes:
-      - .:/app
-      - /app/deps
-      - /app/.cache
-      - /app/.deno
+      db:
+        condition: service_healthy
+
+  graphql:
+    <<: *application
+    command: mise run dev:graphql
+    ports:
+    - "8080:8080"
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "mise", "run", "prod:hc:graphql"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+
+  graphql-worker:
+    <<: *application
+    command: mise run dev:graphql-worker
+    environment:
+      <<: *application-environment
+      WORKER_HEALTH_FILE: /tmp/hackerspub-graphql-worker.health
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "mise", "run", "prod:hc:graphql-worker"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
 
   web-next:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
+    <<: *application
+    command: sh -c "mise run next:codegen && mise run dev:web-next"
     environment:
       NO_WATCHMAN: "1"
-      API_URL: http://app:8000/graphql
-      HOST: "0.0.0.0"
-      PLAUSIBLE: ${PLAUSIBLE}
+      API_URL: http://graphql:8080/graphql
+      BEHIND_PROXY: ${BEHIND_PROXY:-false}
+      HOST: 0.0.0.0
+      ORIGIN: ${ORIGIN}
+      PLAUSIBLE: ${PLAUSIBLE:-false}
+      SENTRY_DSN: ${SENTRY_DSN}
     ports:
-      - "3000:3000"
+    - "3000:3000"
     depends_on:
-      - app
-    command: sh -c "mise run next:codegen && mise run dev:web-next"
-    volumes:
-      - .:/app
-      - /app/deps
-      - /app/.cache
-      - /app/.deno
+      graphql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "mise", "run", "prod:hc:web-next"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+
+  app:
+    <<: *application
+    profiles: ["legacy"]
+    command: mise run dev:web
+    ports:
+    - "8000:8000"
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
 
   db:
     image: postgres:17
@@ -54,7 +110,20 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: hackerspub
     volumes:
-      - db_data:/var/lib/postgresql/data
+    - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d hackerspub"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:8-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
 volumes:
   db_data:

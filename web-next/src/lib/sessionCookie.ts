@@ -44,7 +44,12 @@ export function buildExpiredSessionSetCookieHeader(
   });
 }
 
-export function isSecureRequest(request: Request): boolean {
+export function isSecureRequest(
+  request: Request,
+  behindProxy: boolean,
+): boolean {
+  if (!behindProxy) return new URL(request.url).protocol === "https:";
+
   const forwardedProto = request.headers.get("x-forwarded-proto")
     ?.split(",", 1)[0]
     ?.trim()

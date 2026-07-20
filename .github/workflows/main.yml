@@ -26,6 +26,15 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      redis:
+        image: redis:8-alpine
+        ports:
+        - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
     - uses: actions/checkout@v4
     - uses: jdx/mise-action@v4
@@ -37,8 +46,12 @@ jobs:
       run: mise run codegen
     - name: Build web-next
       run: mise run build:web-next
+    - name: Validate standalone Compose topology
+      run: docker compose --env-file .env.ci config --quiet
     - name: Run database migrations
       run: mise run migrate
+    - name: Smoke test standalone services
+      run: mise run smoke:standalone
     - name: Run tests
       if: always()
       run: mise run test

@@ -57,5 +57,5 @@ RUN cp .env.sample .env && \
   mise run build:web && \
   rm .env
 
-EXPOSE 8000
-CMD ["mise", "run", "dev:web"]
+EXPOSE 3000 8080
+CMD ["mise", "run", "dev:web-next"]

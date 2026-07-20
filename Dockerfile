@@ -185,7 +185,7 @@ COPY --from=prod-deps /app/web-next/node_modules /app/web-next/node_modules
 # the final image's `/app/mise.toml`.
 RUN mise trust /app/mise.toml
 
-EXPOSE 8000
+EXPOSE 3000 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-  CMD ["mise", "run", "prod:hc:web"]
-CMD ["mise", "run", "prod:web"]
+  CMD ["mise", "run", "prod:hc:web-next"]
+CMD ["mise", "run", "prod:web-next"]

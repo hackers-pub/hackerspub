@@ -22,7 +22,7 @@ Deno.test("the queue worker migrates legacy deliveries before listening", async 
     new URL("worker.ts", import.meta.url),
   );
   const migration = "await migrateLegacyOutboxEvents(db);";
-  const queueStart = "await federation.startQueue(";
+  const queueStart = "federation.startQueue(";
 
   assertStringIncludes(source, migration);
   assertStringIncludes(source, queueStart);
