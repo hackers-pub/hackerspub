@@ -1,0 +1,15 @@
+{
+	auto_https off
+}
+
+:8000 {
+	@api path /graphql /graphql/* /medium-uploads/* /media/* /.well-known/* /ap/* /nodeinfo/*
+
+	handle @api {
+		reverse_proxy graphql:8080
+	}
+
+	handle {
+		reverse_proxy web-next:3000
+	}
+}

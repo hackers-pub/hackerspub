@@ -5,12 +5,14 @@ x-application: &application
   environment: &application-environment
     DATABASE_URL: postgresql://postgres:password@db:5432/hackerspub
     KV_URL: redis://redis:6379/0
-    ORIGIN: ${ORIGIN}
+    ORIGIN: ${ORIGIN:-http://localhost:8000}
     SECRET_KEY: ${SECRET_KEY}
     INSTANCE_ACTOR_KEY: ${INSTANCE_ACTOR_KEY}
     BEHIND_PROXY: ${BEHIND_PROXY:-false}
     DRIVE_DISK: ${DRIVE_DISK:-fs}
-    FS_LOCATION: ${FS_LOCATION:-/tmp/hackerspub}
+    # Keep filesystem storage on the bind mount shared by the API and worker.
+    # Object-storage drivers ignore this value.
+    FS_LOCATION: ./media
     MODE: ${MODE:-development}
     EMAIL_FROM: ${EMAIL_FROM:-admin@example.com}
     MAILGUN_KEY: ${MAILGUN_KEY}
@@ -24,6 +26,7 @@ x-application: &application
   - /app/deps
   - /app/.cache
   - /app/.deno
+  - ./web/media:/app/web/media:z
 
 services:
   migration:
@@ -91,12 +94,24 @@ services:
       retries: 6
       start_period: 30s
 
+  gateway:
+    image: caddy:2.10-alpine
+    ports:
+    - "8000:8000"
+    volumes:
+    - ./Caddyfile.dev:/etc/caddy/Caddyfile:ro,Z
+    depends_on:
+      graphql:
+        condition: service_healthy
+      web-next:
+        condition: service_healthy
+
   app:
     <<: *application
     profiles: ["legacy"]
     command: mise run dev:web
     ports:
-    - "8000:8000"
+    - "8001:8000"
     depends_on:
       migration:
         condition: service_completed_successfully

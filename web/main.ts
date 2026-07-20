@@ -35,6 +35,7 @@ import {
 } from "@hackerspub/runtime/config";
 import {
   createRuntimeResources,
+  FILE_SYSTEM_STORAGE_BASE_URL,
   runWithFederationQueue,
 } from "@hackerspub/runtime/resources";
 import { configureAiModels } from "./ai.ts";
@@ -63,7 +64,7 @@ const resources = await createRuntimeResources(
   loadServerConfig(getDenoEnvironment()),
   metadata.version,
   {
-    fileSystemBaseUrl: new URL("./", import.meta.url),
+    fileSystemBaseUrl: FILE_SYSTEM_STORAGE_BASE_URL,
     federation: {
       manuallyStartQueue: true,
       // TODO: Revert to Fedify's default RFC 9421-first behavior once

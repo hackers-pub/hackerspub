@@ -1,5 +1,6 @@
 import assert from "node:assert";
 import test from "node:test";
+import { createDriveResource } from "@hackerspub/runtime/resources";
 import { pathToFileURL } from "node:url";
 import { handleFileSystemMedia } from "./file-system-media.ts";
 
@@ -61,6 +62,31 @@ test("handleFileSystemMedia ignores non-media and prevents traversal", async () 
       ),
       null,
     );
+  } finally {
+    await Deno.remove(directory, { recursive: true });
+  }
+});
+
+test("handleFileSystemMedia serves files written by a separate drive", async () => {
+  const directory = await Deno.makeTempDir();
+  try {
+    const drive = createDriveResource(
+      { driver: "fs", location: "./media" },
+      new URL("https://example.com/"),
+      pathToFileURL(directory + "/"),
+    );
+    await drive.use().put(
+      "remote/attachment.txt",
+      new TextEncoder().encode("from worker"),
+    );
+
+    const response = await handleFileSystemMedia(
+      new Request("https://example.com/media/remote/attachment.txt"),
+      drive.fileSystemRoot,
+    );
+
+    assert.equal(response?.status, 200);
+    assert.equal(await response?.text(), "from worker");
   } finally {
     await Deno.remove(directory, { recursive: true });
   }

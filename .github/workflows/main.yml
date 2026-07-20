@@ -48,6 +48,24 @@ jobs:
       run: mise run build:web-next
     - name: Validate standalone Compose topology
       run: docker compose --env-file .env.ci config --quiet
+    - name: Validate Codespaces gateway topology
+      env:
+        CODESPACE_NAME: test-space
+        GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN: app.github.dev
+      run: >-
+        docker compose
+        -f docker-compose.yml
+        -f .devcontainer/codespaces/docker-compose.yml
+        --env-file .env.ci
+        config --quiet
+    - name: Validate development gateways
+      run: |
+        docker run --rm \
+          -v "$PWD/Caddyfile.dev:/etc/caddy/Caddyfile:ro" \
+          caddy:2.10-alpine caddy validate --config /etc/caddy/Caddyfile
+        docker run --rm \
+          -v "$PWD/Caddyfile.codespaces:/etc/caddy/Caddyfile:ro" \
+          caddy:2.10-alpine caddy validate --config /etc/caddy/Caddyfile
     - name: Run database migrations
       run: mise run migrate
     - name: Smoke test standalone services

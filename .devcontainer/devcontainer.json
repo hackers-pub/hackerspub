@@ -17,10 +17,9 @@
     "ghcr.io/devcontainers/features/docker-in-docker:2": {},
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
-  // Forward ports for web-next, GraphQL, and PostgreSQL.
+  // Forward ports for the unified application gateway and PostgreSQL.
   "forwardPorts": [
-    3000,
-    8080,
+    8000,
     5432
   ],
   // Set environment variables.
@@ -70,6 +69,7 @@
     "graphql",
     "graphql-worker",
     "web-next",
+    "gateway",
     "db",
     "redis"
   ],

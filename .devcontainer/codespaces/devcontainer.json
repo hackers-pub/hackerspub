@@ -5,7 +5,8 @@
   // If this file is in .devcontainer/codespaces/, and compose is at the root,
   // then it should be ../../docker-compose.yml
   "dockerComposeFile": [
-    "../../docker-compose.yml"
+    "../../docker-compose.yml",
+    "docker-compose.yml"
   ],
   "service": "graphql",
   "workspaceFolder": "/app", // Your project code is mounted to /app
@@ -22,19 +23,13 @@
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
   "forwardPorts": [
-    3000,
-    8080,
+    8000,
     5432
   ],
   "portsAttributes": {
-    "3000": {
-      "label": "web-next (Hackers' Pub)",
+    "8000": {
+      "label": "Hackers' Pub gateway",
       "onAutoForward": "openPreview",
-      "protocol": "http"
-    },
-    "8080": {
-      "label": "Standalone GraphQL API",
-      "onAutoForward": "silent",
       "protocol": "http"
     },
     "5432": {
@@ -47,7 +42,7 @@
   },
   "remoteUser": "deno",
   "remoteEnv": {
-    "ORIGIN": "https://${localEnv:CODESPACE_NAME}-8080.${localEnv:GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}",
+    "ORIGIN": "https://${localEnv:CODESPACE_NAME}-8000.${localEnv:GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}",
     "BEHIND_PROXY": "true",
     // Ensure your docker-compose.yml can pick up Codespace secrets for other variables
     // For example, by having "environment: [DB_HOST: ${DB_HOST_SECRET}]" in compose
@@ -105,6 +100,7 @@
     "graphql",
     "graphql-worker",
     "web-next",
+    "gateway",
     "db",
     "redis"
   ],

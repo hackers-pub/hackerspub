@@ -7,7 +7,10 @@ import {
   getDenoEnvironment,
   loadServerConfig,
 } from "@hackerspub/runtime/config";
-import { createRuntimeResources } from "@hackerspub/runtime/resources";
+import {
+  createRuntimeResources,
+  FILE_SYSTEM_STORAGE_BASE_URL,
+} from "@hackerspub/runtime/resources";
 import { handleFileSystemMedia } from "./file-system-media.ts";
 import { createYogaServer } from "./mod.ts";
 import { handleMediumUploadProxy } from "./medium-upload.ts";
@@ -26,7 +29,7 @@ const resources = await createRuntimeResources(
   loadServerConfig(getDenoEnvironment()),
   metadata.version,
   {
-    fileSystemBaseUrl: new URL("./", import.meta.url),
+    fileSystemBaseUrl: FILE_SYSTEM_STORAGE_BASE_URL,
     federation: { manuallyStartQueue: true },
   },
 );

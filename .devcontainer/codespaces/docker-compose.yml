@@ -1,0 +1,20 @@
+x-codespaces-environment: &codespaces-environment
+  ORIGIN: https://${CODESPACE_NAME}-8000.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}
+  BEHIND_PROXY: "true"
+
+services:
+  graphql:
+    environment:
+      <<: *codespaces-environment
+
+  graphql-worker:
+    environment:
+      <<: *codespaces-environment
+
+  web-next:
+    environment:
+      <<: *codespaces-environment
+
+  gateway:
+    volumes:
+      - ./Caddyfile.codespaces:/etc/caddy/Caddyfile:ro,Z

@@ -282,10 +282,13 @@ To run web-next, the new web frontend for Hackers' Pub, follow these steps:
 3.  Run the development server with
     `API_URL=http://localhost:8080/graphql mise run dev:web-next`.
     Alternatively, `docker compose up` starts PostgreSQL, Redis, the
-    standalone API, the worker, and web-next together.  Fresh is available
-    only through the explicit `legacy` Compose profile.
+    standalone API, the worker, web-next, and a gateway that exposes the
+    unified application origin.  Fresh is available only through the explicit
+    `legacy` Compose profile on port 8001.
 
-4.  Access http://localhost:3000/ to see the new look of Hackers' Pub.
+4.  With Compose, access http://localhost:8000/ through the gateway.  When
+    running the three development tasks directly, access
+    http://localhost:3000/ instead.
 
 When you build new UI in *web-next/*, follow the conventions documented in
 [*DESIGN.md*](./DESIGN.md) — it covers the color tokens, typography, component
