@@ -105,7 +105,7 @@ export function ImageLightbox(props: ImageLightboxProps) {
                   />
                   <Show when={medium().alt?.trim()}>
                     {(alt) => (
-                      <p class="mt-2 max-h-[4rem] max-w-full overflow-y-auto break-words text-center text-sm text-white/80">
+                      <p class="mt-2 max-h-[4rem] max-w-full overflow-y-auto whitespace-pre-wrap break-words text-center text-sm text-white/80">
                         {alt()}
                       </p>
                     )}
