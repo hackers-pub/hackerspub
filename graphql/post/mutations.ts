@@ -2580,7 +2580,9 @@ builder.relayMutationField(
     description:
       "Step 1 of direct image upload: obtain a pre-signed URL and headers " +
       "for a PUT request. After uploading, call `finishMediumUpload` with " +
-      "the returned `uploadId`. Requires authentication.",
+      "the returned `uploadId`. Filesystem-backed upload URLs use the " +
+      "configured canonical `ORIGIN`, which must be browser-reachable. " +
+      "Requires authentication.",
     inputFields: (t) => ({
       contentType: t.field({
         type: "MediaType",
@@ -2628,7 +2630,10 @@ builder.relayMutationField(
           }),
         );
       } catch {
-        uploadUrl = new URL(`/medium-uploads/${upload.id}`, ctx.request.url);
+        uploadUrl = new URL(
+          `/medium-uploads/${upload.id}`,
+          ctx.fedCtx.canonicalOrigin,
+        );
         uploadUrl.searchParams.set("token", upload.token);
       }
       return {

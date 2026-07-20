@@ -1,15 +1,27 @@
 {
 	auto_https off
+	servers :8000 {
+		trusted_proxies static private_ranges
+		trusted_proxies_strict
+	}
+}
+
+(proxy_headers) {
+	header_up X-Forwarded-For {client_ip}
 }
 
 :8000 {
 	@api path /graphql /graphql/* /medium-uploads/* /media/* /.well-known/* /ap/* /nodeinfo/*
 
 	handle @api {
-		reverse_proxy graphql:8080
+		reverse_proxy graphql:8080 {
+			import proxy_headers
+		}
 	}
 
 	handle {
-		reverse_proxy web-next:3000
+		reverse_proxy web-next:3000 {
+			import proxy_headers
+		}
 	}
 }

@@ -39,3 +39,13 @@ Deno.test("Codespaces exposes a single canonical gateway origin", async () => {
   assertStringIncludes(gateway, "reverse_proxy graphql:8080");
   assertStringIncludes(gateway, "reverse_proxy web-next:3000");
 });
+
+Deno.test("development gateway preserves trusted tunnel metadata", async () => {
+  const gateway = await Deno.readTextFile(
+    new URL("../Caddyfile.dev", import.meta.url),
+  );
+
+  assertStringIncludes(gateway, "trusted_proxies static private_ranges");
+  assertStringIncludes(gateway, "trusted_proxies_strict");
+  assertStringIncludes(gateway, "header_up X-Forwarded-For {client_ip}");
+});

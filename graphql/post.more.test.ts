@@ -380,6 +380,19 @@ const finishMediumUploadMutation = parse(`
   }
 `);
 
+const startMediumUploadMutation = parse(`
+  mutation StartMediumUpload($input: StartMediumUploadInput!) {
+    startMediumUpload(input: $input) {
+      __typename
+      ... on StartMediumUploadPayload {
+        uploadId
+        uploadUrl
+        method
+      }
+    }
+  }
+`);
+
 const articleContentOgImageCollisionQuery = parse(`
   query ArticleContentOgImageCollision(
     $handle: String!
@@ -1358,6 +1371,54 @@ test("finishMediumUpload cleans up invalid uploaded bytes", async () => {
     });
     assert.throws(() => disk.getBytes(upload.key));
     assert.equal(await getMediumUploadSession(kv, upload.id), undefined);
+  });
+});
+
+test("startMediumUpload uses the canonical origin for filesystem uploads", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "canonicaluploadgraphql",
+      name: "Canonical Upload GraphQL",
+      email: "canonicaluploadgraphql@example.com",
+    });
+    const { kv } = createTestKv();
+    const disk = createTestDisk();
+    const fedCtx = Object.assign(createFedCtx(tx, { kv }), {
+      canonicalOrigin: "https://public.example/",
+    });
+
+    const result = await execute({
+      schema,
+      document: startMediumUploadMutation,
+      variableValues: {
+        input: { contentType: "image/png", contentLength: 4 },
+      },
+      contextValue: makeUserContext(tx, account.account, {
+        kv,
+        disk,
+        fedCtx,
+        request: new Request("http://graphql:8080/graphql"),
+      }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    const data = toPlainJson(result.data) as {
+      startMediumUpload: {
+        __typename: string;
+        uploadId: string;
+        uploadUrl: string;
+        method: string;
+      };
+    };
+    const uploadUrl = new URL(data.startMediumUpload.uploadUrl);
+    assert.equal(uploadUrl.origin, "https://public.example");
+    assert.equal(
+      uploadUrl.pathname,
+      `/medium-uploads/${data.startMediumUpload.uploadId}`,
+    );
+    assert.notEqual(uploadUrl.searchParams.get("token"), null);
+    assert.equal(data.startMediumUpload.method, "PUT");
   });
 });
 

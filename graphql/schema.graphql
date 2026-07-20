@@ -6232,7 +6232,7 @@ type StandardEmoji {
 }
 
 """
-Step 1 of direct image upload: obtain a pre-signed URL and headers for a PUT request. After uploading, call `finishMediumUpload` with the returned `uploadId`. Requires authentication.
+Step 1 of direct image upload: obtain a pre-signed URL and headers for a PUT request. After uploading, call `finishMediumUpload` with the returned `uploadId`. Filesystem-backed upload URLs use the configured canonical `ORIGIN`, which must be browser-reachable. Requires authentication.
 """
 input StartMediumUploadInput {
   clientMutationId: ID
