@@ -35,7 +35,8 @@ import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { useNavigate, useParams } from "@solidjs/router";
 import {
   createDraftFormSnapshot,
-  draftFormMatchesSnapshot,
+  createDraftSaveInput,
+  reconcileDraftSaveResponse,
 } from "./draftSaveSnapshot.ts";
 import { useAutoSave } from "./useAutoSave.ts";
 import { useUnsavedGuard } from "./useUnsavedGuard.ts";
@@ -327,11 +328,12 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
       return;
     }
 
-    const submittedDraft = createDraftFormSnapshot(
+    const submittedForm = createDraftFormSnapshot(
       title(),
       content(),
       tags(),
     );
+    const submittedDraft = createDraftSaveInput(submittedForm);
 
     saveDraft({
       variables: {
@@ -349,28 +351,31 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
           response.saveArticleDraft.__typename === "SaveArticleDraftPayload"
         ) {
           const savedDraft = response.saveArticleDraft.draft;
-          const currentDraft = createDraftFormSnapshot(
+          const currentForm = createDraftFormSnapshot(
             title(),
             content(),
             tags(),
           );
-          const formStillMatchesSubmitted = draftFormMatchesSnapshot(
-            currentDraft,
-            submittedDraft,
+          const savedForm = createDraftFormSnapshot(
+            savedDraft.title,
+            savedDraft.content,
+            savedDraft.tags,
+          );
+          const { formReconciled, baseline } = reconcileDraftSaveResponse(
+            currentForm,
+            submittedForm,
+            savedForm,
           );
 
           setSavedDraft({
             id: savedDraft.id,
             uuid: savedDraft.uuid,
-            title: savedDraft.title,
-            content: savedDraft.content,
-            tags: savedDraft.tags,
+            title: baseline.title,
+            content: baseline.content,
+            tags: [...baseline.tags],
           });
 
-          if (formStillMatchesSubmitted) {
-            setTitle(savedDraft.title);
-            setContent(savedDraft.content);
-            setTags([...savedDraft.tags]);
+          if (formReconciled) {
             setIsDirty(false);
           } else {
             setIsDirty(true);
@@ -387,12 +392,12 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
               variant: "success",
             });
           }
-          if (formStillMatchesSubmitted) {
+          if (formReconciled) {
             props.onSaved?.(savedDraft.id, savedDraft.uuid);
             // Only continue (e.g. advance to publish, or publish now) when the
-            // saved snapshot still matches the form. If the user edited while
-            // the save was in flight, the newer changes are unsaved, so skip
-            // the follow-up rather than acting on a stale draft.
+            // form still matches what was submitted or has converged to the
+            // saved response. Otherwise the user has newer unsaved changes,
+            // so skip the follow-up rather than acting on a stale draft.
             afterSave?.();
           }
         } else if (
