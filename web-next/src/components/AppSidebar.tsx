@@ -1128,7 +1128,7 @@ function RecentDraftsSection(props: RecentDraftsSectionProps) {
                     props.signedAccount!.username
                   }/drafts/${edge.node.uuid}`}
                 >
-                  {edge.node.title}
+                  <span>{edge.node.title}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             )}

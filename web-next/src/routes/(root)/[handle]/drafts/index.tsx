@@ -271,7 +271,7 @@ export default function ArticleDraftsListPage() {
             <div class="grid gap-3">
               <For each={draftEdges()}>
                 {(edge) => (
-                  <Card class="transition-colors hover:bg-accent/40">
+                  <Card class="min-w-0 transition-colors hover:bg-accent/40">
                     <CardContent class="p-4">
                       <div class="flex items-start justify-between gap-4">
                         <A
