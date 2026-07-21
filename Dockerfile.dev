@@ -52,6 +52,7 @@ RUN mise deps install deno --force
 
 COPY . /app
 RUN cp .env.sample .env && \
+  sed -i 's|^KV_URL=.*|KV_URL=file:///tmp/hackerspub-build-kv.json|' .env && \
   sed -i '/^INSTANCE_ACTOR_KEY=/d' .env && \
   echo >> .env && \
   echo "INSTANCE_ACTOR_KEY='$(mise run keygen)'" >> .env && \
