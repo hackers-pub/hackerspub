@@ -22,7 +22,7 @@ x-application: &application
     # Object-storage drivers ignore this value.
     FS_LOCATION: ./media
     MODE: ${MODE:-development}
-    EMAIL_FROM: ${EMAIL_FROM:-admin@example.com}
+    EMAIL_FROM: ${EMAIL_FROM:-${MAILGUN_FROM:-admin@example.com}}
     MAILGUN_KEY: ${MAILGUN_KEY}
     MAILGUN_REGION: ${MAILGUN_REGION}
     MAILGUN_DOMAIN: ${MAILGUN_DOMAIN}

@@ -96,6 +96,17 @@ Deno.test("Compose forwards dotenv runtime options before mise starts", async ()
   assertStringIncludes(application, "KV_URL: redis://redis:6379/0");
 });
 
+Deno.test("Compose preserves the configured Mailgun sender", async () => {
+  const compose = await Deno.readTextFile(
+    new URL("../docker-compose.yml", import.meta.url),
+  );
+
+  assertStringIncludes(
+    compose,
+    "EMAIL_FROM: ${EMAIL_FROM:-${MAILGUN_FROM:-admin@example.com}}",
+  );
+});
+
 Deno.test("direct standalone startup requires a shared Redis KV", async () => {
   const sample = await Deno.readTextFile(
     new URL("../.env.sample", import.meta.url),
