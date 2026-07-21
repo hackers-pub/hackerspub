@@ -3,6 +3,8 @@ x-application: &application
     context: .
     dockerfile: Dockerfile.dev
   environment: &application-environment
+    # Compose owns container networking; ignore the bind-mounted host .env.
+    MISE_NO_ENV: "1"
     DATABASE_URL: postgresql://postgres:password@db:5432/hackerspub
     KV_URL: redis://redis:6379/0
     ORIGIN: ${ORIGIN:-http://localhost:8000}
@@ -75,6 +77,8 @@ services:
     <<: *application
     command: sh -c "mise run next:codegen && mise run dev:web-next"
     environment:
+      # This mapping replaces the inherited application environment.
+      MISE_NO_ENV: "1"
       NO_WATCHMAN: "1"
       API_URL: http://graphql:8080/graphql
       BEHIND_PROXY: ${BEHIND_PROXY:-false}

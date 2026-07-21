@@ -63,3 +63,29 @@ Deno.test("shared production image delegates role health checks", async () => {
     assertStringIncludes(compose, `prod:hc:${role}`);
   }
 });
+
+Deno.test("Compose services ignore the bind-mounted host dotenv file", async () => {
+  const compose = await Deno.readTextFile(
+    new URL("../docker-compose.yml", import.meta.url),
+  );
+  const application = compose.match(/^x-application:[\s\S]*?\nservices:/)?.[0];
+  const webNext = compose.match(/^ {2}web-next:\n[\s\S]*?^ {2}gateway:/m)?.[0];
+
+  assert(application != null);
+  assertStringIncludes(application, 'MISE_NO_ENV: "1"');
+  assert(webNext != null);
+  assertStringIncludes(webNext, 'MISE_NO_ENV: "1"');
+});
+
+Deno.test("standalone worker preserves the legacy signature first knock", async () => {
+  const legacy = await Deno.readTextFile(
+    new URL("../web/main.ts", import.meta.url),
+  );
+  const worker = await Deno.readTextFile(
+    new URL("../graphql/worker.ts", import.meta.url),
+  );
+  const firstKnock = 'firstKnock: "draft-cavage-http-signatures-12"';
+
+  assertStringIncludes(legacy, firstKnock);
+  assertStringIncludes(worker, firstKnock);
+});
