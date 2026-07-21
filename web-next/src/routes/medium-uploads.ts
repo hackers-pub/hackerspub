@@ -1,3 +1,4 @@
+import { validateUuid } from "@hackerspub/models/uuid";
 import type { APIEvent } from "@solidjs/start/server";
 import { getApiUrl } from "~/lib/env.ts";
 import {
@@ -11,8 +12,8 @@ export function OPTIONS({ request }: APIEvent): Response {
 
 export async function PUT({ request }: APIEvent): Promise<Response> {
   const uploadId = new URL(request.url).searchParams.get("uploadId");
-  if (uploadId == null) {
-    return new Response("Missing uploadId", { status: 400 });
+  if (uploadId == null || !validateUuid(uploadId)) {
+    return new Response("Invalid or missing uploadId", { status: 400 });
   }
   return await fetch(
     createMediumUploadProxyRequest(request, getApiUrl(), uploadId),

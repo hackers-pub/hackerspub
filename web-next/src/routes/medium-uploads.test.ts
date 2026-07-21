@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import test from "node:test";
 import type { APIEvent } from "@solidjs/start/server";
-import { OPTIONS } from "./medium-uploads.ts";
+import { OPTIONS, PUT } from "./medium-uploads.ts";
 
 test("OPTIONS permits cross-origin upload preflights", () => {
   const request = new Request(
@@ -23,4 +23,16 @@ test("OPTIONS permits cross-origin upload preflights", () => {
     response.headers.get("Access-Control-Allow-Methods"),
     "PUT, OPTIONS",
   );
+});
+
+test("PUT rejects malformed upload IDs before proxying", async () => {
+  const request = new Request(
+    "https://public.example/medium-uploads?uploadId=not-a-uuid&token=secret",
+    { method: "PUT" },
+  );
+
+  const response = await PUT({ request } as APIEvent);
+
+  assert.equal(response.status, 400);
+  assert.equal(await response.text(), "Invalid or missing uploadId");
 });
