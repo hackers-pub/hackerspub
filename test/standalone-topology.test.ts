@@ -73,8 +73,10 @@ Deno.test("Compose services ignore the bind-mounted host dotenv file", async () 
 
   assert(application != null);
   assertStringIncludes(application, 'MISE_NO_ENV: "1"');
+  assertStringIncludes(application, "ORIGIN: ${ORIGIN:-http://localhost:8000}");
   assert(webNext != null);
   assertStringIncludes(webNext, 'MISE_NO_ENV: "1"');
+  assertStringIncludes(webNext, "ORIGIN: ${ORIGIN:-http://localhost:8000}");
 });
 
 Deno.test("Compose forwards dotenv runtime options before mise starts", async () => {

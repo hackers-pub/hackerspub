@@ -89,7 +89,7 @@ services:
       API_URL: http://graphql:8080/graphql
       BEHIND_PROXY: ${BEHIND_PROXY:-false}
       HOST: 0.0.0.0
-      ORIGIN: ${ORIGIN}
+      ORIGIN: ${ORIGIN:-http://localhost:8000}
       PLAUSIBLE: ${PLAUSIBLE:-false}
       SENTRY_DSN: ${SENTRY_DSN}
     ports:
