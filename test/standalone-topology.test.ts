@@ -159,6 +159,19 @@ Deno.test("standalone worker preserves the legacy signature first knock", async 
   assertStringIncludes(worker, firstKnock);
 });
 
+Deno.test("production image builds with a local file KV", async () => {
+  const dockerfile = await Deno.readTextFile(
+    new URL("../Dockerfile", import.meta.url),
+  );
+  const localKv =
+    "sed -i 's|^KV_URL=.*|KV_URL=file:///tmp/hackerspub-build-kv.json|' .env";
+
+  assertStringIncludes(dockerfile, localKv);
+  assert(
+    dockerfile.indexOf(localKv) < dockerfile.indexOf("mise run build:web"),
+  );
+});
+
 Deno.test("development image includes the runtime workspace metadata", async () => {
   const dockerfile = await Deno.readTextFile(
     new URL("../Dockerfile.dev", import.meta.url),

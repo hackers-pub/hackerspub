@@ -127,11 +127,14 @@ RUN if [ -n "$GIT_COMMIT" ]; then \
 # build still succeeds: the Sentry Vite plugin skips its source-map upload when
 # SENTRY_AUTH_TOKEN is unset. Source maps remain in the deployed web-next output
 # so production browser and server debugging can use the same artifacts.
+# Fresh evaluates web/main.ts while building, so replace the copied sample's
+# runtime Redis URL with a build-local file store before starting either build.
 RUN --mount=type=secret,id=sentry_auth_token,target=/run/secrets/sentry_auth_token,required=false \
   if [ -f /run/secrets/sentry_auth_token ]; then \
     export SENTRY_AUTH_TOKEN="$(cat /run/secrets/sentry_auth_token)"; \
   fi && \
   cp .env.sample .env && \
+  sed -i 's|^KV_URL=.*|KV_URL=file:///tmp/hackerspub-build-kv.json|' .env && \
   sed -i '/^INSTANCE_ACTOR_KEY=/d' .env && \
   echo >> .env && \
   echo "INSTANCE_ACTOR_KEY='$(mise run keygen)'" >> .env && \
