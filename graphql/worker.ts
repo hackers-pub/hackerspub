@@ -22,13 +22,13 @@ import {
   FILE_SYSTEM_STORAGE_BASE_URL,
 } from "@hackerspub/runtime/resources";
 import { sql } from "drizzle-orm";
+import metadata from "./deno.json" with { type: "json" };
 import { sendNotificationDigests } from "./notification-digest.ts";
 import { services } from "./services.ts";
 import {
   DEFAULT_WORKER_HEALTH_FILE,
   startWorkerHeartbeat,
 } from "./worker-health.ts";
-import metadata from "./deno.json" with { type: "json" };
 
 const resources = await createRuntimeResources(
   loadStandaloneServerConfig(getDenoEnvironment()),
