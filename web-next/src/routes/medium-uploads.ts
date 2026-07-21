@@ -1,6 +1,13 @@
 import type { APIEvent } from "@solidjs/start/server";
 import { getApiUrl } from "~/lib/env.ts";
-import { createMediumUploadProxyRequest } from "~/lib/mediumUploadProxy.ts";
+import {
+  createMediumUploadPreflightResponse,
+  createMediumUploadProxyRequest,
+} from "~/lib/mediumUploadProxy.ts";
+
+export function OPTIONS({ request }: APIEvent): Response {
+  return createMediumUploadPreflightResponse(request);
+}
 
 export async function PUT({ request }: APIEvent): Promise<Response> {
   const uploadId = new URL(request.url).searchParams.get("uploadId");
