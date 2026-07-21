@@ -13,6 +13,10 @@ export const DEFAULT_WORKER_HEALTH_FILE =
 export const WORKER_HEARTBEAT_INTERVAL_MILLISECONDS = 10_000;
 export const WORKER_HEARTBEAT_MAX_AGE_MILLISECONDS = 30_000;
 
+export function resolveWorkerHealthFile(path: string | undefined): string {
+  return path || DEFAULT_WORKER_HEALTH_FILE;
+}
+
 export async function startWorkerHeartbeat(
   path: string,
   options: WorkerHeartbeatOptions = {},

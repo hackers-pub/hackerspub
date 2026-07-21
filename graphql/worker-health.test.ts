@@ -1,6 +1,20 @@
 import assert from "node:assert";
 import test from "node:test";
-import { checkWorkerHeartbeat, startWorkerHeartbeat } from "./worker-health.ts";
+import {
+  checkWorkerHeartbeat,
+  DEFAULT_WORKER_HEALTH_FILE,
+  resolveWorkerHealthFile,
+  startWorkerHeartbeat,
+} from "./worker-health.ts";
+
+test("worker health file falls back for missing or empty paths", () => {
+  assert.equal(resolveWorkerHealthFile(undefined), DEFAULT_WORKER_HEALTH_FILE);
+  assert.equal(resolveWorkerHealthFile(""), DEFAULT_WORKER_HEALTH_FILE);
+  assert.equal(
+    resolveWorkerHealthFile("/tmp/custom.health"),
+    "/tmp/custom.health",
+  );
+});
 
 test("worker heartbeat stays fresh until stopped", async () => {
   const directory = await Deno.makeTempDir();

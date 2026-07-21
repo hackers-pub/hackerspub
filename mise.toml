@@ -141,9 +141,9 @@ description = "Health check the GraphQL worker heartbeat"
 run = '''
 import {
   checkWorkerHeartbeat,
-  DEFAULT_WORKER_HEALTH_FILE,
+  resolveWorkerHealthFile,
 } from "./graphql/worker-health.ts";
-const path = Deno.env.get("WORKER_HEALTH_FILE") ?? DEFAULT_WORKER_HEALTH_FILE;
+const path = resolveWorkerHealthFile(Deno.env.get("WORKER_HEALTH_FILE"));
 if (!await checkWorkerHeartbeat(path)) Deno.exit(1);
 '''
 shell = "deno eval"

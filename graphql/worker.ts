@@ -26,7 +26,7 @@ import metadata from "./deno.json" with { type: "json" };
 import { sendNotificationDigests } from "./notification-digest.ts";
 import { services } from "./services.ts";
 import {
-  DEFAULT_WORKER_HEALTH_FILE,
+  resolveWorkerHealthFile,
   startWorkerHeartbeat,
 } from "./worker-health.ts";
 
@@ -267,7 +267,7 @@ let queueError: unknown;
 try {
   await migrateLegacyOutboxEvents(db);
   const heartbeat = await startWorkerHeartbeat(
-    Deno.env.get("WORKER_HEALTH_FILE") ?? DEFAULT_WORKER_HEALTH_FILE,
+    resolveWorkerHealthFile(Deno.env.get("WORKER_HEALTH_FILE")),
   );
   try {
     const queue = federation.startQueue(
