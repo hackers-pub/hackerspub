@@ -64,6 +64,12 @@ Deno.test("loadStandaloneServerConfig requires a process-safe shared KV", () => 
     KV_URL: "redis://localhost:6379/0",
   });
   assertEquals(config.kv.url.href, "redis://localhost:6379/0");
+
+  const tlsConfig = loadStandaloneServerConfig({
+    ...required,
+    KV_URL: "rediss://redis.example:6379/0",
+  });
+  assertEquals(tlsConfig.kv.url.href, "rediss://redis.example:6379/0");
 });
 
 Deno.test("loadServerConfig uses mock email in development without Mailgun", () => {

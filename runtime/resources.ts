@@ -280,7 +280,8 @@ export async function createFederationResource(
     import("@hackerspub/federation"),
     import("@hackerspub/federation/outbox-queue"),
   ]);
-  const redis = config.kv.url.protocol === "redis:"
+  const redis = config.kv.url.protocol === "redis:" ||
+      config.kv.url.protocol === "rediss:"
     ? new Redis(config.kv.url.href, {
       family: config.kv.url.hostname.endsWith(".upstash.io") ? 6 : 4,
     })
