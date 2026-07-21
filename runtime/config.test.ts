@@ -4,6 +4,7 @@ import {
   loadAccountCreationConfig,
   loadDatabaseConfig,
   loadServerConfig,
+  loadStandaloneServerConfig,
 } from "./config.ts";
 
 const required = {
@@ -45,6 +46,24 @@ Deno.test("loadServerConfig parses runtime configuration without reading Deno.en
     from: "noreply@hackers.pub",
     reason: "ci",
   });
+});
+
+Deno.test("loadStandaloneServerConfig requires a process-safe shared KV", () => {
+  const error = assertThrows(
+    () => loadStandaloneServerConfig(required),
+    ConfigurationError,
+  ) as ConfigurationError;
+
+  assertEquals(error.issues, [{
+    variable: "KV_URL",
+    message: "must use redis for standalone GraphQL services",
+  }]);
+
+  const config = loadStandaloneServerConfig({
+    ...required,
+    KV_URL: "redis://localhost:6379/0",
+  });
+  assertEquals(config.kv.url.href, "redis://localhost:6379/0");
 });
 
 Deno.test("loadServerConfig uses mock email in development without Mailgun", () => {

@@ -5,7 +5,7 @@ import "./logging.ts";
 import { toApplicationContext } from "@hackerspub/federation/context";
 import {
   getDenoEnvironment,
-  loadServerConfig,
+  loadStandaloneServerConfig,
 } from "@hackerspub/runtime/config";
 import {
   createRuntimeResources,
@@ -26,7 +26,7 @@ const appleAppSiteAssociationJson = Deno.readTextFileSync(
 
 const yogaServer = createYogaServer();
 const resources = await createRuntimeResources(
-  loadServerConfig(getDenoEnvironment()),
+  loadStandaloneServerConfig(getDenoEnvironment()),
   metadata.version,
   {
     fileSystemBaseUrl: FILE_SYSTEM_STORAGE_BASE_URL,

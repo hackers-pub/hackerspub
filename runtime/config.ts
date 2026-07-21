@@ -273,6 +273,17 @@ export function loadServerConfig(env: Environment): ServerConfig {
   };
 }
 
+export function loadStandaloneServerConfig(env: Environment): ServerConfig {
+  const config = loadServerConfig(env);
+  if (config.kv.url.protocol !== "redis:") {
+    throw new ConfigurationError([{
+      variable: "KV_URL",
+      message: "must use redis for standalone GraphQL services",
+    }]);
+  }
+  return config;
+}
+
 export function getDenoEnvironment(): Environment {
   return Deno.env.toObject();
 }

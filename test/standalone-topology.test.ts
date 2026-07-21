@@ -94,6 +94,26 @@ Deno.test("Compose forwards dotenv runtime options before mise starts", async ()
   assertStringIncludes(application, "KV_URL: redis://redis:6379/0");
 });
 
+Deno.test("direct standalone startup requires a shared Redis KV", async () => {
+  const sample = await Deno.readTextFile(
+    new URL("../.env.sample", import.meta.url),
+  );
+  const contributing = await Deno.readTextFile(
+    new URL("../CONTRIBUTING.md", import.meta.url),
+  );
+  const main = await Deno.readTextFile(
+    new URL("../graphql/main.ts", import.meta.url),
+  );
+  const worker = await Deno.readTextFile(
+    new URL("../graphql/worker.ts", import.meta.url),
+  );
+
+  assertStringIncludes(sample, "KV_URL=redis://localhost:6379/0");
+  assertStringIncludes(contributing, "`KV_URL=redis://localhost:6379/0`");
+  assertStringIncludes(main, "loadStandaloneServerConfig");
+  assertStringIncludes(worker, "loadStandaloneServerConfig");
+});
+
 Deno.test("standalone worker preserves the legacy signature first knock", async () => {
   const legacy = await Deno.readTextFile(
     new URL("../web/main.ts", import.meta.url),

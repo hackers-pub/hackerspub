@@ -15,7 +15,7 @@ import { notifyEndedPolls } from "@hackerspub/models/poll";
 import { getLogger } from "@logtape/logtape";
 import {
   getDenoEnvironment,
-  loadServerConfig,
+  loadStandaloneServerConfig,
 } from "@hackerspub/runtime/config";
 import {
   createRuntimeResources,
@@ -31,7 +31,7 @@ import {
 import metadata from "./deno.json" with { type: "json" };
 
 const resources = await createRuntimeResources(
-  loadServerConfig(getDenoEnvironment()),
+  loadStandaloneServerConfig(getDenoEnvironment()),
   metadata.version,
   {
     fileSystemBaseUrl: FILE_SYSTEM_STORAGE_BASE_URL,

@@ -155,8 +155,9 @@ and set the values of the variables according to your environment.
 >     browser testing, but remote development and production deployments need
 >     HTTPS for browser Push API subscriptions.
 >
->  -  `KV_URL` can start with `file://` to use a file-based cache, e.g.,
->     `KV_URL=file:///tmp/kv.db`.
+>  -  `KV_URL` must point to Redis when running the standalone GraphQL API and
+>     worker.  A file-backed store is only safe for a single process, such as
+>     the legacy web stack or one-off command-line utilities.
 >
 >  -  `DRIVE_DISK` can be set to `fs` to use the file system for storing files.
 >     In this case, you also need to set `FS_LOCATION` to the directory where
@@ -275,18 +276,23 @@ To run web-next, the new web frontend for Hackers' Pub, follow these steps:
     `NO_WATCHMAN=1` environment variable when running the dev server and
     run `mise run next:codegen` manually whenever GraphQL files change.
 
-2.  Start the standalone GraphQL API and its queue worker in separate
+2.  Ensure Redis is running and set `KV_URL=redis://localhost:6379/0` in
+    *.env*.  The standalone GraphQL API and worker are separate processes, so
+    they must not share a file-backed KV store.  Compose provides Redis and
+    configures this value automatically.
+
+3.  Start the standalone GraphQL API and its queue worker in separate
     terminals with `mise run dev:graphql` and
     `mise run dev:graphql-worker`.
 
-3.  Run the development server with
+4.  Run the development server with
     `API_URL=http://localhost:8080/graphql mise run dev:web-next`.
     Alternatively, `docker compose up` starts PostgreSQL, Redis, the
     standalone API, the worker, web-next, and a gateway that exposes the
     unified application origin.  Fresh is available only through the explicit
     `legacy` Compose profile on port 8001.
 
-4.  With Compose, access http://localhost:8000/ through the gateway.  When
+5.  With Compose, access http://localhost:8000/ through the gateway.  When
     running the three development tasks directly, access
     http://localhost:3000/ instead.
 
