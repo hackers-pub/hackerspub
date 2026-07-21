@@ -2,6 +2,7 @@ import {
   checkWorkerHeartbeat,
   WORKER_HEARTBEAT_MAX_AGE_MILLISECONDS,
 } from "../graphql/worker-health.ts";
+import { waitUntil } from "./smoke-readiness.ts";
 
 const heartbeatPath = `/tmp/hackerspub-standalone-smoke-${Deno.pid}.health`;
 const processes: Deno.ChildProcess[] = [];
@@ -16,23 +17,6 @@ function start(task: string, environment: Record<string, string> = {}) {
   }).spawn();
   processes.push(process);
   return process;
-}
-
-async function waitUntil(
-  description: string,
-  check: () => Promise<boolean>,
-  timeoutMilliseconds = 60_000,
-) {
-  const deadline = Date.now() + timeoutMilliseconds;
-  while (Date.now() < deadline) {
-    try {
-      if (await check()) return;
-    } catch {
-      // The service can refuse connections while it is still starting.
-    }
-    await new Promise((resolve) => setTimeout(resolve, 500));
-  }
-  throw new Error(`Timed out waiting for ${description}.`);
 }
 
 async function stop(process: Deno.ChildProcess) {
@@ -64,11 +48,12 @@ async function removeHeartbeat() {
 
 try {
   start("prod:graphql");
-  await waitUntil("the standalone GraphQL API", async () => {
+  await waitUntil("the standalone GraphQL API", async (signal) => {
     const response = await fetch("http://127.0.0.1:8080/graphql", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ query: "{__typename}" }),
+      signal,
     });
     const body = await response.json();
     return response.ok && body.data?.__typename === "Query";
@@ -82,8 +67,8 @@ try {
     ));
 
   start("prod:web-next");
-  await waitUntil("web-next", async () => {
-    const response = await fetch("http://127.0.0.1:3000/search");
+  await waitUntil("web-next", async (signal) => {
+    const response = await fetch("http://127.0.0.1:3000/search", { signal });
     return response.ok;
   });
 } finally {
