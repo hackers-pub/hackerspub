@@ -1415,7 +1415,11 @@ test("startMediumUpload uses the canonical origin for filesystem uploads", async
     assert.equal(uploadUrl.origin, "https://public.example");
     assert.equal(
       uploadUrl.pathname,
-      `/medium-uploads/${data.startMediumUpload.uploadId}`,
+      "/medium-uploads",
+    );
+    assert.equal(
+      uploadUrl.searchParams.get("uploadId"),
+      data.startMediumUpload.uploadId,
     );
     assert.notEqual(uploadUrl.searchParams.get("token"), null);
     assert.equal(data.startMediumUpload.method, "PUT");

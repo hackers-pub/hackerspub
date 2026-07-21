@@ -2631,9 +2631,10 @@ builder.relayMutationField(
         );
       } catch {
         uploadUrl = new URL(
-          `/medium-uploads/${upload.id}`,
+          "/medium-uploads",
           ctx.fedCtx.canonicalOrigin,
         );
+        uploadUrl.searchParams.set("uploadId", upload.id);
         uploadUrl.searchParams.set("token", upload.token);
       }
       return {

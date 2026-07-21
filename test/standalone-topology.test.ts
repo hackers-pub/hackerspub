@@ -114,6 +114,15 @@ Deno.test("direct standalone startup requires a shared Redis KV", async () => {
   assertStringIncludes(worker, "loadStandaloneServerConfig");
 });
 
+Deno.test("web-next proxies canonical filesystem upload URLs", async () => {
+  const route = await Deno.readTextFile(
+    new URL("../web-next/src/routes/medium-uploads.ts", import.meta.url),
+  );
+
+  assertStringIncludes(route, "createMediumUploadProxyRequest");
+  assertStringIncludes(route, "export async function PUT");
+});
+
 Deno.test("standalone worker preserves the legacy signature first knock", async () => {
   const legacy = await Deno.readTextFile(
     new URL("../web/main.ts", import.meta.url),
