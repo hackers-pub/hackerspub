@@ -118,9 +118,14 @@ Deno.test("web-next proxies canonical filesystem upload URLs", async () => {
   const route = await Deno.readTextFile(
     new URL("../web-next/src/routes/medium-uploads.ts", import.meta.url),
   );
+  const middleware = await Deno.readTextFile(
+    new URL("../web-next/src/middleware.ts", import.meta.url),
+  );
 
   assertStringIncludes(route, "createMediumUploadProxyRequest");
   assertStringIncludes(route, "export async function PUT");
+  assertStringIncludes(middleware, "createMediumUploadPreflightResponse");
+  assertStringIncludes(middleware, 'url.pathname === "/medium-uploads"');
 });
 
 Deno.test("standalone worker preserves the legacy signature first knock", async () => {

@@ -1,5 +1,40 @@
 import { assertEquals } from "@std/assert";
-import { createMediumUploadProxyRequest } from "./mediumUploadProxy.ts";
+import {
+  createMediumUploadPreflightResponse,
+  createMediumUploadProxyRequest,
+} from "./mediumUploadProxy.ts";
+
+Deno.test("createMediumUploadPreflightResponse permits cross-origin PUTs", () => {
+  const response = createMediumUploadPreflightResponse(
+    new Request(
+      "https://public.example/medium-uploads?uploadId=123&token=secret",
+      {
+        method: "OPTIONS",
+        headers: {
+          Origin: "http://localhost:3000",
+          "Access-Control-Request-Method": "PUT",
+          "Access-Control-Request-Headers": "content-type",
+        },
+      },
+    ),
+  );
+
+  assertEquals(response.status, 204);
+  assertEquals(
+    response.headers.get("Access-Control-Allow-Origin"),
+    "http://localhost:3000",
+  );
+  assertEquals(
+    response.headers.get("Access-Control-Allow-Methods"),
+    "PUT, OPTIONS",
+  );
+  assertEquals(
+    response.headers.get("Access-Control-Allow-Headers"),
+    "Content-Type, Content-Length",
+  );
+  assertEquals(response.headers.get("Access-Control-Max-Age"), "86400");
+  assertEquals(response.headers.get("Vary"), "Origin");
+});
 
 Deno.test("createMediumUploadProxyRequest targets the internal API safely", async () => {
   const request = new Request(

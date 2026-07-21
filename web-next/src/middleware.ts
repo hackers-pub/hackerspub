@@ -1,5 +1,6 @@
 import { redirect } from "@solidjs/router";
 import { createMiddleware } from "@solidjs/start/middleware";
+import { createMediumUploadPreflightResponse } from "~/lib/mediumUploadProxy.ts";
 import { hasMalformedPathEncoding } from "~/lib/requestPath.ts";
 import { readSessionCookie } from "~/lib/sessionCookie.ts";
 
@@ -11,6 +12,12 @@ export default createMiddleware({
         status: 400,
         headers: { "Content-Type": "text/plain; charset=UTF-8" },
       });
+    }
+    if (
+      event.request.method === "OPTIONS" &&
+      url.pathname === "/medium-uploads"
+    ) {
+      return createMediumUploadPreflightResponse(event.request);
     }
     if (url.pathname !== "/") return;
 

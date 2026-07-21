@@ -4,6 +4,22 @@ const UPLOAD_REQUEST_HEADERS = [
   "origin",
 ] as const;
 
+export function createMediumUploadPreflightResponse(
+  request: Request,
+): Response {
+  const headers = new Headers({
+    "Access-Control-Allow-Methods": "PUT, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Content-Length",
+    "Access-Control-Max-Age": "86400",
+  });
+  const origin = request.headers.get("Origin");
+  if (origin != null) {
+    headers.set("Access-Control-Allow-Origin", origin);
+    headers.set("Vary", "Origin");
+  }
+  return new Response(null, { status: 204, headers });
+}
+
 export function createMediumUploadProxyRequest(
   request: Request,
   apiUrl: string,
