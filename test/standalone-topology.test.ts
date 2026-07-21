@@ -89,3 +89,18 @@ Deno.test("standalone worker preserves the legacy signature first knock", async 
   assertStringIncludes(legacy, firstKnock);
   assertStringIncludes(worker, firstKnock);
 });
+
+Deno.test("development image includes the runtime workspace metadata", async () => {
+  const dockerfile = await Deno.readTextFile(
+    new URL("../Dockerfile.dev", import.meta.url),
+  );
+
+  assertStringIncludes(
+    dockerfile,
+    "COPY runtime/deno.json /app/runtime/deno.json",
+  );
+  assertStringIncludes(
+    dockerfile,
+    "COPY runtime/package.json /app/runtime/package.json",
+  );
+});
