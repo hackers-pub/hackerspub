@@ -266,14 +266,14 @@ let queueFailed = false;
 let queueError: unknown;
 try {
   await migrateLegacyOutboxEvents(db);
-  const queue = federation.startQueue(
-    { db, kv, disk, models, services },
-    { signal: controller.signal },
-  );
   const heartbeat = await startWorkerHeartbeat(
     Deno.env.get("WORKER_HEALTH_FILE") ?? DEFAULT_WORKER_HEALTH_FILE,
   );
   try {
+    const queue = federation.startQueue(
+      { db, kv, disk, models, services },
+      { signal: controller.signal },
+    );
     await queue;
     logger.info("The federation message queue worker has stopped.");
   } finally {

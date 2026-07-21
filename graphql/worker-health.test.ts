@@ -8,7 +8,7 @@ test("worker heartbeat stays fresh until stopped", async () => {
   let now = 1_000;
   try {
     const heartbeat = await startWorkerHeartbeat(path, {
-      intervalMilliseconds: 10,
+      intervalMilliseconds: 1_000_000,
       now: () => now,
     });
     assert.equal(await checkWorkerHeartbeat(path, 100, () => now), true);

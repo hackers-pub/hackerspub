@@ -25,10 +25,17 @@ async function stop(process: Deno.ChildProcess) {
   } catch (error) {
     if (!(error instanceof Deno.errors.NotFound)) throw error;
   }
-  const timeout = new Promise<null>((resolve) =>
-    setTimeout(() => resolve(null), 10_000)
-  );
-  if (await Promise.race([process.status, timeout]) == null) {
+  let timeoutId: number | undefined;
+  const timeout = new Promise<null>((resolve) => {
+    timeoutId = setTimeout(() => resolve(null), 10_000);
+  });
+  let result: Deno.CommandStatus | null;
+  try {
+    result = await Promise.race([process.status, timeout]);
+  } finally {
+    if (timeoutId != null) clearTimeout(timeoutId);
+  }
+  if (result == null) {
     try {
       process.kill("SIGKILL");
     } catch (error) {
