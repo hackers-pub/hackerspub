@@ -186,6 +186,7 @@ COPY --from=prod-deps /app/web-next/node_modules /app/web-next/node_modules
 RUN mise trust /app/mise.toml
 
 EXPOSE 3000 8080
-HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-  CMD ["mise", "run", "prod:hc:web-next"]
+# This image serves web-next, GraphQL, and worker roles. Their probes differ,
+# so deployment definitions must select the matching `prod:hc:*` task.
+HEALTHCHECK NONE
 CMD ["mise", "run", "prod:web-next"]

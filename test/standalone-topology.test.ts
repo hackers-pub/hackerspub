@@ -49,3 +49,17 @@ Deno.test("development gateway preserves trusted tunnel metadata", async () => {
   assertStringIncludes(gateway, "trusted_proxies_strict");
   assertStringIncludes(gateway, "header_up X-Forwarded-For {client_ip}");
 });
+
+Deno.test("shared production image delegates role health checks", async () => {
+  const dockerfile = await Deno.readTextFile(
+    new URL("../Dockerfile", import.meta.url),
+  );
+  const compose = await Deno.readTextFile(
+    new URL("../docker-compose.yml", import.meta.url),
+  );
+
+  assertStringIncludes(dockerfile, "HEALTHCHECK NONE");
+  for (const role of ["graphql", "graphql-worker", "web-next"]) {
+    assertStringIncludes(compose, `prod:hc:${role}`);
+  }
+});
