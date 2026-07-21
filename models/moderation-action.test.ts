@@ -757,10 +757,16 @@ describe("sweepExpiredSuspensionRescores()", () => {
         })
         .where(eq(actorTable.id, longExpired.id));
       // Simulate a worker that last swept before that expiry:
-      await tx.insert(adminStateTable).values({
-        key: "expiredSuspensionRescoreSweep",
-        value: new Date(now - 7 * 24 * HOUR).toISOString(),
-      });
+      const watermark = new Date(now - 7 * 24 * HOUR).toISOString();
+      await tx.insert(adminStateTable)
+        .values({
+          key: "expiredSuspensionRescoreSweep",
+          value: watermark,
+        })
+        .onConflictDoUpdate({
+          target: adminStateTable.key,
+          set: { value: watermark },
+        });
       const count = await sweepExpiredSuspensionRescores(tx);
       assert.equal(count, 1);
       const queued = await tx.query.newsRescoreQueueTable.findMany({});
