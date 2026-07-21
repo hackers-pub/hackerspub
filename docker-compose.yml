@@ -2,6 +2,12 @@ x-application: &application
   build:
     context: .
     dockerfile: Dockerfile.dev
+  # Forward every supported runtime option before mise dotenv loading is
+  # disabled below.  Explicit Compose values still win for container-only
+  # networking and shared filesystem paths.
+  env_file:
+  - path: .env
+    required: false
   environment: &application-environment
     # Compose owns container networking; ignore the bind-mounted host .env.
     MISE_NO_ENV: "1"

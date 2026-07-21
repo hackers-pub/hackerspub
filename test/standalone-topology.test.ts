@@ -77,6 +77,23 @@ Deno.test("Compose services ignore the bind-mounted host dotenv file", async () 
   assertStringIncludes(webNext, 'MISE_NO_ENV: "1"');
 });
 
+Deno.test("Compose forwards dotenv runtime options before mise starts", async () => {
+  const compose = await Deno.readTextFile(
+    new URL("../docker-compose.yml", import.meta.url),
+  );
+  const application = compose.match(/^x-application:[\s\S]*?\nservices:/)?.[0];
+
+  assert(application != null);
+  assertStringIncludes(application, "env_file:");
+  assertStringIncludes(application, "path: .env");
+  assertStringIncludes(application, "required: false");
+  assertStringIncludes(
+    application,
+    "DATABASE_URL: postgresql://postgres:password@db:5432/hackerspub",
+  );
+  assertStringIncludes(application, "KV_URL: redis://redis:6379/0");
+});
+
 Deno.test("standalone worker preserves the legacy signature first knock", async () => {
   const legacy = await Deno.readTextFile(
     new URL("../web/main.ts", import.meta.url),
