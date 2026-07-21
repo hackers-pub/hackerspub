@@ -110,6 +110,11 @@ Deno.test("direct standalone startup requires a shared Redis KV", async () => {
 
   assertStringIncludes(sample, "KV_URL=redis://localhost:6379/0");
   assertStringIncludes(contributing, "`KV_URL=redis://localhost:6379/0`");
+  const redisPrerequisite = contributing.indexOf(" -  [Redis]");
+  const firstKvCommand = contributing.indexOf("mise run addaccount");
+  assert(redisPrerequisite >= 0);
+  assert(redisPrerequisite < firstKvCommand);
+  assertStringIncludes(contributing, "redis-cli ping");
   assertStringIncludes(main, "loadStandaloneServerConfig");
   assertStringIncludes(worker, "loadStandaloneServerConfig");
 });

@@ -73,6 +73,7 @@ To build the project, you need to have the following tools installed:
 
  -  [mise]
  -  [PostgreSQL] 17 or higher
+ -  [Redis]
  -  [ffmpeg] 5.0 or higher
  -  [Mailgun] account (optional; for sending emails)
  -  [Anthropic] API key (optional; for translating posts)
@@ -89,6 +90,7 @@ This installs the pinned Deno, Node.js, pnpm, and project tools, installs Deno
 and pnpm dependencies, and writes the pre-commit hook.
 
 [mise]: https://mise.jdx.dev/
+[Redis]: https://redis.io/docs/latest/operate/oss_and_stack/install/
 [Mailgun]: https://www.mailgun.com/
 [Anthropic]: https://console.anthropic.com/
 [Google Generative AI]: https://aistudio.google.com/apikey
@@ -182,6 +184,40 @@ and set the values of the variables according to your environment.
 >     future will be filtered out from timelines. Default value is 300000 (5
 >     minutes). This helps prevent malicious or misconfigured remote servers
 >     from disrupting timeline order with posts that have future timestamps.
+
+
+Starting Redis
+--------------
+
+The sample configuration sets `KV_URL=redis://localhost:6379/0`, so Redis must
+be listening on port 6379 before running `mise run addaccount`,
+`mise run dev:web`, or either standalone GraphQL process.  Install Redis using
+the [official instructions][Redis] for your operating system, then start it.
+For example:
+
+ -  On macOS with the current Homebrew cask, run:
+
+    ~~~~ sh
+    brew tap redis/redis
+    brew install --cask redis
+    redis-server "$(brew --prefix)/etc/redis.conf"
+    ~~~~
+
+ -  On Ubuntu or Debian after installing the official Redis packages, run:
+
+    ~~~~ sh
+    sudo systemctl enable redis-server
+    sudo systemctl start redis-server
+    ~~~~
+
+Verify the server before continuing:
+
+~~~~ sh
+redis-cli ping
+~~~~
+
+The command should print `PONG`.  If you use `docker compose up` instead of
+running the services directly, Compose provides and configures Redis for you.
 
 
 Creating a database schema
