@@ -18,3 +18,7 @@ export const CANONICAL_ORIGIN_URL = new URL(getRequiredEnv("ORIGIN"));
 export function getApiUrl(): string {
   return getRequiredEnv("API_URL");
 }
+
+export function getBehindProxy(): boolean {
+  return nodeProcess.env.BEHIND_PROXY?.toLowerCase() === "true";
+}

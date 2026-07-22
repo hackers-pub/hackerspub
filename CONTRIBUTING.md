@@ -73,6 +73,7 @@ To build the project, you need to have the following tools installed:
 
  -  [mise]
  -  [PostgreSQL] 17 or higher
+ -  [Redis]
  -  [ffmpeg] 5.0 or higher
  -  [Mailgun] account (optional; for sending emails)
  -  [Anthropic] API key (optional; for translating posts)
@@ -89,6 +90,7 @@ This installs the pinned Deno, Node.js, pnpm, and project tools, installs Deno
 and pnpm dependencies, and writes the pre-commit hook.
 
 [mise]: https://mise.jdx.dev/
+[Redis]: https://redis.io/docs/latest/operate/oss_and_stack/install/
 [Mailgun]: https://www.mailgun.com/
 [Anthropic]: https://console.anthropic.com/
 [Google Generative AI]: https://aistudio.google.com/apikey
@@ -155,8 +157,9 @@ and set the values of the variables according to your environment.
 >     browser testing, but remote development and production deployments need
 >     HTTPS for browser Push API subscriptions.
 >
->  -  `KV_URL` can start with `file://` to use a file-based cache, e.g.,
->     `KV_URL=file:///tmp/kv.db`.
+>  -  `KV_URL` must point to Redis when running the standalone GraphQL API and
+>     worker.  A file-backed store is only safe for a single process, such as
+>     the legacy web stack or one-off command-line utilities.
 >
 >  -  `DRIVE_DISK` can be set to `fs` to use the file system for storing files.
 >     In this case, you also need to set `FS_LOCATION` to the directory where
@@ -181,6 +184,40 @@ and set the values of the variables according to your environment.
 >     future will be filtered out from timelines. Default value is 300000 (5
 >     minutes). This helps prevent malicious or misconfigured remote servers
 >     from disrupting timeline order with posts that have future timestamps.
+
+
+Starting Redis
+--------------
+
+The sample configuration sets `KV_URL=redis://localhost:6379/0`, so Redis must
+be listening on port 6379 before running `mise run addaccount`,
+`mise run dev:web`, or either standalone GraphQL process.  Install Redis using
+the [official instructions][Redis] for your operating system, then start it.
+For example:
+
+ -  On macOS with the current Homebrew cask, run:
+
+    ~~~~ sh
+    brew tap redis/redis
+    brew install --cask redis
+    redis-server "$(brew --prefix)/etc/redis.conf"
+    ~~~~
+
+ -  On Ubuntu or Debian after installing the official Redis packages, run:
+
+    ~~~~ sh
+    sudo systemctl enable redis-server
+    sudo systemctl start redis-server
+    ~~~~
+
+Verify the server before continuing:
+
+~~~~ sh
+redis-cli ping
+~~~~
+
+The command should print `PONG`.  If you use `docker compose up` instead of
+running the services directly, Compose provides and configures Redis for you.
 
 
 Creating a database schema
@@ -275,12 +312,25 @@ To run web-next, the new web frontend for Hackers' Pub, follow these steps:
     `NO_WATCHMAN=1` environment variable when running the dev server and
     run `mise run next:codegen` manually whenever GraphQL files change.
 
-2.  Run the development server with the command
-    `API_URL=http://localhost:8000/graphql mise run dev:web-next`.
-    The legacy server must be running at this point, as it also serves as
-    the GraphQL API server for web-next.
+2.  Ensure Redis is running and set `KV_URL=redis://localhost:6379/0` in
+    *.env*.  The standalone GraphQL API and worker are separate processes, so
+    they must not share a file-backed KV store.  Compose provides Redis and
+    configures this value automatically.
 
-3.  Access http://localhost:3000/ to see the new look of Hackers' Pub.
+3.  Start the standalone GraphQL API and its queue worker in separate
+    terminals with `mise run dev:graphql` and
+    `mise run dev:graphql-worker`.
+
+4.  Run the development server with
+    `API_URL=http://localhost:8080/graphql mise run dev:web-next`.
+    Alternatively, `docker compose up` starts PostgreSQL, Redis, the
+    standalone API, the worker, web-next, and a gateway that exposes the
+    unified application origin.  Fresh is available only through the explicit
+    `legacy` Compose profile on port 8001.
+
+5.  With Compose, access http://localhost:8000/ through the gateway.  When
+    running the three development tasks directly, access
+    http://localhost:3000/ instead.
 
 When you build new UI in *web-next/*, follow the conventions documented in
 [*DESIGN.md*](./DESIGN.md) — it covers the color tokens, typography, component

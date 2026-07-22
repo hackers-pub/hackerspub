@@ -45,12 +45,13 @@ test("parseSessionCookie reads valid session cookies", () => {
   assert.deepEqual(sessionId, SESSION_ID);
 });
 
-test("isSecureRequest honors forwarded protocol headers", () => {
+test("isSecureRequest honors forwarded protocol only behind a trusted proxy", () => {
   assert.equal(
     isSecureRequest(
       new Request("http://internal.example", {
         headers: { "x-forwarded-proto": "https" },
       }),
+      true,
     ),
     true,
   );
@@ -59,9 +60,25 @@ test("isSecureRequest honors forwarded protocol headers", () => {
       new Request("http://internal.example", {
         headers: { forwarded: 'for=192.0.2.1;proto="https"' },
       }),
+      true,
     ),
     true,
   );
-  assert.equal(isSecureRequest(new Request("https://public.example")), true);
-  assert.equal(isSecureRequest(new Request("http://internal.example")), false);
+  assert.equal(
+    isSecureRequest(
+      new Request("http://internal.example", {
+        headers: { "x-forwarded-proto": "https" },
+      }),
+      false,
+    ),
+    false,
+  );
+  assert.equal(
+    isSecureRequest(new Request("https://public.example"), false),
+    true,
+  );
+  assert.equal(
+    isSecureRequest(new Request("http://internal.example"), false),
+    false,
+  );
 });

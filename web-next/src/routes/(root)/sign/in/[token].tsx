@@ -5,6 +5,7 @@ import { getQuery } from "@solidjs/start/http";
 import type { APIEvent } from "@solidjs/start/server";
 import { commitMutation, graphql } from "relay-runtime";
 import { createEnvironment } from "~/RelayEnvironment.tsx";
+import { getBehindProxy } from "~/lib/env.ts";
 import {
   buildSessionSetCookieHeader,
   isSecureRequest,
@@ -66,7 +67,7 @@ export async function GET({ params, nativeEvent, request }: APIEvent) {
   // malformed Set-Cookie name for API route handlers.
   const cookie = buildSessionSetCookieHeader(sessionId, {
     expires: new Date(Date.now() + EXPIRATION.total("millisecond")),
-    secure: isSecureRequest(request),
+    secure: isSecureRequest(request, getBehindProxy()),
   });
   const next = typeof query.next === "string" ? query.next : "/";
   return redirect(next, {

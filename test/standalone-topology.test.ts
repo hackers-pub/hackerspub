@@ -1,0 +1,205 @@
+import { assert, assertStringIncludes } from "@std/assert";
+
+Deno.test("standalone services share the legacy-compatible media root", async () => {
+  const compose = await Deno.readTextFile(
+    new URL("../docker-compose.yml", import.meta.url),
+  );
+
+  assertStringIncludes(compose, "FS_LOCATION: ./media");
+  assertStringIncludes(compose, "- ./web/media:/app/web/media:z");
+  assert(!compose.includes("FS_LOCATION: ${FS_LOCATION"));
+});
+
+Deno.test("Codespaces exposes a single canonical gateway origin", async () => {
+  const configuration = await Deno.readTextFile(
+    new URL("../.devcontainer/codespaces/devcontainer.json", import.meta.url),
+  );
+  const overlay = await Deno.readTextFile(
+    new URL(
+      "../.devcontainer/codespaces/docker-compose.yml",
+      import.meta.url,
+    ),
+  );
+  const gateway = await Deno.readTextFile(
+    new URL("../Caddyfile.codespaces", import.meta.url),
+  );
+
+  assertStringIncludes(configuration, '"../../docker-compose.yml"');
+  assertStringIncludes(configuration, '"docker-compose.yml"');
+  assertStringIncludes(
+    configuration,
+    '"ORIGIN": "https://${localEnv:CODESPACE_NAME}-8000.',
+  );
+  assert(!configuration.includes("-3000."));
+  assert(!configuration.includes("-8080."));
+  assertStringIncludes(
+    overlay,
+    "ORIGIN: https://${CODESPACE_NAME}-8000.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}",
+  );
+  assertStringIncludes(gateway, "reverse_proxy graphql:8080");
+  assertStringIncludes(gateway, "reverse_proxy web-next:3000");
+});
+
+Deno.test("development gateway preserves trusted tunnel metadata", async () => {
+  const gateway = await Deno.readTextFile(
+    new URL("../Caddyfile.dev", import.meta.url),
+  );
+
+  assertStringIncludes(gateway, "trusted_proxies static private_ranges");
+  assertStringIncludes(gateway, "trusted_proxies_strict");
+  assertStringIncludes(gateway, "header_up X-Forwarded-For {client_ip}");
+});
+
+Deno.test("shared production image delegates role health checks", async () => {
+  const dockerfile = await Deno.readTextFile(
+    new URL("../Dockerfile", import.meta.url),
+  );
+  const compose = await Deno.readTextFile(
+    new URL("../docker-compose.yml", import.meta.url),
+  );
+
+  assertStringIncludes(dockerfile, "HEALTHCHECK NONE");
+  for (const role of ["graphql", "graphql-worker", "web-next"]) {
+    assertStringIncludes(compose, `prod:hc:${role}`);
+  }
+});
+
+Deno.test("Compose services ignore the bind-mounted host dotenv file", async () => {
+  const compose = await Deno.readTextFile(
+    new URL("../docker-compose.yml", import.meta.url),
+  );
+  const application = compose.match(/^x-application:[\s\S]*?\nservices:/)?.[0];
+  const webNext = compose.match(/^ {2}web-next:\n[\s\S]*?^ {2}gateway:/m)?.[0];
+
+  assert(application != null);
+  assertStringIncludes(application, 'MISE_NO_ENV: "1"');
+  assertStringIncludes(application, "ORIGIN: ${ORIGIN:-http://localhost:8000}");
+  assert(webNext != null);
+  assertStringIncludes(webNext, 'MISE_NO_ENV: "1"');
+  assertStringIncludes(webNext, "ORIGIN: ${ORIGIN:-http://localhost:8000}");
+});
+
+Deno.test("Compose forwards dotenv runtime options before mise starts", async () => {
+  const compose = await Deno.readTextFile(
+    new URL("../docker-compose.yml", import.meta.url),
+  );
+  const application = compose.match(/^x-application:[\s\S]*?\nservices:/)?.[0];
+
+  assert(application != null);
+  assertStringIncludes(application, "env_file:");
+  assertStringIncludes(application, "path: .env");
+  assertStringIncludes(application, "required: false");
+  assertStringIncludes(
+    application,
+    "DATABASE_URL: postgresql://postgres:password@db:5432/hackerspub",
+  );
+  assertStringIncludes(application, "KV_URL: redis://redis:6379/0");
+});
+
+Deno.test("Compose preserves the configured Mailgun sender", async () => {
+  const compose = await Deno.readTextFile(
+    new URL("../docker-compose.yml", import.meta.url),
+  );
+
+  assertStringIncludes(
+    compose,
+    "EMAIL_FROM: ${EMAIL_FROM:-${MAILGUN_FROM:-admin@example.com}}",
+  );
+});
+
+Deno.test("direct standalone startup requires a shared Redis KV", async () => {
+  const sample = await Deno.readTextFile(
+    new URL("../.env.sample", import.meta.url),
+  );
+  const contributing = await Deno.readTextFile(
+    new URL("../CONTRIBUTING.md", import.meta.url),
+  );
+  const main = await Deno.readTextFile(
+    new URL("../graphql/main.ts", import.meta.url),
+  );
+  const worker = await Deno.readTextFile(
+    new URL("../graphql/worker.ts", import.meta.url),
+  );
+
+  assertStringIncludes(sample, "KV_URL=redis://localhost:6379/0");
+  assertStringIncludes(contributing, "`KV_URL=redis://localhost:6379/0`");
+  const redisPrerequisite = contributing.indexOf(" -  [Redis]");
+  const firstKvCommand = contributing.indexOf("mise run addaccount");
+  assert(redisPrerequisite >= 0);
+  assert(redisPrerequisite < firstKvCommand);
+  assertStringIncludes(contributing, "redis-cli ping");
+  assertStringIncludes(main, "loadStandaloneServerConfig");
+  assertStringIncludes(worker, "loadStandaloneServerConfig");
+});
+
+Deno.test("web-next proxies canonical filesystem upload URLs", async () => {
+  const route = await Deno.readTextFile(
+    new URL("../web-next/src/routes/medium-uploads.ts", import.meta.url),
+  );
+  const middleware = await Deno.readTextFile(
+    new URL("../web-next/src/middleware.ts", import.meta.url),
+  );
+
+  assertStringIncludes(route, "createMediumUploadProxyRequest");
+  assertStringIncludes(route, "export async function PUT");
+  assertStringIncludes(middleware, "createMediumUploadPreflightResponse");
+  assertStringIncludes(middleware, 'url.pathname === "/medium-uploads"');
+});
+
+Deno.test("standalone services preserve the legacy signature first knock", async () => {
+  const legacy = await Deno.readTextFile(
+    new URL("../web/main.ts", import.meta.url),
+  );
+  const api = await Deno.readTextFile(
+    new URL("../graphql/main.ts", import.meta.url),
+  );
+  const worker = await Deno.readTextFile(
+    new URL("../graphql/worker.ts", import.meta.url),
+  );
+  const firstKnock = 'firstKnock: "draft-cavage-http-signatures-12"';
+
+  assertStringIncludes(legacy, firstKnock);
+  assertStringIncludes(api, firstKnock);
+  assertStringIncludes(worker, firstKnock);
+});
+
+Deno.test("production image builds with a local file KV", async () => {
+  const dockerfile = await Deno.readTextFile(
+    new URL("../Dockerfile", import.meta.url),
+  );
+  const localKv =
+    "sed -i 's|^KV_URL=.*|KV_URL=file:///tmp/hackerspub-build-kv.json|' .env";
+
+  assertStringIncludes(dockerfile, localKv);
+  assert(
+    dockerfile.indexOf(localKv) < dockerfile.indexOf("mise run build:web"),
+  );
+});
+
+Deno.test("development image builds with a local file KV", async () => {
+  const dockerfile = await Deno.readTextFile(
+    new URL("../Dockerfile.dev", import.meta.url),
+  );
+  const localKv =
+    "sed -i 's|^KV_URL=.*|KV_URL=file:///tmp/hackerspub-build-kv.json|' .env";
+
+  assertStringIncludes(dockerfile, localKv);
+  assert(
+    dockerfile.indexOf(localKv) < dockerfile.indexOf("mise run build:web"),
+  );
+});
+
+Deno.test("development image includes the runtime workspace metadata", async () => {
+  const dockerfile = await Deno.readTextFile(
+    new URL("../Dockerfile.dev", import.meta.url),
+  );
+
+  assertStringIncludes(
+    dockerfile,
+    "COPY runtime/deno.json /app/runtime/deno.json",
+  );
+  assertStringIncludes(
+    dockerfile,
+    "COPY runtime/package.json /app/runtime/package.json",
+  );
+});

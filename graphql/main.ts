@@ -2,16 +2,20 @@
 import "./instrument.ts";
 import "./logging.ts";
 
-import { getXForwardedRequest } from "@hongminhee/x-forwarded-fetch";
 import { toApplicationContext } from "@hackerspub/federation/context";
 import {
   getDenoEnvironment,
-  loadServerConfig,
+  loadStandaloneServerConfig,
 } from "@hackerspub/runtime/config";
-import { createRuntimeResources } from "@hackerspub/runtime/resources";
+import {
+  createRuntimeResources,
+  FILE_SYSTEM_STORAGE_BASE_URL,
+} from "@hackerspub/runtime/resources";
+import { handleFileSystemMedia } from "./file-system-media.ts";
 import { createYogaServer } from "./mod.ts";
 import { handleMediumUploadProxy } from "./medium-upload.ts";
 import { services } from "./services.ts";
+import { applyTrustedForwarding } from "./trusted-forwarding.ts";
 import assetlinks from "./static/.well-known/assetlinks.json" with {
   type: "json",
 };
@@ -22,14 +26,21 @@ const appleAppSiteAssociationJson = Deno.readTextFileSync(
 
 const yogaServer = createYogaServer();
 const resources = await createRuntimeResources(
-  loadServerConfig(getDenoEnvironment()),
+  loadStandaloneServerConfig(getDenoEnvironment()),
   metadata.version,
   {
-    fileSystemBaseUrl: new URL("./", import.meta.url),
-    federation: { manuallyStartQueue: true },
+    fileSystemBaseUrl: FILE_SYSTEM_STORAGE_BASE_URL,
+    federation: {
+      manuallyStartQueue: true,
+      // TODO: Revert to Fedify's default RFC 9421-first behavior once
+      // https://github.com/bonfire-networks/activity_pub/issues/8 is fixed
+      // and released. Keep this aligned with the legacy request paths.
+      firstKnock: "draft-cavage-http-signatures-12",
+    },
   },
 );
 const { db, drive, email, federation, kv, models } = resources;
+const fileSystemRoot = drive.fileSystemRoot;
 
 // The federation inbox/outbox queue worker and the periodic news-score sweep
 // run in a separate process (`worker.ts`), not here: keeping that background
@@ -38,11 +49,18 @@ const { db, drive, email, federation, kv, models } = resources;
 const startServer = () =>
   Deno.serve({ port: 8080 }, async (req, info) => {
     try {
-      req = await getXForwardedRequest(req);
+      const forwarded = await applyTrustedForwarding(
+        req,
+        info,
+        resources.config.behindProxy,
+      );
+      req = forwarded.request;
       const url = new URL(req.url);
       const disk = drive.use();
       const uploadResponse = await handleMediumUploadProxy(req, kv, disk);
       if (uploadResponse != null) return uploadResponse;
+      const mediaResponse = await handleFileSystemMedia(req, fileSystemRoot);
+      if (mediaResponse != null) return mediaResponse;
       if (url.pathname === "/.well-known/assetlinks.json") {
         return new Response(JSON.stringify(assetlinks), {
           headers: { "content-type": "application/json" },
@@ -79,7 +97,7 @@ const startServer = () =>
           }),
         ),
         request: req,
-        connectionInfo: info,
+        connectionInfo: forwarded.connectionInfo,
       });
     } catch (e) {
       // Client disconnected before the server finished — not a server error.

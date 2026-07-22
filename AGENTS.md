@@ -100,10 +100,11 @@ explicit `--env-file` flag.
     watchman is installed)
  -  Extract translations: `mise run next:extract`
 
-Note: `mise run dev:web-next` requires `API_URL` set to the GraphQL endpoint
-(e.g. `API_URL=http://localhost:8000/graphql` when running against the legacy
-web server, or `http://localhost:8080/graphql` against the standalone GraphQL
-server). web-next reads this at runtime — no rebuild needed when it changes.
+Note: `mise run dev:web-next` requires `API_URL` set to the standalone GraphQL
+endpoint (normally `http://localhost:8080/graphql`). web-next reads this at
+runtime — no rebuild is needed when it changes. Run
+`mise run dev:graphql-worker` separately; queue work must not run in the API
+process or behind a load balancer.
 
 
 Code Style Guidelines

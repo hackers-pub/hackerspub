@@ -12,13 +12,14 @@ import {
   Store,
 } from "relay-runtime";
 import { getRequestEvent, isServer } from "solid-js/web";
-import { getApiUrl } from "~/lib/env.ts";
+import { getApiUrl, getBehindProxy } from "~/lib/env.ts";
 import {
   isExpectedAuthError,
   isExpectedAuthResponse,
 } from "~/lib/graphqlAuthError.ts";
 import { isNetworkError } from "~/lib/networkError.ts";
 import { readSessionCookie } from "~/lib/sessionCookie.ts";
+import { createUpstreamRequestInit } from "~/lib/upstreamRequest.ts";
 import {
   shouldCaptureUpstreamError,
   TransientUpstreamGraphQLError,
@@ -182,19 +183,15 @@ const fetchFn: FetchFunction = async (
   let responseText: string;
   let body: GraphQLResponse;
   try {
-    response = await fetch(getApiUrl(), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        ...sessionId == null ? {} : {
-          "Authorization": "Bearer " + sessionId,
-        },
-      },
-      credentials: "include",
-      body: JSON.stringify({ query: params.text, variables }),
-      signal: upstreamSignal,
-    });
+    response = await fetch(
+      getApiUrl(),
+      createUpstreamRequestInit({
+        request: event?.request,
+        sessionId,
+        behindProxy: getBehindProxy(),
+        body: JSON.stringify({ query: params.text, variables }),
+      }),
+    );
   } catch (cause) {
     // The client unsubscribed (e.g. the user clicked Cancel on alt-text
     // generation) and that closed our inbound request, which in turn

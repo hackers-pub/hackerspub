@@ -5,6 +5,7 @@ import { pathToFileURL } from "node:url";
 import {
   createEmailResource,
   createKeyValueResource,
+  FILE_SYSTEM_STORAGE_BASE_URL,
   getFederationBehaviorOptions,
   resolveFileSystemStorageLocation,
   runWithFederationQueue,
@@ -17,6 +18,16 @@ Deno.test("resolveFileSystemStorageLocation resolves relative paths from the com
       new URL("file:///app/web/"),
     ).href,
     "file:///app/web/media",
+  );
+});
+
+Deno.test("filesystem storage keeps the legacy media root across processes", () => {
+  assertEquals(
+    resolveFileSystemStorageLocation(
+      "./media",
+      FILE_SYSTEM_STORAGE_BASE_URL,
+    ).href,
+    new URL("../web/media", import.meta.url).href,
   );
 });
 

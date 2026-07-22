@@ -141,7 +141,7 @@ function parseAccountCreationConfig(
     nonEmpty(env, "KV_URL", issues),
     "KV_URL",
     issues,
-    ["file:", "redis:"],
+    ["file:", "redis:", "rediss:"],
   );
   return {
     ...(origin == null ? {} : { origin }),
@@ -271,6 +271,20 @@ export function loadServerConfig(env: Environment): ServerConfig {
     behindProxy: env.BEHIND_PROXY?.toLowerCase() === "true",
     mode,
   };
+}
+
+export function loadStandaloneServerConfig(env: Environment): ServerConfig {
+  const config = loadServerConfig(env);
+  if (
+    config.kv.url.protocol !== "redis:" &&
+    config.kv.url.protocol !== "rediss:"
+  ) {
+    throw new ConfigurationError([{
+      variable: "KV_URL",
+      message: "must use redis for standalone GraphQL services",
+    }]);
+  }
+  return config;
 }
 
 export function getDenoEnvironment(): Environment {

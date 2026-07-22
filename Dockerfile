@@ -127,11 +127,14 @@ RUN if [ -n "$GIT_COMMIT" ]; then \
 # build still succeeds: the Sentry Vite plugin skips its source-map upload when
 # SENTRY_AUTH_TOKEN is unset. Source maps remain in the deployed web-next output
 # so production browser and server debugging can use the same artifacts.
+# Fresh evaluates web/main.ts while building, so replace the copied sample's
+# runtime Redis URL with a build-local file store before starting either build.
 RUN --mount=type=secret,id=sentry_auth_token,target=/run/secrets/sentry_auth_token,required=false \
   if [ -f /run/secrets/sentry_auth_token ]; then \
     export SENTRY_AUTH_TOKEN="$(cat /run/secrets/sentry_auth_token)"; \
   fi && \
   cp .env.sample .env && \
+  sed -i 's|^KV_URL=.*|KV_URL=file:///tmp/hackerspub-build-kv.json|' .env && \
   sed -i '/^INSTANCE_ACTOR_KEY=/d' .env && \
   echo >> .env && \
   echo "INSTANCE_ACTOR_KEY='$(mise run keygen)'" >> .env && \
@@ -185,7 +188,8 @@ COPY --from=prod-deps /app/web-next/node_modules /app/web-next/node_modules
 # the final image's `/app/mise.toml`.
 RUN mise trust /app/mise.toml
 
-EXPOSE 8000
-HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-  CMD ["mise", "run", "prod:hc:web"]
-CMD ["mise", "run", "prod:web"]
+EXPOSE 3000 8080
+# This image serves web-next, GraphQL, and worker roles. Their probes differ,
+# so deployment definitions must select the matching `prod:hc:*` task.
+HEALTHCHECK NONE
+CMD ["mise", "run", "prod:web-next"]

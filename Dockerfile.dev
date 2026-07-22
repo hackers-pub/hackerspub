@@ -36,6 +36,8 @@ COPY federation/package.json /app/federation/package.json
 COPY graphql/deno.json /app/graphql/deno.json
 COPY models/deno.json /app/models/deno.json
 COPY models/package.json /app/models/package.json
+COPY runtime/deno.json /app/runtime/deno.json
+COPY runtime/package.json /app/runtime/package.json
 COPY web/deno.json /app/web/deno.json
 COPY web-next/deno.jsonc /app/web-next/deno.jsonc
 COPY web-next/package.json /app/web-next/package.json
@@ -50,6 +52,7 @@ RUN mise deps install deno --force
 
 COPY . /app
 RUN cp .env.sample .env && \
+  sed -i 's|^KV_URL=.*|KV_URL=file:///tmp/hackerspub-build-kv.json|' .env && \
   sed -i '/^INSTANCE_ACTOR_KEY=/d' .env && \
   echo >> .env && \
   echo "INSTANCE_ACTOR_KEY='$(mise run keygen)'" >> .env && \
@@ -57,5 +60,5 @@ RUN cp .env.sample .env && \
   mise run build:web && \
   rm .env
 
-EXPOSE 8000
-CMD ["mise", "run", "dev:web"]
+EXPOSE 3000 8080
+CMD ["mise", "run", "dev:web-next"]

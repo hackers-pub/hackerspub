@@ -173,7 +173,11 @@ export async function handleMediumUploadProxy(
 ): Promise<Response | undefined> {
   const url = new URL(request.url);
   const match = url.pathname.match(/^\/medium-uploads\/([^/]+)$/);
-  if (match == null) return undefined;
+  const uploadId = match?.[1] ??
+    (url.pathname === "/medium-uploads"
+      ? url.searchParams.get("uploadId")
+      : null);
+  if (uploadId == null) return undefined;
 
   // Handle CORS preflight for cross-origin uploads from the web-next frontend.
   if (request.method === "OPTIONS") {
@@ -194,7 +198,6 @@ export async function handleMediumUploadProxy(
       headers: corsHeaders(request),
     });
   }
-  const uploadId = match[1];
   if (!validateUuid(uploadId)) {
     return new Response("Not Found", {
       status: 404,

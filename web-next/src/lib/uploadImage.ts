@@ -1,5 +1,7 @@
 import { getRequestEvent } from "solid-js/web";
-import { getApiUrl } from "~/lib/env.ts";
+import { getApiUrl, getBehindProxy } from "~/lib/env.ts";
+import { readSessionCookie } from "~/lib/sessionCookie.ts";
+import { createUpstreamRequestInit } from "~/lib/upstreamRequest.ts";
 
 export interface ImageUploadResult {
   uuid: string;
@@ -21,20 +23,6 @@ function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
-function readSessionCookie(request: Request | undefined): string | null {
-  const cookieHeader = request?.headers.get("cookie");
-  if (!cookieHeader) return null;
-  for (const part of cookieHeader.split(";")) {
-    const eq = part.indexOf("=");
-    if (eq < 0) continue;
-    const name = part.slice(0, eq).trim();
-    if (name !== "session") continue;
-    const raw = part.slice(eq + 1).trim();
-    return raw ? decodeURIComponent(raw) : null;
-  }
-  return null;
-}
-
 async function graphqlRequest<T>(
   query: string,
   variables: Record<string, unknown>,
@@ -43,18 +31,18 @@ async function graphqlRequest<T>(
 
   const event = getRequestEvent();
   const sessionId = readSessionCookie(event?.request);
-  const response = await fetch(getApiUrl(), {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      ...(sessionId == null ? {} : { Authorization: `Bearer ${sessionId}` }),
-    },
-    body: JSON.stringify({
-      query,
-      variables,
+  const response = await fetch(
+    getApiUrl(),
+    createUpstreamRequestInit({
+      request: event?.request,
+      sessionId,
+      behindProxy: getBehindProxy(),
+      body: JSON.stringify({
+        query,
+        variables,
+      }),
     }),
-  });
+  );
 
   const result = await response.json() as T & {
     errors?: { message: string }[];

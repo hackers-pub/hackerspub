@@ -15,20 +15,33 @@ import { notifyEndedPolls } from "@hackerspub/models/poll";
 import { getLogger } from "@logtape/logtape";
 import {
   getDenoEnvironment,
-  loadServerConfig,
+  loadStandaloneServerConfig,
 } from "@hackerspub/runtime/config";
-import { createRuntimeResources } from "@hackerspub/runtime/resources";
+import {
+  createRuntimeResources,
+  FILE_SYSTEM_STORAGE_BASE_URL,
+} from "@hackerspub/runtime/resources";
 import { sql } from "drizzle-orm";
+import metadata from "./deno.json" with { type: "json" };
 import { sendNotificationDigests } from "./notification-digest.ts";
 import { services } from "./services.ts";
-import metadata from "./deno.json" with { type: "json" };
+import {
+  resolveWorkerHealthFile,
+  startWorkerHeartbeat,
+} from "./worker-health.ts";
 
 const resources = await createRuntimeResources(
-  loadServerConfig(getDenoEnvironment()),
+  loadStandaloneServerConfig(getDenoEnvironment()),
   metadata.version,
   {
-    fileSystemBaseUrl: new URL("./", import.meta.url),
-    federation: { manuallyStartQueue: true },
+    fileSystemBaseUrl: FILE_SYSTEM_STORAGE_BASE_URL,
+    federation: {
+      manuallyStartQueue: true,
+      // TODO: Revert to Fedify's default RFC 9421-first behavior once
+      // https://github.com/bonfire-networks/activity_pub/issues/8 is fixed
+      // and released. Keep this aligned with the legacy queue consumer.
+      firstKnock: "draft-cavage-http-signatures-12",
+    },
   },
 );
 const { db, drive, email, federation, kv, models } = resources;
@@ -253,11 +266,19 @@ let queueFailed = false;
 let queueError: unknown;
 try {
   await migrateLegacyOutboxEvents(db);
-  await federation.startQueue(
-    { db, kv, disk, models, services },
-    { signal: controller.signal },
+  const heartbeat = await startWorkerHeartbeat(
+    resolveWorkerHealthFile(Deno.env.get("WORKER_HEALTH_FILE")),
   );
-  logger.info("The federation message queue worker has stopped.");
+  try {
+    const queue = federation.startQueue(
+      { db, kv, disk, models, services },
+      { signal: controller.signal },
+    );
+    await queue;
+    logger.info("The federation message queue worker has stopped.");
+  } finally {
+    await heartbeat.stop();
+  }
 } catch (error) {
   queueFailed = true;
   queueError = error;

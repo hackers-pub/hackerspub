@@ -5,9 +5,10 @@
   // If this file is in .devcontainer/codespaces/, and compose is at the root,
   // then it should be ../../docker-compose.yml
   "dockerComposeFile": [
-    "../../docker-compose.yml"
+    "../../docker-compose.yml",
+    "docker-compose.yml"
   ],
-  "service": "app",
+  "service": "graphql",
   "workspaceFolder": "/app", // Your project code is mounted to /app
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {
@@ -27,7 +28,7 @@
   ],
   "portsAttributes": {
     "8000": {
-      "label": "Application (Hackers' Pub)",
+      "label": "Hackers' Pub gateway",
       "onAutoForward": "openPreview",
       "protocol": "http"
     },
@@ -47,7 +48,7 @@
     // For example, by having "environment: [DB_HOST: ${DB_HOST_SECRET}]" in compose
     // and then setting DB_HOST_SECRET as a Codespace secret.
     "DATABASE_URL": "postgresql://postgres:password@db:5432/hackerspub",
-    "KV_URL": "file:///tmp/kv.db"
+    "KV_URL": "redis://redis:6379/0"
     // Add other non-sensitive environment variables needed by VS Code server/terminals if any
   },
   // Runs once when the Codespace is created (as root by default for this script).
@@ -96,8 +97,12 @@
     }
   },
   "runServices": [
-    "app",
-    "db"
+    "graphql",
+    "graphql-worker",
+    "web-next",
+    "gateway",
+    "db",
+    "redis"
   ],
   "shutdownAction": "stopCompose"
 }

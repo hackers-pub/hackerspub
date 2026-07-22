@@ -60,6 +60,15 @@ export interface DriveResource {
   use(): Disk;
 }
 
+// Fresh historically resolved relative FS_LOCATION values from web/.  Keep
+// that location as the shared compatibility root while the API and worker run
+// as separate processes, so a cutover neither loses existing media nor gives
+// each process a different interpretation of the same configuration.
+export const FILE_SYSTEM_STORAGE_BASE_URL: URL = new URL(
+  "../web/",
+  import.meta.url,
+);
+
 export function resolveFileSystemStorageLocation(
   location: string,
   baseUrl: URL,
@@ -271,7 +280,8 @@ export async function createFederationResource(
     import("@hackerspub/federation"),
     import("@hackerspub/federation/outbox-queue"),
   ]);
-  const redis = config.kv.url.protocol === "redis:"
+  const redis = config.kv.url.protocol === "redis:" ||
+      config.kv.url.protocol === "rediss:"
     ? new Redis(config.kv.url.href, {
       family: config.kv.url.hostname.endsWith(".upstash.io") ? 6 : 4,
     })
