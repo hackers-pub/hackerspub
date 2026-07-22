@@ -5456,9 +5456,8 @@ msgstr "URL"
 msgid "URL pattern"
 msgstr "URL pattern"
 
-#: src/components/AppSidebar.tsx:817
-msgid "Use old UI"
-msgstr "Use old UI"
+#~ msgid "Use old UI"
+#~ msgstr "Use old UI"
 
 #: src/routes/(root)/[handle]/settings/account.tsx:375
 #~ msgid "Use the old account's handle or actor URL."

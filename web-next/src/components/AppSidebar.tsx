@@ -13,7 +13,6 @@ import { createFragment, createMutation } from "solid-relay";
 import IconCheck from "~icons/lucide/check";
 import IconChevronsUpDown from "~icons/lucide/chevrons-up-down";
 import IconShieldCheck from "~icons/lucide/shield-check";
-import IconUndo2 from "~icons/lucide/undo-2";
 import { Button } from "~/components/ui/button.tsx";
 import {
   DropdownMenu,
@@ -76,10 +75,6 @@ const AppSidebarSignOutMutation = graphql`
     }
   }
 `;
-
-function setLegacyUiCookie(): void {
-  document.cookie = "web-next=false; path=/; max-age=31536000; SameSite=Lax";
-}
 
 export interface AppSidebarProps {
   $signedAccount?: AppSidebar_signedAccount$key | null;
@@ -806,25 +801,12 @@ function AccountSection(props: AccountSectionProps) {
       ? actingAccount.selectedOrganization()?.organization
       : actingAccount.personalAccount() ?? props.signedAccount;
 
-  function onUseOldUI() {
-    setLegacyUiCookie();
-    window.location.reload();
-  }
-
   return (
     <SidebarGroup>
       <SidebarGroupLabel>
         {t`Account`}
       </SidebarGroupLabel>
       <SidebarGroupContent>
-        <Show when={!organizationSelected()}>
-          <SidebarMenuItem class="list-none">
-            <SidebarMenuButton on:click={onUseOldUI} class="cursor-pointer">
-              <IconUndo2 class="size-6" />
-              {t`Use old UI`}
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </Show>
         <Show
           when={!props.signedAccountLoaded}
         >
