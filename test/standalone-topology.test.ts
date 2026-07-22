@@ -146,9 +146,12 @@ Deno.test("web-next proxies canonical filesystem upload URLs", async () => {
   assertStringIncludes(middleware, 'url.pathname === "/medium-uploads"');
 });
 
-Deno.test("standalone worker preserves the legacy signature first knock", async () => {
+Deno.test("standalone services preserve the legacy signature first knock", async () => {
   const legacy = await Deno.readTextFile(
     new URL("../web/main.ts", import.meta.url),
+  );
+  const api = await Deno.readTextFile(
+    new URL("../graphql/main.ts", import.meta.url),
   );
   const worker = await Deno.readTextFile(
     new URL("../graphql/worker.ts", import.meta.url),
@@ -156,6 +159,7 @@ Deno.test("standalone worker preserves the legacy signature first knock", async 
   const firstKnock = 'firstKnock: "draft-cavage-http-signatures-12"';
 
   assertStringIncludes(legacy, firstKnock);
+  assertStringIncludes(api, firstKnock);
   assertStringIncludes(worker, firstKnock);
 });
 

@@ -30,7 +30,13 @@ const resources = await createRuntimeResources(
   metadata.version,
   {
     fileSystemBaseUrl: FILE_SYSTEM_STORAGE_BASE_URL,
-    federation: { manuallyStartQueue: true },
+    federation: {
+      manuallyStartQueue: true,
+      // TODO: Revert to Fedify's default RFC 9421-first behavior once
+      // https://github.com/bonfire-networks/activity_pub/issues/8 is fixed
+      // and released. Keep this aligned with the legacy request paths.
+      firstKnock: "draft-cavage-http-signatures-12",
+    },
   },
 );
 const { db, drive, email, federation, kv, models } = resources;
