@@ -273,8 +273,7 @@ export function loadServerConfig(env: Environment): ServerConfig {
   };
 }
 
-export function loadStandaloneServerConfig(env: Environment): ServerConfig {
-  const config = loadServerConfig(env);
+function requireProcessSafeSharedKv(config: ServerConfig): ServerConfig {
   if (
     config.kv.url.protocol !== "redis:" &&
     config.kv.url.protocol !== "rediss:"
@@ -285,6 +284,24 @@ export function loadStandaloneServerConfig(env: Environment): ServerConfig {
     }]);
   }
   return config;
+}
+
+export function loadStandaloneServerConfig(env: Environment): ServerConfig {
+  return requireProcessSafeSharedKv(loadServerConfig(env));
+}
+
+export interface GraphqlApiConfigOptions {
+  readonly allowFileKv?: boolean;
+}
+
+export function loadGraphqlApiConfig(
+  env: Environment,
+  options: GraphqlApiConfigOptions = {},
+): ServerConfig {
+  const config = loadServerConfig(env);
+  return options.allowFileKv && config.mode === "development"
+    ? config
+    : requireProcessSafeSharedKv(config);
 }
 
 export function getDenoEnvironment(): Environment {

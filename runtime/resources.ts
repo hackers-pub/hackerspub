@@ -60,12 +60,10 @@ export interface DriveResource {
   use(): Disk;
 }
 
-// Fresh historically resolved relative FS_LOCATION values from web/.  Keep
-// that location as the shared compatibility root while the API and worker run
-// as separate processes, so a cutover neither loses existing media nor gives
-// each process a different interpretation of the same configuration.
+// Resolve relative FS_LOCATION values from the application root.  The API and
+// worker share this base so both processes address the same media directory.
 export const FILE_SYSTEM_STORAGE_BASE_URL: URL = new URL(
-  "../web/",
+  "../",
   import.meta.url,
 );
 

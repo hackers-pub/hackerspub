@@ -39,7 +39,7 @@ const resources = await createRuntimeResources(
       manuallyStartQueue: true,
       // TODO: Revert to Fedify's default RFC 9421-first behavior once
       // https://github.com/bonfire-networks/activity_pub/issues/8 is fixed
-      // and released. Keep this aligned with the legacy queue consumer.
+      // and released. Keep this aligned with the API process.
       firstKnock: "draft-cavage-http-signatures-12",
     },
   },

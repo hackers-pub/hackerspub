@@ -77,8 +77,7 @@ let brandLogoDataUriPromise: Promise<string> | undefined;
 async function loadFont(filename: string): Promise<ArrayBuffer> {
   const data = await Deno.readFile(join(
     import.meta.dirname!,
-    "..",
-    "web",
+    "assets",
     "fonts",
     filename,
   ));

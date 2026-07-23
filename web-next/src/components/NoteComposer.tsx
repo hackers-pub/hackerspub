@@ -687,8 +687,7 @@ export function NoteComposer(props: NoteComposerProps) {
           actorAvatarUrl: node.actor.avatarUrl,
         });
 
-        // Compute mention targets following the same logic as the legacy web:
-        // start with mentions on the target post, excluding the post's own
+        // Start with mentions on the target post, excluding the post's own
         // author (added separately below) and the current viewer.
         const viewerActorId = data.viewer?.actor?.id;
         const postActorId = node.actor.id;

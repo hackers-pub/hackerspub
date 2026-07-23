@@ -11,11 +11,11 @@ The core packages follow this dependency direction:
 | *@hackerspub/models*                | Application and persistence code, including external service contracts | None                                |
 | *@hackerspub/ai*                    | AI SDK implementations of the model-layer service contracts            | *@hackerspub/models*                |
 | *@hackerspub/federation*            | Fedify dispatchers, listeners, serialization, and delivery adapters    | *@hackerspub/models*                |
-| GraphQL and legacy web entry points | Runtime composition roots                                              | Models, AI, and federation packages |
+| GraphQL API and worker entry points | Runtime composition roots                                              | Models, AI, and federation packages |
 
 The models package must not import the AI or federation packages.  Code in the
 models package calls external effects through `ApplicationServices`, which the
-GraphQL API, GraphQL worker, legacy web server, and tests assemble explicitly.
+GraphQL API, GraphQL worker, and tests assemble explicitly.
 This keeps the workspace package graph acyclic while preserving the current
 Fedify request context until the runtime-neutral application context is
 introduced.

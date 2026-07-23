@@ -15,19 +15,19 @@ Deno.test("resolveFileSystemStorageLocation resolves relative paths from the com
   assertEquals(
     resolveFileSystemStorageLocation(
       "./media",
-      new URL("file:///app/web/"),
+      new URL("file:///app/"),
     ).href,
-    "file:///app/web/media",
+    "file:///app/media",
   );
 });
 
-Deno.test("filesystem storage keeps the legacy media root across processes", () => {
+Deno.test("filesystem storage uses the application media root across processes", () => {
   assertEquals(
     resolveFileSystemStorageLocation(
       "./media",
       FILE_SYSTEM_STORAGE_BASE_URL,
     ).href,
-    new URL("../web/media", import.meta.url).href,
+    new URL("../media", import.meta.url).href,
   );
 });
 
@@ -45,7 +45,7 @@ Deno.test("createKeyValueResource decodes file URL paths", async () => {
   }
 });
 
-Deno.test("getFederationBehaviorOptions supports an explicitly managed legacy queue", () => {
+Deno.test("getFederationBehaviorOptions supports an explicitly managed queue", () => {
   assertEquals(
     getFederationBehaviorOptions({
       manuallyStartQueue: true,

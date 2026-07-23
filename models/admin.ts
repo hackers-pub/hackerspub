@@ -225,37 +225,9 @@ export async function regenerateInvitations(
       });
     return { regenerated: now, accountsAffected, cutoffDate };
   };
-  const ranInExistingTransaction = isTransaction(db);
-  const result = ranInExistingTransaction
+  return isTransaction(db)
     ? await runDbWork(db)
     : await db.transaction(runDbWork);
-  // Best-effort sync to the legacy KV key so the legacy
-  // /admin/invitations route (which still reads
-  // INVITATIONS_LAST_REGEN_KEY from KV) sees the new cutoff during
-  // the dual-stack soak.  Only run the sync when we own the
-  // transaction we just committed: when the caller passed an
-  // existing tx, the outer caller controls the commit/rollback
-  // boundary, so syncing here would advance KV before the outer
-  // transaction commits and leave KV ahead of DB if the outer
-  // caller later rolls back.  The DB row remains the authoritative
-  // source for the new path; if this write fails the legacy route
-  // may use a stale cutoff and over-grant on its next run, which is
-  // recoverable.  When the legacy route is removed the sync (and
-  // the kv parameter) can go away too.
-  if (kv != null && !ranInExistingTransaction) {
-    try {
-      await kv.set(
-        INVITATIONS_LAST_REGEN_KEY,
-        result.regenerated.toISOString(),
-      );
-    } catch (error) {
-      logger.warn(
-        "Failed to sync legacy KV invitation cutoff: {error}",
-        { error },
-      );
-    }
-  }
-  return result;
 }
 
 function resolveOrphanMediaCutoff(options: OrphanMediaOptions): Date {

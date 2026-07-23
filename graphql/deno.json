@@ -12,7 +12,7 @@
   },
   "tasks": {
     "codegen": "deno run -A --env-file=../.env generate-schema.ts",
-    "dev": "deno run -A --unstable-cron --env-file=../.env main.ts",
+    "dev": "deno run -A --unstable-cron --env-file=../.env main.ts --allow-file-kv",
     "start": "deno run -A --unstable-otel --unstable-cron --env-file=../.env main.ts",
     "dev:worker": "deno run -A --unstable-cron --env-file=../.env worker.ts",
     "worker": "deno run -A --unstable-otel --unstable-cron --env-file=../.env worker.ts"

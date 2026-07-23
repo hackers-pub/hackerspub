@@ -1,6 +1,6 @@
 // @refresh reload
-// Polyfill Temporal for the Node.js runtime. Deno (used by web/graphql)
-// exposes Temporal natively as an unstable API, but Node has not shipped
+// Polyfill Temporal for the Node.js runtime. Deno (used by the GraphQL API and
+// worker) exposes Temporal natively as an unstable API, but Node has not shipped
 // it yet. Several modules in @hackerspub/models reference Temporal at
 // module init (e.g. session.ts's `EXPIRATION = Temporal.Duration.from(...)`),
 // so this must run before any of those chunks load.

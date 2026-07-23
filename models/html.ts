@@ -499,10 +499,6 @@ export function transformMentions(
     $el.attr("data-internal-href", localHref);
     $el.attr("href", localHref);
   });
-  $("a[data-internal-href]").attr(
-    "onclick",
-    "location.href = this.dataset.internalHref; return false;",
-  );
   return $.html();
 }
 

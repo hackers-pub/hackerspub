@@ -25,18 +25,19 @@ Recommended reading
 Hackers' Pub uses the following technologies:
 
  -  [Deno] for the backend
+ -  [Node.js] for the web frontend
  -  [PostgreSQL] for the database
- -  [Fresh] 2.0 for web framework[^1]
  -  [Drizzle ORM] for database operations
  -  [Keyv] for caching
  -  [Fedify] for ActivityPub federation
  -  [Pothos] for GraphQL schema builder
  -  [Yoga] for GraphQL server
  -  [LogTape] for logging
- -  [Preact] for web frontend
+ -  [SolidStart] and [Solid] for the web frontend
+ -  [Relay] for GraphQL data loading
  -  [Tailwind CSS] for styling
  -  [Vercel AI SDK] for LLM integration
- -  [i18next] for internationalization
+ -  [Lingui] for internationalization
  -  [ffmpeg] for video processing
 
 If you are not familiar with these technologies, we recommend reading the
@@ -46,23 +47,21 @@ For the visual side of the product — color tokens, typography, component
 patterns, the *Pubnyan* mascot, and brand asset usage — read
 [*DESIGN.md*](./DESIGN.md) before working on UI in *web-next/*.
 
-[^1]: As of February 2025, Fresh 2.0 is not released. We are using the
-      development version of Fresh 2.0, which is not well-documented. We
-      recommend reading the source code of Fresh 2.0 to understand how it works.
-
 [Deno]: https://deno.com/
+[Node.js]: https://nodejs.org/
 [PostgreSQL]: https://www.postgresql.org/
-[Fresh]: https://fresh.deno.dev/
 [Drizzle ORM]: https://orm.drizzle.team/
 [Keyv]: https://keyv.org/
 [Fedify]: https://fedify.dev/
 [Pothos]: https://pothos-graphql.dev/
 [Yoga]: https://www.graphql-yoga.com/
 [LogTape]: https://logtape.org/
-[Preact]: https://preactjs.com/
+[SolidStart]: https://start.solidjs.com/
+[Solid]: https://www.solidjs.com/
+[Relay]: https://relay.dev/
 [Tailwind CSS]: https://tailwindcss.com/
 [Vercel AI SDK]: https://ai-sdk.dev/
-[i18next]: https://www.i18next.com/
+[Lingui]: https://lingui.dev/
 [ffmpeg]: https://ffmpeg.org/
 
 
@@ -157,9 +156,9 @@ and set the values of the variables according to your environment.
 >     browser testing, but remote development and production deployments need
 >     HTTPS for browser Push API subscriptions.
 >
->  -  `KV_URL` must point to Redis when running the standalone GraphQL API and
->     worker.  A file-backed store is only safe for a single process, such as
->     the legacy web stack or one-off command-line utilities.
+>  -  `KV_URL` may point to a file when running only `mise run dev:graphql`.
+>     Redis is required whenever the worker is running and for every production
+>     process, because those processes must share one coherent KV store.
 >
 >  -  `DRIVE_DISK` can be set to `fs` to use the file system for storing files.
 >     In this case, you also need to set `FS_LOCATION` to the directory where
@@ -190,10 +189,10 @@ Starting Redis
 --------------
 
 The sample configuration sets `KV_URL=redis://localhost:6379/0`, so Redis must
-be listening on port 6379 before running `mise run addaccount`,
-`mise run dev:web`, or either standalone GraphQL process.  Install Redis using
-the [official instructions][Redis] for your operating system, then start it.
-For example:
+be listening on port 6379 before running `mise run addaccount` or either
+standalone GraphQL process.  Install Redis using the
+[official instructions][Redis] for your operating system, then start it.  For
+example:
 
  -  On macOS with the current Homebrew cask, run:
 
@@ -231,6 +230,31 @@ mise run migrate
 ~~~~
 
 
+Migrating legacy filesystem media
+---------------------------------
+
+Installations upgraded from the removed Fresh application may still have
+uploads under the old filesystem-storage root.  Before starting the new
+filesystem-backed services, copy them to the new application-relative root
+with:
+
+~~~~ sh
+mise run migrate:media
+~~~~
+
+The migration reads `FS_LOCATION` (defaulting to `./media`).  For example,
+`FS_LOCATION=./uploads` copies *web/uploads/* to *uploads/*.  Absolute paths do
+not need moving because their resolution is unchanged.  Each file is completed
+under a temporary name and installed atomically, so an interrupted copy can be
+retried without leaving a partial destination file.
+
+The migration is safe to repeat: it leaves the legacy files in place, skips
+identical files already copied, and stops rather than overwriting different
+content at the same path.  Verify the migrated uploads before removing the old
+filesystem-storage directory.  `docker compose up` runs this media migration
+automatically before the database migration and application services.
+
+
 Creating the first account
 --------------------------
 
@@ -248,13 +272,33 @@ You can use this link to sign up for the first account after running the server.
 Running the server
 ------------------
 
-To run the server, execute the following command:
+The easiest way to run the complete application is Compose:
 
 ~~~~ sh
-mise run dev:web
+docker compose up
 ~~~~
 
-This command starts the server on port 8000.
+This starts PostgreSQL, Redis, the GraphQL API, the federation worker,
+web-next, and the gateway.  Access the application at http://localhost:8000/.
+
+For focused development, run the API, worker, and frontend in separate
+terminals:
+
+~~~~ sh
+mise run dev:graphql
+mise run dev:graphql-worker
+API_URL=http://localhost:8080/graphql mise run dev:web-next
+~~~~
+
+The direct frontend is available at http://localhost:3000/.  It does not
+provide the unified ActivityPub routing that the Compose gateway provides.
+If watchman is unavailable, set `NO_WATCHMAN=1` and run
+`mise run next:codegen` whenever GraphQL documents change.
+
+For API-only development, `mise run dev:graphql` also accepts a file-backed
+`KV_URL` such as `file:///tmp/hackerspub-kv.json`.  Do not start the worker in
+this mode: federation queues and scheduled jobs remain inactive.  Use Redis
+for the complete API, worker, and frontend topology shown above.
 
 
 Setting up federation
@@ -294,50 +338,15 @@ When testing federation, you must use the HTTPS URL provided by `ngrok` as the
 base URL for your local server.  This is because ActivityPub requires
 the server to be accessible over HTTPS.
 
+When you build new UI in *web-next/*, follow the conventions documented in
+[*DESIGN.md*](./DESIGN.md) — it covers the color tokens, typography, component
+patterns (solid-ui in the New York style), and brand asset usage.
+
 [ngrok]: https://ngrok.com/
 [Tailscale Funnel]: https://tailscale.com/kb/1223/funnel
 [Cloudflare Tunnel]: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/
 [1]: https://fedify.dev/manual/test#exposing-a-local-server-to-the-public
 [2]: https://ngrok.com/docs/getting-started/
-
-
-Running web-next
-----------------
-
-To run web-next, the new web frontend for Hackers' Pub, follow these steps:
-
-1.  Optionally install [watchman].  If watchman is available, the Relay
-    compiler runs automatically as part of the Vite dev server via
-    [vite-plugin-relay-lite].  If watchman is not installed, set the
-    `NO_WATCHMAN=1` environment variable when running the dev server and
-    run `mise run next:codegen` manually whenever GraphQL files change.
-
-2.  Ensure Redis is running and set `KV_URL=redis://localhost:6379/0` in
-    *.env*.  The standalone GraphQL API and worker are separate processes, so
-    they must not share a file-backed KV store.  Compose provides Redis and
-    configures this value automatically.
-
-3.  Start the standalone GraphQL API and its queue worker in separate
-    terminals with `mise run dev:graphql` and
-    `mise run dev:graphql-worker`.
-
-4.  Run the development server with
-    `API_URL=http://localhost:8080/graphql mise run dev:web-next`.
-    Alternatively, `docker compose up` starts PostgreSQL, Redis, the
-    standalone API, the worker, web-next, and a gateway that exposes the
-    unified application origin.  Fresh is available only through the explicit
-    `legacy` Compose profile on port 8001.
-
-5.  With Compose, access http://localhost:8000/ through the gateway.  When
-    running the three development tasks directly, access
-    http://localhost:3000/ instead.
-
-When you build new UI in *web-next/*, follow the conventions documented in
-[*DESIGN.md*](./DESIGN.md) — it covers the color tokens, typography, component
-patterns (solid-ui in the New York style), and brand asset usage.
-
-[watchman]: https://facebook.github.io/watchman/docs/install
-[vite-plugin-relay-lite]: https://github.com/XiNiHa/vite-plugin-relay-lite
 
 
 Setting up Visual Studio Code

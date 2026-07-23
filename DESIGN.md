@@ -4,8 +4,7 @@ Hackers' Pub Design System
 ==========================
 
 This document describes the visual language, design tokens, and UI patterns
-used across Hackers' Pub.  It applies to the new stack (`web-next/`); the
-legacy stack (`web/`) is in maintenance mode and may diverge in details.
+used by the Hackers' Pub web application in `web-next/`.
 
 
 Design philosophy

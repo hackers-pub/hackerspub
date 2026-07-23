@@ -51,7 +51,6 @@ COPY models/deno.json /app/models/deno.json
 COPY models/package.json /app/models/package.json
 COPY runtime/deno.json /app/runtime/deno.json
 COPY runtime/package.json /app/runtime/package.json
-COPY web/deno.json /app/web/deno.json
 COPY web-next/deno.jsonc /app/web-next/deno.jsonc
 COPY web-next/package.json /app/web-next/package.json
 # asset-cdn is a pnpm workspace member (the Cloudflare Worker, deployed
@@ -72,8 +71,6 @@ RUN mise deps install deno --force
 # --- Builder stage -----------------------------------------------------------
 FROM mise-base AS builder
 
-COPY web/fonts /app/web/fonts
-
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml /app/
 COPY deno.json /app/deno.json
 COPY deno.lock /app/deno.lock
@@ -86,7 +83,6 @@ COPY models/deno.json /app/models/deno.json
 COPY models/package.json /app/models/package.json
 COPY runtime/deno.json /app/runtime/deno.json
 COPY runtime/package.json /app/runtime/package.json
-COPY web/deno.json /app/web/deno.json
 COPY web-next/deno.jsonc /app/web-next/deno.jsonc
 COPY web-next/package.json /app/web-next/package.json
 # Present so `--frozen-lockfile` can validate the asset-cdn workspace member
@@ -114,8 +110,6 @@ RUN if [ -n "$GIT_COMMIT" ]; then \
   mv /tmp/deno.json graphql/deno.json && \
   jq '.version += "+" + $git_commit' --arg git_commit "$GIT_COMMIT" models/deno.json > /tmp/deno.json && \
   mv /tmp/deno.json models/deno.json && \
-  jq '.version += "+" + $git_commit' --arg git_commit "$GIT_COMMIT" web/deno.json > /tmp/deno.json && \
-  mv /tmp/deno.json web/deno.json && \
   jq '.version += "+" + $git_commit' --arg git_commit "$GIT_COMMIT" web-next/package.json > /tmp/package.json && \
   mv /tmp/package.json web-next/package.json \
   ; fi
@@ -127,21 +121,12 @@ RUN if [ -n "$GIT_COMMIT" ]; then \
 # build still succeeds: the Sentry Vite plugin skips its source-map upload when
 # SENTRY_AUTH_TOKEN is unset. Source maps remain in the deployed web-next output
 # so production browser and server debugging can use the same artifacts.
-# Fresh evaluates web/main.ts while building, so replace the copied sample's
-# runtime Redis URL with a build-local file store before starting either build.
 RUN --mount=type=secret,id=sentry_auth_token,target=/run/secrets/sentry_auth_token,required=false \
   if [ -f /run/secrets/sentry_auth_token ]; then \
     export SENTRY_AUTH_TOKEN="$(cat /run/secrets/sentry_auth_token)"; \
   fi && \
-  cp .env.sample .env && \
-  sed -i 's|^KV_URL=.*|KV_URL=file:///tmp/hackerspub-build-kv.json|' .env && \
-  sed -i '/^INSTANCE_ACTOR_KEY=/d' .env && \
-  echo >> .env && \
-  echo "INSTANCE_ACTOR_KEY='$(mise run keygen)'" >> .env && \
   mise run codegen && \
-  mise run build:web && \
-  mise run build:web-next && \
-  rm .env
+  mise run build:web-next
 
 # Strip dev node_modules; the runtime stage pulls prod deps from prod-deps.
 RUN rm -rf node_modules web-next/node_modules

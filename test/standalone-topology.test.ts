@@ -1,13 +1,23 @@
-import { assert, assertStringIncludes } from "@std/assert";
+import { assert, assertEquals, assertStringIncludes } from "@std/assert";
 
-Deno.test("standalone services share the legacy-compatible media root", async () => {
+Deno.test("standalone services share the application media root", async () => {
   const compose = await Deno.readTextFile(
     new URL("../docker-compose.yml", import.meta.url),
   );
+  const tasks = await Deno.readTextFile(
+    new URL("../mise.toml", import.meta.url),
+  );
 
   assertStringIncludes(compose, "FS_LOCATION: ./media");
-  assertStringIncludes(compose, "- ./web/media:/app/web/media:z");
+  assertStringIncludes(compose, "- ./media:/app/media:z");
+  assertStringIncludes(
+    compose,
+    'command: sh -c "mise run migrate:media && mise run migrate"',
+  );
+  assertStringIncludes(tasks, '[tasks."migrate:media"]');
+  assertStringIncludes(tasks, "--allow-env=FS_LOCATION");
   assert(!compose.includes("FS_LOCATION: ${FS_LOCATION"));
+  assert(!compose.includes("/app/web"));
 });
 
 Deno.test("Codespaces exposes a single canonical gateway origin", async () => {
@@ -107,7 +117,7 @@ Deno.test("Compose preserves the configured Mailgun sender", async () => {
   );
 });
 
-Deno.test("direct standalone startup requires a shared Redis KV", async () => {
+Deno.test("file KV is limited to API-only development", async () => {
   const sample = await Deno.readTextFile(
     new URL("../.env.sample", import.meta.url),
   );
@@ -120,6 +130,16 @@ Deno.test("direct standalone startup requires a shared Redis KV", async () => {
   const worker = await Deno.readTextFile(
     new URL("../graphql/worker.ts", import.meta.url),
   );
+  const tasks = await Deno.readTextFile(
+    new URL("../graphql/deno.json", import.meta.url),
+  );
+  const launch = JSON.parse(
+    await Deno.readTextFile(
+      new URL("../.vscode/launch.json", import.meta.url),
+    ),
+  ) as {
+    configurations: { name: string; args?: string[] }[];
+  };
 
   assertStringIncludes(sample, "KV_URL=redis://localhost:6379/0");
   assertStringIncludes(contributing, "`KV_URL=redis://localhost:6379/0`");
@@ -128,8 +148,32 @@ Deno.test("direct standalone startup requires a shared Redis KV", async () => {
   assert(redisPrerequisite >= 0);
   assert(redisPrerequisite < firstKvCommand);
   assertStringIncludes(contributing, "redis-cli ping");
-  assertStringIncludes(main, "loadStandaloneServerConfig");
+  assertStringIncludes(main, "loadGraphqlApiConfig");
+  assertStringIncludes(main, 'Deno.args.includes("--allow-file-kv")');
   assertStringIncludes(worker, "loadStandaloneServerConfig");
+  assertStringIncludes(tasks, "main.ts --allow-file-kv");
+  assertEquals(
+    launch.configurations.find(({ name }) => name === "GraphQL API")?.args,
+    ["--allow-file-kv"],
+  );
+  assertStringIncludes(
+    tasks,
+    '"start": "deno run -A --unstable-otel --unstable-cron --env-file=../.env main.ts"',
+  );
+});
+
+Deno.test("standalone smoke owns a shared Redis configuration", async () => {
+  const smoke = await Deno.readTextFile(
+    new URL("../scripts/smoke-standalone.ts", import.meta.url),
+  );
+
+  assertStringIncludes(
+    smoke,
+    'Deno.env.get("STANDALONE_SMOKE_KV_URL")',
+  );
+  assertStringIncludes(smoke, '"redis://127.0.0.1:6379/0"');
+  assertStringIncludes(smoke, "{ KV_URL: standaloneKvUrl }");
+  assert(!smoke.includes('new Deno.Command("mise"'));
 });
 
 Deno.test("web-next proxies canonical filesystem upload URLs", async () => {
@@ -146,10 +190,7 @@ Deno.test("web-next proxies canonical filesystem upload URLs", async () => {
   assertStringIncludes(middleware, 'url.pathname === "/medium-uploads"');
 });
 
-Deno.test("standalone services preserve the legacy signature first knock", async () => {
-  const legacy = await Deno.readTextFile(
-    new URL("../web/main.ts", import.meta.url),
-  );
+Deno.test("standalone services preserve the compatible signature first knock", async () => {
   const api = await Deno.readTextFile(
     new URL("../graphql/main.ts", import.meta.url),
   );
@@ -158,35 +199,30 @@ Deno.test("standalone services preserve the legacy signature first knock", async
   );
   const firstKnock = 'firstKnock: "draft-cavage-http-signatures-12"';
 
-  assertStringIncludes(legacy, firstKnock);
   assertStringIncludes(api, firstKnock);
   assertStringIncludes(worker, firstKnock);
 });
 
-Deno.test("production image builds with a local file KV", async () => {
+Deno.test("container builds omit the removed Fresh application", async () => {
   const dockerfile = await Deno.readTextFile(
     new URL("../Dockerfile", import.meta.url),
   );
-  const localKv =
-    "sed -i 's|^KV_URL=.*|KV_URL=file:///tmp/hackerspub-build-kv.json|' .env";
-
-  assertStringIncludes(dockerfile, localKv);
-  assert(
-    dockerfile.indexOf(localKv) < dockerfile.indexOf("mise run build:web"),
-  );
-});
-
-Deno.test("development image builds with a local file KV", async () => {
-  const dockerfile = await Deno.readTextFile(
+  const developmentDockerfile = await Deno.readTextFile(
     new URL("../Dockerfile.dev", import.meta.url),
   );
-  const localKv =
-    "sed -i 's|^KV_URL=.*|KV_URL=file:///tmp/hackerspub-build-kv.json|' .env";
-
-  assertStringIncludes(dockerfile, localKv);
-  assert(
-    dockerfile.indexOf(localKv) < dockerfile.indexOf("mise run build:web"),
+  const compose = await Deno.readTextFile(
+    new URL("../docker-compose.yml", import.meta.url),
   );
+
+  for (const source of [dockerfile, developmentDockerfile]) {
+    assert(!source.includes("web/deno.json"));
+    assert(!source.includes("web/fonts"));
+    assert(!/mise run build:web(?:\s|$)/.test(source));
+    assert(!source.includes("hackerspub-build-kv"));
+  }
+  assertStringIncludes(dockerfile, "mise run build:web-next");
+  assert(!/^ {2}app:/m.test(compose));
+  assert(!compose.includes('"8001:8000"'));
 });
 
 Deno.test("development image includes the runtime workspace metadata", async () => {

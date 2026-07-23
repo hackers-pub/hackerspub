@@ -1,1 +1,0 @@
-../../../graphql/locales/markdown/zh-TW.md

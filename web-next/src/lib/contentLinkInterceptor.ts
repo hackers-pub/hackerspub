@@ -15,11 +15,8 @@ import { type Accessor, createEffect, onCleanup } from "solid-js";
  * federated profile URL.
  *
  * Plain `<a>` elements created via `innerHTML` are not picked up by the
- * router's automatic link interception, so we attach a capture-phase
- * click handler. Capture phase runs before any inline `onclick` the
- * backend may have set as a no-JS-router fallback (legacy `web/` stack),
- * so `stopPropagation()` cleanly suppresses that fallback's
- * `location.href = ...` full-page reload.
+ * router's automatic link interception, so we attach a capture-phase click
+ * handler and stop the browser's full-page navigation for internal routes.
  *
  * Targets, in order of precedence:
  *   1. `data-internal-href` (mention/hashtag rewritten by the backend) —

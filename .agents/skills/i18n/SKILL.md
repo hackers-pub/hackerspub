@@ -137,12 +137,9 @@ Workflow
 --------
 
 1.  Run `cd web-next && pnpm extract` to update `.po` files.
-2.  For each locale, read **both** of these before translating:
-     -  `web-next/src/locales/{locale}/glossary.txt` — mandatory terminology
-     -  `web/locales/{corresponding-legacy-locale}.json` — reference
-        translations from the legacy stack
-        (locale mapping: `en-US` → `en`, `ja-JP` → `ja`, `ko-KR` → `ko`,
-        `zh-CN` → `zh-CN`, `zh-TW` → `zh-TW`)
+2.  For each locale, read the mandatory terminology in
+    `web-next/src/locales/{locale}/glossary.txt` and review nearby existing
+    entries in `messages.po` for product voice and context.
 3.  Fill every empty `msgstr ""` with a translation that follows all rules
     below.
 4.  After translating, review existing non-empty `msgstr` entries for rule

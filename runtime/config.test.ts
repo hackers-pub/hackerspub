@@ -3,6 +3,7 @@ import {
   ConfigurationError,
   loadAccountCreationConfig,
   loadDatabaseConfig,
+  loadGraphqlApiConfig,
   loadServerConfig,
   loadStandaloneServerConfig,
 } from "./config.ts";
@@ -70,6 +71,23 @@ Deno.test("loadStandaloneServerConfig requires a process-safe shared KV", () => 
     KV_URL: "rediss://redis.example:6379/0",
   });
   assertEquals(tlsConfig.kv.url.href, "rediss://redis.example:6379/0");
+});
+
+Deno.test("loadGraphqlApiConfig permits file KV only when explicitly allowed", () => {
+  assertThrows(
+    () => loadGraphqlApiConfig(required),
+    ConfigurationError,
+  );
+  assertThrows(
+    () => loadGraphqlApiConfig(required, { allowFileKv: true }),
+    ConfigurationError,
+  );
+
+  const config = loadGraphqlApiConfig(
+    { ...required, MODE: "development" },
+    { allowFileKv: true },
+  );
+  assertEquals(config.kv.url.href, required.KV_URL);
 });
 
 Deno.test("loadServerConfig uses mock email in development without Mailgun", () => {

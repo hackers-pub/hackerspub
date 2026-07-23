@@ -8,5 +8,6 @@ web-next/.nitro
 web-next/.output
 web-next/dist
 web-next/storybook-static
-web/_fresh
+media
+web/media
 log.jsonl

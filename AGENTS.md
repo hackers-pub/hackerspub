@@ -22,43 +22,29 @@ AI Policy Compliance
 > the project and its maintainers.
 
 
-Stack Migration Status
-----------------------
+Application Architecture
+------------------------
 
-This project is currently in a transitional phase, migrating from an existing
-Fresh + Preact stack to a new SolidStart + Solid + GraphQL + Relay stack:
+The application has three deployable roles:
 
- -  **Legacy Stack (web/)**: Fresh framework with Preact, JSX for templating,
-    direct database queries; runs on Deno
- -  **New Stack (web-next/)**: SolidStart v2 with Solid.js, GraphQL with Relay,
-    Lingui for i18n; runs on Node.js (managed via pnpm workspaces)
+ -  **Web UI (`web-next/`)**: SolidStart v2, Solid.js, Relay, and Lingui on
+    Node.js, managed through the pnpm workspace
+ -  **GraphQL API (`graphql/main.ts`)**: GraphQL Yoga plus Fedify protocol
+    endpoints on Deno
+ -  **Federation worker (`graphql/worker.ts`)**: queue delivery and scheduled
+    jobs on Deno; run it separately from the API process and never behind a
+    load balancer
 
-### Working with Both Stacks
-
- -  **Maintain the legacy stack** in `web/` directory for existing functionality
- -  **Develop new features** in `web-next/` directory using the new stack
- -  **Do not mix technologies** between the two directories
- -  The migration will be completed over several weeks
-
-### When to Use Which Stack
-
- -  Use `web/` for:
-     -  Bug fixes and maintenance of existing features
-     -  Features that need immediate deployment
-     -  Any work specifically requested for the legacy system
-
- -  Use `web-next/` for:
-     -  New feature development
-     -  Modern UI components and patterns (see <DESIGN.md> for the
-        design system)
-     -  Any new internationalization work
-     -  GraphQL schema changes and Relay integration
+Shared application behavior lives in `models/`, `federation/`, `runtime/`, and
+`ai/`.  New UI and internationalization work belongs in `web-next/`; API,
+ActivityPub, and Relay schema changes belong in `graphql/` and the relevant
+shared packages.
 
 
 Build/Lint/Test Commands
 ------------------------
 
-Cross-stack tasks (dev, build, prod, migrate) live in `mise.toml` and are
+Project tasks (dev, build, prod, migrate) live in `mise.toml` and are
 invoked with `mise run <task>`. Run `mise tasks` to list everything that's
 available. Tools (Deno, Node.js, pnpm) are pinned in the same `mise.toml`,
 so `mise install` once gets you a reproducible toolchain, installs project
@@ -66,19 +52,26 @@ dependencies, and writes the pre-commit hook. mise also auto-loads `.env` so
 tasks pick up `DATABASE_URL` etc. without each underlying command needing an
 explicit `--env-file` flag.
 
-### Per-stack tasks (via mise)
+### Per-role tasks (via mise)
 
- -  Dev server: `mise run dev:web` / `mise run dev:graphql` /
-    `mise run dev:web-next`
- -  Build: `mise run build:web` / `mise run build:web-next`
- -  Production start: `mise run prod:web` / `mise run prod:graphql` /
-    `mise run prod:web-next`
+ -  Dev processes: `mise run dev:graphql` /
+    `mise run dev:graphql-worker` / `mise run dev:web-next`
+ -  Build: `mise run build:web-next`
+ -  Production processes: `mise run prod:graphql` /
+    `mise run prod:graphql-worker` / `mise run prod:web-next`
+
+`mise run dev:graphql` by itself accepts a file-backed `KV_URL` for focused
+API development.  The worker and all production processes require Redis; do
+not run an API and worker against the same file-backed KV store.
 
 ### Database migrations (via mise)
 
  -  Apply: `mise run migrate`
  -  Generate a new migration: `mise run migrate:generate`
  -  Apply against the test database: `mise run migrate:test`
+ -  Copy uploads from the removed `web/`-relative storage layout without
+    overwriting:
+    `mise run migrate:media`
 
 ### Operations (via mise)
 
@@ -153,8 +146,7 @@ Code Style Guidelines
 
  -  Use functional components with props destructuring
  -  Tailwind CSS for styling
- -  Components in components/ directory
- -  Interactive components in islands/ directory (Fresh framework pattern)
+ -  Components in `web-next/src/components/`
  -  For visual decisions in `web-next/` (color tokens, typography, component
     patterns, brand assets), follow <DESIGN.md>
 
@@ -253,15 +245,7 @@ Add a `description:` property to:
 Internationalization (i18n)
 ---------------------------
 
-### Legacy Stack (web/)
-
- -  Uses explicit translation string IDs with JSON files
- -  Translation files: `web/locales/{locale}.json`
- -  Terminology glossary: Located at the top of each JSON file under “glossary”
-    key
- -  Usage: Access translations via i18n functions with string IDs
-
-### New Stack (web-next/)
+### Catalogs
 
  -  Uses Lingui with gettext-style approach (source text as key)
  -  Translation files: `web-next/src/locales/{locale}/messages.po`
@@ -270,7 +254,7 @@ Internationalization (i18n)
  -  Language selection: URL query parameter `?lang={locale}` or Accept-Language
     header
 
-### Translation Usage in New Stack
+### Translation Usage
 
  -  Import: `import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts"`
  -  Simple translation: `const { t } = useLingui(); t\`Hello world\`\`
@@ -278,7 +262,7 @@ Internationalization (i18n)
     `const { i18n } = useLingui(); i18n._(msg\`${plural(count, { one: “#
     follower”, other: “# followers” })}\`)\`
 
-### Translation Guidelines for New Stack
+### Translation Guidelines
 
  -  Always reference the appropriate glossary file when translating
  -  Use consistent terminology across the application as defined in glossaries
