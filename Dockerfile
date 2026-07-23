@@ -47,6 +47,7 @@ COPY ai/package.json /app/ai/package.json
 COPY federation/deno.json /app/federation/deno.json
 COPY federation/package.json /app/federation/package.json
 COPY graphql/deno.json /app/graphql/deno.json
+COPY graphql/package.json /app/graphql/package.json
 COPY models/deno.json /app/models/deno.json
 COPY models/package.json /app/models/package.json
 COPY runtime/deno.json /app/runtime/deno.json
@@ -79,6 +80,7 @@ COPY ai/package.json /app/ai/package.json
 COPY federation/deno.json /app/federation/deno.json
 COPY federation/package.json /app/federation/package.json
 COPY graphql/deno.json /app/graphql/deno.json
+COPY graphql/package.json /app/graphql/package.json
 COPY models/deno.json /app/models/deno.json
 COPY models/package.json /app/models/package.json
 COPY runtime/deno.json /app/runtime/deno.json

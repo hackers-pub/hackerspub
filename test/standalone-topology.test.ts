@@ -74,6 +74,19 @@ Deno.test("shared production image delegates role health checks", async () => {
   }
 });
 
+Deno.test("container dependency layers include the GraphQL package manifest", async () => {
+  const production = await Deno.readTextFile(
+    new URL("../Dockerfile", import.meta.url),
+  );
+  const development = await Deno.readTextFile(
+    new URL("../Dockerfile.dev", import.meta.url),
+  );
+  const manifestCopy = "COPY graphql/package.json /app/graphql/package.json";
+
+  assertEquals(production.split(manifestCopy).length - 1, 2);
+  assertStringIncludes(development, manifestCopy);
+});
+
 Deno.test("Compose services ignore the bind-mounted host dotenv file", async () => {
   const compose = await Deno.readTextFile(
     new URL("../docker-compose.yml", import.meta.url),

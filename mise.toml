@@ -35,6 +35,14 @@ auto = true
 description = "Generate all checked-in artifacts"
 run = "deno task -r codegen"
 
+[tasks."deps:sync"]
+description = "Generate the temporary Deno import map from the pnpm catalog"
+run = "node scripts/sync-deno-imports.ts"
+
+[tasks."deps:check"]
+description = "Check that the Deno import map matches the pnpm catalog"
+run = "node scripts/sync-deno-imports.ts --check"
+
 [tasks."next:codegen"]
 description = "Generate Relay artifacts for web-next"
 run = "deno task -f web-next codegen"
@@ -46,7 +54,7 @@ dir = "web-next"
 
 [tasks.check]
 description = "Run formatting, linting, type checking, and generated artifact checks"
-depends = ["next:codegen"]
+depends = ["deps:check", "next:codegen"]
 run = ["deno fmt --check", "hongdown --check", "deno lint", "deno check ."]
 
 [tasks.fmt]

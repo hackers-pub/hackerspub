@@ -10,8 +10,6 @@
   "imports": {
     "@ai-sdk/anthropic": "npm:@ai-sdk/anthropic@^3.0.44",
     "@ai-sdk/google": "npm:@ai-sdk/google@^3.0.29",
-    "@aws-sdk/client-s3": "npm:@aws-sdk/client-s3@^3.848.0",
-    "@aws-sdk/s3-request-presigner": "npm:@aws-sdk/s3-request-presigner@^3.848.0",
     "@c4spar/mock-fetch": "jsr:@c4spar/mock-fetch@^1.0.0",
     "@envelop/sentry": "npm:@envelop/sentry@^15.1.1",
     "@fedify/fedify": "jsr:@fedify/fedify@2.3.2",
@@ -106,7 +104,8 @@
     "tinyld": "npm:tinyld@^1.3.4",
     "url-template": "npm:url-template@^3.1.1",
     "web-push": "npm:web-push@^3.6.7",
-    "xss": "npm:xss@^1.0.15"
+    "xss": "npm:xss@^1.0.15",
+    "yaml": "npm:yaml@^2.9.0"
   },
   "compilerOptions": {
     "lib": [
