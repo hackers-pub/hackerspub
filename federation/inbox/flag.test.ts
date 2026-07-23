@@ -4,8 +4,9 @@ import type { InboxContext } from "@fedify/fedify";
 import { Flag } from "@fedify/vocab";
 import type { ContextData } from "@hackerspub/models/context";
 import type { Transaction } from "@hackerspub/models/db";
-import { postTable } from "@hackerspub/models/schema";
+import { actorTable, postTable } from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
+import { eq } from "drizzle-orm";
 import {
   createFedCtx,
   insertAccountWithActor,
@@ -122,6 +123,39 @@ describe("onFlagged()", () => {
       await onFlagged(fedCtx, activity);
       const flag = await tx.query.flagTable.findFirst({
         where: { iri: "https://remote.example/flags/3" },
+      });
+      assert.equal(flag, undefined);
+    });
+  });
+
+  it("drops flags from cached federation-blocked actors", async () => {
+    await withRollback(async (tx) => {
+      const fedCtx = inboxCtx(tx);
+      const blocked = await insertRemoteActor(tx, {
+        username: "blocked",
+        name: "Blocked",
+        host: "remote.example",
+        iri: "https://remote.example/users/blocked",
+      });
+      await tx.update(actorTable)
+        .set({ suspended: new Date() })
+        .where(eq(actorTable.id, blocked.id));
+      const reported = await insertAccountWithActor(tx, {
+        username: "reportedblocked",
+        name: "Reported Blocked",
+        email: "reportedblocked@example.com",
+      });
+      await onFlagged(
+        fedCtx,
+        new Flag({
+          id: new URL("https://remote.example/flags/blocked-1"),
+          actor: new URL(blocked.iri),
+          objects: [new URL(reported.actor.iri)],
+          content: "Report from a blocked actor.",
+        }),
+      );
+      const flag = await tx.query.flagTable.findFirst({
+        where: { iri: "https://remote.example/flags/blocked-1" },
       });
       assert.equal(flag, undefined);
     });

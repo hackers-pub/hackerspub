@@ -88,7 +88,11 @@ async function listSourceFiles(directory: URL): Promise<URL[]> {
   return files;
 }
 
-async function getDirectImports(files: readonly URL[]): Promise<string[]> {
+async function getDirectImports(
+  files: readonly URL[],
+  packageRoot: URL,
+  workspacePackageRoots: readonly URL[],
+): Promise<string[]> {
   const imports = new Set<string>();
   const staticImportPattern =
     /^\s*(?:import|export)\s+(?:(?:type\s+)?[^"'();]*?\s+from\s+)?(["'])([^"']+)\1/gm;
@@ -99,7 +103,20 @@ async function getDirectImports(files: readonly URL[]): Promise<string[]> {
       const pattern of [staticImportPattern, dynamicImportPattern] as const
     ) {
       for (const match of source.matchAll(pattern)) {
-        const packageName = getPackageName(match[2]);
+        const specifier = match[2];
+        if (specifier.startsWith(".")) {
+          const target = new URL(specifier, file);
+          const importedPackageRoot = workspacePackageRoots.find((root) =>
+            root.href !== packageRoot.href && target.href.startsWith(root.href)
+          );
+          if (importedPackageRoot != null) {
+            assert.fail(
+              `${fileURLToPath(file)} imports ${specifier} from ` +
+                fileURLToPath(importedPackageRoot),
+            );
+          }
+        }
+        const packageName = getPackageName(specifier);
         if (packageName != null) imports.add(packageName);
       }
     }
@@ -249,7 +266,11 @@ test("core package manifests declare direct test imports", async () => {
 });
 
 test("workspace package manifests declare all direct source imports", async () => {
-  for (const directory of await getWorkspaceDirectories()) {
+  const workspaceDirectories = await getWorkspaceDirectories();
+  const workspacePackageRoots = workspaceDirectories.map((directory) =>
+    new URL(`${directory}/`, repositoryRoot)
+  );
+  for (const directory of workspaceDirectories) {
     const packageRoot = new URL(`${directory}/`, repositoryRoot);
     const manifest = await readJson<PackageManifest>(
       new URL("package.json", packageRoot),
@@ -262,6 +283,8 @@ test("workspace package manifests declare all direct source imports", async () =
     ]);
     const undeclaredImports = (await getDirectImports(
       await listSourceFiles(packageRoot),
+      packageRoot,
+      workspacePackageRoots,
     )).filter((packageName) =>
       packageName !== manifest.name && !declaredDependencies.has(packageName)
     );
@@ -287,7 +310,11 @@ test("root package manifest declares operational and test imports", async () => 
     ...await listSourceFiles(new URL("scripts/", repositoryRoot)),
     ...await listSourceFiles(new URL("test/", repositoryRoot)),
   ];
-  const undeclaredImports = (await getDirectImports(rootFiles)).filter(
+  const undeclaredImports = (await getDirectImports(
+    rootFiles,
+    repositoryRoot,
+    [],
+  )).filter(
     (packageName) => !declaredDependencies.has(packageName),
   );
   assert.deepEqual(
