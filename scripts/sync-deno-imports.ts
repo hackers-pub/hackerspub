@@ -3,7 +3,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { parse } from "yaml";
 
 interface WorkspaceConfiguration {
-  readonly catalog?: Record<string, unknown>;
+  readonly catalog?: unknown;
 }
 
 interface DenoConfiguration {
@@ -46,6 +46,18 @@ export function buildDenoImports(
   );
 }
 
+export function validateCatalog(
+  catalog: unknown,
+): asserts catalog is Record<string, unknown> {
+  if (
+    catalog == null || typeof catalog !== "object" || Array.isArray(catalog)
+  ) {
+    throw new TypeError(
+      "pnpm-workspace.yaml must define a catalog mapping.",
+    );
+  }
+}
+
 export function renderDenoConfig(
   source: string,
   catalog: Record<string, unknown>,
@@ -66,9 +78,7 @@ async function main(): Promise<void> {
   const workspace = parse(
     await readFile(workspaceUrl, "utf8"),
   ) as WorkspaceConfiguration;
-  if (workspace.catalog == null) {
-    throw new TypeError("pnpm-workspace.yaml must define a catalog.");
-  }
+  validateCatalog(workspace.catalog);
 
   const current = await readFile(denoConfigUrl, "utf8");
   const expected = renderDenoConfig(current, workspace.catalog);

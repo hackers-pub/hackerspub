@@ -4,6 +4,7 @@ import {
   buildDenoImports,
   renderDenoConfig,
   toDenoImport,
+  validateCatalog,
 } from "./sync-deno-imports.ts";
 
 test("toDenoImport() expands npm and JSR catalog values", () => {
@@ -40,6 +41,16 @@ test("buildDenoImports() sorts entries and rejects invalid values", () => {
     () => buildDenoImports({ graphql: null }),
     /must be a string/,
   );
+});
+
+test("validateCatalog() rejects values that are not mappings", () => {
+  assert.doesNotThrow(() => validateCatalog({ graphql: "^16.0.0" }));
+  for (const value of [undefined, null, [], "graphql"]) {
+    assert.throws(
+      () => validateCatalog(value),
+      /must define a catalog mapping/,
+    );
+  }
 });
 
 test("renderDenoConfig() replaces imports without changing other fields", () => {
