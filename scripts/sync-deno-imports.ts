@@ -19,19 +19,6 @@ export function toDenoImport(
   packageName: string,
   catalogValue: string,
 ): string {
-  const jsrTarball = catalogValue.match(
-    /^https:\/\/npm\.jsr\.io\/~\/\d+\/@jsr\/([^/]+)\/(.+)\.tgz$/,
-  );
-  if (jsrTarball != null) {
-    const jsrPackageName = `@${jsrTarball[1].replace("__", "/")}`;
-    if (jsrPackageName !== packageName) {
-      throw new TypeError(
-        `JSR tarball for ${JSON.stringify(jsrPackageName)} cannot define ` +
-          `${JSON.stringify(packageName)}.`,
-      );
-    }
-    return `jsr:${packageName}@${jsrTarball[2]}`;
-  }
   if (catalogValue.startsWith("jsr:")) {
     const specifier = catalogValue.slice("jsr:".length);
     if (specifier.startsWith("@") || specifier.startsWith(`${packageName}@`)) {

@@ -25,25 +25,6 @@ test("toDenoImport() preserves explicit registry aliases", () => {
   );
 });
 
-test("toDenoImport() maps pnpm-compatible JSR tarballs back to JSR", () => {
-  assert.equal(
-    toDenoImport(
-      "@logtape/sentry",
-      "https://npm.jsr.io/~/11/@jsr/logtape__sentry/" +
-        "2.2.0-dev.620+455a47e2.tgz",
-    ),
-    "jsr:@logtape/sentry@2.2.0-dev.620+455a47e2",
-  );
-  assert.throws(
-    () =>
-      toDenoImport(
-        "@logtape/logtape",
-        "https://npm.jsr.io/~/11/@jsr/logtape__sentry/2.2.0.tgz",
-      ),
-    /cannot define/,
-  );
-});
-
 test("buildDenoImports() sorts entries and rejects invalid values", () => {
   assert.deepEqual(
     buildDenoImports({
