@@ -64,11 +64,6 @@ if (".env.test" | path exists) {
 '''
 shell = "nu -c"
 
-[tasks."dev:web"]
-description = "Run the legacy web stack in development mode"
-run = "deno task dev"
-dir = "web"
-
 [tasks."dev:graphql"]
 description = "Run the GraphQL server in development mode"
 run = "deno task dev"
@@ -84,20 +79,10 @@ description = "Run the web-next stack in development mode"
 run = "pnpm dev"
 dir = "web-next"
 
-[tasks."build:web"]
-description = "Build the legacy web stack"
-run = "deno task build"
-dir = "web"
-
 [tasks."build:web-next"]
 description = "Build the web-next stack"
 run = "pnpm build"
 dir = "web-next"
-
-[tasks."prod:web"]
-description = "Start the legacy web stack in production"
-run = "deno task start"
-dir = "web"
 
 [tasks."prod:graphql"]
 description = "Start the GraphQL server in production"
@@ -113,14 +98,6 @@ dir = "graphql"
 description = "Start the web-next stack in production"
 run = "node --enable-source-maps --import ./instrument.server.mjs .output/server/index.mjs"
 dir = "web-next"
-
-[tasks."prod:hc:web"]
-description = "Health check the legacy web stack"
-run = '''
-const response = await fetch("http://127.0.0.1:8000/search");
-if (!response.ok) Deno.exit(1);
-'''
-shell = "deno eval"
 
 [tasks."prod:hc:graphql"]
 description = "Health check the GraphQL server with a __typename query"
@@ -163,6 +140,10 @@ run = "deno run --allow-all scripts/smoke-standalone.ts"
 [tasks.migrate]
 description = "Run database migrations"
 run = "deno run -A drizzle-kit migrate"
+
+[tasks."migrate:media"]
+description = "Copy legacy filesystem uploads into the configured application directory"
+run = "deno run --allow-env=FS_LOCATION --allow-read --allow-write scripts/migrate-media.ts"
 
 [tasks."migrate:generate"]
 description = "Generate a new database migration"

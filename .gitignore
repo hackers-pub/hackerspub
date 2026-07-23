@@ -16,13 +16,11 @@
 # Playwright MCP
 .playwright-mcp/
 
-# Fresh build directory
-_fresh/
 # npm + other dependencies
 node_modules/
-/web/vendor/
 
 # media in fs
+/media
 /web/media
 
 # keyv data

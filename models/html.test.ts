@@ -78,11 +78,7 @@ test("transformMentions() rewrites anchors matching persisted mention actors", (
 
   assert.ok(html.includes('class="mention"'));
   assert.ok(html.includes('data-internal-href="/@alice@forum.example"'));
-  assert.ok(
-    html.includes(
-      'onclick="location.href = this.dataset.internalHref; return false;"',
-    ),
-  );
+  assert.ok(!html.includes("onclick="));
 });
 
 test("transformMentions() tolerates missing mention relations", () => {

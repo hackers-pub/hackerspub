@@ -5,7 +5,7 @@ import "./logging.ts";
 import { toApplicationContext } from "@hackerspub/federation/context";
 import {
   getDenoEnvironment,
-  loadStandaloneServerConfig,
+  loadGraphqlApiConfig,
 } from "@hackerspub/runtime/config";
 import {
   createRuntimeResources,
@@ -25,8 +25,9 @@ const appleAppSiteAssociationJson = Deno.readTextFileSync(
 );
 
 const yogaServer = createYogaServer();
+const allowFileKv = Deno.args.includes("--allow-file-kv");
 const resources = await createRuntimeResources(
-  loadStandaloneServerConfig(getDenoEnvironment()),
+  loadGraphqlApiConfig(getDenoEnvironment(), { allowFileKv }),
   metadata.version,
   {
     fileSystemBaseUrl: FILE_SYSTEM_STORAGE_BASE_URL,
@@ -34,7 +35,7 @@ const resources = await createRuntimeResources(
       manuallyStartQueue: true,
       // TODO: Revert to Fedify's default RFC 9421-first behavior once
       // https://github.com/bonfire-networks/activity_pub/issues/8 is fixed
-      // and released. Keep this aligned with the legacy request paths.
+      // and released. Keep this aligned with the queue worker.
       firstKnock: "draft-cavage-http-signatures-12",
     },
   },

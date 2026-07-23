@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import {
   checkWorkerHeartbeat,
   WORKER_HEARTBEAT_MAX_AGE_MILLISECONDS,
@@ -5,11 +6,25 @@ import {
 import { waitUntil } from "./smoke-readiness.ts";
 
 const heartbeatPath = `/tmp/hackerspub-standalone-smoke-${Deno.pid}.health`;
+const graphqlDirectory = fileURLToPath(
+  new URL("../graphql/", import.meta.url),
+);
+const webNextDirectory = fileURLToPath(
+  new URL("../web-next/", import.meta.url),
+);
+const standaloneKvUrl = Deno.env.get("STANDALONE_SMOKE_KV_URL") ??
+  "redis://127.0.0.1:6379/0";
 const processes: Deno.ChildProcess[] = [];
 
-function start(task: string, environment: Record<string, string> = {}) {
-  const process = new Deno.Command("mise", {
-    args: ["run", task],
+function start(
+  command: string,
+  args: readonly string[],
+  cwd: string,
+  environment: Record<string, string> = {},
+) {
+  const process = new Deno.Command(command, {
+    args: [...args],
+    cwd,
     env: environment,
     stdin: "null",
     stdout: "inherit",
@@ -54,7 +69,12 @@ async function removeHeartbeat() {
 }
 
 try {
-  start("prod:graphql");
+  start(
+    Deno.execPath(),
+    ["run", "-A", "--unstable-otel", "--unstable-cron", "main.ts"],
+    graphqlDirectory,
+    { KV_URL: standaloneKvUrl },
+  );
   await waitUntil("the standalone GraphQL API", async (signal) => {
     const response = await fetch("http://127.0.0.1:8080/graphql", {
       method: "POST",
@@ -66,14 +86,32 @@ try {
     return response.ok && body.data?.__typename === "Query";
   });
 
-  start("prod:graphql-worker", { WORKER_HEALTH_FILE: heartbeatPath });
+  start(
+    Deno.execPath(),
+    ["run", "-A", "--unstable-otel", "--unstable-cron", "worker.ts"],
+    graphqlDirectory,
+    {
+      KV_URL: standaloneKvUrl,
+      WORKER_HEALTH_FILE: heartbeatPath,
+    },
+  );
   await waitUntil("the GraphQL worker heartbeat", () =>
     checkWorkerHeartbeat(
       heartbeatPath,
       WORKER_HEARTBEAT_MAX_AGE_MILLISECONDS,
     ));
 
-  start("prod:web-next");
+  start(
+    "node",
+    [
+      "--enable-source-maps",
+      "--import",
+      "./instrument.server.mjs",
+      ".output/server/index.mjs",
+    ],
+    webNextDirectory,
+    { API_URL: "http://127.0.0.1:8080/graphql" },
+  );
   await waitUntil("web-next", async (signal) => {
     const response = await fetch("http://127.0.0.1:3000/search", { signal });
     return response.ok;

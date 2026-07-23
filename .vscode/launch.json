@@ -3,19 +3,40 @@
   "configurations": [
     {
       "request": "launch",
-      "name": "dev",
+      "name": "GraphQL API",
       "type": "node",
-      "program": "${workspaceFolder}/web/dev.ts",
-      "cwd": "${workspaceFolder}/web/",
+      "program": "${workspaceFolder}/graphql/main.ts",
+      "cwd": "${workspaceFolder}/graphql/",
       "env": {},
       "runtimeExecutable": "deno",
       "runtimeArgs": [
         "run",
         "-A",
+        "--unstable-cron",
         "--env-file=../.env",
-        "--inspect-wait"
+        "--inspect-wait=127.0.0.1:9229"
+      ],
+      "args": [
+        "--allow-file-kv"
       ],
       "attachSimplePort": 9229
+    },
+    {
+      "request": "launch",
+      "name": "GraphQL worker",
+      "type": "node",
+      "program": "${workspaceFolder}/graphql/worker.ts",
+      "cwd": "${workspaceFolder}/graphql/",
+      "env": {},
+      "runtimeExecutable": "deno",
+      "runtimeArgs": [
+        "run",
+        "-A",
+        "--unstable-cron",
+        "--env-file=../.env",
+        "--inspect-wait=127.0.0.1:9230"
+      ],
+      "attachSimplePort": 9230
     }
   ]
 }

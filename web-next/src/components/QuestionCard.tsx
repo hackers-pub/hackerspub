@@ -18,6 +18,7 @@ import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
+import { useContentLinkInterceptor } from "~/lib/contentLinkInterceptor.ts";
 import { createDeferredRender } from "~/lib/deferredRender.ts";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
@@ -121,6 +122,7 @@ interface QuestionCardContentProps {
 function QuestionCardContent(props: QuestionCardContentProps) {
   const [proseRef, setProseRef] = createSignal<HTMLElement>();
   const mentionState = useMentionHoverCards(proseRef);
+  useContentLinkInterceptor(proseRef);
   const showDeferredSections = createDeferredRender(() =>
     !!props.deferHeavySections
   );

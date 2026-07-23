@@ -1032,7 +1032,7 @@ test("regenerateInvitations returns NotAuthorizedError for non-moderator", async
   });
 });
 
-test("regenerateInvitations grants +1 to top third and updates KV", async () => {
+test("regenerateInvitations grants +1 to top third without rewriting KV", async () => {
   await withRollback(async (tx) => {
     const mod = await makeModerator(tx, "regenmutmod1");
     const { kv, store } = createTestKv();
@@ -1093,8 +1093,11 @@ test("regenerateInvitations grants +1 to top third and updates KV", async () => 
     assert.deepEqual(payload.accountsAffected, 1);
     assert.ok(payload.status.lastRegenerated != null);
 
-    // KV is updated.
-    assert.ok(typeof store.get(INVITATIONS_LAST_REGEN_KEY) === "string");
+    // KV remains a read-only migration fallback; Postgres owns the new cutoff.
+    assert.deepEqual(
+      store.get(INVITATIONS_LAST_REGEN_KEY),
+      cutoff.toISOString(),
+    );
 
     // Only the winner gains.
     const w = await tx.query.accountTable.findFirst({

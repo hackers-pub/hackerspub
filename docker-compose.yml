@@ -34,12 +34,12 @@ x-application: &application
   - /app/deps
   - /app/.cache
   - /app/.deno
-  - ./web/media:/app/web/media:z
+  - ./media:/app/media:z
 
 services:
   migration:
     <<: *application
-    command: mise run migrate
+    command: sh -c "mise run migrate:media && mise run migrate"
     depends_on:
       db:
         condition: service_healthy
@@ -114,18 +114,6 @@ services:
       graphql:
         condition: service_healthy
       web-next:
-        condition: service_healthy
-
-  app:
-    <<: *application
-    profiles: ["legacy"]
-    command: mise run dev:web
-    ports:
-    - "8001:8000"
-    depends_on:
-      migration:
-        condition: service_completed_successfully
-      redis:
         condition: service_healthy
 
   db:

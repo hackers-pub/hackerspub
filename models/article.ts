@@ -379,10 +379,9 @@ async function createArticleOperation(
   } | undefined
 > {
   const { db } = fedCtx;
-  // Check the suspension before any insert: when this function runs
-  // without an enclosing transaction (the legacy draft-publish route),
-  // a guard placed after createArticleSource would leave already-
-  // committed source/content rows behind on rejection.
+  // Check the suspension before any insert: callers without an enclosing
+  // transaction would otherwise leave committed source/content rows behind
+  // if the guard ran after createArticleSource.
   await assertAccountActorNotSuspended(db, source.accountId);
   const { media: sourceMedia, ...articleSourceInput } = source;
   const referencedMediumKeys = extractArticleMediumKeys(source.content);

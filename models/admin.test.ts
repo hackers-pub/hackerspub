@@ -240,17 +240,12 @@ test("regenerateInvitations grants +1 to the top third by post count", async () 
 });
 
 test(
-  "regenerateInvitations skips the KV sync when called inside an existing transaction",
+  "regenerateInvitations does not write the cutoff back to migration KV",
   async () => {
     await withRollback(async (tx) => {
       const { kv, store } = createTestKv();
       const now = new Date("2026-04-15T00:00:00.000Z");
       await regenerateInvitations(tx, kv, { now });
-      // The caller controls the commit/rollback boundary when they
-      // pass an existing transaction; running the KV sync here would
-      // advance KV ahead of the outer commit and leave KV out of
-      // sync if the outer caller rolled back.  Production calls go
-      // through the non-tx branch, which does sync KV.
       assert.deepEqual(store.get(INVITATIONS_LAST_REGEN_KEY), undefined);
     });
   },
