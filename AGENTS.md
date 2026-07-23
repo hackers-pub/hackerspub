@@ -257,10 +257,18 @@ Internationalization (i18n)
 ### Translation Usage
 
  -  Import: `import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts"`
+
  -  Simple translation: `const { t } = useLingui(); t\`Hello world\`\`
+
  -  With pluralization:
-    `const { i18n } = useLingui(); i18n._(msg\`${plural(count, { one: “#
-    follower”, other: “# followers” })}\`)\`
+
+    ~~~~ ts
+    const { i18n } = useLingui();
+    i18n._(msg`${plural(count, {
+      one: "# follower",
+      other: "# followers",
+    })}`)
+    ~~~~
 
 ### Translation Guidelines
 
