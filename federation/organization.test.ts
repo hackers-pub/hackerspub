@@ -6,6 +6,7 @@ import {
   MemoryKvStore,
   type MessageQueue,
 } from "@fedify/fedify";
+import { Organization, Update } from "@fedify/vocab";
 import type { ContextData } from "@hackerspub/models/context";
 import {
   acceptOrganizationConversion,
@@ -113,5 +114,14 @@ test("acceptOrganizationConversion() enqueues Update(Organization) through Fedif
     );
 
     assert.equal(queued.length, 1);
+    const message = queued[0];
+    assert.ok(message != null && typeof message === "object");
+    assert.equal(Reflect.get(message, "type"), "outbox");
+    assert.equal(Reflect.get(message, "activityType"), Update.typeId.href);
+    assert.deepEqual(Reflect.get(message, "actorIds"), [follower.iri]);
+    const activity = await Update.fromJsonLd(
+      Reflect.get(message, "activity"),
+    );
+    assert.ok(await activity.getObject() instanceof Organization);
   });
 });
