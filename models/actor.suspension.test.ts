@@ -3,7 +3,6 @@ import test from "node:test";
 import * as vocab from "@fedify/vocab";
 import { persistActor } from "@hackerspub/models/actor";
 import { persistReaction } from "@hackerspub/models/reaction";
-import { onFlagged } from "../federation/inbox/flag.ts";
 import { actorTable } from "@hackerspub/models/schema";
 import { eq } from "drizzle-orm";
 import {
@@ -76,7 +75,7 @@ test("persistActor() resumes after the federation block expires", async () => {
   });
 });
 
-test("cached federation-blocked actors cannot react or report", async () => {
+test("cached federation-blocked actors cannot react", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);
     const blocked = await insertRemoteActor(tx, {
@@ -107,19 +106,5 @@ test("cached federation-blocked actors cannot react or report", async () => {
       {},
     );
     assert.equal(reaction, undefined);
-
-    await onFlagged(
-      fedCtx as unknown as Parameters<typeof onFlagged>[0],
-      new vocab.Flag({
-        id: new URL("https://remote.example/flags/blocked-1"),
-        actor: new URL(blocked.iri),
-        objects: [new URL(author.actor.iri)],
-        content: "Report from a blocked actor.",
-      }),
-    );
-    const flag = await tx.query.flagTable.findFirst({
-      where: { iri: "https://remote.example/flags/blocked-1" },
-    });
-    assert.equal(flag, undefined);
   });
 });

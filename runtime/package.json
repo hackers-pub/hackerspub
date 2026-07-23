@@ -2,7 +2,8 @@
   "name": "@hackerspub/runtime",
   "type": "module",
   "exports": {
-    "./*": "./*.ts"
+    "./config": "./config.ts",
+    "./resources": "./resources.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "catalog:",
@@ -24,5 +25,8 @@
     "keyv": "catalog:",
     "keyv-file": "catalog:",
     "postgres": "catalog:"
+  },
+  "devDependencies": {
+    "@std/assert": "catalog:"
   }
 }

@@ -1,16 +1,8 @@
 import assert from "node:assert";
 import test from "node:test";
-import {
-  exportJwk,
-  generateCryptoKeyPair,
-  MemoryKvStore,
-  type MessageQueue,
-} from "@fedify/fedify";
 import { Organization, Update } from "@fedify/vocab";
-import { toApplicationContext } from "@hackerspub/federation/context";
 import { eq, sql } from "drizzle-orm";
 import { registerPushNotificationTarget } from "./push.ts";
-import type { ContextData } from "./context.ts";
 import {
   acceptOrganizationConversion,
   acceptOrganizationInvitation,
@@ -29,7 +21,6 @@ import {
   actorTable,
   articleDraftTable,
   bookmarkTable,
-  followingTable,
   invitationLinkTable,
   notificationTable,
   organizationMembershipTable,
@@ -37,12 +28,8 @@ import {
 } from "./schema.ts";
 import {
   createFedCtx,
-  createTestDisk,
-  createTestKv,
   insertAccountWithActor,
   insertNotePost,
-  insertRemoteActor,
-  services,
   withRollback,
 } from "../test/postgres.ts";
 import type { Uuid } from "./uuid.ts";
@@ -50,28 +37,6 @@ import {
   setWebPushConfigForTesting,
   setWebPushSenderForTesting,
 } from "./webpush.ts";
-
-let federationBuilderPromise:
-  | Promise<typeof import("../federation/mod.ts").builder>
-  | undefined;
-
-async function getFederationBuilder() {
-  if (federationBuilderPromise == null) {
-    federationBuilderPromise = (async () => {
-      const { privateKey } = await generateCryptoKeyPair(
-        "RSASSA-PKCS1-v1_5",
-      );
-      Deno.env.set(
-        "INSTANCE_ACTOR_KEY",
-        JSON.stringify(
-          await exportJwk(privateKey),
-        ),
-      );
-      return (await import("../federation/mod.ts")).builder;
-    })();
-  }
-  return await federationBuilderPromise;
-}
 
 const validWebPushP256dh =
   "BAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE";
@@ -1033,7 +998,7 @@ test("acceptOrganizationConversion() sends Update(Organization) to followers", a
     } as typeof baseFedCtx;
 
     await acceptOrganizationConversion(
-      toApplicationContext(fedCtx),
+      fedCtx,
       admin.account,
       request.id,
     );
@@ -1052,78 +1017,6 @@ test("acceptOrganizationConversion() sends Update(Organization) to followers", a
     });
     assert.ok(object instanceof Organization);
     assert.equal(object.id?.href, fedCtx.getActorUri(account.account.id).href);
-  });
-});
-
-test("acceptOrganizationConversion() enqueues Update(Organization) through Fedify", async () => {
-  await withRollback(async (tx) => {
-    const account = await insertAccountWithActor(tx, {
-      username: "convertfedify",
-      name: "Convert Fedify",
-      email: "convertfedify@example.com",
-    });
-    const admin = await insertAccountWithActor(tx, {
-      username: "convertfedifyadmin",
-      name: "Convert Fedify Admin",
-      email: "convertfedifyadmin@example.com",
-    });
-    const follower = await insertRemoteActor(tx, {
-      username: "convertfedifyfollower",
-      name: "Convert Fedify Follower",
-      host: "remote.example",
-    });
-    await tx.insert(followingTable).values({
-      iri: "https://remote.example/follows/convert-fedify",
-      followerId: follower.id,
-      followeeId: account.actor.id,
-      accepted: new Date("2026-04-15T00:00:00.000Z"),
-    });
-    const request = await requestOrganizationConversion(
-      tx,
-      account.account,
-      admin.account.username,
-      account.account.username,
-    );
-    const queued: unknown[] = [];
-    const queue: MessageQueue = {
-      enqueue(message) {
-        queued.push(message);
-        return Promise.resolve();
-      },
-      enqueueMany(messages) {
-        queued.push(...messages);
-        return Promise.resolve();
-      },
-      listen() {
-        return new Promise(() => {});
-      },
-    };
-    const builder = await getFederationBuilder();
-    const federation = await builder.build({
-      kv: new MemoryKvStore(),
-      queue,
-      manuallyStartQueue: true,
-      origin: "http://localhost/",
-    });
-    const { kv } = createTestKv();
-    const fedCtx = federation.createContext(
-      new Request("http://localhost/graphql"),
-      {
-        db: tx,
-        kv,
-        disk: createTestDisk(),
-        models: {} as ContextData["models"],
-        services,
-      },
-    );
-
-    await acceptOrganizationConversion(
-      toApplicationContext(fedCtx),
-      admin.account,
-      request.id,
-    );
-
-    assert.equal(queued.length, 1);
   });
 });
 

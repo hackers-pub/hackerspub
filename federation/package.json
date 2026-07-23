@@ -3,14 +3,27 @@
   "type": "module",
   "exports": {
     ".": "./mod.ts",
-    "./*": "./*.ts"
+    "./actor": "./actor.ts",
+    "./builder": "./builder.ts",
+    "./collections": "./collections.ts",
+    "./context": "./context.ts",
+    "./inbox": "./inbox/mod.ts",
+    "./nodeinfo": "./nodeinfo.ts",
+    "./objects": "./objects.ts",
+    "./outbox-queue": "./outbox-queue.ts",
+    "./services": "./services.ts",
+    "./tags-pub": "./tags-pub.ts",
+    "./webfinger": "./webfinger.ts"
   },
   "dependencies": {
-    "@std/html": "catalog:",
     "@fedify/fedify": "catalog:",
     "@fedify/vocab": "catalog:",
     "@hackerspub/models": "workspace:*",
     "@logtape/logtape": "catalog:",
+    "@std/html": "catalog:",
     "drizzle-orm": "catalog:"
+  },
+  "devDependencies": {
+    "@std/assert": "catalog:"
   }
 }
