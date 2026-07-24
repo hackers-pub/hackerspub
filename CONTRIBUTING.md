@@ -191,11 +191,11 @@ and set the values of the variables according to your environment.
 Starting Redis
 --------------
 
-The sample configuration sets `KV_URL=redis://localhost:6379/0`, so Redis must
-be listening on port 6379 before running `mise run addaccount` or either
-standalone GraphQL process.  Install Redis using the
-[official instructions][Redis] for your operating system, then start it.  For
-example:
+The sample configuration sets `KV_URL=redis://localhost:6379/0`.  When using
+that URL, Redis must be listening on port 6379 before running
+`mise run addaccount` or either standalone GraphQL process.  Install Redis
+using the [official instructions][Redis] for your operating system, then start
+it.  For example:
 
  -  On macOS with the current Homebrew cask, run:
 
@@ -288,14 +288,13 @@ For focused development, run the API, worker, and frontend in separate
 terminals:
 
 ~~~~ sh
-mise run dev:graphql
+mise run dev:graphql:node
 mise run dev:graphql-worker
 API_URL=http://localhost:8080/graphql mise run dev:web-next
 ~~~~
 
-Use `mise run dev:graphql:node` instead of `mise run dev:graphql` to exercise
-the candidate Node.js API runtime.  Both commands expose the same HTTP surface;
-the Deno command remains the rollback path until the deployment cutover.
+Use `mise run dev:graphql` instead to exercise the Deno rollback path.  Both
+commands expose the same HTTP surface until the deployment cutover.
 
 The direct frontend is available at http://localhost:3000/.  It does not
 provide the unified ActivityPub routing that the Compose gateway provides.
