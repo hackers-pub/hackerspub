@@ -1,0 +1,29 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "rewriteRelativeImportExtensions": true,
+    "types": ["node", "temporal-polyfill/global"]
+  },
+  "include": [
+    "ai/**/*.ts",
+    "federation/**/*.ts",
+    "graphql/**/*.ts",
+    "models/**/*.ts",
+    "runtime/**/*.ts",
+    "scripts/**/*.ts",
+    "test/**/*.ts",
+    "types/**/*.d.ts",
+    "web-next/lint-plugins/**/*.ts"
+  ],
+  "exclude": [
+    "graphql/instrument.ts",
+    "graphql/logging.ts",
+    "graphql/main.ts",
+    "graphql/smoke-standalone.ts",
+    "graphql/worker.ts",
+    "scripts/smoke-standalone.ts"
+  ]
+}

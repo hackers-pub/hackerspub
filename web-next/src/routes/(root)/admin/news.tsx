@@ -38,7 +38,7 @@ import {
   TextFieldLabel,
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
-import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
+import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,
@@ -277,9 +277,8 @@ export default function AdminNewsPage() {
     null,
   );
   const [preferredNoteInput, setPreferredNoteInput] = createSignal("");
-  const [promotionInput, setPromotionInput] = createSignal<NewsPromotion>(
-    "NORMAL",
-  );
+  const [promotionInput, setPromotionInput] =
+    createSignal<NewsPromotion>("NORMAL");
   const [addingPreferred, setAddingPreferred] = createSignal(false);
 
   const refresh = () => void revalidate("loadNewsAdminPageQuery");
@@ -296,12 +295,10 @@ export default function AdminNewsPage() {
         if (result.__typename === "RecomputeNewsScoresPayload") {
           showToast({
             title: i18n._(
-              msg`${
-                plural(result.linksUpdated!, {
-                  one: "Recomputed # link.",
-                  other: "Recomputed # links.",
-                })
-              }`,
+              msg`${plural(result.linksUpdated!, {
+                one: "Recomputed # link.",
+                other: "Recomputed # links.",
+              })}`,
             ),
           });
           refresh();
@@ -450,9 +447,10 @@ export default function AdminNewsPage() {
         setAddingPreferred(false);
         showToast({
           title: t`Failed to look up the actor.`,
-          description: import.meta.env.DEV && error instanceof Error
-            ? error.message
-            : undefined,
+          description:
+            import.meta.env.DEV && error instanceof Error
+              ? error.message
+              : undefined,
           variant: "error",
         });
         return;
@@ -539,9 +537,13 @@ export default function AdminNewsPage() {
           <Show
             keyed
             when={data.viewer?.moderator}
-            fallback={data.viewer == null
-              ? <Navigate href="/sign?next=%2Fadmin%2Fnews" />
-              : <Navigate href="/" />}
+            fallback={
+              data.viewer == null ? (
+                <Navigate href="/sign?next=%2Fadmin%2Fnews" />
+              ) : (
+                <Navigate href="/" />
+              )
+            }
           >
             {(_) => {
               const status = () => data.newsScoreStatus;
@@ -565,12 +567,10 @@ export default function AdminNewsPage() {
                     <CardContent class="space-y-2 text-sm">
                       <p>
                         {i18n._(
-                          msg`${
-                            plural(status()?.scoredLinkCount ?? 0, {
-                              one: "# link is currently in the news feed.",
-                              other: "# links are currently in the news feed.",
-                            })
-                          }`,
+                          msg`${plural(status()?.scoredLinkCount ?? 0, {
+                            one: "# link is currently in the news feed.",
+                            other: "# links are currently in the news feed.",
+                          })}`,
                         )}
                       </p>
                       <p>
@@ -617,7 +617,8 @@ export default function AdminNewsPage() {
                             placeholder="https://example.com/*"
                             value={patternInput()}
                             onInput={(e) =>
-                              setPatternInput(e.currentTarget.value)}
+                              setPatternInput(e.currentTarget.value)
+                            }
                           />
                         </TextField>
                         <TextField class="grid flex-1 gap-1.5">
@@ -633,8 +634,9 @@ export default function AdminNewsPage() {
                         </TextField>
                         <Button
                           type="submit"
-                          disabled={adding() ||
-                            patternInput().trim().length < 1}
+                          disabled={
+                            adding() || patternInput().trim().length < 1
+                          }
                         >
                           {adding() ? t`Adding…` : t`Add`}
                         </Button>
@@ -721,7 +723,8 @@ export default function AdminNewsPage() {
                                 {(state) =>
                                   state.selectedOption() === "STRONG"
                                     ? t`Strong`
-                                    : t`Normal`}
+                                    : t`Normal`
+                                }
                               </SelectValue>
                             </SelectTrigger>
                             <SelectContent />
@@ -737,13 +740,16 @@ export default function AdminNewsPage() {
                               type="text"
                               value={preferredNoteInput()}
                               onInput={(e) =>
-                                setPreferredNoteInput(e.currentTarget.value)}
+                                setPreferredNoteInput(e.currentTarget.value)
+                              }
                             />
                           </TextField>
                           <Button
                             type="submit"
-                            disabled={addingPreferred() ||
-                              handleInput().trim().length < 1}
+                            disabled={
+                              addingPreferred() ||
+                              handleInput().trim().length < 1
+                            }
                           >
                             {addingPreferred() ? t`Adding…` : t`Add`}
                           </Button>
@@ -771,11 +777,9 @@ export default function AdminNewsPage() {
                                 </Avatar>
                                 <div class="min-w-0 flex-1">
                                   <p class="truncate text-sm font-medium">
-                                    {
-                                      /* `name` is server-rendered HTML (custom
+                                    {/* `name` is server-rendered HTML (custom
                                       emoji as <img>), so render it as markup
-                                      like the actor cards do, not escaped text. */
-                                    }
+                                      like the actor cards do, not escaped text. */}
                                     <Show
                                       when={s.actor.name}
                                       fallback={s.actor.handle}

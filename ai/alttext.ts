@@ -11,11 +11,12 @@ const MAX_CONTEXT_LENGTH = 1000;
 const MAX_ALT_TEXT_TOKENS = 200;
 
 const PROMPT_LANGUAGES: Locale[] = (
-  await readdir(
-    join(import.meta.dirname!, "prompts", "alttext"),
-    { withFileTypes: true },
-  )
-).map((f) => f.name.replace(/\.md$/, "")).filter(isLocale);
+  await readdir(join(import.meta.dirname!, "prompts", "alttext"), {
+    withFileTypes: true,
+  })
+)
+  .map((f) => f.name.replace(/\.md$/, ""))
+  .filter(isLocale);
 
 const promptCache = new Map<string, string>();
 
@@ -26,8 +27,8 @@ async function getAltTextPrompt(language: string): Promise<string> {
   } catch {
     locale = new Intl.Locale("en");
   }
-  const promptLocale = negotiateLocale(locale, PROMPT_LANGUAGES) ??
-    new Intl.Locale("en");
+  const promptLocale =
+    negotiateLocale(locale, PROMPT_LANGUAGES) ?? new Intl.Locale("en");
   const cacheKey = promptLocale.baseName;
   const cached = promptCache.get(cacheKey);
   if (cached != null) return cached;
@@ -64,13 +65,15 @@ export async function generateAltText(
     model,
     system: systemPrompt,
     maxOutputTokens: MAX_ALT_TEXT_TOKENS,
-    messages: [{
-      role: "user",
-      content: [
-        { type: "image", image: new URL(imageUrl) },
-        { type: "text", text: textContent },
-      ],
-    }],
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "image", image: new URL(imageUrl) },
+          { type: "text", text: textContent },
+        ],
+      },
+    ],
   });
 
   return result.text.trim();

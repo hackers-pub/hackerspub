@@ -70,7 +70,10 @@ interface RelationshipBooleanKey {
 }
 
 function getAvatarInitials(name: string): string {
-  const parts = name.trim().split(/[\s_-]+/).filter((p) => p.length > 0);
+  const parts = name
+    .trim()
+    .split(/[\s_-]+/)
+    .filter((p) => p.length > 0);
   if (parts.length === 0) return "?";
   if (parts.length === 1) {
     return graphemes(parts[0]).slice(0, 2).join("").toUpperCase();
@@ -88,8 +91,10 @@ function graphemes(text: string): string[] {
 }
 
 function firstGrapheme(text: string): string {
-  return avatarInitialsSegmenter.segment(text)[Symbol.iterator]().next()
-    .value?.segment ?? "";
+  return (
+    avatarInitialsSegmenter.segment(text)[Symbol.iterator]().next().value
+      ?.segment ?? ""
+  );
 }
 
 // Also used by the thread fields in post.ts (`Post.ancestors` /
@@ -97,20 +102,22 @@ function firstGrapheme(text: string): string {
 // selection machinery and need the same eager relation set to avoid
 // per-node lazy loads.
 export function actorProfilePostRelations(viewerActorId: Uuid | null) {
-  const viewerOnlyFilter = viewerActorId == null
-    ? { RAW: sql`false` }
-    : { actorId: viewerActorId };
+  const viewerOnlyFilter =
+    viewerActorId == null ? { RAW: sql`false` } : { actorId: viewerActorId };
   const actorRelations = {
     instance: true,
-    followers: viewerActorId == null
-      ? { where: { RAW: sql`false` } }
-      : { where: { followerId: viewerActorId } },
-    blockees: viewerActorId == null
-      ? { where: { RAW: sql`false` } }
-      : { where: { blockeeId: viewerActorId } },
-    blockers: viewerActorId == null
-      ? { where: { RAW: sql`false` } }
-      : { where: { blockerId: viewerActorId } },
+    followers:
+      viewerActorId == null
+        ? { where: { RAW: sql`false` } }
+        : { where: { followerId: viewerActorId } },
+    blockees:
+      viewerActorId == null
+        ? { where: { RAW: sql`false` } }
+        : { where: { blockeeId: viewerActorId } },
+    blockers:
+      viewerActorId == null
+        ? { where: { RAW: sql`false` } }
+        : { where: { blockerId: viewerActorId } },
   } as const;
   const nestedPostRelations = {
     actor: { with: actorRelations },
@@ -178,17 +185,15 @@ export function getActorById(
   ctx: UserContext,
   actorId: Uuid,
 ): Promise<ActorRow | null> {
-  ctx.actorByIdLoader ??= new DataLoader<Uuid, ActorRow | null>(
-    async (ids) => {
-      const idList = ids as Uuid[];
-      const rows = await ctx.db
-        .select()
-        .from(actorTable)
-        .where(inArray(actorTable.id, idList));
-      const byId = new Map(rows.map((row) => [row.id, row]));
-      return idList.map((id) => byId.get(id) ?? null);
-    },
-  );
+  ctx.actorByIdLoader ??= new DataLoader<Uuid, ActorRow | null>(async (ids) => {
+    const idList = ids as Uuid[];
+    const rows = await ctx.db
+      .select()
+      .from(actorTable)
+      .where(inArray(actorTable.id, idList));
+    const byId = new Map(rows.map((row) => [row.id, row]));
+    return idList.map((id) => byId.get(id) ?? null);
+  });
   return ctx.actorByIdLoader.load(actorId);
 }
 
@@ -243,7 +248,7 @@ function createRelationshipBooleanLoader(
     return keys.map(({ viewerActorId, targetActorId }) =>
       viewerActorId == null
         ? false
-        : matchedIdsByViewer.get(viewerActorId)?.has(targetActorId) ?? false
+        : (matchedIdsByViewer.get(viewerActorId)?.has(targetActorId) ?? false),
     );
   };
 }
@@ -278,14 +283,15 @@ function createViewerFollowStateLoader() {
     );
 
     return keys.map(({ viewerActorId, targetActorId }) => {
-      const state = viewerActorId == null
-        ? "none"
-        : statesByViewer.get(viewerActorId)?.get(targetActorId) ?? "none";
+      const state =
+        viewerActorId == null
+          ? "none"
+          : (statesByViewer.get(viewerActorId)?.get(targetActorId) ?? "none");
       return state === "accepted"
         ? "ACCEPTED"
         : state === "pending"
-        ? "PENDING"
-        : "NONE";
+          ? "PENDING"
+          : "NONE";
     });
   };
 }
@@ -302,9 +308,10 @@ export function conflictingCursors(): never {
   });
 }
 
-export function getConnectionWindow(
-  args: { first?: number | null; last?: number | null },
-): number {
+export function getConnectionWindow(args: {
+  first?: number | null;
+  last?: number | null;
+}): number {
   if (args.first != null && args.last != null) {
     throw createGraphQLError("Cannot paginate with both first and last.", {
       extensions: { code: "PAGINATION_ERROR" },
@@ -399,9 +406,11 @@ export function isActorProfileHidden(
   actor: Pick<ActorRow, "id" | "suspended" | "suspendedUntil">,
   ctx: UserContext,
 ): boolean {
-  return isActorBanned(actor) &&
+  return (
+    isActorBanned(actor) &&
     ctx.account?.actor.id !== actor.id &&
-    !(ctx.account?.moderator ?? false);
+    !(ctx.account?.moderator ?? false)
+  );
 }
 
 const profileHiddenSelection = {
@@ -452,17 +461,17 @@ export const Actor = builder.drizzleNode("actorTable", {
         return actor.type === "Application"
           ? "APPLICATION"
           : actor.type === "Group"
-          ? "GROUP"
-          : actor.type === "Organization"
-          ? "ORGANIZATION"
-          : actor.type === "Person"
-          ? "PERSON"
-          : actor.type === "Service"
-          ? "SERVICE"
-          : assertNever(
-            actor.type,
-            `Unknown value in \`Actor.type\`: "${actor.type}"`,
-          );
+            ? "GROUP"
+            : actor.type === "Organization"
+              ? "ORGANIZATION"
+              : actor.type === "Person"
+                ? "PERSON"
+                : actor.type === "Service"
+                  ? "SERVICE"
+                  : assertNever(
+                      actor.type,
+                      `Unknown value in \`Actor.type\`: "${actor.type}"`,
+                    );
       },
     }),
     local: t.boolean({
@@ -602,7 +611,7 @@ export const Actor = builder.drizzleNode("actorTable", {
       resolve(actor, _, ctx) {
         const name = isActorProfileHidden(actor, ctx)
           ? actor.username
-          : actor.name ?? actor.username;
+          : (actor.name ?? actor.username);
         return getAvatarInitials(name);
       },
     }),
@@ -819,9 +828,9 @@ builder.drizzleObjectFields(Actor, (t) => ({
           { args, totalCount: ids.length },
           async ({ offset, limit }) => {
             const rows = await Promise.all(
-              ids.slice(offset, offset + limit).map((id) =>
-                getActorById(ctx, id)
-              ),
+              ids
+                .slice(offset, offset + limit)
+                .map((id) => getActorById(ctx, id)),
             );
             return rows.filter((row) => row != null);
           },
@@ -836,25 +845,29 @@ builder.drizzleObjectFields(Actor, (t) => ({
   ),
   follows: t.field({
     type: "Boolean",
-    description: "One-off check: does this actor follow the given actor? " +
+    description:
+      "One-off check: does this actor follow the given actor? " +
       "For the viewer-relative variant, use `viewerFollows` instead.",
     args: {
       followeeId: t.arg.globalID(),
     },
     async resolve(actor, { followeeId }, ctx) {
       if (
-        followeeId == null || followeeId.typename !== "Actor" ||
+        followeeId == null ||
+        followeeId.typename !== "Actor" ||
         !validateUuid(followeeId.id)
       ) {
         return false;
       }
-      return await ctx.db.query.followingTable.findFirst({
-        columns: { iri: true },
-        where: {
-          followerId: actor.id,
-          followeeId: followeeId.id,
-        },
-      }) != null;
+      return (
+        (await ctx.db.query.followingTable.findFirst({
+          columns: { iri: true },
+          where: {
+            followerId: actor.id,
+            followeeId: followeeId.id,
+          },
+        })) != null
+      );
     },
   }),
   isViewer: t.field({
@@ -1033,25 +1046,29 @@ builder.drizzleObjectFields(Actor, (t) => ({
   ),
   isFollowedBy: t.field({
     type: "Boolean",
-    description: "One-off check: is this actor followed by the given actor? " +
+    description:
+      "One-off check: is this actor followed by the given actor? " +
       "For the viewer-relative variant, use `followsViewer` instead.",
     args: {
       followerId: t.arg.globalID(),
     },
     async resolve(actor, { followerId }, ctx) {
       if (
-        followerId == null || followerId.typename !== "Actor" ||
+        followerId == null ||
+        followerId.typename !== "Actor" ||
         !validateUuid(followerId.id)
       ) {
         return false;
       }
-      return await ctx.db.query.followingTable.findFirst({
-        columns: { iri: true },
-        where: {
-          followerId: followerId.id,
-          followeeId: actor.id,
-        },
-      }) != null;
+      return (
+        (await ctx.db.query.followingTable.findFirst({
+          columns: { iri: true },
+          where: {
+            followerId: followerId.id,
+            followeeId: actor.id,
+          },
+        })) != null
+      );
     },
   }),
   mutedActors: t.connection({
@@ -1207,14 +1224,13 @@ builder.queryFields((t) => ({
     },
     nullable: true,
     resolve(query, _, { uuid }, ctx) {
-      return ctx.db.query.actorTable.findFirst(
-        query({ where: { id: uuid } }),
-      );
+      return ctx.db.query.actorTable.findFirst(query({ where: { id: uuid } }));
     },
   }),
   actorByHandle: t.drizzleField({
     type: Actor,
-    description: "Look up an actor by their fediverse handle (e.g., " +
+    description:
+      "Look up an actor by their fediverse handle (e.g., " +
       "`@alice@mastodon.social` or `alice@hackers.pub`). For `user@host` " +
       "handles not already in the local cache, triggers an outbound " +
       "WebFinger + ActivityPub fetch and persists the result; this only " +
@@ -1234,20 +1250,20 @@ builder.queryFields((t) => ({
       let actor: ActorRow | undefined = undefined;
       if (split.length === 2) {
         const [username, host] = split;
-        actor = await ctx.db.query.actorTable.findFirst(
+        actor = (await ctx.db.query.actorTable.findFirst(
           query({
             where: {
               username,
               OR: [{ instanceHost: host }, { handleHost: host }],
             },
           }),
-        ) as ActorRow | undefined;
+        )) as ActorRow | undefined;
       } else if (split.length === 1 && allowLocalHandle) {
-        actor = await ctx.db.query.actorTable.findFirst(
+        actor = (await ctx.db.query.actorTable.findFirst(
           query({
             where: { username: split[0], accountId: { isNotNull: true } },
           }),
-        ) as ActorRow | undefined;
+        )) as ActorRow | undefined;
       }
       if (actor) return actor;
       // Only `user@host` (with non-empty parts) is a resolvable handle.
@@ -1304,9 +1320,7 @@ builder.queryFields((t) => ({
     },
     nullable: true,
     resolve(query, _, { host }, ctx) {
-      return ctx.db.query.instanceTable.findFirst(
-        query({ where: { host } }),
-      );
+      return ctx.db.query.instanceTable.findFirst(query({ where: { host } }));
     },
   }),
   searchActorsByHandle: t.drizzleField({
@@ -1330,16 +1344,18 @@ builder.queryFields((t) => ({
 
       const canonicalHost = new URL(ctx.fedCtx.canonicalOrigin).host;
 
-      const whereClause = host == null || !URL.canParse(`http://${host}`)
-        ? { username: { ilike: `${username.replace(/([%_])/g, "\\$1")}%` } }
-        : {
-          username,
-          handleHost: {
-            ilike: `${
-              new URL(`http://${host}`).host.replace(/([%_])/g, "\\$1")
-            }%`,
-          },
-        };
+      const whereClause =
+        host == null || !URL.canParse(`http://${host}`)
+          ? { username: { ilike: `${username.replace(/([%_])/g, "\\$1")}%` } }
+          : {
+              username,
+              handleHost: {
+                ilike: `${new URL(`http://${host}`).host.replace(
+                  /([%_])/g,
+                  "\\$1",
+                )}%`,
+              },
+            };
 
       return ctx.db.query.actorTable.findMany(
         query({
@@ -1526,7 +1542,8 @@ builder.relayMutationField(
       actorId: t.globalID({
         for: [Actor],
         required: true,
-        description: "`Actor` global ID for the follower to remove from the " +
+        description:
+          "`Actor` global ID for the follower to remove from the " +
           "selected viewer account's followers. Passing the selected viewer " +
           "account's own actor or an unknown actor returns `InvalidInputError`.",
       }),
@@ -1780,7 +1797,8 @@ builder.relayMutationField(
       actingAccountId: t.globalID({
         for: Account,
         required: false,
-        description: "Optional `Account` id to mute as. Omit to mute as the " +
+        description:
+          "Optional `Account` id to mute as. Omit to mute as the " +
           "authenticated personal account; pass an organization account " +
           "where the viewer is an accepted member to mute as that " +
           "organization.",
@@ -1960,9 +1978,10 @@ builder.queryField("recommendedActors", (t) =>
       locale: t.arg({ type: "Locale", required: false }),
     },
     async resolve(_root, args, ctx) {
-      const accountLocales = args.locale != null
-        ? [args.locale.language]
-        : (ctx.account?.locales ?? ["en"]);
+      const accountLocales =
+        args.locale != null
+          ? [args.locale.language]
+          : (ctx.account?.locales ?? ["en"]);
       const actors = await recommendActors(ctx.db, {
         mainLocale: accountLocales[0],
         locales: accountLocales,
@@ -1971,4 +1990,5 @@ builder.queryField("recommendedActors", (t) =>
       });
       return actors;
     },
-  }));
+  }),
+);

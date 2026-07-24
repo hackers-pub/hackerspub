@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { PostVisibility } from "./PostVisibilitySelect.tsx";
 import type { QuotePolicy } from "./QuotePolicySelect.tsx";
 import IconAtSign from "~icons/lucide/at-sign";
@@ -79,10 +79,10 @@ export function NoteVisibilityQuotePolicySelect(
     quotePolicyLocked() ? "SELF" : props.quotePolicy;
   const selectedVisibility = () =>
     visibilityOptions().find((option) => option.value === props.visibility) ??
-      visibilityOptions()[0];
+    visibilityOptions()[0];
   const selectedQuotePolicy = () =>
     quoteOptions().find((option) => option.value === effectiveQuotePolicy()) ??
-      quoteOptions()[0];
+    quoteOptions()[0];
 
   return (
     <DropdownMenu modal={false}>

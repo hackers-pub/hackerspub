@@ -1,7 +1,7 @@
 import { graphql } from "relay-runtime";
 import { createSignal, For, Match, Show, Switch } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { ActorFollowingList_following$key } from "./__generated__/ActorFollowingList_following.graphql.ts";
 import { SmallProfileCard } from "./SmallProfileCard.tsx";
 
@@ -14,23 +14,20 @@ export function ActorFollowingList(props: ActorFollowingListProps) {
   const following = createPaginationFragment(
     graphql`
       fragment ActorFollowingList_following on Actor
-        @refetchable(queryName: "ActorFollowingListQuery")
-        @argumentDefinitions(
-          cursor: { type: "String" }
-          count: { type: "Int", defaultValue: 20 }
-          actingAccountId: { type: "ID", defaultValue: null }
-        )
-      {
+      @refetchable(queryName: "ActorFollowingListQuery")
+      @argumentDefinitions(
+        cursor: { type: "String" }
+        count: { type: "Int", defaultValue: 20 }
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
         __id
         followees(after: $cursor, first: $count)
-          @connection(key: "ActorFollowingList_followees")
-        {
+          @connection(key: "ActorFollowingList_followees") {
           edges {
             __id
             node {
-              ...SmallProfileCard_actor @arguments(
-                actingAccountId: $actingAccountId
-              )
+              ...SmallProfileCard_actor
+                @arguments(actingAccountId: $actingAccountId)
             }
           }
           pageInfo {

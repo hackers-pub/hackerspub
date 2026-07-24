@@ -68,9 +68,9 @@ test("lookupRemoteFollower builds a fallback result from WebFinger data", async 
         domain: "remote.example",
         software: "unknown",
         url: "https://remote.example/users/alice",
-        remoteFollowUrl: `https://remote.example/authorize?uri=${
-          encodeURIComponent(actor.actor.handle)
-        }`,
+        remoteFollowUrl: `https://remote.example/authorize?uri=${encodeURIComponent(
+          actor.actor.handle,
+        )}`,
       },
     });
   });

@@ -32,10 +32,11 @@ export async function GET(event: APIEvent) {
   xml += `<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
 
   for (const account of accounts) {
-    const lastmod = (account.actor?.latestPostUpdated != null &&
-        new Date(account.actor.latestPostUpdated) > new Date(account.updated))
-      ? account.actor.latestPostUpdated
-      : account.updated;
+    const lastmod =
+      account.actor?.latestPostUpdated != null &&
+      new Date(account.actor.latestPostUpdated) > new Date(account.updated)
+        ? account.actor.latestPostUpdated
+        : account.updated;
 
     xml += `
   <sitemap>

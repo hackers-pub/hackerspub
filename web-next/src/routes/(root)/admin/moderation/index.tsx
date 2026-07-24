@@ -12,7 +12,7 @@ import { ModerationSubTabs } from "~/components/admin/ModerationSubTabs.tsx";
 import { Title } from "~/components/Title.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { WideContainer } from "~/components/WideContainer.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,
@@ -64,9 +64,8 @@ function parseFilters(search: string): Filters {
   const params = new URLSearchParams(search);
   return {
     status: parseStatus(params.get("status")),
-    minReportCount: params.get("priority") === "1"
-      ? HIGH_PRIORITY_REPORT_COUNT
-      : null,
+    minReportCount:
+      params.get("priority") === "1" ? HIGH_PRIORITY_REPORT_COUNT : null,
     search: params.get("q")?.trim() || undefined,
   };
 }
@@ -99,9 +98,11 @@ export default function ModerationCasesPage() {
   const [searchInput, setSearchInput] = createSignal(filters().search ?? "");
   createEffect(() => setSearchInput(filters().search ?? ""));
 
-  function buildHref(
-    overrides: { status?: string | null; priority?: boolean; q?: string },
-  ): string {
+  function buildHref(overrides: {
+    status?: string | null;
+    priority?: boolean;
+    q?: string;
+  }): string {
     const params = new URLSearchParams(location.search);
     if ("status" in overrides) {
       if (overrides.status) params.set("status", overrides.status);
@@ -149,9 +150,9 @@ export default function ModerationCasesPage() {
                     <Button
                       as={A}
                       href={buildHref({ status: item.value })}
-                      variant={filters().status === item.value
-                        ? "default"
-                        : "outline"}
+                      variant={
+                        filters().status === item.value ? "default" : "outline"
+                      }
                       size="sm"
                     >
                       {item.label}
@@ -163,9 +164,9 @@ export default function ModerationCasesPage() {
                   href={buildHref({
                     priority: filters().minReportCount == null,
                   })}
-                  variant={filters().minReportCount != null
-                    ? "default"
-                    : "outline"}
+                  variant={
+                    filters().minReportCount != null ? "default" : "outline"
+                  }
                   size="sm"
                 >
                   {t`${HIGH_PRIORITY_REPORT_COUNT}+ reports`}

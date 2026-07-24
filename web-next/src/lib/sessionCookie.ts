@@ -17,12 +17,12 @@ function buildSessionCookieHeader(
     `${SESSION_COOKIE}=${value}`,
     "HttpOnly",
     "Path=/",
-    ...options.expires == null
+    ...(options.expires == null
       ? []
-      : [`Expires=${options.expires.toUTCString()}`],
-    ...options.maxAge == null ? [] : [`Max-Age=${options.maxAge}`],
+      : [`Expires=${options.expires.toUTCString()}`]),
+    ...(options.maxAge == null ? [] : [`Max-Age=${options.maxAge}`]),
     "SameSite=Lax",
-    ...options.secure ? ["Secure"] : [],
+    ...(options.secure ? ["Secure"] : []),
   ];
   return attributes.join("; ");
 }
@@ -34,9 +34,9 @@ export function buildSessionSetCookieHeader(
   return buildSessionCookieHeader(sessionId, options);
 }
 
-export function buildExpiredSessionSetCookieHeader(
-  options: { secure: boolean },
-): string {
+export function buildExpiredSessionSetCookieHeader(options: {
+  secure: boolean;
+}): string {
   return buildSessionCookieHeader("", {
     expires: EXPIRED_SESSION_COOKIE_DATE,
     maxAge: 0,
@@ -50,15 +50,16 @@ export function isSecureRequest(
 ): boolean {
   if (!behindProxy) return new URL(request.url).protocol === "https:";
 
-  const forwardedProto = request.headers.get("x-forwarded-proto")
+  const forwardedProto = request.headers
+    .get("x-forwarded-proto")
     ?.split(",", 1)[0]
     ?.trim()
     .toLowerCase();
   if (forwardedProto) return forwardedProto === "https";
 
   const forwarded = request.headers.get("forwarded");
-  const forwardedProtocol = forwarded?.match(/(?:^|[;,]\s*)proto=([^;,]+)/i)
-    ?.[1]
+  const forwardedProtocol = forwarded
+    ?.match(/(?:^|[;,]\s*)proto=([^;,]+)/i)?.[1]
     ?.replace(/^"|"$/g, "")
     .toLowerCase();
   if (forwardedProtocol) return forwardedProtocol === "https";
@@ -92,8 +93,6 @@ export function parseSessionCookie(
   return null;
 }
 
-export function readSessionCookie(
-  request: Request | undefined,
-): Uuid | null {
+export function readSessionCookie(request: Request | undefined): Uuid | null {
   return parseSessionCookie(request?.headers.get("cookie"));
 }

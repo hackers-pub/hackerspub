@@ -7,10 +7,7 @@ test("splitTranslationTitleAndContent() splits clean # Title + body", () => {
     "# Translated title\n\nTranslated body line 1.\n\nTranslated body line 2.",
   );
   assert.equal(title, "Translated title");
-  assert.equal(
-    content,
-    "Translated body line 1.\n\nTranslated body line 2.",
-  );
+  assert.equal(content, "Translated body line 1.\n\nTranslated body line 2.");
 });
 
 test("splitTranslationTitleAndContent() keeps preamble as the title rather than scanning deeper for an H1", () => {
@@ -49,10 +46,7 @@ test("splitTranslationTitleAndContent() uses the first line as the title when th
       "Translated body line 2.",
   );
   assert.equal(title, "Translated title");
-  assert.equal(
-    content,
-    "Translated body line 1.\nTranslated body line 2.",
-  );
+  assert.equal(content, "Translated body line 1.\nTranslated body line 2.");
 });
 
 test("splitTranslationTitleAndContent() does not strip a leading ## H2 marker from the first line", () => {

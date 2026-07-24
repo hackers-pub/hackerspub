@@ -20,7 +20,7 @@ import {
 } from "@shikijs/transformers";
 import { deadline } from "@std/async/deadline";
 import { encodeAscii85 } from "@std/encoding/ascii85";
-import { ASCII_DIACRITICS_REGEXP, slugify } from "@std/text/unstable-slugify";
+import { slugify } from "@std/text/unstable-slugify";
 import { load } from "cheerio";
 import { arrayOverlaps, eq } from "drizzle-orm";
 import katex from "katex";
@@ -41,6 +41,7 @@ import { negotiateLocale } from "./i18n.ts";
 import { type Actor, actorTable } from "./schema.ts";
 
 const logger = getLogger(["hackerspub", "models", "markup"]);
+const ASCII_DIACRITICS_REGEXP = /(?<=[a-zA-Z])\p{M}+|[^\p{L}\p{M}\p{N}-]+/gu;
 
 const KV_NAMESPACE = "markup";
 const KV_CACHE_VERSION = "2026-07-12";
@@ -182,11 +183,13 @@ export interface RenderMarkupOptions {
 }
 
 function canonicalizeMediumUrls(mediumUrls: Record<string, string>): string {
-  return JSON.stringify(Object.fromEntries(
-    Object.entries(mediumUrls).sort(([left], [right]) =>
-      left < right ? -1 : left > right ? 1 : 0
+  return JSON.stringify(
+    Object.fromEntries(
+      Object.entries(mediumUrls).sort(([left], [right]) =>
+        left < right ? -1 : left > right ? 1 : 0,
+      ),
     ),
-  ));
+  );
 }
 
 export async function renderMarkup(
@@ -195,29 +198,28 @@ export async function renderMarkup(
   options: RenderMarkupOptions = {},
 ): Promise<RenderedMarkup> {
   const mediumUrls = options.mediumUrls ?? {};
-  const missingMediumLabel = options.missingMediumLabel ??
-    DEFAULT_MISSING_ARTICLE_MEDIUM_LABEL;
+  const missingMediumLabel =
+    options.missingMediumLabel ?? DEFAULT_MISSING_ARTICLE_MEDIUM_LABEL;
   let cacheKey: string | undefined;
   if (options.kv != null) {
     const digest = await crypto.subtle.digest(
       "SHA-256",
       new TextEncoder().encode(
-        `${JSON.stringify(options.docId ?? null)}\n${
-          canonicalizeMediumUrls(mediumUrls)
-        }\n${JSON.stringify(missingMediumLabel)}\n${markup}`,
+        `${JSON.stringify(options.docId ?? null)}\n${canonicalizeMediumUrls(
+          mediumUrls,
+        )}\n${JSON.stringify(missingMediumLabel)}\n${markup}`,
       ),
     );
-    cacheKey = `${KV_NAMESPACE}/${KV_CACHE_VERSION}/markup/${
-      encodeAscii85(digest)
-    }`;
+    cacheKey = `${KV_NAMESPACE}/${KV_CACHE_VERSION}/markup/${encodeAscii85(
+      digest,
+    )}`;
     if (!options.refresh) {
       const cached = await options.kv.get<RenderedMarkup>(cacheKey);
       if (cached != null) return cached;
     }
   }
-  const localDomain = fedCtx == null
-    ? "hackers.pub"
-    : new URL(fedCtx.canonicalOrigin).host;
+  const localDomain =
+    fedCtx == null ? "hackers.pub" : new URL(fedCtx.canonicalOrigin).host;
   const tmpMd = MarkdownItAsync().use(mention, {
     localDomain() {
       return localDomain;
@@ -227,9 +229,8 @@ export async function renderMarkup(
   await tmpMd.renderAsync(markup, tmpEnv);
   const mentions = new Set(tmpEnv.mentions);
   logger.trace("Mentions: {mentions}", { mentions });
-  const mentionedActors = fedCtx == null
-    ? {}
-    : await persistActorsByHandles(fedCtx, [...mentions]);
+  const mentionedActors =
+    fedCtx == null ? {} : await persistActorsByHandles(fedCtx, [...mentions]);
   logger.trace("Mentioned actors: {mentionedActors}", { mentionedActors });
   const env: Env = {
     docId: options.docId,
@@ -351,21 +352,23 @@ function resolveMediumSrcset(
   mediumUrls: Record<string, string>,
   missingMediumUrl: string,
 ): string {
-  return srcset.split(",").map((candidate) => {
-    const trimmed = candidate.trim();
-    if (trimmed === "") return candidate;
-    const matched = /^(\S+)(.*)$/.exec(trimmed);
-    if (matched == null) return candidate;
-    return `${resolveMediumUrl(matched[1], mediumUrls, missingMediumUrl)}${
-      matched[2]
-    }`;
-  }).join(", ");
+  return srcset
+    .split(",")
+    .map((candidate) => {
+      const trimmed = candidate.trim();
+      if (trimmed === "") return candidate;
+      const matched = /^(\S+)(.*)$/.exec(trimmed);
+      if (matched == null) return candidate;
+      return `${resolveMediumUrl(matched[1], mediumUrls, missingMediumUrl)}${
+        matched[2]
+      }`;
+    })
+    .join(", ");
 }
 
 function createMissingMediumDataUrl(label: string): string {
   const text = escapeSvgText(label);
-  const svg =
-    `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
   <title id="title">${text}</title>
   <desc id="desc">${text}</desc>
   <rect width="1200" height="675" rx="16" fill="#fafafa"/>
@@ -390,8 +393,10 @@ function escapeSvgText(text: string): string {
 }
 
 function slugifyTitle(title: string, docId?: string | null): string {
-  return (docId == null ? "" : docId + "--") +
-    slugify(title, { strip: ASCII_DIACRITICS_REGEXP });
+  return (
+    (docId == null ? "" : docId + "--") +
+    slugify(title, { strip: ASCII_DIACRITICS_REGEXP })
+  );
 }
 
 interface InternalToc {
@@ -433,9 +438,9 @@ export async function extractMentionsFromHtml(
       "SHA-256",
       new TextEncoder().encode(html),
     );
-    cacheKey = `${KV_NAMESPACE}/${KV_CACHE_VERSION}/mentions/${
-      encodeAscii85(digest)
-    }`;
+    cacheKey = `${KV_NAMESPACE}/${KV_CACHE_VERSION}/mentions/${encodeAscii85(
+      digest,
+    )}`;
     const cached = await options.kv.get<Actor[]>(cacheKey);
     if (cached) return cached.map((actor) => ({ actor }));
   }
@@ -472,11 +477,8 @@ export async function extractMentionsFromHtml(
       return [
         href,
         await deadline(fedCtx.lookupObject(href, options), 3000),
-      ] as [
-        string,
-        vocab.Object | null,
-      ];
-    } catch (_) {
+      ] as [string, vocab.Object | null];
+    } catch {
       return null;
     }
   });
@@ -491,7 +493,8 @@ export async function extractMentionsFromHtml(
     if (actor == null) continue;
     if (actor.iri !== href && !actor.aliases.includes(href)) {
       const aliases = [...actor.aliases, href];
-      await db.update(actorTable)
+      await db
+        .update(actorTable)
         .set({ aliases })
         .where(eq(actorTable.id, actor.id));
       actor = { ...actor, aliases };

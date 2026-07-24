@@ -81,14 +81,16 @@ test("codeOfConduct falls back from regioned locales to the base locale", async 
     });
 
     assert.equal(result.errors, undefined);
-    const document = (toPlainJson(result.data) as {
-      codeOfConduct: {
-        locale: string;
-        title: string;
-        markdown: string;
-        html: string;
-      };
-    }).codeOfConduct;
+    const document = (
+      toPlainJson(result.data) as {
+        codeOfConduct: {
+          locale: string;
+          title: string;
+          markdown: string;
+          html: string;
+        };
+      }
+    ).codeOfConduct;
 
     assert.equal(document.locale, "en");
     assert.ok(document.title.length > 0);
@@ -108,14 +110,16 @@ test("markdownGuide returns the requested locale document", async () => {
     });
 
     assert.equal(result.errors, undefined);
-    const document = (toPlainJson(result.data) as {
-      markdownGuide: {
-        locale: string;
-        title: string;
-        markdown: string;
-        html: string;
-      };
-    }).markdownGuide;
+    const document = (
+      toPlainJson(result.data) as {
+        markdownGuide: {
+          locale: string;
+          title: string;
+          markdown: string;
+          html: string;
+        };
+      }
+    ).markdownGuide;
 
     assert.equal(document.locale, "ko");
     assert.ok(document.markdown.length > 0);
@@ -134,14 +138,16 @@ test("searchGuide returns the requested locale document", async () => {
     });
 
     assert.equal(result.errors, undefined);
-    const document = (toPlainJson(result.data) as {
-      searchGuide: {
-        locale: string;
-        title: string;
-        markdown: string;
-        html: string;
-      };
-    }).searchGuide;
+    const document = (
+      toPlainJson(result.data) as {
+        searchGuide: {
+          locale: string;
+          title: string;
+          markdown: string;
+          html: string;
+        };
+      }
+    ).searchGuide;
 
     assert.equal(document.locale, "ja");
     assert.match(document.markdown, /lang:/);
@@ -160,14 +166,16 @@ test("privacyPolicy falls back from regioned locales to the base locale", async 
     });
 
     assert.equal(result.errors, undefined);
-    const document = (toPlainJson(result.data) as {
-      privacyPolicy: {
-        locale: string;
-        title: string;
-        markdown: string;
-        html: string;
-      };
-    }).privacyPolicy;
+    const document = (
+      toPlainJson(result.data) as {
+        privacyPolicy: {
+          locale: string;
+          title: string;
+          markdown: string;
+          html: string;
+        };
+      }
+    ).privacyPolicy;
 
     assert.equal(document.locale, "zh-TW");
     assert.ok(document.title.length > 0);

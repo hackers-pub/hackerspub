@@ -50,34 +50,24 @@ export type QuotePolicy = (typeof quotePolicyEnum.enumValues)[number];
 
 export const pushNotificationPreviewPolicyEnum = pgEnum(
   "push_notification_preview_policy",
-  [
-    "public_only",
-    "all",
-    "none",
-  ],
+  ["public_only", "all", "none"],
 );
 
 export type PushNotificationPreviewPolicy =
   (typeof pushNotificationPreviewPolicyEnum.enumValues)[number];
 
-export const pushNotificationServiceEnum = pgEnum(
-  "push_notification_service",
-  [
-    "apns",
-    "fcm",
-    "web_push",
-  ],
-);
+export const pushNotificationServiceEnum = pgEnum("push_notification_service", [
+  "apns",
+  "fcm",
+  "web_push",
+]);
 
 export type PushNotificationService =
   (typeof pushNotificationServiceEnum.enumValues)[number];
 
 export const notificationDigestFrequencyEnum = pgEnum(
   "notification_digest_frequency",
-  [
-    "daily",
-    "weekly",
-  ],
+  ["daily", "weekly"],
 );
 
 export type NotificationDigestFrequency =
@@ -108,28 +98,23 @@ export const accountTable = pgTable(
     moderator: boolean().notNull().default(false),
     notificationRead: timestamp("notification_read", { withTimezone: true }),
     leftInvitations: smallint("left_invitations").notNull(),
-    inviterId: uuid("inviter_id").$type<Uuid | null>().references(
-      (): AnyPgColumn => accountTable.id,
-      { onDelete: "set null" },
-    ),
+    inviterId: uuid("inviter_id")
+      .$type<Uuid | null>()
+      .references((): AnyPgColumn => accountTable.id, { onDelete: "set null" }),
     hideFromInvitationTree: boolean("hide_from_invitation_tree")
       .notNull()
       .default(false),
     hideForeignLanguages: boolean("hide_foreign_languages")
       .notNull()
       .default(false),
-    preferAiSummary: boolean("prefer_ai_summary")
-      .notNull()
-      .default(true),
+    preferAiSummary: boolean("prefer_ai_summary").notNull().default(true),
     noteVisibility: postVisibilityEnum("note_visibility")
       .notNull()
       .default("public"),
     shareVisibility: postVisibilityEnum("share_visibility")
       .notNull()
       .default("public"),
-    quotePolicy: quotePolicyEnum("quote_policy")
-      .notNull()
-      .default("everyone"),
+    quotePolicy: quotePolicyEnum("quote_policy").notNull().default("everyone"),
     pushNotificationPreviewPolicy: pushNotificationPreviewPolicyEnum(
       "push_notification_preview_policy",
     )
@@ -179,9 +164,10 @@ export const notificationDigestDeliveryTable = pgTable(
     periodStart: timestamp("period_start", { withTimezone: true }).notNull(),
     notificationsCount: integer("notifications_count").notNull(),
     sent: timestamp({ withTimezone: true }),
-    sentRecipients: text("sent_recipients").array().notNull().default(
-      sql`(ARRAY[]::text[])`,
-    ),
+    sentRecipients: text("sent_recipients")
+      .array()
+      .notNull()
+      .default(sql`(ARRAY[]::text[])`),
     failed: timestamp({ withTimezone: true }),
     error: text(),
     created: timestamp({ withTimezone: true })
@@ -274,9 +260,7 @@ export const organizationConversionRequestTable = pgTable(
       .default(currentTimestamp),
   },
   (table) => [
-    index("organization_conversion_request_admin_idx").on(
-      table.adminAccountId,
-    ),
+    index("organization_conversion_request_admin_idx").on(table.adminAccountId),
     uniqueIndex("organization_conversion_request_pending_account_idx")
       .on(table.accountId)
       .where(isNull(table.accepted)),
@@ -422,14 +406,8 @@ export const accountKeyTable = pgTable(
   },
   (table) => [
     primaryKey({ columns: [table.accountId, table.type] }),
-    check(
-      "account_key_public_check",
-      sql`${table.public} IS JSON OBJECT`,
-    ),
-    check(
-      "account_key_private_check",
-      sql`${table.private} IS JSON OBJECT`,
-    ),
+    check("account_key_public_check", sql`${table.public} IS JSON OBJECT`),
+    check("account_key_private_check", sql`${table.private} IS JSON OBJECT`),
   ],
 );
 
@@ -545,9 +523,12 @@ export const actorTable = pgTable(
       .notNull()
       .references(() => instanceTable.host),
     handleHost: text("handle_host").notNull(),
-    handle: text().notNull().generatedAlwaysAs((): SQL =>
-      sql`'@' || ${actorTable.username} || '@' || ${actorTable.handleHost}`
-    ),
+    handle: text()
+      .notNull()
+      .generatedAlwaysAs(
+        (): SQL =>
+          sql`'@' || ${actorTable.username} || '@' || ${actorTable.handleHost}`,
+      ),
     accountId: uuid("account_id")
       .$type<Uuid>()
       .unique()
@@ -555,7 +536,8 @@ export const actorTable = pgTable(
     name: text(),
     bioHtml: text("bio_html"),
     automaticallyApprovesFollowers: boolean("automatically_approves_followers")
-      .notNull().default(false),
+      .notNull()
+      .default(false),
     avatarUrl: text("avatar_url"),
     headerUrl: text("header_url"),
     inboxUrl: text("inbox_url").notNull(),
@@ -583,7 +565,10 @@ export const actorTable = pgTable(
     successorId: uuid("successor_id")
       .$type<Uuid>()
       .references((): AnyPgColumn => actorTable.id, { onDelete: "set null" }),
-    aliases: text().array().notNull().default(sql`(ARRAY[]::text[])`),
+    aliases: text()
+      .array()
+      .notNull()
+      .default(sql`(ARRAY[]::text[])`),
     followeesCount: integer("followees_count").notNull().default(0),
     followersCount: integer("followers_count").notNull().default(0),
     postsCount: integer("posts_count").notNull().default(0),
@@ -721,22 +706,19 @@ export const mutingTable = pgTable(
 export type Muting = typeof mutingTable.$inferSelect;
 export type NewMuting = typeof mutingTable.$inferInsert;
 
-export const relaySubscriptionTable = pgTable(
-  "relay_subscription",
-  {
-    id: uuid().$type<Uuid>().primaryKey(),
-    actorId: uuid("actor_id")
-      .$type<Uuid>()
-      .notNull()
-      .unique()
-      .references(() => actorTable.id, { onDelete: "cascade" }),
-    followIri: text("follow_iri").notNull().unique(),
-    accepted: timestamp({ withTimezone: true }),
-    created: timestamp({ withTimezone: true })
-      .notNull()
-      .default(currentTimestamp),
-  },
-);
+export const relaySubscriptionTable = pgTable("relay_subscription", {
+  id: uuid().$type<Uuid>().primaryKey(),
+  actorId: uuid("actor_id")
+    .$type<Uuid>()
+    .notNull()
+    .unique()
+    .references(() => actorTable.id, { onDelete: "cascade" }),
+  followIri: text("follow_iri").notNull().unique(),
+  accepted: timestamp({ withTimezone: true }),
+  created: timestamp({ withTimezone: true })
+    .notNull()
+    .default(currentTimestamp),
+});
 
 export type RelaySubscription = typeof relaySubscriptionTable.$inferSelect;
 export type NewRelaySubscription = typeof relaySubscriptionTable.$inferInsert;
@@ -754,39 +736,34 @@ export const instanceTable = pgTable(
       .notNull()
       .default(currentTimestamp),
   },
-  (table) => [
-    check(
-      "instance_host_check",
-      sql`${table.host} NOT LIKE '%@%'`,
-    ),
-  ],
+  (table) => [check("instance_host_check", sql`${table.host} NOT LIKE '%@%'`)],
 );
 
 export type Instance = typeof instanceTable.$inferSelect;
 export type NewInstance = typeof instanceTable.$inferInsert;
 
-export const articleDraftTable = pgTable(
-  "article_draft",
-  {
-    id: uuid().$type<Uuid>().primaryKey(),
-    accountId: uuid("account_id")
-      .$type<Uuid>()
-      .notNull()
-      .references(() => accountTable.id, { onDelete: "cascade" }),
-    articleSourceId: uuid("article_source_id")
-      .$type<Uuid>()
-      .references(() => articleSourceTable.id, { onDelete: "cascade" }),
-    title: text().notNull(),
-    content: text().notNull(),
-    tags: text().array().notNull().default(sql`(ARRAY[]::text[])`),
-    updated: timestamp({ withTimezone: true })
-      .notNull()
-      .default(currentTimestamp),
-    created: timestamp({ withTimezone: true })
-      .notNull()
-      .default(currentTimestamp),
-  },
-);
+export const articleDraftTable = pgTable("article_draft", {
+  id: uuid().$type<Uuid>().primaryKey(),
+  accountId: uuid("account_id")
+    .$type<Uuid>()
+    .notNull()
+    .references(() => accountTable.id, { onDelete: "cascade" }),
+  articleSourceId: uuid("article_source_id")
+    .$type<Uuid>()
+    .references(() => articleSourceTable.id, { onDelete: "cascade" }),
+  title: text().notNull(),
+  content: text().notNull(),
+  tags: text()
+    .array()
+    .notNull()
+    .default(sql`(ARRAY[]::text[])`),
+  updated: timestamp({ withTimezone: true })
+    .notNull()
+    .default(currentTimestamp),
+  created: timestamp({ withTimezone: true })
+    .notNull()
+    .default(currentTimestamp),
+});
 
 export type ArticleDraft = typeof articleDraftTable.$inferSelect;
 export type NewArticleDraft = typeof articleDraftTable.$inferInsert;
@@ -803,13 +780,14 @@ export const articleSourceTable = pgTable(
       .notNull()
       .default(sql`EXTRACT(year FROM CURRENT_TIMESTAMP)`),
     slug: varchar({ length: 128 }).notNull(),
-    tags: text().array().notNull().default(sql`(ARRAY[]::text[])`),
+    tags: text()
+      .array()
+      .notNull()
+      .default(sql`(ARRAY[]::text[])`),
     allowLlmTranslation: boolean("allow_llm_translation")
       .notNull()
       .default(false),
-    quotePolicy: quotePolicyEnum("quote_policy").notNull().default(
-      "everyone",
-    ),
+    quotePolicy: quotePolicyEnum("quote_policy").notNull().default("everyone"),
     updated: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),
@@ -840,9 +818,7 @@ export const articleContentTable = pgTable(
     title: text().notNull(),
     summary: text(),
     summaryStarted: timestamp("summary_started", { withTimezone: true }),
-    summaryUnnecessary: boolean("summary_unnecessary")
-      .notNull()
-      .default(false),
+    summaryUnnecessary: boolean("summary_unnecessary").notNull().default(false),
     content: text().notNull(),
     ogImageKey: text("og_image_key").unique(),
     originalLanguage: varchar("original_language"),
@@ -1007,9 +983,7 @@ export const postTable = pgTable(
     iri: text().notNull().unique(),
     type: postTypeEnum().notNull(),
     visibility: postVisibilityEnum().notNull().default("unlisted"),
-    quotePolicy: quotePolicyEnum("quote_policy").notNull().default(
-      "everyone",
-    ),
+    quotePolicy: quotePolicyEnum("quote_policy").notNull().default("everyone"),
     quoteRequestPolicy: quotePolicyEnum("quote_request_policy"),
     actorId: uuid("actor_id")
       .$type<Uuid>()
@@ -1039,9 +1013,10 @@ export const postTable = pgTable(
     contentHtml: text("content_html").notNull(),
     language: varchar(),
     tags: jsonb().$type<Record<string, string>>().notNull().default({}),
-    relayedTags: text("relayed_tags").array().notNull().default(
-      sql`(ARRAY[]::text[])`,
-    ),
+    relayedTags: text("relayed_tags")
+      .array()
+      .notNull()
+      .default(sql`(ARRAY[]::text[])`),
     emojis: jsonb().$type<Record<string, string>>().notNull().default({}),
     sensitive: boolean().notNull().default(false),
     // When a moderator censors the post (flag_action of type 'censor'), this
@@ -1056,9 +1031,11 @@ export const postTable = pgTable(
       .$type<Record<Emoji | Uuid, number>>()
       .notNull()
       .default({}),
-    reactionsCount: integer("reactions_count").notNull().generatedAlwaysAs(
-      (): SQL => sql`json_sum_object_values(${postTable.reactionsCounts})`,
-    ),
+    reactionsCount: integer("reactions_count")
+      .notNull()
+      .generatedAlwaysAs(
+        (): SQL => sql`json_sum_object_values(${postTable.reactionsCounts})`,
+      ),
     linkId: uuid("link_id")
       .$type<Uuid>()
       .references((): AnyPgColumn => postLinkTable.id, {
@@ -1096,14 +1073,16 @@ export const postTable = pgTable(
       "post_link_id_check",
       sql`(${table.linkId} IS NULL) = (${table.linkUrl} IS NULL)`,
     ),
-    index("idx_post_visibility_published")
-      .on(table.visibility, desc(table.published)),
-    index("idx_post_actor_id_published")
-      .on(table.actorId, desc(table.published)),
-    index("idx_post_actor_id_updated")
-      .on(table.actorId, desc(table.updated)),
-    index("idx_post_outbox_actor_id_id")
-      .on(table.actorId, desc(table.id))
+    index("idx_post_visibility_published").on(
+      table.visibility,
+      desc(table.published),
+    ),
+    index("idx_post_actor_id_published").on(
+      table.actorId,
+      desc(table.published),
+    ),
+    index("idx_post_actor_id_updated").on(table.actorId, desc(table.updated)),
+    index("idx_post_outbox_actor_id_id").on(table.actorId, desc(table.id))
       .where(sql`
         ${table.censored} IS NULL
         AND ${table.visibility} IN ('public', 'unlisted')
@@ -1131,36 +1110,30 @@ export const postTable = pgTable(
     index("idx_post_article_source_published")
       .on(desc(table.published))
       .where(isNotNull(table.articleSourceId)),
-    index("idx_post_public_local_note_published")
-      .on(
-        table.visibility,
-        sql`(${table.published}::timestamptz(3)) desc`,
-        desc(table.id),
-        table.language,
-      )
-      .where(sql`
+    index("idx_post_public_local_note_published").on(
+      table.visibility,
+      sql`(${table.published}::timestamptz(3)) desc`,
+      desc(table.id),
+      table.language,
+    ).where(sql`
         ${table.replyTargetId} IS NULL
         AND ${table.noteSourceId} IS NOT NULL
       `),
-    index("idx_post_public_local_article_published")
-      .on(
-        table.visibility,
-        sql`(${table.published}::timestamptz(3)) desc`,
-        desc(table.id),
-        table.language,
-      )
-      .where(sql`
+    index("idx_post_public_local_article_published").on(
+      table.visibility,
+      sql`(${table.published}::timestamptz(3)) desc`,
+      desc(table.id),
+      table.language,
+    ).where(sql`
         ${table.replyTargetId} IS NULL
         AND ${table.articleSourceId} IS NOT NULL
       `),
-    index("idx_post_public_local_published")
-      .on(
-        table.visibility,
-        sql`(${table.published}::timestamptz(3)) desc`,
-        desc(table.id),
-        table.language,
-      )
-      .where(sql`
+    index("idx_post_public_local_published").on(
+      table.visibility,
+      sql`(${table.published}::timestamptz(3)) desc`,
+      desc(table.id),
+      table.language,
+    ).where(sql`
         ${table.replyTargetId} IS NULL
         AND (
           ${table.noteSourceId} IS NOT NULL
@@ -1168,13 +1141,11 @@ export const postTable = pgTable(
           OR ${table.sharedPostId} IS NOT NULL
         )
       `),
-    index("idx_post_actor_shared_published_ms")
-      .on(
-        table.actorId,
-        sql`(${table.published}::timestamptz(3)) desc`,
-        desc(table.id),
-      )
-      .where(sql`
+    index("idx_post_actor_shared_published_ms").on(
+      table.actorId,
+      sql`(${table.published}::timestamptz(3)) desc`,
+      desc(table.id),
+    ).where(sql`
         ${table.replyTargetId} IS NULL
         AND ${table.sharedPostId} IS NOT NULL
       `),
@@ -1201,13 +1172,14 @@ export const postTable = pgTable(
     // and a leading-wildcard ILIKE bypasses any B-tree index. The pg_trgm
     // GIN index makes that pattern indexable; the migration also enables
     // the extension.
-    index("idx_post_content_html_trgm")
-      .using("gin", table.contentHtml.op("gin_trgm_ops")),
+    index("idx_post_content_html_trgm").using(
+      "gin",
+      table.contentHtml.op("gin_trgm_ops"),
+    ),
     // Hashtag search in models/search.ts uses the JSONB `?` operator
     // (key existence). Without a GIN index this causes a full table scan and
     // statement timeouts on large datasets.
-    index("idx_post_tags_gin")
-      .using("gin", table.tags),
+    index("idx_post_tags_gin").using("gin", table.tags),
     index("idx_post_link_id_censored_actor_id")
       .on(table.linkId, table.censored, table.actorId)
       .where(isNotNull(table.linkId)),
@@ -1218,29 +1190,23 @@ export const postTable = pgTable(
     // let the periodic active-link sweep range by recency instead of scanning
     // every sharing post. Created in production via CREATE INDEX CONCURRENTLY
     // ahead of the migration, whose CREATE INDEX IF NOT EXISTS is then a no-op.
-    index("idx_post_news_share_link")
-      .on(table.linkId, table.published)
+    index("idx_post_news_share_link").on(table.linkId, table.published)
       .where(sql`
         ${table.linkId} IS NOT NULL AND ${table.sharedPostId} IS NULL
           AND ${table.visibility} IN ('public', 'unlisted')
       `),
-    index("idx_post_article_link_published")
-      .on(table.linkId, table.published)
+    index("idx_post_article_link_published").on(table.linkId, table.published)
       .where(sql`
         ${table.type} = 'Article' AND ${table.linkId} IS NOT NULL
           AND ${table.sharedPostId} IS NULL
           AND ${table.replyTargetId} IS NULL
           AND ${table.quotedPostId} IS NULL
       `),
-    index("idx_post_news_share_published")
-      .on(table.published)
-      .where(sql`
+    index("idx_post_news_share_published").on(table.published).where(sql`
         ${table.linkId} IS NOT NULL AND ${table.sharedPostId} IS NULL
           AND ${table.visibility} IN ('public', 'unlisted')
       `),
-    index("idx_post_news_share_updated")
-      .on(table.updated)
-      .where(sql`
+    index("idx_post_news_share_updated").on(table.updated).where(sql`
         ${table.linkId} IS NOT NULL AND ${table.sharedPostId} IS NULL
           AND ${table.visibility} IN ('public', 'unlisted')
       `),
@@ -1362,9 +1328,7 @@ export type NewQuoteRequest = typeof quoteRequestTable.$inferInsert;
 export const pinTable = pgTable(
   "pin",
   {
-    postId: uuid("post_id")
-      .$type<Uuid>()
-      .notNull(),
+    postId: uuid("post_id").$type<Uuid>().notNull(),
     actorId: uuid("actor_id")
       .$type<Uuid>()
       .notNull()
@@ -1403,8 +1367,11 @@ export const bookmarkTable = pgTable(
   },
   (table) => [
     primaryKey({ columns: [table.accountId, table.postId] }),
-    index("idx_bookmark_account_created")
-      .on(table.accountId, desc(table.created), desc(table.postId)),
+    index("idx_bookmark_account_created").on(
+      table.accountId,
+      desc(table.created),
+      desc(table.postId),
+    ),
     index().on(table.postId),
   ],
 );
@@ -1533,14 +1500,8 @@ export const postLinkTable = pgTable(
       .default(currentTimestamp),
   },
   (table) => [
-    check(
-      "post_link_url_check",
-      sql`${table.url} ~ '^https?://'`,
-    ),
-    check(
-      "post_link_image_url_check",
-      sql`${table.imageUrl} ~ '^https?://'`,
-    ),
+    check("post_link_url_check", sql`${table.url} ~ '^https?://'`),
+    check("post_link_image_url_check", sql`${table.imageUrl} ~ '^https?://'`),
     check(
       "post_link_image_alt_check",
       sql`${table.imageAlt} IS NULL OR ${table.imageUrl} IS NOT NULL`,
@@ -1611,9 +1572,7 @@ export const newsExcludedPatternTable = pgTable(
       .notNull()
       .default(currentTimestamp),
   },
-  (table) => [
-    index().on(table.creatorId),
-  ],
+  (table) => [index().on(table.creatorId)],
 );
 
 export type NewsExcludedPattern = typeof newsExcludedPatternTable.$inferSelect;
@@ -1651,9 +1610,7 @@ export const newsPreferredSharerTable = pgTable(
       .notNull()
       .default(currentTimestamp),
   },
-  (table) => [
-    index().on(table.creatorId),
-  ],
+  (table) => [index().on(table.creatorId)],
 );
 
 export type NewsPreferredSharer = typeof newsPreferredSharerTable.$inferSelect;
@@ -1912,10 +1869,7 @@ export const customEmojiTable = pgTable(
       .default(currentTimestamp),
   },
   (table) => [
-    check(
-      "custom_emoji_name_check",
-      sql`${table.name} ~ '^:[^:[:space:]]+:$'`,
-    ),
+    check("custom_emoji_name_check", sql`${table.name} ~ '^:[^:[:space:]]+:$'`),
     check(
       "custom_emoji_image_type_check",
       sql`
@@ -1970,18 +1924,16 @@ export const timelineItemTable = pgTable(
   },
   (table) => [
     primaryKey({ columns: [table.accountId, table.postId] }),
-    index("idx_timeline_item_account_id_added")
-      .on(
-        table.accountId,
-        sql`(${table.added}::timestamptz(3)) desc`,
-        desc(table.postId),
-      ),
-    index("idx_timeline_item_account_id_appended")
-      .on(
-        table.accountId,
-        sql`(${table.appended}::timestamptz(3)) desc`,
-        desc(table.postId),
-      ),
+    index("idx_timeline_item_account_id_added").on(
+      table.accountId,
+      sql`(${table.added}::timestamptz(3)) desc`,
+      desc(table.postId),
+    ),
+    index("idx_timeline_item_account_id_appended").on(
+      table.accountId,
+      sql`(${table.appended}::timestamptz(3)) desc`,
+      desc(table.postId),
+    ),
     // Composite indexes for postType-filtered queries (e.g. /feed/articles,
     // /feed/without-shares with a postType filter). Cover the
     // (account_id, post_type) WHERE plus the (cursor)::timestamptz(3) DESC,
@@ -1990,20 +1942,18 @@ export const timelineItemTable = pgTable(
     // in the unfiltered _added/_appended indexes and in getPersonalTimeline's
     // ORDER BY (which keys on `appended` for the default and on `added` when
     // `withoutShares` is set).
-    index("idx_timeline_item_account_id_post_type_appended")
-      .on(
-        table.accountId,
-        table.postType,
-        sql`(${table.appended}::timestamptz(3)) desc`,
-        desc(table.postId),
-      ),
-    index("idx_timeline_item_account_id_post_type_added")
-      .on(
-        table.accountId,
-        table.postType,
-        sql`(${table.added}::timestamptz(3)) desc`,
-        desc(table.postId),
-      ),
+    index("idx_timeline_item_account_id_post_type_appended").on(
+      table.accountId,
+      table.postType,
+      sql`(${table.appended}::timestamptz(3)) desc`,
+      desc(table.postId),
+    ),
+    index("idx_timeline_item_account_id_post_type_added").on(
+      table.accountId,
+      table.postType,
+      sql`(${table.added}::timestamptz(3)) desc`,
+      desc(table.postId),
+    ),
     index("timeline_item_post_id_index").on(table.postId),
   ],
 );
@@ -2184,8 +2134,11 @@ export const notificationTable = pgTable(
     uniqueIndex()
       .on(table.accountId, table.type, table.postId)
       .where(sql`${table.type} NOT IN ('follow', 'react')`),
-    uniqueIndex("notification_organization_conversion_request_idx")
-      .on(table.accountId, table.type, table.organizationConversionRequestId),
+    uniqueIndex("notification_organization_conversion_request_idx").on(
+      table.accountId,
+      table.type,
+      table.organizationConversionRequestId,
+    ),
     uniqueIndex()
       .on(table.accountId, table.postId, table.emoji)
       .where(sql`${table.type} = 'react' AND ${table.customEmojiId} IS NULL`),
@@ -2209,9 +2162,7 @@ export const organizationNotificationReadTable = pgTable(
       .$type<Uuid>()
       .notNull()
       .references(() => accountTable.id, { onDelete: "cascade" }),
-    read: timestamp({ withTimezone: true })
-      .notNull()
-      .default(currentTimestamp),
+    read: timestamp({ withTimezone: true }).notNull().default(currentTimestamp),
     updated: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),
@@ -2235,22 +2186,19 @@ export type OrganizationNotificationRead =
 export type NewOrganizationNotificationRead =
   typeof organizationNotificationReadTable.$inferInsert;
 
-export const invitationLinkTable = pgTable(
-  "invitation_link",
-  {
-    id: uuid().$type<Uuid>().primaryKey(),
-    inviterId: uuid("inviter_id")
-      .$type<Uuid>()
-      .notNull()
-      .references((): AnyPgColumn => accountTable.id, { onDelete: "cascade" }),
-    invitationsLeft: smallint("invitations_left").notNull(),
-    message: text("message"),
-    created: timestamp({ withTimezone: true })
-      .notNull()
-      .default(currentTimestamp),
-    expires: timestamp({ withTimezone: true }),
-  },
-);
+export const invitationLinkTable = pgTable("invitation_link", {
+  id: uuid().$type<Uuid>().primaryKey(),
+  inviterId: uuid("inviter_id")
+    .$type<Uuid>()
+    .notNull()
+    .references((): AnyPgColumn => accountTable.id, { onDelete: "cascade" }),
+  invitationsLeft: smallint("invitations_left").notNull(),
+  message: text("message"),
+  created: timestamp({ withTimezone: true })
+    .notNull()
+    .default(currentTimestamp),
+  expires: timestamp({ withTimezone: true }),
+});
 
 export type InvitationLink = typeof invitationLinkTable.$inferSelect;
 export type NewInvitationLink = typeof invitationLinkTable.$inferInsert;
@@ -2406,14 +2354,14 @@ export const flagCaseTable = pgTable(
     // Duplicate reports join the existing open case: at most one open case
     // per post target (keyed on the IRI so post deletion doesn't split
     // cases) and one per actor target for profile reports.
-    uniqueIndex("flag_case_open_post_target_idx")
-      .on(table.targetActorId, table.targetPostIri)
-      .where(sql`
+    uniqueIndex("flag_case_open_post_target_idx").on(
+      table.targetActorId,
+      table.targetPostIri,
+    ).where(sql`
         ${table.status} IN ('pending', 'reviewing')
         AND ${table.targetPostIri} IS NOT NULL
       `),
-    uniqueIndex("flag_case_open_actor_target_idx")
-      .on(table.targetActorId)
+    uniqueIndex("flag_case_open_actor_target_idx").on(table.targetActorId)
       .where(sql`
         ${table.status} IN ('pending', 'reviewing')
         AND ${table.targetPostIri} IS NULL
@@ -2741,9 +2689,10 @@ export const moderationNotificationTable = pgTable(
     // At most one *unread* flag_received notification per moderator per
     // case, so concurrent reports on the same case cannot flood the
     // moderation queue (inserts race on this index and lose harmlessly).
-    uniqueIndex("moderation_notification_flag_received_idx")
-      .on(table.accountId, table.caseId)
-      .where(sql`
+    uniqueIndex("moderation_notification_flag_received_idx").on(
+      table.accountId,
+      table.caseId,
+    ).where(sql`
         ${table.type} = 'flag_received' AND ${table.read} IS NULL
       `),
   ],

@@ -31,38 +31,38 @@ export type MediaStateAction =
   | { readonly type: "append"; readonly items: readonly MediaItem[] }
   | { readonly type: "replace"; readonly items: readonly MediaItem[] }
   | {
-    readonly type: "upload-progress";
-    readonly localId: string;
-    readonly progress: number;
-  }
+      readonly type: "upload-progress";
+      readonly localId: string;
+      readonly progress: number;
+    }
   | {
-    readonly type: "upload-completed";
-    readonly localId: string;
-    readonly result: CompletedMediaUpload;
-  }
+      readonly type: "upload-completed";
+      readonly localId: string;
+      readonly result: CompletedMediaUpload;
+    }
   | {
-    readonly type: "alt-changed";
-    readonly localId: string;
-    readonly alt: string;
-  }
+      readonly type: "alt-changed";
+      readonly localId: string;
+      readonly alt: string;
+    }
   | {
-    readonly type: "alt-started";
-    readonly localId: string;
-  }
+      readonly type: "alt-started";
+      readonly localId: string;
+    }
   | {
-    readonly type: "alt-subscription-set";
-    readonly localId: string;
-    readonly subscription: MediaSubscription;
-  }
+      readonly type: "alt-subscription-set";
+      readonly localId: string;
+      readonly subscription: MediaSubscription;
+    }
   | {
-    readonly type: "alt-completed";
-    readonly localId: string;
-    readonly alt: string | null;
-  }
+      readonly type: "alt-completed";
+      readonly localId: string;
+      readonly alt: string | null;
+    }
   | {
-    readonly type: "alt-cancelled";
-    readonly localId: string;
-  }
+      readonly type: "alt-cancelled";
+      readonly localId: string;
+    }
   | { readonly type: "remove"; readonly localId: string };
 
 export function reduceMediaItems(

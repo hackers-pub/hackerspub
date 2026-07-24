@@ -17,9 +17,9 @@ export default function SanctionsRedirectPage() {
   const params = useParams();
   return (
     <Navigate
-      href={`/${
-        decodeRouteParam(params.handle!)
-      }/settings/moderation${location.search}${location.hash}`}
+      href={`/${decodeRouteParam(
+        params.handle!,
+      )}/settings/moderation${location.search}${location.hash}`}
     />
   );
 }

@@ -12,7 +12,7 @@ import {
 } from "~/components/ui/avatar.tsx";
 import { Badge } from "~/components/ui/badge.tsx";
 import { WideContainer } from "~/components/WideContainer.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,
@@ -53,9 +53,11 @@ export default function ModerationSanctionedPage() {
     () => loadSanctionedPageQuery(),
   );
 
-  const profileHref = (
-    actor: { local: boolean; username: string; handle: string },
-  ) => `/${actor.local ? `@${actor.username}` : actor.handle}`;
+  const profileHref = (actor: {
+    local: boolean;
+    username: string;
+    handle: string;
+  }) => `/${actor.local ? `@${actor.username}` : actor.handle}`;
 
   return (
     <WideContainer class="p-4">

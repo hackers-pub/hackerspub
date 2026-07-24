@@ -39,7 +39,7 @@ import {
   TextFieldTextArea,
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
-import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
+import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
 import type { inviteCreateLinkMutation } from "./__generated__/inviteCreateLinkMutation.graphql.ts";
 import type { inviteDeleteLinkMutation } from "./__generated__/inviteDeleteLinkMutation.graphql.ts";
 import type { inviteHideFromTreeMutation } from "./__generated__/inviteHideFromTreeMutation.graphql.ts";
@@ -93,26 +93,24 @@ const invitePageQuery = graphql`
 
 const loadInvitePageQuery = routePreloadedQuery(
   (handle: string) =>
-    loadQuery<invitePageQuery>(
-      useRelayEnvironment()(),
-      invitePageQuery,
-      { username: handle.replace(/^@/, "") },
-    ),
+    loadQuery<invitePageQuery>(useRelayEnvironment()(), invitePageQuery, {
+      username: handle.replace(/^@/, ""),
+    }),
   "loadInvitePageQuery",
 );
 
 const inviteMutation = graphql`
   mutation inviteMutation(
-    $email: Email!,
-    $locale: Locale!,
-    $message: Markdown,
+    $email: Email!
+    $locale: Locale!
+    $message: Markdown
     $verifyUrl: URITemplate!
   ) {
     invite(
-      email: $email,
-      locale: $locale,
-      message: $message,
-      verifyUrl: $verifyUrl,
+      email: $email
+      locale: $locale
+      message: $message
+      verifyUrl: $verifyUrl
     ) {
       __typename
       ... on Invitation {
@@ -148,14 +146,14 @@ const hideFromInvitationTreeMutation = graphql`
 
 const createInvitationLinkMutation = graphql`
   mutation inviteCreateLinkMutation(
-    $invitationsLeft: Int!,
-    $message: Markdown,
+    $invitationsLeft: Int!
+    $message: Markdown
     $expires: String
   ) {
     createInvitationLink(
-      invitationsLeft: $invitationsLeft,
-      message: $message,
-      expires: $expires,
+      invitationsLeft: $invitationsLeft
+      message: $message
+      expires: $expires
     ) {
       __typename
       ... on InvitationLinkPayload {
@@ -297,54 +295,43 @@ export default function InvitePage() {
           accountId={data.accountByUsername?.id}
           viewerId={data.viewer?.id}
         >
-          {
-            /* `keyed` avoids a "Stale read from <Show>" race when solid-relay
+          {/* `keyed` avoids a "Stale read from <Show>" race when solid-relay
              publishes a fragment snapshot inside `batch()` that flips
              `accountByUsername` to falsy in the same tick as a downstream
              reactive read. Reconcile keeps the account's identity stable
              (`key: "__id"`), so `keyed` only re-mounts on navigation to
-             a different account. */
-          }
+             a different account. */}
           <Show keyed when={data.accountByUsername}>
             {(account) => (
               <>
                 <Title>{t`Invite`}</Title>
                 <SettingsContainer class="p-4">
-                  <SettingsTabs
-                    selected="invite"
-                    $account={account}
-                  />
+                  <SettingsTabs selected="invite" $account={account} />
                   <Card class="mt-4">
                     <CardHeader>
-                      <CardTitle>
-                        {t`Invite a friend`}
-                      </CardTitle>
+                      <CardTitle>{t`Invite a friend`}</CardTitle>
                       <CardDescription>
                         <Show
                           when={account.invitationsLeft > 0}
                           fallback={t`You have no invitations left. Please wait until you receive more.`}
                         >
-                          {i18n._(msg`${
-                            plural(account.invitationsLeft, {
-                              one:
-                                "Invite your friends to Hackers' Pub. You can invite up to # person.",
+                          {i18n._(
+                            msg`${plural(account.invitationsLeft, {
+                              one: "Invite your friends to Hackers' Pub. You can invite up to # person.",
                               other:
                                 "Invite your friends to Hackers' Pub. You can invite up to # people.",
-                            })
-                          }`)}
+                            })}`,
+                          )}
                         </Show>
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <form
-                        on:submit={onSubmit}
-                        class="flex flex-col gap-4"
-                      >
+                      <form on:submit={onSubmit} class="flex flex-col gap-4">
                         <TextField
                           class="grid w-full items-center gap-1.5"
-                          validationState={emailError() == null
-                            ? "valid"
-                            : "invalid"}
+                          validationState={
+                            emailError() == null ? "valid" : "invalid"
+                          }
                         >
                           <TextFieldLabel for="email">
                             {t`Email address`}
@@ -369,8 +356,10 @@ export default function InvitePage() {
                               </TextFieldErrorMessage>
                             </Match>
                             <Match
-                              when={emailError() === "EMAIL_ALREADY_TAKEN" &&
-                                emailOwner() != null}
+                              when={
+                                emailError() === "EMAIL_ALREADY_TAKEN" &&
+                                emailOwner() != null
+                              }
                             >
                               <TextFieldErrorMessage class="leading-6">
                                 <Trans
@@ -378,8 +367,7 @@ export default function InvitePage() {
                                   values={{
                                     USER: () => (
                                       <a href={`/@${emailOwner()?.username}`}>
-                                        <strong>{emailOwner()?.name}</strong>
-                                        {" "}
+                                        <strong>{emailOwner()?.name}</strong>{" "}
                                         <span class="opacity-75">
                                           ({emailOwner()?.handle})
                                         </span>
@@ -419,18 +407,18 @@ export default function InvitePage() {
                         <Button
                           type="submit"
                           class="cursor-pointer"
-                          disabled={sending() ||
-                            account.invitationsLeft <= 0}
+                          disabled={sending() || account.invitationsLeft <= 0}
                         >
                           {account.invitationsLeft <= 0
                             ? t`No invitations left`
                             : sending()
-                            ? t`Sending…`
-                            : t`Send`}
+                              ? t`Sending…`
+                              : t`Send`}
                         </Button>
                         <Show
-                          when={inviterError() ===
-                            "INVITER_NO_INVITATIONS_LEFT"}
+                          when={
+                            inviterError() === "INVITER_NO_INVITATIONS_LEFT"
+                          }
                         >
                           <p class="text-sm text-destructive">
                             {t`You have no invitations left. Please wait until you receive more.`}
@@ -455,13 +443,10 @@ export default function InvitePage() {
                         <CardTitle>{t`Users you have invited`}</CardTitle>
                         <CardDescription>
                           {i18n._(
-                            msg`${
-                              plural(account.inviteesCount.totalCount, {
-                                one: "You have invited total # person so far.",
-                                other:
-                                  "You have invited total # people so far.",
-                              })
-                            }`,
+                            msg`${plural(account.inviteesCount.totalCount, {
+                              one: "You have invited total # person so far.",
+                              other: "You have invited total # people so far.",
+                            })}`,
                           )}
                         </CardDescription>
                       </CardHeader>
@@ -541,9 +526,7 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
       },
       onCompleted(data) {
         setCreating(false);
-        if (
-          data.createInvitationLink.__typename === "InvitationLinkPayload"
-        ) {
+        if (data.createInvitationLink.__typename === "InvitationLinkPayload") {
           setLinkCount(1);
           setLinkMessage("");
           setLinkExpires(EXPIRATION_OPTIONS[0].expiresString);
@@ -595,9 +578,7 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
       },
       onCompleted(data) {
         setDeletingId(null);
-        if (
-          data.deleteInvitationLink.__typename === "InvitationLinkPayload"
-        ) {
+        if (data.deleteInvitationLink.__typename === "InvitationLinkPayload") {
           showToast({
             title: t`Invitation link deleted`,
             description: t`The invitation link has been deleted successfully.`,
@@ -606,8 +587,7 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
           showToast({
             variant: "error",
             title: t`Failed to delete invitation link`,
-            description:
-              t`The invitation link could not be found or you are not authorized to delete it.`,
+            description: t`The invitation link could not be found or you are not authorized to delete it.`,
           });
         }
       },
@@ -626,18 +606,21 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
   }
 
   function copyToClipboard(url: string) {
-    navigator.clipboard.writeText(url).then(() => {
-      showToast({
-        title: t`Copied`,
-        description: t`The invitation link has been copied to the clipboard.`,
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        showToast({
+          title: t`Copied`,
+          description: t`The invitation link has been copied to the clipboard.`,
+        });
+      })
+      .catch(() => {
+        showToast({
+          variant: "error",
+          title: t`Failed to copy`,
+          description: t`Could not copy the link to the clipboard.`,
+        });
       });
-    }).catch(() => {
-      showToast({
-        variant: "error",
-        title: t`Failed to copy`,
-        description: t`Could not copy the link to the clipboard.`,
-      });
-    });
   }
 
   return (
@@ -746,10 +729,8 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
                           : t`Delete`}
                       </Button>
                     </div>
-                    {
-                      /* `keyed`: avoid Solid's stale-accessor race when this
-                       Relay field flips to null inside a `batch()` update. */
-                    }
+                    {/* `keyed`: avoid Solid's stale-accessor race when this
+                       Relay field flips to null inside a `batch()` update. */}
                     <Show keyed when={link().messageHtml}>
                       {(html) => (
                         <div
@@ -761,12 +742,10 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
                     <div class="flex gap-4 text-sm text-muted-foreground">
                       <span>
                         {i18n._(
-                          msg`${
-                            plural(link().invitationsLeft, {
-                              one: "# invitation left",
-                              other: "# invitations left",
-                            })
-                          }`,
+                          msg`${plural(link().invitationsLeft, {
+                            one: "# invitation left",
+                            other: "# invitations left",
+                          })}`,
                         )}
                       </span>
                       <span>
@@ -781,10 +760,7 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
                               message={t`Expires ${"DATE"}`}
                               values={{
                                 DATE: () => (
-                                  <Timestamp
-                                    value={expires}
-                                    allowFuture
-                                  />
+                                  <Timestamp value={expires} allowFuture />
                                 ),
                               }}
                             />
@@ -810,7 +786,8 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
               max={props.invitationsLeft}
               value={linkCount()}
               onInput={(e) =>
-                setLinkCount(parseInt(e.currentTarget.value) || 1)}
+                setLinkCount(parseInt(e.currentTarget.value) || 1)
+              }
             />
           </TextField>
           <TextField class="grid w-full items-center gap-1.5">
@@ -839,9 +816,7 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
                   </option>
                 )}
               </For>
-              <option value="">
-                {t`Never expires`}
-              </option>
+              <option value="">{t`Never expires`}</option>
             </select>
           </div>
           <Button
@@ -852,8 +827,8 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
             {props.invitationsLeft <= 0
               ? t`No invitations left`
               : creating()
-              ? t`Creating…`
-              : t`Create invitation link`}
+                ? t`Creating…`
+                : t`Create invitation link`}
           </Button>
         </form>
       </CardContent>
@@ -943,16 +918,14 @@ function InviteeList(props: InviteeListProps) {
   const invitees = createPaginationFragment(
     graphql`
       fragment inviteInviteeList_invitees on Account
-        @refetchable(queryName: "inviteInviteeListQuery")
-        @argumentDefinitions(
-          cursor: { type: "String" }
-          count: { type: "Int", defaultValue: 20 }
-        )
-      {
+      @refetchable(queryName: "inviteInviteeListQuery")
+      @argumentDefinitions(
+        cursor: { type: "String" }
+        count: { type: "Int", defaultValue: 20 }
+      ) {
         __id
         invitees(after: $cursor, first: $count)
-          @connection(key: "inviteInviteeList_invitees")
-        {
+          @connection(key: "inviteInviteeList_invitees") {
           edges {
             __id
             node {
@@ -1031,9 +1004,11 @@ function InviteeList(props: InviteeListProps) {
               <Button
                 variant="outline"
                 class="mt-4 cursor-pointer w-full"
-                on:click={invitees.pending || loadingState() === "loading"
-                  ? undefined
-                  : onLoadMore}
+                on:click={
+                  invitees.pending || loadingState() === "loading"
+                    ? undefined
+                    : onLoadMore
+                }
               >
                 <Switch>
                   <Match

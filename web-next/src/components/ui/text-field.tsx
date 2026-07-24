@@ -8,8 +8,7 @@ import { cva } from "class-variance-authority";
 import { cn } from "~/lib/utils.ts";
 
 type TextFieldRootProps<T extends ValidComponent = "div"> =
-  & TextFieldPrimitive.TextFieldRootProps<T>
-  & {
+  TextFieldPrimitive.TextFieldRootProps<T> & {
     class?: string | undefined;
   };
 
@@ -26,8 +25,7 @@ const TextField = <T extends ValidComponent = "div">(
 };
 
 type TextFieldInputProps<T extends ValidComponent = "input"> =
-  & TextFieldPrimitive.TextFieldInputProps<T>
-  & {
+  TextFieldPrimitive.TextFieldInputProps<T> & {
     class?: string | undefined;
     type?:
       | "button"
@@ -78,8 +76,7 @@ const TextFieldInput = <T extends ValidComponent = "input">(
 };
 
 type TextFieldTextAreaProps<T extends ValidComponent = "textarea"> =
-  & TextFieldPrimitive.TextFieldTextAreaProps<T>
-  & { class?: string | undefined };
+  TextFieldPrimitive.TextFieldTextAreaProps<T> & { class?: string | undefined };
 
 const TextFieldTextArea = <T extends ValidComponent = "textarea">(
   props: PolymorphicProps<T, TextFieldTextAreaProps<T>>,
@@ -115,8 +112,7 @@ const labelVariants = cva(
 );
 
 type TextFieldLabelProps<T extends ValidComponent = "label"> =
-  & TextFieldPrimitive.TextFieldLabelProps<T>
-  & { class?: string | undefined };
+  TextFieldPrimitive.TextFieldLabelProps<T> & { class?: string | undefined };
 
 const TextFieldLabel = <T extends ValidComponent = "label">(
   props: PolymorphicProps<T, TextFieldLabelProps<T>>,
@@ -131,8 +127,7 @@ const TextFieldLabel = <T extends ValidComponent = "label">(
 };
 
 type TextFieldDescriptionProps<T extends ValidComponent = "div"> =
-  & TextFieldPrimitive.TextFieldDescriptionProps<T>
-  & {
+  TextFieldPrimitive.TextFieldDescriptionProps<T> & {
     class?: string | undefined;
   };
 
@@ -151,8 +146,7 @@ const TextFieldDescription = <T extends ValidComponent = "div">(
 };
 
 type TextFieldErrorMessageProps<T extends ValidComponent = "div"> =
-  & TextFieldPrimitive.TextFieldErrorMessageProps<T>
-  & {
+  TextFieldPrimitive.TextFieldErrorMessageProps<T> & {
     class?: string | undefined;
   };
 

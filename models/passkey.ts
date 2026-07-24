@@ -44,9 +44,7 @@ const PLATFORM_ORIGINS: Partial<Record<PasskeyPlatform, string[]>> = {
     // Local debug keystore (pub.hackers.android.dev)
     "android:apk-key-hash:yqSW6UZsaCl_dADWM0X3C_ndgblJU4uUMrjQYLIxEFs",
   ],
-  ios: [
-    "ios:pub.hackers.HackersPub",
-  ],
+  ios: ["ios:pub.hackers.HackersPub"],
 };
 
 export function resolvePasskeyOrigins(
@@ -110,19 +108,17 @@ export async function verifyRegistration(
   if (result.verified && result.registrationInfo != null) {
     const { credential, credentialDeviceType, credentialBackedUp } =
       result.registrationInfo;
-    await db.insert(passkeyTable).values(
-      {
-        id: credential.id,
-        accountId: account.id,
-        name: name.trim(),
-        publicKey: Buffer.from(credential.publicKey),
-        webauthnUserId: options.user.id,
-        counter: BigInt(credential.counter),
-        deviceType: credentialDeviceType,
-        backedUp: credentialBackedUp,
-        transports: credential.transports,
-      } satisfies NewPasskey,
-    );
+    await db.insert(passkeyTable).values({
+      id: credential.id,
+      accountId: account.id,
+      name: name.trim(),
+      publicKey: Buffer.from(credential.publicKey),
+      webauthnUserId: options.user.id,
+      counter: BigInt(credential.counter),
+      deviceType: credentialDeviceType,
+      backedUp: credentialBackedUp,
+      transports: credential.transports,
+    } satisfies NewPasskey);
   }
   return result;
 }
@@ -151,11 +147,12 @@ export async function verifyAuthentication(
   sessionId: Uuid,
   response: AuthenticationResponseJSON,
 ): Promise<
-  {
-    response: VerifiedAuthenticationResponse;
-    account: Account;
-    passkey: Passkey & { account: Account };
-  } | undefined
+  | {
+      response: VerifiedAuthenticationResponse;
+      account: Account;
+      passkey: Passkey & { account: Account };
+    }
+  | undefined
 > {
   const options = await kv.get<PublicKeyCredentialCreationOptionsJSON>(
     `${KV_NAMESPACE}/authentication/${sessionId}`,
@@ -187,7 +184,8 @@ export async function verifyAuthentication(
     return undefined;
   }
   if (result.verified) {
-    await db.update(passkeyTable)
+    await db
+      .update(passkeyTable)
       .set({
         counter: BigInt(result.authenticationInfo.newCounter),
         lastUsed: sql`CURRENT_TIMESTAMP`,

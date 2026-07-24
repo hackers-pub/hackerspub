@@ -29,9 +29,7 @@ export function NotificationActor(props: NotificationActorProps) {
 
   type Notification = NonNullable<ReturnType<typeof notification>>;
 
-  const firstActor = (
-    notification: Notification,
-  ) => {
+  const firstActor = (notification: Notification) => {
     return notification.actors.edges[0]?.node;
   };
 
@@ -39,10 +37,8 @@ export function NotificationActor(props: NotificationActorProps) {
     <Show keyed when={notification()}>
       {(notification) => (
         <>
-          {
-            /* `keyed`: avoid Solid's stale-accessor race when this
-             Relay-derived value flips to null inside a `batch()` update. */
-          }
+          {/* `keyed`: avoid Solid's stale-accessor race when this
+             Relay-derived value flips to null inside a `batch()` update. */}
           <Show keyed when={firstActor(notification)}>
             {(firstActor) => (
               <ActorHoverCard handle={firstActor.handle}>

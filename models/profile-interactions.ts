@@ -138,20 +138,12 @@ function sanitizePostActors<
   T extends {
     sharedPost?: {
       actor: unknown;
-      replyTarget?:
-        | { actor: unknown; mentions: { actor: unknown }[] }
-        | null;
-      quotedPost?:
-        | { actor: unknown; mentions: { actor: unknown }[] }
-        | null;
+      replyTarget?: { actor: unknown; mentions: { actor: unknown }[] } | null;
+      quotedPost?: { actor: unknown; mentions: { actor: unknown }[] } | null;
       mentions: { actor: unknown }[];
     } | null;
-    replyTarget?:
-      | { actor: unknown; mentions: { actor: unknown }[] }
-      | null;
-    quotedPost?:
-      | { actor: unknown; mentions: { actor: unknown }[] }
-      | null;
+    replyTarget?: { actor: unknown; mentions: { actor: unknown }[] } | null;
+    quotedPost?: { actor: unknown; mentions: { actor: unknown }[] } | null;
     mentions: { actor: unknown }[];
   },
 >(post: T): T {
@@ -166,12 +158,15 @@ function sanitizePostActors<
   const sp = post.sharedPost;
   return {
     ...post,
-    sharedPost: sp == null || sp.actor == null ? null : {
-      ...sp,
-      replyTarget: sanitizeLeaf(sp.replyTarget),
-      quotedPost: sanitizeLeaf(sp.quotedPost),
-      mentions: sp.mentions.filter((m) => m.actor != null),
-    },
+    sharedPost:
+      sp == null || sp.actor == null
+        ? null
+        : {
+            ...sp,
+            replyTarget: sanitizeLeaf(sp.replyTarget),
+            quotedPost: sanitizeLeaf(sp.quotedPost),
+            mentions: sp.mentions.filter((m) => m.actor != null),
+          },
     replyTarget: sanitizeLeaf(post.replyTarget),
     quotedPost: sanitizeLeaf(post.quotedPost),
     mentions: post.mentions.filter((m) => m.actor != null),
@@ -180,48 +175,48 @@ function sanitizePostActors<
 
 type InteractionPost = Post & {
   actor: Actor & { instance: Instance };
-  link: PostLink & { creator?: Actor | null } | null;
+  link: (PostLink & { creator?: Actor | null }) | null;
   sharedPost:
-    | Post & {
-      actor: Actor & { instance: Instance };
-      link: PostLink & { creator?: Actor | null } | null;
-      replyTarget:
-        | Post & {
-          actor: Actor & { instance: Instance };
-          link: PostLink & { creator?: Actor | null } | null;
-          mentions: (Mention & { actor: Actor })[];
-          media: PostMedium[];
-        }
-        | null;
-      quotedPost:
-        | Post & {
-          actor: Actor & { instance: Instance };
-          link: PostLink & { creator?: Actor | null } | null;
-          mentions: (Mention & { actor: Actor })[];
-          media: PostMedium[];
-        }
-        | null;
-      mentions: (Mention & { actor: Actor })[];
-      media: PostMedium[];
-      shares: Post[];
-      reactions: Reaction[];
-    }
+    | (Post & {
+        actor: Actor & { instance: Instance };
+        link: (PostLink & { creator?: Actor | null }) | null;
+        replyTarget:
+          | (Post & {
+              actor: Actor & { instance: Instance };
+              link: (PostLink & { creator?: Actor | null }) | null;
+              mentions: (Mention & { actor: Actor })[];
+              media: PostMedium[];
+            })
+          | null;
+        quotedPost:
+          | (Post & {
+              actor: Actor & { instance: Instance };
+              link: (PostLink & { creator?: Actor | null }) | null;
+              mentions: (Mention & { actor: Actor })[];
+              media: PostMedium[];
+            })
+          | null;
+        mentions: (Mention & { actor: Actor })[];
+        media: PostMedium[];
+        shares: Post[];
+        reactions: Reaction[];
+      })
     | null;
   replyTarget:
-    | Post & {
-      actor: Actor & { instance: Instance };
-      link: PostLink & { creator?: Actor | null } | null;
-      mentions: (Mention & { actor: Actor })[];
-      media: PostMedium[];
-    }
+    | (Post & {
+        actor: Actor & { instance: Instance };
+        link: (PostLink & { creator?: Actor | null }) | null;
+        mentions: (Mention & { actor: Actor })[];
+        media: PostMedium[];
+      })
     | null;
   quotedPost:
-    | Post & {
-      actor: Actor & { instance: Instance };
-      link: PostLink & { creator?: Actor | null } | null;
-      mentions: (Mention & { actor: Actor })[];
-      media: PostMedium[];
-    }
+    | (Post & {
+        actor: Actor & { instance: Instance };
+        link: (PostLink & { creator?: Actor | null }) | null;
+        mentions: (Mention & { actor: Actor })[];
+        media: PostMedium[];
+      })
     | null;
   mentions: (Mention & { actor: Actor })[];
   media: PostMedium[];
@@ -373,9 +368,10 @@ export async function getProfileInteractions(
       ],
     },
   });
-  posts.sort((a, b) =>
-    (candidateOrder.get(a.id as Uuid) ?? Number.MAX_SAFE_INTEGER) -
-    (candidateOrder.get(b.id as Uuid) ?? Number.MAX_SAFE_INTEGER)
+  posts.sort(
+    (a, b) =>
+      (candidateOrder.get(a.id as Uuid) ?? Number.MAX_SAFE_INTEGER) -
+      (candidateOrder.get(b.id as Uuid) ?? Number.MAX_SAFE_INTEGER),
   );
 
   const result: TimelineEntry[] = [];

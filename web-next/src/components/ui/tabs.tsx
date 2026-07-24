@@ -9,8 +9,7 @@ import { cn } from "~/lib/utils.ts";
 const Tabs = TabsPrimitive.Root;
 
 type TabsListProps<T extends ValidComponent = "div"> =
-  & TabsPrimitive.TabsListProps<T>
-  & {
+  TabsPrimitive.TabsListProps<T> & {
     class?: string | undefined;
   };
 
@@ -30,8 +29,7 @@ const TabsList = <T extends ValidComponent = "div">(
 };
 
 type TabsTriggerProps<T extends ValidComponent = "button"> =
-  & TabsPrimitive.TabsTriggerProps<T>
-  & {
+  TabsPrimitive.TabsTriggerProps<T> & {
     class?: string | undefined;
   };
 
@@ -51,8 +49,7 @@ const TabsTrigger = <T extends ValidComponent = "button">(
 };
 
 type TabsContentProps<T extends ValidComponent = "div"> =
-  & TabsPrimitive.TabsContentProps<T>
-  & {
+  TabsPrimitive.TabsContentProps<T> & {
     class?: string | undefined;
   };
 
@@ -72,8 +69,7 @@ const TabsContent = <T extends ValidComponent = "div">(
 };
 
 type TabsIndicatorProps<T extends ValidComponent = "div"> =
-  & TabsPrimitive.TabsIndicatorProps<T>
-  & {
+  TabsPrimitive.TabsIndicatorProps<T> & {
     class?: string | undefined;
   };
 

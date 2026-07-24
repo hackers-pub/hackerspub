@@ -162,10 +162,15 @@ test("unsharePost() removes the share, timeline entry, and notification", async 
 
     assert.ok(removed != null);
 
-    const shares = await tx.select().from(postTable).where(and(
-      eq(postTable.actorId, sharer.actor.id),
-      eq(postTable.sharedPostId, originalPost.id),
-    ));
+    const shares = await tx
+      .select()
+      .from(postTable)
+      .where(
+        and(
+          eq(postTable.actorId, sharer.actor.id),
+          eq(postTable.sharedPostId, originalPost.id),
+        ),
+      );
     assert.deepEqual(shares, []);
 
     const storedOriginal = await tx.query.postTable.findFirst({
@@ -228,7 +233,8 @@ test("revokeQuote() federates an Update for locally authored quotes", async () =
       });
       assert.ok(quote.noteSourceId != null);
       const authorizationIri = `${quote.iri}#quote-authorization`;
-      await tx.update(postTable)
+      await tx
+        .update(postTable)
         .set({
           quoteAuthorizationIri: authorizationIri,
           relayedTags: ["fediverse"],
@@ -244,7 +250,8 @@ test("revokeQuote() federates an Update for locally authored quotes", async () =
       });
       // Pin updated to epoch so revokeQuote's new Date() is always strictly
       // greater, regardless of how fast the test runs.
-      await tx.update(noteSourceTable)
+      await tx
+        .update(noteSourceTable)
         .set({ updated: new Date(0) })
         .where(eq(noteSourceTable.id, quote.noteSourceId));
       const originalSource = await tx.query.noteSourceTable.findFirst({
@@ -265,12 +272,7 @@ test("revokeQuote() federates an Update for locally authored quotes", async () =
       });
       assert.ok(quoteWithActor != null);
 
-      await revokeQuote(
-        fedCtx,
-        owner.account,
-        quoteWithActor,
-        quotedPost,
-      );
+      await revokeQuote(fedCtx, owner.account, quoteWithActor, quotedPost);
 
       const storedQuote = await tx.query.postTable.findFirst({
         where: { id: quote.id },
@@ -306,26 +308,29 @@ test("revokeQuote() federates an Update for locally authored quotes", async () =
       assert.ok(del instanceof Delete);
       assert.deepEqual(del.objectId?.href, authorizationIri);
       assert.ok(
-        sent.some((args) =>
-          args[2] instanceof Delete &&
-          Array.isArray(args[1]) &&
-          args[1].some((recipient) =>
-            recipient != null &&
-            typeof recipient === "object" &&
-            "id" in recipient &&
-            recipient.id instanceof URL &&
-            recipient.id.href === remoteFollower.iri
-          )
+        sent.some(
+          (args) =>
+            args[2] instanceof Delete &&
+            Array.isArray(args[1]) &&
+            args[1].some(
+              (recipient) =>
+                recipient != null &&
+                typeof recipient === "object" &&
+                "id" in recipient &&
+                recipient.id instanceof URL &&
+                recipient.id.href === remoteFollower.iri,
+            ),
         ),
       );
       assert.ok(
-        sent.some((args) =>
-          args[2] instanceof Update &&
-          args[1] != null &&
-          typeof args[1] === "object" &&
-          "id" in args[1] &&
-          args[1].id instanceof URL &&
-          args[1].id.href === "https://tags.pub/user/_____relay_____"
+        sent.some(
+          (args) =>
+            args[2] instanceof Update &&
+            args[1] != null &&
+            typeof args[1] === "object" &&
+            "id" in args[1] &&
+            args[1].id instanceof URL &&
+            args[1].id.href === "https://tags.pub/user/_____relay_____",
         ),
       );
     });
@@ -353,7 +358,8 @@ test("revokeQuote() does not double-decrement retried revocations", async () => 
       content: "Quote revoked twice",
       quotedPostId: quotedPost.id,
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ quotesCount: 1 })
       .where(eq(postTable.id, quotedPost.id));
     const fedCtx = {

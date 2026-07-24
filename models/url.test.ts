@@ -3,14 +3,8 @@ import test from "node:test";
 import { compactUrl, getAccountLinkDisplayText } from "./url.ts";
 
 test("compactUrl()", () => {
-  assert.deepEqual(
-    compactUrl("https://example.com/"),
-    "example.com",
-  );
-  assert.deepEqual(
-    compactUrl("https://example.com/test/"),
-    "example.com/test",
-  );
+  assert.deepEqual(compactUrl("https://example.com/"), "example.com");
+  assert.deepEqual(compactUrl("https://example.com/test/"), "example.com/test");
   assert.deepEqual(
     compactUrl("https://example.com/test/?"),
     "example.com/test",

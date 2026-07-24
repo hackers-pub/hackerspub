@@ -40,12 +40,14 @@ export function createRepository(db: Database): PermanentFailureRepository {
       });
     },
     async deleteFollowingsByFollowerIds(followerIds) {
-      return await db.delete(followingTable)
+      return await db
+        .delete(followingTable)
         .where(inArray(followingTable.followerId, followerIds))
         .returning();
     },
     async deleteFollowingsByFolloweeIds(followeeIds) {
-      return await db.delete(followingTable)
+      return await db
+        .delete(followingTable)
         .where(inArray(followingTable.followeeId, followeeIds))
         .returning();
     },
@@ -56,12 +58,10 @@ export function createRepository(db: Database): PermanentFailureRepository {
       await updateFolloweesCount(db, followerId, delta);
     },
     async deleteActors(actorIds) {
-      await db.delete(actorTable)
+      await db
+        .delete(actorTable)
         .where(
-          and(
-            inArray(actorTable.id, actorIds),
-            isNull(actorTable.accountId),
-          ),
+          and(inArray(actorTable.id, actorIds), isNull(actorTable.accountId)),
         );
     },
   };
@@ -107,15 +107,13 @@ export async function handlePermanentFailure(
 
   // Delete following relationships where the remote actor is a follower
   // (i.e., they follow a local user):
-  const deletedAsFollower = await repo.deleteFollowingsByFollowerIds(
-    remoteActorIds,
-  );
+  const deletedAsFollower =
+    await repo.deleteFollowingsByFollowerIds(remoteActorIds);
 
   // Delete following relationships where the remote actor is a followee
   // (i.e., a local user follows them):
-  const deletedAsFollowee = await repo.deleteFollowingsByFolloweeIds(
-    remoteActorIds,
-  );
+  const deletedAsFollowee =
+    await repo.deleteFollowingsByFolloweeIds(remoteActorIds);
 
   // Update follower counts for local users who lost these followers:
   for (const f of deletedAsFollower) {

@@ -10,7 +10,7 @@ import { Title } from "~/components/Title.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { buildSignInHref, gateOnAuthentication } from "~/lib/authGate.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,
@@ -49,12 +49,13 @@ const articlesFeedTimelineQuery = graphql`
       postCount
     }
     suggestedFilterLanguages
-    ...PersonalTimeline_posts @arguments(
-      actingAccountId: $actingAccountId,
-      locale: $locale,
-      languages: $languages,
-      postType: ARTICLE
-    )
+    ...PersonalTimeline_posts
+      @arguments(
+        actingAccountId: $actingAccountId
+        locale: $locale
+        languages: $languages
+        postType: ARTICLE
+      )
   }
 `;
 
@@ -78,9 +79,8 @@ const loadArticlesFeedTimelineQuery = routePreloadedQuery(
 function AuthenticatedArticlesFeedTimeline() {
   const { i18n } = useLingui();
   const actingAccount = useActingAccount();
-  const { activeLanguage, initialLang, buildHref } = useLanguageFilter(
-    "/feed/articles",
-  );
+  const { activeLanguage, initialLang, buildHref } =
+    useLanguageFilter("/feed/articles");
   const actingAccountId = () => actingAccount.selectedActingAccountId();
   const data = createStablePreloadedQuery<articlesFeedTimelineQuery>(
     articlesFeedTimelineQuery,
@@ -105,8 +105,10 @@ function AuthenticatedArticlesFeedTimeline() {
             )}
           </Show>
           <Show
-            when={(d.suggestedFilterLanguages?.length ?? 0) > 0 ||
-              !!activeLanguage()}
+            when={
+              (d.suggestedFilterLanguages?.length ?? 0) > 0 ||
+              !!activeLanguage()
+            }
           >
             <LanguageFilter
               languages={d.suggestedFilterLanguages ?? []}

@@ -40,7 +40,8 @@ async function makeModerator(tx: Transaction, username = "moderator") {
     name: "Moderator",
     email: `${username}@example.com`,
   });
-  await tx.update(accountTable)
+  await tx
+    .update(accountTable)
     .set({ moderator: true })
     .where(eq(accountTable.id, moderator.account.id));
   const account = await tx.query.accountTable.findFirst({
@@ -101,10 +102,7 @@ describe("getModerationNotifications()", () => {
         fedCtx,
         new Date(Date.now() + 30 * 24 * HOUR),
       );
-      const notifications = await getModerationNotifications(
-        tx,
-        account.id,
-      );
+      const notifications = await getModerationNotifications(tx, account.id);
       assert.equal(notifications.length, 1);
       assert.equal(notifications[0].type, "action_taken");
       assert.equal(notifications[0].actionId, action.id);
@@ -122,21 +120,12 @@ describe("markModerationNotificationsRead()", () => {
         fedCtx,
         new Date(Date.now() + 30 * 24 * HOUR),
       );
-      assert.equal(
-        await countUnreadModerationNotifications(tx, account.id),
-        1,
-      );
+      assert.equal(await countUnreadModerationNotifications(tx, account.id), 1);
       const marked = await markModerationNotificationsRead(tx, account.id);
       assert.equal(marked, 1);
-      assert.equal(
-        await countUnreadModerationNotifications(tx, account.id),
-        0,
-      );
+      assert.equal(await countUnreadModerationNotifications(tx, account.id), 0);
       // Idempotent:
-      assert.equal(
-        await markModerationNotificationsRead(tx, account.id),
-        0,
-      );
+      assert.equal(await markModerationNotificationsRead(tx, account.id), 0);
     });
   });
 
@@ -148,10 +137,7 @@ describe("markModerationNotificationsRead()", () => {
         fedCtx,
         new Date(Date.now() + 30 * 24 * HOUR),
       );
-      const [notification] = await getModerationNotifications(
-        tx,
-        account.id,
-      );
+      const [notification] = await getModerationNotifications(tx, account.id);
       assert.ok(notification != null);
       // Stored timestamps carry microseconds a JS Date cannot represent:
       await tx.execute(sql`
@@ -165,10 +151,7 @@ describe("markModerationNotificationsRead()", () => {
         notification.id,
       );
       assert.equal(marked, 1);
-      assert.equal(
-        await countUnreadModerationNotifications(tx, account.id),
-        0,
-      );
+      assert.equal(await countUnreadModerationNotifications(tx, account.id), 0);
       // An id that is not the account's marks nothing.
       const other = await insertAccountWithActor(tx, {
         username: "othermod",
@@ -191,9 +174,7 @@ describe("ensureSuspensionEndingNotification()", () => {
   it("creates the notification once when the end approaches", async () => {
     await withRollback(async (tx) => {
       const fedCtx = quietFedCtx(tx);
-      const ends = new Date(
-        Date.now() + SUSPENSION_ENDING_WINDOW_MS - HOUR,
-      );
+      const ends = new Date(Date.now() + SUSPENSION_ENDING_WINDOW_MS - HOUR);
       const { account, action } = await suspendedAccountWithAction(
         tx,
         fedCtx,
@@ -223,7 +204,8 @@ describe("ensureSuspensionEndingNotification()", () => {
         undefined,
       );
       // Simulate an already-expired suspension:
-      await tx.update(actorTable)
+      await tx
+        .update(actorTable)
         .set({
           suspended: new Date(Date.now() - 2 * HOUR),
           suspendedUntil: new Date(Date.now() - HOUR),
@@ -247,8 +229,11 @@ describe("ensureSuspensionEndingNotification()", () => {
       const endsLong = new Date(
         Date.now() + SUSPENSION_ENDING_WINDOW_MS - HOUR,
       );
-      const { account, action: longAction, moderator } =
-        await suspendedAccountWithAction(tx, fedCtx, endsLong);
+      const {
+        account,
+        action: longAction,
+        moderator,
+      } = await suspendedAccountWithAction(tx, fedCtx, endsLong);
       // A second, shorter suspension filed later on a new case.  The
       // effective suspendedUntil stays at the longer end, so the
       // notification must reference the longer (older) action even though
@@ -293,8 +278,11 @@ describe("ensureSuspensionEndingNotification()", () => {
     await withRollback(async (tx) => {
       const fedCtx = quietFedCtx(tx);
       const ends = new Date(Date.now() + SUSPENSION_ENDING_WINDOW_MS - HOUR);
-      const { account, action: standingAction, moderator } =
-        await suspendedAccountWithAction(tx, fedCtx, ends);
+      const {
+        account,
+        action: standingAction,
+        moderator,
+      } = await suspendedAccountWithAction(tx, fedCtx, ends);
       // A second suspension with the *same* end, filed later, then
       // overturned on appeal: the notification must reference the older
       // action that still stands, not the newest one.
@@ -337,10 +325,7 @@ describe("ensureSuspensionEndingNotification()", () => {
         with: { actor: true },
       });
       assert.ok(refreshed != null);
-      assert.equal(
-        refreshed.actor.suspendedUntil?.getTime(),
-        ends.getTime(),
-      );
+      assert.equal(refreshed.actor.suspendedUntil?.getTime(), ends.getTime());
       const created = await ensureSuspensionEndingNotification(tx, refreshed);
       assert.ok(created != null);
       assert.equal(created.actionId, standingAction.id);

@@ -8,7 +8,7 @@ import {
   createStablePreloadedQuery,
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { Title } from "~/components/Title.tsx";
 
 const TreeGraphQueryDocument = graphql`
@@ -78,9 +78,7 @@ export default function InvitationTreeGraph() {
       <Title>{t`Hackers' Pub: Invitation graph`}</Title>
       <div class="container px-8 max-sm:px-4 py-8">
         <div class="flex items-center gap-6 mb-6">
-          <h1 class="text-xl font-semibold">
-            {t`Invitation tree`}
-          </h1>
+          <h1 class="text-xl font-semibold">{t`Invitation tree`}</h1>
           <div class="flex gap-1 border border-border rounded-md p-0.5">
             <A
               href={`/tree${location.search}`}
@@ -101,9 +99,7 @@ export default function InvitationTreeGraph() {
       <div class="border overflow-hidden w-full flex-1">
         <Show keyed when={data()}>
           {(queryData) => (
-            <ForceGraph
-              data={transformToGraphData(queryData.invitationTree)}
-            />
+            <ForceGraph data={transformToGraphData(queryData.invitationTree)} />
           )}
         </Show>
       </div>

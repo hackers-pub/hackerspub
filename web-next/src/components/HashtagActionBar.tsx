@@ -3,7 +3,7 @@ import { Show } from "solid-js";
 import { createMutation } from "solid-relay";
 import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { HashtagActionBar_followHashtag_Mutation } from "./__generated__/HashtagActionBar_followHashtag_Mutation.graphql.ts";
 import type { HashtagActionBar_pinHashtag_Mutation } from "./__generated__/HashtagActionBar_pinHashtag_Mutation.graphql.ts";
 import type { HashtagActionBar_unfollowHashtag_Mutation } from "./__generated__/HashtagActionBar_unfollowHashtag_Mutation.graphql.ts";
@@ -118,22 +118,20 @@ const unpinHashtagMutation = graphql`
 export function HashtagActionBar(props: HashtagActionBarProps) {
   const { t } = useLingui();
 
-  const [commitFollow, followInFlight] = createMutation<
-    HashtagActionBar_followHashtag_Mutation
-  >(
-    followHashtagMutation,
-  );
-  const [commitUnfollow, unfollowInFlight] = createMutation<
-    HashtagActionBar_unfollowHashtag_Mutation
-  >(
-    unfollowHashtagMutation,
-  );
-  const [commitPin, pinInFlight] = createMutation<
-    HashtagActionBar_pinHashtag_Mutation
-  >(pinHashtagMutation);
-  const [commitUnpin, unpinInFlight] = createMutation<
-    HashtagActionBar_unpinHashtag_Mutation
-  >(unpinHashtagMutation);
+  const [commitFollow, followInFlight] =
+    createMutation<HashtagActionBar_followHashtag_Mutation>(
+      followHashtagMutation,
+    );
+  const [commitUnfollow, unfollowInFlight] =
+    createMutation<HashtagActionBar_unfollowHashtag_Mutation>(
+      unfollowHashtagMutation,
+    );
+  const [commitPin, pinInFlight] =
+    createMutation<HashtagActionBar_pinHashtag_Mutation>(pinHashtagMutation);
+  const [commitUnpin, unpinInFlight] =
+    createMutation<HashtagActionBar_unpinHashtag_Mutation>(
+      unpinHashtagMutation,
+    );
 
   const isPinned = () => props.pinnedHashtags.includes(props.tag);
 
@@ -141,9 +139,7 @@ export function HashtagActionBar(props: HashtagActionBarProps) {
     commitFollow({
       variables: { input: { tag: props.tag }, tag: props.tag },
       onCompleted(response) {
-        if (
-          response.followHashtag.__typename === "NotAuthenticatedError"
-        ) {
+        if (response.followHashtag.__typename === "NotAuthenticatedError") {
           showToast({
             title: t`You must be signed in`,
             variant: "destructive",
@@ -164,9 +160,7 @@ export function HashtagActionBar(props: HashtagActionBarProps) {
     commitUnfollow({
       variables: { input: { tag: props.tag }, tag: props.tag },
       onCompleted(response) {
-        if (
-          response.unfollowHashtag.__typename === "NotAuthenticatedError"
-        ) {
+        if (response.unfollowHashtag.__typename === "NotAuthenticatedError") {
           showToast({
             title: t`You must be signed in`,
             variant: "destructive",

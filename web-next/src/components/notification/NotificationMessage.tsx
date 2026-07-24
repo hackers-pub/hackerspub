@@ -111,9 +111,11 @@ export function NotificationMessage(props: NotificationMessageProps) {
                   >
                     <AvatarImage
                       src={node.avatarUrl}
-                      alt={node.name == null
-                        ? node.handle
-                        : `${unescape(node.name)} (${node.handle})`}
+                      alt={
+                        node.name == null
+                          ? node.handle
+                          : `${unescape(node.name)} (${node.handle})`
+                      }
                     />
                   </Avatar>
                 </ActorHoverCard>

@@ -24,7 +24,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs.tsx";
 import { WideContainer } from "~/components/WideContainer.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { bookmarksPageQuery } from "./__generated__/bookmarksPageQuery.graphql.ts";
 import {
   createStablePreloadedQuery,
@@ -83,9 +83,9 @@ export default function BookmarksPage() {
         when={viewer.isAuthenticated()}
         fallback={
           <Navigate
-            href={`/sign?next=${
-              encodeURIComponent(`/@${handleUsername()}/bookmarks`)
-            }`}
+            href={`/sign?next=${encodeURIComponent(
+              `/@${handleUsername()}/bookmarks`,
+            )}`}
           />
         }
       >
@@ -129,7 +129,8 @@ export default function BookmarksPage() {
                   onChange={(value) =>
                     setSearchParams({
                       type: value === "all" ? undefined : value,
-                    })}
+                    })
+                  }
                   class="px-4 py-3"
                 >
                   <TabsList>

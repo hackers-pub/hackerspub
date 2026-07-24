@@ -4,7 +4,7 @@ import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { ProfileTabs_actor$key } from "./__generated__/ProfileTabs_actor.graphql.ts";
 
 export type ProfileTab =
@@ -25,8 +25,9 @@ export function ProfileTabs(props: ProfileTabsProps) {
   const actor = createFragment(
     graphql`
       fragment ProfileTabs_actor on Actor
-        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
-      {
+      @argumentDefinitions(
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
         handle
         isViewer(actingAccountId: $actingAccountId)
         local

@@ -27,32 +27,29 @@ test("removeDetailsFromSummaryInput() removes details blocks", () => {
   assert.equal(output.includes("Hidden answer."), false);
 });
 
-test(
-  "removeDetailsFromSummaryInput() handles attributes, case, and nesting",
-  () => {
-    const input = [
-      "Visible before.",
-      '<DETAILS open data-kind="spoiler">',
-      "<summary>Outer</summary>",
-      "Outer secret.",
-      "<details>",
-      "<summary>Inner</summary>",
-      "Inner secret.",
-      "</details>",
-      "More outer secret.",
-      "</DETAILS>",
-      "Visible after.",
-    ].join("\n");
+test("removeDetailsFromSummaryInput() handles attributes, case, and nesting", () => {
+  const input = [
+    "Visible before.",
+    '<DETAILS open data-kind="spoiler">',
+    "<summary>Outer</summary>",
+    "Outer secret.",
+    "<details>",
+    "<summary>Inner</summary>",
+    "Inner secret.",
+    "</details>",
+    "More outer secret.",
+    "</DETAILS>",
+    "Visible after.",
+  ].join("\n");
 
-    const output = removeDetailsFromSummaryInput(input);
+  const output = removeDetailsFromSummaryInput(input);
 
-    assert.equal(output.includes("Visible before."), true);
-    assert.equal(output.includes("Visible after."), true);
-    assert.equal(output.includes("Outer"), false);
-    assert.equal(output.includes("Inner"), false);
-    assert.equal(output.includes("secret"), false);
-  },
-);
+  assert.equal(output.includes("Visible before."), true);
+  assert.equal(output.includes("Visible after."), true);
+  assert.equal(output.includes("Outer"), false);
+  assert.equal(output.includes("Inner"), false);
+  assert.equal(output.includes("secret"), false);
+});
 
 test("removeDetailsFromSummaryInput() removes unclosed details to EOF", () => {
   const input = [

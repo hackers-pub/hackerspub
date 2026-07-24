@@ -34,10 +34,7 @@ test("onRelayFollowAccepted marks the matching subscription accepted", async () 
       actor: new URL(relay.iri),
       object: new URL(subscription.followIri),
     });
-    const handled = await onRelayFollowAccepted(
-      asInboxContext(fedCtx),
-      accept,
-    );
+    const handled = await onRelayFollowAccepted(asInboxContext(fedCtx), accept);
     assert.deepEqual(handled, true);
 
     const reloaded = await getRelaySubscription(tx, subscription.id);
@@ -69,10 +66,7 @@ test("onRelayFollowAccepted handles an Accept with an embedded Follow", async ()
         object: new URL(relay.iri),
       }),
     });
-    const handled = await onRelayFollowAccepted(
-      asInboxContext(fedCtx),
-      accept,
-    );
+    const handled = await onRelayFollowAccepted(asInboxContext(fedCtx), accept);
     assert.deepEqual(handled, true);
 
     const reloaded = await getRelaySubscription(tx, subscription.id);
@@ -101,10 +95,7 @@ test("onRelayFollowRejected handles a Reject with an embedded Follow", async () 
         object: new URL(relay.iri),
       }),
     });
-    const handled = await onRelayFollowRejected(
-      asInboxContext(fedCtx),
-      reject,
-    );
+    const handled = await onRelayFollowRejected(asInboxContext(fedCtx), reject);
     assert.deepEqual(handled, true);
     assert.deepEqual(
       await getRelaySubscription(tx, subscription.id),
@@ -130,10 +121,7 @@ test("onRelayFollowAccepted ignores a forged Accept from another actor", async (
       actor: new URL("https://evil.example/actor"),
       object: new URL(subscription.followIri),
     });
-    const handled = await onRelayFollowAccepted(
-      asInboxContext(fedCtx),
-      accept,
-    );
+    const handled = await onRelayFollowAccepted(asInboxContext(fedCtx), accept);
     assert.deepEqual(handled, false);
 
     const reloaded = await getRelaySubscription(tx, subscription.id);
@@ -153,10 +141,7 @@ test("onRelayFollowAccepted ignores an Accept with no matching subscription", as
         object: new URL("https://remote.example/users/bob"),
       }),
     });
-    const handled = await onRelayFollowAccepted(
-      asInboxContext(fedCtx),
-      accept,
-    );
+    const handled = await onRelayFollowAccepted(asInboxContext(fedCtx), accept);
     assert.deepEqual(handled, false);
   });
 });
@@ -178,10 +163,7 @@ test("onRelayFollowRejected removes the matching subscription", async () => {
       actor: new URL(relay.iri),
       object: new URL(subscription.followIri),
     });
-    const handled = await onRelayFollowRejected(
-      asInboxContext(fedCtx),
-      reject,
-    );
+    const handled = await onRelayFollowRejected(asInboxContext(fedCtx), reject);
     assert.deepEqual(handled, true);
     assert.deepEqual(
       await getRelaySubscription(tx, subscription.id),
@@ -207,11 +189,8 @@ test("onRelayFollowRejected ignores a forged Reject from another actor", async (
       actor: new URL("https://evil.example/actor"),
       object: new URL(subscription.followIri),
     });
-    const handled = await onRelayFollowRejected(
-      asInboxContext(fedCtx),
-      reject,
-    );
+    const handled = await onRelayFollowRejected(asInboxContext(fedCtx), reject);
     assert.deepEqual(handled, false);
-    assert.ok(await getRelaySubscription(tx, subscription.id) != null);
+    assert.ok((await getRelaySubscription(tx, subscription.id)) != null);
   });
 });

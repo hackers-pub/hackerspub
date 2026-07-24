@@ -182,9 +182,10 @@ export function isNewsBotActorType(type: ActorType): boolean {
 // text parameter), keeping a single source of truth with `NEWS_BOT_ACTOR_TYPES`
 // (and with `newsSharerActorFilter`, the relational-query mirror GraphQL uses).
 const qualifyingSharerCondition: SQL = sql`(
-  a.type::text not in (${
-  sql.join(NEWS_BOT_ACTOR_TYPES.map((t) => sql`${t}`), sql`, `)
-})
+  a.type::text not in (${sql.join(
+    NEWS_BOT_ACTOR_TYPES.map((t) => sql`${t}`),
+    sql`, `,
+  )})
   or exists (
     select 1 from news_preferred_sharer ps where ps.actor_id = a.id
   )
@@ -287,9 +288,10 @@ export async function recomputeNewsScores(
   }
 
   const run = async (tx: Database): Promise<number> => {
-    const aggregateScope: AggregateScope = scope.kind === "activeSince"
-      ? { kind: "links", ids: await activeLinkIds(tx, scope.since) }
-      : scope;
+    const aggregateScope: AggregateScope =
+      scope.kind === "activeSince"
+        ? { kind: "links", ids: await activeLinkIds(tx, scope.since) }
+        : scope;
     const linksUpdated =
       aggregateScope.kind === "links" && aggregateScope.ids.length < 1
         ? 0
@@ -300,9 +302,8 @@ export async function recomputeNewsScores(
     // `activeSince` sweep stays O(active links) instead of re-testing every
     // scored link on each run; a full (`all`) recompute re-evaluates all of
     // them, which is what it is for.
-    const exclusionScope = aggregateScope.kind === "links"
-      ? aggregateScope.ids
-      : undefined;
+    const exclusionScope =
+      aggregateScope.kind === "links" ? aggregateScope.ids : undefined;
     await applyNewsExclusions(tx, exclusionScope);
     return linksUpdated;
   };
@@ -310,10 +311,9 @@ export async function recomputeNewsScores(
   const linksUpdated = isTransaction(db)
     ? await run(db)
     : await db.transaction(run);
-  logger.debug(
-    "Recomputed news scores for {linksUpdated} link(s).",
-    { linksUpdated },
-  );
+  logger.debug("Recomputed news scores for {linksUpdated} link(s).", {
+    linksUpdated,
+  });
   return { linksUpdated, recomputed };
 }
 
@@ -340,10 +340,10 @@ export async function refreshNewsScores(
   try {
     await db.transaction((tx) => recomputeNewsScores(tx, { linkIds: ids }));
   } catch (error) {
-    logger.error(
-      "Failed to refresh news scores for {linkIds}: {error}",
-      { linkIds: ids, error },
-    );
+    logger.error("Failed to refresh news scores for {linkIds}: {error}", {
+      linkIds: ids,
+      error,
+    });
   }
 }
 
@@ -364,9 +364,7 @@ export async function refreshNewsScoresForPostId(
   if (post == null) return;
   const linkIds = new Set<Uuid>();
   if (post.linkId != null) linkIds.add(post.linkId);
-  for (
-    const linkId of await articleBoostLinkIds(db, [post.sharedPostId])
-  ) {
+  for (const linkId of await articleBoostLinkIds(db, [post.sharedPostId])) {
     linkIds.add(linkId);
   }
   await refreshNewsScores(db, [...linkIds]);
@@ -388,9 +386,9 @@ export async function articleBoostLinkIds(
     },
     columns: { linkId: true },
   });
-  return originals.map((post) => post.linkId).filter((id): id is Uuid =>
-    id != null
-  );
+  return originals
+    .map((post) => post.linkId)
+    .filter((id): id is Uuid => id != null);
 }
 
 /**
@@ -413,9 +411,7 @@ export async function refreshNewsScoresForPostLinks(
 ): Promise<void> {
   const linkIds = new Set<Uuid>();
   if (post.linkId != null) linkIds.add(post.linkId);
-  for (
-    const linkId of await articleBoostLinkIds(db, [post.sharedPostId])
-  ) {
+  for (const linkId of await articleBoostLinkIds(db, [post.sharedPostId])) {
     linkIds.add(linkId);
   }
   const parentIds = [post.replyTargetId, post.quotedPostId].filter(
@@ -429,12 +425,10 @@ export async function refreshNewsScoresForPostLinks(
     for (const parent of parents) {
       if (parent.linkId != null) linkIds.add(parent.linkId);
     }
-    for (
-      const linkId of await articleBoostLinkIds(
-        db,
-        parents.map((parent) => parent.sharedPostId),
-      )
-    ) {
+    for (const linkId of await articleBoostLinkIds(
+      db,
+      parents.map((parent) => parent.sharedPostId),
+    )) {
       linkIds.add(linkId);
     }
   }
@@ -635,9 +629,9 @@ function activeLinkIdsSubquery(activeSince: Date): SQL {
  * link.  Deduped, since the subquery yields one row per qualifying share.
  */
 async function activeLinkIds(db: Database, activeSince: Date): Promise<Uuid[]> {
-  const rows = await db.execute(
+  const rows = (await db.execute(
     activeLinkIdsSubquery(activeSince),
-  ) as unknown as { link_id: Uuid }[];
+  )) as unknown as { link_id: Uuid }[];
   return [...new Set(rows.map((row) => row.link_id))];
 }
 
@@ -929,11 +923,12 @@ export async function getNewsStories(
   db: Database,
   options: GetNewsStoriesOptions,
 ): Promise<PostLink[]> {
-  const sortColumn = options.order === "newest"
-    ? postLinkTable.firstShared
-    : options.order === "allTime"
-    ? postLinkTable.weightedMass
-    : postLinkTable.score;
+  const sortColumn =
+    options.order === "newest"
+      ? postLinkTable.firstShared
+      : options.order === "allTime"
+        ? postLinkTable.weightedMass
+        : postLinkTable.score;
 
   const conditions: SQL[] = [
     isNotNull(postLinkTable.latestActivity),
@@ -1019,9 +1014,12 @@ export async function getNewsSourceBreakdowns(
   const ids = [...new Set(linkIds)];
   if (ids.length < 1) return result;
   const literal = `{${ids.join(",")}}`;
-  const rows = await db.execute<
-    { link_id: Uuid; local: string; remote: string; bluesky: string }
-  >(sql`
+  const rows = await db.execute<{
+    link_id: Uuid;
+    local: string;
+    remote: string;
+    bluesky: string;
+  }>(sql`
     with share_roots as (
       select p.link_id as link_id, p.actor_id as actor_id
       from post p
@@ -1153,9 +1151,10 @@ export async function applyNewsExclusions(
   linkIds?: readonly Uuid[],
 ): Promise<void> {
   if (linkIds != null && linkIds.length < 1) return;
-  const scope = linkIds != null
-    ? inArray(postLinkTable.id, [...linkIds])
-    : isNotNull(postLinkTable.latestActivity);
+  const scope =
+    linkIds != null
+      ? inArray(postLinkTable.id, [...linkIds])
+      : isNotNull(postLinkTable.latestActivity);
 
   const patternRows = await db
     .select({ pattern: newsExcludedPatternTable.pattern })
@@ -1330,11 +1329,7 @@ async function actorSharedLinkIds(
       and original.type = 'Article'
       and original.link_id is not null
   `);
-  return [
-    ...new Set(
-      shares.map((s) => s.link_id),
-    ),
-  ];
+  return [...new Set(shares.map((s) => s.link_id))];
 }
 
 /** All preferred sharers, newest first (for the admin page). */
@@ -1499,8 +1494,11 @@ export interface DrainNewsRescoreQueueResult {
  */
 export async function drainNewsRescoreQueue(
   db: Database,
-  options: { maxActors?: number; chunkSize?: number; leaseSeconds?: number } =
-    {},
+  options: {
+    maxActors?: number;
+    chunkSize?: number;
+    leaseSeconds?: number;
+  } = {},
 ): Promise<DrainNewsRescoreQueueResult> {
   const maxActors = options.maxActors ?? NEWS_RESCORE_MAX_ACTORS_PER_DRAIN;
   const chunkSize = options.chunkSize ?? NEWS_RESCORE_CHUNK_SIZE;
@@ -1511,7 +1509,7 @@ export async function drainNewsRescoreQueue(
     // Lease the oldest claimable actor in one statement: unclaimed, or whose
     // lease has expired.  `for update skip locked` makes a concurrent drain skip
     // this row instead of blocking, so two replicas never lease the same actor.
-    const claimed = await db.execute(sql`
+    const claimed = (await db.execute(sql`
       update news_rescore_queue
       set claimed = now(), dirty = false
       where actor_id in (
@@ -1523,7 +1521,7 @@ export async function drainNewsRescoreQueue(
         limit 1
       )
       returning actor_id
-    `) as unknown as { actor_id: Uuid }[];
+    `)) as unknown as { actor_id: Uuid }[];
     const actorId = claimed[0]?.actor_id;
     if (actorId == null) break;
     try {
@@ -1544,11 +1542,11 @@ export async function drainNewsRescoreQueue(
       // `dirty`): then reopen the row (clear the lease) for another full pass so
       // links rescored before the change pick up the new state; otherwise drop
       // it.
-      const deleted = await db.execute(sql`
+      const deleted = (await db.execute(sql`
         delete from news_rescore_queue
         where actor_id = ${actorId} and dirty = false
         returning actor_id
-      `) as unknown as { actor_id: Uuid }[];
+      `)) as unknown as { actor_id: Uuid }[];
       if (deleted.length < 1) {
         await db.execute(sql`
           update news_rescore_queue set claimed = null

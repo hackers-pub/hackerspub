@@ -80,13 +80,8 @@ test("createShareNotification() merges repeated shares into one row", async () =
 });
 
 test("createOrganizationInvitationNotification() works with a plain database", async () => {
-  const usernames = [
-    "plainorginvitationmember",
-    "plainorginvitationorg",
-  ];
-  let member:
-    | Awaited<ReturnType<typeof insertAccountWithActor>>
-    | undefined;
+  const usernames = ["plainorginvitationmember", "plainorginvitationorg"];
+  let member: Awaited<ReturnType<typeof insertAccountWithActor>> | undefined;
   let organization:
     | Awaited<ReturnType<typeof insertAccountWithActor>>
     | undefined;
@@ -222,11 +217,7 @@ test("deleteFollowNotification() deletes exact rows before pruning actors", asyn
       type: "follow",
       actorIds: [],
     });
-    await createFollowNotification(
-      tx,
-      recipient.account.id,
-      follower.actor,
-    );
+    await createFollowNotification(tx, recipient.account.id, follower.actor);
 
     const deleted = await deleteFollowNotification(
       tx,
@@ -356,62 +347,59 @@ test("getNotifications() returns newest notifications with loaded relations", as
   });
 });
 
-test(
-  "createFollowNotification() returns the existing row for duplicate follows",
-  async () => {
-    await withRollback(async (tx) => {
-      const recipient = await insertAccountWithActor(tx, {
-        username: "followrecipient",
-        name: "Follow Recipient",
-        email: "followrecipient@example.com",
-      });
-      const firstFollower = await insertAccountWithActor(tx, {
-        username: "firstfollower",
-        name: "First Follower",
-        email: "firstfollower@example.com",
-      });
-      const secondFollower = await insertAccountWithActor(tx, {
-        username: "secondfollower",
-        name: "Second Follower",
-        email: "secondfollower@example.com",
-      });
-
-      const first = await createFollowNotification(
-        tx,
-        recipient.account.id,
-        firstFollower.actor,
-        new Date("2026-04-15T00:00:00.000Z"),
-      );
-      const second = await createFollowNotification(
-        tx,
-        recipient.account.id,
-        secondFollower.actor,
-        new Date("2026-04-15T01:00:00.000Z"),
-      );
-      const duplicate = await createFollowNotification(
-        tx,
-        recipient.account.id,
-        firstFollower.actor,
-        new Date("2026-04-15T02:00:00.000Z"),
-      );
-
-      assert.ok(first != null);
-      assert.ok(second != null);
-      assert.ok(duplicate != null);
-      assert.deepEqual(duplicate.id, first.id);
-
-      const notifications = await tx.query.notificationTable.findMany({
-        where: {
-          accountId: recipient.account.id,
-          type: "follow",
-        },
-        orderBy: { created: "asc" },
-      });
-      assert.deepEqual(notifications.length, 2);
-      assert.deepEqual(
-        notifications.map((notification) => notification.actorIds),
-        [[firstFollower.actor.id], [secondFollower.actor.id]],
-      );
+test("createFollowNotification() returns the existing row for duplicate follows", async () => {
+  await withRollback(async (tx) => {
+    const recipient = await insertAccountWithActor(tx, {
+      username: "followrecipient",
+      name: "Follow Recipient",
+      email: "followrecipient@example.com",
     });
-  },
-);
+    const firstFollower = await insertAccountWithActor(tx, {
+      username: "firstfollower",
+      name: "First Follower",
+      email: "firstfollower@example.com",
+    });
+    const secondFollower = await insertAccountWithActor(tx, {
+      username: "secondfollower",
+      name: "Second Follower",
+      email: "secondfollower@example.com",
+    });
+
+    const first = await createFollowNotification(
+      tx,
+      recipient.account.id,
+      firstFollower.actor,
+      new Date("2026-04-15T00:00:00.000Z"),
+    );
+    const second = await createFollowNotification(
+      tx,
+      recipient.account.id,
+      secondFollower.actor,
+      new Date("2026-04-15T01:00:00.000Z"),
+    );
+    const duplicate = await createFollowNotification(
+      tx,
+      recipient.account.id,
+      firstFollower.actor,
+      new Date("2026-04-15T02:00:00.000Z"),
+    );
+
+    assert.ok(first != null);
+    assert.ok(second != null);
+    assert.ok(duplicate != null);
+    assert.deepEqual(duplicate.id, first.id);
+
+    const notifications = await tx.query.notificationTable.findMany({
+      where: {
+        accountId: recipient.account.id,
+        type: "follow",
+      },
+      orderBy: { created: "asc" },
+    });
+    assert.deepEqual(notifications.length, 2);
+    assert.deepEqual(
+      notifications.map((notification) => notification.actorIds),
+      [[firstFollower.actor.id], [secondFollower.actor.id]],
+    );
+  });
+});

@@ -72,10 +72,13 @@ export function toPushNotificationService(
   return service === "apns"
     ? "APNS"
     : service === "fcm"
-    ? "FCM"
-    : service === "web_push"
-    ? "WEB_PUSH"
-    : assertNever(service, `Invalid \`PushNotificationService\`: "${service}"`);
+      ? "FCM"
+      : service === "web_push"
+        ? "WEB_PUSH"
+        : assertNever(
+            service,
+            `Invalid \`PushNotificationService\`: "${service}"`,
+          );
 }
 
 function fromPushNotificationService(
@@ -84,10 +87,13 @@ function fromPushNotificationService(
   return service === "APNS"
     ? "apns"
     : service === "FCM"
-    ? "fcm"
-    : service === "WEB_PUSH"
-    ? "web_push"
-    : assertNever(service, `Invalid \`PushNotificationService\`: "${service}"`);
+      ? "fcm"
+      : service === "WEB_PUSH"
+        ? "web_push"
+        : assertNever(
+            service,
+            `Invalid \`PushNotificationService\`: "${service}"`,
+          );
 }
 
 export function toPushNotificationPreviewPolicy(
@@ -96,13 +102,13 @@ export function toPushNotificationPreviewPolicy(
   return policy === "public_only"
     ? "PUBLIC_ONLY"
     : policy === "all"
-    ? "ALL"
-    : policy === "none"
-    ? "NONE"
-    : assertNever(
-      policy,
-      `Invalid \`PushNotificationPreviewPolicy\`: "${policy}"`,
-    );
+      ? "ALL"
+      : policy === "none"
+        ? "NONE"
+        : assertNever(
+            policy,
+            `Invalid \`PushNotificationPreviewPolicy\`: "${policy}"`,
+          );
 }
 
 export function fromPushNotificationPreviewPolicy(
@@ -111,13 +117,13 @@ export function fromPushNotificationPreviewPolicy(
   return policy === "PUBLIC_ONLY"
     ? "public_only"
     : policy === "ALL"
-    ? "all"
-    : policy === "NONE"
-    ? "none"
-    : assertNever(
-      policy,
-      `Invalid \`PushNotificationPreviewPolicy\`: "${policy}"`,
-    );
+      ? "all"
+      : policy === "NONE"
+        ? "none"
+        : assertNever(
+            policy,
+            `Invalid \`PushNotificationPreviewPolicy\`: "${policy}"`,
+          );
 }
 
 builder.queryField("webPushVapidPublicKey", (t) =>
@@ -129,7 +135,8 @@ builder.queryField("webPushVapidPublicKey", (t) =>
     resolve() {
       return getWebPushVapidPublicKey();
     },
-  }));
+  }),
+);
 
 builder.relayMutationField(
   "registerPushNotificationTarget",
@@ -179,10 +186,7 @@ builder.relayMutationField(
       "viewer. `APNS` and `FCM` require `token`; `WEB_PUSH` requires " +
       "`endpoint`, `p256dh`, and `auth` from the browser `PushSubscription`.",
     errors: {
-      types: [
-        NotAuthenticatedError,
-        InvalidInputError,
-      ],
+      types: [NotAuthenticatedError, InvalidInputError],
       union: {
         description:
           "Result of registering a push notification target. Successful " +
@@ -228,11 +232,13 @@ builder.relayMutationField(
       ) {
         throw new InvalidInputError("service");
       } else if (
-        service === "apns" && normalizeApnsDeviceToken(args.input.token) == null
+        service === "apns" &&
+        normalizeApnsDeviceToken(args.input.token) == null
       ) {
         throw new InvalidInputError("token");
       } else if (
-        service === "fcm" && normalizeFcmDeviceToken(args.input.token) == null
+        service === "fcm" &&
+        normalizeFcmDeviceToken(args.input.token) == null
       ) {
         throw new InvalidInputError("token");
       }
@@ -243,14 +249,15 @@ builder.relayMutationField(
         {
           service,
           token: args.input.token,
-          subscription: service === "web_push"
-            ? {
-              endpoint: endpoint!,
-              p256dh: p256dh!,
-              auth: auth!,
-              expirationTime: args.input.expirationTime,
-            }
-            : null,
+          subscription:
+            service === "web_push"
+              ? {
+                  endpoint: endpoint!,
+                  p256dh: p256dh!,
+                  auth: auth!,
+                  expirationTime: args.input.expirationTime,
+                }
+              : null,
         },
       );
       if (result == null) {

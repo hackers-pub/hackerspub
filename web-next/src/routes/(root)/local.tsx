@@ -8,7 +8,7 @@ import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PublicTimeline } from "~/components/PublicTimeline.tsx";
 import { TimelineNoteComposer } from "~/components/TimelineNoteComposer.tsx";
 import { Title } from "~/components/Title.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,
@@ -31,13 +31,14 @@ const localTimelineQuery = graphql`
       postCount
     }
     suggestedFilterLanguages
-    ...PublicTimeline_posts @arguments(
-      locale: $locale,
-      languages: $languages,
-      local: true,
-      withoutShares: false,
-      postType: null,
-    )
+    ...PublicTimeline_posts
+      @arguments(
+        locale: $locale
+        languages: $languages
+        local: true
+        withoutShares: false
+        postType: null
+      )
   }
 `;
 
@@ -57,9 +58,8 @@ const loadLocalTimelineQuery = routePreloadedQuery(
 
 export default function LocalTimeline() {
   const { i18n, t } = useLingui();
-  const { activeLanguage, initialLang, buildHref } = useLanguageFilter(
-    "/local",
-  );
+  const { activeLanguage, initialLang, buildHref } =
+    useLanguageFilter("/local");
   const data = createStablePreloadedQuery<localTimelineQuery>(
     localTimelineQuery,
     () => loadLocalTimelineQuery(i18n.locale, initialLang ? [initialLang] : []),
@@ -86,8 +86,10 @@ export default function LocalTimeline() {
               )}
             </Show>
             <Show
-              when={(data.suggestedFilterLanguages?.length ?? 0) > 0 ||
-                !!activeLanguage()}
+              when={
+                (data.suggestedFilterLanguages?.length ?? 0) > 0 ||
+                !!activeLanguage()
+              }
             >
               <LanguageFilter
                 languages={data.suggestedFilterLanguages ?? []}

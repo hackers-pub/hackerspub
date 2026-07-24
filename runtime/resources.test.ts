@@ -1,5 +1,8 @@
 import { assertEquals, assertInstanceOf } from "@std/assert";
 import { MockTransport } from "@upyo/mock";
+import { mkdtemp, rm, stat } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import test from "node:test";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import {
@@ -11,41 +14,36 @@ import {
   runWithFederationQueue,
 } from "./resources.ts";
 
-Deno.test("resolveFileSystemStorageLocation resolves relative paths from the composition root", () => {
+test("resolveFileSystemStorageLocation resolves relative paths from the composition root", () => {
   assertEquals(
-    resolveFileSystemStorageLocation(
-      "./media",
-      new URL("file:///app/"),
-    ).href,
+    resolveFileSystemStorageLocation("./media", new URL("file:///app/")).href,
     "file:///app/media",
   );
 });
 
-Deno.test("filesystem storage uses the application media root across processes", () => {
+test("filesystem storage uses the application media root across processes", () => {
   assertEquals(
-    resolveFileSystemStorageLocation(
-      "./media",
-      FILE_SYSTEM_STORAGE_BASE_URL,
-    ).href,
+    resolveFileSystemStorageLocation("./media", FILE_SYSTEM_STORAGE_BASE_URL)
+      .href,
     new URL("../media", import.meta.url).href,
   );
 });
 
-Deno.test("createKeyValueResource decodes file URL paths", async () => {
-  const directory = await Deno.makeTempDir();
+test("createKeyValueResource decodes file URL paths", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "hackerspub-resources-"));
   const filename = join(directory, "cache file.json");
   const kv = createKeyValueResource({ url: pathToFileURL(filename) });
   try {
     await kv.set("key", "value");
     assertEquals(await kv.get("key"), "value");
-    await Deno.stat(filename);
+    await stat(filename);
   } finally {
     await kv.disconnect();
-    await Deno.remove(directory, { recursive: true });
+    await rm(directory, { recursive: true });
   }
 });
 
-Deno.test("getFederationBehaviorOptions supports an explicitly managed queue", () => {
+test("getFederationBehaviorOptions supports an explicitly managed queue", () => {
   assertEquals(
     getFederationBehaviorOptions({
       manuallyStartQueue: true,
@@ -58,7 +56,7 @@ Deno.test("getFederationBehaviorOptions supports an explicitly managed queue", (
   );
 });
 
-Deno.test("runWithFederationQueue aborts and awaits the queue before returning", async () => {
+test("runWithFederationQueue aborts and awaits the queue before returning", async () => {
   const events: string[] = [];
   const federation = {
     startQueue(
@@ -80,14 +78,10 @@ Deno.test("runWithFederationQueue aborts and awaits the queue before returning",
     events.push("server-stopped");
   });
 
-  assertEquals(events, [
-    "queue-started",
-    "server-stopped",
-    "queue-stopped",
-  ]);
+  assertEquals(events, ["queue-started", "server-stopped", "queue-stopped"]);
 });
 
-Deno.test("runWithFederationQueue accepts Error-shaped abort failures", async () => {
+test("runWithFederationQueue accepts Error-shaped abort failures", async () => {
   const federation = {
     startQueue(
       _contextData: undefined,
@@ -106,7 +100,7 @@ Deno.test("runWithFederationQueue accepts Error-shaped abort failures", async ()
   await runWithFederationQueue(federation, undefined, () => Promise.resolve());
 });
 
-Deno.test("runWithFederationQueue stops both tasks on an external signal", async () => {
+test("runWithFederationQueue stops both tasks on an external signal", async () => {
   const controller = new AbortController();
   const queueStarted = Promise.withResolvers<void>();
   const serverStarted = Promise.withResolvers<void>();
@@ -143,7 +137,7 @@ Deno.test("runWithFederationQueue stops both tasks on an external signal", async
   await running;
 });
 
-Deno.test("createEmailResource warns when Mailgun is unconfigured", () => {
+test("createEmailResource warns when Mailgun is unconfigured", () => {
   const warnings: string[] = [];
   const transport = createEmailResource(
     {
@@ -164,7 +158,7 @@ Deno.test("createEmailResource warns when Mailgun is unconfigured", () => {
   ]);
 });
 
-Deno.test("createEmailResource does not warn when CI selects the mock transport", () => {
+test("createEmailResource does not warn when CI selects the mock transport", () => {
   const warnings: string[] = [];
   createEmailResource(
     {

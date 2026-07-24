@@ -51,9 +51,9 @@ function makeStubApplicationContext(
 
 interface Harness {
   readonly stubDb: StubDb;
-  readonly txCalls: Array<
-    { config: { isolationLevel?: string; accessMode?: string } }
-  >;
+  readonly txCalls: Array<{
+    config: { isolationLevel?: string; accessMode?: string };
+  }>;
   readonly fedData: StubApplicationContext;
   readonly lookupState: { db?: unknown };
   readonly transactionState: { open: boolean };
@@ -84,7 +84,7 @@ function buildHarness(
   const lookupState: { db?: unknown } = {};
   const fedData = makeStubApplicationContext(
     stubDb,
-    (db) => lookupState.db = db,
+    (db) => (lookupState.db = db),
   );
   const contextValue = {
     db: stubDb,
@@ -191,9 +191,9 @@ test("useQuerySnapshotTransaction defers work until after commit", async () => {
     assert.ok(txCtx.afterCommit != null);
     txCtx.afterCommit.push(async () => {
       backgroundRanInTransaction = h.transactionState.open;
-      await txCtx.withDatabase(txCtx.rootDb).lookupObject(
-        new URL("https://example.com/background"),
-      );
+      await txCtx
+        .withDatabase(txCtx.rootDb)
+        .lookupObject(new URL("https://example.com/background"));
     });
     return { data: { __typename: "Query" } };
   }) as ExecuteFn;
@@ -299,10 +299,7 @@ test("useQuerySnapshotTransaction skips ambiguous documents", async () => {
   // Multiple operations + no operationName is an error for `graphql.execute`
   // to surface — we don't want to wrap anything in that case.
   const plugin = useQuerySnapshotTransaction();
-  const h = buildHarness(
-    `query Q { __typename } query R { __typename }`,
-    null,
-  );
+  const h = buildHarness(`query Q { __typename } query R { __typename }`, null);
 
   await plugin.onExecute!(h.payload);
 

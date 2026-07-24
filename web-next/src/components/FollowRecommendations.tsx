@@ -14,7 +14,7 @@ import {
   readBrowserLocalStorage,
   writeBrowserLocalStorage,
 } from "~/lib/browserStorage.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { createStablePreloadedQuery } from "~/lib/relayPreload.ts";
 import { cn } from "~/lib/utils.ts";
 import type { FollowRecommendationsQuery } from "./__generated__/FollowRecommendationsQuery.graphql.ts";
@@ -83,11 +83,10 @@ function FollowRecommendationsInner(props: { storageKey: string }) {
   const data = createStablePreloadedQuery<FollowRecommendationsQuery>(
     followRecommendationsQuery,
     () =>
-      loadQuery<FollowRecommendationsQuery>(
-        env(),
-        followRecommendationsQuery,
-        { limit: BATCH_SIZE, locale: i18n.locale.toString() },
-      ),
+      loadQuery<FollowRecommendationsQuery>(env(), followRecommendationsQuery, {
+        limit: BATCH_SIZE,
+        locale: i18n.locale.toString(),
+      }),
   );
 
   const handleDismiss = () => {
@@ -168,14 +167,14 @@ function FollowRecommendationsInner(props: { storageKey: string }) {
                       class="min-w-0 flex-1 text-sm no-underline"
                     >
                       <div class="truncate font-medium text-foreground">
-                        {actor.name != null
-                          ? (
-                            <span
-                              innerHTML={actor.name}
-                              class="[&_.Mention\_actorName]:font-normal [&_.Mention\_actorName]:text-muted-foreground/50"
-                            />
-                          )
-                          : actor.username}
+                        {actor.name != null ? (
+                          <span
+                            innerHTML={actor.name}
+                            class="[&_.Mention\_actorName]:font-normal [&_.Mention\_actorName]:text-muted-foreground/50"
+                          />
+                        ) : (
+                          actor.username
+                        )}
                       </div>
                       <div class="truncate text-muted-foreground">
                         {actor.handle}
@@ -233,25 +232,23 @@ export function FollowRecommendations(props: FollowRecommendationsProps) {
     if (!viewer.isLoaded() || !viewer.isAuthenticated()) return;
     const username = viewer.username();
     if (username == null) return;
-    const dismissed = readBrowserLocalStorage(getStorageKey(username)) ===
-      "1";
+    const dismissed = readBrowserLocalStorage(getStorageKey(username)) === "1";
     setDismissed(dismissed);
     setDismissalLoaded(true);
   });
 
   const eligible = () =>
-    shouldShowFollowRecommendations(
-      props.followeesCount,
-      props.postCount ?? 0,
-    );
+    shouldShowFollowRecommendations(props.followeesCount, props.postCount ?? 0);
 
   return (
     <Show
-      when={dismissalLoaded() &&
+      when={
+        dismissalLoaded() &&
         viewer.isLoaded() &&
         viewer.isAuthenticated() &&
         !dismissed() &&
-        eligible()}
+        eligible()
+      }
     >
       <Suspense fallback={<Skeleton />}>
         <FollowRecommendationsInner

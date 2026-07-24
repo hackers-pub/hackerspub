@@ -36,13 +36,16 @@ if (INSTANCE_ACTOR_KEY_JWK.kty !== "RSA") {
 }
 const INSTANCE_ACTOR_KEY_PAIR: CryptoKeyPair = {
   privateKey: await importJwk(INSTANCE_ACTOR_KEY_JWK, "private"),
-  publicKey: await importJwk({
-    kty: INSTANCE_ACTOR_KEY_JWK.kty,
-    alg: INSTANCE_ACTOR_KEY_JWK.alg,
-    e: INSTANCE_ACTOR_KEY_JWK.e,
-    n: INSTANCE_ACTOR_KEY_JWK.n,
-    key_ops: ["verify"],
-  }, "public"),
+  publicKey: await importJwk(
+    {
+      kty: INSTANCE_ACTOR_KEY_JWK.kty,
+      alg: INSTANCE_ACTOR_KEY_JWK.alg,
+      e: INSTANCE_ACTOR_KEY_JWK.e,
+      n: INSTANCE_ACTOR_KEY_JWK.n,
+      key_ops: ["verify"],
+    },
+    "public",
+  ),
 };
 
 type StoredActorKey = Pick<
@@ -59,7 +62,7 @@ type TombstoneFormerType =
 
 function sortStoredActorKeys<T extends StoredActorKey>(keys: T[]): T[] {
   return [...keys].sort((a, b) =>
-    a.type < b.type ? 1 : a.type > b.type ? -1 : 0
+    a.type < b.type ? 1 : a.type > b.type ? -1 : 0,
   );
 }
 
@@ -106,7 +109,9 @@ class KeyedTombstone extends Tombstone {
   ): Promise<unknown> {
     const jsonLd = await super.toJsonLd(options);
     if (
-      this.#keys.length < 1 || jsonLd == null || typeof jsonLd !== "object" ||
+      this.#keys.length < 1 ||
+      jsonLd == null ||
+      typeof jsonLd !== "object" ||
       Array.isArray(jsonLd)
     ) {
       return jsonLd;
@@ -121,65 +126,62 @@ class KeyedTombstone extends Tombstone {
 }
 
 builder
-  .setActorDispatcher(
-    "/ap/actors/{identifier}",
-    async (ctx, identifier) => {
-      if (identifier == new URL(ctx.canonicalOrigin).hostname) {
-        // Instance actor:
-        const keys = await ctx.getActorKeyPairs(identifier);
-        return new Application({
-          id: ctx.getActorUri(identifier),
-          preferredUsername: identifier,
-          name: "Hackers' Pub",
-          summary: "An instance actor for Hackers' Pub.",
-          manuallyApprovesFollowers: true,
-          inbox: ctx.getInboxUri(identifier),
-          outbox: ctx.getOutboxUri(identifier),
-          endpoints: new Endpoints({
-            sharedInbox: ctx.getInboxUri(),
-          }),
-          following: ctx.getFollowingUri(identifier),
-          followers: ctx.getFollowersUri(identifier),
-          featured: ctx.getFeaturedUri(identifier),
-          icon: new Image({
-            url: new URL("/favicon.svg", ctx.canonicalOrigin),
-          }),
-          publicKey: keys[0].cryptographicKey,
-          assertionMethods: keys.map((pair) => pair.multikey),
-        });
-      }
-
-      if (!validateUuid(identifier)) return null;
-      const account = await ctx.data.db.query.accountTable.findFirst({
-        where: { id: identifier },
-        with: {
-          actor: true,
-          avatarMedium: true,
-          emails: true,
-          links: { orderBy: { index: "asc" } },
-        },
-      });
-      if (account == null) {
-        const deleted = await ctx.data.db.query.deletedAccountTable.findFirst({
-          where: { accountId: identifier },
-        });
-        if (deleted == null) return null;
-        const keys = await ctx.getActorKeyPairs(identifier);
-        return new KeyedTombstone(
-          {
-            id: ctx.getActorUri(identifier),
-            formerType: getTombstoneFormerType(deleted.formerType),
-            deleted: Temporal.Instant.fromEpochMilliseconds(
-              deleted.deleted.getTime(),
-            ),
-          },
-          keys,
-        );
-      }
+  .setActorDispatcher("/ap/actors/{identifier}", async (ctx, identifier) => {
+    if (identifier == new URL(ctx.canonicalOrigin).hostname) {
+      // Instance actor:
       const keys = await ctx.getActorKeyPairs(identifier);
-      return await getAccountActor(ctx, account, keys);
-    },
-  )
+      return new Application({
+        id: ctx.getActorUri(identifier),
+        preferredUsername: identifier,
+        name: "Hackers' Pub",
+        summary: "An instance actor for Hackers' Pub.",
+        manuallyApprovesFollowers: true,
+        inbox: ctx.getInboxUri(identifier),
+        outbox: ctx.getOutboxUri(identifier),
+        endpoints: new Endpoints({
+          sharedInbox: ctx.getInboxUri(),
+        }),
+        following: ctx.getFollowingUri(identifier),
+        followers: ctx.getFollowersUri(identifier),
+        featured: ctx.getFeaturedUri(identifier),
+        icon: new Image({
+          url: new URL("/favicon.svg", ctx.canonicalOrigin),
+        }),
+        publicKey: keys[0].cryptographicKey,
+        assertionMethods: keys.map((pair) => pair.multikey),
+      });
+    }
+
+    if (!validateUuid(identifier)) return null;
+    const account = await ctx.data.db.query.accountTable.findFirst({
+      where: { id: identifier },
+      with: {
+        actor: true,
+        avatarMedium: true,
+        emails: true,
+        links: { orderBy: { index: "asc" } },
+      },
+    });
+    if (account == null) {
+      const deleted = await ctx.data.db.query.deletedAccountTable.findFirst({
+        where: { accountId: identifier },
+      });
+      if (deleted == null) return null;
+      const keys = await ctx.getActorKeyPairs(identifier);
+      return new KeyedTombstone(
+        {
+          id: ctx.getActorUri(identifier),
+          formerType: getTombstoneFormerType(deleted.formerType),
+          deleted: Temporal.Instant.fromEpochMilliseconds(
+            deleted.deleted.getTime(),
+          ),
+        },
+        keys,
+      );
+    }
+    const keys = await ctx.getActorKeyPairs(identifier);
+    return await getAccountActor(ctx, account, keys);
+  })
   .mapHandle(async (ctx, handle) => {
     if (handle === new URL(ctx.canonicalOrigin).hostname) return handle;
     const account = await ctx.data.db.query.accountTable.findFirst({
@@ -198,8 +200,8 @@ builder
     }
 
     if (!validateUuid(identifier)) return [];
-    const deletedKeyRecords = await ctx.data.db.query.deletedAccountKeyTable
-      .findMany({
+    const deletedKeyRecords =
+      await ctx.data.db.query.deletedAccountKeyTable.findMany({
         where: { accountId: identifier },
       });
     if (deletedKeyRecords.length > 0) {
@@ -222,9 +224,8 @@ builder
     const existingTypes = new Set(keyRecords.map((r) => r.type));
     const newRecords: NewAccountKey[] = [];
     if (!existingTypes.has("RSASSA-PKCS1-v1_5")) {
-      const { publicKey, privateKey } = await generateCryptoKeyPair(
-        "RSASSA-PKCS1-v1_5",
-      );
+      const { publicKey, privateKey } =
+        await generateCryptoKeyPair("RSASSA-PKCS1-v1_5");
       newRecords.push({
         accountId: identifier,
         type: "RSASSA-PKCS1-v1_5",
@@ -245,7 +246,9 @@ builder
       // Use onConflictDoNothing to tolerate concurrent inserts racing on the
       // (account_id, type) primary key, then re-fetch so we observe whatever
       // the winning transaction wrote.
-      await ctx.data.db.insert(accountKeyTable).values(newRecords)
+      await ctx.data.db
+        .insert(accountKeyTable)
+        .values(newRecords)
         .onConflictDoNothing();
       keyRecords = await ctx.data.db.query.accountKeyTable.findMany({
         where: { accountId: identifier },

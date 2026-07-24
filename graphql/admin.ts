@@ -204,20 +204,23 @@ builder.queryField("adminAccounts", (t) =>
         .trim()
         .split(/\s+/)
         .filter(Boolean);
-      const searchFilter = searchWords.length === 0 ? undefined : and(
-        ...searchWords.map((w) => {
-          const p = `%${
-            w.replace(/!/g, "!!").replace(/%/g, "!%").replace(/_/g, "!_")
-          }%`;
-          return or(
-            sql`${accountTable.name} ILIKE ${p} ESCAPE '!'`,
-            sql`${accountTable.username} ILIKE ${p} ESCAPE '!'`,
-          )!;
-        }),
-      );
-      const kindFilter = accountKind == null
-        ? undefined
-        : eq(accountTable.kind, accountKind);
+      const searchFilter =
+        searchWords.length === 0
+          ? undefined
+          : and(
+              ...searchWords.map((w) => {
+                const p = `%${w
+                  .replace(/!/g, "!!")
+                  .replace(/%/g, "!%")
+                  .replace(/_/g, "!_")}%`;
+                return or(
+                  sql`${accountTable.name} ILIKE ${p} ESCAPE '!'`,
+                  sql`${accountTable.username} ILIKE ${p} ESCAPE '!'`,
+                )!;
+              }),
+            );
+      const kindFilter =
+        accountKind == null ? undefined : eq(accountTable.kind, accountKind);
       const baseFilter = and(searchFilter, kindFilter);
 
       // --- Subqueries ---
@@ -241,53 +244,66 @@ builder.queryField("adminAccounts", (t) =>
       // Build only the aggregate subquery needed for the current sort field.
       // Follower / following / invitee counts are expensive GROUP BY aggregates;
       // joining all three on every request is wasteful when only one is used.
-      const followersSubq = orderBy !== "FOLLOWERS" ? null : ctx.db
-        .select({
-          accountId: actorTable.accountId,
-          count: sql<number>`COUNT(*)::int`.as("count"),
-        })
-        .from(followingTable)
-        .innerJoin(actorTable, eq(actorTable.id, followingTable.followeeId))
-        .where(
-          and(
-            isNotNull(actorTable.accountId),
-            isNotNull(followingTable.accepted),
-          ),
-        )
-        .groupBy(actorTable.accountId)
-        .as("followers_agg");
+      const followersSubq =
+        orderBy !== "FOLLOWERS"
+          ? null
+          : ctx.db
+              .select({
+                accountId: actorTable.accountId,
+                count: sql<number>`COUNT(*)::int`.as("count"),
+              })
+              .from(followingTable)
+              .innerJoin(
+                actorTable,
+                eq(actorTable.id, followingTable.followeeId),
+              )
+              .where(
+                and(
+                  isNotNull(actorTable.accountId),
+                  isNotNull(followingTable.accepted),
+                ),
+              )
+              .groupBy(actorTable.accountId)
+              .as("followers_agg");
 
-      const followingSubq = orderBy !== "FOLLOWING" ? null : ctx.db
-        .select({
-          accountId: actorTable.accountId,
-          count: sql<number>`COUNT(*)::int`.as("count"),
-        })
-        .from(followingTable)
-        .innerJoin(actorTable, eq(actorTable.id, followingTable.followerId))
-        .where(
-          and(
-            isNotNull(actorTable.accountId),
-            isNotNull(followingTable.accepted),
-          ),
-        )
-        .groupBy(actorTable.accountId)
-        .as("following_agg");
+      const followingSubq =
+        orderBy !== "FOLLOWING"
+          ? null
+          : ctx.db
+              .select({
+                accountId: actorTable.accountId,
+                count: sql<number>`COUNT(*)::int`.as("count"),
+              })
+              .from(followingTable)
+              .innerJoin(
+                actorTable,
+                eq(actorTable.id, followingTable.followerId),
+              )
+              .where(
+                and(
+                  isNotNull(actorTable.accountId),
+                  isNotNull(followingTable.accepted),
+                ),
+              )
+              .groupBy(actorTable.accountId)
+              .as("following_agg");
 
-      const inviteesSubq = orderBy !== "INVITED" ? null : ctx.db
-        .select({
-          inviterId: accountTable.inviterId,
-          count: sql<number>`COUNT(*)::int`.as("count"),
-        })
-        .from(accountTable)
-        .where(isNotNull(accountTable.inviterId))
-        .groupBy(accountTable.inviterId)
-        .as("invitees_agg");
+      const inviteesSubq =
+        orderBy !== "INVITED"
+          ? null
+          : ctx.db
+              .select({
+                inviterId: accountTable.inviterId,
+                count: sql<number>`COUNT(*)::int`.as("count"),
+              })
+              .from(accountTable)
+              .where(isNotNull(accountTable.inviterId))
+              .groupBy(accountTable.inviterId)
+              .as("invitees_agg");
 
       // COALESCE(MAX(post.published), account.updated) — the "last activity"
       // value used for display and for the LAST_ACTIVITY sort.
-      const lastActivityExpr = sql<
-        Date
-      >`COALESCE(${postsSubq.maxPublished}, ${accountTable.updated})`;
+      const lastActivityExpr = sql<Date>`COALESCE(${postsSubq.maxPublished}, ${accountTable.updated})`;
 
       // Sort expression and cursor value extractor for the active sort field.
       // Built with a switch so references to conditional subqueries are only
@@ -377,33 +393,35 @@ builder.queryField("adminAccounts", (t) =>
               id: row.account.id,
             }),
         },
-        async (
-          { before, after, limit, inverted }: ResolveCursorConnectionArgs,
-        ): Promise<AdminAccountRow[]> => {
-          const beforeCursor = before == null
-            ? null
-            : decodeAdminCursor(before);
+        async ({
+          before,
+          after,
+          limit,
+          inverted,
+        }: ResolveCursorConnectionArgs): Promise<AdminAccountRow[]> => {
+          const beforeCursor =
+            before == null ? null : decodeAdminCursor(before);
           const afterCursor = after == null ? null : decodeAdminCursor(after);
 
           // Reject cursors that don't match the current sort to prevent
           // wrong pagination or SQL cast errors when the sort changes.
-          const validAfter = afterCursor != null &&
-              afterCursor.field === orderBy &&
-              afterCursor.dir === orderDir
-            ? afterCursor
-            : null;
-          const validBefore = beforeCursor != null &&
-              beforeCursor.field === orderBy &&
-              beforeCursor.dir === orderDir
-            ? beforeCursor
-            : null;
+          const validAfter =
+            afterCursor != null &&
+            afterCursor.field === orderBy &&
+            afterCursor.dir === orderDir
+              ? afterCursor
+              : null;
+          const validBefore =
+            beforeCursor != null &&
+            beforeCursor.field === orderBy &&
+            beforeCursor.dir === orderDir
+              ? beforeCursor
+              : null;
 
-          const afterFilter = validAfter == null
-            ? undefined
-            : buildAfterFilter(validAfter);
-          const beforeFilter = validBefore == null
-            ? undefined
-            : buildBeforeFilter(validBefore);
+          const afterFilter =
+            validAfter == null ? undefined : buildAfterFilter(validAfter);
+          const beforeFilter =
+            validBefore == null ? undefined : buildBeforeFilter(validBefore);
 
           // `inverted` flips ORDER BY so resolveCursorConnection can fetch
           // the LAST N items closest to the cursor and then reverse them.
@@ -428,12 +446,8 @@ builder.queryField("adminAccounts", (t) =>
               // Format timestamps as UTC text for cursor encoding.  Using
               // AT TIME ZONE 'UTC' before to_char ensures the cursor value
               // is always "+00", regardless of the PostgreSQL session timezone.
-              lastActivityRaw: sql<
-                string
-              >`to_char(${lastActivityExpr} AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS.US') || '+00'`,
-              createdRaw: sql<
-                string
-              >`to_char(${accountTable.created} AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS.US') || '+00'`,
+              lastActivityRaw: sql<string>`to_char(${lastActivityExpr} AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS.US') || '+00'`,
+              createdRaw: sql<string>`to_char(${accountTable.created} AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS.US') || '+00'`,
               sortCount: sortCountExpr,
             })
             .from(accountTable)
@@ -472,9 +486,8 @@ builder.queryField("adminAccounts", (t) =>
           return rows.map((r) => {
             const lastActivityRaw = String(r.lastActivityRaw);
             const rawAct = r.lastActivity as unknown;
-            const lastActivity = rawAct instanceof Date
-              ? rawAct
-              : new Date(rawAct as string);
+            const lastActivity =
+              rawAct instanceof Date ? rawAct : new Date(rawAct as string);
 
             const sortValRaw = extractSortVal({
               lastActivityRaw,
@@ -503,7 +516,8 @@ builder.queryField("adminAccounts", (t) =>
         },
       };
     },
-  }));
+  }),
+);
 
 const InvitationRegenerationStatus = builder.simpleObject(
   "InvitationRegenerationStatus",
@@ -572,7 +586,8 @@ builder.queryField("invitationRegenerationStatus", (t) =>
         await getInvitationRegenerationStatus(ctx.db, ctx.kv),
       );
     },
-  }));
+  }),
+);
 
 const RegenerateInvitationsPayload = builder.simpleObject(
   "RegenerateInvitationsPayload",
@@ -624,27 +639,25 @@ builder.mutationField("regenerateInvitations", (t) =>
         status: toInvitationRegenerationStatusShape(status),
       };
     },
-  }));
-
-const OrphanMediaStatus = builder.simpleObject(
-  "OrphanMediaStatus",
-  {
-    description:
-      "A snapshot of media objects old enough to delete and not referenced " +
-      "by accounts, notes, article drafts, or article sources.",
-    fields: (t) => ({
-      cutoffDate: t.field({
-        type: "DateTime",
-        description:
-          "Only unreferenced media created before this timestamp are counted.",
-      }),
-      orphanMediaCount: t.int({
-        description:
-          "Number of unreferenced media objects older than the cutoff.",
-      }),
-    }),
-  },
+  }),
 );
+
+const OrphanMediaStatus = builder.simpleObject("OrphanMediaStatus", {
+  description:
+    "A snapshot of media objects old enough to delete and not referenced " +
+    "by accounts, notes, article drafts, or article sources.",
+  fields: (t) => ({
+    cutoffDate: t.field({
+      type: "DateTime",
+      description:
+        "Only unreferenced media created before this timestamp are counted.",
+    }),
+    orphanMediaCount: t.int({
+      description:
+        "Number of unreferenced media objects older than the cutoff.",
+    }),
+  }),
+});
 
 builder.queryField("orphanMediaStatus", (t) =>
   t.field({
@@ -658,7 +671,8 @@ builder.queryField("orphanMediaStatus", (t) =>
       if (!ctx.account?.moderator) return null;
       return await getOrphanMediaStatus(ctx.db);
     },
-  }));
+  }),
+);
 
 const DeleteOrphanMediaPayload = builder.simpleObject(
   "DeleteOrphanMediaPayload",
@@ -700,4 +714,5 @@ builder.mutationField("deleteOrphanMedia", (t) =>
         status,
       };
     },
-  }));
+  }),
+);

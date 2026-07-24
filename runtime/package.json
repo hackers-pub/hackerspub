@@ -3,6 +3,7 @@
   "type": "module",
   "exports": {
     "./config": "./config.ts",
+    "./main": "./main.ts",
     "./resources": "./resources.ts"
   },
   "dependencies": {

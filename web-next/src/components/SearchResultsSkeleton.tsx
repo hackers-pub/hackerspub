@@ -1,6 +1,6 @@
 import { For } from "solid-js";
 import { Skeleton } from "~/components/ui/skeleton.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 export function SearchResultsSkeleton() {
   const { t } = useLingui();

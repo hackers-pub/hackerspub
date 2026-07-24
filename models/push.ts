@@ -35,7 +35,10 @@ export interface UnregisterPushNotificationTargetInput {
 }
 
 export function normalizeApnsDeviceToken(deviceToken: string): string | null {
-  const normalized = deviceToken.trim().replaceAll(/[<>\s]/g, "").toLowerCase();
+  const normalized = deviceToken
+    .trim()
+    .replaceAll(/[<>\s]/g, "")
+    .toLowerCase();
   return APNS_DEVICE_TOKEN_PATTERN.test(normalized) ? normalized : null;
 }
 
@@ -87,12 +90,7 @@ function getIpv4FromMappedIpv6Host(hostname: string): string | null {
   if (values.some((value) => value > 0xffff)) return null;
 
   const [high, low] = values as [number, number];
-  return [
-    high >> 8,
-    high & 0xff,
-    low >> 8,
-    low & 0xff,
-  ].join(".");
+  return [high >> 8, high & 0xff, low >> 8, low & 0xff].join(".");
 }
 
 function getIpv4FromDottedDecimal(text: string): string | null {
@@ -108,7 +106,7 @@ function getIpv4FromDottedDecimal(text: string): string | null {
 }
 
 function decodeBase64Url(value: string): Uint8Array | null {
-  const padding = "=".repeat((4 - value.length % 4) % 4);
+  const padding = "=".repeat((4 - (value.length % 4)) % 4);
   try {
     const binary = atob(
       (value + padding).replace(/-/g, "+").replace(/_/g, "/"),
@@ -136,15 +134,18 @@ export function normalizeWebPushKey(
 function normalizeWebPushSubscription(
   subscription: WebPushSubscriptionInput | null | undefined,
 ): WebPushSubscriptionInput | null {
-  const endpoint = subscription?.endpoint == null
-    ? null
-    : normalizeWebPushEndpoint(subscription.endpoint);
-  const p256dh = subscription?.p256dh == null
-    ? null
-    : normalizeWebPushKey(subscription.p256dh, WEB_PUSH_P256DH_KEY_BYTES);
-  const auth = subscription?.auth == null
-    ? null
-    : normalizeWebPushKey(subscription.auth, WEB_PUSH_AUTH_SECRET_BYTES);
+  const endpoint =
+    subscription?.endpoint == null
+      ? null
+      : normalizeWebPushEndpoint(subscription.endpoint);
+  const p256dh =
+    subscription?.p256dh == null
+      ? null
+      : normalizeWebPushKey(subscription.p256dh, WEB_PUSH_P256DH_KEY_BYTES);
+  const auth =
+    subscription?.auth == null
+      ? null
+      : normalizeWebPushKey(subscription.auth, WEB_PUSH_AUTH_SECRET_BYTES);
   if (endpoint == null || p256dh == null || auth == null) return null;
   return {
     endpoint,
@@ -160,9 +161,8 @@ function buildTargetValues(
 ): NewPushNotificationTarget | null {
   switch (input.service) {
     case "apns": {
-      const token = input.token == null
-        ? null
-        : normalizeApnsDeviceToken(input.token);
+      const token =
+        input.token == null ? null : normalizeApnsDeviceToken(input.token);
       if (token == null) return null;
       return {
         id: generateUuidV7(),
@@ -172,9 +172,8 @@ function buildTargetValues(
       };
     }
     case "fcm": {
-      const token = input.token == null
-        ? null
-        : normalizeFcmDeviceToken(input.token);
+      const token =
+        input.token == null ? null : normalizeFcmDeviceToken(input.token);
       if (token == null) return null;
       return {
         id: generateUuidV7(),
@@ -203,9 +202,9 @@ function buildTargetWhere(values: NewPushNotificationTarget) {
   return values.service === "web_push"
     ? eq(pushNotificationTargetTable.endpoint, values.endpoint!)
     : and(
-      eq(pushNotificationTargetTable.service, values.service),
-      eq(pushNotificationTargetTable.token, values.token!),
-    );
+        eq(pushNotificationTargetTable.service, values.service),
+        eq(pushNotificationTargetTable.token, values.token!),
+      );
 }
 
 async function evictOldestTargetIfNeeded(
@@ -213,7 +212,8 @@ async function evictOldestTargetIfNeeded(
   accountId: Uuid,
   service: PushNotificationService,
 ): Promise<void> {
-  const tokenCounts = await db.select({ count: count() })
+  const tokenCounts = await db
+    .select({ count: count() })
     .from(pushNotificationTargetTable)
     .where(
       and(
@@ -224,9 +224,10 @@ async function evictOldestTargetIfNeeded(
   const tokenCount = Number(tokenCounts[0]?.count ?? 0);
   if (tokenCount < MAX_PUSH_NOTIFICATION_TARGETS_PER_SERVICE) return;
 
-  const oldestTargets = await db.select({
-    id: pushNotificationTargetTable.id,
-  })
+  const oldestTargets = await db
+    .select({
+      id: pushNotificationTargetTable.id,
+    })
     .from(pushNotificationTargetTable)
     .where(
       and(
@@ -242,7 +243,8 @@ async function evictOldestTargetIfNeeded(
     .limit(1);
   const oldestTarget = oldestTargets[0]?.id;
   if (oldestTarget == null) return;
-  await db.delete(pushNotificationTargetTable)
+  await db
+    .delete(pushNotificationTargetTable)
     .where(eq(pushNotificationTargetTable.id, oldestTarget));
 }
 
@@ -259,9 +261,10 @@ export async function registerPushNotificationTarget(
       sql`select id from "account" where id = ${accountId} for update`,
     );
 
-    const existingTargets = await tx.select({
-      accountId: pushNotificationTargetTable.accountId,
-    })
+    const existingTargets = await tx
+      .select({
+        accountId: pushNotificationTargetTable.accountId,
+      })
       .from(pushNotificationTargetTable)
       .where(buildTargetWhere(values))
       .limit(1);
@@ -270,15 +273,17 @@ export async function registerPushNotificationTarget(
       await evictOldestTargetIfNeeded(tx, accountId, values.service);
     }
 
-    const rows = await tx.insert(pushNotificationTargetTable)
+    const rows = await tx
+      .insert(pushNotificationTargetTable)
       .values(values)
       .onConflictDoUpdate({
-        target: values.service === "web_push"
-          ? pushNotificationTargetTable.endpoint
-          : [
-            pushNotificationTargetTable.service,
-            pushNotificationTargetTable.token,
-          ],
+        target:
+          values.service === "web_push"
+            ? pushNotificationTargetTable.endpoint
+            : [
+                pushNotificationTargetTable.service,
+                pushNotificationTargetTable.token,
+              ],
         set: {
           accountId,
           token: values.token ?? null,
@@ -288,9 +293,10 @@ export async function registerPushNotificationTarget(
           expirationTime: values.expirationTime ?? null,
           updated: sql`CURRENT_TIMESTAMP`,
         },
-        targetWhere: values.service === "web_push"
-          ? isNotNull(pushNotificationTargetTable.endpoint)
-          : isNotNull(pushNotificationTargetTable.token),
+        targetWhere:
+          values.service === "web_push"
+            ? isNotNull(pushNotificationTargetTable.endpoint)
+            : isNotNull(pushNotificationTargetTable.token),
       })
       .returning();
     return rows[0];
@@ -305,7 +311,8 @@ export async function unregisterPushNotificationTarget(
   const where = buildUnregisterTargetWhere(accountId, input);
   if (where == null) return false;
 
-  const rows = await db.delete(pushNotificationTargetTable)
+  const rows = await db
+    .delete(pushNotificationTargetTable)
     .where(where)
     .returning({ id: pushNotificationTargetTable.id });
   return rows.length > 0;
@@ -317,9 +324,8 @@ function buildUnregisterTargetWhere(
 ) {
   switch (input.service) {
     case "apns": {
-      const token = input.token == null
-        ? null
-        : normalizeApnsDeviceToken(input.token);
+      const token =
+        input.token == null ? null : normalizeApnsDeviceToken(input.token);
       if (token == null) return null;
       return and(
         eq(pushNotificationTargetTable.accountId, accountId),
@@ -328,9 +334,8 @@ function buildUnregisterTargetWhere(
       );
     }
     case "fcm": {
-      const token = input.token == null
-        ? null
-        : normalizeFcmDeviceToken(input.token);
+      const token =
+        input.token == null ? null : normalizeFcmDeviceToken(input.token);
       if (token == null) return null;
       return and(
         eq(pushNotificationTargetTable.accountId, accountId),
@@ -359,10 +364,12 @@ export async function deleteStalePushNotificationTargets(
   values: string[],
 ): Promise<void> {
   if (values.length < 1) return;
-  const column = service === "web_push"
-    ? pushNotificationTargetTable.endpoint
-    : pushNotificationTargetTable.token;
-  await db.delete(pushNotificationTargetTable)
+  const column =
+    service === "web_push"
+      ? pushNotificationTargetTable.endpoint
+      : pushNotificationTargetTable.token;
+  await db
+    .delete(pushNotificationTargetTable)
     .where(
       and(
         eq(pushNotificationTargetTable.accountId, accountId),
@@ -385,6 +392,7 @@ export function pushTargetHasEndpoint(
   p256dh: string;
   auth: string;
 } {
-  return target.endpoint != null && target.p256dh != null &&
-    target.auth != null;
+  return (
+    target.endpoint != null && target.p256dh != null && target.auth != null
+  );
 }

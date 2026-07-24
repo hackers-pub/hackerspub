@@ -60,7 +60,7 @@ import {
   useActingAccount,
 } from "~/contexts/ActingAccountContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { createDraftController } from "./note-composer/createDraftController.ts";
 import {
   createMediaController,
@@ -263,7 +263,7 @@ export function NoteComposer(props: NoteComposerProps) {
   const [quotePolicy, setQuotePolicy] = createSignal<QuotePolicy>(
     props.editingNoteId
       ? ((props.initialQuotePolicy as QuotePolicy | null | undefined) ??
-        "EVERYONE")
+          "EVERYONE")
       : "EVERYONE",
   );
   // Keep visibility in sync when the modal is reused for a different reply/quote
@@ -292,9 +292,9 @@ export function NoteComposer(props: NoteComposerProps) {
     PERSONAL_COMPOSE_ACCOUNT_KEY,
   );
   const selectedActingAccountOption = createMemo(() =>
-    composeActingAccountOptions().find((option) =>
-      option.value === actingAccountKey()
-    )
+    composeActingAccountOptions().find(
+      (option) => option.value === actingAccountKey(),
+    ),
   );
 
   createEffect(
@@ -326,13 +326,12 @@ export function NoteComposer(props: NoteComposerProps) {
   const canCreatePoll = () => !props.editingNoteId && allowPoll();
   const [pastedQuoteId, setPastedQuoteId] = createSignal<string | null>(null);
   const effectiveQuotedPostId = () => props.quotedPostId ?? pastedQuoteId();
-  const [quotedPost, setQuotedPost] = createSignal<
-    QuotedPostPreview | null
-  >(null);
+  const [quotedPost, setQuotedPost] = createSignal<QuotedPostPreview | null>(
+    null,
+  );
   const [quoteFetchError, setQuoteFetchError] = createSignal(false);
-  const [replyTargetPost, setReplyTargetPost] = createSignal<
-    QuotedPostPreview | null
-  >(null);
+  const [replyTargetPost, setReplyTargetPost] =
+    createSignal<QuotedPostPreview | null>(null);
   const [replyTargetFetchError, setReplyTargetFetchError] = createSignal(false);
   // Tracks the currently pre-filled mention string so we can detect whether
   // the user has edited the content away from the auto-fill.
@@ -379,16 +378,13 @@ export function NoteComposer(props: NoteComposerProps) {
   let fileInputRef: HTMLInputElement | undefined;
 
   const draftScope = createMemo<NoteDraftScope | null>(() =>
-    getNoteComposerDraftScope(props)
+    getNoteComposerDraftScope(props),
   );
-  const [showArticleSuggestion, setShowArticleSuggestion] = createSignal(
-    false,
-  );
+  const [showArticleSuggestion, setShowArticleSuggestion] = createSignal(false);
   const [articleSuggestionDismissed, setArticleSuggestionDismissed] =
     createSignal(false);
-  const [showArticleSwitchButton, setShowArticleSwitchButton] = createSignal(
-    false,
-  );
+  const [showArticleSwitchButton, setShowArticleSwitchButton] =
+    createSignal(false);
 
   onCleanup(() => {
     removeDragListeners?.();
@@ -401,13 +397,14 @@ export function NoteComposer(props: NoteComposerProps) {
     const contentDirty = props.editingNoteId
       ? content().trim() !== prefillRef.trim()
       : content().trim() !== "" && content().trim() !== prefillRef.trim();
-    const editMetaDirty = !!props.editingNoteId && (
-      language()?.baseName !== (props.initialLanguage ?? undefined) ||
-      quotePolicy() !== (props.initialQuotePolicy ?? "EVERYONE")
-    );
+    const editMetaDirty =
+      !!props.editingNoteId &&
+      (language()?.baseName !== (props.initialLanguage ?? undefined) ||
+        quotePolicy() !== (props.initialQuotePolicy ?? "EVERYONE"));
     const pollDirty = canCreatePoll() && poll.enabled();
-    return contentDirty || mediaItems().length > 0 || editMetaDirty ||
-      pollDirty;
+    return (
+      contentDirty || mediaItems().length > 0 || editMetaDirty || pollDirty
+    );
   });
   createEffect(() => props.onContentChange?.(dirty()));
   const isPlainNewNote = () =>
@@ -694,10 +691,7 @@ export function NoteComposer(props: NoteComposerProps) {
         const mentionHandles = (node.mentions?.edges ?? [])
           .map((e) => e?.node)
           .filter(
-            (a) =>
-              a != null &&
-              a.id !== postActorId &&
-              a.id !== viewerActorId,
+            (a) => a != null && a.id !== postActorId && a.id !== viewerActorId,
           )
           .map((a) => a!.handle);
 
@@ -743,7 +737,7 @@ export function NoteComposer(props: NoteComposerProps) {
     const files = e.clipboardData?.files;
     if (files && files.length > 0) {
       const imageFiles = Array.from(files).filter((f) =>
-        isSupportedImageFile(f)
+        isSupportedImageFile(f),
       );
       if (imageFiles.length > 0) {
         e.preventDefault();
@@ -766,59 +760,66 @@ export function NoteComposer(props: NoteComposerProps) {
     // Keep the browser's native paste so the edit remains in its undo stack.
     // The following input event runs after the default paste action, so it can
     // inspect the inserted range without relying on task or microtask timing.
-    target.addEventListener("input", () => {
-      const pastedEnd = pasteStart + pastedText.length;
-      if (target.value.slice(pasteStart, pastedEnd) !== pastedText) return;
-      const pastedRange = { start: pasteStart, end: pastedEnd };
-      const removePastedUrl = () => {
-        setContent((prev) => {
-          if (
-            prev.slice(pastedRange.start, pastedRange.end) === pastedText
-          ) {
-            return prev.slice(0, pastedRange.start) +
-              prev.slice(pastedRange.end);
-          }
-          const firstMatch = prev.indexOf(pastedText);
-          if (
-            firstMatch >= 0 && firstMatch === prev.lastIndexOf(pastedText)
-          ) {
-            return prev.slice(0, firstMatch) +
-              prev.slice(firstMatch + pastedText.length);
-          }
-          return prev;
+    target.addEventListener(
+      "input",
+      () => {
+        const pastedEnd = pasteStart + pastedText.length;
+        if (target.value.slice(pasteStart, pastedEnd) !== pastedText) return;
+        const pastedRange = { start: pasteStart, end: pastedEnd };
+        const removePastedUrl = () => {
+          setContent((prev) => {
+            if (prev.slice(pastedRange.start, pastedRange.end) === pastedText) {
+              return (
+                prev.slice(0, pastedRange.start) + prev.slice(pastedRange.end)
+              );
+            }
+            const firstMatch = prev.indexOf(pastedText);
+            if (
+              firstMatch >= 0 &&
+              firstMatch === prev.lastIndexOf(pastedText)
+            ) {
+              return (
+                prev.slice(0, firstMatch) +
+                prev.slice(firstMatch + pastedText.length)
+              );
+            }
+            return prev;
+          });
+        };
+        fetchQuery<NoteComposerPostByUrlQuery>(
+          environment(),
+          NoteComposerPostByUrlQuery,
+          {
+            url: text,
+            actingAccountId: actingAccountInput().actingAccountId ?? null,
+          },
+        ).subscribe({
+          next(data) {
+            const post = data.postByUrl;
+            if (!post) {
+              return;
+            }
+            if (
+              post.__typename !== "Note" &&
+              post.__typename !== "Article" &&
+              post.__typename !== "Question"
+            ) {
+              return;
+            }
+            if (!post.viewerCanQuote) {
+              return;
+            }
+            if (!confirm(t`Do you want to quote this link?`)) {
+              return;
+            }
+            removePastedUrl();
+            setPastedQuoteId(post.id);
+          },
+          error() {},
         });
-      };
-      fetchQuery<NoteComposerPostByUrlQuery>(
-        environment(),
-        NoteComposerPostByUrlQuery,
-        {
-          url: text,
-          actingAccountId: actingAccountInput().actingAccountId ?? null,
-        },
-      ).subscribe({
-        next(data) {
-          const post = data.postByUrl;
-          if (!post) {
-            return;
-          }
-          if (
-            post.__typename !== "Note" && post.__typename !== "Article" &&
-            post.__typename !== "Question"
-          ) {
-            return;
-          }
-          if (!post.viewerCanQuote) {
-            return;
-          }
-          if (!confirm(t`Do you want to quote this link?`)) {
-            return;
-          }
-          removePastedUrl();
-          setPastedQuoteId(post.id);
-        },
-        error() {},
-      });
-    }, { once: true });
+      },
+      { once: true },
+    );
   };
 
   const handleLanguageChange = (locale?: Intl.Locale) => {
@@ -915,11 +916,9 @@ export function NoteComposer(props: NoteComposerProps) {
               : ""
           }`}
         >
-          {
-            /* Suspended accounts cannot create posts (editing an existing one
+          {/* Suspended accounts cannot create posts (editing an existing one
             stays allowed); the write itself is blocked server-side, but
-            surface it here instead of a generic failure. */
-          }
+            surface it here instead of a generic failure. */}
           <Show when={!props.editingNoteId && viewer.suspended()}>
             <div class="rounded-md border border-warning-foreground bg-warning px-3 py-2 text-sm text-warning-foreground">
               {t`Your account is suspended, so you can't post right now. See your sanctions for details and how to appeal.`}
@@ -927,8 +926,11 @@ export function NoteComposer(props: NoteComposerProps) {
           </Show>
           {/* Reply target preview — hidden in edit mode */}
           <Show
-            when={!props.editingNoteId && props.replyTargetId &&
-              props.showReplyTarget !== false}
+            when={
+              !props.editingNoteId &&
+              props.replyTargetId &&
+              props.showReplyTarget !== false
+            }
           >
             <div class="rounded-md border border-input bg-muted/50 p-3">
               <p class="text-xs text-muted-foreground mb-2">{t`Replying to`}</p>
@@ -1046,8 +1048,9 @@ export function NoteComposer(props: NoteComposerProps) {
           </Show>
 
           <Show
-            when={!props.editingNoteId &&
-              composeActingAccountOptions().length > 1}
+            when={
+              !props.editingNoteId && composeActingAccountOptions().length > 1
+            }
           >
             <ActingAccountSelect
               value={actingAccountKey()}
@@ -1066,14 +1069,17 @@ export function NoteComposer(props: NoteComposerProps) {
               onKeyDown={(e) => {
                 if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
                   e.preventDefault();
-                  const submitting = submission.submitting() ||
+                  const submitting =
+                    submission.submitting() ||
                     (!props.editingNoteId && viewer.suspended()) ||
                     mediaItems().some((m) => m.uploading) ||
-                    (!!effectiveQuotedPostId() && !quotedPost() &&
+                    (!!effectiveQuotedPostId() &&
+                      !quotedPost() &&
                       !quoteFetchError()) ||
                     (!!props.replyTargetId &&
                       props.showReplyTarget !== false &&
-                      !replyTargetPost() && !replyTargetFetchError());
+                      !replyTargetPost() &&
+                      !replyTargetFetchError());
                   if (!submitting) formRef?.requestSubmit();
                 }
               }}
@@ -1185,13 +1191,15 @@ export function NoteComposer(props: NoteComposerProps) {
               class="flex-1 min-w-[8rem]"
             />
             <NoteVisibilityQuotePolicySelect
-              visibility={props.editingNoteId
-                ? (props.editingVisibility ?? "PUBLIC")
-                : visibility()}
+              visibility={
+                props.editingNoteId
+                  ? (props.editingVisibility ?? "PUBLIC")
+                  : visibility()
+              }
               quotePolicy={quotePolicy()}
-              onVisibilityChange={props.editingNoteId
-                ? undefined
-                : setVisibility}
+              onVisibilityChange={
+                props.editingNoteId ? undefined : setVisibility
+              }
               onQuotePolicyChange={setQuotePolicy}
               visibilityDisabled={!!props.editingNoteId}
             />
@@ -1203,9 +1211,12 @@ export function NoteComposer(props: NoteComposerProps) {
           </Show>
 
           <Show
-            when={!props.editingNoteId &&
-              (draft.meaningful() || draft.hasLocalDraft() ||
-                draft.saveStatus() === "unavailable")}
+            when={
+              !props.editingNoteId &&
+              (draft.meaningful() ||
+                draft.hasLocalDraft() ||
+                draft.saveStatus() === "unavailable")
+            }
           >
             <div class="flex flex-wrap items-center justify-between gap-2 border-t pt-3 text-xs text-muted-foreground">
               <span>
@@ -1258,25 +1269,33 @@ export function NoteComposer(props: NoteComposerProps) {
             </Show>
             <Button
               type="submit"
-              disabled={submission.submitting() ||
-                (props.editingNoteId ? !dirty() : (
-                  viewer.suspended() ||
-                  mediaItems().some((m) => m.uploading) ||
-                  (!!effectiveQuotedPostId() && !quotedPost() &&
-                    !quoteFetchError()) ||
-                  (!!props.replyTargetId && props.showReplyTarget !== false &&
-                    !replyTargetPost() && !replyTargetFetchError())
-                ))}
+              disabled={
+                submission.submitting() ||
+                (props.editingNoteId
+                  ? !dirty()
+                  : viewer.suspended() ||
+                    mediaItems().some((m) => m.uploading) ||
+                    (!!effectiveQuotedPostId() &&
+                      !quotedPost() &&
+                      !quoteFetchError()) ||
+                    (!!props.replyTargetId &&
+                      props.showReplyTarget !== false &&
+                      !replyTargetPost() &&
+                      !replyTargetFetchError()))
+              }
             >
               <Show
                 when={props.editingNoteId}
                 fallback={
                   <Show
-                    when={submission.creating() ||
-                      submission.creatingQuestion()}
-                    fallback={canCreatePoll() && poll.enabled()
-                      ? t`Create poll`
-                      : t`Create note`}
+                    when={
+                      submission.creating() || submission.creatingQuestion()
+                    }
+                    fallback={
+                      canCreatePoll() && poll.enabled()
+                        ? t`Create poll`
+                        : t`Create note`
+                    }
                   >
                     {t`Creating…`}
                   </Show>

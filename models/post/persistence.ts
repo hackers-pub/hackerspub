@@ -29,9 +29,11 @@ function hasNotifiablePostContentChange(
   previousPost: Pick<Post, "name" | "contentHtml"> | undefined,
   updatedPost: Pick<Post, "name" | "contentHtml">,
 ): boolean {
-  return previousPost != null &&
+  return (
+    previousPost != null &&
     (previousPost.name !== updatedPost.name ||
-      previousPost.contentHtml !== updatedPost.contentHtml);
+      previousPost.contentHtml !== updatedPost.contentHtml)
+  );
 }
 
 function isHttpUrl(value: string | undefined | null): value is string {
@@ -47,9 +49,9 @@ function isHttpUrl(value: string | undefined | null): value is string {
 function truncatePlainText(value: string): string {
   const text = value.replace(/\s+/g, " ").trim();
   if (text.length <= ARTICLE_LINK_DESCRIPTION_MAX_LENGTH) return text;
-  return `${
-    text.slice(0, ARTICLE_LINK_DESCRIPTION_MAX_LENGTH - 3).trimEnd()
-  }...`;
+  return `${text
+    .slice(0, ARTICLE_LINK_DESCRIPTION_MAX_LENGTH - 3)
+    .trimEnd()}...`;
 }
 
 export async function persistArticleNewsLink(
@@ -66,14 +68,16 @@ export async function persistArticleNewsLink(
   const url = isHttpUrl(article.url) ? article.url : article.iri;
   if (!isHttpUrl(url)) return undefined;
   const parsed = new URL(url);
-  const description = article.summary == null || article.summary.trim() === ""
-    ? article.contentHtml == null
-      ? undefined
-      : truncatePlainText(stripHtml(article.contentHtml))
-    : truncatePlainText(stripHtml(article.summary));
-  const author = actor.name == null || actor.name.trim() === ""
-    ? actor.username
-    : actor.name;
+  const description =
+    article.summary == null || article.summary.trim() === ""
+      ? article.contentHtml == null
+        ? undefined
+        : truncatePlainText(stripHtml(article.contentHtml))
+      : truncatePlainText(stripHtml(article.summary));
+  const author =
+    actor.name == null || actor.name.trim() === ""
+      ? actor.username
+      : actor.name;
   const values: NewPostLink = {
     id: generateUuidV7(),
     url: parsed.href,
@@ -112,19 +116,19 @@ export async function createTargetPostUpdatedNotifications(
 ): Promise<void> {
   if (!hasNotifiablePostContentChange(previousPost, updatedPost)) return;
   const originalAuthorAccountId = updatingActor.accountId;
-  const shouldNotifyAccount = (
-    accountId: Uuid | null,
-  ): accountId is Uuid =>
+  const shouldNotifyAccount = (accountId: Uuid | null): accountId is Uuid =>
     accountId != null && accountId !== originalAuthorAccountId;
 
   const shareRows = await db
     .select({ accountId: actorTable.accountId })
     .from(postTable)
     .innerJoin(actorTable, eq(actorTable.id, postTable.actorId))
-    .where(and(
-      eq(postTable.sharedPostId, updatedPost.id),
-      isNotNull(actorTable.accountId),
-    ));
+    .where(
+      and(
+        eq(postTable.sharedPostId, updatedPost.id),
+        isNotNull(actorTable.accountId),
+      ),
+    );
   const sharingAccountIds = new Set(
     shareRows.map((row) => row.accountId).filter(shouldNotifyAccount),
   );
@@ -141,21 +145,25 @@ export async function createTargetPostUpdatedNotifications(
     .select({ accountId: actorTable.accountId })
     .from(postTable)
     .innerJoin(actorTable, eq(actorTable.id, postTable.actorId))
-    .where(and(
-      eq(postTable.quotedPostId, updatedPost.id),
-      isNotNull(actorTable.accountId),
-    ));
+    .where(
+      and(
+        eq(postTable.quotedPostId, updatedPost.id),
+        isNotNull(actorTable.accountId),
+      ),
+    );
   const quoteRequestRows = await db
     .select({ accountId: actorTable.accountId })
     .from(quoteRequestTable)
     .innerJoin(postTable, eq(postTable.id, quoteRequestTable.quotePostId))
     .innerJoin(actorTable, eq(actorTable.id, postTable.actorId))
-    .where(and(
-      eq(quoteRequestTable.quotedPostId, updatedPost.id),
-      isNull(quoteRequestTable.accepted),
-      isNull(quoteRequestTable.rejected),
-      isNotNull(actorTable.accountId),
-    ));
+    .where(
+      and(
+        eq(quoteRequestTable.quotedPostId, updatedPost.id),
+        isNull(quoteRequestTable.accepted),
+        isNull(quoteRequestTable.rejected),
+        isNotNull(actorTable.accountId),
+      ),
+    );
   const quotingAccountIds = new Set(
     [...directQuoteRows, ...quoteRequestRows]
       .map((row) => row.accountId)

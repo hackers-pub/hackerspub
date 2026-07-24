@@ -29,7 +29,9 @@ export function getCompleteActingAccount(
     typeof account.id !== "string" ||
     typeof account.name !== "string" ||
     typeof account.username !== "string"
-  ) return null;
+  ) {
+    return null;
+  }
   return {
     id: account.id,
     name: account.name,
@@ -39,11 +41,7 @@ export function getCompleteActingAccount(
 }
 
 export function getCompleteActingOrganizations(
-  memberships: readonly (
-    | OrganizationMembershipSnapshot
-    | null
-    | undefined
-  )[],
+  memberships: readonly (OrganizationMembershipSnapshot | null | undefined)[],
 ): readonly ActingOrganizationMembership[] | null {
   const organizations: ActingOrganizationMembership[] = [];
   for (const membership of memberships) {
@@ -55,7 +53,9 @@ export function getCompleteActingOrganizations(
       typeof organization.id !== "string" ||
       typeof organization.name !== "string" ||
       typeof organization.username !== "string"
-    ) return null;
+    ) {
+      return null;
+    }
     organizations.push({
       role: membership.role,
       notificationBadge: membership.notificationBadge,

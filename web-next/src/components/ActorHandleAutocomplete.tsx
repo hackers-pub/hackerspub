@@ -117,8 +117,10 @@ export function ActorHandleAutocomplete(props: ActorHandleAutocompleteProps) {
             return true;
           }
           if (actor.account == null) return false;
-          return props.accountKind == null ||
-            actor.account.kind === props.accountKind;
+          return (
+            props.accountKind == null ||
+            actor.account.kind === props.accountKind
+          );
         });
         setSuggestions(actors);
         setActiveIndex(0);
@@ -154,9 +156,7 @@ export function ActorHandleAutocomplete(props: ActorHandleAutocompleteProps) {
   }
 
   function actorIdentifier(actor: ActorSuggestion) {
-    if (
-      props.suggestionIdentifier === "username" && actor.account != null
-    ) {
+    if (props.suggestionIdentifier === "username" && actor.account != null) {
       return actor.account.username;
     }
     return actor.handle;
@@ -230,9 +230,11 @@ export function ActorHandleAutocomplete(props: ActorHandleAutocompleteProps) {
           aria-expanded={open()}
           aria-autocomplete="list"
           aria-controls={open() ? listboxId() : undefined}
-          aria-activedescendant={open() && suggestions().length > 0
-            ? optionId(activeIndex())
-            : undefined}
+          aria-activedescendant={
+            open() && suggestions().length > 0
+              ? optionId(activeIndex())
+              : undefined
+          }
           placeholder={props.placeholder}
           value={props.value}
           disabled={props.disabled}

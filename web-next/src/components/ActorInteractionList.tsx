@@ -10,7 +10,7 @@ import {
 } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { ActorInteractionList_interactions$key } from "./__generated__/ActorInteractionList_interactions.graphql.ts";
 import { PostCard } from "./PostCard.tsx";
 
@@ -24,30 +24,25 @@ export function ActorInteractionList(props: ActorInteractionListProps) {
   const interactions = createPaginationFragment(
     graphql`
       fragment ActorInteractionList_interactions on Actor
-        @refetchable(queryName: "ActorInteractionListQuery")
-        @argumentDefinitions(
-          cursor: { type: "String" }
-          count: { type: "Int", defaultValue: 20 }
-          actingAccountId: { type: "ID" }
-          locale: { type: "Locale" }
-        )
-      {
+      @refetchable(queryName: "ActorInteractionListQuery")
+      @argumentDefinitions(
+        cursor: { type: "String" }
+        count: { type: "Int", defaultValue: 20 }
+        actingAccountId: { type: "ID" }
+        locale: { type: "Locale" }
+      ) {
         __id
         viewerInteractions(
           after: $cursor
           first: $count
           actingAccountId: $actingAccountId
-        )
-          @connection(key: "ActorInteractionList_viewerInteractions")
-        {
+        ) @connection(key: "ActorInteractionList_viewerInteractions") {
           __id
           edges {
             __id
             node {
-              ...PostCard_post @arguments(
-                locale: $locale
-                actingAccountId: $actingAccountId
-              )
+              ...PostCard_post
+                @arguments(locale: $locale, actingAccountId: $actingAccountId)
             }
           }
           pageInfo {
@@ -63,12 +58,14 @@ export function ActorInteractionList(props: ActorInteractionListProps) {
   >("loaded");
   const actingAccountId = () => actingAccount.selectedActingAccountId();
 
-  createEffect(on(
-    actingAccountId,
-    (actingAccountId) =>
-      interactions.refetch({ actingAccountId: actingAccountId ?? null }),
-    { defer: true },
-  ));
+  createEffect(
+    on(
+      actingAccountId,
+      (actingAccountId) =>
+        interactions.refetch({ actingAccountId: actingAccountId ?? null }),
+      { defer: true },
+    ),
+  );
 
   function onLoadMore() {
     setLoadingState("loading");
@@ -104,14 +101,16 @@ export function ActorInteractionList(props: ActorInteractionListProps) {
           <button
             type="button"
             onClick={loadingState() === "loading" ? undefined : onLoadMore}
-            disabled={interactions.isLoadingNext ||
-              loadingState() === "loading"}
+            disabled={
+              interactions.isLoadingNext || loadingState() === "loading"
+            }
             class="block w-full cursor-pointer px-4 py-8 text-center text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Switch>
               <Match
-                when={interactions.isLoadingNext ||
-                  loadingState() === "loading"}
+                when={
+                  interactions.isLoadingNext || loadingState() === "loading"
+                }
               >
                 {t`Loading more interactions…`}
               </Match>

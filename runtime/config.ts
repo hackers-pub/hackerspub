@@ -8,14 +8,15 @@ export interface ConfigurationIssue {
 }
 
 export class ConfigurationError extends Error {
-  constructor(readonly issues: readonly ConfigurationIssue[]) {
+  readonly issues: readonly ConfigurationIssue[];
+
+  constructor(issues: readonly ConfigurationIssue[]) {
     super(
-      `Invalid server configuration:\n${
-        issues.map(({ variable, message }) => `- ${variable}: ${message}`).join(
-          "\n",
-        )
-      }`,
+      `Invalid server configuration:\n${issues
+        .map(({ variable, message }) => `- ${variable}: ${message}`)
+        .join("\n")}`,
     );
+    this.issues = issues;
     this.name = "ConfigurationError";
   }
 }
@@ -23,28 +24,28 @@ export class ConfigurationError extends Error {
 export type StorageConfig =
   | { readonly driver: "fs"; readonly location: string }
   | {
-    readonly driver: "s3";
-    readonly accessKeyId: string;
-    readonly secretAccessKey: string;
-    readonly region: string;
-    readonly bucket: string;
-    readonly endpoint?: string;
-    readonly cdnUrl?: string;
-  };
+      readonly driver: "s3";
+      readonly accessKeyId: string;
+      readonly secretAccessKey: string;
+      readonly region: string;
+      readonly bucket: string;
+      readonly endpoint?: string;
+      readonly cdnUrl?: string;
+    };
 
 export type EmailConfig =
   | {
-    readonly transport: "mock";
-    readonly from: string;
-    readonly reason: "ci" | "mailgun-unconfigured";
-  }
+      readonly transport: "mock";
+      readonly from: string;
+      readonly reason: "ci" | "mailgun-unconfigured";
+    }
   | {
-    readonly transport: "mailgun";
-    readonly from: string;
-    readonly apiKey: string;
-    readonly domain: string;
-    readonly region: "eu" | "us";
-  };
+      readonly transport: "mailgun";
+      readonly from: string;
+      readonly apiKey: string;
+      readonly domain: string;
+      readonly region: "eu" | "us";
+    };
 
 export interface DatabaseConfig {
   readonly url: string;
@@ -131,18 +132,15 @@ function parseAccountCreationConfig(
   env: Environment,
   issues: ConfigurationIssue[],
 ): Partial<AccountCreationConfig> {
-  const origin = parseUrl(
-    nonEmpty(env, "ORIGIN", issues),
-    "ORIGIN",
-    issues,
-    ["http:", "https:"],
-  );
-  const kvUrl = parseUrl(
-    nonEmpty(env, "KV_URL", issues),
-    "KV_URL",
-    issues,
-    ["file:", "redis:", "rediss:"],
-  );
+  const origin = parseUrl(nonEmpty(env, "ORIGIN", issues), "ORIGIN", issues, [
+    "http:",
+    "https:",
+  ]);
+  const kvUrl = parseUrl(nonEmpty(env, "KV_URL", issues), "KV_URL", issues, [
+    "file:",
+    "redis:",
+    "rediss:",
+  ]);
   return {
     ...(origin == null ? {} : { origin }),
     ...(kvUrl == null ? {} : { kv: { url: kvUrl } }),
@@ -176,7 +174,9 @@ export function loadServerConfig(env: Environment): ServerConfig {
     const region = nonEmpty(env, "AWS_REGION", issues);
     const bucket = nonEmpty(env, "S3_BUCKET", issues);
     if (
-      accessKeyId != null && secretAccessKey != null && region != null &&
+      accessKeyId != null &&
+      secretAccessKey != null &&
+      region != null &&
       bucket != null
     ) {
       storage = {
@@ -196,10 +196,9 @@ export function loadServerConfig(env: Environment): ServerConfig {
   const configuredFrom = (env.EMAIL_FROM ?? env.MAILGUN_FROM)?.trim();
   const defaultFrom = `noreply@${origin?.hostname ?? "localhost"}`;
   const mode = env.MODE ?? "production";
-  const mailgunSelected = [
-    env.MAILGUN_KEY,
-    env.MAILGUN_DOMAIN,
-  ].some((value) => value != null && value.trim() !== "");
+  const mailgunSelected = [env.MAILGUN_KEY, env.MAILGUN_DOMAIN].some(
+    (value) => value != null && value.trim() !== "",
+  );
   let email: EmailConfig | undefined;
   if (env.CI?.toLowerCase() === "true") {
     email = {
@@ -227,9 +226,8 @@ export function loadServerConfig(env: Environment): ServerConfig {
     const apiKey = nonEmpty(env, "MAILGUN_KEY", issues);
     const domain = nonEmpty(env, "MAILGUN_DOMAIN", issues);
     const regionValue = nonEmpty(env, "MAILGUN_REGION", issues);
-    const region = regionValue === "eu" || regionValue === "us"
-      ? regionValue
-      : undefined;
+    const region =
+      regionValue === "eu" || regionValue === "us" ? regionValue : undefined;
     if (regionValue != null && region == null) {
       issues.push({
         variable: "MAILGUN_REGION",
@@ -237,7 +235,10 @@ export function loadServerConfig(env: Environment): ServerConfig {
       });
     }
     if (
-      from != null && from !== "" && apiKey != null && domain != null &&
+      from != null &&
+      from !== "" &&
+      apiKey != null &&
+      domain != null &&
       region != null
     ) {
       email = {
@@ -251,8 +252,12 @@ export function loadServerConfig(env: Environment): ServerConfig {
   }
 
   if (
-    issues.length > 0 || database == null || origin == null ||
-    kv == null || storage == null || email == null
+    issues.length > 0 ||
+    database == null ||
+    origin == null ||
+    kv == null ||
+    storage == null ||
+    email == null
   ) {
     throw new ConfigurationError(issues);
   }
@@ -278,10 +283,12 @@ function requireProcessSafeSharedKv(config: ServerConfig): ServerConfig {
     config.kv.url.protocol !== "redis:" &&
     config.kv.url.protocol !== "rediss:"
   ) {
-    throw new ConfigurationError([{
-      variable: "KV_URL",
-      message: "must use redis for standalone GraphQL services",
-    }]);
+    throw new ConfigurationError([
+      {
+        variable: "KV_URL",
+        message: "must use redis for standalone GraphQL services",
+      },
+    ]);
   }
   return config;
 }
@@ -304,6 +311,12 @@ export function loadGraphqlApiConfig(
     : requireProcessSafeSharedKv(config);
 }
 
-export function getDenoEnvironment(): Environment {
-  return Deno.env.toObject();
+export function getProcessEnvironment(): Environment {
+  return { ...process.env };
 }
+
+/**
+ * @deprecated Use `getProcessEnvironment()` for runtime-neutral configuration.
+ */
+export const getDenoEnvironment = getProcessEnvironment;
+import process from "node:process";

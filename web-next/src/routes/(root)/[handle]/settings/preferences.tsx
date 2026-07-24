@@ -26,7 +26,7 @@ import {
 import { Checkbox } from "~/components/ui/checkbox.tsx";
 import { Label } from "~/components/ui/label.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { preferencesDigestMutation } from "./__generated__/preferencesDigestMutation.graphql.ts";
 import type { preferencesFormQuery } from "./__generated__/preferencesFormQuery.graphql.ts";
 import type { preferencesInteractionScopeMutation } from "./__generated__/preferencesInteractionScopeMutation.graphql.ts";
@@ -94,14 +94,8 @@ const loadPreferencesFormQuery = routePreloadedQuery(
 );
 
 const preferencesSummaryMutation = graphql`
-  mutation preferencesSummaryMutation(
-    $id: ID!,
-    $preferAiSummary: Boolean!
-  ) {
-    updateAccount(input: {
-      id: $id,
-      preferAiSummary: $preferAiSummary,
-    }) {
+  mutation preferencesSummaryMutation($id: ID!, $preferAiSummary: Boolean!) {
+    updateAccount(input: { id: $id, preferAiSummary: $preferAiSummary }) {
       account {
         id
         preferAiSummary
@@ -113,17 +107,19 @@ const preferencesSummaryMutation = graphql`
 
 const preferencesInteractionScopeMutation = graphql`
   mutation preferencesInteractionScopeMutation(
-    $id: ID!,
-    $defaultNoteVisibility: PostVisibility!,
-    $defaultShareVisibility: PostVisibility!,
+    $id: ID!
+    $defaultNoteVisibility: PostVisibility!
+    $defaultShareVisibility: PostVisibility!
     $defaultQuotePolicy: QuotePolicy!
   ) {
-    updateAccount(input: {
-      id: $id,
-      defaultNoteVisibility: $defaultNoteVisibility,
-      defaultShareVisibility: $defaultShareVisibility,
-      defaultQuotePolicy: $defaultQuotePolicy,
-    }) {
+    updateAccount(
+      input: {
+        id: $id
+        defaultNoteVisibility: $defaultNoteVisibility
+        defaultShareVisibility: $defaultShareVisibility
+        defaultQuotePolicy: $defaultQuotePolicy
+      }
+    ) {
       account {
         id
         defaultNoteVisibility
@@ -137,15 +133,17 @@ const preferencesInteractionScopeMutation = graphql`
 
 const preferencesDigestMutation = graphql`
   mutation preferencesDigestMutation(
-    $id: ID!,
-    $notificationEmailDigestDaily: Boolean!,
+    $id: ID!
+    $notificationEmailDigestDaily: Boolean!
     $notificationEmailDigestWeekly: Boolean!
   ) {
-    updateNotificationEmailDigestSettings(input: {
-      id: $id,
-      daily: $notificationEmailDigestDaily,
-      weekly: $notificationEmailDigestWeekly,
-    }) {
+    updateNotificationEmailDigestSettings(
+      input: {
+        id: $id
+        daily: $notificationEmailDigestDaily
+        weekly: $notificationEmailDigestWeekly
+      }
+    ) {
       account {
         id
         notificationEmailDigestDaily
@@ -203,9 +201,9 @@ function PreferencesForm(props: { handle: string }) {
   const [shareVisibility, setShareVisibility] = createSignal<
     PostVisibility | undefined
   >(undefined);
-  const [quotePolicy, setQuotePolicy] = createSignal<
-    QuotePolicy | undefined
-  >(undefined);
+  const [quotePolicy, setQuotePolicy] = createSignal<QuotePolicy | undefined>(
+    undefined,
+  );
   const quotePolicyLocked = createMemo(() => {
     const account = data()?.accountByUsername;
     const vis = noteVisibility() ?? account?.defaultNoteVisibility;
@@ -214,16 +212,16 @@ function PreferencesForm(props: { handle: string }) {
   const [saveSummary] = createMutation<preferencesSummaryMutation>(
     preferencesSummaryMutation,
   );
-  const [saveInteractionScope] = createMutation<
-    preferencesInteractionScopeMutation
-  >(preferencesInteractionScopeMutation);
+  const [saveInteractionScope] =
+    createMutation<preferencesInteractionScopeMutation>(
+      preferencesInteractionScopeMutation,
+    );
   const [saveDigest] = createMutation<preferencesDigestMutation>(
     preferencesDigestMutation,
   );
   const [savingSummary, setSavingSummary] = createSignal(false);
-  const [savingInteractionScope, setSavingInteractionScope] = createSignal(
-    false,
-  );
+  const [savingInteractionScope, setSavingInteractionScope] =
+    createSignal(false);
   const [savingDigest, setSavingDigest] = createSignal(false);
   function onSummarySubmit(event: SubmitEvent) {
     event.preventDefault();
@@ -234,8 +232,8 @@ function PreferencesForm(props: { handle: string }) {
     saveSummary({
       variables: {
         id,
-        preferAiSummary: preferAiSummaryDiv.querySelector("input")?.checked ??
-          false,
+        preferAiSummary:
+          preferAiSummaryDiv.querySelector("input")?.checked ?? false,
       },
       onCompleted() {
         setSavingSummary(false);
@@ -266,10 +264,10 @@ function PreferencesForm(props: { handle: string }) {
     saveInteractionScope({
       variables: {
         id,
-        defaultNoteVisibility: noteVisibility() ??
-          account.defaultNoteVisibility,
-        defaultShareVisibility: shareVisibility() ??
-          account.defaultShareVisibility,
+        defaultNoteVisibility:
+          noteVisibility() ?? account.defaultNoteVisibility,
+        defaultShareVisibility:
+          shareVisibility() ?? account.defaultShareVisibility,
         defaultQuotePolicy: quotePolicyLocked()
           ? "SELF"
           : (quotePolicy() ?? account.defaultQuotePolicy),
@@ -332,14 +330,12 @@ function PreferencesForm(props: { handle: string }) {
     <Show keyed when={data()}>
       {(data) => (
         <>
-          {
-            /* `keyed` avoids a "Stale read from <Show>" race when solid-relay
+          {/* `keyed` avoids a "Stale read from <Show>" race when solid-relay
              publishes a fragment snapshot inside `batch()` that flips
              `accountByUsername` to falsy in the same tick as a downstream
              reactive read. Reconcile keeps the account's identity stable
              (`key: "__id"`), so `keyed` only re-mounts on navigation to
-             a different account. */
-          }
+             a different account. */}
           <Show keyed when={data.accountByUsername}>
             {(account) => (
               <div class="mt-4 flex flex-col gap-4">
@@ -390,9 +386,10 @@ function PreferencesForm(props: { handle: string }) {
                         <div class="flex min-w-0 grow flex-col gap-1.5">
                           <Label>{t`Default note privacy`}</Label>
                           <PostVisibilitySelect
-                            value={noteVisibility() ??
-                              account
-                                .defaultNoteVisibility as PostVisibility}
+                            value={
+                              noteVisibility() ??
+                              (account.defaultNoteVisibility as PostVisibility)
+                            }
                             onChange={setNoteVisibility}
                           />
                           <p class="text-sm text-muted-foreground">
@@ -402,9 +399,10 @@ function PreferencesForm(props: { handle: string }) {
                         <div class="flex min-w-0 grow flex-col gap-1.5">
                           <Label>{t`Default share privacy`}</Label>
                           <PostVisibilitySelect
-                            value={shareVisibility() ??
-                              account
-                                .defaultShareVisibility as PostVisibility}
+                            value={
+                              shareVisibility() ??
+                              (account.defaultShareVisibility as PostVisibility)
+                            }
                             onChange={setShareVisibility}
                           />
                           <p class="text-sm text-muted-foreground">
@@ -415,10 +413,12 @@ function PreferencesForm(props: { handle: string }) {
                       <div class="flex flex-col gap-1.5">
                         <Label>{t`Default quote permission`}</Label>
                         <QuotePolicySelect
-                          value={quotePolicyLocked()
-                            ? "SELF"
-                            : (quotePolicy() ??
-                              account.defaultQuotePolicy as QuotePolicy)}
+                          value={
+                            quotePolicyLocked()
+                              ? "SELF"
+                              : (quotePolicy() ??
+                                (account.defaultQuotePolicy as QuotePolicy))
+                          }
                           onChange={setQuotePolicy}
                           disabled={quotePolicyLocked()}
                         />
@@ -451,8 +451,7 @@ function PreferencesForm(props: { handle: string }) {
                         <Checkbox
                           id="notification-email-digest-daily"
                           ref={dailyDigestDiv}
-                          defaultChecked={account
-                            .notificationEmailDigestDaily}
+                          defaultChecked={account.notificationEmailDigestDaily}
                         />
                         <div class="grid gap-1.5 leading-none">
                           <Label for="notification-email-digest-daily">
@@ -467,8 +466,7 @@ function PreferencesForm(props: { handle: string }) {
                         <Checkbox
                           id="notification-email-digest-weekly"
                           ref={weeklyDigestDiv}
-                          defaultChecked={account
-                            .notificationEmailDigestWeekly}
+                          defaultChecked={account.notificationEmailDigestWeekly}
                         />
                         <div class="grid gap-1.5 leading-none">
                           <Label for="notification-email-digest-weekly">

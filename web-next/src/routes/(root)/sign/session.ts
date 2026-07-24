@@ -18,9 +18,10 @@ import {
 // name. The workaround is to set the Set-Cookie header directly on the
 // Response object, bypassing the nativeEvent entirely.
 export async function POST({ request }: APIEvent) {
-  const body = await request.json().catch(() => null) as
-    | Record<string, unknown>
-    | null;
+  const body = (await request.json().catch(() => null)) as Record<
+    string,
+    unknown
+  > | null;
   const id = typeof body?.id === "string" ? body.id : null;
   if (id == null || !validateUuid(id)) {
     return new Response(null, { status: 400 });

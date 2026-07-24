@@ -12,8 +12,7 @@ const SelectValue = SelectPrimitive.Value;
 const SelectHiddenSelect = SelectPrimitive.HiddenSelect;
 
 type SelectTriggerProps<T extends ValidComponent = "button"> =
-  & SelectPrimitive.SelectTriggerProps<T>
-  & {
+  SelectPrimitive.SelectTriggerProps<T> & {
     class?: string | undefined;
     children?: JSX.Element;
   };
@@ -53,8 +52,7 @@ const SelectTrigger = <T extends ValidComponent = "button">(
 };
 
 type SelectContentProps<T extends ValidComponent = "div"> =
-  & SelectPrimitive.SelectContentProps<T>
-  & { class?: string | undefined };
+  SelectPrimitive.SelectContentProps<T> & { class?: string | undefined };
 
 const SelectContent = <T extends ValidComponent = "div">(
   props: PolymorphicProps<T, SelectContentProps<T>>,
@@ -76,8 +74,7 @@ const SelectContent = <T extends ValidComponent = "div">(
 };
 
 type SelectItemProps<T extends ValidComponent = "li"> =
-  & SelectPrimitive.SelectItemProps<T>
-  & {
+  SelectPrimitive.SelectItemProps<T> & {
     class?: string | undefined;
     children?: JSX.Element;
   };
@@ -136,8 +133,7 @@ const labelVariants = cva(
 );
 
 type SelectLabelProps<T extends ValidComponent = "label"> =
-  & SelectPrimitive.SelectLabelProps<T>
-  & {
+  SelectPrimitive.SelectLabelProps<T> & {
     class?: string | undefined;
   };
 
@@ -154,8 +150,7 @@ const SelectLabel = <T extends ValidComponent = "label">(
 };
 
 type SelectDescriptionProps<T extends ValidComponent = "div"> =
-  & SelectPrimitive.SelectDescriptionProps<T>
-  & {
+  SelectPrimitive.SelectDescriptionProps<T> & {
     class?: string | undefined;
   };
 
@@ -174,8 +169,7 @@ const SelectDescription = <T extends ValidComponent = "div">(
 };
 
 type SelectErrorMessageProps<T extends ValidComponent = "div"> =
-  & SelectPrimitive.SelectErrorMessageProps<T>
-  & {
+  SelectPrimitive.SelectErrorMessageProps<T> & {
     class?: string | undefined;
   };
 

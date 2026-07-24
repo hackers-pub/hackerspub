@@ -60,43 +60,38 @@ test("getActorStats() counts notes, replies, shares, and articles", async () => 
     });
 
     const articleId = generateUuidV7();
-    await tx.insert(postTable).values(
-      {
-        id: articleId,
-        iri: `http://localhost/objects/${articleId}`,
-        type: "Article",
-        visibility: "public",
-        actorId: author.actor.id,
-        articleSourceId,
-        contentHtml: "<p>Article body</p>",
-        language: "en",
-        tags: {},
-        emojis: {},
-        url:
-          `http://localhost/@${author.account.username}/2026/actor-stats-article`,
-        published,
-        updated: published,
-      } satisfies NewPost,
-    );
+    await tx.insert(postTable).values({
+      id: articleId,
+      iri: `http://localhost/objects/${articleId}`,
+      type: "Article",
+      visibility: "public",
+      actorId: author.actor.id,
+      articleSourceId,
+      contentHtml: "<p>Article body</p>",
+      language: "en",
+      tags: {},
+      emojis: {},
+      url: `http://localhost/@${author.account.username}/2026/actor-stats-article`,
+      published,
+      updated: published,
+    } satisfies NewPost);
 
     const sharedId = generateUuidV7();
-    await tx.insert(postTable).values(
-      {
-        id: sharedId,
-        iri: `http://localhost/objects/${sharedId}`,
-        type: "Note",
-        visibility: "public",
-        actorId: author.actor.id,
-        sharedPostId: note.id,
-        contentHtml: "<p>Shared note</p>",
-        language: "en",
-        tags: {},
-        emojis: {},
-        url: `http://localhost/@${author.account.username}/shares/${sharedId}`,
-        published: new Date("2026-04-15T02:00:00.000Z"),
-        updated: new Date("2026-04-15T02:00:00.000Z"),
-      } satisfies NewPost,
-    );
+    await tx.insert(postTable).values({
+      id: sharedId,
+      iri: `http://localhost/objects/${sharedId}`,
+      type: "Note",
+      visibility: "public",
+      actorId: author.actor.id,
+      sharedPostId: note.id,
+      contentHtml: "<p>Shared note</p>",
+      language: "en",
+      tags: {},
+      emojis: {},
+      url: `http://localhost/@${author.account.username}/shares/${sharedId}`,
+      published: new Date("2026-04-15T02:00:00.000Z"),
+      updated: new Date("2026-04-15T02:00:00.000Z"),
+    } satisfies NewPost);
 
     const stats = await getActorStats(tx, author.actor.id);
 

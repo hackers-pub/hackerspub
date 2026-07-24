@@ -33,7 +33,7 @@ export function defineApplicationModel(
   implementation: unknown,
   id = typeof implementation === "string"
     ? implementation
-    : (implementation as { modelId?: string })?.modelId ?? "unknown",
+    : ((implementation as { modelId?: string })?.modelId ?? "unknown"),
 ): ApplicationModel {
   return { id, implementation };
 }
@@ -94,16 +94,14 @@ export interface ApplicationContext<D extends Database = Database> {
     value: string | URL,
     options?: object,
   ): Promise<vocab.Object | null>;
-  lookupWebFinger(resource: string | URL): Promise<
-    {
-      links?: readonly {
-        rel: string;
-        type?: string;
-        href?: string;
-        template?: string;
-      }[];
-    } | null
-  >;
+  lookupWebFinger(resource: string | URL): Promise<{
+    links?: readonly {
+      rel: string;
+      type?: string;
+      href?: string;
+      template?: string;
+    }[];
+  } | null>;
   getActor(identifier: string): Promise<vocab.Actor | null>;
   getActorKeyPairs?(identifier: string): Promise<unknown>;
   sendActivity(

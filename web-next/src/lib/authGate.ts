@@ -46,9 +46,7 @@ function snapshotViewerStatus(
 //   link-hover prefetches, and a thrown Response there could trigger
 //   an unintended navigation. The render-time `<Navigate>` fallback
 //   handles redirecting unauthenticated visitors instead.
-export function gateOnAuthentication(
-  env: IEnvironment,
-): AuthGateAction {
+export function gateOnAuthentication(env: IEnvironment): AuthGateAction {
   if (isServer) {
     return readSessionCookie(getRequestEvent()?.request) == null
       ? "skip"

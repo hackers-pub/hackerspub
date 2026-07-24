@@ -2,7 +2,7 @@ import { For, Match, Show, Switch } from "solid-js";
 import { ActorHoverCard } from "./ActorHoverCard.tsx";
 import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
 import { Button } from "~/components/ui/button.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 /** The actor fields a row needs; structurally satisfied by the list fragments. */
 export interface AccountListItem {
@@ -111,9 +111,7 @@ export function AccountListBase(props: AccountListBaseProps) {
             <Match when={props.loadingState === "errored"}>
               {t`Failed to load more; click to retry`}
             </Match>
-            <Match when={props.loadingState === "loaded"}>
-              {t`Load more`}
-            </Match>
+            <Match when={props.loadingState === "loaded"}>{t`Load more`}</Match>
           </Switch>
         </button>
       </Show>

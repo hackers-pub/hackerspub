@@ -5,7 +5,7 @@ import { AccountListBase } from "./AccountListBase.tsx";
 import type { BlockedAccountsList_actor$key } from "./__generated__/BlockedAccountsList_actor.graphql.ts";
 import type { BlockedAccountsList_unblockActor_Mutation } from "./__generated__/BlockedAccountsList_unblockActor_Mutation.graphql.ts";
 import { showToast } from "~/components/ui/toast.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 export interface BlockedAccountsListProps {
   $actor: BlockedAccountsList_actor$key;
@@ -40,15 +40,13 @@ export function BlockedAccountsList(props: BlockedAccountsListProps) {
   const blocked = createPaginationFragment(
     graphql`
       fragment BlockedAccountsList_actor on Actor
-        @refetchable(queryName: "BlockedAccountsListQuery")
-        @argumentDefinitions(
-          cursor: { type: "String" }
-          count: { type: "Int", defaultValue: 20 }
-        )
-      {
+      @refetchable(queryName: "BlockedAccountsListQuery")
+      @argumentDefinitions(
+        cursor: { type: "String" }
+        count: { type: "Int", defaultValue: 20 }
+      ) {
         blockedActors(after: $cursor, first: $count)
-          @connection(key: "BlockedAccountsList_blockedActors")
-        {
+          @connection(key: "BlockedAccountsList_blockedActors") {
           __id
           edges {
             __id
@@ -72,9 +70,10 @@ export function BlockedAccountsList(props: BlockedAccountsListProps) {
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
   >("loaded");
-  const [unblockActor, unblocking] = createMutation<
-    BlockedAccountsList_unblockActor_Mutation
-  >(unblockActorMutation);
+  const [unblockActor, unblocking] =
+    createMutation<BlockedAccountsList_unblockActor_Mutation>(
+      unblockActorMutation,
+    );
 
   function onLoadMore() {
     setLoadingState("loading");

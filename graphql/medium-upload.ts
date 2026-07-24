@@ -66,8 +66,9 @@ export async function isMediumOwner(
   mediumId: Uuid,
   accountId: Uuid,
 ): Promise<boolean> {
-  return (await kv.get<boolean>(getMediumOwnerKey(mediumId, accountId))) ===
-    true;
+  return (
+    (await kv.get<boolean>(getMediumOwnerKey(mediumId, accountId))) === true
+  );
 }
 
 export async function isMediumUploadWindowActive(
@@ -162,7 +163,7 @@ function corsHeaders(request: Request): Record<string, string> {
   if (origin == null) return {};
   return {
     "Access-Control-Allow-Origin": origin,
-    "Vary": "Origin",
+    Vary: "Origin",
   };
 }
 
@@ -173,7 +174,8 @@ export async function handleMediumUploadProxy(
 ): Promise<Response | undefined> {
   const url = new URL(request.url);
   const match = url.pathname.match(/^\/medium-uploads\/([^/]+)$/);
-  const uploadId = match?.[1] ??
+  const uploadId =
+    match?.[1] ??
     (url.pathname === "/medium-uploads"
       ? url.searchParams.get("uploadId")
       : null);
@@ -211,13 +213,12 @@ export async function handleMediumUploadProxy(
       headers: corsHeaders(request),
     });
   }
-  const contentType = request.headers.get("Content-Type")?.split(";")[0]
-    .trim();
+  const contentType = request.headers.get("Content-Type")?.split(";")[0].trim();
   if (
     contentType == null ||
     contentType !== session.contentType ||
     !SUPPORTED_MEDIUM_IMAGE_TYPES.includes(
-      contentType as typeof SUPPORTED_MEDIUM_IMAGE_TYPES[number],
+      contentType as (typeof SUPPORTED_MEDIUM_IMAGE_TYPES)[number],
     )
   ) {
     return new Response("Unsupported Media Type", {

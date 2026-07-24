@@ -6,7 +6,7 @@ import { formatPostAuthorText } from "~/components/PostAuthor.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
-import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
+import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
 import type { NewsStoryHeader_story$key } from "./__generated__/NewsStoryHeader_story.graphql.ts";
 
 export interface NewsStoryHeaderProps {
@@ -73,12 +73,10 @@ export function NewsStoryHeader(props: NewsStoryHeaderProps) {
 
   const discussionText = (count: number) =>
     i18n._(
-      msg`${
-        plural(count, {
-          one: "# discussion post",
-          other: "# discussion posts",
-        })
-      }`,
+      msg`${plural(count, {
+        one: "# discussion post",
+        other: "# discussion posts",
+      })}`,
     );
 
   return (

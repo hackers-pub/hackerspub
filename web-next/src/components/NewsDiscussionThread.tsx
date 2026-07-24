@@ -22,7 +22,7 @@ import { Timestamp } from "~/components/Timestamp.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useContentLinkInterceptor } from "~/lib/contentLinkInterceptor.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { useMentionHoverCards } from "~/lib/mentionHoverCards.tsx";
 import type {
   NewsDiscussionThread_post$data,
@@ -57,7 +57,11 @@ const subtreeQuery = graphql`
   ) {
     node(id: $id) {
       ... on Post {
-        descendants(after: $cursor, first: 60, actingAccountId: $actingAccountId) {
+        descendants(
+          after: $cursor
+          first: 60
+          actingAccountId: $actingAccountId
+        ) {
           edges {
             node {
               id
@@ -65,12 +69,14 @@ const subtreeQuery = graphql`
               replyTarget(actingAccountId: $actingAccountId) {
                 id
               }
-              ...NewsDiscussionThread_post @arguments(
-                actingAccountId: $actingAccountId
-              )
+              ...NewsDiscussionThread_post
+                @arguments(actingAccountId: $actingAccountId)
             }
           }
-          pageInfo { hasNextPage endCursor }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
         }
       }
     }
@@ -95,12 +101,14 @@ const quotesQuery = graphql`
           edges {
             node {
               id
-              ...NewsDiscussionThread_post @arguments(
-                actingAccountId: $actingAccountId
-              )
+              ...NewsDiscussionThread_post
+                @arguments(actingAccountId: $actingAccountId)
             }
           }
-          pageInfo { hasNextPage endCursor }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
         }
       }
     }
@@ -109,8 +117,7 @@ const quotesQuery = graphql`
 
 const threadPostFragment = graphql`
   fragment NewsDiscussionThread_post on Post
-    @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
-  {
+  @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null }) {
     id
     __typename
     uuid
@@ -150,9 +157,7 @@ const threadPostFragment = graphql`
     }
     ...PostAuthorAvatar_post
     ...PostAuthorLine_post
-    ...PostEngagementBar_post @arguments(
-      actingAccountId: $actingAccountId
-    )
+    ...PostEngagementBar_post @arguments(actingAccountId: $actingAccountId)
   }
 `;
 
@@ -224,7 +229,7 @@ export function NewsDiscussionSubtree(props: NewsDiscussionSubtreeProps) {
   // A reload requested while a fetch is in flight runs after it settles, so
   // a reply composed mid-load is not silently dropped.
   let reloadQueued = false;
-  onCleanup(() => disposed = true);
+  onCleanup(() => (disposed = true));
 
   // The subtree's reply pagination counts as exhausted only once a load has
   // succeeded, nothing is in flight, and no more pages remain.  A node with no
@@ -247,15 +252,11 @@ export function NewsDiscussionSubtree(props: NewsDiscussionSubtreeProps) {
       setHasMore(false);
     }
     setLoadState("loading");
-    fetchQuery<NewsDiscussionThreadSubtreeQuery>(
-      environment(),
-      subtreeQuery,
-      {
-        id: p.id,
-        cursor: mode === "more" ? endCursor() : null,
-        actingAccountId: actingAccountId() ?? null,
-      },
-    ).subscribe({
+    fetchQuery<NewsDiscussionThreadSubtreeQuery>(environment(), subtreeQuery, {
+      id: p.id,
+      cursor: mode === "more" ? endCursor() : null,
+      actingAccountId: actingAccountId() ?? null,
+    }).subscribe({
       next(data) {
         if (disposed) return;
         runWithOwner(owner, () => {
@@ -274,7 +275,7 @@ export function NewsDiscussionSubtree(props: NewsDiscussionSubtreeProps) {
               key: n,
             });
           }
-          setNodes((prev) => mode === "more" ? [...prev, ...page] : page);
+          setNodes((prev) => (mode === "more" ? [...prev, ...page] : page));
           setEndCursor(descendants?.pageInfo?.endCursor ?? null);
           setHasMore(descendants?.pageInfo?.hasNextPage ?? false);
           setLoaded(true);
@@ -342,15 +343,19 @@ export function NewsDiscussionSubtree(props: NewsDiscussionSubtreeProps) {
     // Composing a reply to a post inside this subtree refreshes just this
     // subtree.  `notifyNoteCreated` fires before the compose modal resets
     // its state, so the reply target is still readable here.
-    onCleanup(onNoteCreated(() => {
-      const parentId = replyTargetId();
-      if (parentId == null) return;
-      if (
-        parentId !== post()?.id &&
-        !nodes().some((node) => node.id === parentId)
-      ) return;
-      loadReplies();
-    }));
+    onCleanup(
+      onNoteCreated(() => {
+        const parentId = replyTargetId();
+        if (parentId == null) return;
+        if (
+          parentId !== post()?.id &&
+          !nodes().some((node) => node.id === parentId)
+        ) {
+          return;
+        }
+        loadReplies();
+      }),
+    );
   });
 
   // The loaded replies are scoped to the acting account they were fetched
@@ -358,24 +363,29 @@ export function NewsDiscussionSubtree(props: NewsDiscussionSubtreeProps) {
   // followers-only/direct reply does not linger after switching to a narrower
   // perspective, and refetch when replies first become visible under the new
   // account.  `onMount` owns the very first load, so this is deferred.
-  createEffect(on(
-    [() => actingAccountId() ?? null, () => post()?.hasVisibleReplies ?? false],
-    ([acct, hasVisible], prev) => {
-      if (acct !== prev?.[0]) {
-        if (hasVisible || loaded() || loadState() === "loading") {
+  createEffect(
+    on(
+      [
+        () => actingAccountId() ?? null,
+        () => post()?.hasVisibleReplies ?? false,
+      ],
+      ([acct, hasVisible], prev) => {
+        if (acct !== prev?.[0]) {
+          if (hasVisible || loaded() || loadState() === "loading") {
+            loadReplies("initial");
+          } else {
+            seen.clear();
+            setNodes([]);
+            setEndCursor(null);
+            setHasMore(false);
+          }
+        } else if (hasVisible && !loaded() && loadState() === "idle") {
           loadReplies("initial");
-        } else {
-          seen.clear();
-          setNodes([]);
-          setEndCursor(null);
-          setHasMore(false);
         }
-      } else if (hasVisible && !loaded() && loadState() === "idle") {
-        loadReplies("initial");
-      }
-    },
-    { defer: true },
-  ));
+      },
+      { defer: true },
+    ),
+  );
 
   // Following a deep link into a reply page that is not loaded yet: keep
   // loading more pages toward the target, bounded per target.
@@ -525,7 +535,7 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
   // A reload requested while a fetch is in flight runs after it settles, so
   // a quote composed mid-load is not silently dropped.
   let reloadQueued = false;
-  onCleanup(() => disposed = true);
+  onCleanup(() => (disposed = true));
 
   const quoteCount = () => post()?.engagementStats.quotes ?? 0;
   // Whether any quote is visible to the viewer. The raw `quotes` counter above
@@ -538,27 +548,28 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
   const replyChildren = createMemo<readonly SubtreeReplyNode[]>(() => {
     const p = post();
     if (p == null) return [];
-    return props.repliesOf(p.id).filter((child) =>
-      child.id !== p.id && !(props.visited?.has(child.id))
-    );
+    return props
+      .repliesOf(p.id)
+      .filter((child) => child.id !== p.id && !props.visited?.has(child.id));
   });
   // A reply that also quotes this post renders once, as a reply; the quote
   // occurrence is filtered out.
-  const replyIds = createMemo(() =>
-    new Set(replyChildren().map((child) => child.id))
+  const replyIds = createMemo(
+    () => new Set(replyChildren().map((child) => child.id)),
   );
   const visibleQuoteChildren = createMemo(() =>
-    quoteChildren().filter((child) => !replyIds().has(child.id))
+    quoteChildren().filter((child) => !replyIds().has(child.id)),
   );
   // The server's `descendants` depth cap can leave a node with visible replies
   // that never loaded, even after the subtree's pagination is exhausted; its
   // own permalink picks the thread up from there. Gate on `hasVisibleReplies`
   // (not the raw counter) so a node whose only replies are hidden from the
   // viewer shows no link, which would otherwise reveal that they exist.
-  const continueHere = createMemo(() =>
-    replyChildren().length < 1 &&
-    (post()?.hasVisibleReplies ?? false) &&
-    !props.subtreeMayContinue
+  const continueHere = createMemo(
+    () =>
+      replyChildren().length < 1 &&
+      (post()?.hasVisibleReplies ?? false) &&
+      !props.subtreeMayContinue,
   );
 
   // Drop a deleted quote child from the locally fetched signal; its subtree
@@ -584,15 +595,11 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
     }
     setExpanded(true);
     setLoadState("loading");
-    fetchQuery<NewsDiscussionThreadChildrenQuery>(
-      environment(),
-      quotesQuery,
-      {
-        id: p.id,
-        quoteCursor: mode === "more" ? quoteCursor() : null,
-        actingAccountId: actingAccountId() ?? null,
-      },
-    ).subscribe({
+    fetchQuery<NewsDiscussionThreadChildrenQuery>(environment(), quotesQuery, {
+      id: p.id,
+      quoteCursor: mode === "more" ? quoteCursor() : null,
+      actingAccountId: actingAccountId() ?? null,
+    }).subscribe({
       next(data) {
         if (disposed) return;
         runWithOwner(owner, () => {
@@ -608,7 +615,7 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
             quotes.push({ id: n.id, key: n });
           }
           setQuoteChildren((prev) =>
-            mode === "more" ? [...prev, ...quotes] : quotes
+            mode === "more" ? [...prev, ...quotes] : quotes,
           );
           setQuoteCursor(node?.quotes?.pageInfo?.endCursor ?? null);
           setQuoteHasMore(node?.quotes?.pageInfo?.hasNextPage ?? false);
@@ -656,9 +663,11 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
   onMount(() => {
     // Composing a quote of this post refreshes its loaded quotes.  (Replies
     // are refreshed by the enclosing subtree's bulk reload.)
-    onCleanup(onNoteCreated(() => {
-      if (quotedPostId() === post()?.id) loadQuotes();
-    }));
+    onCleanup(
+      onNoteCreated(() => {
+        if (quotedPostId() === post()?.id) loadQuotes();
+      }),
+    );
     if (
       hasVisibleQuotes() &&
       (props.depth < NEWS_DISCUSSION_AUTO_DEPTH ||
@@ -674,20 +683,26 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
   // linger after switching to a narrower perspective; when the branch was
   // collapsed, drop the stale state so a fresh expand refetches.  `onMount`
   // owns the very first load, so this is deferred.
-  createEffect(on(() => actingAccountId() ?? null, () => {
-    if (expanded() || loadState() === "loading") {
-      loadQuotes("initial");
-    } else {
-      seen.clear();
-      autoQuotePages = 0;
-      setQuoteChildren([]);
-      setQuoteCursor(null);
-      setQuoteHasMore(false);
-    }
-  }, { defer: true }));
+  createEffect(
+    on(
+      () => actingAccountId() ?? null,
+      () => {
+        if (expanded() || loadState() === "loading") {
+          loadQuotes("initial");
+        } else {
+          seen.clear();
+          autoQuotePages = 0;
+          setQuoteChildren([]);
+          setQuoteCursor(null);
+          setQuoteHasMore(false);
+        }
+      },
+      { defer: true },
+    ),
+  );
 
-  const target = createMemo(() =>
-    props.targetUuid != null && post()?.uuid === props.targetUuid
+  const target = createMemo(
+    () => props.targetUuid != null && post()?.uuid === props.targetUuid,
   );
   const childVisited = createMemo(() => {
     const p = post();
@@ -700,7 +715,7 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
   onMount(() => {
     if (target() && articleRef != null) {
       requestAnimationFrame(() =>
-        articleRef?.scrollIntoView({ block: "center" })
+        articleRef?.scrollIntoView({ block: "center" }),
       );
     }
   });
@@ -793,22 +808,25 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
                   engagementBase={engagementBase(p)}
                   connections={props.connections ?? []}
                   onDeleted={props.onDeleted}
-                  onEdit={(p.rawContent ?? p.personalRawContent) != null &&
-                      p.visibility !== "NONE"
-                    ? () =>
-                      openForEdit(p.id, {
-                        content: (p.rawContent ?? p.personalRawContent)!,
-                        language: p.language,
-                        quotePolicy: (p.quotePolicy as QuotePolicy) ??
-                          "EVERYONE",
-                        visibility: (p.visibility as PostVisibility) ??
-                          "PUBLIC",
-                        authorAccountId: p.rawContent != null &&
-                            p.actor.account?.kind === "ORGANIZATION"
-                          ? p.actor.account.id
-                          : null,
-                      })
-                    : undefined}
+                  onEdit={
+                    (p.rawContent ?? p.personalRawContent) != null &&
+                    p.visibility !== "NONE"
+                      ? () =>
+                          openForEdit(p.id, {
+                            content: (p.rawContent ?? p.personalRawContent)!,
+                            language: p.language,
+                            quotePolicy:
+                              (p.quotePolicy as QuotePolicy) ?? "EVERYONE",
+                            visibility:
+                              (p.visibility as PostVisibility) ?? "PUBLIC",
+                            authorAccountId:
+                              p.rawContent != null &&
+                              p.actor.account?.kind === "ORGANIZATION"
+                                ? p.actor.account.id
+                                : null,
+                          })
+                      : undefined
+                  }
                   class="mt-1"
                 />
               </div>

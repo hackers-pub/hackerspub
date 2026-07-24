@@ -10,14 +10,17 @@ import type { SummaryOptions as ApplicationSummaryOptions } from "@hackerspub/mo
 import { removeDetailsFromSummaryInput } from "@hackerspub/models/summary";
 
 const PROMPT_LANGUAGES: Locale[] = (
-  await readdir(
-    join(import.meta.dirname!, "prompts", "summary"),
-    { withFileTypes: true },
-  )
-).map((f) => f.name.replace(/\.md$/, "")).filter(isLocale);
+  await readdir(join(import.meta.dirname!, "prompts", "summary"), {
+    withFileTypes: true,
+  })
+)
+  .map((f) => f.name.replace(/\.md$/, ""))
+  .filter(isLocale);
 
-export interface SummaryOptions
-  extends Omit<ApplicationSummaryOptions, "model"> {
+export interface SummaryOptions extends Omit<
+  ApplicationSummaryOptions,
+  "model"
+> {
   model: LanguageModel;
 }
 
@@ -25,8 +28,10 @@ async function getSummaryPrompt(
   sourceLanguage: string,
   targetLanguage: string,
 ): Promise<string> {
-  const promptLanguage = findNearestLocale(targetLanguage, PROMPT_LANGUAGES) ??
-    findNearestLocale(sourceLanguage, PROMPT_LANGUAGES) ?? "en";
+  const promptLanguage =
+    findNearestLocale(targetLanguage, PROMPT_LANGUAGES) ??
+    findNearestLocale(sourceLanguage, PROMPT_LANGUAGES) ??
+    "en";
   const promptPath = join(
     import.meta.dirname!,
     "prompts",

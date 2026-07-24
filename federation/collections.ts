@@ -46,25 +46,26 @@ builder
         where: {
           followeeId: account.actor.id,
           accepted: { isNotNull: true },
-          ...(filter == null ? undefined : {
-            follower: {
-              iri: { like: `${filter.origin}/%` },
-            },
-          }),
-          ...(
-            cursor == null || cursor.trim() === ""
-              ? undefined
-              : { accepted: { lte: new Date(cursor.trim()) } }
-          ),
+          ...(filter == null
+            ? undefined
+            : {
+                follower: {
+                  iri: { like: `${filter.origin}/%` },
+                },
+              }),
+          ...(cursor == null || cursor.trim() === ""
+            ? undefined
+            : { accepted: { lte: new Date(cursor.trim()) } }),
         },
         orderBy: { accepted: "desc" },
         limit: cursor == null ? undefined : FOLLOWERS_WINDOW,
       });
       return {
         items: followers.map((follow) => toRecipient(follow.follower)),
-        nextCursor: cursor == null || followers.length < FOLLOWERS_WINDOW
-          ? null
-          : followers[FOLLOWERS_WINDOW - 1].accepted?.toISOString(),
+        nextCursor:
+          cursor == null || followers.length < FOLLOWERS_WINDOW
+            ? null
+            : followers[FOLLOWERS_WINDOW - 1].accepted?.toISOString(),
       };
     },
   )
@@ -72,19 +73,25 @@ builder
   .setCounter(async (ctx, identifier, filter) => {
     if (!validateUuid(identifier)) return null;
     const { db } = ctx.data;
-    const [{ cnt }] = await db.select({ cnt: count() })
+    const [{ cnt }] = await db
+      .select({ cnt: count() })
       .from(followingTable)
       .innerJoin(actorTable, eq(followingTable.followeeId, actorTable.id))
-      .where(and(
-        eq(actorTable.accountId, identifier),
-        isNotNull(followingTable.accepted),
-        filter == null ? undefined : inArray(
-          followingTable.followerId,
-          db.select({ id: actorTable.id }).from(actorTable).where(
-            like(actorTable.iri, `${filter.origin}/%`),
-          ),
+      .where(
+        and(
+          eq(actorTable.accountId, identifier),
+          isNotNull(followingTable.accepted),
+          filter == null
+            ? undefined
+            : inArray(
+                followingTable.followerId,
+                db
+                  .select({ id: actorTable.id })
+                  .from(actorTable)
+                  .where(like(actorTable.iri, `${filter.origin}/%`)),
+              ),
         ),
-      ));
+      );
     return cnt;
   });
 
@@ -109,87 +116,89 @@ builder
         where: {
           followerId: account.actor.id,
           accepted: { isNotNull: true },
-          ...(
-            cursor == null || cursor.trim() === ""
-              ? undefined
-              : { accepted: { lte: new Date(cursor.trim()) } }
-          ),
+          ...(cursor == null || cursor.trim() === ""
+            ? undefined
+            : { accepted: { lte: new Date(cursor.trim()) } }),
         },
         orderBy: { accepted: "desc" },
         limit: cursor == null ? undefined : FOLLOWEES_WINDOW,
       });
       return {
         items: followees.map((follow) => new URL(follow.followee.iri)),
-        nextCursor: cursor == null || followees.length < FOLLOWEES_WINDOW
-          ? null
-          : followees[FOLLOWEES_WINDOW - 1].accepted?.toISOString(),
+        nextCursor:
+          cursor == null || followees.length < FOLLOWEES_WINDOW
+            ? null
+            : followees[FOLLOWEES_WINDOW - 1].accepted?.toISOString(),
       };
     },
   )
   .setFirstCursor((_ctx, _identifier) => "")
   .setCounter(async (ctx, identifier) => {
     if (!validateUuid(identifier)) return null;
-    const [{ cnt }] = await ctx.data.db.select({ cnt: count() })
+    const [{ cnt }] = await ctx.data.db
+      .select({ cnt: count() })
       .from(followingTable)
       .innerJoin(actorTable, eq(followingTable.followerId, actorTable.id))
-      .where(and(
-        eq(actorTable.accountId, identifier),
-        isNotNull(followingTable.accepted),
-      ));
+      .where(
+        and(
+          eq(actorTable.accountId, identifier),
+          isNotNull(followingTable.accepted),
+        ),
+      );
     return cnt;
   });
 
 export function toFeaturedCollectionItem(
   ctx: Context<ContextData>,
-  post:
-    & Pick<
-      Post,
-      | "contentHtml"
-      | "iri"
-      | "language"
-      | "name"
-      | "published"
-      | "sensitive"
-      | "summary"
-      | "type"
-      | "updated"
-      | "url"
-      | "visibility"
-    >
-    & {
-      actor: { accountId: Uuid | null; iri?: string };
-      mentions?: (Mention & { actor: { iri: string } })[];
-      organizationAuthor?:
-        | Pick<
-          OrganizationPostAuthor,
-          "organizationAccountId" | "memberAccountId" | "attributionMode"
-        >
-        | null;
-      poll?: {
-        ends: Date;
-        multiple: boolean;
-        options: {
-          index: number;
-          title: string;
-          votesCount: number;
-        }[];
-        votersCount: number;
-      } | null;
-    },
+  post: Pick<
+    Post,
+    | "contentHtml"
+    | "iri"
+    | "language"
+    | "name"
+    | "published"
+    | "sensitive"
+    | "summary"
+    | "type"
+    | "updated"
+    | "url"
+    | "visibility"
+  > & {
+    actor: { accountId: Uuid | null; iri?: string };
+    mentions?: (Mention & { actor: { iri: string } })[];
+    organizationAuthor?: Pick<
+      OrganizationPostAuthor,
+      "organizationAccountId" | "memberAccountId" | "attributionMode"
+    > | null;
+    poll?: {
+      ends: Date;
+      multiple: boolean;
+      options: {
+        index: number;
+        title: string;
+        votesCount: number;
+      }[];
+      votersCount: number;
+    } | null;
+  },
 ): vocab.Article | vocab.Note | vocab.Question {
-  const attributions = post.actor.accountId == null
-    ? [new URL(post.actor.iri ?? post.iri)]
-    : getPostAttributionIds(
-      ctx,
-      post.actor.accountId,
-      post.organizationAuthor,
-    );
-  const recipients = post.actor.accountId == null ? {} : getPostRecipients(
-    ctx,
-    post.actor.accountId,
-    post.mentions?.map((mention) => new URL(mention.actor.iri)) ?? [],
-    post.visibility,
-  );
+  const attributions =
+    post.actor.accountId == null
+      ? [new URL(post.actor.iri ?? post.iri)]
+      : getPostAttributionIds(
+          ctx,
+          post.actor.accountId,
+          post.organizationAuthor,
+        );
+  const recipients =
+    post.actor.accountId == null
+      ? {}
+      : getPostRecipients(
+          ctx,
+          post.actor.accountId,
+          post.mentions?.map((mention) => new URL(mention.actor.iri)) ?? [],
+          post.visibility,
+        );
   const contentHtml = removeHeaderAnchorLinks(post.contentHtml);
   const common = {
     id: new URL(post.iri),
@@ -205,9 +214,8 @@ export function toFeaturedCollectionItem(
     published: post.published.toTemporalInstant(),
     sensitive: post.sensitive,
     summary: post.summary,
-    updated: +post.updated > +post.published
-      ? post.updated.toTemporalInstant()
-      : null,
+    updated:
+      +post.updated > +post.published ? post.updated.toTemporalInstant() : null,
     url: post.url == null ? null : new URL(post.url),
   };
   switch (post.type) {
@@ -216,16 +224,18 @@ export function toFeaturedCollectionItem(
     case "Note":
       return new vocab.Note(common);
     case "Question": {
-      const options = post.poll?.options
-        .sort((a, b) => a.index - b.index)
-        .map((option) =>
-          new vocab.Note({
-            name: option.title,
-            replies: new vocab.Collection({
-              totalItems: option.votesCount,
-            }),
-          })
-        ) ?? [];
+      const options =
+        post.poll?.options
+          .sort((a, b) => a.index - b.index)
+          .map(
+            (option) =>
+              new vocab.Note({
+                name: option.title,
+                replies: new vocab.Collection({
+                  totalItems: option.votesCount,
+                }),
+              }),
+          ) ?? [];
       return new vocab.Question({
         ...common,
         endTime: post.poll?.ends.toTemporalInstant() ?? null,
@@ -362,22 +372,23 @@ builder
               ],
             },
           },
-          ...(
-            validateUuid(cursor) ? { id: { lte: cursor } } : undefined
-          ),
+          ...(validateUuid(cursor) ? { id: { lte: cursor } } : undefined),
         },
         orderBy: { id: "desc" },
         limit: OUTBOX_WINDOW + 1,
       });
       return {
-        items: posts.slice(0, OUTBOX_WINDOW).flatMap(
-          (post): (vocab.Create | vocab.Announce)[] => {
+        items: posts
+          .slice(0, OUTBOX_WINDOW)
+          .flatMap((post): (vocab.Create | vocab.Announce)[] => {
             if (post.sharedPost == null) {
               if (post.actor.account == null) return [];
-              return [getCreate(ctx, {
-                ...post,
-                actor: { ...post.actor, account: post.actor.account },
-              })];
+              return [
+                getCreate(ctx, {
+                  ...post,
+                  actor: { ...post.actor, account: post.actor.account },
+                }),
+              ];
             }
             return [
               new vocab.Announce({
@@ -393,11 +404,9 @@ builder
                 published: post.published.toTemporalInstant(),
               }),
             ];
-          },
-        ),
-        nextCursor: posts.length <= OUTBOX_WINDOW
-          ? null
-          : posts[OUTBOX_WINDOW].id,
+          }),
+        nextCursor:
+          posts.length <= OUTBOX_WINDOW ? null : posts[OUTBOX_WINDOW].id,
       };
     },
   )

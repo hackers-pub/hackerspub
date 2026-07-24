@@ -17,7 +17,7 @@ import {
   WebPushError,
   type WebPushSubscriptionData,
 } from "~/lib/webPush.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { WebPushPromptBannerRegisterMutation } from "./__generated__/WebPushPromptBannerRegisterMutation.graphql.ts";
 import IconBell from "~icons/lucide/bell";
 import IconX from "~icons/lucide/x";
@@ -42,18 +42,20 @@ function setDismissedPreference(): void {
 
 const registerMutation = graphql`
   mutation WebPushPromptBannerRegisterMutation(
-    $endpoint: String!,
-    $p256dh: String!,
-    $auth: String!,
+    $endpoint: String!
+    $p256dh: String!
+    $auth: String!
     $expirationTime: DateTime
   ) {
-    registerPushNotificationTarget(input: {
-      service: WEB_PUSH,
-      endpoint: $endpoint,
-      p256dh: $p256dh,
-      auth: $auth,
-      expirationTime: $expirationTime
-    }) {
+    registerPushNotificationTarget(
+      input: {
+        service: WEB_PUSH
+        endpoint: $endpoint
+        p256dh: $p256dh
+        auth: $auth
+        expirationTime: $expirationTime
+      }
+    ) {
       __typename
       ... on RegisterPushNotificationTargetPayload {
         endpoint
@@ -64,17 +66,13 @@ const registerMutation = graphql`
 
 export function WebPushPromptBanner(props: WebPushPromptBannerProps) {
   const { t } = useLingui();
-  const [registerTarget, registering] = createMutation<
-    WebPushPromptBannerRegisterMutation
-  >(registerMutation);
+  const [registerTarget, registering] =
+    createMutation<WebPushPromptBannerRegisterMutation>(registerMutation);
   const [mounted, setMounted] = createSignal(false);
   const [dismissed, setDismissed] = createSignal(true);
   const [supported, setSupported] = createSignal(false);
-  const [permission, setPermission] = createSignal<
-    NotificationPermission | null
-  >(
-    null,
-  );
+  const [permission, setPermission] =
+    createSignal<NotificationPermission | null>(null);
   const [subscribed, setSubscribed] = createSignal(true);
   const [refreshingEndpoint, setRefreshingEndpoint] = createSignal<
     string | null
@@ -116,10 +114,7 @@ export function WebPushPromptBanner(props: WebPushPromptBannerProps) {
     setSupported(isWebPushSupported());
     setPermission(getNotificationPermission());
     const updatePermission = () => setPermission(getNotificationPermission());
-    window.addEventListener(
-      WEB_PUSH_PERMISSION_CHANGE_EVENT,
-      updatePermission,
-    );
+    window.addEventListener(WEB_PUSH_PERMISSION_CHANGE_EVENT, updatePermission);
     onCleanup(() => {
       window.removeEventListener(
         WEB_PUSH_PERMISSION_CHANGE_EVENT,
@@ -157,9 +152,8 @@ export function WebPushPromptBanner(props: WebPushPromptBannerProps) {
   async function refreshExistingSubscription(vapidPublicKey: string) {
     const currentRefresh = ++refreshVersion;
     try {
-      const subscription = await getReusableWebPushSubscriptionData(
-        vapidPublicKey,
-      );
+      const subscription =
+        await getReusableWebPushSubscriptionData(vapidPublicKey);
       if (currentRefresh !== refreshVersion) return;
       if (subscription == null) {
         setSubscribed(false);
@@ -187,7 +181,7 @@ export function WebPushPromptBanner(props: WebPushPromptBannerProps) {
       onCompleted(response) {
         if (
           response.registerPushNotificationTarget?.__typename !==
-            "RegisterPushNotificationTargetPayload"
+          "RegisterPushNotificationTargetPayload"
         ) {
           if (!options.silent) {
             showToast({
@@ -259,9 +253,7 @@ export function WebPushPromptBanner(props: WebPushPromptBannerProps) {
           <div class="flex min-w-0 items-start gap-3">
             <IconBell class="mt-0.5 size-5 shrink-0 text-primary" />
             <div class="min-w-0 space-y-1">
-              <p class="text-sm font-medium">
-                {t`Get browser notifications`}
-              </p>
+              <p class="text-sm font-medium">{t`Get browser notifications`}</p>
               <p class="text-sm text-muted-foreground">
                 {t`Receive new notifications immediately, even when this tab is closed.`}
               </p>

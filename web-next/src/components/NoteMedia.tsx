@@ -11,7 +11,7 @@ import {
   Switch,
 } from "solid-js";
 import { createFragment } from "solid-relay";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { ImageLightbox } from "./ImageLightbox.tsx";
 import { NoteMedia_note$key } from "./__generated__/NoteMedia_note.graphql.ts";
 import { Button } from "./ui/button.tsx";
@@ -113,10 +113,10 @@ export function NoteMedia(props: NoteMediaProps) {
         // Assign a positional index within image-type media only.
         let imageCounter = 0;
         const imageIndexFor = note.media.map((m) =>
-          m.type.startsWith("image/") ? imageCounter++ : null
+          m.type.startsWith("image/") ? imageCounter++ : null,
         );
         const imageMedia = note.media.filter((m) =>
-          m.type.startsWith("image/")
+          m.type.startsWith("image/"),
         );
 
         const wrappedMediaItem = (
@@ -164,7 +164,8 @@ export function NoteMedia(props: NoteMediaProps) {
                                 i * 2 + j(),
                                 imageIndexFor[i * 2 + j()],
                                 "w-[32.5ch] h-[32.5ch]",
-                              )}
+                              )
+                            }
                           </For>
                         </div>
                       )}
@@ -191,7 +192,8 @@ export function NoteMedia(props: NoteMediaProps) {
                                 1 + i * 2 + j(),
                                 imageIndexFor[1 + i * 2 + j()],
                                 "w-[32.5ch] h-[32.5ch]",
-                              )}
+                              )
+                            }
                           </For>
                         </div>
                       )}

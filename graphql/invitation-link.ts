@@ -23,14 +23,11 @@ const logger = getLogger(["hackerspub", "graphql", "invitation-link"]);
 
 function isDailyEmailQuotaError(errors: readonly string[]): boolean {
   return errors.some((error) =>
-    error.toLowerCase().includes("daily request limit exceeded")
+    error.toLowerCase().includes("daily request limit exceeded"),
   );
 }
 
-async function withRetry<T>(
-  fn: () => Promise<T>,
-  maxRetries = 3,
-): Promise<T> {
+async function withRetry<T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> {
   let attempt = 0;
   while (true) {
     try {
@@ -99,7 +96,8 @@ export const InvitationLink = builder.drizzleNode("invitationLinkTable", {
     }),
     url: t.field({
       type: "URL",
-      description: "The shareable URL for this invitation link " +
+      description:
+        "The shareable URL for this invitation link " +
         "(`/@{inviter}/invite/{uuid}`).",
       select: {
         columns: { id: true },
@@ -140,7 +138,8 @@ builder.queryField("invitationLink", (t) =>
       if (link.inviter.username !== args.username) return null;
       return link;
     },
-  }));
+  }),
+);
 
 const VALID_EXPIRE_UNITS = ["hours", "days", "weeks", "months"] as const;
 
@@ -150,8 +149,9 @@ function parseExpires(expires: string | null | undefined): Date | null {
   const value = Number(valueRaw);
   const unit = unitRaw ?? "hours";
   if (
-    !Number.isInteger(value) || value <= 0 ||
-    !VALID_EXPIRE_UNITS.includes(unit as typeof VALID_EXPIRE_UNITS[number])
+    !Number.isInteger(value) ||
+    value <= 0 ||
+    !VALID_EXPIRE_UNITS.includes(unit as (typeof VALID_EXPIRE_UNITS)[number])
   ) {
     throw new InvalidInputError("expires");
   }
@@ -159,10 +159,10 @@ function parseExpires(expires: string | null | undefined): Date | null {
     unit === "hours"
       ? { hours: value }
       : unit === "days"
-      ? { days: value }
-      : unit === "weeks"
-      ? { weeks: value }
-      : { months: value },
+        ? { days: value }
+        : unit === "weeks"
+          ? { weeks: value }
+          : { months: value },
   );
   const now = Temporal.Now.instant();
   const zoned = now.toZonedDateTimeISO(Temporal.Now.timeZoneId());
@@ -233,10 +233,10 @@ builder.mutationField("createInvitationLink", (t) =>
       const id = generateUuidV7();
       await withRetry(() =>
         ctx.db.transaction(async (tx) => {
-          const updated = await tx.update(accountTable)
+          const updated = await tx
+            .update(accountTable)
             .set({
-              leftInvitations:
-                sql`${accountTable.leftInvitations} - ${args.invitationsLeft}`,
+              leftInvitations: sql`${accountTable.leftInvitations} - ${args.invitationsLeft}`,
             })
             .where(
               and(
@@ -248,22 +248,20 @@ builder.mutationField("createInvitationLink", (t) =>
           if (updated.length < 1) {
             throw new InvalidInputError("invitationsLeft");
           }
-          await tx.insert(invitationLinkTable).values(
-            {
-              id,
-              inviterId: ctx.account!.id,
-              invitationsLeft: args.invitationsLeft,
-              message: args.message?.trim() === ""
-                ? null
-                : (args.message ?? null),
-              expires: expiresDate,
-            } satisfies NewInvitationLink,
-          );
-        })
+          await tx.insert(invitationLinkTable).values({
+            id,
+            inviterId: ctx.account!.id,
+            invitationsLeft: args.invitationsLeft,
+            message:
+              args.message?.trim() === "" ? null : (args.message ?? null),
+            expires: expiresDate,
+          } satisfies NewInvitationLink);
+        }),
       );
       return { linkId: id, accountId: ctx.account.id };
     },
-  }));
+  }),
+);
 
 class InvitationLinkNotFoundError extends Error {
   public constructor() {
@@ -304,25 +302,30 @@ builder.mutationField("deleteInvitationLink", (t) =>
       }
       await withRetry(() =>
         ctx.db.transaction(async (tx) => {
-          const deleted = await tx.delete(invitationLinkTable)
-            .where(and(
-              eq(invitationLinkTable.inviterId, ctx.account!.id),
-              eq(invitationLinkTable.id, args.id),
-            ))
+          const deleted = await tx
+            .delete(invitationLinkTable)
+            .where(
+              and(
+                eq(invitationLinkTable.inviterId, ctx.account!.id),
+                eq(invitationLinkTable.id, args.id),
+              ),
+            )
             .returning();
           if (deleted.length < 1) return;
-          await tx.update(accountTable)
+          await tx
+            .update(accountTable)
             .set({
               leftInvitations: sql`${accountTable.leftInvitations} + ${
                 deleted[0].invitationsLeft
               }`,
             })
             .where(eq(accountTable.id, ctx.account!.id));
-        })
+        }),
       );
       return { linkId: null, accountId: ctx.account.id };
     },
-  }));
+  }),
+);
 
 const RedeemLinkError = builder.enumType("RedeemLinkError", {
   values: ["LINK_NOT_FOUND", "LINK_EXPIRED", "LINK_EXHAUSTED"] as const,
@@ -495,10 +498,7 @@ builder.mutationField("redeemInvitationLink", (t) =>
         if (a === c) errors.verifyUrl = "VERIFY_URL_NO_CODE";
       }
 
-      if (
-        errors.email != null ||
-        errors.verifyUrl != null || email == null
-      ) {
+      if (errors.email != null || errors.verifyUrl != null || email == null) {
         return errors;
       }
 
@@ -507,17 +507,17 @@ builder.mutationField("redeemInvitationLink", (t) =>
       try {
         await withRetry(() =>
           ctx.db.transaction(async (tx) => {
-            const result = await tx.update(invitationLinkTable)
+            const result = await tx
+              .update(invitationLinkTable)
               .set({
-                invitationsLeft:
-                  sql`${invitationLinkTable.invitationsLeft} - 1`,
+                invitationsLeft: sql`${invitationLinkTable.invitationsLeft} - 1`,
               })
               .where(eq(invitationLinkTable.id, link.id))
               .returning();
             if (result.length < 1 || result[0].invitationsLeft < 0) {
               tx.rollback();
             }
-          })
+          }),
         );
       } catch (err) {
         if (err instanceof TransactionRollbackError) {
@@ -559,7 +559,8 @@ builder.mutationField("redeemInvitationLink", (t) =>
             });
           }
           // Credit back on failure
-          await ctx.db.update(invitationLinkTable)
+          await ctx.db
+            .update(invitationLinkTable)
             .set({
               invitationsLeft: sql`${invitationLinkTable.invitationsLeft} + 1`,
             })
@@ -572,7 +573,8 @@ builder.mutationField("redeemInvitationLink", (t) =>
           { error },
         );
         // Credit back on failure
-        await ctx.db.update(invitationLinkTable)
+        await ctx.db
+          .update(invitationLinkTable)
           .set({
             invitationsLeft: sql`${invitationLinkTable.invitationsLeft} + 1`,
           })
@@ -582,4 +584,5 @@ builder.mutationField("redeemInvitationLink", (t) =>
 
       return { linkId: link.id, email } satisfies RedeemSuccess;
     },
-  }));
+  }),
+);

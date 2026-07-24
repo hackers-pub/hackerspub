@@ -11,7 +11,7 @@ import {
 } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import { PostCard } from "~/components/PostCard.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type {
   Bookmarks_posts$data,
   Bookmarks_posts$key,
@@ -29,18 +29,16 @@ export function Bookmarks(props: BookmarksProps) {
   const posts = createPaginationFragment(
     graphql`
       fragment Bookmarks_posts on Query
-        @refetchable(queryName: "BookmarksQuery")
-        @argumentDefinitions(
-          cursor: { type: "String" }
-          count: { type: "Int", defaultValue: 25 }
-          locale: { type: "Locale" }
-          postType: { type: "PostType", defaultValue: null }
-        )
-      {
+      @refetchable(queryName: "BookmarksQuery")
+      @argumentDefinitions(
+        cursor: { type: "String" }
+        count: { type: "Int", defaultValue: 25 }
+        locale: { type: "Locale" }
+        postType: { type: "PostType", defaultValue: null }
+      ) {
         __id
         bookmarks(after: $cursor, first: $count, postType: $postType)
-          @connection(key: "Bookmarks__bookmarks")
-        {
+          @connection(key: "Bookmarks__bookmarks") {
           __id
           edges {
             __id

@@ -3,7 +3,7 @@ import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
 import { NotificationMessage } from "~/components/notification/NotificationMessage.tsx";
 import { QuotedPostCard } from "~/components/QuotedPostCard.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { QuoteNotificationCard_notification$key } from "./__generated__/QuoteNotificationCard_notification.graphql.ts";
 
 interface QuoteNotificationCardProps {
@@ -14,8 +14,7 @@ export function QuoteNotificationCard(props: QuoteNotificationCardProps) {
   const { t } = useLingui();
   const notification = createFragment(
     graphql`
-      fragment QuoteNotificationCard_notification on QuoteNotification
-      {
+      fragment QuoteNotificationCard_notification on QuoteNotification {
         ...NotificationMessage_notification
         post {
           ...QuotedPostCard_post
@@ -34,19 +33,13 @@ export function QuoteNotificationCard(props: QuoteNotificationCardProps) {
             multipleActorMessage={t`${"ACTOR"} and ${"COUNT"} others quoted your post`}
             $notification={notification}
           />
-          {
-            /* `keyed` avoids a "Stale read from <Show>" race when this Relay
+          {/* `keyed` avoids a "Stale read from <Show>" race when this Relay
              fragment publishes a snapshot inside `batch()` that nulls
              `post` while descendant work reruns. Reconcile keeps the post's
-             identity stable, so `keyed` only re-mounts on record change. */
-          }
+             identity stable, so `keyed` only re-mounts on record change. */}
           <Show keyed when={notification.post}>
             {(post) => (
-              <QuotedPostCard
-                $post={post}
-                linkPreview
-                class="-mt-2"
-              />
+              <QuotedPostCard $post={post} linkPreview class="-mt-2" />
             )}
           </Show>
         </div>

@@ -14,7 +14,7 @@ import { SettingsCardPage } from "~/components/SettingsCardPage.tsx";
 import { SettingsOwnerGuard } from "~/components/SettingsOwnerGuard.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { languageMutation } from "./__generated__/languageMutation.graphql.ts";
 import type { languagePageQuery } from "./__generated__/languagePageQuery.graphql.ts";
 import type { languagePreferredLanguagesForm_locales$key } from "./__generated__/languagePreferredLanguagesForm_locales.graphql.ts";
@@ -45,11 +45,9 @@ const languagePageQuery = graphql`
 
 const loadLanguagePageQuery = routePreloadedQuery(
   (handle: string) =>
-    loadQuery<languagePageQuery>(
-      useRelayEnvironment()(),
-      languagePageQuery,
-      { username: handle.replace(/^@/, "") },
-    ),
+    loadQuery<languagePageQuery>(useRelayEnvironment()(), languagePageQuery, {
+      username: handle.replace(/^@/, ""),
+    }),
   "loadLanguagePageQuery",
 );
 
@@ -68,14 +66,12 @@ export default function LanguagePage() {
           accountId={data.accountByUsername?.id}
           viewerId={data.viewer?.id}
         >
-          {
-            /* `keyed` avoids a "Stale read from <Show>" race when solid-relay
+          {/* `keyed` avoids a "Stale read from <Show>" race when solid-relay
              publishes a fragment snapshot inside `batch()` that flips
              `accountByUsername` to falsy in the same tick as a downstream
              reactive read. Reconcile keeps the account's identity stable
              (`key: "__id"`), so `keyed` only re-mounts on navigation to
-             a different account. */
-          }
+             a different account. */}
           <Show keyed when={data.accountByUsername}>
             {(account) => (
               <SettingsCardPage
@@ -121,14 +117,11 @@ function PreferredLanguagesForm(props: PreferredLanguagesFormProps) {
     () => props.$locales,
   );
   const [locales, setLocales] = createSignal<
-    readonly [Intl.Locale, ...readonly Intl.Locale[]]
+    readonly [Intl.Locale, ...(readonly Intl.Locale[])]
   >(
-    (account()?.locales ?? navigator.languages).map((l) =>
-      new Intl.Locale(l)
-    ) as [
-      Intl.Locale,
-      ...readonly Intl.Locale[],
-    ],
+    (account()?.locales ?? navigator.languages).map(
+      (l) => new Intl.Locale(l),
+    ) as [Intl.Locale, ...(readonly Intl.Locale[])],
   );
   const [localeToAdd, setLocaleToAdd] = createSignal<Intl.Locale>();
   const [save] = createMutation<languageMutation>(languageMutation);
@@ -171,10 +164,7 @@ function PreferredLanguagesForm(props: PreferredLanguagesFormProps) {
 
   return (
     <form on:submit={onSubmit} class="flex flex-col gap-4">
-      <LanguageList
-        locales={locales()}
-        onChange={setLocales}
-      />
+      <LanguageList locales={locales()} onChange={setLocales} />
       <div class="flex flex-row gap-4">
         <LanguageSelect
           class="w-full"

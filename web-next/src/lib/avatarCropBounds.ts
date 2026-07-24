@@ -27,12 +27,7 @@ export function clampSquareCropRect(
   rect: CropRect,
   bounds: CropRect,
 ): CropRect | undefined {
-  const size = Math.min(
-    rect.width,
-    rect.height,
-    bounds.width,
-    bounds.height,
-  );
+  const size = Math.min(rect.width, rect.height, bounds.width, bounds.height);
   if (size <= 0) return undefined;
   return {
     x: clamp(rect.x, bounds.x, bounds.x + bounds.width - size),
@@ -47,8 +42,10 @@ export function getScaleToCoverRect(
   target: CropRect,
 ): number {
   if (
-    covering.width <= 0 || covering.height <= 0 ||
-    target.width <= 0 || target.height <= 0
+    covering.width <= 0 ||
+    covering.height <= 0 ||
+    target.width <= 0 ||
+    target.height <= 0
   ) {
     return 1;
   }
@@ -86,10 +83,12 @@ export function cropRectsAlmostEqual(
   b: CropRect,
   epsilon = 0.5,
 ): boolean {
-  return Math.abs(a.x - b.x) <= epsilon &&
+  return (
+    Math.abs(a.x - b.x) <= epsilon &&
     Math.abs(a.y - b.y) <= epsilon &&
     Math.abs(a.width - b.width) <= epsilon &&
-    Math.abs(a.height - b.height) <= epsilon;
+    Math.abs(a.height - b.height) <= epsilon
+  );
 }
 
 function clamp(value: number, min: number, max: number): number {

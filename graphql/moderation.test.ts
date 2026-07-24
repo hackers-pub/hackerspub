@@ -24,9 +24,10 @@ async function makeModerator(
   values: { username: string; name: string; email: string },
 ): Promise<AuthenticatedAccount> {
   const { account } = await insertAccountWithActor(tx, values);
-  await tx.update(accountTable).set({ moderator: true }).where(
-    eq(accountTable.id, account.id),
-  );
+  await tx
+    .update(accountTable)
+    .set({ moderator: true })
+    .where(eq(accountTable.id, account.id));
   return { ...account, moderator: true };
 }
 
@@ -520,8 +521,8 @@ test("Account.reports hides reports targeting the viewing moderator", async () =
     // The reporter files one report against the moderator's own post and one
     // against an unrelated victim's post.
     const modPost = (await insertNotePost(tx, { account: moderator })).post;
-    const victimPost =
-      (await insertNotePost(tx, { account: victim.account })).post;
+    const victimPost = (await insertNotePost(tx, { account: victim.account }))
+      .post;
     for (const post of [modPost, victimPost]) {
       await execute({
         schema,

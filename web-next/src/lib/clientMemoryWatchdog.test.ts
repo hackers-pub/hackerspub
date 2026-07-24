@@ -167,12 +167,10 @@ test("buildMemoryAlertDiagnostics reports deltas and route trail", () => {
     "/notifications",
     "/feed",
   ]);
-  assert.deepEqual(diagnostics.sampleTrail.map((entry) => entry.route), [
-    "/fediverse",
-    "/search",
-    "/notifications",
-    "/feed",
-  ]);
+  assert.deepEqual(
+    diagnostics.sampleTrail.map((entry) => entry.route),
+    ["/fediverse", "/search", "/notifications", "/feed"],
+  );
 });
 
 test("detectMemoryAlert ignores DOM growth with a stable measured heap", () => {

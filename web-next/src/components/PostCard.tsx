@@ -22,17 +22,14 @@ export function PostCard(props: PostCardProps) {
   const post = createFragment(
     graphql`
       fragment PostCard_post on Post
-        @argumentDefinitions(
-          locale: { type: "Locale" },
-          actingAccountId: { type: "ID", defaultValue: null },
-        )
-      {
+      @argumentDefinitions(
+        locale: { type: "Locale" }
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
         __typename
         ...NoteCard_note @arguments(actingAccountId: $actingAccountId)
-        ...ArticleCard_article @arguments(
-          locale: $locale
-          actingAccountId: $actingAccountId
-        )
+        ...ArticleCard_article
+          @arguments(locale: $locale, actingAccountId: $actingAccountId)
         ...QuestionCard_question @arguments(actingAccountId: $actingAccountId)
       }
     `,

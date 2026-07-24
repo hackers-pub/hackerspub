@@ -16,11 +16,14 @@ function createHeading(id: string) {
   return {
     id,
     querySelector(selector: string) {
-      return children.find((child) =>
-        child.className === "header-anchor" &&
-        (!selector.includes("data-hackerspub-generated") ||
-          child.attributes.has("data-hackerspub-generated"))
-      ) ?? null;
+      return (
+        children.find(
+          (child) =>
+            child.className === "header-anchor" &&
+            (!selector.includes("data-hackerspub-generated") ||
+              child.attributes.has("data-hackerspub-generated")),
+        ) ?? null
+      );
     },
     appendChild(child: FakeAnchor) {
       child.parentElement?.children.splice(
@@ -44,7 +47,7 @@ function createDocument(
       if (selector === "[id]") return allIdElements;
       if (selector.startsWith("a.header-anchor")) {
         return allIdElements.flatMap((element) =>
-          "children" in element ? element.children : []
+          "children" in element ? element.children : [],
         );
       }
       return headings;
@@ -91,9 +94,7 @@ test("addHeaderAnchorLinks() enhances a document-unique heading ID", () => {
     "Link to this section",
   );
   assert.equal(heading.children[0].title, "Link to this section");
-  assert.ok(
-    heading.children[0].attributes.has("data-hackerspub-generated"),
-  );
+  assert.ok(heading.children[0].attributes.has("data-hackerspub-generated"));
 });
 
 test("addHeaderAnchorLinks() skips duplicate IDs and reacts to later duplicates", () => {

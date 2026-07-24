@@ -76,9 +76,7 @@ export function getNoteComposerDraftScope(
   return { type: "new" };
 }
 
-export function createNoteDraftData(
-  input: NoteDraftDataInput,
-): NoteDraftData {
+export function createNoteDraftData(input: NoteDraftDataInput): NoteDraftData {
   return {
     content: input.content,
     language: input.language,
@@ -110,21 +108,24 @@ export function toStorableNoteDraftData(
 export function hasUnstorableDraftMedia(
   media: readonly DraftMediaCandidate[],
 ): boolean {
-  return media.some((item) =>
-    item.uploading ||
-    item.uuid == null ||
-    item.mediumRelayId == null ||
-    (item.url == null && item.previewUrl.startsWith("blob:"))
+  return media.some(
+    (item) =>
+      item.uploading ||
+      item.uuid == null ||
+      item.mediumRelayId == null ||
+      (item.url == null && item.previewUrl.startsWith("blob:")),
   );
 }
 
 export function shouldPreserveCurrentDraftForm(
   transition: DraftScopeTransition,
 ): boolean {
-  return transition.previousLoadedKey != null &&
+  return (
+    transition.previousLoadedKey != null &&
     transition.formDraftKey === transition.previousLoadedKey &&
     transition.previousLoadedKey !== transition.nextKey &&
-    transition.dirty;
+    transition.dirty
+  );
 }
 
 export function decideExternalDraftChange(
@@ -135,9 +136,7 @@ export function decideExternalDraftChange(
   return input.dirty ? "preserve-and-resave" : "load";
 }
 
-function toStoredMedium(
-  item: DraftMediaCandidate,
-): readonly NoteDraftMedia[] {
+function toStoredMedium(item: DraftMediaCandidate): readonly NoteDraftMedia[] {
   if (
     item.uuid == null ||
     item.mediumRelayId == null ||
@@ -145,13 +144,15 @@ function toStoredMedium(
   ) {
     return [];
   }
-  return [{
-    localId: item.localId,
-    mediumRelayId: item.mediumRelayId,
-    uuid: item.uuid,
-    url: item.url ?? item.previewUrl,
-    alt: item.alt,
-    width: item.width,
-    height: item.height,
-  }];
+  return [
+    {
+      localId: item.localId,
+      mediumRelayId: item.mediumRelayId,
+      uuid: item.uuid,
+      url: item.url ?? item.previewUrl,
+      alt: item.alt,
+      width: item.width,
+      height: item.height,
+    },
+  ];
 }

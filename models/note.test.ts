@@ -62,13 +62,16 @@ test("getNoteSource() resolves renamed accounts and loads media relations", asyn
       content: "Readable note source",
     });
 
-    const [medium] = await tx.insert(mediumTable).values({
-      id: generateUuidV7(),
-      key: "note-media/test.webp",
-      type: "image/webp",
-      width: 320,
-      height: 180,
-    }).returning();
+    const [medium] = await tx
+      .insert(mediumTable)
+      .values({
+        id: generateUuidV7(),
+        key: "note-media/test.webp",
+        type: "image/webp",
+        width: 320,
+        height: 180,
+      })
+      .returning();
 
     await tx.insert(noteSourceMediumTable).values({
       sourceId: noteSourceId,

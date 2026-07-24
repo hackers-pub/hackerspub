@@ -1,14 +1,25 @@
 import { getXForwardedRequest } from "@hongminhee/x-forwarded-fetch";
 import { isIP } from "node:net";
 
-export interface ForwardedRequest<TAddr extends Deno.Addr> {
-  readonly request: Request;
-  readonly connectionInfo: Deno.ServeHandlerInfo<TAddr>;
+export interface ConnectionAddress {
+  readonly transport: string;
+  readonly hostname?: string;
+  readonly port?: number;
 }
 
-export async function applyTrustedForwarding<TAddr extends Deno.Addr>(
+export interface ConnectionInfo<TAddr extends ConnectionAddress> {
+  readonly remoteAddr: TAddr;
+  readonly completed: Promise<void>;
+}
+
+export interface ForwardedRequest<TAddr extends ConnectionAddress> {
+  readonly request: Request;
+  readonly connectionInfo: ConnectionInfo<TAddr>;
+}
+
+export async function applyTrustedForwarding<TAddr extends ConnectionAddress>(
   request: Request,
-  connectionInfo: Deno.ServeHandlerInfo<TAddr>,
+  connectionInfo: ConnectionInfo<TAddr>,
   behindProxy: boolean,
 ): Promise<ForwardedRequest<TAddr>> {
   if (!behindProxy) return { request, connectionInfo };
@@ -17,7 +28,8 @@ export async function applyTrustedForwarding<TAddr extends Deno.Addr>(
   const forwardedRequest = await getXForwardedRequest(request);
   const remoteAddr = connectionInfo.remoteAddr;
   if (
-    remoteAddr.transport !== "tcp" || forwardedFor == null ||
+    remoteAddr.transport !== "tcp" ||
+    forwardedFor == null ||
     isIP(forwardedFor) === 0
   ) {
     return { request: forwardedRequest, connectionInfo };
@@ -27,7 +39,7 @@ export async function applyTrustedForwarding<TAddr extends Deno.Addr>(
     request: forwardedRequest,
     connectionInfo: {
       ...connectionInfo,
-      remoteAddr: { ...remoteAddr, hostname: forwardedFor },
+      remoteAddr: { ...remoteAddr, hostname: forwardedFor } as TAddr,
     },
   };
 }

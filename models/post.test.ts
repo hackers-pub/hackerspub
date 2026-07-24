@@ -168,10 +168,8 @@ test("scrapePostLink() cancels unsuccessful image metadata responses", async () 
     throw new Error(`Unexpected fetch: ${url}`);
   }) as typeof fetch;
   try {
-    const link = await scrapePostLink(
-      ctx,
-      "https://example.com/article",
-      () => Promise.resolve(undefined),
+    const link = await scrapePostLink(ctx, "https://example.com/article", () =>
+      Promise.resolve(undefined),
     );
 
     assert.equal(link?.imageUrl, "https://images.example/missing.png");
@@ -201,10 +199,8 @@ test("scrapePostLink() does not fetch unsafe preview images", async () => {
     throw new Error(`Unexpected fetch: ${url}`);
   }) as typeof fetch;
   try {
-    const link = await scrapePostLink(
-      ctx,
-      "https://example.com/article",
-      () => Promise.resolve(undefined),
+    const link = await scrapePostLink(ctx, "https://example.com/article", () =>
+      Promise.resolve(undefined),
     );
 
     assert.deepEqual(requestedUrls, ["https://example.com/article"]);
@@ -246,10 +242,8 @@ test("scrapePostLink() rejects unsafe preview image redirects", async () => {
     throw new Error(`Unexpected fetch: ${url}`);
   }) as typeof fetch;
   try {
-    const link = await scrapePostLink(
-      ctx,
-      "https://example.com/article",
-      () => Promise.resolve(undefined),
+    const link = await scrapePostLink(ctx, "https://example.com/article", () =>
+      Promise.resolve(undefined),
     );
 
     assert.deepEqual(requestedUrls, [
@@ -279,10 +273,8 @@ test("scrapePostLink() ignores malformed canonical metadata", async () => {
       </html>`,
   });
 
-  const link = await scrapePostLink(
-    ctx,
-    "https://delta.chat/index.html",
-    () => Promise.resolve(undefined),
+  const link = await scrapePostLink(ctx, "https://delta.chat/index.html", () =>
+    Promise.resolve(undefined),
   );
 
   assert.equal(link?.url, "https://delta.chat/index.html");
@@ -328,10 +320,8 @@ test("scrapePostLink() uses the redirect-verified response URL", async () => {
   });
   globalThis.fetch = () => Promise.resolve(response);
   try {
-    const link = await scrapePostLink(
-      ctx,
-      "https://short.example/story",
-      () => Promise.resolve(undefined),
+    const link = await scrapePostLink(ctx, "https://short.example/story", () =>
+      Promise.resolve(undefined),
     );
 
     assert.equal(link?.url, "https://destination.example/article");
@@ -480,9 +470,11 @@ describe("withDocumentLoaderTimeout()", () => {
 
   it("propagates an already-aborted overall deadline", async () => {
     const { loader, captured } = makeLoader();
-    await withDocumentLoaderTimeout(loader, 10_000, AbortSignal.abort())(
-      "https://example.com/",
-    );
+    await withDocumentLoaderTimeout(
+      loader,
+      10_000,
+      AbortSignal.abort(),
+    )("https://example.com/");
     const signal = captured();
     assert.ok(signal != null);
     assert.deepEqual(signal.aborted, true);

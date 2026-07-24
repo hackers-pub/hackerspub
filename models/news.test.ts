@@ -78,9 +78,13 @@ function mass(
   acctWeight: number,
   { quotes = 0, replies = 0, reactions = 0 } = {},
 ): number {
-  return sourceWeight * acctWeight * (
-    NEWS_W_SHARE + NEWS_W_QUOTE * quotes + NEWS_W_REPLY * replies +
-    NEWS_W_REACT * reactions
+  return (
+    sourceWeight *
+    acctWeight *
+    (NEWS_W_SHARE +
+      NEWS_W_QUOTE * quotes +
+      NEWS_W_REPLY * replies +
+      NEWS_W_REACT * reactions)
   );
 }
 function score(weightedMass: number, latestActivity: Date): number {
@@ -102,8 +106,10 @@ function sqlText(value: unknown): string {
 // Base-share multiplier for a repeat share, mirroring the SQL: a first share is
 // 1, a repeat recovers toward NEWS_REPEAT_CAP as the gap grows.
 function repeatFactor(gapSeconds: number): number {
-  return NEWS_REPEAT_CAP *
-    (1 - Math.exp(-gapSeconds / NEWS_REPEAT_RECOVERY_TAU_SECONDS));
+  return (
+    NEWS_REPEAT_CAP *
+    (1 - Math.exp(-gapSeconds / NEWS_REPEAT_RECOVERY_TAU_SECONDS))
+  );
 }
 
 async function readLink(tx: Transaction, id: Uuid) {
@@ -134,10 +140,7 @@ test("recomputeNewsScores activeSince reuses one materialized active-link set", 
     execute: async (query: unknown): Promise<unknown[]> => {
       const text = sqlText(query);
       calls.push(text);
-      if (
-        isActiveLinkSweep(text) &&
-        !text.includes("with share_roots as")
-      ) {
+      if (isActiveLinkSweep(text) && !text.includes("with share_roots as")) {
         return [{ link_id: activeLinkId }];
       }
       if (text.includes("with share_roots as")) return [{ id: activeLinkId }];
@@ -158,8 +161,9 @@ test("recomputeNewsScores activeSince reuses one materialized active-link set", 
     "aggregate SQL should consume materialized link ids instead of embedding the active-link sweep",
   );
   assert.deepEqual(
-    calls.filter((text) =>
-      isActiveLinkSweep(text) && !text.includes("with share_roots as")
+    calls.filter(
+      (text) =>
+        isActiveLinkSweep(text) && !text.includes("with share_roots as"),
     ).length,
     1,
   );
@@ -197,10 +201,7 @@ test("recomputeNewsScores uses indexable child activity joins", async () => {
   assert.ok(aggregate != null);
   assert.ok(aggregate.includes("join post c on c.reply_target_id = s.post_id"));
   assert.ok(aggregate.includes("join post c on c.quoted_post_id = s.post_id"));
-  assert.equal(
-    aggregate.match(/max\(c\.published\) as latest/g)?.length,
-    2,
-  );
+  assert.equal(aggregate.match(/max\(c\.published\) as latest/g)?.length, 2);
   assert.deepEqual(
     aggregate.includes(
       "c.reply_target_id = s.post_id or c.quoted_post_id = s.post_id",
@@ -239,7 +240,10 @@ test("recomputeNewsScores ignores links with no public share", async () => {
       order: "popular",
       limit: 10,
     });
-    assert.deepEqual(stories.find((s) => s.id === link.id), undefined);
+    assert.deepEqual(
+      stories.find((s) => s.id === link.id),
+      undefined,
+    );
   });
 });
 
@@ -450,7 +454,8 @@ test("recomputeNewsScores excludes censored and sanction-hidden content", async 
       replyTargetId: share.id,
       published: new Date("2026-04-16T00:00:00.000Z"),
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ censored: sql`CURRENT_TIMESTAMP` })
       .where(eq(postTable.id, censoredReply.id));
     // …nor must a quote by a banned author…
@@ -459,7 +464,8 @@ test("recomputeNewsScores excludes censored and sanction-hidden content", async 
       quotedPostId: share.id,
       published: new Date("2026-04-16T00:00:00.000Z"),
     });
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: new Date("2026-04-15T01:00:00.000Z") })
       .where(eq(actorTable.id, banned.actor.id));
     // …nor a censored second share of the same link.
@@ -468,7 +474,8 @@ test("recomputeNewsScores excludes censored and sanction-hidden content", async 
       link: { id: link.id, url: link.url },
       published: new Date("2026-04-16T00:00:00.000Z"),
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ censored: sql`CURRENT_TIMESTAMP` })
       .where(eq(postTable.id, censoredShare.id));
 
@@ -607,7 +614,10 @@ test("recomputeNewsScores is idempotent", async () => {
     const a2 = await readLink(tx, a.id);
     const b2 = await readLink(tx, b.id);
 
-    for (const [first, second] of [[a1, a2], [b1, b2]] as const) {
+    for (const [first, second] of [
+      [a1, a2],
+      [b1, b2],
+    ] as const) {
       assert.deepEqual(first.score, second.score);
       assert.deepEqual(first.weightedMass, second.weightedMass);
       assert.deepEqual(first.recencyComponent, second.recencyComponent);
@@ -729,9 +739,10 @@ test("recomputeNewsScores drops a link that lost its last public share", async (
     assert.ok((await readLink(tx, link.id)).latestActivity != null);
 
     // The only public share becomes followers-only.
-    await tx.update(postTable).set({ visibility: "followers" }).where(
-      eq(postTable.id, post.id),
-    );
+    await tx
+      .update(postTable)
+      .set({ visibility: "followers" })
+      .where(eq(postTable.id, post.id));
     await recomputeNewsScores(tx);
 
     const row = await readLink(tx, link.id);
@@ -795,9 +806,10 @@ test("recomputeNewsScores activeSince still drops a link that lost its share", a
     // The only public share becomes followers-only, then a sweep runs.  The
     // sweep's zeroing scopes by the stored latestActivity, so it still
     // resets the dropped-out link even though it is no longer "active".
-    await tx.update(postTable).set({ visibility: "followers" }).where(
-      eq(postTable.id, post.id),
-    );
+    await tx
+      .update(postTable)
+      .set({ visibility: "followers" })
+      .where(eq(postTable.id, post.id));
     await recomputeNewsScores(tx, {
       activeSince: new Date("2026-05-01T00:00:00.000Z"),
     });
@@ -909,12 +921,15 @@ test("recomputeNewsScores counts boosts of Article news posts", async () => {
       published: new Date("2026-05-10T00:00:00.000Z"),
       link: { id: link.id, url: link.url },
     });
-    await tx.update(postTable).set({
-      type: "Article",
-      noteSourceId: null,
-      name: "Article",
-      url: link.url,
-    }).where(eq(postTable.id, article.id));
+    await tx
+      .update(postTable)
+      .set({
+        type: "Article",
+        noteSourceId: null,
+        name: "Article",
+        url: link.url,
+      })
+      .where(eq(postTable.id, article.id));
     await insertNotePost(tx, {
       account: booster.account,
       sharedPostId: article.id,
@@ -1138,9 +1153,10 @@ test("refreshNewsScores drops a link whose share is no longer public", async () 
 
     // The edit removes the only public share; refreshing the (previous) link
     // drops it from the feed.
-    await tx.update(postTable).set({ visibility: "followers" }).where(
-      eq(postTable.id, post.id),
-    );
+    await tx
+      .update(postTable)
+      .set({ visibility: "followers" })
+      .where(eq(postTable.id, post.id));
     await refreshNewsScores(tx, [link.id]);
     assert.deepEqual((await readLink(tx, link.id)).latestActivity, null);
     assert.deepEqual((await readLink(tx, link.id)).score, 0);
@@ -1340,7 +1356,10 @@ test("recomputeNewsScores excludes a Service-actor (bot) share", async () => {
     assert.deepEqual(row.latestActivity, null);
     assert.deepEqual(row.postCount, 0);
     const stories = await getNewsStories(tx, { order: "popular", limit: 10 });
-    assert.deepEqual(stories.find((s) => s.id === link.id), undefined);
+    assert.deepEqual(
+      stories.find((s) => s.id === link.id),
+      undefined,
+    );
   });
 });
 
@@ -1705,9 +1724,10 @@ test("refreshNewsScoresForActor re-scores links across a bot transition", async 
 
     // The actor toggles Mastodon's bot flag, federating as a Service: its
     // share no longer qualifies, and refreshing by actor drops the link.
-    await tx.update(actorTable).set({ type: "Service" }).where(
-      eq(actorTable.id, actor.id),
-    );
+    await tx
+      .update(actorTable)
+      .set({ type: "Service" })
+      .where(eq(actorTable.id, actor.id));
     await refreshNewsScoresForActor(tx, actor.id);
     const botted = await readLink(tx, link.id);
     assert.deepEqual(botted.score, 0);
@@ -1715,9 +1735,10 @@ test("refreshNewsScoresForActor re-scores links across a bot transition", async 
     assert.deepEqual(botted.postCount, 0);
 
     // Turning the bot flag back off re-scores the link.
-    await tx.update(actorTable).set({ type: "Person" }).where(
-      eq(actorTable.id, actor.id),
-    );
+    await tx
+      .update(actorTable)
+      .set({ type: "Person" })
+      .where(eq(actorTable.id, actor.id));
     await refreshNewsScoresForActor(tx, actor.id);
     assert.ok((await readLink(tx, link.id)).latestActivity != null);
   });
@@ -2008,16 +2029,18 @@ test("getNewsStories excludes links matching an exclusion pattern", async () => 
       link: { id: good.id, url: good.url },
     });
     await recomputeNewsScores(tx);
-    const before = (await getNewsStories(tx, { order: "popular", limit: 10 }))
-      .map((l) => l.id);
+    const before = (
+      await getNewsStories(tx, { order: "popular", limit: 10 })
+    ).map((l) => l.id);
     assert.ok(before.includes(spam.id) && before.includes(good.id));
 
     await addNewsExcludedPattern(tx, { pattern: "https://spam.example/*" });
 
     // Excluded from every sort order, but the row remains (reachable by id).
     for (const order of ["popular", "newest", "allTime"] as const) {
-      const got = (await getNewsStories(tx, { order, limit: 10 }))
-        .map((l) => l.id);
+      const got = (await getNewsStories(tx, { order, limit: 10 })).map(
+        (l) => l.id,
+      );
       assert.ok(!got.includes(spam.id), `${order} must exclude the spam link`);
       assert.ok(got.includes(good.id), `${order} must keep the good link`);
     }
@@ -2028,8 +2051,9 @@ test("getNewsStories excludes links matching an exclusion pattern", async () => 
     const [pattern] = await getNewsExcludedPatterns(tx);
     await removeNewsExcludedPattern(tx, pattern.id);
     assert.deepEqual((await readLink(tx, spam.id)).excludedFromNews, false);
-    const after = (await getNewsStories(tx, { order: "popular", limit: 10 }))
-      .map((l) => l.id);
+    const after = (
+      await getNewsStories(tx, { order: "popular", limit: 10 })
+    ).map((l) => l.id);
     assert.ok(after.includes(spam.id));
   });
 });
@@ -2054,8 +2078,9 @@ test("recomputeNewsScores flags a newly-shared link matching a pattern", async (
     await recomputeNewsScores(tx);
 
     assert.deepEqual((await readLink(tx, link.id)).excludedFromNews, true);
-    const ids = (await getNewsStories(tx, { order: "popular", limit: 10 }))
-      .map((l) => l.id);
+    const ids = (await getNewsStories(tx, { order: "popular", limit: 10 })).map(
+      (l) => l.id,
+    );
     assert.ok(!ids.includes(link.id));
   });
 });
@@ -2228,11 +2253,7 @@ test("a preferred sharer whitelists an otherwise-excluded bot's shares", async (
     const promoted = await readLink(tx, link.id);
     assert.deepEqual(promoted.postCount, 1);
     assert.ok(promoted.latestActivity != null);
-    assertAlmostEquals(
-      promoted.weightedMass,
-      NEWS_SOURCE_WEIGHT_REMOTE,
-      1e-9,
-    );
+    assertAlmostEquals(promoted.weightedMass, NEWS_SOURCE_WEIGHT_REMOTE, 1e-9);
     assert.deepEqual(promoted.promotionBonus, NEWS_PROMOTE_NORMAL);
     assertAlmostEquals(
       promoted.score,
@@ -2243,8 +2264,9 @@ test("a preferred sharer whitelists an otherwise-excluded bot's shares", async (
     const breakdowns = await getNewsSourceBreakdowns(tx, [link.id]);
     assert.deepEqual(breakdowns.get(link.id)?.remote, 1);
     assert.ok(
-      (await getNewsStories(tx, { order: "popular", limit: 10 }))
-        .some((l) => l.id === link.id),
+      (await getNewsStories(tx, { order: "popular", limit: 10 })).some(
+        (l) => l.id === link.id,
+      ),
     );
 
     // Removing the preferred sharer drops the bot-only link back out.
@@ -2257,8 +2279,9 @@ test("a preferred sharer whitelists an otherwise-excluded bot's shares", async (
     assert.deepEqual(dropped.promotionBonus, 0);
     assert.deepEqual(dropped.postCount, 0);
     assert.deepEqual(
-      (await getNewsStories(tx, { order: "popular", limit: 10 }))
-        .find((l) => l.id === link.id),
+      (await getNewsStories(tx, { order: "popular", limit: 10 })).find(
+        (l) => l.id === link.id,
+      ),
       undefined,
     );
   });
@@ -2400,16 +2423,10 @@ test("addNewsPreferredSharer defers the rescore to drainNewsRescoreQueue", async
     assert.deepEqual(result.actorsProcessed, 1);
     assert.ok(result.linksRecomputed >= 1);
     assert.ok((await readLink(tx, link.id)).latestActivity != null);
-    assert.deepEqual(
-      (await tx.select().from(newsRescoreQueueTable)).length,
-      0,
-    );
+    assert.deepEqual((await tx.select().from(newsRescoreQueueTable)).length, 0);
 
     // A second drain with an empty queue is a no-op.
-    assert.deepEqual(
-      (await drainNewsRescoreQueue(tx)).actorsProcessed,
-      0,
-    );
+    assert.deepEqual((await drainNewsRescoreQueue(tx)).actorsProcessed, 0);
   });
 });
 

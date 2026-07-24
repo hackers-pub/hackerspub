@@ -10,7 +10,7 @@ import {
 } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { ActorNoteList_notes$key } from "./__generated__/ActorNoteList_notes.graphql.ts";
 import { NoteCard } from "./NoteCard.tsx";
 
@@ -24,17 +24,15 @@ export function ActorNoteList(props: ActorNoteListProps) {
   const notes = createPaginationFragment(
     graphql`
       fragment ActorNoteList_notes on Actor
-        @refetchable(queryName: "ActorNoteListQuery")
-        @argumentDefinitions(
-          cursor: { type: "String" }
-          count: { type: "Int", defaultValue: 20 }
-          actingAccountId: { type: "ID" }
-        )
-      {
+      @refetchable(queryName: "ActorNoteListQuery")
+      @argumentDefinitions(
+        cursor: { type: "String" }
+        count: { type: "Int", defaultValue: 20 }
+        actingAccountId: { type: "ID" }
+      ) {
         __id
         notes(after: $cursor, first: $count, actingAccountId: $actingAccountId)
-          @connection(key: "ActorNoteList_notes")
-        {
+          @connection(key: "ActorNoteList_notes") {
           __id
           edges {
             __id
@@ -55,12 +53,14 @@ export function ActorNoteList(props: ActorNoteListProps) {
   >("loaded");
   const actingAccountId = () => actingAccount.selectedActingAccountId();
 
-  createEffect(on(
-    actingAccountId,
-    (actingAccountId) =>
-      notes.refetch({ actingAccountId: actingAccountId ?? null }),
-    { defer: true },
-  ));
+  createEffect(
+    on(
+      actingAccountId,
+      (actingAccountId) =>
+        notes.refetch({ actingAccountId: actingAccountId ?? null }),
+      { defer: true },
+    ),
+  );
 
   function onLoadMore() {
     setLoadingState("loading");

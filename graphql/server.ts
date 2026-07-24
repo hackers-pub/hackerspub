@@ -10,7 +10,7 @@ import { isActorBanned } from "@hackerspub/models/moderation";
 import { ensureSuspensionEndingNotification } from "@hackerspub/models/moderation-notification";
 import { deleteSession, getSession } from "@hackerspub/models/session";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
-import * as Sentry from "@sentry/deno";
+import * as Sentry from "@sentry/node";
 import { getCookies } from "@std/http/cookie";
 import { execute } from "graphql";
 import {
@@ -18,11 +18,12 @@ import {
   type Plugin as EnvelopPlugin,
   type YogaServerInstance,
 } from "graphql-yoga";
+import process from "node:process";
 import type { ServerContext, UserContext } from "./builder.ts";
 import { schema as graphqlSchema } from "./mod.ts";
 import { useQuerySnapshotTransaction } from "./query-tx-plugin.ts";
 
-const sentryEnabled = Deno.env.get("SENTRY_DSN") != null;
+const sentryEnabled = process.env.SENTRY_DSN != null;
 
 export function createYogaServer(): YogaServerInstance<
   ServerContext,
@@ -43,16 +44,15 @@ export function createYogaServer(): YogaServerInstance<
         if (validateUuid(cookies.session)) sessionId = cookies.session;
       }
 
-      let session = sessionId == null
-        ? undefined
-        : await getSession(kv, sessionId);
+      let session =
+        sessionId == null ? undefined : await getSession(kv, sessionId);
       let account:
-        | Account & {
-          actor: Actor;
-          avatarMedium: Medium | null;
-          emails: AccountEmail[];
-          links: AccountLink[];
-        }
+        | (Account & {
+            actor: Actor;
+            avatarMedium: Medium | null;
+            emails: AccountEmail[];
+            links: AccountLink[];
+          })
         | undefined;
 
       if (session != null) {
@@ -85,8 +85,7 @@ export function createYogaServer(): YogaServerInstance<
           // temporary suspension; create the suspension_ending
           // notification when the suspended user visits during the final
           // window (deduplicated by a partial unique index).
-          await ensureSuspensionEndingNotification(db, account)
-            .catch(() => {});
+          await ensureSuspensionEndingNotification(db, account).catch(() => {});
         }
       }
 
@@ -219,7 +218,7 @@ export function createYogaServer(): YogaServerInstance<
             execute({
               ...args,
               onError: noPropagate ? "NO_PROPAGATE" : "PROPAGATE",
-            })
+            }),
           );
         },
       } as EnvelopPlugin,

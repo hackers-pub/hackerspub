@@ -27,15 +27,19 @@ export function NavigateIfHandleIsNotCanonical(
     <Show keyed when={actor()}>
       {(actor) => (
         <Show
-          when={actor.local && params.handle != null &&
-            params.handle.indexOf("@", 1) > 0}
+          when={
+            actor.local &&
+            params.handle != null &&
+            params.handle.indexOf("@", 1) > 0
+          }
           fallback={null}
         >
           <Navigate
-            href={location.pathname.replace(
-              /^\/@[^/]+/,
-              `/@${actor.username}`,
-            ) + location.search + location.hash}
+            href={
+              location.pathname.replace(/^\/@[^/]+/, `/@${actor.username}`) +
+              location.search +
+              location.hash
+            }
           />
         </Show>
       )}

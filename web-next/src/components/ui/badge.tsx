@@ -25,10 +25,8 @@ const badgeVariants = cva(
   },
 );
 
-type BadgeProps =
-  & ComponentProps<"div">
-  & VariantProps<typeof badgeVariants>
-  & {
+type BadgeProps = ComponentProps<"div"> &
+  VariantProps<typeof badgeVariants> & {
     round?: boolean;
   };
 

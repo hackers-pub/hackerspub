@@ -12,7 +12,7 @@ import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { ProfileTabs } from "~/components/ProfileTabs.tsx";
 import { Title } from "~/components/Title.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   PROFILE_SHARES_QUERY_KEY,
   profileContentRevalidating,
@@ -41,10 +41,8 @@ const sharesPageQuery = graphql`
       viewerBlocks(actingAccountId: $actingAccountId)
       blocksViewer(actingAccountId: $actingAccountId)
       ...NavigateIfHandleIsNotCanonical_actor
-      ...ActorSharedPostList_sharedPosts @arguments(
-        locale: $locale
-        actingAccountId: $actingAccountId
-      )
+      ...ActorSharedPostList_sharedPosts
+        @arguments(locale: $locale, actingAccountId: $actingAccountId)
       ...ProfileCard_actor @arguments(actingAccountId: $actingAccountId)
       ...ProfileTabs_actor @arguments(actingAccountId: $actingAccountId)
     }
@@ -80,8 +78,7 @@ export default function ProfileSharesPage() {
     <Show keyed when={data()}>
       {(data) => (
         <>
-          {
-            /*
+          {/*
             `keyed` prevents a "Stale read from <Show>" race: when
             solid-relay's fragment subscription publishes a new snapshot
             inside `batch()`, a non-keyed `<Show>{(actor) => ...}` accessor
@@ -89,8 +86,7 @@ export default function ProfileSharesPage() {
             that an inner reactive computation re-runs. Reconcile keeps the
             actor's identity stable (`key: "__id"`), so `keyed` only
             re-mounts when navigating to a different actor.
-          */
-          }
+          */}
           <Show
             keyed
             when={data.actorByHandle}
@@ -98,9 +94,7 @@ export default function ProfileSharesPage() {
           >
             {(actor) => (
               <NarrowContainer>
-                <Title>
-                  {t`${actor.rawName ?? actor.username}'s shares`}
-                </Title>
+                <Title>{t`${actor.rawName ?? actor.username}'s shares`}</Title>
                 <Meta
                   property="og:title"
                   content={t`${actor.rawName ?? actor.username}'s shares`}
@@ -110,8 +104,11 @@ export default function ProfileSharesPage() {
                   <ProfileCard $actor={actor} />
                 </div>
                 <Show
-                  when={!actor.viewerBlocks && !actor.blocksViewer &&
-                    !profileContentRevalidating()}
+                  when={
+                    !actor.viewerBlocks &&
+                    !actor.blocksViewer &&
+                    !profileContentRevalidating()
+                  }
                 >
                   <div class="p-4">
                     <ProfileTabs selected="shares" $actor={actor} />

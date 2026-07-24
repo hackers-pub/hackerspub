@@ -153,31 +153,25 @@ describe("addExternalLinkTargets()", () => {
     );
   });
 
-  it(
-    "leaves anchors with an existing non-blank target untouched",
-    () => {
-      assert.deepEqual(
-        addExternalLinkTargets(
-          '<p><a href="https://example.com" target="_self">link</a></p>',
-          new URL("https://hackers.pub"),
-        ),
+  it("leaves anchors with an existing non-blank target untouched", () => {
+    assert.deepEqual(
+      addExternalLinkTargets(
         '<p><a href="https://example.com" target="_self">link</a></p>',
-      );
-    },
-  );
+        new URL("https://hackers.pub"),
+      ),
+      '<p><a href="https://example.com" target="_self">link</a></p>',
+    );
+  });
 
-  it(
-    "hardens rel on pre-existing target=_blank external links",
-    () => {
-      assert.deepEqual(
-        addExternalLinkTargets(
-          '<p><a href="https://evil.example" target="_blank">link</a></p>',
-          new URL("https://hackers.pub"),
-        ),
-        '<p><a href="https://evil.example" target="_blank" rel="noopener noreferrer">link</a></p>',
-      );
-    },
-  );
+  it("hardens rel on pre-existing target=_blank external links", () => {
+    assert.deepEqual(
+      addExternalLinkTargets(
+        '<p><a href="https://evil.example" target="_blank">link</a></p>',
+        new URL("https://hackers.pub"),
+      ),
+      '<p><a href="https://evil.example" target="_blank" rel="noopener noreferrer">link</a></p>',
+    );
+  });
 
   it("merges rel tokens on pre-existing target=_blank links", () => {
     assert.deepEqual(
@@ -209,17 +203,12 @@ describe("addExternalLinkTargets()", () => {
     );
   });
 
-  it(
-    "treats all http(s) links as external when no localDomain",
-    () => {
-      assert.deepEqual(
-        addExternalLinkTargets(
-          '<p><a href="https://hackers.pub/x">x</a></p>',
-        ),
-        '<p><a href="https://hackers.pub/x" target="_blank" rel="noopener noreferrer">x</a></p>',
-      );
-    },
-  );
+  it("treats all http(s) links as external when no localDomain", () => {
+    assert.deepEqual(
+      addExternalLinkTargets('<p><a href="https://hackers.pub/x">x</a></p>'),
+      '<p><a href="https://hackers.pub/x" target="_blank" rel="noopener noreferrer">x</a></p>',
+    );
+  });
 
   it("accepts URL for localDomain", () => {
     assert.deepEqual(
@@ -298,10 +287,7 @@ describe("stripHtml()", () => {
   });
 
   it("handles br tags", () => {
-    assert.deepEqual(
-      stripHtml("Line 1<br>Line 2"),
-      "Line 1\nLine 2",
-    );
+    assert.deepEqual(stripHtml("Line 1<br>Line 2"), "Line 1\nLine 2");
   });
 
   it("handles complex nested HTML", () => {
@@ -345,10 +331,7 @@ describe("stripHtml()", () => {
       stripHtml("<p>Unclosed tag <span>content</p>more text"),
       "Unclosed tag content\n\nmore text",
     );
-    assert.deepEqual(
-      stripHtml("<>empty tags</>"),
-      "empty tags",
-    );
+    assert.deepEqual(stripHtml("<>empty tags</>"), "empty tags");
   });
 
   it("handles self-closing tags", () => {
@@ -417,68 +400,44 @@ describe("truncateHtml()", () => {
   });
 
   it("trims trailing whitespace before the ellipsis", () => {
+    assert.deepEqual(truncateHtml("<p>Hello   world</p>", 8), "<p>Hello…</p>");
+  });
+
+  it("treats exact-fill text as the cutoff when more content follows", () => {
+    // The first <p> is exactly 5 chars and there's more content after it,
+    // so the ellipsis must land in the first paragraph and the <img> + the
+    // second <p> must be dropped. The first paragraph keeps all 5 chars
+    // (the budget is the visible-text cap, the ellipsis is overhead).
     assert.deepEqual(
-      truncateHtml("<p>Hello   world</p>", 8),
+      truncateHtml(`<p>Hello</p><img src="x.png" alt=""><p>World</p>`, 5),
       "<p>Hello…</p>",
     );
   });
 
-  it(
-    "treats exact-fill text as the cutoff when more content follows",
-    () => {
-      // The first <p> is exactly 5 chars and there's more content after it,
-      // so the ellipsis must land in the first paragraph and the <img> + the
-      // second <p> must be dropped. The first paragraph keeps all 5 chars
-      // (the budget is the visible-text cap, the ellipsis is overhead).
-      assert.deepEqual(
-        truncateHtml(
-          `<p>Hello</p><img src="x.png" alt=""><p>World</p>`,
-          5,
-        ),
-        "<p>Hello…</p>",
-      );
-    },
-  );
-
-  it(
-    "counts and slices by grapheme clusters, not UTF-16 code units",
-    () => {
-      // Each emoji here is a multi-code-unit grapheme cluster. With a budget
-      // of 3 we should keep the first three emoji intact (no half surrogates),
-      // then append the ellipsis.
-      assert.deepEqual(
-        truncateHtml("<p>😀😁😂😃😄</p>", 3),
-        "<p>😀😁😂…</p>",
-      );
-      // ZWJ-joined family emoji is one grapheme cluster.
-      assert.deepEqual(
-        truncateHtml("<p>👨‍👩‍👧‍👦 hello world</p>", 4),
-        "<p>👨‍👩‍👧‍👦 he…</p>",
-      );
-    },
-  );
+  it("counts and slices by grapheme clusters, not UTF-16 code units", () => {
+    // Each emoji here is a multi-code-unit grapheme cluster. With a budget
+    // of 3 we should keep the first three emoji intact (no half surrogates),
+    // then append the ellipsis.
+    assert.deepEqual(truncateHtml("<p>😀😁😂😃😄</p>", 3), "<p>😀😁😂…</p>");
+    // ZWJ-joined family emoji is one grapheme cluster.
+    assert.deepEqual(truncateHtml("<p>👨‍👩‍👧‍👦 hello world</p>", 4), "<p>👨‍👩‍👧‍👦 he…</p>");
+  });
 
   it("returns input unchanged when graphemes fit the budget", () => {
     // 5 emoji in input, budget 5 → fits, no truncation.
-    assert.deepEqual(
-      truncateHtml("<p>😀😁😂😃😄</p>", 5),
-      "<p>😀😁😂😃😄</p>",
-    );
+    assert.deepEqual(truncateHtml("<p>😀😁😂😃😄</p>", 5), "<p>😀😁😂😃😄</p>");
   });
 });
 
 describe("removeQuoteInlineFallback()", () => {
-  it(
-    "removes Mastodon-style <p class=quote-inline> at beginning",
-    () => {
-      assert.deepEqual(
-        removeQuoteInlineFallback(
-          '<p class="quote-inline">RE: <a href="https://example.com">https://example.com</a></p><p>Normal text</p>',
-        ),
-        "<p>Normal text</p>",
-      );
-    },
-  );
+  it("removes Mastodon-style <p class=quote-inline> at beginning", () => {
+    assert.deepEqual(
+      removeQuoteInlineFallback(
+        '<p class="quote-inline">RE: <a href="https://example.com">https://example.com</a></p><p>Normal text</p>',
+      ),
+      "<p>Normal text</p>",
+    );
+  });
 
   it("removes standalone <p class=quote-inline>", () => {
     assert.deepEqual(
@@ -489,53 +448,41 @@ describe("removeQuoteInlineFallback()", () => {
     );
   });
 
-  it(
-    "removes inline span and preceding <br> elements (newer Misskey format)",
-    () => {
-      assert.deepEqual(
-        removeQuoteInlineFallback(
-          '<p>Some text<br/><br/><span class="quote-inline">RE: <a href="https://example.com">https://example.com</a></span></p>',
-        ),
-        "<p>Some text</p>",
-      );
-    },
-  );
+  it("removes inline span and preceding <br> elements (newer Misskey format)", () => {
+    assert.deepEqual(
+      removeQuoteInlineFallback(
+        '<p>Some text<br/><br/><span class="quote-inline">RE: <a href="https://example.com">https://example.com</a></span></p>',
+      ),
+      "<p>Some text</p>",
+    );
+  });
 
-  it(
-    "removes inline span with internal <br> elements (Bluesky format)",
-    () => {
-      assert.deepEqual(
-        removeQuoteInlineFallback(
-          '<p>그럴리가없는데<span class="quote-inline"><br><br>RE: <a href="https://example.com">https://example.com</a></span></p>',
-        ),
-        "<p>그럴리가없는데</p>",
-      );
-    },
-  );
+  it("removes inline span with internal <br> elements (Bluesky format)", () => {
+    assert.deepEqual(
+      removeQuoteInlineFallback(
+        '<p>그럴리가없는데<span class="quote-inline"><br><br>RE: <a href="https://example.com">https://example.com</a></span></p>',
+      ),
+      "<p>그럴리가없는데</p>",
+    );
+  });
 
-  it(
-    "removes inline span with QT text (Fedibird format)",
-    () => {
-      assert.deepEqual(
-        removeQuoteInlineFallback(
-          '<p>일부 텍스트<span class="quote-inline"><br/>QT: <a href="https://example.com">https://example.com</a></span></p>',
-        ),
-        "<p>일부 텍스트</p>",
-      );
-    },
-  );
+  it("removes inline span with QT text (Fedibird format)", () => {
+    assert.deepEqual(
+      removeQuoteInlineFallback(
+        '<p>일부 텍스트<span class="quote-inline"><br/>QT: <a href="https://example.com">https://example.com</a></span></p>',
+      ),
+      "<p>일부 텍스트</p>",
+    );
+  });
 
-  it(
-    "removes Misskey-transformed quote-inline pattern",
-    () => {
-      assert.deepEqual(
-        removeQuoteInlineFallback(
-          '<p><span>text<span class="quote-inline"><br><br>RE: </span></span><a class="quote-inline" href="https://example.com">https://example.com</a></p>',
-        ),
-        "<p><span>text</span></p>",
-      );
-    },
-  );
+  it("removes Misskey-transformed quote-inline pattern", () => {
+    assert.deepEqual(
+      removeQuoteInlineFallback(
+        '<p><span>text<span class="quote-inline"><br><br>RE: </span></span><a class="quote-inline" href="https://example.com">https://example.com</a></p>',
+      ),
+      "<p><span>text</span></p>",
+    );
+  });
 
   it("leaves content without quote-inline unchanged", () => {
     assert.deepEqual(
@@ -544,15 +491,12 @@ describe("removeQuoteInlineFallback()", () => {
     );
   });
 
-  it(
-    "removes paragraphs that become empty after span removal",
-    () => {
-      assert.deepEqual(
-        removeQuoteInlineFallback(
-          '<p><span class="quote-inline">RE: <a href="https://example.com">https://example.com</a></span></p>',
-        ),
-        "",
-      );
-    },
-  );
+  it("removes paragraphs that become empty after span removal", () => {
+    assert.deepEqual(
+      removeQuoteInlineFallback(
+        '<p><span class="quote-inline">RE: <a href="https://example.com">https://example.com</a></span></p>',
+      ),
+      "",
+    );
+  });
 });

@@ -21,8 +21,9 @@ export function SmallProfileCard(props: SmallProfileCardProps) {
   const actor = createFragment(
     graphql`
       fragment SmallProfileCard_actor on Actor
-        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
-      {
+      @argumentDefinitions(
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
         avatarUrl
         name
         bio
@@ -91,8 +92,7 @@ export function SmallProfileCard(props: SmallProfileCardProps) {
                 ref={setBioRef}
                 innerHTML={bio}
                 class="prose dark:prose-invert break-words"
-              >
-              </div>
+              ></div>
             )}
           </Show>
           <MentionHoverCardLayer state={mentionState} />

@@ -42,12 +42,11 @@ async function fetchWithSafeRedirects(
   init: Omit<RequestInit, "redirect">,
 ): Promise<Response> {
   let currentUrl = url;
-  for (let redirectCount = 0;; redirectCount++) {
+  for (let redirectCount = 0; ; redirectCount++) {
     assertSafeRemoteUrl(currentUrl);
     const response = await fetch(currentUrl, { ...init, redirect: "manual" });
-    const responseUrl = response.url === ""
-      ? currentUrl
-      : new URL(response.url);
+    const responseUrl =
+      response.url === "" ? currentUrl : new URL(response.url);
     try {
       assertSafeRemoteUrl(responseUrl);
     } catch (error) {
@@ -111,17 +110,20 @@ export async function repairBrokenLinkPreviews(
   db: Database,
   options: RepairBrokenLinkPreviewsOptions = {},
 ): Promise<RepairBrokenLinkPreviewsResult> {
-  const selectedLinks = options.linkIds == null
-    ? await db.select().from(postLinkTable).where(
-      sql`${postLinkTable.url} ~* '/(undefined|null)/?(\\?|$)'`,
-    )
-    : options.linkIds.length < 1
-    ? []
-    : await db.select().from(postLinkTable).where(
-      inArray(postLinkTable.id, [...options.linkIds]),
-    );
+  const selectedLinks =
+    options.linkIds == null
+      ? await db
+          .select()
+          .from(postLinkTable)
+          .where(sql`${postLinkTable.url} ~* '/(undefined|null)/?(\\?|$)'`)
+      : options.linkIds.length < 1
+        ? []
+        : await db
+            .select()
+            .from(postLinkTable)
+            .where(inArray(postLinkTable.id, [...options.linkIds]));
   const brokenLinks = selectedLinks.filter((link) =>
-    isBrokenResolvedUrl(link.url)
+    isBrokenResolvedUrl(link.url),
   );
   if (brokenLinks.length < 1) {
     return { brokenLinks: 0, repairedPosts: 0, unresolvedPosts: 0 };
@@ -187,51 +189,60 @@ export async function repairBrokenLinkPreviews(
       continue;
     }
 
-    const [replacement] = await db.insert(postLinkTable).values({
-      id: generateUuidV7(),
-      url: resolvedUrl.href,
-      title: brokenLink.title ?? undefined,
-      siteName: brokenLink.siteName ?? undefined,
-      type: brokenLink.type ?? undefined,
-      description: brokenLink.description ?? undefined,
-      author: brokenLink.author ?? undefined,
-      imageUrl: brokenLink.imageUrl ?? undefined,
-      imageAlt: brokenLink.imageAlt ?? undefined,
-      imageType: brokenLink.imageType ?? undefined,
-      imageWidth: brokenLink.imageWidth ?? undefined,
-      imageHeight: brokenLink.imageHeight ?? undefined,
-      creatorId: brokenLink.creatorId ?? undefined,
-      scorePenalty: brokenLink.scorePenalty,
-      created: brokenLink.created,
-      scraped: brokenLink.scraped,
-    }).onConflictDoUpdate({
-      target: postLinkTable.url,
-      set: {
-        // A moderator penalty may exist on either URL identity.  Keep the
-        // stronger one when the repaired URL already has a link row.
-        scorePenalty:
-          sql`greatest(${postLinkTable.scorePenalty}, excluded.score_penalty)`,
-      },
-    }).returning({
-      id: postLinkTable.id,
-    });
+    const [replacement] = await db
+      .insert(postLinkTable)
+      .values({
+        id: generateUuidV7(),
+        url: resolvedUrl.href,
+        title: brokenLink.title ?? undefined,
+        siteName: brokenLink.siteName ?? undefined,
+        type: brokenLink.type ?? undefined,
+        description: brokenLink.description ?? undefined,
+        author: brokenLink.author ?? undefined,
+        imageUrl: brokenLink.imageUrl ?? undefined,
+        imageAlt: brokenLink.imageAlt ?? undefined,
+        imageType: brokenLink.imageType ?? undefined,
+        imageWidth: brokenLink.imageWidth ?? undefined,
+        imageHeight: brokenLink.imageHeight ?? undefined,
+        creatorId: brokenLink.creatorId ?? undefined,
+        scorePenalty: brokenLink.scorePenalty,
+        created: brokenLink.created,
+        scraped: brokenLink.scraped,
+      })
+      .onConflictDoUpdate({
+        target: postLinkTable.url,
+        set: {
+          // A moderator penalty may exist on either URL identity.  Keep the
+          // stronger one when the repaired URL already has a link row.
+          scorePenalty: sql`greatest(${postLinkTable.scorePenalty}, excluded.score_penalty)`,
+        },
+      })
+      .returning({
+        id: postLinkTable.id,
+      });
     const replacementId = replacement?.id;
     if (replacementId == null) {
       unresolvedPosts++;
       continue;
     }
 
-    await db.update(postTable).set({
-      linkId: replacementId,
-      linkUrl: sharedUrl.href,
-    }).where(eq(postTable.id, post.id));
+    await db
+      .update(postTable)
+      .set({
+        linkId: replacementId,
+        linkUrl: sharedUrl.href,
+      })
+      .where(eq(postTable.id, post.id));
     affectedLinkIds.add(replacementId);
     repairedPosts++;
   }
 
   await recomputeNewsScores(db, { linkIds: [...affectedLinkIds] });
   await db.delete(postLinkTable).where(sql`
-    ${inArray(postLinkTable.id, brokenLinks.map((link) => link.id))}
+    ${inArray(
+      postLinkTable.id,
+      brokenLinks.map((link) => link.id),
+    )}
     AND NOT EXISTS (
       SELECT 1 FROM ${postTable}
       WHERE ${postTable.linkId} = ${postLinkTable.id}
@@ -271,9 +282,8 @@ export async function scrapePostLink(
     lg.warn("Failed to fetch {url}: {error}", { url: url.href, error });
     return undefined;
   }
-  const responseUrl = response.url == null || response.url === ""
-    ? url.href
-    : response.url;
+  const responseUrl =
+    response.url == null || response.url === "" ? url.href : response.url;
   if (!response.ok) {
     // Best-effort: many sites refuse scrapers (403) or are briefly down (5xx).
     // Not actionable, so `warn` rather than `error`.
@@ -288,7 +298,8 @@ export async function scrapePostLink(
   const fullContentType = response.headers.get("Content-Type");
   const contentType = fullContentType?.replace(/\s*;.*$/, "");
   if (
-    contentType === "application/pdf" || contentType === "application/x-pdf"
+    contentType === "application/pdf" ||
+    contentType === "application/x-pdf"
   ) {
     try {
       const pdf = await PDFDocument.load(await response.arrayBuffer(), {
@@ -318,12 +329,10 @@ export async function scrapePostLink(
     return undefined;
   }
   const contentTypeParams = Object.fromEntries(
-    (fullContentType
-      ?.replace(/^[^;]*;\s*/, "")
-      ?.split(/\s*;\s*/g) ?? []).map((pair: string) => pair.split(/\s*=\s*/))
-      .filter((pair) => pair.length === 2).map((pair) =>
-        pair as [string, string]
-      ),
+    (fullContentType?.replace(/^[^;]*;\s*/, "")?.split(/\s*;\s*/g) ?? [])
+      .map((pair: string) => pair.split(/\s*=\s*/))
+      .filter((pair) => pair.length === 2)
+      .map((pair) => pair as [string, string]),
   );
   let charset = contentTypeParams.charset
     ?.replace(/^(["'])(.*)\1$/, "$2")
@@ -348,9 +357,10 @@ export async function scrapePostLink(
 
   let html: string;
   try {
-    html = !charset || charset === "utf-8" || charset === "utf8"
-      ? new TextDecoder().decode(bytes)
-      : iconv.decode(Buffer.from(bytes), charset);
+    html =
+      !charset || charset === "utf-8" || charset === "utf8"
+        ? new TextDecoder().decode(bytes)
+        : iconv.decode(Buffer.from(bytes), charset);
   } catch (error) {
     lg.warn("Failed to decode HTML from {url}: {error}", {
       url: responseUrl,
@@ -400,37 +410,43 @@ export async function scrapePostLink(
     imageType?: string;
     imageWidth?: number;
     imageHeight?: number;
-  } = ogImage.length > 0
-    ? {
-      imageUrl: ogImage[0].url,
-      imageAlt: ogImage[0].alt,
-      imageType: ogImage[0].type === "png"
-        ? "image/png"
-        : ogImage[0].type === "jpg" || ogImage[0].type === "jpeg"
-        ? "image/jpeg"
-        : ogImage[0].type == null ||
-            !ogImage[0].type.startsWith("image/")
-        ? undefined
-        : ogImage[0].type,
-      imageWidth: typeof ogImage[0].width === "string"
-        ? parseInt(ogImage[0].width)
-        : ogImage[0].width,
-      imageHeight: typeof ogImage[0].height === "string"
-        ? parseInt(ogImage[0].height)
-        : ogImage[0].height,
-    }
-    : twitterImage.length > 0
-    ? {
-      imageUrl: twitterImage[0].url,
-      imageAlt: twitterImage[0].alt,
-      imageWidth: typeof twitterImage[0].width === "string"
-        ? parseInt(twitterImage[0].width)
-        : twitterImage[0].width,
-      imageHeight: typeof twitterImage[0].height === "string"
-        ? parseInt(twitterImage[0].height)
-        : twitterImage[0].height,
-    }
-    : {};
+  } =
+    ogImage.length > 0
+      ? {
+          imageUrl: ogImage[0].url,
+          imageAlt: ogImage[0].alt,
+          imageType:
+            ogImage[0].type === "png"
+              ? "image/png"
+              : ogImage[0].type === "jpg" || ogImage[0].type === "jpeg"
+                ? "image/jpeg"
+                : ogImage[0].type == null ||
+                    !ogImage[0].type.startsWith("image/")
+                  ? undefined
+                  : ogImage[0].type,
+          imageWidth:
+            typeof ogImage[0].width === "string"
+              ? parseInt(ogImage[0].width)
+              : ogImage[0].width,
+          imageHeight:
+            typeof ogImage[0].height === "string"
+              ? parseInt(ogImage[0].height)
+              : ogImage[0].height,
+        }
+      : twitterImage.length > 0
+        ? {
+            imageUrl: twitterImage[0].url,
+            imageAlt: twitterImage[0].alt,
+            imageWidth:
+              typeof twitterImage[0].width === "string"
+                ? parseInt(twitterImage[0].width)
+                : twitterImage[0].width,
+            imageHeight:
+              typeof twitterImage[0].height === "string"
+                ? parseInt(twitterImage[0].height)
+                : twitterImage[0].height,
+          }
+        : {};
   if (image.imageUrl != null) {
     try {
       const imageUrl = new URL(image.imageUrl, responseUrl);
@@ -456,9 +472,9 @@ export async function scrapePostLink(
             software: "HackersPub",
             url: new URL(fedCtx.canonicalOrigin),
           }),
-          "Accept": "image/*",
-          "Range": `bytes=0-${SCRAPE_IMAGE_METADATA_BYTES_LIMIT - 1}`,
-          "Referer": responseUrl,
+          Accept: "image/*",
+          Range: `bytes=0-${SCRAPE_IMAGE_METADATA_BYTES_LIMIT - 1}`,
+          Referer: responseUrl,
         },
         signal: getRemoteFetchSignal(options.signal),
       });
@@ -495,10 +511,10 @@ export async function scrapePostLink(
         await response.body?.cancel().catch(() => {});
       }
     } catch (error) {
-      logger.debug(
-        "Failed to fetch image {url}: {error}",
-        { url: image.imageUrl, error },
-      );
+      logger.debug("Failed to fetch image {url}: {error}", {
+        url: image.imageUrl,
+        error,
+      });
       if (error instanceof UnsafeRemoteUrlError) {
         clearPreviewImage(image);
       } else {
@@ -507,13 +523,14 @@ export async function scrapePostLink(
       }
     }
   }
-  const creatorHandle = result.customMetaTags?.fediverseCreator == null
-    ? undefined
-    : Array.isArray(result.customMetaTags.fediverseCreator)
-    ? result.customMetaTags.fediverseCreator[0]
-    : result.customMetaTags.fediverseCreator;
-  const declaredCanonicalUrl = result.ogUrl ?? result.twitterUrl ??
-    result.requestUrl;
+  const creatorHandle =
+    result.customMetaTags?.fediverseCreator == null
+      ? undefined
+      : Array.isArray(result.customMetaTags.fediverseCreator)
+        ? result.customMetaTags.fediverseCreator[0]
+        : result.customMetaTags.fediverseCreator;
+  const declaredCanonicalUrl =
+    result.ogUrl ?? result.twitterUrl ?? result.requestUrl;
   if (declaredCanonicalUrl != null) {
     lg.debug("Ignoring declared canonical URL for {url}: {canonicalUrl}", {
       url: responseUrl,
@@ -531,9 +548,10 @@ export async function scrapePostLink(
     type: result.ogType,
     description: result.ogDescription ?? result.twitterDescription,
     author: result.ogArticleAuthor,
-    creatorId: creatorHandle == null || handleToActorId == null
-      ? undefined
-      : await handleToActorId(creatorHandle),
+    creatorId:
+      creatorHandle == null || handleToActorId == null
+        ? undefined
+        : await handleToActorId(creatorHandle),
     ...image,
   };
 }
@@ -580,13 +598,18 @@ export async function persistPostLink(
       return link;
     }
   }
-  let scrapedLink = await scrapePostLink(ctx, scrapeUrl, async (handle) => {
-    if (!handle.startsWith("@")) handle = `@${handle}`;
-    const actors = await persistActorsByHandles(ctx, [handle]);
-    return actors[handle]?.id;
-  }, {
-    signal: options.signal,
-  });
+  let scrapedLink = await scrapePostLink(
+    ctx,
+    scrapeUrl,
+    async (handle) => {
+      if (!handle.startsWith("@")) handle = `@${handle}`;
+      const actors = await persistActorsByHandles(ctx, [handle]);
+      return actors[handle]?.id;
+    },
+    {
+      signal: options.signal,
+    },
+  );
   logger.debug("Scraped link {url}: {link}", {
     url: url.href,
     link: scrapedLink,

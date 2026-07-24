@@ -25,7 +25,7 @@ import { RefreshFromOriginItem } from "~/components/RefreshFromOriginItem.tsx";
 import { ReportDialog } from "~/components/ReportDialog.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import IconEllipsis from "~icons/lucide/ellipsis";
 import IconFlag from "~icons/lucide/flag";
 import IconPencil from "~icons/lucide/pencil";
@@ -145,8 +145,9 @@ export function PostActionMenu(props: PostActionMenuProps) {
   const post = createFragment(
     graphql`
       fragment PostActionMenu_post on Post
-        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
-      {
+      @argumentDefinitions(
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
         id
         iri
         visibility
@@ -213,33 +214,40 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
   // not reportable themselves; report the boosted post instead.
   const canReport = () => {
     const p = post();
-    return viewer.isLoaded() && viewer.isAuthenticated() && p != null &&
-      !p.actor.isViewer && p.sharedPost == null;
+    return (
+      viewer.isLoaded() &&
+      viewer.isAuthenticated() &&
+      p != null &&
+      !p.actor.isViewer &&
+      p.sharedPost == null
+    );
   };
   const hasPostActions = () =>
-    canModerate() || (props.onEdit != null && isAuthor()) || canPinPost() ||
-    isAuthor() || canReport();
+    canModerate() ||
+    (props.onEdit != null && isAuthor()) ||
+    canPinPost() ||
+    isAuthor() ||
+    canReport();
   const hasEngagementViews = () =>
     props.repliesHref != null || props.engagementBase != null;
   const canShowMenu = () =>
     post() != null && (hasPostActions() || hasEngagementViews());
 
-  const [commitDeletePost, isDeleting] = createMutation<
-    PostActionMenu_deletePost_Mutation
-  >(deletePostMutation);
-  const [commitPinPost, isPinning] = createMutation<
-    PostActionMenu_pinPost_Mutation
-  >(pinPostMutation);
-  const [commitUnpinPost, isUnpinning] = createMutation<
-    PostActionMenu_unpinPost_Mutation
-  >(unpinPostMutation);
+  const [commitDeletePost, isDeleting] =
+    createMutation<PostActionMenu_deletePost_Mutation>(deletePostMutation);
+  const [commitPinPost, isPinning] =
+    createMutation<PostActionMenu_pinPost_Mutation>(pinPostMutation);
+  const [commitUnpinPost, isUnpinning] =
+    createMutation<PostActionMenu_unpinPost_Mutation>(unpinPostMutation);
 
   const canPinPost = () => {
     const p = post();
-    return p != null &&
+    return (
+      p != null &&
       p.actor.isViewer &&
       p.sharedPost == null &&
-      (p.visibility === "PUBLIC" || p.visibility === "UNLISTED");
+      (p.visibility === "PUBLIC" || p.visibility === "UNLISTED")
+    );
   };
 
   const managementInput = <T extends Record<string, string>>(input: T) => {

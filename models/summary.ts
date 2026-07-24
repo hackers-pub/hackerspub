@@ -32,10 +32,7 @@ function stripMarkdownContainerPrefix(line: string): string {
   while (true) {
     const listed = rest.match(/^(?:[-+*]|\d{1,9}[.)]) {1,4}(.*)$/);
     if (listed != null) {
-      rest = stripMarkdownBlockQuoteMarkers(listed[1]).replace(
-        /^ {0,3}/,
-        "",
-      );
+      rest = stripMarkdownBlockQuoteMarkers(listed[1]).replace(/^ {0,3}/, "");
       continue;
     }
     return rest;
@@ -44,9 +41,7 @@ function stripMarkdownContainerPrefix(line: string): string {
 
 function findFencedCodeRanges(text: string): TextRange[] {
   const ranges: TextRange[] = [];
-  let opened:
-    | { char: "`" | "~"; length: number; start: number }
-    | undefined;
+  let opened: { char: "`" | "~"; length: number; start: number } | undefined;
   let offset = 0;
   while (offset < text.length) {
     const newline = text.indexOf("\n", offset);
@@ -122,10 +117,7 @@ function findIndentedCodeRanges(
     const contentLine = stripMarkdownBlockQuoteMarkers(line);
     const blankLine = contentLine.trim().length === 0;
     const indentedCodeLine = /^(?: {4}|\t)/.test(contentLine);
-    if (
-      indentedCodeLine &&
-      (openedStart != null || canStartIndentedCode)
-    ) {
+    if (indentedCodeLine && (openedStart != null || canStartIndentedCode)) {
       openedStart ??= offset;
     } else if (openedStart != null) {
       ranges.push({ start: openedStart, end: offset });

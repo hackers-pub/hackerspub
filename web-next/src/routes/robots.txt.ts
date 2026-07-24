@@ -1,6 +1,6 @@
 import type { APIEvent } from "@solidjs/start/server";
 import { buildRobotsTxt } from "@hackerspub/models/robots";
-import { CANONICAL_ORIGIN_URL } from "~/lib/env.ts";
+import { CANONICAL_ORIGIN_URL } from "../lib/env.ts";
 
 export function GET(_event: APIEvent) {
   const sitemapUrl = new URL("/sitemaps.xml", CANONICAL_ORIGIN_URL);

@@ -24,8 +24,8 @@ Recommended reading
 
 Hackers' Pub uses the following technologies:
 
- -  [Deno] for the backend
- -  [Node.js] for the web frontend
+ -  [Node.js] for TypeScript tooling, tests, and the web frontend
+ -  [Deno] for the backend runtime during the Node.js migration
  -  [PostgreSQL] for the database
  -  [Drizzle ORM] for database operations
  -  [Keyv] for caching
@@ -47,8 +47,8 @@ For the visual side of the product — color tokens, typography, component
 patterns, the *Pubnyan* mascot, and brand asset usage — read
 [*DESIGN.md*](./DESIGN.md) before working on UI in *web-next/*.
 
-[Deno]: https://deno.com/
 [Node.js]: https://nodejs.org/
+[Deno]: https://deno.com/
 [PostgreSQL]: https://www.postgresql.org/
 [Drizzle ORM]: https://orm.drizzle.team/
 [Keyv]: https://keyv.org/
@@ -370,29 +370,34 @@ Want other tools?
 -----------------
 
 If you are a passionate user of other tools, such as Vim or Emacs, you need to
-manually set up the project for those tools.  We recommend following the
-[Deno's official guide for setting up your favorite editor][3].
-
-[3]: https://docs.deno.com/runtime/getting_started/setup_your_environment/
+manually set up the project for those tools.  Configure the editor to use the
+repository's TypeScript configuration and the Node.js version pinned by mise.
 
 
 Running tests
 -------------
 
-Currently, we don't have many tests.  However, we encourage you to write tests
-for your changes.  To run the tests, execute the following command:
+We encourage you to write tests for your changes.  Tests use the
+`node:test` API so they run under Node.js without transpilation.  The aggregate
+task also runs the same suite under Deno while backend runtime migration is in
+progress:
 
 ~~~~ sh
 mise run test
 ~~~~
+
+Use `mise run test:node` for the primary Node.js suite, or
+`mise run test:deno` to investigate Deno compatibility specifically.
 
 
 Before submitting a pull request
 --------------------------------
 
 Before submitting a pull request, ensure that your changes pass the tests and
-that you have formatted the code and Markdown using `mise run fmt`.  You can
-use the following command to check the code formatting and run lint checks:
+that you have formatted the code and Markdown using `mise run fmt`.  Oxfmt
+formats TypeScript and configuration files, and Hongdown formats Markdown.
+The following command runs Oxfmt and Hongdown checks, Oxlint, TypeScript type
+checking, generated artifact checks, and the transitional Deno checks:
 
 ~~~~ sh
 mise run check

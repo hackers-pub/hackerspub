@@ -3,7 +3,7 @@ import { Show } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { getSupportedImageContentType } from "~/lib/supportedImageFile.ts";
 import { uploadMediumFile } from "~/lib/uploadMediumWithProgress.ts";
 import { attachArticleDraftMediumOnServer } from "~/lib/uploadImage.ts";
@@ -30,9 +30,8 @@ export function ArticleComposerWriteStep() {
     } catch (error) {
       showToast({
         title: t`Error`,
-        description: error instanceof Error
-          ? error.message
-          : t`Failed to upload image`,
+        description:
+          error instanceof Error ? error.message : t`Failed to upload image`,
         variant: "error",
       });
       throw error;
@@ -41,9 +40,7 @@ export function ArticleComposerWriteStep() {
 
   const handleShowPreviewChange = (next: boolean) => {
     ctx.setShowPreview(next);
-    if (
-      next && ctx.content().trim() && (ctx.isDirty() || !ctx.previewHtml())
-    ) {
+    if (next && ctx.content().trim() && (ctx.isDirty() || !ctx.previewHtml())) {
       ctx.handleSave(undefined, true);
     }
   };
@@ -70,11 +67,7 @@ export function ArticleComposerWriteStep() {
 
       <ComposerActionBar
         start={
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => navigate("..")}
-          >
+          <Button type="button" variant="ghost" onClick={() => navigate("..")}>
             {t`Back`}
           </Button>
         }

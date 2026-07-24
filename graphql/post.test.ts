@@ -264,9 +264,11 @@ test("addReactionToPost rejects posts not visible to the viewer", async () => {
 
     assert.deepEqual(result.errors, undefined);
     assert.deepEqual(
-      (result.data as {
-        addReactionToPost: { __typename: string; inputPath?: string };
-      }).addReactionToPost,
+      (
+        result.data as {
+          addReactionToPost: { __typename: string; inputPath?: string };
+        }
+      ).addReactionToPost,
       {
         __typename: "InvalidInputError",
         inputPath: "postId",
@@ -308,7 +310,8 @@ test("addReactionToPost rejects a boost of a sanction-hidden actor's post", asyn
       url: original.url,
     });
     // The boosted post's author is then federation-blocked.
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: null })
       .where(eq(actorTable.id, bannedAuthor.id));
     const viewer = await insertAccountWithActor(tx, {
@@ -333,9 +336,11 @@ test("addReactionToPost rejects a boost of a sanction-hidden actor's post", asyn
     });
     assert.deepEqual(result.errors, undefined);
     assert.deepEqual(
-      (result.data as {
-        addReactionToPost: { __typename: string; inputPath?: string };
-      }).addReactionToPost,
+      (
+        result.data as {
+          addReactionToPost: { __typename: string; inputPath?: string };
+        }
+      ).addReactionToPost,
       { __typename: "InvalidInputError", inputPath: "postId" },
     );
   });
@@ -364,12 +369,14 @@ test("pinPost and unpinPost round-trip through GraphQL", async () => {
 
     assert.deepEqual(pinResult.errors, undefined);
 
-    const pinPayload = (pinResult.data as {
-      pinPost: {
-        __typename: string;
-        post?: { id: string; viewerHasPinned: boolean };
-      };
-    }).pinPost;
+    const pinPayload = (
+      pinResult.data as {
+        pinPost: {
+          __typename: string;
+          post?: { id: string; viewerHasPinned: boolean };
+        };
+      }
+    ).pinPost;
     assert.deepEqual(pinPayload.__typename, "PinPostPayload");
     assert.deepEqual(pinPayload.post, {
       id: postId,
@@ -394,13 +401,15 @@ test("pinPost and unpinPost round-trip through GraphQL", async () => {
 
     assert.deepEqual(unpinResult.errors, undefined);
 
-    const unpinPayload = (unpinResult.data as {
-      unpinPost: {
-        __typename: string;
-        post?: { id: string; viewerHasPinned: boolean };
-        unpinnedPostId?: string;
-      };
-    }).unpinPost;
+    const unpinPayload = (
+      unpinResult.data as {
+        unpinPost: {
+          __typename: string;
+          post?: { id: string; viewerHasPinned: boolean };
+          unpinnedPostId?: string;
+        };
+      }
+    ).unpinPost;
     assert.deepEqual(unpinPayload.__typename, "UnpinPostPayload");
     assert.deepEqual(unpinPayload.post, {
       id: postId,
@@ -451,9 +460,11 @@ test("pinPost rejects posts that cannot be pinned by the viewer", async () => {
 
       assert.deepEqual(result.errors, undefined);
       assert.deepEqual(
-        (result.data as {
-          pinPost: { __typename: string; inputPath?: string };
-        }).pinPost,
+        (
+          result.data as {
+            pinPost: { __typename: string; inputPath?: string };
+          }
+        ).pinPost,
         {
           __typename: "InvalidInputError",
           inputPath: "postId",
@@ -491,9 +502,11 @@ test("unpinPost rejects posts the viewer has not pinned", async () => {
 
     assert.deepEqual(result.errors, undefined);
     assert.deepEqual(
-      (result.data as {
-        unpinPost: { __typename: string; inputPath?: string };
-      }).unpinPost,
+      (
+        result.data as {
+          unpinPost: { __typename: string; inputPath?: string };
+        }
+      ).unpinPost,
       {
         __typename: "InvalidInputError",
         inputPath: "postId",
@@ -524,9 +537,11 @@ test("pinPost requires authentication", async () => {
 
     assert.deepEqual(result.errors, undefined);
     assert.deepEqual(
-      (result.data as {
-        pinPost: { __typename: string };
-      }).pinPost.__typename,
+      (
+        result.data as {
+          pinPost: { __typename: string };
+        }
+      ).pinPost.__typename,
       "NotAuthenticatedError",
     );
   });
@@ -562,12 +577,14 @@ test("addReactionToPost returns the created reaction for visible posts", async (
 
     assert.deepEqual(result.errors, undefined);
 
-    const payload = (result.data as {
-      addReactionToPost: {
-        __typename: string;
-        reaction?: { id: string } | null;
-      };
-    }).addReactionToPost;
+    const payload = (
+      result.data as {
+        addReactionToPost: {
+          __typename: string;
+          reaction?: { id: string } | null;
+        };
+      }
+    ).addReactionToPost;
     assert.deepEqual(payload.__typename, "AddReactionToPostPayload");
     assert.ok(payload.reaction?.id != null);
 
@@ -594,7 +611,8 @@ test("addReactionToPost and removeReactionFromPost can act as an organization", 
       name: "Organization Reaction Member",
       email: "orgreactionmember@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -626,12 +644,14 @@ test("addReactionToPost and removeReactionFromPost can act as an organization", 
     });
 
     assert.deepEqual(addResult.errors, undefined);
-    const addPayload = (addResult.data as {
-      addReactionToPost: {
-        __typename: string;
-        reaction?: { id: string } | null;
-      };
-    }).addReactionToPost;
+    const addPayload = (
+      addResult.data as {
+        addReactionToPost: {
+          __typename: string;
+          reaction?: { id: string } | null;
+        };
+      }
+    ).addReactionToPost;
     assert.deepEqual(addPayload.__typename, "AddReactionToPostPayload");
     assert.ok(addPayload.reaction?.id != null);
 
@@ -658,9 +678,11 @@ test("addReactionToPost and removeReactionFromPost can act as an organization", 
 
     assert.deepEqual(removeResult.errors, undefined);
     assert.deepEqual(
-      (removeResult.data as {
-        removeReactionFromPost: { __typename: string; success?: boolean };
-      }).removeReactionFromPost,
+      (
+        removeResult.data as {
+          removeReactionFromPost: { __typename: string; success?: boolean };
+        }
+      ).removeReactionFromPost,
       {
         __typename: "RemoveReactionFromPostPayload",
         success: true,
@@ -690,7 +712,8 @@ test("addReactionToPost rejects suspended organizations", async () => {
       name: "Suspended Org Reaction Member",
       email: "suspendedorgreactionmember@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -703,7 +726,8 @@ test("addReactionToPost rejects suspended organizations", async () => {
       },
     );
     const until = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: until })
       .where(eq(actorTable.accountId, organization.id));
     const { post } = await insertNotePost(tx, {
@@ -724,12 +748,14 @@ test("addReactionToPost rejects suspended organizations", async () => {
     });
 
     assert.deepEqual(result.errors, undefined);
-    const data = (result.data as {
-      addReactionToPost: {
-        __typename: string;
-        suspendedUntil: string | null;
-      };
-    }).addReactionToPost;
+    const data = (
+      result.data as {
+        addReactionToPost: {
+          __typename: string;
+          suspendedUntil: string | null;
+        };
+      }
+    ).addReactionToPost;
     assert.deepEqual(data.__typename, "ActorSuspendedError");
     assert.ok(data.suspendedUntil != null);
   });
@@ -763,13 +789,15 @@ test("sharePost and unsharePost round-trip through GraphQL", async () => {
 
     assert.deepEqual(shareResult.errors, undefined);
 
-    const sharePayload = (shareResult.data as {
-      sharePost: {
-        __typename: string;
-        originalPost?: { id: string };
-        share?: { id: string };
-      };
-    }).sharePost;
+    const sharePayload = (
+      shareResult.data as {
+        sharePost: {
+          __typename: string;
+          originalPost?: { id: string };
+          share?: { id: string };
+        };
+      }
+    ).sharePost;
     assert.deepEqual(sharePayload.__typename, "SharePostPayload");
     assert.deepEqual(sharePayload.originalPost?.id, postId);
     assert.ok(sharePayload.share?.id != null);
@@ -792,12 +820,14 @@ test("sharePost and unsharePost round-trip through GraphQL", async () => {
 
     assert.deepEqual(unshareResult.errors, undefined);
 
-    const unsharePayload = (unshareResult.data as {
-      unsharePost: {
-        __typename: string;
-        originalPost?: { id: string };
-      };
-    }).unsharePost;
+    const unsharePayload = (
+      unshareResult.data as {
+        unsharePost: {
+          __typename: string;
+          originalPost?: { id: string };
+        };
+      }
+    ).unsharePost;
     assert.deepEqual(unsharePayload.__typename, "UnsharePostPayload");
     assert.deepEqual(unsharePayload.originalPost?.id, postId);
 
@@ -823,7 +853,8 @@ test("sharePost and unsharePost can act as an organization", async () => {
       name: "Organization Share Member",
       email: "orgsharemember@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -851,13 +882,15 @@ test("sharePost and unsharePost can act as an organization", async () => {
     });
 
     assert.deepEqual(shareResult.errors, undefined);
-    const sharePayload = (shareResult.data as {
-      sharePost: {
-        __typename: string;
-        originalPost?: { id: string };
-        share?: { id: string };
-      };
-    }).sharePost;
+    const sharePayload = (
+      shareResult.data as {
+        sharePost: {
+          __typename: string;
+          originalPost?: { id: string };
+          share?: { id: string };
+        };
+      }
+    ).sharePost;
     assert.deepEqual(sharePayload.__typename, "SharePostPayload");
     assert.deepEqual(sharePayload.originalPost?.id, postId);
     assert.ok(sharePayload.share?.id != null);
@@ -880,9 +913,11 @@ test("sharePost and unsharePost can act as an organization", async () => {
 
     assert.deepEqual(unshareResult.errors, undefined);
     assert.deepEqual(
-      (unshareResult.data as {
-        unsharePost: { __typename: string; originalPost?: { id: string } };
-      }).unsharePost,
+      (
+        unshareResult.data as {
+          unsharePost: { __typename: string; originalPost?: { id: string } };
+        }
+      ).unsharePost,
       {
         __typename: "UnsharePostPayload",
         originalPost: { id: postId },
@@ -911,7 +946,8 @@ test("sharePost rejects suspended organizations", async () => {
       name: "Suspended Org Share Member",
       email: "suspendedorgsharemember@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -924,7 +960,8 @@ test("sharePost rejects suspended organizations", async () => {
       },
     );
     const until = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: until })
       .where(eq(actorTable.accountId, organization.id));
     const { post } = await insertNotePost(tx, {
@@ -944,9 +981,11 @@ test("sharePost rejects suspended organizations", async () => {
     });
 
     assert.deepEqual(result.errors, undefined);
-    const data = (result.data as {
-      sharePost: { __typename: string; suspendedUntil: string | null };
-    }).sharePost;
+    const data = (
+      result.data as {
+        sharePost: { __typename: string; suspendedUntil: string | null };
+      }
+    ).sharePost;
     assert.deepEqual(data.__typename, "ActorSuspendedError");
     assert.ok(data.suspendedUntil != null);
   });
@@ -1088,7 +1127,8 @@ test("viewerHasShared can be read from an organization perspective", async () =>
       name: "ViewerHas Org Share Member",
       email: "viewerhasorgsharemember@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -1277,13 +1317,15 @@ test("viewerHas* fields reflect state when id is not in the GraphQL selection", 
 
     assert.deepEqual(result.errors, undefined);
 
-    const node = (result.data as {
-      node: {
-        viewerHasShared: boolean;
-        viewerHasBookmarked: boolean;
-        viewerHasPinned: boolean;
-      };
-    }).node;
+    const node = (
+      result.data as {
+        node: {
+          viewerHasShared: boolean;
+          viewerHasBookmarked: boolean;
+          viewerHasPinned: boolean;
+        };
+      }
+    ).node;
 
     // The post should reflect the viewer's state even though `id` was not
     // requested in the selection set. This guards against `post.id` becoming
@@ -1333,9 +1375,7 @@ test("engagementStats.bookmarks counts bookmark rows for the post", async () => 
     const readCount = async (
       ctx:
         | ReturnType<typeof makeUserContext>
-        | ReturnType<
-          typeof makeGuestContext
-        >,
+        | ReturnType<typeof makeGuestContext>,
     ): Promise<number> => {
       const result = await execute({
         schema,
@@ -1533,7 +1573,8 @@ test("viewerCanReply/Quote/Share can be read from an organization perspective", 
       name: "Policy Org Member",
       email: "policyorgmember@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -1593,7 +1634,8 @@ test("viewerCanQuote/Share deny a censored post even for its author", async () =
       content: "Censored",
       visibility: "public",
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ censored: new Date() })
       .where(eq(postTable.id, post.id));
     const id = encodeGlobalID("Note", post.id);
@@ -1652,11 +1694,12 @@ test("viewerCanQuote/Share deny a share wrapper of a censored post", async () =>
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(shareResult.errors, undefined);
-    const wrapperId =
-      (shareResult.data as { sharePost: { share?: { id: string } } })
-        .sharePost.share?.id;
+    const wrapperId = (
+      shareResult.data as { sharePost: { share?: { id: string } } }
+    ).sharePost.share?.id;
     assert.ok(wrapperId != null);
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ censored: new Date() })
       .where(eq(postTable.id, post.id));
 
@@ -1692,8 +1735,7 @@ test("viewerCanQuote follows explicit quote policy on public posts", async () =>
       email: "policyquotestranger@example.com",
     });
     await tx.insert(followingTable).values({
-      iri:
-        `https://example.com/following/${follower.actor.id}/${author.actor.id}`,
+      iri: `https://example.com/following/${follower.actor.id}/${author.actor.id}`,
       followerId: follower.actor.id,
       followeeId: author.actor.id,
       accepted: new Date(),
@@ -1751,8 +1793,7 @@ test("viewerCanQuote allows remote manual quote request policies", async () => {
       email: "manualquotestranger@example.com",
     });
     await tx.insert(followingTable).values({
-      iri:
-        `https://example.com/following/${follower.actor.id}/${remoteActor.id}`,
+      iri: `https://example.com/following/${follower.actor.id}/${remoteActor.id}`,
       followerId: follower.actor.id,
       followeeId: remoteActor.id,
       accepted: new Date(),
@@ -1846,8 +1887,7 @@ test("viewerCanReply/Quote/Share on followers-only posts: only author may quote 
     });
 
     await tx.insert(followingTable).values({
-      iri:
-        `https://example.com/following/${follower.actor.id}/${author.actor.id}`,
+      iri: `https://example.com/following/${follower.actor.id}/${author.actor.id}`,
       followerId: follower.actor.id,
       followeeId: author.actor.id,
       accepted: new Date(),

@@ -48,13 +48,11 @@ export const NoteComposeProvider: ParentComponent = (props) => {
   const [isOpen, setIsOpen] = createSignal(false);
   const [quotedPostId, setQuotedPostId] = createSignal<string | null>(null);
   const [replyTargetId, setReplyTargetId] = createSignal<string | null>(null);
-  const [replyDefaultVisibility, setReplyDefaultVisibility] = createSignal<
-    PostVisibility | null
-  >(null);
+  const [replyDefaultVisibility, setReplyDefaultVisibility] =
+    createSignal<PostVisibility | null>(null);
   const [editingNoteId, setEditingNoteId] = createSignal<string | null>(null);
-  const [editInitialData, setEditInitialData] = createSignal<
-    NoteEditInitialData | null
-  >(null);
+  const [editInitialData, setEditInitialData] =
+    createSignal<NoteEditInitialData | null>(null);
   const [initialContent, setInitialContent] = createSignal<string | null>(null);
   const [callbacks, setCallbacks] = createSignal<Set<NoteCreatedCallback>>(
     new Set(),
@@ -91,10 +89,7 @@ export const NoteComposeProvider: ParentComponent = (props) => {
     setInitialContent(null);
     setIsOpen(true);
   };
-  const openWithReply = (
-    id: string,
-    defaultVisibility: PostVisibility,
-  ) => {
+  const openWithReply = (id: string, defaultVisibility: PostVisibility) => {
     setQuotedPostId(null);
     setReplyTargetId(id);
     setReplyDefaultVisibility(defaultVisibility);

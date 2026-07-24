@@ -1,8 +1,9 @@
-import {
-  ConnectionHandler,
+import relayRuntime, {
   type RecordSourceProxy,
   type RecordSourceSelectorProxy,
 } from "relay-runtime";
+
+const { ConnectionHandler } = relayRuntime;
 
 export interface CreatedPostConnectionUpdate {
   readonly rootFieldName: "createNote" | "createQuestion";
@@ -16,12 +17,14 @@ export function updateCreatedPostConnections(
   store: RecordSourceProxy | RecordSourceSelectorProxy,
   update: CreatedPostConnectionUpdate,
 ): boolean {
-  const payload = "getRootField" in store
-    ? store.getRootField(update.rootFieldName)
-    : store.getRoot().getLinkedRecord(update.rootFieldName);
-  const expectedPayload = update.rootFieldName === "createNote"
-    ? "CreateNotePayload"
-    : "CreateQuestionPayload";
+  const payload =
+    "getRootField" in store
+      ? store.getRootField(update.rootFieldName)
+      : store.getRoot().getLinkedRecord(update.rootFieldName);
+  const expectedPayload =
+    update.rootFieldName === "createNote"
+      ? "CreateNotePayload"
+      : "CreateQuestionPayload";
   if (payload?.getValue("__typename") !== expectedPayload) return false;
 
   const post = payload.getLinkedRecord(update.postFieldName);

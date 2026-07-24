@@ -53,9 +53,10 @@ async function makeModerator(
   values: { username: string; name: string; email: string },
 ): Promise<AuthenticatedAccount> {
   const { account } = await insertAccountWithActor(tx, values);
-  await tx.update(accountTable).set({ moderator: true }).where(
-    eq(accountTable.id, account.id),
-  );
+  await tx
+    .update(accountTable)
+    .set({ moderator: true })
+    .where(eq(accountTable.id, account.id));
   return { ...account, moderator: true };
 }
 
@@ -96,9 +97,9 @@ async function sanction(
     messageToUser: "Please review our code of conduct.",
     ...(actionType === "suspend"
       ? {
-        suspensionStarts: new Date(Date.now() - HOUR),
-        suspensionEnds: new Date(Date.now() + 30 * 24 * HOUR),
-      }
+          suspensionStarts: new Date(Date.now() - HOUR),
+          suspensionEnds: new Date(Date.now() + 30 * 24 * HOUR),
+        }
       : {}),
   });
   assert.ok(action != null);
@@ -367,10 +368,7 @@ test("appealModerationAction files an appeal for the target only", async () => {
 
 test("resolveFlagAppeal reviews appeals (moderators only)", async () => {
   await withRollback(async (tx) => {
-    const { moderator, reported, action, post } = await sanction(
-      tx,
-      "censor",
-    );
+    const { moderator, reported, action, post } = await sanction(tx, "censor");
     const censoredPost = await tx.query.postTable.findFirst({
       where: { id: post.id },
     });
@@ -563,7 +561,8 @@ test("hidden direct remote posts do not expose their remote URL", async () => {
       contentHtml: "<p>Remote content</p>",
     });
     const remoteUrl = "https://remote.example/@remoteauthor/123";
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ url: remoteUrl, censored: new Date() })
       .where(eq(postTable.id, remotePost.id));
     const gid = encodeGlobalID("Note", remotePost.id);
@@ -608,10 +607,12 @@ test("hidden direct remote posts do not expose their remote URL", async () => {
 
     // A federation-blocked remote author (not individually censored) is
     // hidden the same way:
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ censored: null })
       .where(eq(postTable.id, remotePost.id));
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: null })
       .where(eq(actorTable.id, remoteAuthor.id));
     const blockedResult = await execute({
@@ -747,7 +748,8 @@ test("sanction-hidden authors' posts are redacted via node lookups", async () =>
       content: "A visible reply",
       replyTargetId: post.id,
     });
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: null })
       .where(eq(actorTable.accountId, author.account.id));
     const viewer = await insertAccountWithActor(tx, {
@@ -854,7 +856,8 @@ test("sanction-hidden authors' article contents are redacted", async () => {
       allowLlmTranslation: false,
     });
     assert.ok(article != null);
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: null })
       .where(eq(actorTable.accountId, author.account.id));
     const viewer = await insertAccountWithActor(tx, {
@@ -1244,9 +1247,7 @@ test("censored questions hide their polls, even via node lookups", async () => {
     });
     // deno-lint-ignore no-explicit-any
     assert.equal((viewerNodeResult.data as any)?.node ?? null, null);
-    assert.ok(
-      !JSON.stringify(viewerNodeResult.data).includes("Secret option"),
-    );
+    assert.ok(!JSON.stringify(viewerNodeResult.data).includes("Secret option"));
     // The Question.poll path: redacted for the viewer, intact for the
     // author.
     const questionPollQuery = parse(`
@@ -1268,9 +1269,7 @@ test("censored questions hide their polls, even via node lookups", async () => {
     });
     // deno-lint-ignore no-explicit-any
     assert.equal((viewerResult.data as any)?.node?.poll ?? null, null);
-    assert.ok(
-      !JSON.stringify(viewerResult.data).includes("Secret option"),
-    );
+    assert.ok(!JSON.stringify(viewerResult.data).includes("Secret option"));
     const authorResult = await execute({
       schema,
       document: questionPollQuery,
@@ -1438,7 +1437,8 @@ test("PostLink nodes of censored posts are not resolvable", async () => {
       url: "https://example.com/secret-page",
       title: "Secret page",
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ linkId: link.id, linkUrl: link.url })
       .where(eq(postTable.id, post.id));
     const linkNodeQuery = parse(`
@@ -1492,7 +1492,8 @@ test("PostLink nodes of censored posts are not resolvable", async () => {
       account: other.account,
       content: "Same link, not censored",
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ linkId: link.id, linkUrl: link.url })
       .where(eq(postTable.id, otherPost.id));
     const allowed = await execute({
@@ -1525,11 +1526,13 @@ test("PostLink nodes of sanction-hidden actors' posts are not resolvable", async
       url: "https://example.com/hidden-page",
       title: "Hidden page",
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ linkId: link.id, linkUrl: link.url })
       .where(eq(postTable.id, post.id));
     // The only referencing post's author gets banned:
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: null })
       .where(eq(actorTable.accountId, author.account.id));
     const linkNodeQuery = parse(`
@@ -1577,7 +1580,8 @@ test("PostLink nodes of sanction-hidden actors' posts are not resolvable", async
       account: other.account,
       content: "Same link, visible author",
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ linkId: link.id, linkUrl: link.url })
       .where(eq(postTable.id, otherPost.id));
     const allowed = await execute({
@@ -1897,7 +1901,8 @@ test("suspended actors are flagged on the Actor type", async () => {
     // deno-lint-ignore no-explicit-any
     assert.equal((result.data as any)?.actorByHandle?.suspended, true);
     // Lift the suspension; the flag turns off lazily:
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: null, suspendedUntil: null })
       .where(eq(actorTable.id, reported.actor.id));
     const lifted = await execute({

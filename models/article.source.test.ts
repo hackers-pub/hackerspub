@@ -166,11 +166,11 @@ test("updateArticleSource() flags originalContentChanged when the body changes a
     assert.equal(result.source.slug, "updated-source");
     assert.equal(result.source.contents.length, 2);
 
-    const originalContent = result.source.contents.find((content) =>
-      content.originalLanguage == null
+    const originalContent = result.source.contents.find(
+      (content) => content.originalLanguage == null,
     );
-    const translatedContent = result.source.contents.find((content) =>
-      content.originalLanguage === "en"
+    const translatedContent = result.source.contents.find(
+      (content) => content.originalLanguage === "en",
     );
 
     assert.ok(originalContent != null);
@@ -229,8 +229,8 @@ test("updateArticleSource() does not flag originalContentChanged on title-only e
     // body is unchanged, so existing translations would still be
     // accurate.
     assert.equal(result.originalContentChanged, false);
-    const originalContent = result.source.contents.find((c) =>
-      c.originalLanguage == null
+    const originalContent = result.source.contents.find(
+      (c) => c.originalLanguage == null,
     );
     assert.ok(originalContent != null);
     assert.equal(originalContent.title, "Renamed");
@@ -276,25 +276,22 @@ test("getArticleSource() resolves renamed usernames and returns ordered contents
         updated: published,
       },
     ]);
-    await tx.insert(postTable).values(
-      {
-        id: generateUuidV7(),
-        iri: `http://localhost/objects/${sourceId}`,
-        type: "Article",
-        visibility: "public",
-        actorId: author.actor.id,
-        articleSourceId: sourceId,
-        name: "First title",
-        contentHtml: "<p>First body</p>",
-        language: "en",
-        tags: {},
-        emojis: {},
-        url:
-          `http://localhost/@${author.account.username}/2026/ordered-article`,
-        published,
-        updated: published,
-      } satisfies NewPost,
-    );
+    await tx.insert(postTable).values({
+      id: generateUuidV7(),
+      iri: `http://localhost/objects/${sourceId}`,
+      type: "Article",
+      visibility: "public",
+      actorId: author.actor.id,
+      articleSourceId: sourceId,
+      name: "First title",
+      contentHtml: "<p>First body</p>",
+      language: "en",
+      tags: {},
+      emojis: {},
+      url: `http://localhost/@${author.account.username}/2026/ordered-article`,
+      published,
+      updated: published,
+    } satisfies NewPost);
 
     const renamed = await updateAccountData(tx, {
       id: author.account.id,

@@ -18,7 +18,7 @@ import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { ProfileTabs } from "~/components/ProfileTabs.tsx";
 import { Title } from "~/components/Title.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   PROFILE_PAGE_BASE_QUERY_KEY,
   PROFILE_PAGE_PINS_QUERY_KEY,
@@ -91,17 +91,14 @@ const ProfilePageContentQuery = graphql`
       viewerBlocks(actingAccountId: $actingAccountId)
       blocksViewer(actingAccountId: $actingAccountId)
       posts(first: 20, actingAccountId: $actingAccountId)
-        @connection(key: "ActorPostList_posts")
-      {
+        @connection(key: "ActorPostList_posts") {
         __id
         edges {
           cursor
         }
       }
-      ...ActorPostList_posts @arguments(
-        locale: $locale
-        actingAccountId: $actingAccountId
-      )
+      ...ActorPostList_posts
+        @arguments(locale: $locale, actingAccountId: $actingAccountId)
     }
   }
 `;
@@ -122,10 +119,8 @@ const ProfilePagePinsQuery = graphql`
         __id
         edges {
           node {
-            ...PostCard_post @arguments(
-              locale: $locale
-              actingAccountId: $actingAccountId
-            )
+            ...PostCard_post
+              @arguments(locale: $locale, actingAccountId: $actingAccountId)
             id
           }
           cursor
@@ -206,9 +201,9 @@ export default function ProfilePage() {
   // subsequent navigations to other profiles.
   const [hydrated, setHydrated] = createSignal(false);
   onMount(() => setHydrated(true));
-  const [pinsQueryRef, setPinsQueryRef] = createSignal<
-    ReturnType<typeof loadPinsQuery> | null
-  >(null);
+  const [pinsQueryRef, setPinsQueryRef] = createSignal<ReturnType<
+    typeof loadPinsQuery
+  > | null>(null);
   createEffect(() => {
     if (!hydrated()) return;
     setPinsQueryRef(
@@ -230,8 +225,7 @@ export default function ProfilePage() {
     <Show keyed when={baseData()}>
       {(base) => (
         <>
-          {
-            /*
+          {/*
             `keyed` prevents a "Stale read from <Show>" race: when
             solid-relay's fragment subscription publishes a new snapshot
             inside `batch()`, a non-keyed `<Show>{(actor) => ...}` accessor
@@ -239,8 +233,7 @@ export default function ProfilePage() {
             that an inner reactive computation re-runs. Reconcile keeps the
             actor's identity stable (`key: "__id"`), so `keyed` only
             re-mounts when navigating to a different actor.
-          */
-          }
+          */}
           <Show
             keyed
             when={base.actorByHandle}
@@ -281,10 +274,7 @@ export default function ProfilePage() {
                       <Meta property="og:image" content={ogImageUrl} />
                       <Meta property="og:image:width" content="1200" />
                       <Meta property="og:image:height" content="630" />
-                      <Meta
-                        name="twitter:card"
-                        content="summary_large_image"
-                      />
+                      <Meta name="twitter:card" content="summary_large_image" />
                     </>
                   )}
                 </Show>
@@ -301,9 +291,11 @@ export default function ProfilePage() {
                   {(content) => (
                     <Show
                       keyed
-                      when={content.actorByHandle?.id === actor.id
-                        ? content.actorByHandle
-                        : undefined}
+                      when={
+                        content.actorByHandle?.id === actor.id
+                          ? content.actorByHandle
+                          : undefined
+                      }
                       fallback={<PostListSkeleton />}
                     >
                       {(contentActor) => {
@@ -326,21 +318,20 @@ export default function ProfilePage() {
                           return a?.pins.__id ? [a.pins.__id] : [];
                         };
                         const viewerPinConnections = () =>
-                          (contentActor.isViewer || pinsActor()?.isViewer)
+                          contentActor.isViewer || pinsActor()?.isViewer
                             ? pinConnections()
                             : [];
                         return (
                           <Show
-                            when={!contentActor.viewerBlocks &&
+                            when={
+                              !contentActor.viewerBlocks &&
                               !contentActor.blocksViewer &&
-                              !profileContentRevalidating()}
+                              !profileContentRevalidating()
+                            }
                           >
                             <div class="p-4">
                               <ProfileTabs selected="posts" $actor={actor} />
-                              <Show
-                                keyed
-                                when={pinsActor()}
-                              >
+                              <Show keyed when={pinsActor()}>
                                 {(pa) => (
                                   <Show
                                     when={(pa.pins?.edges?.length ?? 0) > 0}
@@ -351,9 +342,7 @@ export default function ProfilePage() {
                                         {t`Pinned posts`}
                                       </h2>
                                       <div class="overflow-hidden rounded-lg border bg-card shadow-sm">
-                                        <For
-                                          each={pa.pins?.edges ?? []}
-                                        >
+                                        <For each={pa.pins?.edges ?? []}>
                                           {(edge) => (
                                             <PostCard
                                               $post={edge.node}

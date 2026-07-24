@@ -12,7 +12,7 @@ import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { ProfileTabs } from "~/components/ProfileTabs.tsx";
 import { Title } from "~/components/Title.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   PROFILE_NOTES_QUERY_KEY,
   profileContentRevalidating,
@@ -60,20 +60,14 @@ export default function ProfileNotesPage() {
   const { t } = useLingui();
   const actingAccount = useActingAccount();
   const actingAccountId = () => actingAccount.selectedActingAccountId();
-  const data = createStablePreloadedQuery<notesPageQuery>(
-    notesPageQuery,
-    () =>
-      loadPageQuery(
-        decodeRouteParam(params.handle!),
-        actingAccountId() ?? null,
-      ),
+  const data = createStablePreloadedQuery<notesPageQuery>(notesPageQuery, () =>
+    loadPageQuery(decodeRouteParam(params.handle!), actingAccountId() ?? null),
   );
   return (
     <Show keyed when={data()}>
       {(data) => (
         <>
-          {
-            /*
+          {/*
             `keyed` prevents a "Stale read from <Show>" race: when
             solid-relay's fragment subscription publishes a new snapshot
             inside `batch()`, a non-keyed `<Show>{(actor) => ...}` accessor
@@ -81,8 +75,7 @@ export default function ProfileNotesPage() {
             that an inner reactive computation re-runs. Reconcile keeps the
             actor's identity stable (`key: "__id"`), so `keyed` only
             re-mounts when navigating to a different actor.
-          */
-          }
+          */}
           <Show
             keyed
             when={data.actorByHandle}
@@ -90,9 +83,7 @@ export default function ProfileNotesPage() {
           >
             {(actor) => (
               <NarrowContainer>
-                <Title>
-                  {t`${actor.rawName ?? actor.username}'s notes`}
-                </Title>
+                <Title>{t`${actor.rawName ?? actor.username}'s notes`}</Title>
                 <Meta
                   property="og:title"
                   content={t`${actor.rawName ?? actor.username}'s notes`}
@@ -102,8 +93,11 @@ export default function ProfileNotesPage() {
                   <ProfileCard $actor={actor} />
                 </div>
                 <Show
-                  when={!actor.viewerBlocks && !actor.blocksViewer &&
-                    !profileContentRevalidating()}
+                  when={
+                    !actor.viewerBlocks &&
+                    !actor.blocksViewer &&
+                    !profileContentRevalidating()
+                  }
                 >
                   <div class="p-4">
                     <ProfileTabs selected="notes" $actor={actor} />

@@ -115,10 +115,10 @@ test("toFeaturedCollectionItem() returns importable Question posts", async () =>
   );
   assert.equal(item.name?.toString(), "Poll question");
   const options = await Array.fromAsync(item.getExclusiveOptions());
-  assert.deepEqual(options.map((option) => option.name?.toString()), [
-    "Yes",
-    "No",
-  ]);
+  assert.deepEqual(
+    options.map((option) => option.name?.toString()),
+    ["Yes", "No"],
+  );
 });
 
 test("emoji reactions collection returns Like, EmojiReact, and custom emoji items", async () => {
@@ -206,23 +206,22 @@ test("emoji reactions collection returns Like, EmojiReact, and custom emoji item
         created: new Date("2026-04-15T00:00:01.000Z"),
       },
       {
-        iri:
-          `http://localhost/ap/emojireacts/custom/${privateCustomReactionId}`,
+        iri: `http://localhost/ap/emojireacts/custom/${privateCustomReactionId}`,
         postId: privatePost.id,
         actorId: reactor.id,
         customEmojiId,
         created: new Date("2026-04-15T00:00:00.000Z"),
       },
       {
-        iri:
-          `http://localhost/ap/emojireacts/custom/${hiddenArticleReactionId}`,
+        iri: `http://localhost/ap/emojireacts/custom/${hiddenArticleReactionId}`,
         postId: hiddenArticlePostId,
         actorId: reactor.id,
         customEmojiId,
         created: new Date("2026-04-14T23:59:59.000Z"),
       },
     ]);
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: new Date("2026-04-15T00:00:00.000Z") })
       .where(eq(actorTable.id, hiddenArticleAuthor.actor.id));
     const federation = await builder.build({
@@ -238,21 +237,21 @@ test("emoji reactions collection returns Like, EmojiReact, and custom emoji item
     };
 
     const rootResponse = await federation.fetch(
-      new Request(
-        `http://localhost/ap/emoji-reactions/notes/${noteSourceId}`,
-        { headers: { Accept: "application/activity+json" } },
-      ),
+      new Request(`http://localhost/ap/emoji-reactions/notes/${noteSourceId}`, {
+        headers: { Accept: "application/activity+json" },
+      }),
       { contextData },
     );
     assert.equal(rootResponse.status, 200);
-    const root = await rootResponse.json() as {
+    const root = (await rootResponse.json()) as {
       totalItems?: number;
       first?: string | { id?: string; "@id"?: string };
     };
     assert.equal(root.totalItems, 3);
-    const first = typeof root.first === "string"
-      ? root.first
-      : root.first?.id ?? root.first?.["@id"];
+    const first =
+      typeof root.first === "string"
+        ? root.first
+        : (root.first?.id ?? root.first?.["@id"]);
     assert.ok(first != null);
 
     const pageResponse = await federation.fetch(
@@ -260,22 +259,20 @@ test("emoji reactions collection returns Like, EmojiReact, and custom emoji item
       { contextData },
     );
     assert.equal(pageResponse.status, 200);
-    const page = await pageResponse.json() as {
+    const page = (await pageResponse.json()) as {
       items?: Record<string, unknown>[];
       orderedItems?: Record<string, unknown>[];
     };
     const items = page.items ?? page.orderedItems ?? [];
     assert.equal(items.length, 3);
-    assert.deepEqual(items.map((item) => item.type), [
-      "Like",
-      "EmojiReact",
-      "EmojiReact",
-    ]);
-    assert.deepEqual(items.map((item) => item.content), [
-      "❤️",
-      "🎉",
-      ":party:",
-    ]);
+    assert.deepEqual(
+      items.map((item) => item.type),
+      ["Like", "EmojiReact", "EmojiReact"],
+    );
+    assert.deepEqual(
+      items.map((item) => item.content),
+      ["❤️", "🎉", ":party:"],
+    );
     const customItem = items[2] as {
       tag?:
         | { type?: string; name?: string; icon?: { url?: string } }
@@ -299,7 +296,7 @@ test("emoji reactions collection returns Like, EmojiReact, and custom emoji item
       { contextData },
     );
     assert.equal(customResponse.status, 200);
-    const custom = await customResponse.json() as {
+    const custom = (await customResponse.json()) as {
       id?: string;
       type?: string;
       content?: string;

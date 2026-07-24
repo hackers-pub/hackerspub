@@ -113,8 +113,8 @@ test("ReactionGroup.reactors returns edges for first-page queries", async () => 
       } | null;
     };
 
-    const reactionGroup = data.node?.reactionGroups.find((group) =>
-      group.emoji === "❤️"
+    const reactionGroup = data.node?.reactionGroups.find(
+      (group) => group.emoji === "❤️",
     );
     assert.ok(reactionGroup != null);
     const reactorsConnection = reactionGroup.reactors;
@@ -129,15 +129,15 @@ test("ReactionGroup.reactors returns edges for first-page queries", async () => 
     for (const reactor of reactors) {
       const edgeNode:
         | { id?: string; handle: string; avatarUrl: string }
-        | undefined = reactorsConnection.edges.find((edge) =>
-          edge.node.handle === reactor.handle
-        )?.node;
+        | undefined = reactorsConnection.edges.find(
+        (edge) => edge.node.handle === reactor.handle,
+      )?.node;
       assert.ok(edgeNode != null);
       assert.deepEqual(edgeNode.avatarUrl, reactor.avatarUrl);
     }
 
-    const customReactionGroup = data.node?.reactionGroups.find((group) =>
-      group.emoji == null && group.reactors != null
+    const customReactionGroup = data.node?.reactionGroups.find(
+      (group) => group.emoji == null && group.reactors != null,
     );
     assert.ok(customReactionGroup != null);
     assert.ok(customReactionGroup.reactors != null);
@@ -167,7 +167,8 @@ test("ReactionGroup.reactors.viewerHasReacted can use an organization perspectiv
       name: "React Org Member",
       email: `reactorgmember-${suffix}@example.com`,
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -215,8 +216,8 @@ test("ReactionGroup.reactors.viewerHasReacted can use an organization perspectiv
         }[];
       } | null;
     };
-    const group = data.node?.reactionGroups.find((group) =>
-      group.emoji === "❤️"
+    const group = data.node?.reactionGroups.find(
+      (group) => group.emoji === "❤️",
     );
     assert.ok(group?.reactors != null);
     assert.deepEqual(group.reactors.personal, false);
@@ -255,125 +256,122 @@ const customEmojiBatchQuery = parse(`
   }
 `);
 
-test(
-  "CustomEmojiReactionGroup.customEmoji resolves the right emoji per post when batched",
-  async () => {
-    await withRollback(async (tx) => {
-      const timestamp = new Date("2026-04-15T00:00:00.000Z");
-      const suffix = crypto.randomUUID().replaceAll("-", "").slice(0, 8);
+test("CustomEmojiReactionGroup.customEmoji resolves the right emoji per post when batched", async () => {
+  await withRollback(async (tx) => {
+    const timestamp = new Date("2026-04-15T00:00:00.000Z");
+    const suffix = crypto.randomUUID().replaceAll("-", "").slice(0, 8);
 
-      await seedLocalInstance(tx);
+    await seedLocalInstance(tx);
 
-      const author = await insertAccountWithActor(tx, {
-        username: `author${suffix}`,
-        name: "Author",
-        email: `author-${suffix}@example.com`,
-      });
-      const reactor = await insertAccountWithActor(tx, {
-        username: `reactor${suffix}`,
-        name: "Reactor",
-        email: `reactor-${suffix}@example.com`,
-      });
-
-      const partyId = generateUuidV7();
-      const cakeId = generateUuidV7();
-      await tx.insert(customEmojiTable).values([
-        {
-          id: partyId,
-          iri: `http://localhost/emojis/${partyId}`,
-          name: ":party:",
-          imageUrl: `https://cdn.example/emoji/${partyId}.png`,
-        },
-        {
-          id: cakeId,
-          iri: `http://localhost/emojis/${cakeId}`,
-          name: ":cake:",
-          imageUrl: `https://cdn.example/emoji/${cakeId}.png`,
-        },
-      ]);
-
-      const { post: postA } = await insertNotePost(tx, {
-        account: author.account,
-        content: "First",
-        contentHtml: "<p>First</p>",
-        published: timestamp,
-        updated: timestamp,
-        reactionsCounts: { [partyId]: 1 },
-      });
-      const { post: postB } = await insertNotePost(tx, {
-        account: author.account,
-        content: "Second",
-        contentHtml: "<p>Second</p>",
-        published: new Date(timestamp.getTime() + 1000),
-        updated: new Date(timestamp.getTime() + 1000),
-        reactionsCounts: { [cakeId]: 1 },
-      });
-
-      await tx.insert(reactionTable).values([
-        {
-          iri: `http://localhost/reactions/${generateUuidV7()}`,
-          postId: postA.id,
-          actorId: reactor.actor.id,
-          customEmojiId: partyId,
-          created: new Date(timestamp.getTime() + 100),
-        },
-        {
-          iri: `http://localhost/reactions/${generateUuidV7()}`,
-          postId: postB.id,
-          actorId: reactor.actor.id,
-          customEmojiId: cakeId,
-          created: new Date(timestamp.getTime() + 1100),
-        },
-      ]);
-
-      const result = await execute({
-        schema,
-        document: customEmojiBatchQuery,
-        variableValues: {
-          a: encodeGlobalID("Note", postA.id),
-          b: encodeGlobalID("Note", postB.id),
-        },
-        contextValue: makeUserContext(tx, reactor.account),
-        onError: "NO_PROPAGATE",
-      });
-
-      assert.deepEqual(result.errors, undefined);
-
-      const data = result.data as {
-        a: {
-          reactionGroups: {
-            customEmoji?: { id: string; name: string; imageUrl: string };
-          }[];
-        } | null;
-        b: {
-          reactionGroups: {
-            customEmoji?: { id: string; name: string; imageUrl: string };
-          }[];
-        } | null;
-      };
-
-      const aEmoji = data.a?.reactionGroups
-        .map((group) => group.customEmoji)
-        .find((emoji) => emoji != null);
-      const bEmoji = data.b?.reactionGroups
-        .map((group) => group.customEmoji)
-        .find((emoji) => emoji != null);
-
-      assert.ok(aEmoji != null);
-      assert.ok(bEmoji != null);
-      assert.deepEqual(aEmoji.name, ":party:");
-      assert.deepEqual(
-        aEmoji.imageUrl,
-        `https://cdn.example/emoji/${partyId}.png`,
-      );
-      assert.deepEqual(bEmoji.name, ":cake:");
-      assert.deepEqual(
-        bEmoji.imageUrl,
-        `https://cdn.example/emoji/${cakeId}.png`,
-      );
+    const author = await insertAccountWithActor(tx, {
+      username: `author${suffix}`,
+      name: "Author",
+      email: `author-${suffix}@example.com`,
     });
-  },
-);
+    const reactor = await insertAccountWithActor(tx, {
+      username: `reactor${suffix}`,
+      name: "Reactor",
+      email: `reactor-${suffix}@example.com`,
+    });
+
+    const partyId = generateUuidV7();
+    const cakeId = generateUuidV7();
+    await tx.insert(customEmojiTable).values([
+      {
+        id: partyId,
+        iri: `http://localhost/emojis/${partyId}`,
+        name: ":party:",
+        imageUrl: `https://cdn.example/emoji/${partyId}.png`,
+      },
+      {
+        id: cakeId,
+        iri: `http://localhost/emojis/${cakeId}`,
+        name: ":cake:",
+        imageUrl: `https://cdn.example/emoji/${cakeId}.png`,
+      },
+    ]);
+
+    const { post: postA } = await insertNotePost(tx, {
+      account: author.account,
+      content: "First",
+      contentHtml: "<p>First</p>",
+      published: timestamp,
+      updated: timestamp,
+      reactionsCounts: { [partyId]: 1 },
+    });
+    const { post: postB } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Second",
+      contentHtml: "<p>Second</p>",
+      published: new Date(timestamp.getTime() + 1000),
+      updated: new Date(timestamp.getTime() + 1000),
+      reactionsCounts: { [cakeId]: 1 },
+    });
+
+    await tx.insert(reactionTable).values([
+      {
+        iri: `http://localhost/reactions/${generateUuidV7()}`,
+        postId: postA.id,
+        actorId: reactor.actor.id,
+        customEmojiId: partyId,
+        created: new Date(timestamp.getTime() + 100),
+      },
+      {
+        iri: `http://localhost/reactions/${generateUuidV7()}`,
+        postId: postB.id,
+        actorId: reactor.actor.id,
+        customEmojiId: cakeId,
+        created: new Date(timestamp.getTime() + 1100),
+      },
+    ]);
+
+    const result = await execute({
+      schema,
+      document: customEmojiBatchQuery,
+      variableValues: {
+        a: encodeGlobalID("Note", postA.id),
+        b: encodeGlobalID("Note", postB.id),
+      },
+      contextValue: makeUserContext(tx, reactor.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(result.errors, undefined);
+
+    const data = result.data as {
+      a: {
+        reactionGroups: {
+          customEmoji?: { id: string; name: string; imageUrl: string };
+        }[];
+      } | null;
+      b: {
+        reactionGroups: {
+          customEmoji?: { id: string; name: string; imageUrl: string };
+        }[];
+      } | null;
+    };
+
+    const aEmoji = data.a?.reactionGroups
+      .map((group) => group.customEmoji)
+      .find((emoji) => emoji != null);
+    const bEmoji = data.b?.reactionGroups
+      .map((group) => group.customEmoji)
+      .find((emoji) => emoji != null);
+
+    assert.ok(aEmoji != null);
+    assert.ok(bEmoji != null);
+    assert.deepEqual(aEmoji.name, ":party:");
+    assert.deepEqual(
+      aEmoji.imageUrl,
+      `https://cdn.example/emoji/${partyId}.png`,
+    );
+    assert.deepEqual(bEmoji.name, ":cake:");
+    assert.deepEqual(
+      bEmoji.imageUrl,
+      `https://cdn.example/emoji/${cakeId}.png`,
+    );
+  });
+});
 
 const reactionGroupQuery = parse(`
   query ReactionGroupQuery(
@@ -411,23 +409,22 @@ const reactionGroupQuery = parse(`
   }
 `);
 
-test(
-  "Post.reactionGroup returns a single emoji group when matched, null otherwise",
-  async () => {
-    await withRollback(async (tx) => {
-      const { noteId, viewerAccount, reactors } = await seedReactedNote(tx);
-      const id = encodeGlobalID("Note", noteId);
+test("Post.reactionGroup returns a single emoji group when matched, null otherwise", async () => {
+  await withRollback(async (tx) => {
+    const { noteId, viewerAccount, reactors } = await seedReactedNote(tx);
+    const id = encodeGlobalID("Note", noteId);
 
-      // Matching standard emoji
-      const heartResult = await execute({
-        schema,
-        document: reactionGroupQuery,
-        variableValues: { id, emoji: "❤️", customEmojiId: null },
-        contextValue: makeUserContext(tx, viewerAccount),
-        onError: "NO_PROPAGATE",
-      });
-      assert.deepEqual(heartResult.errors, undefined);
-      const heartGroup = (heartResult.data as {
+    // Matching standard emoji
+    const heartResult = await execute({
+      schema,
+      document: reactionGroupQuery,
+      variableValues: { id, emoji: "❤️", customEmojiId: null },
+      contextValue: makeUserContext(tx, viewerAccount),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(heartResult.errors, undefined);
+    const heartGroup = (
+      heartResult.data as {
         node: {
           reactionGroup: {
             __typename: string;
@@ -438,71 +435,71 @@ test(
             };
           } | null;
         };
-      }).node.reactionGroup;
-      assert.ok(heartGroup != null);
-      assert.deepEqual(heartGroup.__typename, "EmojiReactionGroup");
-      assert.deepEqual(heartGroup.emoji, "❤️");
-      assert.deepEqual(heartGroup.reactors?.totalCount, 2);
-      assert.deepEqual(
-        heartGroup.reactors?.edges.map((e) => e.node.handle).sort(),
-        reactors.map((r) => r.handle).sort(),
-      );
+      }
+    ).node.reactionGroup;
+    assert.ok(heartGroup != null);
+    assert.deepEqual(heartGroup.__typename, "EmojiReactionGroup");
+    assert.deepEqual(heartGroup.emoji, "❤️");
+    assert.deepEqual(heartGroup.reactors?.totalCount, 2);
+    assert.deepEqual(
+      heartGroup.reactors?.edges.map((e) => e.node.handle).sort(),
+      reactors.map((r) => r.handle).sort(),
+    );
 
-      // Standard emoji with no reactions → null
-      const rocketResult = await execute({
-        schema,
-        document: reactionGroupQuery,
-        variableValues: { id, emoji: "🚀", customEmojiId: null },
-        contextValue: makeUserContext(tx, viewerAccount),
-        onError: "NO_PROPAGATE",
-      });
-      assert.deepEqual(rocketResult.errors, undefined);
-      assert.deepEqual(
-        (rocketResult.data as { node: { reactionGroup: unknown } })
-          .node.reactionGroup,
-        null,
-      );
-
-      // Neither arg provided → null
-      const emptyResult = await execute({
-        schema,
-        document: reactionGroupQuery,
-        variableValues: { id, emoji: null, customEmojiId: null },
-        contextValue: makeUserContext(tx, viewerAccount),
-        onError: "NO_PROPAGATE",
-      });
-      assert.deepEqual(emptyResult.errors, undefined);
-      assert.deepEqual(
-        (emptyResult.data as { node: { reactionGroup: unknown } })
-          .node.reactionGroup,
-        null,
-      );
-
-      // Both args provided → null (the resolver short-circuits ambiguous
-      // requests rather than picking a winner).
-      const bothResult = await execute({
-        schema,
-        document: reactionGroupQuery,
-        variableValues: {
-          id,
-          emoji: "❤️",
-          customEmojiId: encodeGlobalID(
-            "CustomEmoji",
-            (await tx.query.customEmojiTable.findMany({}))[0].id,
-          ),
-        },
-        contextValue: makeUserContext(tx, viewerAccount),
-        onError: "NO_PROPAGATE",
-      });
-      assert.deepEqual(bothResult.errors, undefined);
-      assert.deepEqual(
-        (bothResult.data as { node: { reactionGroup: unknown } })
-          .node.reactionGroup,
-        null,
-      );
+    // Standard emoji with no reactions → null
+    const rocketResult = await execute({
+      schema,
+      document: reactionGroupQuery,
+      variableValues: { id, emoji: "🚀", customEmojiId: null },
+      contextValue: makeUserContext(tx, viewerAccount),
+      onError: "NO_PROPAGATE",
     });
-  },
-);
+    assert.deepEqual(rocketResult.errors, undefined);
+    assert.deepEqual(
+      (rocketResult.data as { node: { reactionGroup: unknown } }).node
+        .reactionGroup,
+      null,
+    );
+
+    // Neither arg provided → null
+    const emptyResult = await execute({
+      schema,
+      document: reactionGroupQuery,
+      variableValues: { id, emoji: null, customEmojiId: null },
+      contextValue: makeUserContext(tx, viewerAccount),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(emptyResult.errors, undefined);
+    assert.deepEqual(
+      (emptyResult.data as { node: { reactionGroup: unknown } }).node
+        .reactionGroup,
+      null,
+    );
+
+    // Both args provided → null (the resolver short-circuits ambiguous
+    // requests rather than picking a winner).
+    const bothResult = await execute({
+      schema,
+      document: reactionGroupQuery,
+      variableValues: {
+        id,
+        emoji: "❤️",
+        customEmojiId: encodeGlobalID(
+          "CustomEmoji",
+          (await tx.query.customEmojiTable.findMany({}))[0].id,
+        ),
+      },
+      contextValue: makeUserContext(tx, viewerAccount),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(bothResult.errors, undefined);
+    assert.deepEqual(
+      (bothResult.data as { node: { reactionGroup: unknown } }).node
+        .reactionGroup,
+      null,
+    );
+  });
+});
 
 test("Post.reactionGroup returns a custom-emoji group when matched by id", async () => {
   await withRollback(async (tx) => {
@@ -522,18 +519,20 @@ test("Post.reactionGroup returns a custom-emoji group when matched by id", async
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(customResult.errors, undefined);
-    const group = (customResult.data as {
-      node: {
-        reactionGroup: {
-          __typename: string;
-          customEmoji?: { name: string };
-          reactors?: {
-            totalCount: number;
-            edges: { node: { handle: string } }[];
-          };
-        } | null;
-      };
-    }).node.reactionGroup;
+    const group = (
+      customResult.data as {
+        node: {
+          reactionGroup: {
+            __typename: string;
+            customEmoji?: { name: string };
+            reactors?: {
+              totalCount: number;
+              edges: { node: { handle: string } }[];
+            };
+          } | null;
+        };
+      }
+    ).node.reactionGroup;
     assert.ok(group != null);
     assert.deepEqual(group.__typename, "CustomEmojiReactionGroup");
     assert.deepEqual(group.customEmoji?.name, ":party:");
@@ -569,10 +568,12 @@ async function seedReactedNote(
   const viewerAvatarUrl = `https://cdn.example/avatars/viewer-${suffix}.png`;
   const otherAvatarUrl = `https://cdn.example/avatars/other-${suffix}.png`;
   const customEmojiId = generateUuidV7();
-  await tx.update(actorTable)
+  await tx
+    .update(actorTable)
     .set({ avatarUrl: viewerAvatarUrl })
     .where(eq(actorTable.id, viewer.actor.id));
-  await tx.update(actorTable)
+  await tx
+    .update(actorTable)
     .set({ avatarUrl: otherAvatarUrl })
     .where(eq(actorTable.id, other.actor.id));
   await tx.insert(customEmojiTable).values({

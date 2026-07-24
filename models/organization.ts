@@ -5,10 +5,8 @@ import { syncActorFromAccount } from "./actor.ts";
 import type { ApplicationContext } from "./context.ts";
 import { type Database, runInTransaction, type Transaction } from "./db.ts";
 import {
-  createOrganizationConversionRequestNotification
-    as createOrganizationConversionRequestNotificationRow,
-  createOrganizationInvitationNotification
-    as createOrganizationInvitationNotificationRow,
+  createOrganizationConversionRequestNotification as createOrganizationConversionRequestNotificationRow,
+  createOrganizationInvitationNotification as createOrganizationInvitationNotificationRow,
 } from "./notification.ts";
 import {
   type Account,
@@ -216,15 +214,18 @@ async function countAcceptedMembers(
   db: Database | Transaction,
   organizationAccountId: Uuid,
 ): Promise<number> {
-  const rows = await db.select({ count: count() })
+  const rows = await db
+    .select({ count: count() })
     .from(organizationMembershipTable)
-    .where(and(
-      eq(
-        organizationMembershipTable.organizationAccountId,
-        organizationAccountId,
+    .where(
+      and(
+        eq(
+          organizationMembershipTable.organizationAccountId,
+          organizationAccountId,
+        ),
+        isNotNull(organizationMembershipTable.accepted),
       ),
-      isNotNull(organizationMembershipTable.accepted),
-    ));
+    );
   return Number(rows[0]?.count ?? 0);
 }
 
@@ -232,16 +233,19 @@ async function countAcceptedAdmins(
   db: Database | Transaction,
   organizationAccountId: Uuid,
 ): Promise<number> {
-  const rows = await db.select({ count: count() })
+  const rows = await db
+    .select({ count: count() })
     .from(organizationMembershipTable)
-    .where(and(
-      eq(
-        organizationMembershipTable.organizationAccountId,
-        organizationAccountId,
+    .where(
+      and(
+        eq(
+          organizationMembershipTable.organizationAccountId,
+          organizationAccountId,
+        ),
+        eq(organizationMembershipTable.role, "admin"),
+        isNotNull(organizationMembershipTable.accepted),
       ),
-      eq(organizationMembershipTable.role, "admin"),
-      isNotNull(organizationMembershipTable.accepted),
-    ));
+    );
   return Number(rows[0]?.count ?? 0);
 }
 
@@ -249,14 +253,17 @@ async function assertAccountHasNoAcceptedOrganizationMemberships(
   db: Database | Transaction,
   accountId: Uuid,
 ): Promise<void> {
-  const existingMemberships = await db.select({
-    organizationAccountId: organizationMembershipTable.organizationAccountId,
-  })
+  const existingMemberships = await db
+    .select({
+      organizationAccountId: organizationMembershipTable.organizationAccountId,
+    })
     .from(organizationMembershipTable)
-    .where(and(
-      eq(organizationMembershipTable.memberAccountId, accountId),
-      isNotNull(organizationMembershipTable.accepted),
-    ))
+    .where(
+      and(
+        eq(organizationMembershipTable.memberAccountId, accountId),
+        isNotNull(organizationMembershipTable.accepted),
+      ),
+    )
     .limit(1);
   if (existingMemberships.length > 0) {
     throw new OrganizationConversionError(
@@ -270,8 +277,8 @@ export async function assertPersonalAccountDeletionPreservesOrganizations(
   accountId: Uuid,
 ): Promise<void> {
   await runInTransaction(db, async (tx) => {
-    const initialMemberships = await tx.query.organizationMembershipTable
-      .findMany({
+    const initialMemberships =
+      await tx.query.organizationMembershipTable.findMany({
         where: {
           memberAccountId: accountId,
           accepted: { isNotNull: true },
@@ -282,8 +289,8 @@ export async function assertPersonalAccountDeletionPreservesOrganizations(
       });
     const organizationAccountIds = [
       ...new Set(
-        initialMemberships.map((membership) =>
-          membership.organizationAccountId
+        initialMemberships.map(
+          (membership) => membership.organizationAccountId,
         ),
       ),
     ].sort();
@@ -351,36 +358,41 @@ export async function createOrganization(
     );
   }
   if (validateBio(input.bio) != null) {
-    throw new OrganizationMembershipError(
-      "The organization bio is invalid.",
-    );
+    throw new OrganizationMembershipError("The organization bio is invalid.");
   }
   return await runInTransaction(db, async (tx) => {
-    const creatorRows = await tx.update(accountTable)
+    const creatorRows = await tx
+      .update(accountTable)
       .set({
         leftInvitations: sql`${accountTable.leftInvitations} - 1`,
         updated: sql`CURRENT_TIMESTAMP`,
       })
-      .where(and(
-        eq(accountTable.id, creator.id),
-        eq(accountTable.kind, "personal"),
-        gt(accountTable.leftInvitations, 0),
-      ))
+      .where(
+        and(
+          eq(accountTable.id, creator.id),
+          eq(accountTable.kind, "personal"),
+          gt(accountTable.leftInvitations, 0),
+        ),
+      )
       .returning({ id: accountTable.id });
     if (creatorRows.length < 1) {
       throw new OrganizationInvitationRequiredError();
     }
 
     const organizationId = generateUuidV7();
-    const organizations = await tx.insert(accountTable).values({
-      id: organizationId,
-      kind: "organization",
-      username,
-      name,
-      bio: input.bio,
-      leftInvitations: 0,
-      inviterId: creator.id,
-    }).onConflictDoNothing().returning();
+    const organizations = await tx
+      .insert(accountTable)
+      .values({
+        id: organizationId,
+        kind: "organization",
+        username,
+        name,
+        bio: input.bio,
+        leftInvitations: 0,
+        inviterId: creator.id,
+      })
+      .onConflictDoNothing()
+      .returning();
     if (organizations.length < 1) {
       throw new OrganizationMembershipError(
         "The organization username is already in use.",
@@ -429,16 +441,21 @@ export async function inviteOrganizationMember(
       "The invited account does not exist.",
     );
   }
-  const rows = await db.insert(organizationMembershipTable).values({
-    organizationAccountId,
-    memberAccountId: member.id,
-    role,
-    invitedById: adminAccount.id,
-  }).onConflictDoNothing().returning();
-  const membership = rows[0] ??
-    await db.query.organizationMembershipTable.findFirst({
+  const rows = await db
+    .insert(organizationMembershipTable)
+    .values({
+      organizationAccountId,
+      memberAccountId: member.id,
+      role,
+      invitedById: adminAccount.id,
+    })
+    .onConflictDoNothing()
+    .returning();
+  const membership =
+    rows[0] ??
+    (await db.query.organizationMembershipTable.findFirst({
       where: { organizationAccountId, memberAccountId: member.id },
-    });
+    }));
   if (membership == null) {
     throw new OrganizationMembershipError("Failed to invite member.");
   }
@@ -519,19 +536,22 @@ export async function acceptOrganizationInvitation(
   if (memberAccount.kind !== "personal") {
     throw new OrganizationMembershipError("Only personal accounts can join.");
   }
-  const rows = await db.update(organizationMembershipTable)
+  const rows = await db
+    .update(organizationMembershipTable)
     .set({
       accepted: sql`CURRENT_TIMESTAMP`,
       updated: sql`CURRENT_TIMESTAMP`,
     })
-    .where(and(
-      eq(
-        organizationMembershipTable.organizationAccountId,
-        organizationAccountId,
+    .where(
+      and(
+        eq(
+          organizationMembershipTable.organizationAccountId,
+          organizationAccountId,
+        ),
+        eq(organizationMembershipTable.memberAccountId, memberAccount.id),
+        isNull(organizationMembershipTable.accepted),
       ),
-      eq(organizationMembershipTable.memberAccountId, memberAccount.id),
-      isNull(organizationMembershipTable.accepted),
-    ))
+    )
     .returning();
   if (rows[0] != null) return rows[0];
   const existing = await getAcceptedMembership(
@@ -567,15 +587,18 @@ export async function updateOrganizationMemberRole(
       const admins = await countAcceptedAdmins(tx, organizationAccountId);
       if (admins <= 1) throw new LastOrganizationAdminError();
     }
-    const rows = await tx.update(organizationMembershipTable)
+    const rows = await tx
+      .update(organizationMembershipTable)
       .set({ role, updated: sql`CURRENT_TIMESTAMP` })
-      .where(and(
-        eq(
-          organizationMembershipTable.organizationAccountId,
-          organizationAccountId,
+      .where(
+        and(
+          eq(
+            organizationMembershipTable.organizationAccountId,
+            organizationAccountId,
+          ),
+          eq(organizationMembershipTable.memberAccountId, memberAccountId),
         ),
-        eq(organizationMembershipTable.memberAccountId, memberAccountId),
-      ))
+      )
       .returning();
     return rows[0]!;
   });
@@ -597,21 +620,22 @@ export async function removeOrganizationMember(
       throw new OrganizationMembershipError("The member does not exist.");
     }
     if (membership.accepted == null) {
-      const rows = await tx.delete(organizationMembershipTable)
-        .where(and(
-          eq(
-            organizationMembershipTable.organizationAccountId,
-            organizationAccountId,
+      const rows = await tx
+        .delete(organizationMembershipTable)
+        .where(
+          and(
+            eq(
+              organizationMembershipTable.organizationAccountId,
+              organizationAccountId,
+            ),
+            eq(organizationMembershipTable.memberAccountId, memberAccountId),
+            isNull(organizationMembershipTable.accepted),
           ),
-          eq(organizationMembershipTable.memberAccountId, memberAccountId),
-          isNull(organizationMembershipTable.accepted),
-        ))
+        )
         .returning();
       const removed = rows[0];
       if (removed == null) {
-        throw new OrganizationMembershipError(
-          "The invitation does not exist.",
-        );
+        throw new OrganizationMembershipError("The invitation does not exist.");
       }
       await deleteOrganizationInvitationNotification(
         tx,
@@ -638,8 +662,7 @@ async function deleteOrganizationInvitationNotification(
     columns: { id: true },
   });
   if (actor == null) return;
-  await db.delete(notificationTable)
-    .where(sql`
+  await db.delete(notificationTable).where(sql`
       ${notificationTable.accountId} = ${memberAccountId}
       AND ${notificationTable.type} = 'organization_invitation'
       AND ${notificationTable.actorIds} = ARRAY[${actor.id}]::uuid[]
@@ -682,28 +705,37 @@ async function removeAcceptedMembership(
       const admins = await countAcceptedAdmins(tx, organizationAccountId);
       if (admins <= 1) throw new LastOrganizationAdminError();
     }
-    const rows = await tx.delete(organizationMembershipTable)
-      .where(and(
-        eq(
-          organizationMembershipTable.organizationAccountId,
-          organizationAccountId,
+    const rows = await tx
+      .delete(organizationMembershipTable)
+      .where(
+        and(
+          eq(
+            organizationMembershipTable.organizationAccountId,
+            organizationAccountId,
+          ),
+          eq(organizationMembershipTable.memberAccountId, memberAccountId),
+          isNotNull(organizationMembershipTable.accepted),
         ),
-        eq(organizationMembershipTable.memberAccountId, memberAccountId),
-        isNotNull(organizationMembershipTable.accepted),
-      ))
+      )
       .returning();
     const removed = rows[0];
     if (removed == null) {
       throw new OrganizationMembershipError("The member does not exist.");
     }
-    await tx.delete(organizationNotificationReadTable)
-      .where(and(
-        eq(
-          organizationNotificationReadTable.organizationAccountId,
-          organizationAccountId,
+    await tx
+      .delete(organizationNotificationReadTable)
+      .where(
+        and(
+          eq(
+            organizationNotificationReadTable.organizationAccountId,
+            organizationAccountId,
+          ),
+          eq(
+            organizationNotificationReadTable.memberAccountId,
+            memberAccountId,
+          ),
         ),
-        eq(organizationNotificationReadTable.memberAccountId, memberAccountId),
-      ));
+      );
     return removed;
   });
 }
@@ -741,21 +773,27 @@ export async function requestOrganizationConversion(
   });
   if (pending != null) {
     if (pending.adminAccountId !== admin.id) {
-      await db.delete(notificationTable)
-        .where(and(
-          eq(notificationTable.accountId, pending.adminAccountId),
-          eq(notificationTable.type, "organization_conversion_request"),
-          eq(notificationTable.organizationConversionRequestId, pending.id),
-        ));
-      const rows = await db.update(organizationConversionRequestTable)
+      await db
+        .delete(notificationTable)
+        .where(
+          and(
+            eq(notificationTable.accountId, pending.adminAccountId),
+            eq(notificationTable.type, "organization_conversion_request"),
+            eq(notificationTable.organizationConversionRequestId, pending.id),
+          ),
+        );
+      const rows = await db
+        .update(organizationConversionRequestTable)
         .set({
           adminAccountId: admin.id,
           updated: sql`CURRENT_TIMESTAMP`,
         })
-        .where(and(
-          eq(organizationConversionRequestTable.id, pending.id),
-          isNull(organizationConversionRequestTable.accepted),
-        ))
+        .where(
+          and(
+            eq(organizationConversionRequestTable.id, pending.id),
+            isNull(organizationConversionRequestTable.accepted),
+          ),
+        )
         .returning();
       const reassigned = rows[0];
       if (reassigned == null) {
@@ -774,11 +812,15 @@ export async function requestOrganizationConversion(
     );
     return pending;
   }
-  const rows = await db.insert(organizationConversionRequestTable).values({
-    id: generateUuidV7(),
-    accountId: account.id,
-    adminAccountId: admin.id,
-  }).onConflictDoNothing().returning();
+  const rows = await db
+    .insert(organizationConversionRequestTable)
+    .values({
+      id: generateUuidV7(),
+      accountId: account.id,
+      adminAccountId: admin.id,
+    })
+    .onConflictDoNothing()
+    .returning();
   let request = rows[0];
   if (request == null) {
     const pending = await db.query.organizationConversionRequestTable.findFirst(
@@ -871,8 +913,8 @@ async function acceptOrganizationConversionOperation(
       request.accountId,
     );
 
-    const pendingMemberships = await tx.query.organizationMembershipTable
-      .findMany({
+    const pendingMemberships =
+      await tx.query.organizationMembershipTable.findMany({
         where: {
           memberAccountId: request.accountId,
           accepted: { isNull: true },
@@ -886,64 +928,81 @@ async function acceptOrganizationConversionOperation(
         request.accountId,
       );
     }
-    await tx.delete(organizationMembershipTable)
-      .where(and(
-        eq(organizationMembershipTable.memberAccountId, request.accountId),
-        isNull(organizationMembershipTable.accepted),
-      ));
+    await tx
+      .delete(organizationMembershipTable)
+      .where(
+        and(
+          eq(organizationMembershipTable.memberAccountId, request.accountId),
+          isNull(organizationMembershipTable.accepted),
+        ),
+      );
     await assertAccountHasNoAcceptedOrganizationMemberships(
       tx,
       request.accountId,
     );
 
-    await tx.delete(accountEmailTable)
+    await tx
+      .delete(accountEmailTable)
       .where(eq(accountEmailTable.accountId, request.accountId));
-    await tx.delete(passkeyTable)
+    await tx
+      .delete(passkeyTable)
       .where(eq(passkeyTable.accountId, request.accountId));
-    await tx.delete(pushNotificationTargetTable)
+    await tx
+      .delete(pushNotificationTargetTable)
       .where(eq(pushNotificationTargetTable.accountId, request.accountId));
-    await tx.delete(invitationLinkTable)
+    await tx
+      .delete(invitationLinkTable)
       .where(eq(invitationLinkTable.inviterId, request.accountId));
-    await tx.delete(articleDraftTable)
+    await tx
+      .delete(articleDraftTable)
       .where(eq(articleDraftTable.accountId, request.accountId));
-    await tx.delete(bookmarkTable)
+    await tx
+      .delete(bookmarkTable)
       .where(eq(bookmarkTable.accountId, request.accountId));
-    await tx.delete(notificationTable)
+    await tx
+      .delete(notificationTable)
       .where(eq(notificationTable.accountId, request.accountId));
-    await tx.delete(organizationConversionRequestTable).where(
-      and(
-        eq(
-          organizationConversionRequestTable.adminAccountId,
-          request.accountId,
+    await tx
+      .delete(organizationConversionRequestTable)
+      .where(
+        and(
+          eq(
+            organizationConversionRequestTable.adminAccountId,
+            request.accountId,
+          ),
+          isNull(organizationConversionRequestTable.accepted),
         ),
-        isNull(organizationConversionRequestTable.accepted),
-      ),
-    );
-    await tx.update(accountTable)
+      );
+    await tx
+      .update(accountTable)
       .set({
         kind: "organization",
         leftInvitations: 0,
         updated: sql`CURRENT_TIMESTAMP`,
       })
       .where(eq(accountTable.id, request.accountId));
-    await tx.insert(organizationMembershipTable).values({
-      organizationAccountId: request.accountId,
-      memberAccountId: adminAccount.id,
-      role: "admin",
-      invitedById: adminAccount.id,
-      accepted: sql`CURRENT_TIMESTAMP`,
-    }).onConflictDoUpdate({
-      target: [
-        organizationMembershipTable.organizationAccountId,
-        organizationMembershipTable.memberAccountId,
-      ],
-      set: {
+    await tx
+      .insert(organizationMembershipTable)
+      .values({
+        organizationAccountId: request.accountId,
+        memberAccountId: adminAccount.id,
         role: "admin",
+        invitedById: adminAccount.id,
         accepted: sql`CURRENT_TIMESTAMP`,
-        updated: sql`CURRENT_TIMESTAMP`,
-      },
-    });
-    await tx.update(organizationConversionRequestTable)
+      })
+      .onConflictDoUpdate({
+        target: [
+          organizationMembershipTable.organizationAccountId,
+          organizationMembershipTable.memberAccountId,
+        ],
+        set: {
+          role: "admin",
+          accepted: sql`CURRENT_TIMESTAMP`,
+          updated: sql`CURRENT_TIMESTAMP`,
+        },
+      });
+    await tx
+      .update(organizationConversionRequestTable)
       .set({
         accepted: sql`CURRENT_TIMESTAMP`,
         updated: sql`CURRENT_TIMESTAMP`,
@@ -1000,7 +1059,8 @@ export async function recordOrganizationPostAuthor(
     memberAccountId,
   );
   if (membership == null) throw new OrganizationPermissionError();
-  await db.insert(organizationPostAuthorTable)
+  await db
+    .insert(organizationPostAuthorTable)
     .values({
       postId,
       organizationAccountId,
@@ -1031,23 +1091,26 @@ export async function getOrganizationNotificationBadge(
   if (membership == null) throw new OrganizationPermissionError();
 
   if (markRead != null) {
-    await db.insert(organizationNotificationReadTable).values({
-      organizationAccountId,
-      memberAccountId,
-      read: markRead,
-    }).onConflictDoUpdate({
-      target: [
-        organizationNotificationReadTable.organizationAccountId,
-        organizationNotificationReadTable.memberAccountId,
-      ],
-      set: {
-        read: sql`GREATEST(
+    await db
+      .insert(organizationNotificationReadTable)
+      .values({
+        organizationAccountId,
+        memberAccountId,
+        read: markRead,
+      })
+      .onConflictDoUpdate({
+        target: [
+          organizationNotificationReadTable.organizationAccountId,
+          organizationNotificationReadTable.memberAccountId,
+        ],
+        set: {
+          read: sql`GREATEST(
           ${organizationNotificationReadTable.read},
           ${markRead.toISOString()}::timestamptz
         )`,
-        updated: sql`CURRENT_TIMESTAMP`,
-      },
-    });
+          updated: sql`CURRENT_TIMESTAMP`,
+        },
+      });
   }
 
   const globalReadMarker = sql`
@@ -1085,23 +1148,29 @@ export async function getOrganizationNotificationBadge(
     FROM ${actorTable}
     WHERE ${actorTable.id} = ANY(${notificationTable.actorIds})
   )`;
-  const redRows = await db.select({ count: count() })
+  const redRows = await db
+    .select({ count: count() })
     .from(notificationTable)
-    .where(and(
-      eq(notificationTable.accountId, organizationAccountId),
-      sql`${notificationTable.created} > ${globalReadMarker}`,
-      notificationHasExistingActors,
-    ));
+    .where(
+      and(
+        eq(notificationTable.accountId, organizationAccountId),
+        sql`${notificationTable.created} > ${globalReadMarker}`,
+        notificationHasExistingActors,
+      ),
+    );
   const redCount = Number(redRows[0]?.count ?? 0);
   if (redCount > 0) return { color: "red", count: redCount };
 
-  const grayRows = await db.select({ count: count() })
+  const grayRows = await db
+    .select({ count: count() })
     .from(notificationTable)
-    .where(and(
-      eq(notificationTable.accountId, organizationAccountId),
-      sql`${notificationTable.created} > ${memberReadMarker}`,
-      notificationHasExistingActors,
-    ));
+    .where(
+      and(
+        eq(notificationTable.accountId, organizationAccountId),
+        sql`${notificationTable.created} > ${memberReadMarker}`,
+        notificationHasExistingActors,
+      ),
+    );
   const grayCount = Number(grayRows[0]?.count ?? 0);
   if (grayCount > 0) return { color: "gray", count: grayCount };
   return { color: null, count: 0 };

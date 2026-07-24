@@ -13,7 +13,7 @@ export const SettingsOwnerGuard: ParentComponent<SettingsOwnerGuardProps> = (
   const location = useLocation();
   const canManage = () =>
     props.canManageSettings ??
-      (props.accountId != null && props.viewerId === props.accountId);
+    (props.accountId != null && props.viewerId === props.accountId);
 
   return (
     <Switch>
@@ -25,9 +25,7 @@ export const SettingsOwnerGuard: ParentComponent<SettingsOwnerGuardProps> = (
       <Match when={props.accountId != null && !canManage()}>
         <Navigate href="/" />
       </Match>
-      <Match when={props.accountId != null}>
-        {props.children}
-      </Match>
+      <Match when={props.accountId != null}>{props.children}</Match>
     </Switch>
   );
 };

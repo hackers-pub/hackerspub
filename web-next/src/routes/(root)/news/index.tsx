@@ -4,7 +4,7 @@ import { Show } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NewsList } from "~/components/NewsList.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,
@@ -36,9 +36,8 @@ const loadNewsPageQuery = routePreloadedQuery(
 export default function NewsPage() {
   const { t } = useLingui();
   const { activeSort, initialSort, buildHref } = useNewsSort("/news");
-  const data = createStablePreloadedQuery<newsPageQuery>(
-    newsPageQuery,
-    () => loadNewsPageQuery(initialSort),
+  const data = createStablePreloadedQuery<newsPageQuery>(newsPageQuery, () =>
+    loadNewsPageQuery(initialSort),
   );
 
   return (

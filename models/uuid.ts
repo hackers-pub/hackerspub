@@ -8,6 +8,8 @@ export function generateUuidV7(): Uuid {
 }
 
 export function validateUuid(string: unknown): string is Uuid {
-  return typeof string === "string" &&
-    (validateUuidV1To5(string) || validateUuidV7(string));
+  return (
+    typeof string === "string" &&
+    (validateUuidV1To5(string) || validateUuidV7(string))
+  );
 }

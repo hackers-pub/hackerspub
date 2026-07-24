@@ -13,11 +13,11 @@ export type WebPushErrorCode =
   | "unsupported";
 
 export class WebPushError extends Error {
-  constructor(
-    public readonly code: WebPushErrorCode,
-    options?: ErrorOptions,
-  ) {
+  public readonly code: WebPushErrorCode;
+
+  constructor(code: WebPushErrorCode, options?: ErrorOptions) {
     super(code, options);
+    this.code = code;
     this.name = "WebPushError";
   }
 }
@@ -26,11 +26,13 @@ export const WEB_PUSH_PERMISSION_CHANGE_EVENT =
   "hackerspub:web-push-permission-change";
 
 export function isWebPushSupported(): boolean {
-  return typeof window !== "undefined" &&
+  return (
+    typeof window !== "undefined" &&
     "serviceWorker" in navigator &&
     "PushManager" in window &&
     "Notification" in window &&
-    window.isSecureContext;
+    window.isSecureContext
+  );
 }
 
 export function getNotificationPermission(): NotificationPermission | null {
@@ -40,9 +42,7 @@ export function getNotificationPermission(): NotificationPermission | null {
   return Notification.permission;
 }
 
-export async function getWebPushRegistration(): Promise<
-  ServiceWorkerRegistration
-> {
+export async function getWebPushRegistration(): Promise<ServiceWorkerRegistration> {
   if (!isWebPushSupported()) {
     throw new WebPushError("unsupported");
   }
@@ -51,9 +51,7 @@ export async function getWebPushRegistration(): Promise<
   });
 }
 
-export async function getExistingWebPushSubscription(): Promise<
-  PushSubscription | null
-> {
+export async function getExistingWebPushSubscription(): Promise<PushSubscription | null> {
   if (!isWebPushSupported()) return null;
   const registration = await getWebPushRegistration();
   return await registration.pushManager.getSubscription();
@@ -106,10 +104,12 @@ export async function subscribeToWebPush(
     await subscription.unsubscribe();
     subscription = null;
   }
-  subscription = subscription ?? await registration.pushManager.subscribe({
-    userVisibleOnly: true,
-    applicationServerKey,
-  });
+  subscription =
+    subscription ??
+    (await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey,
+    }));
   return serializeWebPushSubscription(subscription);
 }
 
@@ -125,11 +125,10 @@ export function serializeWebPushSubscription(
   subscription: PushSubscription,
 ): WebPushSubscriptionData {
   const json = subscription.toJSON();
-  const p256dh = json.keys?.p256dh ??
-    arrayBufferToBase64Url(subscription.getKey("p256dh"));
-  const auth = json.keys?.auth ?? arrayBufferToBase64Url(subscription.getKey(
-    "auth",
-  ));
+  const p256dh =
+    json.keys?.p256dh ?? arrayBufferToBase64Url(subscription.getKey("p256dh"));
+  const auth =
+    json.keys?.auth ?? arrayBufferToBase64Url(subscription.getKey("auth"));
 
   if (json.endpoint == null || p256dh == null || auth == null) {
     throw new WebPushError("incomplete-subscription");
@@ -139,15 +138,16 @@ export function serializeWebPushSubscription(
     endpoint: json.endpoint,
     p256dh,
     auth,
-    expirationTime: subscription.expirationTime == null
-      ? null
-      : new Date(subscription.expirationTime).toISOString(),
+    expirationTime:
+      subscription.expirationTime == null
+        ? null
+        : new Date(subscription.expirationTime).toISOString(),
   };
 }
 
 function urlBase64ToUint8Array(value: string): Uint8Array<ArrayBuffer> {
   try {
-    const padding = "=".repeat((4 - value.length % 4) % 4);
+    const padding = "=".repeat((4 - (value.length % 4)) % 4);
     const base64 = (value + padding).replace(/-/g, "+").replace(/_/g, "/");
     const raw = atob(base64);
     return Uint8Array.from(raw, (c) => c.charCodeAt(0));
@@ -156,17 +156,15 @@ function urlBase64ToUint8Array(value: string): Uint8Array<ArrayBuffer> {
   }
 }
 
-function arrayBufferToBase64Url(
-  value: ArrayBuffer | null,
-): string | undefined {
+function arrayBufferToBase64Url(value: ArrayBuffer | null): string | undefined {
   if (value == null) return undefined;
   const bytes = new Uint8Array(value);
   let binary = "";
   for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(
-    /=+$/,
-    "",
-  );
+  return btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
 }
 
 function subscriptionUsesApplicationServerKey(
@@ -177,8 +175,8 @@ function subscriptionUsesApplicationServerKey(
   if (currentKey == null) return false;
   const currentBytes = new Uint8Array(currentKey);
   if (currentBytes.byteLength !== applicationServerKey.byteLength) return false;
-  return currentBytes.every((byte, index) =>
-    byte === applicationServerKey[index]
+  return currentBytes.every(
+    (byte, index) => byte === applicationServerKey[index],
   );
 }
 

@@ -76,12 +76,14 @@ test("Account.passkeys exposes the signed-in account's passkeys", async () => {
     assert.deepEqual(toPlainJson(result.data), {
       viewer: {
         passkeys: {
-          edges: [{
-            node: {
-              id: encodeGlobalID("Passkey", "viewer-passkey"),
-              name: "Laptop",
+          edges: [
+            {
+              node: {
+                id: encodeGlobalID("Passkey", "viewer-passkey"),
+                name: "Laptop",
+              },
             },
-          }],
+          ],
         },
       },
     });

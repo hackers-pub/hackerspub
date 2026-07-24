@@ -1,5 +1,6 @@
 import { getLogger } from "@logtape/logtape";
 import { and, eq } from "drizzle-orm";
+import process from "node:process";
 import webPush from "web-push";
 import type { Database } from "./db.ts";
 import {
@@ -42,9 +43,9 @@ let cachedEnvConfig: WebPushConfig | null | undefined;
 function readEnvConfig(): WebPushConfig | null {
   if (cachedEnvConfig !== undefined) return cachedEnvConfig;
 
-  const publicKey = Deno.env.get("WEB_PUSH_VAPID_PUBLIC_KEY")?.trim() ?? "";
-  const privateKey = Deno.env.get("WEB_PUSH_VAPID_PRIVATE_KEY")?.trim() ?? "";
-  const subject = Deno.env.get("WEB_PUSH_VAPID_SUBJECT")?.trim() ?? "";
+  const publicKey = process.env.WEB_PUSH_VAPID_PUBLIC_KEY?.trim() ?? "";
+  const privateKey = process.env.WEB_PUSH_VAPID_PRIVATE_KEY?.trim() ?? "";
+  const subject = process.env.WEB_PUSH_VAPID_SUBJECT?.trim() ?? "";
 
   if (publicKey === "" && privateKey === "" && subject === "") {
     logger.debug(
@@ -94,9 +95,10 @@ async function sendWebPush(
 }
 
 function getStatusCode(error: unknown): number | undefined {
-  return typeof error === "object" && error != null &&
-      "statusCode" in error &&
-      typeof error.statusCode === "number"
+  return typeof error === "object" &&
+    error != null &&
+    "statusCode" in error &&
+    typeof error.statusCode === "number"
     ? error.statusCode
     : undefined;
 }
@@ -106,9 +108,10 @@ function getEndpointSuffix(endpoint: string): string {
 }
 
 function getErrorName(error: unknown): string | undefined {
-  return typeof error === "object" && error != null &&
-      "name" in error &&
-      typeof error.name === "string"
+  return typeof error === "object" &&
+    error != null &&
+    "name" in error &&
+    typeof error.name === "string"
     ? error.name
     : undefined;
 }
@@ -137,18 +140,22 @@ export async function sendWebPushNotification(
   const config = configForTesting ?? readEnvConfig();
   if (config == null) return;
 
-  const targets = (await db.select({
-    endpoint: pushNotificationTargetTable.endpoint,
-    p256dh: pushNotificationTargetTable.p256dh,
-    auth: pushNotificationTargetTable.auth,
-    expirationTime: pushNotificationTargetTable.expirationTime,
-  }).from(pushNotificationTargetTable)
-    .where(
-      and(
-        eq(pushNotificationTargetTable.accountId, options.accountId),
-        eq(pushNotificationTargetTable.service, "web_push"),
-      ),
-    )).filter(pushTargetHasEndpoint);
+  const targets = (
+    await db
+      .select({
+        endpoint: pushNotificationTargetTable.endpoint,
+        p256dh: pushNotificationTargetTable.p256dh,
+        auth: pushNotificationTargetTable.auth,
+        expirationTime: pushNotificationTargetTable.expirationTime,
+      })
+      .from(pushNotificationTargetTable)
+      .where(
+        and(
+          eq(pushNotificationTargetTable.accountId, options.accountId),
+          eq(pushNotificationTargetTable.service, "web_push"),
+        ),
+      )
+  ).filter(pushTargetHasEndpoint);
   if (targets.length < 1) return;
 
   const payload = JSON.stringify(
@@ -201,10 +208,7 @@ export async function sendWebPushNotification(
     }),
   );
 
-  await deleteStalePushNotificationTargets(
-    db,
-    options.accountId,
-    "web_push",
-    [...staleEndpoints],
-  );
+  await deleteStalePushNotificationTargets(db, options.accountId, "web_push", [
+    ...staleEndpoints,
+  ]);
 }

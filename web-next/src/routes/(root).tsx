@@ -35,7 +35,7 @@ import {
 } from "~/contexts/ActingAccountContext.tsx";
 import { NoteComposeProvider } from "~/contexts/NoteComposeContext.tsx";
 import { ViewerProvider } from "~/contexts/ViewerContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { invalidateNotificationsPageQueryCache } from "~/lib/notificationsPageQueryCache.ts";
 import { createUnreadNotificationsCount } from "~/lib/unreadNotificationsCount.ts";
 import type { RootLayoutQuery } from "./__generated__/RootLayoutQuery.graphql.ts";
@@ -88,10 +88,7 @@ const loadRootLayoutQuery = routePreloadedQuery(
 
 function RouteLoadingFallback() {
   return (
-    <div
-      class="mx-auto w-full max-w-160 px-4 py-4 sm:py-6"
-      aria-hidden="true"
-    >
+    <div class="mx-auto w-full max-w-160 px-4 py-4 sm:py-6" aria-hidden="true">
       <div class="space-y-4">
         <div class="h-8 w-48 rounded-md bg-muted animate-pulse" />
         <div class="overflow-hidden rounded-lg border bg-card shadow-sm">
@@ -138,16 +135,16 @@ export default function RootLayout(props: RouteSectionProps) {
     chromeMounted() && !signedAccount.pending;
   const chromeSignedAccount = () =>
     chromeMounted() ? signedAccount()?.viewer : undefined;
-  const personalUnreadNotificationsCount = createUnreadNotificationsCount(
-    chromeSignedAccount,
-  );
+  const personalUnreadNotificationsCount =
+    createUnreadNotificationsCount(chromeSignedAccount);
   // The article writing surfaces (draft composer and the published-article
   // editor) render full-bleed, so hide the sidebar and mobile header on those
   // routes. Matches `/@handle/drafts/new`, `/@handle/drafts/{uuid}`, and
   // `/@handle/{year|id}/{slug}/edit` (but not the bare `/@handle/drafts` list).
-  const isComposeRoute = createMemo(() =>
-    /^\/@[^/]+\/drafts\/[^/]+/.test(location.pathname) ||
-    /^\/@[^/]+\/[^/]+\/[^/]+\/edit\/?$/.test(location.pathname)
+  const isComposeRoute = createMemo(
+    () =>
+      /^\/@[^/]+\/drafts\/[^/]+/.test(location.pathname) ||
+      /^\/@[^/]+\/[^/]+\/[^/]+\/edit\/?$/.test(location.pathname),
   );
   const showFloatingCompose = () => {
     if (!chromeSignedAccountLoaded() || !chromeSignedAccount()) return false;
@@ -189,7 +186,8 @@ export default function RootLayout(props: RouteSectionProps) {
   return (
     <ViewerProvider
       isAuthenticated={() =>
-        !signedAccount.pending && !!signedAccount()?.viewer}
+        !signedAccount.pending && !!signedAccount()?.viewer
+      }
       isLoaded={() => !signedAccount.pending}
       id={() => signedAccount()?.viewer?.id}
       username={() => signedAccount()?.viewer?.username}
@@ -250,8 +248,9 @@ export default function RootLayout(props: RouteSectionProps) {
             >
               <Show when={!isComposeRoute()}>
                 <WebPushPromptBanner
-                  enabled={!signedAccount.pending &&
-                    signedAccount()?.viewer != null}
+                  enabled={
+                    !signedAccount.pending && signedAccount()?.viewer != null
+                  }
                   loaded={!signedAccount.pending}
                   vapidPublicKey={signedAccount()?.webPushVapidPublicKey}
                 />

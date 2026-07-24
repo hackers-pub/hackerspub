@@ -30,11 +30,7 @@ export async function resolveActingAccountForMutation(
   if (accountId != null && !validateUuid(accountId)) {
     throw new InvalidInputError("actingAccountId");
   }
-  const account = await resolveActingAccount(
-    ctx.db,
-    ctx.account,
-    accountId,
-  );
+  const account = await resolveActingAccount(ctx.db, ctx.account, accountId);
   return account as ActingAccount;
 }
 
@@ -65,10 +61,7 @@ export async function resolveActingAccountForGlobalIdArg(
       id = actingAccountId.id;
       typename = actingAccountId.typename;
     }
-    if (
-      typename != null &&
-      typename !== "Account"
-    ) {
+    if (typename != null && typename !== "Account") {
       throw new InvalidInputError("actingAccountId");
     }
     if (typeof id !== "string" || !validateUuid(id)) {

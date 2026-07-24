@@ -28,11 +28,13 @@ export async function updateRepliesCount(
   delta: number,
 ): Promise<number | undefined> {
   const repliesCount = replyTarget.repliesCount + delta;
-  const cnt = await db.select({ count: count() })
+  const cnt = await db
+    .select({ count: count() })
     .from(postTable)
     .where(eq(postTable.replyTargetId, replyTarget.id));
   if (repliesCount <= cnt[0].count) {
-    await db.update(postTable)
+    await db
+      .update(postTable)
       .set({ repliesCount: cnt[0].count })
       .where(eq(postTable.id, replyTarget.id));
     replyTarget.repliesCount = cnt[0].count;
@@ -47,11 +49,13 @@ export async function updateSharesCount(
   delta: number,
 ): Promise<number> {
   const sharesCount = post.sharesCount + delta;
-  const cnt = await db.select({ count: count() })
+  const cnt = await db
+    .select({ count: count() })
     .from(postTable)
     .where(eq(postTable.sharedPostId, post.id));
   if (sharesCount <= cnt[0].count) {
-    await db.update(postTable)
+    await db
+      .update(postTable)
       .set({ sharesCount: cnt[0].count })
       .where(eq(postTable.id, post.id));
     post.sharesCount = cnt[0].count;
@@ -66,11 +70,13 @@ export async function updateQuotesCount(
   delta: number,
 ): Promise<number> {
   const quotesCount = post.quotesCount + delta;
-  const cnt = await db.select({ count: count() })
+  const cnt = await db
+    .select({ count: count() })
     .from(postTable)
     .where(eq(postTable.quotedPostId, post.id));
   if (quotesCount <= cnt[0].count) {
-    await db.update(postTable)
+    await db
+      .update(postTable)
       .set({ quotesCount: cnt[0].count })
       .where(eq(postTable.id, post.id));
     post.quotesCount = cnt[0].count;
@@ -88,27 +94,32 @@ async function revokeQuoteOperation(
   const { db } = fedCtx;
   const revoked = new Date();
   let updatedQuote: QuoteUpdatePost | undefined;
-  const rows = await db.update(postTable)
+  const rows = await db
+    .update(postTable)
     .set({
       quotedPostId: null,
       quoteAuthorizationIri: null,
       quoteTargetState: "denied",
       updated: revoked,
     })
-    .where(and(
-      eq(postTable.id, quotePost.id),
-      eq(postTable.quotedPostId, quotedPost.id),
-    ))
+    .where(
+      and(
+        eq(postTable.id, quotePost.id),
+        eq(postTable.quotedPostId, quotedPost.id),
+      ),
+    )
     .returning();
   const updatedPost = rows[0];
   if (updatedPost == null) {
-    return await db.query.postTable.findFirst({
-      where: { id: quotePost.id },
-    }) ??
-      quotePost;
+    return (
+      (await db.query.postTable.findFirst({
+        where: { id: quotePost.id },
+      })) ?? quotePost
+    );
   }
   if (quotePost.actor.accountId != null && quotePost.noteSourceId != null) {
-    await db.update(noteSourceTable)
+    await db
+      .update(noteSourceTable)
       .set({ updated: revoked })
       .where(eq(noteSourceTable.id, quotePost.noteSourceId));
     updatedQuote = await db.query.postTable.findFirst({
@@ -125,7 +136,8 @@ async function revokeQuoteOperation(
     }
   }
   if (quotePost.quoteAuthorizationIri != null) {
-    await db.update(quoteAuthorizationTable)
+    await db
+      .update(quoteAuthorizationTable)
       .set({ revoked: true, updated: revoked })
       .where(eq(quoteAuthorizationTable.iri, quotePost.quoteAuthorizationIri));
     if (quotePost.actor.accountId == null) {
@@ -233,9 +245,8 @@ async function sendLocalQuoteUpdate(
     fedCtx,
     noteSource,
     {
-      replyTargetId: quote.replyTarget == null
-        ? undefined
-        : new URL(quote.replyTarget.iri),
+      replyTargetId:
+        quote.replyTarget == null ? undefined : new URL(quote.replyTarget.iri),
       quotedPost: quote.quotedPost ?? undefined,
       quoteAuthorizationIri,
     },
@@ -282,20 +293,20 @@ async function sendLocalQuoteUpdate(
       },
     );
   }
-  const relayedTags = await fedCtx.services.federation
-    .sendTagsPubRelayActivity(
-      fedCtx,
-      quote.actor.accountId,
-      update,
-      {
-        orderingKey: quote.iri,
-        visibility: quote.visibility,
-        accountBio: noteSource.account.bio,
-        relayedTags: quote.relayedTags,
-      },
-    );
+  const relayedTags = await fedCtx.services.federation.sendTagsPubRelayActivity(
+    fedCtx,
+    quote.actor.accountId,
+    update,
+    {
+      orderingKey: quote.iri,
+      visibility: quote.visibility,
+      accountBio: noteSource.account.bio,
+      relayedTags: quote.relayedTags,
+    },
+  );
   if (relayedTags != null) {
-    await fedCtx.db.update(postTable)
+    await fedCtx.db
+      .update(postTable)
       .set({ relayedTags: [...relayedTags] })
       .where(eq(postTable.id, quote.id));
     quote.relayedTags = [...relayedTags];

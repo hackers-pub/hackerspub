@@ -11,7 +11,7 @@ import {
 } from "~/components/ui/avatar.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,
@@ -49,9 +49,8 @@ const authorizeInteractionPageByHandleQuery = graphql`
       username
     }
     actorByHandle(handle: $handle) {
-      ...authorizeInteractionPage_actor @arguments(
-        actingAccountId: $actingAccountId
-      )
+      ...authorizeInteractionPage_actor
+        @arguments(actingAccountId: $actingAccountId)
     }
   }
 `;
@@ -62,9 +61,8 @@ const authorizeInteractionPageByUrlQuery = graphql`
       username
     }
     actorByUrl(url: $url) {
-      ...authorizeInteractionPage_actor @arguments(
-        actingAccountId: $actingAccountId
-      )
+      ...authorizeInteractionPage_actor
+        @arguments(actingAccountId: $actingAccountId)
     }
   }
 `;
@@ -111,9 +109,12 @@ export default function AuthorizeInteractionPage() {
           }
         >
           {(validLookup) =>
-            validLookup.kind === "handle"
-              ? <ByHandle handle={validLookup.value} />
-              : <ByUrl url={validLookup.value} />}
+            validLookup.kind === "handle" ? (
+              <ByHandle handle={validLookup.value} />
+            ) : (
+              <ByUrl url={validLookup.value} />
+            )
+          }
         </Show>
       </div>
     </div>
@@ -123,12 +124,11 @@ export default function AuthorizeInteractionPage() {
 function ByHandle(props: { handle: string }) {
   const actingAccount = useActingAccount();
   const actingAccountId = () => actingAccount.selectedActingAccountId();
-  const data = createStablePreloadedQuery<
-    authorizeInteractionPageByHandleQuery
-  >(
-    authorizeInteractionPageByHandleQuery,
-    () => loadByHandleQuery(props.handle, actingAccountId() ?? null),
-  );
+  const data =
+    createStablePreloadedQuery<authorizeInteractionPageByHandleQuery>(
+      authorizeInteractionPageByHandleQuery,
+      () => loadByHandleQuery(props.handle, actingAccountId() ?? null),
+    );
   return (
     <Show keyed when={data()}>
       {(result) => (
@@ -174,9 +174,9 @@ function Frame(props: FrameProps) {
 
   createEffect(() => {
     if (props.viewerUsername) return;
-    const currentUrl = `/authorize_interaction?uri=${
-      encodeURIComponent(props.uri)
-    }`;
+    const currentUrl = `/authorize_interaction?uri=${encodeURIComponent(
+      props.uri,
+    )}`;
     navigate(`/sign?next=${encodeURIComponent(currentUrl)}`, { replace: true });
   });
 
@@ -205,19 +205,18 @@ function Frame(props: FrameProps) {
   );
 }
 
-function ActorPanel(
-  props: {
-    $actor: authorizeInteractionPage_actor$key;
-    viewerUsername: string;
-  },
-) {
+function ActorPanel(props: {
+  $actor: authorizeInteractionPage_actor$key;
+  viewerUsername: string;
+}) {
   const { t } = useLingui();
   const navigate = useNavigate();
   const actor = createFragment(
     graphql`
       fragment authorizeInteractionPage_actor on Actor
-        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
-      {
+      @argumentDefinitions(
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
         name
         rawName
         username
@@ -260,9 +259,7 @@ function ActorPanel(
                     </h2>
                   )}
                 </Show>
-                <p class="text-sm text-muted-foreground truncate">
-                  {a.handle}
-                </p>
+                <p class="text-sm text-muted-foreground truncate">{a.handle}</p>
                 <Show keyed when={a.instance}>
                   {(instance) => (
                     <p class="text-xs text-muted-foreground mt-1">
@@ -279,11 +276,7 @@ function ActorPanel(
               {t`Signed in as`} <strong>@{props.viewerUsername}</strong>
             </p>
             <div class="flex gap-3 items-center justify-between">
-              <Button
-                variant="outline"
-                as="a"
-                href={a.url ?? a.iri}
-              >
+              <Button variant="outline" as="a" href={a.url ?? a.iri}>
                 {t`Cancel`}
               </Button>
               <FollowButton

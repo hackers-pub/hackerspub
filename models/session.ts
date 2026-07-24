@@ -17,9 +17,8 @@ export interface Session {
 
 export async function createSession(
   kv: Keyv,
-  session:
-    & Omit<Session, "id" | "created">
-    & Pick<Partial<Session>, "id" | "created">,
+  session: Omit<Session, "id" | "created"> &
+    Pick<Partial<Session>, "id" | "created">,
 ): Promise<Session> {
   const id = session.id ?? crypto.randomUUID();
   const data = { ...session, id, created: session.created ?? new Date() };
@@ -34,9 +33,6 @@ export function getSession(
   return kv.get<Session>(`${KV_NAMESPACE}/${sessionId}`);
 }
 
-export function deleteSession(
-  kv: Keyv,
-  sessionId: Uuid,
-): Promise<boolean> {
+export function deleteSession(kv: Keyv, sessionId: Uuid): Promise<boolean> {
   return kv.delete(`${KV_NAMESPACE}/${sessionId}`);
 }

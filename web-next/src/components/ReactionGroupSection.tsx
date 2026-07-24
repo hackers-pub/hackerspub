@@ -9,7 +9,7 @@ import { createSignal, For, Match, onCleanup, Show, Switch } from "solid-js";
 import { useRelayEnvironment } from "solid-relay";
 import { ActorPreviewCard } from "~/components/ActorPreviewCard.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
-import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
+import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
 import type {
   ReactionGroupSection_LoadMoreQuery,
   ReactionGroupSection_LoadMoreQuery$data,
@@ -17,9 +17,7 @@ import type {
 
 export interface ReactionGroupReactor {
   readonly id: string;
-  readonly " $fragmentSpreads": import("relay-runtime").FragmentRefs<
-    "ActorPreviewCard_actor"
-  >;
+  readonly " $fragmentSpreads": import("relay-runtime").FragmentRefs<"ActorPreviewCard_actor">;
 }
 
 export interface ReactionGroupSectionProps {
@@ -58,9 +56,8 @@ const ReactionGroupLoadMoreQuery = graphql`
             edges {
               node {
                 id
-                ...ActorPreviewCard_actor @arguments(
-                  actingAccountId: $actingAccountId
-                )
+                ...ActorPreviewCard_actor
+                  @arguments(actingAccountId: $actingAccountId)
               }
             }
             pageInfo {
@@ -147,12 +144,10 @@ export function ReactionGroupSection(props: ReactionGroupSectionProps) {
     ).subscribe({
       next(data: ReactionGroupSection_LoadMoreQuery$data) {
         const node = data.node;
-        const group = node != null && "reactionGroup" in node
-          ? node.reactionGroup
-          : null;
-        const connection = group != null && "reactors" in group
-          ? group.reactors
-          : null;
+        const group =
+          node != null && "reactionGroup" in node ? node.reactionGroup : null;
+        const connection =
+          group != null && "reactors" in group ? group.reactors : null;
         if (connection == null) {
           setHasNext(false);
           return;
@@ -221,15 +216,13 @@ export function ReactionGroupSection(props: ReactionGroupSectionProps) {
             </Match>
             <Match when={loadingState() === "idle"}>
               {i18n._(
-                msg`${
-                  plural(
-                    Math.max(0, props.totalCount - allReactors().length),
-                    {
-                      one: "Load # more reactor",
-                      other: "Load # more reactors",
-                    },
-                  )
-                }`,
+                msg`${plural(
+                  Math.max(0, props.totalCount - allReactors().length),
+                  {
+                    one: "Load # more reactor",
+                    other: "Load # more reactors",
+                  },
+                )}`,
               )}
             </Match>
           </Switch>

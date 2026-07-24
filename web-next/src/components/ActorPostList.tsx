@@ -14,7 +14,7 @@ import {
 import { createPaginationFragment } from "solid-relay";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { scheduleDeferredRender } from "~/lib/deferredRender.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { ActorPostList_posts$key } from "./__generated__/ActorPostList_posts.graphql.ts";
 import { PostCard } from "./PostCard.tsx";
 
@@ -32,30 +32,22 @@ export function ActorPostList(props: ActorPostListProps) {
   const posts = createPaginationFragment(
     graphql`
       fragment ActorPostList_posts on Actor
-        @refetchable(queryName: "ActorPostListQuery")
-        @argumentDefinitions(
-          cursor: { type: "String" }
-          count: { type: "Int", defaultValue: 20 }
-          actingAccountId: { type: "ID" }
-          locale: { type: "Locale" }
-        )
-      {
+      @refetchable(queryName: "ActorPostListQuery")
+      @argumentDefinitions(
+        cursor: { type: "String" }
+        count: { type: "Int", defaultValue: 20 }
+        actingAccountId: { type: "ID" }
+        locale: { type: "Locale" }
+      ) {
         __id
-        posts(
-          after: $cursor
-          first: $count
-          actingAccountId: $actingAccountId
-        )
-          @connection(key: "ActorPostList_posts")
-        {
+        posts(after: $cursor, first: $count, actingAccountId: $actingAccountId)
+          @connection(key: "ActorPostList_posts") {
           __id
           edges {
             __id
             node {
-              ...PostCard_post @arguments(
-                locale: $locale
-                actingAccountId: $actingAccountId
-              )
+              ...PostCard_post
+                @arguments(locale: $locale, actingAccountId: $actingAccountId)
             }
           }
           pageInfo {
@@ -69,26 +61,28 @@ export function ActorPostList(props: ActorPostListProps) {
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
   >("loaded");
-  const [visiblePostCount, setVisiblePostCount] = createSignal(
-    initialVisiblePosts,
-  );
+  const [visiblePostCount, setVisiblePostCount] =
+    createSignal(initialVisiblePosts);
   const actingAccountId = () => actingAccount.selectedActingAccountId();
   const edges = createMemo(() => posts()?.posts?.edges ?? []);
   const visibleEdges = createMemo(() => edges().slice(0, visiblePostCount()));
 
-  createEffect(on(
-    actingAccountId,
-    (actingAccountId) =>
-      posts.refetch({ actingAccountId: actingAccountId ?? null }),
-    { defer: true },
-  ));
+  createEffect(
+    on(
+      actingAccountId,
+      (actingAccountId) =>
+        posts.refetch({ actingAccountId: actingAccountId ?? null }),
+      { defer: true },
+    ),
+  );
 
   createEffect(() => {
     const edgeCount = edges().length;
     const currentCount = untrack(visiblePostCount);
-    const startingCount = currentCount < 1
-      ? Math.min(edgeCount, initialVisiblePosts)
-      : Math.min(edgeCount, Math.max(currentCount, initialVisiblePosts));
+    const startingCount =
+      currentCount < 1
+        ? Math.min(edgeCount, initialVisiblePosts)
+        : Math.min(edgeCount, Math.max(currentCount, initialVisiblePosts));
     setVisiblePostCount(startingCount);
 
     let cancelDeferredRender = () => {};

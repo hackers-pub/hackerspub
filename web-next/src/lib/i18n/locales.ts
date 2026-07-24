@@ -6,9 +6,7 @@ export function getValidLocaleBaseName(locale: string): string | undefined {
   }
 }
 
-export function getValidLocaleBaseNames(
-  locales: readonly string[],
-): string[] {
+export function getValidLocaleBaseNames(locales: readonly string[]): string[] {
   const result: string[] = [];
   for (const locale of locales) {
     const baseName = getValidLocaleBaseName(locale);

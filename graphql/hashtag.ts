@@ -34,7 +34,8 @@ builder.drizzleObjectField(Account, "followsHashtag", (t) =>
       if (tag === "") return false;
       return isFollowingHashtag(ctx.db, account.id, tag);
     },
-  }));
+  }),
+);
 
 builder.drizzleObjectField(Account, "pinnedHashtags", (t) =>
   t.stringList({
@@ -47,7 +48,8 @@ builder.drizzleObjectField(Account, "pinnedHashtags", (t) =>
       if (ctx.account?.id !== account.id) return [];
       return getPinnedHashtags(ctx.db, account.id);
     },
-  }));
+  }),
+);
 
 builder.relayMutationField(
   "followHashtag",
@@ -72,10 +74,7 @@ builder.relayMutationField(
         const countBefore = await getHashtagFollowerCount(fedCtx.db, tag);
         await followHashtag(fedCtx.db, ctx.account!.id, tag);
         if (countBefore === 0) {
-          await fedCtx.services.federation.subscribeTagsPubHashtag(
-            fedCtx,
-            tag,
-          );
+          await fedCtx.services.federation.subscribeTagsPubHashtag(fedCtx, tag);
         }
       });
       return { accountId: ctx.account.id, tag };

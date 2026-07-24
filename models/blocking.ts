@@ -66,7 +66,8 @@ export async function persistPreparedBlocking(
   prepared: PreparedBlocking,
 ): Promise<Blocking | undefined> {
   const { db } = fedCtx;
-  const rows = await db.insert(blockingTable)
+  const rows = await db
+    .insert(blockingTable)
     .values({
       id: generateUuidV7(),
       iri: prepared.iri,
@@ -115,7 +116,8 @@ async function blockOperation(
     await removeFollower(fedCtx, blocker, blockee);
     await unfollow(fedCtx, blocker, blockee);
   };
-  const rows = await db.insert(blockingTable)
+  const rows = await db
+    .insert(blockingTable)
     .values({
       id,
       iri: new URL(
@@ -165,12 +167,15 @@ async function unblockOperation(
   blockee: Actor,
 ): Promise<Blocking | undefined> {
   const { db } = fedCtx;
-  const rows = await db.delete(blockingTable).where(
-    and(
-      eq(blockingTable.blockerId, blocker.actor.id),
-      eq(blockingTable.blockeeId, blockee.id),
-    ),
-  ).returning();
+  const rows = await db
+    .delete(blockingTable)
+    .where(
+      and(
+        eq(blockingTable.blockerId, blocker.actor.id),
+        eq(blockingTable.blockeeId, blockee.id),
+      ),
+    )
+    .returning();
   if (rows.length < 1) return undefined;
   if (blockee.accountId == null) {
     await fedCtx.sendActivity(

@@ -17,7 +17,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,
@@ -48,11 +48,9 @@ const blocksPageQuery = graphql`
 
 const loadPageQuery = routePreloadedQuery(
   (handle: string) =>
-    loadQuery<blocksPageQuery>(
-      useRelayEnvironment()(),
-      blocksPageQuery,
-      { username: handle.replace(/^@/, "") },
-    ),
+    loadQuery<blocksPageQuery>(useRelayEnvironment()(), blocksPageQuery, {
+      username: handle.replace(/^@/, ""),
+    }),
   "loadBlocksPageQuery",
 );
 

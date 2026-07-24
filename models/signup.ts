@@ -48,9 +48,10 @@ export async function createSignupToken(
     inviterId: options.inviterId,
     created: new Date(),
   };
-  const expiration = options.expiration == null
-    ? EXPIRATION
-    : Temporal.Duration.from(options.expiration);
+  const expiration =
+    options.expiration == null
+      ? EXPIRATION
+      : Temporal.Duration.from(options.expiration);
   await kv.set(
     `${KV_NAMESPACE}/${token}`,
     tokenData,
@@ -70,10 +71,7 @@ export function getSignupToken(
   return kv.get<SignupToken>(`${KV_NAMESPACE}/${token}`);
 }
 
-export async function deleteSignupToken(
-  kv: Keyv,
-  token: Uuid,
-): Promise<void> {
+export async function deleteSignupToken(kv: Keyv, token: Uuid): Promise<void> {
   await kv.delete(`${KV_NAMESPACE}/${token}`);
 }
 
@@ -81,24 +79,27 @@ export async function createAccount(
   db: Database,
   token: SignupToken,
   account: Omit<NewAccount, "id"> & Pick<Partial<NewAccount>, "id">,
-): Promise<Account & { emails: AccountEmail[] } | undefined> {
-  const accounts = await db.insert(accountTable).values({
-    ...account,
-    id: account.id ?? generateUuidV7(),
-    inviterId: token.inviterId,
-  })
+): Promise<(Account & { emails: AccountEmail[] }) | undefined> {
+  const accounts = await db
+    .insert(accountTable)
+    .values({
+      ...account,
+      id: account.id ?? generateUuidV7(),
+      inviterId: token.inviterId,
+    })
     .returning();
   if (accounts.length !== 1) {
     logger.error("Failed to create account: {account}", { account });
     return undefined;
   }
-  const emails = await db.insert(accountEmailTable).values(
-    {
+  const emails = await db
+    .insert(accountEmailTable)
+    .values({
       email: token.email,
       accountId: accounts[0].id,
       public: false,
       verified: sql`CURRENT_TIMESTAMP`,
-    },
-  ).returning();
+    })
+    .returning();
   return { ...accounts[0], emails };
 }

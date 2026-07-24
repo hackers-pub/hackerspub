@@ -39,7 +39,8 @@ export function isRemoteTransportError(error: unknown): boolean {
   // has already reached the peer. In Fedify inbox processing it means the
   // remote dereference failed mid-stream, not that our listener code crashed.
   if (
-    name === "TypeError" && message === "error reading a body from connection"
+    name === "TypeError" &&
+    message === "error reading a body from connection"
   ) {
     return true;
   }
@@ -61,9 +62,7 @@ export function isRemoteTransportError(error: unknown): boolean {
   // `SyntaxError: Unexpected end of JSON input` inside the document loader's
   // `response.json()` call.  This is a remote-peer failure, not a bug in our
   // code (GRAPHQL-1R).
-  if (
-    name === "SyntaxError" && message === "Unexpected end of JSON input"
-  ) {
+  if (name === "SyntaxError" && message === "Unexpected end of JSON input") {
     return true;
   }
   return false;
@@ -79,9 +78,11 @@ function isRemoteMalformedMultikeyError(error: unknown): boolean {
   if (typeof error !== "object" || error === null) return false;
   const name = stringProp(error, "name");
   const message = stringProp(error, "message");
-  return name === "TypeError" &&
+  return (
+    name === "TypeError" &&
     message ===
-      "Expected an object of any type of: https://w3id.org/security#Multikey";
+      "Expected an object of any type of: https://w3id.org/security#Multikey"
+  );
 }
 
 /**
@@ -102,9 +103,8 @@ function isRemoteMalformedMultikeyError(error: unknown): boolean {
 export function isRoutineFederationError(record: LogRecord): boolean {
   const { category, properties, rawMessage } = record;
   if (category[0] !== "fedify") return false;
-  const message = typeof rawMessage === "string"
-    ? rawMessage
-    : rawMessage[0] ?? "";
+  const message =
+    typeof rawMessage === "string" ? rawMessage : (rawMessage[0] ?? "");
 
   // docloader: a remote returned an HTTP error status while we dereferenced a
   // document (a deleted note 404/410, a peer 5xx, ...), or pointed us at a
@@ -131,9 +131,11 @@ export function isRoutineFederationError(record: LogRecord): boolean {
       return isRemoteTransportError(properties.error);
     }
     if (message.startsWith("Failed to parse")) {
-      return isRemoteTransportError(properties.error) ||
+      return (
+        isRemoteTransportError(properties.error) ||
         isRemoteJsonLdSyntaxError(properties.error) ||
-        isRemoteMalformedMultikeyError(properties.error);
+        isRemoteMalformedMultikeyError(properties.error)
+      );
     }
     return false;
   }
@@ -180,8 +182,10 @@ export function isRoutineFederationError(record: LogRecord): boolean {
       // hackers.pub bug (keep). Only drop a demonstrably remote fetch/transport
       // failure; anything else (including unknown errors) is kept so genuine
       // listener bugs still reach Sentry.
-      return message.startsWith("Failed to process the incoming activity") &&
-        isRemoteTransportError(properties.error);
+      return (
+        message.startsWith("Failed to process the incoming activity") &&
+        isRemoteTransportError(properties.error)
+      );
     }
   }
   return false;

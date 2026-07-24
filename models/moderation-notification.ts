@@ -45,13 +45,16 @@ export async function createFlagReceivedNotifications(
     columns: { id: true },
   });
   if (moderators.length < 1) return [];
-  return await db.insert(moderationNotificationTable)
-    .values(moderators.map((moderator) => ({
-      id: generateUuidV7(),
-      accountId: moderator.id,
-      type: "flag_received" as const,
-      caseId: flagCase.id,
-    })))
+  return await db
+    .insert(moderationNotificationTable)
+    .values(
+      moderators.map((moderator) => ({
+        id: generateUuidV7(),
+        accountId: moderator.id,
+        type: "flag_received" as const,
+        caseId: flagCase.id,
+      })),
+    )
     .onConflictDoNothing()
     .returning();
 }
@@ -67,7 +70,8 @@ export async function createActionTakenNotification(
   accountId: Uuid,
   action: FlagAction,
 ): Promise<ModerationNotification | undefined> {
-  const rows = await db.insert(moderationNotificationTable)
+  const rows = await db
+    .insert(moderationNotificationTable)
     .values({
       id: generateUuidV7(),
       accountId,
@@ -95,13 +99,16 @@ export async function createAppealReceivedNotifications(
     columns: { id: true },
   });
   if (moderators.length < 1) return [];
-  return await db.insert(moderationNotificationTable)
-    .values(moderators.map((moderator) => ({
-      id: generateUuidV7(),
-      accountId: moderator.id,
-      type: "appeal_received" as const,
-      appealId: appeal.id,
-    })))
+  return await db
+    .insert(moderationNotificationTable)
+    .values(
+      moderators.map((moderator) => ({
+        id: generateUuidV7(),
+        accountId: moderator.id,
+        type: "appeal_received" as const,
+        appealId: appeal.id,
+      })),
+    )
     .onConflictDoNothing()
     .returning();
 }
@@ -116,7 +123,8 @@ export async function createAppealResolvedNotification(
   accountId: Uuid,
   appeal: FlagAppeal,
 ): Promise<ModerationNotification | undefined> {
-  const rows = await db.insert(moderationNotificationTable)
+  const rows = await db
+    .insert(moderationNotificationTable)
     .values({
       id: generateUuidV7(),
       accountId,
@@ -156,12 +164,15 @@ export async function countUnreadModerationNotifications(
   db: Database,
   accountId: Uuid,
 ): Promise<number> {
-  const rows = await db.select({ count: count() })
+  const rows = await db
+    .select({ count: count() })
     .from(moderationNotificationTable)
-    .where(and(
-      eq(moderationNotificationTable.accountId, accountId),
-      isNull(moderationNotificationTable.read),
-    ));
+    .where(
+      and(
+        eq(moderationNotificationTable.accountId, accountId),
+        isNull(moderationNotificationTable.read),
+      ),
+    );
   return rows[0].count;
 }
 
@@ -181,21 +192,26 @@ export async function markModerationNotificationsRead(
   accountId: Uuid,
   upToId?: Uuid,
 ): Promise<number> {
-  const rows = await db.update(moderationNotificationTable)
+  const rows = await db
+    .update(moderationNotificationTable)
     .set({ read: new Date() })
-    .where(and(
-      eq(moderationNotificationTable.accountId, accountId),
-      isNull(moderationNotificationTable.read),
-      ...(upToId == null ? [] : [
-        lte(
-          moderationNotificationTable.created,
-          sql`(
+    .where(
+      and(
+        eq(moderationNotificationTable.accountId, accountId),
+        isNull(moderationNotificationTable.read),
+        ...(upToId == null
+          ? []
+          : [
+              lte(
+                moderationNotificationTable.created,
+                sql`(
             select n.created from moderation_notification n
             where n.id = ${upToId} and n.account_id = ${accountId}
           )`,
-        ),
-      ]),
-    ))
+              ),
+            ]),
+      ),
+    )
     .returning({ id: moderationNotificationTable.id });
   return rows.length;
 }
@@ -246,12 +262,15 @@ export async function ensureSuspensionEndingNotification(
   });
   // Same standing test as isStandingAction in moderation.ts (not imported:
   // moderation.ts already imports this module).
-  const action = candidates.find((a) =>
-    a.appeal == null || a.appeal.status !== "resolved" ||
-    a.appeal.result === "dismissed"
+  const action = candidates.find(
+    (a) =>
+      a.appeal == null ||
+      a.appeal.status !== "resolved" ||
+      a.appeal.result === "dismissed",
   );
   if (action == null) return undefined;
-  const rows = await db.insert(moderationNotificationTable)
+  const rows = await db
+    .insert(moderationNotificationTable)
     .values({
       id: generateUuidV7(),
       accountId: account.id,

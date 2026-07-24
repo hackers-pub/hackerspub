@@ -92,22 +92,19 @@ describe("shouldSendToTagsPubRelay()", () => {
     );
   });
 
-  it(
-    "returns the tags that should be persisted as relayed",
-    async () => {
-      assert.deepEqual(
-        await getTagsPubRelayDecision(create, {
-          config: { enabled: true },
-          visibility: "public",
-          accountBio: "",
-        }),
-        {
-          send: true,
-          relayedTags: ["fediverse"],
-        },
-      );
-    },
-  );
+  it("returns the tags that should be persisted as relayed", async () => {
+    assert.deepEqual(
+      await getTagsPubRelayDecision(create, {
+        config: { enabled: true },
+        visibility: "public",
+        accountBio: "",
+      }),
+      {
+        send: true,
+        relayedTags: ["fediverse"],
+      },
+    );
+  });
 
   it("does not send when relay integration is disabled", async () => {
     assert.deepEqual(
@@ -131,26 +128,23 @@ describe("shouldSendToTagsPubRelay()", () => {
     );
   });
 
-  it(
-    "does not clean up non-public posts that were never relayed",
-    async () => {
-      const update = new vocab.Update({
-        id: new URL("https://example.com/notes/1#update-unrelayed"),
-        actor: new URL("https://example.com/users/alice"),
-        object: note,
-      });
+  it("does not clean up non-public posts that were never relayed", async () => {
+    const update = new vocab.Update({
+      id: new URL("https://example.com/notes/1#update-unrelayed"),
+      actor: new URL("https://example.com/users/alice"),
+      object: note,
+    });
 
-      assert.deepEqual(
-        await shouldSendToTagsPubRelay(update, {
-          config: { enabled: true },
-          visibility: "followers",
-          accountBio: "",
-          relayedTags: [],
-        }),
-        false,
-      );
-    },
-  );
+    assert.deepEqual(
+      await shouldSendToTagsPubRelay(update, {
+        config: { enabled: true },
+        visibility: "followers",
+        accountBio: "",
+        relayedTags: [],
+      }),
+      false,
+    );
+  });
 
   it("allows cleanup updates after visibility changes", async () => {
     const update = new vocab.Update({
@@ -183,65 +177,59 @@ describe("shouldSendToTagsPubRelay()", () => {
     );
   });
 
-  it(
-    "allows cleanup updates after account-level opt-out",
-    async () => {
-      const update = new vocab.Update({
-        id: new URL("https://example.com/notes/1#update-detag"),
-        actor: new URL("https://example.com/users/alice"),
+  it("allows cleanup updates after account-level opt-out", async () => {
+    const update = new vocab.Update({
+      id: new URL("https://example.com/notes/1#update-detag"),
+      actor: new URL("https://example.com/users/alice"),
+      to: vocab.PUBLIC_COLLECTION,
+      object: new vocab.Note({
+        id: new URL("https://example.com/notes/1"),
         to: vocab.PUBLIC_COLLECTION,
-        object: new vocab.Note({
-          id: new URL("https://example.com/notes/1"),
-          to: vocab.PUBLIC_COLLECTION,
-        }),
-      });
+      }),
+    });
 
-      assert.deepEqual(
-        await shouldSendToTagsPubRelay(update, {
-          config: { enabled: true },
-          visibility: "public",
-          accountBio: "#NoTagsPub",
-          relayedTags: ["fediverse"],
-        }),
-        true,
-      );
-    },
-  );
+    assert.deepEqual(
+      await shouldSendToTagsPubRelay(update, {
+        config: { enabled: true },
+        visibility: "public",
+        accountBio: "#NoTagsPub",
+        relayedTags: ["fediverse"],
+      }),
+      true,
+    );
+  });
 
-  it(
-    "blocks newly added hashtags after account-level opt-out",
-    async () => {
-      const update = new vocab.Update({
-        id: new URL("https://example.com/notes/1#update-new-tag"),
-        actor: new URL("https://example.com/users/alice"),
+  it("blocks newly added hashtags after account-level opt-out", async () => {
+    const update = new vocab.Update({
+      id: new URL("https://example.com/notes/1#update-new-tag"),
+      actor: new URL("https://example.com/users/alice"),
+      to: vocab.PUBLIC_COLLECTION,
+      object: new vocab.Note({
+        id: new URL("https://example.com/notes/1"),
         to: vocab.PUBLIC_COLLECTION,
-        object: new vocab.Note({
-          id: new URL("https://example.com/notes/1"),
-          to: vocab.PUBLIC_COLLECTION,
-          tags: [
-            new vocab.Hashtag({
-              name: "#fediverse",
-              href: new URL("https://example.com/tags/fediverse"),
-            }),
-            new vocab.Hashtag({
-              name: "#newtag",
-              href: new URL("https://example.com/tags/newtag"),
-            }),
-          ],
-        }),
-      });
+        tags: [
+          new vocab.Hashtag({
+            name: "#fediverse",
+            href: new URL("https://example.com/tags/fediverse"),
+          }),
+          new vocab.Hashtag({
+            name: "#newtag",
+            href: new URL("https://example.com/tags/newtag"),
+          }),
+        ],
+      }),
+    });
 
-      assert.deepEqual(
-        await shouldSendToTagsPubRelay(update, {
-          config: { enabled: true },
-          visibility: "public",
-          accountBio: "#NoTagsPub",
-          relayedTags: ["fediverse"],
-        }),
-        false,
-      );
-    },
-  );
+    assert.deepEqual(
+      await shouldSendToTagsPubRelay(update, {
+        config: { enabled: true },
+        visibility: "public",
+        accountBio: "#NoTagsPub",
+        relayedTags: ["fediverse"],
+      }),
+      false,
+    );
+  });
 
   it("does not send creates without hashtags", async () => {
     const plainCreate = new vocab.Create({
@@ -264,85 +252,76 @@ describe("shouldSendToTagsPubRelay()", () => {
     );
   });
 
-  it(
-    "sends updates when previous hashtags need reconciliation",
-    async () => {
-      const update = new vocab.Update({
-        id: new URL("https://example.com/notes/3#update"),
-        actor: new URL("https://example.com/users/alice"),
+  it("sends updates when previous hashtags need reconciliation", async () => {
+    const update = new vocab.Update({
+      id: new URL("https://example.com/notes/3#update"),
+      actor: new URL("https://example.com/users/alice"),
+      to: vocab.PUBLIC_COLLECTION,
+      object: new vocab.Note({
+        id: new URL("https://example.com/notes/3"),
         to: vocab.PUBLIC_COLLECTION,
-        object: new vocab.Note({
-          id: new URL("https://example.com/notes/3"),
-          to: vocab.PUBLIC_COLLECTION,
-        }),
-      });
+      }),
+    });
 
-      assert.deepEqual(
-        await shouldSendToTagsPubRelay(update, {
-          config: { enabled: true },
-          visibility: "public",
-          accountBio: "",
-          relayedTags: ["fediverse"],
-        }),
-        true,
-      );
-    },
-  );
+    assert.deepEqual(
+      await shouldSendToTagsPubRelay(update, {
+        config: { enabled: true },
+        visibility: "public",
+        accountBio: "",
+        relayedTags: ["fediverse"],
+      }),
+      true,
+    );
+  });
 
-  it(
-    "sends deletes only for previously tagged public posts",
-    async () => {
-      const activity = new vocab.Delete({
-        id: new URL("https://example.com/notes/4#delete"),
-        actor: new URL("https://example.com/users/alice"),
-        to: vocab.PUBLIC_COLLECTION,
-        object: new vocab.Tombstone({
-          id: new URL("https://example.com/notes/4"),
-        }),
-      });
+  it("sends deletes only for previously tagged public posts", async () => {
+    const activity = new vocab.Delete({
+      id: new URL("https://example.com/notes/4#delete"),
+      actor: new URL("https://example.com/users/alice"),
+      to: vocab.PUBLIC_COLLECTION,
+      object: new vocab.Tombstone({
+        id: new URL("https://example.com/notes/4"),
+      }),
+    });
 
-      assert.deepEqual(
-        await shouldSendToTagsPubRelay(activity, {
-          config: { enabled: true },
-          visibility: "public",
-          accountBio: "",
-          relayedTags: ["fediverse"],
-        }),
-        true,
-      );
-      assert.deepEqual(
-        await shouldSendToTagsPubRelay(activity, {
-          config: { enabled: true },
-          visibility: "public",
-          accountBio: "",
-          relayedTags: [],
-        }),
-        false,
-      );
-    },
-  );
+    assert.deepEqual(
+      await shouldSendToTagsPubRelay(activity, {
+        config: { enabled: true },
+        visibility: "public",
+        accountBio: "",
+        relayedTags: ["fediverse"],
+      }),
+      true,
+    );
+    assert.deepEqual(
+      await shouldSendToTagsPubRelay(activity, {
+        config: { enabled: true },
+        visibility: "public",
+        accountBio: "",
+        relayedTags: [],
+      }),
+      false,
+    );
+  });
 
-  it(
-    "allows cleanup deletes after account-level opt-out",
-    async () => {
-      const activity = new vocab.Delete({
-        id: new URL("https://example.com/notes/5#delete"),
-        actor: new URL("https://example.com/users/alice"),
-        to: vocab.PUBLIC_COLLECTION,
-        object: new vocab.Tombstone({
-          id: new URL("https://example.com/notes/5"),
-        }),
-      });
+  it("allows cleanup deletes after account-level opt-out", async () => {
+    const activity = new vocab.Delete({
+      id: new URL("https://example.com/notes/5#delete"),
+      actor: new URL("https://example.com/users/alice"),
+      to: vocab.PUBLIC_COLLECTION,
+      object: new vocab.Tombstone({
+        id: new URL("https://example.com/notes/5"),
+      }),
+    });
 
-      assert.deepEqual(
-        await shouldSendToTagsPubRelay(activity, {
-          config: { enabled: true },
-          visibility: "public",
-          accountBio: "#NoBots",
-          relayedTags: ["fediverse"],
-        }),
-        true,
-      );
-    },
-  );
+    assert.deepEqual(
+      await shouldSendToTagsPubRelay(activity, {
+        config: { enabled: true },
+        visibility: "public",
+        accountBio: "#NoBots",
+        relayedTags: ["fediverse"],
+      }),
+      true,
+    );
+  });
 });

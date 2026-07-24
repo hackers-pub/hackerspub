@@ -30,10 +30,12 @@ export function draftFormMatchesSnapshot(
   current: DraftFormSnapshot,
   snapshot: DraftFormSnapshot,
 ): boolean {
-  return current.title === snapshot.title &&
+  return (
+    current.title === snapshot.title &&
     current.content === snapshot.content &&
     current.tags.length === snapshot.tags.length &&
-    current.tags.every((tag, index) => tag === snapshot.tags[index]);
+    current.tags.every((tag, index) => tag === snapshot.tags[index])
+  );
 }
 
 export interface DraftSaveReconciliation {
@@ -46,10 +48,7 @@ export function reconcileDraftSaveResponse(
   submitted: DraftFormSnapshot,
   saved: DraftFormSnapshot,
 ): DraftSaveReconciliation {
-  const formMatchesSubmitted = draftFormMatchesSnapshot(
-    current,
-    submitted,
-  );
+  const formMatchesSubmitted = draftFormMatchesSnapshot(current, submitted);
   const formMatchesSaved = draftFormMatchesSnapshot(current, saved);
   return {
     formReconciled: formMatchesSubmitted || formMatchesSaved,

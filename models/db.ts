@@ -9,9 +9,7 @@ export type Database = PostgresJsDatabase<typeof relations>;
 
 export type Transaction = PostgresJsTransaction<typeof relations>;
 
-export function isTransaction(
-  db: Database | Transaction,
-): db is Transaction {
+export function isTransaction(db: Database | Transaction): db is Transaction {
   return "rollback" in db;
 }
 
@@ -23,9 +21,5 @@ export async function runInTransaction<T>(
   return await db.transaction(run);
 }
 
-export type RelationsFilter<
-  T extends keyof typeof relations,
-> = RelationsFilterImpl<
-  (typeof relations)[T],
-  typeof relations
->;
+export type RelationsFilter<T extends keyof typeof relations> =
+  RelationsFilterImpl<(typeof relations)[T], typeof relations>;

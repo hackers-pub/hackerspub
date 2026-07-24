@@ -143,7 +143,8 @@ test("updateNote() does not federate a censored post", async () => {
       content: "Original body",
     });
     // Moderators censor the post without suspending the author.
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ censored: new Date() })
       .where(eq(postTable.id, post.id));
 
@@ -342,13 +343,16 @@ test("createNote() allows the same medium at multiple indexes", async () => {
       name: "Duplicate Note Media",
       email: "duplicatenotemedia@example.com",
     });
-    const [medium] = await tx.insert(mediumTable).values({
-      id: generateUuidV7(),
-      key: "note-media/duplicate.webp",
-      type: "image/webp",
-      width: 320,
-      height: 180,
-    }).returning();
+    const [medium] = await tx
+      .insert(mediumTable)
+      .values({
+        id: generateUuidV7(),
+        key: "note-media/duplicate.webp",
+        type: "image/webp",
+        width: 320,
+        height: 180,
+      })
+      .returning();
 
     const note = await createNote(
       fedCtx as unknown as ApplicationContext<Transaction>,
@@ -392,9 +396,7 @@ test("createNote() fails when a requested medium cannot be attached", async () =
         visibility: "public",
         content: "Missing image",
         language: "en",
-        media: [
-          { mediumId: generateUuidV7(), alt: "Missing medium" },
-        ],
+        media: [{ mediumId: generateUuidV7(), alt: "Missing medium" }],
       },
     );
 
@@ -580,13 +582,17 @@ test("createNote() federates the normalized quote target for shares", async () =
       },
     } as unknown as ApplicationContext<Transaction>;
 
-    const quote = await createNote(fedCtx, {
-      accountId: quoter.account.id,
-      visibility: "public",
-      content: "Quoting a share wrapper",
-      language: "en",
-      media: [],
-    }, { quotedPost: { ...share, actor: sharer.actor } });
+    const quote = await createNote(
+      fedCtx,
+      {
+        accountId: quoter.account.id,
+        visibility: "public",
+        content: "Quoting a share wrapper",
+        language: "en",
+        media: [],
+      },
+      { quotedPost: { ...share, actor: sharer.actor } },
+    );
 
     assert.ok(quote != null);
     const storedQuote = await tx.query.postTable.findFirst({
@@ -634,13 +640,17 @@ test("createNote() keeps pending quote requests out of confirmed quote state", a
       },
     } as unknown as ApplicationContext<Transaction>;
 
-    const quote = await createNote(fedCtx, {
-      accountId: quoter.account.id,
-      visibility: "public",
-      content: "Requesting quote approval",
-      language: "en",
-      media: [],
-    }, { quotedPost: { ...target, actor: targetAuthor.actor } });
+    const quote = await createNote(
+      fedCtx,
+      {
+        accountId: quoter.account.id,
+        visibility: "public",
+        content: "Requesting quote approval",
+        language: "en",
+        media: [],
+      },
+      { quotedPost: { ...target, actor: targetAuthor.actor } },
+    );
 
     assert.ok(quote != null);
     const returnedQuote = quote as typeof quote & {

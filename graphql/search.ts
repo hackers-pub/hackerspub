@@ -178,17 +178,13 @@ async function searchAsHandle(ctx: UserContext, query: string) {
   let actor = await ctx.db.query.actorTable.findFirst({
     where: {
       username: fullMatch[1],
-      OR: [
-        { instanceHost: host },
-        { handleHost: host },
-      ],
+      OR: [{ instanceHost: host }, { handleHost: host }],
     },
   });
 
   if (actor != null) {
-    const redirectUrl = actor.accountId == null
-      ? `/${actor.handle}`
-      : `/@${actor.username}`;
+    const redirectUrl =
+      actor.accountId == null ? `/${actor.handle}` : `/@${actor.username}`;
     return { url: redirectUrl };
   }
 
@@ -228,7 +224,8 @@ async function searchAsHandle(ctx: UserContext, query: string) {
 builder.queryFields((t) => ({
   searchPost: t.connection({
     type: Post,
-    description: "Full-text post search. Supports keyword operators (see the " +
+    description:
+      "Full-text post search. Supports keyword operators (see the " +
       "`searchGuide` query for syntax). Only forward pagination is " +
       "supported (`before`/`last` are rejected). Excludes boost wrappers; " +
       "returns only original posts.",
@@ -266,30 +263,26 @@ builder.queryFields((t) => ({
           getPostVisibilityFilter(signedAccount?.actor ?? null),
           // Guests only search public posts (not unlisted):
           ...(signedAccount == null
-            ? [
-              { visibility: "public" } satisfies RelationsFilter<
-                "postTable"
-              >,
-            ]
+            ? [{ visibility: "public" } satisfies RelationsFilter<"postTable">]
             : []),
           getCensoredPostExclusionFilter(signedAccount?.actor.id),
           { sharedPostId: { isNull: true } },
           languages.length < 1
-            ? (signedAccount?.hideForeignLanguages &&
-                signedAccount.locales != null
+            ? signedAccount?.hideForeignLanguages &&
+              signedAccount.locales != null
               ? { language: { in: expandLocales(signedAccount.locales) } }
-              : {})
+              : {}
             : {
-              language: {
-                in: expandLocales(
-                  languages.flatMap((l) =>
-                    l.language !== l.baseName
-                      ? [l.baseName, l.language]
-                      : [l.baseName]
+                language: {
+                  in: expandLocales(
+                    languages.flatMap((l) =>
+                      l.language !== l.baseName
+                        ? [l.baseName, l.language]
+                        : [l.baseName],
+                    ),
                   ),
-                ),
+                },
               },
-            },
           until == null ? {} : { published: { lte: until } },
         ],
       };
@@ -301,122 +294,32 @@ builder.queryFields((t) => ({
       });
 
       const postIds = postPage.map(({ id }) => id);
-      const loadedPosts = postIds.length < 1 ? [] : await ctx.db.query.postTable
-        .findMany({
-          where: { id: { in: postIds } },
-          with: {
-            actor: {
-              with: {
-                instance: true,
-                followers: {
-                  where: signedAccount == null
-                    ? { RAW: sql`false` }
-                    : { followerId: signedAccount.actor.id },
-                },
-                blockees: {
-                  where: signedAccount == null
-                    ? { RAW: sql`false` }
-                    : { blockeeId: signedAccount.actor.id },
-                },
-                blockers: {
-                  where: signedAccount == null
-                    ? { RAW: sql`false` }
-                    : { blockerId: signedAccount.actor.id },
-                },
-              },
-            },
-            link: { with: { creator: true } },
-            mentions: {
-              with: { actor: true },
-            },
-            media: true,
-            shares: {
-              where: signedAccount == null
-                ? { RAW: sql`false` }
-                : { actorId: signedAccount.actor.id },
-            },
-            reactions: {
-              where: signedAccount == null
-                ? { RAW: sql`false` }
-                : { actorId: signedAccount.actor.id },
-            },
-            replyTarget: {
+      const loadedPosts =
+        postIds.length < 1
+          ? []
+          : await ctx.db.query.postTable.findMany({
+              where: { id: { in: postIds } },
               with: {
                 actor: {
                   with: {
                     instance: true,
                     followers: {
-                      where: signedAccount == null
-                        ? { RAW: sql`false` }
-                        : { followerId: signedAccount.actor.id },
+                      where:
+                        signedAccount == null
+                          ? { RAW: sql`false` }
+                          : { followerId: signedAccount.actor.id },
                     },
                     blockees: {
-                      where: signedAccount == null
-                        ? { RAW: sql`false` }
-                        : { blockeeId: signedAccount.actor.id },
+                      where:
+                        signedAccount == null
+                          ? { RAW: sql`false` }
+                          : { blockeeId: signedAccount.actor.id },
                     },
                     blockers: {
-                      where: signedAccount == null
-                        ? { RAW: sql`false` }
-                        : { blockerId: signedAccount.actor.id },
-                    },
-                  },
-                },
-                link: { with: { creator: true } },
-                mentions: {
-                  with: { actor: true },
-                },
-                media: true,
-              },
-            },
-            quotedPost: {
-              with: {
-                actor: {
-                  with: {
-                    instance: true,
-                    followers: {
-                      where: signedAccount == null
-                        ? { RAW: sql`false` }
-                        : { followerId: signedAccount.actor.id },
-                    },
-                    blockees: {
-                      where: signedAccount == null
-                        ? { RAW: sql`false` }
-                        : { blockeeId: signedAccount.actor.id },
-                    },
-                    blockers: {
-                      where: signedAccount == null
-                        ? { RAW: sql`false` }
-                        : { blockerId: signedAccount.actor.id },
-                    },
-                  },
-                },
-                link: { with: { creator: true } },
-                mentions: {
-                  with: { actor: true },
-                },
-                media: true,
-              },
-            },
-            sharedPost: {
-              with: {
-                actor: {
-                  with: {
-                    instance: true,
-                    followers: {
-                      where: signedAccount == null
-                        ? { RAW: sql`false` }
-                        : { followerId: signedAccount.actor.id },
-                    },
-                    blockees: {
-                      where: signedAccount == null
-                        ? { RAW: sql`false` }
-                        : { blockeeId: signedAccount.actor.id },
-                    },
-                    blockers: {
-                      where: signedAccount == null
-                        ? { RAW: sql`false` }
-                        : { blockerId: signedAccount.actor.id },
+                      where:
+                        signedAccount == null
+                          ? { RAW: sql`false` }
+                          : { blockerId: signedAccount.actor.id },
                     },
                   },
                 },
@@ -426,14 +329,16 @@ builder.queryFields((t) => ({
                 },
                 media: true,
                 shares: {
-                  where: signedAccount == null
-                    ? { RAW: sql`false` }
-                    : { actorId: signedAccount.actor.id },
+                  where:
+                    signedAccount == null
+                      ? { RAW: sql`false` }
+                      : { actorId: signedAccount.actor.id },
                 },
                 reactions: {
-                  where: signedAccount == null
-                    ? { RAW: sql`false` }
-                    : { actorId: signedAccount.actor.id },
+                  where:
+                    signedAccount == null
+                      ? { RAW: sql`false` }
+                      : { actorId: signedAccount.actor.id },
                 },
                 replyTarget: {
                   with: {
@@ -441,19 +346,22 @@ builder.queryFields((t) => ({
                       with: {
                         instance: true,
                         followers: {
-                          where: signedAccount == null
-                            ? { RAW: sql`false` }
-                            : { followerId: signedAccount.actor.id },
+                          where:
+                            signedAccount == null
+                              ? { RAW: sql`false` }
+                              : { followerId: signedAccount.actor.id },
                         },
                         blockees: {
-                          where: signedAccount == null
-                            ? { RAW: sql`false` }
-                            : { blockeeId: signedAccount.actor.id },
+                          where:
+                            signedAccount == null
+                              ? { RAW: sql`false` }
+                              : { blockeeId: signedAccount.actor.id },
                         },
                         blockers: {
-                          where: signedAccount == null
-                            ? { RAW: sql`false` }
-                            : { blockerId: signedAccount.actor.id },
+                          where:
+                            signedAccount == null
+                              ? { RAW: sql`false` }
+                              : { blockerId: signedAccount.actor.id },
                         },
                       },
                     },
@@ -470,19 +378,22 @@ builder.queryFields((t) => ({
                       with: {
                         instance: true,
                         followers: {
-                          where: signedAccount == null
-                            ? { RAW: sql`false` }
-                            : { followerId: signedAccount.actor.id },
+                          where:
+                            signedAccount == null
+                              ? { RAW: sql`false` }
+                              : { followerId: signedAccount.actor.id },
                         },
                         blockees: {
-                          where: signedAccount == null
-                            ? { RAW: sql`false` }
-                            : { blockeeId: signedAccount.actor.id },
+                          where:
+                            signedAccount == null
+                              ? { RAW: sql`false` }
+                              : { blockeeId: signedAccount.actor.id },
                         },
                         blockers: {
-                          where: signedAccount == null
-                            ? { RAW: sql`false` }
-                            : { blockerId: signedAccount.actor.id },
+                          where:
+                            signedAccount == null
+                              ? { RAW: sql`false` }
+                              : { blockerId: signedAccount.actor.id },
                         },
                       },
                     },
@@ -493,11 +404,117 @@ builder.queryFields((t) => ({
                     media: true,
                   },
                 },
+                sharedPost: {
+                  with: {
+                    actor: {
+                      with: {
+                        instance: true,
+                        followers: {
+                          where:
+                            signedAccount == null
+                              ? { RAW: sql`false` }
+                              : { followerId: signedAccount.actor.id },
+                        },
+                        blockees: {
+                          where:
+                            signedAccount == null
+                              ? { RAW: sql`false` }
+                              : { blockeeId: signedAccount.actor.id },
+                        },
+                        blockers: {
+                          where:
+                            signedAccount == null
+                              ? { RAW: sql`false` }
+                              : { blockerId: signedAccount.actor.id },
+                        },
+                      },
+                    },
+                    link: { with: { creator: true } },
+                    mentions: {
+                      with: { actor: true },
+                    },
+                    media: true,
+                    shares: {
+                      where:
+                        signedAccount == null
+                          ? { RAW: sql`false` }
+                          : { actorId: signedAccount.actor.id },
+                    },
+                    reactions: {
+                      where:
+                        signedAccount == null
+                          ? { RAW: sql`false` }
+                          : { actorId: signedAccount.actor.id },
+                    },
+                    replyTarget: {
+                      with: {
+                        actor: {
+                          with: {
+                            instance: true,
+                            followers: {
+                              where:
+                                signedAccount == null
+                                  ? { RAW: sql`false` }
+                                  : { followerId: signedAccount.actor.id },
+                            },
+                            blockees: {
+                              where:
+                                signedAccount == null
+                                  ? { RAW: sql`false` }
+                                  : { blockeeId: signedAccount.actor.id },
+                            },
+                            blockers: {
+                              where:
+                                signedAccount == null
+                                  ? { RAW: sql`false` }
+                                  : { blockerId: signedAccount.actor.id },
+                            },
+                          },
+                        },
+                        link: { with: { creator: true } },
+                        mentions: {
+                          with: { actor: true },
+                        },
+                        media: true,
+                      },
+                    },
+                    quotedPost: {
+                      with: {
+                        actor: {
+                          with: {
+                            instance: true,
+                            followers: {
+                              where:
+                                signedAccount == null
+                                  ? { RAW: sql`false` }
+                                  : { followerId: signedAccount.actor.id },
+                            },
+                            blockees: {
+                              where:
+                                signedAccount == null
+                                  ? { RAW: sql`false` }
+                                  : { blockeeId: signedAccount.actor.id },
+                            },
+                            blockers: {
+                              where:
+                                signedAccount == null
+                                  ? { RAW: sql`false` }
+                                  : { blockerId: signedAccount.actor.id },
+                            },
+                          },
+                        },
+                        link: { with: { creator: true } },
+                        mentions: {
+                          with: { actor: true },
+                        },
+                        media: true,
+                      },
+                    },
+                  },
+                },
               },
-            },
-          },
-          orderBy: { published: "desc" },
-        });
+              orderBy: { published: "desc" },
+            });
       const postsById = new Map(loadedPosts.map((post) => [post.id, post]));
       const posts = postPage.flatMap(({ id }) => {
         const post = postsById.get(id);
@@ -508,17 +525,12 @@ builder.queryFields((t) => ({
         pageInfo: {
           hasNextPage: postPage.length > window,
           hasPreviousPage: false,
-          startCursor: posts.length < 2
-            ? null
-            : posts[1].published.toISOString(),
-          endCursor: posts.length < 2
-            ? null
-            : posts.at(-1)!.published.toISOString(),
+          startCursor:
+            posts.length < 2 ? null : posts[1].published.toISOString(),
+          endCursor:
+            posts.length < 2 ? null : posts.at(-1)!.published.toISOString(),
         },
-        edges: posts.slice(0, window).map((
-          post,
-          i,
-        ) => ({
+        edges: posts.slice(0, window).map((post, i) => ({
           node: post,
           cursor: posts[i + 1]?.published?.toISOString() ?? "",
           added: post.published,

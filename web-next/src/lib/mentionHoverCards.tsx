@@ -91,9 +91,7 @@ export function useMentionHoverCards(
   ): { el: HTMLElement; lookup: MentionLookup } | undefined => {
     const t = target as Element | null;
     if (!t?.closest) return undefined;
-    const a = t.closest(
-      "a.mention:not(.hashtag)",
-    ) as HTMLElement | null;
+    const a = t.closest("a.mention:not(.hashtag)") as HTMLElement | null;
     if (!a) return undefined;
 
     const dsUsername = a.getAttribute("data-username");

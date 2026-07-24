@@ -127,58 +127,55 @@ test("getInvitationRegenerationStatus uses stored timestamp as cutoff", async ()
   });
 });
 
-test(
-  "getInvitationRegenerationStatus counts accounts with at least one post past cutoff",
-  async () => {
-    await withRollback(async (tx) => {
-      const { kv } = createTestKv();
-      const now = new Date("2026-04-15T00:00:00.000Z");
-      const cutoff = new Date("2026-04-08T00:00:00.000Z");
+test("getInvitationRegenerationStatus counts accounts with at least one post past cutoff", async () => {
+  await withRollback(async (tx) => {
+    const { kv } = createTestKv();
+    const now = new Date("2026-04-15T00:00:00.000Z");
+    const cutoff = new Date("2026-04-08T00:00:00.000Z");
 
-      const a = await insertAccountWithActor(tx, {
-        username: "statusalice",
-        name: "Status Alice",
-        email: "statusalice@example.com",
-      });
-      const b = await insertAccountWithActor(tx, {
-        username: "statusbob",
-        name: "Status Bob",
-        email: "statusbob@example.com",
-      });
-      const c = await insertAccountWithActor(tx, {
-        username: "statuscarol",
-        name: "Status Carol",
-        email: "statuscarol@example.com",
-      });
-
-      // Two posts after cutoff for alice, one for bob, none for carol.
-      await insertNotePost(tx, {
-        account: a.account,
-        published: new Date("2026-04-10T00:00:00.000Z"),
-      });
-      await insertNotePost(tx, {
-        account: a.account,
-        published: new Date("2026-04-11T00:00:00.000Z"),
-      });
-      await insertNotePost(tx, {
-        account: b.account,
-        published: new Date("2026-04-12T00:00:00.000Z"),
-      });
-      // Pre-cutoff post for carol — should not count.
-      await insertNotePost(tx, {
-        account: c.account,
-        published: new Date("2026-04-01T00:00:00.000Z"),
-      });
-
-      const status = await getInvitationRegenerationStatus(tx, kv, {
-        now,
-      });
-      assert.deepEqual(status.cutoffDate.toISOString(), cutoff.toISOString());
-      assert.deepEqual(status.eligibleAccountsCount, 2);
-      assert.deepEqual(status.topThirdCount, 1);
+    const a = await insertAccountWithActor(tx, {
+      username: "statusalice",
+      name: "Status Alice",
+      email: "statusalice@example.com",
     });
-  },
-);
+    const b = await insertAccountWithActor(tx, {
+      username: "statusbob",
+      name: "Status Bob",
+      email: "statusbob@example.com",
+    });
+    const c = await insertAccountWithActor(tx, {
+      username: "statuscarol",
+      name: "Status Carol",
+      email: "statuscarol@example.com",
+    });
+
+    // Two posts after cutoff for alice, one for bob, none for carol.
+    await insertNotePost(tx, {
+      account: a.account,
+      published: new Date("2026-04-10T00:00:00.000Z"),
+    });
+    await insertNotePost(tx, {
+      account: a.account,
+      published: new Date("2026-04-11T00:00:00.000Z"),
+    });
+    await insertNotePost(tx, {
+      account: b.account,
+      published: new Date("2026-04-12T00:00:00.000Z"),
+    });
+    // Pre-cutoff post for carol — should not count.
+    await insertNotePost(tx, {
+      account: c.account,
+      published: new Date("2026-04-01T00:00:00.000Z"),
+    });
+
+    const status = await getInvitationRegenerationStatus(tx, kv, {
+      now,
+    });
+    assert.deepEqual(status.cutoffDate.toISOString(), cutoff.toISOString());
+    assert.deepEqual(status.eligibleAccountsCount, 2);
+    assert.deepEqual(status.topThirdCount, 1);
+  });
+});
 
 test("regenerateInvitations grants +1 to the top third by post count", async () => {
   await withRollback(async (tx) => {
@@ -239,33 +236,27 @@ test("regenerateInvitations grants +1 to the top third by post count", async () 
   });
 });
 
-test(
-  "regenerateInvitations does not write the cutoff back to migration KV",
-  async () => {
-    await withRollback(async (tx) => {
-      const { kv, store } = createTestKv();
-      const now = new Date("2026-04-15T00:00:00.000Z");
-      await regenerateInvitations(tx, kv, { now });
-      assert.deepEqual(store.get(INVITATIONS_LAST_REGEN_KEY), undefined);
-    });
-  },
-);
+test("regenerateInvitations does not write the cutoff back to migration KV", async () => {
+  await withRollback(async (tx) => {
+    const { kv, store } = createTestKv();
+    const now = new Date("2026-04-15T00:00:00.000Z");
+    await regenerateInvitations(tx, kv, { now });
+    assert.deepEqual(store.get(INVITATIONS_LAST_REGEN_KEY), undefined);
+  });
+});
 
-test(
-  "regenerateInvitations writes the cutoff into admin_state inside the same transaction",
-  async () => {
-    await withRollback(async (tx) => {
-      const { kv } = createTestKv();
-      const now = new Date("2026-04-15T00:00:00.000Z");
-      await regenerateInvitations(tx, kv, { now });
-      const row = await tx.query.adminStateTable.findFirst({
-        where: { key: INVITATIONS_LAST_REGEN_KEY },
-      });
-      assert.ok(row != null);
-      assert.deepEqual(row.value, now.toISOString());
+test("regenerateInvitations writes the cutoff into admin_state inside the same transaction", async () => {
+  await withRollback(async (tx) => {
+    const { kv } = createTestKv();
+    const now = new Date("2026-04-15T00:00:00.000Z");
+    await regenerateInvitations(tx, kv, { now });
+    const row = await tx.query.adminStateTable.findFirst({
+      where: { key: INVITATIONS_LAST_REGEN_KEY },
     });
-  },
-);
+    assert.ok(row != null);
+    assert.deepEqual(row.value, now.toISOString());
+  });
+});
 
 test("getOrphanMediaStatus counts only old unreferenced media", async () => {
   await withRollback(async (tx) => {
@@ -283,14 +274,11 @@ test("getOrphanMediaStatus counts only old unreferenced media", async () => {
     await insertTestMedium(tx, "media/prefix.webp", old);
     await insertTestMedium(tx, "media/recent.webp", recent);
 
-    const avatarMediumId = await insertTestMedium(
-      tx,
-      "media/avatar.webp",
-      old,
-    );
-    await tx.update(accountTable).set({ avatarMediumId }).where(
-      eq(accountTable.id, account.account.id),
-    );
+    const avatarMediumId = await insertTestMedium(tx, "media/avatar.webp", old);
+    await tx
+      .update(accountTable)
+      .set({ avatarMediumId })
+      .where(eq(accountTable.id, account.account.id));
 
     const noteMediumId = await insertTestMedium(tx, "media/note.webp", old);
     const noteSourceId = generateUuidV7();
@@ -335,15 +323,10 @@ test("getOrphanMediaStatus counts only old unreferenced media", async () => {
       id: directDraftId,
       accountId: account.account.id,
       title: "Direct draft",
-      content:
-        `![direct](/media/direct-draft.webp) ![fs](/media/media/direct-fs-draft.webp) ![prefix](/media/media/prefix.webp-extra)`,
+      content: `![direct](/media/direct-draft.webp) ![fs](/media/media/direct-fs-draft.webp) ![prefix](/media/media/prefix.webp-extra)`,
     });
 
-    const sourceMediumId = await insertTestMedium(
-      tx,
-      "media/source.webp",
-      old,
-    );
+    const sourceMediumId = await insertTestMedium(tx, "media/source.webp", old);
     const sourceId = generateUuidV7();
     await tx.insert(articleSourceTable).values({
       id: sourceId,
@@ -365,27 +348,26 @@ test("getOrphanMediaStatus counts only old unreferenced media", async () => {
       sourceId,
       language: "en",
       title: "Direct source",
-      content:
-        `![direct](hp-medium:media/direct-source.webp) ![prefix](hp-medium:media/prefix.webp-extra)`,
+      content: `![direct](hp-medium:media/direct-source.webp) ![prefix](hp-medium:media/prefix.webp-extra)`,
     });
 
     const status = await getOrphanMediaStatus(tx, { now });
     assert.deepEqual(status.cutoffDate.toISOString(), cutoff.toISOString());
     assert.deepEqual(status.orphanMediaCount, 2);
     assert.ok(
-      await tx.query.mediumTable.findFirst({
+      (await tx.query.mediumTable.findFirst({
         where: { id: directDraftMediumId },
-      }) != null,
+      })) != null,
     );
     assert.ok(
-      await tx.query.mediumTable.findFirst({
+      (await tx.query.mediumTable.findFirst({
         where: { id: directFsDraftMediumId },
-      }) != null,
+      })) != null,
     );
     assert.ok(
-      await tx.query.mediumTable.findFirst({
+      (await tx.query.mediumTable.findFirst({
         where: { id: directSourceMediumId },
-      }) != null,
+      })) != null,
     );
   });
 });
@@ -419,7 +401,7 @@ test("deleteOrphanMedia removes old unreferenced rows and disk objects", async (
       undefined,
     );
     assert.ok(
-      await tx.query.mediumTable.findFirst({ where: { id: recentId } }) !=
+      (await tx.query.mediumTable.findFirst({ where: { id: recentId } })) !=
         null,
     );
   });
@@ -439,9 +421,7 @@ test("deleteOrphanMedia reports disk failures after deleting rows", async () => 
       "media/orphan-delete-ok.webp",
       old,
     );
-    const disk = createTrackingDisk(
-      new Set(["media/orphan-delete-fail.webp"]),
-    );
+    const disk = createTrackingDisk(new Set(["media/orphan-delete-fail.webp"]));
 
     const result = await deleteOrphanMedia(tx, disk.disk, { now });
 
@@ -462,39 +442,36 @@ test("deleteOrphanMedia reports disk failures after deleting rows", async () => 
   });
 });
 
-test(
-  "regenerateInvitations falls back to one-week cutoff when KV key absent",
-  async () => {
-    await withRollback(async (tx) => {
-      const { kv } = createTestKv();
-      const now = new Date("2026-04-15T00:00:00.000Z");
+test("regenerateInvitations falls back to one-week cutoff when KV key absent", async () => {
+  await withRollback(async (tx) => {
+    const { kv } = createTestKv();
+    const now = new Date("2026-04-15T00:00:00.000Z");
 
-      const a = await insertAccountWithActor(tx, {
-        username: "fallbackalice",
-        name: "Fallback Alice",
-        email: "fallbackalice@example.com",
-      });
-
-      // Within one week of `now` — counts.
-      await insertNotePost(tx, {
-        account: a.account,
-        published: new Date("2026-04-10T00:00:00.000Z"),
-      });
-      // More than one week before `now` — should NOT count.
-      await insertNotePost(tx, {
-        account: a.account,
-        published: new Date("2026-04-01T00:00:00.000Z"),
-      });
-
-      const result = await regenerateInvitations(tx, kv, { now });
-      assert.deepEqual(result.accountsAffected, 1);
-      assert.deepEqual(
-        result.cutoffDate.toISOString(),
-        new Date("2026-04-08T00:00:00.000Z").toISOString(),
-      );
+    const a = await insertAccountWithActor(tx, {
+      username: "fallbackalice",
+      name: "Fallback Alice",
+      email: "fallbackalice@example.com",
     });
-  },
-);
+
+    // Within one week of `now` — counts.
+    await insertNotePost(tx, {
+      account: a.account,
+      published: new Date("2026-04-10T00:00:00.000Z"),
+    });
+    // More than one week before `now` — should NOT count.
+    await insertNotePost(tx, {
+      account: a.account,
+      published: new Date("2026-04-01T00:00:00.000Z"),
+    });
+
+    const result = await regenerateInvitations(tx, kv, { now });
+    assert.deepEqual(result.accountsAffected, 1);
+    assert.deepEqual(
+      result.cutoffDate.toISOString(),
+      new Date("2026-04-08T00:00:00.000Z").toISOString(),
+    );
+  });
+});
 
 test("regenerateInvitations is a no-op when no accounts have posted", async () => {
   await withRollback(async (tx) => {
@@ -522,115 +499,107 @@ test("regenerateInvitations is a no-op when no accounts have posted", async () =
   });
 });
 
-test(
-  "regenerateInvitations rounds up via ceil(active/3) — 3 active picks 1",
-  async () => {
-    await withRollback(async (tx) => {
-      const { kv } = createTestKv();
-      const now = new Date("2026-04-15T00:00:00.000Z");
+test("regenerateInvitations rounds up via ceil(active/3) — 3 active picks 1", async () => {
+  await withRollback(async (tx) => {
+    const { kv } = createTestKv();
+    const now = new Date("2026-04-15T00:00:00.000Z");
 
-      // Three eligible accounts; top third is ceil(3/3) = 1.
-      const accounts = [];
-      for (let i = 0; i < 3; i++) {
-        const acc = await insertAccountWithActor(tx, {
-          username: `ceilalice${i}`,
-          name: `Ceil Alice ${i}`,
-          email: `ceilalice${i}@example.com`,
+    // Three eligible accounts; top third is ceil(3/3) = 1.
+    const accounts = [];
+    for (let i = 0; i < 3; i++) {
+      const acc = await insertAccountWithActor(tx, {
+        username: `ceilalice${i}`,
+        name: `Ceil Alice ${i}`,
+        email: `ceilalice${i}@example.com`,
+      });
+      // Decreasing post counts: 3, 2, 1.
+      for (let j = 0; j < 3 - i; j++) {
+        await insertNotePost(tx, {
+          account: acc.account,
+          published: new Date(`2026-04-${10 + j}T00:00:00.000Z`),
         });
-        // Decreasing post counts: 3, 2, 1.
-        for (let j = 0; j < 3 - i; j++) {
-          await insertNotePost(tx, {
-            account: acc.account,
-            published: new Date(`2026-04-${10 + j}T00:00:00.000Z`),
-          });
-        }
-        accounts.push(acc);
       }
+      accounts.push(acc);
+    }
 
-      const result = await regenerateInvitations(tx, kv, { now });
-      assert.deepEqual(result.accountsAffected, 1);
+    const result = await regenerateInvitations(tx, kv, { now });
+    assert.deepEqual(result.accountsAffected, 1);
 
-      // Only the most prolific (index 0) should get the bump.
-      const updated = await Promise.all(
-        accounts.map((a) =>
-          tx.query.accountTable.findFirst({ where: { id: a.account.id } })
-        ),
-      );
-      assert.deepEqual(updated[0]?.leftInvitations, 1);
-      assert.deepEqual(updated[1]?.leftInvitations, 0);
-      assert.deepEqual(updated[2]?.leftInvitations, 0);
+    // Only the most prolific (index 0) should get the bump.
+    const updated = await Promise.all(
+      accounts.map((a) =>
+        tx.query.accountTable.findFirst({ where: { id: a.account.id } }),
+      ),
+    );
+    assert.deepEqual(updated[0]?.leftInvitations, 1);
+    assert.deepEqual(updated[1]?.leftInvitations, 0);
+    assert.deepEqual(updated[2]?.leftInvitations, 0);
+  });
+});
+
+test("regenerateInvitations called twice in immediate succession returns 0 affected on second", async () => {
+  await withRollback(async (tx) => {
+    const { kv } = createTestKv();
+
+    const a = await insertAccountWithActor(tx, {
+      username: "twicealice",
+      name: "Twice Alice",
+      email: "twicealice@example.com",
     });
-  },
-);
-
-test(
-  "regenerateInvitations called twice in immediate succession returns 0 affected on second",
-  async () => {
-    await withRollback(async (tx) => {
-      const { kv } = createTestKv();
-
-      const a = await insertAccountWithActor(tx, {
-        username: "twicealice",
-        name: "Twice Alice",
-        email: "twicealice@example.com",
-      });
-      await insertNotePost(tx, {
-        account: a.account,
-        published: new Date("2026-04-14T00:00:00.000Z"),
-      });
-
-      const first = await regenerateInvitations(tx, kv, {
-        now: new Date("2026-04-15T00:00:00.000Z"),
-      });
-      assert.deepEqual(first.accountsAffected, 1);
-
-      const second = await regenerateInvitations(tx, kv, {
-        now: new Date("2026-04-15T00:00:01.000Z"),
-      });
-      assert.deepEqual(second.accountsAffected, 0);
-
-      // Alice should still only have +1 total.
-      const aRow = await tx.query.accountTable.findFirst({
-        where: { id: a.account.id },
-      });
-      assert.deepEqual(aRow?.leftInvitations, 1);
+    await insertNotePost(tx, {
+      account: a.account,
+      published: new Date("2026-04-14T00:00:00.000Z"),
     });
-  },
-);
 
-test(
-  "regenerateInvitations does not credit accounts whose only posts pre-date cutoff",
-  async () => {
-    await withRollback(async (tx) => {
-      const { kv, store } = createTestKv();
-      store.set(
-        INVITATIONS_LAST_REGEN_KEY,
-        new Date("2026-04-10T00:00:00.000Z").toISOString(),
-      );
-
-      const a = await insertAccountWithActor(tx, {
-        username: "stalealice",
-        name: "Stale Alice",
-        email: "stalealice@example.com",
-      });
-      // Post pre-dates the cutoff.
-      await insertNotePost(tx, {
-        account: a.account,
-        published: new Date("2026-04-09T00:00:00.000Z"),
-      });
-      // Existing leftInvitations to confirm we don't accidentally bump it.
-      await tx.update(accountTable).set({ leftInvitations: 2 }).where(
-        eq(accountTable.id, a.account.id),
-      );
-
-      const result = await regenerateInvitations(tx, kv, {
-        now: new Date("2026-04-15T00:00:00.000Z"),
-      });
-      assert.deepEqual(result.accountsAffected, 0);
-      const aRow = await tx.query.accountTable.findFirst({
-        where: { id: a.account.id },
-      });
-      assert.deepEqual(aRow?.leftInvitations, 2);
+    const first = await regenerateInvitations(tx, kv, {
+      now: new Date("2026-04-15T00:00:00.000Z"),
     });
-  },
-);
+    assert.deepEqual(first.accountsAffected, 1);
+
+    const second = await regenerateInvitations(tx, kv, {
+      now: new Date("2026-04-15T00:00:01.000Z"),
+    });
+    assert.deepEqual(second.accountsAffected, 0);
+
+    // Alice should still only have +1 total.
+    const aRow = await tx.query.accountTable.findFirst({
+      where: { id: a.account.id },
+    });
+    assert.deepEqual(aRow?.leftInvitations, 1);
+  });
+});
+
+test("regenerateInvitations does not credit accounts whose only posts pre-date cutoff", async () => {
+  await withRollback(async (tx) => {
+    const { kv, store } = createTestKv();
+    store.set(
+      INVITATIONS_LAST_REGEN_KEY,
+      new Date("2026-04-10T00:00:00.000Z").toISOString(),
+    );
+
+    const a = await insertAccountWithActor(tx, {
+      username: "stalealice",
+      name: "Stale Alice",
+      email: "stalealice@example.com",
+    });
+    // Post pre-dates the cutoff.
+    await insertNotePost(tx, {
+      account: a.account,
+      published: new Date("2026-04-09T00:00:00.000Z"),
+    });
+    // Existing leftInvitations to confirm we don't accidentally bump it.
+    await tx
+      .update(accountTable)
+      .set({ leftInvitations: 2 })
+      .where(eq(accountTable.id, a.account.id));
+
+    const result = await regenerateInvitations(tx, kv, {
+      now: new Date("2026-04-15T00:00:00.000Z"),
+    });
+    assert.deepEqual(result.accountsAffected, 0);
+    const aRow = await tx.query.accountTable.findFirst({
+      where: { id: a.account.id },
+    });
+    assert.deepEqual(aRow?.leftInvitations, 2);
+  });
+});

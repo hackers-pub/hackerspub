@@ -217,18 +217,8 @@ test("createShareNotification() keeps both actors when concurrent inserts race",
     });
 
     const [first, second] = await Promise.all([
-      createShareNotification(
-        tx,
-        author.account.id,
-        post,
-        firstSharer.actor,
-      ),
-      createShareNotification(
-        tx,
-        author.account.id,
-        post,
-        secondSharer.actor,
-      ),
+      createShareNotification(tx, author.account.id, post, firstSharer.actor),
+      createShareNotification(tx, author.account.id, post, secondSharer.actor),
     ]);
 
     assert.ok(first != null);

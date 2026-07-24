@@ -86,7 +86,10 @@ test("onQuoteRequestReceived dereferences the instrument before opening a transa
     await onQuoteRequestReceived(fedCtx, request);
 
     assert.equal(dereferenceDb, tx);
-    assert.equal(sent.some((args) => args[2] instanceof Accept), true);
+    assert.equal(
+      sent.some((args) => args[2] instanceof Accept),
+      true,
+    );
   });
 });
 
@@ -135,9 +138,9 @@ test("onQuoteRequestReceived rolls back a pending quote post with its request", 
         return typeof value === "function" ? value.bind(target) : value;
       },
     }) as ContextData["db"];
-    const fedCtx = createFedCtx(transactionDb) as unknown as InboxContext<
-      ContextData
-    >;
+    const fedCtx = createFedCtx(
+      transactionDb,
+    ) as unknown as InboxContext<ContextData>;
 
     await assert.rejects(
       () => onQuoteRequestReceived(fedCtx, request),
@@ -218,7 +221,10 @@ test("onQuoteRequested rejects instruments not attributed to the requester", asy
       where: { quotePostIri: instrumentIri },
     });
     assert.equal(authorization, undefined);
-    assert.equal(sent.some((args) => args[2] instanceof Reject), true);
+    assert.equal(
+      sent.some((args) => args[2] instanceof Reject),
+      true,
+    );
   });
 });
 
@@ -241,7 +247,8 @@ test("onQuoteRequested rejects a censored quote target", async () => {
       content: "Quotable until it was censored",
       quotePolicy: "everyone",
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ censored: new Date() })
       .where(eq(postTable.id, quotedPost.id));
     const instrumentIri = "https://remote.example/objects/censored-quote";
@@ -267,7 +274,10 @@ test("onQuoteRequested rejects a censored quote target", async () => {
       where: { quotedPostId: quotedPost.id },
     });
     assert.equal(authorization, undefined);
-    assert.equal(sent.some((args) => args[2] instanceof Reject), true);
+    assert.equal(
+      sent.some((args) => args[2] instanceof Reject),
+      true,
+    );
   });
 });
 
@@ -319,7 +329,10 @@ test("onQuoteRequested rejects cross-origin instruments before fetching", async 
       where: { quotePostIri: instrumentIri },
     });
     assert.equal(authorization, undefined);
-    assert.equal(sent.some((args) => args[2] instanceof Reject), true);
+    assert.equal(
+      sent.some((args) => args[2] instanceof Reject),
+      true,
+    );
   });
 });
 
@@ -373,17 +386,20 @@ test("onQuoteRequested rejects dereferenced instruments with cross-origin ids", 
 
     await onQuoteRequested(fedCtx, request);
 
-    const authorizationForOriginal = await tx.query.quoteAuthorizationTable
-      .findFirst({
+    const authorizationForOriginal =
+      await tx.query.quoteAuthorizationTable.findFirst({
         where: { quotePostIri: instrumentIri },
       });
-    const authorizationForReturned = await tx.query.quoteAuthorizationTable
-      .findFirst({
+    const authorizationForReturned =
+      await tx.query.quoteAuthorizationTable.findFirst({
         where: { quotePostIri: returnedInstrumentIri },
       });
     assert.equal(authorizationForOriginal, undefined);
     assert.equal(authorizationForReturned, undefined);
-    assert.equal(sent.some((args) => args[2] instanceof Reject), true);
+    assert.equal(
+      sent.some((args) => args[2] instanceof Reject),
+      true,
+    );
   });
 });
 
@@ -442,8 +458,14 @@ test("onQuoteRequested accepts JSON-LD aliased inline instruments", async () => 
     });
     assert.ok(authorization != null);
     assert.equal(authorization.quotedPostId, quotedPost.id);
-    assert.equal(sent.some((args) => args[2] instanceof Accept), true);
-    assert.equal(sent.some((args) => args[2] instanceof Reject), false);
+    assert.equal(
+      sent.some((args) => args[2] instanceof Accept),
+      true,
+    );
+    assert.equal(
+      sent.some((args) => args[2] instanceof Reject),
+      false,
+    );
   });
 });
 
@@ -498,8 +520,14 @@ test("onQuoteRequested accepts actor-origin inline instruments from another acti
     });
     assert.ok(authorization != null);
     assert.equal(authorization.quotedPostId, quotedPost.id);
-    assert.equal(sent.some((args) => args[2] instanceof Accept), true);
-    assert.equal(sent.some((args) => args[2] instanceof Reject), false);
+    assert.equal(
+      sent.some((args) => args[2] instanceof Accept),
+      true,
+    );
+    assert.equal(
+      sent.some((args) => args[2] instanceof Reject),
+      false,
+    );
   });
 });
 
@@ -563,8 +591,14 @@ test("onQuoteRequested leaves request-only follower approvals pending", async ()
       where: { quotePostIri: instrumentIri },
     });
     assert.equal(authorization, undefined);
-    assert.equal(sent.some((args) => args[2] instanceof Accept), false);
-    assert.equal(sent.some((args) => args[2] instanceof Reject), false);
+    assert.equal(
+      sent.some((args) => args[2] instanceof Accept),
+      false,
+    );
+    assert.equal(
+      sent.some((args) => args[2] instanceof Reject),
+      false,
+    );
     const storedQuote = await tx.query.postTable.findFirst({
       where: { iri: instrumentIri },
     });
@@ -639,7 +673,10 @@ test("onQuoteRequested rejects instruments that do not quote the object", async 
       where: { quotePostIri: instrumentIri },
     });
     assert.equal(authorization, undefined);
-    assert.equal(sent.some((args) => args[2] instanceof Reject), true);
+    assert.equal(
+      sent.some((args) => args[2] instanceof Reject),
+      true,
+    );
   });
 });
 
@@ -712,8 +749,14 @@ test("onQuoteRequested unwraps local share targets", async () => {
     });
     assert.ok(authorization != null);
     assert.equal(authorization.quotedPostId, quotedPost.id);
-    assert.equal(sent.some((args) => args[2] instanceof Accept), true);
-    assert.equal(sent.some((args) => args[2] instanceof Reject), false);
+    assert.equal(
+      sent.some((args) => args[2] instanceof Accept),
+      true,
+    );
+    assert.equal(
+      sent.some((args) => args[2] instanceof Reject),
+      false,
+    );
   });
 });
 
@@ -742,7 +785,8 @@ test("onQuoteRequestAccepted federates updated quote authorization", async () =>
         quotedPostId: quotedPost.id,
       });
       assert.ok(quote.noteSourceId != null);
-      await tx.update(postTable)
+      await tx
+        .update(postTable)
         .set({ relayedTags: ["fediverse"] })
         .where(eq(postTable.id, quote.id));
       const originalNoteSource = await tx.query.noteSourceTable.findFirst({
@@ -802,13 +846,14 @@ test("onQuoteRequestAccepted federates updated quote authorization", async () =>
       assert.equal(updatedObject.quoteAuthorizationId?.href, authorizationIri);
       assert.ok(updatedObject.updated != null);
       assert.equal(
-        sent.some((args) =>
-          args[2] instanceof Update &&
-          args[1] != null &&
-          typeof args[1] === "object" &&
-          "id" in args[1] &&
-          args[1].id instanceof URL &&
-          args[1].id.href === "https://tags.pub/user/_____relay_____"
+        sent.some(
+          (args) =>
+            args[2] instanceof Update &&
+            args[1] != null &&
+            typeof args[1] === "object" &&
+            "id" in args[1] &&
+            args[1].id instanceof URL &&
+            args[1].id.href === "https://tags.pub/user/_____relay_____",
         ),
         true,
       );
@@ -859,9 +904,11 @@ test("onQuoteRequestAccepted ignores mismatched quote authorization IDs", async 
       object: request,
       result: new URL(authorizationIri),
     });
-    (accept as unknown as {
-      getResult: () => Promise<QuoteAuthorization>;
-    }).getResult = () => Promise.resolve(authorization);
+    (
+      accept as unknown as {
+        getResult: () => Promise<QuoteAuthorization>;
+      }
+    ).getResult = () => Promise.resolve(authorization);
     const sent: unknown[][] = [];
     const fedCtx = {
       ...createFedCtx(tx),
@@ -877,7 +924,10 @@ test("onQuoteRequestAccepted ignores mismatched quote authorization IDs", async 
       where: { id: quote.id },
     });
     assert.equal(updatedQuote?.quoteAuthorizationIri, null);
-    assert.equal(sent.some((args) => args[2] instanceof Update), false);
+    assert.equal(
+      sent.some((args) => args[2] instanceof Update),
+      false,
+    );
   });
 });
 
@@ -945,7 +995,10 @@ test("onQuoteRequestAccepted resolves referenced quote request IDs", async () =>
     });
     assert.ok(storedRequest?.accepted != null);
     assert.equal(storedRequest.rejected, null);
-    assert.equal(sent.some((args) => args[2] instanceof Update), true);
+    assert.equal(
+      sent.some((args) => args[2] instanceof Update),
+      true,
+    );
   });
 });
 
@@ -972,7 +1025,8 @@ test("onQuoteRequestAccepted reattaches pending quote targets", async () => {
       content: "Pending quote awaiting approval",
       quotedPostId: quotedPost.id,
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({
         quotedPostId: null,
         quoteAuthorizationIri: null,
@@ -1138,7 +1192,8 @@ test("onQuoteRequestRejected records detached pending requests", async () => {
       content: "Pending quote rejected before attachment",
       quotedPostId: quotedPost.id,
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({
         quotedPostId: null,
         quoteAuthorizationIri: null,
@@ -1178,7 +1233,10 @@ test("onQuoteRequestRejected records detached pending requests", async () => {
     });
     assert.equal(updatedQuote?.quotedPostId, null);
     assert.equal(updatedQuote?.quoteTargetState, "denied");
-    assert.equal(sent.some((args) => args[2] instanceof Update), false);
+    assert.equal(
+      sent.some((args) => args[2] instanceof Update),
+      false,
+    );
   });
 });
 
@@ -1289,7 +1347,10 @@ test("onQuoteRequestRejected does not fan out none visibility quotes", async () 
 
     assert.equal(await onQuoteRequestRejected(fedCtx, reject), true);
 
-    assert.equal(sent.some((args) => args[1] === "followers"), false);
+    assert.equal(
+      sent.some((args) => args[1] === "followers"),
+      false,
+    );
   });
 });
 
@@ -1317,7 +1378,8 @@ test("onQuoteAuthorizationDeleted federates quote removal", async () => {
       quotedPostId: quotedPost.id,
     });
     assert.ok(quote.noteSourceId != null);
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ quoteAuthorizationIri: authorizationIri })
       .where(eq(postTable.id, quote.id));
     await tx.insert(quoteAuthorizationTable).values({
@@ -1408,7 +1470,8 @@ test("onQuoteAuthorizationDeleted falls through on actor mismatch", async () => 
       content: "Quoting before mismatched authorization deletion",
       quotedPostId: quotedPost.id,
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ quoteAuthorizationIri: authorizationIri })
       .where(eq(postTable.id, quote.id));
     await tx.insert(quoteAuthorizationTable).values({

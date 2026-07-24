@@ -18,7 +18,7 @@ import { SearchResults } from "~/components/SearchResults.tsx";
 import { SearchResultsSkeleton } from "~/components/SearchResultsSkeleton.tsx";
 import { Title } from "~/components/Title.tsx";
 import { Trans } from "~/components/Trans.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { toRoutablePath } from "~/lib/routablePath.ts";
 import type { searchObjectPageQuery } from "./__generated__/searchObjectPageQuery.graphql.ts";
 import type { searchObjectPageQuery$data } from "./__generated__/searchObjectPageQuery.graphql.ts";
@@ -27,15 +27,16 @@ import type { searchPostsPageQuery$data } from "./__generated__/searchPostsPageQ
 import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 const searchPostsPageQuery = graphql`
-  query searchPostsPageQuery($query: String!, $locale: Locale, $languages: [Locale!]) {
+  query searchPostsPageQuery(
+    $query: String!
+    $locale: Locale
+    $languages: [Locale!]
+  ) {
     viewer {
       id
     }
-    ...SearchResults_posts @arguments(
-      query: $query,
-      locale: $locale,
-      languages: $languages,
-    )
+    ...SearchResults_posts
+      @arguments(query: $query, locale: $locale, languages: $languages)
   }
 `;
 
@@ -63,11 +64,7 @@ function getSearchType(searchQuery: string): "handle" | "url" | "posts" {
 }
 
 const loadSearchPostsQuery = routePreloadedQuery(
-  (
-    searchQuery: string,
-    locale: string,
-    languages: readonly string[],
-  ) => ({
+  (searchQuery: string, locale: string, languages: readonly string[]) => ({
     ...loadQuery<searchPostsPageQuery>(
       useRelayEnvironment()(),
       searchPostsPageQuery,
@@ -154,11 +151,7 @@ export default function SearchPage() {
           />
         </h1>
         <Show when={getSearchType(searchQuery()) === "posts"}>
-          <Show
-            when={postsData()}
-            fallback={<SearchResultsSkeleton />}
-            keyed
-          >
+          <Show when={postsData()} fallback={<SearchResultsSkeleton />} keyed>
             {(queryData) => (
               <SearchResults $posts={queryData} query={searchQuery} />
             )}
@@ -182,22 +175,16 @@ export default function SearchPage() {
 
 type SearchObjectResultData = searchObjectPageQuery$data["searchObject"];
 
-function SearchObjectResult(
-  props: {
-    searchResult: SearchObjectResultData;
-    searchQuery: Accessor<string>;
-    postsData: Accessor<searchPostsPageQuery$data | null | undefined>;
-  },
-) {
+function SearchObjectResult(props: {
+  searchResult: SearchObjectResultData;
+  searchQuery: Accessor<string>;
+  postsData: Accessor<searchPostsPageQuery$data | null | undefined>;
+}) {
   const { t } = useLingui();
 
   if (props.searchResult == null) {
     return (
-      <Show
-        when={props.postsData()}
-        fallback={<SearchResultsSkeleton />}
-        keyed
-      >
+      <Show when={props.postsData()} fallback={<SearchResultsSkeleton />} keyed>
         {(queryData) => (
           <SearchResults $posts={queryData} query={props.searchQuery} />
         )}
@@ -208,11 +195,7 @@ function SearchObjectResult(
     return <Navigate href={toRoutablePath(props.searchResult.url)} />;
   }
   if (props.searchResult.__typename === "EmptySearchQueryError") {
-    return (
-      <div class="text-red-500">
-        {t`Query cannot be empty`}
-      </div>
-    );
+    return <div class="text-red-500">{t`Query cannot be empty`}</div>;
   }
   return <div>{t`No matching object found`}</div>;
 }

@@ -1,10 +1,13 @@
 import assert from "node:assert";
 import test from "node:test";
-import { applyTrustedForwarding } from "./trusted-forwarding.ts";
+import {
+  applyTrustedForwarding,
+  type ConnectionInfo,
+} from "./trusted-forwarding.ts";
 
 function connectionInfo(
   hostname = "172.18.0.2",
-): Deno.ServeHandlerInfo<Deno.NetAddr> {
+): ConnectionInfo<{ transport: "tcp"; hostname: string; port: number }> {
   return {
     remoteAddr: { transport: "tcp", hostname, port: 43210 },
     completed: Promise.resolve(),
@@ -45,11 +48,7 @@ test("applyTrustedForwarding applies normalized proxy metadata", async () => {
     signal: controller.signal,
   });
 
-  const result = await applyTrustedForwarding(
-    request,
-    connectionInfo(),
-    true,
-  );
+  const result = await applyTrustedForwarding(request, connectionInfo(), true);
 
   assert.equal(result.request.url, "https://public.example/graphql");
   assert.equal(
@@ -68,11 +67,7 @@ test("applyTrustedForwarding rejects unnormalized client address chains", async 
     headers: { "x-forwarded-for": "198.51.100.1, 203.0.113.4" },
   });
 
-  const result = await applyTrustedForwarding(
-    request,
-    connectionInfo(),
-    true,
-  );
+  const result = await applyTrustedForwarding(request, connectionInfo(), true);
 
   assert.equal(result.connectionInfo.remoteAddr.hostname, "172.18.0.2");
 });

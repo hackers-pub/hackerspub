@@ -67,8 +67,11 @@ export function isActorSuspended(
   actor: Pick<Actor, "suspended" | "suspendedUntil">,
   now: Date = new Date(),
 ): boolean {
-  return actor.suspended != null && actor.suspended <= now &&
-    (actor.suspendedUntil == null || actor.suspendedUntil > now);
+  return (
+    actor.suspended != null &&
+    actor.suspended <= now &&
+    (actor.suspendedUntil == null || actor.suspendedUntil > now)
+  );
 }
 
 /**
@@ -123,7 +126,8 @@ async function enqueueNewsRescoreInTx(
   db: Database,
   actorId: Uuid,
 ): Promise<void> {
-  await db.insert(newsRescoreQueueTable)
+  await db
+    .insert(newsRescoreQueueTable)
     .values({ actorId })
     .onConflictDoUpdate({
       target: newsRescoreQueueTable.actorId,
@@ -180,11 +184,13 @@ export async function sweepExpiredSuspensionRescores(
   const state = await db.query.adminStateTable.findFirst({
     where: { key: EXPIRED_SUSPENSION_SWEEP_KEY },
   });
-  const since = state == null
-    ? new Date(now.getTime() - EXPIRED_SUSPENSION_SWEEP_FALLBACK_MS)
-    : new Date(state.value);
+  const since =
+    state == null
+      ? new Date(now.getTime() - EXPIRED_SUSPENSION_SWEEP_FALLBACK_MS)
+      : new Date(state.value);
   const count = await enqueueExpiredSuspensionRescores(db, since, now);
-  await db.insert(adminStateTable)
+  await db
+    .insert(adminStateTable)
     .values({
       key: EXPIRED_SUSPENSION_SWEEP_KEY,
       value: now.toISOString(),
@@ -237,7 +243,8 @@ function validateActionInput(options: ActionInputOptions): boolean {
   if (options.actionType === "suspend") {
     const skewAllowanceMs = 5 * 60 * 1000;
     if (
-      options.suspensionStarts == null || options.suspensionEnds == null ||
+      options.suspensionStarts == null ||
+      options.suspensionEnds == null ||
       options.suspensionEnds <= options.suspensionStarts ||
       options.suspensionStarts.getTime() > Date.now() + skewAllowanceMs ||
       options.suspensionEnds.getTime() <= Date.now()
@@ -245,7 +252,8 @@ function validateActionInput(options: ActionInputOptions): boolean {
       return false;
     }
   } else if (
-    options.suspensionStarts != null || options.suspensionEnds != null
+    options.suspensionStarts != null ||
+    options.suspensionEnds != null
   ) {
     return false;
   }
@@ -274,8 +282,9 @@ async function enqueuePostNewsRescoreTargets(
     quotedPostId: Uuid | null;
   },
 ): Promise<boolean> {
-  const parentIds = [post.replyTargetId, post.quotedPostId]
-    .filter((id) => id != null);
+  const parentIds = [post.replyTargetId, post.quotedPostId].filter(
+    (id) => id != null,
+  );
   if (parentIds.length > 0) {
     const parents = await tx.query.postTable.findMany({
       where: { id: { in: parentIds } },
@@ -291,12 +300,14 @@ async function enqueuePostNewsRescoreTargets(
 }
 
 /** Whether an action still stands: not overturned by a resolved appeal. */
-function isStandingAction(
-  action: { appeal: { status: string; result: string | null } | null },
-): boolean {
-  return action.appeal == null ||
+function isStandingAction(action: {
+  appeal: { status: string; result: string | null } | null;
+}): boolean {
+  return (
+    action.appeal == null ||
     action.appeal.status !== "resolved" ||
-    action.appeal.result === "dismissed";
+    action.appeal.result === "dismissed"
+  );
 }
 
 /**
@@ -330,11 +341,12 @@ async function recomputeActorEnforcement(
 ): Promise<boolean> {
   // Lock the actor row so concurrent actions/appeals on different cases for
   // the same target serialize and each recompute sees a consistent state.
-  const [actor] = await tx.select({
-    suspended: actorTable.suspended,
-    suspendedUntil: actorTable.suspendedUntil,
-    accountId: actorTable.accountId,
-  })
+  const [actor] = await tx
+    .select({
+      suspended: actorTable.suspended,
+      suspendedUntil: actorTable.suspendedUntil,
+      accountId: actorTable.accountId,
+    })
     .from(actorTable)
     .where(eq(actorTable.id, actorId))
     .for("update");
@@ -357,9 +369,12 @@ async function recomputeActorEnforcement(
       .reduce((earliest, d) => (d < earliest ? d : earliest));
     suspendedUntil = null;
   } else {
-    const active = standing.filter((a) =>
-      a.actionType === "suspend" && a.suspensionStarts != null &&
-      a.suspensionEnds != null && a.suspensionEnds > now
+    const active = standing.filter(
+      (a) =>
+        a.actionType === "suspend" &&
+        a.suspensionStarts != null &&
+        a.suspensionEnds != null &&
+        a.suspensionEnds > now,
     );
     if (active.length > 0) {
       // Clamp the earliest start to now so the suspension is active
@@ -390,7 +405,8 @@ async function recomputeActorEnforcement(
     (actor.suspendedUntil?.getTime() ?? null) !==
       (suspendedUntil?.getTime() ?? null);
   if (stateChanged) {
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended, suspendedUntil })
       .where(eq(actorTable.id, actorId));
   }
@@ -407,7 +423,8 @@ async function recomputePostEnforcement(
   postId: Uuid,
 ): Promise<boolean> {
   // Lock the post row so concurrent censor actions/appeals on it serialize.
-  const [locked] = await tx.select({ censored: postTable.censored })
+  const [locked] = await tx
+    .select({ censored: postTable.censored })
     .from(postTable)
     .where(eq(postTable.id, postId))
     .for("update");
@@ -417,15 +434,17 @@ async function recomputePostEnforcement(
     with: { appeal: true },
   });
   const standing = actions.filter(isStandingAction);
-  const censored = standing.length > 0
-    ? standing.map((a) => a.created).reduce((earliest, d) =>
-      d < earliest ? d : earliest
-    )
-    : null;
+  const censored =
+    standing.length > 0
+      ? standing
+          .map((a) => a.created)
+          .reduce((earliest, d) => (d < earliest ? d : earliest))
+      : null;
   if ((locked.censored?.getTime() ?? null) === (censored?.getTime() ?? null)) {
     return false;
   }
-  const postRows = await tx.update(postTable)
+  const postRows = await tx
+    .update(postTable)
     .set({ censored })
     .where(eq(postTable.id, postId))
     .returning();
@@ -569,19 +588,22 @@ async function takeModerationActionOperation(
     tx: Transaction,
   ): Promise<
     | {
-      action: FlagAction;
-      flagCase: FlagCase & { flags: Flag[]; targetActor: Actor };
-    }
+        action: FlagAction;
+        flagCase: FlagCase & { flags: Flag[]; targetActor: Actor };
+      }
     | undefined
   > => {
     // Lock the case row so concurrent actions (or a report joining the
     // case) serialize against this resolution.
-    const [locked] = await tx.select()
+    const [locked] = await tx
+      .select()
       .from(flagCaseTable)
-      .where(and(
-        eq(flagCaseTable.id, options.caseId),
-        inArray(flagCaseTable.status, [...OPEN_CASE_STATUSES]),
-      ))
+      .where(
+        and(
+          eq(flagCaseTable.id, options.caseId),
+          inArray(flagCaseTable.status, [...OPEN_CASE_STATUSES]),
+        ),
+      )
       .for("update");
     if (locked == null) return undefined;
     const flagCase = await tx.query.flagCaseTable.findFirst({
@@ -590,10 +612,9 @@ async function takeModerationActionOperation(
     });
     if (flagCase == null) return undefined;
     if (options.actionType === "censor" && flagCase.targetPostId == null) {
-      logger.debug(
-        "Cannot censor case {caseId}: no post target.",
-        { caseId: flagCase.id },
-      );
+      logger.debug("Cannot censor case {caseId}: no post target.", {
+        caseId: flagCase.id,
+      });
       return undefined;
     }
     // A forwarded `Flag` carries only the moderator-written summary, never
@@ -601,30 +622,28 @@ async function takeModerationActionOperation(
     // lock, so a `forwardToRemote` report joining the case cannot slip a
     // summary-less action past a caller's pre-check; reject when a summary
     // is required but missing.
-    const willForward = options.actionType !== "dismiss" &&
+    const willForward =
+      options.actionType !== "dismiss" &&
       flagCase.targetActor.accountId == null &&
       flagCase.flags.some((flag) => flag.forwardToRemote);
     if (
       willForward &&
-      (options.forwardSummary == null ||
-        options.forwardSummary.trim() === "")
+      (options.forwardSummary == null || options.forwardSummary.trim() === "")
     ) {
-      logger.debug(
-        "Cannot forward case {caseId} without a summary.",
-        { caseId: flagCase.id },
-      );
+      logger.debug("Cannot forward case {caseId} without a summary.", {
+        caseId: flagCase.id,
+      });
       return undefined;
     }
     const now = new Date();
     // Re-validate the suspension window against the post-lock clock: the
     // FOR UPDATE wait can outlast a near-term window, which must not
     // produce an already-expired enforcement row.
-    if (
-      options.actionType === "suspend" && options.suspensionEnds! <= now
-    ) {
+    if (options.actionType === "suspend" && options.suspensionEnds! <= now) {
       return undefined;
     }
-    const actionRows = await tx.insert(flagActionTable)
+    const actionRows = await tx
+      .insert(flagActionTable)
       .values({
         id: generateUuidV7(),
         caseId: flagCase.id,
@@ -639,18 +658,23 @@ async function takeModerationActionOperation(
       })
       .returning();
     const action = actionRows[0];
-    const caseStatus = options.actionType === "dismiss"
-      ? "dismissed" as const
-      : "resolved" as const;
-    await tx.update(flagCaseTable)
+    const caseStatus =
+      options.actionType === "dismiss"
+        ? ("dismissed" as const)
+        : ("resolved" as const);
+    await tx
+      .update(flagCaseTable)
       .set({ status: caseStatus, resolved: now })
       .where(eq(flagCaseTable.id, flagCase.id));
-    await tx.update(flagTable)
+    await tx
+      .update(flagTable)
       .set({ status: caseStatus, updated: now })
-      .where(and(
-        eq(flagTable.caseId, flagCase.id),
-        inArray(flagTable.status, [...OPEN_CASE_STATUSES]),
-      ));
+      .where(
+        and(
+          eq(flagTable.caseId, flagCase.id),
+          inArray(flagTable.status, [...OPEN_CASE_STATUSES]),
+        ),
+      );
     await applyActionEnforcement(tx, flagCase, action, now);
     const targetAccountId = flagCase.targetActor.accountId;
     if (
@@ -722,17 +746,22 @@ export async function assignCase(
     if (assignee == null || !assignee.moderator) return undefined;
   }
   const run = async (tx: Transaction): Promise<FlagCase | undefined> => {
-    const rows = await tx.update(flagCaseTable)
+    const rows = await tx
+      .update(flagCaseTable)
       .set(
-        moderatorId == null ? { assignedModeratorId: null } : {
-          assignedModeratorId: moderatorId,
-          status: "reviewing",
-        },
+        moderatorId == null
+          ? { assignedModeratorId: null }
+          : {
+              assignedModeratorId: moderatorId,
+              status: "reviewing",
+            },
       )
-      .where(and(
-        eq(flagCaseTable.id, caseId),
-        inArray(flagCaseTable.status, [...OPEN_CASE_STATUSES]),
-      ))
+      .where(
+        and(
+          eq(flagCaseTable.id, caseId),
+          inArray(flagCaseTable.status, [...OPEN_CASE_STATUSES]),
+        ),
+      )
       .returning();
     const flagCase = rows[0];
     if (flagCase == null) return undefined;
@@ -740,12 +769,12 @@ export async function assignCase(
     // `reviewing` moves its still-pending member reports too (what the
     // reporter sees via `Account.reports`/`Flag.status`).
     if (moderatorId != null) {
-      await tx.update(flagTable)
+      await tx
+        .update(flagTable)
         .set({ status: "reviewing", updated: new Date() })
-        .where(and(
-          eq(flagTable.caseId, caseId),
-          eq(flagTable.status, "pending"),
-        ));
+        .where(
+          and(eq(flagTable.caseId, caseId), eq(flagTable.status, "pending")),
+        );
     }
     return flagCase;
   };
@@ -763,24 +792,30 @@ export async function updateCaseStatus(
   status: "pending" | "reviewing",
 ): Promise<FlagCase | undefined> {
   const run = async (tx: Transaction): Promise<FlagCase | undefined> => {
-    const rows = await tx.update(flagCaseTable)
+    const rows = await tx
+      .update(flagCaseTable)
       .set({ status })
-      .where(and(
-        eq(flagCaseTable.id, caseId),
-        inArray(flagCaseTable.status, [...OPEN_CASE_STATUSES]),
-      ))
+      .where(
+        and(
+          eq(flagCaseTable.id, caseId),
+          inArray(flagCaseTable.status, [...OPEN_CASE_STATUSES]),
+        ),
+      )
       .returning();
     const flagCase = rows[0];
     if (flagCase == null) return undefined;
     // Keep the member reports in step with the case so reporters see the
     // same `pending`/`reviewing` state via `Account.reports`/`Flag.status`.
     const otherOpenStatus = status === "reviewing" ? "pending" : "reviewing";
-    await tx.update(flagTable)
+    await tx
+      .update(flagTable)
       .set({ status, updated: new Date() })
-      .where(and(
-        eq(flagTable.caseId, caseId),
-        eq(flagTable.status, otherOpenStatus),
-      ));
+      .where(
+        and(
+          eq(flagTable.caseId, caseId),
+          eq(flagTable.status, otherOpenStatus),
+        ),
+      );
     return flagCase;
   };
   return isTransaction(db) ? await run(db) : await db.transaction(run);
@@ -810,19 +845,21 @@ export async function getViolationHistory(
     with: { case: true, appeal: true },
     orderBy: { created: "desc" },
   });
-  const standing = actions.filter((action) =>
-    action.appeal == null ||
-    action.appeal.status !== "resolved" ||
-    action.appeal.result === "dismissed"
+  const standing = actions.filter(
+    (action) =>
+      action.appeal == null ||
+      action.appeal.status !== "resolved" ||
+      action.appeal.result === "dismissed",
   );
   return standing.filter((action) => {
     if (action.actionType !== "warning") return true;
     if (now.getTime() - action.created.getTime() < YEAR_MS) return true;
-    return standing.some((other) =>
-      other.id !== action.id &&
-      other.actionType !== "dismiss" &&
-      other.created > action.created &&
-      other.created.getTime() - action.created.getTime() <= YEAR_MS
+    return standing.some(
+      (other) =>
+        other.id !== action.id &&
+        other.actionType !== "dismiss" &&
+        other.created > action.created &&
+        other.created.getTime() - action.created.getTime() <= YEAR_MS,
     );
   });
 }
@@ -894,13 +931,13 @@ export async function createAppeal(
       return undefined;
     }
     if (Date.now() - action.created.getTime() > APPEAL_WINDOW_MS) {
-      logger.debug(
-        "Appeal window for action {actionId} has passed.",
-        { actionId: action.id },
-      );
+      logger.debug("Appeal window for action {actionId} has passed.", {
+        actionId: action.id,
+      });
       return undefined;
     }
-    const rows = await tx.insert(flagAppealTable)
+    const rows = await tx
+      .insert(flagAppealTable)
       .values({
         id: generateUuidV7(),
         actionId: action.id,
@@ -968,22 +1005,26 @@ export async function resolveAppeal(
     );
     return undefined;
   }
-  const needsReplacement = options.result === "reduced" ||
-    options.result === "increased";
+  const needsReplacement =
+    options.result === "reduced" || options.result === "increased";
   if (needsReplacement !== (options.replacement != null)) return undefined;
   if (
-    options.replacement != null && !validateActionInput(options.replacement)
+    options.replacement != null &&
+    !validateActionInput(options.replacement)
   ) {
     return undefined;
   }
 
   const run = async (tx: Transaction): Promise<FlagAppeal | undefined> => {
-    const [locked] = await tx.select()
+    const [locked] = await tx
+      .select()
       .from(flagAppealTable)
-      .where(and(
-        eq(flagAppealTable.id, options.appealId),
-        inArray(flagAppealTable.status, ["pending", "reviewing"]),
-      ))
+      .where(
+        and(
+          eq(flagAppealTable.id, options.appealId),
+          inArray(flagAppealTable.status, ["pending", "reviewing"]),
+        ),
+      )
       .for("update");
     if (locked == null) return undefined;
     const appeal = await tx.query.flagAppealTable.findFirst({
@@ -1010,7 +1051,8 @@ export async function resolveAppeal(
     ) {
       return undefined;
     }
-    const appealRows = await tx.update(flagAppealTable)
+    const appealRows = await tx
+      .update(flagAppealTable)
       .set({
         status: "resolved",
         result: options.result,
@@ -1024,7 +1066,8 @@ export async function resolveAppeal(
       await revertActionEnforcement(tx, flagCase, appeal.action, now);
     } else if (options.replacement != null) {
       await revertActionEnforcement(tx, flagCase, appeal.action, now);
-      const replacementRows = await tx.insert(flagActionTable)
+      const replacementRows = await tx
+        .insert(flagActionTable)
         .values({
           id: generateUuidV7(),
           caseId: flagCase.id,
@@ -1106,9 +1149,10 @@ export async function getModerationStatistics(
   // `timestamptz` (same workaround as models/news.ts).
   const since = sql`${(range.since ?? new Date(0)).toISOString()}::timestamptz`;
   const until = sql`${(range.until ?? new Date()).toISOString()}::timestamptz`;
-  const [reportCounts] = await db.execute<
-    { total: string | number; processed: string | number }
-  >(sql`
+  const [reportCounts] = await db.execute<{
+    total: string | number;
+    processed: string | number;
+  }>(sql`
     select
       count(*) as total,
       count(*) filter (where status in ('resolved', 'dismissed'))
@@ -1125,9 +1169,10 @@ export async function getModerationStatistics(
         and created >= ${since} and created <= ${until}
     `,
   );
-  const distribution = await db.execute<
-    { action_type: FlagActionType; cnt: string | number }
-  >(sql`
+  const distribution = await db.execute<{
+    action_type: FlagActionType;
+    cnt: string | number;
+  }>(sql`
     select action_type, count(*) as cnt
     from flag_action
     where created >= ${since} and created <= ${until}
@@ -1136,9 +1181,10 @@ export async function getModerationStatistics(
   `);
   // Actions withdrawn or replaced on appeal no longer stand; they drop
   // out of the provision counts (mirroring getViolationHistory).
-  const provisions = await db.execute<
-    { provision: string; cnt: string | number }
-  >(sql`
+  const provisions = await db.execute<{
+    provision: string;
+    cnt: string | number;
+  }>(sql`
     select p.provision as provision, count(*) as cnt
     from flag_action a
     left join flag_appeal ap
@@ -1177,11 +1223,12 @@ export async function getModerationStatistics(
     if (flag.llmAnalysis?.error != null) continue;
     const confirmed = new Set(
       flag.case.actions
-        .filter((action) =>
-          action.actionType !== "dismiss" &&
-          (action.appeal == null ||
-            action.appeal.status !== "resolved" ||
-            action.appeal.result === "dismissed")
+        .filter(
+          (action) =>
+            action.actionType !== "dismiss" &&
+            (action.appeal == null ||
+              action.appeal.status !== "resolved" ||
+              action.appeal.result === "dismissed"),
         )
         .flatMap((action) => action.violatedProvisions),
     );
@@ -1189,16 +1236,16 @@ export async function getModerationStatistics(
       (flag.llmAnalysis?.matches ?? []).map((match) => match.provision),
     );
     compared++;
-    const equal = confirmed.size === suggested.size &&
+    const equal =
+      confirmed.size === suggested.size &&
       [...confirmed].every((provision) => suggested.has(provision));
     if (!equal) diverged++;
   }
   return {
     totalReports: Number(reportCounts?.total ?? 0),
     processedReports: Number(reportCounts?.processed ?? 0),
-    averageProcessingHours: avgRow?.avg_hours == null
-      ? null
-      : Number(avgRow.avg_hours),
+    averageProcessingHours:
+      avgRow?.avg_hours == null ? null : Number(avgRow.avg_hours),
     actionDistribution: distribution.map((row) => ({
       actionType: row.action_type,
       count: Number(row.cnt),

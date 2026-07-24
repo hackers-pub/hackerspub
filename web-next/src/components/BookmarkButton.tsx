@@ -3,7 +3,7 @@ import { Show } from "solid-js";
 import { createFragment, createMutation } from "solid-relay";
 import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { BookmarkButton_bookmarkPost_Mutation } from "./__generated__/BookmarkButton_bookmarkPost_Mutation.graphql.ts";
 import type { BookmarkButton_post$key } from "./__generated__/BookmarkButton_post.graphql.ts";
 import type { BookmarkButton_unbookmarkPost_Mutation } from "./__generated__/BookmarkButton_unbookmarkPost_Mutation.graphql.ts";
@@ -79,12 +79,12 @@ export function BookmarkButton(props: BookmarkButtonProps) {
     () => props.$post,
   );
 
-  const [bookmarkPost] = createMutation<BookmarkButton_bookmarkPost_Mutation>(
-    bookmarkPostMutation,
-  );
-  const [unbookmarkPost] = createMutation<
-    BookmarkButton_unbookmarkPost_Mutation
-  >(unbookmarkPostMutation);
+  const [bookmarkPost] =
+    createMutation<BookmarkButton_bookmarkPost_Mutation>(bookmarkPostMutation);
+  const [unbookmarkPost] =
+    createMutation<BookmarkButton_unbookmarkPost_Mutation>(
+      unbookmarkPostMutation,
+    );
 
   const handleClick = () => {
     const p = post();
@@ -142,8 +142,8 @@ export function BookmarkButton(props: BookmarkButtonProps) {
           size="sm"
           class={`h-8 px-2 cursor-pointer ${props.class ?? ""}`}
           classList={{
-            "text-muted-foreground hover:text-foreground": !p
-              .viewerHasBookmarked,
+            "text-muted-foreground hover:text-foreground":
+              !p.viewerHasBookmarked,
             "text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300":
               p.viewerHasBookmarked,
           }}

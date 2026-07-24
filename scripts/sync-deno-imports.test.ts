@@ -37,10 +37,7 @@ test("buildDenoImports() sorts entries and rejects invalid values", () => {
       zod: "npm:zod@^4.0.0",
     },
   );
-  assert.throws(
-    () => buildDenoImports({ graphql: null }),
-    /must be a string/,
-  );
+  assert.throws(() => buildDenoImports({ graphql: null }), /must be a string/);
 });
 
 test("validateCatalog() rejects values that are not mappings", () => {

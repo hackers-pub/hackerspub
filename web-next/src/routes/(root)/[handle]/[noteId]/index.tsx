@@ -26,11 +26,9 @@ import { Title } from "~/components/Title.tsx";
 import { Trans } from "~/components/Trans.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { buildPostTitleExcerpt } from "~/lib/postTitleExcerpt.ts";
-import type {
-  NoteId_articleBody$key,
-} from "./__generated__/NoteId_articleBody.graphql.ts";
+import type { NoteId_articleBody$key } from "./__generated__/NoteId_articleBody.graphql.ts";
 import type {
   NoteIdPageQuery,
   NoteIdPageQuery$data,
@@ -44,9 +42,7 @@ import {
 } from "~/lib/relayPreload.ts";
 
 type NoteIdPagePost = NonNullable<
-  NonNullable<
-    NoteIdPageQuery$data["actorByHandle"]
-  >["postByUuid"]
+  NonNullable<NoteIdPageQuery$data["actorByHandle"]>["postByUuid"]
 >;
 type NoteIdPageNote = Extract<NoteIdPagePost, { readonly __typename: "Note" }>;
 type NoteIdPageQuestion = Extract<
@@ -86,15 +82,11 @@ const NoteIdPageQuery = graphql`
           ...NoteId_noteBody @arguments(actingAccountId: $actingAccountId)
         }
         ... on Question {
-          ...NoteId_questionBody @arguments(
-            actingAccountId: $actingAccountId
-          )
+          ...NoteId_questionBody @arguments(actingAccountId: $actingAccountId)
         }
         ... on Article {
-          ...NoteId_articleBody @arguments(
-            locale: $locale
-            actingAccountId: $actingAccountId
-          )
+          ...NoteId_articleBody
+            @arguments(locale: $locale, actingAccountId: $actingAccountId)
         }
       }
     }
@@ -111,11 +103,12 @@ const loadNotePageQuery = routePreloadedQuery(
     locale: string,
     actingAccountId: string | null,
   ) =>
-    loadQuery<NoteIdPageQuery>(
-      useRelayEnvironment()(),
-      NoteIdPageQuery,
-      { handle: username, noteId, locale, actingAccountId },
-    ),
+    loadQuery<NoteIdPageQuery>(useRelayEnvironment()(), NoteIdPageQuery, {
+      handle: username,
+      noteId,
+      locale,
+      actingAccountId,
+    }),
   NOTE_PAGE_QUERY_KEY,
 );
 
@@ -164,19 +157,19 @@ function NotePageLoaded(props: NotePageLoadedProps) {
   const note = (): NoteIdPageNote | null => {
     const currentPost = post();
     return currentPost?.__typename === "Note"
-      ? currentPost as NoteIdPageNote
+      ? (currentPost as NoteIdPageNote)
       : null;
   };
   const question = (): NoteIdPageQuestion | null => {
     const currentPost = post();
     return currentPost?.__typename === "Question"
-      ? currentPost as NoteIdPageQuestion
+      ? (currentPost as NoteIdPageQuestion)
       : null;
   };
   const article = (): NoteIdPageArticle | null => {
     const currentPost = post();
     return currentPost?.__typename === "Article"
-      ? currentPost as NoteIdPageArticle
+      ? (currentPost as NoteIdPageArticle)
       : null;
   };
   const viewer = () => noteData()?.viewer ?? undefined;
@@ -277,21 +270,10 @@ function PostMetaHead(props: PostMetaHeadProps) {
             <Meta property="og:title" content={titleExcerpt()} />
             <Meta property="og:description" content={post.excerpt ?? ""} />
             <Meta property="og:type" content="article" />
-            <Meta
-              property="article:published_time"
-              content={post.published}
-            />
-            <Meta
-              property="article:modified_time"
-              content={post.updated}
-            />
+            <Meta property="article:published_time" content={post.published} />
+            <Meta property="article:modified_time" content={post.updated} />
             <Show keyed when={post.actor.rawName}>
-              {(name) => (
-                <Meta
-                  property="article:author"
-                  content={name}
-                />
-              )}
+              {(name) => <Meta property="article:author" content={name} />}
             </Show>
             <Meta
               property="article:author.username"
@@ -303,19 +285,11 @@ function PostMetaHead(props: PostMetaHeadProps) {
             />
             <For each={post.hashtags}>
               {(hashtag) => (
-                <Meta
-                  property="article:tag"
-                  content={hashtag.name}
-                />
+                <Meta property="article:tag" content={hashtag.name} />
               )}
             </For>
             <Show keyed when={post.language}>
-              {(language) => (
-                <Meta
-                  property="og:locale"
-                  content={language}
-                />
-              )}
+              {(language) => <Meta property="og:locale" content={language} />}
             </Show>
 
             <Link
@@ -348,8 +322,9 @@ function NoteInternal(props: NoteInternalProps) {
   const note = createFragment(
     graphql`
       fragment NoteId_noteBody on Note
-        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
-      {
+      @argumentDefinitions(
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
         id
         visibility
         iri
@@ -365,9 +340,13 @@ function NoteInternal(props: NoteInternalProps) {
         const defaultVisibility = (): PostVisibility => {
           const v = note.visibility;
           if (
-            v === "PUBLIC" || v === "UNLISTED" ||
-            v === "FOLLOWERS" || v === "DIRECT"
-          ) return v;
+            v === "PUBLIC" ||
+            v === "UNLISTED" ||
+            v === "FOLLOWERS" ||
+            v === "DIRECT"
+          ) {
+            return v;
+          }
           return "PUBLIC";
         };
         return (
@@ -425,8 +404,9 @@ function QuestionInternal(props: QuestionInternalProps) {
   const question = createFragment(
     graphql`
       fragment NoteId_questionBody on Question
-        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
-      {
+      @argumentDefinitions(
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
         id
         visibility
         iri
@@ -442,9 +422,13 @@ function QuestionInternal(props: QuestionInternalProps) {
         const defaultVisibility = (): PostVisibility => {
           const v = question.visibility;
           if (
-            v === "PUBLIC" || v === "UNLISTED" ||
-            v === "FOLLOWERS" || v === "DIRECT"
-          ) return v;
+            v === "PUBLIC" ||
+            v === "UNLISTED" ||
+            v === "FOLLOWERS" ||
+            v === "DIRECT"
+          ) {
+            return v;
+          }
           return "PUBLIC";
         };
         return (
@@ -504,19 +488,16 @@ function ArticleInternal(props: ArticleInternalProps) {
   const article = createFragment(
     graphql`
       fragment NoteId_articleBody on Article
-        @argumentDefinitions(
-          locale: { type: "Locale" }
-          actingAccountId: { type: "ID", defaultValue: null }
-        )
-      {
+      @argumentDefinitions(
+        locale: { type: "Locale" }
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
         id
         visibility
         iri
         url
-        ...ArticleCard_article @arguments(
-          locale: $locale
-          actingAccountId: $actingAccountId
-        )
+        ...ArticleCard_article
+          @arguments(locale: $locale, actingAccountId: $actingAccountId)
       }
     `,
     () => props.$article,
@@ -527,9 +508,13 @@ function ArticleInternal(props: ArticleInternalProps) {
         const defaultVisibility = (): PostVisibility => {
           const v = article.visibility;
           if (
-            v === "PUBLIC" || v === "UNLISTED" ||
-            v === "FOLLOWERS" || v === "DIRECT"
-          ) return v;
+            v === "PUBLIC" ||
+            v === "UNLISTED" ||
+            v === "FOLLOWERS" ||
+            v === "DIRECT"
+          ) {
+            return v;
+          }
           return "PUBLIC";
         };
         return (

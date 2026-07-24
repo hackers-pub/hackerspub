@@ -1,5 +1,6 @@
 import process from "node:process";
 import { readFile, writeFile } from "node:fs/promises";
+import { isMain } from "@hackerspub/runtime/main";
 import { parse } from "yaml";
 
 interface WorkspaceConfiguration {
@@ -34,15 +35,17 @@ export function buildDenoImports(
   catalog: Record<string, unknown>,
 ): Record<string, string> {
   return Object.fromEntries(
-    Object.keys(catalog).toSorted().map((packageName) => {
-      const value = catalog[packageName];
-      if (typeof value !== "string" || value.length < 1) {
-        throw new TypeError(
-          `Catalog entry ${JSON.stringify(packageName)} must be a string.`,
-        );
-      }
-      return [packageName, toDenoImport(packageName, value)];
-    }),
+    Object.keys(catalog)
+      .toSorted()
+      .map((packageName) => {
+        const value = catalog[packageName];
+        if (typeof value !== "string" || value.length < 1) {
+          throw new TypeError(
+            `Catalog entry ${JSON.stringify(packageName)} must be a string.`,
+          );
+        }
+        return [packageName, toDenoImport(packageName, value)];
+      }),
   );
 }
 
@@ -50,11 +53,11 @@ export function validateCatalog(
   catalog: unknown,
 ): asserts catalog is Record<string, unknown> {
   if (
-    catalog == null || typeof catalog !== "object" || Array.isArray(catalog)
+    catalog == null ||
+    typeof catalog !== "object" ||
+    Array.isArray(catalog)
   ) {
-    throw new TypeError(
-      "pnpm-workspace.yaml must define a catalog mapping.",
-    );
+    throw new TypeError("pnpm-workspace.yaml must define a catalog mapping.");
   }
 }
 
@@ -70,9 +73,7 @@ export function renderDenoConfig(
 async function main(): Promise<void> {
   const check = process.argv[2] === "--check";
   if (process.argv.length > (check ? 3 : 2)) {
-    throw new TypeError(
-      "Usage: node scripts/sync-deno-imports.ts [--check]",
-    );
+    throw new TypeError("Usage: node scripts/sync-deno-imports.ts [--check]");
   }
 
   const workspace = parse(
@@ -94,4 +95,4 @@ async function main(): Promise<void> {
   if (current !== expected) await writeFile(denoConfigUrl, expected);
 }
 
-if (import.meta.main) await main();
+if (isMain(import.meta)) await main();

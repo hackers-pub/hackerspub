@@ -7,8 +7,7 @@ import * as SkeletonPrimitive from "@kobalte/core/skeleton";
 import { cn } from "~/lib/utils.ts";
 
 type SkeletonRootProps<T extends ValidComponent = "div"> =
-  & SkeletonPrimitive.SkeletonRootProps<T>
-  & { class?: string | undefined };
+  SkeletonPrimitive.SkeletonRootProps<T> & { class?: string | undefined };
 
 const Skeleton = <T extends ValidComponent = "div">(
   props: PolymorphicProps<T, SkeletonRootProps<T>>,

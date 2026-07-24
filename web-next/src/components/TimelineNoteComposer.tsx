@@ -16,7 +16,7 @@ import {
   readNoteDraft,
 } from "~/lib/noteDraftStorage.ts";
 import { subscribeNoteDraftChanges } from "~/lib/noteDraftSync.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 export function TimelineNoteComposer() {
   const { t } = useLingui();
@@ -41,18 +41,19 @@ export function TimelineNoteComposer() {
 
   const updateSavedDraftStatus = () => {
     const key = draftStorageKey();
-    const draft = key == null
-      ? null
-      : readNoteDraft(getBrowserDraftStorage(), key);
+    const draft =
+      key == null ? null : readNoteDraft(getBrowserDraftStorage(), key);
     setHasSavedDraft(draft != null);
     setSavedDraftPreview(draft?.content.trim() || null);
   };
 
   createEffect(updateSavedDraftStatus);
 
-  onCleanup(subscribeNoteDraftChanges((change) => {
-    if (change.key === draftStorageKey()) updateSavedDraftStatus();
-  }));
+  onCleanup(
+    subscribeNoteDraftChanges((change) => {
+      if (change.key === draftStorageKey()) updateSavedDraftStatus();
+    }),
+  );
 
   const handleSuccess = () => {
     notifyNoteCreated();

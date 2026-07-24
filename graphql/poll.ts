@@ -157,10 +157,12 @@ builder.drizzleObjectFields(Question, (t) => ({
       },
     },
     resolve: (post, _, ctx) =>
-      isPollCensoredForViewer(post, ctx) ? "" : addExternalLinkTargets(
-        renderCustomEmojis(post.contentHtml, post.emojis),
-        new URL(ctx.fedCtx.canonicalOrigin),
-      ),
+      isPollCensoredForViewer(post, ctx)
+        ? ""
+        : addExternalLinkTargets(
+            renderCustomEmojis(post.contentHtml, post.emojis),
+            new URL(ctx.fedCtx.canonicalOrigin),
+          ),
   }),
   language: t.exposeString("language", {
     nullable: true,
@@ -255,7 +257,7 @@ builder.drizzleObjectFields(Question, (t) => ({
         ctx,
         args as ActingAccountIdArg,
       );
-      return await isPostVisibleToViewer(ctx, quotedPost.id, viewerActorId)
+      return (await isPostVisibleToViewer(ctx, quotedPost.id, viewerActorId))
         ? quotedPost
         : null;
     },
@@ -292,7 +294,7 @@ builder.drizzleObjectFields(Question, (t) => ({
         ctx,
         args as ActingAccountIdArg,
       );
-      return await isPostVisibleToViewer(ctx, sharedPost.id, viewerActorId)
+      return (await isPostVisibleToViewer(ctx, sharedPost.id, viewerActorId))
         ? sharedPost
         : null;
     },
@@ -316,7 +318,7 @@ const Poll = builder.drizzleNode("pollTable", {
     });
     if (
       post == null ||
-      post.censored == null && !isActorSanctionHidden(post.actor)
+      (post.censored == null && !isActorSanctionHidden(post.actor))
     ) {
       return true;
     }
@@ -388,93 +390,101 @@ const Poll = builder.drizzleNode("pollTable", {
         return poll.options.toSorted((a, b) => a.index - b.index);
       },
     }),
-    votes: t.connection({
-      type: PollVote,
-      description:
-        "Votes cast across all options, with the total vote count exposed " +
-        "on the connection. Votes by actors whose content is hidden by a " +
-        "moderation sanction (banned local or federation-blocked remote) " +
-        "are excluded from both the edges and `totalCount`, so a hidden " +
-        "actor's participation is never revealed.",
-      complexity: pollBranchComplexity,
-      select: (args, ctx, nestedSelect) => ({
-        columns: { postId: true },
-        with: {
-          // Exclude votes by sanction-hidden actors so the vote list never
-          // reveals a banned/federation-blocked actor's participation.
-          votes: andActorSanctionFilter(
-            pollVoteConnectionHelpers.getQuery(args, ctx, nestedSelect),
-            { actor: getSanctionVisibleActorFilter(ctx.now ??= new Date()) },
-          ),
-        },
-      }),
-      async resolve(poll, args, ctx) {
-        const connection = pollVoteConnectionHelpers.resolve(
-          poll.votes,
-          args,
-          ctx,
-          poll,
-        );
-        return {
-          ...connection,
-          totalCount: await pollVisibleVoteCount(ctx, poll.postId),
-        };
-      },
-    }, {
-      fields: (t) => ({
-        totalCount: t.exposeInt("totalCount", {
-          description:
-            "Number of votes across all options, independent of the current " +
-            "page size and excluding votes by sanction-hidden actors, so it " +
-            "matches the (also sanction-filtered) edges.",
+    votes: t.connection(
+      {
+        type: PollVote,
+        description:
+          "Votes cast across all options, with the total vote count exposed " +
+          "on the connection. Votes by actors whose content is hidden by a " +
+          "moderation sanction (banned local or federation-blocked remote) " +
+          "are excluded from both the edges and `totalCount`, so a hidden " +
+          "actor's participation is never revealed.",
+        complexity: pollBranchComplexity,
+        select: (args, ctx, nestedSelect) => ({
+          columns: { postId: true },
+          with: {
+            // Exclude votes by sanction-hidden actors so the vote list never
+            // reveals a banned/federation-blocked actor's participation.
+            votes: andActorSanctionFilter(
+              pollVoteConnectionHelpers.getQuery(args, ctx, nestedSelect),
+              {
+                actor: getSanctionVisibleActorFilter((ctx.now ??= new Date())),
+              },
+            ),
+          },
         }),
-      }),
-    }),
-    voters: t.connection({
-      type: Actor,
-      description:
-        "Actors who have voted in this poll (deduplicated across options). " +
-        "Actors whose content is hidden by a moderation sanction (banned " +
-        "local or federation-blocked remote) are excluded from both the " +
-        "edges and `totalCount`.",
-      complexity: pollBranchComplexity,
-      select: (args, ctx, nestedSelect) => ({
-        columns: { postId: true, votersCount: true },
-        with: {
-          // Exclude sanction-hidden actors from the voter list.
-          voters: andActorSanctionFilter(
-            actorConnectionHelpers.getQuery(args, ctx, nestedSelect),
-            getSanctionVisibleActorFilter(ctx.now ??= new Date()),
-          ),
+        async resolve(poll, args, ctx) {
+          const connection = pollVoteConnectionHelpers.resolve(
+            poll.votes,
+            args,
+            ctx,
+            poll,
+          );
+          return {
+            ...connection,
+            totalCount: await pollVisibleVoteCount(ctx, poll.postId),
+          };
         },
-      }),
-      async resolve(poll, args, ctx) {
-        const connection = actorConnectionHelpers.resolve(
-          poll.voters,
-          args,
-          ctx,
-          poll,
-        );
-        // Stored counter (federated aggregate + local votes) minus the
-        // sanction-hidden local voters, so the total matches the filtered
-        // edges without zeroing out a remote poll's federated count.
-        const hidden = await pollHiddenVoterCount(ctx, poll.postId);
-        return {
-          ...connection,
-          totalCount: Math.max(poll.votersCount - hidden, 0),
-        };
       },
-    }, {
-      fields: (t) => ({
-        totalCount: t.exposeInt("totalCount", {
-          description:
-            "Number of distinct actors who have voted in this poll, " +
-            "independent of the current page size and excluding " +
-            "sanction-hidden actors, so it matches the (also " +
-            "sanction-filtered) edges.",
+      {
+        fields: (t) => ({
+          totalCount: t.exposeInt("totalCount", {
+            description:
+              "Number of votes across all options, independent of the current " +
+              "page size and excluding votes by sanction-hidden actors, so it " +
+              "matches the (also sanction-filtered) edges.",
+          }),
         }),
-      }),
-    }),
+      },
+    ),
+    voters: t.connection(
+      {
+        type: Actor,
+        description:
+          "Actors who have voted in this poll (deduplicated across options). " +
+          "Actors whose content is hidden by a moderation sanction (banned " +
+          "local or federation-blocked remote) are excluded from both the " +
+          "edges and `totalCount`.",
+        complexity: pollBranchComplexity,
+        select: (args, ctx, nestedSelect) => ({
+          columns: { postId: true, votersCount: true },
+          with: {
+            // Exclude sanction-hidden actors from the voter list.
+            voters: andActorSanctionFilter(
+              actorConnectionHelpers.getQuery(args, ctx, nestedSelect),
+              getSanctionVisibleActorFilter((ctx.now ??= new Date())),
+            ),
+          },
+        }),
+        async resolve(poll, args, ctx) {
+          const connection = actorConnectionHelpers.resolve(
+            poll.voters,
+            args,
+            ctx,
+            poll,
+          );
+          // Stored counter (federated aggregate + local votes) minus the
+          // sanction-hidden local voters, so the total matches the filtered
+          // edges without zeroing out a remote poll's federated count.
+          const hidden = await pollHiddenVoterCount(ctx, poll.postId);
+          return {
+            ...connection,
+            totalCount: Math.max(poll.votersCount - hidden, 0),
+          };
+        },
+      },
+      {
+        fields: (t) => ({
+          totalCount: t.exposeInt("totalCount", {
+            description:
+              "Number of distinct actors who have voted in this poll, " +
+              "independent of the current page size and excluding " +
+              "sanction-hidden actors, so it matches the (also " +
+              "sanction-filtered) edges.",
+          }),
+        }),
+      },
+    ),
   }),
 });
 
@@ -508,53 +518,58 @@ const PollOption = builder.drizzleObject("pollOptionTable", {
         );
       },
     }),
-    votes: t.connection({
-      type: PollVote,
-      description:
-        "Votes cast for this option. Use `PollOption.viewerHasVoted` for " +
-        "the current viewer's selected state. Votes by sanction-hidden " +
-        "actors (banned local or federation-blocked remote) are excluded " +
-        "from both the edges and `totalCount`.",
-      complexity: pollBranchComplexity,
-      select: (args, ctx, nestedSelect) => ({
-        columns: { postId: true, index: true, votesCount: true },
-        with: {
-          // Exclude votes by sanction-hidden actors (see `Poll.votes`).
-          votes: andActorSanctionFilter(
-            pollVoteConnectionHelpers.getQuery(args, ctx, nestedSelect),
-            { actor: getSanctionVisibleActorFilter(ctx.now ??= new Date()) },
-          ),
-        },
-      }),
-      async resolve(option, args, ctx) {
-        const connection = pollVoteConnectionHelpers.resolve(
-          option.votes,
-          args,
-          ctx,
-          option,
-        );
-        // Stored per-option counter minus the sanction-hidden local votes
-        // for this option (keeps remote federated per-option totals intact).
-        const hidden = await pollHiddenOptionVoteCount(
-          ctx,
-          option.postId,
-          option.index,
-        );
-        return {
-          ...connection,
-          totalCount: Math.max(option.votesCount - hidden, 0),
-        };
-      },
-    }, {
-      fields: (t) => ({
-        totalCount: t.exposeInt("totalCount", {
-          description:
-            "Number of votes for this option, independent of the current " +
-            "page size and excluding votes by sanction-hidden actors, so it " +
-            "matches the (also sanction-filtered) edges.",
+    votes: t.connection(
+      {
+        type: PollVote,
+        description:
+          "Votes cast for this option. Use `PollOption.viewerHasVoted` for " +
+          "the current viewer's selected state. Votes by sanction-hidden " +
+          "actors (banned local or federation-blocked remote) are excluded " +
+          "from both the edges and `totalCount`.",
+        complexity: pollBranchComplexity,
+        select: (args, ctx, nestedSelect) => ({
+          columns: { postId: true, index: true, votesCount: true },
+          with: {
+            // Exclude votes by sanction-hidden actors (see `Poll.votes`).
+            votes: andActorSanctionFilter(
+              pollVoteConnectionHelpers.getQuery(args, ctx, nestedSelect),
+              {
+                actor: getSanctionVisibleActorFilter((ctx.now ??= new Date())),
+              },
+            ),
+          },
         }),
-      }),
-    }),
+        async resolve(option, args, ctx) {
+          const connection = pollVoteConnectionHelpers.resolve(
+            option.votes,
+            args,
+            ctx,
+            option,
+          );
+          // Stored per-option counter minus the sanction-hidden local votes
+          // for this option (keeps remote federated per-option totals intact).
+          const hidden = await pollHiddenOptionVoteCount(
+            ctx,
+            option.postId,
+            option.index,
+          );
+          return {
+            ...connection,
+            totalCount: Math.max(option.votesCount - hidden, 0),
+          };
+        },
+      },
+      {
+        fields: (t) => ({
+          totalCount: t.exposeInt("totalCount", {
+            description:
+              "Number of votes for this option, independent of the current " +
+              "page size and excluding votes by sanction-hidden actors, so it " +
+              "matches the (also sanction-filtered) edges.",
+          }),
+        }),
+      },
+    ),
   }),
 });
 
@@ -744,17 +759,20 @@ async function getViewerPollOptionIndices(
   const cached = ctx.pollViewerVotes.get(postId);
   if (cached != null) return await cached;
 
-  const promise = ctx.db.query.pollVoteTable.findMany({
-    where: {
-      postId,
-      actorId: ctx.account.actor.id,
-    },
-    columns: {
-      optionIndex: true,
-    },
-  }).then((votes) =>
-    new Set(votes.map((vote) => vote.optionIndex)) as ReadonlySet<number>
-  );
+  const promise = ctx.db.query.pollVoteTable
+    .findMany({
+      where: {
+        postId,
+        actorId: ctx.account.actor.id,
+      },
+      columns: {
+        optionIndex: true,
+      },
+    })
+    .then(
+      (votes) =>
+        new Set(votes.map((vote) => vote.optionIndex)) as ReadonlySet<number>,
+    );
   ctx.pollViewerVotes.set(postId, promise);
   return await promise;
 }
@@ -780,9 +798,11 @@ function isPollCensoredForViewer(
   },
   ctx: UserContext,
 ): boolean {
-  return isPollRowCensoredForViewer(post, ctx) ||
-    post.sharedPost != null &&
-      isPollRowCensoredForViewer(post.sharedPost, ctx);
+  return (
+    isPollRowCensoredForViewer(post, ctx) ||
+    (post.sharedPost != null &&
+      isPollRowCensoredForViewer(post.sharedPost, ctx))
+  );
 }
 
 type SanctionActorColumns = Pick<
@@ -903,7 +923,8 @@ builder.drizzleObjectField(Question, "poll", (t) =>
       });
       return reloaded?.poll ?? null;
     },
-  }));
+  }),
+);
 
 builder.relayMutationField(
   "voteOnPoll",
@@ -993,7 +1014,8 @@ builder.relayMutationField(
       });
 
       if (
-        question == null || question.poll == null ||
+        question == null ||
+        question.poll == null ||
         !isPostVisibleTo(question, actingAccount.actor) ||
         isPollCensoredForViewer(question, ctx)
       ) {
@@ -1011,9 +1033,7 @@ builder.relayMutationField(
       const validOptionIndices = new Set(
         question.poll.options.map((option) => option.index),
       );
-      if (
-        [...optionIndices].some((index) => !validOptionIndices.has(index))
-      ) {
+      if ([...optionIndices].some((index) => !validOptionIndices.has(index))) {
         throw new InvalidInputError("optionIndices");
       }
 
@@ -1056,8 +1076,8 @@ builder.relayMutationField(
       const votes = persistedVotes
         .toSorted((a, b) => a.optionIndex - b.optionIndex)
         .map((pollVote) => {
-          const option = updatedPoll.options.find((option) =>
-            option.index === pollVote.optionIndex
+          const option = updatedPoll.options.find(
+            (option) => option.index === pollVote.optionIndex,
           );
           if (option == null) {
             throw new InvalidInputError("optionIndices");

@@ -21,7 +21,7 @@ import {
   CardTitle,
 } from "~/components/ui/card.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,
@@ -92,21 +92,19 @@ const loadPageQuery = routePreloadedQuery(
 export default function OrganizationConversionRequestPage() {
   const params = useParams();
   const handleUsername = createMemo(() =>
-    decodeRouteParam(params.handle!).substring(1)
+    decodeRouteParam(params.handle!).substring(1),
   );
   const requestId = createMemo(() => decodeRouteParam(params.requestId!));
-  const data = createStablePreloadedQuery<
-    RequestIdOrganizationConversionPageQuery
-  >(
-    requestIdOrganizationConversionPageQuery,
-    () => loadPageQuery(requestId() as OrganizationConversionRequestId),
-  );
-  const signInHref = createMemo(() =>
-    `/sign?next=${
-      encodeURIComponent(
+  const data =
+    createStablePreloadedQuery<RequestIdOrganizationConversionPageQuery>(
+      requestIdOrganizationConversionPageQuery,
+      () => loadPageQuery(requestId() as OrganizationConversionRequestId),
+    );
+  const signInHref = createMemo(
+    () =>
+      `/sign?next=${encodeURIComponent(
         `/@${handleUsername()}/org-conversions/${requestId()}`,
-      )
-    }`
+      )}`,
   );
 
   return (
@@ -142,22 +140,21 @@ export default function OrganizationConversionRequestPage() {
 }
 
 type OrganizationConversionRequest = NonNullable<
-  RequestIdOrganizationConversionPageQuery["response"][
-    "organizationConversionRequest"
-  ]
+  RequestIdOrganizationConversionPageQuery["response"]["organizationConversionRequest"]
 >;
 
 type OrganizationConversionRequestId =
   RequestIdOrganizationConversionPageQuery["variables"]["requestId"];
 
-function OrganizationConversionRequestCard(
-  props: { request: OrganizationConversionRequest },
-) {
+function OrganizationConversionRequestCard(props: {
+  request: OrganizationConversionRequest;
+}) {
   const { t } = useLingui();
   const [accepting, setAccepting] = createSignal(false);
-  const [acceptConversion] = createMutation<
-    RequestIdAcceptOrganizationConversionMutation
-  >(requestIdAcceptOrganizationConversionMutation);
+  const [acceptConversion] =
+    createMutation<RequestIdAcceptOrganizationConversionMutation>(
+      requestIdAcceptOrganizationConversionMutation,
+    );
   const accepted = () => props.request.accepted != null;
 
   function onAccept() {
@@ -171,17 +168,17 @@ function OrganizationConversionRequestCard(
         if (result?.__typename === "AcceptOrganizationConversionPayload") {
           showToast({
             title: t`Account converted`,
-            description:
-              t`You are now an admin of ${result.organization.username}.`,
+            description: t`You are now an admin of ${result.organization.username}.`,
           });
           location.assign(`/@${result.organization.username}/settings/account`);
           return;
         }
         showToast({
           title: t`Could not accept conversion`,
-          description: result != null && "message" in result
-            ? result.message
-            : t`This conversion request could not be accepted.`,
+          description:
+            result != null && "message" in result
+              ? result.message
+              : t`This conversion request could not be accepted.`,
           variant: "error",
         });
       },
@@ -190,7 +187,8 @@ function OrganizationConversionRequestCard(
         setAccepting(false);
         showToast({
           title: t`Could not accept conversion`,
-          description: t`This conversion request could not be accepted.` +
+          description:
+            t`This conversion request could not be accepted.` +
             (import.meta.env.DEV ? `\n\n${error.message}` : ""),
           variant: "error",
         });
@@ -214,8 +212,9 @@ function OrganizationConversionRequestCard(
               <Avatar>
                 <AvatarImage
                   src={props.request.account.avatarUrl ?? undefined}
-                  alt={props.request.account.name ??
-                    props.request.account.username}
+                  alt={
+                    props.request.account.name ?? props.request.account.username
+                  }
                 />
                 <AvatarFallback>
                   {props.request.account.username.slice(0, 2).toUpperCase()}
@@ -223,8 +222,7 @@ function OrganizationConversionRequestCard(
               </Avatar>
               <div class="min-w-0">
                 <p class="truncate font-medium">
-                  {props.request.account.name ??
-                    props.request.account.username}
+                  {props.request.account.name ?? props.request.account.username}
                 </p>
                 <p class="truncate text-sm text-muted-foreground">
                   @{props.request.account.username}

@@ -20,7 +20,8 @@ export function sendActivityWithOutbox(
       recipients as never,
       activity,
       options as never,
-    ));
+    ),
+  );
 }
 
 /** Return the adapter-owned Fedify context for a federation implementation. */
@@ -29,7 +30,8 @@ export function getFedifyContext(
 ): Context<ContextData> {
   const fedifyContext = context.federation;
   if (
-    typeof fedifyContext !== "object" || fedifyContext == null ||
+    typeof fedifyContext !== "object" ||
+    fedifyContext == null ||
     !("data" in fedifyContext)
   ) {
     throw new TypeError(
@@ -68,9 +70,7 @@ export async function withInboxTransaction<T>(
   return await withTransaction(
     toApplicationContext(context),
     async (txCtx) =>
-      await callback(
-        getFedifyContext(txCtx) as InboxContext<ContextData>,
-      ),
+      await callback(getFedifyContext(txCtx) as InboxContext<ContextData>),
   );
 }
 
@@ -78,19 +78,22 @@ export async function withInboxTransaction<T>(
 export function toApplicationContext(
   context: Context<ContextData>,
 ): ApplicationContext {
-  const getActorKeyPairs = "getActorKeyPairs" in context &&
-      typeof context.getActorKeyPairs === "function"
-    ? (identifier: string) => context.getActorKeyPairs(identifier)
-    : undefined;
+  const getActorKeyPairs =
+    "getActorKeyPairs" in context &&
+    typeof context.getActorKeyPairs === "function"
+      ? (identifier: string) => context.getActorKeyPairs(identifier)
+      : undefined;
   const applicationContext: ApplicationContext = {
     db: context.data.db,
     withDatabase(db) {
-      return toApplicationContext(context.clone({
-        ...context.data,
-        db,
-        rootDb: this.rootDb,
-        afterCommit: this.afterCommit,
-      }));
+      return toApplicationContext(
+        context.clone({
+          ...context.data,
+          db,
+          rootDb: this.rootDb,
+          afterCommit: this.afterCommit,
+        }),
+      );
     },
     rootDb: context.data.rootDb,
     afterCommit: context.data.afterCommit,
@@ -122,22 +125,14 @@ export function toApplicationContext(
       ),
     lookupWebFinger: (resource) => context.lookupWebFinger(resource),
     getActor: (identifier) => {
-      if (
-        "getActor" in context && typeof context.getActor === "function"
-      ) {
+      if ("getActor" in context && typeof context.getActor === "function") {
         return context.getActor(identifier);
       }
       return Promise.resolve(null);
     },
     ...(getActorKeyPairs == null ? {} : { getActorKeyPairs }),
     sendActivity: (sender, recipients, activity, options) =>
-      sendActivityWithOutbox(
-        context,
-        sender,
-        recipients,
-        activity,
-        options,
-      ),
+      sendActivityWithOutbox(context, sender, recipients, activity, options),
   };
   return applicationContext;
 }

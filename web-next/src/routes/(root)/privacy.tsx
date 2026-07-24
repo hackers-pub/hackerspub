@@ -4,7 +4,7 @@ import { Show } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { DocumentView } from "~/components/DocumentView.tsx";
 import { WideContainer } from "~/components/WideContainer.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { privacyPolicyPageQuery } from "./__generated__/privacyPolicyPageQuery.graphql.ts";
 import {
   createStablePreloadedQuery,
@@ -37,7 +37,9 @@ export default function PrivacyPage() {
   );
   return (
     <WideContainer>
-      <Title>{t`Privacy policy`} &mdash; {t`Hackers' Pub`}</Title>
+      <Title>
+        {t`Privacy policy`} &mdash; {t`Hackers' Pub`}
+      </Title>
       <Show keyed when={data()}>
         {(data) => <DocumentView $document={data.privacyPolicy} />}
       </Show>

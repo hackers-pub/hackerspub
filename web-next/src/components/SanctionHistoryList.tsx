@@ -4,7 +4,7 @@ import { AppealDialog } from "~/components/AppealDialog.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { Badge } from "~/components/ui/badge.tsx";
 import { Button } from "~/components/ui/button.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 interface SanctionAppeal {
   status: string;
@@ -83,7 +83,8 @@ export function SanctionHistoryList(props: SanctionHistoryListProps) {
               // A dismissal carries no sanction to appeal (it may still appear
               // here when the moderator left a message); the server rejects
               // appeals on it.
-              const canAppeal = sanction.appeal == null &&
+              const canAppeal =
+                sanction.appeal == null &&
                 sanction.actionType !== "DISMISS" &&
                 new Date(sanction.appealableUntil) > new Date();
               return (
@@ -99,17 +100,15 @@ export function SanctionHistoryList(props: SanctionHistoryListProps) {
                   </div>
                   <Show when={sanction.violatedProvisions.length > 0}>
                     <p class="text-sm text-muted-foreground">
-                      {t`Code of conduct: ${
-                        sanction.violatedProvisions.join(", ")
-                      }`}
+                      {t`Code of conduct: ${sanction.violatedProvisions.join(
+                        ", ",
+                      )}`}
                     </p>
                   </Show>
                   <Show keyed when={sanction.messageToUser}>
                     {(message) => (
                       <div class="rounded-md border bg-muted/40 p-3 text-sm">
-                        <p class="whitespace-pre-wrap break-words">
-                          {message}
-                        </p>
+                        <p class="whitespace-pre-wrap break-words">{message}</p>
                       </div>
                     )}
                   </Show>
@@ -146,9 +145,11 @@ export function SanctionHistoryList(props: SanctionHistoryListProps) {
                       {(appeal) => (
                         <div class="flex flex-col gap-1">
                           <Badge
-                            variant={appeal().status === "RESOLVED"
-                              ? "secondary"
-                              : "warning"}
+                            variant={
+                              appeal().status === "RESOLVED"
+                                ? "secondary"
+                                : "warning"
+                            }
                           >
                             {appealStatusLabel(
                               appeal().status,

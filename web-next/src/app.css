@@ -492,7 +492,9 @@
 .prose pre.shiki.has-focused > code > span.line:not(.focused) {
   opacity: 0.5;
   filter: blur(0.095rem);
-  transition: filter 0.35s, opacity 0.35s;
+  transition:
+    filter 0.35s,
+    opacity 0.35s;
 }
 
 .prose pre.shiki.has-focused:hover > code > span.line:not(.focused) {

@@ -15,59 +15,63 @@ import linguiConfig from "../../../lingui.config.ts";
 import type { i18nProviderLoadI18n_query$key } from "./__generated__/i18nProviderLoadI18n_query.graphql.ts";
 import { getValidLocaleBaseNames } from "./locales.ts";
 
-const loadI18n = query(async (
-  $query: i18nProviderLoadI18n_query$key,
-  langOverride: string | undefined,
-) => {
-  "use server";
+const loadI18n = query(
+  async (
+    $query: i18nProviderLoadI18n_query$key,
+    langOverride: string | undefined,
+  ) => {
+    "use server";
 
-  const accountLocales = readInlineData(
-    graphql`
-      fragment i18nProviderLoadI18n_query on Query @inline {
-        viewer {
-          locales
+    const accountLocales = readInlineData(
+      graphql`
+        fragment i18nProviderLoadI18n_query on Query @inline {
+          viewer {
+            locales
+          }
         }
+      `,
+      $query,
+    ).viewer?.locales;
+
+    let loc: Intl.Locale | undefined;
+    const locales: string[] = [];
+    const validLangOverride =
+      langOverride == null
+        ? undefined
+        : getValidLocaleBaseNames([langOverride])[0];
+    if (validLangOverride != null) {
+      try {
+        loc = negotiateLocale(
+          new Intl.Locale(validLangOverride),
+          linguiConfig.locales,
+        );
+      } catch {
+        // Ignore unparseable locale codes from ?lang=… and fall through.
       }
-    `,
-    $query,
-  ).viewer?.locales;
-
-  let loc: Intl.Locale | undefined;
-  const locales: string[] = [];
-  const validLangOverride = langOverride == null
-    ? undefined
-    : getValidLocaleBaseNames([langOverride])[0];
-  if (validLangOverride != null) {
-    try {
-      loc = negotiateLocale(
-        new Intl.Locale(validLangOverride),
-        linguiConfig.locales,
-      );
-    } catch {
-      // Ignore unparseable locale codes from ?lang=… and fall through.
     }
-  }
-  if (loc == null && accountLocales != null && accountLocales.length > 0) {
-    const validAccountLocales = getValidLocaleBaseNames(accountLocales);
-    loc = negotiateLocale(validAccountLocales, linguiConfig.locales);
-    locales.push(...validAccountLocales);
-  }
-  if (loc == null) {
-    const acceptLanguage = getRequestHeader("Accept-Language");
-    const acceptLanguages = getValidLocaleBaseNames(
-      parseAcceptLanguage(acceptLanguage),
-    );
-    loc = negotiateLocale(acceptLanguages, linguiConfig.locales);
-    locales.push(...acceptLanguages);
-  }
-  if (loc == null) {
-    loc = new Intl.Locale(linguiConfig.sourceLocale);
-  }
-  if (locales.length < 1) locales.push(loc.baseName);
+    if (loc == null && accountLocales != null && accountLocales.length > 0) {
+      const validAccountLocales = getValidLocaleBaseNames(accountLocales);
+      loc = negotiateLocale(validAccountLocales, linguiConfig.locales);
+      locales.push(...validAccountLocales);
+    }
+    if (loc == null) {
+      const acceptLanguage = getRequestHeader("Accept-Language");
+      const acceptLanguages = getValidLocaleBaseNames(
+        parseAcceptLanguage(acceptLanguage),
+      );
+      loc = negotiateLocale(acceptLanguages, linguiConfig.locales);
+      locales.push(...acceptLanguages);
+    }
+    if (loc == null) {
+      loc = new Intl.Locale(linguiConfig.sourceLocale);
+    }
+    if (locales.length < 1) locales.push(loc.baseName);
 
-  const messages = await loadMessages(loc.baseName);
-  return { locale: loc.baseName, locales, messages };
-}, "i18n");
+    const messages = await loadMessages(loc.baseName);
+    return { locale: loc.baseName, locales, messages };
+  },
+  "i18n",
+);
 
 export interface I18nProviderProps {
   readonly $query: i18nProviderLoadI18n_query$key;

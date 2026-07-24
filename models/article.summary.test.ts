@@ -17,62 +17,59 @@ import {
 } from "../test/postgres.ts";
 import { generateUuidV7 } from "./uuid.ts";
 
-test(
-  "applyArticleContentSummary() saves the summary when shorter than the original",
-  async () => {
-    await withRollback(async (tx) => {
-      const author = await insertAccountWithActor(tx, {
-        username: "summaryapply1",
-        name: "Summary Apply 1",
-        email: "summaryapply1@example.com",
-      });
-      const sourceId = generateUuidV7();
-      const published = new Date("2026-04-15T00:00:00.000Z");
-      const longContent =
-        "This is a much longer article body that has plenty of words " +
-        "so that the summary can fit comfortably below the length of " +
-        "the original content without difficulty.";
-
-      await tx.insert(articleSourceTable).values({
-        id: sourceId,
-        accountId: author.account.id,
-        publishedYear: 2026,
-        slug: "summary-apply-shorter",
-        tags: [],
-        allowLlmTranslation: false,
-        published,
-        updated: published,
-      });
-      await tx.insert(articleContentTable).values({
-        sourceId,
-        language: "en",
-        title: "Apply shorter summary",
-        content: longContent,
-        summaryStarted: published,
-        published,
-        updated: published,
-      });
-
-      const content = await tx.query.articleContentTable.findFirst({
-        where: { sourceId, language: "en" },
-      });
-      assert.ok(content != null);
-
-      await applyArticleContentSummary(tx, content, "Short summary.");
-
-      const after = await tx.query.articleContentTable.findFirst({
-        where: { sourceId, language: "en" },
-      });
-      assert.equal(after?.summary, "Short summary.");
-      assert.equal(after?.summaryUnnecessary, false);
-      // The summarization claim must be released after a successful save.
-      assert.equal(after?.summaryStarted, null);
-      // The row's updated timestamp must reflect the new summary.
-      assert.ok(after != null);
-      assert.ok(after.updated.getTime() > published.getTime());
+test("applyArticleContentSummary() saves the summary when shorter than the original", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "summaryapply1",
+      name: "Summary Apply 1",
+      email: "summaryapply1@example.com",
     });
-  },
-);
+    const sourceId = generateUuidV7();
+    const published = new Date("2026-04-15T00:00:00.000Z");
+    const longContent =
+      "This is a much longer article body that has plenty of words " +
+      "so that the summary can fit comfortably below the length of " +
+      "the original content without difficulty.";
+
+    await tx.insert(articleSourceTable).values({
+      id: sourceId,
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "summary-apply-shorter",
+      tags: [],
+      allowLlmTranslation: false,
+      published,
+      updated: published,
+    });
+    await tx.insert(articleContentTable).values({
+      sourceId,
+      language: "en",
+      title: "Apply shorter summary",
+      content: longContent,
+      summaryStarted: published,
+      published,
+      updated: published,
+    });
+
+    const content = await tx.query.articleContentTable.findFirst({
+      where: { sourceId, language: "en" },
+    });
+    assert.ok(content != null);
+
+    await applyArticleContentSummary(tx, content, "Short summary.");
+
+    const after = await tx.query.articleContentTable.findFirst({
+      where: { sourceId, language: "en" },
+    });
+    assert.equal(after?.summary, "Short summary.");
+    assert.equal(after?.summaryUnnecessary, false);
+    // The summarization claim must be released after a successful save.
+    assert.equal(after?.summaryStarted, null);
+    // The row's updated timestamp must reflect the new summary.
+    assert.ok(after != null);
+    assert.ok(after.updated.getTime() > published.getTime());
+  });
+});
 
 test(
   "applyArticleContentSummary() discards summary and marks unnecessary " +
@@ -183,226 +180,215 @@ test(
   },
 );
 
-test(
-  "startArticleContentSummary() skips rows already marked summaryUnnecessary",
-  async () => {
-    await withRollback(async (tx) => {
-      const author = await insertAccountWithActor(tx, {
-        username: "summaryskip",
-        name: "Summary Skip",
-        email: "summaryskip@example.com",
-      });
-      const sourceId = generateUuidV7();
-      const published = new Date("2026-04-15T00:00:00.000Z");
-
-      await tx.insert(articleSourceTable).values({
-        id: sourceId,
-        accountId: author.account.id,
-        publishedYear: 2026,
-        slug: "summary-skip",
-        tags: [],
-        allowLlmTranslation: false,
-        published,
-        updated: published,
-      });
-      await tx.insert(articleContentTable).values({
-        sourceId,
-        language: "en",
-        title: "Skip summary",
-        content: "Body",
-        summaryUnnecessary: true,
-        published,
-        updated: published,
-      });
-
-      const content = await tx.query.articleContentTable.findFirst({
-        where: { sourceId, language: "en" },
-      });
-      assert.ok(content != null);
-
-      // Even though we pass a fake model, this should never be invoked
-      // because the row is marked unnecessary.
-      await startArticleContentSummary(
-        tx,
-        {} as never,
-        content,
-        services.ai.summarize,
-      );
-
-      const after = await tx.query.articleContentTable.findFirst({
-        where: { sourceId, language: "en" },
-      });
-      assert.equal(after?.summaryUnnecessary, true);
-      assert.equal(after?.summaryStarted, null);
-      assert.equal(after?.summary, null);
+test("startArticleContentSummary() skips rows already marked summaryUnnecessary", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "summaryskip",
+      name: "Summary Skip",
+      email: "summaryskip@example.com",
     });
-  },
-);
+    const sourceId = generateUuidV7();
+    const published = new Date("2026-04-15T00:00:00.000Z");
 
-test(
-  "applyArticleContentSummary() clears the post-level summary when discarding",
-  async () => {
-    await withRollback(async (tx) => {
-      const author = await insertAccountWithActor(tx, {
-        username: "summaryapply3",
-        name: "Summary Apply 3",
-        email: "summaryapply3@example.com",
-      });
-      const sourceId = generateUuidV7();
-      const postId = generateUuidV7();
-      const published = new Date("2026-04-15T00:00:00.000Z");
-      const shortContent = "Hi.";
-      const longSummary =
-        "This summary is much longer than the article body itself.";
-
-      await tx.insert(articleSourceTable).values({
-        id: sourceId,
-        accountId: author.account.id,
-        publishedYear: 2026,
-        slug: "summary-apply-post",
-        tags: [],
-        allowLlmTranslation: false,
-        published,
-        updated: published,
-      });
-      await tx.insert(articleContentTable).values({
-        sourceId,
-        language: "en",
-        title: "Apply summary post",
-        content: shortContent,
-        summaryStarted: published,
-        published,
-        updated: published,
-      });
-      await tx.insert(postTable).values({
-        id: postId,
-        iri: `https://example.com/posts/${postId}`,
-        type: "Article",
-        actorId: author.actor.id,
-        articleSourceId: sourceId,
-        name: "Apply summary post",
-        contentHtml: "<p>Hi.</p>",
-        language: "en",
-        summary: "Pre-existing summary that should be cleared.",
-        visibility: "public",
-        url: `https://example.com/posts/${postId}`,
-        published,
-        updated: published,
-      });
-
-      const content = await tx.query.articleContentTable.findFirst({
-        where: { sourceId, language: "en" },
-      });
-      assert.ok(content != null);
-
-      await applyArticleContentSummary(tx, content, longSummary);
-
-      const after = await tx.query.postTable.findFirst({
-        where: { id: postId },
-      });
-      assert.equal(after?.summary, null);
+    await tx.insert(articleSourceTable).values({
+      id: sourceId,
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "summary-skip",
+      tags: [],
+      allowLlmTranslation: false,
+      published,
+      updated: published,
     });
-  },
-);
-
-test(
-  "updateArticleSource() clears summaryUnnecessary when content changes",
-  async () => {
-    await withRollback(async (tx) => {
-      const author = await insertAccountWithActor(tx, {
-        username: "summaryreset",
-        name: "Summary Reset",
-        email: "summaryreset@example.com",
-      });
-      const sourceId = generateUuidV7();
-      const published = new Date("2026-04-15T00:00:00.000Z");
-
-      await tx.insert(articleSourceTable).values({
-        id: sourceId,
-        accountId: author.account.id,
-        publishedYear: 2026,
-        slug: "summary-reset",
-        tags: [],
-        allowLlmTranslation: false,
-        published,
-        updated: published,
-      });
-      await tx.insert(articleContentTable).values({
-        sourceId,
-        language: "en",
-        title: "Reset summary",
-        content: "Hi.",
-        summary: null,
-        summaryStarted: published,
-        summaryUnnecessary: true,
-        published,
-        updated: published,
-      });
-
-      const updated = await updateArticleSource(tx, sourceId, {
-        content: "This article body has now grown long enough to be worth " +
-          "summarizing again, so we expect the unnecessary mark to clear.",
-      });
-      assert.ok(updated != null);
-
-      const after = await tx.query.articleContentTable.findFirst({
-        where: { sourceId, language: "en" },
-      });
-      assert.equal(after?.summaryUnnecessary, false);
-      assert.equal(after?.summary, null);
-      assert.equal(after?.summaryStarted, null);
+    await tx.insert(articleContentTable).values({
+      sourceId,
+      language: "en",
+      title: "Skip summary",
+      content: "Body",
+      summaryUnnecessary: true,
+      published,
+      updated: published,
     });
-  },
-);
 
-test(
-  "updateArticleSource() preserves summary state when content is unchanged",
-  async () => {
-    await withRollback(async (tx) => {
-      const author = await insertAccountWithActor(tx, {
-        username: "summarykeep",
-        name: "Summary Keep",
-        email: "summarykeep@example.com",
-      });
-      const sourceId = generateUuidV7();
-      const published = new Date("2026-04-15T00:00:00.000Z");
-
-      await tx.insert(articleSourceTable).values({
-        id: sourceId,
-        accountId: author.account.id,
-        publishedYear: 2026,
-        slug: "summary-keep",
-        tags: [],
-        allowLlmTranslation: false,
-        published,
-        updated: published,
-      });
-      await tx.insert(articleContentTable).values({
-        sourceId,
-        language: "en",
-        title: "Keep summary",
-        content: "Original body.",
-        summary: "Cached summary.",
-        summaryUnnecessary: false,
-        published,
-        updated: published,
-      });
-
-      // Update only the title; the body is unchanged so the existing
-      // summary should remain intact.
-      const updated = await updateArticleSource(tx, sourceId, {
-        title: "Renamed",
-      });
-      assert.ok(updated != null);
-
-      const after = await tx.query.articleContentTable.findFirst({
-        where: { sourceId, language: "en" },
-      });
-      assert.equal(after?.summary, "Cached summary.");
-      assert.equal(after?.summaryUnnecessary, false);
+    const content = await tx.query.articleContentTable.findFirst({
+      where: { sourceId, language: "en" },
     });
-  },
-);
+    assert.ok(content != null);
+
+    // Even though we pass a fake model, this should never be invoked
+    // because the row is marked unnecessary.
+    await startArticleContentSummary(
+      tx,
+      {} as never,
+      content,
+      services.ai.summarize,
+    );
+
+    const after = await tx.query.articleContentTable.findFirst({
+      where: { sourceId, language: "en" },
+    });
+    assert.equal(after?.summaryUnnecessary, true);
+    assert.equal(after?.summaryStarted, null);
+    assert.equal(after?.summary, null);
+  });
+});
+
+test("applyArticleContentSummary() clears the post-level summary when discarding", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "summaryapply3",
+      name: "Summary Apply 3",
+      email: "summaryapply3@example.com",
+    });
+    const sourceId = generateUuidV7();
+    const postId = generateUuidV7();
+    const published = new Date("2026-04-15T00:00:00.000Z");
+    const shortContent = "Hi.";
+    const longSummary =
+      "This summary is much longer than the article body itself.";
+
+    await tx.insert(articleSourceTable).values({
+      id: sourceId,
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "summary-apply-post",
+      tags: [],
+      allowLlmTranslation: false,
+      published,
+      updated: published,
+    });
+    await tx.insert(articleContentTable).values({
+      sourceId,
+      language: "en",
+      title: "Apply summary post",
+      content: shortContent,
+      summaryStarted: published,
+      published,
+      updated: published,
+    });
+    await tx.insert(postTable).values({
+      id: postId,
+      iri: `https://example.com/posts/${postId}`,
+      type: "Article",
+      actorId: author.actor.id,
+      articleSourceId: sourceId,
+      name: "Apply summary post",
+      contentHtml: "<p>Hi.</p>",
+      language: "en",
+      summary: "Pre-existing summary that should be cleared.",
+      visibility: "public",
+      url: `https://example.com/posts/${postId}`,
+      published,
+      updated: published,
+    });
+
+    const content = await tx.query.articleContentTable.findFirst({
+      where: { sourceId, language: "en" },
+    });
+    assert.ok(content != null);
+
+    await applyArticleContentSummary(tx, content, longSummary);
+
+    const after = await tx.query.postTable.findFirst({
+      where: { id: postId },
+    });
+    assert.equal(after?.summary, null);
+  });
+});
+
+test("updateArticleSource() clears summaryUnnecessary when content changes", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "summaryreset",
+      name: "Summary Reset",
+      email: "summaryreset@example.com",
+    });
+    const sourceId = generateUuidV7();
+    const published = new Date("2026-04-15T00:00:00.000Z");
+
+    await tx.insert(articleSourceTable).values({
+      id: sourceId,
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "summary-reset",
+      tags: [],
+      allowLlmTranslation: false,
+      published,
+      updated: published,
+    });
+    await tx.insert(articleContentTable).values({
+      sourceId,
+      language: "en",
+      title: "Reset summary",
+      content: "Hi.",
+      summary: null,
+      summaryStarted: published,
+      summaryUnnecessary: true,
+      published,
+      updated: published,
+    });
+
+    const updated = await updateArticleSource(tx, sourceId, {
+      content:
+        "This article body has now grown long enough to be worth " +
+        "summarizing again, so we expect the unnecessary mark to clear.",
+    });
+    assert.ok(updated != null);
+
+    const after = await tx.query.articleContentTable.findFirst({
+      where: { sourceId, language: "en" },
+    });
+    assert.equal(after?.summaryUnnecessary, false);
+    assert.equal(after?.summary, null);
+    assert.equal(after?.summaryStarted, null);
+  });
+});
+
+test("updateArticleSource() preserves summary state when content is unchanged", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "summarykeep",
+      name: "Summary Keep",
+      email: "summarykeep@example.com",
+    });
+    const sourceId = generateUuidV7();
+    const published = new Date("2026-04-15T00:00:00.000Z");
+
+    await tx.insert(articleSourceTable).values({
+      id: sourceId,
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "summary-keep",
+      tags: [],
+      allowLlmTranslation: false,
+      published,
+      updated: published,
+    });
+    await tx.insert(articleContentTable).values({
+      sourceId,
+      language: "en",
+      title: "Keep summary",
+      content: "Original body.",
+      summary: "Cached summary.",
+      summaryUnnecessary: false,
+      published,
+      updated: published,
+    });
+
+    // Update only the title; the body is unchanged so the existing
+    // summary should remain intact.
+    const updated = await updateArticleSource(tx, sourceId, {
+      title: "Renamed",
+    });
+    assert.ok(updated != null);
+
+    const after = await tx.query.articleContentTable.findFirst({
+      where: { sourceId, language: "en" },
+    });
+    assert.equal(after?.summary, "Cached summary.");
+    assert.equal(after?.summaryUnnecessary, false);
+  });
+});
 
 test(
   "applyArticleContentSummary() drops the result when the content " +
@@ -472,53 +458,50 @@ test(
   },
 );
 
-test(
-  "updateArticleSource() clears summary state when only language changes",
-  async () => {
-    await withRollback(async (tx) => {
-      const author = await insertAccountWithActor(tx, {
-        username: "summarylangchange",
-        name: "Summary Lang Change",
-        email: "summarylangchange@example.com",
-      });
-      const sourceId = generateUuidV7();
-      const published = new Date("2026-04-15T00:00:00.000Z");
-
-      await tx.insert(articleSourceTable).values({
-        id: sourceId,
-        accountId: author.account.id,
-        publishedYear: 2026,
-        slug: "summary-lang-change",
-        tags: [],
-        allowLlmTranslation: false,
-        published,
-        updated: published,
-      });
-      await tx.insert(articleContentTable).values({
-        sourceId,
-        language: "en",
-        title: "Cached English",
-        content: "Original body",
-        summary: "An English summary that no longer matches the language.",
-        summaryUnnecessary: false,
-        published,
-        updated: published,
-      });
-
-      const updated = await updateArticleSource(tx, sourceId, {
-        language: "ko",
-      });
-      assert.ok(updated != null);
-
-      const after = await tx.query.articleContentTable.findFirst({
-        where: { sourceId, language: "ko" },
-      });
-      assert.equal(after?.summary, null);
-      assert.equal(after?.summaryUnnecessary, false);
-      assert.equal(after?.summaryStarted, null);
+test("updateArticleSource() clears summary state when only language changes", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "summarylangchange",
+      name: "Summary Lang Change",
+      email: "summarylangchange@example.com",
     });
-  },
-);
+    const sourceId = generateUuidV7();
+    const published = new Date("2026-04-15T00:00:00.000Z");
+
+    await tx.insert(articleSourceTable).values({
+      id: sourceId,
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "summary-lang-change",
+      tags: [],
+      allowLlmTranslation: false,
+      published,
+      updated: published,
+    });
+    await tx.insert(articleContentTable).values({
+      sourceId,
+      language: "en",
+      title: "Cached English",
+      content: "Original body",
+      summary: "An English summary that no longer matches the language.",
+      summaryUnnecessary: false,
+      published,
+      updated: published,
+    });
+
+    const updated = await updateArticleSource(tx, sourceId, {
+      language: "ko",
+    });
+    assert.ok(updated != null);
+
+    const after = await tx.query.articleContentTable.findFirst({
+      where: { sourceId, language: "ko" },
+    });
+    assert.equal(after?.summary, null);
+    assert.equal(after?.summaryUnnecessary, false);
+    assert.equal(after?.summaryStarted, null);
+  });
+});
 
 test(
   "updateArticleSource() returns a re-summarization target when content " +
@@ -557,14 +540,11 @@ test(
         updated: published,
       });
 
-      const updated = await updateArticleSource(
-        tx,
-        sourceId,
-        {
-          content: "This article body is now long enough to be worth " +
-            "summarizing again, so we expect a fresh claim to be acquired.",
-        },
-      );
+      const updated = await updateArticleSource(tx, sourceId, {
+        content:
+          "This article body is now long enough to be worth " +
+          "summarizing again, so we expect a fresh claim to be acquired.",
+      });
       assert.ok(updated != null);
       assert.equal(updated.resummarizeTarget?.sourceId, sourceId);
       assert.equal(updated.resummarizeTarget?.language, "en");
@@ -613,11 +593,9 @@ test(
       });
 
       // Title-only edits must not enqueue a fresh summarization.
-      const updated = await updateArticleSource(
-        tx,
-        sourceId,
-        { title: "Renamed" },
-      );
+      const updated = await updateArticleSource(tx, sourceId, {
+        title: "Renamed",
+      });
       assert.ok(updated != null);
       assert.equal(updated.resummarizeTarget, undefined);
 
@@ -675,12 +653,7 @@ test(
       });
       assert.ok(snapshot != null);
 
-      await applyArticleContentSummary(
-        tx,
-        snapshot,
-        "Short.",
-        oldClaim,
-      );
+      await applyArticleContentSummary(tx, snapshot, "Short.", oldClaim);
 
       const after = await tx.query.articleContentTable.findFirst({
         where: { sourceId, language: "en" },
@@ -693,78 +666,75 @@ test(
   },
 );
 
-test(
-  "startArticleContentSummary() skips rows that are still being translated",
-  async () => {
-    await withRollback(async (tx) => {
-      const author = await insertAccountWithActor(tx, {
-        username: "summarytranslating",
-        name: "Summary Translating",
-        email: "summarytranslating@example.com",
-      });
-      const requester = await insertAccountWithActor(tx, {
-        username: "summarytransreq",
-        name: "Summary Translation Requester",
-        email: "summarytransreq@example.com",
-      });
-      const sourceId = generateUuidV7();
-      const published = new Date("2026-04-15T00:00:00.000Z");
-
-      await tx.insert(articleSourceTable).values({
-        id: sourceId,
-        accountId: author.account.id,
-        publishedYear: 2026,
-        slug: "summary-translating",
-        tags: [],
-        allowLlmTranslation: true,
-        published,
-        updated: published,
-      });
-      // The original-language row that the translation references.
-      await tx.insert(articleContentTable).values({
-        sourceId,
-        language: "en",
-        title: "Original",
-        content: "Original body that has not been translated yet.",
-        published,
-        updated: published,
-      });
-      // Placeholder for an in-flight translation: content is still the
-      // original-language body.
-      await tx.insert(articleContentTable).values({
-        sourceId,
-        language: "ko",
-        title: "Original placeholder",
-        content: "Original body that has not been translated yet.",
-        beingTranslated: true,
-        originalLanguage: "en",
-        translationRequesterId: requester.account.id,
-        published,
-        updated: published,
-      });
-
-      const content = await tx.query.articleContentTable.findFirst({
-        where: { sourceId, language: "ko" },
-      });
-      assert.ok(content != null);
-
-      // Should be a no-op because the row is being translated.  The
-      // fake model would otherwise crash if generateText() were called.
-      await startArticleContentSummary(
-        tx,
-        {} as never,
-        content,
-        services.ai.summarize,
-      );
-
-      const after = await tx.query.articleContentTable.findFirst({
-        where: { sourceId, language: "ko" },
-      });
-      assert.equal(after?.summaryStarted, null);
-      assert.equal(after?.beingTranslated, true);
+test("startArticleContentSummary() skips rows that are still being translated", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "summarytranslating",
+      name: "Summary Translating",
+      email: "summarytranslating@example.com",
     });
-  },
-);
+    const requester = await insertAccountWithActor(tx, {
+      username: "summarytransreq",
+      name: "Summary Translation Requester",
+      email: "summarytransreq@example.com",
+    });
+    const sourceId = generateUuidV7();
+    const published = new Date("2026-04-15T00:00:00.000Z");
+
+    await tx.insert(articleSourceTable).values({
+      id: sourceId,
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "summary-translating",
+      tags: [],
+      allowLlmTranslation: true,
+      published,
+      updated: published,
+    });
+    // The original-language row that the translation references.
+    await tx.insert(articleContentTable).values({
+      sourceId,
+      language: "en",
+      title: "Original",
+      content: "Original body that has not been translated yet.",
+      published,
+      updated: published,
+    });
+    // Placeholder for an in-flight translation: content is still the
+    // original-language body.
+    await tx.insert(articleContentTable).values({
+      sourceId,
+      language: "ko",
+      title: "Original placeholder",
+      content: "Original body that has not been translated yet.",
+      beingTranslated: true,
+      originalLanguage: "en",
+      translationRequesterId: requester.account.id,
+      published,
+      updated: published,
+    });
+
+    const content = await tx.query.articleContentTable.findFirst({
+      where: { sourceId, language: "ko" },
+    });
+    assert.ok(content != null);
+
+    // Should be a no-op because the row is being translated.  The
+    // fake model would otherwise crash if generateText() were called.
+    await startArticleContentSummary(
+      tx,
+      {} as never,
+      content,
+      services.ai.summarize,
+    );
+
+    const after = await tx.query.articleContentTable.findFirst({
+      where: { sourceId, language: "ko" },
+    });
+    assert.equal(after?.summaryStarted, null);
+    assert.equal(after?.beingTranslated, true);
+  });
+});
 
 test(
   "applyArticleContentSummary() discards empty or whitespace-only summaries " +
@@ -824,60 +794,57 @@ test(
   },
 );
 
-test(
-  "applyArticleContentSummary() counts grapheme clusters, not UTF-16 units",
-  async () => {
-    await withRollback(async (tx) => {
-      const author = await insertAccountWithActor(tx, {
-        username: "summarycp",
-        name: "Summary CP",
-        email: "summarycp@example.com",
-      });
-      const sourceId = generateUuidV7();
-      const published = new Date("2026-04-15T00:00:00.000Z");
-      // Each emoji is one grapheme cluster but two UTF-16 code units.
-      // The "abc" summary is 3 graphemes and 3 code units; "😀😀" is
-      // 4 code units but only 2 graphemes.  By UTF-16 length the
-      // summary would look shorter (3 < 4), but in graphemes it is
-      // longer (3 >= 2), so the discard path must trigger.
-      const content = "😀😀";
-      const summary = "abc";
-
-      await tx.insert(articleSourceTable).values({
-        id: sourceId,
-        accountId: author.account.id,
-        publishedYear: 2026,
-        slug: "summary-cp",
-        tags: [],
-        allowLlmTranslation: false,
-        published,
-        updated: published,
-      });
-      await tx.insert(articleContentTable).values({
-        sourceId,
-        language: "en",
-        title: "Code points",
-        content,
-        summaryStarted: published,
-        published,
-        updated: published,
-      });
-
-      const row = await tx.query.articleContentTable.findFirst({
-        where: { sourceId, language: "en" },
-      });
-      assert.ok(row != null);
-
-      await applyArticleContentSummary(tx, row, summary);
-
-      const after = await tx.query.articleContentTable.findFirst({
-        where: { sourceId, language: "en" },
-      });
-      assert.equal(after?.summary, null);
-      assert.equal(after?.summaryUnnecessary, true);
+test("applyArticleContentSummary() counts grapheme clusters, not UTF-16 units", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "summarycp",
+      name: "Summary CP",
+      email: "summarycp@example.com",
     });
-  },
-);
+    const sourceId = generateUuidV7();
+    const published = new Date("2026-04-15T00:00:00.000Z");
+    // Each emoji is one grapheme cluster but two UTF-16 code units.
+    // The "abc" summary is 3 graphemes and 3 code units; "😀😀" is
+    // 4 code units but only 2 graphemes.  By UTF-16 length the
+    // summary would look shorter (3 < 4), but in graphemes it is
+    // longer (3 >= 2), so the discard path must trigger.
+    const content = "😀😀";
+    const summary = "abc";
+
+    await tx.insert(articleSourceTable).values({
+      id: sourceId,
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "summary-cp",
+      tags: [],
+      allowLlmTranslation: false,
+      published,
+      updated: published,
+    });
+    await tx.insert(articleContentTable).values({
+      sourceId,
+      language: "en",
+      title: "Code points",
+      content,
+      summaryStarted: published,
+      published,
+      updated: published,
+    });
+
+    const row = await tx.query.articleContentTable.findFirst({
+      where: { sourceId, language: "en" },
+    });
+    assert.ok(row != null);
+
+    await applyArticleContentSummary(tx, row, summary);
+
+    const after = await tx.query.articleContentTable.findFirst({
+      where: { sourceId, language: "en" },
+    });
+    assert.equal(after?.summary, null);
+    assert.equal(after?.summaryUnnecessary, true);
+  });
+});
 
 test(
   "applyArticleContentSummary() compares summaries against visible content " +
@@ -897,8 +864,8 @@ test(
         "<details>",
         "<summary>Answer</summary>",
         "This hidden answer is intentionally much longer than the visible " +
-        "question text and must not make an otherwise too-long summary look " +
-        "acceptable.",
+          "question text and must not make an otherwise too-long summary look " +
+          "acceptable.",
         "</details>",
       ].join("\n");
       const summary = "Visible plus extra.";

@@ -138,13 +138,15 @@ async function getAccessToken(): Promise<string | null> {
     const toBase64Url = (str: string) =>
       btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
     const header = toBase64Url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
-    const payload = toBase64Url(JSON.stringify({
-      iss: sa.clientEmail,
-      scope: "https://www.googleapis.com/auth/firebase.messaging",
-      aud: "https://oauth2.googleapis.com/token",
-      iat: now,
-      exp: now + 3600,
-    }));
+    const payload = toBase64Url(
+      JSON.stringify({
+        iss: sa.clientEmail,
+        scope: "https://www.googleapis.com/auth/firebase.messaging",
+        aud: "https://oauth2.googleapis.com/token",
+        iat: now,
+        exp: now + 3600,
+      }),
+    );
     const unsignedToken = `${header}.${payload}`;
 
     const keyData = sa.privateKey
@@ -165,9 +167,7 @@ async function getAccessToken(): Promise<string | null> {
       cryptoKey,
       new TextEncoder().encode(unsignedToken),
     );
-    const sig = toBase64Url(
-      String.fromCharCode(...new Uint8Array(signature)),
-    );
+    const sig = toBase64Url(String.fromCharCode(...new Uint8Array(signature)));
 
     const jwt = `${unsignedToken}.${sig}`;
     const resp = await fetch("https://oauth2.googleapis.com/token", {
@@ -188,13 +188,13 @@ async function getAccessToken(): Promise<string | null> {
       return null;
     }
 
-    const data = await resp.json() as {
+    const data = (await resp.json()) as {
       access_token: string;
       expires_in: number;
     };
     cachedAccessToken = {
       token: data.access_token,
-      expires: Date.now() + (data.expires_in * 1000),
+      expires: Date.now() + data.expires_in * 1000,
     };
     return cachedAccessToken.token;
   } catch (error) {
@@ -274,21 +274,25 @@ export async function sendFcmNotification(
     const accessToken = await getAccessToken();
     if (accessToken == null) return;
 
-    const tokens = (await db.select({
-      token: pushNotificationTargetTable.token,
-    })
-      .from(pushNotificationTargetTable)
-      .where(
-        and(
-          eq(pushNotificationTargetTable.accountId, options.accountId),
-          eq(pushNotificationTargetTable.service, "fcm"),
-        ),
-      )).filter(pushTargetHasToken);
+    const tokens = (
+      await db
+        .select({
+          token: pushNotificationTargetTable.token,
+        })
+        .from(pushNotificationTargetTable)
+        .where(
+          and(
+            eq(pushNotificationTargetTable.accountId, options.accountId),
+            eq(pushNotificationTargetTable.service, "fcm"),
+          ),
+        )
+    ).filter(pushTargetHasToken);
     if (tokens.length < 1) return;
 
-    const emojiText = typeof options.emoji === "string"
-      ? options.emoji
-      : options.emoji?.name ?? null;
+    const emojiText =
+      typeof options.emoji === "string"
+        ? options.emoji
+        : (options.emoji?.name ?? null);
 
     const staleTokens = new Set<string>();
 
@@ -300,7 +304,7 @@ export async function sendFcmNotification(
             {
               method: "POST",
               headers: {
-                "Authorization": `Bearer ${accessToken}`,
+                Authorization: `Bearer ${accessToken}`,
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
@@ -320,14 +324,14 @@ export async function sendFcmNotification(
           );
 
           if (!resp.ok) {
-            const body = await resp.json().catch(() => ({})) as {
+            const body = (await resp.json().catch(() => ({}))) as {
               error?: {
                 status?: string;
                 details?: Array<{ errorCode?: string }>;
               };
             };
-            const errorCode = body.error?.details?.[0]?.errorCode ??
-              body.error?.status;
+            const errorCode =
+              body.error?.details?.[0]?.errorCode ?? body.error?.status;
             logger.warn(
               "FCM send failed for account {accountId}, token suffix {deviceTokenSuffix}: {status} {errorCode}",
               {
@@ -355,19 +359,13 @@ export async function sendFcmNotification(
     );
 
     if (staleTokens.size < 1) return;
-    await deleteStalePushNotificationTargets(
-      db,
-      options.accountId,
-      "fcm",
-      [...staleTokens],
-    );
+    await deleteStalePushNotificationTargets(db, options.accountId, "fcm", [
+      ...staleTokens,
+    ]);
   } catch (error) {
-    logger.error(
-      "Unexpected FCM error for account {accountId}: {error}",
-      {
-        accountId: options.accountId,
-        error,
-      },
-    );
+    logger.error("Unexpected FCM error for account {accountId}: {error}", {
+      accountId: options.accountId,
+      error,
+    });
   }
 }

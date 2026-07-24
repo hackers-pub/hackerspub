@@ -35,7 +35,9 @@ test("createMediumFromBytes() stores webp media once by content hash", async () 
         channels: 4,
         background: { r: 255, g: 0, b: 0, alpha: 1 },
       },
-    }).png().toBuffer();
+    })
+      .png()
+      .toBuffer();
 
     const first = await createMediumFromBytes(tx, disk as never, input, {
       contentType: "image/png",
@@ -100,24 +102,27 @@ test("createMediumFromUrl() rejects redirects to unsafe network targets", async 
         return Promise.resolve();
       },
     };
-    await withMockFetch((_input) => {
-      return Promise.resolve(
-        new Response(null, {
-          status: 302,
-          headers: { Location: "http://127.0.0.1/image.png" },
-        }),
-      );
-    }, async () => {
-      await assert.rejects(
-        () =>
-          createMediumFromUrl(
-            tx,
-            disk as never,
-            new URL("https://example.com/image.png"),
-          ),
-        UnsafeMediumUrlError,
-      );
-    });
+    await withMockFetch(
+      (_input) => {
+        return Promise.resolve(
+          new Response(null, {
+            status: 302,
+            headers: { Location: "http://127.0.0.1/image.png" },
+          }),
+        );
+      },
+      async () => {
+        await assert.rejects(
+          () =>
+            createMediumFromUrl(
+              tx,
+              disk as never,
+              new URL("https://example.com/image.png"),
+            ),
+          UnsafeMediumUrlError,
+        );
+      },
+    );
   });
 });
 
@@ -127,30 +132,33 @@ test("createMediumFromUrl() stops reading remote bodies over the size limit", as
       throw new Error("oversized media should not be stored");
     },
   };
-  await withMockFetch((_input) => {
-    const body = new ReadableStream<Uint8Array>({
-      start(controller) {
-        controller.enqueue(new Uint8Array([1, 2, 3, 4]));
-        controller.enqueue(new Uint8Array([5]));
-        controller.close();
-      },
-    });
-    return Promise.resolve(
-      new Response(body, {
-        status: 200,
-        headers: { "Content-Type": "image/png" },
-      }),
-    );
-  }, async () => {
-    const medium = await createMediumFromUrl(
-      undefined as never,
-      disk as never,
-      new URL("https://example.com/image.png"),
-      { maxSize: 4 },
-    );
+  await withMockFetch(
+    (_input) => {
+      const body = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(new Uint8Array([1, 2, 3, 4]));
+          controller.enqueue(new Uint8Array([5]));
+          controller.close();
+        },
+      });
+      return Promise.resolve(
+        new Response(body, {
+          status: 200,
+          headers: { "Content-Type": "image/png" },
+        }),
+      );
+    },
+    async () => {
+      const medium = await createMediumFromUrl(
+        undefined as never,
+        disk as never,
+        new URL("https://example.com/image.png"),
+        { maxSize: 4 },
+      );
 
-    assert.equal(medium, undefined);
-  });
+      assert.equal(medium, undefined);
+    },
+  );
 });
 
 test("persistPostMedium() stores image attachments and infers media type from content-type", async () => {
@@ -166,32 +174,35 @@ test("persistPostMedium() stores image attachments and infers media type from co
       content: "Post with media",
     });
 
-    await withMockFetch(async () => {
-      return new Response(new Uint8Array([1, 2, 3]), {
-        status: 200,
-        headers: { "Content-Type": "image/png" },
-      });
-    }, async () => {
-      const medium = await persistPostMedium(
-        fedCtx,
-        new vocab.Image({
-          url: new URL("https://remote.example/media/no-extension"),
-          name: "Alt text",
-          width: 640,
-          height: 480,
-        }),
-        post.id,
-        0,
-      );
+    await withMockFetch(
+      async () => {
+        return new Response(new Uint8Array([1, 2, 3]), {
+          status: 200,
+          headers: { "Content-Type": "image/png" },
+        });
+      },
+      async () => {
+        const medium = await persistPostMedium(
+          fedCtx,
+          new vocab.Image({
+            url: new URL("https://remote.example/media/no-extension"),
+            name: "Alt text",
+            width: 640,
+            height: 480,
+          }),
+          post.id,
+          0,
+        );
 
-      assert.ok(medium != null);
-      assert.equal(medium.postId, post.id);
-      assert.equal(medium.index, 0);
-      assert.equal(medium.type, "image/png");
-      assert.equal(medium.alt, "Alt text");
-      assert.equal(medium.width, 640);
-      assert.equal(medium.height, 480);
-    });
+        assert.ok(medium != null);
+        assert.equal(medium.postId, post.id);
+        assert.equal(medium.index, 0);
+        assert.equal(medium.type, "image/png");
+        assert.equal(medium.alt, "Alt text");
+        assert.equal(medium.width, 640);
+        assert.equal(medium.height, 480);
+      },
+    );
   });
 });
 
@@ -208,48 +219,51 @@ test("persistPostMedium() updates an existing attachment index", async () => {
       content: "Post with updated media",
     });
 
-    await withMockFetch(async () => {
-      return new Response(new Uint8Array([1, 2, 3]), {
-        status: 200,
-        headers: { "Content-Type": "image/png" },
-      });
-    }, async () => {
-      await persistPostMedium(
-        fedCtx,
-        new vocab.Image({
-          url: new URL("https://remote.example/media/original.png"),
-          name: "Original alt",
-          width: 640,
-          height: 480,
-        }),
-        post.id,
-        0,
-      );
-      const updated = await persistPostMedium(
-        fedCtx,
-        new vocab.Image({
-          url: new URL("https://remote.example/media/updated.png"),
-          name: "Updated alt",
-          width: 800,
-          height: 600,
-        }),
-        post.id,
-        0,
-      );
+    await withMockFetch(
+      async () => {
+        return new Response(new Uint8Array([1, 2, 3]), {
+          status: 200,
+          headers: { "Content-Type": "image/png" },
+        });
+      },
+      async () => {
+        await persistPostMedium(
+          fedCtx,
+          new vocab.Image({
+            url: new URL("https://remote.example/media/original.png"),
+            name: "Original alt",
+            width: 640,
+            height: 480,
+          }),
+          post.id,
+          0,
+        );
+        const updated = await persistPostMedium(
+          fedCtx,
+          new vocab.Image({
+            url: new URL("https://remote.example/media/updated.png"),
+            name: "Updated alt",
+            width: 800,
+            height: 600,
+          }),
+          post.id,
+          0,
+        );
 
-      assert.ok(updated != null);
-      assert.equal(updated.postId, post.id);
-      assert.equal(updated.index, 0);
-      assert.equal(updated.url, "https://remote.example/media/updated.png");
-      assert.equal(updated.alt, "Updated alt");
-      assert.equal(updated.width, 800);
-      assert.equal(updated.height, 600);
+        assert.ok(updated != null);
+        assert.equal(updated.postId, post.id);
+        assert.equal(updated.index, 0);
+        assert.equal(updated.url, "https://remote.example/media/updated.png");
+        assert.equal(updated.alt, "Updated alt");
+        assert.equal(updated.width, 800);
+        assert.equal(updated.height, 600);
 
-      const media = await tx.query.postMediumTable.findMany({
-        where: { postId: post.id },
-      });
-      assert.equal(media.length, 1);
-    });
+        const media = await tx.query.postMediumTable.findMany({
+          where: { postId: post.id },
+        });
+        assert.equal(media.length, 1);
+      },
+    );
   });
 });
 
@@ -266,24 +280,27 @@ test("persistPostMedium() ignores failed remote video responses", async () => {
       content: "Post with failed video",
     });
 
-    await withMockFetch(async () => {
-      return new Response("<!doctype html><title>Blocked</title>", {
-        status: 403,
-        headers: { "Content-Type": "text/html; charset=UTF-8" },
-      });
-    }, async () => {
-      const medium = await persistPostMedium(
-        fedCtx,
-        new vocab.Video({
-          url: new URL("https://remote.example/media/blocked.mp4"),
-          mediaType: "video/mp4",
-        }),
-        post.id,
-        0,
-      );
+    await withMockFetch(
+      async () => {
+        return new Response("<!doctype html><title>Blocked</title>", {
+          status: 403,
+          headers: { "Content-Type": "text/html; charset=UTF-8" },
+        });
+      },
+      async () => {
+        const medium = await persistPostMedium(
+          fedCtx,
+          new vocab.Video({
+            url: new URL("https://remote.example/media/blocked.mp4"),
+            mediaType: "video/mp4",
+          }),
+          post.id,
+          0,
+        );
 
-      assert.equal(medium, undefined);
-    });
+        assert.equal(medium, undefined);
+      },
+    );
   });
 });
 
@@ -300,21 +317,24 @@ test("persistPostMedium() ignores remote transport failures", async () => {
       content: "Post with unreachable media",
     });
 
-    await withMockFetch(async () => {
-      throw new TypeError("DNS lookup failed");
-    }, async () => {
-      const medium = await persistPostMedium(
-        fedCtx,
-        new vocab.Image({
-          url: new URL("https://unreachable.example/media/image.png"),
-          mediaType: "image/png",
-        }),
-        post.id,
-        0,
-      );
+    await withMockFetch(
+      async () => {
+        throw new TypeError("DNS lookup failed");
+      },
+      async () => {
+        const medium = await persistPostMedium(
+          fedCtx,
+          new vocab.Image({
+            url: new URL("https://unreachable.example/media/image.png"),
+            mediaType: "image/png",
+          }),
+          post.id,
+          0,
+        );
 
-      assert.equal(medium, undefined);
-    });
+        assert.equal(medium, undefined);
+      },
+    );
   });
 });
 
@@ -331,24 +351,27 @@ test("persistPostMedium() ignores non-media remote video responses", async () =>
       content: "Post with HTML video response",
     });
 
-    await withMockFetch(async () => {
-      return new Response("<!doctype html><title>Not a video</title>", {
-        status: 200,
-        headers: { "Content-Type": "text/html; charset=UTF-8" },
-      });
-    }, async () => {
-      const medium = await persistPostMedium(
-        fedCtx,
-        new vocab.Video({
-          url: new URL("https://remote.example/media/not-video.mp4"),
-          mediaType: "video/mp4",
-        }),
-        post.id,
-        0,
-      );
+    await withMockFetch(
+      async () => {
+        return new Response("<!doctype html><title>Not a video</title>", {
+          status: 200,
+          headers: { "Content-Type": "text/html; charset=UTF-8" },
+        });
+      },
+      async () => {
+        const medium = await persistPostMedium(
+          fedCtx,
+          new vocab.Video({
+            url: new URL("https://remote.example/media/not-video.mp4"),
+            mediaType: "video/mp4",
+          }),
+          post.id,
+          0,
+        );
 
-      assert.equal(medium, undefined);
-    });
+        assert.equal(medium, undefined);
+      },
+    );
   });
 });
 

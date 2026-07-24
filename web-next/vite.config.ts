@@ -14,7 +14,7 @@ import packageJson from "./package.json" with { type: "json" };
 
 try {
   process.loadEnvFile(resolve(process.cwd(), "../.env"));
-} catch (e) {
+} catch {
   console.warn("No .env file found.");
 }
 
@@ -27,18 +27,18 @@ try {
 const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN;
 const sentryPlugins = sentryAuthToken
   ? [
-    sentryVitePlugin({
-      org: process.env.SENTRY_ORG ?? "hackerspub",
-      project: process.env.SENTRY_PROJECT ?? "web-next",
-      authToken: sentryAuthToken,
-      // Tag the uploaded source maps with the same release identifier the
-      // SDK reports at runtime (entry-client.tsx and instrument.server.mjs
-      // both pass packageJson.version). The Dockerfile bumps version to
-      // `0.2.0+<git_commit>` *before* the web-next build, so Sentry sees
-      // a unique release per deployed commit.
-      release: { name: packageJson.version },
-    }),
-  ]
+      sentryVitePlugin({
+        org: process.env.SENTRY_ORG ?? "hackerspub",
+        project: process.env.SENTRY_PROJECT ?? "web-next",
+        authToken: sentryAuthToken,
+        // Tag the uploaded source maps with the same release identifier the
+        // SDK reports at runtime (entry-client.tsx and instrument.server.mjs
+        // both pass packageJson.version). The Dockerfile bumps version to
+        // `0.2.0+<git_commit>` *before* the web-next build, so Sentry sees
+        // a unique release per deployed commit.
+        release: { name: packageJson.version },
+      }),
+    ]
   : [];
 
 export default defineConfig(() => ({

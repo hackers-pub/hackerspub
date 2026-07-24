@@ -1,4 +1,5 @@
 import assert from "node:assert";
+import process from "node:process";
 import test from "node:test";
 import { clearWebPushEnvConfigCacheForTesting } from "@hackerspub/models/webpush";
 import { execute, parse } from "graphql";
@@ -133,15 +134,15 @@ const unregisterFcmAliasMutation = parse(`
 
 test("webPushVapidPublicKey returns configured public key or null", async () => {
   const originals = {
-    publicKey: Deno.env.get("WEB_PUSH_VAPID_PUBLIC_KEY"),
-    privateKey: Deno.env.get("WEB_PUSH_VAPID_PRIVATE_KEY"),
-    subject: Deno.env.get("WEB_PUSH_VAPID_SUBJECT"),
+    publicKey: process.env.WEB_PUSH_VAPID_PUBLIC_KEY,
+    privateKey: process.env.WEB_PUSH_VAPID_PRIVATE_KEY,
+    subject: process.env.WEB_PUSH_VAPID_SUBJECT,
   };
   try {
     await withRollback(async (tx) => {
-      Deno.env.delete("WEB_PUSH_VAPID_PUBLIC_KEY");
-      Deno.env.delete("WEB_PUSH_VAPID_PRIVATE_KEY");
-      Deno.env.delete("WEB_PUSH_VAPID_SUBJECT");
+      delete process.env.WEB_PUSH_VAPID_PUBLIC_KEY;
+      delete process.env.WEB_PUSH_VAPID_PRIVATE_KEY;
+      delete process.env.WEB_PUSH_VAPID_SUBJECT;
       clearWebPushEnvConfigCacheForTesting();
       const missingResult = await execute({
         schema,
@@ -153,9 +154,9 @@ test("webPushVapidPublicKey returns configured public key or null", async () => 
         webPushVapidPublicKey: null,
       });
 
-      Deno.env.set("WEB_PUSH_VAPID_PUBLIC_KEY", " test-vapid-key ");
-      Deno.env.set("WEB_PUSH_VAPID_PRIVATE_KEY", " test-vapid-private-key ");
-      Deno.env.set("WEB_PUSH_VAPID_SUBJECT", " mailto:test@example.com ");
+      process.env.WEB_PUSH_VAPID_PUBLIC_KEY = " test-vapid-key ";
+      process.env.WEB_PUSH_VAPID_PRIVATE_KEY = " test-vapid-private-key ";
+      process.env.WEB_PUSH_VAPID_SUBJECT = " mailto:test@example.com ";
       clearWebPushEnvConfigCacheForTesting();
       const configuredResult = await execute({
         schema,
@@ -169,19 +170,19 @@ test("webPushVapidPublicKey returns configured public key or null", async () => 
     });
   } finally {
     if (originals.publicKey == null) {
-      Deno.env.delete("WEB_PUSH_VAPID_PUBLIC_KEY");
+      delete process.env.WEB_PUSH_VAPID_PUBLIC_KEY;
     } else {
-      Deno.env.set("WEB_PUSH_VAPID_PUBLIC_KEY", originals.publicKey);
+      process.env.WEB_PUSH_VAPID_PUBLIC_KEY = originals.publicKey;
     }
     if (originals.privateKey == null) {
-      Deno.env.delete("WEB_PUSH_VAPID_PRIVATE_KEY");
+      delete process.env.WEB_PUSH_VAPID_PRIVATE_KEY;
     } else {
-      Deno.env.set("WEB_PUSH_VAPID_PRIVATE_KEY", originals.privateKey);
+      process.env.WEB_PUSH_VAPID_PRIVATE_KEY = originals.privateKey;
     }
     if (originals.subject == null) {
-      Deno.env.delete("WEB_PUSH_VAPID_SUBJECT");
+      delete process.env.WEB_PUSH_VAPID_SUBJECT;
     } else {
-      Deno.env.set("WEB_PUSH_VAPID_SUBJECT", originals.subject);
+      process.env.WEB_PUSH_VAPID_SUBJECT = originals.subject;
     }
     clearWebPushEnvConfigCacheForTesting();
   }
@@ -226,46 +227,62 @@ test("registerPushNotificationTarget rejects unsafe Web Push subscriptions", asy
       email: "graphqlpushwebinvalid@example.com",
     });
 
-    for (
-      const [input, inputPath] of [
-        [{
+    for (const [input, inputPath] of [
+      [
+        {
           service: "WEB_PUSH",
           endpoint: "https://127.0.0.1/push",
           p256dh: validWebPushP256dh,
           auth: validWebPushAuth,
-        }, "endpoint"],
-        [{
+        },
+        "endpoint",
+      ],
+      [
+        {
           service: "WEB_PUSH",
           endpoint: "https://[::ffff:169.254.169.254]/push",
           p256dh: validWebPushP256dh,
           auth: validWebPushAuth,
-        }, "endpoint"],
-        [{
+        },
+        "endpoint",
+      ],
+      [
+        {
           service: "WEB_PUSH",
           endpoint: "https://push.example/endpoint",
           p256dh: "@@",
           auth: validWebPushAuth,
-        }, "p256dh"],
-        [{
+        },
+        "p256dh",
+      ],
+      [
+        {
           service: "WEB_PUSH",
           endpoint: "https://push.example/endpoint",
           p256dh: "dG9vLXNob3J0",
           auth: validWebPushAuth,
-        }, "p256dh"],
-        [{
+        },
+        "p256dh",
+      ],
+      [
+        {
           service: "WEB_PUSH",
           endpoint: "https://push.example/endpoint",
           p256dh: validWebPushP256dh,
           auth: "@@",
-        }, "auth"],
-        [{
+        },
+        "auth",
+      ],
+      [
+        {
           service: "WEB_PUSH",
           endpoint: "https://push.example/endpoint",
           p256dh: validWebPushP256dh,
           auth: "dG9vLXNob3J0",
-        }, "auth"],
-      ] as const
-    ) {
+        },
+        "auth",
+      ],
+    ] as const) {
       const result = await execute({
         schema,
         document: registerMutation,
@@ -293,13 +310,11 @@ test("unregisterPushNotificationTarget rejects malformed identifiers", async () 
       email: "graphqlpushunregisterinvalid@example.com",
     });
 
-    for (
-      const [input, inputPath] of [
-        [{ service: "APNS", token: "invalid-token" }, "token"],
-        [{ service: "FCM", token: "  " }, "token"],
-        [{ service: "WEB_PUSH", endpoint: "  " }, "endpoint"],
-      ] as const
-    ) {
+    for (const [input, inputPath] of [
+      [{ service: "APNS", token: "invalid-token" }, "token"],
+      [{ service: "FCM", token: "  " }, "token"],
+      [{ service: "WEB_PUSH", endpoint: "  " }, "endpoint"],
+    ] as const) {
       const result = await execute({
         schema,
         document: unregisterMutation,

@@ -35,12 +35,15 @@ test("mute() creates a muting row and is idempotent", async () => {
     assert.ok(again != null);
     assert.deepEqual(again.id, created.id);
 
-    const rows = await tx.select().from(mutingTable).where(
-      and(
-        eq(mutingTable.muterId, muter.actor.id),
-        eq(mutingTable.muteeId, mutee.actor.id),
-      ),
-    );
+    const rows = await tx
+      .select()
+      .from(mutingTable)
+      .where(
+        and(
+          eq(mutingTable.muterId, muter.actor.id),
+          eq(mutingTable.muteeId, mutee.actor.id),
+        ),
+      );
     assert.deepEqual(rows.length, 1);
   });
 });
@@ -62,12 +65,15 @@ test("unmute() deletes the muting row", async () => {
     const removed = await unmute(tx, muter.account, mutee.actor);
     assert.ok(removed != null);
 
-    const remaining = await tx.select().from(mutingTable).where(
-      and(
-        eq(mutingTable.muterId, muter.actor.id),
-        eq(mutingTable.muteeId, mutee.actor.id),
-      ),
-    );
+    const remaining = await tx
+      .select()
+      .from(mutingTable)
+      .where(
+        and(
+          eq(mutingTable.muterId, muter.actor.id),
+          eq(mutingTable.muteeId, mutee.actor.id),
+        ),
+      );
     assert.deepEqual(remaining, []);
   });
 });

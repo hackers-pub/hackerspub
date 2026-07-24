@@ -7,7 +7,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "~/components/ui/avatar.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { cn } from "~/lib/utils.ts";
 import type { LinkCreatorAttribution_creator$key } from "./__generated__/LinkCreatorAttribution_creator.graphql.ts";
 
@@ -35,9 +35,11 @@ export function LinkCreatorAttribution(props: LinkCreatorAttributionProps) {
     () => props.$creator,
   );
 
-  const internalHref = (
-    c: { local: boolean; username: string; handle: string },
-  ) => c.local ? `/@${c.username}` : `/${c.handle}`;
+  const internalHref = (c: {
+    local: boolean;
+    username: string;
+    handle: string;
+  }) => (c.local ? `/@${c.username}` : `/${c.handle}`);
 
   return (
     <Show keyed when={creator()}>
@@ -49,9 +51,7 @@ export function LinkCreatorAttribution(props: LinkCreatorAttributionProps) {
           <Avatar class="size-6 shrink-0">
             <InternalLink href={c.url ?? c.iri} internalHref={internalHref(c)}>
               <AvatarImage src={c.avatarUrl} class="size-6" />
-              <AvatarFallback class="size-6">
-                {c.avatarInitials}
-              </AvatarFallback>
+              <AvatarFallback class="size-6">{c.avatarInitials}</AvatarFallback>
             </InternalLink>
           </Avatar>
           <div class="min-w-0 break-words">
@@ -61,12 +61,9 @@ export function LinkCreatorAttribution(props: LinkCreatorAttributionProps) {
                 internalHref={internalHref(c)}
                 innerHTML={c.name ?? ""}
                 class="font-semibold hover:underline"
-              />
-              {" "}
+              />{" "}
             </Show>
-            <span class="select-all text-muted-foreground">
-              {c.handle}
-            </span>
+            <span class="select-all text-muted-foreground">{c.handle}</span>
           </div>
         </div>
       )}

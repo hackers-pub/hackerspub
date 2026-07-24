@@ -364,7 +364,8 @@ test("createOrganization creates an Organization account and admin membership", 
       name: "GraphQL Org Creator",
       email: "graphqlorgcreator@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, creator.account.id));
 
@@ -423,7 +424,8 @@ test("createOrganization validates organization profile fields", async () => {
       name: "GraphQL Org Profile Creator",
       email: "graphqlorgprofilecreator@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, creator.account.id));
 
@@ -472,7 +474,8 @@ test("viewer exposes organization memberships and notification badge state", asy
       name: "GraphQL Badge Other Actor",
       email: "graphqlbadgeotheractor@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, admin.account.id));
     const organization = await createOrganization(
@@ -515,17 +518,19 @@ test("viewer exposes organization memberships and notification badge state", asy
     assert.deepEqual(toPlainJson(result.data), {
       viewer: {
         kind: "PERSONAL",
-        organizationMemberships: [{
-          role: "ADMIN",
-          organization: {
-            username: "graphqlbadgeorg",
-            kind: "ORGANIZATION",
+        organizationMemberships: [
+          {
+            role: "ADMIN",
+            organization: {
+              username: "graphqlbadgeorg",
+              kind: "ORGANIZATION",
+            },
+            notificationBadge: {
+              color: "RED",
+              count: 1,
+            },
           },
-          notificationBadge: {
-            color: "RED",
-            count: 1,
-          },
-        }],
+        ],
       },
     });
   });
@@ -543,7 +548,8 @@ test("pending organization invitations expose no notification badge", async () =
       name: "GraphQL Invite Member",
       email: "graphqlinvitemember@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, admin.account.id));
     const organization = await createOrganization(
@@ -590,19 +596,22 @@ test("pending organization invitations expose no notification badge", async () =
     assert.equal(invitations.errors, undefined);
     assert.deepEqual(toPlainJson(invitations.data), {
       viewer: {
-        organizationInvitations: [{
-          role: "MEMBER",
-          accepted: null,
-          organization: {
-            username: "graphqlinviteorg",
-            kind: "ORGANIZATION",
+        organizationInvitations: [
+          {
+            role: "MEMBER",
+            accepted: null,
+            organization: {
+              username: "graphqlinviteorg",
+              kind: "ORGANIZATION",
+            },
+            member: { username: "graphqlinvitemember" },
           },
-          member: { username: "graphqlinvitemember" },
-        }],
+        ],
       },
     });
 
-    await tx.delete(notificationTable)
+    await tx
+      .delete(notificationTable)
       .where(eq(notificationTable.accountId, member.account.id));
     const notifications = await execute({
       schema,
@@ -640,7 +649,8 @@ test("organization admins can update roles and remove members", async () => {
       name: "GraphQL Manage Removed",
       email: "graphqlmanageremoved@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, admin.account.id));
     const organization = await createOrganization(
@@ -740,7 +750,8 @@ test("organization members include and can cancel pending invitations", async ()
       name: "GraphQL Pending Member",
       email: "graphqlpendingmember@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, admin.account.id));
     const organization = await createOrganization(
@@ -782,8 +793,9 @@ test("organization members include and can cancel pending invitations", async ()
         }[];
       };
     };
-    const members = membersData.accountByUsername.organizationMembers
-      .toSorted((a, b) => a.member.username.localeCompare(b.member.username));
+    const members = membersData.accountByUsername.organizationMembers.toSorted(
+      (a, b) => a.member.username.localeCompare(b.member.username),
+    );
     assert.equal(members.length, 2);
     assert.equal(members[0].member.username, "graphqlpendingadmin");
     assert.equal(members[0].role, "ADMIN");
@@ -844,7 +856,8 @@ test("organizationMembers exposes notification badges only for the requesting me
       name: "GraphQL Badge Actor",
       email: "graphqlbadgeactor@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, admin.account.id));
     const organization = await createOrganization(
@@ -880,15 +893,17 @@ test("organizationMembers exposes notification badges only for the requesting me
     });
 
     assert.equal(result.errors, undefined);
-    const memberships = (toPlainJson(result.data) as {
-      accountByUsername: {
-        organizationMembers: {
-          member: { username: string };
-          notificationBadge: { color: string; count: number } | null;
-        }[];
-      };
-    }).accountByUsername.organizationMembers.toSorted((a, b) =>
-      a.member.username.localeCompare(b.member.username)
+    const memberships = (
+      toPlainJson(result.data) as {
+        accountByUsername: {
+          organizationMembers: {
+            member: { username: string };
+            notificationBadge: { color: string; count: number } | null;
+          }[];
+        };
+      }
+    ).accountByUsername.organizationMembers.toSorted((a, b) =>
+      a.member.username.localeCompare(b.member.username),
     );
     assert.deepEqual(memberships, [
       {
@@ -920,7 +935,8 @@ test("organization admins cannot remove the last accepted admin", async () => {
       name: "GraphQL Last Pending",
       email: "graphqllastpending@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, admin.account.id));
     const organization = await createOrganization(
@@ -993,7 +1009,8 @@ test("requestOrganizationConversion rejects accounts that belong to an organizat
       name: "GraphQL Convert Accepter",
       email: "graphqlconvertaccepter@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, orgAdmin.account.id));
     const organization = await createOrganization(
@@ -1152,12 +1169,15 @@ test("organization conversion request and acceptance turn a personal account int
       },
     });
 
-    const memberships = await tx.select()
+    const memberships = await tx
+      .select()
       .from(organizationMembershipTable)
-      .where(eq(
-        organizationMembershipTable.organizationAccountId,
-        account.account.id,
-      ));
+      .where(
+        eq(
+          organizationMembershipTable.organizationAccountId,
+          account.account.id,
+        ),
+      );
     assert.equal(memberships.length, 1);
     assert.equal(memberships[0].memberAccountId, admin.account.id);
   });
@@ -1175,7 +1195,8 @@ test("markOrganizationNotificationsAsRead clamps future read markers", async () 
       name: "GraphQL Mark Actor",
       email: "graphqlmarkactor@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, admin.account.id));
     const organization = await createOrganization(
@@ -1219,70 +1240,69 @@ test("markOrganizationNotificationsAsRead clamps future read markers", async () 
   });
 });
 
-test(
-  "markOrganizationNotificationsAsRead preserves database timestamp precision",
-  async () => {
-    await withRollback(async (tx) => {
-      const admin = await insertAccountWithActor(tx, {
-        username: "graphqlorgprecisionadmin",
-        name: "GraphQL Org Precision Admin",
-        email: "graphqlorgprecisionadmin@example.com",
-      });
-      const actor = await insertAccountWithActor(tx, {
-        username: "graphqlorgprecisionactor",
-        name: "GraphQL Org Precision Actor",
-        email: "graphqlorgprecisionactor@example.com",
-      });
-      await tx.update(accountTable)
-        .set({ leftInvitations: 1 })
-        .where(eq(accountTable.id, admin.account.id));
-      const organization = await createOrganization(
-        createFedCtx(tx),
-        admin.account,
-        {
-          username: "graphqlorgprecision",
-          name: "GraphQL Org Precision",
-          bio: "",
-        },
-      );
-      const notificationId = generateUuidV7();
-      await tx.insert(notificationTable).values({
-        id: notificationId,
-        accountId: organization.id,
-        type: "follow",
-        actorIds: [actor.actor.id],
-        created: new Date("2026-04-15T00:00:00.000Z"),
-      });
-      await tx.update(notificationTable)
-        .set({
-          created: sql`'2026-04-15T00:00:00.123456Z'::timestamptz`,
-        })
-        .where(eq(notificationTable.id, notificationId));
-
-      const result = await execute({
-        schema,
-        document: markOrganizationNotificationsAsReadMutation,
-        variableValues: {
-          organizationId: encodeGlobalID("Account", organization.id),
-          upTo: notificationId,
-        },
-        contextValue: makeUserContext(tx, admin.account),
-        onError: "NO_PROPAGATE",
-      });
-
-      assert.equal(result.errors, undefined);
-      assert.deepEqual(toPlainJson(result.data), {
-        markOrganizationNotificationsAsRead: {
-          __typename: "MarkOrganizationNotificationsAsReadPayload",
-          badge: {
-            color: null,
-            count: 0,
-          },
-        },
-      });
+test("markOrganizationNotificationsAsRead preserves database timestamp precision", async () => {
+  await withRollback(async (tx) => {
+    const admin = await insertAccountWithActor(tx, {
+      username: "graphqlorgprecisionadmin",
+      name: "GraphQL Org Precision Admin",
+      email: "graphqlorgprecisionadmin@example.com",
     });
-  },
-);
+    const actor = await insertAccountWithActor(tx, {
+      username: "graphqlorgprecisionactor",
+      name: "GraphQL Org Precision Actor",
+      email: "graphqlorgprecisionactor@example.com",
+    });
+    await tx
+      .update(accountTable)
+      .set({ leftInvitations: 1 })
+      .where(eq(accountTable.id, admin.account.id));
+    const organization = await createOrganization(
+      createFedCtx(tx),
+      admin.account,
+      {
+        username: "graphqlorgprecision",
+        name: "GraphQL Org Precision",
+        bio: "",
+      },
+    );
+    const notificationId = generateUuidV7();
+    await tx.insert(notificationTable).values({
+      id: notificationId,
+      accountId: organization.id,
+      type: "follow",
+      actorIds: [actor.actor.id],
+      created: new Date("2026-04-15T00:00:00.000Z"),
+    });
+    await tx
+      .update(notificationTable)
+      .set({
+        created: sql`'2026-04-15T00:00:00.123456Z'::timestamptz`,
+      })
+      .where(eq(notificationTable.id, notificationId));
+
+    const result = await execute({
+      schema,
+      document: markOrganizationNotificationsAsReadMutation,
+      variableValues: {
+        organizationId: encodeGlobalID("Account", organization.id),
+        upTo: notificationId,
+      },
+      contextValue: makeUserContext(tx, admin.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      markOrganizationNotificationsAsRead: {
+        __typename: "MarkOrganizationNotificationsAsReadPayload",
+        badge: {
+          color: null,
+          count: 0,
+        },
+      },
+    });
+  });
+});
 
 test("markOrganizationNotificationsAsRead returns typed errors for stale markers", async () => {
   await withRollback(async (tx) => {
@@ -1291,7 +1311,8 @@ test("markOrganizationNotificationsAsRead returns typed errors for stale markers
       name: "GraphQL Org Stale Admin",
       email: "graphqlorgstaleadmin@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, admin.account.id));
     const organization = await createOrganization(
@@ -1337,7 +1358,8 @@ test("organization members can read organization notifications", async () => {
       name: "GraphQL Org Notice Actor",
       email: "graphqlorgnoticeactor@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, admin.account.id));
     const organization = await createOrganization(

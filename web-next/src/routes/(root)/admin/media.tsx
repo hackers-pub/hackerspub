@@ -16,7 +16,7 @@ import {
   CardTitle,
 } from "~/components/ui/card.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
-import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
+import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
 import type { mediaDeleteOrphanMediaMutation } from "./__generated__/mediaDeleteOrphanMediaMutation.graphql.ts";
 import type { mediaPageQuery } from "./__generated__/mediaPageQuery.graphql.ts";
 import {
@@ -72,9 +72,8 @@ const mediaDeleteOrphanMediaMutation = graphql`
 export default function AdminMediaPage() {
   const { i18n, t } = useLingui();
   const navigate = useNavigate();
-  const data = createStablePreloadedQuery<mediaPageQuery>(
-    mediaPageQuery,
-    () => loadAdminMediaPageQuery(),
+  const data = createStablePreloadedQuery<mediaPageQuery>(mediaPageQuery, () =>
+    loadAdminMediaPageQuery(),
   );
   const [deleteOrphans] = createMutation<mediaDeleteOrphanMediaMutation>(
     mediaDeleteOrphanMediaMutation,
@@ -91,23 +90,20 @@ export default function AdminMediaPage() {
         if (result.__typename === "DeleteOrphanMediaPayload") {
           showToast({
             title: i18n._(
-              msg`${
-                plural(result.deletedCount!, {
-                  one: "Deleted # orphan medium.",
-                  other: "Deleted # orphan media.",
-                })
-              }`,
+              msg`${plural(result.deletedCount!, {
+                one: "Deleted # orphan medium.",
+                other: "Deleted # orphan media.",
+              })}`,
             ),
-            description: result.failedStorageDeletes! > 0
-              ? i18n._(
-                msg`${
-                  plural(result.failedStorageDeletes!, {
-                    one: "# disk object could not be deleted.",
-                    other: "# disk objects could not be deleted.",
-                  })
-                }`,
-              )
-              : undefined,
+            description:
+              result.failedStorageDeletes! > 0
+                ? i18n._(
+                    msg`${plural(result.failedStorageDeletes!, {
+                      one: "# disk object could not be deleted.",
+                      other: "# disk objects could not be deleted.",
+                    })}`,
+                  )
+                : undefined,
             variant: result.failedStorageDeletes! > 0 ? "error" : undefined,
           });
           void revalidate("loadAdminMediaPageQuery");
@@ -140,9 +136,13 @@ export default function AdminMediaPage() {
           <Show
             keyed
             when={data.viewer?.moderator}
-            fallback={data.viewer == null
-              ? <Navigate href="/sign?next=%2Fadmin%2Fmedia" />
-              : <Navigate href="/" />}
+            fallback={
+              data.viewer == null ? (
+                <Navigate href="/sign?next=%2Fadmin%2Fmedia" />
+              ) : (
+                <Navigate href="/" />
+              )
+            }
           >
             {(_) => {
               const status = () => data.orphanMediaStatus;
@@ -162,21 +162,17 @@ export default function AdminMediaPage() {
                     </CardHeader>
                     <CardContent class="space-y-2 text-sm">
                       <p>
-                        <span class="text-muted-foreground">
-                          {t`Cutoff:`}
-                        </span>{" "}
+                        <span class="text-muted-foreground">{t`Cutoff:`}</span>{" "}
                         <Show keyed when={status()?.cutoffDate}>
                           {(ts) => <Timestamp value={ts} />}
                         </Show>
                       </p>
                       <p>
                         {i18n._(
-                          msg`${
-                            plural(count(), {
-                              one: "# orphan medium can be deleted.",
-                              other: "# orphan media can be deleted.",
-                            })
-                          }`,
+                          msg`${plural(count(), {
+                            one: "# orphan medium can be deleted.",
+                            other: "# orphan media can be deleted.",
+                          })}`,
                         )}
                       </p>
                     </CardContent>

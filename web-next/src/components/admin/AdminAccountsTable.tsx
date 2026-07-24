@@ -35,7 +35,7 @@ import {
   TableRow,
 } from "~/components/ui/table.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { AdminAccountsTable_query$key } from "./__generated__/AdminAccountsTable_query.graphql.ts";
 
 export interface AdminAccountsTableProps {
@@ -147,16 +147,15 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
   const data = createPaginationFragment(
     graphql`
       fragment AdminAccountsTable_query on Query
-        @refetchable(queryName: "AdminAccountsTablePaginationQuery")
-        @argumentDefinitions(
-          cursor: { type: "String" }
-          count: { type: "Int", defaultValue: 100 }
-          orderBy: { type: "AdminAccountOrderBy" }
-          orderDirection: { type: "OrderDirection" }
-          kind: { type: "AccountKind" }
-          search: { type: "String" }
-        )
-      {
+      @refetchable(queryName: "AdminAccountsTablePaginationQuery")
+      @argumentDefinitions(
+        cursor: { type: "String" }
+        count: { type: "Int", defaultValue: 100 }
+        orderBy: { type: "AdminAccountOrderBy" }
+        orderDirection: { type: "OrderDirection" }
+        kind: { type: "AccountKind" }
+        search: { type: "String" }
+      ) {
         adminAccounts(
           after: $cursor
           first: $count
@@ -168,8 +167,7 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
           @connection(
             key: "AdminAccountsTable_adminAccounts"
             filters: ["orderBy", "orderDirection", "kind", "search"]
-          )
-        {
+          ) {
           totalCount
           edges {
             lastActivity
@@ -378,9 +376,7 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
                             />
                           </Avatar>
                           <span class="flex flex-col leading-tight">
-                            <span class="font-semibold">
-                              {edge.node.name}
-                            </span>
+                            <span class="font-semibold">{edge.node.name}</span>
                             <span class="text-xs text-muted-foreground">
                               {edge.node.handle}
                             </span>
@@ -392,9 +388,7 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
                           href={`/@${edge.node.username}/following`}
                           class="hover:underline"
                         >
-                          {formatNumber(
-                            edge.node.actor.followees.totalCount,
-                          )}
+                          {formatNumber(edge.node.actor.followees.totalCount)}
                         </A>
                       </TableCell>
                       <TableCell class="text-right">
@@ -402,9 +396,7 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
                           href={`/@${edge.node.username}/followers`}
                           class="hover:underline"
                         >
-                          {formatNumber(
-                            edge.node.actor.followers.totalCount,
-                          )}
+                          {formatNumber(edge.node.actor.followers.totalCount)}
                         </A>
                       </TableCell>
                       <TableCell class="text-right">
@@ -414,11 +406,9 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
                         {formatNumber(edge.node.invitationsLeft)}
                       </TableCell>
                       <TableCell>
-                        {
-                          /* `keyed`: avoid Solid's stale-accessor race
+                        {/* `keyed`: avoid Solid's stale-accessor race
                            when this Relay field flips to null inside a
-                           `batch()` update. */
-                        }
+                           `batch()` update. */}
                         <Show keyed when={edge.node.inviter}>
                           {(inviter) => (
                             <A
@@ -472,9 +462,7 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
                   disabled={data.pending || loadingState() === "loading"}
                 >
                   <Switch>
-                    <Match
-                      when={data.pending || loadingState() === "loading"}
-                    >
+                    <Match when={data.pending || loadingState() === "loading"}>
                       {t`Loading more accounts…`}
                     </Match>
                     <Match when={loadingState() === "errored"}>

@@ -6,14 +6,12 @@ import {
 import { waitUntil } from "./smoke-readiness.ts";
 
 const heartbeatPath = `/tmp/hackerspub-standalone-smoke-${Deno.pid}.health`;
-const graphqlDirectory = fileURLToPath(
-  new URL("../graphql/", import.meta.url),
-);
+const graphqlDirectory = fileURLToPath(new URL("../graphql/", import.meta.url));
 const webNextDirectory = fileURLToPath(
   new URL("../web-next/", import.meta.url),
 );
-const standaloneKvUrl = Deno.env.get("STANDALONE_SMOKE_KV_URL") ??
-  "redis://127.0.0.1:6379/0";
+const standaloneKvUrl =
+  Deno.env.get("STANDALONE_SMOKE_KV_URL") ?? "redis://127.0.0.1:6379/0";
 const processes: Deno.ChildProcess[] = [];
 
 function start(
@@ -96,10 +94,8 @@ try {
     },
   );
   await waitUntil("the GraphQL worker heartbeat", () =>
-    checkWorkerHeartbeat(
-      heartbeatPath,
-      WORKER_HEARTBEAT_MAX_AGE_MILLISECONDS,
-    ));
+    checkWorkerHeartbeat(heartbeatPath, WORKER_HEARTBEAT_MAX_AGE_MILLISECONDS),
+  );
 
   start(
     "node",

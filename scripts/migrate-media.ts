@@ -1,4 +1,20 @@
+import { randomUUID } from "node:crypto";
+import {
+  copyFile,
+  type FileHandle,
+  lstat,
+  mkdir,
+  open,
+  readdir,
+  rename,
+  rm,
+  stat,
+  utimes,
+} from "node:fs/promises";
+import type { Stats } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
+import process from "node:process";
+import { isMain } from "@hackerspub/runtime/main";
 
 export interface MediaMigrationResult {
   readonly copied: number;
@@ -24,34 +40,43 @@ export function resolveConfiguredMediaMigrationPaths(
   };
 }
 
-async function lstatOrUndefined(
-  path: string,
-): Promise<Deno.FileInfo | undefined> {
+async function lstatOrUndefined(path: string): Promise<Stats | undefined> {
   try {
-    return await Deno.lstat(path);
+    return await lstat(path);
   } catch (error) {
-    if (error instanceof Deno.errors.NotFound) return undefined;
+    if (error instanceof Error && "code" in error && error.code === "ENOENT") {
+      return undefined;
+    }
     throw error;
   }
 }
 
 async function removeIfPresent(path: string): Promise<void> {
   try {
-    await Deno.remove(path);
+    await rm(path);
   } catch (error) {
-    if (!(error instanceof Deno.errors.NotFound)) throw error;
+    if (
+      !(error instanceof Error && "code" in error && error.code === "ENOENT")
+    ) {
+      throw error;
+    }
   }
 }
 
-async function readChunk(
-  file: Deno.FsFile,
+export async function readChunk(
+  file: FileHandle,
   buffer: Uint8Array,
 ): Promise<number> {
   let offset = 0;
   while (offset < buffer.length) {
-    const count = await file.read(buffer.subarray(offset));
-    if (count == null || count === 0) break;
-    offset += count;
+    const { bytesRead } = await file.read(
+      buffer,
+      offset,
+      buffer.length - offset,
+      null,
+    );
+    if (bytesRead === 0) break;
+    offset += bytesRead;
   }
   return offset;
 }
@@ -61,14 +86,14 @@ async function filesEqual(
   destination: string,
 ): Promise<boolean> {
   const [sourceInfo, destinationInfo] = await Promise.all([
-    Deno.stat(source),
-    Deno.stat(destination),
+    stat(source),
+    stat(destination),
   ]);
   if (sourceInfo.size !== destinationInfo.size) return false;
 
   const [sourceFile, destinationFile] = await Promise.all([
-    Deno.open(source, { read: true }),
-    Deno.open(destination, { read: true }),
+    open(source, "r"),
+    open(destination, "r"),
   ]);
   const sourceBuffer = new Uint8Array(64 * 1024);
   const destinationBuffer = new Uint8Array(sourceBuffer.length);
@@ -85,8 +110,8 @@ async function filesEqual(
       }
     }
   } finally {
-    sourceFile.close();
-    destinationFile.close();
+    await sourceFile.close();
+    await destinationFile.close();
   }
 }
 
@@ -98,7 +123,7 @@ async function copyFileWithoutOverwrite(
 ): Promise<void> {
   const destinationInfo = await lstatOrUndefined(destination);
   if (destinationInfo != null) {
-    if (destinationInfo.isFile && await filesEqual(source, destination)) {
+    if (destinationInfo.isFile() && (await filesEqual(source, destination))) {
       result.skipped++;
       return;
     }
@@ -107,28 +132,23 @@ async function copyFileWithoutOverwrite(
     );
   }
 
-  const temporaryDestination = await Deno.makeTempFile({
-    dir: dirname(destination),
-    prefix: `.hackerspub-media-migration-${basename(destination)}-`,
-    suffix: ".tmp",
-  });
+  const temporaryDestination = join(
+    dirname(destination),
+    `.hackerspub-media-migration-${basename(
+      destination,
+    )}-${process.pid}-${randomUUID()}.tmp`,
+  );
   let installed = false;
   try {
-    await (options.copyFile ?? Deno.copyFile)(source, temporaryDestination);
-    const sourceInfo = await Deno.stat(source);
-    if (sourceInfo.atime != null && sourceInfo.mtime != null) {
-      await Deno.utime(
-        temporaryDestination,
-        sourceInfo.atime,
-        sourceInfo.mtime,
-      );
-    }
+    await (options.copyFile ?? copyFile)(source, temporaryDestination);
+    const sourceInfo = await stat(source);
+    await utimes(temporaryDestination, sourceInfo.atime, sourceInfo.mtime);
 
     const concurrentDestinationInfo = await lstatOrUndefined(destination);
     if (concurrentDestinationInfo != null) {
       if (
-        concurrentDestinationInfo.isFile &&
-        await filesEqual(source, destination)
+        concurrentDestinationInfo.isFile() &&
+        (await filesEqual(source, destination))
       ) {
         result.skipped++;
         return;
@@ -138,7 +158,7 @@ async function copyFileWithoutOverwrite(
       );
     }
 
-    await Deno.rename(temporaryDestination, destination);
+    await rename(temporaryDestination, destination);
     installed = true;
     result.copied++;
   } finally {
@@ -156,19 +176,19 @@ async function copyDirectory(
 ): Promise<void> {
   const destinationInfo = await lstatOrUndefined(destination);
   if (destinationInfo == null) {
-    await Deno.mkdir(destination, { recursive: true });
-  } else if (!destinationInfo.isDirectory) {
+    await mkdir(destination, { recursive: true });
+  } else if (!destinationInfo.isDirectory()) {
     throw new Error(
       `Refusing to overwrite non-directory media path: ${destination}`,
     );
   }
 
-  for await (const entry of Deno.readDir(source)) {
+  for (const entry of await readdir(source, { withFileTypes: true })) {
     const sourcePath = join(source, entry.name);
     const destinationPath = join(destination, entry.name);
-    if (entry.isDirectory) {
+    if (entry.isDirectory()) {
       await copyDirectory(sourcePath, destinationPath, result, options);
-    } else if (entry.isFile) {
+    } else if (entry.isFile()) {
       await copyFileWithoutOverwrite(
         sourcePath,
         destinationPath,
@@ -191,7 +211,7 @@ export async function migrateMediaDirectory(
   }
   const sourceInfo = await lstatOrUndefined(source);
   if (sourceInfo == null) return { copied: 0, skipped: 0 };
-  if (!sourceInfo.isDirectory) {
+  if (!sourceInfo.isDirectory()) {
     throw new Error(`Legacy media path is not a directory: ${source}`);
   }
 
@@ -200,16 +220,18 @@ export async function migrateMediaDirectory(
   return result;
 }
 
-if (import.meta.main) {
-  if (Deno.args.length !== 0 && Deno.args.length !== 2) {
+if (isMain(import.meta)) {
+  const args = process.argv.slice(2);
+  if (args.length !== 0 && args.length !== 2) {
     throw new Error("Usage: migrate-media.ts [source destination]");
   }
-  const { source, destination } = Deno.args.length === 2
-    ? { source: resolve(Deno.args[0]), destination: resolve(Deno.args[1]) }
-    : resolveConfiguredMediaMigrationPaths(
-      Deno.env.get("FS_LOCATION")?.trim() || "./media",
-      Deno.cwd(),
-    );
+  const { source, destination } =
+    args.length === 2
+      ? { source: resolve(args[0]), destination: resolve(args[1]) }
+      : resolveConfiguredMediaMigrationPaths(
+          process.env.FS_LOCATION?.trim() || "./media",
+          process.cwd(),
+        );
   const result = await migrateMediaDirectory(source, destination);
   console.log(
     `Legacy media migration complete: ${result.copied} copied, ${result.skipped} already present.`,

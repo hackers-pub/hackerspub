@@ -1,8 +1,12 @@
 import { assert, assertStringIncludes } from "@std/assert";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+
+const readTextFile = (path: string | URL) => readFile(path, "utf8");
 
 for (const compositionRoot of ["main.ts", "worker.ts"]) {
-  Deno.test(`${compositionRoot} initializes LogTape after Sentry instrumentation`, async () => {
-    const source = await Deno.readTextFile(
+  test(`${compositionRoot} initializes LogTape after Sentry instrumentation`, async () => {
+    const source = await readTextFile(
       new URL(compositionRoot, import.meta.url),
     );
     const instrumentImport = 'import "./instrument.ts";';
@@ -17,10 +21,8 @@ for (const compositionRoot of ["main.ts", "worker.ts"]) {
   });
 }
 
-Deno.test("the queue worker migrates legacy deliveries before listening", async () => {
-  const source = await Deno.readTextFile(
-    new URL("worker.ts", import.meta.url),
-  );
+test("the queue worker migrates legacy deliveries before listening", async () => {
+  const source = await readTextFile(new URL("worker.ts", import.meta.url));
   const migration = "await migrateLegacyOutboxEvents(db);";
   const queueStart = "federation.startQueue(";
 

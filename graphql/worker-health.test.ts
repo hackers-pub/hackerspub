@@ -1,4 +1,7 @@
 import assert from "node:assert";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
 import {
   checkWorkerHeartbeat,
@@ -17,8 +20,8 @@ test("worker health file falls back for missing or empty paths", () => {
 });
 
 test("worker heartbeat stays fresh until stopped", async () => {
-  const directory = await Deno.makeTempDir();
-  const path = `${directory}/worker.health`;
+  const directory = await mkdtemp(join(tmpdir(), "hackerspub-heartbeat-"));
+  const path = join(directory, "worker.health");
   let now = 1_000;
   try {
     const heartbeat = await startWorkerHeartbeat(path, {
@@ -36,6 +39,6 @@ test("worker heartbeat stays fresh until stopped", async () => {
     await heartbeat.stop();
     assert.equal(await checkWorkerHeartbeat(path, 100, () => now), false);
   } finally {
-    await Deno.remove(directory, { recursive: true });
+    await rm(directory, { recursive: true });
   }
 });

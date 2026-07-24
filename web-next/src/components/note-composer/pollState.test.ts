@@ -89,32 +89,41 @@ test("validatePollDraft returns focused validation errors", () => {
     ],
   };
 
+  assert.deepEqual(validatePollDraft({ ...base, title: " " }, NOW.getTime()), {
+    ok: false,
+    error: "empty-title",
+  });
   assert.deepEqual(
-    validatePollDraft({ ...base, title: " " }, NOW.getTime()),
-    { ok: false, error: "empty-title" },
-  );
-  assert.deepEqual(
-    validatePollDraft({
-      ...base,
-      options: [{ localId: "a", title: "" }, base.options[1]],
-    }, NOW.getTime()),
+    validatePollDraft(
+      {
+        ...base,
+        options: [{ localId: "a", title: "" }, base.options[1]],
+      },
+      NOW.getTime(),
+    ),
     { ok: false, error: "empty-option" },
   );
   assert.deepEqual(
-    validatePollDraft({
-      ...base,
-      options: [{ localId: "a", title: "Yes" }],
-    }, NOW.getTime()),
+    validatePollDraft(
+      {
+        ...base,
+        options: [{ localId: "a", title: "Yes" }],
+      },
+      NOW.getTime(),
+    ),
     { ok: false, error: "too-few-options" },
   );
   assert.deepEqual(
-    validatePollDraft({
-      ...base,
-      options: [
-        { localId: "a", title: "Same" },
-        { localId: "b", title: " Same " },
-      ],
-    }, NOW.getTime()),
+    validatePollDraft(
+      {
+        ...base,
+        options: [
+          { localId: "a", title: "Same" },
+          { localId: "b", title: " Same " },
+        ],
+      },
+      NOW.getTime(),
+    ),
     { ok: false, error: "duplicate-options" },
   );
   assert.deepEqual(
@@ -128,17 +137,20 @@ test("validatePollDraft returns focused validation errors", () => {
 });
 
 test("validatePollDraft trims a valid poll and serializes its deadline", () => {
-  const result = validatePollDraft({
-    ...createPollDraft(NOW, ids()),
-    enabled: true,
-    title: " Question ",
-    multiple: true,
-    ends: "2026-07-15T12:34",
-    options: [
-      { localId: "a", title: " Yes " },
-      { localId: "b", title: " No " },
-    ],
-  }, NOW.getTime());
+  const result = validatePollDraft(
+    {
+      ...createPollDraft(NOW, ids()),
+      enabled: true,
+      title: " Question ",
+      multiple: true,
+      ends: "2026-07-15T12:34",
+      options: [
+        { localId: "a", title: " Yes " },
+        { localId: "b", title: " No " },
+      ],
+    },
+    NOW.getTime(),
+  );
 
   assert.deepEqual(result, {
     ok: true,

@@ -18,7 +18,7 @@ import { Title } from "~/components/Title.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { buildSignInHref, gateOnAuthentication } from "~/lib/authGate.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   PROFILE_INTERACTIONS_QUERY_KEY,
   profileContentRevalidating,
@@ -54,10 +54,8 @@ const interactionsPageQuery = graphql`
       viewerBlocks(actingAccountId: $actingAccountId)
       blocksViewer(actingAccountId: $actingAccountId)
       ...NavigateIfHandleIsNotCanonical_actor
-      ...ActorInteractionList_interactions @arguments(
-        locale: $locale
-        actingAccountId: $actingAccountId
-      )
+      ...ActorInteractionList_interactions
+        @arguments(locale: $locale, actingAccountId: $actingAccountId)
       ...ProfileCard_actor @arguments(actingAccountId: $actingAccountId)
       ...ProfileTabs_actor @arguments(actingAccountId: $actingAccountId)
     }
@@ -123,8 +121,11 @@ function AuthenticatedProfileInteractionsPage() {
                   <ProfileCard $actor={actor} />
                 </div>
                 <Show
-                  when={!actor.viewerBlocks && !actor.blocksViewer &&
-                    !profileContentRevalidating()}
+                  when={
+                    !actor.viewerBlocks &&
+                    !actor.blocksViewer &&
+                    !profileContentRevalidating()
+                  }
                 >
                   <div class="p-4">
                     <ProfileTabs selected="interactions" $actor={actor} />

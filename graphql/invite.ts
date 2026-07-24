@@ -193,21 +193,26 @@ builder.mutationField("invite", (t) =>
         errors.verifyUrl = "VERIFY_URL_NO_CODE";
       }
       if (
-        errors.inviter != null || errors.email != null ||
+        errors.inviter != null ||
+        errors.email != null ||
         errors.verifyUrl != null
       ) {
         return errors;
       }
       const inviter = ctx.account!;
       const normalizedEmail = email!;
-      const updated = await ctx.db.update(accountTable).set({
-        leftInvitations: sql`${accountTable.leftInvitations} - 1`,
-      }).where(
-        and(
-          eq(accountTable.id, inviter.id),
-          gt(accountTable.leftInvitations, 0),
-        ),
-      ).returning();
+      const updated = await ctx.db
+        .update(accountTable)
+        .set({
+          leftInvitations: sql`${accountTable.leftInvitations} - 1`,
+        })
+        .where(
+          and(
+            eq(accountTable.id, inviter.id),
+            gt(accountTable.leftInvitations, 0),
+          ),
+        )
+        .returning();
       if (updated.length < 1) {
         return {
           inviter: "INVITER_NO_INVITATIONS_LEFT",
@@ -218,9 +223,12 @@ builder.mutationField("invite", (t) =>
         expiration: EXPIRATION,
       });
       const refundInvitation = () =>
-        ctx.db.update(accountTable).set({
-          leftInvitations: sql`${accountTable.leftInvitations} + 1`,
-        }).where(eq(accountTable.id, inviter.id));
+        ctx.db
+          .update(accountTable)
+          .set({
+            leftInvitations: sql`${accountTable.leftInvitations} + 1`,
+          })
+          .where(eq(accountTable.id, inviter.id));
       const cleanupSignupToken = async () => {
         try {
           await deleteSignupToken(ctx.kv, token.token);
@@ -244,10 +252,9 @@ builder.mutationField("invite", (t) =>
         });
         const receipt = await ctx.email.send(message);
         if (!receipt.successful) {
-          logger.error(
-            "Failed to send invitation email: {errors}",
-            { errors: receipt.errorMessages },
-          );
+          logger.error("Failed to send invitation email: {errors}", {
+            errors: receipt.errorMessages,
+          });
           await refundInvitation();
           await cleanupSignupToken();
 
@@ -268,4 +275,5 @@ builder.mutationField("invite", (t) =>
         message: args.message ?? undefined,
       };
     },
-  }));
+  }),
+);

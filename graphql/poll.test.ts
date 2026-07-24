@@ -187,23 +187,21 @@ test("Question.poll exposes ordered options and vote connections", async () => {
     const questionId = generateUuidV7();
     const published = new Date("2026-04-15T00:00:00.000Z");
 
-    await tx.insert(postTable).values(
-      {
-        id: questionId,
-        iri: `http://localhost/objects/${questionId}`,
-        type: "Question",
-        visibility: "public",
-        actorId: author.actor.id,
-        name: "Favorite language?",
-        contentHtml: "<p>Favorite language?</p>",
-        language: "en",
-        tags: {},
-        emojis: {},
-        url: `http://localhost/@${author.account.username}/polls/${questionId}`,
-        published,
-        updated: published,
-      } satisfies NewPost,
-    );
+    await tx.insert(postTable).values({
+      id: questionId,
+      iri: `http://localhost/objects/${questionId}`,
+      type: "Question",
+      visibility: "public",
+      actorId: author.actor.id,
+      name: "Favorite language?",
+      contentHtml: "<p>Favorite language?</p>",
+      language: "en",
+      tags: {},
+      emojis: {},
+      url: `http://localhost/@${author.account.username}/polls/${questionId}`,
+      published,
+      updated: published,
+    } satisfies NewPost);
     await tx.insert(pollTable).values({
       postId: questionId,
       multiple: true,
@@ -239,34 +237,36 @@ test("Question.poll exposes ordered options and vote connections", async () => {
 
     assert.equal(result.errors, undefined);
 
-    const poll = (toPlainJson(result.data) as {
-      node: {
-        poll: {
-          multiple: boolean;
-          closed: boolean;
-          viewerHasVoted: boolean;
-          options: Array<{
-            index: number;
-            title: string;
+    const poll = (
+      toPlainJson(result.data) as {
+        node: {
+          poll: {
+            multiple: boolean;
+            closed: boolean;
             viewerHasVoted: boolean;
+            options: Array<{
+              index: number;
+              title: string;
+              viewerHasVoted: boolean;
+              votes: {
+                totalCount: number;
+                edges: Array<{ node: { actor: { id: string } } }>;
+              };
+            }>;
             votes: {
               totalCount: number;
-              edges: Array<{ node: { actor: { id: string } } }>;
+              edges: Array<{
+                node: { actor: { id: string }; option: { title: string } };
+              }>;
             };
-          }>;
-          votes: {
-            totalCount: number;
-            edges: Array<{
-              node: { actor: { id: string }; option: { title: string } };
-            }>;
+            voters: {
+              totalCount: number;
+              edges: Array<{ node: { id: string } }>;
+            };
           };
-          voters: {
-            totalCount: number;
-            edges: Array<{ node: { id: string } }>;
-          };
-        };
-      } | null;
-    }).node?.poll;
+        } | null;
+      }
+    ).node?.poll;
 
     assert.ok(poll != null);
     assert.equal(poll.multiple, true);
@@ -313,23 +313,21 @@ test("Actor.postByUuid resolves visible Question posts", async () => {
     const questionId = generateUuidV7();
     const published = new Date("2026-04-15T00:00:00.000Z");
 
-    await tx.insert(postTable).values(
-      {
-        id: questionId,
-        iri: `http://localhost/objects/${questionId}`,
-        type: "Question",
-        visibility: "public",
-        actorId: author.actor.id,
-        name: "Lookup poll?",
-        contentHtml: "<p>Lookup poll?</p>",
-        language: "en",
-        tags: {},
-        emojis: {},
-        url: `http://localhost/@${author.account.username}/polls/${questionId}`,
-        published,
-        updated: published,
-      } satisfies NewPost,
-    );
+    await tx.insert(postTable).values({
+      id: questionId,
+      iri: `http://localhost/objects/${questionId}`,
+      type: "Question",
+      visibility: "public",
+      actorId: author.actor.id,
+      name: "Lookup poll?",
+      contentHtml: "<p>Lookup poll?</p>",
+      language: "en",
+      tags: {},
+      emojis: {},
+      url: `http://localhost/@${author.account.username}/polls/${questionId}`,
+      published,
+      updated: published,
+    } satisfies NewPost);
     await tx.insert(pollTable).values({
       postId: questionId,
       multiple: false,
@@ -384,26 +382,23 @@ test("source-backed local Questions expose their Question ActivityPub IRI", asyn
       },
     };
     const published = new Date("2026-04-15T00:00:00.000Z");
-    const question = await createQuestion(
-      fedCtx,
-      {
-        accountId: author.account.id,
-        visibility: "public",
-        quotePolicy: "everyone",
-        content: "Which object route should be advertised?",
-        language: "en",
-        media: [],
-        published,
-        updated: published,
-        poll: {
-          title: "Object route",
-          multiple: false,
-          options: ["Question", "Note"],
-          ends: new Date("2026-04-16T00:00:00.000Z"),
-          now: published,
-        },
+    const question = await createQuestion(fedCtx, {
+      accountId: author.account.id,
+      visibility: "public",
+      quotePolicy: "everyone",
+      content: "Which object route should be advertised?",
+      language: "en",
+      media: [],
+      published,
+      updated: published,
+      poll: {
+        title: "Object route",
+        multiple: false,
+        options: ["Question", "Note"],
+        ends: new Date("2026-04-16T00:00:00.000Z"),
+        now: published,
       },
-    );
+    });
     assert.ok(question != null);
     assert.ok(question.noteSourceId != null);
 
@@ -537,23 +532,21 @@ test("Question.poll backfills missing remote poll rows", async () => {
     const questionIri = `https://remote.example/objects/${questionId}`;
     const published = new Date("2026-04-15T00:00:00.000Z");
 
-    await tx.insert(postTable).values(
-      {
-        id: questionId,
-        iri: questionIri,
-        type: "Question",
-        visibility: "public",
-        actorId: author.id,
-        name: "Backfill poll?",
-        contentHtml: "<p>Backfill poll?</p>",
-        language: "en",
-        tags: {},
-        emojis: {},
-        url: questionIri,
-        published,
-        updated: published,
-      } satisfies NewPost,
-    );
+    await tx.insert(postTable).values({
+      id: questionId,
+      iri: questionIri,
+      type: "Question",
+      visibility: "public",
+      actorId: author.id,
+      name: "Backfill poll?",
+      contentHtml: "<p>Backfill poll?</p>",
+      language: "en",
+      tags: {},
+      emojis: {},
+      url: questionIri,
+      published,
+      updated: published,
+    } satisfies NewPost);
 
     const fedCtx = createFedCtx(tx);
     let lookupCount = 0;
@@ -585,15 +578,17 @@ test("Question.poll backfills missing remote poll rows", async () => {
     });
 
     assert.equal(result.errors, undefined);
-    const poll = (toPlainJson(result.data) as {
-      node: {
-        poll: {
-          multiple: boolean;
-          voters: { totalCount: number };
-          options: Array<{ index: number; title: string }>;
+    const poll = (
+      toPlainJson(result.data) as {
+        node: {
+          poll: {
+            multiple: boolean;
+            voters: { totalCount: number };
+            options: Array<{ index: number; title: string }>;
+          } | null;
         } | null;
-      } | null;
-    }).node?.poll;
+      }
+    ).node?.poll;
 
     assert.equal(lookupCount, 1);
     assert.ok(poll != null);
@@ -633,23 +628,21 @@ test("Question.poll refuses federation lookup for guests", async () => {
     const questionIri = `https://remote.example/objects/${questionId}`;
     const published = new Date("2026-04-15T00:00:00.000Z");
 
-    await tx.insert(postTable).values(
-      {
-        id: questionId,
-        iri: questionIri,
-        type: "Question",
-        visibility: "public",
-        actorId: author.id,
-        name: "Guest backfill?",
-        contentHtml: "<p>Guest backfill?</p>",
-        language: "en",
-        tags: {},
-        emojis: {},
-        url: questionIri,
-        published,
-        updated: published,
-      } satisfies NewPost,
-    );
+    await tx.insert(postTable).values({
+      id: questionId,
+      iri: questionIri,
+      type: "Question",
+      visibility: "public",
+      actorId: author.id,
+      name: "Guest backfill?",
+      contentHtml: "<p>Guest backfill?</p>",
+      language: "en",
+      tags: {},
+      emojis: {},
+      url: questionIri,
+      published,
+      updated: published,
+    } satisfies NewPost);
 
     const lookupCalls: string[] = [];
     const fedCtx = createFedCtx(tx, {
@@ -694,23 +687,21 @@ test("Question.poll ignores non-Question remote backfills", async () => {
     const questionIri = `https://remote.example/objects/${questionId}`;
     const published = new Date("2026-04-15T00:00:00.000Z");
 
-    await tx.insert(postTable).values(
-      {
-        id: questionId,
-        iri: questionIri,
-        type: "Question",
-        visibility: "public",
-        actorId: author.id,
-        name: "Backfill type mismatch?",
-        contentHtml: "<p>Backfill type mismatch?</p>",
-        language: "en",
-        tags: {},
-        emojis: {},
-        url: questionIri,
-        published,
-        updated: published,
-      } satisfies NewPost,
-    );
+    await tx.insert(postTable).values({
+      id: questionId,
+      iri: questionIri,
+      type: "Question",
+      visibility: "public",
+      actorId: author.id,
+      name: "Backfill type mismatch?",
+      contentHtml: "<p>Backfill type mismatch?</p>",
+      language: "en",
+      tags: {},
+      emojis: {},
+      url: questionIri,
+      published,
+      updated: published,
+    } satisfies NewPost);
 
     const fedCtx = createFedCtx(tx);
     fedCtx.lookupObject = () =>
@@ -763,23 +754,21 @@ test("Question.poll returns null when remote backfill fails", async () => {
     const questionIri = `https://remote.example/objects/${questionId}`;
     const published = new Date("2026-04-15T00:00:00.000Z");
 
-    await tx.insert(postTable).values(
-      {
-        id: questionId,
-        iri: questionIri,
-        type: "Question",
-        visibility: "public",
-        actorId: author.id,
-        name: "Missing poll?",
-        contentHtml: "<p>Missing poll?</p>",
-        language: "en",
-        tags: {},
-        emojis: {},
-        url: questionIri,
-        published,
-        updated: published,
-      } satisfies NewPost,
-    );
+    await tx.insert(postTable).values({
+      id: questionId,
+      iri: questionIri,
+      type: "Question",
+      visibility: "public",
+      actorId: author.id,
+      name: "Missing poll?",
+      contentHtml: "<p>Missing poll?</p>",
+      language: "en",
+      tags: {},
+      emojis: {},
+      url: questionIri,
+      published,
+      updated: published,
+    } satisfies NewPost);
 
     const fedCtx = createFedCtx(tx);
     fedCtx.lookupObject = () => {
@@ -819,23 +808,21 @@ test("voteOnPoll stores a single-choice vote and updates viewer fields", async (
     const published = new Date("2026-04-15T00:00:00.000Z");
     const questionGlobalId = encodeGlobalID("Question", questionId);
 
-    await tx.insert(postTable).values(
-      {
-        id: questionId,
-        iri: `http://localhost/objects/${questionId}`,
-        type: "Question",
-        visibility: "public",
-        actorId: author.actor.id,
-        name: "Vote poll?",
-        contentHtml: "<p>Vote poll?</p>",
-        language: "en",
-        tags: {},
-        emojis: {},
-        url: `http://localhost/@${author.account.username}/polls/${questionId}`,
-        published,
-        updated: published,
-      } satisfies NewPost,
-    );
+    await tx.insert(postTable).values({
+      id: questionId,
+      iri: `http://localhost/objects/${questionId}`,
+      type: "Question",
+      visibility: "public",
+      actorId: author.actor.id,
+      name: "Vote poll?",
+      contentHtml: "<p>Vote poll?</p>",
+      language: "en",
+      tags: {},
+      emojis: {},
+      url: `http://localhost/@${author.account.username}/polls/${questionId}`,
+      published,
+      updated: published,
+    } satisfies NewPost);
     await tx.insert(pollTable).values({
       postId: questionId,
       multiple: false,
@@ -859,33 +846,35 @@ test("voteOnPoll stores a single-choice vote and updates viewer fields", async (
     });
 
     assert.equal(result.errors, undefined);
-    const payload = (toPlainJson(result.data) as {
-      voteOnPoll: {
-        __typename: string;
-        question?: {
-          id: string;
-          poll: {
-            viewerHasVoted: boolean;
-            voters: { totalCount: number };
-            votes: { totalCount: number };
-            options: Array<{
+    const payload = (
+      toPlainJson(result.data) as {
+        voteOnPoll: {
+          __typename: string;
+          question?: {
+            id: string;
+            poll: {
+              viewerHasVoted: boolean;
+              voters: { totalCount: number };
+              votes: { totalCount: number };
+              options: Array<{
+                index: number;
+                title: string;
+                viewerHasVoted: boolean;
+                votes: { totalCount: number };
+              }>;
+            };
+          };
+          poll?: { viewerHasVoted: boolean };
+          votes?: Array<{
+            option: {
               index: number;
               title: string;
-              viewerHasVoted: boolean;
               votes: { totalCount: number };
-            }>;
-          };
+            };
+          }>;
         };
-        poll?: { viewerHasVoted: boolean };
-        votes?: Array<{
-          option: {
-            index: number;
-            title: string;
-            votes: { totalCount: number };
-          };
-        }>;
-      };
-    }).voteOnPoll;
+      }
+    ).voteOnPoll;
 
     assert.equal(payload.__typename, "VoteOnPollPayload");
     assert.equal(payload.question?.id, questionGlobalId);
@@ -923,18 +912,20 @@ test("voteOnPoll stores a single-choice vote and updates viewer fields", async (
     });
 
     assert.equal(repeat.errors, undefined);
-    const repeatPayload = (toPlainJson(repeat.data) as {
-      voteOnPoll: {
-        __typename: string;
-        votes?: Array<{
-          option: {
-            index: number;
-            title: string;
-            votes: { totalCount: number };
-          };
-        }>;
-      };
-    }).voteOnPoll;
+    const repeatPayload = (
+      toPlainJson(repeat.data) as {
+        voteOnPoll: {
+          __typename: string;
+          votes?: Array<{
+            option: {
+              index: number;
+              title: string;
+              votes: { totalCount: number };
+            };
+          }>;
+        };
+      }
+    ).voteOnPoll;
     assert.equal(repeatPayload.__typename, "VoteOnPollPayload");
     assert.deepEqual(repeatPayload.votes, [
       { option: { index: 1, title: "Rust", votes: { totalCount: 1 } } },
@@ -975,23 +966,21 @@ test("voteOnPoll can vote as an organization account", async () => {
     );
     const published = new Date("2026-04-15T00:00:00.000Z");
 
-    await tx.insert(postTable).values(
-      {
-        id: questionId,
-        iri: `http://localhost/objects/${questionId}`,
-        type: "Question",
-        visibility: "public",
-        actorId: author.actor.id,
-        name: "Vote as org?",
-        contentHtml: "<p>Vote as org?</p>",
-        language: "en",
-        tags: {},
-        emojis: {},
-        url: `http://localhost/@${author.account.username}/polls/${questionId}`,
-        published,
-        updated: published,
-      } satisfies NewPost,
-    );
+    await tx.insert(postTable).values({
+      id: questionId,
+      iri: `http://localhost/objects/${questionId}`,
+      type: "Question",
+      visibility: "public",
+      actorId: author.actor.id,
+      name: "Vote as org?",
+      contentHtml: "<p>Vote as org?</p>",
+      language: "en",
+      tags: {},
+      emojis: {},
+      url: `http://localhost/@${author.account.username}/polls/${questionId}`,
+      published,
+      updated: published,
+    } satisfies NewPost);
     await tx.insert(pollTable).values({
       postId: questionId,
       multiple: false,
@@ -1016,9 +1005,11 @@ test("voteOnPoll can vote as an organization account", async () => {
     });
 
     assert.equal(result.errors, undefined);
-    const payload = (toPlainJson(result.data) as {
-      voteOnPoll: { __typename: string };
-    }).voteOnPoll;
+    const payload = (
+      toPlainJson(result.data) as {
+        voteOnPoll: { __typename: string };
+      }
+    ).voteOnPoll;
     assert.equal(payload.__typename, "VoteOnPollPayload");
     const votes = await tx.query.pollVoteTable.findMany({
       where: { postId: questionId },
@@ -1043,23 +1034,21 @@ test("voteOnPoll stores multiple choices for multi-choice polls", async () => {
     const questionId = generateUuidV7();
     const published = new Date("2026-04-15T00:00:00.000Z");
 
-    await tx.insert(postTable).values(
-      {
-        id: questionId,
-        iri: `http://localhost/objects/${questionId}`,
-        type: "Question",
-        visibility: "public",
-        actorId: author.actor.id,
-        name: "Multi vote poll?",
-        contentHtml: "<p>Multi vote poll?</p>",
-        language: "en",
-        tags: {},
-        emojis: {},
-        url: `http://localhost/@${author.account.username}/polls/${questionId}`,
-        published,
-        updated: published,
-      } satisfies NewPost,
-    );
+    await tx.insert(postTable).values({
+      id: questionId,
+      iri: `http://localhost/objects/${questionId}`,
+      type: "Question",
+      visibility: "public",
+      actorId: author.actor.id,
+      name: "Multi vote poll?",
+      contentHtml: "<p>Multi vote poll?</p>",
+      language: "en",
+      tags: {},
+      emojis: {},
+      url: `http://localhost/@${author.account.username}/polls/${questionId}`,
+      published,
+      updated: published,
+    } satisfies NewPost);
     await tx.insert(pollTable).values({
       postId: questionId,
       multiple: true,
@@ -1084,29 +1073,31 @@ test("voteOnPoll stores multiple choices for multi-choice polls", async () => {
     });
 
     assert.equal(result.errors, undefined);
-    const payload = (toPlainJson(result.data) as {
-      voteOnPoll: {
-        __typename: string;
-        question?: {
-          poll: {
-            voters: { totalCount: number };
-            votes: { totalCount: number };
-            options: Array<{
-              index: number;
-              viewerHasVoted: boolean;
+    const payload = (
+      toPlainJson(result.data) as {
+        voteOnPoll: {
+          __typename: string;
+          question?: {
+            poll: {
+              voters: { totalCount: number };
               votes: { totalCount: number };
-            }>;
+              options: Array<{
+                index: number;
+                viewerHasVoted: boolean;
+                votes: { totalCount: number };
+              }>;
+            };
           };
+          votes?: Array<{
+            option: {
+              index: number;
+              title: string;
+              votes: { totalCount: number };
+            };
+          }>;
         };
-        votes?: Array<{
-          option: {
-            index: number;
-            title: string;
-            votes: { totalCount: number };
-          };
-        }>;
-      };
-    }).voteOnPoll;
+      }
+    ).voteOnPoll;
 
     assert.equal(payload.__typename, "VoteOnPollPayload");
     assert.equal(payload.question?.poll.voters.totalCount, 1);
@@ -1124,9 +1115,9 @@ test("voteOnPoll stores multiple choices for multi-choice polls", async () => {
       ],
     );
     assert.deepEqual(
-      payload.votes?.map((vote) => vote.option).sort((a, b) =>
-        a.index - b.index
-      ),
+      payload.votes
+        ?.map((vote) => vote.option)
+        .sort((a, b) => a.index - b.index),
       [
         { index: 0, title: "Red", votes: { totalCount: 1 } },
         { index: 2, title: "Green", votes: { totalCount: 1 } },
@@ -1151,29 +1142,25 @@ test("voteOnPoll rejects guest, invalid, and expired votes", async () => {
     const expiredQuestionId = generateUuidV7();
     const published = new Date("2026-04-15T00:00:00.000Z");
 
-    for (
-      const [id, ends] of [
-        [questionId, pollEndsInFuture()],
-        [expiredQuestionId, pollEndedInPast()],
-      ] as const
-    ) {
-      await tx.insert(postTable).values(
-        {
-          id,
-          iri: `http://localhost/objects/${id}`,
-          type: "Question",
-          visibility: "public",
-          actorId: author.actor.id,
-          name: "Reject poll?",
-          contentHtml: "<p>Reject poll?</p>",
-          language: "en",
-          tags: {},
-          emojis: {},
-          url: `http://localhost/@${author.account.username}/polls/${id}`,
-          published,
-          updated: published,
-        } satisfies NewPost,
-      );
+    for (const [id, ends] of [
+      [questionId, pollEndsInFuture()],
+      [expiredQuestionId, pollEndedInPast()],
+    ] as const) {
+      await tx.insert(postTable).values({
+        id,
+        iri: `http://localhost/objects/${id}`,
+        type: "Question",
+        visibility: "public",
+        actorId: author.actor.id,
+        name: "Reject poll?",
+        contentHtml: "<p>Reject poll?</p>",
+        language: "en",
+        tags: {},
+        emojis: {},
+        url: `http://localhost/@${author.account.username}/polls/${id}`,
+        published,
+        updated: published,
+      } satisfies NewPost);
       await tx.insert(pollTable).values({
         postId: id,
         multiple: false,
@@ -1199,20 +1186,20 @@ test("voteOnPoll rejects guest, invalid, and expired votes", async () => {
 
     assert.equal(guestResult.errors, undefined);
     assert.equal(
-      (toPlainJson(guestResult.data) as {
-        voteOnPoll: { __typename: string };
-      }).voteOnPoll.__typename,
+      (
+        toPlainJson(guestResult.data) as {
+          voteOnPoll: { __typename: string };
+        }
+      ).voteOnPoll.__typename,
       "NotAuthenticatedError",
     );
 
-    for (
-      const [optionIndices, expectedPath] of [
-        [[], "optionIndices"],
-        [[0, 0], "optionIndices"],
-        [[0, 1], "optionIndices"],
-        [[999], "optionIndices"],
-      ] as const
-    ) {
+    for (const [optionIndices, expectedPath] of [
+      [[], "optionIndices"],
+      [[0, 0], "optionIndices"],
+      [[0, 1], "optionIndices"],
+      [[999], "optionIndices"],
+    ] as const) {
       const result = await execute({
         schema,
         document: voteOnPollMutation,
@@ -1273,23 +1260,21 @@ test("poll vote/voter counts exclude sanction-hidden voters", async () => {
     });
     const questionId = generateUuidV7();
     const published = new Date("2026-04-15T00:00:00.000Z");
-    await tx.insert(postTable).values(
-      {
-        id: questionId,
-        iri: `http://localhost/objects/${questionId}`,
-        type: "Question",
-        visibility: "public",
-        actorId: author.actor.id,
-        name: "Best editor?",
-        contentHtml: "<p>Best editor?</p>",
-        language: "en",
-        tags: {},
-        emojis: {},
-        url: `http://localhost/@${author.account.username}/polls/${questionId}`,
-        published,
-        updated: published,
-      } satisfies NewPost,
-    );
+    await tx.insert(postTable).values({
+      id: questionId,
+      iri: `http://localhost/objects/${questionId}`,
+      type: "Question",
+      visibility: "public",
+      actorId: author.actor.id,
+      name: "Best editor?",
+      contentHtml: "<p>Best editor?</p>",
+      language: "en",
+      tags: {},
+      emojis: {},
+      url: `http://localhost/@${author.account.username}/polls/${questionId}`,
+      published,
+      updated: published,
+    } satisfies NewPost);
     // Two local voters, one per option; stored counters include both.
     await tx.insert(pollTable).values({
       postId: questionId,
@@ -1306,7 +1291,8 @@ test("poll vote/voter counts exclude sanction-hidden voters", async () => {
       { postId: questionId, optionIndex: 1, actorId: bannedVoter.actor.id },
     ]);
     // Permanently ban the second voter (local ban => sanction-hidden).
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: null })
       .where(eq(actorTable.id, bannedVoter.actor.id));
 
@@ -1318,20 +1304,23 @@ test("poll vote/voter counts exclude sanction-hidden voters", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.equal(result.errors, undefined);
-    const poll = (toPlainJson(result.data) as {
-      node: {
-        poll: {
-          options: Array<
-            { title: string; votes: { totalCount: number; edges: unknown[] } }
-          >;
-          votes: { totalCount: number; edges: unknown[] };
-          voters: {
-            totalCount: number;
-            edges: Array<{ node: { id: string } }>;
+    const poll = (
+      toPlainJson(result.data) as {
+        node: {
+          poll: {
+            options: Array<{
+              title: string;
+              votes: { totalCount: number; edges: unknown[] };
+            }>;
+            votes: { totalCount: number; edges: unknown[] };
+            voters: {
+              totalCount: number;
+              edges: Array<{ node: { id: string } }>;
+            };
           };
-        };
-      } | null;
-    }).node?.poll;
+        } | null;
+      }
+    ).node?.poll;
     assert.ok(poll != null);
     // The banned voter is dropped from both the edges and the totals, so
     // totalCount matches the visible edges (no hidden-participation leak).
@@ -1372,33 +1361,32 @@ test("poll vote-count batching maps each poll to its own totals", async () => {
     async function makePoll(name: string, voterCount: number) {
       const questionId = generateUuidV7();
       const published = new Date("2026-04-15T00:00:00.000Z");
-      await tx.insert(postTable).values(
-        {
-          id: questionId,
-          iri: `http://localhost/objects/${questionId}`,
-          type: "Question",
-          visibility: "public",
-          actorId: author.actor.id,
-          name,
-          contentHtml: `<p>${name}</p>`,
-          language: "en",
-          tags: {},
-          emojis: {},
-          url:
-            `http://localhost/@${author.account.username}/polls/${questionId}`,
-          published,
-          updated: published,
-        } satisfies NewPost,
-      );
+      await tx.insert(postTable).values({
+        id: questionId,
+        iri: `http://localhost/objects/${questionId}`,
+        type: "Question",
+        visibility: "public",
+        actorId: author.actor.id,
+        name,
+        contentHtml: `<p>${name}</p>`,
+        language: "en",
+        tags: {},
+        emojis: {},
+        url: `http://localhost/@${author.account.username}/polls/${questionId}`,
+        published,
+        updated: published,
+      } satisfies NewPost);
       await tx.insert(pollTable).values({
         postId: questionId,
         multiple: false,
         votersCount: voterCount,
         ends: pollEndedInPast(),
       });
-      await tx.insert(pollOptionTable).values([
-        { postId: questionId, index: 0, title: "A", votesCount: voterCount },
-      ]);
+      await tx
+        .insert(pollOptionTable)
+        .values([
+          { postId: questionId, index: 0, title: "A", votesCount: voterCount },
+        ]);
       await tx.insert(pollVoteTable).values(
         voters.slice(0, voterCount).map((v, i) => ({
           postId: questionId,

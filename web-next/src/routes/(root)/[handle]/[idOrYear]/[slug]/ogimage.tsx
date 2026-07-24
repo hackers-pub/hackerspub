@@ -26,8 +26,9 @@ export async function GET({ params, request }: APIEvent) {
   const requestUrl = new URL(request.url);
   const environment = createEnvironment();
   const requestedLanguage = requestUrl.searchParams.get("l")?.trim();
-  const language = requestedLanguage ||
-    await getDefaultLanguage(environment, handle, idOrYear, slug);
+  const language =
+    requestedLanguage ||
+    (await getDefaultLanguage(environment, handle, idOrYear, slug));
   if (language == null) {
     return new Response("Not Found", { status: 404 });
   }
@@ -95,6 +96,9 @@ async function getDefaultLanguage(
   const article = response?.articleByYearAndSlug;
   if (article == null) return null;
   const contentLanguages = article.contents.map((content) => content.language);
-  return contentLanguages.find((language) => language === article.language) ??
-    contentLanguages[0] ?? null;
+  return (
+    contentLanguages.find((language) => language === article.language) ??
+    contentLanguages[0] ??
+    null
+  );
 }

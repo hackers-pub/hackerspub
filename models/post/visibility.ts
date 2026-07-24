@@ -67,16 +67,18 @@ export function quotePoliciesFromInteractionPolicy(
       quoteRequestPolicy: null,
     };
   }
-  const quotePolicy = quotePolicyFromApprovalUrls(
-    post,
-    policy.automaticApprovals.map((url) => url.href),
-    authorFollowersUrl,
-  ) ?? "self";
-  const quoteRequestPolicy = quotePolicyFromApprovalUrls(
-    post,
-    policy.manualApprovals.map((url) => url.href),
-    authorFollowersUrl,
-  ) ?? null;
+  const quotePolicy =
+    quotePolicyFromApprovalUrls(
+      post,
+      policy.automaticApprovals.map((url) => url.href),
+      authorFollowersUrl,
+    ) ?? "self";
+  const quoteRequestPolicy =
+    quotePolicyFromApprovalUrls(
+      post,
+      policy.manualApprovals.map((url) => url.href),
+      authorFollowersUrl,
+    ) ?? null;
   return { quotePolicy, quoteRequestPolicy };
 }
 
@@ -88,8 +90,9 @@ function canActorQuoteByPolicy(
   if (post.actorId === actor.id) return true;
   if (policy === "everyone") return true;
   if (policy === "followers") {
-    return post.actor.followers.some((follower) =>
-      follower.followerId === actor.id && follower.accepted != null
+    return post.actor.followers.some(
+      (follower) =>
+        follower.followerId === actor.id && follower.accepted != null,
     );
   }
   return false;
@@ -138,8 +141,8 @@ export async function getAllowedQuoteTargetForActor(
 ): Promise<QuotePolicyPost | undefined> {
   const targetPostId = await getOriginalPostId(db, post);
   if (targetPostId == null) return undefined;
-  const quotedPost: QuotePolicyPost | undefined = await db.query.postTable
-    .findFirst({
+  const quotedPost: QuotePolicyPost | undefined =
+    await db.query.postTable.findFirst({
       with: {
         actor: {
           with: {
@@ -231,30 +234,31 @@ export function isPostVisibleTo(
   // boosted post's author keeps access, not the booster.
   if (post.sharedPost?.actor != null) {
     const sharedAuthor = post.sharedPost.actor;
-    const viewerIsSharedAuthor = actor != null && (
-      "id" in actor
+    const viewerIsSharedAuthor =
+      actor != null &&
+      ("id" in actor
         ? sharedAuthor.id === actor.id
-        : sharedAuthor.iri === actor.iri
-    );
+        : sharedAuthor.iri === actor.iri);
     if (!viewerIsSharedAuthor && isActorSanctionHidden(sharedAuthor)) {
       return false;
     }
   }
   if (actor != null) {
     if (
-      "id" in actor && post.actor.id === actor.id ||
-      "iri" in actor && post.actor.iri === actor.iri
+      ("id" in actor && post.actor.id === actor.id) ||
+      ("iri" in actor && post.actor.iri === actor.iri)
     ) {
       return true;
     }
   }
   if (isActorSanctionHidden(post.actor)) return false;
   if (actor != null) {
-    const blocked = "id" in actor
-      ? post.actor.blockees.some((b) => b.blockeeId === actor.id) ||
-        post.actor.blockers.some((b) => b.blockerId === actor.id)
-      : post.actor.blockees.some((b) => b.blockee?.iri === actor.iri) ||
-        post.actor.blockers.some((b) => b.blocker?.iri === actor.iri);
+    const blocked =
+      "id" in actor
+        ? post.actor.blockees.some((b) => b.blockeeId === actor.id) ||
+          post.actor.blockers.some((b) => b.blockerId === actor.id)
+        : post.actor.blockees.some((b) => b.blockee?.iri === actor.iri) ||
+          post.actor.blockers.some((b) => b.blocker?.iri === actor.iri);
     if (blocked) return false;
   }
   if (post.visibility === "public" || post.visibility === "unlisted") {
@@ -263,13 +267,19 @@ export function isPostVisibleTo(
   if (actor == null) return false;
   if (post.visibility === "followers") {
     if ("id" in actor) {
-      return post.actor.followers.some((follower) =>
-        follower.followerId === actor.id && follower.accepted != null
-      ) || post.mentions.some((mention) => mention.actorId === actor.id);
+      return (
+        post.actor.followers.some(
+          (follower) =>
+            follower.followerId === actor.id && follower.accepted != null,
+        ) || post.mentions.some((mention) => mention.actorId === actor.id)
+      );
     } else {
-      return post.actor.followers.some((follower) =>
-        follower.follower?.iri === actor.iri && follower.accepted != null
-      ) || post.mentions.some((mention) => mention.actor?.iri === actor.iri);
+      return (
+        post.actor.followers.some(
+          (follower) =>
+            follower.follower?.iri === actor.iri && follower.accepted != null,
+        ) || post.mentions.some((mention) => mention.actor?.iri === actor.iri)
+      );
     }
   }
   if (post.visibility === "direct") {
@@ -344,14 +354,17 @@ export async function getPostInteractionPolicies(
     // outright.  Deny the policy too so the UI never offers an affordance
     // that is guaranteed to fail.
     const censored = post.censored != null || effective.censored != null;
-    const canAmplify = !censored && effective.sharedPostId == null &&
-      isPostVisibleTo(effective, viewer) && (
-        effective.visibility === "public" ||
+    const canAmplify =
+      !censored &&
+      effective.sharedPostId == null &&
+      isPostVisibleTo(effective, viewer) &&
+      (effective.visibility === "public" ||
         effective.visibility === "unlisted" ||
         (effective.visibility === "followers" &&
-          effective.actorId === viewer.id)
-      );
-    const canQuote = !censored && effective.sharedPostId == null &&
+          effective.actorId === viewer.id));
+    const canQuote =
+      !censored &&
+      effective.sharedPostId == null &&
       isPostVisibleTo(effective, viewer) &&
       canActorRequestQuotePost(effective, viewer);
     result.set(post.id, {
@@ -401,12 +414,11 @@ export function getCensoredPostExclusionFilter(
   viewerActorId?: Uuid | null,
 ): RelationsFilter<"postTable"> {
   return {
-    ...(viewerActorId == null ? { censored: { isNull: true } } : {
-      OR: [
-        { censored: { isNull: true } },
-        { actorId: viewerActorId },
-      ],
-    }),
+    ...(viewerActorId == null
+      ? { censored: { isNull: true } }
+      : {
+          OR: [{ censored: { isNull: true } }, { actorId: viewerActorId }],
+        }),
     NOT: { sharedPost: { censored: { isNotNull: true } } },
   } satisfies RelationsFilter<"postTable">;
 }
@@ -555,12 +567,14 @@ export function getPostVisibilityFilter(
             { id: actorOrPost.actorId },
             { mentions: { postId: actorOrPost.id } },
             ...(actorOrPost.visibility === "followers"
-              ? [{
-                followees: {
-                  followeeId: actorOrPost.actorId,
-                  accepted: { isNotNull: true },
-                } satisfies RelationsFilter<"followingTable">,
-              }]
+              ? [
+                  {
+                    followees: {
+                      followeeId: actorOrPost.actorId,
+                      accepted: { isNotNull: true },
+                    } satisfies RelationsFilter<"followingTable">,
+                  },
+                ]
               : []),
           ],
         },

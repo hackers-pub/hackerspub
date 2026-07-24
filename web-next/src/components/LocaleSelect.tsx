@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { LocaleSelect_availableLocales$key } from "./__generated__/LocaleSelect_availableLocales.graphql.ts";
 
 export interface LocaleSelectProps {
@@ -32,10 +32,8 @@ export function LocaleSelect(props: LocaleSelectProps) {
   return (
     <Select
       value={toLocaleInfo(
-        negotiateLocale(
-          props.value,
-          availableLocales()?.availableLocales ?? [],
-        )?.baseName ?? "en",
+        negotiateLocale(props.value, availableLocales()?.availableLocales ?? [])
+          ?.baseName ?? "en",
         i18n.locale,
       )}
       onChange={(o) => props.onChange(o?.code ?? "en")}
@@ -49,8 +47,7 @@ export function LocaleSelect(props: LocaleSelectProps) {
         <SelectItem item={props.item}>
           {props.item.rawValue.name}
           <Show
-            when={props.item.rawValue.name !==
-              props.item.rawValue.nativeName}
+            when={props.item.rawValue.name !== props.item.rawValue.nativeName}
           >
             <span
               class="text-xs text-muted-foreground pl-1.5"
@@ -108,11 +105,11 @@ function mapLocaleInfo(
   });
   const list = locales.map((l) => {
     const nativeNames = new Intl.DisplayNames(l, { type: "language" });
-    return ({
+    return {
       code: l,
       name: displayNames.of(l) ?? l,
       nativeName: nativeNames.of(l) ?? l,
-    });
+    };
   });
   list.sort((a, b) => a.name.localeCompare(b.name));
   return list;

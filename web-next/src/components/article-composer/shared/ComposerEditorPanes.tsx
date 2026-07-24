@@ -2,7 +2,7 @@ import { Show } from "solid-js";
 import IconLoader2 from "~icons/lucide/loader-2";
 import { MarkdownEditor } from "~/components/ui/markdown-editor.tsx";
 import { cn } from "~/lib/utils.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 export interface ComposerEditorPanesProps {
   content: string;
@@ -134,13 +134,11 @@ export function ComposerEditorPanes(props: ComposerEditorPanesProps) {
   );
 }
 
-function SegmentButton(
-  props: {
-    active: boolean;
-    onClick: () => void;
-    children: string;
-  },
-) {
+function SegmentButton(props: {
+  active: boolean;
+  onClick: () => void;
+  children: string;
+}) {
   return (
     <button
       type="button"

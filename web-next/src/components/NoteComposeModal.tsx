@@ -21,7 +21,7 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 export function NoteComposeModal() {
   const { t } = useLingui();

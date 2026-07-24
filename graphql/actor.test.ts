@@ -297,9 +297,11 @@ test("followActor rejects attempts to follow yourself", async () => {
 
     assert.deepEqual(result.errors, undefined);
     assert.deepEqual(
-      (result.data as {
-        followActor: { __typename: string; inputPath?: string };
-      }).followActor,
+      (
+        result.data as {
+          followActor: { __typename: string; inputPath?: string };
+        }
+      ).followActor,
       {
         __typename: "InvalidInputError",
         inputPath: "actorId",
@@ -332,9 +334,11 @@ test("followActor and unfollowActor round-trip through GraphQL", async () => {
 
     assert.deepEqual(followResult.errors, undefined);
     assert.deepEqual(
-      (followResult.data as {
-        followActor: { __typename: string; followee?: { id: string } };
-      }).followActor.__typename,
+      (
+        followResult.data as {
+          followActor: { __typename: string; followee?: { id: string } };
+        }
+      ).followActor.__typename,
       "FollowActorPayload",
     );
 
@@ -356,9 +360,11 @@ test("followActor and unfollowActor round-trip through GraphQL", async () => {
 
     assert.deepEqual(unfollowResult.errors, undefined);
     assert.deepEqual(
-      (unfollowResult.data as {
-        unfollowActor: { __typename: string };
-      }).unfollowActor.__typename,
+      (
+        unfollowResult.data as {
+          unfollowActor: { __typename: string };
+        }
+      ).unfollowActor.__typename,
       "UnfollowActorPayload",
     );
 
@@ -384,7 +390,8 @@ test("followActor and unfollowActor can act as an organization", async () => {
       name: "Organization Follow Target",
       email: "orgfollowtarget@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -463,7 +470,8 @@ test("followActor rejects suspended members acting through organizations", async
       name: "Organization Follow Suspended Target",
       email: "orgfollowsuspendedtarget@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -476,7 +484,8 @@ test("followActor rejects suspended members acting through organizations", async
       },
     );
     const until = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: until })
       .where(eq(actorTable.accountId, member.account.id));
 
@@ -492,9 +501,11 @@ test("followActor rejects suspended members acting through organizations", async
     });
 
     assert.deepEqual(result.errors, undefined);
-    const data = (toPlainJson(result.data) as {
-      followActor: { __typename: string; suspendedUntil: string | null };
-    }).followActor;
+    const data = (
+      toPlainJson(result.data) as {
+        followActor: { __typename: string; suspendedUntil: string | null };
+      }
+    ).followActor;
     assert.equal(data.__typename, "ActorSuspendedError");
     assert.ok(data.suspendedUntil != null);
 
@@ -520,7 +531,8 @@ test("followActor rejects suspended organizations", async () => {
       name: "Organization Follow Suspended Org Target",
       email: "orgfollowsuspendedorgtarget@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -533,7 +545,8 @@ test("followActor rejects suspended organizations", async () => {
       },
     );
     const until = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: until })
       .where(eq(actorTable.accountId, organization.id));
 
@@ -549,9 +562,11 @@ test("followActor rejects suspended organizations", async () => {
     });
 
     assert.deepEqual(result.errors, undefined);
-    const data = (toPlainJson(result.data) as {
-      followActor: { __typename: string; suspendedUntil: string | null };
-    }).followActor;
+    const data = (
+      toPlainJson(result.data) as {
+        followActor: { __typename: string; suspendedUntil: string | null };
+      }
+    ).followActor;
     assert.equal(data.__typename, "ActorSuspendedError");
     assert.ok(data.suspendedUntil != null);
 
@@ -582,7 +597,8 @@ test("followActor rejects organization acting without membership", async () => {
       name: "Organization Follow Denied Target",
       email: "orgfollowdeniedtarget@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, admin.account.id));
     const organization = await createOrganization(
@@ -633,7 +649,8 @@ test("Actor viewer relationship fields can use an organization perspective", asy
       name: "Organization View Blocked",
       email: "orgviewblocked@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -735,7 +752,8 @@ test("Actor.postByUuid can resolve with an organization perspective", async () =
       name: "Organization Post Lookup Author",
       email: "orgpostlookupauthor@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -806,7 +824,8 @@ test("Actor.viewerInteractions can use an organization perspective", async () =>
       name: "Organization Interaction Profile",
       email: "orginteractionprofile@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -902,16 +921,23 @@ test("removeFollower removes an existing follower relation", async () => {
 
     assert.deepEqual(result.errors, undefined);
     assert.deepEqual(
-      (result.data as {
-        removeFollower: { __typename: string };
-      }).removeFollower.__typename,
+      (
+        result.data as {
+          removeFollower: { __typename: string };
+        }
+      ).removeFollower.__typename,
       "RemoveFollowerPayload",
     );
 
-    const stored = await tx.select().from(followingTable).where(and(
-      eq(followingTable.followerId, follower.actor.id),
-      eq(followingTable.followeeId, followee.actor.id),
-    ));
+    const stored = await tx
+      .select()
+      .from(followingTable)
+      .where(
+        and(
+          eq(followingTable.followerId, follower.actor.id),
+          eq(followingTable.followeeId, followee.actor.id),
+        ),
+      );
     assert.deepEqual(stored, []);
   });
 });
@@ -980,28 +1006,28 @@ test("removeFollower is documented in the GraphQL schema", async () => {
       fields: { name: string; description: string | null }[];
     };
   };
-  const mutation = data.__schema.mutationType.fields.find((field) =>
-    field.name === "removeFollower"
+  const mutation = data.__schema.mutationType.fields.find(
+    (field) => field.name === "removeFollower",
   );
   assert.match(mutation?.description ?? "", /selected viewer account/);
 
-  const actorId = data.removeFollowerInput.inputFields.find((field) =>
-    field.name === "actorId"
+  const actorId = data.removeFollowerInput.inputFields.find(
+    (field) => field.name === "actorId",
   );
   assert.match(actorId?.description ?? "", /follower/);
 
-  const actingAccountId = data.removeFollowerInput.inputFields.find((field) =>
-    field.name === "actingAccountId"
+  const actingAccountId = data.removeFollowerInput.inputFields.find(
+    (field) => field.name === "actingAccountId",
   );
   assert.match(actingAccountId?.description ?? "", /organization/);
 
-  const follower = data.removeFollowerPayload.fields.find((field) =>
-    field.name === "follower"
+  const follower = data.removeFollowerPayload.fields.find(
+    (field) => field.name === "follower",
   );
   assert.match(follower?.description ?? "", /removed follower/);
 
-  const followee = data.removeFollowerPayload.fields.find((field) =>
-    field.name === "followee"
+  const followee = data.removeFollowerPayload.fields.find(
+    (field) => field.name === "followee",
   );
   assert.match(followee?.description ?? "", /selected viewer account/);
 });
@@ -1033,18 +1059,21 @@ test("blockActor and unblockActor round-trip through GraphQL", async () => {
     await follow(fedCtx, blocker.account, blockee.actor);
     await follow(fedCtx, blockee.account, blocker.actor);
 
-    const storedBeforeBlock = await tx.select().from(followingTable).where(
-      or(
-        and(
-          eq(followingTable.followerId, blocker.actor.id),
-          eq(followingTable.followeeId, blockee.actor.id),
+    const storedBeforeBlock = await tx
+      .select()
+      .from(followingTable)
+      .where(
+        or(
+          and(
+            eq(followingTable.followerId, blocker.actor.id),
+            eq(followingTable.followeeId, blockee.actor.id),
+          ),
+          and(
+            eq(followingTable.followerId, blockee.actor.id),
+            eq(followingTable.followeeId, blocker.actor.id),
+          ),
         ),
-        and(
-          eq(followingTable.followerId, blockee.actor.id),
-          eq(followingTable.followeeId, blocker.actor.id),
-        ),
-      ),
-    );
+      );
     assert.deepEqual(storedBeforeBlock.length, 2);
 
     const blockResult = await execute({
@@ -1056,30 +1085,34 @@ test("blockActor and unblockActor round-trip through GraphQL", async () => {
     });
 
     assert.deepEqual(blockResult.errors, undefined);
-    const blockActorPayload = (blockResult.data as {
-      blockActor: {
-        __typename: string;
-        blockee?: {
-          id: string;
-          viewerBlocks: boolean;
-          blocksViewer: boolean;
-          viewerFollows: boolean;
-          followsViewer: boolean;
-          followees: { totalCount: number };
-          followers: { totalCount: number };
+    const blockActorPayload = (
+      blockResult.data as {
+        blockActor: {
+          __typename: string;
+          blockee?: {
+            id: string;
+            viewerBlocks: boolean;
+            blocksViewer: boolean;
+            viewerFollows: boolean;
+            followsViewer: boolean;
+            followees: { totalCount: number };
+            followers: { totalCount: number };
+          };
         };
-      };
-    }).blockActor;
+      }
+    ).blockActor;
     assert.deepEqual(blockActorPayload.__typename, "BlockActorPayload");
-    assert.deepEqual(
-      blockActorPayload.blockee,
-      expectedBlockeePayload(true),
-    );
+    assert.deepEqual(blockActorPayload.blockee, expectedBlockeePayload(true));
 
-    const storedAfterBlock = await tx.select().from(blockingTable).where(and(
-      eq(blockingTable.blockerId, blocker.actor.id),
-      eq(blockingTable.blockeeId, blockee.actor.id),
-    ));
+    const storedAfterBlock = await tx
+      .select()
+      .from(blockingTable)
+      .where(
+        and(
+          eq(blockingTable.blockerId, blocker.actor.id),
+          eq(blockingTable.blockeeId, blockee.actor.id),
+        ),
+      );
     assert.deepEqual(storedAfterBlock.length, 1);
     assert.deepEqual(storedAfterBlock[0].blockeeId, blockee.actor.id);
 
@@ -1092,32 +1125,37 @@ test("blockActor and unblockActor round-trip through GraphQL", async () => {
     });
 
     assert.deepEqual(unblockResult.errors, undefined);
-    const unblockActorPayload = (unblockResult.data as {
-      unblockActor: {
-        __typename: string;
-        blockee?: {
-          id: string;
-          viewerBlocks: boolean;
-          blocksViewer: boolean;
-          viewerFollows: boolean;
-          followsViewer: boolean;
-          followees: { totalCount: number };
-          followers: { totalCount: number };
+    const unblockActorPayload = (
+      unblockResult.data as {
+        unblockActor: {
+          __typename: string;
+          blockee?: {
+            id: string;
+            viewerBlocks: boolean;
+            blocksViewer: boolean;
+            viewerFollows: boolean;
+            followsViewer: boolean;
+            followees: { totalCount: number };
+            followers: { totalCount: number };
+          };
         };
-      };
-    }).unblockActor;
+      }
+    ).unblockActor;
     assert.deepEqual(unblockActorPayload.__typename, "UnblockActorPayload");
     assert.deepEqual(
       unblockActorPayload.blockee,
       expectedBlockeePayload(false),
     );
 
-    const storedAfterUnblock = await tx.select().from(blockingTable).where(
-      and(
-        eq(blockingTable.blockerId, blocker.actor.id),
-        eq(blockingTable.blockeeId, blockee.actor.id),
-      ),
-    );
+    const storedAfterUnblock = await tx
+      .select()
+      .from(blockingTable)
+      .where(
+        and(
+          eq(blockingTable.blockerId, blocker.actor.id),
+          eq(blockingTable.blockeeId, blockee.actor.id),
+        ),
+      );
     assert.deepEqual(storedAfterUnblock, []);
   });
 });
@@ -1542,14 +1580,16 @@ test("Actor.followers lists mutual followers (followers you know) first", async 
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    const conn = (result.data as {
-      actorByUuid: {
-        followers: {
-          totalCount: number;
-          edges: { accepted: string | null; node: { username: string } }[];
+    const conn = (
+      result.data as {
+        actorByUuid: {
+          followers: {
+            totalCount: number;
+            edges: { accepted: string | null; node: { username: string } }[];
+          };
         };
-      };
-    }).actorByUuid.followers;
+      }
+    ).actorByUuid.followers;
 
     assert.deepEqual(conn.totalCount, 4);
     const usernames = conn.edges.map((edge) => edge.node.username);
@@ -1565,7 +1605,10 @@ test("Actor.followers lists mutual followers (followers you know) first", async 
       new Set(["foplainc", "foplaind"]),
     );
     // The follow-row edge fields still resolve after the custom re-shaping.
-    assert.deepEqual(conn.edges.every((edge) => edge.accepted != null), true);
+    assert.deepEqual(
+      conn.edges.every((edge) => edge.accepted != null),
+      true,
+    );
 
     // A guest takes the no-viewer ordering branch: it must run without error
     // and still return every accepted follower.
@@ -1577,14 +1620,16 @@ test("Actor.followers lists mutual followers (followers you know) first", async 
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(guestResult.errors, undefined);
-    const guestConn = (guestResult.data as {
-      actorByUuid: {
-        followers: {
-          totalCount: number;
-          edges: { node: { username: string } }[];
+    const guestConn = (
+      guestResult.data as {
+        actorByUuid: {
+          followers: {
+            totalCount: number;
+            edges: { node: { username: string } }[];
+          };
         };
-      };
-    }).actorByUuid.followers;
+      }
+    ).actorByUuid.followers;
     assert.deepEqual(guestConn.totalCount, 4);
     assert.deepEqual(
       new Set(guestConn.edges.map((edge) => edge.node.username)),
@@ -1667,70 +1712,67 @@ test("Actor.viewerFollowState returns NONE for a guest viewer", async () => {
   });
 });
 
-test(
-  "Actor.viewerFollows and followsViewer are batched into independent results",
-  async () => {
-    await withRollback(async (tx) => {
-      const viewer = await insertAccountWithActor(tx, {
-        username: "frelviewer",
-        name: "FREL Viewer",
-        email: "frelviewer@example.com",
-      });
-      const followed = await insertAccountWithActor(tx, {
-        username: "frelfollowed",
-        name: "FREL Followed",
-        email: "frelfollowed@example.com",
-      });
-      const fan = await insertAccountWithActor(tx, {
-        username: "frelfan",
-        name: "FREL Fan",
-        email: "frelfan@example.com",
-      });
-      const stranger = await insertAccountWithActor(tx, {
-        username: "frelstranger",
-        name: "FREL Stranger",
-        email: "frelstranger@example.com",
-      });
-
-      const fedCtx = createFedCtx(tx);
-      // Viewer follows `followed` (viewerFollows=true on followed).
-      await follow(fedCtx, viewer.account, followed.actor);
-      // `fan` follows viewer (followsViewer=true on fan).
-      await follow(fedCtx, fan.account, viewer.actor);
-
-      const result = await execute({
-        schema,
-        document: followRelationshipBatchQuery,
-        variableValues: {
-          a: followed.actor.id,
-          b: fan.actor.id,
-          c: stranger.actor.id,
-        },
-        contextValue: makeUserContext(tx, viewer.account),
-        onError: "NO_PROPAGATE",
-      });
-
-      assert.deepEqual(result.errors, undefined);
-      assert.deepEqual(result.data, {
-        a: {
-          id: encodeGlobalID("Actor", followed.actor.id),
-          viewerFollows: true,
-          followsViewer: false,
-        },
-        b: {
-          id: encodeGlobalID("Actor", fan.actor.id),
-          viewerFollows: false,
-          followsViewer: true,
-        },
-        c: {
-          id: encodeGlobalID("Actor", stranger.actor.id),
-          viewerFollows: false,
-          followsViewer: false,
-        },
-      });
+test("Actor.viewerFollows and followsViewer are batched into independent results", async () => {
+  await withRollback(async (tx) => {
+    const viewer = await insertAccountWithActor(tx, {
+      username: "frelviewer",
+      name: "FREL Viewer",
+      email: "frelviewer@example.com",
     });
-  },
-);
+    const followed = await insertAccountWithActor(tx, {
+      username: "frelfollowed",
+      name: "FREL Followed",
+      email: "frelfollowed@example.com",
+    });
+    const fan = await insertAccountWithActor(tx, {
+      username: "frelfan",
+      name: "FREL Fan",
+      email: "frelfan@example.com",
+    });
+    const stranger = await insertAccountWithActor(tx, {
+      username: "frelstranger",
+      name: "FREL Stranger",
+      email: "frelstranger@example.com",
+    });
+
+    const fedCtx = createFedCtx(tx);
+    // Viewer follows `followed` (viewerFollows=true on followed).
+    await follow(fedCtx, viewer.account, followed.actor);
+    // `fan` follows viewer (followsViewer=true on fan).
+    await follow(fedCtx, fan.account, viewer.actor);
+
+    const result = await execute({
+      schema,
+      document: followRelationshipBatchQuery,
+      variableValues: {
+        a: followed.actor.id,
+        b: fan.actor.id,
+        c: stranger.actor.id,
+      },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(result.errors, undefined);
+    assert.deepEqual(result.data, {
+      a: {
+        id: encodeGlobalID("Actor", followed.actor.id),
+        viewerFollows: true,
+        followsViewer: false,
+      },
+      b: {
+        id: encodeGlobalID("Actor", fan.actor.id),
+        viewerFollows: false,
+        followsViewer: true,
+      },
+      c: {
+        id: encodeGlobalID("Actor", stranger.actor.id),
+        viewerFollows: false,
+        followsViewer: false,
+      },
+    });
+  });
+});
 
 test("Actor.viewerBlocks returns the right state per actor when batched", async () => {
   await withRollback(async (tx) => {
@@ -1820,70 +1862,67 @@ test("Actor.viewerBlocks returns false for a guest viewer", async () => {
   });
 });
 
-test(
-  "Actor.viewerBlocks and blocksViewer are batched into independent results",
-  async () => {
-    await withRollback(async (tx) => {
-      const viewer = await insertAccountWithActor(tx, {
-        username: "brelviewer",
-        name: "BREL Viewer",
-        email: "brelviewer@example.com",
-      });
-      const blocked = await insertAccountWithActor(tx, {
-        username: "brelblocked",
-        name: "BREL Blocked",
-        email: "brelblocked@example.com",
-      });
-      const blocker = await insertAccountWithActor(tx, {
-        username: "brelblocker",
-        name: "BREL Blocker",
-        email: "brelblocker@example.com",
-      });
-      const stranger = await insertAccountWithActor(tx, {
-        username: "brelstranger",
-        name: "BREL Stranger",
-        email: "brelstranger@example.com",
-      });
-
-      const fedCtx = createFedCtx(tx);
-      // Viewer blocks `blocked` (viewerBlocks=true on blocked).
-      await block(fedCtx, viewer.account, blocked.actor);
-      // `blocker` blocks viewer (blocksViewer=true on blocker).
-      await block(fedCtx, blocker.account, viewer.actor);
-
-      const result = await execute({
-        schema,
-        document: blockRelationshipBatchQuery,
-        variableValues: {
-          a: blocked.actor.id,
-          b: blocker.actor.id,
-          c: stranger.actor.id,
-        },
-        contextValue: makeUserContext(tx, viewer.account),
-        onError: "NO_PROPAGATE",
-      });
-
-      assert.deepEqual(result.errors, undefined);
-      assert.deepEqual(result.data, {
-        a: {
-          id: encodeGlobalID("Actor", blocked.actor.id),
-          viewerBlocks: true,
-          blocksViewer: false,
-        },
-        b: {
-          id: encodeGlobalID("Actor", blocker.actor.id),
-          viewerBlocks: false,
-          blocksViewer: true,
-        },
-        c: {
-          id: encodeGlobalID("Actor", stranger.actor.id),
-          viewerBlocks: false,
-          blocksViewer: false,
-        },
-      });
+test("Actor.viewerBlocks and blocksViewer are batched into independent results", async () => {
+  await withRollback(async (tx) => {
+    const viewer = await insertAccountWithActor(tx, {
+      username: "brelviewer",
+      name: "BREL Viewer",
+      email: "brelviewer@example.com",
     });
-  },
-);
+    const blocked = await insertAccountWithActor(tx, {
+      username: "brelblocked",
+      name: "BREL Blocked",
+      email: "brelblocked@example.com",
+    });
+    const blocker = await insertAccountWithActor(tx, {
+      username: "brelblocker",
+      name: "BREL Blocker",
+      email: "brelblocker@example.com",
+    });
+    const stranger = await insertAccountWithActor(tx, {
+      username: "brelstranger",
+      name: "BREL Stranger",
+      email: "brelstranger@example.com",
+    });
+
+    const fedCtx = createFedCtx(tx);
+    // Viewer blocks `blocked` (viewerBlocks=true on blocked).
+    await block(fedCtx, viewer.account, blocked.actor);
+    // `blocker` blocks viewer (blocksViewer=true on blocker).
+    await block(fedCtx, blocker.account, viewer.actor);
+
+    const result = await execute({
+      schema,
+      document: blockRelationshipBatchQuery,
+      variableValues: {
+        a: blocked.actor.id,
+        b: blocker.actor.id,
+        c: stranger.actor.id,
+      },
+      contextValue: makeUserContext(tx, viewer.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(result.errors, undefined);
+    assert.deepEqual(result.data, {
+      a: {
+        id: encodeGlobalID("Actor", blocked.actor.id),
+        viewerBlocks: true,
+        blocksViewer: false,
+      },
+      b: {
+        id: encodeGlobalID("Actor", blocker.actor.id),
+        viewerBlocks: false,
+        blocksViewer: true,
+      },
+      c: {
+        id: encodeGlobalID("Actor", stranger.actor.id),
+        viewerBlocks: false,
+        blocksViewer: false,
+      },
+    });
+  });
+});
 
 // GraphQL spec: top-level mutation fields execute serially.  With
 // `cache: false` on the loader, the second read sees the post-unblock
@@ -1926,77 +1965,74 @@ const blockUnblockMutation = parse(`
   }
 `);
 
-test(
-  "Actor.viewerBlocks loader does not cache stale state across serial mutations",
-  async () => {
-    await withRollback(async (tx) => {
-      const blocker = await insertAccountWithActor(tx, {
-        username: "vbcacheblocker",
-        name: "VB Cache Blocker",
-        email: "vbcacheblocker@example.com",
-      });
-      const blockee = await insertAccountWithActor(tx, {
-        username: "vbcacheblockee",
-        name: "VB Cache Blockee",
-        email: "vbcacheblockee@example.com",
-      });
+test("Actor.viewerBlocks loader does not cache stale state across serial mutations", async () => {
+  await withRollback(async (tx) => {
+    const blocker = await insertAccountWithActor(tx, {
+      username: "vbcacheblocker",
+      name: "VB Cache Blocker",
+      email: "vbcacheblocker@example.com",
+    });
+    const blockee = await insertAccountWithActor(tx, {
+      username: "vbcacheblockee",
+      name: "VB Cache Blockee",
+      email: "vbcacheblockee@example.com",
+    });
 
-      const actorId = encodeGlobalID("Actor", blockee.actor.id);
-      const result = await execute({
-        schema,
-        document: blockUnblockMutation,
-        variableValues: { actorId },
-        contextValue: makeUserContext(tx, blocker.account),
-        onError: "NO_PROPAGATE",
-      });
+    const actorId = encodeGlobalID("Actor", blockee.actor.id);
+    const result = await execute({
+      schema,
+      document: blockUnblockMutation,
+      variableValues: { actorId },
+      contextValue: makeUserContext(tx, blocker.account),
+      onError: "NO_PROPAGATE",
+    });
 
-      assert.deepEqual(result.errors, undefined);
-      const data = result.data as {
-        block: {
-          __typename: string;
-          blockee?: {
-            id: string;
-            viewerBlocks: boolean;
-            blocksViewer: boolean;
-            viewerFollows: boolean;
-            followsViewer: boolean;
-          };
-        };
-        unblock: {
-          __typename: string;
-          blockee?: {
-            id: string;
-            viewerBlocks: boolean;
-            blocksViewer: boolean;
-            viewerFollows: boolean;
-            followsViewer: boolean;
-          };
+    assert.deepEqual(result.errors, undefined);
+    const data = result.data as {
+      block: {
+        __typename: string;
+        blockee?: {
+          id: string;
+          viewerBlocks: boolean;
+          blocksViewer: boolean;
+          viewerFollows: boolean;
+          followsViewer: boolean;
         };
       };
+      unblock: {
+        __typename: string;
+        blockee?: {
+          id: string;
+          viewerBlocks: boolean;
+          blocksViewer: boolean;
+          viewerFollows: boolean;
+          followsViewer: boolean;
+        };
+      };
+    };
 
-      assert.deepEqual(data.block.__typename, "BlockActorPayload");
-      assert.deepEqual(data.unblock.__typename, "UnblockActorPayload");
+    assert.deepEqual(data.block.__typename, "BlockActorPayload");
+    assert.deepEqual(data.unblock.__typename, "UnblockActorPayload");
 
-      // Crucial: this asserts the `viewerBlocks` loader re-queried after
-      // the unblock mutation flipped state.  A `cache: true` regression
-      // on `viewerBlocks` would surface here as the stale cached `true`.
-      assert.deepEqual(data.block.blockee?.viewerBlocks, true);
-      assert.deepEqual(data.unblock.blockee?.viewerBlocks, false);
+    // Crucial: this asserts the `viewerBlocks` loader re-queried after
+    // the unblock mutation flipped state.  A `cache: true` regression
+    // on `viewerBlocks` would surface here as the stale cached `true`.
+    assert.deepEqual(data.block.blockee?.viewerBlocks, true);
+    assert.deepEqual(data.unblock.blockee?.viewerBlocks, false);
 
-      // Smoke-test the other three loaders on the mutation payload.
-      // Their values don't flip between the two reads in this scenario,
-      // so cache: true vs cache: false isn't differentiated here — but
-      // a regression that breaks the field plumbing or returns
-      // undefined/null would surface.
-      assert.deepEqual(data.block.blockee?.blocksViewer, false);
-      assert.deepEqual(data.unblock.blockee?.blocksViewer, false);
-      assert.deepEqual(data.block.blockee?.viewerFollows, false);
-      assert.deepEqual(data.unblock.blockee?.viewerFollows, false);
-      assert.deepEqual(data.block.blockee?.followsViewer, false);
-      assert.deepEqual(data.unblock.blockee?.followsViewer, false);
-    });
-  },
-);
+    // Smoke-test the other three loaders on the mutation payload.
+    // Their values don't flip between the two reads in this scenario,
+    // so cache: true vs cache: false isn't differentiated here — but
+    // a regression that breaks the field plumbing or returns
+    // undefined/null would surface.
+    assert.deepEqual(data.block.blockee?.blocksViewer, false);
+    assert.deepEqual(data.unblock.blockee?.blocksViewer, false);
+    assert.deepEqual(data.block.blockee?.viewerFollows, false);
+    assert.deepEqual(data.unblock.blockee?.viewerFollows, false);
+    assert.deepEqual(data.block.blockee?.followsViewer, false);
+    assert.deepEqual(data.unblock.blockee?.followsViewer, false);
+  });
+});
 
 // Companion test that genuinely locks `cache: false` in for
 // `viewerFollows`.  followActor creates the follow row and unfollowActor
@@ -2018,58 +2054,55 @@ const followUnfollowMutation = parse(`
   }
 `);
 
-test(
-  "Actor.viewerFollows loader does not cache stale state across serial mutations",
-  async () => {
-    await withRollback(async (tx) => {
-      const follower = await insertAccountWithActor(tx, {
-        username: "vfcachefollower",
-        name: "VF Cache Follower",
-        email: "vfcachefollower@example.com",
-      });
-      const followee = await insertAccountWithActor(tx, {
-        username: "vfcachefollowee",
-        name: "VF Cache Followee",
-        email: "vfcachefollowee@example.com",
-      });
+test("Actor.viewerFollows loader does not cache stale state across serial mutations", async () => {
+  await withRollback(async (tx) => {
+    const follower = await insertAccountWithActor(tx, {
+      username: "vfcachefollower",
+      name: "VF Cache Follower",
+      email: "vfcachefollower@example.com",
+    });
+    const followee = await insertAccountWithActor(tx, {
+      username: "vfcachefollowee",
+      name: "VF Cache Followee",
+      email: "vfcachefollowee@example.com",
+    });
 
-      const actorId = encodeGlobalID("Actor", followee.actor.id);
-      const result = await execute({
-        schema,
-        document: followUnfollowMutation,
-        variableValues: { actorId },
-        contextValue: makeUserContext(tx, follower.account),
-        onError: "NO_PROPAGATE",
-      });
+    const actorId = encodeGlobalID("Actor", followee.actor.id);
+    const result = await execute({
+      schema,
+      document: followUnfollowMutation,
+      variableValues: { actorId },
+      contextValue: makeUserContext(tx, follower.account),
+      onError: "NO_PROPAGATE",
+    });
 
-      assert.deepEqual(result.errors, undefined);
-      const data = result.data as {
-        follow: {
-          __typename: string;
-          followee?: {
-            id: string;
-            viewerFollows: boolean;
-            viewerFollowState: string;
-          };
-        };
-        unfollow: {
-          __typename: string;
-          followee?: {
-            id: string;
-            viewerFollows: boolean;
-            viewerFollowState: string;
-          };
+    assert.deepEqual(result.errors, undefined);
+    const data = result.data as {
+      follow: {
+        __typename: string;
+        followee?: {
+          id: string;
+          viewerFollows: boolean;
+          viewerFollowState: string;
         };
       };
+      unfollow: {
+        __typename: string;
+        followee?: {
+          id: string;
+          viewerFollows: boolean;
+          viewerFollowState: string;
+        };
+      };
+    };
 
-      assert.deepEqual(data.follow.__typename, "FollowActorPayload");
-      assert.deepEqual(data.unfollow.__typename, "UnfollowActorPayload");
-      assert.deepEqual(data.follow.followee?.viewerFollows, true);
-      assert.deepEqual(data.follow.followee?.viewerFollowState, "ACCEPTED");
-      // A `cache: true` regression on `viewerFollows` would surface
-      // here as a stale cached `true`.
-      assert.deepEqual(data.unfollow.followee?.viewerFollows, false);
-      assert.deepEqual(data.unfollow.followee?.viewerFollowState, "NONE");
-    });
-  },
-);
+    assert.deepEqual(data.follow.__typename, "FollowActorPayload");
+    assert.deepEqual(data.unfollow.__typename, "UnfollowActorPayload");
+    assert.deepEqual(data.follow.followee?.viewerFollows, true);
+    assert.deepEqual(data.follow.followee?.viewerFollowState, "ACCEPTED");
+    // A `cache: true` regression on `viewerFollows` would surface
+    // here as a stale cached `true`.
+    assert.deepEqual(data.unfollow.followee?.viewerFollows, false);
+    assert.deepEqual(data.unfollow.followee?.viewerFollowState, "NONE");
+  });
+});

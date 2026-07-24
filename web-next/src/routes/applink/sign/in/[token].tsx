@@ -2,7 +2,7 @@ import { A, useParams, useSearchParams } from "@solidjs/router";
 import { onMount } from "solid-js";
 import { Title } from "~/components/Title.tsx";
 import { Button } from "~/components/ui/button.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 export default function AppLinkVerify() {
   const { t } = useLingui();
@@ -12,18 +12,18 @@ export default function AppLinkVerify() {
   const token = () => params.token ?? "";
   const code = () => {
     const c = searchParams.code;
-    return Array.isArray(c) ? c[0] ?? "" : c ?? "";
+    return Array.isArray(c) ? (c[0] ?? "") : (c ?? "");
   };
 
   const appLink = () =>
-    `hackerspub://verify?token=${encodeURIComponent(token())}&code=${
-      encodeURIComponent(code())
-    }`;
+    `hackerspub://verify?token=${encodeURIComponent(token())}&code=${encodeURIComponent(
+      code(),
+    )}`;
 
   const webFallback = () =>
-    `/sign/in/${encodeURIComponent(token())}?code=${
-      encodeURIComponent(code())
-    }&platform=web`;
+    `/sign/in/${encodeURIComponent(token())}?code=${encodeURIComponent(
+      code(),
+    )}&platform=web`;
 
   onMount(() => {
     try {
@@ -37,15 +37,8 @@ export default function AppLinkVerify() {
     <div class="flex min-h-screen items-center justify-center bg-background">
       <Title>{t`Sign in to Hackers' Pub`}</Title>
       <div class="flex flex-col items-center gap-4 p-6 text-center">
-        <p class="text-lg font-medium">
-          {t`Sign in to Hackers' Pub`}
-        </p>
-        <Button
-          as="a"
-          href={appLink()}
-          size="lg"
-          class="w-full rounded-full"
-        >
+        <p class="text-lg font-medium">{t`Sign in to Hackers' Pub`}</p>
+        <Button as="a" href={appLink()} size="lg" class="w-full rounded-full">
           {t`Open in app`}
         </Button>
         <Button

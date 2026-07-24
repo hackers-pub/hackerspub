@@ -25,9 +25,9 @@ import {
 // the Docker image is public, so a baked-in DSN would leak. The value
 // is rendered into an inline script below so the client picks it up
 // before entry-client.mjs runs (deferred module scripts).
-const SENTRY_DSN_SCRIPT = `window.__SENTRY_DSN__=${
-  JSON.stringify(nodeProcess.env.SENTRY_DSN ?? "")
-};`;
+const SENTRY_DSN_SCRIPT = `window.__SENTRY_DSN__=${JSON.stringify(
+  nodeProcess.env.SENTRY_DSN ?? "",
+)};`;
 
 function isEnabledRuntimeFlag(name: string): boolean {
   const value = nodeProcess.env[name]?.trim().toLowerCase();
@@ -36,13 +36,13 @@ function isEnabledRuntimeFlag(name: string): boolean {
 
 // Keep Plausible opt-in runtime-only for the same reason as Sentry: the
 // public Docker image should not decide analytics behavior at build time.
-const PLAUSIBLE_SCRIPT = `window.__PLAUSIBLE__=${
-  JSON.stringify(isEnabledRuntimeFlag("PLAUSIBLE"))
-};`;
+const PLAUSIBLE_SCRIPT = `window.__PLAUSIBLE__=${JSON.stringify(
+  isEnabledRuntimeFlag("PLAUSIBLE"),
+)};`;
 
 function removeInitialModulePreloads(context: PageEvent): void {
-  context.assets = context.assets.filter((asset) =>
-    asset?.tag !== "link" || asset.attrs?.rel !== "modulepreload"
+  context.assets = context.assets.filter(
+    (asset) => asset?.tag !== "link" || asset.attrs?.rel !== "modulepreload",
   );
 }
 
@@ -55,38 +55,41 @@ function removeInitialModulePreloads(context: PageEvent): void {
 // swallowed by Solid (e.g. inside Relay's network layer) are reported
 // explicitly with `captureException` at their source — see
 // RelayEnvironment.tsx.
-export default createHandler((context) => {
-  removeInitialModulePreloads(context);
-  return (
-    <StartServer
-      document={({ assets, children, scripts }) => (
-        <html>
-          <head>
-            <meta charset="utf-8" />
-            <meta
-              name="viewport"
-              content="width=device-width, initial-scale=1"
-            />
-            <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-            <link
-              rel="alternate icon"
-              type="image/x-icon"
-              href="/favicon.ico"
-              sizes="16x16 32x32 48x48 256x256"
-            />
-            <link rel="apple-touch-icon" href="/apple-icon-180.png" />
-            <link rel="manifest" href="/manifest.json" />
-            <meta name="theme-color" content="#000000" />
-            <script innerHTML={SENTRY_DSN_SCRIPT} />
-            <script innerHTML={PLAUSIBLE_SCRIPT} />
-            {assets}
-          </head>
-          <body>
-            <div id="app">{children}</div>
-            {scripts}
-          </body>
-        </html>
-      )}
-    />
-  );
-}, { mode: "async" });
+export default createHandler(
+  (context) => {
+    removeInitialModulePreloads(context);
+    return (
+      <StartServer
+        document={({ assets, children, scripts }) => (
+          <html>
+            <head>
+              <meta charset="utf-8" />
+              <meta
+                name="viewport"
+                content="width=device-width, initial-scale=1"
+              />
+              <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+              <link
+                rel="alternate icon"
+                type="image/x-icon"
+                href="/favicon.ico"
+                sizes="16x16 32x32 48x48 256x256"
+              />
+              <link rel="apple-touch-icon" href="/apple-icon-180.png" />
+              <link rel="manifest" href="/manifest.json" />
+              <meta name="theme-color" content="#000000" />
+              <script innerHTML={SENTRY_DSN_SCRIPT} />
+              <script innerHTML={PLAUSIBLE_SCRIPT} />
+              {assets}
+            </head>
+            <body>
+              <div id="app">{children}</div>
+              {scripts}
+            </body>
+          </html>
+        )}
+      />
+    );
+  },
+  { mode: "async" },
+);

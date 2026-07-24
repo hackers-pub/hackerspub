@@ -49,7 +49,8 @@ test("createOrganization() consumes one invitation and creates an Organization a
       name: "Org Creator",
       email: "orgcreator@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, creator.account.id));
     const fedCtx = createFedCtx(tx);
@@ -113,7 +114,8 @@ test("createOrganization() rejects invalid usernames without consuming invitatio
       name: "Invalid Org Creator",
       email: "invalidorgcreator@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, creator.account.id));
 
@@ -144,7 +146,8 @@ test("createOrganization() rejects deleted account usernames", async () => {
       name: "Reserved Org Creator",
       email: "reservedorgcreator@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, creator.account.id));
     await tx.execute(sql`
@@ -184,7 +187,8 @@ test("createOrganization() rejects invalid display names and bios without consum
       name: "Invalid Org Profile Creator",
       email: "invalidorgprofilecreator@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, creator.account.id));
 
@@ -228,7 +232,8 @@ test("organization membership invite acceptance and last-member guard", async ()
       name: "Org Member",
       email: "orgmember@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, admin.account.id));
     const organization = await createOrganization(
@@ -264,7 +269,8 @@ test("organization membership invite acceptance and last-member guard", async ()
     const left = await leaveOrganization(tx, member.account, organization.id);
     assert.equal(left.memberAccountId, member.account.id);
 
-    const memberships = await tx.select()
+    const memberships = await tx
+      .select()
       .from(organizationMembershipTable)
       .where(
         eq(organizationMembershipTable.organizationAccountId, organization.id),
@@ -304,7 +310,8 @@ test("inviteOrganizationMember() notifies the invited account", async () => {
           auth: validWebPushAuth,
         },
       });
-      await tx.update(accountTable)
+      await tx
+        .update(accountTable)
         .set({ leftInvitations: 1 })
         .where(eq(accountTable.id, admin.account.id));
       const organization = await createOrganization(
@@ -382,7 +389,8 @@ test("inviteOrganizationMember() recreates stale invitation notifications", asyn
           auth: validWebPushAuth,
         },
       });
-      await tx.update(accountTable)
+      await tx
+        .update(accountTable)
         .set({ leftInvitations: 1 })
         .where(eq(accountTable.id, admin.account.id));
       const organization = await createOrganization(
@@ -466,7 +474,8 @@ test("ensureOrganizationInvitationNotifications() repairs pending invitations", 
       name: "Repair Invite Member",
       email: "repairinvitemember@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, admin.account.id));
     const organization = await createOrganization(
@@ -513,7 +522,8 @@ test("removeOrganizationMember() cancels a pending invitation", async () => {
       name: "Cancel Invite Member",
       email: "cancelinvitemember@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, admin.account.id));
     const organization = await createOrganization(
@@ -575,7 +585,8 @@ test("removeOrganizationMember() rejects removing the last accepted admin", asyn
       name: "Last Remove Pending",
       email: "lastremovepending@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, admin.account.id));
     const organization = await createOrganization(
@@ -634,7 +645,8 @@ test("getOrganizationNotificationBadge() separates globally unread and member un
       name: "Badge Actor",
       email: "badgeactor@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, admin.account.id));
     const organization = await createOrganization(
@@ -660,13 +672,16 @@ test("getOrganizationNotificationBadge() separates globally unread and member un
       new Date("2026-04-15T07:00:00.000Z"),
     ];
     for (const [index, date] of created.entries()) {
-      await tx.insert(notificationTable).values({
-        id: crypto.randomUUID(),
-        accountId: organization.id,
-        type: "follow",
-        actorIds: [actor.actor.id],
-        created: date,
-      }).onConflictDoNothing();
+      await tx
+        .insert(notificationTable)
+        .values({
+          id: crypto.randomUUID(),
+          accountId: organization.id,
+          type: "follow",
+          actorIds: [actor.actor.id],
+          created: date,
+        })
+        .onConflictDoNothing();
       if (index > 0) {
         await tx.execute(sql`select pg_sleep(0)`);
       }
@@ -730,7 +745,8 @@ test("getOrganizationNotificationBadge() ignores notifications with no visible a
       name: "Hidden Badge Actor",
       email: "hiddenbadgeactor@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, admin.account.id));
     const organization = await createOrganization(
@@ -803,7 +819,8 @@ test("getOrganizationNotificationBadge() ignores former-member read markers", as
       name: "Former Read Actor",
       email: "formerreadactor@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, admin.account.id));
     const organization = await createOrganization(
@@ -872,7 +889,8 @@ test("acceptOrganizationConversion() preserves inviter and removes direct login 
       name: "Conversion Admin",
       email: "conversionadmin@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ inviterId: inviter.account.id })
       .where(eq(accountTable.id, account.account.id));
 
@@ -926,32 +944,38 @@ test("acceptOrganizationConversion() preserves inviter and removes direct login 
     assert.equal(converted.inviterId, inviter.account.id);
     assert.equal(converted.actor.type, "Organization");
 
-    const emails = await tx.select()
+    const emails = await tx
+      .select()
       .from(accountEmailTable)
       .where(eq(accountEmailTable.accountId, converted.id));
     assert.equal(emails.length, 0);
 
-    const pushTargets = await tx.select()
+    const pushTargets = await tx
+      .select()
       .from(pushNotificationTargetTable)
       .where(eq(pushNotificationTargetTable.accountId, converted.id));
     assert.equal(pushTargets.length, 0);
 
-    const invitationLinks = await tx.select()
+    const invitationLinks = await tx
+      .select()
       .from(invitationLinkTable)
       .where(eq(invitationLinkTable.inviterId, converted.id));
     assert.equal(invitationLinks.length, 0);
 
-    const drafts = await tx.select()
+    const drafts = await tx
+      .select()
       .from(articleDraftTable)
       .where(eq(articleDraftTable.accountId, converted.id));
     assert.equal(drafts.length, 0);
 
-    const bookmarks = await tx.select()
+    const bookmarks = await tx
+      .select()
       .from(bookmarkTable)
       .where(eq(bookmarkTable.accountId, converted.id));
     assert.equal(bookmarks.length, 0);
 
-    const notifications = await tx.select()
+    const notifications = await tx
+      .select()
       .from(notificationTable)
       .where(eq(notificationTable.accountId, converted.id));
     assert.equal(notifications.length, 0);
@@ -997,11 +1021,7 @@ test("acceptOrganizationConversion() sends Update(Organization) to followers", a
       },
     } as typeof baseFedCtx;
 
-    await acceptOrganizationConversion(
-      fedCtx,
-      admin.account,
-      request.id,
-    );
+    await acceptOrganizationConversion(fedCtx, admin.account, request.id);
 
     assert.equal(sent.length, 1);
     assert.equal(sent[0].recipient, "followers");
@@ -1037,7 +1057,8 @@ test("requestOrganizationConversion() rejects accounts that belong to an organiz
       name: "Convert Accepter",
       email: "convertaccepter@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, orgAdmin.account.id));
     const organization = await createOrganization(
@@ -1231,7 +1252,8 @@ test("acceptOrganizationConversion() rejects accounts that still belong to organ
       member.account.username,
     );
 
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, admin.account.id));
     const organization = await createOrganization(
@@ -1284,7 +1306,8 @@ test("acceptOrganizationConversion() clears pending organization invitations", a
       name: "Conversion Pending Admin",
       email: "conversionpendingadmin@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, inviter.account.id));
     const organization = await createOrganization(
@@ -1367,8 +1390,8 @@ test("acceptOrganizationConversion() clears delegated conversion requests", asyn
       request.id,
     );
 
-    const storedDelegatedRequest = await tx.query
-      .organizationConversionRequestTable.findFirst({
+    const storedDelegatedRequest =
+      await tx.query.organizationConversionRequestTable.findFirst({
         where: { id: delegatedRequest.id },
       });
     assert.equal(storedDelegatedRequest, undefined);

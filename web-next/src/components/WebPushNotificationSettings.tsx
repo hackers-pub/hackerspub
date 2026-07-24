@@ -25,7 +25,7 @@ import {
   WebPushError,
   type WebPushSubscriptionData,
 } from "~/lib/webPush.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { WebPushNotificationSettings_account$key } from "./__generated__/WebPushNotificationSettings_account.graphql.ts";
 import type { WebPushNotificationSettingsRegisterMutation } from "./__generated__/WebPushNotificationSettingsRegisterMutation.graphql.ts";
 import type { WebPushNotificationSettingsUnregisterMutation } from "./__generated__/WebPushNotificationSettingsUnregisterMutation.graphql.ts";
@@ -41,18 +41,20 @@ export interface WebPushNotificationSettingsProps {
 
 const registerMutation = graphql`
   mutation WebPushNotificationSettingsRegisterMutation(
-    $endpoint: String!,
-    $p256dh: String!,
-    $auth: String!,
+    $endpoint: String!
+    $p256dh: String!
+    $auth: String!
     $expirationTime: DateTime
   ) {
-    registerPushNotificationTarget(input: {
-      service: WEB_PUSH,
-      endpoint: $endpoint,
-      p256dh: $p256dh,
-      auth: $auth,
-      expirationTime: $expirationTime
-    }) {
+    registerPushNotificationTarget(
+      input: {
+        service: WEB_PUSH
+        endpoint: $endpoint
+        p256dh: $p256dh
+        auth: $auth
+        expirationTime: $expirationTime
+      }
+    ) {
       __typename
       ... on RegisterPushNotificationTargetPayload {
         endpoint
@@ -63,10 +65,9 @@ const registerMutation = graphql`
 
 const unregisterMutation = graphql`
   mutation WebPushNotificationSettingsUnregisterMutation($endpoint: String!) {
-    unregisterPushNotificationTarget(input: {
-      service: WEB_PUSH,
-      endpoint: $endpoint
-    }) {
+    unregisterPushNotificationTarget(
+      input: { service: WEB_PUSH, endpoint: $endpoint }
+    ) {
       __typename
       ... on UnregisterPushNotificationTargetPayload {
         unregistered
@@ -77,13 +78,10 @@ const unregisterMutation = graphql`
 
 const updatePolicyMutation = graphql`
   mutation WebPushNotificationSettingsUpdatePolicyMutation(
-    $id: ID!,
+    $id: ID!
     $policy: PushNotificationPreviewPolicy!
   ) {
-    updateAccount(input: {
-      id: $id,
-      pushNotificationPreviewPolicy: $policy
-    }) {
+    updateAccount(input: { id: $id, pushNotificationPreviewPolicy: $policy }) {
       account {
         id
         pushNotificationPreviewPolicy
@@ -105,27 +103,21 @@ export function WebPushNotificationSettings(
     `,
     () => props.$account,
   );
-  const [registerTarget, registering] = createMutation<
-    WebPushNotificationSettingsRegisterMutation
-  >(
-    registerMutation,
-  );
-  const [unregisterTarget, unregistering] = createMutation<
-    WebPushNotificationSettingsUnregisterMutation
-  >(
-    unregisterMutation,
-  );
-  const [updatePolicy, updatingPolicy] = createMutation<
-    WebPushNotificationSettingsUpdatePolicyMutation
-  >(
-    updatePolicyMutation,
-  );
+  const [registerTarget, registering] =
+    createMutation<WebPushNotificationSettingsRegisterMutation>(
+      registerMutation,
+    );
+  const [unregisterTarget, unregistering] =
+    createMutation<WebPushNotificationSettingsUnregisterMutation>(
+      unregisterMutation,
+    );
+  const [updatePolicy, updatingPolicy] =
+    createMutation<WebPushNotificationSettingsUpdatePolicyMutation>(
+      updatePolicyMutation,
+    );
   const [supported, setSupported] = createSignal(false);
-  const [permission, setPermission] = createSignal<
-    NotificationPermission | null
-  >(
-    null,
-  );
+  const [permission, setPermission] =
+    createSignal<NotificationPermission | null>(null);
   const [subscribed, setSubscribed] = createSignal(false);
   const [endpoint, setEndpoint] = createSignal<string | null>(null);
   const [checking, setChecking] = createSignal(true);
@@ -135,10 +127,10 @@ export function WebPushNotificationSettings(
 
   const effectivePolicy = () =>
     policy() ??
-      (account()?.pushNotificationPreviewPolicy as
-        | PushNotificationPreviewPolicy
-        | undefined) ??
-      "PUBLIC_ONLY";
+    (account()?.pushNotificationPreviewPolicy as
+      | PushNotificationPreviewPolicy
+      | undefined) ??
+    "PUBLIC_ONLY";
   const busy = () => registering() || unregistering() || checking();
   const canUsePush = () => supported() && props.vapidPublicKey != null;
   const webPushErrorDescription = (error: unknown) => {
@@ -172,9 +164,10 @@ export function WebPushNotificationSettings(
       return;
     }
     try {
-      const subscription = props.vapidPublicKey == null
-        ? null
-        : await getReusableWebPushSubscriptionData(props.vapidPublicKey);
+      const subscription =
+        props.vapidPublicKey == null
+          ? null
+          : await getReusableWebPushSubscriptionData(props.vapidPublicKey);
       setSubscribed(subscription != null);
       setEndpoint(subscription?.endpoint ?? null);
       setPermission(getNotificationPermission());
@@ -193,10 +186,7 @@ export function WebPushNotificationSettings(
   onMount(() => {
     void refreshSubscriptionState();
     const updatePermission = () => setPermission(getNotificationPermission());
-    window.addEventListener(
-      WEB_PUSH_PERMISSION_CHANGE_EVENT,
-      updatePermission,
-    );
+    window.addEventListener(WEB_PUSH_PERMISSION_CHANGE_EVENT, updatePermission);
     onCleanup(() => {
       window.removeEventListener(
         WEB_PUSH_PERMISSION_CHANGE_EVENT,
@@ -218,7 +208,7 @@ export function WebPushNotificationSettings(
       onCompleted(response) {
         if (
           response.registerPushNotificationTarget?.__typename !==
-            "RegisterPushNotificationTargetPayload"
+          "RegisterPushNotificationTargetPayload"
         ) {
           if (!options.silent) {
             showToast({
@@ -240,8 +230,7 @@ export function WebPushNotificationSettings(
         if (!options.silent) {
           showToast({
             title: t`Browser notifications enabled`,
-            description:
-              t`New notifications can now appear even when Hackers' Pub is not open.`,
+            description: t`New notifications can now appear even when Hackers' Pub is not open.`,
             variant: "success",
           });
         }
@@ -298,7 +287,7 @@ export function WebPushNotificationSettings(
         onCompleted(response) {
           if (
             response.unregisterPushNotificationTarget?.__typename !==
-              "UnregisterPushNotificationTargetPayload"
+            "UnregisterPushNotificationTargetPayload"
           ) {
             showToast({
               title: t`Failed to disable browser notifications`,
@@ -347,8 +336,7 @@ export function WebPushNotificationSettings(
       onError(error) {
         console.error(error);
         setPolicy(
-          current
-            .pushNotificationPreviewPolicy as PushNotificationPreviewPolicy,
+          current.pushNotificationPreviewPolicy as PushNotificationPreviewPolicy,
         );
         showToast({
           title: t`Failed to update push notification privacy`,
@@ -413,8 +401,9 @@ export function WebPushNotificationSettings(
                 <Button
                   type="button"
                   onClick={() => void enablePush()}
-                  disabled={!canUsePush() || permission() === "denied" ||
-                    busy()}
+                  disabled={
+                    !canUsePush() || permission() === "denied" || busy()
+                  }
                 >
                   <IconBell class="size-4" />
                   {registering() ? t`Enabling…` : t`Enable`}

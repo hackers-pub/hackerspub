@@ -73,16 +73,13 @@ export interface CreateFlagOptions {
 export async function createFlag(
   db: Database,
   options: CreateFlagOptions,
-): Promise<
-  (Flag & { case: FlagCase; snapshot: ContentSnapshot }) | undefined
-> {
+): Promise<(Flag & { case: FlagCase; snapshot: ContentSnapshot }) | undefined> {
   const { reporter, targetActor, targetPost } = options;
   const reason = options.reason.trim();
   if (reporter.id === targetActor.id) {
-    logger.debug(
-      "Rejecting self-report from actor {actorId}.",
-      { actorId: reporter.id },
-    );
+    logger.debug("Rejecting self-report from actor {actorId}.", {
+      actorId: reporter.id,
+    });
     return undefined;
   }
   if (targetPost != null && targetPost.actorId !== targetActor.id) {
@@ -99,10 +96,9 @@ export async function createFlag(
   if (options.iri != null) {
     const existing = await getFlagByIri(db, options.iri);
     if (existing != null) {
-      logger.debug(
-        "Ignoring already-processed Flag activity {iri}.",
-        { iri: options.iri },
-      );
+      logger.debug("Ignoring already-processed Flag activity {iri}.", {
+        iri: options.iri,
+      });
       return undefined;
     }
   }
@@ -113,7 +109,8 @@ export async function createFlag(
   // keeps the case open until the report is attached.
   const run = async (tx: Transaction) => {
     const flagCase = await findOrCreateOpenCase(tx, targetActor, targetPost);
-    const flagRows = await tx.insert(flagTable)
+    const flagRows = await tx
+      .insert(flagTable)
       .values({
         id: generateUuidV7(),
         iri: options.iri,
@@ -132,10 +129,10 @@ export async function createFlag(
       .onConflictDoNothing()
       .returning();
     if (flagRows.length < 1) {
-      logger.debug(
-        "Duplicate report by actor {actorId} on case {caseId}.",
-        { actorId: reporter.id, caseId: flagCase.id },
-      );
+      logger.debug("Duplicate report by actor {actorId} on case {caseId}.", {
+        actorId: reporter.id,
+        caseId: flagCase.id,
+      });
       return undefined;
     }
     const flag = flagRows[0];
@@ -175,7 +172,8 @@ async function findOrCreateOpenCase(
   // retries the rare race where the conflicting open case is closed
   // between the insert and the select.
   for (let attempt = 0; attempt < 3; attempt++) {
-    const inserted = await tx.insert(flagCaseTable)
+    const inserted = await tx
+      .insert(flagCaseTable)
       .values({
         id: generateUuidV7(),
         targetActorId: targetActor.id,
@@ -185,15 +183,18 @@ async function findOrCreateOpenCase(
       .onConflictDoNothing()
       .returning();
     if (inserted.length > 0) return inserted[0];
-    const [existing] = await tx.select()
+    const [existing] = await tx
+      .select()
       .from(flagCaseTable)
-      .where(and(
-        eq(flagCaseTable.targetActorId, targetActor.id),
-        targetPost == null
-          ? isNull(flagCaseTable.targetPostIri)
-          : eq(flagCaseTable.targetPostIri, targetPost.iri),
-        inArray(flagCaseTable.status, ["pending", "reviewing"]),
-      ))
+      .where(
+        and(
+          eq(flagCaseTable.targetActorId, targetActor.id),
+          targetPost == null
+            ? isNull(flagCaseTable.targetPostIri)
+            : eq(flagCaseTable.targetPostIri, targetPost.iri),
+          inArray(flagCaseTable.status, ["pending", "reviewing"]),
+        ),
+      )
       .for("update");
     if (existing != null) return existing;
   }
@@ -230,15 +231,17 @@ async function captureContentSnapshot(
     };
     sourceContent = await getPostSourceContent(db, targetPost);
   }
-  const rows = await db.insert(contentSnapshotTable)
+  const rows = await db
+    .insert(contentSnapshotTable)
     .values({
       id: generateUuidV7(),
       flagId: flag.id,
       postId: targetPost?.id,
       postIri: targetPost?.iri,
-      contentHtml: targetPost == null
-        ? targetActor.bioHtml ?? ""
-        : targetPost.contentHtml,
+      contentHtml:
+        targetPost == null
+          ? (targetActor.bioHtml ?? "")
+          : targetPost.contentHtml,
       sourceContent,
       metadata,
     })
@@ -301,9 +304,10 @@ export async function analyzeFlag(
       provisions,
       reason: flag.reason,
       contentHtml: snapshot.contentHtml,
-      contentKind: snapshot.postId == null && snapshot.postIri == null
-        ? "profile"
-        : "post",
+      contentKind:
+        snapshot.postId == null && snapshot.postIri == null
+          ? "profile"
+          : "post",
     });
     analysis = {
       matches: result.matches,
@@ -312,10 +316,10 @@ export async function analyzeFlag(
       analyzed: new Date().toISOString(),
     };
   } catch (error) {
-    logger.warn(
-      "Code of conduct analysis for flag {flagId} failed: {error}",
-      { flagId: flag.id, error },
-    );
+    logger.warn("Code of conduct analysis for flag {flagId} failed: {error}", {
+      flagId: flag.id,
+      error,
+    });
     analysis = {
       matches: [],
       summary: "",
@@ -324,7 +328,8 @@ export async function analyzeFlag(
       error: String(error),
     };
   }
-  await db.update(flagTable)
+  await db
+    .update(flagTable)
     .set({ llmAnalysis: analysis, updated: new Date() })
     .where(eq(flagTable.id, flag.id));
 }

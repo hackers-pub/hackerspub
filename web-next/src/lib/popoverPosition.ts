@@ -35,9 +35,7 @@ export function getViewportPopoverPosition(
   let preferredTop: number;
   if (popover.height + gap <= spaceBelow) {
     preferredTop = anchor.bottom + gap;
-  } else if (
-    popover.height + gap <= spaceAbove || spaceAbove > spaceBelow
-  ) {
+  } else if (popover.height + gap <= spaceAbove || spaceAbove > spaceBelow) {
     preferredTop = anchor.top - gap - popover.height;
   } else {
     preferredTop = anchor.bottom + gap;

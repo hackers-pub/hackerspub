@@ -5,7 +5,7 @@ import { AccountListBase } from "./AccountListBase.tsx";
 import type { MutedAccountsList_actor$key } from "./__generated__/MutedAccountsList_actor.graphql.ts";
 import type { MutedAccountsList_unmuteActor_Mutation } from "./__generated__/MutedAccountsList_unmuteActor_Mutation.graphql.ts";
 import { showToast } from "~/components/ui/toast.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 export interface MutedAccountsListProps {
   $actor: MutedAccountsList_actor$key;
@@ -40,15 +40,13 @@ export function MutedAccountsList(props: MutedAccountsListProps) {
   const muted = createPaginationFragment(
     graphql`
       fragment MutedAccountsList_actor on Actor
-        @refetchable(queryName: "MutedAccountsListQuery")
-        @argumentDefinitions(
-          cursor: { type: "String" }
-          count: { type: "Int", defaultValue: 20 }
-        )
-      {
+      @refetchable(queryName: "MutedAccountsListQuery")
+      @argumentDefinitions(
+        cursor: { type: "String" }
+        count: { type: "Int", defaultValue: 20 }
+      ) {
         mutedActors(after: $cursor, first: $count)
-          @connection(key: "MutedAccountsList_mutedActors")
-        {
+          @connection(key: "MutedAccountsList_mutedActors") {
           __id
           edges {
             __id
@@ -72,9 +70,8 @@ export function MutedAccountsList(props: MutedAccountsListProps) {
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
   >("loaded");
-  const [unmuteActor, unmuting] = createMutation<
-    MutedAccountsList_unmuteActor_Mutation
-  >(unmuteActorMutation);
+  const [unmuteActor, unmuting] =
+    createMutation<MutedAccountsList_unmuteActor_Mutation>(unmuteActorMutation);
 
   function onLoadMore() {
     setLoadingState("loading");

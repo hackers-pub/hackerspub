@@ -67,7 +67,9 @@ function getApnsConfig(): ApnsConfig | null {
   const signingKey = getEnvString("APNS_SIGNING_KEY");
   const defaultTopic = getEnvString("APNS_DEFAULT_TOPIC");
   if (
-    teamId == null || keyId == null || signingKey == null ||
+    teamId == null ||
+    keyId == null ||
+    signingKey == null ||
     defaultTopic == null
   ) {
     return null;
@@ -177,35 +179,40 @@ export async function sendApnsNotification(
   try {
     const client = getApnsClient();
     if (client == null) return;
-    const tokens = (await db.select({
-      token: pushNotificationTargetTable.token,
-    })
-      .from(pushNotificationTargetTable)
-      .where(
-        and(
-          eq(pushNotificationTargetTable.accountId, options.accountId),
-          eq(pushNotificationTargetTable.service, "apns"),
-        ),
-      )).filter(pushTargetHasToken);
+    const tokens = (
+      await db
+        .select({
+          token: pushNotificationTargetTable.token,
+        })
+        .from(pushNotificationTargetTable)
+        .where(
+          and(
+            eq(pushNotificationTargetTable.accountId, options.accountId),
+            eq(pushNotificationTargetTable.service, "apns"),
+          ),
+        )
+    ).filter(pushTargetHasToken);
     if (tokens.length < 1) return;
 
-    const emojiText = typeof options.emoji === "string"
-      ? options.emoji
-      : options.emoji?.name ?? null;
+    const emojiText =
+      typeof options.emoji === "string"
+        ? options.emoji
+        : (options.emoji?.name ?? null);
 
-    const notifications = tokens.map(({ token }) =>
-      new Notification(token, {
-        alert: getApnsAlert(options.type, options.emoji),
-        threadId: "notifications",
-        collapseId: `notifications-${options.accountId}`,
-        data: {
-          notificationId: options.notificationId,
-          type: options.type,
-          actorId: options.actorId,
-          postId: options.postId ?? null,
-          emoji: emojiText,
-        },
-      })
+    const notifications = tokens.map(
+      ({ token }) =>
+        new Notification(token, {
+          alert: getApnsAlert(options.type, options.emoji),
+          threadId: "notifications",
+          collapseId: `notifications-${options.accountId}`,
+          data: {
+            notificationId: options.notificationId,
+            type: options.type,
+            actorId: options.actorId,
+            postId: options.postId ?? null,
+            emoji: emojiText,
+          },
+        }),
     );
 
     let results: Awaited<ReturnType<ApnsClient["sendMany"]>>;
@@ -245,19 +252,13 @@ export async function sendApnsNotification(
     }
 
     if (staleTokens.size < 1) return;
-    await deleteStalePushNotificationTargets(
-      db,
-      options.accountId,
-      "apns",
-      [...staleTokens],
-    );
+    await deleteStalePushNotificationTargets(db, options.accountId, "apns", [
+      ...staleTokens,
+    ]);
   } catch (error) {
-    logger.error(
-      "Unexpected APNS error for account {accountId}: {error}",
-      {
-        accountId: options.accountId,
-        error,
-      },
-    );
+    logger.error("Unexpected APNS error for account {accountId}: {error}", {
+      accountId: options.accountId,
+      error,
+    });
   }
 }

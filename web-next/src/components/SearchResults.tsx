@@ -16,7 +16,7 @@ import { createPaginationFragment } from "solid-relay";
 import { PostCard } from "~/components/PostCard.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { scheduleDeferredRender } from "~/lib/deferredRender.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { SearchResults_posts$key } from "./__generated__/SearchResults_posts.graphql.ts";
 
 const initialVisiblePosts = 5;
@@ -32,33 +32,28 @@ export function SearchResults(props: SearchResultsProps) {
   const actingAccount = useActingAccount();
   const posts = createPaginationFragment(
     graphql`
-      fragment SearchResults_posts on Query 
-        @refetchable(queryName: "SearchResultsQuery")
-        @argumentDefinitions(
-          cursor: { type: "String" }
-          count: { type: "Int", defaultValue: 25 }
-          actingAccountId: { type: "ID" }
-          query: { type: "String!" }
-          locale: { type: "Locale" }
-          languages: { type: "[Locale!]" }
-        )
-      {
+      fragment SearchResults_posts on Query
+      @refetchable(queryName: "SearchResultsQuery")
+      @argumentDefinitions(
+        cursor: { type: "String" }
+        count: { type: "Int", defaultValue: 25 }
+        actingAccountId: { type: "ID" }
+        query: { type: "String!" }
+        locale: { type: "Locale" }
+        languages: { type: "[Locale!]" }
+      ) {
         __id
         searchPost(
-          query: $query,
-          languages: $languages,
-          after: $cursor,
-          first: $count,
-        )
-          @connection(key: "SearchResults__searchPost")
-        {
+          query: $query
+          languages: $languages
+          after: $cursor
+          first: $count
+        ) @connection(key: "SearchResults__searchPost") {
           edges {
             __id
             node {
-              ...PostCard_post @arguments(
-                locale: $locale
-                actingAccountId: $actingAccountId
-              )
+              ...PostCard_post
+                @arguments(locale: $locale, actingAccountId: $actingAccountId)
             }
           }
           pageInfo {
@@ -72,9 +67,8 @@ export function SearchResults(props: SearchResultsProps) {
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
   >("loaded");
-  const [visiblePostCount, setVisiblePostCount] = createSignal(
-    initialVisiblePosts,
-  );
+  const [visiblePostCount, setVisiblePostCount] =
+    createSignal(initialVisiblePosts);
   const [renderedQuery, setRenderedQuery] = createSignal(props.query());
   const actingAccountId = () => actingAccount.selectedActingAccountId();
   const edges = createMemo(() => posts()?.searchPost.edges ?? []);
@@ -124,19 +118,21 @@ export function SearchResults(props: SearchResultsProps) {
     onCleanup(() => cancelDeferredRender());
   });
 
-  createEffect(on(
-    () => `${props.query()}:${actingAccountId() ?? ""}`,
-    () => {
-      const query = props.query();
-      posts.refetch({
-        actingAccountId: actingAccountId() ?? null,
-        query,
-      });
-    },
-    {
-      defer: true,
-    },
-  ));
+  createEffect(
+    on(
+      () => `${props.query()}:${actingAccountId() ?? ""}`,
+      () => {
+        const query = props.query();
+        posts.refetch({
+          actingAccountId: actingAccountId() ?? null,
+          query,
+        });
+      },
+      {
+        defer: true,
+      },
+    ),
+  );
 
   return (
     <div class="mb-10 mt-4 overflow-hidden rounded-lg border bg-card shadow-sm md:mb-12">
@@ -146,9 +142,7 @@ export function SearchResults(props: SearchResultsProps) {
             <For each={visibleEdges()}>
               {(edge) => <PostCard $post={edge.node} deferHeavySections />}
             </For>
-            <Show
-              when={posts.hasNext && visiblePostCount() >= edges().length}
-            >
+            <Show when={posts.hasNext && visiblePostCount() >= edges().length}>
               <button
                 type="button"
                 on:click={loadingState() === "loading" ? undefined : onLoadMore}

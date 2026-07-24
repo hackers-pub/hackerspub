@@ -46,10 +46,7 @@ export type NoteSourceMediumWithMedium = NoteSourceMedium & {
 };
 
 interface CreatePostOptions {
-  afterPostCreated?: (
-    post: Post,
-    db: Database | Transaction,
-  ) => Promise<void>;
+  afterPostCreated?: (post: Post, db: Database | Transaction) => Promise<void>;
 }
 
 export class QuotePolicyDeniedError extends Error {
@@ -63,7 +60,8 @@ export async function createNoteSource(
   db: Database,
   source: Omit<NewNoteSource, "id"> & { id?: Uuid },
 ): Promise<NoteSource | undefined> {
-  const rows = await db.insert(noteSourceTable)
+  const rows = await db
+    .insert(noteSourceTable)
     .values({ id: generateUuidV7(), ...source })
     .onConflictDoNothing()
     .returning();
@@ -74,66 +72,67 @@ export async function getNoteSource(
   db: Database,
   username: string,
   id: Uuid,
-  signedAccount: Account & { actor: Actor } | undefined,
+  signedAccount: (Account & { actor: Actor }) | undefined,
 ): Promise<
-  NoteSource & {
-    account: Account & { emails: AccountEmail[]; links: AccountLink[] };
-    post: Post & {
-      actor: Actor & {
-        instance: Instance;
-        followers: Following[];
-        blockees: Blocking[];
-        blockers: Blocking[];
-      };
-      link: PostLink & { creator?: Actor | null } | null;
-      sharedPost:
-        | Post & {
-          actor: Actor & {
-            instance: Instance;
-            followers: Following[];
-            blockees: Blocking[];
-            blockers: Blocking[];
-          };
-          link: PostLink & { creator?: Actor | null } | null;
-          replyTarget:
-            | Post & {
+  | (NoteSource & {
+      account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+      post: Post & {
+        actor: Actor & {
+          instance: Instance;
+          followers: Following[];
+          blockees: Blocking[];
+          blockers: Blocking[];
+        };
+        link: (PostLink & { creator?: Actor | null }) | null;
+        sharedPost:
+          | (Post & {
               actor: Actor & {
                 instance: Instance;
                 followers: Following[];
                 blockees: Blocking[];
                 blockers: Blocking[];
               };
-              link: PostLink & { creator?: Actor | null } | null;
+              link: (PostLink & { creator?: Actor | null }) | null;
+              replyTarget:
+                | (Post & {
+                    actor: Actor & {
+                      instance: Instance;
+                      followers: Following[];
+                      blockees: Blocking[];
+                      blockers: Blocking[];
+                    };
+                    link: (PostLink & { creator?: Actor | null }) | null;
+                    mentions: (Mention & { actor: Actor })[];
+                    media: PostMedium[];
+                  })
+                | null;
               mentions: (Mention & { actor: Actor })[];
               media: PostMedium[];
-            }
-            | null;
-          mentions: (Mention & { actor: Actor })[];
-          media: PostMedium[];
-          shares: Post[];
-          reactions: Reaction[];
-        }
-        | null;
-      replyTarget:
-        | Post & {
-          actor: Actor & {
-            instance: Instance;
-            followers: Following[];
-            blockees: Blocking[];
-            blockers: Blocking[];
-          };
-          link: PostLink & { creator?: Actor | null } | null;
-          mentions: (Mention & { actor: Actor })[];
-          media: PostMedium[];
-        }
-        | null;
-      mentions: (Mention & { actor: Actor })[];
-      media: PostMedium[];
-      shares: Post[];
-      reactions: Reaction[];
-    };
-    media: NoteSourceMediumWithMedium[];
-  } | undefined
+              shares: Post[];
+              reactions: Reaction[];
+            })
+          | null;
+        replyTarget:
+          | (Post & {
+              actor: Actor & {
+                instance: Instance;
+                followers: Following[];
+                blockees: Blocking[];
+                blockers: Blocking[];
+              };
+              link: (PostLink & { creator?: Actor | null }) | null;
+              mentions: (Mention & { actor: Actor })[];
+              media: PostMedium[];
+            })
+          | null;
+        mentions: (Mention & { actor: Actor })[];
+        media: PostMedium[];
+        shares: Post[];
+        reactions: Reaction[];
+      };
+      media: NoteSourceMediumWithMedium[];
+    })
+  | undefined
 > {
   let account = await db.query.accountTable.findFirst({
     where: { username },
@@ -159,19 +158,22 @@ export async function getNoteSource(
             with: {
               instance: true,
               followers: {
-                where: signedAccount == null
-                  ? { RAW: sql`false` }
-                  : { followerId: signedAccount.actor.id },
+                where:
+                  signedAccount == null
+                    ? { RAW: sql`false` }
+                    : { followerId: signedAccount.actor.id },
               },
               blockees: {
-                where: signedAccount == null
-                  ? { RAW: sql`false` }
-                  : { blockeeId: signedAccount.actor.id },
+                where:
+                  signedAccount == null
+                    ? { RAW: sql`false` }
+                    : { blockeeId: signedAccount.actor.id },
               },
               blockers: {
-                where: signedAccount == null
-                  ? { RAW: sql`false` }
-                  : { blockerId: signedAccount.actor.id },
+                where:
+                  signedAccount == null
+                    ? { RAW: sql`false` }
+                    : { blockerId: signedAccount.actor.id },
               },
             },
           },
@@ -185,19 +187,22 @@ export async function getNoteSource(
                 with: {
                   instance: true,
                   followers: {
-                    where: signedAccount == null
-                      ? { RAW: sql`false` }
-                      : { followerId: signedAccount.actor.id },
+                    where:
+                      signedAccount == null
+                        ? { RAW: sql`false` }
+                        : { followerId: signedAccount.actor.id },
                   },
                   blockees: {
-                    where: signedAccount == null
-                      ? { RAW: sql`false` }
-                      : { blockeeId: signedAccount.actor.id },
+                    where:
+                      signedAccount == null
+                        ? { RAW: sql`false` }
+                        : { blockeeId: signedAccount.actor.id },
                   },
                   blockers: {
-                    where: signedAccount == null
-                      ? { RAW: sql`false` }
-                      : { blockerId: signedAccount.actor.id },
+                    where:
+                      signedAccount == null
+                        ? { RAW: sql`false` }
+                        : { blockerId: signedAccount.actor.id },
                   },
                 },
               },
@@ -208,19 +213,24 @@ export async function getNoteSource(
                     with: {
                       instance: true,
                       followers: {
-                        where: signedAccount == null ? { RAW: sql`false` } : {
-                          followerId: signedAccount.actor.id,
-                        },
+                        where:
+                          signedAccount == null
+                            ? { RAW: sql`false` }
+                            : {
+                                followerId: signedAccount.actor.id,
+                              },
                       },
                       blockees: {
-                        where: signedAccount == null
-                          ? { RAW: sql`false` }
-                          : { blockeeId: signedAccount.actor.id },
+                        where:
+                          signedAccount == null
+                            ? { RAW: sql`false` }
+                            : { blockeeId: signedAccount.actor.id },
                       },
                       blockers: {
-                        where: signedAccount == null
-                          ? { RAW: sql`false` }
-                          : { blockerId: signedAccount.actor.id },
+                        where:
+                          signedAccount == null
+                            ? { RAW: sql`false` }
+                            : { blockerId: signedAccount.actor.id },
                       },
                     },
                   },
@@ -236,14 +246,16 @@ export async function getNoteSource(
               },
               media: true,
               shares: {
-                where: signedAccount == null
-                  ? { RAW: sql`false` }
-                  : { actorId: signedAccount.actor.id },
+                where:
+                  signedAccount == null
+                    ? { RAW: sql`false` }
+                    : { actorId: signedAccount.actor.id },
               },
               reactions: {
-                where: signedAccount == null
-                  ? { RAW: sql`false` }
-                  : { actorId: signedAccount.actor.id },
+                where:
+                  signedAccount == null
+                    ? { RAW: sql`false` }
+                    : { actorId: signedAccount.actor.id },
               },
             },
           },
@@ -253,19 +265,22 @@ export async function getNoteSource(
                 with: {
                   instance: true,
                   followers: {
-                    where: signedAccount == null
-                      ? { RAW: sql`false` }
-                      : { followerId: signedAccount.actor.id },
+                    where:
+                      signedAccount == null
+                        ? { RAW: sql`false` }
+                        : { followerId: signedAccount.actor.id },
                   },
                   blockees: {
-                    where: signedAccount == null
-                      ? { RAW: sql`false` }
-                      : { blockeeId: signedAccount.actor.id },
+                    where:
+                      signedAccount == null
+                        ? { RAW: sql`false` }
+                        : { blockeeId: signedAccount.actor.id },
                   },
                   blockers: {
-                    where: signedAccount == null
-                      ? { RAW: sql`false` }
-                      : { blockerId: signedAccount.actor.id },
+                    where:
+                      signedAccount == null
+                        ? { RAW: sql`false` }
+                        : { blockerId: signedAccount.actor.id },
                   },
                 },
               },
@@ -278,14 +293,16 @@ export async function getNoteSource(
           },
           media: true,
           shares: {
-            where: signedAccount == null
-              ? { RAW: sql`false` }
-              : { actorId: signedAccount.actor.id },
+            where:
+              signedAccount == null
+                ? { RAW: sql`false` }
+                : { actorId: signedAccount.actor.id },
           },
           reactions: {
-            where: signedAccount == null
-              ? { RAW: sql`false` }
-              : { actorId: signedAccount.actor.id },
+            where:
+              signedAccount == null
+                ? { RAW: sql`false` }
+                : { actorId: signedAccount.actor.id },
           },
         },
       },
@@ -302,16 +319,20 @@ export async function createNoteSourceMedium(
   index: number,
   input: { blob: Blob; alt: string } | { mediumId: Uuid; alt: string },
 ): Promise<NoteSourceMediumWithMedium | undefined> {
-  const medium = "blob" in input
-    ? await createMediumFromBlob(db, disk, input.blob)
-    : await db.query.mediumTable.findFirst({ where: { id: input.mediumId } });
+  const medium =
+    "blob" in input
+      ? await createMediumFromBlob(db, disk, input.blob)
+      : await db.query.mediumTable.findFirst({ where: { id: input.mediumId } });
   if (medium == null) return undefined;
-  const result = await db.insert(noteSourceMediumTable).values({
-    sourceId,
-    index,
-    mediumId: medium.id,
-    alt: input.alt,
-  }).returning();
+  const result = await db
+    .insert(noteSourceMediumTable)
+    .values({
+      sourceId,
+      index,
+      mediumId: medium.id,
+      alt: input.alt,
+    })
+    .returning();
   return result.length > 0 ? { ...result[0], medium } : undefined;
 }
 
@@ -327,17 +348,18 @@ export async function createNote(
   } = {},
   options: CreatePostOptions = {},
 ): Promise<
-  Post & {
-    actor: Actor & {
-      account: Account & { emails: AccountEmail[]; links: AccountLink[] };
-      instance: Instance;
-    };
-    noteSource: NoteSource & {
-      account: Account & { emails: AccountEmail[]; links: AccountLink[] };
-      media: NoteSourceMediumWithMedium[];
-    };
-    media: PostMedium[];
-  } | undefined
+  | (Post & {
+      actor: Actor & {
+        account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+        instance: Instance;
+      };
+      noteSource: NoteSource & {
+        account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+        media: NoteSourceMediumWithMedium[];
+      };
+      media: PostMedium[];
+    })
+  | undefined
 > {
   const { db, storage: disk } = fedCtx;
   const account = await db.query.accountTable.findFirst({
@@ -368,23 +390,27 @@ export async function createNote(
       medium,
     );
     if (m == null) {
-      await db.delete(noteSourceTable).where(
-        eq(noteSourceTable.id, noteSource.id),
-      );
+      await db
+        .delete(noteSourceTable)
+        .where(eq(noteSourceTable.id, noteSource.id));
       return undefined;
     }
     media.push(m);
     index++;
   }
-  const post = await syncPostFromNoteSource(fedCtx, {
-    ...noteSource,
-    media,
-    account,
-  }, relations);
+  const post = await syncPostFromNoteSource(
+    fedCtx,
+    {
+      ...noteSource,
+      media,
+      account,
+    },
+    relations,
+  );
   if (post == null) {
-    await db.delete(noteSourceTable).where(
-      eq(noteSourceTable.id, noteSource.id),
-    );
+    await db
+      .delete(noteSourceTable)
+      .where(eq(noteSourceTable.id, noteSource.id));
     if (relations.quotedPost != null) throw new QuotePolicyDeniedError();
     throw new Error("Failed to persist note post.");
   }
@@ -397,12 +423,13 @@ export async function createNote(
     fedCtx,
     { ...noteSource, media, account },
     {
-      replyTargetId: relations.replyTarget == null
-        ? undefined
-        : new URL(relations.replyTarget.iri),
+      replyTargetId:
+        relations.replyTarget == null
+          ? undefined
+          : new URL(relations.replyTarget.iri),
       quotedPost: post.quoteRequestRequired
         ? undefined
-        : post.quotedPost ?? undefined,
+        : (post.quotedPost ?? undefined),
       quoteAuthorizationIri: post.quoteAuthorizationIri,
       quoteRequestPolicy: post.quoteRequestPolicy,
     },
@@ -422,9 +449,10 @@ export async function createNote(
       fedCtx,
       { ...noteSource, media, account },
       {
-        replyTargetId: relations.replyTarget == null
-          ? undefined
-          : new URL(relations.replyTarget.iri),
+        replyTargetId:
+          relations.replyTarget == null
+            ? undefined
+            : new URL(relations.replyTarget.iri),
         quotedPost: quoteRequestTarget,
         quoteRequestPolicy: post.quoteRequestPolicy,
       },
@@ -435,29 +463,33 @@ export async function createNote(
       object: new URL(quoteRequestTarget.iri),
       instrument,
     });
-    await db.insert(quoteRequestTable).values({
-      id: generateUuidV7(),
-      iri: requestId.href,
-      quotePostId: post.id,
-      quotedPostId: quoteRequestTarget.id,
-    }).onConflictDoUpdate({
-      target: quoteRequestTable.iri,
-      set: {
+    await db
+      .insert(quoteRequestTable)
+      .values({
+        id: generateUuidV7(),
+        iri: requestId.href,
         quotePostId: post.id,
         quotedPostId: quoteRequestTarget.id,
-        accepted: null,
-        rejected: null,
-        updated: sql`CURRENT_TIMESTAMP`,
-      },
-    });
+      })
+      .onConflictDoUpdate({
+        target: quoteRequestTable.iri,
+        set: {
+          quotePostId: post.id,
+          quotedPostId: quoteRequestTarget.id,
+          accepted: null,
+          rejected: null,
+          updated: sql`CURRENT_TIMESTAMP`,
+        },
+      });
     await fedCtx.sendActivity(
       { identifier: source.accountId },
       {
         id: new URL(quoteRequestTarget.actor.iri),
         inboxId: new URL(quoteRequestTarget.actor.inboxUrl),
-        endpoints: quoteRequestTarget.actor.sharedInboxUrl == null
-          ? null
-          : { sharedInbox: new URL(quoteRequestTarget.actor.sharedInboxUrl) },
+        endpoints:
+          quoteRequestTarget.actor.sharedInboxUrl == null
+            ? null
+            : { sharedInbox: new URL(quoteRequestTarget.actor.sharedInboxUrl) },
       },
       request,
       {
@@ -470,9 +502,10 @@ export async function createNote(
     const directRecipients: Recipient[] = post.mentions.map((m) => ({
       id: new URL(m.actor.iri),
       inboxId: new URL(m.actor.inboxUrl),
-      endpoints: m.actor.sharedInboxUrl == null
-        ? null
-        : { sharedInbox: new URL(m.actor.sharedInboxUrl) },
+      endpoints:
+        m.actor.sharedInboxUrl == null
+          ? null
+          : { sharedInbox: new URL(m.actor.sharedInboxUrl) },
     }));
     await fedCtx.sendActivity(
       { identifier: source.accountId },
@@ -497,25 +530,26 @@ export async function createNote(
       },
     );
   }
-  const relayedTags = await fedCtx.services.federation
-    .sendTagsPubRelayActivity(
-      fedCtx,
-      source.accountId,
-      activity,
-      {
-        orderingKey,
-        visibility: post.visibility,
-        accountBio: account.bio,
-      },
-    );
+  const relayedTags = await fedCtx.services.federation.sendTagsPubRelayActivity(
+    fedCtx,
+    source.accountId,
+    activity,
+    {
+      orderingKey,
+      visibility: post.visibility,
+      accountBio: account.bio,
+    },
+  );
   if (relayedTags != null) {
-    await db.update(postTable)
+    await db
+      .update(postTable)
       .set({ relayedTags: [...relayedTags] })
       .where(eq(postTable.id, post.id));
     post.relayedTags = [...relayedTags];
   }
   if (
-    post.replyTarget != null && post.replyTarget.actor.accountId != null &&
+    post.replyTarget != null &&
+    post.replyTarget.actor.accountId != null &&
     post.replyTarget.actorId !== post.actorId
   ) {
     await createReplyNotification(
@@ -526,7 +560,8 @@ export async function createNote(
     );
   }
   if (
-    post.quotedPost != null && post.quotedPost.actor.accountId != null &&
+    post.quotedPost != null &&
+    post.quotedPost.actor.accountId != null &&
     post.quotedPost.actorId !== post.actorId
   ) {
     await createQuoteNotification(
@@ -556,7 +591,8 @@ export async function updateNoteSource(
   noteSourceId: Uuid,
   source: Partial<NewNoteSource>,
 ): Promise<NoteSource | undefined> {
-  const rows = await db.update(noteSourceTable)
+  const rows = await db
+    .update(noteSourceTable)
     .set({ ...source, updated: sql`CURRENT_TIMESTAMP` })
     .where(eq(noteSourceTable.id, noteSourceId))
     .returning();
@@ -568,18 +604,19 @@ async function updateNoteOperation(
   noteSourceId: Uuid,
   source: Partial<NewNoteSource>,
 ): Promise<
-  Post & {
-    actor: Actor & {
-      account: Account & { emails: AccountEmail[]; links: AccountLink[] };
-      instance: Instance;
-    };
-    noteSource: NoteSource & {
-      account: Account & { emails: AccountEmail[]; links: AccountLink[] };
-      media: NoteSourceMediumWithMedium[];
-    };
-    mentions: (Mention & { actor: Actor })[];
-    media: PostMedium[];
-  } | undefined
+  | (Post & {
+      actor: Actor & {
+        account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+        instance: Instance;
+      };
+      noteSource: NoteSource & {
+        account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+        media: NoteSourceMediumWithMedium[];
+      };
+      mentions: (Mention & { actor: Actor })[];
+      media: PostMedium[];
+    })
+  | undefined
 > {
   const { db } = fedCtx;
   const previousPost = await db.query.postTable.findFirst({
@@ -588,12 +625,13 @@ async function updateNoteOperation(
   if (previousPost != null && previousPost.type !== "Note") return undefined;
   // Capture previous mention recipients before the update so that removed
   // mentions still receive the Update activity and can retire their copy.
-  const previousMentions = previousPost == null ? [] : (
-    await db.query.mentionTable.findMany({
-      where: { postId: previousPost.id },
-      with: { actor: true },
-    })
-  );
+  const previousMentions =
+    previousPost == null
+      ? []
+      : await db.query.mentionTable.findMany({
+          where: { postId: previousPost.id },
+          with: { actor: true },
+        });
   const noteSource = await updateNoteSource(db, noteSourceId, source);
   if (noteSource == null) return undefined;
   const account = await db.query.accountTable.findFirst({
@@ -621,16 +659,20 @@ async function updateNoteOperation(
     fedCtx,
     { ...noteSource, media, account },
     {
-      replyTargetId: post.replyTargetId == null
-        ? undefined
-        : await db.query.postTable.findFirst({
-          where: { id: post.replyTargetId },
-        }).then((r) => r?.iri == null ? undefined : new URL(r.iri)),
-      quotedPost: post.quotedPostId == null
-        ? undefined
-        : await db.query.postTable.findFirst({
-          where: { id: post.quotedPostId },
-        }),
+      replyTargetId:
+        post.replyTargetId == null
+          ? undefined
+          : await db.query.postTable
+              .findFirst({
+                where: { id: post.replyTargetId },
+              })
+              .then((r) => (r?.iri == null ? undefined : new URL(r.iri))),
+      quotedPost:
+        post.quotedPostId == null
+          ? undefined
+          : await db.query.postTable.findFirst({
+              where: { id: post.quotedPostId },
+            }),
       quoteAuthorizationIri: post.quoteAuthorizationIri,
       quoteRequestPolicy: post.quoteRequestPolicy,
     },
@@ -655,9 +697,10 @@ async function updateNoteOperation(
       (actor) => ({
         id: new URL(actor.iri),
         inboxId: new URL(actor.inboxUrl),
-        endpoints: actor.sharedInboxUrl == null
-          ? null
-          : { sharedInbox: new URL(actor.sharedInboxUrl) },
+        endpoints:
+          actor.sharedInboxUrl == null
+            ? null
+            : { sharedInbox: new URL(actor.sharedInboxUrl) },
       }),
     );
     await fedCtx.sendActivity(
@@ -689,20 +732,20 @@ async function updateNoteOperation(
       },
     );
   }
-  const relayedTags = await fedCtx.services.federation
-    .sendTagsPubRelayActivity(
-      fedCtx,
-      noteSource.accountId,
-      activity,
-      {
-        orderingKey: post.iri,
-        visibility: post.visibility,
-        accountBio: account.bio,
-        relayedTags: previousPost?.relayedTags,
-      },
-    );
+  const relayedTags = await fedCtx.services.federation.sendTagsPubRelayActivity(
+    fedCtx,
+    noteSource.accountId,
+    activity,
+    {
+      orderingKey: post.iri,
+      visibility: post.visibility,
+      accountBio: account.bio,
+      relayedTags: previousPost?.relayedTags,
+    },
+  );
   if (relayedTags != null) {
-    await db.update(postTable)
+    await db
+      .update(postTable)
       .set({ relayedTags: [...relayedTags] })
       .where(eq(postTable.id, post.id));
     post.relayedTags = [...relayedTags];

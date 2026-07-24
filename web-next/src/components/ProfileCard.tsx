@@ -21,7 +21,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "~/components/ui/tooltip.tsx";
-import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
+import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
 import {
   MentionHoverCardLayer,
   useMentionHoverCards,
@@ -45,8 +45,9 @@ export function ProfileCard(props: ProfileCardProps) {
   const actor = createFragment(
     graphql`
       fragment ProfileCard_actor on Actor
-        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
-      {
+      @argumentDefinitions(
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
         id
         name
         username
@@ -132,8 +133,8 @@ export function ProfileCard(props: ProfileCardProps) {
           actor.successor == null
             ? ""
             : actor.successor.local
-            ? `/@${actor.successor.username}`
-            : `/${encodeHandleSegment(actor.successor.handle)}`;
+              ? `/@${actor.successor.username}`
+              : `/${encodeHandleSegment(actor.successor.handle)}`;
         const successorHref = () =>
           actor.successor?.url ?? actor.successor?.iri ?? "";
         return (
@@ -143,14 +144,16 @@ export function ProfileCard(props: ProfileCardProps) {
                 <Avatar
                   classList={{
                     "size-16": true,
-                    "grayscale": actor.viewerBlocks || actor.successor != null,
+                    grayscale: actor.viewerBlocks || actor.successor != null,
                     "opacity-40": actor.viewerBlocks,
                   }}
                 >
                   <a
-                    href={actor.local
-                      ? `/@${actor.username}`
-                      : actor.url ?? actor.iri}
+                    href={
+                      actor.local
+                        ? `/@${actor.username}`
+                        : (actor.url ?? actor.iri)
+                    }
                     target={actor.local ? undefined : "_blank"}
                   >
                     <AvatarImage src={actor.avatarUrl} class="size-16" />
@@ -163,17 +166,17 @@ export function ProfileCard(props: ProfileCardProps) {
                   <h1 class="text-xl font-semibold">
                     <a
                       innerHTML={actor.name ?? actor.username}
-                      href={actor.local
-                        ? `/@${actor.username}`
-                        : actor.url ?? actor.iri}
+                      href={
+                        actor.local
+                          ? `/@${actor.username}`
+                          : (actor.url ?? actor.iri)
+                      }
                       target={actor.local ? undefined : "_blank"}
-                      classList={{ "grayscale": actor.successor != null }}
+                      classList={{ grayscale: actor.successor != null }}
                     />
                   </h1>
                   <div class="text-muted-foreground">
-                    <span class="select-all">
-                      {actor.handle}
-                    </span>
+                    <span class="select-all">{actor.handle}</span>
                   </div>
                 </div>
                 <div class="flex shrink-0 items-center gap-1">
@@ -234,9 +237,7 @@ export function ProfileCard(props: ProfileCardProps) {
                 <div class="px-4 pb-4">
                   <div class="rounded-md border bg-muted px-3 py-3 text-sm text-foreground">
                     <div class="mb-3">
-                      <p class="font-semibold">
-                        {t`This account has moved.`}
-                      </p>
+                      <p class="font-semibold">{t`This account has moved.`}</p>
                       <p>{t`This account is no longer in use.`}</p>
                     </div>
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -347,9 +348,7 @@ export function ProfileCard(props: ProfileCardProps) {
               }
             >
               {(account) => (
-                <Show
-                  when={(account.links?.length ?? 0) > 0}
-                >
+                <Show when={(account.links?.length ?? 0) > 0}>
                   <div class="p-4 pt-0">
                     <ul>
                       <For each={account.links ?? []}>
@@ -412,32 +411,28 @@ export function ProfileCard(props: ProfileCardProps) {
               {/* TODO: remove ?. once https://github.com/XiNiHa/solid-relay/issues/59 is resolved */}
               <div class="text-muted-foreground">
                 <a
-                  href={actor.local
-                    ? `/@${actor.username}/following`
-                    : undefined}
+                  href={
+                    actor.local ? `/@${actor.username}/following` : undefined
+                  }
                 >
                   {i18n._(
-                    msg`${
-                      plural(actor.followeesCount?.totalCount ?? 0, {
-                        one: "# following",
-                        other: "# following",
-                      })
-                    }`,
+                    msg`${plural(actor.followeesCount?.totalCount ?? 0, {
+                      one: "# following",
+                      other: "# following",
+                    })}`,
                   )}
                 </a>{" "}
                 &middot;{" "}
                 <a
-                  href={actor.local
-                    ? `/@${actor.username}/followers`
-                    : undefined}
+                  href={
+                    actor.local ? `/@${actor.username}/followers` : undefined
+                  }
                 >
                   {i18n._(
-                    msg`${
-                      plural(actor.followersCount?.totalCount ?? 0, {
-                        one: "# follower",
-                        other: "# followers",
-                      })
-                    }`,
+                    msg`${plural(actor.followersCount?.totalCount ?? 0, {
+                      one: "# follower",
+                      other: "# followers",
+                    })}`,
                   )}
                 </a>
                 <Show when={actor.followsViewer}>
@@ -451,9 +446,11 @@ export function ProfileCard(props: ProfileCardProps) {
                     <For each={actor.mutualFollowers?.edges ?? []}>
                       {(edge) => (
                         <a
-                          href={edge.node.local
-                            ? `/@${edge.node.username}`
-                            : edge.node.url ?? edge.node.iri}
+                          href={
+                            edge.node.local
+                              ? `/@${edge.node.username}`
+                              : (edge.node.url ?? edge.node.iri)
+                          }
                           target={edge.node.local ? undefined : "_blank"}
                           title={edge.node.handle}
                           aria-label={edge.node.handle}
@@ -473,19 +470,19 @@ export function ProfileCard(props: ProfileCardProps) {
                   </div>
                   <span class="text-sm text-muted-foreground">
                     {i18n._(
-                      msg`${
-                        plural(actor.mutualFollowers?.totalCount ?? 0, {
-                          one: "Followed by # person you follow",
-                          other: "Followed by # people you follow",
-                        })
-                      }`,
+                      msg`${plural(actor.mutualFollowers?.totalCount ?? 0, {
+                        one: "Followed by # person you follow",
+                        other: "Followed by # people you follow",
+                      })}`,
                     )}
                   </span>
                 </div>
               </Show>
               <Show
-                when={actor.account?.inviter != null ||
-                  actor.account?.created != null}
+                when={
+                  actor.account?.inviter != null ||
+                  actor.account?.created != null
+                }
               >
                 <div class="space-y-1 text-sm text-muted-foreground">
                   <Show keyed when={actor.account?.inviter}>
@@ -543,15 +540,13 @@ export function ProfileCard(props: ProfileCardProps) {
                         </svg>
                         <span>
                           {i18n._(
-                            msg`Joined ${
-                              new Date(created).toLocaleDateString(
-                                i18n.locale,
-                                {
-                                  year: "numeric",
-                                  month: "long",
-                                },
-                              )
-                            }`,
+                            msg`Joined ${new Date(created).toLocaleDateString(
+                              i18n.locale,
+                              {
+                                year: "numeric",
+                                month: "long",
+                              },
+                            )}`,
                           )}
                         </span>
                       </div>

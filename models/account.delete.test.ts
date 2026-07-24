@@ -155,7 +155,8 @@ test("deleteAccount() hard-deletes an account and reserves the current username"
       public: { kty: "test-public" },
       private: { kty: "test-private" },
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ repliesCount: 1, sharesCount: 1, quotesCount: 1 })
       .where(eq(postTable.id, parentPost.id));
     await tx.insert(timelineItemTable).values({
@@ -171,10 +172,10 @@ test("deleteAccount() hard-deletes an account and reserves the current username"
 
     let sendObservedState:
       | {
-        accountExists: boolean;
-        tombstoneUsername: string | undefined;
-        preservedKeyTypes: string[];
-      }
+          accountExists: boolean;
+          tombstoneUsername: string | undefined;
+          preservedKeyTypes: string[];
+        }
       | undefined;
     fedCtx.sendActivity = (async (...args: unknown[]) => {
       sentActivities.push(args);
@@ -207,11 +208,13 @@ test("deleteAccount() hard-deletes an account and reserves the current username"
     assert.equal(sentActivities.length, 1);
     assert.ok(Array.isArray(sentActivities[0][1]));
     assert.deepEqual(
-      sentActivities[0][1].map((recipient) => ({
-        id: recipient.id.href,
-        inboxId: recipient.inboxId.href,
-        sharedInbox: recipient.endpoints.sharedInbox.href,
-      })).sort((a, b) => a.id.localeCompare(b.id)),
+      sentActivities[0][1]
+        .map((recipient) => ({
+          id: recipient.id.href,
+          inboxId: recipient.inboxId.href,
+          sharedInbox: recipient.endpoints.sharedInbox.href,
+        }))
+        .sort((a, b) => a.id.localeCompare(b.id)),
       [
         {
           id: "https://deletefollowee.example/users/bob",
@@ -365,7 +368,8 @@ test("database rejects account usernames reserved by deleted accounts", async ()
 
     let error: unknown;
     try {
-      await tx.update(accountTable)
+      await tx
+        .update(accountTable)
         .set({ username: "reserveddbtarget" })
         .where(eq(accountTable.id, account.account.id));
     } catch (caught) {
@@ -392,11 +396,13 @@ test("deleteAccount() ignores malformed remote delete recipients and clamps remo
       name: "Delete Malformed",
       email: "delete-malformed@example.com",
     });
-    await tx.insert(instanceTable).values([
-      { host: "delete-malformed.example" },
-      { host: "delete-count-followee.example" },
-      { host: "delete-count-follower.example" },
-    ]);
+    await tx
+      .insert(instanceTable)
+      .values([
+        { host: "delete-malformed.example" },
+        { host: "delete-count-followee.example" },
+        { host: "delete-count-follower.example" },
+      ]);
     const malformedFolloweeId = generateUuidV7();
     await tx.insert(actorTable).values({
       id: malformedFolloweeId,
@@ -443,8 +449,7 @@ test("deleteAccount() ignores malformed remote delete recipients and clamps remo
         accepted: new Date("2026-06-19T00:00:01.000Z"),
       },
       {
-        iri:
-          "https://delete-count-follower.example/follows/fan-deletemalformed",
+        iri: "https://delete-count-follower.example/follows/fan-deletemalformed",
         followerId: countedFollowerId,
         followeeId: target.actor.id,
         accepted: new Date("2026-06-19T00:00:02.000Z"),
@@ -457,13 +462,10 @@ test("deleteAccount() ignores malformed remote delete recipients and clamps remo
     const recipients = sentActivities[0][1] as {
       id: URL;
     }[];
-    assert.deepEqual(
-      recipients.map((recipient) => recipient.id.href).sort(),
-      [
-        "https://delete-count-followee.example/users/good",
-        "https://delete-count-follower.example/users/fan",
-      ],
-    );
+    assert.deepEqual(recipients.map((recipient) => recipient.id.href).sort(), [
+      "https://delete-count-followee.example/users/good",
+      "https://delete-count-follower.example/users/fan",
+    ]);
     const refreshedFollowee = await tx.query.actorTable.findFirst({
       where: { id: countedFolloweeId },
     });
@@ -525,10 +527,12 @@ test("deleteAccount() refreshes denormalized interaction state", async () => {
         accepted,
       },
     ]);
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ followersCount: 1 })
       .where(eq(actorTable.id, survivor.actor.id));
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ followeesCount: 1 })
       .where(eq(actorTable.id, bystander.actor.id));
     await createFollowNotification(
@@ -646,12 +650,15 @@ test("deleteAccount() refreshes news scores for Article boost interactions", asy
       published: new Date("2026-05-10T00:00:00.000Z"),
       link: { id: link.id, url: link.url },
     });
-    await tx.update(postTable).set({
-      type: "Article",
-      noteSourceId: null,
-      name: "Article",
-      url: link.url,
-    }).where(eq(postTable.id, article.id));
+    await tx
+      .update(postTable)
+      .set({
+        type: "Article",
+        noteSourceId: null,
+        name: "Article",
+        url: link.url,
+      })
+      .where(eq(postTable.id, article.id));
     const { post: boost } = await insertNotePost(tx, {
       account: booster.account,
       sharedPostId: article.id,
@@ -798,17 +805,22 @@ test("deleteAccount() backfills missing actor keys before tombstoning", async ()
       private: { kty: "test-rsa-private" },
     });
     let keyPairsRequested = false;
-    (fedCtx as unknown as {
-      getActorKeyPairs: (identifier: string) => Promise<unknown[]>;
-    }).getActorKeyPairs = async (identifier) => {
+    (
+      fedCtx as unknown as {
+        getActorKeyPairs: (identifier: string) => Promise<unknown[]>;
+      }
+    ).getActorKeyPairs = async (identifier) => {
       keyPairsRequested = true;
       assert.equal(identifier, target.account.id);
-      await tx.insert(accountKeyTable).values({
-        accountId: target.account.id,
-        type: "Ed25519",
-        public: { kty: "test-ed25519-public" },
-        private: { kty: "test-ed25519-private" },
-      }).onConflictDoNothing();
+      await tx
+        .insert(accountKeyTable)
+        .values({
+          accountId: target.account.id,
+          type: "Ed25519",
+          public: { kty: "test-ed25519-public" },
+          private: { kty: "test-ed25519-private" },
+        })
+        .onConflictDoNothing();
       return [];
     };
 
@@ -861,9 +873,11 @@ test("deleteAccount() refuses accounts linked to moderation audit records", asyn
     const fedCtx = createFedCtx(tx);
     let sent = false;
     let keyPairsRequested = false;
-    (fedCtx as unknown as {
-      getActorKeyPairs: (identifier: string) => Promise<unknown[]>;
-    }).getActorKeyPairs = () => {
+    (
+      fedCtx as unknown as {
+        getActorKeyPairs: (identifier: string) => Promise<unknown[]>;
+      }
+    ).getActorKeyPairs = () => {
       keyPairsRequested = true;
       return Promise.resolve([]);
     };

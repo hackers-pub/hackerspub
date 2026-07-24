@@ -1,13 +1,9 @@
 {
-  "css.customData": [
-    ".vscode/tailwind.json"
-  ],
+  "css.customData": [".vscode/tailwind.json"],
   "cSpell.enabled": false,
   "deno.enable": true,
   "deno.lint": true,
-  "deno.unstable": [
-    "temporal"
-  ],
+  "deno.unstable": ["temporal"],
   "editor.detectIndentation": false,
   "editor.indentSize": 2,
   "editor.insertSpaces": true,

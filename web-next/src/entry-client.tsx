@@ -111,9 +111,10 @@ window.addEventListener("vite:preloadError", (event) => {
     level: "info",
     message: "Reloading after stale module preload error.",
     data: {
-      error: event.payload instanceof Error
-        ? event.payload.message
-        : String(event.payload),
+      error:
+        event.payload instanceof Error
+          ? event.payload.message
+          : String(event.payload),
     },
   });
   console.info("Reloading after stale module preload error.", event.payload);

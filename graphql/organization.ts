@@ -115,7 +115,8 @@ builder.objectType(LastOrganizationAdminError, {
 
 builder.objectType(OrganizationConversionError, {
   name: "OrganizationConversionError",
-  description: "Returned when a personal account cannot be converted into an " +
+  description:
+    "Returned when a personal account cannot be converted into an " +
     "organization, or when an administrator cannot accept that conversion.",
   fields: (t) => ({
     message: t.exposeString("message", {
@@ -190,9 +191,10 @@ const OrganizationNotificationBadgeColor = builder.enumType(
   },
 );
 
-const OrganizationNotificationBadge = builder.objectRef<
-  OrganizationNotificationBadgeShape
->("OrganizationNotificationBadge");
+const OrganizationNotificationBadge =
+  builder.objectRef<OrganizationNotificationBadgeShape>(
+    "OrganizationNotificationBadge",
+  );
 
 OrganizationNotificationBadge.implement({
   description:
@@ -258,7 +260,8 @@ OrganizationMembershipRef.implement({
       async resolve(membership, _, ctx) {
         if (membership.accepted == null) return null;
         if (
-          ctx.account == null || membership.memberAccountId !== ctx.account.id
+          ctx.account == null ||
+          membership.memberAccountId !== ctx.account.id
         ) {
           return null;
         }
@@ -346,8 +349,8 @@ builder.queryField("organizationConversionRequest", (t) =>
       const viewer = ctx.account;
       if (viewer == null) return null;
       if (!validateUuid(args.id)) return null;
-      const request = await ctx.db.query.organizationConversionRequestTable
-        .findFirst({
+      const request =
+        await ctx.db.query.organizationConversionRequestTable.findFirst({
           where: { id: args.id as Uuid },
         });
       if (request == null) return null;
@@ -360,7 +363,8 @@ builder.queryField("organizationConversionRequest", (t) =>
       }
       return request;
     },
-  }));
+  }),
+);
 
 async function requirePersonalAccount(ctx: UserContext) {
   const session = await ctx.session;
@@ -402,7 +406,8 @@ builder.drizzleObjectField(Account, "kind", (t) =>
     resolve(account) {
       return account.kind;
     },
-  }));
+  }),
+);
 
 builder.drizzleObjectField(Account, "organizationMemberships", (t) =>
   t.field({
@@ -426,7 +431,8 @@ builder.drizzleObjectField(Account, "organizationMemberships", (t) =>
         orderBy: { created: "desc" },
       });
     },
-  }));
+  }),
+);
 
 builder.drizzleObjectField(Account, "organizationInvitations", (t) =>
   t.field({
@@ -451,7 +457,8 @@ builder.drizzleObjectField(Account, "organizationInvitations", (t) =>
         orderBy: { created: "desc" },
       });
     },
-  }));
+  }),
+);
 
 builder.drizzleObjectField(Account, "organizationMembers", (t) =>
   t.field({
@@ -485,7 +492,8 @@ builder.drizzleObjectField(Account, "organizationMembers", (t) =>
         orderBy: { created: "desc" },
       });
     },
-  }));
+  }),
+);
 
 builder.relayMutationField(
   "createOrganization",
@@ -546,7 +554,8 @@ builder.relayMutationField(
       }),
       membership: t.field({
         type: OrganizationMembershipRef,
-        description: "The creator's accepted administrator membership in the " +
+        description:
+          "The creator's accepted administrator membership in the " +
           "organization.",
         resolve: (payload) => payload.membership,
       }),
@@ -1028,9 +1037,8 @@ builder.relayMutationField(
       }
       const now = new Date();
       const requestedRead = args.input.read ?? args.input["readAt"];
-      const read = requestedRead == null || requestedRead > now
-        ? now
-        : requestedRead;
+      const read =
+        requestedRead == null || requestedRead > now ? now : requestedRead;
       return await getOrganizationNotificationBadge(
         ctx.db,
         organizationId,

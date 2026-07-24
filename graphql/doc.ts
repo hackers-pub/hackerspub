@@ -1,8 +1,10 @@
 import { negotiateLocale } from "@hackerspub/models/i18n";
 import { renderMarkup, type Toc } from "@hackerspub/models/markup";
-import { expandGlob } from "@std/fs";
 import { dirname, join } from "@std/path";
+import { readdir, readFile } from "node:fs/promises";
 import { builder } from "./builder.ts";
+
+const readTextFile = (path: string | URL) => readFile(path, "utf8");
 
 interface Document {
   locale: Intl.Locale;
@@ -50,21 +52,19 @@ builder.queryFields((t) => ({
     },
     async resolve(_, args, ctx) {
       const availableLocales: Record<string, string> = {};
-      const files = expandGlob(join(COC_DIR, "CODE_OF_CONDUCT.*.md"), {
-        includeDirs: false,
-      });
-      for await (const file of files) {
-        if (!file.isFile) continue;
+      const files = await readdir(COC_DIR, { withFileTypes: true });
+      for (const file of files) {
+        if (!file.isFile()) continue;
         const match = file.name.match(/^CODE_OF_CONDUCT\.(.+)\.md$/);
         if (match == null) continue;
         const locale = match[1];
-        availableLocales[locale] = file.path;
+        availableLocales[locale] = join(COC_DIR, file.name);
       }
       const locale =
         negotiateLocale(args.locale, Object.keys(availableLocales)) ??
-          new Intl.Locale("en");
+        new Intl.Locale("en");
       const path = availableLocales[locale.baseName];
-      const markdown = await Deno.readTextFile(path);
+      const markdown = await readTextFile(path);
       const rendered = await renderMarkup(ctx.fedCtx, markdown, {
         kv: ctx.kv,
       });
@@ -88,21 +88,19 @@ builder.queryFields((t) => ({
     },
     async resolve(_, args, ctx) {
       const availableLocales: Record<string, string> = {};
-      const files = expandGlob(join(MARKDOWN_GUIDE_DIR, "*.md"), {
-        includeDirs: false,
-      });
-      for await (const file of files) {
-        if (!file.isFile) continue;
+      const files = await readdir(MARKDOWN_GUIDE_DIR, { withFileTypes: true });
+      for (const file of files) {
+        if (!file.isFile()) continue;
         const match = file.name.match(/^(.+)\.md$/);
         if (match == null) continue;
         const locale = match[1];
-        availableLocales[locale] = file.path;
+        availableLocales[locale] = join(MARKDOWN_GUIDE_DIR, file.name);
       }
       const locale =
         negotiateLocale(args.locale, Object.keys(availableLocales)) ??
-          new Intl.Locale("en");
+        new Intl.Locale("en");
       const path = availableLocales[locale.baseName];
-      const markdown = await Deno.readTextFile(path);
+      const markdown = await readTextFile(path);
       const rendered = await renderMarkup(ctx.fedCtx, markdown, {
         kv: ctx.kv,
       });
@@ -126,21 +124,19 @@ builder.queryFields((t) => ({
     },
     async resolve(_, args, ctx) {
       const availableLocales: Record<string, string> = {};
-      const files = expandGlob(join(SEARCH_GUIDE_DIR, "*.md"), {
-        includeDirs: false,
-      });
-      for await (const file of files) {
-        if (!file.isFile) continue;
+      const files = await readdir(SEARCH_GUIDE_DIR, { withFileTypes: true });
+      for (const file of files) {
+        if (!file.isFile()) continue;
         const match = file.name.match(/^(.+)\.md$/);
         if (match == null) continue;
         const locale = match[1];
-        availableLocales[locale] = file.path;
+        availableLocales[locale] = join(SEARCH_GUIDE_DIR, file.name);
       }
       const locale =
         negotiateLocale(args.locale, Object.keys(availableLocales)) ??
-          new Intl.Locale("en");
+        new Intl.Locale("en");
       const path = availableLocales[locale.baseName];
-      const markdown = await Deno.readTextFile(path);
+      const markdown = await readTextFile(path);
       const rendered = await renderMarkup(ctx.fedCtx, markdown, {
         kv: ctx.kv,
       });
@@ -164,22 +160,21 @@ builder.queryFields((t) => ({
     },
     async resolve(_, args, ctx) {
       const availableLocales: Record<string, string> = {};
-      const files = expandGlob(
-        join(PRIVACY_POLICY_DIR, "PRIVACY_POLICY.*.md"),
-        { includeDirs: false },
-      );
-      for await (const file of files) {
-        if (!file.isFile) continue;
+      const files = await readdir(PRIVACY_POLICY_DIR, {
+        withFileTypes: true,
+      });
+      for (const file of files) {
+        if (!file.isFile()) continue;
         const match = file.name.match(/^PRIVACY_POLICY\.(.+)\.md$/);
         if (match == null) continue;
         const locale = match[1];
-        availableLocales[locale] = file.path;
+        availableLocales[locale] = join(PRIVACY_POLICY_DIR, file.name);
       }
       const locale =
         negotiateLocale(args.locale, Object.keys(availableLocales)) ??
-          new Intl.Locale("en");
+        new Intl.Locale("en");
       const path = availableLocales[locale.baseName];
-      const markdown = await Deno.readTextFile(path);
+      const markdown = await readTextFile(path);
       const rendered = await renderMarkup(ctx.fedCtx, markdown, {
         kv: ctx.kv,
       });

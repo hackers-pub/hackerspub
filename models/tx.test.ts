@@ -59,23 +59,17 @@ test("withTransaction() discards after-commit tasks from rolled back nested tran
     await assert.rejects(
       async () =>
         await withTransaction(outerContext, async (innerContext) => {
-          await queueAfterCommit(
-            innerContext,
-            () => {
-              completedTasks.push("inner");
-            },
-          );
+          await queueAfterCommit(innerContext, () => {
+            completedTasks.push("inner");
+          });
           throw new Error("roll back nested transaction");
         }),
       /roll back nested transaction/,
     );
 
-    await queueAfterCommit(
-      outerContext,
-      () => {
-        completedTasks.push("outer");
-      },
-    );
+    await queueAfterCommit(outerContext, () => {
+      completedTasks.push("outer");
+    });
   });
 
   assert.deepEqual(completedTasks, ["outer"]);

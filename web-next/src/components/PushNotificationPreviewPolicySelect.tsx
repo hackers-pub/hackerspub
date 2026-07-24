@@ -6,7 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import IconEye from "~icons/lucide/eye";
 import IconEyeOff from "~icons/lucide/eye-off";
 import IconShieldCheck from "~icons/lucide/shield-check";
@@ -58,13 +58,11 @@ export function PushNotificationPreviewPolicySelect(
       )}
     >
       <SelectTrigger class="w-full sm:w-[220px]">
-        <SelectValue<
-          {
-            value: PushNotificationPreviewPolicy;
-            label: string;
-            icon: () => JSX.Element;
-          }
-        >>
+        <SelectValue<{
+          value: PushNotificationPreviewPolicy;
+          label: string;
+          icon: () => JSX.Element;
+        }>>
           {(state) => (
             <div class="flex flex-row gap-1 items-center">
               {state.selectedOption().icon()}

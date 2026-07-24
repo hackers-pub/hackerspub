@@ -4,7 +4,7 @@ import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
 import { TocList } from "~/components/TocList.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { DocumentView_document$key } from "./__generated__/DocumentView_document.graphql.ts";
 
 export interface DocumentViewProps {

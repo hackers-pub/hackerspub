@@ -7,6 +7,17 @@ import {
 } from "./medium-upload.ts";
 import { createTestDisk, createTestKv } from "../test/postgres.ts";
 
+interface StreamingRequestInit extends RequestInit {
+  readonly duplex: "half";
+}
+
+function createStreamingRequest(
+  input: string,
+  init: StreamingRequestInit,
+): Request {
+  return new Request(input, init);
+}
+
 test("handleMediumUploadProxy rejects missing content length before reading", async () => {
   const { kv } = createTestKv();
   const disk = createTestDisk();
@@ -24,12 +35,13 @@ test("handleMediumUploadProxy rejects missing content length before reading", as
   });
 
   const response = await handleMediumUploadProxy(
-    new Request(
+    createStreamingRequest(
       `http://localhost/medium-uploads/${session.id}?token=${session.token}`,
       {
         method: "PUT",
         headers: { "Content-Type": "image/png" },
         body,
+        duplex: "half",
       },
     ),
     kv,
@@ -125,7 +137,7 @@ test("handleMediumUploadProxy stops reading when body exceeds session length", a
   });
 
   const response = await handleMediumUploadProxy(
-    new Request(
+    createStreamingRequest(
       `http://localhost/medium-uploads/${session.id}?token=${session.token}`,
       {
         method: "PUT",
@@ -134,6 +146,7 @@ test("handleMediumUploadProxy stops reading when body exceeds session length", a
           "Content-Length": "4",
         },
         body,
+        duplex: "half",
       },
     ),
     kv,
@@ -195,7 +208,7 @@ test("handleMediumUploadProxy responds to OPTIONS preflight with CORS headers", 
       {
         method: "OPTIONS",
         headers: {
-          "Origin": "http://localhost:5173",
+          Origin: "http://localhost:5173",
           "Access-Control-Request-Method": "PUT",
           "Access-Control-Request-Headers": "Content-Type",
         },
@@ -219,9 +232,9 @@ test("handleMediumUploadProxy responds to OPTIONS preflight with CORS headers", 
     "preflight should include Vary: Origin",
   );
   assert.ok(
-    response.headers.get("Access-Control-Allow-Headers")?.includes(
-      "Content-Type",
-    ),
+    response.headers
+      .get("Access-Control-Allow-Headers")
+      ?.includes("Content-Type"),
     "preflight should allow Content-Type header",
   );
 });
@@ -243,7 +256,7 @@ test("handleMediumUploadProxy handles query-form OPTIONS preflight", async () =>
       {
         method: "OPTIONS",
         headers: {
-          "Origin": "http://localhost:5173",
+          Origin: "http://localhost:5173",
           "Access-Control-Request-Method": "PUT",
           "Access-Control-Request-Headers": "Content-Type",
         },
@@ -288,7 +301,7 @@ test("handleMediumUploadProxy includes CORS headers on 405 wrong method", async 
   const response = await handleMediumUploadProxy(
     new Request(
       `http://localhost/medium-uploads/${session.id}?token=${session.token}`,
-      { method: "PATCH", headers: { "Origin": TEST_ORIGIN } },
+      { method: "PATCH", headers: { Origin: TEST_ORIGIN } },
     ),
     kv,
     disk,
@@ -304,10 +317,10 @@ test("handleMediumUploadProxy includes CORS headers on 404 invalid UUID", async 
   const disk = createTestDisk();
 
   const response = await handleMediumUploadProxy(
-    new Request(
-      "http://localhost/medium-uploads/not-a-valid-uuid",
-      { method: "PUT", headers: { "Origin": TEST_ORIGIN } },
-    ),
+    new Request("http://localhost/medium-uploads/not-a-valid-uuid", {
+      method: "PUT",
+      headers: { Origin: TEST_ORIGIN },
+    }),
     kv,
     disk,
   );
@@ -330,18 +343,15 @@ test("handleMediumUploadProxy includes CORS headers on 403 wrong token", async (
   const bytes = new Uint8Array([1, 2, 3, 4]);
 
   const response = await handleMediumUploadProxy(
-    new Request(
-      `http://localhost/medium-uploads/${session.id}?token=wrong`,
-      {
-        method: "PUT",
-        headers: {
-          "Origin": TEST_ORIGIN,
-          "Content-Type": "image/png",
-          "Content-Length": "4",
-        },
-        body: bytes,
+    new Request(`http://localhost/medium-uploads/${session.id}?token=wrong`, {
+      method: "PUT",
+      headers: {
+        Origin: TEST_ORIGIN,
+        "Content-Type": "image/png",
+        "Content-Length": "4",
       },
-    ),
+      body: bytes,
+    }),
     kv,
     disk,
   );
@@ -369,7 +379,7 @@ test("handleMediumUploadProxy includes CORS headers on 415 wrong content-type", 
       {
         method: "PUT",
         headers: {
-          "Origin": TEST_ORIGIN,
+          Origin: TEST_ORIGIN,
           "Content-Type": "text/plain",
           "Content-Length": "4",
         },
@@ -402,7 +412,7 @@ test("handleMediumUploadProxy includes CORS headers on 411 missing content-lengt
       {
         method: "PUT",
         headers: {
-          "Origin": TEST_ORIGIN,
+          Origin: TEST_ORIGIN,
           "Content-Type": "image/png",
           // no Content-Length header
         },
@@ -437,16 +447,17 @@ test("handleMediumUploadProxy includes CORS headers on 413 oversized body", asyn
   });
 
   const response = await handleMediumUploadProxy(
-    new Request(
+    createStreamingRequest(
       `http://localhost/medium-uploads/${session.id}?token=${session.token}`,
       {
         method: "PUT",
         headers: {
-          "Origin": TEST_ORIGIN,
+          Origin: TEST_ORIGIN,
           "Content-Type": "image/png",
           "Content-Length": "4",
         },
         body,
+        duplex: "half",
       },
     ),
     kv,
@@ -478,7 +489,7 @@ test("handleMediumUploadProxy includes CORS origin header on successful PUT", as
         headers: {
           "Content-Type": "image/png",
           "Content-Length": "4",
-          "Origin": "http://localhost:5173",
+          Origin: "http://localhost:5173",
         },
         body: bytes,
       },

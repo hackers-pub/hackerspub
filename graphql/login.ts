@@ -21,8 +21,8 @@ import {
 import type { Uuid } from "@hackerspub/models/uuid";
 import { getLogger } from "@logtape/logtape";
 import type { AuthenticationResponseJSON } from "@simplewebauthn/server";
-import { expandGlob } from "@std/fs";
 import { escape } from "@std/html/entities";
+import { readdir, readFile } from "node:fs/promises";
 import { join } from "@std/path";
 import { createMessage, type Message } from "@upyo/core";
 import { sql } from "drizzle-orm";
@@ -32,11 +32,16 @@ import { Account } from "./account.ts";
 import { builder } from "./builder.ts";
 import { SessionRef } from "./session.ts";
 
+const readTextFile = (path: string | URL) => readFile(path, "utf8");
+
 const logger = getLogger(["hackerspub", "graphql", "login"]);
 
 class AccountNotFoundError extends Error {
-  public constructor(public readonly query: string) {
+  public readonly query: string;
+
+  public constructor(query: string) {
     super(`Account not found`);
+    this.query = query;
   }
 }
 
@@ -48,8 +53,11 @@ builder.objectType(AccountNotFoundError, {
 });
 
 class AccountBannedError extends Error {
-  public constructor(public readonly since: Date) {
+  public readonly since: Date;
+
+  public constructor(since: Date) {
     super(`Account is permanently suspended`);
+    this.since = since;
   }
 }
 
@@ -157,10 +165,9 @@ builder.mutationFields((t) => ({
       }
       for await (const receipt of ctx.email.sendMany(messages)) {
         if (!receipt.successful) {
-          logger.error(
-            "Failed to send a login email: {errors}",
-            { errors: receipt.errorMessages },
-          );
+          logger.error("Failed to send a login email: {errors}", {
+            errors: receipt.errorMessages,
+          });
         }
       }
       return {
@@ -245,10 +252,9 @@ builder.mutationFields((t) => ({
       }
       for await (const receipt of ctx.email.sendMany(messages)) {
         if (!receipt.successful) {
-          logger.error(
-            "Failed to send a login email: {errors}",
-            { errors: receipt.errorMessages },
-          );
+          logger.error("Failed to send a login email: {errors}", {
+            errors: receipt.errorMessages,
+          });
         }
       }
       return {
@@ -314,9 +320,8 @@ builder.mutationFields((t) => ({
       await deleteSigninToken(ctx.kv, token.token);
       return await createSession(ctx.kv, {
         accountId: token.accountId,
-        ipAddress: remoteAddr?.transport === "tcp"
-          ? remoteAddr.hostname
-          : undefined,
+        ipAddress:
+          remoteAddr?.transport === "tcp" ? remoteAddr.hostname : undefined,
         userAgent: ctx.request.headers.get("User-Agent"),
       });
     },
@@ -369,7 +374,8 @@ builder.mutationFields((t) => ({
   loginByPasskey: t.field({
     type: SessionRef,
     nullable: true,
-    description: "Authenticate using a WebAuthn passkey. First call " +
+    description:
+      "Authenticate using a WebAuthn passkey. First call " +
       "`getPasskeyAuthenticationOptions` with a fresh `sessionId` UUID, " +
       "then pass the authenticator's response back here as " +
       "`authenticationResponse`. Returns `null` when verification fails, and " +
@@ -428,9 +434,8 @@ builder.mutationFields((t) => ({
       const remoteAddr = ctx.connectionInfo?.remoteAddr;
       return await createSession(ctx.kv, {
         accountId: account.id,
-        ipAddress: remoteAddr?.transport === "tcp"
-          ? remoteAddr.hostname
-          : undefined,
+        ipAddress:
+          remoteAddr?.transport === "tcp" ? remoteAddr.hostname : undefined,
         userAgent: ctx.request.headers.get("User-Agent"),
       });
     },
@@ -443,21 +448,19 @@ async function getEmailTemplate(
   locale: Intl.Locale,
 ): Promise<{ subject: string; content: string }> {
   const availableLocales: Record<string, string> = {};
-  const files = expandGlob(join(LOCALES_DIR, "*.json"), {
-    includeDirs: false,
-  });
-  for await (const file of files) {
-    if (!file.isFile) continue;
+  const files = await readdir(LOCALES_DIR, { withFileTypes: true });
+  for (const file of files) {
+    if (!file.isFile()) continue;
     const match = file.name.match(/^(.+)\.json$/);
     if (match == null) continue;
     const localeName = match[1];
-    availableLocales[localeName] = file.path;
+    availableLocales[localeName] = join(LOCALES_DIR, file.name);
   }
   const selectedLocale =
     negotiateLocale(locale, Object.keys(availableLocales)) ??
-      new Intl.Locale("en");
+    new Intl.Locale("en");
   const path = availableLocales[selectedLocale.baseName];
-  const json = await Deno.readTextFile(path);
+  const json = await readTextFile(path);
   const data = JSON.parse(json);
   return {
     subject: data.login.emailSubject,
@@ -465,7 +468,13 @@ async function getEmailTemplate(
   };
 }
 
-async function getEmailMessage({ from, locale, to, verifyUrlTemplate, token }: {
+async function getEmailMessage({
+  from,
+  locale,
+  to,
+  verifyUrlTemplate,
+  token,
+}: {
   from: string;
   locale: Intl.Locale;
   to: string;
@@ -481,14 +490,16 @@ async function getEmailMessage({ from, locale, to, verifyUrlTemplate, token }: {
     style: "long",
   });
   const template = await getEmailTemplate(locale);
-  const textContent = template.content
-    .replaceAll(/\{\{(verifyUrl|code|expiration)\}\}/g, (m) => {
+  const textContent = template.content.replaceAll(
+    /\{\{(verifyUrl|code|expiration)\}\}/g,
+    (m) => {
       return m === "{{verifyUrl}}"
         ? verifyUrl
         : m === "{{code}}"
-        ? token.code
-        : expiration;
-    });
+          ? token.code
+          : expiration;
+    },
+  );
   return createMessage({
     from,
     to,
@@ -510,10 +521,7 @@ async function getEmailMessage({ from, locale, to, verifyUrlTemplate, token }: {
         const escapedText = escape(textContent);
         const escapedUrl = escape(safeVerifyUrl);
         return escapedText
-          .replaceAll(
-            escapedUrl,
-            `<a href="${escapedUrl}">${escapedUrl}</a>`,
-          )
+          .replaceAll(escapedUrl, `<a href="${escapedUrl}">${escapedUrl}</a>`)
           .replaceAll("\n", "<br>\n");
       })(),
     },

@@ -17,9 +17,9 @@ export default function ReportsRedirectPage() {
   const params = useParams();
   return (
     <Navigate
-      href={`/${
-        decodeRouteParam(params.handle!)
-      }/settings/moderation${location.search}${location.hash}`}
+      href={`/${decodeRouteParam(
+        params.handle!,
+      )}/settings/moderation${location.search}${location.hash}`}
     />
   );
 }

@@ -22,7 +22,7 @@ import {
 } from "~/components/ui/card.tsx";
 import { Title } from "~/components/Title.tsx";
 import { WideContainer } from "~/components/WideContainer.tsx";
-import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
+import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
 import { showToast } from "~/components/ui/toast.tsx";
 import type { draftsQuery } from "./__generated__/draftsQuery.graphql.ts";
 import type { draftsDeleteMutation } from "./__generated__/draftsDeleteMutation.graphql.ts";
@@ -46,11 +46,11 @@ const DraftsQuery = graphql`
 
 const DraftsPaginationFragment = graphql`
   fragment draftsPaginationFragment on Account
-    @refetchable(queryName: "draftsPaginationRefetchQuery")
-    @argumentDefinitions(
-      first: { type: "Int", defaultValue: 50 }
-      after: { type: "String" }
-    ) {
+  @refetchable(queryName: "draftsPaginationRefetchQuery")
+  @argumentDefinitions(
+    first: { type: "Int", defaultValue: 50 }
+    after: { type: "String" }
+  ) {
     articleDrafts(first: $first, after: $after)
       @connection(key: "draftsPaginationFragment_articleDrafts") {
       __id
@@ -92,11 +92,10 @@ const DeleteDraftMutation = graphql`
 
 const loadDraftsQuery = routePreloadedQuery(
   (first: number = DRAFTS_PAGE_SIZE, after: string | null = null) =>
-    loadQuery<draftsQuery>(
-      useRelayEnvironment()(),
-      DraftsQuery,
-      { first, after },
-    ),
+    loadQuery<draftsQuery>(useRelayEnvironment()(), DraftsQuery, {
+      first,
+      after,
+    }),
   "loadArticleDraftsQuery",
 );
 
@@ -104,9 +103,8 @@ export default function ArticleDraftsListPage() {
   const { t, i18n } = useLingui();
   const params = useParams();
 
-  const data = createStablePreloadedQuery<draftsQuery>(
-    DraftsQuery,
-    () => loadDraftsQuery(),
+  const data = createStablePreloadedQuery<draftsQuery>(DraftsQuery, () =>
+    loadDraftsQuery(),
   );
 
   const draftData = createPaginationFragment(
@@ -115,7 +113,7 @@ export default function ArticleDraftsListPage() {
   );
   const draftEdges = () =>
     draftData()?.articleDrafts?.edges?.filter((edge) => edge?.node != null) ??
-      [];
+    [];
 
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
@@ -134,9 +132,8 @@ export default function ArticleDraftsListPage() {
     });
   };
 
-  const [deleteDraft, isDeleting] = createMutation<draftsDeleteMutation>(
-    DeleteDraftMutation,
-  );
+  const [deleteDraft, isDeleting] =
+    createMutation<draftsDeleteMutation>(DeleteDraftMutation);
   const draftConnections = () => {
     const viewerId = data()?.viewer?.id;
     if (viewerId == null) return [];
@@ -184,8 +181,7 @@ export default function ArticleDraftsListPage() {
         ) {
           showToast({
             title: t`Error`,
-            description:
-              t`Invalid input: ${response.deleteArticleDraft.inputPath}`,
+            description: t`Invalid input: ${response.deleteArticleDraft.inputPath}`,
             variant: "error",
           });
         } else if (
@@ -210,8 +206,10 @@ export default function ArticleDraftsListPage() {
 
   return (
     <Show
-      when={data()?.viewer?.username ===
-        decodeRouteParam(params.handle!).substring(1)}
+      when={
+        data()?.viewer?.username ===
+        decodeRouteParam(params.handle!).substring(1)
+      }
       fallback={
         <WideContainer class="px-4 py-6 sm:px-6 lg:py-8">
           <HttpStatusCode code={403} />
@@ -275,9 +273,9 @@ export default function ArticleDraftsListPage() {
                     <CardContent class="p-4">
                       <div class="flex items-start justify-between gap-4">
                         <A
-                          href={`/@${
-                            params.handle!.substring(1)
-                          }/drafts/${edge.node.uuid}`}
+                          href={`/@${params.handle!.substring(
+                            1,
+                          )}/drafts/${edge.node.uuid}`}
                           class="min-w-0 flex-1"
                         >
                           <h3 class="truncate text-lg font-semibold">
@@ -290,20 +288,18 @@ export default function ArticleDraftsListPage() {
                             <Show when={edge.node.tags.length > 3}>
                               <Badge variant="outline">
                                 {i18n._(
-                                  msg`${
-                                    plural(edge.node.tags.length - 3, {
-                                      one: "+1 more",
-                                      other: "+# more",
-                                    })
-                                  }`,
+                                  msg`${plural(edge.node.tags.length - 3, {
+                                    one: "+1 more",
+                                    other: "+# more",
+                                  })}`,
                                 )}
                               </Badge>
                             </Show>
                           </div>
                           <p class="mt-2 text-sm text-muted-foreground">
-                            {t`Updated ${
-                              new Date(edge.node.updated).toLocaleDateString()
-                            }`}
+                            {t`Updated ${new Date(
+                              edge.node.updated,
+                            ).toLocaleDateString()}`}
                           </p>
                         </A>
                         <Button
@@ -330,9 +326,9 @@ export default function ArticleDraftsListPage() {
               <div class="flex justify-center mt-6">
                 <Button
                   variant="outline"
-                  onClick={loadingState() === "loading"
-                    ? undefined
-                    : loadMoreDrafts}
+                  onClick={
+                    loadingState() === "loading" ? undefined : loadMoreDrafts
+                  }
                   disabled={draftData.pending || loadingState() === "loading"}
                 >
                   <Switch>

@@ -118,20 +118,24 @@ export async function getBookmarks(
       and(
         eq(bookmarkTable.accountId, account.id),
         postType == null ? undefined : eq(postTable.type, postType),
-        since == null ? undefined : or(
-          gt(bookmarkTable.created, since.created),
-          and(
-            eq(bookmarkTable.created, since.created),
-            gt(bookmarkTable.postId, since.postId),
-          ),
-        ),
-        until == null ? undefined : or(
-          lt(bookmarkTable.created, until.created),
-          and(
-            eq(bookmarkTable.created, until.created),
-            lt(bookmarkTable.postId, until.postId),
-          ),
-        ),
+        since == null
+          ? undefined
+          : or(
+              gt(bookmarkTable.created, since.created),
+              and(
+                eq(bookmarkTable.created, since.created),
+                gt(bookmarkTable.postId, since.postId),
+              ),
+            ),
+        until == null
+          ? undefined
+          : or(
+              lt(bookmarkTable.created, until.created),
+              and(
+                eq(bookmarkTable.created, until.created),
+                lt(bookmarkTable.postId, until.postId),
+              ),
+            ),
       ),
     )
     .orderBy(

@@ -35,8 +35,7 @@ async function follows(
   followee: { actor: { id: Uuid } },
 ) {
   await tx.insert(followingTable).values({
-    iri:
-      `https://example.com/following/${follower.actor.id}/${followee.actor.id}`,
+    iri: `https://example.com/following/${follower.actor.id}/${followee.actor.id}`,
     followerId: follower.actor.id,
     followeeId: followee.actor.id,
     accepted: new Date(),
@@ -332,9 +331,11 @@ test("unbookmarkPost cannot be used to read an invisible post", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    const payload = (result.data as {
-      unbookmarkPost: { __typename: string };
-    }).unbookmarkPost;
+    const payload = (
+      result.data as {
+        unbookmarkPost: { __typename: string };
+      }
+    ).unbookmarkPost;
     assert.equal(payload.__typename, "InvalidInputError");
   });
 });
@@ -375,7 +376,8 @@ test("reactor list excludes sanction-hidden actors", async () => {
       actorId: bannedReactor.actor.id,
     });
     // Ban the reactor (permanent local suspension → sanction-hidden).
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: null })
       .where(eq(actorTable.id, bannedReactor.actor.id));
 
@@ -397,18 +399,20 @@ test("reactor list excludes sanction-hidden actors", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    const groups = (result.data as {
-      node: {
-        reactionGroups: {
-          reactors: {
-            totalCount: number;
-            edges: { node: { username: string } }[];
-          };
-        }[];
-      };
-    }).node.reactionGroups;
+    const groups = (
+      result.data as {
+        node: {
+          reactionGroups: {
+            reactors: {
+              totalCount: number;
+              edges: { node: { username: string } }[];
+            };
+          }[];
+        };
+      }
+    ).node.reactionGroups;
     const reactorNames = groups.flatMap((g) =>
-      g.reactors.edges.map((e) => e.node.username)
+      g.reactors.edges.map((e) => e.node.username),
     );
     assert.ok(reactorNames.includes("rxgood"));
     assert.ok(!reactorNames.includes("rxbanned"));
@@ -440,7 +444,8 @@ test("unbookmarkPost lets the owner remove a bookmark on a now-invisible post", 
       content: "was public",
     });
     await createBookmark(tx, viewer.account, post);
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ visibility: "followers" })
       .where(eq(postTable.id, post.id));
 
@@ -463,9 +468,11 @@ test("unbookmarkPost lets the owner remove a bookmark on a now-invisible post", 
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    const payload = (result.data as {
-      unbookmarkPost: { __typename: string; post: { id: string } | null };
-    }).unbookmarkPost;
+    const payload = (
+      result.data as {
+        unbookmarkPost: { __typename: string; post: { id: string } | null };
+      }
+    ).unbookmarkPost;
     assert.equal(payload.__typename, "UnbookmarkPostPayload");
     // Removal succeeds, but the payload does not re-expose the now-invisible
     // post's content.
@@ -490,7 +497,8 @@ test("Post.replies applies the acting account's visibility, not the personal one
       name: "Org Replies Author",
       email: "orgrepliesauthor@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -542,10 +550,7 @@ test("Post.replies applies the acting account's visibility, not the personal one
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(personal.errors, undefined);
-    assert.deepEqual(
-      (personal.data as unknown as Data).node.replies.edges,
-      [],
-    );
+    assert.deepEqual((personal.data as unknown as Data).node.replies.edges, []);
 
     // Organization perspective: the org follows the author, so the reply is
     // visible.
@@ -941,7 +946,8 @@ test("reactionGroups hides a group whose only reactor is sanction-hidden", async
       postId: post.id,
       actorId: bannedReactor.actor.id,
     });
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: null })
       .where(eq(actorTable.id, bannedReactor.actor.id));
 

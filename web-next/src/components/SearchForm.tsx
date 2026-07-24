@@ -3,7 +3,7 @@ import { useNavigate } from "@solidjs/router";
 import { createEffect, createSignal, Show } from "solid-js";
 import { SearchGuide } from "~/components/SearchGuide.tsx";
 import { Button } from "~/components/ui/button.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 interface SearchFormProps {
   value?: string;
@@ -16,7 +16,7 @@ export function SearchForm(props: SearchFormProps) {
   let searchInput: HTMLInputElement | undefined;
 
   createEffect(() => {
-    props.value;
+    void props.value;
     setIsPending(false);
   });
 

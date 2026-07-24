@@ -106,9 +106,8 @@ async function backfillEmojiReactions(
   };
   const collection = await post.getEmojiReactions(opts);
   if (collection == null) return;
-  const { persistReaction, updateReactionsCounts } = await import(
-    "../reaction.ts"
-  );
+  const { persistReaction, updateReactionsCounts } =
+    await import("../reaction.ts");
   let shouldUpdateCounts = false;
   try {
     let scanned = 0;
@@ -141,11 +140,7 @@ async function enqueueEmojiReactionsBackfill(
   const lockKey = `emoji-reactions-backfill/${persistedPost.iri}`;
   const [locked] = await ctx.kv.getMany<string>([lockKey]);
   if (locked === "1") return;
-  await ctx.kv.set(
-    lockKey,
-    "1",
-    EMOJI_REACTIONS_BACKFILL_LOCK_TTL_MS,
-  );
+  await ctx.kv.set(lockKey, "1", EMOJI_REACTIONS_BACKFILL_LOCK_TTL_MS);
   void (async () => {
     const run = async (attempt: number): Promise<void> => {
       try {
@@ -153,7 +148,7 @@ async function enqueueEmojiReactionsBackfill(
       } catch (error) {
         if (attempt < 1) {
           await new Promise((resolve) =>
-            setTimeout(resolve, EMOJI_REACTIONS_BACKFILL_RETRY_DELAY_MS)
+            setTimeout(resolve, EMOJI_REACTIONS_BACKFILL_RETRY_DELAY_MS),
           );
           await run(attempt + 1);
           return;
@@ -167,10 +162,10 @@ async function enqueueEmojiReactionsBackfill(
     };
     await run(0);
   })().catch((error) => {
-    logger.warn(
-      "Emoji reactions backfill task failed for {postIri}: {error}",
-      { postIri: persistedPost.iri, error },
-    );
+    logger.warn("Emoji reactions backfill task failed for {postIri}: {error}", {
+      postIri: persistedPost.iri,
+      error,
+    });
   });
 }
 
@@ -225,7 +220,8 @@ async function resolveMentionedActors(
     if (actor == null) continue;
     if (actor.iri !== href && !actor.aliases.includes(href)) {
       const aliases = [...actor.aliases, href];
-      await db.update(actorTable)
+      await db
+        .update(actorTable)
         .set({ aliases })
         .where(eq(actorTable.id, actor.id));
       actor = { ...actor, aliases };
@@ -267,13 +263,13 @@ export async function persistPost(
     signal?: AbortSignal;
   } = {},
 ): Promise<
-  | Post & {
-    actor: Actor & { instance: Instance };
-    mentions: (Mention & { actor: Actor })[];
-    replyTarget: Post & { actor: Actor } | null;
-    quotedPost: Post & { actor: Actor } | null;
-    poll: Poll | null;
-  }
+  | (Post & {
+      actor: Actor & { instance: Instance };
+      mentions: (Mention & { actor: Actor })[];
+      replyTarget: (Post & { actor: Actor }) | null;
+      quotedPost: (Post & { actor: Actor }) | null;
+      poll: Poll | null;
+    })
   | undefined
 > {
   if (post.id == null || post.attributionId == null || post.content == null) {
@@ -287,8 +283,8 @@ export async function persistPost(
   const depth = options.depth ?? 0;
   const maxDepth = options.maxDepth ?? DEFAULT_MAX_PERSIST_POST_DEPTH;
   const maxReplies = options.maxReplies ?? DEFAULT_MAX_INLINE_REPLIES;
-  const inlineRepliesThreshold = options.inlineRepliesThreshold ??
-    DEFAULT_INLINE_REPLIES_THRESHOLD;
+  const inlineRepliesThreshold =
+    options.inlineRepliesThreshold ?? DEFAULT_INLINE_REPLIES_THRESHOLD;
   const deferLargeReplies = options.deferLargeReplies ?? true;
   const fetchRemote = options.fetchRemote ?? true;
   const shouldRecurse = fetchRemote && depth < maxDepth;
@@ -301,16 +297,16 @@ export async function persistPost(
       : options.actor;
   // One deadline for the entire synchronous subtree: reuse the parent's when
   // recursing, otherwise mint a fresh one at the top-level (handler) call.
-  const overallSignal = options.signal ??
-    AbortSignal.timeout(PERSIST_POST_OVERALL_BUDGET_MS);
+  const overallSignal =
+    options.signal ?? AbortSignal.timeout(PERSIST_POST_OVERALL_BUDGET_MS);
   const opts = {
     contextLoader: fetchRemote ? options.contextLoader : disabledDocumentLoader,
     documentLoader: fetchRemote
       ? withDocumentLoaderTimeout(
-        options.documentLoader ?? ctx.documentLoader,
-        REMOTE_FETCH_TIMEOUT_MS,
-        overallSignal,
-      )
+          options.documentLoader ?? ctx.documentLoader,
+          REMOTE_FETCH_TIMEOUT_MS,
+          overallSignal,
+        )
       : disabledDocumentLoader,
     suppressError: true,
   };
@@ -344,13 +340,12 @@ export async function persistPost(
       const icon = await tag.getIcon(opts);
       if (
         icon?.url == null ||
-        icon.url instanceof vocab.Link && icon.url.href == null
+        (icon.url instanceof vocab.Link && icon.url.href == null)
       ) {
         continue;
       }
-      emojis[tag.name.toString()] = icon.url instanceof URL
-        ? icon.url.href
-        : icon.url.href!.href;
+      emojis[tag.name.toString()] =
+        icon.url instanceof URL ? icon.url.href : icon.url.href!.href;
     } else if (tag instanceof vocab.Link) {
       if (tag.mediaType == null || tag.href == null) continue;
       const [mediaType, ...paramList] = tag.mediaType.split(/\s*;\s*/g);
@@ -364,8 +359,10 @@ export async function persistPost(
       );
       if (
         mediaType !== "application/activity+json" &&
-        !(mediaType === "application/ld+json" &&
-          params.profile === "https://www.w3.org/ns/activitystreams")
+        !(
+          mediaType === "application/ld+json" &&
+          params.profile === "https://www.w3.org/ns/activitystreams"
+        )
       ) {
         continue;
       }
@@ -394,8 +391,8 @@ export async function persistPost(
       },
       where: { iri: { in: quotedPostIris } },
     });
-    quotedPosts.sort((a, b) =>
-      quotedPostIris.indexOf(a.iri) - quotedPostIris.indexOf(b.iri)
+    quotedPosts.sort(
+      (a, b) => quotedPostIris.indexOf(a.iri) - quotedPostIris.indexOf(b.iri),
     );
     if (quotedPosts.length > 0) {
       quotedPost = quotedPosts[0];
@@ -434,10 +431,12 @@ export async function persistPost(
   for await (const attachment of post.getAttachments(opts)) {
     if (attachment instanceof vocab.Document) attachments.push(attachment);
   }
-  let replyTarget: Post & { actor: Actor & { instance: Instance } } | undefined;
+  let replyTarget:
+    | (Post & { actor: Actor & { instance: Instance } })
+    | undefined;
   if (post.replyTargetId != null) {
-    replyTarget = options.replyTarget ??
-      await getPersistedPost(db, post.replyTargetId);
+    replyTarget =
+      options.replyTarget ?? (await getPersistedPost(db, post.replyTargetId));
     if (replyTarget == null && shouldRecurse) {
       const apReplyTarget = await post.getReplyTarget(opts);
       if (!isPostObject(apReplyTarget)) return;
@@ -458,24 +457,21 @@ export async function persistPost(
   const visibility: PostVisibility = to.has(PUBLIC_COLLECTION.href)
     ? "public"
     : cc.has(PUBLIC_COLLECTION.href)
-    ? "unlisted"
-    : actor.followersUrl != null && recipients.has(actor.followersUrl) &&
-        mentions.isSubsetOf(recipients)
-    ? "followers"
-    : mentions.isSubsetOf(recipients)
-    ? "direct"
-    : "none";
+      ? "unlisted"
+      : actor.followersUrl != null &&
+          recipients.has(actor.followersUrl) &&
+          mentions.isSubsetOf(recipients)
+        ? "followers"
+        : mentions.isSubsetOf(recipients)
+          ? "direct"
+          : "none";
   logger.debug(
     "Post visibility: {visibility} (drived from recipients {recipients} and " +
       "mentions {mentions}).",
     { visibility, recipients, to, cc, mentions },
   );
   const { quotePolicy, quoteRequestPolicy } =
-    quotePoliciesFromInteractionPolicy(
-      post,
-      visibility,
-      actor.followersUrl,
-    );
+    quotePoliciesFromInteractionPolicy(post, visibility, actor.followersUrl);
   let quoteAuthorizationIri = post.quoteAuthorizationId?.href;
   const existingPost = await db.query.postTable.findFirst({
     columns: {
@@ -495,22 +491,26 @@ export async function persistPost(
       authorization.interactionTargetId?.href === quotedPost.iri &&
       authorization.attributionId?.href === quotedPost.actor.iri;
     if (validAuthorization && quotedPost.actor.accountId != null) {
-      const issuedAuthorization = await db.select({
-        id: quoteAuthorizationTable.id,
-      })
+      const issuedAuthorization = await db
+        .select({
+          id: quoteAuthorizationTable.id,
+        })
         .from(quoteAuthorizationTable)
-        .where(and(
-          eq(quoteAuthorizationTable.iri, quoteAuthorizationIri),
-          eq(quoteAuthorizationTable.quotePostIri, post.id.href),
-          eq(quoteAuthorizationTable.quotedPostId, quotedPost.id),
-          eq(quoteAuthorizationTable.attributedActorId, quotedPost.actorId),
-          eq(quoteAuthorizationTable.revoked, false),
-        ))
+        .where(
+          and(
+            eq(quoteAuthorizationTable.iri, quoteAuthorizationIri),
+            eq(quoteAuthorizationTable.quotePostIri, post.id.href),
+            eq(quoteAuthorizationTable.quotedPostId, quotedPost.id),
+            eq(quoteAuthorizationTable.attributedActorId, quotedPost.actorId),
+            eq(quoteAuthorizationTable.revoked, false),
+          ),
+        )
         .limit(1);
       validAuthorization = issuedAuthorization.length > 0;
     } else if (validAuthorization) {
       // Fedify dereferences cross-origin embedded authorizations before this.
-      validAuthorization = new URL(quoteAuthorizationIri).origin ===
+      validAuthorization =
+        new URL(quoteAuthorizationIri).origin ===
         new URL(quotedPost.actor.iri).origin;
     }
     if (!validAuthorization) {
@@ -521,7 +521,8 @@ export async function persistPost(
     }
   }
   if (
-    quotedPost?.visibility === "direct" || quotedPost?.visibility === "none"
+    quotedPost?.visibility === "direct" ||
+    quotedPost?.visibility === "none"
   ) {
     logger.debug("Ignoring quoted post with private visibility: {iri}", {
       iri: quotedPost.iri,
@@ -558,15 +559,17 @@ export async function persistPost(
     });
     quoteAuthorizationIri = undefined;
   }
-  const quoteTargetState: Post["quoteTargetState"] = quotedPost != null ||
-      quotedPostIris.length < 1 || existingPost == null ||
-      unauthorizedQuoteTarget == null
-    ? null
-    : await getPersistedQuoteTargetState(
-      db,
-      existingPost.id,
-      unauthorizedQuoteTarget.id,
-    );
+  const quoteTargetState: Post["quoteTargetState"] =
+    quotedPost != null ||
+    quotedPostIris.length < 1 ||
+    existingPost == null ||
+    unauthorizedQuoteTarget == null
+      ? null
+      : await getPersistedQuoteTargetState(
+          db,
+          existingPost.id,
+          unauthorizedQuoteTarget.id,
+        );
   const mentionedActors = await resolveMentionedActors(
     ctx,
     mentions,
@@ -578,43 +581,51 @@ export async function persistPost(
     for (const href of getActorMentionHrefs(actor)) mentionLinkHrefs.add(href);
   }
   const contentHtml = post.content?.toString();
-  const postUrl = post.url instanceof vocab.Link
-    ? post.url.href?.href
-    : post.url?.href;
-  const type = post instanceof vocab.Article
-    ? "Article"
-    : post instanceof vocab.Note
-    ? "Note"
-    : post instanceof vocab.Question
-    ? "Question"
-    : assertNever(post, `Unexpected type of post: ${post}`);
-  const qualifyingArticleNewsPost = fetchRemote && type === "Article" &&
+  const postUrl =
+    post.url instanceof vocab.Link ? post.url.href?.href : post.url?.href;
+  const type =
+    post instanceof vocab.Article
+      ? "Article"
+      : post instanceof vocab.Note
+        ? "Note"
+        : post instanceof vocab.Question
+          ? "Question"
+          : assertNever(post, `Unexpected type of post: ${post}`);
+  const qualifyingArticleNewsPost =
+    fetchRemote &&
+    type === "Article" &&
     (visibility === "public" || visibility === "unlisted") &&
     replyTarget == null &&
     quotedPost == null;
   const articleNewsLink = qualifyingArticleNewsPost
-    ? await persistArticleNewsLink(ctx, {
-      url: postUrl,
-      iri: post.id.href,
-      name: post.name?.toString(),
-      summary: post.summary?.toString(),
-      contentHtml,
-    }, actor)
+    ? await persistArticleNewsLink(
+        ctx,
+        {
+          url: postUrl,
+          iri: post.id.href,
+          name: post.name?.toString(),
+          summary: post.summary?.toString(),
+          contentHtml,
+        },
+        actor,
+      )
     : undefined;
-  let externalLinks = contentHtml == null
-    ? []
-    : extractExternalLinks(contentHtml, { excludeHrefs: mentionLinkHrefs });
+  let externalLinks =
+    contentHtml == null
+      ? []
+      : extractExternalLinks(contentHtml, { excludeHrefs: mentionLinkHrefs });
   if (quotedPost != null) {
-    externalLinks = externalLinks.filter((l) =>
-      quotedPost.iri !== l.href &&
-      quotedPost.url !== l.href &&
-      quotedPostIri !== l.href
+    externalLinks = externalLinks.filter(
+      (l) =>
+        quotedPost.iri !== l.href &&
+        quotedPost.url !== l.href &&
+        quotedPostIri !== l.href,
     );
   }
-  const embeddedLink = fetchRemote && articleNewsLink == null &&
-      externalLinks.length > 0
-    ? await persistPostLink(ctx, externalLinks[0], { signal: overallSignal })
-    : undefined;
+  const embeddedLink =
+    fetchRemote && articleNewsLink == null && externalLinks.length > 0
+      ? await persistPostLink(ctx, externalLinks[0], { signal: overallSignal })
+      : undefined;
   const link = articleNewsLink ?? embeddedLink;
   const values: Omit<NewPost, "id"> = {
     iri: post.id.href,
@@ -627,21 +638,23 @@ export async function persistPost(
     name: post.name?.toString(),
     summary: post.summary?.toString(),
     contentHtml,
-    language: post.content instanceof LanguageString
-      ? post.content.locale.toString()
-      : post.contents.length > 1 && post.contents[1] instanceof LanguageString
-      ? post.contents[1].locale.toString()
-      : undefined,
+    language:
+      post.content instanceof LanguageString
+        ? post.content.locale.toString()
+        : post.contents.length > 1 && post.contents[1] instanceof LanguageString
+          ? post.contents[1].locale.toString()
+          : undefined,
     tags,
     emojis,
     linkId: link?.id ?? null,
     // Keep the exact URL from the post body for navigation.  Canonical
     // metadata and redirects belong to the shared PostLink identity only.
-    linkUrl: link == null
-      ? null
-      : articleNewsLink != null
-      ? articleNewsLink.url
-      : externalLinks[0].href,
+    linkUrl:
+      link == null
+        ? null
+        : articleNewsLink != null
+          ? articleNewsLink.url
+          : externalLinks[0].href,
     url: postUrl,
     replyTargetId: replyTarget?.id,
     quotedPostId: quotedPost?.id ?? null,
@@ -657,22 +670,25 @@ export async function persistPost(
     sharesCount: _sharesCount,
     ...fullUpdateSet
   } = values;
-  const updateSet = fetchRemote ? fullUpdateSet : {
-    type: values.type,
-    visibility: values.visibility,
-    quotePolicy: values.quotePolicy,
-    quoteRequestPolicy: values.quoteRequestPolicy,
-    actorId: values.actorId,
-    sensitive: values.sensitive,
-    name: values.name,
-    summary: values.summary,
-    contentHtml: values.contentHtml,
-    language: values.language,
-    url: values.url,
-    updated: values.updated,
-    published: values.published,
-  };
-  const rows = await db.insert(postTable)
+  const updateSet = fetchRemote
+    ? fullUpdateSet
+    : {
+        type: values.type,
+        visibility: values.visibility,
+        quotePolicy: values.quotePolicy,
+        quoteRequestPolicy: values.quoteRequestPolicy,
+        actorId: values.actorId,
+        sensitive: values.sensitive,
+        name: values.name,
+        summary: values.summary,
+        contentHtml: values.contentHtml,
+        language: values.language,
+        url: values.url,
+        updated: values.updated,
+        published: values.published,
+      };
+  const rows = await db
+    .insert(postTable)
     .values({ id: generateUuidV7(), ...values })
     .onConflictDoUpdate({
       target: postTable.iri,
@@ -688,29 +704,32 @@ export async function persistPost(
     actor,
   );
   if (quoteAuthorizationIri != null && quotedPost != null) {
-    await db.insert(quoteAuthorizationTable).values({
-      id: generateUuidV7(),
-      iri: quoteAuthorizationIri,
-      quotePostIri: persistedPost.iri,
-      quotePostId: persistedPost.id,
-      quotedPostId: quotedPost.id,
-      attributedActorId: quotedPost.actorId,
-    }).onConflictDoUpdate({
-      target: quoteAuthorizationTable.iri,
-      set: {
+    await db
+      .insert(quoteAuthorizationTable)
+      .values({
+        id: generateUuidV7(),
+        iri: quoteAuthorizationIri,
         quotePostIri: persistedPost.iri,
         quotePostId: persistedPost.id,
         quotedPostId: quotedPost.id,
         attributedActorId: quotedPost.actorId,
-        revoked: false,
-        updated: sql`CURRENT_TIMESTAMP`,
-      },
-    });
+      })
+      .onConflictDoUpdate({
+        target: quoteAuthorizationTable.iri,
+        set: {
+          quotePostIri: persistedPost.iri,
+          quotePostId: persistedPost.id,
+          quotedPostId: quotedPost.id,
+          attributedActorId: quotedPost.actorId,
+          revoked: false,
+          updated: sql`CURRENT_TIMESTAMP`,
+        },
+      });
   }
   if (fetchRemote) {
-    await db.delete(mentionTable).where(
-      eq(mentionTable.postId, persistedPost.id),
-    );
+    await db
+      .delete(mentionTable)
+      .where(eq(mentionTable.postId, persistedPost.id));
   }
 
   if (
@@ -728,26 +747,28 @@ export async function persistPost(
     await updateQuotesCount(db, quotedPost, 1);
   }
   let mentionList: (Mention & { actor: Actor })[] = [];
-  const mentionsResult = mentionedActors.length > 0
-    ? await db.insert(mentionTable)
-      .values(
-        mentionedActors.map((actor) => ({
-          postId: persistedPost.id,
-          actorId: actor.id,
-        })),
-      )
-      .onConflictDoNothing()
-      .returning()
-      .execute()
-    : [];
+  const mentionsResult =
+    mentionedActors.length > 0
+      ? await db
+          .insert(mentionTable)
+          .values(
+            mentionedActors.map((actor) => ({
+              postId: persistedPost.id,
+              actorId: actor.id,
+            })),
+          )
+          .onConflictDoNothing()
+          .returning()
+          .execute()
+      : [];
   mentionList = mentionsResult.map((m) => ({
     ...m,
     actor: mentionedActors.find((a) => a.id === m.actorId)!,
   }));
   if (fetchRemote) {
-    await db.delete(postMediumTable).where(
-      eq(postMediumTable.postId, persistedPost.id),
-    );
+    await db
+      .delete(postMediumTable)
+      .where(eq(postMediumTable.postId, persistedPost.id));
   }
   let i = 0;
   if (fetchRemote) {
@@ -758,8 +779,8 @@ export async function persistPost(
   }
   if (options.replies && depth === 0 && replies != null) {
     const totalItems = replies.totalItems ?? 0;
-    const canInlineReplies = totalItems < 1 ||
-      totalItems <= inlineRepliesThreshold;
+    const canInlineReplies =
+      totalItems < 1 || totalItems <= inlineRepliesThreshold;
     if (canInlineReplies) {
       let repliesCount = 0;
       const traversalDeadline = Date.now() + INLINE_REPLIES_TRAVERSAL_BUDGET_MS;
@@ -809,10 +830,10 @@ export async function persistPost(
         await repliesIterator.return?.();
       }
       if (persistedPost.repliesCount < repliesCount) {
-        await db.update(postTable)
+        await db
+          .update(postTable)
           .set({
-            repliesCount:
-              sql`GREATEST(${postTable.repliesCount}, ${repliesCount})`,
+            repliesCount: sql`GREATEST(${postTable.repliesCount}, ${repliesCount})`,
           })
           .where(eq(postTable.id, persistedPost.id));
         persistedPost.repliesCount = Math.max(
@@ -849,14 +870,13 @@ export async function persistPost(
               ),
               suppressError: true,
             };
-            const persistReply = async (
-              attempt: number,
-            ): Promise<void> => {
+            const persistReply = async (attempt: number): Promise<void> => {
               try {
                 let count = 0;
-                for await (
-                  const reply of traverseCollection(replies, backfillOpts)
-                ) {
+                for await (const reply of traverseCollection(
+                  replies,
+                  backfillOpts,
+                )) {
                   if (count >= maxReplies) break;
                   if (!isPostObject(reply)) continue;
                   await persistPost(backgroundCtx, reply, {
@@ -874,10 +894,10 @@ export async function persistPost(
                   count++;
                 }
                 if (persistedPost.repliesCount < count) {
-                  await backgroundDb.update(postTable)
+                  await backgroundDb
+                    .update(postTable)
                     .set({
-                      repliesCount:
-                        sql`GREATEST(${postTable.repliesCount}, ${count})`,
+                      repliesCount: sql`GREATEST(${postTable.repliesCount}, ${count})`,
                     })
                     .where(eq(postTable.id, persistedPost.id));
                   persistedPost.repliesCount = Math.max(
@@ -890,7 +910,7 @@ export async function persistPost(
                   // Single delayed retry to absorb transient federation failures
                   // without introducing a durable queue.
                   await new Promise((resolve) =>
-                    setTimeout(resolve, REPLIES_BACKFILL_RETRY_DELAY_MS)
+                    setTimeout(resolve, REPLIES_BACKFILL_RETRY_DELAY_MS),
                   );
                   await persistReply(attempt + 1);
                   return;
@@ -903,13 +923,10 @@ export async function persistPost(
             };
             await persistReply(0);
           })().catch((error) => {
-            logger.warn(
-              "Replies backfill task failed for {postIri}: {error}",
-              {
-                postIri: persistedPost.iri,
-                error,
-              },
-            );
+            logger.warn("Replies backfill task failed for {postIri}: {error}", {
+              postIri: persistedPost.iri,
+              error,
+            });
           });
         });
       }
@@ -969,16 +986,16 @@ export async function persistSharedPost(
     signal?: AbortSignal;
   } = {},
 ): Promise<
-  Post & {
-    actor: Actor & { instance: Instance };
-    sharedPost: Post & { actor: Actor & { instance: Instance } };
-  } | undefined
+  | (Post & {
+      actor: Actor & { instance: Instance };
+      sharedPost: Post & { actor: Actor & { instance: Instance } };
+    })
+  | undefined
 > {
   if (announce.id == null || announce.actorId == null) {
-    logger.debug(
-      "Missing required fields (id, actor): {announce}",
-      { announce },
-    );
+    logger.debug("Missing required fields (id, actor): {announce}", {
+      announce,
+    });
     return;
   }
   const announceId = announce.id.href;
@@ -986,8 +1003,8 @@ export async function persistSharedPost(
   // One deadline for this entire operation.  Reuse the caller's signal when
   // available so pre-persistPost fetches (getActor, getObject) and the
   // persistPost subtree are all capped by the same wall-clock budget.
-  const overallSignal = options.signal ??
-    AbortSignal.timeout(PERSIST_POST_OVERALL_BUDGET_MS);
+  const overallSignal =
+    options.signal ?? AbortSignal.timeout(PERSIST_POST_OVERALL_BUDGET_MS);
   const boundedOpts = {
     contextLoader: options.contextLoader,
     documentLoader: withDocumentLoaderTimeout(
@@ -997,7 +1014,7 @@ export async function persistSharedPost(
     ),
     suppressError: true,
   };
-  let actor: Actor & { instance: Instance } | undefined =
+  let actor: (Actor & { instance: Instance }) | undefined =
     options.actor == null || options.actor.iri !== announce.actorId.href
       ? await getPersistedActor(db, announce.actorId)
       : options.actor;
@@ -1028,11 +1045,11 @@ export async function persistSharedPost(
     visibility: to.has(PUBLIC_COLLECTION.href)
       ? "public"
       : cc.has(PUBLIC_COLLECTION.href)
-      ? "unlisted"
-      : actor.followersUrl != null &&
-          (to.has(actor.followersUrl) || cc.has(actor.followersUrl))
-      ? "followers"
-      : "none",
+        ? "unlisted"
+        : actor.followersUrl != null &&
+            (to.has(actor.followersUrl) || cc.has(actor.followersUrl))
+          ? "followers"
+          : "none",
     actorId: actor.id,
     sharedPostId: post.id,
     name: post.name,
@@ -1075,7 +1092,8 @@ export async function persistSharedPost(
     }
 
     if (
-      existingByIri != null && existingByPair != null &&
+      existingByIri != null &&
+      existingByPair != null &&
       existingByIri.id !== existingByPair.id
     ) {
       logger.warn(
@@ -1093,14 +1111,16 @@ export async function persistSharedPost(
 
     let persistedShare: Post;
     if (existing == null) {
-      const rows = await tx.insert(postTable)
+      const rows = await tx
+        .insert(postTable)
         .values({ id: generateUuidV7(), ...values })
         .returning();
       if (rows.length < 1) return undefined;
       persistedShare = rows[0];
       await updateSharesCount(tx, post, 1);
     } else {
-      const rows = await tx.update(postTable)
+      const rows = await tx
+        .update(postTable)
         .set(values)
         .where(eq(postTable.id, existing.id))
         .returning();
@@ -1114,7 +1134,8 @@ export async function persistSharedPost(
           if (previousPost != null) {
             await updateSharesCount(tx, previousPost, -1);
             if (
-              previousPost.type === "Article" && previousPost.linkId != null
+              previousPost.type === "Article" &&
+              previousPost.linkId != null
             ) {
               affectedNewsLinkIds.add(previousPost.linkId);
             }
@@ -1157,36 +1178,45 @@ async function getPersistedQuoteTargetState(
   quotePostId: Uuid,
   quotedPostId: Uuid,
 ): Promise<Post["quoteTargetState"]> {
-  const pendingRequests = await db.select({ id: quoteRequestTable.id })
+  const pendingRequests = await db
+    .select({ id: quoteRequestTable.id })
     .from(quoteRequestTable)
-    .where(and(
-      eq(quoteRequestTable.quotePostId, quotePostId),
-      eq(quoteRequestTable.quotedPostId, quotedPostId),
-      isNull(quoteRequestTable.accepted),
-      isNull(quoteRequestTable.rejected),
-    ))
+    .where(
+      and(
+        eq(quoteRequestTable.quotePostId, quotePostId),
+        eq(quoteRequestTable.quotedPostId, quotedPostId),
+        isNull(quoteRequestTable.accepted),
+        isNull(quoteRequestTable.rejected),
+      ),
+    )
     .limit(1);
   if (pendingRequests.length > 0) return "pending";
 
-  const deniedRequests = await db.select({ id: quoteRequestTable.id })
+  const deniedRequests = await db
+    .select({ id: quoteRequestTable.id })
     .from(quoteRequestTable)
-    .where(and(
-      eq(quoteRequestTable.quotePostId, quotePostId),
-      eq(quoteRequestTable.quotedPostId, quotedPostId),
-      isNotNull(quoteRequestTable.rejected),
-    ))
+    .where(
+      and(
+        eq(quoteRequestTable.quotePostId, quotePostId),
+        eq(quoteRequestTable.quotedPostId, quotedPostId),
+        isNotNull(quoteRequestTable.rejected),
+      ),
+    )
     .limit(1);
   if (deniedRequests.length > 0) return "denied";
 
-  const revokedAuthorizations = await db.select({
-    id: quoteAuthorizationTable.id,
-  })
+  const revokedAuthorizations = await db
+    .select({
+      id: quoteAuthorizationTable.id,
+    })
     .from(quoteAuthorizationTable)
-    .where(and(
-      eq(quoteAuthorizationTable.quotePostId, quotePostId),
-      eq(quoteAuthorizationTable.quotedPostId, quotedPostId),
-      eq(quoteAuthorizationTable.revoked, true),
-    ))
+    .where(
+      and(
+        eq(quoteAuthorizationTable.quotePostId, quotePostId),
+        eq(quoteAuthorizationTable.quotedPostId, quotedPostId),
+        eq(quoteAuthorizationTable.revoked, true),
+      ),
+    )
     .limit(1);
   return revokedAuthorizations.length > 0 ? "denied" : null;
 }
@@ -1212,18 +1242,22 @@ export async function deletePersistedPost(
   iri: URL,
   actorIri: URL,
 ): Promise<boolean> {
-  const deletedPosts = await db.delete(postTable).where(
-    and(
-      eq(postTable.iri, iri.toString()),
-      inArray(
-        postTable.actorId,
-        db.select({ id: actorTable.id })
-          .from(actorTable)
-          .where(eq(actorTable.iri, actorIri.toString())),
+  const deletedPosts = await db
+    .delete(postTable)
+    .where(
+      and(
+        eq(postTable.iri, iri.toString()),
+        inArray(
+          postTable.actorId,
+          db
+            .select({ id: actorTable.id })
+            .from(actorTable)
+            .where(eq(actorTable.iri, actorIri.toString())),
+        ),
+        isNull(postTable.sharedPostId),
       ),
-      isNull(postTable.sharedPostId),
-    ),
-  ).returning();
+    )
+    .returning();
   if (deletedPosts.length < 1) return false;
   const [deletedPost] = deletedPosts;
   if (deletedPost.replyTargetId != null) {
@@ -1248,18 +1282,21 @@ export async function deleteSharedPost(
   db: Database,
   iri: URL,
   actorIri: URL,
-): Promise<Post & { actor: Actor } | undefined> {
+): Promise<(Post & { actor: Actor }) | undefined> {
   const actor = await db.query.actorTable.findFirst({
     where: { iri: actorIri.toString() },
   });
   if (actor == null) return undefined;
-  const shares = await db.delete(postTable).where(
-    and(
-      eq(postTable.iri, iri.toString()),
-      eq(postTable.actorId, actor.id),
-      isNotNull(postTable.sharedPostId),
-    ),
-  ).returning();
+  const shares = await db
+    .delete(postTable)
+    .where(
+      and(
+        eq(postTable.iri, iri.toString()),
+        eq(postTable.actorId, actor.id),
+        isNotNull(postTable.sharedPostId),
+      ),
+    )
+    .returning();
   if (shares.length < 1) return undefined;
   const [share] = shares;
   if (share.sharedPostId == null) return undefined;

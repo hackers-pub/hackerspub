@@ -55,10 +55,10 @@ builder
   .on(Undo, async (fedCtx, undo) => {
     const object = await undo.getObject({ ...fedCtx, suppressError: true });
     if (object instanceof Follow) await onUnfollowed(fedCtx, undo);
-    await onPostUnshared(fedCtx, undo) ||
-      await onReactionUndoneOnPost(fedCtx, undo) ||
-      await onUnblocked(fedCtx, undo) ||
-      logger.warn("Unhandled Undo object: {undo}", { undo });
+    if (await onPostUnshared(fedCtx, undo)) return;
+    if (await onReactionUndoneOnPost(fedCtx, undo)) return;
+    if (await onUnblocked(fedCtx, undo)) return;
+    logger.warn("Unhandled Undo object: {undo}", { undo });
   })
   .on(Create, onPostCreated)
   .on(Announce, onPostShared)

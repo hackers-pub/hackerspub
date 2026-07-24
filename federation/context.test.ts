@@ -1,4 +1,5 @@
 import { assertStrictEquals } from "@std/assert";
+import test from "node:test";
 import type { Context, InboxContext } from "@fedify/fedify";
 import type {
   AfterCommitTask,
@@ -36,7 +37,7 @@ function createFedifyContext(data: ContextData): Context<ContextData> {
   } as unknown as Context<ContextData>;
 }
 
-Deno.test("Fedify adapter state survives application context cloning", () => {
+test("Fedify adapter state survives application context cloning", () => {
   const rootDb = {} as ContextData["db"];
   const transactionDb = {} as ContextData["db"];
   const data = { db: rootDb } as ContextData;
@@ -56,7 +57,7 @@ Deno.test("Fedify adapter state survives application context cloning", () => {
   assertStrictEquals(fedifyContext.data.db, rootDb);
 });
 
-Deno.test("database rebinding preserves transaction adapter state", () => {
+test("database rebinding preserves transaction adapter state", () => {
   const rootDb = {} as ContextData["db"];
   const transactionDb = {} as ContextData["db"];
   const reboundDb = {} as ContextData["db"];
@@ -78,7 +79,7 @@ Deno.test("database rebinding preserves transaction adapter state", () => {
   assertStrictEquals(rebound.afterCommit, afterCommit);
 });
 
-Deno.test("sendActivity binds the rebound transaction to the outbox", async () => {
+test("sendActivity binds the rebound transaction to the outbox", async () => {
   const rootDb = {} as ContextData["db"];
   const transactionDb = {} as ContextData["db"];
   let observedDb: ContextData["db"] | undefined;
@@ -96,7 +97,7 @@ Deno.test("sendActivity binds the rebound transaction to the outbox", async () =
   assertStrictEquals(observedDb, transactionDb);
 });
 
-Deno.test("inbox transactions rebind the Fedify context database", async () => {
+test("inbox transactions rebind the Fedify context database", async () => {
   const transactionDb = {} as ContextData["db"];
   let committed = false;
   const rootDb = {

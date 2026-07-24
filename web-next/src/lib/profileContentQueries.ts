@@ -19,10 +19,8 @@ export const PROFILE_CONTENT_QUERY_KEYS = [
   PROFILE_INTERACTIONS_QUERY_KEY,
 ];
 
-const [
-  profileContentRevalidating,
-  setProfileContentRevalidating,
-] = createSignal(false);
+const [profileContentRevalidating, setProfileContentRevalidating] =
+  createSignal(false);
 
 export { profileContentRevalidating };
 

@@ -500,10 +500,12 @@ test("updateArticle() resets existing translation rows when the body changes", a
         where: { sourceId: article.articleSource.id, language: "ko" },
       });
       if (ko == null) return true;
-      return ko.beingTranslated === true &&
+      return (
+        ko.beingTranslated === true &&
         ko.title === "Original article" &&
         ko.content === "Edited body" &&
-        ko.summary === null;
+        ko.summary === null
+      );
     });
   });
 });
@@ -728,9 +730,11 @@ test("updateArticle() does not retranslate human-curated translation rows", asyn
         where: { sourceId: article.articleSource.id, language: "ja" },
       });
       if (ja == null) return true;
-      return ja.beingTranslated === true &&
+      return (
+        ja.beingTranslated === true &&
         ja.title === "Original article" &&
-        ja.content === "Edited body";
+        ja.content === "Edited body"
+      );
     });
   });
 });

@@ -31,9 +31,9 @@ function redactDeviceToken(value: unknown): unknown {
   if (typeof value !== "string") return "[REDACTED]";
   const visibleChars = 8;
   if (value.length <= visibleChars) return "[REDACTED]";
-  return `${"*".repeat(value.length - visibleChars)}${
-    value.slice(-visibleChars)
-  }`;
+  return `${"*".repeat(value.length - visibleChars)}${value.slice(
+    -visibleChars,
+  )}`;
 }
 
 // Forward LogTape `error`/`fatal` records to Sentry as captured events

@@ -12,5 +12,8 @@ export function buildPostTitleExcerpt(
     ({ segment }) => segment,
   );
   if (graphemes.length <= graphemeLimit) return normalized;
-  return `${graphemes.slice(0, graphemeLimit - 1).join("").trimEnd()}…`;
+  return `${graphemes
+    .slice(0, graphemeLimit - 1)
+    .join("")
+    .trimEnd()}…`;
 }

@@ -4,10 +4,8 @@ const HEADING_SELECTOR = [1, 2, 3, 4, 5, 6]
 
 const EXISTING_ANCHOR_SELECTOR = ":scope > a.header-anchor";
 const GENERATED_ANCHOR_ATTRIBUTE = "data-hackerspub-generated";
-const GENERATED_ANCHOR_SELECTOR =
-  `:scope > a.header-anchor[${GENERATED_ANCHOR_ATTRIBUTE}]`;
-const ALL_GENERATED_ANCHORS_SELECTOR =
-  `a.header-anchor[${GENERATED_ANCHOR_ATTRIBUTE}]`;
+const GENERATED_ANCHOR_SELECTOR = `:scope > a.header-anchor[${GENERATED_ANCHOR_ATTRIBUTE}]`;
+const ALL_GENERATED_ANCHORS_SELECTOR = `a.header-anchor[${GENERATED_ANCHOR_ATTRIBUTE}]`;
 const ANCHOR_LABEL = "Link to this section";
 
 /**
@@ -24,11 +22,9 @@ export function addHeaderAnchorLinks(document: Document): void {
     ...document.querySelectorAll<HTMLElement>(HEADING_SELECTOR),
   ];
   const headingSet = new Set(headings);
-  for (
-    const anchor of document.querySelectorAll<HTMLAnchorElement>(
-      ALL_GENERATED_ANCHORS_SELECTOR,
-    )
-  ) {
+  for (const anchor of document.querySelectorAll<HTMLAnchorElement>(
+    ALL_GENERATED_ANCHORS_SELECTOR,
+  )) {
     const parent = anchor.parentElement as HTMLElement | null;
     if (parent == null || !headingSet.has(parent)) anchor.remove();
   }

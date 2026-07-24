@@ -4,7 +4,7 @@ import type { createMediaControllerDraftMediaQuery } from "./__generated__/creat
 import type { createMediaControllerGeneratedAltTextQuery } from "./__generated__/createMediaControllerGeneratedAltTextQuery.graphql.ts";
 import { type MediaItem, reduceMediaItems } from "./mediaState.ts";
 import { showToast } from "~/components/ui/toast.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { NoteDraftMedia } from "~/lib/noteDraftStorage.ts";
 import {
   getSupportedImageContentType,
@@ -70,9 +70,8 @@ export function createMediaController(
   const [items, setItems] = createSignal<readonly MediaItem[]>([]);
   let restoreSubscription: { unsubscribe(): void } | undefined;
 
-  const dispatch = (
-    action: Parameters<typeof reduceMediaItems>[1],
-  ) => setItems((current) => reduceMediaItems(current, action));
+  const dispatch = (action: Parameters<typeof reduceMediaItems>[1]) =>
+    setItems((current) => reduceMediaItems(current, action));
 
   const disposeItem = (item: MediaItem) => {
     item.abortUpload?.();
@@ -113,8 +112,7 @@ export function createMediaController(
     if (selected.length < supported.length) {
       showToast({
         title: t`Warning`,
-        description:
-          t`Some images were skipped because the limit of ${MAX_MEDIA} was reached`,
+        description: t`Some images were skipped because the limit of ${MAX_MEDIA} was reached`,
         variant: "warning",
       });
     }
@@ -128,23 +126,26 @@ export function createMediaController(
       const handle = uploadMediumFile(file, contentType, (progress) => {
         dispatch({ type: "upload-progress", localId, progress });
       });
-      handle.result.then((result) => {
-        dispatch({ type: "upload-completed", localId, result });
-      }).catch((error) => {
-        if (error instanceof UploadAbortedError) return;
-        const failed = items().find((item) => item.localId === localId);
-        if (failed != null) {
-          revokePreviewUrl(failed.previewUrl);
-          dispatch({ type: "remove", localId });
-        }
-        showToast({
-          title: t`Error`,
-          description: error instanceof Error && error.message
-            ? error.message
-            : t`Failed to upload image`,
-          variant: "error",
+      handle.result
+        .then((result) => {
+          dispatch({ type: "upload-completed", localId, result });
+        })
+        .catch((error) => {
+          if (error instanceof UploadAbortedError) return;
+          const failed = items().find((item) => item.localId === localId);
+          if (failed != null) {
+            revokePreviewUrl(failed.previewUrl);
+            dispatch({ type: "remove", localId });
+          }
+          showToast({
+            title: t`Error`,
+            description:
+              error instanceof Error && error.message
+                ? error.message
+                : t`Failed to upload image`,
+            variant: "error",
+          });
         });
-      });
       return {
         localId,
         file,
@@ -187,7 +188,9 @@ export function createMediaController(
       next(data) {
         const restored = (data.nodes ?? []).flatMap((node) => {
           if (
-            node == null || node.id == null || node.uuid == null ||
+            node == null ||
+            node.id == null ||
+            node.uuid == null ||
             node.url == null
           ) {
             return [];
@@ -213,8 +216,7 @@ export function createMediaController(
         if (restored.length < media.length) {
           showToast({
             title: t`Warning`,
-            description:
-              t`Some locally saved images are no longer available and were removed from the draft.`,
+            description: t`Some locally saved images are no longer available and were removed from the draft.`,
             variant: "warning",
           });
         }
@@ -223,8 +225,7 @@ export function createMediaController(
       error() {
         showToast({
           title: t`Warning`,
-          description:
-            t`Could not verify locally saved images. They may fail when you post.`,
+          description: t`Could not verify locally saved images. They may fail when you post.`,
           variant: "warning",
         });
       },
@@ -249,9 +250,10 @@ export function createMediaController(
         dispatch({
           type: "alt-completed",
           localId,
-          alt: medium && "generatedAltText" in medium
-            ? (medium.generatedAltText ?? null)
-            : null,
+          alt:
+            medium && "generatedAltText" in medium
+              ? (medium.generatedAltText ?? null)
+              : null,
         });
       },
       error(error: Error) {
@@ -294,8 +296,9 @@ export function createMediaController(
 }
 
 function createLocalId(): string {
-  return globalThis.crypto?.randomUUID?.() ??
-    Math.random().toString(36).slice(2);
+  return (
+    globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)
+  );
 }
 
 function revokePreviewUrl(url: string): void {

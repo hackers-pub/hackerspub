@@ -96,8 +96,7 @@ test("Post.ancestors returns the visible chain nearest-first", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    const { ancestors } = (result.data as unknown as ThreadConnectionData)
-      .node;
+    const { ancestors } = (result.data as unknown as ThreadConnectionData).node;
     assert.deepEqual(
       ancestors?.edges.map((edge) => edge.node.id),
       [encodeGlobalID("Note", middle.id), encodeGlobalID("Note", root.id)],
@@ -133,7 +132,8 @@ test("Post.ancestors omits invisible ancestors but keeps the chain above", async
       content: "leaf",
       replyTargetId: censored.id,
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ censored: new Date() })
       .where(eq(postTable.id, censored.id));
 
@@ -145,8 +145,7 @@ test("Post.ancestors omits invisible ancestors but keeps the chain above", async
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    const { ancestors } = (result.data as unknown as ThreadConnectionData)
-      .node;
+    const { ancestors } = (result.data as unknown as ThreadConnectionData).node;
     // The censored middle ancestor is omitted; the root is still returned,
     // and the gap is detectable: the leaf's nearest returned ancestor is
     // the root, but the leaf's replyTarget is not the root.
@@ -346,7 +345,8 @@ test("Post.descendants prunes censored subtrees, except for the author", async (
       content: "buried",
       replyTargetId: censored.id,
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ censored: new Date() })
       .where(eq(postTable.id, censored.id));
 
@@ -397,8 +397,7 @@ test("followers-only replies are hidden from non-followers in threads", async ()
       email: "gqlthreadstranger@example.com",
     });
     await tx.insert(followingTable).values({
-      iri:
-        `https://example.com/following/${follower.actor.id}/${author.actor.id}`,
+      iri: `https://example.com/following/${follower.actor.id}/${author.actor.id}`,
       followerId: follower.actor.id,
       followeeId: author.actor.id,
       accepted: new Date(),
@@ -479,8 +478,9 @@ test("followers-only replies are hidden from non-followers in threads", async ()
     });
     assert.deepEqual(strangerAncestors.errors, undefined);
     assert.deepEqual(
-      (strangerAncestors.data as unknown as ThreadConnectionData).node
-        .ancestors?.edges.map((edge) => edge.node.id),
+      (
+        strangerAncestors.data as unknown as ThreadConnectionData
+      ).node.ancestors?.edges.map((edge) => edge.node.id),
       [encodeGlobalID("Note", root.id)],
     );
 
@@ -518,8 +518,7 @@ test("followers-only replies are hidden from non-followers in threads", async ()
     });
     assert.deepEqual(followerParent.errors, undefined);
     assert.deepEqual(
-      (followerParent.data as unknown as ReplyTargetData).node.replyTarget
-        ?.id,
+      (followerParent.data as unknown as ReplyTargetData).node.replyTarget?.id,
       encodeGlobalID("Note", hidden.id),
     );
   });

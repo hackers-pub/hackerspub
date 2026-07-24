@@ -33,8 +33,7 @@ const toastVariants = cva(
 type ToastVariant = NonNullable<VariantProps<typeof toastVariants>["variant"]>;
 
 type ToastListProps<T extends ValidComponent = "ol"> =
-  & ToastPrimitive.ToastListProps<T>
-  & {
+  ToastPrimitive.ToastListProps<T> & {
     class?: string | undefined;
   };
 
@@ -58,9 +57,8 @@ const Toaster = <T extends ValidComponent = "ol">(
 };
 
 type ToastRootProps<T extends ValidComponent = "li"> =
-  & ToastPrimitive.ToastRootProps<T>
-  & VariantProps<typeof toastVariants>
-  & { class?: string | undefined };
+  ToastPrimitive.ToastRootProps<T> &
+    VariantProps<typeof toastVariants> & { class?: string | undefined };
 
 const Toast = <T extends ValidComponent = "li">(
   props: PolymorphicProps<T, ToastRootProps<T>>,
@@ -78,8 +76,7 @@ const Toast = <T extends ValidComponent = "li">(
 };
 
 type ToastCloseButtonProps<T extends ValidComponent = "button"> =
-  & ToastPrimitive.ToastCloseButtonProps<T>
-  & { class?: string | undefined };
+  ToastPrimitive.ToastCloseButtonProps<T> & { class?: string | undefined };
 
 const ToastClose = <T extends ValidComponent = "button">(
   props: PolymorphicProps<T, ToastCloseButtonProps<T>>,
@@ -111,8 +108,7 @@ const ToastClose = <T extends ValidComponent = "button">(
 };
 
 type ToastTitleProps<T extends ValidComponent = "div"> =
-  & ToastPrimitive.ToastTitleProps<T>
-  & {
+  ToastPrimitive.ToastTitleProps<T> & {
     class?: string | undefined;
   };
 
@@ -129,8 +125,7 @@ const ToastTitle = <T extends ValidComponent = "div">(
 };
 
 type ToastDescriptionProps<T extends ValidComponent = "div"> =
-  & ToastPrimitive.ToastDescriptionProps<T>
-  & { class?: string | undefined };
+  ToastPrimitive.ToastDescriptionProps<T> & { class?: string | undefined };
 
 const ToastDescription = <T extends ValidComponent = "div">(
   props: PolymorphicProps<T, ToastDescriptionProps<T>>,
@@ -157,12 +152,7 @@ function showToast(props: {
       variant={props.variant}
       duration={props.duration}
     >
-      <div
-        class={cn(
-          "grid gap-1",
-          props.href && "min-w-0 flex-1",
-        )}
-      >
+      <div class={cn("grid gap-1", props.href && "min-w-0 flex-1")}>
         <ShowToastContent
           toastId={data.toastId}
           href={props.href}
@@ -216,26 +206,23 @@ function showToastPromise<T, U>(
     fulfilled: "success",
     rejected: "error",
   };
-  return ToastPrimitive.toaster.promise<T, U>(
-    promise,
-    (props) => (
-      <Toast
-        toastId={props.toastId}
-        variant={variant[props.state]}
-        duration={options.duration}
-      >
-        <Switch>
-          <Match when={props.state === "pending"}>{options.loading}</Match>
-          <Match when={props.state === "fulfilled"}>
-            {options.success?.(props.data!)}
-          </Match>
-          <Match when={props.state === "rejected"}>
-            {options.error?.(props.error!)}
-          </Match>
-        </Switch>
-      </Toast>
-    ),
-  );
+  return ToastPrimitive.toaster.promise<T, U>(promise, (props) => (
+    <Toast
+      toastId={props.toastId}
+      variant={variant[props.state]}
+      duration={options.duration}
+    >
+      <Switch>
+        <Match when={props.state === "pending"}>{options.loading}</Match>
+        <Match when={props.state === "fulfilled"}>
+          {options.success?.(props.data!)}
+        </Match>
+        <Match when={props.state === "rejected"}>
+          {options.error?.(props.error!)}
+        </Match>
+      </Switch>
+    </Toast>
+  ));
 }
 
 export {

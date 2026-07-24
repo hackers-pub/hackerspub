@@ -50,10 +50,7 @@ export function getSigninToken(
   return kv.get<SigninToken>(`${KV_NAMESPACE}/${token}`);
 }
 
-export async function deleteSigninToken(
-  kv: Keyv,
-  token: Uuid,
-): Promise<void> {
+export async function deleteSigninToken(kv: Keyv, token: Uuid): Promise<void> {
   await kv.delete(`${KV_NAMESPACE}/${token}`);
 }
 

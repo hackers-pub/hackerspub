@@ -30,7 +30,7 @@ import { RefreshFromOriginItem } from "~/components/RefreshFromOriginItem.tsx";
 import { ReportDialog } from "~/components/ReportDialog.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   holdProfileContentGate,
   releaseProfileContentGate,
@@ -197,12 +197,16 @@ const removeFollowerMutation = graphql`
       ... on RemoveFollowerPayload {
         followee {
           id
-          followers { totalCount }
+          followers {
+            totalCount
+          }
         }
         follower {
           id
           followsViewer(actingAccountId: $actingAccountId)
-          followees { totalCount }
+          followees {
+            totalCount
+          }
         }
       }
       ... on InvalidInputError {
@@ -226,8 +230,9 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
   const actor = createFragment(
     graphql`
       fragment ProfileActionMenu_actor on Actor
-        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
-      {
+      @argumentDefinitions(
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
         id
         username
         handle
@@ -244,21 +249,20 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
     () => props.$actor,
   );
 
-  const [blockActor, isBlocking] = createMutation<
-    ProfileActionMenu_blockActor_Mutation
-  >(blockActorMutation);
-  const [unblockActor, unblocking] = createMutation<
-    ProfileActionMenu_unblockActor_Mutation
-  >(unblockActorMutation);
-  const [muteActor, isMuting] = createMutation<
-    ProfileActionMenu_muteActor_Mutation
-  >(muteActorMutation);
-  const [unmuteActor, unmuting] = createMutation<
-    ProfileActionMenu_unmuteActor_Mutation
-  >(unmuteActorMutation);
-  const [removeFollower, isRemovingFollower] = createMutation<
-    ProfileActionMenu_removeFollower_Mutation
-  >(removeFollowerMutation);
+  const [blockActor, isBlocking] =
+    createMutation<ProfileActionMenu_blockActor_Mutation>(blockActorMutation);
+  const [unblockActor, unblocking] =
+    createMutation<ProfileActionMenu_unblockActor_Mutation>(
+      unblockActorMutation,
+    );
+  const [muteActor, isMuting] =
+    createMutation<ProfileActionMenu_muteActor_Mutation>(muteActorMutation);
+  const [unmuteActor, unmuting] =
+    createMutation<ProfileActionMenu_unmuteActor_Mutation>(unmuteActorMutation);
+  const [removeFollower, isRemovingFollower] =
+    createMutation<ProfileActionMenu_removeFollower_Mutation>(
+      removeFollowerMutation,
+    );
 
   const displayName = () => actor()?.rawName ?? actor()?.username ?? "";
   const isPending = () => isBlocking() || unblocking();
@@ -432,8 +436,12 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
 
   return (
     <Show
-      when={actor() && viewer.isLoaded() &&
-        viewer.isAuthenticated() && !isCurrentViewerActor()}
+      when={
+        actor() &&
+        viewer.isLoaded() &&
+        viewer.isAuthenticated() &&
+        !isCurrentViewerActor()
+      }
     >
       <DropdownMenu>
         <DropdownMenuTrigger
@@ -450,9 +458,7 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
           )}
         />
         <DropdownMenuContent class="min-w-40">
-          <Show
-            when={viewer.moderator() && actor() != null && !actor()!.local}
-          >
+          <Show when={viewer.moderator() && actor() != null && !actor()!.local}>
             <RefreshFromOriginItem uri={actor()!.iri} />
           </Show>
           <DropdownMenuItem
@@ -538,9 +544,11 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
             </AlertDialogClose>
             <AlertDialogAction
               aria-label={actor()?.viewerBlocks ? t`Unblock` : t`Block`}
-              class={actor()?.viewerBlocks
-                ? undefined
-                : "bg-destructive text-destructive-foreground hover:bg-destructive/90"}
+              class={
+                actor()?.viewerBlocks
+                  ? undefined
+                  : "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              }
               onClick={handleBlockToggle}
               disabled={isPending()}
             >

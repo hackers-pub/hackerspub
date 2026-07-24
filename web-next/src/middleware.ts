@@ -21,9 +21,8 @@ export default createMiddleware({
     }
     if (url.pathname !== "/") return;
 
-    const target = readSessionCookie(event.request) == null
-      ? "/local"
-      : "/feed";
+    const target =
+      readSessionCookie(event.request) == null ? "/local" : "/feed";
     return redirect(`${target}${url.search}`);
   },
 });

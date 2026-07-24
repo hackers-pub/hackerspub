@@ -50,7 +50,7 @@ export function resolveCocLocale(locale?: string): CocLocale {
     return "en";
   }
   const negotiated = negotiateLocale(wanted, COC_LOCALES);
-  return negotiated == null ? "en" : negotiated.baseName as CocLocale;
+  return negotiated == null ? "en" : (negotiated.baseName as CocLocale);
 }
 
 /**
@@ -109,7 +109,8 @@ function parseCocProvisions(markdown: string): CocProvision[] {
     const line = lines[i];
     const underline = lines[i + 1];
     if (
-      underline != null && line.trim() !== "" &&
+      underline != null &&
+      line.trim() !== "" &&
       /^-{2,}\s*$/.test(underline)
     ) {
       // Setext H2: a section heading.
@@ -121,7 +122,8 @@ function parseCocProvisions(markdown: string): CocProvision[] {
       continue;
     }
     if (
-      underline != null && line.trim() !== "" &&
+      underline != null &&
+      line.trim() !== "" &&
       /^={2,}\s*$/.test(underline)
     ) {
       // Setext H1: the document title; not a section.
@@ -162,14 +164,18 @@ export function getCocVersion(): Promise<string | null> {
 async function computeCocVersion(): Promise<string | null> {
   const repoRoot = fileURLToPath(new URL("../", import.meta.url));
   try {
-    const { stdout } = await promisify(execFile)("git", [
-      "log",
-      "-1",
-      "--format=%H",
-      "--",
-      "CODE_OF_CONDUCT.md",
-      "CODE_OF_CONDUCT.*.md",
-    ], { cwd: repoRoot });
+    const { stdout } = await promisify(execFile)(
+      "git",
+      [
+        "log",
+        "-1",
+        "--format=%H",
+        "--",
+        "CODE_OF_CONDUCT.md",
+        "CODE_OF_CONDUCT.*.md",
+      ],
+      { cwd: repoRoot },
+    );
     const hash = stdout.trim();
     if (/^[0-9a-f]{40}$/.test(hash)) return hash;
   } catch {

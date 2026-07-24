@@ -100,12 +100,10 @@ test("getProfileInteractions() returns direct bidirectional replies, quotes, and
       window: 10,
     });
 
-    assert.deepEqual(interactions.map((entry) => entry.post.id), [
-      profileMention.id,
-      profileQuote.id,
-      profileReply.id,
-      viewerMention.id,
-    ]);
+    assert.deepEqual(
+      interactions.map((entry) => entry.post.id),
+      [profileMention.id, profileQuote.id, profileReply.id, viewerMention.id],
+    );
   });
 });
 
@@ -113,17 +111,11 @@ test("getDirectInteractionFilter() limits candidate posts to the viewer and prof
   const viewerActorId = "01900000-0000-7000-8000-000000000001";
   const profileActorId = "01900000-0000-7000-8000-000000000002";
   const filter = getDirectInteractionFilter(viewerActorId, profileActorId);
-  const raw = filter.RAW as (
-    post: typeof postTable,
-    operators: never,
-  ) => SQL;
+  const raw = filter.RAW as (post: typeof postTable, operators: never) => SQL;
   assert.equal(typeof raw, "function");
   const query = new PgDialect().sqlToQuery(raw(postTable, {} as never));
 
-  assert.match(
-    query.sql,
-    /"post"\."actor_id" IN \(\$1::uuid, \$2::uuid\)/,
-  );
+  assert.match(query.sql, /"post"\."actor_id" IN \(\$1::uuid, \$2::uuid\)/);
 });
 
 test("getProfileInteractions() applies viewer visibility and self-profile rules", async () => {
@@ -164,10 +156,10 @@ test("getProfileInteractions() applies viewer visibility and self-profile rules"
       profileActorId: profile.actor.id,
       window: 10,
     });
-    assert.deepEqual(interactions.map((entry) => entry.post.id), [
-      visibleProfileMention.id,
-      hiddenProfileMention.id,
-    ]);
+    assert.deepEqual(
+      interactions.map((entry) => entry.post.id),
+      [visibleProfileMention.id, hiddenProfileMention.id],
+    );
 
     const selfInteractions = await getProfileInteractions(tx, {
       viewer: viewer.account,
@@ -267,10 +259,10 @@ test("getProfileInteractions() supports stable cursor pagination", async () => {
       profileActorId: profile.actor.id,
       window: 2,
     });
-    assert.deepEqual(firstPage.map((entry) => entry.post.id), [
-      orderedPosts[0].id,
-      orderedPosts[1].id,
-    ]);
+    assert.deepEqual(
+      firstPage.map((entry) => entry.post.id),
+      [orderedPosts[0].id, orderedPosts[1].id],
+    );
 
     const secondPage = await getProfileInteractions(tx, {
       viewer: viewer.account,
@@ -281,10 +273,10 @@ test("getProfileInteractions() supports stable cursor pagination", async () => {
       },
       window: 2,
     });
-    assert.deepEqual(secondPage.map((entry) => entry.post.id), [
-      orderedPosts[2].id,
-      orderedPosts[3].id,
-    ]);
+    assert.deepEqual(
+      secondPage.map((entry) => entry.post.id),
+      [orderedPosts[2].id, orderedPosts[3].id],
+    );
 
     assert.equal(
       formatTimelineCursor(firstPage[0]),
@@ -334,16 +326,18 @@ test("getProfileInteractions() keeps cursor order stable for sub-millisecond tim
           where id = ${lowerMicrosecond.id}`,
     );
 
-    const orderedPosts = [higherMicrosecond, lowerMicrosecond]
-      .sort((a, b) => b.id.localeCompare(a.id));
+    const orderedPosts = [higherMicrosecond, lowerMicrosecond].sort((a, b) =>
+      b.id.localeCompare(a.id),
+    );
     const firstPage = await getProfileInteractions(tx, {
       viewer: viewer.account,
       profileActorId: profile.actor.id,
       window: 1,
     });
-    assert.deepEqual(firstPage.map((entry) => entry.post.id), [
-      orderedPosts[0].id,
-    ]);
+    assert.deepEqual(
+      firstPage.map((entry) => entry.post.id),
+      [orderedPosts[0].id],
+    );
 
     const secondPage = await getProfileInteractions(tx, {
       viewer: viewer.account,
@@ -354,8 +348,9 @@ test("getProfileInteractions() keeps cursor order stable for sub-millisecond tim
       },
       window: 1,
     });
-    assert.deepEqual(secondPage.map((entry) => entry.post.id), [
-      orderedPosts[1].id,
-    ]);
+    assert.deepEqual(
+      secondPage.map((entry) => entry.post.id),
+      [orderedPosts[1].id],
+    );
   });
 });

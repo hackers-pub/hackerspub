@@ -18,19 +18,19 @@ export async function persistInstance(
     });
     if (instance != null) return instance;
   }
-  const nodeInfo = await getNodeInfo(
-    `https://${host}/`,
-    { parse: "best-effort" },
-  );
+  const nodeInfo = await getNodeInfo(`https://${host}/`, {
+    parse: "best-effort",
+  });
   const values: NewInstance = {
     host,
     software: nodeInfo?.software?.name ?? null,
-    softwareVersion: nodeInfo?.software == null ||
-        nodeInfo.software.version === "0.0.0"
-      ? null
-      : nodeInfo.software.version,
+    softwareVersion:
+      nodeInfo?.software == null || nodeInfo.software.version === "0.0.0"
+        ? null
+        : nodeInfo.software.version,
   };
-  const rows = await db.insert(instanceTable)
+  const rows = await db
+    .insert(instanceTable)
     .values(values)
     .onConflictDoUpdate({
       target: instanceTable.host,

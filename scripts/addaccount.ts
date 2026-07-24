@@ -1,10 +1,12 @@
 import { createSignupToken } from "@hackerspub/models/signup";
 import {
-  getDenoEnvironment,
+  getProcessEnvironment,
   loadAccountCreationConfig,
 } from "@hackerspub/runtime/config";
+import { isMain } from "@hackerspub/runtime/main";
 import { createKeyValueResource } from "@hackerspub/runtime/resources";
 import type Keyv from "keyv";
+import process from "node:process";
 
 export async function createSignupLink(
   kv: Keyv,
@@ -17,14 +19,15 @@ export async function createSignupLink(
   return verifyUrl;
 }
 
-export async function main() {
-  const email = Deno.args[0];
+export async function main(args = process.argv.slice(2)) {
+  const email = args[0];
   if (!email) {
     console.error("Error: Please provide an email address.");
     console.error("Usage: mise run addaccount EMAIL");
-    Deno.exit(1);
+    process.exitCode = 1;
+    return;
   }
-  const config = loadAccountCreationConfig(getDenoEnvironment());
+  const config = loadAccountCreationConfig(getProcessEnvironment());
   const kv = createKeyValueResource(config.kv);
   try {
     const signupLink = await createSignupLink(kv, config.origin, email);
@@ -32,10 +35,10 @@ export async function main() {
     console.log(signupLink.href);
   } catch (error) {
     console.error("Error creating signup link:", error);
-    Deno.exitCode = 1;
+    process.exitCode = 1;
   } finally {
     await kv.disconnect();
   }
 }
 
-if (import.meta.main) await main();
+if (isMain(import.meta)) await main();

@@ -74,12 +74,14 @@ test("verifySignupToken returns signup info for a valid token", async () => {
 
     assert.deepEqual(result.errors, undefined);
     assert.deepEqual(
-      (result.data as {
-        verifySignupToken: {
-          email: string;
-          inviter: { id: string } | null;
-        } | null;
-      }).verifySignupToken,
+      (
+        result.data as {
+          verifySignupToken: {
+            email: string;
+            inviter: { id: string } | null;
+          } | null;
+        }
+      ).verifySignupToken,
       {
         email: "new@example.com",
         inviter: { id: encodeGlobalID("Account", inviter.account.id) },
@@ -116,14 +118,16 @@ test("completeSignup returns validation errors for a taken username", async () =
 
     assert.deepEqual(result.errors, undefined);
     assert.deepEqual(
-      (result.data as {
-        completeSignup: {
-          __typename: string;
-          username?: string | null;
-          name?: string | null;
-          bio?: string | null;
-        };
-      }).completeSignup,
+      (
+        result.data as {
+          completeSignup: {
+            __typename: string;
+            username?: string | null;
+            name?: string | null;
+            bio?: string | null;
+          };
+        }
+      ).completeSignup,
       {
         __typename: "SignupValidationErrors",
         username: "USERNAME_ALREADY_TAKEN",
@@ -163,14 +167,16 @@ test("completeSignup rejects usernames reserved by deleted accounts", async () =
 
     assert.deepEqual(result.errors, undefined);
     assert.deepEqual(
-      (result.data as {
-        completeSignup: {
-          __typename: string;
-          username?: string | null;
-          name?: string | null;
-          bio?: string | null;
-        };
-      }).completeSignup,
+      (
+        result.data as {
+          completeSignup: {
+            __typename: string;
+            username?: string | null;
+            name?: string | null;
+            bio?: string | null;
+          };
+        }
+      ).completeSignup,
       {
         __typename: "SignupValidationErrors",
         username: "USERNAME_ALREADY_TAKEN",
@@ -216,18 +222,20 @@ test("completeSignup creates an account, session, and inviter follows", async ()
 
     assert.deepEqual(result.errors, undefined);
 
-    const sessionPayload = (result.data as {
-      completeSignup: {
-        __typename: string;
-        id?: string;
-        account?: { id: string; username: string };
-      };
-    }).completeSignup;
+    const sessionPayload = (
+      result.data as {
+        completeSignup: {
+          __typename: string;
+          id?: string;
+          account?: { id: string; username: string };
+        };
+      }
+    ).completeSignup;
     assert.deepEqual(sessionPayload.__typename, "Session");
     assert.deepEqual(sessionPayload.account?.username, "freshuser");
     assert.ok(sessionPayload.id != null);
-    const sessionId = sessionPayload
-      .id as `${string}-${string}-${string}-${string}-${string}`;
+    const sessionId =
+      sessionPayload.id as `${string}-${string}-${string}-${string}-${string}`;
 
     const account = await tx.query.accountTable.findFirst({
       where: { username: "freshuser" },
@@ -235,9 +243,10 @@ test("completeSignup creates an account, session, and inviter follows", async ()
     });
     assert.ok(account != null);
     assert.deepEqual(account.inviterId, inviter.account.id);
-    assert.deepEqual(account.emails.map((email) => email.email), [
-      "fresh@example.com",
-    ]);
+    assert.deepEqual(
+      account.emails.map((email) => email.email),
+      ["fresh@example.com"],
+    );
 
     const storedSession = await getSession(kv, sessionId);
     assert.deepEqual(storedSession?.accountId, account.id);

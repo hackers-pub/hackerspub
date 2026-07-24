@@ -1,10 +1,10 @@
 import { validateUuid } from "@hackerspub/models/uuid";
 import type { APIEvent } from "@solidjs/start/server";
-import { getApiUrl } from "~/lib/env.ts";
+import { getApiUrl } from "../lib/env.ts";
 import {
   createMediumUploadPreflightResponse,
   createMediumUploadProxyRequest,
-} from "~/lib/mediumUploadProxy.ts";
+} from "../lib/mediumUploadProxy.ts";
 
 export function OPTIONS({ request }: APIEvent): Response {
   return createMediumUploadPreflightResponse(request);

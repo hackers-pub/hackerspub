@@ -1,10 +1,11 @@
 import { assertEquals } from "@std/assert";
+import test from "node:test";
 import {
   createMediumUploadPreflightResponse,
   createMediumUploadProxyRequest,
 } from "./mediumUploadProxy.ts";
 
-Deno.test("createMediumUploadPreflightResponse permits cross-origin PUTs", () => {
+test("createMediumUploadPreflightResponse permits cross-origin PUTs", () => {
   const response = createMediumUploadPreflightResponse(
     new Request(
       "https://public.example/medium-uploads?uploadId=123&token=secret",
@@ -36,7 +37,7 @@ Deno.test("createMediumUploadPreflightResponse permits cross-origin PUTs", () =>
   assertEquals(response.headers.get("Vary"), "Origin");
 });
 
-Deno.test("createMediumUploadProxyRequest targets the internal API safely", async () => {
+test("createMediumUploadProxyRequest targets the internal API safely", async () => {
   const request = new Request(
     "http://localhost:3000/medium-uploads?uploadId=123&token=secret",
     {

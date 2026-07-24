@@ -70,17 +70,18 @@ jobs:
       run: mise run migrate
     - name: Smoke test standalone services
       run: mise run smoke:standalone
-    - name: Run tests
+    - name: Run Node.js tests
       if: always()
-      run: mise run test
-    - name: Run checks
+      run: mise run test:node
+    - name: Run Deno tests
       if: always()
-      run: mise run check
-    - name: Typecheck asset-cdn Worker
+      run: mise run test:deno
+    - name: Run Node.js checks
       if: always()
-      # asset-cdn is excluded from `mise run check` (it targets the Cloudflare
-      # Workers runtime, not Deno), so type-check it with its own tsc.
-      run: pnpm --filter @hackerspub/asset-cdn typecheck
+      run: mise run check:node
+    - name: Run Deno checks
+      if: always()
+      run: mise run check:deno
     - name: Check for untranslated messages
       if: always()
       run: |
@@ -130,7 +131,7 @@ jobs:
         # #. placeholder notes, POT-Creation-Date) caused by line number shifts.
         mapfile -t changed_po < <(git diff --name-only -- '*.po')
         if [ "${#changed_po[@]}" -gt 0 ]; then
-          if ! deno run --allow-read --allow-run=git scripts/check-po-changes.ts "${changed_po[@]}"; then
+          if ! node scripts/check-po-changes.ts "${changed_po[@]}"; then
             has_changes=true
           fi
         fi

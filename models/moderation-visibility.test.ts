@@ -64,7 +64,8 @@ describe("getCensoredPostExclusionFilter()", () => {
         email: "viewer@example.com",
       });
       const { post } = await insertNotePost(tx, { account: author.account });
-      await tx.update(postTable)
+      await tx
+        .update(postTable)
         .set({ censored: sql`CURRENT_TIMESTAMP` })
         .where(eq(postTable.id, post.id));
       const guestVisible = await visiblePostIds(
@@ -99,7 +100,8 @@ describe("getCensoredPostExclusionFilter()", () => {
       });
       const { post } = await insertNotePost(tx, { account: author.account });
       const share = await insertShareOf(tx, booster.actor.id, post);
-      await tx.update(postTable)
+      await tx
+        .update(postTable)
         .set({ censored: sql`CURRENT_TIMESTAMP` })
         .where(eq(postTable.id, post.id));
       const visible = await visiblePostIds(
@@ -149,14 +151,12 @@ describe("sanctioned actor content hiding", () => {
         account: local.account,
       });
       const remotePost = await insertRemotePost(tx, { actorId: remote.id });
-      for (
-        const filter of [
-          getPostVisibilityFilter(null),
-          getPostVisibilityFilter(viewer.actor),
-          getPublicTimelineVisibilityFilter(null),
-          getPublicTimelineVisibilityFilter(viewer.actor),
-        ]
-      ) {
+      for (const filter of [
+        getPostVisibilityFilter(null),
+        getPostVisibilityFilter(viewer.actor),
+        getPublicTimelineVisibilityFilter(null),
+        getPublicTimelineVisibilityFilter(viewer.actor),
+      ]) {
         const visible = await visiblePostIds(tx, filter);
         assert.ok(visible.has(localPost.id));
         assert.ok(visible.has(remotePost.id));
@@ -177,7 +177,8 @@ describe("sanctioned actor content hiding", () => {
         email: "viewer@example.com",
       });
       const { post } = await insertNotePost(tx, { account: banned.account });
-      await tx.update(actorTable)
+      await tx
+        .update(actorTable)
         .set({ suspended: new Date(Date.now() - HOUR) })
         .where(eq(actorTable.id, banned.actor.id));
       const guestVisible = await visiblePostIds(
@@ -208,7 +209,8 @@ describe("sanctioned actor content hiding", () => {
       const { post } = await insertNotePost(tx, {
         account: suspended.account,
       });
-      await tx.update(actorTable)
+      await tx
+        .update(actorTable)
         .set({
           suspended: new Date(Date.now() - HOUR),
           suspendedUntil: new Date(Date.now() + HOUR),
@@ -230,7 +232,8 @@ describe("sanctioned actor content hiding", () => {
         host: "remote.example",
       });
       const post = await insertRemotePost(tx, { actorId: remote.id });
-      await tx.update(actorTable)
+      await tx
+        .update(actorTable)
         .set({
           suspended: new Date(Date.now() - HOUR),
           suspendedUntil: new Date(Date.now() + HOUR),
@@ -252,7 +255,8 @@ describe("sanctioned actor content hiding", () => {
         host: "remote.example",
       });
       const post = await insertRemotePost(tx, { actorId: remote.id });
-      await tx.update(actorTable)
+      await tx
+        .update(actorTable)
         .set({
           suspended: new Date(Date.now() - 2 * HOUR),
           suspendedUntil: new Date(Date.now() - HOUR),
@@ -274,7 +278,8 @@ describe("sanctioned actor content hiding", () => {
         host: "remote.example",
       });
       const post = await insertRemotePost(tx, { actorId: remote.id });
-      await tx.update(actorTable)
+      await tx
+        .update(actorTable)
         .set({
           suspended: new Date(Date.now() + HOUR),
           suspendedUntil: new Date(Date.now() + 2 * HOUR),
@@ -307,7 +312,8 @@ describe("sanctioned actor content hiding", () => {
       });
       const { post } = await insertNotePost(tx, { account: banned.account });
       const share = await insertShareOf(tx, booster.actor.id, post);
-      await tx.update(actorTable)
+      await tx
+        .update(actorTable)
         .set({ suspended: new Date(Date.now() - HOUR) })
         .where(eq(actorTable.id, banned.actor.id));
       const guestVisible = await visiblePostIds(

@@ -1,6 +1,6 @@
 import * as DialogPrimitive from "@kobalte/core/dialog";
 import { createEffect, createSignal, onCleanup, Show } from "solid-js";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 interface LightboxMedium {
   url: string;

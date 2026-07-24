@@ -1,5 +1,5 @@
 import { Show } from "solid-js";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { ActorHoverCard } from "./ActorHoverCard.tsx";
 import { Timestamp } from "./Timestamp.tsx";
 import { Trans } from "./Trans.tsx";

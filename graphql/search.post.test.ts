@@ -56,9 +56,11 @@ test("searchPost returns matching public posts and respects language filters", a
       onError: "NO_PROPAGATE",
     });
     assert.equal(allResults.errors, undefined);
-    const allIds = (toPlainJson(allResults.data) as {
-      searchPost: { edges: Array<{ node: { id: string } }> };
-    }).searchPost.edges.map((edge) => edge.node.id);
+    const allIds = (
+      toPlainJson(allResults.data) as {
+        searchPost: { edges: Array<{ node: { id: string } }> };
+      }
+    ).searchPost.edges.map((edge) => edge.node.id);
     assert.ok(allIds.includes(encodeGlobalID("Note", english.id)));
     assert.equal(allIds.length, 2);
 
@@ -142,7 +144,8 @@ test("searchPost rejects invalid search syntax and respects hidden foreign langu
       name: "Search Post Viewer",
       email: "searchpostviewer@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ hideForeignLanguages: true, locales: ["ko"] })
       .where(eq(accountTable.id, account.account.id));
 

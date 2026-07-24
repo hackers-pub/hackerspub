@@ -7,14 +7,16 @@
 export function isNetworkError(error: unknown): boolean {
   if (!(error instanceof TypeError)) return false;
   const message = error.message.toLowerCase();
-  return message.includes("failed to fetch") ||
+  return (
+    message.includes("failed to fetch") ||
     message.includes("fetch failed") ||
     message.includes(
       "request cannot be constructed from a url that includes credentials",
     ) ||
     message.includes("load failed") ||
     message.includes("networkerror") ||
-    message.includes("network request failed");
+    message.includes("network request failed")
+  );
 }
 
 // Returns true when a full page reload is more likely to recover the app than
@@ -41,6 +43,8 @@ export function shouldReloadOnError(error: unknown): boolean {
   if (isNetworkError(error)) return true;
   if (!(error instanceof Error)) return false;
   const msg = error.message;
-  return msg.includes("dynamically imported module") ||
-    msg.toLowerCase().includes("minified exception");
+  return (
+    msg.includes("dynamically imported module") ||
+    msg.toLowerCase().includes("minified exception")
+  );
 }

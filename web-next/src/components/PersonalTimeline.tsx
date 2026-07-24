@@ -16,7 +16,7 @@ import { LazyMount } from "~/components/LazyMount.tsx";
 import { PostCard } from "~/components/PostCard.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { createChunkedVisibleCount } from "~/lib/deferredRender.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type {
   PersonalTimeline_posts$data,
   PersonalTimeline_posts$key,
@@ -34,12 +34,12 @@ const pollQuery = graphql`
     $withoutShares: Boolean
   ) {
     personalTimeline(
-      first: 1,
-      actingAccountId: $actingAccountId,
-      languages: $languages,
-      local: $local,
-      postType: $postType,
-      withoutShares: $withoutShares,
+      first: 1
+      actingAccountId: $actingAccountId
+      languages: $languages
+      local: $local
+      postType: $postType
+      withoutShares: $withoutShares
     ) {
       edges {
         cursor
@@ -64,30 +64,27 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
   const posts = createPaginationFragment(
     graphql`
       fragment PersonalTimeline_posts on Query
-        @refetchable(queryName: "PersonalTimelineQuery")
-        @argumentDefinitions(
-          cursor: { type: "String" }
-          count: { type: "Int", defaultValue: 25 }
-          actingAccountId: { type: "ID" }
-          locale: { type: "Locale" }
-          languages: { type: "[Locale!]", defaultValue: [] }
-          local: { type: "Boolean", defaultValue: false }
-          postType: { type: "PostType", defaultValue: null }
-          withoutShares: { type: "Boolean", defaultValue: false }
-        )
-      {
+      @refetchable(queryName: "PersonalTimelineQuery")
+      @argumentDefinitions(
+        cursor: { type: "String" }
+        count: { type: "Int", defaultValue: 25 }
+        actingAccountId: { type: "ID" }
+        locale: { type: "Locale" }
+        languages: { type: "[Locale!]", defaultValue: [] }
+        local: { type: "Boolean", defaultValue: false }
+        postType: { type: "PostType", defaultValue: null }
+        withoutShares: { type: "Boolean", defaultValue: false }
+      ) {
         __id
         personalTimeline(
-          after: $cursor,
-          first: $count,
-          actingAccountId: $actingAccountId,
-          languages: $languages,
-          local: $local,
-          postType: $postType,
-          withoutShares: $withoutShares,
-        )
-          @connection(key: "PersonalTimeline__personalTimeline")
-        {
+          after: $cursor
+          first: $count
+          actingAccountId: $actingAccountId
+          languages: $languages
+          local: $local
+          postType: $postType
+          withoutShares: $withoutShares
+        ) @connection(key: "PersonalTimeline__personalTimeline") {
           __id
           edges {
             __id
@@ -100,10 +97,8 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
             }
             added
             node {
-              ...PostCard_post @arguments(
-                locale: $locale
-                actingAccountId: $actingAccountId
-              )
+              ...PostCard_post
+                @arguments(locale: $locale, actingAccountId: $actingAccountId)
             }
           }
           pageInfo {
@@ -137,38 +132,42 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
     { initialCount: 3, chunkSize: 5 },
   );
   const visibleTimelineEdges = createMemo(() =>
-    timelineEdges().slice(0, visiblePostCount())
+    timelineEdges().slice(0, visiblePostCount()),
   );
 
   // Keep the baseline cursor in sync with whatever is currently displayed.
   // Distinguishes "data not loaded yet" (undefined) from "loaded but empty"
   // (null) so an empty-then-populated timeline still shows the banner.
   // Clears the "new posts" banner whenever the timeline refreshes.
-  createEffect(on(
-    () => {
-      const data = stableData();
-      if (data == null) return undefined;
-      return data.personalTimeline.edges[0]?.cursor ?? null;
-    },
-    (cursor) => {
-      if (cursor === undefined) return;
-      setBaselineCursor(cursor);
-      setHasNewPosts(false);
-    },
-  ));
+  createEffect(
+    on(
+      () => {
+        const data = stableData();
+        if (data == null) return undefined;
+        return data.personalTimeline.edges[0]?.cursor ?? null;
+      },
+      (cursor) => {
+        if (cursor === undefined) return;
+        setBaselineCursor(cursor);
+        setHasNewPosts(false);
+      },
+    ),
+  );
 
   // When the language filter changes after initial mount, refetch at the
   // fragment level so the DOM subtree stays mounted (no flash).
-  createEffect(on(
-    [() => props.activeLanguage?.(), () => props.actingAccountId?.()],
-    ([lang, actingAccountId]) => {
-      posts.refetch({
-        actingAccountId: actingAccountId ?? null,
-        languages: lang ? [lang] : [],
-      });
-    },
-    { defer: true },
-  ));
+  createEffect(
+    on(
+      [() => props.activeLanguage?.(), () => props.actingAccountId?.()],
+      ([lang, actingAccountId]) => {
+        posts.refetch({
+          actingAccountId: actingAccountId ?? null,
+          languages: lang ? [lang] : [],
+        });
+      },
+      { defer: true },
+    ),
+  );
 
   onMount(() => {
     // Stale-while-revalidate: show cached content immediately, refresh in
@@ -179,13 +178,15 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
       languages: lang ? [lang] : [],
     });
 
-    onCleanup(onNoteCreated(() => {
-      const lang = props.activeLanguage?.();
-      posts.refetch({
-        actingAccountId: props.actingAccountId?.() ?? null,
-        languages: lang ? [lang] : [],
-      });
-    }));
+    onCleanup(
+      onNoteCreated(() => {
+        const lang = props.activeLanguage?.();
+        posts.refetch({
+          actingAccountId: props.actingAccountId?.() ?? null,
+          languages: lang ? [lang] : [],
+        });
+      }),
+    );
 
     // Poll for new content without disrupting the current view.
     const pollIntervalMs = import.meta.env.DEV ? 10_000 : 60_000;

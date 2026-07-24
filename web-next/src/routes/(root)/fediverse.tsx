@@ -8,7 +8,7 @@ import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PublicTimeline } from "~/components/PublicTimeline.tsx";
 import { TimelineNoteComposer } from "~/components/TimelineNoteComposer.tsx";
 import { Title } from "~/components/Title.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,
@@ -31,13 +31,14 @@ const fediverseTimelineQuery = graphql`
       postCount
     }
     suggestedFilterLanguages
-    ...PublicTimeline_posts @arguments(
-      locale: $locale,
-      languages: $languages,
-      local: false,
-      withoutShares: false,
-      postType: null,
-    )
+    ...PublicTimeline_posts
+      @arguments(
+        locale: $locale
+        languages: $languages
+        local: false
+        withoutShares: false
+        postType: null
+      )
   }
 `;
 
@@ -50,25 +51,19 @@ const loadFediverseTimelineQuery = routePreloadedQuery(
         locale,
         languages,
       },
-      getTimelinePageQueryLoadOptions(
-        TIMELINE_PAGE_QUERY_CACHE_KEYS.fediverse,
-      ),
+      getTimelinePageQueryLoadOptions(TIMELINE_PAGE_QUERY_CACHE_KEYS.fediverse),
     ),
   TIMELINE_PAGE_QUERY_CACHE_KEYS.fediverse,
 );
 
 export default function FediverseTimeline() {
   const { i18n, t } = useLingui();
-  const { activeLanguage, initialLang, buildHref } = useLanguageFilter(
-    "/fediverse",
-  );
+  const { activeLanguage, initialLang, buildHref } =
+    useLanguageFilter("/fediverse");
   const data = createStablePreloadedQuery<fediverseTimelineQuery>(
     fediverseTimelineQuery,
     () =>
-      loadFediverseTimelineQuery(
-        i18n.locale,
-        initialLang ? [initialLang] : [],
-      ),
+      loadFediverseTimelineQuery(i18n.locale, initialLang ? [initialLang] : []),
   );
 
   return (
@@ -92,8 +87,10 @@ export default function FediverseTimeline() {
               )}
             </Show>
             <Show
-              when={(data.suggestedFilterLanguages?.length ?? 0) > 0 ||
-                !!activeLanguage()}
+              when={
+                (data.suggestedFilterLanguages?.length ?? 0) > 0 ||
+                !!activeLanguage()
+              }
             >
               <LanguageFilter
                 languages={data.suggestedFilterLanguages ?? []}

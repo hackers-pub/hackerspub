@@ -47,20 +47,26 @@ test("block() removes local follow relationships in both directions", async () =
     });
     assert.ok(blocking != null);
 
-    const followRows = await tx.select().from(followingTable).where(
-      and(
-        eq(followingTable.followerId, blocker.actor.id),
-        eq(followingTable.followeeId, blockee.actor.id),
-      ),
-    );
+    const followRows = await tx
+      .select()
+      .from(followingTable)
+      .where(
+        and(
+          eq(followingTable.followerId, blocker.actor.id),
+          eq(followingTable.followeeId, blockee.actor.id),
+        ),
+      );
     assert.deepEqual(followRows, []);
 
-    const reverseFollowRows = await tx.select().from(followingTable).where(
-      and(
-        eq(followingTable.followerId, blockee.actor.id),
-        eq(followingTable.followeeId, blocker.actor.id),
-      ),
-    );
+    const reverseFollowRows = await tx
+      .select()
+      .from(followingTable)
+      .where(
+        and(
+          eq(followingTable.followerId, blockee.actor.id),
+          eq(followingTable.followeeId, blocker.actor.id),
+        ),
+      );
     assert.deepEqual(reverseFollowRows, []);
   });
 });
@@ -85,12 +91,15 @@ test("unblock() deletes the blocking row", async () => {
 
     assert.ok(removed != null);
 
-    const remaining = await tx.select().from(blockingTable).where(
-      and(
-        eq(blockingTable.blockerId, blocker.actor.id),
-        eq(blockingTable.blockeeId, blockee.actor.id),
-      ),
-    );
+    const remaining = await tx
+      .select()
+      .from(blockingTable)
+      .where(
+        and(
+          eq(blockingTable.blockerId, blocker.actor.id),
+          eq(blockingTable.blockeeId, blockee.actor.id),
+        ),
+      );
     assert.deepEqual(remaining, []);
   });
 });
@@ -104,9 +113,10 @@ test("block() removes follow relationships with remote blockees in both directio
       email: "remoteblocker@example.com",
     });
     const remoteBlockee = await insertRemoteActor(tx, {
-      username: `remote-blockee-${
-        crypto.randomUUID().replaceAll("-", "").slice(0, 8)
-      }`,
+      username: `remote-blockee-${crypto
+        .randomUUID()
+        .replaceAll("-", "")
+        .slice(0, 8)}`,
       name: "Remote Blockee",
       host: "remote.example",
     });
@@ -123,20 +133,26 @@ test("block() removes follow relationships with remote blockees in both directio
 
     assert.ok(created != null);
 
-    const forwardFollow = await tx.select().from(followingTable).where(
-      and(
-        eq(followingTable.followerId, blocker.actor.id),
-        eq(followingTable.followeeId, remoteBlockee.id),
-      ),
-    );
+    const forwardFollow = await tx
+      .select()
+      .from(followingTable)
+      .where(
+        and(
+          eq(followingTable.followerId, blocker.actor.id),
+          eq(followingTable.followeeId, remoteBlockee.id),
+        ),
+      );
     assert.deepEqual(forwardFollow, []);
 
-    const reverseFollow = await tx.select().from(followingTable).where(
-      and(
-        eq(followingTable.followerId, remoteBlockee.id),
-        eq(followingTable.followeeId, blocker.actor.id),
-      ),
-    );
+    const reverseFollow = await tx
+      .select()
+      .from(followingTable)
+      .where(
+        and(
+          eq(followingTable.followerId, remoteBlockee.id),
+          eq(followingTable.followeeId, blocker.actor.id),
+        ),
+      );
     assert.deepEqual(reverseFollow, []);
   });
 });
@@ -178,11 +194,7 @@ test("getBlockedActorIds returns the subset that the blocker has blocked", async
 
 test("getBlockedActorIds returns empty for empty input", async () => {
   await withRollback(async (tx) => {
-    const result = await getBlockedActorIds(
-      tx,
-      generateUuidV7() as Uuid,
-      [],
-    );
+    const result = await getBlockedActorIds(tx, generateUuidV7() as Uuid, []);
     assert.deepEqual(result.size, 0);
   });
 });
@@ -224,11 +236,7 @@ test("getBlockerActorIds returns the subset that has blocked the blockee", async
 
 test("getBlockerActorIds returns empty for empty input", async () => {
   await withRollback(async (tx) => {
-    const result = await getBlockerActorIds(
-      tx,
-      generateUuidV7() as Uuid,
-      [],
-    );
+    const result = await getBlockerActorIds(tx, generateUuidV7() as Uuid, []);
     assert.deepEqual(result.size, 0);
   });
 });

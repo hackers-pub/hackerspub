@@ -83,16 +83,19 @@ test("alt generation preserves existing text when no replacement is returned", (
 
 test("alt cancellation clears only the pending state", () => {
   const subscription = { unsubscribe() {} };
-  const state = reduceMediaItems([
-    item({
-      alt: "Existing",
-      generatingAlt: true,
-      altSubscription: subscription,
-    }),
-  ], {
-    type: "alt-cancelled",
-    localId: "local",
-  });
+  const state = reduceMediaItems(
+    [
+      item({
+        alt: "Existing",
+        generatingAlt: true,
+        altSubscription: subscription,
+      }),
+    ],
+    {
+      type: "alt-cancelled",
+      localId: "local",
+    },
+  );
   assert.equal(state[0].alt, "Existing");
   assert.equal(state[0].generatingAlt, false);
   assert.equal(state[0].altSubscription, undefined);

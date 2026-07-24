@@ -10,7 +10,7 @@ import {
 } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { PostCard } from "./PostCard.tsx";
 import { ActorSharedPostList_sharedPosts$key } from "./__generated__/ActorSharedPostList_sharedPosts.graphql.ts";
 
@@ -24,30 +24,25 @@ export function ActorSharedPostList(props: ActorSharedPostListProps) {
   const sharedPosts = createPaginationFragment(
     graphql`
       fragment ActorSharedPostList_sharedPosts on Actor
-        @refetchable(queryName: "ActorSharedPostListQuery")
-        @argumentDefinitions(
-          cursor: { type: "String" }
-          count: { type: "Int", defaultValue: 20 }
-          actingAccountId: { type: "ID" }
-          locale: { type: "Locale" }
-        )
-      {
+      @refetchable(queryName: "ActorSharedPostListQuery")
+      @argumentDefinitions(
+        cursor: { type: "String" }
+        count: { type: "Int", defaultValue: 20 }
+        actingAccountId: { type: "ID" }
+        locale: { type: "Locale" }
+      ) {
         __id
         sharedPosts(
           after: $cursor
           first: $count
           actingAccountId: $actingAccountId
-        )
-          @connection(key: "ActorSharedPostList_sharedPosts")
-        {
+        ) @connection(key: "ActorSharedPostList_sharedPosts") {
           __id
           edges {
             __id
             node {
-              ...PostCard_post @arguments(
-                locale: $locale
-                actingAccountId: $actingAccountId
-              )
+              ...PostCard_post
+                @arguments(locale: $locale, actingAccountId: $actingAccountId)
             }
           }
           pageInfo {
@@ -63,12 +58,14 @@ export function ActorSharedPostList(props: ActorSharedPostListProps) {
   >("loaded");
   const actingAccountId = () => actingAccount.selectedActingAccountId();
 
-  createEffect(on(
-    actingAccountId,
-    (actingAccountId) =>
-      sharedPosts.refetch({ actingAccountId: actingAccountId ?? null }),
-    { defer: true },
-  ));
+  createEffect(
+    on(
+      actingAccountId,
+      (actingAccountId) =>
+        sharedPosts.refetch({ actingAccountId: actingAccountId ?? null }),
+      { defer: true },
+    ),
+  );
 
   function onLoadMore() {
     setLoadingState("loading");

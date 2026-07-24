@@ -152,9 +152,9 @@ function rowCount(rows: readonly unknown[]): boolean {
 }
 
 async function nextSequence(db: OutboxDatabase): Promise<bigint> {
-  const rows = await db.execute(
+  const rows = (await db.execute(
     sql`select nextval('outbox_event_sequence')::text as sequence`,
-  ) as unknown as Array<{ sequence: string }>;
+  )) as unknown as Array<{ sequence: string }>;
   return BigInt(rows[0].sequence);
 }
 
@@ -174,21 +174,26 @@ export async function enqueueOutboxEvents(
     }
     const now = options.now ?? new Date();
     const groupId = options.groupId ?? generateUuidV7();
-    const sequence = options.sequence ?? await nextSequence(tx);
-    await tx.insert(outboxEventTable).values(events.map((event, index) => ({
-      id: generateUuidV7(),
-      ...event,
-      groupId,
-      sequence,
-      position: (options.position ?? 0) + index,
-      orderingKey: options.orderingKey,
-      status: "pending" as const,
-      available: options.available ?? now,
-      created: now,
-      updated: now,
-    }))).onConflictDoNothing({
-      target: [outboxEventTable.eventType, outboxEventTable.messageId],
-    });
+    const sequence = options.sequence ?? (await nextSequence(tx));
+    await tx
+      .insert(outboxEventTable)
+      .values(
+        events.map((event, index) => ({
+          id: generateUuidV7(),
+          ...event,
+          groupId,
+          sequence,
+          position: (options.position ?? 0) + index,
+          orderingKey: options.orderingKey,
+          status: "pending" as const,
+          available: options.available ?? now,
+          created: now,
+          updated: now,
+        })),
+      )
+      .onConflictDoNothing({
+        target: [outboxEventTable.eventType, outboxEventTable.messageId],
+      });
   });
 }
 
@@ -225,13 +230,14 @@ export async function claimOutboxEvent(
   options: ClaimOutboxOptions,
 ): Promise<ClaimedOutboxEvent | null> {
   const now = options.now ?? new Date();
-  const leaseMilliseconds = Temporal.Duration.from(options.leaseDuration)
-    .total("milliseconds");
+  const leaseMilliseconds = Temporal.Duration.from(options.leaseDuration).total(
+    "milliseconds",
+  );
   const expiredBefore = new Date(now.getTime() - leaseMilliseconds);
   const nowIso = now.toISOString();
   const expiredBeforeIso = expiredBefore.toISOString();
   const leaseToken = generateUuidV7();
-  const rows = await db.execute(sql`
+  const rows = (await db.execute(sql`
     with candidate as (
       select event.id
       from outbox_event as event
@@ -278,7 +284,7 @@ export async function claimOutboxEvent(
     from candidate
     where event.id = candidate.id
     returning event.*
-  `) as unknown as Array<Record<string, unknown>>;
+  `)) as unknown as Array<Record<string, unknown>>;
   if (rows.length === 0) return null;
   return mapOutboxRow(rows[0]) as ClaimedOutboxEvent;
 }
@@ -288,18 +294,24 @@ export async function completeOutboxEvent(
   event: Pick<ClaimedOutboxEvent, "id" | "leaseToken">,
   now = new Date(),
 ): Promise<boolean> {
-  const rows = await db.update(outboxEventTable).set({
-    status: "completed",
-    payload: null,
-    leaseToken: null,
-    leased: null,
-    completed: now,
-    updated: now,
-  }).where(and(
-    eq(outboxEventTable.id, event.id),
-    eq(outboxEventTable.status, "processing"),
-    eq(outboxEventTable.leaseToken, event.leaseToken),
-  )).returning({ id: outboxEventTable.id });
+  const rows = await db
+    .update(outboxEventTable)
+    .set({
+      status: "completed",
+      payload: null,
+      leaseToken: null,
+      leased: null,
+      completed: now,
+      updated: now,
+    })
+    .where(
+      and(
+        eq(outboxEventTable.id, event.id),
+        eq(outboxEventTable.status, "processing"),
+        eq(outboxEventTable.leaseToken, event.leaseToken),
+      ),
+    )
+    .returning({ id: outboxEventTable.id });
   return rowCount(rows);
 }
 
@@ -309,20 +321,26 @@ export async function retryOutboxEvent(
   options: RetryOutboxOptions,
   now = new Date(),
 ): Promise<boolean> {
-  const rows = await db.update(outboxEventTable).set({
-    status: "pending",
-    payload: options.payload,
-    available: options.available,
-    leaseToken: null,
-    leased: null,
-    lastError: options.error,
-    failed: null,
-    updated: now,
-  }).where(and(
-    eq(outboxEventTable.id, event.id),
-    eq(outboxEventTable.status, "processing"),
-    eq(outboxEventTable.leaseToken, event.leaseToken),
-  )).returning({ id: outboxEventTable.id });
+  const rows = await db
+    .update(outboxEventTable)
+    .set({
+      status: "pending",
+      payload: options.payload,
+      available: options.available,
+      leaseToken: null,
+      leased: null,
+      lastError: options.error,
+      failed: null,
+      updated: now,
+    })
+    .where(
+      and(
+        eq(outboxEventTable.id, event.id),
+        eq(outboxEventTable.status, "processing"),
+        eq(outboxEventTable.leaseToken, event.leaseToken),
+      ),
+    )
+    .returning({ id: outboxEventTable.id });
   return rowCount(rows);
 }
 
@@ -332,18 +350,24 @@ export async function failOutboxEvent(
   error: OutboxEventError,
   now = new Date(),
 ): Promise<boolean> {
-  const rows = await db.update(outboxEventTable).set({
-    status: "dead",
-    leaseToken: null,
-    leased: null,
-    lastError: error,
-    failed: now,
-    updated: now,
-  }).where(and(
-    eq(outboxEventTable.id, event.id),
-    eq(outboxEventTable.status, "processing"),
-    eq(outboxEventTable.leaseToken, event.leaseToken),
-  )).returning({ id: outboxEventTable.id });
+  const rows = await db
+    .update(outboxEventTable)
+    .set({
+      status: "dead",
+      leaseToken: null,
+      leased: null,
+      lastError: error,
+      failed: now,
+      updated: now,
+    })
+    .where(
+      and(
+        eq(outboxEventTable.id, event.id),
+        eq(outboxEventTable.status, "processing"),
+        eq(outboxEventTable.leaseToken, event.leaseToken),
+      ),
+    )
+    .returning({ id: outboxEventTable.id });
   return rowCount(rows);
 }
 
@@ -352,20 +376,26 @@ export async function replayOutboxEvent(
   id: Uuid,
   now = new Date(),
 ): Promise<boolean> {
-  const rows = await db.update(outboxEventTable).set({
-    status: "pending",
-    available: now,
-    processingAttempts: 0,
-    leaseToken: null,
-    leased: null,
-    completed: null,
-    failed: null,
-    updated: now,
-  }).where(and(
-    eq(outboxEventTable.id, id),
-    eq(outboxEventTable.status, "dead"),
-    isNotNull(outboxEventTable.payload),
-  )).returning({ id: outboxEventTable.id });
+  const rows = await db
+    .update(outboxEventTable)
+    .set({
+      status: "pending",
+      available: now,
+      processingAttempts: 0,
+      leaseToken: null,
+      leased: null,
+      completed: null,
+      failed: null,
+      updated: now,
+    })
+    .where(
+      and(
+        eq(outboxEventTable.id, id),
+        eq(outboxEventTable.status, "dead"),
+        isNotNull(outboxEventTable.payload),
+      ),
+    )
+    .returning({ id: outboxEventTable.id });
   return rowCount(rows);
 }
 
@@ -374,14 +404,20 @@ export async function renewOutboxLease(
   event: Pick<ClaimedOutboxEvent, "id" | "leaseToken">,
   now = new Date(),
 ): Promise<boolean> {
-  const rows = await db.update(outboxEventTable).set({
-    leased: now,
-    updated: now,
-  }).where(and(
-    eq(outboxEventTable.id, event.id),
-    eq(outboxEventTable.status, "processing"),
-    eq(outboxEventTable.leaseToken, event.leaseToken),
-  )).returning({ id: outboxEventTable.id });
+  const rows = await db
+    .update(outboxEventTable)
+    .set({
+      leased: now,
+      updated: now,
+    })
+    .where(
+      and(
+        eq(outboxEventTable.id, event.id),
+        eq(outboxEventTable.status, "processing"),
+        eq(outboxEventTable.leaseToken, event.leaseToken),
+      ),
+    )
+    .returning({ id: outboxEventTable.id });
   return rowCount(rows);
 }
 
@@ -390,7 +426,7 @@ export async function getOutboxDepth(
   eventType: OutboxEventType,
   now = new Date(),
 ): Promise<OutboxDepth> {
-  const rows = await db.execute(sql`
+  const rows = (await db.execute(sql`
     select
       count(*)::integer as queued,
       count(*) filter (
@@ -399,7 +435,7 @@ export async function getOutboxDepth(
     from outbox_event
     where event_type = ${eventType}
       and status = 'pending'
-  `) as unknown as Array<{ queued: number; ready: number }>;
+  `)) as unknown as Array<{ queued: number; ready: number }>;
   const queued = Number(rows[0].queued);
   const ready = Number(rows[0].ready);
   return { queued, ready, delayed: Math.max(0, queued - ready) };
@@ -412,15 +448,20 @@ export async function pruneOutboxEvents(
     readonly failedBefore: Date;
   },
 ): Promise<number> {
-  const rows = await db.delete(outboxEventTable).where(or(
-    and(
-      eq(outboxEventTable.status, "completed"),
-      lt(outboxEventTable.completed, options.completedBefore),
-    ),
-    and(
-      eq(outboxEventTable.status, "dead"),
-      lt(outboxEventTable.failed, options.failedBefore),
-    ),
-  )).returning({ id: outboxEventTable.id });
+  const rows = await db
+    .delete(outboxEventTable)
+    .where(
+      or(
+        and(
+          eq(outboxEventTable.status, "completed"),
+          lt(outboxEventTable.completed, options.completedBefore),
+        ),
+        and(
+          eq(outboxEventTable.status, "dead"),
+          lt(outboxEventTable.failed, options.failedBefore),
+        ),
+      ),
+    )
+    .returning({ id: outboxEventTable.id });
   return rows.length;
 }

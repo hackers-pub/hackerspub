@@ -34,11 +34,10 @@ export async function onFlagged(
     logger.debug("Ignoring a Flag activity without an id or actor.");
     return;
   }
-  if (await getFlagByIri(db, flag.id.href) != null) {
-    logger.debug(
-      "Ignoring already-processed Flag activity {iri}.",
-      { iri: flag.id.href },
-    );
+  if ((await getFlagByIri(db, flag.id.href)) != null) {
+    logger.debug("Ignoring already-processed Flag activity {iri}.", {
+      iri: flag.id.href,
+    });
     return;
   }
   let reporter = await getPersistedActor(db, flag.actorId);
@@ -61,7 +60,8 @@ export async function onFlagged(
       );
       return;
     }
-    reporter = await persistActor(toApplicationContext(fedCtx), actorObject) ??
+    reporter =
+      (await persistActor(toApplicationContext(fedCtx), actorObject)) ??
       undefined;
     if (reporter == null) return;
   }
@@ -142,12 +142,11 @@ export async function onFlagged(
       analyzer,
       created,
       created.snapshot,
-    )
-      .catch((error) => {
-        logger.error(
-          "Failed to analyze flag {flagId}: {error}",
-          { flagId: created.id, error },
-        );
+    ).catch((error) => {
+      logger.error("Failed to analyze flag {flagId}: {error}", {
+        flagId: created.id,
+        error,
       });
+    });
   }
 }

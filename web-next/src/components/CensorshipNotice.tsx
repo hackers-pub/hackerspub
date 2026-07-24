@@ -1,7 +1,7 @@
 import { Show } from "solid-js";
 import IconShieldAlert from "~icons/lucide/shield-alert";
 import { cn } from "~/lib/utils.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 export interface CensorshipNoticeProps {
   /**
@@ -29,8 +29,7 @@ export function CensorshipNotice(props: CensorshipNoticeProps) {
     >
       <IconShieldAlert class="mt-0.5 size-4 shrink-0" aria-hidden="true" />
       <p>
-        <strong class="font-semibold">{t`Censored by a moderator.`}</strong>
-        {" "}
+        <strong class="font-semibold">{t`Censored by a moderator.`}</strong>{" "}
         {t`This post was hidden from timelines and search for violating the code of conduct.`}
         <Show when={props.privileged}>
           {" "}

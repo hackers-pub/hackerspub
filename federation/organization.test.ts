@@ -1,4 +1,5 @@
 import assert from "node:assert";
+import process from "node:process";
 import test from "node:test";
 import {
   exportJwk,
@@ -30,14 +31,9 @@ let federationBuilderPromise:
 async function getFederationBuilder() {
   if (federationBuilderPromise == null) {
     federationBuilderPromise = (async () => {
-      const { privateKey } = await generateCryptoKeyPair(
-        "RSASSA-PKCS1-v1_5",
-      );
-      Deno.env.set(
-        "INSTANCE_ACTOR_KEY",
-        JSON.stringify(
-          await exportJwk(privateKey),
-        ),
+      const { privateKey } = await generateCryptoKeyPair("RSASSA-PKCS1-v1_5");
+      process.env.INSTANCE_ACTOR_KEY = JSON.stringify(
+        await exportJwk(privateKey),
       );
       return (await import("./mod.ts")).builder;
     })();
@@ -119,9 +115,7 @@ test("acceptOrganizationConversion() enqueues Update(Organization) through Fedif
     assert.equal(Reflect.get(message, "type"), "outbox");
     assert.equal(Reflect.get(message, "activityType"), Update.typeId.href);
     assert.deepEqual(Reflect.get(message, "actorIds"), [follower.iri]);
-    const activity = await Update.fromJsonLd(
-      Reflect.get(message, "activity"),
-    );
-    assert.ok(await activity.getObject() instanceof Organization);
+    const activity = await Update.fromJsonLd(Reflect.get(message, "activity"));
+    assert.ok((await activity.getObject()) instanceof Organization);
   });
 });

@@ -10,7 +10,7 @@ import {
   ComboboxItemLabel,
   ComboboxTrigger,
 } from "~/components/ui/combobox.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 export interface LanguageSelectProps {
   readonly class?: string;
@@ -41,15 +41,14 @@ export function LanguageSelect(props: LanguageSelectProps) {
       const name = displayNames.of(locale) ?? locale;
       const nativeName =
         new Intl.DisplayNames(locale, { type: "language" }).of(locale) ??
-          locale;
+        locale;
       return {
         code: locale,
         name,
         nativeName,
         fullName: `${locale}\n${name}\n${nativeName}\n${
           englishNames.of(locale) ?? ""
-        }`
-          .trim(),
+        }`.trim(),
         disabled: props.exclude?.some((l) => l.baseName === locale) ?? false,
       };
     });
@@ -80,15 +79,18 @@ export function LanguageSelect(props: LanguageSelectProps) {
       )}
       class={props.class}
       classList={props.classList}
-      value={props.value === null
-        ? null
-        : typeof props.value === "undefined"
-        ? undefined
-        : locales().find((l) => l.code === props.value!.baseName)}
+      value={
+        props.value === null
+          ? null
+          : typeof props.value === "undefined"
+            ? undefined
+            : locales().find((l) => l.code === props.value!.baseName)
+      }
       onChange={(value) =>
         props.onChange?.(
           value == null ? undefined : new Intl.Locale(value?.code),
-        )}
+        )
+      }
     >
       <ComboboxControl aria-label={t`Language`}>
         <ComboboxInput />

@@ -81,18 +81,21 @@ test("sendWebPushNotification() sends browser subscriptions and prunes stale end
       );
       assert.equal(JSON.parse(sent[0].payload).url, "/notifications");
 
-      const remaining = await tx.select({
-        endpoint: pushNotificationTargetTable.endpoint,
-      }).from(pushNotificationTargetTable)
+      const remaining = await tx
+        .select({
+          endpoint: pushNotificationTargetTable.endpoint,
+        })
+        .from(pushNotificationTargetTable)
         .where(
           and(
             eq(pushNotificationTargetTable.accountId, account.id),
             eq(pushNotificationTargetTable.service, "web_push"),
           ),
         );
-      assert.deepEqual(remaining.map((row) => row.endpoint), [
-        activeEndpoint,
-      ]);
+      assert.deepEqual(
+        remaining.map((row) => row.endpoint),
+        [activeEndpoint],
+      );
     });
   } finally {
     setWebPushConfigForTesting(undefined);

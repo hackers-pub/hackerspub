@@ -11,7 +11,7 @@ import {
 } from "solid-relay";
 import { Title } from "~/components/Title.tsx";
 import { Button } from "~/components/ui/button.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { isNetworkError, shouldReloadOnError } from "~/lib/networkError.ts";
 import { createEnvironment } from "./RelayEnvironment.tsx";
 import type { appQuery } from "./__generated__/appQuery.graphql.ts";
@@ -43,28 +43,18 @@ const appQuery = graphql`
 `;
 
 const loadAppQuery = routePreloadedQuery(
-  () =>
-    loadQuery<appQuery>(
-      useRelayEnvironment()(),
-      appQuery,
-      {},
-    ),
+  () => loadQuery<appQuery>(useRelayEnvironment()(), appQuery, {}),
   "loadAppQuery",
 );
 
 function I18nProviderWrapper(props: ParentProps) {
-  const data = createPersistentPreloadedQuery<appQuery>(
-    appQuery,
-    () => loadAppQuery(),
+  const data = createPersistentPreloadedQuery<appQuery>(appQuery, () =>
+    loadAppQuery(),
   );
 
   return (
     <Show keyed when={data()}>
-      {(data) => (
-        <I18nProvider $query={data}>
-          {props.children}
-        </I18nProvider>
-      )}
+      {(data) => <I18nProvider $query={data}>{props.children}</I18nProvider>}
     </Show>
   );
 }
@@ -87,8 +77,8 @@ function PreI18nErrorFallback(props: { error: unknown; reset: () => void }) {
         {networkError()
           ? "Your connection looks unstable. Check your network and try again."
           : props.error instanceof Error
-          ? props.error.message
-          : String(props.error)}
+            ? props.error.message
+            : String(props.error)}
       </p>
       <button
         type="button"
@@ -123,8 +113,8 @@ function AppErrorFallback(props: { error: unknown; reset: () => void }) {
         {networkError()
           ? t`Your connection looks unstable. Check your network and try again.`
           : props.error instanceof Error
-          ? props.error.message
-          : String(props.error)}
+            ? props.error.message
+            : String(props.error)}
       </p>
       <Button onClick={handleRetry}>{t`Try again`}</Button>
     </div>

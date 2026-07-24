@@ -40,7 +40,8 @@ describe("onActorDeleted()", () => {
         host: "remote.example",
       });
       // Federation-block (ban) the actor and open a case against it.
-      await tx.update(actorTable)
+      await tx
+        .update(actorTable)
         .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: null })
         .where(eq(actorTable.id, actor.id));
       const caseId = generateUuidV7();

@@ -1,3 +1,5 @@
+import { readFile, rm, writeFile } from "node:fs/promises";
+
 export interface WorkerHeartbeat {
   refresh(): Promise<void>;
   stop(): Promise<void>;
@@ -23,7 +25,7 @@ export async function startWorkerHeartbeat(
 ): Promise<WorkerHeartbeat> {
   const now = options.now ?? Date.now;
   const refresh = async () => {
-    await Deno.writeTextFile(path, String(now()));
+    await writeFile(path, String(now()));
   };
   await refresh();
   const interval = setInterval(
@@ -38,9 +40,17 @@ export async function startWorkerHeartbeat(
       stopped = true;
       clearInterval(interval);
       try {
-        await Deno.remove(path);
+        await rm(path);
       } catch (error) {
-        if (!(error instanceof Deno.errors.NotFound)) throw error;
+        if (
+          !(
+            error instanceof Error &&
+            "code" in error &&
+            error.code === "ENOENT"
+          )
+        ) {
+          throw error;
+        }
       }
     },
   };
@@ -52,11 +62,14 @@ export async function checkWorkerHeartbeat(
   now: () => number = Date.now,
 ): Promise<boolean> {
   try {
-    const timestamp = Number(await Deno.readTextFile(path));
-    return Number.isFinite(timestamp) &&
-      now() - timestamp <= maximumAgeMilliseconds;
+    const timestamp = Number(await readFile(path, "utf8"));
+    return (
+      Number.isFinite(timestamp) && now() - timestamp <= maximumAgeMilliseconds
+    );
   } catch (error) {
-    if (error instanceof Deno.errors.NotFound) return false;
+    if (error instanceof Error && "code" in error && error.code === "ENOENT") {
+      return false;
+    }
     throw error;
   }
 }

@@ -246,7 +246,8 @@ async function addAccountMigrationAlias(
   alias: string,
 ) {
   return await withTransaction(ctx.fedCtx, async (fedCtx) => {
-    const rows = await fedCtx.db.update(actorTable)
+    const rows = await fedCtx.db
+      .update(actorTable)
       .set({
         aliases: sql`
           CASE
@@ -276,7 +277,8 @@ async function removeAccountMigrationAlias(
   alias: string,
 ) {
   return await withTransaction(ctx.fedCtx, async (fedCtx) => {
-    const rows = await fedCtx.db.update(actorTable)
+    const rows = await fedCtx.db
+      .update(actorTable)
       .set({
         aliases: sql`array_remove(${actorTable.aliases}, ${alias})`,
         updated: sql`CURRENT_TIMESTAMP`,
@@ -317,7 +319,8 @@ export const Account = builder.drizzleNode("accountTable", {
         "never been changed from the original signup value.",
     }),
     handle: t.string({
-      description: "Full fediverse handle including the instance host, e.g., " +
+      description:
+        "Full fediverse handle including the instance host, e.g., " +
         "@alice@hackers.pub. Suitable for display and for cross-instance " +
         "@-mention targeting.",
       select: {
@@ -397,9 +400,7 @@ export const Account = builder.drizzleNode("accountTable", {
         },
       },
       async resolve(account, _, ctx) {
-        if (
-          account.actor != null && isActorProfileHidden(account.actor, ctx)
-        ) {
+        if (account.actor != null && isActorProfileHidden(account.actor, ctx)) {
           return new URL("https://gravatar.com/avatar/?d=mp&s=128");
         }
         const url = await getAvatarUrl(ctx.disk, account);
@@ -440,8 +441,8 @@ export const Account = builder.drizzleNode("accountTable", {
         },
       },
       async resolve(account, _, ctx) {
-        const hidden = account.actor != null &&
-          isActorProfileHidden(account.actor, ctx);
+        const hidden =
+          account.actor != null && isActorProfileHidden(account.actor, ctx);
         const handle = `@${account.username}@${account.actor.handleHost}`;
         if (hidden) {
           // Build the OG image from redacted content; do not persist the
@@ -468,7 +469,8 @@ export const Account = builder.drizzleNode("accountTable", {
           handle,
         });
         if (key !== account.ogImageKey) {
-          await ctx.db.update(accountTable)
+          await ctx.db
+            .update(accountTable)
             .set({ ogImageKey: key })
             .where(eq(accountTable.id, account.id));
         }
@@ -684,9 +686,12 @@ export const Account = builder.drizzleNode("accountTable", {
             toCursor: (notification) =>
               notification.created.valueOf().toString(),
           },
-          async (
-            { before, after, limit, inverted }: ResolveCursorConnectionArgs,
-          ) => {
+          async ({
+            before,
+            after,
+            limit,
+            inverted,
+          }: ResolveCursorConnectionArgs) => {
             // NOTE: the notification with latest "created" timestamp is the first
             //       and the notification with the oldest "created" timestamp is the last.
             const beforeDate = new Date(Number(before));
@@ -709,11 +714,10 @@ export const Account = builder.drizzleNode("accountTable", {
                       : lt(notificationTable.created, afterDate)
                     : undefined,
                   gt(
-                    ctx.db
-                      .$count(
-                        actorTable,
-                        sql`${actorTable.id} = ANY(${notificationTable.actorIds})`,
-                      ),
+                    ctx.db.$count(
+                      actorTable,
+                      sql`${actorTable.id} = ANY(${notificationTable.actorIds})`,
+                    ),
                     0,
                   ),
                 ),
@@ -722,13 +726,15 @@ export const Account = builder.drizzleNode("accountTable", {
                 inverted
                   ? notificationTable.created
                   : desc(notificationTable.created),
-              ).limit(limit);
+              )
+              .limit(limit);
           },
         );
       },
     }),
     unreadNotificationsCount: t.int({
-      description: "Number of notifications created after the account's last " +
+      description:
+        "Number of notifications created after the account's last " +
         "`markNotificationsAsRead` call. Only visible to the account holder.",
       authScopes: (parent) => ({
         selfAccount: parent.id,
@@ -788,7 +794,8 @@ builder.drizzleObjectField(Account, "invitationLinks", (t) =>
     resolve(account) {
       return account.invitationLinks;
     },
-  }));
+  }),
+);
 
 const accountConnectionHelpers = drizzleConnectionHelpers(
   builder,
@@ -851,7 +858,8 @@ builder.drizzleObjectField(Account, "inviter", (t) =>
       const inviter = account.inviter;
       if (inviter == null) return null;
       const viewer = ctx.account;
-      const bypass = viewer != null &&
+      const bypass =
+        viewer != null &&
         (viewer.id === account.id ||
           viewer.id === account.inviterId ||
           viewer.moderator);
@@ -863,7 +871,8 @@ builder.drizzleObjectField(Account, "inviter", (t) =>
       }
       return inviter;
     },
-  }));
+  }),
+);
 
 builder.drizzleObjectField(Account, "invitees", (t) =>
   t.connection(
@@ -894,7 +903,8 @@ builder.drizzleObjectField(Account, "invitees", (t) =>
         totalCount: t.exposeInt("totalCount"),
       }),
     },
-  ));
+  ),
+);
 
 // Per-request batching loader for Account.postCount and
 // Account.lastPostPublished.  Without this, requesting these fields on a
@@ -925,18 +935,19 @@ export function getAdminAccountStats(
       for (const row of rows) {
         if (row.accountId == null) continue;
         const raw = row.lastPublished;
-        const lastPostPublished = raw == null
-          ? null
-          : raw instanceof Date
-          ? raw
-          : new Date(raw as unknown as string);
+        const lastPostPublished =
+          raw == null
+            ? null
+            : raw instanceof Date
+              ? raw
+              : new Date(raw as unknown as string);
         map.set(row.accountId, {
           postCount: Number(row.postCount),
           lastPostPublished,
         });
       }
-      return idList.map((id) =>
-        map.get(id) ?? { postCount: 0, lastPostPublished: null }
+      return idList.map(
+        (id) => map.get(id) ?? { postCount: 0, lastPostPublished: null },
       );
     },
     // Per-request memoisation is on (the loader instance lives on
@@ -967,7 +978,8 @@ builder.drizzleObjectField(Account, "postCount", (t) =>
       const stats = await getAdminAccountStats(ctx, account.id);
       return stats.postCount;
     },
-  }));
+  }),
+);
 
 builder.drizzleObjectField(Account, "lastPostPublished", (t) =>
   t.field({
@@ -985,7 +997,8 @@ builder.drizzleObjectField(Account, "lastPostPublished", (t) =>
       const stats = await getAdminAccountStats(ctx, account.id);
       return stats.lastPostPublished;
     },
-  }));
+  }),
+);
 
 const AccountLinkIcon = builder.enumType("AccountLinkIcon", {
   values: [
@@ -1171,7 +1184,8 @@ builder.queryFields((t) => ({
   }),
   accounts: t.drizzleField({
     type: [Account],
-    description: "All local accounts. Intended for internal tooling; prefer " +
+    description:
+      "All local accounts. Intended for internal tooling; prefer " +
       "`adminAccounts` for paginated moderator views.",
     resolve(query, _, __, ctx) {
       return ctx.db.query.accountTable.findMany(query());
@@ -1192,9 +1206,8 @@ interface InvitationTreeNode {
 
 const DEFAULT_AVATAR_URL = "https://gravatar.com/avatar/?d=mp&s=128";
 
-const InvitationTreeNodeRef = builder.objectRef<InvitationTreeNode>(
-  "InvitationTreeNode",
-);
+const InvitationTreeNodeRef =
+  builder.objectRef<InvitationTreeNode>("InvitationTreeNode");
 
 InvitationTreeNodeRef.implement({
   description: "A node in the invitation tree.",
@@ -1250,7 +1263,8 @@ builder.queryField("invitationTree", (t) =>
           // profile-hidden (a banned local account), so a ban redacts the
           // name/handle/avatar here too; the holder and moderators still see
           // the real values (isActorProfileHidden honors the viewer).
-          const hidden = account.hideFromInvitationTree ||
+          const hidden =
+            account.hideFromInvitationTree ||
             (account.actor != null && isActorProfileHidden(account.actor, ctx));
           return {
             id: account.id,
@@ -1267,7 +1281,8 @@ builder.queryField("invitationTree", (t) =>
         }),
       );
     },
-  }));
+  }),
+);
 
 const AccountLinkInput = builder.inputType("AccountLinkInput", {
   fields: (t) => ({
@@ -1309,7 +1324,8 @@ builder.relayMutationField(
       }),
       pushNotificationPreviewPolicy: t.field({
         type: PushNotificationPreviewPolicy,
-        description: "New policy for including post content previews in push " +
+        description:
+          "New policy for including post content previews in push " +
           "notification payloads.",
       }),
       links: t.field({
@@ -1336,12 +1352,12 @@ builder.relayMutationField(
         });
       }
       if (
-        !await viewerCanManageAccountSettings(
+        !(await viewerCanManageAccountSettings(
           ctx,
           account.id,
           account.kind,
           session.accountId,
-        )
+        ))
       ) {
         throw createGraphQLError("Not authorized.", {
           extensions: { code: "FORBIDDEN" },
@@ -1356,7 +1372,7 @@ builder.relayMutationField(
       if (
         args.input.username != null &&
         args.input.username !== account.username &&
-        await isUsernameReserved(ctx.db, args.input.username)
+        (await isUsernameReserved(ctx.db, args.input.username))
       ) {
         throw createGraphQLError("Username is already taken.", {
           extensions: { code: "BAD_USER_INPUT" },
@@ -1403,48 +1419,49 @@ builder.relayMutationField(
         }
         avatarMediumId = avatarMedium.id;
       }
-      const result = await updateAccount(
-        ctx.fedCtx,
-        {
-          id: args.input.id.id,
-          username: args.input.username ?? undefined,
-          name: args.input.name ?? undefined,
-          bio: args.input.bio ?? undefined,
-          avatarMediumId,
-          locales: args.input.locales?.map((loc) => loc.baseName as Locale) ??
-            undefined,
-          hideFromInvitationTree: args.input.hideFromInvitationTree ??
-            undefined,
-          hideForeignLanguages: args.input.hideForeignLanguages ?? undefined,
-          preferAiSummary: args.input.preferAiSummary ?? undefined,
-          noteVisibility: args.input.defaultNoteVisibility == null
+      const result = await updateAccount(ctx.fedCtx, {
+        id: args.input.id.id,
+        username: args.input.username ?? undefined,
+        name: args.input.name ?? undefined,
+        bio: args.input.bio ?? undefined,
+        avatarMediumId,
+        locales:
+          args.input.locales?.map((loc) => loc.baseName as Locale) ?? undefined,
+        hideFromInvitationTree: args.input.hideFromInvitationTree ?? undefined,
+        hideForeignLanguages: args.input.hideForeignLanguages ?? undefined,
+        preferAiSummary: args.input.preferAiSummary ?? undefined,
+        noteVisibility:
+          args.input.defaultNoteVisibility == null
             ? undefined
             : fromPostVisibility(args.input.defaultNoteVisibility),
-          shareVisibility: args.input.defaultShareVisibility == null
+        shareVisibility:
+          args.input.defaultShareVisibility == null
             ? undefined
             : fromPostVisibility(args.input.defaultShareVisibility),
-          quotePolicy: (() => {
-            const effectiveNoteVis = args.input.defaultNoteVisibility != null
+        quotePolicy: (() => {
+          const effectiveNoteVis =
+            args.input.defaultNoteVisibility != null
               ? fromPostVisibility(args.input.defaultNoteVisibility)
               : account.noteVisibility;
-            if (
-              effectiveNoteVis === "followers" ||
-              effectiveNoteVis === "direct" ||
-              effectiveNoteVis === "none"
-            ) return "self";
-            return args.input.defaultQuotePolicy == null
-              ? undefined
-              : fromQuotePolicy(args.input.defaultQuotePolicy);
-          })(),
-          pushNotificationPreviewPolicy:
-            args.input.pushNotificationPreviewPolicy == null
-              ? undefined
-              : fromPushNotificationPreviewPolicy(
+          if (
+            effectiveNoteVis === "followers" ||
+            effectiveNoteVis === "direct" ||
+            effectiveNoteVis === "none"
+          ) {
+            return "self";
+          }
+          return args.input.defaultQuotePolicy == null
+            ? undefined
+            : fromQuotePolicy(args.input.defaultQuotePolicy);
+        })(),
+        pushNotificationPreviewPolicy:
+          args.input.pushNotificationPreviewPolicy == null
+            ? undefined
+            : fromPushNotificationPreviewPolicy(
                 args.input.pushNotificationPreviewPolicy,
               ),
-          links: args.input.links ?? undefined,
-        },
-      );
+        links: args.input.links ?? undefined,
+      });
       if (result == null) {
         throw createGraphQLError("Failed to update account.", {
           originalError: new Error("Failed to update account."),
@@ -1454,11 +1471,12 @@ builder.relayMutationField(
       const emails = await ctx.db.query.accountEmailTable.findMany({
         where: { accountId: result.id },
       });
-      const avatarMedium = result.avatarMediumId == null
-        ? null
-        : await ctx.db.query.mediumTable.findFirst({
-          where: { id: result.avatarMediumId },
-        }) ?? null;
+      const avatarMedium =
+        result.avatarMediumId == null
+          ? null
+          : ((await ctx.db.query.mediumTable.findFirst({
+              where: { id: result.avatarMediumId },
+            })) ?? null);
       await syncActorFromAccount(ctx.fedCtx, {
         ...result,
         emails,
@@ -1519,11 +1537,15 @@ builder.relayMutationField(
       ) {
         throw new NotAuthorizedError();
       }
-      const [account] = await ctx.db.update(accountTable).set({
-        notificationEmailDigestDaily: args.input.daily,
-        notificationEmailDigestWeekly: args.input.weekly,
-        updated: sql`CURRENT_TIMESTAMP`,
-      }).where(eq(accountTable.id, session.accountId)).returning();
+      const [account] = await ctx.db
+        .update(accountTable)
+        .set({
+          notificationEmailDigestDaily: args.input.daily,
+          notificationEmailDigestWeekly: args.input.weekly,
+          updated: sql`CURRENT_TIMESTAMP`,
+        })
+        .where(eq(accountTable.id, session.accountId))
+        .returning();
       if (account == null) {
         throw createGraphQLError("Account not found.", {
           extensions: { code: "NOT_FOUND" },
@@ -1623,7 +1645,8 @@ builder.relayMutationField(
       accountId: t.globalID({
         for: Account,
         required: true,
-        description: "The `Account` global id to remove the alias from. The " +
+        description:
+          "The `Account` global id to remove the alias from. The " +
           "authenticated viewer must be able to manage that account: its " +
           "personal holder, or an accepted `admin` of an `ORGANIZATION` " +
           "account. Any other account id returns `NotAuthorizedError`.",
@@ -1631,7 +1654,8 @@ builder.relayMutationField(
       alias: t.field({
         type: "URL",
         required: true,
-        description: "The exact previous actor IRI to remove from " +
+        description:
+          "The exact previous actor IRI to remove from " +
           "`Account.actor.aliases`. Missing aliases are accepted so " +
           "clients can retry safely.",
       }),
@@ -1712,8 +1736,8 @@ builder.relayMutationField(
       }
       const accountId = args.input.id.id as Uuid;
       const deletingOwnAccount = session.accountId === accountId;
-      const deletingOwnPersonalAccount = deletingOwnAccount &&
-        ctx.account.kind === "personal";
+      const deletingOwnPersonalAccount =
+        deletingOwnAccount && ctx.account.kind === "personal";
       if (!deletingOwnPersonalAccount) {
         const target = await ctx.db.query.accountTable.findFirst({
           where: { id: accountId },
@@ -1722,12 +1746,12 @@ builder.relayMutationField(
         if (
           target == null ||
           target.kind !== "organization" ||
-          !await viewerCanManageAccountSettings(
+          !(await viewerCanManageAccountSettings(
             ctx,
             target.id,
             target.kind,
             session.accountId,
-          )
+          ))
         ) {
           throw new NotAuthorizedError();
         }
@@ -1735,7 +1759,7 @@ builder.relayMutationField(
       const result = await deleteAccountModel(ctx.fedCtx, accountId, {
         beforeDelete: deletingOwnPersonalAccount
           ? (tx) =>
-            assertPersonalAccountDeletionPreservesOrganizations(tx, accountId)
+              assertPersonalAccountDeletionPreservesOrganizations(tx, accountId)
           : undefined,
       });
       if (result == null) throw new InvalidInputError("id");

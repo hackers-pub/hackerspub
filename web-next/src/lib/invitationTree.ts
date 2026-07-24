@@ -1,7 +1,4 @@
-export type InvitationTreeSort =
-  | "OLDEST"
-  | "NEWEST"
-  | "MOST_INVITATIONS";
+export type InvitationTreeSort = "OLDEST" | "NEWEST" | "MOST_INVITATIONS";
 
 const SLUG_TO_SORT: Record<string, InvitationTreeSort> = {
   oldest: "OLDEST",
@@ -31,7 +28,7 @@ interface InvitationTreeNode {
 export function parseInvitationTreeSort(
   value: string | undefined,
 ): InvitationTreeSort {
-  return value == null ? "OLDEST" : SLUG_TO_SORT[value] ?? "OLDEST";
+  return value == null ? "OLDEST" : (SLUG_TO_SORT[value] ?? "OLDEST");
 }
 
 export function buildInvitationTreeSortHref(
@@ -68,8 +65,8 @@ export function buildInvitationTree<T extends InvitationTreeNode>(
     children.sort((a, b) => {
       if (sort === "NEWEST") return -compareSourceOrder(a, b);
       if (sort === "MOST_INVITATIONS") {
-        const invitationDifference = (tree.get(b.id)?.length ?? 0) -
-          (tree.get(a.id)?.length ?? 0);
+        const invitationDifference =
+          (tree.get(b.id)?.length ?? 0) - (tree.get(a.id)?.length ?? 0);
         return invitationDifference || compareSourceOrder(a, b);
       }
       return compareSourceOrder(a, b);

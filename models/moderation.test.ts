@@ -52,10 +52,7 @@ describe("isActorSuspended()", () => {
 
   it("is true for a permanent suspension", () => {
     assert.equal(
-      isActorSuspended(
-        actorState(new Date(NOW.getTime() - HOUR), null),
-        NOW,
-      ),
+      isActorSuspended(actorState(new Date(NOW.getTime() - HOUR), null), NOW),
       true,
     );
   });
@@ -116,14 +113,15 @@ describe("assertActorNotSuspended()", () => {
       ActorSuspendedError,
     );
     assert.doesNotThrow(() =>
-      assertActorNotSuspended({ ...actor, suspended: null }, NOW)
+      assertActorNotSuspended({ ...actor, suspended: null }, NOW),
     );
   });
 });
 
 describe("write-path suspension guards", () => {
   async function suspend(tx: Transaction, actorId: string): Promise<void> {
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: new Date(Date.now() - HOUR) })
       .where(eq(actorTable.id, actorId as never));
   }
@@ -158,7 +156,8 @@ describe("write-path suspension guards", () => {
         name: "Expired",
         email: "expiredauthor@example.com",
       });
-      await tx.update(actorTable)
+      await tx
+        .update(actorTable)
         .set({
           suspended: new Date(Date.now() - 2 * HOUR),
           suspendedUntil: new Date(Date.now() - HOUR),
@@ -254,11 +253,7 @@ describe("write-path suspension guards", () => {
       const { post } = await insertNotePost(tx, { account: author.account });
       await suspend(tx, booster.actor.id);
       await assert.rejects(
-        sharePost(
-          fedCtx,
-          booster.account,
-          { ...post, actor: author.actor },
-        ),
+        sharePost(fedCtx, booster.account, { ...post, actor: author.actor }),
         ActorSuspendedError,
       );
     });

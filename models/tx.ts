@@ -51,10 +51,7 @@ export function transactional<Arguments extends unknown[], Result>(
     context: ApplicationContext,
     ...args: Arguments
   ) => Promise<Result>,
-): (
-  context: ApplicationContext,
-  ...args: Arguments
-) => Promise<Result> {
+): (context: ApplicationContext, ...args: Arguments) => Promise<Result> {
   return async (context, ...args) =>
     await withTransaction(
       context,

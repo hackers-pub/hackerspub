@@ -45,17 +45,17 @@ export function toPostVisibility(
   return visibility === "public"
     ? "PUBLIC"
     : visibility === "unlisted"
-    ? "UNLISTED"
-    : visibility === "followers"
-    ? "FOLLOWERS"
-    : visibility === "direct"
-    ? "DIRECT"
-    : visibility === "none"
-    ? "NONE"
-    : assertNever(
-      visibility,
-      `Invalid \`PostVisibility\`: "${visibility}"`,
-    );
+      ? "UNLISTED"
+      : visibility === "followers"
+        ? "FOLLOWERS"
+        : visibility === "direct"
+          ? "DIRECT"
+          : visibility === "none"
+            ? "NONE"
+            : assertNever(
+                visibility,
+                `Invalid \`PostVisibility\`: "${visibility}"`,
+              );
 }
 
 export function fromPostVisibility(
@@ -64,15 +64,15 @@ export function fromPostVisibility(
   return visibility === "PUBLIC"
     ? "public"
     : visibility === "UNLISTED"
-    ? "unlisted"
-    : visibility === "FOLLOWERS"
-    ? "followers"
-    : visibility === "DIRECT"
-    ? "direct"
-    : visibility === "NONE"
-    ? "none"
-    : assertNever(
-      visibility,
-      `Invalid \`PostVisibility\`: "${visibility}"`,
-    );
+      ? "unlisted"
+      : visibility === "FOLLOWERS"
+        ? "followers"
+        : visibility === "DIRECT"
+          ? "direct"
+          : visibility === "NONE"
+            ? "none"
+            : assertNever(
+                visibility,
+                `Invalid \`PostVisibility\`: "${visibility}"`,
+              );
 }

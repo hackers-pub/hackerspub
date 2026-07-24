@@ -3,11 +3,11 @@ export function compactUrl(url: string | URL): string {
   return url.protocol !== "https:" && url.protocol !== "http:"
     ? url.href
     : url.host +
-      (url.searchParams.size < 1 && (url.hash === "" || url.hash === "#")
-        ? url.pathname.replace(/\/+$/, "")
-        : url.pathname) +
-      (url.searchParams.size < 1 ? "" : url.search) +
-      (url.hash === "#" ? "" : url.hash);
+        (url.searchParams.size < 1 && (url.hash === "" || url.hash === "#")
+          ? url.pathname.replace(/\/+$/, "")
+          : url.pathname) +
+        (url.searchParams.size < 1 ? "" : url.search) +
+        (url.hash === "#" ? "" : url.hash);
 }
 
 export function getAccountLinkDisplayText(
@@ -17,9 +17,9 @@ export function getAccountLinkDisplayText(
   const parsed = new URL(url);
   const host = parsed.host.replace(/^www\./, "");
   if (host === "github.com") {
-    const segments = parsed.pathname.split("/").filter((segment) =>
-      segment !== ""
-    );
+    const segments = parsed.pathname
+      .split("/")
+      .filter((segment) => segment !== "");
     if (segments.length === 1) return `@${segments[0]}`;
     if (segments.length === 2) return `${segments[0]}/${segments[1]}`;
 

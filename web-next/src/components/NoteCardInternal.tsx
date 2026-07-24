@@ -6,7 +6,7 @@ import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { createDeferredRender } from "~/lib/deferredRender.ts";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   MentionHoverCardLayer,
   useMentionHoverCards,
@@ -40,8 +40,9 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
   const liveNote = createFragment(
     graphql`
       fragment NoteCardInternal_note on Note
-        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
-      {
+      @argumentDefinitions(
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
         __id
         id
         uuid
@@ -67,9 +68,7 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
           }
         }
         ...PostAuthorAvatar_post
-        ...PostEngagementBar_post @arguments(
-          actingAccountId: $actingAccountId
-        )
+        ...PostEngagementBar_post @arguments(actingAccountId: $actingAccountId)
         ...NoteMedia_note
         ...LinkPreview_note @arguments(actingAccountId: $actingAccountId)
         ...NoteHeader_note
@@ -84,19 +83,17 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
   const fragmentKey = () => {
     const note = props.$note as
       | {
-        readonly __id?: string;
-        readonly id?: string;
-      }
+          readonly __id?: string;
+          readonly id?: string;
+        }
       | null
       | undefined;
     return note?.id ?? note?.__id ?? null;
   };
-  const stableNote = createMemo<
-    {
-      key: string;
-      value: NonNullable<ReturnType<typeof liveNote>>;
-    } | null
-  >((previous) => {
+  const stableNote = createMemo<{
+    key: string;
+    value: NonNullable<ReturnType<typeof liveNote>>;
+  } | null>((previous) => {
     const value = liveNote();
     const key = value?.id ?? value?.__id ?? fragmentKey();
     if (value != null && key != null) return { key, value };
@@ -130,8 +127,8 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
   const [proseRef, setProseRef] = createSignal<HTMLElement>();
   const mentionState = useMentionHoverCards(proseRef);
   useContentLinkInterceptor(proseRef);
-  const showDeferredSections = createDeferredRender(() =>
-    !!props.deferHeavySections
+  const showDeferredSections = createDeferredRender(
+    () => !!props.deferHeavySections,
   );
 
   return (
@@ -140,9 +137,7 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
         <div class="flex gap-3 sm:gap-4">
           <PostAuthorAvatar $post={n} />
           <div class="min-w-0 grow">
-            <NoteHeader
-              $note={n}
-            />
+            <NoteHeader $note={n} />
             <Show when={n.censored}>
               <CensorshipNotice
                 class="mt-1"
@@ -176,10 +171,8 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
               <Show when={showDeferredSections()}>
                 <NoteMedia $note={n} postSensitive={n.sensitive} />
                 <LinkPreview $note={n} />
-                {
-                  /* `keyed`: avoid Solid's stale-accessor race when this
-                   Relay field flips to null inside a `batch()` update. */
-                }
+                {/* `keyed`: avoid Solid's stale-accessor race when this
+                   Relay field flips to null inside a `batch()` update. */}
                 <Show keyed when={n.quotedPost}>
                   {(quotedPost) => (
                     <QuotedPostCard
@@ -207,20 +200,25 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
                 pinConnections={props.pinConnections}
                 bookmarkListConnections={props.bookmarkListConnections}
                 onDeleted={props.onDeleted}
-                onEdit={(n.rawContent ?? n.personalRawContent) != null &&
-                    n.visibility !== "NONE"
-                  ? () =>
-                    openForEdit(n.id, {
-                      content: (n.rawContent ?? n.personalRawContent)!,
-                      language: n.language,
-                      quotePolicy: (n.quotePolicy as QuotePolicy) ?? "EVERYONE",
-                      visibility: (n.visibility as PostVisibility) ?? "PUBLIC",
-                      authorAccountId: n.rawContent != null &&
-                          n.actor.account?.kind === "ORGANIZATION"
-                        ? n.actor.account.id
-                        : null,
-                    })
-                  : undefined}
+                onEdit={
+                  (n.rawContent ?? n.personalRawContent) != null &&
+                  n.visibility !== "NONE"
+                    ? () =>
+                        openForEdit(n.id, {
+                          content: (n.rawContent ?? n.personalRawContent)!,
+                          language: n.language,
+                          quotePolicy:
+                            (n.quotePolicy as QuotePolicy) ?? "EVERYONE",
+                          visibility:
+                            (n.visibility as PostVisibility) ?? "PUBLIC",
+                          authorAccountId:
+                            n.rawContent != null &&
+                            n.actor.account?.kind === "ORGANIZATION"
+                              ? n.actor.account.id
+                              : null,
+                        })
+                    : undefined
+                }
               />
             </Show>
           </div>

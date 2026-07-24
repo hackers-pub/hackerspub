@@ -50,14 +50,15 @@ export function getOriginalArticleContent(
   source: ArticleSource,
 ): Promise<ArticleContent | undefined>;
 export function getOriginalArticleContent(
-  dbOrSrc: ArticleSource & { contents: ArticleContent[] } | Database,
+  dbOrSrc: (ArticleSource & { contents: ArticleContent[] }) | Database,
   source?: ArticleSource,
 ): ArticleContent | undefined | Promise<ArticleContent | undefined> {
   if ("contents" in dbOrSrc) {
-    const contents = dbOrSrc.contents.filter((content) =>
-      content.originalLanguage == null &&
-      content.translatorId == null &&
-      content.translationRequesterId == null
+    const contents = dbOrSrc.contents.filter(
+      (content) =>
+        content.originalLanguage == null &&
+        content.translatorId == null &&
+        content.translationRequesterId == null,
     );
     return minBy(contents, (content) => +content.published);
   }

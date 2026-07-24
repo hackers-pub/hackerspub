@@ -57,7 +57,8 @@ test("buildPushNotificationPayload() includes previews according to account poli
     });
     assert.doesNotMatch(followersPayload.body, /Followers only preview/);
 
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ pushNotificationPreviewPolicy: "all" })
       .where(eq(accountTable.id, account.id));
     const allPayload = await buildPushNotificationPayload(tx, {
@@ -69,10 +70,12 @@ test("buildPushNotificationPayload() includes previews according to account poli
     });
     assert.match(allPayload.body, /Followers only preview/);
 
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ sensitive: true })
       .where(eq(postTable.id, publicPost.id));
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ pushNotificationPreviewPolicy: "public_only" })
       .where(eq(accountTable.id, account.id));
     const sensitivePayload = await buildPushNotificationPayload(tx, {
@@ -84,7 +87,8 @@ test("buildPushNotificationPayload() includes previews according to account poli
     });
     assert.doesNotMatch(sensitivePayload.body, /Visible preview text/);
 
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ pushNotificationPreviewPolicy: "none" })
       .where(eq(accountTable.id, account.id));
     const nonePayload = await buildPushNotificationPayload(tx, {
@@ -171,7 +175,8 @@ test("buildPushNotificationPayload() localizes titles and bodies", async () => {
       host: "remote.example",
     });
 
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ locales: ["ko-KR"] })
       .where(eq(accountTable.id, account.id));
     const koreanPayload = await buildPushNotificationPayload(tx, {
@@ -186,7 +191,8 @@ test("buildPushNotificationPayload() localizes titles and bodies", async () => {
       "Sender 님이 회원님의 콘텐츠를 인용했습니다",
     );
 
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ locales: ["zh-HK"] })
       .where(eq(accountTable.id, account.id));
     const traditionalChinesePayload = await buildPushNotificationPayload(tx, {

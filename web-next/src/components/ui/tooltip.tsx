@@ -30,8 +30,7 @@ const Tooltip: Component<TooltipPrimitive.TooltipRootProps> = (props) => {
 };
 
 type TooltipContentProps<T extends ValidComponent = "div"> =
-  & TooltipPrimitive.TooltipContentProps<T>
-  & { class?: string | undefined };
+  TooltipPrimitive.TooltipContentProps<T> & { class?: string | undefined };
 
 const TooltipContent = <T extends ValidComponent = "div">(
   props: PolymorphicProps<T, TooltipContentProps<T>>,

@@ -65,11 +65,17 @@ type ShowEntry = {
   reported: boolean;
 };
 
-const plugin: Deno.lint.Plugin = {
+const plugin = {
+  meta: {
+    name: "hackerspub-solid",
+  },
   name: "hackerspub-solid",
   rules: {
     "show-keyed-on-fn-child": {
-      create(context) {
+      meta: {
+        fixable: "code",
+      },
+      create(context: any) {
         // Stack of lexical scopes. Each entry maps an identifier name to
         // either "relay" (a binding known to come from a solid-relay
         // primitive) or "shadow" (any other binding for that name). Lookup
@@ -160,7 +166,9 @@ const plugin: Deno.lint.Plugin = {
           if (
             tagName?.type !== "JSXIdentifier" ||
             !TARGET_TAGS.has(tagName.name)
-          ) return;
+          ) {
+            return;
+          }
           const whenExpr = getWhenExpression(opening);
           if (!whenExpr) return;
           const top = scopes.pop();
@@ -189,7 +197,9 @@ const plugin: Deno.lint.Plugin = {
             const imp = relayImports.get(callee.name);
             if (
               !(imp?.kind === "named" && RELAY_PRIMITIVES.has(imp.imported))
-            ) return false;
+            ) {
+              return false;
+            }
             bindingName = callee.name;
           } else if (callee.type === "MemberExpression" && !callee.computed) {
             const prop = callee.property;
@@ -217,7 +227,9 @@ const plugin: Deno.lint.Plugin = {
                 cursor.type === "FunctionDeclaration") &&
               cursor.id?.type === "Identifier" &&
               cursor.id.name === bindingName
-            ) return false;
+            ) {
+              return false;
+            }
             cursor = cursor.parent;
           }
           return true;
@@ -236,7 +248,8 @@ const plugin: Deno.lint.Plugin = {
 
           let cursor: any = node.parent;
           while (cursor) {
-            const fn = cursor.type === "ArrowFunctionExpression" ||
+            const fn =
+              cursor.type === "ArrowFunctionExpression" ||
               cursor.type === "FunctionExpression" ||
               cursor.type === "FunctionDeclaration";
             if (fn) {
@@ -328,7 +341,8 @@ const plugin: Deno.lint.Plugin = {
 
           VariableDeclarator(node: any) {
             const init = node.init;
-            const relay = init?.type === "CallExpression" &&
+            const relay =
+              init?.type === "CallExpression" &&
               isRelayPrimitiveCallResolved(init);
             // Record the binding either way: relay if the init is a tracked
             // solid-relay primitive call, shadow otherwise. Recording shadow
@@ -377,13 +391,13 @@ const plugin: Deno.lint.Plugin = {
             if (!fnExpr) return;
 
             const param = fnExpr.params[0];
-            const paramName: string | null = param?.type === "Identifier"
-              ? param.name
-              : null;
+            const paramName: string | null =
+              param?.type === "Identifier" ? param.name : null;
 
-            const bodyHasRebinding = paramName == null
-              ? false
-              : detectRebinding(fnExpr.body, paramName);
+            const bodyHasRebinding =
+              paramName == null
+                ? false
+                : detectRebinding(fnExpr.body, paramName);
 
             shows.set(fnExpr, {
               openingName: name,
@@ -449,7 +463,8 @@ const plugin: Deno.lint.Plugin = {
             //   - body uses the param in a way the rewrite cannot express
             //     safely (e.g., `param(arg)` with non-zero arguments).
             if (
-              existingKeyedAttr || entry.bodyHasRebinding ||
+              existingKeyedAttr ||
+              entry.bodyHasRebinding ||
               entry.hasUnsafeParamUse
             ) {
               context.report({ node: opening, message });
@@ -459,8 +474,8 @@ const plugin: Deno.lint.Plugin = {
             context.report({
               node: opening,
               message,
-              fix(fixer) {
-                const fixes: Deno.lint.Fix[] = [];
+              fix(fixer: any) {
+                const fixes: any[] = [];
                 fixes.push(
                   fixer.insertTextAfterRange(
                     openingName.range as [number, number],
@@ -495,7 +510,9 @@ function getWhenExpression(opening: any): any | null {
       attr.name?.type === "JSXIdentifier" &&
       attr.name.name === "when" &&
       attr.value?.type === "JSXExpressionContainer"
-    ) return attr.value.expression;
+    ) {
+      return attr.value.expression;
+    }
   }
   return null;
 }
@@ -618,8 +635,8 @@ function expressionIsRelayBacked(
       case "ParenthesizedExpression":
         stack.push(node.expression);
         break;
-        // Don't descend into function bodies — they introduce new scopes
-        // and free-variable analysis there isn't trivial.
+      // Don't descend into function bodies — they introduce new scopes
+      // and free-variable analysis there isn't trivial.
     }
   }
   return false;
@@ -772,14 +789,16 @@ function detectRebinding(
     // flip the body would carry the reassigned value rather than the
     // keyed one, so the autofix can't safely rewrite calls below the
     // assignment. `value++` / `value--` mutate the binding the same way.
-    if (
-      node.type === "AssignmentExpression" && bindsName(node.left, name)
-    ) return true;
+    if (node.type === "AssignmentExpression" && bindsName(node.left, name)) {
+      return true;
+    }
     if (
       node.type === "UpdateExpression" &&
       node.argument?.type === "Identifier" &&
       node.argument.name === name
-    ) return true;
+    ) {
+      return true;
+    }
     if (
       (node.type === "FunctionDeclaration" ||
         node.type === "FunctionExpression" ||
@@ -787,13 +806,17 @@ function detectRebinding(
         node.type === "ClassExpression") &&
       node.id?.type === "Identifier" &&
       node.id.name === name
-    ) return true;
+    ) {
+      return true;
+    }
     if (
       (node.type === "FunctionDeclaration" ||
         node.type === "FunctionExpression" ||
         node.type === "ArrowFunctionExpression") &&
       paramRebindsName(node.params, name)
-    ) return true;
+    ) {
+      return true;
+    }
 
     // When `enterNestedFunctions` is false and we're standing on a
     // nested function/arrow node that is not the root, skip descending
@@ -805,7 +828,9 @@ function detectRebinding(
       (node.type === "ArrowFunctionExpression" ||
         node.type === "FunctionExpression" ||
         node.type === "FunctionDeclaration")
-    ) continue;
+    ) {
+      continue;
+    }
 
     const fields = DETECT_REBINDING_FIELDS[node.type];
     if (fields) {

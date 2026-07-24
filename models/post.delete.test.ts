@@ -29,16 +29,14 @@ test("deletePost() removes a reply and decrements the parent reply count", async
       content: "Root post",
     });
     const { noteSourceId: replySourceId, post: replyPost } =
-      await insertNotePost(
-        tx,
-        {
-          account: replier.account,
-          content: "Reply post",
-          replyTargetId: rootPost.id,
-        },
-      );
+      await insertNotePost(tx, {
+        account: replier.account,
+        content: "Reply post",
+        replyTargetId: rootPost.id,
+      });
 
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ repliesCount: 1 })
       .where(eq(postTable.id, rootPost.id));
 
@@ -138,16 +136,14 @@ test("deletePost() cascades through local replies, shares, and notifications", a
       },
     );
     const { noteSourceId: replySourceId, post: replyPost } =
-      await insertNotePost(
-        tx,
-        {
-          account: replier.account,
-          content: "Cascade reply",
-          replyTargetId: rootPost.id,
-        },
-      );
+      await insertNotePost(tx, {
+        account: replier.account,
+        content: "Cascade reply",
+        replyTargetId: rootPost.id,
+      });
 
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ repliesCount: 1 })
       .where(eq(postTable.id, rootPost.id));
 
@@ -162,13 +158,14 @@ test("deletePost() cascades through local replies, shares, and notifications", a
       replyTarget: null,
     });
 
-    const remainingPosts = await tx.select({ id: postTable.id }).from(
-      postTable,
-    )
+    const remainingPosts = await tx
+      .select({ id: postTable.id })
+      .from(postTable)
       .where(inArray(postTable.id, [rootPost.id, replyPost.id, share.id]));
     assert.deepEqual(remainingPosts, []);
 
-    const remainingSources = await tx.select({ id: noteSourceTable.id })
+    const remainingSources = await tx
+      .select({ id: noteSourceTable.id })
       .from(noteSourceTable)
       .where(inArray(noteSourceTable.id, [rootSourceId, replySourceId]));
     assert.deepEqual(remainingSources, []);

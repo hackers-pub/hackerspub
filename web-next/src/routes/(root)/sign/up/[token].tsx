@@ -20,7 +20,7 @@ import {
   TextFieldLabel,
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { createEnvironment } from "~/RelayEnvironment.tsx";
 import type { TokenCodeOfConductQuery } from "./__generated__/TokenCodeOfConductQuery.graphql.ts";
 import type {
@@ -48,7 +48,11 @@ const verifySignupTokenQuery = graphql`
 `;
 
 const completeSignupMutation = graphql`
-  mutation TokenCompleteSignupMutation($token: UUID!, $code: String!, $input: SignupInput!) {
+  mutation TokenCompleteSignupMutation(
+    $token: UUID!
+    $code: String!
+    $input: SignupInput!
+  ) {
     completeSignup(token: $token, code: $code, input: $input) {
       __typename
       ... on Session {
@@ -268,7 +272,8 @@ export default function SignupPage(props: RouteSectionProps) {
         setSubmitting(false);
         showToast({
           title: t`Error`,
-          description: t`An error occurred during signup. Please try again.` +
+          description:
+            t`An error occurred during signup. Please try again.` +
             (import.meta.env.DEV ? `\n\n${error.message}` : ""),
           variant: "error",
         });
@@ -325,9 +330,9 @@ export default function SignupPage(props: RouteSectionProps) {
 
                 <div>
                   <TextField
-                    validationState={fieldErrors().username
-                      ? "invalid"
-                      : "valid"}
+                    validationState={
+                      fieldErrors().username ? "invalid" : "valid"
+                    }
                     class="gap-1"
                   >
                     <TextFieldLabel>{t`Username`} *</TextFieldLabel>
@@ -358,17 +363,15 @@ export default function SignupPage(props: RouteSectionProps) {
                       </Show>
                     </div>
                   </TextField>
-                  {fieldErrors().username
-                    ? (
-                      <p class="text-sm text-red-600 mt-1">
-                        {getUsernameErrorMessage(fieldErrors().username)}
-                      </p>
-                    )
-                    : (
-                      <p class="text-sm text-muted-foreground mt-1">
-                        {t`Your username will be used to create your profile URL and your fediverse handle.`}
-                      </p>
-                    )}
+                  {fieldErrors().username ? (
+                    <p class="text-sm text-red-600 mt-1">
+                      {getUsernameErrorMessage(fieldErrors().username)}
+                    </p>
+                  ) : (
+                    <p class="text-sm text-muted-foreground mt-1">
+                      {t`Your username will be used to create your profile URL and your fediverse handle.`}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -384,17 +387,15 @@ export default function SignupPage(props: RouteSectionProps) {
                       onBlur={handleNameBlur}
                     />
                   </TextField>
-                  {fieldErrors().name
-                    ? (
-                      <p class="text-sm text-red-600 mt-1">
-                        {getDisplayNameErrorMessage(fieldErrors().name)}
-                      </p>
-                    )
-                    : (
-                      <p class="text-sm text-muted-foreground mt-1">
-                        {t`Your name will be displayed on your profile and in your posts.`}
-                      </p>
-                    )}
+                  {fieldErrors().name ? (
+                    <p class="text-sm text-red-600 mt-1">
+                      {getDisplayNameErrorMessage(fieldErrors().name)}
+                    </p>
+                  ) : (
+                    <p class="text-sm text-muted-foreground mt-1">
+                      {t`Your name will be displayed on your profile and in your posts.`}
+                    </p>
+                  )}
                 </div>
 
                 <div class="lg:col-span-2">
@@ -417,17 +418,15 @@ export default function SignupPage(props: RouteSectionProps) {
                       minHeight="min-h-[100px]"
                     />
                   </TextField>
-                  {fieldErrors().bio
-                    ? (
-                      <p class="text-sm text-red-600 mt-1">
-                        {getBioErrorMessage(fieldErrors().bio)}
-                      </p>
-                    )
-                    : (
-                      <p class="text-sm text-muted-foreground mt-1">
-                        {t`Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters.`}
-                      </p>
-                    )}
+                  {fieldErrors().bio ? (
+                    <p class="text-sm text-red-600 mt-1">
+                      {getBioErrorMessage(fieldErrors().bio)}
+                    </p>
+                  ) : (
+                    <p class="text-sm text-muted-foreground mt-1">
+                      {t`Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters.`}
+                    </p>
+                  )}
                 </div>
 
                 <Show when={signupInfo()?.inviter}>
@@ -479,7 +478,8 @@ export default function SignupPage(props: RouteSectionProps) {
                           class="accent-primary size-4 cursor-pointer"
                           checked={agreedToCoC()}
                           onChange={(e) =>
-                            setAgreedToCoC(e.currentTarget.checked)}
+                            setAgreedToCoC(e.currentTarget.checked)
+                          }
                         />
                         {t`I have read and agree to the Code of conduct.`}
                       </label>

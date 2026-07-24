@@ -1,4 +1,4 @@
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 export function AboutHackersPub() {
   const { t } = useLingui();

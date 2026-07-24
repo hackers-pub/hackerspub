@@ -21,10 +21,7 @@ test("isExpectedAuthError() accepts only authentication errors", () => {
 test("isExpectedAuthResponse() recognizes singular and batched responses", () => {
   assert.equal(isExpectedAuthResponse({ errors: [authError] }), true);
   assert.equal(
-    isExpectedAuthResponse([
-      { data: { viewer: {} } },
-      { errors: [authError] },
-    ]),
+    isExpectedAuthResponse([{ data: { viewer: {} } }, { errors: [authError] }]),
     true,
   );
   assert.equal(isExpectedAuthResponse([]), false);

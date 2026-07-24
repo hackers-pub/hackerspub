@@ -20,10 +20,11 @@ test("installPromiseWithResolversPolyfill resolves and rejects promises", async 
     await assert.rejects(rejected.promise, error);
   } finally {
     if (descriptor == null) {
-      delete (Promise as {
-        withResolvers?: PromiseConstructor["withResolvers"];
-      })
-        .withResolvers;
+      delete (
+        Promise as {
+          withResolvers?: PromiseConstructor["withResolvers"];
+        }
+      ).withResolvers;
     } else {
       Object.defineProperty(Promise, "withResolvers", descriptor);
     }
@@ -52,10 +53,11 @@ test("installPromiseWithResolversPolyfill keeps native implementations", () => {
     assert.equal(Promise.withResolvers, native);
   } finally {
     if (descriptor == null) {
-      delete (Promise as {
-        withResolvers?: PromiseConstructor["withResolvers"];
-      })
-        .withResolvers;
+      delete (
+        Promise as {
+          withResolvers?: PromiseConstructor["withResolvers"];
+        }
+      ).withResolvers;
     } else {
       Object.defineProperty(Promise, "withResolvers", descriptor);
     }

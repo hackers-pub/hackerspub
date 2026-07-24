@@ -18,10 +18,7 @@
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
   // Forward ports for the unified application gateway and PostgreSQL.
-  "forwardPorts": [
-    8000,
-    5432
-  ],
+  "forwardPorts": [8000, 5432],
   // Set environment variables.
   // Consider creating a .env file in the root and referencing it here,
   // or letting users create it based on .env.sample.

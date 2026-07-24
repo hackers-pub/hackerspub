@@ -21,7 +21,7 @@ import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { useContentLinkInterceptor } from "~/lib/contentLinkInterceptor.ts";
 import { createDeferredRender } from "~/lib/deferredRender.ts";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
-import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
+import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
 import {
   MentionHoverCardLayer,
   useMentionHoverCards,
@@ -55,18 +55,17 @@ export function QuestionCard(props: QuestionCardProps) {
   const question = createFragment(
     graphql`
       fragment QuestionCard_question on Question
-        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
-      {
+      @argumentDefinitions(
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
         ...PostSharer_post
-        ...QuestionCardContent_question @arguments(
-          actingAccountId: $actingAccountId
-        )
+        ...QuestionCardContent_question
+          @arguments(actingAccountId: $actingAccountId)
         sharedPost(actingAccountId: $actingAccountId) {
           __typename
           ... on Question {
-            ...QuestionCardContent_question @arguments(
-              actingAccountId: $actingAccountId
-            )
+            ...QuestionCardContent_question
+              @arguments(actingAccountId: $actingAccountId)
           }
         }
       }
@@ -123,15 +122,16 @@ function QuestionCardContent(props: QuestionCardContentProps) {
   const [proseRef, setProseRef] = createSignal<HTMLElement>();
   const mentionState = useMentionHoverCards(proseRef);
   useContentLinkInterceptor(proseRef);
-  const showDeferredSections = createDeferredRender(() =>
-    !!props.deferHeavySections
+  const showDeferredSections = createDeferredRender(
+    () => !!props.deferHeavySections,
   );
 
   const question = createFragment(
     graphql`
       fragment QuestionCardContent_question on Question
-        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
-      {
+      @argumentDefinitions(
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
         __id
         id
         uuid
@@ -179,9 +179,7 @@ function QuestionCardContent(props: QuestionCardContentProps) {
         quotedPost(actingAccountId: $actingAccountId) {
           ...QuotedPostCard_post
         }
-        ...PostEngagementBar_post @arguments(
-          actingAccountId: $actingAccountId
-        )
+        ...PostEngagementBar_post @arguments(actingAccountId: $actingAccountId)
       }
     `,
     () => props.$question,
@@ -191,37 +189,33 @@ function QuestionCardContent(props: QuestionCardContentProps) {
   const actingAccount = useActingAccount();
   const actingAccountId = () => actingAccount.selectedActingAccountId();
   const [selectedOptions, setSelectedOptions] = createSignal<
-    ReadonlySet<
-      number
-    >
+    ReadonlySet<number>
   >(new Set());
-  const [voteOnPoll, isVoting] = createMutation<
-    QuestionCard_voteOnPoll_Mutation
-  >(
-    graphql`
-      mutation QuestionCard_voteOnPoll_Mutation(
-        $input: VoteOnPollInput!
-        $actingAccountId: ID
-      ) {
-        voteOnPoll(input: $input) {
-          __typename
-          ... on VoteOnPollPayload {
-            question {
-              ...QuestionCard_question @arguments(
-                actingAccountId: $actingAccountId
-              )
+  const [voteOnPoll, isVoting] =
+    createMutation<QuestionCard_voteOnPoll_Mutation>(
+      graphql`
+        mutation QuestionCard_voteOnPoll_Mutation(
+          $input: VoteOnPollInput!
+          $actingAccountId: ID
+        ) {
+          voteOnPoll(input: $input) {
+            __typename
+            ... on VoteOnPollPayload {
+              question {
+                ...QuestionCard_question
+                  @arguments(actingAccountId: $actingAccountId)
+              }
+            }
+            ... on InvalidInputError {
+              inputPath
+            }
+            ... on NotAuthenticatedError {
+              notAuthenticated
             }
           }
-          ... on InvalidInputError {
-            inputPath
-          }
-          ... on NotAuthenticatedError {
-            notAuthenticated
-          }
         }
-      }
-    `,
-  );
+      `,
+    );
 
   createEffect(() => {
     const poll = question()?.poll;
@@ -271,22 +265,13 @@ function QuestionCardContent(props: QuestionCardContentProps) {
             />
             <Show when={showDeferredSections()}>
               <MentionHoverCardLayer state={mentionState} />
-              {
-                /* `keyed`: avoid Solid's stale-accessor race when this
-                 Relay field flips to null inside a `batch()` update. */
-              }
+              {/* `keyed`: avoid Solid's stale-accessor race when this
+                 Relay field flips to null inside a `batch()` update. */}
               <Show keyed when={q.poll}>
-                {(poll) => (
-                  <PollPanel
-                    questionId={q.id}
-                    poll={poll}
-                  />
-                )}
+                {(poll) => <PollPanel questionId={q.id} poll={poll} />}
               </Show>
-              {
-                /* `keyed`: avoid Solid's stale-accessor race when this
-                 Relay field flips to null inside a `batch()` update. */
-              }
+              {/* `keyed`: avoid Solid's stale-accessor race when this
+                 Relay field flips to null inside a `batch()` update. */}
               <Show keyed when={q.quotedPost}>
                 {(quotedPost) => (
                   <QuotedPostCard
@@ -338,15 +323,17 @@ function QuestionCardContent(props: QuestionCardContentProps) {
       props.poll.options.reduce(
         (sum, option) => sum + Math.max(option.votes.totalCount, 0),
         0,
-      )
+      ),
     );
     const percent = (count: number) => {
       const denominator = totalVotes();
       return denominator < 1 ? 0 : Math.round((count / denominator) * 100);
     };
     const canVote = () =>
-      viewer.isAuthenticated() && !isClosed() &&
-      !props.poll.viewerHasVoted && !isVoting();
+      viewer.isAuthenticated() &&
+      !isClosed() &&
+      !props.poll.viewerHasVoted &&
+      !isVoting();
     const hasSelection = () => selectedOptions().size > 0;
     const isSelected = (index: number, viewerHasVoted: boolean) =>
       props.poll.viewerHasVoted ? viewerHasVoted : selectedOptions().has(index);
@@ -428,8 +415,7 @@ function QuestionCardContent(props: QuestionCardContentProps) {
         class="my-3 rounded-lg border bg-background/80 p-3"
         classList={{
           "border-primary/30": !isClosed() && !props.poll.multiple,
-          "border-emerald-500/35": !isClosed() &&
-            props.poll.multiple,
+          "border-emerald-500/35": !isClosed() && props.poll.multiple,
           "border-muted bg-muted/20 text-muted-foreground": isClosed(),
         }}
       >
@@ -451,13 +437,12 @@ function QuestionCardContent(props: QuestionCardContentProps) {
             <Timestamp value={props.poll.ends} allowFuture />
           </span>
           <span class="text-muted-foreground">
-            &middot; {i18n._(
-              msg`${
-                plural(props.poll.voters.totalCount, {
-                  one: "# voter",
-                  other: "# voters",
-                })
-              }`,
+            &middot;{" "}
+            {i18n._(
+              msg`${plural(props.poll.voters.totalCount, {
+                one: "# voter",
+                other: "# voters",
+              })}`,
             )}
           </span>
         </div>
@@ -492,13 +477,19 @@ function QuestionCardContent(props: QuestionCardContentProps) {
                   <div class="relative flex min-h-10 items-center gap-2 px-3 py-2 text-sm">
                     <Show
                       when={selected()}
-                      fallback={props.poll.multiple
-                        ? <IconSquare class="size-4 text-muted-foreground" />
-                        : <IconCircle class="size-4 text-muted-foreground" />}
+                      fallback={
+                        props.poll.multiple ? (
+                          <IconSquare class="size-4 text-muted-foreground" />
+                        ) : (
+                          <IconCircle class="size-4 text-muted-foreground" />
+                        )
+                      }
                     >
-                      {props.poll.multiple
-                        ? <IconCheckSquare class="size-4 text-primary" />
-                        : <IconRadio class="size-4 text-primary" />}
+                      {props.poll.multiple ? (
+                        <IconCheckSquare class="size-4 text-primary" />
+                      ) : (
+                        <IconRadio class="size-4 text-primary" />
+                      )}
                     </Show>
                     <span class="min-w-0 grow break-words">{option.title}</span>
                     <span class="shrink-0 tabular-nums text-muted-foreground">
@@ -506,12 +497,10 @@ function QuestionCardContent(props: QuestionCardContentProps) {
                     </span>
                     <span class="shrink-0 tabular-nums text-muted-foreground">
                       {i18n._(
-                        msg`${
-                          plural(votes(), {
-                            one: "# vote",
-                            other: "# votes",
-                          })
-                        }`,
+                        msg`${plural(votes(), {
+                          one: "# vote",
+                          other: "# votes",
+                        })}`,
                       )}
                     </span>
                   </div>

@@ -8,7 +8,7 @@ import { NotificationList } from "~/components/NotificationList.tsx";
 import { Title } from "~/components/Title.tsx";
 import { WebPushNotificationSettings } from "~/components/WebPushNotificationSettings.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { NOTIFICATIONS_PAGE_QUERY_CACHE_KEY } from "~/lib/notificationsPageQueryCache.ts";
 import type {
   notificationsPageQuery,
@@ -88,9 +88,7 @@ export default function NotificationsPage() {
 }
 
 type NotificationsPageViewer = NonNullable<
-  notificationsPageQuery$data[
-    "viewer"
-  ]
+  notificationsPageQuery$data["viewer"]
 >;
 
 interface NotificationsPageContentProps {
@@ -101,30 +99,29 @@ interface NotificationsPageContentProps {
 function NotificationsPageContent(props: NotificationsPageContentProps) {
   const actingAccount = useActingAccount();
   const environment = useRelayEnvironment();
-  const selectedOrganizationId = createMemo(() =>
-    actingAccount.selectedOrganization()?.organization.id ?? null
+  const selectedOrganizationId = createMemo(
+    () => actingAccount.selectedOrganization()?.organization.id ?? null,
   );
-  const organizationData = createStablePreloadedQuery<
-    notificationsOrganizationNotificationsQuery
-  >(
-    notificationsOrganizationNotificationsQuery,
-    () => {
-      const organizationId = selectedOrganizationId();
-      if (organizationId == null) return null;
-      return loadQuery<notificationsOrganizationNotificationsQuery>(
-        environment(),
-        notificationsOrganizationNotificationsQuery,
-        { organizationId },
-        // Organization notification lists also mark the visible range as read,
-        // so avoid reusing a stale connection snapshot here.
-        { fetchPolicy: "network-only" },
-      );
-    },
-  );
+  const organizationData =
+    createStablePreloadedQuery<notificationsOrganizationNotificationsQuery>(
+      notificationsOrganizationNotificationsQuery,
+      () => {
+        const organizationId = selectedOrganizationId();
+        if (organizationId == null) return null;
+        return loadQuery<notificationsOrganizationNotificationsQuery>(
+          environment(),
+          notificationsOrganizationNotificationsQuery,
+          { organizationId },
+          // Organization notification lists also mark the visible range as read,
+          // so avoid reusing a stale connection snapshot here.
+          { fetchPolicy: "network-only" },
+        );
+      },
+    );
   const organizationAccount = createMemo(() => {
     const node = organizationData()?.node;
     return node?.__typename === "Account" &&
-        node.id === selectedOrganizationId()
+      node.id === selectedOrganizationId()
       ? node
       : null;
   });

@@ -9,7 +9,7 @@ import { NewsDiscussion } from "~/components/NewsDiscussion.tsx";
 import { NewsStoryHeader } from "~/components/NewsStoryHeader.tsx";
 import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,

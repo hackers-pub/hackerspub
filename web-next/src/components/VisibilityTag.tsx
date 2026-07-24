@@ -1,6 +1,6 @@
 import { Match, Switch } from "solid-js";
 import { Tooltip, TooltipContent } from "~/components/ui/tooltip.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { PostVisibility } from "./__generated__/NoteHeader_note.graphql.ts";
 import { TooltipTrigger } from "./ui/tooltip.tsx";
 

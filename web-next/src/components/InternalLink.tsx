@@ -2,8 +2,10 @@ import { useNavigate } from "@solidjs/router";
 import type { JSX } from "solid-js";
 import { splitProps, startTransition } from "solid-js";
 
-export interface InternalLinkProps
-  extends Omit<JSX.AnchorHTMLAttributes<HTMLAnchorElement>, "target"> {
+export interface InternalLinkProps extends Omit<
+  JSX.AnchorHTMLAttributes<HTMLAnchorElement>,
+  "target"
+> {
   internalHref: string | URL;
 }
 
@@ -26,5 +28,9 @@ export function InternalLink(props: InternalLinkProps) {
     event.preventDefault();
     void startTransition(() => navigate(internalProps.internalHref.toString()));
   }
-  return <a {...restProps} on:click={onClick}>{internalProps.children}</a>;
+  return (
+    <a {...restProps} on:click={onClick}>
+      {internalProps.children}
+    </a>
+  );
 }

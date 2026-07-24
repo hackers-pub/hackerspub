@@ -1,4 +1,5 @@
 import assert from "node:assert";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
 import { createYogaServer } from "./mod.ts";
@@ -19,7 +20,7 @@ const notificationsPageQueryPath = new URL(
 );
 
 async function readRelayOperationText(path: URL): Promise<string> {
-  const source = await Deno.readTextFile(path);
+  const source = await readFile(path, "utf8");
   const match = source.match(/"text": "(?<text>(?:\\.|[^"\\])*)"/);
   assert.ok(match?.groups?.text, `No Relay operation text found in ${path}`);
   return JSON.parse(`"${match.groups.text}"`);
@@ -43,7 +44,7 @@ test("anonymous complexity limits admit the web-next note quotes query", async (
       }),
       makeGuestContext(tx),
     );
-    const payload = await response.json() as {
+    const payload = (await response.json()) as {
       data?: { actorByHandle: unknown };
       errors?: { message: string }[];
     };
@@ -70,7 +71,7 @@ test("authenticated complexity limits admit the web-next notifications query", a
       }),
       makeUserContext(tx, account.account),
     );
-    const payload = await response.json() as {
+    const payload = (await response.json()) as {
       data?: { viewer: unknown; webPushVapidPublicKey: unknown };
       errors?: { message: string }[];
     };
@@ -92,7 +93,7 @@ test("anonymous complexity limits admit the web-next notifications query", async
       }),
       makeGuestContext(tx),
     );
-    const payload = await response.json() as {
+    const payload = (await response.json()) as {
       data?: { viewer: unknown; webPushVapidPublicKey: string | null };
       errors?: { message: string }[];
     };

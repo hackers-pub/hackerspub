@@ -39,8 +39,8 @@ async function getOriginalSharedPost(
     if (visited.has(currentId)) return post;
     visited.add(currentId);
 
-    const current: Pick<Post, "id" | "sharedPostId"> | undefined = await db
-      .query.postTable.findFirst({
+    const current: Pick<Post, "id" | "sharedPostId"> | undefined =
+      await db.query.postTable.findFirst({
         columns: { id: true, sharedPostId: true },
         where: { id: currentId },
       });
@@ -79,21 +79,25 @@ async function sharePostOperation(
   }
   const actor = await syncActorFromAccount(fedCtx, account);
   const id = generateUuidV7();
-  const posts = await db.insert(postTable).values({
-    id,
-    iri: fedCtx.getObjectUri(vocab.Announce, { id }).href,
-    type: sharedPost.type,
-    visibility: visibility || account.shareVisibility,
-    actorId: actor.id,
-    sharedPostId: sharedPost.id,
-    name: sharedPost.name,
-    contentHtml: sharedPost.contentHtml,
-    language: sharedPost.language,
-    tags: {},
-    emojis: sharedPost.emojis,
-    sensitive: sharedPost.sensitive,
-    url: sharedPost.url,
-  }).onConflictDoNothing().returning();
+  const posts = await db
+    .insert(postTable)
+    .values({
+      id,
+      iri: fedCtx.getObjectUri(vocab.Announce, { id }).href,
+      type: sharedPost.type,
+      visibility: visibility || account.shareVisibility,
+      actorId: actor.id,
+      sharedPostId: sharedPost.id,
+      name: sharedPost.name,
+      contentHtml: sharedPost.contentHtml,
+      language: sharedPost.language,
+      tags: {},
+      emojis: sharedPost.emojis,
+      sensitive: sharedPost.sensitive,
+      url: sharedPost.url,
+    })
+    .onConflictDoNothing()
+    .returning();
   if (posts.length < 1) {
     const share = await db.query.postTable.findFirst({
       where: {
@@ -131,16 +135,11 @@ async function sharePostOperation(
     actor: { ...actor, account },
     mentions: [],
   });
-  await fedCtx.sendActivity(
-    { identifier: account.id },
-    "followers",
-    announce,
-    {
-      orderingKey: share.iri,
-      preferSharedInbox: true,
-      excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
-    },
-  );
+  await fedCtx.sendActivity({ identifier: account.id }, "followers", announce, {
+    orderingKey: share.iri,
+    preferSharedInbox: true,
+    excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+  });
   await fedCtx.sendActivity(
     { identifier: account.id },
     toRecipient(sharedPost.actor),
@@ -168,12 +167,15 @@ async function unsharePostOperation(
   const originalPost = await getOriginalSharedPost(db, sharedPost);
   if (originalPost.sharedPostId != null) return;
   const actor = await syncActorFromAccount(fedCtx, account);
-  const unshared = await db.delete(postTable).where(
-    and(
-      eq(postTable.actorId, actor.id),
-      eq(postTable.sharedPostId, originalPost.id),
-    ),
-  ).returning();
+  const unshared = await db
+    .delete(postTable)
+    .where(
+      and(
+        eq(postTable.actorId, actor.id),
+        eq(postTable.sharedPostId, originalPost.id),
+      ),
+    )
+    .returning();
   if (unshared.length < 1) return undefined;
   originalPost.sharesCount = await updateSharesCount(db, originalPost, -1);
   await refreshNewsScores(db, [
@@ -200,16 +202,11 @@ async function unsharePostOperation(
     tos: announce.toIds,
     ccs: announce.ccIds,
   });
-  await fedCtx.sendActivity(
-    { identifier: account.id },
-    "followers",
-    undo,
-    {
-      orderingKey: unshared[0].iri,
-      preferSharedInbox: true,
-      excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
-    },
-  );
+  await fedCtx.sendActivity({ identifier: account.id }, "followers", undo, {
+    orderingKey: unshared[0].iri,
+    preferSharedInbox: true,
+    excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+  });
   await fedCtx.sendActivity(
     { identifier: account.id },
     toRecipient(originalPost.actor),
@@ -230,7 +227,8 @@ export async function arePostsSharedBy(
   account: Account & { actor: Actor },
 ): Promise<Set<Uuid>> {
   if (postIds.length < 1) return new Set();
-  const rows = await db.select({ sharedPostId: postTable.sharedPostId })
+  const rows = await db
+    .select({ sharedPostId: postTable.sharedPostId })
     .from(postTable)
     .where(
       and(

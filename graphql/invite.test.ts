@@ -50,7 +50,8 @@ test("invite validates verify URLs that do not interpolate the token", async () 
       name: "Invite Validator",
       email: "invitevalidator@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, account.account.id));
 
@@ -72,14 +73,16 @@ test("invite validates verify URLs that do not interpolate the token", async () 
 
     assert.deepEqual(result.errors, undefined);
     assert.deepEqual(
-      (result.data as {
-        invite: {
-          __typename: string;
-          inviter: string | null;
-          email: string | null;
-          verifyUrl: string | null;
-        };
-      }).invite,
+      (
+        result.data as {
+          invite: {
+            __typename: string;
+            inviter: string | null;
+            email: string | null;
+            verifyUrl: string | null;
+          };
+        }
+      ).invite,
       {
         __typename: "InviteValidationErrors",
         inviter: null,
@@ -99,7 +102,8 @@ test("invite sends email and stores a signup token on success", async () => {
       name: "Invite Owner",
       email: "inviteowner@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, inviter.account.id));
 
@@ -112,27 +116,33 @@ test("invite sends email and stores a signup token on success", async () => {
         message: "Join us",
         verifyUrl: "http://localhost/sign/up/{token}?code={code}",
       },
-      contextValue: makeUserContext(tx, {
-        ...inviter.account,
-        leftInvitations: 1,
-      }, {
-        kv,
-        email: email.transport,
-      }),
+      contextValue: makeUserContext(
+        tx,
+        {
+          ...inviter.account,
+          leftInvitations: 1,
+        },
+        {
+          kv,
+          email: email.transport,
+        },
+      ),
       onError: "NO_PROPAGATE",
     });
 
     assert.deepEqual(result.errors, undefined);
 
-    const invitation = (result.data as {
-      invite: {
-        __typename: string;
-        email?: string;
-        locale?: string;
-        message?: string | null;
-        inviter?: { username: string };
-      };
-    }).invite;
+    const invitation = (
+      result.data as {
+        invite: {
+          __typename: string;
+          email?: string;
+          locale?: string;
+          message?: string | null;
+          inviter?: { username: string };
+        };
+      }
+    ).invite;
     assert.deepEqual(invitation.__typename, "Invitation");
     assert.deepEqual(invitation.email, "invitee@example.com");
     assert.deepEqual(invitation.locale, "en-US");
@@ -146,7 +156,7 @@ test("invite sends email and stores a signup token on success", async () => {
     assert.deepEqual(storedAccount?.leftInvitations, 0);
 
     const signupEntries = [...store.entries()].filter(([key]) =>
-      key.startsWith("signup/")
+      key.startsWith("signup/"),
     );
     assert.deepEqual(signupEntries.length, 1);
     const token = signupEntries[0][1] as {
@@ -166,7 +176,8 @@ test("invite refunds invitations when email sending fails", async () => {
       name: "Invite Failure Owner",
       email: "invitefailureowner@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, inviter.account.id));
 
@@ -191,26 +202,32 @@ test("invite refunds invitations when email sending fails", async () => {
         message: null,
         verifyUrl: "http://localhost/sign/up/{token}?code={code}",
       },
-      contextValue: makeUserContext(tx, {
-        ...inviter.account,
-        leftInvitations: 1,
-      }, {
-        kv,
-        email: failingEmail as never,
-      }),
+      contextValue: makeUserContext(
+        tx,
+        {
+          ...inviter.account,
+          leftInvitations: 1,
+        },
+        {
+          kv,
+          email: failingEmail as never,
+        },
+      ),
       onError: "NO_PROPAGATE",
     });
 
     assert.deepEqual(result.errors, undefined);
     assert.deepEqual(
-      (result.data as {
-        invite: {
-          __typename: string;
-          inviter: string | null;
-          email: string | null;
-          verifyUrl: string | null;
-        };
-      }).invite,
+      (
+        result.data as {
+          invite: {
+            __typename: string;
+            inviter: string | null;
+            email: string | null;
+            verifyUrl: string | null;
+          };
+        }
+      ).invite,
       {
         __typename: "InviteValidationErrors",
         inviter: "INVITER_EMAIL_SEND_FAILED",

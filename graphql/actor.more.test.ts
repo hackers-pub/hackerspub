@@ -208,7 +208,8 @@ test("actorByHandle exposes the successor for a moved actor", async () => {
       host: "new.example",
       url: "https://new.example/@newmoved",
     });
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ successorId: newActor.id })
       .where(eq(actorTable.id, oldActor.id));
 
@@ -344,9 +345,10 @@ test("actorByUrl resolves a remote actor by its human-facing url", async () => {
       host: "remote.example",
     });
     const profileUrl = `https://remote.example/@actorbyurlhuman`;
-    await tx.update(actorTable).set({ url: profileUrl }).where(
-      eq(actorTable.id, remote.id),
-    );
+    await tx
+      .update(actorTable)
+      .set({ url: profileUrl })
+      .where(eq(actorTable.id, remote.id));
 
     const result = await execute({
       schema,
@@ -381,9 +383,10 @@ test("actorByUrl prefers an IRI match over a colliding url match", async () => {
     // The collider's `url` is set to the intended actor's IRI. A query for
     // that string must return the actor whose `iri` matches, not the actor
     // whose `url` matches.
-    await tx.update(actorTable).set({ url: intended.iri }).where(
-      eq(actorTable.id, collider.id),
-    );
+    await tx
+      .update(actorTable)
+      .set({ url: intended.iri })
+      .where(eq(actorTable.id, collider.id));
 
     const result = await execute({
       schema,
@@ -596,9 +599,11 @@ test("instanceByHost and searchActorsByHandle expose lookup results", async () =
       onError: "NO_PROPAGATE",
     });
     assert.equal(search.errors, undefined);
-    const handles = (toPlainJson(search.data) as {
-      searchActorsByHandle: Array<{ handle: string }>;
-    }).searchActorsByHandle.map((actor) => actor.handle);
+    const handles = (
+      toPlainJson(search.data) as {
+        searchActorsByHandle: Array<{ handle: string }>;
+      }
+    ).searchActorsByHandle.map((actor) => actor.handle);
 
     assert.ok(handles.includes("@actorsearchlocal@localhost"));
     assert.ok(handles.includes(`@${remote.username}@${remote.handleHost}`));
@@ -699,25 +704,30 @@ test("Actor.viewerInteractions returns direct interactions newest first", async 
     });
 
     assert.deepEqual(result.errors, undefined);
-    const connection = (toPlainJson(result.data) as {
-      actorByHandle: {
-        viewerInteractions: {
-          pageInfo: {
-            hasNextPage: boolean;
-            hasPreviousPage: boolean;
+    const connection = (
+      toPlainJson(result.data) as {
+        actorByHandle: {
+          viewerInteractions: {
+            pageInfo: {
+              hasNextPage: boolean;
+              hasPreviousPage: boolean;
+            };
+            edges: Array<{ node: { id: string } }>;
           };
-          edges: Array<{ node: { id: string } }>;
         };
-      };
-    }).actorByHandle.viewerInteractions;
+      }
+    ).actorByHandle.viewerInteractions;
     assert.deepEqual(connection.pageInfo.hasNextPage, false);
     assert.deepEqual(connection.pageInfo.hasPreviousPage, false);
-    assert.deepEqual(connection.edges.map((edge) => edge.node.id), [
-      encodeGlobalID("Note", profileMention.id),
-      encodeGlobalID("Note", profileQuote.id),
-      encodeGlobalID("Note", profileReply.id),
-      encodeGlobalID("Note", viewerMention.id),
-    ]);
+    assert.deepEqual(
+      connection.edges.map((edge) => edge.node.id),
+      [
+        encodeGlobalID("Note", profileMention.id),
+        encodeGlobalID("Note", profileQuote.id),
+        encodeGlobalID("Note", profileReply.id),
+        encodeGlobalID("Note", viewerMention.id),
+      ],
+    );
   });
 });
 
@@ -815,12 +825,10 @@ test("Actor.viewerInteractions rejects invalid page windows", async () => {
       "Profile interaction pages are limited to 250 posts.",
     );
 
-    for (
-      const variableValues of [
-        { handle: profile.account.username, first: -1 },
-        { handle: profile.account.username, last: -1 },
-      ]
-    ) {
+    for (const variableValues of [
+      { handle: profile.account.username, first: -1 },
+      { handle: profile.account.username, last: -1 },
+    ]) {
       const negativeResult = await execute({
         schema,
         document: actorViewerInteractionsQuery,
@@ -880,24 +888,29 @@ test("Actor.viewerInteractions supports stable cursor pagination", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(firstPage.errors, undefined);
-    const firstConnection = (toPlainJson(firstPage.data) as {
-      actorByHandle: {
-        viewerInteractions: {
-          pageInfo: {
-            hasNextPage: boolean;
-            hasPreviousPage: boolean;
-            endCursor: string;
+    const firstConnection = (
+      toPlainJson(firstPage.data) as {
+        actorByHandle: {
+          viewerInteractions: {
+            pageInfo: {
+              hasNextPage: boolean;
+              hasPreviousPage: boolean;
+              endCursor: string;
+            };
+            edges: Array<{ node: { id: string } }>;
           };
-          edges: Array<{ node: { id: string } }>;
         };
-      };
-    }).actorByHandle.viewerInteractions;
+      }
+    ).actorByHandle.viewerInteractions;
     assert.deepEqual(firstConnection.pageInfo.hasNextPage, true);
     assert.deepEqual(firstConnection.pageInfo.hasPreviousPage, false);
-    assert.deepEqual(firstConnection.edges.map((edge) => edge.node.id), [
-      encodeGlobalID("Note", orderedPosts[0].id),
-      encodeGlobalID("Note", orderedPosts[1].id),
-    ]);
+    assert.deepEqual(
+      firstConnection.edges.map((edge) => edge.node.id),
+      [
+        encodeGlobalID("Note", orderedPosts[0].id),
+        encodeGlobalID("Note", orderedPosts[1].id),
+      ],
+    );
 
     const tailPage = await execute({
       schema,
@@ -910,23 +923,28 @@ test("Actor.viewerInteractions supports stable cursor pagination", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(tailPage.errors, undefined);
-    const tailConnection = (toPlainJson(tailPage.data) as {
-      actorByHandle: {
-        viewerInteractions: {
-          pageInfo: {
-            hasNextPage: boolean;
-            hasPreviousPage: boolean;
+    const tailConnection = (
+      toPlainJson(tailPage.data) as {
+        actorByHandle: {
+          viewerInteractions: {
+            pageInfo: {
+              hasNextPage: boolean;
+              hasPreviousPage: boolean;
+            };
+            edges: Array<{ node: { id: string } }>;
           };
-          edges: Array<{ node: { id: string } }>;
         };
-      };
-    }).actorByHandle.viewerInteractions;
+      }
+    ).actorByHandle.viewerInteractions;
     assert.deepEqual(tailConnection.pageInfo.hasNextPage, false);
     assert.deepEqual(tailConnection.pageInfo.hasPreviousPage, true);
-    assert.deepEqual(tailConnection.edges.map((edge) => edge.node.id), [
-      encodeGlobalID("Note", orderedPosts[2].id),
-      encodeGlobalID("Note", orderedPosts[3].id),
-    ]);
+    assert.deepEqual(
+      tailConnection.edges.map((edge) => edge.node.id),
+      [
+        encodeGlobalID("Note", orderedPosts[2].id),
+        encodeGlobalID("Note", orderedPosts[3].id),
+      ],
+    );
 
     const partialBackwardPage = await execute({
       schema,
@@ -940,8 +958,8 @@ test("Actor.viewerInteractions supports stable cursor pagination", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(partialBackwardPage.errors, undefined);
-    const partialBackwardConnection =
-      (toPlainJson(partialBackwardPage.data) as {
+    const partialBackwardConnection = (
+      toPlainJson(partialBackwardPage.data) as {
         actorByHandle: {
           viewerInteractions: {
             pageInfo: {
@@ -952,7 +970,8 @@ test("Actor.viewerInteractions supports stable cursor pagination", async () => {
             edges: Array<{ node: { id: string } }>;
           };
         };
-      }).actorByHandle.viewerInteractions;
+      }
+    ).actorByHandle.viewerInteractions;
     assert.deepEqual(partialBackwardConnection.pageInfo.hasNextPage, true);
     assert.deepEqual(partialBackwardConnection.pageInfo.hasPreviousPage, false);
     assert.deepEqual(
@@ -972,14 +991,15 @@ test("Actor.viewerInteractions supports stable cursor pagination", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(forwardFromPartialPage.errors, undefined);
-    const forwardFromPartialConnection =
-      (toPlainJson(forwardFromPartialPage.data) as {
+    const forwardFromPartialConnection = (
+      toPlainJson(forwardFromPartialPage.data) as {
         actorByHandle: {
           viewerInteractions: {
             edges: Array<{ node: { id: string } }>;
           };
         };
-      }).actorByHandle.viewerInteractions;
+      }
+    ).actorByHandle.viewerInteractions;
     assert.deepEqual(
       forwardFromPartialConnection.edges.map((edge) => edge.node.id),
       [
@@ -1000,24 +1020,29 @@ test("Actor.viewerInteractions supports stable cursor pagination", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(secondPage.errors, undefined);
-    const secondConnection = (toPlainJson(secondPage.data) as {
-      actorByHandle: {
-        viewerInteractions: {
-          pageInfo: {
-            hasNextPage: boolean;
-            hasPreviousPage: boolean;
-            endCursor: string;
+    const secondConnection = (
+      toPlainJson(secondPage.data) as {
+        actorByHandle: {
+          viewerInteractions: {
+            pageInfo: {
+              hasNextPage: boolean;
+              hasPreviousPage: boolean;
+              endCursor: string;
+            };
+            edges: Array<{ node: { id: string } }>;
           };
-          edges: Array<{ node: { id: string } }>;
         };
-      };
-    }).actorByHandle.viewerInteractions;
+      }
+    ).actorByHandle.viewerInteractions;
     assert.deepEqual(secondConnection.pageInfo.hasNextPage, false);
     assert.deepEqual(secondConnection.pageInfo.hasPreviousPage, true);
-    assert.deepEqual(secondConnection.edges.map((edge) => edge.node.id), [
-      encodeGlobalID("Note", orderedPosts[2].id),
-      encodeGlobalID("Note", orderedPosts[3].id),
-    ]);
+    assert.deepEqual(
+      secondConnection.edges.map((edge) => edge.node.id),
+      [
+        encodeGlobalID("Note", orderedPosts[2].id),
+        encodeGlobalID("Note", orderedPosts[3].id),
+      ],
+    );
 
     const backwardPage = await execute({
       schema,
@@ -1031,23 +1056,28 @@ test("Actor.viewerInteractions supports stable cursor pagination", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(backwardPage.errors, undefined);
-    const backwardConnection = (toPlainJson(backwardPage.data) as {
-      actorByHandle: {
-        viewerInteractions: {
-          pageInfo: {
-            hasNextPage: boolean;
-            hasPreviousPage: boolean;
+    const backwardConnection = (
+      toPlainJson(backwardPage.data) as {
+        actorByHandle: {
+          viewerInteractions: {
+            pageInfo: {
+              hasNextPage: boolean;
+              hasPreviousPage: boolean;
+            };
+            edges: Array<{ node: { id: string } }>;
           };
-          edges: Array<{ node: { id: string } }>;
         };
-      };
-    }).actorByHandle.viewerInteractions;
+      }
+    ).actorByHandle.viewerInteractions;
     assert.deepEqual(backwardConnection.pageInfo.hasNextPage, true);
     assert.deepEqual(backwardConnection.pageInfo.hasPreviousPage, true);
-    assert.deepEqual(backwardConnection.edges.map((edge) => edge.node.id), [
-      encodeGlobalID("Note", orderedPosts[1].id),
-      encodeGlobalID("Note", orderedPosts[2].id),
-    ]);
+    assert.deepEqual(
+      backwardConnection.edges.map((edge) => edge.node.id),
+      [
+        encodeGlobalID("Note", orderedPosts[1].id),
+        encodeGlobalID("Note", orderedPosts[2].id),
+      ],
+    );
   });
 });
 
@@ -1101,9 +1131,11 @@ test("recommendedActors excludes followed actors and filters by locale", async (
     });
 
     assert.equal(result.errors, undefined);
-    const handles = (toPlainJson(result.data) as {
-      recommendedActors: Array<{ handle: string }>;
-    }).recommendedActors.map((actor) => actor.handle);
+    const handles = (
+      toPlainJson(result.data) as {
+        recommendedActors: Array<{ handle: string }>;
+      }
+    ).recommendedActors.map((actor) => actor.handle);
 
     assert.ok(handles.includes("@actorrecommendlocal@localhost"));
     assert.ok(!handles.includes("@actorrecommendfollowed@localhost"));
@@ -1164,7 +1196,8 @@ test("a banned actor's profile content is hidden from others", async () => {
       key: `media/abusive-${avatarMediumId}.png`,
       type: "image/png",
     });
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({
         name: "Abusive Name",
         bioHtml: "<p>Abusive bio</p>",
@@ -1172,7 +1205,8 @@ test("a banned actor's profile content is hidden from others", async () => {
         avatarUrl: "https://media.example/abusive-avatar.png",
       })
       .where(eq(actorTable.id, banned.actor.id));
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ name: "Abusive Name", bio: "Abusive bio", avatarMediumId })
       .where(eq(accountTable.id, banned.account.id));
     await tx.insert(accountLinkTable).values({
@@ -1187,7 +1221,8 @@ test("a banned actor's profile content is hidden from others", async () => {
       JSON.stringify([banned.account.id, 0]),
     );
     // Permanent suspension (ban): suspended set, no end.
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: null })
       .where(eq(actorTable.id, banned.actor.id));
     const handle = banned.actor.handle;
@@ -1309,7 +1344,8 @@ test("a banned actor's profile content is hidden from others", async () => {
       name: "Mod",
       email: "profilemod@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ moderator: true })
       .where(eq(accountTable.id, mod.account.id));
     const asMod = await execute({
@@ -1326,7 +1362,8 @@ test("a banned actor's profile content is hidden from others", async () => {
     assert.match(modActor?.account?.name ?? "", /Abusive Name/);
 
     // A temporary suspension only restricts writing; the profile stays:
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({
         suspended: new Date(Date.now() - 1000),
         suspendedUntil: new Date(Date.now() + 60 * 60 * 1000),
@@ -1369,7 +1406,8 @@ test("media of moderation-hidden posts are not resolvable via node(id:)", async 
       mediumId,
       alt: "",
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ censored: new Date() })
       .where(eq(postTable.id, post.id));
 
@@ -1411,7 +1449,8 @@ test("media of moderation-hidden posts are not resolvable via node(id:)", async 
     assert.equal((own.data as any)?.node?.__typename, "Medium");
 
     // Uncensoring re-exposes it:
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ censored: null })
       .where(eq(postTable.id, post.id));
     const allowed = await execute({

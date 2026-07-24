@@ -69,8 +69,9 @@ test("createAccount() stores inviter and verified email", async () => {
     });
     assert.ok(storedAccount != null);
     assert.deepEqual(storedAccount.inviterId, inviter.account.id);
-    assert.deepEqual(storedAccount.emails.map((email) => email.email), [
-      "modelsignup@example.com",
-    ]);
+    assert.deepEqual(
+      storedAccount.emails.map((email) => email.email),
+      ["modelsignup@example.com"],
+    );
   });
 });
