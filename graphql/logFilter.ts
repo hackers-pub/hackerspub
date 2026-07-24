@@ -7,6 +7,29 @@ function stringProp(object: object, key: string): string {
   return typeof value === "string" ? value : "";
 }
 
+const nodeFetchTransportErrorCodes = new Set([
+  "CERT_HAS_EXPIRED",
+  "CERT_NOT_YET_VALID",
+  "DEPTH_ZERO_SELF_SIGNED_CERT",
+  "EAI_AGAIN",
+  "ECONNREFUSED",
+  "ECONNRESET",
+  "EHOSTUNREACH",
+  "ENETUNREACH",
+  "ENOTFOUND",
+  "EPIPE",
+  "ETIMEDOUT",
+  "ERR_TLS_CERT_ALTNAME_INVALID",
+  "SELF_SIGNED_CERT_IN_CHAIN",
+  "UND_ERR_BODY_TIMEOUT",
+  "UND_ERR_CONNECT_TIMEOUT",
+  "UND_ERR_HEADERS_TIMEOUT",
+  "UND_ERR_SOCKET",
+  "UNABLE_TO_GET_ISSUER_CERT",
+  "UNABLE_TO_GET_ISSUER_CERT_LOCALLY",
+  "UNABLE_TO_VERIFY_LEAF_SIGNATURE",
+]);
+
 /**
  * Heuristically decides whether `error` (the value Fedify attaches as the
  * `error` property of a federation failure log) is a failure to reach or fetch
@@ -32,6 +55,20 @@ export function isRemoteTransportError(error: unknown): boolean {
   if (
     name === "TypeError" &&
     message.startsWith("error sending request for url")
+  ) {
+    return true;
+  }
+  // Node's native fetch (undici) wraps network failures as
+  // `TypeError: fetch failed` and preserves the system or undici error code on
+  // `cause`. Require both parts of that shape so application TypeErrors and
+  // arbitrary errors with a network-looking code still reach Sentry.
+  const cause = (error as { cause?: unknown }).cause;
+  if (
+    name === "TypeError" &&
+    message === "fetch failed" &&
+    typeof cause === "object" &&
+    cause !== null &&
+    nodeFetchTransportErrorCodes.has(stringProp(cause, "code"))
   ) {
     return true;
   }

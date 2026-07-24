@@ -25,6 +25,32 @@ test("remote unhandled rejections are logged without Sentry capture", () => {
   assert.deepEqual(captures, []);
 });
 
+test("Node fetch rejections are logged without Sentry capture", () => {
+  const warnings: unknown[] = [];
+  const captures: unknown[] = [];
+  const cause = Object.assign(new Error("getaddrinfo ENOTFOUND peer.example"), {
+    code: "ENOTFOUND",
+  });
+  const remoteError = new TypeError("fetch failed", { cause });
+  const result = reportUnhandledRejection(
+    remoteError,
+    {
+      warning(_message, properties) {
+        warnings.push(properties.error);
+      },
+    },
+    {
+      captureException(error) {
+        captures.push(error);
+      },
+    },
+  );
+
+  assert.equal(result, "remote");
+  assert.deepEqual(warnings, [remoteError]);
+  assert.deepEqual(captures, []);
+});
+
 test("application unhandled rejections are captured exactly once", () => {
   const captures: Array<{ error: unknown; hint: unknown }> = [];
   const applicationError = new Error("application bug");
