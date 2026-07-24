@@ -4,13 +4,7 @@ import {
   isOriginalGraphQLError,
 } from "@envelop/core";
 import * as Sentry from "@sentry/node";
-import {
-  Kind,
-  print,
-  type DefinitionNode,
-  type GraphQLError,
-  type OperationDefinitionNode,
-} from "graphql";
+import { getOperationAST, print, type GraphQLError } from "graphql";
 import type { Plugin } from "graphql-yoga";
 
 interface SentrySpan {
@@ -70,9 +64,9 @@ export function useSentry(
 ): Plugin {
   return {
     onExecute({ args, executeFn, setExecuteFn }) {
-      const rootOperation = args.document.definitions.find(
-        (definition: DefinitionNode): definition is OperationDefinitionNode =>
-          definition.kind === Kind.OPERATION_DEFINITION,
+      const rootOperation = getOperationAST(
+        args.document,
+        args.operationName ?? undefined,
       );
       if (rootOperation == null) return;
 
