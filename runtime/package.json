@@ -9,6 +9,8 @@
   "dependencies": {
     "@ai-sdk/anthropic": "catalog:",
     "@ai-sdk/google": "catalog:",
+    "@aws-sdk/client-s3": "catalog:",
+    "@aws-sdk/s3-request-presigner": "catalog:",
     "@fedify/fedify": "catalog:",
     "@fedify/postgres": "catalog:",
     "@fedify/redis": "catalog:",

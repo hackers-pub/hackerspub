@@ -1,5 +1,7 @@
 import { anthropic } from "@ai-sdk/anthropic";
 import { google } from "@ai-sdk/google";
+import "@aws-sdk/client-s3";
+import "@aws-sdk/s3-request-presigner";
 import type { Federation, FederationOptions } from "@fedify/fedify";
 import { PostgresKvStore, PostgresMessageQueue } from "@fedify/postgres";
 import { RedisKvStore } from "@fedify/redis";
