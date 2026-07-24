@@ -172,7 +172,7 @@ export async function handleFileSystemMedia(
       error != null &&
       typeof error === "object" &&
       "code" in error &&
-      error.code === "ENOENT"
+      (error.code === "ENOENT" || error.code === "ENOTDIR")
     ) {
       return new Response("Not Found", { status: 404 });
     }

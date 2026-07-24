@@ -187,6 +187,22 @@ test("handleFileSystemMedia rejects hidden path segments", async () => {
   }
 });
 
+test("handleFileSystemMedia treats children of files as missing", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "hackerspub-media-"));
+  try {
+    await writeFile(join(directory, "photo.webp"), "image");
+    const response = await handleFileSystemMedia(
+      new Request("https://example.com/media/photo.webp/anything"),
+      pathToFileURL(directory + "/"),
+    );
+
+    assert.equal(response?.status, 404);
+    assert.equal(await response?.text(), "Not Found");
+  } finally {
+    await rm(directory, { recursive: true });
+  }
+});
+
 test("handleFileSystemMedia decodes requested paths only once", async () => {
   const directory = await mkdtemp(join(tmpdir(), "hackerspub-media-"));
   try {
