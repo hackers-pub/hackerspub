@@ -58,6 +58,22 @@ test("the Node API bounds Sentry shutdown flushing", async () => {
   assertStringIncludes(source, "await Sentry.close(SENTRY_CLOSE_TIMEOUT);");
 });
 
+test("empty Sentry DSNs do not enable shared integrations", async () => {
+  const [logging, server] = await Promise.all([
+    readTextFile(new URL("logging-config.ts", import.meta.url)),
+    readTextFile(new URL("server.ts", import.meta.url)),
+  ]);
+
+  assertStringIncludes(
+    logging,
+    "const sentryEnabled = Boolean(environment.SENTRY_DSN);",
+  );
+  assertStringIncludes(
+    server,
+    "const sentryEnabled = Boolean(process.env.SENTRY_DSN);",
+  );
+});
+
 test("the queue worker migrates legacy deliveries before listening", async () => {
   const source = await readTextFile(new URL("worker.ts", import.meta.url));
   const migration = "await migrateLegacyOutboxEvents(db);";

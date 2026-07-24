@@ -54,7 +54,7 @@ export async function configureLogging(options: LoggingOptions): Promise<void> {
   // A blank key must behave like a missing key: the HMAC helper rejects empty
   // keys, and falling back to hard redaction is always safer.
   const secretKey = environment.SECRET_KEY || null;
-  const sentryEnabled = environment.SENTRY_DSN != null;
+  const sentryEnabled = Boolean(environment.SENTRY_DSN);
   const sinks: Record<string, Sink> = {
     console: redactByField(
       getStreamSink(stderr, { formatter: ansiColorFormatter }),

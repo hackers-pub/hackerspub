@@ -49,7 +49,6 @@ export interface SentryPluginClient {
         readonly GraphQL: {
           readonly operationName: string;
           readonly operationType: string;
-          readonly variables: Readonly<Record<string, unknown>> | null;
         };
       };
     },
@@ -138,7 +137,6 @@ export function useSentry(
                               GraphQL: {
                                 operationName,
                                 operationType,
-                                variables: args.variableValues,
                               },
                             },
                           },

@@ -23,7 +23,7 @@ import { schema as graphqlSchema } from "./mod.ts";
 import { useQuerySnapshotTransaction } from "./query-tx-plugin.ts";
 import { useSentry } from "./sentry-plugin.ts";
 
-const sentryEnabled = process.env.SENTRY_DSN != null;
+const sentryEnabled = Boolean(process.env.SENTRY_DSN);
 
 export function createYogaServer(): YogaServerInstance<
   ServerContext,
