@@ -6,7 +6,7 @@ import { AdminAccountsTable } from "~/components/admin/AdminAccountsTable.tsx";
 import { AdminTabs } from "~/components/AdminTabs.tsx";
 import { Title } from "~/components/Title.tsx";
 import { WideContainer } from "~/components/WideContainer.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type {
   AccountKind,
   AdminAccountOrderBy,
@@ -55,15 +55,15 @@ function parseQueryParams(search: string): {
     ? (rawSort as AdminAccountOrderBy)
     : "LAST_ACTIVITY";
   const rawDir = params.get("dir")?.toUpperCase() ?? "";
-  const orderDirection: OrderDirection = rawDir === "ASC" || rawDir === "DESC"
-    ? rawDir
-    : "DESC";
+  const orderDirection: OrderDirection =
+    rawDir === "ASC" || rawDir === "DESC" ? rawDir : "DESC";
   const rawKind = params.get("kind");
-  const kind: AccountKind | undefined = rawKind === "personal"
-    ? "PERSONAL"
-    : rawKind === "organization"
-    ? "ORGANIZATION"
-    : undefined;
+  const kind: AccountKind | undefined =
+    rawKind === "personal"
+      ? "PERSONAL"
+      : rawKind === "organization"
+        ? "ORGANIZATION"
+        : undefined;
   const q = params.get("q") ?? undefined;
   return { orderBy, orderDirection, kind, search: q };
 }
@@ -91,12 +91,7 @@ export default function AdminAccountsPage() {
     adminAccountsPageQuery,
     () => {
       const { orderBy, orderDirection, kind, search } = queryParams();
-      return loadAdminAccountsPageQuery(
-        orderBy,
-        orderDirection,
-        kind,
-        search,
-      );
+      return loadAdminAccountsPageQuery(orderBy, orderDirection, kind, search);
     },
   );
   return (

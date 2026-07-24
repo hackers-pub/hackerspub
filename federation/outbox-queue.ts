@@ -106,15 +106,21 @@ export interface TransactionalOutboxQueueOptions {
 }
 
 export class OutboxHandlerTimeoutError extends Error {
-  constructor(readonly timeoutMilliseconds: number) {
+  readonly timeoutMilliseconds: number;
+
+  constructor(timeoutMilliseconds: number) {
     super(`The outbox handler exceeded ${timeoutMilliseconds} milliseconds.`);
+    this.timeoutMilliseconds = timeoutMilliseconds;
     this.name = "OutboxHandlerTimeoutError";
   }
 }
 
 class RecordedOutboxDeliveryError extends Error {
-  constructor(readonly outboxError: OutboxEventError) {
+  readonly outboxError: OutboxEventError;
+
+  constructor(outboxError: OutboxEventError) {
     super(outboxError.message);
+    this.outboxError = outboxError;
     this.name = outboxError.name;
   }
 }
@@ -134,15 +140,17 @@ function validateMessage(
   value: unknown,
 ): QueueMessage {
   if (
-    typeof value !== "object" || value == null ||
-    !("type" in value) || !("id" in value) ||
+    typeof value !== "object" ||
+    value == null ||
+    !("type" in value) ||
+    !("id" in value) ||
     value.type !== expectedMessageType(eventType) ||
     typeof value.id !== "string"
   ) {
     throw new TypeError(
-      `Invalid ${eventType} queue message: expected a ${
-        expectedMessageType(eventType)
-      } message with a string id.`,
+      `Invalid ${eventType} queue message: expected a ${expectedMessageType(
+        eventType,
+      )} message with a string id.`,
     );
   }
   return value as QueueMessage;
@@ -176,9 +184,7 @@ async function runHandlerBounded<T>(
   const interrupted = Promise.withResolvers<never>();
   const timeout = setTimeout(
     () =>
-      interrupted.reject(
-        new OutboxHandlerTimeoutError(timeoutMilliseconds),
-      ),
+      interrupted.reject(new OutboxHandlerTimeoutError(timeoutMilliseconds)),
     timeoutMilliseconds,
   );
   const abort = () => {
@@ -270,8 +276,7 @@ export class TransactionalOutboxQueue implements MessageQueue {
       processing.event.messageId === message.id
     ) {
       if (
-        processing.event.processingAttempts >=
-          this.#maximumProcessingAttempts
+        processing.event.processingAttempts >= this.#maximumProcessingAttempts
       ) {
         const error = processing.deliveryError ?? {
           name: "OutboxRetryLimit",
@@ -325,28 +330,34 @@ export class TransactionalOutboxQueue implements MessageQueue {
 
     await enqueueOutboxEvents(
       context?.db ?? this.#db,
-      [{
-        eventType: this.#eventType,
-        payloadVersion: 1,
-        messageId: message.id,
-        payload: message,
-        activityId: typeof message.activityId === "string"
-          ? message.activityId
-          : undefined,
-        activityType: typeof message.activityType === "string"
-          ? message.activityType
-          : undefined,
-        inbox: typeof message.inbox === "string" ? message.inbox : undefined,
-      }],
+      [
+        {
+          eventType: this.#eventType,
+          payloadVersion: 1,
+          messageId: message.id,
+          payload: message,
+          activityId:
+            typeof message.activityId === "string"
+              ? message.activityId
+              : undefined,
+          activityType:
+            typeof message.activityType === "string"
+              ? message.activityType
+              : undefined,
+          inbox: typeof message.inbox === "string" ? message.inbox : undefined,
+        },
+      ],
       {
         orderingKey: options?.orderingKey,
         now,
         available,
-        ...(processing == null ? {} : {
-          groupId: processing.event.groupId,
-          sequence: processing.event.sequence,
-          position: processing.nextPosition++,
-        }),
+        ...(processing == null
+          ? {}
+          : {
+              groupId: processing.event.groupId,
+              sequence: processing.event.sequence,
+              position: processing.nextPosition++,
+            }),
       },
     );
     logger.debug("Enqueued {eventType} message {messageId}.", {
@@ -363,7 +374,7 @@ export class TransactionalOutboxQueue implements MessageQueue {
   ): Promise<void> {
     if (values.length === 0) return;
     const messages = values.map((value) =>
-      validateMessage(this.#eventType, value)
+      validateMessage(this.#eventType, value),
     );
     const context = contextStorage.getStore();
     const processing = context?.processing;
@@ -380,23 +391,27 @@ export class TransactionalOutboxQueue implements MessageQueue {
         payloadVersion: 1,
         messageId: message.id,
         payload: message,
-        activityId: typeof message.activityId === "string"
-          ? message.activityId
-          : undefined,
-        activityType: typeof message.activityType === "string"
-          ? message.activityType
-          : undefined,
+        activityId:
+          typeof message.activityId === "string"
+            ? message.activityId
+            : undefined,
+        activityType:
+          typeof message.activityType === "string"
+            ? message.activityType
+            : undefined,
         inbox: typeof message.inbox === "string" ? message.inbox : undefined,
       })),
       {
         orderingKey: options?.orderingKey,
         now,
         available,
-        ...(processing == null ? {} : {
-          groupId: processing.event.groupId,
-          sequence: processing.event.sequence,
-          position,
-        }),
+        ...(processing == null
+          ? {}
+          : {
+              groupId: processing.event.groupId,
+              sequence: processing.event.sequence,
+              position,
+            }),
       },
     );
     logger.debug("Enqueued {messageCount} {eventType} messages.", {
@@ -509,10 +524,12 @@ export class TransactionalOutboxQueue implements MessageQueue {
         await processWithDatabase(this.#db);
       }
     } catch (error) {
-      const serialized = error instanceof RecordedOutboxDeliveryError
-        ? error.outboxError
-        : serializeOutboxError(error);
-      const invalidPayload = error instanceof TypeError &&
+      const serialized =
+        error instanceof RecordedOutboxDeliveryError
+          ? error.outboxError
+          : serializeOutboxError(error);
+      const invalidPayload =
+        error instanceof TypeError &&
         (event.payloadVersion !== 1 ||
           error.message.startsWith(`Invalid ${event.eventType}`));
       if (
@@ -540,18 +557,21 @@ export class TransactionalOutboxQueue implements MessageQueue {
         300,
         5 * 2 ** Math.max(0, event.processingAttempts - 1),
       );
-      const available = new Date(
-        this.#now().getTime() + delaySeconds * 1000,
+      const available = new Date(this.#now().getTime() + delaySeconds * 1000);
+      const retried = await retryOutboxEvent(
+        this.#db,
+        event,
+        {
+          payload: event.payload,
+          available,
+          error: serialized,
+        },
+        this.#now(),
       );
-      const retried = await retryOutboxEvent(this.#db, event, {
-        payload: event.payload,
-        available,
-        error: serialized,
-      }, this.#now());
       if (
         signal?.aborted &&
         (error === signal.reason ||
-          error instanceof DOMException && error.name === "AbortError")
+          (error instanceof DOMException && error.name === "AbortError"))
       ) {
         logger.debug("Released outbox event {eventId} during shutdown.", {
           eventId: event.id,

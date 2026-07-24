@@ -2,7 +2,7 @@ import { graphql } from "relay-runtime";
 import { createMutation } from "solid-relay";
 import { DropdownMenuItem } from "~/components/ui/dropdown-menu.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import IconRefreshCw from "~icons/lucide/refresh-cw";
 import type { RefreshFromOriginItem_refresh_Mutation } from "./__generated__/RefreshFromOriginItem_refresh_Mutation.graphql.ts";
 
@@ -53,9 +53,8 @@ export interface RefreshFromOriginItemProps {
  */
 export function RefreshFromOriginItem(props: RefreshFromOriginItemProps) {
   const { i18n, t } = useLingui();
-  const [commitRefresh, isRefreshing] = createMutation<
-    RefreshFromOriginItem_refresh_Mutation
-  >(refreshMutation);
+  const [commitRefresh, isRefreshing] =
+    createMutation<RefreshFromOriginItem_refresh_Mutation>(refreshMutation);
 
   const handleRefresh = () => {
     commitRefresh({

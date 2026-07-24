@@ -21,7 +21,7 @@ import { createMutation, loadQuery, useRelayEnvironment } from "solid-relay";
 import { Title } from "~/components/Title.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { LangPageQuery } from "./__generated__/LangPageQuery.graphql.ts";
 import type { LangPage_requestArticleTranslation_Mutation } from "./__generated__/LangPage_requestArticleTranslation_Mutation.graphql.ts";
 import {
@@ -73,9 +73,9 @@ function articlePath(
   publishedYear: number,
   slug: string,
 ): string {
-  return `/@${encodeURIComponent(username)}/${publishedYear}/${
-    encodeURIComponent(slug)
-  }`;
+  return `/@${encodeURIComponent(username)}/${publishedYear}/${encodeURIComponent(
+    slug,
+  )}`;
 }
 
 export const route = {
@@ -113,8 +113,7 @@ const LangPageQueryDef = graphql`
         beingTranslated
         updated
       }
-      ...Slug_head
-        @arguments(language: $language, includeBeingTranslated: true)
+      ...Slug_head @arguments(language: $language, includeBeingTranslated: true)
       ...Slug_body
         @arguments(
           language: $language
@@ -176,11 +175,13 @@ const loadLangPageQuery = routePreloadedQuery(
     language: string,
     actingAccountId: string | null,
   ) =>
-    loadQuery<LangPageQuery>(
-      useRelayEnvironment()(),
-      LangPageQueryDef,
-      { handle, idOrYear, slug, language, actingAccountId },
-    ),
+    loadQuery<LangPageQuery>(useRelayEnvironment()(), LangPageQueryDef, {
+      handle,
+      idOrYear,
+      slug,
+      language,
+      actingAccountId,
+    }),
   "loadArticleLangPageQuery",
 );
 
@@ -217,23 +218,22 @@ function ArticleLangPageContent(props: ArticleLangPageContentProps) {
   const env = useRelayEnvironment();
   const actingAccount = useActingAccount();
   const actingAccountId = () => actingAccount.selectedActingAccountId();
-  const [requestTranslation] = createMutation<
-    LangPage_requestArticleTranslation_Mutation
-  >(requestArticleTranslationMutation);
+  const [requestTranslation] =
+    createMutation<LangPage_requestArticleTranslation_Mutation>(
+      requestArticleTranslationMutation,
+    );
   const [requestFailed, setRequestFailed] = createSignal(false);
   let pendingRequest: Disposable | null = null;
   onCleanup(() => pendingRequest?.dispose());
 
-  const data = createStablePreloadedQuery<LangPageQuery>(
-    LangPageQueryDef,
-    () =>
-      loadLangPageQuery(
-        props.handle,
-        props.idOrYear,
-        props.slug,
-        props.language,
-        actingAccountId() ?? null,
-      ),
+  const data = createStablePreloadedQuery<LangPageQuery>(LangPageQueryDef, () =>
+    loadLangPageQuery(
+      props.handle,
+      props.idOrYear,
+      props.slug,
+      props.language,
+      actingAccountId() ?? null,
+    ),
   );
 
   const article = createMemo(() => data()?.articleByYearAndSlug ?? null);
@@ -241,8 +241,12 @@ function ArticleLangPageContent(props: ArticleLangPageContentProps) {
   const viewer = createMemo(() => data()?.viewer ?? null);
   const canRequestTranslation = createMemo(() => {
     const a = article();
-    return viewer() != null && a != null && a.allowLlmTranslation &&
-      !matchesLanguageScript(a.language, props.language);
+    return (
+      viewer() != null &&
+      a != null &&
+      a.allowLlmTranslation &&
+      !matchesLanguageScript(a.language, props.language)
+    );
   });
   // Mirrors the `30 * 60 * 1000` staleness window inside
   // `startArticleContentTranslation`: if the placeholder row hasn't
@@ -378,10 +382,10 @@ function ArticleLangPageContent(props: ArticleLangPageContentProps) {
   // whenever any route param changes; cancel any in-flight mutation
   // too because its result no longer applies.
   createEffect(() => {
-    props.handle;
-    props.idOrYear;
-    props.slug;
-    props.language;
+    void props.handle;
+    void props.idOrYear;
+    void props.slug;
+    void props.language;
     pendingRequest?.dispose();
     pendingRequest = null;
     setRequestFailed(false);
@@ -519,9 +523,7 @@ function ArticleLangPageContent(props: ArticleLangPageContentProps) {
           <div class="mt-8 mb-4 px-4 max-w-3xl mx-auto xl:max-w-4xl 2xl:max-w-screen-lg">
             <Title>{t`Translating article`}</Title>
             <article class="min-w-0">
-              <ArticleTranslationPlaceholder
-                targetLanguage={props.language}
-              />
+              <ArticleTranslationPlaceholder targetLanguage={props.language} />
             </article>
           </div>
         </Match>
@@ -529,18 +531,16 @@ function ArticleLangPageContent(props: ArticleLangPageContentProps) {
           <HttpStatusCode code={404} />
         </Match>
         <Match when={isStaleInProgress() && !canRequestTranslation()}>
-          {
-            /*
-             * The placeholder row's `updated` is older than the
-             * staleness window and we can't auto-recover (guest, or
-             * the article disabled LLM translation after the row was
-             * queued).  Treat it as not-found rather than rendering
-             * the indefinite "translating" placeholder; otherwise the
-             * visitor sees a perpetual spinner with no way for us to
-             * recover.  A logged-in viewer with translation rights
-             * can still re-trigger the queue from the bare slug page.
-             */
-          }
+          {/*
+           * The placeholder row's `updated` is older than the
+           * staleness window and we can't auto-recover (guest, or
+           * the article disabled LLM translation after the row was
+           * queued).  Treat it as not-found rather than rendering
+           * the indefinite "translating" placeholder; otherwise the
+           * visitor sees a perpetual spinner with no way for us to
+           * recover.  A logged-in viewer with translation rights
+           * can still re-trigger the queue from the bare slug page.
+           */}
           <HttpStatusCode code={404} />
         </Match>
         <Match when={redirectHref() != null}>

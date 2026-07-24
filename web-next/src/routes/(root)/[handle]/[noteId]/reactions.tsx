@@ -13,7 +13,7 @@ import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { Title } from "~/components/Title.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,
@@ -50,9 +50,8 @@ const reactionsNoteEngagementQuery = graphql`
               edges {
                 node {
                   id
-                  ...ActorPreviewCard_actor @arguments(
-                    actingAccountId: $actingAccountId
-                  )
+                  ...ActorPreviewCard_actor
+                    @arguments(actingAccountId: $actingAccountId)
                 }
               }
               pageInfo {
@@ -72,9 +71,8 @@ const reactionsNoteEngagementQuery = graphql`
               edges {
                 node {
                   id
-                  ...ActorPreviewCard_actor @arguments(
-                    actingAccountId: $actingAccountId
-                  )
+                  ...ActorPreviewCard_actor
+                    @arguments(actingAccountId: $actingAccountId)
                 }
               }
               pageInfo {
@@ -132,11 +130,7 @@ function ReactionsPageLoaded(props: { noteId: Uuid; handle: string }) {
   const data = createStablePreloadedQuery<reactionsNoteEngagementQuery>(
     reactionsNoteEngagementQuery,
     () =>
-      loadReactionsQuery(
-        username(),
-        props.noteId,
-        actingAccountId() ?? null,
-      ),
+      loadReactionsQuery(username(), props.noteId, actingAccountId() ?? null),
   );
   // Notes, questions, and articles can all be reached through the
   // `[noteId]` route.  Local articles additionally expose a prettier
@@ -214,18 +208,22 @@ function ReactionsPageBody(props: { post: ReactionsPagePost; base: string }) {
                   postNodeId={props.post.id}
                   totalCount={group.reactorsPage.totalCount}
                   initialReactors={group.reactorsPage.edges.flatMap((e) =>
-                    e.node == null ? [] : [e.node]
+                    e.node == null ? [] : [e.node],
                   )}
-                  initialEndCursor={group.reactorsPage.pageInfo.endCursor ??
-                    null}
+                  initialEndCursor={
+                    group.reactorsPage.pageInfo.endCursor ?? null
+                  }
                   initialHasNextPage={group.reactorsPage.pageInfo.hasNextPage}
-                  emoji={group.__typename === "EmojiReactionGroup"
-                    ? group.emoji
-                    : null}
-                  customEmojiNodeId={group.__typename ===
-                      "CustomEmojiReactionGroup"
-                    ? group.customEmoji.id
-                    : null}
+                  emoji={
+                    group.__typename === "EmojiReactionGroup"
+                      ? group.emoji
+                      : null
+                  }
+                  customEmojiNodeId={
+                    group.__typename === "CustomEmojiReactionGroup"
+                      ? group.customEmoji.id
+                      : null
+                  }
                   header={
                     <header class="flex items-center gap-2 bg-muted/40 px-4 py-2 text-sm font-medium">
                       <Show
@@ -233,10 +231,11 @@ function ReactionsPageBody(props: { post: ReactionsPagePost; base: string }) {
                         fallback={
                           <Show
                             keyed
-                            when={group.__typename ===
-                                "CustomEmojiReactionGroup"
-                              ? group.customEmoji
-                              : null}
+                            when={
+                              group.__typename === "CustomEmojiReactionGroup"
+                                ? group.customEmoji
+                                : null
+                            }
                           >
                             {(emoji) => (
                               <img

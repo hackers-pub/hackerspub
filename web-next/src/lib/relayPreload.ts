@@ -97,10 +97,7 @@ export function refreshRelayQuery<TQuery extends OperationType>(
 
 export function routePreloadedQuery<
   TLoader extends (...args: never[]) => PreloadedQuery<OperationType>,
->(
-  loader: TLoader,
-  name: string,
-): RoutePreloadedQuery<TLoader> {
+>(loader: TLoader, name: string): RoutePreloadedQuery<TLoader> {
   const cached = query(loader, name) as unknown as RoutePreloadedQuery<TLoader>;
   const wrapped = ((...args: Parameters<TLoader>) => {
     const key = cached.keyFor(...args);
@@ -202,8 +199,10 @@ function isStalePreloadedQuery(
   environment: IEnvironment,
 ): boolean {
   const controls = preloaded?.controls?.value;
-  return controls != null &&
-    (controls.isDisposed() || controls.environment !== environment);
+  return (
+    controls != null &&
+    (controls.isDisposed() || controls.environment !== environment)
+  );
 }
 
 function isPromiseLike<T>(value: T | PromiseLike<T>): value is PromiseLike<T> {

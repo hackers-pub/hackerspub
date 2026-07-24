@@ -91,37 +91,37 @@ const redeemInvitationLinkMutation = parse(`
   }
 `);
 
-test(
-  "createInvitationLink and deleteInvitationLink update invitation balances",
-  async () => {
-    await withRollback(async (tx) => {
-      const owner = await insertAccountWithActor(tx, {
-        username: "linkowner",
-        name: "Link Owner",
-        email: "linkowner@example.com",
-      });
-      await tx.update(accountTable)
-        .set({ leftInvitations: 5 })
-        .where(eq(accountTable.id, owner.account.id));
+test("createInvitationLink and deleteInvitationLink update invitation balances", async () => {
+  await withRollback(async (tx) => {
+    const owner = await insertAccountWithActor(tx, {
+      username: "linkowner",
+      name: "Link Owner",
+      email: "linkowner@example.com",
+    });
+    await tx
+      .update(accountTable)
+      .set({ leftInvitations: 5 })
+      .where(eq(accountTable.id, owner.account.id));
 
-      const result = await execute({
-        schema,
-        document: createInvitationLinkMutation,
-        variableValues: {
-          invitationsLeft: 2,
-          message: "Welcome aboard",
-          expires: "3 days",
-        },
-        contextValue: makeUserContext(tx, {
-          ...owner.account,
-          leftInvitations: 5,
-        }),
-        onError: "NO_PROPAGATE",
-      });
+    const result = await execute({
+      schema,
+      document: createInvitationLinkMutation,
+      variableValues: {
+        invitationsLeft: 2,
+        message: "Welcome aboard",
+        expires: "3 days",
+      },
+      contextValue: makeUserContext(tx, {
+        ...owner.account,
+        leftInvitations: 5,
+      }),
+      onError: "NO_PROPAGATE",
+    });
 
-      assert.deepEqual(result.errors, undefined);
+    assert.deepEqual(result.errors, undefined);
 
-      const payload = (result.data as {
+    const payload = (
+      result.data as {
         createInvitationLink: {
           __typename: string;
           account?: { username: string };
@@ -131,59 +131,61 @@ test(
             message: string | null;
           } | null;
         };
-      }).createInvitationLink;
-      assert.deepEqual(payload.__typename, "InvitationLinkPayload");
-      assert.deepEqual(payload.account?.username, "linkowner");
-      assert.deepEqual(payload.invitationLink?.invitationsLeft, 2);
-      assert.deepEqual(payload.invitationLink?.message, "Welcome aboard");
-      assert.ok(payload.invitationLink?.uuid != null);
+      }
+    ).createInvitationLink;
+    assert.deepEqual(payload.__typename, "InvitationLinkPayload");
+    assert.deepEqual(payload.account?.username, "linkowner");
+    assert.deepEqual(payload.invitationLink?.invitationsLeft, 2);
+    assert.deepEqual(payload.invitationLink?.message, "Welcome aboard");
+    assert.ok(payload.invitationLink?.uuid != null);
 
-      const storedAccount = await tx.query.accountTable.findFirst({
-        where: { id: owner.account.id },
-      });
-      assert.deepEqual(storedAccount?.leftInvitations, 3);
+    const storedAccount = await tx.query.accountTable.findFirst({
+      where: { id: owner.account.id },
+    });
+    assert.deepEqual(storedAccount?.leftInvitations, 3);
 
-      const linkId = payload.invitationLink
-        .uuid as `${string}-${string}-${string}-${string}-${string}`;
-      const storedLink = await tx.query.invitationLinkTable.findFirst({
-        where: { id: linkId },
-      });
-      assert.deepEqual(storedLink?.invitationsLeft, 2);
+    const linkId = payload.invitationLink
+      .uuid as `${string}-${string}-${string}-${string}-${string}`;
+    const storedLink = await tx.query.invitationLinkTable.findFirst({
+      where: { id: linkId },
+    });
+    assert.deepEqual(storedLink?.invitationsLeft, 2);
 
-      const deleteResult = await execute({
-        schema,
-        document: deleteInvitationLinkMutation,
-        variableValues: { id: linkId },
-        contextValue: makeUserContext(tx, {
-          ...owner.account,
-          leftInvitations: 3,
-        }),
-        onError: "NO_PROPAGATE",
-      });
+    const deleteResult = await execute({
+      schema,
+      document: deleteInvitationLinkMutation,
+      variableValues: { id: linkId },
+      contextValue: makeUserContext(tx, {
+        ...owner.account,
+        leftInvitations: 3,
+      }),
+      onError: "NO_PROPAGATE",
+    });
 
-      assert.deepEqual(deleteResult.errors, undefined);
-      const deletedPayload = (deleteResult.data as {
+    assert.deepEqual(deleteResult.errors, undefined);
+    const deletedPayload = (
+      deleteResult.data as {
         deleteInvitationLink: {
           __typename: string;
           account?: { username: string };
           invitationLink: null;
         };
-      }).deleteInvitationLink;
-      assert.deepEqual(deletedPayload.__typename, "InvitationLinkPayload");
-      assert.deepEqual(deletedPayload.account?.username, "linkowner");
-      assert.deepEqual(deletedPayload.invitationLink, null);
+      }
+    ).deleteInvitationLink;
+    assert.deepEqual(deletedPayload.__typename, "InvitationLinkPayload");
+    assert.deepEqual(deletedPayload.account?.username, "linkowner");
+    assert.deepEqual(deletedPayload.invitationLink, null);
 
-      const refundedAccount = await tx.query.accountTable.findFirst({
-        where: { id: owner.account.id },
-      });
-      assert.deepEqual(refundedAccount?.leftInvitations, 5);
-      const deletedLink = await tx.query.invitationLinkTable.findFirst({
-        where: { id: linkId },
-      });
-      assert.deepEqual(deletedLink, undefined);
+    const refundedAccount = await tx.query.accountTable.findFirst({
+      where: { id: owner.account.id },
     });
-  },
-);
+    assert.deepEqual(refundedAccount?.leftInvitations, 5);
+    const deletedLink = await tx.query.invitationLinkTable.findFirst({
+      where: { id: linkId },
+    });
+    assert.deepEqual(deletedLink, undefined);
+  });
+});
 
 test("redeemInvitationLink validates verify URL origin", async () => {
   await withRollback(async (tx) => {
@@ -192,8 +194,8 @@ test("redeemInvitationLink validates verify URL origin", async () => {
       name: "Link Redeem Owner",
       email: "linkredeemowner@example.com",
     });
-    const linkId = crypto
-      .randomUUID() as `${string}-${string}-${string}-${string}-${string}`;
+    const linkId =
+      crypto.randomUUID() as `${string}-${string}-${string}-${string}-${string}`;
     await tx.insert(invitationLinkTable).values({
       id: linkId,
       inviterId: owner.account.id,
@@ -214,15 +216,17 @@ test("redeemInvitationLink validates verify URL origin", async () => {
     });
 
     assert.deepEqual(result.errors, undefined);
-    const validation = (result.data as {
-      redeemInvitationLink: {
-        __typename: string;
-        verifyUrl: string | null;
-        email: string | null;
-        link: string | null;
-        sendFailed: boolean | null;
-      };
-    }).redeemInvitationLink;
+    const validation = (
+      result.data as {
+        redeemInvitationLink: {
+          __typename: string;
+          verifyUrl: string | null;
+          email: string | null;
+          link: string | null;
+          sendFailed: boolean | null;
+        };
+      }
+    ).redeemInvitationLink;
     assert.deepEqual(
       validation.__typename,
       "RedeemInvitationLinkValidationErrors",
@@ -243,8 +247,8 @@ test("redeemInvitationLink rejects organization inviter links", async () => {
       kind: "organization",
       type: "Organization",
     });
-    const linkId = crypto
-      .randomUUID() as `${string}-${string}-${string}-${string}-${string}`;
+    const linkId =
+      crypto.randomUUID() as `${string}-${string}-${string}-${string}-${string}`;
     await tx.insert(invitationLinkTable).values({
       id: linkId,
       inviterId: organization.account.id,
@@ -265,16 +269,15 @@ test("redeemInvitationLink rejects organization inviter links", async () => {
     });
 
     assert.deepEqual(result.errors, undefined);
-    const validation = (result.data as {
-      redeemInvitationLink: {
-        __typename: string;
-        link: string | null;
-      };
-    }).redeemInvitationLink;
-    assert.equal(
-      validation.__typename,
-      "RedeemInvitationLinkValidationErrors",
-    );
+    const validation = (
+      result.data as {
+        redeemInvitationLink: {
+          __typename: string;
+          link: string | null;
+        };
+      }
+    ).redeemInvitationLink;
+    assert.equal(validation.__typename, "RedeemInvitationLinkValidationErrors");
     assert.equal(validation.link, "LINK_NOT_FOUND");
 
     const storedLink = await tx.query.invitationLinkTable.findFirst({
@@ -284,68 +287,67 @@ test("redeemInvitationLink rejects organization inviter links", async () => {
   });
 });
 
-test(
-  "redeemInvitationLink decrements the link and stores a signup token",
-  async () => {
-    await withRollback(async (tx) => {
-      const { kv, store } = createTestKv();
-      const email = createTestEmailTransport();
-      const owner = await insertAccountWithActor(tx, {
-        username: "redeemsuccessowner",
-        name: "Redeem Success Owner",
-        email: "redeemsuccessowner@example.com",
-      });
-      const linkId = crypto
-        .randomUUID() as `${string}-${string}-${string}-${string}-${string}`;
-      await tx.insert(invitationLinkTable).values({
+test("redeemInvitationLink decrements the link and stores a signup token", async () => {
+  await withRollback(async (tx) => {
+    const { kv, store } = createTestKv();
+    const email = createTestEmailTransport();
+    const owner = await insertAccountWithActor(tx, {
+      username: "redeemsuccessowner",
+      name: "Redeem Success Owner",
+      email: "redeemsuccessowner@example.com",
+    });
+    const linkId =
+      crypto.randomUUID() as `${string}-${string}-${string}-${string}-${string}`;
+    await tx.insert(invitationLinkTable).values({
+      id: linkId,
+      inviterId: owner.account.id,
+      invitationsLeft: 1,
+      message: "Hello",
+    });
+
+    const result = await execute({
+      schema,
+      document: redeemInvitationLinkMutation,
+      variableValues: {
         id: linkId,
-        inviterId: owner.account.id,
-        invitationsLeft: 1,
-        message: "Hello",
-      });
+        email: "redeem@example.com",
+        locale: "en-US",
+        verifyUrl: "http://localhost/sign/up/{token}?code={code}",
+      },
+      contextValue: makeGuestContext(tx, { kv, email: email.transport }),
+      onError: "NO_PROPAGATE",
+    });
 
-      const result = await execute({
-        schema,
-        document: redeemInvitationLinkMutation,
-        variableValues: {
-          id: linkId,
-          email: "redeem@example.com",
-          locale: "en-US",
-          verifyUrl: "http://localhost/sign/up/{token}?code={code}",
-        },
-        contextValue: makeGuestContext(tx, { kv, email: email.transport }),
-        onError: "NO_PROPAGATE",
-      });
+    assert.deepEqual(result.errors, undefined);
 
-      assert.deepEqual(result.errors, undefined);
-
-      const payload = (result.data as {
+    const payload = (
+      result.data as {
         redeemInvitationLink: {
           __typename: string;
           email?: string;
           invitationLink?: { uuid: string };
         };
-      }).redeemInvitationLink;
-      assert.deepEqual(payload.__typename, "RedeemInvitationLinkSuccess");
-      assert.deepEqual(payload.email, "redeem@example.com");
-      assert.deepEqual(payload.invitationLink?.uuid, linkId);
-      assert.deepEqual(email.messages.length, 1);
+      }
+    ).redeemInvitationLink;
+    assert.deepEqual(payload.__typename, "RedeemInvitationLinkSuccess");
+    assert.deepEqual(payload.email, "redeem@example.com");
+    assert.deepEqual(payload.invitationLink?.uuid, linkId);
+    assert.deepEqual(email.messages.length, 1);
 
-      const storedLink = await tx.query.invitationLinkTable.findFirst({
-        where: { id: linkId },
-      });
-      assert.deepEqual(storedLink?.invitationsLeft, 0);
-
-      const signupEntries = [...store.entries()].filter(([key]) =>
-        key.startsWith("signup/")
-      );
-      assert.deepEqual(signupEntries.length, 1);
-      const token = signupEntries[0][1] as {
-        email: string;
-        inviterId?: string;
-      };
-      assert.deepEqual(token.email, "redeem@example.com");
-      assert.deepEqual(token.inviterId, owner.account.id);
+    const storedLink = await tx.query.invitationLinkTable.findFirst({
+      where: { id: linkId },
     });
-  },
-);
+    assert.deepEqual(storedLink?.invitationsLeft, 0);
+
+    const signupEntries = [...store.entries()].filter(([key]) =>
+      key.startsWith("signup/"),
+    );
+    assert.deepEqual(signupEntries.length, 1);
+    const token = signupEntries[0][1] as {
+      email: string;
+      inviterId?: string;
+    };
+    assert.deepEqual(token.email, "redeem@example.com");
+    assert.deepEqual(token.inviterId, owner.account.id);
+  });
+});

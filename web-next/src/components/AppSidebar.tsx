@@ -49,7 +49,7 @@ import {
   getCompleteActingAccount,
   getCompleteActingOrganizations,
 } from "~/lib/actingAccountSnapshot.ts";
-import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
+import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
 import { invalidateNotificationsPageQueryCache } from "~/lib/notificationsPageQueryCache.ts";
 import {
   getCurrentSessionId,
@@ -92,10 +92,10 @@ export function AppSidebar(props: AppSidebarProps) {
   const signedAccount = createFragment(
     graphql`
       fragment AppSidebar_signedAccount on Account
-        @argumentDefinitions(
-          cursor: { type: "String" }
-          count: { type: "Int", defaultValue: 3 }
-        ) {
+      @argumentDefinitions(
+        cursor: { type: "String" }
+        count: { type: "Int", defaultValue: 3 }
+      ) {
         name
         id
         username
@@ -159,29 +159,29 @@ export function AppSidebar(props: AppSidebarProps) {
     // organization is available. Keep the last complete account list until
     // the follow-up snapshot arrives.
     if (personalAccount == null || organizations == null) return;
-    actingAccount.setAccounts(
-      personalAccount,
-      organizations,
-    );
+    actingAccount.setAccounts(personalAccount, organizations);
   });
 
   const personalUnreadNotificationsCount = () => {
     const account = signedAccount();
-    return props.personalUnreadNotificationsCount ??
-      (account == null ? 0 : account.unreadNotificationsCount +
-        (account.unreadModerationNotificationCount ?? 0));
+    return (
+      props.personalUnreadNotificationsCount ??
+      (account == null
+        ? 0
+        : account.unreadNotificationsCount +
+          (account.unreadModerationNotificationCount ?? 0))
+    );
   };
 
-  const currentNotificationBadge = ():
-    | ActingOrganizationNotificationBadge
-    | null => {
-    const organization = actingAccount.selectedOrganization();
-    if (organization != null) {
-      return organization.notificationBadge ?? null;
-    }
-    const count = personalUnreadNotificationsCount();
-    return count > 0 ? { color: "RED", count } : null;
-  };
+  const currentNotificationBadge =
+    (): ActingOrganizationNotificationBadge | null => {
+      const organization = actingAccount.selectedOrganization();
+      if (organization != null) {
+        return organization.notificationBadge ?? null;
+      }
+      const count = personalUnreadNotificationsCount();
+      return count > 0 ? { color: "RED", count } : null;
+    };
 
   async function onSignOut() {
     const sessionId = await getCurrentSessionId();
@@ -196,9 +196,7 @@ export function AppSidebar(props: AppSidebarProps) {
         void removeSessionCookie().finally(() => location.replace("/local"));
       },
       onError(error) {
-        window.alert(
-          t`Failed to sign out: ${error.message}`,
-        );
+        window.alert(t`Failed to sign out: ${error.message}`);
         void removeSessionCookie().finally(() => location.replace("/local"));
       },
     });
@@ -219,9 +217,7 @@ export function AppSidebar(props: AppSidebarProps) {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>
-            {t`Timeline`}
-          </SidebarGroupLabel>
+          <SidebarGroupLabel>{t`Timeline`}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenuItem class="list-none">
               <SidebarMenuButton
@@ -230,7 +226,8 @@ export function AppSidebar(props: AppSidebarProps) {
                 onClick={() =>
                   invalidateTimelinePageQueryCache(
                     TIMELINE_PAGE_QUERY_CACHE_KEYS.news,
-                  )}
+                  )
+                }
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -257,7 +254,8 @@ export function AppSidebar(props: AppSidebarProps) {
                   onClick={() =>
                     invalidateTimelinePageQueryCache(
                       TIMELINE_PAGE_QUERY_CACHE_KEYS.feed,
-                    )}
+                    )
+                  }
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -283,7 +281,8 @@ export function AppSidebar(props: AppSidebarProps) {
                   onClick={() =>
                     invalidateTimelinePageQueryCache(
                       TIMELINE_PAGE_QUERY_CACHE_KEYS.feedWithoutShares,
-                    )}
+                    )
+                  }
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -293,8 +292,7 @@ export function AppSidebar(props: AppSidebarProps) {
                     stroke="currentColor"
                     class="size-6"
                   >
-                    {
-                      /* Share glyph (arrow-path-rounded-square) — same base
+                    {/* Share glyph (arrow-path-rounded-square) — same base
                          as the engagement bar's share button — with a
                          diagonal slash from (3, 3) to (21, 21) carved
                          through it, matching the Heroicons `*-slash`
@@ -308,8 +306,7 @@ export function AppSidebar(props: AppSidebarProps) {
                          drawn as the path's last segment.  This leaves a
                          generous transparent gutter on each side of the
                          slash without needing a mask, regardless of the
-                         menu button's background colour. */
-                    }
+                         menu button's background colour. */}
                     <path
                       stroke-linecap="round"
                       stroke-linejoin="round"
@@ -326,7 +323,8 @@ export function AppSidebar(props: AppSidebarProps) {
                   onClick={() =>
                     invalidateTimelinePageQueryCache(
                       TIMELINE_PAGE_QUERY_CACHE_KEYS.feedArticles,
-                    )}
+                    )
+                  }
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -353,7 +351,8 @@ export function AppSidebar(props: AppSidebarProps) {
                 onClick={() =>
                   invalidateTimelinePageQueryCache(
                     TIMELINE_PAGE_QUERY_CACHE_KEYS.local,
-                  )}
+                  )
+                }
               >
                 <img
                   src="/starorbit.svg"
@@ -370,7 +369,8 @@ export function AppSidebar(props: AppSidebarProps) {
                 onClick={() =>
                   invalidateTimelinePageQueryCache(
                     TIMELINE_PAGE_QUERY_CACHE_KEYS.fediverse,
-                  )}
+                  )
+                }
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -398,10 +398,7 @@ export function AppSidebar(props: AppSidebarProps) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem class="list-none">
-              <SidebarMenuButton
-                as={A}
-                href="/search"
-              >
+              <SidebarMenuButton as={A} href="/search">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -451,14 +448,12 @@ export function AppSidebar(props: AppSidebarProps) {
         </SidebarGroup>
         <ComposeSection
           signedAccount={signedAccount()}
-          visible={!!signedAccount() &&
-            !mobile() && state() !== "collapsed"}
+          visible={!!signedAccount() && !mobile() && state() !== "collapsed"}
           onComposeNote={openNoteCompose}
         />
         <RecentDraftsSection
           signedAccount={signedAccount()}
-          visible={!!signedAccount() &&
-            !mobile() && state() !== "collapsed"}
+          visible={!!signedAccount() && !mobile() && state() !== "collapsed"}
         />
         <AccountSection
           signedAccount={signedAccount()}
@@ -531,12 +526,13 @@ function ActingAccountMenu() {
   });
   const selectedOption = () =>
     options().find((option) => option.key === actingAccount.selectedKey()) ??
-      options()[0];
+    options()[0];
   const hasUnreadUnselectedOrganizationNotifications = () =>
-    options().some((option) =>
-      option.key !== PERSONAL_ACTING_ACCOUNT_KEY &&
-      option.key !== actingAccount.selectedKey() &&
-      (option.badge?.count ?? 0) > 0
+    options().some(
+      (option) =>
+        option.key !== PERSONAL_ACTING_ACCOUNT_KEY &&
+        option.key !== actingAccount.selectedKey() &&
+        (option.badge?.count ?? 0) > 0,
     );
   const menuContentWidth = () => {
     const width = triggerWidth();
@@ -556,9 +552,7 @@ function ActingAccountMenu() {
   onCleanup(() => triggerResizeObserver?.disconnect());
 
   return (
-    <Show
-      when={options().length > 1 && selectedOption() != null}
-    >
+    <Show when={options().length > 1 && selectedOption() != null}>
       <div class="-mx-2 -mb-2 border-t border-sidebar-border group-data-[collapsible=icon]:mx-0 group-data-[collapsible=icon]:mb-0 group-data-[collapsible=icon]:border-t-0">
         <DropdownMenu
           modal={false}
@@ -569,9 +563,9 @@ function ActingAccountMenu() {
           <DropdownMenuTrigger
             ref={setTriggerElement}
             class="flex min-h-14 w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-sm outline-none ring-sidebar-ring transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 data-[expanded]:bg-sidebar data-[expanded]:text-sidebar-foreground group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:min-h-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0"
-            aria-label={`${t`Act as`}: ${
-              accountDisplayName(selectedOption()!.account)
-            }`}
+            aria-label={`${t`Act as`}: ${accountDisplayName(
+              selectedOption()!.account,
+            )}`}
           >
             <ActingAccountMenuTrigger option={selectedOption()!} />
             <span class="relative ml-auto shrink-0 group-data-[collapsible=icon]:hidden">
@@ -608,9 +602,7 @@ function ActingAccountMenu() {
                       class="gap-2 rounded-none py-2 focus:bg-sidebar-accent focus:text-sidebar-accent-foreground"
                     >
                       <ActingAccountMenuOptionRow option={option} />
-                      <Show
-                        when={option.key !== actingAccount.selectedKey()}
-                      >
+                      <Show when={option.key !== actingAccount.selectedKey()}>
                         <AlignedOrganizationNotificationBadge
                           badge={option.badge}
                         />
@@ -750,16 +742,16 @@ function HeaderNotifications(props: HeaderNotificationsProps) {
       variant="ghost"
       size="icon"
       class="relative size-9 shrink-0 rounded-full"
-      aria-label={count() > 0
-        ? i18n._(
-          msg`${
-            plural(count(), {
-              one: "Notifications (# unread)",
-              other: "Notifications (# unread)",
-            })
-          }`,
-        )
-        : t`Notifications`}
+      aria-label={
+        count() > 0
+          ? i18n._(
+              msg`${plural(count(), {
+                one: "Notifications (# unread)",
+                other: "Notifications (# unread)",
+              })}`,
+            )
+          : t`Notifications`
+      }
       title={t`Notifications`}
     >
       <NotificationsBellIcon class="size-5" />
@@ -794,37 +786,28 @@ function AccountSection(props: AccountSectionProps) {
     actingAccount.selectedOrganization() != null;
   const profileAccount = () =>
     actingAccount.selectedOrganization()?.organization ??
-      actingAccount.personalAccount() ??
-      props.signedAccount;
+    actingAccount.personalAccount() ??
+    props.signedAccount;
   const settingsAccount = () =>
     actingAccount.selectedOrganization()?.role === "ADMIN"
       ? actingAccount.selectedOrganization()?.organization
-      : actingAccount.personalAccount() ?? props.signedAccount;
+      : (actingAccount.personalAccount() ?? props.signedAccount);
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>
-        {t`Account`}
-      </SidebarGroupLabel>
+      <SidebarGroupLabel>{t`Account`}</SidebarGroupLabel>
       <SidebarGroupContent>
-        <Show
-          when={!props.signedAccountLoaded}
-        >
+        <Show when={!props.signedAccountLoaded}>
           <AccountSectionPlaceholder />
         </Show>
-        <Show
-          keyed
-          when={props.signedAccountLoaded && !props.signedAccount}
-        >
+        <Show keyed when={props.signedAccountLoaded && !props.signedAccount}>
           {(_) => (
             <SidebarMenuItem class="list-none">
               <SidebarMenuButton
                 as={A}
-                href={`/sign?next=${
-                  encodeURIComponent(
-                    location.pathname + location.search + location.hash,
-                  )
-                }`}
+                href={`/sign?next=${encodeURIComponent(
+                  location.pathname + location.search + location.hash,
+                )}`}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -845,10 +828,7 @@ function AccountSection(props: AccountSectionProps) {
             </SidebarMenuItem>
           )}
         </Show>
-        <Show
-          keyed
-          when={props.signedAccountLoaded && props.signedAccount}
-        >
+        <Show keyed when={props.signedAccountLoaded && props.signedAccount}>
           {(signedAccount) => (
             <>
               <SidebarMenuItem class="list-none">
@@ -892,8 +872,9 @@ function AccountSection(props: AccountSectionProps) {
                 </SidebarMenuItem>
               </Show>
               <Show
-                when={!organizationSelected() &&
-                  signedAccount.invitationsLeft > 0}
+                when={
+                  !organizationSelected() && signedAccount.invitationsLeft > 0
+                }
               >
                 <SidebarMenuItem class="list-none">
                   <SidebarMenuButton
@@ -952,10 +933,7 @@ function AccountSection(props: AccountSectionProps) {
               </SidebarMenuItem>
               <Show when={!organizationSelected() && signedAccount.moderator}>
                 <SidebarMenuItem class="list-none">
-                  <SidebarMenuButton
-                    as={A}
-                    href="/admin"
-                  >
+                  <SidebarMenuButton as={A} href="/admin">
                     <IconShieldCheck class="size-6" />
                     {t`Admin`}
                   </SidebarMenuButton>
@@ -1016,9 +994,7 @@ function ComposeSection(props: ComposeSectionProps) {
     <Show keyed when={props.visible && props.signedAccount}>
       {(signedAccount) => (
         <SidebarGroup>
-          <SidebarGroupLabel>
-            {t`Compose`}
-          </SidebarGroupLabel>
+          <SidebarGroupLabel>{t`Compose`}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenuItem class="list-none">
               <SidebarMenuButton
@@ -1080,26 +1056,28 @@ interface RecentDraftsSectionProps {
 function RecentDraftsSection(props: RecentDraftsSectionProps) {
   const { t } = useLingui();
   const visibleDrafts = () =>
-    props.signedAccount?.articleDrafts?.edges.filter((edge) =>
-      edge.node != null
-    ).slice(0, 3) ?? [];
+    props.signedAccount?.articleDrafts?.edges
+      .filter((edge) => edge.node != null)
+      .slice(0, 3) ?? [];
   const hasMoreDrafts = () => {
     const articleDrafts = props.signedAccount?.articleDrafts;
     if (articleDrafts == null) return false;
-    const edgesCount = articleDrafts.edges.filter((edge) => edge.node != null)
-      .length;
+    const edgesCount = articleDrafts.edges.filter(
+      (edge) => edge.node != null,
+    ).length;
     return articleDrafts.pageInfo?.hasNextPage || edgesCount > 3;
   };
 
   return (
     <Show
-      when={props.visible && props.signedAccount != null &&
-        visibleDrafts().length > 0}
+      when={
+        props.visible &&
+        props.signedAccount != null &&
+        visibleDrafts().length > 0
+      }
     >
       <SidebarGroup>
-        <SidebarGroupLabel>
-          {t`Recent drafts`}
-        </SidebarGroupLabel>
+        <SidebarGroupLabel>{t`Recent drafts`}</SidebarGroupLabel>
         <SidebarGroupContent>
           <For each={visibleDrafts()}>
             {(edge) => (
@@ -1141,10 +1119,7 @@ function SignOutMenuItem(props: SignOutMenuItemProps) {
 
   return (
     <SidebarMenuItem class="list-none">
-      <SidebarMenuButton
-        on:click={props.onSignOut}
-        class="cursor-pointer"
-      >
+      <SidebarMenuButton on:click={props.onSignOut} class="cursor-pointer">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -1177,17 +1152,11 @@ function AppSidebarFooter() {
           </A>
         </p>
         <p class="m-2 mb-0 text-sm">
-          <A
-            href="/coc"
-            class="underline"
-          >
+          <A href="/coc" class="underline">
             {t`Code of conduct`}
           </A>{" "}
           &middot;{" "}
-          <A
-            href="/privacy"
-            class="underline"
-          >
+          <A href="/privacy" class="underline">
             {t`Privacy policy`}
           </A>
         </p>

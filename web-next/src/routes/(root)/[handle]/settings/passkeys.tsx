@@ -43,7 +43,7 @@ import {
   TextFieldLabel,
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { passkeysFragment_account$key } from "./__generated__/passkeysFragment_account.graphql.ts";
 import type { passkeysGetPasskeyRegistrationOptionsMutation } from "./__generated__/passkeysGetPasskeyRegistrationOptionsMutation.graphql.ts";
 import type { passkeysPageQuery } from "./__generated__/passkeysPageQuery.graphql.ts";
@@ -77,14 +77,11 @@ const passkeysPageQuery = graphql`
 `;
 
 const passkeysFragment = graphql`
-  fragment passkeysFragment_account on Account 
+  fragment passkeysFragment_account on Account
   @refetchable(queryName: "PasskeysPaginationQuery")
-  @argumentDefinitions(
-    first: { type: "Int" }, 
-    after: { type: "String" }
-  ) {
-    passkeys(first: $first, after: $after) 
-    @connection(key: "passkeysFragment_passkeys") {
+  @argumentDefinitions(first: { type: "Int" }, after: { type: "String" }) {
+    passkeys(first: $first, after: $after)
+      @connection(key: "passkeysFragment_passkeys") {
       __id
       edges {
         node {
@@ -110,15 +107,11 @@ const loadPageQuery = routePreloadedQuery(
     first: number = PASSKEYS_PAGE_SIZE,
     after: string | null = null,
   ) =>
-    loadQuery<passkeysPageQuery>(
-      useRelayEnvironment()(),
-      passkeysPageQuery,
-      {
-        username: handle.replace(/^@/, ""),
-        first,
-        after,
-      },
-    ),
+    loadQuery<passkeysPageQuery>(useRelayEnvironment()(), passkeysPageQuery, {
+      username: handle.replace(/^@/, ""),
+      first,
+      after,
+    }),
   "loadpasskeysPageQuery",
 );
 
@@ -152,7 +145,10 @@ const verifyPasskeyRegistrationMutation = graphql`
 `;
 
 const revokePasskeyMutation = graphql`
-  mutation passkeysRevokePasskeyMutation($passkeyId: ID!, $connections: [ID!]!) {
+  mutation passkeysRevokePasskeyMutation(
+    $passkeyId: ID!
+    $connections: [ID!]!
+  ) {
     revokePasskey(passkeyId: $passkeyId) @deleteEdge(connections: $connections)
   }
 `;
@@ -166,25 +162,24 @@ export default function passkeysPage() {
     () => loadPageQuery(decodeRouteParam(params.handle!)),
   );
 
-  const [getOptions] = createMutation<
-    passkeysGetPasskeyRegistrationOptionsMutation
-  >(
-    getPasskeyRegistrationOptionsMutation,
-  );
-  const [verifyRegistration] = createMutation<
-    passkeysVerifyPasskeyRegistrationMutation
-  >(
-    verifyPasskeyRegistrationMutation,
-  );
+  const [getOptions] =
+    createMutation<passkeysGetPasskeyRegistrationOptionsMutation>(
+      getPasskeyRegistrationOptionsMutation,
+    );
+  const [verifyRegistration] =
+    createMutation<passkeysVerifyPasskeyRegistrationMutation>(
+      verifyPasskeyRegistrationMutation,
+    );
   const [revokePasskey] = createMutation<passkeysRevokePasskeyMutation>(
     revokePasskeyMutation,
   );
 
   const [registering, setRegistering] = createSignal(false);
   let passkeyNameRef: HTMLInputElement | undefined;
-  const [passkeyToRevoke, setPasskeyToRevoke] = createSignal<
-    { id: string; name: string } | null
-  >(null);
+  const [passkeyToRevoke, setPasskeyToRevoke] = createSignal<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
   >("loaded");
@@ -264,8 +259,7 @@ export default function passkeysPage() {
       if (result && result.verified) {
         showToast({
           title: t`Passkey registered successfully`,
-          description:
-            t`Your passkey has been registered and can now be used for authentication.`,
+          description: t`Your passkey has been registered and can now be used for authentication.`,
           variant: "success",
         });
         if (passkeyNameRef) passkeyNameRef.value = "";
@@ -276,9 +270,10 @@ export default function passkeysPage() {
     } catch (error) {
       showToast({
         title: t`Failed to register passkey`,
-        description: error instanceof Error
-          ? error.message
-          : t`An error occurred while registering your passkey.`,
+        description:
+          error instanceof Error
+            ? error.message
+            : t`An error occurred while registering your passkey.`,
         variant: "error",
       });
     } finally {
@@ -324,9 +319,10 @@ export default function passkeysPage() {
     } catch (error) {
       showToast({
         title: t`Failed to revoke passkey`,
-        description: error instanceof Error
-          ? error.message
-          : t`An error occurred while revoking your passkey.`,
+        description:
+          error instanceof Error
+            ? error.message
+            : t`An error occurred while revoking your passkey.`,
         variant: "error",
       });
     } finally {
@@ -342,14 +338,12 @@ export default function passkeysPage() {
             accountId={data.accountByUsername?.id}
             viewerId={data.viewer?.id}
           >
-            {
-              /* `keyed` avoids a "Stale read from <Show>" race when solid-relay
+            {/* `keyed` avoids a "Stale read from <Show>" race when solid-relay
                publishes a fragment snapshot inside `batch()` that flips
                `accountByUsername` to falsy in the same tick as a downstream
                reactive read. Reconcile keeps the account's identity stable
                (`key: "__id"`), so `keyed` only re-mounts on navigation to
-               a different account. */
-            }
+               a different account. */}
             <Show keyed when={data.accountByUsername}>
               {(account) => (
                 <>
@@ -398,8 +392,9 @@ export default function passkeysPage() {
                         </CardHeader>
                         <CardContent>
                           <Show
-                            when={(passkeyData()?.passkeys.edges.length ?? 0) >
-                              0}
+                            when={
+                              (passkeyData()?.passkeys.edges.length ?? 0) > 0
+                            }
                             fallback={
                               <p class="text-muted-foreground text-center py-8">
                                 {t`You don't have any passkeys registered yet.`}
@@ -435,12 +430,10 @@ export default function passkeysPage() {
                                           />
                                         </div>
                                         <div>
-                                          {
-                                            /* `keyed`: avoid Solid's
+                                          {/* `keyed`: avoid Solid's
                                              stale-accessor race when this
                                              Relay field flips to null
-                                             inside a `batch()` update. */
-                                          }
+                                             inside a `batch()` update. */}
                                           <Show
                                             keyed
                                             when={edge.node.lastUsed}
@@ -471,7 +464,8 @@ export default function passkeysPage() {
                                         openRevokeDialog(
                                           edge.node.id,
                                           edge.node.name,
-                                        )}
+                                        )
+                                      }
                                     >
                                       {t`Revoke`}
                                     </Button>
@@ -480,8 +474,9 @@ export default function passkeysPage() {
                               </For>
 
                               <Show
-                                when={passkeyData()?.passkeys.pageInfo
-                                  .hasNextPage}
+                                when={
+                                  passkeyData()?.passkeys.pageInfo.hasNextPage
+                                }
                               >
                                 <Button
                                   type="button"
@@ -493,8 +488,8 @@ export default function passkeysPage() {
                                   {loadingState() === "loading"
                                     ? t`Loading more passkeys…`
                                     : loadingState() === "errored"
-                                    ? t`Failed to load more passkeys; click to retry`
-                                    : t`Load more passkeys`}
+                                      ? t`Failed to load more passkeys; click to retry`
+                                      : t`Load more passkeys`}
                                 </Button>
                               </Show>
                             </div>

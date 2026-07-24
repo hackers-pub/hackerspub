@@ -14,52 +14,51 @@ import {
   withRollback,
 } from "../test/postgres.ts";
 
-test(
-  "getRegistrationOptions() stores a challenge and excludes existing credentials",
-  async () => {
-    await withRollback(async (tx) => {
-      const { kv, store } = createTestKv();
-      const account = await insertAccountWithActor(tx, {
-        username: "passkeymodelowner",
-        name: "Passkey Model Owner",
-        email: "passkeymodelowner@example.com",
-      });
+test("getRegistrationOptions() stores a challenge and excludes existing credentials", async () => {
+  await withRollback(async (tx) => {
+    const { kv, store } = createTestKv();
+    const account = await insertAccountWithActor(tx, {
+      username: "passkeymodelowner",
+      name: "Passkey Model Owner",
+      email: "passkeymodelowner@example.com",
+    });
 
-      const options = await getRegistrationOptions(
-        kv,
-        "https://pub.hackers.pub/sign/in",
-        {
-          ...account.account,
-          passkeys: [
-            {
-              id: "credential-id",
-              accountId: account.account.id,
-              name: "Laptop",
-              publicKey: Buffer.from([1, 2, 3]),
-              webauthnUserId: "webauthn-user",
-              counter: 0n,
-              deviceType: "singleDevice",
-              backedUp: false,
-              transports: ["internal"],
-              lastUsed: null,
-              created: new Date("2026-04-15T00:00:00.000Z"),
-            },
-          ],
-        },
-      );
+    const options = await getRegistrationOptions(
+      kv,
+      "https://pub.hackers.pub/sign/in",
+      {
+        ...account.account,
+        passkeys: [
+          {
+            id: "credential-id",
+            accountId: account.account.id,
+            name: "Laptop",
+            publicKey: Buffer.from([1, 2, 3]),
+            webauthnUserId: "webauthn-user",
+            counter: 0n,
+            deviceType: "singleDevice",
+            backedUp: false,
+            transports: ["internal"],
+            lastUsed: null,
+            created: new Date("2026-04-15T00:00:00.000Z"),
+          },
+        ],
+      },
+    );
 
-      assert.ok(options.challenge.length > 0);
-      assert.deepEqual(options.rp.id, "pub.hackers.pub");
-      assert.deepEqual(options.user.name, "passkeymodelowner");
-      assert.deepEqual(options.excludeCredentials, [{
+    assert.ok(options.challenge.length > 0);
+    assert.deepEqual(options.rp.id, "pub.hackers.pub");
+    assert.deepEqual(options.user.name, "passkeymodelowner");
+    assert.deepEqual(options.excludeCredentials, [
+      {
         id: "credential-id",
         type: "public-key",
         transports: ["internal"],
-      }]);
-      assert.ok(store.has(`passkey/registration/${account.account.id}`));
-    });
-  },
-);
+      },
+    ]);
+    assert.ok(store.has(`passkey/registration/${account.account.id}`));
+  });
+});
 
 test("verifyRegistration() fails when registration options are missing", async () => {
   await withRollback(async (tx) => {
@@ -98,11 +97,10 @@ test("verifyRegistration() returns unverified for invalid responses", async () =
       name: "Invalid Registration",
       email: "invalidregistration@example.com",
     });
-    await getRegistrationOptions(
-      kv,
-      "https://pub.hackers.pub/sign/in",
-      { ...account.account, passkeys: [] },
-    );
+    await getRegistrationOptions(kv, "https://pub.hackers.pub/sign/in", {
+      ...account.account,
+      passkeys: [],
+    });
 
     const result = await verifyRegistration(
       tx,
@@ -134,41 +132,38 @@ test("getAuthenticationOptions() stores a challenge for the session", async () =
   assert.ok(store.has(`passkey/authentication/${sessionId}`));
 });
 
-test(
-  "verifyAuthentication() returns undefined for missing options or credentials",
-  async () => {
-    await withRollback(async (tx) => {
-      const { kv } = createTestKv();
-      const sessionId = "019d9162-eeee-7eee-8eee-eeeeeeeeeeee";
+test("verifyAuthentication() returns undefined for missing options or credentials", async () => {
+  await withRollback(async (tx) => {
+    const { kv } = createTestKv();
+    const sessionId = "019d9162-eeee-7eee-8eee-eeeeeeeeeeee";
 
-      const missingOptions = await verifyAuthentication(
-        tx,
-        kv,
-        ["https://pub.hackers.pub"],
-        "pub.hackers.pub",
-        sessionId,
-        { id: "missing-passkey" } as never,
-      );
-      assert.deepEqual(missingOptions, undefined);
+    const missingOptions = await verifyAuthentication(
+      tx,
+      kv,
+      ["https://pub.hackers.pub"],
+      "pub.hackers.pub",
+      sessionId,
+      { id: "missing-passkey" } as never,
+    );
+    assert.deepEqual(missingOptions, undefined);
 
-      await getAuthenticationOptions(
-        kv,
-        "https://pub.hackers.pub/sign/in",
-        sessionId,
-      );
+    await getAuthenticationOptions(
+      kv,
+      "https://pub.hackers.pub/sign/in",
+      sessionId,
+    );
 
-      const missingPasskey = await verifyAuthentication(
-        tx,
-        kv,
-        ["https://pub.hackers.pub"],
-        "pub.hackers.pub",
-        sessionId,
-        { id: "missing-passkey" } as never,
-      );
-      assert.deepEqual(missingPasskey, undefined);
-    });
-  },
-);
+    const missingPasskey = await verifyAuthentication(
+      tx,
+      kv,
+      ["https://pub.hackers.pub"],
+      "pub.hackers.pub",
+      sessionId,
+      { id: "missing-passkey" } as never,
+    );
+    assert.deepEqual(missingPasskey, undefined);
+  });
+});
 
 test("verifyAuthentication() returns undefined when WebAuthn verification throws", async () => {
   await withRollback(async (tx) => {

@@ -24,12 +24,13 @@ test("getAccountActor serves a suspended stub for banned accounts", async () => 
     assert.equal(normal.suspended, null);
     assert.equal(normal.name?.toString(), "AP Banned");
     assert.ok(normal.summary != null);
-    assert.ok(await normal.getIcon() != null);
+    assert.ok((await normal.getIcon()) != null);
 
     // A permanently suspended (banned) account gets a stub: the document
     // stays fetchable, but the profile content is emptied and Mastodon's
     // `suspended` flag is set.
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: null })
       .where(eq(actorTable.accountId, account.id));
     const refreshed = await tx.query.accountTable.findFirst({
@@ -55,7 +56,8 @@ test("getAccountActor serves a suspended stub for banned accounts", async () => 
     assert.ok(stub.inboxId != null);
 
     // A *temporary* suspension only restricts writing; the profile stays:
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({
         suspended: new Date(Date.now() - 1000),
         suspendedUntil: new Date(Date.now() + 60 * 60 * 1000),
@@ -84,7 +86,8 @@ test("getAccountActor exposes account migration aliases", async () => {
       name: "AP Aliases",
       email: "apaliases@example.com",
     });
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({
         aliases: [
           "https://old.example/users/apaliases",
@@ -105,10 +108,13 @@ test("getAccountActor exposes account migration aliases", async () => {
 
     const actor = await getAccountActor(createFedCtx(tx), refreshed, []);
 
-    assert.deepEqual(actor.aliasIds.map((alias) => alias.href), [
-      "https://old.example/users/apaliases",
-      "https://older.example/users/apaliases",
-    ]);
+    assert.deepEqual(
+      actor.aliasIds.map((alias) => alias.href),
+      [
+        "https://old.example/users/apaliases",
+        "https://older.example/users/apaliases",
+      ],
+    );
   });
 });
 

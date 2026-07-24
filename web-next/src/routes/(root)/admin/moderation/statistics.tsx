@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "~/components/ui/card.tsx";
 import { WideContainer } from "~/components/WideContainer.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,
@@ -159,9 +159,9 @@ export default function ModerationStatisticsPage() {
                               when={stats.averageProcessingHours != null}
                               fallback="—"
                             >
-                              {t`${
-                                Math.round(stats.averageProcessingHours!)
-                              } h`}
+                              {t`${Math.round(
+                                stats.averageProcessingHours!,
+                              )} h`}
                             </Show>
                           </p>
                         </CardContent>
@@ -273,9 +273,9 @@ export default function ModerationStatisticsPage() {
                                 {pct(divergence.diverged, divergence.compared)}
                               </p>
                               <p class="text-sm text-muted-foreground">
-                                {t`${num(divergence.diverged)} of ${
-                                  num(divergence.compared)
-                                } analyzed reports diverged from the moderators' confirmed provisions. Very high or near-zero divergence both warrant attention.`}
+                                {t`${num(divergence.diverged)} of ${num(
+                                  divergence.compared,
+                                )} analyzed reports diverged from the moderators' confirmed provisions. Very high or near-zero divergence both warrant attention.`}
                               </p>
                             </div>
                           )}

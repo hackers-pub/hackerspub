@@ -21,25 +21,31 @@ builder.setNodeInfoDispatcher("/nodeinfo/2.1", async (ctx) => {
     "total",
   );
   const activeMonth = firstCount(
-    await db.select({
-      activeMonth: countDistinct(articleSourceTable.accountId),
-    }).from(articleSourceTable).where(
-      gt(
-        articleSourceTable.published,
-        sql`CURRENT_TIMESTAMP - INTERVAL '1 month'`,
+    await db
+      .select({
+        activeMonth: countDistinct(articleSourceTable.accountId),
+      })
+      .from(articleSourceTable)
+      .where(
+        gt(
+          articleSourceTable.published,
+          sql`CURRENT_TIMESTAMP - INTERVAL '1 month'`,
+        ),
       ),
-    ),
     "activeMonth",
   );
   const activeHalfyear = firstCount(
-    await db.select({
-      activeHalfyear: countDistinct(articleSourceTable.accountId),
-    }).from(articleSourceTable).where(
-      gt(
-        articleSourceTable.published,
-        sql`CURRENT_TIMESTAMP - INTERVAL '6 months'`,
+    await db
+      .select({
+        activeHalfyear: countDistinct(articleSourceTable.accountId),
+      })
+      .from(articleSourceTable)
+      .where(
+        gt(
+          articleSourceTable.published,
+          sql`CURRENT_TIMESTAMP - INTERVAL '6 months'`,
+        ),
       ),
-    ),
     "activeHalfyear",
   );
   const localArticles = firstCount(

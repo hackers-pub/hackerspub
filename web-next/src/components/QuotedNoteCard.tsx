@@ -22,7 +22,7 @@ import { VisibilityTag } from "~/components/VisibilityTag.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { useContentLinkInterceptor } from "~/lib/contentLinkInterceptor.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   MentionHoverCardLayer,
   useMentionHoverCards,
@@ -85,9 +85,8 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
   const [proseRef, setProseRef] = createSignal<HTMLElement>();
   const mentionState = useMentionHoverCards(proseRef);
   useContentLinkInterceptor(proseRef);
-  const [revokeQuote, revoking] = createMutation<
-    QuotedNoteCardRevokeQuoteMutation
-  >(RevokeQuoteMutation);
+  const [revokeQuote, revoking] =
+    createMutation<QuotedNoteCardRevokeQuoteMutation>(RevokeQuoteMutation);
 
   const post = createFragment(
     graphql`
@@ -147,7 +146,7 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
   const contentVisible = () => !hasCW() || cwRevealed();
   const articleSummary = (post: QuotedNoteCard_post$data) =>
     post.__typename === "Article" &&
-      (post.actor.local ? preferAiSummary() : true)
+    (post.actor.local ? preferAiSummary() : true)
       ? post.summary
       : null;
 
@@ -196,8 +195,7 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
             <div
               class={cn(
                 "relative flex flex-col bg-muted p-4",
-                props.linkPreview &&
-                  "transition-colors",
+                props.linkPreview && "transition-colors",
                 props.linkPreview && linkPreviewActive() && "bg-muted/80",
               )}
               onMouseEnter={() => setLinkPreviewActive(true)}
@@ -351,8 +349,8 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
                               if (revoking()) return;
                               const quotePostId = props.quotePostId;
                               if (quotePostId == null) return;
-                              const actingAccountId = actingAccount
-                                .selectedActingAccountId();
+                              const actingAccountId =
+                                actingAccount.selectedActingAccountId();
                               revokeQuote({
                                 variables: {
                                   input: {
@@ -366,7 +364,7 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
                                 onCompleted(response) {
                                   if (
                                     response.revokeQuote.__typename ===
-                                      "RevokeQuotePayload"
+                                    "RevokeQuotePayload"
                                   ) {
                                     showToast({
                                       title: t`Quote revoked`,
@@ -418,8 +416,7 @@ function getQuotedPostInternalHref(post: QuotedNoteCard_post$data): string {
   const actorSegment = post.actor.local
     ? `@${post.actor.username}`
     : post.actor.handle;
-  const postId = post.__typename === "Note"
-    ? post.sourceId ?? post.uuid
-    : post.uuid;
+  const postId =
+    post.__typename === "Note" ? (post.sourceId ?? post.uuid) : post.uuid;
   return `/${actorSegment}/${postId}`;
 }

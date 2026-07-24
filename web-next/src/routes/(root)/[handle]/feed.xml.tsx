@@ -82,26 +82,25 @@ export async function GET({ params, request }: APIEvent) {
   );
   const avatarUrl = account.avatarUrl;
 
-  const posts = account.actor.posts.edges.map((edge) => edge.node).filter((
-    post,
-  ) =>
-    (post.visibility === "PUBLIC" || post.visibility === "UNLISTED") &&
-    (!articlesOnly || post.__typename === "Article")
-  );
+  const posts = account.actor.posts.edges
+    .map((edge) => edge.node)
+    .filter(
+      (post) =>
+        (post.visibility === "PUBLIC" || post.visibility === "UNLISTED") &&
+        (!articlesOnly || post.__typename === "Article"),
+    );
 
   const feed = new Feed({
     id: canonicalUrl.toString(),
     link: profileUrl.toString(),
     title: account.name,
-    description: account.actor.bio == null
-      ? undefined
-      : stripHtml(account.actor.bio),
+    description:
+      account.actor.bio == null ? undefined : stripHtml(account.actor.bio),
     generator: "Hackers' Pub",
     image: avatarUrl,
     favicon: avatarUrl,
-    updated: posts.length > 0
-      ? new Date(posts[0].updated)
-      : new Date(account.updated),
+    updated:
+      posts.length > 0 ? new Date(posts[0].updated) : new Date(account.updated),
     copyright: account.name,
     feedLinks: {
       atom: canonicalUrl.toString(),
@@ -126,13 +125,14 @@ export async function GET({ params, request }: APIEvent) {
       ],
       date: new Date(post.updated),
       published: new Date(post.published),
-      image: post.media.length > 0
-        ? {
-          url: post.media[0].url,
-          title: post.media[0].alt ?? undefined,
-          type: post.media[0].type ?? undefined,
-        }
-        : undefined,
+      image:
+        post.media.length > 0
+          ? {
+              url: post.media[0].url,
+              title: post.media[0].alt ?? undefined,
+              type: post.media[0].type ?? undefined,
+            }
+          : undefined,
     });
   }
 

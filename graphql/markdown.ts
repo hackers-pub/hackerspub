@@ -72,4 +72,5 @@ builder.queryField("renderMarkdown", (t) =>
       });
       return rendered.html;
     },
-  }));
+  }),
+);

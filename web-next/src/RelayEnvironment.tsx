@@ -29,11 +29,13 @@ const UPSTREAM_BODY_PREVIEW_LENGTH = 2048;
 
 function isSensitiveResponseHeader(name: string): boolean {
   const headerName = name.toLowerCase();
-  return headerName.includes("cookie") ||
+  return (
+    headerName.includes("cookie") ||
     headerName.includes("authorization") ||
     headerName.includes("token") ||
     headerName.includes("secret") ||
-    headerName.includes("key");
+    headerName.includes("key")
+  );
 }
 
 function getSafeResponseHeaders(headers: Headers): Record<string, string> {
@@ -150,10 +152,7 @@ function reportUpstreamError(args: {
   return error;
 }
 
-const fetchFn: FetchFunction = async (
-  params,
-  variables,
-) => {
+const fetchFn: FetchFunction = async (params, variables) => {
   "use server";
 
   if (!params.text) throw new Error("Operation document must be provided");
@@ -175,9 +174,10 @@ const fetchFn: FetchFunction = async (
   // instead of mutating the request's isolation scope, so it doesn't
   // conflict with the account-uuid-based `setUser` the layout fires once
   // the viewer query resolves later in the same request.
-  const userIdentity = sessionId == null
-    ? undefined
-    : { id: await fingerprintSessionId(sessionId) };
+  const userIdentity =
+    sessionId == null
+      ? undefined
+      : { id: await fingerprintSessionId(sessionId) };
 
   let response: Response;
   let responseText: string;
@@ -244,7 +244,9 @@ const fetchFn: FetchFunction = async (
       cause instanceof SyntaxError &&
       cause.message === "Unexpected end of JSON input" &&
       upstreamSignal?.aborted
-    ) throw cause;
+    ) {
+      throw cause;
+    }
     // A non-OK status whose body isn't JSON is an upstream HTTP failure, not
     // a parsing defect on our side: e.g. Caddy returns a 504 Gateway Timeout
     // with an empty body when the GraphQL server doesn't respond in time, and
@@ -335,13 +337,15 @@ function addRelayRequestBreadcrumb(
 function isGraphQLSingularResponse(response: unknown): boolean {
   if (response == null || typeof response !== "object") return false;
   if ("data" in response) return isGraphQLData(response.data);
-  return "errors" in response &&
+  return (
+    "errors" in response &&
     Array.isArray(response.errors) &&
-    response.errors.length > 0;
+    response.errors.length > 0
+  );
 }
 
 function isGraphQLData(data: unknown): boolean {
-  return data === null || typeof data === "object" && !Array.isArray(data);
+  return data === null || (typeof data === "object" && !Array.isArray(data));
 }
 
 function isGraphQLResponse(response: unknown): response is GraphQLResponse {
@@ -351,9 +355,7 @@ function isGraphQLResponse(response: unknown): response is GraphQLResponse {
 }
 
 function createInvalidGraphQLResponseError(): TypeError {
-  return new TypeError(
-    "Failed to fetch GraphQL response from server function",
-  );
+  return new TypeError("Failed to fetch GraphQL response from server function");
 }
 
 // Auto-retry budget for client-side queries when the browser can't reach
@@ -367,8 +369,8 @@ const RETRY_BACKOFF_FACTOR = 3;
 const RETRY_JITTER_RATIO = 0.3;
 
 function computeRetryDelayMs(attempt: number): number {
-  const base = RETRY_BASE_DELAY_MS *
-    Math.pow(RETRY_BACKOFF_FACTOR, attempt - 1);
+  const base =
+    RETRY_BASE_DELAY_MS * Math.pow(RETRY_BACKOFF_FACTOR, attempt - 1);
   return base + Math.random() * RETRY_JITTER_RATIO * base;
 }
 
@@ -457,8 +459,8 @@ function createRelayEnvironment(): IEnvironment {
         const callable: FetchFunction = isServer
           ? fetchFn
           : (fetchFn as ClientFetchFn).withOptions({
-            signal: controller.signal,
-          });
+              signal: controller.signal,
+            });
         const handleAttemptError = (error: Error) => {
           // Treat aborts as a normal completion: the subscriber is
           // gone, and we don't want a toast or a Sentry capture for a
@@ -468,7 +470,8 @@ function createRelayEnvironment(): IEnvironment {
             return;
           }
           if (
-            canRetry && attempt < MAX_RETRY_ATTEMPTS &&
+            canRetry &&
+            attempt < MAX_RETRY_ATTEMPTS &&
             isNetworkError(error)
           ) {
             // Drop the failed attempt before scheduling the next one so
@@ -483,40 +486,40 @@ function createRelayEnvironment(): IEnvironment {
         // both through `Observable.from` so the inner subscription's
         // `next`/`complete`/`error` are forwarded faithfully and we can
         // unsubscribe it from cleanup.
-        currentSubscription = Observable
-          .from(callable(params, variables, cacheConfig))
-          .subscribe({
-            next: (response) => {
-              if (!isGraphQLResponse(response)) {
-                handleAttemptError(createInvalidGraphQLResponseError());
-                return;
-              }
-              if (!isServer && isExpectedAuthResponse(response)) {
-                // The root viewer snapshot can remain authenticated after a
-                // session expires. Reload so it is fetched again and the
-                // protected route's normal sign-in redirect takes over.
-                currentController = null;
-                currentSubscription = null;
-                window.location.reload();
-                sink.complete();
-                return;
-              }
-              sink.next(response);
-            },
-            complete: () => {
-              // Null out the controller and subscription before calling
-              // sink.complete() so that the synchronous cleanup Relay runs
-              // inside sink.complete() does not call abort() on a request
-              // that already finished. SolidStart's withOptions proxy
-              // registers an abort-event listener that rejects an internal
-              // Promise; if abort() fires after the fetch resolved, that
-              // Promise rejects with no handler → unhandled AbortError.
+        currentSubscription = Observable.from(
+          callable(params, variables, cacheConfig),
+        ).subscribe({
+          next: (response) => {
+            if (!isGraphQLResponse(response)) {
+              handleAttemptError(createInvalidGraphQLResponseError());
+              return;
+            }
+            if (!isServer && isExpectedAuthResponse(response)) {
+              // The root viewer snapshot can remain authenticated after a
+              // session expires. Reload so it is fetched again and the
+              // protected route's normal sign-in redirect takes over.
               currentController = null;
               currentSubscription = null;
+              window.location.reload();
               sink.complete();
-            },
-            error: handleAttemptError,
-          });
+              return;
+            }
+            sink.next(response);
+          },
+          complete: () => {
+            // Null out the controller and subscription before calling
+            // sink.complete() so that the synchronous cleanup Relay runs
+            // inside sink.complete() does not call abort() on a request
+            // that already finished. SolidStart's withOptions proxy
+            // registers an abort-event listener that rejects an internal
+            // Promise; if abort() fires after the fetch resolved, that
+            // Promise rejects with no handler → unhandled AbortError.
+            currentController = null;
+            currentSubscription = null;
+            sink.complete();
+          },
+          error: handleAttemptError,
+        });
       };
 
       attemptOnce();
@@ -527,7 +530,7 @@ function createRelayEnvironment(): IEnvironment {
         clearOnlineListener();
         abortCurrent();
       };
-    })
+    }),
   );
   const store = new Store(new RecordSource());
   return new Environment({ store, network });
@@ -548,5 +551,5 @@ function getRequestEnvironment(): IEnvironment | undefined {
 
 export function createEnvironment(): IEnvironment {
   if (isServer) return getRequestEnvironment() ?? createRelayEnvironment();
-  return clientEnvironment ??= createRelayEnvironment();
+  return (clientEnvironment ??= createRelayEnvironment());
 }

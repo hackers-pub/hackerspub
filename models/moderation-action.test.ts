@@ -39,9 +39,10 @@ interface SentActivity {
   activity: unknown;
 }
 
-function recordingFedCtx(
-  tx: Transaction,
-): { fedCtx: ReturnType<typeof createFedCtx>; sent: SentActivity[] } {
+function recordingFedCtx(tx: Transaction): {
+  fedCtx: ReturnType<typeof createFedCtx>;
+  sent: SentActivity[];
+} {
   const fedCtx = createFedCtx(tx);
   const sent: SentActivity[] = [];
   // deno-lint-ignore no-explicit-any
@@ -62,7 +63,8 @@ async function makeModerator(tx: Transaction, username = "moderator") {
     name: "Moderator",
     email: `${username}@example.com`,
   });
-  await tx.update(accountTable)
+  await tx
+    .update(accountTable)
     .set({ moderator: true })
     .where(eq(accountTable.id, moderator.account.id));
   const account = await tx.query.accountTable.findFirst({
@@ -147,8 +149,9 @@ describe("takeModerationAction()", () => {
       });
       assert.equal(updatedActor?.suspended, null);
       // A dismissal without a message does not notify the reported user.
-      const notifications = await tx.query.moderationNotificationTable
-        .findMany({ where: { type: "action_taken" } });
+      const notifications = await tx.query.moderationNotificationTable.findMany(
+        { where: { type: "action_taken" } },
+      );
       assert.equal(notifications.length, 0);
       assert.equal(sent.length, 0);
     });
@@ -176,8 +179,9 @@ describe("takeModerationAction()", () => {
         where: { id: targetActor.id },
       });
       assert.equal(updatedActor?.suspended, null);
-      const notifications = await tx.query.moderationNotificationTable
-        .findMany({ where: { type: "action_taken" } });
+      const notifications = await tx.query.moderationNotificationTable.findMany(
+        { where: { type: "action_taken" } },
+      );
       assert.equal(notifications.length, 1);
       assert.equal(notifications[0].actionId, action.id);
       const targetAccount = await tx.query.actorTable.findFirst({
@@ -579,11 +583,7 @@ describe("assignCase()", () => {
     await withRollback(async (tx) => {
       const moderator = await makeModerator(tx);
       const { flag } = await makeReportedPostCase(tx);
-      const updated = await assignCase(
-        tx,
-        flag.caseId,
-        moderator.account.id,
-      );
+      const updated = await assignCase(tx, flag.caseId, moderator.account.id);
       assert.equal(updated?.assignedModeratorId, moderator.account.id);
       assert.equal(updated?.status, "reviewing");
       // The member report follows the case into review.
@@ -665,7 +665,8 @@ describe("getViolationHistory()", () => {
       assert.equal(history[0].id, action.id);
       // A warning older than a year with no subsequent violation drops out.
       const twoYearsAgo = new Date(Date.now() - 2 * 365 * 24 * HOUR);
-      await tx.update(flagActionTable)
+      await tx
+        .update(flagActionTable)
         .set({ created: twoYearsAgo })
         .where(eq(flagActionTable.id, action.id));
       const stale = await getViolationHistory(tx, targetActor.id);
@@ -709,19 +710,22 @@ describe("enqueueExpiredSuspensionRescores()", () => {
         email: "expiredlocal@example.com",
       });
       const now = Date.now();
-      await tx.update(actorTable)
+      await tx
+        .update(actorTable)
         .set({
           suspended: new Date(now - 3 * HOUR),
           suspendedUntil: new Date(now - HOUR),
         })
         .where(eq(actorTable.id, expiredRemote.id));
-      await tx.update(actorTable)
+      await tx
+        .update(actorTable)
         .set({
           suspended: new Date(now - HOUR),
           suspendedUntil: new Date(now + HOUR),
         })
         .where(eq(actorTable.id, activeRemote.id));
-      await tx.update(actorTable)
+      await tx
+        .update(actorTable)
         .set({
           suspended: new Date(now - 3 * HOUR),
           suspendedUntil: new Date(now - HOUR),
@@ -750,7 +754,8 @@ describe("sweepExpiredSuspensionRescores()", () => {
         host: "remote.example",
       });
       // Expired well before any 10-minute fallback window:
-      await tx.update(actorTable)
+      await tx
+        .update(actorTable)
         .set({
           suspended: new Date(now - 10 * 24 * HOUR),
           suspendedUntil: new Date(now - 5 * 24 * HOUR),
@@ -758,7 +763,8 @@ describe("sweepExpiredSuspensionRescores()", () => {
         .where(eq(actorTable.id, longExpired.id));
       // Simulate a worker that last swept before that expiry:
       const watermark = new Date(now - 7 * 24 * HOUR).toISOString();
-      await tx.insert(adminStateTable)
+      await tx
+        .insert(adminStateTable)
         .values({
           key: "expiredSuspensionRescoreSweep",
           value: watermark,

@@ -26,7 +26,7 @@ import {
   TextFieldInput,
   TextFieldLabel,
 } from "~/components/ui/text-field.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { useArticleComposer } from "./ArticleComposerContext.tsx";
 import { ComposerActionBar } from "./shared/ComposerActionBar.tsx";
 
@@ -134,7 +134,8 @@ export function ArticleComposerPublishStep() {
               type="checkbox"
               checked={ctx.allowLlmTranslation()}
               onChange={(e) =>
-                ctx.setAllowLlmTranslation(e.currentTarget.checked)}
+                ctx.setAllowLlmTranslation(e.currentTarget.checked)
+              }
               aria-describedby="allow-llm-translation-description"
               class="mt-0.5 cursor-pointer rounded border-input"
             />

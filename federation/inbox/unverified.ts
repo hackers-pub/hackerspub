@@ -9,10 +9,12 @@ export function shouldAcknowledgeUnverifiedActivity(
   activity: Activity,
   reason: UnverifiedActivityReason,
 ): boolean {
-  return activity instanceof Delete &&
+  return (
+    activity instanceof Delete &&
     reason.type === "keyFetchError" &&
     "status" in reason.result &&
-    reason.result.status === 410;
+    reason.result.status === 410
+  );
 }
 
 export function onUnverifiedActivity(
@@ -21,12 +23,10 @@ export function onUnverifiedActivity(
   reason: UnverifiedActivityReason,
 ): Response | void {
   if (!shouldAcknowledgeUnverifiedActivity(activity, reason)) return;
-  const keyFetchError = reason as
-    & Extract<
-      UnverifiedActivityReason,
-      { type: "keyFetchError" }
-    >
-    & { result: { status: number } };
+  const keyFetchError = reason as Extract<
+    UnverifiedActivityReason,
+    { type: "keyFetchError" }
+  > & { result: { status: number } };
   logger.info(
     "Acknowledging unverified Delete from gone actor to stop retries: " +
       "{actorId} ({keyId}, HTTP {status})",

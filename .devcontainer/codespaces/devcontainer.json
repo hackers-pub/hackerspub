@@ -4,10 +4,7 @@
   // Path to docker-compose.yml is relative to this devcontainer.json file
   // If this file is in .devcontainer/codespaces/, and compose is at the root,
   // then it should be ../../docker-compose.yml
-  "dockerComposeFile": [
-    "../../docker-compose.yml",
-    "docker-compose.yml"
-  ],
+  "dockerComposeFile": ["../../docker-compose.yml", "docker-compose.yml"],
   "service": "graphql",
   "workspaceFolder": "/app", // Your project code is mounted to /app
   "features": {
@@ -22,10 +19,7 @@
     "ghcr.io/devcontainers/features/docker-in-docker:2": {},
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
-  "forwardPorts": [
-    8000,
-    5432
-  ],
+  "forwardPorts": [8000, 5432],
   "portsAttributes": {
     "8000": {
       "label": "Hackers' Pub gateway",

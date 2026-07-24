@@ -32,7 +32,7 @@ import {
   supportedImageMimeAccept,
 } from "~/lib/supportedImageFile.ts";
 import { cn } from "~/lib/utils.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 export interface MarkdownEditorProps {
   value?: string;
@@ -193,7 +193,8 @@ function applyInlineStyle(view: EditorView, style: InlineStyle): void {
     });
   } else {
     const selectedText = state.sliceDoc(selection.from, selection.to);
-    const wrapped = selectedText.startsWith(style.prefix) &&
+    const wrapped =
+      selectedText.startsWith(style.prefix) &&
       selectedText.endsWith(style.suffix);
 
     if (wrapped) {
@@ -241,7 +242,7 @@ function applyBlockStyle(view: EditorView, style: BlockStyle): void {
       });
     } else {
       const existingPrefix = blockStyles.find((s) =>
-        lineText.startsWith(s.prefix)
+        lineText.startsWith(s.prefix),
       );
       if (existingPrefix) {
         changes.push({
@@ -339,10 +340,7 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
 
     try {
       const result = await local.onImageUpload(file);
-      const alt = file.name.replace(/\.[^.]+$/, "").replace(
-        /[\[\]\\]/g,
-        "\\$&",
-      );
+      const alt = file.name.replace(/\.[^.]+$/, "").replace(/[[\]\\]/g, "\\$&");
       replacePlaceholder(view, placeholder, `![${alt}](${result.url})\n`);
     } catch {
       replacePlaceholder(view, placeholder, "");
@@ -369,21 +367,21 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
     // it grows from `minHeight`.
     const heightTheme = local.fillHeight
       ? EditorView.theme({
-        "&": {
-          height: "100%",
-        },
-        ".cm-scroller": {
-          overflow: "auto",
-        },
-      })
+          "&": {
+            height: "100%",
+          },
+          ".cm-scroller": {
+            overflow: "auto",
+          },
+        })
       : EditorView.theme({
-        ".cm-content, .cm-gutter": {
-          minHeight: local.minHeight ?? "80px",
-        },
-        ".cm-scroller": {
-          minHeight: local.minHeight ?? "80px",
-        },
-      });
+          ".cm-content, .cm-gutter": {
+            minHeight: local.minHeight ?? "80px",
+          },
+          ".cm-scroller": {
+            minHeight: local.minHeight ?? "80px",
+          },
+        });
 
     const extensions = [
       editorTheme,
@@ -419,14 +417,15 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
           const files = event.dataTransfer?.files;
           if (!files || files.length === 0) return false;
           const imageFiles = Array.from(files).filter((f) =>
-            hasSupportedImageContentType(f)
+            hasSupportedImageContentType(f),
           );
           if (imageFiles.length === 0) return false;
           event.preventDefault();
-          const pos = view.posAtCoords({
-            x: event.clientX,
-            y: event.clientY,
-          }) ?? view.state.selection.main.head;
+          const pos =
+            view.posAtCoords({
+              x: event.clientX,
+              y: event.clientY,
+            }) ?? view.state.selection.main.head;
           for (const file of imageFiles) {
             handleImageUpload(file, view, pos);
           }
@@ -442,11 +441,7 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
             const file = item.getAsFile();
             if (file != null && hasSupportedImageContentType(file)) {
               event.preventDefault();
-              handleImageUpload(
-                file,
-                view,
-                view.state.selection.main.head,
-              );
+              handleImageUpload(file, view, view.state.selection.main.head);
               return true;
             }
           }
@@ -622,9 +617,11 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
       <div
         ref={containerRef}
         class={cn(local.fillHeight && "min-h-0 flex-1")}
-        style={local.fillHeight
-          ? undefined
-          : { "min-height": local.minHeight ?? "80px" }}
+        style={
+          local.fillHeight
+            ? undefined
+            : { "min-height": local.minHeight ?? "80px" }
+        }
         {...others}
       />
     </div>

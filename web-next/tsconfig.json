@@ -1,15 +1,21 @@
 {
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "verbatimModuleSyntax": false,
     "paths": {
-      "~/*": [
-        "./src/*"
-      ]
+      "~/*": ["./src/*"]
     },
     "jsx": "react-jsx",
     "jsxImportSource": "solid-js",
     "types": [
       "@solidjs/start/env",
+      "node",
+      "temporal-polyfill/global",
       "unplugin-icons/types/solid"
     ]
-  }
+  },
+  "include": ["../types/**/*.d.ts", "src/**/*.ts", "src/**/*.tsx", "*.ts"]
 }

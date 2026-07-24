@@ -8,7 +8,7 @@ import { ArticleComposer } from "~/components/article-composer/index.ts";
 import { Title } from "~/components/Title.tsx";
 import { WideContainer } from "~/components/WideContainer.tsx";
 import { Button } from "~/components/ui/button.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { IdQuery } from "./__generated__/IdQuery.graphql.ts";
 import {
   createStablePreloadedQuery,
@@ -25,12 +25,7 @@ const EditDraftViewerQuery = graphql`
 `;
 
 const loadEditDraftViewerQuery = routePreloadedQuery(
-  () =>
-    loadQuery<IdQuery>(
-      useRelayEnvironment()(),
-      EditDraftViewerQuery,
-      {},
-    ),
+  () => loadQuery<IdQuery>(useRelayEnvironment()(), EditDraftViewerQuery, {}),
   "loadEditDraftViewerQuery",
 );
 
@@ -54,27 +49,28 @@ export default function ArticleDraftPage() {
   onCleanup(() => {
     active = false;
   });
-  const data = createStablePreloadedQuery<IdQuery>(
-    EditDraftViewerQuery,
-    () => loadEditDraftViewerQuery(),
+  const data = createStablePreloadedQuery<IdQuery>(EditDraftViewerQuery, () =>
+    loadEditDraftViewerQuery(),
   );
 
-  createEffect(on(
-    () => params.id,
-    (draftUuid) => {
-      if (draftUuid === savedNavigationUuid) {
-        savedNavigationUuid = undefined;
-        return;
-      }
+  createEffect(
+    on(
+      () => params.id,
+      (draftUuid) => {
+        if (draftUuid === savedNavigationUuid) {
+          savedNavigationUuid = undefined;
+          return;
+        }
 
-      savedNavigationUuid = undefined;
-      setSavedDraftId(undefined);
-      setComposerState({
-        draftUuid: draftUuid === "new" ? undefined : draftUuid,
-      });
-    },
-    { defer: true },
-  ));
+        savedNavigationUuid = undefined;
+        setSavedDraftId(undefined);
+        setComposerState({
+          draftUuid: draftUuid === "new" ? undefined : draftUuid,
+        });
+      },
+      { defer: true },
+    ),
+  );
 
   const handleSaved = (
     source: ComposerState,
@@ -93,8 +89,10 @@ export default function ArticleDraftPage() {
 
   return (
     <Show
-      when={data()?.viewer?.username ===
-        decodeRouteParam(params.handle!).substring(1)}
+      when={
+        data()?.viewer?.username ===
+        decodeRouteParam(params.handle!).substring(1)
+      }
       fallback={
         <WideContainer class="p-6">
           <HttpStatusCode code={403} />
@@ -108,9 +106,7 @@ export default function ArticleDraftPage() {
               : t`Please sign in to access this page`}
           </p>
           <div class="flex gap-2">
-            <Button onClick={() => window.history.back()}>
-              {t`Go back`}
-            </Button>
+            <Button onClick={() => window.history.back()}>{t`Go back`}</Button>
             <Show keyed when={data()?.viewer?.username}>
               {(username) => (
                 <A href={`/@${username}/drafts`}>
@@ -128,9 +124,12 @@ export default function ArticleDraftPage() {
           {(state) => (
             <ArticleComposer
               draftUuid={state.draftUuid}
-              onSaved={state.draftUuid == null
-                ? (draftId, draftUuid) => handleSaved(state, draftId, draftUuid)
-                : undefined}
+              onSaved={
+                state.draftUuid == null
+                  ? (draftId, draftUuid) =>
+                      handleSaved(state, draftId, draftUuid)
+                  : undefined
+              }
               viewerId={data()?.viewer?.id}
             />
           )}

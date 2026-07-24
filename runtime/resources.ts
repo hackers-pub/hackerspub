@@ -1,5 +1,7 @@
 import { anthropic } from "@ai-sdk/anthropic";
 import { google } from "@ai-sdk/google";
+import "@aws-sdk/client-s3";
+import "@aws-sdk/s3-request-presigner";
 import type { Federation, FederationOptions } from "@fedify/fedify";
 import { PostgresKvStore, PostgresMessageQueue } from "@fedify/postgres";
 import { RedisKvStore } from "@fedify/redis";
@@ -49,9 +51,10 @@ export function createDatabaseResources(
 }
 
 export function createKeyValueResource(config: KeyValueConfig): Keyv {
-  const adapter = config.url.protocol === "file:"
-    ? new KeyvFile({ filename: fileURLToPath(config.url) })
-    : new KeyvRedis(config.url.href);
+  const adapter =
+    config.url.protocol === "file:"
+      ? new KeyvFile({ filename: fileURLToPath(config.url) })
+      : new KeyvRedis(config.url.href);
   return new Keyv(adapter);
 }
 
@@ -130,10 +133,7 @@ export interface FederationResourceOptions {
 
 export function getFederationBehaviorOptions(
   options: FederationResourceOptions,
-): Pick<
-  FederationOptions<ContextData>,
-  "firstKnock" | "manuallyStartQueue"
-> {
+): Pick<FederationOptions<ContextData>, "firstKnock" | "manuallyStartQueue"> {
   return {
     manuallyStartQueue: options.manuallyStartQueue,
     ...(options.firstKnock == null ? {} : { firstKnock: options.firstKnock }),
@@ -150,10 +150,10 @@ interface FederationQueueRunner<TContextData> {
 type LifecycleCompletion =
   | { readonly source: "queue" | "server"; readonly successful: true }
   | {
-    readonly source: "queue" | "server";
-    readonly successful: false;
-    readonly error: unknown;
-  };
+      readonly source: "queue" | "server";
+      readonly successful: false;
+      readonly error: unknown;
+    };
 
 function isAbortError(error: unknown): boolean {
   return (
@@ -271,33 +271,24 @@ export async function createFederationResource(
   readonly federation: Federation<ContextData>;
   close(): Promise<void>;
 }> {
-  const [{ builder }, {
-    recordOutboxDeliveryError,
-    TransactionalOutboxQueue,
-  }] = await Promise.all([
-    import("@hackerspub/federation"),
-    import("@hackerspub/federation/outbox-queue"),
-  ]);
-  const redis = config.kv.url.protocol === "redis:" ||
-      config.kv.url.protocol === "rediss:"
-    ? new Redis(config.kv.url.href, {
-      family: config.kv.url.hostname.endsWith(".upstash.io") ? 6 : 4,
-    })
-    : undefined;
-  const federationKv = redis == null
-    ? new PostgresKvStore(postgres)
-    : new RedisKvStore(redis);
+  const [{ builder }, { recordOutboxDeliveryError, TransactionalOutboxQueue }] =
+    await Promise.all([
+      import("@hackerspub/federation"),
+      import("@hackerspub/federation/outbox-queue"),
+    ]);
+  const redis =
+    config.kv.url.protocol === "redis:" || config.kv.url.protocol === "rediss:"
+      ? new Redis(config.kv.url.href, {
+          family: config.kv.url.hostname.endsWith(".upstash.io") ? 6 : 4,
+        })
+      : undefined;
+  const federationKv =
+    redis == null ? new PostgresKvStore(postgres) : new RedisKvStore(redis);
   const inboxQueue = new PostgresMessageQueue(postgres, {
     handlerTimeout: { seconds: 180 },
   });
-  const fanoutQueue = new TransactionalOutboxQueue(
-    db,
-    "activitypub.fanout",
-  );
-  const outboxQueue = new TransactionalOutboxQueue(
-    db,
-    "activitypub.delivery",
-  );
+  const fanoutQueue = new TransactionalOutboxQueue(db, "activitypub.fanout");
+  const outboxQueue = new TransactionalOutboxQueue(db, "activitypub.delivery");
   let federation: Federation<ContextData>;
   try {
     federation = await builder.build({

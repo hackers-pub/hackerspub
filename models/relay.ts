@@ -83,11 +83,14 @@ async function subscribeRelayOperation(
   const { db } = fedCtx;
   const id = generateUuidV7();
   const followIri = getRelayFollowIri(fedCtx, id);
-  const rows = await db.insert(relaySubscriptionTable).values({
-    id,
-    actorId: relayActor.id,
-    followIri: followIri.href,
-  }).onConflictDoNothing({ target: relaySubscriptionTable.actorId })
+  const rows = await db
+    .insert(relaySubscriptionTable)
+    .values({
+      id,
+      actorId: relayActor.id,
+      followIri: followIri.href,
+    })
+    .onConflictDoNothing({ target: relaySubscriptionTable.actorId })
     .returning();
   let subscription = rows[0];
   if (subscription == null) {
@@ -164,7 +167,8 @@ async function unsubscribeRelayOperation(
       preferSharedInbox: false,
     },
   );
-  const rows = await db.delete(relaySubscriptionTable)
+  const rows = await db
+    .delete(relaySubscriptionTable)
     .where(eq(relaySubscriptionTable.id, subscription.id))
     .returning();
   if (rows.length < 1) return undefined;
@@ -194,12 +198,18 @@ export async function markRelaySubscriptionAccepted(
   }
   // Conditional update on a still-pending row, so a concurrent duplicate
   // `Accept` cannot overwrite the original acceptance timestamp.
-  const rows = await db.update(relaySubscriptionTable).set({
-    accepted: sql`CURRENT_TIMESTAMP`,
-  }).where(and(
-    eq(relaySubscriptionTable.id, subscription.id),
-    isNull(relaySubscriptionTable.accepted),
-  )).returning();
+  const rows = await db
+    .update(relaySubscriptionTable)
+    .set({
+      accepted: sql`CURRENT_TIMESTAMP`,
+    })
+    .where(
+      and(
+        eq(relaySubscriptionTable.id, subscription.id),
+        isNull(relaySubscriptionTable.accepted),
+      ),
+    )
+    .returning();
   if (rows.length > 0) return rows[0];
   // Nothing flipped: the row was already accepted, or was deleted between the
   // read and the update.  Re-read to return the current truth (`undefined` if
@@ -227,7 +237,8 @@ export async function removeRelaySubscription(
   if (subscription == null || subscription.actor.iri !== relayActorIri) {
     return undefined;
   }
-  const rows = await db.delete(relaySubscriptionTable)
+  const rows = await db
+    .delete(relaySubscriptionTable)
     .where(eq(relaySubscriptionTable.id, subscription.id))
     .returning();
   return rows[0];

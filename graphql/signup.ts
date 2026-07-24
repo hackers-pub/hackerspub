@@ -49,9 +49,7 @@ interface SignupValidationErrors {
   bio?: BioValidationError;
 }
 
-const SignupInfoRef = builder.objectRef<SignupInfo>(
-  "SignupInfo",
-);
+const SignupInfoRef = builder.objectRef<SignupInfo>("SignupInfo");
 
 SignupInfoRef.implement({
   description:
@@ -245,7 +243,10 @@ builder.mutationFields((t) => ({
         const existingUser = await ctx.db.query.accountTable.findFirst({
           where: { username: trimmedUsername },
         });
-        if (existingUser || await isUsernameReserved(ctx.db, trimmedUsername)) {
+        if (
+          existingUser ||
+          (await isUsernameReserved(ctx.db, trimmedUsername))
+        ) {
           errors.username = "USERNAME_ALREADY_TAKEN";
         }
       }

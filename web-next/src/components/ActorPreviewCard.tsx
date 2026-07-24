@@ -6,7 +6,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "~/components/ui/avatar.tsx";
-import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
+import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
 import type { ActorPreviewCard_actor$key } from "./__generated__/ActorPreviewCard_actor.graphql.ts";
 import { FollowButton } from "./FollowButton.tsx";
 import { InternalLink } from "./InternalLink.tsx";
@@ -20,8 +20,9 @@ export function ActorPreviewCard(props: ActorPreviewCardProps) {
   const actor = createFragment(
     graphql`
       fragment ActorPreviewCard_actor on Actor
-        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
-      {
+      @argumentDefinitions(
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
         id
         name
         username
@@ -53,21 +54,17 @@ export function ActorPreviewCard(props: ActorPreviewCardProps) {
           a.local ? `/@${a.username}` : `/${a.handle}`;
         const followingText = () =>
           i18n._(
-            msg`${
-              plural(a.followeesCount.totalCount, {
-                one: "# following",
-                other: "# following",
-              })
-            }`,
+            msg`${plural(a.followeesCount.totalCount, {
+              one: "# following",
+              other: "# following",
+            })}`,
           );
         const followersText = () =>
           i18n._(
-            msg`${
-              plural(a.followersCount.totalCount, {
-                one: "# follower",
-                other: "# followers",
-              })
-            }`,
+            msg`${plural(a.followersCount.totalCount, {
+              one: "# follower",
+              other: "# followers",
+            })}`,
           );
         return (
           <div class="flex flex-col">
@@ -123,10 +120,7 @@ export function ActorPreviewCard(props: ActorPreviewCardProps) {
               </div>
             </Show>
             <div class="px-4 pb-4 text-sm text-muted-foreground">
-              <Show
-                when={a.local}
-                fallback={<span>{followingText()}</span>}
-              >
+              <Show when={a.local} fallback={<span>{followingText()}</span>}>
                 <InternalLink
                   href={`/@${a.username}/following`}
                   internalHref={`/@${a.username}/following`}
@@ -135,10 +129,7 @@ export function ActorPreviewCard(props: ActorPreviewCardProps) {
                 </InternalLink>
               </Show>
               {" · "}
-              <Show
-                when={a.local}
-                fallback={<span>{followersText()}</span>}
-              >
+              <Show when={a.local} fallback={<span>{followersText()}</span>}>
                 <InternalLink
                   href={`/@${a.username}/followers`}
                   internalHref={`/@${a.username}/followers`}

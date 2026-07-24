@@ -33,10 +33,10 @@ test("getAncestorChain() walks the chain nearest-first", async () => {
     });
 
     const chain = await getAncestorChain(tx, leaf.id);
-    assert.deepEqual(
-      chain,
-      [{ id: middle.id, depth: 1 }, { id: root.id, depth: 2 }],
-    );
+    assert.deepEqual(chain, [
+      { id: middle.id, depth: 1 },
+      { id: root.id, depth: 2 },
+    ]);
 
     assert.deepEqual(await getAncestorChain(tx, root.id), []);
   });
@@ -62,11 +62,10 @@ test("getAncestorChain() respects the limit option", async () => {
     }
 
     const chain = await getAncestorChain(tx, ids[4], { limit: 3 });
-    assert.deepEqual(chain.map((entry) => entry.id), [
-      ids[3],
-      ids[2],
-      ids[1],
-    ]);
+    assert.deepEqual(
+      chain.map((entry) => entry.id),
+      [ids[3], ids[2], ids[1]],
+    );
   });
 });
 
@@ -87,7 +86,8 @@ test("getAncestorChain() terminates on reply cycles", async () => {
       replyTargetId: a.id,
     });
     // Forge a cycle: a replies to b while b replies to a.
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ replyTargetId: b.id })
       .where(eq(postTable.id, a.id));
     const { post: leaf } = await insertNotePost(tx, {
@@ -97,7 +97,10 @@ test("getAncestorChain() terminates on reply cycles", async () => {
     });
 
     const chain = await getAncestorChain(tx, leaf.id);
-    assert.deepEqual(chain.map((entry) => entry.id), [a.id, b.id]);
+    assert.deepEqual(
+      chain.map((entry) => entry.id),
+      [a.id, b.id],
+    );
   });
 });
 
@@ -113,7 +116,8 @@ test("getAncestorChain() never returns the starting post for a self-reply", asyn
       content: "self",
     });
     // Forge a self-reply.
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ replyTargetId: post.id })
       .where(eq(postTable.id, post.id));
 
@@ -217,7 +221,10 @@ test("getDescendantPage() resumes from a cursor across subtrees", async () => {
       maxDepth: 20,
     });
     assert.equal(first.hasMore, true);
-    assert.deepEqual(first.entries.map((entry) => entry.id), [r1.id, r1a.id]);
+    assert.deepEqual(
+      first.entries.map((entry) => entry.id),
+      [r1.id, r1a.id],
+    );
 
     const second = await getDescendantPage(tx, root.id, {
       after: first.entries[1].cursor,
@@ -225,7 +232,10 @@ test("getDescendantPage() resumes from a cursor across subtrees", async () => {
       maxDepth: 20,
     });
     assert.equal(second.hasMore, false);
-    assert.deepEqual(second.entries.map((entry) => entry.id), [r2.id]);
+    assert.deepEqual(
+      second.entries.map((entry) => entry.id),
+      [r2.id],
+    );
   });
 });
 
@@ -255,7 +265,10 @@ test("getDescendantPage() caps traversal at maxDepth", async () => {
       limit: 10,
       maxDepth: 1,
     });
-    assert.deepEqual(page.entries.map((entry) => entry.id), [child.id]);
+    assert.deepEqual(
+      page.entries.map((entry) => entry.id),
+      [child.id],
+    );
   });
 });
 
@@ -291,10 +304,10 @@ test("getDescendantPage() breaks sibling timestamp ties by post id", async () =>
       limit: 10,
       maxDepth: 20,
     });
-    assert.deepEqual(page.entries.map((entry) => entry.id), [
-      first.id,
-      second.id,
-    ]);
+    assert.deepEqual(
+      page.entries.map((entry) => entry.id),
+      [first.id, second.id],
+    );
   });
 });
 
@@ -319,7 +332,8 @@ test("getDescendantPage() prunes censored subtrees, except for the author", asyn
       content: "buried",
       replyTargetId: censored.id,
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ censored: new Date() })
       .where(eq(postTable.id, censored.id));
 
@@ -334,10 +348,10 @@ test("getDescendantPage() prunes censored subtrees, except for the author", asyn
       maxDepth: 20,
       viewerActorId: author.account.actor.id,
     });
-    assert.deepEqual(own.entries.map((entry) => entry.id), [
-      censored.id,
-      buried.id,
-    ]);
+    assert.deepEqual(
+      own.entries.map((entry) => entry.id),
+      [censored.id, buried.id],
+    );
   });
 });
 
@@ -363,7 +377,8 @@ test("getDescendantPage() terminates on cycles and never re-emits the root", asy
       replyTargetId: x.id,
     });
     // Forge a cycle through the root: root replies to y.
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ replyTargetId: y.id })
       .where(eq(postTable.id, root.id));
 
@@ -371,7 +386,10 @@ test("getDescendantPage() terminates on cycles and never re-emits the root", asy
       limit: 10,
       maxDepth: 20,
     });
-    assert.deepEqual(page.entries.map((entry) => entry.id), [x.id, y.id]);
+    assert.deepEqual(
+      page.entries.map((entry) => entry.id),
+      [x.id, y.id],
+    );
   });
 });
 
@@ -432,7 +450,8 @@ test("getAncestorChain() does not duplicate a self-replying ancestor", async () 
     });
     // Hostile/federated data: the ancestor replies to itself. The chain must
     // still list it exactly once, not once per the base and recursive steps.
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ replyTargetId: root.id })
       .where(eq(postTable.id, root.id));
 

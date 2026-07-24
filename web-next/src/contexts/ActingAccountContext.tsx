@@ -70,9 +70,8 @@ export function organizationComposeAccountKey(
   accountId: string,
   attributionMode: PostAttributionMode,
 ): string {
-  const suffix = attributionMode === "ACTING_ACCOUNT_WITH_VIEWER"
-    ? "coauthor"
-    : "only";
+  const suffix =
+    attributionMode === "ACTING_ACCOUNT_WITH_VIEWER" ? "coauthor" : "only";
   return `${organizationActingAccountKey(accountId)}:${suffix}`;
 }
 
@@ -88,16 +87,16 @@ function parseOrganizationComposeAccountKey(
   if (match == null) return null;
   return {
     actingAccountId: match[1],
-    attributionMode: match[2] === "coauthor"
-      ? "ACTING_ACCOUNT_WITH_VIEWER"
-      : "ACTING_ACCOUNT_ONLY",
+    attributionMode:
+      match[2] === "coauthor"
+        ? "ACTING_ACCOUNT_WITH_VIEWER"
+        : "ACTING_ACCOUNT_ONLY",
   };
 }
 
 export const ActingAccountProvider: ParentComponent = (props) => {
-  const [personalAccount, setPersonalAccount] = createSignal<
-    ActingAccountSummary | null
-  >(null);
+  const [personalAccount, setPersonalAccount] =
+    createSignal<ActingAccountSummary | null>(null);
   const [organizations, setOrganizations] = createSignal<
     readonly ActingOrganizationMembership[]
   >([]);
@@ -147,9 +146,11 @@ export const ActingAccountProvider: ParentComponent = (props) => {
   const selectedOrganization = createMemo(() => {
     const accountId = parseOrganizationActingAccountKey(selectedKeySignal());
     if (accountId == null) return null;
-    return organizations().find((membership) =>
-      membership.organization.id === accountId
-    ) ?? null;
+    return (
+      organizations().find(
+        (membership) => membership.organization.id === accountId,
+      ) ?? null
+    );
   });
 
   const defaultComposeAccountKey = () => {
@@ -165,8 +166,8 @@ export const ActingAccountProvider: ParentComponent = (props) => {
     if (key === PERSONAL_COMPOSE_ACCOUNT_KEY) return {};
     const parsed = parseOrganizationComposeAccountKey(key);
     if (parsed == null) return {};
-    const valid = organizations().some((membership) =>
-      membership.organization.id === parsed.actingAccountId
+    const valid = organizations().some(
+      (membership) => membership.organization.id === parsed.actingAccountId,
     );
     return valid ? parsed : {};
   };

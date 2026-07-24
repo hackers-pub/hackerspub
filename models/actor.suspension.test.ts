@@ -34,7 +34,8 @@ test("persistActor() drops actors under an active federation block", async () =>
       host: "remote.example",
       iri: "https://remote.example/users/alice",
     });
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({
         suspended: new Date(Date.now() - HOUR),
         suspendedUntil: new Date(Date.now() + HOUR),
@@ -63,7 +64,8 @@ test("persistActor() resumes after the federation block expires", async () => {
       host: "remote.example",
       iri: "https://remote.example/users/alice",
     });
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({
         suspended: new Date(Date.now() - 2 * HOUR),
         suspendedUntil: new Date(Date.now() - HOUR),
@@ -84,7 +86,8 @@ test("cached federation-blocked actors cannot react", async () => {
       host: "remote.example",
       iri: "https://remote.example/users/blocked",
     });
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: new Date(Date.now() - HOUR) })
       .where(eq(actorTable.id, blocked.id));
     const author = await insertAccountWithActor(tx, {

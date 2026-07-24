@@ -28,7 +28,7 @@ import { ComposerActionBar } from "~/components/article-composer/shared/Composer
 import { ComposerEditorPanes } from "~/components/article-composer/shared/ComposerEditorPanes.tsx";
 import { ComposerTitleField } from "~/components/article-composer/shared/ComposerTitleField.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { getSupportedImageContentType } from "~/lib/supportedImageFile.ts";
 import { uploadMediumFile } from "~/lib/uploadMediumWithProgress.ts";
 import { attachArticleSourceMediumOnServer } from "~/lib/uploadImage.ts";
@@ -99,9 +99,8 @@ export default function ArticleEditPage() {
   const actingAccount = useActingAccount();
   const actingAccountId = () => actingAccount.selectedActingAccountId();
 
-  const data = createStablePreloadedQuery<editPageQuery>(
-    editPageQueryDef,
-    () => loadPageQuery(handle, idOrYear, slug, actingAccountId() ?? null),
+  const data = createStablePreloadedQuery<editPageQuery>(editPageQueryDef, () =>
+    loadPageQuery(handle, idOrYear, slug, actingAccountId() ?? null),
   );
 
   return (
@@ -115,9 +114,11 @@ export default function ArticleEditPage() {
           {(article) => (
             <ArticleEditForm
               $article={article}
-              viewerOrganizationIds={data.viewer?.organizationMemberships.map((
-                membership,
-              ) => membership.organization.id) ?? []}
+              viewerOrganizationIds={
+                data.viewer?.organizationMemberships.map(
+                  (membership) => membership.organization.id,
+                ) ?? []
+              }
             />
           )}
         </Show>
@@ -187,8 +188,9 @@ function ArticleEditForm(props: ArticleEditFormProps) {
   const article = createFragment(
     graphql`
       fragment edit_article on Article
-        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
-      {
+      @argumentDefinitions(
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
         id
         sourceId
         actor {
@@ -292,13 +294,12 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
       : props.actingAccountIdFallback;
   };
 
-  const [commitUpdate, isUpdating] = createMutation<
-    edit_updateArticle_Mutation
-  >(updateArticleMutation);
+  const [commitUpdate, isUpdating] =
+    createMutation<edit_updateArticle_Mutation>(updateArticleMutation);
 
   // Initialize form state from the original content (not translations).
-  const initialContent = article().contents?.find((c) =>
-    c.originalLanguage == null
+  const initialContent = article().contents?.find(
+    (c) => c.originalLanguage == null,
   );
   const [title, setTitle] = createSignal(initialContent?.title ?? "");
   const [markdown, setMarkdown] = createSignal(
@@ -397,9 +398,7 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
     if (next) renderPreview(markdown().trim());
   };
 
-  const handleImageUpload = async (
-    file: File,
-  ): Promise<{ url: string }> => {
+  const handleImageUpload = async (file: File): Promise<{ url: string }> => {
     const sourceId = article().sourceId;
     if (sourceId == null) {
       // Should be unreachable: federated remote articles fail the
@@ -420,9 +419,8 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
     } catch (error) {
       showToast({
         title: t`Error`,
-        description: error instanceof Error
-          ? error.message
-          : t`Failed to upload image`,
+        description:
+          error instanceof Error ? error.message : t`Failed to upload image`,
         variant: "error",
       });
       throw error;
@@ -444,9 +442,7 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
         },
       },
       async onCompleted(response) {
-        if (
-          response.updateArticle.__typename === "UpdateArticlePayload"
-        ) {
+        if (response.updateArticle.__typename === "UpdateArticlePayload") {
           showToast({
             title: t`Success`,
             description: t`Article updated`,
@@ -459,15 +455,14 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
             });
             navigate(new URL(articleUrl).pathname);
           }
-        } else if (
-          response.updateArticle.__typename === "InvalidInputError"
-        ) {
+        } else if (response.updateArticle.__typename === "InvalidInputError") {
           const inputPath = response.updateArticle.inputPath;
           showToast({
             title: t`Error`,
-            description: inputPath === "language"
-              ? t`Cannot change the language because translations already exist`
-              : t`Invalid input: ${inputPath}`,
+            description:
+              inputPath === "language"
+                ? t`Cannot change the language because translations already exist`
+                : t`Invalid input: ${inputPath}`,
             variant: "error",
           });
         } else if (
@@ -548,7 +543,8 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
                       type="checkbox"
                       checked={allowLlmTranslation()}
                       onChange={(e) =>
-                        setAllowLlmTranslation(e.currentTarget.checked)}
+                        setAllowLlmTranslation(e.currentTarget.checked)
+                      }
                       aria-describedby="allow-llm-translation-description"
                       class="mt-0.5 cursor-pointer rounded border-input"
                     />

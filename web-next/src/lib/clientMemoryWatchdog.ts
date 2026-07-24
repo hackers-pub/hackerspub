@@ -245,9 +245,8 @@ async function collectMemorySample(): Promise<MemorySample> {
     network: collectNetworkSnapshot(),
     historyLength: window.history.length,
     hasFocus: document.hasFocus(),
-    wasDiscarded: "wasDiscarded" in document
-      ? Boolean(document.wasDiscarded)
-      : undefined,
+    wasDiscarded:
+      "wasDiscarded" in document ? Boolean(document.wasDiscarded) : undefined,
     ...measured,
   };
 }
@@ -297,9 +296,10 @@ export function detectMemoryAlert(input: {
     return null;
   }
 
-  const usedGrowth = sample.usedBytes != null && baseline.usedBytes != null
-    ? sample.usedBytes - baseline.usedBytes
-    : 0;
+  const usedGrowth =
+    sample.usedBytes != null && baseline.usedBytes != null
+      ? sample.usedBytes - baseline.usedBytes
+      : 0;
   const usedRecentGrowth =
     sample.usedBytes != null && previous.usedBytes != null
       ? sample.usedBytes - previous.usedBytes
@@ -328,9 +328,13 @@ export function detectMemoryAlert(input: {
   // user intentionally revealing a long paginated list. Do not label that a
   // client memory leak when the browser's memory API says the DOM growth
   // retained no additional JavaScript heap across the sample trail.
-  const measuredHeapIsStable = sample.memoryApi !== "none" &&
-    sample.usedBytes != null && previous.usedBytes != null &&
-    baseline.usedBytes != null && usedGrowth <= 0 && usedRecentGrowth <= 0;
+  const measuredHeapIsStable =
+    sample.memoryApi !== "none" &&
+    sample.usedBytes != null &&
+    previous.usedBytes != null &&
+    baseline.usedBytes != null &&
+    usedGrowth <= 0 &&
+    usedRecentGrowth <= 0;
   if (
     sample.domNodes >= DOM_NODES_THRESHOLD &&
     domGrowth >= DOM_NODES_GROWTH_THRESHOLD &&
@@ -433,9 +437,10 @@ function collectElementCounts(): ElementCounts {
 function collectResourceTiming(
   performance: Performance,
 ): ResourceTimingSummary {
-  const entries = performance.getEntriesByType("resource")
-    .filter((entry): entry is PerformanceResourceTiming =>
-      "initiatorType" in entry
+  const entries = performance
+    .getEntriesByType("resource")
+    .filter(
+      (entry): entry is PerformanceResourceTiming => "initiatorType" in entry,
     );
   const recentCutoff = performance.now() - RECENT_RESOURCE_WINDOW_MS;
   const summary = createResourceTimingSummary();
@@ -517,21 +522,25 @@ function calculateDelta(
   reference: MemorySample,
 ): MemoryDelta {
   return {
-    usedBytes: sample.usedBytes != null && reference.usedBytes != null
-      ? sample.usedBytes - reference.usedBytes
-      : undefined,
-    totalBytes: sample.totalBytes != null && reference.totalBytes != null
-      ? sample.totalBytes - reference.totalBytes
-      : undefined,
+    usedBytes:
+      sample.usedBytes != null && reference.usedBytes != null
+        ? sample.usedBytes - reference.usedBytes
+        : undefined,
+    totalBytes:
+      sample.totalBytes != null && reference.totalBytes != null
+        ? sample.totalBytes - reference.totalBytes
+        : undefined,
     domNodes: sample.domNodes - reference.domNodes,
     timeElements: sample.timeElements - reference.timeElements,
     resourceCount: sample.resourceTiming.count - reference.resourceTiming.count,
-    recentResourceCount: sample.resourceTiming.recentCount -
-      reference.resourceTiming.recentCount,
-    storageUsageBytes: sample.storageEstimate?.usageBytes != null &&
-        reference.storageEstimate?.usageBytes != null
-      ? sample.storageEstimate.usageBytes - reference.storageEstimate.usageBytes
-      : undefined,
+    recentResourceCount:
+      sample.resourceTiming.recentCount - reference.resourceTiming.recentCount,
+    storageUsageBytes:
+      sample.storageEstimate?.usageBytes != null &&
+      reference.storageEstimate?.usageBytes != null
+        ? sample.storageEstimate.usageBytes -
+          reference.storageEstimate.usageBytes
+        : undefined,
   };
 }
 

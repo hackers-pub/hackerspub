@@ -1,6 +1,6 @@
 import { createMemo, createSignal, onCleanup } from "solid-js";
 import { isServer } from "solid-js/web";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 export interface TimestampProps {
   value: Date | string;
@@ -18,10 +18,13 @@ export function Timestamp(props: TimestampProps) {
 
   const scheduleNextUpdate = () => {
     if (disposed) return;
-    timeout = setTimeout(() => {
-      setCurrentDate(new Date());
-      scheduleNextUpdate();
-    }, getRelativeTimeUpdateDelayMs(currentDate(), date(), props.allowFuture));
+    timeout = setTimeout(
+      () => {
+        setCurrentDate(new Date());
+        scheduleNextUpdate();
+      },
+      getRelativeTimeUpdateDelayMs(currentDate(), date(), props.allowFuture),
+    );
   };
 
   if (!isServer) {

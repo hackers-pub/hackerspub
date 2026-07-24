@@ -14,21 +14,21 @@ export function buildUnreadNotificationsFaviconSvg(sourceSvg: string): string {
     ),
     "",
   );
-  const badgeInsertionIndex = faviconWithoutBadge.toLowerCase().lastIndexOf(
-    "</svg>",
-  );
+  const badgeInsertionIndex = faviconWithoutBadge
+    .toLowerCase()
+    .lastIndexOf("</svg>");
 
-  return `${faviconWithoutBadge.slice(0, badgeInsertionIndex)}${
-    buildUnreadBadgeMarkup(getBadgeGeometry(faviconWithoutBadge))
-  }${faviconWithoutBadge.slice(badgeInsertionIndex)}`;
+  return `${faviconWithoutBadge.slice(0, badgeInsertionIndex)}${buildUnreadBadgeMarkup(
+    getBadgeGeometry(faviconWithoutBadge),
+  )}${faviconWithoutBadge.slice(badgeInsertionIndex)}`;
 }
 
 export function createUnreadNotificationsFaviconHref(
   sourceSvg: string,
 ): string {
-  return `data:image/svg+xml,${
-    encodeURIComponent(buildUnreadNotificationsFaviconSvg(sourceSvg))
-  }`;
+  return `data:image/svg+xml,${encodeURIComponent(
+    buildUnreadNotificationsFaviconSvg(sourceSvg),
+  )}`;
 }
 
 export function createUnreadNotificationsFaviconBadgeController(): {
@@ -80,9 +80,11 @@ export function createUnreadNotificationsFaviconBadgeController(): {
 }
 
 function getDefaultFaviconHref(link: HTMLLinkElement): string {
-  return link.getAttribute("data-default-favicon-href") ??
+  return (
+    link.getAttribute("data-default-favicon-href") ??
     link.getAttribute("href") ??
-    DEFAULT_FAVICON_HREF;
+    DEFAULT_FAVICON_HREF
+  );
 }
 
 function getSvgFaviconLink(document: Document): HTMLLinkElement {
@@ -99,13 +101,18 @@ function getSvgFaviconLink(document: Document): HTMLLinkElement {
   return newLink;
 }
 
-function buildUnreadBadgeMarkup(
-  { cx, cy, radius, ringRadius }: ReturnType<typeof getBadgeGeometry>,
-): string {
-  return `<g id="${UNREAD_FAVICON_BADGE_ID}" aria-hidden="true">` +
+function buildUnreadBadgeMarkup({
+  cx,
+  cy,
+  radius,
+  ringRadius,
+}: ReturnType<typeof getBadgeGeometry>): string {
+  return (
+    `<g id="${UNREAD_FAVICON_BADGE_ID}" aria-hidden="true">` +
     `<circle cx="${cx}" cy="${cy}" r="${ringRadius}" fill="#ffffff"/>` +
     `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="#ef4444"/>` +
-    `</g>`;
+    `</g>`
+  );
 }
 
 function getBadgeGeometry(sourceSvg: string): {

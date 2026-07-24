@@ -116,8 +116,7 @@ const SidebarProvider: Component<SidebarProviderProps> = (rawProps) => {
     _setOpen(value);
 
     // This sets the cookie to keep the sidebar state.
-    document.cookie =
-      `${SIDEBAR_COOKIE_NAME}=${open()}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+    document.cookie = `${SIDEBAR_COOKIE_NAME}=${open()}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
   };
 
   // Helper to toggle the sidebar.
@@ -306,8 +305,7 @@ const Sidebar: Component<SidebarProps> = (rawProps) => {
 };
 
 type SidebarTriggerProps<T extends ValidComponent = "button"> =
-  & ButtonProps<T>
-  & {
+  ButtonProps<T> & {
     onClick?: (event: MouseEvent) => void;
   };
 
@@ -474,9 +472,8 @@ const SidebarGroup: Component<ComponentProps<"div">> = (props) => {
   );
 };
 
-type SidebarGroupLabelProps<T extends ValidComponent = "div"> = ComponentProps<
-  T
->;
+type SidebarGroupLabelProps<T extends ValidComponent = "div"> =
+  ComponentProps<T>;
 
 const SidebarGroupLabel = <T extends ValidComponent = "div">(
   props: PolymorphicProps<T, SidebarGroupLabelProps<T>>,
@@ -580,21 +577,23 @@ const sidebarMenuButtonVariants = cva(
 );
 
 type SidebarMenuButtonProps<T extends ValidComponent = "button"> =
-  & ComponentProps<T>
-  & VariantProps<typeof sidebarMenuButtonVariants>
-  & {
-    active?: boolean;
-    tooltip?: string;
-  };
+  ComponentProps<T> &
+    VariantProps<typeof sidebarMenuButtonVariants> & {
+      active?: boolean;
+      tooltip?: string;
+    };
 
 const SidebarMenuButton = <T extends ValidComponent = "button">(
   rawProps: PolymorphicProps<T, SidebarMenuButtonProps<T>>,
 ) => {
-  const props = mergeProps({
-    active: false,
-    variant: "default",
-    size: "default",
-  }, rawProps);
+  const props = mergeProps(
+    {
+      active: false,
+      variant: "default",
+      size: "default",
+    },
+    rawProps,
+  );
   const [local, others] = splitProps(props as SidebarMenuButtonProps, [
     "active",
     "tooltip",
@@ -631,8 +630,7 @@ const SidebarMenuButton = <T extends ValidComponent = "button">(
 };
 
 type SidebarMenuActionProps<T extends ValidComponent = "button"> =
-  & ComponentProps<T>
-  & {
+  ComponentProps<T> & {
     showOnHover?: boolean;
   };
 
@@ -736,8 +734,7 @@ const SidebarMenuSubItem: Component<ComponentProps<"li">> = (props) => (
 );
 
 type SidebarMenuSubButtonProps<T extends ValidComponent = "a"> =
-  & ComponentProps<T>
-  & {
+  ComponentProps<T> & {
     size?: "sm" | "md";
     active?: boolean;
   };

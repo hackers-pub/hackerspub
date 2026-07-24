@@ -17,12 +17,19 @@ function isTransientUpstreamGraphQLErrorEvent(event, hint) {
       hint.originalException.message.startsWith(
         TRANSIENT_UPSTREAM_GRAPHQL_ERROR_MESSAGE_PREFIX,
       ))
-  ) return true;
+  ) {
+    return true;
+  }
 
-  return event.exception?.values?.some((value) =>
-    value.type === TRANSIENT_UPSTREAM_GRAPHQL_ERROR_NAME ||
-    value.value?.startsWith(TRANSIENT_UPSTREAM_GRAPHQL_ERROR_MESSAGE_PREFIX)
-  ) ?? false;
+  return (
+    event.exception?.values?.some(
+      (value) =>
+        value.type === TRANSIENT_UPSTREAM_GRAPHQL_ERROR_NAME ||
+        value.value?.startsWith(
+          TRANSIENT_UPSTREAM_GRAPHQL_ERROR_MESSAGE_PREFIX,
+        ),
+    ) ?? false
+  );
 }
 
 if (nodeProcess.env.SENTRY_DSN) {

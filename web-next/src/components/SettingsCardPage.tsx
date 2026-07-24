@@ -29,13 +29,9 @@ export const SettingsCardPage: ParentComponent<SettingsCardPageProps> = (
       <Card class="mt-4">
         <CardHeader>
           <CardTitle>{props.cardTitle}</CardTitle>
-          <CardDescription>
-            {props.description}
-          </CardDescription>
+          <CardDescription>{props.description}</CardDescription>
         </CardHeader>
-        <CardContent>
-          {props.children}
-        </CardContent>
+        <CardContent>{props.children}</CardContent>
       </Card>
     </SettingsContainer>
   </>

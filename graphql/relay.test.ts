@@ -25,9 +25,10 @@ async function makeModerator(
   values: { username: string; name: string; email: string },
 ): Promise<AuthenticatedAccount> {
   const { account } = await insertAccountWithActor(tx, values);
-  await tx.update(accountTable).set({ moderator: true }).where(
-    eq(accountTable.id, account.id),
-  );
+  await tx
+    .update(accountTable)
+    .set({ moderator: true })
+    .where(eq(accountTable.id, account.id));
   return { ...account, moderator: true };
 }
 
@@ -149,9 +150,11 @@ test("relaySubscriptions lists subscriptions for moderators", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    const list = (result.data as {
-      relaySubscriptions: { actor: { iri: string; handle: string } }[];
-    }).relaySubscriptions;
+    const list = (
+      result.data as {
+        relaySubscriptions: { actor: { iri: string; handle: string } }[];
+      }
+    ).relaySubscriptions;
     assert.deepEqual(list.length, 1);
     assert.deepEqual(list[0].actor.iri, relay.iri);
     assert.deepEqual(list[0].actor.handle, "@relay@relay.example");
@@ -189,8 +192,8 @@ test("RelaySubscription node is not resolvable by non-moderators", async () => {
     });
     assert.deepEqual(modResult.errors, undefined);
     assert.deepEqual(
-      (modResult.data as { node: { __typename: string; uuid: string } })
-        .node.__typename,
+      (modResult.data as { node: { __typename: string; uuid: string } }).node
+        .__typename,
       "RelaySubscription",
     );
 
@@ -241,8 +244,8 @@ test("subscribeRelay rejects guests and non-moderators", async () => {
     });
     assert.deepEqual(guest.errors, undefined);
     assert.deepEqual(
-      (guest.data as { subscribeRelay: { __typename: string } })
-        .subscribeRelay.__typename,
+      (guest.data as { subscribeRelay: { __typename: string } }).subscribeRelay
+        .__typename,
       "NotAuthenticatedError",
     );
 
@@ -255,8 +258,8 @@ test("subscribeRelay rejects guests and non-moderators", async () => {
     });
     assert.deepEqual(nonMod.errors, undefined);
     assert.deepEqual(
-      (nonMod.data as { subscribeRelay: { __typename: string } })
-        .subscribeRelay.__typename,
+      (nonMod.data as { subscribeRelay: { __typename: string } }).subscribeRelay
+        .__typename,
       "NotAuthorizedError",
     );
   });
@@ -279,13 +282,15 @@ test("subscribeRelay subscribes a moderator to a known relay actor", async () =>
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    const payload = (result.data as {
-      subscribeRelay: {
-        __typename: string;
-        accepted: string | null;
-        actor: { iri: string };
-      };
-    }).subscribeRelay;
+    const payload = (
+      result.data as {
+        subscribeRelay: {
+          __typename: string;
+          accepted: string | null;
+          actor: { iri: string };
+        };
+      }
+    ).subscribeRelay;
     assert.deepEqual(payload.__typename, "RelaySubscription");
     assert.deepEqual(payload.accepted, null);
     assert.deepEqual(payload.actor.iri, relay.iri);
@@ -318,9 +323,11 @@ test("subscribeRelay rejects a local actor", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    const payload = (result.data as {
-      subscribeRelay: { __typename: string; inputPath?: string };
-    }).subscribeRelay;
+    const payload = (
+      result.data as {
+        subscribeRelay: { __typename: string; inputPath?: string };
+      }
+    ).subscribeRelay;
     assert.deepEqual(payload.__typename, "InvalidInputError");
     assert.deepEqual(payload.inputPath, "actorUrl");
   });
@@ -351,9 +358,11 @@ test("unsubscribeRelay removes a subscription for a moderator", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    const payload = (result.data as {
-      unsubscribeRelay: { __typename: string; relaySubscriptionId: string };
-    }).unsubscribeRelay;
+    const payload = (
+      result.data as {
+        unsubscribeRelay: { __typename: string; relaySubscriptionId: string };
+      }
+    ).unsubscribeRelay;
     assert.deepEqual(payload.__typename, "UnsubscribeRelayPayload");
     assert.deepEqual(
       payload.relaySubscriptionId,
@@ -394,6 +403,6 @@ test("unsubscribeRelay rejects non-moderators", async () => {
       "NotAuthorizedError",
     );
     // The subscription must survive a rejected unsubscribe.
-    assert.ok(await getRelaySubscription(tx, subscriptionId) != null);
+    assert.ok((await getRelaySubscription(tx, subscriptionId)) != null);
   });
 });

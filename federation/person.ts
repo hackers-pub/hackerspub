@@ -60,14 +60,10 @@ export async function getAccountActor(
       suspended: true,
     });
   }
-  const bio = await renderMarkup(
-    toApplicationContext(ctx),
-    account.bio,
-    {
-      docId: account.id,
-      kv: ctx.data.kv,
-    },
-  );
+  const bio = await renderMarkup(toApplicationContext(ctx), account.bio, {
+    docId: account.id,
+    kv: ctx.data.kv,
+  });
   return new ActorClass({
     ...common,
     name: account.name,

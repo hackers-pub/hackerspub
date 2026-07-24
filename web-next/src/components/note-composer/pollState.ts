@@ -59,9 +59,10 @@ export function restorePollDraft(
     title: poll.title,
     multiple: poll.multiple,
     ends: poll.ends || setPollDuration(now, 1),
-    options: poll.options.length >= MIN_POLL_OPTIONS
-      ? poll.options.map((option) => ({ ...option }))
-      : createMinimumOptions(createId),
+    options:
+      poll.options.length >= MIN_POLL_OPTIONS
+        ? poll.options.map((option) => ({ ...option }))
+        : createMinimumOptions(createId),
   };
 }
 
@@ -76,10 +77,7 @@ export function addPollOption(
   };
 }
 
-export function removePollOption(
-  draft: PollDraft,
-  localId: string,
-): PollDraft {
+export function removePollOption(draft: PollDraft, localId: string): PollDraft {
   if (draft.options.length <= MIN_POLL_OPTIONS) return draft;
   return {
     ...draft,
@@ -141,15 +139,16 @@ function createMinimumOptions(
 }
 
 function createLocalId(): string {
-  return globalThis.crypto?.randomUUID?.() ??
-    Math.random().toString(36).slice(2);
+  return (
+    globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)
+  );
 }
 
 function formatDateTimeLocal(date: Date): string {
   const pad = (value: number) => String(value).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${
-    pad(date.getDate())
-  }T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate(),
+  )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 function parseDateTimeLocal(value: string): Date {

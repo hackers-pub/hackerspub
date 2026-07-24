@@ -69,9 +69,9 @@ export function getNoteDraftStorageKey(
 }
 
 export function isMeaningfulNoteDraft(draft: NoteDraftData): boolean {
-  return draft.content.trim() !== "" ||
-    draft.media.length > 0 ||
-    draft.poll.enabled;
+  return (
+    draft.content.trim() !== "" || draft.media.length > 0 || draft.poll.enabled
+  );
 }
 
 export function serializeNoteDraft(
@@ -79,13 +79,11 @@ export function serializeNoteDraft(
   draft: NoteDraftData,
 ): string | null {
   if (!isMeaningfulNoteDraft(draft)) return null;
-  return JSON.stringify(
-    {
-      version: SCHEMA_VERSION,
-      scope,
-      ...draft,
-    } satisfies StoredNoteDraft,
-  );
+  return JSON.stringify({
+    version: SCHEMA_VERSION,
+    scope,
+    ...draft,
+  } satisfies StoredNoteDraft);
 }
 
 export function parseNoteDraft(raw: string | null): StoredNoteDraft | null {
@@ -102,9 +100,10 @@ export function parseNoteDraft(raw: string | null): StoredNoteDraft | null {
   const content = typeof value.content === "string" ? value.content : "";
   const visibility = parseVisibility(value.visibility) ?? "PUBLIC";
   const quotePolicy = parseQuotePolicy(value.quotePolicy) ?? "EVERYONE";
-  const actingAccountKey = typeof value.actingAccountKey === "string"
-    ? value.actingAccountKey
-    : "personal";
+  const actingAccountKey =
+    typeof value.actingAccountKey === "string"
+      ? value.actingAccountKey
+      : "personal";
   const poll = parsePoll(value.poll);
   const media = Array.isArray(value.media)
     ? value.media.map(parseMedia).filter((m): m is NoteDraftMedia => m != null)
@@ -123,7 +122,8 @@ export function parseNoteDraft(raw: string | null): StoredNoteDraft | null {
     media,
     poll,
     // Preserve drafts saved before the datetime naming convention changed.
-    updated: optionalString(value.updated) ??
+    updated:
+      optionalString(value.updated) ??
       optionalString(value["updatedAt"]) ??
       new Date(0).toISOString(),
   };
@@ -232,8 +232,10 @@ function parseScope(value: unknown): NoteDraftScope | null {
 }
 
 function parseVisibility(value: unknown): PostVisibility | undefined {
-  return value === "PUBLIC" || value === "UNLISTED" ||
-      value === "FOLLOWERS" || value === "DIRECT"
+  return value === "PUBLIC" ||
+    value === "UNLISTED" ||
+    value === "FOLLOWERS" ||
+    value === "DIRECT"
     ? value
     : undefined;
 }
@@ -268,9 +270,9 @@ function parseMedia(value: unknown): NoteDraftMedia | null {
 function parsePoll(value: unknown): NoteDraftPoll {
   if (!isRecord(value)) return emptyPoll();
   const options = Array.isArray(value.options)
-    ? value.options.map(parsePollOption).filter((
-      option,
-    ): option is NoteDraftPollOption => option != null)
+    ? value.options
+        .map(parsePollOption)
+        .filter((option): option is NoteDraftPollOption => option != null)
     : [];
   return {
     enabled: value.enabled === true,

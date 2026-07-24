@@ -95,10 +95,10 @@ test("getPostByUsernameAndId() requires a full handle and returns a matching pos
 
 test("deletePersistedPost() removes a remote reply and decrements the parent reply count", async () => {
   await withRollback(async (tx) => {
-    const remoteAuthorSuffix = crypto.randomUUID().replaceAll("-", "").slice(
-      0,
-      8,
-    );
+    const remoteAuthorSuffix = crypto
+      .randomUUID()
+      .replaceAll("-", "")
+      .slice(0, 8);
     const remoteActor = await insertRemoteActor(tx, {
       username: `remoteauthor${remoteAuthorSuffix}`,
       name: "Remote Author",
@@ -113,7 +113,8 @@ test("deletePersistedPost() removes a remote reply and decrements the parent rep
       contentHtml: "<p>Remote reply</p>",
       replyTargetId: parent.id,
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ repliesCount: 1 })
       .where(eq(postTable.id, parent.id));
 
@@ -139,10 +140,10 @@ test("deletePersistedPost() removes a remote reply and decrements the parent rep
 
 test("deleteSharedPost() removes a remote share and decrements the target share count", async () => {
   await withRollback(async (tx) => {
-    const remoteSharerSuffix = crypto.randomUUID().replaceAll("-", "").slice(
-      0,
-      8,
-    );
+    const remoteSharerSuffix = crypto
+      .randomUUID()
+      .replaceAll("-", "")
+      .slice(0, 8);
     const remoteActor = await insertRemoteActor(tx, {
       username: `remotesharer${remoteSharerSuffix}`,
       name: "Remote Sharer",
@@ -157,7 +158,8 @@ test("deleteSharedPost() removes a remote share and decrements the target share 
       contentHtml: "<p>Shared remote post</p>",
       sharedPostId: original.id,
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ sharesCount: 1 })
       .where(eq(postTable.id, original.id));
 
@@ -299,7 +301,7 @@ test("persistPost() backfills a remote Note emojiReactions collection", async ()
         where: { id: persisted.id },
       });
       return row?.reactionsCounts["❤️"] === 1 &&
-          row.reactionsCounts[storedCustomEmoji.id] === 1
+        row.reactionsCounts[storedCustomEmoji.id] === 1
         ? row
         : undefined;
     }, "Timed out waiting for Note emoji reaction backfill.");
@@ -324,7 +326,8 @@ test("persistPost() backfills a remote Note emojiReactions collection", async ()
     });
     assert.deepEqual(offTargetReactions, []);
 
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ reactionsCounts: {} })
       .where(eq(postTable.id, persisted.id));
 
@@ -336,7 +339,7 @@ test("persistPost() backfills a remote Note emojiReactions collection", async ()
         where: { id: persisted.id },
       });
       return row?.reactionsCounts["❤️"] === 1 &&
-          row.reactionsCounts[storedCustomEmoji.id] === 1
+        row.reactionsCounts[storedCustomEmoji.id] === 1
         ? row
         : undefined;
     }, "Timed out waiting for duplicate emoji reaction recount.");
@@ -386,15 +389,12 @@ test("persistPost() backfills a remote Article emojiReactions collection", async
     const persisted = await persistPost(createFedCtx(tx), article);
 
     assert.ok(persisted != null);
-    const storedPost = await waitFor(
-      async () => {
-        const row = await tx.query.postTable.findFirst({
-          where: { id: persisted.id },
-        });
-        return row?.reactionsCounts["🔥"] === 1 ? row : undefined;
-      },
-      "Timed out waiting for Article emoji reaction backfill.",
-    );
+    const storedPost = await waitFor(async () => {
+      const row = await tx.query.postTable.findFirst({
+        where: { id: persisted.id },
+      });
+      return row?.reactionsCounts["🔥"] === 1 ? row : undefined;
+    }, "Timed out waiting for Article emoji reaction backfill.");
     assert.equal(storedPost.type, "Article");
   });
 });
@@ -421,10 +421,7 @@ test("persistPost() backfills a remote Question emojiReactions collection", asyn
       name: "Poll reaction import",
       content: "Backfill question reactions",
       endTime: Temporal.Instant.from("2099-06-10T00:00:00.000Z"),
-      exclusiveOptions: [
-        new Note({ name: "Yes" }),
-        new Note({ name: "No" }),
-      ],
+      exclusiveOptions: [new Note({ name: "Yes" }), new Note({ name: "No" })],
       emojiReactions: new Collection({
         id: new URL(
           "https://poll.example/objects/question-emoji-reactions/reactions",
@@ -443,15 +440,12 @@ test("persistPost() backfills a remote Question emojiReactions collection", asyn
     const persisted = await persistPost(createFedCtx(tx), question);
 
     assert.ok(persisted != null);
-    const storedPost = await waitFor(
-      async () => {
-        const row = await tx.query.postTable.findFirst({
-          where: { id: persisted.id },
-        });
-        return row?.reactionsCounts["❤️"] === 1 ? row : undefined;
-      },
-      "Timed out waiting for Question emoji reaction backfill.",
-    );
+    const storedPost = await waitFor(async () => {
+      const row = await tx.query.postTable.findFirst({
+        where: { id: persisted.id },
+      });
+      return row?.reactionsCounts["❤️"] === 1 ? row : undefined;
+    }, "Timed out waiting for Question emoji reaction backfill.");
     assert.equal(storedPost.type, "Question");
   });
 });
@@ -560,8 +554,7 @@ test("persistPost() ignores ActivityPub mention hrefs when selecting link previe
       id: new URL("https://forum.example/post/mention-link-preview"),
       attribution: new URL(remoteActor.iri),
       to: PUBLIC_COLLECTION,
-      content:
-        `<p><a href="https://forum.example/user/nodebbmention">@nodebbmention</a> <a href="${sharedStoryUrl}">story</a></p>`,
+      content: `<p><a href="https://forum.example/user/nodebbmention">@nodebbmention</a> <a href="${sharedStoryUrl}">story</a></p>`,
       tags: [
         new Mention({
           href: new URL(mentionedActor.iri),
@@ -852,7 +845,8 @@ test("persistPost() requires follower quote approvals to match the author", asyn
       name: "Quote Followers Policy",
       host: "remote.example",
     });
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ followersUrl: "https://remote.example/users/author/followers" })
       .where(eq(actorTable.id, remoteActor.id));
     const post = new Note({
@@ -883,7 +877,8 @@ test("persistPost() accepts the author's followers quote approval", async () => 
       name: "Quote Author Followers",
       host: "remote.example",
     });
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ followersUrl })
       .where(eq(actorTable.id, remoteActor.id));
     const post = new Note({
@@ -928,7 +923,8 @@ test("persistPost() clears stale quote targets denied by policy", async () => {
       contentHtml: "<p>Previously allowed quote</p>",
       quotedPostId: quotedPost.id,
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ quotesCount: 1 })
       .where(eq(postTable.id, quotedPost.id));
     const refetchedQuote = new Note({
@@ -968,7 +964,8 @@ test("persistPost() clears stale quote target state when a remote quote is remov
       actorId: quoter.id,
       contentHtml: "<p>Previously pending quote</p>",
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ quoteTargetState: "pending" })
       .where(eq(postTable.id, existingQuote.id));
     const refetchedQuote = new Note({
@@ -1012,7 +1009,8 @@ test("persistPost() clears stale quote target state when a remote quote gains au
       actorId: quoter.id,
       contentHtml: "<p>Previously pending authorized quote</p>",
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ quoteTargetState: "pending" })
       .where(eq(postTable.id, existingQuote.id));
     const authorizationIri =
@@ -1073,7 +1071,8 @@ test("persistPost() preserves pending quote target state for a still-denied remo
       actorId: quoter.id,
       contentHtml: "<p>Pending quote request</p>",
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ quoteTargetState: "pending" })
       .where(eq(postTable.id, existingQuote.id));
     await tx.insert(quoteRequestTable).values({
@@ -1273,8 +1272,8 @@ test("persistPost() accepts locally issued quote authorizations", async () => {
     assert.ok(persisted != null);
     assert.equal(persisted.quotedPost?.id, quotedPost.id);
     assert.equal(persisted.quoteAuthorizationIri, authorizationIri);
-    const storedAuthorization = await tx.query.quoteAuthorizationTable
-      .findFirst({
+    const storedAuthorization =
+      await tx.query.quoteAuthorizationTable.findFirst({
         where: { iri: authorizationIri },
       });
     assert.equal(storedAuthorization?.quotePostId, persisted.id);
@@ -1570,7 +1569,8 @@ test("persistPost() drops an incoming federated quote of a censored post", async
     });
     // The post is publicly quotable by policy ("everyone" for a public post),
     // so only the moderation censorship can block the incoming quote.
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ censored: new Date() })
       .where(eq(postTable.id, quotedPost.id));
     const quote = new Note({
@@ -1609,7 +1609,8 @@ test("persistSharedPost() drops a federated boost of a censored post", async () 
       actorId: originalAuthor.id,
       contentHtml: "<p>Censored boosted post</p>",
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ censored: new Date() })
       .where(eq(postTable.id, original.id));
     // Embed the (already censored) original so getObject() resolves without a
@@ -1732,7 +1733,8 @@ test("persistSharedPost() reuses a boost with the same activity IRI", async () =
       contentHtml: "<p>Stale boost wrapper</p>",
     });
     const announceIri = "https://remote.example/announces/reused-iri";
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ iri: announceIri })
       .where(eq(postTable.id, existingShare.id));
     const announce = new Announce({
@@ -1790,7 +1792,8 @@ test("persistPost() drops an authorized quote of a censored post", async () => {
       attributedActorId: quotedPost.actorId,
     });
     // Moderators censor the target after the authorization was issued.
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ censored: new Date() })
       .where(eq(postTable.id, quotedPost.id));
     const quote = new Note({

@@ -25,30 +25,28 @@ export async function GET({ params, nativeEvent, request }: APIEvent) {
     throw new Error("Code is required"); // FIXME
   }
   const { code } = query;
-  const response = await new Promise<TokenCompleteMutation$data>((
-    resolve,
-    reject,
-  ) =>
-    commitMutation<TokenCompleteMutation>(createEnvironment(), {
-      mutation: graphql`
-      mutation TokenCompleteMutation($token: UUID!, $code: String!) {
-        completeLoginChallenge(token: $token, code: $code) {
-          __typename
-          ... on Session {
-            id
+  const response = await new Promise<TokenCompleteMutation$data>(
+    (resolve, reject) =>
+      commitMutation<TokenCompleteMutation>(createEnvironment(), {
+        mutation: graphql`
+          mutation TokenCompleteMutation($token: UUID!, $code: String!) {
+            completeLoginChallenge(token: $token, code: $code) {
+              __typename
+              ... on Session {
+                id
+              }
+              ... on AccountBannedError {
+                since
+              }
+            }
           }
-          ... on AccountBannedError {
-            since
-          }
-        }
-      }
-    `,
-      variables: { token, code },
-      onCompleted: (response, errors) => {
-        if (errors != null) reject(new AggregateError(errors));
-        else resolve(response);
-      },
-    })
+        `,
+        variables: { token, code },
+        onCompleted: (response, errors) => {
+          if (errors != null) reject(new AggregateError(errors));
+          else resolve(response);
+        },
+      }),
   );
   const result = response.completeLoginChallenge;
   if (result == null) {

@@ -3,7 +3,7 @@ import IconSquare from "~icons/lucide/square";
 import IconX from "~icons/lucide/x";
 import type { MediaController } from "./createMediaController.ts";
 import { Button } from "~/components/ui/button.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 export interface MediaEditorProps {
   media: MediaController;
@@ -45,10 +45,8 @@ export function MediaEditor(props: MediaEditorProps) {
                 aria-required="true"
                 required
                 onInput={(event) =>
-                  props.media.setAlt(
-                    item().localId,
-                    event.currentTarget.value,
-                  )}
+                  props.media.setAlt(item().localId, event.currentTarget.value)
+                }
                 placeholder={t`Alt text for visually impaired people (required)`}
                 disabled={item().generatingAlt}
                 rows={3}

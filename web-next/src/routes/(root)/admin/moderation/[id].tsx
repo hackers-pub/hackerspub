@@ -29,7 +29,7 @@ import {
   CardTitle,
 } from "~/components/ui/card.tsx";
 import { WideContainer } from "~/components/WideContainer.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,
@@ -110,11 +110,10 @@ const IdCaseDetailQuery = graphql`
 
 const loadCaseDetailQuery = routePreloadedQuery(
   (uuid: Uuid, locale: string) =>
-    loadQuery<IdCaseDetailQuery>(
-      useRelayEnvironment()(),
-      IdCaseDetailQuery,
-      { uuid, locale },
-    ),
+    loadQuery<IdCaseDetailQuery>(useRelayEnvironment()(), IdCaseDetailQuery, {
+      uuid,
+      locale,
+    }),
   "loadCaseDetailQuery",
 );
 
@@ -153,9 +152,11 @@ export default function ModerationCaseDetailPage() {
     () => loadCaseDetailQuery(params.id! as Uuid, i18n.locale),
   );
 
-  const profileHref = (
-    actor: { local: boolean; username: string; handle: string },
-  ) => `/${actor.local ? `@${actor.username}` : actor.handle}`;
+  const profileHref = (actor: {
+    local: boolean;
+    username: string;
+    handle: string;
+  }) => `/${actor.local ? `@${actor.username}` : actor.handle}`;
 
   return (
     <WideContainer class="p-4">
@@ -271,8 +272,8 @@ export default function ModerationCaseDetailPage() {
                         <For each={flagCase.flags?.edges ?? []}>
                           {(edge) => {
                             const flag = edge.node;
-                            const analysis = flag
-                              .llmAnalysis as LlmAnalysis | null;
+                            const analysis =
+                              flag.llmAnalysis as LlmAnalysis | null;
                             return (
                               <div class="rounded-md border p-3">
                                 <div class="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
@@ -393,10 +394,7 @@ export default function ModerationCaseDetailPage() {
                                     </div>
                                   )}
                                 </Show>
-                                <Show
-                                  keyed
-                                  when={action.suspensionEnds}
-                                >
+                                <Show keyed when={action.suspensionEnds}>
                                   {(ends) => (
                                     <p class="mt-1 text-xs text-muted-foreground">
                                       {t`Suspension ends`}{" "}
@@ -490,9 +488,7 @@ function LlmAnalysisPanel(props: { analysis: LlmAnalysis }) {
                     {match.provision} · {Math.round(match.confidence * 100)}%
                   </Badge>
                 </div>
-                <p class="text-xs text-muted-foreground">
-                  {match.rationale}
-                </p>
+                <p class="text-xs text-muted-foreground">{match.rationale}</p>
               </div>
             )}
           </For>

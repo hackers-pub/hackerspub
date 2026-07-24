@@ -1,4 +1,5 @@
 import { assertEquals } from "@std/assert";
+import test from "node:test";
 import {
   getSupportedImageContentType,
   hasSupportedImageContentType,
@@ -7,7 +8,7 @@ import {
   supportedImageMimeAccept,
 } from "./supportedImageFile.ts";
 
-Deno.test("getSupportedImageContentType accepts known image MIME types", () => {
+test("getSupportedImageContentType accepts known image MIME types", () => {
   assertEquals(
     getSupportedImageContentType({ name: "photo.bin", type: "image/png" }),
     "image/png",
@@ -18,7 +19,7 @@ Deno.test("getSupportedImageContentType accepts known image MIME types", () => {
   );
 });
 
-Deno.test("getSupportedImageContentType falls back to extension for empty MIME", () => {
+test("getSupportedImageContentType falls back to extension for empty MIME", () => {
   assertEquals(
     getSupportedImageContentType({ name: "Pasted image.PNG", type: "" }),
     "image/png",
@@ -32,7 +33,7 @@ Deno.test("getSupportedImageContentType falls back to extension for empty MIME",
   );
 });
 
-Deno.test("getSupportedImageContentType rejects unsupported MIME and extensions", () => {
+test("getSupportedImageContentType rejects unsupported MIME and extensions", () => {
   assertEquals(
     getSupportedImageContentType({ name: "image.svg", type: "" }),
     null,
@@ -43,7 +44,7 @@ Deno.test("getSupportedImageContentType rejects unsupported MIME and extensions"
   );
 });
 
-Deno.test("isSupportedImageFile and accept list include extension fallback types", () => {
+test("isSupportedImageFile and accept list include extension fallback types", () => {
   assertEquals(isSupportedImageFile({ name: "image.webp", type: "" }), true);
   assertEquals(isSupportedImageFile({ name: "image.bmp", type: "" }), false);
   assertEquals(supportedImageAccept.includes(".jpg"), true);
@@ -52,11 +53,8 @@ Deno.test("isSupportedImageFile and accept list include extension fallback types
   assertEquals(supportedImageMimeAccept.includes("image/jpeg"), true);
 });
 
-Deno.test("hasSupportedImageContentType ignores extension fallback", () => {
-  assertEquals(
-    hasSupportedImageContentType({ type: "image/webp" }),
-    true,
-  );
+test("hasSupportedImageContentType ignores extension fallback", () => {
+  assertEquals(hasSupportedImageContentType({ type: "image/webp" }), true);
   assertEquals(
     hasSupportedImageContentType({ type: "application/octet-stream" }),
     false,

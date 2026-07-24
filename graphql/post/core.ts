@@ -74,16 +74,22 @@ export const articleContentOgImageComplexity = 2_000;
 export const logger = getLogger(["hackerspub", "graphql", "post"]);
 
 export class SharedPostDeletionNotAllowedError extends Error {
-  public constructor(public readonly inputPath: string) {
+  public readonly inputPath: string;
+
+  public constructor(inputPath: string) {
     super("Shared posts cannot be deleted. Use unsharePost instead.");
+    this.inputPath = inputPath;
   }
 }
 
 export type LlmTranslationNotAllowedReason = "DISABLED" | "SAME_LANGUAGE";
 
 export class LlmTranslationNotAllowedError extends Error {
-  public constructor(public readonly reason: LlmTranslationNotAllowedReason) {
+  public readonly reason: LlmTranslationNotAllowedReason;
+
+  public constructor(reason: LlmTranslationNotAllowedReason) {
     super(`LLM translation not allowed: ${reason}`);
+    this.reason = reason;
   }
 }
 
@@ -94,11 +100,13 @@ export const PostType = builder.enumType("PostType", {
     "__typename` or inline fragments to distinguish concrete types.",
   values: {
     ARTICLE: {
-      description: "Long-form article with a title, year-based slug URL, and " +
+      description:
+        "Long-form article with a title, year-based slug URL, and " +
         "optional multi-language translations.",
     },
     NOTE: {
-      description: "Short microblog post (equivalent to a Mastodon Status or " +
+      description:
+        "Short microblog post (equivalent to a Mastodon Status or " +
         "ActivityPub Note).",
     },
     QUESTION: {
@@ -116,7 +124,8 @@ export const PostAttributionMode = builder.enumType("PostAttributionMode", {
   values: {
     ACTING_ACCOUNT_ONLY: {
       value: "acting_account_only",
-      description: "Show only the acting account as the public author. For " +
+      description:
+        "Show only the acting account as the public author. For " +
         "organization posts, the member remains recorded for audit and " +
         "management but is not shown as a co-author.",
     },
@@ -129,11 +138,8 @@ export const PostAttributionMode = builder.enumType("PostAttributionMode", {
   } as const,
 });
 
-export const OrganizationPostAuthor = builder.objectRef<
-  schema.OrganizationPostAuthor
->(
-  "OrganizationPostAuthor",
-);
+export const OrganizationPostAuthor =
+  builder.objectRef<schema.OrganizationPostAuthor>("OrganizationPostAuthor");
 
 export const LlmTranslationNotAllowedReasonRef = builder.enumType(
   "LlmTranslationNotAllowedReason",
@@ -335,8 +341,10 @@ export function isCensoredForViewer(
   },
   ctx: UserContext,
 ): boolean {
-  return isRowCensoredForViewer(post, ctx) ||
-    post.sharedPost != null && isRowCensoredForViewer(post.sharedPost, ctx);
+  return (
+    isRowCensoredForViewer(post, ctx) ||
+    (post.sharedPost != null && isRowCensoredForViewer(post.sharedPost, ctx))
+  );
 }
 
 export type SanctionActorColumns = Pick<
@@ -539,7 +547,8 @@ export const Post = builder.drizzleInterface("postTable", {
     name: t.field({
       type: "String",
       nullable: true,
-      description: "The post's title. Non-null for `Article`s and local poll " +
+      description:
+        "The post's title. Non-null for `Article`s and local poll " +
         "`Question`s; `null` for `Note`s and boost wrappers.  `null` when " +
         "the post is censored or its author is hidden by a moderation " +
         "sanction (or it is a boost wrapper of such a post, whose title " +
@@ -939,8 +948,9 @@ export const Post = builder.drizzleInterface("postTable", {
         ctx: UserContext,
       ): Promise<boolean[]> => {
         const policies = await loadViewerActionPolicies(ctx, keys);
-        return keys.map((key) =>
-          policies.get(viewerActorPostKeyCacheKey(key))?.canReply ?? false
+        return keys.map(
+          (key) =>
+            policies.get(viewerActorPostKeyCacheKey(key))?.canReply ?? false,
         );
       },
       resolve: postViewerActorKey,
@@ -966,8 +976,9 @@ export const Post = builder.drizzleInterface("postTable", {
         ctx: UserContext,
       ): Promise<boolean[]> => {
         const policies = await loadViewerActionPolicies(ctx, keys);
-        return keys.map((key) =>
-          policies.get(viewerActorPostKeyCacheKey(key))?.canQuote ?? false
+        return keys.map(
+          (key) =>
+            policies.get(viewerActorPostKeyCacheKey(key))?.canQuote ?? false,
         );
       },
       resolve: postViewerActorKey,
@@ -1002,9 +1013,12 @@ export const Post = builder.drizzleInterface("postTable", {
       },
       async resolve(post, args, ctx) {
         const viewerActorId = await resolveViewerActorId(ctx, args);
-        return viewerActorId != null && post.quotedPost != null &&
+        return (
+          viewerActorId != null &&
+          post.quotedPost != null &&
           post.quotedPost.actorId === viewerActorId &&
-          (post.actor.accountId != null || post.quoteAuthorizationIri != null);
+          (post.actor.accountId != null || post.quoteAuthorizationIri != null)
+        );
       },
     }),
     viewerCanShare: t.loadable({
@@ -1027,8 +1041,9 @@ export const Post = builder.drizzleInterface("postTable", {
         ctx: UserContext,
       ): Promise<boolean[]> => {
         const policies = await loadViewerActionPolicies(ctx, keys);
-        return keys.map((key) =>
-          policies.get(viewerActorPostKeyCacheKey(key))?.canShare ?? false
+        return keys.map(
+          (key) =>
+            policies.get(viewerActorPostKeyCacheKey(key))?.canShare ?? false,
         );
       },
       resolve: postViewerActorKey,
@@ -1079,7 +1094,8 @@ export async function loadViewerHasShared(
 
   const sharedKeys = new Set<string>();
   for (const [viewerActorId, postIds] of postIdsByViewer) {
-    const rows = await ctx.db.select({ sharedPostId: postTable.sharedPostId })
+    const rows = await ctx.db
+      .select({ sharedPostId: postTable.sharedPostId })
       .from(postTable)
       .where(
         and(
@@ -1094,9 +1110,10 @@ export async function loadViewerHasShared(
     }
   }
 
-  return keys.map((key) =>
-    key.viewerActorId != null &&
-    sharedKeys.has(`${key.viewerActorId}:${key.postId}`)
+  return keys.map(
+    (key) =>
+      key.viewerActorId != null &&
+      sharedKeys.has(`${key.viewerActorId}:${key.postId}`),
   );
 }
 
@@ -1117,7 +1134,8 @@ export async function loadViewerHasPinned(
 
   const pinnedKeys = new Set<string>();
   for (const [viewerActorId, postIds] of postIdsByViewer) {
-    const rows = await ctx.db.select({ postId: pinTable.postId })
+    const rows = await ctx.db
+      .select({ postId: pinTable.postId })
       .from(pinTable)
       .where(
         and(
@@ -1130,9 +1148,10 @@ export async function loadViewerHasPinned(
     }
   }
 
-  return keys.map((key) =>
-    key.viewerActorId != null &&
-    pinnedKeys.has(`${key.viewerActorId}:${key.postId}`)
+  return keys.map(
+    (key) =>
+      key.viewerActorId != null &&
+      pinnedKeys.has(`${key.viewerActorId}:${key.postId}`),
   );
 }
 
@@ -1140,7 +1159,7 @@ export async function loadViewerActionPolicies(
   ctx: UserContext,
   keys: readonly ViewerActorPostKey[],
 ): Promise<Map<string, PostInteractionPolicy>> {
-  const cache = ctx.viewerActionPoliciesCache ??= new Map();
+  const cache = (ctx.viewerActionPoliciesCache ??= new Map());
   // Dedupe missing ids so a batch with `cache: false` (which may surface
   // duplicate keys) cannot overwrite an already-registered promise — the
   // overwritten promise would still reject on a batch failure but be
@@ -1170,17 +1189,17 @@ export async function loadViewerActionPolicies(
     // matching the `loaderOptions: { cache: false }` semantics on the
     // viewer-state fields.
     const missingIds = [...missing];
-    const batch = getPostInteractionPolicies(
-      ctx.db,
-      missingIds,
-      { id: viewerActorId } as schema.Actor,
-    );
+    const batch = getPostInteractionPolicies(ctx.db, missingIds, {
+      id: viewerActorId,
+    } as schema.Actor);
     const cleanup = () => {
       for (const id of missingIds) {
-        cache.delete(viewerActorPostKeyCacheKey({
-          postId: id,
-          viewerActorId,
-        }));
+        cache.delete(
+          viewerActorPostKeyCacheKey({
+            postId: id,
+            viewerActorId,
+          }),
+        );
       }
     };
     batch.then(cleanup, cleanup);
@@ -1211,11 +1230,12 @@ export function selectPostRelationWithActor(
   if (selection == null || typeof selection !== "object") {
     return { with: { actor: true } };
   }
-  const withSelection = "with" in selection &&
-      selection.with != null &&
-      typeof selection.with === "object"
-    ? selection.with as Record<string, unknown>
-    : {};
+  const withSelection =
+    "with" in selection &&
+    selection.with != null &&
+    typeof selection.with === "object"
+      ? (selection.with as Record<string, unknown>)
+      : {};
   return {
     ...selection,
     with: {
@@ -1271,9 +1291,9 @@ export function decodeDescendantCursor(cursor: string): string {
 export function descendantPathAncestorIds(path: string): Uuid[] {
   const elements = path.split("/");
   // Each element is `<sortkey>~<uuid>`; the uuid (36 chars, no `~`) is the id.
-  return elements.slice(0, -1).map((element) =>
-    element.slice(element.indexOf("~") + 1) as Uuid
-  );
+  return elements
+    .slice(0, -1)
+    .map((element) => element.slice(element.indexOf("~") + 1) as Uuid);
 }
 
 // Whether the given post is visible to the authenticated viewer: per-post
@@ -1288,26 +1308,23 @@ export function isPostVisibleToViewer(
   ctx.postVisibleLoader ??= new Map();
   let loader = ctx.postVisibleLoader.get(viewerActorId ?? "");
   if (loader == null) {
-    loader = new DataLoader<Uuid, boolean>(
-      async (ids) => {
-        const idList = ids as Uuid[];
-        const viewerActor = viewerActorId == null
-          ? null
-          : await getActorById(ctx, viewerActorId);
-        const rows = await ctx.db.query.postTable.findMany({
-          columns: { id: true },
-          where: {
-            AND: [
-              { id: { in: idList } },
-              { actor: getSanctionVisibleActorFilter(ctx.now ??= new Date()) },
-              getPostVisibilityFilter(viewerActor),
-            ],
-          },
-        });
-        const visible = new Set(rows.map((row) => row.id));
-        return idList.map((id) => visible.has(id));
-      },
-    );
+    loader = new DataLoader<Uuid, boolean>(async (ids) => {
+      const idList = ids as Uuid[];
+      const viewerActor =
+        viewerActorId == null ? null : await getActorById(ctx, viewerActorId);
+      const rows = await ctx.db.query.postTable.findMany({
+        columns: { id: true },
+        where: {
+          AND: [
+            { id: { in: idList } },
+            { actor: getSanctionVisibleActorFilter((ctx.now ??= new Date())) },
+            getPostVisibilityFilter(viewerActor),
+          ],
+        },
+      });
+      const visible = new Set(rows.map((row) => row.id));
+      return idList.map((id) => visible.has(id));
+    });
     ctx.postVisibleLoader.set(viewerActorId ?? "", loader);
   }
   return loader.load(postId);
@@ -1328,27 +1345,24 @@ export function postHasVisibleReplies(
   ctx.postHasVisibleRepliesLoader ??= new Map();
   let loader = ctx.postHasVisibleRepliesLoader.get(viewerActorId ?? "");
   if (loader == null) {
-    loader = new DataLoader<Uuid, boolean>(
-      async (ids) => {
-        const idList = ids as Uuid[];
-        const viewerActor = viewerActorId == null
-          ? null
-          : await getActorById(ctx, viewerActorId);
-        const rows = await ctx.db.query.postTable.findMany({
-          columns: { replyTargetId: true },
-          where: {
-            AND: [
-              { replyTargetId: { in: idList } },
-              { actor: getSanctionVisibleActorFilter(ctx.now ??= new Date()) },
-              getCensoredPostExclusionFilter(viewerActorId),
-              getPostVisibilityFilter(viewerActor),
-            ],
-          },
-        });
-        const withReplies = new Set(rows.map((row) => row.replyTargetId));
-        return idList.map((id) => withReplies.has(id));
-      },
-    );
+    loader = new DataLoader<Uuid, boolean>(async (ids) => {
+      const idList = ids as Uuid[];
+      const viewerActor =
+        viewerActorId == null ? null : await getActorById(ctx, viewerActorId);
+      const rows = await ctx.db.query.postTable.findMany({
+        columns: { replyTargetId: true },
+        where: {
+          AND: [
+            { replyTargetId: { in: idList } },
+            { actor: getSanctionVisibleActorFilter((ctx.now ??= new Date())) },
+            getCensoredPostExclusionFilter(viewerActorId),
+            getPostVisibilityFilter(viewerActor),
+          ],
+        },
+      });
+      const withReplies = new Set(rows.map((row) => row.replyTargetId));
+      return idList.map((id) => withReplies.has(id));
+    });
     ctx.postHasVisibleRepliesLoader.set(viewerActorId ?? "", loader);
   }
   return loader.load(postId);
@@ -1368,27 +1382,24 @@ export function postHasVisibleQuotes(
   ctx.postHasVisibleQuotesLoader ??= new Map();
   let loader = ctx.postHasVisibleQuotesLoader.get(viewerActorId ?? "");
   if (loader == null) {
-    loader = new DataLoader<Uuid, boolean>(
-      async (ids) => {
-        const idList = ids as Uuid[];
-        const viewerActor = viewerActorId == null
-          ? null
-          : await getActorById(ctx, viewerActorId);
-        const rows = await ctx.db.query.postTable.findMany({
-          columns: { quotedPostId: true },
-          where: {
-            AND: [
-              { quotedPostId: { in: idList } },
-              { actor: getSanctionVisibleActorFilter(ctx.now ??= new Date()) },
-              getCensoredPostExclusionFilter(viewerActorId),
-              getPostVisibilityFilter(viewerActor),
-            ],
-          },
-        });
-        const withQuotes = new Set(rows.map((row) => row.quotedPostId));
-        return idList.map((id) => withQuotes.has(id));
-      },
-    );
+    loader = new DataLoader<Uuid, boolean>(async (ids) => {
+      const idList = ids as Uuid[];
+      const viewerActor =
+        viewerActorId == null ? null : await getActorById(ctx, viewerActorId);
+      const rows = await ctx.db.query.postTable.findMany({
+        columns: { quotedPostId: true },
+        where: {
+          AND: [
+            { quotedPostId: { in: idList } },
+            { actor: getSanctionVisibleActorFilter((ctx.now ??= new Date())) },
+            getCensoredPostExclusionFilter(viewerActorId),
+            getPostVisibilityFilter(viewerActor),
+          ],
+        },
+      });
+      const withQuotes = new Set(rows.map((row) => row.quotedPostId));
+      return idList.map((id) => withQuotes.has(id));
+    });
     ctx.postHasVisibleQuotesLoader.set(viewerActorId ?? "", loader);
   }
   return loader.load(postId);
@@ -1411,15 +1422,14 @@ export async function visibleRelatedPostsPage(
   limit: number,
 ) {
   const viewerActorId = await resolveViewerActorId(ctx, args);
-  const viewerActor = viewerActorId == null
-    ? null
-    : await getActorById(ctx, viewerActorId);
+  const viewerActor =
+    viewerActorId == null ? null : await getActorById(ctx, viewerActorId);
   const page = await ctx.db.query.postTable.findMany({
     columns: { id: true },
     where: {
       AND: [
         { [column]: targetId },
-        { actor: getSanctionVisibleActorFilter(ctx.now ??= new Date()) },
+        { actor: getSanctionVisibleActorFilter((ctx.now ??= new Date())) },
         getCensoredPostExclusionFilter(viewerActorId),
         getPostVisibilityFilter(viewerActor),
       ],
@@ -1447,15 +1457,14 @@ export async function countVisibleRelatedPosts(
   targetId: Uuid,
 ): Promise<number> {
   const viewerActorId = await resolveViewerActorId(ctx, args);
-  const viewerActor = viewerActorId == null
-    ? null
-    : await getActorById(ctx, viewerActorId);
+  const viewerActor =
+    viewerActorId == null ? null : await getActorById(ctx, viewerActorId);
   const rows = await ctx.db.query.postTable.findMany({
     columns: { id: true },
     where: {
       AND: [
         { [column]: targetId },
-        { actor: getSanctionVisibleActorFilter(ctx.now ??= new Date()) },
+        { actor: getSanctionVisibleActorFilter((ctx.now ??= new Date())) },
         getCensoredPostExclusionFilter(viewerActorId),
         getPostVisibilityFilter(viewerActor),
       ],
@@ -1473,15 +1482,14 @@ export async function loadVisibleThreadPostIds(
   viewerActorId: Uuid | null,
 ): Promise<Set<Uuid>> {
   if (ids.length < 1) return new Set();
-  const viewerActor = viewerActorId == null
-    ? null
-    : await getActorById(ctx, viewerActorId);
+  const viewerActor =
+    viewerActorId == null ? null : await getActorById(ctx, viewerActorId);
   const rows = await ctx.db.query.postTable.findMany({
     columns: { id: true },
     where: {
       AND: [
         { id: { in: [...ids] } },
-        { actor: getSanctionVisibleActorFilter(ctx.now ??= new Date()) },
+        { actor: getSanctionVisibleActorFilter((ctx.now ??= new Date())) },
         getCensoredPostExclusionFilter(viewerActorId),
         getPostVisibilityFilter(viewerActor),
       ],
@@ -1499,26 +1507,31 @@ export async function loadVisibleThreadPosts(
   ids: readonly Uuid[],
   viewerActorId: Uuid | null,
 ) {
-  const viewerActor = viewerActorId == null
-    ? null
-    : await getActorById(ctx, viewerActorId);
-  const rows = ids.length < 1 ? [] : await ctx.db.query.postTable.findMany({
-    where: {
-      AND: [
-        { id: { in: [...ids] } },
-        { actor: getSanctionVisibleActorFilter(ctx.now ??= new Date()) },
-        getCensoredPostExclusionFilter(viewerActorId),
-        getPostVisibilityFilter(viewerActor),
-      ],
-    },
-    with: actorProfilePostRelations(viewerActorId),
-  });
+  const viewerActor =
+    viewerActorId == null ? null : await getActorById(ctx, viewerActorId);
+  const rows =
+    ids.length < 1
+      ? []
+      : await ctx.db.query.postTable.findMany({
+          where: {
+            AND: [
+              { id: { in: [...ids] } },
+              {
+                actor: getSanctionVisibleActorFilter((ctx.now ??= new Date())),
+              },
+              getCensoredPostExclusionFilter(viewerActorId),
+              getPostVisibilityFilter(viewerActor),
+            ],
+          },
+          with: actorProfilePostRelations(viewerActorId),
+        });
   return new Map(rows.map((row) => [row.id, row]));
 }
 
-export type ThreadPostRow = Awaited<
-  ReturnType<typeof loadVisibleThreadPosts>
-> extends Map<Uuid, infer R> ? R : never;
+export type ThreadPostRow =
+  Awaited<ReturnType<typeof loadVisibleThreadPosts>> extends Map<Uuid, infer R>
+    ? R
+    : never;
 
 builder.drizzleInterfaceFields(Post, (t) => ({
   sharedPost: t.field({
@@ -1557,7 +1570,7 @@ builder.drizzleInterfaceFields(Post, (t) => ({
       const sharedPost = hidePostRelationWithoutActor(post.sharedPost);
       if (sharedPost == null) return null;
       const viewerActorId = await resolveViewerActorId(ctx, args);
-      return await isPostVisibleToViewer(ctx, sharedPost.id, viewerActorId)
+      return (await isPostVisibleToViewer(ctx, sharedPost.id, viewerActorId))
         ? sharedPost
         : null;
     },
@@ -1590,7 +1603,7 @@ builder.drizzleInterfaceFields(Post, (t) => ({
       const replyTarget = hidePostRelationWithoutActor(post.replyTarget);
       if (replyTarget == null) return null;
       const viewerActorId = await resolveViewerActorId(ctx, args);
-      return await isPostVisibleToViewer(ctx, replyTarget.id, viewerActorId)
+      return (await isPostVisibleToViewer(ctx, replyTarget.id, viewerActorId))
         ? replyTarget
         : null;
     },
@@ -1624,71 +1637,74 @@ builder.drizzleInterfaceFields(Post, (t) => ({
       const quotedPost = hidePostRelationWithoutActor(post.quotedPost);
       if (quotedPost == null) return null;
       const viewerActorId = await resolveViewerActorId(ctx, args);
-      return await isPostVisibleToViewer(ctx, quotedPost.id, viewerActorId)
+      return (await isPostVisibleToViewer(ctx, quotedPost.id, viewerActorId))
         ? quotedPost
         : null;
     },
   }),
-  replies: t.connection({
-    type: Post,
-    description:
-      "Posts that are direct replies to this post, newest first. Censored " +
-      "replies, replies by actors whose content is hidden by a moderation " +
-      "sanction, and replies not visible to the selected viewer account " +
-      "(e.g., followers-only replies by actors the viewer does not " +
-      "follow) are excluded. Pass `actingAccountId` for an organization " +
-      "perspective.",
-    args: {
-      actingAccountId: t.arg.id({
-        required: false,
-        description: actingAccountIdArgDescription,
+  replies: t.connection(
+    {
+      type: Post,
+      description:
+        "Posts that are direct replies to this post, newest first. Censored " +
+        "replies, replies by actors whose content is hidden by a moderation " +
+        "sanction, and replies not visible to the selected viewer account " +
+        "(e.g., followers-only replies by actors the viewer does not " +
+        "follow) are excluded. Pass `actingAccountId` for an organization " +
+        "perspective.",
+      args: {
+        actingAccountId: t.arg.id({
+          required: false,
+          description: actingAccountIdArgDescription,
+        }),
+      },
+      resolve: async (post, args, ctx) => {
+        const { edges, pageInfo } = await resolveOffsetConnection(
+          { args },
+          ({ offset, limit }) =>
+            visibleRelatedPostsPage(
+              ctx,
+              args,
+              "replyTargetId",
+              post.id,
+              offset,
+              limit,
+            ),
+        );
+        return {
+          edges: [...edges],
+          pageInfo: {
+            hasNextPage: pageInfo.hasNextPage,
+            hasPreviousPage: pageInfo.hasPreviousPage,
+            startCursor: pageInfo.startCursor,
+            endCursor: pageInfo.endCursor,
+          },
+          // Carried for the lazy `totalCount` field below.
+          countTargetId: post.id,
+          countArgs: args,
+        };
+      },
+    },
+    {
+      fields: (t) => ({
+        totalCount: t.int({
+          description:
+            "Total number of direct replies visible to the selected viewer " +
+            "account, independent of the current page size. Unlike counting " +
+            "the fetched edges, this is not capped by `first`, and excludes " +
+            "the same censored, sanction-hidden, and not-visible replies as " +
+            "the edges.",
+          resolve: (connection, _args, ctx) =>
+            countVisibleRelatedPosts(
+              ctx,
+              connection.countArgs,
+              "replyTargetId",
+              connection.countTargetId,
+            ),
+        }),
       }),
     },
-    resolve: async (post, args, ctx) => {
-      const { edges, pageInfo } = await resolveOffsetConnection(
-        { args },
-        ({ offset, limit }) =>
-          visibleRelatedPostsPage(
-            ctx,
-            args,
-            "replyTargetId",
-            post.id,
-            offset,
-            limit,
-          ),
-      );
-      return {
-        edges: [...edges],
-        pageInfo: {
-          hasNextPage: pageInfo.hasNextPage,
-          hasPreviousPage: pageInfo.hasPreviousPage,
-          startCursor: pageInfo.startCursor,
-          endCursor: pageInfo.endCursor,
-        },
-        // Carried for the lazy `totalCount` field below.
-        countTargetId: post.id,
-        countArgs: args,
-      };
-    },
-  }, {
-    fields: (t) => ({
-      totalCount: t.int({
-        description:
-          "Total number of direct replies visible to the selected viewer " +
-          "account, independent of the current page size. Unlike counting " +
-          "the fetched edges, this is not capped by `first`, and excludes " +
-          "the same censored, sanction-hidden, and not-visible replies as " +
-          "the edges.",
-        resolve: (connection, _args, ctx) =>
-          countVisibleRelatedPosts(
-            ctx,
-            connection.countArgs,
-            "replyTargetId",
-            connection.countTargetId,
-          ),
-      }),
-    }),
-  }),
+  ),
   hasVisibleReplies: t.boolean({
     description:
       "Whether this post has at least one direct reply the selected viewer " +
@@ -1785,7 +1801,8 @@ builder.drizzleInterfaceFields(Post, (t) => ({
       "for an organization perspective.",
     args: {
       maxDepth: t.arg.int({
-        description: "Maximum tree depth to traverse below this post (direct " +
+        description:
+          "Maximum tree depth to traverse below this post (direct " +
           "replies are depth 1). Defaults to 20 and is clamped " +
           "server-side to 40.",
       }),
@@ -1808,9 +1825,8 @@ builder.drizzleInterfaceFields(Post, (t) => ({
       );
       const viewerActorId = await resolveViewerActorId(ctx, args);
       const edges: { cursor: string; node: ThreadPostRow }[] = [];
-      let after = args.after == null
-        ? null
-        : decodeDescendantCursor(args.after);
+      let after =
+        args.after == null ? null : decodeDescendantCursor(args.after);
       // Whether a reply visible to this viewer exists past the emitted page.
       // Derived from actually finding one more visible survivor, never from the
       // raw `hasMore`: the raw tail can be entirely invisible to this viewer,
@@ -1847,11 +1863,12 @@ builder.drizzleInterfaceFields(Post, (t) => ({
           [...idsToCheck],
           viewerActorId,
         );
-        const survivors = page.entries.filter((entry) =>
-          visibleIds.has(entry.id) &&
-          descendantPathAncestorIds(entry.cursor).every((id) =>
-            visibleIds.has(id)
-          )
+        const survivors = page.entries.filter(
+          (entry) =>
+            visibleIds.has(entry.id) &&
+            descendantPathAncestorIds(entry.cursor).every((id) =>
+              visibleIds.has(id),
+            ),
         );
         const rows = await loadVisibleThreadPosts(
           ctx,
@@ -1882,9 +1899,8 @@ builder.drizzleInterfaceFields(Post, (t) => ({
       // time), so exposing it would disclose that hidden descendants exist and
       // leak their identity.  A page that emits nothing returns a `null`
       // cursor, indistinguishable from a post that has no descendants at all.
-      const endCursor = edges.length > 0
-        ? edges[edges.length - 1].cursor
-        : null;
+      const endCursor =
+        edges.length > 0 ? edges[edges.length - 1].cursor : null;
       // Offer a next page only when the probe actually found one more visible
       // reply, never off unread rows alone.  Once the page is full, a bounded
       // run of replies hidden from this viewer must not surface a "load more"
@@ -2072,7 +2088,7 @@ export const PostMediumRef = builder.drizzleNode("postMediumTable", {
     });
     if (
       post == null ||
-      post.censored == null && !isActorSanctionHidden(post.actor)
+      (post.censored == null && !isActorSanctionHidden(post.actor))
     ) {
       return true;
     }
@@ -2102,7 +2118,8 @@ export const PostMediumRef = builder.drizzleNode("postMediumTable", {
 
 export const Medium = builder.drizzleNode("mediumTable", {
   name: "Medium",
-  description: "A stored media object (image). Two-step upload flow: call " +
+  description:
+    "A stored media object (image). Two-step upload flow: call " +
     "`startMediumUpload` to get a pre-signed upload URL, PUT the image " +
     "to that URL, then call `finishMediumUpload` to complete the transaction. " +
     "Alternatively, call `createMedium` with a remote URL to import an " +
@@ -2188,8 +2205,10 @@ export const Medium = builder.drizzleNode("mediumTable", {
         return true;
       }
     }
-    const hasReference = avatarAccounts.length > 0 ||
-      noteMedia.length > 0 || articleMedia.length > 0;
+    const hasReference =
+      avatarAccounts.length > 0 ||
+      noteMedia.length > 0 ||
+      articleMedia.length > 0;
     return !hasReference;
   },
   // Run the scope when the node itself is resolved, so a cached avatar
@@ -2224,7 +2243,8 @@ export const Medium = builder.drizzleNode("mediumTable", {
 builder.drizzleObjectField(Medium, "generatedAltText", (t) =>
   t.string({
     nullable: true,
-    description: "AI-generated alternative text for this medium. " +
+    description:
+      "AI-generated alternative text for this medium. " +
       "Requires authentication. " +
       "Within the 2-hour upload window only the uploader may call this " +
       "field; after the window expires any authenticated user may call it " +
@@ -2258,7 +2278,8 @@ builder.drizzleObjectField(Medium, "generatedAltText", (t) =>
         context: args.context ?? undefined,
       });
     },
-  }));
+  }),
+);
 
 export const MediumUploadHeader = builder.simpleObject("MediumUploadHeader", {
   fields: (t) => ({
@@ -2269,7 +2290,8 @@ export const MediumUploadHeader = builder.simpleObject("MediumUploadHeader", {
 
 export const PostLink = builder.drizzleNode("postLinkTable", {
   variant: "PostLink",
-  description: "OpenGraph / oEmbed metadata for a link embedded in a post. " +
+  description:
+    "OpenGraph / oEmbed metadata for a link embedded in a post. " +
     "Populated asynchronously after the post is created; individual " +
     "fields may be `null` until the metadata fetch completes or if the " +
     "linked page does not expose the corresponding tag.  Not resolvable " +
@@ -2318,12 +2340,14 @@ export const PostLink = builder.drizzleNode("postLinkTable", {
           .selectDistinct({ linkId: postTable.linkId })
           .from(postTable)
           .innerJoin(actorTable, eq(postTable.actorId, actorTable.id))
-          .where(and(
-            inArray(postTable.linkId, ids),
-            viewerActorId == null
-              ? shows
-              : or(eq(postTable.actorId, viewerActorId), shows),
-          ));
+          .where(
+            and(
+              inArray(postTable.linkId, ids),
+              viewerActorId == null
+                ? shows
+                : or(eq(postTable.actorId, viewerActorId), shows),
+            ),
+          );
         const visibleSet = new Set(visible.map((row) => row.linkId));
         if (visibleSet.size === ids.length) return ids.map(() => true);
         const referenced = await ctx.db

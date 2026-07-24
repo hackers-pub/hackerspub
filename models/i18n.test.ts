@@ -78,10 +78,10 @@ describe("negotiateLocale()", () => {
       new Intl.Locale("ko-KR"),
       new Intl.Locale("zh-CN"),
     ];
-    const result = negotiateLocale([
-      new Intl.Locale("ko-KR"),
-      new Intl.Locale("en-US"),
-    ], availableLocales);
+    const result = negotiateLocale(
+      [new Intl.Locale("ko-KR"), new Intl.Locale("en-US")],
+      availableLocales,
+    );
     assert.deepEqual(result?.baseName, "ko-KR");
   });
 
@@ -91,10 +91,10 @@ describe("negotiateLocale()", () => {
       new Intl.Locale("ko-KR"),
       new Intl.Locale("zh-CN"),
     ];
-    const result = negotiateLocale([
-      new Intl.Locale("ja"),
-      new Intl.Locale("ko"),
-    ], availableLocales);
+    const result = negotiateLocale(
+      [new Intl.Locale("ja"), new Intl.Locale("ko")],
+      availableLocales,
+    );
     assert.deepEqual(result?.baseName, "ko-KR");
   });
 
@@ -104,10 +104,10 @@ describe("negotiateLocale()", () => {
       new Intl.Locale("ko-KR"),
       new Intl.Locale("zh-CN"),
     ];
-    const result = negotiateLocale([
-      new Intl.Locale("ja"),
-      new Intl.Locale("fr"),
-    ], availableLocales);
+    const result = negotiateLocale(
+      [new Intl.Locale("ja"), new Intl.Locale("fr")],
+      availableLocales,
+    );
     assert.deepEqual(result, undefined);
   });
 
@@ -142,20 +142,14 @@ describe("negotiateLocale()", () => {
     assert.deepEqual(result, undefined);
   });
 
-  it(
-    "language match prefers exact region over different region",
-    () => {
-      const availableLocales = [
-        new Intl.Locale("zh-TW"),
-        new Intl.Locale("zh-CN"),
-      ];
-      const result = negotiateLocale(
-        new Intl.Locale("zh-CN"),
-        availableLocales,
-      );
-      assert.deepEqual(result?.baseName, "zh-CN");
-    },
-  );
+  it("language match prefers exact region over different region", () => {
+    const availableLocales = [
+      new Intl.Locale("zh-TW"),
+      new Intl.Locale("zh-CN"),
+    ];
+    const result = negotiateLocale(new Intl.Locale("zh-CN"), availableLocales);
+    assert.deepEqual(result?.baseName, "zh-CN");
+  });
 
   it("language match when exact region not available", () => {
     const availableLocales = [
@@ -176,52 +170,34 @@ describe("negotiateLocale()", () => {
     assert.deepEqual(result?.baseName, "en-US");
   });
 
-  it(
-    "Chinese script-based matching - zh-HK vs zh-CN and zh-TW",
-    () => {
-      const availableLocales = [
-        new Intl.Locale("zh-CN"),
-        new Intl.Locale("zh-TW"),
-      ];
-      const result = negotiateLocale(
-        new Intl.Locale("zh-HK"),
-        availableLocales,
-      );
+  it("Chinese script-based matching - zh-HK vs zh-CN and zh-TW", () => {
+    const availableLocales = [
+      new Intl.Locale("zh-CN"),
+      new Intl.Locale("zh-TW"),
+    ];
+    const result = negotiateLocale(new Intl.Locale("zh-HK"), availableLocales);
 
-      // zh-HK should match zh-TW (both Traditional Chinese / Hant script)
-      assert.deepEqual(result?.baseName, "zh-TW");
-    },
-  );
+    // zh-HK should match zh-TW (both Traditional Chinese / Hant script)
+    assert.deepEqual(result?.baseName, "zh-TW");
+  });
 
-  it(
-    "Chinese script-based matching - zh-CN should prefer zh-CN over zh-TW",
-    () => {
-      const availableLocales = [
-        new Intl.Locale("zh-TW"),
-        new Intl.Locale("zh-CN"),
-      ];
-      const result = negotiateLocale(
-        new Intl.Locale("zh-CN"),
-        availableLocales,
-      );
-      // zh-CN should match zh-CN exactly (both Simplified Chinese / Hans script)
-      assert.deepEqual(result?.baseName, "zh-CN");
-    },
-  );
+  it("Chinese script-based matching - zh-CN should prefer zh-CN over zh-TW", () => {
+    const availableLocales = [
+      new Intl.Locale("zh-TW"),
+      new Intl.Locale("zh-CN"),
+    ];
+    const result = negotiateLocale(new Intl.Locale("zh-CN"), availableLocales);
+    // zh-CN should match zh-CN exactly (both Simplified Chinese / Hans script)
+    assert.deepEqual(result?.baseName, "zh-CN");
+  });
 
-  it(
-    "Chinese script-based matching - zh-SG should prefer zh-CN over zh-TW",
-    () => {
-      const availableLocales = [
-        new Intl.Locale("zh-TW"),
-        new Intl.Locale("zh-CN"),
-      ];
-      const result = negotiateLocale(
-        new Intl.Locale("zh-SG"),
-        availableLocales,
-      );
-      // zh-SG uses Simplified Chinese (Hans), should match zh-CN
-      assert.deepEqual(result?.baseName, "zh-CN");
-    },
-  );
+  it("Chinese script-based matching - zh-SG should prefer zh-CN over zh-TW", () => {
+    const availableLocales = [
+      new Intl.Locale("zh-TW"),
+      new Intl.Locale("zh-CN"),
+    ];
+    const result = negotiateLocale(new Intl.Locale("zh-SG"), availableLocales);
+    // zh-SG uses Simplified Chinese (Hans), should match zh-CN
+    assert.deepEqual(result?.baseName, "zh-CN");
+  });
 });

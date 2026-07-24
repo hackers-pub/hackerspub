@@ -45,7 +45,7 @@ import {
   getScaleToCoverRect,
   intersectCropRects,
 } from "~/lib/avatarCropBounds.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { createMediumFromDataUrl } from "~/lib/uploadImage.ts";
 import { SettingsCardPage } from "~/components/SettingsCardPage.tsx";
 import { SettingsOwnerGuard } from "~/components/SettingsOwnerGuard.tsx";
@@ -79,24 +79,31 @@ const settingsPageQuery = graphql`
 
 const loadPageQuery = routePreloadedQuery(
   (handle: string) =>
-    loadQuery<settingsPageQuery>(
-      useRelayEnvironment()(),
-      settingsPageQuery,
-      { username: handle.replace(/^@/, "") },
-    ),
+    loadQuery<settingsPageQuery>(useRelayEnvironment()(), settingsPageQuery, {
+      username: handle.replace(/^@/, ""),
+    }),
   "loadSettingsPageQuery",
 );
 
 const settingsMutation = graphql`
-  mutation settingsMutation($id: ID!, $username: String, $name: String!, $bio: String!, $avatarMediumId: UUID, $links: [AccountLinkInput!]!) {
-    updateAccount(input: {
-      id: $id,
-      username: $username,
-      name: $name,
-      bio: $bio,
-      avatarMediumId: $avatarMediumId,
-      links: $links,
-    }) {
+  mutation settingsMutation(
+    $id: ID!
+    $username: String
+    $name: String!
+    $bio: String!
+    $avatarMediumId: UUID
+    $links: [AccountLinkInput!]!
+  ) {
+    updateAccount(
+      input: {
+        id: $id
+        username: $username
+        name: $name
+        bio: $bio
+        avatarMediumId: $avatarMediumId
+        links: $links
+      }
+    ) {
       account {
         ...settingsForm_account
         ...SettingsTabs_account
@@ -120,14 +127,12 @@ export default function SettingsPage() {
           canManageSettings={data.accountByUsername?.viewerCanManageSettings}
           viewerId={data.viewer?.id}
         >
-          {
-            /* `keyed` avoids a "Stale read from <Show>" race when solid-relay
+          {/* `keyed` avoids a "Stale read from <Show>" race when solid-relay
              publishes a fragment snapshot inside `batch()` that flips
              `accountByUsername` to falsy in the same tick as a downstream
              reactive read. Reconcile keeps the account's identity stable
              (`key: "__id"`), so `keyed` only re-mounts on navigation to
-             a different account. */
-          }
+             a different account. */}
           <Show keyed when={data.accountByUsername}>
             {(account) => (
               <SettingsCardPage
@@ -262,15 +267,18 @@ function SettingsForm(props: SettingsFormProps) {
     setSyncedLinksAccountId(id);
     setLinksEdited(false);
   });
-  function onLinkItemChange(
-    values: { name: string; url: string; index: number },
-  ) {
+  function onLinkItemChange(values: {
+    name: string;
+    url: string;
+    index: number;
+  }) {
     setLinksEdited(true);
     setLinks("links", values.index, () => {
       return values;
     });
     if (
-      links.links.length < 1 || links.links.at(-1)?.name.trim() !== "" ||
+      links.links.length < 1 ||
+      links.links.at(-1)?.name.trim() !== "" ||
       links.links.at(-1)?.url.trim() !== ""
     ) {
       setLinks("links", links.links.length, {
@@ -279,7 +287,8 @@ function SettingsForm(props: SettingsFormProps) {
         index: links.links.length,
       });
     } else if (
-      links.links.length > 1 && links.links.at(-2)?.name.trim() === "" &&
+      links.links.length > 1 &&
+      links.links.at(-2)?.name.trim() === "" &&
       links.links.at(-2)?.url.trim() === ""
     ) {
       setLinks((links) => ({
@@ -310,9 +319,10 @@ function SettingsForm(props: SettingsFormProps) {
         console.error(error);
         showToast({
           title: t`Failed to save settings`,
-          description: error instanceof Error
-            ? error.message
-            : t`An error occurred while saving your settings. Please try again, or contact support if the problem persists.`,
+          description:
+            error instanceof Error
+              ? error.message
+              : t`An error occurred while saving your settings. Please try again, or contact support if the problem persists.`,
           variant: "error",
         });
         setSaving(false);
@@ -320,15 +330,12 @@ function SettingsForm(props: SettingsFormProps) {
       }
     }
     setLinks((links) => {
-      const newLinks = links.links.filter((l) =>
-        l.name.trim() !== "" && l.url.trim() !== ""
+      const newLinks = links.links.filter(
+        (l) => l.name.trim() !== "" && l.url.trim() !== "",
       );
-      return ({
-        links: [
-          ...newLinks,
-          { name: "", url: "", index: newLinks.length },
-        ],
-      });
+      return {
+        links: [...newLinks, { name: "", url: "", index: newLinks.length }],
+      };
     });
     save({
       variables: {
@@ -337,9 +344,9 @@ function SettingsForm(props: SettingsFormProps) {
         name,
         bio: bio(),
         avatarMediumId,
-        links: links.links.filter((l) =>
-          l.name.trim() !== "" && l.url.trim() !== ""
-        ).map((l) => ({ name: l.name, url: l.url })),
+        links: links.links
+          .filter((l) => l.name.trim() !== "" && l.url.trim() !== "")
+          .map((l) => ({ name: l.name, url: l.url })),
       },
       onCompleted() {
         setSaving(false);
@@ -387,23 +394,15 @@ function SettingsForm(props: SettingsFormProps) {
               />
             </Avatar>
           </div>
-          <Dialog
-            open={croperOpen()}
-            onOpenChange={setCropperOpen}
-          >
+          <Dialog open={croperOpen()} onOpenChange={setCropperOpen}>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>
-                  {t`Crop your new avatar`}
-                </DialogTitle>
+                <DialogTitle>{t`Crop your new avatar`}</DialogTitle>
                 <DialogDescription>
                   {t`Drag to select the area you want to keep, then click “Crop” to update your avatar.`}
                 </DialogDescription>
               </DialogHeader>
-              <div
-                ref={cropperContainer}
-                class="w-[460px] h-[460px]"
-              />
+              <div ref={cropperContainer} class="w-[460px] h-[460px]" />
               <DialogFooter class="flex flex-row">
                 <div class="grow">
                   <Button
@@ -417,10 +416,7 @@ function SettingsForm(props: SettingsFormProps) {
                     {t`Cancel`}
                   </Button>
                 </div>
-                <Button
-                  class="cursor-pointer"
-                  on:click={onCrop}
-                >
+                <Button class="cursor-pointer" on:click={onCrop}>
                   {t`Crop`}
                 </Button>
               </DialogFooter>
@@ -428,9 +424,7 @@ function SettingsForm(props: SettingsFormProps) {
           </Dialog>
         </div>
         <TextField class="grid w-full items-center gap-1.5">
-          <TextFieldLabel for="username">
-            {t`Username`}
-          </TextFieldLabel>
+          <TextFieldLabel for="username">{t`Username`}</TextFieldLabel>
           <div class="flex h-10 w-full items-center rounded-md border border-input text-sm ring-offset-background focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
             <span
               aria-hidden="true"
@@ -461,8 +455,7 @@ function SettingsForm(props: SettingsFormProps) {
             </Show>
           </div>
           <TextFieldDescription class="leading-6">
-            {t`Your username will be used to create your profile URL and your fediverse handle.`}
-            {" "}
+            {t`Your username will be used to create your profile URL and your fediverse handle.`}{" "}
             <strong>
               {t`You can change it only once, and the old username will become available to others.`}
               <Show keyed when={account()?.usernameChanged}>
@@ -482,9 +475,7 @@ function SettingsForm(props: SettingsFormProps) {
           </TextFieldDescription>
         </TextField>
         <TextField class="grid w-full items-center gap-1.5">
-          <TextFieldLabel for="name">
-            {t`Display name`}
-          </TextFieldLabel>
+          <TextFieldLabel for="name">{t`Display name`}</TextFieldLabel>
           <TextFieldInput
             ref={nameInput}
             type="text"
@@ -498,9 +489,7 @@ function SettingsForm(props: SettingsFormProps) {
           </TextFieldDescription>
         </TextField>
         <TextField class="grid w-full items-center gap-1.5">
-          <TextFieldLabel for="bio">
-            {t`Bio`}
-          </TextFieldLabel>
+          <TextFieldLabel for="bio">{t`Bio`}</TextFieldLabel>
           <MarkdownEditor
             id="bio"
             value={bio()}
@@ -546,11 +535,7 @@ function SettingsForm(props: SettingsFormProps) {
             />
           </p>
         </div>
-        <Button
-          type="submit"
-          class="cursor-pointer"
-          disabled={saving()}
-        >
+        <Button type="submit" class="cursor-pointer" disabled={saving()}>
           {saving() ? t`Saving…` : t`Save`}
         </Button>
       </div>
@@ -570,11 +555,12 @@ function accountLinksToFormItems(
     | null
     | undefined,
 ): AccountLinkFormItem[] {
-  const items = links?.map((link, index) => ({
-    name: link.name,
-    url: link.url,
-    index,
-  })) ?? [];
+  const items =
+    links?.map((link, index) => ({
+      name: link.name,
+      url: link.url,
+      index,
+    })) ?? [];
   return [...items, { name: "", url: "", index: items.length }];
 }
 
@@ -604,14 +590,16 @@ function LinkItemForm(props: LinkItemFormProps) {
             id={`link-name-${props.index}`}
             placeholder={t`Website`}
             value={props.name}
-            required={props.required ||
-              props.url != null && props.url.trim() !== ""}
+            required={
+              props.required || (props.url != null && props.url.trim() !== "")
+            }
             on:input={() =>
               props?.onChange?.({
                 name: nameInput?.value ?? "",
                 url: urlInput?.value ?? "",
                 index: props.index,
-              })}
+              })
+            }
           />
           <Show when={props.description}>
             <TextFieldDescription class="leading-6 grow">
@@ -635,7 +623,8 @@ function LinkItemForm(props: LinkItemFormProps) {
                 name: nameInput?.value ?? "",
                 url: urlInput?.value ?? "",
                 index: props.index,
-              })}
+              })
+            }
           />
           <Show when={props.description}>
             <TextFieldDescription class="leading-6 grow">
@@ -645,9 +634,11 @@ function LinkItemForm(props: LinkItemFormProps) {
         </TextField>
       </div>
       <Show
-        when={!props.description &&
+        when={
+          !props.description &&
           (props.name == null || props.name.trim() === "") &&
-          (props.url == null || props.url.trim() === "")}
+          (props.url == null || props.url.trim() === "")
+        }
       >
         <p class="leading-6 text-sm text-muted-foreground">
           {t`You can leave this empty to remove the link.`}
@@ -696,7 +687,9 @@ function bindAvatarCropperBounds(cropper: Cropper): void {
   const normalizeImage = () => {
     frame = undefined;
     if (
-      normalizing || !canvas.isConnected || !image.isConnected ||
+      normalizing ||
+      !canvas.isConnected ||
+      !image.isConnected ||
       !selection.isConnected
     ) {
       return;
@@ -735,9 +728,8 @@ function bindAvatarCropperBounds(cropper: Cropper): void {
       return;
     }
     const bounds = getVisibleImageBounds(canvas, image);
-    const clamped = bounds == null
-      ? undefined
-      : clampSquareCropRect(detail, bounds);
+    const clamped =
+      bounds == null ? undefined : clampSquareCropRect(detail, bounds);
     if (clamped != null && !cropRectsAlmostEqual(detail, clamped)) {
       event.preventDefault();
       normalizeSelection(clamped);
@@ -749,10 +741,12 @@ function bindAvatarCropperBounds(cropper: Cropper): void {
     if (!normalizing) queueImageNormalization();
   });
 
-  image.$ready(() => {
-    normalizeSelection();
-    queueImageNormalization();
-  }).catch(() => {});
+  image
+    .$ready(() => {
+      normalizeSelection();
+      queueImageNormalization();
+    })
+    .catch(() => {});
 }
 
 function getSelectionChangeDetail(event: Event): CropRect | undefined {
@@ -794,10 +788,7 @@ function getVisibleImageBounds(
   );
 }
 
-function getElementCropRect(
-  container: Element,
-  element: Element,
-): CropRect {
+function getElementCropRect(container: Element, element: Element): CropRect {
   const containerRect = container.getBoundingClientRect();
   const elementRect = element.getBoundingClientRect();
   return {

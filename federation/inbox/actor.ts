@@ -19,8 +19,8 @@ export async function onActorUpdated(
   update: Update,
   object?: unknown,
 ): Promise<void> {
-  const actor = object ??
-    await update.getObject({ ...fedCtx, suppressError: true });
+  const actor =
+    object ?? (await update.getObject({ ...fedCtx, suppressError: true }));
   if (!isActor(actor) || update.actorId?.href !== actor.id?.href) return;
   await persistActor(toApplicationContext(fedCtx), actor, {
     ...fedCtx,
@@ -65,7 +65,8 @@ export async function onActorDeleted(
     }),
   ]);
   if (moderationRefs.some((row) => row != null)) return true;
-  const deletedRows = await db.delete(actorTable)
+  const deletedRows = await db
+    .delete(actorTable)
     .where(eq(actorTable.id, actor.id))
     .returning();
   return deletedRows.length > 0;
@@ -79,16 +80,15 @@ export async function onActorMoved(
   if (actorId == null) return;
   // Check the cached actor before dereferencing the Move's object and
   // target, so a federation-blocked actor cannot force remote fetches.
-  if (
-    await isCachedActorFederationBlocked(fedCtx.data.db, actorId)
-  ) {
+  if (await isCachedActorFederationBlocked(fedCtx.data.db, actorId)) {
     return;
   }
   const object = await move.getObject({ ...fedCtx, suppressError: true });
   if (!isActor(object) || object.id?.href !== actorId.href) return;
   const target = await move.getTarget({ ...fedCtx, suppressError: true });
   if (
-    !isActor(target) || target.aliasIds.every((a) => a.href !== object.id?.href)
+    !isActor(target) ||
+    target.aliasIds.every((a) => a.href !== object.id?.href)
   ) {
     return;
   }
@@ -106,7 +106,8 @@ export async function onActorMoved(
   if (newActor == null) return;
   if (newActor.id === oldActor.id) return;
   const { db } = fedCtx.data;
-  await db.update(actorTable)
+  await db
+    .update(actorTable)
     .set({ successorId: newActor.id })
     .where(eq(actorTable.id, oldActor.id));
   const followers = await db.query.actorTable.findMany({

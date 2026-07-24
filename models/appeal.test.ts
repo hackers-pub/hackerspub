@@ -41,7 +41,8 @@ async function makeModerator(tx: Transaction, username = "moderator") {
     name: "Moderator",
     email: `${username}@example.com`,
   });
-  await tx.update(accountTable)
+  await tx
+    .update(accountTable)
     .set({ moderator: true })
     .where(eq(accountTable.id, moderator.account.id));
   const account = await tx.query.accountTable.findFirst({
@@ -84,9 +85,9 @@ async function makeSanctionedCase(
     messageToUser: "You were sanctioned.",
     ...(actionType === "suspend"
       ? {
-        suspensionStarts: new Date(Date.now() - HOUR),
-        suspensionEnds: new Date(Date.now() + 30 * 24 * HOUR),
-      }
+          suspensionStarts: new Date(Date.now() - HOUR),
+          suspensionEnds: new Date(Date.now() + 30 * 24 * HOUR),
+        }
       : {}),
   });
   assert.ok(action != null);
@@ -113,10 +114,11 @@ describe("createAppeal()", () => {
       assert.equal(appeal.appellantId, reported.account.id);
       assert.equal(appeal.status, "pending");
       assert.equal(appeal.result, null);
-      const notifications = await tx.query.moderationNotificationTable
-        .findMany({
+      const notifications = await tx.query.moderationNotificationTable.findMany(
+        {
           where: { type: "appeal_received", appealId: appeal.id },
-        });
+        },
+      );
       assert.equal(notifications.length, 1);
       assert.equal(notifications[0].accountId, moderator.account.id);
       assert.equal(notifications[0].appealId, appeal.id);
@@ -134,7 +136,8 @@ describe("createAppeal()", () => {
       // The sanctioned user is themselves a moderator: they cannot review
       // their own appeal (the queue and resolver exclude it), so they must
       // not be notified about a case they cannot open.
-      await tx.update(accountTable)
+      await tx
+        .update(accountTable)
         .set({ moderator: true })
         .where(eq(accountTable.id, reported.account.id));
       const appeal = await createAppeal(tx, {
@@ -143,10 +146,11 @@ describe("createAppeal()", () => {
         reason: "I believe this decision misread the context.",
       });
       assert.ok(appeal != null);
-      const notifications = await tx.query.moderationNotificationTable
-        .findMany({
+      const notifications = await tx.query.moderationNotificationTable.findMany(
+        {
           where: { type: "appeal_received", appealId: appeal.id },
-        });
+        },
+      );
       // Only the other moderator (who took the action) is notified.
       assert.equal(notifications.length, 1);
       assert.equal(notifications[0].accountId, moderator.account.id);
@@ -162,7 +166,8 @@ describe("createAppeal()", () => {
         fedCtx,
         "warning",
       );
-      await tx.update(flagActionTable)
+      await tx
+        .update(flagActionTable)
         .set({ created: new Date(Date.now() - APPEAL_WINDOW_MS - HOUR) })
         .where(eq(flagActionTable.id, action.id));
       const appeal = await createAppeal(tx, {
@@ -262,10 +267,11 @@ describe("resolveAppeal()", () => {
         where: { id: reported.actor.id },
       });
       assert.ok(actor?.suspended != null);
-      const notifications = await tx.query.moderationNotificationTable
-        .findMany({
+      const notifications = await tx.query.moderationNotificationTable.findMany(
+        {
           where: { type: "appeal_resolved", appealId: appeal.id },
-        });
+        },
+      );
       assert.equal(notifications.length, 1);
       assert.equal(notifications[0].accountId, reported.account.id);
     });
@@ -335,8 +341,11 @@ describe("resolveAppeal()", () => {
     await withRollback(async (tx) => {
       const fedCtx = recordingFedCtx(tx);
       // Case A: a suspension on the reported actor.
-      const { moderator, reported, action: suspendAction } =
-        await makeSanctionedCase(tx, fedCtx, "suspend");
+      const {
+        moderator,
+        reported,
+        action: suspendAction,
+      } = await makeSanctionedCase(tx, fedCtx, "suspend");
       // Case B: a separate ban on the same actor (a user report).
       const reporterB = await insertAccountWithActor(tx, {
         username: "reporterb",

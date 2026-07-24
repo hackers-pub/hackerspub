@@ -13,9 +13,7 @@ export async function onUpdated(
   fedCtx: InboxContext<ContextData>,
   update: Update,
 ): Promise<void> {
-  if (
-    await isCachedActorFederationBlocked(fedCtx.data.db, update.actorId)
-  ) {
+  if (await isCachedActorFederationBlocked(fedCtx.data.db, update.actorId)) {
     return;
   }
   let object: unknown;

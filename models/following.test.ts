@@ -171,16 +171,16 @@ test("unfollow() removes local follow state and notification", async () => {
     assert.deepEqual(followerActor.followeesCount, 0);
     assert.deepEqual(followeeActor.followersCount, 0);
 
-    const notifications = await tx.select().from(notificationTable).where(eq(
-      notificationTable.accountId,
-      followee.account.id,
-    ));
+    const notifications = await tx
+      .select()
+      .from(notificationTable)
+      .where(eq(notificationTable.accountId, followee.account.id));
     assert.deepEqual(notifications, []);
 
-    const followings = await tx.select().from(followingTable).where(eq(
-      followingTable.followeeId,
-      followee.actor.id,
-    ));
+    const followings = await tx
+      .select()
+      .from(followingTable)
+      .where(eq(followingTable.followeeId, followee.actor.id));
     assert.deepEqual(followings, []);
   });
 });
@@ -230,11 +230,7 @@ test("getFollowedActorIds returns the subset that the follower follows", async (
 
 test("getFollowedActorIds returns empty for empty input", async () => {
   await withRollback(async (tx) => {
-    const result = await getFollowedActorIds(
-      tx,
-      generateUuidV7() as Uuid,
-      [],
-    );
+    const result = await getFollowedActorIds(tx, generateUuidV7() as Uuid, []);
     assert.deepEqual(result.size, 0);
   });
 });
@@ -289,11 +285,7 @@ test("getFollowerActorIds returns the subset that follows the followee", async (
 
 test("getFollowerActorIds returns empty for empty input", async () => {
   await withRollback(async (tx) => {
-    const result = await getFollowerActorIds(
-      tx,
-      generateUuidV7() as Uuid,
-      [],
-    );
+    const result = await getFollowerActorIds(tx, generateUuidV7() as Uuid, []);
     assert.deepEqual(result.size, 0);
   });
 });

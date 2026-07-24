@@ -25,7 +25,7 @@ import {
   TextFieldLabel,
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
-import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
+import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
 import type { IdInvitationLinkPageQuery } from "./__generated__/IdInvitationLinkPageQuery.graphql.ts";
 import type { IdRedeemInvitationLinkMutation } from "./__generated__/IdRedeemInvitationLinkMutation.graphql.ts";
 import {
@@ -79,15 +79,15 @@ const loadInvitationLinkPageQuery = routePreloadedQuery(
 
 const invitationLinkRedeemMutation = graphql`
   mutation IdRedeemInvitationLinkMutation(
-    $id: UUID!,
-    $email: Email!,
-    $locale: Locale!,
+    $id: UUID!
+    $email: Email!
+    $locale: Locale!
     $verifyUrl: URITemplate!
   ) {
     redeemInvitationLink(
-      id: $id,
-      email: $email,
-      locale: $locale,
+      id: $id
+      email: $email
+      locale: $locale
       verifyUrl: $verifyUrl
     ) {
       __typename
@@ -118,10 +118,7 @@ export default function InvitationLinkPage() {
   const data = createStablePreloadedQuery<IdInvitationLinkPageQuery>(
     invitationLinkPageQuery,
     () =>
-      loadInvitationLinkPageQuery(
-        params.id!,
-        decodeRouteParam(params.handle!),
-      ),
+      loadInvitationLinkPageQuery(params.id!, decodeRouteParam(params.handle!)),
   );
   const [email, setEmail] = createSignal("");
   const [locale, setLocale] = createSignal(i18n.locale);
@@ -169,9 +166,7 @@ export default function InvitationLinkPage() {
           } else if (result.link === "LINK_EXPIRED") {
             setLinkError(t`This invitation link has expired.`);
           } else if (result.link === "LINK_EXHAUSTED") {
-            setLinkError(
-              t`This invitation link has no remaining invitations.`,
-            );
+            setLinkError(t`This invitation link has no remaining invitations.`);
           }
 
           if (result.emailError === "EMAIL_INVALID") {
@@ -192,8 +187,7 @@ export default function InvitationLinkPage() {
             showToast({
               variant: "error",
               title: t`Failed to send email`,
-              description:
-                t`The invitation email could not be sent. Please try again later.`,
+              description: t`The invitation email could not be sent. Please try again later.`,
             });
           }
         }
@@ -219,10 +213,8 @@ export default function InvitationLinkPage() {
           class="lg:p-8 min-h-screen flex items-center justify-center"
         >
           <div class="w-full max-w-md p-4">
-            {
-              /* `keyed`: avoid Solid's stale-accessor race when this
-               Relay field flips to null inside a `batch()` update. */
-            }
+            {/* `keyed`: avoid Solid's stale-accessor race when this
+               Relay field flips to null inside a `batch()` update. */}
             <Show
               keyed
               when={data.invitationLink}
@@ -295,9 +287,7 @@ export default function InvitationLinkPage() {
                               <Show keyed when={link.inviter.avatarUrl}>
                                 {(avatarUrl) => (
                                   <Avatar>
-                                    <a
-                                      href={`/@${link.inviter.username}`}
-                                    >
+                                    <a href={`/@${link.inviter.username}`}>
                                       <AvatarImage src={avatarUrl} />
                                     </a>
                                   </Avatar>
@@ -327,12 +317,10 @@ export default function InvitationLinkPage() {
                             <div class="flex gap-4 text-sm text-muted-foreground">
                               <span>
                                 {i18n._(
-                                  msg`${
-                                    plural(link.invitationsLeft, {
-                                      one: "# invitation left",
-                                      other: "# invitations left",
-                                    })
-                                  }`,
+                                  msg`${plural(link.invitationsLeft, {
+                                    one: "# invitation left",
+                                    other: "# invitations left",
+                                  })}`,
                                 )}
                               </span>
                               {/* `keyed`: same race shape; expires can flip to null. */}
@@ -356,9 +344,7 @@ export default function InvitationLinkPage() {
                             </div>
                             <Show keyed when={linkError()}>
                               {(error) => (
-                                <p class="text-sm text-destructive">
-                                  {error}
-                                </p>
+                                <p class="text-sm text-destructive">{error}</p>
                               )}
                             </Show>
                             <form
@@ -367,9 +353,9 @@ export default function InvitationLinkPage() {
                             >
                               <TextField
                                 class="grid w-full items-center gap-1.5"
-                                validationState={emailError()
-                                  ? "invalid"
-                                  : "valid"}
+                                validationState={
+                                  emailError() ? "invalid" : "valid"
+                                }
                               >
                                 <TextFieldLabel for="email">
                                   {t`Email address`}
@@ -381,7 +367,8 @@ export default function InvitationLinkPage() {
                                   placeholder="you@email.com"
                                   value={email()}
                                   onInput={(e) =>
-                                    setEmail(e.currentTarget.value)}
+                                    setEmail(e.currentTarget.value)
+                                  }
                                 />
                                 <Show keyed when={emailError()}>
                                   {(error) => (
@@ -392,9 +379,7 @@ export default function InvitationLinkPage() {
                                 </Show>
                               </TextField>
                               <div class="flex flex-col gap-1.5">
-                                <Label>
-                                  {t`Preferred language`}
-                                </Label>
+                                <Label>{t`Preferred language`}</Label>
                                 <LocaleSelect
                                   $availableLocales={data}
                                   value={locale()}
@@ -406,8 +391,7 @@ export default function InvitationLinkPage() {
                               </div>
                               <Button
                                 type="submit"
-                                disabled={submitting() ||
-                                  email().trim() === ""}
+                                disabled={submitting() || email().trim() === ""}
                                 class="w-full cursor-pointer"
                               >
                                 {submitting() ? t`Sending…` : t`Sign up`}

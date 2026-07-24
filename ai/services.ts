@@ -4,12 +4,12 @@ import { analyzeFlaggedContent } from "./moderation.ts";
 import { summarize } from "./summary.ts";
 import { translate } from "./translate.ts";
 
-function unwrapModel(
-  model: { readonly implementation: unknown },
-): LanguageModel {
+function unwrapModel(model: {
+  readonly implementation: unknown;
+}): LanguageModel {
   return model != null && "implementation" in model
-    ? model.implementation as LanguageModel
-    : model as unknown as LanguageModel;
+    ? (model.implementation as LanguageModel)
+    : (model as unknown as LanguageModel);
 }
 
 export const aiServices: AiServices = {
@@ -27,8 +27,9 @@ export const aiServices: AiServices = {
     translate({
       ...options,
       model: unwrapModel(options.model),
-      summarizationModel: options.summarizationModel == null
-        ? undefined
-        : unwrapModel(options.summarizationModel),
+      summarizationModel:
+        options.summarizationModel == null
+          ? undefined
+          : unwrapModel(options.summarizationModel),
     }),
 };

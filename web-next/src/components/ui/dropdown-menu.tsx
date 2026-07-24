@@ -31,8 +31,7 @@ const DropdownMenu: Component<DropdownMenuPrimitive.DropdownMenuRootProps> = (
 };
 
 type DropdownMenuContentProps<T extends ValidComponent = "div"> =
-  & DropdownMenuPrimitive.DropdownMenuContentProps<T>
-  & {
+  DropdownMenuPrimitive.DropdownMenuContentProps<T> & {
     class?: string | undefined;
   };
 
@@ -54,8 +53,7 @@ const DropdownMenuContent = <T extends ValidComponent = "div">(
 };
 
 type DropdownMenuItemProps<T extends ValidComponent = "div"> =
-  & DropdownMenuPrimitive.DropdownMenuItemProps<T>
-  & {
+  DropdownMenuPrimitive.DropdownMenuItemProps<T> & {
     class?: string | undefined;
   };
 
@@ -101,8 +99,7 @@ const DropdownMenuLabel: Component<
 };
 
 type DropdownMenuSeparatorProps<T extends ValidComponent = "hr"> =
-  & DropdownMenuPrimitive.DropdownMenuSeparatorProps<T>
-  & {
+  DropdownMenuPrimitive.DropdownMenuSeparatorProps<T> & {
     class?: string | undefined;
   };
 
@@ -119,8 +116,7 @@ const DropdownMenuSeparator = <T extends ValidComponent = "hr">(
 };
 
 type DropdownMenuSubTriggerProps<T extends ValidComponent = "div"> =
-  & DropdownMenuPrimitive.DropdownMenuSubTriggerProps<T>
-  & {
+  DropdownMenuPrimitive.DropdownMenuSubTriggerProps<T> & {
     class?: string | undefined;
     children?: JSX.Element;
   };
@@ -158,8 +154,7 @@ const DropdownMenuSubTrigger = <T extends ValidComponent = "div">(
 };
 
 type DropdownMenuSubContentProps<T extends ValidComponent = "div"> =
-  & DropdownMenuPrimitive.DropdownMenuSubContentProps<T>
-  & {
+  DropdownMenuPrimitive.DropdownMenuSubContentProps<T> & {
     class?: string | undefined;
   };
 
@@ -179,8 +174,7 @@ const DropdownMenuSubContent = <T extends ValidComponent = "div">(
 };
 
 type DropdownMenuCheckboxItemProps<T extends ValidComponent = "div"> =
-  & DropdownMenuPrimitive.DropdownMenuCheckboxItemProps<T>
-  & {
+  DropdownMenuPrimitive.DropdownMenuCheckboxItemProps<T> & {
     class?: string | undefined;
     children?: JSX.Element;
   };
@@ -222,8 +216,7 @@ const DropdownMenuCheckboxItem = <T extends ValidComponent = "div">(
 };
 
 type DropdownMenuGroupLabelProps<T extends ValidComponent = "span"> =
-  & DropdownMenuPrimitive.DropdownMenuGroupLabelProps<T>
-  & {
+  DropdownMenuPrimitive.DropdownMenuGroupLabelProps<T> & {
     class?: string | undefined;
   };
 
@@ -240,8 +233,7 @@ const DropdownMenuGroupLabel = <T extends ValidComponent = "span">(
 };
 
 type DropdownMenuRadioItemProps<T extends ValidComponent = "div"> =
-  & DropdownMenuPrimitive.DropdownMenuRadioItemProps<T>
-  & {
+  DropdownMenuPrimitive.DropdownMenuRadioItemProps<T> & {
     class?: string | undefined;
     children?: JSX.Element;
     indicator?: JSX.Element;

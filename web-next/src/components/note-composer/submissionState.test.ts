@@ -7,11 +7,13 @@ import {
   validateSubmission,
 } from "./submissionState.ts";
 
-const uploadedMedia = [{
-  uuid: "00000000-0000-0000-0000-000000000000",
-  alt: " Diagram ",
-  uploading: false,
-}] as const;
+const uploadedMedia = [
+  {
+    uuid: "00000000-0000-0000-0000-000000000000",
+    alt: " Diagram ",
+    uploading: false,
+  },
+] as const;
 
 test("validateSubmission rejects empty content and incomplete media", () => {
   assert.deepEqual(validateSubmission(" ", []), {
@@ -19,30 +21,36 @@ test("validateSubmission rejects empty content and incomplete media", () => {
     error: "empty-content",
   });
   assert.deepEqual(
-    validateSubmission("hello", [{
-      ...uploadedMedia[0],
-      uploading: true,
-    }]),
+    validateSubmission("hello", [
+      {
+        ...uploadedMedia[0],
+        uploading: true,
+      },
+    ]),
     {
       ok: false,
       error: "uploading-media",
     },
   );
   assert.deepEqual(
-    validateSubmission("hello", [{
-      alt: "Diagram",
-      uploading: false,
-    }]),
+    validateSubmission("hello", [
+      {
+        alt: "Diagram",
+        uploading: false,
+      },
+    ]),
     {
       ok: false,
       error: "failed-media-upload",
     },
   );
   assert.deepEqual(
-    validateSubmission("hello", [{
-      ...uploadedMedia[0],
-      alt: " ",
-    }]),
+    validateSubmission("hello", [
+      {
+        ...uploadedMedia[0],
+        alt: " ",
+      },
+    ]),
     {
       ok: false,
       error: "missing-alt",
@@ -77,10 +85,12 @@ test("buildCreatePostInput normalizes shared note fields", () => {
       quotedPostId: "quote",
       replyTargetId: "reply",
       actingAccountId: "account",
-      media: [{
-        mediumId: "00000000-0000-0000-0000-000000000000",
-        alt: "Diagram",
-      }],
+      media: [
+        {
+          mediumId: "00000000-0000-0000-0000-000000000000",
+          alt: "Diagram",
+        },
+      ],
     },
   );
 });

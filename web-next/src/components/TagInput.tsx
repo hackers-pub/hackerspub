@@ -29,7 +29,9 @@ export function TagInput(props: TagInputProps) {
       e.preventDefault();
       addTag(inputValue());
     } else if (
-      e.key === "Backspace" && !inputValue() && props.value.length > 0
+      e.key === "Backspace" &&
+      !inputValue() &&
+      props.value.length > 0
     ) {
       removeTag(props.value.length - 1);
     }
@@ -54,8 +56,7 @@ export function TagInput(props: TagInputProps) {
             {tag}
             <button
               type="button"
-              onClick={() =>
-                removeTag(index())}
+              onClick={() => removeTag(index())}
               class="ml-1 hover:text-destructive"
               aria-label={`Remove tag ${tag}`}
             >

@@ -13,7 +13,7 @@ import {
 import { createPaginationFragment } from "solid-relay";
 import { NewsStoryCard } from "~/components/NewsStoryCard.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { NewsSort } from "~/lib/useNewsSort.ts";
 import type { NewsList_stories$key } from "./__generated__/NewsList_stories.graphql.ts";
 
@@ -29,20 +29,18 @@ export function NewsList(props: NewsListProps) {
   const stories = createPaginationFragment(
     graphql`
       fragment NewsList_stories on Query
-        @refetchable(queryName: "NewsListQuery")
-        @argumentDefinitions(
-          cursor: { type: "String" }
-          count: { type: "Int", defaultValue: 25 }
-          order: { type: "NewsOrder", defaultValue: POPULAR }
-        )
-      {
+      @refetchable(queryName: "NewsListQuery")
+      @argumentDefinitions(
+        cursor: { type: "String" }
+        count: { type: "Int", defaultValue: 25 }
+        order: { type: "NewsOrder", defaultValue: POPULAR }
+      ) {
         __id
         viewer {
           moderator
         }
         newsStories(after: $cursor, first: $count, order: $order)
-          @connection(key: "NewsList__newsStories")
-        {
+          @connection(key: "NewsList__newsStories") {
           __id
           edges {
             __id
@@ -63,21 +61,25 @@ export function NewsList(props: NewsListProps) {
   // Refetch at the fragment level when the sort pill changes after mount, so
   // the subtree stays mounted (no flash). The top-level query carries the
   // initial sort for SSR.
-  createEffect(on(
-    () => props.activeSort(),
-    (order) => {
-      stories.refetch({ order });
-    },
-    { defer: true },
-  ));
+  createEffect(
+    on(
+      () => props.activeSort(),
+      (order) => {
+        stories.refetch({ order });
+      },
+      { defer: true },
+    ),
+  );
 
   onMount(() => {
     // Stale-while-revalidate, and refresh when the viewer shares a link (the
     // new share re-scores it, so it should surface immediately).
     stories.refetch({ order: props.activeSort() });
-    onCleanup(onNoteCreated(() => {
-      stories.refetch({ order: props.activeSort() });
-    }));
+    onCleanup(
+      onNoteCreated(() => {
+        stories.refetch({ order: props.activeSort() });
+      }),
+    );
   });
 
   function onLoadMore() {
@@ -125,7 +127,8 @@ export function NewsList(props: NewsListProps) {
                       stories.refetch(
                         { order: props.activeSort() },
                         { fetchPolicy: "network-only" },
-                      )}
+                      )
+                    }
                   />
                 )}
               </For>

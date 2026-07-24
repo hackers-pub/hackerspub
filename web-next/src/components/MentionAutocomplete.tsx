@@ -109,10 +109,7 @@ export function MentionAutocomplete(props: MentionAutocompleteProps) {
     mirror.style.font = computedStyle.font;
     mirror.style.lineHeight = computedStyle.lineHeight;
     mirror.style.padding = computedStyle.padding;
-    const text = textArea.value.substring(
-      0,
-      cursor ?? textArea.selectionStart,
-    );
+    const text = textArea.value.substring(0, cursor ?? textArea.selectionStart);
     mirror.appendChild(document.createTextNode(text));
     const span = document.createElement("span");
     span.textContent = ".";
@@ -140,14 +137,16 @@ export function MentionAutocomplete(props: MentionAutocompleteProps) {
         // Only update if this is the latest request
         if (requestVersion() !== version) return;
         setCandidates((c) =>
-          c == null ? undefined : {
-            ...c,
-            actors: data.searchActorsByHandle ?? [],
-            selectedIndex:
-              c.selectedIndex >= (data.searchActorsByHandle?.length ?? 0)
-                ? 0
-                : c.selectedIndex,
-          }
+          c == null
+            ? undefined
+            : {
+                ...c,
+                actors: data.searchActorsByHandle ?? [],
+                selectedIndex:
+                  c.selectedIndex >= (data.searchActorsByHandle?.length ?? 0)
+                    ? 0
+                    : c.selectedIndex,
+              },
         );
       },
       error(err: Error) {
@@ -191,21 +190,26 @@ export function MentionAutocomplete(props: MentionAutocompleteProps) {
       case "ArrowUp":
         event.preventDefault();
         setCandidates((c) =>
-          c == null ? undefined : {
-            ...c,
-            selectedIndex: (c.selectedIndex - 1 + (c.actors?.length ?? 0)) %
-              (c.actors?.length ?? 1),
-          }
+          c == null
+            ? undefined
+            : {
+                ...c,
+                selectedIndex:
+                  (c.selectedIndex - 1 + (c.actors?.length ?? 0)) %
+                  (c.actors?.length ?? 1),
+              },
         );
         break;
 
       case "ArrowDown":
         event.preventDefault();
         setCandidates((c) =>
-          c == null ? undefined : {
-            ...c,
-            selectedIndex: (c.selectedIndex + 1) % (c.actors?.length ?? 1),
-          }
+          c == null
+            ? undefined
+            : {
+                ...c,
+                selectedIndex: (c.selectedIndex + 1) % (c.actors?.length ?? 1),
+              },
         );
         break;
 
@@ -235,9 +239,10 @@ export function MentionAutocomplete(props: MentionAutocompleteProps) {
 
     const start = match.index;
     const end = start + match[0].length;
-    const inserted = actor.handle +
-      (textArea.value.charAt(end).match(/^\s$/) ? "" : " ");
-    const newText = textArea.value.substring(0, start) +
+    const inserted =
+      actor.handle + (textArea.value.charAt(end).match(/^\s$/) ? "" : " ");
+    const newText =
+      textArea.value.substring(0, start) +
       inserted +
       textArea.value.substring(end);
     const newPosition = start + inserted.length;
@@ -262,7 +267,9 @@ export function MentionAutocomplete(props: MentionAutocompleteProps) {
     // Check if focus is moving to the dropdown
     const relatedTarget = event.relatedTarget as Node | null;
     if (
-      candidatesRef && relatedTarget && candidatesRef.contains(relatedTarget)
+      candidatesRef &&
+      relatedTarget &&
+      candidatesRef.contains(relatedTarget)
     ) {
       return;
     }
@@ -296,9 +303,12 @@ export function MentionAutocomplete(props: MentionAutocompleteProps) {
 
   return (
     <Show
-      when={mountPoint() && candidates() &&
+      when={
+        mountPoint() &&
+        candidates() &&
         (candidates()?.actors == null ||
-          (candidates()?.actors?.length ?? 0) > 0)}
+          (candidates()?.actors?.length ?? 0) > 0)
+      }
     >
       <Portal mount={mountPoint()}>
         <div
@@ -336,7 +346,7 @@ export function MentionAutocomplete(props: MentionAutocompleteProps) {
                 style={{ cursor: "pointer" }}
                 onMouseOver={() => {
                   setCandidates((c) =>
-                    c == null ? undefined : { ...c, selectedIndex: index() }
+                    c == null ? undefined : { ...c, selectedIndex: index() },
                   );
                 }}
                 onClick={(e) => {

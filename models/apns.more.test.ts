@@ -37,7 +37,9 @@ test("registerApnsDeviceToken() reassigns an existing token to the new account",
     assert.ok(reassigned != null);
     assert.equal(reassigned.accountId, second.account.id);
 
-    const stored = await tx.select().from(pushNotificationTargetTable)
+    const stored = await tx
+      .select()
+      .from(pushNotificationTargetTable)
       .where(eq(pushNotificationTargetTable.token, token));
     assert.equal(stored.length, 1);
     assert.equal(stored[0].accountId, second.account.id);
@@ -64,7 +66,9 @@ test("registerApnsDeviceToken() evicts the oldest token when over the per-accoun
     const extraToken = tokenWithSuffix("ff");
     await registerApnsDeviceToken(tx, account.account.id, extraToken);
 
-    const tokens = await tx.select().from(pushNotificationTargetTable)
+    const tokens = await tx
+      .select()
+      .from(pushNotificationTargetTable)
       .where(
         and(
           eq(pushNotificationTargetTable.accountId, account.account.id),
@@ -106,7 +110,9 @@ test("unregisterApnsDeviceToken() only removes tokens owned by the account", asy
       true,
     );
 
-    const stored = await tx.select().from(pushNotificationTargetTable)
+    const stored = await tx
+      .select()
+      .from(pushNotificationTargetTable)
       .where(eq(pushNotificationTargetTable.token, token));
     assert.deepEqual(stored, []);
   });

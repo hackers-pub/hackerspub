@@ -44,10 +44,7 @@ export interface CreateQuestionPollInput extends CreatePollInput {
 }
 
 interface CreatePostOptions {
-  afterPostCreated?: (
-    post: Post,
-    db: Database | Transaction,
-  ) => Promise<void>;
+  afterPostCreated?: (post: Post, db: Database | Transaction) => Promise<void>;
 }
 
 export async function createQuestion(
@@ -63,19 +60,20 @@ export async function createQuestion(
   } = {},
   options: CreatePostOptions = {},
 ): Promise<
-  Post & {
-    actor: Actor & {
-      account: Account & { emails: AccountEmail[]; links: AccountLink[] };
-      instance: Instance;
-    };
-    noteSource: NoteSource & {
-      account: Account & { emails: AccountEmail[]; links: AccountLink[] };
-      media: NoteSourceMediumWithMedium[];
-    };
-    mentions: (Mention & { actor: Actor })[];
-    media: PostMedium[];
-    poll: Poll & { options: PollOption[] };
-  } | undefined
+  | (Post & {
+      actor: Actor & {
+        account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+        instance: Instance;
+      };
+      noteSource: NoteSource & {
+        account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+        media: NoteSourceMediumWithMedium[];
+      };
+      mentions: (Mention & { actor: Actor })[];
+      media: PostMedium[];
+      poll: Poll & { options: PollOption[] };
+    })
+  | undefined
 > {
   const normalizedPoll = normalizePollInput(source.poll);
   const { db, storage: disk } = fedCtx;
@@ -120,20 +118,24 @@ export async function createQuestion(
       index++;
     }
 
-    const syncedPost = await syncPostFromNoteSource(txCtx, {
-      ...noteSource,
-      media,
-      account,
-    }, {
-      ...relations,
-      question: {
-        title: normalizedPoll.title,
-        poll: {
-          ...normalizedPoll,
-          now: source.poll.now,
+    const syncedPost = await syncPostFromNoteSource(
+      txCtx,
+      {
+        ...noteSource,
+        media,
+        account,
+      },
+      {
+        ...relations,
+        question: {
+          title: normalizedPoll.title,
+          poll: {
+            ...normalizedPoll,
+            now: source.poll.now,
+          },
         },
       },
-    });
+    );
     if (syncedPost == null || syncedPost.poll == null) {
       throw new Error("Failed to persist question post.");
     }
@@ -153,12 +155,13 @@ export async function createQuestion(
     { ...noteSource, media, account },
     { ...post.poll, post, options: post.poll.options },
     {
-      replyTargetId: relations.replyTarget == null
-        ? undefined
-        : new URL(relations.replyTarget.iri),
+      replyTargetId:
+        relations.replyTarget == null
+          ? undefined
+          : new URL(relations.replyTarget.iri),
       quotedPost: post.quoteRequestRequired
         ? undefined
-        : post.quotedPost ?? undefined,
+        : (post.quotedPost ?? undefined),
       quoteAuthorizationIri: post.quoteAuthorizationIri,
       quoteRequestPolicy: post.quoteRequestPolicy,
     },
@@ -182,9 +185,10 @@ export async function createQuestion(
       { ...noteSource, media, account },
       { ...post.poll, post, options: post.poll.options },
       {
-        replyTargetId: relations.replyTarget == null
-          ? undefined
-          : new URL(relations.replyTarget.iri),
+        replyTargetId:
+          relations.replyTarget == null
+            ? undefined
+            : new URL(relations.replyTarget.iri),
         quotedPost: quoteRequestTarget,
         quoteRequestPolicy: post.quoteRequestPolicy,
       },
@@ -195,29 +199,33 @@ export async function createQuestion(
       object: new URL(quoteRequestTarget.iri),
       instrument,
     });
-    await db.insert(quoteRequestTable).values({
-      id: generateUuidV7(),
-      iri: requestId.href,
-      quotePostId: post.id,
-      quotedPostId: quoteRequestTarget.id,
-    }).onConflictDoUpdate({
-      target: quoteRequestTable.iri,
-      set: {
+    await db
+      .insert(quoteRequestTable)
+      .values({
+        id: generateUuidV7(),
+        iri: requestId.href,
         quotePostId: post.id,
         quotedPostId: quoteRequestTarget.id,
-        accepted: null,
-        rejected: null,
-        updated: sql`CURRENT_TIMESTAMP`,
-      },
-    });
+      })
+      .onConflictDoUpdate({
+        target: quoteRequestTable.iri,
+        set: {
+          quotePostId: post.id,
+          quotedPostId: quoteRequestTarget.id,
+          accepted: null,
+          rejected: null,
+          updated: sql`CURRENT_TIMESTAMP`,
+        },
+      });
     await fedCtx.sendActivity(
       { identifier: source.accountId },
       {
         id: new URL(quoteRequestTarget.actor.iri),
         inboxId: new URL(quoteRequestTarget.actor.inboxUrl),
-        endpoints: quoteRequestTarget.actor.sharedInboxUrl == null
-          ? null
-          : { sharedInbox: new URL(quoteRequestTarget.actor.sharedInboxUrl) },
+        endpoints:
+          quoteRequestTarget.actor.sharedInboxUrl == null
+            ? null
+            : { sharedInbox: new URL(quoteRequestTarget.actor.sharedInboxUrl) },
       },
       request,
       {
@@ -230,9 +238,10 @@ export async function createQuestion(
     const directRecipients: Recipient[] = post.mentions.map((m) => ({
       id: new URL(m.actor.iri),
       inboxId: new URL(m.actor.inboxUrl),
-      endpoints: m.actor.sharedInboxUrl == null
-        ? null
-        : { sharedInbox: new URL(m.actor.sharedInboxUrl) },
+      endpoints:
+        m.actor.sharedInboxUrl == null
+          ? null
+          : { sharedInbox: new URL(m.actor.sharedInboxUrl) },
     }));
     await fedCtx.sendActivity(
       { identifier: source.accountId },
@@ -257,19 +266,19 @@ export async function createQuestion(
       },
     );
   }
-  const relayedTags = await fedCtx.services.federation
-    .sendTagsPubRelayActivity(
-      fedCtx,
-      source.accountId,
-      activity,
-      {
-        orderingKey,
-        visibility: post.visibility,
-        accountBio: account.bio,
-      },
-    );
+  const relayedTags = await fedCtx.services.federation.sendTagsPubRelayActivity(
+    fedCtx,
+    source.accountId,
+    activity,
+    {
+      orderingKey,
+      visibility: post.visibility,
+      accountBio: account.bio,
+    },
+  );
   if (relayedTags != null) {
-    await db.update(postTable)
+    await db
+      .update(postTable)
       .set({ relayedTags: [...relayedTags] })
       .where(eq(postTable.id, post.id));
     post.relayedTags = [...relayedTags];
@@ -288,7 +297,8 @@ export async function createQuestion(
     );
   }
   if (
-    post.quotedPost != null && post.quotedPost.actor.accountId != null &&
+    post.quotedPost != null &&
+    post.quotedPost.actor.accountId != null &&
     post.quotedPost.actorId !== post.actorId
   ) {
     await createQuoteNotification(

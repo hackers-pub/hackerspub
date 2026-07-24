@@ -17,7 +17,7 @@ import {
   CardTitle,
 } from "~/components/ui/card.tsx";
 import { WideContainer } from "~/components/WideContainer.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,
@@ -105,7 +105,7 @@ export default function ModerationAppealsPage() {
   const location = useLocation();
   const [version, setVersion] = createSignal(0);
   const status = createMemo(() =>
-    parseStatus(new URLSearchParams(location.search).get("status"))
+    parseStatus(new URLSearchParams(location.search).get("status")),
   );
 
   const data = createStablePreloadedQuery<appealsPageQuery>(
@@ -202,8 +202,8 @@ export default function ModerationAppealsPage() {
                   {(edge) => {
                     const appeal = edge.node;
                     const open = appeal.status !== "RESOLVED";
-                    const sameModerator = appeal.action.moderator?.id ===
-                      data.viewer?.id;
+                    const sameModerator =
+                      appeal.action.moderator?.id === data.viewer?.id;
                     const canCensor = appeal.action.case.targetPost != null;
                     return (
                       <Card>
@@ -220,10 +220,7 @@ export default function ModerationAppealsPage() {
                               {appeal.appellant.handle}
                             </span>
                             <Badge variant={open ? "warning" : "secondary"}>
-                              <Show
-                                when={appeal.result}
-                                fallback={t`Pending`}
-                              >
+                              <Show when={appeal.result} fallback={t`Pending`}>
                                 {resultLabel(appeal.result!)}
                               </Show>
                             </Badge>

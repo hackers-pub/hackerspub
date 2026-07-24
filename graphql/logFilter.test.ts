@@ -188,11 +188,9 @@ test("inbox: drops an unsupported activity type", () => {
 });
 
 test("inbox: drops an activity with no parseable actor", () => {
-  const r = record(
-    ["fedify", "federation", "inbox"],
-    "Missing actor.",
-    { activity: { type: "Delete", actor: "https://example.com/users/alice" } },
-  );
+  const r = record(["fedify", "federation", "inbox"], "Missing actor.", {
+    activity: { type: "Delete", actor: "https://example.com/users/alice" },
+  });
   assert.equal(isRoutineFederationError(r), true);
 });
 
@@ -259,102 +257,76 @@ test("vocab: drops a suppressed fetch failure (HTTP 403 followers)", () => {
       "https://yodangang.express/users/x/followers",
   );
   error.name = "FetchError";
-  const r = record(
-    ["fedify", "vocab"],
-    "Failed to fetch {url}: {error}",
-    { url: "https://yodangang.express/users/x/followers", error },
-  );
+  const r = record(["fedify", "vocab"], "Failed to fetch {url}: {error}", {
+    url: "https://yodangang.express/users/x/followers",
+    error,
+  });
   assert.equal(isRoutineFederationError(r), true);
 });
 
 test("vocab: drops a suppressed fetch failure caused by transport error", () => {
-  const r = record(
-    ["fedify", "vocab"],
-    "Failed to fetch {url}: {error}",
-    {
-      url: "https://dead.example/users/x/followers",
-      error: denoFetchError("dns error"),
-    },
-  );
+  const r = record(["fedify", "vocab"], "Failed to fetch {url}: {error}", {
+    url: "https://dead.example/users/x/followers",
+    error: denoFetchError("dns error"),
+  });
   assert.equal(isRoutineFederationError(r), true);
 });
 
 test("vocab: drops a suppressed fetch failure caused by AbortSignal timeout (GRAPHQL-2N)", () => {
-  const r = record(
-    ["fedify", "vocab"],
-    "Failed to fetch {url}: {error}",
-    {
-      url: "https://tech.lgbt/users/kirtai/statuses/116693977687562519",
-      error: timeoutError(),
-    },
-  );
+  const r = record(["fedify", "vocab"], "Failed to fetch {url}: {error}", {
+    url: "https://tech.lgbt/users/kirtai/statuses/116693977687562519",
+    error: timeoutError(),
+  });
   assert.equal(isRoutineFederationError(r), true);
 });
 
 test("vocab: drops a suppressed parse failure from remote JSON-LD syntax", () => {
-  const r = record(
-    ["fedify", "vocab"],
-    "Failed to parse {url}: {error}",
-    {
-      url: "https://example/x",
-      error: jsonldSyntaxError(
-        "Invalid JSON-LD syntax; tried to redefine a protected term.",
-      ),
-    },
-  );
+  const r = record(["fedify", "vocab"], "Failed to parse {url}: {error}", {
+    url: "https://example/x",
+    error: jsonldSyntaxError(
+      "Invalid JSON-LD syntax; tried to redefine a protected term.",
+    ),
+  });
   assert.equal(isRoutineFederationError(r), true);
 });
 
 test("vocab: drops a suppressed parse failure from a malformed remote multikey", () => {
-  const r = record(
-    ["fedify", "vocab"],
-    "Failed to parse {url}: {error}",
-    {
-      url: "http://xenon.social/@tkgka#multikey-1",
-      error: new TypeError(
-        "Expected an object of any type of: https://w3id.org/security#Multikey",
-      ),
-    },
-  );
+  const r = record(["fedify", "vocab"], "Failed to parse {url}: {error}", {
+    url: "http://xenon.social/@tkgka#multikey-1",
+    error: new TypeError(
+      "Expected an object of any type of: https://w3id.org/security#Multikey",
+    ),
+  });
   assert.equal(isRoutineFederationError(r), true);
 });
 
 test("vocab: keeps a suppressed parse failure from a parser type error", () => {
-  const r = record(
-    ["fedify", "vocab"],
-    "Failed to parse {url}: {error}",
-    {
-      url: "https://tags.pub/user/rust",
-      error: new TypeError(
-        "Expected an object of any type of: https://www.w3.org/ns/activitystreams#Service",
-      ),
-    },
-  );
+  const r = record(["fedify", "vocab"], "Failed to parse {url}: {error}", {
+    url: "https://tags.pub/user/rust",
+    error: new TypeError(
+      "Expected an object of any type of: https://www.w3.org/ns/activitystreams#Service",
+    ),
+  });
   assert.equal(isRoutineFederationError(r), false);
 });
 
 test("nodeinfo: drops remote descriptor failures", () => {
-  for (
-    const rawMessage of [
-      'Failed to find a NodeInfo document link from "{url}": {resourceDescriptor}',
-      'Failed to fetch "{url}": {status} "{statusText}"',
-    ]
-  ) {
-    const r = record(
-      ["fedify", "nodeinfo", "client"],
-      rawMessage,
-      { url: "https://example.com/.well-known/nodeinfo" },
-    );
+  for (const rawMessage of [
+    'Failed to find a NodeInfo document link from "{url}": {resourceDescriptor}',
+    'Failed to fetch "{url}": {status} "{statusText}"',
+  ]) {
+    const r = record(["fedify", "nodeinfo", "client"], rawMessage, {
+      url: "https://example.com/.well-known/nodeinfo",
+    });
     assert.equal(isRoutineFederationError(r), true);
   }
 });
 
 test("vocab: keeps a fetch failure whose error is not remote/transport", () => {
-  const r = record(
-    ["fedify", "vocab"],
-    "Failed to fetch {url}: {error}",
-    { url: "https://example/x", error: new TypeError("ordinary bug") },
-  );
+  const r = record(["fedify", "vocab"], "Failed to fetch {url}: {error}", {
+    url: "https://example/x",
+    error: new TypeError("ordinary bug"),
+  });
   assert.equal(isRoutineFederationError(r), false);
 });
 
@@ -415,9 +387,7 @@ test("isRemoteTransportError: positive signals", () => {
   );
   // UrlError: fedify SSRF protection rejects link-local/private addresses (GRAPHQL-1S)
   assert.equal(
-    isRemoteTransportError(
-      urlError("fe80::e186:525b:f68:f126"),
-    ),
+    isRemoteTransportError(urlError("fe80::e186:525b:f68:f126")),
     true,
   );
   // SyntaxError: remote server returned empty/truncated JSON body (GRAPHQL-1R)

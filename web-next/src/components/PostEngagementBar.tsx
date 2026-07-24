@@ -27,7 +27,7 @@ import {
 import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { getViewportPopoverPosition } from "~/lib/popoverPosition.ts";
 import type { PostEngagementBar_post$key } from "./__generated__/PostEngagementBar_post.graphql.ts";
 import type { PostEngagementBar_sharePost_Mutation } from "./__generated__/PostEngagementBar_sharePost_Mutation.graphql.ts";
@@ -125,8 +125,9 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
   const liveNote = createFragment(
     graphql`
       fragment PostEngagementBar_post on Post
-        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
-      {
+      @argumentDefinitions(
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
         __id
         engagementStats {
           replies
@@ -169,19 +170,17 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
   const fragmentKey = () => {
     const post = props.$post as
       | {
-        readonly __id?: string;
-        readonly id?: string;
-      }
+          readonly __id?: string;
+          readonly id?: string;
+        }
       | null
       | undefined;
     return post?.id ?? post?.__id ?? null;
   };
-  const stableNote = createMemo<
-    {
-      key: string;
-      value: NonNullable<ReturnType<typeof liveNote>>;
-    } | null
-  >((previous) => {
+  const stableNote = createMemo<{
+    key: string;
+    value: NonNullable<ReturnType<typeof liveNote>>;
+  } | null>((previous) => {
     const value = liveNote();
     const key = value?.id ?? value?.__id ?? fragmentKey();
     if (value != null && key != null) return { key, value };
@@ -193,9 +192,10 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
   const [emojiPickerMounted, setEmojiPickerMounted] = createSignal(false);
   const [emojiTrigger, setEmojiTrigger] = createSignal<HTMLButtonElement>();
   const [emojiPopover, setEmojiPopover] = createSignal<HTMLDivElement>();
-  const [emojiPopoverPosition, setEmojiPopoverPosition] = createSignal<
-    { left: number; top: number } | null
-  >(null);
+  const [emojiPopoverPosition, setEmojiPopoverPosition] = createSignal<{
+    left: number;
+    top: number;
+  } | null>(null);
   onMount(() => setEmojiPickerMounted(true));
 
   const updateEmojiPopoverPosition = (target?: HTMLElement) => {
@@ -222,15 +222,17 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
 
     const popover = emojiPopover();
     updateEmojiPopoverPosition();
-    const resizeObserver = popover == null
-      ? undefined
-      : new ResizeObserver(() => updateEmojiPopoverPosition());
+    const resizeObserver =
+      popover == null
+        ? undefined
+        : new ResizeObserver(() => updateEmojiPopoverPosition());
     if (popover != null) resizeObserver?.observe(popover);
     const onPointerDown = (event: PointerEvent) => {
       const target = event.target;
       if (!(target instanceof Node)) return;
       if (
-        emojiTrigger()?.contains(target) || emojiPopover()?.contains(target)
+        emojiTrigger()?.contains(target) ||
+        emojiPopover()?.contains(target)
       ) {
         return;
       }
@@ -255,12 +257,10 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
     });
   });
 
-  const [sharePost, sharePending] = createMutation<
-    PostEngagementBar_sharePost_Mutation
-  >(sharePostMutation);
-  const [unsharePost, unsharePending] = createMutation<
-    PostEngagementBar_unsharePost_Mutation
-  >(unsharePostMutation);
+  const [sharePost, sharePending] =
+    createMutation<PostEngagementBar_sharePost_Mutation>(sharePostMutation);
+  const [unsharePost, unsharePending] =
+    createMutation<PostEngagementBar_unsharePost_Mutation>(unsharePostMutation);
   const sharePendingAny = () => sharePending() || unsharePending();
 
   const handleShareClick = () => {
@@ -326,24 +326,32 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
       id: noteData.id,
       reactionGroups: sortedReactionGroups().map((group) => ({
         emoji: group.emoji,
-        customEmoji: group.customEmoji == null ? undefined : {
-          id: group.customEmoji.id,
-          name: group.customEmoji.name,
-          imageUrl: group.customEmoji.imageUrl,
-        },
-        reactors: group.reactors == null ? undefined : {
-          totalCount: group.reactors.totalCount,
-          viewerHasReacted: group.reactors.viewerHasReacted,
-        },
+        customEmoji:
+          group.customEmoji == null
+            ? undefined
+            : {
+                id: group.customEmoji.id,
+                name: group.customEmoji.name,
+                imageUrl: group.customEmoji.imageUrl,
+              },
+        reactors:
+          group.reactors == null
+            ? undefined
+            : {
+                totalCount: group.reactors.totalCount,
+                viewerHasReacted: group.reactors.viewerHasReacted,
+              },
       })),
     };
   };
 
   const userHasReacted = () => {
     const noteData = note();
-    return noteData?.reactionGroups.some((group) =>
-      group.reactors?.viewerHasReacted
-    ) ?? false;
+    return (
+      noteData?.reactionGroups.some(
+        (group) => group.reactors?.viewerHasReacted,
+      ) ?? false
+    );
   };
 
   return (
@@ -355,10 +363,8 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
           }`}
           classList={props.classList}
         >
-          {
-            /* Reply — whole control navigates to /replies when local,
-              otherwise opens the legacy composer. */
-          }
+          {/* Reply — whole control navigates to /replies when local,
+              otherwise opens the legacy composer. */}
           <ReplyControl
             replies={note.engagementStats.replies}
             repliesHref={props.repliesHref ?? null}
@@ -379,8 +385,10 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
             viewerHasShared={note.viewerHasShared}
             sharing={sharePending()}
             unsharing={unsharePending()}
-            shareDisabled={sharePendingAny() ||
-              (!note.viewerHasShared && !note.viewerCanShare)}
+            shareDisabled={
+              sharePendingAny() ||
+              (!note.viewerHasShared && !note.viewerCanShare)
+            }
             quoteDisabled={!note.viewerCanQuote}
             onShareSelect={handleShareClick}
             onQuoteSelect={() => openWithQuote(note.id)}
@@ -428,8 +436,12 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
               </svg>
             </button>
             <Show
-              when={emojiPickerMounted() && showEmojiPopover() &&
-                emojiPopoverPosition() != null && reactionPopoverData()}
+              when={
+                emojiPickerMounted() &&
+                showEmojiPopover() &&
+                emojiPopoverPosition() != null &&
+                reactionPopoverData()
+              }
             >
               {(popoverData) => (
                 <div
@@ -456,10 +468,8 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
             />
           </div>
 
-          {
-            /* Bookmark — whole control toggles, count rendered next to icon
-              (no navigation page exists for bookmarks). */
-          }
+          {/* Bookmark — whole control toggles, count rendered next to icon
+              (no navigation page exists for bookmarks). */}
           <BookmarkButton
             $post={note}
             bookmarkListConnections={props.bookmarkListConnections}
@@ -491,14 +501,14 @@ function ReplyControl(props: {
   disabledLabel: string;
   viewLabel: string;
 }) {
-  const tooltip = () => props.disabled ? props.disabledLabel : props.replyLabel;
+  const tooltip = () =>
+    props.disabled ? props.disabledLabel : props.replyLabel;
   const buttonClasses =
     "inline-flex items-center justify-center gap-2 h-8 px-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer";
   // The link variant adds `hover:underline` (and matching focus-visible
   // underline) so the reply control reads as a navigable link rather
   // than just another action button, mirroring `CountAffordance`.
-  const linkClasses =
-    `${buttonClasses} hover:underline focus-visible:underline`;
+  const linkClasses = `${buttonClasses} hover:underline focus-visible:underline`;
 
   const icon = (
     <svg
@@ -538,8 +548,10 @@ function ReplyControl(props: {
               onClick={() => {
                 const v = props.visibility;
                 const vis: PostVisibility =
-                  v === "PUBLIC" || v === "UNLISTED" ||
-                    v === "FOLLOWERS" || v === "DIRECT"
+                  v === "PUBLIC" ||
+                  v === "UNLISTED" ||
+                  v === "FOLLOWERS" ||
+                  v === "DIRECT"
                     ? v
                     : "PUBLIC";
                 props.openWithReply(props.postId, vis);
@@ -582,30 +594,33 @@ function ShareQuoteControl(props: {
   const { t } = useLingui();
   const disabled = () => props.shareDisabled && props.quoteDisabled;
   const sharePending = () => props.sharing || props.unsharing;
-  const sharePendingLabel = () => props.unsharing ? t`Unsharing…` : t`Sharing…`;
+  const sharePendingLabel = () =>
+    props.unsharing ? t`Unsharing…` : t`Sharing…`;
   const triggerLabel = () =>
     sharePending()
       ? sharePendingLabel()
       : disabled()
-      ? t`Sharing and quoting are not available for this post`
-      : t`Share or quote`;
+        ? t`Sharing and quoting are not available for this post`
+        : t`Share or quote`;
   const shareLabel = () =>
     sharePending()
       ? sharePendingLabel()
       : props.viewerHasShared
-      ? t`Unshare`
-      : props.shareDisabled
-      ? t`Sharing is not available for this post`
-      : t`Share`;
+        ? t`Unshare`
+        : props.shareDisabled
+          ? t`Sharing is not available for this post`
+          : t`Share`;
   const shareMenuItemDisabled = () => props.shareDisabled || sharePending();
   const shareIcon = () =>
-    sharePending()
-      ? <IconLoader2 class="size-4 animate-spin" aria-hidden="true" />
-      : <IconRepeat2 class="size-4" aria-hidden="true" />;
+    sharePending() ? (
+      <IconLoader2 class="size-4 animate-spin" aria-hidden="true" />
+    ) : (
+      <IconRepeat2 class="size-4" aria-hidden="true" />
+    );
   const shareMenuIcon = () =>
-    sharePending()
-      ? <IconLoader2 class="size-4 animate-spin" aria-hidden="true" />
-      : null;
+    sharePending() ? (
+      <IconLoader2 class="size-4 animate-spin" aria-hidden="true" />
+    ) : null;
   const quoteLabel = () =>
     props.quoteDisabled ? t`Quoting is not available for this post` : t`Quote`;
 
@@ -618,8 +633,8 @@ function ShareQuoteControl(props: {
               disabled={disabled()}
               class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 px-2 cursor-pointer"
               classList={{
-                "text-muted-foreground hover:text-foreground": !props
-                  .viewerHasShared,
+                "text-muted-foreground hover:text-foreground":
+                  !props.viewerHasShared,
                 "text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300":
                   props.viewerHasShared,
               }}

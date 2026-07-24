@@ -6,9 +6,7 @@
     "./medium-upload": "./medium-upload.ts"
   },
   "fmt": {
-    "exclude": [
-      "locales/markdown/*.md"
-    ]
+    "exclude": ["locales/markdown/*.md"]
   },
   "tasks": {
     "codegen": "deno run -A --env-file=../.env generate-schema.ts",

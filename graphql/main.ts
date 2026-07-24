@@ -16,9 +16,7 @@ import { createYogaServer } from "./mod.ts";
 import { handleMediumUploadProxy } from "./medium-upload.ts";
 import { services } from "./services.ts";
 import { applyTrustedForwarding } from "./trusted-forwarding.ts";
-import assetlinks from "./static/.well-known/assetlinks.json" with {
-  type: "json",
-};
+import assetlinks from "./static/.well-known/assetlinks.json" with { type: "json" };
 import metadata from "./deno.json" with { type: "json" };
 const appleAppSiteAssociationJson = Deno.readTextFileSync(
   new URL("./static/.well-known/apple-app-site-association", import.meta.url),

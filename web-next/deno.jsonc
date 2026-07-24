@@ -2,28 +2,25 @@
   "$schema": "https://raw.githubusercontent.com/denoland/deno/refs/heads/main/cli/schemas/config-file.v1.json",
   "imports": {
     "~/": "./src/",
-    "#i18n": "./src/lib/i18n/server.ts"
+    "#i18n": "./src/lib/i18n/server.ts",
   },
   "lint": {
     "plugins": [
       "./lint-plugins/keyed-show.ts",
-      "./lint-plugins/no-load-query-in-router-query.ts"
+      "./lint-plugins/no-load-query-in-router-query.ts",
     ],
     "rules": {
       "exclude": [
         // SolidStart server functions must be async functions at all time
         "require-await",
         "no-window",
-        "no-window-prefix"
-      ]
-    }
+        "no-window-prefix",
+      ],
+    },
   },
   "compilerOptions": {
     "jsx": "react-jsx",
     "jsxImportSource": "solid-js",
-    "types": [
-      "@solidjs/start/env",
-      "unplugin-icons/types/solid"
-    ]
-  }
+    "types": ["@solidjs/start/env", "unplugin-icons/types/solid"],
+  },
 }

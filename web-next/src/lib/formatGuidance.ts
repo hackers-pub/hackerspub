@@ -6,15 +6,19 @@ export const SHORT_ARTICLE_MAX_PARAGRAPHS = 1;
 export function shouldSuggestArticleForNote(content: string): boolean {
   const trimmed = content.trim();
   if (trimmed === "") return false;
-  return countGraphemes(trimmed) >= LONG_NOTE_GRAPHEME_THRESHOLD ||
-    countParagraphs(trimmed) >= LONG_NOTE_PARAGRAPH_THRESHOLD;
+  return (
+    countGraphemes(trimmed) >= LONG_NOTE_GRAPHEME_THRESHOLD ||
+    countParagraphs(trimmed) >= LONG_NOTE_PARAGRAPH_THRESHOLD
+  );
 }
 
 export function shouldSuggestNoteForArticle(content: string): boolean {
   const trimmed = content.trim();
   if (trimmed === "") return false;
-  return countGraphemes(trimmed) < SHORT_ARTICLE_GRAPHEME_THRESHOLD &&
-    countParagraphs(trimmed) <= SHORT_ARTICLE_MAX_PARAGRAPHS;
+  return (
+    countGraphemes(trimmed) < SHORT_ARTICLE_GRAPHEME_THRESHOLD &&
+    countParagraphs(trimmed) <= SHORT_ARTICLE_MAX_PARAGRAPHS
+  );
 }
 
 export function buildNoteDraftContentFromArticle(
@@ -29,9 +33,10 @@ export function buildNoteDraftContentFromArticle(
 }
 
 export function countParagraphs(content: string): number {
-  return content.trim().split(/\n\s*\n+/).filter((paragraph) =>
-    paragraph.trim() !== ""
-  ).length;
+  return content
+    .trim()
+    .split(/\n\s*\n+/)
+    .filter((paragraph) => paragraph.trim() !== "").length;
 }
 
 function countGraphemes(content: string): number {

@@ -77,8 +77,7 @@ export const AlertDialogFooter = (props: ComponentProps<"div">) => {
 };
 
 type alertDialogTitleProps<T extends ValidComponent = "h2"> =
-  & AlertDialogTitleProps<T>
-  & {
+  AlertDialogTitleProps<T> & {
     class?: string;
   };
 
@@ -96,8 +95,7 @@ export const AlertDialogTitle = <T extends ValidComponent = "h2">(
 };
 
 type alertDialogDescriptionProps<T extends ValidComponent = "p"> =
-  & AlertDialogDescriptionProps<T>
-  & {
+  AlertDialogDescriptionProps<T> & {
     class?: string;
   };
 
@@ -117,8 +115,7 @@ export const AlertDialogDescription = <T extends ValidComponent = "p">(
 };
 
 type alertDialogCloseProps<T extends ValidComponent = "button"> =
-  & AlertDialogCloseButtonProps<T>
-  & {
+  AlertDialogCloseButtonProps<T> & {
     class?: string;
   };
 

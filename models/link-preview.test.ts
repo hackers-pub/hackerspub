@@ -98,16 +98,19 @@ test("repairBrokenLinkPreviews() splits malformed canonical URLs", async () => {
       }),
       undefined,
     );
-    const repairedLinks = await tx.select().from(postLinkTable).where(
-      inArray(
-        postLinkTable.url,
-        sharedUrls.map((url) => {
-          const parsed = new URL(url);
-          parsed.hash = "";
-          return parsed.href;
-        }),
-      ),
-    );
+    const repairedLinks = await tx
+      .select()
+      .from(postLinkTable)
+      .where(
+        inArray(
+          postLinkTable.url,
+          sharedUrls.map((url) => {
+            const parsed = new URL(url);
+            parsed.hash = "";
+            return parsed.href;
+          }),
+        ),
+      );
     assert.equal(repairedLinks.length, 2);
   });
 });
@@ -178,9 +181,12 @@ test("repairBrokenLinkPreviews() preserves penalties on existing links", async (
       url: `https://${brokenHost}/undefined`,
       title: "Malformed preview",
     });
-    await tx.update(postLinkTable).set({
-      scorePenalty: NEWS_PENALTY_DEMOTE,
-    }).where(eq(postLinkTable.id, brokenLink.id));
+    await tx
+      .update(postLinkTable)
+      .set({
+        scorePenalty: NEWS_PENALTY_DEMOTE,
+      })
+      .where(eq(postLinkTable.id, brokenLink.id));
 
     const sharedUrl = `https://${brokenHost}/article#comments`;
     const existingLink = await insertPostLink(tx, {

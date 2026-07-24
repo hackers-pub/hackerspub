@@ -1,4 +1,5 @@
 import assert from "node:assert";
+import process from "node:process";
 import test from "node:test";
 import {
   exportJwk,
@@ -23,14 +24,9 @@ let builderPromise: Promise<typeof import("./mod.ts").builder> | undefined;
 async function getBuilder(): Promise<typeof import("./mod.ts").builder> {
   if (builderPromise == null) {
     builderPromise = (async () => {
-      const { privateKey } = await generateCryptoKeyPair(
-        "RSASSA-PKCS1-v1_5",
-      );
-      Deno.env.set(
-        "INSTANCE_ACTOR_KEY",
-        JSON.stringify(
-          await exportJwk(privateKey),
-        ),
+      const { privateKey } = await generateCryptoKeyPair("RSASSA-PKCS1-v1_5");
+      process.env.INSTANCE_ACTOR_KEY = JSON.stringify(
+        await exportJwk(privateKey),
       );
       return (await import("./mod.ts")).builder;
     })();
@@ -115,9 +111,8 @@ test("actor dispatcher preserves an Organization deleted actor type", async () =
 test("actor dispatcher preserves deleted actor public keys", async () => {
   await withRollback(async (tx) => {
     const accountId = generateUuidV7();
-    const { publicKey, privateKey } = await generateCryptoKeyPair(
-      "RSASSA-PKCS1-v1_5",
-    );
+    const { publicKey, privateKey } =
+      await generateCryptoKeyPair("RSASSA-PKCS1-v1_5");
     await tx.insert(deletedAccountTable).values({
       accountId,
       username: "deletedkeyed",

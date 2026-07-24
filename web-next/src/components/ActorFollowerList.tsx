@@ -1,7 +1,7 @@
 import { graphql } from "relay-runtime";
 import { createSignal, For, Match, Show, Switch } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { ActorFollowerList_followers$key } from "./__generated__/ActorFollowerList_followers.graphql.ts";
 import { RemoveFollowerButton } from "./RemoveFollowerButton.tsx";
 import { SmallProfileCard } from "./SmallProfileCard.tsx";
@@ -15,26 +15,23 @@ export function ActorFollowerList(props: ActorFollowerListProps) {
   const followers = createPaginationFragment(
     graphql`
       fragment ActorFollowerList_followers on Actor
-        @refetchable(queryName: "ActorFollowerListQuery")
-        @argumentDefinitions(
-          cursor: { type: "String" }
-          count: { type: "Int", defaultValue: 20 }
-          actingAccountId: { type: "ID", defaultValue: null }
-        )
-      {
+      @refetchable(queryName: "ActorFollowerListQuery")
+      @argumentDefinitions(
+        cursor: { type: "String" }
+        count: { type: "Int", defaultValue: 20 }
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
         __id
         isViewer(actingAccountId: $actingAccountId)
         followers(after: $cursor, first: $count)
-          @connection(key: "ActorFollowerList_followers")
-        {
+          @connection(key: "ActorFollowerList_followers") {
           __id
           edges {
             __id
             node {
               ...RemoveFollowerButton_actor
-              ...SmallProfileCard_actor @arguments(
-                actingAccountId: $actingAccountId
-              )
+              ...SmallProfileCard_actor
+                @arguments(actingAccountId: $actingAccountId)
             }
           }
           pageInfo {

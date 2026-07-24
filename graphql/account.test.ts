@@ -265,7 +265,8 @@ const removeAccountMigrationAliasMutation = parse(`
   }
 `);
 
-const smallPngDataUrl = "data:image/png;base64," +
+const smallPngDataUrl =
+  "data:image/png;base64," +
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=";
 
 function createOgTestDisk(): {
@@ -327,17 +328,14 @@ test("viewer returns the signed-in account and null for guests", async () => {
     });
 
     assert.equal(signedInResult.errors, undefined);
-    assert.deepEqual(
-      toPlainJson(signedInResult.data),
-      {
-        viewer: {
-          username: "viewerquery",
-          name: "Viewer Query",
-          handle: "@viewerquery@localhost",
-          avatarMediumId: null,
-        },
+    assert.deepEqual(toPlainJson(signedInResult.data), {
+      viewer: {
+        username: "viewerquery",
+        name: "Viewer Query",
+        handle: "@viewerquery@localhost",
+        avatarMediumId: null,
       },
-    );
+    });
 
     const guestResult = await execute({
       schema,
@@ -358,13 +356,16 @@ test("Account.ogImageUrl renders and reuses a cached profile image", async () =>
       name: "Profile OG GraphQL",
       email: "profileoggraphql@example.com",
     });
-    const [avatarMedium] = await tx.insert(mediumTable).values({
-      id: generateUuidV7(),
-      key: "avatar-og-test",
-      type: "image/webp",
-      width: null,
-      height: null,
-    }).returning();
+    const [avatarMedium] = await tx
+      .insert(mediumTable)
+      .values({
+        id: generateUuidV7(),
+        key: "avatar-og-test",
+        type: "image/webp",
+        width: null,
+        height: null,
+      })
+      .returning();
     const updated = await updateAccountData(tx, {
       id: account.account.id,
       avatarMediumId: avatarMedium.id,
@@ -383,9 +384,11 @@ test("Account.ogImageUrl renders and reuses a cached profile image", async () =>
     });
 
     assert.equal(firstResult.errors, undefined);
-    const firstUrl = (toPlainJson(firstResult.data) as {
-      accountByUsername: { ogImageUrl: string };
-    }).accountByUsername.ogImageUrl;
+    const firstUrl = (
+      toPlainJson(firstResult.data) as {
+        accountByUsername: { ogImageUrl: string };
+      }
+    ).accountByUsername.ogImageUrl;
     assert.match(firstUrl, /^http:\/\/localhost\/media\/og\/v2\/.+\.png$/);
     assert.equal(disk.putKeys.length, 1);
     assert.deepEqual(disk.deleteKeys, []);
@@ -404,9 +407,11 @@ test("Account.ogImageUrl renders and reuses a cached profile image", async () =>
     });
 
     assert.equal(secondResult.errors, undefined);
-    const secondUrl = (toPlainJson(secondResult.data) as {
-      accountByUsername: { ogImageUrl: string };
-    }).accountByUsername.ogImageUrl;
+    const secondUrl = (
+      toPlainJson(secondResult.data) as {
+        accountByUsername: { ogImageUrl: string };
+      }
+    ).accountByUsername.ogImageUrl;
     assert.equal(secondUrl, firstUrl);
     assert.equal(disk.putKeys.length, 1);
     assert.deepEqual(disk.deleteKeys, []);
@@ -484,17 +489,19 @@ test("invitationTree redacts hidden accounts", async () => {
 
     assert.equal(result.errors, undefined);
 
-    const nodes = (result.data as {
-      invitationTree: Array<{
-        id: string;
-        username: string | null;
-        name: string | null;
-        avatarUrl: string;
-        inviterId: string | null;
-        hidden: boolean;
-        created: Date | null;
-      }>;
-    }).invitationTree;
+    const nodes = (
+      result.data as {
+        invitationTree: Array<{
+          id: string;
+          username: string | null;
+          name: string | null;
+          avatarUrl: string;
+          inviterId: string | null;
+          hidden: boolean;
+          created: Date | null;
+        }>;
+      }
+    ).invitationTree;
     const visibleNode = nodes.find((node) => node.id === visible.account.id);
     const hiddenNode = nodes.find((node) => node.id === hidden.account.id);
 
@@ -525,7 +532,8 @@ test("invitationTree redacts banned accounts", async () => {
     });
     // Permanently suspend (ban) the actor; the account did NOT opt out of the
     // invitation tree, so only the ban should redact it.
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: null })
       .where(eq(actorTable.id, banned.actor.id));
 
@@ -538,17 +546,19 @@ test("invitationTree redacts banned accounts", async () => {
 
     assert.equal(result.errors, undefined);
 
-    const nodes = (result.data as {
-      invitationTree: Array<{
-        id: string;
-        username: string | null;
-        name: string | null;
-        avatarUrl: string;
-        inviterId: string | null;
-        hidden: boolean;
-        created: Date | null;
-      }>;
-    }).invitationTree;
+    const nodes = (
+      result.data as {
+        invitationTree: Array<{
+          id: string;
+          username: string | null;
+          name: string | null;
+          avatarUrl: string;
+          inviterId: string | null;
+          hidden: boolean;
+          created: Date | null;
+        }>;
+      }
+    ).invitationTree;
     const bannedNode = nodes.find((node) => node.id === banned.account.id);
 
     assert.ok(bannedNode != null);
@@ -601,9 +611,7 @@ async function resolveInviterUsername(
 test("Account.inviter is visible to guests when neither party is hidden", async () => {
   await withRollback(async (tx) => {
     await seedInviterAndInvitee(tx);
-    const username = await resolveInviterUsername(
-      makeGuestContext(tx),
-    );
+    const username = await resolveInviterUsername(makeGuestContext(tx));
     assert.equal(username, "theinviter");
   });
 });
@@ -631,19 +639,22 @@ test("Account.invitees returns newest invitees first", async () => {
       email: "middleinvitee@example.com",
     });
 
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({
         inviterId: inviter.account.id,
         created: new Date("2026-04-15T00:00:01.000Z"),
       })
       .where(eq(accountTable.id, older.account.id));
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({
         inviterId: inviter.account.id,
         created: new Date("2026-04-15T00:00:03.000Z"),
       })
       .where(eq(accountTable.id, newest.account.id));
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({
         inviterId: inviter.account.id,
         created: new Date("2026-04-15T00:00:02.000Z"),
@@ -670,8 +681,8 @@ test("Account.invitees returns newest invitees first", async () => {
     };
     assert.equal(firstPageData.accountByUsername.invitees.totalCount, 3);
     assert.deepEqual(
-      firstPageData.accountByUsername.invitees.edges.map((edge) =>
-        edge.node.username
+      firstPageData.accountByUsername.invitees.edges.map(
+        (edge) => edge.node.username,
       ),
       ["newestinvitee", "middleinvitee"],
     );
@@ -702,8 +713,8 @@ test("Account.invitees returns newest invitees first", async () => {
       };
     };
     assert.deepEqual(
-      secondPageData.accountByUsername.invitees.edges.map((edge) =>
-        edge.node.username
+      secondPageData.accountByUsername.invitees.edges.map(
+        (edge) => edge.node.username,
       ),
       ["olderinvitee"],
     );
@@ -721,9 +732,7 @@ test("Account.inviter is hidden from guests when the profile owner opts out", as
       id: invitee.account.id,
       hideFromInvitationTree: true,
     });
-    const username = await resolveInviterUsername(
-      makeGuestContext(tx),
-    );
+    const username = await resolveInviterUsername(makeGuestContext(tx));
     assert.equal(username, null);
   });
 });
@@ -735,9 +744,7 @@ test("Account.inviter is hidden from guests when the inviter opts out", async ()
       id: inviter.account.id,
       hideFromInvitationTree: true,
     });
-    const username = await resolveInviterUsername(
-      makeGuestContext(tx),
-    );
+    const username = await resolveInviterUsername(makeGuestContext(tx));
     assert.equal(username, null);
   });
 });
@@ -823,9 +830,11 @@ test("Account.hideFromInvitationTree is readable by the holder but gated for oth
     });
     assert.notEqual(guestResult.errors, undefined);
     assert.equal(
-      (guestResult.data as {
-        accountByUsername: { hideFromInvitationTree: boolean | null } | null;
-      }).accountByUsername?.hideFromInvitationTree ?? null,
+      (
+        guestResult.data as {
+          accountByUsername: { hideFromInvitationTree: boolean | null } | null;
+        }
+      ).accountByUsername?.hideFromInvitationTree ?? null,
       null,
     );
   });
@@ -958,10 +967,10 @@ test("updateAccount allows organization admins to update organization profiles",
         invitationsLeft: organization.account.leftInvitations,
         preferAiSummary: organization.account.preferAiSummary,
         hideFromInvitationTree: organization.account.hideFromInvitationTree,
-        notificationEmailDigestDaily: organization.account
-          .notificationEmailDigestDaily,
-        notificationEmailDigestWeekly: organization.account
-          .notificationEmailDigestWeekly,
+        notificationEmailDigestDaily:
+          organization.account.notificationEmailDigestDaily,
+        notificationEmailDigestWeekly:
+          organization.account.notificationEmailDigestWeekly,
         invitationLinks: [],
       },
     });
@@ -1154,22 +1163,19 @@ test("updateAccount normalizes quotePolicy to self for restricted visibility", a
     });
 
     assert.equal(result2.errors, undefined);
-    assert.deepEqual(
-      toPlainJson(result2.data),
-      {
-        updateAccount: {
-          account: {
-            username: "updatequotepolicynorm",
-            bio: account.account.bio,
-            locales: account.account.locales,
-            preferAiSummary: account.account.preferAiSummary,
-            defaultNoteVisibility: "DIRECT",
-            defaultShareVisibility: "PUBLIC",
-            defaultQuotePolicy: "SELF",
-          },
+    assert.deepEqual(toPlainJson(result2.data), {
+      updateAccount: {
+        account: {
+          username: "updatequotepolicynorm",
+          bio: account.account.bio,
+          locales: account.account.locales,
+          preferAiSummary: account.account.preferAiSummary,
+          defaultNoteVisibility: "DIRECT",
+          defaultShareVisibility: "PUBLIC",
+          defaultQuotePolicy: "SELF",
         },
       },
-    );
+    });
 
     // Only updating defaultQuotePolicy while stored visibility remains
     // DIRECT (restricted) should also normalize to SELF.
@@ -1187,22 +1193,19 @@ test("updateAccount normalizes quotePolicy to self for restricted visibility", a
     });
 
     assert.equal(result3.errors, undefined);
-    assert.deepEqual(
-      toPlainJson(result3.data),
-      {
-        updateAccount: {
-          account: {
-            username: "updatequotepolicynorm",
-            bio: account.account.bio,
-            locales: account.account.locales,
-            preferAiSummary: account.account.preferAiSummary,
-            defaultNoteVisibility: "DIRECT",
-            defaultShareVisibility: "PUBLIC",
-            defaultQuotePolicy: "SELF",
-          },
+    assert.deepEqual(toPlainJson(result3.data), {
+      updateAccount: {
+        account: {
+          username: "updatequotepolicynorm",
+          bio: account.account.bio,
+          locales: account.account.locales,
+          preferAiSummary: account.account.preferAiSummary,
+          defaultNoteVisibility: "DIRECT",
+          defaultShareVisibility: "PUBLIC",
+          defaultQuotePolicy: "SELF",
         },
       },
-    );
+    });
 
     // Updating to PUBLIC visibility should allow setting EVERYONE again.
     const result4 = await execute({
@@ -1250,7 +1253,9 @@ test("updateAccount transforms avatarUrl before assigning a medium", async () =>
         channels: 3,
         background: { r: 255, g: 0, b: 0 },
       },
-    }).png().toBuffer();
+    })
+      .png()
+      .toBuffer();
     const avatarUrl = `data:image/png;base64,${input.toString("base64")}`;
     const disk = createTestDisk();
     const fedCtx = createFedCtx(tx);
@@ -1300,7 +1305,9 @@ test("updateAccount transforms avatarMediumId before assigning it", async () => 
         channels: 3,
         background: { r: 0, g: 255, b: 0 },
       },
-    }).png().toBuffer();
+    })
+      .png()
+      .toBuffer();
     const disk = createTestDisk();
     const genericMedium = await createMediumFromBytes(tx, disk, input, {
       contentType: "image/png",
@@ -1419,7 +1426,8 @@ test("Actor.aliases exposes account migration aliases", async () => {
       name: "Alias Query",
       email: "aliasquery@example.com",
     });
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ aliases: ["https://old.example/users/aliasquery"] })
       .where(eq(actorTable.accountId, account.id));
 
@@ -1464,13 +1472,11 @@ test("addAccountMigrationAlias appends a resolved old actor once", async () => {
       return Promise.resolve(undefined);
     }) as typeof fedCtx.sendActivity;
 
-    for (
-      const actor of [
-        "@oldalias@old.example",
-        "oldalias@old.example",
-        "https://old.example/@oldalias",
-      ]
-    ) {
+    for (const actor of [
+      "@oldalias@old.example",
+      "oldalias@old.example",
+      "https://old.example/@oldalias",
+    ]) {
       const result = await execute({
         schema,
         document: addAccountMigrationAliasMutation,
@@ -1615,7 +1621,8 @@ test("addAccountMigrationAlias does not resurrect aliases removed during lookup"
       name: "Alias Race",
       email: "aliasrace@example.com",
     });
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ aliases: ["https://old.example/users/removed"] })
       .where(eq(actorTable.accountId, account.id));
     const fedCtx = createFedCtx(tx);
@@ -1623,7 +1630,8 @@ test("addAccountMigrationAlias does not resurrect aliases removed during lookup"
       Promise.resolve(new vocab.Person({ id: fedCtx.getActorUri(identifier) }));
     fedCtx.lookupObject = (async (resource: string | URL) => {
       assert.equal(resource.toString(), "fresh@localhost");
-      await tx.update(actorTable)
+      await tx
+        .update(actorTable)
         .set({ aliases: [] })
         .where(eq(actorTable.accountId, account.id));
       return new vocab.Person({
@@ -1692,9 +1700,11 @@ test("addAccountMigrationAlias returns typed errors", async () => {
     });
     assert.equal(guest.errors, undefined);
     assert.equal(
-      (toPlainJson(guest.data) as {
-        addAccountMigrationAlias?: { __typename?: string };
-      }).addAccountMigrationAlias?.__typename,
+      (
+        toPlainJson(guest.data) as {
+          addAccountMigrationAlias?: { __typename?: string };
+        }
+      ).addAccountMigrationAlias?.__typename,
       "NotAuthenticatedError",
     );
 
@@ -1712,9 +1722,11 @@ test("addAccountMigrationAlias returns typed errors", async () => {
     });
     assert.equal(foreign.errors, undefined);
     assert.equal(
-      (toPlainJson(foreign.data) as {
-        addAccountMigrationAlias?: { __typename?: string };
-      }).addAccountMigrationAlias?.__typename,
+      (
+        toPlainJson(foreign.data) as {
+          addAccountMigrationAlias?: { __typename?: string };
+        }
+      ).addAccountMigrationAlias?.__typename,
       "NotAuthorizedError",
     );
 
@@ -1737,9 +1749,11 @@ test("addAccountMigrationAlias returns typed errors", async () => {
     });
     assert.equal(missing.errors, undefined);
     assert.equal(
-      (toPlainJson(missing.data) as {
-        addAccountMigrationAlias?: { __typename?: string };
-      }).addAccountMigrationAlias?.__typename,
+      (
+        toPlainJson(missing.data) as {
+          addAccountMigrationAlias?: { __typename?: string };
+        }
+      ).addAccountMigrationAlias?.__typename,
       "NotAuthorizedError",
     );
 
@@ -1792,7 +1806,8 @@ test("removeAccountMigrationAlias removes one alias idempotently", async () => {
       name: "Alias Remove",
       email: "aliasremove@example.com",
     });
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({
         aliases: [
           "https://old.example/users/aliasremove",
@@ -1809,12 +1824,10 @@ test("removeAccountMigrationAlias removes one alias idempotently", async () => {
       return Promise.resolve(undefined);
     }) as typeof fedCtx.sendActivity;
 
-    for (
-      const alias of [
-        "https://old.example/users/aliasremove",
-        "https://old.example/users/aliasremove",
-      ]
-    ) {
+    for (const alias of [
+      "https://old.example/users/aliasremove",
+      "https://old.example/users/aliasremove",
+    ]) {
       const result = await execute({
         schema,
         document: removeAccountMigrationAliasMutation,
@@ -1969,9 +1982,11 @@ test("account migration aliases are manageable by organization admins", async ()
     });
     assert.equal(byMember.errors, undefined);
     assert.equal(
-      (toPlainJson(byMember.data) as {
-        addAccountMigrationAlias?: { __typename?: string };
-      }).addAccountMigrationAlias?.__typename,
+      (
+        toPlainJson(byMember.data) as {
+          addAccountMigrationAlias?: { __typename?: string };
+        }
+      ).addAccountMigrationAlias?.__typename,
       "NotAuthorizedError",
     );
 
@@ -1990,9 +2005,11 @@ test("account migration aliases are manageable by organization admins", async ()
     });
     assert.equal(byOutsider.errors, undefined);
     assert.equal(
-      (toPlainJson(byOutsider.data) as {
-        addAccountMigrationAlias?: { __typename?: string };
-      }).addAccountMigrationAlias?.__typename,
+      (
+        toPlainJson(byOutsider.data) as {
+          addAccountMigrationAlias?: { __typename?: string };
+        }
+      ).addAccountMigrationAlias?.__typename,
       "NotAuthorizedError",
     );
   });
@@ -2032,14 +2049,16 @@ test("deleteAccount deletes the viewer account and session", async () => {
     });
 
     assert.equal(result.errors, undefined);
-    const payload = (toPlainJson(result.data) as {
-      deleteAccount?: {
-        __typename?: string;
-        deletedAccountId?: string;
-        username?: string;
-        deleted?: string;
-      };
-    }).deleteAccount;
+    const payload = (
+      toPlainJson(result.data) as {
+        deleteAccount?: {
+          __typename?: string;
+          deletedAccountId?: string;
+          username?: string;
+          deleted?: string;
+        };
+      }
+    ).deleteAccount;
     assert.deepEqual(
       {
         ...payload,
@@ -2074,7 +2093,8 @@ test("deleteAccount rejects deleting a personal account that would orphan organi
       name: "Delete Organization Sole Admin",
       email: "deleteorgsoleadmin@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, soleAdmin.account.id));
     const soleOrganization = await createOrganization(
@@ -2130,7 +2150,8 @@ test("deleteAccount rejects deleting a personal account that would orphan organi
       name: "Delete Organization Member Only",
       email: "deleteorgmemberonly@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, lastAdmin.account.id));
     const sharedOrganization = await createOrganization(
@@ -2198,7 +2219,8 @@ test("deleteAccount lets organization admins delete organizations", async () => 
       name: "Delete Organization Member",
       email: "deleteorgmember@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, admin.account.id));
     const organization = await createOrganization(
@@ -2261,14 +2283,16 @@ test("deleteAccount lets organization admins delete organizations", async () => 
     });
 
     assert.equal(result.errors, undefined);
-    const payload = (toPlainJson(result.data) as {
-      deleteAccount?: {
-        __typename?: string;
-        deletedAccountId?: string;
-        username?: string;
-        deleted?: string;
-      };
-    }).deleteAccount;
+    const payload = (
+      toPlainJson(result.data) as {
+        deleteAccount?: {
+          __typename?: string;
+          deletedAccountId?: string;
+          username?: string;
+          deleted?: string;
+        };
+      }
+    ).deleteAccount;
     assert.deepEqual(
       {
         ...payload,
@@ -2337,23 +2361,28 @@ test("deleteAccount succeeds when session cleanup fails after deletion", async (
     });
 
     assert.equal(result.errors, undefined);
-    const payload = (toPlainJson(result.data) as {
-      deleteAccount?: {
-        __typename?: string;
-        deletedAccountId?: string;
-        username?: string;
-        deleted?: string;
-      };
-    }).deleteAccount;
-    assert.deepEqual({
-      ...payload,
-      deleted: typeof payload?.deleted,
-    }, {
-      __typename: "DeleteAccountPayload",
-      deletedAccountId: encodeGlobalID("Account", account.account.id),
-      username: "deletesessionfail",
-      deleted: "string",
-    });
+    const payload = (
+      toPlainJson(result.data) as {
+        deleteAccount?: {
+          __typename?: string;
+          deletedAccountId?: string;
+          username?: string;
+          deleted?: string;
+        };
+      }
+    ).deleteAccount;
+    assert.deepEqual(
+      {
+        ...payload,
+        deleted: typeof payload?.deleted,
+      },
+      {
+        __typename: "DeleteAccountPayload",
+        deletedAccountId: encodeGlobalID("Account", account.account.id),
+        username: "deletesessionfail",
+        deleted: "string",
+      },
+    );
     assert.deepEqual(await getSession(failingKv, session.id), session);
     assert.equal(
       await tx.query.accountTable.findFirst({
@@ -2393,9 +2422,11 @@ test("deleteAccount returns typed errors for invalid callers", async () => {
     });
     assert.equal(guest.errors, undefined);
     assert.equal(
-      (toPlainJson(guest.data) as {
-        deleteAccount?: { __typename?: string };
-      }).deleteAccount?.__typename,
+      (
+        toPlainJson(guest.data) as {
+          deleteAccount?: { __typename?: string };
+        }
+      ).deleteAccount?.__typename,
       "NotAuthenticatedError",
     );
 
@@ -2410,9 +2441,11 @@ test("deleteAccount returns typed errors for invalid callers", async () => {
     });
     assert.equal(foreign.errors, undefined);
     assert.equal(
-      (toPlainJson(foreign.data) as {
-        deleteAccount?: { __typename?: string };
-      }).deleteAccount?.__typename,
+      (
+        toPlainJson(foreign.data) as {
+          deleteAccount?: { __typename?: string };
+        }
+      ).deleteAccount?.__typename,
       "NotAuthorizedError",
     );
 
@@ -2466,9 +2499,9 @@ test("deleteAccount reports moderation audit blockers generically", async () => 
       },
     });
     assert.ok(
-      await tx.query.accountTable.findFirst({
+      (await tx.query.accountTable.findFirst({
         where: { id: account.account.id },
-      }) != null,
+      })) != null,
     );
   });
 });

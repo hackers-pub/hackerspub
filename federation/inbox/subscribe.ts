@@ -65,9 +65,7 @@ export async function onPostCreated(
   if (create.objectId?.origin !== create.actorId?.origin) return;
   // Check the cached actor before dereferencing the object, so a
   // federation-blocked actor cannot make us spend remote fetches.
-  if (
-    await isCachedActorFederationBlocked(fedCtx.data.db, create.actorId)
-  ) {
+  if (await isCachedActorFederationBlocked(fedCtx.data.db, create.actorId)) {
     return;
   }
   const object = await create.getObject({ ...fedCtx, suppressError: true });
@@ -135,8 +133,8 @@ export async function onPostUpdated(
 ): Promise<void> {
   logger.debug("On post updated: {update}", { update });
   if (update.objectId?.origin !== update.actorId?.origin) return;
-  const postObject = object ??
-    await update.getObject({ ...fedCtx, suppressError: true });
+  const postObject =
+    object ?? (await update.getObject({ ...fedCtx, suppressError: true }));
   if (!isPostObject(postObject)) return;
   if (postObject.attributionId?.href !== update.actorId?.href) return;
   await persistPost(toApplicationContext(fedCtx), postObject, {
@@ -153,12 +151,14 @@ export async function onPostDeleted(
 ): Promise<boolean> {
   logger.debug("On post deleted: {delete}", { delete: del });
   if (del.objectId?.origin !== del.actorId?.origin) return false;
-  const object = resolved == null
-    ? await del.getObject({ ...fedCtx, suppressError: true })
-    : resolved.object;
+  const object =
+    resolved == null
+      ? await del.getObject({ ...fedCtx, suppressError: true })
+      : resolved.object;
   if (
     !(isPostObject(object) || object instanceof Tombstone) ||
-    object.id == null || del.actorId == null
+    object.id == null ||
+    del.actorId == null
   ) {
     return false;
   }
@@ -172,7 +172,8 @@ export async function onPostShared(
   logger.debug("On post shared: {announce}", { announce });
   const actorId = announce.actorId;
   if (
-    announce.id == null || actorId == null ||
+    announce.id == null ||
+    actorId == null ||
     announce.id.origin !== actorId.origin
   ) {
     return;
@@ -181,9 +182,7 @@ export async function onPostShared(
   // plus all of persistSharedPost (getActor, getObject, persistPost subtree),
   // plus the post-persist DB writes all count against the same 90s deadline so
   // their aggregate cannot reach the 180s MQ handlerTimeout (GRAPHQL-1H).
-  if (
-    await isCachedActorFederationBlocked(fedCtx.data.db, actorId)
-  ) {
+  if (await isCachedActorFederationBlocked(fedCtx.data.db, actorId)) {
     return;
   }
   const overallSignal = AbortSignal.timeout(PERSIST_POST_OVERALL_BUDGET_MS);
@@ -287,7 +286,8 @@ export async function onReactionUndoneOnPost(
   const object = await undo.getObject({ ...fedCtx, suppressError: true });
   const { db } = fedCtx.data;
   if (object == null) {
-    const rows = await db.delete(reactionTable)
+    const rows = await db
+      .delete(reactionTable)
       .where(eq(reactionTable.iri, undo.objectId.href))
       .returning();
     if (rows.length < 1) return false;
@@ -337,12 +337,15 @@ export async function onPostPinned(
     if (post != null) pinnedPosts.push(post);
   }
   if (pinnedPosts.length > 0) {
-    await fedCtx.data.db.insert(pinTable).values(
-      pinnedPosts.map((post) => ({
-        postId: post.id,
-        actorId: actor.id,
-      })),
-    ).onConflictDoNothing();
+    await fedCtx.data.db
+      .insert(pinTable)
+      .values(
+        pinnedPosts.map((post) => ({
+          postId: post.id,
+          actorId: actor.id,
+        })),
+      )
+      .onConflictDoNothing();
   }
 }
 
@@ -352,7 +355,9 @@ export async function onPostUnpinned(
 ): Promise<void> {
   logger.debug("On post unpinned: {remove}", { remove });
   if (
-    remove.actorId == null || remove.targetId == null || remove.objectId == null
+    remove.actorId == null ||
+    remove.targetId == null ||
+    remove.objectId == null
   ) {
     return;
   }
@@ -375,23 +380,23 @@ export async function onPostUnpinned(
     return;
   }
   const unpinnedPosts: Post[] = [];
-  for await (
-    const obj of remove.getObjects({ ...fedCtx, suppressError: true })
-  ) {
+  for await (const obj of remove.getObjects({
+    ...fedCtx,
+    suppressError: true,
+  })) {
     if (!isPostObject(obj)) continue;
     const post = await persistPost(toApplicationContext(fedCtx), obj, fedCtx);
     if (post != null) unpinnedPosts.push(post);
   }
   if (unpinnedPosts.length > 0) {
-    await fedCtx.data.db.delete(pinTable).where(
-      or(
-        ...unpinnedPosts.map((post) =>
-          and(
-            eq(pinTable.postId, post.id),
-            eq(pinTable.actorId, actor.id),
-          )
+    await fedCtx.data.db
+      .delete(pinTable)
+      .where(
+        or(
+          ...unpinnedPosts.map((post) =>
+            and(eq(pinTable.postId, post.id), eq(pinTable.actorId, actor.id)),
+          ),
         ),
-      ),
-    );
+      );
   }
 }

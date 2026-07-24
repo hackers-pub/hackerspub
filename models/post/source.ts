@@ -94,17 +94,20 @@ export async function syncPostFromArticleSource(
     mediumUrls: await getArticleSourceMediumUrls(db, disk, articleSource.id),
     missingMediumLabel: getMissingArticleMediumLabel(content.language),
   });
-  const url =
-    `${fedCtx.origin}/@${articleSource.account.username}/${articleSource.publishedYear}/${
-      encodeURIComponent(articleSource.slug)
-    }`;
-  const link = await persistArticleNewsLink(fedCtx, {
-    url,
-    iri: fedCtx.getObjectUri(vocab.Article, { id: articleSource.id }).href,
-    name: content.title,
-    summary: content.summary,
-    contentHtml: rendered.html,
-  }, actor);
+  const url = `${fedCtx.origin}/@${articleSource.account.username}/${articleSource.publishedYear}/${encodeURIComponent(
+    articleSource.slug,
+  )}`;
+  const link = await persistArticleNewsLink(
+    fedCtx,
+    {
+      url,
+      iri: fedCtx.getObjectUri(vocab.Article, { id: articleSource.id }).href,
+      name: content.title,
+      summary: content.summary,
+      contentHtml: rendered.html,
+    },
+    actor,
+  );
   const values: Omit<NewPost, "id"> = {
     iri: fedCtx.getObjectUri(vocab.Article, { id: articleSource.id }).href,
     type: "Article",
@@ -119,9 +122,9 @@ export async function syncPostFromArticleSource(
     tags: Object.fromEntries(
       [...articleSource.tags, ...rendered.hashtags].map((tag) => [
         tag.toLowerCase().replace(/^#/, ""),
-        `${fedCtx.canonicalOrigin}/tags/${
-          encodeURIComponent(tag.replace(/^#/, ""))
-        }`,
+        `${fedCtx.canonicalOrigin}/tags/${encodeURIComponent(
+          tag.replace(/^#/, ""),
+        )}`,
       ]),
     ),
     linkId: link?.id ?? null,
@@ -134,7 +137,8 @@ export async function syncPostFromArticleSource(
     columns: { id: true, name: true, contentHtml: true, linkId: true },
     where: { articleSourceId: articleSource.id },
   });
-  const rows = await db.insert(postTable)
+  const rows = await db
+    .insert(postTable)
     .values({ id: generateUuidV7(), ...values })
     .onConflictDoUpdate({
       target: postTable.articleSourceId,
@@ -146,14 +150,19 @@ export async function syncPostFromArticleSource(
   await createTargetPostUpdatedNotifications(db, existingPost, post, actor);
   await db.delete(mentionTable).where(eq(mentionTable.postId, post.id));
   const mentionList = globalThis.Object.values(rendered.mentions);
-  const mentions = mentionList.length > 0
-    ? await db.insert(mentionTable).values(
-      mentionList.map((actor) => ({
-        postId: post.id,
-        actorId: actor.id,
-      })),
-    ).onConflictDoNothing().returning()
-    : [];
+  const mentions =
+    mentionList.length > 0
+      ? await db
+          .insert(mentionTable)
+          .values(
+            mentionList.map((actor) => ({
+              postId: post.id,
+              actorId: actor.id,
+            })),
+          )
+          .onConflictDoNothing()
+          .returning()
+      : [];
   await refreshNewsScores(db, [post.linkId, existingPost?.linkId]);
   return { ...post, actor, mentions, articleSource };
 }
@@ -177,31 +186,31 @@ export async function syncPostFromNoteSource(
     };
   } = {},
 ): Promise<
-  | Post & {
-    actor: Actor & {
-      account: Account & {
-        avatarMedium: Medium | null;
-        emails: AccountEmail[];
-        links: AccountLink[];
+  | (Post & {
+      actor: Actor & {
+        account: Account & {
+          avatarMedium: Medium | null;
+          emails: AccountEmail[];
+          links: AccountLink[];
+        };
+        instance: Instance;
       };
-      instance: Instance;
-    };
-    noteSource: NoteSource & {
-      account: Account & {
-        avatarMedium: Medium | null;
-        emails: AccountEmail[];
-        links: AccountLink[];
+      noteSource: NoteSource & {
+        account: Account & {
+          avatarMedium: Medium | null;
+          emails: AccountEmail[];
+          links: AccountLink[];
+        };
+        media: NoteSourceMediumWithMedium[];
       };
-      media: NoteSourceMediumWithMedium[];
-    };
-    replyTarget: Post & { actor: Actor } | null;
-    quotedPost: Post & { actor: Actor } | null;
-    quoteRequestRequired: boolean;
-    quoteRequestTarget: Post & { actor: Actor } | null;
-    mentions: (Mention & { actor: Actor })[];
-    media: PostMedium[];
-    poll: (Poll & { options: PollOption[] }) | null;
-  }
+      replyTarget: (Post & { actor: Actor }) | null;
+      quotedPost: (Post & { actor: Actor }) | null;
+      quoteRequestRequired: boolean;
+      quoteRequestTarget: (Post & { actor: Actor }) | null;
+      mentions: (Mention & { actor: Actor })[];
+      media: PostMedium[];
+      poll: (Poll & { options: PollOption[] }) | null;
+    })
   | undefined
 > {
   const { db, kv, storage: disk } = fedCtx;
@@ -218,12 +227,13 @@ export async function syncPostFromNoteSource(
     },
     where: { noteSourceId: noteSource.id },
   });
-  const type = existingPost?.type ??
-    (relations.question == null ? "Note" : "Question");
+  const type =
+    existingPost?.type ?? (relations.question == null ? "Note" : "Question");
   if (existingPost != null && existingPost.type !== type) return undefined;
-  const iri = type === "Question"
-    ? fedCtx.getObjectUri(vocab.Question, { id: noteSource.id }).href
-    : fedCtx.getObjectUri(vocab.Note, { id: noteSource.id }).href;
+  const iri =
+    type === "Question"
+      ? fedCtx.getObjectUri(vocab.Question, { id: noteSource.id }).href
+      : fedCtx.getObjectUri(vocab.Note, { id: noteSource.id }).href;
   const actor = await syncActorFromAccount(fedCtx, noteSource.account);
   const hasQuotedPostRelation = Object.hasOwn(relations, "quotedPost");
   let quotedPost: QuotePolicyPost | undefined;
@@ -237,8 +247,8 @@ export async function syncPostFromNoteSource(
       logger.warn("Rejecting local quote creation due to quote policy.", {
         noteSourceId: noteSource.id,
         actorId: actor.id,
-        quotedPostId: relations.quotedPost.sharedPostId ??
-          relations.quotedPost.id,
+        quotedPostId:
+          relations.quotedPost.sharedPostId ?? relations.quotedPost.id,
       });
       return undefined;
     }
@@ -249,9 +259,10 @@ export async function syncPostFromNoteSource(
     kv,
   });
   const externalLinks = extractExternalLinks(rendered.html);
-  const link = externalLinks.length > 0
-    ? await persistPostLink(fedCtx, externalLinks[0])
-    : undefined;
+  const link =
+    externalLinks.length > 0
+      ? await persistPostLink(fedCtx, externalLinks[0])
+      : undefined;
   const url = new URL(
     `/@${noteSource.account.username}/${noteSource.id}`,
     fedCtx.canonicalOrigin,
@@ -262,30 +273,34 @@ export async function syncPostFromNoteSource(
     existingPost != null && existingPost.quotedPostId === quoteTargetId
       ? existingPost.quoteAuthorizationIri
       : null;
-  const quoteRequestRequired = quotedPost != null &&
+  const quoteRequestRequired =
+    quotedPost != null &&
     !canActorQuotePost(quotedPost, actor) &&
     existingQuoteAuthorizationIri == null;
-  const quotedPostId = !hasQuotedPostRelation && existingPost != null
-    ? undefined
-    : quoteRequestRequired
-    ? null
-    : quoteTargetId;
-  const quoteAuthorizationIri = !hasQuotedPostRelation && existingPost != null
-    ? undefined
-    : quotedPost == null
-    ? null
-    : quoteRequestRequired
-    ? null
-    : quotedPost.actor.accountId == null
-    ? existingQuoteAuthorizationIri
-    : quotedPost.actorId === actor.id
-    ? null
-    : fedCtx.getObjectUri(vocab.QuoteAuthorization, { id }).href;
-  const quoteTargetState = !hasQuotedPostRelation && existingPost != null
-    ? undefined
-    : quoteRequestRequired
-    ? "pending"
-    : null;
+  const quotedPostId =
+    !hasQuotedPostRelation && existingPost != null
+      ? undefined
+      : quoteRequestRequired
+        ? null
+        : quoteTargetId;
+  const quoteAuthorizationIri =
+    !hasQuotedPostRelation && existingPost != null
+      ? undefined
+      : quotedPost == null
+        ? null
+        : quoteRequestRequired
+          ? null
+          : quotedPost.actor.accountId == null
+            ? existingQuoteAuthorizationIri
+            : quotedPost.actorId === actor.id
+              ? null
+              : fedCtx.getObjectUri(vocab.QuoteAuthorization, { id }).href;
+  const quoteTargetState =
+    !hasQuotedPostRelation && existingPost != null
+      ? undefined
+      : quoteRequestRequired
+        ? "pending"
+        : null;
   const values: Omit<NewPost, "id"> = {
     iri,
     type,
@@ -306,9 +321,9 @@ export async function syncPostFromNoteSource(
     tags: Object.fromEntries(
       rendered.hashtags.map((tag) => [
         tag.toLowerCase().replace(/^#/, ""),
-        `${fedCtx.canonicalOrigin}/tags/${
-          encodeURIComponent(tag.replace(/^#/, ""))
-        }`,
+        `${fedCtx.canonicalOrigin}/tags/${encodeURIComponent(
+          tag.replace(/^#/, ""),
+        )}`,
       ]),
     ),
     // Use explicit `null` (not `undefined`) so editing a note to remove its
@@ -324,7 +339,8 @@ export async function syncPostFromNoteSource(
     updated: noteSource.updated,
     published: noteSource.published,
   };
-  const rows = await db.insert(postTable)
+  const rows = await db
+    .insert(postTable)
     .values({ id, ...values })
     .onConflictDoUpdate({
       target: postTable.noteSourceId,
@@ -335,30 +351,34 @@ export async function syncPostFromNoteSource(
   const post = rows[0];
   await createTargetPostUpdatedNotifications(db, existingPost, post, actor);
   if (post.quoteAuthorizationIri != null && quotedPost != null) {
-    await db.insert(quoteAuthorizationTable).values({
-      id,
-      iri: post.quoteAuthorizationIri,
-      quotePostIri: post.iri,
-      quotePostId: post.id,
-      quotedPostId: quotedPost.sharedPostId ?? quotedPost.id,
-      attributedActorId: quotedPost.actorId,
-    }).onConflictDoUpdate({
-      target: quoteAuthorizationTable.iri,
-      set: {
+    await db
+      .insert(quoteAuthorizationTable)
+      .values({
+        id,
+        iri: post.quoteAuthorizationIri,
         quotePostIri: post.iri,
         quotePostId: post.id,
         quotedPostId: quotedPost.sharedPostId ?? quotedPost.id,
         attributedActorId: quotedPost.actorId,
-        revoked: false,
-        updated: sql`CURRENT_TIMESTAMP`,
-      },
-    });
+      })
+      .onConflictDoUpdate({
+        target: quoteAuthorizationTable.iri,
+        set: {
+          quotePostIri: post.iri,
+          quotePostId: post.id,
+          quotedPostId: quotedPost.sharedPostId ?? quotedPost.id,
+          attributedActorId: quotedPost.actorId,
+          revoked: false,
+          updated: sql`CURRENT_TIMESTAMP`,
+        },
+      });
   }
   await db.delete(mentionTable).where(eq(mentionTable.postId, post.id));
   const mentionList = globalThis.Object.values(rendered.mentions);
 
   if (hasQuotedPostRelation && quoteAuthorizationIri == null) {
-    await db.delete(quoteAuthorizationTable)
+    await db
+      .delete(quoteAuthorizationTable)
       .where(eq(quoteAuthorizationTable.quotePostId, post.id));
   }
   if (
@@ -374,49 +394,66 @@ export async function syncPostFromNoteSource(
     }
   }
   if (
-    hasQuotedPostRelation && quotedPost != null &&
+    hasQuotedPostRelation &&
+    quotedPost != null &&
     quotedPostId != null &&
     existingPost?.quotedPostId !== quotedPostId
   ) {
     await updateQuotesCount(db, quotedPost, 1);
   }
-  const mentions = mentionList.length > 0
-    ? (await db.insert(mentionTable).values(
-      mentionList.map((actor) => ({
-        postId: post.id,
-        actorId: actor.id,
-      })),
-    ).onConflictDoNothing().returning()).map((m) => ({
-      ...m,
-      actor: mentionList.find((a) => a.id === m.actorId)!,
-    }))
-    : [];
+  const mentions =
+    mentionList.length > 0
+      ? (
+          await db
+            .insert(mentionTable)
+            .values(
+              mentionList.map((actor) => ({
+                postId: post.id,
+                actorId: actor.id,
+              })),
+            )
+            .onConflictDoNothing()
+            .returning()
+        ).map((m) => ({
+          ...m,
+          actor: mentionList.find((a) => a.id === m.actorId)!,
+        }))
+      : [];
   await db.delete(postMediumTable).where(eq(postMediumTable.postId, post.id));
-  const media = noteSource.media.length > 0
-    ? await db.insert(postMediumTable).values(
-      await Promise.all(noteSource.media.map(async (medium) => ({
-        postId: post.id,
-        index: medium.index,
-        type: medium.medium.type,
-        url: await disk.getUrl(medium.medium.key),
-        alt: medium.alt,
-        width: medium.medium.width,
-        height: medium.medium.height,
-      }))),
-    ).returning()
-    : [];
-  const poll = relations.question == null
-    ? null
-    : await createPoll(db, post.id, relations.question.poll);
+  const media =
+    noteSource.media.length > 0
+      ? await db
+          .insert(postMediumTable)
+          .values(
+            await Promise.all(
+              noteSource.media.map(async (medium) => ({
+                postId: post.id,
+                index: medium.index,
+                type: medium.medium.type,
+                url: await disk.getUrl(medium.medium.key),
+                alt: medium.alt,
+                width: medium.medium.width,
+                height: medium.medium.height,
+              })),
+            ),
+          )
+          .returning()
+      : [];
+  const poll =
+    relations.question == null
+      ? null
+      : await createPoll(db, post.id, relations.question.poll);
   const returnedQuotedPost = hasQuotedPostRelation
-    ? quoteRequestRequired ? null : quotedPost ?? null
+    ? quoteRequestRequired
+      ? null
+      : (quotedPost ?? null)
     : post.quotedPostId == null
-    ? null
-    : await db.query.postTable.findFirst({
-      where: { id: post.quotedPostId },
-      with: { actor: true },
-    }) ?? null;
-  const quoteRequestTarget = quoteRequestRequired ? quotedPost ?? null : null;
+      ? null
+      : ((await db.query.postTable.findFirst({
+          where: { id: post.quotedPostId },
+          with: { actor: true },
+        })) ?? null);
+  const quoteRequestTarget = quoteRequestRequired ? (quotedPost ?? null) : null;
   // Score the link this note now shares; also refresh the previous link when
   // an edit changed or removed it, so the old story can drop out.
   await refreshNewsScores(db, [post.linkId, existingPost?.linkId]);

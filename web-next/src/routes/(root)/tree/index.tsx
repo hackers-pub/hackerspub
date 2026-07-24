@@ -9,7 +9,7 @@ import {
   createStablePreloadedQuery,
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
-import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
+import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
 import {
   buildInvitationTree,
   buildInvitationTreeSortHref,
@@ -95,15 +95,15 @@ function Leaf(props: LeafProps) {
           return (
             <li class="relative pt-4 pl-7 border-l border-border last:border-l-0 last:before:content-['.'] last:before:absolute last:before:text-transparent last:before:border-l last:before:border-border last:before:h-12 last:before:ml-[-1.75rem] last:before:mt-[-1rem]">
               <div class="flex items-start gap-3 before:content-['.'] before:absolute before:text-transparent before:border-t before:border-border before:w-7 before:mt-6 before:ml-[-1.75rem]">
-                {account.hidden
-                  ? <HiddenNode username={account.username} />
-                  : (
-                    <VisibleNode
-                      user={account}
-                      inviteCount={inviteCount()}
-                      newMemberReferenceTime={props.newMemberReferenceTime}
-                    />
-                  )}
+                {account.hidden ? (
+                  <HiddenNode username={account.username} />
+                ) : (
+                  <VisibleNode
+                    user={account}
+                    inviteCount={inviteCount()}
+                    newMemberReferenceTime={props.newMemberReferenceTime}
+                  />
+                )}
                 <Show when={hasChildren()}>
                   <button
                     type="button"
@@ -215,10 +215,7 @@ function VisibleNode(props: {
         </div>
         <span class="text-sm text-muted-foreground">
           <ActorHoverCard handle={props.user.handle!} class="min-w-0">
-            <A
-              href={`/@${props.user.username}`}
-              class="hover:underline"
-            >
+            <A href={`/@${props.user.username}`} class="hover:underline">
               @{props.user.username}
             </A>
           </ActorHoverCard>{" "}
@@ -234,12 +231,10 @@ function InvitedCount(props: { count: number }) {
   return (
     <>
       {i18n._(
-        msg`${
-          plural(props.count, {
-            one: "Invited # person",
-            other: "Invited # people",
-          })
-        }`,
+        msg`${plural(props.count, {
+          one: "Invited # person",
+          other: "Invited # people",
+        })}`,
       )}
     </>
   );
@@ -300,9 +295,7 @@ export default function InvitationTree() {
     <div class="container px-8 max-sm:px-4 py-8">
       <Title>{t`Hackers' Pub: Invitation tree`}</Title>
       <div class="flex flex-wrap items-center gap-4 mb-6">
-        <h1 class="text-xl font-semibold">
-          {t`Invitation tree`}
-        </h1>
+        <h1 class="text-xl font-semibold">{t`Invitation tree`}</h1>
         <div class="flex gap-1 border border-border rounded-md p-0.5">
           <A
             href={`/tree${location.search}`}

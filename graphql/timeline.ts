@@ -140,7 +140,8 @@ builder.queryFields((t) => ({
   publicTimeline: t.connection(
     {
       type: Post,
-      description: `All public posts from all known instances, newest first. ` +
+      description:
+        `All public posts from all known instances, newest first. ` +
         `Accessible without authentication. Pagination window ` +
         `(\`first\`/\`last\`) is capped at ${MAX_TIMELINE_WINDOW} posts. ` +
         `Use \`languages\` to filter by language, \`local\` to restrict ` +
@@ -179,31 +180,34 @@ builder.queryFields((t) => ({
         const window = getConnectionWindow(args, {
           maxWindow: MAX_TIMELINE_WINDOW,
         });
-        const since = args.before == null
-          ? undefined
-          : parseRequiredTimelineCursor(args.before);
-        const until = args.after == null
-          ? undefined
-          : parseRequiredTimelineCursor(args.after);
+        const since =
+          args.before == null
+            ? undefined
+            : parseRequiredTimelineCursor(args.before);
+        const until =
+          args.after == null
+            ? undefined
+            : parseRequiredTimelineCursor(args.after);
         const timeline = await getPublicTimeline(ctx.db, {
           currentAccount: ctx.account,
           direction: backwards ? "backward" : "forward",
           languages: new Set(
             (args.languages ?? []).flatMap((l) =>
-              l.language ? [l.language] : []
+              l.language ? [l.language] : [],
             ),
           ),
           local: args.local ?? false,
           withoutShares: args.withoutShares ?? false,
-          postType: args.postType == null
-            ? undefined
-            : args.postType === "ARTICLE"
-            ? "Article"
-            : args.postType === "NOTE"
-            ? "Note"
-            : args.postType === "QUESTION"
-            ? "Question"
-            : assertNever(args.postType),
+          postType:
+            args.postType == null
+              ? undefined
+              : args.postType === "ARTICLE"
+                ? "Article"
+                : args.postType === "NOTE"
+                  ? "Note"
+                  : args.postType === "QUESTION"
+                    ? "Question"
+                    : assertNever(args.postType),
           window: window + 1,
           since,
           until,
@@ -217,22 +221,24 @@ builder.queryFields((t) => ({
             hasPreviousPage: backwards
               ? timeline.length > window
               : args.after != null,
-            startCursor: pageEntries.length < 1
-              ? null
-              : formatTimelineCursor(pageEntries[0]),
-            endCursor: pageEntries.length < 1
-              ? null
-              : formatTimelineCursor(pageEntries[pageEntries.length - 1]),
+            startCursor:
+              pageEntries.length < 1
+                ? null
+                : formatTimelineCursor(pageEntries[0]),
+            endCursor:
+              pageEntries.length < 1
+                ? null
+                : formatTimelineCursor(pageEntries[pageEntries.length - 1]),
           },
-          edges: pageEntries.map((
-            { post, lastSharer, sharersCount, added, cursor },
-          ) => ({
-            node: post,
-            cursor: formatTimelineCursor({ post, cursor }),
-            lastSharer,
-            sharersCount,
-            added,
-          })),
+          edges: pageEntries.map(
+            ({ post, lastSharer, sharersCount, added, cursor }) => ({
+              node: post,
+              cursor: formatTimelineCursor({ post, cursor }),
+              lastSharer,
+              sharersCount,
+              added,
+            }),
+          ),
         };
       },
     },
@@ -253,7 +259,8 @@ builder.queryFields((t) => ({
         }),
         added: te.expose("added", {
           type: "DateTime",
-          description: "When this post was added to the timeline: either its " +
+          description:
+            "When this post was added to the timeline: either its " +
             "publication time or when it was most recently boosted into the feed.",
         }),
       }),
@@ -279,24 +286,27 @@ builder.queryFields((t) => ({
       }
       const backwards = args.last != null;
       const window = getConnectionWindow(args);
-      const since = args.before == null
-        ? undefined
-        : parseRequiredBookmarkCursor(args.before);
-      const until = args.after == null
-        ? undefined
-        : parseRequiredBookmarkCursor(args.after);
+      const since =
+        args.before == null
+          ? undefined
+          : parseRequiredBookmarkCursor(args.before);
+      const until =
+        args.after == null
+          ? undefined
+          : parseRequiredBookmarkCursor(args.after);
       const bookmarks = await getBookmarks(ctx.db, {
         account: ctx.account,
         direction: backwards ? "backward" : "forward",
-        postType: args.postType == null
-          ? undefined
-          : args.postType === "ARTICLE"
-          ? "Article"
-          : args.postType === "NOTE"
-          ? "Note"
-          : args.postType === "QUESTION"
-          ? "Question"
-          : assertNever(args.postType),
+        postType:
+          args.postType == null
+            ? undefined
+            : args.postType === "ARTICLE"
+              ? "Article"
+              : args.postType === "NOTE"
+                ? "Note"
+                : args.postType === "QUESTION"
+                  ? "Question"
+                  : assertNever(args.postType),
         window: window + 1,
         since,
         until,
@@ -310,12 +320,14 @@ builder.queryFields((t) => ({
           hasPreviousPage: backwards
             ? bookmarks.length > window
             : args.after != null,
-          startCursor: pageEntries.length < 1
-            ? null
-            : formatBookmarkCursor(pageEntries[0]),
-          endCursor: pageEntries.length < 1
-            ? null
-            : formatBookmarkCursor(pageEntries[pageEntries.length - 1]),
+          startCursor:
+            pageEntries.length < 1
+              ? null
+              : formatBookmarkCursor(pageEntries[0]),
+          endCursor:
+            pageEntries.length < 1
+              ? null
+              : formatBookmarkCursor(pageEntries[pageEntries.length - 1]),
         },
         edges: pageEntries.map((entry) => ({
           node: entry.post,
@@ -382,12 +394,14 @@ builder.queryFields((t) => ({
         const window = getConnectionWindow(args, {
           maxWindow: MAX_TIMELINE_WINDOW,
         });
-        const since = args.before == null
-          ? undefined
-          : parseRequiredTimelineCursor(args.before);
-        const until = args.after == null
-          ? undefined
-          : parseRequiredTimelineCursor(args.after);
+        const since =
+          args.before == null
+            ? undefined
+            : parseRequiredTimelineCursor(args.before);
+        const until =
+          args.after == null
+            ? undefined
+            : parseRequiredTimelineCursor(args.after);
         const timelineAccount = await resolvePersonalTimelineAccount(
           ctx,
           args.actingAccountId,
@@ -397,20 +411,21 @@ builder.queryFields((t) => ({
           direction: backwards ? "backward" : "forward",
           languages: new Set(
             (args.languages ?? []).flatMap((l) =>
-              l.language ? [l.language] : []
+              l.language ? [l.language] : [],
             ),
           ),
           local: args.local ?? false,
           withoutShares: args.withoutShares ?? false,
-          postType: args.postType == null
-            ? undefined
-            : args.postType === "ARTICLE"
-            ? "Article"
-            : args.postType === "NOTE"
-            ? "Note"
-            : args.postType === "QUESTION"
-            ? "Question"
-            : assertNever(args.postType),
+          postType:
+            args.postType == null
+              ? undefined
+              : args.postType === "ARTICLE"
+                ? "Article"
+                : args.postType === "NOTE"
+                  ? "Note"
+                  : args.postType === "QUESTION"
+                    ? "Question"
+                    : assertNever(args.postType),
           window: window + 1,
           since,
           until,
@@ -424,22 +439,24 @@ builder.queryFields((t) => ({
             hasPreviousPage: backwards
               ? timeline.length > window
               : args.after != null,
-            startCursor: pageEntries.length < 1
-              ? null
-              : formatTimelineCursor(pageEntries[0]),
-            endCursor: pageEntries.length < 1
-              ? null
-              : formatTimelineCursor(pageEntries[pageEntries.length - 1]),
+            startCursor:
+              pageEntries.length < 1
+                ? null
+                : formatTimelineCursor(pageEntries[0]),
+            endCursor:
+              pageEntries.length < 1
+                ? null
+                : formatTimelineCursor(pageEntries[pageEntries.length - 1]),
           },
-          edges: pageEntries.map((
-            { post, lastSharer, sharersCount, added, cursor },
-          ) => ({
-            node: post,
-            cursor: formatTimelineCursor({ post, cursor }),
-            lastSharer,
-            sharersCount,
-            added,
-          })),
+          edges: pageEntries.map(
+            ({ post, lastSharer, sharersCount, added, cursor }) => ({
+              node: post,
+              cursor: formatTimelineCursor({ post, cursor }),
+              lastSharer,
+              sharersCount,
+              added,
+            }),
+          ),
         };
       },
     },

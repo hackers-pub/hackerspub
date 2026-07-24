@@ -15,11 +15,11 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 export interface LanguageListProps {
-  readonly locales: readonly [Intl.Locale, ...readonly Intl.Locale[]];
-  onChange?(locales: readonly [Intl.Locale, ...readonly Intl.Locale[]]): void;
+  readonly locales: readonly [Intl.Locale, ...(readonly Intl.Locale[])];
+  onChange?(locales: readonly [Intl.Locale, ...(readonly Intl.Locale[])]): void;
 }
 
 export function LanguageList(props: LanguageListProps) {
@@ -75,12 +75,11 @@ export function LanguageList(props: LanguageListProps) {
                       <DropdownMenuItem
                         class="gap-1 cursor-pointer"
                         on:click={() =>
-                          props.onChange?.(
-                            [
-                              props.locales[idx],
-                              ...props.locales.filter((_, i) => i !== idx),
-                            ],
-                          )}
+                          props.onChange?.([
+                            props.locales[idx],
+                            ...props.locales.filter((_, i) => i !== idx),
+                          ])
+                        }
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -108,14 +107,13 @@ export function LanguageList(props: LanguageListProps) {
                       <DropdownMenuItem
                         class="gap-1 cursor-pointer"
                         on:click={() =>
-                          props.onChange?.(
-                            [
-                              ...props.locales.slice(0, idx - 1),
-                              props.locales[idx],
-                              props.locales[idx - 1],
-                              ...props.locales.slice(idx + 1),
-                            ] as [Intl.Locale, ...readonly Intl.Locale[]],
-                          )}
+                          props.onChange?.([
+                            ...props.locales.slice(0, idx - 1),
+                            props.locales[idx],
+                            props.locales[idx - 1],
+                            ...props.locales.slice(idx + 1),
+                          ] as [Intl.Locale, ...(readonly Intl.Locale[])])
+                        }
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -138,14 +136,13 @@ export function LanguageList(props: LanguageListProps) {
                       <DropdownMenuItem
                         class="gap-1 cursor-pointer"
                         on:click={() =>
-                          props.onChange?.(
-                            [
-                              ...props.locales.slice(0, idx),
-                              props.locales[idx + 1],
-                              props.locales[idx],
-                              ...props.locales.slice(idx + 2),
-                            ] as [Intl.Locale, ...readonly Intl.Locale[]],
-                          )}
+                          props.onChange?.([
+                            ...props.locales.slice(0, idx),
+                            props.locales[idx + 1],
+                            props.locales[idx],
+                            ...props.locales.slice(idx + 2),
+                          ] as [Intl.Locale, ...(readonly Intl.Locale[])])
+                        }
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -168,15 +165,14 @@ export function LanguageList(props: LanguageListProps) {
                       <DropdownMenuItem
                         class="gap-1 cursor-pointer"
                         on:click={() =>
-                          props.onChange?.(
-                            [
-                              ...props.locales.filter((_, i) => i !== idx),
-                              props.locales[idx],
-                            ] as unknown as [
-                              Intl.Locale,
-                              ...readonly Intl.Locale[],
-                            ],
-                          )}
+                          props.onChange?.([
+                            ...props.locales.filter((_, i) => i !== idx),
+                            props.locales[idx],
+                          ] as unknown as [
+                            Intl.Locale,
+                            ...(readonly Intl.Locale[]),
+                          ])
+                        }
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -200,13 +196,14 @@ export function LanguageList(props: LanguageListProps) {
                       class="gap-1 cursor-pointer"
                       on:click={() =>
                         props.onChange?.(
-                          props.locales.filter((_, i) =>
-                            i !== idx
+                          props.locales.filter(
+                            (_, i) => i !== idx,
                           ) as unknown as [
                             Intl.Locale,
-                            ...readonly Intl.Locale[],
+                            ...(readonly Intl.Locale[]),
                           ],
-                        )}
+                        )
+                      }
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"

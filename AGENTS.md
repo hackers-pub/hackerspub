@@ -81,9 +81,13 @@ not run an API and worker against the same file-backed KV store.
 
 ### Workspace tasks (via mise)
 
- -  Lint/format/type check: `mise run check`
+ -  Lint/format/type check: `mise run check` (Node.js first, then transitional
+    Deno checks)
  -  Format source and Markdown files: `mise run fmt`
- -  Run tests: `mise run test`
+ -  Run tests: `mise run test` (Node.js first, then the Deno compatibility
+    suite)
+ -  Node.js-only gates: `mise run check:node` / `mise run test:node`
+ -  Deno compatibility gates: `mise run check:deno` / `mise run test:deno`
  -  Install/update the pre-commit hook:
     `mise generate git-pre-commit --write --task=check`
 
@@ -141,6 +145,9 @@ Code Style Guidelines
 
  -  Use explicit typing for complex return types
  -  Use interfaces for component props (e.g., ButtonProps)
+ -  Source and tests must run under Node.js 24 using native type stripping:
+    include `.ts` extensions in relative imports and avoid TypeScript syntax
+    that requires code generation, such as enums and parameter properties
 
 ### Components
 
@@ -256,7 +263,7 @@ Internationalization (i18n)
 
 ### Translation Usage
 
- -  Import: `import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts"`
+ -  Import: `import { msg, plural, useLingui } from "~/lib/i18n/macro.ts"`
 
  -  Simple translation: `const { t } = useLingui(); t\`Hello world\`\`
 

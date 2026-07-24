@@ -1,8 +1,10 @@
 import { negotiateLocale } from "@hackerspub/models/i18n";
 import type { FlagAction, FlagAppeal } from "@hackerspub/models/schema";
-import { expandGlob } from "@std/fs";
 import { join } from "@std/path";
 import { createMessage, type Message } from "@upyo/core";
+import { readdir, readFile } from "node:fs/promises";
+
+const readTextFile = (path: string | URL) => readFile(path, "utf8");
 
 const LOCALES_DIR = join(import.meta.dirname!, "locales");
 
@@ -27,15 +29,13 @@ let cachedTemplates: Map<string, ModerationTemplates> | null = null;
 async function loadTemplates(): Promise<Map<string, ModerationTemplates>> {
   if (cachedTemplates != null) return cachedTemplates;
   const templates = new Map<string, ModerationTemplates>();
-  const files = expandGlob(join(LOCALES_DIR, "*.json"), {
-    includeDirs: false,
-  });
-  for await (const file of files) {
-    if (!file.isFile) continue;
+  const files = await readdir(LOCALES_DIR, { withFileTypes: true });
+  for (const file of files) {
+    if (!file.isFile()) continue;
     const match = file.name.match(/^(.+)\.json$/);
     if (match == null) continue;
     try {
-      const data = JSON.parse(await Deno.readTextFile(file.path));
+      const data = JSON.parse(await readTextFile(join(LOCALES_DIR, file.name)));
       if (data.moderation == null) continue;
       templates.set(match[1], {
         actionNames: data.moderation.actionNames,
@@ -73,20 +73,19 @@ export async function getModerationActionEmail(options: {
 }): Promise<Message> {
   const templates = await loadTemplates();
   const negotiated = negotiateLocale(options.locale, [...templates.keys()]);
-  const template = templates.get(negotiated?.baseName ?? "en") ??
-    templates.get("en");
+  const template =
+    templates.get(negotiated?.baseName ?? "en") ?? templates.get("en");
   if (template == null) {
     throw new Error("No moderation email template available.");
   }
-  const suspensionEnds = options.action.suspensionEnds?.toLocaleString(
-    negotiated?.baseName ?? "en",
-    { dateStyle: "long", timeStyle: "short", timeZone: "UTC" },
-  ) ?? "";
-  const actionName = (template.actionNames[options.action.actionType] ??
-    options.action.actionType).replaceAll(
-      "{{suspensionEnds}}",
-      suspensionEnds,
-    );
+  const suspensionEnds =
+    options.action.suspensionEnds?.toLocaleString(
+      negotiated?.baseName ?? "en",
+      { dateStyle: "long", timeStyle: "short", timeZone: "UTC" },
+    ) ?? "";
+  const actionName = (
+    template.actionNames[options.action.actionType] ?? options.action.actionType
+  ).replaceAll("{{suspensionEnds}}", suspensionEnds);
   function substitute(text: string): string {
     return text.replaceAll(
       /\{\{(provisions|target|action|message|appealUrl)\}\}/g,
@@ -138,20 +137,19 @@ export async function getAppealResolvedEmail(options: {
 }): Promise<Message> {
   const templates = await loadTemplates();
   const negotiated = negotiateLocale(options.locale, [...templates.keys()]);
-  const template = templates.get(negotiated?.baseName ?? "en") ??
-    templates.get("en");
+  const template =
+    templates.get(negotiated?.baseName ?? "en") ?? templates.get("en");
   if (template == null) {
     throw new Error("No moderation email template available.");
   }
-  const resultName = options.appeal.result == null
-    ? ""
-    : template.appealResultNames[options.appeal.result] ??
-      options.appeal.result;
+  const resultName =
+    options.appeal.result == null
+      ? ""
+      : (template.appealResultNames[options.appeal.result] ??
+        options.appeal.result);
   function substitute(text: string): string {
-    return text.replaceAll(
-      /\{\{(result|rationale)\}\}/g,
-      (m) =>
-        m === "{{result}}" ? resultName : options.appeal.reviewRationale ?? "",
+    return text.replaceAll(/\{\{(result|rationale)\}\}/g, (m) =>
+      m === "{{result}}" ? resultName : (options.appeal.reviewRationale ?? ""),
     );
   }
   return createMessage({

@@ -65,19 +65,15 @@ interface CreateArticleSourceOptions {
 }
 
 interface CreatePostOptions {
-  afterPostCreated?: (
-    post: Post,
-    db: Database | Transaction,
-  ) => Promise<void>;
+  afterPostCreated?: (post: Post, db: Database | Transaction) => Promise<void>;
 }
 
-class InvalidArticleSourceMediumError extends Error {
-}
+class InvalidArticleSourceMediumError extends Error {}
 
 function extractArticleMediumKeys(content: string): Set<string> {
   return new Set(
-    [...content.matchAll(articleMediumReferencePattern)].map((match) =>
-      match[1]
+    [...content.matchAll(articleMediumReferencePattern)].map(
+      (match) => match[1],
     ),
   );
 }
@@ -100,17 +96,15 @@ async function updateArticleSourceMedia(
     if (!articleMediumKeyPattern.test(medium.key)) return false;
     sourceMediaByKey.set(medium.key, medium);
   }
-  const missingKeys = [...referencedMediumKeys].filter((key) =>
-    !existingMediaByKey.has(key) && !sourceMediaByKey.has(key)
+  const missingKeys = [...referencedMediumKeys].filter(
+    (key) => !existingMediaByKey.has(key) && !sourceMediaByKey.has(key),
   );
   if (missingKeys.length > 0) return false;
   const referencedSourceMedia = [...referencedMediumKeys]
     .map((key) => sourceMediaByKey.get(key))
     .filter((medium) => medium != null);
   const referencedMediumIds = [
-    ...new Set(
-      referencedSourceMedia.map((medium) => medium.mediumId),
-    ),
+    ...new Set(referencedSourceMedia.map((medium) => medium.mediumId)),
   ];
   if (referencedMediumIds.length > 0) {
     const storedMedia = await db.query.mediumTable.findMany({
@@ -120,29 +114,36 @@ async function updateArticleSourceMedia(
     if (storedMedia.length !== referencedMediumIds.length) return false;
   }
   if (referencedMediumKeys.size < 1) {
-    await db.delete(articleSourceMediumTable)
+    await db
+      .delete(articleSourceMediumTable)
       .where(eq(articleSourceMediumTable.articleSourceId, articleSourceId));
   } else {
-    await db.delete(articleSourceMediumTable)
-      .where(and(
-        eq(articleSourceMediumTable.articleSourceId, articleSourceId),
-        notInArray(articleSourceMediumTable.key, [...referencedMediumKeys]),
-      ));
+    await db
+      .delete(articleSourceMediumTable)
+      .where(
+        and(
+          eq(articleSourceMediumTable.articleSourceId, articleSourceId),
+          notInArray(articleSourceMediumTable.key, [...referencedMediumKeys]),
+        ),
+      );
   }
   if (referencedSourceMedia.length > 0) {
-    await db.insert(articleSourceMediumTable).values(
-      referencedSourceMedia.map((medium) => ({
-        articleSourceId,
-        key: medium.key,
-        mediumId: medium.mediumId,
-      })),
-    ).onConflictDoUpdate({
-      target: [
-        articleSourceMediumTable.articleSourceId,
-        articleSourceMediumTable.key,
-      ],
-      set: { mediumId: sql`excluded.medium_id` },
-    });
+    await db
+      .insert(articleSourceMediumTable)
+      .values(
+        referencedSourceMedia.map((medium) => ({
+          articleSourceId,
+          key: medium.key,
+          mediumId: medium.mediumId,
+        })),
+      )
+      .onConflictDoUpdate({
+        target: [
+          articleSourceMediumTable.articleSourceId,
+          articleSourceMediumTable.key,
+        ],
+        set: { mediumId: sql`excluded.medium_id` },
+      });
   }
   return true;
 }
@@ -187,7 +188,8 @@ export async function updateArticleDraft(
     tags = tags.filter((tag, index) => tags.indexOf(tag) === index);
     draft = { ...draft, tags };
   }
-  const rows = await db.insert(articleDraftTable)
+  const rows = await db
+    .insert(articleDraftTable)
     .values(draft)
     .onConflictDoUpdate({
       target: [articleDraftTable.id],
@@ -210,7 +212,8 @@ export async function deleteArticleDraft(
   accountId: Uuid,
   draftId: Uuid,
 ): Promise<ArticleDraft | undefined> {
-  const rows = await db.delete(articleDraftTable)
+  const rows = await db
+    .delete(articleDraftTable)
     .where(
       and(
         eq(articleDraftTable.accountId, accountId),
@@ -226,23 +229,24 @@ export async function getArticleSource(
   username: string,
   publishedYear: number,
   slug: string,
-  signedAccount: Account & { actor: Actor } | undefined,
+  signedAccount: (Account & { actor: Actor }) | undefined,
 ): Promise<
-  ArticleSource & {
-    account: Account & { emails: AccountEmail[]; links: AccountLink[] };
-    contents: ArticleContent[];
-    post: Post & {
-      actor: Actor & {
-        followers: Following[];
-        blockees: Blocking[];
-        blockers: Blocking[];
+  | (ArticleSource & {
+      account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+      contents: ArticleContent[];
+      post: Post & {
+        actor: Actor & {
+          followers: Following[];
+          blockees: Blocking[];
+          blockers: Blocking[];
+        };
+        replyTarget: Post | null;
+        mentions: (Mention & { actor: Actor })[];
+        shares: Post[];
+        reactions: Reaction[];
       };
-      replyTarget: Post | null;
-      mentions: (Mention & { actor: Actor })[];
-      shares: Post[];
-      reactions: Reaction[];
-    };
-  } | undefined
+    })
+  | undefined
 > {
   if (!Number.isInteger(publishedYear)) {
     throw new TypeError(
@@ -284,14 +288,16 @@ export async function getArticleSource(
             with: { actor: true },
           },
           shares: {
-            where: signedAccount == null
-              ? { RAW: sql`false` }
-              : { actorId: signedAccount.actor.id },
+            where:
+              signedAccount == null
+                ? { RAW: sql`false` }
+                : { actorId: signedAccount.actor.id },
           },
           reactions: {
-            where: signedAccount == null
-              ? { RAW: sql`false` }
-              : { actorId: signedAccount.actor.id },
+            where:
+              signedAccount == null
+                ? { RAW: sql`false` }
+                : { actorId: signedAccount.actor.id },
           },
         },
       },
@@ -315,13 +321,15 @@ export async function createArticleSource(
     language: string;
   },
   options: CreateArticleSourceOptions = {},
-): Promise<ArticleSource & { contents: ArticleContent[] } | undefined> {
-  const sources = await db.insert(articleSourceTable)
+): Promise<(ArticleSource & { contents: ArticleContent[] }) | undefined> {
+  const sources = await db
+    .insert(articleSourceTable)
     .values({ id: generateUuidV7(), ...source })
     .onConflictDoNothing()
     .returning();
   if (sources.length < 1) return undefined;
-  const contents = await db.insert(articleContentTable)
+  const contents = await db
+    .insert(articleContentTable)
     .values({
       sourceId: sources[0].id,
       language: source.language,
@@ -350,7 +358,8 @@ async function queueArticleContentSummary(
       fedCtx.models.summarizer,
       content,
       fedCtx.services.ai.summarize,
-    ));
+    ),
+  );
 }
 
 async function createArticleOperation(
@@ -367,16 +376,17 @@ async function createArticleOperation(
   },
   options: CreatePostOptions = {},
 ): Promise<
-  Post & {
-    actor: Actor & {
-      account: Account & { emails: AccountEmail[]; links: AccountLink[] };
-      instance: Instance;
-    };
-    articleSource: ArticleSource & {
-      account: Account & { emails: AccountEmail[]; links: AccountLink[] };
-      contents: ArticleContent[];
-    };
-  } | undefined
+  | (Post & {
+      actor: Actor & {
+        account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+        instance: Instance;
+      };
+      articleSource: ArticleSource & {
+        account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+        contents: ArticleContent[];
+      };
+    })
+  | undefined
 > {
   const { db } = fedCtx;
   // Check the suspension before any insert: callers without an enclosing
@@ -399,15 +409,18 @@ async function createArticleOperation(
     { summarize: false },
   );
   if (articleSource == null) return undefined;
-  const media = sourceMedia
-    ?.filter((medium) => referencedMediumKeys.has(medium.key))
-    .map((medium) => ({
-      articleSourceId: articleSource.id,
-      key: medium.key,
-      mediumId: medium.mediumId,
-    })) ?? [];
+  const media =
+    sourceMedia
+      ?.filter((medium) => referencedMediumKeys.has(medium.key))
+      .map((medium) => ({
+        articleSourceId: articleSource.id,
+        key: medium.key,
+        mediumId: medium.mediumId,
+      })) ?? [];
   if (media.length > 0) {
-    await db.insert(articleSourceMediumTable).values(media)
+    await db
+      .insert(articleSourceMediumTable)
+      .values(media)
       .onConflictDoNothing();
   }
   const account = await db.query.accountTable.findFirst({
@@ -421,10 +434,10 @@ async function createArticleOperation(
   });
   await addPostToTimeline(db, post);
   await options.afterPostCreated?.(post, db);
-  const articleObject = await fedCtx.services.federation.getArticle(
-    fedCtx,
-    { ...articleSource, account },
-  );
+  const articleObject = await fedCtx.services.federation.getArticle(fedCtx, {
+    ...articleSource,
+    account,
+  });
   const activity = new vocab.Create({
     id: new URL("#create", articleObject.id ?? fedCtx.origin),
     actor: fedCtx.getActorUri(source.accountId),
@@ -442,19 +455,19 @@ async function createArticleOperation(
       excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
     },
   );
-  const relayedTags = await fedCtx.services.federation
-    .sendTagsPubRelayActivity(
-      fedCtx,
-      source.accountId,
-      activity,
-      {
-        orderingKey: post.iri,
-        visibility: post.visibility,
-        accountBio: account.bio,
-      },
-    );
+  const relayedTags = await fedCtx.services.federation.sendTagsPubRelayActivity(
+    fedCtx,
+    source.accountId,
+    activity,
+    {
+      orderingKey: post.iri,
+      visibility: post.visibility,
+      accountBio: account.bio,
+    },
+  );
   if (relayedTags != null) {
-    await db.update(postTable)
+    await db
+      .update(postTable)
       .set({ relayedTags: [...relayedTags] })
       .where(eq(postTable.id, post.id));
     post.relayedTags = [...relayedTags];
@@ -511,7 +524,8 @@ export async function updateArticleSource(
   let result: (ArticleSource & { contents: ArticleContent[] }) | undefined;
   try {
     result = await db.transaction(async (tx) => {
-      const sources = await tx.update(articleSourceTable)
+      const sources = await tx
+        .update(articleSourceTable)
         .set({ ...sourceFields, updated: sql`CURRENT_TIMESTAMP` })
         .where(eq(articleSourceTable.id, id))
         .returning();
@@ -519,7 +533,8 @@ export async function updateArticleSource(
       const originalContent = await getOriginalArticleContent(tx, sources[0]);
       if (originalContent == null) {
         if (
-          sourceFields.language == null || sourceFields.title == null ||
+          sourceFields.language == null ||
+          sourceFields.title == null ||
           sourceFields.content == null
         ) {
           throw new Error("Missing required fields for new article content");
@@ -536,7 +551,8 @@ export async function updateArticleSource(
         const contentChanged = newContent !== originalContent.content;
         const languageChanged = newLanguage !== originalContent.language;
         try {
-          const updatedRows = await tx.update(articleContentTable)
+          const updatedRows = await tx
+            .update(articleContentTable)
             .set({
               language: newLanguage,
               title: sourceFields.title ?? originalContent.title,
@@ -549,10 +565,10 @@ export async function updateArticleSource(
               // summary that would now be in the wrong language.
               ...(contentChanged || languageChanged
                 ? {
-                  summary: null,
-                  summaryStarted: null,
-                  summaryUnnecessary: false,
-                }
+                    summary: null,
+                    summaryStarted: null,
+                    summaryUnnecessary: false,
+                  }
                 : {}),
             })
             .where(
@@ -562,9 +578,7 @@ export async function updateArticleSource(
               ),
             )
             .returning();
-          if (
-            (contentChanged || languageChanged) && updatedRows.length > 0
-          ) {
+          if ((contentChanged || languageChanged) && updatedRows.length > 0) {
             resummarizeTarget = updatedRows[0];
           }
           if (contentChanged && updatedRows.length > 0) {
@@ -572,7 +586,8 @@ export async function updateArticleSource(
           }
         } catch (error) {
           if (
-            error instanceof postgres.PostgresError && error.code === "23503"
+            error instanceof postgres.PostgresError &&
+            error.code === "23503"
           ) {
             throw new LanguageChangeWithTranslationsError();
           }
@@ -584,10 +599,11 @@ export async function updateArticleSource(
         orderBy: { published: "asc" },
       });
       if (sourceFields.content != null || sourceMedia != null) {
-        const originalContent = contents.find((content) =>
-          content.originalLanguage == null &&
-          content.translatorId == null &&
-          content.translationRequesterId == null
+        const originalContent = contents.find(
+          (content) =>
+            content.originalLanguage == null &&
+            content.translatorId == null &&
+            content.translationRequesterId == null,
         );
         if (originalContent == null) {
           throw new Error("Missing original article content");
@@ -620,25 +636,22 @@ async function updateArticleOperation(
     media?: readonly ArticleMediumInput[];
   },
 ): Promise<
-  Post & {
-    actor: Actor & {
-      account: Account & { emails: AccountEmail[]; links: AccountLink[] };
-      instance: Instance;
-    };
-    articleSource: ArticleSource & {
-      account: Account & { emails: AccountEmail[]; links: AccountLink[] };
-    };
-  } | undefined
+  | (Post & {
+      actor: Actor & {
+        account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+        instance: Instance;
+      };
+      articleSource: ArticleSource & {
+        account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+      };
+    })
+  | undefined
 > {
   const { db } = fedCtx;
   const previousPost = await db.query.postTable.findFirst({
     where: { articleSourceId },
   });
-  const updateResult = await updateArticleSource(
-    db,
-    articleSourceId,
-    source,
-  );
+  const updateResult = await updateArticleSource(db, articleSourceId, source);
   if (updateResult == null) return undefined;
   const {
     source: articleSource,
@@ -662,10 +675,10 @@ async function updateArticleOperation(
   // tag relays, and translation restarts (each of which fires its own Update)
   // are skipped, while it remains censored.
   if (post.censored != null) return post;
-  const articleObject = await fedCtx.services.federation.getArticle(
-    fedCtx,
-    { ...articleSource, account },
-  );
+  const articleObject = await fedCtx.services.federation.getArticle(fedCtx, {
+    ...articleSource,
+    account,
+  });
   const activity = new vocab.Update({
     id: new URL(
       `#update/${articleSource.updated.toISOString()}`,
@@ -689,20 +702,20 @@ async function updateArticleOperation(
       ],
     },
   );
-  const relayedTags = await fedCtx.services.federation
-    .sendTagsPubRelayActivity(
-      fedCtx,
-      articleSource.accountId,
-      activity,
-      {
-        orderingKey: post.iri,
-        visibility: post.visibility,
-        accountBio: account.bio,
-        relayedTags: previousPost?.relayedTags,
-      },
-    );
+  const relayedTags = await fedCtx.services.federation.sendTagsPubRelayActivity(
+    fedCtx,
+    articleSource.accountId,
+    activity,
+    {
+      orderingKey: post.iri,
+      visibility: post.visibility,
+      accountBio: account.bio,
+      relayedTags: previousPost?.relayedTags,
+    },
+  );
   if (relayedTags != null) {
-    await db.update(postTable)
+    await db
+      .update(postTable)
       .set({ relayedTags: [...relayedTags] })
       .where(eq(postTable.id, post.id));
     post.relayedTags = [...relayedTags];
@@ -741,7 +754,8 @@ export async function startArticleContentSummary(
   // Use a JS-side Date so the value round-trips through the driver
   // with millisecond precision.  This is later used as a CAS stamp.
   const claim = new Date();
-  const updated = await db.update(articleContentTable)
+  const updated = await db
+    .update(articleContentTable)
     .set({ summaryStarted: claim })
     .where(
       and(
@@ -774,27 +788,30 @@ export async function startArticleContentSummary(
   summarize({
     model,
     sourceLanguage: claimed.beingTranslated
-      ? claimed.originalLanguage ?? claimed.language
+      ? (claimed.originalLanguage ?? claimed.language)
       : claimed.language,
     targetLanguage: claimed.language,
     text: claimed.content,
-  }).then(async (summary) => {
-    await applyArticleContentSummary(db, claimed, summary, claim);
-  }).catch(async (error) => {
-    logger.error("Summary failed ({sourceId} {language}): {error}", {
-      ...claimed,
-      error,
+  })
+    .then(async (summary) => {
+      await applyArticleContentSummary(db, claimed, summary, claim);
+    })
+    .catch(async (error) => {
+      logger.error("Summary failed ({sourceId} {language}): {error}", {
+        ...claimed,
+        error,
+      });
+      await db
+        .update(articleContentTable)
+        .set({ summaryStarted: null })
+        .where(
+          and(
+            eq(articleContentTable.sourceId, claimed.sourceId),
+            eq(articleContentTable.language, claimed.language),
+            eq(articleContentTable.summaryStarted, claim),
+          ),
+        );
     });
-    await db.update(articleContentTable)
-      .set({ summaryStarted: null })
-      .where(
-        and(
-          eq(articleContentTable.sourceId, claimed.sourceId),
-          eq(articleContentTable.language, claimed.language),
-          eq(articleContentTable.summaryStarted, claim),
-        ),
-      );
-  });
 }
 
 /**
@@ -852,10 +869,8 @@ export async function applyArticleContentSummary(
     }
     // Build a CAS-style condition that only matches if the
     // summarization claim is still ours.
-    const claimWhere = claim == null ? undefined : eq(
-      articleContentTable.summaryStarted,
-      claim,
-    );
+    const claimWhere =
+      claim == null ? undefined : eq(articleContentTable.summaryStarted, claim);
     const trimmedSummary = summary.trim();
     const summaryComparisonContent = removeDetailsFromSummaryInput(
       current.content,
@@ -869,7 +884,8 @@ export async function applyArticleContentSummary(
           "discarding ({sourceId} {language}).",
         content,
       );
-      const updated = await tx.update(articleContentTable)
+      const updated = await tx
+        .update(articleContentTable)
         .set({
           summary: null,
           summaryUnnecessary: true,
@@ -889,7 +905,8 @@ export async function applyArticleContentSummary(
         return;
       }
       if (content.originalLanguage == null) {
-        await tx.update(postTable)
+        await tx
+          .update(postTable)
           .set({ summary: null })
           .where(
             and(
@@ -900,7 +917,8 @@ export async function applyArticleContentSummary(
       }
       return;
     }
-    const updated = await tx.update(articleContentTable)
+    const updated = await tx
+      .update(articleContentTable)
       .set({
         summary,
         // Release the summarization claim now that we've persisted the
@@ -923,7 +941,8 @@ export async function applyArticleContentSummary(
       return;
     }
     if (content.originalLanguage == null) {
-      await tx.update(postTable)
+      await tx
+        .update(postTable)
         .set({ summary })
         .where(
           and(
@@ -955,16 +974,20 @@ export async function startArticleContentTranslation(
   // `postgres` driver hands JS `Date` values back at ms precision
   // while `timestamptz` keeps µs).
   const queueStamp = new Date();
-  const inserted = await db.insert(articleContentTable).values({
-    sourceId: content.sourceId,
-    language: targetLanguage,
-    title: content.title,
-    content: content.content,
-    originalLanguage: content.language,
-    translationRequesterId: requester.id,
-    beingTranslated: true,
-    updated: queueStamp,
-  }).onConflictDoNothing().returning();
+  const inserted = await db
+    .insert(articleContentTable)
+    .values({
+      sourceId: content.sourceId,
+      language: targetLanguage,
+      title: content.title,
+      content: content.content,
+      originalLanguage: content.language,
+      translationRequesterId: requester.id,
+      beingTranslated: true,
+      updated: queueStamp,
+    })
+    .onConflictDoNothing()
+    .returning();
   let queued: ArticleContent;
   if (inserted.length < 1) {
     const translated = await db.query.articleContentTable.findFirst({
@@ -997,7 +1020,8 @@ export async function startArticleContentTranslation(
     //   matches the article.  Clear the matching summary / OG
     //   image state for the same reason.
     const reclaim = new Date();
-    const reclaimed = await db.update(articleContentTable)
+    const reclaimed = await db
+      .update(articleContentTable)
       .set({
         updated: reclaim,
         title: content.title,
@@ -1080,7 +1104,8 @@ export async function restartArticleContentTranslations(
   // The translate() calls themselves run after the transaction
   // commits so the LLM round-trip doesn't extend the lock window.
   const resetRows = await db.transaction(async (tx) => {
-    await tx.select({ id: articleSourceTable.id })
+    await tx
+      .select({ id: articleSourceTable.id })
       .from(articleSourceTable)
       .where(eq(articleSourceTable.id, articleSource.id))
       .for("update");
@@ -1110,7 +1135,8 @@ export async function restartArticleContentTranslations(
     // `runArticleContentTranslation` can match it; see the long
     // comment on that claim for the µs/ms precision rationale.
     const restartStamp = new Date();
-    const reset = await tx.update(articleContentTable)
+    const reset = await tx
+      .update(articleContentTable)
       .set({
         title: original.title,
         content: original.content,
@@ -1143,10 +1169,10 @@ export async function restartArticleContentTranslations(
       )
       .returning();
     if (reset.length > 0) {
-      logger.debug(
-        "Restarted {count} translation(s) for {sourceId}.",
-        { count: reset.length, sourceId: articleSource.id },
-      );
+      logger.debug("Restarted {count} translation(s) for {sourceId}.", {
+        count: reset.length,
+        sourceId: articleSource.id,
+      });
     }
     return reset;
   });
@@ -1207,9 +1233,10 @@ export async function restartArticleContentTranslations(
  * the first line is restricted to a single `#` followed by
  * whitespace, so a first-line `## Section` is not mis-stripped.
  */
-export function splitTranslationTitleAndContent(
-  translation: string,
-): { title: string; content: string } {
+export function splitTranslationTitleAndContent(translation: string): {
+  title: string;
+  content: string;
+} {
   const trimmed = translation.trim();
   if (trimmed === "") return { title: "", content: "" };
   // `trimmed` is guaranteed non-empty and starts with a non-
@@ -1243,7 +1270,10 @@ async function runArticleContentTranslation(
   fedCtx: ApplicationContext,
   queued: ArticleContent,
 ): Promise<void> {
-  const { db, models: { translator: model, summarizer } } = fedCtx;
+  const {
+    db,
+    models: { translator: model, summarizer },
+  } = fedCtx;
   logger.debug(
     "Starting translation for content: {sourceId} {language}",
     queued,
@@ -1299,7 +1329,8 @@ async function runArticleContentTranslation(
   //   helper then translates *that* body instead of the stale body
   //   from whichever caller it was queued for.
   const claim = new Date();
-  const claimedRows = await db.update(articleContentTable)
+  const claimedRows = await db
+    .update(articleContentTable)
     .set({ updated: claim })
     .where(
       and(
@@ -1340,214 +1371,224 @@ async function runArticleContentTranslation(
   // `article_content_being_translated_check` makes that imply
   // `originalLanguage IS NOT NULL`.  Drizzle types it as nullable
   // because the column is nullable in general, so assert.
-  fedCtx.services.ai.translate({
-    model,
-    summarizationModel: summarizer,
-    sourceLanguage: claimed.originalLanguage!,
-    targetLanguage,
-    text,
-    // Pass context for better translation quality.
-    authorName: articleSource?.account?.actor?.name ?? undefined,
-    authorBio: articleSource?.account?.actor?.bioHtml ?? undefined,
-    tags: articleSource?.tags,
-  }).then(async (translation) => {
-    try {
-      logger.debug("Translation completed: {sourceId} {language}", {
-        ...queued,
-        translation,
-      });
-      const { title, content } = splitTranslationTitleAndContent(translation);
-      const rootDb = fedCtx.rootDb ?? db;
-      const backgroundContext: ApplicationContext = {
-        ...fedCtx.withDatabase(rootDb),
-        db: rootDb,
-        rootDb,
-        afterCommit: undefined,
-      };
-      await withTransaction(backgroundContext, async (txFedCtx) => {
-        const tx = txFedCtx.db;
-        const updated = await tx.update(articleContentTable)
-          .set({
-            title,
-            content,
-            beingTranslated: false,
-            updated: sql`CURRENT_TIMESTAMP`,
-            // The translation has just replaced the placeholder content,
-            // so any existing summary state from the original-language
-            // body no longer applies.  Clear it so a fresh summary can be
-            // generated for the translated text below.
-            summary: null,
-            summaryStarted: null,
-            summaryUnnecessary: false,
-            // The cached OG image was rendered from the placeholder
-            // (or from a prior translation of an older body) and is
-            // now stale; clear it for the same reason as `summary` so
-            // the next request regenerates it from the translated text.
-            ogImageKey: null,
-          })
-          .where(
-            and(
-              eq(articleContentTable.sourceId, sourceId),
-              eq(articleContentTable.language, targetLanguage),
-              // CAS on the claim taken at the top of this function — see
-              // that comment for why a JS `Date` rather than the row's
-              // round-tripped `updated` is the safe reference.  If a
-              // concurrent re-translation took its own claim under us
-              // the `updated` will no longer match `claim` and this
-              // write becomes a no-op so we don't clobber its fresher
-              // placeholder with our stale text.
-              eq(articleContentTable.updated, claim),
-            ),
-          )
-          .returning();
-        if (updated.length < 1) {
-          logger.debug(
-            "Stale translation claim, skipping federation/summary " +
-              "({sourceId} {language}).",
-            queued,
-          );
-          return;
-        }
-        const article = await tx.query.articleSourceTable.findFirst({
-          where: { id: sourceId },
-          with: {
-            account: true,
-            contents: true,
-          },
-        });
-        if (article == null) return;
-        const post = await tx.query.postTable.findFirst({
-          where: { articleSourceId: article.id },
-        });
-        if (post?.censored != null) {
-          // A censored article must not federate a completed translation's
-          // Update; the translation row and its summary still persist locally.
-          await queueAfterCommit(txFedCtx, () =>
-            startArticleContentSummary(
-              rootDb,
-              summarizer,
-              updated[0],
-              txFedCtx.services.ai.summarize,
-            ));
-          return;
-        }
-        const articleObject = await txFedCtx.services.federation.getArticle(
-          txFedCtx,
-          article,
-        );
-        // The id has to be unique across translation completions for
-        // this article — multiple locales can complete in close
-        // succession (especially after a body edit re-queues every
-        // existing translation), and they would all collide on
-        // `article.updated` since translation completions don't bump
-        // it.  Including both the target language and the translated
-        // row's own `updated` (a fresh `CURRENT_TIMESTAMP` from the
-        // success UPDATE just above) keeps the id distinct from the
-        // original-language Update activity and from every other
-        // translation's Update for the same edit.
-        const update = new vocab.Update({
-          id: new URL(
-            `#update/${updated[0].updated.toISOString()}/${targetLanguage}`,
-            articleObject.id ?? txFedCtx.canonicalOrigin,
-          ),
-          actor: txFedCtx.getActorUri(article.accountId),
-          tos: articleObject.toIds,
-          ccs: articleObject.ccIds,
-          object: articleObject,
-        });
-        const orderingKey = txFedCtx.getObjectUri(vocab.Article, {
-          id: article.id,
-        }).href;
-        await txFedCtx.sendActivity(
-          { identifier: article.accountId },
-          "followers",
-          update,
-          {
-            orderingKey,
-            preferSharedInbox: true,
-            excludeBaseUris: [
-              new URL(txFedCtx.origin),
-              new URL(txFedCtx.canonicalOrigin),
-            ],
-          },
-        );
-        if (post != null) {
-          const relayedTags = await txFedCtx.services.federation
-            .sendTagsPubRelayActivity(
+  fedCtx.services.ai
+    .translate({
+      model,
+      summarizationModel: summarizer,
+      sourceLanguage: claimed.originalLanguage!,
+      targetLanguage,
+      text,
+      // Pass context for better translation quality.
+      authorName: articleSource?.account?.actor?.name ?? undefined,
+      authorBio: articleSource?.account?.actor?.bioHtml ?? undefined,
+      tags: articleSource?.tags,
+    })
+    .then(
+      async (translation) => {
+        try {
+          logger.debug("Translation completed: {sourceId} {language}", {
+            ...queued,
+            translation,
+          });
+          const { title, content } =
+            splitTranslationTitleAndContent(translation);
+          const rootDb = fedCtx.rootDb ?? db;
+          const backgroundContext: ApplicationContext = {
+            ...fedCtx.withDatabase(rootDb),
+            db: rootDb,
+            rootDb,
+            afterCommit: undefined,
+          };
+          await withTransaction(backgroundContext, async (txFedCtx) => {
+            const tx = txFedCtx.db;
+            const updated = await tx
+              .update(articleContentTable)
+              .set({
+                title,
+                content,
+                beingTranslated: false,
+                updated: sql`CURRENT_TIMESTAMP`,
+                // The translation has just replaced the placeholder content,
+                // so any existing summary state from the original-language
+                // body no longer applies.  Clear it so a fresh summary can be
+                // generated for the translated text below.
+                summary: null,
+                summaryStarted: null,
+                summaryUnnecessary: false,
+                // The cached OG image was rendered from the placeholder
+                // (or from a prior translation of an older body) and is
+                // now stale; clear it for the same reason as `summary` so
+                // the next request regenerates it from the translated text.
+                ogImageKey: null,
+              })
+              .where(
+                and(
+                  eq(articleContentTable.sourceId, sourceId),
+                  eq(articleContentTable.language, targetLanguage),
+                  // CAS on the claim taken at the top of this function — see
+                  // that comment for why a JS `Date` rather than the row's
+                  // round-tripped `updated` is the safe reference.  If a
+                  // concurrent re-translation took its own claim under us
+                  // the `updated` will no longer match `claim` and this
+                  // write becomes a no-op so we don't clobber its fresher
+                  // placeholder with our stale text.
+                  eq(articleContentTable.updated, claim),
+                ),
+              )
+              .returning();
+            if (updated.length < 1) {
+              logger.debug(
+                "Stale translation claim, skipping federation/summary " +
+                  "({sourceId} {language}).",
+                queued,
+              );
+              return;
+            }
+            const article = await tx.query.articleSourceTable.findFirst({
+              where: { id: sourceId },
+              with: {
+                account: true,
+                contents: true,
+              },
+            });
+            if (article == null) return;
+            const post = await tx.query.postTable.findFirst({
+              where: { articleSourceId: article.id },
+            });
+            if (post?.censored != null) {
+              // A censored article must not federate a completed translation's
+              // Update; the translation row and its summary still persist locally.
+              await queueAfterCommit(txFedCtx, () =>
+                startArticleContentSummary(
+                  rootDb,
+                  summarizer,
+                  updated[0],
+                  txFedCtx.services.ai.summarize,
+                ),
+              );
+              return;
+            }
+            const articleObject = await txFedCtx.services.federation.getArticle(
               txFedCtx,
-              article.accountId,
+              article,
+            );
+            // The id has to be unique across translation completions for
+            // this article — multiple locales can complete in close
+            // succession (especially after a body edit re-queues every
+            // existing translation), and they would all collide on
+            // `article.updated` since translation completions don't bump
+            // it.  Including both the target language and the translated
+            // row's own `updated` (a fresh `CURRENT_TIMESTAMP` from the
+            // success UPDATE just above) keeps the id distinct from the
+            // original-language Update activity and from every other
+            // translation's Update for the same edit.
+            const update = new vocab.Update({
+              id: new URL(
+                `#update/${updated[0].updated.toISOString()}/${targetLanguage}`,
+                articleObject.id ?? txFedCtx.canonicalOrigin,
+              ),
+              actor: txFedCtx.getActorUri(article.accountId),
+              tos: articleObject.toIds,
+              ccs: articleObject.ccIds,
+              object: articleObject,
+            });
+            const orderingKey = txFedCtx.getObjectUri(vocab.Article, {
+              id: article.id,
+            }).href;
+            await txFedCtx.sendActivity(
+              { identifier: article.accountId },
+              "followers",
               update,
               {
                 orderingKey,
-                visibility: post.visibility,
-                accountBio: article.account.bio,
-                relayedTags: post.relayedTags,
+                preferSharedInbox: true,
+                excludeBaseUris: [
+                  new URL(txFedCtx.origin),
+                  new URL(txFedCtx.canonicalOrigin),
+                ],
               },
             );
-          if (relayedTags != null) {
-            await tx.update(postTable)
-              .set({ relayedTags: [...relayedTags] })
-              .where(eq(postTable.id, post.id));
+            if (post != null) {
+              const relayedTags =
+                await txFedCtx.services.federation.sendTagsPubRelayActivity(
+                  txFedCtx,
+                  article.accountId,
+                  update,
+                  {
+                    orderingKey,
+                    visibility: post.visibility,
+                    accountBio: article.account.bio,
+                    relayedTags: post.relayedTags,
+                  },
+                );
+              if (relayedTags != null) {
+                await tx
+                  .update(postTable)
+                  .set({ relayedTags: [...relayedTags] })
+                  .where(eq(postTable.id, post.id));
+              }
+            }
+            // TODO: send Update(Article) to the mentioned actors too
+            await queueAfterCommit(txFedCtx, () =>
+              startArticleContentSummary(
+                rootDb,
+                summarizer,
+                updated[0],
+                txFedCtx.services.ai.summarize,
+              ),
+            );
+          });
+        } catch (error) {
+          logger.error(
+            "Failed to persist completed translation " +
+              "({sourceId} {language}): {error}",
+            {
+              ...queued,
+              error,
+            },
+          );
+          try {
+            await (fedCtx.rootDb ?? db)
+              .update(articleContentTable)
+              // Keep the placeholder but make its claim older than the
+              // 30-minute staleness threshold so the next request can retry
+              // immediately.  The CAS below must still match this run's claim.
+              .set({ updated: new Date(0) })
+              .where(
+                and(
+                  eq(articleContentTable.sourceId, sourceId),
+                  eq(articleContentTable.language, targetLanguage),
+                  eq(articleContentTable.beingTranslated, true),
+                  eq(articleContentTable.updated, claim),
+                ),
+              );
+          } catch (resetError) {
+            logger.error(
+              "Failed to reset translation claim " +
+                "({sourceId} {language}): {error}",
+              {
+                ...queued,
+                error: resetError,
+              },
+            );
           }
         }
-        // TODO: send Update(Article) to the mentioned actors too
-        await queueAfterCommit(txFedCtx, () =>
-          startArticleContentSummary(
-            rootDb,
-            summarizer,
-            updated[0],
-            txFedCtx.services.ai.summarize,
-          ));
-      });
-    } catch (error) {
-      logger.error(
-        "Failed to persist completed translation " +
-          "({sourceId} {language}): {error}",
-        {
+      },
+      async (error) => {
+        logger.error("Translation failed ({sourceId} {language}): {error}", {
           ...queued,
           error,
-        },
-      );
-      try {
-        await (fedCtx.rootDb ?? db).update(articleContentTable)
-          // Keep the placeholder but make its claim older than the
-          // 30-minute staleness threshold so the next request can retry
-          // immediately.  The CAS below must still match this run's claim.
-          .set({ updated: new Date(0) })
-          .where(
-            and(
-              eq(articleContentTable.sourceId, sourceId),
-              eq(articleContentTable.language, targetLanguage),
-              eq(articleContentTable.beingTranslated, true),
-              eq(articleContentTable.updated, claim),
-            ),
-          );
-      } catch (resetError) {
-        logger.error(
-          "Failed to reset translation claim " +
-            "({sourceId} {language}): {error}",
-          {
-            ...queued,
-            error: resetError,
-          },
+        });
+        await db.delete(articleContentTable).where(
+          and(
+            eq(articleContentTable.sourceId, sourceId),
+            eq(articleContentTable.language, targetLanguage),
+            // CAS on the same claim as the success path — a stale
+            // failure must not delete a row another caller has since
+            // re-claimed.
+            eq(articleContentTable.updated, claim),
+          ),
         );
-      }
-    }
-  }, async (error) => {
-    logger.error("Translation failed ({sourceId} {language}): {error}", {
-      ...queued,
-      error,
-    });
-    await db.delete(articleContentTable)
-      .where(
-        and(
-          eq(articleContentTable.sourceId, sourceId),
-          eq(articleContentTable.language, targetLanguage),
-          // CAS on the same claim as the success path — a stale
-          // failure must not delete a row another caller has since
-          // re-claimed.
-          eq(articleContentTable.updated, claim),
-        ),
-      );
-  });
+      },
+    );
 }

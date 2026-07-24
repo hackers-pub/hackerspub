@@ -11,8 +11,7 @@ const ComboboxItemLabel = ComboboxPrimitive.ItemLabel;
 const ComboboxHiddenSelect = ComboboxPrimitive.HiddenSelect;
 
 type ComboboxItemProps<T extends ValidComponent = "li"> =
-  & ComboboxPrimitive.ComboboxItemProps<T>
-  & {
+  ComboboxPrimitive.ComboboxItemProps<T> & {
     class?: string | undefined;
   };
 
@@ -32,8 +31,7 @@ const ComboboxItem = <T extends ValidComponent = "li">(
 };
 
 type ComboboxItemIndicatorProps<T extends ValidComponent = "div"> =
-  & ComboboxPrimitive.ComboboxItemIndicatorProps<T>
-  & {
+  ComboboxPrimitive.ComboboxItemIndicatorProps<T> & {
     children?: JSX.Element;
   };
 
@@ -69,8 +67,7 @@ const ComboboxItemIndicator = <T extends ValidComponent = "div">(
 };
 
 type ComboboxSectionProps<T extends ValidComponent = "li"> =
-  & ComboboxPrimitive.ComboboxSectionProps<T>
-  & { class?: string | undefined };
+  ComboboxPrimitive.ComboboxSectionProps<T> & { class?: string | undefined };
 
 const ComboboxSection = <T extends ValidComponent = "li">(
   props: PolymorphicProps<T, ComboboxSectionProps<T>>,
@@ -109,8 +106,7 @@ const ComboboxControl = <T, U extends ValidComponent = "div">(
 };
 
 type ComboboxInputProps<T extends ValidComponent = "input"> =
-  & ComboboxPrimitive.ComboboxInputProps<T>
-  & { class?: string | undefined };
+  ComboboxPrimitive.ComboboxInputProps<T> & { class?: string | undefined };
 
 const ComboboxInput = <T extends ValidComponent = "input">(
   props: PolymorphicProps<T, ComboboxInputProps<T>>,
@@ -128,8 +124,7 @@ const ComboboxInput = <T extends ValidComponent = "input">(
 };
 
 type ComboboxTriggerProps<T extends ValidComponent = "button"> =
-  & ComboboxPrimitive.ComboboxTriggerProps<T>
-  & {
+  ComboboxPrimitive.ComboboxTriggerProps<T> & {
     class?: string | undefined;
     children?: JSX.Element;
   };
@@ -173,8 +168,7 @@ const ComboboxTrigger = <T extends ValidComponent = "button">(
 };
 
 type ComboboxContentProps<T extends ValidComponent = "div"> =
-  & ComboboxPrimitive.ComboboxContentProps<T>
-  & { class?: string | undefined };
+  ComboboxPrimitive.ComboboxContentProps<T> & { class?: string | undefined };
 
 const ComboboxContent = <T extends ValidComponent = "div">(
   props: PolymorphicProps<T, ComboboxContentProps<T>>,

@@ -26,9 +26,10 @@ async function makeModerator(
   values: { username: string; name: string; email: string },
 ): Promise<AuthenticatedAccount> {
   const { account } = await insertAccountWithActor(tx, values);
-  await tx.update(accountTable).set({ moderator: true }).where(
-    eq(accountTable.id, account.id),
-  );
+  await tx
+    .update(accountTable)
+    .set({ moderator: true })
+    .where(eq(accountTable.id, account.id));
   return { ...account, moderator: true };
 }
 
@@ -492,9 +493,7 @@ test("a reported moderator cannot access or act on their own case", async () => 
       tx,
       targetMod.id,
     );
-    assert.ok(
-      targetNotifications.every((n) => n.type !== "flag_received"),
-    );
+    assert.ok(targetNotifications.every((n) => n.type !== "flag_received"));
     const otherNotifications = await getModerationNotifications(
       tx,
       otherMod.id,
@@ -563,7 +562,7 @@ test("sanction emails go to every verified address", async () => {
     assert.deepEqual(result.errors, undefined);
     const recipients = email.messages
       .flatMap((message) =>
-        (message as Message).recipients.map((r) => r.address)
+        (message as Message).recipients.map((r) => r.address),
       )
       .sort();
     assert.deepEqual(recipients, [

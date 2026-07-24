@@ -97,12 +97,10 @@ async function collectNewsLinkIdsForPosts(
   const linkIds = new Set(
     posts.map((post) => post.linkId).filter((id): id is Uuid => id != null),
   );
-  for (
-    const linkId of await articleBoostLinkIds(
-      db,
-      posts.map((post) => post.sharedPostId),
-    )
-  ) {
+  for (const linkId of await articleBoostLinkIds(
+    db,
+    posts.map((post) => post.sharedPostId),
+  )) {
     linkIds.add(linkId);
   }
   return [...linkIds];
@@ -127,10 +125,7 @@ async function hasModerationAuditLinks(
 ): Promise<boolean> {
   const flagCase = await db.query.flagCaseTable.findFirst({
     where: {
-      OR: [
-        { targetActorId: actorId },
-        { assignedModeratorId: accountId },
-      ],
+      OR: [{ targetActorId: actorId }, { assignedModeratorId: accountId }],
     },
     columns: { id: true },
   });
@@ -138,10 +133,7 @@ async function hasModerationAuditLinks(
 
   const flag = await db.query.flagTable.findFirst({
     where: {
-      OR: [
-        { reporterId: actorId },
-        { targetActorId: actorId },
-      ],
+      OR: [{ reporterId: actorId }, { targetActorId: actorId }],
     },
     columns: { id: true },
   });
@@ -155,10 +147,7 @@ async function hasModerationAuditLinks(
 
   const flagAppeal = await db.query.flagAppealTable.findFirst({
     where: {
-      OR: [
-        { appellantId: accountId },
-        { reviewerId: accountId },
-      ],
+      OR: [{ appellantId: accountId }, { reviewerId: accountId }],
     },
     columns: { id: true },
   });
@@ -171,7 +160,8 @@ async function recomputePostInteractionCounts(
 ): Promise<void> {
   const ids = [...new Set(postIds)];
   if (ids.length < 1) return;
-  await db.update(postTable)
+  await db
+    .update(postTable)
     .set({
       repliesCount: sql<number>`
         (
@@ -204,7 +194,8 @@ async function recomputePostReactionCounts(
 ): Promise<void> {
   const ids = [...new Set(postIds)];
   if (ids.length < 1) return;
-  await db.update(postTable)
+  await db
+    .update(postTable)
     .set({
       reactionsCounts: sql`
         (
@@ -235,7 +226,8 @@ async function recomputePollVoteCounts(
 ): Promise<void> {
   const ids = [...new Set(postIds)];
   if (ids.length < 1) return;
-  await db.update(pollTable)
+  await db
+    .update(pollTable)
     .set({
       votersCount: sql<number>`
         (
@@ -246,7 +238,8 @@ async function recomputePollVoteCounts(
       `,
     })
     .where(inArray(pollTable.postId, ids));
-  await db.update(pollOptionTable)
+  await db
+    .update(pollOptionTable)
     .set({
       votesCount: sql<number>`
         (
@@ -264,8 +257,7 @@ async function removeActorFromNotifications(
   db: Database,
   actorId: Uuid,
 ): Promise<void> {
-  await db.delete(notificationTable)
-    .where(sql`
+  await db.delete(notificationTable).where(sql`
       ${notificationTable.type} = 'follow'
       AND ${actorId} = ANY(${notificationTable.actorIds})
       AND (
@@ -290,7 +282,8 @@ async function removeActorFromNotifications(
         )
       )
     `);
-  const updated = await db.update(notificationTable)
+  const updated = await db
+    .update(notificationTable)
     .set({
       actorIds: sql`array_remove(${notificationTable.actorIds}, ${actorId})`,
     })
@@ -298,7 +291,8 @@ async function removeActorFromNotifications(
     .returning({ id: notificationTable.id });
   const updatedIds = updated.map((notification) => notification.id);
   if (updatedIds.length < 1) return;
-  await db.delete(notificationTable)
+  await db
+    .delete(notificationTable)
     .where(
       and(
         inArray(notificationTable.id, updatedIds),
@@ -330,8 +324,10 @@ async function decrementAcceptedRelationshipCounts(
     ),
   ];
   if (followeeIds.length > 0) {
-    await db.update(actorTable).set({
-      followersCount: sql<number>`
+    await db
+      .update(actorTable)
+      .set({
+        followersCount: sql<number>`
         CASE WHEN ${actorTable.accountId} IS NULL
           THEN greatest(0, ${actorTable.followersCount} - 1)
           ELSE (
@@ -342,11 +338,14 @@ async function decrementAcceptedRelationshipCounts(
           )
         END
       `,
-    }).where(inArray(actorTable.id, followeeIds));
+      })
+      .where(inArray(actorTable.id, followeeIds));
   }
   if (followerIds.length > 0) {
-    await db.update(actorTable).set({
-      followeesCount: sql<number>`
+    await db
+      .update(actorTable)
+      .set({
+        followeesCount: sql<number>`
         CASE WHEN ${actorTable.accountId} IS NULL
           THEN greatest(0, ${actorTable.followeesCount} - 1)
           ELSE (
@@ -357,7 +356,8 @@ async function decrementAcceptedRelationshipCounts(
           )
         END
       `,
-    }).where(inArray(actorTable.id, followerIds));
+      })
+      .where(inArray(actorTable.id, followerIds));
   }
 }
 
@@ -370,9 +370,12 @@ function toDeletedAccountRecipient(actor: Actor): vocab.Recipient | null {
     return {
       id: new URL(actor.iri),
       inboxId: new URL(actor.inboxUrl),
-      endpoints: actor.sharedInboxUrl == null ? null : {
-        sharedInbox: new URL(actor.sharedInboxUrl),
-      },
+      endpoints:
+        actor.sharedInboxUrl == null
+          ? null
+          : {
+              sharedInbox: new URL(actor.sharedInboxUrl),
+            },
     };
   } catch (error) {
     logger.warn(
@@ -420,10 +423,11 @@ async function deleteAccountOperation(
   let deleteRecipients: vocab.Recipient[] = [];
 
   await db.transaction(async (tx) => {
-    const [locked] = await tx.select({
-      account: accountTable,
-      actor: actorTable,
-    })
+    const [locked] = await tx
+      .select({
+        account: accountTable,
+        actor: actorTable,
+      })
       .from(accountTable)
       .innerJoin(actorTable, eq(actorTable.accountId, accountTable.id))
       .where(eq(accountTable.id, accountId))
@@ -450,55 +454,58 @@ async function deleteAccountOperation(
     const deletionRecipientRows = await tx.query.followingTable.findMany({
       with: { followee: true, follower: true },
       where: {
-        OR: [
-          { followerId: actor.id },
-          { followeeId: actor.id },
-        ],
+        OR: [{ followerId: actor.id }, { followeeId: actor.id }],
       },
     });
-    const acceptedRelationshipRows = deletionRecipientRows.filter((following) =>
-      following.accepted != null
+    const acceptedRelationshipRows = deletionRecipientRows.filter(
+      (following) => following.accepted != null,
     );
     const deletionRecipientMap = new Map<string, vocab.Recipient>();
     for (const following of deletionRecipientRows) {
-      const recipientActor = following.followerId === actor.id
-        ? following.followee
-        : following.follower;
+      const recipientActor =
+        following.followerId === actor.id
+          ? following.followee
+          : following.follower;
       if (recipientActor.id === actor.id) continue;
       const recipient = toDeletedAccountRecipient(recipientActor);
       if (recipient == null) continue;
       deletionRecipientMap.set(recipientActor.iri, recipient);
     }
     deleteRecipients = [...deletionRecipientMap.values()];
-    const affectedReactionPosts = await tx.select({
-      id: postTable.id,
-      linkId: postTable.linkId,
-      sharedPostId: postTable.sharedPostId,
-    })
+    const affectedReactionPosts = await tx
+      .select({
+        id: postTable.id,
+        linkId: postTable.linkId,
+        sharedPostId: postTable.sharedPostId,
+      })
       .from(reactionTable)
       .innerJoin(postTable, eq(postTable.id, reactionTable.postId))
       .where(eq(reactionTable.actorId, actor.id));
-    const affectedPollVotePosts = await tx.select({
-      postId: pollVoteTable.postId,
-    })
+    const affectedPollVotePosts = await tx
+      .select({
+        postId: pollVoteTable.postId,
+      })
       .from(pollVoteTable)
       .where(eq(pollVoteTable.actorId, actor.id));
     const parentIds = [
       ...new Set(
-        affectedPosts.flatMap((post) => [
-          post.replyTargetId,
-          post.sharedPostId,
-          post.quotedPostId,
-        ]).filter((id): id is Uuid => id != null),
+        affectedPosts
+          .flatMap((post) => [
+            post.replyTargetId,
+            post.sharedPostId,
+            post.quotedPostId,
+          ])
+          .filter((id): id is Uuid => id != null),
       ),
     ];
 
-    const parentPosts = parentIds.length < 1
-      ? []
-      : await tx.query.postTable.findMany({
-        where: { id: { in: parentIds } },
-        columns: { id: true, linkId: true, sharedPostId: true },
-      });
+    const parentPosts =
+      parentIds.length < 1
+        ? []
+        : await tx.query.postTable.findMany({
+            where: { id: { in: parentIds } },
+            columns: { id: true, linkId: true, sharedPostId: true },
+          });
     const affectedLinkIds = await collectNewsLinkIdsForPosts(tx, [
       ...affectedPosts,
       ...parentPosts,
@@ -528,7 +535,8 @@ async function deleteAccountOperation(
       );
     }
     await removePostsFromTimeline(tx, affectedPosts);
-    await tx.update(articleContentTable)
+    await tx
+      .update(articleContentTable)
       .set({
         translationRequesterId: null,
         translatorId: null,
@@ -600,9 +608,8 @@ export async function getAvatarUrl(
   if (account.avatarMedium != null) {
     return await disk.getUrl(account.avatarMedium.key);
   }
-  const emails = account.emails
-    .filter((e) => e.verified != null);
-  emails.sort((a, b) => a.public ? 1 : b.public ? -1 : 0);
+  const emails = account.emails.filter((e) => e.verified != null);
+  emails.sort((a, b) => (a.public ? 1 : b.public ? -1 : 0));
   const textEncoder = new TextEncoder();
   let url = "mp";
   for (const email of emails) {
@@ -610,9 +617,9 @@ export async function getAvatarUrl(
       "SHA-256",
       textEncoder.encode(email.email.toLowerCase()),
     );
-    url = `https://gravatar.com/avatar/${encodeHex(hash)}?r=pg&s=128&d=${
-      encodeURIComponent(url)
-    }`;
+    url = `https://gravatar.com/avatar/${encodeHex(hash)}?r=pg&s=128&d=${encodeURIComponent(
+      url,
+    )}`;
   }
   return url == "mp" ? "https://gravatar.com/avatar/?d=mp&s=128" : url;
 }
@@ -669,12 +676,12 @@ export async function getAccountByUsername(
   db: Database,
   username: string,
 ): Promise<
-  | Account & {
-    actor: Actor & { successor: Actor | null };
-    avatarMedium: Medium | null;
-    emails: AccountEmail[];
-    links: AccountLink[];
-  }
+  | (Account & {
+      actor: Actor & { successor: Actor | null };
+      avatarMedium: Medium | null;
+      emails: AccountEmail[];
+      links: AccountLink[];
+    })
   | undefined
 > {
   const account = await db.query.accountTable.findFirst({
@@ -705,7 +712,7 @@ export async function getAccountByUsername(
 async function updateAccountOperation(
   fedCtx: ApplicationContext,
   account: Partial<NewAccount> & { id: Uuid; links?: Link[] },
-): Promise<Account & { links: AccountLink[] } | undefined> {
+): Promise<(Account & { links: AccountLink[] }) | undefined> {
   const { db } = fedCtx;
   const result = await updateAccountData(db, account);
   if (result == null) return undefined;
@@ -759,17 +766,21 @@ export async function updateAccountData(
 ): Promise<Account | undefined> {
   const values: Partial<Omit<NewAccount, "id">> = { ...account };
   if ("id" in values) delete values.id;
-  const result = await db.update(accountTable).set({
-    ...values,
-    ...(values.username == null ? {} : {
-      username: sql`
+  const result = await db
+    .update(accountTable)
+    .set({
+      ...values,
+      ...(values.username == null
+        ? {}
+        : {
+            username: sql`
         CASE
           WHEN ${accountTable.usernameChanged} IS NULL
           THEN ${values.username}
           ELSE ${accountTable.username}
         END
       `,
-      oldUsername: sql`
+            oldUsername: sql`
         CASE
           WHEN
             ${accountTable.username} = ${values.username} OR
@@ -778,7 +789,7 @@ export async function updateAccountData(
           ELSE ${accountTable.username}
         END
       `,
-      usernameChanged: sql`
+            usernameChanged: sql`
         CASE
           WHEN
             ${accountTable.username} = ${values.username} OR
@@ -787,9 +798,11 @@ export async function updateAccountData(
           ELSE CURRENT_TIMESTAMP
         END
       `,
-    }),
-    updated: sql`CURRENT_TIMESTAMP`,
-  }).where(eq(accountTable.id, account.id)).returning();
+          }),
+      updated: sql`CURRENT_TIMESTAMP`,
+    })
+    .where(eq(accountTable.id, account.id))
+    .returning();
   return result.length > 0 ? result[0] : undefined;
 }
 
@@ -804,10 +817,10 @@ export async function updateAccountLinks(
   verifyUrl: URL | string,
   links: Link[],
 ): Promise<AccountLink[]> {
-  logger.debug(
-    "Updating account links for {accountId}: {links}",
-    { accountId, links },
-  );
+  logger.debug("Updating account links for {accountId}: {links}", {
+    accountId,
+    links,
+  });
   const existing = await db.query.accountLinkTable.findMany({
     where: { accountId },
   });
@@ -817,9 +830,10 @@ export async function updateAccountLinks(
   const now = Temporal.Now.instant();
   const [metadata, verifies] = await Promise.all([
     Promise.all(
-      links.map((link) =>
-        existingMap[link.url.toString()] ??
-          fetchAccountLinkMetadata(link.url)
+      links.map(
+        (link) =>
+          existingMap[link.url.toString()] ??
+          fetchAccountLinkMetadata(link.url),
       ),
     ),
     // TODO: Forget and fire:
@@ -827,37 +841,44 @@ export async function updateAccountLinks(
       links.map((link) => {
         const existing = existingMap[link.url.toString()];
         return existing?.verified == null ||
-            existing.verified.toTemporalInstant().until(now).total("days") > 7
+          existing.verified.toTemporalInstant().until(now).total("days") > 7
           ? verifyAccountLink(link.url, verifyUrl)
           : existing.verified;
       }),
     ),
   ]);
-  const data = zip(links, metadata, verifies).map(([link, meta, verified]) => ({
-    ...link,
-    ...meta,
-    name: link.name,
-    verified,
-  })).filter((link) => link.url != null);
-  await db.delete(accountLinkTable)
+  const data = zip(links, metadata, verifies)
+    .map(([link, meta, verified]) => ({
+      ...link,
+      ...meta,
+      name: link.name,
+      verified,
+    }))
+    .filter((link) => link.url != null);
+  await db
+    .delete(accountLinkTable)
     .where(eq(accountLinkTable.accountId, accountId));
   if (data.length < 1) return [];
-  return await db.insert(accountLinkTable).values(
-    data.map((link, index) => ({
-      accountId,
-      index,
-      name: link.name,
-      url: link.url.toString(),
-      handle: link.handle,
-      icon: link.icon,
-      verified: link.verified instanceof Date
-        ? link.verified
-        : link.verified
-        ? sql`CURRENT_TIMESTAMP`
-        : null,
-      created: link.created ?? sql`CURRENT_TIMESTAMP`,
-    })),
-  ).returning();
+  return await db
+    .insert(accountLinkTable)
+    .values(
+      data.map((link, index) => ({
+        accountId,
+        index,
+        name: link.name,
+        url: link.url.toString(),
+        handle: link.handle,
+        icon: link.icon,
+        verified:
+          link.verified instanceof Date
+            ? link.verified
+            : link.verified
+              ? sql`CURRENT_TIMESTAMP`
+              : null,
+        created: link.created ?? sql`CURRENT_TIMESTAMP`,
+      })),
+    )
+    .returning();
 }
 
 const LINK_PATTERN = /<(?:a|link)\s+([^>]*)>/gi;
@@ -875,8 +896,8 @@ export async function verifyAccountLink(
   for (const match of text.matchAll(LINK_PATTERN)) {
     const attributes: Record<string, string> = {};
     for (const attrMatch of match[1].matchAll(LINK_ATTRIBUTE_PATTERN)) {
-      attributes[attrMatch[1].toLowerCase()] = attrMatch[2] ?? attrMatch[3] ??
-        attrMatch[4];
+      attributes[attrMatch[1].toLowerCase()] =
+        attrMatch[2] ?? attrMatch[3] ?? attrMatch[4];
     }
     const rel = attributes.rel?.toLowerCase()?.split(/\s+/g) ?? [];
     if (!rel.includes("me")) continue;
@@ -922,20 +943,22 @@ export async function fetchAccountLinkMetadata(
     const m = url.pathname.match(/^\/+users\/+([^/]+)\/*$/);
     if (m != null) return { icon: "discord" };
   } else if (
-    host === "facebook.com" || url.host === "web.facebook.com" ||
+    host === "facebook.com" ||
+    url.host === "web.facebook.com" ||
     url.host === "m.facebook.com"
   ) {
     if (
-      url.pathname.startsWith("/people/") || url.pathname === "/profile.php"
+      url.pathname.startsWith("/people/") ||
+      url.pathname === "/profile.php"
     ) {
       return { icon: "facebook" };
     }
     const m = url.pathname.match(/^\/+([^/]+)\/*/);
     if (m != null) return { icon: "facebook", handle: m[1] };
   } else if (host === "github.com") {
-    const segments = url.pathname.split("/").filter((segment) =>
-      segment !== ""
-    );
+    const segments = url.pathname
+      .split("/")
+      .filter((segment) => segment !== "");
     if (segments.length === 1) {
       return { icon: "github", handle: `@${segments[0]}` };
     }
@@ -947,7 +970,8 @@ export async function fetchAccountLinkMetadata(
     const m = url.pathname.match(/^\/+([^/]+)\/*/);
     if (m != null) return { icon: "gitlab", handle: `@${m[1]}` };
   } else if (
-    url.host === "news.ycombinator.com" && url.pathname === "/user" &&
+    url.host === "news.ycombinator.com" &&
+    url.pathname === "/user" &&
     url.searchParams.has("id")
   ) {
     return {
@@ -967,7 +991,9 @@ export async function fetchAccountLinkMetadata(
     const m = url.pathname.match(/^\/+(~[^/]+)\/*/);
     if (m != null) return { icon: "lobsters", handle: m[1] };
   } else if (
-    host === "matrix.to" && url.pathname === "/" && url.hash.startsWith("#/")
+    host === "matrix.to" &&
+    url.pathname === "/" &&
+    url.hash.startsWith("#/")
   ) {
     return { icon: "matrix", handle: url.hash.substring(2) };
   } else if (host === "qiita.com") {
@@ -979,8 +1005,10 @@ export async function fetchAccountLinkMetadata(
     const m2 = url.pathname.match(/^\/+u(?:ser)?\/+([^/]+)\/*/);
     if (m2 != null) return { icon: "reddit", handle: `/u/${m2[1]}` };
   } else if (
-    (url.host === "sr.ht" || url.host === "git.sr.ht" ||
-      url.host === "hg.sr.ht") && url.pathname.startsWith("/~")
+    (url.host === "sr.ht" ||
+      url.host === "git.sr.ht" ||
+      url.host === "hg.sr.ht") &&
+    url.pathname.startsWith("/~")
   ) {
     return {
       icon: "sourcehut",
@@ -993,7 +1021,8 @@ export async function fetchAccountLinkMetadata(
     const m = url.pathname.match(/^\/+(@[^/]+)(?:\/*(?:posts\/*)?)?/);
     if (m != null) return { icon: "velog", handle: m[1] };
   } else if (
-    url.host.endsWith(".wikipedia.org") && url.pathname.startsWith("/wiki/")
+    url.host.endsWith(".wikipedia.org") &&
+    url.pathname.startsWith("/wiki/")
   ) {
     logger.debug("Fetching metadata for {url}...", { url: url.href });
     const title = decodeURIComponent(url.pathname.substring(6));
@@ -1006,7 +1035,7 @@ export async function fetchAccountLinkMetadata(
     const response = await fetch(apiUrl);
     if (!response.ok) return { icon: "wikipedia" };
     // deno-lint-ignore no-explicit-any
-    const result = await response.json() as any;
+    const result = (await response.json()) as any;
     const pages = Object.values(result.query.pages);
     if (pages.length < 1) return { icon: "wikipedia" };
     const page = pages[0] as { pageid?: number; displaytitle: string };
@@ -1028,10 +1057,15 @@ export async function fetchAccountLinkMetadata(
       if (handle != null) {
         const sw = nodeInfo.software.name;
         return {
-          icon: sw === "hollo" || sw === "lemmy" || sw === "mastodon" ||
-              sw === "misskey" || sw === "pixelfed" || sw === "pleroma"
-            ? sw
-            : "activitypub",
+          icon:
+            sw === "hollo" ||
+            sw === "lemmy" ||
+            sw === "mastodon" ||
+            sw === "misskey" ||
+            sw === "pixelfed" ||
+            sw === "pleroma"
+              ? sw
+              : "activitypub",
           handle,
         };
       }
@@ -1042,21 +1076,18 @@ export async function fetchAccountLinkMetadata(
 }
 
 export function renderAccountLinks(links: AccountLink[]): PropertyValue[] {
-  return links.map((link) =>
-    new PropertyValue({
-      name: link.name,
-      value: `<a href="${escape(link.url)}" rel="me" translate="no">${
-        escape(getAccountLinkDisplayText(link.url, link.handle))
-      }</a>`,
-    })
+  return links.map(
+    (link) =>
+      new PropertyValue({
+        name: link.name,
+        value: `<a href="${escape(link.url)}" rel="me" translate="no">${escape(
+          getAccountLinkDisplayText(link.url, link.handle),
+        )}</a>`,
+      }),
   );
 }
 
-export type RelationshipState =
-  | "block"
-  | "follow"
-  | "request"
-  | "none";
+export type RelationshipState = "block" | "follow" | "request" | "none";
 
 export interface Relationship {
   account: Account & { actor: Actor };
@@ -1067,7 +1098,7 @@ export interface Relationship {
 
 export async function getRelationship(
   db: Database,
-  account: Account & { actor: Actor } | null | undefined,
+  account: (Account & { actor: Actor }) | null | undefined,
   target: Actor,
 ): Promise<Relationship | null> {
   if (account == null || account.actor.id === target.id) return null;
@@ -1086,28 +1117,30 @@ export async function getRelationship(
   return {
     account,
     target,
-    outgoing: row == null
-      ? "none"
-      : row.blockees.some((b) => b.blockeeId === target.id)
-      ? "block"
-      : row.followees.some((f) =>
-          f.followeeId === target.id && f.accepted != null
-        )
-      ? "follow"
-      : row.followees.some((f) => f.followeeId === target.id)
-      ? "request"
-      : "none",
-    incoming: row == null
-      ? "none"
-      : row.blockers.some((b) => b.blockerId === target.id)
-      ? "block"
-      : row.followers.some((f) =>
-          f.followerId === target.id && f.accepted != null
-        )
-      ? "follow"
-      : row.followers.some((f) => f.followerId === target.id)
-      ? "request"
-      : "none",
+    outgoing:
+      row == null
+        ? "none"
+        : row.blockees.some((b) => b.blockeeId === target.id)
+          ? "block"
+          : row.followees.some(
+                (f) => f.followeeId === target.id && f.accepted != null,
+              )
+            ? "follow"
+            : row.followees.some((f) => f.followeeId === target.id)
+              ? "request"
+              : "none",
+    incoming:
+      row == null
+        ? "none"
+        : row.blockers.some((b) => b.blockerId === target.id)
+          ? "block"
+          : row.followers.some(
+                (f) => f.followerId === target.id && f.accepted != null,
+              )
+            ? "follow"
+            : row.followers.some((f) => f.followerId === target.id)
+              ? "request"
+              : "none",
   };
 }
 
@@ -1159,8 +1192,11 @@ export function normalizeEmail(
   else if (email == null) return null;
   const [local, host, shouldNotExist] = email.trim().split("@");
   if (
-    local == null || local.trim() === "" || host == null ||
-    host.trim() === "" || shouldNotExist != null
+    local == null ||
+    local.trim() === "" ||
+    host == null ||
+    host.trim() === "" ||
+    shouldNotExist != null
   ) {
     throw new TypeError("Invalid email format.");
   }
@@ -1177,7 +1213,8 @@ export async function transformAvatar(
   if (width == null || height == null) {
     throw new Error("Failed to read image metadata.");
   }
-  if (width !== height) { // crop to square
+  if (width !== height) {
+    // crop to square
     const size = Math.min(width, height);
     const left = ((width - size) / 2) | 0;
     const top = ((height - size) / 2) | 0;

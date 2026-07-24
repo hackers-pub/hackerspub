@@ -33,7 +33,7 @@ import { Timestamp } from "~/components/Timestamp.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
-import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
+import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
 import IconLoader2 from "~icons/lucide/loader-2";
 import { articleOgImageUrl } from "~/lib/articleOgImage.ts";
 import { useContentLinkInterceptor } from "~/lib/contentLinkInterceptor.ts";
@@ -76,10 +76,8 @@ const SlugPageQueryDef = graphql`
       actingAccountId: $actingAccountId
     ) {
       ...Slug_head @arguments(language: $language)
-      ...Slug_body @arguments(
-        language: $language
-        actingAccountId: $actingAccountId
-      )
+      ...Slug_body
+        @arguments(language: $language, actingAccountId: $actingAccountId)
     }
     viewer {
       locales
@@ -95,11 +93,13 @@ const loadPageQuery = routePreloadedQuery(
     slug: string,
     actingAccountId: string | null,
   ) =>
-    loadQuery<SlugPageQuery>(
-      useRelayEnvironment()(),
-      SlugPageQueryDef,
-      { handle, idOrYear, slug, language: null, actingAccountId },
-    ),
+    loadQuery<SlugPageQuery>(useRelayEnvironment()(), SlugPageQueryDef, {
+      handle,
+      idOrYear,
+      slug,
+      language: null,
+      actingAccountId,
+    }),
   ARTICLE_PAGE_QUERY_KEY,
 );
 
@@ -113,14 +113,15 @@ export default function ArticlePage() {
   const actingAccountId = () => actingAccount.selectedActingAccountId();
 
   onMount(() => {
-    onCleanup(onNoteCreated(() => {
-      void revalidate(ARTICLE_PAGE_QUERY_KEY);
-    }));
+    onCleanup(
+      onNoteCreated(() => {
+        void revalidate(ARTICLE_PAGE_QUERY_KEY);
+      }),
+    );
   });
 
-  const data = createStablePreloadedQuery<SlugPageQuery>(
-    SlugPageQueryDef,
-    () => loadPageQuery(handle, idOrYear, slug, actingAccountId() ?? null),
+  const data = createStablePreloadedQuery<SlugPageQuery>(SlugPageQueryDef, () =>
+    loadPageQuery(handle, idOrYear, slug, actingAccountId() ?? null),
   );
 
   return (
@@ -165,11 +166,10 @@ function ArticleMetaHead(props: ArticleMetaHeadProps) {
   const article = createFragment(
     graphql`
       fragment Slug_head on Article
-        @argumentDefinitions(
-          language: { type: "Locale" }
-          includeBeingTranslated: { type: "Boolean", defaultValue: false }
-        )
-      {
+      @argumentDefinitions(
+        language: { type: "Locale" }
+        includeBeingTranslated: { type: "Boolean", defaultValue: false }
+      ) {
         actor {
           handle
           name
@@ -222,8 +222,9 @@ function ArticleMetaHead(props: ArticleMetaHeadProps) {
           // individual list rows read as `undefined` even though `article()`
           // itself is still truthy.  Guard the row access with `?.` so this
           // reactive recompute doesn't throw during that window.
-          return c.find((entry) => entry?.language === article.language) ??
-            c[0];
+          return (
+            c.find((entry) => entry?.language === article.language) ?? c[0]
+          );
         };
         const title = () => content()?.title ?? "";
         const description = () => content()?.summary ?? "";
@@ -243,25 +244,19 @@ function ArticleMetaHead(props: ArticleMetaHeadProps) {
             // language tag is `encodeURIComponent`-d to be defensive
             // against future tags that might contain reserved
             // characters; a normalized BCP 47 tag is a no-op here.
-            u.pathname = `${u.pathname.replace(/\/+$/, "")}/${
-              encodeURIComponent(props.canonicalLanguage)
-            }`;
+            u.pathname = `${u.pathname.replace(/\/+$/, "")}/${encodeURIComponent(
+              props.canonicalLanguage,
+            )}`;
             return u.toString();
           } catch {
             return null;
           }
         };
         const ogImageUrl = () =>
-          articleOgImageUrl(
-            article.url,
-            content(),
-            article.language,
-          );
+          articleOgImageUrl(article.url, content(), article.language);
         return (
           <>
-            <Title>
-              {t`${article.actor.rawName}: ${title()}`}
-            </Title>
+            <Title>{t`${article.actor.rawName}: ${title()}`}</Title>
             <Show keyed when={canonicalUrl()}>
               {(href) => (
                 <>
@@ -289,10 +284,7 @@ function ArticleMetaHead(props: ArticleMetaHeadProps) {
               property="article:published_time"
               content={article.published}
             />
-            <Meta
-              property="article:modified_time"
-              content={article.updated}
-            />
+            <Meta property="article:modified_time" content={article.updated} />
             <Show keyed when={article.actor.rawName}>
               {(name) => <Meta property="article:author" content={name} />}
             </Show>
@@ -327,7 +319,8 @@ function ArticleMetaHead(props: ArticleMetaHeadProps) {
                 // transient solid-relay republish can surface `undefined`
                 // rows mid-`batch()`.
                 (c) =>
-                  c != null && !c.beingTranslated &&
+                  c != null &&
+                  !c.beingTranslated &&
                   c.language !== currentLanguage(),
               )}
             >
@@ -369,12 +362,11 @@ function ArticleBody(props: ArticleBodyProps) {
   const article = createFragment(
     graphql`
       fragment Slug_body on Article
-        @argumentDefinitions(
-          language: { type: "Locale" }
-          includeBeingTranslated: { type: "Boolean", defaultValue: false }
-          actingAccountId: { type: "ID", defaultValue: null }
-        )
-      {
+      @argumentDefinitions(
+        language: { type: "Locale" }
+        includeBeingTranslated: { type: "Boolean", defaultValue: false }
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
         contents(
           language: $language
           includeBeingTranslated: $includeBeingTranslated
@@ -396,9 +388,7 @@ function ArticleBody(props: ArticleBodyProps) {
         }
         publishedYear
         slug
-        ...PostEngagementBar_post @arguments(
-          actingAccountId: $actingAccountId
-        )
+        ...PostEngagementBar_post @arguments(actingAccountId: $actingAccountId)
         ...Slug_articleHeader
         ...Slug_languageSwitcher
         ...Slug_replies @arguments(actingAccountId: $actingAccountId)
@@ -424,8 +414,9 @@ function ArticleBody(props: ArticleBodyProps) {
           // individual list rows read as `undefined` even though `article()`
           // itself is still truthy.  Guard the row access with `?.` so this
           // reactive recompute doesn't throw during that window.
-          return c.find((entry) => entry?.language === article.language) ??
-            c[0];
+          return (
+            c.find((entry) => entry?.language === article.language) ?? c[0]
+          );
         };
         const toc = () => (content()?.toc ?? []) as Toc[];
 
@@ -482,33 +473,34 @@ function ArticleBody(props: ArticleBodyProps) {
                   // Local articles get full engagement-bar wiring;
                   // remote articles (no local `publishedYear`/`slug`)
                   // fall back to plain-text counts.
-                  const base = article.actor.local &&
-                      article.publishedYear != null && article.slug != null
-                    ? `/@${article.actor.username}/${article.publishedYear}/${article.slug}`
-                    : null;
+                  const base =
+                    article.actor.local &&
+                    article.publishedYear != null &&
+                    article.slug != null
+                      ? `/@${article.actor.username}/${article.publishedYear}/${article.slug}`
+                      : null;
                   return (
                     <PostEngagementBar
                       $post={article}
                       repliesHref={base == null ? null : `${base}/replies`}
                       engagementBase={base}
-                      onEdit={article.actor.local &&
-                          article.publishedYear != null &&
-                          article.slug != null
-                        ? () =>
-                          navigate(
-                            `/@${article.actor.username}/${article.publishedYear}/${
-                              encodeURIComponent(article.slug!)
-                            }/edit`,
-                          )
-                        : undefined}
+                      onEdit={
+                        article.actor.local &&
+                        article.publishedYear != null &&
+                        article.slug != null
+                          ? () =>
+                              navigate(
+                                `/@${article.actor.username}/${article.publishedYear}/${encodeURIComponent(
+                                  article.slug!,
+                                )}/edit`,
+                              )
+                          : undefined
+                      }
                       class="mt-8"
                     />
                   );
                 })()}
-                <ArticleReplies
-                  $article={article}
-                  $viewer={props.$viewer}
-                />
+                <ArticleReplies $article={article} $viewer={props.$viewer} />
               </article>
 
               <ArticleAside
@@ -562,8 +554,11 @@ export function ArticleTranslationPlaceholder(
   const targetLanguageName = () => {
     if (props.targetLanguage == null) return null;
     try {
-      return new Intl.DisplayNames(i18n.locale, { type: "language" })
-        .of(props.targetLanguage) ?? props.targetLanguage;
+      return (
+        new Intl.DisplayNames(i18n.locale, { type: "language" }).of(
+          props.targetLanguage,
+        ) ?? props.targetLanguage
+      );
     } catch {
       return props.targetLanguage;
     }
@@ -578,9 +573,7 @@ export function ArticleTranslationPlaceholder(
         fallback={<p class="text-lg font-semibold">{t`Translating…`}</p>}
       >
         {(name) => (
-          <p class="text-lg font-semibold">
-            {t`Translating to ${name}…`}
-          </p>
+          <p class="text-lg font-semibold">{t`Translating to ${name}…`}</p>
         )}
       </Show>
       <p class="text-sm text-muted-foreground max-w-md">
@@ -607,8 +600,11 @@ export function ArticleTranslationFailure(
   const targetLanguageName = () => {
     if (props.targetLanguage == null) return null;
     try {
-      return new Intl.DisplayNames(i18n.locale, { type: "language" })
-        .of(props.targetLanguage) ?? props.targetLanguage;
+      return (
+        new Intl.DisplayNames(i18n.locale, { type: "language" }).of(
+          props.targetLanguage,
+        ) ?? props.targetLanguage
+      );
     } catch {
       return props.targetLanguage;
     }
@@ -664,10 +660,7 @@ function ArticleHeader(props: ArticleHeaderProps) {
             <div class="flex flex-col flex-1">
               <PostAuthorLine $post={article} />
               <div class="flex flex-row items-center text-muted-foreground gap-1 flex-wrap">
-                <Timestamp
-                  value={article.published}
-                  capitalizeFirstLetter
-                />
+                <Timestamp value={article.published} capitalizeFirstLetter />
               </div>
             </div>
           </div>
@@ -804,10 +797,7 @@ function ArticleLanguageSwitcher(props: ArticleLanguageSwitcherProps) {
         };
 
         return (
-          <Show
-            when={allContents().length > 1 ||
-              extraLocales().length > 0}
-          >
+          <Show when={allContents().length > 1 || extraLocales().length > 0}>
             <aside class="mt-8 p-4 max-w-[80ch] border border-stone-200 dark:border-stone-700 flex flex-row gap-3 rounded-md">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -854,17 +844,17 @@ function ArticleLanguageSwitcher(props: ArticleLanguageSwitcherProps) {
                   <strong>{t`Other languages`}</strong> &rarr;{" "}
                   <For
                     each={[
-                      ...allContents().filter(
-                        (c) => c.language !== props.currentLanguage,
-                      ).map((c) => ({
-                        language: c.language,
-                        // Being-translated placeholder rows have no
-                        // server-assigned `url` yet; fall back to the
-                        // canonical `/lang` segment so the link still
-                        // points at a real route (where the placeholder
-                        // UI renders) instead of an empty href.
-                        href: c.url ?? `${postUrl()}/${c.language}`,
-                      })),
+                      ...allContents()
+                        .filter((c) => c.language !== props.currentLanguage)
+                        .map((c) => ({
+                          language: c.language,
+                          // Being-translated placeholder rows have no
+                          // server-assigned `url` yet; fall back to the
+                          // canonical `/lang` segment so the link still
+                          // points at a real route (where the placeholder
+                          // UI renders) instead of an empty href.
+                          href: c.url ?? `${postUrl()}/${c.language}`,
+                        })),
                       ...extraLocales().map((language) => ({
                         language,
                         href: `${postUrl()}/${language}`,
@@ -873,7 +863,7 @@ function ArticleLanguageSwitcher(props: ArticleLanguageSwitcherProps) {
                   >
                     {(other, i) => (
                       <>
-                        {i() > 0 && <>{" "}&middot;{" "}</>}
+                        {i() > 0 && " · "}
                         <a
                           href={other.href}
                           hreflang={other.language}
@@ -937,8 +927,9 @@ function ArticleReplies(props: ArticleRepliesProps) {
   const article = createFragment(
     graphql`
       fragment Slug_replies on Article
-        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
-      {
+      @argumentDefinitions(
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
         id
         uuid
         iri
@@ -950,12 +941,8 @@ function ArticleReplies(props: ArticleRepliesProps) {
         replies(first: 0, actingAccountId: $actingAccountId) {
           totalCount
         }
-        descendants(
-          first: 60
-          actingAccountId: $actingAccountId
-        )
-          @connection(key: "PermalinkThreadTree_descendants")
-        {
+        descendants(first: 60, actingAccountId: $actingAccountId)
+          @connection(key: "PermalinkThreadTree_descendants") {
           __id
           edges {
             node {
@@ -963,9 +950,8 @@ function ArticleReplies(props: ArticleRepliesProps) {
             }
           }
         }
-        ...PermalinkThreadTree_post @arguments(
-          actingAccountId: $actingAccountId
-        )
+        ...PermalinkThreadTree_post
+          @arguments(actingAccountId: $actingAccountId)
       }
     `,
     () => props.$article,
@@ -993,12 +979,10 @@ function ArticleReplies(props: ArticleRepliesProps) {
           <div id="replies" class="my-8">
             <h2 class="text-xl font-bold mb-4">
               {i18n._(
-                msg`${
-                  plural(article.replies?.totalCount ?? 0, {
-                    one: "# comment",
-                    other: "# comments",
-                  })
-                }`,
+                msg`${plural(article.replies?.totalCount ?? 0, {
+                  one: "# comment",
+                  other: "# comments",
+                })}`,
               )}
             </h2>
 
@@ -1007,9 +991,11 @@ function ArticleReplies(props: ArticleRepliesProps) {
                 <NoteComposer
                   replyTargetId={article.id}
                   placeholder={t`Write a reply…`}
-                  appendToConnections={article.descendants == null
-                    ? []
-                    : [article.descendants.__id]}
+                  appendToConnections={
+                    article.descendants == null
+                      ? []
+                      : [article.descendants.__id]
+                  }
                   onSuccess={() => void revalidate(ARTICLE_PAGE_QUERY_KEY)}
                 />
               </div>

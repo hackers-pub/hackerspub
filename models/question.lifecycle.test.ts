@@ -70,9 +70,9 @@ test("createQuestion() creates a source-backed Question with a poll", async () =
     assert.equal(poll.multiple, false);
     assert.equal(poll.ends.toISOString(), "2026-04-16T00:00:00.000Z");
     assert.deepEqual(
-      poll.options.toSorted((a, b) => a.index - b.index).map((option) =>
-        option.title
-      ),
+      poll.options
+        .toSorted((a, b) => a.index - b.index)
+        .map((option) => option.title),
       ["Deno", "Node.js"],
     );
 
@@ -91,15 +91,12 @@ test("createQuestion() creates a source-backed Question with a poll", async () =
     const object = await create.getObject({ ...fedCtx, suppressError: true });
     assert.ok(object instanceof ActivityPubQuestion);
     assert.equal(object.name?.toString(), "Runtime choice");
-    assert.equal(
-      object.endTime?.toString(),
-      "2026-04-16T00:00:00Z",
-    );
+    assert.equal(object.endTime?.toString(), "2026-04-16T00:00:00Z");
     const options = await Array.fromAsync(object.getExclusiveOptions());
-    assert.deepEqual(options.map((option) => option.name?.toString()), [
-      "Deno",
-      "Node.js",
-    ]);
+    assert.deepEqual(
+      options.map((option) => option.name?.toString()),
+      ["Deno", "Node.js"],
+    );
   });
 });
 
@@ -240,9 +237,7 @@ test("createQuestion() throws when a requested medium cannot be attached", async
           visibility: "public",
           content: "Missing image",
           language: "en",
-          media: [
-            { mediumId: generateUuidV7(), alt: "Missing medium" },
-          ],
+          media: [{ mediumId: generateUuidV7(), alt: "Missing medium" }],
           poll: {
             title: "Pick one",
             multiple: false,
@@ -296,27 +291,31 @@ test("createQuestion() creates reply notifications without duplicate mention not
     };
     const now = new Date("2026-04-15T00:00:00.000Z");
 
-    const question = await createQuestion(fedCtx, {
-      accountId: author.account.id,
-      visibility: "public",
-      content: "Replying to @questionreplytarget@localhost",
-      language: "en",
-      media: [],
-      published: now,
-      updated: now,
-      poll: {
-        title: "Reply poll",
-        multiple: false,
-        options: ["Yes", "No"],
-        ends: new Date("2026-04-16T00:00:00.000Z"),
-        now,
+    const question = await createQuestion(
+      fedCtx,
+      {
+        accountId: author.account.id,
+        visibility: "public",
+        content: "Replying to @questionreplytarget@localhost",
+        language: "en",
+        media: [],
+        published: now,
+        updated: now,
+        poll: {
+          title: "Reply poll",
+          multiple: false,
+          options: ["Yes", "No"],
+          ends: new Date("2026-04-16T00:00:00.000Z"),
+          now,
+        },
       },
-    }, { replyTarget: { ...replyTarget, actor: targetAuthor.actor } });
+      { replyTarget: { ...replyTarget, actor: targetAuthor.actor } },
+    );
 
     assert.ok(question != null);
     assert.equal(
-      question.mentions.some((mention) =>
-        mention.actorId === targetAuthor.actor.id
+      question.mentions.some(
+        (mention) => mention.actorId === targetAuthor.actor.id,
       ),
       true,
     );

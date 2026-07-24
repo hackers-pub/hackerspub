@@ -2,7 +2,7 @@ import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { createStablePreloadedQuery } from "~/lib/relayPreload.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { SearchGuide_searchGuideQuery } from "./__generated__/SearchGuide_searchGuideQuery.graphql.ts";
 
 const searchGuideQuery = graphql`

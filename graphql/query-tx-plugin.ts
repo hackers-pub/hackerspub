@@ -46,13 +46,14 @@ const RETRYABLE_PG_CODES = new Set(["40001", "40P01"]);
 const logger = getLogger(["hackerspub", "graphql", "query-tx-plugin"]);
 
 export function isRetryableError(err: unknown): boolean {
-  return err instanceof postgres.PostgresError &&
-    RETRYABLE_PG_CODES.has(err.code);
+  return (
+    err instanceof postgres.PostgresError && RETRYABLE_PG_CODES.has(err.code)
+  );
 }
 
-export function useQuerySnapshotTransaction(
-  { maxRetries = 3 }: { maxRetries?: number } = {},
-): EnvelopPlugin<UserContext> {
+export function useQuerySnapshotTransaction({
+  maxRetries = 3,
+}: { maxRetries?: number } = {}): EnvelopPlugin<UserContext> {
   return {
     onExecute({ args, executeFn, setExecuteFn }) {
       if (!isReadOnlyOperation(args.document, args.operationName)) return;
@@ -85,8 +86,8 @@ export function useQuerySnapshotTransaction(
                 // typed `Readonly` by envelop, but at runtime it is the same
                 // object resolvers consume, and per-request mutation is the
                 // standard envelop pattern for request-scoped overrides.
-                const liveCtx = innerArgs
-                  .contextValue as unknown as UserContext;
+                const liveCtx =
+                  innerArgs.contextValue as unknown as UserContext;
                 const originalDb = liveCtx.db;
                 const originalFedCtx = liveCtx.fedCtx;
                 // Cast: PostgresJsTransaction structurally satisfies the
@@ -151,9 +152,12 @@ function isReadOnlyOperation(
   // otherwise the lone operation (a document with multiple operations and
   // no operationName is a client error that `graphql.execute` will surface
   // on its own — we don't try to second-guess it).
-  const operation = operationName == null
-    ? operations.length === 1 ? operations[0] : undefined
-    : operations.find((op) => op.name?.value === operationName);
+  const operation =
+    operationName == null
+      ? operations.length === 1
+        ? operations[0]
+        : undefined
+      : operations.find((op) => op.name?.value === operationName);
 
   return operation?.operation === "query";
 }

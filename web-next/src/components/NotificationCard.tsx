@@ -47,8 +47,7 @@ const notificationCards: Readonly<
 export function NotificationCard(props: NotificationCardProps) {
   const notification = createFragment(
     graphql`
-      fragment NotificationCard_notification on Notification
-      {
+      fragment NotificationCard_notification on Notification {
         __typename
         ...FollowNotificationCard_notification
         ...MentionNotificationCard_notification

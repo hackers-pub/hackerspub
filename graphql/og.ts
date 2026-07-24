@@ -1,16 +1,18 @@
 import { Resvg } from "@resvg/resvg-js";
 import { encodeBase64 } from "@std/encoding/base64";
 import { encodeHex } from "@std/encoding/hex";
-import { join } from "@std/path";
 import type { Disk } from "flydrive";
 import { canonicalize } from "json-canonicalize";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import satori from "satori";
 import sharp from "sharp";
 
 const OG_VERSION = "v2-5";
 const OG_NAMESPACE = "og/v2";
 const OG_SIZE = { width: 1200, height: 630 } as const;
-const FALLBACK_IMAGE_DATA_URI = "data:image/png;base64," +
+const FALLBACK_IMAGE_DATA_URI =
+  "data:image/png;base64," +
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=";
 const MAX_REMOTE_IMAGE_BYTES = 2 * 1024 * 1024;
 const REMOTE_IMAGE_TIMEOUT_MS = 3_000;
@@ -75,16 +77,10 @@ let fontsPromise: Promise<FontOptions[]> | undefined;
 let brandLogoDataUriPromise: Promise<string> | undefined;
 
 async function loadFont(filename: string): Promise<ArrayBuffer> {
-  const data = await Deno.readFile(join(
-    import.meta.dirname!,
-    "assets",
-    "fonts",
-    filename,
-  ));
-  return data.buffer.slice(
-    data.byteOffset,
-    data.byteOffset + data.byteLength,
+  const data = await readFile(
+    join(import.meta.dirname!, "assets", "fonts", filename),
   );
+  return data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
 }
 
 function loadFonts(): Promise<FontOptions[]> {
@@ -140,7 +136,7 @@ function loadFonts(): Promise<FontOptions[]> {
 }
 
 async function loadBrandLogoDataUri(): Promise<string> {
-  brandLogoDataUriPromise ??= Deno.readFile(
+  brandLogoDataUriPromise ??= readFile(
     join(import.meta.dirname!, "..", "web-next", "public", "logo-dark.svg"),
   ).then((svg) => `data:image/svg+xml;base64,${encodeBase64(svg)}`);
   return brandLogoDataUriPromise;
@@ -184,7 +180,10 @@ export async function loadImageDataUri(
       return FALLBACK_IMAGE_DATA_URI;
     }
     let contentType =
-      response.headers.get("content-type")?.split(";")[0]?.trim()
+      response.headers
+        .get("content-type")
+        ?.split(";")[0]
+        ?.trim()
         .toLowerCase() ?? "application/octet-stream";
     if (!contentType.startsWith("image/")) {
       await response.body?.cancel().catch(() => {});
@@ -254,7 +253,7 @@ function h(
   return {
     type,
     props: {
-      ...(props ?? {}),
+      ...props,
       children: children.length === 1 ? children[0] : children,
     },
   };
@@ -262,16 +261,20 @@ function h(
 
 export function truncateText(text: string, maxLength: number): string {
   const compact = text.replace(/\s+/g, " ").trim();
-  const graphemes = typeof Intl.Segmenter === "function"
-    ? Array.from(
-      new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(
-        compact,
-      ),
-      ({ segment }) => segment,
-    )
-    : Array.from(compact);
+  const graphemes =
+    typeof Intl.Segmenter === "function"
+      ? Array.from(
+          new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(
+            compact,
+          ),
+          ({ segment }) => segment,
+        )
+      : Array.from(compact);
   if (graphemes.length <= maxLength) return compact;
-  return `${graphemes.slice(0, maxLength - 1).join("").trimEnd()}…`;
+  return `${graphemes
+    .slice(0, maxLength - 1)
+    .join("")
+    .trimEnd()}…`;
 }
 
 function brandFooter(logo: string): OgElement {
@@ -542,7 +545,9 @@ async function renderPng(element: OgElement): Promise<Uint8Array> {
       mode: "width",
       value: OG_SIZE.width,
     },
-  }).render().asPng();
+  })
+    .render()
+    .asPng();
 }
 
 async function putOgImage(

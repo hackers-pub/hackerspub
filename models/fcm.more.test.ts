@@ -21,9 +21,9 @@ async function buildServiceAccountJson(): Promise<string> {
   );
   const pkcs8 = await crypto.subtle.exportKey("pkcs8", keyPair.privateKey);
   const b64 = btoa(String.fromCharCode(...new Uint8Array(pkcs8)));
-  const pem = `-----BEGIN PRIVATE KEY-----\n${
-    b64.match(/.{1,64}/g)!.join("\n")
-  }\n-----END PRIVATE KEY-----\n`;
+  const pem = `-----BEGIN PRIVATE KEY-----\n${b64
+    .match(/.{1,64}/g)!
+    .join("\n")}\n-----END PRIVATE KEY-----\n`;
   return JSON.stringify({
     project_id: "test-project",
     client_email: "sa@test-project.iam.gserviceaccount.com",
@@ -155,18 +155,17 @@ test("sendFcmNotification dispatches per-token requests concurrently and prunes 
       });
 
       assert.equal(sentTokens.length, allTokens.length);
-      assert.deepEqual(
-        new Set(sentTokens),
-        new Set(allTokens),
-      );
+      assert.deepEqual(new Set(sentTokens), new Set(allTokens));
       assert.ok(
         maxInFlight > 1,
         `expected concurrent dispatch, observed maxInFlight=${maxInFlight}`,
       );
 
-      const remaining = await tx.select({
-        token: pushNotificationTargetTable.token,
-      }).from(pushNotificationTargetTable)
+      const remaining = await tx
+        .select({
+          token: pushNotificationTargetTable.token,
+        })
+        .from(pushNotificationTargetTable)
         .where(
           and(
             eq(pushNotificationTargetTable.accountId, account.id),
@@ -227,11 +226,14 @@ test("sendFcmNotification is a no-op when GOOGLE_SERVICES_JSON_BASE64 lacks a pr
     fetchCalled = true;
     throw new Error("fetch must not be called when FCM is misconfigured");
   }) as typeof fetch;
-  const db = new Proxy({}, {
-    get() {
-      throw new Error("db must not be accessed when FCM is misconfigured");
+  const db = new Proxy(
+    {},
+    {
+      get() {
+        throw new Error("db must not be accessed when FCM is misconfigured");
+      },
     },
-  }) as unknown as Database;
+  ) as unknown as Database;
 
   try {
     await sendFcmNotification(db, {

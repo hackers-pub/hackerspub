@@ -31,7 +31,8 @@ import { Note, Question } from "./note.ts";
 builder.drizzleObjectFields(Actor, (t) => ({
   posts: t.connection({
     type: Post,
-    description: "All of this actor's posts (Notes, Articles, Questions, and " +
+    description:
+      "All of this actor's posts (Notes, Articles, Questions, and " +
       "boost wrappers), newest published first. Filtered to posts " +
       "visible to the selected viewer account. Pass `actingAccountId` " +
       "for an organization perspective.",
@@ -43,9 +44,8 @@ builder.drizzleObjectFields(Actor, (t) => ({
     },
     async resolve(actor, args, ctx) {
       const viewerActorId = await resolveViewerActorId(ctx, args);
-      const viewerActor = viewerActorId == null
-        ? null
-        : await getActorById(ctx, viewerActorId);
+      const viewerActor =
+        viewerActorId == null ? null : await getActorById(ctx, viewerActorId);
       return await resolveOffsetConnection(
         { args },
         async ({ offset, limit }) => {
@@ -81,9 +81,8 @@ builder.drizzleObjectFields(Actor, (t) => ({
     },
     async resolve(actor, args, ctx) {
       const viewerActorId = await resolveViewerActorId(ctx, args);
-      const viewerActor = viewerActorId == null
-        ? null
-        : await getActorById(ctx, viewerActorId);
+      const viewerActor =
+        viewerActorId == null ? null : await getActorById(ctx, viewerActorId);
       return await resolveOffsetConnection(
         { args },
         async ({ offset, limit }) => {
@@ -116,20 +115,19 @@ builder.drizzleObjectFields(Actor, (t) => ({
       if (!validateUuid(args.uuid)) return null;
 
       const visibility = getPostVisibilityFilter(ctx.account?.actor ?? null);
-      const note = await ctx.db.query.postTable.findFirst(query({
-        where: {
-          AND: [
-            { type: "Note", actorId: actor.id },
-            {
-              OR: [
-                { id: args.uuid },
-                { noteSourceId: args.uuid },
-              ],
-            },
-            visibility,
-          ],
-        },
-      }));
+      const note = await ctx.db.query.postTable.findFirst(
+        query({
+          where: {
+            AND: [
+              { type: "Note", actorId: actor.id },
+              {
+                OR: [{ id: args.uuid }, { noteSourceId: args.uuid }],
+              },
+              visibility,
+            ],
+          },
+        }),
+      );
       return note || null;
     },
   }),
@@ -165,25 +163,28 @@ builder.drizzleObjectFields(Actor, (t) => ({
       if (!validateUuid(args.uuid)) return null;
 
       const viewerActorId = await resolveViewerActorId(ctx, args);
-      const viewerActor = viewerActorId == null
-        ? null
-        : await getActorById(ctx, viewerActorId);
+      const viewerActor =
+        viewerActorId == null ? null : await getActorById(ctx, viewerActorId);
       const visibility = getPostVisibilityFilter(viewerActor);
-      return await ctx.db.query.postTable.findFirst(query({
-        where: {
-          AND: [
-            { actorId: actor.id },
-            {
-              OR: [
-                { id: args.uuid },
-                { noteSourceId: args.uuid },
-                { articleSourceId: args.uuid },
+      return (
+        (await ctx.db.query.postTable.findFirst(
+          query({
+            where: {
+              AND: [
+                { actorId: actor.id },
+                {
+                  OR: [
+                    { id: args.uuid },
+                    { noteSourceId: args.uuid },
+                    { articleSourceId: args.uuid },
+                  ],
+                },
+                visibility,
               ],
             },
-            visibility,
-          ],
-        },
-      })) ?? null;
+          }),
+        )) ?? null
+      );
     },
   }),
   articles: t.connection({
@@ -201,9 +202,8 @@ builder.drizzleObjectFields(Actor, (t) => ({
     },
     async resolve(actor, args, ctx) {
       const viewerActorId = await resolveViewerActorId(ctx, args);
-      const viewerActor = viewerActorId == null
-        ? null
-        : await getActorById(ctx, viewerActorId);
+      const viewerActor =
+        viewerActorId == null ? null : await getActorById(ctx, viewerActorId);
       return await resolveOffsetConnection(
         { args },
         async ({ offset, limit }) => {
@@ -232,7 +232,8 @@ builder.drizzleObjectFields(Actor, (t) => ({
   }),
   questions: t.relatedConnection("posts", {
     type: Question,
-    description: "This actor's `Question`-type posts (polls), newest first, " +
+    description:
+      "This actor's `Question`-type posts (polls), newest first, " +
       "filtered to those visible to the viewer.",
     query: (_, ctx) => ({
       where: {
@@ -247,7 +248,8 @@ builder.drizzleObjectFields(Actor, (t) => ({
   }),
   sharedPosts: t.connection({
     type: Post,
-    description: "Posts that this actor has boosted (shared), newest first. " +
+    description:
+      "Posts that this actor has boosted (shared), newest first. " +
       "These are boost wrapper rows where `sharedPost` is non-null. " +
       "Pass `actingAccountId` for an organization perspective.",
     args: {
@@ -258,9 +260,8 @@ builder.drizzleObjectFields(Actor, (t) => ({
     },
     async resolve(actor, args, ctx) {
       const viewerActorId = await resolveViewerActorId(ctx, args);
-      const viewerActor = viewerActorId == null
-        ? null
-        : await getActorById(ctx, viewerActorId);
+      const viewerActor =
+        viewerActorId == null ? null : await getActorById(ctx, viewerActorId);
       return await resolveOffsetConnection(
         { args },
         async ({ offset, limit }) => {
@@ -320,12 +321,14 @@ builder.drizzleObjectFields(Actor, (t) => ({
       const actingAccount = await resolveActingAccountForGlobalIdArg(ctx, args);
       const backwards = args.last != null;
       const window = getConnectionWindow(args);
-      const since = args.before == null
-        ? undefined
-        : parseRequiredTimelineCursor(args.before);
-      const until = args.after == null
-        ? undefined
-        : parseRequiredTimelineCursor(args.after);
+      const since =
+        args.before == null
+          ? undefined
+          : parseRequiredTimelineCursor(args.before);
+      const until =
+        args.after == null
+          ? undefined
+          : parseRequiredTimelineCursor(args.after);
       const interactions = await getProfileInteractions(ctx.db, {
         viewer: actingAccount,
         profileActorId: actor.id,
@@ -344,12 +347,14 @@ builder.drizzleObjectFields(Actor, (t) => ({
           hasPreviousPage: backwards
             ? interactions.length > window
             : args.after != null,
-          startCursor: pageEntries.length < 1
-            ? null
-            : formatTimelineCursor(pageEntries[0]),
-          endCursor: pageEntries.length < 1
-            ? null
-            : formatTimelineCursor(pageEntries[pageEntries.length - 1]),
+          startCursor:
+            pageEntries.length < 1
+              ? null
+              : formatTimelineCursor(pageEntries[0]),
+          endCursor:
+            pageEntries.length < 1
+              ? null
+              : formatTimelineCursor(pageEntries[pageEntries.length - 1]),
         },
         edges: pageEntries.map((entry) => ({
           node: entry.post,

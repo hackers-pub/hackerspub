@@ -65,7 +65,8 @@ builder.queryField("relaySubscriptions", (t) =>
       if (!ctx.account?.moderator) return null;
       return await getRelaySubscriptions(ctx.db);
     },
-  }));
+  }),
+);
 
 builder.mutationField("subscribeRelay", (t) =>
   t.field({
@@ -108,7 +109,8 @@ builder.mutationField("subscribeRelay", (t) =>
       if (subscription == null) throw new InvalidInputError("actorUrl");
       return subscription;
     },
-  }));
+  }),
+);
 
 const UnsubscribeRelayPayload = builder.simpleObject(
   "UnsubscribeRelayPayload",
@@ -160,4 +162,5 @@ builder.mutationField("unsubscribeRelay", (t) =>
         ),
       };
     },
-  }));
+  }),
+);

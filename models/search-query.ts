@@ -2,9 +2,7 @@ import { sql } from "drizzle-orm";
 import type { RelationsFilter } from "./db.ts";
 import type { Expr } from "./search.ts";
 
-export function compileQuery(
-  expr: Expr,
-): RelationsFilter<"postTable"> {
+export function compileQuery(expr: Expr): RelationsFilter<"postTable"> {
   switch (expr.type) {
     case "keyword":
       return { contentHtml: { ilike: `%${expr.keyword}%` } };
@@ -14,12 +12,11 @@ export function compileQuery(
       return {
         actor: {
           username: expr.username,
-          ...(expr.host == null ? { accountId: { isNotNull: true } } : {
-            OR: [
-              { instanceHost: expr.host },
-              { handleHost: expr.host },
-            ],
-          }),
+          ...(expr.host == null
+            ? { accountId: { isNotNull: true } }
+            : {
+                OR: [{ instanceHost: expr.host }, { handleHost: expr.host }],
+              }),
         },
       };
     case "hashtag":
@@ -30,17 +27,11 @@ export function compileQuery(
       };
     case "and":
       return {
-        AND: [
-          compileQuery(expr.left),
-          compileQuery(expr.right),
-        ],
+        AND: [compileQuery(expr.left), compileQuery(expr.right)],
       };
     case "or":
       return {
-        OR: [
-          compileQuery(expr.left),
-          compileQuery(expr.right),
-        ],
+        OR: [compileQuery(expr.left), compileQuery(expr.right)],
       };
     case "not":
       return { NOT: compileQuery(expr.expr) };

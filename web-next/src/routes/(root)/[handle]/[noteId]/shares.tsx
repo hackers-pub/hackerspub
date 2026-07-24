@@ -16,7 +16,7 @@ import { PostCard } from "~/components/PostCard.tsx";
 import { Title } from "~/components/Title.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,
@@ -44,9 +44,8 @@ const sharesNoteEngagementQuery = graphql`
           reactions
         }
         ...PostCard_post @arguments(actingAccountId: $actingAccountId)
-        ...sharesNoteEngagement_post @arguments(
-          actingAccountId: $actingAccountId
-        )
+        ...sharesNoteEngagement_post
+          @arguments(actingAccountId: $actingAccountId)
       }
     }
   }
@@ -94,12 +93,7 @@ function SharesPageLoaded(props: { noteId: Uuid; handle: string }) {
   const actingAccountId = () => actingAccount.selectedActingAccountId();
   const data = createStablePreloadedQuery<sharesNoteEngagementQuery>(
     sharesNoteEngagementQuery,
-    () =>
-      loadSharesQuery(
-        username(),
-        props.noteId,
-        actingAccountId() ?? null,
-      ),
+    () => loadSharesQuery(username(), props.noteId, actingAccountId() ?? null),
   );
   // Notes, questions, and articles can all be reached through the
   // `[noteId]` route.  Local articles additionally expose a prettier
@@ -154,24 +148,24 @@ function SharesList(props: { $post: sharesNoteEngagement_post$key }) {
   const shares = createPaginationFragment(
     graphql`
       fragment sharesNoteEngagement_post on Post
-        @refetchable(queryName: "sharesNoteEngagementPaginationQuery")
-        @argumentDefinitions(
-          cursor: { type: "String" }
-          count: { type: "Int", defaultValue: 30 }
-          actingAccountId: { type: "ID", defaultValue: null }
-        )
-      {
-        shares(after: $cursor, first: $count, actingAccountId: $actingAccountId)
-          @connection(key: "SharesNoteEngagement__shares")
-        {
+      @refetchable(queryName: "sharesNoteEngagementPaginationQuery")
+      @argumentDefinitions(
+        cursor: { type: "String" }
+        count: { type: "Int", defaultValue: 30 }
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
+        shares(
+          after: $cursor
+          first: $count
+          actingAccountId: $actingAccountId
+        ) @connection(key: "SharesNoteEngagement__shares") {
           edges {
             node {
               id
               actor {
                 id
-                ...ActorPreviewCard_actor @arguments(
-                  actingAccountId: $actingAccountId
-                )
+                ...ActorPreviewCard_actor
+                  @arguments(actingAccountId: $actingAccountId)
               }
             }
           }

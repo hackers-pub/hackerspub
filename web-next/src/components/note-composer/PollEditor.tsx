@@ -6,7 +6,7 @@ import IconX from "~icons/lucide/x";
 import type { PollController } from "./createPollController.ts";
 import { MAX_POLL_OPTIONS, MIN_POLL_OPTIONS } from "./pollState.ts";
 import { Button } from "~/components/ui/button.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 export interface PollEditorProps {
   poll: PollController;
@@ -103,7 +103,8 @@ export function PollEditor(props: PollEditorProps) {
                     props.poll.setOptionTitle(
                       option().localId,
                       event.currentTarget.value,
-                    )}
+                    )
+                  }
                   placeholder={t`Option ${index + 1}`}
                   class="h-9 min-w-0 rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />

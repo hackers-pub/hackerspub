@@ -50,19 +50,22 @@ test("getPublicTimeline() applies local and withoutShares filters", async () => 
       actor: remoteActor,
     });
 
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({
         published: new Date("2026-04-15T00:00:01.000Z"),
         updated: new Date("2026-04-15T00:00:01.000Z"),
       })
       .where(eq(postTable.id, localPost.id));
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({
         published: new Date("2026-04-15T00:00:02.000Z"),
         updated: new Date("2026-04-15T00:00:02.000Z"),
       })
       .where(eq(postTable.id, remotePost.id));
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({
         published: new Date("2026-04-15T00:00:03.000Z"),
         updated: new Date("2026-04-15T00:00:03.000Z"),
@@ -70,29 +73,29 @@ test("getPublicTimeline() applies local and withoutShares filters", async () => 
       .where(eq(postTable.id, share.id));
 
     const all = await getPublicTimeline(tx, { window: 10 });
-    assert.deepEqual(all.map((entry) => entry.post.id), [
-      share.id,
-      remotePost.id,
-      localPost.id,
-    ]);
+    assert.deepEqual(
+      all.map((entry) => entry.post.id),
+      [share.id, remotePost.id, localPost.id],
+    );
 
     const localOnly = await getPublicTimeline(tx, {
       local: true,
       window: 10,
     });
-    assert.deepEqual(localOnly.map((entry) => entry.post.id), [
-      share.id,
-      localPost.id,
-    ]);
+    assert.deepEqual(
+      localOnly.map((entry) => entry.post.id),
+      [share.id, localPost.id],
+    );
 
     const localWithoutShares = await getPublicTimeline(tx, {
       local: true,
       withoutShares: true,
       window: 10,
     });
-    assert.deepEqual(localWithoutShares.map((entry) => entry.post.id), [
-      localPost.id,
-    ]);
+    assert.deepEqual(
+      localWithoutShares.map((entry) => entry.post.id),
+      [localPost.id],
+    );
   });
 });
 
@@ -116,11 +119,10 @@ test("getPublicTimeline() uses exclusive cursors without gaps", async () => {
     const orderedPosts = [...posts].sort((a, b) => b.id.localeCompare(a.id));
 
     const firstPage = await getPublicTimeline(tx, { window: 3 });
-    assert.deepEqual(firstPage.map((entry) => entry.post.id), [
-      orderedPosts[0].id,
-      orderedPosts[1].id,
-      orderedPosts[2].id,
-    ]);
+    assert.deepEqual(
+      firstPage.map((entry) => entry.post.id),
+      [orderedPosts[0].id, orderedPosts[1].id, orderedPosts[2].id],
+    );
 
     const nextCursor = {
       timestamp: firstPage[1].cursor,
@@ -130,10 +132,10 @@ test("getPublicTimeline() uses exclusive cursors without gaps", async () => {
       until: nextCursor,
       window: 2,
     });
-    assert.deepEqual(secondPage.map((entry) => entry.post.id), [
-      orderedPosts[2].id,
-      orderedPosts[3].id,
-    ]);
+    assert.deepEqual(
+      secondPage.map((entry) => entry.post.id),
+      [orderedPosts[2].id, orderedPosts[3].id],
+    );
   });
 });
 
@@ -196,13 +198,15 @@ test("getPersonalTimeline() hides pure shares when withoutShares is enabled", as
     });
     const sharePublished = new Date("2026-04-15T00:00:04.000Z");
 
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({
         published: sharePublished,
         updated: sharePublished,
       })
       .where(eq(postTable.id, share.id));
-    await tx.update(timelineItemTable)
+    await tx
+      .update(timelineItemTable)
       .set({ appended: sharePublished })
       .where(
         and(
@@ -264,10 +268,12 @@ test("getPersonalTimeline() uses appended cursors without gaps", async () => {
         ...remotePost,
         actor: remoteActor,
       });
-      await tx.update(postTable)
+      await tx
+        .update(postTable)
         .set({ published: timestamp, updated: timestamp })
         .where(eq(postTable.id, share.id));
-      await tx.update(timelineItemTable)
+      await tx
+        .update(timelineItemTable)
         .set({ appended: timestamp })
         .where(
           and(
@@ -283,11 +289,10 @@ test("getPersonalTimeline() uses appended cursors without gaps", async () => {
       currentAccount: viewer.account,
       window: 3,
     });
-    assert.deepEqual(firstPage.map((entry) => entry.post.id), [
-      orderedPosts[0].id,
-      orderedPosts[1].id,
-      orderedPosts[2].id,
-    ]);
+    assert.deepEqual(
+      firstPage.map((entry) => entry.post.id),
+      [orderedPosts[0].id, orderedPosts[1].id, orderedPosts[2].id],
+    );
 
     const nextCursor = {
       timestamp: firstPage[1].cursor,
@@ -298,10 +303,10 @@ test("getPersonalTimeline() uses appended cursors without gaps", async () => {
       until: nextCursor,
       window: 2,
     });
-    assert.deepEqual(secondPage.map((entry) => entry.post.id), [
-      orderedPosts[2].id,
-      orderedPosts[3].id,
-    ]);
+    assert.deepEqual(
+      secondPage.map((entry) => entry.post.id),
+      [orderedPosts[2].id, orderedPosts[3].id],
+    );
   });
 });
 
@@ -497,7 +502,8 @@ test("getPersonalTimeline() excludes share-only rows from a muted sharer", async
       ...remotePost,
       actor: remoteActor,
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({
         published: new Date("2026-04-15T00:00:04.000Z"),
         updated: new Date("2026-04-15T00:00:04.000Z"),
@@ -509,7 +515,10 @@ test("getPersonalTimeline() excludes share-only rows from a muted sharer", async
       currentAccount: viewer.account,
       window: 10,
     });
-    assert.deepEqual(before.map((e) => e.post.id), [remotePost.id]);
+    assert.deepEqual(
+      before.map((e) => e.post.id),
+      [remotePost.id],
+    );
     assert.deepEqual(before[0].lastSharer?.id, sharer.actor.id);
 
     // After muting the sharer, the share-only row disappears entirely.
@@ -558,14 +567,16 @@ test("getPersonalTimeline() keeps a multi-sharer post attributed to an unmuted s
       ...remotePost,
       actor: remoteActor,
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ published: new Date("2026-04-15T00:00:01.000Z") })
       .where(eq(postTable.id, shareB.id));
     const shareA = await sharePost(fedCtx, sharerA.account, {
       ...remotePost,
       actor: remoteActor,
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ published: new Date("2026-04-15T00:00:02.000Z") })
       .where(eq(postTable.id, shareA.id));
 
@@ -573,7 +584,10 @@ test("getPersonalTimeline() keeps a multi-sharer post attributed to an unmuted s
       currentAccount: viewer.account,
       window: 10,
     });
-    assert.deepEqual(before.map((e) => e.post.id), [remotePost.id]);
+    assert.deepEqual(
+      before.map((e) => e.post.id),
+      [remotePost.id],
+    );
     assert.deepEqual(before[0].lastSharer?.id, sharerA.actor.id);
     assert.deepEqual(before[0].sharersCount, 2);
 
@@ -583,7 +597,10 @@ test("getPersonalTimeline() keeps a multi-sharer post attributed to an unmuted s
       currentAccount: viewer.account,
       window: 10,
     });
-    assert.deepEqual(after.map((e) => e.post.id), [remotePost.id]);
+    assert.deepEqual(
+      after.map((e) => e.post.id),
+      [remotePost.id],
+    );
     assert.deepEqual(after[0].lastSharer?.id, sharerB.actor.id);
     assert.deepEqual(after[0].sharersCount, 1);
   });
@@ -625,14 +642,16 @@ test("getPersonalTimeline() drops a muted non-latest sharer from the count", asy
       ...remotePost,
       actor: remoteActor,
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ published: new Date("2026-04-15T00:00:01.000Z") })
       .where(eq(postTable.id, shareB.id));
     const shareA = await sharePost(fedCtx, sharerA.account, {
       ...remotePost,
       actor: remoteActor,
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ published: new Date("2026-04-15T00:00:02.000Z") })
       .where(eq(postTable.id, shareA.id));
 
@@ -643,7 +662,10 @@ test("getPersonalTimeline() drops a muted non-latest sharer from the count", asy
       currentAccount: viewer.account,
       window: 10,
     });
-    assert.deepEqual(after.map((e) => e.post.id), [remotePost.id]);
+    assert.deepEqual(
+      after.map((e) => e.post.id),
+      [remotePost.id],
+    );
     assert.deepEqual(after[0].lastSharer?.id, sharerA.actor.id);
     assert.deepEqual(after[0].sharersCount, 1);
   });
@@ -679,7 +701,8 @@ test("getPersonalTimeline() excludes a muted actor's boosts made after muting", 
       ...remotePost,
       actor: remoteActor,
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ published: new Date("2026-04-15T00:00:04.000Z") })
       .where(eq(postTable.id, share.id));
 
@@ -716,7 +739,10 @@ test("getPersonalTimeline() excludes posts authored by a muted actor", async () 
       currentAccount: viewer.account,
       window: 10,
     });
-    assert.deepEqual(before.map((e) => e.post.id), [post.id]);
+    assert.deepEqual(
+      before.map((e) => e.post.id),
+      [post.id],
+    );
 
     await mute(tx, viewer.account, author.actor);
     const after = await getPersonalTimeline(tx, {
@@ -799,6 +825,9 @@ test("getPublicTimeline() refills past muted candidate batches", async () => {
       window: 1,
     });
 
-    assert.deepEqual(timeline.map((e) => e.post.id), [visiblePost.id]);
+    assert.deepEqual(
+      timeline.map((e) => e.post.id),
+      [visiblePost.id],
+    );
   });
 });

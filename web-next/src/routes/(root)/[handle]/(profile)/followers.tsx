@@ -10,7 +10,7 @@ import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { Title } from "~/components/Title.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { followersPageQuery } from "./__generated__/followersPageQuery.graphql.ts";
 import {
   createStablePreloadedQuery,
@@ -30,9 +30,8 @@ const followersPageQuery = graphql`
       username
       actor {
         ...ProfileCard_actor @arguments(actingAccountId: $actingAccountId)
-        ...ActorFollowerList_followers @arguments(
-          actingAccountId: $actingAccountId
-        )
+        ...ActorFollowerList_followers
+          @arguments(actingAccountId: $actingAccountId)
       }
     }
   }
@@ -40,11 +39,10 @@ const followersPageQuery = graphql`
 
 const loadPageQuery = routePreloadedQuery(
   (username: string, actingAccountId: string | null) =>
-    loadQuery<followersPageQuery>(
-      useRelayEnvironment()(),
-      followersPageQuery,
-      { username, actingAccountId },
-    ),
+    loadQuery<followersPageQuery>(useRelayEnvironment()(), followersPageQuery, {
+      username,
+      actingAccountId,
+    }),
   "loadFollowersPageQuery",
 );
 
@@ -62,8 +60,7 @@ export default function ProfileFollowersPage() {
     <Show keyed when={data()}>
       {(data) => (
         <>
-          {
-            /*
+          {/*
             `keyed` prevents a "Stale read from <Show>" race: when
             solid-relay's fragment subscription publishes a new snapshot
             inside `batch()`, a non-keyed `<Show>{(account) => ...}`
@@ -71,8 +68,7 @@ export default function ProfileFollowersPage() {
             same tick that an inner reactive computation re-runs. Reconcile
             keeps the account's identity stable (`key: "__id"`), so `keyed`
             only re-mounts when navigating to a different account.
-          */
-          }
+          */}
           <Show
             keyed
             when={data.accountByUsername}

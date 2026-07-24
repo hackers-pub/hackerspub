@@ -14,13 +14,12 @@ import { transactional } from "./tx.ts";
 
 export const MAX_PINNED_POSTS = 20;
 
-export function canPinPost(
-  actor: Actor,
-  post: Post,
-): boolean {
-  return post.actorId === actor.id &&
+export function canPinPost(actor: Actor, post: Post): boolean {
+  return (
+    post.actorId === actor.id &&
     post.sharedPostId == null &&
-    (post.visibility === "public" || post.visibility === "unlisted");
+    (post.visibility === "public" || post.visibility === "unlisted")
+  );
 }
 
 async function pinPostOperation(
@@ -94,12 +93,7 @@ async function unpinPostOperation(
   const { db } = fedCtx;
   const [pin] = await db
     .delete(pinTable)
-    .where(
-      and(
-        eq(pinTable.actorId, actor.id),
-        eq(pinTable.postId, post.id),
-      ),
-    )
+    .where(and(eq(pinTable.actorId, actor.id), eq(pinTable.postId, post.id)))
     .returning();
   if (pin != null) await sendUnpinActivity(fedCtx, actor, post);
   return pin ?? null;
@@ -172,12 +166,7 @@ export async function isPostPinnedBy(
   const rows = await db
     .select({ postId: pinTable.postId })
     .from(pinTable)
-    .where(
-      and(
-        eq(pinTable.actorId, actor.id),
-        eq(pinTable.postId, post.id),
-      ),
-    )
+    .where(and(eq(pinTable.actorId, actor.id), eq(pinTable.postId, post.id)))
     .limit(1);
   return rows.length > 0;
 }

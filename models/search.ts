@@ -29,7 +29,7 @@ export type Expr =
   | { type: "not"; expr: Expr };
 
 export const term: Parser<Term> = choice([
-  regex(/^\"(?:\\[\\"]|.)+\"/).map<Term>((s) => ({
+  regex(/^"(?:\\[\\"]|.)+"/).map<Term>((s) => ({
     type: "keyword",
     keyword: s.slice(1, -1).replace(/\\([\\"])/g, (m) => m[1]),
   })),
@@ -45,10 +45,7 @@ export const term: Parser<Term> = choice([
     choice([str("author:"), str("from:"), str("actor:")]),
     possibly(char("@")),
     regex(/^[^@ \t\v\r\n()]+/),
-    possibly(sequenceOf([
-      char("@"),
-      regex(/^[^ \t\v\r\n()]+/),
-    ])),
+    possibly(sequenceOf([char("@"), regex(/^[^ \t\v\r\n()]+/)])),
   ]).map<Term>(([_, __, username, host]) => ({
     type: "actor",
     username,
@@ -67,10 +64,10 @@ export const term: Parser<Term> = choice([
 const exprWithoutOr: Parser<Expr> = recursiveParser(() =>
   sequenceOf([
     choice([
-      sequenceOf<string, Term>([
-        char("-"),
-        term,
-      ]).map<Expr>(([_, t]) => ({ type: "not", expr: t })),
+      sequenceOf<string, Term>([char("-"), term]).map<Expr>(([_, t]) => ({
+        type: "not",
+        expr: t,
+      })),
       sequenceOf([
         possibly(char("-")),
         char("("),
@@ -78,31 +75,28 @@ const exprWithoutOr: Parser<Expr> = recursiveParser(() =>
         expr,
         optionalWhitespace,
         char(")"),
-      ]).map<Expr>((
-        [neg, _, __, e],
-      ) => (neg ? { type: "not", expr: e } : e)),
+      ]).map<Expr>(([neg, _, __, e]) => (neg ? { type: "not", expr: e } : e)),
       term,
     ]),
-    possibly(sequenceOf<string, string, Expr>([
-      whitespace,
-      lookAhead(regex(/^(OR[^ \t\v\r\n]|O[^R]|[^O])/i)),
-      exprWithoutOr,
-    ])),
+    possibly(
+      sequenceOf<string, string, Expr>([
+        whitespace,
+        lookAhead(regex(/^(OR[^ \t\v\r\n]|O[^R]|[^O])/i)),
+        exprWithoutOr,
+      ]),
+    ),
   ]).map<Expr>(([a, b]) =>
-    b == null ? a : { type: "and", left: a, right: b[2] }
-  )
+    b == null ? a : { type: "and", left: a, right: b[2] },
+  ),
 );
 
 export const expr: Parser<Expr> = recursiveParser(() =>
   sequenceOf([
     exprWithoutOr,
-    possibly(sequenceOf([
-      whitespace,
-      regex(/^OR/i),
-      whitespace,
-      expr,
-    ])),
-  ]).map<Expr>(([a, b]) => b == null ? a : { type: "or", left: a, right: b[3] })
+    possibly(sequenceOf([whitespace, regex(/^OR/i), whitespace, expr])),
+  ]).map<Expr>(([a, b]) =>
+    b == null ? a : { type: "or", left: a, right: b[3] },
+  ),
 );
 
 const parser = sequenceOf([

@@ -260,7 +260,8 @@ builder.drizzleObjectFields(PostLink, (t) => ({
     type: "DateTime",
     nullable: true,
     deprecationReason: "Use `latestActivity` instead.",
-    description: "Deprecated compatibility alias for `latestActivity`. Use " +
+    description:
+      "Deprecated compatibility alias for `latestActivity`. Use " +
       "`latestActivity` for the freshest qualifying activity timestamp.",
     resolve: (link) => link.latestActivity,
   }),
@@ -298,8 +299,8 @@ builder.drizzleObjectFields(PostLink, (t) => ({
     resolve: (link) => link.id,
     load: async (linkIds: Uuid[], ctx) => {
       const breakdowns = await getNewsSourceBreakdowns(ctx.db, linkIds);
-      return linkIds.map((id) =>
-        breakdowns.get(id) ?? { local: 0, remote: 0, bluesky: 0 }
+      return linkIds.map(
+        (id) => breakdowns.get(id) ?? { local: 0, remote: 0, bluesky: 0 },
       );
     },
   }),
@@ -346,7 +347,7 @@ builder.drizzleObjectFields(PostLink, (t) => ({
         },
         orderBy: { published: "asc" },
       });
-      const byLinkId = new Map<Uuid, typeof articles[number]>();
+      const byLinkId = new Map<Uuid, (typeof articles)[number]>();
       for (const article of articles) {
         if (article.linkId == null || byLinkId.has(article.linkId)) continue;
         byLinkId.set(article.linkId, article);
@@ -398,10 +399,9 @@ function invalidNewsCursor(): never {
 function newsWindow(first: number | null | undefined): number {
   const window = first ?? 25;
   if (window < 1) {
-    throw createGraphQLError(
-      "Page size must be at least 1.",
-      { extensions: { code: "PAGINATION_ERROR" } },
-    );
+    throw createGraphQLError("Page size must be at least 1.", {
+      extensions: { code: "PAGINATION_ERROR" },
+    });
   }
   if (window > MAX_NEWS_WINDOW) {
     throw createGraphQLError(
@@ -470,9 +470,8 @@ builder.queryField("newsStories", (t) =>
       }
       const order = args.order as NewsOrderValue;
       const window = newsWindow(args.first);
-      const after = args.after == null
-        ? undefined
-        : parseNewsCursor(args.after, order);
+      const after =
+        args.after == null ? undefined : parseNewsCursor(args.after, order);
       const stories = await getNewsStories(ctx.db, {
         order,
         limit: window + 1,
@@ -484,12 +483,12 @@ builder.queryField("newsStories", (t) =>
         pageInfo: {
           hasNextPage,
           hasPreviousPage: args.after != null,
-          startCursor: page.length < 1
-            ? null
-            : formatNewsCursor(page[0], order),
-          endCursor: page.length < 1
-            ? null
-            : formatNewsCursor(page[page.length - 1], order),
+          startCursor:
+            page.length < 1 ? null : formatNewsCursor(page[0], order),
+          endCursor:
+            page.length < 1
+              ? null
+              : formatNewsCursor(page[page.length - 1], order),
         },
         edges: page.map((link) => ({
           node: link,
@@ -497,7 +496,8 @@ builder.queryField("newsStories", (t) =>
         })),
       };
     },
-  }));
+  }),
+);
 
 builder.queryField("newsStory", (t) =>
   t.drizzleField({
@@ -528,7 +528,8 @@ builder.queryField("newsStory", (t) =>
         }),
       );
     },
-  }));
+  }),
+);
 
 // ---------------------------------------------------------------------------
 // Admin: status + manual recompute
@@ -563,7 +564,8 @@ builder.queryField("newsScoreStatus", (t) =>
       if (!ctx.account?.moderator) return null;
       return await getNewsScoreStatus(ctx.db);
     },
-  }));
+  }),
+);
 
 const RecomputeNewsScoresPayload = builder.simpleObject(
   "RecomputeNewsScoresPayload",
@@ -612,7 +614,8 @@ builder.mutationField("recomputeNewsScores", (t) =>
         status,
       };
     },
-  }));
+  }),
+);
 
 // ---------------------------------------------------------------------------
 // Admin: per-link score penalty
@@ -647,11 +650,14 @@ builder.mutationField("setNewsScorePenalty", (t) =>
       });
       if (link == null) return null;
       await setNewsScorePenalty(ctx.db, args.id, PENALTY_VALUE[args.penalty]);
-      return await ctx.db.query.postLinkTable.findFirst({
-        where: { id: args.id },
-      }) ?? null;
+      return (
+        (await ctx.db.query.postLinkTable.findFirst({
+          where: { id: args.id },
+        })) ?? null
+      );
     },
-  }));
+  }),
+);
 
 builder.queryField("newsPenalizedStories", (t) =>
   t.field({
@@ -666,7 +672,8 @@ builder.queryField("newsPenalizedStories", (t) =>
       if (!ctx.account?.moderator) return null;
       return await getNewsPenalizedStories(ctx.db);
     },
-  }));
+  }),
+);
 
 // ---------------------------------------------------------------------------
 // Admin: URL exclusion patterns
@@ -680,7 +687,8 @@ const NewsExcludedPattern = builder.simpleObject("NewsExcludedPattern", {
   fields: (t) => ({
     id: t.field({ type: "UUID", description: "The pattern's row UUID." }),
     pattern: t.string({
-      description: "The `URLPattern` string, e.g. `https://example.com/*` or " +
+      description:
+        "The `URLPattern` string, e.g. `https://example.com/*` or " +
         "`https://*.example.com/*`.",
     }),
     note: t.string({
@@ -712,7 +720,8 @@ builder.queryField("newsExcludedPatterns", (t) =>
         created: row.created,
       }));
     },
-  }));
+  }),
+);
 
 builder.mutationField("addNewsExcludedPattern", (t) =>
   t.field({
@@ -757,7 +766,8 @@ builder.mutationField("addNewsExcludedPattern", (t) =>
         throw error;
       }
     },
-  }));
+  }),
+);
 
 const RemoveNewsExcludedPatternPayload = builder.simpleObject(
   "RemoveNewsExcludedPatternPayload",
@@ -794,7 +804,8 @@ builder.mutationField("removeNewsExcludedPattern", (t) =>
       const removed = await removeNewsExcludedPattern(ctx.db, args.id);
       return { removedId: removed ? args.id : null };
     },
-  }));
+  }),
+);
 
 // ---------------------------------------------------------------------------
 // Admin: preferred sharers
@@ -849,7 +860,8 @@ builder.queryField("newsPreferredSharers", (t) =>
         query({ orderBy: { created: "desc" } }),
       );
     },
-  }));
+  }),
+);
 
 builder.mutationField("addNewsPreferredSharer", (t) =>
   t.field({
@@ -900,7 +912,8 @@ builder.mutationField("addNewsPreferredSharer", (t) =>
         creatorId: ctx.account.id,
       });
     },
-  }));
+  }),
+);
 
 const RemoveNewsPreferredSharerPayload = builder.simpleObject(
   "RemoveNewsPreferredSharerPayload",
@@ -938,4 +951,5 @@ builder.mutationField("removeNewsPreferredSharer", (t) =>
       const removed = await removeNewsPreferredSharer(ctx.db, args.id);
       return { removedId: removed ? args.id : null };
     },
-  }));
+  }),
+);

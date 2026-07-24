@@ -21,10 +21,7 @@ const poll = {
 };
 
 test("getNoteComposerDraftScope follows composer scope precedence", () => {
-  assert.equal(
-    getNoteComposerDraftScope({ editingNoteId: "edit" }),
-    null,
-  );
+  assert.equal(getNoteComposerDraftScope({ editingNoteId: "edit" }), null);
   assert.deepEqual(
     getNoteComposerDraftScope({
       replyTargetId: "reply",
@@ -34,18 +31,18 @@ test("getNoteComposerDraftScope follows composer scope precedence", () => {
     }),
     { type: "reply", targetId: "reply" },
   );
-  assert.deepEqual(
-    getNoteComposerDraftScope({ quotedPostId: "quote" }),
-    { type: "quote", targetId: "quote" },
-  );
+  assert.deepEqual(getNoteComposerDraftScope({ quotedPostId: "quote" }), {
+    type: "quote",
+    targetId: "quote",
+  });
   assert.deepEqual(
     getNoteComposerDraftScope({ ensureLinkUrl: "https://example.com/" }),
     { type: "link", url: "https://example.com/" },
   );
-  assert.deepEqual(
-    getNoteComposerDraftScope({ initialContent: " prefill " }),
-    { type: "prefill", content: "prefill" },
-  );
+  assert.deepEqual(getNoteComposerDraftScope({ initialContent: " prefill " }), {
+    type: "prefill",
+    content: "prefill",
+  });
   assert.deepEqual(getNoteComposerDraftScope({}), { type: "new" });
 });
 
@@ -82,15 +79,17 @@ test("createNoteDraftData stores only stable uploaded media", () => {
     updated: "2026-07-14T00:00:00.000Z",
   });
 
-  assert.deepEqual(draft.media, [{
-    localId: "uploaded",
-    mediumRelayId: "relay-medium",
-    uuid: "00000000-0000-0000-0000-000000000000",
-    url: "https://example.com/media.webp",
-    alt: "diagram",
-    width: 100,
-    height: 50,
-  }]);
+  assert.deepEqual(draft.media, [
+    {
+      localId: "uploaded",
+      mediumRelayId: "relay-medium",
+      uuid: "00000000-0000-0000-0000-000000000000",
+      url: "https://example.com/media.webp",
+      alt: "diagram",
+      width: 100,
+      height: 50,
+    },
+  ]);
   assert.equal(
     hasUnstorableDraftMedia([
       {

@@ -1,8 +1,8 @@
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
 import type { QuotePolicy } from "~/components/QuotePolicySelect.tsx";
-import { ensureLinkInContent } from "~/lib/composerLink.ts";
-import { encodeHandleSegment } from "~/lib/handleSegment.ts";
+import { ensureLinkInContent } from "../../lib/composerLink.ts";
+import { encodeHandleSegment } from "../../lib/handleSegment.ts";
 
 export interface SubmissionMedium {
   readonly uuid?: string;
@@ -22,14 +22,14 @@ export type SubmissionValidationError =
 
 export type SubmissionValidationResult =
   | {
-    readonly ok: true;
-    readonly content: string;
-    readonly media: readonly ValidatedSubmissionMedium[];
-  }
+      readonly ok: true;
+      readonly content: string;
+      readonly media: readonly ValidatedSubmissionMedium[];
+    }
   | {
-    readonly ok: false;
-    readonly error: SubmissionValidationError;
-  };
+      readonly ok: false;
+      readonly error: SubmissionValidationError;
+    };
 
 export interface BuildCreatePostInputOptions {
   readonly content: string;
@@ -133,8 +133,8 @@ export function buildCreatePostInput(
 export function buildUpdateNoteInput(
   options: BuildUpdateNoteInputOptions,
 ): UpdateNoteInput {
-  const quotePolicyApplicable = options.visibility === "PUBLIC" ||
-    options.visibility === "UNLISTED";
+  const quotePolicyApplicable =
+    options.visibility === "PUBLIC" || options.visibility === "UNLISTED";
   return {
     noteId: options.noteId,
     content: options.content.trim(),

@@ -15,7 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { decodeRouteParam } from "~/lib/routeParam.ts";
 import {
   createStablePreloadedQuery,

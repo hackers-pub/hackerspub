@@ -32,7 +32,7 @@ import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useContentLinkInterceptor } from "~/lib/contentLinkInterceptor.ts";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
-import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
+import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
 import { useMentionHoverCards } from "~/lib/mentionHoverCards.tsx";
 import {
   createStablePreloadedQuery,
@@ -133,10 +133,9 @@ function PermalinkThreadLoaded(props: PermalinkThreadProps) {
   const post = createFragment(
     graphql`
       fragment PermalinkThread_post on Post
-        @argumentDefinitions(
-          actingAccountId: { type: "ID", defaultValue: null }
-        )
-      {
+      @argumentDefinitions(
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
         id
         uuid
         ... on Note {
@@ -160,18 +159,16 @@ function PermalinkThreadLoaded(props: PermalinkThreadProps) {
               replyTarget(actingAccountId: $actingAccountId) {
                 id
               }
-              ...PermalinkThread_contextPost @arguments(
-                actingAccountId: $actingAccountId
-              )
+              ...PermalinkThread_contextPost
+                @arguments(actingAccountId: $actingAccountId)
             }
           }
           pageInfo {
             hasNextPage
           }
         }
-        ...PermalinkThreadTree_post @arguments(
-          actingAccountId: $actingAccountId
-        )
+        ...PermalinkThreadTree_post
+          @arguments(actingAccountId: $actingAccountId)
       }
     `,
     () => data()?.actorByHandle?.postByUuid as PermalinkThread_post$key,
@@ -182,12 +179,10 @@ function PermalinkThreadLoaded(props: PermalinkThreadProps) {
   // includes the acting account, so a genuine `null` after switching to an
   // account that cannot see the post drops the private thread instead of being
   // masked as a transient gap and left rendered under the narrower perspective.
-  const stablePost = createMemo<
-    {
-      routeKey: string;
-      value: PermalinkThread_post$data;
-    } | null
-  >((previous) => {
+  const stablePost = createMemo<{
+    routeKey: string;
+    value: PermalinkThread_post$data;
+  } | null>((previous) => {
     const routeKey = `${props.username}/${props.noteId}/${
       actingAccountId() ?? ""
     }`;
@@ -211,11 +206,14 @@ function PermalinkThreadLoaded(props: PermalinkThreadProps) {
   const targetIsFocused = createMemo(() => {
     const target = targetUuid();
     const value = stablePost()?.value;
-    return target != null && value != null &&
-      (target === value.uuid || target === value.sourceId);
+    return (
+      target != null &&
+      value != null &&
+      (target === value.uuid || target === value.sourceId)
+    );
   });
   const treeTargetUuid = createMemo(() =>
-    targetIsFocused() ? null : targetUuid()
+    targetIsFocused() ? null : targetUuid(),
   );
 
   // With ancestors above the focused post, land the reader on the focused
@@ -231,7 +229,9 @@ function PermalinkThreadLoaded(props: PermalinkThreadProps) {
     if (
       !targetIsFocused() &&
       (current.value.ancestors?.edges.length ?? 0) < 1
-    ) return;
+    ) {
+      return;
+    }
     scrolledTo = current.routeKey;
     requestAnimationFrame(() => {
       focusedRef?.scrollIntoView({ block: "start" });
@@ -273,9 +273,7 @@ interface PermalinkAncestorsProps {
   focusedReplyTargetId: string | null;
 }
 
-type AncestorRow =
-  | { kind: "post"; node: AncestorEdgeNode }
-  | { kind: "fold" };
+type AncestorRow = { kind: "post"; node: AncestorEdgeNode } | { kind: "fold" };
 
 function PermalinkAncestors(props: PermalinkAncestorsProps) {
   const { t, i18n } = useLingui();
@@ -286,22 +284,24 @@ function PermalinkAncestors(props: PermalinkAncestorsProps) {
   // before dereferencing (same as `PermalinkThreadTree`'s node list).
   const chain = createMemo<AncestorEdgeNode[]>(() =>
     (props.post.ancestors?.edges ?? [])
-      .flatMap((edge) => edge?.node == null ? [] : [edge.node])
+      .flatMap((edge) => (edge?.node == null ? [] : [edge.node]))
       // `flatMap` already returns a fresh array, so reverse it in place rather
       // than with the ES2023-only `toReversed()`.
-      .reverse()
+      .reverse(),
   );
   const hasMoreAbove = createMemo(() => {
     const rows = chain();
     if (rows.length < 1) return false;
-    return rows[0].replyTarget != null ||
-      (props.post.ancestors?.pageInfo.hasNextPage ?? false);
+    return (
+      rows[0].replyTarget != null ||
+      (props.post.ancestors?.pageInfo.hasNextPage ?? false)
+    );
   });
-  const collapsed = createMemo(() =>
-    !expanded() && chain().length > ANCESTOR_COLLAPSE_THRESHOLD
+  const collapsed = createMemo(
+    () => !expanded() && chain().length > ANCESTOR_COLLAPSE_THRESHOLD,
   );
-  const hiddenCount = createMemo(() =>
-    chain().length - 1 - ANCESTOR_NEAREST_VISIBLE
+  const hiddenCount = createMemo(
+    () => chain().length - 1 - ANCESTOR_NEAREST_VISIBLE,
   );
   const visibleRows = createMemo<AncestorRow[]>(() => {
     const rows = chain();
@@ -311,7 +311,8 @@ function PermalinkAncestors(props: PermalinkAncestorsProps) {
     return [
       { kind: "post" as const, node: rows[0] },
       { kind: "fold" as const },
-      ...rows.slice(rows.length - ANCESTOR_NEAREST_VISIBLE)
+      ...rows
+        .slice(rows.length - ANCESTOR_NEAREST_VISIBLE)
         .map((node) => ({ kind: "post" as const, node })),
     ];
   });
@@ -348,12 +349,10 @@ function PermalinkAncestors(props: PermalinkAncestorsProps) {
                     class="block w-full cursor-pointer border-b px-4 py-2.5 text-left text-sm text-muted-foreground transition-colors hover:bg-muted/30 hover:text-primary"
                   >
                     {i18n._(
-                      msg`${
-                        plural(hiddenCount(), {
-                          one: "Show # more post",
-                          other: "Show # more posts",
-                        })
-                      }`,
+                      msg`${plural(hiddenCount(), {
+                        one: "Show # more post",
+                        other: "Show # more posts",
+                      })}`,
                     )}
                   </button>
                 </Match>
@@ -380,10 +379,7 @@ interface EarlierPostsLinkProps {
 
 function EarlierPostsLink(props: EarlierPostsLinkProps) {
   const { t } = useLingui();
-  const post = createFragment(
-    contextPostFragment,
-    () => props.$post,
-  );
+  const post = createFragment(contextPostFragment, () => props.$post);
   return (
     <Show keyed when={post()}>
       {(post) => (
@@ -401,21 +397,18 @@ function EarlierPostsLink(props: EarlierPostsLinkProps) {
 
 const PermalinkThreadTreeFragment = graphql`
   fragment PermalinkThreadTree_post on Post
-    @refetchable(queryName: "PermalinkThreadTreePaginationQuery")
-    @argumentDefinitions(
-      cursor: { type: "String" }
-      count: { type: "Int", defaultValue: 60 }
-      actingAccountId: { type: "ID", defaultValue: null }
-    )
-  {
+  @refetchable(queryName: "PermalinkThreadTreePaginationQuery")
+  @argumentDefinitions(
+    cursor: { type: "String" }
+    count: { type: "Int", defaultValue: 60 }
+    actingAccountId: { type: "ID", defaultValue: null }
+  ) {
     id
     descendants(
       after: $cursor
       first: $count
       actingAccountId: $actingAccountId
-    )
-      @connection(key: "PermalinkThreadTree_descendants")
-    {
+    ) @connection(key: "PermalinkThreadTree_descendants") {
       __id
       edges {
         node {
@@ -437,9 +430,8 @@ const PermalinkThreadTreeFragment = graphql`
           actor {
             id
           }
-          ...PermalinkThread_replyNode @arguments(
-            actingAccountId: $actingAccountId
-          )
+          ...PermalinkThread_replyNode
+            @arguments(actingAccountId: $actingAccountId)
         }
       }
       pageInfo {
@@ -477,8 +469,8 @@ export function PermalinkThreadTree(props: PermalinkThreadTreeProps) {
 
   const nodes = createMemo<TreeEdgeNode[]>(() =>
     (tree()?.descendants?.edges ?? []).flatMap((edge) =>
-      edge?.node == null ? [] : [edge.node]
-    )
+      edge?.node == null ? [] : [edge.node],
+    ),
   );
   const connectionId = () => tree()?.descendants?.__id;
   // The server guarantees a parent appears before its replies, so this map
@@ -498,8 +490,8 @@ export function PermalinkThreadTree(props: PermalinkThreadTreeProps) {
     }
     return map;
   });
-  const roots = createMemo(() =>
-    childrenByParent().get(props.focusedPostId) ?? []
+  const roots = createMemo(
+    () => childrenByParent().get(props.focusedPostId) ?? [],
   );
 
   function onLoadMore() {
@@ -524,7 +516,9 @@ export function PermalinkThreadTree(props: PermalinkThreadTreeProps) {
     if (target == null || targetPages >= TREE_TARGET_MAX_PAGES) return;
     if (
       nodes().some((node) => node.uuid === target || node.sourceId === target)
-    ) return;
+    ) {
+      return;
+    }
     if (!tree.hasNext || tree.pending || loadingState() === "loading") return;
     targetPages++;
     onLoadMore();
@@ -594,11 +588,11 @@ function ThreadReplyNode(props: ThreadReplyNodeProps) {
     const kids = children();
     return kids.length === 1 && kids[0].actor.id === props.node.actor.id;
   });
-  const indentChildren = createMemo(() =>
-    !flushChildren() && props.visualDepth < TREE_VISUAL_DEPTH_CAP
+  const indentChildren = createMemo(
+    () => !flushChildren() && props.visualDepth < TREE_VISUAL_DEPTH_CAP,
   );
   const childVisualDepth = createMemo(() =>
-    indentChildren() ? props.visualDepth + 1 : props.visualDepth
+    indentChildren() ? props.visualDepth + 1 : props.visualDepth,
   );
   const subtreeSize = createMemo(() => {
     let count = 0;
@@ -615,10 +609,11 @@ function ThreadReplyNode(props: ThreadReplyNodeProps) {
   // thread up from there. Gate on `hasVisibleReplies` (not the raw counter) so
   // a node whose only replies are hidden from the viewer shows no link, which
   // would otherwise reveal that those hidden replies exist.
-  const continueHere = createMemo(() =>
-    children().length < 1 &&
-    props.node.hasVisibleReplies &&
-    !props.subtreeMayContinue
+  const continueHere = createMemo(
+    () =>
+      children().length < 1 &&
+      props.node.hasVisibleReplies &&
+      !props.subtreeMayContinue,
   );
 
   return (
@@ -640,22 +635,18 @@ function ThreadReplyNode(props: ThreadReplyNodeProps) {
               }`}
             >
               {i18n._(
-                msg`${
-                  plural(subtreeSize(), {
-                    one: "Show # reply",
-                    other: "Show # replies",
-                  })
-                }`,
+                msg`${plural(subtreeSize(), {
+                  one: "Show # reply",
+                  other: "Show # replies",
+                })}`,
               )}
             </button>
           }
         >
           <div class="flex">
             <Show when={indentChildren()}>
-              {
-                /* The rail is the collapse control: the whole strip is
-                  clickable, and the hairline darkens on hover to show it. */
-              }
+              {/* The rail is the collapse control: the whole strip is
+                  clickable, and the hairline darkens on hover to show it. */}
               <button
                 type="button"
                 onClick={() => setCollapsed(true)}
@@ -691,8 +682,7 @@ function ThreadReplyNode(props: ThreadReplyNodeProps) {
 
 const replyNodeFragment = graphql`
   fragment PermalinkThread_replyNode on Post
-    @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
-  {
+  @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null }) {
     id
     __typename
     uuid
@@ -760,7 +750,7 @@ function ThreadReplyRow(props: ThreadReplyRowProps) {
     const p = post();
     if (p != null && isTarget(p) && articleRef != null) {
       requestAnimationFrame(() =>
-        articleRef?.scrollIntoView({ block: "center" })
+        articleRef?.scrollIntoView({ block: "center" }),
       );
     }
   });
@@ -850,25 +840,28 @@ function ThreadReplyRow(props: ThreadReplyRowProps) {
                   $post={p}
                   repliesHref={null}
                   engagementBase={engagementBase(p)}
-                  connections={props.connectionId == null
-                    ? []
-                    : [props.connectionId]}
-                  onEdit={(p.rawContent ?? p.personalRawContent) != null &&
-                      p.visibility !== "NONE"
-                    ? () =>
-                      openForEdit(p.id, {
-                        content: (p.rawContent ?? p.personalRawContent)!,
-                        language: p.language,
-                        quotePolicy: (p.quotePolicy as QuotePolicy) ??
-                          "EVERYONE",
-                        visibility: (p.visibility as PostVisibility) ??
-                          "PUBLIC",
-                        authorAccountId: p.rawContent != null &&
-                            p.actor.account?.kind === "ORGANIZATION"
-                          ? p.actor.account.id
-                          : null,
-                      })
-                    : undefined}
+                  connections={
+                    props.connectionId == null ? [] : [props.connectionId]
+                  }
+                  onEdit={
+                    (p.rawContent ?? p.personalRawContent) != null &&
+                    p.visibility !== "NONE"
+                      ? () =>
+                          openForEdit(p.id, {
+                            content: (p.rawContent ?? p.personalRawContent)!,
+                            language: p.language,
+                            quotePolicy:
+                              (p.quotePolicy as QuotePolicy) ?? "EVERYONE",
+                            visibility:
+                              (p.visibility as PostVisibility) ?? "PUBLIC",
+                            authorAccountId:
+                              p.rawContent != null &&
+                              p.actor.account?.kind === "ORGANIZATION"
+                                ? p.actor.account.id
+                                : null,
+                          })
+                      : undefined
+                  }
                   class="mt-1"
                 />
               </div>
@@ -907,10 +900,7 @@ function ContinueThreadLink(props: ContinueThreadLinkProps) {
 
 const contextPostFragment = graphql`
   fragment PermalinkThread_contextPost on Post
-    @argumentDefinitions(
-      actingAccountId: { type: "ID", defaultValue: null }
-    )
-  {
+  @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null }) {
     __typename
     uuid
     name
@@ -1026,11 +1016,7 @@ function getPostInternalHref(post: PostPermalinkParts): string | null {
     : encodeHandleSegment(post.actor.handle);
   switch (post.__typename) {
     case "Article":
-      if (
-        post.actor.local &&
-        post.publishedYear != null &&
-        post.slug != null
-      ) {
+      if (post.actor.local && post.publishedYear != null && post.slug != null) {
         return `/@${post.actor.username}/${post.publishedYear}/${post.slug}`;
       }
       // Articles without a pretty permalink (remote, or local rows
@@ -1056,16 +1042,15 @@ function getPostInternalHref(post: PostPermalinkParts): string | null {
   }
 }
 
-interface ContextPostLinkProps
-  extends Omit<JSX.AnchorHTMLAttributes<HTMLAnchorElement>, "target"> {
+interface ContextPostLinkProps extends Omit<
+  JSX.AnchorHTMLAttributes<HTMLAnchorElement>,
+  "target"
+> {
   internalHref: string | null;
 }
 
 function ContextPostLink(props: ContextPostLinkProps) {
-  const [local, anchorProps] = splitProps(props, [
-    "children",
-    "internalHref",
-  ]);
+  const [local, anchorProps] = splitProps(props, ["children", "internalHref"]);
   return (
     <Show
       keyed

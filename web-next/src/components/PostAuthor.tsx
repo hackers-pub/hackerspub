@@ -27,17 +27,17 @@ export interface PostAuthorTextData {
   };
   readonly organizationAuthor:
     | {
-      readonly attributionMode: string;
-      readonly member:
-        | {
-          readonly actor: {
-            readonly rawName: string | null | undefined;
-            readonly handle: string;
-          };
-        }
-        | null
-        | undefined;
-    }
+        readonly attributionMode: string;
+        readonly member:
+          | {
+              readonly actor: {
+                readonly rawName: string | null | undefined;
+                readonly handle: string;
+              };
+            }
+          | null
+          | undefined;
+      }
     | null
     | undefined;
 }
@@ -57,33 +57,35 @@ function actorInternalHref(
 function isCoauthored(
   organizationAuthor:
     | {
-      readonly attributionMode: string;
-      readonly member: { readonly actor: unknown } | null | undefined;
-    }
+        readonly attributionMode: string;
+        readonly member: { readonly actor: unknown } | null | undefined;
+      }
     | null
     | undefined,
 ): boolean {
-  return organizationAuthor?.attributionMode === "ACTING_ACCOUNT_WITH_VIEWER" &&
-    organizationAuthor.member?.actor != null;
+  return (
+    organizationAuthor?.attributionMode === "ACTING_ACCOUNT_WITH_VIEWER" &&
+    organizationAuthor.member?.actor != null
+  );
 }
 
 function coauthorAvatarActor(
   post: PostAuthorAvatar_post$data,
 ): AvatarActor | null {
   return isCoauthored(post.organizationAuthor)
-    ? post.organizationAuthor?.member?.actor ?? null
+    ? (post.organizationAuthor?.member?.actor ?? null)
     : null;
 }
 
 function coauthorLineActor(post: PostAuthorLine_post$data): LineActor | null {
   return isCoauthored(post.organizationAuthor)
-    ? post.organizationAuthor?.member?.actor ?? null
+    ? (post.organizationAuthor?.member?.actor ?? null)
     : null;
 }
 
 function coauthorTextActor(post: PostAuthorTextData): TextActor | null {
   return isCoauthored(post.organizationAuthor)
-    ? post.organizationAuthor?.member?.actor ?? null
+    ? (post.organizationAuthor?.member?.actor ?? null)
     : null;
 }
 

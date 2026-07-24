@@ -88,38 +88,43 @@ const NEWS_SWEEP_ACTIVE_WINDOW_MS = 60 * 60 * 1000;
 // Arbitrary fixed id for the advisory lock that serializes the sweep across
 // replicas ("news" read as a 32-bit int).
 const NEWS_SWEEP_LOCK_KEY = 0x6e657773;
-Deno.cron("recompute-news-scores", "*/5 * * * *", {
-  // Unschedule on shutdown so the worker can drain and exit instead of being
-  // kept alive (or firing another sweep) by the still-scheduled cron.
-  signal: controller.signal,
-}, async () => {
-  try {
-    const activeSince = new Date(Date.now() - NEWS_SWEEP_ACTIVE_WINDOW_MS);
-    // Every worker replica fires this cron at the same instant. Run by itself
-    // the recompute finishes well within the statement timeout, but several of
-    // them at once queue behind one another's `post_link` row locks and the
-    // waiters time out. Gate the sweep on a transaction-scoped advisory lock so
-    // exactly one replica runs it per tick and the rest skip immediately; the
-    // lock is released when the transaction ends.
-    const linksUpdated = await db.transaction(async (tx) => {
-      const rows = await tx.execute(
-        sql`select pg_try_advisory_xact_lock(${NEWS_SWEEP_LOCK_KEY}::bigint) as locked`,
-      ) as unknown as { locked: boolean }[];
-      if (rows[0]?.locked !== true) return null;
-      const result = await recomputeNewsScores(tx, { activeSince });
-      return result.linksUpdated;
-    });
-    if (linksUpdated == null) {
-      newsLogger.debug("News score sweep skipped; another replica holds it.");
-    } else {
-      newsLogger.debug("News score sweep updated {linksUpdated} link(s).", {
-        linksUpdated,
+Deno.cron(
+  "recompute-news-scores",
+  "*/5 * * * *",
+  {
+    // Unschedule on shutdown so the worker can drain and exit instead of being
+    // kept alive (or firing another sweep) by the still-scheduled cron.
+    signal: controller.signal,
+  },
+  async () => {
+    try {
+      const activeSince = new Date(Date.now() - NEWS_SWEEP_ACTIVE_WINDOW_MS);
+      // Every worker replica fires this cron at the same instant. Run by itself
+      // the recompute finishes well within the statement timeout, but several of
+      // them at once queue behind one another's `post_link` row locks and the
+      // waiters time out. Gate the sweep on a transaction-scoped advisory lock so
+      // exactly one replica runs it per tick and the rest skip immediately; the
+      // lock is released when the transaction ends.
+      const linksUpdated = await db.transaction(async (tx) => {
+        const rows = (await tx.execute(
+          sql`select pg_try_advisory_xact_lock(${NEWS_SWEEP_LOCK_KEY}::bigint) as locked`,
+        )) as unknown as { locked: boolean }[];
+        if (rows[0]?.locked !== true) return null;
+        const result = await recomputeNewsScores(tx, { activeSince });
+        return result.linksUpdated;
       });
+      if (linksUpdated == null) {
+        newsLogger.debug("News score sweep skipped; another replica holds it.");
+      } else {
+        newsLogger.debug("News score sweep updated {linksUpdated} link(s).", {
+          linksUpdated,
+        });
+      }
+    } catch (error) {
+      newsLogger.error("News score sweep failed: {error}", { error });
     }
-  } catch (error) {
-    newsLogger.error("News score sweep failed: {error}", { error });
-  }
-});
+  },
+);
 
 // Drain the News rescore queue.  Curating or un-curating a preferred sharer
 // enqueues the actor (in the API process) instead of rescoring its links inline,
@@ -129,52 +134,60 @@ Deno.cron("recompute-news-scores", "*/5 * * * *", {
 // quickly.  `drainNewsRescoreQueue` leases each actor with `for update skip
 // locked`, so running it on every replica's cron is safe (replicas claim
 // disjoint actors); no advisory lock like the sweep above.
-Deno.cron("drain-news-rescore-queue", "* * * * *", {
-  signal: controller.signal,
-}, async () => {
-  try {
-    // Suspension expiry is lazy, so nothing fires at the expiry instant;
-    // sweep for remote suspensions that expired since the last successful
-    // sweep (durable watermark in admin_state) and queue their news
-    // signals for recomputation before draining.
-    await sweepExpiredSuspensionRescores(db);
-    const { actorsProcessed, linksRecomputed } = await drainNewsRescoreQueue(
-      db,
-    );
-    if (actorsProcessed > 0) {
-      newsLogger.debug(
-        "Drained {actorsProcessed} news rescore(s); recomputed " +
-          "{linksRecomputed} link(s).",
-        { actorsProcessed, linksRecomputed },
-      );
+Deno.cron(
+  "drain-news-rescore-queue",
+  "* * * * *",
+  {
+    signal: controller.signal,
+  },
+  async () => {
+    try {
+      // Suspension expiry is lazy, so nothing fires at the expiry instant;
+      // sweep for remote suspensions that expired since the last successful
+      // sweep (durable watermark in admin_state) and queue their news
+      // signals for recomputation before draining.
+      await sweepExpiredSuspensionRescores(db);
+      const { actorsProcessed, linksRecomputed } =
+        await drainNewsRescoreQueue(db);
+      if (actorsProcessed > 0) {
+        newsLogger.debug(
+          "Drained {actorsProcessed} news rescore(s); recomputed " +
+            "{linksRecomputed} link(s).",
+          { actorsProcessed, linksRecomputed },
+        );
+      }
+    } catch (error) {
+      newsLogger.error("News rescore drain failed: {error}", { error });
     }
-  } catch (error) {
-    newsLogger.error("News rescore drain failed: {error}", { error });
-  }
-});
+  },
+);
 
 const pollLogger = getLogger(["hackerspub", "graphql", "poll"]);
-Deno.cron("notify-ended-polls", "* * * * *", {
-  signal: controller.signal,
-}, async () => {
-  try {
-    const { pollsProcessed, notificationsCreated } = await notifyEndedPolls(
-      db,
-    );
-    if (pollsProcessed > 0) {
-      pollLogger.debug(
-        "Notified ended poll results for {pollsProcessed} poll(s); " +
-          "created {notificationsCreated} notification(s).",
-        { pollsProcessed, notificationsCreated },
+Deno.cron(
+  "notify-ended-polls",
+  "* * * * *",
+  {
+    signal: controller.signal,
+  },
+  async () => {
+    try {
+      const { pollsProcessed, notificationsCreated } =
+        await notifyEndedPolls(db);
+      if (pollsProcessed > 0) {
+        pollLogger.debug(
+          "Notified ended poll results for {pollsProcessed} poll(s); " +
+            "created {notificationsCreated} notification(s).",
+          { pollsProcessed, notificationsCreated },
+        );
+      }
+    } catch (error) {
+      pollLogger.error(
+        "Ended poll notification drain failed for {jobName}: {error}",
+        { jobName: "notify-ended-polls", error },
       );
     }
-  } catch (error) {
-    pollLogger.error(
-      "Ended poll notification drain failed for {jobName}: {error}",
-      { jobName: "notify-ended-polls", error },
-    );
-  }
-});
+  },
+);
 
 const digestLogger = getLogger([
   "hackerspub",
@@ -192,37 +205,45 @@ async function sendNotificationDigestJob(frequency: "daily" | "weekly") {
   });
 }
 
-Deno.cron("send-weekly-notification-digests", "0 0 * * 1", {
-  signal: controller.signal,
-}, async () => {
-  try {
-    const result = await sendNotificationDigestJob("weekly");
-    digestLogger.debug(
-      "Processed weekly notification digests: {result}",
-      { result },
-    );
-  } catch (error) {
-    digestLogger.error("Weekly notification digest job failed: {error}", {
-      error,
-    });
-  }
-});
+Deno.cron(
+  "send-weekly-notification-digests",
+  "0 0 * * 1",
+  {
+    signal: controller.signal,
+  },
+  async () => {
+    try {
+      const result = await sendNotificationDigestJob("weekly");
+      digestLogger.debug("Processed weekly notification digests: {result}", {
+        result,
+      });
+    } catch (error) {
+      digestLogger.error("Weekly notification digest job failed: {error}", {
+        error,
+      });
+    }
+  },
+);
 
-Deno.cron("send-daily-notification-digests", "5 0 * * *", {
-  signal: controller.signal,
-}, async () => {
-  try {
-    const result = await sendNotificationDigestJob("daily");
-    digestLogger.debug(
-      "Processed daily notification digests: {result}",
-      { result },
-    );
-  } catch (error) {
-    digestLogger.error("Daily notification digest job failed: {error}", {
-      error,
-    });
-  }
-});
+Deno.cron(
+  "send-daily-notification-digests",
+  "5 0 * * *",
+  {
+    signal: controller.signal,
+  },
+  async () => {
+    try {
+      const result = await sendNotificationDigestJob("daily");
+      digestLogger.debug("Processed daily notification digests: {result}", {
+        result,
+      });
+    } catch (error) {
+      digestLogger.error("Daily notification digest job failed: {error}", {
+        error,
+      });
+    }
+  },
+);
 
 const outboxLogger = getLogger([
   "hackerspub",
@@ -230,26 +251,31 @@ const outboxLogger = getLogger([
   "transactional-outbox",
 ]);
 const DAY_MILLISECONDS = 24 * 60 * 60 * 1000;
-Deno.cron("prune-transactional-outbox", "30 3 * * *", {
-  signal: controller.signal,
-}, async () => {
-  try {
-    const now = Date.now();
-    const deleted = await pruneOutboxEvents(db, {
-      completedBefore: new Date(now - DAY_MILLISECONDS),
-      failedBefore: new Date(now - 30 * DAY_MILLISECONDS),
-    });
-    if (deleted > 0) {
-      outboxLogger.info("Pruned {deleted} expired outbox event(s).", {
-        deleted,
+Deno.cron(
+  "prune-transactional-outbox",
+  "30 3 * * *",
+  {
+    signal: controller.signal,
+  },
+  async () => {
+    try {
+      const now = Date.now();
+      const deleted = await pruneOutboxEvents(db, {
+        completedBefore: new Date(now - DAY_MILLISECONDS),
+        failedBefore: new Date(now - 30 * DAY_MILLISECONDS),
+      });
+      if (deleted > 0) {
+        outboxLogger.info("Pruned {deleted} expired outbox event(s).", {
+          deleted,
+        });
+      }
+    } catch (error) {
+      outboxLogger.error("Transactional outbox pruning failed: {error}", {
+        error,
       });
     }
-  } catch (error) {
-    outboxLogger.error("Transactional outbox pruning failed: {error}", {
-      error,
-    });
-  }
-});
+  },
+);
 
 // Drain the federation inbox and transactional fanout/delivery queues.  The
 // API process (`main.ts`) builds the same federation with

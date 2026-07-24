@@ -22,25 +22,22 @@ function keyFetchError(status: number): UnverifiedActivityReason {
 }
 
 describe("shouldAcknowledgeUnverifiedActivity()", () => {
-  it(
-    "acknowledges Delete activities for 410 key fetch failures",
-    () => {
-      const activity = new Delete({
-        actor: new URL("https://remote.example/actors/alice"),
-        object: new URL("https://remote.example/actors/alice"),
-      });
-      const reason = keyFetchError(410);
+  it("acknowledges Delete activities for 410 key fetch failures", () => {
+    const activity = new Delete({
+      actor: new URL("https://remote.example/actors/alice"),
+      object: new URL("https://remote.example/actors/alice"),
+    });
+    const reason = keyFetchError(410);
 
-      assert.deepEqual(
-        shouldAcknowledgeUnverifiedActivity(activity, reason),
-        true,
-      );
-      assert.deepEqual(
-        onUnverifiedActivity(requestContext, activity, reason)?.status,
-        202,
-      );
-    },
-  );
+    assert.deepEqual(
+      shouldAcknowledgeUnverifiedActivity(activity, reason),
+      true,
+    );
+    assert.deepEqual(
+      onUnverifiedActivity(requestContext, activity, reason)?.status,
+      202,
+    );
+  });
 
   it("does not acknowledge 404 key fetch failures", () => {
     const activity = new Delete({

@@ -13,7 +13,7 @@ import {
 } from "~/components/ui/dropdown-menu.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
-import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
+import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
 import type { NewsStoryCard_story$key } from "./__generated__/NewsStoryCard_story.graphql.ts";
 import type { NewsStoryCard_setPenalty_Mutation } from "./__generated__/NewsStoryCard_setPenalty_Mutation.graphql.ts";
 
@@ -91,9 +91,8 @@ export function NewsStoryCard(props: NewsStoryCardProps) {
     () => props.$story,
   );
 
-  const [setPenalty] = createMutation<NewsStoryCard_setPenalty_Mutation>(
-    setPenaltyMutation,
-  );
+  const [setPenalty] =
+    createMutation<NewsStoryCard_setPenalty_Mutation>(setPenaltyMutation);
 
   function applyPenalty(
     uuid: `${string}-${string}-${string}-${string}-${string}`,
@@ -126,12 +125,10 @@ export function NewsStoryCard(props: NewsStoryCardProps) {
 
   const discussionText = (count: number) =>
     i18n._(
-      msg`${
-        plural(count, {
-          one: "# discussion post",
-          other: "# discussion posts",
-        })
-      }`,
+      msg`${plural(count, {
+        one: "# discussion post",
+        other: "# discussion posts",
+      })}`,
     );
 
   return (

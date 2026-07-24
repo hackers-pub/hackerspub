@@ -5,7 +5,7 @@ import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { FollowButton_actor$key } from "./__generated__/FollowButton_actor.graphql.ts";
 import type { FollowButton_followActor_Mutation } from "./__generated__/FollowButton_followActor_Mutation.graphql.ts";
 import type { FollowButton_unfollowActor_Mutation } from "./__generated__/FollowButton_unfollowActor_Mutation.graphql.ts";
@@ -30,14 +30,19 @@ const followActorMutation = graphql`
           viewerFollows(actingAccountId: $actingAccountId)
           viewerFollowState(actingAccountId: $actingAccountId)
           followsViewer(actingAccountId: $actingAccountId)
-          followers { totalCount }
+          followers {
+            totalCount
+          }
         }
-        follower @appendNode(
-          connections: $connections
-          edgeTypeName: "ActorFollowersConnectionEdge"
-        ) {
+        follower
+          @appendNode(
+            connections: $connections
+            edgeTypeName: "ActorFollowersConnectionEdge"
+          ) {
           id
-          followees { totalCount }
+          followees {
+            totalCount
+          }
         }
       }
       ... on InvalidInputError {
@@ -64,11 +69,15 @@ const unfollowActorMutation = graphql`
           viewerFollows(actingAccountId: $actingAccountId)
           viewerFollowState(actingAccountId: $actingAccountId)
           followsViewer(actingAccountId: $actingAccountId)
-          followers { totalCount }
+          followers {
+            totalCount
+          }
         }
         follower {
-            id @deleteEdge(connections: $connections)
-            followees { totalCount }
+          id @deleteEdge(connections: $connections)
+          followees {
+            totalCount
+          }
         }
       }
       ... on InvalidInputError {
@@ -88,8 +97,9 @@ export function FollowButton(props: FollowButtonProps) {
   const actor = createFragment(
     graphql`
       fragment FollowButton_actor on Actor
-        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
-      {
+      @argumentDefinitions(
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
         id
         username
         handle
@@ -109,17 +119,11 @@ export function FollowButton(props: FollowButtonProps) {
     () => props.$actor,
   );
 
-  const [followActor, followPending] = createMutation<
-    FollowButton_followActor_Mutation
-  >(
-    followActorMutation,
-  );
+  const [followActor, followPending] =
+    createMutation<FollowButton_followActor_Mutation>(followActorMutation);
 
-  const [unfollowActor, unfollowPending] = createMutation<
-    FollowButton_unfollowActor_Mutation
-  >(
-    unfollowActorMutation,
-  );
+  const [unfollowActor, unfollowPending] =
+    createMutation<FollowButton_unfollowActor_Mutation>(unfollowActorMutation);
 
   const isCurrentViewerActor = () => actor()?.isViewer ?? false;
   const mutationPending = () => followPending() || unfollowPending();
@@ -147,17 +151,14 @@ export function FollowButton(props: FollowButtonProps) {
           ...input,
         },
         actingAccountId: actingAccountVariable,
-        connections: actorData.viewerFollowState === "PENDING"
-          ? []
-          : [connectionId],
+        connections:
+          actorData.viewerFollowState === "PENDING" ? [] : [connectionId],
       };
 
       unfollowActor({
         variables,
         onCompleted(response) {
-          if (
-            response.unfollowActor.__typename === "NotAuthenticatedError"
-          ) {
+          if (response.unfollowActor.__typename === "NotAuthenticatedError") {
             showToast({
               title: t`You must be signed in`,
               variant: "destructive",
@@ -188,9 +189,7 @@ export function FollowButton(props: FollowButtonProps) {
               title: t`You must be signed in`,
               variant: "destructive",
             });
-          } else if (
-            response.followActor.__typename === "FollowActorPayload"
-          ) {
+          } else if (response.followActor.__typename === "FollowActorPayload") {
             props.onFollowed?.();
           }
         },
@@ -208,12 +207,14 @@ export function FollowButton(props: FollowButtonProps) {
     <Show keyed when={actor()}>
       {(actor) => (
         <Show
-          when={!isCurrentViewerActor() && !actor.viewerBlocks &&
-            !actor.blocksViewer && viewer.isLoaded()}
+          when={
+            !isCurrentViewerActor() &&
+            !actor.viewerBlocks &&
+            !actor.blocksViewer &&
+            viewer.isLoaded()
+          }
         >
-          <Show
-            when={viewer.isAuthenticated() || canStartFollowing()}
-          >
+          <Show when={viewer.isAuthenticated() || canStartFollowing()}>
             <Show
               when={viewer.isAuthenticated()}
               fallback={
@@ -225,13 +226,12 @@ export function FollowButton(props: FollowButtonProps) {
               }
             >
               <Show
-                when={actor.viewerFollowState !== "NONE" ||
-                  canStartFollowing()}
+                when={actor.viewerFollowState !== "NONE" || canStartFollowing()}
               >
                 <Button
-                  variant={actor.viewerFollowState === "NONE"
-                    ? "default"
-                    : "outline"}
+                  variant={
+                    actor.viewerFollowState === "NONE" ? "default" : "outline"
+                  }
                   size="sm"
                   class="cursor-pointer"
                   disabled={mutationPending()}
@@ -240,10 +240,10 @@ export function FollowButton(props: FollowButtonProps) {
                   {actor.viewerFollowState === "PENDING"
                     ? t`Cancel request`
                     : actor.viewerFollowState === "ACCEPTED"
-                    ? t`Unfollow`
-                    : actor.followsViewer
-                    ? t`Follow back`
-                    : t`Follow`}
+                      ? t`Unfollow`
+                      : actor.followsViewer
+                        ? t`Follow back`
+                        : t`Follow`}
                 </Button>
               </Show>
             </Show>

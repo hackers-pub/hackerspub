@@ -1,4 +1,5 @@
 import assert from "node:assert";
+import { readdir, readFile } from "node:fs/promises";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
@@ -12,12 +13,6 @@ interface PackageManifest {
   readonly peerDependencies?: Record<string, string>;
 }
 
-interface DenoInfoModule {
-  readonly local?: string;
-  readonly error?: string;
-  readonly dependencies?: readonly { readonly specifier: string }[];
-}
-
 const repositoryRoot = new URL("../", import.meta.url);
 const corePackageDirectories = [
   "ai",
@@ -26,21 +21,13 @@ const corePackageDirectories = [
   "models",
   "runtime",
 ] as const;
-const additionalProductionEntrypoints: Readonly<
-  Record<string, readonly string[]>
-> = {
-  graphql: ["./main.ts", "./worker.ts"],
-};
-
 async function readJson<T>(url: URL): Promise<T> {
-  return JSON.parse(await Deno.readTextFile(url)) as T;
+  return JSON.parse(await readFile(url, "utf8")) as T;
 }
 
 async function getWorkspaceDirectories(): Promise<string[]> {
   const workspace = parse(
-    await Deno.readTextFile(
-      new URL("pnpm-workspace.yaml", repositoryRoot),
-    ),
+    await readFile(new URL("pnpm-workspace.yaml", repositoryRoot), "utf8"),
   ) as { packages?: unknown };
   assert.ok(Array.isArray(workspace.packages));
   assert.ok(
@@ -52,10 +39,14 @@ async function getWorkspaceDirectories(): Promise<string[]> {
 function getPackageName(specifier: string): string | undefined {
   const normalized = specifier.replace(/^(?:jsr|npm):/, "");
   if (
-    normalized.startsWith(".") || normalized.startsWith("/") ||
-    normalized.startsWith("data:") || normalized.startsWith("file:") ||
-    normalized.startsWith("http:") || normalized.startsWith("https:") ||
-    normalized.startsWith("node:") || normalized.startsWith("#") ||
+    normalized.startsWith(".") ||
+    normalized.startsWith("/") ||
+    normalized.startsWith("data:") ||
+    normalized.startsWith("file:") ||
+    normalized.startsWith("http:") ||
+    normalized.startsWith("https:") ||
+    normalized.startsWith("node:") ||
+    normalized.startsWith("#") ||
     normalized.startsWith("~") ||
     /^[a-z][a-z0-9+.-]*:/i.test(normalized)
   ) {
@@ -68,18 +59,21 @@ function getPackageName(specifier: string): string | undefined {
 async function listSourceFiles(directory: URL): Promise<URL[]> {
   const files: URL[] = [];
   async function visit(url: URL): Promise<void> {
-    for await (const entry of Deno.readDir(url)) {
+    for (const entry of await readdir(url, { withFileTypes: true })) {
       if (
-        entry.name === "node_modules" || entry.name === ".output" ||
-        entry.name === ".vinxi" || entry.name === ".nitro" ||
-        entry.name === "dist" || entry.name === "storybook-static"
+        entry.name === "node_modules" ||
+        entry.name === ".output" ||
+        entry.name === ".vinxi" ||
+        entry.name === ".nitro" ||
+        entry.name === "dist" ||
+        entry.name === "storybook-static"
       ) {
         continue;
       }
-      const child = new URL(entry.name + (entry.isDirectory ? "/" : ""), url);
-      if (entry.isDirectory) {
+      const child = new URL(entry.name + (entry.isDirectory() ? "/" : ""), url);
+      if (entry.isDirectory()) {
         await visit(child);
-      } else if (entry.isFile && /\.[cm]?[jt]sx?$/.test(entry.name)) {
+      } else if (entry.isFile() && /\.[cm]?[jt]sx?$/.test(entry.name)) {
         files.push(child);
       }
     }
@@ -98,16 +92,19 @@ async function getDirectImports(
     /^\s*(?:import|export)\s+(?:(?:type\s+)?[^"'();]*?\s+from\s+)?(["'])([^"']+)\1/gm;
   const dynamicImportPattern = /\bimport\s*\(\s*(["'])([^"']+)\1\s*\)/g;
   for (const file of files) {
-    const source = await Deno.readTextFile(file);
-    for (
-      const pattern of [staticImportPattern, dynamicImportPattern] as const
-    ) {
+    const source = await readFile(file, "utf8");
+    for (const pattern of [
+      staticImportPattern,
+      dynamicImportPattern,
+    ] as const) {
       for (const match of source.matchAll(pattern)) {
         const specifier = match[2];
         if (specifier.startsWith(".")) {
           const target = new URL(specifier, file);
-          const importedPackageRoot = workspacePackageRoots.find((root) =>
-            root.href !== packageRoot.href && target.href.startsWith(root.href)
+          const importedPackageRoot = workspacePackageRoots.find(
+            (root) =>
+              root.href !== packageRoot.href &&
+              target.href.startsWith(root.href),
           );
           if (importedPackageRoot != null) {
             assert.fail(
@@ -131,97 +128,20 @@ test("getPackageName() normalizes registry prefixes", () => {
   assert.equal(getPackageName("https://example.com/mod.ts"), undefined);
 });
 
-async function getModuleGraph(
-  entrypoints: readonly URL[],
-): Promise<DenoInfoModule[]> {
-  const source = entrypoints.map((entrypoint) =>
-    `import ${JSON.stringify(entrypoint.href)};`
-  ).join("\n");
-  const rootModule = `data:application/typescript,${
-    encodeURIComponent(source)
-  }`;
-  const result = await new Deno.Command(Deno.execPath(), {
-    args: ["info", "--quiet", "--json", rootModule],
-    cwd: repositoryRoot,
-    stdout: "piped",
-    stderr: "piped",
-  }).output();
-  assert.equal(
-    result.success,
-    true,
-    new TextDecoder().decode(result.stderr),
-  );
-
-  const graph = JSON.parse(new TextDecoder().decode(result.stdout)) as {
-    modules: DenoInfoModule[];
-  };
-  assert.deepEqual(
-    graph.modules.flatMap((module) => module.error ?? []),
-    [],
-    "Package graph contains invalid modules",
-  );
-  return graph.modules;
-}
-
-function collectImports(
-  modules: readonly DenoInfoModule[],
-  packageRoot: URL,
-  moduleFilter: (local: string) => boolean = () => true,
-): string[] {
-  const importedPackages = new Set<string>();
-  const packagePath = fileURLToPath(packageRoot);
-  for (const module of modules) {
-    if (
-      module.local == null || !module.local.startsWith(packagePath) ||
-      !moduleFilter(module.local)
-    ) {
-      continue;
-    }
-    for (const dependency of module.dependencies ?? []) {
-      const packageName = getPackageName(dependency.specifier);
-      if (packageName != null) importedPackages.add(packageName);
-    }
-  }
-  return [...importedPackages].toSorted();
-}
-
 async function getProductionImports(directory: string): Promise<string[]> {
   const packageRoot = new URL(`${directory}/`, repositoryRoot);
-  const denoConfig = await readJson<{
-    exports: string | Record<string, string>;
-  }>(new URL("deno.json", packageRoot));
-  const exportedEntrypoints = typeof denoConfig.exports === "string"
-    ? [denoConfig.exports]
-    : [...new Set(Object.values(denoConfig.exports))];
-  const entrypoints = [
-    ...exportedEntrypoints,
-    ...(additionalProductionEntrypoints[directory] ?? []),
-  ].map((entrypoint) => new URL(entrypoint, packageRoot));
-  return collectImports(await getModuleGraph(entrypoints), packageRoot);
+  const files = (await listSourceFiles(packageRoot)).filter(
+    (file) => !/\.test\.[cm]?[jt]sx?$/.test(file.pathname),
+  );
+  return await getDirectImports(files, packageRoot, []);
 }
 
 async function getTestImports(directory: string): Promise<string[]> {
   const packageRoot = new URL(`${directory}/`, repositoryRoot);
-  const entrypoints: URL[] = [];
-  async function visit(url: URL): Promise<void> {
-    for await (const entry of Deno.readDir(url)) {
-      if (entry.name === "node_modules") continue;
-      const child = new URL(entry.name + (entry.isDirectory ? "/" : ""), url);
-      if (entry.isDirectory) {
-        await visit(child);
-      } else if (entry.isFile && /\.test\.[cm]?[jt]sx?$/.test(entry.name)) {
-        entrypoints.push(child);
-      }
-    }
-  }
-  await visit(packageRoot);
-  if (entrypoints.length < 1) return [];
-  const modules = await getModuleGraph(entrypoints);
-  return collectImports(
-    modules,
-    packageRoot,
-    (local) => /\.test\.[cm]?[jt]sx?$/.test(local),
+  const files = (await listSourceFiles(packageRoot)).filter((file) =>
+    /\.test\.[cm]?[jt]sx?$/.test(file.pathname),
   );
+  return await getDirectImports(files, packageRoot, []);
 }
 
 test("core package manifests match production imports", async () => {
@@ -232,8 +152,9 @@ test("core package manifests match production imports", async () => {
     const importedPackages = (await getProductionImports(directory)).filter(
       (packageName) => packageName !== manifest.name,
     );
-    const declaredDependencies = Object.keys(manifest.dependencies ?? {})
-      .toSorted();
+    const declaredDependencies = Object.keys(
+      manifest.dependencies ?? {},
+    ).toSorted();
     assert.deepEqual(
       declaredDependencies,
       importedPackages,
@@ -267,8 +188,8 @@ test("core package manifests declare direct test imports", async () => {
 
 test("workspace package manifests declare all direct source imports", async () => {
   const workspaceDirectories = await getWorkspaceDirectories();
-  const workspacePackageRoots = workspaceDirectories.map((directory) =>
-    new URL(`${directory}/`, repositoryRoot)
+  const workspacePackageRoots = workspaceDirectories.map(
+    (directory) => new URL(`${directory}/`, repositoryRoot),
   );
   for (const directory of workspaceDirectories) {
     const packageRoot = new URL(`${directory}/`, repositoryRoot);
@@ -281,12 +202,15 @@ test("workspace package manifests declare all direct source imports", async () =
       ...Object.keys(manifest.optionalDependencies ?? {}),
       ...Object.keys(manifest.peerDependencies ?? {}),
     ]);
-    const undeclaredImports = (await getDirectImports(
-      await listSourceFiles(packageRoot),
-      packageRoot,
-      workspacePackageRoots,
-    )).filter((packageName) =>
-      packageName !== manifest.name && !declaredDependencies.has(packageName)
+    const undeclaredImports = (
+      await getDirectImports(
+        await listSourceFiles(packageRoot),
+        packageRoot,
+        workspacePackageRoots,
+      )
+    ).filter(
+      (packageName) =>
+        packageName !== manifest.name && !declaredDependencies.has(packageName),
     );
     assert.deepEqual(
       undeclaredImports,
@@ -307,16 +231,12 @@ test("root package manifest declares operational and test imports", async () => 
   ]);
   const rootFiles = [
     new URL("drizzle.config.ts", repositoryRoot),
-    ...await listSourceFiles(new URL("scripts/", repositoryRoot)),
-    ...await listSourceFiles(new URL("test/", repositoryRoot)),
+    ...(await listSourceFiles(new URL("scripts/", repositoryRoot))),
+    ...(await listSourceFiles(new URL("test/", repositoryRoot))),
   ];
-  const undeclaredImports = (await getDirectImports(
-    rootFiles,
-    repositoryRoot,
-    [],
-  )).filter(
-    (packageName) => !declaredDependencies.has(packageName),
-  );
+  const undeclaredImports = (
+    await getDirectImports(rootFiles, repositoryRoot, [])
+  ).filter((packageName) => !declaredDependencies.has(packageName));
   assert.deepEqual(
     undeclaredImports,
     [],
@@ -348,7 +268,7 @@ test("workspace package dependency graph is acyclic", async () => {
     workspaceDirectories.map((directory) =>
       readJson<PackageManifest>(
         new URL(`${directory}/package.json`, repositoryRoot),
-      )
+      ),
     ),
   );
   const packageNames = new Set(manifests.map((manifest) => manifest.name));
@@ -363,7 +283,7 @@ test("workspace package dependency graph is acyclic", async () => {
     graph.set(
       manifest.name,
       Object.keys(dependencies).filter((dependency) =>
-        packageNames.has(dependency)
+        packageNames.has(dependency),
       ),
     );
   }
@@ -375,9 +295,10 @@ test("workspace package dependency graph is acyclic", async () => {
     if (visiting.has(packageName)) {
       const cycleStart = path.indexOf(packageName);
       assert.fail(
-        `Workspace dependency cycle: ${
-          [...path.slice(cycleStart), packageName].join(" -> ")
-        }`,
+        `Workspace dependency cycle: ${[
+          ...path.slice(cycleStart),
+          packageName,
+        ].join(" -> ")}`,
       );
     }
     if (visited.has(packageName)) return;

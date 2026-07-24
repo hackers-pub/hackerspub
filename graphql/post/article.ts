@@ -168,9 +168,7 @@ export const Article = builder.drizzleNode("postTable", {
         if (args.language == null) return contents;
         const availableLocales = contents.map((c) => c.language);
         const selectedLocale = negotiateLocale(args.language, availableLocales);
-        return contents.filter(
-          (c) => c.language === selectedLocale?.baseName,
-        );
+        return contents.filter((c) => c.language === selectedLocale?.baseName);
       },
     }),
   }),
@@ -194,7 +192,8 @@ builder.drizzleObjectField(Article, "account", (t) =>
       },
     }),
     resolve: (post) => post.articleSource?.account ?? null,
-  }));
+  }),
+);
 
 export const ArticleDraft = builder.drizzleNode("articleDraftTable", {
   variant: "ArticleDraft",
@@ -473,7 +472,8 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
     ogImageUrl: t.field({
       type: "URL",
       nullable: true,
-      description: "The generated Open Graph preview image for this language " +
+      description:
+        "The generated Open Graph preview image for this language " +
         "version.  `null` when the article is censored, or its author is " +
         "hidden by a moderation sanction, and the viewer " +
         "is neither its author nor a moderator: the image is rendered " +
@@ -535,7 +535,8 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
           title: content.title,
         });
         if (key !== content.ogImageKey) {
-          await ctx.db.update(articleContentTable)
+          await ctx.db
+            .update(articleContentTable)
             .set({ ogImageKey: key })
             .where(
               and(

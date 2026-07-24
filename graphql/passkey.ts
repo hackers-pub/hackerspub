@@ -69,9 +69,12 @@ builder.objectField(Account, "passkeys", (t) =>
           args,
           toCursor: (passkey) => passkey.created.valueOf().toString(),
         },
-        async (
-          { before, after, limit, inverted }: ResolveCursorConnectionArgs,
-        ) => {
+        async ({
+          before,
+          after,
+          limit,
+          inverted,
+        }: ResolveCursorConnectionArgs) => {
           const beforeDate = before ? new Date(Number(before)) : undefined;
           const afterDate = after ? new Date(Number(after)) : undefined;
 
@@ -95,11 +98,13 @@ builder.objectField(Account, "passkeys", (t) =>
             )
             .orderBy(
               inverted ? passkeyTable.created : desc(passkeyTable.created),
-            ).limit(limit);
+            )
+            .limit(limit);
         },
       );
     },
-  }));
+  }),
+);
 
 builder.mutationFields((t) => ({
   getPasskeyRegistrationOptions: t.field({
@@ -230,9 +235,9 @@ builder.mutationFields((t) => ({
           extensions: { code: "FORBIDDEN" },
         });
       }
-      await ctx.db.delete(passkeyTable).where(
-        eq(passkeyTable.id, args.passkeyId.id),
-      );
+      await ctx.db
+        .delete(passkeyTable)
+        .where(eq(passkeyTable.id, args.passkeyId.id));
       return encodeGlobalID(Passkey.name, args.passkeyId.id);
     },
   }),

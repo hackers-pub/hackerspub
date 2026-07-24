@@ -1,53 +1,66 @@
 import { assertEquals, assertRejects } from "@std/assert";
+import { spawnSync } from "node:child_process";
+import {
+  mkdir,
+  mkdtemp,
+  readdir,
+  readFile,
+  rm,
+  stat,
+  writeFile,
+} from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
+import process from "node:process";
+import test from "node:test";
 import {
   migrateMediaDirectory,
+  readChunk,
   resolveConfiguredMediaMigrationPaths,
 } from "./migrate-media.ts";
+
+const readTextFile = (path: string | URL) => readFile(path, "utf8");
 
 async function withTemporaryDirectory(
   test: (directory: string) => Promise<void>,
 ): Promise<void> {
-  const directory = await Deno.makeTempDir();
+  const directory = await mkdtemp(join(tmpdir(), "hackerspub-migrate-media-"));
   try {
     await test(directory);
   } finally {
-    await Deno.remove(directory, { recursive: true });
+    await rm(directory, { recursive: true });
   }
 }
 
-Deno.test("migrateMediaDirectory preserves and copies legacy media", () =>
+test("migrateMediaDirectory preserves and copies legacy media", () =>
   withTemporaryDirectory(async (directory) => {
     const source = join(directory, "web", "media");
     const destination = join(directory, "media");
-    await Deno.mkdir(join(source, "nested"), { recursive: true });
-    await Deno.writeTextFile(join(source, "avatar.webp"), "avatar");
-    await Deno.writeTextFile(join(source, "nested", "video.mp4"), "video");
+    await mkdir(join(source, "nested"), { recursive: true });
+    await writeFile(join(source, "avatar.webp"), "avatar");
+    await writeFile(join(source, "nested", "video.mp4"), "video");
 
     assertEquals(await migrateMediaDirectory(source, destination), {
       copied: 2,
       skipped: 0,
     });
     assertEquals(
-      await Deno.readTextFile(join(destination, "avatar.webp")),
+      await readTextFile(join(destination, "avatar.webp")),
       "avatar",
     );
     assertEquals(
-      await Deno.readTextFile(join(destination, "nested", "video.mp4")),
+      await readTextFile(join(destination, "nested", "video.mp4")),
       "video",
     );
-    assertEquals(
-      await Deno.readTextFile(join(source, "avatar.webp")),
-      "avatar",
-    );
+    assertEquals(await readTextFile(join(source, "avatar.webp")), "avatar");
   }));
 
-Deno.test("migrateMediaDirectory is idempotent for identical media", () =>
+test("migrateMediaDirectory is idempotent for identical media", () =>
   withTemporaryDirectory(async (directory) => {
     const source = join(directory, "web", "media");
     const destination = join(directory, "media");
-    await Deno.mkdir(source, { recursive: true });
-    await Deno.writeTextFile(join(source, "avatar.webp"), "avatar");
+    await mkdir(source, { recursive: true });
+    await writeFile(join(source, "avatar.webp"), "avatar");
 
     await migrateMediaDirectory(source, destination);
     assertEquals(await migrateMediaDirectory(source, destination), {
@@ -56,17 +69,31 @@ Deno.test("migrateMediaDirectory is idempotent for identical media", () =>
     });
   }));
 
-Deno.test("resolveConfiguredMediaMigrationPaths migrates custom relative locations", () => {
-  assertEquals(
-    resolveConfiguredMediaMigrationPaths("./uploads", "/app"),
-    {
-      source: "/app/web/uploads",
-      destination: "/app/uploads",
+test("readChunk fills the buffer across short reads", async () => {
+  const contents = new TextEncoder().encode("identical media");
+  let position = 0;
+  const file = {
+    async read(buffer: Uint8Array, offset: number, length: number) {
+      const bytesRead = Math.min(2, length, contents.length - position);
+      buffer.set(contents.subarray(position, position + bytesRead), offset);
+      position += bytesRead;
+      return { buffer, bytesRead };
     },
-  );
+  };
+  const buffer = new Uint8Array(contents.length);
+
+  assertEquals(await readChunk(file as never, buffer), contents.length);
+  assertEquals(buffer, contents);
 });
 
-Deno.test("resolveConfiguredMediaMigrationPaths preserves absolute locations", () => {
+test("resolveConfiguredMediaMigrationPaths migrates custom relative locations", () => {
+  assertEquals(resolveConfiguredMediaMigrationPaths("./uploads", "/app"), {
+    source: "/app/web/uploads",
+    destination: "/app/uploads",
+  });
+});
+
+test("resolveConfiguredMediaMigrationPaths preserves absolute locations", () => {
   assertEquals(
     resolveConfiguredMediaMigrationPaths("/srv/hackerspub/uploads", "/app"),
     {
@@ -76,75 +103,65 @@ Deno.test("resolveConfiguredMediaMigrationPaths preserves absolute locations", (
   );
 });
 
-Deno.test("migrate-media CLI reads a custom relative FS_LOCATION", () =>
+test("migrate-media CLI reads a custom relative FS_LOCATION", () =>
   withTemporaryDirectory(async (directory) => {
     const source = join(directory, "web", "uploads");
     const destination = join(directory, "uploads", "avatar.webp");
-    await Deno.mkdir(source, { recursive: true });
-    await Deno.writeTextFile(join(source, "avatar.webp"), "avatar");
+    await mkdir(source, { recursive: true });
+    await writeFile(join(source, "avatar.webp"), "avatar");
 
-    const output = await new Deno.Command(Deno.execPath(), {
-      args: [
-        "run",
-        "--allow-env=FS_LOCATION",
-        "--allow-read",
-        "--allow-write",
-        new URL("./migrate-media.ts", import.meta.url).pathname,
-      ],
-      cwd: directory,
-      env: { FS_LOCATION: "./uploads" },
-      stdout: "piped",
-      stderr: "piped",
-    }).output();
-
-    assertEquals(output.code, 0, new TextDecoder().decode(output.stderr));
-    assertEquals(await Deno.readTextFile(destination), "avatar");
-    assertEquals(
-      await Deno.readTextFile(join(source, "avatar.webp")),
-      "avatar",
+    const output = spawnSync(
+      process.execPath,
+      [new URL("./migrate-media.ts", import.meta.url).pathname],
+      {
+        cwd: directory,
+        env: { ...process.env, FS_LOCATION: "./uploads" },
+        encoding: "utf8",
+      },
     );
+
+    assertEquals(output.status, 0, output.stderr);
+    assertEquals(await readTextFile(destination), "avatar");
+    assertEquals(await readTextFile(join(source, "avatar.webp")), "avatar");
   }));
 
-Deno.test("migrateMediaDirectory leaves no partial destination after a failed copy", () =>
+test("migrateMediaDirectory leaves no partial destination after a failed copy", () =>
   withTemporaryDirectory(async (directory) => {
     const source = join(directory, "web", "media");
     const destination = join(directory, "media");
     const destinationFile = join(destination, "avatar.webp");
-    await Deno.mkdir(source, { recursive: true });
-    await Deno.writeTextFile(join(source, "avatar.webp"), "complete");
+    await mkdir(source, { recursive: true });
+    await writeFile(join(source, "avatar.webp"), "complete");
 
     await assertRejects(
       () =>
         migrateMediaDirectory(source, destination, {
           copyFile: async (_source, temporaryDestination) => {
-            await Deno.writeTextFile(temporaryDestination, "partial");
+            await writeFile(temporaryDestination, "partial");
             throw new Error("copy interrupted");
           },
         }),
       Error,
       "copy interrupted",
     );
-    await assertRejects(
-      () => Deno.stat(destinationFile),
-      Deno.errors.NotFound,
-    );
-    assertEquals(await Array.fromAsync(Deno.readDir(destination)), []);
+    await assertRejects(() => stat(destinationFile), Error, "ENOENT");
+    assertEquals(await readdir(destination), []);
 
     assertEquals(await migrateMediaDirectory(source, destination), {
       copied: 1,
       skipped: 0,
     });
-    assertEquals(await Deno.readTextFile(destinationFile), "complete");
+    assertEquals(await readTextFile(destinationFile), "complete");
   }));
 
-Deno.test("migrateMediaDirectory refuses to overwrite different media", () =>
+test("migrateMediaDirectory refuses to overwrite different media", () =>
   withTemporaryDirectory(async (directory) => {
     const source = join(directory, "web", "media");
     const destination = join(directory, "media");
-    await Deno.mkdir(source, { recursive: true });
-    await Deno.mkdir(destination, { recursive: true });
-    await Deno.writeTextFile(join(source, "avatar.webp"), "legacy");
-    await Deno.writeTextFile(join(destination, "avatar.webp"), "current");
+    await mkdir(source, { recursive: true });
+    await mkdir(destination, { recursive: true });
+    await writeFile(join(source, "avatar.webp"), "legacy");
+    await writeFile(join(destination, "avatar.webp"), "current");
 
     await assertRejects(
       () => migrateMediaDirectory(source, destination),
@@ -152,16 +169,13 @@ Deno.test("migrateMediaDirectory refuses to overwrite different media", () =>
       "Refusing to overwrite",
     );
     assertEquals(
-      await Deno.readTextFile(join(destination, "avatar.webp")),
+      await readTextFile(join(destination, "avatar.webp")),
       "current",
     );
-    assertEquals(
-      await Deno.readTextFile(join(source, "avatar.webp")),
-      "legacy",
-    );
+    assertEquals(await readTextFile(join(source, "avatar.webp")), "legacy");
   }));
 
-Deno.test("migrateMediaDirectory tolerates a missing legacy directory", () =>
+test("migrateMediaDirectory tolerates a missing legacy directory", () =>
   withTemporaryDirectory(async (directory) => {
     assertEquals(
       await migrateMediaDirectory(

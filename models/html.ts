@@ -385,7 +385,7 @@ export function truncateHtml(html: string, maxChars: number): string {
   function walk(nodes: ReadonlyArray<unknown>): void {
     // Snapshot the list because we mutate during iteration (children removed
     // after the cutoff).
-    for (const node of [...nodes]) {
+    for (const node of Array.from(nodes)) {
       if (truncated) {
         $(node as never).remove();
         continue;
@@ -429,10 +429,10 @@ export function stripHtml(html: string): string {
       m.endsWith("br") || m.endsWith("hr")
         ? "\n"
         : m === "li"
-        ? ""
-        : m === "/li"
-        ? "\n"
-        : "\n\n\n",
+          ? ""
+          : m === "/li"
+            ? "\n"
+            : "\n\n\n",
   );
   return unescape(textXss.process(html))
     .replaceAll(/(\r?\n){3,}/g, "\n\n")
@@ -454,13 +454,12 @@ export function transformMentions(
     if (rel.includes("tag")) return;
     for (const { actor } of mentionList) {
       if (
-        href === actor.iri || href === actor.url || actor.aliases.includes(href)
+        href === actor.iri ||
+        href === actor.url ||
+        actor.aliases.includes(href)
       ) {
         $el.addClass("mention");
-        $el.attr(
-          "title",
-          `${actor.name ?? actor.username}\n${actor.handle}`,
-        );
+        $el.attr("title", `${actor.name ?? actor.username}\n${actor.handle}`);
         $el.attr(
           "data-internal-href",
           actor.accountId == null ? `/${actor.handle}` : `/@${actor.username}`,
@@ -476,9 +475,10 @@ export function transformMentions(
             actor.username.toLowerCase().replace(/[_.-]+/g, "")
         ) {
           $el.append(
-            `<span class="name">${
-              renderCustomEmojis(escape(actor.name), actor.emojis)
-            }</span>`,
+            `<span class="name">${renderCustomEmojis(
+              escape(actor.name),
+              actor.emojis,
+            )}</span>`,
           );
         }
         break;
@@ -593,8 +593,13 @@ export interface PreprocessContentHtmlOptions {
 
 export function preprocessContentHtml(
   html: string,
-  { mentions, tags, emojis = {}, quote, localDomain }:
-    PreprocessContentHtmlOptions,
+  {
+    mentions,
+    tags,
+    emojis = {},
+    quote,
+    localDomain,
+  }: PreprocessContentHtmlOptions,
 ) {
   html = sanitizeHtml(html);
   html = transformMentions(html, mentions, tags);
@@ -648,9 +653,8 @@ export function extractExternalLinks(
 ): URL[] {
   if (!HTML_HAS_ANCHOR.test(html)) return [];
   const $ = load(html, null, false);
-  const excludedHrefs = options.excludeHrefs == null
-    ? undefined
-    : new Set(options.excludeHrefs);
+  const excludedHrefs =
+    options.excludeHrefs == null ? undefined : new Set(options.excludeHrefs);
   const links: URL[] = [];
   $("a[href]").each((_, el) => {
     const url = parseContentAnchorUrl($(el), { excludedHrefs });
@@ -690,9 +694,11 @@ export function addExternalLinkTargets(
     if (existingTarget == null) $el.attr("target", "_blank");
     // Merge noopener/noreferrer even when target="_blank" was pre-existing,
     // so sanitized remote HTML can't retain window.opener access.
-    const relTokens = $el.attr("rel")?.split(/\s+/g).filter((t: string) =>
-      t.length > 0
-    ) ?? [];
+    const relTokens =
+      $el
+        .attr("rel")
+        ?.split(/\s+/g)
+        .filter((t: string) => t.length > 0) ?? [];
     for (const token of ["noopener", "noreferrer"]) {
       if (!relTokens.includes(token)) relTokens.push(token);
     }

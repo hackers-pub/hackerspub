@@ -11,8 +11,10 @@ import type {
 export type ModerationProvision = CocProvision;
 export type { ModerationAnalysis, ModerationAnalysisMatch };
 
-export interface ModerationAnalysisOptions
-  extends Omit<ApplicationModerationAnalysisOptions, "model"> {
+export interface ModerationAnalysisOptions extends Omit<
+  ApplicationModerationAnalysisOptions,
+  "model"
+> {
   model: LanguageModel;
 }
 

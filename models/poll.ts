@@ -58,8 +58,11 @@ export interface NormalizedPollInput {
 }
 
 export class InvalidPollInputError extends Error {
-  constructor(readonly inputPath: string) {
+  readonly inputPath: string;
+
+  constructor(inputPath: string) {
     super(`Invalid poll input: ${inputPath}`);
+    this.inputPath = inputPath;
     this.name = "InvalidPollInputError";
   }
 }
@@ -83,10 +86,7 @@ export function normalizePollInput(
   const seenOptions = new Set<string>();
   for (let i = 0; i < options.length; i++) {
     const option = options[i];
-    if (
-      option.length < 1 ||
-      option.length > MAX_POLL_OPTION_TITLE_LENGTH
-    ) {
+    if (option.length < 1 || option.length > MAX_POLL_OPTION_TITLE_LENGTH) {
       throw new InvalidPollInputError(`poll.options.${i}`);
     }
     if (seenOptions.has(option)) {
@@ -119,23 +119,29 @@ export async function createPoll(
   input: CreatePollInput,
 ): Promise<Poll & { options: PollOption[] }> {
   const poll = normalizePollInput(input);
-  const rows = await db.insert(pollTable).values({
-    postId,
-    multiple: poll.multiple,
-    votersCount: 0,
-    ends: poll.ends,
-  }).returning();
+  const rows = await db
+    .insert(pollTable)
+    .values({
+      postId,
+      multiple: poll.multiple,
+      votersCount: 0,
+      ends: poll.ends,
+    })
+    .returning();
   if (rows.length < 1) {
     throw new Error("Failed to create poll.");
   }
-  const optionRows = await db.insert(pollOptionTable).values(
-    poll.options.map((title, index) => ({
-      postId,
-      index,
-      title,
-      votesCount: 0,
-    })),
-  ).returning();
+  const optionRows = await db
+    .insert(pollOptionTable)
+    .values(
+      poll.options.map((title, index) => ({
+        postId,
+        index,
+        title,
+        votesCount: 0,
+      })),
+    )
+    .returning();
   return {
     ...rows[0],
     options: optionRows.toSorted((a, b) => a.index - b.index),
@@ -147,7 +153,8 @@ export async function persistPoll(
   question: vocab.Question,
   postId: Uuid,
 ): Promise<Poll | undefined> {
-  const endTime = question.endTime ??
+  const endTime =
+    question.endTime ??
     (question.closed instanceof Temporal.Instant ? question.closed : null);
   if (endTime == null) return undefined;
   let multiple = true;
@@ -173,7 +180,8 @@ export async function persistPoll(
     votersCount: question.voters ?? 0,
     ends,
   };
-  const rows = await db.insert(pollTable)
+  const rows = await db
+    .insert(pollTable)
     .values(values)
     .onConflictDoUpdate({
       target: pollTable.postId,
@@ -201,18 +209,22 @@ export async function persistPoll(
   for (const existing of existingOptions) {
     const newIndex = newOptionTitles.get(existing.title);
     if (newIndex == null || newIndex !== existing.index) {
-      await db.delete(pollVoteTable).where(
-        and(
-          eq(pollVoteTable.postId, postId),
-          eq(pollVoteTable.optionIndex, existing.index),
-        ),
-      );
-      await db.delete(pollOptionTable).where(
-        and(
-          eq(pollOptionTable.postId, postId),
-          eq(pollOptionTable.index, existing.index),
-        ),
-      );
+      await db
+        .delete(pollVoteTable)
+        .where(
+          and(
+            eq(pollVoteTable.postId, postId),
+            eq(pollVoteTable.optionIndex, existing.index),
+          ),
+        );
+      await db
+        .delete(pollOptionTable)
+        .where(
+          and(
+            eq(pollOptionTable.postId, postId),
+            eq(pollOptionTable.index, existing.index),
+          ),
+        );
     }
   }
 
@@ -239,7 +251,8 @@ export async function persistPollOption(
     title,
     votesCount: replies?.totalItems ?? undefined,
   };
-  const rows = await db.insert(pollOptionTable)
+  const rows = await db
+    .insert(pollOptionTable)
     .values(values)
     .onConflictDoUpdate({
       target: [pollOptionTable.postId, pollOptionTable.index],
@@ -274,14 +287,15 @@ export async function persistPollVoteResult(
   } = {},
 ): Promise<PersistPollVoteResult> {
   if (
-    note.replyTargetId == null || note.attributionId == null ||
+    note.replyTargetId == null ||
+    note.attributionId == null ||
     note.name == null
   ) {
     return { attempted: false };
   }
   const voteName = note.name.toString();
-  const hasReplyContent = note.content != null &&
-    note.content.toString().trim() !== "";
+  const hasReplyContent =
+    note.content != null && note.content.toString().trim() !== "";
   const { db } = ctx;
   // Check the cached voter first, before any remote dereference or
   // Question persistence a federation-blocked actor could trigger.
@@ -316,7 +330,8 @@ export async function persistPollVoteResult(
   }
   if (isFederationBlocked(actor)) return { attempted: true };
   const persistVoteInTransaction = async (tx: Transaction) => {
-    const [lockedPoll] = await tx.select()
+    const [lockedPoll] = await tx
+      .select()
       .from(pollTable)
       .where(eq(pollTable.postId, post.id))
       .for("update");
@@ -357,7 +372,8 @@ export async function persistPollVoteResult(
       return { attempted: true };
     }
 
-    const rows = await tx.insert(pollVoteTable)
+    const rows = await tx
+      .insert(pollVoteTable)
       .values({
         postId: lockedPoll.postId,
         actorId: actor.id,
@@ -367,15 +383,15 @@ export async function persistPollVoteResult(
       .returning();
     if (rows.length < 1) return { attempted: true };
 
-    if (
-      existingVotes.length < 1 && !persistedRemotePollWithVotersCount
-    ) {
-      await tx.update(pollTable)
+    if (existingVotes.length < 1 && !persistedRemotePollWithVotersCount) {
+      await tx
+        .update(pollTable)
         .set({ votersCount: sql`${pollTable.votersCount} + 1` })
         .where(eq(pollTable.postId, lockedPoll.postId));
     }
     if (!persistedRemotePollWithOptionVotesCount) {
-      await tx.update(pollOptionTable)
+      await tx
+        .update(pollOptionTable)
         .set({ votesCount: sql`${pollOptionTable.votesCount} + 1` })
         .where(
           and(
@@ -419,7 +435,8 @@ async function hasRemoteOptionVotesCount(
 function returnedRows<T>(result: unknown): T[] {
   if (Array.isArray(result)) return result as T[];
   if (
-    result != null && typeof result === "object" &&
+    result != null &&
+    typeof result === "object" &&
     Array.isArray((result as { rows?: unknown }).rows)
   ) {
     return (result as { rows: T[] }).rows;
@@ -442,8 +459,8 @@ export async function notifyEndedPolls(
   options: NotifyEndedPollsOptions = {},
 ): Promise<NotifyEndedPollsResult> {
   const now = options.now ?? new Date();
-  const maxPolls = options.maxPolls ??
-    DEFAULT_ENDED_POLL_NOTIFICATION_BATCH_SIZE;
+  const maxPolls =
+    options.maxPolls ?? DEFAULT_ENDED_POLL_NOTIFICATION_BATCH_SIZE;
   if (!Number.isInteger(maxPolls) || maxPolls < 1) {
     return { pollsProcessed: 0, notificationsCreated: 0 };
   }
@@ -488,20 +505,22 @@ async function notifyClaimedEndedPolls(
     return { pollsProcessed: 0, notificationsCreated: 0 };
   }
 
-  const polls = await db.select({
-    postId: pollTable.postId,
-    ends: pollTable.ends,
-    post: postTable,
-    author: actorTable,
-  })
+  const polls = await db
+    .select({
+      postId: pollTable.postId,
+      ends: pollTable.ends,
+      post: postTable,
+      author: actorTable,
+    })
     .from(pollTable)
     .innerJoin(postTable, eq(postTable.id, pollTable.postId))
     .innerJoin(actorTable, eq(actorTable.id, postTable.actorId))
     .where(inArray(pollTable.postId, postIds));
-  const votes = await db.select({
-    postId: pollVoteTable.postId,
-    accountId: actorTable.accountId,
-  })
+  const votes = await db
+    .select({
+      postId: pollVoteTable.postId,
+      accountId: actorTable.accountId,
+    })
     .from(pollVoteTable)
     .innerJoin(actorTable, eq(actorTable.id, pollVoteTable.actorId))
     .where(inArray(pollVoteTable.postId, postIds));
@@ -552,10 +571,7 @@ async function voteOperation(
   const { db } = fedCtx;
   await assertAccountActorNotSuspended(db, voter.id);
   const voteInTransaction = async (tx: Transaction) => {
-    if (
-      optionIndices.size < 1 ||
-      !poll.multiple && optionIndices.size > 1
-    ) {
+    if (optionIndices.size < 1 || (!poll.multiple && optionIndices.size > 1)) {
       return { post: undefined, votes: [], federate: false };
     }
 
@@ -563,10 +579,7 @@ async function voteOperation(
       .select({ postId: pollTable.postId })
       .from(pollTable)
       .where(
-        and(
-          eq(pollTable.postId, poll.postId),
-          sql`${pollTable.ends} > now()`,
-        ),
+        and(eq(pollTable.postId, poll.postId), sql`${pollTable.ends} > now()`),
       )
       .for("update");
     if (lockedPoll == null) {
@@ -590,22 +603,30 @@ async function voteOperation(
       return { post, votes: alreadyVoted, federate: false };
     }
 
-    const indices = [...optionIndices].filter((index) =>
-      poll.options.find((o) => o.index === index) != null
+    const indices = [...optionIndices].filter(
+      (index) => poll.options.find((o) => o.index === index) != null,
     );
     if (indices.length < 1) return { post, votes: [], federate: false };
 
-    const votes = await tx.insert(pollVoteTable)
-      .values(indices.map((index) => ({
-        postId: poll.postId,
-        actorId: voter.actor.id,
-        optionIndex: index,
-      } satisfies NewPollVote)))
+    const votes = await tx
+      .insert(pollVoteTable)
+      .values(
+        indices.map(
+          (index) =>
+            ({
+              postId: poll.postId,
+              actorId: voter.actor.id,
+              optionIndex: index,
+            }) satisfies NewPollVote,
+        ),
+      )
       .returning();
-    await tx.update(pollTable)
+    await tx
+      .update(pollTable)
       .set({ votersCount: sql`${pollTable.votersCount} + 1` })
       .where(eq(pollTable.postId, poll.postId));
-    await tx.update(pollOptionTable)
+    await tx
+      .update(pollOptionTable)
       .set({ votesCount: sql`${pollOptionTable.votesCount} + 1` })
       .where(
         and(
@@ -623,8 +644,9 @@ async function voteOperation(
 
   if (federate && post != null && post.actor.accountId == null) {
     for (const vote of votes) {
-      const name = poll.options.find((o) => o.index === vote.optionIndex)
-        ?.title;
+      const name = poll.options.find(
+        (o) => o.index === vote.optionIndex,
+      )?.title;
       if (name == null) continue;
       await fedCtx.sendActivity(
         { identifier: voter.id },

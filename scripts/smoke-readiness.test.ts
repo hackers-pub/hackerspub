@@ -1,7 +1,8 @@
 import { assert, assertEquals, assertRejects } from "@std/assert";
+import test from "node:test";
 import { waitUntil } from "./smoke-readiness.ts";
 
-Deno.test("waitUntil bounds a stalled readiness check to its deadline", async () => {
+test("waitUntil bounds a stalled readiness check to its deadline", async () => {
   let signal: AbortSignal | undefined;
   const started = performance.now();
 
@@ -26,15 +27,10 @@ Deno.test("waitUntil bounds a stalled readiness check to its deadline", async ()
   );
 });
 
-Deno.test("waitUntil retries readiness checks until one succeeds", async () => {
+test("waitUntil retries readiness checks until one succeeds", async () => {
   let attempts = 0;
 
-  await waitUntil(
-    "a starting service",
-    async () => ++attempts === 2,
-    1_000,
-    1,
-  );
+  await waitUntil("a starting service", async () => ++attempts === 2, 1_000, 1);
 
   assertEquals(attempts, 2);
 });

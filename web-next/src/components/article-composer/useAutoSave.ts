@@ -24,7 +24,8 @@ export function useAutoSave(options: UseAutoSaveOptions): UseAutoSaveReturn {
   // Track dirty state
   createEffect(() => {
     const currentDraft = options.draft();
-    const hasChanges = options.title() !== (currentDraft?.title ?? "") ||
+    const hasChanges =
+      options.title() !== (currentDraft?.title ?? "") ||
       options.content() !== (currentDraft?.content ?? "") ||
       JSON.stringify(options.tags()) !==
         JSON.stringify(currentDraft?.tags ?? []);

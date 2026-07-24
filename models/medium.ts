@@ -1,6 +1,10 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { createWriteStream } from "node:fs";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
+import type { ReadableStream as NodeReadableStream } from "node:stream/web";
 import { getUserAgent } from "@fedify/fedify";
 import * as vocab from "@fedify/vocab";
 import { getLogger } from "@logtape/logtape";
@@ -27,17 +31,17 @@ import { generateUuidV7, type Uuid } from "./uuid.ts";
 const logger = getLogger(["hackerspub", "models", "medium"]);
 
 const mediaTypes: Record<string, PostMediumType> = {
-  "gif": "image/gif",
-  "jpeg": "image/jpeg",
-  "jpg": "image/jpeg",
-  "png": "image/png",
-  "svg": "image/svg+xml",
-  "webp": "image/webp",
-  "mp4": "video/mp4",
-  "m4v": "video/mp4",
-  "webm": "video/webm",
-  "mov": "video/quicktime",
-  "qt": "video/quicktime",
+  gif: "image/gif",
+  jpeg: "image/jpeg",
+  jpg: "image/jpeg",
+  png: "image/png",
+  svg: "image/svg+xml",
+  webp: "image/webp",
+  mp4: "video/mp4",
+  m4v: "video/mp4",
+  webm: "video/webm",
+  mov: "video/quicktime",
+  qt: "video/quicktime",
 };
 
 export const SUPPORTED_MEDIUM_IMAGE_TYPES = [
@@ -53,6 +57,17 @@ const REMOTE_MEDIUM_FETCH_TIMEOUT_MS = 30_000;
 
 const localMediumType: MediumType = "image/webp";
 
+export async function writeResponseToFile(
+  response: Response,
+  path: string,
+): Promise<void> {
+  if (response.body == null) {
+    throw new TypeError("Response body is unavailable.");
+  }
+  const body = response.body as unknown as NodeReadableStream<Uint8Array>;
+  await pipeline(Readable.fromWeb(body), createWriteStream(path));
+}
+
 type MediumPreprocess = (
   bytes: Uint8Array,
 ) => Promise<{ bytes: Uint8Array; contentType?: string | null }>;
@@ -65,10 +80,14 @@ export class UnsafeMediumUrlError extends Error {
 }
 
 function isSupportedMediumImageType(value: string | null): boolean {
-  return value != null &&
+  return (
+    value != null &&
     SUPPORTED_MEDIUM_IMAGE_TYPES.includes(
-      value.split(";")[0].trim() as typeof SUPPORTED_MEDIUM_IMAGE_TYPES[number],
-    );
+      value
+        .split(";")[0]
+        .trim() as (typeof SUPPORTED_MEDIUM_IMAGE_TYPES)[number],
+    )
+  );
 }
 
 function parsePostMediumType(value: string | null): PostMediumType | undefined {
@@ -80,8 +99,10 @@ function parsePostMediumType(value: string | null): PostMediumType | undefined {
 function isGenericBinaryType(value: string | null): boolean {
   if (value == null) return false;
   const contentType = value.split(";")[0].trim().toLowerCase();
-  return contentType === "application/octet-stream" ||
-    contentType === "binary/octet-stream";
+  return (
+    contentType === "application/octet-stream" ||
+    contentType === "binary/octet-stream"
+  );
 }
 
 function isPotentialPostMediumType(value: string | null): boolean {
@@ -188,10 +209,7 @@ export async function createMediumFromBytes(
   if (input.byteLength > (options.maxSize ?? MAX_MEDIUM_IMAGE_SIZE)) {
     return undefined;
   }
-  if (
-    contentType != null &&
-    !isSupportedMediumImageType(contentType)
-  ) {
+  if (contentType != null && !isSupportedMediumImageType(contentType)) {
     return undefined;
   }
   let data: Uint8Array;
@@ -230,24 +248,26 @@ export async function createMediumFromBytes(
   if (existing != null) return existing;
   const key = `media/${contentHash}.webp`;
   await disk.put(key, new Uint8Array(data), { contentType: localMediumType });
-  const rows = await db.insert(mediumTable).values(
-    {
+  const rows = await db
+    .insert(mediumTable)
+    .values({
       id: generateUuidV7(),
       key,
       type: localMediumType,
       contentHash,
       width,
       height,
-    } satisfies NewMedium,
-  ).onConflictDoUpdate({
-    target: mediumTable.key,
-    set: {
-      contentHash,
-      width,
-      height,
-      type: localMediumType,
-    },
-  }).returning();
+    } satisfies NewMedium)
+    .onConflictDoUpdate({
+      target: mediumTable.key,
+      set: {
+        contentHash,
+        width,
+        height,
+        type: localMediumType,
+      },
+    })
+    .returning();
   return rows[0];
 }
 
@@ -275,14 +295,16 @@ export async function createMediumFromUrl(
   } = {},
 ): Promise<Medium | undefined> {
   if (
-    url.protocol !== "data:" && url.protocol !== "http:" &&
+    url.protocol !== "data:" &&
+    url.protocol !== "http:" &&
     url.protocol !== "https:"
   ) {
     return undefined;
   }
-  const response = url.protocol === "data:"
-    ? await fetch(url)
-    : await fetchMediumUrl(url, options.userAgentUrl);
+  const response =
+    url.protocol === "data:"
+      ? await fetch(url)
+      : await fetchMediumUrl(url, options.userAgentUrl);
   if (!response.ok) {
     await response.body?.cancel().catch(() => {});
     return undefined;
@@ -321,24 +343,26 @@ export async function createMediumForExistingKey(
     where: { key: values.key },
   });
   if (existing != null) return existing;
-  const rows = await db.insert(mediumTable).values(
-    {
+  const rows = await db
+    .insert(mediumTable)
+    .values({
       id: generateUuidV7(),
       key: values.key,
       type: values.type ?? localMediumType,
       contentHash: values.contentHash,
       width: values.width,
       height: values.height,
-    } satisfies NewMedium,
-  ).onConflictDoUpdate({
-    target: mediumTable.key,
-    set: {
-      type: values.type ?? localMediumType,
-      contentHash: values.contentHash,
-      width: values.width,
-      height: values.height,
-    },
-  }).returning();
+    } satisfies NewMedium)
+    .onConflictDoUpdate({
+      target: mediumTable.key,
+      set: {
+        type: values.type ?? localMediumType,
+        contentHash: values.contentHash,
+        width: values.width,
+        height: values.height,
+      },
+    })
+    .returning();
   return rows[0];
 }
 
@@ -355,18 +379,17 @@ export async function persistPostMedium(
   postId: Uuid,
   index: number,
 ): Promise<PostMedium | undefined> {
-  const url = document.url instanceof vocab.Link
-    ? document.url.href
-    : document.url;
+  const url =
+    document.url instanceof vocab.Link ? document.url.href : document.url;
   if (url == null) return undefined;
   let mediumType: PostMediumType | undefined;
   if (isPostMediumType(document.mediaType)) {
     mediumType = document.mediaType;
   } else if (
     (document instanceof vocab.Image || document instanceof vocab.Video) &&
-    Object.keys(mediaTypes).map((ext) => `.${ext}`).some((ext) =>
-      url.pathname.toLowerCase().endsWith(ext)
-    )
+    Object.keys(mediaTypes)
+      .map((ext) => `.${ext}`)
+      .some((ext) => url.pathname.toLowerCase().endsWith(ext))
   ) {
     const m = /\.([^.]+)$/.exec(url.pathname);
     if (!m) return undefined;
@@ -412,13 +435,14 @@ export async function persistPostMedium(
     const source = join(tmpDir, "source");
     try {
       if (response.body == null) return undefined;
-      await writeFile(source, response.body);
+      await writeResponseToFile(response, source);
       if (width == null || height == null) {
         let metadata: ffmpeg.FfprobeData;
         try {
           metadata = await new Promise((resolve, reject) =>
-            ffmpeg(source)
-              .ffprobe((err, data) => err ? reject(err) : resolve(data))
+            ffmpeg(source).ffprobe((err, data) =>
+              err ? reject(err) : resolve(data),
+            ),
           );
         } catch {
           return undefined;
@@ -434,12 +458,12 @@ export async function persistPostMedium(
             timestamps: [0],
             filename: "screenshot.png",
             folder: tmpDir,
-          })
+          }),
       );
       if (!screenshotCreated) return undefined;
       const screenshot = join(tmpDir, "screenshot.png");
       await fedCtx.storage.put(
-        thumbnailKey = `videos/${crypto.randomUUID()}.png`,
+        (thumbnailKey = `videos/${crypto.randomUUID()}.png`),
         await readFile(screenshot),
       );
     } finally {
@@ -457,7 +481,8 @@ export async function persistPostMedium(
     thumbnailKey,
     sensitive: document.sensitive ?? false,
   } satisfies NewPostMedium;
-  const result = await fedCtx.db.insert(postMediumTable)
+  const result = await fedCtx.db
+    .insert(postMediumTable)
     .values(values)
     .onConflictDoUpdate({
       target: [postMediumTable.postId, postMediumTable.index],

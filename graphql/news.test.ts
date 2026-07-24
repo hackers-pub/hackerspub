@@ -31,9 +31,10 @@ async function makeModerator(
   values: { username: string; name: string; email: string },
 ): Promise<AuthenticatedAccount> {
   const { account } = await insertAccountWithActor(tx, values);
-  await tx.update(accountTable).set({ moderator: true }).where(
-    eq(accountTable.id, account.id),
-  );
+  await tx
+    .update(accountTable)
+    .set({ moderator: true })
+    .where(eq(accountTable.id, account.id));
   return { ...account, moderator: true };
 }
 
@@ -150,11 +151,16 @@ function isBatchedArticleLookup(args: unknown[]): boolean {
   }
   const clauses = where.AND;
   if (!Array.isArray(clauses)) return false;
-  return clauses.some((clause) =>
-    clause != null && typeof clause === "object" &&
-    "type" in clause && clause.type === "Article" &&
-    "linkId" in clause && clause.linkId != null &&
-    typeof clause.linkId === "object" && "in" in clause.linkId
+  return clauses.some(
+    (clause) =>
+      clause != null &&
+      typeof clause === "object" &&
+      "type" in clause &&
+      clause.type === "Article" &&
+      "linkId" in clause &&
+      clause.linkId != null &&
+      typeof clause.linkId === "object" &&
+      "in" in clause.linkId,
   );
 }
 
@@ -191,10 +197,10 @@ test("newsStories ranks links by score for a guest, popular by default", async (
     });
     assert.deepEqual(result.errors, undefined);
     const data = result.data as unknown as NewsStoriesResult;
-    assert.deepEqual(data.newsStories.edges.map((e) => e.node.url), [
-      high.url,
-      low.url,
-    ]);
+    assert.deepEqual(
+      data.newsStories.edges.map((e) => e.node.url),
+      [high.url, low.url],
+    );
   });
 });
 
@@ -214,11 +220,14 @@ test("newsStories exposes the Article backing an article news link", async () =>
       contentHtml: "<p>Article body</p>",
       link: { id: link.id, url: link.url },
     });
-    await tx.update(postTable).set({
-      type: "Article",
-      name: "GQL article",
-      url: link.url,
-    }).where(eq(postTable.id, post.id));
+    await tx
+      .update(postTable)
+      .set({
+        type: "Article",
+        name: "GQL article",
+        url: link.url,
+      })
+      .where(eq(postTable.id, post.id));
     await recomputeNewsScores(tx);
 
     const result = await execute({
@@ -230,12 +239,14 @@ test("newsStories exposes the Article backing an article news link", async () =>
     });
 
     assert.deepEqual(result.errors, undefined);
-    const story = (result.data as {
-      newsStory: {
-        url: string;
-        article: { __typename: string; name: string } | null;
-      };
-    }).newsStory;
+    const story = (
+      result.data as {
+        newsStory: {
+          url: string;
+          article: { __typename: string; name: string } | null;
+        };
+      }
+    ).newsStory;
     assert.equal(story.url, link.url);
     assert.deepEqual(story.article, {
       __typename: "Article",
@@ -264,19 +275,25 @@ test("PostLink.article batches article lookups across news stories", async () =>
         link: { id: link.id, url: link.url },
         published: new Date(`2026-05-2${i}T00:00:00.000Z`),
       });
-      await tx.update(postTable).set({
-        type: "Article",
-        name: `GQL batch article ${i}`,
-        url: link.url,
-      }).where(eq(postTable.id, post.id));
-      await tx.update(postLinkTable).set({
-        score: 1_000_000 + i,
-        weightedMass: 1,
-        postCount: 1,
-        firstShared: now,
-        latestActivity: now,
-        scoreUpdated: now,
-      }).where(eq(postLinkTable.id, link.id));
+      await tx
+        .update(postTable)
+        .set({
+          type: "Article",
+          name: `GQL batch article ${i}`,
+          url: link.url,
+        })
+        .where(eq(postTable.id, post.id));
+      await tx
+        .update(postLinkTable)
+        .set({
+          score: 1_000_000 + i,
+          weightedMass: 1,
+          postCount: 1,
+          firstShared: now,
+          latestActivity: now,
+          scoreUpdated: now,
+        })
+        .where(eq(postLinkTable.id, link.id));
       expected.push({ url: link.url, name: `GQL batch article ${i}` });
     }
 
@@ -290,19 +307,21 @@ test("PostLink.article batches article lookups across news stories", async () =>
     });
 
     assert.deepEqual(result.errors, undefined);
-    const stories = (result.data as {
-      newsStories: {
-        edges: {
-          node: {
-            url: string;
-            article: {
-              name: string;
-              actor: { handle: string };
-            } | null;
-          };
-        }[];
-      };
-    }).newsStories.edges.map((edge) => edge.node);
+    const stories = (
+      result.data as {
+        newsStories: {
+          edges: {
+            node: {
+              url: string;
+              article: {
+                name: string;
+                actor: { handle: string };
+              } | null;
+            };
+          }[];
+        };
+      }
+    ).newsStories.edges.map((edge) => edge.node);
     assert.deepEqual(
       stories.map((story) => ({
         url: story.url,
@@ -354,8 +373,8 @@ test("newsStories order arg switches between popular, newest, and allTime", asyn
         onError: "NO_PROPAGATE",
       });
       assert.deepEqual(result.errors, undefined);
-      return (result.data as unknown as NewsStoriesResult)
-        .newsStories.edges[0].node.url;
+      return (result.data as unknown as NewsStoriesResult).newsStories.edges[0]
+        .node.url;
     };
 
     assert.deepEqual(await firstUrl("POPULAR"), lightNew.url);
@@ -412,8 +431,9 @@ test("newsStories paginates forward by cursor without gaps", async () => {
     const data2 = page2.data as unknown as NewsStoriesResult;
     assert.ok(data2.newsStories.pageInfo.hasPreviousPage);
 
-    const seen = [...data1.newsStories.edges, ...data2.newsStories.edges]
-      .map((e) => e.node.url);
+    const seen = [...data1.newsStories.edges, ...data2.newsStories.edges].map(
+      (e) => e.node.url,
+    );
     assert.deepEqual(new Set(seen).size, 3);
     // Highest score (most reactions) first.
     assert.deepEqual(seen[0], urls[2]);
@@ -497,18 +517,20 @@ test("PostLink exposes sharingPosts and sourceBreakdown", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    const node = (result.data as {
-      newsStory: {
-        url: string;
-        postCount: number;
-        sourceBreakdown: {
-          local: number;
-          remote: number;
-          bluesky: number;
+    const node = (
+      result.data as {
+        newsStory: {
+          url: string;
+          postCount: number;
+          sourceBreakdown: {
+            local: number;
+            remote: number;
+            bluesky: number;
+          };
+          sharingPosts: { edges: unknown[] };
         };
-        sharingPosts: { edges: unknown[] };
-      };
-    }).newsStory;
+      }
+    ).newsStory;
     assert.deepEqual(node.url, link.url);
     assert.deepEqual(node.postCount, 3);
     assert.deepEqual(node.sourceBreakdown, { local: 1, remote: 1, bluesky: 1 });
@@ -565,12 +587,14 @@ test("sharingPosts excludes non-public shares for authenticated viewers", async 
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    const node = (result.data as {
-      newsStory: {
-        postCount: number;
-        sharingPosts: { edges: { node: { visibility: string } }[] };
-      };
-    }).newsStory;
+    const node = (
+      result.data as {
+        newsStory: {
+          postCount: number;
+          sharingPosts: { edges: { node: { visibility: string } }[] };
+        };
+      }
+    ).newsStory;
     assert.deepEqual(node.postCount, 1);
     assert.deepEqual(node.sharingPosts.edges, [
       { node: { visibility: "PUBLIC" } },
@@ -626,18 +650,20 @@ test("sharingPosts and postCount exclude bot-account shares", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    const node = (result.data as {
-      newsStory: {
-        url: string;
-        postCount: number;
-        sourceBreakdown: {
-          local: number;
-          remote: number;
-          bluesky: number;
+    const node = (
+      result.data as {
+        newsStory: {
+          url: string;
+          postCount: number;
+          sourceBreakdown: {
+            local: number;
+            remote: number;
+            bluesky: number;
+          };
+          sharingPosts: { edges: unknown[] };
         };
-        sharingPosts: { edges: unknown[] };
-      };
-    }).newsStory;
+      }
+    ).newsStory;
     assert.deepEqual(node.url, link.url);
     assert.deepEqual(node.postCount, 1);
     assert.deepEqual(node.sourceBreakdown, { local: 1, remote: 0, bluesky: 0 });
@@ -683,8 +709,9 @@ test("newsStories omits a link shared only by a bot account", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    const urls = (result.data as unknown as NewsStoriesResult)
-      .newsStories.edges.map((e) => e.node.url);
+    const urls = (
+      result.data as unknown as NewsStoriesResult
+    ).newsStories.edges.map((e) => e.node.url);
     assert.ok(urls.includes(humanLink.url));
     assert.ok(!urls.includes(botLink.url));
   });
@@ -803,17 +830,19 @@ test("newsStory looks a link up by uuid for the discussion permalink", async () 
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(found.errors, undefined);
-    const story = (found.data as {
-      newsStory: {
-        uuid: string;
-        url: string;
-        postCount: number;
-        firstShared: string | null;
-        firstSharedAt: string | null;
-        latestActivity: string | null;
-        latestActivityAt: string | null;
-      } | null;
-    }).newsStory;
+    const story = (
+      found.data as {
+        newsStory: {
+          uuid: string;
+          url: string;
+          postCount: number;
+          firstShared: string | null;
+          firstSharedAt: string | null;
+          latestActivity: string | null;
+          latestActivityAt: string | null;
+        } | null;
+      }
+    ).newsStory;
     assert.deepEqual(story?.uuid, link.id);
     assert.deepEqual(story?.url, link.url);
     assert.deepEqual(story?.postCount, 1);
@@ -829,10 +858,7 @@ test("newsStory looks a link up by uuid for the discussion permalink", async () 
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(missing.errors, undefined);
-    assert.deepEqual(
-      (missing.data as { newsStory: unknown }).newsStory,
-      null,
-    );
+    assert.deepEqual((missing.data as { newsStory: unknown }).newsStory, null);
   });
 });
 
@@ -939,17 +965,19 @@ test("recomputeNewsScores rebuilds scores for a moderator", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    const payload = (result.data as {
-      recomputeNewsScores: {
-        __typename: string;
-        linksUpdated: number;
-        recomputed: string;
-        status: {
-          scoredLinkCount: number;
-          lastRecomputed: string | null;
+    const payload = (
+      result.data as {
+        recomputeNewsScores: {
+          __typename: string;
+          linksUpdated: number;
+          recomputed: string;
+          status: {
+            scoredLinkCount: number;
+            lastRecomputed: string | null;
+          };
         };
-      };
-    }).recomputeNewsScores;
+      }
+    ).recomputeNewsScores;
     assert.deepEqual(payload.__typename, "RecomputeNewsScoresPayload");
     assert.deepEqual(payload.linksUpdated, 1);
     assert.deepEqual(payload.status.scoredLinkCount, 1);
@@ -965,8 +993,7 @@ test("recomputeNewsScores rebuilds scores for a moderator", async () => {
     });
     assert.deepEqual(feed.errors, undefined);
     assert.deepEqual(
-      (feed.data as unknown as NewsStoriesResult).newsStories.edges[0].node
-        .url,
+      (feed.data as unknown as NewsStoriesResult).newsStories.edges[0].node.url,
       link.url,
     );
   });
@@ -1049,9 +1076,11 @@ test("setNewsScorePenalty demotes for a moderator and rejects others", async () 
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(set.errors, undefined);
-    const payload = (set.data as {
-      setNewsScorePenalty: { __typename: string; penalty: string };
-    }).setNewsScorePenalty;
+    const payload = (
+      set.data as {
+        setNewsScorePenalty: { __typename: string; penalty: string };
+      }
+    ).setNewsScorePenalty;
     assert.deepEqual(payload.__typename, "PostLink");
     assert.deepEqual(payload.penalty, "DEMOTE");
 
@@ -1064,8 +1093,9 @@ test("setNewsScorePenalty demotes for a moderator and rejects others", async () 
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(feed.errors, undefined);
-    const urls = (feed.data as unknown as NewsStoriesResult).newsStories.edges
-      .map((e) => e.node.url);
+    const urls = (
+      feed.data as unknown as NewsStoriesResult
+    ).newsStories.edges.map((e) => e.node.url);
     assert.ok(urls.indexOf(b.url) < urls.indexOf(a.url));
   });
 });
@@ -1161,9 +1191,11 @@ test("news exclusion patterns hide links and are moderator-only", async () => {
       contextValue: makeUserContext(tx, moderator),
       onError: "NO_PROPAGATE",
     });
-    const added = (add.data as {
-      addNewsExcludedPattern: { __typename: string; id: string };
-    }).addNewsExcludedPattern;
+    const added = (
+      add.data as {
+        addNewsExcludedPattern: { __typename: string; id: string };
+      }
+    ).addNewsExcludedPattern;
     assert.deepEqual(added.__typename, "NewsExcludedPattern");
 
     const feed = await execute({
@@ -1173,8 +1205,9 @@ test("news exclusion patterns hide links and are moderator-only", async () => {
       contextValue: makeGuestContext(tx),
       onError: "NO_PROPAGATE",
     });
-    const urls = (feed.data as unknown as NewsStoriesResult).newsStories.edges
-      .map((e) => e.node.url);
+    const urls = (
+      feed.data as unknown as NewsStoriesResult
+    ).newsStories.edges.map((e) => e.node.url);
     assert.ok(!urls.includes(spam.url));
     assert.ok(urls.includes(good.url));
 
@@ -1187,9 +1220,11 @@ test("news exclusion patterns hide links and are moderator-only", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(
-      (remove.data as {
-        removeNewsExcludedPattern: { __typename: string; removedId: string };
-      }).removeNewsExcludedPattern.removedId,
+      (
+        remove.data as {
+          removeNewsExcludedPattern: { __typename: string; removedId: string };
+        }
+      ).removeNewsExcludedPattern.removedId,
       added.id,
     );
     const feed2 = await execute({
@@ -1199,8 +1234,9 @@ test("news exclusion patterns hide links and are moderator-only", async () => {
       contextValue: makeGuestContext(tx),
       onError: "NO_PROPAGATE",
     });
-    const urls2 = (feed2.data as unknown as NewsStoriesResult).newsStories
-      .edges.map((e) => e.node.url);
+    const urls2 = (
+      feed2.data as unknown as NewsStoriesResult
+    ).newsStories.edges.map((e) => e.node.url);
     assert.ok(urls2.includes(spam.url));
   });
 });
@@ -1260,8 +1296,9 @@ test("preferred sharers whitelist a bot's link and are moderator-only", async ()
       onError: "NO_PROPAGATE",
     });
     assert.ok(
-      !(before.data as unknown as NewsStoriesResult).newsStories.edges
-        .some((e) => e.node.url === link.url),
+      !(before.data as unknown as NewsStoriesResult).newsStories.edges.some(
+        (e) => e.node.url === link.url,
+      ),
     );
 
     // Guests cannot curate or read the list.
@@ -1335,14 +1372,16 @@ test("preferred sharers whitelist a bot's link and are moderator-only", async ()
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(add.errors, undefined);
-    const added = (add.data as {
-      addNewsPreferredSharer: {
-        __typename: string;
-        id: string;
-        promotion: string;
-        actor: { uuid: string };
-      };
-    }).addNewsPreferredSharer;
+    const added = (
+      add.data as {
+        addNewsPreferredSharer: {
+          __typename: string;
+          id: string;
+          promotion: string;
+          actor: { uuid: string };
+        };
+      }
+    ).addNewsPreferredSharer;
     assert.deepEqual(added.__typename, "NewsPreferredSharer");
     assert.deepEqual(added.promotion, "STRONG");
     assert.deepEqual(added.actor.uuid, bot.id);
@@ -1358,8 +1397,9 @@ test("preferred sharers whitelist a bot's link and are moderator-only", async ()
       onError: "NO_PROPAGATE",
     });
     assert.ok(
-      (feed.data as unknown as NewsStoriesResult).newsStories.edges
-        .some((e) => e.node.url === link.url),
+      (feed.data as unknown as NewsStoriesResult).newsStories.edges.some(
+        (e) => e.node.url === link.url,
+      ),
     );
 
     // The moderator can read the curated list.
@@ -1369,9 +1409,11 @@ test("preferred sharers whitelist a bot's link and are moderator-only", async ()
       contextValue: makeUserContext(tx, moderator),
       onError: "NO_PROPAGATE",
     });
-    const sharers = (list.data as {
-      newsPreferredSharers: { id: string; promotion: string }[];
-    }).newsPreferredSharers;
+    const sharers = (
+      list.data as {
+        newsPreferredSharers: { id: string; promotion: string }[];
+      }
+    ).newsPreferredSharers;
     assert.deepEqual(sharers.length, 1);
     assert.deepEqual(sharers[0].promotion, "STRONG");
 
@@ -1384,9 +1426,11 @@ test("preferred sharers whitelist a bot's link and are moderator-only", async ()
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(
-      (remove.data as {
-        removeNewsPreferredSharer: { removedId: string };
-      }).removeNewsPreferredSharer.removedId,
+      (
+        remove.data as {
+          removeNewsPreferredSharer: { removedId: string };
+        }
+      ).removeNewsPreferredSharer.removedId,
       added.id,
     );
     await drainNewsRescoreQueue(tx);
@@ -1398,8 +1442,9 @@ test("preferred sharers whitelist a bot's link and are moderator-only", async ()
       onError: "NO_PROPAGATE",
     });
     assert.ok(
-      !(feed2.data as unknown as NewsStoriesResult).newsStories.edges
-        .some((e) => e.node.url === link.url),
+      !(feed2.data as unknown as NewsStoriesResult).newsStories.edges.some(
+        (e) => e.node.url === link.url,
+      ),
     );
   });
 });

@@ -124,9 +124,9 @@ export const Notification = builder.drizzleInterface("notificationTable", {
             const positionMap = new Map(
               notification.actorIds.map((id, index) => [id, index]),
             );
-            actors.sort((a, b) =>
-              (positionMap.get(b.id) ?? -1) -
-              (positionMap.get(a.id) ?? -1)
+            actors.sort(
+              (a, b) =>
+                (positionMap.get(b.id) ?? -1) - (positionMap.get(a.id) ?? -1),
             );
             return actors;
           },
@@ -145,21 +145,17 @@ export const FollowNotification = builder.drizzleNode("notificationTable", {
   },
 });
 
-export const MentionNotification = builder.drizzleNode(
-  "notificationTable",
-  {
-    variant: "MentionNotification",
-    description:
-      "Notification that an actor @-mentioned this account in a post.",
-    interfaces: [Notification],
-    id: {
-      column: (notification) => notification.id,
-    },
-    fields: (t) => ({
-      post: t.relation("post", { type: Post, nullable: true }),
-    }),
+export const MentionNotification = builder.drizzleNode("notificationTable", {
+  variant: "MentionNotification",
+  description: "Notification that an actor @-mentioned this account in a post.",
+  interfaces: [Notification],
+  id: {
+    column: (notification) => notification.id,
   },
-);
+  fields: (t) => ({
+    post: t.relation("post", { type: Post, nullable: true }),
+  }),
+});
 
 export const ReplyNotification = builder.drizzleNode("notificationTable", {
   variant: "ReplyNotification",
@@ -258,26 +254,23 @@ export const ReactNotification = builder.drizzleNode("notificationTable", {
   }),
 });
 
-export const PollEndedNotification = builder.drizzleNode(
-  "notificationTable",
-  {
-    variant: "PollEndedNotification",
-    description:
-      "Notification that a `Question` poll this account authored or voted in has ended.",
-    interfaces: [Notification],
-    id: {
-      column: (notification) => notification.id,
-    },
-    fields: (t) => ({
-      post: t.relation("post", {
-        type: Post,
-        nullable: true,
-        description:
-          "The ended `Question` post. This may be `null` if the post was deleted after the notification was created.",
-      }),
-    }),
+export const PollEndedNotification = builder.drizzleNode("notificationTable", {
+  variant: "PollEndedNotification",
+  description:
+    "Notification that a `Question` poll this account authored or voted in has ended.",
+  interfaces: [Notification],
+  id: {
+    column: (notification) => notification.id,
   },
-);
+  fields: (t) => ({
+    post: t.relation("post", {
+      type: Post,
+      nullable: true,
+      description:
+        "The ended `Question` post. This may be `null` if the post was deleted after the notification was created.",
+    }),
+  }),
+});
 
 export const OrganizationConversionRequestNotification = builder.drizzleNode(
   "notificationTable",
@@ -299,8 +292,10 @@ export const OrganizationConversionRequestNotification = builder.drizzleNode(
         async resolve(notification, _, ctx) {
           const requestId = notification.organizationConversionRequestId;
           if (requestId == null) throw new InvalidInputError("request");
-          const request = await ctx.db.query.organizationConversionRequestTable
-            .findFirst({ where: { id: requestId } });
+          const request =
+            await ctx.db.query.organizationConversionRequestTable.findFirst({
+              where: { id: requestId },
+            });
           if (request == null) throw new InvalidInputError("request");
           return request;
         },
@@ -336,12 +331,14 @@ export const OrganizationInvitationNotification = builder.drizzleNode(
             columns: { accountId: true },
           });
           if (organizationActor?.accountId == null) return null;
-          return await ctx.db.query.organizationMembershipTable.findFirst({
-            where: {
-              organizationAccountId: organizationActor.accountId,
-              memberAccountId: notification.accountId,
-            },
-          }) ?? null;
+          return (
+            (await ctx.db.query.organizationMembershipTable.findFirst({
+              where: {
+                organizationAccountId: organizationActor.accountId,
+                memberAccountId: notification.accountId,
+              },
+            })) ?? null
+          );
         },
       }),
     }),
@@ -363,13 +360,17 @@ builder.mutationField("markNotificationsAsRead", (t) =>
     },
     async resolve(_root, { upTo }, ctx) {
       if (ctx.account == null) throw new NotAuthenticatedError();
-      const readThrough = upTo == null ? sql`CURRENT_TIMESTAMP` : sql`(
+      const readThrough =
+        upTo == null
+          ? sql`CURRENT_TIMESTAMP`
+          : sql`(
           SELECT ${notificationTable.created}
           FROM ${notificationTable}
           WHERE ${notificationTable.id} = ${upTo}
             AND ${notificationTable.accountId} = ${ctx.account.id}
         )`;
-      const [row] = await ctx.db.update(accountTable)
+      const [row] = await ctx.db
+        .update(accountTable)
         .set({
           notificationRead: sql`GREATEST(
             COALESCE(${accountTable.notificationRead}, '-infinity'::timestamptz),
@@ -379,7 +380,9 @@ builder.mutationField("markNotificationsAsRead", (t) =>
         .where(
           and(
             eq(accountTable.id, ctx.account.id),
-            upTo == null ? undefined : sql`EXISTS (
+            upTo == null
+              ? undefined
+              : sql`EXISTS (
                 SELECT 1
                 FROM ${notificationTable}
                 WHERE ${notificationTable.id} = ${upTo}
@@ -391,4 +394,5 @@ builder.mutationField("markNotificationsAsRead", (t) =>
       if (row == null) throw new InvalidInputError("upTo");
       return row.notificationRead!;
     },
-  }));
+  }),
+);

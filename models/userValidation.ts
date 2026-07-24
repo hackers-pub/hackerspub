@@ -1,19 +1,25 @@
 export const USERNAME_REGEXP = /^[a-z0-9_]{1,50}$/;
 
-export enum UsernameValidationError {
-  Required = "USERNAME_REQUIRED",
-  TooLong = "USERNAME_TOO_LONG",
-  InvalidCharacters = "USERNAME_INVALID_CHARACTERS",
-}
+export const UsernameValidationError = {
+  Required: "USERNAME_REQUIRED",
+  TooLong: "USERNAME_TOO_LONG",
+  InvalidCharacters: "USERNAME_INVALID_CHARACTERS",
+} as const;
+export type UsernameValidationError =
+  (typeof UsernameValidationError)[keyof typeof UsernameValidationError];
 
-export enum DisplayNameValidationError {
-  Required = "DISPLAY_NAME_REQUIRED",
-  TooLong = "DISPLAY_NAME_TOO_LONG",
-}
+export const DisplayNameValidationError = {
+  Required: "DISPLAY_NAME_REQUIRED",
+  TooLong: "DISPLAY_NAME_TOO_LONG",
+} as const;
+export type DisplayNameValidationError =
+  (typeof DisplayNameValidationError)[keyof typeof DisplayNameValidationError];
 
-export enum BioValidationError {
-  TooLong = "BIO_TOO_LONG",
-}
+export const BioValidationError = {
+  TooLong: "BIO_TOO_LONG",
+} as const;
+export type BioValidationError =
+  (typeof BioValidationError)[keyof typeof BioValidationError];
 
 export function validateUsername(
   username: string,

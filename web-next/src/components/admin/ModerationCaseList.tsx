@@ -11,7 +11,7 @@ import {
   AvatarImage,
 } from "~/components/ui/avatar.tsx";
 import { Badge } from "~/components/ui/badge.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { ModerationCaseList_query$key } from "./__generated__/ModerationCaseList_query.graphql.ts";
 
 /** Cases at or above this report count are highlighted as high priority. */
@@ -28,15 +28,14 @@ export function ModerationCaseList(props: ModerationCaseListProps) {
   const data = createPaginationFragment(
     graphql`
       fragment ModerationCaseList_query on Query
-        @refetchable(queryName: "ModerationCaseListPaginationQuery")
-        @argumentDefinitions(
-          cursor: { type: "String" }
-          count: { type: "Int", defaultValue: 30 }
-          status: { type: "FlagStatus" }
-          minReportCount: { type: "Int" }
-          search: { type: "String" }
-        )
-      {
+      @refetchable(queryName: "ModerationCaseListPaginationQuery")
+      @argumentDefinitions(
+        cursor: { type: "String" }
+        count: { type: "Int", defaultValue: 30 }
+        status: { type: "FlagStatus" }
+        minReportCount: { type: "Int" }
+        search: { type: "String" }
+      ) {
         moderationCases(
           after: $cursor
           first: $count
@@ -47,8 +46,7 @@ export function ModerationCaseList(props: ModerationCaseListProps) {
           @connection(
             key: "ModerationCaseList_moderationCases"
             filters: ["status", "minReportCount", "search"]
-          )
-        {
+          ) {
           edges {
             node {
               id
@@ -189,8 +187,7 @@ export function ModerationCaseList(props: ModerationCaseListProps) {
                       {(moderator) => (
                         <span class="mt-0.5 truncate text-xs text-muted-foreground">
                           {t`Assigned to ${
-                            moderator().name ??
-                              moderator().username
+                            moderator().name ?? moderator().username
                           }`}
                         </span>
                       )}
@@ -232,9 +229,7 @@ export function ModerationCaseList(props: ModerationCaseListProps) {
             <Match when={loadingState() === "errored"}>
               {t`Failed to load more; click to retry`}
             </Match>
-            <Match when={loadingState() === "loaded"}>
-              {t`Load more`}
-            </Match>
+            <Match when={loadingState() === "loaded"}>{t`Load more`}</Match>
           </Switch>
         </button>
       </Show>

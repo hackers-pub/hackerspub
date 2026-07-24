@@ -90,9 +90,10 @@ async function makeModerator(
     name: `Moderator ${username}`,
     email: `${username}@example.com`,
   });
-  await tx.update(accountTable).set({ moderator: true }).where(
-    eq(accountTable.id, result.account.id),
-  );
+  await tx
+    .update(accountTable)
+    .set({ moderator: true })
+    .where(eq(accountTable.id, result.account.id));
   return {
     ...result,
     account: { ...result.account, moderator: true },
@@ -165,12 +166,15 @@ test("adminAccounts returns paginated AdminAccountConnection for moderator", asy
     };
     assert.deepEqual(data.adminAccounts.totalCount, 4);
     assert.deepEqual(data.adminAccounts.edges.length, 4);
-    const usernames = data.adminAccounts.edges.map((e) => e.node.username)
+    const usernames = data.adminAccounts.edges
+      .map((e) => e.node.username)
       .sort();
-    assert.deepEqual(
-      usernames,
-      ["adminmod1", "adminuser0", "adminuser1", "adminuser2"],
-    );
+    assert.deepEqual(usernames, [
+      "adminmod1",
+      "adminuser0",
+      "adminuser1",
+      "adminuser2",
+    ]);
   });
 });
 
@@ -197,12 +201,18 @@ test("adminAccounts orders by latest post published falling back to account.upda
 
     // Set distinct `updated` timestamps on the no-post accounts so
     // ordering is deterministic.
-    await tx.update(accountTable).set({
-      updated: new Date("2026-04-01T00:00:00.000Z"),
-    }).where(eq(accountTable.id, c.account.id));
-    await tx.update(accountTable).set({
-      updated: new Date("2026-03-01T00:00:00.000Z"),
-    }).where(eq(accountTable.id, mod.account.id));
+    await tx
+      .update(accountTable)
+      .set({
+        updated: new Date("2026-04-01T00:00:00.000Z"),
+      })
+      .where(eq(accountTable.id, c.account.id));
+    await tx
+      .update(accountTable)
+      .set({
+        updated: new Date("2026-03-01T00:00:00.000Z"),
+      })
+      .where(eq(accountTable.id, mod.account.id));
 
     await insertNotePost(tx, {
       account: a.account,
@@ -246,9 +256,12 @@ test("adminAccounts pagination cursor round-trips correctly", async () => {
         name: `Pagin User ${i}`,
         email: `paginuser${i}@example.com`,
       });
-      await tx.update(accountTable).set({
-        updated: new Date(`2026-04-${10 + i}T00:00:00.000Z`),
-      }).where(eq(accountTable.id, acc.account.id));
+      await tx
+        .update(accountTable)
+        .set({
+          updated: new Date(`2026-04-${10 + i}T00:00:00.000Z`),
+        })
+        .where(eq(accountTable.id, acc.account.id));
       others.push(acc);
     }
 
@@ -291,11 +304,11 @@ test("adminAccounts pagination cursor round-trips correctly", async () => {
     assert.deepEqual(secondData.adminAccounts.edges.length, 2);
 
     // No overlap with the first page.
-    const firstUsernames = firstData.adminAccounts.edges.map((e) =>
-      e.node.username
+    const firstUsernames = firstData.adminAccounts.edges.map(
+      (e) => e.node.username,
     );
-    const secondUsernames = secondData.adminAccounts.edges.map((e) =>
-      e.node.username
+    const secondUsernames = secondData.adminAccounts.edges.map(
+      (e) => e.node.username,
     );
     for (const u of secondUsernames) {
       assert.ok(
@@ -315,9 +328,10 @@ test("adminAccounts edge.lastActivity falls back to account.updated for no-post 
       email: "lastactnoposts@example.com",
     });
     const updated = new Date("2026-04-12T00:00:00.000Z");
-    await tx.update(accountTable).set({ updated }).where(
-      eq(accountTable.id, noPosts.account.id),
-    );
+    await tx
+      .update(accountTable)
+      .set({ updated })
+      .where(eq(accountTable.id, noPosts.account.id));
 
     const result = await execute({
       schema,
@@ -339,9 +353,10 @@ test("adminAccounts edge.lastActivity falls back to account.updated for no-post 
       (e) => e.node.username === "lastactnoposts",
     );
     assert.ok(edge != null);
-    const iso = edge.lastActivity instanceof Date
-      ? edge.lastActivity.toISOString()
-      : edge.lastActivity;
+    const iso =
+      edge.lastActivity instanceof Date
+        ? edge.lastActivity.toISOString()
+        : edge.lastActivity;
     assert.deepEqual(iso, updated.toISOString());
   });
 });
@@ -370,9 +385,12 @@ test("adminAccounts cursor preserves microsecond precision across pages", async 
     await tx.execute(
       sql`UPDATE account SET updated = '2026-04-15 00:00:00.000100+00' WHERE id = ${b.account.id}`,
     );
-    await tx.update(accountTable).set({
-      updated: new Date("2026-03-01T00:00:00.000Z"),
-    }).where(eq(accountTable.id, mod.account.id));
+    await tx
+      .update(accountTable)
+      .set({
+        updated: new Date("2026-03-01T00:00:00.000Z"),
+      })
+      .where(eq(accountTable.id, mod.account.id));
 
     // First page: take just the first row (the moderator with the
     // newest .000900 microseconds will sort first… actually no, A
@@ -432,9 +450,12 @@ test("adminAccounts last+before traverses backwards consistently", async () => {
         name: `Backward User ${i}`,
         email: `backwarduser${i}@example.com`,
       });
-      await tx.update(accountTable).set({
-        updated: new Date(`2026-04-${10 + i}T00:00:00.000Z`),
-      }).where(eq(accountTable.id, acc.account.id));
+      await tx
+        .update(accountTable)
+        .set({
+          updated: new Date(`2026-04-${10 + i}T00:00:00.000Z`),
+        })
+        .where(eq(accountTable.id, acc.account.id));
     }
 
     // Take the full natural order (first: 100) as the source of truth.
@@ -446,11 +467,13 @@ test("adminAccounts last+before traverses backwards consistently", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(all.errors, undefined);
-    const allEdges = (all.data as {
-      adminAccounts: {
-        edges: { cursor: string; node: { username: string } }[];
-      };
-    }).adminAccounts.edges;
+    const allEdges = (
+      all.data as {
+        adminAccounts: {
+          edges: { cursor: string; node: { username: string } }[];
+        };
+      }
+    ).adminAccounts.edges;
     assert.ok(allEdges.length >= 4);
 
     // Traverse backwards starting from the cursor of the THIRD edge:
@@ -465,9 +488,11 @@ test("adminAccounts last+before traverses backwards consistently", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(back.errors, undefined);
-    const backUsernames = (back.data as {
-      adminAccounts: { edges: { node: { username: string } }[] };
-    }).adminAccounts.edges.map((e) => e.node.username);
+    const backUsernames = (
+      back.data as {
+        adminAccounts: { edges: { node: { username: string } }[] };
+      }
+    ).adminAccounts.edges.map((e) => e.node.username);
     assert.deepEqual(backUsernames, [
       allEdges[0].node.username,
       allEdges[1].node.username,
@@ -677,14 +702,18 @@ test("Account.invitees.totalCount batches across rows in adminAccounts", async (
       name: "Child 2",
       email: "inviteechild2@example.com",
     });
-    await tx.update(accountTable).set({ inviterId: inviter1.account.id })
+    await tx
+      .update(accountTable)
+      .set({ inviterId: inviter1.account.id })
       .where(
         inArray(
           accountTable.id,
           invitees1.map((i) => i.account.id),
         ),
       );
-    await tx.update(accountTable).set({ inviterId: inviter2.account.id })
+    await tx
+      .update(accountTable)
+      .set({ inviterId: inviter2.account.id })
       .where(eq(accountTable.id, inv2.account.id));
 
     const queryWithInvitees = parse(`
@@ -836,9 +865,11 @@ test("invitationRegenerationStatus returns null for guest", async () => {
     });
     assert.deepEqual(result.errors, undefined);
     assert.deepEqual(
-      (result.data as {
-        invitationRegenerationStatus: unknown;
-      }).invitationRegenerationStatus,
+      (
+        result.data as {
+          invitationRegenerationStatus: unknown;
+        }
+      ).invitationRegenerationStatus,
       null,
     );
   });
@@ -859,9 +890,11 @@ test("invitationRegenerationStatus returns null for non-moderator", async () => 
     });
     assert.deepEqual(result.errors, undefined);
     assert.deepEqual(
-      (result.data as {
-        invitationRegenerationStatus: unknown;
-      }).invitationRegenerationStatus,
+      (
+        result.data as {
+          invitationRegenerationStatus: unknown;
+        }
+      ).invitationRegenerationStatus,
       null,
     );
   });
@@ -878,11 +911,13 @@ test("invitationRegenerationStatus returns null lastRegenerated when KV empty", 
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    const status = (result.data as {
-      invitationRegenerationStatus: {
-        lastRegenerated: unknown;
-      } | null;
-    }).invitationRegenerationStatus;
+    const status = (
+      result.data as {
+        invitationRegenerationStatus: {
+          lastRegenerated: unknown;
+        } | null;
+      }
+    ).invitationRegenerationStatus;
     assert.ok(status != null);
     assert.deepEqual(status.lastRegenerated, null);
   });
@@ -901,21 +936,25 @@ test("invitationRegenerationStatus returns the stored timestamp from KV", async 
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    const status = (result.data as {
-      invitationRegenerationStatus: {
-        lastRegenerated: Date | string | null;
-        cutoffDate: Date | string;
-      } | null;
-    }).invitationRegenerationStatus;
+    const status = (
+      result.data as {
+        invitationRegenerationStatus: {
+          lastRegenerated: Date | string | null;
+          cutoffDate: Date | string;
+        } | null;
+      }
+    ).invitationRegenerationStatus;
     assert.ok(status != null);
     assert.ok(status.lastRegenerated != null);
-    const lastIso = status.lastRegenerated instanceof Date
-      ? status.lastRegenerated.toISOString()
-      : status.lastRegenerated;
+    const lastIso =
+      status.lastRegenerated instanceof Date
+        ? status.lastRegenerated.toISOString()
+        : status.lastRegenerated;
     assert.deepEqual(lastIso, stored.toISOString());
-    const cutoffIso = status.cutoffDate instanceof Date
-      ? status.cutoffDate.toISOString()
-      : status.cutoffDate;
+    const cutoffIso =
+      status.cutoffDate instanceof Date
+        ? status.cutoffDate.toISOString()
+        : status.cutoffDate;
     assert.deepEqual(cutoffIso, stored.toISOString());
   });
 });
@@ -959,12 +998,14 @@ test("invitationRegenerationStatus reports eligible/topThird based on posts sinc
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    const status = (result.data as {
-      invitationRegenerationStatus: {
-        eligibleAccountsCount: number;
-        topThirdCount: number;
-      } | null;
-    }).invitationRegenerationStatus;
+    const status = (
+      result.data as {
+        invitationRegenerationStatus: {
+          eligibleAccountsCount: number;
+          topThirdCount: number;
+        } | null;
+      }
+    ).invitationRegenerationStatus;
     assert.ok(status != null);
     assert.deepEqual(status.eligibleAccountsCount, 2);
     assert.deepEqual(status.topThirdCount, 1);
@@ -1001,9 +1042,11 @@ test("regenerateInvitations returns NotAuthenticatedError for guest", async () =
     });
     assert.deepEqual(result.errors, undefined);
     assert.deepEqual(
-      (result.data as {
-        regenerateInvitations: { __typename: string };
-      }).regenerateInvitations.__typename,
+      (
+        result.data as {
+          regenerateInvitations: { __typename: string };
+        }
+      ).regenerateInvitations.__typename,
       "NotAuthenticatedError",
     );
   });
@@ -1024,9 +1067,11 @@ test("regenerateInvitations returns NotAuthorizedError for non-moderator", async
     });
     assert.deepEqual(result.errors, undefined);
     assert.deepEqual(
-      (result.data as {
-        regenerateInvitations: { __typename: string };
-      }).regenerateInvitations.__typename,
+      (
+        result.data as {
+          regenerateInvitations: { __typename: string };
+        }
+      ).regenerateInvitations.__typename,
       "NotAuthorizedError",
     );
   });
@@ -1079,16 +1124,18 @@ test("regenerateInvitations grants +1 to top third without rewriting KV", async 
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    const payload = (result.data as {
-      regenerateInvitations: {
-        __typename: string;
-        accountsAffected: number;
-        regenerated: Date | string;
-        status: {
-          lastRegenerated: Date | string | null;
+    const payload = (
+      result.data as {
+        regenerateInvitations: {
+          __typename: string;
+          accountsAffected: number;
+          regenerated: Date | string;
+          status: {
+            lastRegenerated: Date | string | null;
+          };
         };
-      };
-    }).regenerateInvitations;
+      }
+    ).regenerateInvitations;
     assert.deepEqual(payload.__typename, "RegenerateInvitationsPayload");
     assert.deepEqual(payload.accountsAffected, 1);
     assert.ok(payload.status.lastRegenerated != null);
@@ -1126,20 +1173,24 @@ test("regenerateInvitations payload.status reflects the new last-regen timestamp
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    const payload = (result.data as {
-      regenerateInvitations: {
-        regenerated: Date | string;
-        status: {
-          lastRegenerated: Date | string | null;
+    const payload = (
+      result.data as {
+        regenerateInvitations: {
+          regenerated: Date | string;
+          status: {
+            lastRegenerated: Date | string | null;
+          };
         };
-      };
-    }).regenerateInvitations;
-    const regenIso = payload.regenerated instanceof Date
-      ? payload.regenerated.toISOString()
-      : payload.regenerated;
-    const lastIso = payload.status.lastRegenerated instanceof Date
-      ? payload.status.lastRegenerated.toISOString()
-      : payload.status.lastRegenerated;
+      }
+    ).regenerateInvitations;
+    const regenIso =
+      payload.regenerated instanceof Date
+        ? payload.regenerated.toISOString()
+        : payload.regenerated;
+    const lastIso =
+      payload.status.lastRegenerated instanceof Date
+        ? payload.status.lastRegenerated.toISOString()
+        : payload.status.lastRegenerated;
     assert.deepEqual(regenIso, lastIso);
   });
 });
@@ -1189,12 +1240,14 @@ test("regenerateInvitations does not credit accounts whose posts are dated in th
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    const payload = (result.data as {
-      regenerateInvitations: {
-        accountsAffected: number;
-        status: { eligibleAccountsCount: number; topThirdCount: number };
-      };
-    }).regenerateInvitations;
+    const payload = (
+      result.data as {
+        regenerateInvitations: {
+          accountsAffected: number;
+          status: { eligibleAccountsCount: number; topThirdCount: number };
+        };
+      }
+    ).regenerateInvitations;
     // Only the past-dated winner is credited; the future-dated
     // poster is excluded by the now-clamp.
     assert.deepEqual(payload.accountsAffected, 1);
@@ -1244,11 +1297,7 @@ test("orphanMediaStatus counts old unreferenced media for moderators", async () 
       "media/graphql-orphan-status.webp",
       new Date("2020-01-01T00:00:00.000Z"),
     );
-    await insertTestMedium(
-      tx,
-      "media/graphql-recent-status.webp",
-      new Date(),
-    );
+    await insertTestMedium(tx, "media/graphql-recent-status.webp", new Date());
 
     const result = await execute({
       schema,
@@ -1258,12 +1307,14 @@ test("orphanMediaStatus counts old unreferenced media for moderators", async () 
     });
 
     assert.deepEqual(result.errors, undefined);
-    const status = (result.data as {
-      orphanMediaStatus: {
-        orphanMediaCount: number;
-        cutoffDate: Date | string;
-      } | null;
-    }).orphanMediaStatus;
+    const status = (
+      result.data as {
+        orphanMediaStatus: {
+          orphanMediaCount: number;
+          cutoffDate: Date | string;
+        } | null;
+      }
+    ).orphanMediaStatus;
     assert.ok(status != null);
     assert.deepEqual(status.orphanMediaCount, 1);
   });
@@ -1296,9 +1347,11 @@ test("deleteOrphanMedia returns NotAuthenticatedError for guest", async () => {
     });
     assert.deepEqual(result.errors, undefined);
     assert.deepEqual(
-      (result.data as {
-        deleteOrphanMedia: { __typename: string };
-      }).deleteOrphanMedia.__typename,
+      (
+        result.data as {
+          deleteOrphanMedia: { __typename: string };
+        }
+      ).deleteOrphanMedia.__typename,
       "NotAuthenticatedError",
     );
   });
@@ -1327,14 +1380,16 @@ test("deleteOrphanMedia deletes old unreferenced media for moderators", async ()
     });
 
     assert.deepEqual(result.errors, undefined);
-    const payload = (result.data as {
-      deleteOrphanMedia: {
-        __typename: string;
-        deletedCount: number;
-        failedStorageDeletes: number;
-        status: { orphanMediaCount: number };
-      };
-    }).deleteOrphanMedia;
+    const payload = (
+      result.data as {
+        deleteOrphanMedia: {
+          __typename: string;
+          deletedCount: number;
+          failedStorageDeletes: number;
+          status: { orphanMediaCount: number };
+        };
+      }
+    ).deleteOrphanMedia;
     assert.deepEqual(payload.__typename, "DeleteOrphanMediaPayload");
     assert.deepEqual(payload.deletedCount, 1);
     assert.deepEqual(payload.failedStorageDeletes, 0);
@@ -1345,7 +1400,7 @@ test("deleteOrphanMedia deletes old unreferenced media for moderators", async ()
       undefined,
     );
     assert.ok(
-      await tx.query.mediumTable.findFirst({ where: { id: recentId } }) !=
+      (await tx.query.mediumTable.findFirst({ where: { id: recentId } })) !=
         null,
     );
   });
@@ -1377,9 +1432,11 @@ test("regenerateInvitations called twice in immediate succession returns 0 affec
     });
     assert.deepEqual(first.errors, undefined);
     assert.deepEqual(
-      (first.data as {
-        regenerateInvitations: { accountsAffected: number };
-      }).regenerateInvitations.accountsAffected,
+      (
+        first.data as {
+          regenerateInvitations: { accountsAffected: number };
+        }
+      ).regenerateInvitations.accountsAffected,
       1,
     );
 
@@ -1391,9 +1448,11 @@ test("regenerateInvitations called twice in immediate succession returns 0 affec
     });
     assert.deepEqual(second.errors, undefined);
     assert.deepEqual(
-      (second.data as {
-        regenerateInvitations: { accountsAffected: number };
-      }).regenerateInvitations.accountsAffected,
+      (
+        second.data as {
+          regenerateInvitations: { accountsAffected: number };
+        }
+      ).regenerateInvitations.accountsAffected,
       0,
     );
   });

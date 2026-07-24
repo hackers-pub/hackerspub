@@ -52,21 +52,25 @@ export async function persistCustomEmoji(
   const href = icon.url instanceof vocab.Link ? icon.url.href : icon.url;
   if (href == null) return undefined;
   const name = `:${emoji.name.toString().replaceAll(/^:|:$/g, "")}:`;
-  const rows = await db.insert(customEmojiTable).values({
-    id: generateUuidV7(),
-    iri: emoji.id.href,
-    name,
-    imageType: icon.mediaType,
-    imageUrl: href.href,
-  }).onConflictDoUpdate({
-    target: customEmojiTable.iri,
-    set: {
+  const rows = await db
+    .insert(customEmojiTable)
+    .values({
+      id: generateUuidV7(),
+      iri: emoji.id.href,
       name,
       imageType: icon.mediaType,
       imageUrl: href.href,
-    },
-    setWhere: eq(customEmojiTable.iri, emoji.id.href),
-  }).returning();
+    })
+    .onConflictDoUpdate({
+      target: customEmojiTable.iri,
+      set: {
+        name,
+        imageType: icon.mediaType,
+        imageUrl: href.href,
+      },
+      setWhere: eq(customEmojiTable.iri, emoji.id.href),
+    })
+    .returning();
   if (rows.length < 1) return undefined;
   return rows[0];
 }
@@ -80,7 +84,9 @@ export async function persistReaction(
   },
 ): Promise<Reaction | undefined> {
   if (
-    reaction.id == null || reaction.actorId == null || reaction.objectId == null
+    reaction.id == null ||
+    reaction.actorId == null ||
+    reaction.objectId == null
   ) {
     return undefined;
   }
@@ -111,16 +117,18 @@ export async function persistReaction(
   const emoji = reaction.content?.toString()?.trim() ?? DEFAULT_REACTION_EMOJI;
   const customEmoji = customEmojis[emoji];
   if (customEmoji == null && isCustomEmojiShortcode(emoji)) return undefined;
-  const rows = await db.insert(reactionTable)
+  const rows = await db
+    .insert(reactionTable)
     .values({
       iri: reaction.id.href,
       postId: post.id,
       actorId: actor.id,
       emoji: customEmoji == null ? emoji : null,
       customEmojiId: customEmoji?.id ?? null,
-      created: reaction.published == null
-        ? sql`CURRENT_TIMESTAMP`
-        : new Date(reaction.published.epochMilliseconds),
+      created:
+        reaction.published == null
+          ? sql`CURRENT_TIMESTAMP`
+          : new Date(reaction.published.epochMilliseconds),
     })
     .onConflictDoNothing()
     .returning();
@@ -146,7 +154,8 @@ export async function deleteReaction(
   },
 ): Promise<Reaction | undefined> {
   if (reaction.id == null) return undefined;
-  const rows = await db.delete(reactionTable)
+  const rows = await db
+    .delete(reactionTable)
     .where(eq(reactionTable.iri, reaction.id.href))
     .returning();
   if (rows.length > 0) {
@@ -158,7 +167,8 @@ export async function deleteReaction(
       where: { id: rows[0].actorId },
     });
     if (
-      post?.actor.accountId != null && actor != null &&
+      post?.actor.accountId != null &&
+      actor != null &&
       post.actorId !== actor.id
     ) {
       await deleteReactNotification(
@@ -166,9 +176,10 @@ export async function deleteReaction(
         post.actor.accountId,
         post,
         actor,
-        rows[0].emoji ?? (await db.query.customEmojiTable.findFirst({
-          where: { id: rows[0].customEmojiId! },
-        }))!,
+        rows[0].emoji ??
+          (await db.query.customEmojiTable.findFirst({
+            where: { id: rows[0].customEmojiId! },
+          }))!,
       );
     }
     return rows[0];
@@ -188,7 +199,8 @@ export async function deleteReaction(
     }
   }
   const emoji = reaction.content?.toString()?.trim() ?? DEFAULT_REACTION_EMOJI;
-  const deleted = await db.delete(reactionTable)
+  const deleted = await db
+    .delete(reactionTable)
     .where(
       and(
         eq(reactionTable.postId, post.id),
@@ -235,7 +247,8 @@ async function reactOperation(
       ctx.canonicalOrigin,
     ).href;
   }
-  const rows = await db.insert(reactionTable)
+  const rows = await db
+    .insert(reactionTable)
     .values({
       iri,
       postId: post.id,
@@ -276,9 +289,10 @@ async function reactOperation(
     {
       id: new URL(post.actor.iri),
       inboxId: new URL(post.actor.inboxUrl),
-      endpoints: post.actor.sharedInboxUrl == null
-        ? null
-        : { sharedInbox: new URL(post.actor.sharedInboxUrl) },
+      endpoints:
+        post.actor.sharedInboxUrl == null
+          ? null
+          : { sharedInbox: new URL(post.actor.sharedInboxUrl) },
     },
     activity,
     {
@@ -287,16 +301,11 @@ async function reactOperation(
       fanout: "skip",
     },
   );
-  await ctx.sendActivity(
-    { identifier: account.id },
-    "followers",
-    activity,
-    {
-      orderingKey,
-      excludeBaseUris: [new URL(ctx.canonicalOrigin)],
-      preferSharedInbox: true,
-    },
-  );
+  await ctx.sendActivity({ identifier: account.id }, "followers", activity, {
+    orderingKey,
+    excludeBaseUris: [new URL(ctx.canonicalOrigin)],
+    preferSharedInbox: true,
+  });
   return rows[0];
 }
 
@@ -310,20 +319,19 @@ async function undoReactionOperation(
   customEmojiId?: Uuid,
 ): Promise<Reaction | undefined> {
   const { db } = ctx;
-  const whereClause = emoji != null
-    ? and(
-      eq(reactionTable.postId, post.id),
-      eq(reactionTable.actorId, account.actor.id),
-      eq(reactionTable.emoji, emoji),
-    )
-    : and(
-      eq(reactionTable.postId, post.id),
-      eq(reactionTable.actorId, account.actor.id),
-      eq(reactionTable.customEmojiId, customEmojiId!),
-    );
-  const rows = await db.delete(reactionTable)
-    .where(whereClause)
-    .returning();
+  const whereClause =
+    emoji != null
+      ? and(
+          eq(reactionTable.postId, post.id),
+          eq(reactionTable.actorId, account.actor.id),
+          eq(reactionTable.emoji, emoji),
+        )
+      : and(
+          eq(reactionTable.postId, post.id),
+          eq(reactionTable.actorId, account.actor.id),
+          eq(reactionTable.customEmojiId, customEmojiId!),
+        );
+  const rows = await db.delete(reactionTable).where(whereClause).returning();
   if (rows.length < 1) return undefined;
   await updateReactionsCounts(db, post.id);
   // If the reacted post shares a link, its reaction total just dropped; the
@@ -366,9 +374,10 @@ async function undoReactionOperation(
     {
       id: new URL(post.actor.iri),
       inboxId: new URL(post.actor.inboxUrl),
-      endpoints: post.actor.sharedInboxUrl == null
-        ? null
-        : { sharedInbox: new URL(post.actor.sharedInboxUrl) },
+      endpoints:
+        post.actor.sharedInboxUrl == null
+          ? null
+          : { sharedInbox: new URL(post.actor.sharedInboxUrl) },
     },
     undo,
     {
@@ -377,16 +386,11 @@ async function undoReactionOperation(
       fanout: "skip",
     },
   );
-  await ctx.sendActivity(
-    { identifier: account.id },
-    "followers",
-    undo,
-    {
-      orderingKey,
-      excludeBaseUris: [new URL(ctx.canonicalOrigin)],
-      preferSharedInbox: true,
-    },
-  );
+  await ctx.sendActivity({ identifier: account.id }, "followers", undo, {
+    orderingKey,
+    excludeBaseUris: [new URL(ctx.canonicalOrigin)],
+    preferSharedInbox: true,
+  });
   return rows[0];
 }
 
@@ -424,7 +428,8 @@ export async function updateReactionsCounts(
   db: Database,
   postId: Uuid,
 ): Promise<void> {
-  await db.update(postTable)
+  await db
+    .update(postTable)
     .set({
       reactionsCounts: sql`(
         SELECT coalesce(jsonb_object_agg(stats.emoji, stats.count), '{}')

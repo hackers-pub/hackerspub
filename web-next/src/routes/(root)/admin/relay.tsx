@@ -20,7 +20,7 @@ import {
   TextFieldLabel,
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,
@@ -205,9 +205,13 @@ export default function AdminRelayPage() {
           <Show
             keyed
             when={data.viewer?.moderator}
-            fallback={data.viewer == null
-              ? <Navigate href="/sign?next=%2Fadmin%2Frelay" />
-              : <Navigate href="/" />}
+            fallback={
+              data.viewer == null ? (
+                <Navigate href="/sign?next=%2Fadmin%2Frelay" />
+              ) : (
+                <Navigate href="/" />
+              )
+            }
           >
             {(_) => {
               const subscriptions = () => data.relaySubscriptions ?? [];
@@ -244,8 +248,9 @@ export default function AdminRelayPage() {
                         </TextField>
                         <Button
                           type="submit"
-                          disabled={subscribing() ||
-                            actorUrl().trim().length < 1}
+                          disabled={
+                            subscribing() || actorUrl().trim().length < 1
+                          }
                         >
                           {subscribing() ? t`Subscribing…` : t`Subscribe`}
                         </Button>
@@ -319,7 +324,8 @@ export default function AdminRelayPage() {
                                     subscription.id,
                                   )}
                                   on:click={() =>
-                                    onUnsubscribe(subscription.id)}
+                                    onUnsubscribe(subscription.id)
+                                  }
                                 >
                                   {t`Unsubscribe`}
                                 </Button>

@@ -19,7 +19,7 @@ import {
   TextFieldLabel,
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,
@@ -98,14 +98,12 @@ export default function AdminRefreshPage() {
     refreshPageQuery,
     () => loadAdminRefreshPageQuery(),
   );
-  const [commitRefresh] = createMutation<refreshPageMutation>(
-    refreshPageMutation,
-  );
+  const [commitRefresh] =
+    createMutation<refreshPageMutation>(refreshPageMutation);
   const [uriInput, setUriInput] = createSignal("");
   const [submitting, setSubmitting] = createSignal(false);
-  const [refreshedActor, setRefreshedActor] = createSignal<
-    RefreshedActor | null
-  >(null);
+  const [refreshedActor, setRefreshedActor] =
+    createSignal<RefreshedActor | null>(null);
   const [refreshedPost, setRefreshedPost] = createSignal<RefreshedPost | null>(
     null,
   );
@@ -157,9 +155,13 @@ export default function AdminRefreshPage() {
           <Show
             keyed
             when={data.viewer?.moderator}
-            fallback={data.viewer == null
-              ? <Navigate href="/sign?next=%2Fadmin%2Frefresh" />
-              : <Navigate href="/" />}
+            fallback={
+              data.viewer == null ? (
+                <Navigate href="/sign?next=%2Fadmin%2Frefresh" />
+              ) : (
+                <Navigate href="/" />
+              )
+            }
           >
             {(_) => (
               <>

@@ -12,19 +12,12 @@ test("parseInvitationTreeSort() falls back to the oldest signup order", () => {
   assert.equal(parseInvitationTreeSort(undefined), "OLDEST");
   assert.equal(parseInvitationTreeSort("unknown"), "OLDEST");
   assert.equal(parseInvitationTreeSort("newest"), "NEWEST");
-  assert.equal(
-    parseInvitationTreeSort("most-invitations"),
-    "MOST_INVITATIONS",
-  );
+  assert.equal(parseInvitationTreeSort("most-invitations"), "MOST_INVITATIONS");
 });
 
 test("buildInvitationTreeSortHref() preserves unrelated query parameters", () => {
   assert.equal(
-    buildInvitationTreeSortHref(
-      "/tree",
-      "?lang=ko-KR&sort=newest",
-      "OLDEST",
-    ),
+    buildInvitationTreeSortHref("/tree", "?lang=ko-KR&sort=newest", "OLDEST"),
     "/tree?lang=ko-KR",
   );
   assert.equal(
@@ -32,11 +25,7 @@ test("buildInvitationTreeSortHref() preserves unrelated query parameters", () =>
     "/tree?lang=ko-KR&sort=newest",
   );
   assert.equal(
-    buildInvitationTreeSortHref(
-      "/tree",
-      "?lang=ko-KR",
-      "MOST_INVITATIONS",
-    ),
+    buildInvitationTreeSortHref("/tree", "?lang=ko-KR", "MOST_INVITATIONS"),
     "/tree?lang=ko-KR&sort=most-invitations",
   );
 });

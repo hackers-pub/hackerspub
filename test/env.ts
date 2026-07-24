@@ -1,9 +1,10 @@
+import { mkdir, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import process from "node:process";
 
 let envUpdateQueue: Promise<void> = Promise.resolve();
-const envLockDir = `${
-  Deno.env.get("TMPDIR") ?? "/tmp"
-}/hackerspub-test-env-lock`;
+const envLockDir = join(tmpdir(), "hackerspub-test-env-lock");
 
 export async function withProcessEnv(
   values: Record<string, string | undefined>,
@@ -66,12 +67,16 @@ async function acquireEnvLock(): Promise<() => Promise<void>> {
   const started = Date.now();
   while (true) {
     try {
-      await Deno.mkdir(envLockDir);
+      await mkdir(envLockDir);
       return async () => {
-        await Deno.remove(envLockDir).catch(() => {});
+        await rm(envLockDir, { recursive: true }).catch(() => {});
       };
     } catch (error) {
-      if (!(error instanceof Deno.errors.AlreadyExists)) throw error;
+      if (
+        !(error instanceof Error && "code" in error && error.code === "EEXIST")
+      ) {
+        throw error;
+      }
       if (Date.now() - started > 120_000) {
         throw new Error(`Timed out waiting for test env lock: ${envLockDir}`);
       }

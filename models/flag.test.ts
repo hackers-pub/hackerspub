@@ -92,10 +92,7 @@ describe("createFlag()", () => {
       assert.equal(flag.snapshot.contentHtml, post.contentHtml);
       assert.equal(flag.snapshot.sourceContent, "Offensive content");
       assert.equal(flag.snapshot.metadata?.postType, "Note");
-      assert.equal(
-        flag.snapshot.metadata?.actorHandle,
-        reported.actor.handle,
-      );
+      assert.equal(flag.snapshot.metadata?.actorHandle, reported.actor.handle);
     });
   });
 
@@ -162,7 +159,8 @@ describe("createFlag()", () => {
       assert.ok(first != null);
       assert.equal(first.status, "pending");
       // The case is taken under review before the second report arrives.
-      await tx.update(flagCaseTable)
+      await tx
+        .update(flagCaseTable)
         .set({ status: "reviewing" })
         .where(eq(flagCaseTable.id, first.caseId));
       const second = await createFlag(tx, {
@@ -199,7 +197,8 @@ describe("createFlag()", () => {
         reason: REASON,
       });
       assert.ok(first != null);
-      await tx.update(flagCaseTable)
+      await tx
+        .update(flagCaseTable)
         .set({ status: "dismissed", resolved: sql`CURRENT_TIMESTAMP` })
         .where(eq(flagCaseTable.id, first.caseId));
       const second = await createFlag(tx, {
@@ -274,7 +273,7 @@ describe("createFlag()", () => {
         iri,
       });
       assert.equal(redelivered, undefined);
-      assert.ok(await getFlagByIri(tx, iri) != null);
+      assert.ok((await getFlagByIri(tx, iri)) != null);
       assert.equal(
         await getFlagByIri(tx, "https://remote.example/flags/2"),
         undefined,
@@ -520,7 +519,8 @@ describe("createFlag()", () => {
         name: "Moderator",
         email: "moderator@example.com",
       });
-      await tx.update(accountTable)
+      await tx
+        .update(accountTable)
         .set({ moderator: true })
         .where(eq(accountTable.id, moderator.account.id));
       const reporterA = await insertAccountWithActor(tx, {
@@ -546,8 +546,9 @@ describe("createFlag()", () => {
         reason: REASON,
       });
       assert.ok(first != null);
-      const notifications = await tx.query.moderationNotificationTable
-        .findMany({ where: { type: "flag_received", caseId: first.caseId } });
+      const notifications = await tx.query.moderationNotificationTable.findMany(
+        { where: { type: "flag_received", caseId: first.caseId } },
+      );
       assert.equal(notifications.length, 1);
       assert.equal(notifications[0].accountId, moderator.account.id);
       // A second report on the same open case does not duplicate the
@@ -559,13 +560,12 @@ describe("createFlag()", () => {
         reason: "Another independent report about the same post.",
       });
       assert.ok(second != null);
-      const afterSecond = await tx.query.moderationNotificationTable
-        .findMany({ where: { type: "flag_received", caseId: first.caseId } });
+      const afterSecond = await tx.query.moderationNotificationTable.findMany({
+        where: { type: "flag_received", caseId: first.caseId },
+      });
       assert.equal(afterSecond.length, 1);
       // Reporters and the reported user get nothing.
-      assert.ok(
-        afterSecond.every((n) => n.accountId === moderator.account.id),
-      );
+      assert.ok(afterSecond.every((n) => n.accountId === moderator.account.id));
     });
   });
 });
@@ -583,11 +583,13 @@ describe("analyzeFlag()", () => {
             assert.equal(options.contentHtml, flag.snapshot.contentHtml);
             assert.ok(options.provisions.length > 0);
             return Promise.resolve({
-              matches: [{
-                provision: options.provisions[0].id,
-                confidence: 0.75,
-                rationale: "The report matches this provision.",
-              }],
+              matches: [
+                {
+                  provision: options.provisions[0].id,
+                  confidence: 0.75,
+                  rationale: "The report matches this provision.",
+                },
+              ],
               summary: "A concise moderation summary.",
             });
           },
@@ -632,10 +634,7 @@ describe("analyzeFlag()", () => {
       assert.equal(stored?.llmAnalysis?.model, "failing-analyzer");
       assert.deepEqual(stored?.llmAnalysis?.matches, []);
       assert.equal(stored?.llmAnalysis?.summary, "");
-      assert.match(
-        stored?.llmAnalysis?.error ?? "",
-        /analyzer unavailable/,
-      );
+      assert.match(stored?.llmAnalysis?.error ?? "", /analyzer unavailable/);
     });
   });
 });

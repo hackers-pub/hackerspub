@@ -15,7 +15,7 @@ import {
   TabsTrigger,
 } from "~/components/ui/tabs.tsx";
 import { TextFieldTextArea } from "~/components/ui/text-field.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { MarkdownEditorRenderMarkdownQuery } from "./__generated__/MarkdownEditorRenderMarkdownQuery.graphql.ts";
 
 const renderMarkdownQuery = graphql`

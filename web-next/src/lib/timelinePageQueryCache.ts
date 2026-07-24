@@ -10,9 +10,8 @@ export const TIMELINE_PAGE_QUERY_CACHE_KEYS = {
   fediverse: "loadFediverseTimelineQuery",
 } as const;
 
-export type TimelinePageQueryCacheKey = typeof TIMELINE_PAGE_QUERY_CACHE_KEYS[
-  keyof typeof TIMELINE_PAGE_QUERY_CACHE_KEYS
-];
+export type TimelinePageQueryCacheKey =
+  (typeof TIMELINE_PAGE_QUERY_CACHE_KEYS)[keyof typeof TIMELINE_PAGE_QUERY_CACHE_KEYS];
 
 const networkOnlyTimelinePageQueryKeys = new Set<TimelinePageQueryCacheKey>();
 const networkOnlyTimelinePageQueryTimeouts = new Map<

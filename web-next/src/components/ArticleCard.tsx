@@ -4,12 +4,10 @@ import { graphql } from "relay-runtime";
 import { Accessor, createSignal, Setter, Show } from "solid-js";
 import { createFragment } from "solid-relay";
 import { createDeferredRender } from "~/lib/deferredRender.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { useMentionHoverCards } from "~/lib/mentionHoverCards.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
-import {
-  ArticleCard_article$key,
-} from "./__generated__/ArticleCard_article.graphql.ts";
+import { ArticleCard_article$key } from "./__generated__/ArticleCard_article.graphql.ts";
 import { ArticleCardInternal_article$key } from "./__generated__/ArticleCardInternal_article.graphql.ts";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { CensorshipNotice } from "./CensorshipNotice.tsx";
@@ -28,7 +26,7 @@ import { Trans } from "./Trans.tsx";
 const MentionHoverCardLayer = clientOnly(() =>
   import("~/lib/mentionHoverCards.tsx").then((m) => ({
     default: m.MentionHoverCardLayer,
-  }))
+  })),
 );
 
 export interface ArticleCardProps {
@@ -46,11 +44,10 @@ export function ArticleCard(props: ArticleCardProps) {
   const article = createFragment(
     graphql`
       fragment ArticleCard_article on Article
-        @argumentDefinitions(
-          locale: { type: "Locale" }
-          actingAccountId: { type: "ID", defaultValue: null }
-        )
-      {
+      @argumentDefinitions(
+        locale: { type: "Locale" }
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
         uuid
         actor {
           local
@@ -61,9 +58,7 @@ export function ArticleCard(props: ArticleCardProps) {
         slug
         ...ArticleCardInternal_article
           @arguments(locale: $locale, actingAccountId: $actingAccountId)
-        ...PostEngagementBar_post @arguments(
-          actingAccountId: $actingAccountId
-        )
+        ...PostEngagementBar_post @arguments(actingAccountId: $actingAccountId)
         ...PostSharer_post
         sharedPost(actingAccountId: $actingAccountId) {
           ... on Article {
@@ -78,9 +73,8 @@ export function ArticleCard(props: ArticleCardProps) {
           }
           ...ArticleCardInternal_article
             @arguments(locale: $locale, actingAccountId: $actingAccountId)
-          ...PostEngagementBar_post @arguments(
-            actingAccountId: $actingAccountId
-          )
+          ...PostEngagementBar_post
+            @arguments(actingAccountId: $actingAccountId)
         }
       }
     `,
@@ -89,8 +83,8 @@ export function ArticleCard(props: ArticleCardProps) {
   const [hover, setHover] = createSignal(false);
   const [articleRef, setArticleRef] = createSignal<HTMLElement>();
   const mentionState = useMentionHoverCards(articleRef);
-  const showDeferredSections = createDeferredRender(() =>
-    !!props.deferHeavySections
+  const showDeferredSections = createDeferredRender(
+    () => !!props.deferHeavySections,
   );
 
   return (
@@ -113,10 +107,7 @@ export function ArticleCard(props: ArticleCardProps) {
                     class="p-4 pb-0"
                   />
                 </Show>
-                <ArticleCardInternal
-                  $article={article}
-                  setHover={setHover}
-                />
+                <ArticleCardInternal $article={article} setHover={setHover} />
                 <Show when={showDeferredSections()}>
                   {(() => {
                     // Prefer the pretty `/@user/{year}/{slug}` permalink
@@ -127,14 +118,17 @@ export function ArticleCard(props: ArticleCardProps) {
                     // `actorByHandle.postByUuid` resolves any post type
                     // on any actor, and `[noteId]/index.tsx` accepts
                     // articles so `/replies` works there too.
-                    const prettyBase = article.actor.local &&
-                        article.publishedYear != null && article.slug != null
-                      ? `/@${article.actor.username}/${article.publishedYear}/${article.slug}`
-                      : null;
-                    const engagementBase = prettyBase ??
-                      `/${
-                        encodeHandleSegment(article.actor.handle)
-                      }/${article.uuid}`;
+                    const prettyBase =
+                      article.actor.local &&
+                      article.publishedYear != null &&
+                      article.slug != null
+                        ? `/@${article.actor.username}/${article.publishedYear}/${article.slug}`
+                        : null;
+                    const engagementBase =
+                      prettyBase ??
+                      `/${encodeHandleSegment(
+                        article.actor.handle,
+                      )}/${article.uuid}`;
                     return (
                       <PostEngagementBar
                         $post={article}
@@ -143,16 +137,18 @@ export function ArticleCard(props: ArticleCardProps) {
                         connections={props.connections}
                         pinConnections={props.pinConnections}
                         bookmarkListConnections={props.bookmarkListConnections}
-                        onEdit={article.actor.local &&
-                            article.publishedYear != null &&
-                            article.slug != null
-                          ? () =>
-                            navigate(
-                              `/@${article.actor.username}/${article.publishedYear}/${
-                                encodeURIComponent(article.slug!)
-                              }/edit`,
-                            )
-                          : undefined}
+                        onEdit={
+                          article.actor.local &&
+                          article.publishedYear != null &&
+                          article.slug != null
+                            ? () =>
+                                navigate(
+                                  `/@${article.actor.username}/${article.publishedYear}/${encodeURIComponent(
+                                    article.slug!,
+                                  )}/edit`,
+                                )
+                            : undefined
+                        }
                         class="mx-4 mb-2"
                       />
                     );
@@ -175,39 +171,45 @@ export function ArticleCard(props: ArticleCardProps) {
                     // available; otherwise fall back to a UUID-based
                     // `[noteId]` engagement base.  Both the count routes
                     // and `/replies` accept articles on the UUID path.
-                    const prettyBase = sharedPost.actor?.local &&
-                        sharedPost.publishedYear != null &&
-                        sharedPost.slug != null
-                      ? `/@${sharedPost.actor.username}/${sharedPost.publishedYear}/${sharedPost.slug}`
-                      : null;
-                    const engagementBase = prettyBase ??
+                    const prettyBase =
+                      sharedPost.actor?.local &&
+                      sharedPost.publishedYear != null &&
+                      sharedPost.slug != null
+                        ? `/@${sharedPost.actor.username}/${sharedPost.publishedYear}/${sharedPost.slug}`
+                        : null;
+                    const engagementBase =
+                      prettyBase ??
                       (sharedPost.actor != null && sharedPost.uuid != null
-                        ? `/${
-                          encodeHandleSegment(sharedPost.actor.handle)
-                        }/${sharedPost.uuid}`
+                        ? `/${encodeHandleSegment(
+                            sharedPost.actor.handle,
+                          )}/${sharedPost.uuid}`
                         : null);
                     return (
                       <PostEngagementBar
                         $post={sharedPost}
-                        repliesHref={engagementBase == null
-                          ? null
-                          : `${engagementBase}/replies`}
+                        repliesHref={
+                          engagementBase == null
+                            ? null
+                            : `${engagementBase}/replies`
+                        }
                         engagementBase={engagementBase}
                         connections={props.connections}
                         pinConnections={props.pinConnections}
                         bookmarkListConnections={props.bookmarkListConnections}
-                        onEdit={sharedPost.actor?.local &&
-                            sharedPost.publishedYear != null &&
-                            sharedPost.slug != null
-                          ? () =>
-                            navigate(
-                              `/@${
-                                sharedPost.actor!.username
-                              }/${sharedPost.publishedYear}/${
-                                encodeURIComponent(sharedPost.slug!)
-                              }/edit`,
-                            )
-                          : undefined}
+                        onEdit={
+                          sharedPost.actor?.local &&
+                          sharedPost.publishedYear != null &&
+                          sharedPost.slug != null
+                            ? () =>
+                                navigate(
+                                  `/@${
+                                    sharedPost.actor!.username
+                                  }/${sharedPost.publishedYear}/${encodeURIComponent(
+                                    sharedPost.slug!,
+                                  )}/edit`,
+                                )
+                            : undefined
+                        }
                         class="mx-4 mb-2"
                       />
                     );
@@ -237,11 +239,10 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
   const article = createFragment(
     graphql`
       fragment ArticleCardInternal_article on Article
-        @argumentDefinitions(
-          locale: { type: "Locale" }
-          actingAccountId: { type: "ID", defaultValue: null }
-        )
-      {
+      @argumentDefinitions(
+        locale: { type: "Locale" }
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
         __id
         censored
         actor {
@@ -286,9 +287,11 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
               <PostAuthorLine $post={article} />
               <div class="flex flex-row items-center gap-1 text-sm text-muted-foreground/70">
                 <Show
-                  when={article.actor.local &&
+                  when={
+                    article.actor.local &&
                     article.publishedYear != null &&
-                    article.slug != null}
+                    article.slug != null
+                  }
                   fallback={
                     <a href={article.url ?? article.iri}>
                       <Timestamp
@@ -310,9 +313,11 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
                 </Show>
                 <Show
                   keyed
-                  when={article.contents != null &&
+                  when={
+                    article.contents != null &&
                     article.contents.length > 0 &&
-                    article.contents[0].originalLanguage}
+                    article.contents[0].originalLanguage
+                  }
                 >
                   {(originalLanguage) => (
                     <>
@@ -348,20 +353,28 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
           </Show>
           <Show when={article.contents?.[0]?.title ?? article.name}>
             <h1
-              lang={article.contents?.[0]?.language ?? article.language ??
-                undefined}
+              lang={
+                article.contents?.[0]?.language ?? article.language ?? undefined
+              }
               class="text-xl font-semibold leading-snug"
             >
               <Show
                 when={article.actor.local}
                 fallback={
                   <a
-                    href={article.contents?.[0]?.url ?? article.url ??
-                      article.iri}
-                    lang={article.contents?.[0]?.language ??
-                      article.language ?? undefined}
-                    hreflang={article.contents?.[0]?.language ??
-                      article.language ?? undefined}
+                    href={
+                      article.contents?.[0]?.url ?? article.url ?? article.iri
+                    }
+                    lang={
+                      article.contents?.[0]?.language ??
+                      article.language ??
+                      undefined
+                    }
+                    hreflang={
+                      article.contents?.[0]?.language ??
+                      article.language ??
+                      undefined
+                    }
                     target="_blank"
                     on:mouseover={() => props.setHover?.(true)}
                     on:mouseout={() => props.setHover?.(false)}
@@ -372,13 +385,20 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
                 }
               >
                 <InternalLink
-                  href={article.contents?.[0]?.url ?? article.url ??
-                    article.iri}
+                  href={
+                    article.contents?.[0]?.url ?? article.url ?? article.iri
+                  }
                   internalHref={`/@${article.actor.username}/${article.publishedYear}/${article.slug}`}
-                  lang={article.contents?.[0]?.language ??
-                    article.language ?? undefined}
-                  hreflang={article.contents?.[0]?.language ??
-                    article.language ?? undefined}
+                  lang={
+                    article.contents?.[0]?.language ??
+                    article.language ??
+                    undefined
+                  }
+                  hreflang={
+                    article.contents?.[0]?.language ??
+                    article.language ??
+                    undefined
+                  }
                   on:mouseover={() => props.setHover?.(true)}
                   on:mouseout={() => props.setHover?.(false)}
                   class="block p-4"
@@ -390,9 +410,11 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
           </Show>
           <Show
             keyed
-            when={article.actor.local && preferAiSummary()
-              ? (article.contents?.[0]?.summary ?? article.summary)
-              : null}
+            when={
+              article.actor.local && preferAiSummary()
+                ? (article.contents?.[0]?.summary ?? article.summary)
+                : null
+            }
             fallback={
               <Show
                 keyed
@@ -451,14 +473,19 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
           >
             {(llmSummary) => (
               <InternalLink
-                href={article.contents?.[0]?.url ?? article.url ??
-                  article.iri}
+                href={article.contents?.[0]?.url ?? article.url ?? article.iri}
                 internalHref={`/@${article.actor.username}/${article.publishedYear}/${article.slug}`}
                 innerHTML={llmSummary}
-                lang={article.contents?.[0]?.language ??
-                  article.language ?? undefined}
-                hreflang={article.contents?.[0]?.language ??
-                  article.language ?? undefined}
+                lang={
+                  article.contents?.[0]?.language ??
+                  article.language ??
+                  undefined
+                }
+                hreflang={
+                  article.contents?.[0]?.language ??
+                  article.language ??
+                  undefined
+                }
                 on:mouseover={() => props.setHover?.(true)}
                 on:mouseout={() => props.setHover?.(false)}
                 data-llm-summary-label={t`Summarized by LLM`}
@@ -473,10 +500,12 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
             when={article.actor.local}
             fallback={
               <a
-                href={article.contents?.[0]?.url ?? article.url ??
-                  article.iri}
-                hreflang={article.contents?.[0]?.language ??
-                  article.language ?? undefined}
+                href={article.contents?.[0]?.url ?? article.url ?? article.iri}
+                hreflang={
+                  article.contents?.[0]?.language ??
+                  article.language ??
+                  undefined
+                }
                 target="_blank"
                 on:mouseover={() => props.setHover?.(true)}
                 on:mouseout={() => props.setHover?.(false)}
@@ -493,11 +522,11 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
             }
           >
             <InternalLink
-              href={article.contents?.[0]?.url ?? article.url ??
-                article.iri}
+              href={article.contents?.[0]?.url ?? article.url ?? article.iri}
               internalHref={`/@${article.actor.username}/${article.publishedYear}/${article.slug}`}
-              hreflang={article.contents?.[0]?.language ??
-                article.language ?? undefined}
+              hreflang={
+                article.contents?.[0]?.language ?? article.language ?? undefined
+              }
               on:mouseover={() => props.setHover?.(true)}
               on:mouseout={() => props.setHover?.(false)}
               class="block p-4 border-t bg-muted text-center"

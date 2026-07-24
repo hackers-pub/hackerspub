@@ -60,9 +60,7 @@ const logger = getLogger(["hackerspub", "models", "actor"]);
 const FEATURED_POST_LIMIT = 20;
 const HANDLE_LOOKUP_CONCURRENCY = 5;
 
-type OptionalActorValue<T> =
-  | { success: true; value: T }
-  | { success: false };
+type OptionalActorValue<T> = { success: true; value: T } | { success: false };
 
 async function getOptionalActorValue<T>(
   actorId: URL,
@@ -123,7 +121,8 @@ export async function syncActorFromAccount(
     softwareVersion: metadata.version,
   };
   const { db, kv, storage: disk } = fedCtx;
-  const instances = await db.insert(instanceTable)
+  const instances = await db
+    .insert(instanceTable)
     .values(instance)
     .onConflictDoUpdate({
       target: instanceTable.host,
@@ -141,24 +140,24 @@ export async function syncActorFromAccount(
     handleHost: instance.host,
     accountId: account.id,
     name: account.name,
-    bioHtml:
-      (await renderMarkup(fedCtx, account.bio, { docId: account.id, kv })).html,
+    bioHtml: (
+      await renderMarkup(fedCtx, account.bio, { docId: account.id, kv })
+    ).html,
     automaticallyApprovesFollowers: true,
     inboxUrl: fedCtx.getInboxUri(account.id).href,
     sharedInboxUrl: fedCtx.getInboxUri().href,
     featuredUrl: fedCtx.getFeaturedUri(account.id).href,
     avatarUrl: await getAccountAvatarUrl(disk, account),
     fieldHtmls: Object.fromEntries(
-      renderAccountLinks(account.links).map((
-        pair,
-      ) => [pair.name, pair.value]),
+      renderAccountLinks(account.links).map((pair) => [pair.name, pair.value]),
     ),
     url: new URL(`/@${account.username}`, fedCtx.origin).href,
     updated: account.updated,
     created: account.created,
     published: account.created,
   };
-  const rows = await db.insert(actorTable)
+  const rows = await db
+    .insert(actorTable)
     .values({ id: generateUuidV7(), ...values })
     .onConflictDoUpdate({
       target: actorTable.accountId,
@@ -178,11 +177,12 @@ export async function persistActor(
     outbox?: boolean;
   } = {},
 ): Promise<
-  Actor & {
-    instance: Instance;
-    account: Account | null;
-    successor: Actor | null;
-  } | undefined
+  | (Actor & {
+      instance: Instance;
+      account: Account | null;
+      successor: Actor | null;
+    })
+  | undefined
 > {
   if (actor.id == null) return undefined;
   else if (actor.inboxId == null) {
@@ -200,10 +200,9 @@ export async function persistActor(
   // deletion does not go through persistActor, so cleanup is unaffected.
   const persisted = await getPersistedActor(db, actor.id.href);
   if (persisted != null && isActorSuspended(persisted)) {
-    logger.debug(
-      "Dropping activity from federation-blocked actor {actorId}.",
-      { actorId: actor.id.href },
-    );
+    logger.debug("Dropping activity from federation-blocked actor {actorId}.", {
+      actorId: actor.id.href,
+    });
     return undefined;
   }
   const instance = await persistInstance(db, actor.id.host);
@@ -211,34 +210,26 @@ export async function persistActor(
   try {
     handle = await getActorHandle(actor, { trimLeadingAt: true });
   } catch (error) {
-    logger.warn(
-      "Failed to get handle for actor {actorId}: {error}",
-      { actorId: actor.id.href, error },
-    );
+    logger.warn("Failed to get handle for actor {actorId}: {error}", {
+      actorId: actor.id.href,
+      error,
+    });
     return undefined;
   }
   const getterOpts = { ...options, suppressError: true };
-  const [
-    attachments,
-    avatar,
-    header,
-    followees,
-    followers,
-  ] = await Promise.all([
-    Array.fromAsync(actor.getAttachments(getterOpts)),
-    actor.getIcon(getterOpts),
-    actor.getImage(getterOpts),
-    getOptionalActorValue(
-      actor.id,
-      "following",
-      () => actor.getFollowing(getterOpts),
-    ),
-    getOptionalActorValue(
-      actor.id,
-      "followers",
-      () => actor.getFollowers(getterOpts),
-    ),
-  ]);
+  const [attachments, avatar, header, followees, followers] = await Promise.all(
+    [
+      Array.fromAsync(actor.getAttachments(getterOpts)),
+      actor.getIcon(getterOpts),
+      actor.getImage(getterOpts),
+      getOptionalActorValue(actor.id, "following", () =>
+        actor.getFollowing(getterOpts),
+      ),
+      getOptionalActorValue(actor.id, "followers", () =>
+        actor.getFollowers(getterOpts),
+      ),
+    ],
+  );
   const tags: Record<string, string> = {};
   const emojis: Record<string, string> = {};
   for await (const tag of actor.getTags(getterOpts)) {
@@ -250,13 +241,12 @@ export async function persistActor(
       const icon = await tag.getIcon(getterOpts);
       if (
         icon?.url == null ||
-        icon.url instanceof vocab.Link && icon.url.href == null
+        (icon.url instanceof vocab.Link && icon.url.href == null)
       ) {
         continue;
       }
-      emojis[tag.name.toString()] = icon.url instanceof URL
-        ? icon.url.href
-        : icon.url.href!.href;
+      emojis[tag.name.toString()] =
+        icon.url instanceof URL ? icon.url.href : icon.url.href!.href;
     }
   }
   const successor = await actor.getSuccessor(getterOpts);
@@ -276,26 +266,24 @@ export async function persistActor(
     sharedInboxUrl: actor.endpoints?.sharedInbox?.href,
     followersUrl: actor.followersId?.href,
     featuredUrl: actor.featuredId?.href,
-    avatarUrl: avatar?.url instanceof Link
-      ? avatar.url.href?.href
-      : avatar?.url?.href,
-    headerUrl: header?.url instanceof Link
-      ? header.url.href?.href
-      : header?.url?.href,
+    avatarUrl:
+      avatar?.url instanceof Link ? avatar.url.href?.href : avatar?.url?.href,
+    headerUrl:
+      header?.url instanceof Link ? header.url.href?.href : header?.url?.href,
     fieldHtmls: Object.fromEntries(
-      attachments.filter((a) => a instanceof PropertyValue).map(
-        (p) => [p.name, p.value],
-      ),
+      attachments
+        .filter((a) => a instanceof PropertyValue)
+        .map((p) => [p.name, p.value]),
     ),
     emojis,
     tags,
     url: actor.url instanceof Link ? actor.url.href?.href : actor.url?.href,
     followeesCount: followees.success
-      ? followees.value?.totalItems ?? 0
-      : persisted?.followeesCount ?? 0,
+      ? (followees.value?.totalItems ?? 0)
+      : (persisted?.followeesCount ?? 0),
     followersCount: followers.success
-      ? followers.value?.totalItems ?? 0
-      : persisted?.followersCount ?? 0,
+      ? (followers.value?.totalItems ?? 0)
+      : (persisted?.followersCount ?? 0),
     aliases: actor.aliasIds?.map((a) => a.href),
     successorId:
       successorActor == null || !successorActor.aliases.includes(actor.id.href)
@@ -332,7 +320,8 @@ export async function persistActor(
     );
     return { ...handleConflict, instance };
   }
-  const rows = await db.insert(actorTable)
+  const rows = await db
+    .insert(actorTable)
     .values({ ...values, id: generateUuidV7() })
     .onConflictDoUpdate({
       target: actorTable.iri,
@@ -369,7 +358,8 @@ export async function persistActor(
     await db.delete(pinTable).where(eq(pinTable.actorId, result.id));
     for (const p of featuredPosts) {
       if (p.actorId !== result.id) continue;
-      await db.insert(pinTable)
+      await db
+        .insert(pinTable)
         .values({ postId: p.id, actorId: result.id })
         .onConflictDoNothing();
     }
@@ -377,9 +367,7 @@ export async function persistActor(
   const outbox = options.outbox ? await actor.getOutbox(getterOpts) : null;
   if (outbox != null) {
     let i = 0;
-    for await (
-      const activity of traverseCollection(outbox, getterOpts)
-    ) {
+    for await (const activity of traverseCollection(outbox, getterOpts)) {
       if (activity instanceof vocab.Create) {
         let object: vocab.Object | null;
         try {
@@ -449,11 +437,12 @@ export function getPersistedActor(
   db: Database,
   iri: string | URL,
 ): Promise<
-  Actor & {
-    instance: Instance;
-    account: Account | null;
-    successor: Actor | null;
-  } | undefined
+  | (Actor & {
+      instance: Instance;
+      account: Account | null;
+      successor: Actor | null;
+    })
+  | undefined
 > {
   return db.query.actorTable.findFirst({
     with: { instance: true, account: true, successor: true },
@@ -479,10 +468,7 @@ export async function persistActorsByHandles(
     handlesToFetch.add(`@${username}@${host}`);
     filter.push({
       username,
-      OR: [
-        { instanceHost: host },
-        { handleHost: host },
-      ],
+      OR: [{ instanceHost: host }, { handleHost: host }],
     });
   }
   if (filter.length < 1) return {};
@@ -503,8 +489,8 @@ export async function persistActorsByHandles(
   }
   const handlesToFetchArray = [...handlesToFetch];
   const unreachableHandles = await ctx.kv.getMany<string>(
-    handlesToFetchArray.map((handle) =>
-      `${KV_UNREACHABLE_HANDLES_NAMESPACE}/${handle}`
+    handlesToFetchArray.map(
+      (handle) => `${KV_UNREACHABLE_HANDLES_NAMESPACE}/${handle}`,
     ),
   );
   unreachableHandles.forEach((v, i) => {
@@ -527,10 +513,9 @@ export async function persistActorsByHandles(
           return null;
         }),
         delay(5000).then(async () => {
-          logger.warn(
-            "Timeout while looking up actor {handle}, skipping.",
-            { handle },
-          );
+          logger.warn("Timeout while looking up actor {handle}, skipping.", {
+            handle,
+          });
           await ctx.kv.set(
             `${KV_UNREACHABLE_HANDLES_NAMESPACE}/${handle}`,
             "1",
@@ -558,9 +543,12 @@ export function toRecipient(actor: Actor): vocab.Recipient {
   return {
     id: new URL(actor.iri),
     inboxId: new URL(actor.inboxUrl),
-    endpoints: actor.sharedInboxUrl == null ? null : {
-      sharedInbox: new URL(actor.sharedInboxUrl),
-    },
+    endpoints:
+      actor.sharedInboxUrl == null
+        ? null
+        : {
+            sharedInbox: new URL(actor.sharedInboxUrl),
+          },
   };
 }
 
@@ -576,9 +564,10 @@ export async function getActorStats(
   db: Database,
   actorId: Uuid,
 ): Promise<ActorStats> {
-  const rows = await db.select({
-    total: count(),
-    notes: sql<number>`
+  const rows = await db
+    .select({
+      total: count(),
+      notes: sql<number>`
       coalesce(
         sum(
           CASE WHEN ${postTable.type} = 'Note' AND
@@ -590,7 +579,7 @@ export async function getActorStats(
         ),
         0
       )::integer`,
-    notesWithReplies: sql<number>`
+      notesWithReplies: sql<number>`
       coalesce(
         sum(
           CASE WHEN ${postTable.type} = 'Note' AND
@@ -601,13 +590,13 @@ export async function getActorStats(
         ),
         0
       )::integer`,
-    shares: sql<number>`
+      shares: sql<number>`
       coalesce(
         sum(CASE WHEN ${postTable.sharedPostId} IS NULL THEN 0 ELSE 1 END),
         0
       )::integer
     `,
-    articles: sql<number>`
+      articles: sql<number>`
       coalesce(
         sum(
           CASE WHEN ${postTable.type} = 'Article' AND
@@ -619,7 +608,9 @@ export async function getActorStats(
         0
       )::integer
     `,
-  }).from(postTable).where(eq(postTable.actorId, actorId));
+    })
+    .from(postTable)
+    .where(eq(postTable.actorId, actorId));
   if (rows.length > 0) return rows[0];
   return { total: 0, notes: 0, notesWithReplies: 0, shares: 0, articles: 0 };
 }
@@ -635,12 +626,10 @@ export async function recommendActors(
   db: Database,
   { mainLocale, locales, account, limit }: RecommendActorsOptions = {},
 ): Promise<(Actor & { account?: Account | null })[]> {
-  const mainLanguage = mainLocale == null
-    ? undefined
-    : mainLocale.replace(/-.*$/, "");
-  const languages = locales == null
-    ? undefined
-    : locales.map((l) => l.replace(/-.*$/, ""));
+  const mainLanguage =
+    mainLocale == null ? undefined : mainLocale.replace(/-.*$/, "");
+  const languages =
+    locales == null ? undefined : locales.map((l) => l.replace(/-.*$/, ""));
   if (languages != null && locales != null) {
     for (const locale of locales) {
       if (!languages.includes(locale)) languages.push(locale);
@@ -655,12 +644,16 @@ export async function recommendActors(
           ELSE 1
         END`.as("local"),
       followersCount: actorTable.followersCount,
-      reactionsCount: sql<number>`coalesce(sum(${postTable.reactionsCount}), 0)`
-        .as("likesCount"),
-      repliesCount: sql<number>`coalesce(sum(${postTable.repliesCount}), 0)`
-        .as("repliesCount"),
-      sharesCount: sql<number>`coalesce(sum(${postTable.sharesCount}), 0)`
-        .as("sharesCount"),
+      reactionsCount:
+        sql<number>`coalesce(sum(${postTable.reactionsCount}), 0)`.as(
+          "likesCount",
+        ),
+      repliesCount: sql<number>`coalesce(sum(${postTable.repliesCount}), 0)`.as(
+        "repliesCount",
+      ),
+      sharesCount: sql<number>`coalesce(sum(${postTable.sharesCount}), 0)`.as(
+        "sharesCount",
+      ),
       postsCount: sql<number>`
         sum(CASE
           WHEN ${postTable.language} = ${mainLocale ?? null} THEN 1
@@ -677,25 +670,24 @@ export async function recommendActors(
         languages == null || languages.length < 1
           ? undefined
           : inArray(postTable.language, languages),
-        account == null ? undefined : and(
-          or(
-            isNull(actorTable.accountId),
-            ne(actorTable.accountId, account.id),
-          ),
-          notInArray(
-            postTable.actorId,
-            db.select({ followeeId: followingTable.followeeId }).from(
-              followingTable,
-            ).where(eq(followingTable.followerId, account.actor.id)),
-          ),
-        ),
+        account == null
+          ? undefined
+          : and(
+              or(
+                isNull(actorTable.accountId),
+                ne(actorTable.accountId, account.id),
+              ),
+              notInArray(
+                postTable.actorId,
+                db
+                  .select({ followeeId: followingTable.followeeId })
+                  .from(followingTable)
+                  .where(eq(followingTable.followerId, account.actor.id)),
+              ),
+            ),
       ),
     )
-    .groupBy(
-      actorTable.id,
-      actorTable.accountId,
-      actorTable.followersCount,
-    );
+    .groupBy(actorTable.id, actorTable.accountId, actorTable.followersCount);
   const statsCte = db.$with("stats").as(stats);
   const f1 = aliasedTable(followingTable, "f1");
   const f2 = aliasedTable(followingTable, "f2");
@@ -706,12 +698,11 @@ export async function recommendActors(
     })
     .from(f1)
     .innerJoin(f2, eq(f1.followeeId, f2.followerId))
-    .where(
-      account == null ? sql`false` : eq(f1.followerId, account.actor.id),
-    )
+    .where(account == null ? sql`false` : eq(f1.followerId, account.actor.id))
     .groupBy(f2.followeeId);
   const followsCte = db.$with("follows").as(follows);
-  const subquery = db.with(statsCte, followsCte)
+  const subquery = db
+    .with(statsCte, followsCte)
     .select({ actorId: statsCte.actorId })
     .from(statsCte)
     .leftJoin(followsCte, eq(statsCte.actorId, followsCte.followeeId))
@@ -731,9 +722,9 @@ export async function recommendActors(
           `,
       ),
     );
-  const actorIds =
-    (limit == null ? await subquery : await subquery.limit(limit))
-      .map(({ actorId }) => actorId);
+  const actorIds = (
+    limit == null ? await subquery : await subquery.limit(limit)
+  ).map(({ actorId }) => actorId);
   if (actorIds.length < 1) return [];
   const actors = await db.query.actorTable.findMany({
     with: { account: true },

@@ -8,38 +8,31 @@ import {
 } from "./draftSaveSnapshot.ts";
 
 test("draft snapshots preserve form whitespace while save inputs are trimmed", () => {
-  const snapshot = createDraftFormSnapshot(
-    " Title ",
-    " Body ",
-    ["solid", "relay"],
-  );
+  const snapshot = createDraftFormSnapshot(" Title ", " Body ", [
+    "solid",
+    "relay",
+  ]);
 
   assert.deepEqual(snapshot, {
     title: " Title ",
     content: " Body ",
     tags: ["solid", "relay"],
   });
-  assert.deepEqual(
-    createDraftSaveInput(snapshot),
-    {
-      title: "Title",
-      content: "Body",
-      tags: ["solid", "relay"],
-    },
-  );
+  assert.deepEqual(createDraftSaveInput(snapshot), {
+    title: "Title",
+    content: "Body",
+    tags: ["solid", "relay"],
+  });
 });
 
 test("reconcileDraftSaveResponse keeps whitespace from an unchanged form", () => {
   const submitted = createDraftFormSnapshot("Draft ", "Body", ["solid"]);
   const saved = createDraftFormSnapshot("Draft", "Body", ["solid"]);
 
-  assert.deepEqual(
-    reconcileDraftSaveResponse(submitted, submitted, saved),
-    {
-      formReconciled: true,
-      baseline: submitted,
-    },
-  );
+  assert.deepEqual(reconcileDraftSaveResponse(submitted, submitted, saved), {
+    formReconciled: true,
+    baseline: submitted,
+  });
 });
 
 test("reconcileDraftSaveResponse accepts edits converging to saved values", () => {

@@ -238,7 +238,7 @@ builder.relayMutationField(
       if (attachedMedia.length > 20) {
         throw new InvalidInputError("media");
       }
-      let replyTarget: schema.Post & { actor: schema.Actor } | undefined;
+      let replyTarget: (schema.Post & { actor: schema.Actor }) | undefined;
       if (replyTargetId != null) {
         const post = await ctx.db.query.postTable.findFirst({
           with: {
@@ -291,7 +291,7 @@ builder.relayMutationField(
         }
         replyTarget = post;
       }
-      let quotedPost: schema.Post & { actor: schema.Actor } | undefined;
+      let quotedPost: (schema.Post & { actor: schema.Actor }) | undefined;
       if (quotedPostId != null) {
         const post = await ctx.db.query.postTable.findFirst({
           with: {
@@ -333,7 +333,8 @@ builder.relayMutationField(
           where: { id: quotedPostId.id },
         });
         if (
-          post == null || !isPostVisibleTo(post, actingAccount.account.actor)
+          post == null ||
+          !isPostVisibleTo(post, actingAccount.account.actor)
         ) {
           throw new InvalidInputError("quotedPostId");
         }
@@ -364,10 +365,9 @@ builder.relayMutationField(
           attachedMedia.map(async (medium, i) => {
             const alt = medium.alt.trim();
             if (alt === "") throw new InvalidInputError(`media.${i}.alt`);
-            const storedMedium = await context.db.query.mediumTable
-              .findFirst({
-                where: { id: medium.mediumId },
-              });
+            const storedMedium = await context.db.query.mediumTable.findFirst({
+              where: { id: medium.mediumId },
+            });
             if (storedMedium == null) {
               throw new InvalidInputError(`media.${i}.mediumId`);
             }
@@ -385,35 +385,36 @@ builder.relayMutationField(
             context,
             {
               accountId: actingAccount.account.id,
-              visibility: visibility === "PUBLIC"
-                ? "public"
-                : visibility === "UNLISTED"
-                ? "unlisted"
-                : visibility === "FOLLOWERS"
-                ? "followers"
-                : visibility === "DIRECT"
-                ? "direct"
-                : visibility === "NONE"
-                ? "none"
-                : assertNever(
-                  visibility,
-                  `Unknown value in Post.visibility: "${visibility}"`,
-                ),
+              visibility:
+                visibility === "PUBLIC"
+                  ? "public"
+                  : visibility === "UNLISTED"
+                    ? "unlisted"
+                    : visibility === "FOLLOWERS"
+                      ? "followers"
+                      : visibility === "DIRECT"
+                        ? "direct"
+                        : visibility === "NONE"
+                          ? "none"
+                          : assertNever(
+                              visibility,
+                              `Unknown value in Post.visibility: "${visibility}"`,
+                            ),
               quotePolicy: normalizeQuotePolicyForVisibility(
                 visibility === "PUBLIC"
                   ? "public"
                   : visibility === "UNLISTED"
-                  ? "unlisted"
-                  : visibility === "FOLLOWERS"
-                  ? "followers"
-                  : visibility === "DIRECT"
-                  ? "direct"
-                  : visibility === "NONE"
-                  ? "none"
-                  : assertNever(
-                    visibility,
-                    `Unknown value in Post.visibility: "${visibility}"`,
-                  ),
+                    ? "unlisted"
+                    : visibility === "FOLLOWERS"
+                      ? "followers"
+                      : visibility === "DIRECT"
+                        ? "direct"
+                        : visibility === "NONE"
+                          ? "none"
+                          : assertNever(
+                              visibility,
+                              `Unknown value in Post.visibility: "${visibility}"`,
+                            ),
                 quotePolicy == null ? undefined : fromQuotePolicy(quotePolicy),
               ),
               content,
@@ -566,7 +567,7 @@ builder.relayMutationField(
       if (visibility === "NONE") {
         throw new InvalidInputError("visibility");
       }
-      let replyTarget: schema.Post & { actor: schema.Actor } | undefined;
+      let replyTarget: (schema.Post & { actor: schema.Actor }) | undefined;
       if (replyTargetId != null) {
         const post = await ctx.db.query.postTable.findFirst({
           with: {
@@ -619,7 +620,7 @@ builder.relayMutationField(
         }
         replyTarget = post;
       }
-      let quotedPost: schema.Post & { actor: schema.Actor } | undefined;
+      let quotedPost: (schema.Post & { actor: schema.Actor }) | undefined;
       if (quotedPostId != null) {
         const post = await ctx.db.query.postTable.findFirst({
           with: {
@@ -661,7 +662,8 @@ builder.relayMutationField(
           where: { id: quotedPostId.id },
         });
         if (
-          post == null || !isPostVisibleTo(post, actingAccount.account.actor)
+          post == null ||
+          !isPostVisibleTo(post, actingAccount.account.actor)
         ) {
           throw new InvalidInputError("quotedPostId");
         }
@@ -690,30 +692,30 @@ builder.relayMutationField(
           attachedMedia.map(async (medium, i) => {
             const alt = medium.alt.trim();
             if (alt === "") throw new InvalidInputError(`media.${i}.alt`);
-            const storedMedium = await context.db.query.mediumTable
-              .findFirst({
-                where: { id: medium.mediumId },
-              });
+            const storedMedium = await context.db.query.mediumTable.findFirst({
+              where: { id: medium.mediumId },
+            });
             if (storedMedium == null) {
               throw new InvalidInputError(`media.${i}.mediumId`);
             }
             return { mediumId: medium.mediumId, alt };
           }),
         );
-        const modelVisibility = visibility === "PUBLIC"
-          ? "public"
-          : visibility === "UNLISTED"
-          ? "unlisted"
-          : visibility === "FOLLOWERS"
-          ? "followers"
-          : visibility === "DIRECT"
-          ? "direct"
-          : visibility === "NONE"
-          ? "none"
-          : assertNever(
-            visibility,
-            `Unknown value in Post.visibility: "${visibility}"`,
-          );
+        const modelVisibility =
+          visibility === "PUBLIC"
+            ? "public"
+            : visibility === "UNLISTED"
+              ? "unlisted"
+              : visibility === "FOLLOWERS"
+                ? "followers"
+                : visibility === "DIRECT"
+                  ? "direct"
+                  : visibility === "NONE"
+                    ? "none"
+                    : assertNever(
+                        visibility,
+                        `Unknown value in Post.visibility: "${visibility}"`,
+                      );
         let question: Awaited<ReturnType<typeof createQuestion>>;
         await assertActingAccountNotSuspended(
           ctx.db,
@@ -887,10 +889,7 @@ builder.relayMutationField(
   },
   {
     errors: {
-      types: [
-        NotAuthenticatedError,
-        InvalidInputError,
-      ],
+      types: [NotAuthenticatedError, InvalidInputError],
     },
     async resolve(_root, args, ctx) {
       const session = await ctx.session;
@@ -940,10 +939,7 @@ builder.relayMutationField(
   },
   {
     errors: {
-      types: [
-        NotAuthenticatedError,
-        InvalidInputError,
-      ],
+      types: [NotAuthenticatedError, InvalidInputError],
     },
     async resolve(_root, args, ctx) {
       const session = await ctx.session;
@@ -978,7 +974,8 @@ builder.relayMutationField(
 builder.relayMutationField(
   "deletePost",
   {
-    description: "Delete a post and send an ActivityPub `Delete` activity to " +
+    description:
+      "Delete a post and send an ActivityPub `Delete` activity to " +
       "federated instances. Boost wrappers cannot be deleted this way; " +
       "use `unsharePost` instead (returns `SharedPostDeletionNotAllowedError`). " +
       "Pass `actingAccountId` to delete a post authored by an organization " +
@@ -1100,7 +1097,8 @@ builder.relayMutationField(
         throw new InvalidInputError("quotePostId");
       }
       if (
-        quote.actor.accountId == null && quote.quoteAuthorizationIri == null
+        quote.actor.accountId == null &&
+        quote.quoteAuthorizationIri == null
       ) {
         throw new InvalidInputError("quotePostId");
       }
@@ -1214,27 +1212,29 @@ builder.relayMutationField(
 
       // Create article from draft
       const article = await withTransaction(ctx.fedCtx, async (context) => {
-        const media = await context.db.query.articleDraftMediumTable
-          .findMany({
-            where: { articleDraftId: draft.id },
-          });
-        const created = await createArticle(context, {
-          accountId: actingAccount.account.id,
-          publishedYear: new Date().getFullYear(),
-          slug,
-          tags: draft.tags,
-          allowLlmTranslation: allowLlmTranslation ?? true,
-          quotePolicy: quotePolicy == null
-            ? "everyone"
-            : fromQuotePolicy(quotePolicy),
-          title: draft.title,
-          content: draft.content,
-          language: language.baseName,
-          media,
-        }, {
-          afterPostCreated: (post, db) =>
-            recordPostActingAccount(db, post.id, actingAccount),
+        const media = await context.db.query.articleDraftMediumTable.findMany({
+          where: { articleDraftId: draft.id },
         });
+        const created = await createArticle(
+          context,
+          {
+            accountId: actingAccount.account.id,
+            publishedYear: new Date().getFullYear(),
+            slug,
+            tags: draft.tags,
+            allowLlmTranslation: allowLlmTranslation ?? true,
+            quotePolicy:
+              quotePolicy == null ? "everyone" : fromQuotePolicy(quotePolicy),
+            title: draft.title,
+            content: draft.content,
+            language: language.baseName,
+            media,
+          },
+          {
+            afterPostCreated: (post, db) =>
+              recordPostActingAccount(db, post.id, actingAccount),
+          },
+        );
         return created;
       });
 
@@ -1267,10 +1267,8 @@ builder.relayMutationField(
   },
 );
 
-builder.drizzleObjectField(
-  Reaction,
-  "post",
-  (t) => t.relation("post", { type: Post }),
+builder.drizzleObjectField(Reaction, "post", (t) =>
+  t.relation("post", { type: Post }),
 );
 
 builder.relayMutationField(
@@ -1369,7 +1367,7 @@ builder.relayMutationField(
         ctx.fedCtx,
         actingAccount,
         post,
-        emoji as ReactionEmoji | null ?? null,
+        (emoji as ReactionEmoji | null) ?? null,
         customEmojiId?.id as Uuid | undefined,
       );
 
@@ -1378,13 +1376,14 @@ builder.relayMutationField(
       }
 
       const existingReaction = await ctx.db.query.reactionTable.findFirst({
-        where: emoji != null
-          ? { postId: post.id, actorId: actingAccount.actor.id, emoji }
-          : {
-            postId: post.id,
-            actorId: actingAccount.actor.id,
-            customEmojiId: customEmojiId!.id as Uuid,
-          },
+        where:
+          emoji != null
+            ? { postId: post.id, actorId: actingAccount.actor.id, emoji }
+            : {
+                postId: post.id,
+                actorId: actingAccount.actor.id,
+                customEmojiId: customEmojiId!.id as Uuid,
+              },
       });
 
       if (existingReaction != null) {
@@ -1495,7 +1494,7 @@ builder.relayMutationField(
         ctx.fedCtx,
         actingAccount,
         post,
-        emoji as ReactionEmoji | null ?? null,
+        (emoji as ReactionEmoji | null) ?? null,
         customEmojiId?.id as Uuid | undefined,
       );
 
@@ -1616,8 +1615,10 @@ builder.relayMutationField(
       if (
         effectivePost.visibility !== "public" &&
         effectivePost.visibility !== "unlisted" &&
-        !(effectivePost.visibility === "followers" &&
-          effectivePost.actorId === actingAccount.actor.id)
+        !(
+          effectivePost.visibility === "followers" &&
+          effectivePost.actorId === actingAccount.actor.id
+        )
       ) {
         throw new InvalidInputError("postId");
       }
@@ -1628,11 +1629,7 @@ builder.relayMutationField(
         actingAccount.id,
       );
 
-      const share = await sharePost(
-        ctx.fedCtx,
-        actingAccount,
-        post,
-      );
+      const share = await sharePost(ctx.fedCtx, actingAccount, post);
 
       return {
         share,
@@ -1729,11 +1726,7 @@ builder.relayMutationField(
         throw new InvalidInputError("postId");
       }
 
-      const unshared = await unsharePost(
-        ctx.fedCtx,
-        actingAccount,
-        post,
-      );
+      const unshared = await unsharePost(ctx.fedCtx, actingAccount, post);
 
       if (unshared == null) {
         throw new InvalidInputError("postId");
@@ -1772,10 +1765,7 @@ builder.relayMutationField(
   },
   {
     errors: {
-      types: [
-        NotAuthenticatedError,
-        InvalidInputError,
-      ],
+      types: [NotAuthenticatedError, InvalidInputError],
     },
     async resolve(_root, args, ctx) {
       if (ctx.account == null) {
@@ -1844,10 +1834,7 @@ builder.relayMutationField(
   },
   {
     errors: {
-      types: [
-        NotAuthenticatedError,
-        InvalidInputError,
-      ],
+      types: [NotAuthenticatedError, InvalidInputError],
     },
     async resolve(_root, args, ctx) {
       if (ctx.account == null) {
@@ -1856,9 +1843,9 @@ builder.relayMutationField(
 
       const { postId } = args.input;
 
-      const alreadyBookmarked =
-        (await arePostsBookmarkedBy(ctx.db, [postId.id], ctx.account))
-          .has(postId.id);
+      const alreadyBookmarked = (
+        await arePostsBookmarkedBy(ctx.db, [postId.id], ctx.account)
+      ).has(postId.id);
 
       const post = await ctx.db.query.postTable.findFirst({
         with: {
@@ -1908,7 +1895,9 @@ builder.relayMutationField(
         nullable: true,
         async resolve(query, result, _args, ctx) {
           const viewerActorId = ctx.account?.actor.id ?? null;
-          if (!await isPostVisibleToViewer(ctx, result.postId, viewerActorId)) {
+          if (
+            !(await isPostVisibleToViewer(ctx, result.postId, viewerActorId))
+          ) {
             return null;
           }
           const post = await ctx.db.query.postTable.findFirst(
@@ -2074,7 +2063,8 @@ builder.queryField("articleDraft", (t) =>
   t.field({
     type: ArticleDraft,
     nullable: true,
-    description: "Look up an article draft by its global `id` or its `uuid`. " +
+    description:
+      "Look up an article draft by its global `id` or its `uuid`. " +
       "Requires authentication; only returns drafts owned by the " +
       "authenticated viewer.",
     args: {
@@ -2107,7 +2097,8 @@ builder.queryField("articleDraft", (t) =>
 
       return drafts[0] ?? null;
     },
-  }));
+  }),
+);
 
 builder.queryField("postByUrl", (t) =>
   t.field({
@@ -2131,10 +2122,7 @@ builder.queryField("postByUrl", (t) =>
       if (ctx.account == null) return null;
       const parsed = parseHttpUrl(args.url.trim());
       if (parsed == null) return null;
-      const actingAccount = await resolveActingAccountForGlobalIdArg(
-        ctx,
-        args,
-      );
+      const actingAccount = await resolveActingAccountForGlobalIdArg(ctx, args);
       const viewerActor = actingAccount.actor;
       const looked = await lookupPostByUrl(ctx, parsed);
       if (looked == null) return null;
@@ -2168,13 +2156,15 @@ builder.queryField("postByUrl", (t) =>
       if (!isPostVisibleTo(post, viewerActor)) return null;
       return post;
     },
-  }));
+  }),
+);
 
 builder.queryField("articleByYearAndSlug", (t) =>
   t.drizzleField({
     type: Article,
     nullable: true,
-    description: "Look up a locally-authored article by the author's handle, " +
+    description:
+      "Look up a locally-authored article by the author's handle, " +
       "publication year, and URL slug. This is the resolver for the " +
       "canonical article permalink path `/@{handle}/{year}/{slug}`.",
     args: {
@@ -2229,26 +2219,28 @@ builder.queryField("articleByYearAndSlug", (t) =>
       if (source == null) return null;
 
       const viewerActorId = await resolveViewerActorId(ctx, args);
-      const viewerActor = viewerActorId == null
-        ? null
-        : await getActorById(ctx, viewerActorId);
+      const viewerActor =
+        viewerActorId == null ? null : await getActorById(ctx, viewerActorId);
       const visibility = getPostVisibilityFilter(viewerActor);
-      return await ctx.db.query.postTable.findFirst(
-        query({
-          where: {
-            AND: [
-              {
-                type: "Article",
-                actorId: actor.id,
-                articleSourceId: source.id,
-              },
-              visibility,
-            ],
-          },
-        }),
-      ) ?? null;
+      return (
+        (await ctx.db.query.postTable.findFirst(
+          query({
+            where: {
+              AND: [
+                {
+                  type: "Article",
+                  actorId: actor.id,
+                  articleSourceId: source.id,
+                },
+                visibility,
+              ],
+            },
+          }),
+        )) ?? null
+      );
     },
-  }));
+  }),
+);
 
 const UpdateArticleMediumInput = builder.inputType("UpdateArticleMediumInput", {
   fields: (t) => ({
@@ -2520,10 +2512,7 @@ builder.relayMutationField(
   },
   {
     errors: {
-      types: [
-        NotAuthenticatedError,
-        InvalidInputError,
-      ],
+      types: [NotAuthenticatedError, InvalidInputError],
     },
     async resolve(_root, args, ctx) {
       const session = await ctx.session;
@@ -2532,12 +2521,9 @@ builder.relayMutationField(
       }
       let medium: schema.Medium | undefined;
       try {
-        medium = await createMediumFromUrl(
-          ctx.db,
-          ctx.disk,
-          args.input.url,
-          { userAgentUrl: new URL(ctx.fedCtx.canonicalOrigin) },
-        );
+        medium = await createMediumFromUrl(ctx.db, ctx.disk, args.input.url, {
+          userAgentUrl: new URL(ctx.fedCtx.canonicalOrigin),
+        });
       } catch (error) {
         if (!(error instanceof UnsafeMediumUrlError)) throw error;
       }
@@ -2602,7 +2588,8 @@ builder.relayMutationField(
       if (session == null) throw new NotAuthenticatedError();
       if (
         !SUPPORTED_MEDIUM_IMAGE_TYPES.includes(
-          args.input.contentType as typeof SUPPORTED_MEDIUM_IMAGE_TYPES[number],
+          args.input
+            .contentType as (typeof SUPPORTED_MEDIUM_IMAGE_TYPES)[number],
         )
       ) {
         throw new InvalidInputError("contentType");
@@ -2630,10 +2617,7 @@ builder.relayMutationField(
           }),
         );
       } catch {
-        uploadUrl = new URL(
-          "/medium-uploads",
-          ctx.fedCtx.canonicalOrigin,
-        );
+        uploadUrl = new URL("/medium-uploads", ctx.fedCtx.canonicalOrigin);
         uploadUrl.searchParams.set("uploadId", upload.id);
         uploadUrl.searchParams.set("token", upload.token);
       }
@@ -2672,7 +2656,8 @@ builder.relayMutationField(
 builder.relayMutationField(
   "finishMediumUpload",
   {
-    description: "Step 2 of direct image upload: confirm that the PUT to the " +
+    description:
+      "Step 2 of direct image upload: confirm that the PUT to the " +
       "pre-signed URL from `startMediumUpload` has completed, returning " +
       "the resulting `Medium`. Requires authentication.",
     inputFields: (t) => ({
@@ -2787,13 +2772,17 @@ builder.relayMutationField(
         },
       });
       if (draft == null) {
-        const inserted = await ctx.db.insert(articleDraftTable).values({
-          id: args.input.draftId,
-          accountId: session.accountId,
-          title: "",
-          content: "",
-          tags: [],
-        }).onConflictDoNothing().returning();
+        const inserted = await ctx.db
+          .insert(articleDraftTable)
+          .values({
+            id: args.input.draftId,
+            accountId: session.accountId,
+            title: "",
+            content: "",
+            tags: [],
+          })
+          .onConflictDoNothing()
+          .returning();
         draft = inserted[0];
       }
       if (draft == null) throw new InvalidInputError("draftId");
@@ -2805,17 +2794,20 @@ builder.relayMutationField(
       if (!key.match(/^[A-Za-z0-9._:/-]+$/)) {
         throw new InvalidInputError("key");
       }
-      await ctx.db.insert(articleDraftMediumTable).values({
-        articleDraftId: draft.id,
-        key,
-        mediumId: medium.id,
-      }).onConflictDoUpdate({
-        target: [
-          articleDraftMediumTable.articleDraftId,
-          articleDraftMediumTable.key,
-        ],
-        set: { mediumId: medium.id },
-      });
+      await ctx.db
+        .insert(articleDraftMediumTable)
+        .values({
+          articleDraftId: draft.id,
+          key,
+          mediumId: medium.id,
+        })
+        .onConflictDoUpdate({
+          target: [
+            articleDraftMediumTable.articleDraftId,
+            articleDraftMediumTable.key,
+          ],
+          set: { mediumId: medium.id },
+        });
       return { key, medium } satisfies AttachedArticleDraftMedium;
     },
   },
@@ -2906,11 +2898,7 @@ builder.relayMutationField(
       // After the window expires the medium is either publicly referenced
       // or pending orphan cleanup, so any authenticated owner of the
       // target article may attach it.
-      const owner = await isMediumOwner(
-        ctx.kv,
-        medium.id,
-        session.accountId,
-      );
+      const owner = await isMediumOwner(ctx.kv, medium.id, session.accountId);
       if (!owner) {
         const windowActive = await isMediumUploadWindowActive(
           ctx.kv,
@@ -2928,16 +2916,19 @@ builder.relayMutationField(
       // change the live article without going through `updateArticle`
       // (no timestamp bump, no ActivityPub `Update`). Treat re-attaching
       // the same medium as idempotent; reject conflicting medium IDs.
-      const inserted = await ctx.db.insert(articleSourceMediumTable).values({
-        articleSourceId: source.id,
-        key,
-        mediumId: medium.id,
-      }).onConflictDoNothing().returning();
+      const inserted = await ctx.db
+        .insert(articleSourceMediumTable)
+        .values({
+          articleSourceId: source.id,
+          key,
+          mediumId: medium.id,
+        })
+        .onConflictDoNothing()
+        .returning();
       if (inserted.length === 0) {
-        const existing = await ctx.db.query.articleSourceMediumTable
-          .findFirst({
-            where: { articleSourceId: source.id, key },
-          });
+        const existing = await ctx.db.query.articleSourceMediumTable.findFirst({
+          where: { articleSourceId: source.id, key },
+        });
         if (existing == null || existing.mediumId !== medium.id) {
           throw new InvalidInputError("key");
         }

@@ -17,7 +17,7 @@ import {
   TextFieldTextArea,
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { AppealDialog_appeal_Mutation } from "./__generated__/AppealDialog_appeal_Mutation.graphql.ts";
 
 const MAX_REASON_LENGTH = 4096;
@@ -63,15 +63,13 @@ export function AppealDialog(props: AppealDialogProps) {
   const [additionalContext, setAdditionalContext] = createSignal("");
   const [touched, setTouched] = createSignal(false);
 
-  const [commit, submitting] = createMutation<AppealDialog_appeal_Mutation>(
-    appealMutation,
-  );
+  const [commit, submitting] =
+    createMutation<AppealDialog_appeal_Mutation>(appealMutation);
 
   const reasonTooShort = () => reason().trim().length < 1;
   const reasonTooLong = () => reason().trim().length > MAX_REASON_LENGTH;
   const contextTooLong = () =>
-    additionalContext().trim().length >
-      MAX_REASON_LENGTH;
+    additionalContext().trim().length > MAX_REASON_LENGTH;
 
   const reset = () => {
     setReason("");
@@ -99,8 +97,7 @@ export function AppealDialog(props: AppealDialogProps) {
           case "FlagAppeal":
             showToast({
               title: t`Appeal submitted`,
-              description:
-                t`The moderation team will review your appeal and notify you.`,
+              description: t`The moderation team will review your appeal and notify you.`,
               variant: "success",
             });
             handleOpenChange(false);
@@ -109,8 +106,7 @@ export function AppealDialog(props: AppealDialogProps) {
           default:
             showToast({
               title: t`Could not submit the appeal`,
-              description:
-                t`You may have already appealed, or the appeal window has closed.`,
+              description: t`You may have already appealed, or the appeal window has closed.`,
               variant: "destructive",
             });
         }
@@ -137,10 +133,11 @@ export function AppealDialog(props: AppealDialogProps) {
           <TextField
             value={reason()}
             onChange={setReason}
-            validationState={touched() &&
-                (reasonTooShort() || reasonTooLong())
-              ? "invalid"
-              : "valid"}
+            validationState={
+              touched() && (reasonTooShort() || reasonTooLong())
+                ? "invalid"
+                : "valid"
+            }
           >
             <TextFieldLabel>{t`Why is this decision unjust?`}</TextFieldLabel>
             <TextFieldTextArea
@@ -164,9 +161,7 @@ export function AppealDialog(props: AppealDialogProps) {
             onChange={setAdditionalContext}
             validationState={contextTooLong() ? "invalid" : "valid"}
           >
-            <TextFieldLabel>
-              {t`Additional context (optional)`}
-            </TextFieldLabel>
+            <TextFieldLabel>{t`Additional context (optional)`}</TextFieldLabel>
             <TextFieldTextArea
               rows={3}
               placeholder={t`Anything you believe was not considered.`}

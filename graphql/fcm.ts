@@ -14,10 +14,11 @@ const UNREGISTER_DEPRECATION_REASON =
   "Use `unregisterPushNotificationTarget` with `service: FCM` instead.";
 
 class RegisterFcmDeviceTokenFailedError extends Error {
-  public constructor(
-    public readonly limit: number = MAX_FCM_DEVICE_TOKENS_PER_ACCOUNT,
-  ) {
+  public readonly limit: number;
+
+  public constructor(limit: number = MAX_FCM_DEVICE_TOKENS_PER_ACCOUNT) {
     super(`Cannot register more than ${limit} FCM device tokens.`);
+    this.limit = limit;
   }
 }
 
@@ -43,7 +44,8 @@ builder.objectType(RegisterFcmDeviceTokenFailedError, {
 builder.relayMutationField(
   "registerFcmDeviceToken",
   {
-    description: "Legacy input for registering an FCM device token. Use " +
+    description:
+      "Legacy input for registering an FCM device token. Use " +
       "`RegisterPushNotificationTargetInput` for new clients.",
     inputFields: (t) => ({
       deviceToken: t.string({
@@ -113,7 +115,8 @@ builder.relayMutationField(
 builder.relayMutationField(
   "unregisterFcmDeviceToken",
   {
-    description: "Legacy input for unregistering an FCM device token. Use " +
+    description:
+      "Legacy input for unregistering an FCM device token. Use " +
       "`UnregisterPushNotificationTargetInput` for new clients.",
     inputFields: (t) => ({
       deviceToken: t.string({

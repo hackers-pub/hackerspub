@@ -9,7 +9,7 @@ import { SearchForm } from "~/components/SearchForm.tsx";
 import { SearchResults } from "~/components/SearchResults.tsx";
 import { SearchResultsSkeleton } from "~/components/SearchResultsSkeleton.tsx";
 import { Title } from "~/components/Title.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,
@@ -40,16 +40,12 @@ const loadTagQuery = routePreloadedQuery(
     locale: string,
     languages: readonly string[],
   ) =>
-    loadQuery<TagPageQuery>(
-      useRelayEnvironment()(),
-      TagPageQuery,
-      {
-        query: searchQuery,
-        tag,
-        locale,
-        languages,
-      },
-    ),
+    loadQuery<TagPageQuery>(useRelayEnvironment()(), TagPageQuery, {
+      query: searchQuery,
+      tag,
+      locale,
+      languages,
+    }),
   "loadTagQuery",
 );
 
@@ -59,15 +55,13 @@ export default function TagPage() {
   const tag = () => decodeRouteParam(params.tag);
   const searchQuery = () => `#${tag()}`;
 
-  const data = createStablePreloadedQuery<TagPageQuery>(
-    TagPageQuery,
-    () =>
-      loadTagQuery(
-        searchQuery(),
-        tag(),
-        i18n.locale,
-        i18n.locales != null && Array.isArray(i18n.locales) ? i18n.locales : [],
-      ),
+  const data = createStablePreloadedQuery<TagPageQuery>(TagPageQuery, () =>
+    loadTagQuery(
+      searchQuery(),
+      tag(),
+      i18n.locale,
+      i18n.locales != null && Array.isArray(i18n.locales) ? i18n.locales : [],
+    ),
   );
 
   return (
@@ -77,9 +71,7 @@ export default function TagPage() {
         <SearchForm value={searchQuery()} />
       </div>
       <div class="mb-4 flex items-center gap-4">
-        <h1 class="text-2xl font-bold text-primary">
-          #{tag()}
-        </h1>
+        <h1 class="text-2xl font-bold text-primary">#{tag()}</h1>
         <Show keyed when={data()?.viewer}>
           {(viewer) => (
             <HashtagActionBar
@@ -93,10 +85,7 @@ export default function TagPage() {
       <Suspense fallback={<SearchResultsSkeleton />}>
         <Show keyed when={data()}>
           {(queryData) => (
-            <SearchResults
-              $posts={queryData}
-              query={searchQuery}
-            />
+            <SearchResults $posts={queryData} query={searchQuery} />
           )}
         </Show>
       </Suspense>

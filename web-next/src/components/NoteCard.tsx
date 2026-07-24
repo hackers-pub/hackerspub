@@ -29,8 +29,9 @@ export function NoteCard(props: NoteCardProps) {
   const note = createFragment(
     graphql`
       fragment NoteCard_note on Note
-        @argumentDefinitions(actingAccountId: { type: "ID", defaultValue: null })
-      {
+      @argumentDefinitions(
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
         ...NoteCardInternal_note @arguments(actingAccountId: $actingAccountId)
         ...PostSharer_post
         actor {
@@ -38,9 +39,7 @@ export function NoteCard(props: NoteCardProps) {
           viewerMutes(actingAccountId: $actingAccountId)
         }
         sharedPost(actingAccountId: $actingAccountId) {
-          ...NoteCardInternal_note @arguments(
-            actingAccountId: $actingAccountId
-          )
+          ...NoteCardInternal_note @arguments(actingAccountId: $actingAccountId)
           actor {
             handle
             viewerMutes(actingAccountId: $actingAccountId)
@@ -56,8 +55,9 @@ export function NoteCard(props: NoteCardProps) {
       {(note) => {
         const displayPost = () => note.sharedPost ?? note;
         const mutedActor = () =>
-          props.placeholderIfMuted && !revealed() &&
-            displayPost().actor?.viewerMutes
+          props.placeholderIfMuted &&
+          !revealed() &&
+          displayPost().actor?.viewerMutes
             ? displayPost().actor
             : null;
         return (

@@ -1,5 +1,5 @@
 import { Show } from "solid-js";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   type ArticleComposerProps,
   ArticleComposerProvider,

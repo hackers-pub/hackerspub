@@ -26,10 +26,7 @@ test("shouldCaptureUpstreamError keeps diagnostic upstream failures", () => {
     shouldCaptureUpstreamError({ status: 504, responseText: "timeout" }),
     true,
   );
-  assert.equal(
-    shouldCaptureUpstreamError({ status: 504 }),
-    true,
-  );
+  assert.equal(shouldCaptureUpstreamError({ status: 504 }), true);
   assert.equal(
     shouldCaptureUpstreamError({
       status: 504,
@@ -49,17 +46,22 @@ test("TransientUpstreamGraphQLError is identifiable in Sentry events", () => {
 
   assert.equal(error.name, TRANSIENT_UPSTREAM_GRAPHQL_ERROR_NAME);
   assert.equal(
-    isTransientUpstreamGraphQLErrorEvent({}, {
-      originalException: error,
-    }),
+    isTransientUpstreamGraphQLErrorEvent(
+      {},
+      {
+        originalException: error,
+      },
+    ),
     true,
   );
   assert.equal(
     isTransientUpstreamGraphQLErrorEvent({
       exception: {
-        values: [{
-          type: TRANSIENT_UPSTREAM_GRAPHQL_ERROR_NAME,
-        }],
+        values: [
+          {
+            type: TRANSIENT_UPSTREAM_GRAPHQL_ERROR_NAME,
+          },
+        ],
       },
     }),
     true,
@@ -67,11 +69,12 @@ test("TransientUpstreamGraphQLError is identifiable in Sentry events", () => {
   assert.equal(
     isTransientUpstreamGraphQLErrorEvent({
       exception: {
-        values: [{
-          type: "TypeError",
-          value:
-            `${TRANSIENT_UPSTREAM_GRAPHQL_ERROR_MESSAGE_PREFIX}504 for appQuery`,
-        }],
+        values: [
+          {
+            type: "TypeError",
+            value: `${TRANSIENT_UPSTREAM_GRAPHQL_ERROR_MESSAGE_PREFIX}504 for appQuery`,
+          },
+        ],
       },
     }),
     true,

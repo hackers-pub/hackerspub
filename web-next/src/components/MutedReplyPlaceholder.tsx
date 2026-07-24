@@ -1,5 +1,5 @@
 import { Button } from "~/components/ui/button.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import IconVolumeX from "~icons/lucide/volume-x";
 
 export interface MutedReplyPlaceholderProps {

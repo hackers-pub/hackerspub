@@ -240,9 +240,10 @@ const PUSH_NOTIFICATION_LOCALES = Object.keys(
 function selectPushNotificationLocale(
   locales: readonly string[] | null | undefined,
 ): PushNotificationLocale {
-  const matched = locales == null
-    ? undefined
-    : negotiateLocale(locales, PUSH_NOTIFICATION_LOCALES);
+  const matched =
+    locales == null
+      ? undefined
+      : negotiateLocale(locales, PUSH_NOTIFICATION_LOCALES);
   return (matched?.baseName as PushNotificationLocale | undefined) ?? "en-US";
 }
 
@@ -259,12 +260,10 @@ function postPreview(
     typeof accountTable.$inferSelect,
     "pushNotificationPreviewPolicy"
   >,
-  post:
-    | Pick<
-      typeof postTable.$inferSelect,
-      "visibility" | "sensitive" | "summary" | "contentHtml"
-    >
-    | null,
+  post: Pick<
+    typeof postTable.$inferSelect,
+    "visibility" | "sensitive" | "summary" | "contentHtml"
+  > | null,
 ): string | null {
   if (post == null) return null;
   switch (account.pushNotificationPreviewPolicy) {
@@ -307,22 +306,36 @@ export async function buildPushNotificationPayload(
   options: PushNotificationPayloadOptions,
 ): Promise<PushNotificationPayload> {
   const [accountRows, actorRows, postRows] = await Promise.all([
-    db.select({
-      locales: accountTable.locales,
-      pushNotificationPreviewPolicy: accountTable.pushNotificationPreviewPolicy,
-    }).from(accountTable).where(eq(accountTable.id, options.accountId))
+    db
+      .select({
+        locales: accountTable.locales,
+        pushNotificationPreviewPolicy:
+          accountTable.pushNotificationPreviewPolicy,
+      })
+      .from(accountTable)
+      .where(eq(accountTable.id, options.accountId))
       .limit(1),
-    db.select({
-      name: actorTable.name,
-      handle: actorTable.handle,
-      username: actorTable.username,
-    }).from(actorTable).where(eq(actorTable.id, options.actorId)).limit(1),
-    options.postId == null ? Promise.resolve([]) : db.select({
-      visibility: postTable.visibility,
-      sensitive: postTable.sensitive,
-      summary: postTable.summary,
-      contentHtml: postTable.contentHtml,
-    }).from(postTable).where(eq(postTable.id, options.postId)).limit(1),
+    db
+      .select({
+        name: actorTable.name,
+        handle: actorTable.handle,
+        username: actorTable.username,
+      })
+      .from(actorTable)
+      .where(eq(actorTable.id, options.actorId))
+      .limit(1),
+    options.postId == null
+      ? Promise.resolve([])
+      : db
+          .select({
+            visibility: postTable.visibility,
+            sensitive: postTable.sensitive,
+            summary: postTable.summary,
+            contentHtml: postTable.contentHtml,
+          })
+          .from(postTable)
+          .where(eq(postTable.id, options.postId))
+          .limit(1),
   ]);
 
   const account = accountRows[0] ?? {
@@ -330,9 +343,10 @@ export async function buildPushNotificationPayload(
     pushNotificationPreviewPolicy: "public_only",
   };
   const locale = selectPushNotificationLocale(account.locales);
-  const name = actorRows[0] == null
-    ? PUSH_NOTIFICATION_MESSAGES[locale].someone
-    : actorName(actorRows[0]);
+  const name =
+    actorRows[0] == null
+      ? PUSH_NOTIFICATION_MESSAGES[locale].someone
+      : actorName(actorRows[0]);
   const preview = postPreview(account, postRows[0] ?? null);
   const body = genericBody(locale, options.type, name, options.emoji);
 

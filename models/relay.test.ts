@@ -23,9 +23,7 @@ interface SentActivity {
   activity: unknown;
 }
 
-function withCapturingFedCtx(
-  tx: Parameters<typeof createFedCtx>[0],
-): {
+function withCapturingFedCtx(tx: Parameters<typeof createFedCtx>[0]): {
   fedCtx: ReturnType<typeof createFedCtx>;
   sent: SentActivity[];
 } {
@@ -107,9 +105,10 @@ test("subscribeRelay re-sends a pending Follow without duplicating the row", asy
     assert.deepEqual(second.followIri, first.followIri);
     assert.deepEqual(sent.length, 2);
 
-    const rows = await tx.select().from(relaySubscriptionTable).where(
-      eq(relaySubscriptionTable.actorId, relay.id),
-    );
+    const rows = await tx
+      .select()
+      .from(relaySubscriptionTable)
+      .where(eq(relaySubscriptionTable.actorId, relay.id));
     assert.deepEqual(rows.length, 1);
 
     // Once the relay has accepted, re-subscribing is a no-op: no extra row
@@ -233,7 +232,7 @@ test("removeRelaySubscription deletes only for the matching relay", async () => 
       "https://evil.example/actor",
     );
     assert.deepEqual(mismatch, undefined);
-    assert.ok(await getRelaySubscription(tx, subscription.id) != null);
+    assert.ok((await getRelaySubscription(tx, subscription.id)) != null);
 
     const removed = await removeRelaySubscription(
       tx,
@@ -298,6 +297,6 @@ test("unsubscribeRelay keeps the row when the Undo fails to send", async () => {
     (fedCtx as any).sendActivity = () =>
       Promise.reject(new Error("queue unavailable"));
     await assert.rejects(() => unsubscribeRelay(fedCtx, loaded));
-    assert.ok(await getRelaySubscription(tx, subscription.id) != null);
+    assert.ok((await getRelaySubscription(tx, subscription.id)) != null);
   });
 });

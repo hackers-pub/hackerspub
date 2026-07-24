@@ -13,7 +13,7 @@ export default {
     useLingui: ["~/lib/i18n/index.tsx", "useLinguiImpl"],
   },
   macro: {
-    corePackage: ["~/lib/i18n/macro.d.ts"],
-    jsxPackage: ["~/lib/i18n/macro.d.ts"],
+    corePackage: ["~/lib/i18n/macro.ts"],
+    jsxPackage: ["~/lib/i18n/macro.ts"],
   },
 } satisfies ReturnType<typeof defineConfig>;

@@ -163,13 +163,15 @@ test("publicTimeline exposes forward pagination metadata", async () => {
       contentHtml: "<p>Remote timeline post</p>",
     });
 
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({
         published: new Date("2026-04-15T00:00:01.000Z"),
         updated: new Date("2026-04-15T00:00:01.000Z"),
       })
       .where(eq(postTable.id, localPost.id));
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({
         published: new Date("2026-04-15T00:00:02.000Z"),
         updated: new Date("2026-04-15T00:00:02.000Z"),
@@ -186,17 +188,20 @@ test("publicTimeline exposes forward pagination metadata", async () => {
 
     assert.deepEqual(result.errors, undefined);
 
-    const connection = (result.data as {
-      publicTimeline: {
-        pageInfo: { hasNextPage: boolean };
-        edges: { node: { id: string } }[];
-      };
-    }).publicTimeline;
+    const connection = (
+      result.data as {
+        publicTimeline: {
+          pageInfo: { hasNextPage: boolean };
+          edges: { node: { id: string } }[];
+        };
+      }
+    ).publicTimeline;
 
     assert.deepEqual(connection.pageInfo.hasNextPage, true);
-    assert.deepEqual(connection.edges.map((edge) => edge.node.id), [
-      encodeGlobalID("Note", remotePost.id),
-    ]);
+    assert.deepEqual(
+      connection.edges.map((edge) => edge.node.id),
+      [encodeGlobalID("Note", remotePost.id)],
+    );
   });
 });
 
@@ -227,22 +232,27 @@ test("publicTimeline supports forward and backward cursor pagination", async () 
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(firstPage.errors, undefined);
-    const firstConnection = (firstPage.data as {
-      publicTimeline: {
-        pageInfo: {
-          hasNextPage: boolean;
-          hasPreviousPage: boolean;
-          endCursor: string;
+    const firstConnection = (
+      firstPage.data as {
+        publicTimeline: {
+          pageInfo: {
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
+            endCursor: string;
+          };
+          edges: { cursor: string; node: { id: string } }[];
         };
-        edges: { cursor: string; node: { id: string } }[];
-      };
-    }).publicTimeline;
+      }
+    ).publicTimeline;
     assert.deepEqual(firstConnection.pageInfo.hasNextPage, true);
     assert.deepEqual(firstConnection.pageInfo.hasPreviousPage, false);
-    assert.deepEqual(firstConnection.edges.map((edge) => edge.node.id), [
-      encodeGlobalID("Note", orderedPosts[0].id),
-      encodeGlobalID("Note", orderedPosts[1].id),
-    ]);
+    assert.deepEqual(
+      firstConnection.edges.map((edge) => edge.node.id),
+      [
+        encodeGlobalID("Note", orderedPosts[0].id),
+        encodeGlobalID("Note", orderedPosts[1].id),
+      ],
+    );
 
     const secondPage = await execute({
       schema,
@@ -255,22 +265,27 @@ test("publicTimeline supports forward and backward cursor pagination", async () 
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(secondPage.errors, undefined);
-    const secondConnection = (secondPage.data as {
-      publicTimeline: {
-        pageInfo: {
-          hasNextPage: boolean;
-          hasPreviousPage: boolean;
-          endCursor: string;
+    const secondConnection = (
+      secondPage.data as {
+        publicTimeline: {
+          pageInfo: {
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
+            endCursor: string;
+          };
+          edges: { cursor: string; node: { id: string } }[];
         };
-        edges: { cursor: string; node: { id: string } }[];
-      };
-    }).publicTimeline;
+      }
+    ).publicTimeline;
     assert.deepEqual(secondConnection.pageInfo.hasNextPage, false);
     assert.deepEqual(secondConnection.pageInfo.hasPreviousPage, true);
-    assert.deepEqual(secondConnection.edges.map((edge) => edge.node.id), [
-      encodeGlobalID("Note", orderedPosts[2].id),
-      encodeGlobalID("Note", orderedPosts[3].id),
-    ]);
+    assert.deepEqual(
+      secondConnection.edges.map((edge) => edge.node.id),
+      [
+        encodeGlobalID("Note", orderedPosts[2].id),
+        encodeGlobalID("Note", orderedPosts[3].id),
+      ],
+    );
 
     const backwardPage = await execute({
       schema,
@@ -283,18 +298,23 @@ test("publicTimeline supports forward and backward cursor pagination", async () 
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(backwardPage.errors, undefined);
-    const backwardConnection = (backwardPage.data as {
-      publicTimeline: {
-        pageInfo: { hasNextPage: boolean; hasPreviousPage: boolean };
-        edges: { node: { id: string } }[];
-      };
-    }).publicTimeline;
+    const backwardConnection = (
+      backwardPage.data as {
+        publicTimeline: {
+          pageInfo: { hasNextPage: boolean; hasPreviousPage: boolean };
+          edges: { node: { id: string } }[];
+        };
+      }
+    ).publicTimeline;
     assert.deepEqual(backwardConnection.pageInfo.hasNextPage, true);
     assert.deepEqual(backwardConnection.pageInfo.hasPreviousPage, true);
-    assert.deepEqual(backwardConnection.edges.map((edge) => edge.node.id), [
-      encodeGlobalID("Note", orderedPosts[1].id),
-      encodeGlobalID("Note", orderedPosts[2].id),
-    ]);
+    assert.deepEqual(
+      backwardConnection.edges.map((edge) => edge.node.id),
+      [
+        encodeGlobalID("Note", orderedPosts[1].id),
+        encodeGlobalID("Note", orderedPosts[2].id),
+      ],
+    );
   });
 });
 
@@ -336,19 +356,22 @@ test("publicTimeline and personalTimeline honor share filters", async () => {
       actor: remoteActor,
     });
 
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({
         published: new Date("2026-04-15T00:00:01.000Z"),
         updated: new Date("2026-04-15T00:00:01.000Z"),
       })
       .where(eq(postTable.id, localPost.id));
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({
         published: new Date("2026-04-15T00:00:02.000Z"),
         updated: new Date("2026-04-15T00:00:02.000Z"),
       })
       .where(eq(postTable.id, remotePost.id));
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({
         published: new Date("2026-04-15T00:00:03.000Z"),
         updated: new Date("2026-04-15T00:00:03.000Z"),
@@ -369,9 +392,11 @@ test("publicTimeline and personalTimeline honor share filters", async () => {
 
     assert.deepEqual(publicResult.errors, undefined);
     assert.deepEqual(
-      (publicResult.data as {
-        publicTimeline: { edges: { node: { id: string } }[] };
-      }).publicTimeline.edges.map((edge) => edge.node.id),
+      (
+        publicResult.data as {
+          publicTimeline: { edges: { node: { id: string } }[] };
+        }
+      ).publicTimeline.edges.map((edge) => edge.node.id),
       [encodeGlobalID("Note", localPost.id)],
     );
 
@@ -385,15 +410,17 @@ test("publicTimeline and personalTimeline honor share filters", async () => {
 
     assert.deepEqual(personalResult.errors, undefined);
 
-    const personalEdges = (personalResult.data as {
-      personalTimeline: {
-        edges: {
-          node: { id: string };
-          lastSharer: { id: string } | null;
-          sharersCount: number;
-        }[];
-      };
-    }).personalTimeline.edges;
+    const personalEdges = (
+      personalResult.data as {
+        personalTimeline: {
+          edges: {
+            node: { id: string };
+            lastSharer: { id: string } | null;
+            sharersCount: number;
+          }[];
+        };
+      }
+    ).personalTimeline.edges;
     assert.deepEqual(personalEdges.length, 1);
     assert.deepEqual(
       personalEdges[0].node.id,
@@ -415,9 +442,11 @@ test("publicTimeline and personalTimeline honor share filters", async () => {
 
     assert.deepEqual(withoutSharesResult.errors, undefined);
     assert.deepEqual(
-      (withoutSharesResult.data as {
-        personalTimeline: { edges: unknown[] };
-      }).personalTimeline.edges,
+      (
+        withoutSharesResult.data as {
+          personalTimeline: { edges: unknown[] };
+        }
+      ).personalTimeline.edges,
       [],
     );
   });
@@ -446,7 +475,8 @@ test("personalTimeline can read an organization account feed", async () => {
       name: "GraphQL Org Feed Remote",
       host: "organization-feed.example",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, viewer.account.id));
     const organization = await createOrganization(fedCtx, viewer.account, {
@@ -484,9 +514,11 @@ test("personalTimeline can read an organization account feed", async () => {
     });
     assert.deepEqual(personalResult.errors, undefined);
     assert.deepEqual(
-      (personalResult.data as {
-        personalTimeline: { edges: { node: { id: string } }[] };
-      }).personalTimeline.edges.map((edge) => edge.node.id),
+      (
+        personalResult.data as {
+          personalTimeline: { edges: { node: { id: string } }[] };
+        }
+      ).personalTimeline.edges.map((edge) => edge.node.id),
       [encodeGlobalID("Note", personalRemotePost.id)],
     );
 
@@ -502,9 +534,11 @@ test("personalTimeline can read an organization account feed", async () => {
     });
     assert.deepEqual(organizationResult.errors, undefined);
     assert.deepEqual(
-      (organizationResult.data as {
-        personalTimeline: { edges: { node: { id: string } }[] };
-      }).personalTimeline.edges.map((edge) => edge.node.id),
+      (
+        organizationResult.data as {
+          personalTimeline: { edges: { node: { id: string } }[] };
+        }
+      ).personalTimeline.edges.map((edge) => edge.node.id),
       [encodeGlobalID("Note", organizationRemotePost.id)],
     );
   });
@@ -523,7 +557,8 @@ test("personalTimeline rejects organization accounts outside membership", async 
       name: "GraphQL Org Feed Denied Owner",
       email: "graphqlorgfeeddeniedowner@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, owner.account.id));
     const organization = await createOrganization(fedCtx, owner.account, {
@@ -612,10 +647,12 @@ test("personalTimeline supports forward and backward cursor pagination", async (
         ...remotePost,
         actor: remoteActor,
       });
-      await tx.update(postTable)
+      await tx
+        .update(postTable)
         .set({ published: timestamp, updated: timestamp })
         .where(eq(postTable.id, share.id));
-      await tx.update(timelineItemTable)
+      await tx
+        .update(timelineItemTable)
         .set({ appended: timestamp })
         .where(
           and(
@@ -635,17 +672,22 @@ test("personalTimeline supports forward and backward cursor pagination", async (
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(firstPage.errors, undefined);
-    const firstConnection = (firstPage.data as {
-      personalTimeline: {
-        pageInfo: { hasNextPage: boolean; endCursor: string };
-        edges: { node: { id: string } }[];
-      };
-    }).personalTimeline;
+    const firstConnection = (
+      firstPage.data as {
+        personalTimeline: {
+          pageInfo: { hasNextPage: boolean; endCursor: string };
+          edges: { node: { id: string } }[];
+        };
+      }
+    ).personalTimeline;
     assert.deepEqual(firstConnection.pageInfo.hasNextPage, true);
-    assert.deepEqual(firstConnection.edges.map((edge) => edge.node.id), [
-      encodeGlobalID("Note", orderedPosts[0].id),
-      encodeGlobalID("Note", orderedPosts[1].id),
-    ]);
+    assert.deepEqual(
+      firstConnection.edges.map((edge) => edge.node.id),
+      [
+        encodeGlobalID("Note", orderedPosts[0].id),
+        encodeGlobalID("Note", orderedPosts[1].id),
+      ],
+    );
 
     const secondPage = await execute({
       schema,
@@ -658,22 +700,27 @@ test("personalTimeline supports forward and backward cursor pagination", async (
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(secondPage.errors, undefined);
-    const secondConnection = (secondPage.data as {
-      personalTimeline: {
-        pageInfo: {
-          hasNextPage: boolean;
-          hasPreviousPage: boolean;
-          endCursor: string;
+    const secondConnection = (
+      secondPage.data as {
+        personalTimeline: {
+          pageInfo: {
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
+            endCursor: string;
+          };
+          edges: { node: { id: string } }[];
         };
-        edges: { node: { id: string } }[];
-      };
-    }).personalTimeline;
+      }
+    ).personalTimeline;
     assert.deepEqual(secondConnection.pageInfo.hasNextPage, false);
     assert.deepEqual(secondConnection.pageInfo.hasPreviousPage, true);
-    assert.deepEqual(secondConnection.edges.map((edge) => edge.node.id), [
-      encodeGlobalID("Note", orderedPosts[2].id),
-      encodeGlobalID("Note", orderedPosts[3].id),
-    ]);
+    assert.deepEqual(
+      secondConnection.edges.map((edge) => edge.node.id),
+      [
+        encodeGlobalID("Note", orderedPosts[2].id),
+        encodeGlobalID("Note", orderedPosts[3].id),
+      ],
+    );
 
     const backwardPage = await execute({
       schema,
@@ -686,18 +733,23 @@ test("personalTimeline supports forward and backward cursor pagination", async (
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(backwardPage.errors, undefined);
-    const backwardConnection = (backwardPage.data as {
-      personalTimeline: {
-        pageInfo: { hasNextPage: boolean; hasPreviousPage: boolean };
-        edges: { node: { id: string } }[];
-      };
-    }).personalTimeline;
+    const backwardConnection = (
+      backwardPage.data as {
+        personalTimeline: {
+          pageInfo: { hasNextPage: boolean; hasPreviousPage: boolean };
+          edges: { node: { id: string } }[];
+        };
+      }
+    ).personalTimeline;
     assert.deepEqual(backwardConnection.pageInfo.hasNextPage, true);
     assert.deepEqual(backwardConnection.pageInfo.hasPreviousPage, true);
-    assert.deepEqual(backwardConnection.edges.map((edge) => edge.node.id), [
-      encodeGlobalID("Note", orderedPosts[1].id),
-      encodeGlobalID("Note", orderedPosts[2].id),
-    ]);
+    assert.deepEqual(
+      backwardConnection.edges.map((edge) => edge.node.id),
+      [
+        encodeGlobalID("Note", orderedPosts[1].id),
+        encodeGlobalID("Note", orderedPosts[2].id),
+      ],
+    );
   });
 });
 
@@ -722,7 +774,8 @@ test("bookmarks supports forward and backward cursor pagination", async () => {
         published: new Date(`2026-04-15T00:00:0${i}.000Z`),
       });
       await createBookmark(tx, viewer.account, post);
-      await tx.update(bookmarkTable)
+      await tx
+        .update(bookmarkTable)
         .set({ created: new Date(`2026-04-15T00:02:0${i}.000Z`) })
         .where(
           and(
@@ -741,17 +794,22 @@ test("bookmarks supports forward and backward cursor pagination", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(firstPage.errors, undefined);
-    const firstConnection = (firstPage.data as {
-      bookmarks: {
-        pageInfo: { hasNextPage: boolean; endCursor: string };
-        edges: { node: { id: string } }[];
-      };
-    }).bookmarks;
+    const firstConnection = (
+      firstPage.data as {
+        bookmarks: {
+          pageInfo: { hasNextPage: boolean; endCursor: string };
+          edges: { node: { id: string } }[];
+        };
+      }
+    ).bookmarks;
     assert.deepEqual(firstConnection.pageInfo.hasNextPage, true);
-    assert.deepEqual(firstConnection.edges.map((edge) => edge.node.id), [
-      encodeGlobalID("Note", posts[3].id),
-      encodeGlobalID("Note", posts[2].id),
-    ]);
+    assert.deepEqual(
+      firstConnection.edges.map((edge) => edge.node.id),
+      [
+        encodeGlobalID("Note", posts[3].id),
+        encodeGlobalID("Note", posts[2].id),
+      ],
+    );
 
     const secondPage = await execute({
       schema,
@@ -764,22 +822,27 @@ test("bookmarks supports forward and backward cursor pagination", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(secondPage.errors, undefined);
-    const secondConnection = (secondPage.data as {
-      bookmarks: {
-        pageInfo: {
-          hasNextPage: boolean;
-          hasPreviousPage: boolean;
-          endCursor: string;
+    const secondConnection = (
+      secondPage.data as {
+        bookmarks: {
+          pageInfo: {
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
+            endCursor: string;
+          };
+          edges: { node: { id: string } }[];
         };
-        edges: { node: { id: string } }[];
-      };
-    }).bookmarks;
+      }
+    ).bookmarks;
     assert.deepEqual(secondConnection.pageInfo.hasNextPage, false);
     assert.deepEqual(secondConnection.pageInfo.hasPreviousPage, true);
-    assert.deepEqual(secondConnection.edges.map((edge) => edge.node.id), [
-      encodeGlobalID("Note", posts[1].id),
-      encodeGlobalID("Note", posts[0].id),
-    ]);
+    assert.deepEqual(
+      secondConnection.edges.map((edge) => edge.node.id),
+      [
+        encodeGlobalID("Note", posts[1].id),
+        encodeGlobalID("Note", posts[0].id),
+      ],
+    );
 
     const backwardPage = await execute({
       schema,
@@ -792,18 +855,23 @@ test("bookmarks supports forward and backward cursor pagination", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(backwardPage.errors, undefined);
-    const backwardConnection = (backwardPage.data as {
-      bookmarks: {
-        pageInfo: { hasNextPage: boolean; hasPreviousPage: boolean };
-        edges: { node: { id: string } }[];
-      };
-    }).bookmarks;
+    const backwardConnection = (
+      backwardPage.data as {
+        bookmarks: {
+          pageInfo: { hasNextPage: boolean; hasPreviousPage: boolean };
+          edges: { node: { id: string } }[];
+        };
+      }
+    ).bookmarks;
     assert.deepEqual(backwardConnection.pageInfo.hasNextPage, true);
     assert.deepEqual(backwardConnection.pageInfo.hasPreviousPage, true);
-    assert.deepEqual(backwardConnection.edges.map((edge) => edge.node.id), [
-      encodeGlobalID("Note", posts[2].id),
-      encodeGlobalID("Note", posts[1].id),
-    ]);
+    assert.deepEqual(
+      backwardConnection.edges.map((edge) => edge.node.id),
+      [
+        encodeGlobalID("Note", posts[2].id),
+        encodeGlobalID("Note", posts[1].id),
+      ],
+    );
   });
 });
 
@@ -871,13 +939,10 @@ test("personalTimeline() filters posts by base language code via languages arg",
       personalTimeline: { edges: { node: { id: string } }[] };
     };
     assert.deepEqual(
-      (enOnly.data as TimelineData).personalTimeline.edges.map((e) =>
-        e.node.id
+      (enOnly.data as TimelineData).personalTimeline.edges.map(
+        (e) => e.node.id,
       ),
-      [
-        encodeGlobalID("Note", enPost.id),
-        encodeGlobalID("Note", enGbPost.id),
-      ],
+      [encodeGlobalID("Note", enPost.id), encodeGlobalID("Note", enGbPost.id)],
       "'en' matches 'en' and 'en-GB'",
     );
 
@@ -889,8 +954,8 @@ test("personalTimeline() filters posts by base language code via languages arg",
     });
     assert.deepEqual(jaOnly.errors, undefined);
     assert.deepEqual(
-      (jaOnly.data as TimelineData).personalTimeline.edges.map((e) =>
-        e.node.id
+      (jaOnly.data as TimelineData).personalTimeline.edges.map(
+        (e) => e.node.id,
       ),
       [encodeGlobalID("Note", jaPost.id)],
       "'ja' matches only 'ja'",

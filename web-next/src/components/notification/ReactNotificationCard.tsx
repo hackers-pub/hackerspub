@@ -3,7 +3,7 @@ import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
 import { NotificationMessage } from "~/components/notification/NotificationMessage.tsx";
 import { QuotedPostCard } from "~/components/QuotedPostCard.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { ReactNotificationCard_notification$key } from "./__generated__/ReactNotificationCard_notification.graphql.ts";
 
 interface ReactNotificationCardProps {
@@ -14,8 +14,7 @@ export function ReactNotificationCard(props: ReactNotificationCardProps) {
   const { t } = useLingui();
   const notification = createFragment(
     graphql`
-      fragment ReactNotificationCard_notification on ReactNotification
-      {
+      fragment ReactNotificationCard_notification on ReactNotification {
         ...NotificationMessage_notification
         post {
           ...QuotedPostCard_post
@@ -39,9 +38,7 @@ export function ReactNotificationCard(props: ReactNotificationCardProps) {
             keyed
             when={notification.customEmoji}
             fallback={
-              <span class="inline-block text-lg">
-                {notification.emoji}
-              </span>
+              <span class="inline-block text-lg">{notification.emoji}</span>
             }
           >
             {(customEmoji) => (
@@ -62,13 +59,11 @@ export function ReactNotificationCard(props: ReactNotificationCardProps) {
               $notification={notification}
               additionalValues={{ EMOJI: () => emojiElement() }}
             />
-            {
-              /* `keyed` avoids a "Stale read from <Show>" race when this
+            {/* `keyed` avoids a "Stale read from <Show>" race when this
                Relay fragment publishes a snapshot inside `batch()` that
                nulls `post` while descendant work reruns. Reconcile keeps
                the post's identity stable, so `keyed` only re-mounts on
-               record change. */
-            }
+               record change. */}
             <Show keyed when={notification.post}>
               {(post) => (
                 <QuotedPostCard $post={post} linkPreview class="-mt-2" />

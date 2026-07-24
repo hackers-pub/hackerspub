@@ -22,8 +22,11 @@ builder.objectType(ActorSuspendedError, {
 export { ActorSuspendedError };
 
 export class InvalidInputError extends Error {
-  public constructor(public readonly inputPath: string) {
+  public readonly inputPath: string;
+
+  public constructor(inputPath: string) {
     super(`Invalid input - ${inputPath}`);
+    this.inputPath = inputPath;
   }
 }
 

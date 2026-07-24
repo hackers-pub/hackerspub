@@ -21,7 +21,7 @@ import {
   TextFieldTextArea,
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import IconShieldAlert from "~icons/lucide/shield-alert";
 import type { ReportDialog_reportContent_Mutation } from "./__generated__/ReportDialog_reportContent_Mutation.graphql.ts";
 
@@ -79,9 +79,8 @@ export function ReportDialog(props: ReportDialogProps) {
   const [forwardToRemote, setForwardToRemote] = createSignal(false);
   const [touched, setTouched] = createSignal(false);
 
-  const [commitReport, isReporting] = createMutation<
-    ReportDialog_reportContent_Mutation
-  >(reportContentMutation);
+  const [commitReport, isReporting] =
+    createMutation<ReportDialog_reportContent_Mutation>(reportContentMutation);
 
   const trimmedLength = createMemo(() => reason().trim().length);
   const tooShort = () => trimmedLength() < MIN_REASON_LENGTH;
@@ -112,8 +111,7 @@ export function ReportDialog(props: ReportDialogProps) {
           case "Flag":
             showToast({
               title: t`Report submitted`,
-              description:
-                t`Thank you. The moderation team will review your report.`,
+              description: t`Thank you. The moderation team will review your report.`,
               variant: "success",
             });
             handleOpenChange(false);
@@ -121,8 +119,7 @@ export function ReportDialog(props: ReportDialogProps) {
           case "DuplicateReportError":
             showToast({
               title: t`Already reported`,
-              description:
-                t`You already have an open report on this target. You can check its status in your report history.`,
+              description: t`You already have an open report on this target. You can check its status in your report history.`,
             });
             handleOpenChange(false);
             break;
@@ -168,9 +165,9 @@ export function ReportDialog(props: ReportDialogProps) {
           <TextField
             value={reason()}
             onChange={setReason}
-            validationState={touched() && (tooShort() || tooLong())
-              ? "invalid"
-              : "valid"}
+            validationState={
+              touched() && (tooShort() || tooLong()) ? "invalid" : "valid"
+            }
           >
             <TextFieldLabel>{t`Reason`}</TextFieldLabel>
             <TextFieldTextArea
@@ -181,10 +178,9 @@ export function ReportDialog(props: ReportDialogProps) {
             <p
               class="text-xs"
               classList={{
-                "text-muted-foreground": !(touched() && tooShort()) &&
-                  !tooLong(),
-                "text-error-foreground": (touched() && tooShort()) ||
-                  tooLong(),
+                "text-muted-foreground":
+                  !(touched() && tooShort()) && !tooLong(),
+                "text-error-foreground": (touched() && tooShort()) || tooLong(),
               }}
             >
               <Show

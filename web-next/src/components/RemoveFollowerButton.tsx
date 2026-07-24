@@ -22,7 +22,7 @@ import {
   TooltipTrigger,
 } from "~/components/ui/tooltip.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 export interface RemoveFollowerButtonProps {
   $actor: RemoveFollowerButton_actor$key;
@@ -40,11 +40,15 @@ const removeFollowerMutation = graphql`
       ... on RemoveFollowerPayload {
         followee {
           id
-          followers { totalCount }
+          followers {
+            totalCount
+          }
         }
         follower {
           id @deleteEdge(connections: $connections)
-          followees { totalCount }
+          followees {
+            totalCount
+          }
           followsViewer(actingAccountId: $actingAccountId)
         }
       }
@@ -73,9 +77,10 @@ export function RemoveFollowerButton(props: RemoveFollowerButtonProps) {
     `,
     () => props.$actor,
   );
-  const [removeFollower, isRemoving] = createMutation<
-    RemoveFollowerButton_removeFollower_Mutation
-  >(removeFollowerMutation);
+  const [removeFollower, isRemoving] =
+    createMutation<RemoveFollowerButton_removeFollower_Mutation>(
+      removeFollowerMutation,
+    );
 
   const displayName = () => actor()?.rawName ?? actor()?.username ?? "";
   const label = () => t`Remove from followers`;

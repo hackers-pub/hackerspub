@@ -144,7 +144,7 @@ export function ForceGraph(props: ForceGraphProps) {
     // Add username label (or "hidden" for hidden accounts)
     node
       .append("text")
-      .text((d: NodeDatum) => (d.hidden ? "🔒" : d.username ?? ""))
+      .text((d: NodeDatum) => (d.hidden ? "🔒" : (d.username ?? "")))
       .attr("x", 0)
       .attr("y", NODE_RADIUS + 14)
       .attr("text-anchor", "middle")
@@ -156,7 +156,7 @@ export function ForceGraph(props: ForceGraphProps) {
     node
       .append("title")
       .text((d: NodeDatum) =>
-        d.hidden ? "Hidden account" : `${d.name} (@${d.username})`
+        d.hidden ? "Hidden account" : `${d.name} (@${d.username})`,
       );
 
     // Add drag behavior

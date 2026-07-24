@@ -20,7 +20,8 @@ export async function mute(
   muter: Account & { actor: Actor },
   mutee: Actor,
 ): Promise<Muting | undefined> {
-  const rows = await db.insert(mutingTable)
+  const rows = await db
+    .insert(mutingTable)
     .values({
       id: generateUuidV7(),
       muterId: muter.actor.id,
@@ -51,12 +52,15 @@ export async function unmute(
   muter: Account & { actor: Actor },
   mutee: Actor,
 ): Promise<Muting | undefined> {
-  const rows = await db.delete(mutingTable).where(
-    and(
-      eq(mutingTable.muterId, muter.actor.id),
-      eq(mutingTable.muteeId, mutee.id),
-    ),
-  ).returning();
+  const rows = await db
+    .delete(mutingTable)
+    .where(
+      and(
+        eq(mutingTable.muterId, muter.actor.id),
+        eq(mutingTable.muteeId, mutee.id),
+      ),
+    )
+    .returning();
   if (rows.length < 1) return undefined;
   return rows[0];
 }

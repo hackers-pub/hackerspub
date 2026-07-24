@@ -6,7 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 export type PostVisibility = "PUBLIC" | "UNLISTED" | "FOLLOWERS" | "DIRECT";
 
@@ -116,9 +116,11 @@ export function PostVisibilitySelect(props: PostVisibilitySelectProps) {
       )}
     >
       <SelectTrigger class="w-[180px]">
-        <SelectValue<
-          { value: PostVisibility; label: string; icon: () => JSX.Element }
-        >>
+        <SelectValue<{
+          value: PostVisibility;
+          label: string;
+          icon: () => JSX.Element;
+        }>>
           {(state) => (
             <div class="flex flex-row gap-1 items-center">
               {state.selectedOption().icon()}

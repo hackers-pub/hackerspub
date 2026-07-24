@@ -410,7 +410,7 @@ test("getArticle() preserves article content titles when rendered body has no he
     assert.ok(articleSource != null);
 
     const article = await getArticle(createFedCtx(tx), articleSource);
-    const jsonLd = await article.toJsonLd() as {
+    const jsonLd = (await article.toJsonLd()) as {
       nameMap?: Record<string, string>;
     };
 
@@ -434,26 +434,23 @@ test("getQuestion() advertises the emoji reactions collection", async () => {
       email: "questionemojireactions@example.com",
     });
     const published = new Date("2026-04-15T00:00:00.000Z");
-    const question = await createQuestion(
-      createFedCtx(tx),
-      {
-        accountId: author.account.id,
-        visibility: "public",
-        quotePolicy: "everyone",
-        content: "React to a poll?",
-        language: "en",
-        media: [],
-        published,
-        updated: published,
-        poll: {
-          title: "Poll reactions",
-          multiple: false,
-          options: ["Yes", "No"],
-          ends: new Date("2026-04-16T00:00:00.000Z"),
-          now: published,
-        },
+    const question = await createQuestion(createFedCtx(tx), {
+      accountId: author.account.id,
+      visibility: "public",
+      quotePolicy: "everyone",
+      content: "React to a poll?",
+      language: "en",
+      media: [],
+      published,
+      updated: published,
+      poll: {
+        title: "Poll reactions",
+        multiple: false,
+        options: ["Yes", "No"],
+        ends: new Date("2026-04-16T00:00:00.000Z"),
+        now: published,
       },
-    );
+    });
     assert.ok(question != null);
     const noteSource = await tx.query.noteSourceTable.findFirst({
       where: { id: question.noteSource.id },
@@ -493,26 +490,23 @@ test("source-backed Questions do not resolve through the Note dispatcher", async
       email: "questionnotedispatch@example.com",
     });
     const published = new Date("2026-04-15T00:00:00.000Z");
-    const question = await createQuestion(
-      createFedCtx(tx),
-      {
-        accountId: author.account.id,
-        visibility: "public",
-        quotePolicy: "everyone",
-        content: "Should resolve only as a Question",
-        language: "en",
-        media: [],
-        published,
-        updated: published,
-        poll: {
-          title: "Dispatcher type",
-          multiple: false,
-          options: ["Question", "Note"],
-          ends: new Date("2026-04-16T00:00:00.000Z"),
-          now: published,
-        },
+    const question = await createQuestion(createFedCtx(tx), {
+      accountId: author.account.id,
+      visibility: "public",
+      quotePolicy: "everyone",
+      content: "Should resolve only as a Question",
+      language: "en",
+      media: [],
+      published,
+      updated: published,
+      poll: {
+        title: "Dispatcher type",
+        multiple: false,
+        options: ["Question", "Note"],
+        ends: new Date("2026-04-16T00:00:00.000Z"),
+        now: published,
       },
-    );
+    });
     assert.ok(question != null);
 
     const kv = createTestKv().kv;
@@ -529,10 +523,9 @@ test("source-backed Questions do not resolve through the Note dispatcher", async
     };
 
     const noteResponse = await federation.fetch(
-      new Request(
-        `http://localhost/ap/notes/${question.noteSource.id}`,
-        { headers: { Accept: "application/activity+json" } },
-      ),
+      new Request(`http://localhost/ap/notes/${question.noteSource.id}`, {
+        headers: { Accept: "application/activity+json" },
+      }),
       { contextData },
     );
 
@@ -627,7 +620,8 @@ test("replies collection exposes only public direct replies", async () => {
       replyTargetId: articlePostId,
       published: new Date("2026-04-15T00:08:00.000Z"),
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ censored: new Date("2026-04-15T00:09:00.000Z") })
       .where(eq(postTable.id, censoredReply.id));
     await insertNotePost(tx, {
@@ -636,7 +630,8 @@ test("replies collection exposes only public direct replies", async () => {
       replyTargetId: articlePostId,
       published: new Date("2026-04-15T00:10:00.000Z"),
     });
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: new Date("2026-04-15T00:00:00.000Z") })
       .where(eq(actorTable.id, hiddenReplier.actor.id));
     await insertNotePost(tx, {
@@ -658,23 +653,23 @@ test("replies collection exposes only public direct replies", async () => {
     };
 
     const rootResponse = await federation.fetch(
-      new Request(
-        `http://localhost/ap/replies/articles/${articleSourceId}`,
-        { headers: { Accept: "application/activity+json" } },
-      ),
+      new Request(`http://localhost/ap/replies/articles/${articleSourceId}`, {
+        headers: { Accept: "application/activity+json" },
+      }),
       { contextData },
     );
     assert.equal(rootResponse.status, 200);
-    const root = await rootResponse.json() as {
+    const root = (await rootResponse.json()) as {
       type?: string;
       totalItems?: number;
       first?: string | { id?: string; "@id"?: string };
     };
     assert.equal(root.type, "OrderedCollection");
     assert.equal(root.totalItems, 2);
-    const first = typeof root.first === "string"
-      ? root.first
-      : root.first?.id ?? root.first?.["@id"];
+    const first =
+      typeof root.first === "string"
+        ? root.first
+        : (root.first?.id ?? root.first?.["@id"]);
     assert.ok(first != null);
 
     const pageResponse = await federation.fetch(
@@ -682,7 +677,7 @@ test("replies collection exposes only public direct replies", async () => {
       { contextData },
     );
     assert.equal(pageResponse.status, 200);
-    const page = await pageResponse.json() as {
+    const page = (await pageResponse.json()) as {
       type?: string;
       partOf?: string;
       orderedItems?: string[];
@@ -693,10 +688,7 @@ test("replies collection exposes only public direct replies", async () => {
       page.partOf,
       `http://localhost/ap/replies/articles/${articleSourceId}`,
     );
-    assert.deepEqual(page.orderedItems, [
-      publicReply.iri,
-      unlistedReply.iri,
-    ]);
+    assert.deepEqual(page.orderedItems, [publicReply.iri, unlistedReply.iri]);
     assert.equal(page.next, undefined);
   });
 });
@@ -740,21 +732,21 @@ test("replies collection paginates public replies", async () => {
     };
 
     const rootResponse = await federation.fetch(
-      new Request(
-        `http://localhost/ap/replies/notes/${noteSourceId}`,
-        { headers: { Accept: "application/activity+json" } },
-      ),
+      new Request(`http://localhost/ap/replies/notes/${noteSourceId}`, {
+        headers: { Accept: "application/activity+json" },
+      }),
       { contextData },
     );
     assert.equal(rootResponse.status, 200);
-    const collection = await rootResponse.json() as {
+    const collection = (await rootResponse.json()) as {
       totalItems?: number;
       first?: string | { id?: string; "@id"?: string };
     };
     assert.equal(collection.totalItems, 51);
-    const first = typeof collection.first === "string"
-      ? collection.first
-      : collection.first?.id ?? collection.first?.["@id"];
+    const first =
+      typeof collection.first === "string"
+        ? collection.first
+        : (collection.first?.id ?? collection.first?.["@id"]);
     assert.ok(first != null);
 
     const firstPageResponse = await federation.fetch(
@@ -762,13 +754,16 @@ test("replies collection paginates public replies", async () => {
       { contextData },
     );
     assert.equal(firstPageResponse.status, 200);
-    const firstPage = await firstPageResponse.json() as {
+    const firstPage = (await firstPageResponse.json()) as {
       orderedItems?: string[];
       next?: string;
     };
     assert.deepEqual(
       firstPage.orderedItems,
-      replies.slice(1).toReversed().map((post) => post.iri),
+      replies
+        .slice(1)
+        .toReversed()
+        .map((post) => post.iri),
     );
     assert.ok(firstPage.next != null);
 
@@ -779,7 +774,7 @@ test("replies collection paginates public replies", async () => {
       { contextData },
     );
     assert.equal(secondPageResponse.status, 200);
-    const secondPage = await secondPageResponse.json() as {
+    const secondPage = (await secondPageResponse.json()) as {
       orderedItems?: string[];
       next?: string;
     };
@@ -810,14 +805,16 @@ test("replies collection hides private, censored, and sanction-hidden roots", as
         account: author.account,
         content: "Censored root",
       });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ censored: new Date("2026-04-15T00:00:00.000Z") })
       .where(eq(postTable.id, censoredRoot.id));
     const { noteSourceId: sanctionedSourceId } = await insertNotePost(tx, {
       account: hiddenAuthor.account,
       content: "Sanction-hidden root",
     });
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: new Date("2026-04-15T00:00:00.000Z") })
       .where(eq(actorTable.id, hiddenAuthor.actor.id));
     const federation = await builder.build({
@@ -834,10 +831,9 @@ test("replies collection hides private, censored, and sanction-hidden roots", as
 
     for (const id of [privateSourceId, censoredSourceId, sanctionedSourceId]) {
       const response = await federation.fetch(
-        new Request(
-          `http://localhost/ap/replies/notes/${id}`,
-          { headers: { Accept: "application/activity+json" } },
-        ),
+        new Request(`http://localhost/ap/replies/notes/${id}`, {
+          headers: { Accept: "application/activity+json" },
+        }),
         { contextData },
       );
       assert.equal(response.status, 404);
@@ -868,17 +864,20 @@ test("isApTargetHidden() hides censored or sanction-hidden reply/quote targets",
     assert.equal(isApTargetHidden(await load()), false);
 
     // A censored target is hidden.
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ censored: new Date() })
       .where(eq(postTable.id, target.id));
     assert.equal(isApTargetHidden(await load()), true);
 
     // So is a target whose author is hidden by a federation block, even when
     // the post itself is not individually censored.
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ censored: null })
       .where(eq(postTable.id, target.id));
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: null })
       .where(eq(actorTable.id, remoteAuthor.id));
     assert.equal(isApTargetHidden(await load()), true);
@@ -890,10 +889,12 @@ test("isEmojiReactionCollectionVisible() preserves signed actor block checks", (
   const author = {
     iri: "https://author.example/actors/author",
     followers: [],
-    blockees: [{
-      blockeeId: "00000000-0000-0000-0000-000000000001",
-      blockee: viewer,
-    }],
+    blockees: [
+      {
+        blockeeId: "00000000-0000-0000-0000-000000000001",
+        blockee: viewer,
+      },
+    ],
     blockers: [],
   };
   const post = {
@@ -972,10 +973,7 @@ test("getCreate() sets actor, object, and published correctly", async () => {
       create.actorId?.href,
       `http://localhost/actors/${author.account.id}`,
     );
-    assert.equal(
-      create.objectId?.href,
-      `http://localhost/objects/${post.id}`,
-    );
+    assert.equal(create.objectId?.href, `http://localhost/objects/${post.id}`);
     assert.ok(create.published != null);
   });
 });
@@ -1045,7 +1043,8 @@ test("the quote-authorization dispatcher hides censored posts", async () => {
     };
     const url = `http://localhost/ap/quote-authorizations/${authId}`;
 
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ censored: new Date() })
       .where(eq(postTable.id, post.id));
 

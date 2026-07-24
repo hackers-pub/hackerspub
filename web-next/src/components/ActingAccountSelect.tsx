@@ -20,7 +20,7 @@ import {
   type PostAttributionMode,
   useActingAccount,
 } from "~/contexts/ActingAccountContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { cn } from "~/lib/utils.ts";
 
 export interface ComposeActingAccountOption {
@@ -87,7 +87,7 @@ export function ActingAccountSelect(props: ActingAccountSelectProps) {
   const { t } = useLingui();
   const options = useComposeActingAccountOptions();
   const optionValues = createMemo(() =>
-    options().map((option) => option.value)
+    options().map((option) => option.value),
   );
   const optionByValue = (value: string | null | undefined) =>
     options().find((option) => option.value === value) ?? options()[0];
@@ -96,7 +96,8 @@ export function ActingAccountSelect(props: ActingAccountSelectProps) {
     <Select
       value={props.value}
       onChange={(option) =>
-        props.onChange(option ?? PERSONAL_COMPOSE_ACCOUNT_KEY)}
+        props.onChange(option ?? PERSONAL_COMPOSE_ACCOUNT_KEY)
+      }
       options={optionValues()}
       disabled={props.disabled || options().length < 2}
       itemComponent={(props) => (
@@ -109,9 +110,7 @@ export function ActingAccountSelect(props: ActingAccountSelectProps) {
         aria-label={t`Author`}
         class={cn("w-full overflow-hidden text-left sm:w-[340px]", props.class)}
       >
-        <SelectValue<string>
-          class="min-w-0 flex-1 overflow-hidden"
-        >
+        <SelectValue<string> class="min-w-0 flex-1 overflow-hidden">
           {(state) => (
             <div class="flex w-full min-w-0 items-center gap-2 overflow-hidden">
               <AccountAvatarStack
@@ -166,16 +165,13 @@ function AccountAvatarStack(props: {
   accounts: readonly ActingAccountSummary[];
   size: "sm" | "md";
 }) {
-  const avatarSize = () => props.size === "sm" ? "size-5" : "size-6";
+  const avatarSize = () => (props.size === "sm" ? "size-5" : "size-6");
   return (
     <div class="flex shrink-0 -space-x-1" aria-hidden="true">
       <For each={props.accounts}>
         {(account) => (
           <Avatar class={cn(avatarSize(), "border border-background")}>
-            <AvatarImage
-              src={account.avatarUrl ?? undefined}
-              alt=""
-            />
+            <AvatarImage src={account.avatarUrl ?? undefined} alt="" />
             <AvatarFallback class="text-[0.625rem] font-medium">
               {formatAccountName(account).charAt(0).toUpperCase()}
             </AvatarFallback>

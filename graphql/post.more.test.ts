@@ -651,7 +651,8 @@ const postByUrlQuery = parse(`
   }
 `);
 
-const smallPngDataUrl = "data:image/png;base64," +
+const smallPngDataUrl =
+  "data:image/png;base64," +
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=";
 
 function createOgTestDisk(): {
@@ -745,7 +746,8 @@ test("createNote rejects quoting a censored post", async () => {
       account: author.account,
       content: "To be censored",
     });
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ censored: new Date() })
       .where(eq(postTable.id, post.id));
     const quoter = await insertAccountWithActor(tx, {
@@ -777,9 +779,11 @@ test("createNote rejects quoting a censored post", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.equal(result.errors, undefined);
-    const data = (result.data as {
-      createNote: { __typename: string; inputPath?: string };
-    }).createNote;
+    const data = (
+      result.data as {
+        createNote: { __typename: string; inputPath?: string };
+      }
+    ).createNote;
     assert.equal(data.__typename, "InvalidInputError");
     assert.equal(data.inputPath, "quotedPostId");
   });
@@ -846,9 +850,11 @@ test("createNote rejects quoting through a censored share wrapper", async () => 
       onError: "NO_PROPAGATE",
     });
     assert.equal(result.errors, undefined);
-    const data = (result.data as {
-      createNote: { __typename: string; inputPath?: string };
-    }).createNote;
+    const data = (
+      result.data as {
+        createNote: { __typename: string; inputPath?: string };
+      }
+    ).createNote;
     assert.equal(data.__typename, "InvalidInputError");
     assert.equal(data.inputPath, "quotedPostId");
   });
@@ -862,7 +868,8 @@ test("createNote returns ActorSuspendedError for suspended accounts", async () =
       email: "suspendedwriter@example.com",
     });
     const until = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: until })
       .where(eq(actorTable.accountId, account.account.id));
     const result = await execute({
@@ -888,9 +895,11 @@ test("createNote returns ActorSuspendedError for suspended accounts", async () =
       onError: "NO_PROPAGATE",
     });
     assert.equal(result.errors, undefined);
-    const data = (result.data as {
-      createNote: { __typename: string; suspendedUntil: string | null };
-    }).createNote;
+    const data = (
+      result.data as {
+        createNote: { __typename: string; suspendedUntil: string | null };
+      }
+    ).createNote;
     assert.equal(data.__typename, "ActorSuspendedError");
     assert.ok(data.suspendedUntil != null);
   });
@@ -919,12 +928,14 @@ test("saveArticleDraft, articleDraft, and deleteArticleDraft round-trip a draft"
     });
 
     assert.equal(saveResult.errors, undefined);
-    const savedDraft = (toPlainJson(saveResult.data) as {
-      saveArticleDraft: {
-        __typename: string;
-        draft: { id: string; uuid: string; title: string; tags: string[] };
-      };
-    }).saveArticleDraft.draft;
+    const savedDraft = (
+      toPlainJson(saveResult.data) as {
+        saveArticleDraft: {
+          __typename: string;
+          draft: { id: string; uuid: string; title: string; tags: string[] };
+        };
+      }
+    ).saveArticleDraft.draft;
 
     assert.equal(savedDraft.title, "Draft title");
     assert.deepEqual(savedDraft.tags, ["relay", "solid"]);
@@ -967,8 +978,7 @@ test("saveArticleDraft, articleDraft, and deleteArticleDraft round-trip a draft"
 
     const storedDraft = await tx.query.articleDraftTable.findFirst({
       where: {
-        id: savedDraft
-          .uuid as `${string}-${string}-${string}-${string}-${string}`,
+        id: savedDraft.uuid as `${string}-${string}-${string}-${string}-${string}`,
       },
     });
     assert.equal(storedDraft, undefined);
@@ -1049,8 +1059,8 @@ test("Medium.contentHash is exposed as Sha256", async () => {
   assert.equal(data.sha256.kind, "SCALAR");
   assert.equal(data.sha256.name, "Sha256");
   assert.match(data.sha256.description, /SHA-256/);
-  const contentHash = data.medium.fields.find((field) =>
-    field.name === "contentHash"
+  const contentHash = data.medium.fields.find(
+    (field) => field.name === "contentHash",
   );
   assert.deepEqual(contentHash?.type, {
     kind: "SCALAR",
@@ -1077,19 +1087,21 @@ test("createMedium and attachArticleDraftMedium create draft media relations", a
     });
 
     assert.equal(createResult.errors, undefined);
-    const medium = (toPlainJson(createResult.data) as {
-      createMedium: {
-        __typename: string;
-        medium: {
-          uuid: string;
-          url: string;
-          type: string;
-          contentHash: string;
-          width: number;
-          height: number;
+    const medium = (
+      toPlainJson(createResult.data) as {
+        createMedium: {
+          __typename: string;
+          medium: {
+            uuid: string;
+            url: string;
+            type: string;
+            contentHash: string;
+            width: number;
+            height: number;
+          };
         };
-      };
-    }).createMedium.medium;
+      }
+    ).createMedium.medium;
     assert.equal(medium.type, "image/webp");
     assert.match(medium.contentHash, /^[0-9a-f]{64}$/);
     assert.equal(medium.width, 1);
@@ -1112,13 +1124,15 @@ test("createMedium and attachArticleDraftMedium create draft media relations", a
     });
 
     assert.equal(attachResult.errors, undefined);
-    const attached = (toPlainJson(attachResult.data) as {
-      attachArticleDraftMedium: {
-        __typename: string;
-        key: string;
-        medium: { uuid: string };
-      };
-    }).attachArticleDraftMedium;
+    const attached = (
+      toPlainJson(attachResult.data) as {
+        attachArticleDraftMedium: {
+          __typename: string;
+          key: string;
+          medium: { uuid: string };
+        };
+      }
+    ).attachArticleDraftMedium;
     assert.equal(attached.__typename, "AttachArticleDraftMediumPayload");
     assert.equal(attached.key, medium.uuid);
     assert.equal(attached.medium.uuid, medium.uuid);
@@ -1181,12 +1195,14 @@ test("updateArticle accepts media for new article source references", async () =
     });
 
     assert.equal(result.errors, undefined);
-    const updated = (toPlainJson(result.data) as {
-      updateArticle: {
-        __typename: string;
-        article: { content: string };
-      };
-    }).updateArticle;
+    const updated = (
+      toPlainJson(result.data) as {
+        updateArticle: {
+          __typename: string;
+          article: { content: string };
+        };
+      }
+    ).updateArticle;
     assert.equal(updated.__typename, "UpdateArticlePayload");
     assert.match(
       updated.article.content,
@@ -1208,7 +1224,8 @@ test("organization members can read organization note raw content", async () => 
       name: "Organization Note Raw Reader",
       email: "orgnoterawreader@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -1254,7 +1271,8 @@ test("organization members can preview and attach article media", async () => {
       name: "Organization Article Previewer",
       email: "orgarticlepreviewer@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -1413,10 +1431,7 @@ test("startMediumUpload uses the canonical origin for filesystem uploads", async
     };
     const uploadUrl = new URL(data.startMediumUpload.uploadUrl);
     assert.equal(uploadUrl.origin, "https://public.example");
-    assert.equal(
-      uploadUrl.pathname,
-      "/medium-uploads",
-    );
+    assert.equal(uploadUrl.pathname, "/medium-uploads");
     assert.equal(
       uploadUrl.searchParams.get("uploadId"),
       data.startMediumUpload.uploadId,
@@ -1499,13 +1514,15 @@ test("publishArticleDraft publishes an article and removes the draft", async () 
     });
 
     assert.equal(publishResult.errors, undefined);
-    const payload = (toPlainJson(publishResult.data) as {
-      publishArticleDraft: {
-        __typename: string;
-        article: { id: string; slug: string };
-        deletedDraftId: string;
-      };
-    }).publishArticleDraft;
+    const payload = (
+      toPlainJson(publishResult.data) as {
+        publishArticleDraft: {
+          __typename: string;
+          article: { id: string; slug: string };
+          deletedDraftId: string;
+        };
+      }
+    ).publishArticleDraft;
 
     assert.equal(payload.article.slug, "published-article");
     assert.equal(
@@ -1540,7 +1557,8 @@ test("createNote can publish as an organization with co-authorship attribution",
       name: "Organization Note Member",
       email: "orgnotemember@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -1590,10 +1608,7 @@ test("createNote can publish as an organization with co-authorship attribution",
         memberAccountId: member.account.id,
       },
     });
-    assert.equal(
-      attribution?.attributionMode,
-      "acting_account_with_viewer",
-    );
+    assert.equal(attribution?.attributionMode, "acting_account_with_viewer");
   });
 });
 
@@ -1604,7 +1619,8 @@ test("createNote rejects suspended members acting through organizations", async 
       name: "Suspended Org Member",
       email: "suspendedorgmember@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -1617,7 +1633,8 @@ test("createNote rejects suspended members acting through organizations", async 
       },
     );
     const until = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: until })
       .where(eq(actorTable.accountId, member.account.id));
 
@@ -1637,9 +1654,11 @@ test("createNote rejects suspended members acting through organizations", async 
     });
 
     assert.equal(result.errors, undefined);
-    const data = (toPlainJson(result.data) as {
-      createNote: { __typename: string; suspendedUntil: string | null };
-    }).createNote;
+    const data = (
+      toPlainJson(result.data) as {
+        createNote: { __typename: string; suspendedUntil: string | null };
+      }
+    ).createNote;
     assert.equal(data.__typename, "ActorSuspendedError");
     assert.ok(data.suspendedUntil != null);
   });
@@ -1652,7 +1671,8 @@ test("createNote rejects suspended organizations", async () => {
       name: "Suspended Org Note Member",
       email: "suspendedorgnotemember@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -1665,7 +1685,8 @@ test("createNote rejects suspended organizations", async () => {
       },
     );
     const until = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: until })
       .where(eq(actorTable.accountId, organization.id));
 
@@ -1685,9 +1706,11 @@ test("createNote rejects suspended organizations", async () => {
     });
 
     assert.equal(result.errors, undefined);
-    const data = (toPlainJson(result.data) as {
-      createNote: { __typename: string; suspendedUntil: string | null };
-    }).createNote;
+    const data = (
+      toPlainJson(result.data) as {
+        createNote: { __typename: string; suspendedUntil: string | null };
+      }
+    ).createNote;
     assert.equal(data.__typename, "ActorSuspendedError");
     assert.ok(data.suspendedUntil != null);
   });
@@ -1705,7 +1728,8 @@ test("createNote rejects acting as an organization without membership", async ()
       name: "Organization Note Outsider",
       email: "orgnoteoutsider@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, admin.account.id));
     const organization = await createOrganization(
@@ -1750,7 +1774,8 @@ test("createQuestion can publish as an organization", async () => {
       name: "Organization Question Member",
       email: "orgquestionmember@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -1808,7 +1833,8 @@ test("createQuestion rejects suspended organizations", async () => {
       name: "Suspended Org Question Member",
       email: "suspendedorgquestionmember@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -1821,7 +1847,8 @@ test("createQuestion rejects suspended organizations", async () => {
       },
     );
     const until = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: until })
       .where(eq(actorTable.accountId, organization.id));
 
@@ -1847,9 +1874,11 @@ test("createQuestion rejects suspended organizations", async () => {
     });
 
     assert.equal(result.errors, undefined);
-    const data = (toPlainJson(result.data) as {
-      createQuestion: { __typename: string; suspendedUntil: string | null };
-    }).createQuestion;
+    const data = (
+      toPlainJson(result.data) as {
+        createQuestion: { __typename: string; suspendedUntil: string | null };
+      }
+    ).createQuestion;
     assert.equal(data.__typename, "ActorSuspendedError");
     assert.ok(data.suspendedUntil != null);
   });
@@ -1862,7 +1891,8 @@ test("publishArticleDraft can publish as an organization", async () => {
       name: "Organization Article Member",
       email: "orgarticlemember@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -1934,7 +1964,8 @@ test("publishArticleDraft rejects suspended organizations", async () => {
       name: "Suspended Org Article Member",
       email: "suspendedorgarticlemember@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -1947,7 +1978,8 @@ test("publishArticleDraft rejects suspended organizations", async () => {
       },
     );
     const until = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    await tx.update(actorTable)
+    await tx
+      .update(actorTable)
       .set({ suspended: new Date(Date.now() - 1000), suspendedUntil: until })
       .where(eq(actorTable.accountId, organization.id));
     const draftId = generateUuidV7();
@@ -1974,12 +2006,14 @@ test("publishArticleDraft rejects suspended organizations", async () => {
     });
 
     assert.equal(result.errors, undefined);
-    const data = (toPlainJson(result.data) as {
-      publishArticleDraft: {
-        __typename: string;
-        suspendedUntil: string | null;
-      };
-    }).publishArticleDraft;
+    const data = (
+      toPlainJson(result.data) as {
+        publishArticleDraft: {
+          __typename: string;
+          suspendedUntil: string | null;
+        };
+      }
+    ).publishArticleDraft;
     assert.equal(data.__typename, "ActorSuspendedError");
     assert.ok(data.suspendedUntil != null);
   });
@@ -1992,14 +2026,18 @@ test("ArticleContent.ogImageUrl keys do not collide across articles", async () =
       name: "Article OG Collision",
       email: "articleogcollision@example.com",
     });
-    const [avatarMedium] = await tx.insert(mediumTable).values({
-      id: generateUuidV7(),
-      key: "article-avatar-og-test",
-      type: "image/webp",
-      width: null,
-      height: null,
-    }).returning();
-    await tx.update(accountTable)
+    const [avatarMedium] = await tx
+      .insert(mediumTable)
+      .values({
+        id: generateUuidV7(),
+        key: "article-avatar-og-test",
+        type: "image/webp",
+        width: null,
+        height: null,
+      })
+      .returning();
+    await tx
+      .update(accountTable)
       .set({ avatarMediumId: avatarMedium.id })
       .where(eq(accountTable.id, author.account.id));
     const published = new Date("2026-04-15T00:00:00.000Z");
@@ -2026,25 +2064,23 @@ test("ArticleContent.ogImageUrl keys do not collide across articles", async () =
         published,
         updated: published,
       });
-      await tx.insert(postTable).values(
-        {
-          id: postId,
-          iri: `http://localhost/objects/${postId}`,
-          type: "Article",
-          visibility: "public",
-          actorId: author.actor.id,
-          articleSourceId: sourceId,
-          name: "Same Open Graph preview",
-          contentHtml:
-            "<p>Identical article body for cache key collision coverage.</p>",
-          language: "en",
-          tags: {},
-          emojis: {},
-          url: `http://localhost/@${author.account.username}/2026/${slug}`,
-          published,
-          updated: published,
-        } satisfies NewPost,
-      );
+      await tx.insert(postTable).values({
+        id: postId,
+        iri: `http://localhost/objects/${postId}`,
+        type: "Article",
+        visibility: "public",
+        actorId: author.actor.id,
+        articleSourceId: sourceId,
+        name: "Same Open Graph preview",
+        contentHtml:
+          "<p>Identical article body for cache key collision coverage.</p>",
+        language: "en",
+        tags: {},
+        emojis: {},
+        url: `http://localhost/@${author.account.username}/2026/${slug}`,
+        published,
+        updated: published,
+      } satisfies NewPost);
     }
 
     const result = await execute({
@@ -2120,14 +2156,18 @@ test("ArticleContent.ogImageUrl renders per-language article images", async () =
       name: "Article OG GraphQL",
       email: "articleoggraphql@example.com",
     });
-    const [avatarMedium] = await tx.insert(mediumTable).values({
-      id: generateUuidV7(),
-      key: "article-avatar-og-test",
-      type: "image/webp",
-      width: null,
-      height: null,
-    }).returning();
-    await tx.update(accountTable)
+    const [avatarMedium] = await tx
+      .insert(mediumTable)
+      .values({
+        id: generateUuidV7(),
+        key: "article-avatar-og-test",
+        type: "image/webp",
+        width: null,
+        height: null,
+      })
+      .returning();
+    await tx
+      .update(accountTable)
       .set({ avatarMediumId: avatarMedium.id })
       .where(eq(accountTable.id, author.account.id));
     const sourceId = generateUuidV7();
@@ -2164,24 +2204,22 @@ test("ArticleContent.ogImageUrl renders per-language article images", async () =
         updated: published,
       },
     ]);
-    await tx.insert(postTable).values(
-      {
-        id: postId,
-        iri: `http://localhost/objects/${postId}`,
-        type: "Article",
-        visibility: "public",
-        actorId: author.actor.id,
-        articleSourceId: sourceId,
-        name: "Open Graph article",
-        contentHtml: "<p>English body with emoji 😀 and Korean 안녕하세요.</p>",
-        language: "en",
-        tags: {},
-        emojis: {},
-        url: `http://localhost/@${author.account.username}/2026/og-article`,
-        published,
-        updated: published,
-      } satisfies NewPost,
-    );
+    await tx.insert(postTable).values({
+      id: postId,
+      iri: `http://localhost/objects/${postId}`,
+      type: "Article",
+      visibility: "public",
+      actorId: author.actor.id,
+      articleSourceId: sourceId,
+      name: "Open Graph article",
+      contentHtml: "<p>English body with emoji 😀 and Korean 안녕하세요.</p>",
+      language: "en",
+      tags: {},
+      emojis: {},
+      url: `http://localhost/@${author.account.username}/2026/og-article`,
+      published,
+      updated: published,
+    } satisfies NewPost);
 
     const disk = createOgTestDisk();
     async function executeOgImageQuery(language: string) {
@@ -2198,11 +2236,13 @@ test("ArticleContent.ogImageUrl renders per-language article images", async () =
         onError: "NO_PROPAGATE",
       });
       assert.equal(result.errors, undefined);
-      const contents = (toPlainJson(result.data) as {
-        articleByYearAndSlug: {
-          contents: Array<{ language: string; ogImageUrl: string }>;
-        };
-      }).articleByYearAndSlug.contents;
+      const contents = (
+        toPlainJson(result.data) as {
+          articleByYearAndSlug: {
+            contents: Array<{ language: string; ogImageUrl: string }>;
+          };
+        }
+      ).articleByYearAndSlug.contents;
       assert.equal(contents.length, 1);
       return contents[0];
     }
@@ -2217,9 +2257,7 @@ test("ArticleContent.ogImageUrl renders per-language article images", async () =
     );
     assert.ok(
       firstContentsByLanguage.every((content) =>
-        /^http:\/\/localhost\/media\/og\/v2\/.+\.png$/.test(
-          content.ogImageUrl,
-        )
+        /^http:\/\/localhost\/media\/og\/v2\/.+\.png$/.test(content.ogImageUrl),
       ),
     );
     assert.equal(disk.putKeys.length, 2);
@@ -2235,10 +2273,7 @@ test("ArticleContent.ogImageUrl renders per-language article images", async () =
     );
 
     assert.deepEqual(
-      [
-        await executeOgImageQuery("en"),
-        await executeOgImageQuery("ko-KR"),
-      ],
+      [await executeOgImageQuery("en"), await executeOgImageQuery("ko-KR")],
       firstContentsByLanguage,
     );
     assert.equal(disk.putKeys.length, 2);
@@ -2275,24 +2310,22 @@ test("articleByYearAndSlug returns a local article by route components", async (
       published,
       updated: published,
     });
-    await tx.insert(postTable).values(
-      {
-        id: postId,
-        iri: `http://localhost/objects/${postId}`,
-        type: "Article",
-        visibility: "public",
-        actorId: author.actor.id,
-        articleSourceId: sourceId,
-        name: "Route Article",
-        contentHtml: "<p>Route article body</p>",
-        language: "en",
-        tags: {},
-        emojis: {},
-        url: `http://localhost/@${author.account.username}/2026/route-article`,
-        published,
-        updated: published,
-      } satisfies NewPost,
-    );
+    await tx.insert(postTable).values({
+      id: postId,
+      iri: `http://localhost/objects/${postId}`,
+      type: "Article",
+      visibility: "public",
+      actorId: author.actor.id,
+      articleSourceId: sourceId,
+      name: "Route Article",
+      contentHtml: "<p>Route article body</p>",
+      language: "en",
+      tags: {},
+      emojis: {},
+      url: `http://localhost/@${author.account.username}/2026/route-article`,
+      published,
+      updated: published,
+    } satisfies NewPost);
 
     const result = await execute({
       schema,
@@ -2328,7 +2361,8 @@ test("articleByYearAndSlug can resolve with an organization perspective", async 
       name: "Organization Article Lookup Author",
       email: "orgarticlelookupauthor@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -2364,25 +2398,22 @@ test("articleByYearAndSlug can resolve with an organization perspective", async 
       published,
       updated: published,
     });
-    await tx.insert(postTable).values(
-      {
-        id: postId,
-        iri: `http://localhost/objects/${postId}`,
-        type: "Article",
-        visibility: "followers",
-        actorId: author.actor.id,
-        articleSourceId: sourceId,
-        name: "Followers Article",
-        contentHtml: "<p>Followers article body</p>",
-        language: "en",
-        tags: {},
-        emojis: {},
-        url:
-          `http://localhost/@${author.account.username}/2026/followers-article`,
-        published,
-        updated: published,
-      } satisfies NewPost,
-    );
+    await tx.insert(postTable).values({
+      id: postId,
+      iri: `http://localhost/objects/${postId}`,
+      type: "Article",
+      visibility: "followers",
+      actorId: author.actor.id,
+      articleSourceId: sourceId,
+      name: "Followers Article",
+      contentHtml: "<p>Followers article body</p>",
+      language: "en",
+      tags: {},
+      emojis: {},
+      url: `http://localhost/@${author.account.username}/2026/followers-article`,
+      published,
+      updated: published,
+    } satisfies NewPost);
 
     const personalResult = await execute({
       schema,
@@ -2487,25 +2518,22 @@ test("Article.contents includeBeingTranslated:true returns both completed and in
         updated: published,
       },
     ]);
-    await tx.insert(postTable).values(
-      {
-        id: postId,
-        iri: `http://localhost/objects/${postId}`,
-        type: "Article",
-        visibility: "public",
-        actorId: author.actor.id,
-        articleSourceId: sourceId,
-        name: "Original",
-        contentHtml: "<p>English original.</p>",
-        language: "en",
-        tags: {},
-        emojis: {},
-        url:
-          `http://localhost/@${author.account.username}/2026/include-being-translated`,
-        published,
-        updated: published,
-      } satisfies NewPost,
-    );
+    await tx.insert(postTable).values({
+      id: postId,
+      iri: `http://localhost/objects/${postId}`,
+      type: "Article",
+      visibility: "public",
+      actorId: author.actor.id,
+      articleSourceId: sourceId,
+      name: "Original",
+      contentHtml: "<p>English original.</p>",
+      language: "en",
+      tags: {},
+      emojis: {},
+      url: `http://localhost/@${author.account.username}/2026/include-being-translated`,
+      published,
+      updated: published,
+    } satisfies NewPost);
 
     const variableValues = {
       handle: author.account.username,
@@ -2526,13 +2554,11 @@ test("Article.contents includeBeingTranslated:true returns both completed and in
       onError: "NO_PROPAGATE",
     });
     assert.equal(completedOnly.errors, undefined);
-    const completedContents =
-      (toPlainJson(completedOnly.data) as QueryShape).articleByYearAndSlug
-        .contents;
-    assert.deepEqual(
-      completedContents,
-      [{ language: "en", beingTranslated: false }],
-    );
+    const completedContents = (toPlainJson(completedOnly.data) as QueryShape)
+      .articleByYearAndSlug.contents;
+    assert.deepEqual(completedContents, [
+      { language: "en", beingTranslated: false },
+    ]);
 
     const includingInProgress = await execute({
       schema,
@@ -2542,11 +2568,10 @@ test("Article.contents includeBeingTranslated:true returns both completed and in
       onError: "NO_PROPAGATE",
     });
     assert.equal(includingInProgress.errors, undefined);
-    const allContents =
-      (toPlainJson(includingInProgress.data) as QueryShape).articleByYearAndSlug
-        .contents;
+    const allContents = (toPlainJson(includingInProgress.data) as QueryShape)
+      .articleByYearAndSlug.contents;
     const sorted = [...allContents].sort((a, b) =>
-      a.language.localeCompare(b.language)
+      a.language.localeCompare(b.language),
     );
     assert.deepEqual(sorted, [
       { language: "en", beingTranslated: false },
@@ -2578,12 +2603,14 @@ test("createNote creates a note for the signed-in account", async () => {
     });
 
     assert.equal(result.errors, undefined);
-    const note = (toPlainJson(result.data) as {
-      createNote: {
-        __typename: string;
-        note: { id: string; excerpt: string };
-      };
-    }).createNote.note;
+    const note = (
+      toPlainJson(result.data) as {
+        createNote: {
+          __typename: string;
+          note: { id: string; excerpt: string };
+        };
+      }
+    ).createNote.note;
 
     assert.equal(note.excerpt, "Hello from GraphQL createNote");
 
@@ -2627,21 +2654,23 @@ test("createQuestion creates a local Question with a poll", async () => {
     });
 
     assert.equal(result.errors, undefined);
-    const question = (toPlainJson(result.data) as {
-      createQuestion: {
-        __typename: string;
-        question: {
-          id: string;
-          sourceId: string;
-          name: string;
-          excerpt: string;
-          poll: {
-            multiple: boolean;
-            options: { index: number; title: string }[];
+    const question = (
+      toPlainJson(result.data) as {
+        createQuestion: {
+          __typename: string;
+          question: {
+            id: string;
+            sourceId: string;
+            name: string;
+            excerpt: string;
+            poll: {
+              multiple: boolean;
+              options: { index: number; title: string }[];
+            };
           };
         };
-      };
-    }).createQuestion.question;
+      }
+    ).createQuestion.question;
 
     assert.equal(question.name, "Runtime choice");
     assert.equal(question.excerpt, "Which runtime should we use?");
@@ -2787,9 +2816,11 @@ test("createNote and createQuestion allow replies to public shares", async () =>
 
     assert.equal(noteResult.errors, undefined);
     assert.equal(
-      (toPlainJson(noteResult.data) as {
-        createNote: { __typename: string };
-      }).createNote.__typename,
+      (
+        toPlainJson(noteResult.data) as {
+          createNote: { __typename: string };
+        }
+      ).createNote.__typename,
       "CreateNotePayload",
     );
 
@@ -2816,9 +2847,11 @@ test("createNote and createQuestion allow replies to public shares", async () =>
 
     assert.equal(questionResult.errors, undefined);
     assert.equal(
-      (toPlainJson(questionResult.data) as {
-        createQuestion: { __typename: string };
-      }).createQuestion.__typename,
+      (
+        toPlainJson(questionResult.data) as {
+          createQuestion: { __typename: string };
+        }
+      ).createQuestion.__typename,
       "CreateQuestionPayload",
     );
   });
@@ -3026,8 +3059,7 @@ test("createNote rejects quoting followers-only posts by non-authors", async () 
       email: "quotefollowersfollower@example.com",
     });
     await tx.insert(followingTable).values({
-      iri:
-        `https://example.com/following/${follower.actor.id}/${author.actor.id}`,
+      iri: `https://example.com/following/${follower.actor.id}/${author.actor.id}`,
       followerId: follower.actor.id,
       followeeId: author.actor.id,
       accepted: new Date(),
@@ -3195,10 +3227,11 @@ test("createNote allows quoting public and unlisted posts", async () => {
 
     assert.equal(publicQuoteResult.errors, undefined);
     assert.equal(
-      (toPlainJson(publicQuoteResult.data) as {
-        createNote: { __typename: string };
-      })
-        .createNote.__typename,
+      (
+        toPlainJson(publicQuoteResult.data) as {
+          createNote: { __typename: string };
+        }
+      ).createNote.__typename,
       "CreateNotePayload",
     );
 
@@ -3219,10 +3252,11 @@ test("createNote allows quoting public and unlisted posts", async () => {
 
     assert.equal(unlistedQuoteResult.errors, undefined);
     assert.equal(
-      (toPlainJson(unlistedQuoteResult.data) as {
-        createNote: { __typename: string };
-      })
-        .createNote.__typename,
+      (
+        toPlainJson(unlistedQuoteResult.data) as {
+          createNote: { __typename: string };
+        }
+      ).createNote.__typename,
       "CreateNotePayload",
     );
   });
@@ -3566,10 +3600,12 @@ test("createNote validates attached media inside the transaction", async () => {
           content: "note with missing media",
           language: "en",
           visibility: "PUBLIC",
-          media: [{
-            mediumId: crypto.randomUUID(),
-            alt: "Missing image",
-          }],
+          media: [
+            {
+              mediumId: crypto.randomUUID(),
+              alt: "Missing image",
+            },
+          ],
         },
       },
       contextValue: makeTransactionalUserContext(tx, account.account),
@@ -3655,7 +3691,8 @@ test("postByUrl can resolve with an organization perspective", async () => {
       name: "Organization Quote URL Author",
       email: "orgquoteurlauthor@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -3720,7 +3757,8 @@ test("Actor.posts can resolve with an organization perspective", async () => {
       name: "Organization Profile Post Author",
       email: "orgprofilepostauthor@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -3801,7 +3839,8 @@ test("profile post connections can resolve with an organization perspective", as
       name: "Organization Profile Connections Source",
       email: "orgprofileconnectionssource@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -3833,7 +3872,8 @@ test("profile post connections can resolve with an organization perspective", as
       language: "en",
     });
     assert.ok(article != null);
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({ visibility: "followers" })
       .where(eq(postTable.id, article.id));
     const { post: original } = await insertNotePost(tx, {
@@ -3900,9 +3940,9 @@ test("profile post connections can resolve with an organization perspective", as
       ].sort(),
     );
     assert.deepEqual(
-      organizationData.actorByHandle.notes.edges.map((edge) =>
-        edge.node.content
-      ).sort(),
+      organizationData.actorByHandle.notes.edges
+        .map((edge) => edge.node.content)
+        .sort(),
       [
         "<p>Followers-only profile note for an organization</p>",
         "<p>Followers-only share for an organization</p>",
@@ -3917,8 +3957,8 @@ test("profile post connections can resolve with an organization perspective", as
       "<p>Followers-only profile article for an organization</p>\n",
     );
     assert.deepEqual(
-      organizationData.actorByHandle.sharedPosts.edges.map((edge) =>
-        edge.node.id
+      organizationData.actorByHandle.sharedPosts.edges.map(
+        (edge) => edge.node.id,
       ),
       [encodeGlobalID("Note", sharedPost.id)],
     );
@@ -4036,24 +4076,22 @@ async function insertTranslatableArticle(
     published,
     updated: published,
   });
-  await tx.insert(postTable).values(
-    {
-      id: postId,
-      iri: `http://localhost/objects/${postId}`,
-      type: "Article",
-      visibility: options.visibility ?? "public",
-      actorId: author.actor.id,
-      articleSourceId: sourceId,
-      name: "Hello",
-      contentHtml: "<p>Plain article body without any external links.</p>",
-      language,
-      tags: {},
-      emojis: {},
-      url: `http://localhost/@${author.account.username}/2026/${options.slug}`,
-      published,
-      updated: published,
-    } satisfies NewPost,
-  );
+  await tx.insert(postTable).values({
+    id: postId,
+    iri: `http://localhost/objects/${postId}`,
+    type: "Article",
+    visibility: options.visibility ?? "public",
+    actorId: author.actor.id,
+    articleSourceId: sourceId,
+    name: "Hello",
+    contentHtml: "<p>Plain article body without any external links.</p>",
+    language,
+    tags: {},
+    emojis: {},
+    url: `http://localhost/@${author.account.username}/2026/${options.slug}`,
+    published,
+    updated: published,
+  } satisfies NewPost);
 
   return { author, postId: postId as Uuid, sourceId: sourceId as Uuid };
 }
@@ -4598,20 +4636,17 @@ test("sharePost rejects sharing non-public posts by non-authors", async () => {
 
     // Set up an accepted follow so the follower can see followers-only posts
     await tx.insert(followingTable).values({
-      iri:
-        `https://example.com/following/${follower.actor.id}/${author.actor.id}`,
+      iri: `https://example.com/following/${follower.actor.id}/${author.actor.id}`,
       followerId: follower.actor.id,
       followeeId: author.actor.id,
       accepted: new Date(),
     });
 
-    for (
-      const [visibility, label] of [
-        ["followers", "followers-only"],
-        ["direct", "direct"],
-        ["none", "none-visibility"],
-      ] as const
-    ) {
+    for (const [visibility, label] of [
+      ["followers", "followers-only"],
+      ["direct", "direct"],
+      ["none", "none-visibility"],
+    ] as const) {
       const { post } = await insertNotePost(tx, {
         account: author.account,
         visibility,
@@ -4669,9 +4704,11 @@ test("sharePost allows author to share their own followers-only posts", async ()
 
     assert.equal(result.errors, undefined);
     assert.equal(
-      (toPlainJson(result.data) as {
-        sharePost: { __typename: string };
-      }).sharePost.__typename,
+      (
+        toPlainJson(result.data) as {
+          sharePost: { __typename: string };
+        }
+      ).sharePost.__typename,
       "SharePostPayload",
       "author should be able to share their own followers-only post",
     );
@@ -4686,12 +4723,10 @@ test("sharePost rejects sharing direct posts even by their author", async () => 
       email: "sharedirectauthor@example.com",
     });
 
-    for (
-      const [visibility, label] of [
-        ["direct", "direct"],
-        ["none", "none-visibility"],
-      ] as const
-    ) {
+    for (const [visibility, label] of [
+      ["direct", "direct"],
+      ["none", "none-visibility"],
+    ] as const) {
       const { post } = await insertNotePost(tx, {
         account: author.account,
         visibility,
@@ -4787,12 +4822,10 @@ test("sharePost allows sharing public and unlisted posts", async () => {
       email: "sharepublicsharer@example.com",
     });
 
-    for (
-      const [visibility, label] of [
-        ["public", "public"],
-        ["unlisted", "unlisted"],
-      ] as const
-    ) {
+    for (const [visibility, label] of [
+      ["public", "public"],
+      ["unlisted", "unlisted"],
+    ] as const) {
       const { post } = await insertNotePost(tx, {
         account: author.account,
         visibility,
@@ -4811,9 +4844,11 @@ test("sharePost allows sharing public and unlisted posts", async () => {
 
       assert.equal(result.errors, undefined);
       assert.equal(
-        (toPlainJson(result.data) as {
-          sharePost: { __typename: string };
-        }).sharePost.__typename,
+        (
+          toPlainJson(result.data) as {
+            sharePost: { __typename: string };
+          }
+        ).sharePost.__typename,
         "SharePostPayload",
         `${label} post should be shareable`,
       );
@@ -4873,18 +4908,20 @@ test("updateNote updates content and language of a local note", async () => {
     });
 
     assert.equal(result.errors, undefined);
-    const payload = (toPlainJson(result.data) as {
-      updateNote: {
-        __typename: string;
-        note: {
-          id: string;
-          rawContent: string;
-          language: string;
-          visibility: string;
-          quotePolicy: string;
+    const payload = (
+      toPlainJson(result.data) as {
+        updateNote: {
+          __typename: string;
+          note: {
+            id: string;
+            rawContent: string;
+            language: string;
+            visibility: string;
+            quotePolicy: string;
+          };
         };
-      };
-    }).updateNote;
+      }
+    ).updateNote;
     assert.equal(payload.__typename, "UpdateNotePayload");
     assert.equal(payload.note.id, encodeGlobalID("Note", post.id));
     assert.equal(payload.note.rawContent, "Updated _content_");
@@ -4926,9 +4963,11 @@ test("updateNote rejects unauthenticated requests", async () => {
 
     assert.equal(result.errors, undefined);
     assert.equal(
-      (toPlainJson(result.data) as {
-        updateNote: { __typename: string };
-      }).updateNote.__typename,
+      (
+        toPlainJson(result.data) as {
+          updateNote: { __typename: string };
+        }
+      ).updateNote.__typename,
       "NotAuthenticatedError",
     );
   });
@@ -4966,9 +5005,11 @@ test("updateNote rejects editing another user's note", async () => {
     });
 
     assert.equal(result.errors, undefined);
-    const payload = (toPlainJson(result.data) as {
-      updateNote: { __typename: string; inputPath?: string };
-    }).updateNote;
+    const payload = (
+      toPlainJson(result.data) as {
+        updateNote: { __typename: string; inputPath?: string };
+      }
+    ).updateNote;
     assert.equal(payload.__typename, "InvalidInputError");
     assert.equal(payload.inputPath, "noteId");
   });
@@ -4996,9 +5037,11 @@ test("updateNote rejects non-existent note ID", async () => {
     });
 
     assert.equal(result.errors, undefined);
-    const payload = (toPlainJson(result.data) as {
-      updateNote: { __typename: string; inputPath?: string };
-    }).updateNote;
+    const payload = (
+      toPlainJson(result.data) as {
+        updateNote: { __typename: string; inputPath?: string };
+      }
+    ).updateNote;
     assert.equal(payload.__typename, "InvalidInputError");
     assert.equal(payload.inputPath, "noteId");
   });
@@ -5011,7 +5054,8 @@ test("organization members can manage organization-authored posts", async () => 
       name: "Organization Post Manager",
       email: "orgpostmanager@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(
@@ -5066,9 +5110,11 @@ test("organization members can manage organization-authored posts", async () => 
     });
     assert.equal(updateResult.errors, undefined);
     assert.equal(
-      (toPlainJson(updateResult.data) as {
-        updateNote: { __typename: string };
-      }).updateNote.__typename,
+      (
+        toPlainJson(updateResult.data) as {
+          updateNote: { __typename: string };
+        }
+      ).updateNote.__typename,
       "UpdateNotePayload",
     );
 
@@ -5084,12 +5130,14 @@ test("organization members can manage organization-authored posts", async () => 
     });
     assert.equal(pinResult.errors, undefined);
     assert.equal(
-      (toPlainJson(pinResult.data) as {
-        pinPost: {
-          __typename: string;
-          post?: { viewerHasPinned: boolean };
-        };
-      }).pinPost.post?.viewerHasPinned,
+      (
+        toPlainJson(pinResult.data) as {
+          pinPost: {
+            __typename: string;
+            post?: { viewerHasPinned: boolean };
+          };
+        }
+      ).pinPost.post?.viewerHasPinned,
       true,
     );
 
@@ -5105,12 +5153,14 @@ test("organization members can manage organization-authored posts", async () => 
     });
     assert.equal(unpinResult.errors, undefined);
     assert.equal(
-      (toPlainJson(unpinResult.data) as {
-        unpinPost: {
-          __typename: string;
-          post?: { viewerHasPinned: boolean };
-        };
-      }).unpinPost.post?.viewerHasPinned,
+      (
+        toPlainJson(unpinResult.data) as {
+          unpinPost: {
+            __typename: string;
+            post?: { viewerHasPinned: boolean };
+          };
+        }
+      ).unpinPost.post?.viewerHasPinned,
       false,
     );
 
@@ -5128,9 +5178,11 @@ test("organization members can manage organization-authored posts", async () => 
     });
     assert.equal(revokeResult.errors, undefined);
     assert.equal(
-      (toPlainJson(revokeResult.data) as {
-        revokeQuote: { __typename: string };
-      }).revokeQuote.__typename,
+      (
+        toPlainJson(revokeResult.data) as {
+          revokeQuote: { __typename: string };
+        }
+      ).revokeQuote.__typename,
       "RevokeQuotePayload",
     );
     const storedQuote = await tx.query.postTable.findFirst({
@@ -5165,7 +5217,8 @@ test("organization members can update organization-authored articles", async () 
       name: "Organization Article Manager",
       email: "orgarticlemanager@example.com",
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ leftInvitations: 1 })
       .where(eq(accountTable.id, member.account.id));
     const organization = await createOrganization(

@@ -16,9 +16,7 @@
         "--env-file=../.env",
         "--inspect-wait=127.0.0.1:9229"
       ],
-      "args": [
-        "--allow-file-kv"
-      ],
+      "args": ["--allow-file-kv"],
       "attachSimplePort": 9229
     },
     {

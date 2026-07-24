@@ -10,11 +10,14 @@
 // disposable object in query() lets a later navigation reuse an already
 // disposed PreloadedQuery, which trips solid-relay's invariant.
 
-const plugin: Deno.lint.Plugin = {
+const plugin = {
+  meta: {
+    name: "hackerspub-solid-relay",
+  },
   name: "hackerspub-solid-relay",
   rules: {
     "no-load-query-in-router-query": {
-      create(context) {
+      create(context: any) {
         type ImportBinding =
           | { kind: "named"; imported: string }
           | { kind: "namespace" };
@@ -82,8 +85,9 @@ const plugin: Deno.lint.Plugin = {
           ) {
             if (isShadowed(callee.object.name)) return false;
             const binding = routerImports.get(callee.object.name);
-            return binding?.kind === "namespace" &&
-              callee.property.name === "query";
+            return (
+              binding?.kind === "namespace" && callee.property.name === "query"
+            );
           }
           return false;
         };
@@ -112,9 +116,8 @@ const plugin: Deno.lint.Plugin = {
             if (source !== "@solidjs/router" && source !== "solid-relay") {
               return;
             }
-            const imports = source === "@solidjs/router"
-              ? routerImports
-              : relayImports;
+            const imports =
+              source === "@solidjs/router" ? routerImports : relayImports;
             for (const spec of node.specifiers ?? []) {
               if (spec.type === "ImportSpecifier") {
                 const local = spec.local?.name;
@@ -180,9 +183,9 @@ const plugin: Deno.lint.Plugin = {
             const resolvedFetcher = isFunction(fetcher)
               ? fetcher
               : fetcher?.type === "Identifier"
-              ? resolveFunctionBinding(fetcher.name) ??
-                resolveFunctionBindingFromAncestors(fetcher.name, node)
-              : undefined;
+                ? (resolveFunctionBinding(fetcher.name) ??
+                  resolveFunctionBindingFromAncestors(fetcher.name, node))
+                : undefined;
             if (!isFunction(resolvedFetcher)) return;
             if (
               !functionContainsRelayLoadQuery(resolvedFetcher, relayImports)
@@ -204,18 +207,21 @@ const plugin: Deno.lint.Plugin = {
 export default plugin;
 
 function isFunction(node: any): boolean {
-  return node?.type === "ArrowFunctionExpression" ||
+  return (
+    node?.type === "ArrowFunctionExpression" ||
     node?.type === "FunctionExpression" ||
-    node?.type === "FunctionDeclaration";
+    node?.type === "FunctionDeclaration"
+  );
 }
 
 function functionContainsRelayLoadQuery(
   fn: any,
   relayImports: Map<
     string,
-    { kind: "named"; imported: string } | {
-      kind: "namespace";
-    }
+    | { kind: "named"; imported: string }
+    | {
+        kind: "namespace";
+      }
   >,
 ): boolean {
   interface Scope {
@@ -283,8 +289,9 @@ function functionContainsRelayLoadQuery(
     ) {
       if (isShadowed(callee.object.name)) return false;
       const binding = relayImports.get(callee.object.name);
-      return binding?.kind === "namespace" &&
-        callee.property.name === "loadQuery";
+      return (
+        binding?.kind === "namespace" && callee.property.name === "loadQuery"
+      );
     }
     return false;
   };
@@ -378,7 +385,9 @@ function functionContainsRelayLoadQuery(
         key === "loc" ||
         key === "start" ||
         key === "end"
-      ) continue;
+      ) {
+        continue;
+      }
       if (Array.isArray(value)) {
         for (const child of value) {
           if (visit(child)) return true;

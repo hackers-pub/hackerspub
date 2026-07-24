@@ -137,7 +137,8 @@ describe("onFlagged()", () => {
         host: "remote.example",
         iri: "https://remote.example/users/blocked",
       });
-      await tx.update(actorTable)
+      await tx
+        .update(actorTable)
         .set({ suspended: new Date() })
         .where(eq(actorTable.id, blocked.id));
       const reported = await insertAccountWithActor(tx, {

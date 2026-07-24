@@ -14,7 +14,7 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { createChunkedVisibleCount } from "~/lib/deferredRender.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { NotificationListMarkAsReadMutation } from "./__generated__/NotificationListMarkAsReadMutation.graphql.ts";
 import type { NotificationListMarkOrganizationNotificationsAsReadMutation } from "./__generated__/NotificationListMarkOrganizationNotificationsAsReadMutation.graphql.ts";
 import type { NotificationListUnreadNotificationsQuery } from "./__generated__/NotificationListUnreadNotificationsQuery.graphql.ts";
@@ -73,29 +73,25 @@ const NotificationListUnreadNotificationsQuery = graphql`
 export function NotificationList(props: NotificationListProps) {
   const { t } = useLingui();
   const environment = useRelayEnvironment();
-  const [markNotificationsAsRead] = createMutation<
-    NotificationListMarkAsReadMutation
-  >(
-    NotificationListMarkAsReadMutation,
-  );
-  const [markOrganizationNotificationsAsRead] = createMutation<
-    NotificationListMarkOrganizationNotificationsAsReadMutation
-  >(
-    NotificationListMarkOrganizationNotificationsAsReadMutation,
-  );
+  const [markNotificationsAsRead] =
+    createMutation<NotificationListMarkAsReadMutation>(
+      NotificationListMarkAsReadMutation,
+    );
+  const [markOrganizationNotificationsAsRead] =
+    createMutation<NotificationListMarkOrganizationNotificationsAsReadMutation>(
+      NotificationListMarkOrganizationNotificationsAsReadMutation,
+    );
   const notifications = createPaginationFragment(
     graphql`
       fragment NotificationList_notifications on Account
-        @refetchable(queryName: "NotificationListQuery")
-        @argumentDefinitions(
-          cursor: { type: "String" }
-          count: { type: "Int", defaultValue: 20 }
-        )
-      {
+      @refetchable(queryName: "NotificationListQuery")
+      @argumentDefinitions(
+        cursor: { type: "String" }
+        count: { type: "Int", defaultValue: 20 }
+      ) {
         id
         notifications(after: $cursor, first: $count)
-          @connection(key: "NotificationList_notifications")
-        {
+          @connection(key: "NotificationList_notifications") {
           edges {
             node {
               uuid
@@ -115,14 +111,14 @@ export function NotificationList(props: NotificationListProps) {
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
   >("loaded");
-  const notificationEdges = createMemo(() =>
-    notifications()?.notifications.edges ?? []
+  const notificationEdges = createMemo(
+    () => notifications()?.notifications.edges ?? [],
   );
   const visibleNotificationCount = createChunkedVisibleCount(
     () => notificationEdges().length,
   );
   const visibleNotificationEdges = createMemo(() =>
-    notificationEdges().slice(0, visibleNotificationCount())
+    notificationEdges().slice(0, visibleNotificationCount()),
   );
   let markedReadThroughKey: string | null = null;
 
@@ -143,9 +139,10 @@ export function NotificationList(props: NotificationListProps) {
       return;
     }
     const readScope = props.readScope ?? { kind: "personal" };
-    const readThroughKey = readScope.kind === "organization"
-      ? `${readScope.kind}:${readScope.organizationId}:${readThrough.uuid}`
-      : `${readScope.kind}:${readThrough.uuid}`;
+    const readThroughKey =
+      readScope.kind === "organization"
+        ? `${readScope.kind}:${readScope.organizationId}:${readThrough.uuid}`
+        : `${readScope.kind}:${readThrough.uuid}`;
     if (markedReadThroughKey === readThroughKey) {
       return;
     }
@@ -186,23 +183,27 @@ export function NotificationList(props: NotificationListProps) {
               {(edge) => <NotificationCard $notification={edge.node} />}
             </For>
             <Show
-              when={notifications.hasNext &&
-                visibleNotificationCount() >= notificationEdges().length}
+              when={
+                notifications.hasNext &&
+                visibleNotificationCount() >= notificationEdges().length
+              }
             >
               <li>
                 <button
                   type="button"
-                  on:click={loadingState() === "loading"
-                    ? undefined
-                    : onLoadMore}
-                  disabled={notifications.pending ||
-                    loadingState() === "loading"}
+                  on:click={
+                    loadingState() === "loading" ? undefined : onLoadMore
+                  }
+                  disabled={
+                    notifications.pending || loadingState() === "loading"
+                  }
                   class="block w-full cursor-pointer px-4 py-8 text-center text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <Switch>
                     <Match
-                      when={notifications.pending ||
-                        loadingState() === "loading"}
+                      when={
+                        notifications.pending || loadingState() === "loading"
+                      }
                     >
                       {t`Loading more notifications`}
                     </Match>

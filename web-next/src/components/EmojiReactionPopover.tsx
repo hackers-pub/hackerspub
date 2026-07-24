@@ -6,7 +6,7 @@ import IconLoader2 from "~icons/lucide/loader-2";
 import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { EmojiReactionPopoverAddMutation } from "./__generated__/EmojiReactionPopoverAddMutation.graphql.ts";
 import type { EmojiReactionPopoverRemoveMutation } from "./__generated__/EmojiReactionPopoverRemoveMutation.graphql.ts";
 
@@ -15,11 +15,13 @@ interface NoteData {
   reactionGroups: ReadonlyArray<{
     readonly __typename?: string;
     readonly emoji?: string;
-    readonly customEmoji?: {
-      readonly id: string;
-      readonly name: string;
-      readonly imageUrl: string;
-    } | undefined;
+    readonly customEmoji?:
+      | {
+          readonly id: string;
+          readonly name: string;
+          readonly imageUrl: string;
+        }
+      | undefined;
     readonly reactors?: {
       readonly totalCount: number;
       readonly viewerHasReacted: boolean;
@@ -61,7 +63,9 @@ const addReactionToPostMutation = graphql`
 `;
 
 const removeReactionFromPostMutation = graphql`
-  mutation EmojiReactionPopoverRemoveMutation($input: RemoveReactionFromPostInput!) {
+  mutation EmojiReactionPopoverRemoveMutation(
+    $input: RemoveReactionFromPostInput!
+  ) {
     removeReactionFromPost(input: $input) {
       ... on RemoveReactionFromPostPayload {
         success
@@ -79,21 +83,19 @@ const removeReactionFromPostMutation = graphql`
 export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
   const { t } = useLingui();
   const actingAccount = useActingAccount();
-  const [pendingReaction, setPendingReaction] = createSignal<
-    PendingReaction | null
-  >(null);
+  const [pendingReaction, setPendingReaction] =
+    createSignal<PendingReaction | null>(null);
 
-  const [commitAddReaction, addingReaction] = createMutation<
-    EmojiReactionPopoverAddMutation
-  >(addReactionToPostMutation);
+  const [commitAddReaction, addingReaction] =
+    createMutation<EmojiReactionPopoverAddMutation>(addReactionToPostMutation);
 
-  const [commitRemoveReaction, removingReaction] = createMutation<
-    EmojiReactionPopoverRemoveMutation
-  >(removeReactionFromPostMutation);
+  const [commitRemoveReaction, removingReaction] =
+    createMutation<EmojiReactionPopoverRemoveMutation>(
+      removeReactionFromPostMutation,
+    );
 
   const isSubmitting = () =>
-    addingReaction() || removingReaction() ||
-    pendingReaction() != null;
+    addingReaction() || removingReaction() || pendingReaction() != null;
   const pendingStatus = () => {
     const pending = pendingReaction();
     if (pending == null) return null;
@@ -101,17 +103,11 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
       ? t`Removing reaction…`
       : t`Adding reaction…`;
   };
-  const isPendingTarget = (
-    kind: PendingReaction["kind"],
-    id: string,
-  ) => {
+  const isPendingTarget = (kind: PendingReaction["kind"], id: string) => {
     const pending = pendingReaction();
     return pending?.kind === kind && pending.id === id;
   };
-  const clearPendingReaction = (
-    kind: PendingReaction["kind"],
-    id: string,
-  ) => {
+  const clearPendingReaction = (kind: PendingReaction["kind"], id: string) => {
     const pending = pendingReaction();
     if (pending?.kind === kind && pending.id === id) {
       setPendingReaction(null);
@@ -154,12 +150,11 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
           const postRecord = store.get(postId);
           if (postRecord) {
             // Update engagement stats
-            const engagementStats = postRecord.getLinkedRecord(
-              "engagementStats",
-            );
+            const engagementStats =
+              postRecord.getLinkedRecord("engagementStats");
             if (engagementStats) {
               const currentReactions =
-                engagementStats.getValue("reactions") as number || 0;
+                (engagementStats.getValue("reactions") as number) || 0;
               const newReactionCount = Math.max(0, currentReactions - 1);
               engagementStats.setValue(newReactionCount, "reactions");
             }
@@ -177,16 +172,13 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
               if (existingGroup) {
                 const reactors = existingGroup.getLinkedRecord("reactors");
                 const currentCount =
-                  reactors?.getValue("totalCount") as number || 0;
+                  (reactors?.getValue("totalCount") as number) || 0;
                 if (currentCount <= 1) {
                   // Remove the group entirely
-                  const updatedGroups = reactionGroups.filter((_, index) =>
-                    index !== existingGroupIndex
+                  const updatedGroups = reactionGroups.filter(
+                    (_, index) => index !== existingGroupIndex,
                   );
-                  postRecord.setLinkedRecords(
-                    updatedGroups,
-                    "reactionGroups",
-                  );
+                  postRecord.setLinkedRecords(updatedGroups, "reactionGroups");
                   if (reactors) store.delete(reactors.getDataID());
                   // Also delete the group record from the store
                   store.delete(existingGroup.getDataID());
@@ -242,12 +234,11 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
           const postRecord = store.get(postId);
           if (postRecord) {
             // Update engagement stats
-            const engagementStats = postRecord.getLinkedRecord(
-              "engagementStats",
-            );
+            const engagementStats =
+              postRecord.getLinkedRecord("engagementStats");
             if (engagementStats) {
               const currentReactions =
-                engagementStats.getValue("reactions") as number || 0;
+                (engagementStats.getValue("reactions") as number) || 0;
               engagementStats.setValue(currentReactions + 1, "reactions");
             }
 
@@ -272,7 +263,7 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
                   existingGroup.setLinkedRecord(reactors, "reactors");
                 }
                 const currentCount =
-                  reactors.getValue("totalCount") as number || 0;
+                  (reactors.getValue("totalCount") as number) || 0;
                 reactors.setValue(currentCount + 1, "totalCount");
                 reactors.setValue(
                   true,
@@ -339,8 +330,8 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
     const noteData = props.noteData;
     const postId = noteData.id;
     const actingAccountId = actingAccount.selectedActingAccountId();
-    const existingReaction = noteData.reactionGroups.find((group) =>
-      group.customEmoji?.id === customEmojiId
+    const existingReaction = noteData.reactionGroups.find(
+      (group) => group.customEmoji?.id === customEmojiId,
     );
     const shouldUndo = existingReaction?.reactors?.viewerHasReacted;
     setPendingReaction({
@@ -361,24 +352,25 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
         updater: (store) => {
           const postRecord = store.get(postId);
           if (postRecord) {
-            const engagementStats = postRecord.getLinkedRecord(
-              "engagementStats",
-            );
+            const engagementStats =
+              postRecord.getLinkedRecord("engagementStats");
             if (engagementStats) {
-              const current = engagementStats.getValue("reactions") as number ||
-                0;
+              const current =
+                (engagementStats.getValue("reactions") as number) || 0;
               engagementStats.setValue(Math.max(0, current - 1), "reactions");
             }
             const reactionGroups =
               postRecord.getLinkedRecords("reactionGroups") || [];
-            const idx = reactionGroups.findIndex((g) =>
-              g?.getLinkedRecord("customEmoji")?.getDataID() === customEmojiId
+            const idx = reactionGroups.findIndex(
+              (g) =>
+                g?.getLinkedRecord("customEmoji")?.getDataID() ===
+                customEmojiId,
             );
             if (idx >= 0) {
               const group = reactionGroups[idx];
               if (group) {
                 const reactors = group.getLinkedRecord("reactors");
-                const count = reactors?.getValue("totalCount") as number || 0;
+                const count = (reactors?.getValue("totalCount") as number) || 0;
                 if (count <= 1) {
                   postRecord.setLinkedRecords(
                     reactionGroups.filter((_, i) => i !== idx),
@@ -434,18 +426,19 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
         updater: (store) => {
           const postRecord = store.get(postId);
           if (postRecord) {
-            const engagementStats = postRecord.getLinkedRecord(
-              "engagementStats",
-            );
+            const engagementStats =
+              postRecord.getLinkedRecord("engagementStats");
             if (engagementStats) {
-              const current = engagementStats.getValue("reactions") as number ||
-                0;
+              const current =
+                (engagementStats.getValue("reactions") as number) || 0;
               engagementStats.setValue(current + 1, "reactions");
             }
             const reactionGroups =
               postRecord.getLinkedRecords("reactionGroups") || [];
-            const idx = reactionGroups.findIndex((g) =>
-              g?.getLinkedRecord("customEmoji")?.getDataID() === customEmojiId
+            const idx = reactionGroups.findIndex(
+              (g) =>
+                g?.getLinkedRecord("customEmoji")?.getDataID() ===
+                customEmojiId,
             );
             if (idx >= 0) {
               const group = reactionGroups[idx];
@@ -458,7 +451,7 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
                   );
                   group.setLinkedRecord(reactors, "reactors");
                 }
-                const count = reactors.getValue("totalCount") as number || 0;
+                const count = (reactors.getValue("totalCount") as number) || 0;
                 reactors.setValue(count + 1, "totalCount");
                 reactors.setValue(
                   true,
@@ -513,10 +506,7 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
   };
 
   return (
-    <div
-      class="p-4 space-y-4"
-      aria-busy={isSubmitting()}
-    >
+    <div class="p-4 space-y-4" aria-busy={isSubmitting()}>
       <Show when={pendingStatus()}>
         {(status) => (
           <span class="sr-only" aria-live="polite">
@@ -532,10 +522,12 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
               {(group) => {
                 const target = () =>
                   group.emoji == null
-                    ? group.customEmoji == null ? null : {
-                      kind: "customEmoji" as const,
-                      id: group.customEmoji.id,
-                    }
+                    ? group.customEmoji == null
+                      ? null
+                      : {
+                          kind: "customEmoji" as const,
+                          id: group.customEmoji.id,
+                        }
                     : { kind: "emoji" as const, id: group.emoji };
                 const pending = () => {
                   const value = target();
@@ -545,23 +537,33 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
                 };
                 return (
                   <Button
-                    variant={group.reactors?.viewerHasReacted === true
-                      ? "secondary"
-                      : "outline"}
+                    variant={
+                      group.reactors?.viewerHasReacted === true
+                        ? "secondary"
+                        : "outline"
+                    }
                     size="sm"
-                    class={group.reactors?.viewerHasReacted === true
-                      ? "relative h-8 gap-2 cursor-pointer border-red-300 bg-red-50 text-red-700 hover:bg-red-100 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-950/60"
-                      : "relative h-8 gap-2 cursor-pointer"}
+                    class={
+                      group.reactors?.viewerHasReacted === true
+                        ? "relative h-8 gap-2 cursor-pointer border-red-300 bg-red-50 text-red-700 hover:bg-red-100 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-950/60"
+                        : "relative h-8 gap-2 cursor-pointer"
+                    }
                     disabled={isSubmitting()}
-                    title={pending()
-                      ? pendingStatus() ?? undefined
-                      : group.reactors?.viewerHasReacted === true
-                      ? t`Remove ${
-                        group.emoji || group.customEmoji?.name || t`reaction`
-                      }`
-                      : t`Add ${
-                        group.emoji || group.customEmoji?.name || t`reaction`
-                      }`}
+                    title={
+                      pending()
+                        ? (pendingStatus() ?? undefined)
+                        : group.reactors?.viewerHasReacted === true
+                          ? t`Remove ${
+                              group.emoji ||
+                              group.customEmoji?.name ||
+                              t`reaction`
+                            }`
+                          : t`Add ${
+                              group.emoji ||
+                              group.customEmoji?.name ||
+                              t`reaction`
+                            }`
+                    }
                     onClick={() => {
                       if (group.emoji) {
                         handleEmojiClick(group.emoji);
@@ -620,9 +622,11 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
                 size="sm"
                 class="relative h-8 w-8 p-0 text-base hover:bg-accent cursor-pointer"
                 disabled={isSubmitting()}
-                title={isPendingTarget("emoji", emoji)
-                  ? pendingStatus() ?? undefined
-                  : t`React with ${emoji}`}
+                title={
+                  isPendingTarget("emoji", emoji)
+                    ? (pendingStatus() ?? undefined)
+                    : t`React with ${emoji}`
+                }
                 onClick={() => handleEmojiClick(emoji)}
               >
                 <span

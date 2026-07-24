@@ -54,23 +54,26 @@ function mockModel(
 test("analyzeFlaggedContent() returns sanitized matches", async () => {
   let prompt = "";
   let system: string | undefined;
-  const model = mockModel({
-    matches: [
-      {
-        provision: "2.3",
-        confidence: 0.9,
-        rationale: "Targets a protected group.",
-      },
-      // Unknown provision ids are dropped:
-      { provision: "9.9", confidence: 0.8, rationale: "Made up." },
-      // Out-of-range confidences are clamped:
-      { provision: "3.2", confidence: 7, rationale: "Looks like spam." },
-    ],
-    summary: "A report about hateful language in a post.",
-  }, (p, s) => {
-    prompt = p;
-    system = s;
-  });
+  const model = mockModel(
+    {
+      matches: [
+        {
+          provision: "2.3",
+          confidence: 0.9,
+          rationale: "Targets a protected group.",
+        },
+        // Unknown provision ids are dropped:
+        { provision: "9.9", confidence: 0.8, rationale: "Made up." },
+        // Out-of-range confidences are clamped:
+        { provision: "3.2", confidence: 7, rationale: "Looks like spam." },
+      ],
+      summary: "A report about hateful language in a post.",
+    },
+    (p, s) => {
+      prompt = p;
+      system = s;
+    },
+  );
   const analysis = await analyzeFlaggedContent({
     model,
     provisions: PROVISIONS,
@@ -85,10 +88,7 @@ test("analyzeFlaggedContent() returns sanitized matches", async () => {
   });
   assert.equal(analysis.matches[1].provision, "3.2");
   assert.equal(analysis.matches[1].confidence, 1);
-  assert.equal(
-    analysis.summary,
-    "A report about hateful language in a post.",
-  );
+  assert.equal(analysis.summary, "A report about hateful language in a post.");
   // The model sees the provisions, the reason, and the content:
   assert.match(prompt, /2\.3/);
   assert.match(prompt, /attacks people for their nationality/);

@@ -21,9 +21,7 @@ function getTableConfig(
 ): ReturnType<typeof _getTableConfig> {
   const config = _getTableConfig(table);
   const cols = getColumns(table);
-  const colByName = new Map(
-    Object.values(cols).map((col) => [col.name, col]),
-  );
+  const colByName = new Map(Object.values(cols).map((col) => [col.name, col]));
   // columns is read-only, so we patch via Object.defineProperty
   config.primaryKeys.forEach((pk) => {
     Object.defineProperty(pk, "columns", {
@@ -51,6 +49,10 @@ import type Keyv from "keyv";
 import { normalizeEmail } from "@hackerspub/models/account";
 import type { ApplicationContext } from "@hackerspub/models/context";
 import type { Database } from "@hackerspub/models/db";
+import type {
+  ConnectionAddress,
+  ConnectionInfo,
+} from "./trusted-forwarding.ts";
 import type { PostInteractionPolicy } from "@hackerspub/models/post/visibility";
 import { relations } from "@hackerspub/models/relations";
 import type {
@@ -63,8 +65,8 @@ import type {
 import type { Session } from "@hackerspub/models/session";
 import type { Uuid } from "@hackerspub/models/uuid";
 
-export type ValuesOfEnumType<T> = T extends
-  PothosSchemaTypes.EnumRef<never, unknown, infer V> ? V : never;
+export type ValuesOfEnumType<T> =
+  T extends PothosSchemaTypes.EnumRef<never, unknown, infer V> ? V : never;
 
 export interface ServerContext {
   altTextGenerator: LanguageModel;
@@ -75,7 +77,7 @@ export interface ServerContext {
   emailFrom: string;
   fedCtx: ApplicationContext;
   request: Request;
-  connectionInfo?: Deno.ServeHandlerInfo<Deno.Addr>;
+  connectionInfo?: ConnectionInfo<ConnectionAddress>;
 }
 
 export interface AdminAccountStats {
@@ -86,12 +88,12 @@ export interface AdminAccountStats {
 export interface UserContext extends ServerContext {
   session: Session | undefined;
   account:
-    | Account & {
-      actor: Actor;
-      avatarMedium: Medium | null;
-      emails: AccountEmail[];
-      links: AccountLink[];
-    }
+    | (Account & {
+        actor: Actor;
+        avatarMedium: Medium | null;
+        emails: AccountEmail[];
+        links: AccountLink[];
+      })
     | undefined;
   pollViewerVotes?: Map<Uuid, Promise<ReadonlySet<number>>>;
   adminAccountStatsLoader?: DataLoader<Uuid, AdminAccountStats>;
@@ -238,8 +240,7 @@ export const builder = new SchemaBuilder<PothosTypes>({
       const value =
         result[errorKind.toLowerCase() as Lowercase<typeof errorKind>];
       const maxValue = result[`max${errorKind}`];
-      const errorMessage =
-        `Query exceeds ${errorKind} limit (${value} > ${maxValue})`;
+      const errorMessage = `Query exceeds ${errorKind} limit (${value} > ${maxValue})`;
       console.error(errorMessage);
       throw createGraphQLError(errorMessage);
     },
@@ -272,8 +273,8 @@ export const builder = new SchemaBuilder<PothosTypes>({
           columns: { id: true, kind: true },
         });
         if (account?.kind !== "organization") return false;
-        const membership = await ctx.db.query.organizationMembershipTable
-          .findFirst({
+        const membership =
+          await ctx.db.query.organizationMembershipTable.findFirst({
             where: {
               organizationAccountId: id,
               memberAccountId: viewerAccountId,
@@ -293,9 +294,9 @@ export const builder = new SchemaBuilder<PothosTypes>({
     directResult: true,
     defaultUnionOptions: {
       name(options) {
-        return `${options.fieldName.charAt(0).toUpperCase()}${
-          options.fieldName.slice(1)
-        }Result`;
+        return `${options.fieldName.charAt(0).toUpperCase()}${options.fieldName.slice(
+          1,
+        )}Result`;
       },
     },
   },

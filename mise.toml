@@ -33,7 +33,18 @@ auto = true
 
 [tasks.codegen]
 description = "Generate all checked-in artifacts"
+run = ["mise run codegen:deno", "mise run codegen:node"]
+
+[tasks."codegen:deno"]
+description = "Generate the GraphQL schema with Deno"
 run = "deno task -r codegen"
+
+[tasks."codegen:node"]
+description = "Generate checked-in artifacts with Node.js"
+run = [
+  "node --import temporal-polyfill/global graphql/generate-schema.ts",
+  "pnpm --filter @hackerspub/web-next codegen",
+]
 
 [tasks."deps:sync"]
 description = "Generate the temporary Deno import map from the pnpm catalog"
@@ -45,7 +56,7 @@ run = "node scripts/sync-deno-imports.ts --check"
 
 [tasks."next:codegen"]
 description = "Generate Relay artifacts for web-next"
-run = "deno task -f web-next codegen"
+run = "pnpm --filter @hackerspub/web-next codegen"
 
 [tasks."next:extract"]
 description = "Extract Lingui messages for web-next"
@@ -54,15 +65,59 @@ dir = "web-next"
 
 [tasks.check]
 description = "Run formatting, linting, type checking, and generated artifact checks"
+run = ["mise run check:node", "mise run check:deno"]
+
+[tasks."check:node"]
+description = "Run Node.js formatting, linting, type checking, and generated artifact checks"
 depends = ["deps:check", "next:codegen"]
-run = ["deno fmt --check", "hongdown --check", "deno lint", "deno check ."]
+run = [
+  "pnpm exec oxfmt --check .",
+  "hongdown --check",
+  "pnpm exec oxlint --config oxlint.config.ts --deny-warnings .",
+  "pnpm exec tsc -p tsconfig.node.json",
+  "pnpm exec tsc -p web-next/tsconfig.json",
+  "pnpm exec tsc -p asset-cdn/tsconfig.json",
+]
+
+[tasks."check:deno"]
+description = "Run transitional Deno linting and type checking"
+run = ["deno lint", "deno check ."]
 
 [tasks.fmt]
 description = "Format source and Markdown files"
-run = ["deno fmt", "hongdown --write"]
+run = ["pnpm exec oxfmt .", "hongdown --write"]
 
 [tasks.test]
-description = "Run the Deno test suite"
+description = "Run the Node.js and Deno test suites"
+run = ["mise run test:node", "mise run test:deno"]
+
+[tasks."test:node"]
+description = "Run the Node.js test suite"
+shell = "bash -c"
+run = '''
+test_args=(
+  --import temporal-polyfill/global
+  --test
+  --test-concurrency=8
+  "ai/**/*.test.ts"
+  "federation/**/*.test.ts"
+  "graphql/**/*.test.ts"
+  "models/**/*.test.ts"
+  "runtime/**/*.test.ts"
+  "scripts/**/*.test.ts"
+  "test/**/*.test.ts"
+  "web-next/lint-plugins/**/*.test.ts"
+  "web-next/src/**/*.test.ts"
+)
+if test -f .env.test; then
+  godotenv -f .env.test -o node "${test_args[@]}"
+else
+  node "${test_args[@]}"
+fi
+'''
+
+[tasks."test:deno"]
+description = "Run the transitional Deno test suite"
 run = '''
 if (".env.test" | path exists) {
   godotenv -f .env.test -o deno test --allow-all --parallel
@@ -151,7 +206,7 @@ run = "deno run -A drizzle-kit migrate"
 
 [tasks."migrate:media"]
 description = "Copy legacy filesystem uploads into the configured application directory"
-run = "deno run --allow-env=FS_LOCATION --allow-read --allow-write scripts/migrate-media.ts"
+run = "node scripts/migrate-media.ts"
 
 [tasks."migrate:generate"]
 description = "Generate a new database migration"
@@ -171,7 +226,7 @@ run = "deno run --allow-env --allow-read scripts/generate-vapid-keys.ts"
 
 [tasks.addaccount]
 description = "Create a user account from the command line"
-run = "deno run --allow-all scripts/addaccount.ts"
+run = "node --import temporal-polyfill/global scripts/addaccount.ts"
 
 [tasks."repair:link-previews"]
 description = "Repair posts grouped under malformed link-preview URLs"

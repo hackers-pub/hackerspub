@@ -18,13 +18,11 @@ export function createUpstreamRequestInit(
     headers.set("Authorization", `Bearer ${options.sessionId}`);
   }
   if (options.behindProxy && options.request != null) {
-    for (
-      const name of [
-        "x-forwarded-for",
-        "x-forwarded-host",
-        "x-forwarded-proto",
-      ]
-    ) {
+    for (const name of [
+      "x-forwarded-for",
+      "x-forwarded-host",
+      "x-forwarded-proto",
+    ]) {
       const value = options.request.headers.get(name);
       if (value != null) headers.set(name, value);
     }

@@ -17,7 +17,7 @@ import { PostCard } from "~/components/PostCard.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { createChunkedVisibleCount } from "~/lib/deferredRender.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type {
   PublicTimeline_posts$data,
   PublicTimeline_posts$key,
@@ -34,11 +34,11 @@ const pollQuery = graphql`
     $withoutShares: Boolean
   ) {
     publicTimeline(
-      first: 1,
-      languages: $languages,
-      local: $local,
-      postType: $postType,
-      withoutShares: $withoutShares,
+      first: 1
+      languages: $languages
+      local: $local
+      postType: $postType
+      withoutShares: $withoutShares
     ) {
       edges {
         cursor
@@ -63,38 +63,33 @@ export function PublicTimeline(props: PublicTimelineProps) {
   const posts = createPaginationFragment(
     graphql`
       fragment PublicTimeline_posts on Query
-        @refetchable(queryName: "PublicTimelineQuery")
-        @argumentDefinitions(
-          cursor: { type: "String" }
-          count: { type: "Int", defaultValue: 25 }
-          actingAccountId: { type: "ID" }
-          locale: { type: "Locale" }
-          languages: { type: "[Locale!]", }
-          local: { type: "Boolean", defaultValue: false }
-          postType: { type: "PostType", defaultValue: null}
-          withoutShares: { type: "Boolean", defaultValue: false }
-        )
-      {
+      @refetchable(queryName: "PublicTimelineQuery")
+      @argumentDefinitions(
+        cursor: { type: "String" }
+        count: { type: "Int", defaultValue: 25 }
+        actingAccountId: { type: "ID" }
+        locale: { type: "Locale" }
+        languages: { type: "[Locale!]" }
+        local: { type: "Boolean", defaultValue: false }
+        postType: { type: "PostType", defaultValue: null }
+        withoutShares: { type: "Boolean", defaultValue: false }
+      ) {
         __id
         publicTimeline(
-          after: $cursor,
-          first: $count,
-          languages: $languages,
-          local: $local,
-          postType: $postType,
-          withoutShares: $withoutShares,
-        )
-          @connection(key: "PublicTimeline__publicTimeline")
-        {
+          after: $cursor
+          first: $count
+          languages: $languages
+          local: $local
+          postType: $postType
+          withoutShares: $withoutShares
+        ) @connection(key: "PublicTimeline__publicTimeline") {
           __id
           edges {
             __id
             cursor
             node {
-              ...PostCard_post @arguments(
-                locale: $locale
-                actingAccountId: $actingAccountId
-              )
+              ...PostCard_post
+                @arguments(locale: $locale, actingAccountId: $actingAccountId)
             }
           }
           pageInfo {
@@ -128,25 +123,27 @@ export function PublicTimeline(props: PublicTimelineProps) {
     { initialCount: 3, chunkSize: 5 },
   );
   const visibleTimelineEdges = createMemo(() =>
-    timelineEdges().slice(0, visiblePostCount())
+    timelineEdges().slice(0, visiblePostCount()),
   );
 
   // Keep the baseline cursor in sync with whatever is currently displayed.
   // Distinguishes "data not loaded yet" (undefined) from "loaded but empty"
   // (null) so an empty-then-populated timeline still shows the banner.
   // Clears the "new posts" banner whenever the timeline refreshes.
-  createEffect(on(
-    () => {
-      const data = stableData();
-      if (data == null) return undefined;
-      return data.publicTimeline.edges[0]?.cursor ?? null;
-    },
-    (cursor) => {
-      if (cursor === undefined) return;
-      setBaselineCursor(cursor);
-      setHasNewPosts(false);
-    },
-  ));
+  createEffect(
+    on(
+      () => {
+        const data = stableData();
+        if (data == null) return undefined;
+        return data.publicTimeline.edges[0]?.cursor ?? null;
+      },
+      (cursor) => {
+        if (cursor === undefined) return;
+        setBaselineCursor(cursor);
+        setHasNewPosts(false);
+      },
+    ),
+  );
 
   // When the language filter changes after initial mount, refetch at the
   // fragment level so the DOM subtree stays mounted (no flash). The top-level
@@ -154,26 +151,30 @@ export function PublicTimeline(props: PublicTimelineProps) {
   // subsequent client-side filter changes without reloading the whole query.
   const actingAccountId = () => actingAccount.selectedActingAccountId();
 
-  createEffect(on(
-    () => `${props.activeLanguage?.() ?? ""}:${actingAccountId() ?? ""}`,
-    () => {
-      const lang = props.activeLanguage?.();
-      posts.refetch({
-        actingAccountId: actingAccountId() ?? null,
-        languages: lang ? [lang] : [],
-      });
-    },
-    { defer: true },
-  ));
+  createEffect(
+    on(
+      () => `${props.activeLanguage?.() ?? ""}:${actingAccountId() ?? ""}`,
+      () => {
+        const lang = props.activeLanguage?.();
+        posts.refetch({
+          actingAccountId: actingAccountId() ?? null,
+          languages: lang ? [lang] : [],
+        });
+      },
+      { defer: true },
+    ),
+  );
 
   onMount(() => {
-    onCleanup(onNoteCreated(() => {
-      const lang = props.activeLanguage?.();
-      posts.refetch({
-        actingAccountId: actingAccountId() ?? null,
-        languages: lang ? [lang] : [],
-      });
-    }));
+    onCleanup(
+      onNoteCreated(() => {
+        const lang = props.activeLanguage?.();
+        posts.refetch({
+          actingAccountId: actingAccountId() ?? null,
+          languages: lang ? [lang] : [],
+        });
+      }),
+    );
 
     // Poll for new content without disrupting the current view.
     const pollIntervalMs = import.meta.env.DEV ? 10_000 : 60_000;

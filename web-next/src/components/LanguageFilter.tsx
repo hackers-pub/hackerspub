@@ -1,6 +1,6 @@
 import { A } from "@solidjs/router";
 import { createMemo, For, Show } from "solid-js";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 export interface LanguageFilterProps {
   readonly languages: readonly string[];
@@ -12,8 +12,12 @@ export function LanguageFilter(props: LanguageFilterProps) {
   const { t, i18n } = useLingui();
 
   // Display name in the current UI locale ("Korean", "日本語", "英語")
-  const uiNames = createMemo(() =>
-    new Intl.DisplayNames(i18n.locale, { type: "language", fallback: "code" })
+  const uiNames = createMemo(
+    () =>
+      new Intl.DisplayNames(i18n.locale, {
+        type: "language",
+        fallback: "code",
+      }),
   );
 
   const pillClass = (active: boolean) =>
@@ -79,9 +83,11 @@ export function LanguageFilter(props: LanguageFilterProps) {
               <span>{nativeName()}</span>
               <Show when={showUiName()}>
                 <span
-                  class={active()
-                    ? "ml-1.5 text-xs opacity-60"
-                    : "ml-1.5 text-xs text-muted-foreground"}
+                  class={
+                    active()
+                      ? "ml-1.5 text-xs opacity-60"
+                      : "ml-1.5 text-xs text-muted-foreground"
+                  }
                 >
                   {uiName()}
                 </span>

@@ -41,23 +41,21 @@ async function insertQuestionPoll(
 ) {
   const postId = generateUuidV7();
   const published = new Date();
-  await tx.insert(postTable).values(
-    {
-      id: postId,
-      iri: `http://localhost/objects/${postId}`,
-      type: "Question",
-      visibility: "public",
-      actorId: values.account.actor.id,
-      name: "Runtime choice",
-      contentHtml: "<p>Which runtime?</p>",
-      language: "en",
-      tags: {},
-      emojis: {},
-      url: `http://localhost/@${values.account.username}/${postId}`,
-      published,
-      updated: published,
-    } satisfies NewPost,
-  );
+  await tx.insert(postTable).values({
+    id: postId,
+    iri: `http://localhost/objects/${postId}`,
+    type: "Question",
+    visibility: "public",
+    actorId: values.account.actor.id,
+    name: "Runtime choice",
+    contentHtml: "<p>Which runtime?</p>",
+    language: "en",
+    tags: {},
+    emojis: {},
+    url: `http://localhost/@${values.account.username}/${postId}`,
+    published,
+    updated: published,
+  } satisfies NewPost);
   await tx.insert(pollTable).values({
     postId,
     multiple: false,
@@ -224,7 +222,10 @@ test("onPostCreated stores a remote poll vote", async () => {
       where: { postId: post.id },
       orderBy: { index: "asc" },
     });
-    assert.deepEqual(options.map((option) => option.votesCount), [0, 1]);
+    assert.deepEqual(
+      options.map((option) => option.votesCount),
+      [0, 1],
+    );
   });
 });
 

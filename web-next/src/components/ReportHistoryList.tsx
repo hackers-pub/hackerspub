@@ -5,7 +5,7 @@ import IconFileText from "~icons/lucide/file-text";
 import IconUser from "~icons/lucide/user";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { Badge } from "~/components/ui/badge.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { ReportHistoryList_account$key } from "./__generated__/ReportHistoryList_account.graphql.ts";
 
 export interface ReportHistoryListProps {
@@ -19,15 +19,13 @@ export function ReportHistoryList(props: ReportHistoryListProps) {
   const reports = createPaginationFragment(
     graphql`
       fragment ReportHistoryList_account on Account
-        @refetchable(queryName: "ReportHistoryListQuery")
-        @argumentDefinitions(
-          cursor: { type: "String" }
-          count: { type: "Int", defaultValue: 20 }
-        )
-      {
+      @refetchable(queryName: "ReportHistoryListQuery")
+      @argumentDefinitions(
+        cursor: { type: "String" }
+        count: { type: "Int", defaultValue: 20 }
+      ) {
         reports(after: $cursor, first: $count)
-          @connection(key: "ReportHistoryList_reports")
-        {
+          @connection(key: "ReportHistoryList_reports") {
           edges {
             node {
               id
@@ -65,9 +63,11 @@ export function ReportHistoryList(props: ReportHistoryListProps) {
     });
   }
 
-  const profileHref = (
-    actor: { local: boolean; username: string; handle: string },
-  ) => `/${actor.local ? `@${actor.username}` : actor.handle}`;
+  const profileHref = (actor: {
+    local: boolean;
+    username: string;
+    handle: string;
+  }) => `/${actor.local ? `@${actor.username}` : actor.handle}`;
 
   // `targetPostIri` originates from remote ActivityPub data, so only link it
   // when it is an `http(s)` URL; otherwise (e.g. a `javascript:` IRI) render
@@ -201,9 +201,7 @@ export function ReportHistoryList(props: ReportHistoryListProps) {
                 <Match when={loadingState() === "errored"}>
                   {t`Failed to load more; click to retry`}
                 </Match>
-                <Match when={loadingState() === "loaded"}>
-                  {t`Load more`}
-                </Match>
+                <Match when={loadingState() === "loaded"}>{t`Load more`}</Match>
               </Switch>
             </button>
           </Show>

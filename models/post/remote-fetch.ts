@@ -4,8 +4,9 @@ export const REMOTE_FETCH_TIMEOUT_MS = 10_000;
 export const PERSIST_POST_OVERALL_BUDGET_MS = 90_000;
 
 export function getRemoteFetchSignal(signal?: AbortSignal): AbortSignal {
-  const signals = [AbortSignal.timeout(REMOTE_FETCH_TIMEOUT_MS), signal]
-    .filter((s): s is AbortSignal => s != null);
+  const signals = [AbortSignal.timeout(REMOTE_FETCH_TIMEOUT_MS), signal].filter(
+    (s): s is AbortSignal => s != null,
+  );
   return AbortSignal.any(signals);
 }
 

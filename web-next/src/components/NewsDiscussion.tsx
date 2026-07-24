@@ -6,7 +6,7 @@ import { NewsDiscussionComposer } from "~/components/NewsDiscussionComposer.tsx"
 import { NewsDiscussionSubtree } from "~/components/NewsDiscussionThread.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { NewsDiscussion_story$key } from "./__generated__/NewsDiscussion_story.graphql.ts";
 
 export interface NewsDiscussionProps {
@@ -25,24 +25,21 @@ export function NewsDiscussion(props: NewsDiscussionProps) {
   const story = createPaginationFragment(
     graphql`
       fragment NewsDiscussion_story on PostLink
-        @refetchable(queryName: "NewsDiscussionQuery")
-        @argumentDefinitions(
-          cursor: { type: "String" }
-          count: { type: "Int", defaultValue: 20 }
-          actingAccountId: { type: "ID", defaultValue: null }
-        )
-      {
+      @refetchable(queryName: "NewsDiscussionQuery")
+      @argumentDefinitions(
+        cursor: { type: "String" }
+        count: { type: "Int", defaultValue: 20 }
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
         url
         sharingPosts(after: $cursor, first: $count)
-          @connection(key: "NewsDiscussion__sharingPosts")
-        {
+          @connection(key: "NewsDiscussion__sharingPosts") {
           __id
           edges {
             node {
               id
-              ...NewsDiscussionThread_post @arguments(
-                actingAccountId: $actingAccountId
-              )
+              ...NewsDiscussionThread_post
+                @arguments(actingAccountId: $actingAccountId)
             }
           }
           pageInfo {
@@ -62,9 +59,12 @@ export function NewsDiscussion(props: NewsDiscussionProps) {
   onMount(() => {
     onCleanup(
       onNoteUpdated(() =>
-        story.refetch({
-          actingAccountId: actingAccountId() ?? null,
-        }, { fetchPolicy: "network-only" })
+        story.refetch(
+          {
+            actingAccountId: actingAccountId() ?? null,
+          },
+          { fetchPolicy: "network-only" },
+        ),
       ),
     );
   });
@@ -81,16 +81,14 @@ export function NewsDiscussion(props: NewsDiscussionProps) {
             connectionId={data.sharingPosts.__id}
           />
           <div class="mt-4 mb-10 overflow-hidden border bg-card md:mb-12 md:rounded-lg md:shadow-sm">
-            {
-              /* Key by post id (not list position): a `refetch` after posting
+            {/* Key by post id (not list position): a `refetch` after posting
                  prepends a new opinion, and an unkeyed `<For>` would reuse each
                  row for the shifted post.  The row's own fields update in place,
                  but a child `PostEngagementBar` opens its own fragment
                  subscription off the reference-stable proxy and stays pinned to
                  the post that first occupied the row, showing its engagement
                  counts.  Keying remounts a row only when its post id changes, so
-                 each post keeps its own subscription. */
-            }
+                 each post keeps its own subscription. */}
             <Key each={data.sharingPosts.edges} by={(edge) => edge.node.id}>
               {(edge) => (
                 <div class="border-b last:border-none">

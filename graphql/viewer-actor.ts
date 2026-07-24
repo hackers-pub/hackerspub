@@ -25,9 +25,10 @@ export async function resolveViewerActorId(
   ctx: UserContext,
   { actingAccountId }: ActingAccountIdArg,
 ): Promise<Uuid | null> {
-  const cacheKey = typeof actingAccountId === "string"
-    ? actingAccountId
-    : actingAccountId?.id ?? "";
+  const cacheKey =
+    typeof actingAccountId === "string"
+      ? actingAccountId
+      : (actingAccountId?.id ?? "");
   let cache = viewerActorIdCache.get(ctx);
   if (cache == null) {
     cache = new Map();

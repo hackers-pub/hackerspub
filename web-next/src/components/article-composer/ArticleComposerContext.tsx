@@ -24,7 +24,7 @@ import {
   buildNoteDraftContentFromArticle,
   shouldSuggestNoteForArticle,
 } from "~/lib/formatGuidance.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   getNoteDraftStorageKey,
   readNoteDraft,
@@ -55,10 +55,11 @@ const SaveArticleDraftMutation = graphql`
     saveArticleDraft(input: $input) {
       __typename
       ... on SaveArticleDraftPayload {
-        draft @prependNode(
-          connections: $connections
-          edgeTypeName: "AccountArticleDraftsConnectionEdge"
-        ) {
+        draft
+          @prependNode(
+            connections: $connections
+            edgeTypeName: "AccountArticleDraftsConnectionEdge"
+          ) {
           id
           uuid
           title
@@ -79,7 +80,9 @@ const SaveArticleDraftMutation = graphql`
 `;
 
 const PublishArticleDraftMutation = graphql`
-  mutation ArticleComposerContextPublishMutation($input: PublishArticleDraftInput!) {
+  mutation ArticleComposerContextPublishMutation(
+    $input: PublishArticleDraftInput!
+  ) {
     publishArticleDraft(input: $input) {
       __typename
       ... on PublishArticleDraftPayload {
@@ -148,12 +151,12 @@ export interface ArticleComposerContextValue {
   draftDataLoaded: Accessor<boolean>;
   draft: Accessor<
     | {
-      id: string;
-      uuid: string;
-      title: string;
-      content: string;
-      tags: readonly string[];
-    }
+        id: string;
+        uuid: string;
+        title: string;
+        content: string;
+        tags: readonly string[];
+      }
     | undefined
   >;
 
@@ -220,23 +223,21 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
   const params = useParams();
   const env = useRelayEnvironment();
   const draftUuid = (props.draftUuid ??
-    crypto
-      .randomUUID()) as `${string}-${string}-${string}-${string}-${string}`;
+    crypto.randomUUID()) as `${string}-${string}-${string}-${string}-${string}`;
 
   // Draft loading
   const draftData = props.draftUuid
     ? createStablePreloadedQuery<ArticleComposerContextDraftQueryType>(
-      ArticleComposerDraftQuery,
-      () =>
-        loadQuery<ArticleComposerContextDraftQueryType>(
-          env(),
-          ArticleComposerDraftQuery,
-          {
-            uuid: props
-              .draftUuid as `${string}-${string}-${string}-${string}-${string}`,
-          },
-        ),
-    )
+        ArticleComposerDraftQuery,
+        () =>
+          loadQuery<ArticleComposerContextDraftQueryType>(
+            env(),
+            ArticleComposerDraftQuery,
+            {
+              uuid: props.draftUuid as `${string}-${string}-${string}-${string}-${string}`,
+            },
+          ),
+      )
     : undefined;
 
   const loadedDraft = createMemo(() => {
@@ -291,26 +292,23 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
       "draftsPaginationFragment_articleDrafts",
       "FloatingComposeButton_articleDrafts",
     ].map((connectionKey) =>
-      ConnectionHandler.getConnectionID(viewerId, connectionKey)
+      ConnectionHandler.getConnectionID(viewerId, connectionKey),
     );
   };
 
   // Mutations
-  const [saveDraft, isSaving] = createMutation<
-    ArticleComposerContextSaveMutation
-  >(
-    SaveArticleDraftMutation,
-  );
-  const [publishDraft, isPublishingMutation] = createMutation<
-    ArticleComposerContextPublishMutation
-  >(
-    PublishArticleDraftMutation,
-  );
-  const [deleteDraft, isDeleting] = createMutation<
-    ArticleComposerContextDeleteMutation
-  >(
-    DeleteArticleDraftMutation,
-  );
+  const [saveDraft, isSaving] =
+    createMutation<ArticleComposerContextSaveMutation>(
+      SaveArticleDraftMutation,
+    );
+  const [publishDraft, isPublishingMutation] =
+    createMutation<ArticleComposerContextPublishMutation>(
+      PublishArticleDraftMutation,
+    );
+  const [deleteDraft, isDeleting] =
+    createMutation<ArticleComposerContextDeleteMutation>(
+      DeleteArticleDraftMutation,
+    );
 
   // --- Handlers ---
 
@@ -328,11 +326,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
       return;
     }
 
-    const submittedForm = createDraftFormSnapshot(
-      title(),
-      content(),
-      tags(),
-    );
+    const submittedForm = createDraftFormSnapshot(title(), content(), tags());
     const submittedDraft = createDraftSaveInput(submittedForm);
 
     saveDraft({
@@ -405,8 +399,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
         ) {
           showToast({
             title: t`Error`,
-            description:
-              t`Invalid input: ${response.saveArticleDraft.inputPath}`,
+            description: t`Invalid input: ${response.saveArticleDraft.inputPath}`,
             variant: "error",
           });
         } else if (
@@ -552,7 +545,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
       onCompleted(response) {
         if (
           response.publishArticleDraft.__typename ===
-            "PublishArticleDraftPayload"
+          "PublishArticleDraftPayload"
         ) {
           const articleUrl = response.publishArticleDraft.article.url!;
           navigate(new URL(articleUrl).pathname);
@@ -567,8 +560,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
         ) {
           showToast({
             title: t`Error`,
-            description:
-              t`Invalid input: ${response.publishArticleDraft.inputPath}`,
+            description: t`Invalid input: ${response.publishArticleDraft.inputPath}`,
             variant: "error",
           });
         } else if (
@@ -632,8 +624,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
         ) {
           showToast({
             title: t`Error`,
-            description:
-              t`Invalid input: ${response.deleteArticleDraft.inputPath}`,
+            description: t`Invalid input: ${response.deleteArticleDraft.inputPath}`,
             variant: "error",
           });
         } else if (
@@ -721,7 +712,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
     if (
       publishActingAccountKey() !== PERSONAL_COMPOSE_ACCOUNT_KEY &&
       actingAccount.composeInputForKey(publishActingAccountKey())
-          .actingAccountId == null
+        .actingAccountId == null
     ) {
       setPublishActingAccountKey(actingAccount.defaultComposeAccountKey());
     }

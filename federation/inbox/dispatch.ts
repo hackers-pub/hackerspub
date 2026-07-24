@@ -28,17 +28,16 @@ export async function onAccepted(
     const handledByIri = await withInboxTransaction(
       fedCtx,
       async (txCtx) =>
-        await onRelayFollowAccepted(txCtx, accept) ||
-        await onFollowAccepted(txCtx, accept, { object: undefined }),
+        (await onRelayFollowAccepted(txCtx, accept)) ||
+        (await onFollowAccepted(txCtx, accept, { object: undefined })),
     );
     if (handledByIri) return;
     const object = await accept.getObject({
       ...fedCtx,
       crossOrigin: "trust",
     });
-    await withInboxTransaction(
-      fedCtx,
-      (txCtx) => onFollowAccepted(txCtx, accept, { object }),
+    await withInboxTransaction(fedCtx, (txCtx) =>
+      onFollowAccepted(txCtx, accept, { object }),
     );
     return;
   }
@@ -54,13 +53,12 @@ export async function onAccepted(
     }
     return await onRelayFollowAccepted(txCtx, accept);
   });
-  if (handled || object != null && !(object instanceof Follow)) return;
+  if (handled || (object != null && !(object instanceof Follow))) return;
 
-  const trustedObject = object ??
-    await accept.getObject({ ...fedCtx, crossOrigin: "trust" });
-  await withInboxTransaction(
-    fedCtx,
-    (txCtx) => onFollowAccepted(txCtx, accept, { object: trustedObject }),
+  const trustedObject =
+    object ?? (await accept.getObject({ ...fedCtx, crossOrigin: "trust" }));
+  await withInboxTransaction(fedCtx, (txCtx) =>
+    onFollowAccepted(txCtx, accept, { object: trustedObject }),
   );
 }
 
@@ -68,9 +66,8 @@ export async function onRejected(
   fedCtx: InboxContext<ContextData>,
   reject: Reject,
 ): Promise<void> {
-  const relayHandled = await withInboxTransaction(
-    fedCtx,
-    (txCtx) => onRelayFollowRejected(txCtx, reject),
+  const relayHandled = await withInboxTransaction(fedCtx, (txCtx) =>
+    onRelayFollowRejected(txCtx, reject),
   );
   if (relayHandled) return;
 
@@ -86,9 +83,8 @@ export async function onRejected(
     ...fedCtx,
     crossOrigin: "trust",
   });
-  await withInboxTransaction(
-    fedCtx,
-    (txCtx) => onFollowRejected(txCtx, reject, { object: trustedObject }),
+  await withInboxTransaction(fedCtx, (txCtx) =>
+    onFollowRejected(txCtx, reject, { object: trustedObject }),
   );
 }
 
@@ -98,9 +94,8 @@ export async function onFollowReceived(
 ): Promise<void> {
   const follower = await prepareFollower(fedCtx, follow);
   if (follower == null) return;
-  await withInboxTransaction(
-    fedCtx,
-    (txCtx) => onFollowed(txCtx, follow, follower),
+  await withInboxTransaction(fedCtx, (txCtx) =>
+    onFollowed(txCtx, follow, follower),
   );
 }
 
@@ -121,9 +116,8 @@ export async function onDeleted(
     return;
   }
   if (objectId.href === actorId.href) {
-    const actorDeleted = await withInboxTransaction(
-      fedCtx,
-      (txCtx) => onActorDeleted(txCtx, del),
+    const actorDeleted = await withInboxTransaction(fedCtx, (txCtx) =>
+      onActorDeleted(txCtx, del),
     );
     if (!actorDeleted) {
       logger.warn("Unhandled Delete object: {delete}", { delete: del });
@@ -137,8 +131,8 @@ export async function onDeleted(
 
   const object = await del.getObject({ ...fedCtx, suppressError: true });
   await withInboxTransaction(fedCtx, async (txCtx) => {
-    await onPostDeleted(txCtx, del, { object }) ||
-      await onActorDeleted(txCtx, del) ||
-      logger.warn("Unhandled Delete object: {delete}", { delete: del });
+    if (await onPostDeleted(txCtx, del, { object })) return;
+    if (await onActorDeleted(txCtx, del)) return;
+    logger.warn("Unhandled Delete object: {delete}", { delete: del });
   });
 }

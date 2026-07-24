@@ -1,10 +1,11 @@
 import assert from "node:assert";
+import process from "node:process";
 import test from "node:test";
 import { buildRobotsTxt } from "@hackerspub/models/robots";
 
 test("web-next robots.txt GET returns the shared robots policy", async () => {
-  Deno.env.set("ORIGIN", "https://hackers.pub");
-  const { GET } = await import("./robots.txt.tsx");
+  process.env.ORIGIN = "https://hackers.pub";
+  const { GET } = await import("./robots.txt.ts");
 
   const response = GET({} as never);
 

@@ -73,9 +73,7 @@ test("parseNoteDraft ignores invalid and empty payloads", () => {
 });
 
 test("parseNoteDraft migrates the legacy draft timestamp property", () => {
-  const serialized = JSON.parse(
-    serializeNoteDraft({ type: "new" }, draft())!,
-  );
+  const serialized = JSON.parse(serializeNoteDraft({ type: "new" }, draft())!);
   serialized["updatedAt"] = serialized.updated;
   delete serialized.updated;
   assert.equal(

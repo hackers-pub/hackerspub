@@ -11,7 +11,7 @@ import {
 } from "~/components/ui/dropdown-menu.tsx";
 import { useSidebar } from "~/components/ui/sidebar.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { FloatingComposeButton_signedAccount$key } from "./__generated__/FloatingComposeButton_signedAccount.graphql.ts";
 
 export interface FloatingComposeButtonProps {
@@ -28,10 +28,10 @@ export function FloatingComposeButton(props: FloatingComposeButtonProps) {
   const signedAccount = createFragment(
     graphql`
       fragment FloatingComposeButton_signedAccount on Account
-        @argumentDefinitions(
-          cursor: { type: "String" }
-          count: { type: "Int", defaultValue: 3 }
-        ) {
+      @argumentDefinitions(
+        cursor: { type: "String" }
+        count: { type: "Int", defaultValue: 3 }
+      ) {
         articleDrafts(after: $cursor, first: $count)
           @connection(key: "FloatingComposeButton_articleDrafts") {
           __id

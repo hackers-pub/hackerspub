@@ -50,23 +50,21 @@ async function insertQuestionPoll(
   const published = new Date();
   const oneDayMs = 24 * 60 * 60 * 1000;
 
-  await tx.insert(postTable).values(
-    {
-      id: postId,
-      iri: `http://localhost/objects/${postId}`,
-      type: "Question",
-      visibility: values.visibility ?? "public",
-      actorId: values.account.actor.id,
-      name: "Poll question",
-      contentHtml: "<p>Poll question</p>",
-      language: "en",
-      tags: {},
-      emojis: {},
-      url: `http://localhost/@${values.account.username}/polls/${postId}`,
-      published,
-      updated: published,
-    } satisfies NewPost,
-  );
+  await tx.insert(postTable).values({
+    id: postId,
+    iri: `http://localhost/objects/${postId}`,
+    type: "Question",
+    visibility: values.visibility ?? "public",
+    actorId: values.account.actor.id,
+    name: "Poll question",
+    contentHtml: "<p>Poll question</p>",
+    language: "en",
+    tags: {},
+    emojis: {},
+    url: `http://localhost/@${values.account.username}/polls/${postId}`,
+    published,
+    updated: published,
+  } satisfies NewPost);
 
   const post = await tx.query.postTable.findFirst({ where: { id: postId } });
   assert.ok(post != null);
@@ -248,7 +246,8 @@ test("notifyEndedPolls() does not reclaim already marked polls", async () => {
       optionTitles: ["Deno", "Node.js"],
       ends: new Date("2026-04-15T00:05:00.000Z"),
     });
-    await tx.update(pollTable)
+    await tx
+      .update(pollTable)
       .set({ endedNotificationsSent: new Date("2026-04-15T00:06:00.000Z") })
       .where(eq(pollTable.postId, poll.postId));
 
@@ -437,7 +436,10 @@ test("persistPollVote() stores an incoming vote for a persisted poll", async () 
       where: { postId: poll.postId },
       orderBy: { index: "asc" },
     });
-    assert.deepEqual(options.map((option) => option.votesCount), [0, 1]);
+    assert.deepEqual(
+      options.map((option) => option.votesCount),
+      [0, 1],
+    );
   });
 });
 
@@ -500,7 +502,10 @@ test("persistPollVote() does not double-count a newly fetched remote poll", asyn
       where: { postId: storedPost.id },
       orderBy: { index: "asc" },
     });
-    assert.deepEqual(options.map((option) => option.votesCount), [0, 1]);
+    assert.deepEqual(
+      options.map((option) => option.votesCount),
+      [0, 1],
+    );
   });
 });
 
@@ -556,7 +561,10 @@ test("persistPollVote() counts a newly fetched remote poll without totals", asyn
       where: { postId: storedPost.id },
       orderBy: { index: "asc" },
     });
-    assert.deepEqual(options.map((option) => option.votesCount), [0, 1]);
+    assert.deepEqual(
+      options.map((option) => option.votesCount),
+      [0, 1],
+    );
   });
 });
 
@@ -619,7 +627,10 @@ test("persistPollVote() rejects incoming votes from actors that cannot see the p
     const votes = await tx.query.pollVoteTable.findMany({
       where: { postId: poll.postId },
     });
-    assert.deepEqual(votes.map((vote) => vote.actorId), [allowedVoter.id]);
+    assert.deepEqual(
+      votes.map((vote) => vote.actorId),
+      [allowedVoter.id],
+    );
   });
 });
 
@@ -633,23 +644,21 @@ test("persistPoll() uses closed timestamp as an end time fallback", async () => 
     const postId = generateUuidV7();
     const published = new Date("2026-04-15T00:00:00.000Z");
 
-    await tx.insert(postTable).values(
-      {
-        id: postId,
-        iri: `http://localhost/objects/${postId}`,
-        type: "Question",
-        visibility: "public",
-        actorId: author.actor.id,
-        name: "Closed fallback poll",
-        contentHtml: "<p>Closed fallback poll</p>",
-        language: "en",
-        tags: {},
-        emojis: {},
-        url: `http://localhost/@${author.account.username}/polls/${postId}`,
-        published,
-        updated: published,
-      } satisfies NewPost,
-    );
+    await tx.insert(postTable).values({
+      id: postId,
+      iri: `http://localhost/objects/${postId}`,
+      type: "Question",
+      visibility: "public",
+      actorId: author.actor.id,
+      name: "Closed fallback poll",
+      contentHtml: "<p>Closed fallback poll</p>",
+      language: "en",
+      tags: {},
+      emojis: {},
+      url: `http://localhost/@${author.account.username}/polls/${postId}`,
+      published,
+      updated: published,
+    } satisfies NewPost);
 
     const poll = await persistPoll(
       tx,
@@ -672,7 +681,10 @@ test("persistPoll() uses closed timestamp as an end time fallback", async () => 
       where: { postId },
       orderBy: { index: "asc" },
     });
-    assert.deepEqual(options.map((option) => option.title), ["Yes", "No"]);
+    assert.deepEqual(
+      options.map((option) => option.title),
+      ["Yes", "No"],
+    );
   });
 });
 
@@ -686,23 +698,21 @@ test("persistPoll() ignores duplicate remote option titles", async () => {
     const postId = generateUuidV7();
     const published = new Date("2026-04-15T00:00:00.000Z");
 
-    await tx.insert(postTable).values(
-      {
-        id: postId,
-        iri: `http://localhost/objects/${postId}`,
-        type: "Question",
-        visibility: "public",
-        actorId: author.actor.id,
-        name: "Duplicate poll",
-        contentHtml: "<p>Duplicate poll</p>",
-        language: "en",
-        tags: {},
-        emojis: {},
-        url: `http://localhost/@${author.account.username}/polls/${postId}`,
-        published,
-        updated: published,
-      } satisfies NewPost,
-    );
+    await tx.insert(postTable).values({
+      id: postId,
+      iri: `http://localhost/objects/${postId}`,
+      type: "Question",
+      visibility: "public",
+      actorId: author.actor.id,
+      name: "Duplicate poll",
+      contentHtml: "<p>Duplicate poll</p>",
+      language: "en",
+      tags: {},
+      emojis: {},
+      url: `http://localhost/@${author.account.username}/polls/${postId}`,
+      published,
+      updated: published,
+    } satisfies NewPost);
 
     const poll = await persistPoll(
       tx,

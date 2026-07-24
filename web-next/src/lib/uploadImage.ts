@@ -44,7 +44,7 @@ async function graphqlRequest<T>(
     }),
   );
 
-  const result = await response.json() as T & {
+  const result = (await response.json()) as T & {
     errors?: { message: string }[];
   };
   if (result.errors) {

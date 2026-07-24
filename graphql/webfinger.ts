@@ -33,7 +33,8 @@ interface WebFingerResultData {
 }
 
 const WebFingerResult = builder.simpleObject("WebFingerResult", {
-  description: "Result of looking up a remote follower via WebFinger, " +
+  description:
+    "Result of looking up a remote follower via WebFinger, " +
     "including their ActivityPub profile and remote follow URL.",
   fields: (t) => ({
     preferredUsername: t.string({
@@ -117,9 +118,8 @@ async function buildWebFingerResult(
   let iconUrl: URL | null = null;
   const icon = await actorObject.getIcon();
   if (icon) {
-    const raw = icon.url instanceof URL
-      ? icon.url.href
-      : icon.url?.href?.href ?? null;
+    const raw =
+      icon.url instanceof URL ? icon.url.href : (icon.url?.href?.href ?? null);
     if (raw) iconUrl = new URL(raw);
   }
   if (!iconUrl && actorObject.iconId) {
@@ -135,18 +135,19 @@ async function buildWebFingerResult(
         const emojiIcon = await tag.getIcon();
         if (
           emojiIcon?.url == null ||
-          emojiIcon.url instanceof vocab.Link && emojiIcon.url.href == null
+          (emojiIcon.url instanceof vocab.Link && emojiIcon.url.href == null)
         ) {
           continue;
         }
         const emojiName = tag.name.toString();
-        const raw = emojiIcon.url instanceof vocab.Link
-          ? emojiIcon.url.href!.href
-          : emojiIcon.url.href;
+        const raw =
+          emojiIcon.url instanceof vocab.Link
+            ? emojiIcon.url.href!.href
+            : emojiIcon.url.href;
         const u = new URL(raw);
         if (
           (u.protocol === "http:" || u.protocol === "https:") &&
-          !/[\'\"]/.test(raw)
+          !/['"]/.test(raw)
         ) {
           emojis[emojiName] = u.href;
         }
@@ -167,11 +168,12 @@ async function buildWebFingerResult(
     preferredUsername: actorObject.preferredUsername?.toString() ?? null,
     name: actorObject.name?.toString() ?? null,
     summary: actorObject.summary?.toString() ?? null,
-    url: actorObject.url instanceof URL
-      ? actorObject.url
-      : actorObject.url?.toString()
-      ? new URL(actorObject.url.toString())
-      : null,
+    url:
+      actorObject.url instanceof URL
+        ? actorObject.url
+        : actorObject.url?.toString()
+          ? new URL(actorObject.url.toString())
+          : null,
     iconUrl,
     handle: normalizedId,
     domain,
@@ -201,18 +203,19 @@ async function lookupRemoteFollowerImpl(
   );
   if (webfingerResult == null) return null;
 
-  const activityPubLink = webfingerResult.links?.find((link) =>
-    link.rel === "self" &&
-    (link.type === "application/activity+json" ||
-      link.type?.startsWith(
-        'application/ld+json; profile="https://www.w3.org/ns/activitystreams"',
-      ))
+  const activityPubLink = webfingerResult.links?.find(
+    (link) =>
+      link.rel === "self" &&
+      (link.type === "application/activity+json" ||
+        link.type?.startsWith(
+          'application/ld+json; profile="https://www.w3.org/ns/activitystreams"',
+        )),
   ) as WebfingerLink | undefined;
 
   if (!activityPubLink?.href) return null;
 
-  const remoteFollowLink = webfingerResult.links?.find((link) =>
-    link.rel === "http://ostatus.org/schema/1.0/subscribe"
+  const remoteFollowLink = webfingerResult.links?.find(
+    (link) => link.rel === "http://ostatus.org/schema/1.0/subscribe",
   ) as WebfingerLink | undefined;
 
   let remoteFollowUrl: URL | undefined;
@@ -232,9 +235,10 @@ async function lookupRemoteFollowerImpl(
   }
 
   try {
-    const documentLoader = ctx.account == null
-      ? ctx.fedCtx.documentLoader
-      : await ctx.fedCtx.getDocumentLoader({ identifier: ctx.account.id });
+    const documentLoader =
+      ctx.account == null
+        ? ctx.fedCtx.documentLoader
+        : await ctx.fedCtx.getDocumentLoader({ identifier: ctx.account.id });
 
     const actorObject = await ctx.fedCtx.lookupObject(activityPubLink.href, {
       documentLoader,
@@ -251,12 +255,9 @@ async function lookupRemoteFollowerImpl(
       remoteFollowUrl,
     );
   } catch (error) {
-    logger.warn(
-      "ActivityPub lookup failed, using fallback: {error}",
-      {
-        error: error instanceof Error ? error.message : String(error),
-      },
-    );
+    logger.warn("ActivityPub lookup failed, using fallback: {error}", {
+      error: error instanceof Error ? error.message : String(error),
+    });
 
     return {
       preferredUsername: username,
@@ -275,7 +276,8 @@ async function lookupRemoteFollowerImpl(
 
 builder.queryFields((t) => ({
   lookupRemoteFollower: t.field({
-    description: "Look up a remote Fediverse user by their handle, " +
+    description:
+      "Look up a remote Fediverse user by their handle, " +
       "fetching their ActivityPub profile and constructing " +
       "a remote follow URL for the given actor.",
     type: WebFingerResult,

@@ -1,6 +1,7 @@
 import { assertEquals } from "@std/assert";
+import test from "node:test";
 
-Deno.test("resource modules can be imported without server configuration", async () => {
+test("resource modules can be imported without server configuration", async () => {
   const modules = await Promise.all([
     import("./ai.ts"),
     import("./db.ts"),

@@ -36,9 +36,10 @@ async function makeModerator(
   // Isolate from moderators outside the transaction.
   await tx.update(accountTable).set({ moderator: false });
   const { account } = await insertAccountWithActor(tx, values);
-  await tx.update(accountTable).set({ moderator: true }).where(
-    eq(accountTable.id, account.id),
-  );
+  await tx
+    .update(accountTable)
+    .set({ moderator: true })
+    .where(eq(accountTable.id, account.id));
   return { ...account, moderator: true };
 }
 
@@ -185,8 +186,7 @@ test("moderation notifications reach the right accounts", async () => {
     });
     assert.equal(
       // deno-lint-ignore no-explicit-any
-      (foreign.data as any)?.accountByUsername
-        ?.moderationNotifications ?? null,
+      (foreign.data as any)?.accountByUsername?.moderationNotifications ?? null,
       null,
     );
   });
@@ -225,8 +225,7 @@ test("markModerationNotificationsRead marks the viewer's queue", async () => {
     });
     assert.equal(
       // deno-lint-ignore no-explicit-any
-      (after.data as any)?.accountByUsername
-        ?.unreadModerationNotificationCount,
+      (after.data as any)?.accountByUsername?.unreadModerationNotificationCount,
       0,
     );
   });
@@ -234,12 +233,11 @@ test("markModerationNotificationsRead marks the viewer's queue", async () => {
 
 test("moderationStatistics aggregates the queue for moderators", async () => {
   await withRollback(async (tx) => {
-    const { fedCtx, moderator, reported, flag } = await seedModeratedCase(
-      tx,
-    );
+    const { fedCtx, moderator, reported, flag } = await seedModeratedCase(tx);
     // Give the report a synthetic LLM analysis diverging from the
     // confirmed provisions:
-    await tx.update(flagTable)
+    await tx
+      .update(flagTable)
       .set({
         llmAnalysis: {
           matches: [
@@ -326,9 +324,7 @@ test("codeOfConductProvisions is public and localized", async () => {
 
 test("appeal notifications round-trip", async () => {
   await withRollback(async (tx) => {
-    const { fedCtx, moderator, reported, flag } = await seedModeratedCase(
-      tx,
-    );
+    const { fedCtx, moderator, reported, flag } = await seedModeratedCase(tx);
     const action = await takeModerationAction(fedCtx, {
       caseId: flag.caseId,
       moderator,
@@ -364,11 +360,17 @@ test("appeal notifications round-trip", async () => {
       contextValue: makeUserContext(tx, moderator),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
-    const types = ((modResult.data as any)?.accountByUsername
-      ?.moderationNotifications?.edges ?? [])
-      // deno-lint-ignore no-explicit-any
-      .map((edge: any) => edge.node.type);
+    const data = modResult.data as {
+      accountByUsername?: {
+        moderationNotifications?: {
+          edges?: Array<{ node: { type: string } }>;
+        };
+      };
+    } | null;
+    const types =
+      data?.accountByUsername?.moderationNotifications?.edges?.map(
+        (edge) => edge.node.type,
+      ) ?? [];
     assert.ok(types.includes("APPEAL_RECEIVED"));
   });
 });

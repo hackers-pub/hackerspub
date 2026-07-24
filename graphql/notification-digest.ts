@@ -1,10 +1,10 @@
 import { getLogger } from "@logtape/logtape";
 import { negotiateLocale } from "@hackerspub/models/i18n";
-import { expandGlob } from "@std/fs";
 import { escape } from "@std/html/entities";
 import { join } from "@std/path";
 import { createMessage, type Message, type Transport } from "@upyo/core";
 import { count, desc, sql } from "drizzle-orm";
+import { readdir, readFile } from "node:fs/promises";
 import type { Database, Transaction } from "@hackerspub/models/db";
 import {
   accountTable,
@@ -17,6 +17,8 @@ import {
   organizationNotificationReadTable,
 } from "@hackerspub/models/schema";
 import type { Uuid } from "@hackerspub/models/uuid";
+
+const readTextFile = (path: string | URL) => readFile(path, "utf8");
 
 const logger = getLogger(["hackerspub", "graphql", "notification-digest"]);
 
@@ -102,15 +104,13 @@ async function loadDigestEmailTemplates(): Promise<void> {
 
   const templates = new Map<string, DigestEmailTemplate>();
   const availableLocales: string[] = [];
-  const files = expandGlob(join(LOCALES_DIR, "*.json"), {
-    includeDirs: false,
-  });
-  for await (const file of files) {
-    if (!file.isFile) continue;
+  const files = await readdir(LOCALES_DIR, { withFileTypes: true });
+  for (const file of files) {
+    if (!file.isFile()) continue;
     const match = file.name.match(/^(.+)\.json$/);
     if (match == null) continue;
     const localeName = match[1];
-    const json = await Deno.readTextFile(file.path);
+    const json = await readTextFile(join(LOCALES_DIR, file.name));
     const data = JSON.parse(json);
     if (data.digest == null) continue;
     templates.set(localeName, data.digest);
@@ -125,10 +125,11 @@ async function getDigestEmailTemplate(
   locales: readonly string[] | null,
 ): Promise<{ locale: Intl.Locale; template: DigestEmailTemplate }> {
   await loadDigestEmailTemplates();
-  const selectedLocale = negotiateLocale(
-    locales?.length ? locales : [new Intl.Locale("en")],
-    cachedAvailableLocales!,
-  ) ?? new Intl.Locale("en");
+  const selectedLocale =
+    negotiateLocale(
+      locales?.length ? locales : [new Intl.Locale("en")],
+      cachedAvailableLocales!,
+    ) ?? new Intl.Locale("en");
   const template = cachedDigestTemplates!.get(selectedLocale.baseName);
   if (template == null) {
     const fallback = cachedDigestTemplates!.get("en");
@@ -162,12 +163,9 @@ export async function sendNotificationDigests(
   options: SendNotificationDigestsOptions,
 ): Promise<SendNotificationDigestsResult> {
   const now = options.now ?? new Date();
-  const periodStart = getNotificationDigestPeriodStart(
-    options.frequency,
-    now,
-  );
+  const periodStart = getNotificationDigestPeriodStart(options.frequency, now);
   const origin = new URL(options.origin);
-  const accounts = await options.db.query.accountTable.findMany({
+  const accounts = (await options.db.query.accountTable.findMany({
     where: {
       kind: "personal",
       ...(options.frequency === "daily"
@@ -178,7 +176,7 @@ export async function sendNotificationDigests(
       emails: true,
     },
     ...(options.limit == null ? {} : { limit: options.limit }),
-  }) as DigestAccount[];
+  })) as DigestAccount[];
 
   let accountsClaimed = 0;
   let emailsSent = 0;
@@ -209,8 +207,8 @@ export async function sendNotificationDigests(
     if (claim == null) continue;
     accountsClaimed++;
     const sentRecipients = new Set(claim.sentRecipients);
-    const pendingRecipients = recipients.filter((recipient) =>
-      !sentRecipients.has(recipient)
+    const pendingRecipients = recipients.filter(
+      (recipient) => !sentRecipients.has(recipient),
     );
     if (pendingRecipients.length < 1) {
       await markDigestDeliverySent(
@@ -299,24 +297,27 @@ async function claimDigestDelivery(
   periodStart: Date,
   notificationsCount: number,
 ): Promise<{ sentRecipients: string[] } | undefined> {
-  const rows = await db.insert(notificationDigestDeliveryTable).values({
-    accountId,
-    frequency,
-    periodStart,
-    notificationsCount,
-  }).onConflictDoUpdate({
-    target: [
-      notificationDigestDeliveryTable.accountId,
-      notificationDigestDeliveryTable.frequency,
-      notificationDigestDeliveryTable.periodStart,
-    ],
-    set: {
+  const rows = await db
+    .insert(notificationDigestDeliveryTable)
+    .values({
+      accountId,
+      frequency,
+      periodStart,
       notificationsCount,
-      failed: null,
-      error: null,
-      created: sql`CURRENT_TIMESTAMP`,
-    },
-    setWhere: sql`
+    })
+    .onConflictDoUpdate({
+      target: [
+        notificationDigestDeliveryTable.accountId,
+        notificationDigestDeliveryTable.frequency,
+        notificationDigestDeliveryTable.periodStart,
+      ],
+      set: {
+        notificationsCount,
+        failed: null,
+        error: null,
+        created: sql`CURRENT_TIMESTAMP`,
+      },
+      setWhere: sql`
       ${notificationDigestDeliveryTable.sent} IS NULL
       AND (
         ${notificationDigestDeliveryTable.failed} IS NOT NULL
@@ -325,9 +326,10 @@ async function claimDigestDelivery(
           (${DIGEST_DELIVERY_CLAIM_TIMEOUT_MINUTES}::text || ' minutes')::interval
       )
     `,
-  }).returning({
-    sentRecipients: notificationDigestDeliveryTable.sentRecipients,
-  });
+    })
+    .returning({
+      sentRecipients: notificationDigestDeliveryTable.sentRecipients,
+    });
   return rows[0];
 }
 
@@ -410,8 +412,7 @@ async function countPersonalUnreadNotifications(
   db: Database | Transaction,
   accountId: Uuid,
 ): Promise<number> {
-  const rows = await db.select({ count: count() })
-    .from(notificationTable)
+  const rows = await db.select({ count: count() }).from(notificationTable)
     .where(sql`
       ${notificationTable.accountId} = ${accountId}
       AND ${notificationTable.created} > COALESCE(
@@ -435,9 +436,9 @@ async function countModerationUnreadNotifications(
   db: Database | Transaction,
   accountId: Uuid,
 ): Promise<number> {
-  const rows = await db.select({ count: count() })
-    .from(moderationNotificationTable)
-    .where(sql`
+  const rows = await db
+    .select({ count: count() })
+    .from(moderationNotificationTable).where(sql`
       ${moderationNotificationTable.accountId} = ${accountId}
       AND ${moderationNotificationTable.read} IS NULL
     `);
@@ -485,10 +486,11 @@ async function getPersonalDigestItems(
   accountId: Uuid,
   limit: number,
 ): Promise<DigestItem[]> {
-  const rows = await db.select({
-    type: notificationTable.type,
-    created: notificationTable.created,
-  })
+  const rows = await db
+    .select({
+      type: notificationTable.type,
+      created: notificationTable.created,
+    })
     .from(notificationTable)
     .where(sql`
       ${notificationTable.accountId} = ${accountId}
@@ -520,10 +522,11 @@ async function getModerationDigestItems(
   accountId: Uuid,
   limit: number,
 ): Promise<DigestItem[]> {
-  const rows = await db.select({
-    type: moderationNotificationTable.type,
-    created: moderationNotificationTable.created,
-  })
+  const rows = await db
+    .select({
+      type: moderationNotificationTable.type,
+      created: moderationNotificationTable.created,
+    })
     .from(moderationNotificationTable)
     .where(sql`
       ${moderationNotificationTable.accountId} = ${accountId}
@@ -607,12 +610,14 @@ async function getDigestMessage(options: {
     `/@${options.account.username}/settings/preferences`,
     options.origin,
   ).href;
-  const items = options.snapshot.items.map((item) =>
-    substituteDigestTemplate(template.itemLine, {
-      label: getDigestItemLabel(item, template),
-      date: formatDigestDate(item.created, locale.baseName),
-    })
-  ).join("\n");
+  const items = options.snapshot.items
+    .map((item) =>
+      substituteDigestTemplate(template.itemLine, {
+        label: getDigestItemLabel(item, template),
+        date: formatDigestDate(item.created, locale.baseName),
+      }),
+    )
+    .join("\n");
   const values = {
     name: options.account.name,
     count: options.snapshot.totalCount.toLocaleString(locale.baseName),
@@ -673,9 +678,10 @@ function getDigestItemLabel(
   item: DigestItem,
   template: DigestEmailTemplate,
 ): string {
-  const labels = item.category === "moderation"
-    ? template.moderationNotificationLabels
-    : template.notificationLabels;
+  const labels =
+    item.category === "moderation"
+      ? template.moderationNotificationLabels
+      : template.notificationLabels;
   const label = labels[item.type] ?? labels.notification ?? item.type;
   return item.organizationName == null
     ? label

@@ -7,8 +7,7 @@ import type { PolymorphicProps } from "@kobalte/core/polymorphic";
 import { cn } from "~/lib/utils.ts";
 
 type AvatarRootProps<T extends ValidComponent = "span"> =
-  & ImagePrimitive.ImageRootProps<T>
-  & {
+  ImagePrimitive.ImageRootProps<T> & {
     class?: string | undefined;
   };
 
@@ -28,8 +27,7 @@ const Avatar = <T extends ValidComponent = "span">(
 };
 
 type AvatarImageProps<T extends ValidComponent = "img"> =
-  & ImagePrimitive.ImageImgProps<T>
-  & {
+  ImagePrimitive.ImageImgProps<T> & {
     class?: string | undefined;
   };
 
@@ -46,8 +44,7 @@ const AvatarImage = <T extends ValidComponent = "img">(
 };
 
 type AvatarFallbackProps<T extends ValidComponent = "span"> =
-  & ImagePrimitive.ImageFallbackProps<T>
-  & { class?: string | undefined };
+  ImagePrimitive.ImageFallbackProps<T> & { class?: string | undefined };
 
 const AvatarFallback = <T extends ValidComponent = "span">(
   props: PolymorphicProps<T, AvatarFallbackProps<T>>,

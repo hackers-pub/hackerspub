@@ -9,7 +9,7 @@ import {
   TextFieldTextArea,
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { CocProvisionItem } from "./ModerationActionForm.tsx";
 import type { AppealResolveForm_resolve_Mutation } from "./__generated__/AppealResolveForm_resolve_Mutation.graphql.ts";
 
@@ -66,17 +66,15 @@ export function AppealResolveForm(props: AppealResolveFormProps) {
   const { t } = useLingui();
   const [result, setResult] = createSignal<AppealResult | null>(null);
   const [reviewRationale, setReviewRationale] = createSignal("");
-  const [replacementType, setReplacementType] = createSignal<
-    ReplacementType | null
-  >(null);
+  const [replacementType, setReplacementType] =
+    createSignal<ReplacementType | null>(null);
   const [selected, setSelected] = createSignal<ReadonlySet<string>>(new Set());
   const [replacementRationale, setReplacementRationale] = createSignal("");
   const [suspensionDays, setSuspensionDays] = createSignal(7);
   const [touched, setTouched] = createSignal(false);
 
-  const [commit, submitting] = createMutation<
-    AppealResolveForm_resolve_Mutation
-  >(resolveMutation);
+  const [commit, submitting] =
+    createMutation<AppealResolveForm_resolve_Mutation>(resolveMutation);
 
   const results: { value: AppealResult; label: string }[] = [
     { value: "DISMISSED", label: t`Deny (uphold decision)` },
@@ -130,16 +128,18 @@ export function AppealResolveForm(props: AppealResolveFormProps) {
     setTouched(true);
     const res = result();
     if (
-      res == null || reviewMissing() || replacementTypeMissing() ||
-      replacementProvisionsMissing() || replacementRationaleMissing()
+      res == null ||
+      reviewMissing() ||
+      replacementTypeMissing() ||
+      replacementProvisionsMissing() ||
+      replacementRationaleMissing()
     ) {
       return;
     }
     if (submitting()) return;
 
-    let replacement: AppealResolveForm_resolve_Mutation["variables"][
-      "replacement"
-    ] = null;
+    let replacement: AppealResolveForm_resolve_Mutation["variables"]["replacement"] =
+      null;
     if (needsReplacement()) {
       const type = replacementType()!;
       let suspensionStarts: string | undefined;
@@ -147,8 +147,9 @@ export function AppealResolveForm(props: AppealResolveFormProps) {
       if (type === "SUSPEND") {
         const now = new Date();
         suspensionStarts = now.toISOString();
-        suspensionEnds = new Date(now.getTime() + suspensionDays() * DAY_MS)
-          .toISOString();
+        suspensionEnds = new Date(
+          now.getTime() + suspensionDays() * DAY_MS,
+        ).toISOString();
       }
       replacement = {
         actionType: type,
@@ -218,9 +219,7 @@ export function AppealResolveForm(props: AppealResolveFormProps) {
           </For>
         </div>
         <Show when={touched() && result() == null}>
-          <p class="text-xs text-error-foreground">
-            {t`Choose an outcome.`}
-          </p>
+          <p class="text-xs text-error-foreground">{t`Choose an outcome.`}</p>
         </Show>
       </fieldset>
 
@@ -234,9 +233,9 @@ export function AppealResolveForm(props: AppealResolveFormProps) {
               {(item) => (
                 <Button
                   type="button"
-                  variant={replacementType() === item.value
-                    ? "default"
-                    : "outline"}
+                  variant={
+                    replacementType() === item.value ? "default" : "outline"
+                  }
                   size="sm"
                   onClick={() => setReplacementType(item.value)}
                 >
@@ -291,9 +290,9 @@ export function AppealResolveForm(props: AppealResolveFormProps) {
                   {(days) => (
                     <Button
                       type="button"
-                      variant={suspensionDays() === days
-                        ? "default"
-                        : "outline"}
+                      variant={
+                        suspensionDays() === days ? "default" : "outline"
+                      }
                       size="sm"
                       onClick={() => setSuspensionDays(days)}
                     >

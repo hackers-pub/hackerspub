@@ -15,7 +15,7 @@ import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { Title } from "~/components/Title.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,
@@ -43,9 +43,8 @@ const quotesNoteEngagementQuery = graphql`
           reactions
         }
         ...PostCard_post @arguments(actingAccountId: $actingAccountId)
-        ...quotesNoteEngagement_post @arguments(
-          actingAccountId: $actingAccountId
-        )
+        ...quotesNoteEngagement_post
+          @arguments(actingAccountId: $actingAccountId)
       }
     }
   }
@@ -159,16 +158,17 @@ function QuotesList(props: {
   const quotes = createPaginationFragment(
     graphql`
       fragment quotesNoteEngagement_post on Post
-        @refetchable(queryName: "quotesNoteEngagementPaginationQuery")
-        @argumentDefinitions(
-          cursor: { type: "String" }
-          count: { type: "Int", defaultValue: 20 }
-          actingAccountId: { type: "ID", defaultValue: null }
-        )
-      {
-        quotes(after: $cursor, first: $count, actingAccountId: $actingAccountId)
-          @connection(key: "QuotesNoteEngagement__quotes")
-        {
+      @refetchable(queryName: "quotesNoteEngagementPaginationQuery")
+      @argumentDefinitions(
+        cursor: { type: "String" }
+        count: { type: "Int", defaultValue: 20 }
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
+        quotes(
+          after: $cursor
+          first: $count
+          actingAccountId: $actingAccountId
+        ) @connection(key: "QuotesNoteEngagement__quotes") {
           edges {
             node {
               id

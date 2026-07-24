@@ -70,10 +70,12 @@ test("syncPostFromArticleSource() upserts the post when source content changes",
     assert.match(created.contentHtml, /Original body/);
     assert.ok("relay" in created.tags);
 
-    await tx.update(articleContentTable)
+    await tx
+      .update(articleContentTable)
       .set({ title: "Updated article", content: "Updated body" })
       .where(eq(articleContentTable.sourceId, sourceId));
-    await tx.update(articleSourceTable)
+    await tx
+      .update(articleSourceTable)
       .set({ updated: new Date("2026-04-15T01:00:00.000Z") })
       .where(eq(articleSourceTable.id, sourceId));
 
@@ -122,7 +124,8 @@ test("syncPostFromNoteSource() preserves existing Question type", async () => {
     });
     assert.ok(question != null);
 
-    await tx.update(noteSourceTable)
+    await tx
+      .update(noteSourceTable)
       .set({
         content: "A note resync should not rewrite this Question",
         updated: new Date("2026-04-15T01:00:00.000Z"),
@@ -203,13 +206,15 @@ test("syncPostFromNoteSource() preserves remote quote authorizations", async () 
 
     const authorizationIri =
       "https://remote.example/quote-authorizations/sync-preserve";
-    await tx.update(postTable)
+    await tx
+      .update(postTable)
       .set({
         quotedPostId: quotedPost.id,
         quoteAuthorizationIri: authorizationIri,
       })
       .where(eq(postTable.id, created.id));
-    await tx.update(noteSourceTable)
+    await tx
+      .update(noteSourceTable)
       .set({
         content: "Edited quote with accepted authorization",
         updated: new Date("2026-04-15T01:00:00.000Z"),
@@ -279,7 +284,8 @@ test("syncPostFromNoteSource() preserves quotes when relations are omitted", asy
     assert.equal(created.quotedPostId, quotedPost.id);
     assert.ok(created.quoteAuthorizationIri != null);
 
-    await tx.update(noteSourceTable)
+    await tx
+      .update(noteSourceTable)
       .set({
         content: "Edited quote body",
         updated: new Date("2026-04-15T01:00:00.000Z"),
@@ -379,7 +385,8 @@ test("syncPostFromNoteSource() upserts note posts and updates quote counts", asy
       width: 2,
       height: 2,
     });
-    await tx.update(accountTable)
+    await tx
+      .update(accountTable)
       .set({ avatarMediumId })
       .where(eq(accountTable.id, author.account.id));
 
@@ -423,7 +430,8 @@ test("syncPostFromNoteSource() upserts note posts and updates quote counts", asy
     assert.ok(quotedAfterCreate != null);
     assert.equal(quotedAfterCreate.quotesCount, 1);
 
-    await tx.update(noteSourceTable)
+    await tx
+      .update(noteSourceTable)
       .set({ content: "Updated note body" })
       .where(eq(noteSourceTable.id, noteSourceId));
 

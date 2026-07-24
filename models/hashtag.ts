@@ -18,7 +18,8 @@ export async function followHashtag(
   tag: string,
 ): Promise<HashtagFollowing> {
   const normalized = normalizeHashtag(tag);
-  const [row] = await db.insert(hashtagFollowingTable)
+  const [row] = await db
+    .insert(hashtagFollowingTable)
     .values({ accountId, tag: normalized })
     .onConflictDoUpdate({
       target: [hashtagFollowingTable.accountId, hashtagFollowingTable.tag],
@@ -33,12 +34,14 @@ export async function unfollowHashtag(
   accountId: Uuid,
   tag: string,
 ): Promise<void> {
-  await db.delete(hashtagFollowingTable).where(
-    and(
-      eq(hashtagFollowingTable.accountId, accountId),
-      eq(hashtagFollowingTable.tag, normalizeHashtag(tag)),
-    ),
-  );
+  await db
+    .delete(hashtagFollowingTable)
+    .where(
+      and(
+        eq(hashtagFollowingTable.accountId, accountId),
+        eq(hashtagFollowingTable.tag, normalizeHashtag(tag)),
+      ),
+    );
 }
 
 export async function pinHashtag(
@@ -46,7 +49,8 @@ export async function pinHashtag(
   accountId: Uuid,
   tag: string,
 ): Promise<boolean> {
-  const rows = await db.update(hashtagFollowingTable)
+  const rows = await db
+    .update(hashtagFollowingTable)
     .set({ pinned: true })
     .where(
       and(
@@ -63,7 +67,8 @@ export async function unpinHashtag(
   accountId: Uuid,
   tag: string,
 ): Promise<void> {
-  await db.update(hashtagFollowingTable)
+  await db
+    .update(hashtagFollowingTable)
     .set({ pinned: false })
     .where(
       and(
@@ -101,7 +106,8 @@ export async function getHashtagFollowerCount(
   db: Database,
   tag: string,
 ): Promise<number> {
-  const rows = await db.select({ count: count() })
+  const rows = await db
+    .select({ count: count() })
     .from(hashtagFollowingTable)
     .where(eq(hashtagFollowingTable.tag, normalizeHashtag(tag)));
   return rows[0]?.count ?? 0;

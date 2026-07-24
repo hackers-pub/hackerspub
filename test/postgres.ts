@@ -82,11 +82,14 @@ export async function seedLocalInstance(
   tx: Transaction,
   host = "localhost",
 ): Promise<void> {
-  await tx.insert(instanceTable).values({
-    host,
-    software: "hackerspub",
-    softwareVersion: "test",
-  }).onConflictDoNothing();
+  await tx
+    .insert(instanceTable)
+    .values({
+      host,
+      software: "hackerspub",
+      softwareVersion: "test",
+    })
+    .onConflictDoNothing();
 }
 
 /**
@@ -99,14 +102,17 @@ export async function seedInstance(
   host: string,
   software: string,
 ): Promise<void> {
-  await tx.insert(instanceTable).values({
-    host,
-    software,
-    softwareVersion: "test",
-  }).onConflictDoUpdate({
-    target: instanceTable.host,
-    set: { software, softwareVersion: "test" },
-  });
+  await tx
+    .insert(instanceTable)
+    .values({
+      host,
+      software,
+      softwareVersion: "test",
+    })
+    .onConflictDoUpdate({
+      target: instanceTable.host,
+      set: { software, softwareVersion: "test" },
+    });
 }
 
 export async function insertAccountWithActor(
@@ -136,7 +142,8 @@ export async function insertAccountWithActor(
 
   await tx.insert(accountTable).values({
     id: accountId,
-    kind: values.kind ??
+    kind:
+      values.kind ??
       (values.type === "Organization" ? "organization" : "personal"),
     username: values.username,
     name: values.name,
@@ -220,7 +227,8 @@ export async function insertRemoteActor(
     name: values.name,
     followersCount: values.followersCount ?? 0,
     followeesCount: values.followeesCount ?? 0,
-    inboxUrl: values.inboxUrl ??
+    inboxUrl:
+      values.inboxUrl ??
       `https://${values.host}/users/${values.username}/inbox`,
     sharedInboxUrl: `https://${values.host}/inbox`,
     url: values.url,
@@ -266,9 +274,10 @@ export async function insertNotePost(
     id: noteSourceId,
     accountId: values.account.id,
     visibility: values.visibility ?? "public",
-    quotePolicy: values.quotePolicy ??
+    quotePolicy:
+      values.quotePolicy ??
       ((values.visibility ?? "public") === "public" ||
-          (values.visibility ?? "public") === "unlisted"
+      (values.visibility ?? "public") === "unlisted"
         ? "everyone"
         : "self"),
     content: values.content ?? "Hello world",
@@ -282,9 +291,10 @@ export async function insertNotePost(
     iri: `http://localhost/objects/${noteId}`,
     type: "Note",
     visibility: values.visibility ?? "public",
-    quotePolicy: values.quotePolicy ??
+    quotePolicy:
+      values.quotePolicy ??
       ((values.visibility ?? "public") === "public" ||
-          (values.visibility ?? "public") === "unlisted"
+      (values.visibility ?? "public") === "unlisted"
         ? "everyone"
         : "self"),
     quoteRequestPolicy: values.quoteRequestPolicy,
@@ -295,8 +305,8 @@ export async function insertNotePost(
     quotedPostId: values.quotedPostId,
     linkId: values.link?.id,
     linkUrl: values.link?.url,
-    contentHtml: values.contentHtml ??
-      `<p>${values.content ?? "Hello world"}</p>`,
+    contentHtml:
+      values.contentHtml ?? `<p>${values.content ?? "Hello world"}</p>`,
     language: values.language ?? "en",
     reactionsCounts: values.reactionsCounts ?? {},
     repliesCount: values.repliesCount,
@@ -347,9 +357,10 @@ export async function insertRemotePost(
     iri: `https://remote.example/objects/${postId}`,
     type: "Note",
     visibility: values.visibility ?? "public",
-    quotePolicy: values.quotePolicy ??
+    quotePolicy:
+      values.quotePolicy ??
       ((values.visibility ?? "public") === "public" ||
-          (values.visibility ?? "public") === "unlisted"
+      (values.visibility ?? "public") === "unlisted"
         ? "everyone"
         : "self"),
     quoteRequestPolicy: values.quoteRequestPolicy,
@@ -540,13 +551,15 @@ export function createFedCtx<D extends Database>(
   } = {},
 ): RequestContext<ContextData<D>> & ApplicationContext<D> {
   const kv = options.kv ?? createTestKv().kv;
-  const lookupObject: FedCtxLookupObject = options.lookupObject ?? (() => {
-    throw new Error(
-      "createFedCtx default lookupObject was called; pass " +
-        "options.lookupObject to opt in or override fedCtx.lookupObject " +
-        "explicitly.",
-    );
-  });
+  const lookupObject: FedCtxLookupObject =
+    options.lookupObject ??
+    (() => {
+      throw new Error(
+        "createFedCtx default lookupObject was called; pass " +
+          "options.lookupObject to opt in or override fedCtx.lookupObject " +
+          "explicitly.",
+      );
+    });
 
   const disk = createTestDisk();
   const unavailableModel = defineApplicationModel(undefined, "unavailable");
@@ -577,9 +590,10 @@ export function createFedCtx<D extends Database>(
       this: RequestContext<ContextData> & ApplicationContext,
       db: Database,
     ) {
-      const cloned = this.clone({ ...this.data, db }) as
-        & RequestContext<ContextData>
-        & ApplicationContext;
+      const cloned = this.clone({
+        ...this.data,
+        db,
+      }) as RequestContext<ContextData> & ApplicationContext;
       cloned.db = db;
       (cloned as unknown as { federation: object }).federation = cloned;
       return cloned;
@@ -622,18 +636,14 @@ export function createFedCtx<D extends Database>(
     getFeaturedUri(identifier: string) {
       return new URL(`/actors/${identifier}/featured`, "http://localhost/");
     },
-    async getActor(
-      this: RequestContext<ContextData<D>>,
-      identifier: string,
-    ) {
+    async getActor(this: RequestContext<ContextData<D>>, identifier: string) {
       const account = await this.data.db.query.accountTable.findFirst({
         where: { id: identifier as Uuid },
         columns: { id: true, kind: true, username: true },
       });
       if (account == null) return null;
-      const ActorClass = account.kind === "organization"
-        ? Organization
-        : Person;
+      const ActorClass =
+        account.kind === "organization" ? Organization : Person;
       return new ActorClass({
         id: new URL(`/actors/${identifier}`, "http://localhost/"),
         preferredUsername: account.username,

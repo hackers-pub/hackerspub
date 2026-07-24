@@ -41,8 +41,8 @@ export const INVITATIONS_LAST_REGEN_KEY = "invitations_last_regen";
 // across processes; stays distinct from other lock keys in the codebase.
 const INVITATIONS_REGEN_LOCK_KEY = 0x69_6e_76_72;
 
-export const DEFAULT_REGEN_CUTOFF_DURATION: Temporal.Duration = Temporal
-  .Duration.from({ days: 7 });
+export const DEFAULT_REGEN_CUTOFF_DURATION: Temporal.Duration =
+  Temporal.Duration.from({ days: 7 });
 
 export const DEFAULT_ORPHAN_MEDIA_GRACE_PERIOD_MS = 24 * 60 * 60 * 1000;
 const ORPHAN_MEDIA_DELETE_BATCH_SIZE = 1000;
@@ -117,8 +117,8 @@ function resolveCutoff(
 ): { now: Date; cutoffDate: Date } {
   const now = options.now ?? new Date();
   if (lastRegen != null) return { now, cutoffDate: lastRegen };
-  const duration = options.defaultCutoffDuration ??
-    DEFAULT_REGEN_CUTOFF_DURATION;
+  const duration =
+    options.defaultCutoffDuration ?? DEFAULT_REGEN_CUTOFF_DURATION;
   // `Temporal.Instant.subtract` rejects calendar units like days, so
   // convert the duration to milliseconds first.
   const ms = duration.total({ unit: "millisecond" });
@@ -151,8 +151,9 @@ async function selectActiveAccounts(
     .groupBy(actorTable.accountId)
     .orderBy(desc(count()), asc(actorTable.accountId));
   return rows
-    .filter((row): row is typeof row & { accountId: Uuid } =>
-      row.accountId != null && validateUuid(row.accountId)
+    .filter(
+      (row): row is typeof row & { accountId: Uuid } =>
+        row.accountId != null && validateUuid(row.accountId),
     )
     .map((row) => ({
       accountId: row.accountId,
@@ -198,9 +199,9 @@ export async function regenerateInvitations(
     const { now, cutoffDate } = resolveCutoff(lastRegen, options);
     const active = await selectActiveAccounts(tx, cutoffDate, now);
     const topThirdCount = Math.ceil(active.length / 3);
-    const topAccountIds = active.slice(0, topThirdCount).map((a) =>
-      a.accountId
-    );
+    const topAccountIds = active
+      .slice(0, topThirdCount)
+      .map((a) => a.accountId);
     let accountsAffected = 0;
     if (topAccountIds.length > 0) {
       const updated = await tx
@@ -232,8 +233,8 @@ export async function regenerateInvitations(
 
 function resolveOrphanMediaCutoff(options: OrphanMediaOptions): Date {
   const now = options.now ?? new Date();
-  const gracePeriodMs = options.gracePeriodMs ??
-    DEFAULT_ORPHAN_MEDIA_GRACE_PERIOD_MS;
+  const gracePeriodMs =
+    options.gracePeriodMs ?? DEFAULT_ORPHAN_MEDIA_GRACE_PERIOD_MS;
   return new Date(now.getTime() - gracePeriodMs);
 }
 
@@ -241,12 +242,9 @@ function orphanMediaWhere(cutoffDate: Date): SQL {
   const cutoffDateSql = sql`${cutoffDate.toISOString()}::timestamptz`;
   const mediumKeyPattern = sql`replace(${mediumTable.key}, '.', '[.]')`;
   const mediumReferenceBoundary = sql`'([^A-Za-z0-9._:/-]|$)'`;
-  const hpMediumReferencePattern =
-    sql`'hp-medium:' || ${mediumKeyPattern} || ${mediumReferenceBoundary}`;
-  const directMediumReferencePattern =
-    sql`'/media/' || ${mediumKeyPattern} || ${mediumReferenceBoundary}`;
-  const keyPathMediumReferencePattern =
-    sql`'/' || ${mediumKeyPattern} || ${mediumReferenceBoundary}`;
+  const hpMediumReferencePattern = sql`'hp-medium:' || ${mediumKeyPattern} || ${mediumReferenceBoundary}`;
+  const directMediumReferencePattern = sql`'/media/' || ${mediumKeyPattern} || ${mediumReferenceBoundary}`;
+  const keyPathMediumReferencePattern = sql`'/' || ${mediumKeyPattern} || ${mediumReferenceBoundary}`;
   return sql`
     ${mediumTable.created} < ${cutoffDateSql} AND
     NOT EXISTS (
@@ -287,7 +285,7 @@ async function mapWithConcurrency<T, U>(
   concurrency: number,
   mapper: (item: T) => Promise<U>,
 ): Promise<U[]> {
-  const results = new Array<U>(items.length);
+  const results = Array.from({ length: items.length }, () => undefined as U);
   let nextIndex = 0;
   const workers = Array.from(
     { length: Math.min(concurrency, items.length) },
@@ -332,13 +330,17 @@ export async function deleteOrphanMedia(
       .limit(ORPHAN_MEDIA_DELETE_BATCH_SIZE)
       .for("update");
     const candidateIds = orphanMedia.map((medium) => medium.id);
-    return candidateIds.length < 1 ? [] : await tx
-      .delete(mediumTable)
-      .where(and(
-        inArray(mediumTable.id, candidateIds),
-        orphanMediaWhere(cutoffDate),
-      ))
-      .returning({ key: mediumTable.key });
+    return candidateIds.length < 1
+      ? []
+      : await tx
+          .delete(mediumTable)
+          .where(
+            and(
+              inArray(mediumTable.id, candidateIds),
+              orphanMediaWhere(cutoffDate),
+            ),
+          )
+          .returning({ key: mediumTable.key });
   };
   const deleted = isTransaction(db)
     ? await runDeletion(db)
@@ -352,10 +354,10 @@ export async function deleteOrphanMedia(
         await disk.delete(key);
         return { key, deleted: true };
       } catch (error) {
-        logger.warn(
-          "Failed to delete orphan medium object {key}: {error}",
-          { key, error },
-        );
+        logger.warn("Failed to delete orphan medium object {key}: {error}", {
+          key,
+          error,
+        });
         return { key, deleted: false };
       }
     },
@@ -363,7 +365,6 @@ export async function deleteOrphanMedia(
   return {
     cutoffDate,
     deletedCount: deleted.length,
-    failedDiskDeletes: deleteResults.filter((result) => !result.deleted)
-      .length,
+    failedDiskDeletes: deleteResults.filter((result) => !result.deleted).length,
   };
 }

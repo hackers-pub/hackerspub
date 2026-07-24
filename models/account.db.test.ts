@@ -84,10 +84,12 @@ test("getRelationship() reports follow, request, and block states", async () => 
 
     const none = await getRelationship(tx, viewer.account, localTarget.actor);
     assert.deepEqual(
-      none == null ? null : {
-        outgoing: none.outgoing,
-        incoming: none.incoming,
-      },
+      none == null
+        ? null
+        : {
+            outgoing: none.outgoing,
+            incoming: none.incoming,
+          },
       { outgoing: "none", incoming: "none" },
     );
 
@@ -100,10 +102,12 @@ test("getRelationship() reports follow, request, and block states", async () => 
       localTarget.actor,
     );
     assert.deepEqual(
-      mutualFollow == null ? null : {
-        outgoing: mutualFollow.outgoing,
-        incoming: mutualFollow.incoming,
-      },
+      mutualFollow == null
+        ? null
+        : {
+            outgoing: mutualFollow.outgoing,
+            incoming: mutualFollow.incoming,
+          },
       { outgoing: "follow", incoming: "follow" },
     );
 
@@ -115,10 +119,12 @@ test("getRelationship() reports follow, request, and block states", async () => 
       remoteTarget,
     );
     assert.deepEqual(
-      outgoingRequest == null ? null : {
-        outgoing: outgoingRequest.outgoing,
-        incoming: outgoingRequest.incoming,
-      },
+      outgoingRequest == null
+        ? null
+        : {
+            outgoing: outgoingRequest.outgoing,
+            incoming: outgoingRequest.incoming,
+          },
       { outgoing: "request", incoming: "none" },
     );
 
@@ -134,10 +140,12 @@ test("getRelationship() reports follow, request, and block states", async () => 
       remoteFollower,
     );
     assert.deepEqual(
-      incomingRequest == null ? null : {
-        outgoing: incomingRequest.outgoing,
-        incoming: incomingRequest.incoming,
-      },
+      incomingRequest == null
+        ? null
+        : {
+            outgoing: incomingRequest.outgoing,
+            incoming: incomingRequest.incoming,
+          },
       { outgoing: "none", incoming: "request" },
     );
 
@@ -149,10 +157,12 @@ test("getRelationship() reports follow, request, and block states", async () => 
       blocker.actor,
     );
     assert.deepEqual(
-      incomingBlock == null ? null : {
-        outgoing: incomingBlock.outgoing,
-        incoming: incomingBlock.incoming,
-      },
+      incomingBlock == null
+        ? null
+        : {
+            outgoing: incomingBlock.outgoing,
+            incoming: incomingBlock.incoming,
+          },
       { outgoing: "none", incoming: "block" },
     );
   });

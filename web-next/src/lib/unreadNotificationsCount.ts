@@ -38,9 +38,8 @@ export function createUnreadNotificationsCount(
   account: Accessor<UnreadNotificationsCountAccount | null | undefined>,
 ): Accessor<number | undefined> {
   const environment = useRelayEnvironment();
-  const [unreadNotificationsCount, setUnreadNotificationsCount] = createSignal<
-    number
-  >();
+  const [unreadNotificationsCount, setUnreadNotificationsCount] =
+    createSignal<number>();
   const [
     unreadModerationNotificationCount,
     setUnreadModerationNotificationCount,

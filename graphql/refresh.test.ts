@@ -24,9 +24,10 @@ async function makeModerator(
   values: { username: string; name: string; email: string },
 ): Promise<AuthenticatedAccount> {
   const { account } = await insertAccountWithActor(tx, values);
-  await tx.update(accountTable).set({ moderator: true }).where(
-    eq(accountTable.id, account.id),
-  );
+  await tx
+    .update(accountTable)
+    .set({ moderator: true })
+    .where(eq(accountTable.id, account.id));
   return { ...account, moderator: true };
 }
 
@@ -143,13 +144,15 @@ test("refreshRemoteObject re-persists a remote actor for a moderator", async () 
     });
 
     assert.equal(result.errors, undefined);
-    const payload = (toPlainJson(result.data) as {
-      refreshRemoteObject: {
-        __typename: string;
-        actor: { uuid: string } | null;
-        post: { uuid: string } | null;
-      };
-    }).refreshRemoteObject;
+    const payload = (
+      toPlainJson(result.data) as {
+        refreshRemoteObject: {
+          __typename: string;
+          actor: { uuid: string } | null;
+          post: { uuid: string } | null;
+        };
+      }
+    ).refreshRemoteObject;
     assert.equal(payload.__typename, "RefreshRemoteObjectPayload");
     assert.equal(payload.post, null);
     assert.equal(payload.actor?.uuid, remote.id);
@@ -202,13 +205,15 @@ test("refreshRemoteObject re-persists a remote post for a moderator", async () =
     });
 
     assert.equal(result.errors, undefined);
-    const payload = (toPlainJson(result.data) as {
-      refreshRemoteObject: {
-        __typename: string;
-        actor: { uuid: string } | null;
-        post: { uuid: string } | null;
-      };
-    }).refreshRemoteObject;
+    const payload = (
+      toPlainJson(result.data) as {
+        refreshRemoteObject: {
+          __typename: string;
+          actor: { uuid: string } | null;
+          post: { uuid: string } | null;
+        };
+      }
+    ).refreshRemoteObject;
     assert.equal(payload.__typename, "RefreshRemoteObjectPayload");
     assert.equal(payload.actor, null);
     assert.equal(payload.post?.uuid, post.id);

@@ -16,7 +16,7 @@ import {
   CardTitle,
 } from "~/components/ui/card.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
-import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
+import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
 import type { invitationsPageQuery } from "./__generated__/invitationsPageQuery.graphql.ts";
 import type { invitationsRegenerateMutation } from "./__generated__/invitationsRegenerateMutation.graphql.ts";
 import {
@@ -95,12 +95,10 @@ export default function AdminInvitationsPage() {
         if (result.__typename === "RegenerateInvitationsPayload") {
           showToast({
             title: i18n._(
-              msg`${
-                plural(result.accountsAffected!, {
-                  one: "Regenerated invitations for # account.",
-                  other: "Regenerated invitations for # accounts.",
-                })
-              }`,
+              msg`${plural(result.accountsAffected!, {
+                one: "Regenerated invitations for # account.",
+                other: "Regenerated invitations for # accounts.",
+              })}`,
             ),
           });
           // Relay does not normalise the mutation's nested `status`
@@ -174,34 +172,25 @@ export default function AdminInvitationsPage() {
                         </Show>
                       </p>
                       <p>
-                        <span class="text-muted-foreground">
-                          {t`Cutoff:`}
-                        </span>{" "}
+                        <span class="text-muted-foreground">{t`Cutoff:`}</span>{" "}
                         <Show keyed when={status()?.cutoffDate}>
                           {(ts) => <Timestamp value={ts} />}
                         </Show>
                       </p>
                       <p>
                         {i18n._(
-                          msg`${
-                            plural(status()?.eligibleAccountsCount ?? 0, {
-                              one: "# eligible account",
-                              other: "# eligible accounts",
-                            })
-                          }; ${
-                            plural(status()?.topThirdCount ?? 0, {
-                              one: "# would receive an invitation",
-                              other: "# would receive invitations",
-                            })
-                          } if regenerated now.`,
+                          msg`${plural(status()?.eligibleAccountsCount ?? 0, {
+                            one: "# eligible account",
+                            other: "# eligible accounts",
+                          })}; ${plural(status()?.topThirdCount ?? 0, {
+                            one: "# would receive an invitation",
+                            other: "# would receive invitations",
+                          })} if regenerated now.`,
                         )}
                       </p>
                     </CardContent>
                     <CardFooter>
-                      <Button
-                        on:click={onRegenerate}
-                        disabled={submitting()}
-                      >
+                      <Button on:click={onRegenerate} disabled={submitting()}>
                         {submitting() ? t`Regenerating…` : t`Regenerate`}
                       </Button>
                     </CardFooter>

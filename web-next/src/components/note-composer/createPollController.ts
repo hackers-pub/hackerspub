@@ -61,7 +61,7 @@ export function createPollController(): PollController {
       setDraft((current) => ({
         ...current,
         options: current.options.map((option) =>
-          option.localId === localId ? { ...option, title } : option
+          option.localId === localId ? { ...option, title } : option,
         ),
       })),
     restore: (stored, allowed) => setDraft(restorePollDraft(stored, allowed)),

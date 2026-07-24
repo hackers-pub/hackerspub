@@ -78,16 +78,14 @@ export function createDraftController(
   let unregisterFlush: (() => void) | undefined;
   const origin = Symbol("NoteComposer");
 
-  const meaningful = createMemo(() =>
-    !options.editing() && isMeaningfulNoteDraft(options.snapshot())
+  const meaningful = createMemo(
+    () => !options.editing() && isMeaningfulNoteDraft(options.snapshot()),
   );
 
   const saveNow = (notifyChange = true): boolean => {
     const key = storageKey();
     const scope = options.scope();
-    if (
-      key == null || scope == null || loadedKey() !== key || restoring
-    ) {
+    if (key == null || scope == null || loadedKey() !== key || restoring) {
       return !options.dirty();
     }
 
@@ -178,28 +176,30 @@ export function createDraftController(
         formDraftKey: formKey,
         nextKey: key,
         dirty: options.dirty(),
-      })
+      }),
     );
     untrack(() => load(key, scope, preserveCurrentForm));
   });
 
-  onCleanup(subscribeNoteDraftChanges((change) => {
-    const decision = decideExternalDraftChange({
-      sameOrigin: change.origin === origin,
-      changeKey: change.key,
-      currentKey: untrack(storageKey),
-      dirty: untrack(options.dirty),
-    });
-    if (decision === "ignore") return;
-    const key = untrack(storageKey);
-    const scope = untrack(options.scope);
-    if (key == null || scope == null) return;
-    clearTimeout(saveTimer);
-    load(key, scope, decision === "preserve-and-resave");
-    if (decision === "preserve-and-resave") {
-      saveTimer = setTimeout(() => saveNow(false), 350);
-    }
-  }));
+  onCleanup(
+    subscribeNoteDraftChanges((change) => {
+      const decision = decideExternalDraftChange({
+        sameOrigin: change.origin === origin,
+        changeKey: change.key,
+        currentKey: untrack(storageKey),
+        dirty: untrack(options.dirty),
+      });
+      if (decision === "ignore") return;
+      const key = untrack(storageKey);
+      const scope = untrack(options.scope);
+      if (key == null || scope == null) return;
+      clearTimeout(saveTimer);
+      load(key, scope, decision === "preserve-and-resave");
+      if (decision === "preserve-and-resave") {
+        saveTimer = setTimeout(() => saveNow(false), 350);
+      }
+    }),
+  );
 
   createEffect(() => {
     const key = storageKey();

@@ -27,25 +27,23 @@ test("registerPushNotificationTarget() rejects unsafe Web Push subscriptions", a
       email: "pushunsafe@example.com",
     });
 
-    for (
-      const subscription of [
-        webSubscription("http://push.example/endpoint"),
-        webSubscription("https://127.0.0.1/endpoint"),
-        webSubscription("https://[::ffff:127.0.0.1]/endpoint"),
-        webSubscription("https://[::ffff:169.254.169.254]/endpoint"),
-        webSubscription("https://[::ffff:7f00:1]/endpoint"),
-        { ...webSubscription("https://push.example/endpoint"), p256dh: "@@" },
-        { ...webSubscription("https://push.example/endpoint"), auth: "@@" },
-        {
-          ...webSubscription("https://push.example/endpoint"),
-          p256dh: "dG9vLXNob3J0",
-        },
-        {
-          ...webSubscription("https://push.example/endpoint"),
-          auth: "dG9vLXNob3J0",
-        },
-      ]
-    ) {
+    for (const subscription of [
+      webSubscription("http://push.example/endpoint"),
+      webSubscription("https://127.0.0.1/endpoint"),
+      webSubscription("https://[::ffff:127.0.0.1]/endpoint"),
+      webSubscription("https://[::ffff:169.254.169.254]/endpoint"),
+      webSubscription("https://[::ffff:7f00:1]/endpoint"),
+      { ...webSubscription("https://push.example/endpoint"), p256dh: "@@" },
+      { ...webSubscription("https://push.example/endpoint"), auth: "@@" },
+      {
+        ...webSubscription("https://push.example/endpoint"),
+        p256dh: "dG9vLXNob3J0",
+      },
+      {
+        ...webSubscription("https://push.example/endpoint"),
+        auth: "dG9vLXNob3J0",
+      },
+    ]) {
       assert.equal(
         await registerPushNotificationTarget(tx, account.id, {
           service: "web_push",
@@ -55,7 +53,9 @@ test("registerPushNotificationTarget() rejects unsafe Web Push subscriptions", a
       );
     }
 
-    const stored = await tx.select().from(pushNotificationTargetTable)
+    const stored = await tx
+      .select()
+      .from(pushNotificationTargetTable)
       .where(eq(pushNotificationTargetTable.accountId, account.id));
     assert.deepEqual(stored, []);
   });
@@ -91,7 +91,9 @@ test("registerPushNotificationTarget() reassigns an existing Web Push endpoint",
     assert.ok(reassigned != null);
     assert.equal(reassigned.accountId, second.account.id);
 
-    const stored = await tx.select().from(pushNotificationTargetTable)
+    const stored = await tx
+      .select()
+      .from(pushNotificationTargetTable)
       .where(eq(pushNotificationTargetTable.endpoint, endpoint));
     assert.equal(stored.length, 1);
     assert.equal(stored[0].accountId, second.account.id);
@@ -115,7 +117,8 @@ test("registerPushNotificationTarget() evicts the oldest Web Push endpoint per a
       });
     }
 
-    await tx.update(pushNotificationTargetTable)
+    await tx
+      .update(pushNotificationTargetTable)
       .set({ updated: new Date("2000-01-01T00:00:00Z") })
       .where(eq(pushNotificationTargetTable.endpoint, firstEndpoint));
 
@@ -125,9 +128,11 @@ test("registerPushNotificationTarget() evicts the oldest Web Push endpoint per a
       subscription: webSubscription(extraEndpoint),
     });
 
-    const endpoints = await tx.select({
-      endpoint: pushNotificationTargetTable.endpoint,
-    }).from(pushNotificationTargetTable)
+    const endpoints = await tx
+      .select({
+        endpoint: pushNotificationTargetTable.endpoint,
+      })
+      .from(pushNotificationTargetTable)
       .where(
         and(
           eq(pushNotificationTargetTable.accountId, account.id),
@@ -174,7 +179,9 @@ test("unregisterPushNotificationTarget() only removes Web Push endpoints owned b
       true,
     );
 
-    const stored = await tx.select().from(pushNotificationTargetTable)
+    const stored = await tx
+      .select()
+      .from(pushNotificationTargetTable)
       .where(eq(pushNotificationTargetTable.endpoint, endpoint));
     assert.deepEqual(stored, []);
   });

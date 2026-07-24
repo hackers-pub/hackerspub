@@ -12,20 +12,14 @@ export interface BuildRobotsTxtOptions {
   sitemapUrl: string | URL;
 }
 
-export function buildRobotsTxt(
-  { sitemapUrl }: BuildRobotsTxtOptions,
-): string {
+export function buildRobotsTxt({ sitemapUrl }: BuildRobotsTxtOptions): string {
   const lines = BLOCKED_ROBOTS.flatMap((userAgent) => [
     `User-agent: ${userAgent}`,
     "Disallow: /",
     "",
   ]);
 
-  lines.push(
-    "User-agent: *",
-    "Allow: /",
-    `Sitemap: ${sitemapUrl}`,
-  );
+  lines.push("User-agent: *", "Allow: /", `Sitemap: ${sitemapUrl}`);
 
   return `${lines.join("\n")}\n`;
 }

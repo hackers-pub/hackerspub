@@ -1,11 +1,11 @@
 import assert from "node:assert";
 import test from "node:test";
-import plugin from "./no-load-query-in-router-query.ts";
+import { lintWithOxlint } from "./test-helper.ts";
 
 const RULE = "hackerspub-solid-relay/no-load-query-in-router-query";
 
 function lint(source: string) {
-  return Deno.lint.runPlugin(plugin, "test.tsx", source);
+  return lintWithOxlint(RULE, source);
 }
 
 test("flags loadQuery returned from router query fetcher", () => {

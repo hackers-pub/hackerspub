@@ -51,14 +51,17 @@ const config: StorybookConfig = {
     viteConfig.resolve = {
       ...viteConfig.resolve,
       alias: Array.isArray(existingAlias)
-        ? [...existingAlias, {
-          find: "~",
-          replacement: resolve(here, "../src"),
-        }]
+        ? [
+            ...existingAlias,
+            {
+              find: "~",
+              replacement: resolve(here, "../src"),
+            },
+          ]
         : {
-          ...existingAlias,
-          "~": resolve(here, "../src"),
-        },
+            ...existingAlias,
+            "~": resolve(here, "../src"),
+          },
     };
     return viteConfig;
   },

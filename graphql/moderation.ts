@@ -105,12 +105,12 @@ export function toFlagStatus(
   return status === "pending"
     ? "PENDING"
     : status === "reviewing"
-    ? "REVIEWING"
-    : status === "resolved"
-    ? "RESOLVED"
-    : status === "dismissed"
-    ? "DISMISSED"
-    : assertNever(status, `Invalid \`FlagStatus\`: "${status}"`);
+      ? "REVIEWING"
+      : status === "resolved"
+        ? "RESOLVED"
+        : status === "dismissed"
+          ? "DISMISSED"
+          : assertNever(status, `Invalid \`FlagStatus\`: "${status}"`);
 }
 
 export function fromFlagStatus(
@@ -119,12 +119,12 @@ export function fromFlagStatus(
   return status === "PENDING"
     ? "pending"
     : status === "REVIEWING"
-    ? "reviewing"
-    : status === "RESOLVED"
-    ? "resolved"
-    : status === "DISMISSED"
-    ? "dismissed"
-    : assertNever(status, `Invalid \`FlagStatus\`: "${status}"`);
+      ? "reviewing"
+      : status === "RESOLVED"
+        ? "resolved"
+        : status === "DISMISSED"
+          ? "dismissed"
+          : assertNever(status, `Invalid \`FlagStatus\`: "${status}"`);
 }
 
 export const Flag = builder.drizzleNode("flagTable", {
@@ -139,7 +139,8 @@ export const Flag = builder.drizzleNode("flagTable", {
     "moderators.",
   authScopes: (flag, ctx) => {
     if (
-      ctx.account?.actor != null && flag.reporterId === ctx.account.actor.id
+      ctx.account?.actor != null &&
+      flag.reporterId === ctx.account.actor.id
     ) {
       return true;
     }
@@ -171,7 +172,8 @@ export const Flag = builder.drizzleNode("flagTable", {
     targetPost: t.relation("targetPost", {
       type: Post,
       nullable: true,
-      description: "The reported post, for content reports; `null` for user " +
+      description:
+        "The reported post, for content reports; `null` for user " +
         "(profile) reports, and also when the post row was deleted after " +
         "the report (the snapshot preserves the evidence; " +
         "`targetPostIri` remains as a stable reference).",
@@ -223,7 +225,8 @@ export const Flag = builder.drizzleNode("flagTable", {
     }),
     external: t.field({
       type: "Boolean",
-      description: "Whether this report arrived from another instance via an " +
+      description:
+        "Whether this report arrived from another instance via an " +
         "ActivityPub `Flag` activity (as opposed to being filed in-app " +
         "by a local user).  External reports provide less context and " +
         "come from unknown moderation cultures, so moderators should " +
@@ -234,7 +237,8 @@ export const Flag = builder.drizzleNode("flagTable", {
     }),
     cocVersion: t.exposeString("cocVersion", {
       nullable: true,
-      description: "The hash of the most recent Git commit that touched the " +
+      description:
+        "The hash of the most recent Git commit that touched the " +
         "CODE_OF_CONDUCT files when the report was filed, so the report " +
         "can be interpreted against the code of conduct text it was " +
         "filed under.  Moderator-only.  `null` when the version could " +
@@ -259,7 +263,8 @@ export const Flag = builder.drizzleNode("flagTable", {
 builder.mutationField("reportContent", (t) =>
   t.field({
     type: Flag,
-    description: "Report a post (`Note`, `Article`, or `Question`) or a user " +
+    description:
+      "Report a post (`Note`, `Article`, or `Question`) or a user " +
       "(`Actor`) for violating the code of conduct.  Requires " +
       "authentication.  The free-form `reason` needs no knowledge of " +
       "specific provisions; it must be between 10 and 4096 characters. " +
@@ -280,7 +285,8 @@ builder.mutationField("reportContent", (t) =>
       }),
       reason: t.arg.string({
         required: true,
-        description: "Why this content or user is being reported, in the " +
+        description:
+          "Why this content or user is being reported, in the " +
           "reporter's own words (10–4096 characters).",
       }),
       forwardToRemote: t.arg.boolean({
@@ -366,89 +372,95 @@ builder.mutationField("reportContent", (t) =>
           analyzer,
           flag,
           flag.snapshot,
-        )
-          .catch((error) => {
-            logger.error(
-              "Failed to analyze flag {flagId}: {error}",
-              { flagId: flag.id, error },
-            );
+        ).catch((error) => {
+          logger.error("Failed to analyze flag {flagId}: {error}", {
+            flagId: flag.id,
+            error,
           });
+        });
       }
       return flag;
     },
-  }));
+  }),
+);
 
 builder.drizzleObjectFields(Account, (t) => ({
-  reports: t.connection({
-    type: Flag,
-    description: "The account's own report history, newest first: what they " +
-      "reported, when, their written reason, and the processing status. " +
-      "Detailed outcome information is deliberately not exposed here, so " +
-      "reports cannot be used to probe moderation boundaries.  Resolvable " +
-      "by the account owner and moderators only.",
-    authScopes: (account) => ({
-      moderator: true,
-      selfAccount: account.id,
-    }),
-    nullable: true,
-    async resolve(account, args, ctx) {
-      const actor = await ctx.db.query.actorTable.findFirst({
-        where: { accountId: account.id },
-        columns: { id: true },
-      });
-      if (actor == null) return null;
-      // A moderator may read any account's report history, but must never
-      // learn who reported *them*: exclude reports whose target is the
-      // viewer's own actor.  This is a no-op for the account owner's own
-      // view (self-reports are rejected, so none of their reports target
-      // themselves) and keeps the self-target anonymity guard intact for
-      // both the edges and `totalCount`.
-      const viewerActorId = ctx.account?.actor.id;
-      const connection = await resolveCursorConnection(
-        {
-          args,
-          toCursor: (flag: FlagRow) => flag.id,
-        },
-        ({ before, after, limit, inverted }: ResolveCursorConnectionArgs) =>
-          ctx.db.query.flagTable.findMany({
-            where: {
-              reporterId: actor.id,
-              ...(viewerActorId == null
-                ? {}
-                : { targetActorId: { ne: viewerActorId } }),
-              ...(after != null && validateUuid(after)
-                ? { id: { lt: after as Uuid } }
-                : {}),
-              ...(before != null && validateUuid(before)
-                ? { id: { gt: before as Uuid } }
-                : {}),
-            },
-            // Flag ids are UUIDv7, so id order is creation order.
-            orderBy: { id: inverted ? "asc" : "desc" },
-            limit,
-          }),
-      );
-      const [{ count: totalCount }] = await ctx.db
-        .select({ count: count() })
-        .from(flagTable)
-        .where(
-          viewerActorId == null ? eq(flagTable.reporterId, actor.id) : and(
-            eq(flagTable.reporterId, actor.id),
-            ne(flagTable.targetActorId, viewerActorId),
-          ),
-        );
-      return { ...connection, totalCount };
-    },
-  }, {
-    name: "AccountReportsConnection",
-    fields: (t) => ({
-      totalCount: t.int({
-        description: "Total number of reports this account has filed.",
-        resolve: (parent) =>
-          (parent as unknown as { totalCount: number }).totalCount,
+  reports: t.connection(
+    {
+      type: Flag,
+      description:
+        "The account's own report history, newest first: what they " +
+        "reported, when, their written reason, and the processing status. " +
+        "Detailed outcome information is deliberately not exposed here, so " +
+        "reports cannot be used to probe moderation boundaries.  Resolvable " +
+        "by the account owner and moderators only.",
+      authScopes: (account) => ({
+        moderator: true,
+        selfAccount: account.id,
       }),
-    }),
-  }),
+      nullable: true,
+      async resolve(account, args, ctx) {
+        const actor = await ctx.db.query.actorTable.findFirst({
+          where: { accountId: account.id },
+          columns: { id: true },
+        });
+        if (actor == null) return null;
+        // A moderator may read any account's report history, but must never
+        // learn who reported *them*: exclude reports whose target is the
+        // viewer's own actor.  This is a no-op for the account owner's own
+        // view (self-reports are rejected, so none of their reports target
+        // themselves) and keeps the self-target anonymity guard intact for
+        // both the edges and `totalCount`.
+        const viewerActorId = ctx.account?.actor.id;
+        const connection = await resolveCursorConnection(
+          {
+            args,
+            toCursor: (flag: FlagRow) => flag.id,
+          },
+          ({ before, after, limit, inverted }: ResolveCursorConnectionArgs) =>
+            ctx.db.query.flagTable.findMany({
+              where: {
+                reporterId: actor.id,
+                ...(viewerActorId == null
+                  ? {}
+                  : { targetActorId: { ne: viewerActorId } }),
+                ...(after != null && validateUuid(after)
+                  ? { id: { lt: after as Uuid } }
+                  : {}),
+                ...(before != null && validateUuid(before)
+                  ? { id: { gt: before as Uuid } }
+                  : {}),
+              },
+              // Flag ids are UUIDv7, so id order is creation order.
+              orderBy: { id: inverted ? "asc" : "desc" },
+              limit,
+            }),
+        );
+        const [{ count: totalCount }] = await ctx.db
+          .select({ count: count() })
+          .from(flagTable)
+          .where(
+            viewerActorId == null
+              ? eq(flagTable.reporterId, actor.id)
+              : and(
+                  eq(flagTable.reporterId, actor.id),
+                  ne(flagTable.targetActorId, viewerActorId),
+                ),
+          );
+        return { ...connection, totalCount };
+      },
+    },
+    {
+      name: "AccountReportsConnection",
+      fields: (t) => ({
+        totalCount: t.int({
+          description: "Total number of reports this account has filed.",
+          resolve: (parent) =>
+            (parent as unknown as { totalCount: number }).totalCount,
+        }),
+      }),
+    },
+  ),
 }));
 
 export const FlagActionType = builder.enumType("FlagActionType", {
@@ -467,7 +479,8 @@ export const FlagActionType = builder.enumType("FlagActionType", {
         "malice.",
     },
     CENSOR: {
-      description: "Hide the reported post from timelines, search, and " +
+      description:
+        "Hide the reported post from timelines, search, and " +
         "recommendations; its permalink shows a censorship notice and " +
         "the author keeps access.  Requires a post target.",
     },
@@ -493,14 +506,17 @@ export function toFlagActionType(
   return actionType === "dismiss"
     ? "DISMISS"
     : actionType === "warning"
-    ? "WARNING"
-    : actionType === "censor"
-    ? "CENSOR"
-    : actionType === "suspend"
-    ? "SUSPEND"
-    : actionType === "ban"
-    ? "BAN"
-    : assertNever(actionType, `Invalid \`FlagActionType\`: "${actionType}"`);
+      ? "WARNING"
+      : actionType === "censor"
+        ? "CENSOR"
+        : actionType === "suspend"
+          ? "SUSPEND"
+          : actionType === "ban"
+            ? "BAN"
+            : assertNever(
+                actionType,
+                `Invalid \`FlagActionType\`: "${actionType}"`,
+              );
 }
 
 export function fromFlagActionType(
@@ -509,19 +525,23 @@ export function fromFlagActionType(
   return actionType === "DISMISS"
     ? "dismiss"
     : actionType === "WARNING"
-    ? "warning"
-    : actionType === "CENSOR"
-    ? "censor"
-    : actionType === "SUSPEND"
-    ? "suspend"
-    : actionType === "BAN"
-    ? "ban"
-    : assertNever(actionType, `Invalid \`FlagActionType\`: "${actionType}"`);
+      ? "warning"
+      : actionType === "CENSOR"
+        ? "censor"
+        : actionType === "SUSPEND"
+          ? "suspend"
+          : actionType === "BAN"
+            ? "ban"
+            : assertNever(
+                actionType,
+                `Invalid \`FlagActionType\`: "${actionType}"`,
+              );
 }
 
 export const ContentSnapshot = builder.drizzleNode("contentSnapshotTable", {
   name: "ContentSnapshot",
-  description: "The reported content as it looked when the report was filed: " +
+  description:
+    "The reported content as it looked when the report was filed: " +
     "evidence that survives even if the reported user edits or deletes " +
     "the original.  Moderator-only; a reported moderator cannot access " +
     "snapshots of their own case.",
@@ -547,7 +567,8 @@ export const ContentSnapshot = builder.drizzleNode("contentSnapshotTable", {
     postIri: t.field({
       type: "URL",
       nullable: true,
-      description: "The snapshotted post's ActivityPub IRI; survives post " +
+      description:
+        "The snapshotted post's ActivityPub IRI; survives post " +
         "deletion.  `null` for profile snapshots.",
       select: { columns: { postIri: true } },
       resolve: (snapshot) =>
@@ -641,7 +662,8 @@ export const FlagAction = builder.drizzleNode("flagActionTable", {
     }),
     messageToUser: t.exposeString("messageToUser", {
       nullable: true,
-      description: "The message shown to the reported user, sent under the " +
+      description:
+        "The message shown to the reported user, sent under the " +
         "moderation team's collective identity.",
     }),
     suspensionStarts: t.expose("suspensionStarts", {
@@ -696,7 +718,8 @@ export const FlagCase = builder.drizzleNode("flagCaseTable", {
     targetPost: t.relation("targetPost", {
       type: Post,
       nullable: true,
-      description: "The reported post, for content reports; `null` for user " +
+      description:
+        "The reported post, for content reports; `null` for user " +
         "(profile) reports and for posts deleted after the report (the " +
         "snapshots on the member reports preserve the evidence).",
     }),
@@ -719,7 +742,8 @@ export const FlagCase = builder.drizzleNode("flagCaseTable", {
     }),
     assignedModerator: t.relation("assignedModerator", {
       nullable: true,
-      description: "The moderator the case is assigned to, for workload " +
+      description:
+        "The moderator the case is assigned to, for workload " +
         "distribution; `null` when unassigned.",
     }),
     created: t.expose("created", {
@@ -813,7 +837,8 @@ builder.drizzleObjectFields(Flag, (t) => ({
   }),
   snapshot: t.relation("snapshot", {
     nullable: true,
-    description: "The content snapshot captured when this report was filed, " +
+    description:
+      "The content snapshot captured when this report was filed, " +
       "preserving the evidence even if the original is edited or " +
       "deleted.  Moderator-only.",
     authScopes: { moderator: true },
@@ -844,7 +869,8 @@ builder.queryField("moderationCases", (t) =>
       }),
       search: t.arg.string({
         required: false,
-        description: "Match the target actor's handle or display name " +
+        description:
+          "Match the target actor's handle or display name " +
           "(case-insensitive substring).",
       }),
     },
@@ -865,21 +891,25 @@ builder.queryField("moderationCases", (t) =>
               ...(args.status == null
                 ? {}
                 : { status: fromFlagStatus(args.status) }),
-              ...(args.minReportCount == null ? {} : {
-                RAW: (flagCase) =>
-                  sql`(
+              ...(args.minReportCount == null
+                ? {}
+                : {
+                    RAW: (flagCase) =>
+                      sql`(
                     select count(*) from ${flagTable} f
                     where f.case_id = ${flagCase.id}
                   ) >= ${args.minReportCount}`,
-              }),
-              ...(search == null || search === "" ? {} : {
-                targetActor: {
-                  OR: [
-                    { handle: { ilike: `%${search}%` } },
-                    { name: { ilike: `%${search}%` } },
-                  ],
-                },
-              }),
+                  }),
+              ...(search == null || search === ""
+                ? {}
+                : {
+                    targetActor: {
+                      OR: [
+                        { handle: { ilike: `%${search}%` } },
+                        { name: { ilike: `%${search}%` } },
+                      ],
+                    },
+                  }),
               ...(after != null && validateUuid(after)
                 ? { id: { lt: after as Uuid } }
                 : {}),
@@ -894,7 +924,8 @@ builder.queryField("moderationCases", (t) =>
       );
       return connection;
     },
-  }));
+  }),
+);
 
 builder.queryField("flagCaseByUuid", (t) =>
   t.drizzleField({
@@ -915,16 +946,19 @@ builder.queryField("flagCaseByUuid", (t) =>
       if (ctx.session == null || !ctx.account?.moderator) return null;
       if (!validateUuid(args.uuid)) return null;
       // A reported moderator must not look up their own case.
-      return await ctx.db.query.flagCaseTable.findFirst(
-        query({
-          where: {
-            id: args.uuid,
-            targetActorId: { ne: ctx.account.actor.id },
-          },
-        }),
-      ) ?? null;
+      return (
+        (await ctx.db.query.flagCaseTable.findFirst(
+          query({
+            where: {
+              id: args.uuid,
+              targetActorId: { ne: ctx.account.actor.id },
+            },
+          }),
+        )) ?? null
+      );
     },
-  }));
+  }),
+);
 
 builder.queryField("sanctionedActors", (t) =>
   t.field({
@@ -941,13 +975,15 @@ builder.queryField("sanctionedActors", (t) =>
       if (ctx.session == null || !ctx.account?.moderator) return null;
       return await listSanctionedActors(ctx.db);
     },
-  }));
+  }),
+);
 
 builder.mutationField("assignFlagCase", (t) =>
   t.field({
     type: FlagCase,
     nullable: true,
-    description: "Assign an open moderation case to a moderator for workload " +
+    description:
+      "Assign an open moderation case to a moderator for workload " +
       "distribution (or unassign it by omitting `moderatorId`). " +
       "Assigning a pending case moves it to `REVIEWING`.  Requires a " +
       "moderator account.  Returns `null` when the case is not open or " +
@@ -964,7 +1000,8 @@ builder.mutationField("assignFlagCase", (t) =>
       moderatorId: t.arg.globalID({
         for: Account,
         required: false,
-        description: "The moderator to assign; omit to unassign.  Must be an " +
+        description:
+          "The moderator to assign; omit to unassign.  Must be an " +
           "account with moderator privileges.",
       }),
     },
@@ -982,13 +1019,16 @@ builder.mutationField("assignFlagCase", (t) =>
         columns: { targetActorId: true },
       });
       if (flagCase?.targetActorId === ctx.account.actor.id) return null;
-      return await assignCase(
-        ctx.db,
-        args.caseId.id as Uuid,
-        (args.moderatorId?.id as Uuid | undefined) ?? null,
-      ) ?? null;
+      return (
+        (await assignCase(
+          ctx.db,
+          args.caseId.id as Uuid,
+          (args.moderatorId?.id as Uuid | undefined) ?? null,
+        )) ?? null
+      );
     },
-  }));
+  }),
+);
 
 builder.mutationField("updateFlagCaseStatus", (t) =>
   t.field({
@@ -1028,18 +1068,22 @@ builder.mutationField("updateFlagCaseStatus", (t) =>
         columns: { targetActorId: true },
       });
       if (flagCase?.targetActorId === ctx.account.actor.id) return null;
-      return await updateCaseStatus(
-        ctx.db,
-        args.caseId.id as Uuid,
-        args.status === "PENDING" ? "pending" : "reviewing",
-      ) ?? null;
+      return (
+        (await updateCaseStatus(
+          ctx.db,
+          args.caseId.id as Uuid,
+          args.status === "PENDING" ? "pending" : "reviewing",
+        )) ?? null
+      );
     },
-  }));
+  }),
+);
 
 builder.mutationField("takeModerationAction", (t) =>
   t.field({
     type: FlagAction,
-    description: "Record a moderation decision on an open case and apply its " +
+    description:
+      "Record a moderation decision on an open case and apply its " +
       "effects: `DISMISS` dismisses the case; `WARNING` records a " +
       "warning; `CENSOR` hides the reported post from listings (its " +
       "permalink keeps a notice); `SUSPEND` suspends the target for the " +
@@ -1091,7 +1135,8 @@ builder.mutationField("takeModerationAction", (t) =>
       }),
       messageToUser: t.arg.string({
         required: false,
-        description: "The message shown to the reported user (under the " +
+        description:
+          "The message shown to the reported user (under the " +
           "moderation team's collective identity).  For `DISMISS`, " +
           "providing a message opts into the educational dismissal " +
           "notification.",
@@ -1164,9 +1209,7 @@ builder.mutationField("takeModerationAction", (t) =>
         ) {
           throw new InvalidInputError("suspensionEnds");
         }
-      } else if (
-        args.suspensionStarts != null || args.suspensionEnds != null
-      ) {
+      } else if (args.suspensionStarts != null || args.suspensionEnds != null) {
         throw new InvalidInputError("suspensionStarts");
       }
       if (actionType === "censor") {
@@ -1230,7 +1273,8 @@ builder.mutationField("takeModerationAction", (t) =>
       }
       return action;
     },
-  }));
+  }),
+);
 
 /**
  * Emails the sanctioned local user about the action, in their preferred
@@ -1258,8 +1302,10 @@ async function sendModerationActionEmail(
     `/@${account.username}/settings/moderation`,
     ctx.fedCtx.canonicalOrigin,
   ).href;
-  const targetUrl = flagCase.targetPost?.url ??
-    flagCase.targetPost?.iri ?? flagCase.targetPostIri;
+  const targetUrl =
+    flagCase.targetPost?.url ??
+    flagCase.targetPost?.iri ??
+    flagCase.targetPostIri;
   // Send to every verified address: for a BAN the user cannot sign in,
   // so this email is the documented appeal channel and must reach
   // whichever address the user still has access to.
@@ -1272,7 +1318,7 @@ async function sendModerationActionEmail(
         action,
         targetUrl: targetUrl ?? null,
         appealUrl,
-      })
+      }),
     ),
   );
   for await (const receipt of ctx.email.sendMany(messages)) {
@@ -1325,10 +1371,10 @@ export function toFlagAppealStatus(
   return status === "pending"
     ? "PENDING"
     : status === "reviewing"
-    ? "REVIEWING"
-    : status === "resolved"
-    ? "RESOLVED"
-    : assertNever(status, `Invalid \`FlagAppealStatus\`: "${status}"`);
+      ? "REVIEWING"
+      : status === "resolved"
+        ? "RESOLVED"
+        : assertNever(status, `Invalid \`FlagAppealStatus\`: "${status}"`);
 }
 
 export function fromFlagAppealStatus(
@@ -1337,10 +1383,10 @@ export function fromFlagAppealStatus(
   return status === "PENDING"
     ? "pending"
     : status === "REVIEWING"
-    ? "reviewing"
-    : status === "RESOLVED"
-    ? "resolved"
-    : assertNever(status, `Invalid \`FlagAppealStatus\`: "${status}"`);
+      ? "reviewing"
+      : status === "RESOLVED"
+        ? "resolved"
+        : assertNever(status, `Invalid \`FlagAppealStatus\`: "${status}"`);
 }
 
 export function toFlagAppealResult(
@@ -1349,12 +1395,12 @@ export function toFlagAppealResult(
   return result === "dismissed"
     ? "DISMISSED"
     : result === "reduced"
-    ? "REDUCED"
-    : result === "withdrawn"
-    ? "WITHDRAWN"
-    : result === "increased"
-    ? "INCREASED"
-    : assertNever(result, `Invalid \`FlagAppealResult\`: "${result}"`);
+      ? "REDUCED"
+      : result === "withdrawn"
+        ? "WITHDRAWN"
+        : result === "increased"
+          ? "INCREASED"
+          : assertNever(result, `Invalid \`FlagAppealResult\`: "${result}"`);
 }
 
 export function fromFlagAppealResult(
@@ -1363,12 +1409,12 @@ export function fromFlagAppealResult(
   return result === "DISMISSED"
     ? "dismissed"
     : result === "REDUCED"
-    ? "reduced"
-    : result === "WITHDRAWN"
-    ? "withdrawn"
-    : result === "INCREASED"
-    ? "increased"
-    : assertNever(result, `Invalid \`FlagAppealResult\`: "${result}"`);
+      ? "reduced"
+      : result === "WITHDRAWN"
+        ? "withdrawn"
+        : result === "INCREASED"
+          ? "increased"
+          : assertNever(result, `Invalid \`FlagAppealResult\`: "${result}"`);
 }
 
 export const FlagAppeal = builder.drizzleNode("flagAppealTable", {
@@ -1433,7 +1479,8 @@ export const FlagAppeal = builder.drizzleNode("flagAppealTable", {
       description: "When the review completed; `null` while open.",
     }),
     action: t.relation("action", {
-      description: "The appealed action, with its full audit context.  " +
+      description:
+        "The appealed action, with its full audit context.  " +
         "Moderator-only; a moderator who is themselves the appellant is " +
         "excluded, like everywhere else on their own case.",
       authScopes: (appeal, _args, ctx) =>
@@ -1442,7 +1489,8 @@ export const FlagAppeal = builder.drizzleNode("flagAppealTable", {
           : { moderator: true },
     }),
     appellant: t.relation("appellant", {
-      description: "The account that filed the appeal.  Moderator-only; " +
+      description:
+        "The account that filed the appeal.  Moderator-only; " +
         "a moderator who is themselves the appellant is excluded.",
       authScopes: (appeal, _args, ctx) =>
         ctx.account != null && appeal.appellantId === ctx.account.id
@@ -1512,7 +1560,8 @@ builder.queryField("moderationAppeals", (t) =>
           }),
       );
     },
-  }));
+  }),
+);
 
 interface SanctionShape {
   action: FlagActionRow;
@@ -1534,19 +1583,22 @@ Sanction.implement({
   fields: (t) => ({
     uuid: t.field({
       type: "UUID",
-      description: "The underlying action's row UUID; pass it to " +
+      description:
+        "The underlying action's row UUID; pass it to " +
         "`appealModerationAction` as `sanctionId`.",
       resolve: (sanction) => sanction.action.id,
     }),
     actionType: t.field({
       type: FlagActionType,
-      description: "What was decided.  `DISMISS` appears here only when the " +
+      description:
+        "What was decided.  `DISMISS` appears here only when the " +
         "moderation team opted into the educational dismissal " +
         "notification by writing a message.",
       resolve: (sanction) => toFlagActionType(sanction.action.actionType),
     }),
     violatedProvisions: t.stringList({
-      description: "The code of conduct provision ids the moderation team " +
+      description:
+        "The code of conduct provision ids the moderation team " +
         "confirmed as violated (empty for dismissals).",
       resolve: (sanction) => sanction.action.violatedProvisions,
     }),
@@ -1625,8 +1677,9 @@ builder.drizzleObjectFields(Account, (t) => ({
         orderBy: { created: "desc" },
       });
       return actions
-        .filter((action) =>
-          action.actionType !== "dismiss" || action.messageToUser != null
+        .filter(
+          (action) =>
+            action.actionType !== "dismiss" || action.messageToUser != null,
         )
         .map((action) => ({
           action,
@@ -1640,7 +1693,8 @@ builder.drizzleObjectFields(Account, (t) => ({
 builder.mutationField("appealModerationAction", (t) =>
   t.field({
     type: FlagAppeal,
-    description: "File an appeal against a moderation action taken on you " +
+    description:
+      "File an appeal against a moderation action taken on you " +
       "(`Sanction.uuid` is the `sanctionId`).  Only the sanctioned user " +
       "can appeal, within 14 days of the action, once per action; " +
       "dismissals cannot be appealed.  The review outcome arrives as a " +
@@ -1675,7 +1729,8 @@ builder.mutationField("appealModerationAction", (t) =>
       }),
       additionalContext: t.arg.string({
         required: false,
-        description: "Context or evidence you believe was not considered " +
+        description:
+          "Context or evidence you believe was not considered " +
           "(up to 4096 characters).",
       }),
     },
@@ -1717,7 +1772,8 @@ builder.mutationField("appealModerationAction", (t) =>
       if (appeal == null) throw new InvalidInputError("sanctionId");
       return appeal;
     },
-  }));
+  }),
+);
 
 const ReplacementActionInput = builder.inputType("ReplacementActionInput", {
   description:
@@ -1765,7 +1821,8 @@ const ReplacementActionInput = builder.inputType("ReplacementActionInput", {
 builder.mutationField("resolveFlagAppeal", (t) =>
   t.field({
     type: FlagAppeal,
-    description: "Resolve an appeal: `DISMISSED` keeps the original action, " +
+    description:
+      "Resolve an appeal: `DISMISSED` keeps the original action, " +
       "`WITHDRAWN` reverts its enforcement, and `REDUCED`/`INCREASED` " +
       "replace it with the given `replacement` action on the same case. " +
       "The appellant is notified under the moderation team's collective " +
@@ -1789,13 +1846,15 @@ builder.mutationField("resolveFlagAppeal", (t) =>
       }),
       reviewRationale: t.arg.string({
         required: true,
-        description: "The review rationale, shown to the appellant under the " +
+        description:
+          "The review rationale, shown to the appellant under the " +
           "moderation team's collective identity.",
       }),
       replacement: t.arg({
         type: ReplacementActionInput,
         required: false,
-        description: "The replacement action; required for (and only for) " +
+        description:
+          "The replacement action; required for (and only for) " +
           "`REDUCED` and `INCREASED` results.",
       }),
     },
@@ -1827,14 +1886,10 @@ builder.mutationField("resolveFlagAppeal", (t) =>
         throw new InvalidInputError("reviewRationale");
       }
       let replacement:
-        | NonNullable<
-          Parameters<typeof resolveAppealModel>[1]["replacement"]
-        >
+        | NonNullable<Parameters<typeof resolveAppealModel>[1]["replacement"]>
         | undefined;
       if (args.replacement != null) {
-        const replacementType = fromFlagActionType(
-          args.replacement.actionType,
-        );
+        const replacementType = fromFlagActionType(args.replacement.actionType);
         if (replacementType === "dismiss") {
           throw new InvalidInputError("replacement.actionType");
         }
@@ -1880,9 +1935,7 @@ builder.mutationField("resolveFlagAppeal", (t) =>
               action: { with: { case: { columns: { targetPostId: true } } } },
             },
           });
-          if (
-            appealRow != null && appealRow.action.case.targetPostId == null
-          ) {
+          if (appealRow != null && appealRow.action.case.targetPostId == null) {
             throw new InvalidInputError("replacement.actionType");
           }
         }
@@ -1903,7 +1956,8 @@ builder.mutationField("resolveFlagAppeal", (t) =>
         where: { id: args.appealId.id as Uuid },
         with: { appellant: { with: { actor: true } } },
       });
-      const appellantWasBanned = priorAppeal?.appellant?.actor != null &&
+      const appellantWasBanned =
+        priorAppeal?.appellant?.actor != null &&
         isActorBanned(priorAppeal.appellant.actor);
       const appeal = await resolveAppealModel(ctx.db, {
         appealId: args.appealId.id as Uuid,
@@ -1928,17 +1982,20 @@ builder.mutationField("resolveFlagAppeal", (t) =>
           appellant != null &&
           (appellantWasBanned || isActorBanned(appellant.actor))
         ) {
-          const emails = appellant.emails
-            .filter((email) => email.verified != null);
+          const emails = appellant.emails.filter(
+            (email) => email.verified != null,
+          );
           const locale = new Intl.Locale(appellant.locales?.[0] ?? "en");
-          const messages = await Promise.all(emails.map(({ email }) =>
-            getAppealResolvedEmail({
-              from: ctx.emailFrom,
-              locale,
-              to: email,
-              appeal,
-            })
-          ));
+          const messages = await Promise.all(
+            emails.map(({ email }) =>
+              getAppealResolvedEmail({
+                from: ctx.emailFrom,
+                locale,
+                to: email,
+                appeal,
+              }),
+            ),
+          );
           for await (const receipt of ctx.email.sendMany(messages)) {
             if (!receipt.successful) {
               logger.error(
@@ -1958,7 +2015,8 @@ builder.mutationField("resolveFlagAppeal", (t) =>
       }
       return appeal;
     },
-  }));
+  }),
+);
 
 export const ModerationNotificationType = builder.enumType(
   "ModerationNotificationType",
@@ -1997,14 +2055,17 @@ export function toModerationNotificationType(
   return type === "flag_received"
     ? "FLAG_RECEIVED"
     : type === "action_taken"
-    ? "ACTION_TAKEN"
-    : type === "appeal_received"
-    ? "APPEAL_RECEIVED"
-    : type === "appeal_resolved"
-    ? "APPEAL_RESOLVED"
-    : type === "suspension_ending"
-    ? "SUSPENSION_ENDING"
-    : assertNever(type, `Invalid \`ModerationNotificationType\`: "${type}"`);
+      ? "ACTION_TAKEN"
+      : type === "appeal_received"
+        ? "APPEAL_RECEIVED"
+        : type === "appeal_resolved"
+          ? "APPEAL_RESOLVED"
+          : type === "suspension_ending"
+            ? "SUSPENSION_ENDING"
+            : assertNever(
+                type,
+                `Invalid \`ModerationNotificationType\`: "${type}"`,
+              );
 }
 
 export const ModerationNotification = builder.drizzleNode(
@@ -2038,8 +2099,8 @@ export const ModerationNotification = builder.drizzleNode(
       read: t.expose("read", {
         type: "DateTime",
         nullable: true,
-        description: "When the recipient read the notification; `null` while " +
-          "unread.",
+        description:
+          "When the recipient read the notification; `null` while " + "unread.",
       }),
       created: t.expose("created", {
         type: "DateTime",
@@ -2048,7 +2109,8 @@ export const ModerationNotification = builder.drizzleNode(
       sanction: t.field({
         type: Sanction,
         nullable: true,
-        description: "The sanitized sanction surface, for `ACTION_TAKEN` and " +
+        description:
+          "The sanitized sanction surface, for `ACTION_TAKEN` and " +
           "`SUSPENSION_ENDING` notifications; `null` for other types.",
         select: { columns: { actionId: true } },
         async resolve(notification, _args, ctx) {
@@ -2078,7 +2140,8 @@ export const ModerationNotification = builder.drizzleNode(
       }),
       appeal: t.relation("appeal", {
         nullable: true,
-        description: "The appeal an `APPEAL_RECEIVED` or `APPEAL_RESOLVED` " +
+        description:
+          "The appeal an `APPEAL_RECEIVED` or `APPEAL_RESOLVED` " +
           "notification points at; `null` for other types.  Guarded by " +
           "`FlagAppeal`'s own scopes (the appellant or moderators).",
       }),
@@ -2090,7 +2153,8 @@ builder.drizzleObjectFields(Account, (t) => ({
   moderationNotifications: t.connection({
     type: ModerationNotification,
     nullable: true,
-    description: "The account's moderation notifications, newest first.  " +
+    description:
+      "The account's moderation notifications, newest first.  " +
       "Resolvable by the account owner only.",
     authScopes: (account) => ({ selfAccount: account.id }),
     async resolve(account, args, ctx) {
@@ -2133,7 +2197,8 @@ builder.drizzleObjectFields(Account, (t) => ({
 builder.mutationField("markModerationNotificationsRead", (t) =>
   t.field({
     type: "Int",
-    description: "Mark the viewer's unread moderation notifications as read " +
+    description:
+      "Mark the viewer's unread moderation notifications as read " +
       "(optionally only those up to the notification with the given " +
       "id) and return how many were affected.  Idempotent.  Requires " +
       "authentication.",
@@ -2157,7 +2222,8 @@ builder.mutationField("markModerationNotificationsRead", (t) =>
         (args.upToId?.id as Uuid | undefined) ?? undefined,
       );
     },
-  }));
+  }),
+);
 
 const ModerationActionCount = builder.simpleObject("ModerationActionCount", {
   description: "How many actions of one type were taken in the range.",
@@ -2201,8 +2267,7 @@ const ModerationLlmDivergence = builder.simpleObject(
       }),
       diverged: t.int({
         description:
-          "How many had LLM suggestions differing from the confirmed " +
-          "set.",
+          "How many had LLM suggestions differing from the confirmed " + "set.",
       }),
     }),
   },
@@ -2223,7 +2288,8 @@ const ModerationStatistics = builder.simpleObject("ModerationStatistics", {
     }),
     averageProcessingHours: t.float({
       nullable: true,
-      description: "Average hours from a case's creation to its resolution; " +
+      description:
+        "Average hours from a case's creation to its resolution; " +
         "`null` when no case has been resolved in the range.",
     }),
     actionDistribution: t.field({
@@ -2277,7 +2343,8 @@ builder.queryField("moderationStatistics", (t) =>
         })),
       };
     },
-  }));
+  }),
+);
 
 const CocProvision = builder.simpleObject("CocProvision", {
   description:
@@ -2314,4 +2381,5 @@ builder.queryField("codeOfConductProvisions", (t) =>
       }),
     },
     resolve: (_root, args) => getCocProvisions(args.locale?.toString()),
-  }));
+  }),
+);

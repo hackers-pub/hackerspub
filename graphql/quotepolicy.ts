@@ -13,7 +13,8 @@ export const QuotePolicy = builder.enumType("QuotePolicy", {
       description: "Anyone (followers and non-followers alike) may quote.",
     },
     FOLLOWERS: {
-      description: "Only the post author's approved followers may quote. " +
+      description:
+        "Only the post author's approved followers may quote. " +
         "Non-followers' quote attempts are denied.",
     },
     SELF: {
@@ -24,28 +25,24 @@ export const QuotePolicy = builder.enumType("QuotePolicy", {
   } as const,
 });
 
-export function toQuotePolicy(
-  policy: Policy,
-): typeof QuotePolicy.$inferType {
+export function toQuotePolicy(policy: Policy): typeof QuotePolicy.$inferType {
   return policy === "everyone"
     ? "EVERYONE"
     : policy === "followers"
-    ? "FOLLOWERS"
-    : policy === "self"
-    ? "SELF"
-    : assertNever(policy, `Invalid \`QuotePolicy\`: "${policy}"`);
+      ? "FOLLOWERS"
+      : policy === "self"
+        ? "SELF"
+        : assertNever(policy, `Invalid \`QuotePolicy\`: "${policy}"`);
 }
 
-export function fromQuotePolicy(
-  policy: typeof QuotePolicy.$inferType,
-): Policy {
+export function fromQuotePolicy(policy: typeof QuotePolicy.$inferType): Policy {
   return policy === "EVERYONE"
     ? "everyone"
     : policy === "FOLLOWERS"
-    ? "followers"
-    : policy === "SELF"
-    ? "self"
-    : assertNever(policy, `Invalid \`QuotePolicy\`: "${policy}"`);
+      ? "followers"
+      : policy === "SELF"
+        ? "self"
+        : assertNever(policy, `Invalid \`QuotePolicy\`: "${policy}"`);
 }
 
 export const QuoteTargetState = builder.enumType("QuoteTargetState", {
@@ -73,8 +70,8 @@ export function toQuoteTargetState(
   return state == null
     ? null
     : state === "pending"
-    ? "PENDING"
-    : state === "denied"
-    ? "DENIED"
-    : assertNever(state, `Invalid \`QuoteTargetState\`: "${state}"`);
+      ? "PENDING"
+      : state === "denied"
+        ? "DENIED"
+        : assertNever(state, `Invalid \`QuoteTargetState\`: "${state}"`);
 }

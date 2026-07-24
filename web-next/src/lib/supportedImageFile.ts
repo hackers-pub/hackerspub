@@ -14,7 +14,7 @@ const contentTypeByExtension = new Map<string, SupportedImageContentType>([
 ]);
 
 export type SupportedImageContentType =
-  typeof supportedImageContentTypes[number];
+  (typeof supportedImageContentTypes)[number];
 
 export const supportedImageMimeAccept = supportedImageContentTypes.join(",");
 
@@ -42,8 +42,9 @@ export function getSupportedImageContentType(
     return null;
   }
   const extension = file.name.split(".").pop()?.toLowerCase();
-  return extension == null ? null : (contentTypeByExtension.get(extension) ??
-    null);
+  return extension == null
+    ? null
+    : (contentTypeByExtension.get(extension) ?? null);
 }
 
 export function isSupportedImageFile(file: Pick<File, "name" | "type">) {

@@ -14,7 +14,7 @@ import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { PostCard } from "~/components/PostCard.tsx";
 import { Title } from "~/components/Title.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,
@@ -46,9 +46,8 @@ const sharesArticleEngagementQuery = graphql`
         reactions
       }
       ...PostCard_post @arguments(actingAccountId: $actingAccountId)
-      ...sharesArticleEngagement_article @arguments(
-        actingAccountId: $actingAccountId
-      )
+      ...sharesArticleEngagement_article
+        @arguments(actingAccountId: $actingAccountId)
     }
   }
 `;
@@ -90,9 +89,11 @@ export default function ArticleSharesPage() {
   );
 }
 
-function ArticleSharesLoaded(
-  props: { handle: string; idOrYear: string; slug: string },
-) {
+function ArticleSharesLoaded(props: {
+  handle: string;
+  idOrYear: string;
+  slug: string;
+}) {
   const actingAccount = useActingAccount();
   const actingAccountId = () => actingAccount.selectedActingAccountId();
   const data = createStablePreloadedQuery<sharesArticleEngagementQuery>(
@@ -143,9 +144,7 @@ function ArticleSharesBody(props: { article: ArticlePost; base: string }) {
   );
 }
 
-function SharesList(
-  props: { $article: sharesArticleEngagement_article$key },
-) {
+function SharesList(props: { $article: sharesArticleEngagement_article$key }) {
   const { t } = useLingui();
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
@@ -153,24 +152,24 @@ function SharesList(
   const shares = createPaginationFragment(
     graphql`
       fragment sharesArticleEngagement_article on Article
-        @refetchable(queryName: "sharesArticleEngagementPaginationQuery")
-        @argumentDefinitions(
-          cursor: { type: "String" }
-          count: { type: "Int", defaultValue: 30 }
-          actingAccountId: { type: "ID", defaultValue: null }
-        )
-      {
-        shares(after: $cursor, first: $count, actingAccountId: $actingAccountId)
-          @connection(key: "SharesArticleEngagement__shares")
-        {
+      @refetchable(queryName: "sharesArticleEngagementPaginationQuery")
+      @argumentDefinitions(
+        cursor: { type: "String" }
+        count: { type: "Int", defaultValue: 30 }
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
+        shares(
+          after: $cursor
+          first: $count
+          actingAccountId: $actingAccountId
+        ) @connection(key: "SharesArticleEngagement__shares") {
           edges {
             node {
               id
               actor {
                 id
-                ...ActorPreviewCard_actor @arguments(
-                  actingAccountId: $actingAccountId
-                )
+                ...ActorPreviewCard_actor
+                  @arguments(actingAccountId: $actingAccountId)
               }
             }
           }

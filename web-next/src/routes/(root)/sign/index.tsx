@@ -24,10 +24,8 @@ import {
   TextFieldLabel,
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
-import type {
-  signByEmailMutation,
-} from "./__generated__/signByEmailMutation.graphql.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
+import type { signByEmailMutation } from "./__generated__/signByEmailMutation.graphql.ts";
 import type { signByPasskeyMutation } from "./__generated__/signByPasskeyMutation.graphql.ts";
 import type {
   signByUsernameMutation,
@@ -37,7 +35,11 @@ import type { signCompleteMutation } from "./__generated__/signCompleteMutation.
 import type { signGetPasskeyAuthenticationOptionsMutation } from "./__generated__/signGetPasskeyAuthenticationOptionsMutation.graphql.ts";
 
 const signByEmailMutation = graphql`
-  mutation signByEmailMutation($locale: Locale!, $email: String!, $verifyUrl: URITemplate!) {
+  mutation signByEmailMutation(
+    $locale: Locale!
+    $email: String!
+    $verifyUrl: URITemplate!
+  ) {
     loginByEmail(locale: $locale, email: $email, verifyUrl: $verifyUrl) {
       ... on LoginChallenge {
         __typename
@@ -56,8 +58,16 @@ const signByEmailMutation = graphql`
 `;
 
 const signByUsernameMutation = graphql`
-  mutation signByUsernameMutation($locale: Locale!, $username: String!, $verifyUrl: URITemplate!) {
-    loginByUsername(locale: $locale, username: $username, verifyUrl: $verifyUrl) {
+  mutation signByUsernameMutation(
+    $locale: Locale!
+    $username: String!
+    $verifyUrl: URITemplate!
+  ) {
+    loginByUsername(
+      locale: $locale
+      username: $username
+      verifyUrl: $verifyUrl
+    ) {
       ... on LoginChallenge {
         __typename
         account {
@@ -95,8 +105,14 @@ const signGetPasskeyAuthenticationOptionsMutation = graphql`
 `;
 
 const signByPasskeyMutation = graphql`
-  mutation signByPasskeyMutation($sessionId: UUID!, $authenticationResponse: JSON!) {
-    loginByPasskey(sessionId: $sessionId, authenticationResponse: $authenticationResponse) {
+  mutation signByPasskeyMutation(
+    $sessionId: UUID!
+    $authenticationResponse: JSON!
+  ) {
+    loginByPasskey(
+      sessionId: $sessionId
+      authenticationResponse: $authenticationResponse
+    ) {
       __typename
       ... on Session {
         id
@@ -108,11 +124,12 @@ const signByPasskeyMutation = graphql`
   }
 `;
 
-const enum LoginError {
-  ACCOUNT_NOT_FOUND,
-  ACCOUNT_BANNED,
-  UNKNOWN,
-}
+const LoginError = {
+  ACCOUNT_NOT_FOUND: "ACCOUNT_NOT_FOUND",
+  ACCOUNT_BANNED: "ACCOUNT_BANNED",
+  UNKNOWN: "UNKNOWN",
+} as const;
+type LoginError = (typeof LoginError)[keyof typeof LoginError];
 
 export default function SignPage() {
   const { t, i18n } = useLingui();
@@ -120,27 +137,20 @@ export default function SignPage() {
   let codeInput: HTMLInputElement | undefined;
   const [challenging, setChallenging] = createSignal(false);
   const [email, setEmail] = createSignal("");
-  const [errorCode, setErrorCode] = createSignal<
-    | LoginError
-    | undefined
-  >(
+  const [errorCode, setErrorCode] = createSignal<LoginError | undefined>(
     undefined,
   );
   const [token, setToken] = createSignal<Uuid | undefined>(undefined);
-  const [loginByEmail] = createMutation<signByEmailMutation>(
-    signByEmailMutation,
-  );
+  const [loginByEmail] =
+    createMutation<signByEmailMutation>(signByEmailMutation);
   const [loginByUsername] = createMutation<signByUsernameMutation>(
     signByUsernameMutation,
   );
-  const [complete] = createMutation<signCompleteMutation>(
-    signCompleteMutation,
-  );
-  const [getPasskeyOptions] = createMutation<
-    signGetPasskeyAuthenticationOptionsMutation
-  >(
-    signGetPasskeyAuthenticationOptionsMutation,
-  );
+  const [complete] = createMutation<signCompleteMutation>(signCompleteMutation);
+  const [getPasskeyOptions] =
+    createMutation<signGetPasskeyAuthenticationOptionsMutation>(
+      signGetPasskeyAuthenticationOptionsMutation,
+    );
   const [loginByPasskey] = createMutation<signByPasskeyMutation>(
     signByPasskeyMutation,
   );
@@ -151,9 +161,10 @@ export default function SignPage() {
   onMount(() => {
     // The magic-link route bounces a banned account back here with
     // `?error=banned`; surface the notice and skip the passkey auto-attempt.
-    const searchParams = location == null
-      ? new URLSearchParams()
-      : new URL(location.href).searchParams;
+    const searchParams =
+      location == null
+        ? new URLSearchParams()
+        : new URL(location.href).searchParams;
     if (searchParams.get("error") === "banned") {
       setErrorCode(LoginError.ACCOUNT_BANNED);
       return;
@@ -176,12 +187,13 @@ export default function SignPage() {
     if (emailInput == null) return;
     setChallenging(true);
     const email = emailInput.value;
-    const searchParams = location == null
-      ? new URLSearchParams()
-      : new URL(location.href).searchParams;
-    const verifyUrl = `${location.origin}/sign/in/{token}?code={code}&next=${
-      encodeURIComponent(searchParams.get("next") ?? "/")
-    }`;
+    const searchParams =
+      location == null
+        ? new URLSearchParams()
+        : new URL(location.href).searchParams;
+    const verifyUrl = `${location.origin}/sign/in/{token}?code={code}&next=${encodeURIComponent(
+      searchParams.get("next") ?? "/",
+    )}`;
     if (email.match(/^[^@]+@[^@]+$/)) {
       loginByEmail({
         variables: {
@@ -218,9 +230,7 @@ export default function SignPage() {
     if (data.__typename === "LoginChallenge") {
       setToken(data.token);
       codeInput?.focus();
-    } else if (
-      data.__typename === "AccountNotFoundError"
-    ) {
+    } else if (data.__typename === "AccountNotFoundError") {
       setErrorCode(LoginError.ACCOUNT_NOT_FOUND);
     } else {
       onError();
@@ -272,9 +282,10 @@ export default function SignPage() {
               setToken(undefined);
               setErrorCode(LoginError.ACCOUNT_BANNED);
             } else if (result?.__typename === "Session") {
-              const searchParams = location == null
-                ? new URLSearchParams()
-                : new URL(location.href).searchParams;
+              const searchParams =
+                location == null
+                  ? new URLSearchParams()
+                  : new URL(location.href).searchParams;
               const next = searchParams.get("next") ?? "/";
               await fetch("/sign/session", {
                 method: "POST",
@@ -351,9 +362,10 @@ export default function SignPage() {
         return;
       }
       if (result?.__typename === "Session" && result.id) {
-        const searchParams = location == null
-          ? new URLSearchParams()
-          : new URL(location.href).searchParams;
+        const searchParams =
+          location == null
+            ? new URLSearchParams()
+            : new URL(location.href).searchParams;
         const next = searchParams.get("next") ?? "/";
         await fetch("/sign/session", {
           method: "POST",
@@ -364,7 +376,7 @@ export default function SignPage() {
       } else {
         throw new Error("Authentication verification failed");
       }
-    } catch (_) {
+    } catch {
       if (showError) {
         showToast({
           title: t`Passkey authentication failed`,
@@ -387,15 +399,10 @@ export default function SignPage() {
           <h1 class="text-2xl font-semibold tracking-tight">
             {t`Signing in Hackers' Pub`}
           </h1>
-          <p class="text-sm text-muted-foreground">
-            {getSignInMessage()}
-          </p>
+          <p class="text-sm text-muted-foreground">{getSignInMessage()}</p>
         </div>
         <Show when={token() == null}>
-          <form
-            class="my-6 grid gap-6"
-            on:submit={onChallengeSubmit}
-          >
+          <form class="my-6 grid gap-6" on:submit={onChallengeSubmit}>
             <Grid class="gap-4">
               <TextField
                 validationState={errorCode() ? "invalid" : "valid"}

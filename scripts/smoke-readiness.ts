@@ -26,7 +26,9 @@ export async function waitUntil(
           Promise.resolve().then(() => check(signal)),
           aborted,
         ])
-      ) return;
+      ) {
+        return;
+      }
     } catch {
       // The service can refuse connections while it is still starting.
     } finally {

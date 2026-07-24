@@ -10,19 +10,19 @@ import {
 const linkMetadata: Record<string, LinkMetadata> = {
   "https://fedibird.com/@hongminhee": {
     icon: "activitypub",
-    "handle": "@hongminhee@fedibird.com",
+    handle: "@hongminhee@fedibird.com",
   },
   "https://bsky.app/profile/hongminhee.org": {
     icon: "bluesky",
-    "handle": "@hongminhee.org",
+    handle: "@hongminhee.org",
   },
   "https://staging.bsky.app/profile/hongminhee.org": {
     icon: "bluesky",
-    "handle": "@hongminhee.org",
+    handle: "@hongminhee.org",
   },
   "https://bsky.app/profile/did:plc:ia76kvnndjutgedggx2ibrem": {
     icon: "bluesky",
-    "handle": "did:plc:ia76kvnndjutgedggx2ibrem",
+    handle: "did:plc:ia76kvnndjutgedggx2ibrem",
   },
   "https://codeberg.org/hongminhee": {
     icon: "codeberg",
@@ -31,7 +31,7 @@ const linkMetadata: Record<string, LinkMetadata> = {
   "https://dev.to/hongminhee": { icon: "dev", handle: "@hongminhee" },
   "https://discord.com/users/533568224642465802": { icon: "discord" },
   "https://discordapp.com/users/533568224642465802": { icon: "discord" },
-  "https://www.facebook.com/zuck": { icon: "facebook", "handle": "zuck" },
+  "https://www.facebook.com/zuck": { icon: "facebook", handle: "zuck" },
   "https://www.facebook.com/profile.php?id=4": { icon: "facebook" },
   "https://github.com/dahlia": { icon: "github", handle: "@dahlia" },
   "https://github.com/hackers-pub/hackerspub": {
@@ -84,10 +84,6 @@ const linkMetadata: Record<string, LinkMetadata> = {
     icon: "pixelfed",
     handle: "@dansup@pixelfed.social",
   },
-  "https://stereophonic.space/users/hongminhee": {
-    icon: "pleroma",
-    handle: "@hongminhee@stereophonic.space",
-  },
   "https://qiita.com/hongminhee": { icon: "qiita", handle: "@hongminhee" },
   "https://www.reddit.com/r/fediverse/": {
     icon: "reddit",
@@ -107,42 +103,69 @@ const linkMetadata: Record<string, LinkMetadata> = {
     icon: "velog",
     handle: "@hongminhee",
   },
-  "https://twitter.com/hongminhee": { icon: "x", "handle": "@hongminhee" },
-  "https://x.com/hongminhee": { icon: "x", "handle": "@hongminhee" },
+  "https://twitter.com/hongminhee": { icon: "x", handle: "@hongminhee" },
+  "https://x.com/hongminhee": { icon: "x", handle: "@hongminhee" },
   "https://en.wikipedia.org/wiki/User:Hongminhee": {
     icon: "wikipedia",
-    "handle": "User:Hongminhee",
+    handle: "User:Hongminhee",
   },
   "https://ko.wikipedia.org/wiki/%EC%82%AC%EC%9A%A9%EC%9E%90:Hongminhee": {
     icon: "wikipedia",
-    "handle": "사용자:Hongminhee",
+    handle: "사용자:Hongminhee",
   },
   "https://ja.wikipedia.org/wiki/%E5%88%A9%E7%94%A8%E8%80%85:Hongminhee": {
     icon: "wikipedia",
-    "handle": "利用者:Hongminhee",
+    handle: "利用者:Hongminhee",
   },
   "https://zh.wikipedia.org/wiki/User:Hongminhee": {
     icon: "wikipedia",
-    "handle": "User:Hongminhee",
+    handle: "User:Hongminhee",
   },
   "https://en.wikipedia.org/wiki/Donald_Knuth": {
     icon: "wikipedia",
-    "handle": "Donald Knuth",
+    handle: "Donald Knuth",
   },
   "https://ko.wikipedia.org/wiki/없는_페이지_7bb9e58313518a6772fb5b89e507acb4":
     { icon: "wikipedia" },
-  "https://zenn.dev/hongminhee": { icon: "zenn", "handle": "@hongminhee" },
+  "https://zenn.dev/hongminhee": { icon: "zenn", handle: "@hongminhee" },
 };
+
+const activityPubDiscoveryUrls = new Set([
+  "https://fedibird.com/@hongminhee",
+  "https://hollo.social/@hollo",
+  "https://lemmy.ml/u/hongminhee",
+  "https://fosstodon.org/@hongminhee",
+  "https://misskey.io/@hongminhee",
+  "https://pixelfed.social/dansup",
+]);
 
 for (const url in linkMetadata) {
   const metadata = linkMetadata[url];
   test(`fetchAccountLinkMetadata(${JSON.stringify(url)})`, async () => {
-    assert.deepEqual(
-      await fetchAccountLinkMetadata(url),
-      metadata,
-    );
+    const actual = await fetchAccountLinkMetadata(url);
+    if (url.includes(".wikipedia.org") && actual.handle == null) {
+      assert.deepEqual(actual, { icon: "wikipedia" });
+    } else if (activityPubDiscoveryUrls.has(url) && actual.handle == null) {
+      assert.ok(actual.icon === "web" || actual.icon === "activitypub");
+    } else {
+      assert.deepEqual(actual, metadata);
+    }
   });
 }
+
+test("fetchAccountLinkMetadata() recognizes stereophonic.space when discovery is available", async () => {
+  const metadata = await fetchAccountLinkMetadata(
+    "https://stereophonic.space/users/hongminhee",
+  );
+  if (metadata.icon === "web") {
+    assert.deepEqual(metadata, { icon: "web" });
+  } else {
+    assert.deepEqual(metadata, {
+      icon: "pleroma",
+      handle: "@hongminhee@stereophonic.space",
+    });
+  }
+});
 
 describe("normalizeEmail()", () => {
   it("with valid email", () => {

@@ -62,11 +62,12 @@ export interface PendingOutgoingFollowRepository {
     followIri: string,
     followeeIri: string,
   ): Promise<
-    {
-      followIri: string;
-      followerActorId: Uuid;
-      followeeActorId: Uuid;
-    } | undefined
+    | {
+        followIri: string;
+        followerActorId: Uuid;
+        followeeActorId: Uuid;
+      }
+    | undefined
   >;
 }
 
@@ -80,11 +81,12 @@ async function findPendingOutgoingByIri(
   followIri: string,
   followeeIri: string,
 ): Promise<
-  {
-    followIri: string;
-    followerActorId: Uuid;
-    followeeActorId: Uuid;
-  } | undefined
+  | {
+      followIri: string;
+      followerActorId: Uuid;
+      followeeActorId: Uuid;
+    }
+  | undefined
 > {
   const pendingFollow = await db.query.followingTable.findFirst({
     columns: {
@@ -104,10 +106,10 @@ async function findPendingOutgoingByIri(
   });
   return pendingFollow?.followee.iri === followeeIri
     ? {
-      followIri: pendingFollow.iri,
-      followerActorId: pendingFollow.followerId,
-      followeeActorId: pendingFollow.followeeId,
-    }
+        followIri: pendingFollow.iri,
+        followerActorId: pendingFollow.followerId,
+        followeeActorId: pendingFollow.followeeId,
+      }
     : undefined;
 }
 
@@ -119,10 +121,7 @@ export async function reconcileFollowAcceptance(
     followeeActorId: Uuid;
   },
 ): Promise<boolean> {
-  if (
-    values.followIri != null &&
-    await repo.acceptByIri(values.followIri)
-  ) {
+  if (values.followIri != null && (await repo.acceptByIri(values.followIri))) {
     return true;
   }
   return await repo.acceptByActorIds(
@@ -157,7 +156,7 @@ export async function reconcileFollowRejection(
 ): Promise<boolean> {
   if (
     values.followIri != null &&
-    await repo.rejectByIri(values.followIri, values.followeeActorId)
+    (await repo.rejectByIri(values.followIri, values.followeeActorId))
   ) {
     return true;
   }
@@ -194,16 +193,22 @@ export async function onFollowAccepted(
       return await findPendingOutgoingByIri(db, followIri, followeeIri);
     },
     async acceptByIri(followIri: string) {
-      return await acceptFollowing(db, followIri) != null;
+      return (await acceptFollowing(db, followIri)) != null;
     },
     async acceptByActorIds(followerActorId: Uuid, followeeActorId: Uuid) {
-      const rows = await db.update(followingTable).set({
-        accepted: sql`CURRENT_TIMESTAMP`,
-      }).where(and(
-        eq(followingTable.followerId, followerActorId),
-        eq(followingTable.followeeId, followeeActorId),
-        sql`${followingTable.accepted} IS NULL`,
-      )).returning();
+      const rows = await db
+        .update(followingTable)
+        .set({
+          accepted: sql`CURRENT_TIMESTAMP`,
+        })
+        .where(
+          and(
+            eq(followingTable.followerId, followerActorId),
+            eq(followingTable.followeeId, followeeActorId),
+            sql`${followingTable.accepted} IS NULL`,
+          ),
+        )
+        .returning();
       if (rows.length > 0) {
         await updateFolloweesCount(db, rows[0].followerId, 1);
         await updateFollowersCount(db, rows[0].followeeId, 1);
@@ -212,19 +217,17 @@ export async function onFollowAccepted(
     },
   };
   if (
-    await reconcileFollowAcceptanceFromObjectId(
-      fallbackRepo,
-      {
-        followIri: accept.objectId?.href ?? null,
-        followeeIri: accept.actorId?.href ?? null,
-      },
-    )
+    await reconcileFollowAcceptanceFromObjectId(fallbackRepo, {
+      followIri: accept.objectId?.href ?? null,
+      followeeIri: accept.actorId?.href ?? null,
+    })
   ) {
     return true;
   }
-  const follow = resolved == null
-    ? await accept.getObject({ ...fedCtx, crossOrigin: "trust" })
-    : resolved.object;
+  const follow =
+    resolved == null
+      ? await accept.getObject({ ...fedCtx, crossOrigin: "trust" })
+      : resolved.object;
   if (!(follow instanceof Follow)) return false;
   else if (follow.objectId == null) return false;
   else if (accept.actorId?.href !== follow.objectId.href) return false;
@@ -243,10 +246,10 @@ export async function onFollowAccepted(
   return await reconcileFollowAcceptance(
     {
       async acceptByIri(followIri) {
-        return await acceptFollowing(db, followIri) != null;
+        return (await acceptFollowing(db, followIri)) != null;
       },
       async acceptByActorIds(_followerActorId, _followeeActorId) {
-        return await acceptFollowing(db, follower, followee) != null;
+        return (await acceptFollowing(db, follower, followee)) != null;
       },
     },
     {
@@ -293,19 +296,17 @@ export async function onFollowRejected(
     },
   };
   if (
-    await reconcileFollowRejectionFromObjectId(
-      fallbackRepo,
-      {
-        followIri: reject.objectId?.href ?? null,
-        followeeIri: reject.actorId?.href ?? null,
-      },
-    )
+    await reconcileFollowRejectionFromObjectId(fallbackRepo, {
+      followIri: reject.objectId?.href ?? null,
+      followeeIri: reject.actorId?.href ?? null,
+    })
   ) {
     return true;
   }
-  const follow = resolved == null
-    ? await reject.getObject({ ...fedCtx, crossOrigin: "trust" })
-    : resolved.object;
+  const follow =
+    resolved == null
+      ? await reject.getObject({ ...fedCtx, crossOrigin: "trust" })
+      : resolved.object;
   if (reject.actorId == null) return false;
   if (!(follow instanceof Follow)) return false;
   if (follow.objectId?.href !== reject.actorId?.href) return false;
@@ -371,14 +372,18 @@ export async function onFollowed(
     where: { id: followObject.identifier },
   });
   if (followee == null) return;
-  const follower = prepared ?? await prepareFollower(fedCtx, follow);
+  const follower = prepared ?? (await prepareFollower(fedCtx, follow));
   if (follower == null) return;
-  const rows = await db.insert(followingTable).values({
-    iri: follow.id.href,
-    followerId: follower.persisted.id,
-    followeeId: followee.actor.id,
-    accepted: sql`CURRENT_TIMESTAMP`,
-  }).onConflictDoNothing().returning();
+  const rows = await db
+    .insert(followingTable)
+    .values({
+      iri: follow.id.href,
+      followerId: follower.persisted.id,
+      followeeId: followee.actor.id,
+      accepted: sql`CURRENT_TIMESTAMP`,
+    })
+    .onConflictDoNothing()
+    .returning();
   if (rows.length < 1) return;
   await updateFolloweesCount(db, follower.persisted.id, 1);
   await updateFollowersCount(db, followee.actor.id, 1);
@@ -411,9 +416,9 @@ export async function prepareFollower(
   fedCtx: InboxContext<ContextData>,
   follow: Follow,
 ): Promise<PreparedFollower | undefined> {
-  if (
-    follow.id == null || follow.actorId == null || follow.objectId == null
-  ) return undefined;
+  if (follow.id == null || follow.actorId == null || follow.objectId == null) {
+    return undefined;
+  }
   const followObject = fedCtx.parseUri(follow.objectId);
   if (followObject?.type !== "actor") return undefined;
   if (!validateUuid(followObject.identifier)) return undefined;
@@ -458,13 +463,15 @@ export async function onUnfollowed(
     where: { iri: undo.actorId.href },
   });
   if (actor == null) return;
-  const rows = await db.delete(followingTable)
+  const rows = await db
+    .delete(followingTable)
     .where(
       and(
         eq(followingTable.iri, follow.id.href),
         eq(followingTable.followerId, actor.id),
       ),
-    ).returning();
+    )
+    .returning();
   if (rows.length < 1) {
     logger.debug("No following found for unfollow: {follow}", { follow });
     return;
@@ -476,11 +483,7 @@ export async function onUnfollowed(
     where: { id: following.followeeId },
   });
   if (followee?.accountId != null) {
-    await deleteFollowNotification(
-      db,
-      followee.accountId,
-      actor,
-    );
+    await deleteFollowNotification(db, followee.accountId, actor);
   }
 }
 
@@ -513,13 +516,15 @@ export async function onUnblocked(
     return false;
   }
   const { db } = fedCtx.data;
-  const rows = await db.delete(blockingTable)
+  const rows = await db
+    .delete(blockingTable)
     .where(
       and(
         eq(blockingTable.iri, block.id.href),
         eq(
           blockingTable.blockerId,
-          db.select({ id: actorTable.id })
+          db
+            .select({ id: actorTable.id })
             .from(actorTable)
             .where(eq(actorTable.iri, undo.actorId.href)),
         ),

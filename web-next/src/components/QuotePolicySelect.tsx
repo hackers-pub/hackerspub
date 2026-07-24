@@ -6,7 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import { cn } from "~/lib/utils.ts";
 import IconLockKeyhole from "~icons/lucide/lock-keyhole";
 import IconRepeat2 from "~icons/lucide/repeat-2";
@@ -58,9 +58,11 @@ export function QuotePolicySelect(props: QuotePolicySelectProps) {
       )}
     >
       <SelectTrigger class={cn("w-[220px]", props.class)}>
-        <SelectValue<
-          { value: QuotePolicy; label: string; icon: () => JSX.Element }
-        >>
+        <SelectValue<{
+          value: QuotePolicy;
+          label: string;
+          icon: () => JSX.Element;
+        }>>
           {(state) => (
             <div class="flex flex-row gap-1 items-center">
               {state.selectedOption().icon()}

@@ -12,10 +12,9 @@ export function LinkPreview(props: LinkPreviewProps) {
   const note = createFragment(
     graphql`
       fragment LinkPreview_note on Note
-        @argumentDefinitions(
-          actingAccountId: { type: "ID", defaultValue: null }
-        )
-      {
+      @argumentDefinitions(
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
         media {
           url
         }
@@ -46,9 +45,12 @@ export function LinkPreview(props: LinkPreviewProps) {
 
   const shouldShowLink = () => {
     const n = note();
-    return n && n.media.length === 0 && n.quotedPost == null &&
-        n.quoteTargetState == null && n.link != null &&
-        n.linkPreviewUrl != null
+    return n &&
+      n.media.length === 0 &&
+      n.quotedPost == null &&
+      n.quoteTargetState == null &&
+      n.link != null &&
+      n.linkPreviewUrl != null
       ? { link: n.link, url: n.linkPreviewUrl }
       : null;
   };
@@ -60,11 +62,13 @@ export function LinkPreview(props: LinkPreviewProps) {
       {(preview) => {
         const link = preview.link;
         const image = link.image;
-        const layoutMode = image == null ||
-            (image.width != null && image.height != null &&
-              image.width / image.height > 1.5)
-          ? "wide"
-          : "compact";
+        const layoutMode =
+          image == null ||
+          (image.width != null &&
+            image.height != null &&
+            image.width / image.height > 1.5)
+            ? "wide"
+            : "compact";
         const author = link.author;
 
         return (
@@ -87,9 +91,11 @@ export function LinkPreview(props: LinkPreviewProps) {
                       alt={img.alt ?? undefined}
                       width={img.width ?? undefined}
                       height={img.height ?? undefined}
-                      style={img.width != null && img.height != null
-                        ? `aspect-ratio: ${img.width} / ${img.height}`
-                        : undefined}
+                      style={
+                        img.width != null && img.height != null
+                          ? `aspect-ratio: ${img.width} / ${img.height}`
+                          : undefined
+                      }
                       class="h-full w-full object-cover data-[layout=wide]:max-h-64"
                       data-layout={layoutMode}
                     />
@@ -101,8 +107,7 @@ export function LinkPreview(props: LinkPreviewProps) {
                   {link.title}
                 </p>
                 <Show
-                  when={link.description ||
-                    (author && !URL.canParse(author))}
+                  when={link.description || (author && !URL.canParse(author))}
                 >
                   <p class="mt-2 line-clamp-2 break-words text-sm leading-6 text-muted-foreground">
                     <Show keyed when={author}>

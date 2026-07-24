@@ -21,13 +21,13 @@ meets the quality standards below.
 Adding translatable strings to components
 -----------------------------------------
 
-Import from `~/lib/i18n/macro.d.ts`.  Always call `useLingui()` at the
+Import from `~/lib/i18n/macro.ts`.  Always call `useLingui()` at the
 top of the component to get the translation helpers.
 
 ### Simple text
 
 ~~~~ tsx
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 function MyComponent() {
   const { t } = useLingui();
@@ -62,7 +62,7 @@ When a translation needs inline JSX (links, bold, components), use the
 
 ~~~~ tsx
 import { Trans } from "~/components/Trans.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 function MyComponent() {
   const { t } = useLingui();
@@ -84,7 +84,7 @@ Use `i18n._(msg`…`)` combined with `plural()`.  The `#` symbol is
 replaced with the count:
 
 ~~~~ tsx
-import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
+import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
 
 function FollowerCount(props: { count: number }) {
   const { i18n } = useLingui();

@@ -4,7 +4,7 @@ import { NoteComposer } from "~/components/NoteComposer.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { buildSignInHref } from "~/lib/authGate.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 export interface NewsDiscussionComposerProps {
   /** The discussed link's URL; appended to a posted opinion if absent. */

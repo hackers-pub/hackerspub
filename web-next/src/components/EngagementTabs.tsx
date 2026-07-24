@@ -1,6 +1,6 @@
 import { A } from "@solidjs/router";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 export type EngagementTab = "shares" | "quotes" | "reactions";
 
@@ -67,9 +67,5 @@ export function EngagementTabs(props: EngagementTabsProps) {
 // text) or unselected (muted text).  `tabular-nums` so the digits
 // don't bounce when counts grow or shrink across pagination.
 function TabCount(props: { count: number }) {
-  return (
-    <span class="ml-1 opacity-60 tabular-nums">
-      ({props.count})
-    </span>
-  );
+  return <span class="ml-1 opacity-60 tabular-nums">({props.count})</span>;
 }

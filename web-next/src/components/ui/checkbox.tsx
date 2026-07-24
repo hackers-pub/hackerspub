@@ -7,8 +7,10 @@ import type { PolymorphicProps } from "@kobalte/core/polymorphic";
 import { cn } from "~/lib/utils.ts";
 
 type CheckboxRootProps<T extends ValidComponent = "div"> =
-  & CheckboxPrimitive.CheckboxRootProps<T>
-  & { class?: string | undefined; children?: JSX.Element };
+  CheckboxPrimitive.CheckboxRootProps<T> & {
+    class?: string | undefined;
+    children?: JSX.Element;
+  };
 
 const Checkbox = <T extends ValidComponent = "div">(
   props: PolymorphicProps<T, CheckboxRootProps<T>>,
@@ -63,8 +65,7 @@ const Checkbox = <T extends ValidComponent = "div">(
 };
 
 type CheckboxLabelProps<T extends ValidComponent = "label"> =
-  & CheckboxPrimitive.CheckboxLabelProps<T>
-  & { class?: string | undefined };
+  CheckboxPrimitive.CheckboxLabelProps<T> & { class?: string | undefined };
 
 const CheckboxLabel = <T extends ValidComponent = "label">(
   props: PolymorphicProps<T, CheckboxLabelProps<T>>,
@@ -82,8 +83,9 @@ const CheckboxLabel = <T extends ValidComponent = "label">(
 };
 
 type CheckboxDescriptionProps<T extends ValidComponent = "div"> =
-  & CheckboxPrimitive.CheckboxDescriptionProps<T>
-  & { class?: string | undefined };
+  CheckboxPrimitive.CheckboxDescriptionProps<T> & {
+    class?: string | undefined;
+  };
 
 const CheckboxDescription = <T extends ValidComponent = "div">(
   props: PolymorphicProps<T, CheckboxDescriptionProps<T>>,

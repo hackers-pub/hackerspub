@@ -140,12 +140,16 @@ export async function getDescendantPage(
       ? sql.raw(`${alias}.censored is null`)
       : sql`(${sql.raw(alias)}.censored is null
           or ${sql.raw(alias)}.actor_id = ${viewerActorId})`;
-  const afterPredicate = options.after == null
-    ? sql.raw("true")
-    : sql`t.path > string_to_array(${options.after}, '/')`;
-  const rows = await db.execute<
-    { id: Uuid; parent_id: Uuid; depth: number; cursor: string }
-  >(sql`
+  const afterPredicate =
+    options.after == null
+      ? sql.raw("true")
+      : sql`t.path > string_to_array(${options.after}, '/')`;
+  const rows = await db.execute<{
+    id: Uuid;
+    parent_id: Uuid;
+    depth: number;
+    cursor: string;
+  }>(sql`
     with recursive thread as (
       select p.id, p.reply_target_id as parent_id, 1 as depth,
         array[${pathElement("p")}] as path,

@@ -9,7 +9,7 @@ import {
   TextFieldTextArea,
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type { ModerationActionForm_takeAction_Mutation } from "./__generated__/ModerationActionForm_takeAction_Mutation.graphql.ts";
 
 export interface CocProvisionItem {
@@ -99,9 +99,10 @@ export function ModerationActionForm(props: ModerationActionFormProps) {
   const [suspensionDays, setSuspensionDays] = createSignal<number>(7);
   const [touched, setTouched] = createSignal(false);
 
-  const [commit, submitting] = createMutation<
-    ModerationActionForm_takeAction_Mutation
-  >(takeActionMutation);
+  const [commit, submitting] =
+    createMutation<ModerationActionForm_takeAction_Mutation>(
+      takeActionMutation,
+    );
 
   const actionTypes = createMemo(() => {
     const all: {
@@ -127,7 +128,8 @@ export function ModerationActionForm(props: ModerationActionFormProps) {
   // case.  Require a remote-safe summary then, so the server never falls back
   // to the internal rationale (which could carry reporter-identifying text).
   const requiresForwardSummary = () =>
-    props.forwardingEnabled && actionType() != null &&
+    props.forwardingEnabled &&
+    actionType() != null &&
     actionType() !== "DISMISS";
   const forwardSummaryMissing = () =>
     requiresForwardSummary() && forwardSummary().trim().length < 1;
@@ -159,7 +161,9 @@ export function ModerationActionForm(props: ModerationActionFormProps) {
     setTouched(true);
     const at = actionType();
     if (
-      at == null || rationaleMissing() || provisionsMissing() ||
+      at == null ||
+      rationaleMissing() ||
+      provisionsMissing() ||
       forwardSummaryMissing()
     ) {
       return;
@@ -171,8 +175,9 @@ export function ModerationActionForm(props: ModerationActionFormProps) {
     if (at === "SUSPEND") {
       const now = new Date();
       suspensionStarts = now.toISOString();
-      suspensionEnds = new Date(now.getTime() + suspensionDays() * DAY_MS)
-        .toISOString();
+      suspensionEnds = new Date(
+        now.getTime() + suspensionDays() * DAY_MS,
+      ).toISOString();
     }
 
     commit({
@@ -181,14 +186,14 @@ export function ModerationActionForm(props: ModerationActionFormProps) {
         actionType: at,
         violatedProvisions: needsProvisions() ? [...selected()] : null,
         rationale: rationale().trim(),
-        messageToUser: props.local && messageToUser().trim()
-          ? messageToUser().trim()
-          : null,
+        messageToUser:
+          props.local && messageToUser().trim() ? messageToUser().trim() : null,
         suspensionStarts: suspensionStarts ?? null,
         suspensionEnds: suspensionEnds ?? null,
-        forwardSummary: requiresForwardSummary() && forwardSummary().trim()
-          ? forwardSummary().trim()
-          : null,
+        forwardSummary:
+          requiresForwardSummary() && forwardSummary().trim()
+            ? forwardSummary().trim()
+            : null,
       },
       onCompleted(response) {
         const result = response.takeModerationAction;
@@ -243,9 +248,7 @@ export function ModerationActionForm(props: ModerationActionFormProps) {
           </For>
         </div>
         <Show when={touched() && actionType() == null}>
-          <p class="text-xs text-error-foreground">
-            {t`Choose a decision.`}
-          </p>
+          <p class="text-xs text-error-foreground">{t`Choose a decision.`}</p>
         </Show>
       </fieldset>
 
@@ -334,9 +337,7 @@ export function ModerationActionForm(props: ModerationActionFormProps) {
 
       <Show when={requiresForwardSummary()}>
         <TextField value={forwardSummary()} onChange={setForwardSummary}>
-          <TextFieldLabel>
-            {t`Summary for the remote instance`}
-          </TextFieldLabel>
+          <TextFieldLabel>{t`Summary for the remote instance`}</TextFieldLabel>
           <TextFieldTextArea
             rows={2}
             placeholder={t`A reporter opted in to forwarding, so this is sent to the remote instance. Never include the reporter's wording.`}

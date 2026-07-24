@@ -27,8 +27,10 @@ export interface TagsPubRelayDecisionOptions {
   readonly relayedTags?: readonly string[] | Record<string, string>;
 }
 
-export interface SendTagsPubRelayOptions
-  extends Omit<TagsPubRelayDecisionOptions, "config"> {
+export interface SendTagsPubRelayOptions extends Omit<
+  TagsPubRelayDecisionOptions,
+  "config"
+> {
   readonly orderingKey: string;
 }
 
@@ -43,14 +45,16 @@ export function getTagsPubRelayConfig(
   const enabled = parseBooleanEnv(env.TAGS_PUB_RELAY);
   if (!enabled) return { enabled: false };
 
-  const inboxId = env.TAGS_PUB_RELAY_INBOX_URL == null ||
-      env.TAGS_PUB_RELAY_INBOX_URL.trim() === ""
-    ? DEFAULT_TAGS_PUB_RELAY_INBOX_ID
-    : new URL(env.TAGS_PUB_RELAY_INBOX_URL);
-  const actorId = env.TAGS_PUB_RELAY_ACTOR_URL == null ||
-      env.TAGS_PUB_RELAY_ACTOR_URL.trim() === ""
-    ? defaultActorUrlFromInbox(inboxId)
-    : new URL(env.TAGS_PUB_RELAY_ACTOR_URL);
+  const inboxId =
+    env.TAGS_PUB_RELAY_INBOX_URL == null ||
+    env.TAGS_PUB_RELAY_INBOX_URL.trim() === ""
+      ? DEFAULT_TAGS_PUB_RELAY_INBOX_ID
+      : new URL(env.TAGS_PUB_RELAY_INBOX_URL);
+  const actorId =
+    env.TAGS_PUB_RELAY_ACTOR_URL == null ||
+    env.TAGS_PUB_RELAY_ACTOR_URL.trim() === ""
+      ? defaultActorUrlFromInbox(inboxId)
+      : new URL(env.TAGS_PUB_RELAY_ACTOR_URL);
 
   return { enabled: true, actorId, inboxId };
 }
@@ -135,10 +139,7 @@ export async function sendTagsPubRelayActivity(
     {
       orderingKey: options.orderingKey,
       preferSharedInbox: false,
-      excludeBaseUris: [
-        new URL(ctx.origin),
-        new URL(ctx.canonicalOrigin),
-      ],
+      excludeBaseUris: [new URL(ctx.origin), new URL(ctx.canonicalOrigin)],
     },
   );
   return decision.relayedTags;
@@ -150,12 +151,10 @@ async function getActivityHashtagNames(
   const tags = new Set<string>();
   await addHashtags(tags, activity);
 
-  for await (
-    const object of activity.getObjects({
-      suppressError: true,
-      crossOrigin: "trust",
-    })
-  ) {
+  for await (const object of activity.getObjects({
+    suppressError: true,
+    crossOrigin: "trust",
+  })) {
     await addHashtags(tags, object);
   }
 
@@ -166,12 +165,10 @@ async function addHashtags(
   tags: Set<string>,
   object: vocab.Object,
 ): Promise<void> {
-  for await (
-    const tag of object.getTags({
-      suppressError: true,
-      crossOrigin: "trust",
-    })
-  ) {
+  for await (const tag of object.getTags({
+    suppressError: true,
+    crossOrigin: "trust",
+  })) {
     if (!(tag instanceof vocab.Hashtag) || tag.name == null) continue;
     const name = tag.name.toString().trim().replace(/^#/, "").toLowerCase();
     if (name !== "") tags.add(name);
@@ -209,9 +206,11 @@ export function isTagsPubHashtagActor(iri: string): boolean {
   try {
     const url = new URL(iri);
     const match = url.pathname.match(/^\/user\/([^/]+)$/);
-    return url.origin === TAGS_PUB_ORIGIN &&
+    return (
+      url.origin === TAGS_PUB_ORIGIN &&
       match != null &&
-      !match[1].startsWith("_");
+      !match[1].startsWith("_")
+    );
   } catch {
     return false;
   }
@@ -223,9 +222,9 @@ function getTagsPubHashtagFollowIri(
 ): URL {
   const hostname = new URL(ctx.canonicalOrigin).hostname;
   return new URL(
-    `/ap/actors/${hostname}/hashtag-follows/tags.pub/${
-      encodeURIComponent(tag)
-    }`,
+    `/ap/actors/${hostname}/hashtag-follows/tags.pub/${encodeURIComponent(
+      tag,
+    )}`,
     ctx.canonicalOrigin,
   );
 }

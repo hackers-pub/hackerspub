@@ -50,15 +50,13 @@ test("legacy Fedify deliveries migrate before the transactional queue starts", a
           'actor:alice'
         ),
         (
-          ${
-      JSON.stringify({
-        type: "outbox",
-        id: deliveryId,
-        activityId: "https://example.com/activities/legacy",
-        activityType: "Create",
-        inbox: "https://remote.example/inbox",
-      })
-    }::jsonb,
+          ${JSON.stringify({
+            type: "outbox",
+            id: deliveryId,
+            activityId: "https://example.com/activities/legacy",
+            activityType: "Create",
+            inbox: "https://remote.example/inbox",
+          })}::jsonb,
           interval '3 minutes',
           timestamp with time zone '2026-07-14T00:01:00Z',
           'actor:alice'
@@ -73,9 +71,11 @@ test("legacy Fedify deliveries migrate before the transactional queue starts", a
 
     assert.equal(await migrateLegacyOutboxEvents(tx), 2);
 
-    const migrated = await tx.select().from(outboxEventTable).where(
-      inArray(outboxEventTable.messageId, [fanoutId, deliveryId]),
-    ).orderBy(outboxEventTable.sequence);
+    const migrated = await tx
+      .select()
+      .from(outboxEventTable)
+      .where(inArray(outboxEventTable.messageId, [fanoutId, deliveryId]))
+      .orderBy(outboxEventTable.sequence);
     assert.deepEqual(
       migrated.map((row) => ({
         eventType: row.eventType,
@@ -103,7 +103,10 @@ test("legacy Fedify deliveries migrate before the transactional queue starts", a
       FROM fedify_message_v2
       WHERE message->>'id' IN (${fanoutId}, ${deliveryId}, ${inboxId})
     `);
-    assert.deepEqual(legacy.map((row) => row.message.id), [inboxId]);
+    assert.deepEqual(
+      legacy.map((row) => row.message.id),
+      [inboxId],
+    );
   });
 });
 
@@ -123,7 +126,8 @@ test("outbox enqueue follows transaction commit and rollback", async () => {
       /roll back/,
     );
 
-    const rows = await tx.select({ messageId: outboxEventTable.messageId })
+    const rows = await tx
+      .select({ messageId: outboxEventTable.messageId })
       .from(outboxEventTable);
     assert.deepEqual(rows, [{ messageId: "committed" }]);
   });
@@ -133,11 +137,10 @@ test("outbox claims one ordered event at a time across workers", async () => {
   await withRollback(async (tx) => {
     await tx.delete(outboxEventTable);
     const now = new Date("2026-07-14T00:00:00.000Z");
-    await enqueueOutboxEvents(
-      tx,
-      [delivery("first"), delivery("second")],
-      { orderingKey: "actor:alice", now },
-    );
+    await enqueueOutboxEvents(tx, [delivery("first"), delivery("second")], {
+      orderingKey: "actor:alice",
+      now,
+    });
 
     const first = await claimOutboxEvent(tx, "activitypub.delivery", {
       now,
@@ -166,16 +169,18 @@ test("outbox does not claim a lower event while the same key is processing", asy
   await withRollback(async (tx) => {
     await tx.delete(outboxEventTable);
     const now = new Date("2026-07-14T00:00:00.000Z");
-    await enqueueOutboxEvents(
-      tx,
-      [delivery("lower"), delivery("higher")],
-      { orderingKey: "actor:commit-race", now },
-    );
-    await tx.update(outboxEventTable).set({
-      status: "processing",
-      leaseToken: crypto.randomUUID(),
-      leased: now,
-    }).where(eq(outboxEventTable.messageId, "higher"));
+    await enqueueOutboxEvents(tx, [delivery("lower"), delivery("higher")], {
+      orderingKey: "actor:commit-race",
+      now,
+    });
+    await tx
+      .update(outboxEventTable)
+      .set({
+        status: "processing",
+        leaseToken: crypto.randomUUID(),
+        leased: now,
+      })
+      .where(eq(outboxEventTable.messageId, "higher"));
 
     const claimed = await claimOutboxEvent(tx, "activitypub.delivery", {
       now,
@@ -220,9 +225,9 @@ test("same-key enqueue transactions serialize before either can commit", async (
   } finally {
     releaseFirst.resolve();
     await Promise.allSettled([firstTransaction, secondTransaction]);
-    await testDb.delete(outboxEventTable).where(
-      eq(outboxEventTable.orderingKey, orderingKey),
-    );
+    await testDb
+      .delete(outboxEventTable)
+      .where(eq(outboxEventTable.orderingKey, orderingKey));
   }
 });
 
@@ -315,7 +320,9 @@ test("completed outbox rows redact sensitive payloads", async () => {
     assert(event != null);
     await completeOutboxEvent(tx, event, now);
 
-    const [row] = await tx.select().from(outboxEventTable)
+    const [row] = await tx
+      .select()
+      .from(outboxEventTable)
       .where(sql`${outboxEventTable.id} = ${event.id}`);
     assert.equal(row.status, "completed");
     assert.equal(row.payload, null);
@@ -328,14 +335,12 @@ test("outbox pruning keeps recent diagnostics and removes expired rows", async (
     await tx.delete(outboxEventTable);
     const old = new Date("2026-06-01T00:00:00.000Z");
     const recent = new Date("2026-07-13T12:00:00.000Z");
-    for (
-      const messageId of [
-        "old-completed",
-        "recent-completed",
-        "old-dead",
-        "recent-dead",
-      ]
-    ) {
+    for (const messageId of [
+      "old-completed",
+      "recent-completed",
+      "old-dead",
+      "recent-dead",
+    ]) {
       await enqueueOutboxEvents(tx, [delivery(messageId)], { now: old });
       const event = await claimOutboxEvent(tx, "activitypub.delivery", {
         now: old,
@@ -365,11 +370,12 @@ test("outbox pruning keeps recent diagnostics and removes expired rows", async (
       }),
       2,
     );
-    const rows = await tx.select({ messageId: outboxEventTable.messageId })
+    const rows = await tx
+      .select({ messageId: outboxEventTable.messageId })
       .from(outboxEventTable);
-    assert.deepEqual(
-      rows.map(({ messageId }) => messageId).sort(),
-      ["recent-completed", "recent-dead"],
-    );
+    assert.deepEqual(rows.map(({ messageId }) => messageId).sort(), [
+      "recent-completed",
+      "recent-dead",
+    ]);
   });
 });

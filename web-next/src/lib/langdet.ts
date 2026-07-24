@@ -15,8 +15,10 @@ export function detectLanguage(options: DetectLanguageOptions): string | null {
     accuracy: number;
   }[];
   for (let i = 0; i < langDetect.length; i++) {
-    langDetect[i].accuracy = (langDetect[i].accuracy +
-      (acceptLanguages[langDetect[i].lang] ?? acceptLanguages["*"] ?? 0)) / 2;
+    langDetect[i].accuracy =
+      (langDetect[i].accuracy +
+        (acceptLanguages[langDetect[i].lang] ?? acceptLanguages["*"] ?? 0)) /
+      2;
   }
   langDetect.sort((a, b) => b.accuracy - a.accuracy);
   if (langDetect.length < 1) return null;
@@ -26,7 +28,10 @@ export function detectLanguage(options: DetectLanguageOptions): string | null {
 
 function parseAcceptLanguage(acceptLanguage: string): Record<string, number> {
   const langs: [string, number][] = acceptLanguage.split(",").map((lang) => {
-    const [code, q] = lang.trim().split(";").map((s) => s.trim());
+    const [code, q] = lang
+      .trim()
+      .split(";")
+      .map((s) => s.trim());
     return [code.substring(0, 2), q == null ? 1 : parseFloat(q.split("=")[1])];
   });
   langs.sort((a, b) => b[1] - a[1]);
@@ -38,6 +43,5 @@ function sanitizeText(text: string): string {
   const MENTION_PATTERN =
     /@[\p{L}\p{N}._-]+(@(?:[\p{L}\p{N}][\p{L}\p{N}_-]*\.)+[\p{L}\p{N}]{2,})?/giu;
 
-  return text.replaceAll(URL_PATTERN, "")
-    .replaceAll(MENTION_PATTERN, "");
+  return text.replaceAll(URL_PATTERN, "").replaceAll(MENTION_PATTERN, "");
 }

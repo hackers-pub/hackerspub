@@ -67,7 +67,7 @@ import {
   SelectValue,
 } from "~/components/ui/select.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
-import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
+import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,
@@ -134,11 +134,9 @@ const accountPageQuery = graphql`
 
 const loadAccountPageQuery = routePreloadedQuery(
   (handle: string) =>
-    loadQuery<accountPageQuery>(
-      useRelayEnvironment()(),
-      accountPageQuery,
-      { username: handle.replace(/^@/, "") },
-    ),
+    loadQuery<accountPageQuery>(useRelayEnvironment()(), accountPageQuery, {
+      username: handle.replace(/^@/, ""),
+    }),
   "loadAccountPageQuery",
 );
 
@@ -175,9 +173,7 @@ const accountDeleteMutation = graphql`
 
 const accountAddMigrationAliasMutation = graphql`
   mutation accountAddMigrationAliasMutation($accountId: ID!, $actor: String!) {
-    addAccountMigrationAlias(
-      input: { accountId: $accountId, actor: $actor }
-    ) {
+    addAccountMigrationAlias(input: { accountId: $accountId, actor: $actor }) {
       __typename
       ... on AddAccountMigrationAliasPayload {
         account {
@@ -593,10 +589,7 @@ export default function AccountSettingsPage() {
 
 type OrganizationMemberRole = "ADMIN" | "MEMBER";
 
-const ORGANIZATION_ROLE_OPTIONS: OrganizationMemberRole[] = [
-  "MEMBER",
-  "ADMIN",
-];
+const ORGANIZATION_ROLE_OPTIONS: OrganizationMemberRole[] = ["MEMBER", "ADMIN"];
 
 type OrganizationMembershipSummary =
   AccountPageViewer["organizationMemberships"][number];
@@ -634,9 +627,7 @@ function OrganizationIdentity(props: {
         <p class="truncate text-sm font-medium">
           {props.name || props.username}
         </p>
-        <p class="truncate text-xs text-muted-foreground">
-          @{props.username}
-        </p>
+        <p class="truncate text-xs text-muted-foreground">@{props.username}</p>
       </div>
     </div>
   );
@@ -651,12 +642,10 @@ function PersonalOrganizationCards(props: {
   const belongsToOrganizations = () => organizationCount() > 0;
   const membershipNotice = () =>
     i18n._(
-      msg`${
-        plural(organizationCount(), {
-          one: "You still belong to # organization.",
-          other: "You still belong to # organizations.",
-        })
-      }`,
+      msg`${plural(organizationCount(), {
+        one: "You still belong to # organization.",
+        other: "You still belong to # organizations.",
+      })}`,
     );
 
   return (
@@ -734,14 +723,16 @@ function CreateOrganizationForm(props: { invitationsLeft: number }) {
   const [name, setName] = createSignal("");
   const [bio, setBio] = createSignal("");
   const [creating, setCreating] = createSignal(false);
-  const [createOrganization] = createMutation<
-    accountCreateOrganizationMutation
-  >(accountCreateOrganizationMutation);
-  const canCreate = createMemo(() =>
-    props.invitationsLeft > 0 &&
-    username().trim() !== "" &&
-    name().trim() !== "" &&
-    !creating()
+  const [createOrganization] =
+    createMutation<accountCreateOrganizationMutation>(
+      accountCreateOrganizationMutation,
+    );
+  const canCreate = createMemo(
+    () =>
+      props.invitationsLeft > 0 &&
+      username().trim() !== "" &&
+      name().trim() !== "" &&
+      !creating(),
   );
 
   function onSubmit(event: SubmitEvent) {
@@ -769,9 +760,10 @@ function CreateOrganizationForm(props: { invitationsLeft: number }) {
         }
         showToast({
           title: t`Could not create organization`,
-          description: result != null && "message" in result
-            ? result.message
-            : t`Check the username and your remaining invitations, then try again.`,
+          description:
+            result != null && "message" in result
+              ? result.message
+              : t`Check the username and your remaining invitations, then try again.`,
           variant: "error",
         });
       },
@@ -844,9 +836,10 @@ function OrganizationInvitationList(props: {
   const roleLabel = (role: string) =>
     role === "ADMIN" ? t`Organization admin` : t`Member`;
   const [acceptingId, setAcceptingId] = createSignal<string | null>(null);
-  const [acceptInvitation] = createMutation<
-    accountAcceptOrganizationInvitationMutation
-  >(accountAcceptOrganizationInvitationMutation);
+  const [acceptInvitation] =
+    createMutation<accountAcceptOrganizationInvitationMutation>(
+      accountAcceptOrganizationInvitationMutation,
+    );
 
   function onAccept(invitation: OrganizationInvitationSummary) {
     if (acceptingId() != null) return;
@@ -859,17 +852,17 @@ function OrganizationInvitationList(props: {
         if (result?.__typename === "AcceptOrganizationInvitationPayload") {
           showToast({
             title: t`Invitation accepted`,
-            description:
-              t`You can now act as ${result.membership.organization.username}.`,
+            description: t`You can now act as ${result.membership.organization.username}.`,
           });
           location.reload();
           return;
         }
         showToast({
           title: t`Could not accept invitation`,
-          description: result != null && "message" in result
-            ? result.message
-            : t`The invitation could not be accepted. Please try again.`,
+          description:
+            result != null && "message" in result
+              ? result.message
+              : t`The invitation could not be accepted. Please try again.`,
           variant: "error",
         });
       },
@@ -958,9 +951,10 @@ function OrganizationMembershipList(props: {
         }
         showToast({
           title: t`Could not leave organization`,
-          description: result != null && "message" in result
-            ? result.message
-            : t`The organization could not be left. Please try again.`,
+          description:
+            result != null && "message" in result
+              ? result.message
+              : t`The organization could not be left. Please try again.`,
           variant: "error",
         });
       },
@@ -1036,14 +1030,14 @@ function OrganizationConversionForms(props: { account: AccountPageAccount }) {
   const { t } = useLingui();
   const environment = useRelayEnvironment();
   const [adminUsername, setAdminUsername] = createSignal("");
-  const [selectedAdmin, setSelectedAdmin] = createSignal<
-    OrganizationConversionAdminAccount | null
-  >(null);
+  const [selectedAdmin, setSelectedAdmin] =
+    createSignal<OrganizationConversionAdminAccount | null>(null);
   const [confirmation, setConfirmation] = createSignal("");
   const [requesting, setRequesting] = createSignal(false);
-  const [requestConversion] = createMutation<
-    accountRequestOrganizationConversionMutation
-  >(accountRequestOrganizationConversionMutation);
+  const [requestConversion] =
+    createMutation<accountRequestOrganizationConversionMutation>(
+      accountRequestOrganizationConversionMutation,
+    );
   let adminLookupRequest = 0;
   const lookupAdmin = debounce((username: string, requestId: number) => {
     fetchQuery<accountOrganizationConversionAdminLookupQuery>(
@@ -1062,10 +1056,11 @@ function OrganizationConversionForms(props: { account: AccountPageAccount }) {
       },
     });
   }, 150);
-  const canRequest = createMemo(() =>
-    adminUsername().trim() !== "" &&
-    confirmation().trim() === props.account.username &&
-    !requesting()
+  const canRequest = createMemo(
+    () =>
+      adminUsername().trim() !== "" &&
+      confirmation().trim() === props.account.username &&
+      !requesting(),
   );
 
   function onAdminUsernameInput(value: string) {
@@ -1118,16 +1113,16 @@ function OrganizationConversionForms(props: { account: AccountPageAccount }) {
         if (result?.__typename === "RequestOrganizationConversionPayload") {
           showToast({
             title: t`Conversion request created`,
-            description:
-              t`${result.request.admin.username} will receive a notification to review it.`,
+            description: t`${result.request.admin.username} will receive a notification to review it.`,
           });
           return;
         }
         showToast({
           title: t`Could not request conversion`,
-          description: result != null && "message" in result
-            ? result.message
-            : t`Check the admin username and confirmation, then try again.`,
+          description:
+            result != null && "message" in result
+              ? result.message
+              : t`Check the admin username and confirmation, then try again.`,
           variant: "error",
         });
       },
@@ -1248,18 +1243,16 @@ function OrganizationMemberManagementCard(props: {
   const roleLabel = (role: string) =>
     role === "ADMIN" ? t`Organization admin` : t`Member`;
   const environment = useRelayEnvironment();
-  const [members, setMembers] = createSignal<
-    readonly OrganizationMemberRow[]
-  >([]);
+  const [members, setMembers] = createSignal<readonly OrganizationMemberRow[]>(
+    [],
+  );
   const [loading, setLoading] = createSignal(true);
   const [loadError, setLoadError] = createSignal("");
   const [inviteUsername, setInviteUsername] = createSignal("");
-  const [selectedInviteAccount, setSelectedInviteAccount] = createSignal<
-    LocalAutocompleteAccount | null
-  >(null);
-  const [inviteRole, setInviteRole] = createSignal<OrganizationMemberRole>(
-    "MEMBER",
-  );
+  const [selectedInviteAccount, setSelectedInviteAccount] =
+    createSignal<LocalAutocompleteAccount | null>(null);
+  const [inviteRole, setInviteRole] =
+    createSignal<OrganizationMemberRole>("MEMBER");
   const [inviting, setInviting] = createSignal(false);
   const [updatingMemberId, setUpdatingMemberId] = createSignal<string | null>(
     null,
@@ -1267,27 +1260,34 @@ function OrganizationMemberManagementCard(props: {
   const [removingMemberId, setRemovingMemberId] = createSignal<string | null>(
     null,
   );
-  const [inviteMember] = createMutation<
-    accountInviteOrganizationMemberMutation
-  >(accountInviteOrganizationMemberMutation);
-  const [updateRole] = createMutation<
-    accountUpdateOrganizationMemberRoleMutation
-  >(accountUpdateOrganizationMemberRoleMutation);
-  const [removeMember] = createMutation<
-    accountRemoveOrganizationMemberMutation
-  >(accountRemoveOrganizationMemberMutation);
-  const canInvite = createMemo(() =>
-    inviteUsername().trim() !== "" && !inviting()
+  const [inviteMember] =
+    createMutation<accountInviteOrganizationMemberMutation>(
+      accountInviteOrganizationMemberMutation,
+    );
+  const [updateRole] =
+    createMutation<accountUpdateOrganizationMemberRoleMutation>(
+      accountUpdateOrganizationMemberRoleMutation,
+    );
+  const [removeMember] =
+    createMutation<accountRemoveOrganizationMemberMutation>(
+      accountRemoveOrganizationMemberMutation,
+    );
+  const canInvite = createMemo(
+    () => inviteUsername().trim() !== "" && !inviting(),
   );
-  const acceptedAdminCount = createMemo(() =>
-    members().filter((member) =>
-      member.accepted != null && member.role === "ADMIN"
-    ).length
+  const acceptedAdminCount = createMemo(
+    () =>
+      members().filter(
+        (member) => member.accepted != null && member.role === "ADMIN",
+      ).length,
   );
 
   function isLastAcceptedAdmin(member: OrganizationMemberRow) {
-    return member.accepted != null && member.role === "ADMIN" &&
-      acceptedAdminCount() <= 1;
+    return (
+      member.accepted != null &&
+      member.role === "ADMIN" &&
+      acceptedAdminCount() <= 1
+    );
   }
 
   function isViewerMembership(member: OrganizationMemberRow) {
@@ -1338,17 +1338,17 @@ function OrganizationMemberManagementCard(props: {
           setSelectedInviteAccount(null);
           showToast({
             title: t`Invitation sent`,
-            description:
-              t`${result.membership.member.username} can now accept the organization invitation.`,
+            description: t`${result.membership.member.username} can now accept the organization invitation.`,
           });
           void loadMembers();
           return;
         }
         showToast({
           title: t`Could not invite member`,
-          description: result != null && "message" in result
-            ? result.message
-            : t`The member could not be invited. Please try again.`,
+          description:
+            result != null && "message" in result
+              ? result.message
+              : t`The member could not be invited. Please try again.`,
           variant: "error",
         });
       },
@@ -1357,7 +1357,8 @@ function OrganizationMemberManagementCard(props: {
         setInviting(false);
         showToast({
           title: t`Could not invite member`,
-          description: t`The member could not be invited. Please try again.` +
+          description:
+            t`The member could not be invited. Please try again.` +
             (import.meta.env.DEV ? `\n\n${error.message}` : ""),
           variant: "error",
         });
@@ -1369,7 +1370,7 @@ function OrganizationMemberManagementCard(props: {
     const username = value.trim().replace(/^@/, "");
     setInviteUsername(username);
     setSelectedInviteAccount((account) =>
-      account?.username === username ? account : null
+      account?.username === username ? account : null,
     );
   }
 
@@ -1384,10 +1385,13 @@ function OrganizationMemberManagementCard(props: {
     role: OrganizationMemberRole,
   ) {
     if (
-      member.accepted == null || member.role === role ||
+      member.accepted == null ||
+      member.role === role ||
       isLastAcceptedAdmin(member) ||
       updatingMemberId() != null
-    ) return;
+    ) {
+      return;
+    }
     setUpdatingMemberId(member.member.id);
     updateRole({
       variables: {
@@ -1401,18 +1405,19 @@ function OrganizationMemberManagementCard(props: {
         if (result?.__typename === "UpdateOrganizationMemberRolePayload") {
           showToast({
             title: t`Role updated`,
-            description: t`${result.membership.member.username} is now ${
-              roleLabel(result.membership.role)
-            }.`,
+            description: t`${result.membership.member.username} is now ${roleLabel(
+              result.membership.role,
+            )}.`,
           });
           void loadMembers();
           return;
         }
         showToast({
           title: t`Could not update role`,
-          description: result != null && "message" in result
-            ? result.message
-            : t`The member role could not be updated. Please try again.`,
+          description:
+            result != null && "message" in result
+              ? result.message
+              : t`The member role could not be updated. Please try again.`,
           variant: "error",
         });
       },
@@ -1448,13 +1453,13 @@ function OrganizationMemberManagementCard(props: {
             title: canceledInvitation
               ? t`Invitation canceled`
               : removingViewer
-              ? t`Left organization`
-              : t`Member removed`,
+                ? t`Left organization`
+                : t`Member removed`,
             description: canceledInvitation
               ? t`${result.membership.member.username} no longer has a pending organization invitation.`
               : removingViewer
-              ? t`You no longer belong to that organization.`
-              : t`${result.membership.member.username} no longer belongs to this organization.`,
+                ? t`You no longer belong to that organization.`
+                : t`${result.membership.member.username} no longer belongs to this organization.`,
           });
           if (removingViewer && !canceledInvitation) {
             location.reload();
@@ -1467,11 +1472,12 @@ function OrganizationMemberManagementCard(props: {
           title: removingViewer
             ? t`Could not leave organization`
             : t`Could not remove member`,
-          description: result != null && "message" in result
-            ? result.message
-            : removingViewer
-            ? t`The organization could not be left. Please try again.`
-            : t`The member could not be removed. Please try again.`,
+          description:
+            result != null && "message" in result
+              ? result.message
+              : removingViewer
+                ? t`The organization could not be left. Please try again.`
+                : t`The member could not be removed. Please try again.`,
           variant: "error",
         });
       },
@@ -1482,9 +1488,10 @@ function OrganizationMemberManagementCard(props: {
           title: removingViewer
             ? t`Could not leave organization`
             : t`Could not remove member`,
-          description: (removingViewer
-            ? t`The organization could not be left. Please try again.`
-            : t`The member could not be removed. Please try again.`) +
+          description:
+            (removingViewer
+              ? t`The organization could not be left. Please try again.`
+              : t`The member could not be removed. Please try again.`) +
             (import.meta.env.DEV ? `\n\n${error.message}` : ""),
           variant: "error",
         });
@@ -1571,22 +1578,26 @@ function OrganizationMemberManagementCard(props: {
                             </Badge>
                           </Show>
                           <OrganizationRoleSelect
-                            value={membership.role === "ADMIN"
-                              ? "ADMIN"
-                              : "MEMBER"}
+                            value={
+                              membership.role === "ADMIN" ? "ADMIN" : "MEMBER"
+                            }
                             onChange={(role) => onUpdateRole(membership, role)}
-                            disabled={membership.accepted == null ||
+                            disabled={
+                              membership.accepted == null ||
                               isLastAcceptedAdmin(membership) ||
                               updatingMemberId() != null ||
-                              removingMemberId() != null}
+                              removingMemberId() != null
+                            }
                           />
                           <Button
                             type="button"
                             variant="outline"
                             size="sm"
-                            disabled={updatingMemberId() != null ||
+                            disabled={
+                              updatingMemberId() != null ||
                               isLastAcceptedAdmin(membership) ||
-                              removingMemberId() != null}
+                              removingMemberId() != null
+                            }
                             onClick={() => onRemove(membership)}
                           >
                             <IconUserMinus />
@@ -1594,13 +1605,13 @@ function OrganizationMemberManagementCard(props: {
                               ? membership.accepted == null
                                 ? t`Canceling…`
                                 : isViewerMembership(membership)
-                                ? t`Leaving…`
-                                : t`Removing…`
+                                  ? t`Leaving…`
+                                  : t`Removing…`
                               : membership.accepted == null
-                              ? t`Cancel invitation`
-                              : isViewerMembership(membership)
-                              ? t`Leave`
-                              : t`Remove`}
+                                ? t`Cancel invitation`
+                                : isViewerMembership(membership)
+                                  ? t`Leave`
+                                  : t`Remove`}
                           </Button>
                         </div>
                       </div>
@@ -1645,9 +1656,7 @@ interface AccountMigrationAliasesFormProps {
   id: string;
 }
 
-function AccountMigrationAliasesForm(
-  props: AccountMigrationAliasesFormProps,
-) {
+function AccountMigrationAliasesForm(props: AccountMigrationAliasesFormProps) {
   const { t } = useLingui();
   const [actor, setActor] = createSignal("");
   const [error, setError] = createSignal("");
@@ -1657,9 +1666,10 @@ function AccountMigrationAliasesForm(
   const [addAlias] = createMutation<accountAddMigrationAliasMutation>(
     accountAddMigrationAliasMutation,
   );
-  const [removeAliasMutation] = createMutation<
-    accountRemoveMigrationAliasMutation
-  >(accountRemoveMigrationAliasMutation);
+  const [removeAliasMutation] =
+    createMutation<accountRemoveMigrationAliasMutation>(
+      accountRemoveMigrationAliasMutation,
+    );
 
   function showMutationError(title: string, description: string) {
     showToast({ title, description, variant: "error" });
@@ -1683,8 +1693,7 @@ function AccountMigrationAliasesForm(
           setActor("");
           showToast({
             title: t`Previous account added`,
-            description:
-              t`Hackers' Pub now publishes the old account as another account that belongs to you.`,
+            description: t`Hackers' Pub now publishes the old account as another account that belongs to you.`,
           });
           return;
         }
@@ -1702,8 +1711,7 @@ function AccountMigrationAliasesForm(
           );
           return;
         }
-        const message =
-          t`Enter the account you are moving from, such as @old@example.com or its actor URL.`;
+        const message = t`Enter the account you are moving from, such as @old@example.com or its actor URL.`;
         setError(message);
         showMutationError(t`Could not add previous account`, message);
       },
@@ -1734,8 +1742,7 @@ function AccountMigrationAliasesForm(
         if (result?.__typename === "RemoveAccountMigrationAliasPayload") {
           showToast({
             title: t`Previous account removed`,
-            description:
-              t`Hackers' Pub no longer publishes that account as another account that belongs to you.`,
+            description: t`Hackers' Pub no longer publishes that account as another account that belongs to you.`,
           });
           return;
         }
@@ -1878,9 +1885,10 @@ function AccountDeletionForm(props: AccountDeletionFormProps) {
   const [confirmOpen, setConfirmOpen] = createSignal(false);
   const [deleting, setDeleting] = createSignal(false);
   const isOrganization = () => props.kind === "organization";
-  const canDelete = createMemo(() =>
-    confirmation().trim().toLowerCase() === props.username.toLowerCase() &&
-    !deleting()
+  const canDelete = createMemo(
+    () =>
+      confirmation().trim().toLowerCase() === props.username.toLowerCase() &&
+      !deleting(),
   );
   const [deleteAccount] = createMutation<accountDeleteMutation>(
     accountDeleteMutation,
@@ -1898,8 +1906,7 @@ function AccountDeletionForm(props: AccountDeletionFormProps) {
           setConfirmOpen(false);
           showToast({
             title: t`Failed to delete account`,
-            description:
-              t`The deletion request could not be completed. Please try again.`,
+            description: t`The deletion request could not be completed. Please try again.`,
             variant: "error",
           });
           return;
@@ -1963,8 +1970,7 @@ function AccountDeletionForm(props: AccountDeletionFormProps) {
         }
         showToast({
           title: t`Failed to delete account`,
-          description:
-            t`The deletion request could not be completed. Please try again.`,
+          description: t`The deletion request could not be completed. Please try again.`,
           variant: "error",
         });
       },
@@ -1996,10 +2002,7 @@ function AccountDeletionForm(props: AccountDeletionFormProps) {
         </p>
       </div>
 
-      <TextField
-        value={confirmation()}
-        onChange={setConfirmation}
-      >
+      <TextField value={confirmation()} onChange={setConfirmation}>
         <TextFieldLabel>{t`Username`}</TextFieldLabel>
         <TextFieldInput
           autocomplete="off"
@@ -2054,8 +2057,8 @@ function AccountDeletionForm(props: AccountDeletionFormProps) {
               {deleting()
                 ? t`Deleting…`
                 : isOrganization()
-                ? t`Delete organization`
-                : t`Delete account`}
+                  ? t`Delete organization`
+                  : t`Delete account`}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

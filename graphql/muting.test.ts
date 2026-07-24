@@ -54,91 +54,107 @@ const mutedActorsQuery = parse(`
   }
 `);
 
-test(
-  "muteActor and unmuteActor round-trip through GraphQL without touching follows",
-  async () => {
-    await withRollback(async (tx) => {
-      const muter = await insertAccountWithActor(tx, {
-        username: "graphqlmuter",
-        name: "GraphQL Muter",
-        email: "graphqlmuter@example.com",
-      });
-      const mutee = await insertAccountWithActor(tx, {
-        username: "graphqlmutee",
-        name: "GraphQL Mutee",
-        email: "graphqlmutee@example.com",
-      });
-      const fedCtx = createFedCtx(tx);
-      const actorId = encodeGlobalID("Actor", mutee.actor.id);
+test("muteActor and unmuteActor round-trip through GraphQL without touching follows", async () => {
+  await withRollback(async (tx) => {
+    const muter = await insertAccountWithActor(tx, {
+      username: "graphqlmuter",
+      name: "GraphQL Muter",
+      email: "graphqlmuter@example.com",
+    });
+    const mutee = await insertAccountWithActor(tx, {
+      username: "graphqlmutee",
+      name: "GraphQL Mutee",
+      email: "graphqlmutee@example.com",
+    });
+    const fedCtx = createFedCtx(tx);
+    const actorId = encodeGlobalID("Actor", mutee.actor.id);
 
-      // Mutual follow: muting must leave both follow rows intact.
-      await follow(fedCtx, muter.account, mutee.actor);
-      await follow(fedCtx, mutee.account, muter.actor);
+    // Mutual follow: muting must leave both follow rows intact.
+    await follow(fedCtx, muter.account, mutee.actor);
+    await follow(fedCtx, mutee.account, muter.actor);
 
-      const muteResult = await execute({
-        schema,
-        document: muteActorMutation,
-        variableValues: { actorId },
-        contextValue: makeUserContext(tx, muter.account),
-        onError: "NO_PROPAGATE",
-      });
-      assert.deepEqual(muteResult.errors, undefined);
-      const mutePayload = (muteResult.data as {
+    const muteResult = await execute({
+      schema,
+      document: muteActorMutation,
+      variableValues: { actorId },
+      contextValue: makeUserContext(tx, muter.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(muteResult.errors, undefined);
+    const mutePayload = (
+      muteResult.data as {
         muteActor: {
           __typename: string;
           mutee?: { id: string; viewerMutes: boolean };
         };
-      }).muteActor;
-      assert.deepEqual(mutePayload.__typename, "MuteActorPayload");
-      assert.deepEqual(mutePayload.mutee, { id: actorId, viewerMutes: true });
+      }
+    ).muteActor;
+    assert.deepEqual(mutePayload.__typename, "MuteActorPayload");
+    assert.deepEqual(mutePayload.mutee, { id: actorId, viewerMutes: true });
 
-      const storedMute = await tx.select().from(mutingTable).where(and(
-        eq(mutingTable.muterId, muter.actor.id),
-        eq(mutingTable.muteeId, mutee.actor.id),
-      ));
-      assert.deepEqual(storedMute.length, 1);
-
-      // Follows are untouched (unlike blocking).
-      const followsAfterMute = await tx.select().from(followingTable).where(or(
+    const storedMute = await tx
+      .select()
+      .from(mutingTable)
+      .where(
         and(
-          eq(followingTable.followerId, muter.actor.id),
-          eq(followingTable.followeeId, mutee.actor.id),
+          eq(mutingTable.muterId, muter.actor.id),
+          eq(mutingTable.muteeId, mutee.actor.id),
         ),
-        and(
-          eq(followingTable.followerId, mutee.actor.id),
-          eq(followingTable.followeeId, muter.actor.id),
-        ),
-      ));
-      assert.deepEqual(followsAfterMute.length, 2);
+      );
+    assert.deepEqual(storedMute.length, 1);
 
-      const unmuteResult = await execute({
-        schema,
-        document: unmuteActorMutation,
-        variableValues: { actorId },
-        contextValue: makeUserContext(tx, muter.account),
-        onError: "NO_PROPAGATE",
-      });
-      assert.deepEqual(unmuteResult.errors, undefined);
-      const unmutePayload = (unmuteResult.data as {
+    // Follows are untouched (unlike blocking).
+    const followsAfterMute = await tx
+      .select()
+      .from(followingTable)
+      .where(
+        or(
+          and(
+            eq(followingTable.followerId, muter.actor.id),
+            eq(followingTable.followeeId, mutee.actor.id),
+          ),
+          and(
+            eq(followingTable.followerId, mutee.actor.id),
+            eq(followingTable.followeeId, muter.actor.id),
+          ),
+        ),
+      );
+    assert.deepEqual(followsAfterMute.length, 2);
+
+    const unmuteResult = await execute({
+      schema,
+      document: unmuteActorMutation,
+      variableValues: { actorId },
+      contextValue: makeUserContext(tx, muter.account),
+      onError: "NO_PROPAGATE",
+    });
+    assert.deepEqual(unmuteResult.errors, undefined);
+    const unmutePayload = (
+      unmuteResult.data as {
         unmuteActor: {
           __typename: string;
           mutee?: { id: string; viewerMutes: boolean };
         };
-      }).unmuteActor;
-      assert.deepEqual(unmutePayload.__typename, "UnmuteActorPayload");
-      assert.deepEqual(unmutePayload.mutee, {
-        id: actorId,
-        viewerMutes: false,
-      });
-
-      const storedAfterUnmute = await tx.select().from(mutingTable).where(and(
-        eq(mutingTable.muterId, muter.actor.id),
-        eq(mutingTable.muteeId, mutee.actor.id),
-      ));
-      assert.deepEqual(storedAfterUnmute, []);
+      }
+    ).unmuteActor;
+    assert.deepEqual(unmutePayload.__typename, "UnmuteActorPayload");
+    assert.deepEqual(unmutePayload.mutee, {
+      id: actorId,
+      viewerMutes: false,
     });
-  },
-);
+
+    const storedAfterUnmute = await tx
+      .select()
+      .from(mutingTable)
+      .where(
+        and(
+          eq(mutingTable.muterId, muter.actor.id),
+          eq(mutingTable.muteeId, mutee.actor.id),
+        ),
+      );
+    assert.deepEqual(storedAfterUnmute, []);
+  });
+});
 
 test("muteActor rejects muting yourself and unauthenticated requests", async () => {
   await withRollback(async (tx) => {
@@ -188,8 +204,8 @@ test("muteActor rejects muting yourself and unauthenticated requests", async () 
     });
     assert.deepEqual(malformedResult.errors, undefined);
     assert.deepEqual(
-      (malformedResult.data as { muteActor: { __typename: string } })
-        .muteActor.__typename,
+      (malformedResult.data as { muteActor: { __typename: string } }).muteActor
+        .__typename,
       "InvalidInputError",
     );
   });

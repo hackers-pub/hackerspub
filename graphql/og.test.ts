@@ -1,4 +1,5 @@
 import assert from "node:assert";
+import { createServer } from "node:http";
 import test from "node:test";
 import type { Disk } from "flydrive";
 import sharp from "sharp";
@@ -9,12 +10,57 @@ import {
   truncateText,
 } from "./og.ts";
 
-const smallPngDataUrl = "data:image/png;base64," +
+const smallPngDataUrl =
+  "data:image/png;base64," +
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=";
 const smallPngBytes = Uint8Array.from(
   atob(smallPngDataUrl.slice("data:image/png;base64,".length)),
   (char) => char.charCodeAt(0),
 );
+
+async function serve(
+  optionsOrHandler:
+    | { hostname: string; port: number; onListen(): void }
+    | ((request: Request) => Response | Promise<Response>),
+  optionalHandler?: (request: Request) => Response | Promise<Response>,
+) {
+  const handler =
+    typeof optionsOrHandler === "function" ? optionsOrHandler : optionalHandler;
+  if (handler == null) throw new Error("A request handler is required.");
+  const server = createServer(async (request, response) => {
+    try {
+      const result = await handler(
+        new Request(`http://127.0.0.1${request.url ?? "/"}`),
+      );
+      response.writeHead(
+        result.status,
+        Object.fromEntries(result.headers.entries()),
+      );
+      if (result.body == null) {
+        response.end();
+      } else {
+        response.end(new Uint8Array(await result.arrayBuffer()));
+      }
+    } catch (error) {
+      response.destroy(error instanceof Error ? error : undefined);
+    }
+  });
+  await new Promise<void>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+  const address = server.address();
+  if (address == null || typeof address === "string") {
+    throw new Error("Failed to resolve the local test server address.");
+  }
+  return {
+    addr: { hostname: address.address, port: address.port },
+    shutdown: () =>
+      new Promise<void>((resolve, reject) => {
+        server.close((error) => (error == null ? resolve() : reject(error)));
+      }),
+  };
+}
 
 function createOgTestDisk() {
   const putKeys: string[] = [];
@@ -39,14 +85,17 @@ test("loadImageDataUri returns data URIs unchanged", async () => {
 });
 
 test("loadImageDataUri embeds remote images", async () => {
-  const server = Deno.serve({
-    hostname: "127.0.0.1",
-    port: 0,
-    onListen() {},
-  }, () =>
-    new Response(smallPngBytes, {
-      headers: { "content-type": "image/png" },
-    }));
+  const server = await serve(
+    {
+      hostname: "127.0.0.1",
+      port: 0,
+      onListen() {},
+    },
+    () =>
+      new Response(smallPngBytes, {
+        headers: { "content-type": "image/png" },
+      }),
+  );
   try {
     const url = `http://${server.addr.hostname}:${server.addr.port}/avatar.png`;
     assert.equal(await loadImageDataUri(url), smallPngDataUrl);
@@ -64,25 +113,28 @@ test("loadImageDataUri transcodes WEBP responses to PNG", async () => {
         channels: 4,
         background: { r: 0, g: 0, b: 0, alpha: 0 },
       },
-    }).webp().toBuffer(),
+    })
+      .webp()
+      .toBuffer(),
   );
-  const server = Deno.serve({
-    hostname: "127.0.0.1",
-    port: 0,
-    onListen() {},
-  }, () =>
-    new Response(webpBytes, {
-      headers: { "content-type": "image/webp" },
-    }));
+  const server = await serve(
+    {
+      hostname: "127.0.0.1",
+      port: 0,
+      onListen() {},
+    },
+    () =>
+      new Response(webpBytes, {
+        headers: { "content-type": "image/webp" },
+      }),
+  );
   try {
-    const url =
-      `http://${server.addr.hostname}:${server.addr.port}/avatar.webp`;
+    const url = `http://${server.addr.hostname}:${server.addr.port}/avatar.webp`;
     const result = await loadImageDataUri(url);
     const prefix = "data:image/png;base64,";
     assert.ok(result.startsWith(prefix));
-    const decoded = Uint8Array.from(
-      atob(result.slice(prefix.length)),
-      (char) => char.charCodeAt(0),
+    const decoded = Uint8Array.from(atob(result.slice(prefix.length)), (char) =>
+      char.charCodeAt(0),
     );
     // PNG signature: 89 50 4E 47 0D 0A 1A 0A
     assert.deepEqual(
@@ -95,21 +147,24 @@ test("loadImageDataUri transcodes WEBP responses to PNG", async () => {
 });
 
 test("loadImageDataUri preserves APNG responses", async () => {
-  const server = Deno.serve({
-    hostname: "127.0.0.1",
-    port: 0,
-    onListen() {},
-  }, () =>
-    new Response(smallPngBytes, {
-      headers: { "content-type": "image/apng" },
-    }));
+  const server = await serve(
+    {
+      hostname: "127.0.0.1",
+      port: 0,
+      onListen() {},
+    },
+    () =>
+      new Response(smallPngBytes, {
+        headers: { "content-type": "image/apng" },
+      }),
+  );
   try {
     const url = `http://${server.addr.hostname}:${server.addr.port}/avatar.png`;
     assert.equal(
       await loadImageDataUri(url),
-      `data:image/apng;base64,${
-        smallPngDataUrl.slice("data:image/png;base64,".length)
-      }`,
+      `data:image/apng;base64,${smallPngDataUrl.slice(
+        "data:image/png;base64,".length,
+      )}`,
     );
   } finally {
     await server.shutdown();
@@ -122,44 +177,47 @@ test("loadImageDataUri falls back when transcoded output exceeds maxBytes", asyn
   const webpBytes = new Uint8Array(
     await sharp(noise, {
       raw: { width: 128, height: 128, channels: 4 },
-    }).webp({ quality: 30 }).toBuffer(),
+    })
+      .webp({ quality: 30 })
+      .toBuffer(),
   );
   // Lossy WebP compresses random noise far better than the lossless PNG
   // we re-encode it into, so a budget that admits the WebP still rejects
   // the PNG and exercises the post-transcode size guard.
   const maxBytes = webpBytes.byteLength + 256;
-  const server = Deno.serve({
-    hostname: "127.0.0.1",
-    port: 0,
-    onListen() {},
-  }, () =>
-    new Response(webpBytes, {
-      headers: { "content-type": "image/webp" },
-    }));
+  const server = await serve(
+    {
+      hostname: "127.0.0.1",
+      port: 0,
+      onListen() {},
+    },
+    () =>
+      new Response(webpBytes, {
+        headers: { "content-type": "image/webp" },
+      }),
+  );
   try {
-    const url =
-      `http://${server.addr.hostname}:${server.addr.port}/avatar.webp`;
-    assert.equal(
-      await loadImageDataUri(url, { maxBytes }),
-      smallPngDataUrl,
-    );
+    const url = `http://${server.addr.hostname}:${server.addr.port}/avatar.webp`;
+    assert.equal(await loadImageDataUri(url, { maxBytes }), smallPngDataUrl);
   } finally {
     await server.shutdown();
   }
 });
 
 test("loadImageDataUri falls back when transcoding fails", async () => {
-  const server = Deno.serve({
-    hostname: "127.0.0.1",
-    port: 0,
-    onListen() {},
-  }, () =>
-    new Response(Uint8Array.from([0, 1, 2, 3]), {
-      headers: { "content-type": "image/webp" },
-    }));
+  const server = await serve(
+    {
+      hostname: "127.0.0.1",
+      port: 0,
+      onListen() {},
+    },
+    () =>
+      new Response(Uint8Array.from([0, 1, 2, 3]), {
+        headers: { "content-type": "image/webp" },
+      }),
+  );
   try {
-    const url =
-      `http://${server.addr.hostname}:${server.addr.port}/avatar.webp`;
+    const url = `http://${server.addr.hostname}:${server.addr.port}/avatar.webp`;
     assert.equal(await loadImageDataUri(url), smallPngDataUrl);
   } finally {
     await server.shutdown();
@@ -167,14 +225,17 @@ test("loadImageDataUri falls back when transcoding fails", async () => {
 });
 
 test("loadImageDataUri rejects non-image responses", async () => {
-  const server = Deno.serve({
-    hostname: "127.0.0.1",
-    port: 0,
-    onListen() {},
-  }, () =>
-    new Response("not an image", {
-      headers: { "content-type": "text/plain" },
-    }));
+  const server = await serve(
+    {
+      hostname: "127.0.0.1",
+      port: 0,
+      onListen() {},
+    },
+    () =>
+      new Response("not an image", {
+        headers: { "content-type": "text/plain" },
+      }),
+  );
   try {
     const url = `http://${server.addr.hostname}:${server.addr.port}/avatar.txt`;
     assert.equal(await loadImageDataUri(url), smallPngDataUrl);
@@ -184,14 +245,17 @@ test("loadImageDataUri rejects non-image responses", async () => {
 });
 
 test("loadImageDataUri falls back when image responses have no body", async () => {
-  const server = Deno.serve({
-    hostname: "127.0.0.1",
-    port: 0,
-    onListen() {},
-  }, () =>
-    new Response(null, {
-      headers: { "content-type": "image/png" },
-    }));
+  const server = await serve(
+    {
+      hostname: "127.0.0.1",
+      port: 0,
+      onListen() {},
+    },
+    () =>
+      new Response(null, {
+        headers: { "content-type": "image/png" },
+      }),
+  );
   try {
     const url = `http://${server.addr.hostname}:${server.addr.port}/avatar.png`;
     assert.equal(await loadImageDataUri(url), smallPngDataUrl);
@@ -208,63 +272,66 @@ test("loadImageDataUri rejects unsupported URL schemes", async () => {
 });
 
 test("loadImageDataUri falls back when remote images are too large", async () => {
-  const server = Deno.serve({
-    hostname: "127.0.0.1",
-    port: 0,
-    onListen() {},
-  }, () =>
-    new Response(Uint8Array.from([1, 2, 3]), {
-      headers: { "content-type": "image/png", "content-length": "3" },
-    }));
+  const server = await serve(
+    {
+      hostname: "127.0.0.1",
+      port: 0,
+      onListen() {},
+    },
+    () =>
+      new Response(Uint8Array.from([1, 2, 3]), {
+        headers: { "content-type": "image/png", "content-length": "3" },
+      }),
+  );
   try {
     const url = `http://${server.addr.hostname}:${server.addr.port}/avatar.png`;
-    assert.equal(
-      await loadImageDataUri(url, { maxBytes: 2 }),
-      smallPngDataUrl,
-    );
+    assert.equal(await loadImageDataUri(url, { maxBytes: 2 }), smallPngDataUrl);
   } finally {
     await server.shutdown();
   }
 });
 
 test("loadImageDataUri falls back when streamed images are too large", async () => {
-  const server = Deno.serve({
-    hostname: "127.0.0.1",
-    port: 0,
-    onListen() {},
-  }, () =>
-    new Response(
-      new ReadableStream({
-        start(controller) {
-          controller.enqueue(Uint8Array.from([1, 2]));
-          controller.enqueue(Uint8Array.from([3]));
-          controller.close();
-        },
-      }),
-      { headers: { "content-type": "image/png" } },
-    ));
+  const server = await serve(
+    {
+      hostname: "127.0.0.1",
+      port: 0,
+      onListen() {},
+    },
+    () =>
+      new Response(
+        new ReadableStream({
+          start(controller) {
+            controller.enqueue(Uint8Array.from([1, 2]));
+            controller.enqueue(Uint8Array.from([3]));
+            controller.close();
+          },
+        }),
+        { headers: { "content-type": "image/png" } },
+      ),
+  );
   try {
     const url = `http://${server.addr.hostname}:${server.addr.port}/avatar.png`;
-    assert.equal(
-      await loadImageDataUri(url, { maxBytes: 2 }),
-      smallPngDataUrl,
-    );
+    assert.equal(await loadImageDataUri(url, { maxBytes: 2 }), smallPngDataUrl);
   } finally {
     await server.shutdown();
   }
 });
 
 test("loadImageDataUri falls back when remote images time out", async () => {
-  const server = Deno.serve({
-    hostname: "127.0.0.1",
-    port: 0,
-    onListen() {},
-  }, async () => {
-    await new Promise((resolve) => setTimeout(resolve, 50));
-    return new Response(smallPngBytes, {
-      headers: { "content-type": "image/png" },
-    });
-  });
+  const server = await serve(
+    {
+      hostname: "127.0.0.1",
+      port: 0,
+      onListen() {},
+    },
+    async () => {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      return new Response(smallPngBytes, {
+        headers: { "content-type": "image/png" },
+      });
+    },
+  );
   try {
     const url = `http://${server.addr.hostname}:${server.addr.port}/avatar.png`;
     assert.equal(
@@ -287,16 +354,19 @@ test("putProfileOgImage skips image fetches on cache hits", async () => {
   };
   const key = await putProfileOgImage(disk, null, input);
   let requests = 0;
-  const server = Deno.serve({
-    hostname: "127.0.0.1",
-    port: 0,
-    onListen() {},
-  }, () => {
-    requests++;
-    return new Response(smallPngBytes, {
-      headers: { "content-type": "image/png" },
-    });
-  });
+  const server = await serve(
+    {
+      hostname: "127.0.0.1",
+      port: 0,
+      onListen() {},
+    },
+    () => {
+      requests++;
+      return new Response(smallPngBytes, {
+        headers: { "content-type": "image/png" },
+      });
+    },
+  );
   try {
     const url = `http://${server.addr.hostname}:${server.addr.port}/avatar.png`;
     assert.equal(

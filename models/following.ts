@@ -44,12 +44,16 @@ async function followOperation(
 ): Promise<Following | undefined> {
   const { db } = fedCtx;
   await assertAccountActorNotSuspended(db, follower.id);
-  const rows = await db.insert(followingTable).values({
-    iri: createFollowingIri(fedCtx, follower).href,
-    followerId: follower.actor.id,
-    followeeId: followee.id,
-    accepted: followee.accountId == null ? null : sql`CURRENT_TIMESTAMP`,
-  }).onConflictDoNothing().returning();
+  const rows = await db
+    .insert(followingTable)
+    .values({
+      iri: createFollowingIri(fedCtx, follower).href,
+      followerId: follower.actor.id,
+      followeeId: followee.id,
+      accepted: followee.accountId == null ? null : sql`CURRENT_TIMESTAMP`,
+    })
+    .onConflictDoNothing()
+    .returning();
   if (rows.length > 0 && followee.accountId == null) {
     await fedCtx.sendActivity(
       { identifier: follower.id },
@@ -90,31 +94,36 @@ export async function acceptFollowing(
 ): Promise<Following | undefined>;
 export async function acceptFollowing(
   db: Database,
-  iriOrFollower: string | URL | Account & { actor: Actor },
+  iriOrFollower: string | URL | (Account & { actor: Actor }),
   followee?: Actor,
 ): Promise<Following | undefined> {
   let rows: Following[];
   if (typeof iriOrFollower === "string" || iriOrFollower instanceof URL) {
     const iri = iriOrFollower.toString();
-    rows = await db.update(followingTable).set({
-      accepted: sql`CURRENT_TIMESTAMP`,
-    }).where(and(
-      eq(followingTable.iri, iri),
-      isNull(followingTable.accepted),
-    )).returning();
+    rows = await db
+      .update(followingTable)
+      .set({
+        accepted: sql`CURRENT_TIMESTAMP`,
+      })
+      .where(and(eq(followingTable.iri, iri), isNull(followingTable.accepted)))
+      .returning();
   } else if (followee == null) {
     return undefined;
   } else {
     const follower = iriOrFollower;
-    rows = await db.update(followingTable).set({
-      accepted: sql`CURRENT_TIMESTAMP`,
-    }).where(
-      and(
-        eq(followingTable.followerId, follower.actor.id),
-        eq(followingTable.followeeId, followee.id),
-        isNull(followingTable.accepted),
-      ),
-    ).returning();
+    rows = await db
+      .update(followingTable)
+      .set({
+        accepted: sql`CURRENT_TIMESTAMP`,
+      })
+      .where(
+        and(
+          eq(followingTable.followerId, follower.actor.id),
+          eq(followingTable.followeeId, followee.id),
+          isNull(followingTable.accepted),
+        ),
+      )
+      .returning();
   }
   if (rows.length > 0) {
     await updateFolloweesCount(db, rows[0].followerId, 1);
@@ -129,12 +138,15 @@ async function unfollowOperation(
   followee: Actor,
 ): Promise<Following | undefined> {
   const { db } = fedCtx;
-  const rows = await db.delete(followingTable).where(
-    and(
-      eq(followingTable.followerId, follower.actor.id),
-      eq(followingTable.followeeId, followee.id),
-    ),
-  ).returning();
+  const rows = await db
+    .delete(followingTable)
+    .where(
+      and(
+        eq(followingTable.followerId, follower.actor.id),
+        eq(followingTable.followeeId, followee.id),
+      ),
+    )
+    .returning();
   if (rows.length > 0 && followee.accountId == null) {
     await fedCtx.sendActivity(
       { identifier: follower.id },
@@ -157,11 +169,7 @@ async function unfollowOperation(
     await updateFolloweesCount(db, rows[0].followerId, -1);
     await updateFollowersCount(db, rows[0].followeeId, -1);
     if (followee.accountId != null) {
-      await deleteFollowNotification(
-        db,
-        followee.accountId,
-        follower.actor,
-      );
+      await deleteFollowNotification(db, followee.accountId, follower.actor);
     }
   }
   return rows[0];
@@ -175,12 +183,15 @@ async function removeFollowerOperation(
   follower: Actor,
 ): Promise<Following | undefined> {
   const { db } = fedCtx;
-  const rows = await db.delete(followingTable).where(
-    and(
-      eq(followingTable.followerId, follower.id),
-      eq(followingTable.followeeId, followee.actor.id),
-    ),
-  ).returning();
+  const rows = await db
+    .delete(followingTable)
+    .where(
+      and(
+        eq(followingTable.followerId, follower.id),
+        eq(followingTable.followeeId, followee.actor.id),
+      ),
+    )
+    .returning();
   if (rows.length < 1) return undefined;
   if (rows[0].accepted != null) {
     await updateFolloweesCount(db, rows[0].followerId, -1);
@@ -357,18 +368,16 @@ export async function getRankedFollowerPage(
   // The correlated subquery is embedded as a Drizzle query builder so the
   // aliased `following` table renders its `FROM` declaration correctly.
   const viewerFollows = aliasedTable(followingTable, "viewer_follows");
-  const mutualRank = sql<number>`CASE WHEN EXISTS (${
-    db
-      .select({ one: sql`1` })
-      .from(viewerFollows)
-      .where(
-        and(
-          eq(viewerFollows.followerId, viewerId),
-          eq(viewerFollows.followeeId, followingTable.followerId),
-          isNotNull(viewerFollows.accepted),
-        ),
-      )
-  }) THEN 0 ELSE 1 END`;
+  const mutualRank = sql<number>`CASE WHEN EXISTS (${db
+    .select({ one: sql`1` })
+    .from(viewerFollows)
+    .where(
+      and(
+        eq(viewerFollows.followerId, viewerId),
+        eq(viewerFollows.followeeId, followingTable.followerId),
+        isNotNull(viewerFollows.accepted),
+      ),
+    )}) THEN 0 ELSE 1 END`;
   return await base
     .orderBy(mutualRank, desc(followingTable.created), followingTable.iri)
     .limit(limit)
@@ -380,8 +389,10 @@ export async function updateFolloweesCount(
   followerId: Uuid,
   delta: number,
 ): Promise<Actor | undefined> {
-  const rows = await db.update(actorTable).set({
-    followeesCount: sql`
+  const rows = await db
+    .update(actorTable)
+    .set({
+      followeesCount: sql`
       CASE WHEN ${actorTable.accountId} IS NULL
         THEN ${actorTable.followeesCount} + ${delta}
         ELSE (
@@ -392,7 +403,9 @@ export async function updateFolloweesCount(
         )
       END
     `,
-  }).where(eq(actorTable.id, followerId)).returning();
+    })
+    .where(eq(actorTable.id, followerId))
+    .returning();
   return rows[0];
 }
 
@@ -401,8 +414,10 @@ export async function updateFollowersCount(
   followeeId: Uuid,
   delta: number,
 ): Promise<Actor | undefined> {
-  const rows = await db.update(actorTable).set({
-    followersCount: sql`
+  const rows = await db
+    .update(actorTable)
+    .set({
+      followersCount: sql`
       CASE WHEN ${actorTable.accountId} IS NULL
         THEN ${actorTable.followersCount} + ${delta}
         ELSE (
@@ -413,6 +428,8 @@ export async function updateFollowersCount(
         )
       END
     `,
-  }).where(eq(actorTable.id, followeeId)).returning();
+    })
+    .where(eq(actorTable.id, followeeId))
+    .returning();
   return rows[0];
 }

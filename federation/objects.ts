@@ -120,12 +120,10 @@ function getEmojiReactionsPageUri(
 export function getPostAttributionIds(
   ctx: Context<ContextData>,
   accountId: Uuid,
-  organizationAuthor?:
-    | Pick<
-      OrganizationPostAuthor,
-      "organizationAccountId" | "memberAccountId" | "attributionMode"
-    >
-    | null,
+  organizationAuthor?: Pick<
+    OrganizationPostAuthor,
+    "organizationAccountId" | "memberAccountId" | "attributionMode"
+  > | null,
 ): URL[] {
   if (
     organizationAuthor?.attributionMode !== "acting_account_with_viewer" ||
@@ -189,16 +187,14 @@ export async function getArticle(
     ),
   );
   const url = new URL(
-    `/@${articleSource.account.username}/${articleSource.publishedYear}/${
-      encodeURIComponent(articleSource.slug)
-    }`,
+    `/@${articleSource.account.username}/${articleSource.publishedYear}/${encodeURIComponent(
+      articleSource.slug,
+    )}`,
     ctx.canonicalOrigin,
   );
   const contents = await Promise.all(
     articleSource.contents.map(async (content) => {
-      const missingMediumLabel = getMissingArticleMediumLabel(
-        content.language,
-      );
+      const missingMediumLabel = getMissingArticleMediumLabel(content.language);
       const { hashtags, html } = await renderMarkup(
         toApplicationContext(ctx),
         content.content,
@@ -229,14 +225,15 @@ export async function getArticle(
     });
     for (const c of contents.slice(1)) {
       const nativeLangName =
-        new Intl.DisplayNames(c.language, { type: "language" })
-          .of(c.language) ?? "";
+        new Intl.DisplayNames(c.language, { type: "language" }).of(
+          c.language,
+        ) ?? "";
       const langName = displayNames.of(c.language) ?? "";
-      content += `<li lang="${escape(c.language)}">${escape(nativeLangName)} (${
-        escape(langName)
-      }): <a hreflang="${escape(c.language)}" href="${escape(url.href)}/${
-        escape(encodeURIComponent(c.language))
-      }">${escape(c.title)}</a></li>\n`;
+      content += `<li lang="${escape(c.language)}">${escape(nativeLangName)} (${escape(
+        langName,
+      )}): <a hreflang="${escape(c.language)}" href="${escape(url.href)}/${escape(
+        encodeURIComponent(c.language),
+      )}">${escape(c.title)}</a></li>\n`;
     }
     content += `</ul></nav>\n<hr>\n${contents[0].html}`;
   } else if (contents.length > 0) {
@@ -260,28 +257,31 @@ export async function getArticle(
       ...(content ? [content] : []),
       ...contents.map((c) => new LanguageString(c.html, c.language)),
     ],
-    source: contents.length > 0
-      ? new vocab.Source({
-        content: contents[0].content,
-        mediaType: "text/markdown",
-      })
-      : null,
+    source:
+      contents.length > 0
+        ? new vocab.Source({
+            content: contents[0].content,
+            mediaType: "text/markdown",
+          })
+        : null,
     replies: getRepliesUri(ctx, "articles", articleSource.id),
     emojiReactions: getEmojiReactionsUri(ctx, "articles", articleSource.id),
-    tags: [...articleSource.tags, ...hashtags].map((tag) =>
-      new vocab.Hashtag({
-        name: `#${tag.replace(/^#/, "")}`,
-        href: new URL(
-          `/tags/${encodeURIComponent(tag.replace(/^#/, ""))}`,
-          ctx.canonicalOrigin,
-        ),
-      })
+    tags: [...articleSource.tags, ...hashtags].map(
+      (tag) =>
+        new vocab.Hashtag({
+          name: `#${tag.replace(/^#/, "")}`,
+          href: new URL(
+            `/tags/${encodeURIComponent(tag.replace(/^#/, ""))}`,
+            ctx.canonicalOrigin,
+          ),
+        }),
     ),
     url,
     published: articleSource.published.toTemporalInstant(),
-    updated: +articleSource.updated > +articleSource.published
-      ? articleSource.updated.toTemporalInstant()
-      : null,
+    updated:
+      +articleSource.updated > +articleSource.published
+        ? articleSource.updated.toTemporalInstant()
+        : null,
   });
 }
 
@@ -291,18 +291,20 @@ function getQuoteInteractionPolicy(
   quotePolicy: QuotePolicy,
   quoteRequestPolicy: QuotePolicy | null = null,
 ): vocab.InteractionPolicy {
-  const automaticApproval = quotePolicy === "everyone"
-    ? PUBLIC_COLLECTION
-    : quotePolicy === "followers"
-    ? ctx.getFollowersUri(accountId)
-    : ctx.getActorUri(accountId);
-  const manualApproval = quoteRequestPolicy == null
-    ? null
-    : quoteRequestPolicy === "everyone"
-    ? PUBLIC_COLLECTION
-    : quoteRequestPolicy === "followers"
-    ? ctx.getFollowersUri(accountId)
-    : ctx.getActorUri(accountId);
+  const automaticApproval =
+    quotePolicy === "everyone"
+      ? PUBLIC_COLLECTION
+      : quotePolicy === "followers"
+        ? ctx.getFollowersUri(accountId)
+        : ctx.getActorUri(accountId);
+  const manualApproval =
+    quoteRequestPolicy == null
+      ? null
+      : quoteRequestPolicy === "everyone"
+        ? PUBLIC_COLLECTION
+        : quoteRequestPolicy === "followers"
+          ? ctx.getFollowersUri(accountId)
+          : ctx.getActorUri(accountId);
   return new vocab.InteractionPolicy({
     canQuote: new vocab.InteractionRule({
       automaticApproval,
@@ -351,15 +353,16 @@ export function getPostRecipients(
       ...(visibility === "public"
         ? [PUBLIC_COLLECTION]
         : visibility === "unlisted" || visibility === "followers"
-        ? [ctx.getFollowersUri(accountId)]
-        : []),
+          ? [ctx.getFollowersUri(accountId)]
+          : []),
       ...mentionedActorIds,
     ],
-    ccs: visibility === "public"
-      ? [ctx.getFollowersUri(accountId)]
-      : visibility === "unlisted"
-      ? [PUBLIC_COLLECTION]
-      : [],
+    ccs:
+      visibility === "public"
+        ? [ctx.getFollowersUri(accountId)]
+        : visibility === "unlisted"
+          ? [PUBLIC_COLLECTION]
+          : [],
   };
 }
 
@@ -393,13 +396,13 @@ export async function getNote(
       }),
     );
   }
-  const tags: vocab.Link[] = Object.entries(rendered.mentions)
-    .map(([handle, actor]) =>
+  const tags: vocab.Link[] = Object.entries(rendered.mentions).map(
+    ([handle, actor]) =>
       new vocab.Mention({
         href: new URL(actor.iri),
         name: handle,
-      })
-    );
+      }),
+  );
   for (const tag of rendered.hashtags) {
     tags.push(
       new vocab.Hashtag({
@@ -439,21 +442,19 @@ export async function getNote(
       note.visibility,
     ),
     replyTarget: relations.replyTargetId,
-    interactionPolicy: note.visibility === "direct" ||
-        note.visibility === "none"
-      ? undefined
-      : getQuoteInteractionPolicy(
-        ctx,
-        note.accountId,
-        normalizedQuotePolicy,
-        relations.quoteRequestPolicy,
-      ),
-    quote: relations.quotedPost == null
-      ? null
-      : new URL(relations.quotedPost.iri),
-    quoteUrl: relations.quotedPost == null
-      ? null
-      : new URL(relations.quotedPost.iri),
+    interactionPolicy:
+      note.visibility === "direct" || note.visibility === "none"
+        ? undefined
+        : getQuoteInteractionPolicy(
+            ctx,
+            note.accountId,
+            normalizedQuotePolicy,
+            relations.quoteRequestPolicy,
+          ),
+    quote:
+      relations.quotedPost == null ? null : new URL(relations.quotedPost.iri),
+    quoteUrl:
+      relations.quotedPost == null ? null : new URL(relations.quotedPost.iri),
     // No quote authorization without a quote target: when the target is
     // dropped (e.g. censored or sanction-hidden), its authorization URL must
     // not be emitted either, or it would stay dereferenceable and reveal or
@@ -462,10 +463,7 @@ export async function getNote(
       relations.quotedPost == null || relations.quoteAuthorizationIri == null
         ? null
         : new URL(relations.quoteAuthorizationIri),
-    contents: [
-      contentHtml,
-      new LanguageString(contentHtml, note.language),
-    ],
+    contents: [contentHtml, new LanguageString(contentHtml, note.language)],
     source: new vocab.Source({
       content: note.content,
       mediaType: "text/markdown",
@@ -476,14 +474,10 @@ export async function getNote(
     emojiReactions: getEmojiReactionsUri(ctx, "notes", note.id),
     attachments,
     tags,
-    url: new URL(
-      `/@${note.account.username}/${note.id}`,
-      ctx.canonicalOrigin,
-    ),
+    url: new URL(`/@${note.account.username}/${note.id}`, ctx.canonicalOrigin),
     published: note.published.toTemporalInstant(),
-    updated: +note.updated > +note.published
-      ? note.updated.toTemporalInstant()
-      : null,
+    updated:
+      +note.updated > +note.published ? note.updated.toTemporalInstant() : null,
   });
 }
 
@@ -518,13 +512,13 @@ export async function getQuestion(
       }),
     );
   }
-  const tags: vocab.Link[] = Object.entries(rendered.mentions)
-    .map(([handle, actor]) =>
+  const tags: vocab.Link[] = Object.entries(rendered.mentions).map(
+    ([handle, actor]) =>
       new vocab.Mention({
         href: new URL(actor.iri),
         name: handle,
-      })
-    );
+      }),
+  );
   for (const tag of rendered.hashtags) {
     tags.push(
       new vocab.Hashtag({
@@ -556,13 +550,14 @@ export async function getQuestion(
   );
   const options = poll.options
     .toSorted((a, b) => a.index - b.index)
-    .map((option) =>
-      new vocab.Note({
-        name: option.title,
-        replies: new vocab.Collection({
-          totalItems: option.votesCount,
+    .map(
+      (option) =>
+        new vocab.Note({
+          name: option.title,
+          replies: new vocab.Collection({
+            totalItems: option.votesCount,
+          }),
         }),
-      })
     );
   return new vocab.Question({
     id: ctx.getObjectUri(vocab.Question, { id: note.id }),
@@ -574,21 +569,19 @@ export async function getQuestion(
       note.visibility,
     ),
     replyTarget: relations.replyTargetId,
-    interactionPolicy: note.visibility === "direct" ||
-        note.visibility === "none"
-      ? undefined
-      : getQuoteInteractionPolicy(
-        ctx,
-        note.accountId,
-        normalizedQuotePolicy,
-        relations.quoteRequestPolicy,
-      ),
-    quote: relations.quotedPost == null
-      ? null
-      : new URL(relations.quotedPost.iri),
-    quoteUrl: relations.quotedPost == null
-      ? null
-      : new URL(relations.quotedPost.iri),
+    interactionPolicy:
+      note.visibility === "direct" || note.visibility === "none"
+        ? undefined
+        : getQuoteInteractionPolicy(
+            ctx,
+            note.accountId,
+            normalizedQuotePolicy,
+            relations.quoteRequestPolicy,
+          ),
+    quote:
+      relations.quotedPost == null ? null : new URL(relations.quotedPost.iri),
+    quoteUrl:
+      relations.quotedPost == null ? null : new URL(relations.quotedPost.iri),
     // No quote authorization without a quote target (see getNote): a dropped
     // (censored or sanction-hidden) target must not leave a dereferenceable
     // authorization URL.
@@ -597,10 +590,7 @@ export async function getQuestion(
         ? null
         : new URL(relations.quoteAuthorizationIri),
     name: poll.post.name,
-    contents: [
-      contentHtml,
-      new LanguageString(contentHtml, note.language),
-    ],
+    contents: [contentHtml, new LanguageString(contentHtml, note.language)],
     source: new vocab.Source({
       content: note.content,
       mediaType: "text/markdown",
@@ -611,19 +601,15 @@ export async function getQuestion(
     emojiReactions: getEmojiReactionsUri(ctx, "questions", note.id),
     attachments,
     tags,
-    url: new URL(
-      `/@${note.account.username}/${note.id}`,
-      ctx.canonicalOrigin,
-    ),
+    url: new URL(`/@${note.account.username}/${note.id}`, ctx.canonicalOrigin),
     endTime: poll.ends.toTemporalInstant(),
     voters: poll.votersCount,
     ...(poll.multiple
       ? { inclusiveOptions: options }
       : { exclusiveOptions: options }),
     published: note.published.toTemporalInstant(),
-    updated: +note.updated > +note.published
-      ? note.updated.toTemporalInstant()
-      : null,
+    updated:
+      +note.updated > +note.published ? note.updated.toTemporalInstant() : null,
   });
 }
 
@@ -637,50 +623,45 @@ export async function getQuestion(
 export function isApTargetHidden(
   target: (Post & { actor: Actor }) | null | undefined,
 ): boolean {
-  return target != null &&
-    (target.censored != null || isActorSanctionHidden(target.actor));
+  return (
+    target != null &&
+    (target.censored != null || isActorSanctionHidden(target.actor))
+  );
 }
 
 builder
-  .setObjectDispatcher(
-    vocab.Note,
-    "/ap/notes/{id}",
-    async (ctx, values) => {
-      if (!validateUuid(values.id)) return null;
-      const note = await ctx.data.db.query.noteSourceTable.findFirst({
-        with: {
-          account: true,
-          media: { with: { medium: true }, orderBy: { index: "asc" } },
-          post: {
-            where: { type: "Note" },
-            with: {
-              replyTarget: { with: { actor: true } },
-              quotedPost: { with: { actor: true } },
-            },
+  .setObjectDispatcher(vocab.Note, "/ap/notes/{id}", async (ctx, values) => {
+    if (!validateUuid(values.id)) return null;
+    const note = await ctx.data.db.query.noteSourceTable.findFirst({
+      with: {
+        account: true,
+        media: { with: { medium: true }, orderBy: { index: "asc" } },
+        post: {
+          where: { type: "Note" },
+          with: {
+            replyTarget: { with: { actor: true } },
+            quotedPost: { with: { actor: true } },
           },
         },
-        where: { id: values.id },
-      });
-      if (note?.post == null) return null;
-      // Censored content is not served over ActivityPub.
-      if (note.post.censored != null) return null;
-      const { replyTarget, quotedPost } = note.post;
-      return await getNote(
-        ctx,
-        note,
-        {
-          replyTargetId: replyTarget == null || isApTargetHidden(replyTarget)
-            ? undefined
-            : new URL(replyTarget.iri),
-          quotedPost: isApTargetHidden(quotedPost)
-            ? undefined
-            : quotedPost ?? undefined,
-          quoteAuthorizationIri: note.post.quoteAuthorizationIri,
-          quoteRequestPolicy: note.post.quoteRequestPolicy,
-        },
-      );
-    },
-  )
+      },
+      where: { id: values.id },
+    });
+    if (note?.post == null) return null;
+    // Censored content is not served over ActivityPub.
+    if (note.post.censored != null) return null;
+    const { replyTarget, quotedPost } = note.post;
+    return await getNote(ctx, note, {
+      replyTargetId:
+        replyTarget == null || isApTargetHidden(replyTarget)
+          ? undefined
+          : new URL(replyTarget.iri),
+      quotedPost: isApTargetHidden(quotedPost)
+        ? undefined
+        : (quotedPost ?? undefined),
+      quoteAuthorizationIri: note.post.quoteAuthorizationIri,
+      quoteRequestPolicy: note.post.quoteRequestPolicy,
+    });
+  })
   .authorize(async (ctx, values) => {
     if (!validateUuid(values.id)) return false;
     const post = await ctx.data.db.query.postTable.findFirst({
@@ -750,12 +731,13 @@ builder
         note,
         { ...post.poll, post },
         {
-          replyTargetId: replyTarget == null || isApTargetHidden(replyTarget)
-            ? undefined
-            : new URL(replyTarget.iri),
+          replyTargetId:
+            replyTarget == null || isApTargetHidden(replyTarget)
+              ? undefined
+              : new URL(replyTarget.iri),
           quotedPost: isApTargetHidden(quotedPost)
             ? undefined
-            : quotedPost ?? undefined,
+            : (quotedPost ?? undefined),
           quoteAuthorizationIri: post.quoteAuthorizationIri,
           quoteRequestPolicy: post.quoteRequestPolicy,
         },
@@ -802,8 +784,8 @@ builder
     "/ap/quote-authorizations/{id}",
     async (ctx, values) => {
       if (!validateUuid(values.id)) return null;
-      const authorization = await ctx.data.db.query.quoteAuthorizationTable
-        .findFirst({
+      const authorization =
+        await ctx.data.db.query.quoteAuthorizationTable.findFirst({
           with: {
             quotedPost: { with: { actor: true } },
           },
@@ -829,8 +811,8 @@ builder
   )
   .authorize(async (ctx, values) => {
     if (!validateUuid(values.id)) return false;
-    const authorization = await ctx.data.db.query.quoteAuthorizationTable
-      .findFirst({
+    const authorization =
+      await ctx.data.db.query.quoteAuthorizationTable.findFirst({
         with: {
           quotedPost: {
             with: {
@@ -925,7 +907,9 @@ builder.setObjectDispatcher(
       },
     });
     if (
-      share == null || share.actor.account == null || share.sharedPost == null
+      share == null ||
+      share.actor.account == null ||
+      share.sharedPost == null
     ) {
       return null;
     }
@@ -1027,8 +1011,8 @@ export function getEmojiReactId(
   return getEmojiReactType(emoji) === vocab.Like
     ? ctx.getObjectUri(vocab.Like, { accountId, postId, emoji })
     : ctx.getObjectUri(vocab.EmojiReact, {
-      id: `${accountId}/${postId}/${emoji}`,
-    });
+        id: `${accountId}/${postId}/${emoji}`,
+      });
 }
 
 export function getEmojiReact(
@@ -1041,44 +1025,47 @@ export function getEmojiReact(
 ): vocab.Like | vocab.EmojiReact | null {
   const content = reaction.emoji ?? reaction.customEmoji?.name;
   if (content == null) return null;
-  const activityType = reaction.customEmoji == null &&
-      reaction.emoji != null &&
-      isReactionEmoji(reaction.emoji)
-    ? getEmojiReactType(reaction.emoji)
-    : vocab.EmojiReact;
+  const activityType =
+    reaction.customEmoji == null &&
+    reaction.emoji != null &&
+    isReactionEmoji(reaction.emoji)
+      ? getEmojiReactType(reaction.emoji)
+      : vocab.EmojiReact;
   let id: URL;
   try {
     id = new URL(reaction.iri);
   } catch {
     return null;
   }
-  const actor = reaction.actor.accountId == null
-    ? new URL(reaction.actor.iri)
-    : ctx.getActorUri(reaction.actor.accountId);
+  const actor =
+    reaction.actor.accountId == null
+      ? new URL(reaction.actor.iri)
+      : ctx.getActorUri(reaction.actor.accountId);
   return new activityType({
     id,
     actor,
     tos: [
       new URL(reaction.post.actor.iri),
-      ...(
-        reaction.actor.accountId == null
-          ? []
-          : [ctx.getFollowersUri(reaction.actor.accountId)]
-      ),
+      ...(reaction.actor.accountId == null
+        ? []
+        : [ctx.getFollowersUri(reaction.actor.accountId)]),
     ],
     cc: PUBLIC_COLLECTION,
     object: new URL(reaction.post.iri),
     content,
-    tags: reaction.customEmoji == null ? [] : [
-      new vocab.Emoji({
-        id: new URL(reaction.customEmoji.iri),
-        name: reaction.customEmoji.name,
-        icon: new vocab.Image({
-          mediaType: reaction.customEmoji.imageType,
-          url: new URL(reaction.customEmoji.imageUrl),
-        }),
-      }),
-    ],
+    tags:
+      reaction.customEmoji == null
+        ? []
+        : [
+            new vocab.Emoji({
+              id: new URL(reaction.customEmoji.iri),
+              name: reaction.customEmoji.name,
+              icon: new vocab.Image({
+                mediaType: reaction.customEmoji.imageType,
+                url: new URL(reaction.customEmoji.imageUrl),
+              }),
+            }),
+          ],
   });
 }
 
@@ -1101,7 +1088,8 @@ async function getStandardEmojiReactOrLike(
   emoji: string,
 ): Promise<vocab.Like | vocab.EmojiReact | null> {
   if (
-    !validateUuid(accountId) || !validateUuid(postId) ||
+    !validateUuid(accountId) ||
+    !validateUuid(postId) ||
     !isReactionEmoji(emoji)
   ) {
     return null;
@@ -1152,7 +1140,7 @@ async function getCustomEmojiReact(
   if (reaction == null) return null;
   const kind = getEmojiReactionCollectionKindForPost(reaction.post);
   if (kind == null) return null;
-  if (!await canViewEmojiReactionPost(ctx, kind, reaction.post)) return null;
+  if (!(await canViewEmojiReactionPost(ctx, kind, reaction.post))) return null;
   const activity = getEmojiReact(ctx, reaction);
   return activity instanceof vocab.EmojiReact ? activity : null;
 }
@@ -1248,9 +1236,11 @@ function hasHttpSignature(ctx: RequestContext<ContextData>): boolean {
   const request = (ctx as RequestContext<ContextData> & { request?: Request })
     .request;
   if (request == null) return false;
-  return request.headers.has("authorization") ||
+  return (
+    request.headers.has("authorization") ||
     request.headers.has("signature") ||
-    request.headers.has("signature-input");
+    request.headers.has("signature-input")
+  );
 }
 
 async function canViewEmojiReactionPost(
@@ -1271,25 +1261,20 @@ async function canViewEmojiReactionPost(
       identifier: post.actor.accountId,
     });
     const signedKeyOwner = await ctx.getSignedKeyOwner({ documentLoader });
-    signedActor = signedKeyOwner?.id == null
-      ? undefined
-      : { iri: signedKeyOwner.id.href };
+    signedActor =
+      signedKeyOwner?.id == null ? undefined : { iri: signedKeyOwner.id.href };
   }
-  return isEmojiReactionCollectionVisible(
-    kind,
-    post,
-    signedActor,
-  );
+  return isEmojiReactionCollectionVisible(kind, post, signedActor);
 }
 
 function encodeBase64Url(value: string): string {
   const bytes = new TextEncoder().encode(value);
   let binary = "";
   for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replaceAll(
-    "=",
-    "",
-  );
+  return btoa(binary)
+    .replaceAll("+", "-")
+    .replaceAll("/", "_")
+    .replaceAll("=", "");
 }
 
 function decodeBase64Url(value: string): string | null {
@@ -1403,11 +1388,12 @@ async function getPostForReplies(
 ) {
   const post = await ctx.data.db.query.postTable.findFirst({
     with: { actor: true },
-    where: kind === "article"
-      ? { articleSourceId: id, type: "Article" }
-      : kind === "note"
-      ? { noteSourceId: id, type: "Note" }
-      : { noteSourceId: id, type: "Question" },
+    where:
+      kind === "article"
+        ? { articleSourceId: id, type: "Article" }
+        : kind === "note"
+          ? { noteSourceId: id, type: "Note" }
+          : { noteSourceId: id, type: "Question" },
   });
   if (
     post == null ||
@@ -1424,16 +1410,12 @@ async function getRepliesCollectionRows(
   ctx: RequestContext<ContextData>,
   postId: Uuid,
   cursor: string | null,
-): Promise<
-  | {
-    rows: Pick<Post, "id" | "iri" | "published">[];
-    nextCursor: string | null;
-  }
-  | null
-> {
-  const decodedCursor = cursor == null || cursor.trim() === ""
-    ? null
-    : decodeRepliesCursor(cursor);
+): Promise<{
+  rows: Pick<Post, "id" | "iri" | "published">[];
+  nextCursor: string | null;
+} | null> {
+  const decodedCursor =
+    cursor == null || cursor.trim() === "" ? null : decodeRepliesCursor(cursor);
   if (cursor != null && cursor.trim() !== "" && decodedCursor == null) {
     return null;
   }
@@ -1445,15 +1427,19 @@ async function getRepliesCollectionRows(
         { actor: getSanctionVisibleActorFilter() },
         getCensoredPostExclusionFilter(null),
         getPostVisibilityFilter(null),
-        ...(decodedCursor == null ? [] : [{
-          OR: [
-            { published: { lt: decodedCursor.published } },
-            {
-              published: { eq: decodedCursor.published },
-              id: { lt: decodedCursor.id },
-            },
-          ],
-        }]),
+        ...(decodedCursor == null
+          ? []
+          : [
+              {
+                OR: [
+                  { published: { lt: decodedCursor.published } },
+                  {
+                    published: { eq: decodedCursor.published },
+                    id: { lt: decodedCursor.id },
+                  },
+                ],
+              },
+            ]),
       ],
     },
     orderBy: (post, { desc }) => [desc(post.published), desc(post.id)],
@@ -1462,9 +1448,10 @@ async function getRepliesCollectionRows(
   const pageRows = rows.slice(0, REPLIES_WINDOW);
   return {
     rows: pageRows,
-    nextCursor: rows.length > REPLIES_WINDOW
-      ? encodeRepliesCursor(pageRows[pageRows.length - 1])
-      : null,
+    nextCursor:
+      rows.length > REPLIES_WINDOW
+        ? encodeRepliesCursor(pageRows[pageRows.length - 1])
+        : null,
   };
 }
 
@@ -1475,36 +1462,39 @@ async function countRepliesCollectionItems(
   const sharedPost = aliasedTable(postTable, "replies_shared_post");
   const sharedActor = aliasedTable(actorTable, "replies_shared_actor");
   const now = new Date();
-  const [{ cnt }] = await ctx.data.db.select({ cnt: count() })
+  const [{ cnt }] = await ctx.data.db
+    .select({ cnt: count() })
     .from(postTable)
     .innerJoin(actorTable, eq(actorTable.id, postTable.actorId))
     .leftJoin(sharedPost, eq(sharedPost.id, postTable.sharedPostId))
     .leftJoin(sharedActor, eq(sharedActor.id, sharedPost.actorId))
-    .where(and(
-      eq(postTable.replyTargetId, postId),
-      inArray(postTable.visibility, ["public", "unlisted"]),
-      isNull(postTable.censored),
-      or(
-        isNull(actorTable.suspended),
-        gt(actorTable.suspended, now),
-        lte(actorTable.suspendedUntil, now),
-        and(
-          isNotNull(actorTable.accountId),
-          gt(actorTable.suspendedUntil, now),
+    .where(
+      and(
+        eq(postTable.replyTargetId, postId),
+        inArray(postTable.visibility, ["public", "unlisted"]),
+        isNull(postTable.censored),
+        or(
+          isNull(actorTable.suspended),
+          gt(actorTable.suspended, now),
+          lte(actorTable.suspendedUntil, now),
+          and(
+            isNotNull(actorTable.accountId),
+            gt(actorTable.suspendedUntil, now),
+          ),
+        ),
+        or(isNull(sharedPost.id), isNull(sharedPost.censored)),
+        or(
+          isNull(sharedPost.id),
+          isNull(sharedActor.suspended),
+          gt(sharedActor.suspended, now),
+          lte(sharedActor.suspendedUntil, now),
+          and(
+            isNotNull(sharedActor.accountId),
+            gt(sharedActor.suspendedUntil, now),
+          ),
         ),
       ),
-      or(isNull(sharedPost.id), isNull(sharedPost.censored)),
-      or(
-        isNull(sharedPost.id),
-        isNull(sharedActor.suspended),
-        gt(sharedActor.suspended, now),
-        lte(sharedActor.suspendedUntil, now),
-        and(
-          isNotNull(sharedActor.accountId),
-          gt(sharedActor.suspendedUntil, now),
-        ),
-      ),
-    ));
+    );
   return cnt;
 }
 
@@ -1530,8 +1520,11 @@ builder
   )
   .authorize(async (ctx, values) => {
     const kind = parseReplyCollectionObject(values.object);
-    return kind != null && validateUuid(values.id) &&
-      await getPostForReplies(ctx, kind, values.id) != null;
+    return (
+      kind != null &&
+      validateUuid(values.id) &&
+      (await getPostForReplies(ctx, kind, values.id)) != null
+    );
   });
 
 builder
@@ -1551,16 +1544,20 @@ builder
         id: getRepliesPageUri(ctx, object, values.id, values.cursor),
         partOf: getRepliesUri(ctx, object, values.id),
         items: page.rows.map((row) => new URL(row.iri)),
-        next: page.nextCursor == null
-          ? null
-          : getRepliesPageUri(ctx, object, values.id, page.nextCursor),
+        next:
+          page.nextCursor == null
+            ? null
+            : getRepliesPageUri(ctx, object, values.id, page.nextCursor),
       });
     },
   )
   .authorize(async (ctx, values) => {
     const kind = parseReplyCollectionObject(values.object);
-    return kind != null && validateUuid(values.id) &&
-      await getPostForReplies(ctx, kind, values.id) != null;
+    return (
+      kind != null &&
+      validateUuid(values.id) &&
+      (await getPostForReplies(ctx, kind, values.id)) != null
+    );
   });
 
 async function getPostForEmojiReactions(
@@ -1579,11 +1576,12 @@ async function getPostForEmojiReactions(
       },
       mentions: { with: { actor: true } },
     },
-    where: kind === "article"
-      ? { articleSourceId: id, type: "Article" }
-      : kind === "note"
-      ? { noteSourceId: id, type: "Note" }
-      : { noteSourceId: id, type: "Question" },
+    where:
+      kind === "article"
+        ? { articleSourceId: id, type: "Article" }
+        : kind === "note"
+          ? { noteSourceId: id, type: "Note" }
+          : { noteSourceId: id, type: "Question" },
   });
   if (post == null || post.censored != null) return null;
   if (kind === "article" && isActorSanctionHidden(post.actor)) return null;
@@ -1605,32 +1603,39 @@ async function getEmojiReactionCollectionItems(
   kind: EmojiReactionCollectionKind,
   id: Uuid,
   cursor: string | null,
-): Promise<
-  { items: (vocab.Like | vocab.EmojiReact)[]; nextCursor: string | null } | null
-> {
+): Promise<{
+  items: (vocab.Like | vocab.EmojiReact)[];
+  nextCursor: string | null;
+} | null> {
   const post = await getPostForEmojiReactions(ctx, kind, id);
   if (post == null) return null;
-  const decodedCursor = cursor == null || cursor.trim() === ""
-    ? null
-    : decodeEmojiReactionCursor(cursor);
+  const decodedCursor =
+    cursor == null || cursor.trim() === ""
+      ? null
+      : decodeEmojiReactionCursor(cursor);
   if (cursor != null && cursor.trim() !== "" && decodedCursor == null) {
     return null;
   }
-  const rows = await ctx.data.db.select({
-    iri: reactionTable.iri,
-    created: reactionTable.created,
-  })
+  const rows = await ctx.data.db
+    .select({
+      iri: reactionTable.iri,
+      created: reactionTable.created,
+    })
     .from(reactionTable)
-    .where(and(
-      eq(reactionTable.postId, post.id),
-      decodedCursor == null ? undefined : or(
-        lt(reactionTable.created, decodedCursor.created),
-        and(
-          eq(reactionTable.created, decodedCursor.created),
-          lt(reactionTable.iri, decodedCursor.iri),
-        ),
+    .where(
+      and(
+        eq(reactionTable.postId, post.id),
+        decodedCursor == null
+          ? undefined
+          : or(
+              lt(reactionTable.created, decodedCursor.created),
+              and(
+                eq(reactionTable.created, decodedCursor.created),
+                lt(reactionTable.iri, decodedCursor.iri),
+              ),
+            ),
       ),
-    ))
+    )
     .orderBy(desc(reactionTable.created), desc(reactionTable.iri))
     .limit(EMOJI_REACTIONS_WINDOW + 1);
   const pageRows = rows.slice(0, EMOJI_REACTIONS_WINDOW);
@@ -1648,13 +1653,14 @@ async function getEmojiReactionCollectionItems(
   );
   const items = pageRows
     .map((row) => reactionByIri.get(row.iri))
-    .map((reaction) => reaction == null ? null : getEmojiReact(ctx, reaction))
+    .map((reaction) => (reaction == null ? null : getEmojiReact(ctx, reaction)))
     .filter((item): item is vocab.Like | vocab.EmojiReact => item != null);
   return {
     items,
-    nextCursor: rows.length > EMOJI_REACTIONS_WINDOW
-      ? encodeEmojiReactionCursor(pageRows[pageRows.length - 1])
-      : null,
+    nextCursor:
+      rows.length > EMOJI_REACTIONS_WINDOW
+        ? encodeEmojiReactionCursor(pageRows[pageRows.length - 1])
+        : null,
   };
 }
 
@@ -1668,10 +1674,11 @@ builder
     async (ctx, values) => {
       const kind = parseEmojiReactionObject(values.object);
       if (kind == null || !validateUuid(values.id)) return null;
-      if (!await canViewEmojiReactions(ctx, kind, values.id)) return null;
+      if (!(await canViewEmojiReactions(ctx, kind, values.id))) return null;
       const post = await getPostForEmojiReactions(ctx, kind, values.id);
       if (post == null) return null;
-      const [{ cnt }] = await ctx.data.db.select({ cnt: count() })
+      const [{ cnt }] = await ctx.data.db
+        .select({ cnt: count() })
         .from(reactionTable)
         .where(eq(reactionTable.postId, post.id));
       const object = getEmojiReactionObject(kind);
@@ -1684,8 +1691,11 @@ builder
   )
   .authorize(async (ctx, values) => {
     const kind = parseEmojiReactionObject(values.object);
-    return kind != null && validateUuid(values.id) &&
-      await canViewEmojiReactions(ctx, kind, values.id);
+    return (
+      kind != null &&
+      validateUuid(values.id) &&
+      (await canViewEmojiReactions(ctx, kind, values.id))
+    );
   });
 
 builder
@@ -1695,7 +1705,7 @@ builder
     async (ctx, values) => {
       const kind = parseEmojiReactionObject(values.object);
       if (kind == null || !validateUuid(values.id)) return null;
-      if (!await canViewEmojiReactions(ctx, kind, values.id)) return null;
+      if (!(await canViewEmojiReactions(ctx, kind, values.id))) return null;
       const object = getEmojiReactionObject(kind);
       const cursor = values.cursor === "_" ? "" : values.cursor;
       const page = await getEmojiReactionCollectionItems(
@@ -1709,14 +1719,18 @@ builder
         id: getEmojiReactionsPageUri(ctx, object, values.id, values.cursor),
         partOf: getEmojiReactionsUri(ctx, object, values.id),
         items: page.items,
-        next: page.nextCursor == null
-          ? null
-          : getEmojiReactionsPageUri(ctx, object, values.id, page.nextCursor),
+        next:
+          page.nextCursor == null
+            ? null
+            : getEmojiReactionsPageUri(ctx, object, values.id, page.nextCursor),
       });
     },
   )
   .authorize(async (ctx, values) => {
     const kind = parseEmojiReactionObject(values.object);
-    return kind != null && validateUuid(values.id) &&
-      await canViewEmojiReactions(ctx, kind, values.id);
+    return (
+      kind != null &&
+      validateUuid(values.id) &&
+      (await canViewEmojiReactions(ctx, kind, values.id))
+    );
   });

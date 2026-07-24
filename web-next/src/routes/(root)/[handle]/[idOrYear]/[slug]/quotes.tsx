@@ -13,7 +13,7 @@ import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { PostCard } from "~/components/PostCard.tsx";
 import { Title } from "~/components/Title.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   createStablePreloadedQuery,
   routePreloadedQuery,
@@ -45,9 +45,8 @@ const quotesArticleEngagementQuery = graphql`
         reactions
       }
       ...PostCard_post @arguments(actingAccountId: $actingAccountId)
-      ...quotesArticleEngagement_article @arguments(
-        actingAccountId: $actingAccountId
-      )
+      ...quotesArticleEngagement_article
+        @arguments(actingAccountId: $actingAccountId)
     }
   }
 `;
@@ -89,9 +88,11 @@ export default function ArticleQuotesPage() {
   );
 }
 
-function ArticleQuotesLoaded(
-  props: { handle: string; idOrYear: string; slug: string },
-) {
+function ArticleQuotesLoaded(props: {
+  handle: string;
+  idOrYear: string;
+  slug: string;
+}) {
   const actingAccount = useActingAccount();
   const actingAccountId = () => actingAccount.selectedActingAccountId();
   const data = createStablePreloadedQuery<quotesArticleEngagementQuery>(
@@ -142,9 +143,7 @@ function ArticleQuotesBody(props: { article: ArticlePost; base: string }) {
   );
 }
 
-function QuotesList(
-  props: { $article: quotesArticleEngagement_article$key },
-) {
+function QuotesList(props: { $article: quotesArticleEngagement_article$key }) {
   const { t } = useLingui();
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
@@ -152,16 +151,17 @@ function QuotesList(
   const quotes = createPaginationFragment(
     graphql`
       fragment quotesArticleEngagement_article on Article
-        @refetchable(queryName: "quotesArticleEngagementPaginationQuery")
-        @argumentDefinitions(
-          cursor: { type: "String" }
-          count: { type: "Int", defaultValue: 20 }
-          actingAccountId: { type: "ID", defaultValue: null }
-        )
-      {
-        quotes(after: $cursor, first: $count, actingAccountId: $actingAccountId)
-          @connection(key: "QuotesArticleEngagement__quotes")
-        {
+      @refetchable(queryName: "quotesArticleEngagementPaginationQuery")
+      @argumentDefinitions(
+        cursor: { type: "String" }
+        count: { type: "Int", defaultValue: 20 }
+        actingAccountId: { type: "ID", defaultValue: null }
+      ) {
+        quotes(
+          after: $cursor
+          first: $count
+          actingAccountId: $actingAccountId
+        ) @connection(key: "QuotesArticleEngagement__quotes") {
           edges {
             node {
               id

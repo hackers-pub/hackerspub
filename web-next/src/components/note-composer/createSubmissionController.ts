@@ -18,7 +18,7 @@ import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
 import type { QuotePolicy } from "~/components/QuotePolicySelect.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 const CreateNoteMutation = graphql`
   mutation createSubmissionControllerCreateNoteMutation(
@@ -48,9 +48,8 @@ const CreateNoteMutation = graphql`
             username
             local
           }
-          ...PermalinkThread_replyNode @arguments(
-            actingAccountId: $actingAccountId
-          )
+          ...PermalinkThread_replyNode
+            @arguments(actingAccountId: $actingAccountId)
           # Only news-discussion posts prepend into a connection and need the
           # row fields; skip them for every other compose/reply/quote path.
           ...NewsDiscussionThread_post
@@ -93,9 +92,8 @@ const CreateQuestionMutation = graphql`
           actor {
             id
           }
-          ...PermalinkThread_replyNode @arguments(
-            actingAccountId: $actingAccountId
-          )
+          ...PermalinkThread_replyNode
+            @arguments(actingAccountId: $actingAccountId)
           ...NewsDiscussionThread_post
             @arguments(actingAccountId: $actingAccountId)
             @include(if: $includeDiscussionThreadFields)
@@ -214,30 +212,35 @@ export function createSubmissionController(
   options: SubmissionControllerOptions,
 ): SubmissionController {
   const { t } = useLingui();
-  const [createNote, creating] = createMutation<
-    createSubmissionControllerCreateNoteMutation
-  >(CreateNoteMutation);
-  const [createQuestion, creatingQuestion] = createMutation<
-    createSubmissionControllerCreateQuestionMutation
-  >(CreateQuestionMutation);
-  const [updateNote, updating] = createMutation<
-    createSubmissionControllerUpdateNoteMutation
-  >(UpdateNoteMutation);
-  const [saveArticleDraft, savingArticleDraft] = createMutation<
-    createSubmissionControllerArticleDraftMutation
-  >(ArticleDraftMutation);
+  const [createNote, creating] =
+    createMutation<createSubmissionControllerCreateNoteMutation>(
+      CreateNoteMutation,
+    );
+  const [createQuestion, creatingQuestion] =
+    createMutation<createSubmissionControllerCreateQuestionMutation>(
+      CreateQuestionMutation,
+    );
+  const [updateNote, updating] =
+    createMutation<createSubmissionControllerUpdateNoteMutation>(
+      UpdateNoteMutation,
+    );
+  const [saveArticleDraft, savingArticleDraft] =
+    createMutation<createSubmissionControllerArticleDraftMutation>(
+      ArticleDraftMutation,
+    );
 
   const submitting = () =>
     creating() || creatingQuestion() || updating() || savingArticleDraft();
 
   const showValidationError = (error: SubmissionValidationError) => {
-    const description = error === "empty-content"
-      ? t`Content cannot be empty`
-      : error === "uploading-media"
-      ? t`All images must finish uploading before posting`
-      : error === "failed-media-upload"
-      ? t`Failed to upload image`
-      : t`All images require alt text`;
+    const description =
+      error === "empty-content"
+        ? t`Content cannot be empty`
+        : error === "uploading-media"
+          ? t`All images must finish uploading before posting`
+          : error === "failed-media-upload"
+            ? t`Failed to upload image`
+            : t`All images require alt text`;
     showToast({ title: t`Error`, description, variant: "error" });
   };
 
@@ -341,9 +344,7 @@ export function createSubmissionController(
           });
         },
         onCompleted(response) {
-          if (
-            response.createQuestion.__typename === "CreateQuestionPayload"
-          ) {
+          if (response.createQuestion.__typename === "CreateQuestionPayload") {
             showToast({
               title: t`Success`,
               description: t`Poll created successfully`,
@@ -355,8 +356,7 @@ export function createSubmissionController(
           ) {
             showToast({
               title: t`Error`,
-              description:
-                t`Invalid input: ${response.createQuestion.inputPath}`,
+              description: t`Invalid input: ${response.createQuestion.inputPath}`,
               variant: "error",
             });
           } else if (
@@ -404,9 +404,7 @@ export function createSubmissionController(
             description: t`Invalid input: ${response.createNote.inputPath}`,
             variant: "error",
           });
-        } else if (
-          response.createNote.__typename === "NotAuthenticatedError"
-        ) {
+        } else if (response.createNote.__typename === "NotAuthenticatedError") {
           showToast({
             title: t`Error`,
             description: t`You must be signed in to create a note`,
@@ -442,13 +440,16 @@ export function createSubmissionController(
 
     options.saveDraftNow();
     const viewerId = options.viewerId();
-    const connections = viewerId == null ? [] : [
-      "SignedAccount_articleDrafts",
-      "draftsPaginationFragment_articleDrafts",
-      "FloatingComposeButton_articleDrafts",
-    ].map((connectionKey) =>
-      ConnectionHandler.getConnectionID(viewerId, connectionKey)
-    );
+    const connections =
+      viewerId == null
+        ? []
+        : [
+            "SignedAccount_articleDrafts",
+            "draftsPaginationFragment_articleDrafts",
+            "FloatingComposeButton_articleDrafts",
+          ].map((connectionKey) =>
+            ConnectionHandler.getConnectionID(viewerId, connectionKey),
+          );
     saveArticleDraft({
       variables: {
         input: { title: "", content, tags: [] },
@@ -475,8 +476,7 @@ export function createSubmissionController(
         ) {
           showToast({
             title: t`Error`,
-            description:
-              t`Invalid input: ${response.saveArticleDraft.inputPath}`,
+            description: t`Invalid input: ${response.saveArticleDraft.inputPath}`,
             variant: "error",
           });
         } else if (

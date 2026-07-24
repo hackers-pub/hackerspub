@@ -22,7 +22,7 @@ import {
   TextFieldInput,
   TextFieldLabel,
 } from "~/components/ui/text-field.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 import type {
   RemoteFollowButton_lookupRemoteFollowerQuery,
   RemoteFollowButton_lookupRemoteFollowerQuery$data,
@@ -106,16 +106,15 @@ export function RemoteFollowButton(props: RemoteFollowButtonProps) {
     setError("");
 
     try {
-      const result = await fetchQuery<
-        RemoteFollowButton_lookupRemoteFollowerQuery
-      >(
-        env(),
-        lookupRemoteFollowerQuery,
-        {
-          followerHandle: inputId,
-          actorId: props.actorId,
-        },
-      ).toPromise();
+      const result =
+        await fetchQuery<RemoteFollowButton_lookupRemoteFollowerQuery>(
+          env(),
+          lookupRemoteFollowerQuery,
+          {
+            followerHandle: inputId,
+            actorId: props.actorId,
+          },
+        ).toPromise();
 
       if (result?.lookupRemoteFollower) {
         setActorInfo(result.lookupRemoteFollower);
@@ -156,9 +155,12 @@ export function RemoteFollowButton(props: RemoteFollowButtonProps) {
   const actorDisplayName = () => {
     const info = actorInfo();
     if (!info) return "";
-    return info.name || info.preferredUsername ||
+    return (
+      info.name ||
+      info.preferredUsername ||
       info.handle?.replace(/^@/, "").split("@")[0] ||
-      "";
+      ""
+    );
   };
 
   return (
@@ -239,15 +241,11 @@ export function RemoteFollowButton(props: RemoteFollowButtonProps) {
                   )}
                 </Show>
                 <div class="flex-1 min-w-0">
-                  <h4 class="font-medium truncate">
-                    {actorDisplayName()}
-                  </h4>
+                  <h4 class="font-medium truncate">{actorDisplayName()}</h4>
                   <p class="text-sm text-muted-foreground truncate">
                     {info.handle}
                   </p>
-                  <Show
-                    when={info.software && info.software !== "unknown"}
-                  >
+                  <Show when={info.software && info.software !== "unknown"}>
                     <p class="text-xs text-muted-foreground">
                       {info.software!.charAt(0).toUpperCase() +
                         info.software!.slice(1)}

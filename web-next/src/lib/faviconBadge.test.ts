@@ -6,8 +6,7 @@ import {
   UNREAD_FAVICON_BADGE_ID,
 } from "./faviconBadge.ts";
 
-const SOURCE_SVG =
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100"/></svg>`;
+const SOURCE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100"/></svg>`;
 
 test("buildUnreadNotificationsFaviconSvg adds a red unread dot with a white ring", () => {
   const favicon = buildUnreadNotificationsFaviconSvg(SOURCE_SVG);

@@ -134,15 +134,16 @@ export async function createNotification(
   }
 
   const postId = post?.id;
-  const effectiveCreated = created == null
-    ? sql`CURRENT_TIMESTAMP`
-    : sql`${created.toISOString()}::timestamptz`;
-  const explicitCreatedIsNewer = created == null
-    ? sql`FALSE`
-    : sql`${created.toISOString()}::timestamptz > ${notificationTable.created}`;
+  const effectiveCreated =
+    created == null
+      ? sql`CURRENT_TIMESTAMP`
+      : sql`${created.toISOString()}::timestamptz`;
+  const explicitCreatedIsNewer =
+    created == null
+      ? sql`FALSE`
+      : sql`${created.toISOString()}::timestamptz > ${notificationTable.created}`;
   const getExistingFollowNotification = async () => {
-    const rows = await db.select().from(notificationTable)
-      .where(sql`
+    const rows = await db.select().from(notificationTable).where(sql`
         ${notificationTable.accountId} = ${accountId}
         AND ${notificationTable.type} = 'follow'
         AND ${notificationTable.actorIds} = ARRAY[${actorId}]::uuid[]
@@ -150,7 +151,9 @@ export async function createNotification(
     return rows[0];
   };
   const getExistingNotification = async () => {
-    const rows = await db.select().from(notificationTable)
+    const rows = await db
+      .select()
+      .from(notificationTable)
       .where(notificationWhere);
     return rows[0];
   };
@@ -163,8 +166,8 @@ export async function createNotification(
     emoji == null
       ? undefined
       : typeof emoji === "string"
-      ? eq(notificationTable.emoji, emoji)
-      : eq(notificationTable.customEmojiId, emoji.id),
+        ? eq(notificationTable.emoji, emoji)
+        : eq(notificationTable.customEmojiId, emoji.id),
   );
   const mergeableNotificationWhere = and(
     notificationWhere,
@@ -184,7 +187,8 @@ export async function createNotification(
   // Update first so mergeable notifications still work inside an existing
   // transaction, where a unique-violation insert would abort the transaction.
   if (type !== "follow") {
-    const mergedRows = await db.update(notificationTable)
+    const mergedRows = await db
+      .update(notificationTable)
       .set({
         actorIds: sql`
           CASE
@@ -193,8 +197,7 @@ export async function createNotification(
             ELSE array_append(${notificationTable.actorIds}, ${actorId})
           END
         `,
-        created:
-          sql`GREATEST(${notificationTable.created}, ${effectiveCreated})`,
+        created: sql`GREATEST(${notificationTable.created}, ${effectiveCreated})`,
       })
       .where(mergeableNotificationWhere)
       .returning();
@@ -214,7 +217,8 @@ export async function createNotification(
 
   try {
     const id = generateUuidV7();
-    const notificationRows = await db.insert(notificationTable)
+    const notificationRows = await db
+      .insert(notificationTable)
       .values({
         id,
         accountId,
@@ -222,9 +226,8 @@ export async function createNotification(
         postId,
         actorIds: [actorId],
         emoji: typeof emoji === "string" ? emoji : null,
-        customEmojiId: typeof emoji === "string" || emoji == null
-          ? null
-          : emoji.id,
+        customEmojiId:
+          typeof emoji === "string" || emoji == null ? null : emoji.id,
         created: created ?? sql`CURRENT_TIMESTAMP`,
       })
       .onConflictDoNothing()
@@ -244,7 +247,8 @@ export async function createNotification(
     if (type === "follow") {
       return await getExistingFollowNotification();
     }
-    const mergedRows = await db.update(notificationTable)
+    const mergedRows = await db
+      .update(notificationTable)
       .set({
         actorIds: sql`
           CASE
@@ -253,8 +257,7 @@ export async function createNotification(
             ELSE array_append(${notificationTable.actorIds}, ${actorId})
           END
         `,
-        created:
-          sql`GREATEST(${notificationTable.created}, ${effectiveCreated})`,
+        created: sql`GREATEST(${notificationTable.created}, ${effectiveCreated})`,
       })
       .where(mergeableNotificationWhere)
       .returning();
@@ -303,8 +306,7 @@ export async function createOrganizationInvitationNotification(
         hashtextextended(${`${organizationActorId}:${accountId}`}, 0)
       )
     `);
-    const existing = await tx.select().from(notificationTable)
-      .where(sql`
+    const existing = await tx.select().from(notificationTable).where(sql`
         ${notificationTable.accountId} = ${accountId}
         AND ${notificationTable.type} = 'organization_invitation'
         AND ${notificationTable.actorIds} =
@@ -312,12 +314,16 @@ export async function createOrganizationInvitationNotification(
       `);
     if (existing[0] != null) return existing[0];
 
-    const rows = await tx.insert(notificationTable).values({
-      id: generateUuidV7(),
-      accountId,
-      type: "organization_invitation",
-      actorIds: [organizationActorId],
-    }).onConflictDoNothing().returning();
+    const rows = await tx
+      .insert(notificationTable)
+      .values({
+        id: generateUuidV7(),
+        accountId,
+        type: "organization_invitation",
+        actorIds: [organizationActorId],
+      })
+      .onConflictDoNothing()
+      .returning();
     const inserted = rows[0];
     if (inserted != null) {
       await sendInsertedNotificationPush(tx, inserted, organizationActorId);
@@ -341,13 +347,17 @@ export async function createOrganizationConversionRequestNotification(
   });
   if (existing != null) return existing;
 
-  const rows = await db.insert(notificationTable).values({
-    id: generateUuidV7(),
-    accountId: adminAccountId,
-    type: "organization_conversion_request",
-    actorIds: [convertingActorId],
-    organizationConversionRequestId: requestId,
-  }).onConflictDoNothing().returning();
+  const rows = await db
+    .insert(notificationTable)
+    .values({
+      id: generateUuidV7(),
+      accountId: adminAccountId,
+      type: "organization_conversion_request",
+      actorIds: [convertingActorId],
+      organizationConversionRequestId: requestId,
+    })
+    .onConflictDoNothing()
+    .returning();
   const inserted = rows[0];
   if (inserted != null) {
     await sendInsertedNotificationPush(db, inserted, convertingActorId);
@@ -560,7 +570,9 @@ export async function deleteNotification(
   try {
     if (type === "follow") {
       return await runInTransaction(db, async (tx) => {
-        const rows = await tx.select().from(notificationTable)
+        const rows = await tx
+          .select()
+          .from(notificationTable)
           .where(
             and(
               eq(notificationTable.accountId, accountId),
@@ -571,7 +583,10 @@ export async function deleteNotification(
         if (rows.length < 1) return undefined;
 
         await tx.delete(notificationTable).where(
-          inArray(notificationTable.id, rows.map((row) => row.id)),
+          inArray(
+            notificationTable.id,
+            rows.map((row) => row.id),
+          ),
         );
 
         // Older versions merged follow notifications into actor arrays. Split
@@ -590,21 +605,25 @@ export async function deleteNotification(
           }
         }
         if (survivors.size > 0) {
-          await tx.insert(notificationTable).values(
-            [...survivors].map(([remainingActorId, created]) => ({
-              id: generateUuidV7(),
-              accountId,
-              type: "follow" as const,
-              actorIds: [remainingActorId],
-              created,
-            })),
-          ).onConflictDoNothing();
+          await tx
+            .insert(notificationTable)
+            .values(
+              [...survivors].map(([remainingActorId, created]) => ({
+                id: generateUuidV7(),
+                accountId,
+                type: "follow" as const,
+                actorIds: [remainingActorId],
+                created,
+              })),
+            )
+            .onConflictDoNothing();
         }
         return rows[0];
       });
     }
 
-    const deletedExact = await db.delete(notificationTable)
+    const deletedExact = await db
+      .delete(notificationTable)
       .where(
         and(
           eq(notificationTable.accountId, accountId),
@@ -615,15 +634,16 @@ export async function deleteNotification(
           emoji == null
             ? undefined
             : typeof emoji === "string"
-            ? eq(notificationTable.emoji, emoji)
-            : eq(notificationTable.customEmojiId, emoji.id),
+              ? eq(notificationTable.emoji, emoji)
+              : eq(notificationTable.customEmojiId, emoji.id),
           sql`${notificationTable.actorIds} = ARRAY[${actorId}]::uuid[]`,
         ),
       )
       .returning();
     if (deletedExact[0] != null) return deletedExact[0];
 
-    const updated = await db.update(notificationTable)
+    const updated = await db
+      .update(notificationTable)
       .set({
         actorIds: sql`array_remove(${notificationTable.actorIds}, ${actorId})`,
       })
@@ -637,8 +657,8 @@ export async function deleteNotification(
           emoji == null
             ? undefined
             : typeof emoji === "string"
-            ? eq(notificationTable.emoji, emoji)
-            : eq(notificationTable.customEmojiId, emoji.id),
+              ? eq(notificationTable.emoji, emoji)
+              : eq(notificationTable.customEmojiId, emoji.id),
           sql`${actorId} = ANY(${notificationTable.actorIds})`,
         ),
       )
@@ -646,7 +666,8 @@ export async function deleteNotification(
     const isActorIdsEmpty = isNull(
       sql`array_length(${notificationTable.actorIds}, 1)`,
     );
-    const deleted = await db.delete(notificationTable)
+    const deleted = await db
+      .delete(notificationTable)
       .where(
         and(
           eq(notificationTable.accountId, accountId),
@@ -657,8 +678,8 @@ export async function deleteNotification(
           emoji == null
             ? undefined
             : typeof emoji === "string"
-            ? eq(notificationTable.emoji, emoji)
-            : eq(notificationTable.customEmojiId, emoji.id),
+              ? eq(notificationTable.emoji, emoji)
+              : eq(notificationTable.customEmojiId, emoji.id),
           isActorIdsEmpty,
         ),
       )
@@ -675,13 +696,7 @@ export function deleteFollowNotification(
   followeeAccountId: Uuid,
   follower: Actor,
 ): Promise<Notification | undefined> {
-  return deleteNotification(
-    db,
-    followeeAccountId,
-    "follow",
-    null,
-    follower.id,
-  );
+  return deleteNotification(db, followeeAccountId, "follow", null, follower.id);
 }
 
 export function deleteShareNotification(
@@ -733,7 +748,7 @@ export function getNotifications(
   offset = 0,
 ): Promise<
   (Notification & {
-    post: Post & { actor: Actor & { instance: Instance } } | null;
+    post: (Post & { actor: Actor & { instance: Instance } }) | null;
     account: Account;
     customEmoji: CustomEmoji | null;
   })[]

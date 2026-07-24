@@ -48,8 +48,8 @@ export const relations = defineRelations(schema, (r) => ({
     organizationConversionRequests: r.many.organizationConversionRequestTable({
       alias: "account",
     }),
-    organizationConversionRequestsToAccept: r.many
-      .organizationConversionRequestTable({
+    organizationConversionRequestsToAccept:
+      r.many.organizationConversionRequestTable({
         alias: "adminAccount",
       }),
     authoredOrganizationPosts: r.many.organizationPostAuthorTable({

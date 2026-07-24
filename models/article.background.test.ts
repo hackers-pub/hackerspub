@@ -198,12 +198,15 @@ test("updateArticle() persists regenerated summaries after commit", async () => 
             await releaseRegeneratedSummary.promise;
           }
           return {
-            content: [{
-              type: "text",
-              text: generation === 1
-                ? "Initial summary."
-                : "Regenerated summary.",
-            }],
+            content: [
+              {
+                type: "text",
+                text:
+                  generation === 1
+                    ? "Initial summary."
+                    : "Regenerated summary.",
+              },
+            ],
             finishReason: { unified: "stop", raw: undefined },
             usage: {
               inputTokens: {
@@ -279,8 +282,10 @@ test("updateArticle() persists regenerated summaries after commit", async () => 
         const current = await db.query.articleContentTable.findFirst({
           where: { sourceId, language: "en" },
         });
-        return current?.summary === "Regenerated summary." &&
-          current.summaryStarted == null;
+        return (
+          current?.summary === "Regenerated summary." &&
+          current.summaryStarted == null
+        );
       }, 1_000);
     } finally {
       releaseRegeneratedSummary.resolve();
@@ -357,36 +362,36 @@ test("startArticleContentTranslation() deletes queued rows when translation fail
   });
 });
 
-test(
-  "restartArticleContentTranslations() resets each translation row to placeholder state and re-runs the translator",
-  async () => {
-    await withRollback(async (tx) => {
-      const fedCtx = createFedCtx(tx);
-      // Use the same `{} as never` translator stub as the existing
-      // failure-path test: it lets us observe the row pass through
-      // the placeholder state and then be cleaned up by the failure
-      // branch, which is enough to confirm
-      // restartArticleContentTranslations actually re-fired the
-      // translation pipeline against the reset row.
-      fedCtx.models = {
-        summarizer: {} as never,
-        translator: {} as never,
-        moderationAnalyzer: {} as never,
-      } as typeof fedCtx.models;
-      const author = await insertAccountWithActor(tx, {
-        username: "restarttranslator",
-        name: "Restart Translator",
-        email: "restarttranslator@example.com",
-      });
-      const requester = await insertAccountWithActor(tx, {
-        username: "restartrequester",
-        name: "Restart Requester",
-        email: "restartrequester@example.com",
-      });
-      const sourceId = generateUuidV7();
-      const published = new Date("2026-04-15T00:00:00.000Z");
+test("restartArticleContentTranslations() resets each translation row to placeholder state and re-runs the translator", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    // Use the same `{} as never` translator stub as the existing
+    // failure-path test: it lets us observe the row pass through
+    // the placeholder state and then be cleaned up by the failure
+    // branch, which is enough to confirm
+    // restartArticleContentTranslations actually re-fired the
+    // translation pipeline against the reset row.
+    fedCtx.models = {
+      summarizer: {} as never,
+      translator: {} as never,
+      moderationAnalyzer: {} as never,
+    } as typeof fedCtx.models;
+    const author = await insertAccountWithActor(tx, {
+      username: "restarttranslator",
+      name: "Restart Translator",
+      email: "restarttranslator@example.com",
+    });
+    const requester = await insertAccountWithActor(tx, {
+      username: "restartrequester",
+      name: "Restart Requester",
+      email: "restartrequester@example.com",
+    });
+    const sourceId = generateUuidV7();
+    const published = new Date("2026-04-15T00:00:00.000Z");
 
-      const [articleSource] = await tx.insert(articleSourceTable).values({
+    const [articleSource] = await tx
+      .insert(articleSourceTable)
+      .values({
         id: sourceId,
         accountId: author.account.id,
         publishedYear: 2026,
@@ -395,105 +400,107 @@ test(
         allowLlmTranslation: true,
         published,
         updated: published,
-      }).returning();
-      // The original row carries the *new* (post-edit) body — the
-      // shape updateArticleSource leaves behind for
-      // restartArticleContentTranslations to mirror into each
-      // translation placeholder.
-      await tx.insert(articleContentTable).values({
-        sourceId,
-        language: "en",
-        title: "New original title",
-        content: "New original body",
-        published,
-        updated: published,
-      });
-      // A previously completed translation that is now stale relative
-      // to the freshly edited original.
-      await tx.insert(articleContentTable).values({
-        sourceId,
-        language: "ko",
-        title: "Stale translated title",
-        content: "Stale translated body",
-        summary: "Stale summary.",
-        originalLanguage: "en",
-        translationRequesterId: requester.account.id,
-        beingTranslated: false,
-        published: new Date("2026-04-15T01:00:00.000Z"),
-        updated: new Date("2026-04-15T01:00:00.000Z"),
-      });
-
-      await restartArticleContentTranslations(fedCtx, articleSource);
-
-      // The row must briefly pass through placeholder state before
-      // the failing stub model causes the failure branch to delete
-      // it; assert on either observable.
-      await waitFor(async () => {
-        const current = await tx.query.articleContentTable.findFirst({
-          where: { sourceId, language: "ko" },
-        });
-        if (current == null) return true;
-        // Placeholder reset: title/content mirror the new original
-        // and beingTranslated has flipped back true with summary
-        // state cleared.  translationRequesterId is preserved.
-        return current.beingTranslated === true &&
-          current.title === "New original title" &&
-          current.content === "New original body" &&
-          current.summary === null &&
-          current.translationRequesterId === requester.account.id;
-      });
-
-      // Eventually the failing stub causes deletion via the
-      // run-translation failure branch.
-      await waitFor(async () => {
-        const current = await tx.query.articleContentTable.findFirst({
-          where: { sourceId, language: "ko" },
-        });
-        return current == null;
-      });
+      })
+      .returning();
+    // The original row carries the *new* (post-edit) body — the
+    // shape updateArticleSource leaves behind for
+    // restartArticleContentTranslations to mirror into each
+    // translation placeholder.
+    await tx.insert(articleContentTable).values({
+      sourceId,
+      language: "en",
+      title: "New original title",
+      content: "New original body",
+      published,
+      updated: published,
     });
-  },
-);
+    // A previously completed translation that is now stale relative
+    // to the freshly edited original.
+    await tx.insert(articleContentTable).values({
+      sourceId,
+      language: "ko",
+      title: "Stale translated title",
+      content: "Stale translated body",
+      summary: "Stale summary.",
+      originalLanguage: "en",
+      translationRequesterId: requester.account.id,
+      beingTranslated: false,
+      published: new Date("2026-04-15T01:00:00.000Z"),
+      updated: new Date("2026-04-15T01:00:00.000Z"),
+    });
 
-test(
-  "restartArticleContentTranslations() leaves persistence failures immediately retryable",
-  async () => {
-    await withRollback(async (tx) => {
-      const baseFedCtx = createFedCtx(tx);
-      let translationAttempts = 0;
-      baseFedCtx.data.services = {
-        ...baseFedCtx.data.services,
-        ai: {
-          ...baseFedCtx.data.services.ai,
-          translate: () => {
-            translationAttempts++;
-            return Promise.resolve("# Translated title\n\nTranslated body");
-          },
-        },
-      };
-      const deliveryAttempted = Promise.withResolvers<void>();
-      let deliveryAttempts = 0;
-      const fedCtx = {
-        ...baseFedCtx,
-        sendActivity() {
-          deliveryAttempts++;
-          deliveryAttempted.resolve();
-          return Promise.reject(new Error("outbox persistence failed"));
-        },
-      } as typeof baseFedCtx;
-      const author = await insertAccountWithActor(tx, {
-        username: "retrytranslation",
-        name: "Retry Translation",
-        email: "retrytranslation@example.com",
+    await restartArticleContentTranslations(fedCtx, articleSource);
+
+    // The row must briefly pass through placeholder state before
+    // the failing stub model causes the failure branch to delete
+    // it; assert on either observable.
+    await waitFor(async () => {
+      const current = await tx.query.articleContentTable.findFirst({
+        where: { sourceId, language: "ko" },
       });
-      const requester = await insertAccountWithActor(tx, {
-        username: "retryrequester",
-        name: "Retry Requester",
-        email: "retryrequester@example.com",
+      if (current == null) return true;
+      // Placeholder reset: title/content mirror the new original
+      // and beingTranslated has flipped back true with summary
+      // state cleared.  translationRequesterId is preserved.
+      return (
+        current.beingTranslated === true &&
+        current.title === "New original title" &&
+        current.content === "New original body" &&
+        current.summary === null &&
+        current.translationRequesterId === requester.account.id
+      );
+    });
+
+    // Eventually the failing stub causes deletion via the
+    // run-translation failure branch.
+    await waitFor(async () => {
+      const current = await tx.query.articleContentTable.findFirst({
+        where: { sourceId, language: "ko" },
       });
-      const sourceId = generateUuidV7();
-      const published = new Date("2026-04-15T00:00:00.000Z");
-      const [articleSource] = await tx.insert(articleSourceTable).values({
+      return current == null;
+    });
+  });
+});
+
+test("restartArticleContentTranslations() leaves persistence failures immediately retryable", async () => {
+  await withRollback(async (tx) => {
+    const baseFedCtx = createFedCtx(tx);
+    let translationAttempts = 0;
+    baseFedCtx.data.services = {
+      ...baseFedCtx.data.services,
+      ai: {
+        ...baseFedCtx.data.services.ai,
+        translate: () => {
+          translationAttempts++;
+          return Promise.resolve("# Translated title\n\nTranslated body");
+        },
+      },
+    };
+    const deliveryAttempted = Promise.withResolvers<void>();
+    let deliveryAttempts = 0;
+    const fedCtx = {
+      ...baseFedCtx,
+      sendActivity() {
+        deliveryAttempts++;
+        deliveryAttempted.resolve();
+        return Promise.reject(new Error("outbox persistence failed"));
+      },
+    } as typeof baseFedCtx;
+    const author = await insertAccountWithActor(tx, {
+      username: "retrytranslation",
+      name: "Retry Translation",
+      email: "retrytranslation@example.com",
+    });
+    const requester = await insertAccountWithActor(tx, {
+      username: "retryrequester",
+      name: "Retry Requester",
+      email: "retryrequester@example.com",
+    });
+    const sourceId = generateUuidV7();
+    const published = new Date("2026-04-15T00:00:00.000Z");
+    const [articleSource] = await tx
+      .insert(articleSourceTable)
+      .values({
         id: sourceId,
         accountId: author.account.id,
         publishedYear: 2026,
@@ -502,90 +509,89 @@ test(
         allowLlmTranslation: true,
         published,
         updated: published,
-      }).returning();
-      await tx.insert(articleContentTable).values({
-        sourceId,
-        language: "en",
-        title: "Current original title",
-        content: "Current original body",
-        published,
-        updated: published,
-      });
-      await tx.insert(articleContentTable).values({
-        sourceId,
-        language: "ko",
-        title: "Previous translated title",
-        content: "Previous translated body",
-        originalLanguage: "en",
-        translationRequesterId: requester.account.id,
-        beingTranslated: false,
-        published,
-        updated: published,
-      });
+      })
+      .returning();
+    await tx.insert(articleContentTable).values({
+      sourceId,
+      language: "en",
+      title: "Current original title",
+      content: "Current original body",
+      published,
+      updated: published,
+    });
+    await tx.insert(articleContentTable).values({
+      sourceId,
+      language: "ko",
+      title: "Previous translated title",
+      content: "Previous translated body",
+      originalLanguage: "en",
+      translationRequesterId: requester.account.id,
+      beingTranslated: false,
+      published,
+      updated: published,
+    });
 
-      await restartArticleContentTranslations(fedCtx, articleSource);
-      await deliveryAttempted.promise;
-      await waitFor(async () => {
-        const current = await tx.query.articleContentTable.findFirst({
-          where: { sourceId, language: "ko" },
-        });
-        return current?.beingTranslated === true &&
-          current.updated.getTime() === 0;
-      });
-
-      const original = await tx.query.articleContentTable.findFirst({
-        where: { sourceId, language: "en" },
-      });
-      assert.ok(original != null);
-      await startArticleContentTranslation(fedCtx, {
-        content: original,
-        targetLanguage: "ko",
-        requester: requester.account,
-      });
-      await waitFor(async () => {
-        if (translationAttempts < 2 || deliveryAttempts < 2) return false;
-        const current = await tx.query.articleContentTable.findFirst({
-          where: { sourceId, language: "ko" },
-        });
-        return current?.beingTranslated === true &&
-          current.updated.getTime() === 0;
-      });
-
-      const placeholder = await tx.query.articleContentTable.findFirst({
+    await restartArticleContentTranslations(fedCtx, articleSource);
+    await deliveryAttempted.promise;
+    await waitFor(async () => {
+      const current = await tx.query.articleContentTable.findFirst({
         where: { sourceId, language: "ko" },
       });
-      assert.ok(placeholder != null);
-      assert.equal(placeholder.beingTranslated, true);
-      assert.equal(placeholder.updated.getTime(), 0);
-      assert.equal(placeholder.title, "Current original title");
-      assert.equal(placeholder.content, "Current original body");
-      assert.equal(
-        placeholder.translationRequesterId,
-        requester.account.id,
+      return (
+        current?.beingTranslated === true && current.updated.getTime() === 0
       );
     });
-  },
-);
 
-test(
-  "restartArticleContentTranslations() is a no-op when the article has no translations",
-  async () => {
-    await withRollback(async (tx) => {
-      const fedCtx = createFedCtx(tx);
-      fedCtx.models = {
-        summarizer: {} as never,
-        translator: {} as never,
-        moderationAnalyzer: {} as never,
-      } as typeof fedCtx.models;
-      const author = await insertAccountWithActor(tx, {
-        username: "restartnotrans",
-        name: "Restart No Translations",
-        email: "restartnotrans@example.com",
+    const original = await tx.query.articleContentTable.findFirst({
+      where: { sourceId, language: "en" },
+    });
+    assert.ok(original != null);
+    await startArticleContentTranslation(fedCtx, {
+      content: original,
+      targetLanguage: "ko",
+      requester: requester.account,
+    });
+    await waitFor(async () => {
+      if (translationAttempts < 2 || deliveryAttempts < 2) return false;
+      const current = await tx.query.articleContentTable.findFirst({
+        where: { sourceId, language: "ko" },
       });
-      const sourceId = generateUuidV7();
-      const published = new Date("2026-04-15T00:00:00.000Z");
+      return (
+        current?.beingTranslated === true && current.updated.getTime() === 0
+      );
+    });
 
-      const [articleSource] = await tx.insert(articleSourceTable).values({
+    const placeholder = await tx.query.articleContentTable.findFirst({
+      where: { sourceId, language: "ko" },
+    });
+    assert.ok(placeholder != null);
+    assert.equal(placeholder.beingTranslated, true);
+    assert.equal(placeholder.updated.getTime(), 0);
+    assert.equal(placeholder.title, "Current original title");
+    assert.equal(placeholder.content, "Current original body");
+    assert.equal(placeholder.translationRequesterId, requester.account.id);
+  });
+});
+
+test("restartArticleContentTranslations() is a no-op when the article has no translations", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    fedCtx.models = {
+      summarizer: {} as never,
+      translator: {} as never,
+      moderationAnalyzer: {} as never,
+    } as typeof fedCtx.models;
+    const author = await insertAccountWithActor(tx, {
+      username: "restartnotrans",
+      name: "Restart No Translations",
+      email: "restartnotrans@example.com",
+    });
+    const sourceId = generateUuidV7();
+    const published = new Date("2026-04-15T00:00:00.000Z");
+
+    const [articleSource] = await tx
+      .insert(articleSourceTable)
+      .values({
         id: sourceId,
         accountId: author.account.id,
         publishedYear: 2026,
@@ -594,27 +600,27 @@ test(
         allowLlmTranslation: false,
         published,
         updated: published,
-      }).returning();
-      await tx.insert(articleContentTable).values({
-        sourceId,
-        language: "en",
-        title: "Original",
-        content: "Body",
-        published,
-        updated: published,
-      });
-
-      // Should return without throwing despite the deliberately bad
-      // translator stub.
-      await restartArticleContentTranslations(fedCtx, articleSource);
-
-      // Original row still in place and unchanged.
-      const original = await tx.query.articleContentTable.findFirst({
-        where: { sourceId, language: "en" },
-      });
-      assert.ok(original != null);
-      assert.equal(original.beingTranslated, false);
-      assert.equal(original.content, "Body");
+      })
+      .returning();
+    await tx.insert(articleContentTable).values({
+      sourceId,
+      language: "en",
+      title: "Original",
+      content: "Body",
+      published,
+      updated: published,
     });
-  },
-);
+
+    // Should return without throwing despite the deliberately bad
+    // translator stub.
+    await restartArticleContentTranslations(fedCtx, articleSource);
+
+    // Original row still in place and unchanged.
+    const original = await tx.query.articleContentTable.findFirst({
+      where: { sourceId, language: "en" },
+    });
+    assert.ok(original != null);
+    assert.equal(original.beingTranslated, false);
+    assert.equal(original.content, "Body");
+  });
+});

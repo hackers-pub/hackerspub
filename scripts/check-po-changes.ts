@@ -1,4 +1,7 @@
 import { po } from "gettext-parser";
+import { spawnSync } from "node:child_process";
+import { readFile } from "node:fs/promises";
+import process from "node:process";
 
 interface PoEntry {
   msgid: string;
@@ -37,19 +40,17 @@ function extractTranslations(content: string): Map<string, Translation> {
 }
 
 async function checkPoFile(file: string): Promise<boolean> {
-  const gitCmd = new Deno.Command("git", {
-    args: ["show", `HEAD:${file}`],
-    stdout: "piped",
-    stderr: "null",
+  const gitResult = spawnSync("git", ["show", `HEAD:${file}`], {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "ignore"],
   });
-  const gitResult = await gitCmd.output();
-  if (!gitResult.success) {
+  if (gitResult.status !== 0) {
     // File is not yet tracked in git; skip — other CI steps handle new files.
     return true;
   }
 
-  const committedContent = new TextDecoder().decode(gitResult.stdout);
-  const currentContent = await Deno.readTextFile(file);
+  const committedContent = gitResult.stdout;
+  const currentContent = await readFile(file, "utf8");
 
   const committed = extractTranslations(committedContent);
   const current = extractTranslations(currentContent);
@@ -60,9 +61,9 @@ async function checkPoFile(file: string): Promise<boolean> {
     const prev = committed.get(key);
     if (prev === undefined) {
       console.error(
-        `::error file=${file}::New translation entry not committed: ${
-          JSON.stringify(translation.msgid)
-        }`,
+        `::error file=${file}::New translation entry not committed: ${JSON.stringify(
+          translation.msgid,
+        )}`,
       );
       hasChanges = true;
     } else if (
@@ -70,9 +71,9 @@ async function checkPoFile(file: string): Promise<boolean> {
       JSON.stringify(translation.msgstr) !== JSON.stringify(prev.msgstr)
     ) {
       console.error(
-        `::error file=${file}::Translation changed but not committed: ${
-          JSON.stringify(translation.msgid)
-        }`,
+        `::error file=${file}::Translation changed but not committed: ${JSON.stringify(
+          translation.msgid,
+        )}`,
       );
       hasChanges = true;
     }
@@ -81,9 +82,9 @@ async function checkPoFile(file: string): Promise<boolean> {
   for (const [key, translation] of committed) {
     if (!current.has(key)) {
       console.error(
-        `::error file=${file}::Translation entry removed but not committed: ${
-          JSON.stringify(translation.msgid)
-        }`,
+        `::error file=${file}::Translation entry removed but not committed: ${JSON.stringify(
+          translation.msgid,
+        )}`,
       );
       hasChanges = true;
     }
@@ -92,10 +93,11 @@ async function checkPoFile(file: string): Promise<boolean> {
   return !hasChanges;
 }
 
-if (Deno.args.length === 0) Deno.exit(0);
-
-let allPassed = true;
-for (const file of Deno.args) {
-  if (!await checkPoFile(file)) allPassed = false;
+const files = process.argv.slice(2);
+if (files.length > 0) {
+  let allPassed = true;
+  for (const file of files) {
+    if (!(await checkPoFile(file))) allPassed = false;
+  }
+  if (!allPassed) process.exitCode = 1;
 }
-if (!allPassed) Deno.exit(1);

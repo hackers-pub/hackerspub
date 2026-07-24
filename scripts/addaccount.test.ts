@@ -1,40 +1,43 @@
 import { assert, assertEquals, assertMatch } from "@std/assert";
+import { spawnSync } from "node:child_process";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import process from "node:process";
+import test from "node:test";
 
-Deno.test("addaccount initializes only its origin and key-value resources", async () => {
-  const directory = await Deno.makeTempDir();
+test("addaccount initializes only its origin and key-value resources", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "hackerspub-addaccount-"));
   try {
-    const output = await new Deno.Command(Deno.execPath(), {
-      args: [
-        "run",
-        "--allow-all",
+    const output = spawnSync(
+      process.execPath,
+      [
+        "--import",
+        "temporal-polyfill/global",
         "scripts/addaccount.ts",
         "alice@example.com",
       ],
-      cwd: new URL("../", import.meta.url),
-      clearEnv: true,
-      env: {
-        ORIGIN: "https://hackers.pub",
-        KV_URL: new URL("signup.json", `file://${directory}/`).href,
+      {
+        cwd: new URL("../", import.meta.url),
+        env: {
+          ORIGIN: "https://hackers.pub",
+          KV_URL: new URL("signup.json", `file://${directory}/`).href,
+        },
+        encoding: "utf8",
       },
-      stdout: "piped",
-      stderr: "piped",
-    }).output();
-
-    assertEquals(
-      output.success,
-      true,
-      new TextDecoder().decode(output.stderr),
     );
-    const stdout = new TextDecoder().decode(output.stdout).trim();
+
+    assertEquals(output.status, 0, output.stderr);
+    const stdout = output.stdout.trim();
     assertMatch(
       stdout,
       /^https:\/\/hackers\.pub\/sign\/up\/[0-9a-f-]+\?code=.+$/,
     );
     assert(
-      !new TextDecoder().decode(output.stderr).includes("Error creating"),
+      !output.stderr.includes("Error creating"),
       "the operational command should create a sign-up link",
     );
   } finally {
-    await Deno.remove(directory, { recursive: true });
+    await rm(directory, { recursive: true });
   }
 });

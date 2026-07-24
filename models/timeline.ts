@@ -95,10 +95,11 @@ function buildLanguagePrefixFilter(
   if (baseLangs.length === 0) return {};
   return {
     RAW: (post: typeof postTable) => {
-      const conditions = baseLangs.map((base) =>
-        sql`(${post.language} = ${base} OR ${post.language} LIKE ${
-          base + "-%"
-        })`
+      const conditions = baseLangs.map(
+        (base) =>
+          sql`(${post.language} = ${base} OR ${post.language} LIKE ${
+            base + "-%"
+          })`,
       );
       if (conditions.length === 1) return conditions[0];
       return sql`(${sql.join(conditions, sql` OR `)})`;
@@ -210,18 +211,18 @@ export async function addPostToTimeline(
                 },
                 post.replyTargetId
                   ? {
-                    OR: [
-                      { posts: { id: post.replyTargetId } },
-                      {
-                        followees: {
-                          followee: {
-                            posts: { id: post.replyTargetId },
+                      OR: [
+                        { posts: { id: post.replyTargetId } },
+                        {
+                          followees: {
+                            followee: {
+                              posts: { id: post.replyTargetId },
+                            },
+                            accepted: { isNotNull: true },
                           },
-                          accepted: { isNotNull: true },
                         },
-                      },
-                    ],
-                  }
+                      ],
+                    }
                   : {},
               ],
             },
@@ -249,25 +250,30 @@ export async function addPostToTimeline(
   // *something* because the column is NOT NULL and Drizzle's typed insert
   // requires it; `post.type` is fine as a placeholder, the trigger will
   // overwrite it before the row hits the heap.
-  const records: NewTimelineItem[] = recipients.map(({ accountId }) => ({
-    accountId: accountId!,
-    postId: post.sharedPostId ?? post.id,
-    postType: post.type,
-    originalAuthorId: post.sharedPostId == null ? post.actorId : null,
-    lastSharerId: post.sharedPostId == null ? null : post.actorId,
-    sharersCount: post.sharedPostId == null ? 0 : 1,
-    added: post.published,
-    appended: post.published,
-  } satisfies NewTimelineItem));
-  await db.insert(timelineItemTable)
+  const records: NewTimelineItem[] = recipients.map(
+    ({ accountId }) =>
+      ({
+        accountId: accountId!,
+        postId: post.sharedPostId ?? post.id,
+        postType: post.type,
+        originalAuthorId: post.sharedPostId == null ? post.actorId : null,
+        lastSharerId: post.sharedPostId == null ? null : post.actorId,
+        sharersCount: post.sharedPostId == null ? 0 : 1,
+        added: post.published,
+        appended: post.published,
+      }) satisfies NewTimelineItem,
+  );
+  await db
+    .insert(timelineItemTable)
     .values(records)
     .onConflictDoUpdate({
       target: [timelineItemTable.accountId, timelineItemTable.postId],
       set: {
         lastSharerId: post.sharedPostId == null ? null : post.actorId,
-        sharersCount: post.sharedPostId == null
-          ? timelineItemTable.sharersCount
-          : sql`${timelineItemTable.sharersCount} + 1`,
+        sharersCount:
+          post.sharedPostId == null
+            ? timelineItemTable.sharersCount
+            : sql`${timelineItemTable.sharersCount} + 1`,
         appended: post.published,
         // Don't touch post_type on the conflict path. The existing row was
         // inserted with a trigger-derived value, and the AFTER UPDATE OF
@@ -290,18 +296,20 @@ export async function addPostToTimeline(
         .where(inArray(hashtagFollowingTable.tag, tagNames));
       if (tagFollowers.length > 0) {
         const tagRecords: NewTimelineItem[] = tagFollowers.map(
-          ({ accountId }) => ({
-            accountId,
-            postId: post.id,
-            postType: post.type,
-            originalAuthorId: post.actorId,
-            lastSharerId: null,
-            sharersCount: 0,
-            added: post.published,
-            appended: post.published,
-          } satisfies NewTimelineItem),
+          ({ accountId }) =>
+            ({
+              accountId,
+              postId: post.id,
+              postType: post.type,
+              originalAuthorId: post.actorId,
+              lastSharerId: null,
+              sharersCount: 0,
+              added: post.published,
+              appended: post.published,
+            }) satisfies NewTimelineItem,
         );
-        await db.insert(timelineItemTable)
+        await db
+          .insert(timelineItemTable)
           .values(tagRecords)
           .onConflictDoNothing();
       }
@@ -321,18 +329,22 @@ export async function addTagsPubPostToTimeline(
     .from(hashtagFollowingTable)
     .where(inArray(hashtagFollowingTable.tag, tagNames));
   if (tagFollowers.length === 0) return;
-  await db.insert(timelineItemTable)
+  await db
+    .insert(timelineItemTable)
     .values(
-      tagFollowers.map(({ accountId }) => ({
-        accountId,
-        postId: post.id,
-        postType: post.type,
-        originalAuthorId: post.actorId,
-        lastSharerId: null,
-        sharersCount: 0,
-        added: post.published,
-        appended: post.published,
-      } satisfies NewTimelineItem)),
+      tagFollowers.map(
+        ({ accountId }) =>
+          ({
+            accountId,
+            postId: post.id,
+            postType: post.type,
+            originalAuthorId: post.actorId,
+            lastSharerId: null,
+            sharersCount: 0,
+            added: post.published,
+            appended: post.published,
+          }) satisfies NewTimelineItem,
+      ),
     )
     .onConflictDoNothing();
 }
@@ -380,8 +392,9 @@ async function removeSharedPostsFromTimeline(
   allRemovedPostsJson: string,
 ): Promise<void> {
   const removedPostValues = sql.join(
-    sharedPosts.map((post) =>
-      sql`(${post.id}::uuid, ${post.actorId}::uuid, ${post.quotedPostId}::uuid, ${post.sharedPostId}::uuid)`
+    sharedPosts.map(
+      (post) =>
+        sql`(${post.id}::uuid, ${post.actorId}::uuid, ${post.quotedPostId}::uuid, ${post.sharedPostId}::uuid)`,
     ),
     sql`, `,
   );
@@ -494,7 +507,8 @@ async function removeSharedPostsFromTimeline(
     WHERE ti.account_id = share_stats.account_id
       AND ti.post_id = share_stats.post_id
   `);
-  await db.delete(timelineItemTable)
+  await db
+    .delete(timelineItemTable)
     .where(
       and(
         isNull(timelineItemTable.originalAuthorId),
@@ -522,7 +536,8 @@ export async function pruneMutedActorFromTimeline(
   muterActorId: Uuid,
   muteeActorId: Uuid,
 ): Promise<void> {
-  await db.update(timelineItemTable)
+  await db
+    .update(timelineItemTable)
     .set({
       lastSharerId: sql`(
         SELECT ${postTable.actorId}
@@ -589,7 +604,8 @@ export async function pruneMutedActorFromTimeline(
         )`,
       ),
     );
-  await db.delete(timelineItemTable)
+  await db
+    .delete(timelineItemTable)
     .where(
       and(
         eq(timelineItemTable.accountId, muterAccountId),
@@ -607,73 +623,73 @@ export interface TimelineEntry {
       blockees: Blocking[];
       blockers: Blocking[];
     };
-    link: PostLink & { creator?: Actor | null } | null;
+    link: (PostLink & { creator?: Actor | null }) | null;
     sharedPost:
-      | Post & {
-        actor: Actor & {
-          instance: Instance;
-          followers: Following[];
-          blockees: Blocking[];
-          blockers: Blocking[];
-        };
-        link: PostLink & { creator?: Actor | null } | null;
-        replyTarget:
-          | Post & {
-            actor: Actor & {
-              instance: Instance;
-              followers: Following[];
-              blockees: Blocking[];
-              blockers: Blocking[];
-            };
-            link: PostLink & { creator?: Actor | null } | null;
-            mentions: (Mention & { actor: Actor })[];
-            media: PostMedium[];
-          }
-          | null;
-        quotedPost:
-          | Post & {
-            actor: Actor & {
-              instance: Instance;
-              followers: Following[];
-              blockees: Blocking[];
-              blockers: Blocking[];
-            };
-            link: PostLink & { creator?: Actor | null } | null;
-            mentions: (Mention & { actor: Actor })[];
-            media: PostMedium[];
-          }
-          | null;
-        mentions: (Mention & { actor: Actor })[];
-        media: PostMedium[];
-        shares: Post[];
-        reactions: Reaction[];
-      }
+      | (Post & {
+          actor: Actor & {
+            instance: Instance;
+            followers: Following[];
+            blockees: Blocking[];
+            blockers: Blocking[];
+          };
+          link: (PostLink & { creator?: Actor | null }) | null;
+          replyTarget:
+            | (Post & {
+                actor: Actor & {
+                  instance: Instance;
+                  followers: Following[];
+                  blockees: Blocking[];
+                  blockers: Blocking[];
+                };
+                link: (PostLink & { creator?: Actor | null }) | null;
+                mentions: (Mention & { actor: Actor })[];
+                media: PostMedium[];
+              })
+            | null;
+          quotedPost:
+            | (Post & {
+                actor: Actor & {
+                  instance: Instance;
+                  followers: Following[];
+                  blockees: Blocking[];
+                  blockers: Blocking[];
+                };
+                link: (PostLink & { creator?: Actor | null }) | null;
+                mentions: (Mention & { actor: Actor })[];
+                media: PostMedium[];
+              })
+            | null;
+          mentions: (Mention & { actor: Actor })[];
+          media: PostMedium[];
+          shares: Post[];
+          reactions: Reaction[];
+        })
       | null;
     replyTarget:
-      | Post & {
-        actor: Actor & {
-          instance: Instance;
-          followers: Following[];
-          blockees: Blocking[];
-          blockers: Blocking[];
-        };
-        link: PostLink & { creator?: Actor | null } | null;
-        mentions: (Mention & { actor: Actor })[];
-        media: PostMedium[];
-      }
+      | (Post & {
+          actor: Actor & {
+            instance: Instance;
+            followers: Following[];
+            blockees: Blocking[];
+            blockers: Blocking[];
+          };
+          link: (PostLink & { creator?: Actor | null }) | null;
+          mentions: (Mention & { actor: Actor })[];
+          media: PostMedium[];
+        })
       | null;
     quotedPost:
-      | Post & {
-        actor: Actor & {
-          instance: Instance;
-          followers: Following[];
-          blockees: Blocking[];
-          blockers: Blocking[];
-        };
-        link: PostLink & { creator?: Actor | null } | null;
-        mentions: (Mention & { actor: Actor })[];
-        media: PostMedium[];
-      }
+      | (Post & {
+          actor: Actor & {
+            instance: Instance;
+            followers: Following[];
+            blockees: Blocking[];
+            blockers: Blocking[];
+          };
+          link: (PostLink & { creator?: Actor | null }) | null;
+          mentions: (Mention & { actor: Actor })[];
+          media: PostMedium[];
+        })
       | null;
     mentions: (Mention & { actor: Actor })[];
     media: PostMedium[];
@@ -724,7 +740,7 @@ export interface TimelineOptions {
 }
 
 export interface PublicTimelineOptions extends TimelineOptions {
-  readonly currentAccount?: Account & { actor: Actor } | null;
+  readonly currentAccount?: (Account & { actor: Actor }) | null;
   readonly languages?: Set<string>;
 }
 
@@ -738,20 +754,12 @@ function sanitizePostActors<
   T extends {
     sharedPost?: {
       actor: unknown;
-      replyTarget?:
-        | { actor: unknown; mentions: { actor: unknown }[] }
-        | null;
-      quotedPost?:
-        | { actor: unknown; mentions: { actor: unknown }[] }
-        | null;
+      replyTarget?: { actor: unknown; mentions: { actor: unknown }[] } | null;
+      quotedPost?: { actor: unknown; mentions: { actor: unknown }[] } | null;
       mentions: { actor: unknown }[];
     } | null;
-    replyTarget?:
-      | { actor: unknown; mentions: { actor: unknown }[] }
-      | null;
-    quotedPost?:
-      | { actor: unknown; mentions: { actor: unknown }[] }
-      | null;
+    replyTarget?: { actor: unknown; mentions: { actor: unknown }[] } | null;
+    quotedPost?: { actor: unknown; mentions: { actor: unknown }[] } | null;
     mentions: { actor: unknown }[];
   },
 >(post: T): T {
@@ -766,12 +774,15 @@ function sanitizePostActors<
   const sp = post.sharedPost;
   return {
     ...post,
-    sharedPost: sp == null || sp.actor == null ? null : {
-      ...sp,
-      replyTarget: sanitizeLeaf(sp.replyTarget),
-      quotedPost: sanitizeLeaf(sp.quotedPost),
-      mentions: sp.mentions.filter((m) => m.actor != null),
-    },
+    sharedPost:
+      sp == null || sp.actor == null
+        ? null
+        : {
+            ...sp,
+            replyTarget: sanitizeLeaf(sp.replyTarget),
+            quotedPost: sanitizeLeaf(sp.quotedPost),
+            mentions: sp.mentions.filter((m) => m.actor != null),
+          },
     replyTarget: sanitizeLeaf(post.replyTarget),
     quotedPost: sanitizeLeaf(post.quotedPost),
     mentions: post.mentions.filter((m) => m.actor != null),
@@ -866,23 +877,22 @@ export async function getPublicTimeline(
         : getPostCursorFilter(refillOlderCursor, "older"),
     ].filter((f) => f != null);
     const needed = window == null ? undefined : window - result.length;
-    const batchNeeded = needed == null
-      ? PUBLIC_TIMELINE_HYDRATION_BATCH_SIZE
-      : Math.min(needed, PUBLIC_TIMELINE_HYDRATION_BATCH_SIZE);
+    const batchNeeded =
+      needed == null
+        ? PUBLIC_TIMELINE_HYDRATION_BATCH_SIZE
+        : Math.min(needed, PUBLIC_TIMELINE_HYDRATION_BATCH_SIZE);
     const batchLimit = batchNeeded + ACTOR_RACE_BUFFER;
     const feedFilters: RelationsFilter<"postTable">[] = [
       ...batchCursorFilters,
       languages.size < 1
-        ? (currentAccount?.hideForeignLanguages &&
-            currentAccount.locales != null
+        ? currentAccount?.hideForeignLanguages && currentAccount.locales != null
           ? { language: { in: expandLocales(currentAccount.locales) } }
-          : {})
+          : {}
         : buildLanguagePrefixFilter(languages),
       {
         replyTargetId: { isNull: true },
-        ...(
-          local
-            ? {
+        ...(local
+          ? {
               OR: [
                 { noteSourceId: { isNotNull: true } },
                 { articleSourceId: { isNotNull: true } },
@@ -894,8 +904,7 @@ export async function getPublicTimeline(
                 },
               ],
             }
-            : undefined
-        ),
+          : undefined),
         ...(withoutShares ? { sharedPostId: { isNull: true } } : undefined),
         ...(postType == null ? undefined : { type: postType }),
         published: { lte: futureTimestampLimit },
@@ -911,17 +920,18 @@ export async function getPublicTimeline(
         ...feedFilters,
       ],
     };
-    const candidateFilter: RelationsFilter<"postTable"> = currentAccount == null
-      ? displayFilter
-      : {
-        AND: [
-          // Keep the candidate query aligned with the public timeline index.
-          // Viewer-specific blocks and mutes are applied below to the bounded
-          // candidate id set instead of expanding this top-level scan.
-          getPublicTimelineVisibilityFilter(null),
-          ...feedFilters,
-        ],
-      };
+    const candidateFilter: RelationsFilter<"postTable"> =
+      currentAccount == null
+        ? displayFilter
+        : {
+            AND: [
+              // Keep the candidate query aligned with the public timeline index.
+              // Viewer-specific blocks and mutes are applied below to the bounded
+              // candidate id set instead of expanding this top-level scan.
+              getPublicTimelineVisibilityFilter(null),
+              ...feedFilters,
+            ],
+          };
 
     const candidatePosts = await db.query.postTable.findMany({
       columns: {
@@ -1049,26 +1059,22 @@ export async function getPublicTimeline(
         },
       },
       where: {
-        AND: [
-          { id: { in: candidatePostIds } },
-          displayFilter,
-        ],
+        AND: [{ id: { in: candidatePostIds } }, displayFilter],
       },
     });
-    posts.sort((a, b) =>
-      (candidateOrder.get(a.id as Uuid) ?? Number.MAX_SAFE_INTEGER) -
-      (candidateOrder.get(b.id as Uuid) ?? Number.MAX_SAFE_INTEGER)
+    posts.sort(
+      (a, b) =>
+        (candidateOrder.get(a.id as Uuid) ?? Number.MAX_SAFE_INTEGER) -
+        (candidateOrder.get(b.id as Uuid) ?? Number.MAX_SAFE_INTEGER),
     );
 
     // Bulk-fetch follows/blocks for every actor that appears in this batch.
     const actorIdSet = new Set<Uuid>();
     for (const post of posts) collectPostActorIds(post, actorIdSet);
     const socialGraph = currentAccount
-      ? await fetchSocialGraph(
-        db,
-        currentAccount.actor.id as Uuid,
-        [...actorIdSet],
-      )
+      ? await fetchSocialGraph(db, currentAccount.actor.id as Uuid, [
+          ...actorIdSet,
+        ])
       : EMPTY_SOCIAL_GRAPH;
 
     for (const post of posts) {
@@ -1077,44 +1083,49 @@ export async function getPublicTimeline(
       const enrichedPost = {
         ...post,
         actor: enrichActor(post.actor, socialGraph),
-        sharedPost: post.sharedPost == null || post.sharedPost.actor == null
-          ? null
-          : {
-            ...post.sharedPost,
-            actor: enrichActor(post.sharedPost.actor, socialGraph),
-            replyTarget: post.sharedPost.replyTarget == null ||
-                post.sharedPost.replyTarget.actor == null
-              ? null
-              : {
-                ...post.sharedPost.replyTarget,
-                actor: enrichActor(
-                  post.sharedPost.replyTarget.actor,
-                  socialGraph,
-                ),
+        sharedPost:
+          post.sharedPost == null || post.sharedPost.actor == null
+            ? null
+            : {
+                ...post.sharedPost,
+                actor: enrichActor(post.sharedPost.actor, socialGraph),
+                replyTarget:
+                  post.sharedPost.replyTarget == null ||
+                  post.sharedPost.replyTarget.actor == null
+                    ? null
+                    : {
+                        ...post.sharedPost.replyTarget,
+                        actor: enrichActor(
+                          post.sharedPost.replyTarget.actor,
+                          socialGraph,
+                        ),
+                      },
+                quotedPost:
+                  post.sharedPost.quotedPost == null ||
+                  post.sharedPost.quotedPost.actor == null
+                    ? null
+                    : {
+                        ...post.sharedPost.quotedPost,
+                        actor: enrichActor(
+                          post.sharedPost.quotedPost.actor,
+                          socialGraph,
+                        ),
+                      },
               },
-            quotedPost: post.sharedPost.quotedPost == null ||
-                post.sharedPost.quotedPost.actor == null
-              ? null
-              : {
-                ...post.sharedPost.quotedPost,
-                actor: enrichActor(
-                  post.sharedPost.quotedPost.actor,
-                  socialGraph,
-                ),
+        replyTarget:
+          post.replyTarget == null || post.replyTarget.actor == null
+            ? null
+            : {
+                ...post.replyTarget,
+                actor: enrichActor(post.replyTarget.actor, socialGraph),
               },
-          },
-        replyTarget: post.replyTarget == null || post.replyTarget.actor == null
-          ? null
-          : {
-            ...post.replyTarget,
-            actor: enrichActor(post.replyTarget.actor, socialGraph),
-          },
-        quotedPost: post.quotedPost == null || post.quotedPost.actor == null
-          ? null
-          : {
-            ...post.quotedPost,
-            actor: enrichActor(post.quotedPost.actor, socialGraph),
-          },
+        quotedPost:
+          post.quotedPost == null || post.quotedPost.actor == null
+            ? null
+            : {
+                ...post.quotedPost,
+                actor: enrichActor(post.quotedPost.actor, socialGraph),
+              },
       };
       result.push({
         post: sanitizePostActors(
@@ -1162,16 +1173,20 @@ export async function getPersonalTimeline(
 
   while (window == null || result.length < window) {
     const batchCursorFilters = [
-      refillNewerCursor == null ? undefined : getTimelineItemCursorFilter(
-        refillNewerCursor,
-        withoutShares,
-        "newer",
-      ),
-      refillOlderCursor == null ? undefined : getTimelineItemCursorFilter(
-        refillOlderCursor,
-        withoutShares,
-        "older",
-      ),
+      refillNewerCursor == null
+        ? undefined
+        : getTimelineItemCursorFilter(
+            refillNewerCursor,
+            withoutShares,
+            "newer",
+          ),
+      refillOlderCursor == null
+        ? undefined
+        : getTimelineItemCursorFilter(
+            refillOlderCursor,
+            withoutShares,
+            "older",
+          ),
     ].filter((f) => f != null);
     const needed = window == null ? undefined : window - result.length;
 
@@ -1280,19 +1295,21 @@ export async function getPersonalTimeline(
         // predicate at the timelineItemTable level instead.
         ...(languages != null && languages.size > 0
           ? {
-            RAW: (ti: typeof timelineItemTable) => {
-              const baseLangs = toBaseLangs(languages);
-              const langConds = baseLangs.map((base) =>
-                sql`(${postTable.language} = ${base} OR ${postTable.language} LIKE ${
-                  base + "-%"
-                })`
-              );
-              const langWhere = langConds.length === 1
-                ? langConds[0]
-                : sql`(${sql.join(langConds, sql` OR `)})`;
-              return sql`EXISTS (SELECT 1 FROM ${postTable} WHERE ${postTable.id} = ${ti.postId} AND ${langWhere})`;
-            },
-          }
+              RAW: (ti: typeof timelineItemTable) => {
+                const baseLangs = toBaseLangs(languages);
+                const langConds = baseLangs.map(
+                  (base) =>
+                    sql`(${postTable.language} = ${base} OR ${postTable.language} LIKE ${
+                      base + "-%"
+                    })`,
+                );
+                const langWhere =
+                  langConds.length === 1
+                    ? langConds[0]
+                    : sql`(${sql.join(langConds, sql` OR `)})`;
+                return sql`EXISTS (SELECT 1 FROM ${postTable} WHERE ${postTable.id} = ${ti.postId} AND ${langWhere})`;
+              },
+            }
           : {}),
         post: {
           AND: [
@@ -1301,15 +1318,15 @@ export async function getPersonalTimeline(
             getCensoredPostExclusionFilter(currentAccount.actor.id),
             local
               ? {
-                OR: [
-                  { noteSourceId: { isNotNull: true } },
-                  { articleSourceId: { isNotNull: true } },
-                ],
-              }
+                  OR: [
+                    { noteSourceId: { isNotNull: true } },
+                    { articleSourceId: { isNotNull: true } },
+                  ],
+                }
               : {},
             currentAccount.hideForeignLanguages &&
-              currentAccount.locales != null &&
-              (languages == null || languages.size === 0)
+            currentAccount.locales != null &&
+            (languages == null || languages.size === 0)
               ? { language: { in: expandLocales(currentAccount.locales) } }
               : {},
             {
@@ -1366,47 +1383,49 @@ export async function getPersonalTimeline(
       const enrichedPost = {
         ...item.post!,
         actor: enrichActor(item.post!.actor!, socialGraph),
-        sharedPost: item.post!.sharedPost == null ||
-            item.post!.sharedPost.actor == null
-          ? null
-          : {
-            ...item.post!.sharedPost,
-            actor: enrichActor(item.post!.sharedPost.actor, socialGraph),
-            replyTarget: item.post!.sharedPost.replyTarget == null ||
-                item.post!.sharedPost.replyTarget.actor == null
-              ? null
-              : {
-                ...item.post!.sharedPost.replyTarget,
-                actor: enrichActor(
-                  item.post!.sharedPost.replyTarget.actor,
-                  socialGraph,
-                ),
+        sharedPost:
+          item.post!.sharedPost == null || item.post!.sharedPost.actor == null
+            ? null
+            : {
+                ...item.post!.sharedPost,
+                actor: enrichActor(item.post!.sharedPost.actor, socialGraph),
+                replyTarget:
+                  item.post!.sharedPost.replyTarget == null ||
+                  item.post!.sharedPost.replyTarget.actor == null
+                    ? null
+                    : {
+                        ...item.post!.sharedPost.replyTarget,
+                        actor: enrichActor(
+                          item.post!.sharedPost.replyTarget.actor,
+                          socialGraph,
+                        ),
+                      },
+                quotedPost:
+                  item.post!.sharedPost.quotedPost == null ||
+                  item.post!.sharedPost.quotedPost.actor == null
+                    ? null
+                    : {
+                        ...item.post!.sharedPost.quotedPost,
+                        actor: enrichActor(
+                          item.post!.sharedPost.quotedPost.actor,
+                          socialGraph,
+                        ),
+                      },
               },
-            quotedPost: item.post!.sharedPost.quotedPost == null ||
-                item.post!.sharedPost.quotedPost.actor == null
-              ? null
-              : {
-                ...item.post!.sharedPost.quotedPost,
-                actor: enrichActor(
-                  item.post!.sharedPost.quotedPost.actor,
-                  socialGraph,
-                ),
+        replyTarget:
+          item.post!.replyTarget == null || item.post!.replyTarget.actor == null
+            ? null
+            : {
+                ...item.post!.replyTarget,
+                actor: enrichActor(item.post!.replyTarget.actor, socialGraph),
               },
-          },
-        replyTarget: item.post!.replyTarget == null ||
-            item.post!.replyTarget.actor == null
-          ? null
-          : {
-            ...item.post!.replyTarget,
-            actor: enrichActor(item.post!.replyTarget.actor, socialGraph),
-          },
-        quotedPost: item.post!.quotedPost == null ||
-            item.post!.quotedPost.actor == null
-          ? null
-          : {
-            ...item.post!.quotedPost,
-            actor: enrichActor(item.post!.quotedPost.actor, socialGraph),
-          },
+        quotedPost:
+          item.post!.quotedPost == null || item.post!.quotedPost.actor == null
+            ? null
+            : {
+                ...item.post!.quotedPost,
+                actor: enrichActor(item.post!.quotedPost.actor, socialGraph),
+              },
       };
       const timelineTimestamp = withoutShares ? item.added : item.appended;
       result.push({

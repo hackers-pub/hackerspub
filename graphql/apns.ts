@@ -14,10 +14,11 @@ const UNREGISTER_DEPRECATION_REASON =
   "Use `unregisterPushNotificationTarget` with `service: APNS` instead.";
 
 class RegisterApnsDeviceTokenFailedError extends Error {
-  public constructor(
-    public readonly limit: number = MAX_APNS_DEVICE_TOKENS_PER_ACCOUNT,
-  ) {
+  public readonly limit: number;
+
+  public constructor(limit: number = MAX_APNS_DEVICE_TOKENS_PER_ACCOUNT) {
     super(`Cannot register more than ${limit} APNS device tokens.`);
+    this.limit = limit;
   }
 }
 
@@ -43,7 +44,8 @@ builder.objectType(RegisterApnsDeviceTokenFailedError, {
 builder.relayMutationField(
   "registerApnsDeviceToken",
   {
-    description: "Legacy input for registering an APNS device token. Use " +
+    description:
+      "Legacy input for registering an APNS device token. Use " +
       "`RegisterPushNotificationTargetInput` for new clients.",
     inputFields: (t) => ({
       deviceToken: t.string({
@@ -113,7 +115,8 @@ builder.relayMutationField(
 builder.relayMutationField(
   "unregisterApnsDeviceToken",
   {
-    description: "Legacy input for unregistering an APNS device token. Use " +
+    description:
+      "Legacy input for unregistering an APNS device token. Use " +
       "`UnregisterPushNotificationTargetInput` for new clients.",
     inputFields: (t) => ({
       deviceToken: t.string({

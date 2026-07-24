@@ -1,6 +1,6 @@
 import { A } from "@solidjs/router";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useLingui } from "~/lib/i18n/macro.ts";
 
 export type ModerationSubTab =
   | "cases"

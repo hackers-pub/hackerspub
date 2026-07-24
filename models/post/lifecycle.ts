@@ -36,27 +36,31 @@ async function deletePostOperation(
   for (const reply of replies) {
     await deletePost(fedCtx, { ...reply, replyTarget: post });
   }
-  const interactions = await db.delete(postTable).where(
-    or(
-      eq(postTable.replyTargetId, post.id),
-      eq(postTable.sharedPostId, post.id),
-      eq(postTable.quotedPostId, post.id),
-      eq(postTable.id, post.id),
-    ),
-  ).returning();
+  const interactions = await db
+    .delete(postTable)
+    .where(
+      or(
+        eq(postTable.replyTargetId, post.id),
+        eq(postTable.sharedPostId, post.id),
+        eq(postTable.quotedPostId, post.id),
+        eq(postTable.id, post.id),
+      ),
+    )
+    .returning();
 
   const originalPostIds = [
     post.replyTargetId,
     post.sharedPostId,
     post.quotedPostId,
   ].filter((id): id is Uuid => id != null);
-  const originalPosts = originalPostIds.length < 1
-    ? []
-    : await db.query.postTable.findMany({
-      where: {
-        OR: originalPostIds.map((id) => ({ id })),
-      },
-    });
+  const originalPosts =
+    originalPostIds.length < 1
+      ? []
+      : await db.query.postTable.findMany({
+          where: {
+            OR: originalPostIds.map((id) => ({ id })),
+          },
+        });
 
   if (post.replyTargetId != null) {
     const replyTarget = originalPosts.find((p) => p.id === post.replyTargetId);
@@ -108,17 +112,17 @@ async function deletePostOperation(
     .filter((i) => i.noteSourceId != null)
     .map((i) => i.noteSourceId!);
   if (noteSourceIds.length > 0) {
-    await db.delete(noteSourceTable).where(
-      inArray(noteSourceTable.id, noteSourceIds),
-    );
+    await db
+      .delete(noteSourceTable)
+      .where(inArray(noteSourceTable.id, noteSourceIds));
   }
   const articleSourceIds = interactions
     .filter((i) => i.articleSourceId != null)
     .map((i) => i.articleSourceId!);
   if (articleSourceIds.length > 0) {
-    await db.delete(articleSourceTable).where(
-      inArray(articleSourceTable.id, articleSourceIds),
-    );
+    await db
+      .delete(articleSourceTable)
+      .where(inArray(articleSourceTable.id, articleSourceIds));
   }
   if (post.actor.accountId == null) return;
   const interactors = await db.query.actorTable.findMany({
@@ -129,9 +133,12 @@ async function deletePostOperation(
   const recipients: Recipient[] = interactors.map((actor) => ({
     id: new URL(actor.iri),
     inboxId: new URL(actor.inboxUrl),
-    endpoints: actor.sharedInboxUrl == null ? null : {
-      sharedInbox: new URL(actor.sharedInboxUrl),
-    },
+    endpoints:
+      actor.sharedInboxUrl == null
+        ? null
+        : {
+            sharedInbox: new URL(actor.sharedInboxUrl),
+          },
   }));
   const activity = new vocab.Delete({
     id: new URL("#delete", post.iri),
