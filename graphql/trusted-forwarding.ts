@@ -9,7 +9,6 @@ export interface ConnectionAddress {
 
 export interface ConnectionInfo<TAddr extends ConnectionAddress> {
   readonly remoteAddr: TAddr;
-  readonly completed: Promise<void>;
 }
 
 export interface ForwardedRequest<TAddr extends ConnectionAddress> {

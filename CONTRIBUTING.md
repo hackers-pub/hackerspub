@@ -24,8 +24,10 @@ Recommended reading
 
 Hackers' Pub uses the following technologies:
 
- -  [Node.js] for TypeScript tooling, tests, and the web frontend
- -  [Deno] for the backend runtime during the Node.js migration
+ -  [Node.js] for TypeScript tooling, tests, the web frontend, and the
+    candidate GraphQL API runtime
+ -  [Deno] for the federation worker and the GraphQL API rollback runtime
+    during the Node.js migration
  -  [PostgreSQL] for the database
  -  [Drizzle ORM] for database operations
  -  [Keyv] for caching
@@ -156,9 +158,10 @@ and set the values of the variables according to your environment.
 >     browser testing, but remote development and production deployments need
 >     HTTPS for browser Push API subscriptions.
 >
->  -  `KV_URL` may point to a file when running only `mise run dev:graphql`.
->     Redis is required whenever the worker is running and for every production
->     process, because those processes must share one coherent KV store.
+>  -  `KV_URL` may point to a file when running only `mise run dev:graphql` or
+>     `mise run dev:graphql:node`. Redis is required whenever the worker is
+>     running and for every production process, because those processes must
+>     share one coherent KV store.
 >
 >  -  `DRIVE_DISK` can be set to `fs` to use the file system for storing files.
 >     In this case, you also need to set `FS_LOCATION` to the directory where
@@ -290,15 +293,20 @@ mise run dev:graphql-worker
 API_URL=http://localhost:8080/graphql mise run dev:web-next
 ~~~~
 
+Use `mise run dev:graphql:node` instead of `mise run dev:graphql` to exercise
+the candidate Node.js API runtime.  Both commands expose the same HTTP surface;
+the Deno command remains the rollback path until the deployment cutover.
+
 The direct frontend is available at http://localhost:3000/.  It does not
 provide the unified ActivityPub routing that the Compose gateway provides.
 If watchman is unavailable, set `NO_WATCHMAN=1` and run
 `mise run next:codegen` whenever GraphQL documents change.
 
-For API-only development, `mise run dev:graphql` also accepts a file-backed
-`KV_URL` such as `file:///tmp/hackerspub-kv.json`.  Do not start the worker in
-this mode: federation queues and scheduled jobs remain inactive.  Use Redis
-for the complete API, worker, and frontend topology shown above.
+For API-only development, `mise run dev:graphql` and
+`mise run dev:graphql:node` also accept a file-backed `KV_URL` such as
+`file:///tmp/hackerspub-kv.json`.  Do not start the worker in this mode:
+federation queues and scheduled jobs remain inactive.  Use Redis for the
+complete API, worker, and frontend topology shown above.
 
 
 Setting up federation

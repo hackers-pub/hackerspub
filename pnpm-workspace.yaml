@@ -18,7 +18,7 @@ catalog:
   '@aws-sdk/client-s3': 3.873.0
   '@aws-sdk/s3-request-presigner': 3.873.0
   '@c4spar/mock-fetch': jsr:^1.0.0
-  '@envelop/sentry': ^15.1.1
+  '@envelop/core': ^5.5.1
   '@fedify/fedify': 2.3.2
   '@fedify/markdown-it-hashtag': ^0.3.0
   '@fedify/markdown-it-mention': ^0.3.0
@@ -47,8 +47,9 @@ catalog:
   '@pothos/plugin-with-input': ^4.1.4
   '@resvg/resvg-js': ^2.6.2
   '@searking/markdown-it-cjk-breaks': ^2.0.1-0
-  '@sentry/deno': ^10.51.0
-  '@sentry/node': npm:@sentry/core@^10.51.0
+  '@sentry/deno': 10.51.0
+  '@sentry/node': npm:@sentry/core@10.51.0
+  '@sentry/node-sdk': npm:@sentry/node@10.51.0
   '@shikijs/markdown-it': ^3.8.1
   '@shikijs/transformers': ^3.8.1
   '@simplewebauthn/browser': jsr:^13.1.0
@@ -109,6 +110,7 @@ catalog:
   satori: ^0.11.3
   sharp: ^0.33.5
   shiki: ^3.8.1
+  srvx: ^0.12.4
   ssrfcheck: ^1.2.0
   tinyld: ^1.3.4
   temporal-polyfill: ^0.3.0

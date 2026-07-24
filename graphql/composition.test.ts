@@ -21,6 +21,43 @@ for (const compositionRoot of ["main.ts", "worker.ts"]) {
   });
 }
 
+test("the Node API preloads Sentry before evaluating its module graph", async () => {
+  const [main, tasks] = await Promise.all([
+    readTextFile(new URL("main.node.ts", import.meta.url)),
+    readTextFile(new URL("../mise.toml", import.meta.url)),
+  ]);
+  const loggingImport = 'import "./logging.node.ts";';
+  const preload = "--import ./instrument.node.ts main.node.ts";
+
+  assertStringIncludes(main, loggingImport);
+  assertStringIncludes(tasks, preload);
+  assert(
+    tasks.indexOf("--import ./instrument.node.ts") <
+      tasks.indexOf("main.node.ts"),
+    "Node Sentry instrumentation must be preloaded before the API entrypoint",
+  );
+});
+
+test("the Node API owns unhandled rejection classification", async () => {
+  const instrument = await readTextFile(
+    new URL("instrument.node.ts", import.meta.url),
+  );
+
+  assertStringIncludes(
+    instrument,
+    'integration.name !== "OnUnhandledRejection"',
+  );
+  assertStringIncludes(instrument, 'process.on("unhandledRejection"');
+  assertStringIncludes(instrument, "reportUnhandledRejection(");
+});
+
+test("the Node API bounds Sentry shutdown flushing", async () => {
+  const source = await readTextFile(new URL("main.node.ts", import.meta.url));
+
+  assertStringIncludes(source, "const SENTRY_CLOSE_TIMEOUT = 2_000;");
+  assertStringIncludes(source, "await Sentry.close(SENTRY_CLOSE_TIMEOUT);");
+});
+
 test("the queue worker migrates legacy deliveries before listening", async () => {
   const source = await readTextFile(new URL("worker.ts", import.meta.url));
   const migration = "await migrateLegacyOutboxEvents(db);";

@@ -29,8 +29,8 @@ The application has three deployable roles:
 
  -  **Web UI (`web-next/`)**: SolidStart v2, Solid.js, Relay, and Lingui on
     Node.js, managed through the pnpm workspace
- -  **GraphQL API (`graphql/main.ts`)**: GraphQL Yoga plus Fedify protocol
-    endpoints on Deno
+ -  **GraphQL API (`graphql/main.node.ts`)**: GraphQL Yoga plus Fedify protocol
+    endpoints on Node.js; `graphql/main.ts` remains the Deno rollback entry
  -  **Federation worker (`graphql/worker.ts`)**: queue delivery and scheduled
     jobs on Deno; run it separately from the API process and never behind a
     load balancer
@@ -54,15 +54,17 @@ explicit `--env-file` flag.
 
 ### Per-role tasks (via mise)
 
- -  Dev processes: `mise run dev:graphql` /
+ -  Dev processes: `mise run dev:graphql:node` /
     `mise run dev:graphql-worker` / `mise run dev:web-next`
  -  Build: `mise run build:web-next`
- -  Production processes: `mise run prod:graphql` /
+ -  Production candidates: `mise run prod:graphql:node` /
     `mise run prod:graphql-worker` / `mise run prod:web-next`
 
-`mise run dev:graphql` by itself accepts a file-backed `KV_URL` for focused
-API development.  The worker and all production processes require Redis; do
-not run an API and worker against the same file-backed KV store.
+`mise run dev:graphql:node` by itself accepts a file-backed `KV_URL` for
+focused API development.  The existing `dev:graphql` and `prod:graphql` tasks
+remain Deno rollback paths until deployment cutover.  The worker and all
+production processes require Redis; do not run an API and worker against the
+same file-backed KV store.
 
 ### Database migrations (via mise)
 

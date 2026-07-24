@@ -137,6 +137,9 @@ test("file KV is limited to API-only development", async () => {
   const main = await readTextFile(
     new URL("../graphql/main.ts", import.meta.url),
   );
+  const nodeMain = await readTextFile(
+    new URL("../graphql/main.node.ts", import.meta.url),
+  );
   const worker = await readTextFile(
     new URL("../graphql/worker.ts", import.meta.url),
   );
@@ -158,10 +161,19 @@ test("file KV is limited to API-only development", async () => {
   assertStringIncludes(contributing, "redis-cli ping");
   assertStringIncludes(main, "loadGraphqlApiConfig");
   assertStringIncludes(main, 'Deno.args.includes("--allow-file-kv")');
+  assertStringIncludes(nodeMain, "loadGraphqlApiConfig");
+  assertStringIncludes(nodeMain, 'process.argv.includes("--allow-file-kv")');
   assertStringIncludes(worker, "loadStandaloneServerConfig");
   assertStringIncludes(tasks, "main.ts --allow-file-kv");
   assertEquals(
-    launch.configurations.find(({ name }) => name === "GraphQL API")?.args,
+    launch.configurations.find(({ name }) => name === "GraphQL API (Node.js)")
+      ?.args,
+    ["--allow-file-kv"],
+  );
+  assertEquals(
+    launch.configurations.find(
+      ({ name }) => name === "GraphQL API (Deno rollback)",
+    )?.args,
     ["--allow-file-kv"],
   );
   assertStringIncludes(
@@ -178,6 +190,9 @@ test("standalone smoke owns a shared Redis configuration", async () => {
   assertStringIncludes(smoke, 'Deno.env.get("STANDALONE_SMOKE_KV_URL")');
   assertStringIncludes(smoke, '"redis://127.0.0.1:6379/0"');
   assertStringIncludes(smoke, "{ KV_URL: standaloneKvUrl }");
+  assertStringIncludes(smoke, '"./instrument.node.ts"');
+  assertStringIncludes(smoke, '"main.node.ts"');
+  assertStringIncludes(smoke, "/.well-known/nodeinfo");
   assert(!smoke.includes('new Deno.Command("mise"'));
 });
 
@@ -199,13 +214,29 @@ test("standalone services preserve the compatible signature first knock", async 
   const api = await readTextFile(
     new URL("../graphql/main.ts", import.meta.url),
   );
+  const nodeApi = await readTextFile(
+    new URL("../graphql/main.node.ts", import.meta.url),
+  );
   const worker = await readTextFile(
     new URL("../graphql/worker.ts", import.meta.url),
   );
   const firstKnock = 'firstKnock: "draft-cavage-http-signatures-12"';
 
   assertStringIncludes(api, firstKnock);
+  assertStringIncludes(nodeApi, firstKnock);
   assertStringIncludes(worker, firstKnock);
+});
+
+test("the Node API remains an explicit candidate until deployment cutover", async () => {
+  const tasks = await readTextFile(new URL("../mise.toml", import.meta.url));
+
+  assertStringIncludes(tasks, '[tasks."dev:graphql:node"]');
+  assertStringIncludes(tasks, '[tasks."prod:graphql:node"]');
+  assertStringIncludes(tasks, "--import ./instrument.node.ts main.node.ts");
+  assertStringIncludes(tasks, '[tasks."dev:graphql"]');
+  assertStringIncludes(tasks, 'run = "deno task dev"');
+  assertStringIncludes(tasks, '[tasks."prod:graphql"]');
+  assertStringIncludes(tasks, 'run = "deno task start"');
 });
 
 test("container builds omit the removed Fresh application", async () => {
