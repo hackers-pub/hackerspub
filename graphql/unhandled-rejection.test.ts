@@ -45,3 +45,25 @@ test("application unhandled rejections are captured exactly once", () => {
     mechanism: { type: "onunhandledrejection", handled: false },
   });
 });
+
+test("Sentry failures do not escape the unhandled rejection reporter", () => {
+  const warnings: unknown[] = [];
+  const applicationError = new Error("application bug");
+  const captureError = new Error("Sentry failed");
+  const result = reportUnhandledRejection(
+    applicationError,
+    {
+      warning(_message, properties) {
+        warnings.push(properties.error);
+      },
+    },
+    {
+      captureException() {
+        throw captureError;
+      },
+    },
+  );
+
+  assert.equal(result, "captured");
+  assert.deepEqual(warnings, [applicationError, captureError]);
+});

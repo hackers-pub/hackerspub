@@ -32,8 +32,15 @@ export function reportUnhandledRejection(
     "Unhandled promise rejection suppressed to keep the server alive: {error}",
     { error: reason },
   );
-  reporter.captureException(reason, {
-    mechanism: { type: "onunhandledrejection", handled: false },
-  });
+  try {
+    reporter.captureException(reason, {
+      mechanism: { type: "onunhandledrejection", handled: false },
+    });
+  } catch (error) {
+    logger.warning(
+      "Failed to capture an unhandled promise rejection: {error}",
+      { error },
+    );
+  }
   return "captured";
 }
