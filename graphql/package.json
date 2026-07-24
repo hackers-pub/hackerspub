@@ -7,7 +7,7 @@
     "./medium-upload": "./medium-upload.ts"
   },
   "dependencies": {
-    "@envelop/sentry": "catalog:",
+    "@envelop/core": "catalog:",
     "@fedify/fedify": "catalog:",
     "@fedify/vocab": "catalog:",
     "@hackerspub/ai": "workspace:*",
@@ -32,6 +32,7 @@
     "@resvg/resvg-js": "catalog:",
     "@sentry/deno": "catalog:",
     "@sentry/node": "catalog:",
+    "@sentry/node-sdk": "catalog:",
     "@simplewebauthn/server": "catalog:",
     "@std/assert": "catalog:",
     "@std/encoding": "catalog:",
@@ -51,6 +52,7 @@
     "postgres": "catalog:",
     "satori": "catalog:",
     "sharp": "catalog:",
+    "srvx": "catalog:",
     "url-template": "catalog:",
     "xss": "catalog:"
   }

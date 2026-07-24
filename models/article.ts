@@ -785,7 +785,7 @@ export async function startArticleContentSummary(
   // between the caller's fetch and our claim.
   const claimed = updated[0];
   logger.debug("Starting summary for content: {sourceId} {language}", claimed);
-  summarize({
+  void summarize({
     model,
     sourceLanguage: claimed.beingTranslated
       ? (claimed.originalLanguage ?? claimed.language)
@@ -801,16 +801,29 @@ export async function startArticleContentSummary(
         ...claimed,
         error,
       });
-      await db
-        .update(articleContentTable)
-        .set({ summaryStarted: null })
-        .where(
-          and(
-            eq(articleContentTable.sourceId, claimed.sourceId),
-            eq(articleContentTable.language, claimed.language),
-            eq(articleContentTable.summaryStarted, claim),
-          ),
+      try {
+        await db
+          .update(articleContentTable)
+          .set({ summaryStarted: null })
+          .where(
+            and(
+              eq(articleContentTable.sourceId, claimed.sourceId),
+              eq(articleContentTable.language, claimed.language),
+              eq(articleContentTable.summaryStarted, claim),
+            ),
+          );
+      } catch (resetError) {
+        // The summary runs in the background, so its failure handler must
+        // not create another unhandled rejection when the database is
+        // unavailable or has already closed during shutdown.
+        logger.error(
+          "Failed to reset summary claim ({sourceId} {language}): {error}",
+          {
+            ...claimed,
+            error: resetError,
+          },
         );
+      }
     });
 }
 

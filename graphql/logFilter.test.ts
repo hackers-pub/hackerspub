@@ -29,6 +29,12 @@ function denoFetchError(detail: string): TypeError {
   );
 }
 
+function nodeFetchError(code: string): TypeError {
+  const cause = new Error(`Node fetch transport failure: ${code}`);
+  Object.assign(cause, { code });
+  return new TypeError("fetch failed", { cause });
+}
+
 // Fedify's document loader throws this (a non-`Error` subclass is fine; the
 // predicate keys off the `name`) when a dereferenced document responds non-OK.
 function fetchError(): Error {
@@ -360,6 +366,15 @@ function urlError(address: string): Error {
 test("isRemoteTransportError: positive signals", () => {
   assert.equal(isRemoteTransportError(fetchError()), true);
   assert.equal(isRemoteTransportError(denoFetchError("dns error")), true);
+  for (const code of [
+    "ENOTFOUND",
+    "ECONNREFUSED",
+    "CERT_HAS_EXPIRED",
+    "UND_ERR_CONNECT_TIMEOUT",
+    "UND_ERR_SOCKET",
+  ]) {
+    assert.equal(isRemoteTransportError(nodeFetchError(code)), true);
+  }
   assert.equal(
     isRemoteTransportError(
       new TypeError("error reading a body from connection"),
@@ -399,6 +414,24 @@ test("isRemoteTransportError: positive signals", () => {
 
 test("isRemoteTransportError: negative signals", () => {
   assert.equal(isRemoteTransportError(new TypeError("ordinary bug")), false);
+  assert.equal(
+    isRemoteTransportError(
+      new TypeError("ordinary bug", {
+        cause: Object.assign(new Error("refused"), { code: "ECONNREFUSED" }),
+      }),
+    ),
+    false,
+  );
+  assert.equal(
+    isRemoteTransportError(
+      new TypeError("fetch failed", {
+        cause: Object.assign(new Error("application cause"), {
+          code: "APP_ERROR",
+        }),
+      }),
+    ),
+    false,
+  );
   assert.equal(isRemoteTransportError(new Error("whatever")), false);
   assert.equal(isRemoteTransportError(null), false);
   assert.equal(isRemoteTransportError(undefined), false);

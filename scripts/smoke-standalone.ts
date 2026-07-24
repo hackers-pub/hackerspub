@@ -68,8 +68,15 @@ async function removeHeartbeat() {
 
 try {
   start(
-    Deno.execPath(),
-    ["run", "-A", "--unstable-otel", "--unstable-cron", "main.ts"],
+    "node",
+    [
+      "--enable-source-maps",
+      "--import",
+      "temporal-polyfill/global",
+      "--import",
+      "./instrument.node.ts",
+      "main.node.ts",
+    ],
     graphqlDirectory,
     { KV_URL: standaloneKvUrl },
   );
@@ -82,6 +89,30 @@ try {
     });
     const body = await response.json();
     return response.ok && body.data?.__typename === "Query";
+  });
+  await waitUntil("the standalone federation routes", async (signal) => {
+    const [nodeInfo, assetlinks, appleAssociation] = await Promise.all([
+      fetch("http://127.0.0.1:8080/.well-known/nodeinfo", { signal }),
+      fetch("http://127.0.0.1:8080/.well-known/assetlinks.json", {
+        signal,
+      }),
+      fetch("http://127.0.0.1:8080/.well-known/apple-app-site-association", {
+        signal,
+      }),
+    ]);
+    return (
+      nodeInfo.ok &&
+      assetlinks.ok &&
+      appleAssociation.ok &&
+      nodeInfo.headers
+        .get("content-type")
+        ?.startsWith("application/jrd+json") === true &&
+      assetlinks.headers.get("content-type")?.startsWith("application/json") ===
+        true &&
+      appleAssociation.headers
+        .get("content-type")
+        ?.startsWith("application/json") === true
+    );
   });
 
   start(

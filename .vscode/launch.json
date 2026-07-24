@@ -3,7 +3,25 @@
   "configurations": [
     {
       "request": "launch",
-      "name": "GraphQL API",
+      "name": "GraphQL API (Node.js)",
+      "type": "node",
+      "program": "${workspaceFolder}/graphql/main.node.ts",
+      "cwd": "${workspaceFolder}/graphql/",
+      "env": {},
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "--enable-source-maps",
+        "--import",
+        "temporal-polyfill/global",
+        "--import",
+        "./instrument.node.ts",
+        "--inspect-wait=127.0.0.1:9228"
+      ],
+      "args": ["--allow-file-kv"]
+    },
+    {
+      "request": "launch",
+      "name": "GraphQL API (Deno rollback)",
       "type": "node",
       "program": "${workspaceFolder}/graphql/main.ts",
       "cwd": "${workspaceFolder}/graphql/",

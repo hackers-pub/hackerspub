@@ -10,7 +10,6 @@ function connectionInfo(
 ): ConnectionInfo<{ transport: "tcp"; hostname: string; port: number }> {
   return {
     remoteAddr: { transport: "tcp", hostname, port: 43210 },
-    completed: Promise.resolve(),
   };
 }
 

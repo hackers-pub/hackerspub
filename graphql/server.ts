@@ -1,4 +1,3 @@
-import { useSentry } from "@envelop/sentry";
 import type {
   Account,
   AccountEmail,
@@ -22,8 +21,9 @@ import process from "node:process";
 import type { ServerContext, UserContext } from "./builder.ts";
 import { schema as graphqlSchema } from "./mod.ts";
 import { useQuerySnapshotTransaction } from "./query-tx-plugin.ts";
+import { useSentry } from "./sentry-plugin.ts";
 
-const sentryEnabled = process.env.SENTRY_DSN != null;
+const sentryEnabled = Boolean(process.env.SENTRY_DSN);
 
 export function createYogaServer(): YogaServerInstance<
   ServerContext,
@@ -89,25 +89,23 @@ export function createYogaServer(): YogaServerInstance<
         }
       }
 
-      // Tag the per-request Sentry isolation scope with the signed-in user
-      // so any exception captured downstream (envelop's `useSentry` plugin
-      // for resolver errors, the LogTape sentry sink for `error`/`fatal`
-      // logs, default integrations for unhandled throws) carries user
-      // identity. `denoServeIntegration` (default in @sentry/deno) forks an
-      // isolation scope per request via `withIsolationScope`, and
-      // `Sentry.setUser` writes to that isolation scope — so this does NOT
-      // leak across concurrent requests, and unlike mutating the active
-      // scope inside envelop's `configureScope` callback, it survives the
-      // plugin's `withScope` clones used at error-capture time.
-      if (sentryEnabled && account != null) {
-        const verifiedEmail = account.emails.find(
+      // Tag the per-request Sentry isolation scope with the signed-in user.
+      // Both the Deno and preloaded Node HTTP integrations create a request
+      // isolation scope. Explicitly clearing guests is still important: it
+      // prevents stale identity if a custom adapter ever reuses a scope.
+      if (sentryEnabled) {
+        const verifiedEmail = account?.emails.find(
           (e) => e.verified != null,
         )?.email;
-        Sentry.setUser({
-          id: account.id,
-          username: account.username,
-          ...(verifiedEmail == null ? {} : { email: verifiedEmail }),
-        });
+        Sentry.setUser(
+          account == null
+            ? null
+            : {
+                id: account.id,
+                username: account.username,
+                ...(verifiedEmail == null ? {} : { email: verifiedEmail }),
+              },
+        );
       }
 
       return {

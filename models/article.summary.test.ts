@@ -5,7 +5,9 @@ import {
   startArticleContentSummary,
   updateArticleSource,
 } from "./article.ts";
+import type { Database } from "./db.ts";
 import {
+  type ArticleContent,
   articleContentTable,
   articleSourceTable,
   postTable,
@@ -231,6 +233,57 @@ test("startArticleContentSummary() skips rows already marked summaryUnnecessary"
     assert.equal(after?.summaryStarted, null);
     assert.equal(after?.summary, null);
   });
+});
+
+test("startArticleContentSummary() contains a failed claim reset", async () => {
+  const sourceId = generateUuidV7();
+  const claimed = {
+    sourceId,
+    language: "en",
+    originalLanguage: null,
+    beingTranslated: false,
+    content: "Body",
+  } as ArticleContent;
+  const resetAttempted = Promise.withResolvers<void>();
+  let updateCount = 0;
+  const db = {
+    update() {
+      updateCount++;
+      if (updateCount === 1) {
+        return {
+          set() {
+            return {
+              where() {
+                return {
+                  async returning() {
+                    return [claimed];
+                  },
+                };
+              },
+            };
+          },
+        };
+      }
+      return {
+        set() {
+          return {
+            where() {
+              resetAttempted.resolve();
+              return Promise.reject(new Error("database already closed"));
+            },
+          };
+        },
+      };
+    },
+  } as unknown as Database;
+
+  await startArticleContentSummary(db, {} as never, claimed, async () => {
+    throw new Error("summary model failed");
+  });
+  await resetAttempted.promise;
+  await new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+  assert.equal(updateCount, 2);
 });
 
 test("applyArticleContentSummary() clears the post-level summary when discarding", async () => {
