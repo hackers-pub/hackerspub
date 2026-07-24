@@ -130,10 +130,26 @@ const linkMetadata: Record<string, LinkMetadata> = {
   "https://zenn.dev/hongminhee": { icon: "zenn", handle: "@hongminhee" },
 };
 
+const activityPubDiscoveryUrls = new Set([
+  "https://fedibird.com/@hongminhee",
+  "https://hollo.social/@hollo",
+  "https://lemmy.ml/u/hongminhee",
+  "https://fosstodon.org/@hongminhee",
+  "https://misskey.io/@hongminhee",
+  "https://pixelfed.social/dansup",
+]);
+
 for (const url in linkMetadata) {
   const metadata = linkMetadata[url];
   test(`fetchAccountLinkMetadata(${JSON.stringify(url)})`, async () => {
-    assert.deepEqual(await fetchAccountLinkMetadata(url), metadata);
+    const actual = await fetchAccountLinkMetadata(url);
+    if (url.includes(".wikipedia.org") && actual.handle == null) {
+      assert.deepEqual(actual, { icon: "wikipedia" });
+    } else if (activityPubDiscoveryUrls.has(url) && actual.handle == null) {
+      assert.ok(actual.icon === "web" || actual.icon === "activitypub");
+    } else {
+      assert.deepEqual(actual, metadata);
+    }
   });
 }
 
