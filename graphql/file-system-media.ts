@@ -82,6 +82,9 @@ export async function handleFileSystemMedia(
   } catch {
     return new Response("Bad Request", { status: 400 });
   }
+  if (relativePath.includes("\0")) {
+    return new Response("Bad Request", { status: 400 });
+  }
   const pathSegments = relativePath.split(/[\\/]/);
   if (relativePath.length < 1 || pathSegments.some((part) => part === "..")) {
     return null;

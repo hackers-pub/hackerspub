@@ -187,6 +187,21 @@ test("handleFileSystemMedia rejects hidden path segments", async () => {
   }
 });
 
+test("handleFileSystemMedia rejects NUL bytes in paths", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "hackerspub-media-"));
+  try {
+    const response = await handleFileSystemMedia(
+      new Request("https://example.com/media/%00"),
+      pathToFileURL(directory + "/"),
+    );
+
+    assert.equal(response?.status, 400);
+    assert.equal(await response?.text(), "Bad Request");
+  } finally {
+    await rm(directory, { recursive: true });
+  }
+});
+
 test("handleFileSystemMedia treats children of files as missing", async () => {
   const directory = await mkdtemp(join(tmpdir(), "hackerspub-media-"));
   try {
