@@ -154,6 +154,13 @@ test("handleFileSystemMedia ignores non-media and prevents traversal", async () 
       ),
       null,
     );
+    assert.equal(
+      await handleFileSystemMedia(
+        new Request("https://example.com/media/%2Fetc%2Fpasswd"),
+        root,
+      ),
+      null,
+    );
   } finally {
     await rm(directory, { recursive: true });
   }
@@ -174,6 +181,30 @@ test("handleFileSystemMedia rejects hidden path segments", async () => {
       );
       assert.equal(response?.status, 404);
       assert.equal(await response?.text(), "Not Found");
+    }
+  } finally {
+    await rm(directory, { recursive: true });
+  }
+});
+
+test("handleFileSystemMedia decodes requested paths only once", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "hackerspub-media-"));
+  try {
+    await writeFile(join(directory, ".secret"), "hidden");
+    await writeFile(join(directory, "%2Esecret"), "encoded");
+    await mkdir(join(directory, "nested", ".git"), { recursive: true });
+    await writeFile(join(directory, "nested", ".git", "config"), "hidden");
+    await mkdir(join(directory, "nested", "%2Egit"), { recursive: true });
+    await writeFile(join(directory, "nested", "%2Egit", "config"), "encoded");
+    const root = pathToFileURL(directory + "/");
+
+    for (const path of ["%252Esecret", "nested/%252Egit/config"]) {
+      const response = await handleFileSystemMedia(
+        new Request(`https://example.com/media/${path}`),
+        root,
+      );
+      assert.equal(response?.status, 200);
+      assert.equal(await response?.text(), "encoded");
     }
   } finally {
     await rm(directory, { recursive: true });

@@ -1,7 +1,8 @@
 import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
-import { extname } from "node:path";
+import { extname, isAbsolute, relative, resolve, sep } from "node:path";
 import { Readable } from "node:stream";
+import { fileURLToPath } from "node:url";
 
 interface ByteRange {
   readonly start: number;
@@ -89,14 +90,20 @@ export async function handleFileSystemMedia(
     return new Response("Not Found", { status: 404 });
   }
 
-  const rootUrl = fileSystemRoot.href.endsWith("/")
-    ? fileSystemRoot
-    : new URL(`${fileSystemRoot.href}/`);
-  const fileUrl = new URL(relativePath, rootUrl);
-  if (!fileUrl.href.startsWith(rootUrl.href)) return null;
+  const rootPath = fileURLToPath(fileSystemRoot);
+  const filePath = resolve(rootPath, relativePath);
+  const pathWithinRoot = relative(rootPath, filePath);
+  if (
+    pathWithinRoot === "" ||
+    pathWithinRoot === ".." ||
+    pathWithinRoot.startsWith(`..${sep}`) ||
+    isAbsolute(pathWithinRoot)
+  ) {
+    return null;
+  }
 
   try {
-    const fileStat = await stat(fileUrl);
+    const fileStat = await stat(filePath);
     if (!fileStat.isFile()) return new Response("Not Found", { status: 404 });
     const contentType =
       mediaTypes[extname(relativePath).toLowerCase()] ??
@@ -154,7 +161,7 @@ export async function handleFileSystemMedia(
       request.method === "HEAD" || fileStat.size === 0
         ? null
         : (Readable.toWeb(
-            createReadStream(fileUrl, { start, end }),
+            createReadStream(filePath, { start, end }),
           ) as ReadableStream<Uint8Array>);
     return new Response(body, {
       status: range === undefined ? 200 : 206,
