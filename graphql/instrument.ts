@@ -6,7 +6,7 @@
 // web-next's instrument.server.mjs.
 import { getLogger } from "@logtape/logtape";
 import * as Sentry from "@sentry/deno";
-import metadata from "./deno.json" with { type: "json" };
+import metadata from "./package.json" with { type: "json" };
 import { reportUnhandledRejection } from "./unhandled-rejection.ts";
 
 const dsn = Deno.env.get("SENTRY_DSN");

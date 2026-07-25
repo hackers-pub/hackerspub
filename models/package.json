@@ -1,5 +1,6 @@
 {
   "name": "@hackerspub/models",
+  "version": "0.2.0",
   "type": "module",
   "exports": {
     "./account": "./account.ts",

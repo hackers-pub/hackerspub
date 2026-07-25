@@ -28,7 +28,7 @@ import {
   type NodeHttpServer,
   waitForNodeHttpShutdown,
 } from "./node-http.ts";
-import metadata from "./deno.json" with { type: "json" };
+import metadata from "./package.json" with { type: "json" };
 
 const logger = getLogger(["hackerspub", "graphql"]);
 const SENTRY_CLOSE_TIMEOUT = 2_000;

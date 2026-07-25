@@ -1,5 +1,6 @@
 {
   "name": "@hackerspub/runtime",
+  "version": "0.2.0",
   "type": "module",
   "exports": {
     "./config": "./config.ts",

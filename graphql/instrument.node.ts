@@ -4,7 +4,7 @@
 import { getLogger } from "@logtape/logtape";
 import * as Sentry from "@sentry/node-sdk";
 import process from "node:process";
-import metadata from "./deno.json" with { type: "json" };
+import metadata from "./package.json" with { type: "json" };
 import { reportUnhandledRejection } from "./unhandled-rejection.ts";
 
 const dsn = process.env.SENTRY_DSN;

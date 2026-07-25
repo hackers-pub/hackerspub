@@ -22,7 +22,7 @@ import {
   closeSequentially,
   combineRuntimeAndCloseErrors,
 } from "./lifecycle.ts";
-import metadata from "./deno.json" with { type: "json" };
+import metadata from "./package.json" with { type: "json" };
 import { services } from "./services.ts";
 import { createWorkerJobs } from "./worker-jobs.ts";
 import {

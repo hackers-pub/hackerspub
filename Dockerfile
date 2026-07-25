@@ -105,15 +105,16 @@ ENV GIT_COMMIT=${GIT_COMMIT}
 # Append "+<git_commit>" to each manifest's version *before* the build so the
 # built artifacts that inline the version (notably web-next, where Vite bakes
 # package.json into the SSR bundle) carry the commit hash too.
+# `set -e` matters here: without it the loop's exit status is only that of its
+# last iteration, so a failed stamp on an earlier manifest would ship a build
+# with inconsistent version metadata instead of failing.
 RUN if [ -n "$GIT_COMMIT" ]; then \
-  jq '.version += "+" + $git_commit' --arg git_commit "$GIT_COMMIT" federation/deno.json > /tmp/deno.json && \
-  mv /tmp/deno.json federation/deno.json && \
-  jq '.version += "+" + $git_commit' --arg git_commit "$GIT_COMMIT" graphql/deno.json > /tmp/deno.json && \
-  mv /tmp/deno.json graphql/deno.json && \
-  jq '.version += "+" + $git_commit' --arg git_commit "$GIT_COMMIT" models/deno.json > /tmp/deno.json && \
-  mv /tmp/deno.json models/deno.json && \
-  jq '.version += "+" + $git_commit' --arg git_commit "$GIT_COMMIT" web-next/package.json > /tmp/package.json && \
-  mv /tmp/package.json web-next/package.json \
+  set -e; \
+  for manifest in federation graphql models web-next; do \
+    jq '.version += "+" + $git_commit' --arg git_commit "$GIT_COMMIT" \
+      "$manifest/package.json" > /tmp/package.json; \
+    mv /tmp/package.json "$manifest/package.json"; \
+  done \
   ; fi
 
 # The `sentry_auth_token` secret is read, exported, and used in this RUN step

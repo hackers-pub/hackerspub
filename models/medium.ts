@@ -14,7 +14,7 @@ import sharp from "sharp";
 import { isSSRFSafeURL } from "ssrfcheck";
 import type { ApplicationContext } from "./context.ts";
 import type { Database } from "./db.ts";
-import metadata from "./deno.json" with { type: "json" };
+import metadata from "./package.json" with { type: "json" };
 import {
   isPostMediumType,
   type Medium,

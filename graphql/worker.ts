@@ -12,7 +12,7 @@ import {
   FILE_SYSTEM_STORAGE_BASE_URL,
 } from "@hackerspub/runtime/resources";
 import { getLogger } from "@logtape/logtape";
-import metadata from "./deno.json" with { type: "json" };
+import metadata from "./package.json" with { type: "json" };
 import {
   closeSequentially,
   combineRuntimeAndCloseErrors,
