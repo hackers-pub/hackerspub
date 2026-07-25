@@ -1470,7 +1470,7 @@ export interface DrainNewsRescoreQueueResult {
  * Drain the News rescore queue: for each claimed actor, recompute every link it
  * has shared, in chunks, off the request path.
  *
- * Concurrency: `Deno.cron` fires per worker process, so several replicas run
+ * Concurrency: the scheduler fires per worker process, so several replicas run
  * this at once.  Each claim *leases* one actor (sets `claimed`) with
  * `for update skip locked`, so a given actor is processed by exactly one replica
  * at a time; the worker refreshes the lease after every chunk so a long backlog

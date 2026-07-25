@@ -21,22 +21,27 @@ for (const compositionRoot of ["main.ts", "worker.ts"]) {
   });
 }
 
-test("the Node API preloads Sentry before evaluating its module graph", async () => {
-  const [main, tasks] = await Promise.all([
-    readTextFile(new URL("main.node.ts", import.meta.url)),
-    readTextFile(new URL("../mise.toml", import.meta.url)),
-  ]);
-  const loggingImport = 'import "./logging.node.ts";';
-  const preload = "--import ./instrument.node.ts main.node.ts";
+for (const [compositionRoot, role] of [
+  ["main.node.ts", "API"],
+  ["worker.node.ts", "worker"],
+] as const) {
+  test(`the Node ${role} preloads Sentry before evaluating its module graph`, async () => {
+    const [source, tasks] = await Promise.all([
+      readTextFile(new URL(compositionRoot, import.meta.url)),
+      readTextFile(new URL("../mise.toml", import.meta.url)),
+    ]);
+    const loggingImport = 'import "./logging.node.ts";';
+    const preload = `--import ./instrument.node.ts ${compositionRoot}`;
 
-  assertStringIncludes(main, loggingImport);
-  assertStringIncludes(tasks, preload);
-  assert(
-    tasks.indexOf("--import ./instrument.node.ts") <
-      tasks.indexOf("main.node.ts"),
-    "Node Sentry instrumentation must be preloaded before the API entrypoint",
-  );
-});
+    assertStringIncludes(source, loggingImport);
+    assertStringIncludes(tasks, preload);
+    assert(
+      tasks.indexOf("--import ./instrument.node.ts") <
+        tasks.indexOf(compositionRoot),
+      `Node Sentry instrumentation must be preloaded before the ${role} entrypoint`,
+    );
+  });
+}
 
 test("the Node API owns unhandled rejection classification", async () => {
   const instrument = await readTextFile(
@@ -51,12 +56,19 @@ test("the Node API owns unhandled rejection classification", async () => {
   assertStringIncludes(instrument, "reportUnhandledRejection(");
 });
 
-test("the Node API bounds Sentry shutdown flushing", async () => {
-  const source = await readTextFile(new URL("main.node.ts", import.meta.url));
+for (const [compositionRoot, role] of [
+  ["main.node.ts", "API"],
+  ["worker.node.ts", "worker"],
+] as const) {
+  test(`the Node ${role} bounds Sentry shutdown flushing`, async () => {
+    const source = await readTextFile(
+      new URL(compositionRoot, import.meta.url),
+    );
 
-  assertStringIncludes(source, "const SENTRY_CLOSE_TIMEOUT = 2_000;");
-  assertStringIncludes(source, "await Sentry.close(SENTRY_CLOSE_TIMEOUT);");
-});
+    assertStringIncludes(source, "const SENTRY_CLOSE_TIMEOUT = 2_000;");
+    assertStringIncludes(source, "await Sentry.close(SENTRY_CLOSE_TIMEOUT);");
+  });
+}
 
 test("empty Sentry DSNs do not enable shared integrations", async () => {
   const [logging, server] = await Promise.all([
@@ -75,14 +87,20 @@ test("empty Sentry DSNs do not enable shared integrations", async () => {
 });
 
 test("the queue worker migrates legacy deliveries before listening", async () => {
-  const source = await readTextFile(new URL("worker.ts", import.meta.url));
-  const migration = "await migrateLegacyOutboxEvents(db);";
-  const queueStart = "federation.startQueue(";
+  for (const [compositionRoot, queueStart] of [
+    ["worker.ts", "federation.startQueue("],
+    ["worker.node.ts", "runWorkerRuntime("],
+  ] as const) {
+    const source = await readTextFile(
+      new URL(compositionRoot, import.meta.url),
+    );
+    const migration = "await migrateLegacyOutboxEvents(db);";
 
-  assertStringIncludes(source, migration);
-  assertStringIncludes(source, queueStart);
-  assert(
-    source.indexOf(migration) < source.indexOf(queueStart),
-    "legacy outgoing messages must migrate before the queue starts",
-  );
+    assertStringIncludes(source, migration);
+    assertStringIncludes(source, queueStart);
+    assert(
+      source.indexOf(migration) < source.indexOf(queueStart),
+      `legacy outgoing messages must migrate before ${compositionRoot} starts the queue`,
+    );
+  }
 });

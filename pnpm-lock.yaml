@@ -207,6 +207,9 @@ catalogs:
     cheerio:
       specifier: ^1.1.0
       version: 1.2.0
+    croner:
+      specifier: 10.0.1
+      version: 10.0.1
     cssfilter:
       specifier: ^0.0.11
       version: 0.0.11
@@ -588,6 +591,9 @@ importers:
       ai:
         specifier: 'catalog:'
         version: 6.0.146(zod@4.3.6)
+      croner:
+        specifier: 'catalog:'
+        version: 10.0.1
       dataloader:
         specifier: 'catalog:'
         version: 2.2.3

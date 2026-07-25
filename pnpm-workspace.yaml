@@ -76,6 +76,7 @@ catalog:
   apns2: ^12.2.0
   arcsecond: ^5.0.0
   cheerio: ^1.1.0
+  croner: 10.0.1
   cssfilter: ^0.0.11
   d3: ^7.9.0
   dataloader: ^2.2.3

@@ -178,6 +178,17 @@ row for it has an active processing lease.  These constraints prevent a later
 per-object event from overtaking or running concurrently with an older event,
 even when multiple transactions and workers race.
 
+The Node.js worker in *graphql/worker.node.ts* is the deployment candidate;
+*graphql/worker.ts* remains the Deno rollback entry until cutover.  On shutdown,
+the worker stops accepting future scheduled ticks, waits for active scheduled
+jobs, and asks Fedify's queue listener to stop.  The PostgreSQL inbox adapter
+removes a claimed message before its handler finishes, so an interrupted inbox
+handler first re-enqueues the same message.  This can duplicate work, but keeps
+inbox processing at least once.  Interrupted transactional outbox work releases
+its lease for retry.  If an inbox requeue fails, shutdown remains open until the
+original handler succeeds or a requeue retry does.  The worker likewise keeps
+database, email, and logging resources open until active scheduled jobs settle.
+
 Delivery is at least once: a process can exit after a remote inbox accepts an
 activity but before the local acknowledgement commits.  Activity and message
 IDs stay stable across retries so compatible receivers can deduplicate them.

@@ -25,9 +25,9 @@ Recommended reading
 Hackers' Pub uses the following technologies:
 
  -  [Node.js] for TypeScript tooling, tests, the web frontend, and the
-    candidate GraphQL API runtime
- -  [Deno] for the federation worker and the GraphQL API rollback runtime
-    during the Node.js migration
+    candidate GraphQL API and federation worker runtimes
+ -  [Deno] for the GraphQL API and federation worker rollback runtimes during
+    the Node.js migration
  -  [PostgreSQL] for the database
  -  [Drizzle ORM] for database operations
  -  [Keyv] for caching
@@ -289,12 +289,13 @@ terminals:
 
 ~~~~ sh
 mise run dev:graphql:node
-mise run dev:graphql-worker
+mise run dev:graphql-worker:node
 API_URL=http://localhost:8080/graphql mise run dev:web-next
 ~~~~
 
-Use `mise run dev:graphql` instead to exercise the Deno rollback path.  Both
-commands expose the same HTTP surface until the deployment cutover.
+Use `mise run dev:graphql` and `mise run dev:graphql-worker` instead to
+exercise the Deno rollback paths.  Both API commands expose the same HTTP
+surface until the deployment cutover.
 
 The direct frontend is available at http://localhost:3000/.  It does not
 provide the unified ActivityPub routing that the Compose gateway provides.

@@ -41,6 +41,7 @@
     "@std/path": "catalog:",
     "@upyo/core": "catalog:",
     "ai": "catalog:",
+    "croner": "catalog:",
     "dataloader": "catalog:",
     "drizzle-orm": "catalog:",
     "flydrive": "catalog:",

@@ -31,9 +31,10 @@ The application has three deployable roles:
     Node.js, managed through the pnpm workspace
  -  **GraphQL API (`graphql/main.node.ts`)**: GraphQL Yoga plus Fedify protocol
     endpoints on Node.js; `graphql/main.ts` remains the Deno rollback entry
- -  **Federation worker (`graphql/worker.ts`)**: queue delivery and scheduled
-    jobs on Deno; run it separately from the API process and never behind a
-    load balancer
+ -  **Federation worker (`graphql/worker.node.ts`)**: queue delivery and
+    scheduled jobs on Node.js; `graphql/worker.ts` remains the Deno rollback
+    entry. Run it separately from the API process and never behind a load
+    balancer
 
 Shared application behavior lives in `models/`, `federation/`, `runtime/`, and
 `ai/`.  New UI and internationalization work belongs in `web-next/`; API,
@@ -55,16 +56,16 @@ explicit `--env-file` flag.
 ### Per-role tasks (via mise)
 
  -  Dev processes: `mise run dev:graphql:node` /
-    `mise run dev:graphql-worker` / `mise run dev:web-next`
+    `mise run dev:graphql-worker:node` / `mise run dev:web-next`
  -  Build: `mise run build:web-next`
  -  Production candidates: `mise run prod:graphql:node` /
-    `mise run prod:graphql-worker` / `mise run prod:web-next`
+    `mise run prod:graphql-worker:node` / `mise run prod:web-next`
 
 `mise run dev:graphql:node` by itself accepts a file-backed `KV_URL` for
-focused API development.  The existing `dev:graphql` and `prod:graphql` tasks
-remain Deno rollback paths until deployment cutover.  The worker and all
-production processes require Redis; do not run an API and worker against the
-same file-backed KV store.
+focused API development.  The existing `dev:graphql`, `prod:graphql`,
+`dev:graphql-worker`, and `prod:graphql-worker` tasks remain Deno rollback paths
+until deployment cutover.  The worker and all production processes require
+Redis; do not run an API and worker against the same file-backed KV store.
 
 ### Database migrations (via mise)
 
@@ -102,8 +103,8 @@ same file-backed KV store.
 Note: `mise run dev:web-next` requires `API_URL` set to the standalone GraphQL
 endpoint (normally `http://localhost:8080/graphql`). web-next reads this at
 runtime — no rebuild is needed when it changes. Run
-`mise run dev:graphql-worker` separately; queue work must not run in the API
-process or behind a load balancer.
+`mise run dev:graphql-worker:node` separately; queue work must not run in the
+API process or behind a load balancer.
 
 
 Code Style Guidelines
