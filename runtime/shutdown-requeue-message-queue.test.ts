@@ -241,3 +241,52 @@ test("original handler success makes a failed shutdown requeue safe", async () =
   assert.deepEqual(delegate.enqueued, []);
   assert.equal(delegate.enqueueBehaviors.length, 0);
 });
+
+test("listener drains every active handler after one fails", async () => {
+  const firstMessage = { id: "first" };
+  const secondMessage = { id: "second" };
+  const handlersStarted = Promise.withResolvers<void>();
+  const firstCompletion = Promise.withResolvers<void>();
+  const secondCompletion = Promise.withResolvers<void>();
+  let started = 0;
+  const delegate: MessageQueue = {
+    enqueue: () => Promise.resolve(),
+    async listen(handler) {
+      const first = Promise.resolve(handler(firstMessage));
+      const second = Promise.resolve(handler(secondMessage));
+      void first.catch(() => undefined);
+      void second.catch(() => undefined);
+    },
+  };
+  const queue = new ShutdownRequeueMessageQueue(delegate);
+  const failure = new Error("first handler failed");
+  const listening = queue.listen(async (message) => {
+    started++;
+    if (started === 2) handlersStarted.resolve();
+    if (message === firstMessage) {
+      await firstCompletion.promise;
+      throw failure;
+    }
+    await secondCompletion.promise;
+  });
+  let listenerSettled = false;
+  let listenerError: unknown;
+  const observed = listening.then(
+    () => {
+      listenerSettled = true;
+    },
+    (error: unknown) => {
+      listenerSettled = true;
+      listenerError = error;
+    },
+  );
+  await handlersStarted.promise;
+
+  firstCompletion.resolve();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(listenerSettled, false);
+
+  secondCompletion.resolve();
+  await observed;
+  assert.equal(listenerError, undefined);
+});

@@ -243,6 +243,31 @@ test("worker runtime propagates a queue failure and aborts the scheduler", async
   assert.equal(schedulerAborted, true);
 });
 
+for (const failedService of ["queue", "scheduler"] as const) {
+  test(`worker runtime omits a cascade abort after a ${failedService} failure`, async () => {
+    const failure = new Error(`${failedService} failed`);
+
+    await assert.rejects(
+      runWorkerRuntime({
+        federation: {
+          startQueue(_contextData: undefined, options = {}) {
+            return failedService === "queue"
+              ? Promise.reject(failure)
+              : rejectOnAbort(options.signal!, () => undefined);
+          },
+        },
+        contextData: undefined,
+        runScheduler(signal) {
+          return failedService === "scheduler"
+            ? Promise.reject(failure)
+            : rejectOnAbort(signal, () => undefined);
+        },
+      }),
+      (error) => error === failure,
+    );
+  });
+}
+
 test("worker runtime preserves a scheduler failure after the queue stops", async () => {
   const failure = new Error("scheduler failed");
 

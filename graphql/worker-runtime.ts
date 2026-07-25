@@ -83,12 +83,15 @@ export async function runWorkerRuntime<TContextData>(
       );
     }
     for (const completion of completions) {
-      if (
-        !completion.successful &&
-        !(externalShutdownRequested && isAbortError(completion.error))
-      ) {
-        errors.push(completion.error);
-      }
+      if (completion.successful) continue;
+      const abortError = isAbortError(completion.error);
+      const cascadeAbort =
+        controller.signal.aborted &&
+        completion.service !== first.service &&
+        abortError;
+      if (externalShutdownRequested && abortError) continue;
+      if (cascadeAbort) continue;
+      errors.push(completion.error);
     }
 
     if (errors.length === 1) throw errors[0];

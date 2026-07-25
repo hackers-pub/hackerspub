@@ -108,7 +108,7 @@ export class ShutdownRequeueMessageQueue implements MessageQueue {
       );
 
     while (activeHandlers.size > 0) {
-      await Promise.all(activeHandlers);
+      await Promise.allSettled(activeHandlers);
     }
     if (!delegateCompletion.successful) throw delegateCompletion.error;
   }

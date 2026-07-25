@@ -61,7 +61,16 @@ export async function runNodeWorkerScheduler(
   const stop = () => {
     if (stopped) return;
     stopped = true;
-    for (const handle of handles) handle.stop();
+    for (const handle of handles) {
+      try {
+        handle.stop();
+      } catch (error) {
+        schedulerLogger.warning(
+          "Failed to stop a scheduled worker job cron handle: {error}",
+          { error },
+        );
+      }
+    }
   };
   const drain = () =>
     waitForWorkerJobsToDrain(

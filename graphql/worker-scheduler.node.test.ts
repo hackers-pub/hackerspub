@@ -176,6 +176,47 @@ test("scheduler stops already-created jobs if registration fails", async () => {
   assert.equal(stopped, true);
 });
 
+test("scheduler attempts every stop when a cron handle throws", async () => {
+  const registrationFailure = new Error("invalid schedule");
+  const stopFailure = new Error("stop failed");
+  const stopAttempts: string[] = [];
+  const warnings: Array<Record<string, unknown>> = [];
+  let registration = 0;
+  const cronFactory: NodeCronFactory = (registeredJob) => {
+    registration++;
+    if (registration === 3) throw registrationFailure;
+    return {
+      stop() {
+        stopAttempts.push(registeredJob.name);
+        if (registeredJob.name === "first-job") throw stopFailure;
+      },
+    };
+  };
+
+  await assert.rejects(
+    runNodeWorkerScheduler(
+      [
+        { ...job, name: "first-job" },
+        { ...job, name: "second-job" },
+        { ...job, name: "third-job" },
+      ],
+      {
+        signal: new AbortController().signal,
+        cronFactory,
+        logger: {
+          warning(_message, properties) {
+            warnings.push(properties);
+          },
+        },
+      },
+    ),
+    (error) => error === registrationFailure,
+  );
+  assert.deepEqual(stopAttempts, ["first-job", "second-job"]);
+  assert.equal(warnings.length, 1);
+  assert.strictEqual(warnings[0].error, stopFailure);
+});
+
 test("scheduler preserves resources until active jobs settle after registration failure", async () => {
   const failure = new Error("invalid schedule");
   const completion = Promise.withResolvers<void>();
