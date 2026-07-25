@@ -143,6 +143,9 @@ test("file KV is limited to API-only development", async () => {
   const worker = await readTextFile(
     new URL("../graphql/worker.ts", import.meta.url),
   );
+  const nodeWorker = await readTextFile(
+    new URL("../graphql/worker.node.ts", import.meta.url),
+  );
   const tasks = await readTextFile(
     new URL("../graphql/deno.json", import.meta.url),
   );
@@ -164,6 +167,7 @@ test("file KV is limited to API-only development", async () => {
   assertStringIncludes(nodeMain, "loadGraphqlApiConfig");
   assertStringIncludes(nodeMain, 'process.argv.includes("--allow-file-kv")');
   assertStringIncludes(worker, "loadStandaloneServerConfig");
+  assertStringIncludes(nodeWorker, "loadStandaloneServerConfig");
   assertStringIncludes(tasks, "main.ts --allow-file-kv");
   assertEquals(
     launch.configurations.find(({ name }) => name === "GraphQL API (Node.js)")
@@ -192,6 +196,8 @@ test("standalone smoke owns a shared Redis configuration", async () => {
   assertStringIncludes(smoke, "{ KV_URL: standaloneKvUrl }");
   assertStringIncludes(smoke, '"./instrument.node.ts"');
   assertStringIncludes(smoke, '"main.node.ts"');
+  assertStringIncludes(smoke, '"worker.node.ts"');
+  assert(!smoke.includes('"worker.ts"'));
   assertStringIncludes(smoke, "/.well-known/nodeinfo");
   assert(!smoke.includes('new Deno.Command("mise"'));
 });
@@ -220,23 +226,34 @@ test("standalone services preserve the compatible signature first knock", async 
   const worker = await readTextFile(
     new URL("../graphql/worker.ts", import.meta.url),
   );
+  const nodeWorker = await readTextFile(
+    new URL("../graphql/worker.node.ts", import.meta.url),
+  );
   const firstKnock = 'firstKnock: "draft-cavage-http-signatures-12"';
 
   assertStringIncludes(api, firstKnock);
   assertStringIncludes(nodeApi, firstKnock);
   assertStringIncludes(worker, firstKnock);
+  assertStringIncludes(nodeWorker, firstKnock);
 });
 
-test("the Node API remains an explicit candidate until deployment cutover", async () => {
+test("the Node services remain explicit candidates until deployment cutover", async () => {
   const tasks = await readTextFile(new URL("../mise.toml", import.meta.url));
 
   assertStringIncludes(tasks, '[tasks."dev:graphql:node"]');
   assertStringIncludes(tasks, '[tasks."prod:graphql:node"]');
   assertStringIncludes(tasks, "--import ./instrument.node.ts main.node.ts");
+  assertStringIncludes(tasks, '[tasks."dev:graphql-worker:node"]');
+  assertStringIncludes(tasks, '[tasks."prod:graphql-worker:node"]');
+  assertStringIncludes(tasks, "--import ./instrument.node.ts worker.node.ts");
   assertStringIncludes(tasks, '[tasks."dev:graphql"]');
   assertStringIncludes(tasks, 'run = "deno task dev"');
   assertStringIncludes(tasks, '[tasks."prod:graphql"]');
   assertStringIncludes(tasks, 'run = "deno task start"');
+  assertStringIncludes(tasks, '[tasks."dev:graphql-worker"]');
+  assertStringIncludes(tasks, 'run = "deno task dev:worker"');
+  assertStringIncludes(tasks, '[tasks."prod:graphql-worker"]');
+  assertStringIncludes(tasks, 'run = "deno task worker"');
 });
 
 test("container builds omit the removed Fresh application", async () => {

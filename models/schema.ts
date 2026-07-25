@@ -1637,7 +1637,7 @@ export const newsRescoreQueueTable = pgTable("news_rescore_queue", {
   // processes, and cleared (the row deleted) on success.  `null` means
   // unclaimed; a claim older than the lease window is treated as abandoned (the
   // worker crashed) and may be reclaimed.  This is what serializes processing of
-  // a given actor across the per-process `Deno.cron` drains.
+  // a given actor across the per-process scheduled drains.
   claimed: timestamp({ withTimezone: true }),
   // Set by an enqueue that lands while a worker is already processing this actor
   // (the actor was re-added/removed mid-rescore).  The claim clears it; if it is

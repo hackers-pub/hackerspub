@@ -138,8 +138,13 @@ run = "node --watch --enable-source-maps --import temporal-polyfill/global --imp
 dir = "graphql"
 
 [tasks."dev:graphql-worker"]
-description = "Run the GraphQL federation queue worker in development mode"
+description = "Run the Deno rollback GraphQL federation queue worker in development mode"
 run = "deno task dev:worker"
+dir = "graphql"
+
+[tasks."dev:graphql-worker:node"]
+description = "Run the candidate Node.js GraphQL federation queue worker in development mode"
+run = "node --watch --enable-source-maps --import temporal-polyfill/global --import ./instrument.node.ts worker.node.ts"
 dir = "graphql"
 
 [tasks."dev:web-next"]
@@ -163,8 +168,13 @@ run = "node --enable-source-maps --import temporal-polyfill/global --import ./in
 dir = "graphql"
 
 [tasks."prod:graphql-worker"]
-description = "Start the GraphQL federation queue worker in production (no HTTP; do not put behind a load balancer)"
+description = "Start the Deno rollback GraphQL federation queue worker (no HTTP; do not put behind a load balancer)"
 run = "deno task worker"
+dir = "graphql"
+
+[tasks."prod:graphql-worker:node"]
+description = "Start the candidate Node.js GraphQL federation queue worker (no HTTP; do not put behind a load balancer)"
+run = "node --enable-source-maps --import temporal-polyfill/global --import ./instrument.node.ts worker.node.ts"
 dir = "graphql"
 
 [tasks."prod:web-next"]

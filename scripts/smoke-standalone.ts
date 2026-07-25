@@ -116,8 +116,15 @@ try {
   });
 
   start(
-    Deno.execPath(),
-    ["run", "-A", "--unstable-otel", "--unstable-cron", "worker.ts"],
+    "node",
+    [
+      "--enable-source-maps",
+      "--import",
+      "temporal-polyfill/global",
+      "--import",
+      "./instrument.node.ts",
+      "worker.node.ts",
+    ],
     graphqlDirectory,
     {
       KV_URL: standaloneKvUrl,
