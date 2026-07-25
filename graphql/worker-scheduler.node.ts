@@ -1,9 +1,9 @@
 import { Cron } from "croner";
 import { getLogger } from "@logtape/logtape";
-import { closeWithDeadline } from "./lifecycle.ts";
 import {
   type WorkerJob,
-  WORKER_JOB_DRAIN_TIMEOUT_MILLISECONDS,
+  waitForWorkerJobsToDrain,
+  WORKER_JOB_DRAIN_WARNING_MILLISECONDS,
   WorkerJobRunner,
 } from "./worker-jobs.ts";
 
@@ -21,7 +21,7 @@ export interface NodeWorkerSchedulerOptions {
   readonly signal: AbortSignal;
   readonly cronFactory?: NodeCronFactory;
   readonly runner?: WorkerJobRunner;
-  readonly drainTimeoutMilliseconds?: number;
+  readonly drainWarningMilliseconds?: number;
   readonly logger?: {
     warning(message: string, properties: Record<string, unknown>): void;
   };
@@ -54,8 +54,8 @@ export async function runNodeWorkerScheduler(
   const runner = options.runner ?? new WorkerJobRunner();
   const cronFactory = options.cronFactory ?? createNodeCron;
   const schedulerLogger = options.logger ?? logger;
-  const drainTimeoutMilliseconds =
-    options.drainTimeoutMilliseconds ?? WORKER_JOB_DRAIN_TIMEOUT_MILLISECONDS;
+  const drainWarningMilliseconds =
+    options.drainWarningMilliseconds ?? WORKER_JOB_DRAIN_WARNING_MILLISECONDS;
   const handles: NodeCronHandle[] = [];
   let stopped = false;
   const stop = () => {
@@ -64,22 +64,17 @@ export async function runNodeWorkerScheduler(
     for (const handle of handles) handle.stop();
   };
   const drain = () =>
-    closeWithDeadline(
+    waitForWorkerJobsToDrain(
       () => runner.drain(),
-      drainTimeoutMilliseconds,
-      "Timed out while draining scheduled worker jobs.",
+      drainWarningMilliseconds,
+      () => {
+        schedulerLogger.warning(
+          "Scheduled worker jobs exceeded the drain warning threshold; " +
+            "keeping resources open until they settle.",
+          { warningAfterMilliseconds: drainWarningMilliseconds },
+        );
+      },
     );
-  const drainForShutdown = async () => {
-    try {
-      await drain();
-    } catch (error) {
-      schedulerLogger.warning(
-        "Scheduled worker jobs exceeded the drain deadline; " +
-          "continuing shutdown: {error}",
-        { error },
-      );
-    }
-  };
 
   try {
     for (const job of jobs) {
@@ -111,7 +106,7 @@ export async function runNodeWorkerScheduler(
 
   if (options.signal.aborted) {
     stop();
-    await drainForShutdown();
+    await drain();
     return;
   }
 
@@ -123,5 +118,5 @@ export async function runNodeWorkerScheduler(
     options.signal.addEventListener("abort", abort, { once: true });
   });
   await aborted;
-  await drainForShutdown();
+  await drain();
 }

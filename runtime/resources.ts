@@ -29,6 +29,7 @@ import { resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import postgresJs, { type Sql } from "postgres";
 import type { KeyValueConfig, ServerConfig } from "./config.ts";
+import { ShutdownRequeueMessageQueue } from "./shutdown-requeue-message-queue.ts";
 
 export interface DatabaseResources {
   readonly postgres: Sql;
@@ -284,9 +285,11 @@ export async function createFederationResource(
       : undefined;
   const federationKv =
     redis == null ? new PostgresKvStore(postgres) : new RedisKvStore(redis);
-  const inboxQueue = new PostgresMessageQueue(postgres, {
-    handlerTimeout: { seconds: 180 },
-  });
+  const inboxQueue = new ShutdownRequeueMessageQueue(
+    new PostgresMessageQueue(postgres, {
+      handlerTimeout: { seconds: 180 },
+    }),
+  );
   const fanoutQueue = new TransactionalOutboxQueue(db, "activitypub.fanout");
   const outboxQueue = new TransactionalOutboxQueue(db, "activitypub.delivery");
   let federation: Federation<ContextData>;

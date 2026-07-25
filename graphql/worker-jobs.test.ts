@@ -5,6 +5,7 @@ import type { Transport } from "@upyo/core";
 import {
   createWorkerJobs,
   type WorkerJobOperations,
+  waitForWorkerJobsToDrain,
   WorkerJobRunner,
   WORKER_JOB_SCHEDULES,
 } from "./worker-jobs.ts";
@@ -186,4 +187,24 @@ test("worker job runner contains failures and drains active work", async () => {
   assert.equal(errors.length, 1);
   assert.equal(errors[0].jobName, "failing-job");
   assert(errors[0].error instanceof Error);
+});
+
+test("slow job drains warn without releasing shared resources", async () => {
+  const completion = Promise.withResolvers<void>();
+  const warningSeen = Promise.withResolvers<void>();
+  let drained = false;
+  const draining = waitForWorkerJobsToDrain(
+    () => completion.promise,
+    1,
+    warningSeen.resolve,
+  ).then(() => {
+    drained = true;
+  });
+
+  await warningSeen.promise;
+  assert.equal(drained, false);
+
+  completion.resolve();
+  await draining;
+  assert.equal(drained, true);
 });

@@ -83,6 +83,90 @@ test("worker runtime ignores service abort errors during external shutdown", asy
   await running;
 });
 
+test("worker runtime keeps resources open until the queue is safe", async () => {
+  const controller = new AbortController();
+  const queueStarted = Promise.withResolvers<void>();
+  const queueCompletion = Promise.withResolvers<void>();
+  const schedulerStarted = Promise.withResolvers<void>();
+  const running = runWorkerRuntime({
+    federation: {
+      startQueue(_contextData: undefined, options = {}) {
+        queueStarted.resolve();
+        return new Promise<void>((resolve) => {
+          options.signal?.addEventListener(
+            "abort",
+            async () => {
+              await queueCompletion.promise;
+              resolve();
+            },
+            { once: true },
+          );
+        });
+      },
+    },
+    contextData: undefined,
+    runScheduler(signal) {
+      schedulerStarted.resolve();
+      return waitForAbort(signal, [], "scheduler");
+    },
+    signal: controller.signal,
+  });
+  await Promise.all([queueStarted.promise, schedulerStarted.promise]);
+
+  let runtimeStopped = false;
+  const observed = running.then(() => {
+    runtimeStopped = true;
+  });
+  controller.abort();
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  assert.equal(runtimeStopped, false);
+
+  queueCompletion.resolve();
+  await observed;
+  assert.equal(runtimeStopped, true);
+});
+
+test("worker runtime keeps resources open for a draining scheduler", async () => {
+  const controller = new AbortController();
+  const schedulerStarted = Promise.withResolvers<void>();
+  const schedulerCompletion = Promise.withResolvers<void>();
+  const running = runWorkerRuntime({
+    federation: {
+      startQueue(_contextData: undefined, options = {}) {
+        return waitForAbort(options.signal!, [], "queue");
+      },
+    },
+    contextData: undefined,
+    runScheduler(signal) {
+      schedulerStarted.resolve();
+      return new Promise<void>((resolve) => {
+        signal.addEventListener(
+          "abort",
+          async () => {
+            await schedulerCompletion.promise;
+            resolve();
+          },
+          { once: true },
+        );
+      });
+    },
+    signal: controller.signal,
+  });
+  await schedulerStarted.promise;
+
+  let runtimeStopped = false;
+  const observed = running.then(() => {
+    runtimeStopped = true;
+  });
+  controller.abort();
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  assert.equal(runtimeStopped, false);
+
+  schedulerCompletion.resolve();
+  await observed;
+  assert.equal(runtimeStopped, true);
+});
+
 test("worker runtime rejects an unexpected clean queue stop", async () => {
   const schedulerStopped = Promise.withResolvers<void>();
 
@@ -157,6 +241,23 @@ test("worker runtime propagates a queue failure and aborts the scheduler", async
     failure,
   );
   assert.equal(schedulerAborted, true);
+});
+
+test("worker runtime preserves a scheduler failure after the queue stops", async () => {
+  const failure = new Error("scheduler failed");
+
+  await assert.rejects(
+    runWorkerRuntime({
+      federation: {
+        startQueue(_contextData: undefined, options = {}) {
+          return waitForAbort(options.signal!, [], "queue");
+        },
+      },
+      contextData: undefined,
+      runScheduler: () => Promise.reject(failure),
+    }),
+    (error) => error === failure,
+  );
 });
 
 test("worker runtime preserves queue and scheduler failures", async () => {

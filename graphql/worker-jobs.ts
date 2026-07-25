@@ -102,9 +102,22 @@ const schedulerLogger = getLogger([
   "scheduler",
 ]);
 
-// Leave enough of the container's termination grace period for the heartbeat,
-// database, logging, and error-reporting resources to close after active jobs.
-export const WORKER_JOB_DRAIN_TIMEOUT_MILLISECONDS = 3_000;
+// Surface slow shutdown early while keeping shared resources available until
+// active jobs settle.
+export const WORKER_JOB_DRAIN_WARNING_MILLISECONDS = 3_000;
+
+export async function waitForWorkerJobsToDrain(
+  drain: () => Promise<void>,
+  warningAfterMilliseconds: number,
+  warn: () => void,
+): Promise<void> {
+  const warning = setTimeout(warn, warningAfterMilliseconds);
+  try {
+    await drain();
+  } finally {
+    clearTimeout(warning);
+  }
+}
 
 // One hour. The sweep runs every 5 minutes and only needs to catch activity
 // since the previous successful run; queue-backed write paths cover immediate

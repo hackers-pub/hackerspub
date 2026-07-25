@@ -102,9 +102,11 @@ test("scheduler stops future ticks and drains the active job", async () => {
   assert.equal(schedulerStopped, true);
 });
 
-test("scheduler bounds draining an active job during shutdown", async () => {
+test("scheduler warns but keeps waiting for an active job", async () => {
   const controller = new AbortController();
   let run: (() => Promise<void>) | undefined;
+  const completion = Promise.withResolvers<void>();
+  const warningSeen = Promise.withResolvers<void>();
   const warnings: Array<Record<string, unknown>> = [];
   const cronFactory: NodeCronFactory = (_job, callback) => {
     run = callback;
@@ -114,16 +116,17 @@ test("scheduler bounds draining an active job during shutdown", async () => {
     [
       {
         ...job,
-        run: () => new Promise(() => undefined),
+        run: () => completion.promise,
       },
     ],
     {
       signal: controller.signal,
       cronFactory,
-      drainTimeoutMilliseconds: 1,
+      drainWarningMilliseconds: 1,
       logger: {
         warning(_message, properties) {
           warnings.push(properties);
+          warningSeen.resolve();
         },
       },
     },
@@ -133,9 +136,19 @@ test("scheduler bounds draining an active job during shutdown", async () => {
 
   controller.abort();
 
-  await running;
+  await warningSeen.promise;
+  let schedulerStopped = false;
+  const observed = running.then(() => {
+    schedulerStopped = true;
+  });
+  await Promise.resolve();
+  assert.equal(schedulerStopped, false);
   assert.equal(warnings.length, 1);
-  assert.match(String(warnings[0].error), /Timed out while draining/);
+  assert.equal(warnings[0].warningAfterMilliseconds, 1);
+
+  completion.resolve();
+  await observed;
+  assert.equal(schedulerStopped, true);
 });
 
 test("scheduler stops already-created jobs if registration fails", async () => {
@@ -163,8 +176,10 @@ test("scheduler stops already-created jobs if registration fails", async () => {
   assert.equal(stopped, true);
 });
 
-test("scheduler preserves registration and drain failures", async () => {
+test("scheduler preserves resources until active jobs settle after registration failure", async () => {
   const failure = new Error("invalid schedule");
+  const completion = Promise.withResolvers<void>();
+  const warningSeen = Promise.withResolvers<void>();
   let registration = 0;
   const cronFactory: NodeCronFactory = (_job, run) => {
     registration++;
@@ -173,26 +188,36 @@ test("scheduler preserves registration and drain failures", async () => {
     return { stop() {} };
   };
 
-  await assert.rejects(
-    runNodeWorkerScheduler(
-      [
-        {
-          ...job,
-          run: () => new Promise(() => undefined),
-        },
-        { ...job, name: "second-job" },
-      ],
+  const running = runNodeWorkerScheduler(
+    [
       {
-        signal: new AbortController().signal,
-        cronFactory,
-        drainTimeoutMilliseconds: 1,
+        ...job,
+        run: () => completion.promise,
       },
-    ),
-    (error) => {
-      assert(error instanceof AggregateError);
-      assert.strictEqual(error.errors[0], failure);
-      assert.match(String(error.errors[1]), /Timed out while draining/);
-      return true;
+      { ...job, name: "second-job" },
+    ],
+    {
+      signal: new AbortController().signal,
+      cronFactory,
+      drainWarningMilliseconds: 1,
+      logger: {
+        warning(_message, properties) {
+          if ("warningAfterMilliseconds" in properties) {
+            warningSeen.resolve();
+          }
+        },
+      },
     },
   );
+  await warningSeen.promise;
+  let failureReported = false;
+  const observed = running.catch((error: unknown) => {
+    failureReported = true;
+    throw error;
+  });
+  await Promise.resolve();
+  assert.equal(failureReported, false);
+
+  completion.resolve();
+  await assert.rejects(observed, (error) => error === failure);
 });

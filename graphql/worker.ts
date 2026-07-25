@@ -14,14 +14,14 @@ import {
 import { getLogger } from "@logtape/logtape";
 import metadata from "./deno.json" with { type: "json" };
 import {
-  closeWithDeadline,
   closeSequentially,
   combineRuntimeAndCloseErrors,
 } from "./lifecycle.ts";
 import { services } from "./services.ts";
 import {
   createWorkerJobs,
-  WORKER_JOB_DRAIN_TIMEOUT_MILLISECONDS,
+  waitForWorkerJobsToDrain,
+  WORKER_JOB_DRAIN_WARNING_MILLISECONDS,
   WorkerJobRunner,
 } from "./worker-jobs.ts";
 import {
@@ -117,22 +117,22 @@ try {
   await closeSequentially(
     [
       async () => {
-        try {
-          await closeWithDeadline(
-            async () => {
-              await Promise.all(cronCompletions);
-              await jobRunner.drain();
-            },
-            WORKER_JOB_DRAIN_TIMEOUT_MILLISECONDS,
-            "Timed out while draining Deno scheduled worker jobs.",
-          );
-        } catch (error) {
-          logger.warning(
-            "Deno scheduled worker jobs exceeded the drain deadline; " +
-              "continuing shutdown: {error}",
-            { error },
-          );
-        }
+        await waitForWorkerJobsToDrain(
+          async () => {
+            await Promise.all(cronCompletions);
+            await jobRunner.drain();
+          },
+          WORKER_JOB_DRAIN_WARNING_MILLISECONDS,
+          () => {
+            logger.warning(
+              "Deno scheduled worker jobs exceeded the drain warning " +
+                "threshold; keeping resources open until they settle.",
+              {
+                warningAfterMilliseconds: WORKER_JOB_DRAIN_WARNING_MILLISECONDS,
+              },
+            );
+          },
+        );
       },
       () => heartbeat?.stop(),
       () => resources.close(),
