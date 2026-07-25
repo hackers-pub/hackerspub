@@ -11,9 +11,9 @@ export interface OxlintTestDiagnostic {
   readonly fixedSource: string;
 }
 
-const repositoryRoot = fileURLToPath(new URL("../../", import.meta.url));
+const repositoryRoot = fileURLToPath(new URL("../", import.meta.url));
 const configPath = fileURLToPath(
-  new URL("../../oxlint.config.ts", import.meta.url),
+  new URL("../oxlint.config.ts", import.meta.url),
 );
 const oxlintPath = join(
   repositoryRoot,

@@ -2,14 +2,16 @@ import { defineConfig } from "oxlint";
 
 export default defineConfig({
   jsPlugins: [
-    "./web-next/lint-plugins/keyed-show.ts",
-    "./web-next/lint-plugins/no-load-query-in-router-query.ts",
+    "./lint-plugins/keyed-show.ts",
+    "./lint-plugins/no-deno-globals.ts",
+    "./lint-plugins/no-load-query-in-router-query.ts",
   ],
   categories: {
     correctness: "error",
   },
   plugins: ["import", "typescript", "unicorn"],
   rules: {
+    "hackerspub-runtime/no-deno-globals": "error",
     "hackerspub-solid/show-keyed-on-fn-child": "error",
     "hackerspub-solid-relay/no-load-query-in-router-query": "error",
   },

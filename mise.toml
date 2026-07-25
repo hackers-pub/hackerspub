@@ -76,7 +76,7 @@ test_args=(
   "runtime/**/*.test.ts"
   "scripts/**/*.test.ts"
   "test/**/*.test.ts"
-  "web-next/lint-plugins/**/*.test.ts"
+  "lint-plugins/**/*.test.ts"
   "web-next/src/**/*.test.ts"
 )
 if test -f .env.test; then
