@@ -176,8 +176,7 @@ row for it has an active processing lease.  These constraints prevent a later
 per-object event from overtaking or running concurrently with an older event,
 even when multiple transactions and workers race.
 
-The Node.js worker in *graphql/worker.node.ts* is the deployment candidate;
-*graphql/worker.ts* remains the Deno rollback entry until cutover.  On shutdown,
+The worker lives in *graphql/worker.ts*.  On shutdown,
 the worker stops accepting future scheduled ticks, waits for active scheduled
 jobs, and asks Fedify's queue listener to stop.  The PostgreSQL inbox adapter
 removes a claimed message before its handler finishes, so an interrupted inbox
