@@ -542,7 +542,6 @@ export function removeQuoteInlineFallback(html: string): string {
   // Track ancestor <p> elements of inline quote-inline elements so we can
   // clean them up if they become empty — without touching intentional spacer
   // paragraphs (<p><br></p>) elsewhere in the post.
-  // deno-lint-ignore no-explicit-any
   const touchedParents = new Set<any>();
 
   // For inline elements (span, a), record the closest ancestor <p> and
@@ -552,12 +551,9 @@ export function removeQuoteInlineFallback(html: string): string {
     const $closestP = $(el).closest("p");
     if ($closestP.length > 0) touchedParents.add($closestP.get(0));
 
-    // deno-lint-ignore no-explicit-any
     let prev = (el as any).previousSibling;
     while (prev != null) {
-      // deno-lint-ignore no-explicit-any
       const current = prev as any;
-      // deno-lint-ignore no-explicit-any
       prev = (current as any).previousSibling;
       if (current.type === "text" && !current.data?.trim()) continue;
       if (current.type === "tag" && current.name === "br") {

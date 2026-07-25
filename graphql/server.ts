@@ -137,7 +137,6 @@ export function createYogaServer(): YogaServerInstance<
       //    stripping it from the introspection payload has no runtime effect.
       {
         onExecute: () => ({
-          // deno-lint-ignore no-explicit-any
           onExecuteDone: ({ result, setResult }: any) => {
             // Subscriptions return an AsyncIterableIterator; introspection
             // queries never do, so we can skip the streaming case entirely.

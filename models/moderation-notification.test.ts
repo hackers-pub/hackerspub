@@ -28,7 +28,6 @@ const REASON = "This post contains harassment targeting another user.";
 
 function quietFedCtx(tx: Transaction): ReturnType<typeof createFedCtx> {
   const fedCtx = createFedCtx(tx);
-  // deno-lint-ignore no-explicit-any
   (fedCtx as any).sendActivity = () => Promise.resolve();
   return fedCtx;
 }

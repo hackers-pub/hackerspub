@@ -246,33 +246,17 @@ test("root package manifest declares operational and test imports", async () => 
   );
 });
 
-test("Deno and Node package metadata match", async () => {
+test("core packages declare a version", async () => {
   for (const directory of corePackageDirectories) {
-    const packageRoot = new URL(`${directory}/`, repositoryRoot);
-    const denoConfig = await readJson<
-      Pick<PackageManifest, "version" | "exports">
-    >(new URL("deno.json", packageRoot));
     const manifest = await readJson<PackageManifest>(
-      new URL("package.json", packageRoot),
+      new URL(`${directory}/package.json`, repositoryRoot),
     );
-    assert.deepEqual(
-      manifest.exports,
-      denoConfig.exports,
-      `${manifest.name} exports differ between package.json and deno.json`,
-    );
-    // `package.json` is the authoritative version source: the release build
-    // stamps the git commit into it, and the runtime reads it back through
-    // `import metadata from "./package.json"`.  Nothing executes `deno.json`
-    // any more, so this only keeps the leftover manifests honest until they
-    // are deleted.
+    // The release build stamps the git commit into this field, and the runtime
+    // reads it back through `import metadata from "./package.json"` to report
+    // the software version over NodeInfo, ActivityPub, and Sentry.
     assert.ok(
       typeof manifest.version === "string" && manifest.version.length > 0,
       `${manifest.name} must declare a version in package.json`,
-    );
-    assert.deepEqual(
-      manifest.version,
-      denoConfig.version,
-      `${manifest.name} version differs between package.json and deno.json`,
     );
   }
 });

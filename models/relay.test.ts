@@ -29,7 +29,6 @@ function withCapturingFedCtx(tx: Parameters<typeof createFedCtx>[0]): {
 } {
   const fedCtx = createFedCtx(tx);
   const sent: SentActivity[] = [];
-  // deno-lint-ignore no-explicit-any
   (fedCtx as any).sendActivity = (
     _sender: unknown,
     recipient: unknown,
@@ -293,7 +292,6 @@ test("unsubscribeRelay keeps the row when the Undo fails to send", async () => {
 
     // Mutations run in autocommit, so a failed Undo send must leave the row
     // in place to be retried rather than dropping it.
-    // deno-lint-ignore no-explicit-any
     (fedCtx as any).sendActivity = () =>
       Promise.reject(new Error("queue unavailable"));
     await assert.rejects(() => unsubscribeRelay(fedCtx, loaded));

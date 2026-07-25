@@ -40,19 +40,11 @@ RUN --mount=type=secret,id=github_token,target=/run/secrets/github_token,require
 FROM mise-base AS prod-deps
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml /app/
-COPY deno.json /app/deno.json
-COPY deno.lock /app/deno.lock
-COPY ai/deno.json /app/ai/deno.json
 COPY ai/package.json /app/ai/package.json
-COPY federation/deno.json /app/federation/deno.json
 COPY federation/package.json /app/federation/package.json
-COPY graphql/deno.json /app/graphql/deno.json
 COPY graphql/package.json /app/graphql/package.json
-COPY models/deno.json /app/models/deno.json
 COPY models/package.json /app/models/package.json
-COPY runtime/deno.json /app/runtime/deno.json
 COPY runtime/package.json /app/runtime/package.json
-COPY web-next/deno.jsonc /app/web-next/deno.jsonc
 COPY web-next/package.json /app/web-next/package.json
 # asset-cdn is a pnpm workspace member (the Cloudflare Worker, deployed
 # separately), so its manifest must be present for `--frozen-lockfile` to
@@ -68,19 +60,11 @@ RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
 FROM mise-base AS builder
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml /app/
-COPY deno.json /app/deno.json
-COPY deno.lock /app/deno.lock
-COPY ai/deno.json /app/ai/deno.json
 COPY ai/package.json /app/ai/package.json
-COPY federation/deno.json /app/federation/deno.json
 COPY federation/package.json /app/federation/package.json
-COPY graphql/deno.json /app/graphql/deno.json
 COPY graphql/package.json /app/graphql/package.json
-COPY models/deno.json /app/models/deno.json
 COPY models/package.json /app/models/package.json
-COPY runtime/deno.json /app/runtime/deno.json
 COPY runtime/package.json /app/runtime/package.json
-COPY web-next/deno.jsonc /app/web-next/deno.jsonc
 COPY web-next/package.json /app/web-next/package.json
 # Present so `--frozen-lockfile` can validate the asset-cdn workspace member
 # (the Cloudflare Worker); its dev deps are installed here but the builder

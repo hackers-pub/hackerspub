@@ -167,7 +167,6 @@ test("moderationCases is null for non-moderators and lists for moderators", asyn
       contextValue: makeUserContext(tx, plain.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((denied.data as any)?.moderationCases ?? null, null);
 
     const result = await execute({
@@ -178,7 +177,6 @@ test("moderationCases is null for non-moderators and lists for moderators", asyn
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    // deno-lint-ignore no-explicit-any
     const edges = (result.data as any)?.moderationCases?.edges;
     assert.equal(edges?.length, 1);
     const node = edges[0].node;
@@ -200,7 +198,6 @@ test("moderationCases is null for non-moderators and lists for moderators", asyn
       contextValue: makeUserContext(tx, moderator),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((none.data as any)?.moderationCases?.edges?.length, 0);
 
     const priority = await execute({
@@ -210,7 +207,6 @@ test("moderationCases is null for non-moderators and lists for moderators", asyn
       contextValue: makeUserContext(tx, moderator),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((priority.data as any)?.moderationCases?.edges?.length, 0);
 
     const found = await execute({
@@ -220,7 +216,6 @@ test("moderationCases is null for non-moderators and lists for moderators", asyn
       contextValue: makeUserContext(tx, moderator),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((found.data as any)?.moderationCases?.edges?.length, 1);
 
     const missed = await execute({
@@ -230,7 +225,6 @@ test("moderationCases is null for non-moderators and lists for moderators", asyn
       contextValue: makeUserContext(tx, moderator),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((missed.data as any)?.moderationCases?.edges?.length, 0);
   });
 });
@@ -257,7 +251,6 @@ test("flagCaseByUuid resolves for moderators only", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    // deno-lint-ignore no-explicit-any
     const flagCase = (result.data as any)?.flagCaseByUuid;
     assert.equal(flagCase?.uuid, caseId);
     assert.deepEqual(flagCase?.actions, []);
@@ -270,7 +263,6 @@ test("flagCaseByUuid resolves for moderators only", async () => {
       contextValue: makeUserContext(tx, plain.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((denied.data as any)?.flagCaseByUuid ?? null, null);
   });
 });
@@ -292,7 +284,6 @@ test("assignFlagCase assigns and bumps the status", async () => {
       contextValue: makeUserContext(tx, moderator),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const assigned = (result.data as any)?.assignFlagCase;
     assert.equal(assigned?.__typename, "FlagCase");
     assert.equal(assigned?.status, "REVIEWING");
@@ -312,7 +303,6 @@ test("assignFlagCase assigns and bumps the status", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (denied.data as any)?.assignFlagCase?.__typename,
       "NotAuthorizedError",
     );
@@ -344,7 +334,6 @@ test("takeModerationAction records a warning and emails the user", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    // deno-lint-ignore no-explicit-any
     const action = (result.data as any)?.takeModerationAction;
     assert.equal(action?.__typename, "FlagAction");
     assert.equal(action?.actionType, "WARNING");
@@ -386,7 +375,6 @@ test("dismissals reject violated provisions", async () => {
       contextValue: makeUserContext(tx, moderator),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const data = (result.data as any)?.takeModerationAction;
     assert.equal(data?.__typename, "InvalidInputError");
     assert.equal(data?.inputPath, "violatedProvisions");
@@ -437,12 +425,8 @@ test("a reported moderator cannot access or act on their own case", async () => 
       contextValue: makeUserContext(tx, targetMod),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const edges = (queue.data as any)?.moderationCases?.edges ?? [];
-    assert.ok(
-      // deno-lint-ignore no-explicit-any
-      edges.every((edge: any) => edge.node.uuid !== flag.caseId),
-    );
+    assert.ok(edges.every((edge: any) => edge.node.uuid !== flag.caseId));
 
     // Direct lookups behave as if the case does not exist:
     const byUuid = await execute({
@@ -452,7 +436,6 @@ test("a reported moderator cannot access or act on their own case", async () => 
       contextValue: makeUserContext(tx, targetMod),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((byUuid.data as any)?.flagCaseByUuid ?? null, null);
     const nodeQuery = parse(`
       query CaseNode($id: ID!) {
@@ -466,7 +449,6 @@ test("a reported moderator cannot access or act on their own case", async () => 
       contextValue: makeUserContext(tx, targetMod),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((byNode.data as any)?.node ?? null, null);
 
     // Acting on the own case is rejected like an unknown case:
@@ -482,7 +464,6 @@ test("a reported moderator cannot access or act on their own case", async () => 
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (acted.data as any)?.takeModerationAction?.__typename,
       "InvalidInputError",
     );
@@ -512,7 +493,6 @@ test("a reported moderator cannot access or act on their own case", async () => 
       contextValue: makeUserContext(tx, otherMod),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((otherView.data as any)?.flagCaseByUuid?.uuid, flag.caseId);
   });
 });
@@ -635,7 +615,6 @@ test("takeModerationAction requires a forward summary for forwarded actions", as
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (enabled.data as any)?.flagCaseByUuid?.forwardingEnabled,
       true,
     );
@@ -655,7 +634,6 @@ test("takeModerationAction requires a forward summary for forwarded actions", as
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (missing.data as any)?.takeModerationAction?.inputPath,
       "forwardSummary",
     );
@@ -675,7 +653,6 @@ test("takeModerationAction requires a forward summary for forwarded actions", as
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (withSummary.data as any)?.takeModerationAction?.__typename,
       "FlagAction",
     );
@@ -719,7 +696,6 @@ test("takeModerationAction allows dismissing a forwarded case without a summary"
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (dismissed.data as any)?.takeModerationAction?.__typename,
       "FlagAction",
     );
@@ -754,7 +730,6 @@ test("takeModerationAction validates input and authorization", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (denied.data as any)?.takeModerationAction?.__typename,
       "NotAuthorizedError",
     );
@@ -771,7 +746,6 @@ test("takeModerationAction validates input and authorization", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (noProvisions.data as any)?.takeModerationAction?.inputPath,
       "violatedProvisions",
     );
@@ -790,7 +764,6 @@ test("takeModerationAction validates input and authorization", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (badWindow.data as any)?.takeModerationAction?.inputPath,
       "suspensionEnds",
     );
@@ -811,7 +784,6 @@ test("takeModerationAction validates input and authorization", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (dismissed.data as any)?.takeModerationAction?.__typename,
       "FlagAction",
     );
@@ -831,7 +803,6 @@ test("takeModerationAction validates input and authorization", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (again.data as any)?.takeModerationAction?.inputPath,
       "caseId",
     );

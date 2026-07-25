@@ -118,7 +118,6 @@ test("reportContent rejects guests and invalid input", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (guestResult.data as any)?.reportContent?.__typename,
       "NotAuthenticatedError",
     );
@@ -135,7 +134,6 @@ test("reportContent rejects guests and invalid input", async () => {
       contextValue: makeUserContext(tx, reporter.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const short = (shortResult.data as any)?.reportContent;
     assert.equal(short?.__typename, "InvalidInputError");
     assert.equal(short?.inputPath, "reason");
@@ -148,7 +146,6 @@ test("reportContent rejects guests and invalid input", async () => {
       contextValue: makeUserContext(tx, author.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const self = (selfResult.data as any)?.reportContent;
     assert.equal(self?.__typename, "InvalidInputError");
     assert.equal(self?.inputPath, "targetId");
@@ -178,7 +175,6 @@ test("reportContent files a post report and deduplicates", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    // deno-lint-ignore no-explicit-any
     const flag = (result.data as any)?.reportContent;
     assert.equal(flag?.__typename, "Flag");
     assert.equal(flag?.reason, REASON);
@@ -204,7 +200,6 @@ test("reportContent files a post report and deduplicates", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (dup.data as any)?.reportContent?.__typename,
       "DuplicateReportError",
     );
@@ -264,7 +259,6 @@ test("reportContent files a report on a boost wrapper", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    // deno-lint-ignore no-explicit-any
     const flag = (result.data as any)?.reportContent;
     assert.equal(flag?.__typename, "Flag");
     assert.equal(flag?.targetActor?.handle, booster.actor.handle);
@@ -296,7 +290,6 @@ test("reportContent files a user report with forwarding opt-in", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    // deno-lint-ignore no-explicit-any
     const flag = (result.data as any)?.reportContent;
     assert.equal(flag?.__typename, "Flag");
     assert.equal(flag?.forwardToRemote, true);
@@ -330,7 +323,6 @@ test("Flag nodes are visible to their reporter and moderators only", async () =>
       contextValue: makeUserContext(tx, reporter.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const gid = (created.data as any)?.reportContent?.id;
     assert.ok(gid != null);
 
@@ -342,7 +334,6 @@ test("Flag nodes are visible to their reporter and moderators only", async () =>
       contextValue: makeUserContext(tx, reporter.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((own.data as any)?.node?.__typename, "Flag");
 
     // A moderator can read it too:
@@ -353,7 +344,6 @@ test("Flag nodes are visible to their reporter and moderators only", async () =>
       contextValue: makeUserContext(tx, moderator),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((mod.data as any)?.node?.__typename, "Flag");
 
     // The reported user (or any third party) cannot even confirm it exists:
@@ -364,7 +354,6 @@ test("Flag nodes are visible to their reporter and moderators only", async () =>
       contextValue: makeUserContext(tx, author.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((target.data as any)?.node ?? null, null);
 
     const guest = await execute({
@@ -374,7 +363,6 @@ test("Flag nodes are visible to their reporter and moderators only", async () =>
       contextValue: makeGuestContext(tx),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((guest.data as any)?.node ?? null, null);
   });
 });
@@ -407,7 +395,6 @@ test("Flag.reporter is resolvable by moderators only", async () => {
       contextValue: makeUserContext(tx, reporter.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const gid = (created.data as any)?.reportContent?.id;
 
     // A moderator sees the reporter:
@@ -419,7 +406,6 @@ test("Flag.reporter is resolvable by moderators only", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (mod.data as any)?.node?.reporter?.handle,
       reporter.actor.handle,
     );
@@ -434,7 +420,6 @@ test("Flag.reporter is resolvable by moderators only", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.notEqual(
-      // deno-lint-ignore no-explicit-any
       (own.data as any)?.node?.reporter?.handle ?? null,
       reporter.actor.handle,
     );
@@ -478,7 +463,6 @@ test("Account.reports lists only the account's own reports", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(own.errors, undefined);
-    // deno-lint-ignore no-explicit-any
     const connection = (own.data as any)?.accountByUsername?.reports;
     assert.equal(connection?.totalCount, 1);
     assert.equal(connection?.edges?.length, 1);
@@ -494,7 +478,6 @@ test("Account.reports lists only the account's own reports", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (foreign.data as any)?.accountByUsername?.reports ?? null,
       null,
     );
@@ -547,7 +530,6 @@ test("Account.reports hides reports targeting the viewing moderator", async () =
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(asMod.errors, undefined);
-    // deno-lint-ignore no-explicit-any
     const modView = (asMod.data as any)?.accountByUsername?.reports;
     assert.equal(modView?.totalCount, 1);
     assert.equal(modView?.edges?.length, 1);
@@ -561,7 +543,6 @@ test("Account.reports hides reports targeting the viewing moderator", async () =
       contextValue: makeUserContext(tx, reporter.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const selfView = (asSelf.data as any)?.accountByUsername?.reports;
     assert.equal(selfView?.totalCount, 2);
     assert.equal(selfView?.edges?.length, 2);

@@ -1034,7 +1034,6 @@ export async function fetchAccountLinkMetadata(
     apiUrl.searchParams.set("titles", title);
     const response = await fetch(apiUrl);
     if (!response.ok) return { icon: "wikipedia" };
-    // deno-lint-ignore no-explicit-any
     const result = (await response.json()) as any;
     const pages = Object.values(result.query.pages);
     if (pages.length < 1) return { icon: "wikipedia" };

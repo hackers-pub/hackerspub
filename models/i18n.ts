@@ -1,4 +1,3 @@
-// deno-fmt-ignore
 export const POSSIBLE_LOCALES = [
   "aa",
   "ab",

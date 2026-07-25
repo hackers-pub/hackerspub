@@ -1,6 +1,7 @@
 import { assert, assertEquals, assertStringIncludes } from "@std/assert";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { parse } from "yaml";
 
 const readTextFile = (path: string | URL) => readFile(path, "utf8");
 
@@ -253,7 +254,6 @@ test("container builds omit the removed Fresh application", async () => {
   );
 
   for (const source of [dockerfile, developmentDockerfile]) {
-    assert(!source.includes("web/deno.json"));
     assert(!source.includes("web/fonts"));
     assert(!/mise run build:web(?:\s|$)/.test(source));
     assert(!source.includes("hackerspub-build-kv"));
@@ -263,17 +263,30 @@ test("container builds omit the removed Fresh application", async () => {
   assert(!compose.includes('"8001:8000"'));
 });
 
-test("development image includes the runtime workspace metadata", async () => {
-  const dockerfile = await readTextFile(
+test("container builds carry every workspace manifest", async () => {
+  const production = await readTextFile(
+    new URL("../Dockerfile", import.meta.url),
+  );
+  const development = await readTextFile(
     new URL("../Dockerfile.dev", import.meta.url),
   );
 
-  assertStringIncludes(
-    dockerfile,
-    "COPY runtime/deno.json /app/runtime/deno.json",
-  );
-  assertStringIncludes(
-    dockerfile,
-    "COPY runtime/package.json /app/runtime/package.json",
-  );
+  // `pnpm install --frozen-lockfile` validates the lockfile against every
+  // workspace member, so a missing manifest fails the build rather than
+  // silently installing something else.  Read the members from the workspace
+  // definition: a hard-coded list here would go stale exactly when a new
+  // package is added, which is when this check matters.
+  const workspace = parse(
+    await readTextFile(new URL("../pnpm-workspace.yaml", import.meta.url)),
+  ) as { packages?: unknown };
+  assert(Array.isArray(workspace.packages));
+  assert(workspace.packages.every((member) => typeof member === "string"));
+
+  for (const member of workspace.packages as string[]) {
+    const copy = `COPY ${member}/package.json /app/${member}/package.json`;
+    assertStringIncludes(development, copy);
+    // The production build repeats the copies in both the prod-deps and
+    // builder stages.
+    assertEquals(production.split(copy).length - 1, 2);
+  }
 });

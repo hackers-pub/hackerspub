@@ -43,7 +43,6 @@ const REASON = "This post contains harassment targeting another user.";
 
 function quietFedCtx(tx: Transaction): ReturnType<typeof createFedCtx> {
   const fedCtx = createFedCtx(tx);
-  // deno-lint-ignore no-explicit-any
   (fedCtx as any).sendActivity = () => Promise.resolve();
   return fedCtx;
 }
@@ -219,7 +218,6 @@ test("moderationAppeals lists appeals for moderators only", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (filed.data as any)?.appealModerationAction?.__typename,
       "FlagAppeal",
     );
@@ -232,7 +230,6 @@ test("moderationAppeals lists appeals for moderators only", async () => {
       contextValue: makeUserContext(tx, moderator),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const edges = (asMod.data as any)?.moderationAppeals?.edges;
     assert.equal(edges?.length, 1);
     assert.equal(edges[0].node.reason, "I did nothing wrong.");
@@ -246,11 +243,7 @@ test("moderationAppeals lists appeals for moderators only", async () => {
       contextValue: makeUserContext(tx, reported.account),
       onError: "NO_PROPAGATE",
     });
-    assert.equal(
-      // deno-lint-ignore no-explicit-any
-      (asUser.data as any)?.moderationAppeals,
-      null,
-    );
+    assert.equal((asUser.data as any)?.moderationAppeals, null);
   });
 });
 
@@ -265,7 +258,6 @@ test("Account.sanctions shows the sanitized surface to the target only", async (
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(own.errors, undefined);
-    // deno-lint-ignore no-explicit-any
     const sanctions = (own.data as any)?.accountByUsername?.sanctions;
     assert.equal(sanctions?.length, 1);
     assert.equal(sanctions[0].uuid, action.id);
@@ -300,7 +292,6 @@ test("Account.sanctions shows the sanitized surface to the target only", async (
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (foreign.data as any)?.accountByUsername?.sanctions ?? null,
       null,
     );
@@ -322,7 +313,6 @@ test("appealModerationAction files an appeal for the target only", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    // deno-lint-ignore no-explicit-any
     const appeal = (result.data as any)?.appealModerationAction;
     assert.equal(appeal?.__typename, "FlagAppeal");
     assert.equal(appeal?.status, "PENDING");
@@ -337,7 +327,6 @@ test("appealModerationAction files an appeal for the target only", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (dup.data as any)?.appealModerationAction?.__typename,
       "InvalidInputError",
     );
@@ -359,7 +348,6 @@ test("appealModerationAction files an appeal for the target only", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (foreign.data as any)?.appealModerationAction?.inputPath,
       "sanctionId",
     );
@@ -383,7 +371,6 @@ test("resolveFlagAppeal reviews appeals (moderators only)", async () => {
       contextValue: makeUserContext(tx, reported.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const appealGid = (filed.data as any)?.appealModerationAction?.id;
     assert.ok(appealGid != null);
 
@@ -400,7 +387,6 @@ test("resolveFlagAppeal reviews appeals (moderators only)", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (denied.data as any)?.resolveFlagAppeal?.__typename,
       "NotAuthorizedError",
     );
@@ -418,7 +404,6 @@ test("resolveFlagAppeal reviews appeals (moderators only)", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (missing.data as any)?.resolveFlagAppeal?.inputPath,
       "replacement",
     );
@@ -436,7 +421,6 @@ test("resolveFlagAppeal reviews appeals (moderators only)", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(resolved.errors, undefined);
-    // deno-lint-ignore no-explicit-any
     const appeal = (resolved.data as any)?.resolveFlagAppeal;
     assert.equal(appeal?.__typename, "FlagAppeal");
     assert.equal(appeal?.status, "RESOLVED");
@@ -460,7 +444,6 @@ test("completeLoginChallenge rejects banned accounts", async () => {
       contextValue: makeUserContext(tx, reported.account, { kv: kv.kv }),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const banned = (result.data as any)?.completeLoginChallenge;
     assert.equal(banned?.__typename, "AccountBannedError");
     assert.equal(banned?.id ?? null, null);
@@ -479,7 +462,6 @@ test("completeLoginChallenge rejects banned accounts", async () => {
       contextValue: makeUserContext(tx, fine.account, { kv: kv.kv }),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.ok((ok.data as any)?.completeLoginChallenge?.id != null);
   });
 });
@@ -501,7 +483,6 @@ test("censored posts expose the flag and redact content", async () => {
       contextValue: makeUserContext(tx, guestLike.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const viewerNode = (viewerResult.data as any)?.node;
     assert.ok(viewerNode?.censored != null);
     assert.equal(viewerNode?.content, "");
@@ -521,7 +502,6 @@ test("censored posts expose the flag and redact content", async () => {
       contextValue: makeUserContext(tx, reported.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const authorNode = (authorResult.data as any)?.node;
     assert.ok(authorNode?.censored != null);
     assert.match(authorNode?.content ?? "", /Hello world/);
@@ -583,7 +563,6 @@ test("hidden direct remote posts do not expose their remote URL", async () => {
       contextValue: makeUserContext(tx, viewer.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const viewerNode = (viewerResult.data as any)?.node;
     assert.ok(viewerNode?.censored != null);
     assert.equal(viewerNode?.url, null);
@@ -600,9 +579,7 @@ test("hidden direct remote posts do not expose their remote URL", async () => {
       contextValue: makeUserContext(tx, moderator),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((modResult.data as any)?.node?.url, remoteUrl);
-    // deno-lint-ignore no-explicit-any
     assert.equal((modResult.data as any)?.node?.iri, remotePost.iri);
 
     // A federation-blocked remote author (not individually censored) is
@@ -622,7 +599,6 @@ test("hidden direct remote posts do not expose their remote URL", async () => {
       contextValue: makeUserContext(tx, viewer.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const blockedNode = (blockedResult.data as any)?.node;
     assert.equal(blockedNode?.url, null);
     assert.notEqual(blockedNode?.iri, remotePost.iri);
@@ -646,7 +622,6 @@ test("censored local posts keep their local permalink URL", async () => {
       contextValue: makeUserContext(tx, viewer.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const node = (result.data as any)?.node;
     assert.ok(node?.censored != null);
     // The local permalink renders the censorship notice, so it is kept
@@ -703,7 +678,6 @@ test("hidden remote Questions do not expose their remote IRI", async () => {
       contextValue: makeUserContext(tx, viewer.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const viewerNode = (viewerResult.data as any)?.node;
     assert.ok(viewerNode?.censored != null);
     assert.equal(viewerNode?.url, null);
@@ -718,9 +692,7 @@ test("hidden remote Questions do not expose their remote IRI", async () => {
       contextValue: makeUserContext(tx, moderator),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((modResult.data as any)?.node?.url, remoteUrl);
-    // deno-lint-ignore no-explicit-any
     assert.equal((modResult.data as any)?.node?.iri, remoteIri);
   });
 });
@@ -766,7 +738,6 @@ test("sanction-hidden authors' posts are redacted via node lookups", async () =>
       contextValue: makeUserContext(tx, viewer.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const directNode = (direct.data as any)?.node;
     assert.ok(directNode != null);
     assert.equal(directNode.content, "");
@@ -793,7 +764,6 @@ test("sanction-hidden authors' posts are redacted via node lookups", async () =>
       contextValue: makeUserContext(tx, viewer.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const nestedNode = (nested.data as any)?.node;
     assert.match(nestedNode?.content ?? "", /A visible reply/);
     assert.equal(nestedNode?.replyTarget?.content ?? "", "");
@@ -822,7 +792,6 @@ test("sanction-hidden authors' posts are redacted via node lookups", async () =>
       contextValue: makeUserContext(tx, viewer.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((mediumDenied.data as any)?.node ?? null, null);
 
     // The banned author still sees their own content:
@@ -833,7 +802,6 @@ test("sanction-hidden authors' posts are redacted via node lookups", async () =>
       contextValue: makeUserContext(tx, author.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.match((own.data as any)?.node?.content ?? "", /Hidden by a ban/);
   });
 });
@@ -887,7 +855,6 @@ test("sanction-hidden authors' article contents are redacted", async () => {
       contextValue: makeUserContext(tx, viewer.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const deniedNode = (denied.data as any)?.node;
     assert.deepEqual(deniedNode?.contents, []);
     assert.equal(deniedNode?.name, null);
@@ -902,7 +869,6 @@ test("sanction-hidden authors' article contents are redacted", async () => {
       contextValue: makeUserContext(tx, author.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const ownNode = (own.data as any)?.node;
     assert.equal(ownNode?.contents?.length, 1);
     assert.match(
@@ -966,7 +932,6 @@ test("share wrappers of censored posts are redacted too", async () => {
       contextValue: makeUserContext(tx, viewer.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const viewerNode = (viewerResult.data as any)?.node;
     assert.ok(viewerNode != null);
     assert.equal(viewerNode.name, null);
@@ -983,7 +948,6 @@ test("share wrappers of censored posts are redacted too", async () => {
       contextValue: makeUserContext(tx, reported.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const authorNode = (authorResult.data as any)?.node;
     assert.match(authorNode?.content ?? "", /Hello world/);
   });
@@ -1029,7 +993,6 @@ test("moderators file appeals on behalf of banned users", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (denied.data as any)?.appealModerationAction?.__typename,
       "NotAuthorizedError",
     );
@@ -1045,7 +1008,6 @@ test("moderators file appeals on behalf of banned users", async () => {
       contextValue: makeUserContext(tx, moderator),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const appeal = (filed.data as any)?.appealModerationAction;
     assert.equal(appeal?.__typename, "FlagAppeal");
     assert.equal(appeal?.status, "PENDING");
@@ -1139,7 +1101,6 @@ test("censored articles redact their content versions", async () => {
       contextValue: makeUserContext(tx, viewer.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const viewerNode = (viewerResult.data as any)?.node;
     assert.ok(viewerNode?.censored != null);
     assert.deepEqual(viewerNode?.contents, []);
@@ -1159,7 +1120,6 @@ test("censored articles redact their content versions", async () => {
       contextValue: makeUserContext(tx, reported.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const authorNode = (authorResult.data as any)?.node;
     assert.equal(authorNode?.contents?.length, 1);
     assert.equal(
@@ -1245,7 +1205,6 @@ test("censored questions hide their polls, even via node lookups", async () => {
       contextValue: makeUserContext(tx, viewer.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((viewerNodeResult.data as any)?.node ?? null, null);
     assert.ok(!JSON.stringify(viewerNodeResult.data).includes("Secret option"));
     // The Question.poll path: redacted for the viewer, intact for the
@@ -1267,7 +1226,6 @@ test("censored questions hide their polls, even via node lookups", async () => {
       contextValue: makeUserContext(tx, viewer.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((viewerResult.data as any)?.node?.poll ?? null, null);
     assert.ok(!JSON.stringify(viewerResult.data).includes("Secret option"));
     const authorResult = await execute({
@@ -1277,11 +1235,7 @@ test("censored questions hide their polls, even via node lookups", async () => {
       contextValue: makeUserContext(tx, reported.account),
       onError: "NO_PROPAGATE",
     });
-    assert.equal(
-      // deno-lint-ignore no-explicit-any
-      (authorResult.data as any)?.node?.poll?.options?.length,
-      2,
-    );
+    assert.equal((authorResult.data as any)?.node?.poll?.options?.length, 2);
   });
 });
 
@@ -1315,7 +1269,6 @@ test("a still-banned appellant gets the appeal outcome by email", async () => {
       contextValue: makeUserContext(tx, moderator),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const appealUuid = (filed.data as any)?.appealModerationAction?.uuid;
     assert.ok(appealUuid != null);
 
@@ -1339,7 +1292,6 @@ test("a still-banned appellant gets the appeal outcome by email", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (resolved.data as any)?.resolveFlagAppeal?.__typename,
       "FlagAppeal",
     );
@@ -1385,7 +1337,6 @@ test("a successful ban appeal still emails the lifted outcome", async () => {
       contextValue: makeUserContext(tx, moderator),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const appealUuid = (filed.data as any)?.appealModerationAction?.uuid;
     assert.ok(appealUuid != null);
 
@@ -1410,7 +1361,6 @@ test("a successful ban appeal still emails the lifted outcome", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (resolved.data as any)?.resolveFlagAppeal?.__typename,
       "FlagAppeal",
     );
@@ -1464,7 +1414,6 @@ test("PostLink nodes of censored posts are not resolvable", async () => {
       contextValue: makeUserContext(tx, viewer.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((denied.data as any)?.node ?? null, null);
 
     // The censored post's author keeps access:
@@ -1476,7 +1425,6 @@ test("PostLink nodes of censored posts are not resolvable", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (asAuthor.data as any)?.node?.url,
       "https://example.com/secret-page",
     );
@@ -1504,7 +1452,6 @@ test("PostLink nodes of censored posts are not resolvable", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (allowed.data as any)?.node?.url,
       "https://example.com/secret-page",
     );
@@ -1555,7 +1502,6 @@ test("PostLink nodes of sanction-hidden actors' posts are not resolvable", async
       contextValue: makeUserContext(tx, viewer.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((denied.data as any)?.node ?? null, null);
     // The banned author keeps access to their own post's link:
     const asAuthor = await execute({
@@ -1566,7 +1512,6 @@ test("PostLink nodes of sanction-hidden actors' posts are not resolvable", async
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (asAuthor.data as any)?.node?.url,
       "https://example.com/hidden-page",
     );
@@ -1592,7 +1537,6 @@ test("PostLink nodes of sanction-hidden actors' posts are not resolvable", async
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (allowed.data as any)?.node?.url,
       "https://example.com/hidden-page",
     );
@@ -1667,7 +1611,6 @@ test("a moderator-appellant cannot see their appeal's moderator-only fields", as
       contextValue: makeUserContext(tx, targetMod),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const appellantNode = (asAppellant.data as any)?.node;
     assert.ok(appellantNode != null);
     assert.equal(appellantNode.reviewRationale, "The warning stands.");
@@ -1680,11 +1623,7 @@ test("a moderator-appellant cannot see their appeal's moderator-only fields", as
       contextValue: makeUserContext(tx, actingMod),
       onError: "NO_PROPAGATE",
     });
-    assert.equal(
-      // deno-lint-ignore no-explicit-any
-      (asMod.data as any)?.node?.reviewer?.username,
-      "actingmod",
-    );
+    assert.equal((asMod.data as any)?.node?.reviewer?.username, "actingmod");
 
     // The moderation queue excludes the moderator-appellant's own appeal
     // (its moderator-only fields would error there), while another
@@ -1697,9 +1636,7 @@ test("a moderator-appellant cannot see their appeal's moderator-only fields", as
       onError: "NO_PROPAGATE",
     });
     assert.ok(
-      // deno-lint-ignore no-explicit-any
       ((ownQueue.data as any)?.moderationAppeals?.edges ?? []).every(
-        // deno-lint-ignore no-explicit-any
         (edge: any) => edge.node.uuid !== appeal.id,
       ),
     );
@@ -1711,9 +1648,7 @@ test("a moderator-appellant cannot see their appeal's moderator-only fields", as
       onError: "NO_PROPAGATE",
     });
     assert.ok(
-      // deno-lint-ignore no-explicit-any
       ((otherQueue.data as any)?.moderationAppeals?.edges ?? []).some(
-        // deno-lint-ignore no-explicit-any
         (edge: any) => edge.node.uuid === appeal.id,
       ),
     );
@@ -1744,7 +1679,6 @@ test("censored posts cannot be boosted", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    // deno-lint-ignore no-explicit-any
     const data = (result.data as any)?.sharePost;
     assert.equal(data?.__typename, "InvalidInputError");
     assert.equal(data?.inputPath, "postId");
@@ -1854,7 +1788,6 @@ test("share wrappers of censored questions are redacted too", async () => {
       contextValue: makeUserContext(tx, viewer.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const viewerNode = (viewerResult.data as any)?.node;
     assert.ok(viewerNode != null);
     assert.equal(viewerNode.content, "");
@@ -1872,7 +1805,6 @@ test("share wrappers of censored questions are redacted too", async () => {
       contextValue: makeUserContext(tx, reported.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const authorNode = (authorResult.data as any)?.node;
     assert.match(authorNode?.content ?? "", /offensive/);
   });
@@ -1898,7 +1830,6 @@ test("suspended actors are flagged on the Actor type", async () => {
       contextValue: makeUserContext(tx, viewer.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((result.data as any)?.actorByHandle?.suspended, true);
     // Lift the suspension; the flag turns off lazily:
     await tx
@@ -1912,7 +1843,6 @@ test("suspended actors are flagged on the Actor type", async () => {
       contextValue: makeUserContext(tx, viewer.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((lifted.data as any)?.actorByHandle?.suspended, false);
   });
 });
