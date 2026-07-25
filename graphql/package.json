@@ -15,7 +15,6 @@
     "@hackerspub/federation": "workspace:*",
     "@hackerspub/models": "workspace:*",
     "@hackerspub/runtime": "workspace:*",
-    "@hongminhee/x-forwarded-fetch": "catalog:",
     "@logtape/file": "catalog:",
     "@logtape/logtape": "catalog:",
     "@logtape/redaction": "catalog:",
@@ -54,6 +53,7 @@
     "sharp": "catalog:",
     "srvx": "catalog:",
     "url-template": "catalog:",
+    "x-forwarded-fetch": "catalog:",
     "xss": "catalog:"
   }
 }

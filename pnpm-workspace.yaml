@@ -27,7 +27,6 @@ catalog:
   '@fedify/vocab': 2.3.2
   '@fedify/vocab-runtime': 2.3.2
   '@hackerspub/markdown-it-texmath': ^1.0.1
-  '@hongminhee/x-forwarded-fetch': jsr:^0.2.0
   '@keyv/redis': ^4.6.0
   '@logtape/drizzle-orm': 2.2.4
   '@logtape/file': 2.2.4
@@ -51,8 +50,8 @@ catalog:
   '@sentry/node-sdk': npm:@sentry/node@10.51.0
   '@shikijs/markdown-it': ^3.8.1
   '@shikijs/transformers': ^3.8.1
-  '@simplewebauthn/browser': jsr:^13.1.0
-  '@simplewebauthn/server': jsr:^13.1.1
+  '@simplewebauthn/browser': ^13.1.0
+  '@simplewebauthn/server': ^13.1.1
   '@std/assert': jsr:^1.0.12
   '@std/encoding': jsr:^1.0.8
   '@std/html': jsr:^1.0.3
@@ -65,8 +64,8 @@ catalog:
   '@upyo/mailgun': ^0.5.0
   '@upyo/mock': ^0.5.0
   '@vertana/context-web': ^0.2.0
-  '@vertana/core': jsr:^0.2.0
-  '@vertana/facade': jsr:^0.2.0
+  '@vertana/core': ^0.2.0
+  '@vertana/facade': ^0.2.0
   ai: ^6.0.86
   apns2: ^12.2.0
   arcsecond: ^5.0.0
@@ -114,6 +113,7 @@ catalog:
   typescript: 5.9.3
   url-template: ^3.1.1
   web-push: ^3.6.7
+  x-forwarded-fetch: ^0.2.0
   xss: ^1.0.15
   yaml: ^2.9.0
 
