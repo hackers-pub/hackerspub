@@ -22,8 +22,6 @@
     "graphql/instrument.ts",
     "graphql/logging.ts",
     "graphql/main.ts",
-    "graphql/smoke-standalone.ts",
-    "graphql/worker.ts",
-    "scripts/smoke-standalone.ts"
+    "graphql/worker.ts"
   ]
 }

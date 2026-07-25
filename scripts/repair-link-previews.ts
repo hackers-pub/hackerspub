@@ -1,11 +1,11 @@
 import { repairBrokenLinkPreviews } from "@hackerspub/models/link-preview";
 import {
-  getDenoEnvironment,
+  getProcessEnvironment,
   loadDatabaseConfig,
 } from "@hackerspub/runtime/config";
 import { createDatabaseResources } from "@hackerspub/runtime/resources";
 
-const database = loadDatabaseConfig(getDenoEnvironment());
+const database = loadDatabaseConfig(getProcessEnvironment());
 const { db, postgres } = createDatabaseResources(database);
 
 try {

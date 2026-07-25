@@ -191,7 +191,7 @@ test("standalone smoke owns a shared Redis configuration", async () => {
     new URL("../scripts/smoke-standalone.ts", import.meta.url),
   );
 
-  assertStringIncludes(smoke, 'Deno.env.get("STANDALONE_SMOKE_KV_URL")');
+  assertStringIncludes(smoke, "process.env.STANDALONE_SMOKE_KV_URL");
   assertStringIncludes(smoke, '"redis://127.0.0.1:6379/0"');
   assertStringIncludes(smoke, "{ KV_URL: standaloneKvUrl }");
   assertStringIncludes(smoke, '"./instrument.node.ts"');
@@ -199,7 +199,20 @@ test("standalone smoke owns a shared Redis configuration", async () => {
   assertStringIncludes(smoke, '"worker.node.ts"');
   assert(!smoke.includes('"worker.ts"'));
   assertStringIncludes(smoke, "/.well-known/nodeinfo");
-  assert(!smoke.includes('new Deno.Command("mise"'));
+  assert(!smoke.includes('spawn("mise"'));
+  // `spawn` replaces the child environment, unlike `Deno.Command`, so the
+  // ambient configuration has to be forwarded explicitly or every service
+  // starts without a database.
+  assertStringIncludes(smoke, "env: { ...process.env, ...environment }");
+});
+
+test("role health checks run on Node.js", async () => {
+  const tasks = await readTextFile(new URL("../mise.toml", import.meta.url));
+
+  for (const role of ["graphql", "graphql-worker", "web-next"]) {
+    assertStringIncludes(tasks, `run = "node scripts/healthcheck.ts ${role}"`);
+  }
+  assert(!tasks.includes('shell = "deno eval"'));
 });
 
 test("web-next proxies canonical filesystem upload URLs", async () => {

@@ -186,45 +186,23 @@ dir = "web-next"
 
 [tasks."prod:hc:graphql"]
 description = "Health check the GraphQL server with a __typename query"
-run = '''
-const response = await fetch("http://127.0.0.1:8080/graphql", {
-  method: "POST",
-  headers: { "content-type": "application/json" },
-  body: JSON.stringify({ query: "{__typename}" }),
-});
-if (!response.ok) Deno.exit(1);
-const result = await response.json();
-if (result.errors || result.data?.__typename !== "Query") Deno.exit(1);
-'''
-shell = "deno eval"
+run = "node scripts/healthcheck.ts graphql"
 
 [tasks."prod:hc:graphql-worker"]
 description = "Health check the GraphQL worker heartbeat"
-run = '''
-import {
-  checkWorkerHeartbeat,
-  resolveWorkerHealthFile,
-} from "./graphql/worker-health.ts";
-const path = resolveWorkerHealthFile(Deno.env.get("WORKER_HEALTH_FILE"));
-if (!await checkWorkerHeartbeat(path)) Deno.exit(1);
-'''
-shell = "deno eval"
+run = "node scripts/healthcheck.ts graphql-worker"
 
 [tasks."prod:hc:web-next"]
 description = "Health check the web-next stack"
-run = '''
-const response = await fetch("http://127.0.0.1:3000/search");
-if (!response.ok) Deno.exit(1);
-'''
-shell = "deno eval"
+run = "node scripts/healthcheck.ts web-next"
 
 [tasks."smoke:standalone"]
 description = "Smoke test the standalone GraphQL, worker, and web-next topology"
-run = "deno run --allow-all scripts/smoke-standalone.ts"
+run = "node scripts/smoke-standalone.ts"
 
 [tasks.migrate]
 description = "Run database migrations"
-run = "deno run -A drizzle-kit migrate"
+run = "pnpm exec drizzle-kit migrate"
 
 [tasks."migrate:media"]
 description = "Copy legacy filesystem uploads into the configured application directory"
@@ -232,19 +210,19 @@ run = "node scripts/migrate-media.ts"
 
 [tasks."migrate:generate"]
 description = "Generate a new database migration"
-run = "deno run -A drizzle-kit generate"
+run = "pnpm exec drizzle-kit generate"
 
 [tasks."migrate:test"]
 description = "Run database migrations against the test database"
-run = "godotenv -f .env.test -o deno run -A drizzle-kit migrate"
+run = "godotenv -f .env.test -o pnpm exec drizzle-kit migrate"
 
 [tasks.keygen]
 description = "Generate an instance actor key pair (prints a JWK to stdout)"
-run = "deno run --allow-read --allow-env scripts/keygen.ts"
+run = "node scripts/keygen.ts"
 
 [tasks."generate-vapid-keys"]
 description = "Generate Web Push VAPID keys for WEB_PUSH_VAPID_*_KEY"
-run = "deno run --allow-env --allow-read scripts/generate-vapid-keys.ts"
+run = "node scripts/generate-vapid-keys.ts"
 
 [tasks.addaccount]
 description = "Create a user account from the command line"
@@ -252,4 +230,4 @@ run = "node --import temporal-polyfill/global scripts/addaccount.ts"
 
 [tasks."repair:link-previews"]
 description = "Repair posts grouped under malformed link-preview URLs"
-run = "deno run --allow-all --env-file=.env scripts/repair-link-previews.ts"
+run = "node --import temporal-polyfill/global scripts/repair-link-previews.ts"
