@@ -1,5 +1,9 @@
-import { invert } from "@std/collections/invert";
-import { escape, unescape } from "@std/html/entities";
+import { invert } from "es-toolkit";
+// `escape` is identical in both libraries, but only `@std/html` decodes
+// `&nbsp;`, `&apos;`, and numeric character references, which remote HTML
+// is full of -- so `unescape` has to stay where it is.
+import { unescape } from "@std/html/entities";
+import { escape } from "es-toolkit";
 import { load } from "cheerio";
 import * as cssfilter from "cssfilter";
 import xss from "xss";

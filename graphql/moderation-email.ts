@@ -1,6 +1,6 @@
 import { negotiateLocale } from "@hackerspub/models/i18n";
 import type { FlagAction, FlagAppeal } from "@hackerspub/models/schema";
-import { join } from "@std/path";
+import { join } from "node:path";
 import { createMessage, type Message } from "@upyo/core";
 import { readdir, readFile } from "node:fs/promises";
 

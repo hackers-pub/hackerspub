@@ -10,7 +10,7 @@ import {
 import * as vocab from "@fedify/vocab";
 import type { Database, RelationsFilter } from "@hackerspub/models/db";
 import { getLogger } from "@logtape/logtape";
-import { delay } from "@std/async";
+import { delay } from "es-toolkit";
 import {
   aliasedTable,
   and,

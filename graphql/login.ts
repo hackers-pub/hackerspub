@@ -21,9 +21,9 @@ import {
 import type { Uuid } from "@hackerspub/models/uuid";
 import { getLogger } from "@logtape/logtape";
 import type { AuthenticationResponseJSON } from "@simplewebauthn/server";
-import { escape } from "@std/html/entities";
+import { escape } from "es-toolkit";
 import { readdir, readFile } from "node:fs/promises";
-import { join } from "@std/path";
+import { join } from "node:path";
 import { createMessage, type Message } from "@upyo/core";
 import { sql } from "drizzle-orm";
 import { createGraphQLError } from "graphql-yoga";

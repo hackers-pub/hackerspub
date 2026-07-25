@@ -1,4 +1,4 @@
-import { minBy } from "@std/collections/min-by";
+import { minBy } from "es-toolkit";
 import type { StorageService } from "./context.ts";
 import type { Database } from "./db.ts";
 import type { ArticleContent, ArticleSource } from "./schema.ts";

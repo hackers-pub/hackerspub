@@ -1,7 +1,7 @@
 import { getLogger } from "@logtape/logtape";
 import { negotiateLocale } from "@hackerspub/models/i18n";
-import { escape } from "@std/html/entities";
-import { join } from "@std/path";
+import { escape } from "es-toolkit";
+import { join } from "node:path";
 import { createMessage, type Message, type Transport } from "@upyo/core";
 import { count, desc, sql } from "drizzle-orm";
 import { readdir, readFile } from "node:fs/promises";
