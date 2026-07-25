@@ -262,8 +262,9 @@ test("Deno and Node package metadata match", async () => {
     );
     // `package.json` is the authoritative version source: the release build
     // stamps the git commit into it, and the runtime reads it back through
-    // `import metadata from "./package.json"`.  Keep `deno.json` in step for
-    // as long as the Deno rollback path still exists.
+    // `import metadata from "./package.json"`.  Nothing executes `deno.json`
+    // any more, so this only keeps the leftover manifests honest until they
+    // are deleted.
     assert.ok(
       typeof manifest.version === "string" && manifest.version.length > 0,
       `${manifest.name} must declare a version in package.json`,

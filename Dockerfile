@@ -1,6 +1,6 @@
 # --- Base stage (mise + tools) -----------------------------------------------
 # This stage is the slow, rarely-changing foundation: system packages, mise
-# itself, and all pinned tool versions (Deno, Node, pnpm). Both the builder
+# itself, and all pinned tool versions (Node, pnpm). Both the builder
 # and prod-deps stages inherit from here so they share an identical toolchain
 # without duplicating the installation work.
 FROM docker.io/debian:13-slim AS mise-base
@@ -64,11 +64,6 @@ COPY patches /app/patches
 RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
   pnpm install --frozen-lockfile --prod
 
-# Re-populate /app/node_modules entries that Deno needs but pnpm doesn't
-# track. Without this the first `mise run prod:graphql` at deploy time spends
-# minutes rebuilding the directory; with it the server starts in seconds.
-RUN mise deps install deno --force
-
 # --- Builder stage -----------------------------------------------------------
 FROM mise-base AS builder
 
@@ -95,7 +90,6 @@ COPY patches /app/patches
 
 RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
   mise deps install pnpm --force
-RUN mise deps install deno --force
 
 COPY . /app
 
@@ -159,10 +153,6 @@ COPY --from=mise-base /mise /mise
 # builder's state into the runtime image so auto deps do not reinstall on first
 # `mise run prod:*`.
 COPY --from=builder /mise/state /mise/state
-
-# Deno keeps its module cache at $HOME/.cache/deno; ship it so the runtime
-# doesn't need network access to resolve imports.
-COPY --from=prod-deps /root/.cache/deno /root/.cache/deno
 
 WORKDIR /app
 # Source + build artifacts from builder (node_modules were stripped above).

@@ -2,7 +2,6 @@
 experimental = true
 
 [tools]
-deno = "2.7.4"
 node = "24"
 pnpm = "10.12.4"
 "aqua:nushell/nushell" = "0.99.1"
@@ -30,19 +29,8 @@ postinstall = [
 [deps.pnpm]
 auto = true
 
-[deps.deno]
-auto = true
-
 [tasks.codegen]
 description = "Generate all checked-in artifacts"
-run = ["mise run codegen:deno", "mise run codegen:node"]
-
-[tasks."codegen:deno"]
-description = "Generate the GraphQL schema with Deno"
-run = "deno task -r codegen"
-
-[tasks."codegen:node"]
-description = "Generate checked-in artifacts with Node.js"
 run = [
   "node --import temporal-polyfill/global graphql/generate-schema.ts",
   "pnpm --filter @hackerspub/web-next codegen",
@@ -67,10 +55,6 @@ dir = "web-next"
 
 [tasks.check]
 description = "Run formatting, linting, type checking, and generated artifact checks"
-run = ["mise run check:node", "mise run check:deno"]
-
-[tasks."check:node"]
-description = "Run Node.js formatting, linting, type checking, and generated artifact checks"
 depends = ["deps:check", "next:codegen"]
 run = [
   "pnpm exec oxfmt --check .",
@@ -81,20 +65,12 @@ run = [
   "pnpm exec tsc -p asset-cdn/tsconfig.json",
 ]
 
-[tasks."check:deno"]
-description = "Run transitional Deno linting and type checking"
-run = ["deno lint", "deno check ."]
-
 [tasks.fmt]
 description = "Format source and Markdown files"
 run = ["pnpm exec oxfmt .", "hongdown --write"]
 
 [tasks.test]
-description = "Run the Node.js and Deno test suites"
-run = ["mise run test:node", "mise run test:deno"]
-
-[tasks."test:node"]
-description = "Run the Node.js test suite"
+description = "Run the test suite"
 shell = "bash -c"
 run = '''
 test_args=(
@@ -118,35 +94,14 @@ else
 fi
 '''
 
-[tasks."test:deno"]
-description = "Run the transitional Deno test suite"
-run = '''
-if (".env.test" | path exists) {
-  godotenv -f .env.test -o deno test --allow-all --parallel
-} else {
-  deno test --allow-all --parallel
-}
-'''
-shell = "nu -c"
-
 [tasks."dev:graphql"]
 description = "Run the GraphQL server in development mode"
-run = "deno task dev"
-dir = "graphql"
-
-[tasks."dev:graphql:node"]
-description = "Run the candidate Node.js GraphQL server in development mode"
-run = "node --watch --enable-source-maps --import temporal-polyfill/global --import ./instrument.node.ts main.node.ts --allow-file-kv"
+run = "node --watch --enable-source-maps --import temporal-polyfill/global --import ./instrument.ts main.ts --allow-file-kv"
 dir = "graphql"
 
 [tasks."dev:graphql-worker"]
-description = "Run the Deno rollback GraphQL federation queue worker in development mode"
-run = "deno task dev:worker"
-dir = "graphql"
-
-[tasks."dev:graphql-worker:node"]
-description = "Run the candidate Node.js GraphQL federation queue worker in development mode"
-run = "node --watch --enable-source-maps --import temporal-polyfill/global --import ./instrument.node.ts worker.node.ts"
+description = "Run the GraphQL federation queue worker in development mode"
+run = "node --watch --enable-source-maps --import temporal-polyfill/global --import ./instrument.ts worker.ts"
 dir = "graphql"
 
 [tasks."dev:web-next"]
@@ -161,22 +116,12 @@ dir = "web-next"
 
 [tasks."prod:graphql"]
 description = "Start the GraphQL server in production"
-run = "deno task start"
-dir = "graphql"
-
-[tasks."prod:graphql:node"]
-description = "Start the candidate Node.js GraphQL server in production"
-run = "node --enable-source-maps --import temporal-polyfill/global --import ./instrument.node.ts main.node.ts"
+run = "node --enable-source-maps --import temporal-polyfill/global --import ./instrument.ts main.ts"
 dir = "graphql"
 
 [tasks."prod:graphql-worker"]
-description = "Start the Deno rollback GraphQL federation queue worker (no HTTP; do not put behind a load balancer)"
-run = "deno task worker"
-dir = "graphql"
-
-[tasks."prod:graphql-worker:node"]
-description = "Start the candidate Node.js GraphQL federation queue worker (no HTTP; do not put behind a load balancer)"
-run = "node --enable-source-maps --import temporal-polyfill/global --import ./instrument.node.ts worker.node.ts"
+description = "Start the GraphQL federation queue worker (no HTTP; do not put behind a load balancer)"
+run = "node --enable-source-maps --import temporal-polyfill/global --import ./instrument.ts worker.ts"
 dir = "graphql"
 
 [tasks."prod:web-next"]

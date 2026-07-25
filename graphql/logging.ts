@@ -1,8 +1,10 @@
-import * as Sentry from "@sentry/deno";
+import * as Sentry from "@sentry/node-sdk";
+import process from "node:process";
 import { configureLogging } from "./logging-config.ts";
+import { createNonClosingWebWritable } from "./non-closing-writable.ts";
 
 await configureLogging({
-  environment: Deno.env.toObject(),
-  stderr: Deno.stderr.writable,
+  environment: { ...process.env },
+  stderr: createNonClosingWebWritable(process.stderr),
   sentry: Sentry,
 });

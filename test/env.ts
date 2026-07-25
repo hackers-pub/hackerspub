@@ -62,8 +62,8 @@ export async function withTagsPubRelayEnabled(
 }
 
 async function acquireEnvLock(): Promise<() => Promise<void>> {
-  // `deno test --parallel` can run test files in separate workers that still
-  // share process environment state, so in-memory locking is not sufficient.
+  // `node --test` can run test files in separate processes that still share
+  // process environment state, so in-memory locking is not sufficient.
   const started = Date.now();
   while (true) {
     try {

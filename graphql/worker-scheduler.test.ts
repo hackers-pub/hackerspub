@@ -5,7 +5,7 @@ import {
   createNodeCron,
   type NodeCronFactory,
   runNodeWorkerScheduler,
-} from "./worker-scheduler.node.ts";
+} from "./worker-scheduler.ts";
 import type { WorkerJob } from "./worker-jobs.ts";
 
 const job: WorkerJob = {

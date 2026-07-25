@@ -90,9 +90,9 @@ export function createYogaServer(): YogaServerInstance<
       }
 
       // Tag the per-request Sentry isolation scope with the signed-in user.
-      // Both the Deno and preloaded Node HTTP integrations create a request
-      // isolation scope. Explicitly clearing guests is still important: it
-      // prevents stale identity if a custom adapter ever reuses a scope.
+      // The preloaded Node HTTP integration creates a request isolation
+      // scope. Explicitly clearing guests is still important: it prevents
+      // stale identity if a custom adapter ever reuses a scope.
       if (sentryEnabled) {
         const verifiedEmail = account?.emails.find(
           (e) => e.verified != null,

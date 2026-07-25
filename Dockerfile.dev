@@ -46,7 +46,6 @@ COPY patches /app/patches
 
 RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
   mise deps install pnpm --force
-RUN mise deps install deno --force
 
 COPY . /app
 

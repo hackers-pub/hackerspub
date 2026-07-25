@@ -54,7 +54,7 @@ export async function readResponseBytesAtMost(
       break;
     }
   } finally {
-    // Cancel the unread remainder so Deno closes the underlying HTTP body
+    // Cancel the unread remainder so the runtime closes the underlying body
     // resource here, with the cancellation awaited (and any rejection
     // swallowed).  Without this, a partially-read body is abandoned with its
     // reader still locked; when the peer tears the keep-alive connection down

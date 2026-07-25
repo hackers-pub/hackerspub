@@ -31,7 +31,6 @@
     "@pothos/plugin-tracing": "catalog:",
     "@pothos/plugin-with-input": "catalog:",
     "@resvg/resvg-js": "catalog:",
-    "@sentry/deno": "catalog:",
     "@sentry/node": "catalog:",
     "@sentry/node-sdk": "catalog:",
     "@simplewebauthn/server": "catalog:",

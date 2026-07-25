@@ -11,7 +11,6 @@
       "configureZshAsDefaultShell": "true",
       "installOhMyZsh": "true",
       "upgradePackages": "true"
-      // common-utils should set up /home/deno and make it writable by the deno user
     },
     "ghcr.io/devcontainers/features/git": {},
     "ghcr.io/devcontainers/features/docker-in-docker:2": {},
@@ -27,18 +26,17 @@
   "customizations": {
     "vscode": {
       "settings": {
-        "deno.enable": true,
-        "deno.lint": true,
-        "deno.unstable": true,
-        "editor.defaultFormatter": "denoland.vscode-deno",
+        "oxc.enable": true,
+        "oxc.fmt.enable": true,
+        "editor.defaultFormatter": "oxc.oxc-vscode",
         "[typescript]": {
-          "editor.defaultFormatter": "denoland.vscode-deno"
+          "editor.defaultFormatter": "oxc.oxc-vscode"
         },
         "[typescriptreact]": {
-          "editor.defaultFormatter": "denoland.vscode-deno"
+          "editor.defaultFormatter": "oxc.oxc-vscode"
         },
         "[javascript]": {
-          "editor.defaultFormatter": "denoland.vscode-deno"
+          "editor.defaultFormatter": "oxc.oxc-vscode"
         },
         "files.associations": {
           "*.ts": "typescript",
@@ -46,11 +44,10 @@
         }
       },
       "extensions": [
-        "denoland.vscode-deno",
+        "oxc.oxc-vscode",
         "GitHub.copilot",
         "GitHub.vscode-pull-request-github",
         "EditorConfig.EditorConfig",
-        "dbaeumer.vscode-eslint", // If you plan to use ESLint alongside Deno lint
         "bradlc.vscode-tailwindcss", // For Tailwind CSS
         "ms-vscode-remote.remote-containers",
         "ms-azuretools.vscode-docker",

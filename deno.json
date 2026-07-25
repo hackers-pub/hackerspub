@@ -42,7 +42,6 @@
     "@pothos/plugin-with-input": "npm:@pothos/plugin-with-input@^4.1.4",
     "@resvg/resvg-js": "npm:@resvg/resvg-js@^2.6.2",
     "@searking/markdown-it-cjk-breaks": "npm:@searking/markdown-it-cjk-breaks@^2.0.1-0",
-    "@sentry/deno": "npm:@sentry/deno@10.51.0",
     "@sentry/node": "npm:@sentry/core@10.51.0",
     "@sentry/node-sdk": "npm:@sentry/node@10.51.0",
     "@shikijs/markdown-it": "npm:@shikijs/markdown-it@^3.8.1",

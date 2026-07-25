@@ -33,7 +33,6 @@ x-application: &application
   - .:/app
   - /app/deps
   - /app/.cache
-  - /app/.deno
   - ./media:/app/media:z
 
 services:

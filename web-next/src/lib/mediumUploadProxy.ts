@@ -44,8 +44,8 @@ export function createMediumUploadProxyRequest(
   };
   if (request.body != null) {
     init.body = request.body;
-    // Node's fetch requires this for streaming request bodies.  Deno and
-    // browser Request implementations safely ignore the extension.
+    // Node's fetch requires this for streaming request bodies.  Browser
+    // Request implementations safely ignore the extension.
     init.duplex = "half";
   }
   return new Request(upstreamUrl, init);
