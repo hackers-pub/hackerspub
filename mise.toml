@@ -6,7 +6,9 @@ deno = "2.7.4"
 node = "24"
 pnpm = "10.12.4"
 "aqua:nushell/nushell" = "0.99.1"
-"npm:@sentry/mcp-server" = "latest"
+"npm:@sentry/mcp-server" = { version = "latest", trust_policy_excludes = [
+  "@hono/node-server",
+] }
 "github:joho/godotenv" = "latest"
 
 [tools."github:dahlia/hongdown"]
