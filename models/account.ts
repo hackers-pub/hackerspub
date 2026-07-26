@@ -7,13 +7,12 @@ import {
 } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
 import { getLogger } from "@logtape/logtape";
-import { zip } from "es-toolkit";
 import { encodeHex } from "@std/encoding/hex";
 // `escape` is identical in both libraries, but only `@std/html` decodes
 // `&nbsp;`, `&apos;`, and numeric character references, which remote HTML
 // is full of -- so `unescape` has to stay where it is.
 import { unescape } from "@std/html/entities";
-import { escape } from "es-toolkit";
+import { escape, zip } from "es-toolkit";
 import { and, eq, inArray, or, sql } from "drizzle-orm";
 import type { StorageService } from "./context.ts";
 import sharp from "sharp";
