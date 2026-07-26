@@ -47,11 +47,12 @@ export function isRemoteTransportError(error: unknown): boolean {
   // Fedify's document loader throws `FetchError` when a dereferenced remote
   // document responds non-OK (e.g. a referenced object 404s during processing).
   if (name === "FetchError") return true;
-  // Deno's `fetch` raises a `TypeError` whose message begins with "error
-  // sending request for url (...)" for transport failures: DNS resolution, TLS,
-  // and connection errors (the GRAPHQL-27 family: "dns error: ...", "received
-  // fatal alert: ...). Require the `TypeError` name as well so an unrelated
-  // wrapper/app error that happens to start with that text is still kept.
+  // A `TypeError` whose message begins with "error sending request for url
+  // (...)" reports a transport failure: DNS resolution, TLS, and connection
+  // errors (the GRAPHQL-27 family: "dns error: ...", "received fatal alert:
+  // ...).  This is the shape the Deno deployment produced, still recognized so
+  // historical issues stay grouped.  Require the `TypeError` name as well so an
+  // unrelated wrapper/app error that happens to start with that text is kept.
   if (
     name === "TypeError" &&
     message.startsWith("error sending request for url")
@@ -72,17 +73,18 @@ export function isRemoteTransportError(error: unknown): boolean {
   ) {
     return true;
   }
-  // Deno can raise this while reading a remote response body after the request
-  // has already reached the peer. In Fedify inbox processing it means the
-  // remote dereference failed mid-stream, not that our listener code crashed.
+  // Another shape from the Deno deployment, raised while reading a remote
+  // response body after the request had already reached the peer.  In Fedify
+  // inbox processing it means the remote dereference failed mid-stream, not
+  // that our listener code crashed.
   if (
     name === "TypeError" &&
     message === "error reading a body from connection"
   ) {
     return true;
   }
-  // Deno (and the standard Web API) raises `TimeoutError` when an
-  // `AbortSignal.timeout()` fires before the remote server responds (GRAPHQL-2N).
+  // The Web API raises `TimeoutError` when an `AbortSignal.timeout()` fires
+  // before the remote server responds (GRAPHQL-2N).
   // This is routine network-level slowness, not an application bug.
   if (name === "TimeoutError") return true;
   // The jsonld library throws `jsonld.InvalidUrl` when a remote @context URL

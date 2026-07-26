@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { Buffer } from "node:buffer";
 import { Writable } from "node:stream";
 import test from "node:test";
-import { createNonClosingWebWritable } from "./non-closing-writable.node.ts";
+import { createNonClosingWebWritable } from "./non-closing-writable.ts";
 
 test("closing the Web proxy flushes without closing its target", async () => {
   const chunks: Buffer[] = [];

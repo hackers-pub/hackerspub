@@ -7,9 +7,12 @@ import {
 } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
 import { getLogger } from "@logtape/logtape";
-import { zip } from "@std/collections/zip";
 import { encodeHex } from "@std/encoding/hex";
-import { escape, unescape } from "@std/html/entities";
+// `escape` is identical in both libraries, but only `@std/html` decodes
+// `&nbsp;`, `&apos;`, and numeric character references, which remote HTML
+// is full of -- so `unescape` has to stay where it is.
+import { unescape } from "@std/html/entities";
+import { escape, zip } from "es-toolkit";
 import { and, eq, inArray, or, sql } from "drizzle-orm";
 import type { StorageService } from "./context.ts";
 import sharp from "sharp";
@@ -1034,7 +1037,6 @@ export async function fetchAccountLinkMetadata(
     apiUrl.searchParams.set("titles", title);
     const response = await fetch(apiUrl);
     if (!response.ok) return { icon: "wikipedia" };
-    // deno-lint-ignore no-explicit-any
     const result = (await response.json()) as any;
     const pages = Object.values(result.query.pages);
     if (pages.length < 1) return { icon: "wikipedia" };

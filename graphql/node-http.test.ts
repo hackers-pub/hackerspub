@@ -181,39 +181,35 @@ test("graceful close drains an in-flight response", async () => {
   assert.equal(closed, true);
 });
 
-test(
-  "graceful close force-closes a request after its drain deadline",
-  { skip: "Deno" in globalThis },
-  async () => {
-    const entered = Promise.withResolvers<void>();
-    const warnings: unknown[] = [];
-    const handler: GraphqlApiHandler = async () => {
-      entered.resolve();
-      await new Promise(() => {});
-      return new Response("unreachable");
-    };
-    const api = createNodeHttpServer(handler, {
-      drainTimeout: 20,
-      logger: {
-        warning(_message, properties) {
-          warnings.push(properties.error);
-        },
+test("graceful close force-closes a request after its drain deadline", async () => {
+  const entered = Promise.withResolvers<void>();
+  const warnings: unknown[] = [];
+  const handler: GraphqlApiHandler = async () => {
+    entered.resolve();
+    await new Promise(() => {});
+    return new Response("unreachable");
+  };
+  const api = createNodeHttpServer(handler, {
+    drainTimeout: 20,
+    logger: {
+      warning(_message, properties) {
+        warnings.push(properties.error);
       },
-    });
-    const address = await api.listen({ hostname: "127.0.0.1", port: 0 });
-    const disconnected = Promise.withResolvers<void>();
-    const request = requestHttp(loopbackUrl(address.port));
-    request.on("error", () => {});
-    request.once("close", () => disconnected.resolve());
-    request.end();
-    await entered.promise;
+    },
+  });
+  const address = await api.listen({ hostname: "127.0.0.1", port: 0 });
+  const disconnected = Promise.withResolvers<void>();
+  const request = requestHttp(loopbackUrl(address.port));
+  request.on("error", () => {});
+  request.once("close", () => disconnected.resolve());
+  request.end();
+  await entered.promise;
 
-    await waitWithTimeout(api.close(), 1_000);
-    await waitWithTimeout(disconnected.promise, 1_000);
-    assert.equal(warnings.length, 1);
-    assert(warnings[0] instanceof Error);
-  },
-);
+  await waitWithTimeout(api.close(), 1_000);
+  await waitWithTimeout(disconnected.promise, 1_000);
+  assert.equal(warnings.length, 1);
+  assert(warnings[0] instanceof Error);
+});
 
 test("Node connection metadata normalizes IPv4-mapped addresses", () => {
   assert.deepEqual(

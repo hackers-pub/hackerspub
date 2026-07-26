@@ -1,4 +1,4 @@
-import { join } from "@std/path";
+import { join } from "node:path";
 import { readdir } from "node:fs/promises";
 import { builder } from "./builder.ts";
 

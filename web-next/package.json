@@ -43,7 +43,7 @@
     "clsx": "^2.1.1",
     "cropperjs": "^2.0.1",
     "d3": "catalog:",
-    "es-toolkit": "^1.39.10",
+    "es-toolkit": "catalog:",
     "feed": "catalog:",
     "intl-parse-accept-language": "^1.0.0",
     "pretendard": "^1.3.9",

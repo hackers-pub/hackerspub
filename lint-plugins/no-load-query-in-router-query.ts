@@ -1,6 +1,4 @@
-// deno-lint-ignore-file no-explicit-any
-//
-// Custom Deno lint plugin: prevent returning solid-relay PreloadedQuery
+// Custom oxlint plugin: prevent returning solid-relay PreloadedQuery
 // objects from @solidjs/router query() fetchers.
 //
 // Solid Router query() caches return values for preloads, active subscribers,

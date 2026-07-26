@@ -742,7 +742,6 @@ function pollHiddenOptionVoteCount(
 // Mutates and returns the same object; the helper hands back a fresh config
 // per call.  Typed loosely because the two vote/voter connections target
 // different tables (`pollVoteTable` vs `actorTable`).
-// deno-lint-ignore no-explicit-any
 function andActorSanctionFilter<Q>(query: Q, extra: any): Q {
   const q = query as { where?: unknown };
   q.where = q.where == null ? extra : { AND: [q.where, extra] };

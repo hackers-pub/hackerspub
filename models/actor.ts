@@ -10,7 +10,7 @@ import {
 import * as vocab from "@fedify/vocab";
 import type { Database, RelationsFilter } from "@hackerspub/models/db";
 import { getLogger } from "@logtape/logtape";
-import { delay } from "@std/async";
+import { delay } from "es-toolkit";
 import {
   aliasedTable,
   and,
@@ -31,7 +31,7 @@ import {
 import type { ApplicationContext } from "./context.ts";
 import { isActorSuspended } from "./moderation.ts";
 import { toDate } from "./date.ts";
-import metadata from "./deno.json" with { type: "json" };
+import metadata from "./package.json" with { type: "json" };
 import { persistInstance } from "./instance.ts";
 import { renderMarkup } from "./markup.ts";
 import { isNewsBotActorType, refreshNewsScoresForActor } from "./news.ts";

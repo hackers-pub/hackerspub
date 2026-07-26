@@ -1,8 +1,8 @@
 import { negotiateLocale } from "@hackerspub/models/i18n";
 import type { Account as AccountTable, Actor } from "@hackerspub/models/schema";
 import type { SignupToken } from "@hackerspub/models/signup";
-import { escape } from "@std/html/entities";
-import { join } from "@std/path";
+import { escape } from "es-toolkit";
+import { join } from "node:path";
 import { createMessage, type Message } from "@upyo/core";
 import { createGraphQLError } from "graphql-yoga";
 import { readdir, readFile } from "node:fs/promises";

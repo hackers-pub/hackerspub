@@ -1,6 +1,6 @@
 # --- Base stage (mise + tools) -----------------------------------------------
 # This stage is the slow, rarely-changing foundation: system packages, mise
-# itself, and all pinned tool versions (Deno, Node, pnpm). Both the builder
+# itself, and all pinned tool versions (Node, pnpm). Both the builder
 # and prod-deps stages inherit from here so they share an identical toolchain
 # without duplicating the installation work.
 FROM docker.io/debian:13-slim AS mise-base
@@ -40,19 +40,11 @@ RUN --mount=type=secret,id=github_token,target=/run/secrets/github_token,require
 FROM mise-base AS prod-deps
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml /app/
-COPY deno.json /app/deno.json
-COPY deno.lock /app/deno.lock
-COPY ai/deno.json /app/ai/deno.json
 COPY ai/package.json /app/ai/package.json
-COPY federation/deno.json /app/federation/deno.json
 COPY federation/package.json /app/federation/package.json
-COPY graphql/deno.json /app/graphql/deno.json
 COPY graphql/package.json /app/graphql/package.json
-COPY models/deno.json /app/models/deno.json
 COPY models/package.json /app/models/package.json
-COPY runtime/deno.json /app/runtime/deno.json
 COPY runtime/package.json /app/runtime/package.json
-COPY web-next/deno.jsonc /app/web-next/deno.jsonc
 COPY web-next/package.json /app/web-next/package.json
 # asset-cdn is a pnpm workspace member (the Cloudflare Worker, deployed
 # separately), so its manifest must be present for `--frozen-lockfile` to
@@ -64,28 +56,15 @@ COPY patches /app/patches
 RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
   pnpm install --frozen-lockfile --prod
 
-# Re-populate /app/node_modules entries that Deno needs but pnpm doesn't
-# track. Without this the first `mise run prod:graphql` at deploy time spends
-# minutes rebuilding the directory; with it the server starts in seconds.
-RUN mise deps install deno --force
-
 # --- Builder stage -----------------------------------------------------------
 FROM mise-base AS builder
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml /app/
-COPY deno.json /app/deno.json
-COPY deno.lock /app/deno.lock
-COPY ai/deno.json /app/ai/deno.json
 COPY ai/package.json /app/ai/package.json
-COPY federation/deno.json /app/federation/deno.json
 COPY federation/package.json /app/federation/package.json
-COPY graphql/deno.json /app/graphql/deno.json
 COPY graphql/package.json /app/graphql/package.json
-COPY models/deno.json /app/models/deno.json
 COPY models/package.json /app/models/package.json
-COPY runtime/deno.json /app/runtime/deno.json
 COPY runtime/package.json /app/runtime/package.json
-COPY web-next/deno.jsonc /app/web-next/deno.jsonc
 COPY web-next/package.json /app/web-next/package.json
 # Present so `--frozen-lockfile` can validate the asset-cdn workspace member
 # (the Cloudflare Worker); its dev deps are installed here but the builder
@@ -95,7 +74,6 @@ COPY patches /app/patches
 
 RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
   mise deps install pnpm --force
-RUN mise deps install deno --force
 
 COPY . /app
 
@@ -105,15 +83,16 @@ ENV GIT_COMMIT=${GIT_COMMIT}
 # Append "+<git_commit>" to each manifest's version *before* the build so the
 # built artifacts that inline the version (notably web-next, where Vite bakes
 # package.json into the SSR bundle) carry the commit hash too.
+# `set -e` matters here: without it the loop's exit status is only that of its
+# last iteration, so a failed stamp on an earlier manifest would ship a build
+# with inconsistent version metadata instead of failing.
 RUN if [ -n "$GIT_COMMIT" ]; then \
-  jq '.version += "+" + $git_commit' --arg git_commit "$GIT_COMMIT" federation/deno.json > /tmp/deno.json && \
-  mv /tmp/deno.json federation/deno.json && \
-  jq '.version += "+" + $git_commit' --arg git_commit "$GIT_COMMIT" graphql/deno.json > /tmp/deno.json && \
-  mv /tmp/deno.json graphql/deno.json && \
-  jq '.version += "+" + $git_commit' --arg git_commit "$GIT_COMMIT" models/deno.json > /tmp/deno.json && \
-  mv /tmp/deno.json models/deno.json && \
-  jq '.version += "+" + $git_commit' --arg git_commit "$GIT_COMMIT" web-next/package.json > /tmp/package.json && \
-  mv /tmp/package.json web-next/package.json \
+  set -e; \
+  for manifest in federation graphql models web-next; do \
+    jq '.version += "+" + $git_commit' --arg git_commit "$GIT_COMMIT" \
+      "$manifest/package.json" > /tmp/package.json; \
+    mv /tmp/package.json "$manifest/package.json"; \
+  done \
   ; fi
 
 # The `sentry_auth_token` secret is read, exported, and used in this RUN step
@@ -158,10 +137,6 @@ COPY --from=mise-base /mise /mise
 # builder's state into the runtime image so auto deps do not reinstall on first
 # `mise run prod:*`.
 COPY --from=builder /mise/state /mise/state
-
-# Deno keeps its module cache at $HOME/.cache/deno; ship it so the runtime
-# doesn't need network access to resolve imports.
-COPY --from=prod-deps /root/.cache/deno /root/.cache/deno
 
 WORKDIR /app
 # Source + build artifacts from builder (node_modules were stripped above).

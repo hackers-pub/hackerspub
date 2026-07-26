@@ -29,11 +29,10 @@ The application has three deployable roles:
 
  -  **Web UI (`web-next/`)**: SolidStart v2, Solid.js, Relay, and Lingui on
     Node.js, managed through the pnpm workspace
- -  **GraphQL API (`graphql/main.node.ts`)**: GraphQL Yoga plus Fedify protocol
-    endpoints on Node.js; `graphql/main.ts` remains the Deno rollback entry
- -  **Federation worker (`graphql/worker.node.ts`)**: queue delivery and
-    scheduled jobs on Node.js; `graphql/worker.ts` remains the Deno rollback
-    entry. Run it separately from the API process and never behind a load
+ -  **GraphQL API (`graphql/main.ts`)**: GraphQL Yoga plus Fedify protocol
+    endpoints
+ -  **Federation worker (`graphql/worker.ts`)**: queue delivery and scheduled
+    jobs. Run it separately from the API process and never behind a load
     balancer
 
 Shared application behavior lives in `models/`, `federation/`, `runtime/`, and
@@ -47,7 +46,7 @@ Build/Lint/Test Commands
 
 Project tasks (dev, build, prod, migrate) live in `mise.toml` and are
 invoked with `mise run <task>`. Run `mise tasks` to list everything that's
-available. Tools (Deno, Node.js, pnpm) are pinned in the same `mise.toml`,
+available. Tools (Node.js, pnpm) are pinned in the same `mise.toml`,
 so `mise install` once gets you a reproducible toolchain, installs project
 dependencies, and writes the pre-commit hook. mise also auto-loads `.env` so
 tasks pick up `DATABASE_URL` etc. without each underlying command needing an
@@ -55,17 +54,19 @@ explicit `--env-file` flag.
 
 ### Per-role tasks (via mise)
 
- -  Dev processes: `mise run dev:graphql:node` /
-    `mise run dev:graphql-worker:node` / `mise run dev:web-next`
+ -  Dev processes: `mise run dev:graphql` /
+    `mise run dev:graphql-worker` / `mise run dev:web-next`
  -  Build: `mise run build:web-next`
- -  Production candidates: `mise run prod:graphql:node` /
-    `mise run prod:graphql-worker:node` / `mise run prod:web-next`
+ -  Production processes: `mise run prod:graphql` /
+    `mise run prod:graphql-worker` / `mise run prod:web-next`
+ -  Health checks: `mise run prod:hc:graphql` /
+    `mise run prod:hc:graphql-worker` / `mise run prod:hc:web-next`
 
-`mise run dev:graphql:node` by itself accepts a file-backed `KV_URL` for
-focused API development.  The existing `dev:graphql`, `prod:graphql`,
-`dev:graphql-worker`, and `prod:graphql-worker` tasks remain Deno rollback paths
-until deployment cutover.  The worker and all production processes require
-Redis; do not run an API and worker against the same file-backed KV store.
+`mise run dev:graphql` by itself accepts a file-backed `KV_URL` for focused API
+development.  The worker and all production processes require Redis; do not run
+an API and worker against the same file-backed KV store.
+
+Deployment, cutover, and rollback are documented in <DEPLOYMENT.md>.
 
 ### Database migrations (via mise)
 
@@ -84,13 +85,11 @@ Redis; do not run an API and worker against the same file-backed KV store.
 
 ### Workspace tasks (via mise)
 
- -  Lint/format/type check: `mise run check` (Node.js first, then transitional
-    Deno checks)
+ -  Lint/format/type check: `mise run check`
  -  Format source and Markdown files: `mise run fmt`
- -  Run tests: `mise run test` (Node.js first, then the Deno compatibility
-    suite)
- -  Node.js-only gates: `mise run check:node` / `mise run test:node`
- -  Deno compatibility gates: `mise run check:deno` / `mise run test:deno`
+ -  Run tests: `mise run test`
+ -  Smoke test the API, worker, and web-next together:
+    `mise run smoke:standalone`
  -  Install/update the pre-commit hook:
     `mise generate git-pre-commit --write --task=check`
 
@@ -103,7 +102,7 @@ Redis; do not run an API and worker against the same file-backed KV store.
 Note: `mise run dev:web-next` requires `API_URL` set to the standalone GraphQL
 endpoint (normally `http://localhost:8080/graphql`). web-next reads this at
 runtime — no rebuild is needed when it changes. Run
-`mise run dev:graphql-worker:node` separately; queue work must not run in the
+`mise run dev:graphql-worker` separately; queue work must not run in the
 API process or behind a load balancer.
 
 

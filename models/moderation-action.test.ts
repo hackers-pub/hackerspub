@@ -45,7 +45,6 @@ function recordingFedCtx(tx: Transaction): {
 } {
   const fedCtx = createFedCtx(tx);
   const sent: SentActivity[] = [];
-  // deno-lint-ignore no-explicit-any
   (fedCtx as any).sendActivity = (
     sender: unknown,
     _recipients: unknown,
@@ -480,7 +479,6 @@ describe("takeModerationAction()", () => {
   it("rolls back the action when forwarding the Flag cannot be queued", async () => {
     await withRollback(async (tx) => {
       const fedCtx = createFedCtx(tx);
-      // deno-lint-ignore no-explicit-any
       (fedCtx as any).sendActivity = () =>
         Promise.reject(new Error("outbound queue unavailable"));
       const moderator = await makeModerator(tx);

@@ -34,7 +34,6 @@
   "otherPortsAttributes": {
     "onAutoForward": "silent"
   },
-  "remoteUser": "deno",
   "remoteEnv": {
     "ORIGIN": "https://${localEnv:CODESPACE_NAME}-8000.${localEnv:GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}",
     "BEHIND_PROXY": "true",
@@ -47,24 +46,23 @@
   },
   // Runs once when the Codespace is created (as root by default for this script).
   "onCreateCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
-  // Runs after VS Code connects (as remoteUser: "deno").
+  // Runs after VS Code connects.
   "postCreateCommand": "mise install && mise run migrate",
   "waitFor": "postCreateCommand",
   "customizations": {
     "vscode": {
       "settings": {
-        "deno.enable": true,
-        "deno.lint": true,
-        "deno.unstable": true,
-        "editor.defaultFormatter": "denoland.vscode-deno",
+        "oxc.enable": true,
+        "oxc.fmt.enable": true,
+        "editor.defaultFormatter": "oxc.oxc-vscode",
         "[typescript]": {
-          "editor.defaultFormatter": "denoland.vscode-deno"
+          "editor.defaultFormatter": "oxc.oxc-vscode"
         },
         "[typescriptreact]": {
-          "editor.defaultFormatter": "denoland.vscode-deno"
+          "editor.defaultFormatter": "oxc.oxc-vscode"
         },
         "[javascript]": {
-          "editor.defaultFormatter": "denoland.vscode-deno"
+          "editor.defaultFormatter": "oxc.oxc-vscode"
         },
         "files.associations": {
           "*.ts": "typescript",
@@ -78,7 +76,7 @@
         }
       },
       "extensions": [
-        "denoland.vscode-deno",
+        "oxc.oxc-vscode",
         "GitHub.copilot",
         "GitHub.vscode-pull-request-github",
         "EditorConfig.EditorConfig",

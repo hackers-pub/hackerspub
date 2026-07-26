@@ -5,7 +5,7 @@ import {
   noteSourceTable,
 } from "@hackerspub/models/schema";
 import { builder } from "./builder.ts";
-import metadata from "./deno.json" with { type: "json" };
+import metadata from "./package.json" with { type: "json" };
 
 function firstCount<K extends string>(
   rows: { [P in K]: number }[],

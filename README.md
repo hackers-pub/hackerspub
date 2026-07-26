@@ -1,5 +1,3 @@
-<!-- deno-fmt-ignore-file -->
-
 Hackers' Pub
 ============
 
@@ -43,4 +41,6 @@ Development
 -----------
 
 See [Application architecture](ARCHITECTURE.md) for the package dependency
-direction and composition rules.
+direction and composition rules, [Contribution guide](CONTRIBUTING.md) for
+setting up a local environment, and [Deployment](DEPLOYMENT.md) for the roles,
+cutover, and rollback procedure.

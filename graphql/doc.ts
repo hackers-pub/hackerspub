@@ -1,6 +1,6 @@
 import { negotiateLocale } from "@hackerspub/models/i18n";
 import { renderMarkup, type Toc } from "@hackerspub/models/markup";
-import { dirname, join } from "@std/path";
+import { dirname, join } from "node:path";
 import { readdir, readFile } from "node:fs/promises";
 import { builder } from "./builder.ts";
 

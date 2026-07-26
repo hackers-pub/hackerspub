@@ -57,7 +57,7 @@ function addEventId(error: GraphQLError, eventId: string): GraphQLError {
 /**
  * Creates the default `@envelop/sentry` behavior without importing its
  * hard-coded `@sentry/node` dependency.  In this repository that specifier is
- * a runtime-neutral `@sentry/core` alias shared by the Deno and Node SDKs.
+ * an alias for `@sentry/core`, which carries no SDK-specific integrations.
  */
 export function useSentry(
   sentry: SentryPluginClient = Sentry as SentryPluginClient,

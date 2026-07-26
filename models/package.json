@@ -1,5 +1,6 @@
 {
   "name": "@hackerspub/models",
+  "version": "0.2.0",
   "type": "module",
   "exports": {
     "./account": "./account.ts",
@@ -86,8 +87,6 @@
     "@shikijs/transformers": "catalog:",
     "@simplewebauthn/server": "catalog:",
     "@std/assert": "catalog:",
-    "@std/async": "catalog:",
-    "@std/collections": "catalog:",
     "@std/encoding": "catalog:",
     "@std/html": "catalog:",
     "@std/text": "catalog:",
@@ -97,6 +96,7 @@
     "cheerio": "catalog:",
     "cssfilter": "catalog:",
     "drizzle-orm": "catalog:",
+    "es-toolkit": "catalog:",
     "fluent-ffmpeg": "catalog:",
     "flydrive": "catalog:",
     "iconv-lite": "catalog:",

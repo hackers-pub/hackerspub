@@ -70,18 +70,12 @@ jobs:
       run: mise run migrate
     - name: Smoke test standalone services
       run: mise run smoke:standalone
-    - name: Run Node.js tests
+    - name: Run tests
       if: always()
-      run: mise run test:node
-    - name: Run Deno tests
+      run: mise run test
+    - name: Run checks
       if: always()
-      run: mise run test:deno
-    - name: Run Node.js checks
-      if: always()
-      run: mise run check:node
-    - name: Run Deno checks
-      if: always()
-      run: mise run check:deno
+      run: mise run check
     - name: Check for untranslated messages
       if: always()
       run: |

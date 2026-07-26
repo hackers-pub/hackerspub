@@ -34,7 +34,6 @@
     "**/*.toml",
     "**/*.yaml",
     "**/*.yml",
-    "deno.json",
     "graphql/schema.graphql",
     "pnpm-lock.yaml"
   ]

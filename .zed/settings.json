@@ -1,69 +1,9 @@
 {
   "lsp": {
-    "deno": {
-      "settings": {
-        "deno": {
-          "enable": true
-        }
-      }
-    },
     "relay": {
       "settings": {
         "rootDirectory": "./web-next"
       }
-    }
-  },
-  "languages": {
-    "TypeScript": {
-      "formatter": [
-        {
-          "language_server": {
-            "name": "deno"
-          }
-        }
-      ],
-      "language_servers": [
-        "deno",
-        "!typescript-language-server",
-        "!vtsls",
-        "!eslint",
-        "!biome",
-        "..."
-      ]
-    },
-    "TSX": {
-      "formatter": [
-        {
-          "language_server": {
-            "name": "deno"
-          }
-        }
-      ],
-      "language_servers": [
-        "deno",
-        "!typescript-language-server",
-        "!vtsls",
-        "!eslint",
-        "!biome",
-        "..."
-      ]
-    },
-    "JavaScript": {
-      "formatter": [
-        {
-          "language_server": {
-            "name": "deno"
-          }
-        }
-      ],
-      "language_servers": [
-        "deno",
-        "!typescript-language-server",
-        "!vtsls",
-        "!eslint",
-        "!biome",
-        "..."
-      ]
     }
   }
 }

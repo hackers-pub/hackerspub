@@ -11,32 +11,28 @@ import { generateSchema } from "./generate-schema.ts";
 const repositoryRoot = new URL("../", import.meta.url);
 const schemaModule = new URL("graphql/mod.ts", repositoryRoot);
 
-test(
-  "runtime schema can be imported without write access",
-  { skip: "Deno" in globalThis },
-  async () => {
-    const source = `await import(${JSON.stringify(schemaModule.href)});`;
-    const output = spawnSync(
-      process.execPath,
-      [
-        "--import",
-        "temporal-polyfill/global",
-        "--permission",
-        "--allow-fs-read=*",
-        "--allow-addons",
-        "--input-type=module",
-        "--eval",
-        source,
-      ],
-      {
-        cwd: repositoryRoot,
-        encoding: "utf8",
-      },
-    );
+test("runtime schema can be imported without write access", async () => {
+  const source = `await import(${JSON.stringify(schemaModule.href)});`;
+  const output = spawnSync(
+    process.execPath,
+    [
+      "--import",
+      "temporal-polyfill/global",
+      "--permission",
+      "--allow-fs-read=*",
+      "--allow-addons",
+      "--input-type=module",
+      "--eval",
+      source,
+    ],
+    {
+      cwd: repositoryRoot,
+      encoding: "utf8",
+    },
+  );
 
-    assert.equal(output.status, 0, output.stderr);
-  },
-);
+  assert.equal(output.status, 0, output.stderr);
+});
 
 test("explicit schema generation is deterministic", async () => {
   const directory = await mkdtemp(join(tmpdir(), "hackerspub-schema-"));

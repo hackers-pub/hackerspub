@@ -3,7 +3,7 @@ import * as Sentry from "@sentry/node-sdk";
 import type { Server } from "node:http";
 import { type AddressInfo, isIP } from "node:net";
 // srvx's shared declarations import globals for every supported runtime,
-// including Cloudflare Workers. Keep those globals out of Deno's type graph.
+// including Cloudflare Workers. Keep those globals out of our type graph.
 // @ts-types="./srvx-node.d.ts"
 import { serve } from "srvx/node";
 import type { GraphqlApiHandler } from "./api.ts";

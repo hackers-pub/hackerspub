@@ -9,8 +9,6 @@ if (url == null || url.trim() === "") {
 
 export const { db, postgres } = createDatabaseResources({ url });
 
-if (!("Deno" in globalThis)) {
-  after(async () => {
-    await postgres.end();
-  });
-}
+after(async () => {
+  await postgres.end();
+});

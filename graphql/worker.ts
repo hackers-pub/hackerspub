@@ -1,150 +1,162 @@
-// Must be the first import — see instrument.ts for the rationale.
-import "./instrument.ts";
+// Sentry is initialized by the `--import ./instrument.ts` preload before
+// this module graph is evaluated. LogTape must then be configured before any
+// application resources are created.
 import "./logging.ts";
 
+import { getLogger, dispose as disposeLogging } from "@logtape/logtape";
 import { migrateLegacyOutboxEvents } from "@hackerspub/models/outbox";
 import {
-  getDenoEnvironment,
+  getProcessEnvironment,
   loadStandaloneServerConfig,
 } from "@hackerspub/runtime/config";
+import { isMain } from "@hackerspub/runtime/main";
 import {
   createRuntimeResources,
   FILE_SYSTEM_STORAGE_BASE_URL,
+  type RuntimeResources,
 } from "@hackerspub/runtime/resources";
-import { getLogger } from "@logtape/logtape";
-import metadata from "./deno.json" with { type: "json" };
+import * as Sentry from "@sentry/node-sdk";
+import process from "node:process";
 import {
+  closeWithDeadline,
   closeSequentially,
   combineRuntimeAndCloseErrors,
 } from "./lifecycle.ts";
+import metadata from "./package.json" with { type: "json" };
 import { services } from "./services.ts";
-import {
-  createWorkerJobs,
-  waitForWorkerJobsToDrain,
-  WORKER_JOB_DRAIN_WARNING_MILLISECONDS,
-  WorkerJobRunner,
-} from "./worker-jobs.ts";
+import { createWorkerJobs } from "./worker-jobs.ts";
 import {
   resolveWorkerHealthFile,
   startWorkerHeartbeat,
   type WorkerHeartbeat,
 } from "./worker-health.ts";
-
-const resources = await createRuntimeResources(
-  loadStandaloneServerConfig(getDenoEnvironment()),
-  metadata.version,
-  {
-    fileSystemBaseUrl: FILE_SYSTEM_STORAGE_BASE_URL,
-    federation: {
-      manuallyStartQueue: true,
-      // TODO: Revert to Fedify's default RFC 9421-first behavior once
-      // https://github.com/bonfire-networks/activity_pub/issues/8 is fixed
-      // and released. Keep this aligned with the API process.
-      firstKnock: "draft-cavage-http-signatures-12",
-    },
-  },
-);
-const { db, drive, email, federation, kv, models } = resources;
+import { runWorkerRuntime } from "./worker-runtime.ts";
+import { runNodeWorkerScheduler } from "./worker-scheduler.ts";
 
 const logger = getLogger(["hackerspub", "graphql", "worker"]);
+const SENTRY_CLOSE_TIMEOUT = 2_000;
+const LOGGING_CLOSE_TIMEOUT = 2_000;
 
-// One controller coordinates graceful shutdown of the scheduled jobs and the
-// queue consumer. Registering signal listeners overrides Deno's default
-// termination, so both long-lived services must observe this signal.
-const controller = new AbortController();
-const signalListeners: Array<{
-  readonly signal: "SIGINT" | "SIGTERM";
-  readonly listener: () => void;
-}> = [];
-for (const signalName of ["SIGINT", "SIGTERM"] as const) {
-  const listener = () => {
-    if (controller.signal.aborted) return;
-    logger.info(
-      "Received {signal}; shutting down the queue worker gracefully.",
-      { signal: signalName },
-    );
-    controller.abort();
+function closeWorkerResource(
+  resource: string,
+  close: () => Promise<unknown> | unknown,
+): () => Promise<void> {
+  return async () => {
+    logger.debug("Closing GraphQL worker resource {resource}.", { resource });
+    await close();
+    logger.debug("Closed GraphQL worker resource {resource}.", { resource });
   };
-  Deno.addSignalListener(signalName, listener);
-  signalListeners.push({ signal: signalName, listener });
 }
 
-const jobs = createWorkerJobs({
-  db,
-  email,
-  emailFrom: resources.config.email.from,
-  origin: resources.config.origin.href,
-});
-const jobRunner = new WorkerJobRunner();
-
-// Drain the federation inbox and transactional fanout/delivery queues. The API
-// processes build the same federation with `manuallyStartQueue: true` and only
-// enqueue, so this dedicated process is the sole consumer on the GraphQL stack
-// side. It must not be placed behind a load balancer.
-const disk = drive.use();
-logger.info("Starting the federation message queue worker.");
-let heartbeat: WorkerHeartbeat | undefined;
-const cronCompletions: Promise<void>[] = [];
-let runtimeError: unknown;
-try {
-  await migrateLegacyOutboxEvents(db);
-  heartbeat = await startWorkerHeartbeat(
-    resolveWorkerHealthFile(Deno.env.get("WORKER_HEALTH_FILE")),
-  );
-  for (const job of jobs) {
-    cronCompletions.push(
-      Deno.cron(job.name, job.schedule, { signal: controller.signal }, () =>
-        jobRunner.run(job),
-      ),
-    );
+function registerShutdownSignals(controller: AbortController): () => void {
+  const listeners = new Map<NodeJS.Signals, () => void>();
+  for (const signal of ["SIGINT", "SIGTERM"] as const) {
+    const listener = () => {
+      if (controller.signal.aborted) return;
+      logger.info(
+        "Received {signal}; shutting down the queue worker gracefully.",
+        { signal },
+      );
+      controller.abort();
+    };
+    listeners.set(signal, listener);
+    process.once(signal, listener);
   }
-  await federation.startQueue(
-    { db, kv, disk, models, services },
-    { signal: controller.signal },
-  );
-  logger.info("The federation message queue worker has stopped.");
-} catch (error) {
-  runtimeError = error;
-} finally {
-  controller.abort();
-  for (const { signal, listener } of signalListeners) {
-    Deno.removeSignalListener(signal, listener);
-  }
+  return () => {
+    for (const [signal, listener] of listeners) {
+      process.off(signal, listener);
+    }
+    listeners.clear();
+  };
 }
 
-let closeError: unknown;
-try {
-  await closeSequentially(
-    [
-      async () => {
-        await waitForWorkerJobsToDrain(
-          async () => {
-            await Promise.all(cronCompletions);
-            await jobRunner.drain();
-          },
-          WORKER_JOB_DRAIN_WARNING_MILLISECONDS,
-          () => {
-            logger.warning(
-              "Deno scheduled worker jobs exceeded the drain warning " +
-                "threshold; keeping resources open until they settle.",
-              {
-                warningAfterMilliseconds: WORKER_JOB_DRAIN_WARNING_MILLISECONDS,
-              },
-            );
-          },
-        );
+export async function main(): Promise<void> {
+  const shutdownController = new AbortController();
+  const removeSignalListeners = registerShutdownSignals(shutdownController);
+  let resources: RuntimeResources | undefined;
+  let heartbeat: WorkerHeartbeat | undefined;
+  let runtimeError: unknown;
+
+  try {
+    resources = await createRuntimeResources(
+      loadStandaloneServerConfig(getProcessEnvironment()),
+      metadata.version,
+      {
+        fileSystemBaseUrl: FILE_SYSTEM_STORAGE_BASE_URL,
+        federation: {
+          manuallyStartQueue: true,
+          // Keep this aligned with the API until Bonfire interoperability
+          // is verified in production.
+          firstKnock: "draft-cavage-http-signatures-12",
+        },
       },
-      () => heartbeat?.stop(),
-      () => resources.close(),
-    ],
-    "Failed to close Deno worker resources.",
+    );
+    const { db, drive, email, federation, kv, models } = resources;
+    const disk = drive.use();
+    const jobs = createWorkerJobs({
+      db,
+      email,
+      emailFrom: resources.config.email.from,
+      origin: resources.config.origin.href,
+    });
+
+    // Pending legacy deliveries must move before any queue starts consuming.
+    await migrateLegacyOutboxEvents(db);
+    heartbeat = await startWorkerHeartbeat(
+      resolveWorkerHealthFile(process.env.WORKER_HEALTH_FILE),
+    );
+    logger.info("Starting the federation message queue worker.");
+    await runWorkerRuntime({
+      federation,
+      contextData: { db, kv, disk, models, services },
+      runScheduler: (signal) => runNodeWorkerScheduler(jobs, { signal }),
+      signal: shutdownController.signal,
+    });
+    logger.info("The federation message queue worker has stopped.");
+  } catch (error) {
+    runtimeError = error;
+  } finally {
+    removeSignalListeners();
+  }
+
+  let closeError: unknown;
+  try {
+    await closeSequentially(
+      [
+        closeWorkerResource("heartbeat", () => heartbeat?.stop()),
+        closeWorkerResource("runtime", () => resources?.close()),
+        closeWorkerResource("logging", () =>
+          closeWithDeadline(
+            () => disposeLogging(),
+            LOGGING_CLOSE_TIMEOUT,
+            "Timed out while closing GraphQL worker logging.",
+          ),
+        ),
+      ],
+      "Failed to close GraphQL worker resources.",
+    );
+  } catch (error) {
+    closeError = error;
+  }
+
+  const finalError = combineRuntimeAndCloseErrors(
+    runtimeError,
+    closeError,
+    "The GraphQL worker failed and its resources could not be closed.",
   );
-} catch (error) {
-  closeError = error;
+  if (finalError != null) Sentry.captureException(finalError);
+  try {
+    await Sentry.close(SENTRY_CLOSE_TIMEOUT);
+  } catch (error) {
+    if (finalError != null) {
+      throw new AggregateError(
+        [finalError, error],
+        "The GraphQL worker failed and Sentry could not be closed.",
+      );
+    }
+    throw error;
+  }
+  if (finalError != null) throw finalError;
 }
-const finalError = combineRuntimeAndCloseErrors(
-  runtimeError,
-  closeError,
-  "The Deno worker failed and its resources could not be closed.",
-);
-if (finalError != null) throw finalError;
+
+if (isMain(import.meta)) await main();

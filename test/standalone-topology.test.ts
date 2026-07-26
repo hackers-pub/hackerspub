@@ -1,6 +1,7 @@
 import { assert, assertEquals, assertStringIncludes } from "@std/assert";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { parse } from "yaml";
 
 const readTextFile = (path: string | URL) => readFile(path, "utf8");
 
@@ -137,18 +138,10 @@ test("file KV is limited to API-only development", async () => {
   const main = await readTextFile(
     new URL("../graphql/main.ts", import.meta.url),
   );
-  const nodeMain = await readTextFile(
-    new URL("../graphql/main.node.ts", import.meta.url),
-  );
   const worker = await readTextFile(
     new URL("../graphql/worker.ts", import.meta.url),
   );
-  const nodeWorker = await readTextFile(
-    new URL("../graphql/worker.node.ts", import.meta.url),
-  );
-  const tasks = await readTextFile(
-    new URL("../graphql/deno.json", import.meta.url),
-  );
+  const tasks = await readTextFile(new URL("../mise.toml", import.meta.url));
   const launch = JSON.parse(
     await readTextFile(new URL("../.vscode/launch.json", import.meta.url)),
   ) as {
@@ -163,26 +156,19 @@ test("file KV is limited to API-only development", async () => {
   assert(redisPrerequisite < firstKvCommand);
   assertStringIncludes(contributing, "redis-cli ping");
   assertStringIncludes(main, "loadGraphqlApiConfig");
-  assertStringIncludes(main, 'Deno.args.includes("--allow-file-kv")');
-  assertStringIncludes(nodeMain, "loadGraphqlApiConfig");
-  assertStringIncludes(nodeMain, 'process.argv.includes("--allow-file-kv")');
+  assertStringIncludes(main, 'process.argv.includes("--allow-file-kv")');
   assertStringIncludes(worker, "loadStandaloneServerConfig");
-  assertStringIncludes(nodeWorker, "loadStandaloneServerConfig");
-  assertStringIncludes(tasks, "main.ts --allow-file-kv");
-  assertEquals(
-    launch.configurations.find(({ name }) => name === "GraphQL API (Node.js)")
-      ?.args,
-    ["--allow-file-kv"],
-  );
-  assertEquals(
-    launch.configurations.find(
-      ({ name }) => name === "GraphQL API (Deno rollback)",
-    )?.args,
-    ["--allow-file-kv"],
-  );
+  // Only the development API may fall back to a file-backed KV store: the
+  // worker and every production process must share one coherent store.
   assertStringIncludes(
     tasks,
-    '"start": "deno run -A --unstable-otel --unstable-cron --env-file=../.env main.ts"',
+    "--import ./instrument.ts main.ts --allow-file-kv",
+  );
+  assertStringIncludes(tasks, '--import ./instrument.ts main.ts"');
+  assert(!tasks.includes("worker.ts --allow-file-kv"));
+  assertEquals(
+    launch.configurations.find(({ name }) => name === "GraphQL API")?.args,
+    ["--allow-file-kv"],
   );
 });
 
@@ -191,15 +177,27 @@ test("standalone smoke owns a shared Redis configuration", async () => {
     new URL("../scripts/smoke-standalone.ts", import.meta.url),
   );
 
-  assertStringIncludes(smoke, 'Deno.env.get("STANDALONE_SMOKE_KV_URL")');
+  assertStringIncludes(smoke, "process.env.STANDALONE_SMOKE_KV_URL");
   assertStringIncludes(smoke, '"redis://127.0.0.1:6379/0"');
   assertStringIncludes(smoke, "{ KV_URL: standaloneKvUrl }");
-  assertStringIncludes(smoke, '"./instrument.node.ts"');
-  assertStringIncludes(smoke, '"main.node.ts"');
-  assertStringIncludes(smoke, '"worker.node.ts"');
-  assert(!smoke.includes('"worker.ts"'));
+  assertStringIncludes(smoke, '"./instrument.ts"');
+  assertStringIncludes(smoke, '"main.ts"');
+  assertStringIncludes(smoke, '"worker.ts"');
   assertStringIncludes(smoke, "/.well-known/nodeinfo");
-  assert(!smoke.includes('new Deno.Command("mise"'));
+  assert(!smoke.includes('spawn("mise"'));
+  // `spawn` replaces the child environment, unlike `Deno.Command`, so the
+  // ambient configuration has to be forwarded explicitly or every service
+  // starts without a database.
+  assertStringIncludes(smoke, "env: { ...process.env, ...environment }");
+});
+
+test("role health checks run on Node.js", async () => {
+  const tasks = await readTextFile(new URL("../mise.toml", import.meta.url));
+
+  for (const role of ["graphql", "graphql-worker", "web-next"]) {
+    assertStringIncludes(tasks, `run = "node scripts/healthcheck.ts ${role}"`);
+  }
+  assert(!tasks.includes('shell = "deno eval"'));
 });
 
 test("web-next proxies canonical filesystem upload URLs", async () => {
@@ -220,40 +218,28 @@ test("standalone services preserve the compatible signature first knock", async 
   const api = await readTextFile(
     new URL("../graphql/main.ts", import.meta.url),
   );
-  const nodeApi = await readTextFile(
-    new URL("../graphql/main.node.ts", import.meta.url),
-  );
   const worker = await readTextFile(
     new URL("../graphql/worker.ts", import.meta.url),
-  );
-  const nodeWorker = await readTextFile(
-    new URL("../graphql/worker.node.ts", import.meta.url),
   );
   const firstKnock = 'firstKnock: "draft-cavage-http-signatures-12"';
 
   assertStringIncludes(api, firstKnock);
-  assertStringIncludes(nodeApi, firstKnock);
   assertStringIncludes(worker, firstKnock);
-  assertStringIncludes(nodeWorker, firstKnock);
 });
 
-test("the Node services remain explicit candidates until deployment cutover", async () => {
+test("every service task runs on Node.js", async () => {
   const tasks = await readTextFile(new URL("../mise.toml", import.meta.url));
 
-  assertStringIncludes(tasks, '[tasks."dev:graphql:node"]');
-  assertStringIncludes(tasks, '[tasks."prod:graphql:node"]');
-  assertStringIncludes(tasks, "--import ./instrument.node.ts main.node.ts");
-  assertStringIncludes(tasks, '[tasks."dev:graphql-worker:node"]');
-  assertStringIncludes(tasks, '[tasks."prod:graphql-worker:node"]');
-  assertStringIncludes(tasks, "--import ./instrument.node.ts worker.node.ts");
-  assertStringIncludes(tasks, '[tasks."dev:graphql"]');
-  assertStringIncludes(tasks, 'run = "deno task dev"');
-  assertStringIncludes(tasks, '[tasks."prod:graphql"]');
-  assertStringIncludes(tasks, 'run = "deno task start"');
-  assertStringIncludes(tasks, '[tasks."dev:graphql-worker"]');
-  assertStringIncludes(tasks, 'run = "deno task dev:worker"');
-  assertStringIncludes(tasks, '[tasks."prod:graphql-worker"]');
-  assertStringIncludes(tasks, 'run = "deno task worker"');
+  for (const role of ["dev", "prod"]) {
+    assertStringIncludes(tasks, `[tasks."${role}:graphql"]`);
+    assertStringIncludes(tasks, `[tasks."${role}:graphql-worker"]`);
+  }
+  assertStringIncludes(tasks, "--import ./instrument.ts main.ts");
+  assertStringIncludes(tasks, "--import ./instrument.ts worker.ts");
+  // The `:node` suffix distinguished the migration candidates from the Deno
+  // rollback paths.  Both are gone, so a task carrying it again would mean the
+  // two-runtime split had come back.
+  assert(!tasks.includes(':node"]'));
 });
 
 test("container builds omit the removed Fresh application", async () => {
@@ -268,7 +254,6 @@ test("container builds omit the removed Fresh application", async () => {
   );
 
   for (const source of [dockerfile, developmentDockerfile]) {
-    assert(!source.includes("web/deno.json"));
     assert(!source.includes("web/fonts"));
     assert(!/mise run build:web(?:\s|$)/.test(source));
     assert(!source.includes("hackerspub-build-kv"));
@@ -278,17 +263,30 @@ test("container builds omit the removed Fresh application", async () => {
   assert(!compose.includes('"8001:8000"'));
 });
 
-test("development image includes the runtime workspace metadata", async () => {
-  const dockerfile = await readTextFile(
+test("container builds carry every workspace manifest", async () => {
+  const production = await readTextFile(
+    new URL("../Dockerfile", import.meta.url),
+  );
+  const development = await readTextFile(
     new URL("../Dockerfile.dev", import.meta.url),
   );
 
-  assertStringIncludes(
-    dockerfile,
-    "COPY runtime/deno.json /app/runtime/deno.json",
-  );
-  assertStringIncludes(
-    dockerfile,
-    "COPY runtime/package.json /app/runtime/package.json",
-  );
+  // `pnpm install --frozen-lockfile` validates the lockfile against every
+  // workspace member, so a missing manifest fails the build rather than
+  // silently installing something else.  Read the members from the workspace
+  // definition: a hard-coded list here would go stale exactly when a new
+  // package is added, which is when this check matters.
+  const workspace = parse(
+    await readTextFile(new URL("../pnpm-workspace.yaml", import.meta.url)),
+  ) as { packages?: unknown };
+  assert(Array.isArray(workspace.packages));
+  assert(workspace.packages.every((member) => typeof member === "string"));
+
+  for (const member of workspace.packages as string[]) {
+    const copy = `COPY ${member}/package.json /app/${member}/package.json`;
+    assertStringIncludes(development, copy);
+    // The production build repeats the copies in both the prod-deps and
+    // builder stages.
+    assertEquals(production.split(copy).length - 1, 2);
+  }
 });

@@ -1243,7 +1243,6 @@ test("a banned actor's profile content is hidden from others", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(hidden.errors, undefined);
-    // deno-lint-ignore no-explicit-any
     const hiddenActor = (hidden.data as any)?.actorByHandle;
     assert.equal(hiddenActor?.name, null);
     assert.equal(hiddenActor?.rawName, null);
@@ -1284,7 +1283,6 @@ test("a banned actor's profile content is hidden from others", async () => {
       contextValue: makeUserContext(tx, viewer.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((deniedMedium.data as any)?.node ?? null, null);
     // The banned account holder can still resolve it:
     const ownMedium = await execute({
@@ -1294,7 +1292,6 @@ test("a banned actor's profile content is hidden from others", async () => {
       contextValue: makeUserContext(tx, banned.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((ownMedium.data as any)?.node?.__typename, "Medium");
 
     // The AccountLink node is not resolvable via node(id:) either:
@@ -1305,7 +1302,6 @@ test("a banned actor's profile content is hidden from others", async () => {
       contextValue: makeUserContext(tx, viewer.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((deniedLink.data as any)?.node ?? null, null);
     // Identity fields stay:
     assert.equal(hiddenActor?.username, "bannedprofile");
@@ -1321,7 +1317,6 @@ test("a banned actor's profile content is hidden from others", async () => {
       contextValue: makeUserContext(tx, banned.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const ownActor = (own.data as any)?.actorByHandle;
     assert.match(ownActor?.name ?? "", /Abusive Name/);
     assert.match(ownActor?.bio ?? "", /Abusive bio/);
@@ -1355,7 +1350,6 @@ test("a banned actor's profile content is hidden from others", async () => {
       contextValue: makeUserContext(tx, { ...mod.account, moderator: true }),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const modActor = (asMod.data as any)?.actorByHandle;
     assert.match(modActor?.name ?? "", /Abusive Name/);
     assert.equal(modActor?.account?.links?.length, 1);
@@ -1376,7 +1370,6 @@ test("a banned actor's profile content is hidden from others", async () => {
       contextValue: makeUserContext(tx, viewer.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const tempActor = (temp.data as any)?.actorByHandle;
     assert.match(tempActor?.name ?? "", /Abusive Name/);
     assert.equal(tempActor?.fields?.length, 1);
@@ -1434,7 +1427,6 @@ test("media of moderation-hidden posts are not resolvable via node(id:)", async 
       contextValue: makeUserContext(tx, viewer.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((denied.data as any)?.node ?? null, null);
 
     // The author still resolves their own media:
@@ -1445,7 +1437,6 @@ test("media of moderation-hidden posts are not resolvable via node(id:)", async 
       contextValue: makeUserContext(tx, author.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((own.data as any)?.node?.__typename, "Medium");
 
     // Uncensoring re-exposes it:
@@ -1460,7 +1451,6 @@ test("media of moderation-hidden posts are not resolvable via node(id:)", async 
       contextValue: makeUserContext(tx, viewer.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((allowed.data as any)?.node?.__typename, "Medium");
   });
 });

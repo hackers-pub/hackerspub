@@ -24,7 +24,6 @@ const REASON = "This post contains harassment targeting another user.";
 
 function quietFedCtx(tx: Transaction): ReturnType<typeof createFedCtx> {
   const fedCtx = createFedCtx(tx);
-  // deno-lint-ignore no-explicit-any
   (fedCtx as any).sendActivity = () => Promise.resolve();
   return fedCtx;
 }
@@ -142,7 +141,6 @@ test("moderation notifications reach the right accounts", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(modResult.errors, undefined);
-    // deno-lint-ignore no-explicit-any
     const modAccount = (modResult.data as any)?.accountByUsername;
     assert.equal(modAccount?.unreadModerationNotificationCount, 1);
     const modEdges = modAccount?.moderationNotifications?.edges;
@@ -160,7 +158,6 @@ test("moderation notifications reach the right accounts", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(targetResult.errors, undefined);
-    // deno-lint-ignore no-explicit-any
     const targetAccount = (targetResult.data as any)?.accountByUsername;
     const targetEdges = targetAccount?.moderationNotifications?.edges;
     assert.equal(targetEdges?.length, 1);
@@ -185,7 +182,6 @@ test("moderation notifications reach the right accounts", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (foreign.data as any)?.accountByUsername?.moderationNotifications ?? null,
       null,
     );
@@ -211,11 +207,7 @@ test("markModerationNotificationsRead marks the viewer's queue", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(marked.errors, undefined);
-    assert.equal(
-      // deno-lint-ignore no-explicit-any
-      (marked.data as any)?.markModerationNotificationsRead,
-      1,
-    );
+    assert.equal((marked.data as any)?.markModerationNotificationsRead, 1);
     const after = await execute({
       schema,
       document: notificationsQuery,
@@ -224,7 +216,6 @@ test("markModerationNotificationsRead marks the viewer's queue", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.equal(
-      // deno-lint-ignore no-explicit-any
       (after.data as any)?.accountByUsername?.unreadModerationNotificationCount,
       0,
     );
@@ -265,7 +256,6 @@ test("moderationStatistics aggregates the queue for moderators", async () => {
       contextValue: makeUserContext(tx, reported.account),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     assert.equal((denied.data as any)?.moderationStatistics ?? null, null);
 
     const result = await execute({
@@ -276,7 +266,6 @@ test("moderationStatistics aggregates the queue for moderators", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(result.errors, undefined);
-    // deno-lint-ignore no-explicit-any
     const stats = (result.data as any)?.moderationStatistics;
     assert.equal(stats?.totalReports, 1);
     assert.equal(stats?.processedReports, 1);
@@ -302,7 +291,6 @@ test("codeOfConductProvisions is public and localized", async () => {
       onError: "NO_PROPAGATE",
     });
     assert.deepEqual(english.errors, undefined);
-    // deno-lint-ignore no-explicit-any
     const provisions = (english.data as any)?.codeOfConductProvisions;
     assert.ok(provisions?.length > 0);
     assert.equal(provisions[0].id, "1.1");
@@ -315,7 +303,6 @@ test("codeOfConductProvisions is public and localized", async () => {
       contextValue: makeGuestContext(tx),
       onError: "NO_PROPAGATE",
     });
-    // deno-lint-ignore no-explicit-any
     const koProvisions = (korean.data as any)?.codeOfConductProvisions;
     assert.equal(koProvisions?.[0]?.id, "1.1");
     assert.notEqual(koProvisions?.[0]?.title, "Our Values");

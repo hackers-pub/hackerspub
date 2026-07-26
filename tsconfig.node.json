@@ -16,14 +16,6 @@
     "scripts/**/*.ts",
     "test/**/*.ts",
     "types/**/*.d.ts",
-    "web-next/lint-plugins/**/*.ts"
-  ],
-  "exclude": [
-    "graphql/instrument.ts",
-    "graphql/logging.ts",
-    "graphql/main.ts",
-    "graphql/smoke-standalone.ts",
-    "graphql/worker.ts",
-    "scripts/smoke-standalone.ts"
+    "lint-plugins/**/*.ts"
   ]
 }

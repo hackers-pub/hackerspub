@@ -1,6 +1,4 @@
-// deno-lint-ignore-file no-explicit-any
-//
-// Custom Deno lint plugin: enforce `<Show keyed>` and `<Match keyed>` when
+// Custom oxlint plugin: enforce `<Show keyed>` and `<Match keyed>` when
 // the gated value comes from a solid-relay primitive and the children is a
 // function with arity ≥ 1.
 //

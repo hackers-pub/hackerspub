@@ -18,10 +18,10 @@ import {
   transformerNotationWordHighlight,
   transformerRemoveNotationEscape,
 } from "@shikijs/transformers";
-import { deadline } from "@std/async/deadline";
 import { encodeAscii85 } from "@std/encoding/ascii85";
 import { slugify } from "@std/text/unstable-slugify";
 import { load } from "cheerio";
+import { withTimeout } from "es-toolkit";
 import { arrayOverlaps, eq } from "drizzle-orm";
 import katex from "katex";
 import type { KeyValueStore } from "./context.ts";
@@ -476,7 +476,7 @@ export async function extractMentionsFromHtml(
     try {
       return [
         href,
-        await deadline(fedCtx.lookupObject(href, options), 3000),
+        await withTimeout(() => fedCtx.lookupObject(href, options), 3000),
       ] as [string, vocab.Object | null];
     } catch {
       return null;

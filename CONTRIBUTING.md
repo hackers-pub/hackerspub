@@ -1,5 +1,3 @@
-<!-- deno-fmt-ignore-file -->
-
 Contribution guide
 ==================
 
@@ -24,10 +22,8 @@ Recommended reading
 
 Hackers' Pub uses the following technologies:
 
- -  [Node.js] for TypeScript tooling, tests, the web frontend, and the
-    candidate GraphQL API and federation worker runtimes
- -  [Deno] for the GraphQL API and federation worker rollback runtimes during
-    the Node.js migration
+ -  [Node.js] for TypeScript tooling, tests, the web frontend, the GraphQL API,
+    and the federation worker
  -  [PostgreSQL] for the database
  -  [Drizzle ORM] for database operations
  -  [Keyv] for caching
@@ -50,7 +46,6 @@ patterns, the *Pubnyan* mascot, and brand asset usage — read
 [*DESIGN.md*](./DESIGN.md) before working on UI in *web-next/*.
 
 [Node.js]: https://nodejs.org/
-[Deno]: https://deno.com/
 [PostgreSQL]: https://www.postgresql.org/
 [Drizzle ORM]: https://orm.drizzle.team/
 [Keyv]: https://keyv.org/
@@ -87,8 +82,8 @@ run:
 mise install
 ~~~~
 
-This installs the pinned Deno, Node.js, pnpm, and project tools, installs Deno
-and pnpm dependencies, and writes the pre-commit hook.
+This installs the pinned Node.js, pnpm, and project tools, installs
+dependencies, and writes the pre-commit hook.
 
 [mise]: https://mise.jdx.dev/
 [Redis]: https://redis.io/docs/latest/operate/oss_and_stack/install/
@@ -158,10 +153,9 @@ and set the values of the variables according to your environment.
 >     browser testing, but remote development and production deployments need
 >     HTTPS for browser Push API subscriptions.
 >
->  -  `KV_URL` may point to a file when running only `mise run dev:graphql` or
->     `mise run dev:graphql:node`. Redis is required whenever the worker is
->     running and for every production process, because those processes must
->     share one coherent KV store.
+>  -  `KV_URL` may point to a file when running only `mise run dev:graphql`.
+>     Redis is required whenever the worker is running and for every production
+>     process, because those processes must share one coherent KV store.
 >
 >  -  `DRIVE_DISK` can be set to `fs` to use the file system for storing files.
 >     In this case, you also need to set `FS_LOCATION` to the directory where
@@ -288,25 +282,20 @@ For focused development, run the API, worker, and frontend in separate
 terminals:
 
 ~~~~ sh
-mise run dev:graphql:node
-mise run dev:graphql-worker:node
+mise run dev:graphql
+mise run dev:graphql-worker
 API_URL=http://localhost:8080/graphql mise run dev:web-next
 ~~~~
-
-Use `mise run dev:graphql` and `mise run dev:graphql-worker` instead to
-exercise the Deno rollback paths.  Both API commands expose the same HTTP
-surface until the deployment cutover.
 
 The direct frontend is available at http://localhost:3000/.  It does not
 provide the unified ActivityPub routing that the Compose gateway provides.
 If watchman is unavailable, set `NO_WATCHMAN=1` and run
 `mise run next:codegen` whenever GraphQL documents change.
 
-For API-only development, `mise run dev:graphql` and
-`mise run dev:graphql:node` also accept a file-backed `KV_URL` such as
-`file:///tmp/hackerspub-kv.json`.  Do not start the worker in this mode:
-federation queues and scheduled jobs remain inactive.  Use Redis for the
-complete API, worker, and frontend topology shown above.
+For API-only development, `mise run dev:graphql` also accepts a file-backed
+`KV_URL` such as `file:///tmp/hackerspub-kv.json`.  Do not start the worker in
+this mode: federation queues and scheduled jobs remain inactive.  Use Redis for
+the complete API, worker, and frontend topology shown above.
 
 
 Setting up federation
@@ -386,16 +375,15 @@ Running tests
 -------------
 
 We encourage you to write tests for your changes.  Tests use the
-`node:test` API so they run under Node.js without transpilation.  The aggregate
-task also runs the same suite under Deno while backend runtime migration is in
-progress:
+`node:test` API so they run under Node.js without transpilation:
 
 ~~~~ sh
 mise run test
 ~~~~
 
-Use `mise run test:node` for the primary Node.js suite, or
-`mise run test:deno` to investigate Deno compatibility specifically.
+To exercise the API, worker, and frontend together as separate processes, run
+`mise run smoke:standalone`.  It needs Redis and a `mise run build:web-next`
+build.
 
 
 Before submitting a pull request
@@ -405,7 +393,7 @@ Before submitting a pull request, ensure that your changes pass the tests and
 that you have formatted the code and Markdown using `mise run fmt`.  Oxfmt
 formats TypeScript and configuration files, and Hongdown formats Markdown.
 The following command runs Oxfmt and Hongdown checks, Oxlint, TypeScript type
-checking, generated artifact checks, and the transitional Deno checks:
+checking, and generated artifact checks:
 
 ~~~~ sh
 mise run check

@@ -3,9 +3,9 @@
   "configurations": [
     {
       "request": "launch",
-      "name": "GraphQL API (Node.js)",
+      "name": "GraphQL API",
       "type": "node",
-      "program": "${workspaceFolder}/graphql/main.node.ts",
+      "program": "${workspaceFolder}/graphql/main.ts",
       "cwd": "${workspaceFolder}/graphql/",
       "env": {},
       "runtimeExecutable": "node",
@@ -14,34 +14,16 @@
         "--import",
         "temporal-polyfill/global",
         "--import",
-        "./instrument.node.ts",
+        "./instrument.ts",
         "--inspect-wait=127.0.0.1:9228"
       ],
       "args": ["--allow-file-kv"]
     },
     {
       "request": "launch",
-      "name": "GraphQL API (Deno rollback)",
+      "name": "GraphQL worker",
       "type": "node",
-      "program": "${workspaceFolder}/graphql/main.ts",
-      "cwd": "${workspaceFolder}/graphql/",
-      "env": {},
-      "runtimeExecutable": "deno",
-      "runtimeArgs": [
-        "run",
-        "-A",
-        "--unstable-cron",
-        "--env-file=../.env",
-        "--inspect-wait=127.0.0.1:9229"
-      ],
-      "args": ["--allow-file-kv"],
-      "attachSimplePort": 9229
-    },
-    {
-      "request": "launch",
-      "name": "GraphQL worker (Node.js)",
-      "type": "node",
-      "program": "${workspaceFolder}/graphql/worker.node.ts",
+      "program": "${workspaceFolder}/graphql/worker.ts",
       "cwd": "${workspaceFolder}/graphql/",
       "env": {},
       "runtimeExecutable": "node",
@@ -50,26 +32,9 @@
         "--import",
         "temporal-polyfill/global",
         "--import",
-        "./instrument.node.ts",
+        "./instrument.ts",
         "--inspect-wait=127.0.0.1:9230"
       ]
-    },
-    {
-      "request": "launch",
-      "name": "GraphQL worker (Deno rollback)",
-      "type": "node",
-      "program": "${workspaceFolder}/graphql/worker.ts",
-      "cwd": "${workspaceFolder}/graphql/",
-      "env": {},
-      "runtimeExecutable": "deno",
-      "runtimeArgs": [
-        "run",
-        "-A",
-        "--unstable-cron",
-        "--env-file=../.env",
-        "--inspect-wait=127.0.0.1:9231"
-      ],
-      "attachSimplePort": 9231
     }
   ]
 }

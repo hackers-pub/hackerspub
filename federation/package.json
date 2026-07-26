@@ -1,5 +1,6 @@
 {
   "name": "@hackerspub/federation",
+  "version": "0.2.0",
   "type": "module",
   "exports": {
     ".": "./mod.ts",
@@ -20,8 +21,8 @@
     "@fedify/vocab": "catalog:",
     "@hackerspub/models": "workspace:*",
     "@logtape/logtape": "catalog:",
-    "@std/html": "catalog:",
-    "drizzle-orm": "catalog:"
+    "drizzle-orm": "catalog:",
+    "es-toolkit": "catalog:"
   },
   "devDependencies": {
     "@std/assert": "catalog:"

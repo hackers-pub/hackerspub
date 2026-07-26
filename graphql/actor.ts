@@ -44,7 +44,7 @@ import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { resolveOffsetConnection } from "@pothos/plugin-relay";
 import { assertNever } from "@std/assert/unstable-never";
-import { escape } from "@std/html/entities";
+import { escape } from "es-toolkit";
 import { createGraphQLError } from "graphql-yoga";
 import xss from "xss";
 import { Account } from "./account.ts";

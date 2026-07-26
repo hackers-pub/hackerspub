@@ -150,7 +150,6 @@ test("updateNote() does not federate a censored post", async () => {
 
     const fedCtx = createFedCtx(tx);
     const sent: unknown[] = [];
-    // deno-lint-ignore no-explicit-any
     (fedCtx as any).sendActivity = (...args: unknown[]) => {
       sent.push(args);
       return Promise.resolve();

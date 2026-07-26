@@ -1,6 +1,6 @@
 {
   "recommendations": [
-    "denoland.vscode-deno",
+    "oxc.oxc-vscode",
     "bradlc.vscode-tailwindcss",
     "ms-azuretools.vscode-docker",
     "github.vscode-github-actions",

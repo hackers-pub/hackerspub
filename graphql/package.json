@@ -1,5 +1,6 @@
 {
   "name": "@hackerspub/graphql",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "exports": {
@@ -14,7 +15,6 @@
     "@hackerspub/federation": "workspace:*",
     "@hackerspub/models": "workspace:*",
     "@hackerspub/runtime": "workspace:*",
-    "@hongminhee/x-forwarded-fetch": "catalog:",
     "@logtape/file": "catalog:",
     "@logtape/logtape": "catalog:",
     "@logtape/redaction": "catalog:",
@@ -30,20 +30,18 @@
     "@pothos/plugin-tracing": "catalog:",
     "@pothos/plugin-with-input": "catalog:",
     "@resvg/resvg-js": "catalog:",
-    "@sentry/deno": "catalog:",
     "@sentry/node": "catalog:",
     "@sentry/node-sdk": "catalog:",
     "@simplewebauthn/server": "catalog:",
     "@std/assert": "catalog:",
     "@std/encoding": "catalog:",
-    "@std/html": "catalog:",
     "@std/http": "catalog:",
-    "@std/path": "catalog:",
     "@upyo/core": "catalog:",
     "ai": "catalog:",
     "croner": "catalog:",
     "dataloader": "catalog:",
     "drizzle-orm": "catalog:",
+    "es-toolkit": "catalog:",
     "flydrive": "catalog:",
     "graphql": "catalog:",
     "graphql-scalars": "catalog:",
@@ -55,6 +53,7 @@
     "sharp": "catalog:",
     "srvx": "catalog:",
     "url-template": "catalog:",
+    "x-forwarded-fetch": "catalog:",
     "xss": "catalog:"
   }
 }

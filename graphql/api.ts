@@ -39,8 +39,9 @@ function isAbortError(error: unknown): boolean {
 }
 
 /**
- * Build the runtime-neutral Fetch handler shared by the Deno rollback entry
- * point and the Node.js API server.
+ * Build the Fetch handler that the Node.js API server adapts to
+ * `node:http`.  Keeping it runtime-neutral also keeps it directly testable
+ * without standing a server up.
  */
 export function createGraphqlApiHandler(
   options: GraphqlApiHandlerOptions,
@@ -96,7 +97,7 @@ export function createGraphqlApiHandler(
       });
     } catch (error) {
       // Client disconnected before the server finished: this is not a server
-      // failure, and the non-standard 499 status preserves the Deno behavior.
+      // failure, and the non-standard 499 status records it as such.
       if (isAbortError(error)) return new Response(null, { status: 499 });
       throw error;
     }

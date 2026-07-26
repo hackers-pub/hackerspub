@@ -6,6 +6,7 @@ import { parse } from "yaml";
 
 interface PackageManifest {
   readonly name: string;
+  readonly version?: string;
   readonly exports?: string | Record<string, string>;
   readonly dependencies?: Record<string, string>;
   readonly devDependencies?: Record<string, string>;
@@ -245,19 +246,17 @@ test("root package manifest declares operational and test imports", async () => 
   );
 });
 
-test("Deno and Node package exports match", async () => {
+test("core packages declare a version", async () => {
   for (const directory of corePackageDirectories) {
-    const packageRoot = new URL(`${directory}/`, repositoryRoot);
-    const denoConfig = await readJson<{ exports?: PackageManifest["exports"] }>(
-      new URL("deno.json", packageRoot),
-    );
     const manifest = await readJson<PackageManifest>(
-      new URL("package.json", packageRoot),
+      new URL(`${directory}/package.json`, repositoryRoot),
     );
-    assert.deepEqual(
-      manifest.exports,
-      denoConfig.exports,
-      `${manifest.name} exports differ between package.json and deno.json`,
+    // The release build stamps the git commit into this field, and the runtime
+    // reads it back through `import metadata from "./package.json"` to report
+    // the software version over NodeInfo, ActivityPub, and Sentry.
+    assert.ok(
+      typeof manifest.version === "string" && manifest.version.length > 0,
+      `${manifest.name} must declare a version in package.json`,
     );
   }
 });

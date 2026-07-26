@@ -1,4 +1,4 @@
-import { getXForwardedRequest } from "@hongminhee/x-forwarded-fetch";
+import { getXForwardedRequest } from "x-forwarded-fetch";
 import { isIP } from "node:net";
 
 export interface ConnectionAddress {

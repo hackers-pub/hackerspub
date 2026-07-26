@@ -46,7 +46,7 @@ import {
   reactionTable,
 } from "@hackerspub/models/schema";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
-import { escape } from "@std/html/entities";
+import { escape } from "es-toolkit";
 import {
   aliasedTable,
   and,
