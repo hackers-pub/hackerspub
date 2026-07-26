@@ -87,6 +87,16 @@ function start(
   return service;
 }
 
+/**
+ * Releases a response we only inspected the status or headers of.  Readiness
+ * polls every 500ms for up to a minute, so an unread body per attempt keeps a
+ * socket open per attempt.
+ */
+async function discard(response: Response): Promise<void> {
+  if (response.bodyUsed) return;
+  await response.body?.cancel();
+}
+
 function describeExit(exit: ServiceExit): string {
   if (exit.error != null) return `: ${exit.error.message}`;
   if (exit.signal != null) return ` after receiving ${exit.signal}`;
@@ -177,14 +187,18 @@ try {
       body: JSON.stringify({ query: "{__typename}" }),
       signal,
     });
-    const body = await response.json();
-    return response.ok && body.data?.__typename === "Query";
+    try {
+      const body = await response.json();
+      return response.ok && body.data?.__typename === "Query";
+    } finally {
+      await discard(response);
+    }
   });
   await waitForReadiness(
     api,
     "the standalone federation routes",
     async (signal) => {
-      const [nodeInfo, assetlinks, appleAssociation] = await Promise.all([
+      const settled = await Promise.allSettled([
         fetch("http://127.0.0.1:8080/.well-known/nodeinfo", { signal }),
         fetch("http://127.0.0.1:8080/.well-known/assetlinks.json", {
           signal,
@@ -193,20 +207,32 @@ try {
           signal,
         }),
       ]);
-      return (
-        nodeInfo.ok &&
-        assetlinks.ok &&
-        appleAssociation.ok &&
-        nodeInfo.headers
-          .get("content-type")
-          ?.startsWith("application/jrd+json") === true &&
-        assetlinks.headers
-          .get("content-type")
-          ?.startsWith("application/json") === true &&
-        appleAssociation.headers
-          .get("content-type")
-          ?.startsWith("application/json") === true
-      );
+      try {
+        const [nodeInfo, assetlinks, appleAssociation] = settled.map(
+          (result) => {
+            if (result.status === "rejected") throw result.reason;
+            return result.value;
+          },
+        );
+        return (
+          nodeInfo.ok &&
+          assetlinks.ok &&
+          appleAssociation.ok &&
+          nodeInfo.headers
+            .get("content-type")
+            ?.startsWith("application/jrd+json") === true &&
+          assetlinks.headers
+            .get("content-type")
+            ?.startsWith("application/json") === true &&
+          appleAssociation.headers
+            .get("content-type")
+            ?.startsWith("application/json") === true
+        );
+      } finally {
+        for (const result of settled) {
+          if (result.status === "fulfilled") await discard(result.value);
+        }
+      }
     },
   );
 
@@ -245,7 +271,11 @@ try {
   );
   await waitForReadiness(webNext, "web-next", async (signal) => {
     const response = await fetch("http://127.0.0.1:3000/search", { signal });
-    return response.ok;
+    try {
+      return response.ok;
+    } finally {
+      await discard(response);
+    }
   });
 } finally {
   const problems: string[] = [];
