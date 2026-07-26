@@ -62,8 +62,11 @@ export async function withTagsPubRelayEnabled(
 }
 
 async function acquireEnvLock(): Promise<() => Promise<void>> {
-  // `node --test` can run test files in separate processes that still share
-  // process environment state, so in-memory locking is not sufficient.
+  // `node --test` runs each file in its own process, so the queue above
+  // serializes callers within a file and nothing across them; one process
+  // never observes another's `process.env`.  What needs serializing is the
+  // window itself: several files flip a flag whose behavior reaches the
+  // shared test database, and they run concurrently.
   const started = Date.now();
   while (true) {
     try {
