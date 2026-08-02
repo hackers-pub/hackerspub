@@ -1,7 +1,12 @@
 import { REACTION_EMOJIS } from "@hackerspub/models/emoji";
-import { createSignal, For, onCleanup, Show } from "solid-js";
+import { createEffect, createSignal, For, onCleanup, Show } from "solid-js";
+import IconLoader2 from "~icons/lucide/loader-2";
 import IconSmilePlus from "~icons/lucide/smile-plus";
 import { useLingui } from "~/lib/i18n/macro.ts";
+import {
+  getViewportQuickBarPosition,
+  type PopoverPosition,
+} from "~/lib/popoverPosition.ts";
 
 export interface QuickReactionGroup {
   readonly emoji: string;
@@ -16,6 +21,17 @@ export interface QuickReactionBarProps {
    * picker reached through `onOpenFullPicker`.
    */
   reactions: ReadonlyArray<QuickReactionGroup>;
+  /**
+   * Whether the viewer has reacted to the post with any emoji, including
+   * custom emojis the quick bar does not list.  Defaults to deriving from
+   * `reactions`, which misses custom emoji reactions.
+   */
+  viewerHasReacted?: boolean;
+  /**
+   * The unicode emoji whose toggle round-trip is in flight, or `null`.
+   * The matching button shows a spinner until the mutation settles.
+   */
+  pendingEmoji?: string | null;
   disabled?: boolean;
   /**
    * Toggles the viewer's reaction for `emoji`.  The bar stays open after
@@ -23,8 +39,12 @@ export interface QuickReactionBarProps {
    * the same post.
    */
   onToggleReaction: (emoji: string) => void;
-  /** Opens the full emoji picker (all emojis plus custom emojis). */
-  onOpenFullPicker?: () => void;
+  /**
+   * Opens the full emoji picker (all emojis plus custom emojis).
+   * Receives the heart trigger button so the caller can anchor the
+   * picker to it.
+   */
+  onOpenFullPicker?: (trigger: HTMLElement) => void;
 }
 
 // Hover-intent delays: the open delay keeps the bar from flashing while
@@ -39,11 +59,21 @@ const CLOSE_DELAY = 300;
  * emojis above the trigger; on touch devices tapping the heart toggles
  * the row instead.  Keyboard users get the row on focus and can dismiss
  * it with Escape.
+ *
+ * The row is fixed-positioned from the trigger's viewport rect (clamped
+ * by `getViewportQuickBarPosition`) so it escapes `overflow-hidden`
+ * ancestors and never runs off narrow screens, but it stays a DOM child
+ * of the wrapper so the hover/focus containment logic keeps working.
  */
 export function QuickReactionBar(props: QuickReactionBarProps) {
   const { t } = useLingui();
   const [open, setOpen] = createSignal(false);
+  const [rowPosition, setRowPosition] = createSignal<PopoverPosition | null>(
+    null,
+  );
   let wrapper: HTMLDivElement | undefined;
+  let trigger: HTMLButtonElement | undefined;
+  let row: HTMLDivElement | undefined;
   let openTimer: ReturnType<typeof setTimeout> | undefined;
   let closeTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -62,9 +92,39 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
     closeTimer = setTimeout(() => setOpen(false), CLOSE_DELAY);
   };
 
+  createEffect(() => {
+    if (!open()) {
+      setRowPosition(null);
+      return;
+    }
+    const updatePosition = () => {
+      if (trigger == null || row == null || !trigger.isConnected) {
+        setOpen(false);
+        return;
+      }
+      setRowPosition(
+        getViewportQuickBarPosition(
+          trigger.getBoundingClientRect(),
+          { width: row.offsetWidth, height: row.offsetHeight },
+          { width: window.innerWidth, height: window.innerHeight },
+        ),
+      );
+    };
+    // Runs before the browser paints the freshly inserted row, so the
+    // entrance animation starts from the final position.
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    onCleanup(() => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    });
+  });
+
   const groupFor = (emoji: string) =>
     props.reactions.find((group) => group.emoji === emoji);
   const userHasReacted = () =>
+    props.viewerHasReacted ??
     props.reactions.some((group) => group.viewerHasReacted);
 
   return (
@@ -106,6 +166,7 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
       }}
     >
       <button
+        ref={trigger}
         type="button"
         class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 px-2 cursor-pointer"
         classList={{
@@ -141,16 +202,28 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
         </svg>
       </button>
       <Show when={open()}>
+        {/* transition-none is load-bearing: duration-200/ease-* feed the
+            entrance animation through --tw-duration/--tw-ease but also set
+            transition-duration/-timing-function, and with the default
+            transition-property of `all` the JS-assigned left/top would
+            otherwise animate from (0,0) on open (a visible fly-in). */}
         <div
+          ref={row}
           role="group"
           aria-label={t`Quick reactions`}
-          class="absolute bottom-full left-0 z-50 mb-1.5 flex origin-bottom-left items-center gap-0.5 rounded-full border bg-popover p-1 shadow-lg motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-90 motion-safe:slide-in-from-bottom-1 motion-safe:duration-200 motion-safe:ease-[cubic-bezier(0.19,1,0.22,1)]"
+          class="fixed z-50 flex origin-bottom items-center gap-0.5 rounded-full border bg-popover p-1 shadow-lg transition-none motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-90 motion-safe:slide-in-from-bottom-1 motion-safe:duration-200 motion-safe:ease-[cubic-bezier(0.19,1,0.22,1)]"
+          style={{
+            left: `${rowPosition()?.left ?? 0}px`,
+            top: `${rowPosition()?.top ?? 0}px`,
+            visibility: rowPosition() == null ? "hidden" : undefined,
+          }}
         >
           <For each={REACTION_EMOJIS}>
             {(emoji, index) => {
               const group = () => groupFor(emoji);
               const selected = () => group()?.viewerHasReacted === true;
               const count = () => group()?.count ?? 0;
+              const pending = () => props.pendingEmoji === emoji;
               return (
                 <button
                   type="button"
@@ -176,10 +249,19 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
                 >
                   <span
                     class="text-xl transition-transform duration-150 group-hover:-translate-y-0.5 group-hover:scale-125 group-active:scale-95 motion-reduce:transition-none"
+                    classList={{ "opacity-30": pending() }}
                     aria-hidden="true"
                   >
                     {emoji}
                   </span>
+                  <Show when={pending()}>
+                    <span class="absolute inset-0 flex items-center justify-center">
+                      <IconLoader2
+                        class="size-4 animate-spin"
+                        aria-hidden="true"
+                      />
+                    </span>
+                  </Show>
                   <Show when={count() > 0}>
                     <span class="absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-muted px-1 text-center text-[10px] font-medium leading-4 text-muted-foreground tabular-nums">
                       {count()}
@@ -200,7 +282,7 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
               onClick={() => {
                 cancelTimers();
                 setOpen(false);
-                props.onOpenFullPicker?.();
+                if (trigger != null) props.onOpenFullPicker?.(trigger);
               }}
             >
               <IconSmilePlus class="size-4" aria-hidden="true" />

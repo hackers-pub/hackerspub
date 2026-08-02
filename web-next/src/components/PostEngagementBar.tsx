@@ -33,8 +33,10 @@ import type { PostEngagementBar_post$key } from "./__generated__/PostEngagementB
 import type { PostEngagementBar_sharePost_Mutation } from "./__generated__/PostEngagementBar_sharePost_Mutation.graphql.ts";
 import type { PostEngagementBar_unsharePost_Mutation } from "./__generated__/PostEngagementBar_unsharePost_Mutation.graphql.ts";
 import { BookmarkButton } from "./BookmarkButton.tsx";
+import { createReactionToggle } from "./createReactionToggle.ts";
 import { EmojiReactionPopover } from "./EmojiReactionPopover.tsx";
 import { PostActionMenu } from "./PostActionMenu.tsx";
+import { QuickReactionBar } from "./QuickReactionBar.tsx";
 
 export interface PostEngagementBarProps {
   $post: PostEngagementBar_post$key;
@@ -190,7 +192,7 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
 
   const [showEmojiPopover, setShowEmojiPopover] = createSignal(false);
   const [emojiPickerMounted, setEmojiPickerMounted] = createSignal(false);
-  const [emojiTrigger, setEmojiTrigger] = createSignal<HTMLButtonElement>();
+  const [emojiTrigger, setEmojiTrigger] = createSignal<HTMLElement>();
   const [emojiPopover, setEmojiPopover] = createSignal<HTMLDivElement>();
   const [emojiPopoverPosition, setEmojiPopoverPosition] = createSignal<{
     left: number;
@@ -227,15 +229,13 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
         ? undefined
         : new ResizeObserver(() => updateEmojiPopoverPosition());
     if (popover != null) resizeObserver?.observe(popover);
+    // The heart trigger is NOT exempt here: it toggles the quick-pick
+    // bar, not the popover, so a click on it while the popover is open
+    // should dismiss the popover like any other outside click.
     const onPointerDown = (event: PointerEvent) => {
       const target = event.target;
       if (!(target instanceof Node)) return;
-      if (
-        emojiTrigger()?.contains(target) ||
-        emojiPopover()?.contains(target)
-      ) {
-        return;
-      }
+      if (emojiPopover()?.contains(target)) return;
       setShowEmojiPopover(false);
     };
     const onKeyDown = (event: KeyboardEvent) => {
@@ -314,9 +314,27 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
     }
   };
 
+  const reactionToggle = createReactionToggle(() => note());
+
   const sortedReactionGroups = () => {
     const noteData = note();
     return sortReactionGroups(noteData?.reactionGroups || []);
+  };
+
+  // Unicode emoji groups for the quick-pick bar; custom emoji groups are
+  // reachable through the full picker only.
+  const quickReactions = () =>
+    sortedReactionGroups()
+      .filter((group) => group.emoji != null)
+      .map((group) => ({
+        emoji: group.emoji as string,
+        count: group.reactors?.totalCount ?? 0,
+        viewerHasReacted: group.reactors?.viewerHasReacted === true,
+      }));
+
+  const pendingQuickEmoji = () => {
+    const pending = reactionToggle.pendingReaction();
+    return pending?.kind === "emoji" ? pending.id : null;
   };
 
   const reactionPopoverData = () => {
@@ -394,47 +412,31 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
             onQuoteSelect={() => openWithQuote(note.id)}
           />
 
-          {/* Reactions — icon opens emoji popover, count links to /reactions. */}
+          {/* Reactions — hovering (or tapping) the heart reveals the
+              quick-pick bar; its "more" button opens the full emoji
+              popover, and the count links to /reactions. */}
           <div class="inline-flex items-stretch">
-            <button
-              ref={setEmojiTrigger}
-              type="button"
-              class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 px-2 cursor-pointer"
-              classList={{
-                "text-muted-foreground hover:text-foreground":
-                  !userHasReacted(),
-                "text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300":
-                  userHasReacted(),
-              }}
-              aria-label={t`React`}
-              title={t`React`}
-              onClick={(event) => {
-                if (showEmojiPopover()) {
-                  setShowEmojiPopover(false);
-                  return;
-                }
-                setEmojiTrigger(event.currentTarget);
-                if (updateEmojiPopoverPosition(event.currentTarget)) {
+            <QuickReactionBar
+              reactions={quickReactions()}
+              viewerHasReacted={userHasReacted()}
+              pendingEmoji={pendingQuickEmoji()}
+              onToggleReaction={reactionToggle.toggleEmoji}
+              onOpenFullPicker={(trigger) => {
+                setEmojiTrigger(trigger);
+                if (updateEmojiPopoverPosition(trigger)) {
                   setShowEmojiPopover(true);
                 }
               }}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill={userHasReacted() ? "currentColor" : "none"}
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-                class="size-4"
-                aria-hidden="true"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"
-                />
-              </svg>
-            </button>
+            />
+            {/* Rendered only while pending so SSR never emits an empty
+                dynamic text binding for the live region. */}
+            <Show when={reactionToggle.pendingStatus()}>
+              {(status) => (
+                <span class="sr-only" aria-live="polite">
+                  {status()}
+                </span>
+              )}
+            </Show>
             <Show
               when={
                 emojiPickerMounted() &&
@@ -455,6 +457,7 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
                 >
                   <EmojiReactionPopover
                     noteData={popoverData()}
+                    toggle={reactionToggle}
                     onClose={() => setShowEmojiPopover(false)}
                   />
                 </div>
