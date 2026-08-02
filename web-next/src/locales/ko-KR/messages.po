@@ -650,7 +650,7 @@ msgid "Add"
 msgstr "추가"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
-#: src/components/EmojiReactionPopover.tsx:577
+#: src/components/EmojiReactionPopover.tsx:108
 msgid "Add {0}"
 msgstr "{0} 추가"
 
@@ -683,7 +683,7 @@ msgstr "번역 추가"
 msgid "Added line:"
 msgstr "추가된 줄:"
 
-#: src/components/EmojiReactionPopover.tsx:104
+#: src/components/createReactionToggle.ts:245
 msgid "Adding reaction…"
 msgstr "반응을 추가하는 중…"
 
@@ -2171,14 +2171,7 @@ msgstr "콘텐츠를 고정하지 못했습니다"
 msgid "Failed to publish the translation."
 msgstr "번역을 공개하지 못했습니다."
 
-#: src/components/EmojiReactionPopover.tsx:215
-#: src/components/EmojiReactionPopover.tsx:225
-#: src/components/EmojiReactionPopover.tsx:316
-#: src/components/EmojiReactionPopover.tsx:326
-#: src/components/EmojiReactionPopover.tsx:409
-#: src/components/EmojiReactionPopover.tsx:419
-#: src/components/EmojiReactionPopover.tsx:481
-#: src/components/EmojiReactionPopover.tsx:491
+#: src/components/createReactionToggle.ts:254
 msgid "Failed to react"
 msgstr "반응 실패"
 
@@ -2273,8 +2266,8 @@ msgstr "이메일 전송에 실패했습니다"
 msgid "Failed to send invitation"
 msgstr "초대장 발송에 실패했습니다"
 
-#: src/components/PostEngagementBar.tsx:367
-#: src/components/PostEngagementBar.tsx:374
+#: src/components/PostEngagementBar.tsx:364
+#: src/components/PostEngagementBar.tsx:371
 msgid "Failed to share post"
 msgstr "콘텐츠 공유 실패"
 
@@ -2317,8 +2310,8 @@ msgstr "사용자 뮤트를 해제하지 못했습니다"
 msgid "Failed to unpin post"
 msgstr "콘텐츠 고정을 해제하지 못했습니다"
 
-#: src/components/PostEngagementBar.tsx:349
-#: src/components/PostEngagementBar.tsx:356
+#: src/components/PostEngagementBar.tsx:346
+#: src/components/PostEngagementBar.tsx:353
 msgid "Failed to unshare post"
 msgstr "공유 취소 실패"
 
@@ -3322,6 +3315,11 @@ msgstr "모더레이션 케이스"
 #~ msgid "More engagement views"
 #~ msgstr "다른 반응 보기"
 
+#: src/components/QuickReactionBar.tsx:280
+#: src/components/QuickReactionBar.tsx:281
+msgid "More reactions"
+msgstr "더 많은 반응"
+
 #: src/routes/(root)/tree/index.tsx:283
 msgid "Most invitations"
 msgstr "초대 많이 한 순"
@@ -4274,6 +4272,10 @@ msgstr "QR 코드"
 msgid "Query cannot be empty"
 msgstr "검색어를 비울 수 없습니다"
 
+#: src/components/QuickReactionBar.tsx:213
+msgid "Quick reactions"
+msgstr "빠른 반응"
+
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:45
 #: src/components/PostVisibilitySelect.tsx:43
 #: src/components/VisibilityTag.tsx:54
@@ -4281,7 +4283,7 @@ msgid "Quiet public"
 msgstr "조용히 공개"
 
 #: src/components/NoteComposeModal.tsx:83
-#: src/components/PostEngagementBar.tsx:708
+#: src/components/PostEngagementBar.tsx:711
 #: src/components/ui/markdown-editor.tsx:298
 msgid "Quote"
 msgstr "인용"
@@ -4310,7 +4312,7 @@ msgstr "인용 원문이 가려짐"
 msgid "Quotes"
 msgstr "인용"
 
-#: src/components/PostEngagementBar.tsx:708
+#: src/components/PostEngagementBar.tsx:711
 msgid "Quoting is not available for this post"
 msgstr "이 콘텐츠는 인용할 수 없습니다."
 
@@ -4318,17 +4320,19 @@ msgstr "이 콘텐츠는 인용할 수 없습니다."
 msgid "Re-fetch a remote actor or post from its origin server and overwrite the cached copy. Enter a fediverse handle, profile URL, or ActivityPub IRI."
 msgstr "원격 계정 또는 콘텐츠를 원본 서버에서 다시 가져와 캐시된 사본을 덮어씁니다. 연합우주 핸들, 프로필 URL, 또는 ActivityPub IRI를 입력하세요."
 
-#: src/components/PostEngagementBar.tsx:475
-#: src/components/PostEngagementBar.tsx:476
+#: src/components/QuickReactionBar.tsx:178
+#: src/components/QuickReactionBar.tsx:179
 msgid "React"
 msgstr "반응"
 
-#: src/components/EmojiReactionPopover.tsx:644
+#: src/components/EmojiReactionPopover.tsx:175
+#: src/components/QuickReactionBar.tsx:241
+#: src/components/QuickReactionBar.tsx:246
 msgid "React with {emoji}"
 msgstr "{emoji}로 반응"
 
-#: src/components/EmojiReactionPopover.tsx:575
-#: src/components/EmojiReactionPopover.tsx:580
+#: src/components/EmojiReactionPopover.tsx:106
+#: src/components/EmojiReactionPopover.tsx:111
 msgid "reaction"
 msgstr "반응"
 
@@ -4500,13 +4504,18 @@ msgid "Remove"
 msgstr "제거"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
-#: src/components/EmojiReactionPopover.tsx:572
+#: src/components/EmojiReactionPopover.tsx:103
 msgid "Remove {0}"
 msgstr "{0} 제거"
 
 #: src/routes/(root)/[handle]/settings/account.tsx:1861
 msgid "Remove {alias}"
 msgstr "{alias} 제거"
+
+#: src/components/QuickReactionBar.tsx:240
+#: src/components/QuickReactionBar.tsx:245
+msgid "Remove {emoji} reaction"
+msgstr "{emoji} 반응 제거"
 
 #: src/components/BookmarkButton.tsx:150
 #: src/components/BookmarkButton.tsx:151
@@ -4559,7 +4568,7 @@ msgstr "삭제된 줄:"
 msgid "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 msgstr "생성된 지 충분히 오래되었고 프로필 사진, 단문, 게시글 초고, 게시글에 더 이상 첨부되어 있지 않은 저장된 미디어를 제거합니다."
 
-#: src/components/EmojiReactionPopover.tsx:103
+#: src/components/createReactionToggle.ts:244
 msgid "Removing reaction…"
 msgstr "반응을 제거하는 중…"
 
@@ -4594,11 +4603,11 @@ msgid "Replies"
 msgstr "댓글"
 
 #: src/components/NoteComposeModal.tsx:82
-#: src/components/PostEngagementBar.tsx:441
+#: src/components/PostEngagementBar.tsx:456
 msgid "Reply"
 msgstr "댓글"
 
-#: src/components/PostEngagementBar.tsx:442
+#: src/components/PostEngagementBar.tsx:457
 msgid "Replying is not available for this post"
 msgstr "이 콘텐츠에는 댓글을 달 수 없습니다"
 
@@ -4921,11 +4930,11 @@ msgstr "설정"
 msgid "Settings saved"
 msgstr "설정을 저장했습니다"
 
-#: src/components/PostEngagementBar.tsx:695
+#: src/components/PostEngagementBar.tsx:698
 msgid "Share"
 msgstr "공유"
 
-#: src/components/PostEngagementBar.tsx:687
+#: src/components/PostEngagementBar.tsx:690
 msgid "Share or quote"
 msgstr "공유 또는 인용"
 
@@ -4951,15 +4960,15 @@ msgstr "이 이야기에 의견을 남겨 보세요…"
 msgid "Shares"
 msgstr "공유"
 
-#: src/components/PostEngagementBar.tsx:686
+#: src/components/PostEngagementBar.tsx:689
 msgid "Sharing and quoting are not available for this post"
 msgstr "이 콘텐츠는 공유하거나 인용할 수 없습니다."
 
-#: src/components/PostEngagementBar.tsx:694
+#: src/components/PostEngagementBar.tsx:697
 msgid "Sharing is not available for this post"
 msgstr "이 콘텐츠는 공유할 수 없습니다."
 
-#: src/components/PostEngagementBar.tsx:681
+#: src/components/PostEngagementBar.tsx:684
 msgid "Sharing…"
 msgstr "공유 중…"
 
@@ -5874,17 +5883,11 @@ msgstr "조직 삭제를 확인하려면 {0}을 입력하세요."
 msgid "Type tags separated by spaces"
 msgstr "공백으로 구분된 태그 입력"
 
-#: src/components/EmojiReactionPopover.tsx:317
-#: src/components/EmojiReactionPopover.tsx:327
-#: src/components/EmojiReactionPopover.tsx:482
-#: src/components/EmojiReactionPopover.tsx:492
+#: src/components/createReactionToggle.ts:258
 msgid "Unable to add reaction. Please try again."
 msgstr "반응을 추가할 수 없습니다. 다시 시도해주세요."
 
-#: src/components/EmojiReactionPopover.tsx:216
-#: src/components/EmojiReactionPopover.tsx:226
-#: src/components/EmojiReactionPopover.tsx:410
-#: src/components/EmojiReactionPopover.tsx:420
+#: src/components/createReactionToggle.ts:257
 msgid "Unable to remove reaction. Please try again."
 msgstr "반응을 제거할 수 없습니다. 다시 시도해주세요."
 
@@ -5921,11 +5924,11 @@ msgstr "프로필에서 고정 해제"
 msgid "Unread"
 msgstr "읽지 않음"
 
-#: src/components/PostEngagementBar.tsx:692
+#: src/components/PostEngagementBar.tsx:695
 msgid "Unshare"
 msgstr "공유 취소"
 
-#: src/components/PostEngagementBar.tsx:681
+#: src/components/PostEngagementBar.tsx:684
 msgid "Unsharing…"
 msgstr "공유 취소 중…"
 
@@ -6066,17 +6069,17 @@ msgid "View organization"
 msgstr "조직 보기"
 
 #: src/components/PostActionMenu.tsx:450
-#: src/components/PostEngagementBar.tsx:753
+#: src/components/PostEngagementBar.tsx:756
 msgid "View quotes"
 msgstr "인용 보기"
 
 #: src/components/PostActionMenu.tsx:456
-#: src/components/PostEngagementBar.tsx:535
+#: src/components/PostEngagementBar.tsx:538
 msgid "View reactions"
 msgstr "반응 보기"
 
 #: src/components/PostActionMenu.tsx:436
-#: src/components/PostEngagementBar.tsx:443
+#: src/components/PostEngagementBar.tsx:458
 msgid "View replies"
 msgstr "댓글 보기"
 
@@ -6085,7 +6088,7 @@ msgid "View request"
 msgstr "요청 보기"
 
 #: src/components/PostActionMenu.tsx:444
-#: src/components/PostEngagementBar.tsx:752
+#: src/components/PostEngagementBar.tsx:755
 msgid "View shares"
 msgstr "공유 보기"
 
