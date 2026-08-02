@@ -202,11 +202,14 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
         </svg>
       </button>
       <Show when={open()}>
-        {/* transition-none is load-bearing: duration-200/ease-* feed the
-            entrance animation through --tw-duration/--tw-ease but also set
-            transition-duration/-timing-function, and with the default
-            transition-property of `all` the JS-assigned left/top would
-            otherwise animate from (0,0) on open (a visible fly-in). */}
+        {/* transition-none is load-bearing here and on the buttons below:
+            the duration and ease utilities feed the entrance animation
+            through --tw-duration/--tw-ease but also set transition-duration
+            and -timing-function, and with the default transition-property of
+            `all` the JS-assigned left/top would animate from (0,0) on open
+            (a visible fly-in) and the buttons' hover background-color would
+            transition with the overshooting entrance ease, which extrapolates
+            past the accent color and flashes white on light backgrounds. */}
         <div
           ref={row}
           role="group"
@@ -227,7 +230,7 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
               return (
                 <button
                   type="button"
-                  class="group relative flex size-9 items-center justify-center rounded-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-safe:animate-in motion-safe:zoom-in-50 motion-safe:slide-in-from-bottom-2 motion-safe:fill-mode-backwards motion-safe:duration-300 motion-safe:ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+                  class="group relative flex size-9 items-center justify-center rounded-full cursor-pointer transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-safe:animate-in motion-safe:zoom-in-50 motion-safe:slide-in-from-bottom-2 motion-safe:fill-mode-backwards motion-safe:duration-300 motion-safe:ease-[cubic-bezier(0.34,1.56,0.64,1)]"
                   style={{ "animation-delay": `${index() * 25}ms` }}
                   classList={{
                     "bg-red-50 ring-1 ring-red-300 dark:bg-red-950/40 dark:ring-red-800":
@@ -275,7 +278,7 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
             <div class="mx-0.5 h-5 w-px bg-border" aria-hidden="true" />
             <button
               type="button"
-              class="flex size-9 items-center justify-center rounded-full text-muted-foreground cursor-pointer hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-safe:animate-in motion-safe:zoom-in-50 motion-safe:slide-in-from-bottom-2 motion-safe:fill-mode-backwards motion-safe:duration-300 motion-safe:ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+              class="flex size-9 items-center justify-center rounded-full text-muted-foreground cursor-pointer transition-none hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-safe:animate-in motion-safe:zoom-in-50 motion-safe:slide-in-from-bottom-2 motion-safe:fill-mode-backwards motion-safe:duration-300 motion-safe:ease-[cubic-bezier(0.34,1.56,0.64,1)]"
               style={{ "animation-delay": `${REACTION_EMOJIS.length * 25}ms` }}
               aria-label={t`More reactions`}
               title={t`More reactions`}
