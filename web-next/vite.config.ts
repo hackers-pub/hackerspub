@@ -47,6 +47,37 @@ export default defineConfig(() => ({
   // load the maps, and server bundles keep theirs so Node can map production
   // stack traces when started with `--enable-source-maps`.
   build: { sourcemap: true },
+  // SolidStart's route manifest and the devtools virtual module hide these
+  // imports from Vite's initial scan. Prebundle them together so cold starts
+  // do not replace Solid's shared chunks while hydration is in progress.
+  optimizeDeps: {
+    include: [
+      "@hackerspub/models > @std/uuid",
+      "@hackerspub/models > @std/uuid/v7",
+      "@lingui/core",
+      "@lingui/solid",
+      "@plausible-analytics/tracker",
+      "@sentry/solidstart",
+      "@sentry/solidstart/solidrouter",
+      "@simplewebauthn/browser",
+      "@solid-primitives/keyed",
+      "class-variance-authority",
+      "clsx",
+      "es-toolkit",
+      "regexp.escape",
+      "relay-runtime",
+      "solid-devtools/setup",
+      "solid-js",
+      "solid-js/h",
+      "solid-js/html",
+      "solid-js/jsx-dev-runtime",
+      "solid-js/store",
+      "solid-js/web",
+      "solid-relay",
+      "tailwind-merge",
+      "tinyld/light",
+    ],
+  },
   plugins: [
     solidStart({
       middleware: "src/middleware.ts",
