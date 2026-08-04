@@ -9,6 +9,13 @@ import {
   type PopoverPosition,
 } from "~/lib/popoverPosition.ts";
 import { createViewportReposition } from "~/lib/viewportReposition.ts";
+import {
+  INITIAL_GESTURE,
+  LONG_PRESS_DELAY,
+  type QuickReactionGestureEffect,
+  type QuickReactionGestureEvent,
+  reduceQuickReactionGesture,
+} from "./quickReactionGesture.ts";
 
 export interface QuickReactionGroup {
   readonly emoji: string;
@@ -54,11 +61,6 @@ export interface QuickReactionBarProps {
 // between the trigger and the floating bar.
 const OPEN_DELAY = 100;
 const CLOSE_DELAY = 300;
-// Touch analogue of hover intent: holding the heart this long reveals
-// the bar while the finger is still down.  Comfortably above a tap
-// (~100-200 ms) and below the system long-press (~500 ms) that the
-// wrapper's touch-callout/select suppression already keeps quiet.
-const LONG_PRESS_DELAY = 400;
 
 /**
  * Reaction trigger for the timeline engagement bar.  Hovering the heart
@@ -87,24 +89,15 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
   let row: HTMLDivElement | undefined;
   // scheduleOpen and scheduleClose cancel each other, so a single hover
   // timer models the one pending hover intent; the long-press timer is
-  // separate because pointerup/pointercancel clear only it.
+  // separate because the gesture machine arms and clears only it.
   let hoverTimer: ReturnType<typeof setTimeout> | undefined;
   let longPressTimer: ReturnType<typeof setTimeout> | undefined;
-  // True between a long-press opening the bar and the click the browser
-  // synthesizes when that same touch ends; the click handler consumes it
-  // so the release does not toggle the bar right back shut.
-  let longPressOpened = false;
 
   const cancelTimers = () => {
     clearTimeout(hoverTimer);
     clearTimeout(longPressTimer);
   };
   onCleanup(cancelTimers);
-
-  // Releasing before the threshold (pointerup) and the browser taking
-  // the touch for scrolling (pointercancel) must both stop a pending
-  // long-press from opening the bar.
-  const cancelLongPress = () => clearTimeout(longPressTimer);
 
   const dismiss = () => {
     cancelTimers();
@@ -149,24 +142,60 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
           : null,
       );
     };
-    const onPointerEnd = (event: PointerEvent) => {
-      if (event.pointerId !== pointerId) return;
-      const button = event.type === "pointerup" ? slideButton() : null;
-      endSlideSession();
-      button?.click();
-    };
-    // The listeners live on the trigger, not document: touch events keep
-    // firing on the element the touch started on, and the touch's pointer
-    // events follow via implicit pointer capture, so a second finger
-    // elsewhere on the page keeps ordinary (passive) scrolling.
+    // Only movement needs listening for: the release arrives through the
+    // trigger's own pointerup/pointercancel handlers, which the touch's
+    // implicit pointer capture retargets here even when the finger ends
+    // somewhere else.  They live on the trigger rather than `document` so
+    // the non-passive touchmove cannot slow scrolling for a second finger
+    // elsewhere on the page.
     const { signal } = controller;
     trigger.addEventListener("touchmove", onTouchMove, {
       passive: false,
       signal,
     });
     trigger.addEventListener("pointermove", onPointerMove, { signal });
-    trigger.addEventListener("pointerup", onPointerEnd, { signal });
-    trigger.addEventListener("pointercancel", onPointerEnd, { signal });
+  };
+
+  // The touch gesture's rules live in `reduceQuickReactionGesture`, which
+  // is unit-tested without a browser; this only turns its effects into DOM
+  // work.  The state is a plain variable because nothing renders from it:
+  // the row's visibility is `open` and the highlight is `slideButton`.
+  let gesture = INITIAL_GESTURE;
+
+  const applyGestureEffect = (effect: QuickReactionGestureEffect) => {
+    switch (effect) {
+      case "armLongPress":
+        longPressTimer = setTimeout(
+          () => dispatchGesture({ type: "longPressElapsed" }),
+          LONG_PRESS_DELAY,
+        );
+        return;
+      case "cancelLongPress":
+        clearTimeout(longPressTimer);
+        return;
+      case "openRow":
+        setOpen(true);
+        return;
+      case "beginSlideTracking":
+        if (gesture.pointerId != null) beginSlideSession(gesture.pointerId);
+        return;
+      case "endSlideTracking":
+        endSlideSession();
+        return;
+      case "commitSlideTarget":
+        slideButton()?.click();
+        return;
+      case "toggleRow":
+        cancelTimers();
+        setOpen(!open());
+        return;
+    }
+  };
+
+  const dispatchGesture = (event: QuickReactionGestureEvent) => {
+    const transition = reduceQuickReactionGesture(gesture, event);
+    gesture = transition.state;
+    for (const effect of transition.effects) applyGestureEffect(effect);
   };
 
   const scheduleOpen = () => {
@@ -266,30 +295,24 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
         aria-label={t`React`}
         title={t`React`}
         aria-expanded={open()}
-        onPointerDown={(event) => {
-          longPressOpened = false;
-          if (event.pointerType !== "touch" || props.disabled) return;
-          // Re-arm rather than stack: a second concurrent touch replaces
-          // any pending long-press.
-          cancelLongPress();
-          longPressTimer = setTimeout(() => {
-            longPressOpened = true;
-            setOpen(true);
-            beginSlideSession(event.pointerId);
-          }, LONG_PRESS_DELAY);
-        }}
-        onPointerUp={cancelLongPress}
-        onPointerCancel={cancelLongPress}
-        onClick={() => {
-          if (longPressOpened) {
-            longPressOpened = false;
-            return;
-          }
-          // Tap and keyboard fallback; on mouse this closes the bar
-          // that hover already opened, which reads as a toggle.
-          cancelTimers();
-          setOpen(!open());
-        }}
+        onPointerDown={(event) =>
+          dispatchGesture({
+            type: "pointerDown",
+            pointerType: event.pointerType,
+            pointerId: event.pointerId,
+            disabled: props.disabled === true,
+          })
+        }
+        onPointerUp={(event) =>
+          dispatchGesture({ type: "pointerUp", pointerId: event.pointerId })
+        }
+        onPointerCancel={(event) =>
+          dispatchGesture({ type: "pointerCancel", pointerId: event.pointerId })
+        }
+        // Tap and keyboard fallback; on mouse this closes the bar that
+        // hover already opened, which reads as a toggle.  The gesture
+        // machine drops the click a press-and-hold synthesizes.
+        onClick={() => dispatchGesture({ type: "click" })}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
