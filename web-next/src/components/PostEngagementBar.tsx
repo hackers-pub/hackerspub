@@ -28,7 +28,9 @@ import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
+import { createOutsideDismiss } from "~/lib/outsideDismiss.ts";
 import { getViewportPopoverPosition } from "~/lib/popoverPosition.ts";
+import { createViewportReposition } from "~/lib/viewportReposition.ts";
 import type { PostEngagementBar_post$key } from "./__generated__/PostEngagementBar_post.graphql.ts";
 import type { PostEngagementBar_sharePost_Mutation } from "./__generated__/PostEngagementBar_sharePost_Mutation.graphql.ts";
 import type { PostEngagementBar_unsharePost_Mutation } from "./__generated__/PostEngagementBar_unsharePost_Mutation.graphql.ts";
@@ -232,27 +234,17 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
     // The heart trigger is NOT exempt here: it toggles the quick-pick
     // bar, not the popover, so a click on it while the popover is open
     // should dismiss the popover like any other outside click.
-    const onPointerDown = (event: PointerEvent) => {
-      const target = event.target;
-      if (!(target instanceof Node)) return;
-      if (emojiPopover()?.contains(target)) return;
-      setShowEmojiPopover(false);
-    };
+    createOutsideDismiss(emojiPopover, () => setShowEmojiPopover(false));
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setShowEmojiPopover(false);
     };
     const updateFromCurrentTrigger = () => {
       if (!updateEmojiPopoverPosition()) setShowEmojiPopover(false);
     };
-    window.addEventListener("resize", updateFromCurrentTrigger);
-    window.addEventListener("scroll", updateFromCurrentTrigger, true);
-    document.addEventListener("pointerdown", onPointerDown);
+    createViewportReposition(updateFromCurrentTrigger);
     document.addEventListener("keydown", onKeyDown);
     onCleanup(() => {
       resizeObserver?.disconnect();
-      window.removeEventListener("resize", updateFromCurrentTrigger);
-      window.removeEventListener("scroll", updateFromCurrentTrigger, true);
-      document.removeEventListener("pointerdown", onPointerDown);
       document.removeEventListener("keydown", onKeyDown);
     });
   });
