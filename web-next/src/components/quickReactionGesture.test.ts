@@ -78,6 +78,42 @@ test("a cancelled slide ends without committing", () => {
   assert.deepEqual(state.phase, "idle");
 });
 
+test("dismissing a pending press disarms it", () => {
+  const { state, effects } = run([
+    touchDown(),
+    { type: "dismiss" },
+    { type: "longPressElapsed" },
+  ]);
+  assert.ok(!effects.includes("openRow"));
+  assert.deepEqual(effects.at(-1), "cancelLongPress");
+  assert.deepEqual(state, INITIAL_GESTURE);
+});
+
+test("dismissing a slide ends tracking without committing", () => {
+  const { state, effects } = run([
+    touchDown(),
+    { type: "longPressElapsed" },
+    { type: "dismiss" },
+    { type: "pointerUp", pointerId: 1 },
+  ]);
+  assert.ok(!effects.includes("commitSlideTarget"));
+  assert.deepEqual(effects.slice(-2), ["cancelLongPress", "endSlideTracking"]);
+  assert.deepEqual(state.phase, "idle");
+  assert.deepEqual(state.pointerId, null);
+});
+
+test("the synthesized click after a dismissed slide stays swallowed", () => {
+  const { state, effects } = run([
+    touchDown(),
+    { type: "longPressElapsed" },
+    { type: "dismiss" },
+    { type: "pointerUp", pointerId: 1 },
+    { type: "click" },
+  ]);
+  assert.ok(!effects.includes("toggleRow"));
+  assert.deepEqual(state, INITIAL_GESTURE);
+});
+
 test("releasing before the threshold disarms the timer and commits nothing", () => {
   const { state, effects } = run([
     touchDown(),
