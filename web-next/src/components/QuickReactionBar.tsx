@@ -353,7 +353,7 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
           ref={row}
           role="group"
           aria-label={t`Quick reactions`}
-          class="fixed z-50 flex origin-bottom items-center gap-0.5 rounded-full border bg-popover p-1 shadow-lg transition-none motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-90 motion-safe:slide-in-from-bottom-1 motion-safe:duration-200 motion-safe:ease-[cubic-bezier(0.19,1,0.22,1)]"
+          class="fixed z-50 flex origin-bottom items-center gap-0.5 rounded-full border bg-popover p-1 shadow-sm transition-none motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-90 motion-safe:slide-in-from-bottom-1 motion-safe:duration-200 motion-safe:ease-[cubic-bezier(0.19,1,0.22,1)]"
           style={{
             left: `${rowPosition()?.left ?? 0}px`,
             top: `${rowPosition()?.top ?? 0}px`,
