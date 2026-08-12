@@ -100,7 +100,8 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
   onCleanup(cancelTimers);
 
   const dismiss = () => {
-    cancelTimers();
+    clearTimeout(hoverTimer);
+    dispatchGesture({ type: "dismiss" });
     setOpen(false);
   };
 

@@ -64,6 +64,7 @@ export type QuickReactionGestureEvent =
   | { readonly type: "longPressElapsed" }
   | { readonly type: "pointerUp"; readonly pointerId: number }
   | { readonly type: "pointerCancel"; readonly pointerId: number }
+  | { readonly type: "dismiss" }
   | { readonly type: "click" };
 
 /**
@@ -158,6 +159,23 @@ export function reduceQuickReactionGesture(
           event.type === "pointerUp"
             ? ["commitSlideTarget", "endSlideTracking"]
             : ["endSlideTracking"],
+      };
+    }
+
+    case "dismiss": {
+      return {
+        state: {
+          phase: "idle",
+          pointerId: null,
+          // A dismissed long press can still produce a synthesized click when
+          // its original finger lifts.  Preserve the swallow so that click
+          // cannot reopen the row that dismissal just closed.
+          swallowNextClick: state.swallowNextClick,
+        },
+        effects:
+          state.phase === "sliding"
+            ? ["cancelLongPress", "endSlideTracking"]
+            : ["cancelLongPress"],
       };
     }
 
