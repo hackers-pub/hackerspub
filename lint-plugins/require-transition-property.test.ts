@@ -127,6 +127,42 @@ test("does NOT flag a variant-prefixed transition property", () => {
   assert.deepEqual(diagnostics.length, 0);
 });
 
+test("flags a transition property in an unrelated variant scope", () => {
+  const diagnostics = lint(`
+    export const Badge = () => (
+      <span class="motion-safe:duration-300 motion-reduce:transition-none">1</span>
+    );
+  `);
+  assert.deepEqual(diagnostics.length, 1);
+});
+
+test("flags a transition property in a narrower variant scope", () => {
+  const diagnostics = lint(`
+    export const Badge = () => (
+      <span class="motion-safe:duration-300 motion-safe:hover:transition-none">1</span>
+    );
+  `);
+  assert.deepEqual(diagnostics.length, 1);
+});
+
+test("does NOT flag a broader unprefixed transition property", () => {
+  const diagnostics = lint(`
+    export const Badge = () => (
+      <span class="transition-none motion-safe:duration-300">1</span>
+    );
+  `);
+  assert.deepEqual(diagnostics.length, 0);
+});
+
+test("does NOT flag a transition property in a broader variant scope", () => {
+  const diagnostics = lint(`
+    export const Badge = () => (
+      <span class="dark:transition-none dark:motion-safe:duration-300">1</span>
+    );
+  `);
+  assert.deepEqual(diagnostics.length, 0);
+});
+
 // `transition-behavior`, not `transition-property`: it leaves the initial
 // `all` in place, so it must not satisfy the rule.
 test("flags transition-discrete standing in for a property list", () => {

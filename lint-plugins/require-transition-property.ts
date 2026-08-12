@@ -26,7 +26,9 @@
 // Scope and deliberate blind spots:
 //
 //   - Only JSX elements are checked, and `class` / `className` / `classList`
-//     are read together, so a `transition-*` in either one satisfies the rule.
+//     are read together.  A `transition-*` satisfies timing utilities only in
+//     the same or a broader variant scope: `transition-none` covers
+//     `motion-safe:duration-300`, but `motion-reduce:transition-none` does not.
 //   - An element whose classes cannot be read statically (a variable, a call,
 //     a template literal with interpolation, a spread attribute) is skipped
 //     entirely rather than guessed at: the missing piece could be the very
@@ -66,16 +68,23 @@ function stringValue(node: Node): string | null {
  * variants; the ones inside `ease-[cubic-bezier(...)]` or `[&:hover]:` belong
  * to the value.
  */
-function baseUtility(token: string): string {
+function parseUtility(token: string): {
+  readonly base: string;
+  readonly variants: readonly string[];
+} {
   let depth = 0;
-  let lastSeparator = -1;
+  let segmentStart = 0;
+  const variants: string[] = [];
   for (let index = 0; index < token.length; index++) {
     const character = token[index];
     if (character === "[" || character === "(") depth++;
     else if (character === "]" || character === ")") depth--;
-    else if (character === ":" && depth === 0) lastSeparator = index;
+    else if (character === ":" && depth === 0) {
+      variants.push(token.slice(segmentStart, index));
+      segmentStart = index + 1;
+    }
   }
-  return token.slice(lastSeparator + 1);
+  return { base: token.slice(segmentStart), variants };
 }
 
 /** `duration-*` and `ease-*` both set a `transition-*` timing longhand. */
@@ -89,10 +98,16 @@ function setsTransitionProperty(base: string): boolean {
   return !TRANSITION_BEHAVIOR.has(base);
 }
 
+interface ScopedUtility {
+  readonly attribute: Node;
+  readonly variants: readonly string[];
+}
+
 interface Scan {
-  /** An attribute holding a timing utility, for the report location. */
-  timingAttribute: Node | null;
-  hasTransitionProperty: boolean;
+  /** Timing utilities and their variant constraints. */
+  timings: ScopedUtility[];
+  /** Variant constraints for every explicit transition property utility. */
+  transitions: Array<readonly string[]>;
   /** Some class source could not be read, so the scan is inconclusive. */
   opaque: boolean;
 }
@@ -100,12 +115,26 @@ interface Scan {
 function scanTokens(source: string, attribute: Node, scan: Scan): void {
   for (const token of source.split(/\s+/)) {
     if (token === "") continue;
-    const base = baseUtility(token);
-    if (setsTransitionProperty(base)) scan.hasTransitionProperty = true;
-    else if (setsTiming(base) && scan.timingAttribute == null) {
-      scan.timingAttribute = attribute;
-    }
+    const { base, variants } = parseUtility(token);
+    if (setsTransitionProperty(base)) scan.transitions.push(variants);
+    else if (setsTiming(base)) scan.timings.push({ attribute, variants });
   }
+}
+
+/**
+ * Variant prefixes act as constraints.  A transition property covers a
+ * timing utility when every one of its constraints is also present on that
+ * timing utility.  The empty scope therefore covers all variants, while
+ * `dark:transition-colors` covers `dark:hover:duration-150` but not the
+ * unrelated `motion-safe:duration-150`.
+ */
+function transitionCoversTiming(
+  transitionVariants: readonly string[],
+  timingVariants: readonly string[],
+): boolean {
+  return transitionVariants.every((variant) =>
+    timingVariants.includes(variant),
+  );
 }
 
 function scanClassAttribute(attribute: Node, scan: Scan): void {
@@ -184,8 +213,8 @@ const plugin = {
         return {
           JSXOpeningElement(node: Node) {
             const scan: Scan = {
-              timingAttribute: null,
-              hasTransitionProperty: false,
+              timings: [],
+              transitions: [],
               opaque: false,
             };
             for (const attribute of node.attributes ?? []) {
@@ -204,9 +233,14 @@ const plugin = {
               }
             }
             if (scan.opaque) return;
-            if (scan.hasTransitionProperty) return;
-            if (scan.timingAttribute == null) return;
-            context.report({ node: scan.timingAttribute, message: MESSAGE });
+            const uncovered = scan.timings.find(
+              (timing) =>
+                !scan.transitions.some((transition) =>
+                  transitionCoversTiming(transition, timing.variants),
+                ),
+            );
+            if (uncovered == null) return;
+            context.report({ node: uncovered.attribute, message: MESSAGE });
           },
         };
       },
