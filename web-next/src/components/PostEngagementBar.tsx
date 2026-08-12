@@ -3,6 +3,7 @@ import { A } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import {
   createEffect,
+  createMemo,
   createSignal,
   onCleanup,
   onMount,
@@ -371,30 +372,31 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
     }
   };
 
-  const sortedReactionGroups = () => {
+  const reactionToggle = createReactionToggle(() => note());
+
+  const sortedReactionGroups = createMemo(() => {
     const noteData = note();
     return sortReactionGroups(noteData?.reactionGroups || []);
-  };
-
-  const reactionToggle = createReactionToggle(() => note());
+  });
 
   // Unicode emoji groups for the quick-pick bar; custom emoji groups are
   // reachable through the full picker only.
-  const quickReactions = () =>
+  const quickReactions = createMemo(() =>
     sortedReactionGroups()
       .filter((group) => group.emoji != null)
       .map((group) => ({
         emoji: group.emoji as string,
         count: group.reactors?.totalCount ?? 0,
         viewerHasReacted: group.reactors?.viewerHasReacted === true,
-      }));
+      })),
+  );
 
   const pendingQuickEmoji = () => {
     const pending = reactionToggle.pendingReaction();
     return pending?.kind === "emoji" ? pending.id : null;
   };
 
-  const reactionPopoverData = () => {
+  const reactionPopoverData = createMemo(() => {
     const noteData = note();
     if (!noteData) return null;
     return {
@@ -418,16 +420,16 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
               },
       })),
     };
-  };
+  });
 
-  const userHasReacted = () => {
+  const userHasReacted = createMemo(() => {
     const noteData = note();
     return (
       noteData?.reactionGroups.some(
         (group) => group.reactors?.viewerHasReacted,
       ) ?? false
     );
-  };
+  });
 
   return (
     <Show keyed when={note()}>

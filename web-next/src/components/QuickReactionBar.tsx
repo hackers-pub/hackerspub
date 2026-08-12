@@ -1,5 +1,12 @@
 import { REACTION_EMOJIS } from "@hackerspub/models/emoji";
-import { createEffect, createSignal, For, onCleanup, Show } from "solid-js";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  onCleanup,
+  Show,
+} from "solid-js";
 import IconLoader2 from "~icons/lucide/loader-2";
 import IconSmilePlus from "~icons/lucide/smile-plus";
 import { useLingui } from "~/lib/i18n/macro.ts";
@@ -236,8 +243,10 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
     createViewportReposition(updatePosition);
   });
 
-  const groupFor = (emoji: string) =>
-    props.reactions.find((group) => group.emoji === emoji);
+  const reactionsByEmoji = createMemo(
+    () => new Map(props.reactions.map((group) => [group.emoji, group])),
+  );
+  const groupFor = (emoji: string) => reactionsByEmoji().get(emoji);
   const userHasReacted = () =>
     props.viewerHasReacted ??
     props.reactions.some((group) => group.viewerHasReacted);
