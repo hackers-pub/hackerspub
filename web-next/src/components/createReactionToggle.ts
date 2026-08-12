@@ -10,6 +10,10 @@ import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import type { createReactionToggleAddMutation } from "./__generated__/createReactionToggleAddMutation.graphql.ts";
 import type { createReactionToggleRemoveMutation } from "./__generated__/createReactionToggleRemoveMutation.graphql.ts";
+import {
+  type ReactionMutationAction,
+  reactionMutationSucceeded,
+} from "./reactionMutationResult.ts";
 
 /**
  * A reaction the viewer wants to toggle: either a unicode `emoji` (the
@@ -21,7 +25,7 @@ export interface ReactionTarget {
 }
 
 export interface PendingReaction extends ReactionTarget {
-  readonly action: "add" | "remove";
+  readonly action: ReactionMutationAction;
 }
 
 /**
@@ -59,6 +63,7 @@ export interface ReactionToggle {
 const addReactionToPostMutation = graphql`
   mutation createReactionToggleAddMutation($input: AddReactionToPostInput!) {
     addReactionToPost(input: $input) {
+      __typename
       ... on AddReactionToPostPayload {
         reaction {
           id
@@ -79,6 +84,7 @@ const removeReactionFromPostMutation = graphql`
     $input: RemoveReactionFromPostInput!
   ) {
     removeReactionFromPost(input: $input) {
+      __typename
       ... on RemoveReactionFromPostPayload {
         success
       }
@@ -295,13 +301,17 @@ export function createReactionToggle(
     if (action === "remove") {
       commitRemoveReaction({
         variables: { input },
-        updater: (store) => applyRemove(store, postId, target, actingAccountId),
+        updater: (store, result) => {
+          if (
+            reactionMutationSucceeded("remove", result?.removeReactionFromPost)
+          ) {
+            applyRemove(store, postId, target, actingAccountId);
+          }
+        },
         onCompleted: (result) => {
           clearPending();
           if (
-            !result.removeReactionFromPost ||
-            !("success" in result.removeReactionFromPost) ||
-            !result.removeReactionFromPost.success
+            !reactionMutationSucceeded("remove", result.removeReactionFromPost)
           ) {
             showFailureToast("remove");
           }
@@ -315,14 +325,14 @@ export function createReactionToggle(
     } else {
       commitAddReaction({
         variables: { input },
-        updater: (store) => applyAdd(store, postId, target, actingAccountId),
+        updater: (store, result) => {
+          if (reactionMutationSucceeded("add", result?.addReactionToPost)) {
+            applyAdd(store, postId, target, actingAccountId);
+          }
+        },
         onCompleted: (result) => {
           clearPending();
-          if (
-            !result.addReactionToPost ||
-            !("reaction" in result.addReactionToPost) ||
-            !result.addReactionToPost.reaction
-          ) {
+          if (!reactionMutationSucceeded("add", result.addReactionToPost)) {
             showFailureToast("add");
           }
         },
