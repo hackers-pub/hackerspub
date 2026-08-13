@@ -650,7 +650,7 @@ msgstr "在這裡新增舊帳戶。Hackers' Pub 會將它公開為屬於你的�
 msgid "Add to sidebar"
 msgstr "新增至側邊欄"
 
-#: src/components/createReactionToggle.ts:225
+#: src/components/createReactionToggle.ts:239
 msgid "Adding reaction…"
 msgstr "正在新增反應…"
 
@@ -1460,6 +1460,10 @@ msgstr "裁剪你的新頭像"
 msgid "Current username"
 msgstr "目前使用者名稱"
 
+#: src/components/QuickReactionBar.tsx:531
+msgid "Custom emoji"
+msgstr "自訂表情符號"
+
 #: src/routes/(root)/admin/invitations.tsx:175
 #: src/routes/(root)/admin/media.tsx:165
 msgid "Cutoff:"
@@ -2010,7 +2014,7 @@ msgstr "無法靜音此使用者"
 msgid "Failed to pin post"
 msgstr "無法釘選內容"
 
-#: src/components/createReactionToggle.ts:229
+#: src/components/createReactionToggle.ts:243
 msgid "Failed to react"
 msgstr "反應失敗"
 
@@ -2093,8 +2097,8 @@ msgstr "傳送郵件失敗"
 msgid "Failed to send invitation"
 msgstr "發送邀請失敗"
 
-#: src/components/PostEngagementBar.tsx:220
-#: src/components/PostEngagementBar.tsx:227
+#: src/components/PostEngagementBar.tsx:225
+#: src/components/PostEngagementBar.tsx:232
 msgid "Failed to share post"
 msgstr "轉貼失敗"
 
@@ -2137,8 +2141,8 @@ msgstr "無法解除靜音此使用者"
 msgid "Failed to unpin post"
 msgstr "無法取消釘選內容"
 
-#: src/components/PostEngagementBar.tsx:202
-#: src/components/PostEngagementBar.tsx:209
+#: src/components/PostEngagementBar.tsx:207
+#: src/components/PostEngagementBar.tsx:214
 msgid "Failed to unshare post"
 msgstr "取消轉貼失敗"
 
@@ -3090,8 +3094,9 @@ msgstr "審核案件"
 #~ msgid "More engagement views"
 #~ msgstr "查看其他反應"
 
-#: src/components/QuickReactionBar.tsx:275
-#: src/components/QuickReactionBar.tsx:276
+#: src/components/QuickReactionBar.tsx:666
+#: src/components/QuickReactionBar.tsx:667
+#: src/components/QuickReactionBar.tsx:679
 #~ msgid "More reactions"
 #~ msgstr "更多反應"
 
@@ -3936,7 +3941,7 @@ msgstr "QR 碼"
 msgid "Query cannot be empty"
 msgstr "搜尋關鍵詞不能為空"
 
-#: src/components/QuickReactionBar.tsx:346
+#: src/components/QuickReactionBar.tsx:445
 msgid "Quick reactions"
 msgstr "快速反應"
 
@@ -3947,7 +3952,7 @@ msgid "Quiet public"
 msgstr "悄悄公開"
 
 #: src/components/NoteComposeModal.tsx:83
-#: src/components/PostEngagementBar.tsx:488
+#: src/components/PostEngagementBar.tsx:520
 #: src/components/ui/markdown-editor.tsx:297
 msgid "Quote"
 msgstr "引用"
@@ -3975,7 +3980,7 @@ msgstr "引用內容已隱藏"
 msgid "Quotes"
 msgstr "引用"
 
-#: src/components/PostEngagementBar.tsx:488
+#: src/components/PostEngagementBar.tsx:520
 msgid "Quoting is not available for this post"
 msgstr "無法引用此內容。"
 
@@ -3983,13 +3988,15 @@ msgstr "無法引用此內容。"
 msgid "Re-fetch a remote actor or post from its origin server and overwrite the cached copy. Enter a fediverse handle, profile URL, or ActivityPub IRI."
 msgstr "從來源伺服器重新取得遠端帳號或內容，並覆寫快取的副本。請輸入聯邦宇宙使用者名稱、個人檔案 URL 或 ActivityPub IRI。"
 
-#: src/components/QuickReactionBar.tsx:296
-#: src/components/QuickReactionBar.tsx:297
+#: src/components/QuickReactionBar.tsx:398
+#: src/components/QuickReactionBar.tsx:399
 msgid "React"
 msgstr "反應"
 
-#: src/components/QuickReactionBar.tsx:377
-#: src/components/QuickReactionBar.tsx:382
+#: src/components/QuickReactionBar.tsx:491
+#: src/components/QuickReactionBar.tsx:496
+#: src/components/QuickReactionBar.tsx:566
+#: src/components/QuickReactionBar.tsx:571
 msgid "React with {emoji}"
 msgstr "用{emoji}反應"
 
@@ -4157,8 +4164,10 @@ msgstr "移除"
 msgid "Remove {alias}"
 msgstr "移除 {alias}"
 
-#: src/components/QuickReactionBar.tsx:376
-#: src/components/QuickReactionBar.tsx:381
+#: src/components/QuickReactionBar.tsx:490
+#: src/components/QuickReactionBar.tsx:495
+#: src/components/QuickReactionBar.tsx:565
+#: src/components/QuickReactionBar.tsx:570
 msgid "Remove {emoji} reaction"
 msgstr "移除{emoji}反應"
 
@@ -4209,7 +4218,7 @@ msgstr "移除引用"
 msgid "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 msgstr "移除已足夠舊且不再附加到頭像、貼文、文章草稿或文章的已儲存媒體。"
 
-#: src/components/createReactionToggle.ts:224
+#: src/components/createReactionToggle.ts:238
 msgid "Removing reaction…"
 msgstr "正在移除反應…"
 
@@ -4240,11 +4249,11 @@ msgid "Replacement sanction"
 msgstr "替代處置"
 
 #: src/components/NoteComposeModal.tsx:82
-#: src/components/PostEngagementBar.tsx:286
+#: src/components/PostEngagementBar.tsx:314
 msgid "Reply"
 msgstr "回覆"
 
-#: src/components/PostEngagementBar.tsx:287
+#: src/components/PostEngagementBar.tsx:315
 msgid "Replying is not available for this post"
 msgstr "無法回覆此內容"
 
@@ -4530,11 +4539,11 @@ msgstr "設定"
 msgid "Settings saved"
 msgstr "設定已儲存"
 
-#: src/components/PostEngagementBar.tsx:475
+#: src/components/PostEngagementBar.tsx:507
 msgid "Share"
 msgstr "轉貼"
 
-#: src/components/PostEngagementBar.tsx:467
+#: src/components/PostEngagementBar.tsx:499
 msgid "Share or quote"
 msgstr "轉貼或引用"
 
@@ -4559,15 +4568,15 @@ msgstr "分享你對這個話題的看法…"
 msgid "Shares"
 msgstr "轉貼"
 
-#: src/components/PostEngagementBar.tsx:466
+#: src/components/PostEngagementBar.tsx:498
 msgid "Sharing and quoting are not available for this post"
 msgstr "無法轉貼或引用此內容。"
 
-#: src/components/PostEngagementBar.tsx:474
+#: src/components/PostEngagementBar.tsx:506
 msgid "Sharing is not available for this post"
 msgstr "無法轉貼此內容。"
 
-#: src/components/PostEngagementBar.tsx:461
+#: src/components/PostEngagementBar.tsx:493
 msgid "Sharing…"
 msgstr "正在轉貼…"
 
@@ -5357,11 +5366,11 @@ msgstr "輸入 {0} 以確認刪除組織。"
 msgid "Type tags separated by spaces"
 msgstr "輸入標籤，用空格分隔"
 
-#: src/components/createReactionToggle.ts:233
+#: src/components/createReactionToggle.ts:247
 msgid "Unable to add reaction. Please try again."
 msgstr "無法新增反應。請重試。"
 
-#: src/components/createReactionToggle.ts:232
+#: src/components/createReactionToggle.ts:246
 msgid "Unable to remove reaction. Please try again."
 msgstr "無法移除反應。請重試。"
 
@@ -5398,11 +5407,11 @@ msgstr "從個人資料取消釘選"
 msgid "Unread"
 msgstr "未讀"
 
-#: src/components/PostEngagementBar.tsx:472
+#: src/components/PostEngagementBar.tsx:504
 msgid "Unshare"
 msgstr "取消轉貼"
 
-#: src/components/PostEngagementBar.tsx:461
+#: src/components/PostEngagementBar.tsx:493
 msgid "Unsharing…"
 msgstr "正在取消轉貼…"
 
@@ -5539,17 +5548,17 @@ msgid "View organization"
 msgstr "查看組織"
 
 #: src/components/PostActionMenu.tsx:430
-#: src/components/PostEngagementBar.tsx:533
+#: src/components/PostEngagementBar.tsx:565
 msgid "View quotes"
 msgstr "查看引用"
 
 #: src/components/PostActionMenu.tsx:436
-#: src/components/PostEngagementBar.tsx:330
+#: src/components/PostEngagementBar.tsx:362
 msgid "View reactions"
 msgstr "查看反應"
 
 #: src/components/PostActionMenu.tsx:416
-#: src/components/PostEngagementBar.tsx:288
+#: src/components/PostEngagementBar.tsx:316
 msgid "View replies"
 msgstr "查看回覆"
 
@@ -5558,7 +5567,7 @@ msgid "View request"
 msgstr "查看請求"
 
 #: src/components/PostActionMenu.tsx:424
-#: src/components/PostEngagementBar.tsx:532
+#: src/components/PostEngagementBar.tsx:564
 msgid "View shares"
 msgstr "查看轉貼"
 

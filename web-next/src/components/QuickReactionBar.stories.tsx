@@ -5,6 +5,7 @@ import IconEllipsis from "~icons/lucide/ellipsis";
 import IconMessageSquare from "~icons/lucide/message-square";
 import IconRepeat2 from "~icons/lucide/repeat-2";
 import {
+  type CustomQuickReactionGroup,
   QuickReactionBar,
   type QuickReactionGroup,
 } from "./QuickReactionBar.tsx";
@@ -17,6 +18,42 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+function customEmojiSvg(symbol: string, background: string): string {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="${background}"/><text x="16" y="22" text-anchor="middle" font-size="19">${symbol}</text></svg>`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+
+const exampleCustomReactions: CustomQuickReactionGroup[] = [
+  {
+    id: "custom-yay",
+    name: ":yay:",
+    imageUrl: customEmojiSvg("✨", "#dbeafe"),
+    count: 6,
+    viewerHasReacted: false,
+  },
+  {
+    id: "custom-coffee",
+    name: ":coffee_party:",
+    imageUrl: customEmojiSvg("☕", "#fef3c7"),
+    count: 2,
+    viewerHasReacted: true,
+  },
+  {
+    id: "custom-meow",
+    name: ":meow_hug:",
+    imageUrl: customEmojiSvg("🐈", "#fce7f3"),
+    count: 1,
+    viewerHasReacted: false,
+  },
+  {
+    id: "custom-ship",
+    name: ":ship_it:",
+    imageUrl: customEmojiSvg("🚀", "#dcfce7"),
+    count: 4,
+    viewerHasReacted: false,
+  },
+];
+
 /**
  * Stateful harness so the stories demonstrate the multi-reaction flow:
  * toggling an emoji updates counts and the selected highlight without
@@ -25,11 +62,15 @@ type Story = StoryObj<typeof meta>;
  */
 function InteractiveQuickReactionBar(props: {
   initialReactions?: QuickReactionGroup[];
+  initialCustomReactions?: CustomQuickReactionGroup[];
   disabled?: boolean;
 }) {
   const [reactions, setReactions] = createSignal<QuickReactionGroup[]>(
     props.initialReactions ?? [],
   );
+  const [customReactions, setCustomReactions] = createSignal<
+    CustomQuickReactionGroup[]
+  >(props.initialCustomReactions ?? []);
 
   const handleToggle = (emoji: string) => {
     setReactions((current) => {
@@ -55,18 +96,39 @@ function InteractiveQuickReactionBar(props: {
     });
   };
 
+  const handleCustomToggle = (id: string) => {
+    setCustomReactions((current) =>
+      current.flatMap((group) => {
+        if (group.id !== id) return [group];
+        if (group.viewerHasReacted && group.count <= 1) return [];
+        return [
+          {
+            ...group,
+            count: group.count + (group.viewerHasReacted ? -1 : 1),
+            viewerHasReacted: !group.viewerHasReacted,
+          },
+        ];
+      }),
+    );
+  };
+
   const viewerReactions = () =>
     reactions().filter((group) => group.viewerHasReacted);
+  const viewerCustomReactions = () =>
+    customReactions().filter((group) => group.viewerHasReacted);
   const totalCount = () =>
-    reactions().reduce((sum, group) => sum + group.count, 0);
+    reactions().reduce((sum, group) => sum + group.count, 0) +
+    customReactions().reduce((sum, group) => sum + group.count, 0);
 
   return (
     <div class="space-y-4">
       <div class="inline-flex items-center">
         <QuickReactionBar
           reactions={reactions()}
+          customReactions={customReactions()}
           disabled={props.disabled}
           onToggleReaction={handleToggle}
+          onToggleCustomReaction={handleCustomToggle}
         />
         <span class="px-1 text-xs text-muted-foreground tabular-nums">
           {totalCount()}
@@ -81,6 +143,19 @@ function InteractiveQuickReactionBar(props: {
             </For>
           </Show>
         </p>
+        <Show when={customReactions().length > 0}>
+          <p>
+            You used custom reactions:{" "}
+            <Show
+              when={viewerCustomReactions().length > 0}
+              fallback="(nothing yet)"
+            >
+              <For each={viewerCustomReactions()}>
+                {(group) => <span class="mr-2">{group.name}</span>}
+              </For>
+            </Show>
+          </p>
+        </Show>
       </div>
     </div>
   );
@@ -88,7 +163,7 @@ function InteractiveQuickReactionBar(props: {
 
 /** Headroom so the bar that pops above the trigger is not clipped. */
 function StoryFrame(props: { children: JSX.Element }) {
-  return <div class="pt-20 pl-4">{props.children}</div>;
+  return <div class="pt-32 pl-4">{props.children}</div>;
 }
 
 /**
@@ -119,6 +194,25 @@ export const WithExistingReactions: Story = {
           { emoji: "😂", count: 7, viewerHasReacted: false },
           { emoji: "👀", count: 1, viewerHasReacted: false },
         ]}
+      />
+    </StoryFrame>
+  ),
+};
+
+/**
+ * Posts with existing custom emoji groups show them below the unicode row.
+ * Both sections stay available for consecutive selections without another
+ * navigation step or data request.
+ */
+export const WithCustomReactions: Story = {
+  render: () => (
+    <StoryFrame>
+      <InteractiveQuickReactionBar
+        initialReactions={[
+          { emoji: "❤️", count: 12, viewerHasReacted: true },
+          { emoji: "🎉", count: 3, viewerHasReacted: false },
+        ]}
+        initialCustomReactions={exampleCustomReactions}
       />
     </StoryFrame>
   ),

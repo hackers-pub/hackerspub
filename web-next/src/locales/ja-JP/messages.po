@@ -650,7 +650,7 @@ msgstr "古いアカウントをここに追加してください。Hackers' Pub
 msgid "Add to sidebar"
 msgstr "サイドバーに追加"
 
-#: src/components/createReactionToggle.ts:225
+#: src/components/createReactionToggle.ts:239
 msgid "Adding reaction…"
 msgstr "リアクションを追加中…"
 
@@ -1460,6 +1460,10 @@ msgstr "新しいアイコンを切り抜く"
 msgid "Current username"
 msgstr "現在のユーザー名"
 
+#: src/components/QuickReactionBar.tsx:531
+msgid "Custom emoji"
+msgstr "カスタム絵文字"
+
 #: src/routes/(root)/admin/invitations.tsx:175
 #: src/routes/(root)/admin/media.tsx:165
 msgid "Cutoff:"
@@ -2010,7 +2014,7 @@ msgstr "このユーザーをミュートできませんでした"
 msgid "Failed to pin post"
 msgstr "コンテンツを固定できませんでした"
 
-#: src/components/createReactionToggle.ts:229
+#: src/components/createReactionToggle.ts:243
 msgid "Failed to react"
 msgstr "リアクションに失敗しました"
 
@@ -2093,8 +2097,8 @@ msgstr "メールの送信に失敗しました"
 msgid "Failed to send invitation"
 msgstr "招待状の送信に失敗しました"
 
-#: src/components/PostEngagementBar.tsx:220
-#: src/components/PostEngagementBar.tsx:227
+#: src/components/PostEngagementBar.tsx:225
+#: src/components/PostEngagementBar.tsx:232
 msgid "Failed to share post"
 msgstr "コンテンツの共有に失敗しました"
 
@@ -2137,8 +2141,8 @@ msgstr "このユーザーのミュートを解除できませんでした"
 msgid "Failed to unpin post"
 msgstr "コンテンツの固定を解除できませんでした"
 
-#: src/components/PostEngagementBar.tsx:202
-#: src/components/PostEngagementBar.tsx:209
+#: src/components/PostEngagementBar.tsx:207
+#: src/components/PostEngagementBar.tsx:214
 msgid "Failed to unshare post"
 msgstr "共有の取り消しに失敗しました"
 
@@ -3090,8 +3094,9 @@ msgstr "モデレーションケース"
 #~ msgid "More engagement views"
 #~ msgstr "他のリアクションを見る"
 
-#: src/components/QuickReactionBar.tsx:275
-#: src/components/QuickReactionBar.tsx:276
+#: src/components/QuickReactionBar.tsx:666
+#: src/components/QuickReactionBar.tsx:667
+#: src/components/QuickReactionBar.tsx:679
 #~ msgid "More reactions"
 #~ msgstr "その他のリアクション"
 
@@ -3936,7 +3941,7 @@ msgstr "QRコード"
 msgid "Query cannot be empty"
 msgstr "検索文字列は空にできません"
 
-#: src/components/QuickReactionBar.tsx:346
+#: src/components/QuickReactionBar.tsx:445
 msgid "Quick reactions"
 msgstr "クイックリアクション"
 
@@ -3947,7 +3952,7 @@ msgid "Quiet public"
 msgstr "ひかえめな公開"
 
 #: src/components/NoteComposeModal.tsx:83
-#: src/components/PostEngagementBar.tsx:488
+#: src/components/PostEngagementBar.tsx:520
 #: src/components/ui/markdown-editor.tsx:297
 msgid "Quote"
 msgstr "引用"
@@ -3975,7 +3980,7 @@ msgstr "引用元は非表示です"
 msgid "Quotes"
 msgstr "引用"
 
-#: src/components/PostEngagementBar.tsx:488
+#: src/components/PostEngagementBar.tsx:520
 msgid "Quoting is not available for this post"
 msgstr "このコンテンツは引用できません。"
 
@@ -3983,13 +3988,15 @@ msgstr "このコンテンツは引用できません。"
 msgid "Re-fetch a remote actor or post from its origin server and overwrite the cached copy. Enter a fediverse handle, profile URL, or ActivityPub IRI."
 msgstr "リモートのアカウントまたはコンテンツを配信元サーバーから再取得し、キャッシュされたコピーを上書きします。フェディバースのハンドル、プロフィールURL、またはActivityPub IRIを入力してください。"
 
-#: src/components/QuickReactionBar.tsx:296
-#: src/components/QuickReactionBar.tsx:297
+#: src/components/QuickReactionBar.tsx:398
+#: src/components/QuickReactionBar.tsx:399
 msgid "React"
 msgstr "リアクション"
 
-#: src/components/QuickReactionBar.tsx:377
-#: src/components/QuickReactionBar.tsx:382
+#: src/components/QuickReactionBar.tsx:491
+#: src/components/QuickReactionBar.tsx:496
+#: src/components/QuickReactionBar.tsx:566
+#: src/components/QuickReactionBar.tsx:571
 msgid "React with {emoji}"
 msgstr "{emoji}でリアクション"
 
@@ -4157,8 +4164,10 @@ msgstr "削除"
 msgid "Remove {alias}"
 msgstr "{alias}を削除"
 
-#: src/components/QuickReactionBar.tsx:376
-#: src/components/QuickReactionBar.tsx:381
+#: src/components/QuickReactionBar.tsx:490
+#: src/components/QuickReactionBar.tsx:495
+#: src/components/QuickReactionBar.tsx:565
+#: src/components/QuickReactionBar.tsx:570
 msgid "Remove {emoji} reaction"
 msgstr "{emoji}のリアクションを削除"
 
@@ -4209,7 +4218,7 @@ msgstr "引用を削除"
 msgid "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 msgstr "作成から十分な時間が経過し、アイコン、投稿、記事の下書き、記事のいずれにも添付されていない保存済みメディアを削除します。"
 
-#: src/components/createReactionToggle.ts:224
+#: src/components/createReactionToggle.ts:238
 msgid "Removing reaction…"
 msgstr "リアクションを削除中…"
 
@@ -4240,11 +4249,11 @@ msgid "Replacement sanction"
 msgstr "代替制裁"
 
 #: src/components/NoteComposeModal.tsx:82
-#: src/components/PostEngagementBar.tsx:286
+#: src/components/PostEngagementBar.tsx:314
 msgid "Reply"
 msgstr "返信"
 
-#: src/components/PostEngagementBar.tsx:287
+#: src/components/PostEngagementBar.tsx:315
 msgid "Replying is not available for this post"
 msgstr "このコンテンツには返信できません"
 
@@ -4530,11 +4539,11 @@ msgstr "設定"
 msgid "Settings saved"
 msgstr "設定を保存しました"
 
-#: src/components/PostEngagementBar.tsx:475
+#: src/components/PostEngagementBar.tsx:507
 msgid "Share"
 msgstr "共有"
 
-#: src/components/PostEngagementBar.tsx:467
+#: src/components/PostEngagementBar.tsx:499
 msgid "Share or quote"
 msgstr "共有または引用"
 
@@ -4559,15 +4568,15 @@ msgstr "この話題について意見を投稿しましょう…"
 msgid "Shares"
 msgstr "共有"
 
-#: src/components/PostEngagementBar.tsx:466
+#: src/components/PostEngagementBar.tsx:498
 msgid "Sharing and quoting are not available for this post"
 msgstr "このコンテンツは共有も引用もできません。"
 
-#: src/components/PostEngagementBar.tsx:474
+#: src/components/PostEngagementBar.tsx:506
 msgid "Sharing is not available for this post"
 msgstr "このコンテンツは共有できません。"
 
-#: src/components/PostEngagementBar.tsx:461
+#: src/components/PostEngagementBar.tsx:493
 msgid "Sharing…"
 msgstr "共有中…"
 
@@ -5357,11 +5366,11 @@ msgstr "組織の削除を確認するには {0} と入力してください。"
 msgid "Type tags separated by spaces"
 msgstr "スペースで区切ってタグを入力"
 
-#: src/components/createReactionToggle.ts:233
+#: src/components/createReactionToggle.ts:247
 msgid "Unable to add reaction. Please try again."
 msgstr "リアクションを追加できませんでした。もう一度お試しください。"
 
-#: src/components/createReactionToggle.ts:232
+#: src/components/createReactionToggle.ts:246
 msgid "Unable to remove reaction. Please try again."
 msgstr "リアクションを削除できませんでした。もう一度お試しください。"
 
@@ -5398,11 +5407,11 @@ msgstr "プロフィールから固定解除"
 msgid "Unread"
 msgstr "未読"
 
-#: src/components/PostEngagementBar.tsx:472
+#: src/components/PostEngagementBar.tsx:504
 msgid "Unshare"
 msgstr "共有を取り消す"
 
-#: src/components/PostEngagementBar.tsx:461
+#: src/components/PostEngagementBar.tsx:493
 msgid "Unsharing…"
 msgstr "共有を取り消し中…"
 
@@ -5539,17 +5548,17 @@ msgid "View organization"
 msgstr "組織を表示"
 
 #: src/components/PostActionMenu.tsx:430
-#: src/components/PostEngagementBar.tsx:533
+#: src/components/PostEngagementBar.tsx:565
 msgid "View quotes"
 msgstr "引用を見る"
 
 #: src/components/PostActionMenu.tsx:436
-#: src/components/PostEngagementBar.tsx:330
+#: src/components/PostEngagementBar.tsx:362
 msgid "View reactions"
 msgstr "リアクションを見る"
 
 #: src/components/PostActionMenu.tsx:416
-#: src/components/PostEngagementBar.tsx:288
+#: src/components/PostEngagementBar.tsx:316
 msgid "View replies"
 msgstr "返信を見る"
 
@@ -5558,7 +5567,7 @@ msgid "View request"
 msgstr "リクエストを表示"
 
 #: src/components/PostActionMenu.tsx:424
-#: src/components/PostEngagementBar.tsx:532
+#: src/components/PostEngagementBar.tsx:564
 msgid "View shares"
 msgstr "共有を見る"
 

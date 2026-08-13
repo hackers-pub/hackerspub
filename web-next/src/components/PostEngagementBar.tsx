@@ -144,7 +144,13 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
             }
           }
           ... on CustomEmojiReactionGroup {
+            customEmoji {
+              id
+              name
+              imageUrl
+            }
             reactors {
+              totalCount
               viewerHasReacted(actingAccountId: $actingAccountId)
             }
           }
@@ -250,9 +256,32 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
       })),
   );
 
+  // Existing custom groups ride along with the same reactionGroups fragment,
+  // so opening the custom view does not add a GraphQL round trip.
+  const customReactions = createMemo(() =>
+    reactionGroups().flatMap((group) => {
+      const customEmoji = group.customEmoji;
+      if (customEmoji == null) return [];
+      return [
+        {
+          id: customEmoji.id,
+          name: customEmoji.name,
+          imageUrl: customEmoji.imageUrl,
+          count: group.reactors?.totalCount ?? 0,
+          viewerHasReacted: group.reactors?.viewerHasReacted === true,
+        },
+      ];
+    }),
+  );
+
   const pendingQuickEmoji = () => {
     const pending = reactionToggle.pendingReaction();
-    return pending?.emoji ?? null;
+    return pending?.kind === "emoji" ? pending.id : null;
+  };
+
+  const pendingCustomEmojiId = () => {
+    const pending = reactionToggle.pendingReaction();
+    return pending?.kind === "customEmoji" ? pending.id : null;
   };
 
   const userHasReacted = createMemo(() => {
@@ -305,13 +334,17 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
           />
 
           {/* Reactions — hovering (or tapping) the heart reveals the
-              quick-pick bar, and the count links to /reactions. */}
+              unicode quick picks. Posts with existing custom emoji groups
+              add a custom-only "more" view without another data request. */}
           <div class="inline-flex items-stretch">
             <QuickReactionBar
               reactions={quickReactions()}
+              customReactions={customReactions()}
               viewerHasReacted={userHasReacted()}
               pendingEmoji={pendingQuickEmoji()}
+              pendingCustomEmojiId={pendingCustomEmojiId()}
               onToggleReaction={reactionToggle.toggleEmoji}
+              onToggleCustomReaction={reactionToggle.toggleCustomEmoji}
             />
             {/* Rendered only while pending so SSR never emits an empty
                 dynamic text binding for the live region. */}
