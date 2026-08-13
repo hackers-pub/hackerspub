@@ -3,12 +3,12 @@ import {
   createEffect,
   createMemo,
   createSignal,
+  createUniqueId,
   For,
   onCleanup,
   Show,
 } from "solid-js";
 import IconLoader2 from "~icons/lucide/loader-2";
-import IconSmilePlus from "~icons/lucide/smile-plus";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import { createOutsideDismiss } from "~/lib/outsideDismiss.ts";
 import {
@@ -33,8 +33,7 @@ export interface QuickReactionGroup {
 export interface QuickReactionBarProps {
   /**
    * Unicode emoji reaction groups already present on the post.  Custom
-   * emoji groups are not offered in the quick bar; they stay in the full
-   * picker reached through `onOpenFullPicker`.
+   * emoji groups are not offered in the quick bar.
    */
   reactions: ReadonlyArray<QuickReactionGroup>;
   /**
@@ -55,12 +54,6 @@ export interface QuickReactionBarProps {
    * the same post.
    */
   onToggleReaction: (emoji: string) => void;
-  /**
-   * Opens the full emoji picker (all emojis plus custom emojis).
-   * Receives the heart trigger button so the caller can anchor the
-   * picker to it.
-   */
-  onOpenFullPicker?: (trigger: HTMLElement) => void;
 }
 
 // Hover-intent delays: the open delay keeps the bar from flashing while
@@ -68,6 +61,7 @@ export interface QuickReactionBarProps {
 // between the trigger and the floating bar.
 const OPEN_DELAY = 100;
 const CLOSE_DELAY = 300;
+const VIEWPORT_MARGIN = 4;
 
 /**
  * Reaction trigger for the timeline engagement bar.  Hovering the heart
@@ -75,9 +69,8 @@ const CLOSE_DELAY = 300;
  * emojis above the trigger; on touch devices pressing and holding the
  * heart reveals the row while the finger is still down, sliding the
  * finger then highlights the emoji under it instead of scrolling the
- * page, and releasing over an emoji commits that reaction (releasing
- * over the trailing button opens the full picker).  A plain tap
- * toggles the row, and tapping anywhere outside dismisses it.
+ * page, and releasing over an emoji commits that reaction.  A plain
+ * tap toggles the row, and tapping anywhere outside dismisses it.
  * Keyboard users get the row on focus and can dismiss it with Escape.
  *
  * The row is fixed-positioned from the trigger's viewport rect (clamped
@@ -88,9 +81,11 @@ const CLOSE_DELAY = 300;
 export function QuickReactionBar(props: QuickReactionBarProps) {
   const { t } = useLingui();
   const [open, setOpen] = createSignal(false);
+  const [animateEntrance, setAnimateEntrance] = createSignal(false);
   const [rowPosition, setRowPosition] = createSignal<PopoverPosition | null>(
     null,
   );
+  const rowId = createUniqueId();
   let wrapper: HTMLDivElement | undefined;
   let trigger: HTMLButtonElement | undefined;
   let row: HTMLDivElement | undefined;
@@ -110,6 +105,11 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
     clearTimeout(hoverTimer);
     dispatchGesture({ type: "dismiss" });
     setOpen(false);
+  };
+
+  const openRow = (animated: boolean) => {
+    setAnimateEntrance(animated);
+    setOpen(true);
   };
 
   // The slide session keeps the finger that long-pressed the heart in
@@ -182,7 +182,9 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
         clearTimeout(longPressTimer);
         return;
       case "openRow":
-        setOpen(true);
+        // The row must track a held finger immediately.  Animating this path
+        // would make the visual target lag behind the gesture.
+        openRow(false);
         return;
       case "beginSlideTracking":
         if (gesture.pointerId != null) beginSlideSession(gesture.pointerId);
@@ -195,7 +197,11 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
         return;
       case "toggleRow":
         cancelTimers();
-        setOpen(!open());
+        if (open()) {
+          setOpen(false);
+        } else {
+          openRow(true);
+        }
         return;
     }
   };
@@ -208,7 +214,7 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
 
   const scheduleOpen = () => {
     cancelTimers();
-    hoverTimer = setTimeout(() => setOpen(true), OPEN_DELAY);
+    hoverTimer = setTimeout(() => openRow(true), OPEN_DELAY);
   };
   const scheduleClose = () => {
     cancelTimers();
@@ -230,6 +236,8 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
           trigger.getBoundingClientRect(),
           { width: row.offsetWidth, height: row.offsetHeight },
           { width: window.innerWidth, height: window.innerHeight },
+          6,
+          VIEWPORT_MARGIN,
         ),
       );
     };
@@ -277,7 +285,9 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
           event.target.matches(":focus-visible")
         ) {
           cancelTimers();
-          setOpen(true);
+          // Keyboard navigation is intentionally instant: repeated keyboard
+          // actions should never wait for decorative movement.
+          openRow(false);
         }
       }}
       onFocusOut={(event) => {
@@ -287,7 +297,12 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
       }}
       onKeyDown={(event) => {
         if (event.key === "Escape" && open()) {
+          event.preventDefault();
           event.stopPropagation();
+          // Move focus before unmounting a focused reaction button.  Focusing
+          // inside the wrapper first also prevents focusout from dismissing a
+          // second time or dropping focus onto the document body.
+          trigger?.focus();
           dismiss();
         }
       }}
@@ -295,7 +310,7 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
       <button
         ref={trigger}
         type="button"
-        class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 px-2 cursor-pointer"
+        class="inline-flex h-8 touch-manipulation cursor-pointer items-center justify-center whitespace-nowrap rounded-md px-2 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:min-w-11 [@media(pointer:coarse)]:px-3"
         classList={{
           "text-muted-foreground hover:text-foreground": !userHasReacted(),
           "text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300":
@@ -305,6 +320,7 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
         aria-label={t`React`}
         title={t`React`}
         aria-expanded={open()}
+        aria-controls={open() ? rowId : undefined}
         onPointerDown={(event) =>
           dispatchGesture({
             type: "pointerDown",
@@ -341,27 +357,29 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
         </svg>
       </button>
       <Show when={open()}>
-        {/* transition-none is load-bearing here and on the buttons below:
-            the duration and ease utilities feed the entrance animation
-            through --tw-duration/--tw-ease but also set transition-duration
-            and -timing-function, and with the default transition-property of
-            `all` the JS-assigned left/top would animate from (0,0) on open
-            (a visible fly-in) and the buttons' hover background-color would
-            transition with the overshooting entrance ease, which extrapolates
-            past the accent color and flashes white on light backgrounds. */}
+        {/* transition-none is load-bearing: duration/ease utilities also set
+            transition timing, and a transition would animate the JS-assigned
+            left/top from (0,0).  Only the container enters, keeping the seven
+            controls available immediately instead of replaying a stagger. */}
         <div
           ref={row}
+          id={rowId}
           role="group"
           aria-label={t`Quick reactions`}
-          class="fixed z-50 flex origin-bottom items-center gap-0.5 rounded-full border bg-popover p-1 shadow-sm transition-none motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-90 motion-safe:slide-in-from-bottom-1 motion-safe:duration-200 motion-safe:ease-[cubic-bezier(0.19,1,0.22,1)]"
+          class="fixed z-50 flex items-center gap-0.5 rounded-full border bg-popover p-1 shadow-sm transition-none [@media(pointer:coarse)]:gap-0 [@media(pointer:coarse)]:p-px"
+          classList={{
+            "motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-95 motion-safe:duration-150 motion-safe:ease-[cubic-bezier(0.19,1,0.22,1)] motion-reduce:animate-in motion-reduce:fade-in-0 motion-reduce:duration-150 motion-reduce:ease-[cubic-bezier(0.25,0.46,0.45,0.94)]":
+              animateEntrance(),
+          }}
           style={{
             left: `${rowPosition()?.left ?? 0}px`,
             top: `${rowPosition()?.top ?? 0}px`,
+            "transform-origin": rowPosition()?.transformOrigin,
             visibility: rowPosition() == null ? "hidden" : undefined,
           }}
         >
           <For each={REACTION_EMOJIS}>
-            {(emoji, index) => {
+            {(emoji) => {
               const group = () => groupFor(emoji);
               const selected = () => group()?.viewerHasReacted === true;
               const count = () => group()?.count ?? 0;
@@ -369,8 +387,7 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
               return (
                 <button
                   type="button"
-                  class="group relative flex size-9 items-center justify-center rounded-full cursor-pointer transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-safe:animate-in motion-safe:zoom-in-50 motion-safe:slide-in-from-bottom-2 motion-safe:fill-mode-backwards motion-safe:duration-300 motion-safe:ease-[cubic-bezier(0.34,1.56,0.64,1)]"
-                  style={{ "animation-delay": `${index() * 25}ms` }}
+                  class="group relative flex size-9 shrink-0 touch-manipulation cursor-pointer items-center justify-center rounded-full transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [@media(pointer:coarse)]:size-11"
                   data-slide-target={emoji}
                   data-slide-active={slideActive(emoji)}
                   classList={{
@@ -393,7 +410,7 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
                   onClick={() => props.onToggleReaction(emoji)}
                 >
                   <span
-                    class="text-xl transition-transform duration-150 group-hover:-translate-y-0.5 group-data-[slide-active]:-translate-y-0.5 group-hover:scale-125 group-data-[slide-active]:scale-125 group-active:scale-95 motion-reduce:transition-none"
+                    class="text-xl"
                     classList={{ "opacity-30": pending() }}
                     aria-hidden="true"
                   >
@@ -402,7 +419,7 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
                   <Show when={pending()}>
                     <span class="absolute inset-0 flex items-center justify-center">
                       <IconLoader2
-                        class="size-4 animate-spin"
+                        class="size-4 motion-safe:animate-spin"
                         aria-hidden="true"
                       />
                     </span>
@@ -416,24 +433,6 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
               );
             }}
           </For>
-          <Show when={props.onOpenFullPicker}>
-            <div class="mx-0.5 h-5 w-px bg-border" aria-hidden="true" />
-            <button
-              type="button"
-              class="flex size-9 items-center justify-center rounded-full text-muted-foreground cursor-pointer transition-none hover:bg-accent data-[slide-active]:bg-accent hover:text-foreground data-[slide-active]:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-safe:animate-in motion-safe:zoom-in-50 motion-safe:slide-in-from-bottom-2 motion-safe:fill-mode-backwards motion-safe:duration-300 motion-safe:ease-[cubic-bezier(0.34,1.56,0.64,1)]"
-              style={{ "animation-delay": `${REACTION_EMOJIS.length * 25}ms` }}
-              data-slide-target="more"
-              data-slide-active={slideActive("more")}
-              aria-label={t`More reactions`}
-              title={t`More reactions`}
-              onClick={() => {
-                dismiss();
-                if (trigger != null) props.onOpenFullPicker?.(trigger);
-              }}
-            >
-              <IconSmilePlus class="size-4" aria-hidden="true" />
-            </button>
-          </Show>
         </div>
       </Show>
     </div>

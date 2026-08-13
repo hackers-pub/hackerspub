@@ -626,8 +626,8 @@ msgstr "Add"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
 #: src/components/EmojiReactionPopover.tsx:108
-msgid "Add {0}"
-msgstr "Add {0}"
+#~ msgid "Add {0}"
+#~ msgstr "Add {0}"
 
 #: src/components/NoteComposer.tsx:850
 msgid "Add at least {MIN_POLL_OPTIONS} poll options"
@@ -650,7 +650,7 @@ msgstr "Add the old account here. Hackers' Pub will publish it as another accoun
 msgid "Add to sidebar"
 msgstr "Add to sidebar"
 
-#: src/components/createReactionToggle.ts:245
+#: src/components/createReactionToggle.ts:225
 msgid "Adding reaction…"
 msgstr "Adding reaction…"
 
@@ -2014,7 +2014,7 @@ msgstr "Failed to mute this user"
 msgid "Failed to pin post"
 msgstr "Failed to pin post"
 
-#: src/components/createReactionToggle.ts:254
+#: src/components/createReactionToggle.ts:229
 msgid "Failed to react"
 msgstr "Failed to react"
 
@@ -2097,8 +2097,8 @@ msgstr "Failed to send email"
 msgid "Failed to send invitation"
 msgstr "Failed to send invitation"
 
-#: src/components/PostEngagementBar.tsx:302
-#: src/components/PostEngagementBar.tsx:309
+#: src/components/PostEngagementBar.tsx:220
+#: src/components/PostEngagementBar.tsx:227
 msgid "Failed to share post"
 msgstr "Failed to share post"
 
@@ -2141,8 +2141,8 @@ msgstr "Failed to unmute this user"
 msgid "Failed to unpin post"
 msgstr "Failed to unpin post"
 
-#: src/components/PostEngagementBar.tsx:284
-#: src/components/PostEngagementBar.tsx:291
+#: src/components/PostEngagementBar.tsx:202
+#: src/components/PostEngagementBar.tsx:209
 msgid "Failed to unshare post"
 msgstr "Failed to unshare post"
 
@@ -3096,8 +3096,8 @@ msgstr "Moderation cases"
 
 #: src/components/QuickReactionBar.tsx:275
 #: src/components/QuickReactionBar.tsx:276
-msgid "More reactions"
-msgstr "More reactions"
+#~ msgid "More reactions"
+#~ msgstr "More reactions"
 
 #: src/routes/(root)/tree/index.tsx:283
 msgid "Most invitations"
@@ -3472,8 +3472,8 @@ msgstr "Notification preview privacy"
 
 #: src/components/AppSidebar.tsx:753
 #: src/components/AppSidebar.tsx:755
-#: src/routes/(root).tsx:300
-#: src/routes/(root).tsx:301
+#: src/routes/(root).tsx:308
+#: src/routes/(root).tsx:309
 msgid "Notifications"
 msgstr "Notifications"
 
@@ -3940,7 +3940,7 @@ msgstr "QR code"
 msgid "Query cannot be empty"
 msgstr "Query cannot be empty"
 
-#: src/components/QuickReactionBar.tsx:208
+#: src/components/QuickReactionBar.tsx:346
 msgid "Quick reactions"
 msgstr "Quick reactions"
 
@@ -3951,7 +3951,7 @@ msgid "Quiet public"
 msgstr "Quiet public"
 
 #: src/components/NoteComposeModal.tsx:83
-#: src/components/PostEngagementBar.tsx:622
+#: src/components/PostEngagementBar.tsx:488
 #: src/components/ui/markdown-editor.tsx:297
 msgid "Quote"
 msgstr "Quote"
@@ -3979,7 +3979,7 @@ msgstr "Quoted post hidden"
 msgid "Quotes"
 msgstr "Quotes"
 
-#: src/components/PostEngagementBar.tsx:622
+#: src/components/PostEngagementBar.tsx:488
 msgid "Quoting is not available for this post"
 msgstr "Quoting is not available for this post"
 
@@ -3987,21 +3987,20 @@ msgstr "Quoting is not available for this post"
 msgid "Re-fetch a remote actor or post from its origin server and overwrite the cached copy. Enter a fediverse handle, profile URL, or ActivityPub IRI."
 msgstr "Re-fetch a remote actor or post from its origin server and overwrite the cached copy. Enter a fediverse handle, profile URL, or ActivityPub IRI."
 
-#: src/components/QuickReactionBar.tsx:178
-#: src/components/QuickReactionBar.tsx:179
+#: src/components/QuickReactionBar.tsx:296
+#: src/components/QuickReactionBar.tsx:297
 msgid "React"
 msgstr "React"
 
-#: src/components/EmojiReactionPopover.tsx:175
-#: src/components/QuickReactionBar.tsx:236
-#: src/components/QuickReactionBar.tsx:241
+#: src/components/QuickReactionBar.tsx:377
+#: src/components/QuickReactionBar.tsx:382
 msgid "React with {emoji}"
 msgstr "React with {emoji}"
 
 #: src/components/EmojiReactionPopover.tsx:106
 #: src/components/EmojiReactionPopover.tsx:111
-msgid "reaction"
-msgstr "reaction"
+#~ msgid "reaction"
+#~ msgstr "reaction"
 
 #: src/components/EngagementTabs.tsx:55
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:184
@@ -4155,15 +4154,15 @@ msgstr "Remove"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
 #: src/components/EmojiReactionPopover.tsx:103
-msgid "Remove {0}"
-msgstr "Remove {0}"
+#~ msgid "Remove {0}"
+#~ msgstr "Remove {0}"
 
 #: src/routes/(root)/[handle]/settings/account.tsx:1861
 msgid "Remove {alias}"
 msgstr "Remove {alias}"
 
-#: src/components/QuickReactionBar.tsx:235
-#: src/components/QuickReactionBar.tsx:240
+#: src/components/QuickReactionBar.tsx:376
+#: src/components/QuickReactionBar.tsx:381
 msgid "Remove {emoji} reaction"
 msgstr "Remove {emoji} reaction"
 
@@ -4214,7 +4213,7 @@ msgstr "Remove quote"
 msgid "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 msgstr "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 
-#: src/components/createReactionToggle.ts:244
+#: src/components/createReactionToggle.ts:224
 msgid "Removing reaction…"
 msgstr "Removing reaction…"
 
@@ -4245,11 +4244,11 @@ msgid "Replacement sanction"
 msgstr "Replacement sanction"
 
 #: src/components/NoteComposeModal.tsx:82
-#: src/components/PostEngagementBar.tsx:393
+#: src/components/PostEngagementBar.tsx:286
 msgid "Reply"
 msgstr "Reply"
 
-#: src/components/PostEngagementBar.tsx:394
+#: src/components/PostEngagementBar.tsx:287
 msgid "Replying is not available for this post"
 msgstr "Replying is not available for this post"
 
@@ -4535,11 +4534,11 @@ msgstr "Settings"
 msgid "Settings saved"
 msgstr "Settings saved"
 
-#: src/components/PostEngagementBar.tsx:609
+#: src/components/PostEngagementBar.tsx:475
 msgid "Share"
 msgstr "Share"
 
-#: src/components/PostEngagementBar.tsx:601
+#: src/components/PostEngagementBar.tsx:467
 msgid "Share or quote"
 msgstr "Share or quote"
 
@@ -4564,15 +4563,15 @@ msgstr "Share your opinion on this story…"
 msgid "Shares"
 msgstr "Shares"
 
-#: src/components/PostEngagementBar.tsx:600
+#: src/components/PostEngagementBar.tsx:466
 msgid "Sharing and quoting are not available for this post"
 msgstr "Sharing and quoting are not available for this post"
 
-#: src/components/PostEngagementBar.tsx:608
+#: src/components/PostEngagementBar.tsx:474
 msgid "Sharing is not available for this post"
 msgstr "Sharing is not available for this post"
 
-#: src/components/PostEngagementBar.tsx:595
+#: src/components/PostEngagementBar.tsx:461
 msgid "Sharing…"
 msgstr "Sharing…"
 
@@ -5362,11 +5361,11 @@ msgstr "Type {0} to confirm organization deletion."
 msgid "Type tags separated by spaces"
 msgstr "Type tags separated by spaces"
 
-#: src/components/createReactionToggle.ts:258
+#: src/components/createReactionToggle.ts:233
 msgid "Unable to add reaction. Please try again."
 msgstr "Unable to add reaction. Please try again."
 
-#: src/components/createReactionToggle.ts:257
+#: src/components/createReactionToggle.ts:232
 msgid "Unable to remove reaction. Please try again."
 msgstr "Unable to remove reaction. Please try again."
 
@@ -5403,11 +5402,11 @@ msgstr "Unpin from profile"
 msgid "Unread"
 msgstr "Unread"
 
-#: src/components/PostEngagementBar.tsx:606
+#: src/components/PostEngagementBar.tsx:472
 msgid "Unshare"
 msgstr "Unshare"
 
-#: src/components/PostEngagementBar.tsx:595
+#: src/components/PostEngagementBar.tsx:461
 msgid "Unsharing…"
 msgstr "Unsharing…"
 
@@ -5544,17 +5543,17 @@ msgid "View organization"
 msgstr "View organization"
 
 #: src/components/PostActionMenu.tsx:430
-#: src/components/PostEngagementBar.tsx:667
+#: src/components/PostEngagementBar.tsx:533
 msgid "View quotes"
 msgstr "View quotes"
 
 #: src/components/PostActionMenu.tsx:436
-#: src/components/PostEngagementBar.tsx:464
+#: src/components/PostEngagementBar.tsx:330
 msgid "View reactions"
 msgstr "View reactions"
 
 #: src/components/PostActionMenu.tsx:416
-#: src/components/PostEngagementBar.tsx:395
+#: src/components/PostEngagementBar.tsx:288
 msgid "View replies"
 msgstr "View replies"
 
@@ -5563,7 +5562,7 @@ msgid "View request"
 msgstr "View request"
 
 #: src/components/PostActionMenu.tsx:424
-#: src/components/PostEngagementBar.tsx:666
+#: src/components/PostEngagementBar.tsx:532
 msgid "View shares"
 msgstr "View shares"
 

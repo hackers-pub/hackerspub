@@ -30,7 +30,6 @@ function InteractiveQuickReactionBar(props: {
   const [reactions, setReactions] = createSignal<QuickReactionGroup[]>(
     props.initialReactions ?? [],
   );
-  const [fullPickerRequests, setFullPickerRequests] = createSignal(0);
 
   const handleToggle = (emoji: string) => {
     setReactions((current) => {
@@ -68,7 +67,6 @@ function InteractiveQuickReactionBar(props: {
           reactions={reactions()}
           disabled={props.disabled}
           onToggleReaction={handleToggle}
-          onOpenFullPicker={() => setFullPickerRequests((n) => n + 1)}
         />
         <span class="px-1 text-xs text-muted-foreground tabular-nums">
           {totalCount()}
@@ -83,12 +81,6 @@ function InteractiveQuickReactionBar(props: {
             </For>
           </Show>
         </p>
-        <Show when={fullPickerRequests() > 0}>
-          <p>
-            Full picker requested {fullPickerRequests()} time(s) — the real
-            component would open the existing emoji popover here.
-          </p>
-        </Show>
       </div>
     </div>
   );
@@ -205,7 +197,6 @@ function FakeTimelineNote(props: {
           <QuickReactionBar
             reactions={reactions()}
             onToggleReaction={handleToggle}
-            onOpenFullPicker={() => {}}
           />
           <span class="px-1 text-xs text-muted-foreground tabular-nums">
             {totalCount()}
