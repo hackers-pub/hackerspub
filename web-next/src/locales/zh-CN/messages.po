@@ -683,7 +683,7 @@ msgstr "添加翻译"
 msgid "Added line:"
 msgstr "新增行："
 
-#: src/components/createReactionToggle.ts:224
+#: src/components/createReactionToggle.ts:239
 msgid "Adding reaction…"
 msgstr "正在添加反应…"
 
@@ -1532,6 +1532,10 @@ msgstr "裁剪你的新头像"
 msgid "Current username"
 msgstr "当前用户名"
 
+#: src/components/QuickReactionBar.tsx:531
+msgid "Custom emoji"
+msgstr "自定义表情"
+
 #: src/routes/(root)/admin/invitations.tsx:175
 #: src/routes/(root)/admin/media.tsx:165
 msgid "Cutoff:"
@@ -2171,7 +2175,7 @@ msgstr "无法置顶内容"
 msgid "Failed to publish the translation."
 msgstr "无法发布翻译。"
 
-#: src/components/createReactionToggle.ts:228
+#: src/components/createReactionToggle.ts:243
 msgid "Failed to react"
 msgstr "反应失败"
 
@@ -2266,8 +2270,8 @@ msgstr "发送邮件失败"
 msgid "Failed to send invitation"
 msgstr "发送邀请失败"
 
-#: src/components/PostEngagementBar.tsx:209
-#: src/components/PostEngagementBar.tsx:216
+#: src/components/PostEngagementBar.tsx:215
+#: src/components/PostEngagementBar.tsx:222
 msgid "Failed to share post"
 msgstr "转帖失败"
 
@@ -2310,8 +2314,8 @@ msgstr "未能取消隐藏此用户"
 msgid "Failed to unpin post"
 msgstr "无法取消置顶内容"
 
-#: src/components/PostEngagementBar.tsx:191
-#: src/components/PostEngagementBar.tsx:198
+#: src/components/PostEngagementBar.tsx:197
+#: src/components/PostEngagementBar.tsx:204
 msgid "Failed to unshare post"
 msgstr "取消转帖失败"
 
@@ -4272,7 +4276,7 @@ msgstr "二维码"
 msgid "Query cannot be empty"
 msgstr "搜索关键词不能为空"
 
-#: src/components/QuickReactionBar.tsx:368
+#: src/components/QuickReactionBar.tsx:445
 msgid "Quick reactions"
 msgstr "快速反应"
 
@@ -4283,7 +4287,7 @@ msgid "Quiet public"
 msgstr "悄悄公开"
 
 #: src/components/NoteComposeModal.tsx:83
-#: src/components/PostEngagementBar.tsx:492
+#: src/components/PostEngagementBar.tsx:525
 #: src/components/ui/markdown-editor.tsx:298
 msgid "Quote"
 msgstr "引用"
@@ -4312,7 +4316,7 @@ msgstr "引用内容已隐藏"
 msgid "Quotes"
 msgstr "引用"
 
-#: src/components/PostEngagementBar.tsx:492
+#: src/components/PostEngagementBar.tsx:525
 msgid "Quoting is not available for this post"
 msgstr "无法引用此内容。"
 
@@ -4320,13 +4324,15 @@ msgstr "无法引用此内容。"
 msgid "Re-fetch a remote actor or post from its origin server and overwrite the cached copy. Enter a fediverse handle, profile URL, or ActivityPub IRI."
 msgstr "从来源服务器重新获取远程账户或内容，并覆盖缓存的副本。请输入联邦宇宙用户名、个人资料 URL 或 ActivityPub IRI。"
 
-#: src/components/QuickReactionBar.tsx:320
-#: src/components/QuickReactionBar.tsx:321
+#: src/components/QuickReactionBar.tsx:398
+#: src/components/QuickReactionBar.tsx:399
 msgid "React"
 msgstr "反应"
 
-#: src/components/QuickReactionBar.tsx:403
-#: src/components/QuickReactionBar.tsx:408
+#: src/components/QuickReactionBar.tsx:491
+#: src/components/QuickReactionBar.tsx:496
+#: src/components/QuickReactionBar.tsx:566
+#: src/components/QuickReactionBar.tsx:571
 msgid "React with {emoji}"
 msgstr "用{emoji}反应"
 
@@ -4511,8 +4517,10 @@ msgstr "移除"
 msgid "Remove {alias}"
 msgstr "移除 {alias}"
 
-#: src/components/QuickReactionBar.tsx:402
-#: src/components/QuickReactionBar.tsx:407
+#: src/components/QuickReactionBar.tsx:490
+#: src/components/QuickReactionBar.tsx:495
+#: src/components/QuickReactionBar.tsx:565
+#: src/components/QuickReactionBar.tsx:570
 msgid "Remove {emoji} reaction"
 msgstr "移除{emoji}反应"
 
@@ -4567,7 +4575,7 @@ msgstr "删除行："
 msgid "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 msgstr "移除已过期且不再附加到头像、帖子、文章草稿或文章的已存储媒体。"
 
-#: src/components/createReactionToggle.ts:223
+#: src/components/createReactionToggle.ts:238
 msgid "Removing reaction…"
 msgstr "正在移除反应…"
 
@@ -4602,11 +4610,11 @@ msgid "Replies"
 msgstr "回复"
 
 #: src/components/NoteComposeModal.tsx:82
-#: src/components/PostEngagementBar.tsx:275
+#: src/components/PostEngagementBar.tsx:304
 msgid "Reply"
 msgstr "回复"
 
-#: src/components/PostEngagementBar.tsx:276
+#: src/components/PostEngagementBar.tsx:305
 msgid "Replying is not available for this post"
 msgstr "无法回复此内容"
 
@@ -4929,11 +4937,11 @@ msgstr "设置"
 msgid "Settings saved"
 msgstr "设置已保存"
 
-#: src/components/PostEngagementBar.tsx:479
+#: src/components/PostEngagementBar.tsx:512
 msgid "Share"
 msgstr "转帖"
 
-#: src/components/PostEngagementBar.tsx:471
+#: src/components/PostEngagementBar.tsx:504
 msgid "Share or quote"
 msgstr "转帖或引用"
 
@@ -4959,15 +4967,15 @@ msgstr "分享你对这个话题的看法…"
 msgid "Shares"
 msgstr "转帖"
 
-#: src/components/PostEngagementBar.tsx:470
+#: src/components/PostEngagementBar.tsx:503
 msgid "Sharing and quoting are not available for this post"
 msgstr "无法转帖或引用此内容。"
 
-#: src/components/PostEngagementBar.tsx:478
+#: src/components/PostEngagementBar.tsx:511
 msgid "Sharing is not available for this post"
 msgstr "无法转帖此内容。"
 
-#: src/components/PostEngagementBar.tsx:465
+#: src/components/PostEngagementBar.tsx:498
 msgid "Sharing…"
 msgstr "正在转帖…"
 
@@ -5882,11 +5890,11 @@ msgstr "输入 {0} 以确认删除组织。"
 msgid "Type tags separated by spaces"
 msgstr "输入标签，用空格分隔"
 
-#: src/components/createReactionToggle.ts:232
+#: src/components/createReactionToggle.ts:247
 msgid "Unable to add reaction. Please try again."
 msgstr "无法添加反应。请重试。"
 
-#: src/components/createReactionToggle.ts:231
+#: src/components/createReactionToggle.ts:246
 msgid "Unable to remove reaction. Please try again."
 msgstr "无法移除反应。请重试。"
 
@@ -5923,11 +5931,11 @@ msgstr "从个人资料取消置顶"
 msgid "Unread"
 msgstr "未读"
 
-#: src/components/PostEngagementBar.tsx:476
+#: src/components/PostEngagementBar.tsx:509
 msgid "Unshare"
 msgstr "取消转帖"
 
-#: src/components/PostEngagementBar.tsx:465
+#: src/components/PostEngagementBar.tsx:498
 msgid "Unsharing…"
 msgstr "正在取消转帖…"
 
@@ -6068,17 +6076,17 @@ msgid "View organization"
 msgstr "查看组织"
 
 #: src/components/PostActionMenu.tsx:450
-#: src/components/PostEngagementBar.tsx:537
+#: src/components/PostEngagementBar.tsx:570
 msgid "View quotes"
 msgstr "查看引用"
 
 #: src/components/PostActionMenu.tsx:456
-#: src/components/PostEngagementBar.tsx:319
+#: src/components/PostEngagementBar.tsx:352
 msgid "View reactions"
 msgstr "查看反应"
 
 #: src/components/PostActionMenu.tsx:436
-#: src/components/PostEngagementBar.tsx:277
+#: src/components/PostEngagementBar.tsx:306
 msgid "View replies"
 msgstr "查看回复"
 
@@ -6087,7 +6095,7 @@ msgid "View request"
 msgstr "查看请求"
 
 #: src/components/PostActionMenu.tsx:444
-#: src/components/PostEngagementBar.tsx:536
+#: src/components/PostEngagementBar.tsx:569
 msgid "View shares"
 msgstr "查看转帖"
 

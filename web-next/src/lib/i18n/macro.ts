@@ -22,6 +22,8 @@ export declare function plural(
   options: ChoiceOptions,
 ): string;
 
+export declare function ph(value: LabeledExpression<string | number>): string;
+
 declare function defineMessage(
   descriptor: MacroMessageDescriptor,
 ): MessageDescriptor;

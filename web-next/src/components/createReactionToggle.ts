@@ -15,8 +15,13 @@ import {
   reactionMutationSucceeded,
 } from "./reactionMutationResult.ts";
 
-export interface PendingReaction {
-  readonly emoji: string;
+/** A unicode or custom emoji reaction target. */
+export interface ReactionTarget {
+  readonly kind: "emoji" | "customEmoji";
+  readonly id: string;
+}
+
+export interface PendingReaction extends ReactionTarget {
   readonly action: ReactionMutationAction;
 }
 
@@ -28,7 +33,9 @@ export interface ReactionToggleNote {
   readonly id: string;
   readonly reactionGroups: ReadonlyArray<{
     readonly emoji?: string | null;
+    readonly customEmoji?: { readonly id: string } | null;
     readonly reactors?: {
+      readonly totalCount: number;
       readonly viewerHasReacted: boolean;
     } | null;
   }>;
@@ -37,6 +44,8 @@ export interface ReactionToggleNote {
 export interface ReactionToggle {
   /** Adds or removes the viewer's unicode emoji reaction. */
   readonly toggleEmoji: (emoji: string) => void;
+  /** Adds or removes the viewer's custom emoji reaction. */
+  readonly toggleCustomEmoji: (customEmojiId: string) => void;
   readonly pendingReaction: () => PendingReaction | null;
   /** Localized progress text for a live region, or `null` when idle. */
   readonly pendingStatus: () => string | null;
@@ -86,15 +95,19 @@ function viewerReactionArgs(actingAccountId: string | null | undefined) {
 
 function findGroupIndex(
   groups: ReadonlyArray<RecordProxy | null | undefined>,
-  emoji: string,
+  target: ReactionTarget,
 ): number {
-  return groups.findIndex((group) => group?.getValue("emoji") === emoji);
+  return groups.findIndex((group) =>
+    target.kind === "emoji"
+      ? group?.getValue("emoji") === target.id
+      : group?.getLinkedRecord("customEmoji")?.getDataID() === target.id,
+  );
 }
 
 function applyRemove(
   store: RecordSourceSelectorProxy,
   postId: string,
-  emoji: string,
+  target: ReactionTarget,
   actingAccountId: string | null | undefined,
 ): void {
   const postRecord = store.get(postId);
@@ -107,7 +120,7 @@ function applyRemove(
   }
 
   const reactionGroups = postRecord.getLinkedRecords("reactionGroups") || [];
-  const index = findGroupIndex(reactionGroups, emoji);
+  const index = findGroupIndex(reactionGroups, target);
   if (index < 0) return;
   const group = reactionGroups[index];
   if (!group) return;
@@ -134,7 +147,7 @@ function applyRemove(
 function applyAdd(
   store: RecordSourceSelectorProxy,
   postId: string,
-  emoji: string,
+  target: ReactionTarget,
   actingAccountId: string | null | undefined,
 ): void {
   const postRecord = store.get(postId);
@@ -147,14 +160,14 @@ function applyAdd(
   }
 
   const reactionGroups = postRecord.getLinkedRecords("reactionGroups") || [];
-  const index = findGroupIndex(reactionGroups, emoji);
+  const index = findGroupIndex(reactionGroups, target);
   if (index >= 0) {
     const group = reactionGroups[index];
     if (!group) return;
     let reactors = group.getLinkedRecord("reactors");
     if (!reactors) {
       reactors = store.create(
-        `${postId}_reaction_${emoji}_reactors`,
+        `${postId}_reaction_${target.id}_reactors`,
         "ReactionGroupReactorsConnection",
       );
       group.setLinkedRecord(reactors, "reactors");
@@ -166,16 +179,18 @@ function applyAdd(
       "viewerHasReacted",
       viewerReactionArgs(actingAccountId),
     );
-  } else {
+  } else if (target.kind === "emoji") {
+    // Custom reactions are offered only for groups that already exist on
+    // the post, so only unicode reactions create a new group client-side.
     const newGroup = store.create(
-      `${postId}_reaction_${emoji}`,
+      `${postId}_reaction_${target.id}`,
       "EmojiReactionGroup",
     );
     const reactors = store.create(
-      `${postId}_reaction_${emoji}_reactors`,
+      `${postId}_reaction_${target.id}_reactors`,
       "ReactionGroupReactorsConnection",
     );
-    newGroup.setValue(emoji, "emoji");
+    newGroup.setValue(target.id, "emoji");
     reactors.setValue(1, "totalCount");
     reactors.setValue(
       true,
@@ -192,9 +207,9 @@ function applyAdd(
 }
 
 /**
- * Add/remove behavior for the quick-pick bar: decides add vs. remove from
- * the current `note` data, commits the mutation, and patches the Relay
- * store so counts and the viewer's highlight update immediately.
+ * Add/remove behavior shared by the unicode and custom quick-pick views.
+ * It decides add vs. remove from the current `note` data, commits the
+ * mutation, and patches the Relay store immediately.
  *
  * Only one toggle may be in flight at a time; further clicks are ignored
  * until the current mutation settles.
@@ -234,30 +249,34 @@ export function createReactionToggle(
     });
   };
 
-  const toggleEmoji = (emoji: string) => {
+  const toggle = (target: ReactionTarget) => {
     if (submitting()) return;
     const noteData = note();
     if (noteData == null) return;
 
     const postId = noteData.id;
     const actingAccountId = actingAccount.selectedActingAccountId();
-    const existingGroup = noteData.reactionGroups.find(
-      (group) => group.emoji === emoji,
+    const existingGroup = noteData.reactionGroups.find((group) =>
+      target.kind === "emoji"
+        ? group.emoji === target.id
+        : group.customEmoji?.id === target.id,
     );
     const action: PendingReaction["action"] = existingGroup?.reactors
       ?.viewerHasReacted
       ? "remove"
       : "add";
-    setPendingReaction({ emoji, action });
+    setPendingReaction({ ...target, action });
 
     const input = {
       postId,
-      emoji,
+      ...(target.kind === "emoji"
+        ? { emoji: target.id }
+        : { customEmojiId: target.id }),
       ...(actingAccountId == null ? {} : { actingAccountId }),
     };
     const clearPending = () => {
       const pending = pendingReaction();
-      if (pending?.emoji === emoji) {
+      if (pending?.kind === target.kind && pending.id === target.id) {
         setPendingReaction(null);
       }
     };
@@ -269,7 +288,7 @@ export function createReactionToggle(
           if (
             reactionMutationSucceeded("remove", result?.removeReactionFromPost)
           ) {
-            applyRemove(store, postId, emoji, actingAccountId);
+            applyRemove(store, postId, target, actingAccountId);
           }
         },
         onCompleted: (result) => {
@@ -291,7 +310,7 @@ export function createReactionToggle(
         variables: { input },
         updater: (store, result) => {
           if (reactionMutationSucceeded("add", result?.addReactionToPost)) {
-            applyAdd(store, postId, emoji, actingAccountId);
+            applyAdd(store, postId, target, actingAccountId);
           }
         },
         onCompleted: (result) => {
@@ -310,7 +329,9 @@ export function createReactionToggle(
   };
 
   return {
-    toggleEmoji,
+    toggleEmoji: (emoji) => toggle({ kind: "emoji", id: emoji }),
+    toggleCustomEmoji: (customEmojiId) =>
+      toggle({ kind: "customEmoji", id: customEmojiId }),
     pendingReaction,
     pendingStatus,
   };

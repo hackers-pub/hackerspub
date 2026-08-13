@@ -5,11 +5,12 @@ import {
   createSignal,
   createUniqueId,
   For,
+  Index,
   onCleanup,
   Show,
 } from "solid-js";
 import IconLoader2 from "~icons/lucide/loader-2";
-import { useLingui } from "~/lib/i18n/macro.ts";
+import { ph, useLingui } from "~/lib/i18n/macro.ts";
 import { createOutsideDismiss } from "~/lib/outsideDismiss.ts";
 import {
   getViewportQuickBarPosition,
@@ -30,12 +31,26 @@ export interface QuickReactionGroup {
   readonly viewerHasReacted: boolean;
 }
 
+export interface CustomQuickReactionGroup {
+  readonly id: string;
+  readonly name: string;
+  readonly imageUrl: string;
+  readonly count: number;
+  readonly viewerHasReacted: boolean;
+}
+
 export interface QuickReactionBarProps {
   /**
-   * Unicode emoji reaction groups already present on the post.  Custom
-   * emoji groups are not offered in the quick bar.
+   * Unicode emoji reaction groups already present on the post.  These
+   * populate the bar's default, fixed-choice view.
    */
   reactions: ReadonlyArray<QuickReactionGroup>;
+  /**
+   * Custom emoji groups already present on this post.  Supplying these
+   * does not fetch another picker payload: they come from the same
+   * `reactionGroups` fragment as the unicode counts.
+   */
+  customReactions?: ReadonlyArray<CustomQuickReactionGroup>;
   /**
    * Whether the viewer has reacted to the post with any emoji, including
    * custom emojis the quick bar does not list.  Defaults to deriving from
@@ -54,6 +69,10 @@ export interface QuickReactionBarProps {
    * the same post.
    */
   onToggleReaction: (emoji: string) => void;
+  /** Toggles an existing custom emoji reaction group. */
+  onToggleCustomReaction?: (customEmojiId: string) => void;
+  /** The custom emoji id whose toggle is in flight, or `null`. */
+  pendingCustomEmojiId?: string | null;
 }
 
 // Hover-intent delays: the open delay keeps the bar from flashing while
@@ -62,6 +81,20 @@ export interface QuickReactionBarProps {
 const OPEN_DELAY = 100;
 const CLOSE_DELAY = 300;
 const VIEWPORT_MARGIN = 4;
+const prewarmedCustomEmojiUrls = new Set<string>();
+
+function prewarmCustomEmojiImages(
+  reactions: ReadonlyArray<CustomQuickReactionGroup>,
+): void {
+  if (typeof Image === "undefined") return;
+  for (const reaction of reactions) {
+    if (prewarmedCustomEmojiUrls.has(reaction.imageUrl)) continue;
+    prewarmedCustomEmojiUrls.add(reaction.imageUrl);
+    const image = new Image();
+    image.decoding = "async";
+    image.src = reaction.imageUrl;
+  }
+}
 
 /**
  * Reaction trigger for the timeline engagement bar.  Hovering the heart
@@ -72,6 +105,8 @@ const VIEWPORT_MARGIN = 4;
  * page, and releasing over an emoji commits that reaction.  A plain
  * tap toggles the row, and tapping anywhere outside dismisses it.
  * Keyboard users get the row on focus and can dismiss it with Escape.
+ * Posts with custom emoji reactions show those existing groups directly
+ * below the unicode choices, without another request or navigation step.
  *
  * The row is fixed-positioned from the trigger's viewport rect (clamped
  * by `getViewportQuickBarPosition`) so it escapes `overflow-hidden`
@@ -86,6 +121,7 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
     null,
   );
   const rowId = createUniqueId();
+  const customEmojiLabelId = createUniqueId();
   let wrapper: HTMLDivElement | undefined;
   let trigger: HTMLButtonElement | undefined;
   let row: HTMLDivElement | undefined;
@@ -108,8 +144,13 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
   };
 
   const openRow = (animated: boolean) => {
+    prewarmCustomEmojiImages(props.customReactions ?? []);
     setAnimateEntrance(animated);
     setOpen(true);
+  };
+
+  const closeRow = () => {
+    setOpen(false);
   };
 
   // The slide session keeps the finger that long-pressed the heart in
@@ -198,7 +239,7 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
       case "toggleRow":
         cancelTimers();
         if (open()) {
-          setOpen(false);
+          closeRow();
         } else {
           openRow(true);
         }
@@ -218,7 +259,7 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
   };
   const scheduleClose = () => {
     cancelTimers();
-    hoverTimer = setTimeout(() => setOpen(false), CLOSE_DELAY);
+    hoverTimer = setTimeout(closeRow, CLOSE_DELAY);
   };
 
   createEffect(() => {
@@ -228,14 +269,21 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
     }
     const updatePosition = () => {
       if (trigger == null || row == null || !trigger.isConnected) {
-        setOpen(false);
+        closeRow();
         return;
       }
       setRowPosition(
         getViewportQuickBarPosition(
           trigger.getBoundingClientRect(),
           { width: row.offsetWidth, height: row.offsetHeight },
-          { width: window.innerWidth, height: window.innerHeight },
+          {
+            // `innerWidth` includes the scrollbar gutter in desktop Chrome,
+            // while fixed-position CSS is clamped to the document viewport.
+            // The mismatch is visible at 320px, where a 312px bar otherwise
+            // lands 12px beyond the right edge.
+            width: document.documentElement.clientWidth,
+            height: document.documentElement.clientHeight,
+          },
           6,
           VIEWPORT_MARGIN,
         ),
@@ -249,12 +297,42 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
     // pointer-based outside dismissal.
     createOutsideDismiss(() => wrapper, dismiss);
     createViewportReposition(updatePosition);
+    if (typeof ResizeObserver !== "undefined" && row != null) {
+      const observer = new ResizeObserver(updatePosition);
+      observer.observe(row);
+      onCleanup(() => observer.disconnect());
+    }
   });
 
   const reactionsByEmoji = createMemo(
     () => new Map(props.reactions.map((group) => [group.emoji, group])),
   );
   const groupFor = (emoji: string) => reactionsByEmoji().get(emoji);
+  // Preserve the choices that were visible when this session opened.  Relay
+  // removes a group when its last reaction is toggled off; keeping the cached
+  // emoji available until dismissal prevents the panel from shrinking out
+  // from under the pointer and also lets the viewer add it again immediately.
+  const customReactions = createMemo<ReadonlyArray<CustomQuickReactionGroup>>(
+    (previous = []) => {
+      const current = props.customReactions ?? [];
+      if (!open()) return current;
+
+      const currentById = new Map(
+        current.map((reaction) => [reaction.id, reaction]),
+      );
+      return previous.map(
+        (reaction) =>
+          currentById.get(reaction.id) ?? {
+            ...reaction,
+            count: 0,
+            viewerHasReacted: false,
+          },
+      );
+    },
+    [],
+  );
+  const hasCustomReactions = () =>
+    customReactions().length > 0 && props.onToggleCustomReaction != null;
   const userHasReacted = () =>
     props.viewerHasReacted ??
     props.reactions.some((group) => group.viewerHasReacted);
@@ -359,15 +437,18 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
       <Show when={open()}>
         {/* transition-none is load-bearing: duration/ease utilities also set
             transition timing, and a transition would animate the JS-assigned
-            left/top from (0,0).  Only the container enters, keeping the seven
-            controls available immediately instead of replaying a stagger. */}
+            left/top from (0,0). */}
         <div
           ref={row}
           id={rowId}
           role="group"
           aria-label={t`Quick reactions`}
-          class="fixed z-50 flex items-center gap-0.5 rounded-full border bg-popover p-1 shadow-sm transition-none [@media(pointer:coarse)]:gap-0 [@media(pointer:coarse)]:p-px"
+          class="fixed z-50 border bg-popover shadow-sm transition-none"
           classList={{
+            "w-[319px] max-w-[calc(100vw-8px)] rounded-lg p-1 [@media(pointer:coarse)]:w-[312px] [@media(pointer:coarse)]:p-px":
+              hasCustomReactions(),
+            "rounded-full p-1 [@media(pointer:coarse)]:p-px":
+              !hasCustomReactions(),
             "motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-95 motion-safe:duration-150 motion-safe:ease-[cubic-bezier(0.19,1,0.22,1)] motion-reduce:animate-in motion-reduce:fade-in-0 motion-reduce:duration-150 motion-reduce:ease-[cubic-bezier(0.25,0.46,0.45,0.94)]":
               animateEntrance(),
           }}
@@ -378,61 +459,153 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
             visibility: rowPosition() == null ? "hidden" : undefined,
           }}
         >
-          <For each={REACTION_EMOJIS}>
-            {(emoji) => {
-              const group = () => groupFor(emoji);
-              const selected = () => group()?.viewerHasReacted === true;
-              const count = () => group()?.count ?? 0;
-              const pending = () => props.pendingEmoji === emoji;
-              return (
-                <button
-                  type="button"
-                  class="group relative flex size-9 shrink-0 touch-manipulation cursor-pointer items-center justify-center rounded-full transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [@media(pointer:coarse)]:size-11"
-                  data-slide-target={emoji}
-                  data-slide-active={slideActive(emoji)}
-                  classList={{
-                    "bg-red-50 ring-1 ring-red-300 dark:bg-red-950/40 dark:ring-red-800":
-                      selected(),
-                    "hover:bg-accent data-[slide-active]:bg-accent":
-                      !selected(),
-                  }}
-                  aria-pressed={selected()}
-                  aria-label={
-                    selected()
-                      ? t`Remove ${emoji} reaction`
-                      : t`React with ${emoji}`
-                  }
-                  title={
-                    selected()
-                      ? t`Remove ${emoji} reaction`
-                      : t`React with ${emoji}`
-                  }
-                  onClick={() => props.onToggleReaction(emoji)}
-                >
-                  <span
-                    class="text-xl"
-                    classList={{ "opacity-30": pending() }}
-                    aria-hidden="true"
-                  >
-                    {emoji}
-                  </span>
-                  <Show when={pending()}>
-                    <span class="absolute inset-0 flex items-center justify-center">
-                      <IconLoader2
-                        class="size-4 motion-safe:animate-spin"
-                        aria-hidden="true"
-                      />
-                    </span>
-                  </Show>
-                  <Show when={count() > 0}>
-                    <span class="absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-muted px-1 text-center text-[10px] font-medium leading-4 text-muted-foreground tabular-nums">
-                      {count()}
-                    </span>
-                  </Show>
-                </button>
-              );
+          <div
+            class="flex items-center"
+            classList={{
+              "w-[309px] max-w-full justify-between": hasCustomReactions(),
+              "gap-0.5 [@media(pointer:coarse)]:gap-0": !hasCustomReactions(),
             }}
-          </For>
+          >
+            <For each={REACTION_EMOJIS}>
+              {(emoji) => {
+                const group = () => groupFor(emoji);
+                const selected = () => group()?.viewerHasReacted === true;
+                const count = () => group()?.count ?? 0;
+                const pending = () => props.pendingEmoji === emoji;
+                return (
+                  <button
+                    type="button"
+                    class="group relative flex size-9 shrink-0 touch-manipulation cursor-pointer items-center justify-center rounded-full transition-colors duration-100 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [@media(pointer:coarse)]:size-11"
+                    data-slide-target={emoji}
+                    data-slide-active={slideActive(emoji)}
+                    classList={{
+                      "bg-red-50 ring-1 ring-red-300 dark:bg-red-950/40 dark:ring-red-800":
+                        selected(),
+                      "hover:bg-accent data-[slide-active]:bg-accent":
+                        !selected(),
+                    }}
+                    aria-pressed={selected()}
+                    aria-label={
+                      selected()
+                        ? t`Remove ${emoji} reaction`
+                        : t`React with ${emoji}`
+                    }
+                    title={
+                      selected()
+                        ? t`Remove ${emoji} reaction`
+                        : t`React with ${emoji}`
+                    }
+                    onClick={() => props.onToggleReaction(emoji)}
+                  >
+                    <span
+                      class="text-xl transition-[transform,opacity] duration-100 ease-out motion-reduce:transition-none motion-safe:group-active:[transform:scale(0.94)]"
+                      classList={{ "opacity-30": pending() }}
+                      aria-hidden="true"
+                    >
+                      {emoji}
+                    </span>
+                    <Show when={pending()}>
+                      <span class="absolute inset-0 flex items-center justify-center">
+                        <IconLoader2
+                          class="size-4 motion-safe:animate-spin"
+                          aria-hidden="true"
+                        />
+                      </span>
+                    </Show>
+                    <Show when={count() > 0}>
+                      <span class="absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-popover px-1 text-center text-[10px] font-medium leading-4 text-muted-foreground ring-1 ring-border tabular-nums">
+                        {count()}
+                      </span>
+                    </Show>
+                  </button>
+                );
+              }}
+            </For>
+          </div>
+          <Show when={hasCustomReactions()}>
+            <div class="mt-1 border-t pt-1">
+              <div
+                id={customEmojiLabelId}
+                class="px-2 pb-0.5 pt-1 text-[11px] font-medium leading-4 text-muted-foreground"
+              >
+                {t`Custom emoji`}
+              </div>
+              <div
+                role="group"
+                aria-labelledby={customEmojiLabelId}
+                class="grid max-h-56 grid-cols-[repeat(7,minmax(0,1fr))] overflow-auto overscroll-contain"
+              >
+                {/* Relay replaces a reaction group's value object after a
+                    successful toggle.  Index keeps the corresponding button
+                    DOM in place while its value changes, so the focused
+                    button does not emit an outside focusout and dismiss the
+                    picker between consecutive selections. */}
+                <Index each={customReactions()}>
+                  {(reaction) => {
+                    const slideTarget = () => `custom:${reaction().id}`;
+                    const emoji = () => reaction().name;
+                    const selected = () => reaction().viewerHasReacted;
+                    const pending = () =>
+                      props.pendingCustomEmojiId === reaction().id;
+                    return (
+                      <button
+                        type="button"
+                        class="group relative flex size-10 shrink-0 touch-manipulation cursor-pointer items-center justify-center justify-self-center rounded-full transition-colors duration-100 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [@media(pointer:coarse)]:size-11"
+                        data-slide-target={slideTarget()}
+                        data-slide-active={slideActive(slideTarget())}
+                        classList={{
+                          "bg-red-50 ring-1 ring-red-300 dark:bg-red-950/40 dark:ring-red-800":
+                            selected(),
+                          "hover:bg-accent data-[slide-active]:bg-accent":
+                            !selected(),
+                        }}
+                        aria-pressed={selected()}
+                        aria-label={
+                          selected()
+                            ? t`Remove ${ph({ emoji: emoji() })} reaction`
+                            : t`React with ${ph({ emoji: emoji() })}`
+                        }
+                        title={
+                          selected()
+                            ? t`Remove ${ph({ emoji: emoji() })} reaction`
+                            : t`React with ${ph({ emoji: emoji() })}`
+                        }
+                        onClick={() =>
+                          props.onToggleCustomReaction?.(reaction().id)
+                        }
+                      >
+                        <span
+                          class="flex size-6 items-center justify-center overflow-hidden transition-[transform,opacity] duration-100 ease-out motion-reduce:transition-none motion-safe:group-active:[transform:scale(0.94)]"
+                          classList={{ "opacity-30": pending() }}
+                          aria-hidden="true"
+                        >
+                          <img
+                            src={reaction().imageUrl}
+                            alt=""
+                            class="size-full object-contain"
+                            decoding="async"
+                          />
+                        </span>
+                        <Show when={pending()}>
+                          <span class="absolute inset-0 flex items-center justify-center">
+                            <IconLoader2
+                              class="size-4 motion-safe:animate-spin"
+                              aria-hidden="true"
+                            />
+                          </span>
+                        </Show>
+                        <Show when={reaction().count > 0}>
+                          <span class="absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-popover px-1 text-center text-[10px] font-medium leading-4 text-muted-foreground ring-1 ring-border tabular-nums">
+                            {reaction().count}
+                          </span>
+                        </Show>
+                      </button>
+                    );
+                  }}
+                </Index>
+              </div>
+            </div>
+          </Show>
         </div>
       </Show>
     </div>
