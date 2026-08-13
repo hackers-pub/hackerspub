@@ -1,16 +1,6 @@
-import { sortReactionGroups } from "@hackerspub/models/emoji";
 import { A } from "@solidjs/router";
 import { graphql } from "relay-runtime";
-import {
-  createEffect,
-  createMemo,
-  createSignal,
-  onCleanup,
-  onMount,
-  Show,
-  untrack,
-} from "solid-js";
-import { Portal } from "solid-js/web";
+import { createMemo, createSignal, onMount, Show } from "solid-js";
 import { createFragment, createMutation } from "solid-relay";
 import IconLoader2 from "~icons/lucide/loader-2";
 import IconRepeat2 from "~icons/lucide/repeat-2";
@@ -31,15 +21,11 @@ import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { createHydrationStableMemo } from "~/lib/hydrationStableMemo.ts";
 import { useLingui } from "~/lib/i18n/macro.ts";
-import { createOutsideDismiss } from "~/lib/outsideDismiss.ts";
-import { getViewportPopoverPosition } from "~/lib/popoverPosition.ts";
-import { createViewportReposition } from "~/lib/viewportReposition.ts";
 import type { PostEngagementBar_post$key } from "./__generated__/PostEngagementBar_post.graphql.ts";
 import type { PostEngagementBar_sharePost_Mutation } from "./__generated__/PostEngagementBar_sharePost_Mutation.graphql.ts";
 import type { PostEngagementBar_unsharePost_Mutation } from "./__generated__/PostEngagementBar_unsharePost_Mutation.graphql.ts";
 import { BookmarkButton } from "./BookmarkButton.tsx";
 import { createReactionToggle } from "./createReactionToggle.ts";
-import { EmojiReactionPopover } from "./EmojiReactionPopover.tsx";
 import { PostActionMenu } from "./PostActionMenu.tsx";
 import { QuickReactionBar } from "./QuickReactionBar.tsx";
 
@@ -130,7 +116,7 @@ const unsharePostMutation = graphql`
 `;
 
 export function PostEngagementBar(props: PostEngagementBarProps) {
-  const { i18n, t } = useLingui();
+  const { t } = useLingui();
   const { openWithQuote, openWithReply } = useNoteCompose();
   const actingAccount = useActingAccount();
   const liveNote = createFragment(
@@ -163,13 +149,7 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
             }
           }
           ... on CustomEmojiReactionGroup {
-            customEmoji {
-              id
-              name
-              imageUrl
-            }
             reactors {
-              totalCount
               viewerHasReacted(actingAccountId: $actingAccountId)
             }
           }
@@ -183,137 +163,6 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
   // value and remount it (which would mount its client-only Kobalte popovers
   // before hydration finishes).  After mount the live value is tracked again.
   const note = createHydrationStableMemo(() => liveNote() ?? null);
-
-  const [showEmojiPopover, setShowEmojiPopover] = createSignal(false);
-  const [focusEmojiPopover, setFocusEmojiPopover] = createSignal(false);
-  const [emojiPickerMounted, setEmojiPickerMounted] = createSignal(false);
-  const [emojiTrigger, setEmojiTrigger] = createSignal<HTMLElement>();
-  const [emojiPopover, setEmojiPopover] = createSignal<HTMLDivElement>();
-  const [engagementBar, setEngagementBar] = createSignal<HTMLDivElement>();
-  const [emojiPopoverPosition, setEmojiPopoverPosition] = createSignal<{
-    left: number;
-    top: number;
-  } | null>(null);
-  onMount(() => setEmojiPickerMounted(true));
-
-  const closeEmojiPopover = (restoreFocus: boolean) => {
-    setShowEmojiPopover(false);
-    setFocusEmojiPopover(false);
-    if (!restoreFocus) return;
-
-    queueMicrotask(() => {
-      const trigger = untrack(emojiTrigger);
-      if (trigger?.isConnected) trigger.focus();
-    });
-  };
-
-  const focusAfterEmojiTrigger = () => {
-    queueMicrotask(() => {
-      const bar = untrack(engagementBar);
-      const trigger = untrack(emojiTrigger);
-      if (!bar?.isConnected || !trigger?.isConnected) return;
-
-      const controls = Array.from(
-        bar.querySelectorAll<HTMLElement>(
-          "a[href], button, input, select, textarea, [tabindex]",
-        ),
-      ).filter(
-        (element) => element.tabIndex >= 0 && !element.matches(":disabled"),
-      );
-      const triggerIndex = controls.indexOf(trigger);
-      if (triggerIndex < 0) return;
-      controls[triggerIndex + 1]?.focus();
-    });
-  };
-
-  const updateEmojiPopoverPosition = (target?: HTMLElement) => {
-    const trigger = target ?? emojiTrigger();
-    if (trigger == null || !trigger.isConnected) return false;
-
-    const rect = trigger.getBoundingClientRect();
-    const popover = emojiPopover();
-    setEmojiPopoverPosition(
-      getViewportPopoverPosition(
-        rect,
-        {
-          width: popover?.isConnected ? popover.offsetWidth : 320,
-          height: popover?.isConnected ? popover.offsetHeight : 0,
-        },
-        { width: window.innerWidth, height: window.innerHeight },
-      ),
-    );
-    return true;
-  };
-
-  createEffect(() => {
-    if (!showEmojiPopover()) return;
-
-    const popover = emojiPopover();
-    updateEmojiPopoverPosition();
-    const resizeObserver =
-      popover == null
-        ? undefined
-        : new ResizeObserver(() => updateEmojiPopoverPosition());
-    if (popover != null) resizeObserver?.observe(popover);
-    // The heart trigger is NOT exempt here: it toggles the quick-pick
-    // bar, not the popover, so a click on it while the popover is open
-    // should dismiss the popover like any other outside click.
-    createOutsideDismiss(emojiPopover, () => closeEmojiPopover(false));
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") closeEmojiPopover(true);
-    };
-    const updateFromCurrentTrigger = () => {
-      if (!updateEmojiPopoverPosition()) closeEmojiPopover(false);
-    };
-    createViewportReposition(updateFromCurrentTrigger);
-    document.addEventListener("keydown", onKeyDown);
-    onCleanup(() => {
-      resizeObserver?.disconnect();
-      document.removeEventListener("keydown", onKeyDown);
-    });
-  });
-
-  const onEmojiPopoverKeyDown = (event: KeyboardEvent) => {
-    if (event.key !== "Tab") return;
-
-    const popover = emojiPopover();
-    if (popover == null) return;
-    const buttons = Array.from(
-      popover.querySelectorAll<HTMLButtonElement>("button:not(:disabled)"),
-    );
-    const activeElement = document.activeElement;
-    if (event.shiftKey && activeElement === buttons[0]) {
-      event.preventDefault();
-      closeEmojiPopover(true);
-    } else if (
-      !event.shiftKey &&
-      activeElement === buttons[buttons.length - 1]
-    ) {
-      event.preventDefault();
-      closeEmojiPopover(false);
-      focusAfterEmojiTrigger();
-    }
-  };
-
-  createEffect(() => {
-    if (!showEmojiPopover() || !focusEmojiPopover()) return;
-
-    const initialPopover = emojiPopover();
-    if (initialPopover == null) return;
-    queueMicrotask(() => {
-      if (
-        !untrack(showEmojiPopover) ||
-        !untrack(focusEmojiPopover) ||
-        !initialPopover.isConnected
-      ) {
-        return;
-      }
-      initialPopover
-        .querySelector<HTMLButtonElement>("button:not(:disabled)")
-        ?.focus();
-      setFocusEmojiPopover(false);
-    });
-  });
 
   const [sharePost, sharePending] =
     createMutation<PostEngagementBar_sharePost_Mutation>(sharePostMutation);
@@ -374,15 +223,15 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
 
   const reactionToggle = createReactionToggle(() => note());
 
-  const sortedReactionGroups = createMemo(() => {
+  const reactionGroups = createMemo(() => {
     const noteData = note();
-    return sortReactionGroups(noteData?.reactionGroups || []);
+    return noteData?.reactionGroups ?? [];
   });
 
-  // Unicode emoji groups for the quick-pick bar; custom emoji groups are
-  // reachable through the full picker only.
+  // The quick bar renders the canonical emoji order itself, so this only
+  // supplies the current counts and viewer state for unicode groups.
   const quickReactions = createMemo(() =>
-    sortedReactionGroups()
+    reactionGroups()
       .filter((group) => group.emoji != null)
       .map((group) => ({
         emoji: group.emoji as string,
@@ -393,34 +242,8 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
 
   const pendingQuickEmoji = () => {
     const pending = reactionToggle.pendingReaction();
-    return pending?.kind === "emoji" ? pending.id : null;
+    return pending?.emoji ?? null;
   };
-
-  const reactionPopoverData = createMemo(() => {
-    const noteData = note();
-    if (!noteData) return null;
-    return {
-      id: noteData.id,
-      reactionGroups: sortedReactionGroups().map((group) => ({
-        emoji: group.emoji,
-        customEmoji:
-          group.customEmoji == null
-            ? undefined
-            : {
-                id: group.customEmoji.id,
-                name: group.customEmoji.name,
-                imageUrl: group.customEmoji.imageUrl,
-              },
-        reactors:
-          group.reactors == null
-            ? undefined
-            : {
-                totalCount: group.reactors.totalCount,
-                viewerHasReacted: group.reactors.viewerHasReacted,
-              },
-      })),
-    };
-  });
 
   const userHasReacted = createMemo(() => {
     const noteData = note();
@@ -435,7 +258,6 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
     <Show keyed when={note()}>
       {(note) => (
         <div
-          ref={setEngagementBar}
           class={`mt-2 flex items-center justify-between gap-1 -mx-2 ${
             props.class ?? ""
           }`}
@@ -473,21 +295,13 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
           />
 
           {/* Reactions — hovering (or tapping) the heart reveals the
-              quick-pick bar; its "more" button opens the full emoji
-              popover, and the count links to /reactions. */}
+              quick-pick bar, and the count links to /reactions. */}
           <div class="inline-flex items-stretch">
             <QuickReactionBar
               reactions={quickReactions()}
               viewerHasReacted={userHasReacted()}
               pendingEmoji={pendingQuickEmoji()}
               onToggleReaction={reactionToggle.toggleEmoji}
-              onOpenFullPicker={(trigger) => {
-                setEmojiTrigger(trigger);
-                if (updateEmojiPopoverPosition(trigger)) {
-                  setFocusEmojiPopover(true);
-                  setShowEmojiPopover(true);
-                }
-              }}
             />
             {/* Rendered only while pending so SSR never emits an empty
                 dynamic text binding for the live region. */}
@@ -496,36 +310,6 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
                 <span class="sr-only" aria-live="polite">
                   {status()}
                 </span>
-              )}
-            </Show>
-            <Show
-              when={
-                emojiPickerMounted() &&
-                showEmojiPopover() &&
-                emojiPopoverPosition() != null &&
-                reactionPopoverData()
-              }
-            >
-              {(popoverData) => (
-                <Portal>
-                  <div
-                    ref={setEmojiPopover}
-                    lang={new Intl.Locale(i18n.locale).minimize().baseName}
-                    onKeyDown={onEmojiPopoverKeyDown}
-                    class="z-50 max-h-[calc(100vh-1rem)] w-80 max-w-[calc(100vw-1rem)] overflow-y-auto rounded-md border bg-popover text-popover-foreground shadow-md outline-none"
-                    style={{
-                      position: "fixed",
-                      left: `${emojiPopoverPosition()!.left}px`,
-                      top: `${emojiPopoverPosition()!.top}px`,
-                    }}
-                  >
-                    <EmojiReactionPopover
-                      noteData={popoverData()}
-                      toggle={reactionToggle}
-                      onClose={() => closeEmojiPopover(false)}
-                    />
-                  </div>
-                </Portal>
               )}
             </Show>
             <CountAffordance
