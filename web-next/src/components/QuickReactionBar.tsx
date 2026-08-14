@@ -479,7 +479,7 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
                     data-slide-target={emoji}
                     data-slide-active={slideActive(emoji)}
                     classList={{
-                      "bg-red-50 ring-1 ring-red-300 dark:bg-red-950/40 dark:ring-red-800":
+                      "bg-red-50 ring-1 ring-inset ring-red-300 dark:bg-red-950/40 dark:ring-red-800":
                         selected(),
                       "hover:bg-accent data-[slide-active]:bg-accent":
                         !selected(),
@@ -554,7 +554,7 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
                         data-slide-target={slideTarget()}
                         data-slide-active={slideActive(slideTarget())}
                         classList={{
-                          "bg-red-50 ring-1 ring-red-300 dark:bg-red-950/40 dark:ring-red-800":
+                          "bg-red-50 ring-1 ring-inset ring-red-300 dark:bg-red-950/40 dark:ring-red-800":
                             selected(),
                           "hover:bg-accent data-[slide-active]:bg-accent":
                             !selected(),
