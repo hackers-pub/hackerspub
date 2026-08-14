@@ -193,14 +193,19 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
   let hoverTimer: ReturnType<typeof setTimeout> | undefined;
   let longPressTimer: ReturnType<typeof setTimeout> | undefined;
 
-  const cancelTimers = () => {
+  const cancelHoverIntent = () => {
     clearTimeout(hoverTimer);
+  };
+  const cancelLongPress = () => {
     clearTimeout(longPressTimer);
   };
-  onCleanup(cancelTimers);
+  onCleanup(() => {
+    cancelHoverIntent();
+    cancelLongPress();
+  });
 
   const dismiss = () => {
-    clearTimeout(hoverTimer);
+    cancelHoverIntent();
     dispatchGesture({ type: "dismiss" });
     setOpen(false);
   };
@@ -282,7 +287,7 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
         );
         return;
       case "cancelLongPress":
-        clearTimeout(longPressTimer);
+        cancelLongPress();
         return;
       case "openRow":
         // The row must track a held finger immediately.  Animating this path
@@ -299,7 +304,7 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
         slideButton()?.click();
         return;
       case "toggleRow":
-        cancelTimers();
+        cancelHoverIntent();
         if (open()) {
           closeRow();
         } else {
@@ -316,11 +321,11 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
   };
 
   const scheduleOpen = () => {
-    cancelTimers();
+    cancelHoverIntent();
     hoverTimer = setTimeout(() => openRow(true), OPEN_DELAY);
   };
   const scheduleClose = () => {
-    cancelTimers();
+    cancelHoverIntent();
     hoverTimer = setTimeout(closeRow, CLOSE_DELAY);
   };
 
@@ -424,7 +429,7 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
           event.target instanceof HTMLElement &&
           event.target.matches(":focus-visible")
         ) {
-          cancelTimers();
+          cancelHoverIntent();
           // Keyboard navigation is intentionally instant: repeated keyboard
           // actions should never wait for decorative movement.
           openRow(false);
