@@ -257,7 +257,7 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
   );
 
   // Existing custom groups ride along with the same reactionGroups fragment,
-  // so opening the custom view does not add a GraphQL round trip.
+  // so rendering them in the quick bar does not add a GraphQL round trip.
   const customReactions = createMemo(() =>
     reactionGroups().flatMap((group) => {
       const customEmoji = group.customEmoji;
@@ -333,9 +333,9 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
             onQuoteSelect={() => openWithQuote(note.id)}
           />
 
-          {/* Reactions — hovering (or tapping) the heart reveals the
-              unicode quick picks. Posts with existing custom emoji groups
-              add a custom-only "more" view without another data request. */}
+          {/* Hovering or tapping the heart reveals the unicode quick picks.
+              Existing custom emoji groups appear directly below them without
+              another data request. */}
           <div class="inline-flex items-stretch">
             <QuickReactionBar
               reactions={quickReactions()}
