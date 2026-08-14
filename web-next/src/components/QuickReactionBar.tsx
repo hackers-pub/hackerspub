@@ -6,6 +6,7 @@ import {
   createUniqueId,
   For,
   Index,
+  type JSX,
   onCleanup,
   Show,
 } from "solid-js";
@@ -94,6 +95,67 @@ function prewarmCustomEmojiImages(
     image.decoding = "async";
     image.src = reaction.imageUrl;
   }
+}
+
+interface QuickReactionButtonProps {
+  readonly variant: "unicode" | "custom";
+  readonly slideTarget: string;
+  readonly slideActive: boolean;
+  readonly selected: boolean;
+  readonly pending: boolean;
+  readonly count: number;
+  readonly label: string;
+  readonly onClick: () => void;
+  readonly children: JSX.Element;
+}
+
+/** Shared interaction and status chrome for unicode and custom reactions. */
+function QuickReactionButton(props: QuickReactionButtonProps) {
+  return (
+    <button
+      type="button"
+      class="group relative flex shrink-0 touch-manipulation cursor-pointer items-center justify-center rounded-full transition-colors duration-100 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [@media(pointer:coarse)]:size-11"
+      classList={{
+        "size-9": props.variant === "unicode",
+        "size-10 justify-self-center": props.variant === "custom",
+        "bg-red-50 ring-1 ring-inset ring-red-300 dark:bg-red-950/40 dark:ring-red-800":
+          props.selected,
+        "hover:bg-accent data-[slide-active]:bg-accent": !props.selected,
+      }}
+      data-slide-target={props.slideTarget}
+      data-slide-active={props.slideActive ? "" : undefined}
+      aria-pressed={props.selected}
+      aria-label={props.label}
+      title={props.label}
+      onClick={props.onClick}
+    >
+      <span
+        class="transition-[transform,opacity] duration-100 ease-out motion-reduce:transition-none motion-safe:group-active:[transform:scale(0.94)]"
+        classList={{
+          "text-xl": props.variant === "unicode",
+          "flex size-6 items-center justify-center overflow-hidden":
+            props.variant === "custom",
+          "opacity-30": props.pending,
+        }}
+        aria-hidden="true"
+      >
+        {props.children}
+      </span>
+      <Show when={props.pending}>
+        <span class="absolute inset-0 flex items-center justify-center">
+          <IconLoader2
+            class="size-4 motion-safe:animate-spin"
+            aria-hidden="true"
+          />
+        </span>
+      </Show>
+      <Show when={props.count > 0}>
+        <span class="absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-popover px-1 text-center text-[10px] font-medium leading-4 text-muted-foreground ring-1 ring-border tabular-nums">
+          {props.count}
+        </span>
+      </Show>
+    </button>
+  );
 }
 
 /**
@@ -472,52 +534,23 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
                 const selected = () => group()?.viewerHasReacted === true;
                 const count = () => group()?.count ?? 0;
                 const pending = () => props.pendingEmoji === emoji;
+                const label = () =>
+                  selected()
+                    ? t`Remove ${emoji} reaction`
+                    : t`React with ${emoji}`;
                 return (
-                  <button
-                    type="button"
-                    class="group relative flex size-9 shrink-0 touch-manipulation cursor-pointer items-center justify-center rounded-full transition-colors duration-100 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [@media(pointer:coarse)]:size-11"
-                    data-slide-target={emoji}
-                    data-slide-active={slideActive(emoji)}
-                    classList={{
-                      "bg-red-50 ring-1 ring-inset ring-red-300 dark:bg-red-950/40 dark:ring-red-800":
-                        selected(),
-                      "hover:bg-accent data-[slide-active]:bg-accent":
-                        !selected(),
-                    }}
-                    aria-pressed={selected()}
-                    aria-label={
-                      selected()
-                        ? t`Remove ${emoji} reaction`
-                        : t`React with ${emoji}`
-                    }
-                    title={
-                      selected()
-                        ? t`Remove ${emoji} reaction`
-                        : t`React with ${emoji}`
-                    }
+                  <QuickReactionButton
+                    variant="unicode"
+                    slideTarget={emoji}
+                    slideActive={slideActive(emoji) != null}
+                    selected={selected()}
+                    pending={pending()}
+                    count={count()}
+                    label={label()}
                     onClick={() => props.onToggleReaction(emoji)}
                   >
-                    <span
-                      class="text-xl transition-[transform,opacity] duration-100 ease-out motion-reduce:transition-none motion-safe:group-active:[transform:scale(0.94)]"
-                      classList={{ "opacity-30": pending() }}
-                      aria-hidden="true"
-                    >
-                      {emoji}
-                    </span>
-                    <Show when={pending()}>
-                      <span class="absolute inset-0 flex items-center justify-center">
-                        <IconLoader2
-                          class="size-4 motion-safe:animate-spin"
-                          aria-hidden="true"
-                        />
-                      </span>
-                    </Show>
-                    <Show when={count() > 0}>
-                      <span class="absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-popover px-1 text-center text-[10px] font-medium leading-4 text-muted-foreground ring-1 ring-border tabular-nums">
-                        {count()}
-                      </span>
-                    </Show>
-                  </button>
+                    {emoji}
+                  </QuickReactionButton>
                 );
               }}
             </For>
@@ -547,59 +580,30 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
                     const selected = () => reaction().viewerHasReacted;
                     const pending = () =>
                       props.pendingCustomEmojiId === reaction().id;
+                    const label = () =>
+                      selected()
+                        ? t`Remove ${ph({ emoji: emoji() })} reaction`
+                        : t`React with ${ph({ emoji: emoji() })}`;
                     return (
-                      <button
-                        type="button"
-                        class="group relative flex size-10 shrink-0 touch-manipulation cursor-pointer items-center justify-center justify-self-center rounded-full transition-colors duration-100 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [@media(pointer:coarse)]:size-11"
-                        data-slide-target={slideTarget()}
-                        data-slide-active={slideActive(slideTarget())}
-                        classList={{
-                          "bg-red-50 ring-1 ring-inset ring-red-300 dark:bg-red-950/40 dark:ring-red-800":
-                            selected(),
-                          "hover:bg-accent data-[slide-active]:bg-accent":
-                            !selected(),
-                        }}
-                        aria-pressed={selected()}
-                        aria-label={
-                          selected()
-                            ? t`Remove ${ph({ emoji: emoji() })} reaction`
-                            : t`React with ${ph({ emoji: emoji() })}`
-                        }
-                        title={
-                          selected()
-                            ? t`Remove ${ph({ emoji: emoji() })} reaction`
-                            : t`React with ${ph({ emoji: emoji() })}`
-                        }
+                      <QuickReactionButton
+                        variant="custom"
+                        slideTarget={slideTarget()}
+                        slideActive={slideActive(slideTarget()) != null}
+                        selected={selected()}
+                        pending={pending()}
+                        count={reaction().count}
+                        label={label()}
                         onClick={() =>
                           props.onToggleCustomReaction?.(reaction().id)
                         }
                       >
-                        <span
-                          class="flex size-6 items-center justify-center overflow-hidden transition-[transform,opacity] duration-100 ease-out motion-reduce:transition-none motion-safe:group-active:[transform:scale(0.94)]"
-                          classList={{ "opacity-30": pending() }}
-                          aria-hidden="true"
-                        >
-                          <img
-                            src={reaction().imageUrl}
-                            alt=""
-                            class="size-full object-contain"
-                            decoding="async"
-                          />
-                        </span>
-                        <Show when={pending()}>
-                          <span class="absolute inset-0 flex items-center justify-center">
-                            <IconLoader2
-                              class="size-4 motion-safe:animate-spin"
-                              aria-hidden="true"
-                            />
-                          </span>
-                        </Show>
-                        <Show when={reaction().count > 0}>
-                          <span class="absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-popover px-1 text-center text-[10px] font-medium leading-4 text-muted-foreground ring-1 ring-border tabular-nums">
-                            {reaction().count}
-                          </span>
-                        </Show>
-                      </button>
+                        <img
+                          src={reaction().imageUrl}
+                          alt=""
+                          class="size-full object-contain"
+                          decoding="async"
+                        />
+                      </QuickReactionButton>
                     );
                   }}
                 </Index>
