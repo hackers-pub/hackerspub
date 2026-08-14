@@ -82,20 +82,6 @@ export interface QuickReactionBarProps {
 const OPEN_DELAY = 100;
 const CLOSE_DELAY = 300;
 const VIEWPORT_MARGIN = 4;
-const prewarmedCustomEmojiUrls = new Set<string>();
-
-function prewarmCustomEmojiImages(
-  reactions: ReadonlyArray<CustomQuickReactionGroup>,
-): void {
-  if (typeof Image === "undefined") return;
-  for (const reaction of reactions) {
-    if (prewarmedCustomEmojiUrls.has(reaction.imageUrl)) continue;
-    prewarmedCustomEmojiUrls.add(reaction.imageUrl);
-    const image = new Image();
-    image.decoding = "async";
-    image.src = reaction.imageUrl;
-  }
-}
 
 interface QuickReactionButtonProps {
   readonly variant: "unicode" | "custom";
@@ -211,7 +197,6 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
   };
 
   const openRow = (animated: boolean) => {
-    prewarmCustomEmojiImages(props.customReactions ?? []);
     setAnimateEntrance(animated);
     setOpen(true);
   };
