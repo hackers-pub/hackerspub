@@ -212,8 +212,8 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
   const [slideButton, setSlideButton] = createSignal<HTMLElement | null>(null);
   let slideSessionAbort: AbortController | undefined;
 
-  const slideActive = (id: string) =>
-    slideButton()?.dataset.slideTarget === id ? "" : undefined;
+  const slideTargetActive = (id: string) =>
+    slideButton()?.dataset.slideTarget === id;
 
   const endSlideSession = () => {
     slideSessionAbort?.abort();
@@ -532,7 +532,7 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
                   <QuickReactionButton
                     variant="unicode"
                     slideTarget={emoji}
-                    slideActive={slideActive(emoji) != null}
+                    slideActive={slideTargetActive(emoji)}
                     selected={selected()}
                     pending={pending()}
                     count={count()}
@@ -578,7 +578,7 @@ export function QuickReactionBar(props: QuickReactionBarProps) {
                       <QuickReactionButton
                         variant="custom"
                         slideTarget={slideTarget()}
-                        slideActive={slideActive(slideTarget()) != null}
+                        slideActive={slideTargetActive(slideTarget())}
                         selected={selected()}
                         pending={pending()}
                         count={reaction().count}
