@@ -54,6 +54,28 @@ const exampleCustomReactions: CustomQuickReactionGroup[] = [
   },
 ];
 
+function toggleExampleReaction(
+  reactions: ReadonlyArray<QuickReactionGroup>,
+  emoji: string,
+): QuickReactionGroup[] {
+  const existing = reactions.find((group) => group.emoji === emoji);
+  if (existing == null) {
+    return [...reactions, { emoji, count: 1, viewerHasReacted: true }];
+  }
+  if (existing.viewerHasReacted && existing.count <= 1) {
+    return reactions.filter((group) => group.emoji !== emoji);
+  }
+  return reactions.map((group) =>
+    group.emoji === emoji
+      ? {
+          ...group,
+          count: group.count + (group.viewerHasReacted ? -1 : 1),
+          viewerHasReacted: !group.viewerHasReacted,
+        }
+      : group,
+  );
+}
+
 /**
  * Stateful harness so the stories demonstrate the multi-reaction flow:
  * toggling an emoji updates counts and the selected highlight without
@@ -72,29 +94,8 @@ function InteractiveQuickReactionBar(props: {
     CustomQuickReactionGroup[]
   >(props.initialCustomReactions ?? []);
 
-  const handleToggle = (emoji: string) => {
-    setReactions((current) => {
-      const existing = current.find((group) => group.emoji === emoji);
-      if (existing == null) {
-        return [...current, { emoji, count: 1, viewerHasReacted: true }];
-      }
-      if (existing.viewerHasReacted) {
-        if (existing.count <= 1) {
-          return current.filter((group) => group.emoji !== emoji);
-        }
-        return current.map((group) =>
-          group.emoji === emoji
-            ? { ...group, count: group.count - 1, viewerHasReacted: false }
-            : group,
-        );
-      }
-      return current.map((group) =>
-        group.emoji === emoji
-          ? { ...group, count: group.count + 1, viewerHasReacted: true }
-          : group,
-      );
-    });
-  };
+  const handleToggle = (emoji: string) =>
+    setReactions((current) => toggleExampleReaction(current, emoji));
 
   const handleCustomToggle = (id: string) => {
     setCustomReactions((current) =>
@@ -237,29 +238,8 @@ function FakeTimelineNote(props: {
     props.initialReactions ?? [],
   );
 
-  const handleToggle = (emoji: string) => {
-    setReactions((current) => {
-      const existing = current.find((group) => group.emoji === emoji);
-      if (existing == null) {
-        return [...current, { emoji, count: 1, viewerHasReacted: true }];
-      }
-      if (existing.viewerHasReacted) {
-        if (existing.count <= 1) {
-          return current.filter((group) => group.emoji !== emoji);
-        }
-        return current.map((group) =>
-          group.emoji === emoji
-            ? { ...group, count: group.count - 1, viewerHasReacted: false }
-            : group,
-        );
-      }
-      return current.map((group) =>
-        group.emoji === emoji
-          ? { ...group, count: group.count + 1, viewerHasReacted: true }
-          : group,
-      );
-    });
-  };
+  const handleToggle = (emoji: string) =>
+    setReactions((current) => toggleExampleReaction(current, emoji));
 
   const totalCount = () =>
     reactions().reduce((sum, group) => sum + group.count, 0);
