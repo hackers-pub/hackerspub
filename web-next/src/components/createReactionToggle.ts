@@ -1,8 +1,4 @@
-import {
-  graphql,
-  type RecordProxy,
-  type RecordSourceSelectorProxy,
-} from "relay-runtime";
+import { graphql } from "relay-runtime";
 import { createSignal } from "solid-js";
 import { createMutation } from "solid-relay";
 import { showToast } from "~/components/ui/toast.tsx";
@@ -14,12 +10,12 @@ import {
   type ReactionMutationAction,
   reactionMutationSucceeded,
 } from "./reactionMutationResult.ts";
+import {
+  type ReactionTarget,
+  updateReactionStore,
+} from "./reactionStoreUpdater.ts";
 
-/** A unicode or custom emoji reaction target. */
-export interface ReactionTarget {
-  readonly kind: "emoji" | "customEmoji";
-  readonly id: string;
-}
+export type { ReactionTarget } from "./reactionStoreUpdater.ts";
 
 export interface PendingReaction extends ReactionTarget {
   readonly action: ReactionMutationAction;
@@ -89,127 +85,10 @@ const removeReactionFromPostMutation = graphql`
   }
 `;
 
-function viewerReactionArgs(actingAccountId: string | null | undefined) {
-  return actingAccountId == null ? null : { actingAccountId };
-}
-
-function findGroupIndex(
-  groups: ReadonlyArray<RecordProxy | null | undefined>,
-  target: ReactionTarget,
-): number {
-  return groups.findIndex((group) =>
-    target.kind === "emoji"
-      ? group?.getValue("emoji") === target.id
-      : group?.getLinkedRecord("customEmoji")?.getDataID() === target.id,
-  );
-}
-
-function applyRemove(
-  store: RecordSourceSelectorProxy,
-  postId: string,
-  target: ReactionTarget,
-  actingAccountId: string | null | undefined,
-): void {
-  const postRecord = store.get(postId);
-  if (!postRecord) return;
-
-  const engagementStats = postRecord.getLinkedRecord("engagementStats");
-  if (engagementStats) {
-    const current = (engagementStats.getValue("reactions") as number) || 0;
-    engagementStats.setValue(Math.max(0, current - 1), "reactions");
-  }
-
-  const reactionGroups = postRecord.getLinkedRecords("reactionGroups") || [];
-  const index = findGroupIndex(reactionGroups, target);
-  if (index < 0) return;
-  const group = reactionGroups[index];
-  if (!group) return;
-
-  const reactors = group.getLinkedRecord("reactors");
-  const count = (reactors?.getValue("totalCount") as number) || 0;
-  if (count <= 1) {
-    postRecord.setLinkedRecords(
-      reactionGroups.filter((_, i) => i !== index),
-      "reactionGroups",
-    );
-    if (reactors) store.delete(reactors.getDataID());
-    store.delete(group.getDataID());
-  } else {
-    reactors?.setValue(count - 1, "totalCount");
-    reactors?.setValue(
-      false,
-      "viewerHasReacted",
-      viewerReactionArgs(actingAccountId),
-    );
-  }
-}
-
-function applyAdd(
-  store: RecordSourceSelectorProxy,
-  postId: string,
-  target: ReactionTarget,
-  actingAccountId: string | null | undefined,
-): void {
-  const postRecord = store.get(postId);
-  if (!postRecord) return;
-
-  const engagementStats = postRecord.getLinkedRecord("engagementStats");
-  if (engagementStats) {
-    const current = (engagementStats.getValue("reactions") as number) || 0;
-    engagementStats.setValue(current + 1, "reactions");
-  }
-
-  const reactionGroups = postRecord.getLinkedRecords("reactionGroups") || [];
-  const index = findGroupIndex(reactionGroups, target);
-  if (index >= 0) {
-    const group = reactionGroups[index];
-    if (!group) return;
-    let reactors = group.getLinkedRecord("reactors");
-    if (!reactors) {
-      reactors = store.create(
-        `${postId}_reaction_${target.id}_reactors`,
-        "ReactionGroupReactorsConnection",
-      );
-      group.setLinkedRecord(reactors, "reactors");
-    }
-    const count = (reactors.getValue("totalCount") as number) || 0;
-    reactors.setValue(count + 1, "totalCount");
-    reactors.setValue(
-      true,
-      "viewerHasReacted",
-      viewerReactionArgs(actingAccountId),
-    );
-  } else if (target.kind === "emoji") {
-    // Custom reactions are offered only for groups that already exist on
-    // the post, so only unicode reactions create a new group client-side.
-    const newGroup = store.create(
-      `${postId}_reaction_${target.id}`,
-      "EmojiReactionGroup",
-    );
-    const reactors = store.create(
-      `${postId}_reaction_${target.id}_reactors`,
-      "ReactionGroupReactorsConnection",
-    );
-    newGroup.setValue(target.id, "emoji");
-    reactors.setValue(1, "totalCount");
-    reactors.setValue(
-      true,
-      "viewerHasReacted",
-      viewerReactionArgs(actingAccountId),
-    );
-    newGroup.setLinkedRecord(reactors, "reactors");
-    newGroup.setLinkedRecord(postRecord, "subject");
-    postRecord.setLinkedRecords(
-      [...reactionGroups, newGroup],
-      "reactionGroups",
-    );
-  }
-}
-
 /**
  * Add/remove behavior shared by the unicode and custom quick-pick views.
  * It decides add vs. remove from the current `note` data, commits the
- * mutation, and patches the Relay store immediately.
+ * mutation, and patches the Relay store for concrete success payloads.
  *
  * Only one toggle may be in flight at a time; further clicks are ignored
  * until the current mutation settles.
@@ -288,7 +167,12 @@ export function createReactionToggle(
           if (
             reactionMutationSucceeded("remove", result?.removeReactionFromPost)
           ) {
-            applyRemove(store, postId, target, actingAccountId);
+            updateReactionStore(store, {
+              action: "remove",
+              postId,
+              target,
+              actingAccountId,
+            });
           }
         },
         onCompleted: (result) => {
@@ -310,7 +194,12 @@ export function createReactionToggle(
         variables: { input },
         updater: (store, result) => {
           if (reactionMutationSucceeded("add", result?.addReactionToPost)) {
-            applyAdd(store, postId, target, actingAccountId);
+            updateReactionStore(store, {
+              action: "add",
+              postId,
+              target,
+              actingAccountId,
+            });
           }
         },
         onCompleted: (result) => {
