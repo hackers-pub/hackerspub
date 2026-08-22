@@ -1,18 +1,11 @@
 import { graphql } from "relay-runtime";
-import {
-  createEffect,
-  createSignal,
-  For,
-  Match,
-  on,
-  Show,
-  Switch,
-} from "solid-js";
+import { createEffect, createSignal, Match, on, Show, Switch } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import { ArticleCard } from "./ArticleCard.tsx";
 import { ActorArticleList_articles$key } from "./__generated__/ActorArticleList_articles.graphql.ts";
+import { VirtualizedPostList } from "./VirtualizedPostList.tsx";
 
 export interface ActorArticleListProps {
   $articles: ActorArticleList_articles$key;
@@ -41,6 +34,7 @@ export function ActorArticleList(props: ActorArticleListProps) {
           edges {
             __id
             node {
+              id
               ...ArticleCard_article
                 @arguments(locale: $locale, actingAccountId: $actingAccountId)
             }
@@ -81,36 +75,42 @@ export function ActorArticleList(props: ActorArticleListProps) {
       <Show keyed when={articles()}>
         {(data) => (
           <>
-            <For each={data.articles.edges}>
-              {(edge) => (
+            <VirtualizedPostList
+              items={data.articles.edges}
+              getItemKey={(edge) => edge.node.id}
+              initialItemCount={data.articles.edges.length}
+              renderItem={(edge) => (
                 <ArticleCard
                   $article={edge.node}
                   connections={[data.articles.__id]}
                 />
               )}
-            </For>
-            <Show when={articles.hasNext}>
-              <button
-                type="button"
-                on:click={loadingState() === "loading" ? undefined : onLoadMore}
-                disabled={articles.pending || loadingState() === "loading"}
-                class="block w-full cursor-pointer px-4 py-8 text-center text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <Switch>
-                  <Match
-                    when={articles.pending || loadingState() === "loading"}
-                  >
-                    {t`Loading more articles…`}
-                  </Match>
-                  <Match when={loadingState() === "errored"}>
-                    {t`Failed to load more articles; click to retry`}
-                  </Match>
-                  <Match when={loadingState() === "loaded"}>
-                    {t`Load more articles`}
-                  </Match>
-                </Switch>
-              </button>
-            </Show>
+              hasFooter={articles.hasNext}
+              renderFooter={() => (
+                <button
+                  type="button"
+                  on:click={
+                    loadingState() === "loading" ? undefined : onLoadMore
+                  }
+                  disabled={articles.pending || loadingState() === "loading"}
+                  class="block w-full cursor-pointer px-4 py-8 text-center text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <Switch>
+                    <Match
+                      when={articles.pending || loadingState() === "loading"}
+                    >
+                      {t`Loading more articles…`}
+                    </Match>
+                    <Match when={loadingState() === "errored"}>
+                      {t`Failed to load more articles; click to retry`}
+                    </Match>
+                    <Match when={loadingState() === "loaded"}>
+                      {t`Load more articles`}
+                    </Match>
+                  </Switch>
+                </button>
+              )}
+            />
             <Show when={data.articles.edges.length < 1}>
               <div class="px-4 py-8 text-center text-muted-foreground">
                 {t`No notes articles`}

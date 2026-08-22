@@ -3,7 +3,6 @@ import {
   createEffect,
   createMemo,
   createSignal,
-  For,
   Match,
   on,
   Show,
@@ -11,6 +10,7 @@ import {
 } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import { PostCard } from "~/components/PostCard.tsx";
+import { VirtualizedPostList } from "~/components/VirtualizedPostList.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import type {
   Bookmarks_posts$data,
@@ -43,6 +43,7 @@ export function Bookmarks(props: BookmarksProps) {
           edges {
             __id
             node {
+              id
               ...PostCard_post @arguments(locale: $locale)
             }
           }
@@ -95,35 +96,41 @@ export function Bookmarks(props: BookmarksProps) {
       <Show keyed when={stableData()}>
         {(data) => (
           <>
-            <For each={data.bookmarks.edges}>
-              {(edge) => (
+            <VirtualizedPostList
+              items={data.bookmarks.edges}
+              getItemKey={(edge) => edge.node.id}
+              initialItemCount={data.bookmarks.edges.length}
+              renderItem={(edge) => (
                 <PostCard
                   $post={edge.node}
                   connections={[data.bookmarks.__id]}
                   bookmarkListConnections={[data.bookmarks.__id]}
                 />
               )}
-            </For>
-            <Show when={posts.hasNext}>
-              <button
-                type="button"
-                on:click={loadingState() === "loading" ? undefined : onLoadMore}
-                disabled={posts.pending || loadingState() === "loading"}
-                class="block w-full cursor-pointer px-4 py-8 text-center text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <Switch>
-                  <Match when={posts.pending || loadingState() === "loading"}>
-                    {t`Loading more bookmarks…`}
-                  </Match>
-                  <Match when={loadingState() === "errored"}>
-                    {t`Failed to load more bookmarks; click to retry`}
-                  </Match>
-                  <Match when={loadingState() === "loaded"}>
-                    {t`Load more bookmarks`}
-                  </Match>
-                </Switch>
-              </button>
-            </Show>
+              hasFooter={posts.hasNext}
+              renderFooter={() => (
+                <button
+                  type="button"
+                  on:click={
+                    loadingState() === "loading" ? undefined : onLoadMore
+                  }
+                  disabled={posts.pending || loadingState() === "loading"}
+                  class="block w-full cursor-pointer px-4 py-8 text-center text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <Switch>
+                    <Match when={posts.pending || loadingState() === "loading"}>
+                      {t`Loading more bookmarks…`}
+                    </Match>
+                    <Match when={loadingState() === "errored"}>
+                      {t`Failed to load more bookmarks; click to retry`}
+                    </Match>
+                    <Match when={loadingState() === "loaded"}>
+                      {t`Load more bookmarks`}
+                    </Match>
+                  </Switch>
+                </button>
+              )}
+            />
             <Show when={data.bookmarks.edges.length < 1}>
               <div class="px-4 py-16 text-center text-muted-foreground">
                 {t`No bookmarks yet`}

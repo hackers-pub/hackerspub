@@ -1,18 +1,11 @@
 import { graphql } from "relay-runtime";
-import {
-  createEffect,
-  createSignal,
-  For,
-  Match,
-  on,
-  Show,
-  Switch,
-} from "solid-js";
+import { createEffect, createSignal, Match, on, Show, Switch } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import { ActorNoteList_notes$key } from "./__generated__/ActorNoteList_notes.graphql.ts";
 import { NoteCard } from "./NoteCard.tsx";
+import { VirtualizedPostList } from "./VirtualizedPostList.tsx";
 
 export interface ActorNoteListProps {
   $notes: ActorNoteList_notes$key;
@@ -37,6 +30,7 @@ export function ActorNoteList(props: ActorNoteListProps) {
           edges {
             __id
             node {
+              id
               ...NoteCard_note @arguments(actingAccountId: $actingAccountId)
             }
           }
@@ -76,31 +70,37 @@ export function ActorNoteList(props: ActorNoteListProps) {
       <Show keyed when={notes()}>
         {(data) => (
           <>
-            <For each={data.notes.edges}>
-              {(edge) => (
+            <VirtualizedPostList
+              items={data.notes.edges}
+              getItemKey={(edge) => edge.node.id}
+              initialItemCount={data.notes.edges.length}
+              renderItem={(edge) => (
                 <NoteCard $note={edge.node} connections={[data.notes.__id]} />
               )}
-            </For>
-            <Show when={notes.hasNext}>
-              <button
-                type="button"
-                on:click={loadingState() === "loading" ? undefined : onLoadMore}
-                disabled={notes.pending || loadingState() === "loading"}
-                class="block w-full cursor-pointer px-4 py-8 text-center text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <Switch>
-                  <Match when={notes.pending || loadingState() === "loading"}>
-                    {t`Loading more notes…`}
-                  </Match>
-                  <Match when={loadingState() === "errored"}>
-                    {t`Failed to load more notes; click to retry`}
-                  </Match>
-                  <Match when={loadingState() === "loaded"}>
-                    {t`Load more notes`}
-                  </Match>
-                </Switch>
-              </button>
-            </Show>
+              hasFooter={notes.hasNext}
+              renderFooter={() => (
+                <button
+                  type="button"
+                  on:click={
+                    loadingState() === "loading" ? undefined : onLoadMore
+                  }
+                  disabled={notes.pending || loadingState() === "loading"}
+                  class="block w-full cursor-pointer px-4 py-8 text-center text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <Switch>
+                    <Match when={notes.pending || loadingState() === "loading"}>
+                      {t`Loading more notes…`}
+                    </Match>
+                    <Match when={loadingState() === "errored"}>
+                      {t`Failed to load more notes; click to retry`}
+                    </Match>
+                    <Match when={loadingState() === "loaded"}>
+                      {t`Load more notes`}
+                    </Match>
+                  </Switch>
+                </button>
+              )}
+            />
             <Show when={data.notes.edges.length < 1}>
               <div class="px-4 py-8 text-center text-muted-foreground">
                 {t`No notes found`}

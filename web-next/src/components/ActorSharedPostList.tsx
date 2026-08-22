@@ -1,18 +1,11 @@
 import { graphql } from "relay-runtime";
-import {
-  createEffect,
-  createSignal,
-  For,
-  Match,
-  on,
-  Show,
-  Switch,
-} from "solid-js";
+import { createEffect, createSignal, Match, on, Show, Switch } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import { PostCard } from "./PostCard.tsx";
 import { ActorSharedPostList_sharedPosts$key } from "./__generated__/ActorSharedPostList_sharedPosts.graphql.ts";
+import { VirtualizedPostList } from "./VirtualizedPostList.tsx";
 
 export interface ActorSharedPostListProps {
   $sharedPosts: ActorSharedPostList_sharedPosts$key;
@@ -41,6 +34,7 @@ export function ActorSharedPostList(props: ActorSharedPostListProps) {
           edges {
             __id
             node {
+              id
               ...PostCard_post
                 @arguments(locale: $locale, actingAccountId: $actingAccountId)
             }
@@ -81,36 +75,42 @@ export function ActorSharedPostList(props: ActorSharedPostListProps) {
       <Show keyed when={sharedPosts()}>
         {(data) => (
           <>
-            <For each={data.sharedPosts.edges}>
-              {(edge) => (
+            <VirtualizedPostList
+              items={data.sharedPosts.edges}
+              getItemKey={(edge) => edge.node.id}
+              initialItemCount={data.sharedPosts.edges.length}
+              renderItem={(edge) => (
                 <PostCard
                   $post={edge.node}
                   connections={[data.sharedPosts.__id]}
                 />
               )}
-            </For>
-            <Show when={sharedPosts.hasNext}>
-              <button
-                type="button"
-                on:click={loadingState() === "loading" ? undefined : onLoadMore}
-                disabled={sharedPosts.pending || loadingState() === "loading"}
-                class="block w-full cursor-pointer px-4 py-8 text-center text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <Switch>
-                  <Match
-                    when={sharedPosts.pending || loadingState() === "loading"}
-                  >
-                    {t`Loading more posts…`}
-                  </Match>
-                  <Match when={loadingState() === "errored"}>
-                    {t`Failed to load more posts; click to retry`}
-                  </Match>
-                  <Match when={loadingState() === "loaded"}>
-                    {t`Load more posts`}
-                  </Match>
-                </Switch>
-              </button>
-            </Show>
+              hasFooter={sharedPosts.hasNext}
+              renderFooter={() => (
+                <button
+                  type="button"
+                  on:click={
+                    loadingState() === "loading" ? undefined : onLoadMore
+                  }
+                  disabled={sharedPosts.pending || loadingState() === "loading"}
+                  class="block w-full cursor-pointer px-4 py-8 text-center text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <Switch>
+                    <Match
+                      when={sharedPosts.pending || loadingState() === "loading"}
+                    >
+                      {t`Loading more posts…`}
+                    </Match>
+                    <Match when={loadingState() === "errored"}>
+                      {t`Failed to load more posts; click to retry`}
+                    </Match>
+                    <Match when={loadingState() === "loaded"}>
+                      {t`Load more posts`}
+                    </Match>
+                  </Switch>
+                </button>
+              )}
+            />
             <Show when={data.sharedPosts.edges.length < 1}>
               <div class="px-4 py-8 text-center text-muted-foreground">
                 {t`No posts found`}

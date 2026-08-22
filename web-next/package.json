@@ -38,6 +38,7 @@
     "@solidjs/start": "2.0.0-alpha.2",
     "@solidjs/vite-plugin-nitro-2": "^0.1.0",
     "@soorria/solid-dropzone": "^1.0.1",
+    "@tanstack/solid-virtual": "^3.13.37",
     "@tailwindcss/typography": "catalog:",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

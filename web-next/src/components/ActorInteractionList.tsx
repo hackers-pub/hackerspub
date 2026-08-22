@@ -1,18 +1,11 @@
 import { graphql } from "relay-runtime";
-import {
-  createEffect,
-  createSignal,
-  For,
-  Match,
-  on,
-  Show,
-  Switch,
-} from "solid-js";
+import { createEffect, createSignal, Match, on, Show, Switch } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import type { ActorInteractionList_interactions$key } from "./__generated__/ActorInteractionList_interactions.graphql.ts";
 import { PostCard } from "./PostCard.tsx";
+import { VirtualizedPostList } from "./VirtualizedPostList.tsx";
 
 export interface ActorInteractionListProps {
   $interactions: ActorInteractionList_interactions$key;
@@ -41,6 +34,7 @@ export function ActorInteractionList(props: ActorInteractionListProps) {
           edges {
             __id
             node {
+              id
               ...PostCard_post
                 @arguments(locale: $locale, actingAccountId: $actingAccountId)
             }
@@ -89,40 +83,44 @@ export function ActorInteractionList(props: ActorInteractionListProps) {
   return (
     <div class="my-4 overflow-hidden rounded-lg border bg-card shadow-sm">
       <Show when={interactions()}>
-        <For each={interactionEdges()}>
-          {(edge) => (
+        <VirtualizedPostList
+          items={interactionEdges()}
+          getItemKey={(edge) => edge.node.id}
+          initialItemCount={interactionEdges().length}
+          renderItem={(edge) => (
             <PostCard
               $post={edge.node}
               connections={interactionConnections()}
             />
           )}
-        </For>
-        <Show when={interactions.hasNext}>
-          <button
-            type="button"
-            onClick={loadingState() === "loading" ? undefined : onLoadMore}
-            disabled={
-              interactions.isLoadingNext || loadingState() === "loading"
-            }
-            class="block w-full cursor-pointer px-4 py-8 text-center text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <Switch>
-              <Match
-                when={
-                  interactions.isLoadingNext || loadingState() === "loading"
-                }
-              >
-                {t`Loading more interactions…`}
-              </Match>
-              <Match when={loadingState() === "errored"}>
-                {t`Failed to load more interactions; click to retry`}
-              </Match>
-              <Match when={loadingState() === "loaded"}>
-                {t`Load more interactions`}
-              </Match>
-            </Switch>
-          </button>
-        </Show>
+          hasFooter={interactions.hasNext}
+          renderFooter={() => (
+            <button
+              type="button"
+              onClick={loadingState() === "loading" ? undefined : onLoadMore}
+              disabled={
+                interactions.isLoadingNext || loadingState() === "loading"
+              }
+              class="block w-full cursor-pointer px-4 py-8 text-center text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Switch>
+                <Match
+                  when={
+                    interactions.isLoadingNext || loadingState() === "loading"
+                  }
+                >
+                  {t`Loading more interactions…`}
+                </Match>
+                <Match when={loadingState() === "errored"}>
+                  {t`Failed to load more interactions; click to retry`}
+                </Match>
+                <Match when={loadingState() === "loaded"}>
+                  {t`Load more interactions`}
+                </Match>
+              </Switch>
+            </button>
+          )}
+        />
         <Show when={hasNoInteractions()}>
           <div class="px-4 py-8 text-center text-muted-foreground">
             {t`No interactions found`}

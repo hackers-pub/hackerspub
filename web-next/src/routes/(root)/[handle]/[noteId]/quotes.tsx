@@ -2,7 +2,7 @@ import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { type RouteDefinition, useParams } from "@solidjs/router";
 import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { graphql } from "relay-runtime";
-import { createSignal, For, Match, Show, Switch } from "solid-js";
+import { createMemo, createSignal, Match, Show, Switch } from "solid-js";
 import {
   createPaginationFragment,
   loadQuery,
@@ -13,6 +13,7 @@ import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PostCard } from "~/components/PostCard.tsx";
 import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { Title } from "~/components/Title.tsx";
+import { VirtualizedPostList } from "~/components/VirtualizedPostList.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { useLingui } from "~/lib/i18n/macro.ts";
@@ -183,7 +184,10 @@ function QuotesList(props: {
     `,
     () => props.$post,
   );
-  const edges = () => quotes()?.quotes.edges ?? [];
+  const edges = createMemo(() => quotes()?.quotes.edges ?? []);
+  const quotePosts = createMemo(() =>
+    edges().flatMap((edge) => (edge.node == null ? [] : [edge.node])),
+  );
 
   function onLoadMore() {
     setLoadingState("loading");
@@ -196,40 +200,40 @@ function QuotesList(props: {
 
   return (
     <Show
-      when={edges().length > 0}
+      when={quotePosts().length > 0}
       fallback={
         <p class="p-6 text-center text-sm text-muted-foreground">
           {t`No one has quoted this yet.`}
         </p>
       }
     >
-      <For each={edges()}>
-        {(edge) => (
-          <Show keyed when={edge.node}>
-            {(quote) => <PostCard $post={quote} />}
-          </Show>
+      <VirtualizedPostList
+        items={quotePosts()}
+        getItemKey={(quote) => quote.id}
+        initialItemCount={quotePosts().length}
+        renderItem={(quote) => <PostCard $post={quote} />}
+        hasFooter={quotes.hasNext}
+        renderFooter={() => (
+          <button
+            type="button"
+            on:click={loadingState() === "loading" ? undefined : onLoadMore}
+            disabled={quotes.pending || loadingState() === "loading"}
+            class="block w-full cursor-pointer border-t px-4 py-5 text-center text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Switch>
+              <Match when={quotes.pending || loadingState() === "loading"}>
+                {t`Loading more quotes…`}
+              </Match>
+              <Match when={loadingState() === "errored"}>
+                {t`Failed to load more quotes; click to retry`}
+              </Match>
+              <Match when={loadingState() === "loaded"}>
+                {t`Load more quotes`}
+              </Match>
+            </Switch>
+          </button>
         )}
-      </For>
-      <Show when={quotes.hasNext}>
-        <button
-          type="button"
-          on:click={loadingState() === "loading" ? undefined : onLoadMore}
-          disabled={quotes.pending || loadingState() === "loading"}
-          class="block w-full cursor-pointer border-t px-4 py-5 text-center text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          <Switch>
-            <Match when={quotes.pending || loadingState() === "loading"}>
-              {t`Loading more quotes…`}
-            </Match>
-            <Match when={loadingState() === "errored"}>
-              {t`Failed to load more quotes; click to retry`}
-            </Match>
-            <Match when={loadingState() === "loaded"}>
-              {t`Load more quotes`}
-            </Match>
-          </Switch>
-        </button>
-      </Show>
+      />
     </Show>
   );
 }

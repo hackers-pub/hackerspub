@@ -61,6 +61,7 @@ export default defineConfig(() => ({
       "@sentry/solidstart/solidrouter",
       "@simplewebauthn/browser",
       "@solid-primitives/keyed",
+      "@tanstack/solid-virtual",
       "class-variance-authority",
       "clsx",
       "es-toolkit",

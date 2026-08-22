@@ -3,7 +3,6 @@ import {
   createEffect,
   createMemo,
   createSignal,
-  For,
   Match,
   on,
   onCleanup,
@@ -12,11 +11,10 @@ import {
   Switch,
 } from "solid-js";
 import { createPaginationFragment, useRelayEnvironment } from "solid-relay";
-import { LazyMount } from "~/components/LazyMount.tsx";
 import { PostCard } from "~/components/PostCard.tsx";
+import { VirtualizedPostList } from "~/components/VirtualizedPostList.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
-import { createChunkedVisibleCount } from "~/lib/deferredRender.ts";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import type {
   PublicTimeline_posts$data,
@@ -88,6 +86,7 @@ export function PublicTimeline(props: PublicTimelineProps) {
             __id
             cursor
             node {
+              id
               ...PostCard_post
                 @arguments(locale: $locale, actingAccountId: $actingAccountId)
             }
@@ -118,13 +117,6 @@ export function PublicTimeline(props: PublicTimelineProps) {
   );
   const timeline = createMemo(() => stableData()?.publicTimeline);
   const timelineEdges = createMemo(() => timeline()?.edges ?? []);
-  const visiblePostCount = createChunkedVisibleCount(
-    () => timelineEdges().length,
-    { initialCount: 3, chunkSize: 5 },
-  );
-  const visibleTimelineEdges = createMemo(() =>
-    timelineEdges().slice(0, visiblePostCount()),
-  );
 
   // Keep the baseline cursor in sync with whatever is currently displayed.
   // Distinguishes "data not loaded yet" (undefined) from "loaded but empty"
@@ -281,39 +273,38 @@ export function PublicTimeline(props: PublicTimelineProps) {
         </button>
       </Show>
       <Show when={stableData()}>
-        <For each={visibleTimelineEdges()}>
-          {(edge, i) => (
-            <LazyMount eager={i() < 3}>
-              <PostCard
-                $post={edge.node}
-                connections={timeline() == null ? [] : [timeline()!.__id]}
-                deferHeavySections
-              />
-            </LazyMount>
+        <VirtualizedPostList
+          items={timelineEdges()}
+          getItemKey={(edge) => edge.node.id}
+          initialItemCount={3}
+          renderItem={(edge) => (
+            <PostCard
+              $post={edge.node}
+              connections={timeline() == null ? [] : [timeline()!.__id]}
+            />
           )}
-        </For>
-        <Show
-          when={posts.hasNext && visiblePostCount() >= timelineEdges().length}
-        >
-          <button
-            type="button"
-            on:click={loadingState() === "loading" ? undefined : onLoadMore}
-            disabled={posts.pending || loadingState() === "loading"}
-            class="block w-full cursor-pointer px-4 py-8 text-center text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <Switch>
-              <Match when={posts.pending || loadingState() === "loading"}>
-                {t`Loading more posts…`}
-              </Match>
-              <Match when={loadingState() === "errored"}>
-                {t`Failed to load more posts; click to retry`}
-              </Match>
-              <Match when={loadingState() === "loaded"}>
-                {t`Load more posts`}
-              </Match>
-            </Switch>
-          </button>
-        </Show>
+          hasFooter={posts.hasNext}
+          renderFooter={() => (
+            <button
+              type="button"
+              on:click={loadingState() === "loading" ? undefined : onLoadMore}
+              disabled={posts.pending || loadingState() === "loading"}
+              class="block w-full cursor-pointer px-4 py-8 text-center text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Switch>
+                <Match when={posts.pending || loadingState() === "loading"}>
+                  {t`Loading more posts…`}
+                </Match>
+                <Match when={loadingState() === "errored"}>
+                  {t`Failed to load more posts; click to retry`}
+                </Match>
+                <Match when={loadingState() === "loaded"}>
+                  {t`Load more posts`}
+                </Match>
+              </Switch>
+            </button>
+          )}
+        />
         <Show when={timelineEdges().length < 1}>
           <div class="px-4 py-8 text-center text-muted-foreground">
             {t`No posts found`}
