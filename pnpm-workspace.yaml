@@ -20,6 +20,7 @@ catalog:
   '@c4spar/mock-fetch': jsr:^1.0.0
   '@envelop/core': ^5.5.1
   '@fedify/fedify': 2.3.5
+  '@fedify/lint': 2.3.5
   '@fedify/markdown-it-hashtag': ^0.3.0
   '@fedify/markdown-it-mention': ^0.3.0
   '@fedify/postgres': 2.3.5

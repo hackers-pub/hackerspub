@@ -12,6 +12,7 @@
     "web-push": "catalog:"
   },
   "devDependencies": {
+    "@fedify/lint": "catalog:",
     "@fedify/vocab": "catalog:",
     "@hackerspub/ai": "workspace:*",
     "@hackerspub/federation": "workspace:*",
