@@ -28,3 +28,6 @@ kv.db
 
 # log
 *.jsonl
+
+# Agent skills from npm packages (managed by skills-npm)
+**/skills/npm-*
