@@ -31,6 +31,7 @@ catalog:
   '@keyv/redis': ^4.6.0
   '@logtape/drizzle-orm': 2.2.4
   '@logtape/file': 2.2.4
+  '@logtape/lint': 2.2.4
   '@logtape/logtape': 2.2.4
   '@logtape/redaction': 2.2.4
   '@logtape/sentry': 2.2.4

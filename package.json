@@ -16,6 +16,7 @@
     "@fedify/vocab": "catalog:",
     "@hackerspub/ai": "workspace:*",
     "@hackerspub/federation": "workspace:*",
+    "@logtape/lint": "catalog:",
     "@std/assert": "catalog:",
     "@types/d3": "catalog:",
     "@types/gettext-parser": "catalog:",

@@ -3,6 +3,7 @@ import { defineConfig } from "oxlint";
 export default defineConfig({
   jsPlugins: [
     "@fedify/lint/oxlint",
+    { name: "@logtape", specifier: "@logtape/lint/eslint" },
     "./lint-plugins/keyed-show.ts",
     "./lint-plugins/no-deno-globals.ts",
     "./lint-plugins/no-load-query-in-router-query.ts",
@@ -34,6 +35,10 @@ export default defineConfig({
     "@fedify/lint/actor-shared-inbox-property-required": "warn",
     "@fedify/lint/collection-filtering-not-implemented": "warn",
     "@fedify/lint/outbox-listener-delivery-required": "warn",
+    "@logtape/no-message-interpolation": "error",
+    "@logtape/no-unawaited-log": "error",
+    "@logtape/prefer-lazy-evaluation": "warn",
+    "@logtape/require-meta-sink": "warn",
     "hackerspub-runtime/no-deno-globals": "error",
     "hackerspub-solid/show-keyed-on-fn-child": "error",
     "hackerspub-solid-relay/no-load-query-in-router-query": "error",

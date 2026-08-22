@@ -169,10 +169,10 @@ export async function sendWebPushNotification(
       if (endpoint == null) {
         logger.warning(
           "Skipping unsafe Web Push endpoint for account {accountId}, endpoint suffix {endpointSuffix}.",
-          {
+          () => ({
             accountId: options.accountId,
             endpointSuffix: getEndpointSuffix(target.endpoint),
-          },
+          }),
         );
         staleEndpoints.add(target.endpoint);
         return;
@@ -194,12 +194,12 @@ export async function sendWebPushNotification(
         const errorName = getErrorName(error);
         logger.warning(
           "Web Push send failed for account {accountId}, endpoint suffix {endpointSuffix}: {statusCode} {errorName}",
-          {
+          () => ({
             accountId: options.accountId,
             endpointSuffix: getEndpointSuffix(target.endpoint),
             statusCode,
             errorName,
-          },
+          }),
         );
         if (statusCode === 404 || statusCode === 410) {
           staleEndpoints.add(target.endpoint);

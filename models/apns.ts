@@ -236,11 +236,11 @@ export async function sendApnsNotification(
       const deviceToken = error.notification.deviceToken;
       logger.warn(
         "APNS send failed for account {accountId}, token suffix {deviceTokenSuffix}: {reason}",
-        {
+        () => ({
           accountId: options.accountId,
           deviceTokenSuffix: getDeviceTokenSuffix(deviceToken),
           reason: error.reason,
-        },
+        }),
       );
       if (
         error.reason === Errors.badDeviceToken ||

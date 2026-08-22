@@ -60,6 +60,9 @@ catalogs:
     '@logtape/file':
       specifier: 2.2.4
       version: 2.2.4
+    '@logtape/lint':
+      specifier: 2.2.4
+      version: 2.2.4
     '@logtape/logtape':
       specifier: 2.2.4
       version: 2.2.4
@@ -389,6 +392,9 @@ importers:
       '@hackerspub/federation':
         specifier: workspace:*
         version: link:federation
+      '@logtape/lint':
+        specifier: 'catalog:'
+        version: 2.2.4(eslint@10.9.0(jiti@2.6.1))
       '@std/assert':
         specifier: 'catalog:'
         version: '@jsr/std__assert@1.0.19'
@@ -2640,6 +2646,14 @@ packages:
     resolution: {integrity: sha512-f+1g4VvB+HegOYwt8GAhYFk1OO9nbi5l0hn7hkKxjnyedE9CBEoKgN36nIYIt58asRms2GDXLtxeK0OStYjnsQ==}
     peerDependencies:
       '@logtape/logtape': ^2.2.4
+
+  '@logtape/lint@2.2.4':
+    resolution: {integrity: sha512-WE2tDV1VG79vKgOkXoJRlyHreSyWsYwhYK7pdyhei87F34x5YMluQ7lRiRPvAxhDiE5KtG8msPP4eNSOI47nfA==}
+    peerDependencies:
+      eslint: '>=8.0.0'
+    peerDependenciesMeta:
+      eslint:
+        optional: true
 
   '@logtape/logtape@2.2.4':
     resolution: {integrity: sha512-2rALzv9m4ibE5FyB8/FMm5MPMMlK7ujgy3ufricVKIxj6e7SZbw4w6J16/fRAsXgdDlOXPUA0aa6XoEQvdlKxw==}
@@ -10965,6 +10979,10 @@ snapshots:
     dependencies:
       '@logtape/logtape': 2.2.4
 
+  '@logtape/lint@2.2.4(eslint@10.9.0(jiti@2.6.1))':
+    optionalDependencies:
+      eslint: 10.9.0(jiti@2.6.1)
+
   '@logtape/logtape@2.2.4': {}
 
   '@logtape/logtape@2.3.2': {}
@@ -12714,8 +12732,8 @@ snapshots:
     dependencies:
       '@mdx-js/react': 3.1.1(@types/react@19.2.14)(react@19.2.5)
       '@storybook/csf-plugin': 10.3.5(esbuild@0.27.7)(rollup@4.60.1)(storybook@10.3.5(@testing-library/dom@10.4.1)(react-dom@19.2.5(react@0.14.10))(react@0.14.10))(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.9.0))
-      '@storybook/icons': 2.0.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      '@storybook/react-dom-shim': 10.3.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(storybook@10.3.5(@testing-library/dom@10.4.1)(react-dom@19.2.5(react@0.14.10))(react@0.14.10))
+      '@storybook/icons': 2.0.1(react-dom@19.2.5(react@0.14.10))(react@19.2.5)
+      '@storybook/react-dom-shim': 10.3.5(react-dom@19.2.5(react@0.14.10))(react@19.2.5)(storybook@10.3.5(@testing-library/dom@10.4.1)(react-dom@19.2.5(react@0.14.10))(react@0.14.10))
       react: 19.2.5
       react-dom: 19.2.5(react@19.2.5)
       storybook: 10.3.5(@testing-library/dom@10.4.1)(react-dom@19.2.5(react@0.14.10))(react@0.14.10)
@@ -12754,12 +12772,12 @@ snapshots:
       react: 0.14.10
       react-dom: 19.2.5(react@19.2.5)
 
-  '@storybook/icons@2.0.1(react-dom@19.2.5(react@19.2.5))(react@19.2.5)':
+  '@storybook/icons@2.0.1(react-dom@19.2.5(react@0.14.10))(react@19.2.5)':
     dependencies:
       react: 19.2.5
       react-dom: 19.2.5(react@19.2.5)
 
-  '@storybook/react-dom-shim@10.3.5(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(storybook@10.3.5(@testing-library/dom@10.4.1)(react-dom@19.2.5(react@0.14.10))(react@0.14.10))':
+  '@storybook/react-dom-shim@10.3.5(react-dom@19.2.5(react@0.14.10))(react@19.2.5)(storybook@10.3.5(@testing-library/dom@10.4.1)(react-dom@19.2.5(react@0.14.10))(react@0.14.10))':
     dependencies:
       react: 19.2.5
       react-dom: 19.2.5(react@19.2.5)

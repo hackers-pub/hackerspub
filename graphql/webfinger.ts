@@ -109,10 +109,10 @@ async function buildWebFingerResult(
       software = nodeInfo.software.name.toLowerCase();
     }
   } catch (error) {
-    logger.warn("Failed to get nodeinfo for {domain}: {error}", {
+    logger.warn("Failed to get nodeinfo for {domain}: {error}", () => ({
       domain,
       error: error instanceof Error ? error.message : String(error),
-    });
+    }));
   }
 
   let iconUrl: URL | null = null;
@@ -152,16 +152,16 @@ async function buildWebFingerResult(
           emojis[emojiName] = u.href;
         }
       } catch (error) {
-        logger.warn("Failed to extract emoji {name}: {error}", {
+        logger.warn("Failed to extract emoji {name}: {error}", () => ({
           name: tag.name?.toString() ?? "unknown",
           error: error instanceof Error ? error.message : String(error),
-        });
+        }));
       }
     }
   } catch (error) {
-    logger.warn("Failed to iterate tags: {error}", {
+    logger.warn("Failed to iterate tags: {error}", () => ({
       error: error instanceof Error ? error.message : String(error),
-    });
+    }));
   }
 
   return {
@@ -255,9 +255,9 @@ async function lookupRemoteFollowerImpl(
       remoteFollowUrl,
     );
   } catch (error) {
-    logger.warn("ActivityPub lookup failed, using fallback: {error}", {
+    logger.warn("ActivityPub lookup failed, using fallback: {error}", () => ({
       error: error instanceof Error ? error.message : String(error),
-    });
+    }));
 
     return {
       preferredUsername: username,
@@ -318,9 +318,9 @@ builder.queryFields((t) => ({
           actor.handle,
         );
       } catch (error) {
-        logger.error("Remote follower lookup error: {error}", {
+        logger.error("Remote follower lookup error: {error}", () => ({
           error: error instanceof Error ? error.message : String(error),
-        });
+        }));
         return null;
       }
     },

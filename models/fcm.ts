@@ -334,12 +334,12 @@ export async function sendFcmNotification(
               body.error?.details?.[0]?.errorCode ?? body.error?.status;
             logger.warn(
               "FCM send failed for account {accountId}, token suffix {deviceTokenSuffix}: {status} {errorCode}",
-              {
+              () => ({
                 accountId: options.accountId,
                 deviceTokenSuffix: getDeviceTokenSuffix(token),
                 status: resp.status,
                 errorCode,
-              },
+              }),
             );
             if (errorCode === "UNREGISTERED") {
               staleTokens.add(token);
@@ -348,11 +348,11 @@ export async function sendFcmNotification(
         } catch (error) {
           logger.warn(
             "FCM send error for account {accountId}, token suffix {deviceTokenSuffix}: {error}",
-            {
+            () => ({
               accountId: options.accountId,
               deviceTokenSuffix: getDeviceTokenSuffix(token),
               error,
-            },
+            }),
           );
         }
       }),

@@ -892,7 +892,9 @@ export async function verifyAccountLink(
   url: string | URL,
   verifyUrl: string | URL,
 ): Promise<boolean> {
-  logger.debug("Verifying account link {url}...", { url: url.toString() });
+  logger.debug("Verifying account link {url}...", () => ({
+    url: url.toString(),
+  }));
   const response = await fetch(url);
   if (!response.ok) return false;
   const text = await response.text();
