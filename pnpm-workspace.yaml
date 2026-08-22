@@ -19,13 +19,13 @@ catalog:
   '@aws-sdk/s3-request-presigner': 3.873.0
   '@c4spar/mock-fetch': jsr:^1.0.0
   '@envelop/core': ^5.5.1
-  '@fedify/fedify': 2.3.2
+  '@fedify/fedify': 2.3.5
   '@fedify/markdown-it-hashtag': ^0.3.0
   '@fedify/markdown-it-mention': ^0.3.0
-  '@fedify/postgres': 2.3.2
-  '@fedify/redis': 2.3.2
-  '@fedify/vocab': 2.3.2
-  '@fedify/vocab-runtime': 2.3.2
+  '@fedify/postgres': 2.3.5
+  '@fedify/redis': 2.3.5
+  '@fedify/vocab': 2.3.5
+  '@fedify/vocab-runtime': 2.3.5
   '@hackerspub/markdown-it-texmath': ^1.0.1
   '@keyv/redis': ^4.6.0
   '@logtape/drizzle-orm': 2.2.4
@@ -116,6 +116,9 @@ catalog:
   x-forwarded-fetch: ^0.2.0
   xss: ^1.0.15
   yaml: ^2.9.0
+
+minimumReleaseAgeExclude:
+  - '@fedify/*'
 
 patchedDependencies:
   '@kobalte/core@0.13.11': patches/@kobalte__core@0.13.11.patch
