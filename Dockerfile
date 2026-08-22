@@ -54,7 +54,7 @@ COPY asset-cdn/package.json /app/asset-cdn/package.json
 COPY patches /app/patches
 
 RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
-  pnpm install --frozen-lockfile --prod
+  npm_config_ignore_scripts=true pnpm install --frozen-lockfile --prod
 
 # --- Builder stage -----------------------------------------------------------
 FROM mise-base AS builder
@@ -73,7 +73,7 @@ COPY asset-cdn/package.json /app/asset-cdn/package.json
 COPY patches /app/patches
 
 RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
-  mise deps install pnpm --force
+  npm_config_ignore_scripts=true mise deps install pnpm --force
 
 COPY . /app
 
