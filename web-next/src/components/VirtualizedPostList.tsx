@@ -18,6 +18,7 @@ import {
 import {
   getInitialVirtualListItemCount,
   measureVirtualListItem,
+  measureVirtualListItemAfterMount,
   shouldResetVirtualListMeasurements,
   virtualListFooterVisible,
   virtualListRowHasBottomBorder,
@@ -116,6 +117,7 @@ export function VirtualizedPostList<T>(props: VirtualizedPostListProps<T>) {
     virtualizer.shouldAdjustScrollPositionOnItemSizeChange = () => false;
     try {
       for (const [index, element] of initialElements) {
+        if (!element.isConnected) continue;
         virtualizer.resizeItem(index, element.offsetHeight);
       }
     } finally {
@@ -130,14 +132,17 @@ export function VirtualizedPostList<T>(props: VirtualizedPostListProps<T>) {
     // On client-side navigation the list mounts while the route is still
     // inside a pending router transition, so nothing here is in the document
     // yet and every layout read (scroll margin, initial row heights) would be
-    // 0. Wait for the element to be connected before seeding the virtualizer.
+    // 0. Wait for the element to be connected and for one complete layout
+    // frame before seeding the virtualizer.
     let activationFrame: number | undefined;
+    let connectedFrames = 0;
     const activateWhenConnected = () => {
-      if (listElement?.isConnected) {
+      if (listElement?.isConnected && ++connectedFrames > 1) {
         activationFrame = undefined;
         activate();
         return;
       }
+      if (!listElement?.isConnected) connectedFrames = 0;
       activationFrame = window.requestAnimationFrame(activateWhenConnected);
     };
     activateWhenConnected();
@@ -204,10 +209,30 @@ export function VirtualizedPostList<T>(props: VirtualizedPostListProps<T>) {
     });
   };
 
-  const measureVirtualItem = (element: HTMLDivElement, index: number) => {
+  const measureVirtualItem = (
+    element: HTMLDivElement,
+    index: number,
+  ): (() => void) => {
     // Solid runs refs before applying reactive attributes, while TanStack
     // Virtual reads data-index synchronously when measureElement() is called.
     measureVirtualListItem(element, index, virtualizer.measureElement);
+
+    const item = props.items[index];
+    if (item == null) return () => undefined;
+    // Row refs normally run while the element is detached. Registering a
+    // detached row with TanStack's ResizeObserver can make its first callback
+    // discard the row before Solid inserts it. Register and measure once after
+    // insertion so later content changes remain observed and variable-height
+    // cards cannot overlap.
+    return measureVirtualListItemAfterMount(
+      element,
+      (currentIndex) => {
+        const currentItem = props.items[currentIndex];
+        return currentItem == null ? undefined : props.getItemKey(currentItem);
+      },
+      virtualizer.measureElement,
+      virtualizer.resizeItem,
+    );
   };
 
   return (
@@ -246,6 +271,8 @@ export function VirtualizedPostList<T>(props: VirtualizedPostListProps<T>) {
         >
           <For each={virtualizer.getVirtualItems()}>
             {(virtualItem) => {
+              let cancelMeasurement: (() => void) | undefined;
+              onCleanup(() => cancelMeasurement?.());
               const item = () => props.items[virtualItem.index];
               const key = () => {
                 const value = item();
@@ -257,9 +284,13 @@ export function VirtualizedPostList<T>(props: VirtualizedPostListProps<T>) {
                     <div
                       data-index={virtualItem.index}
                       data-virtual-post-index={virtualItem.index}
-                      ref={(element) =>
-                        measureVirtualItem(element, virtualItem.index)
-                      }
+                      ref={(element) => {
+                        cancelMeasurement?.();
+                        cancelMeasurement = measureVirtualItem(
+                          element,
+                          virtualItem.index,
+                        );
+                      }}
                       onFocusIn={() => setFocusedKey(key())}
                       onFocusOut={onRowFocusOut}
                       class="absolute top-0 left-0 w-full [&>article]:border-b-0"

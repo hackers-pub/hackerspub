@@ -47,5 +47,49 @@ export function measureVirtualListItem<T extends HTMLElement>(
   measureElement: (element: T) => void,
 ): void {
   element.dataset.index = index.toString();
-  measureElement(element);
+  if (element.isConnected) measureElement(element);
+}
+
+export function measureVirtualListItemAfterMount<T extends HTMLElement>(
+  element: T,
+  getCurrentKey: (index: number) => string | undefined,
+  measureElement: (element: T) => void,
+  resizeItem: (index: number, size: number) => void,
+): () => void {
+  let cancelled = false;
+  let frame: number | undefined;
+
+  const measureIfConnected = (): boolean => {
+    if (cancelled) return true;
+    if (!element.isConnected) return false;
+
+    const index = Number(element.dataset.index);
+    if (!Number.isSafeInteger(index) || index < 0) return false;
+    if (getCurrentKey(index) == null) return false;
+
+    measureElement(element);
+    resizeItem(index, element.offsetHeight);
+    return true;
+  };
+
+  const measureAfterFrame = () => {
+    const view = element.ownerDocument?.defaultView;
+    if (view == null) return;
+    frame = view.requestAnimationFrame(() => {
+      frame = undefined;
+      if (!measureIfConnected()) measureAfterFrame();
+    });
+  };
+
+  queueMicrotask(() => {
+    if (!measureIfConnected()) measureAfterFrame();
+  });
+
+  return () => {
+    cancelled = true;
+    if (frame != null) {
+      element.ownerDocument?.defaultView?.cancelAnimationFrame(frame);
+      frame = undefined;
+    }
+  };
 }
