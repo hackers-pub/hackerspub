@@ -1,6 +1,7 @@
 import {
   createWindowVirtualizer,
   defaultRangeExtractor,
+  measureElement as defaultMeasureElement,
   type Range,
 } from "@tanstack/solid-virtual";
 import {
@@ -56,6 +57,18 @@ export function VirtualizedPostList<T>(props: VirtualizedPostListProps<T>) {
       return props.items.length;
     },
     estimateSize: () => ESTIMATED_POST_HEIGHT,
+    // Row refs run before Solid inserts the element, so the synchronous
+    // measurement from the ref sees a detached node and would read 0. A 0px
+    // size is written to the virtualizer immediately, which re-runs the range
+    // calculation while <For> is still iterating the virtual items store and
+    // crashes. Keep the cached/estimated size instead; the ResizeObserver
+    // measures the real height once the row is in the document.
+    measureElement: (element, entry, instance) =>
+      element.isConnected
+        ? defaultMeasureElement(element, entry, instance)
+        : (instance.itemSizeCache.get(
+            getItemKey(instance.indexFromElement(element)),
+          ) ?? ESTIMATED_POST_HEIGHT),
     getItemKey,
     overscan: POST_OVERSCAN,
     get scrollMargin() {
@@ -96,7 +109,7 @@ export function VirtualizedPostList<T>(props: VirtualizedPostListProps<T>) {
     setScrollMargin(listElement.getBoundingClientRect().top + window.scrollY);
   };
 
-  onMount(() => {
+  const activate = () => {
     updateScrollMargin();
     const previousScrollAdjustment =
       virtualizer.shouldAdjustScrollPositionOnItemSizeChange;
@@ -111,6 +124,23 @@ export function VirtualizedPostList<T>(props: VirtualizedPostListProps<T>) {
     }
     initialElements.clear();
     setActive(true);
+  };
+
+  onMount(() => {
+    // On client-side navigation the list mounts while the route is still
+    // inside a pending router transition, so nothing here is in the document
+    // yet and every layout read (scroll margin, initial row heights) would be
+    // 0. Wait for the element to be connected before seeding the virtualizer.
+    let activationFrame: number | undefined;
+    const activateWhenConnected = () => {
+      if (listElement?.isConnected) {
+        activationFrame = undefined;
+        activate();
+        return;
+      }
+      activationFrame = window.requestAnimationFrame(activateWhenConnected);
+    };
+    activateWhenConnected();
 
     let frame: number | undefined;
     const scheduleScrollMarginUpdate = () => {
@@ -137,6 +167,9 @@ export function VirtualizedPostList<T>(props: VirtualizedPostListProps<T>) {
       resizeObserver?.disconnect();
       window.removeEventListener("resize", scheduleScrollMarginUpdate);
       if (frame != null) window.cancelAnimationFrame(frame);
+      if (activationFrame != null) {
+        window.cancelAnimationFrame(activationFrame);
+      }
     });
   });
 
