@@ -1,69 +1,72 @@
 import assert from "node:assert";
 import test from "node:test";
-import { getViewportPopoverPosition } from "./popoverPosition.ts";
+import { getViewportQuickBarPosition } from "./popoverPosition.ts";
 
 const viewport = { width: 800, height: 600 };
-const popover = { width: 320, height: 120 };
 
-test("getViewportPopoverPosition places the popover below when it fits", () => {
+const quickBar = { width: 340, height: 44 };
+
+test("getViewportQuickBarPosition centers the bar above the anchor", () => {
   assert.deepEqual(
-    getViewportPopoverPosition(
-      { left: 200, top: 200, right: 232, bottom: 232 },
-      popover,
+    getViewportQuickBarPosition(
+      { left: 300, top: 300, right: 332, bottom: 332 },
+      quickBar,
       viewport,
     ),
-    { left: 200, top: 236 },
+    { left: 146, top: 250, transformOrigin: "170px bottom" },
   );
 });
 
-test("getViewportPopoverPosition flips the popover above a bottom-edge trigger", () => {
+test("getViewportQuickBarPosition flips the bar below a top-edge anchor", () => {
   assert.deepEqual(
-    getViewportPopoverPosition(
-      { left: 200, top: 560, right: 232, bottom: 592 },
-      popover,
+    getViewportQuickBarPosition(
+      { left: 300, top: 20, right: 332, bottom: 52 },
+      quickBar,
       viewport,
     ),
-    { left: 200, top: 436 },
+    { left: 146, top: 58, transformOrigin: "170px top" },
   );
 });
 
-test("getViewportPopoverPosition includes the anchor gap in fit checks", () => {
+test("getViewportQuickBarPosition clamps both horizontal viewport edges", () => {
   assert.deepEqual(
-    getViewportPopoverPosition(
-      { left: 200, top: 440, right: 232, bottom: 472 },
-      popover,
+    getViewportQuickBarPosition(
+      { left: 10, top: 300, right: 42, bottom: 332 },
+      quickBar,
       viewport,
     ),
-    { left: 200, top: 316 },
+    { left: 8, top: 250, transformOrigin: "18px bottom" },
+  );
+  assert.deepEqual(
+    getViewportQuickBarPosition(
+      { left: 760, top: 300, right: 792, bottom: 332 },
+      quickBar,
+      viewport,
+    ),
+    { left: 452, top: 250, transformOrigin: "324px bottom" },
   );
 });
 
-test("getViewportPopoverPosition shifts within the viewport when neither side fits", () => {
+test("getViewportQuickBarPosition stays above when neither side fits", () => {
   assert.deepEqual(
-    getViewportPopoverPosition(
-      { left: 200, top: 100, right: 232, bottom: 132 },
-      { width: 320, height: 500 },
+    getViewportQuickBarPosition(
+      { left: 300, top: 400, right: 332, bottom: 432 },
+      { width: 340, height: 500 },
       viewport,
     ),
-    { left: 200, top: 92 },
+    { left: 146, top: 8, transformOrigin: "170px bottom" },
   );
 });
 
-test("getViewportPopoverPosition clamps both horizontal viewport edges", () => {
+test("getViewportQuickBarPosition anchors a 44px touch row on a narrow viewport", () => {
   assert.deepEqual(
-    getViewportPopoverPosition(
-      { left: -20, top: 200, right: 12, bottom: 232 },
-      popover,
-      viewport,
+    getViewportQuickBarPosition(
+      { left: 16, top: 300, right: 60, bottom: 344 },
+      { width: 312, height: 48 },
+      { width: 320, height: 600 },
+      6,
+      4,
     ),
-    { left: 8, top: 236 },
-  );
-  assert.deepEqual(
-    getViewportPopoverPosition(
-      { left: 760, top: 200, right: 792, bottom: 232 },
-      popover,
-      viewport,
-    ),
-    { left: 472, top: 236 },
+    { left: 4, top: 246, transformOrigin: "34px bottom" },
   );
 });

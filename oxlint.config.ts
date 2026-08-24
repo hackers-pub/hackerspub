@@ -7,6 +7,7 @@ export default defineConfig({
     "./lint-plugins/keyed-show.ts",
     "./lint-plugins/no-deno-globals.ts",
     "./lint-plugins/no-load-query-in-router-query.ts",
+    "./lint-plugins/require-transition-property.ts",
   ],
   categories: {
     correctness: "error",
@@ -42,6 +43,7 @@ export default defineConfig({
     "hackerspub-runtime/no-deno-globals": "error",
     "hackerspub-solid/show-keyed-on-fn-child": "error",
     "hackerspub-solid-relay/no-load-query-in-router-query": "error",
+    "hackerspub-tailwind/require-transition-property": "error",
   },
   overrides: [
     {
