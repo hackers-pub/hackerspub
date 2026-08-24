@@ -1,5 +1,5 @@
 import { graphql } from "relay-runtime";
-import { Show } from "solid-js";
+import { Show, untrack } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { AboutHackersPub } from "~/components/AboutHackersPub.tsx";
 import { FollowRecommendations } from "~/components/FollowRecommendations.tsx";
@@ -8,6 +8,7 @@ import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PublicTimeline } from "~/components/PublicTimeline.tsx";
 import { TimelineNoteComposer } from "~/components/TimelineNoteComposer.tsx";
 import { Title } from "~/components/Title.tsx";
+import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   createStablePreloadedQuery,
@@ -21,7 +22,11 @@ import { useLanguageFilter } from "~/lib/useLanguageFilter.ts";
 import type { localTimelineQuery } from "./__generated__/localTimelineQuery.graphql.ts";
 
 const localTimelineQuery = graphql`
-  query localTimelineQuery($locale: Locale, $languages: [Locale!]) {
+  query localTimelineQuery(
+    $actingAccountId: ID
+    $locale: Locale
+    $languages: [Locale!]
+  ) {
     viewer {
       actor {
         followees(first: 0) {
@@ -33,6 +38,7 @@ const localTimelineQuery = graphql`
     suggestedFilterLanguages
     ...PublicTimeline_posts
       @arguments(
+        actingAccountId: $actingAccountId
         locale: $locale
         languages: $languages
         local: true
@@ -43,11 +49,16 @@ const localTimelineQuery = graphql`
 `;
 
 const loadLocalTimelineQuery = routePreloadedQuery(
-  (locale: string, languages: readonly string[]) =>
+  (
+    locale: string,
+    languages: readonly string[],
+    actingAccountId: string | null,
+  ) =>
     loadQuery<localTimelineQuery>(
       useRelayEnvironment()(),
       localTimelineQuery,
       {
+        actingAccountId,
         locale,
         languages,
       },
@@ -58,11 +69,19 @@ const loadLocalTimelineQuery = routePreloadedQuery(
 
 export default function LocalTimeline() {
   const { i18n, t } = useLingui();
+  const actingAccount = useActingAccount();
   const { activeLanguage, initialLang, buildHref } =
     useLanguageFilter("/local");
+  const actingAccountId = () => actingAccount.selectedActingAccountId();
+  const initialActingAccountId = untrack(actingAccountId) ?? null;
   const data = createStablePreloadedQuery<localTimelineQuery>(
     localTimelineQuery,
-    () => loadLocalTimelineQuery(i18n.locale, initialLang ? [initialLang] : []),
+    () =>
+      loadLocalTimelineQuery(
+        i18n.locale,
+        initialLang ? [initialLang] : [],
+        initialActingAccountId,
+      ),
   );
 
   return (
@@ -100,6 +119,8 @@ export default function LocalTimeline() {
             <PublicTimeline
               $posts={data}
               activeLanguage={activeLanguage}
+              initialActingAccountId={initialActingAccountId}
+              initialLanguage={initialLang}
               local
             />
           </NarrowContainer>

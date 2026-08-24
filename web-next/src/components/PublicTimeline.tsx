@@ -16,6 +16,7 @@ import { VirtualizedPostList } from "~/components/VirtualizedPostList.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
+import { createPublicTimelineRefetchTracker } from "~/lib/publicTimelineRefetch.ts";
 import type {
   PublicTimeline_posts$data,
   PublicTimeline_posts$key,
@@ -48,6 +49,8 @@ const pollQuery = graphql`
 export interface PublicTimelineProps {
   $posts: PublicTimeline_posts$key;
   activeLanguage?: () => string | undefined;
+  initialActingAccountId: string | null;
+  initialLanguage: string | undefined;
   local?: boolean;
   postType?: "ARTICLE" | "NOTE" | "QUESTION" | null;
   withoutShares?: boolean;
@@ -142,20 +145,22 @@ export function PublicTimeline(props: PublicTimelineProps) {
   // query still carries the initial language for SSR; this effect handles
   // subsequent client-side filter changes without reloading the whole query.
   const actingAccountId = () => actingAccount.selectedActingAccountId();
+  const shouldRefetch = createPublicTimelineRefetchTracker({
+    actingAccountId: props.initialActingAccountId,
+    language: props.initialLanguage,
+  });
 
-  createEffect(
-    on(
-      () => `${props.activeLanguage?.() ?? ""}:${actingAccountId() ?? ""}`,
-      () => {
-        const lang = props.activeLanguage?.();
-        posts.refetch({
-          actingAccountId: actingAccountId() ?? null,
-          languages: lang ? [lang] : [],
-        });
-      },
-      { defer: true },
-    ),
-  );
+  createEffect(() => {
+    const input = {
+      actingAccountId: actingAccountId() ?? null,
+      language: props.activeLanguage?.(),
+    };
+    if (!shouldRefetch(input)) return;
+    posts.refetch({
+      actingAccountId: input.actingAccountId,
+      languages: input.language ? [input.language] : [],
+    });
+  });
 
   onMount(() => {
     onCleanup(
