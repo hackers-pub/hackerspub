@@ -9,6 +9,7 @@ import {
   onMount,
   Show,
 } from "solid-js";
+import { Portal } from "solid-js/web";
 import { createFragment, createMutation } from "solid-relay";
 import IconLoader2 from "~icons/lucide/loader-2";
 import IconRepeat2 from "~icons/lucide/repeat-2";
@@ -119,7 +120,7 @@ const unsharePostMutation = graphql`
 `;
 
 export function PostEngagementBar(props: PostEngagementBarProps) {
-  const { t } = useLingui();
+  const { i18n, t } = useLingui();
   const { openWithQuote, openWithReply } = useNoteCompose();
   const actingAccount = useActingAccount();
   const liveNote = createFragment(
@@ -189,14 +190,46 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
   const note = () => stableNote()?.value ?? null;
 
   const [showEmojiPopover, setShowEmojiPopover] = createSignal(false);
+  const [focusEmojiPopover, setFocusEmojiPopover] = createSignal(false);
   const [emojiPickerMounted, setEmojiPickerMounted] = createSignal(false);
   const [emojiTrigger, setEmojiTrigger] = createSignal<HTMLButtonElement>();
   const [emojiPopover, setEmojiPopover] = createSignal<HTMLDivElement>();
+  const [engagementBar, setEngagementBar] = createSignal<HTMLDivElement>();
   const [emojiPopoverPosition, setEmojiPopoverPosition] = createSignal<{
     left: number;
     top: number;
   } | null>(null);
   onMount(() => setEmojiPickerMounted(true));
+
+  const closeEmojiPopover = (restoreFocus: boolean) => {
+    setShowEmojiPopover(false);
+    setFocusEmojiPopover(false);
+    if (!restoreFocus) return;
+
+    queueMicrotask(() => {
+      const trigger = emojiTrigger();
+      if (trigger?.isConnected) trigger.focus();
+    });
+  };
+
+  const focusAfterEmojiTrigger = () => {
+    queueMicrotask(() => {
+      const bar = engagementBar();
+      const trigger = emojiTrigger();
+      if (!bar?.isConnected || !trigger?.isConnected) return;
+
+      const controls = Array.from(
+        bar.querySelectorAll<HTMLElement>(
+          "a[href], button, input, select, textarea, [tabindex]",
+        ),
+      ).filter(
+        (element) => element.tabIndex >= 0 && !element.matches(":disabled"),
+      );
+      const triggerIndex = controls.indexOf(trigger);
+      if (triggerIndex < 0) return;
+      controls[triggerIndex + 1]?.focus();
+    });
+  };
 
   const updateEmojiPopoverPosition = (target?: HTMLElement) => {
     const trigger = target ?? emojiTrigger();
@@ -236,13 +269,13 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
       ) {
         return;
       }
-      setShowEmojiPopover(false);
+      closeEmojiPopover(false);
     };
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setShowEmojiPopover(false);
+      if (event.key === "Escape") closeEmojiPopover(true);
     };
     const updateFromCurrentTrigger = () => {
-      if (!updateEmojiPopoverPosition()) setShowEmojiPopover(false);
+      if (!updateEmojiPopoverPosition()) closeEmojiPopover(false);
     };
     window.addEventListener("resize", updateFromCurrentTrigger);
     window.addEventListener("scroll", updateFromCurrentTrigger, true);
@@ -254,6 +287,44 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
       window.removeEventListener("scroll", updateFromCurrentTrigger, true);
       document.removeEventListener("pointerdown", onPointerDown);
       document.removeEventListener("keydown", onKeyDown);
+    });
+  });
+
+  const onEmojiPopoverKeyDown = (event: KeyboardEvent) => {
+    if (event.key !== "Tab") return;
+
+    const popover = emojiPopover();
+    if (popover == null) return;
+    const buttons = Array.from(
+      popover.querySelectorAll<HTMLButtonElement>("button:not(:disabled)"),
+    );
+    const activeElement = document.activeElement;
+    if (event.shiftKey && activeElement === buttons[0]) {
+      event.preventDefault();
+      closeEmojiPopover(true);
+    } else if (
+      !event.shiftKey &&
+      activeElement === buttons[buttons.length - 1]
+    ) {
+      event.preventDefault();
+      closeEmojiPopover(false);
+      focusAfterEmojiTrigger();
+    }
+  };
+
+  createEffect(() => {
+    if (!showEmojiPopover() || !focusEmojiPopover()) return;
+
+    const popover = emojiPopover();
+    if (popover == null) return;
+    queueMicrotask(() => {
+      if (!showEmojiPopover() || !focusEmojiPopover() || !popover.isConnected) {
+        return;
+      }
+      popover
+        .querySelector<HTMLButtonElement>("button:not(:disabled)")
+        ?.focus();
+      setFocusEmojiPopover(false);
     });
   });
 
@@ -358,6 +429,7 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
     <Show keyed when={note()}>
       {(note) => (
         <div
+          ref={setEngagementBar}
           class={`mt-2 flex items-center justify-between gap-1 -mx-2 ${
             props.class ?? ""
           }`}
@@ -410,11 +482,12 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
               title={t`React`}
               onClick={(event) => {
                 if (showEmojiPopover()) {
-                  setShowEmojiPopover(false);
+                  closeEmojiPopover(false);
                   return;
                 }
                 setEmojiTrigger(event.currentTarget);
                 if (updateEmojiPopoverPosition(event.currentTarget)) {
+                  setFocusEmojiPopover(true);
                   setShowEmojiPopover(true);
                 }
               }}
@@ -444,20 +517,21 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
               }
             >
               {(popoverData) => (
-                <div
-                  ref={setEmojiPopover}
-                  class="z-50 max-h-[calc(100vh-1rem)] w-80 max-w-[calc(100vw-1rem)] overflow-y-auto rounded-md border bg-popover text-popover-foreground shadow-md outline-none"
-                  style={{
-                    position: "fixed",
-                    left: `${emojiPopoverPosition()!.left}px`,
-                    top: `${emojiPopoverPosition()!.top}px`,
-                  }}
-                >
-                  <EmojiReactionPopover
-                    noteData={popoverData()}
-                    onClose={() => setShowEmojiPopover(false)}
-                  />
-                </div>
+                <Portal>
+                  <div
+                    ref={setEmojiPopover}
+                    lang={new Intl.Locale(i18n.locale).minimize().baseName}
+                    onKeyDown={onEmojiPopoverKeyDown}
+                    class="z-50 max-h-[calc(100vh-1rem)] w-80 max-w-[calc(100vw-1rem)] overflow-y-auto rounded-md border bg-popover text-popover-foreground shadow-md outline-none"
+                    style={{
+                      position: "fixed",
+                      left: `${emojiPopoverPosition()!.left}px`,
+                      top: `${emojiPopoverPosition()!.top}px`,
+                    }}
+                  >
+                    <EmojiReactionPopover noteData={popoverData()} />
+                  </div>
+                </Portal>
               )}
             </Show>
             <CountAffordance

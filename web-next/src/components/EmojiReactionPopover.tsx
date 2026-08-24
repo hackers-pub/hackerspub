@@ -31,7 +31,6 @@ interface NoteData {
 
 export interface EmojiReactionPopoverProps {
   noteData: NoteData;
-  onClose: () => void;
 }
 
 interface PendingReaction {
@@ -83,6 +82,7 @@ const removeReactionFromPostMutation = graphql`
 export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
   const { t } = useLingui();
   const actingAccount = useActingAccount();
+  let popoverElement: HTMLDivElement | undefined;
   const [pendingReaction, setPendingReaction] =
     createSignal<PendingReaction | null>(null);
 
@@ -111,6 +111,14 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
     const pending = pendingReaction();
     if (pending?.kind === kind && pending.id === id) {
       setPendingReaction(null);
+      queueMicrotask(() => {
+        if (!popoverElement?.isConnected) return;
+        const ownerDocument = popoverElement.ownerDocument;
+        if (ownerDocument.activeElement !== ownerDocument.body) return;
+        popoverElement
+          .querySelector<HTMLButtonElement>("button:not(:disabled)")
+          ?.focus();
+      });
     }
   };
 
@@ -506,7 +514,11 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
   };
 
   return (
-    <div class="p-4 space-y-4" aria-busy={isSubmitting()}>
+    <div
+      ref={(element) => (popoverElement = element)}
+      class="p-4 space-y-4"
+      aria-busy={isSubmitting()}
+    >
       <Show when={pendingStatus()}>
         {(status) => (
           <span class="sr-only" aria-live="polite">
@@ -545,10 +557,10 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
                     size="sm"
                     class={
                       group.reactors?.viewerHasReacted === true
-                        ? "relative h-8 gap-2 cursor-pointer border-red-300 bg-red-50 text-red-700 hover:bg-red-100 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-950/60"
-                        : "relative h-8 gap-2 cursor-pointer"
+                        ? "relative h-8 gap-2 cursor-pointer border-red-300 bg-red-50 text-red-700 hover:bg-red-100 aria-disabled:pointer-events-none aria-disabled:opacity-50 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-950/60"
+                        : "relative h-8 gap-2 cursor-pointer aria-disabled:pointer-events-none aria-disabled:opacity-50"
                     }
-                    disabled={isSubmitting()}
+                    aria-disabled={isSubmitting()}
                     title={
                       pending()
                         ? (pendingStatus() ?? undefined)
@@ -620,8 +632,8 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                class="relative h-8 w-8 p-0 text-base hover:bg-accent cursor-pointer"
-                disabled={isSubmitting()}
+                class="relative h-8 w-8 p-0 text-base hover:bg-accent cursor-pointer aria-disabled:pointer-events-none aria-disabled:opacity-50"
+                aria-disabled={isSubmitting()}
                 title={
                   isPendingTarget("emoji", emoji)
                     ? (pendingStatus() ?? undefined)
