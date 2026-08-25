@@ -59,6 +59,7 @@ import {
   invalidateTimelinePageQueryCache,
   TIMELINE_PAGE_QUERY_CACHE_KEYS,
 } from "~/lib/timelinePageQueryCache.ts";
+import { useActivePath } from "~/lib/useActivePath.ts";
 import { Trans } from "./Trans.tsx";
 import type { AppSidebarSignOutMutation } from "./__generated__/AppSidebarSignOutMutation.graphql.ts";
 import type {
@@ -89,6 +90,7 @@ export function AppSidebar(props: AppSidebarProps) {
   const { t } = useLingui();
   const { open: openNoteCompose } = useNoteCompose();
   const { isMobile: mobile, state } = useSidebar();
+  const activePath = useActivePath();
   const signedAccount = createFragment(
     graphql`
       fragment AppSidebar_signedAccount on Account
@@ -223,6 +225,7 @@ export function AppSidebar(props: AppSidebarProps) {
               <SidebarMenuButton
                 as={A}
                 href="/news"
+                active={activePath("/news")}
                 onClick={() =>
                   invalidateTimelinePageQueryCache(
                     TIMELINE_PAGE_QUERY_CACHE_KEYS.news,
@@ -251,6 +254,7 @@ export function AppSidebar(props: AppSidebarProps) {
                 <SidebarMenuButton
                   as={A}
                   href="/feed"
+                  active={activePath("/feed", true)}
                   onClick={() =>
                     invalidateTimelinePageQueryCache(
                       TIMELINE_PAGE_QUERY_CACHE_KEYS.feed,
@@ -278,6 +282,7 @@ export function AppSidebar(props: AppSidebarProps) {
                 <SidebarMenuButton
                   as={A}
                   href="/feed/without-shares"
+                  active={activePath("/feed/without-shares")}
                   onClick={() =>
                     invalidateTimelinePageQueryCache(
                       TIMELINE_PAGE_QUERY_CACHE_KEYS.feedWithoutShares,
@@ -320,6 +325,7 @@ export function AppSidebar(props: AppSidebarProps) {
                 <SidebarMenuButton
                   as={A}
                   href="/feed/articles"
+                  active={activePath("/feed/articles")}
                   onClick={() =>
                     invalidateTimelinePageQueryCache(
                       TIMELINE_PAGE_QUERY_CACHE_KEYS.feedArticles,
@@ -348,6 +354,7 @@ export function AppSidebar(props: AppSidebarProps) {
               <SidebarMenuButton
                 as={A}
                 href="/local"
+                active={activePath("/local")}
                 onClick={() =>
                   invalidateTimelinePageQueryCache(
                     TIMELINE_PAGE_QUERY_CACHE_KEYS.local,
@@ -366,6 +373,7 @@ export function AppSidebar(props: AppSidebarProps) {
               <SidebarMenuButton
                 as={A}
                 href="/fediverse"
+                active={activePath("/fediverse")}
                 onClick={() =>
                   invalidateTimelinePageQueryCache(
                     TIMELINE_PAGE_QUERY_CACHE_KEYS.fediverse,
@@ -398,7 +406,11 @@ export function AppSidebar(props: AppSidebarProps) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem class="list-none">
-              <SidebarMenuButton as={A} href="/search">
+              <SidebarMenuButton
+                as={A}
+                href="/search"
+                active={activePath("/search")}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -423,6 +435,7 @@ export function AppSidebar(props: AppSidebarProps) {
                     <SidebarMenuButton
                       as={A}
                       href={`/tags/${encodeURIComponent(tag)}`}
+                      active={activePath(`/tags/${encodeURIComponent(tag)}`)}
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -792,6 +805,7 @@ function AccountSection(props: AccountSectionProps) {
     actingAccount.selectedOrganization()?.role === "ADMIN"
       ? actingAccount.selectedOrganization()?.organization
       : (actingAccount.personalAccount() ?? props.signedAccount);
+  const activePath = useActivePath();
 
   return (
     <SidebarGroup>
@@ -808,6 +822,7 @@ function AccountSection(props: AccountSectionProps) {
                 href={`/sign?next=${encodeURIComponent(
                   location.pathname + location.search + location.hash,
                 )}`}
+                active={activePath("/sign")}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -834,9 +849,10 @@ function AccountSection(props: AccountSectionProps) {
               <SidebarMenuItem class="list-none">
                 <SidebarMenuButton
                   as={A}
-                  href={`/@${
-                    profileAccount()?.username ?? signedAccount.username
-                  }`}
+                  href={`/@${profileAccount()?.username ?? signedAccount.username}`}
+                  active={activePath(
+                    `/@${profileAccount()?.username ?? signedAccount.username}`,
+                  )}
                 >
                   <AccountAvatar
                     account={profileAccount() ?? signedAccount}
@@ -852,6 +868,7 @@ function AccountSection(props: AccountSectionProps) {
                   <SidebarMenuButton
                     as={A}
                     href={`/@${signedAccount.username}/bookmarks`}
+                    active={activePath(`/@${signedAccount.username}/bookmarks`)}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -880,6 +897,9 @@ function AccountSection(props: AccountSectionProps) {
                   <SidebarMenuButton
                     as={A}
                     href={`/@${signedAccount.username}/settings/invite`}
+                    active={activePath(
+                      `/@${signedAccount.username}/settings/invite`,
+                    )}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -905,9 +925,10 @@ function AccountSection(props: AccountSectionProps) {
               <SidebarMenuItem class="list-none">
                 <SidebarMenuButton
                   as={A}
-                  href={`/@${
-                    settingsAccount()?.username ?? signedAccount.username
-                  }/settings`}
+                  href={`/@${settingsAccount()?.username ?? signedAccount.username}/settings`}
+                  active={activePath(
+                    `/@${settingsAccount()?.username ?? signedAccount.username}/settings`,
+                  )}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -933,7 +954,11 @@ function AccountSection(props: AccountSectionProps) {
               </SidebarMenuItem>
               <Show when={!organizationSelected() && signedAccount.moderator}>
                 <SidebarMenuItem class="list-none">
-                  <SidebarMenuButton as={A} href="/admin">
+                  <SidebarMenuButton
+                    as={A}
+                    href="/admin"
+                    active={activePath("/admin")}
+                  >
                     <IconShieldCheck class="size-6" />
                     {t`Admin`}
                   </SidebarMenuButton>
@@ -989,6 +1014,7 @@ interface ComposeSectionProps {
 
 function ComposeSection(props: ComposeSectionProps) {
   const { t } = useLingui();
+  const activePath = useActivePath();
 
   return (
     <Show keyed when={props.visible && props.signedAccount}>
@@ -1022,6 +1048,7 @@ function ComposeSection(props: ComposeSectionProps) {
               <SidebarMenuButton
                 as={A}
                 href={`/@${signedAccount.username}/drafts/new`}
+                active={activePath(`/@${signedAccount.username}/drafts/new`)}
                 class="cursor-pointer"
               >
                 <svg
@@ -1055,6 +1082,8 @@ interface RecentDraftsSectionProps {
 
 function RecentDraftsSection(props: RecentDraftsSectionProps) {
   const { t } = useLingui();
+  const activePath = useActivePath();
+  const draftsHref = () => `/@${props.signedAccount!.username}/drafts`;
   const visibleDrafts = () =>
     props.signedAccount?.articleDrafts?.edges
       .filter((edge) => edge.node != null)
@@ -1084,9 +1113,8 @@ function RecentDraftsSection(props: RecentDraftsSectionProps) {
               <SidebarMenuItem class="list-none">
                 <SidebarMenuButton
                   as={A}
-                  href={`/@${
-                    props.signedAccount!.username
-                  }/drafts/${edge.node.uuid}`}
+                  href={`${draftsHref()}/${edge.node.uuid}`}
+                  active={activePath(`${draftsHref()}/${edge.node.uuid}`)}
                 >
                   <span>{edge.node.title}</span>
                 </SidebarMenuButton>
@@ -1097,7 +1125,8 @@ function RecentDraftsSection(props: RecentDraftsSectionProps) {
             <SidebarMenuItem class="list-none">
               <SidebarMenuButton
                 as={A}
-                href={`/@${props.signedAccount!.username}/drafts`}
+                href={draftsHref()}
+                active={activePath(draftsHref(), true)}
                 class="text-muted-foreground"
               >
                 {t`View all drafts →`}
