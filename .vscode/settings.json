@@ -10,6 +10,7 @@
   "oxc.enable": true,
   "oxc.fmt.enable": true,
   "relay.rootDirectory": "web-next",
+  "tailwindCSS.classFunctions": ["cva", "cx", "cn"],
   "[javascript]": {
     "editor.defaultFormatter": "oxc.oxc-vscode",
     "editor.formatOnSave": true
