@@ -4579,6 +4579,14 @@ msgstr "Show"
 msgid "Show {0} more in this thread"
 msgstr "Show {0} more in this thread"
 
+#: src/components/ExpandableHtmlContent.tsx:72
+msgid "Show less"
+msgstr "Show less"
+
+#: src/components/ExpandableHtmlContent.tsx:72
+msgid "Show more"
+msgstr "Show more"
+
 #: src/components/NewsDiscussion.tsx:114
 msgid "Show more sharing posts"
 msgstr "Show more sharing posts"

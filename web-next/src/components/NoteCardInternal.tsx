@@ -14,6 +14,7 @@ import {
 } from "~/lib/mentionHoverCards.tsx";
 import { NoteCardInternal_note$key } from "./__generated__/NoteCardInternal_note.graphql.ts";
 import { CensorshipNotice } from "./CensorshipNotice.tsx";
+import { ExpandableHtmlContent } from "./ExpandableHtmlContent.tsx";
 import { LinkPreview } from "./LinkPreview.tsx";
 import { NoteHeader } from "./NoteHeader.tsx";
 import { NoteMedia } from "./NoteMedia.tsx";
@@ -167,8 +168,8 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
               </div>
             </Show>
             <Show when={contentVisible()}>
-              <div
-                ref={setProseRef}
+              <ExpandableHtmlContent
+                contentRef={setProseRef}
                 innerHTML={n.content}
                 lang={n.language ?? undefined}
                 class="prose dark:prose-invert mt-1 break-words overflow-wrap"

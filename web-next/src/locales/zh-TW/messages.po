@@ -4575,6 +4575,14 @@ msgstr "顯示"
 msgid "Show {0} more in this thread"
 msgstr "顯示此討論串中的另外 {0} 則"
 
+#: src/components/ExpandableHtmlContent.tsx:72
+msgid "Show less"
+msgstr "收起"
+
+#: src/components/ExpandableHtmlContent.tsx:72
+msgid "Show more"
+msgstr "展開"
+
 #: src/components/NewsDiscussion.tsx:114
 msgid "Show more sharing posts"
 msgstr "顯示更多轉貼內容"
