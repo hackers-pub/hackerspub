@@ -27,6 +27,7 @@ import {
   TextFieldLabel,
 } from "~/components/ui/text-field.tsx";
 import { useLingui } from "~/lib/i18n/macro.ts";
+import { getArticlePermalinkPreviewPrefix } from "./articlePermalinkPreview.ts";
 import { useArticleComposer } from "./ArticleComposerContext.tsx";
 import { ComposerActionBar } from "./shared/ComposerActionBar.tsx";
 
@@ -42,7 +43,13 @@ export function ArticleComposerPublishStep() {
   onMount(() => setOrigin(window.location.origin));
 
   const urlPrefix = () =>
-    `${origin()}/${params.handle}/${new Date().getFullYear()}/`;
+    getArticlePermalinkPreviewPrefix({
+      origin: origin(),
+      routeHandle: params.handle ?? "",
+      year: new Date().getFullYear(),
+      actingAccountKey: ctx.publishActingAccountKey(),
+      actingAccountOptions: composeActingAccountOptions(),
+    });
 
   return (
     <>
