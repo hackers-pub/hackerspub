@@ -66,7 +66,7 @@ export function isRemoteTransportError(error: unknown): boolean {
   const cause = (error as { cause?: unknown }).cause;
   if (
     name === "TypeError" &&
-    message === "fetch failed" &&
+    (message === "fetch failed" || message === "terminated") &&
     typeof cause === "object" &&
     cause !== null &&
     nodeFetchTransportErrorCodes.has(stringProp(cause, "code"))
@@ -113,15 +113,23 @@ function isRemoteJsonLdSyntaxError(error: unknown): boolean {
   return name === "jsonld.SyntaxError";
 }
 
+function isRemoteJsonResponseSyntaxError(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) return false;
+  return (
+    stringProp(error, "name") === "SyntaxError" &&
+    stringProp(error, "message").includes("is not valid JSON")
+  );
+}
+
 function isRemoteMalformedMultikeyError(error: unknown): boolean {
   if (typeof error !== "object" || error === null) return false;
   const name = stringProp(error, "name");
   const message = stringProp(error, "message");
-  return (
-    name === "TypeError" &&
-    message ===
-      "Expected an object of any type of: https://w3id.org/security#Multikey"
-  );
+  if (name !== "TypeError") return false;
+  return new Set([
+    "Expected an object of any type of: https://w3id.org/security#Key",
+    "Expected an object of any type of: https://w3id.org/security#Multikey",
+  ]).has(message);
 }
 
 /**
@@ -134,16 +142,32 @@ function isRemoteMalformedMultikeyError(error: unknown): boolean {
  * the known-routine ones narrowly and let genuinely actionable fedify errors
  * through.
  *
- * The matched fields (`status`, `category`, `rawMessage`, and the `error`
- * object, which `@logtape/redaction` passes through untouched as a built-in
- * object) survive redaction unchanged, so this predicate reads the same values
- * whether it runs before or after redaction.
+ * The matched fields (`status`, `category`, and `rawMessage`) survive redaction
+ * unchanged. Fedify attaches real `Error` objects, which redaction treats as
+ * built-ins. The transactional outbox attaches a plain serialized error, but
+ * its `name` field does not match the configured sensitive-field patterns.
  */
 export function isRoutineFederationError(record: LogRecord): boolean {
   const { category, properties, rawMessage } = record;
-  if (category[0] !== "fedify") return false;
   const message =
     typeof rawMessage === "string" ? rawMessage : (rawMessage[0] ?? "");
+
+  if (
+    category[0] === "hackerspub" &&
+    category[1] === "federation" &&
+    category[2] === "transactional-outbox" &&
+    properties.eventType === "activitypub.delivery" &&
+    (message.startsWith("Outbox event {eventId} exhausted") ||
+      message.startsWith("Outbox event {eventId} failed permanently") ||
+      message.startsWith("Outbox event {eventId} will be retried"))
+  ) {
+    const error = properties.error;
+    if (typeof error !== "object" || error === null) return false;
+    const name = stringProp(error, "name");
+    return name === "SendActivityError" || name === "OutboxHandlerTimeoutError";
+  }
+
+  if (category[0] !== "fedify") return false;
 
   // docloader: a remote returned an HTTP error status while we dereferenced a
   // document (a deleted note 404/410, a peer 5xx, ...), or pointed us at a
@@ -167,7 +191,10 @@ export function isRoutineFederationError(record: LogRecord): boolean {
   // such as valid actor subclasses being rejected.
   if (category[1] === "vocab") {
     if (message.startsWith("Failed to fetch")) {
-      return isRemoteTransportError(properties.error);
+      return (
+        isRemoteTransportError(properties.error) ||
+        isRemoteJsonResponseSyntaxError(properties.error)
+      );
     }
     if (message.startsWith("Failed to parse")) {
       return (
@@ -190,7 +217,10 @@ export function isRoutineFederationError(record: LogRecord): boolean {
   // probing common handles like "relay" or "peertube"). Correct 404s, not our
   // bug.
   if (category[1] === "webfinger") {
-    return message.startsWith("Actor ") && message.includes("not found");
+    return (
+      (message.startsWith("Actor ") && message.includes("not found")) ||
+      isRemoteTransportError(properties.error)
+    );
   }
 
   if (category[1] === "federation") {

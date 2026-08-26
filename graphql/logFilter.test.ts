@@ -121,6 +121,47 @@ test("outbox: keeps an unexpected handler error", () => {
   assert.equal(isRoutineFederationError(r), false);
 });
 
+test("transactional outbox: drops expected delivery retries and failures", () => {
+  for (const [rawMessage, errorName] of [
+    ["Outbox event {eventId} exhausted its retry limit.", "SendActivityError"],
+    ["Outbox event {eventId} failed permanently.", "SendActivityError"],
+    ["Outbox event {eventId} will be retried.", "OutboxHandlerTimeoutError"],
+  ] as const) {
+    const r = record(
+      ["hackerspub", "federation", "transactional-outbox"],
+      rawMessage,
+      {
+        eventType: "activitypub.delivery",
+        error: { name: errorName, message: "Remote delivery failed." },
+      },
+    );
+    assert.equal(isRoutineFederationError(r), true);
+  }
+});
+
+test("transactional outbox: keeps application and fanout failures", () => {
+  for (const r of [
+    record(
+      ["hackerspub", "federation", "transactional-outbox"],
+      "Outbox event {eventId} will be retried.",
+      {
+        eventType: "activitypub.delivery",
+        error: { name: "TypeError", message: "Application bug." },
+      },
+    ),
+    record(
+      ["hackerspub", "federation", "transactional-outbox"],
+      "Outbox event {eventId} will be retried.",
+      {
+        eventType: "activitypub.fanout",
+        error: { name: "OutboxHandlerTimeoutError", message: "Timed out." },
+      },
+    ),
+  ]) {
+    assert.equal(isRoutineFederationError(r), false);
+  }
+});
+
 test("inbox: drops a processing failure caused by a remote fetch error", () => {
   const r = record(
     ["fedify", "federation", "inbox"],
@@ -257,6 +298,20 @@ test("webfinger: keeps a non-'not found' error", () => {
   assert.equal(isRoutineFederationError(r), false);
 });
 
+test("webfinger: drops remote URL and DNS failures", () => {
+  for (const error of [
+    urlError("fe80::22c:30ff:fe4d:d7e0"),
+    nodeFetchError("ENOTFOUND"),
+  ]) {
+    const r = record(
+      ["fedify", "webfinger", "lookup"],
+      "Failed to look up WebFinger resource {resource}: {error}",
+      { resource: "acct:x@example.com", error },
+    );
+    assert.equal(isRoutineFederationError(r), true);
+  }
+});
+
 test("vocab: drops a suppressed fetch failure (HTTP 403 followers)", () => {
   const error = new Error(
     "https://yodangang.express/users/x/followers: HTTP 403: " +
@@ -274,6 +329,16 @@ test("vocab: drops a suppressed fetch failure caused by transport error", () => 
   const r = record(["fedify", "vocab"], "Failed to fetch {url}: {error}", {
     url: "https://dead.example/users/x/followers",
     error: denoFetchError("dns error"),
+  });
+  assert.equal(isRoutineFederationError(r), true);
+});
+
+test("vocab: drops a remote HTML response instead of JSON", () => {
+  const r = record(["fedify", "vocab"], "Failed to fetch {url}: {error}", {
+    url: "https://example.com/users/x",
+    error: new SyntaxError(
+      "Unexpected token '<', \"<html>...\" is not valid JSON",
+    ),
   });
   assert.equal(isRoutineFederationError(r), true);
 });
@@ -301,6 +366,16 @@ test("vocab: drops a suppressed parse failure from a malformed remote multikey",
     url: "http://xenon.social/@tkgka#multikey-1",
     error: new TypeError(
       "Expected an object of any type of: https://w3id.org/security#Multikey",
+    ),
+  });
+  assert.equal(isRoutineFederationError(r), true);
+});
+
+test("vocab: drops a malformed legacy remote security key", () => {
+  const r = record(["fedify", "vocab"], "Failed to parse {url}: {error}", {
+    url: "https://example.com/users/x",
+    error: new TypeError(
+      "Expected an object of any type of: https://w3id.org/security#Key",
     ),
   });
   assert.equal(isRoutineFederationError(r), true);
@@ -375,6 +450,14 @@ test("isRemoteTransportError: positive signals", () => {
   ]) {
     assert.equal(isRemoteTransportError(nodeFetchError(code)), true);
   }
+  const terminatedCause = new Error("Socket closed by the remote server.");
+  Object.assign(terminatedCause, { code: "UND_ERR_SOCKET" });
+  assert.equal(
+    isRemoteTransportError(
+      new TypeError("terminated", { cause: terminatedCause }),
+    ),
+    true,
+  );
   assert.equal(
     isRemoteTransportError(
       new TypeError("error reading a body from connection"),
