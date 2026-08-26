@@ -6,7 +6,10 @@ import { solidRouterBrowserTracingIntegration } from "@sentry/solidstart/solidro
 import { mount, StartClient } from "@solidjs/start/client";
 import { render } from "solid-js/web";
 import { startClientMemoryWatchdog } from "~/lib/clientMemoryWatchdog.ts";
-import { isNetworkError } from "~/lib/networkError.ts";
+import {
+  isNetworkError,
+  shouldSuppressStaleModuleError,
+} from "~/lib/networkError.ts";
 import { installPromiseWithResolversPolyfill } from "~/lib/promiseWithResolvers.ts";
 import { isTransientUpstreamGraphQLErrorEvent } from "~/lib/upstreamGraphQLError.ts";
 import packageJson from "../package.json" with { type: "json" };
@@ -22,6 +25,7 @@ if (import.meta.env.DEV) {
 // this module (deferred via `type="module"`), so the value is ready by
 // the time we read it. When unset, Sentry just stays disabled.
 const sentryDsn = (window as { __SENTRY_DSN__?: string }).__SENTRY_DSN__ ?? "";
+let staleChunkReloadAttempted = false;
 if (sentryDsn) {
   Sentry.init({
     dsn: sentryDsn,
@@ -44,6 +48,14 @@ if (sentryDsn) {
     beforeSend(event, hint) {
       if (isTransientUpstreamGraphQLErrorEvent(event, hint)) return null;
       if (isNetworkError(hint.originalException)) return null;
+      if (
+        shouldSuppressStaleModuleError(
+          hint.originalException,
+          staleChunkReloadAttempted,
+        )
+      ) {
+        return null;
+      }
       return event;
     },
   });
@@ -102,10 +114,11 @@ function shouldAttemptStaleChunkReload(): boolean {
 }
 
 window.addEventListener("vite:preloadError", (event) => {
-  // On the throttled path, return early and let Vite rethrow naturally
-  // so Sentry's global `unhandledrejection` handler captures the error
-  // without a manual capture (avoiding duplicate events).
+  // On the throttled path, return early and let Vite rethrow naturally so a
+  // permanently broken deployment remains visible to Sentry and the app's
+  // error boundary instead of entering a reload loop.
   if (!shouldAttemptStaleChunkReload()) return;
+  staleChunkReloadAttempted = true;
   Sentry.addBreadcrumb({
     category: "vite",
     level: "info",

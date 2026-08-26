@@ -6,6 +6,7 @@
 // a resolver) that happen to land on the same code path.
 export function isNetworkError(error: unknown): boolean {
   if (!(error instanceof TypeError)) return false;
+  if (isStaleModuleLoadError(error)) return false;
   const message = error.message.toLowerCase();
   return (
     message.includes("failed to fetch") ||
@@ -17,6 +18,22 @@ export function isNetworkError(error: unknown): boolean {
     message.includes("networkerror") ||
     message.includes("network request failed")
   );
+}
+
+export function isStaleModuleLoadError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  const message = error.message.toLowerCase();
+  return (
+    message.includes("dynamically imported module") ||
+    message.includes("importing a module script failed")
+  );
+}
+
+export function shouldSuppressStaleModuleError(
+  error: unknown,
+  reloadAttempted: boolean,
+): boolean {
+  return reloadAttempted && isStaleModuleLoadError(error);
 }
 
 // Returns true when a full page reload is more likely to recover the app than
@@ -41,10 +58,7 @@ export function isNetworkError(error: unknown): boolean {
 //     a clean reactive root.
 export function shouldReloadOnError(error: unknown): boolean {
   if (isNetworkError(error)) return true;
+  if (isStaleModuleLoadError(error)) return true;
   if (!(error instanceof Error)) return false;
-  const msg = error.message;
-  return (
-    msg.includes("dynamically imported module") ||
-    msg.toLowerCase().includes("minified exception")
-  );
+  return error.message.toLowerCase().includes("minified exception");
 }

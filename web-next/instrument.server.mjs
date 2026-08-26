@@ -5,32 +5,8 @@
 import * as Sentry from "@sentry/solidstart";
 import nodeProcess from "node:process";
 import packageJson from "./package.json" with { type: "json" };
-
-const TRANSIENT_UPSTREAM_GRAPHQL_ERROR_NAME = "TransientUpstreamGraphQLError";
-const TRANSIENT_UPSTREAM_GRAPHQL_ERROR_MESSAGE_PREFIX =
-  "fetch failed: GraphQL upstream returned ";
-
-function isTransientUpstreamGraphQLErrorEvent(event, hint) {
-  if (
-    hint?.originalException instanceof Error &&
-    (hint.originalException.name === TRANSIENT_UPSTREAM_GRAPHQL_ERROR_NAME ||
-      hint.originalException.message.startsWith(
-        TRANSIENT_UPSTREAM_GRAPHQL_ERROR_MESSAGE_PREFIX,
-      ))
-  ) {
-    return true;
-  }
-
-  return (
-    event.exception?.values?.some(
-      (value) =>
-        value.type === TRANSIENT_UPSTREAM_GRAPHQL_ERROR_NAME ||
-        value.value?.startsWith(
-          TRANSIENT_UPSTREAM_GRAPHQL_ERROR_MESSAGE_PREFIX,
-        ),
-    ) ?? false
-  );
-}
+import { isServerNetworkError } from "./src/lib/serverNetworkError.ts";
+import { isTransientUpstreamGraphQLErrorEvent } from "./src/lib/upstreamGraphQLError.ts";
 
 if (nodeProcess.env.SENTRY_DSN) {
   Sentry.init({
@@ -44,6 +20,7 @@ if (nodeProcess.env.SENTRY_DSN) {
     sendDefaultPii: true,
     beforeSend(event, hint) {
       if (isTransientUpstreamGraphQLErrorEvent(event, hint)) return null;
+      if (isServerNetworkError(hint.originalException)) return null;
       return event;
     },
   });
