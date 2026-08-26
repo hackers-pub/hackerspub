@@ -852,6 +852,7 @@ function AccountSection(props: AccountSectionProps) {
                   href={`/@${profileAccount()?.username ?? signedAccount.username}`}
                   active={activePath(
                     `/@${profileAccount()?.username ?? signedAccount.username}`,
+                    true,
                   )}
                 >
                   <AccountAvatar
