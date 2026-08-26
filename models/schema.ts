@@ -1088,8 +1088,8 @@ export const postTable = pgTable(
       desc(table.published),
     ),
     index("idx_post_actor_id_updated").on(table.actorId, desc(table.updated)),
-    index("idx_post_link_url_updated")
-      .on(table.linkUrl, desc(table.updated))
+    index("idx_post_link_url_hash")
+      .using("hash", table.linkUrl)
       .where(isNotNull(table.linkUrl)),
     index("idx_post_outbox_actor_id_id").on(table.actorId, desc(table.id))
       .where(sql`

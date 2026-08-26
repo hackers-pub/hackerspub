@@ -19,10 +19,11 @@ test("postTable indexes link preview and news boost lookups", () => {
   const indexes = getTableConfig(postTable).indexes;
 
   const linkUrlIndex = indexes.find(
-    (index) => index.config.name === "idx_post_link_url_updated",
+    (index) => index.config.name === "idx_post_link_url_hash",
   );
   assert.ok(linkUrlIndex);
-  assert.equal(linkUrlIndex.config.columns.length, 2);
+  assert.equal(linkUrlIndex.config.method, "hash");
+  assert.equal(linkUrlIndex.config.columns.length, 1);
   assert.ok("name" in linkUrlIndex.config.columns[0]);
   assert.equal(linkUrlIndex.config.columns[0].name, "link_url");
   assert.ok(linkUrlIndex.config.where);
