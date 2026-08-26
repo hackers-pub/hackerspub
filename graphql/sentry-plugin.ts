@@ -3,6 +3,7 @@ import {
   handleStreamOrSingleExecutionResult,
   isOriginalGraphQLError,
 } from "@envelop/core";
+import { ForbiddenError } from "@pothos/plugin-scope-auth";
 import * as Sentry from "@sentry/node";
 import { getOperationAST, print, type GraphQLError } from "graphql";
 import type { Plugin } from "graphql-yoga";
@@ -106,6 +107,9 @@ export function useSentry(
                       scope.setExtra("document", document);
                       const errors = result.errors?.map((error) => {
                         if (isOriginalGraphQLError(error)) return error;
+                        if (error.originalError instanceof ForbiddenError) {
+                          return error;
+                        }
                         const errorPath = (error.path ?? [])
                           .map((part: string | number) =>
                             typeof part === "number" ? "$index" : part,

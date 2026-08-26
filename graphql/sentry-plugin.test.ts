@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { ForbiddenError } from "@pothos/plugin-scope-auth";
 import { GraphQLError } from "graphql";
 import { createSchema, createYoga } from "graphql-yoga";
 import { type SentryPluginClient, useSentry } from "./sentry-plugin.ts";
@@ -39,7 +40,7 @@ test("the runtime-neutral Sentry plugin captures resolver failures", async () =>
     plugins: [useSentry(client)],
     schema: createSchema({
       typeDefs:
-        "type Query { fails(secretToken: String): String, expected: String }",
+        "type Query { fails(secretToken: String): String, expected: String, forbidden: String }",
       resolvers: {
         Query: {
           fails() {
@@ -47,6 +48,9 @@ test("the runtime-neutral Sentry plugin captures resolver failures", async () =>
           },
           expected() {
             throw new GraphQLError("expected GraphQL error");
+          },
+          forbidden() {
+            throw new ForbiddenError("Not authorized to resolve this field.");
           },
         },
       },
@@ -88,7 +92,20 @@ test("the runtime-neutral Sentry plugin captures resolver failures", async () =>
       body: JSON.stringify({ query: "{ expected }" }),
     });
     assert.equal(captured.length, 1);
-    assert.deepEqual(ended, [true, true]);
+
+    const forbiddenResponse = await yoga.fetch("http://localhost/graphql", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ query: "{ forbidden }" }),
+    });
+    const forbidden = (await forbiddenResponse.json()) as {
+      readonly errors: readonly [
+        { readonly extensions?: { readonly sentryEventId?: string } },
+      ];
+    };
+    assert.equal(captured.length, 1);
+    assert.equal(forbidden.errors[0].extensions?.sentryEventId, undefined);
+    assert.deepEqual(ended, [true, true, true]);
   } finally {
     await yoga.dispose();
   }
