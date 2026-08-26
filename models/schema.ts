@@ -583,6 +583,12 @@ export const actorTable = pgTable(
   },
   (table) => [
     unique().on(table.username, table.instanceHost),
+    index("idx_actor_remote_suspended_until").on(table.suspendedUntil)
+      .where(sql`
+        ${table.accountId} IS NULL AND ${table.suspendedUntil} IS NOT NULL
+      `),
+    index("idx_actor_url").on(table.url).where(isNotNull(table.url)),
+    index("idx_actor_aliases_gin").using("gin", table.aliases),
     check("actor_username_check", sql`${table.username} NOT LIKE '%@%'`),
     check(
       "actor_suspended_check",
@@ -1082,6 +1088,9 @@ export const postTable = pgTable(
       desc(table.published),
     ),
     index("idx_post_actor_id_updated").on(table.actorId, desc(table.updated)),
+    index("idx_post_link_url_updated")
+      .on(table.linkUrl, desc(table.updated))
+      .where(isNotNull(table.linkUrl)),
     index("idx_post_outbox_actor_id_id").on(table.actorId, desc(table.id))
       .where(sql`
         ${table.censored} IS NULL
@@ -1208,6 +1217,10 @@ export const postTable = pgTable(
       `),
     index("idx_post_news_share_updated").on(table.updated).where(sql`
         ${table.linkId} IS NOT NULL AND ${table.sharedPostId} IS NULL
+          AND ${table.visibility} IN ('public', 'unlisted')
+      `),
+    index("idx_post_news_boost_updated").on(table.updated).where(sql`
+        ${table.sharedPostId} IS NOT NULL
           AND ${table.visibility} IN ('public', 'unlisted')
       `),
   ],
