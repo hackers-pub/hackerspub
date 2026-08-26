@@ -55,23 +55,23 @@ catalogs:
       specifier: ^4.6.0
       version: 4.6.0
     '@logtape/drizzle-orm':
-      specifier: 2.2.4
-      version: 2.2.4
+      specifier: 2.3.2
+      version: 2.3.2
     '@logtape/file':
-      specifier: 2.2.4
-      version: 2.2.4
+      specifier: 2.3.2
+      version: 2.3.2
     '@logtape/lint':
-      specifier: 2.2.4
-      version: 2.2.4
+      specifier: 2.3.2
+      version: 2.3.2
     '@logtape/logtape':
-      specifier: 2.2.4
-      version: 2.2.4
+      specifier: 2.3.2
+      version: 2.3.2
     '@logtape/redaction':
-      specifier: 2.2.4
-      version: 2.2.4
+      specifier: 2.3.2
+      version: 2.3.2
     '@logtape/sentry':
-      specifier: 2.2.4
-      version: 2.2.4
+      specifier: 2.3.2
+      version: 2.3.2
     '@mdit-vue/plugin-title':
       specifier: ^2.1.3
       version: 2.1.4
@@ -366,7 +366,7 @@ importers:
         version: link:runtime
       '@logtape/logtape':
         specifier: 'catalog:'
-        version: 2.2.4
+        version: 2.3.2
       drizzle-kit:
         specifier: 'catalog:'
         version: 1.0.0-rc.2
@@ -394,7 +394,7 @@ importers:
         version: link:federation
       '@logtape/lint':
         specifier: 'catalog:'
-        version: 2.2.4(eslint@10.9.0(jiti@2.6.1))
+        version: 2.3.2(eslint@10.9.0(jiti@2.6.1))
       '@std/assert':
         specifier: 'catalog:'
         version: '@jsr/std__assert@1.0.19'
@@ -484,7 +484,7 @@ importers:
         version: link:../models
       '@logtape/logtape':
         specifier: 'catalog:'
-        version: 2.2.4
+        version: 2.3.2
       drizzle-orm:
         specifier: 'catalog:'
         version: 1.0.0-rc.2(@cloudflare/workers-types@4.20260529.1)(@opentelemetry/api@1.9.1)(@types/pg@8.15.6)(postgres@3.4.8)(zod@4.3.6)
@@ -521,16 +521,16 @@ importers:
         version: link:../runtime
       '@logtape/file':
         specifier: 'catalog:'
-        version: 2.2.4(@logtape/logtape@2.2.4)
+        version: 2.3.2(@logtape/logtape@2.3.2)
       '@logtape/logtape':
         specifier: 'catalog:'
-        version: 2.2.4
+        version: 2.3.2
       '@logtape/redaction':
         specifier: 'catalog:'
-        version: 2.2.4(@logtape/logtape@2.2.4)
+        version: 2.3.2(@logtape/logtape@2.3.2)
       '@logtape/sentry':
         specifier: 'catalog:'
-        version: 2.2.4(@logtape/logtape@2.2.4)(@sentry/core@10.67.0)
+        version: 2.3.2(@logtape/logtape@2.3.2)(@sentry/core@10.67.0)
       '@pothos/core':
         specifier: 'catalog:'
         version: 4.13.1(graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02)
@@ -662,7 +662,7 @@ importers:
         version: 1.0.1
       '@logtape/logtape':
         specifier: 'catalog:'
-        version: 2.2.4
+        version: 2.3.2
       '@mdit-vue/plugin-title':
         specifier: 'catalog:'
         version: 2.1.4
@@ -822,10 +822,10 @@ importers:
         version: 4.6.0(keyv@5.6.0)
       '@logtape/drizzle-orm':
         specifier: 'catalog:'
-        version: 2.2.4(@logtape/logtape@2.2.4)
+        version: 2.3.2(@logtape/logtape@2.3.2)
       '@logtape/logtape':
         specifier: 'catalog:'
-        version: 2.2.4
+        version: 2.3.2
       '@upyo/core':
         specifier: 'catalog:'
         version: 0.5.1
@@ -2637,39 +2637,36 @@ packages:
       rolldown:
         optional: true
 
-  '@logtape/drizzle-orm@2.2.4':
-    resolution: {integrity: sha512-UNTEagFM5YVFLJC1sAAhVZpaf2kyvUivkNIVvK5lDZtMsv/HFDPE5O/hvEsnLDSZCV/kyb868DqiN5sKRgRvYA==}
+  '@logtape/drizzle-orm@2.3.2':
+    resolution: {integrity: sha512-U5OI/e4zQeyp5GoBzdyJK/sBeF/fvn+JB+3NOCjEahh3GQPqX9YOwPLOAe3ZGsXKoK/xq0troQPFGzSPXswFLw==}
     peerDependencies:
-      '@logtape/logtape': ^2.2.4
+      '@logtape/logtape': ^2.3.2
 
-  '@logtape/file@2.2.4':
-    resolution: {integrity: sha512-f+1g4VvB+HegOYwt8GAhYFk1OO9nbi5l0hn7hkKxjnyedE9CBEoKgN36nIYIt58asRms2GDXLtxeK0OStYjnsQ==}
+  '@logtape/file@2.3.2':
+    resolution: {integrity: sha512-yCUuznM5U8n43p6cDV8FFNTOkjKC2lEWGDMvGWbCIxbQ0JqIlhYdiu3b9ITV6z87PwGLxko7Ru54SgOSze6QCA==}
     peerDependencies:
-      '@logtape/logtape': ^2.2.4
+      '@logtape/logtape': ^2.3.2
 
-  '@logtape/lint@2.2.4':
-    resolution: {integrity: sha512-WE2tDV1VG79vKgOkXoJRlyHreSyWsYwhYK7pdyhei87F34x5YMluQ7lRiRPvAxhDiE5KtG8msPP4eNSOI47nfA==}
+  '@logtape/lint@2.3.2':
+    resolution: {integrity: sha512-BE3wM0Q1In54ZSbUxfSrVmn8a/Jvpm+b5C5fX7KmxZrHBaercDsbtb9RKK9+/fur7YQhSf4FCtI4KT5aD4IPxg==}
     peerDependencies:
       eslint: '>=8.0.0'
     peerDependenciesMeta:
       eslint:
         optional: true
 
-  '@logtape/logtape@2.2.4':
-    resolution: {integrity: sha512-2rALzv9m4ibE5FyB8/FMm5MPMMlK7ujgy3ufricVKIxj6e7SZbw4w6J16/fRAsXgdDlOXPUA0aa6XoEQvdlKxw==}
-
   '@logtape/logtape@2.3.2':
     resolution: {integrity: sha512-SfxHfSdDlTp6tLpYP5uezNitSCTQUB3FZ1MXDbgDBN9t9kvF+XL0rOGTIa/pJcDMy1o9FELaZ25E/Ypmsf5fNQ==}
 
-  '@logtape/redaction@2.2.4':
-    resolution: {integrity: sha512-wff/jw/sIUxW/lp86xQ7neNtft1RhC7ND3oSN/UiA5fzteMKXYdC5rbxG8RtJ7oOZWARDy1WiSeXivSwWYqH/g==}
+  '@logtape/redaction@2.3.2':
+    resolution: {integrity: sha512-tLiLxtMm99oKP6g19+yBUmk54HawuVKh4xlW9lAPhyayjisnJ9gwjihxjqd6lo0Bf090/gQvI9eJ3MWSS8w+aw==}
     peerDependencies:
-      '@logtape/logtape': ^2.2.4
+      '@logtape/logtape': ^2.3.2
 
-  '@logtape/sentry@2.2.4':
-    resolution: {integrity: sha512-ZfXEFQd/ZOkgiSQDyJi2x30gwpJe8nASuY+kpZd7vY16BpZAnaq0AuDYL4/atpFUVtBESshXed9yKFJjoShKUQ==}
+  '@logtape/sentry@2.3.2':
+    resolution: {integrity: sha512-FtbLI1Rqs5z7hPN4QgIilR5BYc6X6VOv15nl5cVaKUc/UNZ/vsXvAjVljtJUZZBDWmPuMSsjiIewofkL6es5ng==}
     peerDependencies:
-      '@logtape/logtape': ^2.2.4
+      '@logtape/logtape': ^2.3.2
       '@sentry/core': '>=8.0.0'
 
   '@lukeed/ms@2.0.2':
@@ -10415,7 +10412,7 @@ snapshots:
   '@fedify/webfinger@2.3.6':
     dependencies:
       '@fedify/vocab-runtime': 2.3.6
-      '@logtape/logtape': 2.2.4
+      '@logtape/logtape': 2.3.2
       '@opentelemetry/api': 1.9.1
       es-toolkit: 1.46.1
 
@@ -10971,29 +10968,27 @@ snapshots:
       - babel-plugin-macros
       - supports-color
 
-  '@logtape/drizzle-orm@2.2.4(@logtape/logtape@2.2.4)':
+  '@logtape/drizzle-orm@2.3.2(@logtape/logtape@2.3.2)':
     dependencies:
-      '@logtape/logtape': 2.2.4
+      '@logtape/logtape': 2.3.2
 
-  '@logtape/file@2.2.4(@logtape/logtape@2.2.4)':
+  '@logtape/file@2.3.2(@logtape/logtape@2.3.2)':
     dependencies:
-      '@logtape/logtape': 2.2.4
+      '@logtape/logtape': 2.3.2
 
-  '@logtape/lint@2.2.4(eslint@10.9.0(jiti@2.6.1))':
+  '@logtape/lint@2.3.2(eslint@10.9.0(jiti@2.6.1))':
     optionalDependencies:
       eslint: 10.9.0(jiti@2.6.1)
 
-  '@logtape/logtape@2.2.4': {}
-
   '@logtape/logtape@2.3.2': {}
 
-  '@logtape/redaction@2.2.4(@logtape/logtape@2.2.4)':
+  '@logtape/redaction@2.3.2(@logtape/logtape@2.3.2)':
     dependencies:
-      '@logtape/logtape': 2.2.4
+      '@logtape/logtape': 2.3.2
 
-  '@logtape/sentry@2.2.4(@logtape/logtape@2.2.4)(@sentry/core@10.67.0)':
+  '@logtape/sentry@2.3.2(@logtape/logtape@2.3.2)(@sentry/core@10.67.0)':
     dependencies:
-      '@logtape/logtape': 2.2.4
+      '@logtape/logtape': 2.3.2
       '@sentry/core': 10.67.0
 
   '@lukeed/ms@2.0.2': {}
