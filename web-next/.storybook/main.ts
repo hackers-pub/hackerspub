@@ -1,3 +1,4 @@
+import { lingui } from "@lingui/vite-plugin";
 import tailwindcss from "@tailwindcss/vite";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -45,6 +46,7 @@ const config: StorybookConfig = {
     viteConfig.plugins = [
       ...(viteConfig.plugins ?? []),
       tailwindcss(),
+      lingui(),
       normalizeDocgenEnums,
     ];
     const existingAlias = viteConfig.resolve?.alias;
