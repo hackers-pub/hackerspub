@@ -13,6 +13,7 @@ import {
   onMount,
   Show,
   splitProps,
+  Suspense,
   Switch,
 } from "solid-js";
 import {
@@ -39,6 +40,8 @@ import {
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
 import type { PermalinkThread_contextPost$key } from "./__generated__/PermalinkThread_contextPost.graphql.ts";
+import type { PermalinkThreadDescendants_post$key } from "./__generated__/PermalinkThreadDescendants_post.graphql.ts";
+import type { PermalinkThreadDescendantsQuery } from "./__generated__/PermalinkThreadDescendantsQuery.graphql.ts";
 import type {
   PermalinkThread_post$data,
   PermalinkThread_post$key,
@@ -71,6 +74,12 @@ const TREE_VISUAL_DEPTH_CAP = 6;
 const TREE_TARGET_MAX_PAGES = 5;
 
 export const PERMALINK_THREAD_QUERY_KEY = "loadPermalinkThreadQuery";
+const PERMALINK_THREAD_DESCENDANTS_QUERY_KEY =
+  "loadPermalinkThreadDescendantsQuery";
+export const PERMALINK_THREAD_QUERY_KEYS = [
+  PERMALINK_THREAD_QUERY_KEY,
+  PERMALINK_THREAD_DESCENDANTS_QUERY_KEY,
+];
 
 const PermalinkThreadQuery = graphql`
   query PermalinkThreadQuery(
@@ -86,6 +95,81 @@ const PermalinkThreadQuery = graphql`
   }
 `;
 
+const PermalinkThreadDescendantsQueryDef = graphql`
+  query PermalinkThreadDescendantsQuery(
+    $handle: String!
+    $noteId: UUID!
+    $actingAccountId: ID
+  ) {
+    actorByHandle(handle: $handle, allowLocalHandle: true) {
+      postByUuid(uuid: $noteId, actingAccountId: $actingAccountId) {
+        ...PermalinkThreadDescendants_post
+          @arguments(actingAccountId: $actingAccountId)
+      }
+    }
+  }
+`;
+
+const PermalinkThreadPostFragment = graphql`
+  fragment PermalinkThread_post on Post
+  @argumentDefinitions(
+    actingAccountId: { type: "ID", defaultValue: null }
+  ) {
+    id
+    uuid
+    ... on Note {
+      sourceId
+    }
+    ... on Question {
+      sourceId
+    }
+    ... on Article {
+      sourceId
+    }
+    replyTarget(actingAccountId: $actingAccountId) {
+      id
+    }
+    # Fetched in one shot rather than paginated: real chains top out
+    # around a hundred hops, and ancestor rows are light context cards.
+    ancestors(first: 120, actingAccountId: $actingAccountId) {
+      edges {
+        node {
+          id
+          replyTarget(actingAccountId: $actingAccountId) {
+            id
+          }
+          ...PermalinkThread_contextPost
+            @arguments(actingAccountId: $actingAccountId)
+        }
+      }
+      pageInfo {
+        hasNextPage
+      }
+    }
+  }
+`;
+
+const PermalinkThreadDescendantsPostFragment = graphql`
+  fragment PermalinkThreadDescendants_post on Post
+  @argumentDefinitions(
+    actingAccountId: { type: "ID", defaultValue: null }
+  ) {
+    id
+    uuid
+    ... on Note {
+      sourceId
+    }
+    ... on Question {
+      sourceId
+    }
+    ... on Article {
+      sourceId
+    }
+    ...PermalinkThreadTree_post
+      @arguments(actingAccountId: $actingAccountId)
+  }
+`;
+
 export const loadPermalinkThreadQuery = routePreloadedQuery(
   (username: string, noteId: Uuid, actingAccountId: string | null) =>
     loadQuery<PermalinkThreadQuery>(
@@ -97,8 +181,20 @@ export const loadPermalinkThreadQuery = routePreloadedQuery(
   PERMALINK_THREAD_QUERY_KEY,
 );
 
+const loadPermalinkThreadDescendantsQuery = routePreloadedQuery(
+  (username: string, noteId: Uuid, actingAccountId: string | null) =>
+    loadQuery<PermalinkThreadDescendantsQuery>(
+      useRelayEnvironment()(),
+      PermalinkThreadDescendantsQueryDef,
+      { handle: username, noteId, actingAccountId },
+      { fetchPolicy: "store-and-network" },
+    ),
+  PERMALINK_THREAD_DESCENDANTS_QUERY_KEY,
+);
+
 export interface PermalinkThreadProps {
   children: JSX.Element;
+  focusedPostUuid: Uuid;
   noteId: Uuid;
   username: string;
 }
@@ -110,9 +206,7 @@ export function PermalinkThread(props: PermalinkThreadProps) {
     // unmounts, causing createStablePreloadedQuery to fire with undefined
     // noteId.
     <Show when={validateUuid(props.noteId)} fallback={<>{props.children}</>}>
-      <ErrorBoundary fallback={() => <>{props.children}</>}>
-        <PermalinkThreadLoaded {...props} />
-      </ErrorBoundary>
+      <PermalinkThreadLoaded {...props} />
     </Show>
   );
 }
@@ -121,70 +215,72 @@ function PermalinkThreadLoaded(props: PermalinkThreadProps) {
   const actingAccount = useActingAccount();
   const actingAccountId = () => actingAccount.selectedActingAccountId();
   const location = useLocation();
-  const data = createStablePreloadedQuery<PermalinkThreadQuery>(
-    PermalinkThreadQuery,
-    () =>
-      loadPermalinkThreadQuery(
-        props.username,
-        props.noteId,
-        actingAccountId() ?? null,
-      ),
+  let focusedRef: HTMLDivElement | undefined;
+
+  return (
+    <div class="contents">
+      <ErrorBoundary fallback={() => null}>
+        <Suspense fallback={null}>
+          <PermalinkThreadAncestorsLoaded
+            username={props.username}
+            noteId={props.noteId}
+            actingAccountId={actingAccountId}
+            locationHash={() => location.hash}
+            focusedRef={() => focusedRef}
+          />
+        </Suspense>
+      </ErrorBoundary>
+      <div
+        ref={focusedRef}
+        id={`post-${props.focusedPostUuid}`}
+        class="scroll-mt-20"
+      >
+        {props.children}
+      </div>
+      <ErrorBoundary fallback={() => null}>
+        <Suspense fallback={null}>
+          <PermalinkThreadDescendantsLoaded
+            username={props.username}
+            noteId={props.noteId}
+            actingAccountId={actingAccountId}
+            locationHash={() => location.hash}
+          />
+        </Suspense>
+      </ErrorBoundary>
+    </div>
   );
-  const post = createFragment(
-    graphql`
-      fragment PermalinkThread_post on Post
-      @argumentDefinitions(
-        actingAccountId: { type: "ID", defaultValue: null }
-      ) {
-        id
-        uuid
-        ... on Note {
-          sourceId
-        }
-        ... on Question {
-          sourceId
-        }
-        ... on Article {
-          sourceId
-        }
-        replyTarget(actingAccountId: $actingAccountId) {
-          id
-        }
-        # Fetched in one shot rather than paginated: real chains top out
-        # around a hundred hops, and ancestor rows are light context cards.
-        ancestors(first: 120, actingAccountId: $actingAccountId) {
-          edges {
-            node {
-              id
-              replyTarget(actingAccountId: $actingAccountId) {
-                id
-              }
-              ...PermalinkThread_contextPost
-                @arguments(actingAccountId: $actingAccountId)
-            }
-          }
-          pageInfo {
-            hasNextPage
-          }
-        }
-        ...PermalinkThreadTree_post
-          @arguments(actingAccountId: $actingAccountId)
-      }
-    `,
-    () => data()?.actorByHandle?.postByUuid as PermalinkThread_post$key,
-  );
+}
+
+interface PermalinkThreadContextProps {
+  username: string;
+  noteId: Uuid;
+  actingAccountId: () => string | null | undefined;
+  locationHash: () => string;
+}
+
+interface PermalinkPostIdentity {
+  readonly uuid: string;
+  readonly sourceId?: string | null;
+}
+
+interface StablePermalinkPost<TPost extends PermalinkPostIdentity> {
+  routeKey: string;
+  value: TPost;
+}
+
+function createStablePermalinkPost<TPost extends PermalinkPostIdentity>(
+  props: PermalinkThreadContextProps,
+  post: () => TPost | null | undefined,
+) {
   // Relay can briefly republish this fragment as `null` when another update
   // touches the same `Post` record. Keep the permalink thread mounted across
   // that gap so opening action popovers does not drop the thread. The key
   // includes the acting account, so a genuine `null` after switching to an
   // account that cannot see the post drops the private thread instead of being
   // masked as a transient gap and left rendered under the narrower perspective.
-  const stablePost = createMemo<{
-    routeKey: string;
-    value: PermalinkThread_post$data;
-  } | null>((previous) => {
+  return createMemo<StablePermalinkPost<TPost> | null>((previous) => {
     const routeKey = `${props.username}/${props.noteId}/${
-      actingAccountId() ?? ""
+      props.actingAccountId() ?? ""
     }`;
     const value = post();
     if (
@@ -195,9 +291,17 @@ function PermalinkThreadLoaded(props: PermalinkThreadProps) {
     }
     return previous?.routeKey === routeKey ? previous : null;
   });
+}
 
+function createPermalinkTarget(
+  stablePost: () =>
+    | StablePermalinkPost<PermalinkPostIdentity>
+    | null
+    | undefined,
+  locationHash: () => string,
+) {
   const targetUuid = createMemo(() => {
-    const match = /^#post-([0-9a-f-]{36})$/.exec(location.hash);
+    const match = /^#post-([0-9a-f-]{36})$/.exec(locationHash());
     return match == null ? null : match[1];
   });
   // A hash for the focused post itself is handled here (it can never be
@@ -212,15 +316,39 @@ function PermalinkThreadLoaded(props: PermalinkThreadProps) {
       (target === value.uuid || target === value.sourceId)
     );
   });
-  const treeTargetUuid = createMemo(() =>
-    targetIsFocused() ? null : targetUuid(),
-  );
 
+  return { targetUuid, targetIsFocused };
+}
+
+interface PermalinkThreadAncestorsLoadedProps extends PermalinkThreadContextProps {
+  focusedRef: () => HTMLDivElement | undefined;
+}
+
+function PermalinkThreadAncestorsLoaded(
+  props: PermalinkThreadAncestorsLoadedProps,
+) {
+  const data = createStablePreloadedQuery<PermalinkThreadQuery>(
+    PermalinkThreadQuery,
+    () =>
+      loadPermalinkThreadQuery(
+        props.username,
+        props.noteId,
+        props.actingAccountId() ?? null,
+      ),
+  );
+  const post = createFragment(
+    PermalinkThreadPostFragment,
+    () => data()?.actorByHandle?.postByUuid as PermalinkThread_post$key,
+  );
+  const stablePost = createStablePermalinkPost(props, post);
+  const { targetUuid, targetIsFocused } = createPermalinkTarget(
+    stablePost,
+    props.locationHash,
+  );
   // With ancestors above the focused post, land the reader on the focused
   // post itself (Mastodon-style); the ancestors stay reachable by scrolling
   // up. A `#post-<uuid>` deep link to another post takes precedence and is
   // handled by the tree.
-  let focusedRef: HTMLDivElement | undefined;
   let scrolledTo: string | null = null;
   createEffect(() => {
     const current = stablePost();
@@ -234,31 +362,54 @@ function PermalinkThreadLoaded(props: PermalinkThreadProps) {
     }
     scrolledTo = current.routeKey;
     requestAnimationFrame(() => {
-      focusedRef?.scrollIntoView({ block: "start" });
+      props.focusedRef()?.scrollIntoView({ block: "start" });
     });
   });
 
   return (
-    <Show keyed when={stablePost()} fallback={props.children}>
+    <Show keyed when={stablePost()}>
       {(current) => (
-        <div class="contents">
-          <PermalinkAncestors
-            post={current.value}
-            focusedReplyTargetId={current.value.replyTarget?.id ?? null}
-          />
-          <div
-            ref={focusedRef}
-            id={`post-${current.value.uuid}`}
-            class="scroll-mt-20"
-          >
-            {props.children}
-          </div>
-          <PermalinkThreadTree
-            $post={current.value}
-            focusedPostId={current.value.id}
-            targetUuid={treeTargetUuid()}
-          />
-        </div>
+        <PermalinkAncestors
+          post={current.value}
+          focusedReplyTargetId={current.value.replyTarget?.id ?? null}
+        />
+      )}
+    </Show>
+  );
+}
+
+function PermalinkThreadDescendantsLoaded(props: PermalinkThreadContextProps) {
+  const data = createStablePreloadedQuery<PermalinkThreadDescendantsQuery>(
+    PermalinkThreadDescendantsQueryDef,
+    () =>
+      loadPermalinkThreadDescendantsQuery(
+        props.username,
+        props.noteId,
+        props.actingAccountId() ?? null,
+      ),
+  );
+  const post = createFragment(
+    PermalinkThreadDescendantsPostFragment,
+    () =>
+      data()?.actorByHandle?.postByUuid as PermalinkThreadDescendants_post$key,
+  );
+  const stablePost = createStablePermalinkPost(props, post);
+  const { targetUuid, targetIsFocused } = createPermalinkTarget(
+    stablePost,
+    props.locationHash,
+  );
+  const treeTargetUuid = createMemo(() =>
+    targetIsFocused() ? null : targetUuid(),
+  );
+
+  return (
+    <Show keyed when={stablePost()}>
+      {(current) => (
+        <PermalinkThreadTree
+          $post={current.value}
+          focusedPostId={current.value.id}
+          targetUuid={treeTargetUuid()}
+        />
       )}
     </Show>
   );

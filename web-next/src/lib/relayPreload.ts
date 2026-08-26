@@ -254,13 +254,16 @@ export function createStablePreloadedQuery<TQuery extends OperationType>(
   );
   const [hydrated, setHydrated] = createSignal(false);
   onMount(() => setHydrated(true));
-  const current = createMemo<TQuery["response"] | null | undefined>((prev) => {
+  let hydrationValue: TQuery["response"] | null | undefined;
+  // Read the underlying resource from the accessor so a pending route query
+  // reaches the Suspense boundary that consumes this store during SSR. A store
+  // must remain owned by one boundary; sibling boundaries need independent
+  // createStablePreloadedQuery calls.
+  const accessor = (() => {
     const value = store();
-    return value != null || hydrated() ? value : prev;
-  });
-  const accessor = (() => current()) as unknown as DataStore<
-    TQuery["response"] | null | undefined
-  >;
+    if (value != null) hydrationValue = value;
+    return value != null || hydrated() ? value : hydrationValue;
+  }) as DataStore<TQuery["response"] | null | undefined>;
   Object.defineProperties(accessor, {
     latest: { get: () => latest(), enumerable: true },
     error: { get: () => store.error, enumerable: true },

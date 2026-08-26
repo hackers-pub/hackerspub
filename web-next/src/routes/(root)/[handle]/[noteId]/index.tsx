@@ -17,7 +17,7 @@ import { NoteCard } from "~/components/NoteCard.tsx";
 import { NoteComposer } from "~/components/NoteComposer.tsx";
 import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import {
-  PERMALINK_THREAD_QUERY_KEY,
+  PERMALINK_THREAD_QUERY_KEYS,
   PermalinkThread,
 } from "~/components/PermalinkThread.tsx";
 import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
@@ -58,7 +58,7 @@ const NOTE_PAGE_QUERY_KEY = "loadNotePageQuery";
 const NOTE_TITLE_EXCERPT_GRAPHEME_LIMIT = 80;
 
 function revalidateNotePageQueries() {
-  return revalidate([NOTE_PAGE_QUERY_KEY, PERMALINK_THREAD_QUERY_KEY]);
+  return revalidate([NOTE_PAGE_QUERY_KEY, ...PERMALINK_THREAD_QUERY_KEYS]);
 }
 
 export const route = {
@@ -326,6 +326,7 @@ function NoteInternal(props: NoteInternalProps) {
         actingAccountId: { type: "ID", defaultValue: null }
       ) {
         id
+        uuid
         visibility
         iri
         url
@@ -352,7 +353,11 @@ function NoteInternal(props: NoteInternalProps) {
         return (
           <NarrowContainer>
             <div class="my-4">
-              <PermalinkThread noteId={props.noteId} username={props.username}>
+              <PermalinkThread
+                focusedPostUuid={note.uuid}
+                noteId={props.noteId}
+                username={props.username}
+              >
                 <div class="border rounded-xl *:first:rounded-t-xl *:last:rounded-b-xl text-xl">
                   <NoteCard $note={note} onDeleted={() => navigate(-1)} />
                   <Show when={props.$viewer != null}>
@@ -408,6 +413,7 @@ function QuestionInternal(props: QuestionInternalProps) {
         actingAccountId: { type: "ID", defaultValue: null }
       ) {
         id
+        uuid
         visibility
         iri
         url
@@ -434,7 +440,11 @@ function QuestionInternal(props: QuestionInternalProps) {
         return (
           <NarrowContainer>
             <div class="my-4">
-              <PermalinkThread noteId={props.noteId} username={props.username}>
+              <PermalinkThread
+                focusedPostUuid={question.uuid}
+                noteId={props.noteId}
+                username={props.username}
+              >
                 <div class="border rounded-xl *:first:rounded-t-xl *:last:rounded-b-xl text-xl">
                   <QuestionCard
                     $question={question}
@@ -493,6 +503,7 @@ function ArticleInternal(props: ArticleInternalProps) {
         actingAccountId: { type: "ID", defaultValue: null }
       ) {
         id
+        uuid
         visibility
         iri
         url
@@ -520,7 +531,11 @@ function ArticleInternal(props: ArticleInternalProps) {
         return (
           <NarrowContainer>
             <div class="my-4">
-              <PermalinkThread noteId={props.noteId} username={props.username}>
+              <PermalinkThread
+                focusedPostUuid={article.uuid}
+                noteId={props.noteId}
+                username={props.username}
+              >
                 <div class="border rounded-xl *:first:rounded-t-xl *:last:rounded-b-xl text-xl">
                   <ArticleCard $article={article} />
                   <Show when={props.$viewer != null}>

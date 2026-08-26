@@ -105,9 +105,20 @@ const loadPageQuery = routePreloadedQuery(
 
 export default function ArticlePage() {
   const params = useParams();
-  const handle = decodeRouteParam(params.handle!);
-  const idOrYear = params.idOrYear!;
-  const slug = decodeRouteParam(params.slug!);
+  // Solid Router reuses this component when navigating between URLs that
+  // match the same route pattern, so these values must stay reactive.  Params
+  // can also disappear briefly while the component is unmounting.
+  const articleParams = createMemo(() => {
+    const handle = params.handle;
+    const idOrYear = params.idOrYear;
+    const slug = params.slug;
+    if (handle == null || idOrYear == null || slug == null) return null;
+    return {
+      handle: decodeRouteParam(handle),
+      idOrYear,
+      slug: decodeRouteParam(slug),
+    };
+  });
   const { onNoteCreated } = useNoteCompose();
   const actingAccount = useActingAccount();
   const actingAccountId = () => actingAccount.selectedActingAccountId();
@@ -120,8 +131,18 @@ export default function ArticlePage() {
     );
   });
 
-  const data = createStablePreloadedQuery<SlugPageQuery>(SlugPageQueryDef, () =>
-    loadPageQuery(handle, idOrYear, slug, actingAccountId() ?? null),
+  const data = createStablePreloadedQuery<SlugPageQuery>(
+    SlugPageQueryDef,
+    () => {
+      const currentParams = articleParams();
+      if (currentParams == null) return null;
+      return loadPageQuery(
+        currentParams.handle,
+        currentParams.idOrYear,
+        currentParams.slug,
+        actingAccountId() ?? null,
+      );
+    },
   );
 
   return (
