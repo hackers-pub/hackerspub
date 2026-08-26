@@ -166,22 +166,26 @@ Code Style Guidelines
     `createPreloadedQuery` whenever the result feeds a
     `<Show keyed when={data()}>` (or any conditional that unmounts a subtree
     when the value turns falsy).
+
  -  Why: solid-relay can emit a transient `null`/`undefined` (when a
     query/fragment snapshot is republished inside `batch()`). If that flash
     reaches a `<Show>` while `isHydrating()` is true, the subtree remounts and
     re-enters Solid's hydration path with hydration-registry nodes that were
     already consumed; Kobalte components (rendered via `Polymorphic`/`Dynamic`)
     then crash with `TypeError: … is not a function`.
+
  -  How the helper behaves: it holds the last non-null value only *through
     hydration* (until `onMount`), then tracks the live store. So the subtree
     stays mounted across the hydration flash, but genuine input changes (search,
     sort, route params) are reflected immediately afterward instead of masked by
     stale data. A remount after hydration is harmless (`getNextElement()` is no
     longer on the path).
+
  -  Do NOT guard with `!data.pending && data()`: short-circuiting `data()`
     stops the pending resource from throwing its Promise, so the SSR
     `<Suspense>` boundary never suspends and the server streams a blank page
     (everything must then render client-side).
+
  -  Exceptions: keep plain `createPreloadedQuery` for:
      -  queries whose source legitimately becomes `null` (inactive) and whose
         empty state is meaningful (e.g. search keyed on the query string;
@@ -190,6 +194,14 @@ Code Style Guidelines
      -  queries read directly via `.pending` rather than gating a `<Show>`
         subtree (e.g. the root layout's signed-in account), where there is no
         remount-during-hydration risk to fix.
+
+ -  For nested fragment fields or context values that can change during
+    hydration and gate a subtree containing Kobalte components, use
+    `createHydrationStableMemo` from `~/lib/hydrationStableMemo.ts`. It freezes
+    the first-read value (including `null`, `undefined`, and `false`) until
+    `onMount`, then returns live values. Do not use it for data that is expected
+    to populate during hydration, because its initial empty state is held until
+    mount.
 
 ### Error Handling
 

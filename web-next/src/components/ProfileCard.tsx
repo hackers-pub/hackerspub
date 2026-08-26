@@ -21,6 +21,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "~/components/ui/tooltip.tsx";
+import { createHydrationStableMemo } from "~/lib/hydrationStableMemo.ts";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
 import {
   MentionHoverCardLayer,
@@ -129,6 +130,10 @@ export function ProfileCard(props: ProfileCardProps) {
   return (
     <Show keyed when={actor()}>
       {(actor) => {
+        const accountMetadata = createHydrationStableMemo(() => ({
+          created: actor.account?.created,
+          inviter: actor.account?.inviter,
+        }));
         const successorInternalHref = () =>
           actor.successor == null
             ? ""
@@ -480,12 +485,12 @@ export function ProfileCard(props: ProfileCardProps) {
               </Show>
               <Show
                 when={
-                  actor.account?.inviter != null ||
-                  actor.account?.created != null
+                  accountMetadata().inviter != null ||
+                  accountMetadata().created != null
                 }
               >
                 <div class="space-y-1 text-sm text-muted-foreground">
-                  <Show keyed when={actor.account?.inviter}>
+                  <Show keyed when={accountMetadata().inviter}>
                     {(inviter) => (
                       <div class="flex items-center">
                         <a
@@ -521,7 +526,7 @@ export function ProfileCard(props: ProfileCardProps) {
                       </div>
                     )}
                   </Show>
-                  <Show keyed when={actor.account?.created}>
+                  <Show keyed when={accountMetadata().created}>
                     {(created) => (
                       <div class="flex items-center">
                         <svg

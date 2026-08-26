@@ -6,6 +6,7 @@ import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { createDeferredRender } from "~/lib/deferredRender.ts";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
+import { createHydrationStableMemo } from "~/lib/hydrationStableMemo.ts";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import {
   MentionHoverCardLayer,
@@ -100,6 +101,10 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
     return previous?.key === key ? previous : null;
   });
   const note = () => stableNote()?.value ?? null;
+  const quoteTargetState = createHydrationStableMemo(() => {
+    const current = note();
+    return current?.quotedPost == null ? current?.quoteTargetState : null;
+  });
 
   // Local permalink base for the engagement bar.  Local notes use the
   // source row's UUID (matching the URL embedded in `Post.url`);
@@ -182,10 +187,7 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
                     />
                   )}
                 </Show>
-                <Show
-                  keyed
-                  when={n.quotedPost == null ? n.quoteTargetState : null}
-                >
+                <Show keyed when={quoteTargetState()}>
                   {(state) => <QuoteTargetPlaceholder state={state} />}
                 </Show>
               </Show>

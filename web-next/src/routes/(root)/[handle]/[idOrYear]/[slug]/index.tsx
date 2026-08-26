@@ -37,6 +37,7 @@ import { msg, plural, useLingui } from "~/lib/i18n/macro.ts";
 import IconLoader2 from "~icons/lucide/loader-2";
 import { articleOgImageUrl } from "~/lib/articleOgImage.ts";
 import { useContentLinkInterceptor } from "~/lib/contentLinkInterceptor.ts";
+import { createHydrationStableMemo } from "~/lib/hydrationStableMemo.ts";
 import {
   MentionHoverCardLayer,
   useMentionHoverCards,
@@ -427,7 +428,7 @@ function ArticleBody(props: ArticleBodyProps) {
         // falling back to the first row if the original isn't in the
         // returned set (the `[lang]` route filters to one specific
         // translation).
-        const content = () => {
+        const content = createHydrationStableMemo(() => {
           const c = article.contents;
           if (c == null) return undefined;
           // solid-relay can republish a transiently incomplete store
@@ -435,10 +436,10 @@ function ArticleBody(props: ArticleBodyProps) {
           // individual list rows read as `undefined` even though `article()`
           // itself is still truthy.  Guard the row access with `?.` so this
           // reactive recompute doesn't throw during that window.
-          return (
-            c.find((entry) => entry?.language === article.language) ?? c[0]
-          );
-        };
+          const selected =
+            c.find((entry) => entry?.language === article.language) ?? c[0];
+          return selected == null ? undefined : { ...selected };
+        });
         const toc = () => (content()?.toc ?? []) as Toc[];
 
         return (

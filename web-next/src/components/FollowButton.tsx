@@ -5,6 +5,7 @@ import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useActingAccount } from "~/contexts/ActingAccountContext.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
+import { createHydrationStableMemo } from "~/lib/hydrationStableMemo.ts";
 import { useLingui } from "~/lib/i18n/macro.ts";
 import type { FollowButton_actor$key } from "./__generated__/FollowButton_actor.graphql.ts";
 import type { FollowButton_followActor_Mutation } from "./__generated__/FollowButton_followActor_Mutation.graphql.ts";
@@ -93,6 +94,8 @@ const unfollowActorMutation = graphql`
 export function FollowButton(props: FollowButtonProps) {
   const { t } = useLingui();
   const viewer = useViewer();
+  const viewerLoaded = createHydrationStableMemo(viewer.isLoaded);
+  const viewerAuthenticated = createHydrationStableMemo(viewer.isAuthenticated);
   const actingAccount = useActingAccount();
   const actor = createFragment(
     graphql`
@@ -211,12 +214,12 @@ export function FollowButton(props: FollowButtonProps) {
             !isCurrentViewerActor() &&
             !actor.viewerBlocks &&
             !actor.blocksViewer &&
-            viewer.isLoaded()
+            viewerLoaded()
           }
         >
-          <Show when={viewer.isAuthenticated() || canStartFollowing()}>
+          <Show when={viewerAuthenticated() || canStartFollowing()}>
             <Show
-              when={viewer.isAuthenticated()}
+              when={viewerAuthenticated()}
               fallback={
                 <RemoteFollowButton
                   actorId={actor.id}
