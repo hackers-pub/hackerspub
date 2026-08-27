@@ -4,6 +4,11 @@
       "settings": {
         "rootDirectory": "./web-next"
       }
+    },
+    "tailwindcss-language-server": {
+      "settings": {
+        "classFunctions": ["cva", "cx", "cn"]
+      }
     }
   }
 }
