@@ -3018,8 +3018,8 @@ msgid "Looking up user…"
 msgstr "Looking up user…"
 
 #: src/routes/(root)/admin/relay.tsx:229
-msgid "Make this instance's instance actor follow an ActivityPub relay. Once accepted, the relay can forward public posts from across the fediverse here and receives new public articles published on this instance. Enter the relay actor's URL, e.g. https://relay.example/actor."
-msgstr "Make this instance's instance actor follow an ActivityPub relay. Once accepted, the relay can forward public posts from across the fediverse here and receives new public articles published on this instance. Enter the relay actor's URL, e.g. https://relay.example/actor."
+msgid "Make the instance actor follow an ActivityPub relay. Once accepted, the relay can forward public posts from across the fediverse here and receive new public articles published on this instance. Enter the relay actor's URL, e.g. https://relay.example/actor."
+msgstr "Make the instance actor follow an ActivityPub relay. Once accepted, the relay can forward public posts from across the fediverse here and receive new public articles published on this instance. Enter the relay actor's URL, e.g. https://relay.example/actor."
 
 #: src/routes/(root)/markdown.tsx:40
 msgid "Markdown guide"

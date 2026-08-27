@@ -3014,8 +3014,8 @@ msgid "Looking up user…"
 msgstr "사용자 정보를 조회 중입니다…"
 
 #: src/routes/(root)/admin/relay.tsx:229
-msgid "Make this instance's instance actor follow an ActivityPub relay. Once accepted, the relay can forward public posts from across the fediverse here and receives new public articles published on this instance. Enter the relay actor's URL, e.g. https://relay.example/actor."
-msgstr "이 인스턴스의 인스턴스 액터가 ActivityPub 릴레이를 팔로하도록 합니다. 승인되면 릴레이는 연합우주 곳곳의 공개 콘텐츠를 이곳으로 전달하고, 이 인스턴스에 새로 공개된 게시글을 받습니다. 릴레이 액터의 URL(예: https://relay.example/actor)을 입력하세요."
+msgid "Make the instance actor follow an ActivityPub relay. Once accepted, the relay can forward public posts from across the fediverse here and receive new public articles published on this instance. Enter the relay actor's URL, e.g. https://relay.example/actor."
+msgstr "인스턴스 액터가 ActivityPub 릴레이를 팔로하도록 합니다. 승인되면 릴레이는 연합우주 곳곳의 공개 콘텐츠를 이곳으로 전달하고, 이 인스턴스에 새로 공개된 게시글을 받습니다. 릴레이 액터의 URL(예: https://relay.example/actor)을 입력하세요."
 
 #: src/routes/(root)/markdown.tsx:40
 msgid "Markdown guide"
