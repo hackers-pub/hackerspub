@@ -267,9 +267,9 @@ const ArticleAnalyticsEngagement = builder.simpleObject(
 
 const ArticleAnalytics = builder.simpleObject("ArticleAnalytics", {
   description:
-    "Private analytics for one source-backed local `Article`. Only its " +
-    "personal author or an accepted member of its organization author can " +
-    "read this snapshot. Moderators receive no automatic access.",
+    "Private analytics for one source-backed local `Article`. Its personal " +
+    "author, an accepted member of its organization author, or a moderator " +
+    "can read this snapshot.",
   fields: (t) => ({
     range: t.field({
       type: ArticleAnalyticsRange,
