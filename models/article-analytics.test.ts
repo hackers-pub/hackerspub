@@ -535,6 +535,7 @@ test("recordArticleView() classifies fediverse and external referrers", async ()
     });
     await seedInstance(tx, "social.example", "mastodon");
     await seedInstance(tx, "m.cmx.im", "mastodon");
+    await seedInstance(tx, "ported.example:8443", "mastodon");
     const sourceId = generateUuidV7();
     const published = new Date("2026-08-01T00:00:00.000Z");
     await tx.insert(articleSourceTable).values({
@@ -557,6 +558,7 @@ test("recordArticleView() classifies fediverse and external referrers", async ()
     for (const [visitorToken, referrerHostname] of [
       ["fediverse-token-0000000000000000", "social.example"],
       ["prefixed-fediverse-token-000000000", "m.cmx.im"],
+      ["ported-fediverse-token-0000000000", "ported.example"],
       ["external-token-000000000000000000", "WWW.News.Example.COM."],
       ["invalid-token-0000000000000000000", "127.0.0.1"],
       ["internal-token-000000000000000000", "www.hackers.pub"],
@@ -586,7 +588,7 @@ test("recordArticleView() classifies fediverse and external referrers", async ()
       })),
       [
         { category: "hackers_pub", domain: "", views: 1 },
-        { category: "fediverse", domain: "", views: 2 },
+        { category: "fediverse", domain: "", views: 3 },
         { category: "other_external", domain: "news.example.com", views: 1 },
         { category: "direct_or_unknown", domain: "", views: 1 },
       ],
@@ -596,7 +598,7 @@ test("recordArticleView() classifies fediverse and external referrers", async ()
         tx,
         new Date("2026-08-27T12:30:00.000Z"),
       ),
-      5,
+      6,
     );
   });
 });

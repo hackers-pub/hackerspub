@@ -472,7 +472,12 @@ export async function classifyArticleReferrer(
   const instance = await db
     .select({ host: instanceTable.host })
     .from(instanceTable)
-    .where(inArray(instanceTable.host, instanceHosts))
+    .where(
+      inArray(
+        sql<string>`split_part(${instanceTable.host}, ':', 1)`,
+        instanceHosts,
+      ),
+    )
     .limit(1);
   if (instance.length > 0) {
     return { category: "fediverse", domain: "" };
