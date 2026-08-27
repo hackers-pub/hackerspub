@@ -1,5 +1,6 @@
 import { redirect } from "@solidjs/router";
 import { createMiddleware } from "@solidjs/start/middleware";
+import { negotiateActivityPubAlternate } from "~/lib/activityPubNegotiation.ts";
 import { createMediumUploadPreflightResponse } from "~/lib/mediumUploadProxy.ts";
 import { hasMalformedPathEncoding } from "~/lib/requestPath.ts";
 import { readSessionCookie } from "~/lib/sessionCookie.ts";
@@ -24,5 +25,8 @@ export default createMiddleware({
     const target =
       readSessionCookie(event.request) == null ? "/local" : "/feed";
     return redirect(`${target}${url.search}`);
+  },
+  onBeforeResponse(event) {
+    return negotiateActivityPubAlternate(event.request, event.response.headers);
   },
 });
