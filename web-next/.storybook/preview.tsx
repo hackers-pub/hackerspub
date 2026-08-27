@@ -1,6 +1,10 @@
 import { type I18n, setupI18n } from "@lingui/core";
 import { I18nProvider } from "@lingui/solid";
+import { MemoryRouter, Route } from "@solidjs/router";
 import { createJSXDecorator, type Preview } from "storybook-solidjs-vite";
+import { ActingAccountProvider } from "../src/contexts/ActingAccountContext.tsx";
+import { NoteComposeProvider } from "../src/contexts/NoteComposeContext.tsx";
+import { ViewerProvider } from "../src/contexts/ViewerContext.tsx";
 import "../src/app.css";
 
 let storybookI18n: I18n | undefined;
@@ -26,9 +30,30 @@ const withI18n = createJSXDecorator((Story, context) => (
   </I18nProvider>
 ));
 
+// Post components read `useNavigate()`/`<A>` (router), and reach into
+// `ViewerContext` / `ActingAccountContext` / `NoteComposeContext` for the
+// signed-in viewer, the active posting identity, and the compose modal.
+// None of that is exercised by clicking through a static story, so a
+// single set of inert defaults covers every story that needs it.
+const withProviders = createJSXDecorator((Story) => (
+  <MemoryRouter
+    root={() => (
+      <ViewerProvider isAuthenticated={() => false} isLoaded={() => true}>
+        <ActingAccountProvider>
+          <NoteComposeProvider>
+            <Story />
+          </NoteComposeProvider>
+        </ActingAccountProvider>
+      </ViewerProvider>
+    )}
+  >
+    <Route path="*" component={() => null} />
+  </MemoryRouter>
+));
+
 const preview: Preview = {
   loaders: [async () => ({ i18n: await loadStorybookI18n() })],
-  decorators: [withI18n],
+  decorators: [withI18n, withProviders],
   parameters: {
     controls: {
       matchers: {

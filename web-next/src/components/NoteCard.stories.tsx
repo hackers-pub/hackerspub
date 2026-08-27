@@ -1,0 +1,178 @@
+import { graphql } from "relay-runtime";
+import {
+  createOperationDescriptor,
+  Environment,
+  getRequest,
+  Network,
+  RecordSource,
+  Store,
+} from "relay-runtime";
+import { MockPayloadGenerator, type MockResolvers } from "relay-test-utils";
+import { RelayEnvironmentProvider } from "solid-relay";
+import type { Meta, StoryObj } from "storybook-solidjs-vite";
+import { NoteCard } from "./NoteCard.tsx";
+import type { NoteCardStoriesQuery } from "./__generated__/NoteCardStoriesQuery.graphql.ts";
+import type { NoteCard_note$key } from "./__generated__/NoteCard_note.graphql.ts";
+
+const NoteCardStoriesQuery = graphql`
+  query NoteCardStoriesQuery($id: ID!, $actingAccountId: ID) {
+    node(id: $id) {
+      ... on Note {
+        ...NoteCard_note @arguments(actingAccountId: $actingAccountId)
+      }
+    }
+  }
+`;
+
+function avatarDataUri(initials: string, background: string): string {
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">` +
+    `<rect width="64" height="64" rx="32" fill="${background}"/>` +
+    `<text x="32" y="41" text-anchor="middle" font-family="sans-serif" ` +
+    `font-size="22" fill="#fff">${initials}</text></svg>`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+
+// A single reusable `Actor` mock: every place the fragment tree reaches an
+// actor (post author, organization member, action-menu ownership check)
+// gets the same values, which keeps the payload below readable.
+function mockResolvers(content: string): MockResolvers {
+  return {
+    Node: () => ({ __typename: "Note" }),
+    Actor: () => ({
+      name: "Ellie Byrne",
+      handle: "@ellie@hackers.pub",
+      username: "ellie",
+      local: true,
+      avatarUrl: avatarDataUri("EB", "#0e8a86"),
+      avatarInitials: "EB",
+      url: "https://hackers.pub/@ellie",
+      iri: "https://hackers.pub/ap/actors/ellie",
+      isViewer: false,
+      viewerMutes: false,
+    }),
+    Account: () => ({ id: "story-account", kind: "PERSONAL" }),
+    Note: () => ({
+      id: "story-note",
+      uuid: "0198f2b1-89c1-7000-8000-000000000001",
+      sourceId: null,
+      viewerCanRevokeQuote: false,
+      censored: false,
+      content,
+      language: "en",
+      personalRawContent: null,
+      rawContent: null,
+      sensitive: false,
+      summary: null,
+      quotePolicy: "EVERYONE",
+      visibility: "PUBLIC",
+      quoteTargetState: null,
+      quotedPost: null,
+      organizationAuthor: null,
+      media: [],
+      linkPreviewUrl: null,
+      link: null,
+      published: "2026-08-20T09:30:00.000Z",
+      url: "https://hackers.pub/@ellie/0198f2b1-89c1-7000-8000-000000000001",
+      iri: "https://hackers.pub/ap/notes/0198f2b1-89c1-7000-8000-000000000001",
+      engagementStats: {
+        replies: 3,
+        shares: 5,
+        quotes: 1,
+        reactions: 4,
+        bookmarks: 2,
+      },
+      viewerHasShared: false,
+      viewerCanReply: true,
+      viewerCanQuote: true,
+      viewerCanShare: true,
+      viewerHasBookmarked: false,
+      viewerHasPinned: false,
+      reactionGroups: [],
+      sharedPost: null,
+    }),
+  };
+}
+
+// No network is ever hit: the environment's store is seeded synchronously
+// below via `commitPayload`, so `NoteCard` reads the fragment straight out
+// of the store on first render.
+function noteCardKey(content: string): {
+  environment: Environment;
+  note: NoteCard_note$key;
+} {
+  const environment = new Environment({
+    network: Network.create(() => {
+      throw new Error("Storybook's mock environment has no real network");
+    }),
+    store: new Store(new RecordSource()),
+  });
+  const operation = createOperationDescriptor(
+    getRequest(NoteCardStoriesQuery),
+    { id: "story-note", actingAccountId: null },
+  );
+  const payload = MockPayloadGenerator.generate(
+    operation,
+    mockResolvers(content),
+  );
+  if (payload.data == null) {
+    throw new Error("MockPayloadGenerator produced no data");
+  }
+  environment.commitPayload(operation, payload.data);
+  const data = environment.lookup(operation.fragment).data as unknown as {
+    node: NoteCard_note$key;
+  };
+  return { environment, note: data.node };
+}
+
+interface NoteCardStoryArgs {
+  /** Raw HTML for the mocked note's `content` field. */
+  content: string;
+}
+
+const meta = {
+  title: "Components/NoteCard",
+  render: (args: NoteCardStoryArgs) => {
+    const { environment, note } = noteCardKey(args.content);
+    return (
+      <RelayEnvironmentProvider environment={environment}>
+        <div class="max-w-lg border-x">
+          <NoteCard $note={note} />
+        </div>
+      </RelayEnvironmentProvider>
+    );
+  },
+} satisfies Meta<NoteCardStoryArgs>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+const shortHtml =
+  "<p>Just shipped a small fix for the timeline. Nothing dramatic, but it should make scrolling feel a bit smoother.</p>";
+
+const longHtml = `
+  <p>I've been thinking a lot about how we render long posts in the
+  timeline lately, and I wanted to write up where my head is at.</p>
+  <p>The core problem is simple: a handful of authors write genuinely long
+  posts (think essay-length), and when one of those lands in the middle of
+  a feed, it pushes every post below it far down the page. That's a bad
+  experience for someone scrolling through a timeline looking for recent
+  activity.</p>
+  <p>At the same time, most posts are short, and we don't want to add any
+  visual noise or a toggle that never does anything for the common case.</p>
+  <p>So the approach here is to only show the "Show more" affordance when a
+  post actually overflows a generous collapsed height, and to make that
+  decision after measuring the real rendered height rather than guessing
+  from character count, which breaks down badly with headings, code
+  blocks, and lists.</p>
+`;
+
+export const ShortNote: Story = {
+  name: "Short note (no toggle)",
+  args: { content: shortHtml },
+};
+
+export const LongNote: Story = {
+  name: "Long note (collapsed)",
+  args: { content: longHtml },
+};
