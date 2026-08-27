@@ -450,7 +450,7 @@ function ArticleBody(props: ArticleBodyProps) {
           article.actor.local &&
           article.publishedYear != null &&
           article.slug != null
-            ? `/@${article.actor.username}/${article.publishedYear}/${article.slug}`
+            ? `/@${article.actor.username}/${article.publishedYear}/${encodeURIComponent(article.slug)}`
             : null,
         );
         const analyticsHref = createMemo(() => {
