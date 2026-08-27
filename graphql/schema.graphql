@@ -1328,9 +1328,19 @@ Private analytics for one source-backed local `Article`. Only its personal autho
 """
 type ArticleAnalytics {
   """
+  Current engagement counts. Unlike view fields, these are cumulative and do not change with `range`.
+  """
+  engagement: ArticleAnalyticsEngagement!
+
+  """
   Up to 10 external hostnames with at least 3 selected-range views, ordered by views and then hostname.
   """
   externalDomains: [ArticleAnalyticsExternalDomain!]!
+
+  """
+  Initial federation delivery snapshot, or `null` when the article predates collection or no publication snapshot was recorded.
+  """
+  federation: ArticleAnalyticsFederation
 
   """First UTC date in a fixed range, or `null` when `range` is `ALL`."""
   from: Date
@@ -1374,6 +1384,49 @@ type ArticleAnalytics {
 }
 
 """
+Distinct remote-server delivery outcomes for one channel. A server is `accepted` if any message succeeded, otherwise `pending` if any message remains pending, and `failed` only when every message failed.
+"""
+type ArticleAnalyticsDeliveryChannel {
+  """Distinct attempted servers that accepted at least one delivery."""
+  acceptedServers: Int!
+
+  """
+  Distinct remote servers with an attempted initial Article `Create` delivery.
+  """
+  attemptedServers: Int!
+
+  """Distinct attempted servers whose deliveries all failed permanently."""
+  failedServers: Int!
+
+  """
+  Distinct attempted servers with no accepted delivery and at least one delivery still pending.
+  """
+  pendingServers: Int!
+
+  """
+  `acceptedServers` divided by `attemptedServers`, or `null` when no remote server was attempted. This measures delivery, not reach.
+  """
+  successRate: Float
+}
+
+"""
+Current cumulative engagement counters for the local Article post. These counts are not filtered by the selected view range.
+"""
+type ArticleAnalyticsEngagement {
+  """Current quote count."""
+  quotes: Int!
+
+  """Current reaction count."""
+  reactions: Int!
+
+  """Current reply count."""
+  replies: Int!
+
+  """Current share count."""
+  shares: Int!
+}
+
+"""
 A normalized external referrer hostname with at least 3 views in the selected range. At most the 10 highest-volume domains are returned.
 """
 type ArticleAnalyticsExternalDomain {
@@ -1389,6 +1442,30 @@ type ArticleAnalyticsExternalDomain {
 
   """Counted views from this hostname."""
   views: Int!
+}
+
+"""
+Federation snapshot for the article's initial `Create`. Server identifiers are hashed and never exposed; updates are not included.
+"""
+type ArticleAnalyticsFederation {
+  """Initial `Create` deliveries sent directly to follower servers."""
+  direct: ArticleAnalyticsDeliveryChannel!
+
+  """Latest publication or delivery-status update represented here."""
+  lastUpdated: DateTime!
+
+  """When the local article was initially published."""
+  published: DateTime!
+
+  """
+  Initial `Create` deliveries sent to accepted generic relays or the eligible tags.pub relay.
+  """
+  relay: ArticleAnalyticsDeliveryChannel!
+
+  """
+  Accepted remote followers of the article author at publication time. This is a snapshot, not a delivered or reached audience.
+  """
+  remoteFollowers: Int!
 }
 
 """

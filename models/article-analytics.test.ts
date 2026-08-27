@@ -4,6 +4,7 @@ import test from "node:test";
 import { eq } from "drizzle-orm";
 import {
   canViewArticleAnalytics,
+  getArticleSupplementalAnalytics,
   getArticleViewAnalytics,
   normalizeArticleReferrerHostname,
   pruneExpiredArticleViewDeduplications,
@@ -23,6 +24,7 @@ import {
   articleViewReferrerDailyTable,
   followingTable,
   organizationMembershipTable,
+  postTable,
 } from "./schema.ts";
 import { generateUuidV7 } from "./uuid.ts";
 import {
@@ -145,6 +147,109 @@ test("publication delivery analytics retain only hashed remote servers", async (
       false,
     );
     assert.equal(await tx.$count(articlePublicationAnalyticsTable), 1);
+  });
+});
+
+test("supplemental analytics apply per-server delivery precedence", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "deliverysummaryauthor",
+      name: "Delivery Summary Author",
+      email: "deliverysummaryauthor@example.com",
+    });
+    const sourceId = generateUuidV7();
+    const published = new Date("2026-08-27T00:00:00.000Z");
+    const activityId = "http://localhost/articles/delivery-summary#create";
+    await tx.insert(articleSourceTable).values({
+      id: sourceId,
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "delivery-summary",
+      published,
+      updated: published,
+    });
+    await tx.insert(postTable).values({
+      id: generateUuidV7(),
+      iri: "http://localhost/articles/delivery-summary",
+      type: "Article",
+      visibility: "public",
+      actorId: author.actor.id,
+      articleSourceId: sourceId,
+      contentHtml: "<p>Delivery summary</p>",
+      repliesCount: 2,
+      sharesCount: 3,
+      quotesCount: 4,
+      reactionsCounts: { "👍": 5 },
+      published,
+      updated: published,
+    });
+    await recordArticlePublication(tx, {
+      articleSourceId: sourceId,
+      createActivityIri: activityId,
+      actorId: author.actor.id,
+      published,
+      now: published,
+    });
+
+    const deliveries = [
+      ["direct-accepted", "direct-a.example", "direct", "accepted", 1],
+      ["direct-pending", "direct-a.example", "direct", "pending", 2],
+      ["direct-failed", "direct-b.example", "direct", "failed", 3],
+      ["relay-pending", "relay-a.example", "relay", "pending", 4],
+      ["relay-failed", "relay-b.example", "relay", "failed", 5],
+      ["relay-accepted", "relay-b.example", "relay", "accepted", 6],
+    ] as const;
+    for (const [messageId, hostname, channel, status, minute] of deliveries) {
+      const now = new Date(`2026-08-27T00:0${minute}:00.000Z`);
+      await recordArticleDelivery(tx, {
+        messageId,
+        activityId,
+        inbox: `https://${hostname}/inbox`,
+        channel,
+        now,
+      });
+      await updateArticleDeliveryStatus(tx, messageId, status, now);
+    }
+
+    assert.deepEqual(await getArticleSupplementalAnalytics(tx, sourceId), {
+      federation: {
+        published,
+        remoteFollowers: 0,
+        direct: {
+          attemptedServers: 2,
+          acceptedServers: 1,
+          pendingServers: 0,
+          failedServers: 1,
+          successRate: 0.5,
+        },
+        relay: {
+          attemptedServers: 2,
+          acceptedServers: 1,
+          pendingServers: 1,
+          failedServers: 0,
+          successRate: 0.5,
+        },
+        lastUpdated: new Date("2026-08-27T00:06:00.000Z"),
+      },
+      engagement: { replies: 2, shares: 3, quotes: 4, reactions: 5 },
+    });
+
+    const legacySourceId = generateUuidV7();
+    await tx.insert(articleSourceTable).values({
+      id: legacySourceId,
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "legacy-delivery-summary",
+      published,
+      updated: published,
+    });
+    assert.deepEqual(
+      await getArticleSupplementalAnalytics(tx, legacySourceId),
+      {
+        federation: null,
+        engagement: { replies: 0, shares: 0, quotes: 0, reactions: 0 },
+      },
+    );
   });
 });
 

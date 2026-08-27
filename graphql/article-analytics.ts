@@ -1,6 +1,7 @@
 import {
   type ArticleAnalyticsRange as ArticleAnalyticsRangeValue,
   canViewArticleAnalytics,
+  getArticleSupplementalAnalytics,
   getArticleViewAnalytics,
   recordArticleView,
 } from "@hackerspub/models/article-analytics";
@@ -177,6 +178,93 @@ const ArticleAnalyticsExternalDomain = builder.simpleObject(
   },
 );
 
+const ArticleAnalyticsDeliveryChannel = builder.simpleObject(
+  "ArticleAnalyticsDeliveryChannel",
+  {
+    description:
+      "Distinct remote-server delivery outcomes for one channel. A server is " +
+      "`accepted` if any message succeeded, otherwise `pending` if any " +
+      "message remains pending, and `failed` only when every message failed.",
+    fields: (t) => ({
+      attemptedServers: t.int({
+        description:
+          "Distinct remote servers with an attempted initial Article " +
+          "`Create` delivery.",
+      }),
+      acceptedServers: t.int({
+        description:
+          "Distinct attempted servers that accepted at least one delivery.",
+      }),
+      pendingServers: t.int({
+        description:
+          "Distinct attempted servers with no accepted delivery and at " +
+          "least one delivery still pending.",
+      }),
+      failedServers: t.int({
+        description:
+          "Distinct attempted servers whose deliveries all failed permanently.",
+      }),
+      successRate: t.float({
+        nullable: true,
+        description:
+          "`acceptedServers` divided by `attemptedServers`, or `null` when " +
+          "no remote server was attempted. This measures delivery, not reach.",
+      }),
+    }),
+  },
+);
+
+const ArticleAnalyticsFederation = builder.simpleObject(
+  "ArticleAnalyticsFederation",
+  {
+    description:
+      "Federation snapshot for the article's initial `Create`. Server " +
+      "identifiers are hashed and never exposed; updates are not included.",
+    fields: (t) => ({
+      published: t.field({
+        type: "DateTime",
+        description: "When the local article was initially published.",
+      }),
+      remoteFollowers: t.int({
+        description:
+          "Accepted remote followers of the article author at publication " +
+          "time. This is a snapshot, not a delivered or reached audience.",
+      }),
+      direct: t.field({
+        type: ArticleAnalyticsDeliveryChannel,
+        description:
+          "Initial `Create` deliveries sent directly to follower servers.",
+      }),
+      relay: t.field({
+        type: ArticleAnalyticsDeliveryChannel,
+        description:
+          "Initial `Create` deliveries sent to accepted generic relays or " +
+          "the eligible tags.pub relay.",
+      }),
+      lastUpdated: t.field({
+        type: "DateTime",
+        description:
+          "Latest publication or delivery-status update represented here.",
+      }),
+    }),
+  },
+);
+
+const ArticleAnalyticsEngagement = builder.simpleObject(
+  "ArticleAnalyticsEngagement",
+  {
+    description:
+      "Current cumulative engagement counters for the local Article post. " +
+      "These counts are not filtered by the selected view range.",
+    fields: (t) => ({
+      replies: t.int({ description: "Current reply count." }),
+      shares: t.int({ description: "Current share count." }),
+      quotes: t.int({ description: "Current quote count." }),
+      reactions: t.int({ description: "Current reaction count." }),
+    }),
+  },
+);
+
 const ArticleAnalytics = builder.simpleObject("ArticleAnalytics", {
   description:
     "Private analytics for one source-backed local `Article`. Only its " +
@@ -243,6 +331,19 @@ const ArticleAnalytics = builder.simpleObject("ArticleAnalytics", {
         "When a view aggregate for this article was most recently updated, " +
         "or `null` before its first counted view.",
     }),
+    federation: t.field({
+      type: ArticleAnalyticsFederation,
+      nullable: true,
+      description:
+        "Initial federation delivery snapshot, or `null` when the article " +
+        "predates collection or no publication snapshot was recorded.",
+    }),
+    engagement: t.field({
+      type: ArticleAnalyticsEngagement,
+      description:
+        "Current engagement counts. Unlike view fields, these are cumulative " +
+        "and do not change with `range`.",
+    }),
   }),
 });
 
@@ -295,11 +396,15 @@ builder.queryField("articleAnalytics", (t) =>
       ) {
         return null;
       }
-      return await getArticleViewAnalytics(
-        ctx.db,
-        args.articleSourceId,
-        args.range ?? "thirty_days",
-      );
+      const [views, supplemental] = await Promise.all([
+        getArticleViewAnalytics(
+          ctx.db,
+          args.articleSourceId,
+          args.range ?? "thirty_days",
+        ),
+        getArticleSupplementalAnalytics(ctx.db, args.articleSourceId),
+      ]);
+      return { ...views, ...supplemental };
     },
   }),
 );

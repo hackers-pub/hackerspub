@@ -126,6 +126,34 @@ export interface ArticleViewAnalytics {
   lastUpdated: Date | null;
 }
 
+export interface ArticleDeliveryChannelAnalytics {
+  attemptedServers: number;
+  acceptedServers: number;
+  pendingServers: number;
+  failedServers: number;
+  successRate: number | null;
+}
+
+export interface ArticleFederationAnalytics {
+  published: Date;
+  remoteFollowers: number;
+  direct: ArticleDeliveryChannelAnalytics;
+  relay: ArticleDeliveryChannelAnalytics;
+  lastUpdated: Date;
+}
+
+export interface ArticleEngagementAnalytics {
+  replies: number;
+  shares: number;
+  quotes: number;
+  reactions: number;
+}
+
+export interface ArticleSupplementalAnalytics {
+  federation: ArticleFederationAnalytics | null;
+  engagement: ArticleEngagementAnalytics;
+}
+
 export interface RecordArticlePublicationInput {
   articleSourceId: Uuid;
   createActivityIri: string;
@@ -253,6 +281,110 @@ export async function updateArticleDeliveryStatus(
     .update(articleDeliveryEventTable)
     .set({ status, updated: now })
     .where(eq(articleDeliveryEventTable.messageId, messageId));
+}
+
+interface ArticleDeliveryChannelRow extends Record<string, unknown> {
+  channel: ArticleDeliveryChannel;
+  attemptedServers: number;
+  acceptedServers: number;
+  pendingServers: number;
+  failedServers: number;
+  updated: string;
+}
+
+function mapDeliveryChannel(
+  row: ArticleDeliveryChannelRow | undefined,
+): ArticleDeliveryChannelAnalytics {
+  if (row == null) {
+    return {
+      attemptedServers: 0,
+      acceptedServers: 0,
+      pendingServers: 0,
+      failedServers: 0,
+      successRate: null,
+    };
+  }
+  return {
+    attemptedServers: row.attemptedServers,
+    acceptedServers: row.acceptedServers,
+    pendingServers: row.pendingServers,
+    failedServers: row.failedServers,
+    successRate: row.acceptedServers / row.attemptedServers,
+  };
+}
+
+export async function getArticleSupplementalAnalytics(
+  db: Database | Transaction,
+  articleSourceId: Uuid,
+): Promise<ArticleSupplementalAnalytics> {
+  const [publication, deliveryChannels, post] = await Promise.all([
+    db.query.articlePublicationAnalyticsTable.findFirst({
+      where: { articleSourceId },
+    }),
+    db.execute<ArticleDeliveryChannelRow>(sql`
+      WITH server_delivery AS (
+        SELECT
+          channel,
+          server_key,
+          MAX(CASE status
+            WHEN 'accepted' THEN 2
+            WHEN 'pending' THEN 1
+            ELSE 0
+          END) AS status_rank,
+          MAX(updated) AS updated
+        FROM article_delivery_event
+        WHERE article_source_id = ${articleSourceId}
+        GROUP BY channel, server_key
+      )
+      SELECT
+        channel,
+        COUNT(*)::integer AS "attemptedServers",
+        COUNT(*) FILTER (WHERE status_rank = 2)::integer
+          AS "acceptedServers",
+        COUNT(*) FILTER (WHERE status_rank = 1)::integer
+          AS "pendingServers",
+        COUNT(*) FILTER (WHERE status_rank = 0)::integer
+          AS "failedServers",
+        MAX(updated)::text AS updated
+      FROM server_delivery
+      GROUP BY channel
+    `),
+    db.query.postTable.findFirst({
+      columns: {
+        repliesCount: true,
+        sharesCount: true,
+        quotesCount: true,
+        reactionsCount: true,
+      },
+      where: { articleSourceId },
+    }),
+  ]);
+  const engagement: ArticleEngagementAnalytics = {
+    replies: post?.repliesCount ?? 0,
+    shares: post?.sharesCount ?? 0,
+    quotes: post?.quotesCount ?? 0,
+    reactions: post?.reactionsCount ?? 0,
+  };
+  if (publication == null) return { federation: null, engagement };
+
+  const lastUpdated = deliveryChannels.reduce((latest, channel) => {
+    const updated = new Date(channel.updated);
+    return updated.getTime() > latest.getTime() ? updated : latest;
+  }, publication.updated);
+  return {
+    federation: {
+      published: publication.published,
+      remoteFollowers: publication.remoteFollowers,
+      direct: mapDeliveryChannel(
+        deliveryChannels.find((channel) => channel.channel === "direct"),
+      ),
+      relay: mapDeliveryChannel(
+        deliveryChannels.find((channel) => channel.channel === "relay"),
+      ),
+      lastUpdated,
+    },
+    engagement,
+  };
 }
 
 function hostnameMatchesDomain(hostname: string, domain: string): boolean {

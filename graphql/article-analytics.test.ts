@@ -1,9 +1,15 @@
 import assert from "node:assert";
 import test from "node:test";
 import {
+  recordArticleDelivery,
+  recordArticlePublication,
+  updateArticleDeliveryStatus,
+} from "@hackerspub/models/article-analytics";
+import {
   articleContentTable,
   articleSourceTable,
   articleViewDailyTable,
+  postTable,
 } from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
 import { eq } from "drizzle-orm";
@@ -55,6 +61,31 @@ const articleAnalyticsQuery = parse(`
       }
       otherExternalViews
       lastUpdated
+      federation {
+        published
+        remoteFollowers
+        direct {
+          attemptedServers
+          acceptedServers
+          pendingServers
+          failedServers
+          successRate
+        }
+        relay {
+          attemptedServers
+          acceptedServers
+          pendingServers
+          failedServers
+          successRate
+        }
+        lastUpdated
+      }
+      engagement {
+        replies
+        shares
+        quotes
+        reactions
+      }
     }
   }
 `);
@@ -84,6 +115,43 @@ test("article view mutation records guests and deduplicates tokens", async () =>
       published,
       updated: published,
     });
+    await tx.insert(postTable).values({
+      id: generateUuidV7(),
+      iri: "http://localhost/articles/graphql-analytics",
+      type: "Article",
+      visibility: "public",
+      actorId: author.actor.id,
+      articleSourceId: sourceId,
+      contentHtml: "<p>Content</p>",
+      repliesCount: 1,
+      sharesCount: 2,
+      quotesCount: 3,
+      reactionsCounts: { "👍": 4 },
+      published,
+      updated: published,
+    });
+    const createActivityIri =
+      "http://localhost/articles/graphql-analytics#create";
+    await recordArticlePublication(tx, {
+      articleSourceId: sourceId,
+      createActivityIri,
+      actorId: author.actor.id,
+      published,
+      now: published,
+    });
+    await recordArticleDelivery(tx, {
+      messageId: "graphql-analytics-delivery",
+      activityId: createActivityIri,
+      inbox: "https://reader.example/inbox",
+      channel: "direct",
+      now: published,
+    });
+    await updateArticleDeliveryStatus(
+      tx,
+      "graphql-analytics-delivery",
+      "accepted",
+      published,
+    );
     const contextValue = makeGuestContext(tx, {
       request: new Request("http://localhost/graphql", {
         headers: { "user-agent": "Mozilla/5.0" },
@@ -171,6 +239,14 @@ test("article view mutation records guests and deduplicates tokens", async () =>
         externalDomains: unknown[];
         otherExternalViews: number;
         lastUpdated: string;
+        federation: {
+          published: string;
+          remoteFollowers: number;
+          direct: Record<string, number>;
+          relay: Record<string, number | null>;
+          lastUpdated: string;
+        };
+        engagement: Record<string, number>;
       };
     };
     const { lastUpdated, ...analyticsWithoutTimestamp } =
@@ -189,6 +265,26 @@ test("article view mutation records guests and deduplicates tokens", async () =>
       ],
       externalDomains: [],
       otherExternalViews: 1,
+      federation: {
+        published: published.toISOString(),
+        remoteFollowers: 0,
+        direct: {
+          attemptedServers: 1,
+          acceptedServers: 1,
+          pendingServers: 0,
+          failedServers: 0,
+          successRate: 1,
+        },
+        relay: {
+          attemptedServers: 0,
+          acceptedServers: 0,
+          pendingServers: 0,
+          failedServers: 0,
+          successRate: null,
+        },
+        lastUpdated: published.toISOString(),
+      },
+      engagement: { replies: 1, shares: 2, quotes: 3, reactions: 4 },
     });
     assert.match(lastUpdated, /^\d{4}-\d{2}-\d{2}T/);
   });
