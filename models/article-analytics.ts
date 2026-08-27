@@ -1,7 +1,17 @@
 import { createHash } from "node:crypto";
 import { isIP } from "node:net";
 import { domainToASCII } from "node:url";
-import { and, desc, eq, gte, inArray, isNotNull, lte, sql } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  gte,
+  inArray,
+  isNotNull,
+  lte,
+  ne,
+  sql,
+} from "drizzle-orm";
 import type { Database, Transaction } from "./db.ts";
 import { runInTransaction } from "./db.ts";
 import {
@@ -21,6 +31,8 @@ import type { Uuid } from "./uuid.ts";
 const articleViewDeduplicationWindowMs = 30 * 60 * 1000;
 const articleAnalyticsMinimumGroupSize = 3;
 const articleAnalyticsMaximumTrendBuckets = 90;
+const articleAnalyticsMaximumExternalDomainsPerDay = 100;
+const groupedExternalDomain = "__grouped__";
 const removableHostnamePrefixes = new Set(["www", "m", "mobile", "amp"]);
 const searchEngineDomains = [
   "baidu.com",
@@ -242,6 +254,48 @@ function getUtcDay(date: Date): Date {
   );
 }
 
+async function getStoredExternalDomain(
+  tx: Transaction,
+  articleSourceId: Uuid,
+  day: Date,
+  domain: string,
+): Promise<string> {
+  await tx.execute(sql`
+    SELECT pg_advisory_xact_lock(
+      hashtextextended(
+        ${`article-referrer:${articleSourceId}:${day.toISOString()}`},
+        0
+      )
+    )
+  `);
+  const existing = await tx
+    .select({ domain: articleViewReferrerDailyTable.domain })
+    .from(articleViewReferrerDailyTable)
+    .where(
+      and(
+        eq(articleViewReferrerDailyTable.articleSourceId, articleSourceId),
+        eq(articleViewReferrerDailyTable.day, day),
+        eq(articleViewReferrerDailyTable.category, "other_external"),
+        eq(articleViewReferrerDailyTable.domain, domain),
+      ),
+    )
+    .limit(1);
+  if (existing.length > 0) return domain;
+
+  const domainCount = await tx.$count(
+    articleViewReferrerDailyTable,
+    and(
+      eq(articleViewReferrerDailyTable.articleSourceId, articleSourceId),
+      eq(articleViewReferrerDailyTable.day, day),
+      eq(articleViewReferrerDailyTable.category, "other_external"),
+      ne(articleViewReferrerDailyTable.domain, groupedExternalDomain),
+    ),
+  );
+  return domainCount >= articleAnalyticsMaximumExternalDomainsPerDay
+    ? groupedExternalDomain
+    : domain;
+}
+
 function hashVisitorToken(visitorToken: string): Buffer {
   return createHash("sha256").update(visitorToken, "utf8").digest();
 }
@@ -321,6 +375,15 @@ export async function recordArticleView(
     if (deduplication.length < 1) return false;
 
     const day = getUtcDay(now);
+    const referrerDomain =
+      referrer.category === "other_external"
+        ? await getStoredExternalDomain(
+            tx,
+            input.articleSourceId,
+            day,
+            referrer.domain,
+          )
+        : referrer.domain;
     await tx
       .insert(articleViewDailyTable)
       .values({
@@ -367,7 +430,7 @@ export async function recordArticleView(
         articleSourceId: input.articleSourceId,
         day,
         category: referrer.category,
-        domain: referrer.domain,
+        domain: referrerDomain,
         views: 1,
         updated: now,
       })
@@ -630,10 +693,12 @@ export async function getArticleViewAnalytics(
       (referrerTotals.get(row.category) ?? 0) + row.views,
     );
     if (row.category === "other_external") {
-      externalDomainTotals.set(
-        row.domain,
-        (externalDomainTotals.get(row.domain) ?? 0) + row.views,
-      );
+      if (row.domain !== groupedExternalDomain) {
+        externalDomainTotals.set(
+          row.domain,
+          (externalDomainTotals.get(row.domain) ?? 0) + row.views,
+        );
+      }
     }
   }
   const referrers = ARTICLE_REFERRER_CATEGORIES.map((category) => {
@@ -656,10 +721,7 @@ export async function getArticleViewAnalytics(
     (total, row) => total + row.views,
     0,
   );
-  const totalExternalViews = [...externalDomainTotals.values()].reduce(
-    (total, views) => total + views,
-    0,
-  );
+  const totalExternalViews = referrerTotals.get("other_external") ?? 0;
 
   return {
     range,

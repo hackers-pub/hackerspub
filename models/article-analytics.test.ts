@@ -317,6 +317,78 @@ test("recordArticleView() classifies fediverse and external referrers", async ()
   });
 });
 
+test("recordArticleView() caps external-domain row cardinality", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "domaincapauthor",
+      name: "Domain Cap Author",
+      email: "domaincapauthor@example.com",
+    });
+    const sourceId = generateUuidV7();
+    const published = new Date("2026-08-01T00:00:00.000Z");
+    const day = new Date("2026-08-27T00:00:00.000Z");
+    await tx.insert(articleSourceTable).values({
+      id: sourceId,
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "external-domain-cap",
+      published,
+      updated: published,
+    });
+    await tx.insert(articleContentTable).values({
+      sourceId,
+      language: "en",
+      title: "External domain cap",
+      content: "Content",
+      published,
+      updated: published,
+    });
+    await tx.insert(articleViewReferrerDailyTable).values(
+      Array.from({ length: 100 }, (_, index) => ({
+        articleSourceId: sourceId,
+        day,
+        category: "other_external" as const,
+        domain: `seed-${index}.example`,
+        views: 1,
+      })),
+    );
+
+    for (const index of [1, 2]) {
+      assert.equal(
+        await recordArticleView(tx, {
+          articleSourceId: sourceId,
+          language: "en",
+          referrerHostname: `overflow-${index}.example`,
+          canonicalHostname: "hackers.pub",
+          visitorToken: `overflow-token-${index}-0000000000000000`,
+          now: new Date("2026-08-27T12:00:00.000Z"),
+        }),
+        true,
+      );
+    }
+
+    const rows = await tx.query.articleViewReferrerDailyTable.findMany({
+      where: {
+        articleSourceId: sourceId,
+        day: { eq: day },
+        category: "other_external",
+      },
+    });
+    assert.equal(rows.length, 101);
+    assert.deepEqual(
+      rows.find((row) => row.domain === "__grouped__"),
+      {
+        articleSourceId: sourceId,
+        day,
+        category: "other_external",
+        domain: "__grouped__",
+        views: 2,
+        updated: new Date("2026-08-27T12:00:00.000Z"),
+      },
+    );
+  });
+});
+
 test("getArticleViewAnalytics() groups protected values and bounds trends", async () => {
   await withRollback(async (tx) => {
     const author = await insertAccountWithActor(tx, {
