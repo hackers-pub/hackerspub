@@ -2,6 +2,7 @@ import type { GraphQLSchema } from "graphql";
 import "./account.ts";
 import "./admin.ts";
 import "./actor.ts";
+import "./article-analytics.ts";
 import { builder } from "./builder.ts";
 import "./error.ts";
 import "./doc.ts";

@@ -5,7 +5,10 @@ import * as vocab from "@fedify/vocab";
 import type { ContextData } from "@hackerspub/models/context";
 import type { PostVisibility } from "@hackerspub/models/schema";
 import type { Uuid } from "@hackerspub/models/uuid";
-import { sendActivityWithOutbox } from "./context.ts";
+import {
+  sendActivityWithOutbox,
+  sendRelayActivityWithOutbox,
+} from "./context.ts";
 
 export const DEFAULT_TAGS_PUB_RELAY_ACTOR_ID: URL = new URL(
   "https://tags.pub/user/_____relay_____",
@@ -131,7 +134,7 @@ export async function sendTagsPubRelayActivity(
   });
   if (!decision.send) return undefined;
 
-  await sendActivityWithOutbox(
+  await sendRelayActivityWithOutbox(
     ctx,
     { identifier: accountId },
     getTagsPubRelayRecipient(config),

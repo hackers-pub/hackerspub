@@ -498,9 +498,9 @@ msgstr "必須填寫理由。"
 msgid "A reason is required."
 msgstr "必須填寫理由。"
 
-#: src/routes/(root)/admin/relay.tsx:260
-msgid "A relay only starts forwarding posts once it has accepted the follow. Until then the subscription stays pending."
-msgstr "中繼只有在接受關注後才會開始轉發內容。在此之前，訂閱會保持待處理狀態。"
+#: src/routes/(root)/admin/relay.tsx:265
+msgid "A relay only exchanges public posts after it accepts the follow. Until then the subscription stays pending."
+msgstr "中繼僅在接受關注後交換公開內容。在此之前，訂閱將維持待處理狀態。"
 
 #: src/components/admin/ModerationActionForm.tsx:342
 msgid "A reporter opted in to forwarding, so this is sent to the remote instance. Never include the reporter's wording."
@@ -3013,9 +3013,9 @@ msgstr "查找使用者"
 msgid "Looking up user…"
 msgstr "正在查找使用者資訊…"
 
-#: src/routes/(root)/admin/relay.tsx:225
-msgid "Make this instance's instance actor follow an ActivityPub relay, so the relay forwards public posts from across the fediverse to this instance. Enter the relay actor's URL, e.g. https://relay.example/actor."
-msgstr "讓此站台的站台 actor 關注一個 ActivityPub 中繼，使中繼將聯邦宇宙各處的公開內容轉發到此站台。請輸入中繼 actor 的 URL（例如 https://relay.example/actor）。"
+#: src/routes/(root)/admin/relay.tsx:229
+msgid "Make the instance actor follow an ActivityPub relay. Once accepted, the relay can forward public posts from across the fediverse here and receive new public articles published on this instance. Enter the relay actor's URL, e.g. https://relay.example/actor."
+msgstr "讓此站台 actor 關注一個 ActivityPub 中繼。接受後，中繼可將聯邦宇宙各處的公開內容轉發至此，並接收此站台新發布的公開文章。請輸入中繼 actor 的 URL（例如 https://relay.example/actor）。"
 
 #: src/routes/(root)/markdown.tsx:40
 msgid "Markdown guide"
@@ -5985,3 +5985,141 @@ msgstr "未儲存的草稿將會遺失。"
 #: src/routes/(root)/sign/up/[token].tsx:369
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "你的使用者名稱將用於建立你的個人資料 URL 和你的聯邦宇宙識別碼。"
+
+msgid "{name} (original)"
+msgstr "{name}（原文）"
+
+msgid "{name} (translation)"
+msgstr "{name}（翻譯）"
+
+msgid "30 days"
+msgstr "30 天"
+
+msgid "7 days"
+msgstr "7 天"
+
+msgid "90 days"
+msgstr "90 天"
+
+msgid "Accepted"
+msgstr "已接受"
+
+msgid "All time"
+msgstr "全部期間"
+
+msgid "Analytics"
+msgstr "分析"
+
+msgid "Article analytics"
+msgstr "文章分析"
+
+msgid "Attempted servers"
+msgstr "嘗試投遞的伺服器"
+
+msgid "Back to article"
+msgstr "返回文章"
+
+msgid "Dates and intervals use UTC."
+msgstr "日期和時間區間均使用 UTC。"
+
+msgid "Delivery data is unavailable for articles published before analytics collection began."
+msgstr "在開始收集分析資料之前發布的文章沒有投遞資料。"
+
+msgid "Delivery records whether the attempt to send the initial article completed without a recorded error, not remote views or readership."
+msgstr "投遞記錄表示初始文章的傳送嘗試是否在沒有記錄錯誤的情況下完成，並不表示遠端瀏覽次數或閱讀情況。"
+
+msgid "Direct delivery"
+msgstr "直接投遞"
+
+msgid "Direct or unknown"
+msgstr "直接瀏覽或未知"
+
+msgid "External websites"
+msgstr "外部網站"
+
+msgid "Failed"
+msgstr "失敗"
+
+msgid "Federation delivery"
+msgstr "聯邦投遞"
+
+msgid "Fediverse servers"
+msgstr "聯邦宇宙伺服器"
+
+msgid "Language shown when the view was counted."
+msgstr "統計瀏覽次數時顯示的語言。"
+
+msgid "Last updated"
+msgstr "最後更新"
+
+msgid "No analytics update has been recorded yet."
+msgstr "尚未記錄任何分析更新。"
+
+msgid "No external website data is available for this range."
+msgstr "此期間內沒有外部網站資料。"
+
+msgid "No views have been counted for this range yet."
+msgstr "此期間內尚未統計到瀏覽次數。"
+
+msgid "Not available"
+msgstr "無法取得"
+
+msgid "Only hostnames with enough views are shown. Paths and queries are never collected."
+msgstr "僅顯示瀏覽次數足夠多的主機名稱。我們絕不會收集路徑和查詢參數。"
+
+msgid "Other external websites"
+msgstr "其他外部網站"
+
+msgid "Other or insufficient data"
+msgstr "其他或資料不足"
+
+msgid "Other websites"
+msgstr "其他網站"
+
+msgid "Pending deliveries can change later. Counts are distinct remote servers, and the follower number is a publication-time snapshot."
+msgstr "待處理投遞的狀態之後可能會變更。伺服器數量已去除重複，粉絲數是發布時的快照。"
+
+msgid "Privacy-safe categories derived from the referring hostname."
+msgstr "根據來源主機名稱產生的隱私安全分類。"
+
+msgid "Published"
+msgstr "發布時間"
+
+msgid "Recent activity may take a few minutes to appear."
+msgstr "近期活動可能需要幾分鐘才會顯示。"
+
+msgid "Referrers"
+msgstr "瀏覽來源"
+
+msgid "Relay delivery"
+msgstr "中繼投遞"
+
+msgid "Remote followers at publication"
+msgstr "發布時的遠端粉絲"
+
+msgid "Replies"
+msgstr "回覆"
+
+msgid "Search engines"
+msgstr "搜尋引擎"
+
+msgid "Success rate"
+msgstr "成功率"
+
+msgid "Summary"
+msgstr "摘要"
+
+msgid "View article analytics"
+msgstr "查看文章分析"
+
+msgid "View trend"
+msgstr "瀏覽趨勢"
+
+msgid "Views"
+msgstr "瀏覽次數"
+
+msgid "Views are counted reads, not unique people. Engagement totals are cumulative and do not change with the selected range."
+msgstr "瀏覽次數統計的是閱讀次數，而不是不重複人數。互動總數為累計值，不會隨所選期間變更。"
+
+msgid "Views over time"
+msgstr "瀏覽次數趨勢"

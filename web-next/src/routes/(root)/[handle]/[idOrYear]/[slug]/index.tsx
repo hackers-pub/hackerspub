@@ -2,6 +2,7 @@ import { normalizeLocale } from "@hackerspub/models/i18n";
 import type { Toc } from "@hackerspub/models/markup";
 import { Link, Meta } from "@solidjs/meta";
 import {
+  A,
   revalidate,
   type RouteDefinition,
   useLocation,
@@ -20,6 +21,7 @@ import {
   Show,
 } from "solid-js";
 import { createFragment, loadQuery, useRelayEnvironment } from "solid-relay";
+import { ArticleViewTracker } from "~/components/ArticleViewTracker.tsx";
 import { CensorshipNotice } from "~/components/CensorshipNotice.tsx";
 import { NoteComposer } from "~/components/NoteComposer.tsx";
 import { PermalinkThreadTree } from "~/components/PermalinkThread.tsx";
@@ -376,6 +378,7 @@ interface ArticleBodyProps {
 }
 
 function ArticleBody(props: ArticleBodyProps) {
+  const [articleRef, setArticleRef] = createSignal<HTMLElement>();
   const [proseRef, setProseRef] = createSignal<HTMLElement>();
   const mentionState = useMentionHoverCards(proseRef);
   useContentLinkInterceptor(proseRef);
@@ -389,6 +392,8 @@ function ArticleBody(props: ArticleBodyProps) {
         includeBeingTranslated: { type: "Boolean", defaultValue: false }
         actingAccountId: { type: "ID", defaultValue: null }
       ) {
+        sourceId
+        viewerCanViewAnalytics
         contents(
           language: $language
           includeBeingTranslated: $includeBeingTranslated
@@ -441,16 +446,34 @@ function ArticleBody(props: ArticleBodyProps) {
           return selected == null ? undefined : { ...selected };
         });
         const toc = () => (content()?.toc ?? []) as Toc[];
+        const articleBase = createMemo(() =>
+          article.actor.local &&
+          article.publishedYear != null &&
+          article.slug != null
+            ? `/@${article.actor.username}/${article.publishedYear}/${encodeURIComponent(article.slug)}`
+            : null,
+        );
+        const analyticsHref = createMemo(() => {
+          const base = articleBase();
+          return base == null ||
+            article.sourceId == null ||
+            !article.viewerCanViewAnalytics
+            ? null
+            : `${base}/analytics`;
+        });
 
         return (
           <>
             <div class="mt-8 mb-4 px-4 max-w-3xl mx-auto xl:max-w-4xl 2xl:max-w-screen-lg 2xl:flex 2xl:gap-8">
-              <article class="2xl:flex-1 min-w-0">
+              <article ref={setArticleRef} class="2xl:flex-1 min-w-0">
                 <ArticleTitle
                   title={content()?.title}
                   language={content()?.language ?? undefined}
                 />
-                <ArticleHeader $article={article} />
+                <ArticleHeader
+                  $article={article}
+                  analyticsHref={analyticsHref()}
+                />
                 <Show when={article.censored}>
                   <CensorshipNotice
                     class="mt-4"
@@ -495,17 +518,13 @@ function ArticleBody(props: ArticleBodyProps) {
                   // Local articles get full engagement-bar wiring;
                   // remote articles (no local `publishedYear`/`slug`)
                   // fall back to plain-text counts.
-                  const base =
-                    article.actor.local &&
-                    article.publishedYear != null &&
-                    article.slug != null
-                      ? `/@${article.actor.username}/${article.publishedYear}/${article.slug}`
-                      : null;
+                  const base = articleBase();
                   return (
                     <PostEngagementBar
                       $post={article}
                       repliesHref={base == null ? null : `${base}/replies`}
                       engagementBase={base}
+                      analyticsHref={analyticsHref()}
                       onEdit={
                         article.actor.local &&
                         article.publishedYear != null &&
@@ -524,6 +543,20 @@ function ArticleBody(props: ArticleBodyProps) {
                 })()}
                 <ArticleReplies $article={article} $viewer={props.$viewer} />
               </article>
+
+              <Show
+                when={
+                  article.sourceId != null &&
+                  !content()?.beingTranslated &&
+                  content()?.content
+                }
+              >
+                <ArticleViewTracker
+                  articleSourceId={article.sourceId}
+                  language={content()?.language}
+                  target={articleRef}
+                />
+              </Show>
 
               <ArticleAside
                 toc={toc()}
@@ -659,9 +692,14 @@ export function ArticleTranslationFailure(
 
 interface ArticleHeaderProps {
   $article: Slug_articleHeader$key;
+  analyticsHref?: string | null;
 }
 
 function ArticleHeader(props: ArticleHeaderProps) {
+  const { t } = useLingui();
+  const stableAnalyticsHref = createHydrationStableMemo(
+    () => props.analyticsHref,
+  );
   const article = createFragment(
     graphql`
       fragment Slug_articleHeader on Article {
@@ -679,11 +717,39 @@ function ArticleHeader(props: ArticleHeaderProps) {
         return (
           <div class="flex gap-4 mt-4 items-center">
             <PostAuthorAvatar $post={article} size="large" />
-            <div class="flex flex-col flex-1">
-              <PostAuthorLine $post={article} />
-              <div class="flex flex-row items-center text-muted-foreground gap-1 flex-wrap">
-                <Timestamp value={article.published} capitalizeFirstLetter />
+            <div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-2">
+              <div class="flex min-w-0 flex-1 flex-col">
+                <PostAuthorLine $post={article} />
+                <div class="flex flex-row items-center text-muted-foreground gap-1 flex-wrap">
+                  <Timestamp value={article.published} capitalizeFirstLetter />
+                </div>
               </div>
+              <Show keyed when={stableAnalyticsHref()}>
+                {(href) => (
+                  <Button
+                    as={A}
+                    href={href}
+                    variant="ghost"
+                    size="sm"
+                    class="shrink-0 text-muted-foreground"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      aria-hidden="true"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125C16.5 3.504 17.004 3 17.625 3h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"
+                      />
+                    </svg>
+                    {t`Article analytics`}
+                  </Button>
+                )}
+              </Show>
             </div>
           </div>
         );

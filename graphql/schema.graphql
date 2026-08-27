@@ -1293,6 +1293,11 @@ type Article implements Node & Post & Reactable {
   ): Boolean!
 
   """
+  Whether the authenticated viewer may read this local article's private analytics. This is `true` for the personal author, accepted members of the organization author, and moderators; unauthenticated viewers and remote articles receive `false`.
+  """
+  viewerCanViewAnalytics: Boolean!
+
+  """
   Whether the authenticated viewer has bookmarked this post. Always `false` for unauthenticated requests.
   """
   viewerHasBookmarked: Boolean!
@@ -1321,6 +1326,253 @@ type Article implements Node & Post & Reactable {
   The audience allowed to view this post and whether it appears in public timelines. The value cannot be changed after the post has been federated.
   """
   visibility: PostVisibility!
+}
+
+"""
+Private analytics for one source-backed local `Article`. Its personal author, an accepted member of its organization author, or a moderator can read this snapshot.
+"""
+type ArticleAnalytics {
+  """
+  Current engagement counts. Unlike view fields, these are cumulative and do not change with `range`.
+  """
+  engagement: ArticleAnalyticsEngagement!
+
+  """
+  Up to 10 external hostnames with at least 3 selected-range views, ordered by views and then hostname.
+  """
+  externalDomains: [ArticleAnalyticsExternalDomain!]!
+
+  """
+  Initial federation delivery snapshot, or `null` when the article predates collection or no publication snapshot was recorded.
+  """
+  federation: ArticleAnalyticsFederation
+
+  """First UTC date in a fixed range, or `null` when `range` is `ALL`."""
+  from: Date
+
+  """
+  Displayed-language breakdown. Every row below 3 views is combined so returned counts still sum to `totalViews`.
+  """
+  languages: [ArticleAnalyticsLanguage!]!
+
+  """
+  When a view aggregate for this article was most recently updated, or `null` before its first counted view.
+  """
+  lastUpdated: DateTime
+
+  """
+  External views hidden by the 3-view threshold, the top-10 limit, or the per-article daily domain-cardinality cap. Add this to `externalDomains.views` to recover the `OTHER_EXTERNAL` category total.
+  """
+  otherExternalViews: Int!
+
+  """Range represented by every view aggregate in this snapshot."""
+  range: ArticleAnalyticsRange!
+
+  """Five server-derived referrer categories, including zero-count rows."""
+  referrers: [ArticleAnalyticsReferrer!]!
+
+  """Current UTC date and inclusive end of the selected range."""
+  to: Date!
+
+  """
+  Counted reads in the selected range after 2-second client eligibility and 30-minute token deduplication. This is not a unique-person count.
+  """
+  totalViews: Int!
+
+  """
+  Zero-filled UTC view trend with at most 90 points, ordered oldest first.
+  """
+  trend: [ArticleAnalyticsTrendPoint!]!
+
+  """Calendar interval used by `trend`."""
+  trendInterval: ArticleAnalyticsTrendInterval!
+}
+
+"""
+Distinct remote-server delivery outcomes for one channel. A server is `accepted` if any message succeeded, otherwise `pending` if any message remains pending, and `failed` only when every message failed.
+"""
+type ArticleAnalyticsDeliveryChannel {
+  """Distinct attempted servers that accepted at least one delivery."""
+  acceptedServers: Int!
+
+  """
+  Distinct remote servers with an attempted initial Article `Create` delivery.
+  """
+  attemptedServers: Int!
+
+  """Distinct attempted servers whose deliveries all failed permanently."""
+  failedServers: Int!
+
+  """
+  Distinct attempted servers with no accepted delivery and at least one delivery still pending.
+  """
+  pendingServers: Int!
+
+  """
+  `acceptedServers` divided by `attemptedServers`, or `null` when no remote server was attempted. This measures delivery, not reach.
+  """
+  successRate: Float
+}
+
+"""
+Current cumulative engagement counters for the local Article post. These counts are not filtered by the selected view range.
+"""
+type ArticleAnalyticsEngagement {
+  """Current quote count."""
+  quotes: Int!
+
+  """Current reaction count."""
+  reactions: Int!
+
+  """Current reply count."""
+  replies: Int!
+
+  """Current share count."""
+  shares: Int!
+}
+
+"""
+A normalized external referrer hostname with at least 3 views in the selected range. At most the 10 highest-volume domains are returned.
+"""
+type ArticleAnalyticsExternalDomain {
+  """
+  Lowercase ASCII hostname after presentation prefixes such as `www` and `m` are removed. Never contains a URL path or query.
+  """
+  domain: String!
+
+  """
+  This hostname's share of all selected-range views from `0` through `1`.
+  """
+  share: Float!
+
+  """Counted views from this hostname."""
+  views: Int!
+}
+
+"""
+Federation snapshot for the article's initial `Create`. Server identifiers are hashed and never exposed; updates are not included.
+"""
+type ArticleAnalyticsFederation {
+  """Initial `Create` deliveries sent directly to follower servers."""
+  direct: ArticleAnalyticsDeliveryChannel!
+
+  """Latest publication or delivery-status update represented here."""
+  lastUpdated: DateTime!
+
+  """When the local article was initially published."""
+  published: DateTime!
+
+  """
+  Initial `Create` deliveries sent to accepted generic relays or the eligible tags.pub relay.
+  """
+  relay: ArticleAnalyticsDeliveryChannel!
+
+  """
+  Accepted remote followers of the article author at publication time. This is a snapshot, not a delivered or reached audience.
+  """
+  remoteFollowers: Int!
+}
+
+"""
+Views of one displayed language version, classified at view time. Rows with fewer than 3 views are combined into one protected row.
+"""
+type ArticleAnalyticsLanguage {
+  """
+  Displayed BCP 47 language, or `null` for the combined other/insufficient-data row.
+  """
+  language: Locale
+
+  """
+  Whether this was original content rather than a translation, or `null` for the combined protected row.
+  """
+  original: Boolean
+
+  """This row's share of selected-range views from `0` through `1`."""
+  share: Float!
+
+  """
+  Counted views. The protected row includes every language/original combination below the 3-view threshold.
+  """
+  views: Int!
+}
+
+"""
+UTC calendar range used for private article analytics. The selected range includes the current UTC day.
+"""
+enum ArticleAnalyticsRange {
+  """
+  All views collected since article analytics became available. Views from before collection began are not backfilled.
+  """
+  ALL
+
+  """The current UTC day and the preceding 89 days."""
+  NINETY_DAYS
+
+  """The current UTC day and the preceding 6 days."""
+  SEVEN_DAYS
+
+  """The current UTC day and the preceding 29 days."""
+  THIRTY_DAYS
+}
+
+"""Counted article views in one privacy-safe referrer category."""
+type ArticleAnalyticsReferrer {
+  """Server-derived referrer category."""
+  category: ArticleAnalyticsReferrerCategory!
+
+  """This category's share of selected-range views from `0` through `1`."""
+  share: Float!
+
+  """Counted views attributed to this category."""
+  views: Int!
+}
+
+"""
+Privacy-preserving source category derived from a referrer's hostname. Full referrer URLs are never accepted or stored.
+"""
+enum ArticleAnalyticsReferrerCategory {
+  """A missing, invalid, IP-literal, or otherwise unknown referrer."""
+  DIRECT_OR_UNKNOWN
+
+  """Navigation from a hostname already known as a fediverse instance."""
+  FEDIVERSE
+
+  """Navigation from this Hackers' Pub instance."""
+  HACKERS_PUB
+
+  """
+  Navigation from another external hostname that is not classified as search or fediverse traffic.
+  """
+  OTHER_EXTERNAL
+
+  """Navigation from an allowlisted search engine."""
+  SEARCH
+}
+
+"""
+UTC calendar interval used for a trend point. Longer ranges use coarser intervals so a trend contains at most 90 points.
+"""
+enum ArticleAnalyticsTrendInterval {
+  """One UTC calendar day."""
+  DAY
+
+  """One UTC calendar month."""
+  MONTH
+
+  """One UTC week beginning on Monday."""
+  WEEK
+
+  """One UTC calendar year."""
+  YEAR
+}
+
+"""One UTC-aligned point in an article view trend."""
+type ArticleAnalyticsTrendPoint {
+  """First UTC date in this point's day, week, month, or year."""
+  start: Date!
+
+  """Counted article views in this interval."""
+  views: Int!
 }
 
 """
@@ -2898,6 +3150,29 @@ type Mutation {
   Recompute popularity scores for every news link.  Requires a moderator account.  Idempotent: safe to trigger at any time, and running it twice on unchanged data yields identical scores.  Normally scores stay fresh on their own (incrementally on share, plus a periodic sweep); this is the manual full rebuild and dev backstop.
   """
   recomputeNewsScores: RecomputeNewsScoresResult!
+
+  """
+  Record an eligible source-backed local article read. Clients should call this only after the article has remained visible in a focused page for 2 continuous seconds. The server excludes identifiable bots and signed-in editors, then deduplicates the opaque per-article token for 30 minutes. No IP address or browser fingerprint is stored.
+  """
+  recordArticleView(
+    """Stable local source UUID from `Article.sourceId`."""
+    articleSourceId: UUID!
+
+    """
+    Language version actually displayed when eligibility completed. The server verifies that this version exists and derives its original/translation status from stored content.
+    """
+    language: Locale!
+
+    """
+    Hostname from the browser referrer, without scheme, user info, port, path, query, or fragment. Omit when no valid hostname is available; full URLs must never be sent.
+    """
+    referrerHostname: String
+
+    """
+    Opaque random token scoped to this article. It is hashed before storage and used only for best-effort 30-minute deduplication; it must not encode an IP address or browser fingerprint.
+    """
+    visitorToken: String!
+  ): RecordArticleViewPayload!
   redeemInvitationLink(email: Email!, id: UUID!, locale: Locale!, verifyUrl: URITemplate!): RedeemInvitationLinkResult!
 
   """
@@ -3019,7 +3294,7 @@ type Mutation {
   startMediumUpload(input: StartMediumUploadInput!): StartMediumUploadResult!
 
   """
-  Subscribe this instance's instance actor to an ActivityPub relay by its actor URL (the `Follow`'s `object` is the relay actor itself). Requires a moderator account. The relay actor is resolved (and persisted) via ActivityPub if not already known. Idempotent: subscribing to an already-subscribed relay returns the existing subscription. Raises `InvalidInputError` (`actorUrl`) when the URL does not resolve to a remote actor (a local actor cannot be a relay).
+  Subscribe this instance's instance actor to an ActivityPub relay by its actor URL (the `Follow`'s `object` is the relay actor itself). After acceptance, initial public local Article `Create` activities are also sent to the relay. Requires a moderator account. The relay actor is resolved (and persisted) via ActivityPub if not already known. Idempotent: subscribing to an already-subscribed relay returns the existing subscription. Raises `InvalidInputError` (`actorUrl`) when the URL does not resolve to a remote actor (a local actor cannot be a relay).
   """
   subscribeRelay(
     """The relay actor's URL, e.g. `https://relay.example/actor`."""
@@ -4718,6 +4993,19 @@ type Query {
   ): AdminAccountConnection
 
   """
+  Read private analytics for a source-backed local article. Returns `null` without authentication, for an unknown source, or when the viewer is neither the personal author, an accepted member of the organization author, nor a moderator.
+  """
+  articleAnalytics(
+    """
+    Stable local source UUID from `Article.sourceId`; slug changes do not change this identifier.
+    """
+    articleSourceId: UUID!
+
+    """UTC calendar range to aggregate. Defaults to 30 days."""
+    range: ArticleAnalyticsRange = THIRTY_DAYS
+  ): ArticleAnalytics
+
+  """
   Look up a locally-authored article by the author's handle, publication year, and URL slug. This is the resolver for the canonical article permalink path `/@{handle}/{year}/{slug}`.
   """
   articleByYearAndSlug(
@@ -5576,6 +5864,14 @@ type RecomputeNewsScoresPayload {
 
 union RecomputeNewsScoresResult = NotAuthenticatedError | NotAuthorizedError | RecomputeNewsScoresPayload
 
+"""
+Result of a best-effort article view record attempt. Rejected, duplicate, editor, and identifiable-bot views return `false`.
+"""
+type RecordArticleViewPayload {
+  """Whether this request incremented the article aggregates."""
+  counted: Boolean!
+}
+
 enum RedeemEmailError {
   EMAIL_ALREADY_TAKEN
   EMAIL_INVALID
@@ -5787,11 +6083,11 @@ Result of registering a push notification target. Successful responses return th
 union RegisterPushNotificationTargetResult = InvalidInputError | NotAuthenticatedError | RegisterPushNotificationTargetPayload
 
 """
-A subscription that makes this instance's instance actor follow an ActivityPub relay, so the relay forwards public posts to this instance. Created via `subscribeRelay` and removed via `unsubscribeRelay`. Only moderators can read `RelaySubscription` values; it is purely server (instance) state and is not tied to any user account.
+A subscription that makes this instance's instance actor follow an ActivityPub relay. Once accepted, the relay can forward public posts to this instance and receives the initial `Create` for public local articles. Created via `subscribeRelay` and removed via `unsubscribeRelay`. Only moderators can read `RelaySubscription` values; it is purely server (instance) state and is not tied to any user account.
 """
 type RelaySubscription implements Node {
   """
-  When the relay accepted this instance's `Follow` (its `Accept` arrived), or `null` while the subscription is still pending. A relay only forwards posts once it has accepted.
+  When the relay accepted this instance's `Follow` (its `Accept` arrived), or `null` while the subscription is still pending. A relay only participates in inbound or outbound delivery once it has accepted.
   """
   accepted: DateTime
 

@@ -24,6 +24,32 @@ export function sendActivityWithOutbox(
   );
 }
 
+export function sendRelayActivityWithOutbox(
+  context: Context<ContextData>,
+  sender: unknown,
+  recipients: unknown,
+  activity: Activity,
+  options?: unknown,
+): Promise<void> {
+  const relayOptions = {
+    ...(options as Record<string, unknown> | undefined),
+    // Relay recipients must enqueue inside this context. A queued fanout would
+    // run later without the relay channel metadata.
+    fanout: "skip",
+  };
+  return runWithOutboxContext(
+    context.data.db,
+    () =>
+      context.sendActivity(
+        sender as never,
+        recipients as never,
+        activity,
+        relayOptions as never,
+      ),
+    { articleDeliveryChannel: "relay" },
+  );
+}
+
 /** Return the adapter-owned Fedify context for a federation implementation. */
 export function getFedifyContext(
   context: ApplicationContext,

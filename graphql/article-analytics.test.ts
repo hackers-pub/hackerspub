@@ -1,0 +1,459 @@
+import assert from "node:assert";
+import test from "node:test";
+import {
+  recordArticleDelivery,
+  recordArticlePublication,
+  updateArticleDeliveryStatus,
+} from "@hackerspub/models/article-analytics";
+import {
+  accountTable,
+  articleContentTable,
+  articleSourceTable,
+  articleViewDailyTable,
+  organizationMembershipTable,
+  postTable,
+} from "@hackerspub/models/schema";
+import { generateUuidV7 } from "@hackerspub/models/uuid";
+import { encodeGlobalID } from "@pothos/plugin-relay";
+import { eq } from "drizzle-orm";
+import { execute, parse } from "graphql";
+import { schema } from "./mod.ts";
+import {
+  insertAccountWithActor,
+  makeGuestContext,
+  makeUserContext,
+  toPlainJson,
+  withRollback,
+} from "../test/postgres.ts";
+
+const recordArticleViewMutation = parse(`
+  mutation RecordArticleView(
+    $articleSourceId: UUID!
+    $language: Locale!
+    $visitorToken: String!
+    $referrerHostname: String
+  ) {
+    recordArticleView(
+      articleSourceId: $articleSourceId
+      language: $language
+      visitorToken: $visitorToken
+      referrerHostname: $referrerHostname
+    ) {
+      counted
+    }
+  }
+`);
+
+const articleAnalyticsQuery = parse(`
+  query ArticleAnalytics($articleSourceId: UUID!) {
+    articleAnalytics(articleSourceId: $articleSourceId) {
+      range
+      totalViews
+      trendInterval
+      languages {
+        language
+        original
+        views
+      }
+      referrers {
+        category
+        views
+      }
+      externalDomains {
+        domain
+      }
+      otherExternalViews
+      lastUpdated
+      federation {
+        published
+        remoteFollowers
+        direct {
+          attemptedServers
+          acceptedServers
+          pendingServers
+          failedServers
+          successRate
+        }
+        relay {
+          attemptedServers
+          acceptedServers
+          pendingServers
+          failedServers
+          successRate
+        }
+        lastUpdated
+      }
+      engagement {
+        replies
+        shares
+        quotes
+        reactions
+      }
+    }
+  }
+`);
+
+const articleAnalyticsAccessQuery = parse(`
+  query ArticleAnalyticsAccess($articleId: ID!, $articleSourceId: UUID!) {
+    node(id: $articleId) {
+      ... on Article {
+        viewerCanViewAnalytics
+      }
+    }
+    articleAnalytics(articleSourceId: $articleSourceId) {
+      totalViews
+    }
+  }
+`);
+
+test("article view mutation records guests and deduplicates tokens", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "graphqlanalyticsauthor",
+      name: "GraphQL Analytics Author",
+      email: "graphqlanalyticsauthor@example.com",
+    });
+    const sourceId = generateUuidV7();
+    const published = new Date("2026-08-01T00:00:00.000Z");
+    await tx.insert(articleSourceTable).values({
+      id: sourceId,
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "graphql-analytics",
+      published,
+      updated: published,
+    });
+    await tx.insert(articleContentTable).values({
+      sourceId,
+      language: "en",
+      title: "GraphQL analytics",
+      content: "Content",
+      published,
+      updated: published,
+    });
+    await tx.insert(postTable).values({
+      id: generateUuidV7(),
+      iri: "http://localhost/articles/graphql-analytics",
+      type: "Article",
+      visibility: "public",
+      actorId: author.actor.id,
+      articleSourceId: sourceId,
+      contentHtml: "<p>Content</p>",
+      repliesCount: 1,
+      sharesCount: 2,
+      quotesCount: 3,
+      reactionsCounts: { "👍": 4 },
+      published,
+      updated: published,
+    });
+    const createActivityIri =
+      "http://localhost/articles/graphql-analytics#create";
+    await recordArticlePublication(tx, {
+      articleSourceId: sourceId,
+      createActivityIri,
+      actorId: author.actor.id,
+      published,
+      now: published,
+    });
+    await recordArticleDelivery(tx, {
+      messageId: "graphql-analytics-delivery",
+      activityId: createActivityIri,
+      inbox: "https://reader.example/inbox",
+      channel: "direct",
+      now: published,
+    });
+    await updateArticleDeliveryStatus(
+      tx,
+      "graphql-analytics-delivery",
+      "accepted",
+      published,
+    );
+    const contextValue = makeGuestContext(tx, {
+      request: new Request("http://localhost/graphql", {
+        headers: { "user-agent": "Mozilla/5.0" },
+      }),
+    });
+    const variableValues = {
+      articleSourceId: sourceId,
+      language: "en",
+      visitorToken: "graphql-view-token-000000000000000",
+      referrerHostname: "www.external.example",
+    };
+
+    const first = await execute({
+      schema,
+      document: recordArticleViewMutation,
+      contextValue,
+      variableValues,
+    });
+    assert.deepEqual(first.errors, undefined);
+    assert.deepEqual(toPlainJson(first.data), {
+      recordArticleView: { counted: true },
+    });
+    const duplicate = await execute({
+      schema,
+      document: recordArticleViewMutation,
+      contextValue,
+      variableValues,
+    });
+    assert.deepEqual(duplicate.errors, undefined);
+    assert.deepEqual(toPlainJson(duplicate.data), {
+      recordArticleView: { counted: false },
+    });
+    const authorView = await execute({
+      schema,
+      document: recordArticleViewMutation,
+      contextValue: makeUserContext(tx, author.account),
+      variableValues: {
+        ...variableValues,
+        visitorToken: "author-view-token-0000000000000000",
+      },
+    });
+    assert.deepEqual(authorView.errors, undefined);
+    assert.deepEqual(toPlainJson(authorView.data), {
+      recordArticleView: { counted: false },
+    });
+    const botView = await execute({
+      schema,
+      document: recordArticleViewMutation,
+      contextValue: makeGuestContext(tx, {
+        request: new Request("http://localhost/graphql", {
+          headers: { "user-agent": "Googlebot/2.1" },
+        }),
+      }),
+      variableValues: {
+        ...variableValues,
+        visitorToken: "bot-view-token-000000000000000000",
+      },
+    });
+    assert.deepEqual(botView.errors, undefined);
+    assert.deepEqual(toPlainJson(botView.data), {
+      recordArticleView: { counted: false },
+    });
+    assert.equal(
+      await tx.$count(
+        articleViewDailyTable,
+        eq(articleViewDailyTable.articleSourceId, sourceId),
+      ),
+      1,
+    );
+
+    const analytics = await execute({
+      schema,
+      document: articleAnalyticsQuery,
+      contextValue: makeUserContext(tx, author.account),
+      variableValues: { articleSourceId: sourceId },
+    });
+    assert.deepEqual(analytics.errors, undefined);
+    const analyticsData = toPlainJson(analytics.data) as {
+      articleAnalytics: {
+        range: string;
+        totalViews: number;
+        trendInterval: string;
+        languages: unknown[];
+        referrers: unknown[];
+        externalDomains: unknown[];
+        otherExternalViews: number;
+        lastUpdated: string;
+        federation: {
+          published: string;
+          remoteFollowers: number;
+          direct: Record<string, number>;
+          relay: Record<string, number | null>;
+          lastUpdated: string;
+        };
+        engagement: Record<string, number>;
+      };
+    };
+    const { lastUpdated, ...analyticsWithoutTimestamp } =
+      analyticsData.articleAnalytics;
+    assert.deepEqual(analyticsWithoutTimestamp, {
+      range: "THIRTY_DAYS",
+      totalViews: 1,
+      trendInterval: "DAY",
+      languages: [{ language: null, original: null, views: 1 }],
+      referrers: [
+        { category: "HACKERS_PUB", views: 0 },
+        { category: "SEARCH", views: 0 },
+        { category: "FEDIVERSE", views: 0 },
+        { category: "OTHER_EXTERNAL", views: 1 },
+        { category: "DIRECT_OR_UNKNOWN", views: 0 },
+      ],
+      externalDomains: [],
+      otherExternalViews: 1,
+      federation: {
+        published: published.toISOString(),
+        remoteFollowers: 0,
+        direct: {
+          attemptedServers: 1,
+          acceptedServers: 1,
+          pendingServers: 0,
+          failedServers: 0,
+          successRate: 1,
+        },
+        relay: {
+          attemptedServers: 0,
+          acceptedServers: 0,
+          pendingServers: 0,
+          failedServers: 0,
+          successRate: null,
+        },
+        lastUpdated: published.toISOString(),
+      },
+      engagement: { replies: 1, shares: 2, quotes: 3, reactions: 4 },
+    });
+    assert.match(lastUpdated, /^\d{4}-\d{2}-\d{2}T/);
+  });
+});
+
+test("article analytics hides data from guests and unrelated accounts", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "privateanalyticsauthor",
+      name: "Private Analytics Author",
+      email: "privateanalyticsauthor@example.com",
+    });
+    const outsider = await insertAccountWithActor(tx, {
+      username: "privateanalyticsoutsider",
+      name: "Private Analytics Outsider",
+      email: "privateanalyticsoutsider@example.com",
+    });
+    const sourceId = generateUuidV7();
+    const published = new Date("2026-08-01T00:00:00.000Z");
+    await tx.insert(articleSourceTable).values({
+      id: sourceId,
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "private-graphql-analytics",
+      published,
+      updated: published,
+    });
+
+    for (const contextValue of [
+      makeGuestContext(tx),
+      makeUserContext(tx, outsider.account),
+    ]) {
+      const result = await execute({
+        schema,
+        document: articleAnalyticsQuery,
+        contextValue,
+        variableValues: { articleSourceId: sourceId },
+      });
+      assert.deepEqual(result.errors, undefined);
+      assert.deepEqual(toPlainJson(result.data), { articleAnalytics: null });
+    }
+  });
+});
+
+test("organization members and moderators can view article analytics", async () => {
+  await withRollback(async (tx) => {
+    const organization = await insertAccountWithActor(tx, {
+      username: "analyticsorganization",
+      name: "Analytics Organization",
+      email: "analyticsorganization@example.com",
+      kind: "organization",
+      type: "Organization",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "analyticsorganizationmember",
+      name: "Analytics Organization Member",
+      email: "analyticsorganizationmember@example.com",
+    });
+    const pendingMember = await insertAccountWithActor(tx, {
+      username: "analyticspendingmember",
+      name: "Analytics Pending Member",
+      email: "analyticspendingmember@example.com",
+    });
+    const outsider = await insertAccountWithActor(tx, {
+      username: "analyticsoutsider",
+      name: "Analytics Outsider",
+      email: "analyticsoutsider@example.com",
+    });
+    const moderator = await insertAccountWithActor(tx, {
+      username: "analyticsmoderator",
+      name: "Analytics Moderator",
+      email: "analyticsmoderator@example.com",
+    });
+    await tx
+      .update(accountTable)
+      .set({ moderator: true })
+      .where(eq(accountTable.id, moderator.account.id));
+    await tx.insert(organizationMembershipTable).values([
+      {
+        organizationAccountId: organization.account.id,
+        memberAccountId: member.account.id,
+        role: "member",
+        invitedById: member.account.id,
+        accepted: new Date("2026-08-01T00:00:00.000Z"),
+      },
+      {
+        organizationAccountId: organization.account.id,
+        memberAccountId: pendingMember.account.id,
+        role: "member",
+        invitedById: member.account.id,
+      },
+    ]);
+
+    const sourceId = generateUuidV7();
+    const postId = generateUuidV7();
+    const published = new Date("2026-08-01T00:00:00.000Z");
+    await tx.insert(articleSourceTable).values({
+      id: sourceId,
+      accountId: organization.account.id,
+      publishedYear: 2026,
+      slug: "organization-analytics",
+      published,
+      updated: published,
+    });
+    await tx.insert(articleContentTable).values({
+      sourceId,
+      language: "en",
+      title: "Organization analytics",
+      content: "Content",
+      published,
+      updated: published,
+    });
+    await tx.insert(postTable).values({
+      id: postId,
+      iri: "http://localhost/articles/organization-analytics",
+      type: "Article",
+      visibility: "public",
+      actorId: organization.actor.id,
+      articleSourceId: sourceId,
+      contentHtml: "<p>Content</p>",
+      published,
+      updated: published,
+    });
+
+    const cases = [
+      { context: makeGuestContext(tx), allowed: false },
+      { context: makeUserContext(tx, outsider.account), allowed: false },
+      { context: makeUserContext(tx, pendingMember.account), allowed: false },
+      { context: makeUserContext(tx, member.account), allowed: true },
+      {
+        context: makeUserContext(tx, {
+          ...moderator.account,
+          moderator: true,
+        }),
+        allowed: true,
+      },
+    ];
+
+    for (const testCase of cases) {
+      const result = await execute({
+        schema,
+        document: articleAnalyticsAccessQuery,
+        contextValue: testCase.context,
+        variableValues: {
+          articleId: encodeGlobalID("Article", postId),
+          articleSourceId: sourceId,
+        },
+      });
+      assert.deepEqual(result.errors, undefined);
+      assert.deepEqual(toPlainJson(result.data), {
+        node: { viewerCanViewAnalytics: testCase.allowed },
+        articleAnalytics: testCase.allowed ? { totalViews: 0 } : null,
+      });
+    }
+  });
+});

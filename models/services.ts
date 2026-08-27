@@ -73,6 +73,11 @@ export interface SendTagsPubRelayOptions {
   readonly relayedTags?: readonly string[] | Record<string, string>;
 }
 
+export interface SendArticleRelayOptions extends Omit<
+  SendTagsPubRelayOptions,
+  "relayedTags"
+> {}
+
 export interface FederationServices<TContext> {
   readonly subscribeTagsPubHashtag: (
     context: TContext,
@@ -143,6 +148,12 @@ export interface FederationServices<TContext> {
     accountId: Uuid,
     activity: vocab.Activity,
     options: SendTagsPubRelayOptions,
+  ) => Promise<readonly string[] | undefined>;
+  readonly sendArticleRelayActivity: (
+    context: TContext,
+    accountId: Uuid,
+    activity: vocab.Activity,
+    options: SendArticleRelayOptions,
   ) => Promise<readonly string[] | undefined>;
 }
 

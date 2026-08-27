@@ -45,6 +45,7 @@ function createOperations(
       accountsFailed: 0,
     }),
     pruneOutboxEvents: async () => 0,
+    pruneExpiredArticleViewDeduplications: async () => 0,
     ...overrides,
   };
 }
@@ -57,6 +58,7 @@ test("worker job schedules preserve the Deno worker cadence", () => {
     { name: "send-weekly-notification-digests", schedule: "0 0 * * 1" },
     { name: "send-daily-notification-digests", schedule: "5 0 * * *" },
     { name: "prune-transactional-outbox", schedule: "30 3 * * *" },
+    { name: "prune-article-view-deduplications", schedule: "45 3 * * *" },
   ]);
 });
 
@@ -115,6 +117,7 @@ test("digest and pruning jobs preserve their operation arguments", async () => {
   const frequencies: string[] = [];
   let completedBefore: Date | undefined;
   let failedBefore: Date | undefined;
+  let deduplicationBefore: Date | undefined;
   const db = createDatabase();
   const jobs = createWorkerJobs(
     {
@@ -144,6 +147,10 @@ test("digest and pruning jobs preserve their operation arguments", async () => {
           failedBefore = options.failedBefore;
           return 0;
         },
+        pruneExpiredArticleViewDeduplications: async (_db, before) => {
+          deduplicationBefore = before;
+          return 0;
+        },
       }),
     },
   );
@@ -151,10 +158,12 @@ test("digest and pruning jobs preserve their operation arguments", async () => {
   await jobs[3].run();
   await jobs[4].run();
   await jobs[5].run();
+  await jobs[6].run();
 
   assert.deepEqual(frequencies, ["weekly", "daily"]);
   assert.equal(completedBefore?.toISOString(), "2026-07-24T12:00:00.000Z");
   assert.equal(failedBefore?.toISOString(), "2026-06-25T12:00:00.000Z");
+  assert.equal(deduplicationBefore?.toISOString(), "2026-07-25T12:00:00.000Z");
 });
 
 test("worker job runner contains failures and drains active work", async () => {

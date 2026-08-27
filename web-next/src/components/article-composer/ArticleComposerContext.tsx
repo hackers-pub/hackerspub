@@ -548,11 +548,13 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
           "PublishArticleDraftPayload"
         ) {
           const articleUrl = response.publishArticleDraft.article.url!;
-          navigate(new URL(articleUrl).pathname);
+          const articlePath = new URL(articleUrl).pathname.replace(/\/$/, "");
+          navigate(articlePath);
           setIsDirty(false);
           showToast({
-            title: t`Success`,
-            description: t`Article published`,
+            title: t`Article published`,
+            description: t`View article analytics`,
+            href: `${articlePath}/analytics`,
             variant: "success",
           });
         } else if (

@@ -15,10 +15,12 @@ export const RelaySubscription = builder.drizzleNode("relaySubscriptionTable", {
   name: "RelaySubscription",
   description:
     "A subscription that makes this instance's instance actor follow an " +
-    "ActivityPub relay, so the relay forwards public posts to this instance. " +
-    "Created via `subscribeRelay` and removed via `unsubscribeRelay`. Only " +
-    "moderators can read `RelaySubscription` values; it is purely server " +
-    "(instance) state and is not tied to any user account.",
+    "ActivityPub relay. Once accepted, the relay can forward public posts to " +
+    "this instance and receives the initial `Create` for public local " +
+    "articles. Created via `subscribeRelay` and removed via " +
+    "`unsubscribeRelay`. Only moderators can read `RelaySubscription` " +
+    "values; it is purely server (instance) state and is not tied to any " +
+    "user account.",
   authScopes: { moderator: true },
   // Run the moderator scope when the node itself is resolved (not just lazily
   // per field), so a non-moderator cannot even confirm a `RelaySubscription`
@@ -43,7 +45,8 @@ export const RelaySubscription = builder.drizzleNode("relaySubscriptionTable", {
       description:
         "When the relay accepted this instance's `Follow` (its `Accept` " +
         "arrived), or `null` while the subscription is still pending. A " +
-        "relay only forwards posts once it has accepted.",
+        "relay only participates in inbound or outbound delivery once it has " +
+        "accepted.",
     }),
     created: t.expose("created", {
       type: "DateTime",
@@ -74,6 +77,8 @@ builder.mutationField("subscribeRelay", (t) =>
     description:
       "Subscribe this instance's instance actor to an ActivityPub relay by " +
       "its actor URL (the `Follow`'s `object` is the relay actor itself). " +
+      "After acceptance, initial public local Article `Create` activities are " +
+      "also sent to the relay. " +
       "Requires a moderator account. The relay actor is resolved (and " +
       "persisted) via ActivityPub if not already known. Idempotent: " +
       "subscribing to an already-subscribed relay returns the existing " +

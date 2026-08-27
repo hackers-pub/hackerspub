@@ -242,6 +242,16 @@ export const relations = defineRelations(schema, (r) => ({
     }),
     contents: r.many.articleContentTable(),
     media: r.many.articleSourceMediumTable(),
+    viewDeduplications: r.many.articleViewDeduplicationTable(),
+    dailyViews: r.many.articleViewDailyTable(),
+    dailyLanguageViews: r.many.articleViewLanguageDailyTable(),
+    dailyReferrerViews: r.many.articleViewReferrerDailyTable(),
+    publicationAnalytics: r.one.articlePublicationAnalyticsTable({
+      from: r.articleSourceTable.id,
+      to: r.articlePublicationAnalyticsTable.articleSourceId,
+      optional: true,
+    }),
+    deliveryEvents: r.many.articleDeliveryEventTable(),
   },
   articleContentTable: {
     source: r.one.articleSourceTable({
@@ -266,6 +276,48 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.articleContentTable.translationRequesterId,
       to: r.accountTable.id,
       optional: true,
+    }),
+  },
+  articleViewDeduplicationTable: {
+    articleSource: r.one.articleSourceTable({
+      from: r.articleViewDeduplicationTable.articleSourceId,
+      to: r.articleSourceTable.id,
+      optional: false,
+    }),
+  },
+  articleViewDailyTable: {
+    articleSource: r.one.articleSourceTable({
+      from: r.articleViewDailyTable.articleSourceId,
+      to: r.articleSourceTable.id,
+      optional: false,
+    }),
+  },
+  articleViewLanguageDailyTable: {
+    articleSource: r.one.articleSourceTable({
+      from: r.articleViewLanguageDailyTable.articleSourceId,
+      to: r.articleSourceTable.id,
+      optional: false,
+    }),
+  },
+  articleViewReferrerDailyTable: {
+    articleSource: r.one.articleSourceTable({
+      from: r.articleViewReferrerDailyTable.articleSourceId,
+      to: r.articleSourceTable.id,
+      optional: false,
+    }),
+  },
+  articlePublicationAnalyticsTable: {
+    articleSource: r.one.articleSourceTable({
+      from: r.articlePublicationAnalyticsTable.articleSourceId,
+      to: r.articleSourceTable.id,
+      optional: false,
+    }),
+  },
+  articleDeliveryEventTable: {
+    articleSource: r.one.articleSourceTable({
+      from: r.articleDeliveryEventTable.articleSourceId,
+      to: r.articleSourceTable.id,
+      optional: false,
     }),
   },
   noteSourceTable: {

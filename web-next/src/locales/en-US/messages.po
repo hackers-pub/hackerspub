@@ -498,9 +498,9 @@ msgstr "A rationale is required."
 msgid "A reason is required."
 msgstr "A reason is required."
 
-#: src/routes/(root)/admin/relay.tsx:260
-msgid "A relay only starts forwarding posts once it has accepted the follow. Until then the subscription stays pending."
-msgstr "A relay only starts forwarding posts once it has accepted the follow. Until then the subscription stays pending."
+#: src/routes/(root)/admin/relay.tsx:265
+msgid "A relay only exchanges public posts after it accepts the follow. Until then the subscription stays pending."
+msgstr "A relay only exchanges public posts after it accepts the follow. Until then the subscription stays pending."
 
 #: src/components/admin/ModerationActionForm.tsx:342
 msgid "A reporter opted in to forwarding, so this is sent to the remote instance. Never include the reporter's wording."
@@ -3017,9 +3017,9 @@ msgstr "Look up user"
 msgid "Looking up user…"
 msgstr "Looking up user…"
 
-#: src/routes/(root)/admin/relay.tsx:225
-msgid "Make this instance's instance actor follow an ActivityPub relay, so the relay forwards public posts from across the fediverse to this instance. Enter the relay actor's URL, e.g. https://relay.example/actor."
-msgstr "Make this instance's instance actor follow an ActivityPub relay, so the relay forwards public posts from across the fediverse to this instance. Enter the relay actor's URL, e.g. https://relay.example/actor."
+#: src/routes/(root)/admin/relay.tsx:229
+msgid "Make the instance actor follow an ActivityPub relay. Once accepted, the relay can forward public posts from across the fediverse here and receive new public articles published on this instance. Enter the relay actor's URL, e.g. https://relay.example/actor."
+msgstr "Make the instance actor follow an ActivityPub relay. Once accepted, the relay can forward public posts from across the fediverse here and receive new public articles published on this instance. Enter the relay actor's URL, e.g. https://relay.example/actor."
 
 #: src/routes/(root)/markdown.tsx:40
 msgid "Markdown guide"
@@ -5989,3 +5989,141 @@ msgstr "Your unsaved draft will be lost."
 #: src/routes/(root)/sign/up/[token].tsx:369
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "Your username will be used to create your profile URL and your fediverse handle."
+
+msgid "{name} (original)"
+msgstr "{name} (original)"
+
+msgid "{name} (translation)"
+msgstr "{name} (translation)"
+
+msgid "30 days"
+msgstr "30 days"
+
+msgid "7 days"
+msgstr "7 days"
+
+msgid "90 days"
+msgstr "90 days"
+
+msgid "Accepted"
+msgstr "Accepted"
+
+msgid "All time"
+msgstr "All time"
+
+msgid "Analytics"
+msgstr "Analytics"
+
+msgid "Article analytics"
+msgstr "Article analytics"
+
+msgid "Attempted servers"
+msgstr "Attempted servers"
+
+msgid "Back to article"
+msgstr "Back to article"
+
+msgid "Dates and intervals use UTC."
+msgstr "Dates and intervals use UTC."
+
+msgid "Delivery data is unavailable for articles published before analytics collection began."
+msgstr "Delivery data is unavailable for articles published before analytics collection began."
+
+msgid "Delivery records whether the attempt to send the initial article completed without a recorded error, not remote views or readership."
+msgstr "Delivery records whether the attempt to send the initial article completed without a recorded error, not remote views or readership."
+
+msgid "Direct delivery"
+msgstr "Direct delivery"
+
+msgid "Direct or unknown"
+msgstr "Direct or unknown"
+
+msgid "External websites"
+msgstr "External websites"
+
+msgid "Failed"
+msgstr "Failed"
+
+msgid "Federation delivery"
+msgstr "Federation delivery"
+
+msgid "Fediverse servers"
+msgstr "Fediverse servers"
+
+msgid "Language shown when the view was counted."
+msgstr "Language shown when the view was counted."
+
+msgid "Last updated"
+msgstr "Last updated"
+
+msgid "No analytics update has been recorded yet."
+msgstr "No analytics update has been recorded yet."
+
+msgid "No external website data is available for this range."
+msgstr "No external website data is available for this range."
+
+msgid "No views have been counted for this range yet."
+msgstr "No views have been counted for this range yet."
+
+msgid "Not available"
+msgstr "Not available"
+
+msgid "Only hostnames with enough views are shown. Paths and queries are never collected."
+msgstr "Only hostnames with enough views are shown. Paths and queries are never collected."
+
+msgid "Other external websites"
+msgstr "Other external websites"
+
+msgid "Other or insufficient data"
+msgstr "Other or insufficient data"
+
+msgid "Other websites"
+msgstr "Other websites"
+
+msgid "Pending deliveries can change later. Counts are distinct remote servers, and the follower number is a publication-time snapshot."
+msgstr "Pending deliveries can change later. Counts are distinct remote servers, and the follower number is a publication-time snapshot."
+
+msgid "Privacy-safe categories derived from the referring hostname."
+msgstr "Privacy-safe categories derived from the referring hostname."
+
+msgid "Published"
+msgstr "Published"
+
+msgid "Recent activity may take a few minutes to appear."
+msgstr "Recent activity may take a few minutes to appear."
+
+msgid "Referrers"
+msgstr "Referrers"
+
+msgid "Relay delivery"
+msgstr "Relay delivery"
+
+msgid "Remote followers at publication"
+msgstr "Remote followers at publication"
+
+msgid "Replies"
+msgstr "Replies"
+
+msgid "Search engines"
+msgstr "Search engines"
+
+msgid "Success rate"
+msgstr "Success rate"
+
+msgid "Summary"
+msgstr "Summary"
+
+msgid "View article analytics"
+msgstr "View article analytics"
+
+msgid "View trend"
+msgstr "View trend"
+
+msgid "Views"
+msgstr "Views"
+
+msgid "Views are counted reads, not unique people. Engagement totals are cumulative and do not change with the selected range."
+msgstr "Views are counted reads, not unique people. Engagement totals are cumulative and do not change with the selected range."
+
+msgid "Views over time"
+msgstr "Views over time"

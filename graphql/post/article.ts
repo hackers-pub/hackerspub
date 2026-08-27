@@ -1,5 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { getAvatarUrl } from "@hackerspub/models/account";
+import { getViewableArticleAnalyticsPostIds } from "@hackerspub/models/article-analytics";
 import {
   getArticleDraftMediumUrls,
   getArticleSourceMediumUrls,
@@ -53,6 +54,27 @@ export const Article = builder.drizzleNode("postTable", {
         "resolve the article's attached media, e.g. `renderMarkdown` with " +
         "an `articleSourceId` argument for edit-time previews. `null` for " +
         "articles federated in from remote instances.",
+    }),
+    viewerCanViewAnalytics: t.loadable({
+      type: "Boolean",
+      description:
+        "Whether the authenticated viewer may read this local article's " +
+        "private analytics. This is `true` for the personal author, accepted " +
+        "members of the organization author, and moderators; unauthenticated " +
+        "viewers and remote articles receive `false`.",
+      async load(postIds: Uuid[], ctx: UserContext): Promise<boolean[]> {
+        if (ctx.account == null) return postIds.map(() => false);
+        const viewablePostIds = await getViewableArticleAnalyticsPostIds(
+          ctx.db,
+          postIds,
+          {
+            accountId: ctx.account.id,
+            moderator: ctx.account.moderator,
+          },
+        );
+        return postIds.map((postId) => viewablePostIds.has(postId));
+      },
+      resolve: (post) => post.id,
     }),
     publishedYear: t.int({
       nullable: true,

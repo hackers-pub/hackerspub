@@ -1,7 +1,7 @@
 Hackers' Pub Privacy Policy
 ===========================
 
-*Last updated: May 25, 2026*
+*Last updated: August 27, 2026*
 
 
 1\. Introduction
@@ -90,6 +90,38 @@ may include short excerpts from posts.
 We record which account invited you to Hackers' Pub, and we track the
 invitation links you create and how many times they have been used.
 
+### Article Analytics
+
+When article view analytics are enabled, we collect them only for articles
+authored on this instance, not articles received from remote servers.  When a
+local article remains visible in a focused browser for at least two seconds, we
+count a read.  Reads by the signed-in author, other signed-in accounts allowed
+to edit the article, and identifiable bots are excluded.  For each counted
+read, we collect:
+
+ -  **Article and date**: the article's stable identifier and the UTC date
+ -  **Displayed language**: including whether it is the original or a
+    translation
+ -  **Referrer**: a broad category and, for other external websites, only the
+    normalized hostname.  We never collect the referrer's path or query.
+ -  **Deduplication token**: a random, per-article browser token used to avoid
+    counting the same browser again for 30 minutes.  The server stores only its
+    SHA-256 hash and does not derive it from an IP address or browser
+    fingerprint.
+
+For a public article's initial ActivityPub delivery, we also record its
+publication time, the number of accepted remote followers at publication, and
+the delivery channel and outcome for each remote server.  Direct and relay
+deliveries are recorded separately.  A delivery attempt is marked accepted
+when it completes without a recorded error.  This does not measure remote
+impressions, views, or readership.  Remote server hostnames are stored only as
+SHA-256 hashes.  Article analytics are shown only to the personal author,
+accepted members of the authoring organization, or moderators.
+Displayed-language groups with fewer than three views are combined.  Only the
+top 10 external hostnames with at least three views are shown.  After 100
+distinct external hostnames for one article in one day, additional hostnames
+are stored only in a combined group.
+
 
 3\. How We Use Your Information
 -------------------------------
@@ -102,6 +134,7 @@ We use the collected information to:
  -  Send email and in-app notifications about interactions with your posts and
     account
  -  Deliver push notifications to your devices (if enabled)
+ -  Provide private, aggregated analytics to article authors
  -  Detect and prevent abuse, spam, and ban evasion
  -  Respond to your support and privacy requests
 
@@ -141,6 +174,8 @@ passkeys or email address through this mechanism.
 | Server logs                       | No more than 90 days                                       |
 | Account data and posts            | Until you delete them or your account                      |
 | Push notification targets         | Until you revoke push notifications or delete your account |
+| Article view token hashes         | Expire after 30 minutes; expired rows are deleted daily    |
+| Aggregated article analytics      | Until you delete the article or your account               |
 
 
 6\. Data Security
@@ -169,12 +204,17 @@ You have the right to:
  -  **Objection**: Contact us to raise concerns about how we process your data
 
 
-8\. Cookies
------------
+8\. Cookies and Local Storage
+-----------------------------
 
 We use session cookies solely to keep you signed in to Hackers' Pub. These
 cookies are strictly necessary for the service to function and are not used for
 advertising or cross-site tracking.
+
+For article view deduplication, we store a random per-article token and its
+30-minute expiration time in your browser's local storage.  It is not used for
+advertising or cross-site tracking.  An expired token is ignored and removed
+the next time this local storage record is updated.
 
 
 9\. Children's Privacy

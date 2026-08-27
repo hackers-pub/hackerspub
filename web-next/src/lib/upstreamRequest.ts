@@ -17,6 +17,8 @@ export function createUpstreamRequestInit(
   if (options.sessionId != null) {
     headers.set("Authorization", `Bearer ${options.sessionId}`);
   }
+  const userAgent = options.request?.headers.get("user-agent");
+  if (userAgent != null) headers.set("User-Agent", userAgent);
   if (options.behindProxy && options.request != null) {
     for (const name of [
       "x-forwarded-for",

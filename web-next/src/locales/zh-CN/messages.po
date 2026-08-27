@@ -498,9 +498,9 @@ msgstr "需要填写理由。"
 msgid "A reason is required."
 msgstr "需要填写理由。"
 
-#: src/routes/(root)/admin/relay.tsx:260
-msgid "A relay only starts forwarding posts once it has accepted the follow. Until then the subscription stays pending."
-msgstr "中继只有在接受关注后才会开始转发内容。在此之前，订阅将保持待处理状态。"
+#: src/routes/(root)/admin/relay.tsx:265
+msgid "A relay only exchanges public posts after it accepts the follow. Until then the subscription stays pending."
+msgstr "中继仅在接受关注后交换公开内容。在此之前，订阅将保持待处理状态。"
 
 #: src/components/admin/ModerationActionForm.tsx:342
 msgid "A reporter opted in to forwarding, so this is sent to the remote instance. Never include the reporter's wording."
@@ -3013,9 +3013,9 @@ msgstr "查找用户"
 msgid "Looking up user…"
 msgstr "正在查找用户信息…"
 
-#: src/routes/(root)/admin/relay.tsx:225
-msgid "Make this instance's instance actor follow an ActivityPub relay, so the relay forwards public posts from across the fediverse to this instance. Enter the relay actor's URL, e.g. https://relay.example/actor."
-msgstr "让此实例的实例 actor 关注一个 ActivityPub 中继，使中继将联邦宇宙各处的公开内容转发到此实例。请输入中继 actor 的 URL（例如 https://relay.example/actor）。"
+#: src/routes/(root)/admin/relay.tsx:229
+msgid "Make the instance actor follow an ActivityPub relay. Once accepted, the relay can forward public posts from across the fediverse here and receive new public articles published on this instance. Enter the relay actor's URL, e.g. https://relay.example/actor."
+msgstr "让此实例 actor 关注一个 ActivityPub 中继。接受后，中继可以将联邦宇宙各处的公开内容转发到此处，并接收此实例新发布的公开文章。请输入中继 actor 的 URL（例如 https://relay.example/actor）。"
 
 #: src/routes/(root)/markdown.tsx:40
 msgid "Markdown guide"
@@ -5985,3 +5985,141 @@ msgstr "未保存的草稿将会丢失。"
 #: src/routes/(root)/sign/up/[token].tsx:369
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "你的用户名将被用来创建你的个人资料 URL 和你的 Fediverse 用户名（handle）。"
+
+msgid "{name} (original)"
+msgstr "{name}（原文）"
+
+msgid "{name} (translation)"
+msgstr "{name}（翻译）"
+
+msgid "30 days"
+msgstr "30 天"
+
+msgid "7 days"
+msgstr "7 天"
+
+msgid "90 days"
+msgstr "90 天"
+
+msgid "Accepted"
+msgstr "已接受"
+
+msgid "All time"
+msgstr "全部时间"
+
+msgid "Analytics"
+msgstr "分析"
+
+msgid "Article analytics"
+msgstr "文章分析"
+
+msgid "Attempted servers"
+msgstr "尝试投递的服务器"
+
+msgid "Back to article"
+msgstr "返回文章"
+
+msgid "Dates and intervals use UTC."
+msgstr "日期和时间区间均使用 UTC。"
+
+msgid "Delivery data is unavailable for articles published before analytics collection began."
+msgstr "在开始收集分析数据之前发布的文章没有投递数据。"
+
+msgid "Delivery records whether the attempt to send the initial article completed without a recorded error, not remote views or readership."
+msgstr "投递记录表示初始文章的发送尝试是否在没有记录错误的情况下完成，并不表示远程查看次数或阅读情况。"
+
+msgid "Direct delivery"
+msgstr "直接投递"
+
+msgid "Direct or unknown"
+msgstr "直接访问或未知"
+
+msgid "External websites"
+msgstr "外部网站"
+
+msgid "Failed"
+msgstr "失败"
+
+msgid "Federation delivery"
+msgstr "联邦投递"
+
+msgid "Fediverse servers"
+msgstr "联邦宇宙服务器"
+
+msgid "Language shown when the view was counted."
+msgstr "统计查看次数时显示的语言。"
+
+msgid "Last updated"
+msgstr "最后更新"
+
+msgid "No analytics update has been recorded yet."
+msgstr "尚未记录任何分析更新。"
+
+msgid "No external website data is available for this range."
+msgstr "此时间范围内没有外部网站数据。"
+
+msgid "No views have been counted for this range yet."
+msgstr "此时间范围内尚未统计到查看次数。"
+
+msgid "Not available"
+msgstr "不可用"
+
+msgid "Only hostnames with enough views are shown. Paths and queries are never collected."
+msgstr "仅显示查看次数足够多的主机名。我们绝不会收集路径和查询参数。"
+
+msgid "Other external websites"
+msgstr "其他外部网站"
+
+msgid "Other or insufficient data"
+msgstr "其他或数据不足"
+
+msgid "Other websites"
+msgstr "其他网站"
+
+msgid "Pending deliveries can change later. Counts are distinct remote servers, and the follower number is a publication-time snapshot."
+msgstr "待处理投递的状态之后可能会变化。服务器数量已去重，粉丝数是发布时的快照。"
+
+msgid "Privacy-safe categories derived from the referring hostname."
+msgstr "根据来源主机名生成的隐私安全分类。"
+
+msgid "Published"
+msgstr "发布时间"
+
+msgid "Recent activity may take a few minutes to appear."
+msgstr "近期活动可能需要几分钟才会显示。"
+
+msgid "Referrers"
+msgstr "访问来源"
+
+msgid "Relay delivery"
+msgstr "中继投递"
+
+msgid "Remote followers at publication"
+msgstr "发布时的远程粉丝"
+
+msgid "Replies"
+msgstr "回复"
+
+msgid "Search engines"
+msgstr "搜索引擎"
+
+msgid "Success rate"
+msgstr "成功率"
+
+msgid "Summary"
+msgstr "摘要"
+
+msgid "View article analytics"
+msgstr "查看文章分析"
+
+msgid "View trend"
+msgstr "查看次数趋势"
+
+msgid "Views"
+msgstr "查看次数"
+
+msgid "Views are counted reads, not unique people. Engagement totals are cumulative and do not change with the selected range."
+msgstr "查看次数统计的是阅读次数，而不是独立人数。互动总数为累计值，不会随所选时间范围变化。"
+
+msgid "Views over time"
+msgstr "查看次数趋势"
