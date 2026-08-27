@@ -111,7 +111,8 @@ For a public article's initial ActivityPub delivery, we also record its
 publication time, the number of accepted remote followers at publication, and
 the delivery channel and outcome for each remote server.  Remote server
 hostnames are stored only as SHA-256 hashes.  Article analytics are shown only
-to the personal author or accepted members of the authoring organization.
+to the personal author, accepted members of the authoring organization, or
+moderators.
 Displayed-language groups with fewer than three views are combined.  Only the
 top 10 external hostnames with at least three views are shown.  After 100
 distinct external hostnames for one article in one day, additional hostnames

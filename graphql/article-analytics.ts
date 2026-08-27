@@ -368,8 +368,8 @@ builder.queryField("articleAnalytics", (t) =>
     description:
       "Read private analytics for a source-backed local article. Returns " +
       "`null` without authentication, for an unknown source, or when the " +
-      "viewer is neither the personal author nor an accepted member of the " +
-      "organization author.",
+      "viewer is neither the personal author, an accepted member of the " +
+      "organization author, nor a moderator.",
     args: {
       articleSourceId: t.arg({
         type: "UUID",
@@ -388,11 +388,10 @@ builder.queryField("articleAnalytics", (t) =>
     async resolve(_root, args, ctx) {
       if (ctx.account == null) return null;
       if (
-        !(await canViewArticleAnalytics(
-          ctx.db,
-          args.articleSourceId,
-          ctx.account.id,
-        ))
+        !(await canViewArticleAnalytics(ctx.db, args.articleSourceId, {
+          accountId: ctx.account.id,
+          moderator: ctx.account.moderator,
+        }))
       ) {
         return null;
       }

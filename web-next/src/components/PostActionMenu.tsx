@@ -375,7 +375,7 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
               {t`Edit`}
             </DropdownMenuItem>
           </Show>
-          <Show when={props.analyticsHref != null && isAuthor()}>
+          <Show when={props.analyticsHref != null}>
             <PostActionMenuLink
               href={props.analyticsHref!}
               label={t`Analytics`}

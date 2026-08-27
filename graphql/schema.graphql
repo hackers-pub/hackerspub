@@ -1293,6 +1293,11 @@ type Article implements Node & Post & Reactable {
   ): Boolean!
 
   """
+  Whether the authenticated viewer may read this local article's private analytics. This is `true` for the personal author, accepted members of the organization author, and moderators; unauthenticated viewers and remote articles receive `false`.
+  """
+  viewerCanViewAnalytics: Boolean!
+
+  """
   Whether the authenticated viewer has bookmarked this post. Always `false` for unauthenticated requests.
   """
   viewerHasBookmarked: Boolean!
@@ -4988,7 +4993,7 @@ type Query {
   ): AdminAccountConnection
 
   """
-  Read private analytics for a source-backed local article. Returns `null` without authentication, for an unknown source, or when the viewer is neither the personal author nor an accepted member of the organization author.
+  Read private analytics for a source-backed local article. Returns `null` without authentication, for an unknown source, or when the viewer is neither the personal author, an accepted member of the organization author, nor a moderator.
   """
   articleAnalytics(
     """

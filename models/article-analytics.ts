@@ -30,6 +30,7 @@ import {
   followingTable,
   instanceTable,
   organizationMembershipTable,
+  postTable,
   type ArticleReferrerCategory,
 } from "./schema.ts";
 import type { Uuid } from "./uuid.ts";
@@ -502,16 +503,112 @@ async function viewerCanEditArticle(
 export async function canViewArticleAnalytics(
   db: Database | Transaction,
   articleSourceId: Uuid,
-  viewerAccountId: Uuid,
+  viewer: { accountId: Uuid; moderator: boolean },
 ): Promise<boolean> {
-  const source = await db
-    .select({ accountId: articleSourceTable.accountId })
+  const viewableSourceIds = await getViewableArticleAnalyticsSourceIds(
+    db,
+    [articleSourceId],
+    viewer,
+  );
+  return viewableSourceIds.has(articleSourceId);
+}
+
+export async function getViewableArticleAnalyticsSourceIds(
+  db: Database | Transaction,
+  articleSourceIds: readonly Uuid[],
+  viewer: { accountId: Uuid; moderator: boolean },
+): Promise<Set<Uuid>> {
+  const uniqueSourceIds = [...new Set(articleSourceIds)];
+  if (uniqueSourceIds.length < 1) return new Set();
+
+  if (viewer.moderator) {
+    const sources = await db
+      .select({ id: articleSourceTable.id })
+      .from(articleSourceTable)
+      .where(inArray(articleSourceTable.id, uniqueSourceIds));
+    return new Set(sources.map((source) => source.id));
+  }
+
+  const sources = await db
+    .select({
+      id: articleSourceTable.id,
+      accountId: articleSourceTable.accountId,
+      memberAccountId: organizationMembershipTable.memberAccountId,
+    })
     .from(articleSourceTable)
-    .where(eq(articleSourceTable.id, articleSourceId))
-    .limit(1);
-  return (
-    source[0] != null &&
-    (await viewerCanEditArticle(db, source[0].accountId, viewerAccountId))
+    .leftJoin(
+      organizationMembershipTable,
+      and(
+        eq(
+          organizationMembershipTable.organizationAccountId,
+          articleSourceTable.accountId,
+        ),
+        eq(organizationMembershipTable.memberAccountId, viewer.accountId),
+        isNotNull(organizationMembershipTable.accepted),
+      ),
+    )
+    .where(inArray(articleSourceTable.id, uniqueSourceIds));
+  return new Set(
+    sources
+      .filter(
+        (source) =>
+          source.accountId === viewer.accountId ||
+          source.memberAccountId != null,
+      )
+      .map((source) => source.id),
+  );
+}
+
+export async function getViewableArticleAnalyticsPostIds(
+  db: Database | Transaction,
+  postIds: readonly Uuid[],
+  viewer: { accountId: Uuid; moderator: boolean },
+): Promise<Set<Uuid>> {
+  const uniquePostIds = [...new Set(postIds)];
+  if (uniquePostIds.length < 1) return new Set();
+
+  if (viewer.moderator) {
+    const posts = await db
+      .select({ id: postTable.id })
+      .from(postTable)
+      .innerJoin(
+        articleSourceTable,
+        eq(postTable.articleSourceId, articleSourceTable.id),
+      )
+      .where(inArray(postTable.id, uniquePostIds));
+    return new Set(posts.map((post) => post.id));
+  }
+
+  const posts = await db
+    .select({
+      id: postTable.id,
+      accountId: articleSourceTable.accountId,
+      memberAccountId: organizationMembershipTable.memberAccountId,
+    })
+    .from(postTable)
+    .innerJoin(
+      articleSourceTable,
+      eq(postTable.articleSourceId, articleSourceTable.id),
+    )
+    .leftJoin(
+      organizationMembershipTable,
+      and(
+        eq(
+          organizationMembershipTable.organizationAccountId,
+          articleSourceTable.accountId,
+        ),
+        eq(organizationMembershipTable.memberAccountId, viewer.accountId),
+        isNotNull(organizationMembershipTable.accepted),
+      ),
+    )
+    .where(inArray(postTable.id, uniquePostIds));
+  return new Set(
+    posts
+      .filter(
+        (post) =>
+          post.accountId === viewer.accountId || post.memberAccountId != null,
+      )
+      .map((post) => post.id),
   );
 }
 

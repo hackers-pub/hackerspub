@@ -4,6 +4,8 @@ import test from "node:test";
 import { eq } from "drizzle-orm";
 import {
   canViewArticleAnalytics,
+  getViewableArticleAnalyticsPostIds,
+  getViewableArticleAnalyticsSourceIds,
   getArticleSupplementalAnalytics,
   getArticleViewAnalytics,
   normalizeArticleReferrerHostname,
@@ -398,6 +400,7 @@ test("recordArticleView() excludes editors and identifiable bots", async () => {
       accepted: new Date("2026-08-01T00:00:00.000Z"),
     });
     const sourceId = generateUuidV7();
+    const postId = generateUuidV7();
     const published = new Date("2026-08-01T00:00:00.000Z");
     await tx.insert(articleSourceTable).values({
       id: sourceId,
@@ -415,18 +418,70 @@ test("recordArticleView() excludes editors and identifiable bots", async () => {
       published,
       updated: published,
     });
+    await tx.insert(postTable).values({
+      id: postId,
+      iri: "http://localhost/articles/organization-analytics",
+      type: "Article",
+      visibility: "public",
+      actorId: organization.actor.id,
+      articleSourceId: sourceId,
+      contentHtml: "<p>Content</p>",
+      published,
+      updated: published,
+    });
 
     assert.equal(
-      await canViewArticleAnalytics(tx, sourceId, member.account.id),
+      await canViewArticleAnalytics(tx, sourceId, {
+        accountId: member.account.id,
+        moderator: false,
+      }),
       true,
     );
     assert.equal(
-      await canViewArticleAnalytics(tx, sourceId, outsider.account.id),
+      await canViewArticleAnalytics(tx, sourceId, {
+        accountId: outsider.account.id,
+        moderator: false,
+      }),
       false,
     );
     assert.equal(
-      await canViewArticleAnalytics(tx, generateUuidV7(), member.account.id),
+      await canViewArticleAnalytics(tx, sourceId, {
+        accountId: outsider.account.id,
+        moderator: true,
+      }),
+      true,
+    );
+    assert.equal(
+      await canViewArticleAnalytics(tx, generateUuidV7(), {
+        accountId: member.account.id,
+        moderator: true,
+      }),
       false,
+    );
+    const viewableSourceIds = await getViewableArticleAnalyticsSourceIds(
+      tx,
+      [sourceId, generateUuidV7(), sourceId],
+      { accountId: member.account.id, moderator: false },
+    );
+    assert.deepEqual([...viewableSourceIds], [sourceId]);
+    assert.deepEqual(
+      [
+        ...(await getViewableArticleAnalyticsSourceIds(tx, [], {
+          accountId: member.account.id,
+          moderator: false,
+        })),
+      ],
+      [],
+    );
+    assert.deepEqual(
+      [
+        ...(await getViewableArticleAnalyticsPostIds(
+          tx,
+          [postId, generateUuidV7(), postId],
+          { accountId: member.account.id, moderator: false },
+        )),
+      ],
+      [postId],
     );
     assert.equal(
       await recordArticleView(tx, {

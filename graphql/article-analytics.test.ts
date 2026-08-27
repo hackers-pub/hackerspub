@@ -6,12 +6,15 @@ import {
   updateArticleDeliveryStatus,
 } from "@hackerspub/models/article-analytics";
 import {
+  accountTable,
   articleContentTable,
   articleSourceTable,
   articleViewDailyTable,
+  organizationMembershipTable,
   postTable,
 } from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
+import { encodeGlobalID } from "@pothos/plugin-relay";
 import { eq } from "drizzle-orm";
 import { execute, parse } from "graphql";
 import { schema } from "./mod.ts";
@@ -86,6 +89,19 @@ const articleAnalyticsQuery = parse(`
         quotes
         reactions
       }
+    }
+  }
+`);
+
+const articleAnalyticsAccessQuery = parse(`
+  query ArticleAnalyticsAccess($articleId: ID!, $articleSourceId: UUID!) {
+    node(id: $articleId) {
+      ... on Article {
+        viewerCanViewAnalytics
+      }
+    }
+    articleAnalytics(articleSourceId: $articleSourceId) {
+      totalViews
     }
   }
 `);
@@ -325,6 +341,119 @@ test("article analytics hides data from guests and unrelated accounts", async ()
       });
       assert.deepEqual(result.errors, undefined);
       assert.deepEqual(toPlainJson(result.data), { articleAnalytics: null });
+    }
+  });
+});
+
+test("organization members and moderators can view article analytics", async () => {
+  await withRollback(async (tx) => {
+    const organization = await insertAccountWithActor(tx, {
+      username: "analyticsorganization",
+      name: "Analytics Organization",
+      email: "analyticsorganization@example.com",
+      kind: "organization",
+      type: "Organization",
+    });
+    const member = await insertAccountWithActor(tx, {
+      username: "analyticsorganizationmember",
+      name: "Analytics Organization Member",
+      email: "analyticsorganizationmember@example.com",
+    });
+    const pendingMember = await insertAccountWithActor(tx, {
+      username: "analyticspendingmember",
+      name: "Analytics Pending Member",
+      email: "analyticspendingmember@example.com",
+    });
+    const outsider = await insertAccountWithActor(tx, {
+      username: "analyticsoutsider",
+      name: "Analytics Outsider",
+      email: "analyticsoutsider@example.com",
+    });
+    const moderator = await insertAccountWithActor(tx, {
+      username: "analyticsmoderator",
+      name: "Analytics Moderator",
+      email: "analyticsmoderator@example.com",
+    });
+    await tx
+      .update(accountTable)
+      .set({ moderator: true })
+      .where(eq(accountTable.id, moderator.account.id));
+    await tx.insert(organizationMembershipTable).values([
+      {
+        organizationAccountId: organization.account.id,
+        memberAccountId: member.account.id,
+        role: "member",
+        invitedById: member.account.id,
+        accepted: new Date("2026-08-01T00:00:00.000Z"),
+      },
+      {
+        organizationAccountId: organization.account.id,
+        memberAccountId: pendingMember.account.id,
+        role: "member",
+        invitedById: member.account.id,
+      },
+    ]);
+
+    const sourceId = generateUuidV7();
+    const postId = generateUuidV7();
+    const published = new Date("2026-08-01T00:00:00.000Z");
+    await tx.insert(articleSourceTable).values({
+      id: sourceId,
+      accountId: organization.account.id,
+      publishedYear: 2026,
+      slug: "organization-analytics",
+      published,
+      updated: published,
+    });
+    await tx.insert(articleContentTable).values({
+      sourceId,
+      language: "en",
+      title: "Organization analytics",
+      content: "Content",
+      published,
+      updated: published,
+    });
+    await tx.insert(postTable).values({
+      id: postId,
+      iri: "http://localhost/articles/organization-analytics",
+      type: "Article",
+      visibility: "public",
+      actorId: organization.actor.id,
+      articleSourceId: sourceId,
+      contentHtml: "<p>Content</p>",
+      published,
+      updated: published,
+    });
+
+    const cases = [
+      { context: makeGuestContext(tx), allowed: false },
+      { context: makeUserContext(tx, outsider.account), allowed: false },
+      { context: makeUserContext(tx, pendingMember.account), allowed: false },
+      { context: makeUserContext(tx, member.account), allowed: true },
+      {
+        context: makeUserContext(tx, {
+          ...moderator.account,
+          moderator: true,
+        }),
+        allowed: true,
+      },
+    ];
+
+    for (const testCase of cases) {
+      const result = await execute({
+        schema,
+        document: articleAnalyticsAccessQuery,
+        contextValue: testCase.context,
+        variableValues: {
+          articleId: encodeGlobalID("Article", postId),
+          articleSourceId: sourceId,
+        },
+      });
+      assert.deepEqual(result.errors, undefined);
+      assert.deepEqual(toPlainJson(result.data), {
+        node: { viewerCanViewAnalytics: testCase.allowed },
+        articleAnalytics: testCase.allowed ? { totalViews: 0 } : null,
+      });
     }
   });
 });

@@ -392,6 +392,7 @@ function ArticleBody(props: ArticleBodyProps) {
         actingAccountId: { type: "ID", defaultValue: null }
       ) {
         sourceId
+        viewerCanViewAnalytics
         contents(
           language: $language
           includeBeingTranslated: $includeBeingTranslated
@@ -510,7 +511,9 @@ function ArticleBody(props: ArticleBodyProps) {
                       repliesHref={base == null ? null : `${base}/replies`}
                       engagementBase={base}
                       analyticsHref={
-                        base == null || article.sourceId == null
+                        base == null ||
+                        article.sourceId == null ||
+                        !article.viewerCanViewAnalytics
                           ? null
                           : `${base}/analytics`
                       }
