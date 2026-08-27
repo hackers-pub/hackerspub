@@ -33,12 +33,49 @@ function avatarDataUri(initials: string, background: string): string {
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
 
+// A 1200×630 placeholder that mimics a typical Open Graph image, wide
+// enough to exercise LinkPreview's "wide" layout branch.
+function ogImageDataUri(label: string, background: string): string {
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">` +
+    `<rect width="1200" height="630" fill="${background}"/>` +
+    `<text x="600" y="330" text-anchor="middle" font-family="sans-serif" ` +
+    `font-size="64" font-weight="700" fill="#fff">${label}</text></svg>`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+
+interface LinkPreviewArgs {
+  url: string;
+  title: string;
+  description?: string | null;
+  siteName?: string | null;
+  imageLabel?: string | null;
+}
+
 // A single reusable `Actor` mock: every place the fragment tree reaches an
 // actor (post author, organization member, action-menu ownership check)
 // gets the same values, which keeps the payload below readable.
-function mockResolvers(content: string): MockResolvers {
+function mockResolvers(content: string, link?: LinkPreviewArgs): MockResolvers {
   return {
     Node: () => ({ __typename: "Note" }),
+    PostLink: () => ({
+      title: link?.title,
+      description: link?.description ?? null,
+      author: null,
+      siteName: link?.siteName ?? null,
+      // No LinkCreatorAttribution in these stories: null skips that
+      // nested fragment's own field set entirely.
+      creator: null,
+      image:
+        link?.imageLabel == null
+          ? null
+          : {
+              url: ogImageDataUri(link.imageLabel, "#0e8a86"),
+              width: 1200,
+              height: 630,
+              alt: link.imageLabel,
+            },
+    }),
     Actor: () => ({
       name: "Ellie Byrne",
       handle: "@ellie@hackers.pub",
@@ -70,8 +107,11 @@ function mockResolvers(content: string): MockResolvers {
       quotedPost: null,
       organizationAuthor: null,
       media: [],
-      linkPreviewUrl: null,
-      link: null,
+      linkPreviewUrl: link?.url ?? null,
+      // Omitted (not set to `null`) when a link is present, so the
+      // `PostLink` resolver above generates it; explicitly nulled to
+      // suppress the preview otherwise.
+      ...(link == null ? { link: null } : {}),
       published: "2026-08-20T09:30:00.000Z",
       url: "https://hackers.pub/@ellie/0198f2b1-89c1-7000-8000-000000000001",
       iri: "https://hackers.pub/ap/notes/0198f2b1-89c1-7000-8000-000000000001",
@@ -97,7 +137,10 @@ function mockResolvers(content: string): MockResolvers {
 // No network is ever hit: the environment's store is seeded synchronously
 // below via `commitPayload`, so `NoteCard` reads the fragment straight out
 // of the store on first render.
-function noteCardKey(content: string): {
+function noteCardKey(
+  content: string,
+  link?: LinkPreviewArgs,
+): {
   environment: Environment;
   note: NoteCard_note$key;
 } {
@@ -113,7 +156,7 @@ function noteCardKey(content: string): {
   );
   const payload = MockPayloadGenerator.generate(
     operation,
-    mockResolvers(content),
+    mockResolvers(content, link),
   );
   if (payload.data == null) {
     throw new Error("MockPayloadGenerator produced no data");
@@ -128,12 +171,14 @@ function noteCardKey(content: string): {
 interface NoteCardStoryArgs {
   /** Raw HTML for the mocked note's `content` field. */
   content: string;
+  /** When set, the note also carries a link preview (see `LinkPreview`). */
+  link?: LinkPreviewArgs;
 }
 
 const meta = {
   title: "Components/NoteCard",
   render: (args: NoteCardStoryArgs) => {
-    const { environment, note } = noteCardKey(args.content);
+    const { environment, note } = noteCardKey(args.content, args.link);
     return (
       <RelayEnvironmentProvider environment={environment}>
         <div class="max-w-lg border-x">
@@ -175,4 +220,24 @@ export const ShortNote: Story = {
 export const LongNote: Story = {
   name: "Long note (collapsed)",
   args: { content: longHtml },
+};
+
+const noteWithLinkHtml =
+  "<p>Worth a read if you've ever wondered how inbox delivery actually " +
+  "works under the hood:</p>";
+
+export const NoteWithLink: Story = {
+  name: "Note with a link preview",
+  args: {
+    content: noteWithLinkHtml,
+    link: {
+      url: "https://example.blog/activitypub-federation-explained",
+      title: "How ActivityPub Federation Actually Works",
+      description:
+        "A practical walkthrough of inbox delivery, actors, and the " +
+        "parts of the spec that trip people up.",
+      siteName: "example.blog",
+      imageLabel: "ActivityPub",
+    },
+  },
 };
