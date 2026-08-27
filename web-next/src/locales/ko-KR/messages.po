@@ -6109,6 +6109,9 @@ msgstr "성공률"
 msgid "Summary"
 msgstr "요약"
 
+msgid "View article analytics"
+msgstr "게시글 분석 보기"
+
 msgid "View trend"
 msgstr "조회 추이"
 

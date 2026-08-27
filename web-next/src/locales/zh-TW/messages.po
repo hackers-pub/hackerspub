@@ -6109,6 +6109,9 @@ msgstr "成功率"
 msgid "Summary"
 msgstr "摘要"
 
+msgid "View article analytics"
+msgstr "查看文章分析"
+
 msgid "View trend"
 msgstr "瀏覽趨勢"
 

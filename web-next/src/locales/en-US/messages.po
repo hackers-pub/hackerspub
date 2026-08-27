@@ -6113,6 +6113,9 @@ msgstr "Success rate"
 msgid "Summary"
 msgstr "Summary"
 
+msgid "View article analytics"
+msgstr "View article analytics"
+
 msgid "View trend"
 msgstr "View trend"
 

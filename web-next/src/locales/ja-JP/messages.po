@@ -6109,6 +6109,9 @@ msgstr "成功率"
 msgid "Summary"
 msgstr "概要"
 
+msgid "View article analytics"
+msgstr "記事の分析を見る"
+
 msgid "View trend"
 msgstr "閲覧数の推移"
 
