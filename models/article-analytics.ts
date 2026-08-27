@@ -208,7 +208,8 @@ function hashDeliveryServer(inbox: string): Buffer | null {
     if (hostname == null || !["http:", "https:"].includes(url.protocol)) {
       return null;
     }
-    return createHash("sha256").update(hostname, "utf8").digest();
+    const host = url.port === "" ? hostname : `${hostname}:${url.port}`;
+    return createHash("sha256").update(host, "utf8").digest();
   } catch {
     return null;
   }

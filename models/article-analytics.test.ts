@@ -194,9 +194,9 @@ test("supplemental analytics apply per-server delivery precedence", async () => 
     });
 
     const deliveries = [
-      ["direct-accepted", "direct-a.example", "direct", "accepted", 1],
-      ["direct-pending", "direct-a.example", "direct", "pending", 2],
-      ["direct-failed", "direct-b.example", "direct", "failed", 3],
+      ["direct-accepted", "direct-a.example:8443", "direct", "accepted", 1],
+      ["direct-pending", "direct-a.example:8443", "direct", "pending", 2],
+      ["direct-failed", "direct-a.example:9443", "direct", "failed", 3],
       ["relay-pending", "relay-a.example", "relay", "pending", 4],
       ["relay-failed", "relay-b.example", "relay", "failed", 5],
       ["relay-accepted", "relay-b.example", "relay", "accepted", 6],
